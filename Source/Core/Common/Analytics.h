@@ -10,13 +10,18 @@
 #include <thread>
 #include <utility>
 #include <vector>
+#include <curl/curlver.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FifoQueue.h"
 #include "Common/Flag.h"
 
+#if LIBCURL_VERSION_MAJOR >= 7 && LIBCURL_VERSION_MINOR >= 50
+typedef struct Curl_easy CURL;
+#else
 typedef void CURL;
+#endif
 
 // Utilities for analytics reporting in Dolphin. This reporting is designed to
 // provide anonymous data about how well Dolphin performs in the wild. It also
