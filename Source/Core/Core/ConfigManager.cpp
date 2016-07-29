@@ -133,6 +133,7 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
   general->Set("DumpPath", m_DumpPath);
   CreateDumpPath(m_DumpPath);
   general->Set("WirelessMac", m_WirelessMac);
+  general->Set("WiiSDCardPath", m_strWiiSDCardPath);
 
 #ifdef USE_GDBSTUB
 #ifndef _WIN32
@@ -405,6 +406,8 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
   general->Get("DumpPath", &m_DumpPath);
   CreateDumpPath(m_DumpPath);
   general->Get("WirelessMac", &m_WirelessMac);
+  general->Get("WiiSDCardPath", &m_strWiiSDCardPath, File::GetUserPath(F_WIISDCARD_IDX));
+  File::SetUserPath(F_WIISDCARD_IDX, m_strWiiSDCardPath);
 }
 
 void SConfig::LoadInterfaceSettings(IniFile& ini)
@@ -648,6 +651,7 @@ void SConfig::LoadDefaults()
   iBBDumpPort = -1;
   bSyncGPU = false;
   bFastDiscSpeed = false;
+  m_strWiiSDCardPath = File::GetUserPath(F_WIISDCARD_IDX);
   bEnableMemcardSdWriting = true;
   SelectedLanguage = 0;
   bOverrideGCLanguage = false;
