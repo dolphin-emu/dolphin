@@ -315,11 +315,12 @@ bool ControlDialog::Validate()
 {
   control_reference->expression = WxStrToStr(textctrl->GetValue());
 
+  auto lock = ControllerEmu::GetStateLock();
   g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
   UpdateGUI();
 
-  return (control_reference->parse_error == EXPRESSION_PARSE_SUCCESS);
+  return control_reference->parse_error == EXPRESSION_PARSE_SUCCESS;
 }
 
 void GamepadPage::SetDevice(wxCommandEvent&)
@@ -351,6 +352,7 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 {
   control_reference->expression.clear();
 
+  auto lock = ControllerEmu::GetStateLock();
   g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
   UpdateGUI();
@@ -408,6 +410,7 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
   textctrl->WriteText(expr);
   control_reference->expression = textctrl->GetValue();
 
+  auto lock = ControllerEmu::GetStateLock();
   g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
   UpdateGUI();
@@ -442,6 +445,7 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
   textctrl->WriteText(expr);
   control_reference->expression = textctrl->GetValue();
 
+  auto lock = ControllerEmu::GetStateLock();
   g_controller_interface.UpdateReference(control_reference, m_parent->controller->default_device);
 
   UpdateGUI();
@@ -556,6 +560,7 @@ bool GamepadPage::DetectButton(ControlButton* button)
       wxString expr;
       GetExpressionForControl(expr, control_name);
       button->control_reference->expression = expr;
+      auto lock = ControllerEmu::GetStateLock();
       g_controller_interface.UpdateReference(button->control_reference, controller->default_device);
       success = true;
     }
