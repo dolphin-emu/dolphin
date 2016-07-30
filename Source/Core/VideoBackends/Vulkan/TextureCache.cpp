@@ -297,60 +297,16 @@ TextureCache::TCacheEntry::~TCacheEntry()
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
                                      unsigned int expanded_width, unsigned int level)
 {
-  StreamBuffer* upload_buffer = m_parent->m_texture_upload_buffer.get();
-
   // Can't copy data larger than the texture extents.
   width = std::max(1u, std::min(width, m_texture->GetWidth() >> level));
   height = std::max(1u, std::min(height, m_texture->GetHeight() >> level));
 
-  // Assume tightly packed rows, with no padding as the buffer source.
-  // Specifying larger sizes with bufferRowLength seems to cause issues on Mesa.
-  VkDeviceSize upload_width = width;
-  VkDeviceSize upload_pitch = upload_width * sizeof(u32);
-  VkDeviceSize upload_size = upload_pitch * height;
-
-  // Allocate memory from the streaming buffer for the texture data.
-  // TODO: Handle cases where the texture does not fit into the streaming buffer, we need to
-  // allocate a temporary buffer.
-  if (!upload_buffer->ReserveMemory(upload_size, g_object_cache->GetBufferImageGranularity()))
-  {
-    // Execute the command buffer first.
-    WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(m_parent->m_state_tracker, false);
-
-    // Try allocating again. This may cause a fence wait.
-    if (!upload_buffer->ReserveMemory(upload_size, g_object_cache->GetBufferImageGranularity()))
-      PanicAlert("Failed to allocate space in texture upload buffer");
-  }
-
-  // Grab buffer pointers
-  VkBuffer image_upload_buffer = upload_buffer->GetBuffer();
-  VkDeviceSize image_upload_buffer_offset = upload_buffer->GetCurrentOffset();
-  u8* image_upload_buffer_pointer = upload_buffer->GetCurrentHostPointer();
-
-  // Copy to the buffer using the stride from the subresource layout
-  VkDeviceSize source_pitch = expanded_width * 4;
-  const u8* source_ptr = TextureCache::temp;
-  if (upload_pitch != source_pitch)
-  {
-    VkDeviceSize copy_pitch = std::min(source_pitch, upload_pitch);
-    for (unsigned int row = 0; row < height; row++)
-    {
-      memcpy(image_upload_buffer_pointer + row * upload_pitch, source_ptr + row * source_pitch,
-             copy_pitch);
-    }
-  }
-  else
-  {
-    // Can copy the whole thing in one block, the pitch matches
-    memcpy(image_upload_buffer_pointer, source_ptr, upload_size);
-  }
-
-  // Flush buffer memory if necessary
-  upload_buffer->CommitMemory(upload_size);
-
-  // We're assuming that Load() is only called for new textures, therefore we can ignore the
-  // current contents of the texture (VK_IMAGE_LAYOUT_UNDEFINED).
+  // We don't care about the existing contents of the texture, so we set the image layout to
+  // VK_IMAGE_LAYOUT_UNDEFINED here. However, if this texture is being re-used from the texture
+  // pool, it may still be in use. We assume that it's not, as non-efb-copy textures are only
+  // returned to the pool when the frame number is different, furthermore, we're doing this
+  // on the initialize command buffer, so a texture being re-used mid-frame would have undesirable
+  // effects regardless.
   VkImageMemoryBarrier barrier = {
       VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER,  // VkStructureType            sType
       nullptr,                                 // const void*                pNext
@@ -367,18 +323,86 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
                        VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0,
                        nullptr, 0, nullptr, 1, &barrier);
 
-  // Copy from the streaming buffer to the actual image.
-  VkBufferImageCopy image_copy = {
-      image_upload_buffer_offset,                // VkDeviceSize                bufferOffset
-      0,                                         // uint32_t                    bufferRowLength
-      0,                                         // uint32_t                    bufferImageHeight
-      {VK_IMAGE_ASPECT_COLOR_BIT, level, 0, 1},  // VkImageSubresourceLayers    imageSubresource
-      {0, 0, 0},                                 // VkOffset3D                  imageOffset
-      {width, height, 1}                         // VkExtent3D                  imageExtent
-  };
-  vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), image_upload_buffer,
-                         m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
-                         &image_copy);
+  // Does this texture data fit within the streaming buffer?
+  u32 upload_width = width;
+  u32 upload_pitch = upload_width * sizeof(u32);
+  u32 upload_size = upload_pitch * height;
+  u32 source_pitch = expanded_width * 4;
+  if (upload_size <= MAXIMUM_TEXTURE_UPLOAD_BUFFER_SIZE)
+  {
+    // Assume tightly packed rows, with no padding as the buffer source.
+    // Specifying larger sizes with bufferRowLength seems to cause issues on Mesa.
+    StreamBuffer* upload_buffer = m_parent->m_texture_upload_buffer.get();
+
+    // Allocate memory from the streaming buffer for the texture data.
+    if (!upload_buffer->ReserveMemory(upload_size, g_object_cache->GetBufferImageGranularity()))
+    {
+      // Execute the command buffer first.
+      WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
+      Util::ExecuteCurrentCommandsAndRestoreState(m_parent->m_state_tracker, false);
+
+      // Try allocating again. This may cause a fence wait.
+      if (!upload_buffer->ReserveMemory(upload_size, g_object_cache->GetBufferImageGranularity()))
+        PanicAlert("Failed to allocate space in texture upload buffer");
+    }
+
+    // Grab buffer pointers
+    VkBuffer image_upload_buffer = upload_buffer->GetBuffer();
+    VkDeviceSize image_upload_buffer_offset = upload_buffer->GetCurrentOffset();
+    u8* image_upload_buffer_pointer = upload_buffer->GetCurrentHostPointer();
+
+    // Copy to the buffer using the stride from the subresource layout
+    const u8* source_ptr = TextureCache::temp;
+    if (upload_pitch != source_pitch)
+    {
+      VkDeviceSize copy_pitch = std::min(source_pitch, upload_pitch);
+      for (unsigned int row = 0; row < height; row++)
+      {
+        memcpy(image_upload_buffer_pointer + row * upload_pitch, source_ptr + row * source_pitch,
+               copy_pitch);
+      }
+    }
+    else
+    {
+      // Can copy the whole thing in one block, the pitch matches
+      memcpy(image_upload_buffer_pointer, source_ptr, upload_size);
+    }
+
+    // Flush buffer memory if necessary
+    upload_buffer->CommitMemory(upload_size);
+
+    // Copy from the streaming buffer to the actual image.
+    VkBufferImageCopy image_copy = {
+        image_upload_buffer_offset,                // VkDeviceSize                bufferOffset
+        0,                                         // uint32_t                    bufferRowLength
+        0,                                         // uint32_t                    bufferImageHeight
+        {VK_IMAGE_ASPECT_COLOR_BIT, level, 0, 1},  // VkImageSubresourceLayers    imageSubresource
+        {0, 0, 0},                                 // VkOffset3D                  imageOffset
+        {width, height, 1}                         // VkExtent3D                  imageExtent
+    };
+    vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), image_upload_buffer,
+                           m_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
+                           &image_copy);
+  }
+  else
+  {
+    // Slow path. The data for the image is too large to fit in the streaming buffer, so we need
+    // to allocate a temporary texture to store the data in, then copy to the real texture.
+    std::unique_ptr<StagingTexture2D> staging_texture =
+        StagingTexture2D::Create(width, height, TEXTURECACHE_TEXTURE_FORMAT);
+
+    if (!staging_texture || !staging_texture->Map())
+    {
+      PanicAlert("Failed to allocate staging texture for large texture upload.");
+      return;
+    }
+
+    // Copy data to staging texture first, then to the "real" texture.
+    staging_texture->WriteTexels(0, 0, width, height, TextureCache::temp, source_pitch);
+    staging_texture->CopyToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                 m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width,
+                                 height, level, 0);
+  }
 
   // Transition to shader read only.
   barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;

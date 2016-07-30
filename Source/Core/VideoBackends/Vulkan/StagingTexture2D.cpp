@@ -458,12 +458,13 @@ std::unique_ptr<StagingTexture2D> StagingTexture2DBuffer::Create(u32 width, u32 
   // Assume tight packing.
   u32 row_stride = Vulkan::GetTexelSize(format) * width;
   u32 buffer_size = row_stride * height;
+  VkImageUsageFlags usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
   VkBufferCreateInfo buffer_create_info = {
       VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // VkStructureType        sType
       nullptr,                               // const void*            pNext
       0,                                     // VkBufferCreateFlags    flags
       buffer_size,                           // VkDeviceSize           size
-      VK_BUFFER_USAGE_TRANSFER_DST_BIT,      // VkBufferUsageFlags     usage
+      usage,                                 // VkBufferUsageFlags     usage
       VK_SHARING_MODE_EXCLUSIVE,             // VkSharingMode          sharingMode
       0,                                     // uint32_t               queueFamilyIndexCount
       nullptr                                // const uint32_t*        pQueueFamilyIndices
