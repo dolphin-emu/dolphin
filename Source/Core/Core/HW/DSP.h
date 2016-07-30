@@ -30,7 +30,7 @@ enum
 };
 
 // UDSPControl
-#define DSP_CONTROL_MASK 0x0C07
+constexpr u16 DSP_CONTROL_MASK = 0x0C07;
 union UDSPControl {
   u16 Hex;
   struct
