@@ -196,6 +196,7 @@ struct SConfig : NonCopyable
   std::string m_strApploader;
   std::string m_strUniqueID;
   std::string m_strName;
+  std::string m_strWiiSDCardPath;
   u16 m_revision;
 
   std::string m_perfDir;

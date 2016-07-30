@@ -143,6 +143,7 @@ void Initialize(void* const hwnd)
     s_config.CreateController<HotkeyManager>();
 
   g_controller_interface.Initialize(hwnd);
+  g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // load the saved controller config
   s_config.LoadConfig(true);
@@ -196,6 +197,7 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
+  auto lock = ControllerEmu::GetStateLock();
   for (int set = 0; set < (NUM_HOTKEYS + 31) / 32; set++)
   {
     std::vector<u32> bitmasks;

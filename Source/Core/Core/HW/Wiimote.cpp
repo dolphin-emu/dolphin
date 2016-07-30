@@ -37,6 +37,7 @@ void Initialize(void* const hwnd, InitializeMode init_mode)
   }
 
   g_controller_interface.Initialize(hwnd);
+  g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   s_config.LoadConfig(false);
 

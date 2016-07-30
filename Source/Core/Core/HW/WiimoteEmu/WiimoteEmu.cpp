@@ -694,8 +694,11 @@ void Wiimote::Update()
   }
 
   // returns true if a report was sent
-  if (Step())
-    return;
+  {
+    auto lock = ControllerEmu::GetStateLock();
+    if (Step())
+      return;
+  }
 
   u8 data[MAX_PAYLOAD];
   memset(data, 0, sizeof(data));
@@ -718,6 +721,8 @@ void Wiimote::Update()
     data[1] = m_reporting_mode;
 
     VR_UpdateWiimoteReportingMode(m_index, rptf.accel, rptf.ir, rptf.ext);
+
+    auto lock = ControllerEmu::GetStateLock();
 
     // core buttons
     if (rptf.core)
@@ -949,6 +954,7 @@ void Wiimote::ConnectOnInput()
   }
 
   u16 buttons = 0;
+  auto lock = ControllerEmu::GetStateLock();
   m_buttons->GetState(&buttons, button_bitmasks);
   m_dpad->GetState(&buttons, dpad_bitmasks);
 

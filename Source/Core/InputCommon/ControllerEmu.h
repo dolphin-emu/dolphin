@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -443,6 +444,12 @@ public:
   void UpdateDefaultDevice();
 
   void UpdateReferences(ControllerInterface& devi);
+
+  // This returns a lock that should be held before calling State() on any control
+  // references and GetState(), by extension. This prevents a race condition
+  // which happens while handling a hotplug event because a control reference's State()
+  // could be called before we have finished updating the reference.
+  static std::unique_lock<std::recursive_mutex> GetStateLock();
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 
