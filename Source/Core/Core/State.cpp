@@ -59,12 +59,16 @@ static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
 static std::string g_last_filename;
 
+static std::string g_bruteforce_filename;
+
 static CallbackFunc g_onAfterLoadCb = nullptr;
 
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
 static std::vector<u8> g_current_buffer;
 static int g_loadDepth = 0;
+
+static std::vector<u8> g_bruteforce_buffer;
 
 static std::mutex g_cs_undo_load_buffer;
 static std::mutex g_cs_current_buffer;
@@ -542,7 +546,7 @@ void LoadAs(const std::string& filename)
   g_loadDepth++;
 
   // Save temp buffer for undo load state
-  if (!Movie::IsJustStartingRecordingInputFromSaveState())
+  if (!ARBruteForcer::ch_bruteforce && !Movie::IsJustStartingRecordingInputFromSaveState())
   {
     std::lock_guard<std::mutex> lk(g_cs_undo_load_buffer);
     SaveToBuffer(g_undo_load_buffer);
@@ -556,6 +560,18 @@ void LoadAs(const std::string& filename)
   bool loadedSuccessfully = false;
   std::string version_created_by;
 
+  // load from memory during culling code bruteforcing, because we are loading state tens of
+  // thousands of times.
+  if (ARBruteForcer::ch_bruteforce && !g_bruteforce_buffer.empty() &&
+      filename == g_bruteforce_filename)
+  {
+    u8* ptr = &g_bruteforce_buffer[0];
+    PointerWrap p(&ptr, PointerWrap::MODE_READ);
+    version_created_by = DoState(p);
+    loaded = true;
+    loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
+  }
+  else
   // brackets here are so buffer gets freed ASAP
   {
     std::vector<u8> buffer;
@@ -568,6 +584,11 @@ void LoadAs(const std::string& filename)
       version_created_by = DoState(p);
       loaded = true;
       loadedSuccessfully = (p.GetMode() == PointerWrap::MODE_READ);
+      if (ARBruteForcer::ch_bruteforce && loadedSuccessfully)
+      {
+        g_bruteforce_filename = filename;
+        g_bruteforce_buffer.swap(buffer);
+      }
     }
   }
 
