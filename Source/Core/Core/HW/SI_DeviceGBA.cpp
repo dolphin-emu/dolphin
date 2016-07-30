@@ -234,7 +234,7 @@ void GBASockServer::ClockSync()
   }
 }
 
-void GBASockServer::Send(u8* si_buffer)
+void GBASockServer::Send(const u8* si_buffer)
 {
   if (!client)
     if (!GetAvailableSock(client))
