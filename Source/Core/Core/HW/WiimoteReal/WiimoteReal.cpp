@@ -6,6 +6,8 @@
 #include <cstdlib>
 #include <queue>
 
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
@@ -15,7 +17,10 @@
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "Core/HW/WiimoteReal/IOAndroid.h"
+#include "Core/HW/WiimoteReal/IOLinux.h"
+#include "Core/HW/WiimoteReal/IOWin.h"
+#include "Core/HW/WiimoteReal/IOdarwin.h"
 #include "Core/Host.h"
 #include "InputCommon/InputConfig.h"
 
@@ -452,6 +457,17 @@ void WiimoteScanner::SetScanMode(WiimoteScanMode scan_mode)
   m_scan_mode_changed_event.Set();
 }
 
+bool WiimoteScanner::IsReady() const
+{
+  return std::any_of(m_scanner_backends.begin(), m_scanner_backends.end(),
+                     [](const auto& backend) { return backend->IsReady(); });
+}
+
+void WiimoteScanner::AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend)
+{
+  m_scanner_backends.emplace_back(std::move(backend));
+}
+
 static void CheckForDisconnectedWiimotes()
 {
   std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
@@ -475,21 +491,24 @@ void WiimoteScanner::ThreadFunc()
     if (m_scan_mode.load() == WiimoteScanMode::DO_NOT_SCAN)
       continue;
 
-    if (CalculateWantedWiimotes() != 0 || CalculateWantedBB() != 0)
+    for (const auto& backend : m_scanner_backends)
     {
-      std::vector<Wiimote*> found_wiimotes;
-      Wiimote* found_board = nullptr;
-      FindWiimotes(found_wiimotes, found_board);
+      if (CalculateWantedWiimotes() != 0 || CalculateWantedBB() != 0)
       {
-        std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
-        std::for_each(found_wiimotes.begin(), found_wiimotes.end(), TryToConnectWiimote);
-        if (found_board)
-          TryToConnectBalanceBoard(found_board);
+        std::vector<Wiimote*> found_wiimotes;
+        Wiimote* found_board = nullptr;
+        backend->FindWiimotes(found_wiimotes, found_board);
+        {
+          std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
+          std::for_each(found_wiimotes.begin(), found_wiimotes.end(), TryToConnectWiimote);
+          if (found_board)
+            TryToConnectBalanceBoard(found_board);
+        }
       }
-    }
-    else
-    {
-      Update();  // Does stuff needed to detect disconnects on Windows
+      else
+      {
+        backend->Update();  // Does stuff needed to detect disconnects on Windows
+      }
     }
 
     if (m_scan_mode.load() == WiimoteScanMode::SCAN_ONCE)
@@ -615,7 +634,14 @@ void LoadSettings()
 void Initialize(::Wiimote::InitializeMode init_mode)
 {
   if (!g_real_wiimotes_initialized)
+  {
+    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerLinux>());
+    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerAndroid>());
+    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerWindows>());
+    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerDarwin>());
+    g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerDarwinHID>());
     g_wiimote_scanner.StartThread();
+  }
 
   if (SConfig::GetInstance().m_WiimoteContinuousScanning)
     g_wiimote_scanner.SetScanMode(WiimoteScanMode::CONTINUOUSLY_SCAN);
