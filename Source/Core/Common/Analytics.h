@@ -16,7 +16,10 @@
 #include "Common/FifoQueue.h"
 #include "Common/Flag.h"
 
+// curl 7.50+ already defines this
+#if LIBCURL_VERSION_NUM < 0x073200
 typedef void CURL;
+#endif
 
 // Utilities for analytics reporting in Dolphin. This reporting is designed to
 // provide anonymous data about how well Dolphin performs in the wild. It also
