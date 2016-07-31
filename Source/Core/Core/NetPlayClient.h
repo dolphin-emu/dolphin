@@ -14,6 +14,7 @@
 #include <thread>
 #include <vector>
 #include "Common/CommonTypes.h"
+#include "Common/Event.h"
 #include "Common/FifoQueue.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
@@ -175,6 +176,8 @@ private:
   TraversalClient* m_traversal_client = nullptr;
   std::thread m_MD5_thread;
   bool m_should_compute_MD5 = false;
+  Common::Event m_gc_pad_event;
+  Common::Event m_wii_pad_event;
 
   u32 m_timebase_frame = 0;
 };

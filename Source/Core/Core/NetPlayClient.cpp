@@ -326,6 +326,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     // Trusting server for good map value (>=0 && <4)
     // add to pad buffer
     m_pad_buffer.at(map).Push(pad);
+    m_gc_pad_event.Set();
   }
   break;
 
@@ -344,6 +345,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     // Trusting server for good map value (>=0 && <4)
     // add to Wiimote buffer
     m_wiimote_buffer.at(map).Push(nw);
+    m_wii_pad_event.Set();
   }
   break;
 
@@ -996,14 +998,17 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
 
   // Now, we either use the data pushed earlier, or wait for the
   // other clients to send it to us
-  while (!m_pad_buffer[pad_nb].Pop(*pad_status))
+  while (m_pad_buffer[pad_nb].Size() == 0)
   {
     if (!m_is_running.load())
+    {
       return false;
+    }
 
-    // TODO: use a condition instead of sleeping
-    Common::SleepCurrentThread(1);
+    m_gc_pad_event.Wait();
   }
+
+  m_pad_buffer[pad_nb].Pop(*pad_status);
 
   if (Movie::IsRecordingInput())
   {
@@ -1042,13 +1047,18 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 
   }  // unlock players
 
-  while (!m_wiimote_buffer[_number].Pop(nw))
+  while (m_wiimote_buffer[_number].Size() == 0)
   {
-    // wait for receiving thread to push some data
-    Common::SleepCurrentThread(1);
     if (!m_is_running.load())
+    {
       return false;
+    }
+
+    // wait for receiving thread to push some data
+    m_wii_pad_event.Wait();
   }
+
+  m_wiimote_buffer[_number].Pop(nw);
 
   // If the reporting mode has changed, we just need to pop through the buffer,
   // until we reach a good input
@@ -1057,12 +1067,19 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
     u32 tries = 0;
     while (nw.size() != size)
     {
-      while (!m_wiimote_buffer[_number].Pop(nw))
+      while (m_wiimote_buffer[_number].Size() == 0)
       {
-        Common::SleepCurrentThread(1);
         if (!m_is_running.load())
+        {
           return false;
+        }
+
+        // wait for receiving thread to push some data
+        m_wii_pad_event.Wait();
       }
+
+      m_wiimote_buffer[_number].Pop(nw);
+
       ++tries;
       if (tries > m_target_buffer_size * 200 / 120)
         break;
@@ -1083,13 +1100,12 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 // called from ---GUI--- thread and ---NETPLAY--- thread (client side)
 bool NetPlayClient::StopGame()
 {
-  if (!m_is_running.load())
-  {
-    PanicAlertT("Game isn't running!");
-    return false;
-  }
-
   m_is_running.store(false);
+
+  // stop waiting for input
+  m_gc_pad_event.Set();
+  m_wii_pad_event.Set();
+
   NetPlay_Disable();
 
   // stop game
@@ -1103,6 +1119,12 @@ void NetPlayClient::Stop()
 {
   if (!m_is_running.load())
     return;
+
+  m_is_running.store(false);
+
+  // stop waiting for input
+  m_gc_pad_event.Set();
+  m_wii_pad_event.Set();
 
   // Tell the server to stop if we have a pad mapped in game.
   if (LocalPlayerHasControllerMapped())
