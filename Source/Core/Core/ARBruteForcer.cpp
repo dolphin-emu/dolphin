@@ -25,8 +25,10 @@
 
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ARBruteForcer.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/State.h"
 #include "VideoCommon/Statistics.h"
@@ -47,6 +49,9 @@ bool ch_last_search;
 bool ch_bruteforce;
 bool ch_dont_save_settings;
 
+int original_prim_count;
+
+
 std::vector<std::string> ch_map;
 std::string ch_title_id;
 std::string ch_code;
@@ -60,7 +65,7 @@ void ARBruteForceDriver()
     ch_begin_search = false;
     ch_next_code = false;
     ch_current_position = LoadLastPosition();
-    if (ch_current_position >= ch_map.size() && ch_bruteforce)
+    if (ch_current_position >= (int)ch_map.size() && ch_bruteforce)
     {
       ch_first_search = false;
       ch_bruteforce = false;
@@ -72,6 +77,7 @@ void ARBruteForceDriver()
     }
     else
     {
+      original_prim_count = SConfig::GetInstance().m_OriginalPrimitiveCount;
       ch_first_search = true;
       State::Load(1);
     }
@@ -81,15 +87,15 @@ void ARBruteForceDriver()
   // bad
   // so skip to the next one
   else if (ch_next_code ||
-           (ch_current_position && ch_cycles_without_snapshot > 30 && ch_last_search) ||
-           ch_cycles_without_snapshot > 100)
+           (ch_current_position > 0 && ch_cycles_without_snapshot > 30 && ch_last_search) ||
+           (ch_current_position >= 0 && ch_cycles_without_snapshot > 100))
   {
     ch_next_code = false;
     ch_first_search = false;
     ch_current_position++;
     SaveLastPosition(ch_current_position);
     ch_cycles_without_snapshot = 0;
-    if (ch_current_position >= ch_map.size())
+    if (ch_current_position >= (int)ch_map.size())
     {
       ch_bruteforce = 0;
       PostProcessCSVFile();
@@ -106,7 +112,10 @@ void ARBruteForceDriver()
 
 void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sScreenshotName)
 {
-  std::string s_sAux = std::to_string(ch_current_position) + "," + ch_map[ch_current_position] +
+  std::string addr;
+  if (ch_current_position >= 0)
+    addr = ch_map[ch_current_position];
+  std::string s_sAux = std::to_string(ch_current_position) + "," + addr +
                        "," + ch_code + "," + std::to_string(stats.thisFrame.numPrims) + "," +
                        std::to_string(stats.thisFrame.numDrawCalls) + "," +
                        std::to_string(ch_take_screenshot);
@@ -117,10 +126,28 @@ void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sSc
   myfile.close();
   if (ch_take_screenshot == 1)
   {
-    *s_bScreenshot = true;
-    *s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" +
-                         std::to_string(ch_current_position) + "_" + ch_map[ch_current_position] +
-                         "_" + ch_code + ".png";
+    int prims = stats.thisFrame.numPrims;
+    if (ch_current_position < 0)
+    {
+      original_prim_count = prims;
+      SConfig::GetInstance().m_OriginalPrimitiveCount = original_prim_count;
+      SConfig::GetInstance().SaveSettings();
+    }
+    if (ch_current_position < 0 || prims != original_prim_count)
+    {
+      *s_bScreenshot = true;
+      if (ch_current_position < 0)
+        *s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("original %d.png", prims);
+      else if (prims == 0)
+        *s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("blank %s %s.png", addr, ch_code);
+      else if (prims > original_prim_count)
+        *s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("show %d %s %s.png", prims, addr, ch_code);
+      else
+        *s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("hide %d %s %s.png", prims, addr, ch_code);
+      //*s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" +
+      //  std::to_string(ch_current_position) + "_" + addr +
+      //  "_" + ch_code + ".png";
+    }
     ch_cycles_without_snapshot = 0;
     ch_last_search = true;
     ch_next_code = true;
@@ -199,7 +226,14 @@ int LoadLastPosition()
     }
     myfile.close();
   }
-  return (atoi(aux.c_str()));
+
+  std::istringstream iss(aux.c_str());
+  iss.imbue(std::locale("C"));
+  int tmp = -1;
+  if (iss >> tmp)
+    return tmp;
+  else
+    return -1;
 }
 
 // Create a new processed.csv file that only contains the functions that changed how many objects

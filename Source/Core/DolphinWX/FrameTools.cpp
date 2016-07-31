@@ -1767,7 +1767,7 @@ void CFrame::OnBruteForce(wxCommandEvent& event)
   ARBruteForcer::ch_bruteforce = true;
   if (running)
     Core::PauseAndLock(false, was_unpaused);
-  else if (position != -1)
+  else
     BootGame("");
 }
 

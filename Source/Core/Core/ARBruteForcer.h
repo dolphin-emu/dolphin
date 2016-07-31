@@ -23,6 +23,8 @@ extern bool ch_last_search;
 extern bool ch_bruteforce;
 extern bool ch_dont_save_settings;
 
+extern int original_prim_count;
+
 extern std::vector<std::string> ch_map;
 extern std::string ch_title_id;
 extern std::string ch_code;

@@ -412,6 +412,8 @@ void SConfig::SaveHotkeySettings(IniFile& ini)
 
 void SConfig::SaveVRSettings(IniFile& ini)
 {
+  IniFile::Section* vr = ini.GetOrCreateSection("VR");
+  vr->Set("OriginalPrimitiveCount", m_OriginalPrimitiveCount);
 }
 
 void SConfig::SaveDisplaySettings(IniFile& ini)
@@ -719,6 +721,8 @@ void SConfig::LoadHotkeySettings(IniFile& ini)
 
 void SConfig::LoadVRSettings(IniFile& ini)
 {
+  IniFile::Section* vr = ini.GetOrCreateSection("VR");
+  vr->Get("OriginalPrimitiveCount", &m_OriginalPrimitiveCount, -1);
 }
 
 void SConfig::LoadDisplaySettings(IniFile& ini)
