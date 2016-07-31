@@ -476,6 +476,8 @@ HRESULT Create(HWND wnd)
   OSD::AddMessage(
       StringFromFormat("Using D3D Adapter: %s.", UTF16ToUTF8(adapter_desc.Description).c_str()));
 
+  StateCache::CheckDiskCacheState(adapter);
+
   SAFE_RELEASE(factory);
   SAFE_RELEASE(adapter);
 

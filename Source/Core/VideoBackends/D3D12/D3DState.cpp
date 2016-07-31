@@ -126,6 +126,8 @@ StateCache::StateCache()
   m_current_pso_desc.IBStripCutValue = D3D12_INDEX_BUFFER_STRIP_CUT_VALUE_0xFFFF;
   m_current_pso_desc.NumRenderTargets = 1;
   m_current_pso_desc.SampleMask = UINT_MAX;
+
+  m_enable_disk_cache = true;
 }
 
 void StateCache::Init()
@@ -138,37 +140,54 @@ void StateCache::Init()
   gx_state_cache.m_current_pso_desc.SampleDesc.Count = g_ActiveConfig.iMultisamples;
   gx_state_cache.m_current_pso_desc.SampleDesc.Quality = 0;
 
-  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
-
-  std::string cache_filename =
-      StringFromFormat("%sdx12-%s-pso.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                       SConfig::GetInstance().m_strUniqueID.c_str());
-
-  PipelineStateCacheInserter inserter;
-  s_pso_disk_cache.OpenAndRead(cache_filename, inserter);
-
-  if (s_cache_is_corrupted)
+  if (gx_state_cache.m_enable_disk_cache)
   {
-    // If a PSO fails to create, that means either:
-    // - The file itself is corrupt.
-    // - A driver/HW change has occurred, causing the existing cache blobs to be invalid.
-    //
-    // In either case, we want to re-create the disk cache. This should not be a frequent occurence.
+    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-    s_pso_disk_cache.Close();
+    std::string cache_filename =
+        StringFromFormat("%sdx12-%s-pso.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+                         SConfig::GetInstance().m_strUniqueID.c_str());
 
-    for (auto it : gx_state_cache.m_small_pso_map)
-    {
-      SAFE_RELEASE(it.second);
-    }
-    gx_state_cache.m_small_pso_map.clear();
-
-    File::Delete(cache_filename);
-
+    PipelineStateCacheInserter inserter;
     s_pso_disk_cache.OpenAndRead(cache_filename, inserter);
 
-    s_cache_is_corrupted = false;
+    if (s_cache_is_corrupted)
+    {
+      // If a PSO fails to create, that means either:
+      // - The file itself is corrupt.
+      // - A driver/HW change has occurred, causing the existing cache blobs to be invalid.
+      //
+      // In either case, we want to re-create the disk cache. This should not be a frequent occurence.
+
+      s_pso_disk_cache.Close();
+
+      for (auto it : gx_state_cache.m_small_pso_map)
+      {
+        SAFE_RELEASE(it.second);
+      }
+      gx_state_cache.m_small_pso_map.clear();
+
+      File::Delete(cache_filename);
+
+      s_pso_disk_cache.OpenAndRead(cache_filename, inserter);
+
+      s_cache_is_corrupted = false;
+    }
+  }
+}
+
+void StateCache::CheckDiskCacheState(IDXGIAdapter* adapter)
+{
+  DXGI_ADAPTER_DESC adapter_desc = {};
+  adapter->GetDesc(&adapter_desc);
+  gx_state_cache.m_enable_disk_cache = true;
+
+  // Disable disk cache for drivers that have issues when recreating
+  // identical PSOs from the cache blob.
+  if (adapter_desc.VendorId == 0x1002)        // Microsoft WARP
+  {
+    gx_state_cache.m_enable_disk_cache = false;
   }
 }
 
@@ -445,15 +464,18 @@ HRESULT StateCache::GetPipelineStateObjectFromCache(
     disk_desc.vertex_declaration = pso_desc->input_layout->GetVertexDeclaration();
     disk_desc.topology = topology;
 
-    // This shouldn't fail.. but if it does, don't cache to disk.
-    ID3DBlob* psoBlob = nullptr;
-    hr = new_pso->GetCachedBlob(&psoBlob);
-
-    if (SUCCEEDED(hr))
+    if (m_enable_disk_cache)
     {
-      s_pso_disk_cache.Append(disk_desc, reinterpret_cast<const u8*>(psoBlob->GetBufferPointer()),
-                              static_cast<u32>(psoBlob->GetBufferSize()));
-      psoBlob->Release();
+      // This shouldn't fail.. but if it does, don't cache to disk.
+      ID3DBlob* psoBlob = nullptr;
+      hr = new_pso->GetCachedBlob(&psoBlob);
+
+      if (SUCCEEDED(hr))
+      {
+        s_pso_disk_cache.Append(disk_desc, reinterpret_cast<const u8*>(psoBlob->GetBufferPointer()),
+                                static_cast<u32>(psoBlob->GetBufferSize()));
+        psoBlob->Release();
+      }
     }
   }
   else
