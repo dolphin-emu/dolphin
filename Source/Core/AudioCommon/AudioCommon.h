@@ -4,16 +4,18 @@
 
 #pragma once
 
+#include <memory>
+
 #include "AudioCommon/SoundStream.h"
 #include "Common/CommonTypes.h"
 
 class CMixer;
 
-extern SoundStream* g_sound_stream;
+extern std::unique_ptr<SoundStream> g_sound_stream;
 
 namespace AudioCommon
 {
-SoundStream* InitSoundStream();
+void InitSoundStream();
 void ShutdownSoundStream();
 std::vector<std::string> GetSoundBackends();
 void UpdateSoundStream();
