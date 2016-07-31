@@ -7,7 +7,8 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
-#include "VideoCommon/VideoCommon.h"
+
+enum class APIType;
 
 // Different ways to achieve rendering with destination alpha
 enum DSTALPHA_MODE
@@ -165,6 +166,6 @@ struct pixel_shader_uid_data
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 
-ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, API_TYPE ApiType,
+ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
                                    const pixel_shader_uid_data* uid_data);
 PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode);

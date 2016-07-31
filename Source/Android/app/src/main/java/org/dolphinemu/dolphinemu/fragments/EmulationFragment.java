@@ -105,14 +105,17 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 	public void onViewCreated(View view, Bundle savedInstanceState)
 	{
 		Button doneButton = (Button) view.findViewById(R.id.done_control_config);
-		doneButton.setOnClickListener(new View.OnClickListener()
+		if (doneButton != null)
 		{
-			@Override
-			public void onClick(View v)
+			doneButton.setOnClickListener(new View.OnClickListener()
 			{
-				stopConfiguringControls();
-			}
-		});
+				@Override
+				public void onClick(View v)
+				{
+					stopConfiguringControls();
+				}
+			});
+		}
 	}
 
 	@Override

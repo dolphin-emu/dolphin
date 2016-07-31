@@ -14,6 +14,7 @@
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
 #include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace DX11
 {
@@ -202,7 +203,7 @@ ID3D11PixelShader* PSTextureEncoder::SetStaticShader(unsigned int dstFormat,
     }
 
     D3DBlob* bytecode = nullptr;
-    const char* shader = TextureConversionShader::GenerateEncodingShader(format, API_D3D);
+    const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::D3D);
     if (!D3D::CompilePixelShader(shader, &bytecode))
     {
       WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, "

@@ -258,7 +258,7 @@ bool VertexShaderCache::SetShader()
     return (entry.shader != nullptr);
   }
 
-  ShaderCode code = GenerateVertexShaderCode(API_D3D, uid.GetUidData());
+  ShaderCode code = GenerateVertexShaderCode(APIType::D3D, uid.GetUidData());
 
   D3DBlob* pbytecode = nullptr;
   D3D::CompileVertexShader(code.GetBuffer(), &pbytecode);

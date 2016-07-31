@@ -23,11 +23,12 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 
     GeckoCode gcode;
 
+    lines.erase(std::remove_if(lines.begin(), lines.end(),
+      [](const std::string& line) { return line.empty() || line[0] == '#'; }),
+                lines.end());
+
     for (auto& line : lines)
     {
-      if (line.empty())
-        continue;
-
       std::istringstream ss(line);
 
       switch ((line)[0])

@@ -26,7 +26,7 @@ public:
 
   void ClockSync();
 
-  void Send(u8* si_buffer);
+  void Send(const u8* si_buffer);
   int Receive(u8* si_buffer);
 
 private:

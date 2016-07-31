@@ -7,8 +7,6 @@
 // This backend tries not to do anything in the backend,
 // but everything in VideoCommon.
 
-#include "Core/Host.h"
-
 #include "VideoBackends/Null/FramebufferManager.h"
 #include "VideoBackends/Null/PerfQuery.h"
 #include "VideoBackends/Null/Render.h"
@@ -17,24 +15,15 @@
 #include "VideoBackends/Null/VertexManager.h"
 #include "VideoBackends/Null/VideoBackend.h"
 
-#include "VideoCommon/BPStructs.h"
-#include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/Fifo.h"
-#include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoBackendBase.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Null
 {
 void VideoBackend::InitBackendInfo()
 {
-  g_Config.backend_info.APIType = API_NONE;
+  g_Config.backend_info.api_type = APIType::Nothing;
   g_Config.backend_info.bSupportsExclusiveFullscreen = true;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsEarlyZ = true;

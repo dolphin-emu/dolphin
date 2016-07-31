@@ -7,7 +7,8 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/ShaderGenCommon.h"
-#include "VideoCommon/VideoCommon.h"
+
+enum class APIType;
 
 // TODO should be reordered
 #define SHADER_POSITION_ATTRIB 0
@@ -67,4 +68,4 @@ struct vertex_shader_uid_data
 typedef ShaderUid<vertex_shader_uid_data> VertexShaderUid;
 
 VertexShaderUid GetVertexShaderUid();
-ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_data* uid_data);
+ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_data* uid_data);

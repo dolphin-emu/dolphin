@@ -9,11 +9,17 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 static const char* primitives_ogl[] = {"points", "lines", "triangles"};
 
 static const char* primitives_d3d[] = {"point", "line", "triangle"};
+
+template <class T>
+static void EmitVertex(T& out, const char* vertex, APIType ApiType, bool first_vertex = false);
+template <class T>
+static void EndPrimitive(T& out, APIType ApiType);
 
 GeometryShaderUid GetGeometryShaderUid(u32 primitive_type)
 {
@@ -34,11 +40,11 @@ GeometryShaderUid GetGeometryShaderUid(u32 primitive_type)
 }
 
 static void EmitVertex(ShaderCode& out, const geometry_shader_uid_data* uid_data,
-                       const char* vertex, API_TYPE ApiType, bool first_vertex = false);
+                       const char* vertex, APIType ApiType, bool first_vertex = false);
 static void EndPrimitive(ShaderCode& out, const geometry_shader_uid_data* uid_data,
-                         API_TYPE ApiType);
+                         APIType ApiType);
 
-ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_uid_data* uid_data)
+ShaderCode GenerateGeometryShaderCode(APIType ApiType, const geometry_shader_uid_data* uid_data)
 {
   ShaderCode out;
   // Non-uid template parameters will write to the dummy data (=> gets optimized out)
@@ -49,8 +55,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   if (uid_data->wireframe)
     vertex_out++;
 
-
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     // Insert layout parameters
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
@@ -72,7 +77,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
     out.Write("layout(std140%s) uniform GSBlock {\n",
               g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 3" : "");
   else
@@ -87,7 +92,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
                                       "");
   out.Write("};\n");
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
       out.Write("#define InstanceID gl_InvocationID\n");
@@ -141,7 +146,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
 
   if (uid_data->primitive_type == PRIMITIVE_LINES)
   {
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
     {
       out.Write("\tVS_OUTPUT start, end;\n");
       AssignVSOutputMembers(out, "start", "vs[0]", uid_data->numTexGens, uid_data->pixel_lighting);
@@ -172,7 +177,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   }
   else if (uid_data->primitive_type == PRIMITIVE_POINTS)
   {
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
     {
       out.Write("\tVS_OUTPUT center;\n");
       AssignVSOutputMembers(out, "center", "vs[0]", uid_data->numTexGens, uid_data->pixel_lighting);
@@ -203,7 +208,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
 
   out.Write("\tfor (int i = 0; i < %d; ++i) {\n", vertex_in);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     out.Write("\tVS_OUTPUT f;\n");
     AssignVSOutputMembers(out, "f", "vs[i]", uid_data->numTexGens, uid_data->pixel_lighting);
@@ -217,7 +222,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   {
     // Select the output layer
     out.Write("\tps.layer = eye;\n");
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
       out.Write("\tgl_Layer = eye;\n");
     // StereoParams[eye] = camera shift in game units * projection[0][0]
     // StereoParams[eye+2] = offaxis shift from Oculus projection[0][2]
@@ -229,7 +234,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   {
     // Select the output layer
     out.Write("\tps.layer = eye;\n");
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
       out.Write("\tgl_Layer = eye;\n");
 
     // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
@@ -312,12 +317,12 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
 }
 
 static void EmitVertex(ShaderCode& out, const geometry_shader_uid_data* uid_data,
-                       const char* vertex, API_TYPE ApiType, bool first_vertex)
+                       const char* vertex, APIType ApiType, bool first_vertex)
 {
   if (uid_data->wireframe && first_vertex)
     out.Write("\tif (i == 0) first = %s;\n", vertex);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     out.Write("\tgl_Position = %s.pos;\n", vertex);
     AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, uid_data->pixel_lighting);
@@ -327,26 +332,25 @@ static void EmitVertex(ShaderCode& out, const geometry_shader_uid_data* uid_data
     out.Write("\tps.o = %s;\n", vertex);
   }
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
     out.Write("\tEmitVertex();\n");
   else
     out.Write("\toutput.Append(ps);\n");
 }
 
-static void EndPrimitive(ShaderCode& out, const geometry_shader_uid_data* uid_data,
-                         API_TYPE ApiType)
+static void EndPrimitive(ShaderCode& out, const geometry_shader_uid_data* uid_data, APIType ApiType)
 {
   if (uid_data->wireframe)
     EmitVertex(out, uid_data, "first", ApiType);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
     out.Write("\tEndPrimitive();\n");
   else
     out.Write("\toutput.RestartStrip();\n");
 }
 
 template <class T>
-static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
+static T GenerateAvatarGeometryShader(u32 primitive_type, APIType ApiType)
 {
   T out;
   // Non-uid template parameters will write to the dummy data (=> gets optimized out)
@@ -366,7 +370,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
   uid_data->vr = g_ActiveConfig.iStereoMode >= STEREO_OCULUS;
   uid_data->stereo = g_ActiveConfig.iStereoMode > 0;
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     // Insert layout parameters
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
@@ -386,7 +390,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
   }
 
   // uniforms
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
     out.Write("layout(std140%s) uniform GSBlock {\n",
               g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 3" : "");
   else
@@ -406,7 +410,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
   DefineOutputMember(out, ApiType, qualifier, "float3", "tex", 0, "TEXCOORD", 0);
   out.Write("};\n");
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
       out.Write("#define InstanceID gl_InvocationID\n");
@@ -462,7 +466,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
 
   if (primitive_type == PRIMITIVE_LINES)
   {
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
     {
       out.Write("\tVS_OUTPUT start, end;\n");
       const char* a = "start";
@@ -501,7 +505,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
   }
   else if (primitive_type == PRIMITIVE_POINTS)
   {
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
     {
       const char* a = "center";
       const char* b = "vs[0]";
@@ -536,7 +540,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
 
   out.Write("\tfor (int i = 0; i < %d; ++i) {\n", vertex_in);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     out.Write("\tVS_OUTPUT f;\n");
     const char* a = "f";
@@ -554,7 +558,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
   {
     // Select the output layer
     out.Write("\tps.layer = eye;\n");
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
       out.Write("\tgl_Layer = eye;\n");
     // StereoParams[eye] = camera shift in game units * projection[0][0]
     // StereoParams[eye+2] = offaxis shift from Oculus projection[0][2]
@@ -566,7 +570,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
   {
     // Select the output layer
     out.Write("\tps.layer = eye;\n");
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
       out.Write("\tgl_Layer = eye;\n");
 
     // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
@@ -649,7 +653,7 @@ static T GenerateAvatarGeometryShader(u32 primitive_type, API_TYPE ApiType)
   return out;
 }
 
-ShaderCode GenerateAvatarGeometryShaderCode(u32 primitive_type, API_TYPE ApiType)
+ShaderCode GenerateAvatarGeometryShaderCode(u32 primitive_type, APIType ApiType)
 {
   return GenerateAvatarGeometryShader<ShaderCode>(primitive_type, ApiType);
 }

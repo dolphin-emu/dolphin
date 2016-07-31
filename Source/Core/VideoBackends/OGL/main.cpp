@@ -38,14 +38,10 @@ Make AA apply instantly during gameplay if possible
 #include <string>
 #include <vector>
 
-#include "Common/Atomic.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/GL/GLUtil.h"
-
-#include "Core/ConfigManager.h"
-#include "Core/Host.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/PerfQuery.h"
@@ -57,18 +53,8 @@ Make AA apply instantly during gameplay if possible
 #include "VideoBackends/OGL/VertexManager.h"
 #include "VideoBackends/OGL/VideoBackend.h"
 
-#include "VideoCommon/BPStructs.h"
-#include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/Fifo.h"
-#include "VideoCommon/GeometryShaderManager.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/VR.h"
-#include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
@@ -109,7 +95,7 @@ static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 
 void VideoBackend::InitBackendInfo()
 {
-  g_Config.backend_info.APIType = API_OPENGL;
+  g_Config.backend_info.api_type = APIType::OpenGL;
   g_Config.backend_info.bSupportsExclusiveFullscreen = false;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;

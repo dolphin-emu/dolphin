@@ -22,6 +22,7 @@
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace OGL
@@ -140,7 +141,7 @@ static SHADER& GetOrCreateEncodingShader(u32 format)
 
   if (s_encodingPrograms[format].glprogid == 0)
   {
-    const char* shader = TextureConversionShader::GenerateEncodingShader(format, API_OPENGL);
+    const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::OpenGL);
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
     if (g_ActiveConfig.iLog & CONF_SAVESHADERS && shader)
