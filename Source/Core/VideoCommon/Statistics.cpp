@@ -30,7 +30,7 @@ std::string Statistics::ToString()
 {
   std::string str;
 
-  if (g_ActiveConfig.backend_info.APIType == API_TYPE::API_NONE)
+  if (g_ActiveConfig.backend_info.api_type == APIType::Nothing)
   {
     str += StringFromFormat("Objects:            %i\n", stats.thisFrame.numDrawnObjects);
     str += StringFromFormat("Vertices Loaded:    %i\n", stats.thisFrame.numVerticesLoaded);

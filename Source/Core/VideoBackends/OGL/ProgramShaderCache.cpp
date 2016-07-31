@@ -20,6 +20,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace OGL
 {
@@ -206,12 +207,12 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
   last_entry = &newentry;
   newentry.in_cache = 0;
 
-  ShaderCode vcode = GenerateVertexShaderCode(API_OPENGL, uid.vuid.GetUidData());
-  ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, API_OPENGL, uid.puid.GetUidData());
+  ShaderCode vcode = GenerateVertexShaderCode(APIType::OpenGL, uid.vuid.GetUidData());
+  ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, APIType::OpenGL, uid.puid.GetUidData());
   ShaderCode gcode;
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders &&
       !uid.guid.GetUidData()->IsPassthrough())
-    gcode = GenerateGeometryShaderCode(API_OPENGL, uid.guid.GetUidData());
+    gcode = GenerateGeometryShaderCode(APIType::OpenGL, uid.guid.GetUidData());
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
