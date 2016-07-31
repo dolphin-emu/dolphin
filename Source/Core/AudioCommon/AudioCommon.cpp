@@ -132,7 +132,7 @@ void ClearAudioBuffer(bool mute)
     g_sound_stream->Clear(mute);
 }
 
-void SendAIBuffer(short* samples, unsigned int num_samples)
+void SendAIBuffer(const short* samples, unsigned int num_samples)
 {
   if (!g_sound_stream)
     return;
