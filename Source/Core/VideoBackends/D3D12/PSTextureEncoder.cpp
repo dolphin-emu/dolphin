@@ -55,7 +55,8 @@ void PSTextureEncoder::Init()
 
   tex_rtv_desc.Texture2D.MipSlice = 0;
 
-  D3D::rtv_descriptor_heap_mgr->Allocate(&m_out_rtv_cpu);
+  // Don't need to worry about the index, as we're never going to free this descriptor.
+  D3D::rtv_descriptor_heap_mgr->Allocate(nullptr, &m_out_rtv_cpu, nullptr, nullptr);
   D3D::device12->CreateRenderTargetView(m_out, &tex_rtv_desc, m_out_rtv_cpu);
 
   // Create output staging buffer
