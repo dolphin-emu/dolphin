@@ -255,7 +255,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
                                  s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
-  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
+  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0 || jit->jo.alwaysUseMemFuncs;
 
   registersInUse[reg_value] = false;
   if (jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
@@ -305,7 +305,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   }
 
   FixupBranch exit;
-  if (!jit->jo.alwaysUseMemFuncs && !slowmem)
+  if (!slowmem)
   {
     u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
 
@@ -528,7 +528,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
                                      BitSet32 registersInUse, int flags)
 {
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
-  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
+  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0 || jit->jo.alwaysUseMemFuncs;
 
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);
