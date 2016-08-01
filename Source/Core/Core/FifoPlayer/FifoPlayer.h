@@ -65,8 +65,8 @@ public:
   // PowerPC state.
   std::unique_ptr<CPUCoreBase> GetCPUCore();
 
-  FifoDataFile* GetFile() { return m_File.get(); }
-  u32 GetFrameObjectCount();
+  FifoDataFile* GetFile() const { return m_File.get(); }
+  u32 GetFrameObjectCount() const;
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
   const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }
   // Frame range
@@ -119,7 +119,7 @@ private:
   void LoadBPReg(u8 reg, u32 value);
   void LoadCPReg(u8 reg, u32 value);
   void LoadXFReg(u16 reg, u32 value);
-  void LoadXFMem16(u16 address, u32* data);
+  void LoadXFMem16(u16 address, const u32* data);
 
   bool ShouldLoadBP(u8 address);
 

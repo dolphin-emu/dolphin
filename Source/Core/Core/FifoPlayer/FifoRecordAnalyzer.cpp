@@ -13,7 +13,7 @@
 
 using namespace FifoAnalyzer;
 
-void FifoRecordAnalyzer::Initialize(u32* cpMem)
+void FifoRecordAnalyzer::Initialize(const u32* cpMem)
 {
   s_DrawingObject = false;
 
