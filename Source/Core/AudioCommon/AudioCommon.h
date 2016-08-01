@@ -20,7 +20,7 @@ void ShutdownSoundStream();
 std::vector<std::string> GetSoundBackends();
 void UpdateSoundStream();
 void ClearAudioBuffer(bool mute);
-void SendAIBuffer(short* samples, unsigned int num_samples);
+void SendAIBuffer(const short* samples, unsigned int num_samples);
 void StartAudioDump();
 void StopAudioDump();
 void IncreaseVolume(unsigned short offset);
