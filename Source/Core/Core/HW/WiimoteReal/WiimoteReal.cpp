@@ -500,6 +500,8 @@ void WiimoteScanner::ThreadFunc()
         Wiimote* found_board = nullptr;
         backend->FindWiimotes(found_wiimotes, found_board);
         {
+          if (!g_real_wiimotes_initialized)
+            continue;
           std::lock_guard<std::mutex> lk(g_wiimotes_mutex);
           std::for_each(found_wiimotes.begin(), found_wiimotes.end(), TryToConnectWiimote);
           if (found_board)
@@ -657,6 +659,7 @@ void Stop()
 // called when the Dolphin app exits
 void Shutdown()
 {
+  g_real_wiimotes_initialized = false;
   g_wiimote_scanner.StopThread();
 
   NOTICE_LOG(WIIMOTE, "WiimoteReal::Shutdown");
