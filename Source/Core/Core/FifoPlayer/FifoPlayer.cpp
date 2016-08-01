@@ -145,7 +145,7 @@ std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
   return std::make_unique<CPUCore>(this);
 }
 
-u32 FifoPlayer::GetFrameObjectCount()
+u32 FifoPlayer::GetFrameObjectCount() const
 {
   if (m_CurrentFrame < m_FrameInfo.size())
   {
@@ -413,7 +413,7 @@ void FifoPlayer::LoadMemory()
 
   SetupFifo();
 
-  u32* regs = m_File->GetBPMem();
+  const u32* regs = m_File->GetBPMem();
   for (int i = 0; i < FifoDataFile::BP_MEM_SIZE; ++i)
   {
     if (ShouldLoadBP(i))
@@ -494,7 +494,7 @@ void FifoPlayer::LoadXFReg(u16 reg, u32 value)
   GPFifo::Write32(value);
 }
 
-void FifoPlayer::LoadXFMem16(u16 address, u32* data)
+void FifoPlayer::LoadXFMem16(u16 address, const u32* data)
 {
   // Loads 16 * 4 bytes in xf memory starting at address
   GPFifo::Write8(0x10);                              // load XF reg

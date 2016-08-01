@@ -9,7 +9,7 @@
 namespace FifoRecordAnalyzer
 {
 // Must call this before analyzing Fifo commands with FifoAnalyzer::AnalyzeCommand()
-void Initialize(u32* cpMem);
+void Initialize(const u32* cpMem);
 
 void ProcessLoadIndexedXf(u32 val, int array);
 void WriteVertexArray(int arrayIndex, const u8* vertexData, int vertexSize, int numVertices);
