@@ -50,6 +50,7 @@ namespace Movie
 {
 static bool s_bFrameStep = false;
 static bool s_bReadOnly = true;
+static bool s_bInMovieState = false;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = MODE_NONE;
 
@@ -324,6 +325,12 @@ void SetReadOnly(bool bEnabled)
   s_bReadOnly = bEnabled;
 }
 
+// NOTE: Host Thread
+void SetInMovieState(bool bInMovieState)
+{
+  s_bInMovieState = bInMovieState;
+}
+
 // NOTE: GPU Thread
 void FrameSkipping()
 {
@@ -373,6 +380,11 @@ bool IsMovieActive()
 bool IsReadOnly()
 {
   return s_bReadOnly;
+}
+
+bool IsInMovieState()
+{
+  return s_bInMovieState;
 }
 
 u64 GetRecordingStartTime()
@@ -577,6 +589,7 @@ bool BeginRecordingInput(int controllers)
   s_totalTickCount = s_tickCountAtLastInput = 0;
   s_bongos = 0;
   s_memcards = 0;
+  SetInMovieState(true);
   if (NetPlay::IsNetPlayRunning())
   {
     s_bNetPlay = true;
@@ -1000,6 +1013,8 @@ bool PlayInput(const std::string& filename)
   s_currentInputCount = 0;
 
   s_playMode = MODE_PLAYING;
+
+  SetInMovieState(true);
 
   // Wiimotes cause desync issues if they're not reset before launching the game
   Wiimote::ResetAllWiimotes();
@@ -1515,9 +1530,15 @@ void GetSettings()
   s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
   s_iCPUCore = SConfig::GetInstance().iCPUCore;
   s_bNetPlay = NetPlay::IsNetPlayRunning();
-  s_language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
   if (!SConfig::GetInstance().bWii)
+  {
     s_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
+    s_language = static_cast<u8>(SConfig::GetInstance().SelectedLanguage);
+  }
+  else
+  {
+    s_language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+  }
   s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
   s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
 

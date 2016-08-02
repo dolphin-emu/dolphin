@@ -6,6 +6,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/Movie.h"
 
 // english
 SRAM sram_dump = {{0xFF, 0x6B, 0x00, 0x91, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF,
@@ -44,7 +45,7 @@ SRAM sram_dump_german = {{
 void InitSRAM()
 {
   File::IOFile file(SConfig::GetInstance().m_strSRAM, "rb");
-  if (file)
+  if (file && !Movie::IsInMovieState())
   {
     if (!file.ReadArray(&g_SRAM, 1))
     {
