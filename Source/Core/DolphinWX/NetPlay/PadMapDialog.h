@@ -12,7 +12,9 @@
 class NetPlayClient;
 class NetPlayServer;
 class Player;
+class wxArrayString;
 class wxChoice;
+class wxSizer;
 
 class PadMapDialog final : public wxDialog
 {
