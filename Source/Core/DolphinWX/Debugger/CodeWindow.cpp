@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -659,19 +660,18 @@ bool CCodeWindow::JITNoBlockLinking()
 // Toolbar
 void CCodeWindow::InitBitmaps()
 {
-  m_Bitmaps[Toolbar_Step] = WxUtils::LoadResourceBitmap("toolbar_debugger_step");
-  m_Bitmaps[Toolbar_StepOver] = WxUtils::LoadResourceBitmap("toolbar_debugger_step_over");
-  m_Bitmaps[Toolbar_StepOut] = WxUtils::LoadResourceBitmap("toolbar_debugger_step_out");
-  m_Bitmaps[Toolbar_Skip] = WxUtils::LoadResourceBitmap("toolbar_debugger_skip");
-  m_Bitmaps[Toolbar_GotoPC] = WxUtils::LoadResourceBitmap("toolbar_debugger_goto_pc");
-  m_Bitmaps[Toolbar_SetPC] = WxUtils::LoadResourceBitmap("toolbar_debugger_set_pc");
+  static constexpr std::array<const char* const, Toolbar_Debug_Bitmap_Max> s_image_names{
+      {"toolbar_debugger_step", "toolbar_debugger_step_over", "toolbar_debugger_step_out",
+       "toolbar_debugger_skip", "toolbar_debugger_goto_pc", "toolbar_debugger_set_pc"}};
+  const wxSize tool_size = Parent->GetToolbarBitmapSize();
+  for (std::size_t i = 0; i < s_image_names.size(); ++i)
+    m_Bitmaps[i] =
+        WxUtils::LoadScaledResourceBitmap(s_image_names[i], Parent, tool_size, wxDefaultSize,
+                                          WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER);
 }
 
 void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 {
-  int w = m_Bitmaps[0].GetWidth(), h = m_Bitmaps[0].GetHeight();
-
-  toolBar->SetToolBitmapSize(wxSize(w, h));
   WxUtils::AddToolbarButton(toolBar, IDM_STEP, _("Step"), m_Bitmaps[Toolbar_Step],
                             _("Step into the next instruction"));
   WxUtils::AddToolbarButton(toolBar, IDM_STEPOVER, _("Step Over"), m_Bitmaps[Toolbar_StepOver],

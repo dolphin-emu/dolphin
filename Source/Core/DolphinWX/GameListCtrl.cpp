@@ -11,6 +11,7 @@
 #include <memory>
 #include <string>
 #include <unordered_map>
+#include <utility>
 #include <vector>
 #include <wx/app.h>
 #include <wx/bitmap.h>
@@ -177,51 +178,73 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
 
 CGameListCtrl::~CGameListCtrl()
 {
-  ClearIsoFiles();
 }
 
 template <typename T>
-static void InitBitmap(wxImageList* img_list, std::vector<int>* vector, T index,
-                       const std::string& name)
+static void InitBitmap(wxImageList* img_list, std::vector<int>* vector, wxWindow* context,
+                       const wxSize& usable_size, T index, const std::string& name)
 {
-  wxSize size(96, 32);
-  (*vector)[static_cast<size_t>(index)] = img_list->Add(WxUtils::LoadResourceBitmap(name, size));
+  wxSize size = img_list->GetSize();
+  (*vector)[static_cast<size_t>(index)] = img_list->Add(WxUtils::LoadScaledResourceBitmap(
+      name, context, size, usable_size, WxUtils::LSI_SCALE | WxUtils::LSI_ALIGN_VCENTER));
 }
 
 void CGameListCtrl::InitBitmaps()
 {
-  wxImageList* img_list = new wxImageList(96, 32);
+  const wxSize size = FromDIP(wxSize(96, 32));
+  const wxSize flag_bmp_size = FromDIP(wxSize(32, 32));
+  const wxSize platform_bmp_size = flag_bmp_size;
+  const wxSize rating_bmp_size = FromDIP(wxSize(48, 32));
+  wxImageList* img_list = new wxImageList(size.GetWidth(), size.GetHeight());
   AssignImageList(img_list, wxIMAGE_LIST_SMALL);
 
   m_FlagImageIndex.resize(static_cast<size_t>(DiscIO::Country::NUMBER_OF_COUNTRIES));
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_JAPAN, "Flag_Japan");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_EUROPE, "Flag_Europe");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_USA, "Flag_USA");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_AUSTRALIA, "Flag_Australia");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_FRANCE, "Flag_France");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_GERMANY, "Flag_Germany");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_ITALY, "Flag_Italy");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_KOREA, "Flag_Korea");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_NETHERLANDS, "Flag_Netherlands");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_RUSSIA, "Flag_Russia");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_SPAIN, "Flag_Spain");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_TAIWAN, "Flag_Taiwan");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_WORLD, "Flag_International");
-  InitBitmap(img_list, &m_FlagImageIndex, DiscIO::Country::COUNTRY_UNKNOWN, "Flag_Unknown");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_JAPAN,
+             "Flag_Japan");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_EUROPE,
+             "Flag_Europe");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_USA,
+             "Flag_USA");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_AUSTRALIA,
+             "Flag_Australia");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_FRANCE,
+             "Flag_France");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_GERMANY,
+             "Flag_Germany");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_ITALY,
+             "Flag_Italy");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_KOREA,
+             "Flag_Korea");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_NETHERLANDS,
+             "Flag_Netherlands");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_RUSSIA,
+             "Flag_Russia");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_SPAIN,
+             "Flag_Spain");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_TAIWAN,
+             "Flag_Taiwan");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_WORLD,
+             "Flag_International");
+  InitBitmap(img_list, &m_FlagImageIndex, this, flag_bmp_size, DiscIO::Country::COUNTRY_UNKNOWN,
+             "Flag_Unknown");
 
   m_PlatformImageIndex.resize(static_cast<size_t>(DiscIO::Platform::NUMBER_OF_PLATFORMS));
-  InitBitmap(img_list, &m_PlatformImageIndex, DiscIO::Platform::GAMECUBE_DISC, "Platform_Gamecube");
-  InitBitmap(img_list, &m_PlatformImageIndex, DiscIO::Platform::WII_DISC, "Platform_Wii");
-  InitBitmap(img_list, &m_PlatformImageIndex, DiscIO::Platform::WII_WAD, "Platform_Wad");
-  InitBitmap(img_list, &m_PlatformImageIndex, DiscIO::Platform::ELF_DOL, "Platform_File");
+  InitBitmap(img_list, &m_PlatformImageIndex, this, platform_bmp_size,
+             DiscIO::Platform::GAMECUBE_DISC, "Platform_Gamecube");
+  InitBitmap(img_list, &m_PlatformImageIndex, this, platform_bmp_size, DiscIO::Platform::WII_DISC,
+             "Platform_Wii");
+  InitBitmap(img_list, &m_PlatformImageIndex, this, platform_bmp_size, DiscIO::Platform::WII_WAD,
+             "Platform_Wad");
+  InitBitmap(img_list, &m_PlatformImageIndex, this, platform_bmp_size, DiscIO::Platform::ELF_DOL,
+             "Platform_File");
 
   m_EmuStateImageIndex.resize(6);
-  InitBitmap(img_list, &m_EmuStateImageIndex, 0, "rating0");
-  InitBitmap(img_list, &m_EmuStateImageIndex, 1, "rating1");
-  InitBitmap(img_list, &m_EmuStateImageIndex, 2, "rating2");
-  InitBitmap(img_list, &m_EmuStateImageIndex, 3, "rating3");
-  InitBitmap(img_list, &m_EmuStateImageIndex, 4, "rating4");
-  InitBitmap(img_list, &m_EmuStateImageIndex, 5, "rating5");
+  InitBitmap(img_list, &m_EmuStateImageIndex, this, rating_bmp_size, 0, "rating0");
+  InitBitmap(img_list, &m_EmuStateImageIndex, this, rating_bmp_size, 1, "rating1");
+  InitBitmap(img_list, &m_EmuStateImageIndex, this, rating_bmp_size, 2, "rating2");
+  InitBitmap(img_list, &m_EmuStateImageIndex, this, rating_bmp_size, 3, "rating3");
+  InitBitmap(img_list, &m_EmuStateImageIndex, this, rating_bmp_size, 4, "rating4");
+  InitBitmap(img_list, &m_EmuStateImageIndex, this, rating_bmp_size, 5, "rating5");
 }
 
 void CGameListCtrl::BrowseForDirectory()
@@ -246,11 +269,11 @@ void CGameListCtrl::BrowseForDirectory()
       SConfig::GetInstance().SaveSettings();
     }
 
-    Update();
+    ReloadList();
   }
 }
 
-void CGameListCtrl::Update()
+void CGameListCtrl::ReloadList()
 {
   int scrollPos = wxWindow::GetScrollPos(wxVERTICAL);
   // Don't let the user refresh it while a game is running
@@ -291,20 +314,22 @@ void CGameListCtrl::Update()
     // set initial sizes for columns
     SetColumnWidth(COLUMN_DUMMY, 0);
     SetColumnWidth(COLUMN_PLATFORM, SConfig::GetInstance().m_showSystemColumn ?
-                                        32 + platform_icon_padding + platform_padding :
+                                        FromDIP(32 + platform_icon_padding + platform_padding) :
                                         0);
     SetColumnWidth(COLUMN_BANNER,
-                   SConfig::GetInstance().m_showBannerColumn ? 96 + platform_padding : 0);
-    SetColumnWidth(COLUMN_TITLE, 175 + platform_padding);
+                   SConfig::GetInstance().m_showBannerColumn ? FromDIP(96 + platform_padding) : 0);
+    SetColumnWidth(COLUMN_TITLE, FromDIP(175 + platform_padding));
     SetColumnWidth(COLUMN_MAKER,
-                   SConfig::GetInstance().m_showMakerColumn ? 150 + platform_padding : 0);
-    SetColumnWidth(COLUMN_FILENAME,
-                   SConfig::GetInstance().m_showFileNameColumn ? 100 + platform_padding : 0);
-    SetColumnWidth(COLUMN_ID, SConfig::GetInstance().m_showIDColumn ? 75 + platform_padding : 0);
+                   SConfig::GetInstance().m_showMakerColumn ? FromDIP(150 + platform_padding) : 0);
+    SetColumnWidth(COLUMN_FILENAME, SConfig::GetInstance().m_showFileNameColumn ?
+                                        FromDIP(100 + platform_padding) :
+                                        0);
+    SetColumnWidth(COLUMN_ID,
+                   SConfig::GetInstance().m_showIDColumn ? FromDIP(75 + platform_padding) : 0);
     SetColumnWidth(COLUMN_COUNTRY,
-                   SConfig::GetInstance().m_showRegionColumn ? 32 + platform_padding : 0);
+                   SConfig::GetInstance().m_showRegionColumn ? FromDIP(32 + platform_padding) : 0);
     SetColumnWidth(COLUMN_EMULATION_STATE,
-                   SConfig::GetInstance().m_showStateColumn ? 48 + platform_padding : 0);
+                   SConfig::GetInstance().m_showStateColumn ? FromDIP(48 + platform_padding) : 0);
 
     // add all items
     for (int i = 0; i < (int)m_ISOFiles.size(); i++)
@@ -496,7 +521,7 @@ void CGameListCtrl::SetBackgroundColor()
 
 void CGameListCtrl::ScanForISOs()
 {
-  ClearIsoFiles();
+  m_ISOFiles.clear();
 
   // Load custom game titles from titles.txt
   // http://www.gametdb.com/Wii/Downloads
@@ -648,7 +673,7 @@ void CGameListCtrl::ScanForISOs()
         }
 
         if (list)
-          m_ISOFiles.push_back(iso_file.release());
+          m_ISOFiles.emplace_back(std::move(iso_file));
       }
     }
   }
@@ -662,7 +687,7 @@ void CGameListCtrl::ScanForISOs()
       auto gli = std::make_unique<GameListItem>(drive, custom_title_map);
 
       if (gli->IsValid())
-        m_ISOFiles.push_back(gli.release());
+        m_ISOFiles.emplace_back(std::move(gli));
     }
   }
 
@@ -715,7 +740,7 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 const GameListItem* CGameListCtrl::GetISO(size_t index) const
 {
   if (index < m_ISOFiles.size())
-    return m_ISOFiles[index];
+    return m_ISOFiles[index].get();
   else
     return nullptr;
 }
@@ -997,7 +1022,7 @@ const GameListItem* CGameListCtrl::GetSelectedISO() const
     long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if (item == wxNOT_FOUND)
       return nullptr;
-    return m_ISOFiles[GetItemData(item)];
+    return m_ISOFiles[GetItemData(item)].get();
   }
 }
 
@@ -1010,7 +1035,7 @@ std::vector<const GameListItem*> CGameListCtrl::GetAllSelectedISOs() const
     item = GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if (item == wxNOT_FOUND)
       return result;
-    result.push_back(m_ISOFiles[GetItemData(item)]);
+    result.push_back(m_ISOFiles[GetItemData(item)].get());
   }
 }
 
@@ -1094,7 +1119,7 @@ void CGameListCtrl::OnDeleteISO(wxCommandEvent& WXUNUSED(event))
   {
     for (const GameListItem* iso : GetAllSelectedISOs())
       File::Delete(iso->GetFileName());
-    Update();
+    ReloadList();
   }
 }
 
@@ -1242,7 +1267,7 @@ void CGameListCtrl::CompressSelection(bool _compress)
   if (!all_good)
     WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
-  Update();
+  ReloadList();
 }
 
 bool CGameListCtrl::CompressCB(const std::string& text, float percent, void* arg)
@@ -1315,7 +1340,7 @@ void CGameListCtrl::OnCompressISO(wxCommandEvent& WXUNUSED(event))
   if (!all_good)
     WxUtils::ShowErrorDialog(_("Dolphin was unable to complete the requested action."));
 
-  Update();
+  ReloadList();
 }
 
 void CGameListCtrl::OnChangeDisc(wxCommandEvent& WXUNUSED(event))

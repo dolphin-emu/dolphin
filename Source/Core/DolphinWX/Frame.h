@@ -63,8 +63,8 @@ class CFrame : public CRenderFrame
 {
 public:
   CFrame(wxFrame* parent, wxWindowID id = wxID_ANY, const wxString& title = "Dolphin",
-         const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-         bool _UseDebugger = false, bool _BatchMode = false, bool ShowLogWindow = false,
+         wxRect geometry = wxDefaultSize, bool use_debugger = false, bool batch_mode = false,
+         bool show_log_window = false,
          long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
   virtual ~CFrame();
@@ -112,6 +112,7 @@ public:
 
   const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
+  const wxSize& GetToolbarBitmapSize() const;  // Needed before the toolbar exists
 
 #ifdef __WXGTK__
   Common::Event panic_event;
@@ -189,6 +190,7 @@ private:
   wxTimer m_poll_hotkey_timer;
   wxTimer m_handle_signal_timer;
 
+  wxSize m_toolbar_bitmap_size;
   wxBitmap m_Bitmaps[EToolbar_Max];
 
   wxMenuBar* m_menubar_shadow;
