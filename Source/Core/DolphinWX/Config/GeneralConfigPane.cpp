@@ -101,32 +101,51 @@ void GeneralConfigPane::InitializeGUI()
   m_throttler_choice->Bind(wxEVT_CHOICE, &GeneralConfigPane::OnThrottlerChoiceChanged, this);
   m_cpu_engine_radiobox->Bind(wxEVT_RADIOBOX, &GeneralConfigPane::OnCPUEngineRadioBoxChanged, this);
 
+  const int space5 = FromDIP(5);
+
   wxBoxSizer* const throttler_sizer = new wxBoxSizer(wxHORIZONTAL);
+  throttler_sizer->AddSpacer(space5);
   throttler_sizer->Add(new wxStaticText(this, wxID_ANY, _("Speed Limit:")), 0,
-                       wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
-  throttler_sizer->Add(m_throttler_choice, 0, wxLEFT | wxRIGHT | wxBOTTOM | wxEXPAND, 5);
+                       wxALIGN_CENTER_VERTICAL | wxBOTTOM, space5);
+  throttler_sizer->AddSpacer(space5);
+  throttler_sizer->Add(m_throttler_choice, 0, wxALIGN_CENTER_VERTICAL | wxBOTTOM, space5);
+  throttler_sizer->AddSpacer(space5);
 
   wxStaticBoxSizer* const basic_settings_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Basic Settings"));
-  basic_settings_sizer->Add(m_dual_core_checkbox, 0, wxALL, 5);
-  basic_settings_sizer->Add(m_idle_skip_checkbox, 0, wxALL, 5);
-  basic_settings_sizer->Add(m_cheats_checkbox, 0, wxALL, 5);
+  basic_settings_sizer->AddSpacer(space5);
+  basic_settings_sizer->Add(m_dual_core_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  basic_settings_sizer->AddSpacer(space5);
+  basic_settings_sizer->Add(m_idle_skip_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  basic_settings_sizer->AddSpacer(space5);
+  basic_settings_sizer->Add(m_cheats_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  basic_settings_sizer->AddSpacer(space5);
   basic_settings_sizer->Add(throttler_sizer);
 
   wxStaticBoxSizer* const analytics_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Usage Statistics Reporting Settings"));
-  analytics_sizer->Add(m_analytics_checkbox, 0, wxALL, 5);
-  analytics_sizer->Add(m_analytics_new_id, 0, wxALL, 5);
+  analytics_sizer->AddSpacer(space5);
+  analytics_sizer->Add(m_analytics_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  analytics_sizer->AddSpacer(space5);
+  analytics_sizer->Add(m_analytics_new_id, 0, wxLEFT | wxRIGHT, space5);
+  analytics_sizer->AddSpacer(space5);
 
   wxStaticBoxSizer* const advanced_settings_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Advanced Settings"));
-  advanced_settings_sizer->Add(m_cpu_engine_radiobox, 0, wxALL, 5);
-  advanced_settings_sizer->Add(m_force_ntscj_checkbox, 0, wxALL, 5);
+  advanced_settings_sizer->AddSpacer(space5);
+  advanced_settings_sizer->Add(m_cpu_engine_radiobox, 0, wxLEFT | wxRIGHT, space5);
+  advanced_settings_sizer->AddSpacer(space5);
+  advanced_settings_sizer->Add(m_force_ntscj_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  advanced_settings_sizer->AddSpacer(space5);
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
-  main_sizer->Add(basic_settings_sizer, 0, wxEXPAND | wxALL, 5);
-  main_sizer->Add(analytics_sizer, 0, wxEXPAND | wxALL, 5);
-  main_sizer->Add(advanced_settings_sizer, 0, wxEXPAND | wxALL, 5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(basic_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(analytics_sizer, 0, wxEXPAND | wxLEFT | wxLEFT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(advanced_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
 
   SetSizer(main_sizer);
 }
