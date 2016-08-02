@@ -38,6 +38,7 @@ set(GUI_SRCS
 	NetPlay/NetPlaySetupFrame.cpp
 	NetPlay/NetWindow.cpp
 	NetPlay/PadMapDialog.cpp
+	DolphinSlider.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
 	FrameAui.cpp
