@@ -26,15 +26,11 @@
 #include "DolphinWX/Debugger/MemoryView.h"
 #include "DolphinWX/WxUtils.h"
 
-static DSPDebuggerLLE* m_DebuggerFrame = nullptr;
-
 DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
     : wxPanel(parent, id, wxDefaultPosition, wxDefaultSize, wxTAB_TRAVERSAL, _("DSP LLE Debugger")),
       m_CachedStepCounter(-1), m_toolbar_item_size(FromDIP(wxSize(16, 16)))
 {
   Bind(wxEVT_MENU, &DSPDebuggerLLE::OnChangeState, this, ID_RUNTOOL, ID_SHOWPCTOOL);
-
-  m_DebuggerFrame = this;
 
   // notify wxAUI which frame to use
   m_mgr.SetManagedWindow(this);
@@ -103,8 +99,8 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 
 DSPDebuggerLLE::~DSPDebuggerLLE()
 {
+  StopStepping();
   m_mgr.UnInit();
-  m_DebuggerFrame = nullptr;
 }
 
 void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
@@ -138,26 +134,21 @@ void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
   m_mgr.Update();
 }
 
-void Host_RefreshDSPDebuggerWindow()
-{
-  // FIXME: This should use QueueEvent to post the update request to the UI thread.
-  //   Need to check if this can safely be performed asynchronously or if it races.
-  // FIXME: This probably belongs in Main.cpp with the other host functions.
-  // NOTE: The DSP never tells us when it shuts down. It probably should.
-  if (m_DebuggerFrame)
-    m_DebuggerFrame->Repopulate();
-}
-
 void DSPDebuggerLLE::Repopulate()
 {
-  if (!wxIsMainThread())
-    wxMutexGuiEnter();
   UpdateSymbolMap();
   UpdateDisAsmListView();
   UpdateRegisterFlags();
   UpdateState();
-  if (!wxIsMainThread())
-    wxMutexGuiLeave();
+}
+
+void DSPDebuggerLLE::StopStepping()
+{
+  if (DSPCore_GetState() == DSPCORE_STEPPING)
+  {
+    DSPCore_SetState(DSPCORE_RUNNING);
+    UpdateState();
+  }
 }
 
 void DSPDebuggerLLE::FocusOnPC()

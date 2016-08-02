@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <atomic>
+#include <condition_variable>
 #include <cstddef>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <vector>
@@ -50,13 +53,19 @@ public:
 
   bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) override;
 
+  // Returns true if this window is the current foreground window that the user is
+  // interacting with. Threadsafe version of wxTopLevelWindow::IsActive()
+  bool IsActiveThreadsafe() const;
 private:
   void OnDropFiles(wxDropFilesEvent& event);
+  void OnActivationChanged(wxActivateEvent&);
   static bool IsValidSavestateDropped(const std::string& filepath);
 #ifdef _WIN32
   // Receive WndProc messages
   WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
+
+  std::atomic<bool> m_is_active{false};
 };
 
 class CFrame : public CRenderFrame
@@ -86,7 +95,7 @@ public:
 
   void InitBitmaps();
   void DoPause();
-  void DoStop();
+  bool DoStop(bool allow_user_cancel = true);
   void OnStopped();
   void DoRecordingSave();
   void UpdateGUI();
@@ -101,24 +110,21 @@ public:
   void OnRenderParentClose(wxCloseEvent& event);
   void OnRenderParentMove(wxMoveEvent& event);
   bool RendererHasFocus();
-  bool UIHasFocus();
   bool RendererIsFullscreen();
   void DoFullscreen(bool bF);
   void ToggleDisplayMode(bool bFullscreen);
   void UpdateWiiMenuChoice(wxMenuItem* WiiMenuItem = nullptr);
   void PopulateSavedPerspectives();
-  static void ConnectWiimote(int wm_idx, bool connect);
   void UpdateTitle(const std::string& str);
 
   const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
   const wxSize& GetToolbarBitmapSize() const;  // Needed before the toolbar exists
 
-#ifdef __WXGTK__
-  Common::Event panic_event;
-  bool bPanicResult;
-  std::recursive_mutex keystate_lock;
-#endif
+  // Can be called by any thread.
+  // WARNING: Blocks the caller thread until the main thread responds.
+  // Return value is whether the user clicked "yes" on the dialog or not.
+  bool CreatePanicWindowAndWait(const char* text, const char* caption, bool yes_no);
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   X11Utils::XRRConfiguration* m_XRRConfig;
@@ -195,6 +201,16 @@ private:
 
   wxMenuBar* m_menubar_shadow;
 
+  // Panic Messageboxes from MsgHandler (PanicAlert, AskYesNo, etc)
+  struct PanicData
+  {
+    Common::Event done_signal;
+    wxString caption;
+    wxString text;
+    long style = wxOK | wxICON_NONE;
+    int result = 0;
+  };
+
   void PopulateToolbar(wxToolBar* toolBar);
   void RecreateToolbar();
   wxMenuBar* CreateMenu();
@@ -240,10 +256,6 @@ private:
   void OnPerspectiveMenu(wxCommandEvent& event);
   void OnSelectPerspective(wxCommandEvent& event);
 
-#ifdef _WIN32
-  // Override window proc for tricks like screensaver disabling
-  WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
-#endif
   // Event functions
   void OnQuit(wxCommandEvent& event);
   void OnHelp(wxCommandEvent& event);
@@ -304,9 +316,7 @@ private:
   void OnKeyDown(wxKeyEvent& event);  // Keyboard
   void OnMouse(wxMouseEvent& event);  // Mouse
 
-  void OnFocusChange(wxFocusEvent& event);
-
-  void OnHostMessage(wxCommandEvent& event);
+  void OnHostMessage(wxThreadEvent& event);
 
   void OnMemcard(wxCommandEvent& event);  // Misc
   void OnImportSave(wxCommandEvent& event);
@@ -319,6 +329,7 @@ private:
   void OnInstallWAD(wxCommandEvent& event);
   void OnFifoPlayer(wxCommandEvent& event);
   void OnConnectWiimote(wxCommandEvent& event);
+  void ConnectWiimote(int wm_idx, bool connect);
   void GameListChanged(wxCommandEvent& event);
 
   void OnGameListCtrlItemActivated(wxListEvent& event);

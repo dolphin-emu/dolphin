@@ -821,29 +821,34 @@ void CFrame::OnRecordExport(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnPlay(wxCommandEvent& WXUNUSED(event))
 {
-  if (Core::IsRunning())
+  // Core is uninitialized, start the game
+  if (!Core::IsRunning())
   {
-    // Core is initialized and emulator is running
-    if (UseDebugger)
-    {
-      CPU::EnableStepping(!CPU::IsStepping());
+    BootGame("");
+    return;
+  }
 
-      wxThread::Sleep(20);
-      g_pCodeWindow->JumpToAddress(PC);
-      g_pCodeWindow->Repopulate();
-      // Update toolbar with Play/Pause status
-      UpdateGUI();
-    }
-    else
-    {
-      DoPause();
-    }
+  // Core is initialized and emulator is running
+  if (!UseDebugger)
+  {
+    DoPause();
+    return;
+  }
+
+  // Core is running under debugger
+  if (CPU::IsStepping())
+  {
+    CPU::EnableStepping(false);
   }
   else
   {
-    // Core is uninitialized, start the game
-    BootGame("");
+    CPU::EnableStepping(true);
+
+    g_pCodeWindow->JumpToAddress(PC);
+    g_pCodeWindow->Repopulate();
   }
+  // Update toolbar with Play/Pause status
+  UpdateGUI();
 }
 
 void CFrame::OnRenderParentClose(wxCloseEvent& event)
@@ -1034,8 +1039,7 @@ void CFrame::StartGame(const std::string& filename)
     wxTheApp->Bind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
     wxTheApp->Bind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
     wxTheApp->Bind(wxEVT_MOTION, &CFrame::OnMouse, this);
-    wxTheApp->Bind(wxEVT_SET_FOCUS, &CFrame::OnFocusChange, this);
-    wxTheApp->Bind(wxEVT_KILL_FOCUS, &CFrame::OnFocusChange, this);
+
     m_RenderParent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
   }
 
@@ -1072,99 +1076,95 @@ void CFrame::DoPause()
   else
   {
     Core::SetState(Core::CORE_RUN);
-    if (SConfig::GetInstance().bHideCursor && RendererHasFocus())
+    if (SConfig::GetInstance().bHideCursor)
       m_RenderParent->SetCursor(wxCURSOR_BLANK);
   }
   UpdateGUI();
 }
 
 // Stop the emulation
-void CFrame::DoStop()
+bool CFrame::DoStop(bool allow_user_cancel)
 {
   if (!Core::IsRunningAndStarted())
-    return;
+    return false;
   if (m_confirmStop)
-    return;
+    return true;
+  if (Core::GetState() == Core::CORE_UNINITIALIZED && m_RenderParent == nullptr)
+    return true;
 
   // don't let this function run again until it finishes, or is aborted.
   m_confirmStop = true;
 
-  m_bGameLoading = false;
-  if (Core::GetState() != Core::CORE_UNINITIALIZED || m_RenderParent != nullptr)
+  // Ask for confirmation in case the user accidentally clicked Stop / Escape
+  if (allow_user_cancel && SConfig::GetInstance().bConfirmStop)
   {
-#if defined __WXGTK__
-    wxMutexGuiLeave();
-    std::lock_guard<std::recursive_mutex> lk(keystate_lock);
-    wxMutexGuiEnter();
-#endif
-    // Ask for confirmation in case the user accidentally clicked Stop / Escape
-    if (SConfig::GetInstance().bConfirmStop)
+    // Exit fullscreen to ensure it does not cover the stop dialog.
+    DoFullscreen(false);
+
+    // Pause the state during confirmation and restore it afterwards
+    Core::EState state = Core::GetState();
+
+    // Do not pause if netplay is running as CPU thread might be blocked
+    // waiting on inputs
+    bool should_pause = !NetPlayDialog::GetNetPlayClient();
+
+    // If exclusive fullscreen is not enabled then we can pause the emulation
+    // before we've exited fullscreen. If not then we need to exit fullscreen first.
+    should_pause =
+        should_pause && (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
+                         SConfig::GetInstance().bRenderToMain);
+
+    if (should_pause)
     {
-      // Exit fullscreen to ensure it does not cover the stop dialog.
-      DoFullscreen(false);
+      Core::SetState(Core::CORE_PAUSE);
+    }
 
-      // Pause the state during confirmation and restore it afterwards
-      Core::EState state = Core::GetState();
+    wxMessageDialog m_StopDlg(this, _("Do you want to stop the current emulation?"),
+                              _("Please confirm..."), wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION,
+                              wxDefaultPosition);
 
-      // Do not pause if netplay is running as CPU thread might be blocked
-      // waiting on inputs
-      bool should_pause = !NetPlayDialog::GetNetPlayClient();
-
-      // If exclusive fullscreen is not enabled then we can pause the emulation
-      // before we've exited fullscreen. If not then we need to exit fullscreen first.
-      should_pause =
-          should_pause && (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
-                           SConfig::GetInstance().bRenderToMain);
-
+    HotkeyManagerEmu::Enable(false);
+    int Ret = m_StopDlg.ShowModal();
+    HotkeyManagerEmu::Enable(true);
+    if (Ret != wxID_YES)
+    {
       if (should_pause)
-      {
-        Core::SetState(Core::CORE_PAUSE);
-      }
+        Core::SetState(state);
 
-      wxMessageDialog m_StopDlg(this, _("Do you want to stop the current emulation?"),
-                                _("Please confirm..."),
-                                wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION, wxDefaultPosition);
-
-      HotkeyManagerEmu::Enable(false);
-      int Ret = m_StopDlg.ShowModal();
-      HotkeyManagerEmu::Enable(true);
-      if (Ret != wxID_YES)
-      {
-        if (should_pause)
-          Core::SetState(state);
-
-        m_confirmStop = false;
-        return;
-      }
+      m_confirmStop = false;
+      return false;
     }
-
-    if (UseDebugger && g_pCodeWindow)
-    {
-      if (g_pCodeWindow->HasPanel<CWatchWindow>())
-        g_pCodeWindow->GetPanel<CWatchWindow>()->SaveAll();
-      PowerPC::watches.Clear();
-      if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
-        g_pCodeWindow->GetPanel<CBreakPointWindow>()->SaveAll();
-      PowerPC::breakpoints.Clear();
-      PowerPC::memchecks.Clear();
-      if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
-        g_pCodeWindow->GetPanel<CBreakPointWindow>()->NotifyUpdate();
-      g_symbolDB.Clear();
-      Host_NotifyMapLoaded();
-    }
-
-    // TODO: Show the author/description dialog here
-    if (Movie::IsRecordingInput())
-      DoRecordingSave();
-    if (Movie::IsMovieActive())
-      Movie::EndPlayInput(false);
-
-    if (NetPlayDialog::GetNetPlayClient())
-      NetPlayDialog::GetNetPlayClient()->Stop();
-
-    BootManager::Stop();
-    UpdateGUI();
   }
+
+  if (UseDebugger && g_pCodeWindow)
+  {
+    if (g_pCodeWindow->HasPanel<CWatchWindow>())
+      g_pCodeWindow->GetPanel<CWatchWindow>()->SaveAll();
+    PowerPC::watches.Clear();
+    if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
+      g_pCodeWindow->GetPanel<CBreakPointWindow>()->SaveAll();
+    PowerPC::breakpoints.Clear();
+    PowerPC::memchecks.Clear();
+    if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
+      g_pCodeWindow->GetPanel<CBreakPointWindow>()->NotifyUpdate();
+    g_symbolDB.Clear();
+    Host_NotifyMapLoaded();
+  }
+
+  // TODO: Show the author/description dialog here
+  if (Movie::IsRecordingInput())
+    DoRecordingSave();
+  if (Movie::IsMovieActive())
+    Movie::EndPlayInput(false);
+
+  if (NetPlayDialog::GetNetPlayClient())
+    NetPlayDialog::GetNetPlayClient()->Stop();
+
+  BootManager::Stop();
+
+  m_bGameLoading = false;
+  UpdateGUI();
+  return true;
 }
 
 void CFrame::OnStopped()
@@ -1187,12 +1187,14 @@ void CFrame::OnStopped()
   // Destroy the renderer frame when not rendering to main
   m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 
-  // Mouse
+  // Unbind events added by StartGame
+  wxTheApp->Unbind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
   wxTheApp->Unbind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
   wxTheApp->Unbind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
   wxTheApp->Unbind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
   wxTheApp->Unbind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
   wxTheApp->Unbind(wxEVT_MOTION, &CFrame::OnMouse, this);
+
   if (SConfig::GetInstance().bHideCursor)
     m_RenderParent->SetCursor(wxNullCursor);
   DoFullscreen(false);
@@ -1214,6 +1216,7 @@ void CFrame::OnStopped()
     m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
   }
   m_RenderParent = nullptr;
+  m_RenderFrame = nullptr;
 
   // Clean framerate indications from the status bar.
   GetStatusBar()->SetStatusText(" ", 0);
@@ -1735,6 +1738,8 @@ void CFrame::UpdateGUI()
   if (RunningWii)
   {
     bool was_unpaused = Core::PauseAndLock(true);
+    // FIXME: The Wiimotes should generate host commands when their state changes
+    //   instead of having to pause the core just to query their state.
     GetMenuBar()
         ->FindItem(IDM_CONNECT_WIIMOTE1)
         ->Check(GetUsbPointer()->AccessWiiMote(0x0100)->IsConnected());
