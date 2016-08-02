@@ -40,6 +40,7 @@ public:
   const std::string& GetFileName() const { return m_FileName; }
   std::string GetName(DiscIO::Language language) const;
   std::string GetName() const;
+  std::string GetUniqueIdentifier() const;
   std::string GetDescription(DiscIO::Language language) const;
   std::string GetDescription() const;
   std::vector<DiscIO::Language> GetLanguages() const;
