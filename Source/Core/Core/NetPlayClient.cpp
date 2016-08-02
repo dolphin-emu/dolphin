@@ -973,11 +973,11 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
       switch (SConfig::GetInstance().m_SIDevice[local_pad])
       {
       case SIDEVICE_WIIU_ADAPTER:
-        GCAdapter::Input(local_pad, pad_status);
+        *pad_status = GCAdapter::Input(local_pad);
         break;
       case SIDEVICE_GC_CONTROLLER:
       default:
-        Pad::GetStatus(local_pad, pad_status);
+        *pad_status = Pad::GetStatus(local_pad);
         break;
       }
 

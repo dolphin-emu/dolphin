@@ -14,7 +14,7 @@ class GCKeyboard : public ControllerEmu
 {
 public:
   GCKeyboard(const unsigned int index);
-  void GetInput(KeyboardStatus* const pad);
+  KeyboardStatus GetInput() const;
   std::string GetName() const override;
   void LoadDefaults(const ControllerInterface& ciface) override;
 

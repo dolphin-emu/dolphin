@@ -24,7 +24,7 @@ void Shutdown();
 void SetAdapterCallback(std::function<void(void)> func);
 void StartScanThread();
 void StopScanThread();
-void Input(int chan, GCPadStatus* pad);
+GCPadStatus Input(int chan);
 void Output(int chan, u8 rumble_command);
 bool IsDetected();
 bool IsDriverDetected();

@@ -132,16 +132,14 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
         case 0x10:
         {
           DEBUG_LOG(AMBASEBOARDDEBUG, "GC-AM: Command 10, %02x (READ STATUS&SWITCHES)", ptr(1));
-          GCPadStatus PadStatus;
-          memset(&PadStatus, 0, sizeof(PadStatus));
-          Pad::GetStatus(ISIDevice::m_iDeviceNumber, &PadStatus);
+          GCPadStatus pad_status = Pad::GetStatus(m_iDeviceNumber);
           res[resp++] = 0x10;
           res[resp++] = 0x2;
           int d10_0 = 0xdf;
 
-          if (PadStatus.triggerLeft)
+          if (pad_status.triggerLeft)
             d10_0 &= ~0x80;
-          if (PadStatus.triggerRight)
+          if (pad_status.triggerRight)
             d10_0 &= ~0x40;
 
           res[resp++] = d10_0;
@@ -299,32 +297,31 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
               msg.AddData(0);  // tilt
               for (i = 0; i < nr_players; ++i)
               {
-                GCPadStatus PadStatus;
-                Pad::GetStatus(i, &PadStatus);
+                GCPadStatus pad_status = Pad::GetStatus(i);
                 unsigned char player_data[2] = {0, 0};
-                if (PadStatus.button & PAD_BUTTON_START)
+                if (pad_status.button & PAD_BUTTON_START)
                   player_data[0] |= 0x80;
-                if (PadStatus.button & PAD_BUTTON_UP)
+                if (pad_status.button & PAD_BUTTON_UP)
                   player_data[0] |= 0x20;
-                if (PadStatus.button & PAD_BUTTON_DOWN)
+                if (pad_status.button & PAD_BUTTON_DOWN)
                   player_data[0] |= 0x10;
-                if (PadStatus.button & PAD_BUTTON_LEFT)
+                if (pad_status.button & PAD_BUTTON_LEFT)
                   player_data[0] |= 0x08;
-                if (PadStatus.button & PAD_BUTTON_RIGHT)
+                if (pad_status.button & PAD_BUTTON_RIGHT)
                   player_data[0] |= 0x04;
 
-                if (PadStatus.button & PAD_BUTTON_A)
+                if (pad_status.button & PAD_BUTTON_A)
                   player_data[0] |= 0x02;
-                if (PadStatus.button & PAD_BUTTON_B)
+                if (pad_status.button & PAD_BUTTON_B)
                   player_data[0] |= 0x01;
 
-                if (PadStatus.button & PAD_BUTTON_X)
+                if (pad_status.button & PAD_BUTTON_X)
                   player_data[1] |= 0x80;
-                if (PadStatus.button & PAD_BUTTON_Y)
+                if (pad_status.button & PAD_BUTTON_Y)
                   player_data[1] |= 0x40;
-                if (PadStatus.button & PAD_TRIGGER_L)
+                if (pad_status.button & PAD_TRIGGER_L)
                   player_data[1] |= 0x20;
-                if (PadStatus.button & PAD_TRIGGER_R)
+                if (pad_status.button & PAD_TRIGGER_R)
                   player_data[1] |= 0x10;
 
                 for (j = 0; j < bytes_per_player; ++j)
@@ -336,12 +333,11 @@ int CSIDevice_AMBaseboard::RunBuffer(u8* _pBuffer, int _iLength)
             {
               int slots = *jvs_io++;
               msg.AddData(1);
-              GCPadStatus PadStatus;
-              Pad::GetStatus(0, &PadStatus);
+              GCPadStatus pad_status = Pad::GetStatus(0);
               while (slots--)
               {
                 msg.AddData(0);
-                msg.AddData((PadStatus.button & PAD_BUTTON_START) ? 1 : 0);
+                msg.AddData((pad_status.button & PAD_BUTTON_START) ? 1 : 0);
               }
               break;
             }

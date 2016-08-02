@@ -25,19 +25,18 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber)
 
 GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 {
-  GCPadStatus PadStatus;
-  memset(&PadStatus, 0, sizeof(PadStatus));
+  GCPadStatus pad_status = {};
 
   // For netplay, the local controllers are polled in GetNetPads(), and
   // the remote controllers receive their status there as well
   if (!NetPlay::IsNetPlayRunning())
   {
-    GCAdapter::Input(ISIDevice::m_iDeviceNumber, &PadStatus);
+    pad_status = GCAdapter::Input(m_iDeviceNumber);
   }
 
-  HandleMoviePadStatus(&PadStatus);
+  HandleMoviePadStatus(&pad_status);
 
-  return PadStatus;
+  return pad_status;
 }
 
 int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
