@@ -76,16 +76,23 @@ void CConfigMain::CreateGUIControls()
   Notebook->AddPage(path_pane, _("Paths"));
   Notebook->AddPage(advanced_pane, _("Advanced"));
 
+  const int space5 = FromDIP(5);
+
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
-  main_sizer->Add(Notebook, 1, wxEXPAND | wxALL, 5);
-  main_sizer->Add(CreateButtonSizer(wxCLOSE), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(Notebook, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(CreateButtonSizer(wxCLOSE), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
 
 #ifdef __APPLE__
   main_sizer->SetMinSize(550, 0);
 #else
-  main_sizer->SetMinSize(400, 0);
+  main_sizer->SetMinSize(FromDIP(400), 0);
 #endif
 
+  SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
+  SetLayoutAdaptationLevel(wxDIALOG_ADAPTATION_STANDARD_SIZER);
   SetSizerAndFit(main_sizer);
   Center();
   SetFocus();
