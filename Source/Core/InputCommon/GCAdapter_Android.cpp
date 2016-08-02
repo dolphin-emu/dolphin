@@ -262,10 +262,10 @@ void StopScanThread()
     s_adapter_detect_thread.join();
 }
 
-void Input(int chan, GCPadStatus* pad)
+GCPadStatus Input(int chan)
 {
   if (!UseAdapter() || !s_detected || !s_fd)
-    return;
+    return {};
 
   int payload_size = 0;
   u8 controller_payload_copy[37];
@@ -277,6 +277,7 @@ void Input(int chan, GCPadStatus* pad)
     payload_size = s_controller_payload_size.load();
   }
 
+  GCPadStatus pad = {};
   if (payload_size != sizeof(controller_payload_copy))
   {
     ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
@@ -297,54 +298,55 @@ void Input(int chan, GCPadStatus* pad)
 
     s_controller_type[chan] = type;
 
-    memset(pad, 0, sizeof(*pad));
     if (s_controller_type[chan] != ControllerTypes::CONTROLLER_NONE)
     {
       u8 b1 = controller_payload_copy[1 + (9 * chan) + 1];
       u8 b2 = controller_payload_copy[1 + (9 * chan) + 2];
 
       if (b1 & (1 << 0))
-        pad->button |= PAD_BUTTON_A;
+        pad.button |= PAD_BUTTON_A;
       if (b1 & (1 << 1))
-        pad->button |= PAD_BUTTON_B;
+        pad.button |= PAD_BUTTON_B;
       if (b1 & (1 << 2))
-        pad->button |= PAD_BUTTON_X;
+        pad.button |= PAD_BUTTON_X;
       if (b1 & (1 << 3))
-        pad->button |= PAD_BUTTON_Y;
+        pad.button |= PAD_BUTTON_Y;
 
       if (b1 & (1 << 4))
-        pad->button |= PAD_BUTTON_LEFT;
+        pad.button |= PAD_BUTTON_LEFT;
       if (b1 & (1 << 5))
-        pad->button |= PAD_BUTTON_RIGHT;
+        pad.button |= PAD_BUTTON_RIGHT;
       if (b1 & (1 << 6))
-        pad->button |= PAD_BUTTON_DOWN;
+        pad.button |= PAD_BUTTON_DOWN;
       if (b1 & (1 << 7))
-        pad->button |= PAD_BUTTON_UP;
+        pad.button |= PAD_BUTTON_UP;
 
       if (b2 & (1 << 0))
-        pad->button |= PAD_BUTTON_START;
+        pad.button |= PAD_BUTTON_START;
       if (b2 & (1 << 1))
-        pad->button |= PAD_TRIGGER_Z;
+        pad.button |= PAD_TRIGGER_Z;
       if (b2 & (1 << 2))
-        pad->button |= PAD_TRIGGER_R;
+        pad.button |= PAD_TRIGGER_R;
       if (b2 & (1 << 3))
-        pad->button |= PAD_TRIGGER_L;
+        pad.button |= PAD_TRIGGER_L;
 
       if (get_origin)
-        pad->button |= PAD_GET_ORIGIN;
+        pad.button |= PAD_GET_ORIGIN;
 
-      pad->stickX = controller_payload_copy[1 + (9 * chan) + 3];
-      pad->stickY = controller_payload_copy[1 + (9 * chan) + 4];
-      pad->substickX = controller_payload_copy[1 + (9 * chan) + 5];
-      pad->substickY = controller_payload_copy[1 + (9 * chan) + 6];
-      pad->triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
-      pad->triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
+      pad.stickX = controller_payload_copy[1 + (9 * chan) + 3];
+      pad.stickY = controller_payload_copy[1 + (9 * chan) + 4];
+      pad.substickX = controller_payload_copy[1 + (9 * chan) + 5];
+      pad.substickY = controller_payload_copy[1 + (9 * chan) + 6];
+      pad.triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
+      pad.triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
     }
     else
     {
-      pad->button = PAD_ERR_STATUS;
+      pad.button = PAD_ERR_STATUS;
     }
   }
+
+  return pad;
 }
 
 void Output(int chan, u8 rumble_command)

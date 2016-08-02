@@ -59,7 +59,7 @@ void FifoRecorder::StopRecording()
   m_RequestedRecordingEnd = true;
 }
 
-void FifoRecorder::WriteGPCommand(u8* data, u32 size)
+void FifoRecorder::WriteGPCommand(const u8* data, u32 size)
 {
   if (!m_SkipNextData)
   {
@@ -181,7 +181,8 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
   }
 }
 
-void FifoRecorder::SetVideoMemory(u32* bpMem, u32* cpMem, u32* xfMem, u32* xfRegs, u32 xfRegsSize)
+void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem,
+                                  const u32* xfRegs, u32 xfRegsSize)
 {
   std::lock_guard<std::recursive_mutex> lk(sMutex);
 

@@ -84,15 +84,20 @@ std::string GCKeyboard::GetName() const
   return std::string("GCKeyboard") + char('1' + m_index);
 }
 
-void GCKeyboard::GetInput(KeyboardStatus* const kb)
+KeyboardStatus GCKeyboard::GetInput() const
 {
   auto lock = ControllerEmu::GetStateLock();
-  m_keys0x->GetState(&kb->key0x, keys0_bitmasks);
-  m_keys1x->GetState(&kb->key1x, keys1_bitmasks);
-  m_keys2x->GetState(&kb->key2x, keys2_bitmasks);
-  m_keys3x->GetState(&kb->key3x, keys3_bitmasks);
-  m_keys4x->GetState(&kb->key4x, keys4_bitmasks);
-  m_keys5x->GetState(&kb->key5x, keys5_bitmasks);
+
+  KeyboardStatus kb = {};
+
+  m_keys0x->GetState(&kb.key0x, keys0_bitmasks);
+  m_keys1x->GetState(&kb.key1x, keys1_bitmasks);
+  m_keys2x->GetState(&kb.key2x, keys2_bitmasks);
+  m_keys3x->GetState(&kb.key3x, keys3_bitmasks);
+  m_keys4x->GetState(&kb.key4x, keys4_bitmasks);
+  m_keys5x->GetState(&kb.key5x, keys5_bitmasks);
+
+  return kb;
 }
 
 void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)

@@ -30,7 +30,11 @@ enum
 };
 
 // UDSPControl
-#define DSP_CONTROL_MASK 0x0C07
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+const u16 DSP_CONTROL_MASK = 0x0C07;
+#else
+constexpr u16 DSP_CONTROL_MASK = 0x0C07;
+#endif
 union UDSPControl {
   u16 Hex;
   struct

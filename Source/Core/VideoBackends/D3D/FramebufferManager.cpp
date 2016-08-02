@@ -189,10 +189,10 @@ FramebufferManager::FramebufferManager()
   CHECK(hr == S_OK, "create EFB color read texture (hr=%#x)", hr);
   m_efb.color_read_texture = new D3DTexture2D(buf, D3D11_BIND_RENDER_TARGET);
   SAFE_RELEASE(buf);
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.depth_read_texture->GetTex(),
+  D3D::SetDebugObjectName((ID3D11DeviceChild*)m_efb.color_read_texture->GetTex(),
                           "EFB color read texture (used in Renderer::AccessEFB)");
   D3D::SetDebugObjectName(
-      (ID3D11DeviceChild*)m_efb.depth_read_texture->GetRTV(),
+      (ID3D11DeviceChild*)m_efb.color_read_texture->GetRTV(),
       "EFB color read texture render target view (used in Renderer::AccessEFB)");
 
   // AccessEFB - Sysmem buffer used to retrieve the pixel data from depth_read_texture

@@ -435,7 +435,8 @@ bool ControlDialog::Validate()
 
   UpdateGUI();
 
-  return control_reference->parse_error == EXPRESSION_PARSE_SUCCESS;
+  return (control_reference->parse_error == EXPRESSION_PARSE_SUCCESS ||
+          control_reference->parse_error == EXPRESSION_PARSE_NO_DEVICE);
 }
 
 void GamepadPage::SetDevice(wxCommandEvent&)

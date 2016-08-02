@@ -46,13 +46,9 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
-void GetStatus(u8 pad_num, GCPadStatus* pad_status)
+GCPadStatus GetStatus(u8 pad_num)
 {
-  memset(pad_status, 0, sizeof(*pad_status));
-  pad_status->err = PAD_ERR_NONE;
-
-  // Get input
-  static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput(pad_status);
+  return static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput();
 }
 
 void Rumble(const u8 pad_num, const ControlState strength)

@@ -18,7 +18,7 @@ void LoadConfig();
 
 InputConfig* GetConfig();
 
-void GetStatus(u8 pad_num, GCPadStatus* pad_status);
+GCPadStatus GetStatus(u8 pad_num);
 void Rumble(u8 pad_num, ControlState strength);
 
 bool GetMicButton(u8 pad_num);

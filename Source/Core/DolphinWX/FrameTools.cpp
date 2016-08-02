@@ -1212,10 +1212,17 @@ void CFrame::DoStop()
       // Pause the state during confirmation and restore it afterwards
       Core::EState state = Core::GetState();
 
+      // Do not pause if netplay is running as CPU thread might be blocked
+      // waiting on inputs
+      bool should_pause = !NetPlayDialog::GetNetPlayClient();
+
       // If exclusive fullscreen is not enabled then we can pause the emulation
       // before we've exited fullscreen. If not then we need to exit fullscreen first.
-      if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
-          SConfig::GetInstance().bRenderToMain)
+      should_pause =
+          should_pause && (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
+                           SConfig::GetInstance().bRenderToMain);
+
+      if (should_pause)
       {
         Core::SetState(Core::CORE_PAUSE);
       }
@@ -1229,7 +1236,9 @@ void CFrame::DoStop()
       HotkeyManagerEmu::Enable(true);
       if (Ret != wxID_YES)
       {
-        Core::SetState(state);
+        if (should_pause)
+          Core::SetState(state);
+
         m_confirmStop = false;
         return;
       }
