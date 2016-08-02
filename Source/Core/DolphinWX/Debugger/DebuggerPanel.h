@@ -20,9 +20,6 @@ public:
 
   virtual ~GFXDebuggerPanel();
 
-  void SaveSettings() const;
-  void LoadSettings();
-
   bool bInfoLog;
   bool bPrimLog;
   bool bSaveTextures;
@@ -49,10 +46,7 @@ private:
   wxButton* m_pButtonClearPixelShaderCache;
   wxTextCtrl* m_pCount;
 
-  void OnClose(wxCloseEvent& event);
   void CreateGUIControls();
-
-  void GeneralSettings(wxCommandEvent& event);
 
   // These set GFXDebuggerPauseFlag to true (either immediately or once the specified event has
   // occurred)

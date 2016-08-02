@@ -21,21 +21,21 @@ public:
   ~CBreakPointWindow();
 
   void NotifyUpdate();
+  void SaveAll();
+  void LoadAll();
+
+private:
+  friend class CBreakPointBar;
 
   void OnDelete(wxCommandEvent& WXUNUSED(event));
   void OnClear(wxCommandEvent& WXUNUSED(event));
   void OnAddBreakPoint(wxCommandEvent& WXUNUSED(event));
   void OnAddMemoryCheck(wxCommandEvent& WXUNUSED(event));
   void Event_SaveAll(wxCommandEvent& WXUNUSED(event));
-  void SaveAll();
   void Event_LoadAll(wxCommandEvent& WXUNUSED(event));
-  void LoadAll();
+  void OnSelectBP(wxListEvent& event);
 
-private:
   wxAuiManager m_mgr;
   CBreakPointView* m_BreakPointListView;
   CCodeWindow* m_pCodeWindow;
-
-  void OnClose(wxCloseEvent& event);
-  void OnSelectBP(wxListEvent& event);
 };

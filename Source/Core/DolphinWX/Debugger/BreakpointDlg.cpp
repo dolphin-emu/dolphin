@@ -23,11 +23,15 @@ BreakPointDlg::BreakPointDlg(CBreakPointWindow* _Parent)
 
   m_pEditAddress = new wxTextCtrl(this, wxID_ANY, "80000000");
 
-  wxBoxSizer* sMainSizer = new wxBoxSizer(wxVERTICAL);
-  sMainSizer->Add(m_pEditAddress, 0, wxEXPAND | wxALL, 5);
-  sMainSizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxALL, 5);
+  const int space5 = FromDIP(5);
+  wxBoxSizer* main_szr = new wxBoxSizer(wxVERTICAL);
+  main_szr->AddSpacer(space5);
+  main_szr->Add(m_pEditAddress, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_szr->AddSpacer(space5);
+  main_szr->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_szr->AddSpacer(space5);
 
-  SetSizerAndFit(sMainSizer);
+  SetSizerAndFit(main_szr);
   SetFocus();
 }
 

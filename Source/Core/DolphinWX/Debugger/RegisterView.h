@@ -63,7 +63,7 @@ class CRegisterView : public wxGrid
 {
 public:
   CRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
-  void Update() override;
+  void Repopulate();
 
 private:
   void OnMouseDownR(wxGridEvent& event);

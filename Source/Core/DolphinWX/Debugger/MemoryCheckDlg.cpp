@@ -17,7 +17,7 @@
 #include "DolphinWX/Debugger/MemoryCheckDlg.h"
 #include "DolphinWX/WxUtils.h"
 
-#define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, _(text))
+#define TEXT_BOX(text) new wxStaticText(this, wxID_ANY, text)
 
 MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
     : wxDialog(parent, wxID_ANY, _("Memory Check")), m_parent(parent)
@@ -34,11 +34,14 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
   m_log_flag->SetValue(true);
   m_break_flag = new wxCheckBox(this, wxID_ANY, _("Break"));
 
+  const int space5 = FromDIP(5);
+  const int space10 = FromDIP(10);
+
   wxStaticBoxSizer* sAddressRangeBox = new wxStaticBoxSizer(wxHORIZONTAL, this, _("Address Range"));
-  sAddressRangeBox->Add(TEXT_BOX("Start"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
-  sAddressRangeBox->Add(m_pEditStartAddress, 1, wxALIGN_CENTER_VERTICAL | wxRIGHT, 10);
-  sAddressRangeBox->Add(TEXT_BOX("End"), 0, wxALIGN_CENTER_VERTICAL | wxRIGHT, 5);
-  sAddressRangeBox->Add(m_pEditEndAddress, 1, wxALIGN_CENTER_VERTICAL);
+  sAddressRangeBox->Add(TEXT_BOX(_("Start")), 0, wxALIGN_CENTER_VERTICAL);
+  sAddressRangeBox->Add(m_pEditStartAddress, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
+  sAddressRangeBox->Add(TEXT_BOX(_("End")), 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space10);
+  sAddressRangeBox->Add(m_pEditEndAddress, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
 
   wxStaticBoxSizer* sActionBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Action"));
   sActionBox->Add(m_pWriteFlag);
@@ -54,8 +57,11 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
   sControls->Add(sFlags, 0, wxEXPAND);
 
   wxBoxSizer* sMainSizer = new wxBoxSizer(wxVERTICAL);
-  sMainSizer->Add(sControls, 0, wxEXPAND | wxALL, 5);
-  sMainSizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+  sMainSizer->AddSpacer(space5);
+  sMainSizer->Add(sControls, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMainSizer->AddSpacer(space5);
+  sMainSizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMainSizer->AddSpacer(space5);
 
   SetSizerAndFit(sMainSizer);
   SetFocus();

@@ -21,7 +21,7 @@ void CRegisterWindow::CreateGUIControls()
 {
   wxBoxSizer* sGrid = new wxBoxSizer(wxVERTICAL);
   m_GPRGridView = new CRegisterView(this);
-  sGrid->Add(m_GPRGridView, 1, wxGROW);
+  sGrid->Add(m_GPRGridView, 1, wxEXPAND);
   SetSizer(sGrid);
 
   NotifyUpdate();
@@ -30,5 +30,5 @@ void CRegisterWindow::CreateGUIControls()
 void CRegisterWindow::NotifyUpdate()
 {
   if (m_GPRGridView != nullptr)
-    m_GPRGridView->Update();
+    m_GPRGridView->Repopulate();
 }

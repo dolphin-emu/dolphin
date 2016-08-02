@@ -325,14 +325,9 @@ EVT_MOVE(CFrame::OnMove)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
 
 EVT_AUI_PANE_CLOSE(CFrame::OnPaneClose)
-EVT_AUINOTEBOOK_PAGE_CLOSE(wxID_ANY, CFrame::OnNotebookPageClose)
-EVT_AUINOTEBOOK_ALLOW_DND(wxID_ANY, CFrame::OnAllowNotebookDnD)
-EVT_AUINOTEBOOK_PAGE_CHANGED(wxID_ANY, CFrame::OnNotebookPageChanged)
-EVT_AUINOTEBOOK_TAB_RIGHT_UP(wxID_ANY, CFrame::OnTab)
 
 // Post events to child panels
 EVT_MENU_RANGE(IDM_INTERPRETER, IDM_ADDRBOX, CFrame::PostEvent)
-EVT_TEXT(IDM_ADDRBOX, CFrame::PostEvent)
 
 END_EVENT_TABLE()
 
@@ -660,10 +655,7 @@ void CFrame::OnClose(wxCloseEvent& event)
   }
   else
   {
-    // Close the log window now so that its settings are saved
-    if (m_LogWindow)
-      m_LogWindow->Close();
-    m_LogWindow = nullptr;
+    m_LogWindow->SaveSettings();
   }
 
   // Uninit
@@ -843,33 +835,24 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
 
 void CFrame::OnRenderWindowSizeRequest(int width, int height)
 {
-  if (!Core::IsRunning() || !SConfig::GetInstance().bRenderWindowAutoSize ||
+  if (!SConfig::GetInstance().bRenderWindowAutoSize || !Core::IsRunning() ||
       RendererIsFullscreen() || m_RenderFrame->IsMaximized())
     return;
 
-  int old_width, old_height, log_width = 0, log_height = 0;
-  m_RenderFrame->GetClientSize(&old_width, &old_height);
+  wxSize requested_size(width, height);
+  wxSize old_size = m_RenderFrame->GetClientSize();
 
   // Add space for the log/console/debugger window
-  if (SConfig::GetInstance().bRenderToMain && (SConfig::GetInstance().m_InterfaceLogWindow ||
-                                               SConfig::GetInstance().m_InterfaceLogConfigWindow) &&
-      !m_Mgr->GetPane("Pane 1").IsFloating())
+  if (SConfig::GetInstance().bRenderToMain)
   {
-    switch (m_Mgr->GetPane("Pane 1").dock_direction)
-    {
-    case wxAUI_DOCK_LEFT:
-    case wxAUI_DOCK_RIGHT:
-      log_width = m_Mgr->GetPane("Pane 1").rect.GetWidth();
-      break;
-    case wxAUI_DOCK_TOP:
-    case wxAUI_DOCK_BOTTOM:
-      log_height = m_Mgr->GetPane("Pane 1").rect.GetHeight();
-      break;
-    }
+    // NOTE: Pane 0 is m_Panel which is m_RenderParent / m_GameListCtrl
+    wxSize pane0_size = m_Mgr->GetPane("Pane 0").rect.GetSize();
+    wxSize diff = requested_size - pane0_size;
+    requested_size = old_size + diff;
   }
 
-  if (old_width != width + log_width || old_height != height + log_height)
-    m_RenderFrame->SetClientSize(width + log_width, height + log_height);
+  if (old_size != requested_size)
+    m_RenderFrame->SetClientSize(requested_size);
 }
 
 bool CFrame::RendererHasFocus()
