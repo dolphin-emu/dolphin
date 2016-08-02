@@ -21,6 +21,7 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/PostProcessingConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/PostProcessing.h"
@@ -100,8 +101,7 @@ protected:
              wxMessageBox(_("Software rendering is an order of magnitude slower than using the "
                             "other backends.\nIt's only useful for debugging purposes.\nDo you "
                             "really want to enable software rendering? If unsure, select 'No'."),
-                          _("Warning"), wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION,
-                          wxWindow::FindFocus()));
+                          _("Warning"), wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION, this));
       }
 
       if (do_switch)
@@ -198,8 +198,7 @@ protected:
     ev.Skip();
   }
 
-  void Event_ClickClose(wxCommandEvent&);
-  void Event_Close(wxCloseEvent&);
+  void Event_Close(wxCommandEvent&);
 
   // Enables/disables UI elements depending on current config
   void OnUpdateUI(wxUpdateUIEvent& ev)
@@ -274,7 +273,7 @@ protected:
 
   wxStaticText* text_aamode;
   wxChoice* choice_aamode;
-  wxSlider* conv_slider;
+  DolphinSlider* conv_slider;
 
   wxStaticText* label_display_resolution;
 

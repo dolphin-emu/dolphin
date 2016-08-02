@@ -2,15 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <math.h>
-#include <unordered_map>
+#include <cmath>
 
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
-#include <wx/slider.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
@@ -37,45 +35,54 @@ PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::
 
   // Create our UI classes
   const PostProcessingShaderConfiguration::ConfigMap& config_map = m_post_processor->GetOptions();
+  std::vector<std::unique_ptr<ConfigGrouping>> config_groups;
+  config_groups.reserve(config_map.size());
+  m_config_map.reserve(config_map.size());
   for (const auto& it : config_map)
   {
+    std::unique_ptr<ConfigGrouping> group;
     if (it.second.m_type ==
         PostProcessingShaderConfiguration::ConfigurationOption::OptionType::OPTION_BOOL)
     {
-      ConfigGrouping* group =
-          new ConfigGrouping(ConfigGrouping::WidgetType::TYPE_TOGGLE, it.second.m_gui_name,
-                             it.first, it.second.m_dependent_option, &it.second);
-      m_config_map[it.first] = group;
+      group = std::make_unique<ConfigGrouping>(ConfigGrouping::WidgetType::TYPE_TOGGLE,
+                                               it.second.m_gui_name, it.first,
+                                               it.second.m_dependent_option, &it.second);
     }
     else
     {
-      ConfigGrouping* group =
-          new ConfigGrouping(ConfigGrouping::WidgetType::TYPE_SLIDER, it.second.m_gui_name,
-                             it.first, it.second.m_dependent_option, &it.second);
-      m_config_map[it.first] = group;
+      group = std::make_unique<ConfigGrouping>(ConfigGrouping::WidgetType::TYPE_SLIDER,
+                                               it.second.m_gui_name, it.first,
+                                               it.second.m_dependent_option, &it.second);
     }
+    m_config_map[it.first] = group.get();
+    config_groups.emplace_back(std::move(group));
   }
 
   // Arrange our vectors based on dependency
-  for (const auto& it : m_config_map)
+  for (auto& group : config_groups)
   {
-    const std::string parent_name = it.second->GetParent();
-    if (parent_name.size())
+    const std::string& parent_name = group->GetParent();
+    if (parent_name.empty())
     {
-      // Since it depends on a different object, push it to a parent's object
-      m_config_map[parent_name]->AddChild(m_config_map[it.first]);
+      // It doesn't have a parent, just push it to the vector
+      m_config_groups.emplace_back(std::move(group));
     }
     else
     {
-      // It doesn't have a child, just push it to the vector
-      m_config_groups.push_back(m_config_map[it.first]);
+      // Since it depends on a different object, push it to a parent's object
+      m_config_map[parent_name]->AddChild(std::move(group));
     }
   }
+  config_groups.clear();  // Full of null unique_ptrs now
+  config_groups.shrink_to_fit();
+
+  const int space5 = FromDIP(5);
+  const int space10 = FromDIP(10);
 
   // Generate our UI
   wxNotebook* const notebook = new wxNotebook(this, wxID_ANY);
   wxPanel* const page_general = new wxPanel(notebook);
-  wxFlexGridSizer* const szr_general = new wxFlexGridSizer(2, 5, 5);
+  wxFlexGridSizer* const szr_general = new wxFlexGridSizer(2, space5, space5);
 
   // Now let's actually populate our window with our information
   bool add_general_page = false;
@@ -85,7 +92,8 @@ PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::
     {
       // Options with children get their own tab
       wxPanel* const page_option = new wxPanel(notebook);
-      wxFlexGridSizer* const szr_option = new wxFlexGridSizer(2, 10, 5);
+      wxBoxSizer* const wrap_sizer = new wxBoxSizer(wxVERTICAL);
+      wxFlexGridSizer* const szr_option = new wxFlexGridSizer(2, space10, space5);
       it->GenerateUI(this, page_option, szr_option);
 
       // Add all the children
@@ -93,8 +101,11 @@ PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::
       {
         child->GenerateUI(this, page_option, szr_option);
       }
-      page_option->SetSizerAndFit(szr_option);
-      notebook->AddPage(page_option, _(it->GetGUIName()));
+      wrap_sizer->AddSpacer(space5);
+      wrap_sizer->Add(szr_option, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+      wrap_sizer->AddSpacer(space5);
+      page_option->SetSizerAndFit(wrap_sizer);
+      notebook->AddPage(page_option, it->GetGUIName());
     }
     else
     {
@@ -110,20 +121,30 @@ PostProcessingConfigDiag::PostProcessingConfigDiag(wxWindow* parent, const std::
 
   if (add_general_page)
   {
-    page_general->SetSizerAndFit(szr_general);
+    wxBoxSizer* const wrap_sizer = new wxBoxSizer(wxVERTICAL);
+    wrap_sizer->AddSpacer(space5);
+    wrap_sizer->Add(szr_general, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+    wrap_sizer->AddSpacer(space5);
+
+    page_general->SetSizerAndFit(wrap_sizer);
     notebook->InsertPage(0, page_general, _("General"));
   }
 
   // Close Button
-  wxButton* const btn_close = new wxButton(this, wxID_OK, _("Close"));
-  btn_close->Bind(wxEVT_BUTTON, &PostProcessingConfigDiag::Event_ClickClose, this);
-
-  Bind(wxEVT_CLOSE_WINDOW, &PostProcessingConfigDiag::Event_Close, this);
+  wxStdDialogButtonSizer* const btn_strip = CreateStdDialogButtonSizer(wxOK | wxNO_DEFAULT);
+  btn_strip->GetAffirmativeButton()->SetLabel(_("Close"));
+  SetEscapeId(wxID_OK);  // Treat closing the window by 'X' or hitting escape as 'OK'
 
   wxBoxSizer* const szr_main = new wxBoxSizer(wxVERTICAL);
-  szr_main->Add(notebook, 1, wxEXPAND | wxALL, 5);
-  szr_main->Add(btn_close, 0, wxALIGN_RIGHT | wxRIGHT | wxBOTTOM, 5);
+  szr_main->AddSpacer(space5);
+  szr_main->Add(notebook, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  szr_main->AddSpacer(space5);
+  szr_main->Add(btn_strip, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  szr_main->AddSpacer(space5);
+  szr_main->SetMinSize(FromDIP(wxSize(400, -1)));
 
+  SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
+  SetLayoutAdaptationLevel(wxDIALOG_ADAPTATION_STANDARD_SIZER);
   SetSizerAndFit(szr_main);
   Center();
   SetFocus();
@@ -145,7 +166,7 @@ void PostProcessingConfigDiag::ConfigGrouping::GenerateUI(PostProcessingConfigDi
 {
   if (m_type == WidgetType::TYPE_TOGGLE)
   {
-    m_option_checkbox = new wxCheckBox(parent, wxID_ANY, _(m_gui_name));
+    m_option_checkbox = new wxCheckBox(parent, wxID_ANY, m_gui_name);
     m_option_checkbox->SetValue(m_config_option->m_bool_value);
     m_option_checkbox->Bind(wxEVT_CHECKBOX, &PostProcessingConfigDiag::Event_CheckBox, dialog,
                             wxID_ANY, wxID_ANY, new UserEventData(m_option));
@@ -162,8 +183,8 @@ void PostProcessingConfigDiag::ConfigGrouping::GenerateUI(PostProcessingConfigDi
     else
       vector_size = m_config_option->m_float_values.size();
 
-    wxFlexGridSizer* const szr_values = new wxFlexGridSizer(vector_size + 1, 0, 0);
-    wxStaticText* const option_static_text = new wxStaticText(parent, wxID_ANY, _(m_gui_name));
+    wxFlexGridSizer* const szr_values = new wxFlexGridSizer(vector_size + 1);
+    wxStaticText* const option_static_text = new wxStaticText(parent, wxID_ANY, m_gui_name);
     sizer->Add(option_static_text);
 
     for (size_t i = 0; i < vector_size; ++i)
@@ -185,7 +206,7 @@ void PostProcessingConfigDiag::ConfigGrouping::GenerateUI(PostProcessingConfigDi
         // This may not be 100% spot on accurate since developers can have odd stepping intervals
         // set.
         // Round up so if it is outside our range, then set it to the minimum or maximum
-        steps = ceil(range / (double)m_config_option->m_integer_step_values[i]);
+        steps = std::ceil(range / (double)m_config_option->m_integer_step_values[i]);
 
         // Default value is just the currently set value here
         current_value = m_config_option->m_integer_values[i];
@@ -196,7 +217,7 @@ void PostProcessingConfigDiag::ConfigGrouping::GenerateUI(PostProcessingConfigDi
         // Same as above but with floats
         float range =
             m_config_option->m_float_max_values[i] - m_config_option->m_float_min_values[i];
-        steps = ceil(range / m_config_option->m_float_step_values[i]);
+        steps = std::ceil(range / m_config_option->m_float_step_values[i]);
 
         // We need to convert our default float value from a float to the nearest step value range
         current_value =
@@ -204,8 +225,9 @@ void PostProcessingConfigDiag::ConfigGrouping::GenerateUI(PostProcessingConfigDi
         string_value = std::to_string(m_config_option->m_float_values[i]);
       }
 
-      wxSlider* slider = new wxSlider(parent, wxID_ANY, current_value, 0, steps, wxDefaultPosition,
-                                      wxSize(200, -1), wxSL_HORIZONTAL | wxSL_BOTTOM);
+      DolphinSlider* slider =
+          new DolphinSlider(parent, wxID_ANY, current_value, 0, steps, wxDefaultPosition,
+                            parent->FromDIP(wxSize(200, -1)), wxSL_HORIZONTAL | wxSL_BOTTOM);
       wxTextCtrl* text_ctrl = new wxTextCtrl(parent, wxID_ANY, string_value);
 
       // Disable the textctrl, it's only there to show the absolute value from the slider
@@ -222,18 +244,18 @@ void PostProcessingConfigDiag::ConfigGrouping::GenerateUI(PostProcessingConfigDi
 
     if (vector_size == 1)
     {
-      szr_values->Add(m_option_sliders[0], wxSizerFlags().Align(wxALIGN_CENTER_VERTICAL));
-      szr_values->Add(m_option_text_ctrls[0]);
+      szr_values->Add(m_option_sliders[0], 0, wxALIGN_CENTER_VERTICAL);
+      szr_values->Add(m_option_text_ctrls[0], 0, wxALIGN_CENTER_VERTICAL);
 
       sizer->Add(szr_values);
     }
     else
     {
-      wxFlexGridSizer* const szr_inside = new wxFlexGridSizer(2, 0, 0);
+      wxFlexGridSizer* const szr_inside = new wxFlexGridSizer(2);
       for (size_t i = 0; i < vector_size; ++i)
       {
-        szr_inside->Add(m_option_sliders[i], wxSizerFlags().Align(wxALIGN_CENTER_VERTICAL));
-        szr_inside->Add(m_option_text_ctrls[i]);
+        szr_inside->Add(m_option_sliders[i], 0, wxALIGN_CENTER_VERTICAL);
+        szr_inside->Add(m_option_text_ctrls[i], 0, wxALIGN_CENTER_VERTICAL);
       }
 
       szr_values->Add(szr_inside);
@@ -312,14 +334,4 @@ void PostProcessingConfigDiag::Event_Slider(wxCommandEvent& ev)
     config->SetSliderText(i, string_value);
   }
   ev.Skip();
-}
-
-void PostProcessingConfigDiag::Event_ClickClose(wxCommandEvent&)
-{
-  Close();
-}
-
-void PostProcessingConfigDiag::Event_Close(wxCloseEvent& ev)
-{
-  EndModal(wxID_OK);
 }
