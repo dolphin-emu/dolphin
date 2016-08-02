@@ -131,5 +131,6 @@ private:
     void OnRightClick(wxMouseEvent& event);
   };
 
+  wxSize m_image_list_size;
   CMemcardListCtrl* m_MemcardList[2];
 };
