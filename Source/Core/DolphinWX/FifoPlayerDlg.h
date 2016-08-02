@@ -39,7 +39,6 @@ private:
   void OnRecordStop(wxCommandEvent& event);
   void OnSaveFile(wxCommandEvent& event);
   void OnNumFramesToRecord(wxSpinEvent& event);
-  void OnCloseClick(wxCommandEvent& event);
 
   void OnBeginSearch(wxCommandEvent& event);
   void OnFindNextClick(wxCommandEvent& event);
@@ -120,8 +119,6 @@ private:
   };
   std::vector<SearchResult> search_results;
   unsigned int m_search_result_idx;
-
-  wxButton* m_Close;
 
   s32 m_FramesToRecord;
 };
