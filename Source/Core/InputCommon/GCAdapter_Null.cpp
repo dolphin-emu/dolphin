@@ -4,6 +4,7 @@
 
 #include "InputCommon/GCAdapter.h"
 #include "Common/CommonTypes.h"
+#include "InputCommon/GCPadStatus.h"
 
 namespace GCAdapter
 {
@@ -25,8 +26,9 @@ void StartScanThread()
 void StopScanThread()
 {
 }
-void Input(int chan, GCPadStatus* pad)
+GCPadStatus Input(int chan)
 {
+  return {};
 }
 void Output(int chan, u8 rumble_command)
 {
