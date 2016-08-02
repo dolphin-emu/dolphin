@@ -134,14 +134,14 @@ CEXIIPL::~CEXIIPL()
   m_pIPL = nullptr;
 
   // SRAM
-  if (!g_SRAM_netplay_initialized)
+  if (!g_SRAM_determinism_initialized)
   {
     File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
     file.WriteArray(&g_SRAM, 1);
   }
   else
   {
-    g_SRAM_netplay_initialized = false;
+    g_SRAM_determinism_initialized = false;
   }
 }
 void CEXIIPL::DoState(PointerWrap& p)

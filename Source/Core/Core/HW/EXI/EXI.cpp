@@ -21,7 +21,7 @@
 #include "Core/Movie.h"
 
 SRAM g_SRAM;
-bool g_SRAM_netplay_initialized = false;
+bool g_SRAM_determinism_initialized = false;
 
 namespace ExpansionInterface
 {
@@ -35,10 +35,7 @@ static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late);
 
 void Init()
 {
-  if (!g_SRAM_netplay_initialized)
-  {
-    InitSRAM();
-  }
+  InitSRAM();
 
   CEXIMemoryCard::Init();
   for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
