@@ -79,41 +79,44 @@ std::string GCPad::GetName() const
   return std::string("GCPad") + char('1' + m_index);
 }
 
-void GCPad::GetInput(GCPadStatus* const pad)
+GCPadStatus GCPad::GetInput() const
 {
   auto lock = ControllerEmu::GetStateLock();
 
   ControlState x, y, triggers[2];
+  GCPadStatus pad = {};
 
   // buttons
-  m_buttons->GetState(&pad->button, button_bitmasks);
+  m_buttons->GetState(&pad.button, button_bitmasks);
 
   // set analog A/B analog to full or w/e, prolly not needed
-  if (pad->button & PAD_BUTTON_A)
-    pad->analogA = 0xFF;
-  if (pad->button & PAD_BUTTON_B)
-    pad->analogB = 0xFF;
+  if (pad.button & PAD_BUTTON_A)
+    pad.analogA = 0xFF;
+  if (pad.button & PAD_BUTTON_B)
+    pad.analogB = 0xFF;
 
   // dpad
-  m_dpad->GetState(&pad->button, dpad_bitmasks);
+  m_dpad->GetState(&pad.button, dpad_bitmasks);
 
   // sticks
   m_main_stick->GetState(&x, &y);
-  pad->stickX =
+  pad.stickX =
       static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X + (x * GCPadStatus::MAIN_STICK_RADIUS));
-  pad->stickY =
+  pad.stickY =
       static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y + (y * GCPadStatus::MAIN_STICK_RADIUS));
 
   m_c_stick->GetState(&x, &y);
-  pad->substickX =
+  pad.substickX =
       static_cast<u8>(GCPadStatus::C_STICK_CENTER_X + (x * GCPadStatus::C_STICK_RADIUS));
-  pad->substickY =
+  pad.substickY =
       static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y + (y * GCPadStatus::C_STICK_RADIUS));
 
   // triggers
-  m_triggers->GetState(&pad->button, trigger_bitmasks, triggers);
-  pad->triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
-  pad->triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+  m_triggers->GetState(&pad.button, trigger_bitmasks, triggers);
+  pad.triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
+  pad.triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+
+  return pad;
 }
 
 void GCPad::SetOutput(const ControlState strength)
