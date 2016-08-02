@@ -302,11 +302,11 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   Send(player.socket, spac);
 
   // sync GC SRAM with new client
-  if (!g_SRAM_netplay_initialized)
+  if (!g_SRAM_determinism_initialized)
   {
     SConfig::GetInstance().m_strSRAM = File::GetUserPath(F_GCSRAM_IDX);
+    g_SRAM_determinism_initialized = true;
     InitSRAM();
-    g_SRAM_netplay_initialized = true;
   }
   spac.clear();
   spac << (MessageId)NP_MSG_SYNC_GC_SRAM;
