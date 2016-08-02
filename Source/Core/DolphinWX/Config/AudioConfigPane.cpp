@@ -9,7 +9,6 @@
 #include <wx/gbsizer.h>
 #include <wx/radiobox.h>
 #include <wx/sizer.h>
-#include <wx/slider.h>
 #include <wx/spinctrl.h>
 #include <wx/stattext.h>
 
@@ -18,6 +17,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "DolphinWX/Config/AudioConfigPane.h"
+#include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/WxUtils.h"
 
 AudioConfigPane::AudioConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
@@ -37,8 +37,8 @@ void AudioConfigPane::InitializeGUI()
       new wxRadioBox(this, wxID_ANY, _("DSP Emulator Engine"), wxDefaultPosition, wxDefaultSize,
                      m_dsp_engine_strings, 0, wxRA_SPECIFY_ROWS);
   m_dpl2_decoder_checkbox = new wxCheckBox(this, wxID_ANY, _("Dolby Pro Logic II decoder"));
-  m_volume_slider = new wxSlider(this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxDefaultSize,
-                                 wxSL_VERTICAL | wxSL_INVERSE);
+  m_volume_slider = new DolphinSlider(this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxDefaultSize,
+                                      wxSL_VERTICAL | wxSL_INVERSE);
   m_volume_text = new wxStaticText(this, wxID_ANY, "");
   m_audio_backend_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_audio_backend_strings);
@@ -64,34 +64,51 @@ void AudioConfigPane::InitializeGUI()
       _("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL or Pulse backends only."));
 #endif
 
+  const int space5 = FromDIP(5);
+
   wxStaticBoxSizer* const dsp_engine_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Sound Settings"));
-  dsp_engine_sizer->Add(m_dsp_engine_radiobox, 0, wxALL | wxEXPAND, 5);
-  dsp_engine_sizer->Add(m_dpl2_decoder_checkbox, 0, wxALL, 5);
+  dsp_engine_sizer->Add(m_dsp_engine_radiobox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  dsp_engine_sizer->AddSpacer(space5);
+  dsp_engine_sizer->AddStretchSpacer();
+  dsp_engine_sizer->Add(m_dpl2_decoder_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  dsp_engine_sizer->AddStretchSpacer();
+  dsp_engine_sizer->AddSpacer(space5);
 
   wxStaticBoxSizer* const volume_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Volume"));
-  volume_sizer->Add(m_volume_slider, 1, wxLEFT | wxRIGHT, 13);
-  volume_sizer->Add(m_volume_text, 0, wxALIGN_CENTER | wxALL, 5);
+  volume_sizer->Add(m_volume_slider, 1, wxALIGN_CENTER_HORIZONTAL);
+  volume_sizer->Add(m_volume_text, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space5);
+  volume_sizer->AddSpacer(space5);
 
-  wxGridBagSizer* const backend_grid_sizer = new wxGridBagSizer();
+  wxGridBagSizer* const backend_grid_sizer = new wxGridBagSizer(space5, space5);
   backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Audio Backend:")), wxGBPosition(0, 0),
-                          wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  backend_grid_sizer->Add(m_audio_backend_choice, wxGBPosition(0, 1), wxDefaultSpan, wxALL, 5);
+                          wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  backend_grid_sizer->Add(m_audio_backend_choice, wxGBPosition(0, 1), wxDefaultSpan,
+                          wxALIGN_CENTER_VERTICAL);
   backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Latency:")), wxGBPosition(1, 0),
-                          wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+                          wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(1, 1), wxDefaultSpan,
+                          wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const backend_static_box_sizer =
-      new wxStaticBoxSizer(wxHORIZONTAL, this, _("Backend Settings"));
-  backend_static_box_sizer->Add(backend_grid_sizer, 0, wxEXPAND);
+      new wxStaticBoxSizer(wxVERTICAL, this, _("Backend Settings"));
+  backend_static_box_sizer->AddSpacer(space5);
+  backend_static_box_sizer->Add(backend_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  backend_static_box_sizer->AddSpacer(space5);
 
   wxBoxSizer* const dsp_audio_sizer = new wxBoxSizer(wxHORIZONTAL);
-  dsp_audio_sizer->Add(dsp_engine_sizer, 1, wxEXPAND | wxALL, 5);
-  dsp_audio_sizer->Add(volume_sizer, 0, wxEXPAND | wxALL, 5);
+  dsp_audio_sizer->AddSpacer(space5);
+  dsp_audio_sizer->Add(dsp_engine_sizer, 1, wxEXPAND | wxTOP | wxBOTTOM, space5);
+  dsp_audio_sizer->AddSpacer(space5);
+  dsp_audio_sizer->Add(volume_sizer, 0, wxEXPAND | wxTOP | wxBOTTOM, space5);
+  dsp_audio_sizer->AddSpacer(space5);
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
-  main_sizer->Add(dsp_audio_sizer, 0, wxALL | wxEXPAND);
-  main_sizer->Add(backend_static_box_sizer, 0, wxALL | wxEXPAND, 5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(dsp_audio_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(backend_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
 
   SetSizerAndFit(main_sizer);
 }
@@ -180,10 +197,10 @@ void AudioConfigPane::PopulateBackendChoiceBox()
   for (const std::string& backend : AudioCommon::GetSoundBackends())
   {
     m_audio_backend_choice->Append(wxGetTranslation(StrToWxStr(backend)));
-
-    int num = m_audio_backend_choice->FindString(StrToWxStr(SConfig::GetInstance().sBackend));
-    m_audio_backend_choice->SetSelection(num);
   }
+
+  int num = m_audio_backend_choice->FindString(StrToWxStr(SConfig::GetInstance().sBackend));
+  m_audio_backend_choice->SetSelection(num);
 }
 
 bool AudioConfigPane::SupportsVolumeChanges(const std::string& backend)
