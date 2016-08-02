@@ -133,7 +133,7 @@ CEXIIPL::~CEXIIPL()
   m_pIPL = nullptr;
 
   // SRAM
-  if (!g_SRAM_netplay_initialized)
+  if (!g_SRAM_netplay_initialized && !Movie::IsInMovieState())
   {
     File::IOFile file(SConfig::GetInstance().m_strSRAM, "wb");
     file.WriteArray(&g_SRAM, 1);
@@ -141,6 +141,7 @@ CEXIIPL::~CEXIIPL()
   else
   {
     g_SRAM_netplay_initialized = false;
+    Movie::SetInMovieState(false);
   }
 }
 void CEXIIPL::DoState(PointerWrap& p)
