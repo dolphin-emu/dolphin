@@ -245,6 +245,9 @@ void CGameListCtrl::InitBitmaps()
   InitBitmap(img_list, &m_EmuStateImageIndex, this, rating_bmp_size, 3, "rating3");
   InitBitmap(img_list, &m_EmuStateImageIndex, this, rating_bmp_size, 4, "rating4");
   InitBitmap(img_list, &m_EmuStateImageIndex, this, rating_bmp_size, 5, "rating5");
+
+  m_utility_game_banners.resize(1);
+  InitBitmap(img_list, &m_utility_game_banners, this, size, 0, "nobanner");
 }
 
 void CGameListCtrl::BrowseForDirectory()
@@ -424,10 +427,14 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
   }
   case COLUMN_BANNER:
   {
-    int ImageIndex = -1;
+    int ImageIndex = m_utility_game_banners[0];  // nobanner
 
-    if (rISOFile.GetBitmap().IsOk())
-      ImageIndex = GetImageList(wxIMAGE_LIST_SMALL)->Add(rISOFile.GetBitmap());
+    if (rISOFile.GetBannerImage().IsOk())
+    {
+      wxImageList* img_list = GetImageList(wxIMAGE_LIST_SMALL);
+      ImageIndex = img_list->Add(
+          WxUtils::ScaleImageToBitmap(rISOFile.GetBannerImage(), this, img_list->GetSize()));
+    }
 
     SetItemColumnImage(_Index, COLUMN_BANNER, ImageIndex);
     break;

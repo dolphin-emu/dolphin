@@ -66,6 +66,7 @@ private:
   std::vector<int> m_FlagImageIndex;
   std::vector<int> m_PlatformImageIndex;
   std::vector<int> m_EmuStateImageIndex;
+  std::vector<int> m_utility_game_banners;
   std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
 
   int last_column;
