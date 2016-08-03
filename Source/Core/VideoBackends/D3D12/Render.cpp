@@ -484,7 +484,7 @@ void Renderer::SetViewport()
   D3D12_VIEWPORT vp = {
       x, y, width, height,
       D3D12_MIN_DEPTH,
-      D3D12_MAX_DEPTH };
+      16777215.0f / 16777216.0f };
 
   D3D::current_command_list->RSSetViewports(1, &vp);
 }

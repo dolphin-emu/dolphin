@@ -440,7 +440,7 @@ ID3D11RasterizerState* StateCache::Get(RasterizerState state)
     return it->second;
 
   D3D11_RASTERIZER_DESC rastdc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, state.cull_mode, false, 0,
-                                                        0.f, 0, true, true, false, false);
+                                                        0.f, 0, false, true, false, false);
 
   ID3D11RasterizerState* res = nullptr;
 
