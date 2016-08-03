@@ -44,10 +44,6 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, std::vector<ActionReplay::ARCode>
     tempEntries = arCodes->at(selection);
   }
 
-  wxBoxSizer* sEditCheat = new wxBoxSizer(wxVERTICAL);
-  wxStaticBoxSizer* sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, _("Cheat Code"));
-  wxGridBagSizer* sgEntry = new wxGridBagSizer(0, 0);
-
   wxStaticText* EditCheatNameText = new wxStaticText(this, wxID_ANY, _("Name:"));
   wxStaticText* EditCheatCodeText = new wxStaticText(this, wxID_ANY, _("Code:"));
 
@@ -59,22 +55,34 @@ CARCodeAddEdit::CARCodeAddEdit(int _selection, std::vector<ActionReplay::ARCode>
   EntrySelection->SetValue((int)(arCodes->size() - selection));
   EntrySelection->Bind(wxEVT_SPIN, &CARCodeAddEdit::ChangeEntry, this);
 
-  EditCheatCode = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxSize(300, 100),
-                                 wxTE_MULTILINE);
+  EditCheatCode = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
+                                 wxDLG_UNIT(this, wxSize(196, 64)), wxTE_MULTILINE);
 
   UpdateTextCtrl(tempEntries);
 
-  sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER | wxALL, 5);
-  sgEntry->Add(EditCheatCodeText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER | wxALL, 5);
-  sgEntry->Add(EditCheatName, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
-  sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(2, 1), wxEXPAND | wxALL, 5);
-  sgEntry->Add(EditCheatCode, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND | wxALL, 5);
+  const int space5 = FromDIP(5);
+  const int space10 = FromDIP(10);
+
+  wxGridBagSizer* sgEntry = new wxGridBagSizer(space10, space10);
+  sgEntry->Add(EditCheatNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sgEntry->Add(EditCheatCodeText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  sgEntry->Add(EditCheatName, wxGBPosition(0, 1), wxGBSpan(1, 1), wxEXPAND);
+  sgEntry->Add(EntrySelection, wxGBPosition(0, 2), wxGBSpan(2, 1), wxEXPAND);
+  sgEntry->Add(EditCheatCode, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND);
   sgEntry->AddGrowableCol(1);
   sgEntry->AddGrowableRow(1);
-  sbEntry->Add(sgEntry, 1, wxEXPAND | wxALL);
 
-  sEditCheat->Add(sbEntry, 1, wxEXPAND | wxALL, 5);
-  sEditCheat->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxALL, 5);
+  wxStaticBoxSizer* sbEntry = new wxStaticBoxSizer(wxVERTICAL, this, _("Cheat Code"));
+  sbEntry->AddSpacer(space5);
+  sbEntry->Add(sgEntry, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sbEntry->AddSpacer(space5);
+
+  wxBoxSizer* sEditCheat = new wxBoxSizer(wxVERTICAL);
+  sEditCheat->AddSpacer(space5);
+  sEditCheat->Add(sbEntry, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sEditCheat->AddSpacer(space5);
+  sEditCheat->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sEditCheat->AddSpacer(space5);
 
   SetSizerAndFit(sEditCheat);
   SetFocus();
