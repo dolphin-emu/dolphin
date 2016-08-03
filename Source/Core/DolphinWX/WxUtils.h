@@ -5,9 +5,12 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <wx/colour.h>
 #include <wx/gdicmn.h>
 #include <wx/string.h>
+
+#include "Common/CommonTypes.h"
 
 class wxControl;
 class wxBitmap;
@@ -64,6 +67,12 @@ wxSize GetTextWidgetMinSize(const wxControl* control, unsigned int value);
 wxSize GetTextWidgetMinSize(const wxControl* control, int value);
 wxSize GetTextWidgetMinSize(const wxSpinCtrl* spinner);
 
+// Converts a wxImage into a raw ARGB32 array for easier processing.
+std::vector<u32> ImageToARGB(const wxImage& source);
+
+// Converts an ARGB32 array into a wxImage for use with wxWidgets APIs.
+wxImage ARGBToImage(const std::vector<u32>& source, int width, bool ignore_alpha = false);
+
 enum LSIFlags : unsigned int
 {
   LSI_SCALE_NONE = 0,  // Disable scaling, only resize canvas
@@ -71,6 +80,7 @@ enum LSIFlags : unsigned int
   LSI_SCALE_DOWN = 2,  // Scale down if needed, only expand canvas instead of scaling up
   LSI_SCALE = LSI_SCALE_UP | LSI_SCALE_DOWN,  // Scale either way as needed.
   LSI_SCALE_NO_ASPECT = 8,                    // Disable preserving the aspect ratio of the image.
+  LSI_SCALE_PIXEL_ART = 0x100,                // Use pixel art scaling algorithms for upscaling.
 
   LSI_ALIGN_LEFT = 0,        // Place image at the left edge of canvas
   LSI_ALIGN_RIGHT = 0x10,    // Place image at the right edge of canvas

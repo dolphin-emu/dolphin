@@ -6,6 +6,7 @@
 #include <array>
 #include <cmath>
 #include <string>
+#include <vector>
 #include <wx/app.h>
 #include <wx/bitmap.h>
 #include <wx/choice.h>
@@ -22,6 +23,7 @@
 #include <wx/utils.h>
 
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
@@ -357,6 +359,51 @@ wxBitmap ScaleImageToBitmap(const wxImage& image, const wxWindow* context, doubl
                   wxBITMAP_SCREEN_DEPTH, scale_factor);
 }
 
+std::vector<u32> ImageToARGB(const wxImage& source)
+{
+  wxSize size{source.GetSize()};
+  std::vector<u32> out(size.GetWidth() * size.GetHeight());
+  const unsigned char* rgb = source.GetData();
+  const unsigned char* alpha = source.GetAlpha();
+  for (int y = 0; y < size.GetHeight(); ++y)
+  {
+    for (int x = 0; x < size.GetWidth(); ++x)
+    {
+      u32 pixel = *rgb++ << 16;  // Red
+      pixel |= *rgb++ << 8;      // Green
+      pixel |= *rgb++;           // Blue
+      if (alpha)
+        pixel |= static_cast<u32>(*alpha++) << 24;
+      out[y * size.GetWidth() + x] = pixel;
+    }
+  }
+  return out;
+}
+
+wxImage ARGBToImage(const std::vector<u32>& source, int width, bool ignore_alpha)
+{
+  wxSize size{width, static_cast<int>(source.size()) / width};
+  wxImage output{size, false};
+  if (!ignore_alpha)
+    output.InitAlpha();
+
+  unsigned char* rgb = output.GetData();
+  unsigned char* alpha = output.GetAlpha();
+  for (int y = 0; y < size.GetHeight(); ++y)
+  {
+    for (int x = 0; x < size.GetWidth(); ++x)
+    {
+      u32 pixel = source[y * width + x];
+      *rgb++ = (pixel >> 16) & 0xFF;  // Red
+      *rgb++ = (pixel >> 8) & 0xFF;   // Green
+      *rgb++ = pixel & 0xFF;          // Blue
+      if (alpha)
+        *alpha++ = (pixel >> 24) & 0xFF;
+    }
+  }
+  return output;
+}
+
 wxImage ScaleImage(wxImage image, double source_scale_factor, double content_scale_factor,
                    wxSize output_size, wxRect usable_rect, LSIFlags flags,
                    const wxColour& fill_color)
@@ -427,7 +474,11 @@ wxImage ScaleImage(wxImage image, double source_scale_factor, double content_sca
                               static_cast<double>(usable_rect.GetHeight()) / img_size.GetHeight());
       int target_width = static_cast<int>(img_size.GetWidth() * scale);
       int target_height = static_cast<int>(img_size.GetHeight() * scale);
-      if ((scale < 1.0 && flags & LSI_SCALE_DOWN) || (scale > 1.0 && flags & LSI_SCALE_UP))
+      bool scale_up = scale > 1.0 && flags & LSI_SCALE_UP;
+      bool scale_down = scale < 1.0 && flags & LSI_SCALE_DOWN;
+      if (scale_up && flags & LSI_SCALE_PIXEL_ART)
+        image.Rescale(target_width, target_height, wxIMAGE_QUALITY_BILINEAR);
+      else if (scale_up || scale_down)
         image.Rescale(target_width, target_height, wxIMAGE_QUALITY_BICUBIC);
     }
     img_size = image.GetSize();

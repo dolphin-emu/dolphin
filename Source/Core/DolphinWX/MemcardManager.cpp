@@ -33,26 +33,6 @@
 #define FIRSTPAGE 0
 #define ARROWS slot ? "" : ARROW[slot], slot ? ARROW[slot] : ""
 
-static wxImage wxImageFromMemoryRGBA(const u32* data, u32 width, u32 height)
-{
-  wxImage image(width, height, false);
-  image.InitAlpha();
-  u8* rgb = image.GetData();
-  u8* alpha = image.GetAlpha();
-  for (u32 y = 0; y < height; ++y)
-  {
-    for (u32 x = 0; x < width; ++x)
-    {
-      u32 pixel = data[y * width + x];
-      *rgb++ = (pixel & 0x00FF0000) >> 16;  // Red
-      *rgb++ = (pixel & 0x0000FF00) >> 8;   // Green
-      *rgb++ = (pixel & 0x000000FF) >> 0;   // Blue
-      *alpha++ = (pixel & 0xFF000000) >> 24;
-    }
-  }
-  return image;
-}
-
 BEGIN_EVENT_TABLE(CMemcardManager, wxDialog)
 EVT_BUTTON(ID_COPYFROM_A, CMemcardManager::CopyDeleteClick)
 EVT_BUTTON(ID_COPYFROM_B, CMemcardManager::CopyDeleteClick)
@@ -691,7 +671,7 @@ bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
           }
         }
       }
-      anim_img_strip = wxImageFromMemoryRGBA(pxdata.data(), BANNER_WIDTH, IMAGE_HEIGHT);
+      anim_img_strip = WxUtils::ARGBToImage(pxdata, BANNER_WIDTH);
     }
     else
     {
@@ -706,18 +686,21 @@ bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
       wxImage image;
       if (memoryCard[card]->ReadBannerRGBA8(file_index, pxdata.data()))
       {
-        image = wxImageFromMemoryRGBA(pxdata.data(), BANNER_WIDTH, IMAGE_HEIGHT);
+        image = WxUtils::ARGBToImage(pxdata, BANNER_WIDTH);
       }
       else
       {
         // Use first frame of animation instead.
         image = anim_img_strip.Size(wxSize(ANIM_FRAME_WIDTH, IMAGE_HEIGHT), wxPoint(0, 0));
       }
-      images[i * 2] = list->Add(WxUtils::ScaleImageToBitmap(image, this, m_image_list_size));
+      images[i * 2] = list->Add(
+          WxUtils::ScaleImageToBitmap(image, this, m_image_list_size, wxDefaultSize,
+                                      WxUtils::LSI_DEFAULT | WxUtils::LSI_SCALE_PIXEL_ART));
     }
 
-    images[i * 2 + 1] =
-        list->Add(WxUtils::ScaleImageToBitmap(anim_img_strip, this, m_image_list_size));
+    images[i * 2 + 1] = list->Add(
+        WxUtils::ScaleImageToBitmap(anim_img_strip, this, m_image_list_size, wxDefaultSize,
+                                    WxUtils::LSI_DEFAULT | WxUtils::LSI_SCALE_PIXEL_ART));
   }
 
   int pagesMax = (mcmSettings.usePages) ? (page[card] + 1) * itemsPerPage : 128;

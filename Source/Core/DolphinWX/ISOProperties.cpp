@@ -183,8 +183,9 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 
   if (OpenGameListItem.GetBannerImage().IsOk())
   {
-    m_Banner->SetBitmap(WxUtils::ScaleImageToBitmap(OpenGameListItem.GetBannerImage(), this,
-                                                    m_Banner->GetMinSize()));
+    m_Banner->SetBitmap(WxUtils::ScaleImageToBitmap(
+        OpenGameListItem.GetBannerImage(), this, m_Banner->GetMinSize(), wxDefaultSize,
+        WxUtils::LSI_DEFAULT | WxUtils::LSI_SCALE_PIXEL_ART));
     m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
   }
   else
