@@ -399,14 +399,14 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("o.colors_1 = color1;\n");
   }
 
+  // We have to handle the depth range in the vertex shader, because some games will use a depth range beyond
+  // the normal depth range of 0..1.
+  out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION".w + o.pos.z * " I_PIXELCENTERCORRECTION".z;\n");
+
   // write the true depth value, if the game uses depth textures pixel shaders will override with
   // the correct values
   // if not early z culling will improve speed
-  if (g_ActiveConfig.backend_info.bSupportsClipControl)
-  {
-    out.Write("o.pos.z = -o.pos.z;\n");
-  }
-  else  // OGL
+  if (!g_ActiveConfig.backend_info.bSupportsClipControl)
   {
     // this results in a scale from -1..0 to -1..1 after perspective
     // divide
