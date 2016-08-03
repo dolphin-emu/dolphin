@@ -243,13 +243,22 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
   panel->SetSizerAndFit(main_szr);
 
   main_szr->SetSizeHints(this);
-  SetSize(768, 768 - 128);
-
-  Center();
 }
 
 NetPlayDialog::~NetPlayDialog()
 {
+  IniFile inifile;
+  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  inifile.Load(dolphin_ini);
+  IniFile::Section& netplay_config = *inifile.GetOrCreateSection("NetPlay");
+
+  netplay_config.Set("NetWindowPosX", GetPosition().x);
+  netplay_config.Set("NetWindowPosY", GetPosition().y);
+  netplay_config.Set("NetWindowWidth", GetSize().GetWidth());
+  netplay_config.Set("NetWindowHeight", GetSize().GetHeight());
+
+  inifile.Save(dolphin_ini);
+
   if (netplay_client)
   {
     delete netplay_client;
