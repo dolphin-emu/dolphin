@@ -173,6 +173,13 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
   Bind(wxEVT_MENU, &CGameListCtrl::OnChangeDisc, this, IDM_LIST_CHANGE_DISC);
 
   wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &CGameListCtrl::OnLocalIniModified, this);
+
+#ifdef _WIN32
+  // Default Windows Themes (Aero, Win10) draw column separators which do not appear when
+  // using the default unthemed appearance. This is a new behavior in wx3.1 since wx3.0
+  // and lower did not support themes at all.
+  EnableSystemTheme(false);
+#endif
 }
 
 CGameListCtrl::~CGameListCtrl()

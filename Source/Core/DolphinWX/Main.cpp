@@ -307,11 +307,11 @@ void DolphinApp::InitLanguageSupport()
     m_locale.reset(new wxLocale(language));
 
 // Specify where dolphins *.gmo files are located on each operating system
-#ifdef _WIN32
+#ifdef __WXMSW__
     m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetExeDirectory() + DIR_SEP "Languages"));
-#elif defined(__LINUX__)
+#elif defined(__WXGTK__)
     m_locale->AddCatalogLookupPathPrefix(StrToWxStr(DATA_DIR "../locale"));
-#elif defined(__APPLE__)
+#elif defined(__WXOSX__)
     m_locale->AddCatalogLookupPathPrefix(
         StrToWxStr(File::GetBundleDirectory() + "Contents/Resources"));
 #endif
