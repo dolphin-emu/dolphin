@@ -736,10 +736,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   }
   else
   {
-    if (ApiType == APIType::D3D)
-      out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
-    else
-      out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
+    out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
   }
   out.Write("\tzCoord = clamp(zCoord, 0, 0xFFFFFF);\n");
 
@@ -750,10 +747,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   // Note: z-textures are not written to depth buffer if early depth test is used
   if (uid_data->per_pixel_depth && uid_data->early_ztest)
   {
-    if (ApiType == APIType::D3D)
-      out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
-    else
-      out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+    out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
   }
 
   // Note: depth texture output is only written to depth buffer if late depth test is used
@@ -771,10 +765,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
 
   if (uid_data->per_pixel_depth && uid_data->late_ztest)
   {
-    if (ApiType == APIType::D3D)
-      out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
-    else
-      out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+    out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
   }
 
   if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
@@ -1205,7 +1196,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
     out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   if (per_pixel_depth)
-    out.Write("\t\tdepth = %s;\n", (ApiType == APIType::D3D) ? "0.0" : "1.0");
+    out.Write("\t\tdepth = %s;\n", "1.0");
 
   // ZCOMPLOC HACK:
   if (!uid_data->alpha_test_use_zcomploc_hack)

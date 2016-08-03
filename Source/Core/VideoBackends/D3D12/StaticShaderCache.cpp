@@ -167,7 +167,7 @@ static constexpr const char s_depth_matrix_program_hlsl[] = {
     " in float4 pos : SV_Position,\n"
     " in float3 uv0 : TEXCOORD0){\n"
     "	float4 texcol = Tex0.Sample(samp0,uv0);\n"
-    "	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
+    "	int depth = int(texcol.x * 16777216.0);\n"
 
     // Convert to Z24 format
     "	int4 workspace;\n"
@@ -202,7 +202,7 @@ static constexpr const char s_depth_matrix_program_msaa_hlsl[] = {
     "	for(int i = 0; i < SAMPLES; ++i)\n"
     "		texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
     "	texcol /= SAMPLES;\n"
-    "	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
+    "	int depth = int(texcol.x * 16777216.0);\n"
 
     // Convert to Z24 format
     "	int4 workspace;\n"

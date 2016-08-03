@@ -402,8 +402,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   }
   else  // if (type == PEEK_Z)
   {
-    // depth buffer is inverted in the d3d backend
-    float depth = 1.0f - FramebufferManager::ReadEFBDepthAccessCopy(x, y);
+    float depth = FramebufferManager::ReadEFBDepthAccessCopy(x, y);
     u32 ret = 0;
 
     if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
@@ -484,12 +483,8 @@ void Renderer::SetViewport()
 
   D3D12_VIEWPORT vp = {
       x, y, width, height,
-      1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
-      1.0f -
-          MathUtil::Clamp<float>(xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange,
-                                                                              0.0f, 16777216.0f),
-                                 0.0f, 16777215.0f) /
-              16777216.0f};
+      D3D12_MIN_DEPTH,
+      D3D12_MAX_DEPTH };
 
   D3D::current_command_list->RSSetViewports(1, &vp);
 }
@@ -525,7 +520,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   u32 rgba_color = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
   D3D::SetViewportAndScissor(target_rc.left, target_rc.top, target_rc.GetWidth(),
                              target_rc.GetHeight());
-  D3D::DrawClearQuad(rgba_color, 1.0f - (z & 0xFFFFFF) / 16777216.0f, blend_desc,
+  D3D::DrawClearQuad(rgba_color, (z & 0xFFFFFF) / 16777216.0f, blend_desc,
                      depth_stencil_desc,
                      FramebufferManager::GetEFBColorTexture()->GetMultisampled());
 
