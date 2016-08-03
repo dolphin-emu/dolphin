@@ -324,6 +324,24 @@ void NetPlaySetupFrame::MakeNetPlayDiag(int port, const std::string& game, bool 
                                      trav, centralServer, (u16)centralPort);
   if (netplay_client->IsConnected())
   {
+    int winPosX, winPosY, winWidth, winHeight;
+
+    // Remember the window size and position for NetWindow
+    netplay_section.Get("NetWindowPosX", &winPosX, -1);
+    netplay_section.Get("NetWindowPosY", &winPosY, -1);
+    netplay_section.Get("NetWindowWidth", &winWidth, 768);
+    netplay_section.Get("NetWindowHeight", &winHeight, 768 - 128);
+
+    if (winPosX == -1 || winPosY == -1)
+    {
+      npd->SetSize(768, 768 - 128);
+      npd->Center();
+    }
+    else
+    {
+      npd->SetSize(winPosX, winPosY, winWidth, winHeight);
+    }
+
     npd->Show();
     Destroy();
   }
