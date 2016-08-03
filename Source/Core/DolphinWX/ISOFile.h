@@ -59,7 +59,9 @@ public:
   // 0 is the first disc, 1 is the second disc
   u8 GetDiscNumber() const { return m_disc_number; }
 #if defined(HAVE_WX) && HAVE_WX
-  const wxBitmap& GetBitmap() const { return m_Bitmap; }
+  // NOTE: Banner image is at the original resolution, use WxUtils::ScaleImageToBitmap
+  //   to display it
+  const wxImage& GetBannerImage() const { return m_image; }
 #endif
 
   void DoState(PointerWrap& p);
@@ -86,7 +88,7 @@ private:
   u16 m_Revision;
 
 #if defined(HAVE_WX) && HAVE_WX
-  wxBitmap m_Bitmap;
+  wxImage m_image;
 #endif
   bool m_Valid;
   std::vector<u8> m_pImage;
@@ -107,6 +109,4 @@ private:
   void ReadVolumeBanner(const std::vector<u32>& buffer, int width, int height);
   // Outputs to m_Bitmap
   bool ReadPNGBanner(const std::string& path);
-
-  static wxBitmap ScaleBanner(wxImage* image);
 };
