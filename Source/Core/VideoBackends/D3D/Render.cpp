@@ -578,14 +578,7 @@ void Renderer::SetViewport()
   Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
   Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(
-      X, Y, Wd, Ht,
-      1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
-      1.0f -
-          MathUtil::Clamp<float>(xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange,
-                                                                              0.0f, 16777216.0f),
-                                 0.0f, 16777215.0f) /
-              16777216.0f);
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, D3D11_MIN_DEPTH, 16777215.0f / 16777216.0f);
   D3D::context->RSSetViewports(1, &vp);
 }
 
