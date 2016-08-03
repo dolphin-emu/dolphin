@@ -725,6 +725,7 @@ Renderer::Renderer()
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
   glEnable(GL_CLIP_DISTANCE0);
+  glEnable(GL_DEPTH_CLAMP);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 
@@ -1137,7 +1138,7 @@ void Renderer::SetViewport()
     auto iceilf = [](float f) { return static_cast<GLint>(ceilf(f)); };
     glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
   }
-  glDepthRangef(0.0f, 1.0f);
+  glDepthRangef(0.0f, 16777215.0f / 16777216.0f);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
