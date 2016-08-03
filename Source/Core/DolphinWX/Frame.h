@@ -317,6 +317,7 @@ private:
   void OnMouse(wxMouseEvent& event);  // Mouse
 
   void OnHostMessage(wxThreadEvent& event);
+  void OnDebuggerStateUpdate(wxCommandEvent&);
 
   void OnMemcard(wxCommandEvent& event);  // Misc
   void OnImportSave(wxCommandEvent& event);

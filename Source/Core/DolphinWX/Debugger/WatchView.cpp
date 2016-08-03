@@ -17,8 +17,6 @@
 #include "DolphinWX/Debugger/RegisterView.h"
 #include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
-#include "DolphinWX/Frame.h"
-#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 enum
@@ -272,29 +270,23 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
 
 void CWatchView::OnPopupMenu(wxCommandEvent& event)
 {
-  // FIXME: This is terrible. Generate events instead.
-  CFrame* cframe = wxGetApp().GetCFrame();
-  CCodeWindow* code_window = cframe->g_pCodeWindow;
-  CWatchWindow* watch_window = code_window->GetPanel<CWatchWindow>();
-  CMemoryWindow* memory_window = code_window->GetPanel<CMemoryWindow>();
-  CBreakPointWindow* breakpoint_window = code_window->GetPanel<CBreakPointWindow>();
-
-  wxString strNewVal;
-  TMemCheck MemCheck;
-
+  DebuggerUpdateType update_type = DebuggerUpdateType::UpdateWatchPoints;
   switch (event.GetId())
   {
   case IDM_DELETEWATCH:
-    strNewVal = GetValueByRowCol(m_selectedRow, 1);
-    if (TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress))
-    {
-      PowerPC::watches.Remove(m_selectedAddress);
-      if (watch_window)
-        watch_window->NotifyUpdate();
-      Refresh();
-    }
-    break;
+  {
+    wxString strNewVal = GetValueByRowCol(m_selectedRow, 1);
+    if (!TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress))
+      return;
+
+    PowerPC::watches.Remove(m_selectedAddress);
+    update_type = DebuggerUpdateType::UpdateWatchPoints;
+  }
+  break;
+
   case IDM_ADDMEMCHECK:
+  {
+    TMemCheck MemCheck;
     MemCheck.StartAddress = m_selectedAddress;
     MemCheck.EndAddress = m_selectedAddress;
     MemCheck.bRange = false;
@@ -304,15 +296,22 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
     MemCheck.Break = true;
     PowerPC::memchecks.Add(MemCheck);
 
-    if (breakpoint_window)
-      breakpoint_window->NotifyUpdate();
-    Refresh();
-    break;
-  case IDM_VIEWMEMORY:
-    if (memory_window)
-      memory_window->JumpToAddress(m_selectedAddress);
-    Refresh();
-    break;
+    update_type = DebuggerUpdateType::UpdateBreakPoints;
   }
-  event.Skip();
+  break;
+
+  case IDM_VIEWMEMORY:
+    update_type = DebuggerUpdateType::MoveMemoryPointer;
+    break;
+
+  default:
+    event.Skip();
+    return;
+  }
+  Refresh();
+
+  wxCommandEvent ev(DOLPHIN_EVT_DEBUGGER_UPDATE_STATE, GetId());
+  ev.SetInt(static_cast<int>(update_type));
+  ev.SetExtraLong(m_selectedAddress);
+  GetEventHandler()->ProcessEvent(ev);
 }

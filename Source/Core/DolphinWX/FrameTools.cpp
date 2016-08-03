@@ -630,10 +630,10 @@ void CFrame::BootGame(const std::string& filename)
     StartGame(bootfile);
     if (UseDebugger && g_pCodeWindow)
     {
-      if (g_pCodeWindow->HasPanel<CWatchWindow>())
-        g_pCodeWindow->GetPanel<CWatchWindow>()->LoadAll();
-      if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
-        g_pCodeWindow->GetPanel<CBreakPointWindow>()->LoadAll();
+      if (auto* p = g_pCodeWindow->GetPanel<CWatchWindow>())
+        p->LoadAll();
+      if (auto* p = g_pCodeWindow->GetPanel<CBreakPointWindow>())
+        p->LoadAll();
     }
   }
 }
@@ -1138,15 +1138,15 @@ bool CFrame::DoStop(bool allow_user_cancel)
 
   if (UseDebugger && g_pCodeWindow)
   {
-    if (g_pCodeWindow->HasPanel<CWatchWindow>())
-      g_pCodeWindow->GetPanel<CWatchWindow>()->SaveAll();
+    if (auto* p = g_pCodeWindow->GetPanel<CWatchWindow>())
+      p->SaveAll();
     PowerPC::watches.Clear();
-    if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
-      g_pCodeWindow->GetPanel<CBreakPointWindow>()->SaveAll();
+    if (auto* p = g_pCodeWindow->GetPanel<CBreakPointWindow>())
+      p->SaveAll();
     PowerPC::breakpoints.Clear();
     PowerPC::memchecks.Clear();
-    if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
-      g_pCodeWindow->GetPanel<CBreakPointWindow>()->NotifyUpdate();
+    if (auto* p = g_pCodeWindow->GetPanel<CBreakPointWindow>())
+      p->NotifyUpdate();
     g_symbolDB.Clear();
     Host_NotifyMapLoaded();
   }

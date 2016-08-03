@@ -25,9 +25,7 @@
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
-#include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
-#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 enum
@@ -123,10 +121,9 @@ void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 
     Refresh();
 
-    // Propagate back to the parent window to update the breakpoint list.
-    wxThreadEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_BREAKPOINTS);
-    evt.ResumePropagation(wxEVENT_PROPAGATE_MAX);
-    GetEventHandler()->AddPendingEvent(evt);
+    wxCommandEvent ev(DOLPHIN_EVT_DEBUGGER_UPDATE_STATE, GetId());
+    ev.SetInt(static_cast<int>(DebuggerUpdateType::UpdateBreakPoints));
+    GetEventHandler()->ProcessEvent(ev);
   }
 
   event.Skip();
@@ -187,11 +184,6 @@ void CMemoryView::OnScrollWheel(wxMouseEvent& event)
 
 void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 {
-  // FIXME: This is terrible. Generate events instead.
-  CFrame* cframe = wxGetApp().GetCFrame();
-  CCodeWindow* code_window = cframe->g_pCodeWindow;
-  CWatchWindow* watch_window = code_window->GetPanel<CWatchWindow>();
-
   switch (event.GetId())
   {
 #if wxUSE_CLIPBOARD
@@ -212,11 +204,15 @@ void CMemoryView::OnPopupMenu(wxCommandEvent& event)
 #endif
 
   case IDM_WATCHADDRESS:
+  {
     debugger->AddWatch(selection);
-    if (watch_window)
-      watch_window->NotifyUpdate();
     Refresh();
-    break;
+
+    wxThreadEvent ev(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
+    ev.ResumePropagation(wxEVENT_PROPAGATE_MAX);
+    GetEventHandler()->ProcessEvent(ev);
+  }
+  break;
 
   case IDM_TOGGLEMEMORY:
     memory ^= 1;
