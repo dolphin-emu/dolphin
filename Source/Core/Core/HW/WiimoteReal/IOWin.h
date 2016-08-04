@@ -50,10 +50,6 @@ public:
   bool IsReady() const override;
   void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) override;
   void Update() override;
-
-private:
-  void CheckDeviceType(std::basic_string<TCHAR>& devicepath, WinWriteMethod& write_method,
-                       bool& real_wiimote, bool& is_bb);
 };
 }
 
