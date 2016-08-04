@@ -24,7 +24,6 @@
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/Movie.h"
-#include "Core/NetPlayClient.h"
 #include "InputCommon/GCAdapter.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
