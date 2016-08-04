@@ -492,7 +492,7 @@ void ChangeDiscAsCPU(const std::string& newFileName)
   CoreTiming::ScheduleEvent(500000000, s_insert_disc, (u64)_FileName);
   if (Movie::IsRecordingInput())
   {
-    Movie::g_bDiscChange = true;
+    Movie::SetChangedDisc(true);
     std::string fileName = newFileName;
     auto sizeofpath = fileName.find_last_of("/\\") + 1;
     if (fileName.substr(sizeofpath).length() > 40)
@@ -501,7 +501,7 @@ void ChangeDiscAsCPU(const std::string& newFileName)
                   "The filename of the disc image must not be longer than 40 characters.",
                   newFileName.c_str());
     }
-    Movie::g_discChange = fileName.substr(sizeofpath);
+    Movie::SetDiscChange(fileName.substr(sizeofpath));
   }
 }
 
