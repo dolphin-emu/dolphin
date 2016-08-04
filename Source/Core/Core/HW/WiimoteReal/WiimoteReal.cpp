@@ -241,6 +241,61 @@ bool Wiimote::Write()
   return ret;
 }
 
+bool Wiimote::IsBalanceBoard()
+{
+  if (!ConnectInternal())
+    return false;
+  // Initialise the extension by writing 0x55 to 0xa400f0, then writing 0x00 to 0xa400fb.
+  const static u8 init_extension_rpt1[] = {
+      WM_SET_REPORT | WM_BT_OUTPUT, WM_WRITE_DATA, 0x04, 0xa4, 0x00, 0xf0, 0x01, 0x55};
+  const static u8 init_extension_rpt2[] = {
+      WM_SET_REPORT | WM_BT_OUTPUT, WM_WRITE_DATA, 0x04, 0xa4, 0x00, 0xfb, 0x01, 0x00};
+  const static u8 status_report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REQUEST_STATUS, 0};
+  if (!IOWrite(init_extension_rpt1, sizeof(init_extension_rpt1)) ||
+      !IOWrite(init_extension_rpt2, sizeof(init_extension_rpt2)))
+  {
+    ERROR_LOG(WIIMOTE, "IsBalanceBoard(): Failed to initialise extension.");
+    return false;
+  }
+
+  int ret = IOWrite(status_report, sizeof(status_report));
+  u8 buf[MAX_PAYLOAD];
+  while (ret != 0)
+  {
+    ret = IORead(buf);
+    if (ret == -1)
+      continue;
+
+    switch (buf[1])
+    {
+    case WM_STATUS_REPORT:
+    {
+      const auto* status = (wm_status_report*)&buf[2];
+      if (!status->extension)  // A Balance Board has a Balance Board extension.
+        return false;
+      // Read two bytes from 0xa400fe to identify the extension.
+      const static u8 identify_ext_rpt[] = {
+          WM_SET_REPORT | WM_BT_OUTPUT, WM_READ_DATA, 0x04, 0xa4, 0x00, 0xfe, 0x02, 0x00};
+      ret = IOWrite(identify_ext_rpt, sizeof(identify_ext_rpt));
+      break;
+    }
+    case WM_READ_DATA_REPLY:
+    {
+      const auto* reply = (wm_read_data_reply*)&buf[2];
+      if (Common::swap16(reply->address) != 0x00fe)
+      {
+        ERROR_LOG(WIIMOTE, "IsBalanceBoard(): Received unexpected data reply for address %X",
+                  Common::swap16(reply->address));
+        return false;
+      }
+      // A Balance Board ext can be identified by checking for 0x0402.
+      return reply->data[0] == 0x04 && reply->data[1] == 0x02;
+    }
+    }
+  }
+  return false;
+}
+
 static bool IsDataReport(const Report& rpt)
 {
   return rpt.size() >= 2 && rpt[1] >= WM_REPORT_CORE;

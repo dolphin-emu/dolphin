@@ -81,18 +81,17 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
       continue;
     }
 
-    const bool is_balance_board = IsBalanceBoardName(name);
-    NOTICE_LOG(WIIMOTE, "Found %s at %s: %ls %ls (%04hx:%04hx)",
-               is_balance_board ? "balance board" : "Wiimote", device->path,
-               device->manufacturer_string, device->product_string, device->vendor_id,
-               device->product_id);
-
-    Wiimote* wiimote = new WiimoteHidapi(device->path);
-    s_known_paths.push_back(device->path);
+    auto* wiimote = new WiimoteHidapi(device->path);
+    const bool is_balance_board = IsBalanceBoardName(name) || wiimote->IsBalanceBoard();
     if (is_balance_board)
       board = wiimote;
     else
       wiimotes.push_back(wiimote);
+
+    NOTICE_LOG(WIIMOTE, "Found %s at %s: %ls %ls (%04hx:%04hx)",
+               is_balance_board ? "balance board" : "Wiimote", device->path,
+               device->manufacturer_string, device->product_string, device->vendor_id,
+               device->product_id);
 
     device = device->next;
   }
@@ -101,6 +100,7 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
 
 WiimoteHidapi::WiimoteHidapi(char* device_path) : m_device_path(device_path), m_handle(nullptr)
 {
+  s_known_paths.push_back(m_device_path);
 }
 
 WiimoteHidapi::~WiimoteHidapi()
@@ -111,6 +111,9 @@ WiimoteHidapi::~WiimoteHidapi()
 
 bool WiimoteHidapi::ConnectInternal()
 {
+  if (m_handle != nullptr)
+    return true;
+
   m_handle = hid_open_path(m_device_path.c_str());
   if (m_handle == nullptr)
   {
