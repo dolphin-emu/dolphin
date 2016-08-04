@@ -42,6 +42,8 @@ public:
   void Read();
   bool Write();
 
+  bool IsBalanceBoard();
+
   void StartThread();
   void StopThread();
 
