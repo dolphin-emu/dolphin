@@ -66,7 +66,7 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
-int g_saveSlot = 1;
+static int s_saveSlot = 1;
 
 #if defined(HAVE_X11) && HAVE_X11
 // X11Utils nastiness that's only used here
@@ -1172,6 +1172,16 @@ void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controll
   }
 }
 
+int GetSaveSlot()
+{
+  return s_saveSlot;
+}
+
+void SetSaveSlot(int saveSlot)
+{
+  s_saveSlot = saveSlot;
+}
+
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
 // On OS X, we claim all keyboard events while
@@ -1528,11 +1538,11 @@ void CFrame::ParseHotkeys()
   }
   if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
   {
-    State::Save(g_saveSlot);
+    State::Save(s_saveSlot);
   }
   if (IsHotkey(HK_LOAD_STATE_SLOT_SELECTED))
   {
-    State::Load(g_saveSlot);
+    State::Load(s_saveSlot);
   }
 
   if (IsHotkey(HK_TOGGLE_STEREO_SBS))
