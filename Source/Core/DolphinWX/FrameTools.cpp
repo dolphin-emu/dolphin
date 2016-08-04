@@ -1294,7 +1294,7 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnReset(wxCommandEvent& WXUNUSED(event))
 {
   if (Movie::IsRecordingInput())
-    Movie::g_bReset = true;
+    Movie::SetReset(true);
   ProcessorInterface::ResetButton_Tap();
 }
 

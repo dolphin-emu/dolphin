@@ -48,15 +48,6 @@ struct ControllerState
 static_assert(sizeof(ControllerState) == 8, "ControllerState should be 8 bytes");
 #pragma pack(pop)
 
-// Global declarations
-extern bool g_bDiscChange, g_bClearSave, g_bReset;
-extern u64 g_titleID;
-
-extern u64 g_currentFrame, g_totalFrames;
-extern u64 g_currentLagCount;
-extern u64 g_currentInputCount, g_totalInputCount;
-extern std::string g_discChange;
-
 #pragma pack(push, 1)
 struct DTMHeader
 {
@@ -129,6 +120,18 @@ bool IsPlayingInput();
 bool IsMovieActive();
 bool IsReadOnly();
 u64 GetRecordingStartTime();
+
+u64 GetCurrentFrame();
+u64 GetTotalFrames();
+u64 GetCurrentInputCount();
+u64 GetTotalInputCount();
+u64 GetCurrentLagCount();
+u64 GetTotalLagCount();
+
+void SetClearSave(bool enabled);
+void SignalDiscChange(const std::string& new_disc_filename, bool disc_changed);
+void SetReset(bool reset);
+void SetTitleId(u64 title_id);
 
 bool IsConfigSaved();
 bool IsDualCore();

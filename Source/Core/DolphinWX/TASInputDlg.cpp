@@ -1106,11 +1106,11 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 // NOTE: Host / CPU Thread
 void TASInputDlg::ButtonTurbo()
 {
-  static u64 frame = Movie::g_currentFrame;
+  static u64 frame = Movie::GetCurrentFrame();
 
-  if (frame != Movie::g_currentFrame)
+  if (frame != Movie::GetCurrentFrame())
   {
-    frame = Movie::g_currentFrame;
+    frame = Movie::GetCurrentFrame();
     for (Button* const button : m_buttons)
     {
       if (button != nullptr && button->turbo_on)

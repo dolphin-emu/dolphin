@@ -900,11 +900,11 @@ void UpdateTitle()
 
   if (Movie::IsPlayingInput())
     SFPS = StringFromFormat("Input: %u/%u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
-                            (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount,
-                            (u32)Movie::g_currentFrame, FPS, VPS, Speed);
+                            (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetTotalInputCount(),
+                            (u32)Movie::GetCurrentFrame(), FPS, VPS, Speed);
   else if (Movie::IsRecordingInput())
     SFPS = StringFromFormat("Input: %u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
-                            (u32)Movie::g_currentInputCount, (u32)Movie::g_currentFrame, FPS, VPS,
+                            (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetCurrentFrame(), FPS, VPS,
                             Speed);
   else
   {
