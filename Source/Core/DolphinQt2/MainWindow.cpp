@@ -220,7 +220,7 @@ void MainWindow::ForceStop()
 void MainWindow::Reset()
 {
   if (Movie::IsRecordingInput())
-    Movie::g_bReset = true;
+    Movie::SetReset(true);
   ProcessorInterface::ResetButton_Tap();
 }
 

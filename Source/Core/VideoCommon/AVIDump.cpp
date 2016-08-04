@@ -204,7 +204,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
   // Check to see if the first frame being dumped is the first frame of output from the emulator.
   // This prevents an issue with starting dumping later in emulation from placing the frames
   // incorrectly.
-  if (!s_start_dumping && Movie::g_currentFrame < 1)
+  if (!s_start_dumping && Movie::GetCurrentFrame() < 1)
   {
     delta = CoreTiming::GetTicks();
     last_pts = AV_NOPTS_VALUE;
