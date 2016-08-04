@@ -45,6 +45,22 @@ private:
   bool m_cleanup_after_stackfault;
   u8* m_stack;
 
+  enum struct OptimizedMemCheckMode
+  {
+    NONE,
+    IMMEDIATE,
+    ONE_FPR,
+    MULTIPLE_FPRS,
+  };
+  OptimizedMemCheckMode m_optimized_mem_check_mode;
+  enum
+  {
+    MAX_IMMEDIATE_MEMCHECKS = 1
+  };
+  std::array<std::pair<u32, u32>, MAX_IMMEDIATE_MEMCHECKS> m_optimized_mem_check_imm_pairs;
+  size_t m_optimized_mem_check_num_imm_pairs;
+  size_t m_optimized_mem_check_num_fpr_pairs;
+
 public:
   Jit64() : code_buffer(32000) {}
   ~Jit64() {}
@@ -59,6 +75,13 @@ public:
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
   bool HandleStackFault() override;
+
+  void DisableOptimizedMemCheckMode() override;
+  bool TryEnableOptimizedMemCheckMode(MemChecks* checks) override;
+  size_t
+  PerformExtraSafeAddressChecks(Gen::XEmitter* emitter, Gen::X64Reg reg_addr,
+                                std::array<Gen::FixupBranch, MAX_SAFE_ADDRESS_BRANCHES>& branches,
+                                bool long_branch, BitSet32 registersInUse) override;
 
   // Jit!
 

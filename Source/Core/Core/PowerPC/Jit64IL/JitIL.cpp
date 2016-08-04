@@ -263,7 +263,7 @@ void JitIL::Init()
   trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
   AllocCodeSpace(CODE_SIZE);
   blocks.Init();
-  asm_routines.Init(nullptr);
+  asm_routines.Init(nullptr, nullptr, nullptr, 0);
 
   farcode.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
   Clear();

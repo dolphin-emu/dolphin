@@ -313,12 +313,17 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     mem_mask |= Memory::ADDR_MASK_MEM1;
 
     FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
+    std::array<FixupBranch, Jitx86Base::MAX_SAFE_ADDRESS_BRANCHES> slow_extra;
+    size_t count = static_cast<Jitx86Base*>(jit)->PerformExtraSafeAddressChecks(
+        this, reg_addr, slow_extra, farcode.Enabled(), registersInUse);
     UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
     if (farcode.Enabled())
       SwitchToFarCode();
     else
       exit = J(true);
     SetJumpTarget(slow);
+    for (size_t i = 0; i < count; i++)
+      SetJumpTarget(slow_extra[i]);
   }
   size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
   ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -584,12 +589,17 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     mem_mask |= Memory::ADDR_MASK_MEM1;
 
     slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse, mem_mask);
+    std::array<FixupBranch, Jitx86Base::MAX_SAFE_ADDRESS_BRANCHES> slow_extra;
+    size_t count = static_cast<Jitx86Base*>(jit)->PerformExtraSafeAddressChecks(
+        this, reg_addr, slow_extra, farcode.Enabled(), registersInUse);
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
     if (farcode.Enabled())
       SwitchToFarCode();
     else
       exit = J(true);
     SetJumpTarget(slow);
+    for (size_t i = 0; i < count; i++)
+      SetJumpTarget(slow_extra[i]);
   }
 
   // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs

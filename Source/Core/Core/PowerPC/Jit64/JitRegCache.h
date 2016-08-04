@@ -42,19 +42,24 @@ protected:
   std::array<PPCCachedReg, 32> regs;
   std::array<X64CachedReg, NUMXREGS> xregs;
 
-  virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) = 0;
+  virtual const Gen::X64Reg* GetFullAllocationOrder(size_t* count) = 0;
+  const Gen::X64Reg* GetAllocationOrder(size_t* count);
 
   virtual BitSet32 GetRegUtilization() = 0;
   virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) = 0;
 
+  float ScoreRegister(Gen::X64Reg xreg);
+
   Gen::XEmitter* emit;
 
-  float ScoreRegister(Gen::X64Reg xreg);
+  size_t m_num_reserved_regs;
 
 public:
   RegCache();
   virtual ~RegCache() {}
   void Start();
+
+  const Gen::X64Reg* GetReservedAllocationOrder(size_t* count);
 
   void DiscardRegContentsIfCached(size_t preg);
   void SetEmitter(Gen::XEmitter* emitter) { emit = emitter; }
@@ -160,10 +165,15 @@ public:
   void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
   void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
   Gen::OpArg GetDefaultLocation(size_t reg) const override;
-  const Gen::X64Reg* GetAllocationOrder(size_t* count) override;
+  const Gen::X64Reg* GetFullAllocationOrder(size_t* count) override;
   void SetImmediate32(size_t preg, u32 immValue);
   BitSet32 GetRegUtilization() override;
   BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
+};
+
+union XMMValue {
+  __m128i m128;
+  std::array<u32, 4> u32s;
 };
 
 class FPURegCache final : public RegCache
@@ -171,8 +181,18 @@ class FPURegCache final : public RegCache
 public:
   void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
   void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
-  const Gen::X64Reg* GetAllocationOrder(size_t* count) override;
   Gen::OpArg GetDefaultLocation(size_t reg) const override;
   BitSet32 GetRegUtilization() override;
   BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
+
+  // should be called before Start
+  void SetReservedFPRValues(const XMMValue* values, size_t count);
+  const std::array<XMMValue, NUMXREGS>& GetReservedFPRValues() const
+  {
+    return m_reserved_fpr_values;
+  }
+
+protected:
+  const Gen::X64Reg* GetFullAllocationOrder(size_t* count) override;
+  std::array<XMMValue, NUMXREGS> m_reserved_fpr_values;
 };

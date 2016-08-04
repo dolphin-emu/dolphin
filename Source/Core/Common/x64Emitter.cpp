@@ -2875,6 +2875,10 @@ void XEmitter::VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
 {
   WriteAVXOp(0x66, 0xEF, regOp1, regOp2, arg);
 }
+void XEmitter::VPSUBD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
+{
+  WriteAVXOp(0x66, 0xFA, regOp1, regOp2, arg);
+}
 
 void XEmitter::VFMADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg)
 {

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <emmintrin.h>
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
@@ -24,21 +25,15 @@
 class Jit64AsmRoutineManager : public CommonAsmRoutines
 {
 private:
-  void Generate();
+  void Generate(const Gen::X64Reg* reserved_fprs, size_t reserved_fpr_count);
   void ResetStack();
   void GenerateCommon();
   u8* m_stack_top;
+  __m128i m_reserved_fpr_values[16];
 
 public:
-  void Init(u8* stack_top)
-  {
-    m_stack_top = stack_top;
-    // NOTE: When making large additions to the AsmCommon code, you might
-    // want to ensure this number is big enough.
-    AllocCodeSpace(16384);
-    Generate();
-    WriteProtect();
-  }
+  void Init(u8* stack_top, const Gen::X64Reg* reserved_fprs, const __m128i* reserved_fpr_values,
+            size_t reserved_fpr_count);
 
   void Shutdown() { FreeCodeSpace(); }
 };

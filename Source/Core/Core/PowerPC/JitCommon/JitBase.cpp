@@ -86,8 +86,10 @@ bool JitBase::MergeAllowedNextInstructions(int count)
 
 void JitBase::UpdateMemoryOptions()
 {
-  bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem = SConfig::GetInstance().bFastmem && !any_watchpoints;
-  jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
-  jo.alwaysUseMemFuncs = any_watchpoints;
+  DisableOptimizedMemCheckMode();
+  bool have_memchecks = PowerPC::memchecks.HasAny();
+  bool need_slow = have_memchecks && !TryEnableOptimizedMemCheckMode(&PowerPC::memchecks);
+  jo.fastmem = SConfig::GetInstance().bFastmem && !have_memchecks;
+  jo.memcheck = SConfig::GetInstance().bMMU || have_memchecks;
+  jo.alwaysUseMemFuncs = need_slow;
 }
