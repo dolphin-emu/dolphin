@@ -403,6 +403,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   // the normal depth range of 0..1.
   out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION".w + o.pos.z * " I_PIXELCENTERCORRECTION".z;\n");
 
+  // We have to clamp to 2^24 - 1 here, because we map our depth range to 0..2^24 to prevent round-trip errors.
+  // Thus we test for values that will result in 2^24 or higher after the perspective divide.
+  out.Write("if (o.pos.z / o.pos.w >= 1.0) o.pos.z = 16777215.0 / 16777216.0 * o.pos.w;\n");
+
   // write the true depth value, if the game uses depth textures pixel shaders will override with
   // the correct values
   // if not early z culling will improve speed
