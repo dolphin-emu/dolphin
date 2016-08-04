@@ -725,6 +725,7 @@ Renderer::Renderer()
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
   glEnable(GL_DEPTH_CLAMP);
+  glEnable(GL_CLIP_DISTANCE0);
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 
