@@ -158,6 +158,7 @@ private:
   bool m_bGameLoading;
   bool m_bClosing;
   bool m_confirmStop;
+  int m_saveSlot = 1;
 
   std::vector<std::string> drives;
 
@@ -347,4 +348,3 @@ void OnStoppedCallback();
 void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID);
 void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
                          const wiimote_key key);
-extern int g_saveSlot;
