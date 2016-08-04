@@ -218,10 +218,10 @@ void Wiimote::Read()
   }
 }
 
-void Wiimote::Write()
+bool Wiimote::Write()
 {
   if (m_write_reports.Empty())
-    return;
+    return true;  // nothing written, but this is not an error
 
   Report const& rpt = m_write_reports.Front();
 
@@ -231,12 +231,14 @@ void Wiimote::Write()
     Socket.send((char*)rpt.data(), rpt.size(), sf::IpAddress::LocalHost,
                 SConfig::GetInstance().iBBDumpPort);
   }
-  IOWrite(rpt.data(), rpt.size());
+  int ret = IOWrite(rpt.data(), rpt.size());
 
   m_write_reports.Pop();
 
   if (!m_write_reports.Empty())
     IOWakeup();
+
+  return ret;
 }
 
 static bool IsDataReport(const Report& rpt)
@@ -600,7 +602,11 @@ void Wiimote::ThreadFunc()
         break;
       }
     }
-    Write();
+    if (Write() == 0)
+    {
+      ERROR_LOG(WIIMOTE, "Wiimote::Write failed.  Disconnecting Wiimote %d.", m_index + 1);
+      break;
+    }
     Read();
   }
 

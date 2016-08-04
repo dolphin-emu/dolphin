@@ -40,7 +40,7 @@ public:
   const Report& ProcessReadQueue();
 
   void Read();
-  void Write();
+  bool Write();
 
   void StartThread();
   void StopThread();
