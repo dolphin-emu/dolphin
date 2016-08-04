@@ -388,8 +388,8 @@ void VertexShaderManager::SetConstants()
     constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
 
     // The depth range is handled in the vertex shader.
-    constants.pixelcentercorrection[2] = (xfmem.viewport.zRange) / 16777216.0f;
-    constants.pixelcentercorrection[3] = (xfmem.viewport.farZ) / 16777216.0f;
+    constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
+    constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
 
     dirty = true;
     // This is so implementation-dependent that we can't have it here.
