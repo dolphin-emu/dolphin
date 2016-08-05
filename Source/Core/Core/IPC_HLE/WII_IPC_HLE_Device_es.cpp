@@ -1147,15 +1147,15 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
   File::CreateFullPath(tmd_path);
   File::CreateFullPath(Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT));
 
-  Movie::g_titleID = tmd_title_id;
+  Movie::SetTitleId(tmd_title_id);
   std::string save_path = Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT);
   if (Movie::IsRecordingInput())
   {
     // TODO: Check for the actual save data
     if (File::Exists(save_path + "banner.bin"))
-      Movie::g_bClearSave = false;
+      Movie::SetClearSave(false);
     else
-      Movie::g_bClearSave = true;
+      Movie::SetClearSave(true);
   }
 
   // TODO: Force the game to save to another location, instead of moving the user's save.
