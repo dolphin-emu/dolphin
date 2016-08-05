@@ -120,6 +120,8 @@ protected:
 
   void UpdateMemoryOptions();
 
+  virtual void DisableOptimizedMemCheckMode() {}
+  virtual bool TryEnableOptimizedMemCheckMode(MemChecks* checks) { return false; }
 public:
   // This should probably be removed from public:
   JitOptions jo;
@@ -145,6 +147,17 @@ protected:
 public:
   JitBlockCache* GetBlockCache() override { return &blocks; }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+  enum
+  {
+    MAX_SAFE_ADDRESS_BRANCHES = 5
+  };
+  virtual size_t
+  PerformExtraSafeAddressChecks(Gen::XEmitter* emitter, Gen::X64Reg reg_addr,
+                                std::array<Gen::FixupBranch, MAX_SAFE_ADDRESS_BRANCHES>& branches,
+                                bool long_branch, BitSet32 registersInUse)
+  {
+    return 0;
+  }
 };
 
 extern JitBase* jit;

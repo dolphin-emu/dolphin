@@ -1017,6 +1017,7 @@ AVX_RRM_TEST(VPAND, "dqword")
 AVX_RRM_TEST(VPANDN, "dqword")
 AVX_RRM_TEST(VPOR, "dqword")
 AVX_RRM_TEST(VPXOR, "dqword")
+AVX_RRM_TEST(VPSUBD, "dqword")
 
 #define FMA3_TEST(Name, P, packed)                                                                 \
   AVX_RRM_TEST(Name##132##P##S, packed ? "dqword" : "dword")                                       \

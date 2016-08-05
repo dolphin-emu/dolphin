@@ -239,7 +239,10 @@ void Jit64::Init()
     AllocStack();
 
   blocks.Init();
-  asm_routines.Init(m_stack ? (m_stack + STACK_SIZE) : nullptr);
+  size_t count;
+  auto order = fpr.GetReservedAllocationOrder(&count);
+  asm_routines.Init(m_stack ? (m_stack + STACK_SIZE) : nullptr, order,
+                    (__m128i*)&fpr.GetReservedFPRValues()[0], count);
 
   // important: do this *after* generating the global asm routines, because we can't use farcode in
   // them.
@@ -980,4 +983,113 @@ void Jit64::EnableOptimization()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+}
+
+void Jit64::DisableOptimizedMemCheckMode()
+{
+  m_optimized_mem_check_mode = OptimizedMemCheckMode::NONE;
+  fpr.SetReservedFPRValues(nullptr, 0);
+}
+
+bool Jit64::TryEnableOptimizedMemCheckMode(MemChecks* checks)
+{
+  size_t count = checks->m_MemChecks.size();
+  if (count == 0)
+    return false;
+  if (count <= MAX_IMMEDIATE_MEMCHECKS)
+  {
+    m_optimized_mem_check_mode = OptimizedMemCheckMode::IMMEDIATE;
+    size_t i = 0;
+    for (TMemCheck& bp : checks->m_MemChecks)
+      m_optimized_mem_check_imm_pairs[i++] = std::make_pair(bp.StartAddress, bp.GetSize());
+    m_optimized_mem_check_num_imm_pairs = i;
+    return true;
+  }
+
+  size_t fpr_pairs = (count + 3) / 4;
+  size_t regs_base = fpr_pairs == 1 ? 1 : 2;
+  size_t regs_needed = regs_base + 2 * fpr_pairs;
+  // limit is arbitrary, though best to use callee-saved, which we only have on Unix
+  if (regs_needed > 5)
+    return false;
+  m_optimized_mem_check_mode =
+      fpr_pairs == 1 ? OptimizedMemCheckMode::ONE_FPR : OptimizedMemCheckMode::MULTIPLE_FPRS;
+  // this could be optimized in various cases
+  std::array<XMMValue, NUMXREGS> reserved_fpr_values;
+  for (size_t i = 0; i < regs_needed; i++)
+    reserved_fpr_values[i].u32s.fill(0x80000000);
+  size_t i = 0;
+  for (TMemCheck& bp : checks->m_MemChecks)
+  {
+    size_t first_reg = regs_base + 2 * (i / 4), second_reg = first_reg + 1;
+    size_t element = i % 4;
+    i++;
+    u32 first = bp.StartAddress, second = bp.GetSize() - 1;
+    reserved_fpr_values[first_reg].u32s[element] = first ^ 0x80000000;
+    reserved_fpr_values[second_reg].u32s[element] = second ^ 0x80000000;
+  }
+  fpr.SetReservedFPRValues(&reserved_fpr_values[0], regs_needed);
+  m_optimized_mem_check_num_fpr_pairs = fpr_pairs;
+  return true;
+}
+
+size_t
+Jit64::PerformExtraSafeAddressChecks(Gen::XEmitter* emitter, X64Reg reg_addr,
+                                     std::array<FixupBranch, MAX_SAFE_ADDRESS_BRANCHES>& branches,
+                                     bool long_branch, BitSet32 registersInUse)
+{
+  OptimizedMemCheckMode mode = m_optimized_mem_check_mode;
+  if (mode == OptimizedMemCheckMode::NONE)
+    return 0;
+  if (mode == OptimizedMemCheckMode::IMMEDIATE)
+  {
+    for (size_t i = 0; i < m_optimized_mem_check_num_imm_pairs; i++)
+    {
+      auto pair = m_optimized_mem_check_imm_pairs[i];
+      u32 addr = pair.first, size = pair.second;
+      emitter->MOV(32, R(RSCRATCH2), R(reg_addr));
+      emitter->SUB(32, R(RSCRATCH2), Imm32(addr));
+      emitter->CMP(32, R(RSCRATCH2), Imm32(size));
+      _assert_(i < MAX_SAFE_ADDRESS_BRANCHES);
+      branches[i] = emitter->J_CC(CC_B, long_branch);
+    }
+    return m_optimized_mem_check_num_imm_pairs;
+  }
+  // emitter->INT3();
+  size_t count;
+  auto order = fpr.GetReservedAllocationOrder(&count);
+  X64Reg scratch_fpr = *order++;
+  X64Reg scratch2_fpr;
+  if (mode == OptimizedMemCheckMode::MULTIPLE_FPRS)
+    scratch2_fpr = *order++;
+  else
+    scratch2_fpr = scratch_fpr;
+  MOVD_xmm(scratch_fpr, R(reg_addr));
+  PSHUFD(scratch_fpr, R(scratch_fpr), 0);
+  size_t num_fpr_pairs = m_optimized_mem_check_num_fpr_pairs;
+  for (size_t i = 0; i < num_fpr_pairs; i++)
+  {
+    X64Reg addr_fpr = *order++;
+    X64Reg size_fpr = *order++;
+    if (mode == OptimizedMemCheckMode::MULTIPLE_FPRS)
+    {
+      if (cpu_info.bAVX)
+        emitter->VPSUBD(scratch2_fpr, scratch_fpr, R(addr_fpr));
+      else
+      {
+        emitter->MOVDQA(scratch2_fpr, R(scratch_fpr));
+        emitter->PSUBD(scratch2_fpr, R(addr_fpr));
+      }
+    }
+    else
+    {
+      emitter->PSUBD(scratch2_fpr, R(addr_fpr));
+    }
+    emitter->PCMPGTD(scratch2_fpr, R(size_fpr));
+    emitter->PMOVMSKB(RSCRATCH2, R(scratch2_fpr));
+    emitter->CMP(32, R(RSCRATCH2), Imm32(0xffff));
+    _assert_(i < MAX_SAFE_ADDRESS_BRANCHES);
+    branches[i] = emitter->J_CC(CC_NE, long_branch);
+  }
+  return num_fpr_pairs;
 }

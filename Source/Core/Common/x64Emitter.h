@@ -981,6 +981,7 @@ public:
   void VPANDN(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VPOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
   void VPXOR(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
+  void VPSUBD(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);
 
   // FMA3
   void VFMADD132PS(X64Reg regOp1, X64Reg regOp2, const OpArg& arg);

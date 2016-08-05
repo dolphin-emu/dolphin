@@ -20,15 +20,16 @@
 using namespace Gen;
 using namespace PowerPC;
 
-RegCache::RegCache() : emit(nullptr)
+RegCache::RegCache() : emit(nullptr), m_num_reserved_regs(0)
 {
 }
 
 void RegCache::Start()
 {
-  for (auto& xreg : xregs)
+  for (size_t i = 0; i < xregs.size(); i++)
   {
-    xreg.free = true;
+    auto& xreg = xregs[i];
+    xreg.free = i >= m_num_reserved_regs;
     xreg.dirty = false;
     xreg.locked = false;
     xreg.ppcReg = INVALID_REG;
@@ -67,6 +68,29 @@ void RegCache::UnlockAllX()
 {
   for (auto& xreg : xregs)
     xreg.locked = false;
+}
+
+const X64Reg* RegCache::GetAllocationOrder(size_t* count)
+{
+  size_t full_count;
+  const X64Reg* res = GetFullAllocationOrder(&full_count);
+  // the start of the list is callee-saved on Unix; since reserved registers
+  // must *always* be saved/restored, best to save for those
+  *count = full_count + m_num_reserved_regs;
+  return res + m_num_reserved_regs;
+}
+
+const X64Reg* RegCache::GetReservedAllocationOrder(size_t* count)
+{
+  const X64Reg* res = GetFullAllocationOrder(count);
+  *count = m_num_reserved_regs;
+  return res;
+}
+
+void FPURegCache::SetReservedFPRValues(const XMMValue* values, size_t count)
+{
+  m_num_reserved_regs = count;
+  memcpy(&m_reserved_fpr_values[0], values, count * sizeof(XMMValue));
 }
 
 BitSet32 GPRRegCache::GetRegUtilization()
@@ -234,7 +258,7 @@ void GPRRegCache::SetImmediate32(size_t preg, u32 immValue)
   regs[preg].location = Imm32(immValue);
 }
 
-const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count)
+const X64Reg* GPRRegCache::GetFullAllocationOrder(size_t* count)
 {
   static const X64Reg allocationOrder[] = {
 // R12, when used as base register, for example in a LEA, can generate bad code! Need to look into
@@ -251,7 +275,7 @@ const X64Reg* GPRRegCache::GetAllocationOrder(size_t* count)
   return allocationOrder;
 }
 
-const X64Reg* FPURegCache::GetAllocationOrder(size_t* count)
+const X64Reg* FPURegCache::GetFullAllocationOrder(size_t* count)
 {
   static const X64Reg allocationOrder[] = {XMM6,  XMM7,  XMM8,  XMM9, XMM10, XMM11, XMM12,
                                            XMM13, XMM14, XMM15, XMM2, XMM3,  XMM4,  XMM5};

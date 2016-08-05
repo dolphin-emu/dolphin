@@ -27,6 +27,7 @@ struct TMemCheck
     bRange = OnRead = OnWrite = Log = Break = false;
   }
 
+  u32 GetSize() { return bRange ? (EndAddress - StartAddress + 1) : 1; }
   u32 StartAddress;
   u32 EndAddress;
 

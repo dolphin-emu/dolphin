@@ -23,7 +23,19 @@ static void* s_saved_rsp;
 // dynarec buffer
 // At this offset - 4, there is an int specifying the block number.
 
-void Jit64AsmRoutineManager::Generate()
+void Jit64AsmRoutineManager::Init(u8* stack_top, const Gen::X64Reg* reserved_fprs,
+                                  const __m128i* reserved_fpr_values, size_t reserved_fpr_count)
+{
+  m_stack_top = stack_top;
+  // NOTE: When making large additions to the AsmCommon code, you might
+  // want to ensure this number is big enough.
+  AllocCodeSpace(16384);
+  memcpy(m_reserved_fpr_values, reserved_fpr_values, reserved_fpr_count * sizeof(__m128i));
+  Generate(reserved_fprs, reserved_fpr_count);
+  WriteProtect();
+}
+
+void Jit64AsmRoutineManager::Generate(const Gen::X64Reg* reserved_fprs, size_t reserved_fpr_count)
 {
   enterCode = AlignCode16();
   // We need to own the beginning of RSP, so we do an extra stack adjustment
@@ -47,6 +59,9 @@ void Jit64AsmRoutineManager::Generate()
   // Two statically allocated registers.
   // MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
   MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
+
+  for (size_t i = 0; i < reserved_fpr_count; i++)
+    MOVAPS(reserved_fprs[i], M(&m_reserved_fpr_values[i]));
 
   const u8* outerLoop = GetCodePtr();
   ABI_PushRegistersAndAdjustStack({}, 0);
