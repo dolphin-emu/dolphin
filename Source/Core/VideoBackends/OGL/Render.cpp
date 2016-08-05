@@ -481,6 +481,9 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsBindingLayout =
       GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
+  // Clip distance support is useless without a method to clamp the depth range
+  g_Config.backend_info.bSupportsDepthClamp = GLExtensions::Supports("GL_ARB_depth_clamp");
+
   g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
   g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
@@ -519,6 +522,9 @@ Renderer::Renderer()
 
     g_ogl_config.bSupportsGLSLCache = true;
     g_ogl_config.bSupportsGLSync = true;
+
+    // TODO: Implement support for GL_EXT_clip_cull_distance when there is an extension for depth clamping.
+    g_Config.backend_info.bSupportsDepthClamp = false;
 
     if (strstr(g_ogl_config.glsl_version, "3.0"))
     {
@@ -669,7 +675,7 @@ Renderer::Renderer()
                                    g_ogl_config.gl_renderer, g_ogl_config.gl_version),
                   5000);
 
-  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s",
+  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s%s",
            g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
            g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
            g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
@@ -681,7 +687,8 @@ Renderer::Renderer()
            g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
            g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
            g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
-           g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ");
+           g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
+           g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
 
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_MSAASamples = s_last_multisamples;
@@ -724,8 +731,11 @@ Renderer::Renderer()
   glClearDepthf(1.0f);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
-  glEnable(GL_CLIP_DISTANCE0);
-  glEnable(GL_DEPTH_CLAMP);
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
+    glEnable(GL_CLIP_DISTANCE0);
+    glEnable(GL_DEPTH_CLAMP);
+  }
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 
@@ -1117,6 +1127,12 @@ void Renderer::SetViewport()
                           (float)scissorYOff);
   float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float GLNear = MathUtil::Clamp<float>(
+                     xfmem.viewport.farZ -
+                         MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777216.0f, 16777216.0f),
+                     0.0f, 16777215.0f) /
+                 16777216.0f;
+  float GLFar = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (Width < 0)
   {
     X += Width;
@@ -1138,7 +1154,11 @@ void Renderer::SetViewport()
     auto iceilf = [](float f) { return static_cast<GLint>(ceilf(f)); };
     glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
   }
-  glDepthRangef(16777215.0f / 16777216.0f, 0.0f);
+
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+    glDepthRangef(16777215.0f / 16777216.0f, 0.0f);
+  else
+    glDepthRangef(GLFar, GLNear);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
