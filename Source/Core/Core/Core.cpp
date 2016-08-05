@@ -18,6 +18,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
@@ -101,7 +102,7 @@ void EmuThread();
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
-static std::atomic<bool> s_is_booting{false};
+static Common::Flag s_is_booting;
 static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
@@ -469,7 +470,7 @@ static void FifoPlayerThread()
 void EmuThread()
 {
   const SConfig& core_parameter = SConfig::GetInstance();
-  s_is_booting.store(true);
+  s_is_booting.Set();
 
   Common::SetCurrentThreadName("Emuthread - Starting");
 
@@ -488,7 +489,7 @@ void EmuThread()
 
   if (!g_video_backend->Initialize(s_window_handle))
   {
-    s_is_booting.store(false);
+    s_is_booting.Clear();
     PanicAlert("Failed to initialize video backend!");
     Host_Message(WM_USER_STOP);
     return;
@@ -503,7 +504,7 @@ void EmuThread()
 
   if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
   {
-    s_is_booting.store(false);
+    s_is_booting.Clear();
     HW::Shutdown();
     g_video_backend->Shutdown();
     PanicAlert("Failed to initialize DSP emulation!");
@@ -545,7 +546,7 @@ void EmuThread()
 
   // The hardware is initialized.
   s_hardware_initialized = true;
-  s_is_booting.store(false);
+  s_is_booting.Clear();
 
   // Set execution state to known values (CPU/FIFO/Audio Paused)
   CPU::Break();
@@ -1024,7 +1025,7 @@ void HostDispatchJobs()
     //   CORE_UNINITIALIZED: s_is_booting -> s_hardware_initialized
     //   We need to check variables in the same order as the state
     //   transition, otherwise we race and get transient failures.
-    if (!job.run_after_stop && !s_is_booting.load() && !IsRunning())
+    if (!job.run_after_stop && !s_is_booting.IsSet() && !IsRunning())
       continue;
 
     guard.unlock();

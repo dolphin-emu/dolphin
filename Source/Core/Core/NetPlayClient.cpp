@@ -36,12 +36,12 @@ NetSettings g_NetPlaySettings;
 NetPlayClient::~NetPlayClient()
 {
   // not perfect
-  if (m_is_running.load())
+  if (m_is_running.IsSet())
     StopGame();
 
   if (m_is_connected)
   {
-    m_do_loop.store(false);
+    m_do_loop.Clear();
     m_thread.join();
   }
 
@@ -624,7 +624,7 @@ void NetPlayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
 // called from ---NETPLAY--- thread
 void NetPlayClient::ThreadFunc()
 {
-  while (m_do_loop.load())
+  while (m_do_loop.IsSet())
   {
     ENetEvent netEvent;
     int net;
@@ -650,7 +650,7 @@ void NetPlayClient::ThreadFunc()
       case ENET_EVENT_TYPE_DISCONNECT:
         m_dialog->OnConnectionLost();
 
-        if (m_is_running.load())
+        if (m_is_running.IsSet())
           StopGame();
 
         break;
@@ -790,7 +790,7 @@ bool NetPlayClient::StartGame(const std::string& path)
   std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
   SendStartGamePacket();
 
-  if (m_is_running.load())
+  if (m_is_running.IsSet())
   {
     PanicAlertT("Game is already running!");
     return false;
@@ -798,7 +798,7 @@ bool NetPlayClient::StartGame(const std::string& path)
 
   m_timebase_frame = 0;
 
-  m_is_running.store(true);
+  m_is_running.Set();
   NetPlay_Enable(this);
 
   ClearBuffers();
@@ -998,7 +998,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
   // other clients to send it to us
   while (m_pad_buffer[pad_nb].Size() == 0)
   {
-    if (!m_is_running.load())
+    if (!m_is_running.IsSet())
     {
       return false;
     }
@@ -1047,7 +1047,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 
   while (m_wiimote_buffer[_number].Size() == 0)
   {
-    if (!m_is_running.load())
+    if (!m_is_running.IsSet())
     {
       return false;
     }
@@ -1067,7 +1067,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
     {
       while (m_wiimote_buffer[_number].Size() == 0)
       {
-        if (!m_is_running.load())
+        if (!m_is_running.IsSet())
         {
           return false;
         }
@@ -1098,7 +1098,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 // called from ---GUI--- thread and ---NETPLAY--- thread (client side)
 bool NetPlayClient::StopGame()
 {
-  m_is_running.store(false);
+  m_is_running.Clear();
 
   // stop waiting for input
   m_gc_pad_event.Set();
@@ -1115,10 +1115,10 @@ bool NetPlayClient::StopGame()
 // called from ---GUI--- thread
 void NetPlayClient::Stop()
 {
-  if (!m_is_running.load())
+  if (!m_is_running.IsSet())
     return;
 
-  m_is_running.store(false);
+  m_is_running.Clear();
 
   // stop waiting for input
   m_gc_pad_event.Set();

@@ -34,7 +34,7 @@ void AOSound::SoundLoop()
 
   buf_size = format.bits / 8 * format.channels * format.rate;
 
-  while (m_run_thread.load())
+  while (m_run_thread.IsSet())
   {
     m_mixer->Mix(realtimeBuffer, numBytesToRender >> 2);
 
@@ -49,7 +49,7 @@ void AOSound::SoundLoop()
 
 bool AOSound::Start()
 {
-  m_run_thread.store(true);
+  m_run_thread.Set();
   memset(realtimeBuffer, 0, sizeof(realtimeBuffer));
 
   thread = std::thread(&AOSound::SoundLoop, this);
@@ -63,7 +63,7 @@ void AOSound::Update()
 
 void AOSound::Stop()
 {
-  m_run_thread.store(false);
+  m_run_thread.Clear();
   soundSyncEvent.Set();
 
   {
