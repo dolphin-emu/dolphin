@@ -399,13 +399,22 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("o.colors_1 = color1;\n");
   }
 
-  // Since we're adjusting z for the depth range before the perspective divide, we have to do our
-  // own clipping.
-  out.Write("o.clipDist = o.pos.z + o.pos.w;\n");
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
+    // Since we're adjusting z for the depth range before the perspective divide, we have to do our
+    // own clipping.
+    out.Write("o.clipDist = o.pos.z + o.pos.w;\n");
 
-  // We have to handle the depth range in the vertex shader, because some games will use a depth range beyond
-  // the normal depth range of 0..1.
-  out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION".w - o.pos.z * " I_PIXELCENTERCORRECTION".z;\n");
+    // We have to handle the depth range in the vertex shader, because some games will use a depth range beyond
+    // the normal depth range of 0..1.
+    out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION".w - o.pos.z * " I_PIXELCENTERCORRECTION".z;\n");
+  }
+  else
+  {
+    // User-defined clipping is not supported, thus we rely on the API to handle the depth range for us.
+    // We still need to take care of the reversed depth, so we do that here.
+    out.Write("o.pos.z = -o.pos.z;\n");
+  }
 
   // write the true depth value, if the game uses depth textures pixel shaders will override with
   // the correct values
@@ -457,7 +466,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("colors_1 = o.colors_1;\n");
     }
 
-    out.Write("gl_ClipDistance[0] = o.clipDist;\n");
+    if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+      out.Write("gl_ClipDistance[0] = o.clipDist;\n");
     out.Write("gl_Position = o.pos;\n");
   }
   else  // D3D
