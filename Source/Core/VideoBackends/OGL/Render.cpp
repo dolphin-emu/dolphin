@@ -520,6 +520,9 @@ Renderer::Renderer()
     g_ogl_config.bSupportsGLSLCache = true;
     g_ogl_config.bSupportsGLSync = true;
 
+    // TODO: Implement support for GL_EXT_clip_cull_distance
+    g_Config.backend_info.bSupportsClipDistance = false;
+
     if (strstr(g_ogl_config.glsl_version, "3.0"))
     {
       g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
@@ -724,8 +727,11 @@ Renderer::Renderer()
   glClearDepthf(1.0f);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
-  glEnable(GL_CLIP_DISTANCE0);
-  glEnable(GL_DEPTH_CLAMP);
+  if (g_ActiveConfig.backend_info.bSupportsClipDistance)
+  {
+    glEnable(GL_CLIP_DISTANCE0);
+    glEnable(GL_DEPTH_CLAMP);
+  }
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 

@@ -407,6 +407,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   // the normal depth range of 0..1.
   out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION".w + o.pos.z * " I_PIXELCENTERCORRECTION".z;\n");
 
+  if (!g_ActiveConfig.backend_info.bSupportsClipDistance)
+  {
+    // We can't define our own clipping planes, so we have to prevent vertices from being clipped by the far plane.
+    out.Write("if (o.pos.z <= 0.0) o.pos.z = 0.0;\n");
+  }
+
   // write the true depth value, if the game uses depth textures pixel shaders will override with
   // the correct values
   // if not early z culling will improve speed
@@ -457,7 +463,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("colors_1 = o.colors_1;\n");
     }
 
-    out.Write("gl_ClipDistance[0] = o.clipDist;\n");
+    if (g_ActiveConfig.backend_info.bSupportsClipDistance)
+      out.Write("gl_ClipDistance[0] = o.clipDist;\n");
     out.Write("gl_Position = o.pos;\n");
   }
   else  // D3D
