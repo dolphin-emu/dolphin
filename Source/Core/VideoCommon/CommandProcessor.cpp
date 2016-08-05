@@ -9,6 +9,7 @@
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
@@ -36,10 +37,10 @@ static u16 m_bboxright;
 static u16 m_bboxbottom;
 static u16 m_tokenReg;
 
-static std::atomic<bool> s_interrupt_set;
-static std::atomic<bool> s_interrupt_waiting;
-static std::atomic<bool> s_interrupt_token_waiting;
-static std::atomic<bool> s_interrupt_finish_waiting;
+static Common::Flag s_interrupt_set;
+static Common::Flag s_interrupt_waiting;
+static Common::Flag s_interrupt_token_waiting;
+static Common::Flag s_interrupt_finish_waiting;
 
 static bool IsOnThread()
 {
@@ -110,10 +111,10 @@ void Init()
   fifo.bFF_LoWatermark = 0;
   fifo.bFF_LoWatermarkInt = 0;
 
-  s_interrupt_set.store(false);
-  s_interrupt_waiting.store(false);
-  s_interrupt_finish_waiting.store(false);
-  s_interrupt_token_waiting.store(false);
+  s_interrupt_set.Clear();
+  s_interrupt_waiting.Clear();
+  s_interrupt_finish_waiting.Clear();
+  s_interrupt_token_waiting.Clear();
 
   et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
@@ -330,18 +331,18 @@ void UpdateInterrupts(u64 userdata)
 {
   if (userdata)
   {
-    s_interrupt_set.store(true);
+    s_interrupt_set.Set();
     INFO_LOG(COMMANDPROCESSOR, "Interrupt set");
     ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);
   }
   else
   {
-    s_interrupt_set.store(false);
+    s_interrupt_set.Clear();
     INFO_LOG(COMMANDPROCESSOR, "Interrupt cleared");
     ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);
   }
   CoreTiming::ForceExceptionCheck(0);
-  s_interrupt_waiting.store(false);
+  s_interrupt_waiting.Clear();
   Fifo::RunGpu();
 }
 
@@ -353,17 +354,17 @@ void UpdateInterruptsFromVideoBackend(u64 userdata)
 
 bool IsInterruptWaiting()
 {
-  return s_interrupt_waiting.load();
+  return s_interrupt_waiting.IsSet();
 }
 
 void SetInterruptTokenWaiting(bool waiting)
 {
-  s_interrupt_token_waiting.store(waiting);
+  s_interrupt_token_waiting.Set(waiting);
 }
 
 void SetInterruptFinishWaiting(bool waiting)
 {
-  s_interrupt_finish_waiting.store(waiting);
+  s_interrupt_finish_waiting.Set(waiting);
 }
 
 void SetCPStatusFromGPU()
@@ -403,7 +404,7 @@ void SetCPStatusFromGPU()
 
   bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
 
-  if (interrupt != s_interrupt_set.load() && !s_interrupt_waiting.load())
+  if (interrupt != s_interrupt_set.IsSet() && !s_interrupt_waiting.IsSet())
   {
     u64 userdata = interrupt ? 1 : 0;
     if (IsOnThread())
@@ -411,7 +412,7 @@ void SetCPStatusFromGPU()
       if (!interrupt || bpInt || undfInt || ovfInt)
       {
         // Schedule the interrupt asynchronously
-        s_interrupt_waiting.store(true);
+        s_interrupt_waiting.Set();
         CommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
       }
     }
@@ -434,14 +435,14 @@ void SetCPStatusFromCPU()
 
   bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
 
-  if (interrupt != s_interrupt_set.load() && !s_interrupt_waiting.load())
+  if (interrupt != s_interrupt_set.IsSet() && !s_interrupt_waiting.IsSet())
   {
     u64 userdata = interrupt ? 1 : 0;
     if (IsOnThread())
     {
       if (!interrupt || bpInt || undfInt || ovfInt)
       {
-        s_interrupt_set.store(interrupt);
+        s_interrupt_set.Set(interrupt);
         INFO_LOG(COMMANDPROCESSOR, "Interrupt set");
         ProcessorInterface::SetInterrupt(INT_CAUSE_CP, interrupt);
       }

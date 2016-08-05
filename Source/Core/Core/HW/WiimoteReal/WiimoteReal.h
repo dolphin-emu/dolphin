@@ -5,7 +5,6 @@
 #pragma once
 
 #include <atomic>
-#include <condition_variable>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -95,20 +94,16 @@ private:
   virtual void IOWakeup() = 0;
 
   void ThreadFunc();
-  void SetReady();
-  void WaitReady();
 
   bool m_rumble_state;
 
   std::thread m_wiimote_thread;
   // Whether to keep running the thread.
-  std::atomic<bool> m_run_thread{false};
+  Common::Flag m_run_thread;
   // Whether to call PrepareOnThread.
-  std::atomic<bool> m_need_prepare{false};
-  // Whether the thread has finished ConnectInternal.
-  std::atomic<bool> m_thread_ready{false};
-  std::mutex m_thread_ready_mutex;
-  std::condition_variable m_thread_ready_cond;
+  Common::Flag m_need_prepare;
+  // Triggered when the thread has finished ConnectInternal.
+  Common::Event m_thread_ready_event;
 
   Common::FifoQueue<Report> m_read_reports;
   Common::FifoQueue<Report> m_write_reports;

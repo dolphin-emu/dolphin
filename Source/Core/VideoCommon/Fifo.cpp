@@ -36,7 +36,7 @@ static bool s_skip_current_frame = false;
 
 static Common::BlockingLoop s_gpu_mainloop;
 
-static std::atomic<bool> s_emu_running_state;
+static Common::Flag s_emu_running_state;
 
 // Most of this array is unlikely to be faulted in...
 static u8 s_fifo_aux_data[FIFO_SIZE];
@@ -147,13 +147,13 @@ void ExitGpuLoop()
   FlushGpu();
 
   // Terminate GPU thread loop
-  s_emu_running_state.store(true);
+  s_emu_running_state.Set();
   s_gpu_mainloop.Stop(false);
 }
 
 void EmulatorState(bool running)
 {
-  s_emu_running_state.store(running);
+  s_emu_running_state.Set(running);
   if (running)
     s_gpu_mainloop.Wakeup();
   else
@@ -307,7 +307,7 @@ void RunGpuLoop()
         g_video_backend->PeekMessages();
 
         // Do nothing while paused
-        if (!s_emu_running_state.load())
+        if (!s_emu_running_state.IsSet())
           return;
 
         if (s_use_deterministic_gpu_thread)
