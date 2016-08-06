@@ -42,7 +42,7 @@ void JitBaseBlockCache::Init()
 
 void JitBaseBlockCache::Shutdown()
 {
-  num_blocks = 0;
+  num_blocks = 1;
 
   JitRegister::Shutdown();
 }
@@ -59,7 +59,7 @@ void JitBaseBlockCache::Clear()
 #endif
   jit->js.fifoWriteAddresses.clear();
   jit->js.pairedQuantizeAddresses.clear();
-  for (int i = 0; i < num_blocks; i++)
+  for (int i = 1; i < num_blocks; i++)
   {
     DestroyBlock(i, false);
   }
@@ -68,7 +68,7 @@ void JitBaseBlockCache::Clear()
 
   valid_block.ClearAll();
 
-  num_blocks = 0;
+  num_blocks = 1;
   blocks[0].msrBits = 0xFFFFFFFF;
   blocks[0].invalid = true;
 }

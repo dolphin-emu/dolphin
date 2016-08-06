@@ -114,6 +114,7 @@ public:
 
 private:
   // We store the metadata of all blocks in a linear way within this array.
+  // Note: blocks[0] must not be used as it is referenced as invalid block in iCache.
   std::array<JitBlock, MAX_NUM_BLOCKS> blocks;  // number -> JitBlock
   int num_blocks;
 
@@ -152,7 +153,7 @@ private:
   virtual void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) = 0;
   virtual void WriteDestroyBlock(const JitBlock& block) {}
 public:
-  JitBaseBlockCache() : num_blocks(0) {}
+  JitBaseBlockCache() : num_blocks(1) {}
   virtual ~JitBaseBlockCache() {}
   int AllocateBlock(u32 em_address);
   void FinalizeBlock(int block_num, bool block_link, const u8* code_ptr);
