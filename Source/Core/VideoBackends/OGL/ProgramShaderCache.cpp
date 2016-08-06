@@ -615,6 +615,9 @@ void ProgramShaderCache::CreateHeader()
       SupportedESTextureBuffer.c_str(),
       is_glsles && g_ActiveConfig.backend_info.bSupportsDualSourceBlend ?
           "#extension GL_EXT_blend_func_extended : enable" :
+          "",
+      is_glsles && g_ActiveConfig.backend_info.bSupportsClipDistance ?
+          "#extension GL_EXT_clip_cull_distance : enable" :
           ""
 
       ,

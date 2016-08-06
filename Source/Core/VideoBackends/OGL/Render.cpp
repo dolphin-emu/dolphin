@@ -521,8 +521,7 @@ Renderer::Renderer()
     g_ogl_config.bSupportsGLSLCache = true;
     g_ogl_config.bSupportsGLSync = true;
 
-    // TODO: Implement support for GL_EXT_clip_cull_distance
-    g_Config.backend_info.bSupportsClipDistance = false;
+    g_Config.backend_info.bSupportsClipDistance = GLExtensions::Supports("GL_EXT_clip_cull_distance");
 
     if (strstr(g_ogl_config.glsl_version, "3.0"))
     {
