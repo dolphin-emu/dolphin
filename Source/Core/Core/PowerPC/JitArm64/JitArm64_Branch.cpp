@@ -59,12 +59,12 @@ void JitArm64::rfi(UGeckoInstruction inst)
 
   LDR(INDEX_UNSIGNED, WC, PPC_REG, PPCSTATE_OFF(msr));
 
-  AND(WC, WC, WB, ArithOption(WC, ST_LSL, 0));  // rD = Masked MSR
+  AND(WC, WC, WA);  // rD = Masked MSR
 
   LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_SRR1]));  // rB contains SRR1 here
 
-  AND(WA, WA, WB, ArithOption(WA, ST_LSL, 0));  // rB contains masked SRR1 here
-  ORR(WA, WA, WC, ArithOption(WA, ST_LSL, 0));  // rB = Masked MSR OR masked SRR1
+  AND(WA, WA, WB);  // rB contains masked SRR1 here
+  ORR(WA, WA, WC);  // rB = Masked MSR OR masked SRR1
 
   STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));  // STR rB in to rA
 
