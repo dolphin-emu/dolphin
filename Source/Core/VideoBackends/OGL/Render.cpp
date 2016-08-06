@@ -729,9 +729,11 @@ Renderer::Renderer()
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
   if (g_ActiveConfig.backend_info.bSupportsClipDistance)
+  {
     glEnable(GL_CLIP_DISTANCE0);
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-    glEnable(GL_DEPTH_CLAMP);
+    if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+      glEnable(GL_DEPTH_CLAMP);
+  }
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 
@@ -1123,6 +1125,12 @@ void Renderer::SetViewport()
                           (float)scissorYOff);
   float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float GLNear = MathUtil::Clamp<float>(
+                     xfmem.viewport.farZ -
+                         MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777216.0f, 16777216.0f),
+                     0.0f, 16777215.0f) /
+                 16777216.0f;
+  float GLFar = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (Width < 0)
   {
     X += Width;
@@ -1144,7 +1152,11 @@ void Renderer::SetViewport()
     auto iceilf = [](float f) { return static_cast<GLint>(ceilf(f)); };
     glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
   }
-  glDepthRangef(16777215.0f / 16777216.0f, 0.0f);
+
+  if (g_ActiveConfig.backend_info.bSupportsClipDistance)
+    glDepthRangef(16777215.0f / 16777216.0f, 0.0f);
+  else
+    glDepthRangef(GLFar, GLNear);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
