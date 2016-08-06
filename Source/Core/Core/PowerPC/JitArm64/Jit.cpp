@@ -196,7 +196,6 @@ void JitArm64::WriteExit(u32 destination)
   linkData.linkStatus = false;
   b->linkData.push_back(linkData);
 
-  // the code generated in JitArm64BlockCache::WriteDestroyBlock must fit in this block
   MOVI2R(DISPATCHER_PC, destination);
   B(dispatcher);
 }
