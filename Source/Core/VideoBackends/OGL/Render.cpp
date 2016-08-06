@@ -470,6 +470,7 @@ Renderer::Renderer()
       GLExtensions::Supports("GL_OES_texture_buffer") ||
       GLExtensions::Supports("GL_EXT_texture_buffer");
   g_Config.backend_info.bSupportsClipControl = GLExtensions::Supports("GL_ARB_clip_control");
+  g_Config.backend_info.bSupportsDepthClamp = GLExtensions::Supports("GL_ARB_depth_clamp");
   g_ogl_config.bSupportsCopySubImage =
       (GLExtensions::Supports("GL_ARB_copy_image") || GLExtensions::Supports("GL_NV_copy_image") ||
        GLExtensions::Supports("GL_EXT_copy_image") ||
@@ -728,10 +729,9 @@ Renderer::Renderer()
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
   if (g_ActiveConfig.backend_info.bSupportsClipDistance)
-  {
     glEnable(GL_CLIP_DISTANCE0);
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
     glEnable(GL_DEPTH_CLAMP);
-  }
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 
