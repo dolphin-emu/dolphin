@@ -1138,7 +1138,7 @@ void Renderer::SetViewport()
     auto iceilf = [](float f) { return static_cast<GLint>(ceilf(f)); };
     glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
   }
-  glDepthRangef(0.0f, 16777215.0f / 16777216.0f);
+  glDepthRangef(16777215.0f / 16777216.0f, 0.0f);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
