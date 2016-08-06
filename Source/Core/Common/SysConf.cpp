@@ -206,8 +206,7 @@ void SysConf::GenerateSysConf()
   strncpy(s_Header.version, "SCv0", 4);
   s_Header.numEntries = Common::swap16(28 - 1);
 
-  SSysConfEntry items[27];
-  memset(items, 0, sizeof(SSysConfEntry) * 27);
+  std::vector<SSysConfEntry> items(27);
 
   // version length + size of numEntries + 28 * size of offset
   unsigned int current_offset = 4 + 2 + 28 * 2;
@@ -325,9 +324,6 @@ void SysConf::GenerateSysConf()
   current_offset += create_item(items[26], Type_Bool, "MPLS.MOVIE", 1, current_offset);
   items[26].data[0] = 0x01;
 
-  for (const SSysConfEntry& item : items)
-    m_Entries.push_back(item);
-
   File::CreateFullPath(m_FilenameDefault);
   File::IOFile g(m_FilenameDefault, "wb");
 
@@ -380,6 +376,7 @@ void SysConf::GenerateSysConf()
   // Write the footer
   g.WriteBytes("SCed", 4);
 
+  m_Entries = std::move(items);
   m_Filename = m_FilenameDefault;
   m_IsValid = true;
 }
