@@ -27,7 +27,6 @@ void JitArm64::GenerateAsm()
   ABI_PushRegisters(regs_to_save);
 
   MOVI2R(PPC_REG, (u64)&PowerPC::ppcState);
-  MOVI2R(MEM_REG, (u64)Memory::logical_base);
 
   // Load the current PC into DISPATCHER_PC
   LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
@@ -52,6 +51,15 @@ void JitArm64::GenerateAsm()
 
   if (assembly_dispatcher)
   {
+    // set the mem_base based on MSR flags
+    LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
+    FixupBranch physmem = TBNZ(ARM64Reg::W28, 31-27);
+    MOVI2R(MEM_REG, (u64)Memory::physical_base);
+    FixupBranch membaseend = B();
+    SetJumpTarget(physmem);
+    MOVI2R(MEM_REG, (u64)Memory::logical_base);
+    SetJumpTarget(membaseend);
+
     // iCache[(address >> 2) & iCache_Mask];
     ARM64Reg pc_masked = W25;
     ARM64Reg cache_base = X27;
@@ -89,10 +97,18 @@ void JitArm64::GenerateAsm()
   }
 
   // Call C version of Dispatch().
-  // FIXME: Implement this in inline assembly.
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
   MOVP2R(X30, reinterpret_cast<void*>(&JitBase::Dispatch));
   BLR(X30);
+
+  // set the mem_base based on MSR flags
+  LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
+  FixupBranch physmem = TBNZ(ARM64Reg::W28, 31-27);
+  MOVI2R(MEM_REG, (u64)Memory::physical_base);
+  FixupBranch membaseend = B();
+  SetJumpTarget(physmem);
+  MOVI2R(MEM_REG, (u64)Memory::logical_base);
+  SetJumpTarget(membaseend);
 
   // Jump to next block.
   BR(X0);
