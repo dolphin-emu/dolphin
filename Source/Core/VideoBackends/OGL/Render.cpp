@@ -474,6 +474,8 @@ Renderer::Renderer()
 
   // Clip distance support is useless without a method to clamp the depth range
   g_Config.backend_info.bSupportsDepthClamp = GLExtensions::Supports("GL_ARB_depth_clamp");
+  g_Config.backend_info.bSupportsOversizedDepthRanges =
+      GLExtensions::Supports("GL_NV_depth_buffer_float");
 
   g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
@@ -666,7 +668,7 @@ Renderer::Renderer()
                                    g_ogl_config.gl_renderer, g_ogl_config.gl_version),
                   5000);
 
-  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s%s%s",
            g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
            g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
            g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
@@ -679,7 +681,8 @@ Renderer::Renderer()
            g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
            g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
            g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
-           g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
+           g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ",
+           g_ActiveConfig.backend_info.bSupportsOversizedDepthRanges ? "" : "DepthRangedNV ");
 
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_MSAASamples = s_last_multisamples;
@@ -1108,10 +1111,6 @@ void Renderer::SetViewport()
                           (float)scissorYOff);
   float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777215.0f, 16777215.0f);
-  float min_depth =
-      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
-  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (Width < 0)
   {
     X += Width;
@@ -1121,24 +1120,6 @@ void Renderer::SetViewport()
   {
     Y += Height;
     Height *= -1;
-  }
-
-  // If an oversized depth range is used, we need to calculate the depth range in the vertex shader.
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp &&
-      (fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f))
-  {
-    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-    // Taking into account whether the depth range is inverted or not.
-    if (xfmem.viewport.zRange < 0.0f)
-    {
-      min_depth = GX_MAX_DEPTH;
-      max_depth = 0.0f;
-    }
-    else
-    {
-      min_depth = 0.0f;
-      max_depth = GX_MAX_DEPTH;
-    }
   }
 
   // Update the view port
@@ -1153,7 +1134,40 @@ void Renderer::SetViewport()
   }
 
   // Set the reversed depth range.
-  glDepthRangef(max_depth, min_depth);
+  if (g_ActiveConfig.backend_info.bSupportsOversizedDepthRanges)
+  {
+    float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+    float max_depth = xfmem.viewport.farZ / 16777216.0f;
+    glDepthRangedNV(max_depth, min_depth);
+  }
+  else
+  {
+    float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777216.0f, 16777216.0f);
+    float min_depth =
+        MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
+    float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
+
+    // If an oversized depth range is used, we need to calculate the depth range in the
+    // vertex shader.
+    if (g_ActiveConfig.backend_info.bSupportsDepthClamp &&
+        (fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f))
+    {
+      // We need to ensure depth values are clamped the maximum value supported by the console GPU.
+      // Taking into account whether the depth range is inverted or not.
+      if (xfmem.viewport.zRange < 0.0f)
+      {
+        min_depth = GX_MAX_DEPTH;
+        max_depth = 0.0f;
+      }
+      else
+      {
+        min_depth = 0.0f;
+        max_depth = GX_MAX_DEPTH;
+      }
+    }
+
+    glDepthRangef(max_depth, min_depth);
+  }
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,

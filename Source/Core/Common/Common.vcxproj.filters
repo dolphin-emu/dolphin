@@ -218,6 +218,9 @@
     <ClInclude Include="GL\GLExtensions\NV_primitive_restart.h">
       <Filter>GL\GLExtensions</Filter>
     </ClInclude>
+    <ClInclude Include="GL\GLExtensions\NV_depth_buffer_float.h">
+      <Filter>GL\GLExtensions</Filter>
+    </ClInclude>
     <ClInclude Include="GL\GLInterface\WGL.h">
       <Filter>GL\GLInterface</Filter>
     </ClInclude>

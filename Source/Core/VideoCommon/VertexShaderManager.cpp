@@ -391,7 +391,8 @@ void VertexShaderManager::SetConstants()
     constants.pixelcentercorrection[2] = 1.0f;
     constants.pixelcentercorrection[3] = 0.0f;
 
-    if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+    if (g_ActiveConfig.backend_info.bSupportsDepthClamp &&
+        !g_ActiveConfig.backend_info.bSupportsOversizedDepthRanges)
     {
       // Oversized depth ranges are handled in the vertex shader. We need to reverse
       // the far value to get a reversed depth range mapping. This is necessary
