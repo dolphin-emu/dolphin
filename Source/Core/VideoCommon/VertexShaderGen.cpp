@@ -408,12 +408,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
     // We have to handle the depth range in the vertex shader, because some games will use a depth range beyond
     // the normal depth range of 0..1.
     out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION".w - o.pos.z * " I_PIXELCENTERCORRECTION".z;\n");
-
-    if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
-    {
-      // We can't define our own clipping planes, so we have to prevent vertices from being clipped by the far plane.
-      out.Write("if (o.pos.z <= 0.0) o.pos.z = 0.0;\n");
-    }
   }
   else
   {

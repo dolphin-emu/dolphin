@@ -470,7 +470,6 @@ Renderer::Renderer()
       GLExtensions::Supports("GL_OES_texture_buffer") ||
       GLExtensions::Supports("GL_EXT_texture_buffer");
   g_Config.backend_info.bSupportsClipControl = GLExtensions::Supports("GL_ARB_clip_control");
-  g_Config.backend_info.bSupportsDepthClamp = GLExtensions::Supports("GL_ARB_depth_clamp");
   g_ogl_config.bSupportsCopySubImage =
       (GLExtensions::Supports("GL_ARB_copy_image") || GLExtensions::Supports("GL_NV_copy_image") ||
        GLExtensions::Supports("GL_EXT_copy_image") ||
@@ -481,6 +480,9 @@ Renderer::Renderer()
   // OpenGL ES 3.1 supports it implicitly without an extension
   g_Config.backend_info.bSupportsBindingLayout =
       GLExtensions::Supports("GL_ARB_shading_language_420pack");
+
+  // Clip distance support is useless without a method to clamp the depth range
+  g_Config.backend_info.bSupportsClipDistance = GLExtensions::Supports("GL_ARB_depth_clamp");
 
   g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
@@ -521,7 +523,7 @@ Renderer::Renderer()
     g_ogl_config.bSupportsGLSLCache = true;
     g_ogl_config.bSupportsGLSync = true;
 
-    // TODO: Implement support for GL_EXT_clip_cull_distance
+    // TODO: Implement support for GL_EXT_clip_cull_distance when there is an extension for depth clamping.
     g_Config.backend_info.bSupportsClipDistance = false;
 
     if (strstr(g_ogl_config.glsl_version, "3.0"))
@@ -731,8 +733,7 @@ Renderer::Renderer()
   if (g_ActiveConfig.backend_info.bSupportsClipDistance)
   {
     glEnable(GL_CLIP_DISTANCE0);
-    if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-      glEnable(GL_DEPTH_CLAMP);
+    glEnable(GL_DEPTH_CLAMP);
   }
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
