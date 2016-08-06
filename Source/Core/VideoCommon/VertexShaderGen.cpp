@@ -405,7 +405,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
 
   // We have to handle the depth range in the vertex shader, because some games will use a depth range beyond
   // the normal depth range of 0..1.
-  out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION".w + o.pos.z * " I_PIXELCENTERCORRECTION".z;\n");
+  out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION".w - o.pos.z * " I_PIXELCENTERCORRECTION".z;\n");
 
   if (!g_ActiveConfig.backend_info.bSupportsClipDistance)
   {
@@ -420,7 +420,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   {
     // this results in a scale from -1..0 to -1..1 after perspective
     // divide
-    out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");
+    out.Write("o.pos.z = o.pos.z * 2.0 - o.pos.w;\n");
 
     // the next steps of the OGL pipeline are:
     // (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
