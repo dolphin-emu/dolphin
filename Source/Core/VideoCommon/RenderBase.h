@@ -38,7 +38,6 @@ struct EfbPokeData
 
 // TODO: Move these out of here.
 extern int frameCount;
-extern int OSDChoice;
 
 // Renderer really isn't a very good name for this class - it's more like "Misc".
 // The long term goal is to get rid of this class and replace it with others that make
@@ -103,7 +102,7 @@ public:
   static float EFBToScaledYf(float y) { return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT); }
   // Random utilities
   static void SetScreenshot(const std::string& filename);
-  static void DrawDebugText();
+  static void PrintDebugMessages();
 
   virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
 
