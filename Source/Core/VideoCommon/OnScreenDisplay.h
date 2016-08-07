@@ -22,6 +22,14 @@ struct Message
 
 enum class MessageType
 {
+  Fps,
+  FrameCount,
+  RTC,
+
+  MovieInputCount,
+  MovieLag,
+  MovieInput,
+
   NetPlayPing,
   NetPlayBuffer,
 
@@ -48,7 +56,7 @@ constexpr u32 VERY_LONG = 10000;
 // On-screen message display (colored yellow by default)
 void AddMessage(const std::string& message, u32 ms = Duration::SHORT, u32 rgba = Color::YELLOW);
 void AddTypedMessage(MessageType type, const std::string& message, u32 ms = Duration::SHORT,
-                     u32 rgba = Color::YELLOW);
+                     u32 rgba = Color::CYAN);
 void DrawMessage(const Message& msg, int top, int left, int time_left);  // draw one message
 void DrawMessages();  // draw the current messages on the screen. Only call once
                       // per frame.
