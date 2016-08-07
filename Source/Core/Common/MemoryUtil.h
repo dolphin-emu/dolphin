@@ -7,6 +7,9 @@
 #include <cstddef>
 #include <string>
 
+namespace Common
+{
+
 void* AllocateExecutableMemory(size_t size, bool low = true);
 void* AllocateMemoryPages(size_t size);
 void FreeMemoryPages(void* ptr, size_t size);
@@ -25,3 +28,5 @@ inline int GetPageSize()
 {
   return 4096;
 }
+
+}  // namespace Common
