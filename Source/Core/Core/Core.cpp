@@ -170,13 +170,6 @@ void DisplayMessage(const std::string& message, int time_in_ms)
   if (!IsRunning())
     return;
 
-  // Actually displaying non-ASCII could cause things to go pear-shaped
-  for (const char& c : message)
-  {
-    if (!std::isprint(c))
-      return;
-  }
-
   OSD::AddMessage(message, time_in_ms);
   Host_UpdateTitle(message);
 }

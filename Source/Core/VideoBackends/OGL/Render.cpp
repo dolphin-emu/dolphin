@@ -1587,7 +1587,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // Reset viewport for drawing text
   glViewport(0, 0, GLInterface->GetBackBufferWidth(), GLInterface->GetBackBufferHeight());
 
-  DrawDebugText();
+  PrintDebugMessages();
 
   // Do our OSD callbacks
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
