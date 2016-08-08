@@ -64,6 +64,8 @@ enum SIDevices : int
   SIDEVICE_GC_TARUKONGA,
   SIDEVICE_AM_BASEBOARD,
   SIDEVICE_WIIU_ADAPTER,
+  // not a valid device, used for checking whether enum value is valid
+  SIDEVICE_COUNT,
 };
 
 class ISIDevice

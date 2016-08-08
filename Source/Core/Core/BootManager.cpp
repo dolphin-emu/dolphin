@@ -287,7 +287,7 @@ bool BootCore(const std::string& _rFilename)
     {
       int source;
       controls_section->Get(StringFromFormat("PadType%u", i), &source, -1);
-      if (source >= (int)SIDEVICE_NONE && source <= (int)SIDEVICE_WIIU_ADAPTER)
+      if (source >= (int)SIDEVICE_NONE && source < (int)SIDEVICE_COUNT)
       {
         SConfig::GetInstance().m_SIDevice[i] = (SIDevices)source;
         config_cache.bSetPads[i] = true;
