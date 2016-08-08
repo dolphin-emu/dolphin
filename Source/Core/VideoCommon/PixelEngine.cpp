@@ -257,14 +257,12 @@ static void SetToken_OnMainThread(u64 userdata, s64 cyclesLate)
     s_signal_token_interrupt.store(1);
     UpdateInterrupts();
   }
-  CommandProcessor::SetInterruptTokenWaiting(false);
 }
 
 static void SetFinish_OnMainThread(u64 userdata, s64 cyclesLate)
 {
   s_signal_finish_interrupt.store(1);
   UpdateInterrupts();
-  CommandProcessor::SetInterruptFinishWaiting(false);
 
   Core::FrameUpdateOnCPUThread();
 }
@@ -278,8 +276,6 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
     s_signal_token_interrupt.store(1);
   }
 
-  CommandProcessor::SetInterruptTokenWaiting(true);
-
   if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
     CoreTiming::ScheduleEvent(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
   else
@@ -291,8 +287,6 @@ void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
 void SetFinish()
 {
-  CommandProcessor::SetInterruptFinishWaiting(true);
-
   if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
     CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0);
   else
