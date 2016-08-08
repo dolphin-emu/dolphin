@@ -26,43 +26,7 @@
 // Interrupt Mask (PI)
 // Interrupt Cause(PI)
 
-#define NUM_SPECIALS 14
-
-enum class FormatSpecifier;
-
-class CRegTable : public wxGridTableBase
-{
-public:
-  CRegTable();
-  int GetNumberCols() override { return 9; }
-  int GetNumberRows() override { return 32 + NUM_SPECIALS; }
-  bool IsEmptyCell(int row, int col) override { return row > 31 && col > 2; }
-  wxString GetValue(int row, int col) override;
-  void SetValue(int row, int col, const wxString&) override;
-  wxGridCellAttr* GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
-  void SetRegisterFormat(int col, int row, FormatSpecifier specifier);
-  void UpdateCachedRegs();
-
-private:
-  u32 m_CachedRegs[32];
-  u32 m_CachedSpecialRegs[NUM_SPECIALS];
-  u64 m_CachedFRegs[32][2];
-  bool m_CachedRegHasChanged[32];
-  bool m_CachedSpecialRegHasChanged[NUM_SPECIALS];
-  bool m_CachedFRegHasChanged[32][2];
-  std::array<FormatSpecifier, 32> m_formatRegs;
-  std::array<std::array<FormatSpecifier, 2>, 32> m_formatFRegs;
-
-  u32 GetSpecialRegValue(int reg);
-  void SetSpecialRegValue(int reg, u32 value);
-  wxString GetFormatString(FormatSpecifier specifier);
-  wxString FormatGPR(int reg_index);
-  wxString FormatFPR(int reg_index, int reg_part);
-  bool TryParseGPR(wxString str, FormatSpecifier format, u32* value);
-  bool TryParseFPR(wxString str, FormatSpecifier format, unsigned long long int* value);
-
-  DECLARE_NO_COPY_CLASS(CRegTable);
-};
+class CRegTable;
 
 class CRegisterView : public wxGrid
 {

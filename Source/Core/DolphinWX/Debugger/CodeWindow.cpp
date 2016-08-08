@@ -63,6 +63,8 @@ namespace
 wxDEFINE_EVENT(DOLPHIN_EVT_EVENT_SIGNALED, wxThreadEvent);
 }
 
+wxDEFINE_EVENT(DOLPHIN_EVT_DEBUGGER_UPDATE_STATE, wxCommandEvent);
+
 CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* parent, wxWindowID id,
                          const wxPoint& position, const wxSize& size, long style,
                          const wxString& name)
@@ -139,6 +141,7 @@ CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* pare
 
   // Other
   Bind(wxEVT_HOST_COMMAND, &CCodeWindow::OnHostMessage, this);
+  Bind(DOLPHIN_EVT_DEBUGGER_UPDATE_STATE, &CCodeWindow::OnDebuggerControl, this);
   Bind(DOLPHIN_EVT_EVENT_SIGNALED, &CCodeWindow::OnLockSignal, this);
 
   m_thread_run.store(true);
@@ -174,35 +177,66 @@ void CCodeWindow::OnHostMessage(wxThreadEvent& event)
   {
   case IDM_NOTIFY_MAP_LOADED:
     NotifyMapLoaded();
-    if (HasPanel<CBreakPointWindow>())
-      GetPanel<CBreakPointWindow>()->NotifyUpdate();
+    if (auto* p = GetPanel<CBreakPointWindow>())
+      p->NotifyUpdate();
+    if (auto* p = GetPanel<CMemoryWindow>())
+      p->Refresh();
     break;
 
   case IDM_UPDATE_DISASM_DIALOG:
     Repopulate();
-    if (HasPanel<CRegisterWindow>())
-      GetPanel<CRegisterWindow>()->NotifyUpdate();
-    if (HasPanel<CWatchWindow>())
-      GetPanel<CWatchWindow>()->NotifyUpdate();
-    if (HasPanel<CMemoryWindow>())
-      GetPanel<CMemoryWindow>()->Refresh();
+    if (auto* p = GetPanel<CRegisterWindow>())
+      p->NotifyUpdate();
+    if (auto* p = GetPanel<CWatchWindow>())
+      p->NotifyUpdate();
+    if (auto* p = GetPanel<CMemoryWindow>())
+      p->Refresh();
     break;
 
   case IDM_UPDATE_DSP_DEBUGGER:
-    if (HasPanel<DSPDebuggerLLE>())
-      GetPanel<DSPDebuggerLLE>()->Repopulate();
+    if (auto* p = GetPanel<DSPDebuggerLLE>())
+      p->Repopulate();
+    break;
+  }
+}
+
+void CCodeWindow::OnDebuggerControl(wxCommandEvent& ev)
+{
+  switch (static_cast<DebuggerUpdateType>(ev.GetInt()))
+  {
+  case DebuggerUpdateType::MoveCodePointer:
+    JumpToAddress(ev.GetExtraLong());
+    Show();
+    SetFocus();
     break;
 
-  case IDM_UPDATE_BREAKPOINTS:
+  case DebuggerUpdateType::MoveMemoryPointer:
+  {
+    auto* memwin = RequirePanel<CMemoryWindow>();
+    memwin->JumpToAddress(ev.GetExtraLong());
+    memwin->Show();
+    memwin->SetFocus();
+  }
+  break;
+
+  case DebuggerUpdateType::UpdateWatchPoints:
+    if (auto* p = GetPanel<CWatchWindow>())
+      p->NotifyUpdate();
+    break;
+
+  case DebuggerUpdateType::UpdateBreakPoints:
     Repopulate();
-    if (HasPanel<CBreakPointWindow>())
-      GetPanel<CBreakPointWindow>()->NotifyUpdate();
-    if (HasPanel<CMemoryWindow>())
-      GetPanel<CMemoryWindow>()->Refresh();
+    if (auto* p = GetPanel<CBreakPointWindow>())
+      p->NotifyUpdate();
+    if (auto* p = GetPanel<CMemoryWindow>())
+      p->Refresh();
     break;
 
-  case IDM_UPDATE_JIT_PANE:
-    RequirePanel<CJitWindow>()->ViewAddr(codeview->GetSelection());
+  case DebuggerUpdateType::DisplayJitBreakdown:
+    RequirePanel<CJitWindow>()->ViewAddr(ev.GetExtraLong());
+    break;
+
+  default:
     break;
   }
 }

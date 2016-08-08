@@ -75,6 +75,19 @@ struct DebugPanelToID<GFXDebuggerPanel>
 };
 }
 
+enum class DebuggerUpdateType
+{
+  MoveCodePointer,
+  MoveMemoryPointer,
+  DisplayJitBreakdown,
+  UpdateWatchPoints,
+  UpdateBreakPoints,
+};
+
+// GetInt(): DebuggerUpdateType
+// GetExtraLong(): Address
+wxDECLARE_EVENT(DOLPHIN_EVT_DEBUGGER_UPDATE_STATE, wxCommandEvent);
+
 class CCodeWindow : public wxPanel
 {
 public:
@@ -110,16 +123,10 @@ public:
   // FIXME: This belongs in a separate class.
   void TogglePanel(int id, bool show);
   wxPanel* GetUntypedPanel(int id) const;
-  bool HasUntypedPanel(int id) const { return GetUntypedPanel(id) != nullptr; }
   template <class T>
   T* GetPanel() const
   {
     return static_cast<T*>(GetUntypedPanel(Details::DebugPanelToID<T>::ID));
-  }
-  template <class T>
-  bool HasPanel() const
-  {
-    return HasUntypedPanel(Details::DebugPanelToID<T>::ID);
   }
   template <class T>
   T* RequirePanel()
@@ -154,6 +161,7 @@ private:
   void OnCallsListChange(wxCommandEvent& event);
   void OnCodeViewChange(wxCommandEvent& event);
   void OnHostMessage(wxThreadEvent& event);
+  void OnDebuggerControl(wxCommandEvent&);
 
   // Debugger functions
   void SingleStep();

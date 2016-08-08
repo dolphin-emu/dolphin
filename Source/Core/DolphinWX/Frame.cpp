@@ -310,6 +310,7 @@ EVT_CLOSE(CFrame::OnClose)
 EVT_SIZE(CFrame::OnResize)
 EVT_MOVE(CFrame::OnMove)
 EVT_HOST_COMMAND(wxID_ANY, CFrame::OnHostMessage)
+EVT_COMMAND(wxID_ANY, DOLPHIN_EVT_DEBUGGER_UPDATE_STATE, CFrame::OnDebuggerStateUpdate)
 
 EVT_AUI_PANE_CLOSE(CFrame::OnPaneClose)
 
@@ -806,6 +807,17 @@ void CFrame::OnHostMessage(wxThreadEvent& event)
   case IDM_FORCE_DISCONNECT_BALANCEBOARD:
     ConnectWiimote(event.GetId() - IDM_FORCE_DISCONNECT_WIIMOTE1, false);
     break;
+  }
+}
+
+void CFrame::OnDebuggerStateUpdate(wxCommandEvent& ev)
+{
+  // Debugger panels are parented to CFrame but are "owned" by CCodeWindow that performs
+  // all the relevant management behaviors which results in this awkward structure.
+  if (ev.GetPropagatedFrom() != g_pCodeWindow)
+  {
+    ev.StopPropagation();
+    g_pCodeWindow->GetEventHandler()->ProcessEvent(ev);
   }
 }
 
