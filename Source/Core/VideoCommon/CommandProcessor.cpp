@@ -38,8 +38,6 @@ static u16 m_tokenReg;
 
 static std::atomic<bool> s_interrupt_set;
 static std::atomic<bool> s_interrupt_waiting;
-static std::atomic<bool> s_interrupt_token_waiting;
-static std::atomic<bool> s_interrupt_finish_waiting;
 
 static bool IsOnThread()
 {
@@ -65,8 +63,6 @@ void DoState(PointerWrap& p)
 
   p.Do(s_interrupt_set);
   p.Do(s_interrupt_waiting);
-  p.Do(s_interrupt_token_waiting);
-  p.Do(s_interrupt_finish_waiting);
 }
 
 static inline void WriteLow(volatile u32& _reg, u16 lowbits)
@@ -112,8 +108,6 @@ void Init()
 
   s_interrupt_set.store(false);
   s_interrupt_waiting.store(false);
-  s_interrupt_finish_waiting.store(false);
-  s_interrupt_token_waiting.store(false);
 
   et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
@@ -354,16 +348,6 @@ void UpdateInterruptsFromVideoBackend(u64 userdata)
 bool IsInterruptWaiting()
 {
   return s_interrupt_waiting.load();
-}
-
-void SetInterruptTokenWaiting(bool waiting)
-{
-  s_interrupt_token_waiting.store(waiting);
-}
-
-void SetInterruptFinishWaiting(bool waiting)
-{
-  s_interrupt_finish_waiting.store(waiting);
 }
 
 void SetCPStatusFromGPU()
