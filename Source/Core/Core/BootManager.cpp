@@ -336,6 +336,8 @@ bool BootCore(const std::string& _rFilename)
     StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
     StartUp.iCPUCore = Movie::GetCPUMode();
     StartUp.bSyncGPU = Movie::IsSyncGPU();
+    if (!StartUp.bWii)
+      StartUp.SelectedLanguage = Movie::GetLanguage();
     for (int i = 0; i < 2; ++i)
     {
       if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
