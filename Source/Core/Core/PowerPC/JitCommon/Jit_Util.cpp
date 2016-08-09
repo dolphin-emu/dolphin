@@ -253,11 +253,22 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
 }
 
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
-                                 s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
+                                 s32 offset, BitSet32 registersInUse, bool signExtend, int flags,
+                                 X64Reg offsetScratch)
 {
   bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
 
-  registersInUse[reg_value] = false;
+  _assert_msg_(DYNA_REC, opAddress.IsSimpleReg() || opAddress.IsImm(),
+               "Incorrect use of SafeLoadToReg (address isn't register or immediate)");
+  _assert_msg_(DYNA_REC, (offset == 0) || (offsetScratch != INVALID_REG),
+               "Scratch register must be provided if offset is not zero");
+  _assert_msg_(DYNA_REC, !registersInUse[ABI_RETURN],
+               "ABI_RETURN in use and we can't deal with it");
+
+  // Assuming that reg_value doesn't contain the address, we don't have to save it
+  if (!opAddress.IsSimpleReg() || opAddress.GetSimpleReg() != reg_value)
+    registersInUse[reg_value] = false;
+
   if (jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
   {
     u8* backpatchStart = GetWritableCodePtr();
@@ -271,6 +282,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     info.read = true;
     info.op_reg = reg_value;
     info.op_arg = opAddress;
+    info.scratch = offsetScratch;
     info.offsetAddedToAddress = offsetAddedToAddress;
     info.accessSize = accessSize >> 3;
     info.offset = offset;
@@ -295,13 +307,11 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     return;
   }
 
-  _assert_msg_(DYNA_REC, opAddress.IsSimpleReg(),
-               "Incorrect use of SafeLoadToReg (address isn't register or immediate)");
   X64Reg reg_addr = opAddress.GetSimpleReg();
   if (offset)
   {
-    reg_addr = RSCRATCH;
-    LEA(32, RSCRATCH, MDisp(opAddress.GetSimpleReg(), offset));
+    reg_addr = offsetScratch;
+    LEA(32, offsetScratch, MDisp(opAddress.GetSimpleReg(), offset));
   }
 
   FixupBranch exit;
@@ -434,7 +444,7 @@ void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acc
   if (reg_value.IsImm())
   {
     if (swap)
-      reg_value = SwapImmediate(accessSize, reg_value);
+      reg_value = reg_value.SwapImm();
     MOV(accessSize, dest, reg_value);
   }
   else if (swap)
@@ -450,9 +460,7 @@ void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acc
 static OpArg FixImmediate(int accessSize, OpArg arg)
 {
   if (arg.IsImm())
-  {
-    arg = accessSize == 8 ? arg.AsImm8() : accessSize == 16 ? arg.AsImm16() : arg.AsImm32();
-  }
+    return arg.AsImm(accessSize);
   return arg;
 }
 

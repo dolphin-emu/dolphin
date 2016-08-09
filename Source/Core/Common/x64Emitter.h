@@ -301,6 +301,23 @@ struct OpArg
     _dbg_assert_(DYNA_REC, IsImm());
     return OpArg((u8)offset, SCALE_IMM8);
   }
+  OpArg AsImm(int asScale)
+  {
+    switch (asScale)
+    {
+    case 8:
+      return AsImm8();
+    case 16:
+      return AsImm16();
+    case 32:
+      return AsImm32();
+    case 64:
+      return AsImm64();
+    default:
+      _assert_msg_(DYNA_REC, 0, "AsImm: invalid scale %d", asScale);
+      return *this;
+    }
+  }
 
   void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand, int bits) const;
   bool IsImm() const
@@ -341,6 +358,24 @@ struct OpArg
     _dbg_assert_msg_(DYNA_REC, scale == SCALE_RIP || (scale <= SCALE_ATREG && scale > SCALE_NONE),
                      "Tried to increment an OpArg which doesn't have an offset");
     offset += val;
+  }
+
+  OpArg SwapImm() const
+  {
+    switch (scale)
+    {
+    case SCALE_IMM8:
+      return *this;
+    case SCALE_IMM16:
+      return OpArg(Common::swap16((u16)offset), SCALE_IMM16);
+    case SCALE_IMM32:
+      return OpArg(Common::swap32((u32)offset), SCALE_IMM32);
+    case SCALE_IMM64:
+      return OpArg(Common::swap64((u64)offset), SCALE_IMM64);
+    default:
+      _assert_msg_(DYNA_REC, 0, "SwapImm: invalid scale %d", scale);
+      return *this;
+    }
   }
 
 private:
@@ -658,6 +693,7 @@ public:
   // Available only on Atom or >= Haswell so far. Test with cpu_info.bMOVBE.
   void MOVBE(int bits, X64Reg dest, const OpArg& src);
   void MOVBE(int bits, const OpArg& dest, X64Reg src);
+  void LoadAndExtend(int size, X64Reg dst, const OpArg& src, bool sign_extend = false);
   void LoadAndSwap(int size, X64Reg dst, const OpArg& src, bool sign_extend = false,
                    MovInfo* info = nullptr);
   void SwapAndStore(int size, const OpArg& dst, X64Reg src, MovInfo* info = nullptr);
