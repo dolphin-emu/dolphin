@@ -29,9 +29,6 @@ namespace DVDThread
 {
 static void DVDThread();
 
-static void FinishRead(u64 userdata, s64 cycles_late);
-static int s_finish_read;
-
 static std::thread s_dvd_thread;
 static Common::Event s_dvd_thread_start_working;
 static Common::Event s_dvd_thread_done_working;
@@ -42,7 +39,6 @@ static u64 s_time_read_started;
 static bool s_dvd_success;
 
 static u64 s_dvd_offset;
-static u32 s_output_address;
 static u32 s_length;
 static bool s_decrypt;
 
@@ -56,7 +52,6 @@ static u64 s_realtime_done_us;
 
 void Start()
 {
-  s_finish_read = CoreTiming::RegisterEvent("FinishReadDVDThread", FinishRead);
   _assert_(!s_dvd_thread.joinable());
   s_dvd_thread = std::thread(DVDThread);
 }
@@ -85,7 +80,6 @@ void DoState(PointerWrap& p)
   p.Do(s_dvd_success);
 
   p.Do(s_dvd_offset);
-  p.Do(s_output_address);
   p.Do(s_length);
   p.Do(s_decrypt);
   p.Do(s_reply_to_ios);
@@ -107,52 +101,53 @@ void WaitUntilIdle()
   s_dvd_thread_done_working.Set();
 }
 
-void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt, bool reply_to_ios,
-               int ticks_until_completion)
+void StartRead(u64 dvd_offset, u32 length, bool decrypt)
 {
   _assert_(Core::IsCPUThread());
 
   s_dvd_thread_done_working.Wait();
 
   s_dvd_offset = dvd_offset;
-  s_output_address = output_address;
   s_length = length;
   s_decrypt = decrypt;
-  s_reply_to_ios = reply_to_ios;
 
   s_time_read_started = CoreTiming::GetTicks();
   s_realtime_started_us = Common::Timer::GetTimeUs();
 
   s_dvd_thread_start_working.Set();
-
-  CoreTiming::ScheduleEvent(ticks_until_completion, s_finish_read);
 }
 
-static void FinishRead(u64 userdata, s64 cycles_late)
+void DMA(u32 chunk_offset, u32 output_address, u32 length)
+{
+  _dbg_assert_(DVDINTERFACE, s_dvd_success);
+
+  WaitUntilIdle();
+
+  Memory::CopyToEmu(output_address, s_dvd_buffer.data() + chunk_offset, length);
+}
+
+bool CompleteRead()
 {
   WaitUntilIdle();
 
   DEBUG_LOG(DVDINTERFACE, "Disc has been read. Real time: %" PRIu64 " us. "
-                          "Real time including delay: %" PRIu64
-                          " us. Emulated time including delay: %" PRIu64 " us.",
+                          "Real time including delay: %" PRIu64 " us.",
             s_realtime_done_us - s_realtime_started_us,
-            Common::Timer::GetTimeUs() - s_realtime_started_us,
-            (CoreTiming::GetTicks() - s_time_read_started) /
-                (SystemTimers::GetTicksPerSecond() / 1000 / 1000));
+            Common::Timer::GetTimeUs() - s_realtime_started_us);
 
-  if (s_dvd_success)
-    Memory::CopyToEmu(s_output_address, s_dvd_buffer.data(), s_length);
-  else
+  if (!s_dvd_success)
     PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").", s_dvd_offset,
                 s_dvd_offset + s_length);
 
+  return s_dvd_success;
+}
+
+void Cleanup()
+{
   // This will make the buffer take less space in savestates.
   // Reducing the size doesn't change the amount of reserved memory,
   // so this doesn't lead to extra memory allocations.
   s_dvd_buffer.resize(0);
-
-  // Notify the emulated software that the command has been executed
-  DVDInterface::FinishExecutingCommand(s_reply_to_ios, DVDInterface::INT_TCINT);
 }
 
 static void DVDThread()
