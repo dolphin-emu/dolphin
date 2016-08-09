@@ -1,4 +1,4 @@
-// Copyright 2014 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -6,7 +6,6 @@
 
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
-#include <Foundation/Foundation.h>
 
 #include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
 
@@ -87,7 +86,6 @@ KeyboardAndMouse::Key::Key(CGKeyCode keycode) : m_keycode(keycode)
       {kVK_F10, "F10"},
       {kVK_F11, "F11"},
       {kVK_F12, "F12"},
-      // {kHIDUsage_KeyboardInsert, "Insert"},
       {kVK_Home, "Home"},
       {kVK_PageUp, "Page Up"},
       {kVK_ForwardDelete, "Delete"},
@@ -113,17 +111,14 @@ KeyboardAndMouse::Key::Key(CGKeyCode keycode) : m_keycode(keycode)
       {kVK_ANSI_Keypad9, "Keypad 9"},
       {kVK_ANSI_Keypad0, "Keypad 0"},
       {kVK_ANSI_KeypadDecimal, "Keypad ."},
-      // {kHIDUsage_KeyboardNonUSBackslash, "Paragraph"},
       {kVK_ANSI_KeypadEquals, "Keypad ="},
-      // {kHIDUsage_KeypadComma, "Keypad ,"},
       {kVK_Control, "Left Control"},
       {kVK_Shift, "Left Shift"},
       {kVK_Option, "Left Alt"},
-      {kVK_Command, "Left Command"},
+      {kVK_Command, "Command"},
       {kVK_RightControl, "Right Control"},
       {kVK_RightShift, "Right Shift"},
       {kVK_RightOption, "Right Alt"},
-      // {kVK_RightCommand, "Right Command"},
   };
 
   for (auto& named_key : named_keys)
@@ -170,16 +165,16 @@ KeyboardAndMouse::KeyboardAndMouse(void* window)
 void KeyboardAndMouse::UpdateInput()
 {
   CGRect bounds = CGRectZero;
-  uint32_t windowid[1] = {m_windowid};
+  CGWindowID windowid[1] = {m_windowid};
   CFArrayRef windowArray = CFArrayCreate(nullptr, (const void**)windowid, 1, nullptr);
   CFArrayRef windowDescriptions = CGWindowListCreateDescriptionFromArray(windowArray);
   CFDictionaryRef windowDescription =
-      (CFDictionaryRef)CFArrayGetValueAtIndex((CFArrayRef)windowDescriptions, 0);
+      static_cast<CFDictionaryRef>(CFArrayGetValueAtIndex(windowDescriptions, 0));
 
   if (CFDictionaryContainsKey(windowDescription, kCGWindowBounds))
   {
     CFDictionaryRef boundsDictionary =
-        (CFDictionaryRef)CFDictionaryGetValue(windowDescription, kCGWindowBounds);
+        static_cast<CFDictionaryRef>(CFDictionaryGetValue(windowDescription, kCGWindowBounds));
 
     if (boundsDictionary != nullptr)
       CGRectMakeWithDictionaryRepresentation(boundsDictionary, &bounds);
@@ -216,7 +211,6 @@ ControlState KeyboardAndMouse::Cursor::GetState() const
 ControlState KeyboardAndMouse::Button::GetState() const
 {
   return CGEventSourceButtonState(kCGEventSourceStateHIDSystemState, m_button) != 0;
-  // return (m_button != 0);
 }
 
 std::string KeyboardAndMouse::Cursor::GetName() const
@@ -237,5 +231,5 @@ std::string KeyboardAndMouse::Button::GetName() const
     return "Right Click";
   return std::string("Click ") + char('0' + m_button);
 }
-}
-}
+} // namespace Quartz
+} // namespace ciface

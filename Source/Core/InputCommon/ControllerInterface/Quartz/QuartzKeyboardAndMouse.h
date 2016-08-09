@@ -1,8 +1,10 @@
-// Copyright 2010 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
 #pragma once
+
+#include <QuartzCore/QuartzCore.h>
 
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -16,7 +18,7 @@ private:
   class Key : public Input
   {
   public:
-    Key(CGKeyCode keycode);
+    explicit Key(CGKeyCode keycode);
     std::string GetName() const override;
     ControlState GetState() const override;
 
@@ -45,7 +47,7 @@ private:
   class Button : public Input
   {
   public:
-    Button(CGMouseButton button) : m_button(button) {}
+    explicit Button(CGMouseButton button) : m_button(button) {}
     std::string GetName() const override;
     ControlState GetState() const override;
 
@@ -56,7 +58,7 @@ private:
 public:
   void UpdateInput() override;
 
-  KeyboardAndMouse(void* window);
+  explicit KeyboardAndMouse(void* window);
 
   std::string GetName() const override;
   std::string GetSource() const override;
@@ -69,5 +71,5 @@ private:
 
   uint32_t m_windowid;
 };
-}
-}
+} // namespace Quartz
+} // namespace ciface

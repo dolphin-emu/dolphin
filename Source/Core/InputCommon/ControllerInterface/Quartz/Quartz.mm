@@ -1,18 +1,10 @@
-// Copyright 2013 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
-
-#include <Cocoa/Cocoa.h>
-#include <Foundation/Foundation.h>
-#include <IOKit/hid/IOHIDLib.h>
-
-#include "Common/StringUtil.h"
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Quartz/Quartz.h"
 #include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
-
-#include <map>
 
 namespace ciface
 {
@@ -26,5 +18,5 @@ void Init(void* window)
 void DeInit()
 {
 }
-}
-}
+} // namespace Quartz
+} // namespace ciface
