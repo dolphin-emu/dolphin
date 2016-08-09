@@ -1515,9 +1515,15 @@ void GetSettings()
   s_bSyncGPU = SConfig::GetInstance().bSyncGPU;
   s_iCPUCore = SConfig::GetInstance().iCPUCore;
   s_bNetPlay = NetPlay::IsNetPlayRunning();
-  s_language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
-  if (!SConfig::GetInstance().bWii)
+  if (SConfig::GetInstance().bWii)
+  {
+    s_language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+  }
+  else
+  {
     s_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
+    s_language = SConfig::GetInstance().SelectedLanguage;
+  }
   s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
   s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
 
