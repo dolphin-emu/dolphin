@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <chrono>
 #include <mutex>
 #include <string>
@@ -57,6 +56,6 @@ private:
   const std::chrono::seconds flush_interval = std::chrono::seconds(1);
   Common::Event m_flush_trigger;
   std::mutex m_write_mutex;
-  std::atomic<bool> m_exiting;
+  Common::Flag m_exiting;
   std::thread m_flush_thread;
 };

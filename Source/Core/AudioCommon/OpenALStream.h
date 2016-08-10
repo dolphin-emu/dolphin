@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <thread>
 
 #include "AudioCommon/SoundStream.h"
@@ -68,7 +67,7 @@ public:
   static bool isValid() { return true; }
 private:
   std::thread thread;
-  std::atomic<bool> m_run_thread;
+  Common::Flag m_run_thread;
 
   Common::Event soundSyncEvent;
 

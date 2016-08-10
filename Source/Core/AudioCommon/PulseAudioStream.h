@@ -8,10 +8,9 @@
 #include <pulse/pulseaudio.h>
 #endif
 
-#include <atomic>
-
 #include "AudioCommon/SoundStream.h"
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "Common/Thread.h"
 
 class PulseAudio final : public SoundStream
@@ -41,7 +40,7 @@ private:
   static void UnderflowCallback(pa_stream* s, void* userdata);
 
   std::thread m_thread;
-  std::atomic<bool> m_run_thread;
+  Common::Flag m_run_thread;
 
   bool m_stereo;  // stereo, else surround
   int m_bytespersample;

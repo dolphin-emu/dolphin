@@ -326,7 +326,7 @@ void Wiimote::ConnectOnInput()
 
 void Wiimote::Prepare()
 {
-  m_need_prepare.store(true);
+  m_need_prepare.Set();
   IOWakeup();
 }
 
@@ -521,47 +521,27 @@ void WiimoteScanner::ThreadFunc()
 bool Wiimote::Connect(int index)
 {
   m_index = index;
-  m_need_prepare.store(true);
+  m_need_prepare.Set();
 
-  if (!m_run_thread.load())
+  if (!m_run_thread.IsSet())
   {
-    m_thread_ready.store(false);
     StartThread();
-    WaitReady();
+    m_thread_ready_event.Wait();
   }
   return IsConnected();
 }
 
 void Wiimote::StartThread()
 {
-  m_run_thread.store(true);
   m_wiimote_thread = std::thread(&Wiimote::ThreadFunc, this);
 }
 
 void Wiimote::StopThread()
 {
-  m_run_thread.store(false);
+  if (!m_run_thread.TestAndClear())
+    return;
   IOWakeup();
-  if (m_wiimote_thread.joinable())
-    m_wiimote_thread.join();
-}
-
-void Wiimote::SetReady()
-{
-  if (!m_thread_ready.load())
-  {
-    m_thread_ready.store(true);
-    m_thread_ready_cond.notify_all();
-  }
-}
-
-void Wiimote::WaitReady()
-{
-  std::unique_lock<std::mutex> lock(m_thread_ready_mutex);
-  while (!m_thread_ready.load())
-  {
-    m_thread_ready_cond.wait(lock);
-  }
+  m_wiimote_thread.join();
 }
 
 void Wiimote::ThreadFunc()
@@ -577,7 +557,8 @@ void Wiimote::ThreadFunc()
     ok = ConnectInternal();
   }
 
-  SetReady();
+  m_thread_ready_event.Set();
+  m_run_thread.Set();
 
   if (!ok)
   {
@@ -585,17 +566,13 @@ void Wiimote::ThreadFunc()
   }
 
   // main loop
-  while (IsConnected() && m_run_thread.load())
+  while (IsConnected() && m_run_thread.IsSet())
   {
-    if (m_need_prepare.load())
+    if (m_need_prepare.TestAndClear() && !PrepareOnThread())
     {
-      m_need_prepare.store(false);
-      if (!PrepareOnThread())
-      {
-        ERROR_LOG(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote %d.",
-                  m_index + 1);
-        break;
-      }
+      ERROR_LOG(WIIMOTE, "Wiimote::PrepareOnThread failed.  Disconnecting Wiimote %d.",
+                m_index + 1);
+      break;
     }
     Write();
     Read();

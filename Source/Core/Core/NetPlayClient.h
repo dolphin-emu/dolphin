@@ -6,7 +6,6 @@
 
 #include <SFML/Network/Packet.hpp>
 #include <array>
-#include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -124,8 +123,8 @@ protected:
   std::thread m_thread;
 
   std::string m_selected_game;
-  std::atomic<bool> m_is_running{false};
-  std::atomic<bool> m_do_loop{true};
+  Common::Flag m_is_running{false};
+  Common::Flag m_do_loop{true};
 
   unsigned int m_target_buffer_size = 20;
 
