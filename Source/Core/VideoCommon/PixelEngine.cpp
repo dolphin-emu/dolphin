@@ -4,10 +4,8 @@
 
 // http://www.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
-#include <atomic>
 #include <mutex>
 
-#include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
