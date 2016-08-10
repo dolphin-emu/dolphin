@@ -13,10 +13,18 @@ namespace ciface
 {
 namespace Quartz
 {
-
 KeyboardAndMouse::Key::Key(CGKeyCode keycode) : m_keycode(keycode)
 {
-  static const struct PrettyKeys
+}
+
+ControlState KeyboardAndMouse::Key::GetState() const
+{
+  return CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, m_keycode) != 0;
+}
+
+std::string KeyboardAndMouse::Key::GetName() const
+{
+  static const struct
   {
     const CGKeyCode code;
     const char* const name;
@@ -122,27 +130,12 @@ KeyboardAndMouse::Key::Key(CGKeyCode keycode) : m_keycode(keycode)
   };
 
   for (auto& named_key : named_keys)
-  {
     if (named_key.code == m_keycode)
-    {
-      m_name = named_key.name;
-      return;
-    }
-  }
+      return named_key.name;
 
   std::stringstream ss;
-  ss << "Key " << keycode;
-  m_name = ss.str();
-}
-
-ControlState KeyboardAndMouse::Key::GetState() const
-{
-  return CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, m_keycode) != 0;
-}
-
-std::string KeyboardAndMouse::Key::GetName() const
-{
-  return m_name;
+  ss << "Key " << m_keycode;
+  return ss.str();
 }
 
 KeyboardAndMouse::KeyboardAndMouse(void* window)
@@ -231,5 +224,5 @@ std::string KeyboardAndMouse::Button::GetName() const
     return "Right Click";
   return std::string("Click ") + char('0' + m_button);
 }
-} // namespace Quartz
-} // namespace ciface
+}  // namespace Quartz
+}  // namespace ciface

@@ -24,7 +24,6 @@ private:
 
   private:
     CGKeyCode m_keycode;
-    std::string m_name;
   };
 
   class Cursor : public Input
@@ -71,5 +70,5 @@ private:
 
   uint32_t m_windowid;
 };
-} // namespace Quartz
-} // namespace ciface
+}  // namespace Quartz
+}  // namespace ciface

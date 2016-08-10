@@ -2,8 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Quartz/Quartz.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
 
 namespace ciface
@@ -18,5 +18,5 @@ void Init(void* window)
 void DeInit()
 {
 }
-} // namespace Quartz
-} // namespace ciface
+}  // namespace Quartz
+}  // namespace ciface
