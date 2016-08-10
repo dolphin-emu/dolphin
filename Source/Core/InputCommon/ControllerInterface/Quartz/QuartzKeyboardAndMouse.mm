@@ -13,20 +13,7 @@ namespace Quartz
 {
 KeyboardAndMouse::Key::Key(CGKeyCode keycode) : m_keycode(keycode)
 {
-}
-
-ControlState KeyboardAndMouse::Key::GetState() const
-{
-  return CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, m_keycode) != 0;
-}
-
-std::string KeyboardAndMouse::Key::GetName() const
-{
-  static const struct
-  {
-    const CGKeyCode code;
-    const char* const name;
-  } named_keys[] = {
+  static const std::map<CGKeyCode, std::string> named_keys = {
       {kVK_ANSI_A, "A"},
       {kVK_ANSI_B, "B"},
       {kVK_ANSI_C, "C"},
@@ -127,18 +114,28 @@ std::string KeyboardAndMouse::Key::GetName() const
       {kVK_RightOption, "Right Alt"},
   };
 
-  for (auto& named_key : named_keys)
-    if (named_key.code == m_keycode)
-      return named_key.name;
+  if (named_keys.find(m_keycode) != named_keys.end())
+    m_name = named_keys.at(m_keycode);
+  else
+    m_name = "Key " + std::to_string(m_keycode);
+}
 
-  return "Key " + std::to_string(m_keycode);
+ControlState KeyboardAndMouse::Key::GetState() const
+{
+  return CGEventSourceKeyState(kCGEventSourceStateHIDSystemState, m_keycode) != 0;
+}
+
+std::string KeyboardAndMouse::Key::GetName() const
+{
+  return m_name;
 }
 
 KeyboardAndMouse::KeyboardAndMouse(void* window)
 {
-  // All ANSI keycodes in <HIToolbox/Events.h> are 0x7e or lower
-  for (int i = 0; i < 0x80; i++)
-    AddInput(new Key(i));
+  // All keycodes in <HIToolbox/Events.h> are 0x7e or lower. If you notice
+  // keys that aren't being recognized, bump this number up!
+  for (int keycode = 0; keycode < 0x80; ++keycode)
+    AddInput(new Key(keycode));
 
   m_windowid = [[reinterpret_cast<NSView*>(window) window] windowNumber];
 

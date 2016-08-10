@@ -24,6 +24,7 @@ private:
 
   private:
     CGKeyCode m_keycode;
+    std::string m_name;
   };
 
   class Cursor : public Input
