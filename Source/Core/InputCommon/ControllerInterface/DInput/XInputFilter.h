@@ -5,12 +5,12 @@
 #pragma once
 
 #include <Windows.h>
-#include <vector>
+#include <unordered_set>
 
 namespace ciface
 {
 namespace DInput
 {
-void GetXInputGUIDS(std::vector<DWORD>* guids);
+void GetXInputGUIDS(std::unordered_set<DWORD>* guids);
 }
 }
