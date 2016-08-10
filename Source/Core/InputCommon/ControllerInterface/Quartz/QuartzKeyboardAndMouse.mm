@@ -2,8 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <sstream>
-
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
 
@@ -133,9 +131,7 @@ std::string KeyboardAndMouse::Key::GetName() const
     if (named_key.code == m_keycode)
       return named_key.name;
 
-  std::stringstream ss;
-  ss << "Key " << m_keycode;
-  return ss.str();
+  return "Key " + std::to_string(m_keycode);
 }
 
 KeyboardAndMouse::KeyboardAndMouse(void* window)
