@@ -11,8 +11,8 @@ namespace ciface
 {
 namespace Quartz
 {
-KeyboardAndMouse::Key::Key(CGKeyCode keycode) : m_keycode(keycode)
-{
+
+std::string KeycodeToName(const CGKeyCode keycode) {
   static const std::map<CGKeyCode, std::string> named_keys = {
       {kVK_ANSI_A, "A"},
       {kVK_ANSI_B, "B"},
@@ -114,10 +114,14 @@ KeyboardAndMouse::Key::Key(CGKeyCode keycode) : m_keycode(keycode)
       {kVK_RightOption, "Right Alt"},
   };
 
-  if (named_keys.find(m_keycode) != named_keys.end())
-    m_name = named_keys.at(m_keycode);
+  if (named_keys.find(keycode) != named_keys.end())
+    return named_keys.at(keycode);
   else
-    m_name = "Key " + std::to_string(m_keycode);
+    return "Key " + std::to_string(keycode);
+}
+
+KeyboardAndMouse::Key::Key(CGKeyCode keycode) : m_keycode(keycode), m_name(KeycodeToName(keycode))
+{
 }
 
 ControlState KeyboardAndMouse::Key::GetState() const
