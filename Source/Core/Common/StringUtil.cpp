@@ -290,7 +290,7 @@ std::string ToString(bool value)
   return value ? "True" : "False";
 }
 
-std::string ToString( int value)
+std::string ToString(int value)
 {
   return StringFromFormat("%i", value);
 }
