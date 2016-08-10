@@ -50,8 +50,6 @@ public:
         Delete(key);
     }
 
-    void Set(const std::string& key, const std::vector<std::string>& newValues);
-
     template <typename T>
     bool Get(const std::string& key, T* value, const T& defaultValue = T{}) const
     {
@@ -64,7 +62,6 @@ public:
       *value = defaultValue;
       return false;
     }
-    bool Get(const std::string& key, std::vector<std::string>* values) const;
 
     bool operator<(const Section& other) const { return name < other.name; }
   protected:
