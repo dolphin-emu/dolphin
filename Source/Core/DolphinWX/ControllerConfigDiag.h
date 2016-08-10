@@ -81,7 +81,7 @@ private:
 
   std::map<wxWindowID, unsigned int> m_gc_port_choice_ids;
   std::map<wxWindowID, unsigned int> m_gc_port_config_ids;
-  std::array<wxString, 9> m_gc_pad_type_strs;
+  std::array<wxString, 8> m_gc_pad_type_strs;
 
   std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
   unsigned int m_orig_wiimote_sources[MAX_BBMOTES];

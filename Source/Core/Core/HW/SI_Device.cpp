@@ -9,7 +9,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/SI_Device.h"
-#include "Core/HW/SI_DeviceAMBaseboard.h"
 #include "Core/HW/SI_DeviceDanceMat.h"
 #include "Core/HW/SI_DeviceGBA.h"
 #include "Core/HW/SI_DeviceGCAdapter.h"
@@ -114,8 +113,6 @@ std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int por
     return std::make_unique<CSIDevice_Keyboard>(device, port_number);
 
   case SIDEVICE_AM_BASEBOARD:
-    return std::make_unique<CSIDevice_AMBaseboard>(device, port_number);
-
   case SIDEVICE_NONE:
   default:
     return std::make_unique<CSIDevice_Null>(device, port_number);
