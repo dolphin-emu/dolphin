@@ -206,8 +206,7 @@ void SysConf::GenerateSysConf()
   strncpy(s_Header.version, "SCv0", 4);
   s_Header.numEntries = Common::swap16(28 - 1);
 
-  SSysConfEntry items[27];
-  memset(items, 0, sizeof(SSysConfEntry) * 27);
+  std::vector<SSysConfEntry> items(27);
 
   // version length + size of numEntries + 28 * size of offset
   unsigned int current_offset = 4 + 2 + 28 * 2;
@@ -325,18 +324,15 @@ void SysConf::GenerateSysConf()
   current_offset += create_item(items[26], Type_Bool, "MPLS.MOVIE", 1, current_offset);
   items[26].data[0] = 0x01;
 
-  for (const SSysConfEntry& item : items)
-    m_Entries.push_back(item);
-
   File::CreateFullPath(m_FilenameDefault);
   File::IOFile g(m_FilenameDefault, "wb");
 
   // Write the header and item offsets
   g.WriteBytes(&s_Header.version, sizeof(s_Header.version));
   g.WriteBytes(&s_Header.numEntries, sizeof(u16));
-  for (int i = 0; i != 27; ++i)
+  for (const auto& item : items)
   {
-    const u16 tmp_offset = Common::swap16(items[i].offset);
+    const u16 tmp_offset = Common::swap16(item.offset);
     g.WriteBytes(&tmp_offset, 2);
   }
   const u16 end_data_offset = Common::swap16(current_offset);
@@ -344,30 +340,30 @@ void SysConf::GenerateSysConf()
 
   // Write the items
   const u8 null_byte = 0;
-  for (int i = 0; i != 27; ++i)
+  for (const auto& item : items)
   {
-    u8 description = (items[i].type << 5) | (items[i].nameLength - 1);
+    u8 description = (item.type << 5) | (item.nameLength - 1);
     g.WriteBytes(&description, sizeof(description));
-    g.WriteBytes(&items[i].name, items[i].nameLength);
-    switch (items[i].type)
+    g.WriteBytes(&item.name, item.nameLength);
+    switch (item.type)
     {
     case Type_BigArray:
     {
-      const u16 tmpDataLength = Common::swap16(items[i].dataLength);
+      const u16 tmpDataLength = Common::swap16(item.dataLength);
       g.WriteBytes(&tmpDataLength, 2);
-      g.WriteBytes(items[i].data, items[i].dataLength);
+      g.WriteBytes(item.data, item.dataLength);
       g.WriteBytes(&null_byte, 1);
     }
     break;
 
     case Type_SmallArray:
-      g.WriteBytes(&items[i].dataLength, 1);
-      g.WriteBytes(items[i].data, items[i].dataLength);
+      g.WriteBytes(&item.dataLength, 1);
+      g.WriteBytes(item.data, item.dataLength);
       g.WriteBytes(&null_byte, 1);
       break;
 
     default:
-      g.WriteBytes(items[i].data, items[i].dataLength);
+      g.WriteBytes(item.data, item.dataLength);
       break;
     }
   }
@@ -380,6 +376,7 @@ void SysConf::GenerateSysConf()
   // Write the footer
   g.WriteBytes("SCed", 4);
 
+  m_Entries = std::move(items);
   m_Filename = m_FilenameDefault;
   m_IsValid = true;
 }
