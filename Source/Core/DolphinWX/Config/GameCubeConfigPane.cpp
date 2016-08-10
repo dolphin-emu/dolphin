@@ -278,13 +278,13 @@ void GameCubeConfigPane::ChooseEXIDevice(const wxString& deviceName, int deviceN
     tempType = EXIDEVICE_MEMORYCARDFOLDER;
   else if (!deviceName.compare(_(EXIDEV_MIC_STR)))
     tempType = EXIDEVICE_MIC;
-  else if (!deviceName.compare(EXIDEV_BBA_STR))
+  else if (!deviceName.compare(_(EXIDEV_BBA_STR)))
     tempType = EXIDEVICE_ETH;
-  else if (!deviceName.compare(EXIDEV_AGP_STR))
+  else if (!deviceName.compare(_(EXIDEV_AGP_STR)))
     tempType = EXIDEVICE_AGP;
   else if (!deviceName.compare(_(EXIDEV_AM_BB_STR)))
     tempType = EXIDEVICE_AM_BASEBOARD;
-  else if (!deviceName.compare(EXIDEV_GECKO_STR))
+  else if (!deviceName.compare(_(EXIDEV_GECKO_STR)))
     tempType = EXIDEVICE_GECKO;
   else if (!deviceName.compare(_(DEV_NONE_STR)))
     tempType = EXIDEVICE_NONE;
