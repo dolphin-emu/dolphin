@@ -39,7 +39,7 @@ void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::strin
 
 const std::string& IniFile::NULL_STRING = "";
 
-void IniFile::Section::Set(const std::string& key, const std::string& newValue)
+void IniFile::Section::_Set(const std::string& key, const std::string& newValue)
 {
   auto it = values.find(key);
   if (it != values.end())
@@ -49,15 +49,6 @@ void IniFile::Section::Set(const std::string& key, const std::string& newValue)
     values[key] = newValue;
     keys_order.push_back(key);
   }
-}
-
-void IniFile::Section::Set(const std::string& key, const std::string& newValue,
-                           const std::string& defaultValue)
-{
-  if (newValue != defaultValue)
-    Set(key, newValue);
-  else
-    Delete(key);
 }
 
 void IniFile::Section::Set(const std::string& key, const std::vector<std::string>& newValues)
@@ -73,8 +64,8 @@ void IniFile::Section::Set(const std::string& key, const std::vector<std::string
   Set(key, temp);
 }
 
-bool IniFile::Section::Get(const std::string& key, std::string* value,
-                           const std::string& defaultValue) const
+bool IniFile::Section::_Get(const std::string& key, std::string* value,
+                            const std::string& defaultValue) const
 {
   auto it = values.find(key);
   if (it != values.end())
@@ -119,66 +110,6 @@ bool IniFile::Section::Get(const std::string& key, std::vector<std::string>* out
   }
 
   return true;
-}
-
-bool IniFile::Section::Get(const std::string& key, int* value, int defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
-  *value = defaultValue;
-  return false;
-}
-
-bool IniFile::Section::Get(const std::string& key, u32* value, u32 defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
-  *value = defaultValue;
-  return false;
-}
-
-bool IniFile::Section::Get(const std::string& key, bool* value, bool defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
-  *value = defaultValue;
-  return false;
-}
-
-bool IniFile::Section::Get(const std::string& key, float* value, float defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
-  *value = defaultValue;
-  return false;
-}
-
-bool IniFile::Section::Get(const std::string& key, double* value, double defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
-  *value = defaultValue;
-  return false;
 }
 
 bool IniFile::Section::Exists(const std::string& key) const

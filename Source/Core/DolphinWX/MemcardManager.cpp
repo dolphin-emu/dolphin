@@ -134,9 +134,9 @@ bool CMemcardManager::LoadSettings()
   {
     iniMemcardSection = MemcardManagerIni.GetOrCreateSection("MemcardManager");
     iniMemcardSection->Get("Items per page", &itemsPerPage, 16);
-    iniMemcardSection->Get("DefaultMemcardA", &(DefaultMemcard[SLOT_A]), "");
-    iniMemcardSection->Get("DefaultMemcardB", &(DefaultMemcard[SLOT_B]), "");
-    iniMemcardSection->Get("DefaultIOFolder", &DefaultIOPath, "/Users/GC");
+    iniMemcardSection->Get("DefaultMemcardA", &(DefaultMemcard[SLOT_A]), std::string());
+    iniMemcardSection->Get("DefaultMemcardB", &(DefaultMemcard[SLOT_B]), std::string());
+    iniMemcardSection->Get("DefaultIOFolder", &DefaultIOPath, std::string("/Users/GC"));
 
     iniMemcardSection->Get("Use Pages", &mcmSettings.usePages, true);
     iniMemcardSection->Get("cBanner", &mcmSettings.column[COLUMN_BANNER], true);
@@ -162,8 +162,8 @@ bool CMemcardManager::SaveSettings()
   MemcardManagerIni.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   iniMemcardSection = MemcardManagerIni.GetOrCreateSection("MemcardManager");
   iniMemcardSection->Set("Items per page", itemsPerPage, 16);
-  iniMemcardSection->Set("DefaultMemcardA", DefaultMemcard[SLOT_A], "");
-  iniMemcardSection->Set("DefaultMemcardB", DefaultMemcard[SLOT_B], "");
+  iniMemcardSection->Set("DefaultMemcardA", DefaultMemcard[SLOT_A], std::string());
+  iniMemcardSection->Set("DefaultMemcardB", DefaultMemcard[SLOT_B], std::string());
 
   iniMemcardSection->Set("Use Pages", mcmSettings.usePages, true);
   iniMemcardSection->Set("cBanner", mcmSettings.column[COLUMN_BANNER], true);

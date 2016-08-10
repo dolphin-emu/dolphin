@@ -60,7 +60,7 @@ void CLogWindow::CreateGUIControls()
   IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
   log_window->Get("x", &x, Parent->GetSize().GetX() / 2);
   log_window->Get("y", &y, Parent->GetSize().GetY());
-  log_window->Get("pos", &winpos, wxAUI_DOCK_RIGHT);
+  log_window->Get("pos", &winpos, (int)wxAUI_DOCK_RIGHT);
 
   // Set up log listeners
   int verbosity;

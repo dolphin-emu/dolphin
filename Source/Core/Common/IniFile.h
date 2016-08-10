@@ -35,28 +35,14 @@ public:
     bool Exists(const std::string& key) const;
     bool Delete(const std::string& key);
 
-    void Set(const std::string& key, const std::string& newValue);
-    void Set(const std::string& key, const std::string& newValue, const std::string& defaultValue);
-
-    void Set(const std::string& key, u32 newValue)
-    {
-      Set(key, StringFromFormat("0x%08x", newValue));
-    }
-
-    void Set(const std::string& key, float newValue)
-    {
-      Set(key, StringFromFormat("%#.9g", newValue));
-    }
-
-    void Set(const std::string& key, double newValue)
-    {
-      Set(key, StringFromFormat("%#.17g", newValue));
-    }
-
-    void Set(const std::string& key, int newValue) { Set(key, ToString(newValue)); }
-    void Set(const std::string& key, bool newValue) { Set(key, ToString(newValue)); }
     template <typename T>
-    void Set(const std::string& key, T newValue, const T defaultValue)
+    void Set(const std::string& key, const T& newValue)
+    {
+      _Set(key, ToString(newValue));
+    }
+
+    template <typename T>
+    void Set(const std::string& key, const T& newValue, const T& defaultValue)
     {
       if (newValue != defaultValue)
         Set(key, newValue);
@@ -66,17 +52,27 @@ public:
 
     void Set(const std::string& key, const std::vector<std::string>& newValues);
 
-    bool Get(const std::string& key, std::string* value,
-             const std::string& defaultValue = NULL_STRING) const;
-    bool Get(const std::string& key, int* value, int defaultValue = 0) const;
-    bool Get(const std::string& key, u32* value, u32 defaultValue = 0) const;
-    bool Get(const std::string& key, bool* value, bool defaultValue = false) const;
-    bool Get(const std::string& key, float* value, float defaultValue = 0.0f) const;
-    bool Get(const std::string& key, double* value, double defaultValue = 0.0) const;
+    template <typename T>
+    bool Get(const std::string& key, T* value, const T& defaultValue = T{}) const
+    {
+      std::string temp;
+      bool retval = _Get(key, &temp);
+
+      if (retval && TryParse(temp, value))
+        return true;
+
+      *value = defaultValue;
+      return false;
+    }
     bool Get(const std::string& key, std::vector<std::string>* values) const;
 
     bool operator<(const Section& other) const { return name < other.name; }
   protected:
+    bool _Get(const std::string& key, std::string* value,
+              const std::string& defaultValue = std::string{}) const;
+
+    void _Set(const std::string& key, const std::string& newValue);
+
     std::string name;
 
     std::vector<std::string> keys_order;

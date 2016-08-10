@@ -30,7 +30,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mod
   INFO_LOG(WII_IPC_STM, "CWII_IPC_HLE_Device_usb_kbd: Open");
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
+  ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, (int)KBD_LAYOUT_QWERTY);
 
   for (bool& pressed : m_OldKeyBuffer)
   {

@@ -756,8 +756,8 @@ void CFrame::LoadIniPerspectives()
   ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
 
   IniFile::Section* perspectives = ini.GetOrCreateSection("Perspectives");
-  perspectives->Get("Perspectives", &_Perspectives, "Perspective 1");
-  perspectives->Get("Active", &ActivePerspective, 0);
+  perspectives->Get("Perspectives", &_Perspectives, std::string("Perspective 1"));
+  perspectives->Get("Active", &ActivePerspective, 0u);
   SplitString(_Perspectives, ',', VPerspectives);
 
   for (auto& VPerspective : VPerspectives)
@@ -777,12 +777,12 @@ void CFrame::LoadIniPerspectives()
 
     IniFile::Section* perspec_section = ini.GetOrCreateSection(_Section);
     perspec_section->Get("Perspective", &_Perspective,
-                         "layout2|"
+                         std::string("layout2|"
                          "name=Pane 0;caption=Pane 0;state=768;dir=5;prop=100000;|"
                          "name=Pane 1;caption=Pane 1;state=31458108;dir=4;prop=100000;|"
-                         "dock_size(5,0,0)=22|dock_size(4,0,0)=333|");
-    perspec_section->Get("Width", &_Widths, "70,25");
-    perspec_section->Get("Height", &_Heights, "80,80");
+                         "dock_size(5,0,0)=22|dock_size(4,0,0)=333|"));
+    perspec_section->Get("Width", &_Widths, std::string("70,25"));
+    perspec_section->Get("Height", &_Heights, std::string("80,80"));
 
     Tmp.Perspective = StrToWxStr(_Perspective);
 

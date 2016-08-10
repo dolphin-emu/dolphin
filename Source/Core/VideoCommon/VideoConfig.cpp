@@ -49,15 +49,15 @@ void VideoConfig::Load(const std::string& ini_file)
   iniFile.Load(ini_file);
 
   IniFile::Section* hardware = iniFile.GetOrCreateSection("Hardware");
-  hardware->Get("VSync", &bVSync, 0);
+  hardware->Get("VSync", &bVSync, false);
   hardware->Get("Adapter", &iAdapter, 0);
 
   IniFile::Section* settings = iniFile.GetOrCreateSection("Settings");
   settings->Get("wideScreenHack", &bWidescreenHack, false);
   settings->Get("AspectRatio", &iAspectRatio, (int)ASPECT_AUTO);
   settings->Get("Crop", &bCrop, false);
-  settings->Get("UseXFB", &bUseXFB, 0);
-  settings->Get("UseRealXFB", &bUseRealXFB, 0);
+  settings->Get("UseXFB", &bUseXFB, false);
+  settings->Get("UseRealXFB", &bUseRealXFB, false);
   settings->Get("SafeTextureCacheColorSamples", &iSafeTextureCache_ColorSamples, 128);
   settings->Get("ShowFPS", &bShowFPS, false);
   settings->Get("ShowNetPlayPing", &bShowNetPlayPing, false);
@@ -65,22 +65,22 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("LogRenderTimeToFile", &bLogRenderTimeToFile, false);
   settings->Get("OverlayStats", &bOverlayStats, false);
   settings->Get("OverlayProjStats", &bOverlayProjStats, false);
-  settings->Get("DumpTextures", &bDumpTextures, 0);
-  settings->Get("HiresTextures", &bHiresTextures, 0);
-  settings->Get("ConvertHiresTextures", &bConvertHiresTextures, 0);
-  settings->Get("CacheHiresTextures", &bCacheHiresTextures, 0);
-  settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
-  settings->Get("FreeLook", &bFreeLook, 0);
-  settings->Get("UseFFV1", &bUseFFV1, 0);
-  settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
+  settings->Get("DumpTextures", &bDumpTextures, false);
+  settings->Get("HiresTextures", &bHiresTextures, false);
+  settings->Get("ConvertHiresTextures", &bConvertHiresTextures, false);
+  settings->Get("CacheHiresTextures", &bCacheHiresTextures, false);
+  settings->Get("DumpEFBTarget", &bDumpEFBTarget, false);
+  settings->Get("FreeLook", &bFreeLook, false);
+  settings->Get("UseFFV1", &bUseFFV1, false);
+  settings->Get("EnablePixelLighting", &bEnablePixelLighting, false);
   settings->Get("FastDepthCalc", &bFastDepthCalc, true);
   settings->Get("MSAA", &iMultisamples, 1);
   settings->Get("SSAA", &bSSAA, false);
   settings->Get("EFBScale", &iEFBScale, (int)SCALE_1X);  // native
-  settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, 0);
-  settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, 0);
-  settings->Get("WireFrame", &bWireFrame, 0);
-  settings->Get("DisableFog", &bDisableFog, 0);
+  settings->Get("TexFmtOverlayEnable", &bTexFmtOverlayEnable, false);
+  settings->Get("TexFmtOverlayCenter", &bTexFmtOverlayCenter, false);
+  settings->Get("WireFrame", &bWireFrame, false);
+  settings->Get("DisableFog", &bDisableFog, false);
   settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
 
   settings->Get("SWZComploc", &bZComploc, true);
@@ -92,9 +92,9 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("SWDrawEnd", &drawEnd, 100000);
 
   IniFile::Section* enhancements = iniFile.GetOrCreateSection("Enhancements");
-  enhancements->Get("ForceFiltering", &bForceFiltering, 0);
+  enhancements->Get("ForceFiltering", &bForceFiltering, false);
   enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
-  enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
+  enhancements->Get("PostProcessingShader", &sPostProcessingShader, std::string());
 
   IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
   stereoscopy->Get("StereoMode", &iStereoMode, 0);

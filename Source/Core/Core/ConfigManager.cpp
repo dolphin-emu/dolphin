@@ -253,13 +253,13 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("MemcardBPath", m_strMemoryCardB);
   core->Set("AgpCartAPath", m_strGbaCartA);
   core->Set("AgpCartBPath", m_strGbaCartB);
-  core->Set("SlotA", m_EXIDevice[0]);
-  core->Set("SlotB", m_EXIDevice[1]);
-  core->Set("SerialPort1", m_EXIDevice[2]);
+  core->Set<int>("SlotA", m_EXIDevice[0]);
+  core->Set<int>("SlotB", m_EXIDevice[1]);
+  core->Set<int>("SerialPort1", m_EXIDevice[2]);
   core->Set("BBA_MAC", m_bba_mac);
   for (int i = 0; i < MAX_SI_CHANNELS; ++i)
   {
-    core->Set(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
+    core->Set<int>(StringFromFormat("SIDevice%i", i), m_SIDevice[i]);
     core->Set(StringFromFormat("AdapterRumble%i", i), m_AdapterRumble[i]);
     core->Set(StringFromFormat("SimulateKonga%i", i), m_AdapterKonga[i]);
   }
@@ -369,7 +369,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
     for (int i = 0; i < numISOPaths; i++)
     {
       std::string tmpPath;
-      general->Get(StringFromFormat("ISOPath%i", i), &tmpPath, "");
+      general->Get(StringFromFormat("ISOPath%i", i), &tmpPath);
       m_ISOFolder.push_back(std::move(tmpPath));
     }
   }
@@ -380,7 +380,7 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
     for (int i = 0; i < numISOPaths; i++)
     {
       std::string tmpPath;
-      general->Get(StringFromFormat("GCMPath%i", i), &tmpPath, "");
+      general->Get(StringFromFormat("GCMPath%i", i), &tmpPath);
       bool found = false;
       for (size_t j = 0; j < m_ISOFolder.size(); ++j)
       {
@@ -429,7 +429,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ShowLogWindow", &m_InterfaceLogWindow, false);
   interface->Get("ShowLogConfigWindow", &m_InterfaceLogConfigWindow, false);
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
-  interface->Get("ThemeName40", &theme_name, DEFAULT_THEME_DIR);
+  interface->Get("ThemeName40", &theme_name, std::string(DEFAULT_THEME_DIR));
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
 }
 
@@ -438,7 +438,7 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   IniFile::Section* display = ini.GetOrCreateSection("Display");
 
   display->Get("Fullscreen", &bFullscreen, false);
-  display->Get("FullscreenResolution", &strFullscreenResolution, "Auto");
+  display->Get("FullscreenResolution", &strFullscreenResolution, std::string("Auto"));
   display->Get("RenderToMain", &bRenderToMain, false);
   display->Get("RenderWindowXPos", &iRenderWindowXPos, -1);
   display->Get("RenderWindowYPos", &iRenderWindowYPos, -1);
@@ -499,11 +499,11 @@ void SConfig::LoadCoreSettings(IniFile& ini)
 
   core->Get("HLE_BS2", &bHLE_BS2, false);
 #ifdef _M_X86
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_JIT64);
+  core->Get("CPUCore", &iCPUCore, (int)PowerPC::CORE_JIT64);
 #elif _M_ARM_64
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_JITARM64);
+  core->Get("CPUCore", &iCPUCore, (int)PowerPC::CORE_JITARM64);
 #else
-  core->Get("CPUCore", &iCPUCore, PowerPC::CORE_INTERPRETER);
+  core->Get("CPUCore", &iCPUCore, (int)PowerPC::CORE_INTERPRETER);
 #endif
   core->Get("Fastmem", &bFastmem, true);
   core->Get("DSPHLE", &bDSPHLE, true);
@@ -523,16 +523,16 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("MemcardBPath", &m_strMemoryCardB);
   core->Get("AgpCartAPath", &m_strGbaCartA);
   core->Get("AgpCartBPath", &m_strGbaCartB);
-  core->Get("SlotA", (int*)&m_EXIDevice[0], EXIDEVICE_MEMORYCARD);
-  core->Get("SlotB", (int*)&m_EXIDevice[1], EXIDEVICE_NONE);
-  core->Get("SerialPort1", (int*)&m_EXIDevice[2], EXIDEVICE_NONE);
+  core->Get("SlotA", (int*)&m_EXIDevice[0], (int)EXIDEVICE_MEMORYCARD);
+  core->Get("SlotB", (int*)&m_EXIDevice[1], (int)EXIDEVICE_NONE);
+  core->Get("SerialPort1", (int*)&m_EXIDevice[2], (int)EXIDEVICE_NONE);
   core->Get("BBA_MAC", &m_bba_mac);
   core->Get("TimeProfiling", &bJITILTimeProfiling, false);
   core->Get("OutputIR", &bJITILOutputIR, false);
   for (int i = 0; i < MAX_SI_CHANNELS; ++i)
   {
-    core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i],
-              (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
+    core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i], u32(
+              (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE));
     core->Get(StringFromFormat("AdapterRumble%i", i), &m_AdapterRumble[i], true);
     core->Get(StringFromFormat("SimulateKonga%i", i), &m_AdapterKonga[i], false);
   }
@@ -547,7 +547,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGPU", &bSyncGPU, false);
   core->Get("SyncGpuMaxDistance", &iSyncGpuMaxDistance, 200000);
   core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
-  core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0);
+  core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
   core->Get("DCBZ", &bDCBZOFF, false);
   core->Get("FPRF", &bFPRF, false);
@@ -555,13 +555,13 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
   core->Get("Overclock", &m_OCFactor, 1.0f);
   core->Get("OverclockEnable", &m_OCEnable, false);
-  core->Get("FrameSkip", &m_FrameSkip, 0);
-  core->Get("GFXBackend", &m_strVideoBackend, "");
-  core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
-  core->Get("PerfMapDir", &m_perfDir, "");
+  core->Get("FrameSkip", &m_FrameSkip, 0u);
+  core->Get("GFXBackend", &m_strVideoBackend, std::string());
+  core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, std::string("auto"));
+  core->Get("PerfMapDir", &m_perfDir, std::string());
   core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
   // Default to seconds between 1.1.1970 and 1.1.2000
-  core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
+  core->Get("CustomRTCValue", &m_customRTCValue, 946684800u);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -569,7 +569,7 @@ void SConfig::LoadMovieSettings(IniFile& ini)
   IniFile::Section* movie = ini.GetOrCreateSection("Movie");
 
   movie->Get("PauseMovie", &m_PauseMovie, false);
-  movie->Get("Author", &m_strMovieAuthor, "");
+  movie->Get("Author", &m_strMovieAuthor, std::string());
   movie->Get("DumpFrames", &m_DumpFrames, false);
   movie->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
   movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
@@ -584,15 +584,15 @@ void SConfig::LoadDSPSettings(IniFile& ini)
   dsp->Get("DumpAudio", &m_DumpAudio, false);
   dsp->Get("DumpUCode", &m_DumpUCode, false);
 #if defined __linux__ && HAVE_ALSA
-  dsp->Get("Backend", &sBackend, BACKEND_ALSA);
+  dsp->Get("Backend", &sBackend, std::string(BACKEND_ALSA));
 #elif defined __APPLE__
-  dsp->Get("Backend", &sBackend, BACKEND_COREAUDIO);
+  dsp->Get("Backend", &sBackend, std::string(BACKEND_COREAUDIO));
 #elif defined _WIN32
-  dsp->Get("Backend", &sBackend, BACKEND_XAUDIO2);
+  dsp->Get("Backend", &sBackend, std::string(BACKEND_XAUDIO2));
 #elif defined ANDROID
-  dsp->Get("Backend", &sBackend, BACKEND_OPENSLES);
+  dsp->Get("Backend", &sBackend, std::string(BACKEND_OPENSLES));
 #else
-  dsp->Get("Backend", &sBackend, BACKEND_NULLSOUND);
+  dsp->Get("Backend", &sBackend, std::string(BACKEND_NULLSOUND));
 #endif
   dsp->Get("Volume", &m_Volume, 100);
   dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
@@ -618,7 +618,7 @@ void SConfig::LoadAnalyticsSettings(IniFile& ini)
 {
   IniFile::Section* analytics = ini.GetOrCreateSection("Analytics");
 
-  analytics->Get("ID", &m_analytics_id, "");
+  analytics->Get("ID", &m_analytics_id, std::string());
   analytics->Get("Enabled", &m_analytics_enabled, false);
   analytics->Get("PermissionAsked", &m_analytics_permission_asked, false);
 }

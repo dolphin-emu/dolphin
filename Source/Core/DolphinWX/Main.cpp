@@ -299,7 +299,7 @@ void DolphinApp::InitLanguageSupport()
 
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  ini.GetOrCreateSection("Interface")->Get("Language", &language, wxLANGUAGE_DEFAULT);
+  ini.GetOrCreateSection("Interface")->Get("Language", &language, (u32)wxLANGUAGE_DEFAULT);
 
   // Load language if possible, fall back to system default otherwise
   if (wxLocale::IsAvailable(language))

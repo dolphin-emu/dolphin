@@ -72,7 +72,7 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section* sec, const std::s
   for (auto& c : controls)
   {
     // control expression
-    sec->Get(group + c->name, &c->control_ref->expression, "");
+    sec->Get(group + c->name, &c->control_ref->expression, std::string());
 
     // range
     sec->Get(group + c->name + "/Range", &c->control_ref->range, 100.0);
@@ -87,7 +87,7 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section* sec, const std::s
     ext->switch_extension = 0;
     unsigned int n = 0;
     std::string extname;
-    sec->Get(base + name, &extname, "");
+    sec->Get(base + name, &extname);
 
     for (auto& ai : ext->attachments)
     {
@@ -107,7 +107,7 @@ void ControllerEmu::LoadConfig(IniFile::Section* sec, const std::string& base)
   std::string defdev = default_device.ToString();
   if (base.empty())
   {
-    sec->Get(base + "Device", &defdev, "");
+    sec->Get(base + "Device", &defdev, std::string());
     default_device.FromString(defdev);
   }
 
@@ -136,7 +136,7 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section* sec, const std::s
   for (auto& c : controls)
   {
     // control expression
-    sec->Set(group + c->name, c->control_ref->expression, "");
+    sec->Set(group + c->name, c->control_ref->expression, std::string());
 
     // range
     sec->Set(group + c->name + "/Range", c->control_ref->range * 100.0, 100.0);
@@ -146,7 +146,7 @@ void ControllerEmu::ControlGroup::SaveConfig(IniFile::Section* sec, const std::s
   if (type == GROUP_TYPE_EXTENSION)
   {
     Extension* const ext = (Extension*)this;
-    sec->Set(base + name, ext->attachments[ext->switch_extension]->GetName(), "None");
+    sec->Set(base + name, ext->attachments[ext->switch_extension]->GetName(), std::string("None"));
 
     for (auto& ai : ext->attachments)
       ai->SaveConfig(sec, base + ai->GetName() + "/");
@@ -157,7 +157,7 @@ void ControllerEmu::SaveConfig(IniFile::Section* sec, const std::string& base)
 {
   const std::string defdev = default_device.ToString();
   if (base.empty())
-    sec->Set(/*std::string(" ") +*/ base + "Device", defdev, "");
+    sec->Set(base + "Device", defdev, std::string());
 
   for (auto& ctrlGroup : groups)
     ctrlGroup->SaveConfig(sec, defdev, base);

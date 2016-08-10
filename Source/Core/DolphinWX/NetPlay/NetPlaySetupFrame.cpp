@@ -25,7 +25,7 @@
 
 static void GetTraversalPort(IniFile::Section& section, std::string* port)
 {
-  section.Get("TraversalPort", port, "6262");
+  section.Get("TraversalPort", port, std::string("6262"));
   port->erase(std::remove(port->begin(), port->end(), ' '), port->end());
   if (port->empty())
     *port = "6262";
@@ -33,7 +33,7 @@ static void GetTraversalPort(IniFile::Section& section, std::string* port)
 
 static void GetTraversalServer(IniFile::Section& section, std::string* server)
 {
-  section.Get("TraversalServer", server, "stun.dolphin-emu.org");
+  section.Get("TraversalServer", server, std::string("stun.dolphin-emu.org"));
   server->erase(std::remove(server->begin(), server->end(), ' '), server->end());
   if (server->empty())
     *server = "stun.dolphin-emu.org";
@@ -79,7 +79,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
         new wxStaticText(panel, wxID_ANY, _("Nickname:"), wxDefaultPosition, wxSize(100, -1));
 
     std::string nickname;
-    netplay_section.Get("Nickname", &nickname, "Player");
+    netplay_section.Get("Nickname", &nickname, std::string("Player"));
 
     m_nickname_text =
         new wxTextCtrl(panel, wxID_ANY, StrToWxStr(nickname), wxDefaultPosition, wxSize(150, -1));
@@ -88,7 +88,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
     nick_szr->Add(m_nickname_text, 0, wxALL, 5);
 
     std::string travChoice;
-    netplay_section.Get("TraversalChoice", &travChoice, "direct");
+    netplay_section.Get("TraversalChoice", &travChoice, std::string("direct"));
     if (travChoice == "traversal")
     {
       m_direct_traversal->Select(TRAVERSAL_CHOICE);
@@ -118,9 +118,9 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
     m_ip_lbl = new wxStaticText(connect_tab, wxID_ANY, _("Host Code :"));
 
     std::string last_hash_code;
-    netplay_section.Get("HostCode", &last_hash_code, "00000000");
+    netplay_section.Get("HostCode", &last_hash_code, std::string("00000000"));
     std::string last_ip_address;
-    netplay_section.Get("Address", &last_ip_address, "127.0.0.1");
+    netplay_section.Get("Address", &last_ip_address, std::string("127.0.0.1"));
     m_connect_ip_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(last_ip_address));
     m_connect_hashcode_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(last_hash_code));
 
@@ -132,7 +132,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
     // string? w/e
     std::string port;
-    netplay_section.Get("ConnectPort", &port, "2626");
+    netplay_section.Get("ConnectPort", &port, std::string("2626"));
     m_connect_port_text = new wxTextCtrl(connect_tab, wxID_ANY, StrToWxStr(port));
 
     wxButton* const connect_btn = new wxButton(connect_tab, wxID_ANY, _("Connect"));
@@ -172,7 +172,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
 
     // string? w/e
     std::string port;
-    netplay_section.Get("HostPort", &port, "2626");
+    netplay_section.Get("HostPort", &port, std::string("2626"));
     m_host_port_text = new wxTextCtrl(host_tab, wxID_ANY, StrToWxStr(port));
 
     m_traversal_listen_port_enabled = new wxCheckBox(host_tab, wxID_ANY, _("Force Listen Port: "));
@@ -180,7 +180,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
                                              wxSize(80, -1), wxSP_ARROW_KEYS, 1, 65535);
 
     unsigned int listen_port;
-    netplay_section.Get("ListenPort", &listen_port, 0);
+    netplay_section.Get("ListenPort", &listen_port, 0u);
     m_traversal_listen_port_enabled->SetValue(listen_port != 0);
     m_traversal_listen_port->Enable(m_traversal_listen_port_enabled->IsChecked());
     m_traversal_listen_port->SetValue(listen_port);
@@ -200,7 +200,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
     NetPlayDialog::FillWithGameNames(m_game_lbox, *game_list);
 
     std::string last_hosted_game;
-    if (netplay_section.Get("SelectedHostGame", &last_hosted_game, ""))
+    if (netplay_section.Get("SelectedHostGame", &last_hosted_game))
       m_game_lbox->SetStringSelection(last_hosted_game);
 
     wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -509,7 +509,7 @@ void NetPlaySetupFrame::OnDirectTraversalChoice(wxCommandEvent& event)
       m_ip_lbl->SetLabelText("IP Address :");
 
       std::string address;
-      netplay_section.Get("Address", &address, "127.0.0.1");
+      netplay_section.Get("Address", &address, std::string("127.0.0.1"));
       m_connect_ip_text->SetLabelText(address);
 
       m_client_port_lbl->Show();
