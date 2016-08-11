@@ -5,6 +5,7 @@
 #include <cinttypes>
 #include <mutex>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "Common/ChunkFile.h"
@@ -27,6 +28,25 @@
 
 namespace DVDThread
 {
+struct ReadRequest
+{
+  u64 dvd_offset;
+  u32 output_address;
+  u32 length;
+  bool decrypt;
+
+  // This determines which function will be used as a callback.
+  // We can't have a function pointer here, because they can't be in savestates.
+  bool reply_to_ios;
+
+  // Only used for logging
+  u64 time_started_ticks;
+  u64 realtime_started_us;
+  u64 realtime_done_us;
+};
+
+using ReadResult = std::pair<ReadRequest, std::vector<u8>>;
+
 static void DVDThread();
 
 static void FinishRead(u64 userdata, s64 cycles_late);
@@ -37,22 +57,8 @@ static Common::Event s_dvd_thread_start_working;
 static Common::Event s_dvd_thread_done_working;
 static Common::Flag s_dvd_thread_exiting(false);
 
-static std::vector<u8> s_dvd_buffer;
-static u64 s_time_read_started;
-static bool s_dvd_success;
-
-static u64 s_dvd_offset;
-static u32 s_output_address;
-static u32 s_length;
-static bool s_decrypt;
-
-// This determines which function will be used as a callback.
-// We can't have a function pointer here, because they can't be in savestates.
-static bool s_reply_to_ios;
-
-// The following time variables are only used for logging
-static u64 s_realtime_started_us;
-static u64 s_realtime_done_us;
+static ReadRequest s_read_request;
+static ReadResult s_read_result;
 
 void Start()
 {
@@ -77,23 +83,18 @@ void Stop()
 
 void DoState(PointerWrap& p)
 {
+  // By waiting for the DVD thread to be done working, we ensure
+  // that the value of s_read_request won't be used again.
+  // We thus don't need to save or load s_read_request here.
   WaitUntilIdle();
 
-  // TODO: Savestates can be smaller if s_DVD_buffer is not saved
-  p.Do(s_dvd_buffer);
-  p.Do(s_time_read_started);
-  p.Do(s_dvd_success);
+  // TODO: Savestates can be smaller if s_read_result.buffer isn't saved,
+  // but instead gets re-read from the disc when loading the savestate.
+  p.Do(s_read_result);
 
-  p.Do(s_dvd_offset);
-  p.Do(s_output_address);
-  p.Do(s_length);
-  p.Do(s_decrypt);
-  p.Do(s_reply_to_ios);
-
-  // s_realtime_started_us and s_realtime_done_us aren't savestated
-  // because they rely on the current system's time.
-  // This means that loading a savestate might cause
-  // incorrect times to be logged once.
+  // After loading a savestate, the debug log in FinishRead will report
+  // screwed up times for requests that were submitted before the savestate
+  // was made. Handling that properly may be more effort than it's worth.
 }
 
 void WaitUntilIdle()
@@ -114,14 +115,18 @@ void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt, boo
 
   s_dvd_thread_done_working.Wait();
 
-  s_dvd_offset = dvd_offset;
-  s_output_address = output_address;
-  s_length = length;
-  s_decrypt = decrypt;
-  s_reply_to_ios = reply_to_ios;
+  ReadRequest request;
 
-  s_time_read_started = CoreTiming::GetTicks();
-  s_realtime_started_us = Common::Timer::GetTimeUs();
+  request.dvd_offset = dvd_offset;
+  request.output_address = output_address;
+  request.length = length;
+  request.decrypt = decrypt;
+  request.reply_to_ios = reply_to_ios;
+
+  request.time_started_ticks = CoreTiming::GetTicks();
+  request.realtime_started_us = Common::Timer::GetTimeUs();
+
+  s_read_request = std::move(request);
 
   s_dvd_thread_start_working.Set();
 
@@ -132,27 +137,26 @@ static void FinishRead(u64 userdata, s64 cycles_late)
 {
   WaitUntilIdle();
 
+  const ReadResult result = std::move(s_read_result);
+  const ReadRequest& request = result.first;
+  const std::vector<u8>& buffer = result.second;
+
   DEBUG_LOG(DVDINTERFACE, "Disc has been read. Real time: %" PRIu64 " us. "
-                          "Real time including delay: %" PRIu64
-                          " us. Emulated time including delay: %" PRIu64 " us.",
-            s_realtime_done_us - s_realtime_started_us,
-            Common::Timer::GetTimeUs() - s_realtime_started_us,
-            (CoreTiming::GetTicks() - s_time_read_started) /
-                (SystemTimers::GetTicksPerSecond() / 1000 / 1000));
+                          "Real time including delay: %" PRIu64 " us. "
+                          "Emulated time including delay: %" PRIu64 " us.",
+            request.realtime_done_us - request.realtime_started_us,
+            Common::Timer::GetTimeUs() - request.realtime_started_us,
+            (CoreTiming::GetTicks() - request.time_started_ticks) /
+                (SystemTimers::GetTicksPerSecond() / 1000000));
 
-  if (s_dvd_success)
-    Memory::CopyToEmu(s_output_address, s_dvd_buffer.data(), s_length);
+  if (!buffer.empty())
+    Memory::CopyToEmu(request.output_address, buffer.data(), request.length);
   else
-    PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").", s_dvd_offset,
-                s_dvd_offset + s_length);
-
-  // This will make the buffer take less space in savestates.
-  // Reducing the size doesn't change the amount of reserved memory,
-  // so this doesn't lead to extra memory allocations.
-  s_dvd_buffer.resize(0);
+    PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").",
+                request.dvd_offset, request.dvd_offset + request.length);
 
   // Notify the emulated software that the command has been executed
-  DVDInterface::FinishExecutingCommand(s_reply_to_ios, DVDInterface::INT_TCINT);
+  DVDInterface::FinishExecutingCommand(request.reply_to_ios, DVDInterface::INT_TCINT);
 }
 
 static void DVDThread()
@@ -168,12 +172,16 @@ static void DVDThread()
     if (s_dvd_thread_exiting.IsSet())
       return;
 
-    s_dvd_buffer.resize(s_length);
+    ReadRequest request = std::move(s_read_request);
 
-    s_dvd_success =
-        DVDInterface::GetVolume().Read(s_dvd_offset, s_length, s_dvd_buffer.data(), s_decrypt);
+    std::vector<u8> buffer(request.length);
+    const DiscIO::IVolume& volume = DVDInterface::GetVolume();
+    if (!volume.Read(request.dvd_offset, request.length, buffer.data(), request.decrypt))
+      buffer.resize(0);
 
-    s_realtime_done_us = Common::Timer::GetTimeUs();
+    request.realtime_done_us = Common::Timer::GetTimeUs();
+
+    s_read_result = ReadResult(std::move(request), std::move(buffer));
   }
 }
 }
