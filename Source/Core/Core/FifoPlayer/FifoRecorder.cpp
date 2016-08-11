@@ -7,26 +7,24 @@
 
 #include "Core/FifoPlayer/FifoRecorder.h"
 
+#include "Common/Hooks.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 #include "Core/HW/Memmap.h"
+#include "VideoCommon/BPMemory.h"
+#include "VideoCommon/CommandProcessor.h"
+#include "VideoCommon/XFMemory.h"
 
 static FifoRecorder instance;
 static std::recursive_mutex sMutex;
 
 FifoRecorder::FifoRecorder()
-    : m_IsRecording(false), m_WasRecording(false), m_RequestedRecordingEnd(false),
-      m_RecordFramesRemaining(0), m_FinishedCb(nullptr), m_File(nullptr), m_SkipNextData(true),
-      m_SkipFutureData(true), m_FrameEnded(false), m_Ram(Memory::RAM_SIZE),
-      m_ExRam(Memory::EXRAM_SIZE)
+    : m_CurrentlyRecording(false), m_RequestedRecordingEnd(false), m_RecordFramesRemaining(0),
+      m_FinishedCb(nullptr), m_File(nullptr), m_SkipNextData(true), m_SkipFutureData(true),
+      m_FrameEnded(false), m_Ram(Memory::RAM_SIZE), m_ExRam(Memory::EXRAM_SIZE)
 {
-}
-
-FifoRecorder::~FifoRecorder()
-{
-  m_IsRecording = false;
 }
 
 void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
@@ -43,15 +41,17 @@ void FifoRecorder::StartRecording(s32 numFrames, CallbackFunc finishedCb)
 
   m_File->SetIsWii(SConfig::GetInstance().bWii);
 
-  if (!m_IsRecording)
+  if (!m_RecordFramesRemaining)
   {
-    m_WasRecording = false;
-    m_IsRecording = true;
+    // Actual recording doesn't start until the end of the current frame
+    m_CurrentlyRecording = false;
     m_RecordFramesRemaining = numFrames;
   }
 
   m_RequestedRecordingEnd = false;
   m_FinishedCb = finishedCb;
+
+  Hook::XFBCopyEvent.RegisterCallback("FifoRecorder", [&](u32, u32, u32) { this->EndFrame(); });
 }
 
 void FifoRecorder::StopRecording()
@@ -138,17 +138,19 @@ void FifoRecorder::UseMemory(u32 address, u32 size, MemoryUpdate::Type type, boo
   }
 }
 
-void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
+void FifoRecorder::EndFrame()
 {
-  // m_IsRecording is assumed to be true at this point, otherwise this function would not be called
+  // The event handler for this frame only gets installed when we are recording
   std::lock_guard<std::recursive_mutex> lk(sMutex);
 
   m_FrameEnded = true;
 
-  m_CurrentFrame.fifoStart = fifoStart;
-  m_CurrentFrame.fifoEnd = fifoEnd;
+  // TODO: It's not really valid to assume the fifo stays in a single address over the entire frame.
+  //       Perhaps in the future we hook writes to the command processor registers.
+  m_CurrentFrame.fifoStart = CommandProcessor::fifo.CPBase;
+  m_CurrentFrame.fifoEnd = CommandProcessor::fifo.CPEnd;
 
-  if (m_WasRecording)
+  if (m_CurrentlyRecording)
   {
     // If recording a fixed number of frames then check if the end of the recording was reached
     if (m_RecordFramesRemaining > 0)
@@ -158,9 +160,9 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
         m_RequestedRecordingEnd = true;
     }
   }
-  else
+  else  // Start recording
   {
-    m_WasRecording = true;
+    m_CurrentlyRecording = true;
 
     // Skip the first data which will be the frame copy command
     m_SkipNextData = true;
@@ -170,33 +172,35 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 
     m_FifoData.reserve(1024 * 1024 * 4);
     m_FifoData.clear();
+
+    // Copy the starting state into the fifolog
+    SetVideoMemory();
   }
 
   if (m_RequestedRecordingEnd)
   {
     // Skip data after the next time WriteFifoData is called
     m_SkipFutureData = true;
-    // Signal video backend that it should not call this function when the next frame ends
-    m_IsRecording = false;
+    // Delete our callback, so this function isn't called when the next frame ends
+    Hook::XFBCopyEvent.DeleteCallback("FifoRecorder");
   }
 }
 
-void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem,
-                                  const u32* xfRegs, u32 xfRegsSize)
+void FifoRecorder::SetVideoMemory()
 {
   std::lock_guard<std::recursive_mutex> lk(sMutex);
 
   if (m_File)
   {
-    memcpy(m_File->GetBPMem(), bpMem, FifoDataFile::BP_MEM_SIZE * 4);
-    memcpy(m_File->GetCPMem(), cpMem, FifoDataFile::CP_MEM_SIZE * 4);
-    memcpy(m_File->GetXFMem(), xfMem, FifoDataFile::XF_MEM_SIZE * 4);
-
-    u32 xfRegsCopySize = std::min((u32)FifoDataFile::XF_REGS_SIZE, xfRegsSize);
-    memcpy(m_File->GetXFRegs(), xfRegs, xfRegsCopySize * 4);
+    memcpy(m_File->GetBPMem(), &bpmem, FifoDataFile::BP_MEM_SIZE * 4);
+    memset(m_File->GetCPMem(), 0, FifoDataFile::CP_MEM_SIZE * 4);
+    FillCPMemoryArray(m_File->GetCPMem());
+    memcpy(m_File->GetXFMem(), &xfmem, FifoDataFile::XF_MEM_SIZE * 4);
+    void* xfRegs = &xfmem + FifoDataFile::XF_MEM_SIZE;
+    memcpy(m_File->GetXFRegs(), xfRegs, FifoDataFile::XF_REGS_SIZE * 4);
   }
 
-  FifoRecordAnalyzer::Initialize(cpMem);
+  FifoRecordAnalyzer::Initialize(m_File->GetCPMem());
 }
 
 FifoRecorder& FifoRecorder::GetInstance()

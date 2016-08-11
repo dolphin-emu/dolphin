@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/Hooks.h"
 #include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
 #include "InputCommon/GCPadStatus.h"
@@ -186,7 +187,7 @@ void Initialize(void* const hwnd)
     s_config.CreateController<HotkeyManager>();
 
   g_controller_interface.Initialize(hwnd);
-  g_controller_interface.RegisterHotplugCallback(LoadConfig);
+  Hook::ControllerHotplugEvent.RegisterCallback("Hotkey Manager", LoadConfig);
 
   // load the saved controller config
   s_config.LoadConfig(true);

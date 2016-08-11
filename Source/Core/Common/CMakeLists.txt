@@ -7,6 +7,7 @@ set(SRCS Analytics.cpp
          FileUtil.cpp
          GekkoDisassembler.cpp
          Hash.cpp
+         Hooks.cpp
          IniFile.cpp
          JitRegister.cpp
          MathUtil.cpp

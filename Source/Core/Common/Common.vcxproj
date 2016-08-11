@@ -155,6 +155,7 @@
     <ClCompile Include="GL\GLInterface\WGL.cpp" />
     <ClCompile Include="GL\GLUtil.cpp" />
     <ClCompile Include="Hash.cpp" />
+    <ClCompile Include="Hooks.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
