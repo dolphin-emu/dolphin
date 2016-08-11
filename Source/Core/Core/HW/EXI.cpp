@@ -104,13 +104,14 @@ static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate)
 
 void ChangeDevice(const u8 channel, const TEXIDevices device_type, const u8 device_num)
 {
-  // Called from GUI, so we need to make it thread safe.
+  // Called from GUI, so we need to use FromThread::NON_CPU.
   // Let the hardware see no device for 1 second
-  CoreTiming::ScheduleEvent_Threadsafe(
-      0, changeDevice, ((u64)channel << 32) | ((u64)EXIDEVICE_NONE << 16) | device_num);
-  CoreTiming::ScheduleEvent_Threadsafe(SystemTimers::GetTicksPerSecond(), changeDevice,
-                                       ((u64)channel << 32) | ((u64)device_type << 16) |
-                                           device_num);
+  CoreTiming::ScheduleEvent(0, changeDevice,
+                            ((u64)channel << 32) | ((u64)EXIDEVICE_NONE << 16) | device_num,
+                            CoreTiming::FromThread::NON_CPU);
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), changeDevice,
+                            ((u64)channel << 32) | ((u64)device_type << 16) | device_num,
+                            CoreTiming::FromThread::NON_CPU);
 }
 
 CEXIChannel* GetChannel(u32 index)
@@ -149,14 +150,9 @@ static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late)
   UpdateInterrupts();
 }
 
-void ScheduleUpdateInterrupts_Threadsafe(int cycles_late)
+void ScheduleUpdateInterrupts(CoreTiming::FromThread from, int cycles_late)
 {
-  CoreTiming::ScheduleEvent_Threadsafe(cycles_late, updateInterrupts, 0);
-}
-
-void ScheduleUpdateInterrupts(int cycles_late)
-{
-  CoreTiming::ScheduleEvent(cycles_late, updateInterrupts, 0);
+  CoreTiming::ScheduleEvent(cycles_late, updateInterrupts, 0, from);
 }
 
 }  // end of namespace ExpansionInterface

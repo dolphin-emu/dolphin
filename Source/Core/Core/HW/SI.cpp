@@ -527,24 +527,26 @@ static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate)
 
 void ChangeDevice(SIDevices device, int channel)
 {
-  // Called from GUI, so we need to make it thread safe.
+  // Called from GUI, so we need to use FromThread::NON_CPU.
   // Let the hardware see no device for 1 second
   // TODO: Calling GetDeviceType here isn't threadsafe.
   if (GetDeviceType(channel) != device)
   {
-    CoreTiming::ScheduleEvent_Threadsafe(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
-    CoreTiming::ScheduleEvent_Threadsafe(SystemTimers::GetTicksPerSecond(), changeDevice,
-                                         ((u64)channel << 32) | device);
+    CoreTiming::ScheduleEvent(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE,
+                              CoreTiming::FromThread::NON_CPU);
+    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), changeDevice,
+                              ((u64)channel << 32) | device, CoreTiming::FromThread::NON_CPU);
   }
 }
 
 void ChangeDeviceDeterministic(SIDevices device, int channel)
 {
-  // Called from savestates, so no need to make it thread safe.
+  // Called from savestates, so we don't use FromThread::NON_CPU.
   if (GetDeviceType(channel) != device)
   {
     CoreTiming::ScheduleEvent(0, changeDevice, ((u64)channel << 32) | SIDEVICE_NONE);
-    CoreTiming::ScheduleEvent(500000000, changeDevice, ((u64)channel << 32) | device);
+    CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), changeDevice,
+                              ((u64)channel << 32) | device);
   }
 }
 

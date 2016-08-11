@@ -225,8 +225,8 @@ void DoState(PointerWrap& p)
   p.DoMarker("CoreTimingEvents");
 }
 
-// This should only be called from the CPU thread, if you are calling it any other thread, you are
-// doing something evil
+// This should only be called from the CPU thread. If you are calling
+// it from any other thread, you are doing something evil
 u64 GetTicks()
 {
   u64 ticks = (u64)g_globalTimer;
@@ -241,35 +241,6 @@ u64 GetTicks()
 u64 GetIdleTicks()
 {
   return (u64)idledCycles;
-}
-
-// This is to be called when outside threads, such as the graphics thread, wants to
-// schedule things to be executed on the main thread.
-void ScheduleEvent_Threadsafe(s64 cyclesIntoFuture, int event_type, u64 userdata)
-{
-  _assert_msg_(POWERPC, !Core::IsCPUThread(), "ScheduleEvent_Threadsafe from wrong thread");
-  if (Core::g_want_determinism)
-  {
-    ERROR_LOG(POWERPC,
-              "Someone scheduled an off-thread \"%s\" event while netplay or movie play/record "
-              "was active.  This is likely to cause a desync.",
-              event_types[event_type].name.c_str());
-  }
-  std::lock_guard<std::mutex> lk(tsWriteLock);
-  Event ne;
-  ne.time = g_globalTimer + cyclesIntoFuture;
-  ne.type = event_type;
-  ne.userdata = userdata;
-  tsQueue.Push(ne);
-}
-
-// To be used from any thread, including the CPU thread
-void ScheduleEvent_AnyThread(s64 cyclesIntoFuture, int event_type, u64 userdata)
-{
-  if (Core::IsCPUThread())
-    ScheduleEvent(cyclesIntoFuture, event_type, userdata);
-  else
-    ScheduleEvent_Threadsafe(cyclesIntoFuture, event_type, userdata);
 }
 
 void ClearPendingEvents()
@@ -300,24 +271,49 @@ static void AddEventToQueue(Event* ne)
   }
 }
 
-// This must be run ONLY from within the CPU thread
-// cyclesIntoFuture may be VERY inaccurate if called from anything else
-// than Advance
-void ScheduleEvent(s64 cyclesIntoFuture, int event_type, u64 userdata)
+void ScheduleEvent(s64 cycles_into_future, int event_type, u64 userdata, FromThread from)
 {
-  _assert_msg_(POWERPC, Core::IsCPUThread() || Core::GetState() == Core::CORE_PAUSE,
-               "ScheduleEvent from wrong thread");
+  bool from_cpu_thread;
+  if (from == FromThread::ANY)
+  {
+    from_cpu_thread = Core::IsCPUThread();
+  }
+  else
+  {
+    from_cpu_thread = from == FromThread::CPU;
+    _assert_msg_(POWERPC, from_cpu_thread == Core::IsCPUThread(),
+                 "ScheduleEvent from wrong thread (%s)", from_cpu_thread ? "CPU" : "non-CPU");
+  }
 
-  Event* ne = GetNewEvent();
-  ne->userdata = userdata;
-  ne->type = event_type;
-  ne->time = GetTicks() + cyclesIntoFuture;
+  if (from_cpu_thread)
+  {
+    Event* ne = GetNewEvent();
+    ne->time = GetTicks() + cycles_into_future;
+    ne->userdata = userdata;
+    ne->type = event_type;
 
-  // If this event needs to be scheduled before the next advance(), force one early
-  if (!globalTimerIsSane)
-    ForceExceptionCheck(cyclesIntoFuture);
+    // If this event needs to be scheduled before the next advance(), force one early
+    if (!globalTimerIsSane)
+      ForceExceptionCheck(cycles_into_future);
 
-  AddEventToQueue(ne);
+    AddEventToQueue(ne);
+  }
+  else
+  {
+    if (Core::g_want_determinism)
+    {
+      ERROR_LOG(POWERPC, "Someone scheduled an off-thread \"%s\" event while netplay or "
+                         "movie play/record was active.  This is likely to cause a desync.",
+                event_types[event_type].name.c_str());
+    }
+
+    std::lock_guard<std::mutex> lk(tsWriteLock);
+    Event ne;
+    ne.time = g_globalTimer + cycles_into_future;
+    ne.type = event_type;
+    ne.userdata = userdata;
+    tsQueue.Push(ne);
+  }
 }
 
 void RemoveEvent(int event_type)

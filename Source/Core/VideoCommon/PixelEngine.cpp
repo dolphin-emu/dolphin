@@ -277,10 +277,11 @@ static void RaiseEvent()
     return;
 
   s_event_raised = true;
+
+  CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
   if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
-    CoreTiming::ScheduleEvent(0, et_SetTokenFinishOnMainThread, 0);
-  else
-    CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenFinishOnMainThread, 0);
+    from = CoreTiming::FromThread::CPU;
+  CoreTiming::ScheduleEvent(0, et_SetTokenFinishOnMainThread, 0, from);
 }
 
 // SetToken
