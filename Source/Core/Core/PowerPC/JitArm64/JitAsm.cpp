@@ -53,7 +53,7 @@ void JitArm64::GenerateAsm()
   {
     // set the mem_base based on MSR flags
     LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
-    FixupBranch physmem = TBNZ(ARM64Reg::W28, 31-27);
+    FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
     MOVI2R(MEM_REG, (u64)Memory::physical_base);
     FixupBranch membaseend = B();
     SetJumpTarget(physmem);
@@ -103,7 +103,7 @@ void JitArm64::GenerateAsm()
 
   // set the mem_base based on MSR flags
   LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
-  FixupBranch physmem = TBNZ(ARM64Reg::W28, 31-27);
+  FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
   MOVI2R(MEM_REG, (u64)Memory::physical_base);
   FixupBranch membaseend = B();
   SetJumpTarget(physmem);

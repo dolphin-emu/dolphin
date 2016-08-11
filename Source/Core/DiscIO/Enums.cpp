@@ -5,9 +5,9 @@
 #include <map>
 #include <string>
 
-#include "DiscIO/Enums.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "DiscIO/Enums.h"
 
 namespace DiscIO
 {
