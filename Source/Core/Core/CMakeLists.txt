@@ -90,7 +90,6 @@ set(SRCS	ActionReplay.cpp
 			HW/EXI_Device.cpp
 			HW/EXI_DeviceAD16.cpp
 			HW/EXI_DeviceAGP.cpp
-			HW/EXI_DeviceAMBaseboard.cpp
 			HW/EXI_DeviceEthernet.cpp
 			HW/EXI_DeviceGecko.cpp
 			HW/EXI_DeviceIPL.cpp
@@ -110,7 +109,6 @@ set(SRCS	ActionReplay.cpp
 			HW/MMIO.cpp
 			HW/ProcessorInterface.cpp
 			HW/SI.cpp
-			HW/SI_DeviceAMBaseboard.cpp
 			HW/SI_Device.cpp
 			HW/SI_DeviceDanceMat.cpp
 			HW/SI_DeviceGBA.cpp

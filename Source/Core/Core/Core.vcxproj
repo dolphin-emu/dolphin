@@ -122,7 +122,6 @@
     <ClCompile Include="HW\EXI_Device.cpp" />
     <ClCompile Include="HW\EXI_DeviceAD16.cpp" />
     <ClCompile Include="HW\EXI_DeviceAGP.cpp" />
-    <ClCompile Include="HW\EXI_DeviceAMBaseboard.cpp" />
     <ClCompile Include="HW\EXI_DeviceEthernet.cpp" />
     <ClCompile Include="HW\EXI_DeviceGecko.cpp" />
     <ClCompile Include="HW\EXI_DeviceIPL.cpp" />
@@ -143,7 +142,6 @@
     <ClCompile Include="HW\ProcessorInterface.cpp" />
     <ClCompile Include="HW\SI.cpp" />
     <ClCompile Include="HW\SI_Device.cpp" />
-    <ClCompile Include="HW\SI_DeviceAMBaseboard.cpp" />
     <ClCompile Include="HW\SI_DeviceDanceMat.cpp" />
     <ClCompile Include="HW\SI_DeviceGBA.cpp" />
     <ClCompile Include="HW\SI_DeviceGCAdapter.cpp" />
@@ -328,7 +326,6 @@
     <ClInclude Include="HW\EXI_Device.h" />
     <ClInclude Include="HW\EXI_DeviceAD16.h" />
     <ClInclude Include="HW\EXI_DeviceAGP.h" />
-    <ClInclude Include="HW\EXI_DeviceAMBaseboard.h" />
     <ClInclude Include="HW\EXI_DeviceEthernet.h" />
     <ClInclude Include="HW\EXI_DeviceGecko.h" />
     <ClInclude Include="HW\EXI_DeviceIPL.h" />
@@ -350,7 +347,6 @@
     <ClInclude Include="HW\ProcessorInterface.h" />
     <ClInclude Include="HW\SI.h" />
     <ClInclude Include="HW\SI_Device.h" />
-    <ClInclude Include="HW\SI_DeviceAMBaseboard.h" />
     <ClInclude Include="HW\SI_DeviceDanceMat.h" />
     <ClInclude Include="HW\SI_DeviceGBA.h" />
     <ClInclude Include="HW\SI_DeviceGCAdapter.h" />
