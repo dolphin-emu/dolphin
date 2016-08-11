@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+
+<!--
+SFML - Simple and Fast Multimedia Library
+Copyright (C) 2007-2016 Marco Antognini (antognini.marco@gmail.com),
+                        Laurent Gomila (laurent@sfml-dev.org)
+
+This software is provided 'as-is', without any express or implied warranty.
+In no event will the authors be held liable for any damages arising from the use of this software.
+
+Permission is granted to anyone to use this software for any purpose,
+including commercial applications, and to alter it and redistribute it freely,
+subject to the following restrictions:
+
+1. The origin of this software must not be misrepresented;
+   you must not claim that you wrote the original software.
+   If you use this software in a product, an acknowledgment
+   in the product documentation would be appreciated but is not required.
+
+2. Altered source versions must be plainly marked as such,
+   and must not be misrepresented as being the original software.
+
+3. This notice may not be removed or altered from any source distribution.
+ -->
+
+<!--
+     This template defines :
+      - the product name
+      - the organization name
+      - the bundle prefix
+ -->
+
+<plist version="1.0">
+    <dict>
+        <!--
+             BASIC INFO
+         -->
+        <key>Identifier</key>
+        <string>org.sfml-dev.base</string>
+
+        <key>Kind</key>
+        <string>Xcode.Xcode3.ProjectTemplateUnitKind</string>
+
+        <key>Platforms</key>
+        <array>
+            <string>com.apple.platform.macosx</string>
+        </array>
+
+        <!--
+             OPTIONS
+         -->
+        <key>Options</key>
+        <array>
+            <dict>
+                <key>Identifier</key>
+                <string>productName</string>
+                <key>Required</key>
+                <true />
+                <key>Name</key>
+                <string>Product Name</string>
+                <key>NotPersisted</key>
+                <true />
+                <key>Description</key>
+                <string>Your new product&apos;s name</string>
+                <key>EmptyReplacement</key>
+                <string>ProductName</string>
+                <key>Type</key>
+                <string>text</string>
+            </dict>
+
+            <dict>
+                <key>Identifier</key>
+                <string>organizationName</string>
+                <key>Name</key>
+                <string>Organization Name</string>
+                <key>Description</key>
+                <string>Your company&apos;s name</string>
+                <key>Type</key>
+                <string>text</string>
+                <key>Default</key>
+                <string>___FULLUSERNAME___</string>
+            </dict>
+
+            <dict>
+                <key>Identifier</key>
+                <string>bundleIdentifierPrefix</string>
+                <key>Required</key>
+                <true />
+                <key>Name</key>
+                <string>Company Identifier</string>
+                <key>Description</key>
+                <string>Your company&apos;s bundle identifier prefix</string>
+                <key>EmptyReplacement</key>
+                <string>com.yourcompany</string>
+                <key>Type</key>
+                <string>text</string>
+            </dict>
+
+            <dict>
+                <key>Identifier</key>
+                <string>bundleIdentifier</string>
+                <key>Name</key>
+                <string>Bundle Identifier</string>
+                <key>NotPersisted</key>
+                <true />
+                <key>Description</key>
+                <string>Your new product&apos;s bundle identifier</string>
+                <key>Default</key>
+                <string>___VARIABLE_bundleIdentifierPrefix:bundleIdentifier___.___VARIABLE_productName:RFC1034Identifier___</string>
+                <key>Type</key>
+                <string>static</string>
+            </dict>
+        </array>
+    </dict>
+</plist>

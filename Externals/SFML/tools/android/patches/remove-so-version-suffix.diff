@@ -1,0 +1,13 @@
+--- CMakeLists.txt.orig 2013-09-21 15:23:49.305453804 +0200
++++ CMakeLists.txt      2013-09-21 15:24:08.621454210 +0200
+@@ -717,9 +717,7 @@
+ # Build a library
+ ADD_LIBRARY(${LIBNAME} ${LIBTYPE} ${OPENAL_OBJS} ${ALC_OBJS})
+ SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES DEFINE_SYMBOL AL_BUILD_LIBRARY
+-                                            COMPILE_FLAGS -DAL_ALEXT_PROTOTYPES
+-                                            VERSION ${LIB_VERSION}.0
+-                                            SOVERSION ${LIB_MAJOR_VERSION})
++                                            COMPILE_FLAGS -DAL_ALEXT_PROTOTYPES)
+ IF(WIN32 AND NOT LIBTYPE STREQUAL "STATIC")
+     SET_TARGET_PROPERTIES(${LIBNAME} PROPERTIES PREFIX "")
+ ENDIF()
