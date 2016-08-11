@@ -604,7 +604,7 @@ void CCodeWindow::ToggleMemoryWindow(bool bShow)
   if (bShow)
   {
     if (!m_MemoryWindow)
-      m_MemoryWindow = new CMemoryWindow(Parent, IDM_MEMORY_WINDOW);
+      m_MemoryWindow = new CMemoryWindow(this, Parent, IDM_MEMORY_WINDOW);
     Parent->DoAddPage(m_MemoryWindow, iNbAffiliation[IDM_MEMORY_WINDOW - IDM_LOG_WINDOW],
                       Parent->bFloatWindow[IDM_MEMORY_WINDOW - IDM_LOG_WINDOW]);
   }

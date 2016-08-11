@@ -8,6 +8,8 @@
 #include "Common/CommonTypes.h"
 
 class CMemoryView;
+class CCodeWindow;
+class CBreakpointWindow;
 class IniFile;
 class wxButton;
 class wxCheckBox;
@@ -18,7 +20,7 @@ class wxTextCtrl;
 class CMemoryWindow : public wxPanel
 {
 public:
-  CMemoryWindow(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition,
+  CMemoryWindow(CCodeWindow* _pCodeWindow, wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition,
                 const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
                 const wxString& name = _("Memory"));
 
@@ -54,6 +56,8 @@ private:
   wxButton* btnSearch;
   wxCheckBox* chkAscii;
   wxCheckBox* chkHex;
+
+  CCodeWindow* m_pCodeWindow;
 
   CMemoryView* memview;
   wxListBox* symbols;
