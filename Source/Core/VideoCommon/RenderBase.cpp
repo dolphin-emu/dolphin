@@ -312,9 +312,9 @@ void Renderer::DrawDebugText()
     {
       final_cyan += StringFromFormat("Frame: %llu", (unsigned long long)Movie::GetCurrentFrame());
       if (Movie::IsPlayingInput())
-        final_cyan +=
-            StringFromFormat("\nInput: %llu / %llu", (unsigned long long)Movie::GetCurrentInputCount(),
-                             (unsigned long long)Movie::GetTotalInputCount());
+        final_cyan += StringFromFormat("\nInput: %llu / %llu",
+                                       (unsigned long long)Movie::GetCurrentInputCount(),
+                                       (unsigned long long)Movie::GetTotalInputCount());
     }
 
     final_cyan += "\n";
