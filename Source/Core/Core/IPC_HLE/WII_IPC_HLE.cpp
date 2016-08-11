@@ -565,11 +565,6 @@ void EnqueueReply_Threadsafe(u32 address, int cycles_in_future)
   CoreTiming::ScheduleEvent_Threadsafe(cycles_in_future, event_enqueue, address);
 }
 
-void EnqueueReply_Immediate(u32 address)
-{
-  EnqueueEvent(address);
-}
-
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)
 {
   CoreTiming::ScheduleEvent(cycles_in_future, event_enqueue,
