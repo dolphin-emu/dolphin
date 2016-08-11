@@ -24,7 +24,7 @@ class WiimoteDarwin final : public Wiimote
 public:
   WiimoteDarwin(IOBluetoothDevice* device);
   ~WiimoteDarwin() override;
-
+  std::string GetId() const override { return [[m_btd addressString] UTF8String]; }
   // These are not protected/private because ConnectBT needs them.
   void DisconnectInternal() override;
   IOBluetoothDevice* m_btd;

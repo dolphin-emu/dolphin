@@ -3,17 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <unordered_set>
 
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/IOhidapi.h"
-
-// This is used to store connected Wiimotes' paths, so we don't connect
-// more than once to the same device.
-static std::unordered_set<std::string> s_known_paths;
 
 static bool IsDeviceUsable(const std::string& device_path)
 {
@@ -42,7 +37,6 @@ namespace WiimoteReal
 {
 WiimoteScannerHidapi::WiimoteScannerHidapi()
 {
-  s_known_paths.clear();
   int ret = hid_init();
   _assert_msg_(WIIMOTE, ret == 0, "Couldn't initialise hidapi.");
 }
@@ -67,7 +61,7 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
     const bool is_wiimote =
         IsValidDeviceName(name) || (device->vendor_id == 0x057e &&
                                     (device->product_id == 0x0306 || device->product_id == 0x0330));
-    if (!is_wiimote || s_known_paths.count(device->path) != 0 || !IsDeviceUsable(device->path))
+    if (!is_wiimote || !IsNewWiimote(device->path) || !IsDeviceUsable(device->path))
       continue;
 
     auto* wiimote = new WiimoteHidapi(device->path);
@@ -87,13 +81,11 @@ void WiimoteScannerHidapi::FindWiimotes(std::vector<Wiimote*>& wiimotes, Wiimote
 
 WiimoteHidapi::WiimoteHidapi(const std::string& device_path) : m_device_path(device_path)
 {
-  s_known_paths.insert(m_device_path);
 }
 
 WiimoteHidapi::~WiimoteHidapi()
 {
   Shutdown();
-  s_known_paths.erase(m_device_path);
 }
 
 bool WiimoteHidapi::ConnectInternal()
@@ -107,7 +99,6 @@ bool WiimoteHidapi::ConnectInternal()
     ERROR_LOG(WIIMOTE, "Could not connect to Wiimote at \"%s\". "
                        "Do you have permission to access the device?",
               m_device_path.c_str());
-    s_known_paths.erase(m_device_path);
   }
   return m_handle != nullptr;
 }
