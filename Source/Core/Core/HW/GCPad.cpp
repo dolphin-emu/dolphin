@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/GCPadEmu.h"
+#include "Core/Hooks.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
@@ -35,7 +36,7 @@ void Initialize(void* const hwnd)
   }
 
   g_controller_interface.Initialize(hwnd);
-  g_controller_interface.RegisterHotplugCallback(LoadConfig);
+  Hook::ControllerHotplugEvent.RegisterCallback("GCPad", LoadConfig);
 
   // Load the saved controller config
   s_config.LoadConfig(true);

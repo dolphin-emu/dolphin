@@ -14,7 +14,6 @@ public:
   typedef void (*CallbackFunc)(void);
 
   FifoRecorder();
-  ~FifoRecorder();
 
   void StartRecording(s32 numFrames, CallbackFunc finishedCb);
   void StopRecording();
@@ -31,31 +30,28 @@ public:
   // isn't baked into the fifolog.
   void UseMemory(u32 address, u32 size, MemoryUpdate::Type type, bool dynamicUpdate = false);
 
-  void EndFrame(u32 fifoStart, u32 fifoEnd);
+  void EndFrame();
 
   // This function must be called before writing GP commands
   // bpMem must point to the actual bp mem array used by the plugin because it will be read as fifo
   // data is recorded
-  void SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem, const u32* xfRegs,
-                      u32 xfRegsSize);
+  void SetVideoMemory();
 
   // Checked once per frame prior to callng EndFrame()
-  bool IsRecording() const { return m_IsRecording; }
+  bool IsRecording() const { return m_CurrentlyRecording; }
   static FifoRecorder& GetInstance();
 
 private:
-  // Accessed from both GUI and video threads
+  // Accessed from both GUI and video threads, protected by a mutex
 
-  // True if video thread should send data
-  volatile bool m_IsRecording;
-  // True if m_IsRecording was true during last frame
-  volatile bool m_WasRecording;
-  volatile bool m_RequestedRecordingEnd;
-  volatile s32 m_RecordFramesRemaining;
-  volatile CallbackFunc m_FinishedCb;
+  bool m_CurrentlyRecording;
+  bool m_RequestedRecordingEnd;
+  s32 m_RecordFramesRemaining;
+  CallbackFunc m_FinishedCb;
 
-  FifoDataFile* volatile m_File;
+  FifoDataFile* m_File;
 
+private:
   // Accessed only from video thread
 
   bool m_SkipNextData;

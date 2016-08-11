@@ -730,6 +730,7 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="Analytics.cpp" />
+    <ClCompile Include="Hooks.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1249,6 +1250,7 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="Analytics.h" />
+    <ClInclude Include="Hooks.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

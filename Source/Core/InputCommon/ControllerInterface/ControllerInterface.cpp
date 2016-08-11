@@ -5,6 +5,7 @@
 #include <mutex>
 
 #include "Common/Thread.h"
+#include "Core/Hooks.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #ifdef CIFACE_USE_XINPUT
@@ -188,25 +189,13 @@ void ControllerInterface::UpdateInput()
 }
 
 //
-// RegisterHotplugCallback
-//
-// Register a callback to be called from the input backends' hotplug thread
-// when there is a new device
-//
-void ControllerInterface::RegisterHotplugCallback(std::function<void()> callback)
-{
-  m_hotplug_callbacks.emplace_back(std::move(callback));
-}
-
-//
 // InvokeHotplugCallbacks
 //
 // Invoke all callbacks that were registered
 //
 void ControllerInterface::InvokeHotplugCallbacks() const
 {
-  for (const auto& callback : m_hotplug_callbacks)
-    callback();
+  Hook::ControllerHotplugEvent.EmitEvent();
 }
 
 //

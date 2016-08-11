@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCKeyboardEmu.h"
+#include "Core/Hooks.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/KeyboardStatus.h"
@@ -36,7 +37,7 @@ void Initialize(void* const hwnd)
   }
 
   g_controller_interface.Initialize(hwnd);
-  g_controller_interface.RegisterHotplugCallback(LoadConfig);
+  Hook::ControllerHotplugEvent.RegisterCallback("GC Keyboard", LoadConfig);
 
   // Load the saved controller config
   s_config.LoadConfig(true);
