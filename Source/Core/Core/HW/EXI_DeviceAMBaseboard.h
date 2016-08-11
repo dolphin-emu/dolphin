@@ -6,7 +6,7 @@
 
 #include "Core/HW/EXI_Device.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 class CEXIAMBaseboard : public IEXIDevice
 {
@@ -16,7 +16,7 @@ public:
   void SetCS(int _iCS) override;
   bool IsPresent() const override;
   bool IsInterruptSet() override;
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
 private:
   void TransferByte(u8& _uByte) override;

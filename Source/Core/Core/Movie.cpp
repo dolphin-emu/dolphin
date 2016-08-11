@@ -599,11 +599,11 @@ bool BeginRecordingInput(int controllers)
 
   if (Core::IsRunningAndStarted())
   {
-    const std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
+    std::string save_path = File::GetUserPath(D_STATESAVES_IDX) + "dtm.sav";
     if (File::Exists(save_path))
       File::Delete(save_path);
 
-    State::SaveAs(save_path);
+    State::SaveAs(std::move(save_path));
     s_bRecordingFromSaveState = true;
 
     // This is only done here if starting from save state because otherwise we won't have the
@@ -1025,7 +1025,7 @@ bool PlayInput(const std::string& filename)
   return true;
 }
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   // many of these could be useful to save even when no movie is active,
   // and the data is tiny, so let's just save it regardless of movie state.
@@ -1396,7 +1396,7 @@ void EndPlayInput(bool cont)
 }
 
 // NOTE: Save State + Host Thread
-void SaveRecording(const std::string& filename)
+bool SaveRecording(const std::string& filename)
 {
   File::IOFile save_record(filename, "wb");
   // Create the real header now and write it
@@ -1455,6 +1455,12 @@ void SaveRecording(const std::string& filename)
   save_record.WriteArray(&header, 1);
 
   bool success = save_record.WriteArray(tmpInput, (size_t)s_totalBytes);
+  return success;
+}
+
+void SaveRecordingUserRequested(const std::string& filename)
+{
+  bool success = SaveRecording(filename);
 
   if (success && s_bRecordingFromSaveState)
   {

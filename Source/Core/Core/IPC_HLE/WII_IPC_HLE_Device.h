@@ -99,21 +99,16 @@ struct SIOCtlVBuffer
 class IWII_IPC_HLE_Device
 {
 public:
-  IWII_IPC_HLE_Device(u32 _DeviceID, const std::string& _rName, bool _Hardware = true)
-      : m_Name(_rName), m_DeviceID(_DeviceID), m_Hardware(_Hardware), m_Active(false)
+  IWII_IPC_HLE_Device(u32 _DeviceID, const std::string& _rName)
+      : m_Name(_rName), m_DeviceID(_DeviceID), m_Active(false)
   {
   }
 
   virtual ~IWII_IPC_HLE_Device() {}
   // Release any resources which might interfere with savestating.
-  virtual void PrepareForState(PointerWrap::Mode mode) {}
-  virtual void DoState(PointerWrap& p)
-  {
-    DoStateShared(p);
-    p.Do(m_Active);
-  }
-
-  void DoStateShared(PointerWrap& p);
+  virtual void PrepareForState() {}
+  virtual void DoState(StateLoadStore& p) { DoStateShared(p); }
+  void DoStateShared(StateLoadStore& p);
 
   const std::string& GetDeviceName() const { return m_Name; }
   u32 GetDeviceID() const { return m_DeviceID; }
@@ -146,7 +141,6 @@ public:
 #undef UNIMPLEMENTED_CMD
 
   virtual u32 Update() { return 0; }
-  virtual bool IsHardware() { return m_Hardware; }
   virtual bool IsOpened() { return m_Active; }
   // Returns an IPCCommandResult for a reply that takes 250 us (arbitrarily chosen value)
   static IPCCommandResult GetDefaultReply()
@@ -161,7 +155,6 @@ public:
 protected:
   // STATE_TO_SAVE
   u32 m_DeviceID;
-  bool m_Hardware;
   bool m_Active;
 
   // Write out the IPC struct from _CommandAddress to _NumberOfCommands numbers

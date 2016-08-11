@@ -71,21 +71,32 @@ static u8* s_video_buffer_pp_read_ptr;
 static std::atomic<int> s_sync_ticks;
 static Common::Event s_sync_wakeup_event;
 
-void DoState(PointerWrap& p)
+bool DoState(StateLoadStore& p)
 {
-  p.DoArray(s_video_buffer, FIFO_SIZE);
-  u8* write_ptr = s_video_buffer_write_ptr;
-  p.DoPointer(write_ptr, s_video_buffer);
-  s_video_buffer_write_ptr = write_ptr;
-  p.DoPointer(s_video_buffer_read_ptr, s_video_buffer);
-  if (p.mode == PointerWrap::MODE_READ && s_use_deterministic_gpu_thread)
+  u32 write_idx = (u32)(s_video_buffer_write_ptr - s_video_buffer);
+  u32 read_idx = (u32)(s_video_buffer_read_ptr - s_video_buffer);
+  p.Do(write_idx);
+  p.Do(read_idx);
+  if (p.IsLoad())
   {
-    // We're good and paused, right?
-    s_video_buffer_seen_ptr = s_video_buffer_pp_read_ptr = s_video_buffer_read_ptr;
+    if (write_idx > FIFO_SIZE || read_idx > write_idx)
+    {
+      p.SetError("Invalid FIFO read/write indices");
+      return false;
+    }
+    s_video_buffer_write_ptr = s_video_buffer + write_idx;
+    s_video_buffer_read_ptr = s_video_buffer + read_idx;
+    if (s_use_deterministic_gpu_thread)
+    {
+      // We're good and paused, right?
+      s_video_buffer_seen_ptr = s_video_buffer_pp_read_ptr = s_video_buffer_read_ptr;
+    }
   }
+  p.DoArray(s_video_buffer_read_ptr, write_idx - read_idx);
 
   p.Do(s_skip_current_frame);
   p.Do(s_last_sync_gpu_tick);
+  return true;
 }
 
 void PauseAndLock(bool doLock, bool unpauseOnUnlock)

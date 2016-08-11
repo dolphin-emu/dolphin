@@ -341,7 +341,7 @@ private:
 
 int GetCmdForHotkey(unsigned int key);
 
-void OnAfterLoadCallback();
+void OnAfterLoadSaveCallback();
 void OnStoppedCallback();
 
 // For TASInputDlg

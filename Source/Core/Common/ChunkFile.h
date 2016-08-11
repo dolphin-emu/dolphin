@@ -30,6 +30,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
+#include "Common/ScopeGuard.h"
 
 // ewww
 
@@ -57,52 +58,82 @@ struct LinkedListItem : public T
   LinkedListItem<T>* next;
 };
 
+// new doesn't support realloc
+struct MallocBuffer
+{
+  u8* ptr;
+  size_t length;
+  MallocBuffer() : ptr(nullptr), length(0) {}
+  MallocBuffer(size_t _length) : ptr((u8*)malloc(_length)), length(_length) {}
+  MallocBuffer(u8* _ptr, size_t _length) : ptr(_ptr), length(_length) {}
+  MallocBuffer(const MallocBuffer&) = delete;
+  MallocBuffer(MallocBuffer&& other) { *this = std::move(other); }
+  MallocBuffer& operator=(const MallocBuffer& other) = delete;
+  MallocBuffer& operator=(MallocBuffer&& other)
+  {
+    ptr = other.ptr;
+    length = other.length;
+    other.ptr = nullptr;
+    other.length = 0;
+    return *this;
+  }
+  ~MallocBuffer() { free(ptr); }
+};
+
 // Wrapper class
 class PointerWrap
 {
-public:
-  enum Mode
-  {
-    MODE_READ = 1,  // load
-    MODE_WRITE,     // save
-    MODE_MEASURE,   // calculate size
-    MODE_VERIFY,    // compare
-  };
+private:
+  u8* m_ptr;
+  size_t m_remaining;
+  bool m_is_load;
+  bool m_is_good;
+  MallocBuffer m_buffer;  // only if is_load = false
+  std::string m_error;    // only if is_good = false
 
-  u8** ptr;
-  Mode mode;
+protected:
+  PointerWrap() = default;
 
 public:
-  PointerWrap(u8** ptr_, Mode mode_) : ptr(ptr_), mode(mode_) {}
-  void SetMode(Mode mode_) { mode = mode_; }
-  Mode GetMode() const { return mode; }
+  static PointerWrap CreateForLoad(const void* start, size_t size);
+  static PointerWrap CreateForStore(MallocBuffer initial_buffer);
+
+  MallocBuffer TakeBuffer();
+
+  bool IsLoad() const { return m_is_load; }
+  bool IsGood() const { return m_is_good; }
+  const std::string& GetError() const { return m_error; }
+  void SetError(std::string&& error);
+
+  // Parsing functions with loops should explicitly test IsGood to avoid the
+  // possibility of very long loops caused by invalid input.  IsGood will
+  // return false when we hit the end of the buffer, so as long as it returns
+  // true, we have made some progress through the buffer size, which is more
+  // bounded.
+
   template <typename K, class V>
   void Do(std::map<K, V>& x)
   {
     u32 count = (u32)x.size();
     Do(count);
 
-    switch (mode)
+    if (IsLoad())
     {
-    case MODE_READ:
-      for (x.clear(); count != 0; --count)
+      for (x.clear(); count != 0 && IsGood(); --count)
       {
         std::pair<K, V> pair;
         Do(pair.first);
         Do(pair.second);
         x.insert(pair);
       }
-      break;
-
-    case MODE_WRITE:
-    case MODE_MEASURE:
-    case MODE_VERIFY:
+    }
+    else
+    {
       for (auto& elem : x)
       {
         Do(elem.first);
         Do(elem.second);
       }
-      break;
     }
   }
 
@@ -112,26 +143,30 @@ public:
     u32 count = (u32)x.size();
     Do(count);
 
-    switch (mode)
+    if (IsLoad())
     {
-    case MODE_READ:
-      for (x.clear(); count != 0; --count)
+      for (x.clear(); count != 0 && IsGood(); --count)
       {
         V value;
         Do(value);
         x.insert(value);
       }
-      break;
-
-    case MODE_WRITE:
-    case MODE_MEASURE:
-    case MODE_VERIFY:
+    }
+    else
+    {
       for (V& val : x)
       {
         Do(val);
       }
-      break;
     }
+  }
+
+  void Do(std::vector<u8>& x)
+  {
+    u32 size = (u32)x.size();
+    Do(size);
+    x.resize(size);
+    DoVoid(x.data(), size);
   }
 
   template <typename T>
@@ -165,6 +200,21 @@ public:
     Do(x.second);
   }
 
+  template <typename T, typename F>
+  void DoContainer(T& x, F applier)
+  {
+    u32 size = (u32)x.size();
+    Do(size);
+    x.resize(size);
+
+    for (auto& elem : x)
+    {
+      if (!IsGood())
+        break;
+      applier(elem);
+    }
+  }
+
   template <typename T, std::size_t N>
   void DoArray(std::array<T, N>& x)
   {
@@ -188,7 +238,7 @@ public:
   {
     bool s = flag.IsSet();
     Do(s);
-    if (mode == MODE_READ)
+    if (IsLoad())
       flag.Set(s);
   }
 
@@ -197,7 +247,7 @@ public:
   {
     T temp = atomic.load();
     Do(temp);
-    if (mode == MODE_READ)
+    if (IsLoad())
       atomic.store(temp);
   }
 
@@ -227,21 +277,8 @@ public:
 
     Do(stable);
 
-    if (mode == MODE_READ)
+    if (IsLoad())
       x = stable != 0;
-  }
-
-  template <typename T>
-  void DoPointer(T*& x, T* const base)
-  {
-    // pointers can be more than 2^31 apart, but you're using this function wrong if you need that
-    // much range
-    ptrdiff_t offset = x - base;
-    Do(offset);
-    if (mode == MODE_READ)
-    {
-      x = base + offset;
-    }
   }
 
   // Let's pretend std::list doesn't exist!
@@ -262,7 +299,7 @@ public:
         TDo(*this, (T*)cur);
         if (!list_cur)
         {
-          if (mode == MODE_READ)
+          if (IsLoad())
           {
             cur->next = nullptr;
             list_cur = cur;
@@ -280,7 +317,7 @@ public:
       }
       else
       {
-        if (mode == MODE_READ)
+        if (IsLoad())
         {
           if (prev)
             prev->next = nullptr;
@@ -305,56 +342,66 @@ public:
     }
   }
 
-  void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)
-  {
-    u32 cookie = arbitraryNumber;
-    Do(cookie);
+  void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42);
 
-    if (mode == PointerWrap::MODE_READ && cookie != arbitraryNumber)
-    {
-      PanicAlertT("Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). Aborting "
-                  "savestate load...",
-                  prevName.c_str(), cookie, cookie, arbitraryNumber, arbitraryNumber);
-      mode = PointerWrap::MODE_MEASURE;
-    }
-  }
+  enum
+  {
+    SLACK = 1048576
+  };
+
+  u8* GetPointerAndAdvance(u64 req_size);
 
 private:
   template <typename T>
   void DoContainer(T& x)
   {
-    u32 size = (u32)x.size();
-    Do(size);
-    x.resize(size);
-
-    for (auto& elem : x)
-      Do(elem);
+    DoContainer(x, [&](decltype(*x.begin())& t) { Do(t); });
   }
 
-  __forceinline void DoVoid(void* data, u32 size)
+  __forceinline void DoVoid(void* data, size_t size)
   {
-    switch (mode)
+    // This is a bit duplicative on purpose, in case it helps the compiler
+    // merge multiple loads and stores separately.
+    if (m_is_load)
     {
-    case MODE_READ:
-      memcpy(data, *ptr, size);
-      break;
-
-    case MODE_WRITE:
-      memcpy(*ptr, data, size);
-      break;
-
-    case MODE_MEASURE:
-      break;
-
-    case MODE_VERIFY:
-      _dbg_assert_msg_(COMMON, !memcmp(data, *ptr, size),
-                       "Savestate verification failure: buf %p != %p (size %u).\n", data, *ptr,
-                       size);
-      break;
+      if (size > m_remaining)
+        SetErrorTruncatedLoad(size);
+      memcpy(data, m_ptr, size);
+      m_ptr += size;
+      m_remaining -= size;
     }
-
-    *ptr += size;
+    else
+    {
+      if (size > m_remaining)
+      {
+        // If it weren't an abort, the compiler wouldn't be able to combine
+        // multiple checks.  The only part of save files that might require an
+        // unbounded amount of space is the /tmp escrow in
+        // WII_IPC_HLE_Device_fs.cpp; that's done close to last and uses
+        // GetPointerAndAdvance.  So we just ensure the initial buffer is big
+        // enough for the main state, and have GetPointerAndAdvance ensure
+        // there's at least a meg left after it exits.
+        // Not sure if there is really much point to this.
+        abort();
+      }
+      memcpy(m_ptr, data, size);
+      m_ptr += size;
+      m_remaining -= size;
+    }
   }
+
+  void SetErrorTruncatedLoad(u64 req_size);
+  void ReallocBufferForRequestedSize(u64 req_size);
+};
+
+class StateLoadStore : public PointerWrap
+{
+protected:
+  StateLoadStore() = default;
+
+public:
+  static StateLoadStore CreateForLoad(const void* start, size_t size);
+  static StateLoadStore CreateForStore(MallocBuffer initial_buffer);
 };
 
 // NOTE: this class is only used in DolphinWX/ISOFile.cpp for caching loaded
@@ -420,7 +467,7 @@ public:
     }
 
     u8* ptr = &buffer[0];
-    PointerWrap p(&ptr, PointerWrap::MODE_READ);
+    auto p = PointerWrap::CreateForLoad(ptr, sz);
     _class.DoState(p);
 
     INFO_LOG(COMMON, "ChunkReader: Done loading %s", _rFilename.c_str());
@@ -440,19 +487,14 @@ public:
     }
 
     // Get data
-    u8* ptr = nullptr;
-    PointerWrap p(&ptr, PointerWrap::MODE_MEASURE);
+    auto p = PointerWrap::CreateForStore(MallocBuffer(1048576));
     _class.DoState(p);
-    size_t const sz = (size_t)ptr;
-    std::vector<u8> buffer(sz);
-    ptr = &buffer[0];
-    p.SetMode(PointerWrap::MODE_WRITE);
-    _class.DoState(p);
+    auto buf = p.TakeBuffer();
 
     // Create header
     SChunkHeader header;
     header.Revision = _Revision;
-    header.ExpectedSize = (u32)sz;
+    header.ExpectedSize = (u32)buf.length;
 
     // Write to file
     if (!pFile.WriteArray(&header, 1))
@@ -461,7 +503,7 @@ public:
       return false;
     }
 
-    if (!pFile.WriteArray(&buffer[0], sz))
+    if (!pFile.WriteArray(buf.ptr, buf.length))
     {
       ERROR_LOG(COMMON, "ChunkReader: Failed writing data");
       return false;

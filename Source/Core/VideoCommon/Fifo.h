@@ -7,14 +7,14 @@
 #include <cstddef>
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 namespace Fifo
 {
 void Init();
 void Shutdown();
 void Prepare();  // Must be called from the CPU thread.
-void DoState(PointerWrap& f);
+bool DoState(StateLoadStore& f);
 void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 void UpdateWantDeterminism(bool want);
 bool UseDeterministicGPUThread();

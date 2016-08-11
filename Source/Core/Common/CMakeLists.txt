@@ -1,6 +1,7 @@
 set(SRCS Analytics.cpp
          BreakPoints.cpp
          CDUtils.cpp
+         ChunkFile.cpp
          ColorUtil.cpp
          ENetUtil.cpp
          FileSearch.cpp

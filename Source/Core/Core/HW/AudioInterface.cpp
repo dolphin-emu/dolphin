@@ -114,7 +114,7 @@ static u64 g_CPUCyclesPerSample = 0xFFFFFFFFFFFULL;
 static unsigned int g_AISSampleRate = 48000;
 static unsigned int g_AIDSampleRate = 32000;
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   p.DoPOD(m_Control);
   p.DoPOD(m_Volume);

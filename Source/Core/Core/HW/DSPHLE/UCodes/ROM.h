@@ -15,7 +15,7 @@ public:
   void HandleMail(u32 mail) override;
   void Update() override;
 
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
 private:
   struct UCodeBootInfo

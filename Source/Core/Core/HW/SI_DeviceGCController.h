@@ -95,7 +95,7 @@ public:
   void SendCommand(u32 _Cmd, u8 _Poll) override;
 
   // Savestate support
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
   virtual GCPadStatus GetPadStatus();
   virtual u32 MapPadStatus(const GCPadStatus& pad_status);

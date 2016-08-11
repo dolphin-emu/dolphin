@@ -317,7 +317,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
 }
 
 // Savestate support
-void CSIDevice_GCController::DoState(PointerWrap& p)
+void CSIDevice_GCController::DoState(StateLoadStore& p)
 {
   p.Do(m_Calibrated);
   p.Do(m_Origin);

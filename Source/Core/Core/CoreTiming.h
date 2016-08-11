@@ -20,7 +20,7 @@
 #include <string>
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 namespace CoreTiming
 {
@@ -41,7 +41,7 @@ typedef void (*TimedCallback)(u64 userdata, s64 cyclesLate);
 u64 GetTicks();
 u64 GetIdleTicks();
 
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 // Returns the event_type identifier. if name is not unique, an existing event_type will be
 // discarded.

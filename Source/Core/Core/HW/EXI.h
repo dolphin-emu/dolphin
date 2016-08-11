@@ -8,7 +8,7 @@
 
 class CEXIChannel;
 class IEXIDevice;
-class PointerWrap;
+class StateLoadStore;
 enum TEXIDevices : int;
 namespace MMIO
 {
@@ -24,7 +24,7 @@ namespace ExpansionInterface
 {
 void Init();
 void Shutdown();
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 void PauseAndLock(bool doLock, bool unpauseOnUnlock);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);

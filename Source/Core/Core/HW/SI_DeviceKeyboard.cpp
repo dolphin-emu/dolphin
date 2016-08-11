@@ -95,7 +95,7 @@ void CSIDevice_Keyboard::SendCommand(u32 _Cmd, u8 _Poll)
   }
 }
 
-void CSIDevice_Keyboard::DoState(PointerWrap& p)
+void CSIDevice_Keyboard::DoState(StateLoadStore& p)
 {
   p.Do(m_Counter);
 }

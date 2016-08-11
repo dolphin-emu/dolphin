@@ -122,7 +122,7 @@ bool CEXIAMBaseboard::IsInterruptSet()
   return m_have_irq;
 }
 
-void CEXIAMBaseboard::DoState(PointerWrap& p)
+void CEXIAMBaseboard::DoState(StateLoadStore& p)
 {
   p.Do(m_position);
   p.Do(m_have_irq);

@@ -477,7 +477,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPo
   Movie::SetGCInputManip(GCTASManipFunction);
   Movie::SetWiiInputManip(WiiTASManipFunction);
 
-  State::SetOnAfterLoadCallback(OnAfterLoadCallback);
+  State::SetOnAfterLoadSaveCallback(OnAfterLoadSaveCallback);
   Core::SetOnStoppedCallback(OnStoppedCallback);
 
   // Setup perspectives
@@ -1133,7 +1133,7 @@ int GetCmdForHotkey(unsigned int key)
   return -1;
 }
 
-void OnAfterLoadCallback()
+void OnAfterLoadSaveCallback()
 {
   // warning: this gets called from the CPU thread, so we should only queue things to do on the
   // proper thread

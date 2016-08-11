@@ -7,7 +7,6 @@
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/Memmap.h"
 
 #define UCODE_ROM 0x00000000
@@ -15,7 +14,8 @@
 #define UCODE_NULL 0xFFFFFFFF
 
 class CMailHandler;
-class PointerWrap;
+class StateLoadStore;
+class DSPHLE;
 
 constexpr bool ExramRead(u32 address)
 {
@@ -65,18 +65,12 @@ inline void* HLEMemory_Get_Pointer(u32 address)
 class UCodeInterface
 {
 public:
-  UCodeInterface(DSPHLE* dsphle, u32 crc)
-      : m_mail_handler(dsphle->AccessMailHandler()), m_upload_setup_in_progress(false),
-        m_dsphle(dsphle), m_crc(crc), m_next_ucode(), m_next_ucode_steps(0),
-        m_needs_resume_mail(false)
-  {
-  }
-
+  UCodeInterface(DSPHLE* dsphle, u32 crc);
   virtual ~UCodeInterface() {}
   virtual void HandleMail(u32 mail) = 0;
   virtual void Update() = 0;
 
-  virtual void DoState(PointerWrap& p) { DoStateShared(p); }
+  virtual void DoState(StateLoadStore& p) { DoStateShared(p); }
   static u32 GetCRC(UCodeInterface* ucode) { return ucode ? ucode->m_crc : UCODE_NULL; }
 protected:
   void PrepareBootUCode(u32 mail);
@@ -86,7 +80,7 @@ protected:
   // The HLE can use this to
   bool NeedsResumeMail();
 
-  void DoStateShared(PointerWrap& p);
+  void DoStateShared(StateLoadStore& p);
 
   CMailHandler& m_mail_handler;
 
@@ -131,4 +125,4 @@ private:
   bool m_needs_resume_mail;
 };
 
-UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii);
+std::unique_ptr<UCodeInterface> UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii);

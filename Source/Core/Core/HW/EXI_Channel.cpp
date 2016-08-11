@@ -223,7 +223,7 @@ IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
   return nullptr;
 }
 
-void CEXIChannel::DoState(PointerWrap& p)
+void CEXIChannel::DoState(StateLoadStore& p)
 {
   p.DoPOD(m_Status);
   p.Do(m_DMAMemoryAddress);

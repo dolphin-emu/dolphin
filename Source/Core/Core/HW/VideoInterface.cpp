@@ -67,7 +67,7 @@ static u32 s_odd_field_first_hl;   // index first halfline of the odd field
 static u32 s_even_field_last_hl;   // index last halfline of the even field
 static u32 s_odd_field_last_hl;    // index last halfline of the odd field
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   p.DoPOD(m_VerticalTimingRegister);
   p.DoPOD(m_DisplayControlRegister);

@@ -39,7 +39,7 @@ public:
                        bool ready = false);
 
   virtual ~CWII_IPC_HLE_WiiMote() {}
-  void DoState(PointerWrap& p);
+  void DoState(StateLoadStore& p);
 
   // ugly Host handling....
   // we really have to clean all this code

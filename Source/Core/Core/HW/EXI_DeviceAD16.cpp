@@ -102,7 +102,7 @@ void CEXIAD16::TransferByte(u8& _byte)
   m_uPosition++;
 }
 
-void CEXIAD16::DoState(PointerWrap& p)
+void CEXIAD16::DoState(StateLoadStore& p)
 {
   p.Do(m_uPosition);
   p.Do(m_uCommand);

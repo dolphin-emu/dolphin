@@ -637,7 +637,7 @@ void GCMemcardDirectory::FlushToFile()
 #endif
 }
 
-void GCMemcardDirectory::DoState(PointerWrap& p)
+void GCMemcardDirectory::DoState(StateLoadStore& p)
 {
   std::unique_lock<std::mutex> l(m_write_mutex);
   m_LastBlock = -1;
@@ -648,13 +648,7 @@ void GCMemcardDirectory::DoState(PointerWrap& p)
   p.DoPOD<Directory>(m_dir2);
   p.DoPOD<BlockAlloc>(m_bat1);
   p.DoPOD<BlockAlloc>(m_bat2);
-  int numSaves = (int)m_saves.size();
-  p.Do(numSaves);
-  m_saves.resize(numSaves);
-  for (auto itr = m_saves.begin(); itr != m_saves.end(); ++itr)
-  {
-    itr->DoState(p);
-  }
+  p.DoContainer(m_saves, [&](GCIFile& file) { file.DoState(p); });
 }
 
 bool GCIFile::LoadSaveBlocks()
@@ -692,18 +686,12 @@ int GCIFile::UsesBlock(u16 blocknum)
   return -1;
 }
 
-void GCIFile::DoState(PointerWrap& p)
+void GCIFile::DoState(StateLoadStore& p)
 {
   p.DoPOD<DEntry>(m_gci_header);
   p.Do(m_dirty);
   p.Do(m_filename);
-  int numBlocks = (int)m_save_data.size();
-  p.Do(numBlocks);
-  m_save_data.resize(numBlocks);
-  for (auto itr = m_save_data.begin(); itr != m_save_data.end(); ++itr)
-  {
-    p.DoPOD<GCMBlock>(*itr);
-  }
+  p.DoContainer(m_save_data, [&](GCMBlock& block) { p.DoPOD(block); });
   p.Do(m_used_blocks);
 }
 

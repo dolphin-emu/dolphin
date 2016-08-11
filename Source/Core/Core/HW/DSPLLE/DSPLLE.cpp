@@ -38,17 +38,8 @@ static Common::Event dspEvent;
 static Common::Event ppcEvent;
 static bool requestDisableThread;
 
-void DSPLLE::DoState(PointerWrap& p)
+void DSPLLE::DoState(StateLoadStore& p)
 {
-  bool is_hle = false;
-  p.Do(is_hle);
-  if (is_hle && p.GetMode() == PointerWrap::MODE_READ)
-  {
-    Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.",
-                         3000);
-    p.SetMode(PointerWrap::MODE_VERIFY);
-    return;
-  }
   p.Do(g_dsp.r);
   p.Do(g_dsp.pc);
 #if PROFILE
@@ -59,19 +50,15 @@ void DSPLLE::DoState(PointerWrap& p)
   p.Do(g_dsp.exceptions);
   p.Do(g_dsp.external_interrupt_waiting);
 
-  for (int i = 0; i < 4; i++)
-  {
-    p.Do(g_dsp.reg_stack[i]);
-  }
+  p.Do(g_dsp.reg_stack);
 
   p.Do(g_dsp.step_counter);
   p.DoArray(g_dsp.ifx_regs);
-  p.Do(g_dsp.mbox[0]);
-  p.Do(g_dsp.mbox[1]);
+  p.Do(g_dsp.mbox);
   UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
   p.DoArray(g_dsp.iram, DSP_IRAM_SIZE);
   WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsLoad())
     DSPHost::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
   p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
   p.Do(g_cycles_left);

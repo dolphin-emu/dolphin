@@ -50,7 +50,7 @@ static void UpdateInterrupts_Wrapper(u64 userdata, s64 cyclesLate)
   UpdateInterrupts(userdata);
 }
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   p.DoPOD(m_CPStatusReg);
   p.DoPOD(m_CPCtrlReg);

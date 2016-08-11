@@ -9,7 +9,7 @@
 
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 class CMailHandler
 {
@@ -20,7 +20,7 @@ public:
   void PushMail(u32 _Mail, bool interrupt = false);
   void Clear();
   void Halt(bool _Halt);
-  void DoState(PointerWrap& p);
+  void DoState(StateLoadStore& p);
   bool IsEmpty() const;
 
   u16 ReadDSPMailboxHigh();
@@ -28,5 +28,5 @@ public:
 
 private:
   // mail handler
-  std::queue<std::pair<u32, bool>> m_Mails;
+  std::deque<std::pair<u32, bool>> m_Mails;
 };

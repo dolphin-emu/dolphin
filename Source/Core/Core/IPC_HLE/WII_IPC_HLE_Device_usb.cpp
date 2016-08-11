@@ -121,7 +121,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
   SetUsbPointer(nullptr);
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap& p)
+void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(StateLoadStore& p)
 {
   p.Do(m_Active);
   p.Do(m_ControllerBD);
@@ -523,6 +523,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305::ACLPool::Store(const u8* data, const u
   auto& packet = m_queue.back();
 
   std::copy(data, data + size, packet.data);
+  memset(packet.data + size, 0, sizeof(packet.data) - size);
   packet.size = size;
   packet.conn_handle = conn_handle;
 }

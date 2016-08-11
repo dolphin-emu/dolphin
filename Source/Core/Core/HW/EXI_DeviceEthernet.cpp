@@ -195,7 +195,7 @@ void CEXIETHERNET::DMARead(u32 addr, u32 size)
   transfer.address += size;
 }
 
-void CEXIETHERNET::DoState(PointerWrap& p)
+void CEXIETHERNET::DoState(StateLoadStore& p)
 {
   p.DoArray(tx_fifo.get(), BBA_TXFIFO_SIZE);
   p.DoArray(mBbaMem.get(), BBA_MEM_SIZE);

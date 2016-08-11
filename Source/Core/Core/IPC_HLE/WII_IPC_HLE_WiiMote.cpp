@@ -69,10 +69,8 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
   lmp_subversion = 0x229;
 }
 
-void CWII_IPC_HLE_WiiMote::DoState(PointerWrap& p)
+void CWII_IPC_HLE_WiiMote::DoState(StateLoadStore& p)
 {
-  // this function is usually not called... see CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState
-
   p.Do(m_ConnectionState);
 
   p.Do(m_HIDControlChannel_Connected);

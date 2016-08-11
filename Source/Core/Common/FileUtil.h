@@ -94,16 +94,20 @@ bool CreateFullPath(const std::string& fullPath);
 
 // Deletes a given filename, return true on success
 // Doesn't supports deleting a directory
-bool Delete(const std::string& filename);
+// If existed is non-null, whether filename existed is stored there, and a
+// warning isn't triggered if it didn't.
+bool Delete(const std::string& filename, bool* existed = nullptr);
 
 // Deletes a directory filename, returns true on success
 bool DeleteDir(const std::string& filename);
 
 // renames file srcFilename to destFilename, returns true on success
-bool Rename(const std::string& srcFilename, const std::string& destFilename);
+bool Rename(const std::string& srcFilename, const std::string& destFilename,
+            bool* src_existed = nullptr);
 
 // ditto, but syncs the source file and, on Unix, syncs the directories after rename
-bool RenameSync(const std::string& srcFilename, const std::string& destFilename);
+bool RenameSync(const std::string& srcFilename, const std::string& destFilename,
+                bool* src_existed = nullptr);
 
 // copies file srcFilename to destFilename, returns true on success
 bool Copy(const std::string& srcFilename, const std::string& destFilename);

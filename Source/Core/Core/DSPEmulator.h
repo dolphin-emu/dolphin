@@ -7,7 +7,7 @@
 #include <memory>
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 class DSPEmulator
 {
@@ -18,7 +18,7 @@ public:
   virtual bool Initialize(bool bWii, bool bDSPThread) = 0;
   virtual void Shutdown() = 0;
 
-  virtual void DoState(PointerWrap& p) = 0;
+  virtual void DoState(StateLoadStore& p) = 0;
   virtual void PauseAndLock(bool doLock, bool unpauseOnUnlock = true) = 0;
 
   virtual void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) = 0;

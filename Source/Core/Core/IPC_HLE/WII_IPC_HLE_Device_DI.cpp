@@ -26,7 +26,7 @@ CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
 {
 }
 
-void CWII_IPC_HLE_Device_di::DoState(PointerWrap& p)
+void CWII_IPC_HLE_Device_di::DoState(StateLoadStore& p)
 {
   DoStateShared(p);
   p.Do(m_commands_to_execute);

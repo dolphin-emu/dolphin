@@ -104,14 +104,12 @@ void GeometryShaderManager::SetTexCoordChanged(u8 texmapid)
   dirty = true;
 }
 
-void GeometryShaderManager::DoState(PointerWrap& p)
+void GeometryShaderManager::DoState(StateLoadStore& p)
 {
   p.Do(s_projection_changed);
   p.Do(s_viewport_changed);
 
-  p.Do(constants);
-
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsLoad())
   {
     // Fixup the current state from global GPU state
     // NOTE: This requires that all GPU memory has been loaded already.

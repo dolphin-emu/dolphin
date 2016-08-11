@@ -9,7 +9,7 @@
 #include "Common/CommonTypes.h"
 
 struct GCPadStatus;
-class PointerWrap;
+class StateLoadStore;
 struct wiimote_key;
 
 namespace WiimoteEmu
@@ -172,8 +172,9 @@ void PlayController(GCPadStatus* PadStatus, int controllerID);
 bool PlayWiimote(int wiimote, u8* data, const struct WiimoteEmu::ReportFeatures& rptf, int ext,
                  const wiimote_key key);
 void EndPlayInput(bool cont);
-void SaveRecording(const std::string& filename);
-void DoState(PointerWrap& p);
+bool SaveRecording(const std::string& filename);
+void SaveRecordingUserRequested(const std::string& filename);
+void DoState(StateLoadStore& p);
 void CheckMD5();
 void GetMD5();
 void Shutdown();

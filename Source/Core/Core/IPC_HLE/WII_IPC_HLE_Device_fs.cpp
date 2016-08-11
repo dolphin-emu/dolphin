@@ -511,17 +511,17 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
   return FS_RESULT_FATAL;
 }
 
-void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
+void CWII_IPC_HLE_Device_fs::DoState(StateLoadStore& p)
 {
   DoStateShared(p);
 
   // handle /tmp
 
-  std::string Path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/tmp";
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  std::string path = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/tmp";
+  if (!p.IsLoad())
   {
-    File::DeleteDirRecursively(Path);
-    File::CreateDir(Path);
+    File::DeleteDirRecursively(path);
+    File::CreateDir(path);
 
     // now restore from the stream
     while (1)
@@ -532,30 +532,31 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
         break;
       std::string filename;
       p.Do(filename);
-      std::string name = Path + DIR_SEP + filename;
+      std::string name = path + DIR_SEP + filename;
       switch (type)
       {
       case 'd':
       {
-        File::CreateDir(name);
+        if (!File::CreateDir(name))
+        {
+          p.SetError(StringFromFormat("Failed to create directory %s", name.c_str()));
+          return;
+        }
         break;
       }
       case 'f':
       {
-        u32 size = 0;
+        u64 size = 0;
         p.Do(size);
-
+        const u8* ptr = p.GetPointerAndAdvance(size);
+        if (!ptr)
+          return;
         File::IOFile handle(name, "wb");
-        char buf[65536];
-        u32 count = size;
-        while (count > 65536)
+        handle.WriteArray(ptr, size);
+        if (!handle.IsGood())
         {
-          p.DoArray(buf);
-          handle.WriteArray(&buf[0], 65536);
-          count -= 65536;
+          p.SetError(StringFromFormat("Failed to restore file %s", name.c_str()));
         }
-        p.DoArray(&buf[0], count);
-        handle.WriteArray(&buf[0], count);
         break;
       }
       }
@@ -565,7 +566,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
   {
     // recurse through tmp and save dirs and files
 
-    File::FSTEntry parentEntry = File::ScanDirectoryTree(Path, true);
+    File::FSTEntry parentEntry = File::ScanDirectoryTree(path, true);
     std::deque<File::FSTEntry> todo;
     todo.insert(todo.end(), parentEntry.children.begin(), parentEntry.children.end());
 
@@ -573,7 +574,7 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
     {
       File::FSTEntry& entry = todo.front();
       std::string name = entry.physicalName;
-      name.erase(0, Path.length() + 1);
+      name.erase(0, path.length() + 1);
       char type = entry.isDirectory ? 'd' : 'f';
       p.Do(type);
       p.Do(name);
@@ -586,17 +587,16 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
         u32 size = (u32)entry.size;
         p.Do(size);
 
+        u8* ptr = p.GetPointerAndAdvance(size);
+        if (!ptr)
+          return;
         File::IOFile handle(entry.physicalName, "rb");
-        char buf[65536];
-        u32 count = size;
-        while (count > 65536)
+        handle.ReadArray(ptr, size);
+        if (!handle.IsGood())
         {
-          handle.ReadArray(&buf[0], 65536);
-          p.DoArray(buf);
-          count -= 65536;
+          p.SetError(StringFromFormat("Error reading %s", entry.physicalName.c_str()));
+          return;
         }
-        handle.ReadArray(&buf[0], count);
-        p.DoArray(&buf[0], count);
       }
       todo.pop_front();
     }

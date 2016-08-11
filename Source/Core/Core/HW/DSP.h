@@ -6,7 +6,7 @@
 
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
+class StateLoadStore;
 class DSPEmulator;
 namespace MMIO
 {
@@ -67,7 +67,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 DSPEmulator* GetDSPEmulator();
 
-void DoState(PointerWrap& p);
+bool DoState(StateLoadStore& p);
 
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType _DSPInterruptType);
 

@@ -19,7 +19,7 @@
 #include "VideoCommon/VideoState.h"
 #include "VideoCommon/XFMemory.h"
 
-void VideoCommon_DoState(PointerWrap& p)
+bool VideoCommon_DoState(StateLoadStore& p)
 {
   // BP Memory
   p.Do(bpmem);
@@ -37,7 +37,8 @@ void VideoCommon_DoState(PointerWrap& p)
   p.DoMarker("texMem");
 
   // FIFO
-  Fifo::DoState(p);
+  if (!Fifo::DoState(p))
+    return false;
   p.DoMarker("Fifo");
 
   CommandProcessor::DoState(p);
@@ -64,4 +65,5 @@ void VideoCommon_DoState(PointerWrap& p)
   p.DoMarker("BoundingBox");
 
   // TODO: search for more data that should be saved and add it here
+  return true;
 }

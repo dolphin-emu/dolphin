@@ -26,7 +26,7 @@ public:
   void SetOutputLeftBufferAddr(u32 addr) { m_output_lbuf_addr = addr; }
   void SetOutputRightBufferAddr(u32 addr) { m_output_rbuf_addr = addr; }
   void SetARAMBaseAddr(u32 addr) { m_aram_base_addr = addr; }
-  void DoState(PointerWrap& p);
+  void DoState(StateLoadStore& p);
 
 private:
   struct VPB;
@@ -191,7 +191,7 @@ public:
   void HandleMail(u32 mail) override;
   void Update() override;
 
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
 private:
   // Flags that alter the behavior of the UCode. See Zelda.cpp for complete

@@ -502,7 +502,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
   DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: < %02x", byte);
 }
 
-void CEXIMemoryCard::DoState(PointerWrap& p)
+void CEXIMemoryCard::DoState(StateLoadStore& p)
 {
   // for movie sync, we need to save/load memory card contents (and other data) in savestates.
   // otherwise, we'll assume the user wants to keep their memcards and saves separate,

@@ -287,10 +287,10 @@ void VertexManagerBase::Flush()
   s_cull_all = false;
 }
 
-void VertexManagerBase::DoState(PointerWrap& p)
+void VertexManagerBase::DoState(StateLoadStore& p)
 {
   p.Do(s_zslope);
-  g_vertex_manager->vDoState(p);
+  s_zslope.dirty = true;
 }
 
 void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)

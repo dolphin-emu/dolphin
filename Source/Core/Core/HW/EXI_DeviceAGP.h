@@ -9,7 +9,7 @@
 
 #include "Core/HW/EXI_Device.h"
 
-class PointerWrap;
+class StateLoadStore;
 
 class CEXIAgp : public IEXIDevice
 {
@@ -19,7 +19,7 @@ public:
   bool IsPresent() const override { return true; }
   void ImmWrite(u32 _uData, u32 _uSize) override;
   u32 ImmRead(u32 _uSize) override;
-  void DoState(PointerWrap& p) override;
+  void DoState(StateLoadStore& p) override;
 
 private:
   enum

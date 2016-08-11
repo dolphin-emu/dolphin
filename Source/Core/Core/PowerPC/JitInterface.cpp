@@ -12,6 +12,9 @@
 #include "Common/PerformanceCounter.h"
 #endif
 
+#include "Common/ChunkFile.h"
+#include "Common/FileUtil.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/CachedInterpreter.h"
@@ -35,9 +38,9 @@
 
 namespace JitInterface
 {
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
-  if (jit && p.GetMode() == PointerWrap::MODE_READ)
+  if (jit && p.IsLoad())
     jit->ClearCache();
 }
 CPUCoreBase* InitJitCore(int core)

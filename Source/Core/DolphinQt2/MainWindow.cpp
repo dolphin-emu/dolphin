@@ -36,11 +36,13 @@ MainWindow::MainWindow() : QMainWindow(nullptr)
   ConnectRenderWidget();
   ConnectStack();
   ConnectMenuBar();
+  State::SetOnAfterLoadSaveCallback([= this]() { emit AfterLoadSave(); });
 }
 
 MainWindow::~MainWindow()
 {
   m_render_widget->deleteLater();
+  State::SetOnAfterLoadSaveCallback(nullptr);
 }
 
 void MainWindow::CreateComponents()
@@ -88,6 +90,7 @@ void MainWindow::ConnectMenuBar()
   connect(this, &MainWindow::EmulationStarted, m_menu_bar, &MenuBar::EmulationStarted);
   connect(this, &MainWindow::EmulationPaused, m_menu_bar, &MenuBar::EmulationPaused);
   connect(this, &MainWindow::EmulationStopped, m_menu_bar, &MenuBar::EmulationStopped);
+  connect(this, &MainWindow::AfterLoadSave, m_menu_bar, &MenuBar::UpdateStateSlotMenu);
 }
 
 void MainWindow::ConnectToolBar()
@@ -356,8 +359,7 @@ void MainWindow::StateLoadSlot()
 
 void MainWindow::StateSaveSlot()
 {
-  State::Save(m_state_slot, true);
-  m_menu_bar->UpdateStateSlotMenu();
+  State::Save(m_state_slot);
 }
 
 void MainWindow::StateLoadSlotAt(int slot)
@@ -367,8 +369,7 @@ void MainWindow::StateLoadSlotAt(int slot)
 
 void MainWindow::StateSaveSlotAt(int slot)
 {
-  State::Save(slot, true);
-  m_menu_bar->UpdateStateSlotMenu();
+  State::Save(slot);
 }
 
 void MainWindow::StateLoadUndo()

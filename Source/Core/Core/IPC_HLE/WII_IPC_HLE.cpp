@@ -20,6 +20,7 @@ in case of success they are
 They will also generate a true or false return for UpdateInterrupts() in WII_IPC.cpp.
 */
 
+#include <array>
 #include <list>
 #include <map>
 #include <string>
@@ -61,15 +62,14 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 
 namespace WII_IPC_HLE_Interface
 {
-typedef std::map<u32, std::shared_ptr<IWII_IPC_HLE_Device>> TDeviceMap;
-static TDeviceMap g_DeviceMap;
+static std::vector<std::shared_ptr<IWII_IPC_HLE_Device>> g_DeviceMap;
 
 // STATE_TO_SAVE
 #define IPC_MAX_FDS 0x18
 #define ES_MAX_COUNT 2
-static std::shared_ptr<IWII_IPC_HLE_Device> g_FdMap[IPC_MAX_FDS];
-static bool es_inuse[ES_MAX_COUNT];
-static std::shared_ptr<IWII_IPC_HLE_Device> es_handles[ES_MAX_COUNT];
+static std::array<std::shared_ptr<IWII_IPC_HLE_Device>, IPC_MAX_FDS> g_FdMap;
+static std::array<bool, ES_MAX_COUNT> es_inuse;
+static std::array<std::shared_ptr<IWII_IPC_HLE_Device>, ES_MAX_COUNT> es_handles;
 
 typedef std::deque<u32> ipc_msg_queue;
 static ipc_msg_queue request_queue;  // ppc -> arm
@@ -108,14 +108,11 @@ static void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
     device->EventNotify();
 }
 
-static u32 num_devices;
-
 template <typename T>
 std::shared_ptr<T> AddDevice(const char* deviceName)
 {
-  auto device = std::make_shared<T>(num_devices, deviceName);
-  g_DeviceMap[num_devices] = device;
-  num_devices++;
+  auto device = std::make_shared<T>((u32)g_DeviceMap.size(), deviceName);
+  g_DeviceMap.push_back(device);
   return device;
 }
 
@@ -124,7 +121,7 @@ void Init()
   _dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isn't empty on init");
   CWII_IPC_HLE_Device_es::m_ContentFile = "";
 
-  num_devices = 0;
+  g_DeviceMap.clear();
 
   // Build hardware devices
   AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305>("/dev/usb/oh1/57e/305");
@@ -165,29 +162,12 @@ void Reset(bool _bHard)
 {
   CoreTiming::RemoveAllEvents(event_enqueue);
 
-  for (auto& dev : g_FdMap)
+  g_FdMap.fill(nullptr);
+  es_inuse.fill(false);
+  for (const auto& dev : g_DeviceMap)
   {
-    if (dev && !dev->IsHardware())
-    {
-      // close all files and delete their resources
+    if (dev)
       dev->Close(0, true);
-    }
-
-    dev.reset();
-  }
-
-  for (bool& in_use : es_inuse)
-  {
-    in_use = false;
-  }
-
-  for (const auto& entry : g_DeviceMap)
-  {
-    if (entry.second)
-    {
-      // Force close
-      entry.second->Close(0, true);
-    }
   }
 
   if (_bHard)
@@ -207,11 +187,11 @@ void Shutdown()
 
 void SetDefaultContentFile(const std::string& _rFilename)
 {
-  for (const auto& entry : g_DeviceMap)
+  for (const auto& dev : g_DeviceMap)
   {
-    if (entry.second && entry.second->GetDeviceName().find("/dev/es") == 0)
+    if (dev && dev->GetDeviceName().find("/dev/es") == 0)
     {
-      static_cast<CWII_IPC_HLE_Device_es*>(entry.second.get())->LoadWAD(_rFilename);
+      static_cast<CWII_IPC_HLE_Device_es*>(dev.get())->LoadWAD(_rFilename);
     }
   }
 }
@@ -246,23 +226,18 @@ std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& _rDevice
 {
   for (const auto& entry : g_DeviceMap)
   {
-    if (entry.second && entry.second->GetDeviceName() == _rDeviceName)
+    if (entry && entry->GetDeviceName() == _rDeviceName)
     {
-      return entry.second;
+      return entry;
     }
   }
 
   return nullptr;
 }
 
-std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 _ID)
+std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 id)
 {
-  if (g_DeviceMap.find(_ID) != g_DeviceMap.end())
-  {
-    return g_DeviceMap[_ID];
-  }
-
-  return nullptr;
+  return id < g_DeviceMap.size() ? g_DeviceMap[id] : nullptr;
 }
 
 // This is called from ExecuteCommand() COMMAND_OPEN_DEVICE
@@ -273,7 +248,7 @@ std::shared_ptr<IWII_IPC_HLE_Device> CreateFileIO(u32 _DeviceID, const std::stri
   return std::make_shared<CWII_IPC_HLE_Device_FileIO>(_DeviceID, _rDeviceName);
 }
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   p.Do(request_queue);
   p.Do(reply_queue);
@@ -284,79 +259,36 @@ void DoState(PointerWrap& p)
   for (auto& descriptor : g_FdMap)
   {
     if (descriptor)
-      descriptor->PrepareForState(p.GetMode());
+      descriptor->PrepareForState();
   }
 
-  for (const auto& entry : g_DeviceMap)
+  for (const auto& dev : g_DeviceMap)
   {
-    if (entry.second->IsHardware())
-    {
-      entry.second->DoState(p);
-    }
+    if (!p.IsGood())
+      return;
+    dev->DoState(p);
   }
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  u32 idx = 0;
+  for (auto& dev : g_FdMap)
   {
-    for (u32 i = 0; i < IPC_MAX_FDS; i++)
+    u32 device_id = dev ? dev->GetDeviceID() : -1;
+    p.Do(device_id);
+    if (p.IsLoad())
     {
-      u32 exists = 0;
-      p.Do(exists);
-      if (exists)
+      if (device_id == (u32)-1)
+        dev = nullptr;
+      else if (device_id < g_DeviceMap.size())
+        dev = g_DeviceMap[device_id];
+      else
       {
-        u32 isHw = 0;
-        p.Do(isHw);
-        if (isHw)
-        {
-          u32 hwId = 0;
-          p.Do(hwId);
-          g_FdMap[i] = AccessDeviceByID(hwId);
-        }
-        else
-        {
-          g_FdMap[i] = std::make_shared<CWII_IPC_HLE_Device_FileIO>(i, "");
-          g_FdMap[i]->DoState(p);
-        }
+        dev = std::make_shared<CWII_IPC_HLE_Device_FileIO>(idx, "");
+        dev->DoState(p);
       }
-    }
-
-    for (u32 i = 0; i < ES_MAX_COUNT; i++)
-    {
-      p.Do(es_inuse[i]);
-      u32 handleID = es_handles[i]->GetDeviceID();
-      p.Do(handleID);
-
-      es_handles[i] = AccessDeviceByID(handleID);
+      idx++;
     }
   }
-  else
-  {
-    for (auto& descriptor : g_FdMap)
-    {
-      u32 exists = descriptor ? 1 : 0;
-      p.Do(exists);
-      if (exists)
-      {
-        u32 isHw = descriptor->IsHardware() ? 1 : 0;
-        p.Do(isHw);
-        if (isHw)
-        {
-          u32 hwId = descriptor->GetDeviceID();
-          p.Do(hwId);
-        }
-        else
-        {
-          descriptor->DoState(p);
-        }
-      }
-    }
-
-    for (u32 i = 0; i < ES_MAX_COUNT; i++)
-    {
-      p.Do(es_inuse[i]);
-      u32 handleID = es_handles[i]->GetDeviceID();
-      p.Do(handleID);
-    }
-  }
+  p.Do(es_inuse);
 }
 
 void ExecuteCommand(u32 _Address)
@@ -610,9 +542,9 @@ void UpdateDevices()
   // Check if a hardware device must be updated
   for (const auto& entry : g_DeviceMap)
   {
-    if (entry.second->IsOpened())
+    if (entry->IsOpened())
     {
-      entry.second->Update();
+      entry->Update();
     }
   }
 }
@@ -620,10 +552,9 @@ void UpdateDevices()
 }  // end of namespace WII_IPC_HLE_Interface
 
 // TODO: create WII_IPC_HLE_Device.cpp ?
-void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
+void IWII_IPC_HLE_Device::DoStateShared(StateLoadStore& p)
 {
   p.Do(m_Name);
   p.Do(m_DeviceID);
-  p.Do(m_Hardware);
   p.Do(m_Active);
 }

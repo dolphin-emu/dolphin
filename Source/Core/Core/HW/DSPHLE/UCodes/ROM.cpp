@@ -15,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/UCodes/ROM.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
@@ -118,7 +119,7 @@ void ROMUCode::BootUCode()
   m_dsphle->SetUCode(ector_crc);
 }
 
-void ROMUCode::DoState(PointerWrap& p)
+void ROMUCode::DoState(StateLoadStore& p)
 {
   p.Do(m_current_ucode);
   p.Do(m_boot_task_num_steps);

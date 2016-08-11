@@ -36,31 +36,22 @@ bool ReadHeader(const std::string& filename, StateHeader& header);
 std::string GetInfoStringOfSlot(int slot);
 
 // These don't happen instantly - they get scheduled as events.
-// ...But only if we're not in the main CPU thread.
-//    If we're in the main CPU thread then they run immediately instead
-//    because some things (like Lua) need them to run immediately.
 // Slots from 0-99.
-void Save(int slot, bool wait = false);
+void Save(int slot);
 void Load(int slot);
-void Verify(int slot);
 
-void SaveAs(const std::string& filename, bool wait = false);
+void SaveAs(std::string&& filename, int for_slot = -1);
 void LoadAs(const std::string& filename);
-void VerifyAt(const std::string& filename);
 
 void SaveToBuffer(std::vector<u8>& buffer);
 void LoadFromBuffer(std::vector<u8>& buffer);
-void VerifyBuffer(std::vector<u8>& buffer);
 
 void LoadLastSaved(int i = 1);
 void SaveFirstSaved();
 void UndoSaveState();
 void UndoLoadState();
 
-// wait until previously scheduled savestate event (if any) is done
-void Flush();
-
 // for calling back into UI code without introducing a dependency on it in core
-typedef void (*CallbackFunc)(void);
-void SetOnAfterLoadCallback(CallbackFunc callback);
+typedef std::function<void()> CallbackFunc;
+void SetOnAfterLoadSaveCallback(CallbackFunc callback);
 }

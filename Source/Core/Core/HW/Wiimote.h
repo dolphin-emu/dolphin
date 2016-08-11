@@ -8,7 +8,7 @@
 #include "Common/CommonTypes.h"
 
 class InputConfig;
-class PointerWrap;
+class StateLoadStore;
 
 enum
 {
@@ -49,7 +49,7 @@ void Resume();
 void Pause();
 
 unsigned int GetAttached();
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 void EmuStateChange(EMUSTATE_CHANGE newState);
 InputConfig* GetConfig();
 

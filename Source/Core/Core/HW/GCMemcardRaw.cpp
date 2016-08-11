@@ -34,6 +34,7 @@ MemoryCard::MemoryCard(const std::string& filename, int _card_index, u16 sizeMb)
 
     INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_filename.c_str());
     pFile.ReadBytes(&m_memcard_data[0], memory_card_size);
+    // TODO what if read fails?
   }
   else
   {
@@ -197,9 +198,11 @@ void MemoryCard::ClearAll()
   MakeDirty();
 }
 
-void MemoryCard::DoState(PointerWrap& p)
+void MemoryCard::DoState(StateLoadStore& p)
 {
   p.Do(card_index);
   p.Do(memory_card_size);
+  if (p.IsLoad())
+    m_memcard_data = std::make_unique<u8[]>(memory_card_size);
   p.DoArray(&m_memcard_data[0], memory_card_size);
 }

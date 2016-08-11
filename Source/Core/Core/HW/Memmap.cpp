@@ -197,7 +197,7 @@ void Init()
   m_IsInitialized = true;
 }
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   bool wii = SConfig::GetInstance().bWii;
   p.DoArray(m_pRAM, RAM_SIZE);

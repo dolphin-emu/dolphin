@@ -53,7 +53,7 @@ void ExpandCR(u32 cr)
   }
 }
 
-void DoState(PointerWrap& p)
+void DoState(StateLoadStore& p)
 {
   // some of this code has been disabled, because
   // it changes registers even in MODE_MEASURE (which is suspicious and seems like it could cause
@@ -65,6 +65,9 @@ void DoState(PointerWrap& p)
   // *((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL
   // comes first :)
 
+  // Lots of padding in here - don't want to leak random memory into save
+  // files, but as long as it's in a global, it should be zero initialized, so
+  // no big deal...
   p.DoPOD(ppcState);
 
   // SystemTimers::DecrementerSet();

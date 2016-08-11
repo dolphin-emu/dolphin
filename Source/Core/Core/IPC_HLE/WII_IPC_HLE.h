@@ -13,7 +13,7 @@
 #include "Core/HW/SystemTimers.h"
 
 class IWII_IPC_HLE_Device;
-class PointerWrap;
+class StateLoadStore;
 
 struct IPCCommandResult
 {
@@ -51,7 +51,7 @@ void Shutdown();
 void Reset(bool _bHard = false);
 
 // Do State
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 // Set default content file
 void SetDefaultContentFile(const std::string& _rFilename);

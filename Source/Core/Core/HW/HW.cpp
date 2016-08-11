@@ -80,7 +80,7 @@ void Shutdown()
   CoreTiming::Shutdown();
 }
 
-void DoState(PointerWrap& p)
+bool DoState(StateLoadStore& p)
 {
   Memory::DoState(p);
   p.DoMarker("Memory");
@@ -90,7 +90,8 @@ void DoState(PointerWrap& p)
   p.DoMarker("SerialInterface");
   ProcessorInterface::DoState(p);
   p.DoMarker("ProcessorInterface");
-  DSP::DoState(p);
+  if (!DSP::DoState(p))
+    return false;
   p.DoMarker("DSP");
   DVDInterface::DoState(p);
   p.DoMarker("DVDInterface");
@@ -110,5 +111,6 @@ void DoState(PointerWrap& p)
   }
 
   p.DoMarker("WIIHW");
+  return true;
 }
 }

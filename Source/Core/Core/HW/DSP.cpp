@@ -25,6 +25,7 @@
 #include <memory>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 #include "Core/ConfigManager.h"
@@ -166,7 +167,7 @@ static bool dsp_is_lle = false;
 // time given to LLE DSP on every read of the high bits in a mailbox
 static const int DSP_MAIL_SLICE = 72;
 
-void DoState(PointerWrap& p)
+bool DoState(StateLoadStore& p)
 {
   if (!g_ARAM.wii_mode)
     p.DoArray(g_ARAM.ptr, g_ARAM.size);
@@ -181,7 +182,15 @@ void DoState(PointerWrap& p)
   p.Do(last_aram_dma_count);
   p.Do(instant_dma);
 
+  bool my_is_lle = dsp_emulator->IsLLE(), is_lle = my_is_lle;
+  p.Do(is_lle);
+  if (is_lle != my_is_lle)
+  {
+    p.SetError("Different DSP engine in use.");
+    return false;
+  }
   dsp_emulator->DoState(p);
+  return true;
 }
 
 static void UpdateInterrupts();

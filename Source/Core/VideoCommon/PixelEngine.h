@@ -56,7 +56,7 @@ union UPEAlphaReadReg {
 };
 
 void Init();
-void DoState(PointerWrap& p);
+void DoState(StateLoadStore& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 

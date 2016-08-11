@@ -73,7 +73,7 @@ public:
   virtual s32 Write(u32 destaddress, s32 length, u8* srcaddress) = 0;
   virtual void ClearBlock(u32 address) = 0;
   virtual void ClearAll() = 0;
-  virtual void DoState(PointerWrap& p) = 0;
+  virtual void DoState(StateLoadStore& p) = 0;
   u32 GetCardId() const { return nintendo_card_id; }
   bool IsAddressInBounds(u32 address) const { return address <= (memory_card_size - 1); }
 protected:
@@ -297,7 +297,7 @@ public:
     return false;
   }
 
-  void DoState(PointerWrap& p);
+  void DoState(StateLoadStore& p);
   DEntry m_gci_header;
   std::vector<GCMBlock> m_save_data;
   std::vector<u16> m_used_blocks;

@@ -399,7 +399,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
   }
 
   ReadRequest rr;
-  u8* const block = new u8[size];
+  std::vector<u8> block;
 
   switch (rd->space)
   {
@@ -412,7 +412,6 @@ void Wiimote::ReadData(const wm_read_data* const rd)
       if (address + size > WIIMOTE_EEPROM_SIZE)
       {
         PanicAlert("ReadData: address + size out of bounds");
-        delete[] block;
         return;
       }
       // generate a read error
@@ -432,7 +431,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
     }
 
     // read memory to be sent to Wii
-    memcpy(block, m_eeprom + address, size);
+    block = std::vector<u8>(m_eeprom + address, m_eeprom + address + size);
   }
   break;
 
@@ -481,9 +480,8 @@ void Wiimote::ReadData(const wm_read_data* const rd)
     }
 
     if (region_ptr && (region_offset + size <= region_size))
-    {
-      memcpy(block, (u8*)region_ptr + region_offset, size);
-    }
+      block =
+          std::vector<u8>((u8*)region_ptr + region_offset, (u8*)region_ptr + region_offset + size);
     else
       size = 0;  // generate read error
 
@@ -492,7 +490,7 @@ void Wiimote::ReadData(const wm_read_data* const rd)
       // Encrypt data read from extension register
       // Check if encrypted reads is on
       if (0xaa == m_reg_ext.encryption)
-        WiimoteEncrypt(&m_ext_key, block, address & 0xffff, (u8)size);
+        WiimoteEncrypt(&m_ext_key, block.data(), address & 0xffff, (u8)size);
     }
   }
   break;
@@ -504,19 +502,16 @@ void Wiimote::ReadData(const wm_read_data* const rd)
 
   // want the requested address, not the above modified one
   rr.address = Common::swap24(rd->address);
-  rr.size = size;
   // rr.channel = _channelID;
   rr.position = 0;
-  rr.data = block;
+  rr.data = std::move(block);
 
   // send up to 16 bytes
   SendReadDataReply(rr);
 
   // if there is more data to be sent, add it to the queue
-  if (rr.size)
-    m_read_requests.push(rr);
-  else
-    delete[] rr.data;
+  if (rr.position != rr.data.size())
+    m_read_requests.push_back(rr);
 }
 
 // old comment
@@ -543,7 +538,7 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
   // read the calibration data at the beginning of Eeprom. I think this
   // error is supposed to occur when we try to read above the freely
   // usable space that ends at 0x16ff.
-  if (0 == _request.size)
+  if (_request.position == _request.data.size())
   {
     reply->size = 0x0f;
     reply->error = 0x08;
@@ -554,7 +549,7 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
   {
     // Limit the amt to 16 bytes
     // AyuanX: the MTU is 640B though... what a waste!
-    const int amt = std::min((unsigned int)16, _request.size);
+    u32 amt = std::min(16u, (u32)(_request.data.size() - _request.position));
 
     // no error
     reply->error = 0;
@@ -566,10 +561,9 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
     memset(reply->data, 0, sizeof(reply->data));
 
     // copy piece of mem
-    memcpy(reply->data, _request.data + _request.position, amt);
+    memcpy(reply->data, _request.data.data() + _request.position, amt);
 
     // update request struct
-    _request.size -= amt;
     _request.position += amt;
     _request.address += amt;
   }
@@ -578,7 +572,7 @@ void Wiimote::SendReadDataReply(ReadRequest& _request)
   Core::Callback_WiimoteInterruptChannel(m_index, m_reporting_channel, data, sizeof(data));
 }
 
-void Wiimote::DoState(PointerWrap& p)
+void Wiimote::DoState(StateLoadStore& p)
 {
   p.Do(m_extension->active_extension);
   p.Do(m_extension->switch_extension);
@@ -605,49 +599,15 @@ void Wiimote::DoState(PointerWrap& p)
   p.Do(m_reg_ext);
   p.Do(m_reg_speaker);
 
-  // Do 'm_read_requests' queue
-  {
-    u32 size = 0;
-    if (p.mode == PointerWrap::MODE_READ)
-    {
-      // clear
-      while (!m_read_requests.empty())
-      {
-        delete[] m_read_requests.front().data;
-        m_read_requests.pop();
-      }
-
-      p.Do(size);
-      while (size--)
-      {
-        ReadRequest tmp;
-        p.Do(tmp.address);
-        p.Do(tmp.position);
-        p.Do(tmp.size);
-        tmp.data = new u8[tmp.size];
-        p.DoArray(tmp.data, tmp.size);
-        m_read_requests.push(tmp);
-      }
-    }
-    else
-    {
-      std::queue<ReadRequest> tmp_queue(m_read_requests);
-      size = (u32)(m_read_requests.size());
-      p.Do(size);
-      while (!tmp_queue.empty())
-      {
-        ReadRequest tmp = tmp_queue.front();
-        p.Do(tmp.address);
-        p.Do(tmp.position);
-        p.Do(tmp.size);
-        p.DoArray(tmp.data, tmp.size);
-        tmp_queue.pop();
-      }
-    }
-  }
+  p.DoContainer(m_read_requests, [&](ReadRequest& rr) {
+    p.Do(rr.address);
+    p.Do(rr.size);
+    p.Do(rr.position);
+    p.Do(rr.data);
+  });
   p.DoMarker("Wiimote");
 
-  if (p.GetMode() == PointerWrap::MODE_READ)
+  if (p.IsLoad())
     RealState();
 }
 
