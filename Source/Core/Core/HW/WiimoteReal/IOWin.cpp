@@ -25,12 +25,8 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/HW/WiimoteReal/IOWin.h"
-
-//#define AUTHENTICATE_WIIMOTES
-#define SHARE_WRITE_WIIMOTES
 
 // Create func_t function pointer type and declare a nullptr-initialized static variable of that
 // type named "pfunc".
@@ -63,11 +59,6 @@ static HINSTANCE s_bthprops_lib = nullptr;
 static bool s_loaded_ok = false;
 
 std::unordered_map<BTH_ADDR, std::time_t> g_connect_times;
-
-#ifdef SHARE_WRITE_WIIMOTES
-std::unordered_set<std::basic_string<TCHAR>> g_connected_wiimotes;
-std::mutex g_connected_wiimotes_lock;
-#endif
 
 #define DYN_FUNC_UNLOAD(func) p##func = nullptr;
 
@@ -448,18 +439,7 @@ void WiimoteScannerWindows::FindWiimotes(std::vector<Wiimote*>& found_wiimotes,
 
       WinWriteMethod write_method = GetInitialWriteMethod(IsUsingToshibaStack);
 
-#ifdef SHARE_WRITE_WIIMOTES
-      {
-        std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
-        // This device is a Wiimote that is already connected. Skip it.
-        if (g_connected_wiimotes.count(device_path) != 0)
-        {
-          free(detail_data);
-          continue;
-        }
-      }
-#endif
-      if (!IsWiimote(device_path, write_method))
+      if (!IsNewWiimote(UTF16ToUTF8(device_path)) || !IsWiimote(device_path, write_method))
       {
         free(detail_data);
         continue;
@@ -510,19 +490,10 @@ bool WiimoteWindows::ConnectInternal()
   if (IsConnected())
     return true;
 
-#ifdef SHARE_WRITE_WIIMOTES
-  std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
-  if (g_connected_wiimotes.count(m_devicepath) != 0)
+  if (!IsNewWiimote(UTF16ToUTF8(m_devicepath)))
     return false;
 
   auto const open_flags = FILE_SHARE_READ | FILE_SHARE_WRITE;
-#else
-  // Having no FILE_SHARE_WRITE disallows us from connecting to the same Wiimote twice.
-  // (And disallows using Wiimotes in use by other programs)
-  // This is what "WiiYourself" does.
-  // Apparently this doesn't work for everyone. It might be their fault.
-  auto const open_flags = FILE_SHARE_READ;
-#endif
 
   m_dev_handle = CreateFile(m_devicepath.c_str(), GENERIC_READ | GENERIC_WRITE, open_flags, nullptr,
                             OPEN_EXISTING, FILE_FLAG_OVERLAPPED, nullptr);
@@ -558,18 +529,15 @@ bool WiimoteWindows::ConnectInternal()
 	}
 #endif
 
-// TODO: thread isn't started here now, do this elsewhere
-// This isn't as drastic as it sounds, since the process in which the threads
-// reside is normal priority. Needed for keeping audio reports at a decent rate
-/*
-  if (!SetThreadPriority(m_wiimote_thread.native_handle(), THREAD_PRIORITY_TIME_CRITICAL))
-  {
-    ERROR_LOG(WIIMOTE, "Failed to set Wiimote thread priority");
-  }
-*/
-#ifdef SHARE_WRITE_WIIMOTES
-  g_connected_wiimotes.insert(m_devicepath);
-#endif
+  // TODO: thread isn't started here now, do this elsewhere
+  // This isn't as drastic as it sounds, since the process in which the threads
+  // reside is normal priority. Needed for keeping audio reports at a decent rate
+  /*
+    if (!SetThreadPriority(m_wiimote_thread.native_handle(), THREAD_PRIORITY_TIME_CRITICAL))
+    {
+      ERROR_LOG(WIIMOTE, "Failed to set Wiimote thread priority");
+    }
+  */
 
   return true;
 }
@@ -581,11 +549,6 @@ void WiimoteWindows::DisconnectInternal()
 
   CloseHandle(m_dev_handle);
   m_dev_handle = nullptr;
-
-#ifdef SHARE_WRITE_WIIMOTES
-  std::lock_guard<std::mutex> lk(g_connected_wiimotes_lock);
-  g_connected_wiimotes.erase(m_devicepath);
-#endif
 }
 
 WiimoteWindows::WiimoteWindows(const std::basic_string<TCHAR>& path,

@@ -14,14 +14,6 @@
 
 namespace WiimoteReal
 {
-// This is used to store the Bluetooth address of connected Wiimotes,
-// so we can ignore Wiimotes that are already connected.
-static std::vector<std::string> s_known_addrs;
-static bool IsNewWiimote(const std::string& addr)
-{
-  return std::find(s_known_addrs.begin(), s_known_addrs.end(), addr) == s_known_addrs.end();
-}
-
 WiimoteScannerLinux::WiimoteScannerLinux() : m_device_id(-1), m_device_sock(-1)
 {
   // Get the id of the first Bluetooth device.
@@ -100,7 +92,6 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
       continue;
 
     // Found a new device
-    s_known_addrs.push_back(bdaddr_str);
     Wiimote* wm = new WiimoteLinux(scan_infos[i].bdaddr);
     if (IsBalanceBoardName(name))
     {
@@ -180,10 +171,6 @@ void WiimoteLinux::DisconnectInternal()
 
   m_cmd_sock = -1;
   m_int_sock = -1;
-  char bdaddr_str[18] = {};
-  ba2str(&m_bdaddr, bdaddr_str);
-  s_known_addrs.erase(std::remove(s_known_addrs.begin(), s_known_addrs.end(), bdaddr_str),
-                      s_known_addrs.end());
 }
 
 bool WiimoteLinux::IsConnected() const

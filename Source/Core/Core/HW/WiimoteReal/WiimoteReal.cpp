@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdlib>
 #include <queue>
+#include <unordered_set>
 
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
@@ -36,6 +37,11 @@ void TryToConnectWiimote(Wiimote*);
 void HandleWiimoteDisconnect(int index);
 
 static bool g_real_wiimotes_initialized = false;
+
+// This is used to store connected Wiimotes' IDs, so we don't connect
+// more than once to the same device.
+static std::unordered_set<std::string> s_known_ids;
+static std::mutex s_known_ids_mutex;
 
 std::mutex g_wiimotes_mutex;
 
@@ -687,6 +693,7 @@ void Initialize(::Wiimote::InitializeMode init_mode)
 {
   if (!g_real_wiimotes_initialized)
   {
+    s_known_ids.clear();
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerLinux>());
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerAndroid>());
     g_wiimote_scanner.AddScannerBackend(std::make_unique<WiimoteScannerWindows>());
@@ -790,6 +797,8 @@ static bool TryToConnectWiimoteToSlot(Wiimote* wm, unsigned int i)
       NOTICE_LOG(WIIMOTE, "Connected to Wiimote %i.", i + 1);
       g_wiimotes[i] = wm;
       Host_ConnectWiimote(i, true);
+      std::lock_guard<std::mutex> lk(s_known_ids_mutex);
+      s_known_ids.insert(wm->GetId());
     }
     return true;
   }
@@ -824,6 +833,8 @@ void HandleWiimoteDisconnect(int index)
   std::swap(wm, g_wiimotes[index]);
   if (wm)
   {
+    std::lock_guard<std::mutex> lk(s_known_ids_mutex);
+    s_known_ids.erase(wm->GetId());
     delete wm;
     NOTICE_LOG(WIIMOTE, "Disconnected Wiimote %i.", index + 1);
   }
@@ -895,6 +906,13 @@ bool IsValidDeviceName(const std::string& name)
 bool IsBalanceBoardName(const std::string& name)
 {
   return "Nintendo RVL-WBC-01" == name;
+}
+
+// This is called from the scanner backends (currently on the scanner thread).
+bool IsNewWiimote(const std::string& identifier)
+{
+  std::lock_guard<std::mutex> lk(s_known_ids_mutex);
+  return s_known_ids.count(identifier) == 0;
 }
 
 };  // end of namespace

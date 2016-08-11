@@ -31,6 +31,8 @@ public:
   // This needs to be called in derived destructors!
   void Shutdown();
 
+  virtual std::string GetId() const = 0;
+
   void ControlChannel(const u16 channel, const void* const data, const u32 size);
   void InterruptChannel(const u16 channel, const void* const data, const u32 size);
   void Update();
@@ -164,6 +166,7 @@ void ChangeWiimoteSource(unsigned int index, int source);
 
 bool IsValidDeviceName(const std::string& name);
 bool IsBalanceBoardName(const std::string& name);
+bool IsNewWiimote(const std::string& identifier);
 
 #ifdef ANDROID
 void InitAdapterClass();
