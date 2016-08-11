@@ -939,7 +939,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetBackbufferWidth(), (float)GetBackbufferHeight());
   D3D::context->RSSetViewports(1, &vp);
 
-  Renderer::DrawDebugText();
+  Renderer::PrintDebugMessages();
 
   OSD::DrawMessages();
   D3D::EndFrame();

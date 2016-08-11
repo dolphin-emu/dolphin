@@ -21,18 +21,24 @@ static std::multimap<CallbackType, Callback> s_callbacks;
 static std::multimap<MessageType, Message> s_messages;
 static std::mutex s_messages_mutex;
 
+static std::string CleanMessage(std::string message)
+{
+  std::replace_if(message.begin(), message.end(), [](char c) { return !std::isprint(c); }, '?');
+  return message;
+}
+
 void AddTypedMessage(MessageType type, const std::string& message, u32 ms, u32 rgba)
 {
   std::lock_guard<std::mutex> lock(s_messages_mutex);
   s_messages.erase(type);
-  s_messages.emplace(type, Message(message, Common::Timer::GetTimeMs() + ms, rgba));
+  s_messages.emplace(type, Message(CleanMessage(message), Common::Timer::GetTimeMs() + ms, rgba));
 }
 
 void AddMessage(const std::string& message, u32 ms, u32 rgba)
 {
   std::lock_guard<std::mutex> lock(s_messages_mutex);
   s_messages.emplace(MessageType::Typeless,
-                     Message(message, Common::Timer::GetTimeMs() + ms, rgba));
+                     Message(CleanMessage(message), Common::Timer::GetTimeMs() + ms, rgba));
 }
 
 void DrawMessage(const Message& msg, int top, int left, int time_left)
@@ -52,7 +58,7 @@ void DrawMessages()
     std::lock_guard<std::mutex> lock(s_messages_mutex);
 
     u32 now = Common::Timer::GetTimeMs();
-    int left = 20, top = 35;
+    int left = 20, top = 20;
 
     auto it = s_messages.begin();
     while (it != s_messages.end())
