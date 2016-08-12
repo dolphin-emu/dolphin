@@ -100,7 +100,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   {
     out.Write("ATTRIBUTE_LOCATION(%d) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
     if (uid_data->components & VB_HAS_POSMTXIDX)
-      out.Write("ATTRIBUTE_LOCATION(%d) in int posmtx;\n", SHADER_POSMTX_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
     if (uid_data->components & VB_HAS_NRM0)
       out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm0;\n", SHADER_NORM0_ATTRIB);
     if (uid_data->components & VB_HAS_NRM1)
@@ -181,7 +181,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
         out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
     }
     if (uid_data->components & VB_HAS_POSMTXIDX)
-      out.Write("  int posmtx : BLENDINDICES,\n");
+      out.Write("  uint4 posmtx : BLENDINDICES,\n");
     out.Write("  float4 rawpos : POSITION) {\n");
   }
 
@@ -190,13 +190,15 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   // transforms
   if (uid_data->components & VB_HAS_POSMTXIDX)
   {
+    // TODO: Is it better to keep this as a uint or convert to an int, performance-wise?
+    out.Write("int posidx = int(posmtx.r);\n");
     out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES
-              "[posmtx], rawpos), dot(" I_TRANSFORMMATRICES
-              "[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES "[posmtx+2], rawpos), 1);\n");
+              "[posidx], rawpos), dot(" I_TRANSFORMMATRICES
+              "[posidx+1], rawpos), dot(" I_TRANSFORMMATRICES "[posidx+2], rawpos), 1);\n");
 
     if (uid_data->components & VB_HAS_NRMALL)
     {
-      out.Write("int normidx = posmtx & 31;\n");
+      out.Write("int normidx = int(posmtx.r) & 31;\n");
       out.Write("float3 N0 = " I_NORMALMATRICES "[normidx].xyz, N1 = " I_NORMALMATRICES
                 "[normidx+1].xyz, N2 = " I_NORMALMATRICES "[normidx+2].xyz;\n");
     }
