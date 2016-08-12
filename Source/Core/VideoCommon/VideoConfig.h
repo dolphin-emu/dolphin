@@ -171,7 +171,7 @@ struct VideoConfig final
     bool bSupportsPaletteConversion;
     bool bSupportsClipControl;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsSSAA;
-    bool bSupportsDepthClamp;   // Needed by VertexShaderGen, so must stay in VideoCommon
+    bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
   } backend_info;
 
   // Utility
