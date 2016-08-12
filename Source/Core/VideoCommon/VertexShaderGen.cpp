@@ -85,10 +85,11 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (api_type == APIType::OpenGL)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
     out.Write("UBO_BINDING(std140, 2) uniform VSBlock {\n");
   else
     out.Write("cbuffer VSBlock {\n");
+
   out.Write(s_shader_uniforms);
   out.Write("};\n");
 
@@ -96,7 +97,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting, "");
   out.Write("};\n");
 
-  if (api_type == APIType::OpenGL)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
     out.Write("ATTRIBUTE_LOCATION(%d) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
     if (uid_data->components & VB_HAS_POSMTXIDX)
@@ -123,7 +124,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       }
     }
 
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || api_type == APIType::Vulkan)
     {
       out.Write("VARYING_LOCATION(0) out VertexData {\n");
       GenerateVSOutputMembers(
@@ -463,9 +465,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   // get rasterized correctly.
   out.Write("o.pos.xy = o.pos.xy - o.pos.w * " I_PIXELCENTERCORRECTION ".xy;\n");
 
-  if (api_type == APIType::OpenGL)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || api_type == APIType::Vulkan)
     {
       AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, uid_data->pixel_lighting);
     }
@@ -490,7 +492,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("gl_ClipDistance[0] = o.clipDist0;\n");
       out.Write("gl_ClipDistance[1] = o.clipDist1;\n");
     }
-    out.Write("gl_Position = o.pos;\n");
+
+    // Vulkan NDC space has Y pointing down (right-handed NDC space).
+    if (api_type == APIType::Vulkan)
+      out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
+    else
+      out.Write("gl_Position = o.pos;\n");
   }
   else  // D3D
   {
