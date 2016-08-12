@@ -295,11 +295,23 @@ void DolphinApp::AfterInit()
 
 void DolphinApp::InitLanguageSupport()
 {
-  unsigned int language = 0;
-
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  ini.GetOrCreateSection("Interface")->Get("Language", &language, wxLANGUAGE_DEFAULT);
+  std::string language_code;
+  {
+    IniFile ini;
+    ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+    ini.GetOrCreateSection("Interface")->Get("LanguageCode", &language_code, "");
+  }
+  int language = wxLANGUAGE_UNKNOWN;
+  if (language_code.empty())
+  {
+    language = wxLANGUAGE_DEFAULT;
+  }
+  else
+  {
+    const wxLanguageInfo* language_info = wxLocale::FindLanguageInfo(StrToWxStr(language_code));
+    if (language_info)
+      language = language_info->Language;
+  }
 
   // Load language if possible, fall back to system default otherwise
   if (wxLocale::IsAvailable(language))

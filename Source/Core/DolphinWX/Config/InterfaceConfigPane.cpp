@@ -27,38 +27,14 @@
 #include "DolphinWX/X11Utils.h"
 #endif
 
-static const wxLanguage language_ids[] = {
-    wxLANGUAGE_DEFAULT,
+static const std::string language_ids[] = {
+    "",
 
-    wxLANGUAGE_MALAY,
-    wxLANGUAGE_CATALAN,
-    wxLANGUAGE_CZECH,
-    wxLANGUAGE_DANISH,
-    wxLANGUAGE_GERMAN,
-    wxLANGUAGE_ENGLISH,
-    wxLANGUAGE_SPANISH,
-    wxLANGUAGE_FRENCH,
-    wxLANGUAGE_CROATIAN,
-    wxLANGUAGE_ITALIAN,
-    wxLANGUAGE_HUNGARIAN,
-    wxLANGUAGE_DUTCH,
-    wxLANGUAGE_NORWEGIAN_BOKMAL,
-    wxLANGUAGE_POLISH,
-    wxLANGUAGE_PORTUGUESE,
-    wxLANGUAGE_PORTUGUESE_BRAZILIAN,
-    wxLANGUAGE_ROMANIAN,
-    wxLANGUAGE_SERBIAN,
-    wxLANGUAGE_SWEDISH,
-    wxLANGUAGE_TURKISH,
+    "ms", "ca", "cs",    "da", "de", "en", "es",    "fr",    "hr", "it", "hu", "nl",
+    "nb",  // wxWidgets won't accept "no"
+    "pl", "pt", "pt_BR", "ro", "sr", "sv", "tr",
 
-    wxLANGUAGE_GREEK,
-    wxLANGUAGE_RUSSIAN,
-    wxLANGUAGE_ARABIC,
-    wxLANGUAGE_FARSI,
-    wxLANGUAGE_KOREAN,
-    wxLANGUAGE_JAPANESE,
-    wxLANGUAGE_CHINESE_SIMPLIFIED,
-    wxLANGUAGE_CHINESE_TRADITIONAL,
+    "el", "ru", "ar",    "fa", "ko", "ja", "zh_CN", "zh_TW",
 };
 
 InterfaceConfigPane::InterfaceConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)

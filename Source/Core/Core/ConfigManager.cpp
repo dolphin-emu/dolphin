@@ -156,7 +156,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("MainWindowPosY", (iPosY == -32000) ? 0 : iPosY);  // TODO - HAX
   interface->Set("MainWindowWidth", iWidth);
   interface->Set("MainWindowHeight", iHeight);
-  interface->Set("Language", m_InterfaceLanguage);
+  interface->Set("LanguageCode", m_InterfaceLanguage);
   interface->Set("ShowToolbar", m_InterfaceToolbar);
   interface->Set("ShowStatusbar", m_InterfaceStatusbar);
   interface->Set("ShowLogWindow", m_InterfaceLogWindow);
@@ -423,7 +423,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("MainWindowPosY", &iPosY, 100);
   interface->Get("MainWindowWidth", &iWidth, 800);
   interface->Get("MainWindowHeight", &iHeight, 600);
-  interface->Get("Language", &m_InterfaceLanguage, 0);
+  interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ShowToolbar", &m_InterfaceToolbar, true);
   interface->Get("ShowStatusbar", &m_InterfaceStatusbar, true);
   interface->Get("ShowLogWindow", &m_InterfaceLogWindow, false);

@@ -210,7 +210,7 @@ struct SConfig : NonCopyable
   std::string m_bba_mac;
 
   // interface language
-  int m_InterfaceLanguage;
+  std::string m_InterfaceLanguage;
   float m_EmulationSpeed;
   bool m_OCEnable;
   float m_OCFactor;
