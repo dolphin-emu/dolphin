@@ -26,7 +26,7 @@
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/Jit_Util.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"

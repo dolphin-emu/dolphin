@@ -7,7 +7,7 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/Jit_Util.h"
 
 struct InstructionInfo;
 

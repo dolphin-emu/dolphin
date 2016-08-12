@@ -9,8 +9,8 @@
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Core/PowerPC/Jit64Common/JitCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
-#include "Core/PowerPC/JitCommon/TrampolineCache.h"
+#include "Core/PowerPC/Jit64Common/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 
 // TODO: find a better place for x86-specific stuff
 // The following register assignments are common to Jit64 and Jit64IL:

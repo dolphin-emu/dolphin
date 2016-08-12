@@ -201,9 +201,9 @@ if(_M_X86)
 			PowerPC/Jit64Common/Jit64AsmCommon.cpp
 			PowerPC/Jit64Common/JitBase.cpp
 			PowerPC/Jit64Common/JitCache.cpp
-			PowerPC/JitCommon/JitBackpatch.cpp
-			PowerPC/JitCommon/Jit_Util.cpp
-			PowerPC/JitCommon/TrampolineCache.cpp)
+			PowerPC/Jit64Common/JitBackpatch.cpp
+			PowerPC/Jit64Common/Jit_Util.cpp
+			PowerPC/Jit64Common/TrampolineCache.cpp)
 elseif(_M_ARM_64)
 	set(SRCS ${SRCS}
 	         PowerPC/JitArm64/Jit.cpp

@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/Jit_Util.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
