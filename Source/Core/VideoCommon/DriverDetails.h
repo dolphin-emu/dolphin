@@ -204,6 +204,14 @@ enum Bug
   // GPU memory to system memory. Use glMapBufferRange for BBox reads on AMD, and glGetBufferSubData
   // everywhere else.
   BUG_SLOWGETBUFFERSUBDATA,
+
+  // Bug: Broken lines in geometry shaders when writing to gl_ClipDistance
+  // Affected Devices: Mesa i965
+  // Started Version: -1
+  // Ended Version: -1
+  // Mesa hasn't tested geometry shaders on i965 with user-defined clipping planes.
+  // Causes misrenderings on a large amount of things that draw lines.
+  BUG_BROKENCLIPDISTANCE,
 };
 
 // Initializes our internal vendor, device family, and driver version
