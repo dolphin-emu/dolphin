@@ -6,9 +6,9 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Hooks.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCKeyboardEmu.h"
-#include "Core/Hooks.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 #include "InputCommon/KeyboardStatus.h"

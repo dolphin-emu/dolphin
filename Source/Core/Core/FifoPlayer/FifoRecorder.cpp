@@ -12,7 +12,7 @@
 #include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 #include "Core/HW/Memmap.h"
-#include "Core/Hooks.h"
+#include "Common/Hooks.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 #include "VideoCommon/XFMemory.h"

@@ -94,7 +94,6 @@
     <ClCompile Include="HLE\HLE.cpp" />
     <ClCompile Include="HLE\HLE_Misc.cpp" />
     <ClCompile Include="HLE\HLE_OS.cpp" />
-    <ClCompile Include="Hooks.cpp" />
     <ClCompile Include="HotkeyManager.cpp" />
     <ClCompile Include="HW\AudioInterface.cpp" />
     <ClCompile Include="HW\BBA-TAP\TAP_Win32.cpp" />
