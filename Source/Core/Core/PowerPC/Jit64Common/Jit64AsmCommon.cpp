@@ -11,7 +11,7 @@
 #include "Common/x64Emitter.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/Jit64Common/JitBase.h"
 #include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/PowerPC.h"
 

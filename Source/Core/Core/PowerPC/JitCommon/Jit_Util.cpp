@@ -11,7 +11,7 @@
 #include "Common/x64Emitter.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/Jit64Common/JitBase.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;

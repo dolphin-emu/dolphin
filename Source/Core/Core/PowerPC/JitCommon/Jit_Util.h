@@ -48,17 +48,6 @@ public:
   }
 };
 
-static const int CODE_SIZE = 1024 * 1024 * 32;
-
-// a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
-// mostly exception handling, so give it a whole bunch more space if the MMU is on.
-static const int FARCODE_SIZE = 1024 * 1024 * 8;
-static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
-
-// same for the trampoline code cache, because fastmem results in far more backpatches in MMU mode
-static const int TRAMPOLINE_CODE_SIZE = 1024 * 1024 * 8;
-static const int TRAMPOLINE_CODE_SIZE_MMU = 1024 * 1024 * 32;
-
 // Stores information we need to batch-patch a MOV with a call to the slow read/write path after
 // it faults. There will be 10s of thousands of these structs live, so be wary of making this too
 // big.

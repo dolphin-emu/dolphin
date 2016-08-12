@@ -185,11 +185,3 @@ public:
 
   u32* GetBlockBitSet() const { return valid_block.m_valid_block.get(); }
 };
-
-// x86 BlockCache
-class JitBlockCache : public JitBaseBlockCache
-{
-private:
-  void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) override;
-  void WriteDestroyBlock(const JitBlock& block) override;
-};

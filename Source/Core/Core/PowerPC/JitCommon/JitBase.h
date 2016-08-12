@@ -12,30 +12,12 @@
 #include <unordered_set>
 
 #include "Common/CommonTypes.h"
-#include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
-#include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
+#include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
-#include "Core/PowerPC/JitCommon/TrampolineCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
-
-// TODO: find a better place for x86-specific stuff
-// The following register assignments are common to Jit64 and Jit64IL:
-// RSCRATCH and RSCRATCH2 are always scratch registers and can be used without
-// limitation.
-#define RSCRATCH RAX
-#define RSCRATCH2 RDX
-// RSCRATCH_EXTRA may be in the allocation order, so it has to be flushed
-// before use.
-#define RSCRATCH_EXTRA RCX
-// RMEM points to the start of emulated memory.
-#define RMEM RBX
-// RPPCSTATE points to ppcState + 0x80.  It's offset because we want to be able
-// to address as much as possible in a one-byte offset form.
-#define RPPCSTATE RBP
 
 // Use these to control the instruction selection
 // #define INSTRUCTION_START FallBackToInterpreter(inst); return;
@@ -54,6 +36,17 @@
 
 #define JITDISABLE(setting)                                                                        \
   FALLBACK_IF(SConfig::GetInstance().bJITOff || SConfig::GetInstance().setting)
+
+static const int CODE_SIZE = 1024 * 1024 * 32;
+
+// a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
+// mostly exception handling, so give it a whole bunch more space if the MMU is on.
+static const int FARCODE_SIZE = 1024 * 1024 * 8;
+static const int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
+
+// same for the trampoline code cache, because fastmem results in far more backpatches in MMU mode
+static const int TRAMPOLINE_CODE_SIZE = 1024 * 1024 * 8;
+static const int TRAMPOLINE_CODE_SIZE_MMU = 1024 * 1024 * 32;
 
 class JitBase;
 
@@ -142,20 +135,4 @@ public:
   virtual bool HandleStackFault() { return false; }
 };
 
-class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
-{
-protected:
-  bool BackPatch(u32 emAddress, SContext* ctx);
-  JitBlockCache blocks;
-  TrampolineCache trampolines;
-
-public:
-  JitBlockCache* GetBlockCache() override { return &blocks; }
-  bool HandleFault(uintptr_t access_address, SContext* ctx) override;
-};
-
 void Jit(u32 em_address);
-
-// Merged routines that should be moved somewhere better
-void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
-                     JitBlock* b);
