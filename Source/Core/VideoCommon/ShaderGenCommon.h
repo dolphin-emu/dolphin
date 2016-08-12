@@ -197,7 +197,8 @@ inline void GenerateVSOutputMembers(T& object, APIType api_type, u32 texgens,
                        texgens + 2);
   }
 
-  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", -1, "SV_ClipDistance");
+  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, "SV_ClipDistance", 0);
+  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, "SV_ClipDistance", 1);
 }
 
 template <class T>
@@ -219,7 +220,8 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 t
     object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
   }
 
-  object.Write("\t%s.clipDist = %s.clipDist;\n", a, b);
+  object.Write("\t%s.clipDist0 = %s.clipDist0;\n", a, b);
+  object.Write("\t%s.clipDist1 = %s.clipDist1;\n", a, b);
 }
 
 // We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the

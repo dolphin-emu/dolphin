@@ -313,7 +313,10 @@ static void EmitVertex(ShaderCode& out, const geometry_shader_uid_data* uid_data
   {
     out.Write("\tgl_Position = %s.pos;\n", vertex);
     if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-      out.Write("\tgl_ClipDistance[0] = %s.clipDist;\n", vertex);
+    {
+      out.Write("\tgl_ClipDistance[0] = %s.clipDist0;\n", vertex);
+      out.Write("\tgl_ClipDistance[1] = %s.clipDist1;\n", vertex);
+    }
     AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, uid_data->pixel_lighting);
   }
   else
