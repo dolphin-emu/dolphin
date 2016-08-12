@@ -12,6 +12,7 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
@@ -146,14 +147,26 @@ void InterfaceConfigPane::LoadGUIValues()
   m_osd_messages_checkbox->SetValue(startup_params.bOnScreenDisplayMessages);
   m_pause_focus_lost_checkbox->SetValue(SConfig::GetInstance().m_PauseOnFocusLost);
 
-  for (size_t i = 0; i < sizeof(language_ids) / sizeof(wxLanguage); i++)
+  const std::string exact_language = SConfig::GetInstance().m_InterfaceLanguage;
+  const std::string loose_language = exact_language.substr(0, exact_language.find("_"));
+  size_t exact_match_index = -1;
+  size_t loose_match_index = -1;
+  for (size_t i = 0; i < ArraySize(language_ids); i++)
   {
-    if (language_ids[i] == SConfig::GetInstance().m_InterfaceLanguage)
+    if (language_ids[i] == exact_language)
     {
-      m_interface_lang_choice->SetSelection(i);
+      exact_match_index = i;
       break;
     }
+    else if (language_ids[i] == loose_language)
+    {
+      loose_match_index = i;
+    }
   }
+  if (exact_match_index != -1)
+    m_interface_lang_choice->SetSelection(exact_match_index);
+  else if (loose_match_index != -1)
+    m_interface_lang_choice->SetSelection(loose_match_index);
 
   LoadThemes();
 }
