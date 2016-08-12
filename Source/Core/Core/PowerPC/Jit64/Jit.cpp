@@ -598,6 +598,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   js.isLastInstruction = false;
   js.blockStart = em_address;
   js.fifoBytesThisBlock = 0;
+  js.mustCheckFifo = false;
   js.curBlock = b;
   js.numLoadStoreInst = 0;
   js.numFloatingPointInst = 0;
@@ -723,9 +724,11 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         js.fifoWriteAddresses.find(ops[i].address) != js.fifoWriteAddresses.end();
 
     // Gather pipe writes using an immediate address are explicitly tracked.
-    if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
+    if (jo.optimizeGatherPipe && (js.fifoBytesThisBlock >= 32 || js.mustCheckFifo))
     {
-      js.fifoBytesThisBlock -= 32;
+      if (js.fifoBytesThisBlock >= 32)
+        js.fifoBytesThisBlock -= 32;
+      js.mustCheckFifo = false;
       BitSet32 registersInUse = CallerSavedRegistersInUse();
       ABI_PushRegistersAndAdjustStack(registersInUse, 0);
       ABI_CallFunction((void*)&GPFifo::FastCheckGatherPipe);
