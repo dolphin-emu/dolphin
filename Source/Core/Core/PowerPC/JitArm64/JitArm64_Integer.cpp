@@ -554,7 +554,7 @@ void JitArm64::rlwinmx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   u32 a = inst.RA, s = inst.RS;
 
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  u32 mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
   if (gpr.IsImm(inst.RS))
   {
     gpr.SetImmediate(a, _rotl(gpr.GetImm(s), inst.SH) & mask);
@@ -580,7 +580,7 @@ void JitArm64::rlwnmx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   u32 a = inst.RA, b = inst.RB, s = inst.RS;
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  u32 mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
@@ -1185,7 +1185,7 @@ void JitArm64::rlwimix(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
 
   int a = inst.RA, s = inst.RS;
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  u32 mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
 
   if (gpr.IsImm(a) && gpr.IsImm(s))
   {

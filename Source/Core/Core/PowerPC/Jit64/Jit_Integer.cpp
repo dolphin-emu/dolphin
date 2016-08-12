@@ -1425,7 +1425,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
     u32 result = gpr.R(s).Imm32();
     if (inst.SH != 0)
       result = _rotl(result, inst.SH);
-    result &= Helper_Mask(inst.MB, inst.ME);
+    result &= Interpreter::Helper_Mask(inst.MB, inst.ME);
     gpr.SetImmediate32(a, result);
     if (inst.Rc)
       ComputeRC(gpr.R(a));
@@ -1434,7 +1434,7 @@ void Jit64::rlwinmx(UGeckoInstruction inst)
   {
     bool left_shift = inst.SH && inst.MB == 0 && inst.ME == 31 - inst.SH;
     bool right_shift = inst.SH && inst.ME == 31 && inst.MB == 32 - inst.SH;
-    u32 mask = Helper_Mask(inst.MB, inst.ME);
+    u32 mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
     bool simple_mask = mask == 0xff || mask == 0xffff;
     // In case of a merged branch, track whether or not we've set flags.
     // If not, we need to do a test later to get them.
@@ -1508,7 +1508,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
 
   if (gpr.R(a).IsImm() && gpr.R(s).IsImm())
   {
-    u32 mask = Helper_Mask(inst.MB, inst.ME);
+    u32 mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
     gpr.SetImmediate32(a, (gpr.R(a).Imm32() & ~mask) | (_rotl(gpr.R(s).Imm32(), inst.SH) & mask));
     if (inst.Rc)
       ComputeRC(gpr.R(a));
@@ -1516,7 +1516,7 @@ void Jit64::rlwimix(UGeckoInstruction inst)
   else
   {
     gpr.Lock(a, s);
-    u32 mask = Helper_Mask(inst.MB, inst.ME);
+    u32 mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
     bool needs_test = false;
     if (mask == 0 || (a == s && inst.SH == 0))
     {
@@ -1606,7 +1606,7 @@ void Jit64::rlwnmx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   int a = inst.RA, b = inst.RB, s = inst.RS;
 
-  u32 mask = Helper_Mask(inst.MB, inst.ME);
+  u32 mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
   if (gpr.R(b).IsImm() && gpr.R(s).IsImm())
   {
     gpr.SetImmediate32(a, _rotl(gpr.R(s).Imm32(), gpr.R(b).Imm32() & 0x1F) & mask);

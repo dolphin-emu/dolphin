@@ -279,6 +279,8 @@ public:
   static void RunTable59(UGeckoInstruction _instCode);
   static void RunTable63(UGeckoInstruction _instCode);
 
+  // helpers also used by the JITs
+  static u32 Helper_Mask(int mb, int me);
   static u32 Helper_Carry(u32 _uValue1, u32 _uValue2);
 
 private:
@@ -297,9 +299,7 @@ private:
   static void Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW);
   static void Helper_Quantize(u32 addr, u32 instI, u32 instRS, u32 instW);
 
-  // other helper
-  static u32 Helper_Mask(int mb, int me);
-
+  // float compare helpers
   static void Helper_FloatCompareOrdered(UGeckoInstruction _inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction _inst, double a, double b);
 
