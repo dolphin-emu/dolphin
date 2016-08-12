@@ -384,6 +384,17 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   {
     out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
   }
+  else if (ApiType == APIType::Vulkan)
+  {
+    out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
+    out.Write("SAMPLER_BINDING(1) uniform sampler2DArray samp1;\n");
+    out.Write("SAMPLER_BINDING(2) uniform sampler2DArray samp2;\n");
+    out.Write("SAMPLER_BINDING(3) uniform sampler2DArray samp3;\n");
+    out.Write("SAMPLER_BINDING(4) uniform sampler2DArray samp4;\n");
+    out.Write("SAMPLER_BINDING(5) uniform sampler2DArray samp5;\n");
+    out.Write("SAMPLER_BINDING(6) uniform sampler2DArray samp6;\n");
+    out.Write("SAMPLER_BINDING(7) uniform sampler2DArray samp7;\n");
+  }
   else  // D3D
   {
     // Declare samplers
@@ -393,7 +404,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   }
   out.Write("\n");
 
-  if (ApiType == APIType::OpenGL)
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
     out.Write("UBO_BINDING(std140, 0) uniform PSBlock {\n");
   else
     out.Write("cbuffer PSBlock : register(b0) {\n");
@@ -416,7 +427,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   {
     out.Write("%s", s_lighting_struct);
 
-    if (ApiType == APIType::OpenGL)
+    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
       out.Write("UBO_BINDING(std140, 1) uniform VSBlock {\n");
     else
       out.Write("cbuffer VSBlock : register(b1) {\n");
@@ -427,7 +438,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
 
   if (uid_data->bounding_box)
   {
-    if (ApiType == APIType::OpenGL)
+    if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
     {
       out.Write("SSBO_BINDING(0) buffer BBox {\n"
                 "\tint4 bbox_data;\n"
@@ -485,6 +496,11 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
       // This is a #define which signals whatever early-z method the driver supports.
       out.Write("FORCE_EARLY_Z; \n");
     }
+    else if (ApiType == APIType::Vulkan)
+    {
+      // Vulkan only needs a single method of applying early fragment tests.
+      out.Write("layout(early_fragment_tests) in;");
+    }
     else
     {
       out.Write("[earlydepthstencil]\n");
@@ -502,7 +518,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
     warn_once = false;
   }
 
-  if (ApiType == APIType::OpenGL)
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
     if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
     {
@@ -517,7 +533,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
     if (uid_data->per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
 
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || ApiType == APIType::Vulkan)
     {
       out.Write("VARYING_LOCATION(0) in VertexData {\n");
       GenerateVSOutputMembers(
@@ -555,7 +571,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
 
     out.Write("void main()\n{\n");
 
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || ApiType == APIType::Vulkan)
     {
       for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
         out.Write("\tfloat3 uv%d = tex%d;\n", i, i);
@@ -734,7 +750,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   }
   else
   {
-    if (ApiType == APIType::D3D)
+    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
       out.Write("\tint zCoord = int((1.0 - rawpos.z) * 16777216.0);\n");
     else
       out.Write("\tint zCoord = int(rawpos.z * 16777216.0);\n");
@@ -748,7 +764,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   // Note: z-textures are not written to depth buffer if early depth test is used
   if (uid_data->per_pixel_depth && uid_data->early_ztest)
   {
-    if (ApiType == APIType::D3D)
+    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
@@ -769,7 +785,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
 
   if (uid_data->per_pixel_depth && uid_data->late_ztest)
   {
-    if (ApiType == APIType::D3D)
+    if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
@@ -799,7 +815,8 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
 
   if (uid_data->bounding_box)
   {
-    const char* atomic_op = ApiType == APIType::OpenGL ? "atomic" : "Interlocked";
+    const char* atomic_op =
+        (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan) ? "atomic" : "Interlocked";
     out.Write("\tif(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], int(rawpos.x));\n"
               "\tif(bbox_data[1] < int(rawpos.x)) %sMax(bbox_data[1], int(rawpos.x));\n"
               "\tif(bbox_data[2] > int(rawpos.y)) %sMin(bbox_data[2], int(rawpos.y));\n"
@@ -1146,12 +1163,21 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
   out.SetConstantsUsed(C_TEXDIMS + texmap, C_TEXDIMS + texmap);
 
   if (ApiType == APIType::D3D)
+  {
     out.Write("iround(255.0 * Tex[%d].Sample(samp[%d], float3(%s.xy * " I_TEXDIMS
               "[%d].xy, %s))).%s;\n",
               texmap, texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
+  }
+  else if (ApiType == APIType::Vulkan)
+  {
+    out.Write("iround(255.0 * texture(samp%d, float3(%s.xy * " I_TEXDIMS "[%d].xy, %s))).%s;\n",
+              texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
+  }
   else
+  {
     out.Write("iround(255.0 * texture(samp[%d], float3(%s.xy * " I_TEXDIMS "[%d].xy, %s))).%s;\n",
               texmap, texcoords, texmap, stereo ? "layer" : "0.0", texswap);
+  }
 }
 
 static const char* tevAlphaFuncsTable[] = {
@@ -1203,7 +1229,10 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
     out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   if (per_pixel_depth)
-    out.Write("\t\tdepth = %s;\n", (ApiType == APIType::D3D) ? "0.0" : "1.0");
+  {
+    out.Write("\t\tdepth = %s;\n",
+              (ApiType == APIType::D3D || ApiType == APIType::Vulkan) ? "0.0" : "1.0");
+  }
 
   // ZCOMPLOC HACK:
   if (!uid_data->alpha_test_use_zcomploc_hack)

@@ -81,7 +81,10 @@ static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
 {
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
-  WRITE(p, "uniform int4 position;\n");
+  if (ApiType == APIType::Vulkan)
+    WRITE(p, "layout(std140, push_constant) uniform PCBlock { int4 position; } PC;\n");
+  else
+    WRITE(p, "uniform int4 position;\n");
 
   int blkW = TexDecoder_GetBlockWidthInTexels(format);
   int blkH = TexDecoder_GetBlockHeightInTexels(format);
@@ -97,6 +100,17 @@ static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
              "  int2 uv1 = int2(gl_FragCoord.xy);\n");
+  }
+  else if (ApiType == APIType::Vulkan)
+  {
+    WRITE(p, "SAMPLER_BINDING(0) uniform sampler2DArray samp0;\n");
+    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+
+    WRITE(p, "void main()\n");
+    WRITE(p, "{\n"
+             "  int2 sampleUv;\n"
+             "  int2 uv1 = int2(gl_FragCoord.xy);\n"
+             "  int4 position = PC.position;\n");
   }
   else  // D3D
   {
@@ -146,7 +160,7 @@ static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset,
                              APIType ApiType, bool depth = false)
 {
-  if (ApiType == APIType::OpenGL)
+  if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
     WRITE(p, "  %s = texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n", dest,
           xoffset, colorComp);
@@ -155,7 +169,10 @@ static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, 
   {
     WRITE(p, "  %s = Tex0.Sample(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
           dest, xoffset, colorComp);
+  }
 
+  if (ApiType == APIType::D3D || ApiType == APIType::Vulkan)
+  {
     // Handle D3D depth inversion.
     if (depth)
       WRITE(p, "  %s = 1.0f - %s;\n", dest, dest);
