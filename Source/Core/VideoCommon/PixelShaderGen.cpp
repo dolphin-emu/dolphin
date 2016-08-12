@@ -394,14 +394,10 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   out.Write("\n");
 
   if (ApiType == APIType::OpenGL)
-  {
-    out.Write("layout(std140%s) uniform PSBlock {\n",
-              g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 1" : "");
-  }
+    out.Write("UBO_BINDING(std140, 0) uniform PSBlock {\n");
   else
-  {
     out.Write("cbuffer PSBlock : register(b0) {\n");
-  }
+
   out.Write("\tint4 " I_COLORS "[4];\n"
             "\tint4 " I_KCOLORS "[4];\n"
             "\tint4 " I_ALPHA ";\n"
@@ -421,14 +417,10 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
     out.Write("%s", s_lighting_struct);
 
     if (ApiType == APIType::OpenGL)
-    {
-      out.Write("layout(std140%s) uniform VSBlock {\n",
-                g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
-    }
+      out.Write("UBO_BINDING(std140, 1) uniform VSBlock {\n");
     else
-    {
       out.Write("cbuffer VSBlock : register(b1) {\n");
-    }
+
     out.Write(s_shader_uniforms);
     out.Write("};\n");
   }
@@ -437,7 +429,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   {
     if (ApiType == APIType::OpenGL)
     {
-      out.Write("layout(std140, binding = 3) buffer BBox {\n"
+      out.Write("SSBO_BINDING(0) buffer BBox {\n"
                 "\tint4 bbox_data;\n"
                 "};\n");
     }
@@ -512,16 +504,22 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
 
   if (ApiType == APIType::OpenGL)
   {
-    out.Write("out vec4 ocol0;\n");
     if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-      out.Write("out vec4 ocol1;\n");
+    {
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
+    }
+    else
+    {
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+    }
 
     if (uid_data->per_pixel_depth)
       out.Write("#define depth gl_FragDepth\n");
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
-      out.Write("in VertexData {\n");
+      out.Write("VARYING_LOCATION(0) in VertexData {\n");
       GenerateVSOutputMembers(
           out, ApiType, uid_data->genMode_numtexgens, uid_data->per_pixel_lighting,
           GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, true));

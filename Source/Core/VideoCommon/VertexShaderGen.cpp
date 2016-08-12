@@ -86,8 +86,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
 
   // uniforms
   if (api_type == APIType::OpenGL)
-    out.Write("layout(std140%s) uniform VSBlock {\n",
-              g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
+    out.Write("UBO_BINDING(std140, 1) uniform VSBlock {\n");
   else
     out.Write("cbuffer VSBlock {\n");
   out.Write(s_shader_uniforms);
@@ -99,32 +98,34 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
 
   if (api_type == APIType::OpenGL)
   {
-    out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION(%d) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
     if (uid_data->components & VB_HAS_POSMTXIDX)
-      out.Write("in int posmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in int posmtx;\n", SHADER_POSMTX_ATTRIB);
     if (uid_data->components & VB_HAS_NRM0)
-      out.Write("in float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm0;\n", SHADER_NORM0_ATTRIB);
     if (uid_data->components & VB_HAS_NRM1)
-      out.Write("in float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm1;\n", SHADER_NORM1_ATTRIB);
     if (uid_data->components & VB_HAS_NRM2)
-      out.Write("in float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm2;\n", SHADER_NORM2_ATTRIB);
 
     if (uid_data->components & VB_HAS_COL0)
-      out.Write("in float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float4 color0;\n", SHADER_COLOR0_ATTRIB);
     if (uid_data->components & VB_HAS_COL1)
-      out.Write("in float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float4 color1;\n", SHADER_COLOR1_ATTRIB);
 
     for (int i = 0; i < 8; ++i)
     {
       u32 hastexmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
       if ((uid_data->components & (VB_HAS_UV0 << i)) || hastexmtx)
-        out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i,
-                  SHADER_TEXTURE0_ATTRIB + i);
+      {
+        out.Write("ATTRIBUTE_LOCATION(%d) in float%d tex%d;\n", SHADER_TEXTURE0_ATTRIB + i,
+                  hastexmtx ? 3 : 2, i);
+      }
     }
 
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
-      out.Write("out VertexData {\n");
+      out.Write("VARYING_LOCATION(0) out VertexData {\n");
       GenerateVSOutputMembers(
           out, api_type, uid_data->numTexGens, uid_data->pixel_lighting,
           GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false, true));

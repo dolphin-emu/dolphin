@@ -77,8 +77,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const geometry_shader_uid
 
   // uniforms
   if (ApiType == APIType::OpenGL)
-    out.Write("layout(std140%s) uniform GSBlock {\n",
-              g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 3" : "");
+    out.Write("UBO_BINDING(std140, 2) uniform GSBlock {\n");
   else
     out.Write("cbuffer GSBlock {\n");
   out.Write("\tfloat4 " I_STEREOPARAMS ";\n"
@@ -96,13 +95,13 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const geometry_shader_uid
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
       out.Write("#define InstanceID gl_InvocationID\n");
 
-    out.Write("in VertexData {\n");
+    out.Write("VARYING_LOCATION(0) in VertexData {\n");
     GenerateVSOutputMembers<ShaderCode>(
         out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting,
         GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, true));
     out.Write("} vs[%d];\n", vertex_in);
 
-    out.Write("out VertexData {\n");
+    out.Write("VARYING_LOCATION(0) out VertexData {\n");
     GenerateVSOutputMembers<ShaderCode>(
         out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting,
         GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false, true));

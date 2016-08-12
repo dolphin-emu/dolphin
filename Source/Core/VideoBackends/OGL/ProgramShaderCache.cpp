@@ -80,11 +80,11 @@ void SHADER::SetProgramVariables()
     GLint GSBlock_id = glGetUniformBlockIndex(glprogid, "GSBlock");
 
     if (PSBlock_id != -1)
-      glUniformBlockBinding(glprogid, PSBlock_id, 1);
+      glUniformBlockBinding(glprogid, PSBlock_id, 0);
     if (VSBlock_id != -1)
-      glUniformBlockBinding(glprogid, VSBlock_id, 2);
+      glUniformBlockBinding(glprogid, VSBlock_id, 1);
     if (GSBlock_id != -1)
-      glUniformBlockBinding(glprogid, GSBlock_id, 3);
+      glUniformBlockBinding(glprogid, GSBlock_id, 2);
 
     // Bind Texture Samplers
     for (int a = 0; a <= 9; ++a)
@@ -154,12 +154,12 @@ void ProgramShaderCache::UploadConstants()
            &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size);
-    glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, s_buffer->m_buffer, buffer.second,
                       sizeof(PixelShaderConstants));
-    glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer,
+    glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer,
                       buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
                       sizeof(VertexShaderConstants));
-    glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer,
+    glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer,
                       buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
                           ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
                       sizeof(GeometryShaderConstants));
@@ -277,7 +277,8 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
   if (g_ogl_config.bSupportsGLSLCache)
     glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 
-  shader.SetProgramBindings();
+  if (!g_ActiveConfig.backend_info.bSupportsBindingLayout)
+    shader.SetProgramBindings();
 
   glLinkProgram(pid);
 
@@ -554,7 +555,8 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // early-z
       "%s\n"  // 420pack
       "%s\n"  // msaa
-      "%s\n"  // Sampler binding
+      "%s\n"  // Input/output/sampler binding
+      "%s\n"  // Varying location
       "%s\n"  // storage buffer
       "%s\n"  // shader5
       "%s\n"  // SSAA
@@ -596,8 +598,19 @@ void ProgramShaderCache::CreateHeader()
           "#extension GL_ARB_texture_multisample : enable" :
           "",
       g_ActiveConfig.backend_info.bSupportsBindingLayout ?
-          "#define SAMPLER_BINDING(x) layout(binding = x)" :
-          "#define SAMPLER_BINDING(x)",
+          "#define ATTRIBUTE_LOCATION(x) layout(location = x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION(x) layout(location = x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y) layout(location = x, index = y)\n"
+          "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
+          "#define SAMPLER_BINDING(x) layout(binding = x)\n"
+          "#define SSBO_BINDING(x) layout(binding = x)\n" :
+          "#define ATTRIBUTE_LOCATION(x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
+          "#define UBO_BINDING(packing, x) layout(packing)\n"
+          "#define SAMPLER_BINDING(x)\n",
+      // Input/output blocks are matched by name during program linking
+      "#define VARYING_LOCATION(x)\n",
       !is_glsles && g_ActiveConfig.backend_info.bSupportsBBox ?
           "#extension GL_ARB_shader_storage_buffer_object : enable" :
           "",
