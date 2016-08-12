@@ -403,7 +403,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   {
     // Since we're adjusting z for the depth range before the perspective divide, we have to do our
     // own clipping.
-    out.Write("o.clipDist = o.pos.z + o.pos.w;\n");
+    out.Write("o.clipDist0 = o.pos.z + o.pos.w;\n");
+    out.Write("o.clipDist1 = o.pos.w * -o.pos.z;\n");
 
     // We have to handle the depth range in the vertex shader, because some games will use a depth range beyond
     // the normal depth range of 0..1.
@@ -467,7 +468,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
     }
 
     if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-      out.Write("gl_ClipDistance[0] = o.clipDist;\n");
+    {
+      out.Write("gl_ClipDistance[0] = o.clipDist0;\n");
+      out.Write("gl_ClipDistance[1] = o.clipDist1;\n");
+    }
     out.Write("gl_Position = o.pos;\n");
   }
   else  // D3D

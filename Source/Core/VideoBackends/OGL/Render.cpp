@@ -734,6 +734,7 @@ Renderer::Renderer()
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
     glEnable(GL_CLIP_DISTANCE0);
+    glEnable(GL_CLIP_DISTANCE1);
     glEnable(GL_DEPTH_CLAMP);
   }
 
@@ -1664,7 +1665,10 @@ void Renderer::ResetAPIState()
   if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
     glDisable(GL_COLOR_LOGIC_OP);
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
     glDisable(GL_CLIP_DISTANCE0);
+    glDisable(GL_CLIP_DISTANCE1);
+  }
   glDepthMask(GL_FALSE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
@@ -1674,7 +1678,10 @@ void Renderer::RestoreAPIState()
   // Gets us back into a more game-like state.
   glEnable(GL_SCISSOR_TEST);
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
     glEnable(GL_CLIP_DISTANCE0);
+    glEnable(GL_CLIP_DISTANCE1);
+  }
   SetGenerationMode();
   BPFunctions::SetScissor();
   SetColorMask();
