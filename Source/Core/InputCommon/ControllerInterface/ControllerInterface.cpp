@@ -5,7 +5,7 @@
 #include <mutex>
 
 #include "Common/Thread.h"
-#include "Core/Hooks.h"
+#include "Common/Hooks.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 #ifdef CIFACE_USE_XINPUT

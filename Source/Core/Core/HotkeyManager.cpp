@@ -7,7 +7,7 @@
 
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
-#include "Core/Hooks.h"
+#include "Common/Hooks.h"
 #include "Core/HotkeyManager.h"
 #include "InputCommon/GCPadStatus.h"
 

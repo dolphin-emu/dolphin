@@ -21,6 +21,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Flag.h"
+#include "Common/Hooks.h"
 #include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
@@ -29,7 +30,6 @@
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/VideoInterface.h"
-#include "Core/Hooks.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 
