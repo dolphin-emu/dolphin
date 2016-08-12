@@ -41,7 +41,9 @@ void EmuCodeBlock::MemoryExceptionCheck()
   if (jit->jo.memcheck && !jit->js.fastmemLoadStore && !jit->js.fixupExceptionHandler)
   {
     TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
-    jit->js.exceptionHandler = J_CC(Gen::CC_NZ, true);
+    FixupBranch exceptionHandler = J_CC(Gen::CC_NZ, true);
+    jit->js.exceptionHandler_ptr = exceptionHandler.ptr;
+    jit->js.exceptionHandler_type = exceptionHandler.type;
     jit->js.fixupExceptionHandler = true;
   }
 }

@@ -871,7 +871,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         if (!js.fastmemLoadStore)
         {
           exceptionHandlerAtLoc[js.fastmemLoadStore] = nullptr;
-          SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+          SetJumpTarget(js.fixupExceptionHandler ?
+                            FixupBranch{js.exceptionHandler_ptr, js.exceptionHandler_type} :
+                            memException);
         }
         else
         {
