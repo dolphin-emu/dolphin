@@ -482,8 +482,9 @@ Renderer::Renderer()
       GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
   // Clip distance support is useless without a method to clamp the depth range
-  g_Config.backend_info.bSupportsDepthClamp = GLExtensions::Supports("GL_ARB_depth_clamp") &&
-    !DriverDetails::HasBug(DriverDetails::BUG_BROKENCLIPDISTANCE);
+  g_Config.backend_info.bSupportsDepthClamp =
+      GLExtensions::Supports("GL_ARB_depth_clamp") &&
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKENCLIPDISTANCE);
 
   g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
@@ -524,7 +525,8 @@ Renderer::Renderer()
     g_ogl_config.bSupportsGLSLCache = true;
     g_ogl_config.bSupportsGLSync = true;
 
-    // TODO: Implement support for GL_EXT_clip_cull_distance when there is an extension for depth clamping.
+    // TODO: Implement support for GL_EXT_clip_cull_distance when there is an extension for
+    // depth clamping.
     g_Config.backend_info.bSupportsDepthClamp = false;
 
     if (strstr(g_ogl_config.glsl_version, "3.0"))
