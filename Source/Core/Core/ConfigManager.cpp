@@ -162,7 +162,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ShowLogWindow", m_InterfaceLogWindow);
   interface->Set("ShowLogConfigWindow", m_InterfaceLogConfigWindow);
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
-  interface->Set("ThemeName40", theme_name);
+  interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
 }
 
@@ -373,34 +373,8 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
       m_ISOFolder.push_back(std::move(tmpPath));
     }
   }
-  // Check for old file path (Changed in 4.0-4003)
-  // This can probably be removed after 5.0 stable is launched
-  else if (general->Get("GCMPathes", &numISOPaths, 0))
-  {
-    for (int i = 0; i < numISOPaths; i++)
-    {
-      std::string tmpPath;
-      general->Get(StringFromFormat("GCMPath%i", i), &tmpPath, "");
-      bool found = false;
-      for (size_t j = 0; j < m_ISOFolder.size(); ++j)
-      {
-        if (m_ISOFolder[j] == tmpPath)
-        {
-          found = true;
-          break;
-        }
-      }
-      if (!found)
-        m_ISOFolder.push_back(std::move(tmpPath));
-    }
-  }
 
-  if (!general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false))
-  {
-    // Check for old name
-    general->Get("RecursiveGCMPaths", &m_RecursiveISOFolder, false);
-  }
-
+  general->Get("RecursiveISOPaths", &m_RecursiveISOFolder, false);
   general->Get("NANDRootPath", &m_NANDPath);
   File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
   general->Get("DumpPath", &m_DumpPath);
@@ -429,7 +403,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ShowLogWindow", &m_InterfaceLogWindow, false);
   interface->Get("ShowLogConfigWindow", &m_InterfaceLogConfigWindow, false);
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
-  interface->Get("ThemeName40", &theme_name, DEFAULT_THEME_DIR);
+  interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
 }
 
