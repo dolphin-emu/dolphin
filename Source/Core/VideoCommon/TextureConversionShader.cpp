@@ -92,7 +92,7 @@ static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
     WRITE(p, "#define samp0 samp9\n");
     WRITE(p, "SAMPLER_BINDING(9) uniform sampler2DArray samp0;\n");
 
-    WRITE(p, "  out vec4 ocol0;\n");
+    WRITE(p, "FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
     WRITE(p, "void main()\n");
     WRITE(p, "{\n"
              "  int2 sampleUv;\n"
