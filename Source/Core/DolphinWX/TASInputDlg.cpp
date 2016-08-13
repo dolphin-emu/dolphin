@@ -506,6 +506,7 @@ void TASInputDlg::ResetValues()
     if (button != nullptr)
     {
       button->value = false;
+      button->is_checked = false;
       button->checkbox->SetValue(false);
     }
   }
@@ -524,6 +525,7 @@ void TASInputDlg::ResetValues()
     for (Button& button : m_cc_buttons)
     {
       button.value = false;
+      button.is_checked = false;
       button.checkbox->SetValue(false);
     }
 
@@ -1069,21 +1071,8 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 
 void TASInputDlg::SetTurbo(wxMouseEvent& event)
 {
-  Button* button = nullptr;
-
-  for (Button* const btn : m_buttons)
-  {
-    if (btn != nullptr && event.GetId() == btn->id)
-      button = btn;
-  }
-  if (m_ext == 2)
-  {
-    for (size_t i = 0; i < ArraySize(m_cc_buttons); ++i)
-    {
-      if (event.GetId() == m_cc_buttons[i].id)
-        button = &m_cc_buttons[i];
-    }
-  }
+  auto cbox = static_cast<wxCheckBox*>(event.GetEventObject());
+  auto button = static_cast<Button*>(cbox->GetClientData());
 
   if (event.LeftDown())
   {
@@ -1097,6 +1086,7 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
   if (button)
   {
     button->checkbox->SetValue(true);
+    button->is_checked = true;
     button->turbo_on = !button->turbo_on;
   }
 
