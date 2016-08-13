@@ -133,7 +133,8 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
         config.bStereoEFBMonoDepth != backup_config.s_efb_mono_depth)
     {
       g_texture_cache->DeleteShaders();
-      g_texture_cache->CompileShaders();
+      if (!g_texture_cache->CompileShaders())
+        PanicAlert("Failed to recompile one or more texture conversion shaders.");
     }
   }
 

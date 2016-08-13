@@ -57,7 +57,7 @@ private:
                u32 memory_stride, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
                bool isIntensity, bool scaleByHalf) override;
 
-  void CompileShaders() override;
+  bool CompileShaders() override;
   void DeleteShaders() override;
 };
 
