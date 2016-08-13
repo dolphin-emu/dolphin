@@ -327,7 +327,7 @@ static void InitDriverInfo()
   default:
     break;
   }
-  DriverDetails::Init(vendor, driver, version, family);
+  DriverDetails::Init(DriverDetails::API_OPENGL, vendor, driver, version, family);
 }
 
 // Init functions
