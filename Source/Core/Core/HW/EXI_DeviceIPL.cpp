@@ -11,6 +11,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -340,7 +341,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 
         if (_uByte == '\r')
         {
-          NOTICE_LOG(OSREPORT, "%s", m_buffer.c_str());
+          NOTICE_LOG(OSREPORT, "%s", SHIFTJISToUTF8(m_buffer).c_str());
           m_buffer.clear();
         }
       }
