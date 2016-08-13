@@ -60,10 +60,6 @@ Common::Event Renderer::s_screenshotCompleted;
 
 volatile bool Renderer::s_bScreenshot;
 
-// Final surface changing
-Common::Flag Renderer::s_SurfaceNeedsChanged;
-Common::Event Renderer::s_ChangedSurface;
-
 // The framebuffer size
 int Renderer::s_target_width;
 int Renderer::s_target_height;
@@ -73,6 +69,11 @@ int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
 
 std::unique_ptr<PostProcessingShaderImplementation> Renderer::m_post_processor;
+
+// Final surface changing
+Common::Flag Renderer::s_surface_needs_change;
+Common::Event Renderer::s_surface_changed;
+void* Renderer::s_new_surface_handle;
 
 TargetRectangle Renderer::target_rc;
 

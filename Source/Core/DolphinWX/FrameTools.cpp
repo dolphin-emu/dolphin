@@ -76,6 +76,7 @@
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -906,6 +907,11 @@ void CFrame::OnRenderParentResize(wxSizeEvent& event)
     }
     m_LogWindow->Refresh();
     m_LogWindow->Update();
+
+    // We call Renderer::ChangeSurface here to indicate the size has changed,
+    // but pass the same window handle. This is needed for the Vulkan backend,
+    // otherwise it cannot tell that the window has been resized on some drivers.
+    g_renderer->ChangeSurface(GetRenderHandle());
   }
   event.Skip();
 }

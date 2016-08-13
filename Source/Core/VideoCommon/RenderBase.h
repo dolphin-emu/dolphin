@@ -138,9 +138,8 @@ public:
   static Common::Event s_screenshotCompleted;
 
   // Final surface changing
-  static Common::Flag s_SurfaceNeedsChanged;
-  static Common::Event s_ChangedSurface;
-
+  // This is called when the surface is resized (WX) or the window changes (Android).
+  virtual void ChangeSurface(void* new_surface_handle) {}
 protected:
   static void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY);
   bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height);
@@ -175,6 +174,10 @@ protected:
   FPSCounter m_fps_counter;
 
   static std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
+
+  static Common::Flag s_surface_needs_change;
+  static Common::Event s_surface_changed;
+  static void* s_new_surface_handle;
 
 private:
   static PEControl::PixelFormat prev_efb_format;

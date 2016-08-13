@@ -1593,12 +1593,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
   OSD::DrawMessages();
 
-  if (s_SurfaceNeedsChanged.IsSet())
+#ifdef ANDROID
+  if (s_surface_needs_change.IsSet())
   {
+    GLInterface->UpdateHandle(s_new_surface_handle);
     GLInterface->UpdateSurface();
-    s_SurfaceNeedsChanged.Clear();
-    s_ChangedSurface.Set();
+    s_new_surface_handle = nullptr;
+    s_surface_needs_change.Clear();
+    s_surface_changed.Set();
   }
+#endif
 
   // Copy the rendered frame to the real window
   GLInterface->Swap();
@@ -1776,5 +1780,17 @@ int Renderer::GetMaxTextureSize()
   if (s_max_texture_size == 0)
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &s_max_texture_size);
   return s_max_texture_size;
+}
+
+void Renderer::ChangeSurface(void* new_surface_handle)
+{
+// Win32 polls the window size when redrawing, X11 runs an event loop in another thread.
+// This is only necessary for Android at this point, although handling resizes here
+// would be more efficient than polling.
+#ifdef ANDROID
+  s_new_surface_handle = new_surface_handle;
+  s_surface_needs_change.Set();
+  s_surface_changed.Wait();
+#endif
 }
 }
