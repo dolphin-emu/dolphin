@@ -5,19 +5,27 @@
 #include <cstdio>
 #include <limits>
 
+#include "Core/ConfigManager.h"
+
 #include "VideoBackends/Vulkan/BoundingBox.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/Renderer.h"
+#include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/SwapChain.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+#include "VideoCommon/AVIDump.h"
+#endif
+
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -456,6 +464,23 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
+  // Draw to the screenshot buffer if needed.
+  bool needs_screenshot = (s_bScreenshot || SConfig::GetInstance().m_DumpFrames);
+  if (needs_screenshot && DrawScreenshot(source_rc, efb_color_texture))
+  {
+    if (s_bScreenshot)
+      WriteScreenshot();
+
+    if (SConfig::GetInstance().m_DumpFrames)
+      WriteFrameDump();
+  }
+  else
+  {
+    // Stop frame dump if requested.
+    if (bAVIDumping)
+      StopFrameDump();
+  }
+
   // Ensure the worker thread is not still submitting a previous command buffer.
   // In other words, the last frame has been submitted (otherwise the next call would
   // be a race, as the image may not have been consumed yet).
@@ -556,6 +581,41 @@ void Renderer::DrawScreen(const TargetRectangle& src_rect, const Texture2D* src_
                                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }
 
+bool Renderer::DrawScreenshot(const TargetRectangle& src_rect, const Texture2D* src_tex)
+{
+  u32 width = std::max(1u, static_cast<u32>(s_backbuffer_width));
+  u32 height = std::max(1u, static_cast<u32>(s_backbuffer_height));
+  if (!ResizeScreenshotBuffer(width, height))
+    return false;
+
+  VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
+  VkClearRect clear_rect = {{{0, 0}, {width, height}}, 0, 1};
+  VkClearAttachment clear_attachment = {VK_IMAGE_ASPECT_COLOR_BIT, 0, clear_value};
+  VkRenderPassBeginInfo info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                nullptr,
+                                m_framebuffer_mgr->GetColorCopyForReadbackRenderPass(),
+                                m_screenshot_framebuffer,
+                                {{0, 0}, {width, height}},
+                                1,
+                                &clear_value};
+  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &info,
+                       VK_SUBPASS_CONTENTS_INLINE);
+  vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), 1, &clear_attachment, 1,
+                        &clear_rect);
+  BlitScreen(m_framebuffer_mgr->GetColorCopyForReadbackRenderPass(), GetTargetRectangle(), src_rect,
+             src_tex, true);
+  vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
+
+  // Copy to the readback texture.
+  m_screenshot_readback_texture->CopyFromImage(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_screenshot_render_texture->GetImage(),
+      VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width, height, 0, 0);
+
+  // Wait for the command buffer to complete.
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
+  return true;
+}
+
 void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
                           const TargetRectangle& src_rect, const Texture2D* src_tex,
                           bool linear_filter)
@@ -595,6 +655,134 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
                   src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
                   src_tex->GetWidth(), src_tex->GetHeight());
   }
+}
+
+bool Renderer::ResizeScreenshotBuffer(u32 new_width, u32 new_height)
+{
+  if (m_screenshot_render_texture && m_screenshot_render_texture->GetWidth() == new_width &&
+      m_screenshot_render_texture->GetHeight() == new_height)
+  {
+    return true;
+  }
+
+  if (m_screenshot_framebuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_screenshot_framebuffer, nullptr);
+    m_screenshot_framebuffer = VK_NULL_HANDLE;
+  }
+
+  m_screenshot_render_texture =
+      Texture2D::Create(new_width, new_height, 1, 1, EFB_COLOR_TEXTURE_FORMAT,
+                        VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+
+  m_screenshot_readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, new_width,
+                                                           new_height, EFB_COLOR_TEXTURE_FORMAT);
+  if (!m_screenshot_render_texture || !m_screenshot_readback_texture ||
+      !m_screenshot_readback_texture->Map())
+  {
+    WARN_LOG(VIDEO, "Failed to resize screenshot render texture");
+    m_screenshot_render_texture.reset();
+    m_screenshot_readback_texture.reset();
+    return false;
+  }
+
+  VkImageView attachment = m_screenshot_render_texture->GetView();
+  VkFramebufferCreateInfo info = {};
+  info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+  info.renderPass = m_framebuffer_mgr->GetColorCopyForReadbackRenderPass();
+  info.attachmentCount = 1;
+  info.pAttachments = &attachment;
+  info.width = new_width;
+  info.height = new_height;
+  info.layers = 1;
+
+  VkResult res =
+      vkCreateFramebuffer(g_vulkan_context->GetDevice(), &info, nullptr, &m_screenshot_framebuffer);
+  if (res != VK_SUCCESS)
+  {
+    WARN_LOG(VIDEO, "Failed to resize screenshot framebuffer");
+    m_screenshot_render_texture.reset();
+    m_screenshot_readback_texture.reset();
+    return false;
+  }
+
+  // Render pass expects texture is in transfer src to start with.
+  m_screenshot_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+  return true;
+}
+
+void Renderer::DestroyScreenshotResources()
+{
+  if (m_screenshot_framebuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_screenshot_framebuffer, nullptr);
+    m_screenshot_framebuffer = VK_NULL_HANDLE;
+  }
+
+  m_screenshot_render_texture.reset();
+  m_screenshot_readback_texture.reset();
+}
+
+void Renderer::WriteScreenshot()
+{
+  std::lock_guard<std::mutex> guard(s_criticalScreenshot);
+
+  if (!TextureToPng(reinterpret_cast<u8*>(m_screenshot_readback_texture->GetMapPointer()),
+                    static_cast<int>(m_screenshot_readback_texture->GetRowStride()),
+                    s_sScreenshotName, static_cast<int>(m_screenshot_render_texture->GetWidth()),
+                    static_cast<int>(m_screenshot_render_texture->GetHeight()), false))
+  {
+    WARN_LOG(VIDEO, "Failed to write screenshot to %s", s_sScreenshotName.c_str());
+  }
+
+  s_sScreenshotName.clear();
+  s_bScreenshot = false;
+  s_screenshotCompleted.Set();
+}
+
+void Renderer::WriteFrameDump()
+{
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  if (!bAVIDumping)
+  {
+    bAVIDumping = AVIDump::Start(static_cast<int>(m_screenshot_render_texture->GetWidth()),
+                                 static_cast<int>(m_screenshot_render_texture->GetHeight()),
+                                 AVIDump::DumpFormat::FORMAT_RGBA);
+    if (!bAVIDumping)
+    {
+      OSD::AddMessage("AVIDump Start failed", 2000);
+      SConfig::GetInstance().m_DumpFrames = false;
+      return;
+    }
+    else
+    {
+      OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%ux%u RGB24)",
+                                       File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+                                       m_screenshot_render_texture->GetWidth(),
+                                       m_screenshot_render_texture->GetHeight()),
+                      2000);
+    }
+  }
+
+  AVIDump::AddFrame(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
+                    static_cast<int>(m_screenshot_render_texture->GetWidth()),
+                    static_cast<int>(m_screenshot_render_texture->GetHeight()));
+#else
+  OSD::AddMessage("Dumping frames not supported", 2000);
+  SConfig::GetInstance().m_DumpFrames = false;
+#endif
+}
+
+void Renderer::StopFrameDump()
+{
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  OSD::AddMessage("Stop dumping frames", 2000);
+  bAVIDumping = false;
+  AVIDump::Stop();
+#endif
 }
 
 void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)

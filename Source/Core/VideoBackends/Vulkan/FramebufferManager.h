@@ -63,6 +63,8 @@ public:
   // Swaps EFB framebuffers, so re-bind afterwards.
   void ReinterpretPixelData(int convtype);
 
+  // This render pass can be used for other readback operations.
+  VkRenderPass GetColorCopyForReadbackRenderPass() const { return m_copy_color_render_pass; }
   // Resolve color/depth textures to a non-msaa texture, and return it.
   Texture2D* ResolveEFBColorTexture(StateTracker* state_tracker, const VkRect2D& region);
   Texture2D* ResolveEFBDepthTexture(StateTracker* state_tracker, const VkRect2D& region);
