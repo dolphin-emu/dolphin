@@ -747,34 +747,20 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
   if (surf == nullptr)
     __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
 
-  // If GLInterface isn't a thing yet then we don't need to let it know that the
-  // surface has changed
-  if (GLInterface)
-  {
-    GLInterface->UpdateHandle(surf);
-    Renderer::s_ChangedSurface.Reset();
-    Renderer::s_SurfaceNeedsChanged.Set();
-    Renderer::s_ChangedSurface.Wait();
-  }
+  if (g_renderer)
+    g_renderer->ChangeSurface(surf);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
                                                                                      jobject obj)
 {
+  if (g_renderer)
+    g_renderer->ChangeSurface(nullptr);
+
   if (surf)
   {
     ANativeWindow_release(surf);
     surf = nullptr;
-  }
-
-  // If GLInterface isn't a thing yet then we don't need to let it know that the
-  // surface has changed
-  if (GLInterface)
-  {
-    GLInterface->UpdateHandle(nullptr);
-    Renderer::s_ChangedSurface.Reset();
-    Renderer::s_SurfaceNeedsChanged.Set();
-    Renderer::s_ChangedSurface.Wait();
   }
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimotes(JNIEnv* env,
