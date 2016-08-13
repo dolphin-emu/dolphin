@@ -143,6 +143,12 @@ struct VideoConfig final
   bool bDumpTevStages;
   bool bDumpTevTextureFetches;
 
+  // Debug device, supported by D3D and Vulkan.
+  bool bEnableValidationLayer;
+
+  // Multithreaded submission, currently only implemented on Vulkan.
+  bool bBackendMultithreading;
+
   // Static config per API
   // TODO: Move this out of VideoConfig
   struct
@@ -171,6 +177,7 @@ struct VideoConfig final
     bool bSupportsPaletteConversion;
     bool bSupportsClipControl;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsSSAA;
+    bool bSupportsMultithreading;
   } backend_info;
 
   // Utility
