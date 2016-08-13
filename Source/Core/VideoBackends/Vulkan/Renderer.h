@@ -15,6 +15,7 @@ namespace Vulkan
 class BoundingBox;
 class FramebufferManager;
 class SwapChain;
+class StagingTexture2D;
 class StateTracker;
 class Texture2D;
 class RasterFont;
@@ -91,8 +92,14 @@ private:
   void DestroyShaders();
 
   void DrawScreen(const TargetRectangle& src_rect, const Texture2D* src_tex);
+  bool DrawScreenshot(const TargetRectangle& src_rect, const Texture2D* src_tex);
   void BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
                   const TargetRectangle& src_rect, const Texture2D* src_tex, bool linear_filter);
+  bool ResizeScreenshotBuffer(u32 new_width, u32 new_height);
+  void DestroyScreenshotResources();
+  void WriteScreenshot();
+  void WriteFrameDump();
+  void StopFrameDump();
 
   FramebufferManager* m_framebuffer_mgr = nullptr;
 
@@ -110,5 +117,10 @@ private:
   // Shaders used for clear/blit.
   VkShaderModule m_clear_fragment_shader = VK_NULL_HANDLE;
   VkShaderModule m_blit_fragment_shader = VK_NULL_HANDLE;
+
+  // Texture used for screenshot/frame dumping
+  std::unique_ptr<Texture2D> m_screenshot_render_texture;
+  std::unique_ptr<StagingTexture2D> m_screenshot_readback_texture;
+  VkFramebuffer m_screenshot_framebuffer = VK_NULL_HANDLE;
 };
 }
