@@ -32,14 +32,16 @@ namespace DVDThread
 {
 struct ReadRequest
 {
-  u64 dvd_offset;
+  bool copy_to_ram;
   u32 output_address;
+  u64 dvd_offset;
   u32 length;
   bool decrypt;
 
-  // This determines which function will be used as a callback.
-  // We can't have a function pointer here, because they can't be in savestates.
-  bool reply_to_ios;
+  // This determines which code DVDInterface will run to reply
+  // to the emulated software. We can't use callbacks,
+  // because function pointers can't be stored in savestates.
+  DVDInterface::ReplyType reply_type;
 
   // IDs are used to uniquely identify a request. They must not be identical
   // to the IDs of any other requests that currently exist, but it's fine
@@ -55,6 +57,10 @@ struct ReadRequest
 using ReadResult = std::pair<ReadRequest, std::vector<u8>>;
 
 static void DVDThread();
+
+static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
+                              bool decrypt, DVDInterface::ReplyType reply_type,
+                              s64 ticks_until_completion);
 
 static void FinishRead(u64 userdata, s64 cycles_late);
 static int s_finish_read;
@@ -145,18 +151,32 @@ void WaitUntilIdle()
   s_dvd_thread_done_working.Set();
 }
 
-void StartRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt, bool reply_to_ios,
-               int ticks_until_completion)
+void StartRead(u64 dvd_offset, u32 length, bool decrypt, DVDInterface::ReplyType reply_type,
+               s64 ticks_until_completion)
+{
+  StartReadInternal(false, 0, dvd_offset, length, decrypt, reply_type, ticks_until_completion);
+}
+
+void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length, bool decrypt,
+                            DVDInterface::ReplyType reply_type, s64 ticks_until_completion)
+{
+  StartReadInternal(true, output_address, dvd_offset, length, decrypt, reply_type,
+                    ticks_until_completion);
+}
+
+void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
+                       bool decrypt, DVDInterface::ReplyType reply_type, s64 ticks_until_completion)
 {
   _assert_(Core::IsCPUThread());
 
   ReadRequest request;
 
-  request.dvd_offset = dvd_offset;
+  request.copy_to_ram = copy_to_ram;
   request.output_address = output_address;
+  request.dvd_offset = dvd_offset;
   request.length = length;
   request.decrypt = decrypt;
-  request.reply_to_ios = reply_to_ios;
+  request.reply_type = reply_type;
 
   u64 id = s_next_id++;
   request.id = id;
@@ -216,14 +236,20 @@ static void FinishRead(u64 userdata, s64 cycles_late)
             (CoreTiming::GetTicks() - request.time_started_ticks) /
                 (SystemTimers::GetTicksPerSecond() / 1000000));
 
-  if (!buffer.empty())
-    Memory::CopyToEmu(request.output_address, buffer.data(), request.length);
-  else
+  if (buffer.empty())
+  {
     PanicAlertT("The disc could not be read (at 0x%" PRIx64 " - 0x%" PRIx64 ").",
                 request.dvd_offset, request.dvd_offset + request.length);
+  }
+  else
+  {
+    if (request.copy_to_ram)
+      Memory::CopyToEmu(request.output_address, buffer.data(), request.length);
+  }
 
   // Notify the emulated software that the command has been executed
-  DVDInterface::FinishExecutingCommand(request.reply_to_ios, DVDInterface::INT_TCINT);
+  DVDInterface::FinishExecutingCommand(request.reply_type, DVDInterface::INT_TCINT, cycles_late,
+                                       buffer);
 }
 
 static void DVDThread()
