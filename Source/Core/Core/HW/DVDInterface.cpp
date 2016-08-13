@@ -239,7 +239,6 @@ static bool s_disc_inside = false;
 static bool s_stream = false;
 static bool s_stop_at_track_end = false;
 static int s_finish_executing_command = 0;
-static int s_dtk = 0;
 
 static u64 s_last_read_offset;
 static u64 s_last_read_time;
@@ -261,8 +260,10 @@ void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
 
 void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios);
 bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
-                        bool decrypt, bool reply_to_ios, DIInterruptType* interrupt_type,
+                        bool decrypt, ReplyType reply_type, DIInterruptType* interrupt_type,
                         u64* ticks_until_completion);
+
+u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptType interrupt_type);
 
 u64 SimulateDiscReadTime(u64 offset, u32 length);
 s64 CalculateRawDiscReadTime(u64 offset, s64 length);
@@ -341,7 +342,7 @@ static u32 ProcessDTKSamples(short* tempPCM, u32 num_samples)
   return samples_processed;
 }
 
-static void DTKStreamingCallback(u64 userdata, s64 cyclesLate)
+static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_late)
 {
   // Send audio to the mixer.
   static const int NUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
@@ -359,7 +360,9 @@ static void DTKStreamingCallback(u64 userdata, s64 cyclesLate)
   g_sound_stream->GetMixer()->PushStreamingSamples(tempPCM, samples_processed);
 
   int ticks_to_dtk = int(SystemTimers::GetTicksPerSecond() * u64(samples_processed) / 48000);
-  CoreTiming::ScheduleEvent(ticks_to_dtk - cyclesLate, s_dtk);
+  CoreTiming::ScheduleEvent(
+      ticks_to_dtk - cycles_late, s_finish_executing_command,
+      PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::INT_TCINT));
 }
 
 void Init()
@@ -397,9 +400,10 @@ void Init()
 
   s_finish_executing_command =
       CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
-  s_dtk = CoreTiming::RegisterEvent("StreamingTimer", DTKStreamingCallback);
 
-  CoreTiming::ScheduleEvent(0, s_dtk);
+  CoreTiming::ScheduleEvent(
+      0, s_finish_executing_command,
+      PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::INT_TCINT));
 }
 
 void Shutdown()
@@ -635,7 +639,7 @@ void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios)
 
 // Iff false is returned, ScheduleEvent must be used to finish executing the command
 bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
-                        bool decrypt, bool reply_to_ios, DIInterruptType* interrupt_type,
+                        bool decrypt, ReplyType reply_type, DIInterruptType* interrupt_type,
                         u64* ticks_until_completion)
 {
   if (!s_disc_inside)
@@ -666,17 +670,15 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
   else
     *ticks_until_completion = SimulateDiscReadTime(DVD_offset, DVD_length);
 
-  DVDThread::StartRead(DVD_offset, output_address, DVD_length, decrypt, reply_to_ios,
+  DVDThread::StartRead(DVD_offset, output_address, DVD_length, decrypt, true, reply_type,
                        (int)*ticks_until_completion);
   return true;
 }
 
-// When the command has finished executing, callback_event_type
-// will be called using CoreTiming::ScheduleEvent,
-// with the userdata set to the interrupt type.
 void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address,
                     u32 output_length, bool reply_to_ios)
 {
+  ReplyType reply_type = reply_to_ios ? ReplyType::IOS_HLE : ReplyType::INTERRUPT;
   DIInterruptType interrupt_type = INT_TCINT;
   u64 ticks_until_completion = SystemTimers::GetTicksPerSecond() / 15000;
   bool command_handled_by_thread = false;
@@ -725,7 +727,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   case DVDLowReadDiskID:
     INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
     command_handled_by_thread =
-        ExecuteReadCommand(0, output_address, 0x20, output_length, false, reply_to_ios,
+        ExecuteReadCommand(0, output_address, 0x20, output_length, false, reply_type,
                            &interrupt_type, &ticks_until_completion);
     break;
 
@@ -735,7 +737,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
              command_1);
     command_handled_by_thread =
         ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, true,
-                           reply_to_ios, &interrupt_type, &ticks_until_completion);
+                           reply_type, &interrupt_type, &ticks_until_completion);
     break;
 
   // Probably only used by Wii
@@ -817,7 +819,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     {
       command_handled_by_thread =
           ExecuteReadCommand((u64)command_2 << 2, output_address, command_1, output_length, false,
-                             reply_to_ios, &interrupt_type, &ticks_until_completion);
+                             reply_type, &interrupt_type, &ticks_until_completion);
     }
     else
     {
@@ -917,14 +919,14 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
       command_handled_by_thread =
           ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length, false,
-                             reply_to_ios, &interrupt_type, &ticks_until_completion);
+                             reply_type, &interrupt_type, &ticks_until_completion);
     }
     break;
 
     case 0x40:  // Read DiscID
       INFO_LOG(DVDINTERFACE, "Read DiscID %08x", Memory::Read_U32(output_address));
       command_handled_by_thread =
-          ExecuteReadCommand(0, output_address, 0x20, output_length, false, reply_to_ios,
+          ExecuteReadCommand(0, output_address, 0x20, output_length, false, reply_type,
                              &interrupt_type, &ticks_until_completion);
       break;
 
@@ -1270,33 +1272,52 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   // to simulate the speed of a real disc drive
   if (!command_handled_by_thread)
   {
-    u64 userdata = (static_cast<u64>(reply_to_ios) << 32) + static_cast<u32>(interrupt_type);
-    CoreTiming::ScheduleEvent((int)ticks_until_completion, s_finish_executing_command, userdata);
+    CoreTiming::ScheduleEvent((int)ticks_until_completion, s_finish_executing_command,
+                              PackFinishExecutingCommandUserdata(reply_type, interrupt_type));
   }
+}
+
+u64 PackFinishExecutingCommandUserdata(ReplyType reply_type, DIInterruptType interrupt_type)
+{
+  return (static_cast<u64>(reply_type) << 32) + static_cast<u32>(interrupt_type);
 }
 
 void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late)
 {
-  bool reply_to_ios = userdata >> 32 != 0;
+  ReplyType reply_type = static_cast<ReplyType>(userdata >> 32);
   DIInterruptType interrupt_type = static_cast<DIInterruptType>(userdata & 0xFFFFFFFF);
-  FinishExecutingCommand(reply_to_ios, interrupt_type);
+  FinishExecutingCommand(reply_type, interrupt_type, cycles_late);
 }
 
-void FinishExecutingCommand(bool reply_to_ios, DIInterruptType interrupt_type)
+void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,
+                            const std::vector<u8>& data)
 {
-  if (reply_to_ios)
+  switch (reply_type)
+  {
+  case ReplyType::INTERRUPT:
+  {
+    if (s_DICR.TSTART)
+    {
+      s_DICR.TSTART = 0;
+      s_DILENGTH.Length = 0;
+      GenerateDIInterrupt(interrupt_type);
+    }
+    break;
+  }
+
+  case ReplyType::IOS_HLE:
   {
     std::shared_ptr<IWII_IPC_HLE_Device> di = WII_IPC_HLE_Interface::GetDeviceByName("/dev/di");
     if (di)
       std::static_pointer_cast<CWII_IPC_HLE_Device_di>(di)->FinishIOCtl(interrupt_type);
-
-    // If di == nullptr, IOS was probably shut down, so the command shouldn't be completed
+    break;
   }
-  else if (s_DICR.TSTART)
+
+  case ReplyType::DTK:
   {
-    s_DICR.TSTART = 0;
-    s_DILENGTH.Length = 0;
-    GenerateDIInterrupt(interrupt_type);
+    DTKStreamingCallback(data, cycles_late);
+    break;
+  }
   }
 }
 
