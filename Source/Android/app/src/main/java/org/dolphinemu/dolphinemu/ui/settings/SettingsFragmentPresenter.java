@@ -5,6 +5,7 @@ import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.settings.IntSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
+import org.dolphinemu.dolphinemu.model.settings.StringSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
@@ -137,6 +138,7 @@ public final class SettingsFragmentPresenter
 		Setting dualCore = null;
 		Setting overclockEnable = null;
 		Setting overclock = null;
+		IntSetting videoBackend = new IntSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, getVideoBackendValue());
 		Setting continuousScan = null;
 		Setting wiimoteSpeaker = null;
 
@@ -162,6 +164,13 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, SettingsFile.SECTION_CORE, R.string.dual_core, R.string.dual_core_descrip, true, dualCore));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_CORE, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_CORE, R.string.overclock_title, 0, 400, "%", 100, overclock));
+
+		// While it doesn't seem appropriate to store the video backend with the CPU settings, the video
+		// backend is stored in the main INI, which can't be changed by the graphics settings page, so
+		// we have to put it here.
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, R.string.video_backend, R.string.video_backend_descrip,
+		       R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
+
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, SettingsFile.SECTION_CORE, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, SettingsFile.SECTION_CORE, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
 	}
@@ -289,6 +298,32 @@ public final class SettingsFragmentPresenter
 
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, SettingsFile.SECTION_CORE, R.string.gc_adapter_rumble, R.string.gc_adapter_rumble_description, false, rumble));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber, SettingsFile.SECTION_CORE, R.string.gc_adapter_bongos, R.string.gc_adapter_bongos_description, false, bongos));
+	}
+
+	private int getVideoBackendValue()
+	{
+		int videoBackendValue;
+
+		try
+		{
+			String videoBackend = ((StringSetting)mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_VIDEO_BACKEND)).getValue();
+			if (videoBackend.equals("OGL"))
+				videoBackendValue = 0;
+			else if (videoBackend.equals("Vulkan"))
+				videoBackendValue = 1;
+			else if (videoBackend.equals("Software"))
+				videoBackendValue = 2;
+			else if (videoBackend.equals("Null"))
+				videoBackendValue = 3;
+			else
+				videoBackendValue = 0;
+		}
+		catch (NullPointerException ex)
+		{
+			videoBackendValue = 0;
+		}
+
+		return videoBackendValue;
 	}
 
 	private int getXfbValue()
