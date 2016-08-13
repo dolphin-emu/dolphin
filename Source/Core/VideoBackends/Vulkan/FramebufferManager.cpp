@@ -1,0 +1,1344 @@
+// Copyright 2016 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+#include <algorithm>
+#include <cassert>
+
+#include "Common/CommonFuncs.h"
+
+#include "VideoBackends/Vulkan/CommandBufferManager.h"
+#include "VideoBackends/Vulkan/FramebufferManager.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
+#include "VideoBackends/Vulkan/StagingTexture2D.h"
+#include "VideoBackends/Vulkan/StateTracker.h"
+#include "VideoBackends/Vulkan/StreamBuffer.h"
+#include "VideoBackends/Vulkan/Texture2D.h"
+#include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/VertexFormat.h"
+#include "VideoBackends/Vulkan/VulkanContext.h"
+
+#include "VideoCommon/RenderBase.h"
+#include "VideoCommon/VideoConfig.h"
+
+namespace Vulkan
+{
+// Maximum number of pixels poked in one batch * 6
+static const size_t MAX_POKE_VERTICES = 8192;
+static const size_t POKE_VERTEX_BUFFER_SIZE = 8 * 1024 * 1024;
+
+FramebufferManager::FramebufferManager()
+{
+}
+
+FramebufferManager::~FramebufferManager()
+{
+  DestroyEFBFramebuffer();
+  DestroyEFBRenderPass();
+
+  DestroyConversionShaders();
+
+  DestroyReadbackFramebuffer();
+  DestroyReadbackTextures();
+  DestroyReadbackShaders();
+  DestroyReadbackRenderPasses();
+
+  DestroyPokeVertexBuffer();
+}
+
+bool FramebufferManager::Initialize()
+{
+  if (!CreateEFBRenderPass())
+  {
+    PanicAlert("Failed to create EFB render pass");
+    return false;
+  }
+  if (!CreateEFBFramebuffer())
+  {
+    PanicAlert("Failed to create EFB textures");
+    return false;
+  }
+
+  if (!CompileConversionShaders())
+  {
+    PanicAlert("Failed to compile EFB shaders");
+    return false;
+  }
+
+  if (!CreateReadbackRenderPasses())
+  {
+    PanicAlert("Failed to create readback render passes");
+    return false;
+  }
+  if (!CompileReadbackShaders())
+  {
+    PanicAlert("Failed to compile readback shaders");
+    return false;
+  }
+  if (!CreateReadbackTextures())
+  {
+    PanicAlert("Failed to create readback textures");
+    return false;
+  }
+  if (!CreateReadbackFramebuffer())
+  {
+    PanicAlert("Failed to create readback framebuffer");
+    return false;
+  }
+
+  CreatePokeVertexFormat();
+  if (!CreatePokeVertexBuffer())
+  {
+    PanicAlert("Failed to create poke vertex buffer");
+    return false;
+  }
+
+  return true;
+}
+
+void FramebufferManager::GetTargetSize(unsigned int* width, unsigned int* height)
+{
+  *width = m_efb_width;
+  *height = m_efb_height;
+}
+
+bool FramebufferManager::CreateEFBRenderPass()
+{
+  m_efb_samples = static_cast<VkSampleCountFlagBits>(g_ActiveConfig.iMultisamples);
+
+  // render pass for rendering to the efb
+  VkAttachmentDescription attachments[] = {
+      {0, EFB_COLOR_TEXTURE_FORMAT, m_efb_samples, VK_ATTACHMENT_LOAD_OP_LOAD,
+       VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL},
+      {0, EFB_DEPTH_TEXTURE_FORMAT, m_efb_samples, VK_ATTACHMENT_LOAD_OP_LOAD,
+       VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+       VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL}};
+
+  VkAttachmentReference color_attachment_references[] = {
+      {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
+
+  VkAttachmentReference depth_attachment_reference = {
+      1, VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL};
+
+  VkSubpassDescription subpass_description = {
+      0,       VK_PIPELINE_BIND_POINT_GRAPHICS, 0, nullptr, 1, color_attachment_references,
+      nullptr, &depth_attachment_reference,     0, nullptr};
+
+  VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
+                                      nullptr,
+                                      0,
+                                      static_cast<u32>(ArraySize(attachments)),
+                                      attachments,
+                                      1,
+                                      &subpass_description,
+                                      0,
+                                      nullptr};
+
+  VkResult res =
+      vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &m_efb_render_pass);
+
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateRenderPass (EFB) failed: ");
+    return false;
+  }
+
+  // render pass for resolving depth, since we can't do it with vkCmdResolveImage
+  if (m_efb_samples != VK_SAMPLE_COUNT_1_BIT)
+  {
+    VkAttachmentDescription resolve_attachment = {0,
+                                                  EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT,
+                                                  VK_SAMPLE_COUNT_1_BIT,
+                                                  VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                                  VK_ATTACHMENT_STORE_OP_STORE,
+                                                  VK_ATTACHMENT_LOAD_OP_DONT_CARE,
+                                                  VK_ATTACHMENT_STORE_OP_DONT_CARE,
+                                                  VK_IMAGE_LAYOUT_UNDEFINED,
+                                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+
+    // Ensure all reads have finished from the resolved texture before overwriting it.
+    VkSubpassDependency dependancies[] = {
+        {VK_SUBPASS_EXTERNAL, 0, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_SHADER_READ_BIT,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_DEPENDENCY_BY_REGION_BIT},
+        {0, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+         VK_ACCESS_SHADER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT}};
+    subpass_description.pDepthStencilAttachment = nullptr;
+    pass_info.pAttachments = &resolve_attachment;
+    pass_info.attachmentCount = 1;
+    pass_info.dependencyCount = static_cast<u32>(ArraySize(dependancies));
+    pass_info.pDependencies = dependancies;
+    res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr,
+                             &m_depth_resolve_render_pass);
+
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateRenderPass (EFB depth resolve) failed: ");
+      return false;
+    }
+  }
+
+  return true;
+}
+
+void FramebufferManager::DestroyEFBRenderPass()
+{
+  if (m_efb_render_pass != VK_NULL_HANDLE)
+  {
+    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_efb_render_pass, nullptr);
+    m_efb_render_pass = VK_NULL_HANDLE;
+  }
+
+  if (m_depth_resolve_render_pass != VK_NULL_HANDLE)
+  {
+    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_depth_resolve_render_pass, nullptr);
+    m_depth_resolve_render_pass = VK_NULL_HANDLE;
+  }
+}
+
+bool FramebufferManager::CreateEFBFramebuffer()
+{
+  m_efb_width = static_cast<u32>(std::max(Renderer::GetTargetWidth(), 1));
+  m_efb_height = static_cast<u32>(std::max(Renderer::GetTargetHeight(), 1));
+  m_efb_layers = (g_ActiveConfig.iStereoMode != STEREO_OFF) ? 2 : 1;
+  INFO_LOG(VIDEO, "EFB size: %ux%ux%u", m_efb_width, m_efb_height, m_efb_layers);
+
+  // Update the static variable in the base class. Why does this even exist?
+  FramebufferManagerBase::m_EFBLayers = m_efb_layers;
+
+  // Allocate EFB render targets
+  m_efb_color_texture =
+      Texture2D::Create(m_efb_width, m_efb_height, 1, m_efb_layers, EFB_COLOR_TEXTURE_FORMAT,
+                        m_efb_samples, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+
+  // We need a second texture to swap with for changing pixel formats
+  m_efb_convert_color_texture =
+      Texture2D::Create(m_efb_width, m_efb_height, 1, m_efb_layers, EFB_COLOR_TEXTURE_FORMAT,
+                        m_efb_samples, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+
+  m_efb_depth_texture = Texture2D::Create(
+      m_efb_width, m_efb_height, 1, m_efb_layers, EFB_DEPTH_TEXTURE_FORMAT, m_efb_samples,
+      VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+          VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+
+  if (!m_efb_color_texture || !m_efb_convert_color_texture || !m_efb_depth_texture)
+    return false;
+
+  // Create resolved textures if MSAA is on
+  if (m_efb_samples != VK_SAMPLE_COUNT_1_BIT)
+  {
+    m_efb_resolve_color_texture = Texture2D::Create(
+        m_efb_width, m_efb_height, 1, m_efb_layers, EFB_COLOR_TEXTURE_FORMAT, VK_SAMPLE_COUNT_1_BIT,
+        VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+            VK_IMAGE_USAGE_SAMPLED_BIT);
+
+    m_efb_resolve_depth_texture = Texture2D::Create(
+        m_efb_width, m_efb_height, 1, m_efb_layers, EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT,
+        VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT |
+            VK_IMAGE_USAGE_SAMPLED_BIT);
+
+    if (!m_efb_resolve_color_texture || !m_efb_resolve_depth_texture)
+      return false;
+
+    VkImageView attachment = m_efb_resolve_depth_texture->GetView();
+    VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                                                nullptr,
+                                                0,
+                                                m_depth_resolve_render_pass,
+                                                1,
+                                                &attachment,
+                                                m_efb_width,
+                                                m_efb_height,
+                                                m_efb_layers};
+
+    VkResult res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
+                                       &m_depth_resolve_framebuffer);
+    if (res != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
+      return false;
+    }
+  }
+
+  VkImageView framebuffer_attachments[] = {
+      m_efb_color_texture->GetView(), m_efb_depth_texture->GetView(),
+  };
+
+  VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
+                                              nullptr,
+                                              0,
+                                              m_efb_render_pass,
+                                              static_cast<u32>(ArraySize(framebuffer_attachments)),
+                                              framebuffer_attachments,
+                                              m_efb_width,
+                                              m_efb_height,
+                                              m_efb_layers};
+
+  VkResult res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
+                                     &m_efb_framebuffer);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
+    return false;
+  }
+
+  // Create second framebuffer for format conversions
+  framebuffer_attachments[0] = m_efb_convert_color_texture->GetView();
+  res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
+                            &m_efb_convert_framebuffer);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
+    return false;
+  }
+
+  // Transition to state that can be used to clear
+  m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  m_efb_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+  // Clear the contents of the buffers.
+  // TODO: On a resize, this should really be copying the old contents in.
+  static const VkClearColorValue clear_color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+  static const VkClearDepthStencilValue clear_depth = {0.0f, 0};
+  VkImageSubresourceRange clear_color_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, m_efb_layers};
+  VkImageSubresourceRange clear_depth_range = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, m_efb_layers};
+  vkCmdClearColorImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                       m_efb_color_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                       &clear_color, 1, &clear_color_range);
+  vkCmdClearDepthStencilImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                              m_efb_depth_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                              &clear_depth, 1, &clear_depth_range);
+
+  // Transition to color attachment state ready for rendering.
+  m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  m_efb_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+  return true;
+}
+
+void FramebufferManager::DestroyEFBFramebuffer()
+{
+  if (m_efb_framebuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_efb_framebuffer, nullptr);
+    m_efb_framebuffer = VK_NULL_HANDLE;
+  }
+
+  m_efb_color_texture.reset();
+  m_efb_convert_color_texture.reset();
+  m_efb_depth_texture.reset();
+  m_efb_resolve_color_texture.reset();
+  m_efb_resolve_depth_texture.reset();
+}
+
+void FramebufferManager::ResizeEFBTextures()
+{
+  DestroyEFBFramebuffer();
+  if (!CreateEFBFramebuffer())
+    PanicAlert("Failed to create EFB textures");
+}
+
+void FramebufferManager::RecreateRenderPass()
+{
+  DestroyEFBRenderPass();
+
+  if (!CreateEFBRenderPass())
+    PanicAlert("Failed to create EFB render pass");
+}
+
+void FramebufferManager::RecompileShaders()
+{
+  DestroyConversionShaders();
+
+  if (!CompileConversionShaders())
+    PanicAlert("Failed to compile EFB shaders");
+
+  DestroyReadbackShaders();
+  if (!CompileReadbackShaders())
+    PanicAlert("Failed to compile readback shaders");
+}
+
+void FramebufferManager::ReinterpretPixelData(int convtype)
+{
+  // TODO: Constants for these?
+  VkShaderModule pixel_shader = VK_NULL_HANDLE;
+  if (convtype == 0)
+  {
+    pixel_shader = m_ps_rgb8_to_rgba6;
+  }
+  else if (convtype == 2)
+  {
+    pixel_shader = m_ps_rgba6_to_rgb8;
+  }
+  else
+  {
+    ERROR_LOG(VIDEO, "Unhandled reinterpret pixel data %d", convtype);
+    return;
+  }
+
+  // Transition EFB color buffer to shader resource, and the convert buffer to color attachment.
+  m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  m_efb_convert_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         g_object_cache->GetStandardPipelineLayout(), m_efb_render_pass,
+                         g_object_cache->GetScreenQuadVertexShader(),
+                         g_object_cache->GetScreenQuadGeometryShader(), pixel_shader);
+
+  RasterizationState rs_state = Util::GetNoCullRasterizationState();
+  rs_state.samples = m_efb_samples;
+  rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
+  draw.SetRasterizationState(rs_state);
+
+  VkRect2D region = {{0, 0}, {m_efb_width, m_efb_height}};
+  draw.BeginRenderPass(m_efb_convert_framebuffer, region);
+  draw.SetPSSampler(0, m_efb_color_texture->GetView(), g_object_cache->GetPointSampler());
+  draw.SetViewportAndScissor(0, 0, m_efb_width, m_efb_height);
+  draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
+  draw.EndRenderPass();
+
+  // Swap EFB texture pointers
+  std::swap(m_efb_color_texture, m_efb_convert_color_texture);
+  std::swap(m_efb_framebuffer, m_efb_convert_framebuffer);
+}
+
+Texture2D* FramebufferManager::ResolveEFBColorTexture(StateTracker* state_tracker,
+                                                      const VkRect2D& region)
+{
+  // Return the normal EFB texture if multisampling is off.
+  if (m_efb_samples == VK_SAMPLE_COUNT_1_BIT)
+    return m_efb_color_texture.get();
+
+  // Can't resolve within a render pass.
+  state_tracker->EndRenderPass();
+
+  // Resolving is considered to be a transfer operation.
+  m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_efb_resolve_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                  VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+  // Resolve to our already-created texture.
+  VkImageResolve resolve = {
+      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, m_efb_layers},  // VkImageSubresourceLayers srcSubresource
+      {region.offset.x, region.offset.y, 0},            // VkOffset3D                  srcOffset
+      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, m_efb_layers},  // VkImageSubresourceLayers dstSubresource
+      {region.offset.x, region.offset.y, 0},            // VkOffset3D                  dstOffset
+      {region.extent.width, region.extent.height, m_efb_layers}  // VkExtent3D extent
+  };
+  vkCmdResolveImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                    m_efb_color_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                    m_efb_resolve_color_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                    1, &resolve);
+
+  // Restore MSAA texture ready for rendering again
+  m_efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  return m_efb_resolve_color_texture.get();
+}
+
+Texture2D* FramebufferManager::ResolveEFBDepthTexture(StateTracker* state_tracker,
+                                                      const VkRect2D& region)
+{
+  // Return the normal EFB texture if multisampling is off.
+  if (m_efb_samples == VK_SAMPLE_COUNT_1_BIT)
+    return m_efb_depth_texture.get();
+
+  // Can't resolve within a render pass.
+  state_tracker->EndRenderPass();
+
+  m_efb_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+  // Draw using resolve shader to write the minimum depth of all samples to the resolve texture.
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         g_object_cache->GetStandardPipelineLayout(), m_depth_resolve_render_pass,
+                         g_object_cache->GetScreenQuadVertexShader(),
+                         g_object_cache->GetScreenQuadGeometryShader(), m_ps_depth_resolve);
+  draw.BeginRenderPass(m_depth_resolve_framebuffer, region);
+  draw.SetPSSampler(0, m_efb_depth_texture->GetView(), g_object_cache->GetPointSampler());
+  draw.SetViewportAndScissor(region.offset.x, region.offset.y, region.extent.width,
+                             region.extent.height);
+  draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
+  draw.EndRenderPass();
+
+  // Restore MSAA texture ready for rendering again
+  m_efb_depth_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+
+  // Render pass transitions to shader resource.
+  m_efb_resolve_depth_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  return m_efb_resolve_depth_texture.get();
+}
+
+bool FramebufferManager::CompileConversionShaders()
+{
+  static const char RGB8_TO_RGBA6_SHADER_SOURCE[] = R"(
+    #if MSAA_ENABLED
+      SAMPLER_BINDING(0) uniform sampler2DMSArray samp0;
+    #else
+      SAMPLER_BINDING(0) uniform sampler2DArray samp0;
+    #endif
+    layout(location = 0) in vec3 uv0;
+    layout(location = 0) out vec4 ocol0;
+
+    void main()
+    {
+      int layer = 0;
+      #if EFB_LAYERS > 1
+        layer = int(uv0.z);
+      #endif
+
+      ivec3 coords = ivec3(gl_FragCoord.xy, layer);
+
+      vec4 val;
+      #if !MSAA_ENABLED
+        // No MSAA - just load the first (and only) sample
+        val = texelFetch(samp0, coords, 0);
+      #elif SSAA_ENABLED
+        // Sample shading, shader runs once per sample
+        val = texelFetch(samp0, coords, gl_SampleID);
+      #else
+        // MSAA without sample shading, average out all samples.
+        val = vec4(0, 0, 0, 0);
+        for (int i = 0; i < MSAA_SAMPLES; i++)
+          val += texelFetch(samp0, coords, i);
+        val /= float(MSAA_SAMPLES);
+      #endif
+
+      ivec4 src8 = ivec4(round(val * 255.f));
+      ivec4 dst6;
+      dst6.r = src8.r >> 2;
+      dst6.g = ((src8.r & 0x3) << 4) | (src8.g >> 4);
+      dst6.b = ((src8.g & 0xF) << 2) | (src8.b >> 6);
+      dst6.a = src8.b & 0x3F;
+
+      ocol0 = float4(dst6) / 63.f;
+    }
+  )";
+
+  static const char RGBA6_TO_RGB8_SHADER_SOURCE[] = R"(
+    #if MSAA_ENABLED
+      SAMPLER_BINDING(0) uniform sampler2DMSArray samp0;
+    #else
+      SAMPLER_BINDING(0) uniform sampler2DArray samp0;
+    #endif
+    layout(location = 0) in vec3 uv0;
+    layout(location = 0) out vec4 ocol0;
+
+    void main()
+    {
+      int layer = 0;
+      #if EFB_LAYERS > 1
+        layer = int(uv0.z);
+      #endif
+
+      ivec3 coords = ivec3(gl_FragCoord.xy, layer);
+
+      vec4 val;
+      #if !MSAA_ENABLED
+        // No MSAA - just load the first (and only) sample
+        val = texelFetch(samp0, coords, 0);
+      #elif SSAA_ENABLED
+        // Sample shading, shader runs once per sample
+        val = texelFetch(samp0, coords, gl_SampleID);
+      #else
+        // MSAA without sample shading, average out all samples.
+        val = vec4(0, 0, 0, 0);
+        for (int i = 0; i < MSAA_SAMPLES; i++)
+          val += texelFetch(samp0, coords, i);
+        val /= float(MSAA_SAMPLES);
+      #endif
+
+      ivec4 src6 = ivec4(round(val * 63.f));
+      ivec4 dst8;
+      dst8.r = (src6.r << 2) | (src6.g >> 4);
+      dst8.g = ((src6.g & 0xF) << 4) | (src6.b >> 2);
+      dst8.b = ((src6.b & 0x3) << 6) | src6.a;
+      dst8.a = 255;
+
+      ocol0 = float4(dst8) / 255.f;
+    }
+  )";
+
+  static const char DEPTH_RESOLVE_SHADER_SOURCE[] = R"(
+    SAMPLER_BINDING(0) uniform sampler2DMSArray samp0;
+    layout(location = 0) in vec3 uv0;
+    layout(location = 0) out float ocol0;
+
+    void main()
+    {
+      int layer = 0;
+      #if EFB_LAYERS > 1
+        layer = int(uv0.z);
+      #endif
+
+      // gl_FragCoord is in window coordinates, and we're rendering to
+      // the same rectangle in the resolve texture.
+      ivec3 coords = ivec3(gl_FragCoord.xy, layer);
+
+      // Take the minimum of all depth samples.
+      ocol0 = texelFetch(samp0, coords, 0).r;
+      for (int i = 1; i < MSAA_SAMPLES; i++)
+        ocol0 = min(ocol0, texelFetch(samp0, coords, i).r);
+    }
+  )";
+
+  std::string header = g_object_cache->GetUtilityShaderHeader();
+  DestroyConversionShaders();
+
+  m_ps_rgb8_to_rgba6 = Util::CompileAndCreateFragmentShader(header + RGB8_TO_RGBA6_SHADER_SOURCE);
+  m_ps_rgba6_to_rgb8 = Util::CompileAndCreateFragmentShader(header + RGBA6_TO_RGB8_SHADER_SOURCE);
+  if (m_efb_samples != VK_SAMPLE_COUNT_1_BIT)
+    m_ps_depth_resolve = Util::CompileAndCreateFragmentShader(header + DEPTH_RESOLVE_SHADER_SOURCE);
+
+  return (m_ps_rgba6_to_rgb8 != VK_NULL_HANDLE && m_ps_rgb8_to_rgba6 != VK_NULL_HANDLE &&
+          (m_efb_samples == VK_SAMPLE_COUNT_1_BIT || m_ps_depth_resolve != VK_NULL_HANDLE));
+}
+
+void FramebufferManager::DestroyConversionShaders()
+{
+  auto DestroyShader = [this](VkShaderModule& shader) {
+    if (shader != VK_NULL_HANDLE)
+    {
+      vkDestroyShaderModule(g_vulkan_context->GetDevice(), shader, nullptr);
+      shader = VK_NULL_HANDLE;
+    }
+  };
+
+  DestroyShader(m_ps_rgb8_to_rgba6);
+  DestroyShader(m_ps_rgba6_to_rgb8);
+  DestroyShader(m_ps_depth_resolve);
+}
+
+u32 FramebufferManager::PeekEFBColor(StateTracker* state_tracker, u32 x, u32 y)
+{
+  if (!m_color_readback_texture_valid && !PopulateColorReadbackTexture(state_tracker))
+    return 0;
+
+  u32 value;
+  m_color_readback_texture->ReadTexel(x, y, &value, sizeof(value));
+  return value;
+}
+
+bool FramebufferManager::PopulateColorReadbackTexture(StateTracker* state_tracker)
+{
+  // Can't be in our normal render pass.
+  state_tracker->EndRenderPass();
+  state_tracker->OnReadback();
+
+  // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
+  VkRect2D src_region = {{0, 0}, {m_efb_width, m_efb_height}};
+  Texture2D* src_texture = m_efb_color_texture.get();
+  VkImageAspectFlags src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+  if (m_efb_samples > 1)
+    src_texture = ResolveEFBColorTexture(state_tracker, src_region);
+
+  if (m_efb_width != EFB_WIDTH || m_efb_height != EFB_HEIGHT)
+  {
+    UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                           g_object_cache->GetStandardPipelineLayout(), m_copy_color_render_pass,
+                           g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                           m_copy_color_shader);
+
+    VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
+    draw.BeginRenderPass(m_color_copy_framebuffer, rect);
+
+    // Transition EFB to shader read before drawing.
+    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
+    draw.SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
+    draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
+    draw.EndRenderPass();
+
+    // Restore EFB to color attachment, since we're done with it.
+    if (src_texture == m_efb_color_texture.get())
+    {
+      src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+    }
+
+    // Use this as a source texture now.
+    m_color_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    src_texture = m_color_copy_texture.get();
+  }
+
+  // Copy from EFB or copy texture to staging texture.
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_color_readback_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          src_texture->GetImage(), src_aspect, 0, 0, EFB_WIDTH,
+                                          EFB_HEIGHT, 0, 0);
+
+  // Restore original layout if we used the EFB as a source.
+  if (src_texture == m_efb_color_texture.get())
+  {
+    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  }
+
+  // Wait until the copy is complete.
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
+  state_tracker->InvalidateDescriptorSets();
+  state_tracker->SetPendingRebind();
+
+  // Map to host memory.
+  if (!m_color_readback_texture->IsMapped() && !m_color_readback_texture->Map())
+    return false;
+
+  m_color_readback_texture_valid = true;
+  return true;
+}
+
+float FramebufferManager::PeekEFBDepth(StateTracker* state_tracker, u32 x, u32 y)
+{
+  if (!m_depth_readback_texture_valid && !PopulateDepthReadbackTexture(state_tracker))
+    return 0.0f;
+
+  float value;
+  m_depth_readback_texture->ReadTexel(x, y, &value, sizeof(value));
+  return value;
+}
+
+bool FramebufferManager::PopulateDepthReadbackTexture(StateTracker* state_tracker)
+{
+  // Can't be in our normal render pass.
+  state_tracker->EndRenderPass();
+  state_tracker->OnReadback();
+
+  // Issue a copy from framebuffer -> copy texture if we have >1xIR or MSAA on.
+  VkRect2D src_region = {{0, 0}, {m_efb_width, m_efb_height}};
+  Texture2D* src_texture = m_efb_depth_texture.get();
+  VkImageAspectFlags src_aspect = VK_IMAGE_ASPECT_DEPTH_BIT;
+  if (m_efb_samples > 1)
+  {
+    // EFB depth resolves are written out as color textures
+    src_texture = ResolveEFBDepthTexture(state_tracker, src_region);
+    src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+  }
+  if (m_efb_width != EFB_WIDTH || m_efb_height != EFB_HEIGHT)
+  {
+    UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                           g_object_cache->GetStandardPipelineLayout(), m_copy_depth_render_pass,
+                           g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+                           m_copy_depth_shader);
+
+    VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
+    draw.BeginRenderPass(m_depth_copy_framebuffer, rect);
+
+    // Transition EFB to shader read before drawing.
+    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
+    draw.SetViewportAndScissor(0, 0, EFB_WIDTH, EFB_HEIGHT);
+    draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
+    draw.EndRenderPass();
+
+    // Restore EFB to depth attachment, since we're done with it.
+    if (src_texture == m_efb_depth_texture.get())
+    {
+      src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                      VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+    }
+
+    // Use this as a source texture now.
+    m_depth_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+    src_texture = m_depth_copy_texture.get();
+    src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
+  }
+
+  // Copy from EFB or copy texture to staging texture.
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_depth_readback_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                          src_texture->GetImage(), src_aspect, 0, 0, EFB_WIDTH,
+                                          EFB_HEIGHT, 0, 0);
+
+  // Restore original layout if we used the EFB as a source.
+  if (src_texture == m_efb_depth_texture.get())
+  {
+    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                    VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL);
+  }
+
+  // Wait until the copy is complete.
+  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
+  state_tracker->InvalidateDescriptorSets();
+  state_tracker->SetPendingRebind();
+
+  // Map to host memory.
+  if (!m_depth_readback_texture->IsMapped() && !m_depth_readback_texture->Map())
+    return false;
+
+  m_depth_readback_texture_valid = true;
+  return true;
+}
+
+void FramebufferManager::InvalidatePeekCache()
+{
+  m_color_readback_texture_valid = false;
+  m_depth_readback_texture_valid = false;
+}
+
+bool FramebufferManager::CreateReadbackRenderPasses()
+{
+  VkAttachmentDescription copy_attachment = {
+      0,                                     // VkAttachmentDescriptionFlags    flags
+      EFB_COLOR_TEXTURE_FORMAT,              // VkFormat                        format
+      VK_SAMPLE_COUNT_1_BIT,                 // VkSampleCountFlagBits           samples
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,       // VkAttachmentLoadOp              loadOp
+      VK_ATTACHMENT_STORE_OP_STORE,          // VkAttachmentStoreOp             storeOp
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,       // VkAttachmentLoadOp              stencilLoadOp
+      VK_ATTACHMENT_STORE_OP_DONT_CARE,      // VkAttachmentStoreOp             stencilStoreOp
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,  // VkImageLayout                   initialLayout
+      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL   // VkImageLayout                   finalLayout
+  };
+  VkAttachmentReference copy_attachment_ref = {
+      0,                                        // uint32_t         attachment
+      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL  // VkImageLayout    layout
+  };
+  VkSubpassDescription copy_subpass = {
+      0,                                // VkSubpassDescriptionFlags       flags
+      VK_PIPELINE_BIND_POINT_GRAPHICS,  // VkPipelineBindPoint             pipelineBindPoint
+      0,                                // uint32_t                        inputAttachmentCount
+      nullptr,                          // const VkAttachmentReference*    pInputAttachments
+      1,                                // uint32_t                        colorAttachmentCount
+      &copy_attachment_ref,             // const VkAttachmentReference*    pColorAttachments
+      nullptr,                          // const VkAttachmentReference*    pResolveAttachments
+      nullptr,                          // const VkAttachmentReference*    pDepthStencilAttachment
+      0,                                // uint32_t                        preserveAttachmentCount
+      nullptr                           // const uint32_t*                 pPreserveAttachments
+  };
+  VkSubpassDependency copy_dependency = {
+      0,
+      VK_SUBPASS_EXTERNAL,
+      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+      VK_PIPELINE_STAGE_TRANSFER_BIT,
+      VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+      VK_ACCESS_TRANSFER_READ_BIT,
+      VK_DEPENDENCY_BY_REGION_BIT};
+  VkRenderPassCreateInfo copy_pass = {
+      VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,  // VkStructureType                   sType
+      nullptr,                                    // const void*                       pNext
+      0,                                          // VkRenderPassCreateFlags           flags
+      1,                 // uint32_t                          attachmentCount
+      &copy_attachment,  // const VkAttachmentDescription*    pAttachments
+      1,                 // uint32_t                          subpassCount
+      &copy_subpass,     // const VkSubpassDescription*       pSubpasses
+      1,                 // uint32_t                          dependencyCount
+      &copy_dependency   // const VkSubpassDependency*        pDependencies
+  };
+
+  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &copy_pass, nullptr,
+                                    &m_copy_color_render_pass);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
+    return false;
+  }
+
+  // Depth is similar to copy, just a different format.
+  copy_attachment.format = EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT;
+  res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &copy_pass, nullptr,
+                           &m_copy_depth_render_pass);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateRenderPass failed: ");
+    return false;
+  }
+
+  // Some devices don't support point sizes >1 (e.g. Adreno).
+  // If we can't use a point size above our maximum IR, use triangles instead.
+  // This means a 6x increase in the size of the vertices, though.
+  if (!g_vulkan_context->GetDeviceFeatures().largePoints ||
+      g_vulkan_context->GetDeviceLimits().pointSizeGranularity > 1 ||
+      g_vulkan_context->GetDeviceLimits().pointSizeRange[0] > 1 ||
+      g_vulkan_context->GetDeviceLimits().pointSizeRange[1] < 16)
+  {
+    m_poke_primitive_topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP;
+  }
+  else
+  {
+    // Points should be okay.
+    m_poke_primitive_topology = VK_PRIMITIVE_TOPOLOGY_POINT_LIST;
+  }
+
+  return true;
+}
+
+void FramebufferManager::DestroyReadbackRenderPasses()
+{
+  if (m_copy_color_render_pass != VK_NULL_HANDLE)
+    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_copy_color_render_pass, nullptr);
+  if (m_copy_depth_render_pass != VK_NULL_HANDLE)
+    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_copy_depth_render_pass, nullptr);
+}
+
+bool FramebufferManager::CompileReadbackShaders()
+{
+  std::string source;
+
+  // TODO: Use input attachment here instead?
+  // TODO: MSAA resolve in shader.
+  static const char COPY_COLOR_SHADER_SOURCE[] = R"(
+    SAMPLER_BINDING(0) uniform sampler2DArray samp0;
+    layout(location = 0) in vec3 uv0;
+    layout(location = 0) out vec4 ocol0;
+    void main()
+    {
+      ocol0 = texture(samp0, uv0);
+    }
+  )";
+
+  static const char COPY_DEPTH_SHADER_SOURCE[] = R"(
+    SAMPLER_BINDING(0) uniform sampler2DArray samp0;
+    layout(location = 0) in vec3 uv0;
+    layout(location = 0) out float ocol0;
+    void main()
+    {
+      ocol0 = texture(samp0, uv0).r;
+    }
+  )";
+
+  source = g_object_cache->GetUtilityShaderHeader() + COPY_COLOR_SHADER_SOURCE;
+  m_copy_color_shader = Util::CompileAndCreateFragmentShader(source);
+
+  source = g_object_cache->GetUtilityShaderHeader() + COPY_DEPTH_SHADER_SOURCE;
+  m_copy_depth_shader = Util::CompileAndCreateFragmentShader(source);
+
+  return (m_copy_color_shader != VK_NULL_HANDLE && m_copy_depth_shader != VK_NULL_HANDLE);
+}
+
+void FramebufferManager::DestroyReadbackShaders()
+{
+  if (m_copy_color_shader != VK_NULL_HANDLE)
+  {
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_copy_color_shader, nullptr);
+    m_copy_color_shader = VK_NULL_HANDLE;
+  }
+  if (m_copy_depth_shader != VK_NULL_HANDLE)
+  {
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_copy_depth_shader, nullptr);
+    m_copy_depth_shader = VK_NULL_HANDLE;
+  }
+}
+
+bool FramebufferManager::CreateReadbackTextures()
+{
+  m_color_copy_texture =
+      Texture2D::Create(EFB_WIDTH, EFB_HEIGHT, 1, 1, EFB_COLOR_TEXTURE_FORMAT,
+                        VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+
+  m_color_readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, EFB_WIDTH,
+                                                      EFB_HEIGHT, EFB_COLOR_TEXTURE_FORMAT);
+  if (!m_color_copy_texture || !m_color_readback_texture)
+  {
+    ERROR_LOG(VIDEO, "Failed to create EFB color readback texture");
+    return false;
+  }
+
+  m_depth_copy_texture =
+      Texture2D::Create(EFB_WIDTH, EFB_HEIGHT, 1, 1, EFB_DEPTH_AS_COLOR_TEXTURE_FORMAT,
+                        VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                        VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
+                            VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
+
+  // We can't copy to/from color<->depth formats, so using a linear texture is not an option here.
+  // TODO: Investigate if vkCmdBlitImage can be used. The documentation isn't that clear.
+  m_depth_readback_texture = StagingTexture2DBuffer::Create(STAGING_BUFFER_TYPE_READBACK, EFB_WIDTH,
+                                                            EFB_HEIGHT, EFB_DEPTH_TEXTURE_FORMAT);
+  if (!m_depth_copy_texture || !m_depth_readback_texture)
+  {
+    ERROR_LOG(VIDEO, "Failed to create EFB depth readback texture");
+    return false;
+  }
+
+  // With Vulkan, we can leave these textures mapped and use invalidate/flush calls instead.
+  if (!m_color_readback_texture->Map() || !m_depth_readback_texture->Map())
+  {
+    ERROR_LOG(VIDEO, "Failed to map EFB readback textures");
+    return false;
+  }
+
+  // Transition to TRANSFER_SRC, as this is expected by the render pass.
+  m_color_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_depth_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
+                                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+
+  return true;
+}
+
+void FramebufferManager::DestroyReadbackTextures()
+{
+  m_color_copy_texture.reset();
+  m_color_readback_texture.reset();
+  m_color_readback_texture_valid = false;
+  m_depth_copy_texture.reset();
+  m_depth_readback_texture.reset();
+  m_depth_readback_texture_valid = false;
+}
+
+bool FramebufferManager::CreateReadbackFramebuffer()
+{
+  VkImageView framebuffer_attachment = m_color_copy_texture->GetView();
+  VkFramebufferCreateInfo framebuffer_info = {
+      VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,  // VkStructureType             sType
+      nullptr,                                    // const void*                 pNext
+      0,                                          // VkFramebufferCreateFlags    flags
+      m_copy_color_render_pass,                   // VkRenderPass                renderPass
+      1,                                          // uint32_t                    attachmentCount
+      &framebuffer_attachment,                    // const VkImageView*          pAttachments
+      EFB_WIDTH,                                  // uint32_t                    width
+      EFB_HEIGHT,                                 // uint32_t                    height
+      1                                           // uint32_t                    layers
+  };
+  VkResult res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
+                                     &m_color_copy_framebuffer);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
+    return false;
+  }
+
+  // Swap for depth
+  framebuffer_info.renderPass = m_copy_depth_render_pass;
+  framebuffer_attachment = m_depth_copy_texture->GetView();
+  res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
+                            &m_depth_copy_framebuffer);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
+    return false;
+  }
+
+  return true;
+}
+
+void FramebufferManager::DestroyReadbackFramebuffer()
+{
+  if (m_color_copy_framebuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_color_copy_framebuffer, nullptr);
+    m_color_copy_framebuffer = VK_NULL_HANDLE;
+  }
+  if (m_depth_copy_framebuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_depth_copy_framebuffer, nullptr);
+    m_depth_copy_framebuffer = VK_NULL_HANDLE;
+  }
+}
+
+void FramebufferManager::PokeEFBColor(StateTracker* state_tracker, u32 x, u32 y, u32 color)
+{
+  // Flush if we exceeded the number of vertices per batch.
+  if ((m_color_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
+    FlushEFBPokes(state_tracker);
+
+  CreatePokeVertices(&m_color_poke_vertices, x, y, 0.0f, color);
+
+  // Update the peek cache if it's valid, since we know the color of the pixel now.
+  if (m_color_readback_texture_valid)
+    m_color_readback_texture->WriteTexel(x, y, &color, sizeof(color));
+}
+
+void FramebufferManager::PokeEFBDepth(StateTracker* state_tracker, u32 x, u32 y, float depth)
+{
+  // Flush if we exceeded the number of vertices per batch.
+  if ((m_color_poke_vertices.size() + 6) > MAX_POKE_VERTICES)
+    FlushEFBPokes(state_tracker);
+
+  CreatePokeVertices(&m_depth_poke_vertices, x, y, depth, 0);
+
+  // Update the peek cache if it's valid, since we know the color of the pixel now.
+  if (m_depth_readback_texture_valid)
+    m_depth_readback_texture->WriteTexel(x, y, &depth, sizeof(depth));
+}
+
+void FramebufferManager::CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x,
+                                            u32 y, float z, u32 color)
+{
+  // Some devices don't support point sizes >1 (e.g. Adreno).
+  if (m_poke_primitive_topology == VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP)
+  {
+    // generate quad from the single point (clip-space coordinates)
+    float x1 = float(x) * 2.0f / EFB_WIDTH - 1.0f;
+    float y1 = float(y) * 2.0f / EFB_HEIGHT - 1.0f;
+    float x2 = float(x + 1) * 2.0f / EFB_WIDTH - 1.0f;
+    float y2 = float(y + 1) * 2.0f / EFB_HEIGHT - 1.0f;
+    destination_list->push_back({{x1, y1, z, 1.0f}, color});
+    destination_list->push_back({{x2, y1, z, 1.0f}, color});
+    destination_list->push_back({{x1, y2, z, 1.0f}, color});
+    destination_list->push_back({{x1, y2, z, 1.0f}, color});
+    destination_list->push_back({{x2, y1, z, 1.0f}, color});
+    destination_list->push_back({{x2, y2, z, 1.0f}, color});
+  }
+  else
+  {
+    // GPU will expand the point to a quad.
+    float cs_x = float(x) * 2.0f / EFB_WIDTH - 1.0f;
+    float cs_y = float(y) * 2.0f / EFB_HEIGHT - 1.0f;
+    float point_size = m_efb_width / static_cast<float>(EFB_WIDTH);
+    destination_list->push_back({{cs_x, cs_y, z, point_size}, color});
+  }
+}
+
+void FramebufferManager::FlushEFBPokes(StateTracker* state_tracker)
+{
+  if (!m_color_poke_vertices.empty())
+  {
+    DrawPokeVertices(state_tracker, m_color_poke_vertices.data(), m_color_poke_vertices.size(),
+                     true, false);
+
+    m_color_poke_vertices.clear();
+  }
+
+  if (!m_depth_poke_vertices.empty())
+  {
+    DrawPokeVertices(state_tracker, m_depth_poke_vertices.data(), m_depth_poke_vertices.size(),
+                     false, true);
+
+    m_depth_poke_vertices.clear();
+  }
+}
+
+void FramebufferManager::DrawPokeVertices(StateTracker* state_tracker,
+                                          const EFBPokeVertex* vertices, size_t vertex_count,
+                                          bool write_color, bool write_depth)
+{
+  // Relatively simple since we don't have any bindings.
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+
+  // We don't use the utility shader in order to keep the vertices compact.
+  PipelineInfo pipeline_info = {};
+  pipeline_info.vertex_format = m_poke_vertex_format.get();
+  pipeline_info.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
+  pipeline_info.vs = m_poke_vertex_shader;
+  pipeline_info.gs = (m_efb_layers > 1) ? m_poke_geometry_shader : VK_NULL_HANDLE;
+  pipeline_info.ps = m_poke_fragment_shader;
+  pipeline_info.render_pass = m_efb_render_pass;
+  pipeline_info.rasterization_state.hex = Util::GetNoCullRasterizationState().hex;
+  pipeline_info.depth_stencil_state.hex = Util::GetNoDepthTestingDepthStencilState().hex;
+  pipeline_info.blend_state.hex = Util::GetNoBlendingBlendState().hex;
+  pipeline_info.primitive_topology = m_poke_primitive_topology;
+  if (write_color)
+  {
+    pipeline_info.blend_state.write_mask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT |
+                                           VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+  }
+  else
+  {
+    pipeline_info.blend_state.write_mask = 0;
+  }
+  if (write_depth)
+  {
+    pipeline_info.depth_stencil_state.test_enable = VK_FALSE;
+    pipeline_info.depth_stencil_state.compare_op = VK_COMPARE_OP_ALWAYS;
+    pipeline_info.depth_stencil_state.write_enable = VK_TRUE;
+  }
+  else
+  {
+    pipeline_info.depth_stencil_state.test_enable = VK_FALSE;
+    pipeline_info.depth_stencil_state.compare_op = VK_COMPARE_OP_ALWAYS;
+    pipeline_info.depth_stencil_state.write_enable = VK_FALSE;
+  }
+
+  VkPipeline pipeline = g_object_cache->GetPipeline(pipeline_info);
+  if (pipeline == VK_NULL_HANDLE)
+  {
+    PanicAlert("Failed to get pipeline for EFB poke draw");
+    return;
+  }
+
+  // Populate vertex buffer.
+  size_t vertices_size = sizeof(EFBPokeVertex) * m_color_poke_vertices.size();
+  if (!m_poke_vertex_stream_buffer->ReserveMemory(vertices_size, sizeof(EfbPokeData), true, true,
+                                                  false))
+  {
+    // Kick a command buffer first.
+    WARN_LOG(VIDEO, "Kicking command buffer due to no EFB poke space.");
+    Util::ExecuteCurrentCommandsAndRestoreState(state_tracker, true);
+    command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+
+    if (!m_poke_vertex_stream_buffer->ReserveMemory(vertices_size, sizeof(EfbPokeData), true, true,
+                                                    false))
+    {
+      PanicAlert("Failed to get space for EFB poke vertices");
+      return;
+    }
+  }
+  VkBuffer vb_buffer = m_poke_vertex_stream_buffer->GetBuffer();
+  VkDeviceSize vb_offset = m_poke_vertex_stream_buffer->GetCurrentOffset();
+  memcpy(m_poke_vertex_stream_buffer->GetCurrentHostPointer(), vertices, vertices_size);
+  m_poke_vertex_stream_buffer->CommitMemory(vertices_size);
+
+  // Set up state.
+  state_tracker->BeginRenderPass();
+  state_tracker->SetPendingRebind();
+  Util::SetViewportAndScissor(command_buffer, 0, 0, m_efb_width, m_efb_height);
+  vkCmdBindPipeline(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  vkCmdBindVertexBuffers(command_buffer, 0, 1, &vb_buffer, &vb_offset);
+  vkCmdDraw(command_buffer, static_cast<u32>(vertex_count), 1, 0, 0);
+}
+
+void FramebufferManager::CreatePokeVertexFormat()
+{
+  PortableVertexDeclaration vtx_decl = {};
+  vtx_decl.position.enable = true;
+  vtx_decl.position.type = VAR_FLOAT;
+  vtx_decl.position.components = 4;
+  vtx_decl.position.integer = false;
+  vtx_decl.position.offset = offsetof(EFBPokeVertex, position);
+  vtx_decl.colors[0].enable = true;
+  vtx_decl.colors[0].type = VAR_UNSIGNED_BYTE;
+  vtx_decl.colors[0].components = 4;
+  vtx_decl.colors[0].integer = false;
+  vtx_decl.colors[0].offset = offsetof(EFBPokeVertex, color);
+  vtx_decl.stride = sizeof(EFBPokeVertex);
+
+  m_poke_vertex_format = std::make_unique<VertexFormat>(vtx_decl);
+}
+
+bool FramebufferManager::CreatePokeVertexBuffer()
+{
+  m_poke_vertex_stream_buffer = StreamBuffer::Create(
+      VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, POKE_VERTEX_BUFFER_SIZE, POKE_VERTEX_BUFFER_SIZE);
+  if (!m_poke_vertex_stream_buffer)
+  {
+    ERROR_LOG(VIDEO, "Failed to create EFB poke vertex buffer");
+    return false;
+  }
+
+  return true;
+}
+
+void FramebufferManager::DestroyPokeVertexBuffer()
+{
+}
+
+bool FramebufferManager::CompilePokeShaders()
+{
+  std::string source;
+
+  static const char POKE_VERTEX_SHADER_SOURCE[] = R"(
+    layout(location = 0) in vec4 ipos;
+    layout(location = 5) in vec4 icol0;
+
+    layout(location = 0) out vec4 col0;
+
+    void main()
+    {
+      gl_Position = vec4(ipos.xyz, 1.0f);
+      #if USE_POINT_SIZE
+        gl_PointSize = ipos.w;
+      #endif
+      col0 = icol0;
+    }
+
+    )";
+
+  static const char POKE_GEOMETRY_SHADER_SOURCE[] = R"(
+    layout(triangles) in;
+    layout(triangle_strip, max_vertices = EFB_LAYERS * 3) out;
+
+    in VertexData
+    {
+      vec4 col0;
+    } in_data[];
+
+    out VertexData
+    {
+      vec4 col0;
+    } out_data;
+
+    void main()
+    {
+      for (int j = 0; j < EFB_LAYERS; j++)
+      {
+        for (int i = 0; i < 3; i++)
+        {
+          gl_Layer = j;
+          gl_Position = gl_in[i].gl_Position;
+          out_data.col0 = in_data[i].col0;
+          EmitVertex();
+        }
+        EndPrimitive();
+      }
+    }
+  )";
+
+  static const char POKE_PIXEL_SHADER_SOURCE[] = R"(
+    layout(location = 0) in vec4 col0;
+    layout(location = 0) out vec4 ocol0;
+    void main()
+    {
+      ocol0 = col0;
+    }
+  )";
+
+  source = g_object_cache->GetUtilityShaderHeader();
+  if (m_poke_primitive_topology == VK_PRIMITIVE_TOPOLOGY_POINT_LIST)
+    source += "#define USE_POINT_SIZE 1\n";
+  source += POKE_VERTEX_SHADER_SOURCE;
+  m_poke_vertex_shader = Util::CompileAndCreateVertexShader(source);
+  if (m_poke_vertex_shader == VK_NULL_HANDLE)
+    return false;
+
+  if (g_vulkan_context->SupportsGeometryShaders())
+  {
+    source = g_object_cache->GetUtilityShaderHeader() + POKE_GEOMETRY_SHADER_SOURCE;
+    m_poke_geometry_shader = Util::CompileAndCreateGeometryShader(source);
+    if (m_poke_geometry_shader == VK_NULL_HANDLE)
+      return false;
+  }
+
+  source = g_object_cache->GetUtilityShaderHeader() + POKE_PIXEL_SHADER_SOURCE;
+  m_poke_fragment_shader = Util::CompileAndCreateFragmentShader(source);
+  if (m_poke_fragment_shader == VK_NULL_HANDLE)
+    return false;
+
+  return true;
+}
+
+void FramebufferManager::DestroyPokeShaders()
+{
+  if (m_poke_vertex_shader != VK_NULL_HANDLE)
+  {
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_poke_vertex_shader, nullptr);
+    m_poke_vertex_shader = VK_NULL_HANDLE;
+  }
+  if (m_poke_geometry_shader != VK_NULL_HANDLE)
+  {
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_poke_geometry_shader, nullptr);
+    m_poke_geometry_shader = VK_NULL_HANDLE;
+  }
+  if (m_poke_fragment_shader != VK_NULL_HANDLE)
+  {
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_poke_fragment_shader, nullptr);
+    m_poke_vertex_shader = VK_NULL_HANDLE;
+  }
+}
+
+}  // namespace Vulkan
