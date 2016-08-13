@@ -314,7 +314,7 @@ void TextureCache::SetStage()
     glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
 
-void TextureCache::CompileShaders()
+bool TextureCache::CompileShaders()
 {
   constexpr const char* color_copy_program = "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
                                              "in vec3 f_uv0;\n"
@@ -530,6 +530,8 @@ void TextureCache::CompileShaders()
     s_palette_copy_position_uniform[GX_TL_RGB5A3] =
         glGetUniformLocation(s_palette_pixel_shader[GX_TL_RGB5A3].glprogid, "copy_position");
   }
+
+  return true;
 }
 
 void TextureCache::DeleteShaders()

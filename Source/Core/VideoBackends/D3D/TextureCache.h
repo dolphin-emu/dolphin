@@ -58,7 +58,7 @@ private:
                u32 memory_stride, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
                bool isIntensity, bool scaleByHalf) override;
 
-  void CompileShaders() override {}
+  bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
   ID3D11Buffer* palette_buf;
   ID3D11ShaderResourceView* palette_buf_srv;
