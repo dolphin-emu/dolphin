@@ -13,7 +13,7 @@ class TextureCache : public TextureCacheBase
 public:
   TextureCache() {}
   ~TextureCache() {}
-  void CompileShaders() override {}
+  bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
   void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
                       TlutFormat format) override

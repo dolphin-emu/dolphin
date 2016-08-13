@@ -65,7 +65,7 @@ private:
                u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
                bool is_intensity, bool scale_by_half) override;
 
-  void CompileShaders() override {}
+  bool CompileShaders() override { return true; }
   void DeleteShaders() override {}
   std::unique_ptr<D3DStreamBuffer> m_palette_stream_buffer;
 

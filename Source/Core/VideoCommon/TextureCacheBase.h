@@ -160,8 +160,8 @@ public:
                        u32 memory_stride, PEControl::PixelFormat srcFormat,
                        const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf) = 0;
 
-  virtual void CompileShaders() = 0;  // currently only implemented by OGL
-  virtual void DeleteShaders() = 0;   // currently only implemented by OGL
+  virtual bool CompileShaders() = 0;
+  virtual void DeleteShaders() = 0;
 
   static TCacheEntryBase* Load(const u32 stage);
   static void UnbindTextures();
