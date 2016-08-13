@@ -14,6 +14,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.settings.FloatSetting;
 import org.dolphinemu.dolphinemu.model.settings.IntSetting;
+import org.dolphinemu.dolphinemu.model.settings.StringSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SingleChoiceSetting;
@@ -207,7 +208,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			}
 			else
 			{
-				if (scSetting.getKey().equals(SettingsFile.KEY_XFB_METHOD))
+				if (scSetting.getKey().equals(SettingsFile.KEY_VIDEO_BACKEND_INDEX))
+				{
+					putVideoBackendSetting(which);
+				}
+				else if (scSetting.getKey().equals(SettingsFile.KEY_XFB_METHOD))
 				{
 					putXfbSetting(which);
 				}
@@ -316,6 +321,31 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		}
 
 		return -1;
+	}
+
+	public void putVideoBackendSetting(int which)
+	{
+		StringSetting gfxBackend = null;
+		switch (which)
+		{
+			case 0:
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, "OGL");
+				break;
+
+			case 1:
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, "Vulkan");
+				break;
+
+			case 2:
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, "SW");
+				break;
+
+			case 3:
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, "Null");
+				break;
+		}
+
+		mView.putSetting(gfxBackend);
 	}
 
 	public void putXfbSetting(int which)
