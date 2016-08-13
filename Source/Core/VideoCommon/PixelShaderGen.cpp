@@ -522,8 +522,16 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   {
     if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
     {
-      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
-      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
+      }
+      else
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
+      }
     }
     else
     {

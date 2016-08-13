@@ -211,6 +211,14 @@ enum Bug
   // GPU memory to system memory. Use glMapBufferRange for BBox reads on AMD, and glGetBufferSubData
   // everywhere else.
   BUG_SLOWGETBUFFERSUBDATA,
+
+  // Bug: Dual-source outputs from fragment shaders are broken on AMD Vulkan drivers
+  // Started Version: -1
+  // Ended Version: -1
+  // Fragment shaders that specify dual-source outputs, via layout(location = 0, index = ...) cause
+  // the driver to fail to create graphics pipelines. The workaround for this is to specify the
+  // index as a MRT location instead, or omit the binding completely.
+  BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION,
 };
 
 // Initializes our internal vendor, device family, and driver version

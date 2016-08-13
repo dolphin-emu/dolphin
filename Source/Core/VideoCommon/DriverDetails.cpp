@@ -82,6 +82,8 @@ static BugInfo m_known_bugs[] = {
      BUG_INTELBROKENBUFFERSTORAGE, 101810.3907, 101810.3960, true},
     {API_OPENGL, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_SLOWGETBUFFERSUBDATA, -1.0,
      -1.0, true},
+    {API_VULKAN, OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN,
+     BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION, -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;
