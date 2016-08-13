@@ -149,6 +149,10 @@ struct VideoConfig final
   // Multithreaded submission, currently only supported with Vulkan.
   bool bBackendMultithreading;
 
+  // Early command buffer execution interval in number of draws.
+  // Currently only supported with Vulkan.
+  int iCommandBufferExecuteInterval;
+
   // Static config per API
   // TODO: Move this out of VideoConfig
   struct

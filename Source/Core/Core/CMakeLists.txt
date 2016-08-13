@@ -233,6 +233,7 @@ set(LIBS
 	sfml-network
 	sfml-system
 	videonull
+	videovulkan
 	videoogl
 	videosoftware
 	z
