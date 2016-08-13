@@ -272,6 +272,12 @@ static wxString stereo_convergence_desc =
 static wxString stereo_swap_desc =
     wxTRANSLATE("Swaps the left and right eye. Mostly useful if you want to view side-by-side "
                 "cross-eyed.\n\nIf unsure, leave this unchecked.");
+static wxString validation_layer_desc =
+    wxTRANSLATE("Enables validation of API calls made by the video backend, which may assist in "
+                "debugging graphical issues.\n\nIf unsure, leave this unchecked.");
+static wxString backend_multithreading_desc =
+    wxTRANSLATE("Enables multi-threading in the video backend, which may result in performance "
+                "gains in some scenarios.\n\nIf unsure, leave this unchecked.");
 
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
@@ -471,6 +477,13 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                            CreateCheckBox(page_general, _("Render to Main Window"),
                                           wxGetTranslation(render_to_main_win_desc),
                                           SConfig::GetInstance().bRenderToMain));
+
+        if (vconfig.backend_info.bSupportsMultithreading)
+        {
+          szr_other->Add(CreateCheckBox(page_general, _("Enable Multi-threading"),
+                                        wxGetTranslation(backend_multithreading_desc),
+                                        vconfig.bBackendMultithreading));
+        }
       }
 
       wxStaticBoxSizer* const group_basic =
@@ -760,6 +773,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                     wxGetTranslation(show_stats_desc), vconfig.bOverlayStats));
       szr_debug->Add(CreateCheckBox(page_advanced, _("Texture Format Overlay"),
                                     wxGetTranslation(texfmt_desc), vconfig.bTexFmtOverlayEnable));
+      szr_debug->Add(CreateCheckBox(page_advanced, _("Enable API Validation Layers"),
+                                    wxGetTranslation(validation_layer_desc),
+                                    vconfig.bEnableValidationLayer));
 
       wxStaticBoxSizer* const group_debug =
           new wxStaticBoxSizer(wxVERTICAL, page_advanced, _("Debugging"));
