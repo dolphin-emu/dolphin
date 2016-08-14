@@ -218,7 +218,8 @@ union UDICFG {
 static std::unique_ptr<DiscIO::IVolume> s_inserted_volume;
 
 // STATE_TO_SAVE
-// hardware registers
+
+// Hardware registers
 static UDISR s_DISR;
 static UDICVR s_DICVR;
 static UDICMDBUF s_DICMDBUF[3];
@@ -228,6 +229,9 @@ static UDICR s_DICR;
 static UDIIMMBUF s_DIIMMBUF;
 static UDICFG s_DICFG;
 
+// DTK
+static bool s_stream = false;
+static bool s_stop_at_track_end = false;
 static u64 s_audio_position;
 static u64 s_current_start;
 static u32 s_current_length;
@@ -235,18 +239,19 @@ static u64 s_next_start;
 static u32 s_next_length;
 static u32 s_pending_samples;
 
+// Disc drive state
 static u32 s_error_code = 0;
 static bool s_disc_inside = false;
-static bool s_stream = false;
-static bool s_stop_at_track_end = false;
-static int s_finish_executing_command = 0;
 
+// Disc drive timing
 static u64 s_last_read_offset;
 static u64 s_last_read_time;
 
 // GC-AM only
 static unsigned char s_media_buffer[0x40];
 
+// Events
+static int s_finish_executing_command;
 static int s_eject_disc;
 static int s_insert_disc;
 
@@ -279,23 +284,20 @@ void DoState(PointerWrap& p)
   p.Do(s_DIIMMBUF);
   p.DoPOD(s_DICFG);
 
-  p.Do(s_next_start);
+  p.Do(s_stream);
+  p.Do(s_stop_at_track_end);
   p.Do(s_audio_position);
+  p.Do(s_current_start);
+  p.Do(s_current_length);
+  p.Do(s_next_start);
   p.Do(s_next_length);
+  p.Do(s_pending_samples);
 
   p.Do(s_error_code);
   p.Do(s_disc_inside);
-  p.Do(s_stream);
-
-  p.Do(s_current_start);
-  p.Do(s_current_length);
-
-  p.Do(s_pending_samples);
 
   p.Do(s_last_read_offset);
   p.Do(s_last_read_time);
-
-  p.Do(s_stop_at_track_end);
 
   DVDThread::DoState(p);
 }
@@ -405,6 +407,8 @@ void Init()
   s_DICFG.Hex = 0;
   s_DICFG.CONFIG = 1;  // Disable bootrom descrambler
 
+  s_stream = false;
+  s_stop_at_track_end = false;
   s_audio_position = 0;
   s_next_start = 0;
   s_next_length = 0;
@@ -414,8 +418,6 @@ void Init()
 
   s_error_code = 0;
   s_disc_inside = false;
-  s_stream = false;
-  s_stop_at_track_end = false;
 
   s_last_read_offset = 0;
   s_last_read_time = 0;
