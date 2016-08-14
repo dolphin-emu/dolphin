@@ -228,10 +228,10 @@ static UDICR s_DICR;
 static UDIIMMBUF s_DIIMMBUF;
 static UDICFG s_DICFG;
 
-static u32 s_audio_position;
-static u32 s_current_start;
+static u64 s_audio_position;
+static u64 s_current_start;
 static u32 s_current_length;
-static u32 s_next_start;
+static u64 s_next_start;
 static u32 s_next_length;
 static u32 s_pending_samples;
 
@@ -965,9 +965,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
       }
       else if (!s_stop_at_track_end)
       {
-        // Setting s_next_start (a u32) like this discards two bits,
-        // but GC games can't be 4 GiB big, so it shouldn't matter
-        s_next_start = command_1 << 2;
+        s_next_start = static_cast<u64>(command_1) << 2;
         s_next_length = command_2;
         if (!s_stream)
         {
@@ -1000,17 +998,17 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     case 0x01:  // Returns the current offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status AudioPos:%08x",
                s_audio_position);
-      WriteImmediate(s_audio_position >> 2, output_address, reply_to_ios);
+      WriteImmediate(static_cast<u32>(s_audio_position >> 2), output_address, reply_to_ios);
       break;
     case 0x02:  // Returns the start offset
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentStart:%08x",
                s_current_start);
-      WriteImmediate(s_current_start >> 2, output_address, reply_to_ios);
+      WriteImmediate(static_cast<u32>(s_current_start >> 2), output_address, reply_to_ios);
       break;
     case 0x03:  // Returns the total length
       INFO_LOG(DVDINTERFACE, "(Audio): Stream Status: Request Audio status CurrentLength:%08x",
                s_current_length);
-      WriteImmediate(s_current_length >> 2, output_address, reply_to_ios);
+      WriteImmediate(static_cast<u32>(s_current_length >> 2), output_address, reply_to_ios);
       break;
     default:
       WARN_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s",
