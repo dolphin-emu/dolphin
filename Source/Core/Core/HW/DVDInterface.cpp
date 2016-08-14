@@ -233,6 +233,7 @@ static u32 s_current_start;
 static u32 s_current_length;
 static u32 s_next_start;
 static u32 s_next_length;
+static u32 s_pending_samples;
 
 static u32 s_error_code = 0;
 static bool s_disc_inside = false;
@@ -289,6 +290,8 @@ void DoState(PointerWrap& p)
   p.Do(s_current_start);
   p.Do(s_current_length);
 
+  p.Do(s_pending_samples);
+
   p.Do(s_last_read_offset);
   p.Do(s_last_read_time);
 
@@ -297,19 +300,34 @@ void DoState(PointerWrap& p)
   DVDThread::DoState(p);
 }
 
-static u32 ProcessDTKSamples(short* tempPCM, u32 num_samples)
+static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8>& audio_data)
 {
-  // TODO: Read audio data using the DVD thread instead of blocking on it?
-  DVDThread::WaitUntilIdle();
+  size_t samples_processed = 0;
+  size_t bytes_processed = 0;
+  while (samples_processed < temp_pcm->size() / 2 && bytes_processed < audio_data.size())
+  {
+    StreamADPCM::DecodeBlock(&(*temp_pcm)[samples_processed * 2], &audio_data[bytes_processed]);
+    samples_processed += StreamADPCM::SAMPLES_PER_BLOCK;
+    bytes_processed += StreamADPCM::ONE_BLOCK_SIZE;
+  }
+  for (size_t i = 0; i < samples_processed * 2; ++i)
+  {
+    // TODO: Fix the mixer so it can accept non-byte-swapped samples.
+    (*temp_pcm)[i] = Common::swap16((*temp_pcm)[i]);
+  }
+  return samples_processed;
+}
 
-  u32 samples_processed = 0;
-  do
+static u32 AdvanceDTK(u32 maximum_samples, u32* samples_to_process)
+{
+  u32 bytes_to_process = 0;
+  *samples_to_process = 0;
+  while (*samples_to_process < maximum_samples)
   {
     if (s_audio_position >= s_current_start + s_current_length)
     {
-      DEBUG_LOG(DVDINTERFACE, "ProcessDTKSamples: "
-                              "NextStart=%08x,NextLength=%08x,CurrentStart=%08x,CurrentLength=%08x,"
-                              "AudioPos=%08x",
+      DEBUG_LOG(DVDINTERFACE, "AdvanceDTK: NextStart=%08x, NextLength=%08x, "
+                              "CurrentStart=%08x, CurrentLength=%08x, AudioPos=%08x",
                 s_next_start, s_next_length, s_current_start, s_current_length, s_audio_position);
 
       s_audio_position = s_next_start;
@@ -326,41 +344,49 @@ static u32 ProcessDTKSamples(short* tempPCM, u32 num_samples)
       StreamADPCM::InitFilter();
     }
 
-    u8 tempADPCM[StreamADPCM::ONE_BLOCK_SIZE];
-    // TODO: What if we can't read from s_audio_position?
-    s_inserted_volume->Read(s_audio_position, sizeof(tempADPCM), tempADPCM, false);
-    s_audio_position += sizeof(tempADPCM);
-    StreamADPCM::DecodeBlock(tempPCM + samples_processed * 2, tempADPCM);
-    samples_processed += StreamADPCM::SAMPLES_PER_BLOCK;
-  } while (samples_processed < num_samples);
-  for (unsigned i = 0; i < samples_processed * 2; ++i)
-  {
-    // TODO: Fix the mixer so it can accept non-byte-swapped samples.
-    tempPCM[i] = Common::swap16(tempPCM[i]);
+    s_audio_position += StreamADPCM::ONE_BLOCK_SIZE;
+    bytes_to_process += StreamADPCM::ONE_BLOCK_SIZE;
+    *samples_to_process += StreamADPCM::SAMPLES_PER_BLOCK;
   }
-  return samples_processed;
+
+  return bytes_to_process;
 }
 
 static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_late)
 {
   // Send audio to the mixer.
-  static const int NUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
-  short tempPCM[NUM_SAMPLES * 2];
-  unsigned samples_processed;
+  std::vector<s16> temp_pcm(s_pending_samples * 2, 0);
+  ProcessDTKSamples(&temp_pcm, audio_data);
+  g_sound_stream->GetMixer()->PushStreamingSamples(temp_pcm.data(), s_pending_samples);
+
+  // Determine which audio data to read next.
+  static const int MAXIMUM_SAMPLES = 48000 / 2000 * 7;  // 3.5ms of 48kHz samples
+  u64 read_offset;
+  u32 read_length;
   if (s_stream && AudioInterface::IsPlaying())
   {
-    samples_processed = ProcessDTKSamples(tempPCM, NUM_SAMPLES);
+    read_offset = s_audio_position;
+    read_length = AdvanceDTK(MAXIMUM_SAMPLES, &s_pending_samples);
   }
   else
   {
-    memset(tempPCM, 0, sizeof(tempPCM));
-    samples_processed = NUM_SAMPLES;
+    read_length = 0;
+    s_pending_samples = MAXIMUM_SAMPLES;
   }
-  g_sound_stream->GetMixer()->PushStreamingSamples(tempPCM, samples_processed);
 
-  int ticks_to_dtk = int(SystemTimers::GetTicksPerSecond() * u64(samples_processed) / 48000);
-  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::INT_TCINT);
-  CoreTiming::ScheduleEvent(ticks_to_dtk - cycles_late, s_finish_executing_command, userdata);
+  // Read the next chunk of audio data asynchronously.
+  s64 ticks_to_dtk = SystemTimers::GetTicksPerSecond() * s64(s_pending_samples) / 48000;
+  ticks_to_dtk -= cycles_late;
+  if (read_length > 0)
+  {
+    DVDThread::StartRead(read_offset, read_length, false, ReplyType::DTK, ticks_to_dtk);
+  }
+  else
+  {
+    // There's nothing to read, so using DVDThread is unnecessary.
+    u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::INT_TCINT);
+    CoreTiming::ScheduleEvent(ticks_to_dtk, s_finish_executing_command, userdata);
+  }
 }
 
 void Init()
@@ -384,6 +410,7 @@ void Init()
   s_next_length = 0;
   s_current_start = 0;
   s_current_length = 0;
+  s_pending_samples = 0;
 
   s_error_code = 0;
   s_disc_inside = false;
