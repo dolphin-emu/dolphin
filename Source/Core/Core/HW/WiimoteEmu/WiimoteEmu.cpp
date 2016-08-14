@@ -750,7 +750,7 @@ void Wiimote::Update()
   }
   if (NetPlay::IsNetPlayRunning())
   {
-    NetPlay_GetWiimoteData(m_index, data, rptf.size);
+    NetPlay_GetWiimoteData(m_index, data, rptf.size, m_reporting_mode);
     if (rptf.core)
       m_status.buttons = *(wm_buttons*)(data + rptf.core);
   }

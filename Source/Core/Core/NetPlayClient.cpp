@@ -1022,7 +1022,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
 }
 
 // called from ---CPU--- thread
-bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
+bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode)
 {
   NetWiimote nw;
   {
@@ -1060,10 +1060,10 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
 
   // If the reporting mode has changed, we just need to pop through the buffer,
   // until we reach a good input
-  if (nw.size() != size)
+  if (nw[1] != reporting_mode)
   {
     u32 tries = 0;
-    while (nw.size() != size)
+    while (nw[1] != reporting_mode)
     {
       while (m_wiimote_buffer[_number].Size() == 0)
       {
@@ -1084,7 +1084,7 @@ bool NetPlayClient::WiimoteUpdate(int _number, u8* data, const u8 size)
     }
 
     // If it still mismatches, it surely desynced
-    if (size != nw.size())
+    if (nw[1] != reporting_mode)
     {
       PanicAlertT("Netplay has desynced. There is no way to recover from this.");
       return false;
@@ -1268,12 +1268,12 @@ bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, GCPadStatus* PadStatus)
     return false;
 }
 
-bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size)
+bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode)
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
 
   if (netplay_client)
-    return netplay_client->WiimoteUpdate(wiimote, data, size);
+    return netplay_client->WiimoteUpdate(wiimote, data, size, reporting_mode);
   else
     return false;
 }
