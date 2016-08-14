@@ -38,7 +38,7 @@ public:
                 long style);
   ~CGameListCtrl();
 
-  void Update() override;
+  void ReloadList();
 
   void BrowseForDirectory();
   const GameListItem* GetISO(size_t index) const;

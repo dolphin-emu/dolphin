@@ -53,25 +53,6 @@
 #include <X11/Xlib.h>
 #endif
 
-#ifdef _WIN32
-
-#ifndef SM_XVIRTUALSCREEN
-#define SM_XVIRTUALSCREEN 76
-#endif
-#ifndef SM_YVIRTUALSCREEN
-#define SM_YVIRTUALSCREEN 77
-#endif
-#ifndef SM_CXVIRTUALSCREEN
-#define SM_CXVIRTUALSCREEN 78
-#endif
-#ifndef SM_CYVIRTUALSCREEN
-#define SM_CYVIRTUALSCREEN 79
-#endif
-
-#endif
-
-class wxFrame;
-
 // ------------
 //  Main window
 
@@ -130,31 +111,14 @@ bool DolphinApp::OnInit()
   // Enable the PNG image handler for screenshots
   wxImage::AddHandler(new wxPNGHandler);
 
-  int x = SConfig::GetInstance().iPosX;
-  int y = SConfig::GetInstance().iPosY;
-  int w = SConfig::GetInstance().iWidth;
-  int h = SConfig::GetInstance().iHeight;
-
-// The following is not needed with X11, where window managers
-// do not allow windows to be created off the desktop.
-#ifdef _WIN32
-  // Out of desktop check
-  int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
-  int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
-  int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-  int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-  if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
-    x = y = wxDefaultCoord;
-#elif defined __APPLE__
-  if (y < 1)
-    y = wxDefaultCoord;
-#endif
-
-  main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(scm_rev_str), wxPoint(x, y), wxSize(w, h),
+  // We have to copy the size and position out of SConfig now because CFrame's OnMove
+  // handler will corrupt them during window creation (various APIs like SetMenuBar cause
+  // event dispatch including WM_MOVE/WM_SIZE)
+  wxRect window_geometry(SConfig::GetInstance().iPosX, SConfig::GetInstance().iPosY,
+                         SConfig::GetInstance().iWidth, SConfig::GetInstance().iHeight);
+  main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(scm_rev_str), window_geometry,
                           m_use_debugger, m_batch_mode, m_use_logger);
-
   SetTopWindow(main_frame);
-  main_frame->SetMinSize(wxSize(400, 300));
 
   AfterInit();
 

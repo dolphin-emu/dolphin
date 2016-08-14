@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cinttypes>
+#include <climits>
 #include <memory>
 
 #include "Common/CDUtils.h"
@@ -138,8 +139,8 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("OnScreenDisplayMessages", bOnScreenDisplayMessages);
   interface->Set("HideCursor", bHideCursor);
   interface->Set("AutoHideCursor", bAutoHideCursor);
-  interface->Set("MainWindowPosX", (iPosX == -32000) ? 0 : iPosX);  // TODO - HAX
-  interface->Set("MainWindowPosY", (iPosY == -32000) ? 0 : iPosY);  // TODO - HAX
+  interface->Set("MainWindowPosX", iPosX);
+  interface->Set("MainWindowPosY", iPosY);
   interface->Set("MainWindowWidth", iWidth);
   interface->Set("MainWindowHeight", iHeight);
   interface->Set("LanguageCode", m_InterfaceLanguage);
@@ -402,10 +403,10 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("OnScreenDisplayMessages", &bOnScreenDisplayMessages, true);
   interface->Get("HideCursor", &bHideCursor, false);
   interface->Get("AutoHideCursor", &bAutoHideCursor, false);
-  interface->Get("MainWindowPosX", &iPosX, 100);
-  interface->Get("MainWindowPosY", &iPosY, 100);
-  interface->Get("MainWindowWidth", &iWidth, 800);
-  interface->Get("MainWindowHeight", &iHeight, 600);
+  interface->Get("MainWindowPosX", &iPosX, INT_MIN);
+  interface->Get("MainWindowPosY", &iPosY, INT_MIN);
+  interface->Get("MainWindowWidth", &iWidth, -1);
+  interface->Get("MainWindowHeight", &iHeight, -1);
   interface->Get("LanguageCode", &m_InterfaceLanguage, "");
   interface->Get("ShowToolbar", &m_InterfaceToolbar, true);
   interface->Get("ShowStatusbar", &m_InterfaceStatusbar, true);
@@ -663,10 +664,10 @@ void SConfig::LoadDefaults()
   bDPL2Decoder = false;
   iLatency = 14;
 
-  iPosX = 100;
-  iPosY = 100;
-  iWidth = 800;
-  iHeight = 600;
+  iPosX = INT_MIN;
+  iPosY = INT_MIN;
+  iWidth = -1;
+  iHeight = -1;
 
   m_analytics_id = "";
   m_analytics_enabled = false;

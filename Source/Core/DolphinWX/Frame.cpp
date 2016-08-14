@@ -86,7 +86,7 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
 {
   // Give it an icon
   wxIcon IconTemp;
-  IconTemp.CopyFromBitmap(WxUtils::LoadResourceBitmap("Dolphin"));
+  IconTemp.CopyFromBitmap(WxUtils::LoadScaledResourceBitmap("Dolphin", this));
   SetIcon(IconTemp);
 
   DragAcceptFiles(true);
@@ -381,21 +381,17 @@ static BOOL WINAPI s_ctrl_handler(DWORD fdwCtrlType)
 }
 #endif
 
-CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
-               const wxSize& size, bool _UseDebugger, bool _BatchMode, bool ShowLogWindow,
-               long style)
-    : CRenderFrame(parent, id, title, pos, size, style), UseDebugger(_UseDebugger),
-      m_bBatchMode(_BatchMode)
+CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geometry,
+               bool use_debugger, bool batch_mode, bool show_log_window, long style)
+    : CRenderFrame(parent, id, title, wxDefaultPosition, wxSize(800, 600), style),
+      UseDebugger(use_debugger), m_bBatchMode(batch_mode),
+      m_toolbar_bitmap_size(FromDIP(wxSize(32, 32)))
 {
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
     bFloatWindow[i] = false;
 
-  if (ShowLogWindow)
+  if (show_log_window)
     SConfig::GetInstance().m_InterfaceLogWindow = true;
-
-  // Start debugging maximized
-  if (UseDebugger)
-    this->Maximize(true);
 
   // Debugger class
   if (UseDebugger)
@@ -487,14 +483,22 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPo
       ToggleLogConfigWindow(true);
   }
 
-  // Set the size of the window after the UI has been built, but before we show it
-  SetSize(size);
+  // Setup the window size.
+  // This has to be done here instead of in Main because the Show() happens here.
+  SetMinSize(FromDIP(wxSize(400, 300)));
+  WxUtils::SetWindowSizeAndFitToScreen(this, geometry.GetPosition(), geometry.GetSize(),
+                                       FromDIP(wxSize(800, 600)));
 
-  // Show window
-  Show();
+  // Start debugging maximized (Must be after the window has been positioned)
+  if (UseDebugger)
+    Maximize(true);
 
   // Commit
   m_Mgr->Update();
+
+  // The window must be shown for m_XRRConfig to be created (wxGTK will not allocate X11
+  // resources until the window is shown for the first time).
+  Show();
 
 #ifdef _WIN32
   SetToolTip("");
@@ -680,7 +684,8 @@ void CFrame::OnResize(wxSizeEvent& event)
 {
   event.Skip();
 
-  if (!IsMaximized() && !(SConfig::GetInstance().bRenderToMain && RendererIsFullscreen()) &&
+  if (!IsMaximized() && !IsIconized() &&
+      !(SConfig::GetInstance().bRenderToMain && RendererIsFullscreen()) &&
       !(Core::GetState() != Core::CORE_UNINITIALIZED && SConfig::GetInstance().bRenderToMain &&
         SConfig::GetInstance().bRenderWindowAutoSize))
   {
@@ -930,7 +935,7 @@ void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
     GetMenuBar()->FindItem(IDM_LIST_WORLD)->Check(true);
     GetMenuBar()->FindItem(IDM_LIST_UNKNOWN)->Check(true);
 
-    m_GameListCtrl->Update();
+    UpdateGameList();
   }
   else if (!m_GameListCtrl->GetISO(0))
   {
