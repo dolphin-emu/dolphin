@@ -523,12 +523,14 @@ void ControlDialog::DetectControl(wxCommandEvent& event)
 
 void GamepadPage::DetectControl(wxCommandEvent& event)
 {
-  ControlButton* btn = (ControlButton*)event.GetEventObject();
-  if (DetectButton(btn) && m_iterate == true)
+  auto* btn = static_cast<ControlButton*>(event.GetEventObject());
+  if (DetectButton(btn) && m_iterate)
   {
     auto it = std::find(control_buttons.begin(), control_buttons.end(), btn);
+    // it can and will be control_buttons.end() for any control that is in the exclude list.
+    if (it == control_buttons.end())
+      return;
 
-    // std find will never return end since btn will always be found in control_buttons
     ++it;
     for (; it != control_buttons.end(); ++it)
     {
