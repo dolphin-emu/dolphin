@@ -402,9 +402,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
     // Since we're adjusting z for the depth range before the perspective divide, we have to do our
-    // own clipping.
-    out.Write("o.clipDist0 = o.pos.z + o.pos.w;\n");
-    out.Write("o.clipDist1 = o.pos.w * -o.pos.z;\n");
+    // own clipping. We want to clip so that -w <= z <= 0.
+    out.Write("o.clipDist0 = o.pos.z + o.pos.w;\n");  // Near: z < -w
+    out.Write("o.clipDist1 = -o.pos.z;\n");  // Far: z > 0
 
     // We have to handle the depth range in the vertex shader, because some games will use a depth
     // range beyond the normal depth range of 0..1.
