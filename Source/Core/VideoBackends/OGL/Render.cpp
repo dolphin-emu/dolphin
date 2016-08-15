@@ -1159,8 +1159,12 @@ void Renderer::SetViewport()
     glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
   }
 
+  // Set the reversed depth range. If we do depth clipping and depth range in the
+  // vertex shader we only need to ensure depth values don't exceed the maximum
+  // value supported by the console GPU. If not, we simply clamp the near/far values
+  // themselves to the maximum value as done above.
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-    glDepthRangef(16777215.0f / 16777216.0f, 0.0f);
+    glDepthRangef(GX_MAX_DEPTH, 0.0f);
   else
     glDepthRangef(GLFar, GLNear);
 }

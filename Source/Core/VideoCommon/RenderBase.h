@@ -176,6 +176,8 @@ protected:
 
   static std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
 
+  static const float GX_MAX_DEPTH;
+
 private:
   static PEControl::PixelFormat prev_efb_format;
   static unsigned int efb_scale_numeratorX;
