@@ -149,6 +149,8 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
     Update();
     if (codeview)
       codeview->Center(PC);
+    if (CPU::IsStepping())
+      Parent->UpdateGUI();
     if (m_RegisterWindow)
       m_RegisterWindow->NotifyUpdate();
     if (m_WatchWindow)
