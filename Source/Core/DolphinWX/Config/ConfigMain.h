@@ -38,7 +38,7 @@ public:
 private:
   void CreateGUIControls();
   void OnClose(wxCloseEvent& event);
-  void OnOk(wxCommandEvent& event);
+  void OnCloseButton(wxCommandEvent& event);
   void OnSetRefreshGameListOnClose(wxCommandEvent& event);
 
   wxNotebook* Notebook;

@@ -34,7 +34,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
   m_refresh_game_list_on_close = false;
 
   Bind(wxEVT_CLOSE_WINDOW, &CConfigMain::OnClose, this);
-  Bind(wxEVT_BUTTON, &CConfigMain::OnOk, this, wxID_OK);
+  Bind(wxEVT_BUTTON, &CConfigMain::OnCloseButton, this, wxID_CLOSE);
   Bind(wxDOLPHIN_CFG_REFRESH_LIST, &CConfigMain::OnSetRefreshGameListOnClose, this);
 
   CreateGUIControls();
@@ -80,7 +80,7 @@ void CConfigMain::CreateGUIControls()
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
   main_sizer->Add(Notebook, 1, wxEXPAND | wxALL, 5);
-  main_sizer->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+  main_sizer->Add(CreateButtonSizer(wxCLOSE), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
 #ifdef __APPLE__
   main_sizer->SetMinSize(550, 0);
@@ -101,7 +101,7 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED(event))
   SConfig::GetInstance().SaveSettings();
 }
 
-void CConfigMain::OnOk(wxCommandEvent& WXUNUSED(event))
+void CConfigMain::OnCloseButton(wxCommandEvent& WXUNUSED(event))
 {
   Close();
 }
