@@ -1159,6 +1159,11 @@ void Renderer::SetViewport()
     glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
   }
 
+  // Set the reversed depth range. Since we use a 2^24 divisor for all our depth values
+  // to prevent round-trip errors we still need to ensure depth values are clamped
+  // to 2^24 - 1. If we do depth clipping and depth range in the vertex shader we
+  // simply set 2^24 - 1 as the far value here. If not, we clamp the near/far value
+  // to 2^24 - 1 as done above.
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
     glDepthRangef(16777215.0f / 16777216.0f, 0.0f);
   else

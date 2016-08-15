@@ -578,6 +578,10 @@ void Renderer::SetViewport()
   Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
   Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
+  // We do depth clipping and depth range in the vertex shader instead of relying
+  // on the graphics API. However since we use a 2^24 divisor for all our depth values
+  // to prevent round-trip errors we still need to ensure depth values are clamped
+  // to 2^24 - 1.
   D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, D3D11_MIN_DEPTH, 16777215.0f / 16777216.0f);
   D3D::context->RSSetViewports(1, &vp);
 }

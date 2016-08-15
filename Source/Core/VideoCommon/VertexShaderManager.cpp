@@ -389,8 +389,9 @@ void VertexShaderManager::SetConstants()
 
     // The depth range is handled in the vertex shader. We need to reverse
     // the far value to get a reversed depth range mapping. This is necessary
-    // because we have the most precision at the near plane, while the console
-    // has the most percision at the far plane.
+    // because the standard depth range equation pushes all depth values towards
+    // the back of the depth buffer where conventionally depth buffers have the
+    // least precision.
     constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
     constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
 
