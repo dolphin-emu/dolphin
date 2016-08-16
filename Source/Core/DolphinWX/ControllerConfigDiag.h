@@ -23,15 +23,6 @@ public:
   ControllerConfigDiag(wxWindow* const parent);
 
 private:
-  void RefreshRealWiimotes(wxCommandEvent& event);
-
-  void ConfigEmulatedWiimote(wxCommandEvent& event);
-
-  void SelectSource(wxCommandEvent& event);
-  void RevertSource();
-
-  void Save(wxCommandEvent& event);
-
   void OnSensorBarPos(wxCommandEvent& event)
   {
     SConfig::GetInstance().m_SYSCONF->SetData("BT.BAR", event.GetInt());
@@ -75,18 +66,23 @@ private:
   wxStaticBoxSizer* CreateRealWiimoteSizer();
   wxStaticBoxSizer* CreateGeneralWiimoteSettingsSizer();
 
-  void Cancel(wxCommandEvent& event);
+  void OnClose(wxCloseEvent& event);
+  void OnCloseButton(wxCommandEvent& event);
+
   void OnGameCubePortChanged(wxCommandEvent& event);
   void OnGameCubeConfigButton(wxCommandEvent& event);
 
-  std::map<wxWindowID, unsigned int> m_gc_port_choice_ids;
-  std::map<wxWindowID, unsigned int> m_gc_port_config_ids;
+  void OnWiimoteSourceChanged(wxCommandEvent& event);
+  void OnWiimoteConfigButton(wxCommandEvent& event);
+  void OnWiimoteRefreshButton(wxCommandEvent& event);
+  void SaveWiimoteSource();
+
+  std::map<wxWindowID, unsigned int> m_gc_port_from_choice_id;
+  std::map<wxWindowID, unsigned int> m_gc_port_from_config_id;
+  std::array<wxButton*, 4> m_gc_port_configure_button;
   std::array<wxString, 8> m_gc_pad_type_strs;
 
-  std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
-  unsigned int m_orig_wiimote_sources[MAX_BBMOTES];
-
-  wxButton* wiimote_configure_bt[MAX_WIIMOTES];
-  wxButton* gamecube_configure_bt[4];
-  std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
+  std::map<wxWindowID, unsigned int> m_wiimote_index_from_choice_id;
+  std::map<wxWindowID, unsigned int> m_wiimote_index_from_config_id;
+  std::array<wxButton*, MAX_WIIMOTES> m_wiimote_configure_button;
 };
