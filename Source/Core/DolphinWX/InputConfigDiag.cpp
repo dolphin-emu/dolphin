@@ -202,10 +202,15 @@ void InputConfigDialog::UpdateControlReferences()
   }
 }
 
-void InputConfigDialog::ClickSave(wxCommandEvent& event)
+void InputConfigDialog::OnClose(wxCloseEvent& event)
 {
   m_config.SaveConfig();
-  event.Skip();
+  EndModal(wxID_OK);
+}
+
+void InputConfigDialog::OnCloseButton(wxCommandEvent& event)
+{
+  Close();
 }
 
 int ControlDialog::GetRangeSliderValue() const
@@ -1097,11 +1102,12 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
   UpdateDeviceComboBox();
   UpdateProfileComboBox();
 
-  Bind(wxEVT_BUTTON, &InputConfigDialog::ClickSave, this, wxID_OK);
+  Bind(wxEVT_CLOSE_WINDOW, &InputConfigDialog::OnClose, this);
+  Bind(wxEVT_BUTTON, &InputConfigDialog::OnCloseButton, this, wxID_CLOSE);
 
   wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
   szr->Add(m_pad_notebook, 0, wxEXPAND | wxTOP | wxLEFT | wxRIGHT, 5);
-  szr->Add(CreateButtonSizer(wxOK | wxCANCEL | wxNO_DEFAULT), 0, wxEXPAND | wxALL, 5);
+  szr->Add(CreateButtonSizer(wxCLOSE), 0, wxEXPAND | wxALL, 5);
 
   SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
   SetSizerAndFit(szr);
