@@ -284,19 +284,7 @@ void FifoPlayerDlg::CreateGUIControls()
   }
 
   sMain->Add(m_Notebook, 1, wxEXPAND | wxALL, 5);
-
-  wxBoxSizer* sButtons;
-  sButtons = new wxBoxSizer(wxHORIZONTAL);
-
-  wxBoxSizer* sCloseButtonExpander;
-  sCloseButtonExpander = new wxBoxSizer(wxHORIZONTAL);
-
-  sButtons->Add(sCloseButtonExpander, 1, wxEXPAND, 5);
-
-  m_Close = new wxButton(this, wxID_ANY, _("Close"));
-  sButtons->Add(m_Close, 0, wxALL, 5);
-
-  sMain->Add(sButtons, 0, wxEXPAND, 5);
+  sMain->Add(CreateButtonSizer(wxCLOSE), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
 
   SetSizer(sMain);
   Layout();
