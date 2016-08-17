@@ -527,13 +527,13 @@ Renderer::Renderer()
     // depth clamping.
     g_Config.backend_info.bSupportsDepthClamp = false;
 
-    if (strstr(g_ogl_config.glsl_version, "3.0"))
+    if (GLExtensions::Version() == 300)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
       g_ogl_config.bSupportsAEP = false;
       g_Config.backend_info.bSupportsGeometryShaders = false;
     }
-    else if (strstr(g_ogl_config.glsl_version, "3.1"))
+    else if (GLExtensions::Version() == 310)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
       g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
@@ -575,8 +575,7 @@ Renderer::Renderer()
   }
   else
   {
-    if (strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") ||
-        strstr(g_ogl_config.glsl_version, "1.20"))
+    if (GLExtensions::Version() < 300)
     {
       PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
                  "GPU: Does your video card support OpenGL 3.0?\n"
@@ -584,7 +583,7 @@ Renderer::Renderer()
                  g_ogl_config.glsl_version);
       bSuccess = false;
     }
-    else if (strstr(g_ogl_config.glsl_version, "1.30"))
+    else if (GLExtensions::Version() == 300)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_130;
       g_ogl_config.bSupportsEarlyFragmentTests =
@@ -594,7 +593,7 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsGeometryShaders =
           false;  // geometry shaders are only supported on glsl150+
     }
-    else if (strstr(g_ogl_config.glsl_version, "1.40"))
+    else if (GLExtensions::Version() == 310)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_140;
       g_ogl_config.bSupportsEarlyFragmentTests =
@@ -604,11 +603,11 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsGeometryShaders =
           false;  // geometry shaders are only supported on glsl150+
     }
-    else if (strstr(g_ogl_config.glsl_version, "1.50"))
+    else if (GLExtensions::Version() == 320)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_150;
     }
-    else if (strstr(g_ogl_config.glsl_version, "3.30"))
+    else if (GLExtensions::Version() == 330)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_330;
     }
