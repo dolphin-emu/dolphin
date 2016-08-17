@@ -440,6 +440,11 @@ struct wm_report_core_accel
 };
 
 #define WM_REPORT_CORE_EXT8 0x32
+struct wm_report_core_ext8
+{
+  wm_buttons c;
+  u8 ext[8];
+};
 
 #define WM_REPORT_CORE_ACCEL_IR12 0x33
 struct wm_report_core_accel_ir12
