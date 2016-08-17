@@ -720,6 +720,37 @@ bool WiimoteWindows::IsConnected() const
   return m_dev_handle != nullptr;
 }
 
+DWORD GetReportSize(u8 report_id)
+{
+  switch (report_id)
+  {
+  case 0x20:
+    return 6;
+  case 0x21:
+    return 21;
+  case 0x22:
+    return 4;
+  case 0x30:
+    return 2;
+  case 0x31:
+    return 5;
+  case 0x32:
+    return 10;
+  case 0x33:
+    return 17;
+  case 0x34:
+  case 0x35:
+  case 0x36:
+  case 0x37:
+  case 0x3D:
+  case 0x3E:
+  case 0x3F:
+    return 21;
+  default:
+    return 0;
+  }
+}
+
 // positive = read packet
 // negative = didn't read packet
 // zero = error
@@ -727,8 +758,6 @@ int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index)
 {
   // Add data report indicator byte (here, 0xa1)
   buf[0] = 0xa1;
-  // Used below for a warning
-  buf[1] = 0;
 
   DWORD bytes = 0;
   ResetEvent(hid_overlap_read.hEvent);
@@ -767,7 +796,18 @@ int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index)
     }
   }
 
-  return bytes + 1;
+  // ReadFile will always return 22 bytes read.
+  // So we need to calculate the acutal report size by its report id
+  DWORD report_size = GetReportSize(buf[1]);
+  if (report_size == 0)
+  {
+    WARN_LOG(WIIMOTE, "Recieved unsupported report %d in Wiimote %i", buf[1], index + 1);
+    return -1;
+  }
+
+  // 1 Byte for the Data Report Byte, another for the Report ID and the actual report size
+  bytes = (bytes <= (report_size + 1)) ? bytes : (report_size + 1);
+  return 1 + bytes;
 }
 
 void WiimoteWindows::IOWakeup()
