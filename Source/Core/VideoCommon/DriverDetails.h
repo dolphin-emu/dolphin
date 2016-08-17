@@ -205,12 +205,13 @@ enum Bug
   // everywhere else.
   BUG_SLOWGETBUFFERSUBDATA,
 
-  // Bug: Broken lines in geometry shaders when writing to gl_ClipDistance
+  // Bug: Broken lines in geometry shaders when writing to gl_ClipDistance in the vertex shader
   // Affected Devices: Mesa i965
   // Started Version: -1
   // Ended Version: -1
-  // Mesa hasn't tested geometry shaders on i965 with user-defined clipping planes.
-  // Causes misrenderings on a large amount of things that draw lines.
+  // Writing to gl_ClipDistance in both the vertex shader and the geometry shader will break
+  // the geometry shader. Current workaround is to make sure the geometry shader always consumes
+  // the gl_ClipDistance inputs from the vertex shader.
   BUG_BROKENCLIPDISTANCE,
 };
 
