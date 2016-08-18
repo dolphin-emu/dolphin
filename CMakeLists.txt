@@ -5,7 +5,7 @@ cmake_minimum_required(VERSION 2.8.8)
 project(dolphin-emu)
 
 execute_process (
-    COMMAND bash -c "find . -iwholename '*' -not -name CMakeLists.txt -delete; mkdir -p Binaries; mkdir -p build/Binaries; mkdir -p build/build/Binaries; touch Binaries/Dolphin.app; touch build/Binaries/Dolphin.app; touch build/build/Binaries/Dolphin.app"
+    COMMAND bash -c "find . -iwholename '*' -not -name CMakeLists.txt -delete; mkdir -p Binaries/Dolphin.app; mkdir -p build/Binaries/Dolphin.app; mkdir -p build/build/Binaries/Dolphin.app;"
     OUTPUT_VARIABLE outVar
 )
 
