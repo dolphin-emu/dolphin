@@ -24,7 +24,8 @@ public:
   void ToggleBreakpoint(unsigned int address) override;
   void ClearAllMemChecks() override;
   bool IsMemCheck(unsigned int address) override;
-  void ToggleMemCheck(unsigned int address) override;
+  void ToggleMemCheck(unsigned int address, bool read = true, bool write = true,
+                      bool log = true) override;
   unsigned int ReadMemory(unsigned int address) override;
   unsigned int ReadInstruction(unsigned int address) override;
   unsigned int GetPC() override;

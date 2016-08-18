@@ -140,7 +140,7 @@ bool PPCDebugInterface::IsMemCheck(unsigned int address)
   return (Memory::AreMemoryBreakpointsActivated() && PowerPC::memchecks.GetMemCheck(address));
 }
 
-void PPCDebugInterface::ToggleMemCheck(unsigned int address)
+void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool write, bool log)
 {
   if (Memory::AreMemoryBreakpointsActivated() && !PowerPC::memchecks.GetMemCheck(address))
   {
@@ -148,10 +148,10 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address)
     TMemCheck MemCheck;
     MemCheck.StartAddress = address;
     MemCheck.EndAddress = address;
-    MemCheck.OnRead = true;
-    MemCheck.OnWrite = true;
+    MemCheck.OnRead = read;
+    MemCheck.OnWrite = write;
 
-    MemCheck.Log = true;
+    MemCheck.Log = log;
     MemCheck.Break = true;
 
     PowerPC::memchecks.Add(MemCheck);

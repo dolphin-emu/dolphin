@@ -132,7 +132,7 @@ void DSPDebugInterface::ClearAllMemChecks()
   PanicAlert("MemCheck functionality not supported in DSP module.");
 }
 
-void DSPDebugInterface::ToggleMemCheck(unsigned int address)
+void DSPDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool write, bool log)
 {
   PanicAlert("MemCheck functionality not supported in DSP module.");
 }
