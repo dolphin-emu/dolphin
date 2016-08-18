@@ -12,6 +12,7 @@
 #include <wx/listbox.h>
 #include <wx/msgdlg.h>
 #include <wx/panel.h>
+#include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/srchctrl.h>
 #include <wx/textctrl.h>
@@ -47,7 +48,8 @@ enum
   IDM_U32,
   IDM_SEARCH,
   IDM_ASCII,
-  IDM_HEX
+  IDM_HEX,
+  IDM_MEMCHECK_OPTIONS_CHANGE
 };
 
 BEGIN_EVENT_TABLE(CMemoryWindow, wxPanel)
@@ -63,6 +65,8 @@ EVT_CHECKBOX(IDM_U32, CMemoryWindow::U32)
 EVT_BUTTON(IDM_SEARCH, CMemoryWindow::onSearch)
 EVT_CHECKBOX(IDM_ASCII, CMemoryWindow::onAscii)
 EVT_CHECKBOX(IDM_HEX, CMemoryWindow::onHex)
+EVT_RADIOBUTTON(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::onMemCheckOptionChange)
+EVT_CHECKBOX(IDM_MEMCHECK_OPTIONS_CHANGE, CMemoryWindow::onMemCheckOptionChange)
 END_EVENT_TABLE()
 
 CMemoryWindow::CMemoryWindow(CCodeWindow* code_window, wxWindow* parent, wxWindowID id,
@@ -104,12 +108,24 @@ CMemoryWindow::CMemoryWindow(CCodeWindow* code_window, wxWindow* parent, wxWindo
   sizerDataTypes->Add(chk16 = new wxCheckBox(this, IDM_U16, "U16"));
   sizerDataTypes->Add(chk32 = new wxCheckBox(this, IDM_U32, "U32"));
 
+  wxStaticBoxSizer* const sizerMemCheckOptions =
+      new wxStaticBoxSizer(wxVERTICAL, this, "Memory check options");
+  sizerMemCheckOptions->Add(rdbReadWrite = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE,
+                                                             "Read and Write", wxDefaultPosition,
+                                                             wxDefaultSize, wxRB_GROUP));
+  sizerMemCheckOptions->Add(rdbRead =
+                                new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, "Read only"));
+  sizerMemCheckOptions->Add(rdbWrite =
+                                new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE, "Write only"));
+  sizerMemCheckOptions->Add(chkLog = new wxCheckBox(this, IDM_MEMCHECK_OPTIONS_CHANGE, "Log"));
+
   wxBoxSizer* const sizerRight = new wxBoxSizer(wxVERTICAL);
   sizerRight->Add(search_sizer);
   sizerRight->AddSpacer(5);
   sizerRight->Add(dump_sizer);
   sizerRight->Add(sizerSearchType);
   sizerRight->Add(sizerDataTypes);
+  sizerRight->Add(sizerMemCheckOptions);
 
   wxBoxSizer* const sizerBig = new wxBoxSizer(wxHORIZONTAL);
   sizerBig->Add(memview, 20, wxEXPAND);
@@ -118,6 +134,7 @@ CMemoryWindow::CMemoryWindow(CCodeWindow* code_window, wxWindow* parent, wxWindo
   SetSizer(sizerBig);
   chkHex->SetValue(1);  // Set defaults
   chk8->SetValue(1);
+  chkLog->SetValue(1);
 
   sizerRight->Fit(this);
   sizerBig->Fit(this);
@@ -449,4 +466,12 @@ void CMemoryWindow::onAscii(wxCommandEvent& event)
 void CMemoryWindow::onHex(wxCommandEvent& event)
 {
   chkAscii->SetValue(0);
+}
+
+void CMemoryWindow::onMemCheckOptionChange(wxCommandEvent& event)
+{
+  if (rdbReadWrite->GetValue())
+    memview->SetMemCheckOptions(true, true, chkLog->GetValue());
+  else
+    memview->SetMemCheckOptions(rdbRead->GetValue(), rdbWrite->GetValue(), chkLog->GetValue());
 }
