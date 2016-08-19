@@ -94,7 +94,7 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
   m_bNTSC = SConfig::GetInstance().bNTSC;
 
   // Create the IPL
-  m_pIPL = (u8*)AllocateMemoryPages(ROM_SIZE);
+  m_pIPL = static_cast<u8*>(Common::AllocateMemoryPages(ROM_SIZE));
 
   if (SConfig::GetInstance().bHLE_BS2)
   {
@@ -123,13 +123,13 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
   g_SRAM.lang = SConfig::GetInstance().SelectedLanguage;
   FixSRAMChecksums();
 
-  WriteProtectMemory(m_pIPL, ROM_SIZE);
+  Common::WriteProtectMemory(m_pIPL, ROM_SIZE);
   m_uAddress = 0;
 }
 
 CEXIIPL::~CEXIIPL()
 {
-  FreeMemoryPages(m_pIPL, ROM_SIZE);
+  Common::FreeMemoryPages(m_pIPL, ROM_SIZE);
   m_pIPL = nullptr;
 
   // SRAM
