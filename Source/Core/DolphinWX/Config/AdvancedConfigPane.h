@@ -32,6 +32,7 @@ private:
   // Custom RTC
   void LoadCustomRTC();
   void UpdateCustomRTC(time_t date, time_t time);
+  u32 ToSeconds(wxDateTime date);
   u32 m_temp_date;
   u32 m_temp_time;
 
