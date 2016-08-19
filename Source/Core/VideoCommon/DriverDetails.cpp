@@ -74,6 +74,7 @@ static BugInfo m_known_bugs[] = {
     {OS_WINDOWS, VENDOR_INTEL, DRIVER_INTEL, Family::UNKNOWN, BUG_INTELBROKENBUFFERSTORAGE,
      101810.3907, 101810.3960, true},
     {OS_ALL, VENDOR_ATI, DRIVER_ATI, Family::UNKNOWN, BUG_SLOWGETBUFFERSUBDATA, -1.0, -1.0, true},
+    {OS_ALL, VENDOR_MESA, DRIVER_I965, Family::UNKNOWN, BUG_BROKENCLIPDISTANCE, -1.0, -1.0, true},
 };
 
 static std::map<Bug, BugInfo> m_bugs;

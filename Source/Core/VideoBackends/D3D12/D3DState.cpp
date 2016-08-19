@@ -329,7 +329,7 @@ D3D12_RASTERIZER_DESC StateCache::GetDesc12(RasterizerState state)
           0,
           0.f,
           0,
-          true,
+          false,
           true,
           false,
           0,
