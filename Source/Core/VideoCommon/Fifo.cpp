@@ -92,7 +92,7 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
   if (doLock)
   {
-    SyncGPU(SYNC_GPU_OTHER);
+    SyncGPU(SyncGPUReason::Other);
     EmulatorState(false);
     FlushGpu();
   }
@@ -199,7 +199,7 @@ void PushFifoAuxBuffer(void* ptr, size_t size)
 {
   if (size > (size_t)(s_fifo_aux_data + FIFO_SIZE - s_fifo_aux_write_ptr))
   {
-    SyncGPU(SYNC_GPU_AUX_SPACE, /* may_move_read_ptr */ false);
+    SyncGPU(SyncGPUReason::AuxSpace, /* may_move_read_ptr */ false);
     if (!s_gpu_mainloop.IsRunning())
     {
       // GPU is shutting down
@@ -255,7 +255,7 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
   {
     // We can't wrap around while the GPU is working on the data.
     // This should be very rare due to the reset in SyncGPU.
-    SyncGPU(SYNC_GPU_WRAPAROUND);
+    SyncGPU(SyncGPUReason::Wraparound);
     if (!s_gpu_mainloop.IsRunning())
     {
       // GPU is shutting down, so the next asserts may fail
