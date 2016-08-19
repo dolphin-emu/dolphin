@@ -75,8 +75,6 @@ void CConfigMain::CreateGUIControls()
   Notebook->AddPage(wii_pane, _("Wii"));
   Notebook->AddPage(path_pane, _("Paths"));
   Notebook->AddPage(advanced_pane, _("Advanced"));
-  if (Core::g_want_determinism)
-    advanced_pane->Disable();
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
   main_sizer->Add(Notebook, 1, wxEXPAND | wxALL, 5);
