@@ -147,13 +147,14 @@ void AdvancedConfigPane::OnCustomRTCCheckBoxChanged(wxCommandEvent& event)
 
 void AdvancedConfigPane::OnCustomRTCDateChanged(wxCommandEvent& event)
 {
-  m_temp_date = m_custom_rtc_date_picker->GetValue().GetTicks();
+  m_temp_date = ConvertMSToSec(m_custom_rtc_date_picker->GetValue().GetValue().GetValue());
   UpdateCustomRTC(m_temp_date, m_temp_time);
 }
 
 void AdvancedConfigPane::OnCustomRTCTimeChanged(wxCommandEvent& event)
 {
-  m_temp_time = m_custom_rtc_time_picker->GetValue().GetTicks() - m_temp_date;
+  m_temp_time =
+      ConvertMSToSec(m_custom_rtc_time_picker->GetValue().GetValue().GetValue()) - m_temp_date;
   UpdateCustomRTC(m_temp_date, m_temp_time);
 }
 
@@ -180,13 +181,9 @@ void AdvancedConfigPane::LoadCustomRTC()
   }
   m_temp_date = m_custom_rtc_date_picker->GetValue().GetTicks();
   m_temp_time = m_custom_rtc_time_picker->GetValue().GetTicks() - m_temp_date;
-  // Limit dates to valid ranges (2000 to 2099 for GC, 2000 to 2035 for Wii)
-  if (SConfig::GetInstance().bWii)
-    m_custom_rtc_date_picker->SetRange(wxDateTime(1, wxDateTime::Jan, 2000),
-                                       wxDateTime(31, wxDateTime::Dec, 2035));
-  else
-    m_custom_rtc_date_picker->SetRange(wxDateTime(1, wxDateTime::Jan, 2000),
-                                       wxDateTime(31, wxDateTime::Dec, 2099));
+  // Limit dates to a valid range (Jan 1/2000 to Dec 31/2099)
+  m_custom_rtc_date_picker->SetRange(wxDateTime(1, wxDateTime::Jan, 2000),
+                                     wxDateTime(31, wxDateTime::Dec, 2099));
   if (Core::IsRunning())
   {
     m_custom_rtc_checkbox->Enable(false);
@@ -203,7 +200,13 @@ void AdvancedConfigPane::LoadCustomRTC()
 void AdvancedConfigPane::UpdateCustomRTC(time_t date, time_t time)
 {
   wxDateTime custom_rtc(date + time);
-  SConfig::GetInstance().m_customRTCValue = custom_rtc.FromUTC().GetTicks();
+  SConfig::GetInstance().m_customRTCValue =
+      ConvertMSToSec(custom_rtc.FromUTC().GetValue().GetValue());
   m_custom_rtc_date_picker->SetValue(custom_rtc);
   m_custom_rtc_time_picker->SetValue(custom_rtc);
+}
+
+u32 AdvancedConfigPane::ConvertMSToSec(u64 ms)
+{
+  return static_cast<u32>(ms / 1000);
 }
