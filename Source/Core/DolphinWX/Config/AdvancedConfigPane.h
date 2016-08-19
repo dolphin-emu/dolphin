@@ -20,6 +20,7 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
+  void RefreshGUI();
 
   void OnClockOverrideCheckBoxChanged(wxCommandEvent&);
   void OnClockOverrideSliderChanged(wxCommandEvent&);
