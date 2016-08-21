@@ -17,6 +17,7 @@
 #include "Common/JitRegister.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -27,6 +28,13 @@
 
 using namespace Gen;
 
+static int s_clear_jit_cache_thread_safe;
+
+static void ClearCacheThreadSafe(u64 userdata, s64 cyclesdata)
+{
+  JitInterface::ClearCache();
+}
+
 bool JitBaseBlockCache::IsFull() const
 {
   return GetNumBlocks() >= MAX_NUM_BLOCKS - 1;
@@ -34,6 +42,7 @@ bool JitBaseBlockCache::IsFull() const
 
 void JitBaseBlockCache::Init()
 {
+  s_clear_jit_cache_thread_safe = CoreTiming::RegisterEvent("clearJitCache", ClearCacheThreadSafe);
   JitRegister::Init(SConfig::GetInstance().m_perfDir);
 
   iCache.fill(0);
@@ -71,6 +80,11 @@ void JitBaseBlockCache::Clear()
   num_blocks = 1;
   blocks[0].msrBits = 0xFFFFFFFF;
   blocks[0].invalid = true;
+}
+
+void JitBaseBlockCache::SchedulateClearCacheThreadSafe()
+{
+  CoreTiming::ScheduleEvent(0, s_clear_jit_cache_thread_safe);
 }
 
 void JitBaseBlockCache::Reset()
