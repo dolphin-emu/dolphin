@@ -460,48 +460,40 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  std::string& SavedFileName = SConfig::GetInstance().m_strFilename;
-  std::string* _FileName = (std::string*)userdata;
+  const std::string& old_path = SConfig::GetInstance().m_strFilename;
+  std::string* new_path = reinterpret_cast<std::string*>(userdata);
 
-  if (!SetVolumeName(*_FileName))
+  if (!SetVolumeName(*new_path))
   {
     // Put back the old one
-    SetVolumeName(SavedFileName);
+    SetVolumeName(old_path);
     PanicAlertT("Invalid file");
   }
   SetDiscInside(VolumeIsValid());
-  delete _FileName;
+  delete new_path;
 }
 
 // Can only be called by the host thread
-void ChangeDiscAsHost(const std::string& newFileName)
+void ChangeDiscAsHost(const std::string& new_path)
 {
   bool was_unpaused = Core::PauseAndLock(true);
 
   // The host thread is now temporarily the CPU thread
-  ChangeDiscAsCPU(newFileName);
+  ChangeDiscAsCPU(new_path);
 
   Core::PauseAndLock(false, was_unpaused);
 }
 
 // Can only be called by the CPU thread
-void ChangeDiscAsCPU(const std::string& newFileName)
+void ChangeDiscAsCPU(const std::string& new_path)
 {
-  std::string* _FileName = new std::string(newFileName);
+  // TODO: This is bad. Pointers in CoreTiming userdata require
+  // manual memory management and aren't savestate-safe.
+  u64 new_path_pointer = reinterpret_cast<u64>(new std::string(new_path));
   CoreTiming::ScheduleEvent(0, s_eject_disc);
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc, (u64)_FileName);
-  if (Movie::IsRecordingInput())
-  {
-    std::string fileName = newFileName;
-    auto sizeofpath = fileName.find_last_of("/\\") + 1;
-    if (fileName.substr(sizeofpath).length() > 40)
-    {
-      PanicAlertT("The disc change to \"%s\" could not be saved in the .dtm file.\n"
-                  "The filename of the disc image must not be longer than 40 characters.",
-                  newFileName.c_str());
-    }
-    Movie::SignalDiscChange(fileName.substr(sizeofpath));
-  }
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc, new_path_pointer);
+
+  Movie::SignalDiscChange(new_path);
 }
 
 void SetLidOpen(bool open)

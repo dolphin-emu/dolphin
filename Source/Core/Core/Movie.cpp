@@ -415,10 +415,21 @@ void SetClearSave(bool enabled)
   s_bClearSave = enabled;
 }
 
-void SignalDiscChange(const std::string& new_disc_filename)
+void SignalDiscChange(const std::string& new_path)
 {
-  s_discChange = new_disc_filename;
-  s_bDiscChange = true;
+  if (Movie::IsRecordingInput())
+  {
+    size_t size_of_path_without_filename = new_path.find_last_of("/\\") + 1;
+    std::string filename = new_path.substr(size_of_path_without_filename);
+    if (filename.length() > 40)
+    {
+      PanicAlertT("The disc change to \"%s\" could not be saved in the .dtm file.\n"
+                  "The filename of the disc image must not be longer than 40 characters.",
+                  filename.c_str());
+    }
+    s_discChange = filename;
+    s_bDiscChange = true;
+  }
 }
 
 void SetReset(bool reset)
