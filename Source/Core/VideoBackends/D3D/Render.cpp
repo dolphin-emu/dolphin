@@ -73,7 +73,7 @@ struct
 {
   SamplerState sampler[8];
   BlendState blend;
-  ZMode zmode;
+  DepthState depth;
   RasterizerState raster;
 
 } gx_state;
@@ -269,9 +269,10 @@ Renderer::Renderer(void*& window_handle)
     gx_state.sampler[k].packed = 0;
   }
 
-  gx_state.zmode.testenable = false;
-  gx_state.zmode.updateenable = false;
-  gx_state.zmode.func = ZMode::NEVER;
+  gx_state.depth.testenable = false;
+  gx_state.depth.updateenable = false;
+  gx_state.depth.func = D3D11_COMPARISON_NEVER;
+  gx_state.depth.reversed_depth = false;
 
   gx_state.raster.cull_mode = D3D11_CULL_NONE;
 
@@ -583,6 +584,8 @@ void Renderer::SetViewport()
   // the maximum value supported by the console GPU.
   D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, D3D11_MIN_DEPTH, GX_MAX_DEPTH);
   D3D::context->RSSetViewports(1, &vp);
+
+  gx_state.depth.reversed_depth = xfmem.viewport.zRange < 0;
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
@@ -615,7 +618,11 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 
   // Color is passed in bgra mode so we need to convert it to rgba
   u32 rgbaColor = (color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000);
-  D3D::drawClearQuad(rgbaColor, 1.0f - (z & 0xFFFFFF) / 16777216.0f);
+
+  if (xfmem.viewport.zRange < 0)
+    D3D::drawClearQuad(rgbaColor, (z & 0xFFFFFF) / 16777216.0f);
+  else
+    D3D::drawClearQuad(rgbaColor, 1.0f - (z & 0xFFFFFF) / 16777216.0f);
 
   D3D::stateman->PopDepthState();
   D3D::stateman->PopBlendState();
@@ -1074,7 +1081,7 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 {
   gx_state.blend.use_dst_alpha = bUseDstAlpha;
   D3D::stateman->PushBlendState(gx_state_cache.Get(gx_state.blend));
-  D3D::stateman->PushDepthState(gx_state_cache.Get(gx_state.zmode));
+  D3D::stateman->PushDepthState(gx_state_cache.Get(gx_state.depth));
   D3D::stateman->PushRasterizerState(gx_state_cache.Get(gx_state.raster));
 
   for (unsigned int stage = 0; stage < 8; stage++)
@@ -1136,7 +1143,14 @@ void Renderer::SetGenerationMode()
 
 void Renderer::SetDepthMode()
 {
-  gx_state.zmode.hex = bpmem.zmode.hex;
+  const D3D11_COMPARISON_FUNC d3dCmpFuncs[8] = {
+      D3D11_COMPARISON_NEVER,         D3D11_COMPARISON_GREATER, D3D11_COMPARISON_EQUAL,
+      D3D11_COMPARISON_GREATER_EQUAL, D3D11_COMPARISON_LESS,    D3D11_COMPARISON_NOT_EQUAL,
+      D3D11_COMPARISON_LESS_EQUAL,    D3D11_COMPARISON_ALWAYS};
+
+  gx_state.depth.testenable = (u32)bpmem.zmode.testenable;
+  gx_state.depth.func = d3dCmpFuncs[bpmem.zmode.func];
+  gx_state.depth.updateenable = (u32)bpmem.zmode.updateenable;
 }
 
 void Renderer::SetLogicOpMode()

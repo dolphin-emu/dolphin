@@ -48,6 +48,15 @@ union SamplerState {
   u64 packed;
 };
 
+union DepthState {
+  BitField<0, 1, u32> testenable;
+  BitField<1, 4, D3D11_COMPARISON_FUNC> func;
+  BitField<5, 1, u32> updateenable;
+  BitField<6, 1, u32> reversed_depth;
+
+  u32 packed;
+};
+
 class StateCache
 {
 public:
@@ -56,7 +65,7 @@ public:
   ID3D11SamplerState* Get(SamplerState state);
   ID3D11BlendState* Get(BlendState state);
   ID3D11RasterizerState* Get(RasterizerState state);
-  ID3D11DepthStencilState* Get(ZMode state);
+  ID3D11DepthStencilState* Get(DepthState state);
 
   // Release all cached states and clear hash tables.
   void Clear();
