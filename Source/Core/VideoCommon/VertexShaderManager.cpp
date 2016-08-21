@@ -392,8 +392,11 @@ void VertexShaderManager::SetConstants()
     // because the standard depth range equation pushes all depth values towards
     // the back of the depth buffer where conventionally depth buffers have the
     // least precision.
-    constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
-    constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+    constants.pixelcentercorrection[2] = abs(xfmem.viewport.zRange) / 16777215.0f;
+    if (xfmem.viewport.zRange < 0.0f)
+      constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
+    else
+      constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
 
     dirty = true;
     // This is so implementation-dependent that we can't have it here.
