@@ -1160,9 +1160,16 @@ void Renderer::SetViewport()
   // value supported by the console GPU. If not, we simply clamp the near/far values
   // themselves to the maximum value as done above.
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-    glDepthRangef(GX_MAX_DEPTH, 0.0f);
+  {
+    if (xfmem.viewport.zRange < 0.0f)
+      glDepthRangef(0.0f, GX_MAX_DEPTH);
+    else
+      glDepthRangef(GX_MAX_DEPTH, 0.0f);
+  }
   else
+  {
     glDepthRangef(GLFar, GLNear);
+  }
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
