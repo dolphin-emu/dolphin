@@ -81,7 +81,7 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
   }
 
   m_cull_all = cullall;
-  
+
   // need to alloc new buffer
   if (m_is_flushed)
   {
