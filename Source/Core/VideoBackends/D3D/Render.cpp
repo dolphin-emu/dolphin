@@ -581,7 +581,7 @@ void Renderer::SetViewport()
   // We do depth clipping and depth range in the vertex shader instead of relying
   // on the graphics API. However we still need to ensure depth values don't exceed
   // the maximum value supported by the console GPU.
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, D3D11_MIN_DEPTH, GX_MAX_DEPTH);
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - GX_MAX_DEPTH, D3D11_MAX_DEPTH);
   D3D::context->RSSetViewports(1, &vp);
 }
 
