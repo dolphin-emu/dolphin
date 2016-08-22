@@ -50,6 +50,7 @@ const std::string hotkey_labels[] = {
     _trans("Toggle EFB Copies"),
     _trans("Toggle Fog"),
     _trans("Disable Emulation Speed Limit"),
+    _trans("Toggle Custom Textures"),
     _trans("Decrease Emulation Speed"),
     _trans("Increase Emulation Speed"),
 
