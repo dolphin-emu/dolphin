@@ -28,17 +28,6 @@
 
 std::unique_ptr<VertexManagerBase> g_vertex_manager;
 
-u8* VertexManagerBase::s_pCurBufferPointer;
-u8* VertexManagerBase::s_pBaseBufferPointer;
-u8* VertexManagerBase::s_pEndBufferPointer;
-
-PrimitiveType VertexManagerBase::current_primitive_type;
-
-Slope VertexManagerBase::s_zslope;
-
-bool VertexManagerBase::s_is_flushed;
-bool VertexManagerBase::s_cull_all;
-
 static const PrimitiveType primitive_from_gx[8] = {
     PRIMITIVE_TRIANGLES,  // GX_DRAW_QUADS
     PRIMITIVE_TRIANGLES,  // GX_DRAW_QUADS_2
@@ -52,17 +41,15 @@ static const PrimitiveType primitive_from_gx[8] = {
 
 VertexManagerBase::VertexManagerBase()
 {
-  s_is_flushed = true;
-  s_cull_all = false;
 }
 
 VertexManagerBase::~VertexManagerBase()
 {
 }
 
-u32 VertexManagerBase::GetRemainingSize()
+u32 VertexManagerBase::GetRemainingSize() const
 {
-  return (u32)(s_pEndBufferPointer - s_pCurBufferPointer);
+  return static_cast<u32>(m_end_buffer_pointer - m_cur_buffer_pointer);
 }
 
 DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count, u32 stride,
@@ -72,12 +59,12 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
   u32 const needed_vertex_bytes = count * stride + 4;
 
   // We can't merge different kinds of primitives, so we have to flush here
-  if (current_primitive_type != primitive_from_gx[primitive])
+  if (m_current_primitive_type != primitive_from_gx[primitive])
     Flush();
-  current_primitive_type = primitive_from_gx[primitive];
+  m_current_primitive_type = primitive_from_gx[primitive];
 
   // Check for size in buffer, if the buffer gets full, call Flush()
-  if (!s_is_flushed &&
+  if (!m_is_flushed &&
       (count > IndexGenerator::GetRemainingIndices() || count > GetRemainingIndices(primitive) ||
        needed_vertex_bytes > GetRemainingSize()))
   {
@@ -93,21 +80,21 @@ DataReader VertexManagerBase::PrepareForAdditionalData(int primitive, u32 count,
                        "Increase MAXVBUFFERSIZE or we need primitive breaking after all.");
   }
 
-  s_cull_all = cullall;
-
+  m_cull_all = cullall;
+  
   // need to alloc new buffer
-  if (s_is_flushed)
+  if (m_is_flushed)
   {
     g_vertex_manager->ResetBuffer(stride);
-    s_is_flushed = false;
+    m_is_flushed = false;
   }
 
-  return DataReader(s_pCurBufferPointer, s_pEndBufferPointer);
+  return DataReader(m_cur_buffer_pointer, m_end_buffer_pointer);
 }
 
 void VertexManagerBase::FlushData(u32 count, u32 stride)
 {
-  s_pCurBufferPointer += count * stride;
+  m_cur_buffer_pointer += count * stride;
 }
 
 u32 VertexManagerBase::GetRemainingIndices(int primitive)
@@ -170,7 +157,7 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
 
 void VertexManagerBase::Flush()
 {
-  if (s_is_flushed)
+  if (m_is_flushed)
     return;
 
   // loading a state will invalidate BP, so check for it
@@ -215,7 +202,7 @@ void VertexManagerBase::Flush()
 
   // If the primitave is marked CullAll. All we need to do is update the vertex constants and
   // calculate the zfreeze refrence slope
-  if (!s_cull_all)
+  if (!m_cull_all)
   {
     BitSet32 usedtextures;
     for (u32 i = 0; i < bpmem.genMode.numtevstages + 1u; ++i)
@@ -254,13 +241,13 @@ void VertexManagerBase::Flush()
     // Must be done after VertexShaderManager::SetConstants()
     CalculateZSlope(VertexLoaderManager::GetCurrentVertexFormat());
   }
-  else if (s_zslope.dirty && !s_cull_all)  // or apply any dirty ZSlopes
+  else if (m_zslope.dirty && !m_cull_all)  // or apply any dirty ZSlopes
   {
-    PixelShaderManager::SetZSlope(s_zslope.dfdx, s_zslope.dfdy, s_zslope.f0);
-    s_zslope.dirty = false;
+    PixelShaderManager::SetZSlope(m_zslope.dfdx, m_zslope.dfdy, m_zslope.f0);
+    m_zslope.dirty = false;
   }
 
-  if (!s_cull_all)
+  if (!m_cull_all)
   {
     // set the rest of the global constants
     GeometryShaderManager::SetConstants();
@@ -283,13 +270,13 @@ void VertexManagerBase::Flush()
               "xf.numtexgens (%d) does not match bp.numtexgens (%d). Error in command stream.",
               xfmem.numTexGen.numTexGens, bpmem.genMode.numtexgens.Value());
 
-  s_is_flushed = true;
-  s_cull_all = false;
+  m_is_flushed = true;
+  m_cull_all = false;
 }
 
 void VertexManagerBase::DoState(PointerWrap& p)
 {
-  p.Do(s_zslope);
+  p.Do(m_zslope);
   g_vertex_manager->vDoState(p);
 }
 
@@ -299,7 +286,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   float viewOffset[2] = {xfmem.viewport.xOrig - bpmem.scissorOffset.x * 2,
                          xfmem.viewport.yOrig - bpmem.scissorOffset.y * 2};
 
-  if (current_primitive_type != PRIMITIVE_TRIANGLES)
+  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
     return;
 
   // Global matrix ID.
@@ -307,7 +294,7 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   const PortableVertexDeclaration vert_decl = format->GetVertexDeclaration();
 
   // Make sure the buffer contains at least 3 vertices.
-  if ((s_pCurBufferPointer - s_pBaseBufferPointer) < (vert_decl.stride * 3))
+  if ((m_cur_buffer_pointer - m_base_buffer_pointer) < (vert_decl.stride * 3))
     return;
 
   // Lookup vertices of the last rendered triangle and software-transform them
@@ -348,8 +335,8 @@ void VertexManagerBase::CalculateZSlope(NativeVertexFormat* format)
   if (c == 0)
     return;
 
-  s_zslope.dfdx = -a / c;
-  s_zslope.dfdy = -b / c;
-  s_zslope.f0 = out[2] - (out[0] * s_zslope.dfdx + out[1] * s_zslope.dfdy);
-  s_zslope.dirty = true;
+  m_zslope.dfdx = -a / c;
+  m_zslope.dfdy = -b / c;
+  m_zslope.f0 = out[2] - (out[0] * m_zslope.dfdx + out[1] * m_zslope.dfdy);
+  m_zslope.dirty = true;
 }

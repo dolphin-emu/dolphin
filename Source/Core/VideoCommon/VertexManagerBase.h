@@ -50,36 +50,36 @@ public:
   // needs to be virtual for DX11's dtor
   virtual ~VertexManagerBase();
 
-  static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
-  static void FlushData(u32 count, u32 stride);
+  DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
+  void FlushData(u32 count, u32 stride);
 
-  static void Flush();
+  void Flush();
 
   virtual NativeVertexFormat*
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
 
-  static void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p);
 
 protected:
   virtual void vDoState(PointerWrap& p) {}
-  static PrimitiveType current_primitive_type;
+  PrimitiveType m_current_primitive_type = PrimitiveType::PRIMITIVE_POINTS;
 
   virtual void ResetBuffer(u32 stride) = 0;
 
-  static u8* s_pCurBufferPointer;
-  static u8* s_pBaseBufferPointer;
-  static u8* s_pEndBufferPointer;
+  u8* m_cur_buffer_pointer = nullptr;
+  u8* m_base_buffer_pointer = nullptr;
+  u8* m_end_buffer_pointer = nullptr;
 
-  static u32 GetRemainingSize();
+  u32 GetRemainingSize() const;
   static u32 GetRemainingIndices(int primitive);
 
-  static Slope s_zslope;
-  static void CalculateZSlope(NativeVertexFormat* format);
+  Slope m_zslope = {};
+  void CalculateZSlope(NativeVertexFormat* format);
 
-  static bool s_cull_all;
+  bool m_cull_all = false;
 
 private:
-  static bool s_is_flushed;
+  bool m_is_flushed = true;
 
   virtual void vFlush(bool useDstAlpha) = 0;
 
