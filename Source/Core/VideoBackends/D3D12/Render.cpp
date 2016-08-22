@@ -484,8 +484,10 @@ void Renderer::SetViewport()
 
   // We do depth clipping and depth range in the vertex shader instead of relying
   // on the graphics API. However we still need to ensure depth values don't exceed
-  // the maximum value supported by the console GPU.
-  D3D12_VIEWPORT vp = {x, y, width, height, D3D12_MIN_DEPTH, GX_MAX_DEPTH};
+  // the maximum value supported by the console GPU. We also need to account for the
+  // fact that the entire depth buffer is inverted on D3D, so we set GX_MAX_DEPTH as
+  // an inverted near value.
+  D3D12_VIEWPORT vp = {x, y, width, height, 1.0f - GX_MAX_DEPTH, D3D12_MAX_DEPTH};
   D3D::current_command_list->RSSetViewports(1, &vp);
 }
 
