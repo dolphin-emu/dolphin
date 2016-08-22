@@ -238,7 +238,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&fifo.CPReadWriteDistance)),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    WriteHigh(fifo.CPReadWriteDistance, val);
-                   Fifo::SyncGPU(Fifo::SYNC_GPU_OTHER);
+                   Fifo::SyncGPU(Fifo::SyncGPUReason::Other);
                    if (fifo.CPReadWriteDistance == 0)
                    {
                      GPFifo::ResetGatherPipe();
