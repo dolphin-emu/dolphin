@@ -156,6 +156,7 @@ private:
   ControlGroup* m_rumble;
   Extension* m_extension;
   ControlGroup* m_options;
+  ModifySettingsButton* m_hotkeys;
 
   // Wiimote accel data
   AccelData m_accel;

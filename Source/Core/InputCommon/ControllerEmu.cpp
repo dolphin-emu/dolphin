@@ -191,6 +191,19 @@ ControllerEmu::Buttons::Buttons(const std::string& _name) : ControlGroup(_name, 
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
 }
 
+ControllerEmu::ModifySettingsButton::ModifySettingsButton(const std::string& _name) : Buttons(_name)
+{
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
+}
+
+void ControllerEmu::ModifySettingsButton::AddInput(const std::string& _name, bool toggle = false)
+{
+  controls.emplace_back(new ControlGroup::Input(_name));
+  threshold_exceeded.emplace_back(false);
+  associated_settings.emplace_back(false);
+  associated_settings_toggle.emplace_back(toggle);
+}
+
 ControllerEmu::MixedTriggers::MixedTriggers(const std::string& _name)
     : ControlGroup(_name, GROUP_TYPE_MIXED_TRIGGERS)
 {

@@ -217,6 +217,41 @@ public:
     }
   };
 
+  class ModifySettingsButton : public Buttons
+  {
+  public:
+    ModifySettingsButton(const std::string& _name);
+    void AddInput(const std::string& _name, bool toggle);
+
+    void GetState()
+    {
+      for (unsigned int i = 0; i < controls.size(); ++i)
+      {
+        ControlState state = controls[i]->control_ref->State();
+
+        if (!associated_settings_toggle[i])  // not toggled
+          associated_settings[i] = state > numeric_settings[0]->GetValue();
+        else
+        {  // toggle (loading savestates does not en-/disable toggle)
+          // after we passed the threshold, we en-/disable. but after that, we don't change it
+          // anymore
+          if (!threshold_exceeded[i] && state > numeric_settings[0]->GetValue())
+          {
+            associated_settings[i] = !associated_settings[i];
+            threshold_exceeded[i] = true;
+          }
+          if (state < numeric_settings[0]->GetValue())
+            threshold_exceeded[i] = false;
+        }
+      }
+    }
+
+    std::vector<bool> associated_settings_toggle;  // is setting toggled or hold?
+    std::vector<bool> associated_settings;         // result
+  private:
+    std::vector<bool> threshold_exceeded;  // internal calculation (if "state" was above threshold)
+  };
+
   class MixedTriggers : public ControlGroup
   {
   public:
