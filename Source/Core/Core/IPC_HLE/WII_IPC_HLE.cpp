@@ -50,8 +50,9 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_real.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_ven.h"
 
 #if defined(__LIBUSB__) || defined(_WIN32)
@@ -128,7 +129,11 @@ void Reinit()
   num_devices = 0;
 
   // Build hardware devices
-  AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305>("/dev/usb/oh1/57e/305");
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_emu>("/dev/usb/oh1/57e/305");
+  else
+    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_real>("/dev/usb/oh1/57e/305");
+
   AddDevice<CWII_IPC_HLE_Device_stm_immediate>("/dev/stm/immediate");
   AddDevice<CWII_IPC_HLE_Device_stm_eventhook>("/dev/stm/eventhook");
   AddDevice<CWII_IPC_HLE_Device_fs>("/dev/fs");
