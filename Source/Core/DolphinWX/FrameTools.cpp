@@ -1549,6 +1549,7 @@ void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::ConnectWiimote(int wm_idx, bool connect)
 {
+#if !PASSTHROUGH_BLUETOOTH
   if (Core::IsRunning() && SConfig::GetInstance().bWii)
   {
     bool was_unpaused = Core::PauseAndLock(true);
@@ -1559,16 +1560,19 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
     Host_UpdateMainFrame();
     Core::PauseAndLock(false, was_unpaused);
   }
+#endif
 }
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
+#if !PASSTHROUGH_BLUETOOTH
   bool was_unpaused = Core::PauseAndLock(true);
   ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1,
                  !GetUsbPointer()
                       ->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)
                       ->IsConnected());
   Core::PauseAndLock(false, was_unpaused);
+#endif
 }
 
 // Toggle fullscreen. In Windows the fullscreen mode is accomplished by expanding the m_Panel to
@@ -1706,7 +1710,6 @@ void CFrame::UpdateGUI()
   bool Running = Core::GetState() == Core::CORE_RUN;
   bool Paused = Core::GetState() == Core::CORE_PAUSE;
   bool Stopping = Core::GetState() == Core::CORE_STOPPING;
-  bool RunningWii = Initialized && SConfig::GetInstance().bWii;
 
   // Make sure that we have a toolbar
   if (m_ToolBar)
@@ -1756,6 +1759,14 @@ void CFrame::UpdateGUI()
   // Tools
   GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().bEnableCheats);
 
+#if PASSTHROUGH_BLUETOOTH
+  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(false);
+  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(false);
+  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(false);
+  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(false);
+  GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(false);
+#else
+  bool RunningWii = Initialized && SConfig::GetInstance().bWii;
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(RunningWii);
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(RunningWii);
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(RunningWii);
@@ -1781,7 +1792,7 @@ void CFrame::UpdateGUI()
         ->Check(GetUsbPointer()->AccessWiiMote(0x0104)->IsConnected());
     Core::PauseAndLock(false, was_unpaused);
   }
-
+#endif
   if (m_ToolBar)
   {
     // Get the tool that controls pausing/playing

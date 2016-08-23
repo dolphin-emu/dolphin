@@ -121,6 +121,7 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
+#if !PASSTHROUGH_BLUETOOTH
   if (Core::IsRunning() && SConfig::GetInstance().bWii)
   {
     Core::QueueHostJob([=] {
@@ -130,6 +131,7 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
       Core::PauseAndLock(false, was_unpaused);
     });
   }
+#endif
 }
 
 void Host_SetWiiMoteConnectionState(int _State)

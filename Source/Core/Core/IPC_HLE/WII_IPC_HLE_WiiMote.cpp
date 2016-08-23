@@ -2,6 +2,31 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#if PASSTHROUGH_BLUETOOTH
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "Core/Core.h"
+
+namespace Core
+{
+void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const void* data, u32 size)
+{
+}
+}
+
+void CWII_IPC_HLE_WiiMote::DoState(PointerWrap& p)
+{
+  bool passthrough_bluetooth = true;
+  p.Do(passthrough_bluetooth);
+  if (!passthrough_bluetooth && p.GetMode() == PointerWrap::MODE_READ)
+  {
+    Core::DisplayMessage("State needs Bluetooth passthrough to be disabled. Aborting load state.",
+                         3000);
+    p.SetMode(PointerWrap::MODE_VERIFY);
+    return;
+  }
+}
+#else
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
@@ -71,6 +96,16 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 void CWII_IPC_HLE_WiiMote::DoState(PointerWrap& p)
 {
+  bool passthrough_bluetooth = false;
+  p.Do(passthrough_bluetooth);
+  if (passthrough_bluetooth && p.GetMode() == PointerWrap::MODE_READ)
+  {
+    Core::DisplayMessage("State needs Bluetooth passthrough to be enabled. Aborting load state.",
+                         3000);
+    p.SetMode(PointerWrap::MODE_VERIFY);
+    return;
+  }
+
   // this function is usually not called... see CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState
 
   p.Do(m_ConnectionState);
@@ -931,3 +966,5 @@ void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _
   s_Usb->m_WiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
 }
 }
+
+#endif

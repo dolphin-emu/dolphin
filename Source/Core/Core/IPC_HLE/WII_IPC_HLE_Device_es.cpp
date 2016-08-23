@@ -998,14 +998,16 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     }
     else
     {
+#if !PASSTHROUGH_BLUETOOTH
       CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
       size_t size = s_Usb->m_WiiMotes.size();
       bool* wiiMoteConnected = new bool[size];
       for (unsigned int i = 0; i < size; i++)
         wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
-
+#endif
       WII_IPC_HLE_Interface::Reset(true);
       WII_IPC_HLE_Interface::Reinit();
+#if !PASSTHROUGH_BLUETOOTH
       s_Usb = GetUsbPointer();
       for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
       {
@@ -1021,6 +1023,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
       }
 
       delete[] wiiMoteConnected;
+#endif
       WII_IPC_HLE_Interface::SetDefaultContentFile(tContentFile);
     }
     // Pass the "#002 check"

@@ -4,6 +4,25 @@
 
 #pragma once
 
+#if PASSTHROUGH_BLUETOOTH
+#include "Common/ChunkFile.h"
+
+class CWII_IPC_HLE_WiiMote
+{
+public:
+  CWII_IPC_HLE_WiiMote() = default;
+  virtual ~CWII_IPC_HLE_WiiMote() {}
+  void DoState(PointerWrap& p);
+  void Activate(bool ready) {}
+  bool IsConnected() { return false; }
+};
+
+namespace Core
+{
+void Callback_WiimoteInterruptChannel(int number, u16 channel_id, const void* data, u32 size);
+}
+#else
+
 #include <map>
 #include <string>
 
@@ -133,3 +152,5 @@ private:
                                        u16 _StartAttrID, u16 _EndAttrID,
                                        u16 _MaximumAttributeByteCount, u8* _pContinuationState);
 };
+
+#endif

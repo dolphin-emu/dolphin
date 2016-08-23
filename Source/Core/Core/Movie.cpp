@@ -545,6 +545,7 @@ void ChangePads(bool instantly)
 // NOTE: Host / Emu Threads
 void ChangeWiiPads(bool instantly)
 {
+#if !PASSTHROUGH_BLUETOOTH
   int controllers = 0;
 
   for (int i = 0; i < MAX_WIIMOTES; ++i)
@@ -560,6 +561,7 @@ void ChangeWiiPads(bool instantly)
     g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
     GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
   }
+#endif
 }
 
 // NOTE: Host Thread

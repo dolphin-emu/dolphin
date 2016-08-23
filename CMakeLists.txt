@@ -44,6 +44,8 @@ if(APPLE)
 	option(OSX_USE_DEFAULT_SEARCH_PATH "Don't prioritize system library paths" OFF)
 endif()
 
+option(PASSTHROUGH_BLUETOOTH "Passthrough a Bluetooth adapter (disables Wiimote emulation)" OFF)
+
 option(ENCODE_FRAMEDUMPS "Encode framedumps in AVI format" ON)
 
 option(FASTLOG "Enable all logs" OFF)
@@ -604,6 +606,11 @@ if(UNIX)
 	add_definitions(-DUSE_MEMORYWATCHER=1)
 endif()
 
+if(PASSTHROUGH_BLUETOOTH)
+	message("Enabling Bluetooth passthrough mode. Emulated Wiimote support will be disabled.")
+	add_definitions(-DPASSTHROUGH_BLUETOOTH=1)
+endif()
+
 if(ENABLE_ANALYTICS)
 	message("Enabling analytics collection (subject to end-user opt-in)")
 	add_definitions(-DUSE_ANALYTICS=1)
@@ -744,6 +751,10 @@ if(LIBUSB_FOUND)
 	message("Using shared LibUSB")
 	add_definitions(-D__LIBUSB__)
 	include_directories(${LIBUSB_INCLUDE_DIR})
+else()
+	if(PASSTHROUGH_BLUETOOTH)
+		message(FATAL_ERROR "libusb not found, but it is required for the Bluetooth passthrough mode.\nDisable PASSTHROUGH_BLUETOOTH to build with emulated Bluetooth support.")
+	endif(PASSTHROUGH_BLUETOOTH)
 endif(LIBUSB_FOUND)
 
 set(SFML_REQD_VERSION 2.1)

@@ -536,10 +536,12 @@ void EmuThread()
     else
       Wiimote::LoadConfig();
 
+#if !PASSTHROUGH_BLUETOOTH
     // Activate Wiimotes which don't have source set to "None"
     for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
       if (g_wiimote_sources[i])
         GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
+#endif
   }
 
   AudioCommon::InitSoundStream();

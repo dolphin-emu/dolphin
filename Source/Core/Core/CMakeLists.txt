@@ -144,7 +144,6 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
 			IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_ven.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
@@ -243,6 +242,12 @@ if(LIBUSB_FOUND)
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
 	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
 endif(LIBUSB_FOUND)
+
+if (PASSTHROUGH_BLUETOOTH)
+	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_usb_57e_305.cpp)
+else()
+	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_usb.cpp)
+endif(PASSTHROUGH_BLUETOOTH)
 
 set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 

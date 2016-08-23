@@ -46,6 +46,9 @@
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
+#if PASSTHROUGH_BLUETOOTH
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_57e_305.h"
+#endif
 #include "Core/HotkeyManager.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
@@ -1443,6 +1446,13 @@ void CFrame::ParseHotkeys()
     AudioCommon::IncreaseVolume(3);
   if (IsHotkey(HK_VOLUME_TOGGLE_MUTE))
     AudioCommon::ToggleMuteVolume();
+
+#if PASSTHROUGH_BLUETOOTH
+  if (IsHotkey(HK_TRIGGER_SYNC_BUTTON))
+  {
+    CWII_IPC_HLE_Device_usb_oh1_57e_305::TriggerSyncButtonEvent();
+  }
+#endif
 
   // Wiimote connect and disconnect hotkeys
   int WiimoteId = -1;

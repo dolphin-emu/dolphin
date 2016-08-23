@@ -123,6 +123,15 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::~CWII_IPC_HLE_Device_usb_oh1_57e_305()
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState(PointerWrap& p)
 {
+  bool passthrough_bluetooth = false;
+  p.Do(passthrough_bluetooth);
+  if (passthrough_bluetooth && p.GetMode() == PointerWrap::MODE_READ)
+  {
+    Core::DisplayMessage("State needs Bluetooth passthrough to be enabled. Aborting load.", 4000);
+    p.SetMode(PointerWrap::MODE_VERIFY);
+    return;
+  }
+
   p.Do(m_Active);
   p.Do(m_ControllerBD);
   p.Do(m_CtrlSetup);
