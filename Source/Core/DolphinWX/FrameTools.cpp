@@ -44,7 +44,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -1549,7 +1549,8 @@ void CFrame::OnFifoPlayer(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::ConnectWiimote(int wm_idx, bool connect)
 {
-  if (Core::IsRunning() && SConfig::GetInstance().bWii)
+  if (Core::IsRunning() && SConfig::GetInstance().bWii &&
+      SConfig::GetInstance().m_bt_passthrough_mode == SConfig::BLUETOOTH_PASSTHROUGH_DISABLED)
   {
     bool was_unpaused = Core::PauseAndLock(true);
     GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
@@ -1563,6 +1564,8 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
 
 void CFrame::OnConnectWiimote(wxCommandEvent& event)
 {
+  if (SConfig::GetInstance().m_bt_passthrough_mode != SConfig::BLUETOOTH_PASSTHROUGH_DISABLED)
+    return;
   bool was_unpaused = Core::PauseAndLock(true);
   ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1,
                  !GetUsbPointer()
@@ -1706,7 +1709,6 @@ void CFrame::UpdateGUI()
   bool Running = Core::GetState() == Core::CORE_RUN;
   bool Paused = Core::GetState() == Core::CORE_PAUSE;
   bool Stopping = Core::GetState() == Core::CORE_STOPPING;
-  bool RunningWii = Initialized && SConfig::GetInstance().bWii;
 
   // Make sure that we have a toolbar
   if (m_ToolBar)
@@ -1756,12 +1758,15 @@ void CFrame::UpdateGUI()
   // Tools
   GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().bEnableCheats);
 
-  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(RunningWii);
-  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(RunningWii);
-  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(RunningWii);
-  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(RunningWii);
-  GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(RunningWii);
-  if (RunningWii)
+  bool ShouldEnableWiimotes =
+      Initialized && SConfig::GetInstance().bWii &&
+      SConfig::GetInstance().m_bt_passthrough_mode == SConfig::BLUETOOTH_PASSTHROUGH_DISABLED;
+  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(ShouldEnableWiimotes);
+  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(ShouldEnableWiimotes);
+  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(ShouldEnableWiimotes);
+  GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Enable(ShouldEnableWiimotes);
+  GetMenuBar()->FindItem(IDM_CONNECT_BALANCEBOARD)->Enable(ShouldEnableWiimotes);
+  if (ShouldEnableWiimotes)
   {
     bool was_unpaused = Core::PauseAndLock(true);
     GetMenuBar()
