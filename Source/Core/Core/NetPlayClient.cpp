@@ -22,7 +22,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/Movie.h"
 #include "InputCommon/GCAdapter.h"
 #include "VideoCommon/OnScreenDisplay.h"

@@ -93,9 +93,17 @@
     <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp" />
     <ClCompile Include="NetPlay\NetWindow.cpp" />
     <ClCompile Include="FifoPlayerDlg.cpp" />
-    <ClCompile Include="Frame.cpp" />
+    <ClCompile Include="Frame.cpp">
+      <!--
+      Disable "nonstandard extension used : zero-sized array in struct/union" warning,
+      which is hit in libusb.h.
+      -->
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="FrameAui.cpp" />
-    <ClCompile Include="FrameTools.cpp" />
+    <ClCompile Include="FrameTools.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="GameListCtrl.cpp" />
     <ClCompile Include="InputConfigDiag.cpp" />
     <ClCompile Include="InputConfigDiagBitmaps.cpp" />
@@ -114,7 +122,9 @@
     <ClCompile Include="TASInputDlg.cpp" />
     <ClCompile Include="VideoConfigDiag.cpp" />
     <ClCompile Include="PostProcessingConfigDiag.cpp" />
-    <ClCompile Include="ControllerConfigDiag.cpp" />
+    <ClCompile Include="ControllerConfigDiag.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="WXInputBase.cpp" />
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>

@@ -6,16 +6,22 @@
 
 #include <array>
 #include <map>
+#include <wx/button.h>
+#include <wx/checkbox.h>
+#include <wx/choice.h>
 #include <wx/dialog.h>
+#include <wx/sizer.h>
+#include <wx/statbox.h>
+#include <wx/stattext.h>
 
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
 #include "InputCommon/GCAdapter.h"
 
 class InputConfig;
-class wxButton;
-class wxStaticBoxSizer;
 
 class ControllerConfigDiag : public wxDialog
 {
@@ -63,10 +69,53 @@ private:
     event.Skip();
   }
 
+  void OnPassthroughMode(wxCommandEvent& event)
+  {
+    SConfig::GetInstance().m_bt_passthrough_enabled = event.IsChecked();
+    UpdateUI();
+  }
+
+  void OnPassthroughScanButton(wxCommandEvent& event)
+  {
+    auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
+    if (device != nullptr)
+      std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
+          ->TriggerSyncButtonPressedEvent();
+    event.Skip();
+  }
+
+  void OnPassthroughResetButton(wxCommandEvent& event)
+  {
+    auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
+    if (device != nullptr)
+      std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
+          ->TriggerSyncButtonHeldEvent();
+    event.Skip();
+  }
+
   void OnEnableSpeaker(wxCommandEvent& event)
   {
     SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
     event.Skip();
+  }
+
+  void UpdateUI()
+  {
+    const bool enable_bt_passthrough_mode = SConfig::GetInstance().m_bt_passthrough_enabled;
+    m_real_wiimotes_sizer->ShowItems(!enable_bt_passthrough_mode);
+    m_bt_passthrough_sizer->ShowItems(enable_bt_passthrough_mode);
+    m_unsupported_bt_text->Show(!enable_bt_passthrough_mode);
+    m_bt_passthrough_text->Show(enable_bt_passthrough_mode);
+    m_balance_board_group->ShowItems(!enable_bt_passthrough_mode);
+    m_enable_speaker_data->Enable(!enable_bt_passthrough_mode);
+    for (int i = 0; i < MAX_WIIMOTES; ++i)
+    {
+      m_wiimote_labels[i]->Enable(!enable_bt_passthrough_mode);
+      m_wiimote_sources[i]->Enable(!enable_bt_passthrough_mode);
+      wiimote_configure_bt[i]->Enable(!enable_bt_passthrough_mode);
+    }
+    Layout();
+    Fit();
   }
 
   wxStaticBoxSizer* CreateGamecubeSizer();
@@ -86,7 +135,17 @@ private:
   std::map<wxWindowID, unsigned int> m_wiimote_index_from_ctrl_id;
   unsigned int m_orig_wiimote_sources[MAX_BBMOTES];
 
-  wxButton* wiimote_configure_bt[MAX_WIIMOTES];
-  wxButton* gamecube_configure_bt[4];
+  std::array<wxButton*, MAX_WIIMOTES> wiimote_configure_bt;
+  std::array<wxButton*, 4> gamecube_configure_bt;
   std::map<wxWindowID, unsigned int> m_wiimote_index_from_conf_bt_id;
+
+  std::array<wxStaticText*, 4> m_wiimote_labels;
+  std::array<wxChoice*, 4> m_wiimote_sources;
+  wxBoxSizer* m_real_wiimotes_sizer;
+  wxBoxSizer* m_bt_passthrough_sizer;
+  wxStaticText* m_unsupported_bt_text;
+  wxStaticText* m_bt_passthrough_text;
+  wxStaticBoxSizer* m_general_wm_settings;
+  wxStaticBoxSizer* m_balance_board_group;
+  wxCheckBox* m_enable_speaker_data;
 };
