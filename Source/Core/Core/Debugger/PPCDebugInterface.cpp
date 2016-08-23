@@ -7,8 +7,10 @@
 #include "Common/GekkoDisassembler.h"
 
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
@@ -163,6 +165,15 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address)
 void PPCDebugInterface::InsertBLR(unsigned int address, unsigned int value)
 {
   PowerPC::HostWrite_U32(value, address);
+  if (CPU::GetState() == CPU::State::CPU_RUNNING)
+  {
+    PowerPC::SchedulateInvalidateCacheThreadSafe(address);
+    CoreTiming::Advance();
+  }
+  else
+  {
+    PowerPC::ppcState.iCache.Invalidate(address);
+  }
 }
 
 // =======================================================
