@@ -371,8 +371,8 @@ void Wiimote::UpdateButtonsStatus()
 {
   // update buttons in status struct
   m_status.buttons.hex = 0;
-  const bool sideways_modifier_toggle = m_hotkeys->associated_settings[0];
-  const bool sideways_modifier_switch = m_hotkeys->associated_settings[2];
+  const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
+  const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
   const bool is_sideways = m_options->boolean_settings[1]->GetValue() ^ sideways_modifier_toggle ^
                            sideways_modifier_switch;
   m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
@@ -393,10 +393,10 @@ void Wiimote::GetButtonData(u8* const data)
 
 void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 {
-  const bool sideways_modifier_toggle = m_hotkeys->associated_settings[0];
-  const bool upright_modifier_toggle = m_hotkeys->associated_settings[1];
-  const bool sideways_modifier_switch = m_hotkeys->associated_settings[2];
-  const bool upright_modifier_switch = m_hotkeys->associated_settings[3];
+  const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
+  const bool upright_modifier_toggle = m_hotkeys->getSettingsModifier()[1];
+  const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
+  const bool upright_modifier_switch = m_hotkeys->getSettingsModifier()[3];
   const bool is_sideways = m_options->boolean_settings[1]->GetValue() ^ sideways_modifier_toggle ^
                            sideways_modifier_switch;
   const bool is_upright = m_options->boolean_settings[2]->GetValue() ^ upright_modifier_toggle ^

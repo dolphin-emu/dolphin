@@ -5,6 +5,7 @@
 #include "InputCommon/ControllerEmu.h"
 #include <memory>
 #include "Common/Common.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 // This should be called before calling GetState() or State() on a control reference
 // to prevent a race condition.
@@ -212,11 +213,13 @@ void ControllerEmu::ModifySettingsButton::GetState()
     ControlState state = controls[i]->control_ref->State();
 
     if (!associated_settings_toggle[i])
-    {  // not toggled
+    {
+      // not toggled
       associated_settings[i] = state > numeric_settings[0]->GetValue();
     }
     else
-    {  // toggle (loading savestates does not en-/disable toggle)
+    {
+      // toggle (loading savestates does not en-/disable toggle)
       // after we passed the threshold, we en-/disable. but after that, we don't change it
       // anymore
       if (!threshold_exceeded[i] && state > numeric_settings[0]->GetValue())

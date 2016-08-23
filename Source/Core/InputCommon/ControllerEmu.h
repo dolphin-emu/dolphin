@@ -11,12 +11,10 @@
 #include <string>
 #include <vector>
 
-#include "Common/Common.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
-#include "VideoCommon/OnScreenDisplay.h"
 
 #define sign(x) ((x) ? (x) < 0 ? -1 : 1 : 0)
 
@@ -227,10 +225,17 @@ public:
 
     void GetState();
 
-    std::vector<bool> associated_settings_toggle;  // is setting toggled or hold?
-    std::vector<bool> associated_settings;         // result
+    const std::vector<bool>& isSettingToggled() const {
+      return associated_settings_toggle;
+    }
+
+    const std::vector<bool>& getSettingsModifier() const {
+      return associated_settings;
+    }
   private:
     std::vector<bool> threshold_exceeded;  // internal calculation (if "state" was above threshold)
+    std::vector<bool> associated_settings_toggle;  // is setting toggled or hold?
+    std::vector<bool> associated_settings;         // result
   };
 
   class MixedTriggers : public ControlGroup
