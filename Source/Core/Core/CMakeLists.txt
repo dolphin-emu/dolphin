@@ -145,7 +145,9 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
 			IPC_HLE/WII_IPC_HLE_Device_stm.cpp
 			IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_ven.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
@@ -243,7 +245,8 @@ set(LIBS
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
+	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
+	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp)
 endif(LIBUSB_FOUND)
 
 set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
