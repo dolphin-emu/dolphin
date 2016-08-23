@@ -17,7 +17,7 @@ namespace Hook
 {
 // Generate the Definition of all the hooks
 #define TYPES_ONLY(TYPE, NAME) TYPE
-#define DEFINITION(NAME, ...) HookableEvent<__VA_ARGS__> NAME(NAME##_argnames);
+#define DEFINITION(NAME, ...) common::HookableEvent<__VA_ARGS__> NAME(NAME##_argnames);
 HOOKABLE_EVENT_TABLE(DEFINITION, TYPES_ONLY)
 }
 

@@ -16,7 +16,7 @@ namespace Hook
 {
 // Generate the hook decelerations
 #define TYPES_ONLY(TYPE, NAME) TYPE
-#define DEFINE_EXTERNS(NAME, ...) extern HookableEvent<__VA_ARGS__> NAME;
+#define DEFINE_EXTERNS(NAME, ...) extern common::HookableEvent<__VA_ARGS__> NAME;
 HOOKABLE_EVENT_TABLE(DEFINE_EXTERNS, TYPES_ONLY)
 
 #undef DEFINE_EXTERNS
