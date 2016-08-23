@@ -136,6 +136,7 @@ extern MemChecks memchecks;
 extern PPCDebugInterface debug_interface;
 
 void Init(int cpu_core);
+void SchedulateInvalidateCacheThreadSafe(u32 address);
 void Shutdown();
 void DoState(PointerWrap& p);
 
