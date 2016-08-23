@@ -138,6 +138,7 @@ extern PPCDebugInterface debug_interface;
 void Init(int cpu_core);
 void Shutdown();
 void DoState(PointerWrap& p);
+void ScheduleInvalidateCacheThreadSafe(u32 address);
 
 CoreMode GetMode();
 // [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or CORE_UNINITIALIZED

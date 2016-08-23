@@ -10,6 +10,7 @@
 #include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
@@ -34,6 +35,12 @@ Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
+
+static int s_invalidate_cache_thread_safe;
+static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
+{
+  ppcState.iCache.Invalidate(static_cast<u32>(userdata));
+}
 
 u32 CompactCR()
 {
@@ -117,6 +124,9 @@ void Init(int cpu_core)
   //   Changing the rounding mode has a limited effect.
   FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
 
+  s_invalidate_cache_thread_safe =
+      CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
+
   memset(ppcState.sr, 0, sizeof(ppcState.sr));
   ppcState.pagetable_base = 0;
   ppcState.pagetable_hashmask = 0;
@@ -171,6 +181,15 @@ void Init(int cpu_core)
 
   if (SConfig::GetInstance().bEnableDebugging)
     breakpoints.ClearAllTemporary();
+}
+
+void ScheduleInvalidateCacheThreadSafe(u32 address)
+{
+  if (CPU::GetState() == CPU::State::CPU_RUNNING)
+    CoreTiming::ScheduleEvent(0, s_invalidate_cache_thread_safe, address,
+                              CoreTiming::FromThread::NON_CPU);
+  else
+    PowerPC::ppcState.iCache.Invalidate(static_cast<u32>(address));
 }
 
 void Shutdown()
