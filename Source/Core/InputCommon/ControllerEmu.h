@@ -11,10 +11,12 @@
 #include <string>
 #include <vector>
 
+#include "Common/Common.h"
 #include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 #define sign(x) ((x) ? (x) < 0 ? -1 : 1 : 0)
 
@@ -238,6 +240,10 @@ public:
           if (!threshold_exceeded[i] && state > numeric_settings[0]->GetValue())
           {
             associated_settings[i] = !associated_settings[i];
+	    if (associated_settings[i])
+	      OSD::AddMessage(controls[i]->name + ": " + _trans("on"));
+	    else
+	      OSD::AddMessage(controls[i]->name + ": " + _trans("off"));
             threshold_exceeded[i] = true;
           }
           if (state < numeric_settings[0]->GetValue())
