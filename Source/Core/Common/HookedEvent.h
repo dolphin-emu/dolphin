@@ -3,15 +3,16 @@
 // Refer to the license.txt file included.
 #pragma once
 
+#include <algorithm>
 #include <functional>
 #include <type_traits>
 #include <vector>
 
+#include "Common/DolphinTraits.h"
 #include "Common/MsgHandler.h"
 
-template <typename... Ts>
-struct all_const_exportable;
-
+namespace common
+{
 template <class... Args>
 class HookableEvent
 {
@@ -65,9 +66,12 @@ public:
       callback.second(args...);
   }
 
-  static_assert(all_const_exportable<Args...>::value, "All Hook argument types must either be "
-                                                      "fundamental, or pointers to standard layout "
-                                                      "structs/arrays");
+  static_assert(is_all_exportable<Args...>::value, "All Hook argument types must either be "
+                                                   "fundamental, or pointers to standard layout "
+                                                   "structs and arrays");
+  static_assert(is_all_pure_arg<Args...>::value, "All Hook pointer arguments must be pointing to "
+                                                 "constant objects (Hint: for pointers, put const "
+                                                 "on the right side of the star)");
 
 private:
   std::mutex m_callbacks_mutex;
@@ -75,24 +79,4 @@ private:
   std::array<std::string, num_args>& m_argument_names;
 };
 
-template <>
-struct all_const_exportable<>
-{
-  static const bool value = true;
-};
-
-template <typename T>
-struct all_const_exportable<T>
-{
-  // Type is either fundamental, or a const pointer to a standard layout structure
-  static const bool value =
-      std::is_fundamental<T>::value ||
-      (std::is_standard_layout<T>::value && std::is_const<T>::value && std::is_pointer<T>::value);
-};
-
-template <typename Head, typename... Tail>
-struct all_const_exportable<Head, Tail...>
-{
-  static const bool value =
-      all_const_exportable<Head>::value && all_const_exportable<Tail...>::value;
-};
+}  // namespace common
