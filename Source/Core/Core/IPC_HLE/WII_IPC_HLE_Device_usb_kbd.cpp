@@ -6,7 +6,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // Local core functions
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 
 #ifdef _WIN32

@@ -47,7 +47,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -998,28 +998,33 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     }
     else
     {
-      CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = GetUsbPointer();
-      size_t size = s_Usb->m_WiiMotes.size();
-      bool* wiiMoteConnected = new bool[size];
-      for (unsigned int i = 0; i < size; i++)
-        wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
+      bool* wiiMoteConnected = new bool[MAX_BBMOTES];
+      if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+      {
+        CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* s_Usb = GetUsbPointer();
+        for (unsigned int i = 0; i < MAX_BBMOTES; i++)
+          wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
+      }
 
       WII_IPC_HLE_Interface::Reset(true);
       WII_IPC_HLE_Interface::Reinit();
-      s_Usb = GetUsbPointer();
-      for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
+
+      if (!SConfig::GetInstance().m_bt_passthrough_enabled)
       {
-        if (wiiMoteConnected[i])
+        CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* s_Usb = GetUsbPointer();
+        for (unsigned int i = 0; i < MAX_BBMOTES; i++)
         {
-          s_Usb->m_WiiMotes[i].Activate(false);
-          s_Usb->m_WiiMotes[i].Activate(true);
-        }
-        else
-        {
-          s_Usb->m_WiiMotes[i].Activate(false);
+          if (wiiMoteConnected[i])
+          {
+            s_Usb->m_WiiMotes[i].Activate(false);
+            s_Usb->m_WiiMotes[i].Activate(true);
+          }
+          else
+          {
+            s_Usb->m_WiiMotes[i].Activate(false);
+          }
         }
       }
-
       delete[] wiiMoteConnected;
       WII_IPC_HLE_Interface::SetDefaultContentFile(tContentFile);
     }
