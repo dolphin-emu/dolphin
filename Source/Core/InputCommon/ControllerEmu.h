@@ -217,6 +217,22 @@ public:
     }
   };
 
+  class ModifySettingsButton : public Buttons
+  {
+  public:
+    ModifySettingsButton(std::string button_name);
+    void AddInput(std::string button_name, bool toggle = false);
+
+    void GetState();
+
+    const std::vector<bool>& isSettingToggled() const { return associated_settings_toggle; }
+    const std::vector<bool>& getSettingsModifier() const { return associated_settings; }
+  private:
+    std::vector<bool> threshold_exceeded;  // internal calculation (if "state" was above threshold)
+    std::vector<bool> associated_settings_toggle;  // is setting toggled or hold?
+    std::vector<bool> associated_settings;         // result
+  };
+
   class MixedTriggers : public ControlGroup
   {
   public:
