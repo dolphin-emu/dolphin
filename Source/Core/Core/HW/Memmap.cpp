@@ -209,8 +209,6 @@ void Init()
       PanicAlert("MemoryMap_Setup: Failed finding a memory base.");
       exit(0);
     }
-
-    mem_size += region.size;
   }
 
 #ifndef _ARCH_32
@@ -252,15 +250,8 @@ void UpdateLogicalMemory(u32* dbat_table)
         if (intersection_start < intersection_end)
         {
           // Found an overlapping region; map it.
-          // We only worry about one overlapping region; in theory, a logical
-          // region could translate to more than one physical region, but in
-          // practice, that doesn't happen.
-          u32 position = physical_region.shm_position;
-          if (intersection_start > mapping_address)
-            position += intersection_start - mapping_address;
-          u8* base = logical_base + logical_address;
-          if (intersection_start > translated_address)
-            base += intersection_start - translated_address;
+          u32 position = physical_region.shm_position + intersection_start - mapping_address;
+          u8* base = logical_base + logical_address + intersection_start - translated_address;
           u32 mapped_size = intersection_end - intersection_start;
 
           void* mapped_pointer = g_arena.CreateView(position, mapped_size, base);
@@ -270,7 +261,6 @@ void UpdateLogicalMemory(u32* dbat_table)
             exit(0);
           }
           logical_mapped_entries.push_back({mapped_pointer, mapped_size});
-          break;
         }
       }
     }
