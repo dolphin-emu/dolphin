@@ -300,8 +300,8 @@ Wiimote::Wiimote(const unsigned int index)
   m_hotkeys->AddInput(_trans("Sideways Toggle"), true);
   m_hotkeys->AddInput(_trans("Upright Toggle"), true);
   // this setting modifier is not toggled
-  m_hotkeys->AddInput(_trans("Sideways Switch"), false);
-  m_hotkeys->AddInput(_trans("Upright Switch"), false);
+  m_hotkeys->AddInput(_trans("Sideways Hold"), false);
+  m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   // TODO: This value should probably be re-read if SYSCONF gets changed
   m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;
