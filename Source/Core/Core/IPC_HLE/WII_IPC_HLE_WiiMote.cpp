@@ -10,25 +10,25 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/WiiMote_HID_Attr.h"
 #include "Core/IPC_HLE/l2cap.h"
 
-static CWII_IPC_HLE_Device_usb_oh1_57e_305* s_Usb = nullptr;
+static CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* s_Usb = nullptr;
 
-CWII_IPC_HLE_Device_usb_oh1_57e_305* GetUsbPointer()
+CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* GetUsbPointer()
 {
   return s_Usb;
 }
 
-void SetUsbPointer(CWII_IPC_HLE_Device_usb_oh1_57e_305* ptr)
+void SetUsbPointer(CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* ptr)
 {
   s_Usb = ptr;
 }
 
-CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number,
-                                           bdaddr_t _BD, bool ready)
+CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* _pHost,
+                                           int _Number, bdaddr_t _BD, bool ready)
     : m_HIDControlChannel_Connected(false), m_HIDControlChannel_ConnectedWait(false),
       m_HIDControlChannel_Config(false), m_HIDControlChannel_ConfigWait(false),
       m_HIDInterruptChannel_Connected(false), m_HIDInterruptChannel_ConnectedWait(false),
@@ -71,6 +71,16 @@ CWII_IPC_HLE_WiiMote::CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* 
 
 void CWII_IPC_HLE_WiiMote::DoState(PointerWrap& p)
 {
+  bool passthrough_bluetooth = false;
+  p.Do(passthrough_bluetooth);
+  if (passthrough_bluetooth && p.GetMode() == PointerWrap::MODE_READ)
+  {
+    Core::DisplayMessage("State needs Bluetooth passthrough to be enabled. Aborting load state.",
+                         3000);
+    p.SetMode(PointerWrap::MODE_VERIFY);
+    return;
+  }
+
   // this function is usually not called... see CWII_IPC_HLE_Device_usb_oh1_57e_305::DoState
 
   p.Do(m_ConnectionState);

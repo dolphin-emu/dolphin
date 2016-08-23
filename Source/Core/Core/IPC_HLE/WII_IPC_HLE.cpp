@@ -22,6 +22,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 
 #include <list>
 #include <map>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -50,7 +51,8 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_ven.h"
 
@@ -64,6 +66,7 @@ namespace WII_IPC_HLE_Interface
 {
 typedef std::map<u32, std::shared_ptr<IWII_IPC_HLE_Device>> TDeviceMap;
 static TDeviceMap g_DeviceMap;
+static std::mutex g_device_map_mutex;
 
 // STATE_TO_SAVE
 #define IPC_MAX_FDS 0x18
@@ -122,13 +125,18 @@ std::shared_ptr<T> AddDevice(const char* deviceName)
 
 void Reinit()
 {
+  std::lock_guard<std::mutex> lock(g_device_map_mutex);
   _assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "Reinit called while already initialized");
   CWII_IPC_HLE_Device_es::m_ContentFile = "";
 
   num_devices = 0;
 
   // Build hardware devices
-  AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305>("/dev/usb/oh1/57e/305");
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_emu>("/dev/usb/oh1/57e/305");
+  else
+    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_real>("/dev/usb/oh1/57e/305");
+
   AddDevice<CWII_IPC_HLE_Device_stm_immediate>("/dev/stm/immediate");
   AddDevice<CWII_IPC_HLE_Device_stm_eventhook>("/dev/stm/eventhook");
   AddDevice<CWII_IPC_HLE_Device_fs>("/dev/fs");
@@ -188,19 +196,21 @@ void Reset(bool _bHard)
     in_use = false;
   }
 
-  for (const auto& entry : g_DeviceMap)
   {
-    if (entry.second)
+    std::lock_guard<std::mutex> lock(g_device_map_mutex);
+    for (const auto& entry : g_DeviceMap)
     {
-      // Force close
-      entry.second->Close(0, true);
+      if (entry.second)
+      {
+        // Force close
+        entry.second->Close(0, true);
+      }
     }
+
+    if (_bHard)
+      g_DeviceMap.clear();
   }
 
-  if (_bHard)
-  {
-    g_DeviceMap.clear();
-  }
   request_queue.clear();
   reply_queue.clear();
 
@@ -214,6 +224,7 @@ void Shutdown()
 
 void SetDefaultContentFile(const std::string& _rFilename)
 {
+  std::lock_guard<std::mutex> lock(g_device_map_mutex);
   for (const auto& entry : g_DeviceMap)
   {
     if (entry.second && entry.second->GetDeviceName().find("/dev/es") == 0)
@@ -251,6 +262,7 @@ int getFreeDeviceId()
 
 std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& _rDeviceName)
 {
+  std::lock_guard<std::mutex> lock(g_device_map_mutex);
   for (const auto& entry : g_DeviceMap)
   {
     if (entry.second && entry.second->GetDeviceName() == _rDeviceName)
@@ -264,6 +276,7 @@ std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& _rDevice
 
 std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 _ID)
 {
+  std::lock_guard<std::mutex> lock(g_device_map_mutex);
   if (g_DeviceMap.find(_ID) != g_DeviceMap.end())
   {
     return g_DeviceMap[_ID];

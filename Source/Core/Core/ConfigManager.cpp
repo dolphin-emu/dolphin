@@ -67,6 +67,7 @@ void SConfig::SaveSettings()
   SaveFifoPlayerSettings(ini);
   SaveAnalyticsSettings(ini);
   SaveNetworkSettings(ini);
+  SaveBluetoothPassthroughSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   m_SYSCONF->Save();
@@ -322,6 +323,15 @@ void SConfig::SaveAnalyticsSettings(IniFile& ini)
   analytics->Set("PermissionAsked", m_analytics_permission_asked);
 }
 
+void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
+
+  section->Set("Enabled", m_bt_passthrough_enabled);
+  section->Set("VID", m_bt_passthrough_vid);
+  section->Set("PID", m_bt_passthrough_pid);
+}
+
 void SConfig::LoadSettings()
 {
   INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
@@ -339,6 +349,7 @@ void SConfig::LoadSettings()
   LoadFifoPlayerSettings(ini);
   LoadNetworkSettings(ini);
   LoadAnalyticsSettings(ini);
+  LoadBluetoothPassthroughSettings(ini);
 
   m_SYSCONF = new SysConf();
 }
@@ -602,6 +613,15 @@ void SConfig::LoadAnalyticsSettings(IniFile& ini)
   analytics->Get("ID", &m_analytics_id, "");
   analytics->Get("Enabled", &m_analytics_enabled, false);
   analytics->Get("PermissionAsked", &m_analytics_permission_asked, false);
+}
+
+void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("BluetoothPassthrough");
+
+  section->Get("Enabled", &m_bt_passthrough_enabled, false);
+  section->Get("VID", &m_bt_passthrough_vid, -1);
+  section->Get("PID", &m_bt_passthrough_pid, -1);
 }
 
 void SConfig::LoadDefaults()
