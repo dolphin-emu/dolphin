@@ -179,20 +179,20 @@ __forceinline static T ReadFromHardware(u32 em_address)
       // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
       // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
       u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
-      auto tlb_addr_next_page = TranslateAddress<flag>(em_address_next_page);
-      if (!tlb_addr_next_page.Success())
+      auto addr_next_page = TranslateAddress<flag>(em_address_next_page);
+      if (!addr_next_page.Success())
       {
         if (flag == FLAG_READ)
           GenerateDSIException(em_address_next_page, false);
         return 0;
       }
       T var = 0;
-      u32 tlb_addr = translated_addr.address;
-      for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++)
+      u32 addr_translated = translated_addr.address;
+      for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, addr_translated++)
       {
         if (addr == em_address_next_page)
-          tlb_addr = tlb_addr_next_page.address;
-        var = (var << 8) | ReadFromHardware<flag, u8, true>(tlb_addr);
+          addr_translated = addr_next_page.address;
+        var = (var << 8) | ReadFromHardware<flag, u8, true>(addr_translated);
       }
       return var;
     }
@@ -260,20 +260,21 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
       // TODO: floats on non-word-aligned boundaries should technically cause alignment exceptions.
       // Note that "word" means 32-bit, so paired singles or doubles might still be 32-bit aligned!
       u32 em_address_next_page = (em_address + sizeof(T) - 1) & ~(HW_PAGE_SIZE - 1);
-      auto tlb_addr_next_page = TranslateAddress<flag>(em_address_next_page);
-      if (!tlb_addr_next_page.Success())
+      auto addr_next_page = TranslateAddress<flag>(em_address_next_page);
+      if (!addr_next_page.Success())
       {
         if (flag == FLAG_WRITE)
           GenerateDSIException(em_address_next_page, true);
         return;
       }
       T val = bswap(data);
-      u32 tlb_addr = translated_addr.address;
-      for (u32 addr = em_address; addr < em_address + sizeof(T); addr++, tlb_addr++, val >>= 8)
+      u32 addr_translated = translated_addr.address;
+      for (u32 addr = em_address; addr < em_address + sizeof(T);
+           addr++, addr_translated++, val >>= 8)
       {
         if (addr == em_address_next_page)
-          tlb_addr = tlb_addr_next_page.address;
-        WriteToHardware<flag, u8, true>(tlb_addr, (u8)val);
+          addr_translated = addr_next_page.address;
+        WriteToHardware<flag, u8, true>(addr_translated, (u8)val);
       }
       return;
     }
@@ -1151,7 +1152,7 @@ static void UpdateBATs(u32* bat_table, u32 base_spr)
       // invalid BATs as well.
       WARN_LOG(POWERPC, "Bad BAT setup: invalid mask in BL");
     }
-    for (u32 j = 0; j < (1 << 11); ++j)
+    for (u32 j = 0; j <= batu.BL; ++j)
     {
       // Enumerate all bit-patterns which fit within the given mask.
       if ((j & batu.BL) == j)
