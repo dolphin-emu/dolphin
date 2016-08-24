@@ -226,22 +226,22 @@ void Init()
   m_IsInitialized = true;
 }
 
-void UpdateLogicalMemory(u32* dbat_table)
+void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 {
   for (auto& entry : logical_mapped_entries)
   {
     g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
   }
   logical_mapped_entries.clear();
-  for (unsigned i = 0; i < (1 << (32 - PowerPC::BAT_INDEX_SHIFT)); ++i)
+  for (u32 i = 0; i < (1 << (32 - PowerPC::BAT_INDEX_SHIFT)); ++i)
   {
     if (dbat_table[i] & 1)
     {
-      unsigned logical_address = i << PowerPC::BAT_INDEX_SHIFT;
+      u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
       // TODO: Merge adjacent mappings to make this faster.
-      unsigned logical_size = 1 << PowerPC::BAT_INDEX_SHIFT;
-      unsigned translated_address = dbat_table[i] & ~3;
-      for (PhysicalMemoryRegion& physical_region : physical_regions)
+      u32 logical_size = 1 << PowerPC::BAT_INDEX_SHIFT;
+      u32 translated_address = dbat_table[i] & ~3;
+      for (const auto& physical_region : physical_regions)
       {
         u32 mapping_address = physical_region.physical_address;
         u32 mapping_end = mapping_address + physical_region.size;

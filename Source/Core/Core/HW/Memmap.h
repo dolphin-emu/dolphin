@@ -9,6 +9,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Core/PowerPC/PowerPC.h"
 
 // Enable memory checks in the Debug/DebugFast builds, but NOT in release
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -68,7 +69,7 @@ void Init();
 void Shutdown();
 void DoState(PointerWrap& p);
 
-void UpdateLogicalMemory(u32* dbat_table);
+void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table);
 
 void Clear();
 bool AreMemoryBreakpointsActivated();
