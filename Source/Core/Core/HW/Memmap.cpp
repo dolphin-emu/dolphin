@@ -96,20 +96,17 @@ bool IsInitialized()
   return m_IsInitialized;
 }
 
-namespace
-{
-enum
-{
-  MV_FAKE_VMEM = 1,
-  MV_WII_ONLY = 2,
-};
-
 struct PhysicalMemoryRegion
 {
   u8** out_pointer;
   u32 physical_address;
   u32 size;
-  u32 flags;
+  enum
+  {
+    ALWAYS = 0,
+    FAKE_VMEM = 1,
+    WII_ONLY = 2,
+  } flags;
   u32 shm_position;
 };
 
@@ -118,7 +115,6 @@ struct LogicalMemoryView
   void* mapped_pointer;
   u32 mapped_size;
 };
-}
 
 // Dolphin allocates memory to represent four regions:
 // - 32MB RAM (actually 24MB on hardware), available on Gamecube and Wii
@@ -161,10 +157,10 @@ struct LogicalMemoryView
 // TODO: The actual size of RAM is REALRAM_SIZE (24MB); the other 8MB shouldn't
 // be backed by actual memory.
 static PhysicalMemoryRegion physical_regions[] = {
-    {&m_pRAM, 0x00000000, RAM_SIZE, 0},
-    {&m_pL1Cache, 0xE0000000, L1_CACHE_SIZE, 0},
-    {&m_pFakeVMEM, 0x7E000000, FAKEVMEM_SIZE, MV_FAKE_VMEM},
-    {&m_pEXRAM, 0x10000000, EXRAM_SIZE, MV_WII_ONLY},
+    {&m_pRAM, 0x00000000, RAM_SIZE, PhysicalMemoryRegion::ALWAYS},
+    {&m_pL1Cache, 0xE0000000, L1_CACHE_SIZE, PhysicalMemoryRegion::ALWAYS},
+    {&m_pFakeVMEM, 0x7E000000, FAKEVMEM_SIZE, PhysicalMemoryRegion::FAKE_VMEM},
+    {&m_pEXRAM, 0x10000000, EXRAM_SIZE, PhysicalMemoryRegion::WII_ONLY},
 };
 
 static std::vector<LogicalMemoryView> logical_mapped_entries;
@@ -182,9 +178,9 @@ void Init()
 
   u32 flags = 0;
   if (wii)
-    flags |= MV_WII_ONLY;
+    flags |= PhysicalMemoryRegion::WII_ONLY;
   if (bFakeVMEM)
-    flags |= MV_FAKE_VMEM;
+    flags |= PhysicalMemoryRegion::FAKE_VMEM;
   u32 mem_size = 0;
   for (PhysicalMemoryRegion& region : physical_regions)
   {
@@ -226,22 +222,22 @@ void Init()
   m_IsInitialized = true;
 }
 
-void UpdateLogicalMemory(u32* dbat_table)
+void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
 {
   for (auto& entry : logical_mapped_entries)
   {
     g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
   }
   logical_mapped_entries.clear();
-  for (unsigned i = 0; i < (1 << (32 - PowerPC::BAT_INDEX_SHIFT)); ++i)
+  for (u32 i = 0; i < (1 << (32 - PowerPC::BAT_INDEX_SHIFT)); ++i)
   {
     if (dbat_table[i] & 1)
     {
-      unsigned logical_address = i << PowerPC::BAT_INDEX_SHIFT;
+      u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
       // TODO: Merge adjacent mappings to make this faster.
-      unsigned logical_size = 1 << PowerPC::BAT_INDEX_SHIFT;
-      unsigned translated_address = dbat_table[i] & ~3;
-      for (PhysicalMemoryRegion& physical_region : physical_regions)
+      u32 logical_size = 1 << PowerPC::BAT_INDEX_SHIFT;
+      u32 translated_address = dbat_table[i] & ~3;
+      for (const auto& physical_region : physical_regions)
       {
         u32 mapping_address = physical_region.physical_address;
         u32 mapping_end = mapping_address + physical_region.size;
@@ -286,9 +282,9 @@ void Shutdown()
   m_IsInitialized = false;
   u32 flags = 0;
   if (SConfig::GetInstance().bWii)
-    flags |= MV_WII_ONLY;
+    flags |= PhysicalMemoryRegion::WII_ONLY;
   if (bFakeVMEM)
-    flags |= MV_FAKE_VMEM;
+    flags |= PhysicalMemoryRegion::FAKE_VMEM;
   for (PhysicalMemoryRegion& region : physical_regions)
   {
     if ((flags & region.flags) != region.flags)
