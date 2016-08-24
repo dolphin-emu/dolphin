@@ -4,7 +4,6 @@
 
 #include "InputCommon/ControllerEmu.h"
 #include <memory>
-#include "Common/Common.h"
 #include "VideoCommon/OnScreenDisplay.h"
 
 // This should be called before calling GetState() or State() on a control reference
