@@ -887,7 +887,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
       if (type == PEEK_Z)
       {
         float* ptr = (float*)data;
-        value = MathUtil::Clamp<u32>((u32)(ptr[yData * targetPixelRcWidth + xData] * 16777216.0f),
+        value = MathUtil::Clamp<u32>((u32)(ptr[yData * targetPixelRcWidth + xData] * 16777215.0f),
                                      0, 0xFFFFFF);
       }
       else
