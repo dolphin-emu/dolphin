@@ -100,7 +100,7 @@ struct TranslateAddressResult
     PAGE_FAULT
   } result;
   u32 address;
-  bool Success() { return result <= PAGE_TABLE_TRANSLATED; }
+  bool Success() const { return result <= PAGE_TABLE_TRANSLATED; }
 };
 template <const XCheckTLBFlag flag>
 static TranslateAddressResult TranslateAddress(const u32 address);
@@ -155,8 +155,8 @@ static void EFB_Write(u32 data, u32 addr)
   }
 }
 
-u32 dbat_table[1 << (32 - BAT_INDEX_SHIFT)];
-u32 ibat_table[1 << (32 - BAT_INDEX_SHIFT)];
+BatTable ibat_table;
+BatTable dbat_table;
 
 static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 
@@ -392,7 +392,7 @@ TryReadInstResult TryReadInstruction(u32 address)
   }
 
   u32 hex;
-  // TODO: Refactor this.
+  // TODO: Refactor this. This icache implementation is totally wrong if used with the fake vmem.
   if (Memory::bFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
   {
     hex = bswap(*(const u32*)&Memory::m_pFakeVMEM[address & Memory::FAKEVMEM_MASK]);
@@ -1114,7 +1114,7 @@ static __forceinline TranslateAddressResult TranslatePageAddress(const u32 addre
   return TranslateAddressResult{TranslateAddressResult::PAGE_FAULT, 0};
 }
 
-static void UpdateBATs(u32* bat_table, u32 base_spr)
+static void UpdateBATs(BatTable& bat_table, u32 base_spr)
 {
   // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
   // TODO: Handle PP/WIMG settings.
@@ -1181,9 +1181,9 @@ static void UpdateBATs(u32* bat_table, u32 base_spr)
   }
 }
 
-static void UpdateFakeMMUBat(u32* bat_table, u32 start_addr)
+static void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
 {
-  for (unsigned i = 0; i < (0x10000000 >> BAT_INDEX_SHIFT); ++i)
+  for (u32 i = 0; i < (0x10000000 >> BAT_INDEX_SHIFT); ++i)
   {
     // Map from 0x4XXXXXXX or 0x7XXXXXXX to the range
     // [0x7E000000,0x80000000).
@@ -1195,7 +1195,7 @@ static void UpdateFakeMMUBat(u32* bat_table, u32 start_addr)
 
 void DBATUpdated()
 {
-  memset(dbat_table, 0, sizeof(dbat_table));
+  dbat_table = {};
   UpdateBATs(dbat_table, SPR_DBAT0U);
   bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
   if (extended_bats)
@@ -1212,7 +1212,7 @@ void DBATUpdated()
 
 void IBATUpdated()
 {
-  memset(ibat_table, 0, sizeof(ibat_table));
+  ibat_table = {};
   UpdateBATs(ibat_table, SPR_IBAT0U);
   bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
   if (extended_bats)

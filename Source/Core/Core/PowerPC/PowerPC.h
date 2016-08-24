@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <tuple>
 
@@ -282,12 +283,11 @@ struct TranslateResult
   u32 address;
 };
 TranslateResult JitCache_TranslateAddress(u32 address);
-enum
-{
-  BAT_INDEX_SHIFT = 17
-};
-extern u32 ibat_table[];
-extern u32 dbat_table[];
+
+static const int BAT_INDEX_SHIFT = 17;
+using BatTable = std::array<u32, 1 << (32 - BAT_INDEX_SHIFT)>;  // 128 KB
+extern BatTable ibat_table;
+extern BatTable dbat_table;
 }  // namespace
 
 enum CRBits
