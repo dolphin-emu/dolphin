@@ -11,6 +11,7 @@ class wxCheckBox;
 class wxListBox;
 class wxDirPickerCtrl;
 class wxFilePickerCtrl;
+class wxTextCtrl;
 
 class PathConfigPane final : public wxPanel
 {
@@ -32,6 +33,8 @@ private:
   void OnNANDRootChanged(wxCommandEvent&);
   void OnDumpPathChanged(wxCommandEvent&);
   void OnSdCardPathChanged(wxCommandEvent&);
+  void OnGameIDChanged(wxCommandEvent&);
+  void OnGameNameChanged(wxCommandEvent&);
 
   void SaveISOPathChanges();
 
@@ -46,4 +49,6 @@ private:
   wxFilePickerCtrl* m_apploader_path_filepicker;
   wxDirPickerCtrl* m_dump_path_dirpicker;
   wxFilePickerCtrl* m_wii_sdcard_filepicker;
+  wxTextCtrl* m_game_id_text;
+  wxTextCtrl* m_game_name_text;
 };

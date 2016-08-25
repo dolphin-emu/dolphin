@@ -16,6 +16,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Core/ConfigManager.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/FileMonitor.h"
@@ -35,8 +36,9 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
   m_rootDirectory = ExtractDirectoryName(_rDirectory);
 
   // create the default disk header
-  SetUniqueID("AGBJ01");
-  SetName("Default name");
+  SConfig& _Settings = SConfig::GetInstance();
+  SetUniqueID(_Settings.m_strGameID);
+  SetName(_Settings.m_strGameName);
 
   if (_bIsWii)
     SetDiskTypeWii();

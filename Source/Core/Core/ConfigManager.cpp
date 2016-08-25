@@ -244,6 +244,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("DefaultISO", m_strDefaultISO);
   core->Set("DVDRoot", m_strDVDRoot);
   core->Set("Apploader", m_strApploader);
+  core->Set("GameID", m_strGameID);
+  core->Set("GameName", m_strGameName);
   core->Set("EnableCheats", bEnableCheats);
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideGCLang", bOverrideGCLanguage);
@@ -514,6 +516,8 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("DefaultISO", &m_strDefaultISO);
   core->Get("DVDRoot", &m_strDVDRoot);
   core->Get("Apploader", &m_strApploader);
+  core->Get("GameID", &m_strGameID, "AGBJ01");
+  core->Get("GameName", &m_strGameName, "Default Name");
   core->Get("EnableCheats", &bEnableCheats, false);
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
