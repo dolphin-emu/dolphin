@@ -113,7 +113,7 @@ void DoState(PointerWrap& p)
   p.Do(sensorbar_power);
 }
 
-void Init()
+static void InitState()
 {
   ctrl = CtrlRegister();
   ppc_msg = 0;
@@ -127,14 +127,18 @@ void Init()
   sensorbar_power = 0;
 
   ppc_irq_masks |= INT_CAUSE_IPC_BROADWAY;
+}
 
+void Init()
+{
+  InitState();
   updateInterrupts = CoreTiming::RegisterEvent("IPCInterrupt", UpdateInterrupts);
 }
 
 void Reset()
 {
   INFO_LOG(WII_IPC, "Resetting ...");
-  Init();
+  InitState();
   WII_IPC_HLE_Interface::Reset();
 }
 
