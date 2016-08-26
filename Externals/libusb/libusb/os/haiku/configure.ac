@@ -1,0 +1,8 @@
+AC_INIT([haikuusb], [1.0])
+AM_INIT_AUTOMAKE([no-define foreign])
+AM_MAINTAINER_MODE
+LT_INIT
+AC_PROG_CXX
+AC_CONFIG_FILES([Makefile])
+AC_CONFIG_MACRO_DIR([m4])
+AC_OUTPUT

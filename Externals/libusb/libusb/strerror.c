@@ -16,13 +16,16 @@
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
-#include "config.h"
+
+#include <config.h>
 
 #include <locale.h>
 #include <stdlib.h>
 #include <string.h>
+#if defined(HAVE_STRINGS_H)
+#include <strings.h>
+#endif
 
-#include "libusb.h"
 #include "libusbi.h"
 
 #if defined(_MSC_VER)

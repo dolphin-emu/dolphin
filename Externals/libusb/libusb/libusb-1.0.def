@@ -80,6 +80,8 @@ EXPORTS
   libusb_get_parent@4 = libusb_get_parent
   libusb_get_pollfds
   libusb_get_pollfds@4 = libusb_get_pollfds
+  libusb_free_pollfds
+  libusb_free_pollfds@4 = libusb_free_pollfds
   libusb_get_port_number
   libusb_get_port_number@4 = libusb_get_port_number
   libusb_get_port_numbers

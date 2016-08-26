@@ -43,7 +43,7 @@
  *
  * \page hotplug Device hotplug event notification
  *
- * \section intro Introduction
+ * \section hotplug_intro Introduction
  *
  * Version 1.0.16, \ref LIBUSB_API_VERSION >= 0x01000102, has added support
  * for hotplug events on <b>some</b> platforms (you should test if your platform
@@ -203,6 +203,30 @@ void usbi_hotplug_match(struct libusb_context *ctx, struct libusb_device *dev,
 	/* the backend is expected to call the callback for each active transfer */
 }
 
+void usbi_hotplug_notification(struct libusb_context *ctx, struct libusb_device *dev,
+	libusb_hotplug_event event)
+{
+	int pending_events;
+	libusb_hotplug_message *message = calloc(1, sizeof(*message));
+
+	if (!message) {
+		usbi_err(ctx, "error allocating hotplug message");
+		return;
+	}
+
+	message->event = event;
+	message->device = dev;
+
+	/* Take the event data lock and add this message to the list.
+	 * Only signal an event if there are no prior pending events. */
+	usbi_mutex_lock(&ctx->event_data_lock);
+	pending_events = usbi_pending_events(ctx);
+	list_add_tail(&message->list, &ctx->hotplug_msgs);
+	if (!pending_events)
+		usbi_signal_event(ctx);
+	usbi_mutex_unlock(&ctx->event_data_lock);
+}
+
 int API_EXPORTED libusb_hotplug_register_callback(libusb_context *ctx,
 	libusb_hotplug_event events, libusb_hotplug_flag flags,
 	int vendor_id, int product_id, int dev_class,
@@ -285,8 +309,6 @@ void API_EXPORTED libusb_hotplug_deregister_callback (struct libusb_context *ctx
 	libusb_hotplug_callback_handle handle)
 {
 	struct libusb_hotplug_callback *hotplug_cb;
-	libusb_hotplug_message message;
-	ssize_t ret;
 
 	/* check for hotplug support */
 	if (!libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG)) {
@@ -305,12 +327,7 @@ void API_EXPORTED libusb_hotplug_deregister_callback (struct libusb_context *ctx
 	}
 	usbi_mutex_unlock(&ctx->hotplug_cbs_lock);
 
-	/* wakeup handle_events to do the actual free */
-	memset(&message, 0, sizeof(message));
-	ret = usbi_write(ctx->hotplug_pipe[1], &message, sizeof(message));
-	if (sizeof(message) != ret) {
-		usbi_err(ctx, "error writing hotplug message");
-	}
+	usbi_hotplug_notification(ctx, NULL, 0);
 }
 
 void usbi_hotplug_deregister_all(struct libusb_context *ctx) {

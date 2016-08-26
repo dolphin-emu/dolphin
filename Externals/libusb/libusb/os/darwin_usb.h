@@ -28,7 +28,7 @@
 #include <IOKit/IOCFPlugIn.h>
 
 /* IOUSBInterfaceInferface */
-#if defined (kIOUSBInterfaceInterfaceID550)
+#if defined (kIOUSBInterfaceInterfaceID550) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
 
 #define usb_interface_t IOUSBInterfaceInterface550
 #define InterfaceInterfaceID kIOUSBInterfaceInterfaceID550
@@ -65,7 +65,7 @@
 #endif
 
 /* IOUSBDeviceInterface */
-#if defined (kIOUSBDeviceInterfaceID500)
+#if defined (kIOUSBDeviceInterfaceID500) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
 
 #define usb_device_t    IOUSBDeviceInterface500
 #define DeviceInterfaceID kIOUSBDeviceInterfaceID500
@@ -130,7 +130,6 @@ struct darwin_device_priv {
 struct darwin_device_handle_priv {
   int                  is_open;
   CFRunLoopSourceRef   cfSource;
-  int                  fds[2];
 
   struct darwin_interface {
     usb_interface_t    **interface;
@@ -150,11 +149,8 @@ struct darwin_transfer_priv {
   IOUSBDevRequestTO req;
 
   /* Bulk */
-};
 
-/* structure for signaling io completion */
-struct darwin_msg_async_io_complete {
-  struct usbi_transfer *itransfer;
+  /* Completion status */
   IOReturn result;
   UInt32 size;
 };

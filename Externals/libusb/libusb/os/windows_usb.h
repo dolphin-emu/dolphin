@@ -26,10 +26,12 @@
 
 #if defined(_MSC_VER)
 // disable /W4 MSVC warnings that are benign
-#pragma warning(disable:4127) // conditional expression is constant
-#pragma warning(disable:4100) // unreferenced formal parameter
-#pragma warning(disable:4214) // bit field types other than int
-#pragma warning(disable:4201) // nameless struct/union
+#pragma warning(disable:4100)  // unreferenced formal parameter
+#pragma warning(disable:4127)  // conditional expression is constant
+#pragma warning(disable:4201)  // nameless struct/union
+#pragma warning(disable:4214)  // bit field types other than int
+#pragma warning(disable:4996)  // deprecated API calls
+#pragma warning(disable:28159) // more deprecated API calls
 #endif
 
 // Missing from MSVC6 setupapi.h
@@ -47,9 +49,8 @@
 
 #if defined(__CYGWIN__ )
 #define _stricmp stricmp
-// cygwin produces a warning unless these prototypes are defined
-extern int _snprintf(char *buffer, size_t count, const char *format, ...);
-extern char *_strdup(const char *strSource);
+#define _snprintf snprintf
+#define _strdup strdup
 // _beginthreadex is MSVCRT => unavailable for cygwin. Fallback to using CreateThread
 #define _beginthreadex(a, b, c, d, e, f) CreateThread(a, b, (LPTHREAD_START_ROUTINE)c, d, e, f)
 #endif
@@ -307,6 +308,15 @@ struct driver_lookup {
 	const char* designation;	// internal designation (for debug output)
 };
 
+#define WM_TIMER_REQUEST	(WM_USER + 1)
+#define WM_TIMER_EXIT		(WM_USER + 2)
+
+// used for monotonic clock_gettime()
+struct timer_request {
+	struct timespec *tp;
+	HANDLE event;
+};
+
 /* OLE32 dependency */
 DLL_DECLARE_PREFIXED(WINAPI, HRESULT, p, CLSIDFromString, (LPCOLESTR, LPCLSID));
 
@@ -327,6 +337,11 @@ DLL_DECLARE_PREFIXED(WINAPI, BOOL, p, SetupDiGetDeviceRegistryPropertyA, (HDEVIN
 DLL_DECLARE_PREFIXED(WINAPI, HKEY, p, SetupDiOpenDeviceInterfaceRegKey, (HDEVINFO, PSP_DEVICE_INTERFACE_DATA, DWORD, DWORD));
 DLL_DECLARE_PREFIXED(WINAPI, LONG, p, RegQueryValueExW, (HKEY, LPCWSTR, LPDWORD, LPDWORD, LPBYTE, LPDWORD));
 DLL_DECLARE_PREFIXED(WINAPI, LONG, p, RegCloseKey, (HKEY));
+
+/* User32 dependencies */
+DLL_DECLARE_PREFIXED(WINAPI, BOOL, p, GetMessageA, (LPMSG, HWND, UINT, UINT));
+DLL_DECLARE_PREFIXED(WINAPI, BOOL, p, PeekMessageA, (LPMSG, HWND, UINT, UINT, UINT));
+DLL_DECLARE_PREFIXED(WINAPI, BOOL, p, PostThreadMessageA, (DWORD, UINT, WPARAM, LPARAM));
 
 /*
  * Windows DDK API definitions. Most of it copied from MinGW's includes

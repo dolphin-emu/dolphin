@@ -19,10 +19,10 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
+#include <config.h>
+
 #if defined(__linux__) || defined(__OpenBSD__)
-# if defined(__linux__)
-#  define _GNU_SOURCE
-# else
+# if defined(__OpenBSD__)
 #  define _BSD_SOURCE
 # endif
 # include <unistd.h>
