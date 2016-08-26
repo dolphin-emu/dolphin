@@ -509,7 +509,7 @@ void Interpreter::lswx(UGeckoInstruction _inst)
   if (n > 0)
   {
     rGPR[r] = 0;
-    do
+    while (true)
     {
       u32 TempValue = PowerPC::Read_U8(EA) << (24 - i);
       if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
@@ -520,8 +520,10 @@ void Interpreter::lswx(UGeckoInstruction _inst)
       }
       rGPR[r] |= TempValue;
 
+      if (--n == 0)
+        return;
+
       EA++;
-      n--;
       i += 8;
       if (i == 32)
       {
@@ -529,7 +531,7 @@ void Interpreter::lswx(UGeckoInstruction _inst)
         r = (r + 1) & 31;
         rGPR[r] = 0;
       }
-    } while (n > 0);
+    }
   }
 }
 
