@@ -742,7 +742,7 @@ void Interpreter::stswx(UGeckoInstruction _inst)
     if (i == 32)
     {
       i = 0;
-      r++;
+      r = (r + 1) & 0x1f;  // wrap
     }
   }
 }
