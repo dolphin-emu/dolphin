@@ -43,9 +43,17 @@ u64 GetIdleTicks();
 
 void DoState(PointerWrap& p);
 
+enum class Registration
+{
+  Normal,          // New callback
+  ExpectExisting,  // Callback may already exist
+  Replace          // Callback may already exist with a different callback function
+};
+
 // Returns the event_type identifier. if name is not unique, an existing event_type will be
 // discarded.
-int RegisterEvent(const std::string& name, TimedCallback callback);
+int RegisterEvent(const std::string& name, TimedCallback callback,
+                  Registration mode = Registration::Normal);
 void UnregisterAllEvents();
 
 enum class FromThread

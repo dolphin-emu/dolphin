@@ -84,11 +84,13 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
   {
     PanicAlertT("Trying to create invalid memory card index.");
   }
-  // we're potentially leaking events here, since there's no RemoveEvent
-  // until emu shutdown, but I guess it's inconsequential
-  et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done, CmdDoneCallback);
+  // Because the memory cards can be changed while emulation is running, the callbacks may
+  // have already been registered by previous instances.
+  et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done, CmdDoneCallback,
+                                          CoreTiming::Registration::ExpectExisting);
   et_transfer_complete =
-      CoreTiming::RegisterEvent(event_names[index].transfer_complete, TransferCompleteCallback);
+      CoreTiming::RegisterEvent(event_names[index].transfer_complete, TransferCompleteCallback,
+                                CoreTiming::Registration::ExpectExisting);
 
   interruptSwitch = 0;
   m_bInterruptSet = 0;
