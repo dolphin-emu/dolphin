@@ -25,11 +25,11 @@ class PointerWrap;
 namespace CoreTiming
 {
 // These really shouldn't be global, but jit64 accesses them directly
-extern s64 g_globalTimer;
-extern u64 g_fakeTBStartValue;
-extern u64 g_fakeTBStartTicks;
-extern int g_slicelength;
-extern float g_lastOCFactor_inverted;
+extern s64 g_global_timer;
+extern u64 g_fake_TB_start_value;
+extern u64 g_fake_TB_start_ticks;
+extern int g_slice_length;
+extern float g_last_OC_factor_inverted;
 
 void Init();
 void Shutdown();
