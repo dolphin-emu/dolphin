@@ -97,30 +97,41 @@ static int CyclesToDowncount(int cycles)
   return static_cast<int>(cycles * s_last_OC_factor);
 }
 
-int RegisterEvent(const std::string& name, TimedCallback callback)
+int RegisterEvent(const std::string& name, TimedCallback callback, Registration mode)
 {
-  EventType type;
-  type.name = name;
-  type.callback = callback;
-
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
-  for (auto& event_type : s_event_types)
+  for (std::size_t i = 0; i < s_event_types.size(); ++i)
   {
+    EventType& event_type = s_event_types[i];
     if (name == event_type.name)
     {
-      WARN_LOG(
-          POWERPC,
-          "Discarded old event type \"%s\" because a new type with the same name was registered.",
-          name.c_str());
+      if (event_type.callback == callback)
+      {
+        // If the caller did not expect the event to already exist then we generate a warning.
+        if (mode != Registration::ExpectExisting)
+        {
+          WARN_LOG(POWERPC, "Unexpected attempt to re-register event type \"%s\".", name.c_str());
+        }
+        return static_cast<int>(i);
+      }
+
+      // Replacing the callback with a different one unintentionally is likely going to break
+      // everything. Most likely cause is 2 different subsystems accidentally using the same name.
+      _assert_msg_(POWERPC, mode == Registration::Replace, "Attempting to replace CoreTiming "
+                                                           "callback \"%s\" with a different "
+                                                           "one that has the same name.",
+                   name.c_str());
+
       // we don't know if someone might be holding on to the type index,
       // so we gut the old event type instead of actually removing it.
-      event_type.name = "_discarded_event";
+      event_type.name += "_discarded_event";
       event_type.callback = &EmptyTimedCallback;
+      break;
     }
   }
 
-  s_event_types.push_back(type);
+  s_event_types.emplace_back(EventType{callback, name});
   return static_cast<int>(s_event_types.size() - 1);
 }
 
