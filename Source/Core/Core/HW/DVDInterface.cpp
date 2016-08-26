@@ -238,8 +238,8 @@ static u32 s_error_code = 0;
 static bool s_disc_inside = false;
 static bool s_stream = false;
 static bool s_stop_at_track_end = false;
-static int s_finish_executing_command = 0;
-static int s_dtk = 0;
+static CoreTiming::EventType* s_finish_executing_command = nullptr;
+static CoreTiming::EventType* s_dtk = nullptr;
 
 static u64 s_last_read_offset;
 static u64 s_last_read_time;
@@ -247,8 +247,8 @@ static u64 s_last_read_time;
 // GC-AM only
 static unsigned char s_media_buffer[0x40];
 
-static int s_eject_disc;
-static int s_insert_disc;
+static CoreTiming::EventType* s_eject_disc = nullptr;
+static CoreTiming::EventType* s_insert_disc = nullptr;
 
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
