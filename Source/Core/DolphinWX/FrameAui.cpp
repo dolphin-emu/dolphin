@@ -21,6 +21,7 @@
 #include <wx/statusbr.h>
 #include <wx/textdlg.h>
 #include <wx/toplevel.h>
+#include <wx/aui/dockart.h>
 // clang-format on
 
 #include "Common/CommonTypes.h"
@@ -36,6 +37,7 @@
 #include "DolphinWX/LogConfigWindow.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/WxUtils.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
 
 // ------------
 // Aui events
@@ -622,6 +624,7 @@ void CFrame::TogglePaneStyle(bool On, int EventId)
       Pane.Dockable(!m_bNoDocking);
     }
   }
+  m_Mgr->GetArtProvider()->SetFont(wxAUI_DOCKART_CAPTION_FONT, DebuggerFont);
   m_Mgr->Update();
 }
 

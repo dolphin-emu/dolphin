@@ -19,6 +19,7 @@
 #include <wx/textdlg.h>
 #include <wx/thread.h>
 #include <wx/toolbar.h>
+#include <wx/aui/dockart.h>
 // clang-format on
 
 #include "Common/BreakPoints.h"
@@ -779,4 +780,5 @@ void CCodeWindow::UpdateButtonStates()
   symbols->SetFont(DebuggerFont);
   callers->SetFont(DebuggerFont);
   calls->SetFont(DebuggerFont);
+  m_aui_manager.GetArtProvider()->SetFont(wxAUI_DOCKART_CAPTION_FONT, DebuggerFont);
 }
