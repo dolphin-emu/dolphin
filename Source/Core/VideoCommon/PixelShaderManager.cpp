@@ -94,8 +94,8 @@ void PixelShaderManager::SetConstants()
 
   if (s_bViewPortChanged)
   {
-    constants.zbias[1][0] = (u32)xfmem.viewport.farZ;
-    constants.zbias[1][1] = (u32)xfmem.viewport.zRange;
+    constants.zbias[1][0] = (s32)xfmem.viewport.farZ;
+    constants.zbias[1][1] = (s32)xfmem.viewport.zRange;
     dirty = true;
     s_bViewPortChanged = false;
   }
