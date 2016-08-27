@@ -47,6 +47,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
+#include "wx/aui/dockart.h"
 
 CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* parent, wxWindowID id,
                          const wxPoint& position, const wxSize& size, long style,
@@ -779,4 +780,5 @@ void CCodeWindow::UpdateButtonStates()
   symbols->SetFont(DebuggerFont);
   callers->SetFont(DebuggerFont);
   calls->SetFont(DebuggerFont);
+  m_aui_manager.GetArtProvider()->SetFont(wxAUI_DOCKART_CAPTION_FONT, DebuggerFont);
 }
