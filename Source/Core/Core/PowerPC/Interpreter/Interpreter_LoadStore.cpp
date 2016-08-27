@@ -497,7 +497,6 @@ void Interpreter::lhzx(UGeckoInstruction _inst)
   }
 }
 
-// TODO: is this right?
 // FIXME: Should rollback if a DSI occurs
 void Interpreter::lswx(UGeckoInstruction _inst)
 {
@@ -506,6 +505,7 @@ void Interpreter::lswx(UGeckoInstruction _inst)
   int r = _inst.RD;
   int i = 0;
 
+  // Confirmed by hardware test that the zero case doesn't zero rGPR[r]
   if (n > 0)
   {
     rGPR[r] = 0;
