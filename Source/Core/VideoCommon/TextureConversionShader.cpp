@@ -158,7 +158,7 @@ static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, 
 
     // Handle D3D depth inversion.
     if (depth)
-      WRITE(p, "  %s = 1.0f - %s;\n", dest, dest);
+      WRITE(p, "  %s = 1.0 - %s;\n", dest, dest);
   }
 }
 
