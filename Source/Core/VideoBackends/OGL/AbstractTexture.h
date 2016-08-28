@@ -37,11 +37,6 @@ public:
   // Some static functions to track bound textures.
   // TODO: Add DSO support for those drivers which support it.
   static void SetStage();
-  static void InitializeBindingStateTracking()
-  {
-    s_ActiveTexture = -1;
-    s_Textures.fill(-1);
-  }
 
 private:
   static GLint s_ActiveTexture;

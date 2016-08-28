@@ -14,13 +14,13 @@
 
 namespace OGL
 {
-GLint AbstractTexture::s_ActiveTexture;
-std::array<GLint, 16> AbstractTexture::s_Textures;
+GLint AbstractTexture::s_ActiveTexture = -1;
+std::array<GLint, 16> AbstractTexture::s_Textures = {};
 
 void AbstractTexture::SetStage()
 {
   // -1 is the initial value as we don't know which texture should be bound
-  if (s_ActiveTexture != (u32)-1)
+  if (s_ActiveTexture != -1)
     glActiveTexture(GL_TEXTURE0 + s_ActiveTexture);
 }
 

@@ -689,8 +689,6 @@ Renderer::Renderer()
            g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
            g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
 
-  AbstractTexture::InitializeBindingStateTracking();
-
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_MSAASamples = s_last_multisamples;
 
