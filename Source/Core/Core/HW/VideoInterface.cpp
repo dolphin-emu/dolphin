@@ -678,10 +678,12 @@ static void BeginField(FieldType field)
     // has the first line. For the field with the second line, we
     // offset the xfb by (-stride_of_one_line) to get the start
     // address of the full xfb.
-    if (field == FieldType::FIELD_ODD && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1)
+    if (field == FieldType::FIELD_ODD && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1 &&
+        xfbAddr)
       xfbAddr -= fbStride * 2;
 
-    if (field == FieldType::FIELD_EVEN && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1)
+    if (field == FieldType::FIELD_EVEN && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1 &&
+        xfbAddr)
       xfbAddr -= fbStride * 2;
   }
 
