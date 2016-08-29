@@ -802,10 +802,10 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   if (uid_data->bounding_box)
   {
     const char* atomic_op = ApiType == APIType::OpenGL ? "atomic" : "Interlocked";
-    out.Write("\tif(bbox_data[0] > int(rawpos.x)) %sMin(bbox_data[0], int(rawpos.x));\n"
-              "\tif(bbox_data[1] < int(rawpos.x)) %sMax(bbox_data[1], int(rawpos.x));\n"
-              "\tif(bbox_data[2] > int(rawpos.y)) %sMin(bbox_data[2], int(rawpos.y));\n"
-              "\tif(bbox_data[3] < int(rawpos.y)) %sMax(bbox_data[3], int(rawpos.y));\n",
+    out.Write("\t%sMin(bbox_data[0], int(rawpos.x));\n"
+              "\t%sMax(bbox_data[1], int(rawpos.x));\n"
+              "\t%sMin(bbox_data[2], int(rawpos.y));\n"
+              "\t%sMax(bbox_data[3], int(rawpos.y));\n",
               atomic_op, atomic_op, atomic_op, atomic_op);
   }
 
