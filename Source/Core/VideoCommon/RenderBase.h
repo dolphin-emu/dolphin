@@ -141,6 +141,8 @@ public:
   static Common::Flag s_SurfaceNeedsChanged;
   static Common::Event s_ChangedSurface;
 
+  static const float GX_MAX_DEPTH;
+
 protected:
   static void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY);
   bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height);
@@ -175,8 +177,6 @@ protected:
   FPSCounter m_fps_counter;
 
   static std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
-
-  static const float GX_MAX_DEPTH;
 
 private:
   static PEControl::PixelFormat prev_efb_format;
