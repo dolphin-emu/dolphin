@@ -348,16 +348,6 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       strcpy(name, namepos);
     name[strlen(name) - 1] = 0;
 
-    // we want the function names only .... TODO: or do we really? aren't we wasting information
-    // here?
-    for (size_t i = 0; i < strlen(name); i++)
-    {
-      if (name[i] == ' ')
-        name[i] = 0x00;
-      if (name[i] == '(')
-        name[i] = 0x00;
-    }
-
     // Check if this is a valid entry.
     if (strcmp(name, ".text") != 0 && strcmp(name, ".init") != 0 && strlen(name) > 0)
     {
