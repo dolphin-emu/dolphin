@@ -398,19 +398,21 @@ void VertexShaderManager::SetConstants()
       // where the console also uses reversed depth with the same accuracy. We need
       // to make sure the depth range is positive here and then reverse the depth in
       // the backend viewport.
-      constants.pixelcentercorrection[2] = abs(xfmem.viewport.zRange) / 16777215.0f;
+      constants.pixelcentercorrection[2] = abs(xfmem.viewport.zRange) / 16777216.0f;
       if (xfmem.viewport.zRange < 0.0f)
-        constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
+        constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777216.0f;
       else
-        constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+        constants.pixelcentercorrection[3] =
+            Renderer::GX_MAX_DEPTH - xfmem.viewport.farZ / 16777216.0f;
     }
     else
     {
       // For backends that don't support reversing the depth range we can still render
       // cases where the console uses reversed depth correctly. But we simply can't
       // provide the same accuracy as the console.
-      constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
-      constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+      constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777216.0f;
+      constants.pixelcentercorrection[3] =
+          Renderer::GX_MAX_DEPTH - xfmem.viewport.farZ / 16777216.0f;
     }
 
     dirty = true;
