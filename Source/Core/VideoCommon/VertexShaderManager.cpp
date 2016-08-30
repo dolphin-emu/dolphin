@@ -454,8 +454,7 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[12] = 0.0f;
       g_fProjectionMatrix[13] = 0.0f;
 
-      // Hack to fix depth clipping precision issues (such as Sonic Adventure UI)
-      g_fProjectionMatrix[14] = -(1.0f + FLT_EPSILON);
+      g_fProjectionMatrix[14] = -1.0f;
       g_fProjectionMatrix[15] = 0.0f;
 
       // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
@@ -511,9 +510,7 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[13] = 0.0f;
 
       g_fProjectionMatrix[14] = 0.0f;
-
-      // Hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
-      g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON;
+      g_fProjectionMatrix[15] = 1.0f;
 
       SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
       SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
