@@ -27,12 +27,164 @@ enum
 {
   IDM_WATCHADDRESS,
   IDM_VIEWMEMORY,
-  IDM_VIEWCODE
+  IDM_VIEWCODE,
+  IDM_VIEW_HEX8,
+  IDM_VIEW_HEX16,
+  IDM_VIEW_FLOAT,
+  IDM_VIEW_DOUBLE,
+  IDM_VIEW_UINT,
+  IDM_VIEW_INT
 };
+
+enum formatSpecifier
+{
+  FORMAT_HEX8,
+  FORMAT_HEX16,
+  FORMAT_FLOAT,
+  FORMAT_DOUBLE,
+  FORMAT_UINT,
+  FORMAT_INT
+};
+
+static formatSpecifier s_format_regs[32];
+static formatSpecifier s_format_fregs[32][2];
 
 static const char* special_reg_names[] = {"PC",        "LR",    "CTR",  "CR",         "FPSCR",
                                           "MSR",       "SRR0",  "SRR1", "Exceptions", "Int Mask",
                                           "Int Cause", "DSISR", "DAR",  "PT hashmask"};
+
+static wxString GetFormatString(formatSpecifier specifier)
+{
+  switch (specifier)
+  {
+  case FORMAT_HEX8:
+    return wxString("%08x");
+    break;
+  case FORMAT_HEX16:
+    return wxString("%016llx");
+    break;
+  case FORMAT_FLOAT:
+    return wxString("%g");
+    break;
+  case FORMAT_DOUBLE:
+    return wxString("%g");
+    break;
+  case FORMAT_UINT:
+    return wxString("%u");
+    break;
+  case FORMAT_INT:
+    return wxString("%i");
+    break;
+  default:
+    return wxString("");
+    break;
+  }
+}
+
+static wxString FormatGPR(int regIndex)
+{
+  if (s_format_regs[regIndex] == FORMAT_INT)
+    return wxString::Format(GetFormatString(s_format_regs[regIndex]),
+                            static_cast<s32>(GPR(regIndex)));
+  else if (s_format_regs[regIndex] == FORMAT_FLOAT)
+    return wxString::Format(GetFormatString(s_format_regs[regIndex]),
+                            (*(float*)(&PowerPC::ppcState.gpr[regIndex])));
+  else
+    return wxString::Format(GetFormatString(s_format_regs[regIndex]), GPR(regIndex));
+}
+
+static wxString FormatFPR(int regIndex, int regPart)
+{
+  if (s_format_fregs[regIndex][regPart] == FORMAT_DOUBLE)
+  {
+    double reg = 0.0;
+    (regPart == 0) ? (reg = rPS0(regIndex)) : (reg = rPS1(regIndex));
+    return wxString::Format(GetFormatString(s_format_fregs[regIndex][regPart]), reg);
+  }
+  else
+  {
+    u64 reg = 0;
+    (regPart == 0) ? (reg = riPS0(regIndex)) : (reg = riPS1(regIndex));
+    return wxString::Format(GetFormatString(s_format_fregs[regIndex][regPart]), reg);
+  }
+}
+
+static bool TryParseGPR(wxString str, formatSpecifier format, u32* value)
+{
+  if (format == FORMAT_HEX8)
+  {
+    return TryParse("0x" + WxStrToStr(str), value);
+  }
+  else if (format == FORMAT_INT)
+  {
+    s32 signedVal = 0;
+    if (TryParse(WxStrToStr(str), &signedVal))
+    {
+      *value = static_cast<u32>(signedVal);
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else if (format == FORMAT_UINT)
+  {
+    return TryParse(WxStrToStr(str), value);
+  }
+  else if (format == FORMAT_FLOAT)
+  {
+    float floatVal = 0.0;
+    if (TryParse(WxStrToStr(str), &floatVal))
+    {
+      *value = reinterpret_cast<u32&>(floatVal);
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+}
+
+static bool TryParseFPR(wxString str, formatSpecifier format, u64* value)
+{
+  if (format == FORMAT_HEX16)
+  {
+    return str.ToULongLong((unsigned long long int*)value, 16);
+  }
+  else if (format == FORMAT_DOUBLE)
+  {
+    double doubleVal = 0.0;
+    if (TryParse(WxStrToStr(str), &doubleVal))
+    {
+      *value = reinterpret_cast<u64&>(doubleVal);
+      return true;
+    }
+    else
+    {
+      return false;
+    }
+  }
+  else
+  {
+    return false;
+  }
+}
+
+static void SetRegisterFormat(int col, int row, formatSpecifier specifier)
+{
+  if ((row < 32) && (col == 1))
+    s_format_regs[row] = specifier;
+  else if ((row < 32) && (col == 3))
+    s_format_fregs[row][0] = specifier;
+  else if ((row < 32) && (col == 4))
+    s_format_fregs[row][1] = specifier;
+}
 
 static u32 GetSpecialRegValue(int reg)
 {
@@ -80,13 +232,13 @@ static wxString GetValueByRowCol(int row, int col)
     case 0:
       return StrToWxStr(GekkoDisassembler::GetGPRName(row));
     case 1:
-      return wxString::Format("%08x", GPR(row));
+      return FormatGPR(row);
     case 2:
       return StrToWxStr(GekkoDisassembler::GetFPRName(row));
     case 3:
-      return wxString::Format("%016llx", riPS0(row));
+      return FormatFPR(row, 0);
     case 4:
-      return wxString::Format("%016llx", riPS1(row));
+      return FormatFPR(row, 1);
     case 5:
     {
       if (row < 4)
@@ -216,24 +368,34 @@ static void SetSpecialRegValue(int reg, u32 value)
 
 void CRegTable::SetValue(int row, int col, const wxString& strNewVal)
 {
-  u32 newVal = 0;
-  if (TryParse("0x" + WxStrToStr(strNewVal), &newVal))
+  if (row < 32)
   {
-    if (row < 32)
+    if (col == 1)
     {
-      if (col == 1)
+      u32 newVal = 0;
+      if (TryParseGPR(strNewVal, s_format_regs[row], &newVal))
         GPR(row) = newVal;
-      else if (col == 3)
+    }
+    else if (col == 3)
+    {
+      u64 newVal = 0;
+      if (TryParseFPR(strNewVal, s_format_fregs[row][0], &newVal))
         riPS0(row) = newVal;
-      else if (col == 4)
+    }
+    else if (col == 4)
+    {
+      u64 newVal = 0;
+      if (TryParseFPR(strNewVal, s_format_fregs[row][1], &newVal))
         riPS1(row) = newVal;
     }
-    else
+  }
+  else
+  {
+    if ((row - 32 < NUM_SPECIALS) && (col == 1))
     {
-      if ((row - 32 < NUM_SPECIALS) && (col == 1))
-      {
+      u32 newVal = 0;
+      if (TryParse("0x" + WxStrToStr(strNewVal), &newVal))
         SetSpecialRegValue(row - 32, newVal);
-      }
     }
   }
 }
@@ -294,10 +456,21 @@ wxGridCellAttr* CRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKind)
   return attr;
 }
 
+static void InitFormatArrays()
+{
+  for (int i = 0; i < 32; i++)
+  {
+    s_format_regs[i] = FORMAT_HEX8;
+    s_format_fregs[i][0] = FORMAT_HEX16;
+    s_format_fregs[i][1] = FORMAT_HEX16;
+  }
+}
+
 CRegisterView::CRegisterView(wxWindow* parent, wxWindowID id) : wxGrid(parent, id)
 {
   m_register_table = new CRegTable();
 
+  InitFormatArrays();
   SetTable(m_register_table, true);
   SetRowLabelSize(0);
   SetColLabelSize(0);
@@ -318,16 +491,33 @@ void CRegisterView::Update()
 void CRegisterView::OnMouseDownR(wxGridEvent& event)
 {
   // popup menu
-  int row = event.GetRow();
-  int col = event.GetCol();
+  m_selectedRow = event.GetRow();
+  m_selectedColumn = event.GetCol();
 
-  wxString strNewVal = GetValueByRowCol(row, col);
+  wxString strNewVal = GetValueByRowCol(m_selectedRow, m_selectedColumn);
   TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
 
   wxMenu menu;
   menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
   menu.Append(IDM_VIEWMEMORY, _("View &memory"));
   menu.Append(IDM_VIEWCODE, _("View &code"));
+  if ((m_selectedRow < 32) &&
+      ((m_selectedColumn == 1) || (m_selectedColumn == 3) || (m_selectedColumn == 4)))
+  {
+    menu.AppendSeparator();
+    if (m_selectedColumn == 1)
+    {
+      menu.Append(IDM_VIEW_HEX8, _("View as hexadecimal"));
+      menu.Append(IDM_VIEW_INT, _("View as signed integer"));
+      menu.Append(IDM_VIEW_UINT, _("View as unsigned integer"));
+      menu.Append(IDM_VIEW_FLOAT, _("View as float"));
+    }
+    else
+    {
+      menu.Append(IDM_VIEW_HEX16, _("View as hexadecimal"));
+      menu.Append(IDM_VIEW_DOUBLE, _("View as double"));
+    }
+  }
   PopupMenu(&menu);
 }
 
@@ -353,6 +543,30 @@ void CRegisterView::OnPopupMenu(wxCommandEvent& event)
     break;
   case IDM_VIEWCODE:
     code_window->JumpToAddress(m_selectedAddress);
+    Refresh();
+    break;
+  case IDM_VIEW_HEX8:
+    SetRegisterFormat(m_selectedColumn, m_selectedRow, FORMAT_HEX8);
+    Refresh();
+    break;
+  case IDM_VIEW_HEX16:
+    SetRegisterFormat(m_selectedColumn, m_selectedRow, FORMAT_HEX16);
+    Refresh();
+    break;
+  case IDM_VIEW_INT:
+    SetRegisterFormat(m_selectedColumn, m_selectedRow, FORMAT_INT);
+    Refresh();
+    break;
+  case IDM_VIEW_UINT:
+    SetRegisterFormat(m_selectedColumn, m_selectedRow, FORMAT_UINT);
+    Refresh();
+    break;
+  case IDM_VIEW_FLOAT:
+    SetRegisterFormat(m_selectedColumn, m_selectedRow, FORMAT_FLOAT);
+    Refresh();
+    break;
+  case IDM_VIEW_DOUBLE:
+    SetRegisterFormat(m_selectedColumn, m_selectedRow, FORMAT_DOUBLE);
     Refresh();
     break;
   }

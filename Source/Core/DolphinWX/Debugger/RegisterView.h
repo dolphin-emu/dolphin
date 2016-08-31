@@ -70,6 +70,8 @@ private:
   void OnPopupMenu(wxCommandEvent& event);
 
   u32 m_selectedAddress = 0;
+  int m_selectedRow = 0;
+  int m_selectedColumn = 0;
 
   // Owned by wx. Deleted implicitly upon destruction.
   CRegTable* m_register_table;
