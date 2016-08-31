@@ -527,7 +527,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
                      FramebufferManager::GetEFBColorTexture()->GetMultisampled());
 
   // Restores proper viewport/scissor settings.
-  g_renderer->SetViewport();
+  SetViewport();
   BPFunctions::SetScissor();
 
   FramebufferManager::InvalidateEFBAccessCopies();
@@ -536,9 +536,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
   // EXISTINGD3D11TODO: MSAA support..
-  D3D12_RECT source =
-      CD3DX12_RECT(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
-
+  D3D12_RECT source = CD3DX12_RECT(0, 0, GetTargetWidth(), GetTargetHeight());
   D3D12_SHADER_BYTECODE pixel_shader = {};
 
   if (convtype == 0)
@@ -556,7 +554,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
     return;
   }
 
-  D3D::SetViewportAndScissor(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
+  D3D::SetViewportAndScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 
   FramebufferManager::GetEFBColorTempTexture()->TransitionToResourceState(
       D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -565,8 +563,8 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
   D3D::SetPointCopySampler();
   D3D::DrawShadedTexQuad(
-      FramebufferManager::GetEFBColorTexture(), &source, g_renderer->GetTargetWidth(),
-      g_renderer->GetTargetHeight(), pixel_shader, StaticShaderCache::GetSimpleVertexShader(),
+      FramebufferManager::GetEFBColorTexture(), &source, GetTargetWidth(), GetTargetHeight(),
+      pixel_shader, StaticShaderCache::GetSimpleVertexShader(),
       StaticShaderCache::GetSimpleVertexShaderInputLayout(),
       StaticShaderCache::GetCopyGeometryShader(), 1.0f, 0, DXGI_FORMAT_R8G8B8A8_UNORM, false,
       FramebufferManager::GetEFBColorTempTexture()->GetMultisampled());
