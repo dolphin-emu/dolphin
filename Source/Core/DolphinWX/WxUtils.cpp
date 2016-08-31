@@ -81,6 +81,39 @@ void AddToolbarButton(wxToolBar* toolbar, int toolID, const wxString& label, con
                    wxITEM_NORMAL, shortHelp);
 }
 
+wxIconBundle GetDolphinIconBundle()
+{
+  static wxIconBundle s_bundle;
+  if (!s_bundle.IsEmpty())
+    return s_bundle;
+
+  // Dolphin.png is 32x32, dolphin_logo.png is 220x110, dolphin_logo@2.png is 400x220.
+  wxImage small_icon32{StrToWxStr(File::GetSysDirectory() + RESOURCES_DIR DIR_SEP "Dolphin.png"),
+                       wxBITMAP_TYPE_PNG};
+  wxImage logo{StrToWxStr(File::GetSysDirectory() + RESOURCES_DIR DIR_SEP "dolphin_logo.png"),
+               wxBITMAP_TYPE_PNG};
+  wxImage big_logo = logo;  // Takes a reference, not a copy
+  std::string big_logo_path = File::GetSysDirectory() + RESOURCES_DIR DIR_SEP "dolphin_logo@2x.png";
+  if (File::Exists(big_logo_path))
+    big_logo.LoadFile(StrToWxStr(big_logo_path), wxBITMAP_TYPE_PNG);
+
+  // Windows wants 16x16 (Window icon), 32x32/48x48 (Taskbar (big)) and 256x256 (Utility).
+  wxIcon icon;
+  icon.CopyFromBitmap(small_icon32);
+  s_bundle.AddIcon(icon);
+
+  icon.CopyFromBitmap(ScaleImage(small_icon32, 1.0, 1.0, wxSize(16, 16)));
+  s_bundle.AddIcon(icon);
+
+  icon.CopyFromBitmap(ScaleImage(logo, 1.0, 1.0, wxSize(48, 48)));
+  s_bundle.AddIcon(icon);
+
+  icon.CopyFromBitmap(ScaleImage(big_logo, 1.0, 1.0, wxSize(256, 256)));
+  s_bundle.AddIcon(icon);
+
+  return s_bundle;
+}
+
 wxRect GetVirtualScreenGeometry()
 {
   wxRect geometry;
