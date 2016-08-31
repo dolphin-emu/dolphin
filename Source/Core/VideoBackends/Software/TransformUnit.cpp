@@ -149,13 +149,13 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bo
       MultiplyVec3Mat34(src, mat, *dst);
   }
 
-  // normalize
-  const PostMtxInfo& postInfo = xfmem.postMtxInfo[coordNum];
-  const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
-
   if (xfmem.dualTexTrans.enabled)
   {
     Vec3 tempCoord;
+
+    // normalize
+    const PostMtxInfo& postInfo = xfmem.postMtxInfo[coordNum];
+    const float* postMat = &xfmem.postMatrices[postInfo.index * 4];
 
     if (specialCase)
     {
