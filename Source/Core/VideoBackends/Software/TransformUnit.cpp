@@ -180,7 +180,9 @@ static void TransformTexCoordRegular(const TexMtxInfo& texinfo, int coordNum, bo
     }
   }
 
-  // TODO write comment
+  // When q is 0, the GameCube appears to have a special case
+  // This can be seen in devkitPro's neheGX Lesson08 example for Wii
+  // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
   if (dst->z == 0.0f)
   {
     dst->x = MathUtil::Clamp(dst->x / 2.0f, -1.0f, 1.0f);
