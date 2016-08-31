@@ -381,8 +381,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
                 i, i, i, i);
     }
 
-    // TODO write comment
-    // TODO check if it only affects XF_TEXGEN_REGULAR more
+    // When q is 0, the GameCube appears to have a special case
+    // This can be seen in devkitPro's neheGX Lesson08 example for Wii
+    // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
+    // TODO: check if this only affects XF_TEXGEN_REGULAR
     if (texinfo.texgentype == XF_TEXGEN_REGULAR)
     {
       out.Write("if(o.tex%d.z == 0.0f)\n", i);
