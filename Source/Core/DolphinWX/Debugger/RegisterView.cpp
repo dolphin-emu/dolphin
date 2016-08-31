@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <wx/colour.h>
 #include <wx/grid.h>
 #include <wx/menu.h>
@@ -27,14 +28,179 @@ enum
 {
   IDM_WATCHADDRESS,
   IDM_VIEWMEMORY,
-  IDM_VIEWCODE
+  IDM_VIEWCODE,
+  IDM_VIEW_HEX8,
+  IDM_VIEW_HEX16,
+  IDM_VIEW_FLOAT,
+  IDM_VIEW_DOUBLE,
+  IDM_VIEW_UINT,
+  IDM_VIEW_INT
 };
 
-static const char* special_reg_names[] = {"PC",        "LR",    "CTR",  "CR",         "FPSCR",
-                                          "MSR",       "SRR0",  "SRR1", "Exceptions", "Int Mask",
-                                          "Int Cause", "DSISR", "DAR",  "PT hashmask"};
+enum class FormatSpecifier
+{
+  Hex8,
+  Hex16,
+  Float,
+  Double,
+  UInt,
+  Int
+};
 
-static u32 GetSpecialRegValue(int reg)
+const char* special_reg_names[] = {"PC",        "LR",    "CTR",  "CR",         "FPSCR",
+                                   "MSR",       "SRR0",  "SRR1", "Exceptions", "Int Mask",
+                                   "Int Cause", "DSISR", "DAR",  "PT hashmask"};
+
+CRegTable::CRegTable()
+{
+  for (int i = 0; i < 32; i++)
+  {
+    m_formatRegs[i] = FormatSpecifier::Hex8;
+    m_formatFRegs[i][0] = FormatSpecifier::Hex16;
+    m_formatFRegs[i][1] = FormatSpecifier::Hex16;
+  }
+
+  memset(m_CachedRegs, 0, sizeof(m_CachedRegs));
+  memset(m_CachedSpecialRegs, 0, sizeof(m_CachedSpecialRegs));
+  memset(m_CachedFRegs, 0, sizeof(m_CachedFRegs));
+  memset(m_CachedRegHasChanged, 0, sizeof(m_CachedRegHasChanged));
+  memset(m_CachedSpecialRegHasChanged, 0, sizeof(m_CachedSpecialRegHasChanged));
+  memset(m_CachedFRegHasChanged, 0, sizeof(m_CachedFRegHasChanged));
+}
+
+wxString CRegTable::GetFormatString(FormatSpecifier specifier)
+{
+  switch (specifier)
+  {
+  case FormatSpecifier::Hex8:
+    return wxString("%08x");
+  case FormatSpecifier::Hex16:
+    return wxString("%016llx");
+  case FormatSpecifier::Float:
+    return wxString("%g");
+  case FormatSpecifier::Double:
+    return wxString("%g");
+  case FormatSpecifier::UInt:
+    return wxString("%u");
+  case FormatSpecifier::Int:
+    return wxString("%i");
+  default:
+    return wxString("");
+  }
+}
+
+wxString CRegTable::FormatGPR(int reg_index)
+{
+  if (CRegTable::m_formatRegs[reg_index] == FormatSpecifier::Int)
+  {
+    return wxString::Format(GetFormatString(CRegTable::m_formatRegs[reg_index]),
+                            static_cast<s32>(GPR(reg_index)));
+  }
+  if (CRegTable::m_formatRegs[reg_index] == FormatSpecifier::Float)
+  {
+    float value;
+    std::memcpy(&value, &GPR(reg_index), sizeof(float));
+    return wxString::Format(GetFormatString(CRegTable::m_formatRegs[reg_index]), value);
+  }
+  return wxString::Format(GetFormatString(CRegTable::m_formatRegs[reg_index]), GPR(reg_index));
+}
+
+wxString CRegTable::FormatFPR(int reg_index, int reg_part)
+{
+  if (CRegTable::m_formatFRegs[reg_index][reg_part] == FormatSpecifier::Double)
+  {
+    double reg = (reg_part == 0) ? rPS0(reg_index) : rPS1(reg_index);
+    return wxString::Format(GetFormatString(CRegTable::m_formatFRegs[reg_index][reg_part]), reg);
+  }
+  u64 reg = (reg_part == 0) ? riPS0(reg_index) : riPS1(reg_index);
+  return wxString::Format(GetFormatString(CRegTable::m_formatFRegs[reg_index][reg_part]), reg);
+}
+
+bool CRegTable::TryParseGPR(wxString str, FormatSpecifier format, u32* value)
+{
+  if (format == FormatSpecifier::Hex8)
+  {
+    unsigned long val;
+    if (str.ToCULong(&val, 16))
+    {
+      *value = static_cast<u32>(val);
+      return true;
+    }
+    return false;
+  }
+  if (format == FormatSpecifier::Int)
+  {
+    long signed_val;
+    if (str.ToCLong(&signed_val))
+    {
+      *value = static_cast<u32>(signed_val);
+      return true;
+    }
+    return false;
+  }
+  if (format == FormatSpecifier::UInt)
+  {
+    unsigned long val;
+    if (str.ToCULong(&val))
+    {
+      *value = static_cast<u32>(val);
+      return true;
+    }
+    return false;
+  }
+  if (format == FormatSpecifier::Float)
+  {
+    double double_val;
+    if (str.ToCDouble(&double_val))
+    {
+      float float_val = static_cast<float>(double_val);
+      std::memcpy(value, &float_val, sizeof(float));
+      return true;
+    }
+    return false;
+  }
+  return false;
+}
+
+bool CRegTable::TryParseFPR(wxString str, FormatSpecifier format, unsigned long long int* value)
+{
+  if (format == FormatSpecifier::Hex16)
+  {
+    return str.ToULongLong(value, 16);
+  }
+  if (format == FormatSpecifier::Double)
+  {
+    double double_val;
+    if (str.ToCDouble(&double_val))
+    {
+      std::memcpy(value, &double_val, sizeof(u64));
+      return true;
+    }
+    return false;
+  }
+  return false;
+}
+
+void CRegTable::SetRegisterFormat(int col, int row, FormatSpecifier specifier)
+{
+  if (row >= 32)
+    return;
+
+  switch (col)
+  {
+  case 1:
+    CRegTable::m_formatRegs[row] = specifier;
+    return;
+  case 3:
+    CRegTable::m_formatFRegs[row][0] = specifier;
+    return;
+  case 4:
+    CRegTable::m_formatFRegs[row][1] = specifier;
+    return;
+  }
+}
+
+u32 CRegTable::GetSpecialRegValue(int reg)
 {
   switch (reg)
   {
@@ -71,7 +237,7 @@ static u32 GetSpecialRegValue(int reg)
   }
 }
 
-static wxString GetValueByRowCol(int row, int col)
+wxString CRegTable::GetValue(int row, int col)
 {
   if (row < 32)
   {
@@ -80,13 +246,13 @@ static wxString GetValueByRowCol(int row, int col)
     case 0:
       return StrToWxStr(GekkoDisassembler::GetGPRName(row));
     case 1:
-      return wxString::Format("%08x", GPR(row));
+      return CRegTable::FormatGPR(row);
     case 2:
       return StrToWxStr(GekkoDisassembler::GetFPRName(row));
     case 3:
-      return wxString::Format("%016llx", riPS0(row));
+      return CRegTable::FormatFPR(row, 0);
     case 4:
-      return wxString::Format("%016llx", riPS1(row));
+      return CRegTable::FormatFPR(row, 1);
     case 5:
     {
       if (row < 4)
@@ -162,12 +328,7 @@ static wxString GetValueByRowCol(int row, int col)
   return wxEmptyString;
 }
 
-wxString CRegTable::GetValue(int row, int col)
-{
-  return GetValueByRowCol(row, col);
-}
-
-static void SetSpecialRegValue(int reg, u32 value)
+void CRegTable::SetSpecialRegValue(int reg, u32 value)
 {
   switch (reg)
   {
@@ -216,24 +377,34 @@ static void SetSpecialRegValue(int reg, u32 value)
 
 void CRegTable::SetValue(int row, int col, const wxString& strNewVal)
 {
-  u32 newVal = 0;
-  if (TryParse("0x" + WxStrToStr(strNewVal), &newVal))
+  if (row < 32)
   {
-    if (row < 32)
+    if (col == 1)
     {
-      if (col == 1)
-        GPR(row) = newVal;
-      else if (col == 3)
-        riPS0(row) = newVal;
-      else if (col == 4)
-        riPS1(row) = newVal;
+      u32 new_val = 0;
+      if (CRegTable::TryParseGPR(strNewVal, CRegTable::m_formatRegs[row], &new_val))
+        GPR(row) = new_val;
     }
-    else
+    else if (col == 3)
     {
-      if ((row - 32 < NUM_SPECIALS) && (col == 1))
-      {
-        SetSpecialRegValue(row - 32, newVal);
-      }
+      unsigned long long new_val = 0;
+      if (CRegTable::TryParseFPR(strNewVal, CRegTable::m_formatFRegs[row][0], &new_val))
+        riPS0(row) = new_val;
+    }
+    else if (col == 4)
+    {
+      unsigned long long new_val = 0;
+      if (CRegTable::TryParseFPR(strNewVal, CRegTable::m_formatFRegs[row][1], &new_val))
+        riPS1(row) = new_val;
+    }
+  }
+  else
+  {
+    if ((row - 32 < NUM_SPECIALS) && (col == 1))
+    {
+      u32 new_val = 0;
+      if (TryParse("0x" + WxStrToStr(strNewVal), &new_val))
+        SetSpecialRegValue(row - 32, new_val);
     }
   }
 }
@@ -318,16 +489,33 @@ void CRegisterView::Update()
 void CRegisterView::OnMouseDownR(wxGridEvent& event)
 {
   // popup menu
-  int row = event.GetRow();
-  int col = event.GetCol();
+  m_selectedRow = event.GetRow();
+  m_selectedColumn = event.GetCol();
 
-  wxString strNewVal = GetValueByRowCol(row, col);
+  wxString strNewVal = m_register_table->GetValue(m_selectedRow, m_selectedColumn);
   TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
 
   wxMenu menu;
   menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
   menu.Append(IDM_VIEWMEMORY, _("View &memory"));
   menu.Append(IDM_VIEWCODE, _("View &code"));
+  if (m_selectedRow < 32 &&
+      (m_selectedColumn == 1 || m_selectedColumn == 3 || m_selectedColumn == 4))
+  {
+    menu.AppendSeparator();
+    if (m_selectedColumn == 1)
+    {
+      menu.Append(IDM_VIEW_HEX8, _("View as hexadecimal"));
+      menu.Append(IDM_VIEW_INT, _("View as signed integer"));
+      menu.Append(IDM_VIEW_UINT, _("View as unsigned integer"));
+      menu.Append(IDM_VIEW_FLOAT, _("View as float"));
+    }
+    else
+    {
+      menu.Append(IDM_VIEW_HEX16, _("View as hexadecimal"));
+      menu.Append(IDM_VIEW_DOUBLE, _("View as double"));
+    }
+  }
   PopupMenu(&menu);
 }
 
@@ -353,6 +541,30 @@ void CRegisterView::OnPopupMenu(wxCommandEvent& event)
     break;
   case IDM_VIEWCODE:
     code_window->JumpToAddress(m_selectedAddress);
+    Refresh();
+    break;
+  case IDM_VIEW_HEX8:
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Hex8);
+    Refresh();
+    break;
+  case IDM_VIEW_HEX16:
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Hex16);
+    Refresh();
+    break;
+  case IDM_VIEW_INT:
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Int);
+    Refresh();
+    break;
+  case IDM_VIEW_UINT:
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::UInt);
+    Refresh();
+    break;
+  case IDM_VIEW_FLOAT:
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Float);
+    Refresh();
+    break;
+  case IDM_VIEW_DOUBLE:
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Double);
     Refresh();
     break;
   }
