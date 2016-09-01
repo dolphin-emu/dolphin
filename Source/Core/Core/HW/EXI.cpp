@@ -23,8 +23,8 @@ bool g_SRAM_netplay_initialized = false;
 
 namespace ExpansionInterface
 {
-static int changeDevice;
-static int updateInterrupts;
+static CoreTiming::EventType* changeDevice;
+static CoreTiming::EventType* updateInterrupts;
 
 static std::array<std::unique_ptr<CEXIChannel>, MAX_EXI_CHANNELS> g_Channels;
 

@@ -85,7 +85,8 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
     PanicAlertT("Trying to create invalid memory card index.");
   }
   // Because the memory cards can be changed while emulation is running, the callbacks may
-  // have already been registered by previous instances.
+  // have already been registered by previous instances. Old events are cancelled in the
+  // destructor.
   et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done, CmdDoneCallback,
                                           CoreTiming::Registration::ExpectExisting);
   et_transfer_complete =

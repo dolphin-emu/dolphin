@@ -9,6 +9,10 @@
 
 #include "Core/HW/EXI_Device.h"
 
+namespace CoreTiming
+{
+struct EventType;
+}
 class MemoryCardBase;
 class PointerWrap;
 
@@ -67,7 +71,8 @@ private:
   };
 
   int card_index;
-  int et_cmd_done, et_transfer_complete;
+  CoreTiming::EventType* et_cmd_done = nullptr;
+  CoreTiming::EventType* et_transfer_complete = nullptr;
   //! memory card state
 
   // STATE_TO_SAVE
