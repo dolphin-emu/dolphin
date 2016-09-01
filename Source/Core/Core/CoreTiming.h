@@ -31,6 +31,7 @@ extern u64 g_fake_TB_start_ticks;
 extern int g_slice_length;
 extern float g_last_OC_factor_inverted;
 
+// NOTE: ScheduleEvent will not start updating the PowerPC downcount until after the first Advance.
 void Init();
 void Shutdown();
 
@@ -68,6 +69,8 @@ enum class FromThread
 };
 
 // userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from savestates.
+// After the first Advance, the slice lengths and the downcount will be reduced whenever an event
+// is scheduled earlier than the current values (when scheduled from the CPU Thread only).
 void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata = 0,
                    FromThread from = FromThread::CPU);
 

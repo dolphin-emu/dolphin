@@ -128,9 +128,7 @@ TEST(CoreTiming, PredictableLateness)
   CoreTiming::EventType* cb_a = CoreTiming::RegisterEvent("callbackA", CallbackTemplate<0>);
   CoreTiming::EventType* cb_b = CoreTiming::RegisterEvent("callbackB", CallbackTemplate<1>);
 
-  // Clear s_global_timer_is_sane, otherwise ppcState.downcount will stay at MAX_SLICE_LENGTH and
-  // we will end up 19910 cycles late instead of 10.
-  // FIXME: Is this intended? This seems like a bug.
+  // Clear s_global_timer_is_sane.
   CoreTiming::Advance();
 
   CoreTiming::ScheduleEvent(100, cb_a, CB_IDS[0]);
