@@ -12,6 +12,7 @@
 #include <wx/listbox.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
@@ -62,6 +63,9 @@ void PathConfigPane::InitializeGUI()
       this, wxID_ANY, wxEmptyString, _("Choose an SD Card file:"), wxFileSelectorDefaultWildcardStr,
       wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL | wxDIRP_SMALL);
 
+  m_game_id_text = new wxTextCtrl(this, wxID_ANY);
+  m_game_name_text = new wxTextCtrl(this, wxID_ANY);
+
   m_iso_paths_listbox->Bind(wxEVT_LISTBOX, &PathConfigPane::OnISOPathSelectionChanged, this);
   m_recursive_iso_paths_checkbox->Bind(wxEVT_CHECKBOX,
                                        &PathConfigPane::OnRecursiveISOCheckBoxChanged, this);
@@ -76,6 +80,9 @@ void PathConfigPane::InitializeGUI()
   m_dump_path_dirpicker->Bind(wxEVT_DIRPICKER_CHANGED, &PathConfigPane::OnDumpPathChanged, this);
   m_wii_sdcard_filepicker->Bind(wxEVT_FILEPICKER_CHANGED, &PathConfigPane::OnSdCardPathChanged,
                                 this);
+  m_game_id_text->Bind(wxEVT_TEXT, &PathConfigPane::OnGameIDChanged, this);
+  m_game_name_text->Bind(wxEVT_TEXT, &PathConfigPane::OnGameNameChanged, this);
+
 
   wxBoxSizer* const iso_button_sizer = new wxBoxSizer(wxHORIZONTAL);
   iso_button_sizer->Add(m_recursive_iso_paths_checkbox, 0, wxALL | wxALIGN_CENTER);
@@ -110,6 +117,12 @@ void PathConfigPane::InitializeGUI()
                     wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
   picker_sizer->Add(m_wii_sdcard_filepicker, wxGBPosition(5, 1), wxDefaultSpan, wxEXPAND | wxALL,
                     5);
+  picker_sizer->Add(new wxStaticText(this, wxID_ANY, _("Game ID:")), wxGBPosition(6, 0),
+                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  picker_sizer->Add(m_game_id_text, wxGBPosition(6, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
+  picker_sizer->Add(new wxStaticText(this, wxID_ANY, _("Game Name:")), wxGBPosition(7, 0),
+                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
+  picker_sizer->Add(m_game_name_text, wxGBPosition(7, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
   picker_sizer->AddGrowableCol(1);
 
   // Populate the Paths page
@@ -131,6 +144,8 @@ void PathConfigPane::LoadGUIValues()
   m_nand_root_dirpicker->SetPath(StrToWxStr(SConfig::GetInstance().m_NANDPath));
   m_dump_path_dirpicker->SetPath(StrToWxStr(SConfig::GetInstance().m_DumpPath));
   m_wii_sdcard_filepicker->SetPath(StrToWxStr(SConfig::GetInstance().m_strWiiSDCardPath));
+  m_game_id_text->SetValue(SConfig::GetInstance().m_strGameID);
+  m_game_name_text->SetValue(SConfig::GetInstance().m_strGameName);
 
   // Update selected ISO paths
   for (const std::string& folder : SConfig::GetInstance().m_ISOFolder)
@@ -209,6 +224,18 @@ void PathConfigPane::OnSdCardPathChanged(wxCommandEvent& event)
   std::string sd_card_path = WxStrToStr(m_wii_sdcard_filepicker->GetPath());
   SConfig::GetInstance().m_strWiiSDCardPath = sd_card_path;
   File::SetUserPath(F_WIISDCARD_IDX, sd_card_path);
+}
+
+void PathConfigPane::OnGameIDChanged(wxCommandEvent &)
+{
+    std::string game_id = WxStrToStr(m_game_id_text->GetValue());
+    SConfig::GetInstance().m_strGameID = game_id;
+}
+
+void PathConfigPane::OnGameNameChanged(wxCommandEvent &)
+{
+    std::string game_name = WxStrToStr(m_game_name_text->GetValue());
+    SConfig::GetInstance().m_strGameName = game_name;
 }
 
 void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)

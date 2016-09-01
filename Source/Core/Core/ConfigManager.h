@@ -175,6 +175,8 @@ struct SConfig : NonCopyable
   std::string m_strDefaultISO;
   std::string m_strDVDRoot;
   std::string m_strApploader;
+  std::string m_strGameID;
+  std::string m_strGameName;
   std::string m_strUniqueID;
   std::string m_strName;
   std::string m_strWiiSDCardPath;
