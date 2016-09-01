@@ -130,7 +130,7 @@ static void GenerateAudioInterrupt();
 static void UpdateInterrupts();
 static void IncreaseSampleCount(const u32 _uAmount);
 static int GetAIPeriod();
-static int et_AI;
+static CoreTiming::EventType* et_AI = nullptr;
 static void Update(u64 userdata, s64 cyclesLate);
 
 void Init()

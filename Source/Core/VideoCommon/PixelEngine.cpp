@@ -100,7 +100,7 @@ static bool s_event_raised;
 static bool s_signal_token_interrupt;
 static bool s_signal_finish_interrupt;
 
-static int et_SetTokenFinishOnMainThread;
+static CoreTiming::EventType* et_SetTokenFinishOnMainThread = nullptr;
 
 enum
 {

@@ -23,8 +23,8 @@
 
 namespace SerialInterface
 {
-static int changeDevice;
-static int et_transfer_pending;
+static CoreTiming::EventType* changeDevice = nullptr;
+static CoreTiming::EventType* et_transfer_pending = nullptr;
 
 static void RunSIBuffer(u64 userdata, s64 cyclesLate);
 static void UpdateInterrupts();

@@ -76,8 +76,8 @@ static ipc_msg_queue request_queue;  // ppc -> arm
 static ipc_msg_queue reply_queue;    // arm -> ppc
 static ipc_msg_queue ack_queue;      // arm -> ppc
 
-static int event_enqueue;
-static int event_sdio_notify;
+static CoreTiming::EventType* event_enqueue = nullptr;
+static CoreTiming::EventType* event_sdio_notify = nullptr;
 
 static u64 last_reply_time;
 
