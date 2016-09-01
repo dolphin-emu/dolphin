@@ -50,7 +50,7 @@ void Jit64AsmRoutineManager::Generate()
 
   const u8* outerLoop = GetCodePtr();
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunction(reinterpret_cast<void*>(&CoreTiming::Advance));
+  ABI_CallFunction(CoreTiming::Advance);
   ABI_PopRegistersAndAdjustStack({}, 0);
   FixupBranch skipToRealDispatch =
       J(SConfig::GetInstance().bEnableDebugging);  // skip the sync and compare first time
@@ -80,7 +80,7 @@ void Jit64AsmRoutineManager::Generate()
     TEST(32, M(CPU::GetStatePtr()), Imm32(CPU::CPU_STEPPING));
     FixupBranch notStepping = J_CC(CC_Z);
     ABI_PushRegistersAndAdjustStack({}, 0);
-    ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckBreakPoints));
+    ABI_CallFunction(PowerPC::CheckBreakPoints);
     ABI_PopRegistersAndAdjustStack({}, 0);
     TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
     dbg_exit = J_CC(CC_NZ, true);
@@ -154,7 +154,7 @@ void Jit64AsmRoutineManager::Generate()
 
   // Ok, no block, let's call the slow dispatcher
   ABI_PushRegistersAndAdjustStack({}, 0);
-  ABI_CallFunction(reinterpret_cast<void*>(&JitBase::Dispatch));
+  ABI_CallFunction(JitBase::Dispatch);
   ABI_PopRegistersAndAdjustStack({}, 0);
   //  JMPptr(R(ABI_RETURN));
   JMP(dispatcherNoCheck, true);

@@ -101,7 +101,7 @@ void CommonAsmRoutines::GenFrsqrte()
   SetJumpTarget(complex2);
   SetJumpTarget(complex3);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-  ABI_CallFunction((void*)&MathUtil::ApproximateReciprocalSquareRoot);
+  ABI_CallFunction(MathUtil::ApproximateReciprocalSquareRoot);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
@@ -163,7 +163,7 @@ void CommonAsmRoutines::GenFres()
 
   SetJumpTarget(complex);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-  ABI_CallFunction((void*)&MathUtil::ApproximateReciprocal);
+  ABI_CallFunction(MathUtil::ApproximateReciprocal);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
