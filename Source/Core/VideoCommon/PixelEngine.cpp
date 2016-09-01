@@ -90,7 +90,7 @@ static UPEAlphaModeConfReg m_AlphaModeConf;
 static UPEAlphaReadReg m_AlphaRead;
 static UPECtrlReg m_Control;
 
-std::mutex s_token_finish_mutex;
+static std::mutex s_token_finish_mutex;
 static u16 s_token;
 static u16 s_token_pending;
 static bool s_token_interrupt_pending;
