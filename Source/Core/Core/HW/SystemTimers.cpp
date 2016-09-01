@@ -64,13 +64,14 @@ IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
 
 namespace SystemTimers
 {
-static int et_Dec;
-static int et_VI;
-static int et_AudioDMA;
-static int et_DSP;
-static int et_IPC_HLE;
-static int et_PatchEngine;  // PatchEngine updates every 1/60th of a second by default
-static int et_Throttle;
+static CoreTiming::EventType* et_Dec;
+static CoreTiming::EventType* et_VI;
+static CoreTiming::EventType* et_AudioDMA;
+static CoreTiming::EventType* et_DSP;
+static CoreTiming::EventType* et_IPC_HLE;
+// PatchEngine updates every 1/60th of a second by default
+static CoreTiming::EventType* et_PatchEngine;
+static CoreTiming::EventType* et_Throttle;
 
 static u32 s_cpu_core_clock = 486000000u;  // 486 mhz (its not 485, stop bugging me!)
 
