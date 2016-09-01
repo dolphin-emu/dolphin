@@ -8,8 +8,10 @@
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/FifoQueue.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
@@ -31,22 +33,26 @@ struct EventType
 
 static std::vector<EventType> s_event_types;
 
-struct BaseEvent
+struct Event
 {
   s64 time;
   u64 userdata;
   int type;
 };
 
-typedef LinkedListItem<BaseEvent> Event;
+constexpr bool operator>(const Event& left, const Event& right)
+{
+  return left.time > right.time;
+}
+constexpr bool operator<(const Event& left, const Event& right)
+{
+  return left.time < right.time;
+}
 
 // STATE_TO_SAVE
-static Event* s_first_event;
+static std::vector<Event> s_event_queue;  // Priority Heap (std::make_heap/push_heap/pop_heap)
 static std::mutex s_ts_write_lock;
-static Common::FifoQueue<BaseEvent, false> s_ts_queue;
-
-// event pools
-static Event* s_event_pool = nullptr;
+static Common::FifoQueue<Event, false> s_ts_queue;
 
 static float s_last_OC_factor;
 float g_last_OC_factor_inverted;
@@ -65,22 +71,6 @@ u64 g_fake_TB_start_value;
 u64 g_fake_TB_start_ticks;
 
 static int s_ev_lost;
-
-static Event* GetNewEvent()
-{
-  if (!s_event_pool)
-    return new Event;
-
-  Event* ev = s_event_pool;
-  s_event_pool = ev->next;
-  return ev;
-}
-
-static void FreeEvent(Event* ev)
-{
-  ev->next = s_event_pool;
-  s_event_pool = ev;
-}
 
 static void EmptyTimedCallback(u64 userdata, s64 cyclesLate)
 {
@@ -132,9 +122,9 @@ int RegisterEvent(const std::string& name, TimedCallback callback)
 
 void UnregisterAllEvents()
 {
-  if (s_first_event)
-    PanicAlert("Cannot unregister events with events pending");
+  _assert_msg_(POWERPC, s_event_queue.empty(), "Cannot unregister events with events pending");
   s_event_types.clear();
+  s_event_types.shrink_to_fit();
 }
 
 void Init()
@@ -156,50 +146,6 @@ void Shutdown()
   MoveEvents();
   ClearPendingEvents();
   UnregisterAllEvents();
-
-  while (s_event_pool)
-  {
-    Event* ev = s_event_pool;
-    s_event_pool = ev->next;
-    delete ev;
-  }
-}
-
-static void EventDoState(PointerWrap& p, BaseEvent* ev)
-{
-  p.Do(ev->time);
-
-  // this is why we can't have (nice things) pointers as userdata
-  p.Do(ev->userdata);
-
-  // we can't savestate ev->type directly because events might not get registered in the same order
-  // (or at all) every time.
-  // so, we savestate the event's type's name, and derive ev->type from that when loading.
-  std::string name;
-  if (p.GetMode() != PointerWrap::MODE_READ)
-    name = s_event_types[ev->type].name;
-
-  p.Do(name);
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
-    bool foundMatch = false;
-    for (unsigned int i = 0; i < s_event_types.size(); ++i)
-    {
-      if (name == s_event_types[i].name)
-      {
-        ev->type = i;
-        foundMatch = true;
-        break;
-      }
-    }
-    if (!foundMatch)
-    {
-      WARN_LOG(POWERPC,
-               "Lost event from savestate because its type, \"%s\", has not been registered.",
-               name.c_str());
-      ev->type = s_ev_lost;
-    }
-  }
 }
 
 void DoState(PointerWrap& p)
@@ -218,9 +164,44 @@ void DoState(PointerWrap& p)
   p.DoMarker("CoreTimingData");
 
   MoveEvents();
+  p.DoEachElement(s_event_queue, [](PointerWrap& pw, Event& ev) {
+    pw.Do(ev.time);
 
-  p.DoLinkedList<BaseEvent, GetNewEvent, FreeEvent, EventDoState>(s_first_event);
+    // this is why we can't have (nice things) pointers as userdata
+    pw.Do(ev.userdata);
+
+    // we can't savestate ev.type directly because events might not get registered in the same
+    // order (or at all) every time.
+    // so, we savestate the event's type's name, and derive ev.type from that when loading.
+    std::string name;
+    if (pw.GetMode() != PointerWrap::MODE_READ)
+      name = s_event_types[ev.type].name;
+
+    pw.Do(name);
+    if (pw.GetMode() == PointerWrap::MODE_READ)
+    {
+      auto itr = std::find_if(s_event_types.begin(), s_event_types.end(),
+                              [&](const EventType& evt) { return evt.name == name; });
+      if (itr != s_event_types.end())
+      {
+        ev.type = static_cast<int>(itr - s_event_types.begin());
+      }
+      else
+      {
+        WARN_LOG(POWERPC,
+                 "Lost event from savestate because its type, \"%s\", has not been registered.",
+                 name.c_str());
+        ev.type = s_ev_lost;
+      }
+    }
+  });
   p.DoMarker("CoreTimingEvents");
+
+  // When loading from a save state, we must assume the Event order is random and meaningless.
+  // The exact layout of the heap in memory is implementation defined, therefore it is platform
+  // and library version specific.
+  if (p.GetMode() == PointerWrap::MODE_READ)
+    std::make_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
 }
 
 // This should only be called from the CPU thread. If you are calling
@@ -243,30 +224,7 @@ u64 GetIdleTicks()
 
 void ClearPendingEvents()
 {
-  while (s_first_event)
-  {
-    Event* e = s_first_event->next;
-    FreeEvent(s_first_event);
-    s_first_event = e;
-  }
-}
-
-static void AddEventToQueue(Event* ne)
-{
-  Event* prev = nullptr;
-  Event** pNext = &s_first_event;
-  for (;;)
-  {
-    Event*& next = *pNext;
-    if (!next || ne->time < next->time)
-    {
-      ne->next = next;
-      next = ne;
-      break;
-    }
-    prev = next;
-    pNext = &prev->next;
-  }
+  s_event_queue.clear();
 }
 
 void ScheduleEvent(s64 cycles_into_future, int event_type, u64 userdata, FromThread from)
@@ -285,16 +243,14 @@ void ScheduleEvent(s64 cycles_into_future, int event_type, u64 userdata, FromThr
 
   if (from_cpu_thread)
   {
-    Event* ne = GetNewEvent();
-    ne->time = GetTicks() + cycles_into_future;
-    ne->userdata = userdata;
-    ne->type = event_type;
+    s64 timeout = GetTicks() + cycles_into_future;
 
     // If this event needs to be scheduled before the next advance(), force one early
     if (!s_is_global_timer_sane)
       ForceExceptionCheck(cycles_into_future);
 
-    AddEventToQueue(ne);
+    s_event_queue.emplace_back(Event{timeout, userdata, event_type});
+    std::push_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
   }
   else
   {
@@ -306,41 +262,20 @@ void ScheduleEvent(s64 cycles_into_future, int event_type, u64 userdata, FromThr
     }
 
     std::lock_guard<std::mutex> lk(s_ts_write_lock);
-    Event ne;
-    ne.time = g_global_timer + cycles_into_future;
-    ne.type = event_type;
-    ne.userdata = userdata;
-    s_ts_queue.Push(ne);
+    s_ts_queue.Push(Event{g_global_timer + cycles_into_future, userdata, event_type});
   }
 }
 
 void RemoveEvent(int event_type)
 {
-  while (s_first_event && s_first_event->type == event_type)
-  {
-    Event* next = s_first_event->next;
-    FreeEvent(s_first_event);
-    s_first_event = next;
-  }
+  auto itr = std::remove_if(s_event_queue.begin(), s_event_queue.end(),
+                            [&](const Event& e) { return e.type == event_type; });
 
-  if (!s_first_event)
-    return;
-
-  Event* prev = s_first_event;
-  Event* ptr = prev->next;
-  while (ptr)
+  // Removing random items breaks the invariant so we have to re-establish it.
+  if (itr != s_event_queue.end())
   {
-    if (ptr->type == event_type)
-    {
-      prev->next = ptr->next;
-      FreeEvent(ptr);
-      ptr = prev->next;
-    }
-    else
-    {
-      prev = ptr;
-      ptr = ptr->next;
-    }
+    s_event_queue.erase(itr, s_event_queue.end());
+    std::make_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
   }
 }
 
@@ -363,14 +298,10 @@ void ForceExceptionCheck(s64 cycles)
 
 void MoveEvents()
 {
-  BaseEvent sevt;
-  while (s_ts_queue.Pop(sevt))
+  for (Event ev; s_ts_queue.Pop(ev);)
   {
-    Event* evt = GetNewEvent();
-    evt->time = sevt.time;
-    evt->userdata = sevt.userdata;
-    evt->type = sevt.type;
-    AddEventToQueue(evt);
+    s_event_queue.emplace_back(std::move(ev));
+    std::push_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
   }
 }
 
@@ -386,24 +317,23 @@ void Advance()
 
   s_is_global_timer_sane = true;
 
-  while (s_first_event && s_first_event->time <= g_global_timer)
+  while (!s_event_queue.empty() && s_event_queue.front().time <= g_global_timer)
   {
-    // LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
-    //             s_event_types[s_first_event->type].name ? s_event_types[s_first_event->type].name
-    //             : "?",
-    //             (u64)g_global_timer, (u64)s_first_event->time);
-    Event* evt = s_first_event;
-    s_first_event = s_first_event->next;
-    s_event_types[evt->type].callback(evt->userdata, g_global_timer - evt->time);
-    FreeEvent(evt);
+    Event evt = std::move(s_event_queue.front());
+    std::pop_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
+    s_event_queue.pop_back();
+    // NOTICE_LOG(POWERPC, "[Scheduler] %-20s (%lld, %lld)", evt.type->name->c_str(),
+    //            g_global_timer, evt.time);
+    s_event_types[evt.type].callback(evt.userdata, g_global_timer - evt.time);
   }
 
   s_is_global_timer_sane = false;
 
-  if (s_first_event)
+  // Still events left (scheduled in the future)
+  if (!s_event_queue.empty())
   {
-    g_slice_length =
-        static_cast<int>(std::min<s64>(s_first_event->time - g_global_timer, MAX_SLICE_LENGTH));
+    g_slice_length = static_cast<int>(
+        std::min<s64>(s_event_queue.front().time - g_global_timer, MAX_SLICE_LENGTH));
   }
 
   PowerPC::ppcState.downcount = CyclesToDowncount(g_slice_length);
@@ -417,12 +347,14 @@ void Advance()
 
 void LogPendingEvents()
 {
-  Event* ptr = s_first_event;
-  while (ptr)
+  auto clone = s_event_queue;
+  std::sort(clone.begin(), clone.end());
+  for (const Event& ev : clone)
   {
-    INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %d", g_global_timer,
-             ptr->time, ptr->type);
-    ptr = ptr->next;
+    INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %s (%d)",
+             g_global_timer, ev.time,
+             ev.type < s_event_types.size() ? s_event_types[ev.type].name.c_str() : "<INVALID>",
+             ev.type);
   }
 }
 
@@ -442,20 +374,24 @@ void Idle()
 
 std::string GetScheduledEventsSummary()
 {
-  Event* ptr = s_first_event;
   std::string text = "Scheduled events\n";
   text.reserve(1000);
-  while (ptr)
+
+  auto clone = s_event_queue;
+  std::sort(clone.begin(), clone.end());
+  for (const Event& ev : clone)
   {
-    unsigned int t = ptr->type;
+    unsigned int t = ev.type;
     if (t >= s_event_types.size())
+    {
       PanicAlertT("Invalid event type %i", t);
+      continue;
+    }
 
-    const std::string& name = s_event_types[ptr->type].name;
+    const std::string& name = s_event_types[ev.type].name;
 
-    text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", name.c_str(), ptr->time,
-                             ptr->userdata);
-    ptr = ptr->next;
+    text +=
+        StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", name.c_str(), ev.time, ev.userdata);
   }
   return text;
 }
