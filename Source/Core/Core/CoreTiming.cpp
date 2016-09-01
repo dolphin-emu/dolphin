@@ -4,10 +4,10 @@
 
 #include <algorithm>
 #include <cinttypes>
-#include <deque>
 #include <mutex>
 #include <queue>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -30,7 +30,7 @@ namespace CoreTiming
 struct EventType
 {
   TimedCallback callback;
-  std::string name;
+  const std::string* name;
 };
 
 struct Event
@@ -86,11 +86,9 @@ public:
   void DoState(PointerWrap& p);
 };
 
-// We use a deque here because deques have the useful property that you can push/pop from the
-// deque without breaking references/pointers to the items that were not directly affected by
-// the operation. This means we can give out pointers to elements of the deque and they will
-// remain stable as long as we don't erase or insert into the middle of the structure.
-static std::deque<EventType> s_event_types;
+// unordered_map stores each element separately as a linked list node so pointers to elements
+// remain stable regardless of rehashes/resizing.
+static std::unordered_map<std::string, EventType> s_event_types;
 
 // STATE_TO_SAVE
 static EventQueue s_event_queue;
@@ -140,11 +138,11 @@ EventType* RegisterEvent(const std::string& name, TimedCallback callback, Regist
 {
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
-  auto itr = std::find_if(s_event_types.begin(), s_event_types.end(),
-                          [&](const EventType& ev) { return ev.name == name; });
+  auto itr = s_event_types.find(name);
   if (itr != s_event_types.end())
   {
-    if (itr->callback != callback)
+    EventType& event_type = itr->second;
+    if (event_type.callback != callback)
     {
       // Replacing the callback with a different one unintentionally is likely going to break
       // everything. Most likely cause is 2 different subsystems accidentally using the same name.
@@ -155,25 +153,26 @@ EventType* RegisterEvent(const std::string& name, TimedCallback callback, Regist
 
       // Replacing a callback with a different one is always dangerous. The responsiblity is
       // entirely on the caller to not do something stupid.
-      RemoveAllEvents(&*itr);
-      itr->callback = callback;
+      RemoveAllEvents(&event_type);
+      event_type.callback = callback;
     }
     else if (mode != Registration::ExpectExisting)
     {
       WARN_LOG(POWERPC, "Unexpected attempt to re-register event type \"%s\".", name.c_str());
     }
-    return &*itr;
+    return &event_type;
   }
 
-  s_event_types.emplace_back(EventType{callback, name});
-  return &s_event_types.back();
+  auto info = s_event_types.emplace(name, EventType{callback, nullptr});
+  EventType* event_type = &info.first->second;
+  event_type->name = &info.first->first;
+  return event_type;
 }
 
 void UnregisterAllEvents()
 {
   _assert_msg_(POWERPC, s_event_queue.empty(), "Cannot unregister events with events pending");
   s_event_types.clear();
-  s_event_types.shrink_to_fit();
 }
 
 void Init()
@@ -210,16 +209,15 @@ void EventQueue::DoState(PointerWrap& p)
     // so, we savestate the event's type's name, and derive ev.type from that when loading.
     std::string name;
     if (pw.GetMode() != PointerWrap::MODE_READ)
-      name = ev.type->name;
+      name = *ev.type->name;
 
     pw.Do(name);
     if (pw.GetMode() == PointerWrap::MODE_READ)
     {
-      auto itr = std::find_if(s_event_types.begin(), s_event_types.end(),
-                              [&](const EventType& evt) { return evt.name == name; });
+      auto itr = s_event_types.find(name);
       if (itr != s_event_types.end())
       {
-        ev.type = &*itr;
+        ev.type = &itr->second;
       }
       else
       {
@@ -313,7 +311,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
     {
       ERROR_LOG(POWERPC, "Someone scheduled an off-thread \"%s\" event while netplay or "
                          "movie play/record was active.  This is likely to cause a desync.",
-                event_type->name.c_str());
+                event_type->name->c_str());
     }
 
     std::lock_guard<std::mutex> lk(s_ts_write_lock);
@@ -393,7 +391,7 @@ void LogPendingEvents()
   for (const Event& ev : s_event_queue.CloneOrdered())
   {
     INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %s", g_global_timer,
-             ev.time, ev.type->name.c_str());
+             ev.time, ev.type->name->c_str());
   }
 }
 
@@ -417,7 +415,7 @@ std::string GetScheduledEventsSummary()
   text.reserve(1000);
   for (const Event& ev : s_event_queue.CloneOrdered())
   {
-    text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", ev.type->name.c_str(), ev.time,
+    text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", ev.type->name->c_str(), ev.time,
                              ev.userdata);
   }
   return text;
