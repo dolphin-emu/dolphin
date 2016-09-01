@@ -48,7 +48,7 @@ static u8* s_fifo_aux_read_ptr;
 static bool s_use_deterministic_gpu_thread;
 
 static u64 s_last_sync_gpu_tick;
-static int s_event_sync_gpu;
+static CoreTiming::EventType* s_event_sync_gpu;
 
 // STATE_TO_SAVE
 static u8* s_video_buffer;

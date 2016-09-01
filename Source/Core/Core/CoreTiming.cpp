@@ -6,6 +6,7 @@
 #include <cinttypes>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -28,16 +29,14 @@ namespace CoreTiming
 struct EventType
 {
   TimedCallback callback;
-  std::string name;
+  const std::string* name;
 };
-
-static std::vector<EventType> s_event_types;
 
 struct Event
 {
   s64 time;
   u64 userdata;
-  int type;
+  EventType* type;
 };
 
 constexpr bool operator>(const Event& left, const Event& right)
@@ -48,6 +47,10 @@ constexpr bool operator<(const Event& left, const Event& right)
 {
   return left.time < right.time;
 }
+
+// unordered_map stores each element separately as a linked list node so pointers to elements
+// remain stable regardless of rehashes/resizing.
+static std::unordered_map<std::string, EventType> s_event_types;
 
 // STATE_TO_SAVE
 // The queue is a min-heap using std::make_heap/push_heap/pop_heap.
@@ -74,7 +77,7 @@ s64 g_global_timer;
 u64 g_fake_TB_start_value;
 u64 g_fake_TB_start_ticks;
 
-static int s_ev_lost;
+static EventType* s_ev_lost = nullptr;
 
 static void EmptyTimedCallback(u64 userdata, s64 cyclesLate)
 {
@@ -97,38 +100,25 @@ static int CyclesToDowncount(int cycles)
   return static_cast<int>(cycles * s_last_OC_factor);
 }
 
-int RegisterEvent(const std::string& name, TimedCallback callback)
+EventType* RegisterEvent(const std::string& name, TimedCallback callback)
 {
-  EventType type;
-  type.name = name;
-  type.callback = callback;
-
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
-  for (auto& event_type : s_event_types)
-  {
-    if (name == event_type.name)
-    {
-      WARN_LOG(
-          POWERPC,
-          "Discarded old event type \"%s\" because a new type with the same name was registered.",
-          name.c_str());
-      // we don't know if someone might be holding on to the type index,
-      // so we gut the old event type instead of actually removing it.
-      event_type.name = "_discarded_event";
-      event_type.callback = &EmptyTimedCallback;
-    }
-  }
+  _assert_msg_(POWERPC, s_event_types.find(name) == s_event_types.end(),
+               "CoreTiming Event \"%s\" is already registered. Events should only be registered "
+               "during Init to avoid breaking save states.",
+               name.c_str());
 
-  s_event_types.push_back(type);
-  return static_cast<int>(s_event_types.size() - 1);
+  auto info = s_event_types.emplace(name, EventType{callback, nullptr});
+  EventType* event_type = &info.first->second;
+  event_type->name = &info.first->first;
+  return event_type;
 }
 
 void UnregisterAllEvents()
 {
   _assert_msg_(POWERPC, s_event_queue.empty(), "Cannot unregister events with events pending");
   s_event_types.clear();
-  s_event_types.shrink_to_fit();
 }
 
 void Init()
@@ -179,16 +169,15 @@ void DoState(PointerWrap& p)
     // so, we savestate the event's type's name, and derive ev.type from that when loading.
     std::string name;
     if (pw.GetMode() != PointerWrap::MODE_READ)
-      name = s_event_types[ev.type].name;
+      name = *ev.type->name;
 
     pw.Do(name);
     if (pw.GetMode() == PointerWrap::MODE_READ)
     {
-      auto itr = std::find_if(s_event_types.begin(), s_event_types.end(),
-                              [&](const EventType& evt) { return evt.name == name; });
+      auto itr = s_event_types.find(name);
       if (itr != s_event_types.end())
       {
-        ev.type = static_cast<int>(itr - s_event_types.begin());
+        ev.type = &itr->second;
       }
       else
       {
@@ -231,8 +220,10 @@ void ClearPendingEvents()
   s_event_queue.clear();
 }
 
-void ScheduleEvent(s64 cycles_into_future, int event_type, u64 userdata, FromThread from)
+void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, FromThread from)
 {
+  _assert_msg_(POWERPC, event_type, "Event type is nullptr, will crash now.");
+
   bool from_cpu_thread;
   if (from == FromThread::ANY)
   {
@@ -262,7 +253,7 @@ void ScheduleEvent(s64 cycles_into_future, int event_type, u64 userdata, FromThr
     {
       ERROR_LOG(POWERPC, "Someone scheduled an off-thread \"%s\" event while netplay or "
                          "movie play/record was active.  This is likely to cause a desync.",
-                s_event_types[event_type].name.c_str());
+                event_type->name->c_str());
     }
 
     std::lock_guard<std::mutex> lk(s_ts_write_lock);
@@ -270,7 +261,7 @@ void ScheduleEvent(s64 cycles_into_future, int event_type, u64 userdata, FromThr
   }
 }
 
-void RemoveEvent(int event_type)
+void RemoveEvent(EventType* event_type)
 {
   auto itr = std::remove_if(s_event_queue.begin(), s_event_queue.end(),
                             [&](const Event& e) { return e.type == event_type; });
@@ -283,7 +274,7 @@ void RemoveEvent(int event_type)
   }
 }
 
-void RemoveAllEvents(int event_type)
+void RemoveAllEvents(EventType* event_type)
 {
   MoveEvents();
   RemoveEvent(event_type);
@@ -328,7 +319,7 @@ void Advance()
     s_event_queue.pop_back();
     // NOTICE_LOG(POWERPC, "[Scheduler] %-20s (%lld, %lld)", evt.type->name->c_str(),
     //            g_global_timer, evt.time);
-    s_event_types[evt.type].callback(evt.userdata, g_global_timer - evt.time);
+    evt.type->callback(evt.userdata, g_global_timer - evt.time);
   }
 
   s_is_global_timer_sane = false;
@@ -355,10 +346,8 @@ void LogPendingEvents()
   std::sort(clone.begin(), clone.end());
   for (const Event& ev : clone)
   {
-    INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %s (%d)",
-             g_global_timer, ev.time,
-             ev.type < s_event_types.size() ? s_event_types[ev.type].name.c_str() : "<INVALID>",
-             ev.type);
+    INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %s", g_global_timer,
+             ev.time, ev.type->name->c_str());
   }
 }
 
@@ -385,17 +374,8 @@ std::string GetScheduledEventsSummary()
   std::sort(clone.begin(), clone.end());
   for (const Event& ev : clone)
   {
-    unsigned int t = ev.type;
-    if (t >= s_event_types.size())
-    {
-      PanicAlertT("Invalid event type %i", t);
-      continue;
-    }
-
-    const std::string& name = s_event_types[ev.type].name;
-
-    text +=
-        StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", name.c_str(), ev.time, ev.userdata);
+    text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", ev.type->name->c_str(), ev.time,
+                             ev.userdata);
   }
   return text;
 }

@@ -31,10 +31,10 @@ static u32 m_FlipperRev;
 static u32 m_Unknown;
 
 // ID and callback for scheduling reset button presses/releases
-static int toggleResetButton;
+static CoreTiming::EventType* toggleResetButton;
 static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate);
 
-static int iosNotifyResetButton;
+static CoreTiming::EventType* iosNotifyResetButton;
 static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate);
 
 // Let the PPC know that an external exception is set/cleared

@@ -36,7 +36,7 @@ BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
 
-static int s_invalidate_cache_thread_safe;
+static CoreTiming::EventType* s_invalidate_cache_thread_safe;
 static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
 {
   ppcState.iCache.Invalidate(static_cast<u32>(userdata));
