@@ -420,8 +420,11 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
 
     // Since we're adjusting z for the depth range before the perspective divide, we have to do our
     // own clipping. We want to clip so that -w <= z <= 0, which matches the console -1..0 range.
-    out.Write("o.clipDist0 = o.pos.z + o.pos.w;\n");  // Near: z < -w
-    out.Write("o.clipDist1 = -o.pos.z;\n");           // Far: z > 0
+    // We adjust our depth value for clipping purposes to match the perspective projection in the
+    // software backend, which is a hack to fix Sonic Adventure and Unleashed games.
+    out.Write("float clipDepth = o.pos.z * (1.0 - 1e-7);\n");
+    out.Write("o.clipDist0 = clipDepth + o.pos.w;\n");  // Near: z < -w
+    out.Write("o.clipDist1 = -clipDepth;\n");           // Far: z > 0
 
     // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
     // so we can map the console -1..0 range to the 0..1 range used in the depth buffer.
