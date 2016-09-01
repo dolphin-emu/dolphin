@@ -50,10 +50,12 @@ enum class Registration
   Replace          // Callback may already exist with a different callback function
 };
 
+struct EventType;
+
 // Returns the event_type identifier. if name is not unique, an existing event_type will be
 // discarded.
-int RegisterEvent(const std::string& name, TimedCallback callback,
-                  Registration mode = Registration::Normal);
+EventType* RegisterEvent(const std::string& name, TimedCallback callback,
+                         Registration mode = Registration::Normal);
 void UnregisterAllEvents();
 
 enum class FromThread
@@ -66,12 +68,12 @@ enum class FromThread
 };
 
 // userdata MAY NOT CONTAIN POINTERS. userdata might get written and reloaded from savestates.
-void ScheduleEvent(s64 cycles_into_future, int event_type, u64 userdata = 0,
+void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata = 0,
                    FromThread from = FromThread::CPU);
 
 // We only permit one event of each type in the queue at a time.
-void RemoveEvent(int event_type);
-void RemoveAllEvents(int event_type);
+void RemoveEvent(EventType* event_type);
+void RemoveAllEvents(EventType* event_type);
 void Advance();
 void MoveEvents();
 

@@ -188,8 +188,8 @@ static void UpdateInterrupts();
 static void Do_ARAM_DMA();
 static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate = 0);
 
-static int et_GenerateDSPInterrupt;
-static int et_CompleteARAM;
+static CoreTiming::EventType* et_GenerateDSPInterrupt;
+static CoreTiming::EventType* et_CompleteARAM;
 
 static void CompleteARAM(u64 userdata, s64 cyclesLate)
 {

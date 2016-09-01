@@ -21,7 +21,7 @@
 
 namespace CommandProcessor
 {
-static int et_UpdateInterrupts;
+static CoreTiming::EventType* et_UpdateInterrupts;
 
 // TODO(ector): Warn on bbox read/write
 
