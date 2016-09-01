@@ -833,7 +833,7 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // therefore the width and height are (scissorBR + 1) - scissorTL
 void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-  TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
+  TargetRectangle trc = ConvertEFBRectangle(rc);
   glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
 }
 
@@ -952,13 +952,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     {
       if (s_MSAASamples > 1)
       {
-        g_renderer->ResetAPIState();
+        ResetAPIState();
 
         // Resolve our rectangle.
         FramebufferManager::GetEFBDepthTexture(efbPixelRc);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 
-        g_renderer->RestoreAPIState();
+        RestoreAPIState();
       }
 
       std::unique_ptr<float[]> depthMap(new float[targetPixelRcWidth * targetPixelRcHeight]);
@@ -991,13 +991,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     {
       if (s_MSAASamples > 1)
       {
-        g_renderer->ResetAPIState();
+        ResetAPIState();
 
         // Resolve our rectangle.
         FramebufferManager::GetEFBColorTexture(efbPixelRc);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 
-        g_renderer->RestoreAPIState();
+        RestoreAPIState();
       }
 
       std::unique_ptr<u32[]> colorMap(new u32[targetPixelRcWidth * targetPixelRcHeight]);
