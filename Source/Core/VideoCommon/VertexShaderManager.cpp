@@ -398,7 +398,7 @@ void VertexShaderManager::SetConstants()
       // where the console also uses reversed depth with the same accuracy. We need
       // to make sure the depth range is positive here and then reverse the depth in
       // the backend viewport.
-      constants.pixelcentercorrection[2] = abs(xfmem.viewport.zRange) / 16777215.0f;
+      constants.pixelcentercorrection[2] = fabs(xfmem.viewport.zRange) / 16777215.0f;
       if (xfmem.viewport.zRange < 0.0f)
         constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
       else
