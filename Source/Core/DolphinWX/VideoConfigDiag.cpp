@@ -455,7 +455,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
         szr_other->Add(CreateCheckBox(page_general, _("Log Render Time to File"),
                                       wxGetTranslation(log_render_time_to_file_desc),
                                       vconfig.bLogRenderTimeToFile));
-        szr_other->Add(CreateCheckBox(page_general, _("Auto adjust Window Size"),
+        szr_other->Add(CreateCheckBox(page_general, _("Auto Adjust Window Size"),
                                       wxGetTranslation(auto_window_size_desc),
                                       SConfig::GetInstance().bRenderWindowAutoSize));
         szr_other->Add(CreateCheckBox(page_general, _("Show NetPlay Messages"),
@@ -785,7 +785,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"),
                                       wxGetTranslation(free_look_desc), vconfig.bFreeLook));
 #if defined(HAVE_LIBAV) || defined(_WIN32)
-      szr_utility->Add(CreateCheckBox(page_advanced, _("Frame Dumps use FFV1"),
+      szr_utility->Add(CreateCheckBox(page_advanced, _("Frame Dumps Use FFV1"),
                                       wxGetTranslation(use_ffv1_desc), vconfig.bUseFFV1));
 #endif
 
