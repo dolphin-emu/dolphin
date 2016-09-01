@@ -244,9 +244,6 @@ static int s_dtk = 0;
 static u64 s_last_read_offset;
 static u64 s_last_read_time;
 
-// GC-AM only
-static unsigned char s_media_buffer[0x40];
-
 static int s_eject_disc;
 static int s_insert_disc;
 
