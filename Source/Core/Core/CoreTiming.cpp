@@ -149,6 +149,11 @@ void Init()
   g_slice_length = MAX_SLICE_LENGTH;
   g_global_timer = 0;
   s_idled_cycles = 0;
+
+  // The time between CoreTiming being intialized and the first call to Advance() is considered
+  // the slice boundary between slice -1 and slice 0. Dispatcher loops must call Advance() before
+  // executing the first PPC cycle of each slice to prepare the slice length and downcount for
+  // that slice.
   s_is_global_timer_sane = true;
 
   s_ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
