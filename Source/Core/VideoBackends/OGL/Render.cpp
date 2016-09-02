@@ -1193,8 +1193,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   // Update rect for clearing the picture
   glEnable(GL_SCISSOR_TEST);
 
-  TargetRectangle const targetRc = ConvertEFBRectangle(rc);
-  glScissor(targetRc.left, targetRc.bottom, targetRc.GetWidth(), targetRc.GetHeight());
+  TargetRectangle const sourceRc = ConvertEFBRectangle(rc);
+  glScissor(sourceRc.left, sourceRc.bottom, sourceRc.GetWidth(), sourceRc.GetHeight());
 
   // glColorMask/glDepthMask/glScissor affect glClear (glViewport does not)
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1454,25 +1454,28 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       OSDInternalH = xfbSource->sourceRc.GetHeight();
 
       BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
     }
   }
   else
   {
-    TargetRectangle targetRc = ConvertEFBRectangle(rc);
+    TargetRectangle sourceRc = ConvertEFBRectangle(rc);
 
     // for msaa mode, we must resolve the efb content to non-msaa
     GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
-    BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
-  }
+    BlitScreen(sourceRc, flipped_trc, tex, s_target_width, s_target_height);
 
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, tex);
+  }
 
   // Save screenshot
   if (s_bScreenshot)
   {
     std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 
-    if (SaveScreenshot(s_sScreenshotName, flipped_trc))
+    TargetRectangle sourceRc = g_ActiveConfig.bUseXFB ? flipped_trc : ConvertEFBRectangle(rc);
+    if (SaveScreenshot(s_sScreenshotName, sourceRc))
       OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
 
     // Reset settings
@@ -1487,16 +1490,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 
-    if (frame_data.empty() || w != flipped_trc.GetWidth() || h != flipped_trc.GetHeight())
+    TargetRectangle sourceRc = g_ActiveConfig.bUseXFB ? flipped_trc : ConvertEFBRectangle(rc);
+    if (frame_data.empty() || w != sourceRc.GetWidth() || h != sourceRc.GetHeight())
     {
-      w = flipped_trc.GetWidth();
-      h = flipped_trc.GetHeight();
+      w = sourceRc.GetWidth();
+      h = sourceRc.GetHeight();
       frame_data.resize(4 * w * h);
     }
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_RGBA, GL_UNSIGNED_BYTE,
-                 &frame_data[0]);
+    glReadPixels(sourceRc.left, sourceRc.bottom, w, h, GL_RGBA, GL_UNSIGNED_BYTE, &frame_data[0]);
     if (w > 0 && h > 0)
     {
       if (!bLastFrameDumped)
