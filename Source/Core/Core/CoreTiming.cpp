@@ -282,11 +282,12 @@ void RemoveAllEvents(EventType* event_type)
 
 void ForceExceptionCheck(s64 cycles)
 {
+  cycles = std::max<s64>(0, cycles);
   if (DowncountToCycles(PowerPC::ppcState.downcount) > cycles)
   {
     // downcount is always (much) smaller than MAX_INT so we can safely cast cycles to an int here.
     // Account for cycles already executed by adjusting the g_slice_length
-    g_slice_length -= (DowncountToCycles(PowerPC::ppcState.downcount) - static_cast<int>(cycles));
+    g_slice_length -= DowncountToCycles(PowerPC::ppcState.downcount) - static_cast<int>(cycles);
     PowerPC::ppcState.downcount = CyclesToDowncount(static_cast<int>(cycles));
   }
 }
