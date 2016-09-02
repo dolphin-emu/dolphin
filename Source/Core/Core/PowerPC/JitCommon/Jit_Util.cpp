@@ -212,7 +212,7 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 }
 
 FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
-                                             BitSet32 registers_in_use, u32 mem_mask)
+                                             BitSet32 registers_in_use)
 {
   registers_in_use[reg_addr] = true;
   if (reg_value.IsSimpleReg())
@@ -227,29 +227,19 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   else
     scratch = reg_addr;
 
-  // On Gamecube games with MMU, do a little bit of extra work to make sure we're not accessing the
-  // 0x81800000 to 0x83FFFFFF range.
-  // It's okay to take a shortcut and not check this range on non-MMU games, since we're already
-  // assuming they'll never do an invalid memory access.
-  // The slightly more complex check needed for Wii games using the space just above MEM1 isn't
-  // implemented here yet, since there are no known working Wii MMU games to test it with.
-  if (jit->jo.memcheck && !SConfig::GetInstance().bWii)
-  {
-    if (scratch == reg_addr)
-      PUSH(scratch);
-    else
-      MOV(32, R(scratch), R(reg_addr));
-    AND(32, R(scratch), Imm32(0x3FFFFFFF));
-    CMP(32, R(scratch), Imm32(0x01800000));
-    if (scratch == reg_addr)
-      POP(scratch);
-    return J_CC(CC_AE, farcode.Enabled());
-  }
+  if (scratch == reg_addr)
+    PUSH(scratch);
   else
-  {
-    TEST(32, R(reg_addr), Imm32(mem_mask));
-    return J_CC(CC_NZ, farcode.Enabled());
-  }
+    MOV(32, R(scratch), R(reg_addr));
+
+  // Perform lookup to see if we can use fast path.
+  SHR(32, R(scratch), Imm8(PowerPC::BAT_INDEX_SHIFT));
+  TEST(32, MScaled(scratch, SCALE_4, (u32)(u64)PowerPC::dbat_table), Imm32(2));
+
+  if (scratch == reg_addr)
+    POP(scratch);
+
+  return J_CC(CC_Z, farcode.Enabled());
 }
 
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
@@ -305,14 +295,11 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   }
 
   FixupBranch exit;
-  if (!jit->jo.alwaysUseMemFuncs && !slowmem)
+  bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR;
+  bool fast_check_address = !jit->jo.alwaysUseMemFuncs && !slowmem && dr_set;
+  if (fast_check_address)
   {
-    u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-    // The following masks the region used by the GC/Wii virtual memory lib
-    mem_mask |= Memory::ADDR_MASK_MEM1;
-
-    FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
+    FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
     UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
     if (farcode.Enabled())
       SwitchToFarCode();
@@ -350,7 +337,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
   }
 
-  if (!jit->jo.alwaysUseMemFuncs && !slowmem)
+  if (fast_check_address)
   {
     if (farcode.Enabled())
     {
@@ -575,15 +562,12 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     }
   }
 
-  FixupBranch slow, exit;
-  if (!slowmem)
+  FixupBranch exit;
+  bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR;
+  bool fast_check_address = !jit->jo.alwaysUseMemFuncs && !slowmem && dr_set;
+  if (fast_check_address)
   {
-    u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-    // The following masks the region used by the GC/Wii virtual memory lib
-    mem_mask |= Memory::ADDR_MASK_MEM1;
-
-    slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse, mem_mask);
+    FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
     if (farcode.Enabled())
       SwitchToFarCode();
@@ -632,7 +616,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
   MemoryExceptionCheck();
 
-  if (!slowmem)
+  if (fast_check_address)
   {
     if (farcode.Enabled())
     {
