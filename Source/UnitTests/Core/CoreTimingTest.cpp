@@ -229,6 +229,13 @@ TEST(CoreTiming, ScheduleIntoPast)
   CoreTiming::g_global_timer += 1000;
   Core::DeclareAsCPUThread();
   AdvanceAndCheck(1, MAX_SLICE_LENGTH, MAX_SLICE_LENGTH + 1000);
+
+  // Schedule directly into the past from the CPU.
+  // This shouldn't happen in practice, but it's best if we don't mess up the slice length and
+  // downcount if we do.
+  CoreTiming::ScheduleEvent(-1000, s_cb_next, CB_IDS[0]);
+  EXPECT_EQ(0, PowerPC::ppcState.downcount);
+  AdvanceAndCheck(0, MAX_SLICE_LENGTH, 1000);
 }
 
 TEST(CoreTiming, Overclocking)
