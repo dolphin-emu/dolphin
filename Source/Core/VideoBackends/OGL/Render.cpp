@@ -727,9 +727,9 @@ Renderer::Renderer()
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-  glClearDepthf(1.0f);
+  glClearDepthf(0.0f);
   glEnable(GL_DEPTH_TEST);
-  glDepthFunc(GL_LEQUAL);
+  glDepthFunc(GL_GEQUAL);
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
     glEnable(GL_CLIP_DISTANCE0);
@@ -744,7 +744,6 @@ Renderer::Renderer()
 
   glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
   glBlendColor(0, 0, 0, 0.5f);
-  glClearDepthf(1.0f);
 
   if (g_ActiveConfig.backend_info.bSupportsPrimitiveRestart)
   {
@@ -887,8 +886,8 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
       if (type == PEEK_Z)
       {
         float* ptr = (float*)data;
-        value = MathUtil::Clamp<u32>((u32)(ptr[yData * targetPixelRcWidth + xData] * 16777216.0f),
-                                     0, 0xFFFFFF);
+        value = (u32)((1.0f - ptr[yData * targetPixelRcWidth + xData]) * 16777216.0f);
+        value = MathUtil::Clamp<u32>(value, 0, 0xFFFFFF);
       }
       else
       {
@@ -1161,14 +1160,16 @@ void Renderer::SetViewport()
   // themselves to the maximum value as done above.
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
+    // Invert the depth range parameters to handle inversed depth.
     if (xfmem.viewport.zRange < 0.0f)
-      glDepthRangef(0.0f, GX_MAX_DEPTH);
+      glDepthRangef(1.0f, 1.0f - GX_MAX_DEPTH);
     else
-      glDepthRangef(GX_MAX_DEPTH, 0.0f);
+      glDepthRangef(1.0f - GX_MAX_DEPTH, 1.0f);
   }
   else
   {
-    glDepthRangef(GLFar, GLNear);
+    // Invert the depth range parameters to handle inversed depth.
+    glDepthRangef(1.0f - GLNear, 1.0f - GLFar);
   }
 }
 
@@ -1188,7 +1189,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   // depth
   glDepthMask(zEnable ? GL_TRUE : GL_FALSE);
 
-  glClearDepthf(float(z & 0xFFFFFF) / 16777216.0f);
+  glClearDepthf(1.0f - float(z & 0xFFFFFF) / 16777216.0f);
 
   // Update rect for clearing the picture
   glEnable(GL_SCISSOR_TEST);
@@ -1725,8 +1726,8 @@ void Renderer::SetGenerationMode()
 
 void Renderer::SetDepthMode()
 {
-  const GLenum glCmpFuncs[8] = {GL_NEVER,   GL_LESS,     GL_EQUAL,  GL_LEQUAL,
-                                GL_GREATER, GL_NOTEQUAL, GL_GEQUAL, GL_ALWAYS};
+  const GLenum glCmpFuncs[8] = {GL_NEVER, GL_GREATER,  GL_EQUAL,  GL_GEQUAL,
+                                GL_LESS,  GL_NOTEQUAL, GL_LEQUAL, GL_ALWAYS};
 
   if (bpmem.zmode.testenable)
   {

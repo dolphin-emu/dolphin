@@ -155,11 +155,11 @@ static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, 
   {
     WRITE(p, "  %s = Tex0.Sample(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n",
           dest, xoffset, colorComp);
-
-    // Handle D3D depth inversion.
-    if (depth)
-      WRITE(p, "  %s = 1.0 - %s;\n", dest, dest);
   }
+
+  // Handle depth inversion.
+  if (depth)
+    WRITE(p, "  %s = 1.0 - %s;\n", dest, dest);
 }
 
 static void WriteColorToIntensity(char*& p, const char* src, const char* dest)
