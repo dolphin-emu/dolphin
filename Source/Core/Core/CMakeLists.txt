@@ -187,6 +187,8 @@ if(_M_X86)
 			PowerPC/Jit64IL/JitIL.cpp
 			PowerPC/Jit64IL/JitIL_Tables.cpp
 			PowerPC/Jit64/Jit64_Tables.cpp
+			PowerPC/Jit64/Jit64_Util.cpp
+			PowerPC/Jit64/Jit64_RegCache.cpp
 			PowerPC/Jit64/JitAsm.cpp
 			PowerPC/Jit64/Jit_Branch.cpp
 			PowerPC/Jit64/Jit.cpp
@@ -196,7 +198,6 @@ if(_M_X86)
 			PowerPC/Jit64/Jit_LoadStoreFloating.cpp
 			PowerPC/Jit64/Jit_LoadStorePaired.cpp
 			PowerPC/Jit64/Jit_Paired.cpp
-			PowerPC/Jit64/JitRegCache.cpp
 			PowerPC/Jit64/Jit_SystemRegisters.cpp
 			PowerPC/Jit64Common/Jit64AsmCommon.cpp
 			PowerPC/JitCommon/JitBackpatch.cpp

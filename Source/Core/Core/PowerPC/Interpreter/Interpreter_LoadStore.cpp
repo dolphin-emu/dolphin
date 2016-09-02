@@ -323,7 +323,7 @@ void Interpreter::dcbf(UGeckoInstruction _inst)
   // the lack of precise L1 icache emulation in the JIT. (Portable software
   // should use icbi consistently, but games aren't portable.)
   u32 address = Helper_Get_EA_X(_inst);
-  JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+  JitInterface::InvalidateICacheLine(address & ~0x1f);
 }
 
 void Interpreter::dcbi(UGeckoInstruction _inst)
@@ -335,7 +335,7 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
   // the lack of precise L1 icache emulation in the JIT. (Portable software
   // should use icbi consistently, but games aren't portable.)
   u32 address = Helper_Get_EA_X(_inst);
-  JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+  JitInterface::InvalidateICacheLine(address & ~0x1f);
 
   // The following detects a situation where the game is writing to the dcache at the address being
   // DMA'd. As we do not
@@ -355,7 +355,7 @@ void Interpreter::dcbst(UGeckoInstruction _inst)
   // the lack of precise L1 icache emulation in the JIT. (Portable software
   // should use icbi consistently, but games aren't portable.)
   u32 address = Helper_Get_EA_X(_inst);
-  JitInterface::InvalidateICache(address & ~0x1f, 32, false);
+  JitInterface::InvalidateICacheLine(address & ~0x1f);
 }
 
 void Interpreter::dcbt(UGeckoInstruction _inst)

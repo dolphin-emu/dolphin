@@ -21,11 +21,21 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64/Jit64_RegCache.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
+
+// Selective import from Jit64Reg
+using Jit64Reg::GPRNative;
+using Jit64Reg::GPRRegister;
+using Jit64Reg::FPUNative;
+using Jit64Reg::FPURegister;
+using Jit64Reg::BindMode;
+
+// #undef INSTRUCTION_START
+// #define INSTRUCTION_START EMIT_MSG(INSTRUCTION_START);
 
 class Jit64 : public Jitx86Base
 {
@@ -33,8 +43,7 @@ private:
   void AllocStack();
   void FreeStack();
 
-  GPRRegCache gpr;
-  FPURegCache fpr;
+  Jit64Reg::Registers regs{this, this};
 
   // The default code buffer. We keep it around to not have to alloc/dealloc a
   // large chunk of memory for each recompiled block.
@@ -81,6 +90,9 @@ public:
 
   // Utilities for use by opcodes
 
+  void WriteInvalidInstruction();
+  void UnexpectedInstructionForm();
+
   void WriteExit(u32 destination, bool bl = false, u32 after = 0);
   void JustWriteExit(u32 destination, bool bl, u32 after);
   void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);
@@ -96,10 +108,11 @@ public:
   void FinalizeCarryOverflow(bool oe, bool inv = false);
   void FinalizeCarry(Gen::CCFlags cond);
   void FinalizeCarry(bool ca);
+  void Compare(int crf, bool merge_branch, GPRNative& input, GPRRegister& comparand);
   void ComputeRC(const Gen::OpArg& arg, bool needs_test = true, bool needs_sext = true);
 
   // Use to extract bytes from a register using the regcache. offset is in bytes.
-  Gen::OpArg ExtractFromReg(int reg, int offset);
+  Gen::OpArg ExtractFromReg(GPRRegister& reg, int offset);
   void AndWithMask(Gen::X64Reg reg, u32 mask);
   bool CheckMergedBranch(int crf);
   void DoMergedBranch();
@@ -109,7 +122,7 @@ public:
   // Reads a given bit of a given CR register part.
   void GetCRFieldBit(int field, int bit, Gen::X64Reg out, bool negate = false);
   // Clobbers RDX.
-  void SetCRFieldBit(int field, int bit, Gen::X64Reg in);
+  void SetCRFieldBit(int field, int bit, GPRNative& in);
   void ClearCRFieldBit(int field, int bit);
   void SetCRFieldBit(int field, int bit);
 
@@ -118,21 +131,30 @@ public:
   Gen::FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set = true);
   void SetFPRFIfNeeded(Gen::X64Reg xmm);
 
-  void HandleNaNs(UGeckoInstruction inst, Gen::X64Reg xmm_out, Gen::X64Reg xmm_in,
-                  Gen::X64Reg clobber = Gen::XMM0);
+  void HandleNaNs(bool single, std::vector<FPURegister> inputs, FPUNative out, Gen::X64Reg xmm);
 
-  void MultiplyImmediate(u32 imm, int a, int d, bool overflow);
+  void MultiplyImmediate(u32 imm, GPRRegister& ra, GPRNative& xd, bool overflow);
 
   typedef u32 (*Operation)(u32 a, u32 b);
   void regimmop(int d, int a, bool binary, u32 value, Operation doop,
                 void (Gen::XEmitter::*op)(int, const Gen::OpArg&, const Gen::OpArg&),
                 bool Rc = false, bool carry = false);
-  Gen::X64Reg fp_tri_op(int d, int a, int b, bool reversible, bool single,
-                        void (Gen::XEmitter::*avxOp)(Gen::X64Reg, Gen::X64Reg, const Gen::OpArg&),
-                        void (Gen::XEmitter::*sseOp)(Gen::X64Reg, const Gen::OpArg&), bool packed,
-                        bool preserve_inputs, bool roundRHS = false);
-  void FloatCompare(UGeckoInstruction inst, bool upper = false);
-  void UpdateMXCSR();
+  void UpdateMXCSR(Gen::X64Reg fpscr);
+
+  void SafeLoad(GPRNative& reg_value, GPRRegister& reg_addr, GPRRegister& offset, int accessSize,
+                bool signExtend, bool swap, bool update);
+  bool UnsafeReadFromConstAddress(int accessSize, GPRNative& value, u32 address, bool signExtend,
+                                  bool swap);
+  void UnsafeReadFromConstRamAddress(int accessSize, GPRNative& value, u32 address, bool signExtend,
+                                     bool swap);
+  void UnsafeReadFromMemory(int accessSize, GPRNative& value, Gen::OpArg target, bool signExtend,
+                            bool swap);
+  void SafeWrite(GPRRegister& reg_value, GPRRegister& reg_addr, GPRRegister& offset, int accessSize,
+                 bool swap, bool update);
+  bool UnsafeWriteToConstAddress(int accessSize, GPRRegister& value, u32 address, bool swap);
+  void UnsafeWriteToMemory(int accessSize, GPRRegister& value, Gen::OpArg target, bool swap);
+  void UnsafeWriteGatherPipe(int accessSize, GPRRegister& value, bool swap);
+  void UnsafeWriteToConstRamAddress(int accessSize, GPRRegister& value, u32 address, bool swap);
 
   // OPCODES
   using Instruction = void (Jit64::*)(UGeckoInstruction instCode);
@@ -194,7 +216,6 @@ public:
   void ps_rsqrte(UGeckoInstruction inst);
   void ps_sum(UGeckoInstruction inst);
   void ps_muls(UGeckoInstruction inst);
-  void ps_cmpXX(UGeckoInstruction inst);
 
   void fp_arith(UGeckoInstruction inst);
 

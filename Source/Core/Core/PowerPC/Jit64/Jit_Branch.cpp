@@ -8,7 +8,6 @@
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -30,8 +29,7 @@ void Jit64::sc(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
-  gpr.Flush();
-  fpr.Flush();
+  regs.Flush();
   MOV(32, PPCSTATE(pc), Imm32(js.compilerPC + 4));
   LOCK();
   OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_SYSCALL));
@@ -43,18 +41,18 @@ void Jit64::rfi(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
-  gpr.Flush();
-  fpr.Flush();
+  regs.Flush();
   // See Interpreter rfi for details
   const u32 mask = 0x87C0FFFF;
   const u32 clearMSR13 = 0xFFFBFFFF;  // Mask used to clear the bit MSR[13]
   // MSR = ((MSR & ~mask) | (SRR1 & mask)) & clearMSR13;
   AND(32, PPCSTATE(msr), Imm32((~mask) & clearMSR13));
-  MOV(32, R(RSCRATCH), PPCSTATE_SRR1);
-  AND(32, R(RSCRATCH), Imm32(mask & clearMSR13));
-  OR(32, PPCSTATE(msr), R(RSCRATCH));
+  auto scratch = regs.gpr.Borrow();
+  MOV(32, scratch, PPCSTATE_SRR1);
+  AND(32, scratch, Imm32(mask & clearMSR13));
+  OR(32, PPCSTATE(msr), scratch);
   // NPC = SRR0;
-  MOV(32, R(RSCRATCH), PPCSTATE_SRR0);
+  MOV(32, scratch, PPCSTATE_SRR0);
   WriteRfiExitDestInRSCRATCH();
 }
 
@@ -76,8 +74,7 @@ void Jit64::bx(UGeckoInstruction inst)
     return;
   }
 
-  gpr.Flush();
-  fpr.Flush();
+  regs.Flush();
 
   u32 destination;
   if (inst.AA)
@@ -109,6 +106,8 @@ void Jit64::bcx(UGeckoInstruction inst)
 
   // USES_CR
 
+  Jit64Reg::Registers branch = regs.Branch();
+
   FixupBranch pCTRDontBranch;
   if ((inst.BO & BO_DONT_DECREMENT_FLAG) == 0)  // Decrement and test CTR
   {
@@ -135,8 +134,7 @@ void Jit64::bcx(UGeckoInstruction inst)
   else
     destination = js.compilerPC + SignExt16(inst.BD << 2);
 
-  gpr.Flush(FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FLUSH_MAINTAIN_STATE);
+  branch.Flush();
   WriteExit(destination, inst.LK, js.compilerPC + 4);
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -146,8 +144,7 @@ void Jit64::bcx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush();
-    fpr.Flush();
+    regs.Flush();
     WriteExit(js.compilerPC + 4);
   }
 }
@@ -166,9 +163,7 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     // BO_2 == 1z1zz -> b always
 
     // NPC = CTR & 0xfffffffc;
-    gpr.Flush();
-    fpr.Flush();
-
+    regs.Flush();
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
     if (inst.LK_3)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
@@ -184,22 +179,21 @@ void Jit64::bcctrx(UGeckoInstruction inst)
 
     FixupBranch b =
         JumpIfCRFieldBit(inst.BI >> 2, 3 - (inst.BI & 3), !(inst.BO_2 & BO_BRANCH_IF_TRUE));
+    Jit64Reg::Registers branch = regs.Branch();
     MOV(32, R(RSCRATCH), PPCSTATE_CTR);
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     // MOV(32, PPCSTATE(pc), R(RSCRATCH)); => Already done in WriteExitDestInRSCRATCH()
     if (inst.LK_3)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
 
-    gpr.Flush(FLUSH_MAINTAIN_STATE);
-    fpr.Flush(FLUSH_MAINTAIN_STATE);
+    branch.Flush();
     WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
     // Would really like to continue the block here, but it ends. TODO.
     SetJumpTarget(b);
 
     if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
     {
-      gpr.Flush();
-      fpr.Flush();
+      regs.Flush();
       WriteExit(js.compilerPC + 4);
     }
   }
@@ -220,6 +214,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
       pCTRDontBranch = J_CC(CC_Z, true);
   }
 
+  Jit64Reg::Registers branch = regs.Branch();
   FixupBranch pConditionDontBranch;
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)  // Test a CR bit
   {
@@ -244,8 +239,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if (inst.LK)
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-  gpr.Flush(FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FLUSH_MAINTAIN_STATE);
+  branch.Flush();
   WriteBLRExit();
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -255,8 +249,7 @@ void Jit64::bclrx(UGeckoInstruction inst)
 
   if (!analyzer.HasOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE))
   {
-    gpr.Flush();
-    fpr.Flush();
+    regs.Flush();
     WriteExit(js.compilerPC + 4);
   }
 }

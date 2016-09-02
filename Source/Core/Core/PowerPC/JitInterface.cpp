@@ -239,10 +239,22 @@ void ClearSafe()
     jit->GetBlockCache()->Clear();
 }
 
+void InvalidInstruction()
+{
+  if (jit)
+    jit->HandleInvalidInstruction();
+}
+
 void InvalidateICache(u32 address, u32 size, bool forced)
 {
   if (jit)
     jit->GetBlockCache()->InvalidateICache(address, size, forced);
+}
+
+void InvalidateICacheLine(u32 address)
+{
+  if (jit)
+    jit->GetBlockCache()->InvalidateICache(address, 32, false);
 }
 
 void CompileExceptionCheck(ExceptionType type)
