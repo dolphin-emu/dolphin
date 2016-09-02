@@ -4,8 +4,8 @@
 
 #pragma once
 
+#include "Core/PowerPC/Jit64Common/Jit_Util.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
 
 enum EQuantizeType : u32;
 

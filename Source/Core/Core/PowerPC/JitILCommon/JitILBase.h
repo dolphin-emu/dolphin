@@ -6,7 +6,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
+#include "Core/PowerPC/Jit64Common/JitBase.h"
 #include "Core/PowerPC/JitILCommon/IR.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 

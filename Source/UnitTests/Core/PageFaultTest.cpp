@@ -6,6 +6,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Timer.h"
+#include "Common/MemoryUtil.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 

@@ -26,7 +26,7 @@
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/Jit_Util.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
@@ -871,7 +871,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         if (!js.fastmemLoadStore)
         {
           exceptionHandlerAtLoc[js.fastmemLoadStore] = nullptr;
-          SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+          SetJumpTarget(js.fixupExceptionHandler ?
+                            FixupBranch{js.exceptionHandler_ptr, js.exceptionHandler_type} :
+                            memException);
         }
         else
         {

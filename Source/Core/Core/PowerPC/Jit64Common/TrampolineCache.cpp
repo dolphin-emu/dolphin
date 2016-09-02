@@ -10,9 +10,9 @@
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
-#include "Core/PowerPC/JitCommon/TrampolineCache.h"
+#include "Core/PowerPC/Jit64Common/JitBase.h"
+#include "Core/PowerPC/Jit64Common/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32

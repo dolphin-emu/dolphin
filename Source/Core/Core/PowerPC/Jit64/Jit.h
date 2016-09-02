@@ -23,8 +23,8 @@
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/Jit64Common/JitBase.h"
+#include "Core/PowerPC/Jit64Common/JitCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
 class Jit64 : public Jitx86Base

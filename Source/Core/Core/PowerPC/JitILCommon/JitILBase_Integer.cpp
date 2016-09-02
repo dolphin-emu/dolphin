@@ -405,7 +405,7 @@ void JitILBase::rlwinmx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
-  unsigned mask = Helper_Mask(inst.MB, inst.ME);
+  unsigned mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
   val = ibuild.EmitRol(val, ibuild.EmitIntConst(inst.SH));
   val = ibuild.EmitAnd(val, ibuild.EmitIntConst(mask));
@@ -419,7 +419,7 @@ void JitILBase::rlwimix(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
-  unsigned mask = Helper_Mask(inst.MB, inst.ME);
+  unsigned mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
   val = ibuild.EmitRol(val, ibuild.EmitIntConst(inst.SH));
   val = ibuild.EmitAnd(val, ibuild.EmitIntConst(mask));
@@ -436,7 +436,7 @@ void JitILBase::rlwnmx(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
-  unsigned int mask = Helper_Mask(inst.MB, inst.ME);
+  unsigned int mask = Interpreter::Helper_Mask(inst.MB, inst.ME);
   IREmitter::InstLoc val = ibuild.EmitLoadGReg(inst.RS);
   val = ibuild.EmitRol(val, ibuild.EmitLoadGReg(inst.RB));
   val = ibuild.EmitAnd(val, ibuild.EmitIntConst(mask));
