@@ -37,12 +37,12 @@
 namespace OGL
 {
 static SHADER s_ColorCopyProgram;
-static SHADER s_ColorMatrixProgram;
+static SHADER s_ColorMatrixProgram[2];
 static SHADER s_DepthMatrixProgram;
-static GLuint s_ColorMatrixUniform;
+static GLuint s_ColorMatrixUniform[2];
 static GLuint s_DepthMatrixUniform;
 static GLuint s_ColorCopyPositionUniform;
-static GLuint s_ColorMatrixPositionUniform;
+static GLuint s_ColorMatrixPositionUniform[2];
 static GLuint s_DepthCopyPositionUniform;
 static u32 s_ColorCbufid;
 static u32 s_DepthCbufid;
@@ -237,13 +237,21 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, PEControl::Pixe
     s_DepthCbufid = cbufid;
     uniform_location = s_DepthCopyPositionUniform;
   }
+  else if (srcFormat == PEControl::RGBA6_Z24)
+  {
+    s_ColorMatrixProgram[PEControl::RGBA6_Z24].Bind();
+    if (s_ColorCbufid != cbufid)
+      glUniform4fv(s_ColorMatrixUniform[PEControl::RGBA6_Z24], 7, colmat);
+    s_ColorCbufid = cbufid;
+    uniform_location = s_ColorMatrixPositionUniform[PEControl::RGBA6_Z24];
+  }
   else
   {
-    s_ColorMatrixProgram.Bind();
+    s_ColorMatrixProgram[PEControl::RGB8_Z24].Bind();
     if (s_ColorCbufid != cbufid)
-      glUniform4fv(s_ColorMatrixUniform, 7, colmat);
+      glUniform4fv(s_ColorMatrixUniform[PEControl::RGB8_Z24], 7, colmat);
     s_ColorCbufid = cbufid;
-    uniform_location = s_ColorMatrixPositionUniform;
+    uniform_location = s_ColorMatrixPositionUniform[PEControl::RGB8_Z24];
   }
 
   TargetRectangle R = g_renderer->ConvertEFBRectangle(srcRect);
@@ -325,17 +333,43 @@ void TextureCache::CompileShaders()
                                              "	ocol0 = texcol;\n"
                                              "}\n";
 
-  constexpr const char* color_matrix_program =
-      "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
-      "uniform vec4 colmat[7];\n"
-      "in vec3 f_uv0;\n"
-      "out vec4 ocol0;\n"
-      "\n"
-      "void main(){\n"
-      "	vec4 texcol = texture(samp9, f_uv0);\n"
-      "	texcol = round(texcol * colmat[5]) * colmat[6];\n"
-      "	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
-      "}\n";
+  // TODO: Add support for RGBA565 format.
+  std::string color_matrix_program =
+      R"GLSL(
+    SAMPLER_BINDING(9) uniform sampler2DArray samp9;
+    uniform vec4 colmat[7];
+    in vec3 f_uv0;
+    out vec4 ocol0;
+
+    int Convert6To8(int v)
+    {
+      // Swizzle bits: 00123456 -> 12345612
+      return (v << 2) | (v >> 4);
+    }
+
+    float4 DecodePixel_RGBA6(float4 val)
+    {
+      int4 srcColor = int4(round(val * 63.0));
+      int r,g,b,a;
+      a = Convert6To8(srcColor.a & 0x3f);
+      b = Convert6To8(srcColor.b & 0x3f);
+      g = Convert6To8(srcColor.g & 0x3f);
+      r = Convert6To8(srcColor.r & 0x3f);
+      return float4(r, g, b, a) / 255.0;
+    }
+
+    float4 DecodePixel_RGB8(float4 val)
+    {
+      return val;
+    }
+
+    void main()
+    {
+      float4 texcol = DECODE(texture(samp9, f_uv0));
+      texcol = round(texcol * colmat[5]) * colmat[6];
+      ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];
+    }
+    )GLSL";
 
   constexpr const char* depth_matrix_program =
       "SAMPLER_BINDING(9) uniform sampler2DArray samp9;\n"
@@ -401,21 +435,31 @@ void TextureCache::CompileShaders()
   ProgramShaderCache::CompileShader(s_ColorCopyProgram,
                                     StringFromFormat(vertex_program, prefix, prefix).c_str(),
                                     color_copy_program, geo_program);
-  ProgramShaderCache::CompileShader(s_ColorMatrixProgram,
+  ProgramShaderCache::CompileShader(s_ColorMatrixProgram[PEControl::RGB8_Z24],
                                     StringFromFormat(vertex_program, prefix, prefix).c_str(),
-                                    color_matrix_program, geo_program);
+                                    "#define DECODE DecodePixel_RGB8" + color_matrix_program,
+                                    geo_program);
+  ProgramShaderCache::CompileShader(s_ColorMatrixProgram[PEControl::RGBA6_Z24],
+                                    StringFromFormat(vertex_program, prefix, prefix).c_str(),
+                                    "#define DECODE DecodePixel_RGBA6" + color_matrix_program,
+                                    geo_program);
   ProgramShaderCache::CompileShader(
       s_DepthMatrixProgram, StringFromFormat(vertex_program, prefix, prefix).c_str(),
       StringFromFormat(depth_matrix_program, depth_layer).c_str(), geo_program);
 
-  s_ColorMatrixUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "colmat");
+  s_ColorMatrixUniform[PEControl::RGB8_Z24] =
+      glGetUniformLocation(s_ColorMatrixProgram[PEControl::RGB8_Z24].glprogid, "colmat");
+  s_ColorMatrixUniform[PEControl::RGBA6_Z24] =
+      glGetUniformLocation(s_ColorMatrixProgram[PEControl::RGBA6_Z24].glprogid, "colmat");
   s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");
   s_ColorCbufid = -1;
   s_DepthCbufid = -1;
 
   s_ColorCopyPositionUniform = glGetUniformLocation(s_ColorCopyProgram.glprogid, "copy_position");
-  s_ColorMatrixPositionUniform =
-      glGetUniformLocation(s_ColorMatrixProgram.glprogid, "copy_position");
+  s_ColorMatrixPositionUniform[PEControl::RGB8_Z24] =
+      glGetUniformLocation(s_ColorMatrixProgram[PEControl::RGB8_Z24].glprogid, "copy_position");
+  s_ColorMatrixPositionUniform[PEControl::RGBA6_Z24] =
+      glGetUniformLocation(s_ColorMatrixProgram[PEControl::RGBA6_Z24].glprogid, "copy_position");
   s_DepthCopyPositionUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "copy_position");
 
   std::string palette_shader =
@@ -534,7 +578,9 @@ void TextureCache::CompileShaders()
 
 void TextureCache::DeleteShaders()
 {
-  s_ColorMatrixProgram.Destroy();
+  for (auto& shader : s_ColorMatrixProgram)
+    shader.Destroy();
+
   s_DepthMatrixProgram.Destroy();
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
