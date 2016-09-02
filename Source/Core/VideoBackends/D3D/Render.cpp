@@ -189,13 +189,13 @@ static void TeardownDeviceObjects()
   gx_state_cache.Clear();
 }
 
-static void CreateScreenshotTexture()
+static void CreateScreenshotTexture(const TargetRectangle& targetRc)
 {
   // We can't render anything outside of the backbuffer anyway, so use the backbuffer size as the
   // screenshot buffer size.
   // This texture is released to be recreated when the window is resized in Renderer::SwapImpl.
   D3D11_TEXTURE2D_DESC scrtex_desc = CD3D11_TEXTURE2D_DESC(
-      DXGI_FORMAT_R8G8B8A8_UNORM, D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight(), 1, 1, 0,
+      DXGI_FORMAT_R8G8B8A8_UNORM, targetRc.GetWidth(), targetRc.GetHeight(), 1, 1, 0,
       D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE);
   HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, nullptr, &s_screenshot_texture);
   CHECK(hr == S_OK, "Create screenshot staging texture");
@@ -715,20 +715,34 @@ void Renderer::SetBlendMode(bool forceUpdate)
 bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle& rc)
 {
   if (!s_screenshot_texture)
-    CreateScreenshotTexture();
+    CreateScreenshotTexture(rc);
 
-  // copy back buffer to system memory
-  D3D11_BOX source_box = GetScreenshotSourceBox(rc);
-  D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
-                                      (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0,
-                                      &source_box);
+  u32 source_width, source_height;
+  if (g_ActiveConfig.bUseXFB)
+  {
+    // copy back buffer to system memory
+    D3D11_BOX source_box = GetScreenshotSourceBox(rc);
+    source_width = source_box.right - source_box.left;
+    source_height = source_box.bottom - source_box.top;
+    D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
+                                        (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0,
+                                        &source_box);
+  }
+  else
+  {
+    D3D11_BOX source_box = CD3D11_BOX(rc.left, rc.top, 0, rc.right, rc.bottom, 1);
+    source_width = rc.GetWidth();
+    source_height = rc.GetHeight();
+    D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
+                                        FramebufferManager::GetResolvedEFBColorTexture()->GetTex(),
+                                        0, &source_box);
+  }
 
   D3D11_MAPPED_SUBRESOURCE map;
-  D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
+  D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
 
   bool saved_png =
-      TextureToPng((u8*)map.pData, map.RowPitch, filename, source_box.right - source_box.left,
-                   source_box.bottom - source_box.top, false);
+      TextureToPng((u8*)map.pData, map.RowPitch, filename, source_width, source_height, false);
 
   D3D::context->Unmap(s_screenshot_texture, 0);
 
@@ -870,7 +884,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     std::lock_guard<std::mutex> guard(s_criticalScreenshot);
 
-    SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
+    SaveScreenshot(s_sScreenshotName, g_ActiveConfig.bUseXFB ? GetTargetRectangle() :
+                                                               Renderer::ConvertEFBRectangle(rc));
     s_sScreenshotName.clear();
     s_bScreenshot = false;
     s_screenshotCompleted.Set();
@@ -879,15 +894,31 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // Dump frames
   if (SConfig::GetInstance().m_DumpFrames)
   {
-    if (!s_screenshot_texture)
-      CreateScreenshotTexture();
+    TargetRectangle sourceRc = Renderer::ConvertEFBRectangle(rc);
 
-    D3D11_BOX source_box = GetScreenshotSourceBox(targetRc);
-    unsigned int source_width = source_box.right - source_box.left;
-    unsigned int source_height = source_box.bottom - source_box.top;
-    D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
-                                        (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0,
-                                        &source_box);
+    if (!s_screenshot_texture)
+      CreateScreenshotTexture(g_ActiveConfig.bUseXFB ? targetRc : sourceRc);
+
+    u32 source_width, source_height;
+    if (g_ActiveConfig.bUseXFB)
+    {
+      D3D11_BOX source_box = GetScreenshotSourceBox(targetRc);
+      source_width = source_box.right - source_box.left;
+      source_height = source_box.bottom - source_box.top;
+      D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
+                                          D3D::GetBackBuffer()->GetTex(), 0, &source_box);
+    }
+    else
+    {
+      D3D11_BOX source_box =
+          CD3D11_BOX(sourceRc.left, sourceRc.top, 0, sourceRc.right, sourceRc.bottom, 1);
+      source_width = sourceRc.GetWidth();
+      source_height = sourceRc.GetHeight();
+      D3D::context->CopySubresourceRegion(
+          s_screenshot_texture, 0, 0, 0, 0,
+          FramebufferManager::GetResolvedEFBColorTexture()->GetTex(), 0, &source_box);
+    }
+
     if (!bLastFrameDumped)
     {
       bAVIDumping = AVIDump::Start(source_width, source_height, AVIDump::DumpFormat::FORMAT_BGR);
