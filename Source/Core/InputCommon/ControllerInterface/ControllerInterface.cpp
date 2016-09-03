@@ -14,10 +14,7 @@
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #endif
 #ifdef CIFACE_USE_XLIB
-#include "InputCommon/ControllerInterface/Xlib/Xlib.h"
-#ifdef CIFACE_USE_X11_XINPUT2
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
-#endif
 #endif
 #ifdef CIFACE_USE_OSX
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
@@ -63,10 +60,7 @@ void ControllerInterface::Initialize(void* const hwnd)
   ciface::XInput::Init();
 #endif
 #ifdef CIFACE_USE_XLIB
-  ciface::Xlib::Init(hwnd);
-#ifdef CIFACE_USE_X11_XINPUT2
   ciface::XInput2::Init(hwnd);
-#endif
 #endif
 #ifdef CIFACE_USE_OSX
   ciface::OSX::Init(hwnd);

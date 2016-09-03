@@ -24,11 +24,7 @@ elseif(APPLE)
 	set(LIBS ${LIBS} ${COREFOUNDATION_LIBRARY} ${CARBON_LIBRARY} ${COCOA_LIBRARY})
 elseif(X11_FOUND)
 	set(SRCS	${SRCS}
-				ControllerInterface/Xlib/Xlib.cpp)
-	if(XINPUT2_FOUND)
-		set(SRCS	${SRCS}
-					ControllerInterface/Xlib/XInput2.cpp)
-	endif()
+				ControllerInterface/Xlib/XInput2.cpp)
 	set(LIBS ${LIBS} ${X11_LIBRARIES} ${XINPUT2_LIBRARIES})
 elseif(ANDROID)
 	add_definitions(-DCIFACE_USE_ANDROID)
