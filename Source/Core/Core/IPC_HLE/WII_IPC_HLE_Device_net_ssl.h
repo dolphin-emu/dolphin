@@ -4,11 +4,17 @@
 
 #pragma once
 
+// These imports need to be in this order for mbed to be included correctly.
+// clang-format off
+
+#include <mbedtls/platform.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/net.h>
 #include <mbedtls/ssl.h>
 #include <string>
+
+// clang-format on
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
