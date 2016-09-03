@@ -9,10 +9,6 @@
 
 #include "Core/HW/EXI_Device.h"
 
-namespace CoreTiming
-{
-struct EventType;
-}
 class MemoryCardBase;
 class PointerWrap;
 
@@ -29,6 +25,12 @@ public:
   IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1) override;
   void DMARead(u32 _uAddr, u32 _uSize) override;
   void DMAWrite(u32 _uAddr, u32 _uSize) override;
+
+  // CoreTiming events need to be registered during boot since CoreTiming is DoState()-ed
+  // before ExpansionInterface so we'll lose the save stated events if the callbacks are
+  // not already registered first.
+  static void Init();
+  static void Shutdown();
 
 private:
   void SetupGciFolder(u16 sizeMb);
@@ -71,8 +73,6 @@ private:
   };
 
   int card_index;
-  CoreTiming::EventType* et_cmd_done = nullptr;
-  CoreTiming::EventType* et_transfer_complete = nullptr;
   //! memory card state
 
   // STATE_TO_SAVE
