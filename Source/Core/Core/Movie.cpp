@@ -772,15 +772,15 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data,
       display_str += " 2";
     if (buttons.home)
       display_str += " HOME";
-  }
 
-  if (accelData)
-  {
-    wm_accel* dt = (wm_accel*)accelData;
-    display_str +=
-        StringFromFormat(" ACC:%d,%d,%d", dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb,
-                         dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb << 1,
-                         dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb << 1);
+    // A few bits of accelData are actually inside the coreData struct.
+    if (accelData)
+    {
+      wm_accel* dt = (wm_accel*)accelData;
+      display_str += StringFromFormat(" ACC:%d,%d,%d", dt->x << 2 | buttons.acc_x_lsb,
+                                      dt->y << 2 | buttons.acc_y_lsb << 1,
+                                      dt->z << 2 | buttons.acc_z_lsb << 1);
+    }
   }
 
   if (irData)
