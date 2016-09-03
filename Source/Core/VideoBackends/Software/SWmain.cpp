@@ -142,7 +142,6 @@ bool VideoSoftware::Initialize(void* window_handle)
 
   SWOGLWindow::Init(window_handle);
 
-  PixelEngine::Init();
   Clipper::Init();
   Rasterizer::Init();
   SWRenderer::Init();
