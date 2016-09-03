@@ -753,35 +753,36 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
     return 0;
 
   // Translate address
-  u32 bat_result = dbat_table[address >> BAT_INDEX_SHIFT];
-  if ((bat_result & 1) == 0)
-    return false;
-  u32 translated = (bat_result & ~3) | (address & 0x0001FFFF);
+  // If we also optimize for TLB mappings, we'd have to clear the
+  // JitCache on each TLB invalidation.
+  if (!TranslateBatAddess(dbat_table, &address))
+    return 0;
 
   // Check whether the address is an aligned address of an MMIO register.
-  bool aligned = (translated & ((accessSize >> 3) - 1)) == 0;
-  if (!aligned || !MMIO::IsMMIOAddress(translated))
+  bool aligned = (address & ((accessSize >> 3) - 1)) == 0;
+  if (!aligned || !MMIO::IsMMIOAddress(address))
     return 0;
-  return translated;
+
+  return address;
 }
 
 bool IsOptimizableGatherPipeWrite(u32 address)
 {
 #ifdef ENABLE_MEM_CHECK
-  return false;
+  return 0;
 #endif
 
   if (!UReg_MSR(MSR).DR)
-    return false;
+    return 0;
 
-  // Translate address
-  u32 bat_result = dbat_table[address >> BAT_INDEX_SHIFT];
-  if ((bat_result & 1) == 0)
-    return false;
-  u32 translated = (bat_result & ~3) | (address & 0x0001FFFF);
+  // Translate address, only check BAT mapping.
+  // If we also optimize for TLB mappings, we'd have to clear the
+  // JitCache on each TLB invalidation.
+  if (!TranslateBatAddess(dbat_table, &address))
+    return 0;
 
   // Check whether the translated address equals the address in WPAR.
-  return translated == 0x0C008000;
+  return address == 0x0C008000;
 }
 
 TranslateResult JitCache_TranslateAddress(u32 address)
@@ -1207,6 +1208,8 @@ void DBATUpdated()
     UpdateFakeMMUBat(dbat_table, 0x70000000);
   }
   Memory::UpdateLogicalMemory(dbat_table);
+
+  // IsOptimizable*Address and dcbz depends on the BAT mapping, so we need a flush here.
   JitInterface::ClearSafe();
 }
 
@@ -1227,6 +1230,9 @@ void IBATUpdated()
 }
 
 // Translate effective address using BAT or PAT.  Returns 0 if the address cannot be translated.
+// Through the hardware looks up BAT and TLB in parallel, BAT is used first if available.
+// So we first check if there is a matching BAT entry, else we look for the TLB in
+// TranslatePageAddress().
 template <const XCheckTLBFlag flag>
 TranslateAddressResult TranslateAddress(const u32 address)
 {

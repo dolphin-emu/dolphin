@@ -288,6 +288,14 @@ static const int BAT_INDEX_SHIFT = 17;
 using BatTable = std::array<u32, 1 << (32 - BAT_INDEX_SHIFT)>;  // 128 KB
 extern BatTable ibat_table;
 extern BatTable dbat_table;
+inline bool TranslateBatAddess(const BatTable& bat_table, u32* address)
+{
+  u32 bat_result = bat_table[*address >> BAT_INDEX_SHIFT];
+  if ((bat_result & 1) == 0)
+    return false;
+  *address = (bat_result & ~3) | (*address & 0x0001FFFF);
+  return true;
+}
 }  // namespace
 
 enum CRBits
