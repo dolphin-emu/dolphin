@@ -4,6 +4,9 @@
 
 #pragma once
 
+// clang-format off
+
+#include <mbedtls/platform.h>
 #include <mbedtls/ctr_drbg.h>
 #include <mbedtls/entropy.h>
 #include <mbedtls/net.h>
