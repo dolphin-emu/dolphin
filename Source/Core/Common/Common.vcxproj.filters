@@ -63,6 +63,7 @@
     <ClInclude Include="Timer.h" />
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Emitter.h" />
+    <ClInclude Include="x64Reg.h" />
     <ClInclude Include="Logging\ConsoleListener.h">
       <Filter>Logging</Filter>
     </ClInclude>

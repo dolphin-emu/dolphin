@@ -135,6 +135,7 @@
     <ClInclude Include="TraversalProto.h" />
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Emitter.h" />
+    <ClInclude Include="x64Reg.h" />
     <ClInclude Include="Crypto\bn.h" />
     <ClInclude Include="Crypto\ec.h" />
     <ClInclude Include="Logging\ConsoleListener.h" />

@@ -9,101 +9,16 @@
 #include <cstddef>
 #include <cstring>
 #include <functional>
+#include <type_traits>
 
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CodeBlock.h"
 #include "Common/CommonTypes.h"
+#include "Common/x64ABI.h"
 
 namespace Gen
 {
-enum X64Reg
-{
-  EAX = 0,
-  EBX = 3,
-  ECX = 1,
-  EDX = 2,
-  ESI = 6,
-  EDI = 7,
-  EBP = 5,
-  ESP = 4,
-
-  RAX = 0,
-  RBX = 3,
-  RCX = 1,
-  RDX = 2,
-  RSI = 6,
-  RDI = 7,
-  RBP = 5,
-  RSP = 4,
-  R8 = 8,
-  R9 = 9,
-  R10 = 10,
-  R11 = 11,
-  R12 = 12,
-  R13 = 13,
-  R14 = 14,
-  R15 = 15,
-
-  AL = 0,
-  BL = 3,
-  CL = 1,
-  DL = 2,
-  SIL = 6,
-  DIL = 7,
-  BPL = 5,
-  SPL = 4,
-  AH = 0x104,
-  BH = 0x107,
-  CH = 0x105,
-  DH = 0x106,
-
-  AX = 0,
-  BX = 3,
-  CX = 1,
-  DX = 2,
-  SI = 6,
-  DI = 7,
-  BP = 5,
-  SP = 4,
-
-  XMM0 = 0,
-  XMM1,
-  XMM2,
-  XMM3,
-  XMM4,
-  XMM5,
-  XMM6,
-  XMM7,
-  XMM8,
-  XMM9,
-  XMM10,
-  XMM11,
-  XMM12,
-  XMM13,
-  XMM14,
-  XMM15,
-
-  YMM0 = 0,
-  YMM1,
-  YMM2,
-  YMM3,
-  YMM4,
-  YMM5,
-  YMM6,
-  YMM7,
-  YMM8,
-  YMM9,
-  YMM10,
-  YMM11,
-  YMM12,
-  YMM13,
-  YMM14,
-  YMM15,
-
-  INVALID_REG = 0xFFFFFFFF
-};
-
 enum CCFlags
 {
   CC_O = 0,
@@ -1090,29 +1005,148 @@ public:
   // Utility functions
   // The difference between this and CALL is that this aligns the stack
   // where appropriate.
-  void ABI_CallFunction(const void* func);
+  template <typename FunctionPointer>
+  void ABI_CallFunction(FunctionPointer func)
+  {
+    static_assert(std::is_pointer<FunctionPointer>() &&
+                      std::is_function<std::remove_pointer_t<FunctionPointer>>(),
+                  "Supplied type must be a function pointer.");
 
-  void ABI_CallFunctionC16(const void* func, u16 param1);
-  void ABI_CallFunctionCC16(const void* func, u32 param1, u16 param2);
+    const void* ptr = reinterpret_cast<const void*>(func);
+    const u64 address = reinterpret_cast<u64>(ptr);
+    const u64 distance = address - (reinterpret_cast<u64>(code) + 5);
 
-  // These only support u32 parameters, but that's enough for a lot of uses.
-  // These will destroy the 1 or 2 first "parameter regs".
-  void ABI_CallFunctionC(const void* func, u32 param1);
-  void ABI_CallFunctionCC(const void* func, u32 param1, u32 param2);
-  void ABI_CallFunctionCP(const void* func, u32 param1, void* param2);
-  void ABI_CallFunctionCCC(const void* func, u32 param1, u32 param2, u32 param3);
-  void ABI_CallFunctionCCP(const void* func, u32 param1, u32 param2, void* param3);
-  void ABI_CallFunctionCCCP(const void* func, u32 param1, u32 param2, u32 param3, void* param4);
-  void ABI_CallFunctionPC(const void* func, void* param1, u32 param2);
-  void ABI_CallFunctionPPC(const void* func, void* param1, void* param2, u32 param3);
-  void ABI_CallFunctionAC(int bits, const void* func, const OpArg& arg1, u32 param2);
-  void ABI_CallFunctionA(int bits, const void* func, const OpArg& arg1);
+    if (distance >= 0x0000000080000000ULL && distance < 0xFFFFFFFF80000000ULL)
+    {
+      // Far call
+      MOV(64, R(RAX), Imm64(address));
+      CALLptr(R(RAX));
+    }
+    else
+    {
+      CALL(ptr);
+    }
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionC16(FunctionPointer func, u16 param1)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionCC16(FunctionPointer func, u32 param1, u16 param2)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionC(FunctionPointer func, u32 param1)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionCC(FunctionPointer func, u32 param1, u32 param2)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionCP(FunctionPointer func, u32 param1, const void* param2)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionCCC(FunctionPointer func, u32 param1, u32 param2, u32 param3)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionCCP(FunctionPointer func, u32 param1, u32 param2, const void* param3)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    MOV(64, R(ABI_PARAM3), Imm64(reinterpret_cast<u64>(param3)));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionCCCP(FunctionPointer func, u32 param1, u32 param2, u32 param3,
+                            const void* param4)
+  {
+    MOV(32, R(ABI_PARAM1), Imm32(param1));
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
+    MOV(64, R(ABI_PARAM4), Imm64(reinterpret_cast<u64>(param4)));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionPC(FunctionPointer func, const void* param1, u32 param2)
+  {
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionPPC(FunctionPointer func, const void* param1, const void* param2, u32 param3)
+  {
+    MOV(64, R(ABI_PARAM1), Imm64(reinterpret_cast<u64>(param1)));
+    MOV(64, R(ABI_PARAM2), Imm64(reinterpret_cast<u64>(param2)));
+    MOV(32, R(ABI_PARAM3), Imm32(param3));
+    ABI_CallFunction(func);
+  }
 
   // Pass a register as a parameter.
-  void ABI_CallFunctionR(const void* func, X64Reg reg1);
-  void ABI_CallFunctionRR(const void* func, X64Reg reg1, X64Reg reg2);
+  template <typename FunctionPointer>
+  void ABI_CallFunctionR(FunctionPointer func, X64Reg reg1)
+  {
+    if (reg1 != ABI_PARAM1)
+      MOV(32, R(ABI_PARAM1), R(reg1));
+    ABI_CallFunction(func);
+  }
 
-  // Helper method for the above, or can be used separately.
+  // Pass two registers as parameters.
+  template <typename FunctionPointer>
+  void ABI_CallFunctionRR(FunctionPointer func, X64Reg reg1, X64Reg reg2)
+  {
+    MOVTwo(64, ABI_PARAM1, reg1, 0, ABI_PARAM2, reg2);
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionAC(int bits, FunctionPointer func, const Gen::OpArg& arg1, u32 param2)
+  {
+    if (!arg1.IsSimpleReg(ABI_PARAM1))
+      MOV(bits, R(ABI_PARAM1), arg1);
+    MOV(32, R(ABI_PARAM2), Imm32(param2));
+    ABI_CallFunction(func);
+  }
+
+  template <typename FunctionPointer>
+  void ABI_CallFunctionA(int bits, FunctionPointer func, const Gen::OpArg& arg1)
+  {
+    if (!arg1.IsSimpleReg(ABI_PARAM1))
+      MOV(bits, R(ABI_PARAM1), arg1);
+    ABI_CallFunction(func);
+  }
+
+  // Helper method for ABI functions related to calling functions. May be used by itself as well.
   void MOVTwo(int bits, X64Reg dst1, X64Reg src1, s32 offset, X64Reg dst2, X64Reg src2);
 
   // Saves/restores the registers and adjusts the stack to be aligned as
@@ -1138,7 +1172,7 @@ public:
   void ABI_CallLambdaC(const std::function<T(Args...)>* f, u32 p1)
   {
     auto trampoline = &XEmitter::CallLambdaTrampoline<T, Args...>;
-    ABI_CallFunctionPC((void*)trampoline, const_cast<void*>((const void*)f), p1);
+    ABI_CallFunctionPC(trampoline, reinterpret_cast<const void*>(f), p1);
   }
 };  // class XEmitter
 
