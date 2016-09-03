@@ -12,6 +12,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/EXI_Channel.h"
+#include "Core/HW/EXI_DeviceMemoryCard.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Sram.h"
@@ -23,8 +24,8 @@ bool g_SRAM_netplay_initialized = false;
 
 namespace ExpansionInterface
 {
-static int changeDevice;
-static int updateInterrupts;
+static CoreTiming::EventType* changeDevice;
+static CoreTiming::EventType* updateInterrupts;
 
 static std::array<std::unique_ptr<CEXIChannel>, MAX_EXI_CHANNELS> g_Channels;
 
@@ -38,6 +39,7 @@ void Init()
     InitSRAM();
   }
 
+  CEXIMemoryCard::Init();
   for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
     g_Channels[i] = std::make_unique<CEXIChannel>(i);
 
@@ -65,6 +67,8 @@ void Shutdown()
 {
   for (auto& channel : g_Channels)
     channel.reset();
+
+  CEXIMemoryCard::Shutdown();
 }
 
 void DoState(PointerWrap& p)

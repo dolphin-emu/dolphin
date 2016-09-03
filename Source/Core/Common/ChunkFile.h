@@ -51,12 +51,6 @@
 #error No version of is_trivially_copyable
 #endif
 
-template <class T>
-struct LinkedListItem : public T
-{
-  LinkedListItem<T>* next;
-};
-
 // Wrapper class
 class PointerWrap
 {
@@ -244,67 +238,6 @@ public:
     }
   }
 
-  // Let's pretend std::list doesn't exist!
-  template <class T, LinkedListItem<T>* (*TNew)(), void (*TFree)(LinkedListItem<T>*),
-            void (*TDo)(PointerWrap&, T*)>
-  void DoLinkedList(LinkedListItem<T>*& list_start, LinkedListItem<T>** list_end = 0)
-  {
-    LinkedListItem<T>* list_cur = list_start;
-    LinkedListItem<T>* prev = nullptr;
-
-    while (true)
-    {
-      u8 shouldExist = !!list_cur;
-      Do(shouldExist);
-      if (shouldExist == 1)
-      {
-        LinkedListItem<T>* cur = list_cur ? list_cur : TNew();
-        TDo(*this, (T*)cur);
-        if (!list_cur)
-        {
-          if (mode == MODE_READ)
-          {
-            cur->next = nullptr;
-            list_cur = cur;
-            if (prev)
-              prev->next = cur;
-            else
-              list_start = cur;
-          }
-          else
-          {
-            TFree(cur);
-            continue;
-          }
-        }
-      }
-      else
-      {
-        if (mode == MODE_READ)
-        {
-          if (prev)
-            prev->next = nullptr;
-          if (list_end)
-            *list_end = prev;
-          if (list_cur)
-          {
-            if (list_start == list_cur)
-              list_start = nullptr;
-            do
-            {
-              LinkedListItem<T>* next = list_cur->next;
-              TFree(list_cur);
-              list_cur = next;
-            } while (list_cur);
-          }
-        }
-        break;
-      }
-      prev = list_cur;
-      list_cur = list_cur->next;
-    }
-  }
-
   void DoMarker(const std::string& prevName, u32 arbitraryNumber = 0x42)
   {
     u32 cookie = arbitraryNumber;
@@ -319,16 +252,22 @@ public:
     }
   }
 
+  template <typename T, typename Functor>
+  void DoEachElement(T& container, Functor member)
+  {
+    u32 size = static_cast<u32>(container.size());
+    Do(size);
+    container.resize(size);
+
+    for (auto& elem : container)
+      member(*this, elem);
+  }
+
 private:
   template <typename T>
   void DoContainer(T& x)
   {
-    u32 size = (u32)x.size();
-    Do(size);
-    x.resize(size);
-
-    for (auto& elem : x)
-      Do(elem);
+    DoEachElement(x, [](PointerWrap& p, typename T::value_type& elem) { p.Do(elem); });
   }
 
   __forceinline void DoVoid(void* data, u32 size)

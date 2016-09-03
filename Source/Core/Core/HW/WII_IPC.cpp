@@ -98,7 +98,7 @@ static u32 arm_irq_masks;
 
 static u32 sensorbar_power;  // do we need to care about this?
 
-static int updateInterrupts;
+static CoreTiming::EventType* updateInterrupts;
 static void UpdateInterrupts(u64 = 0, s64 cyclesLate = 0);
 
 void DoState(PointerWrap& p)
@@ -113,7 +113,7 @@ void DoState(PointerWrap& p)
   p.Do(sensorbar_power);
 }
 
-void Init()
+static void InitState()
 {
   ctrl = CtrlRegister();
   ppc_msg = 0;
@@ -127,14 +127,18 @@ void Init()
   sensorbar_power = 0;
 
   ppc_irq_masks |= INT_CAUSE_IPC_BROADWAY;
+}
 
+void Init()
+{
+  InitState();
   updateInterrupts = CoreTiming::RegisterEvent("IPCInterrupt", UpdateInterrupts);
 }
 
 void Reset()
 {
   INFO_LOG(WII_IPC, "Resetting ...");
-  Init();
+  InitState();
   WII_IPC_HLE_Interface::Reset();
 }
 

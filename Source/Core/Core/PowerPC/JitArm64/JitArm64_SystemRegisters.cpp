@@ -234,9 +234,9 @@ void JitArm64::mfspr(UGeckoInstruction inst)
 
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
     // cost of calling out to C for this is actually significant.
-    MOVI2R(XA, (u64)&CoreTiming::g_globalTimer);
+    MOVI2R(XA, (u64)&CoreTiming::g_global_timer);
     LDR(INDEX_UNSIGNED, XA, XA, 0);
-    MOVI2R(XB, (u64)&CoreTiming::g_fakeTBStartTicks);
+    MOVI2R(XB, (u64)&CoreTiming::g_fake_TB_start_ticks);
     LDR(INDEX_UNSIGNED, XB, XB, 0);
     SUB(XA, XA, XB);
 
@@ -254,7 +254,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     ADD(XB, XB, 1);
     UMULH(XA, XA, XB);
 
-    MOVI2R(XB, (u64)&CoreTiming::g_fakeTBStartValue);
+    MOVI2R(XB, (u64)&CoreTiming::g_fake_TB_start_value);
     LDR(INDEX_UNSIGNED, XB, XB, 0);
     ADD(XA, XB, XA, ArithOption(XA, ST_LSR, 3));
     STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(spr[SPR_TL]));

@@ -30,7 +30,7 @@ namespace DVDThread
 static void DVDThread();
 
 static void FinishRead(u64 userdata, s64 cycles_late);
-static int s_finish_read;
+static CoreTiming::EventType* s_finish_read;
 
 static std::thread s_dvd_thread;
 static Common::Event s_dvd_thread_start_working;

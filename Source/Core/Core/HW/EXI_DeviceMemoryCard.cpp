@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -41,6 +42,9 @@
 static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
 static const u32 MC_TRANSFER_RATE_WRITE = (u32)(96.125f * 1024.0f);
 
+static std::array<CoreTiming::EventType*, 2> s_et_cmd_done;
+static std::array<CoreTiming::EventType*, 2> s_et_transfer_complete;
+
 // Takes care of the nasty recovery of the 'this' pointer from card_index,
 // stored in the userdata parameter of the CoreTiming event.
 void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
@@ -70,25 +74,37 @@ void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, s64 cyclesLate)
                             [](CEXIMemoryCard* instance) { instance->TransferComplete(); });
 }
 
+void CEXIMemoryCard::Init()
+{
+  static constexpr char DONE_PREFIX[] = "memcardDone";
+  static constexpr char TRANSFER_COMPLETE_PREFIX[] = "memcardTransferComplete";
+
+  static_assert(s_et_cmd_done.size() == s_et_transfer_complete.size(), "Event array size differs");
+  for (unsigned int i = 0; i < s_et_cmd_done.size(); ++i)
+  {
+    std::string name = DONE_PREFIX;
+    name += static_cast<char>('A' + i);
+    s_et_cmd_done[i] = CoreTiming::RegisterEvent(name, CmdDoneCallback);
+
+    name = TRANSFER_COMPLETE_PREFIX;
+    name += static_cast<char>('A' + i);
+    s_et_transfer_complete[i] = CoreTiming::RegisterEvent(name, TransferCompleteCallback);
+  }
+}
+
+void CEXIMemoryCard::Shutdown()
+{
+  s_et_cmd_done.fill(nullptr);
+  s_et_transfer_complete.fill(nullptr);
+}
+
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(index)
 {
-  struct
-  {
-    const char* done;
-    const char* transfer_complete;
-  } const event_names[] = {
-      {"memcardDoneA", "memcardTransferCompleteA"}, {"memcardDoneB", "memcardTransferCompleteB"},
-  };
+  _assert_msg_(EXPANSIONINTERFACE, static_cast<std::size_t>(index) < s_et_cmd_done.size(),
+               "Trying to create invalid memory card index %d.", index);
 
-  if ((size_t)index >= ArraySize(event_names))
-  {
-    PanicAlertT("Trying to create invalid memory card index.");
-  }
-  // we're potentially leaking events here, since there's no RemoveEvent
-  // until emu shutdown, but I guess it's inconsequential
-  et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done, CmdDoneCallback);
-  et_transfer_complete =
-      CoreTiming::RegisterEvent(event_names[index].transfer_complete, TransferCompleteCallback);
+  // NOTE: When loading a save state, DMA completion callbacks (s_et_transfer_complete) and such
+  //   may have been restored, we need to anticipate those arriving.
 
   interruptSwitch = 0;
   m_bInterruptSet = 0;
@@ -248,8 +264,8 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
-  CoreTiming::RemoveEvent(et_cmd_done);
-  CoreTiming::RemoveEvent(et_transfer_complete);
+  CoreTiming::RemoveEvent(s_et_cmd_done[card_index]);
+  CoreTiming::RemoveEvent(s_et_transfer_complete[card_index]);
 }
 
 bool CEXIMemoryCard::UseDelayedTransferCompletion() const
@@ -279,8 +295,8 @@ void CEXIMemoryCard::TransferComplete()
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
-  CoreTiming::RemoveEvent(et_cmd_done);
-  CoreTiming::ScheduleEvent((int)cycles, et_cmd_done, (u64)card_index);
+  CoreTiming::RemoveEvent(s_et_cmd_done[card_index]);
+  CoreTiming::ScheduleEvent((int)cycles, s_et_cmd_done[card_index], (u64)card_index);
 }
 
 void CEXIMemoryCard::SetCS(int cs)
@@ -547,7 +563,7 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 
   // Schedule transfer complete later based on read speed
   CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
-                            et_transfer_complete, (u64)card_index);
+                            s_et_transfer_complete[card_index], (u64)card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -563,5 +579,5 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 
   // Schedule transfer complete later based on write speed
   CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
-                            et_transfer_complete, (u64)card_index);
+                            s_et_transfer_complete[card_index], (u64)card_index);
 }
