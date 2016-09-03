@@ -564,22 +564,10 @@ static void BPWritten(const BPCmd& bp)
   // ----------------------
   // Set wrap size
   // ----------------------
-  case BPMEM_SU_SSIZE:
-  case BPMEM_SU_TSIZE:
-  case BPMEM_SU_SSIZE + 2:
-  case BPMEM_SU_TSIZE + 2:
+  case BPMEM_SU_SSIZE:  // Matches BPMEM_SU_TSIZE too
   case BPMEM_SU_SSIZE + 4:
-  case BPMEM_SU_TSIZE + 4:
-  case BPMEM_SU_SSIZE + 6:
-  case BPMEM_SU_TSIZE + 6:
   case BPMEM_SU_SSIZE + 8:
-  case BPMEM_SU_TSIZE + 8:
-  case BPMEM_SU_SSIZE + 10:
-  case BPMEM_SU_TSIZE + 10:
   case BPMEM_SU_SSIZE + 12:
-  case BPMEM_SU_TSIZE + 12:
-  case BPMEM_SU_SSIZE + 14:
-  case BPMEM_SU_TSIZE + 14:
     if (bp.changes)
     {
       PixelShaderManager::SetTexCoordChanged((bp.address - BPMEM_SU_SSIZE) >> 1);
@@ -631,60 +619,15 @@ static void BPWritten(const BPCmd& bp)
   // --------------
   // Indirect Tev
   // --------------
-  case BPMEM_IND_CMD:
-  case BPMEM_IND_CMD + 1:
-  case BPMEM_IND_CMD + 2:
-  case BPMEM_IND_CMD + 3:
-  case BPMEM_IND_CMD + 4:
-  case BPMEM_IND_CMD + 5:
-  case BPMEM_IND_CMD + 6:
-  case BPMEM_IND_CMD + 7:
-  case BPMEM_IND_CMD + 8:
-  case BPMEM_IND_CMD + 9:
-  case BPMEM_IND_CMD + 10:
-  case BPMEM_IND_CMD + 11:
-  case BPMEM_IND_CMD + 12:
-  case BPMEM_IND_CMD + 13:
-  case BPMEM_IND_CMD + 14:
-  case BPMEM_IND_CMD + 15:
+  case BPMEM_IND_CMD:  // Indirect 0-15
     return;
   // --------------------------------------------------
   // Set Color/Alpha of a Tev
   // BPMEM_TEV_COLOR_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C, Sel D
   // BPMEM_TEV_ALPHA_ENV - Dest, Shift, Clamp, Sub, Bias, Sel A, Sel B, Sel C, Sel D, T Swap, R Swap
   // --------------------------------------------------
-  case BPMEM_TEV_COLOR_ENV:  // Texture Environment 1
-  case BPMEM_TEV_ALPHA_ENV:
-  case BPMEM_TEV_COLOR_ENV + 2:  // Texture Environment 2
-  case BPMEM_TEV_ALPHA_ENV + 2:
-  case BPMEM_TEV_COLOR_ENV + 4:  // Texture Environment 3
-  case BPMEM_TEV_ALPHA_ENV + 4:
-  case BPMEM_TEV_COLOR_ENV + 6:  // Texture Environment 4
-  case BPMEM_TEV_ALPHA_ENV + 6:
-  case BPMEM_TEV_COLOR_ENV + 8:  // Texture Environment 5
-  case BPMEM_TEV_ALPHA_ENV + 8:
-  case BPMEM_TEV_COLOR_ENV + 10:  // Texture Environment 6
-  case BPMEM_TEV_ALPHA_ENV + 10:
-  case BPMEM_TEV_COLOR_ENV + 12:  // Texture Environment 7
-  case BPMEM_TEV_ALPHA_ENV + 12:
-  case BPMEM_TEV_COLOR_ENV + 14:  // Texture Environment 8
-  case BPMEM_TEV_ALPHA_ENV + 14:
-  case BPMEM_TEV_COLOR_ENV + 16:  // Texture Environment 9
-  case BPMEM_TEV_ALPHA_ENV + 16:
-  case BPMEM_TEV_COLOR_ENV + 18:  // Texture Environment 10
-  case BPMEM_TEV_ALPHA_ENV + 18:
-  case BPMEM_TEV_COLOR_ENV + 20:  // Texture Environment 11
-  case BPMEM_TEV_ALPHA_ENV + 20:
-  case BPMEM_TEV_COLOR_ENV + 22:  // Texture Environment 12
-  case BPMEM_TEV_ALPHA_ENV + 22:
-  case BPMEM_TEV_COLOR_ENV + 24:  // Texture Environment 13
-  case BPMEM_TEV_ALPHA_ENV + 24:
-  case BPMEM_TEV_COLOR_ENV + 26:  // Texture Environment 14
-  case BPMEM_TEV_ALPHA_ENV + 26:
-  case BPMEM_TEV_COLOR_ENV + 28:  // Texture Environment 15
-  case BPMEM_TEV_ALPHA_ENV + 28:
-  case BPMEM_TEV_COLOR_ENV + 30:  // Texture Environment 16
-  case BPMEM_TEV_ALPHA_ENV + 30:
+  case BPMEM_TEV_COLOR_ENV:       // Texture Environment Color/Alpha 0-7
+  case BPMEM_TEV_COLOR_ENV + 16:  // Texture Environment Color/Alpha 8-15
     return;
   default:
     break;
