@@ -333,6 +333,12 @@ void TextureCache::CompileShaders()
       "\n"
       "void main(){\n"
       "	vec4 texcol = texture(samp9, f_uv0);\n"
+      " int alpha = int(texcol.a * 63.0);\n"
+
+      // Truncate alpha to 6-bit
+      " alpha = (alpha << 2) | (alpha >> 4);\n"
+      " texcol.a = alpha / 255.0;\n"
+
       "	texcol = round(texcol * colmat[5]) * colmat[6];\n"
       "	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
       "}\n";
