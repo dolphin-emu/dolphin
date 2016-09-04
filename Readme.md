@@ -29,175 +29,190 @@ Most commands do not return anything. This also means that malformed commands mi
 
 ### client to server
 
-#### WRITE <mode> <addr> <val>
+#### `WRITE <mode> <addr> <val>`
 
 This command usually is used to write single values.
 
 mode
   : can either be 8, 16 or 32, depending on how many bits to write
+
 addr
   : address where to write
+
 val
-  : number to write at given address. Must be an integer (numbers bigger than <mode> will get silently cast)
+  : number to write at given address. Must be an integer (numbers bigger than `<mode>` will get silently cast)
 
 
-#### WRITE_MULTI <addr> <val>...
+#### `WRITE_MULTI <addr> <val>...`
 
 This command usually is used to write sequences or strings.
 
 addr:
   : address where to write
+
 val:
-  : 32-bit number to write given address. all 32-bit <val>s are written consecutively, starting at <addr>
+  : 32-bit number to write given address. all 32-bit `<val>`s are written consecutively, starting at `<addr>`
 
 
-#### READ <mode> <addr>
+#### `READ <mode> <addr>`
 
 This command usually is used to read single values. If no error occured, the server will send a `MEM` command for that address.
 
 mode
   : can either be 8, 16 or 32, depending on how many bits to read
+
 addr
   : address where to read from
 
-#### READ_MULTI
+#### `READ_MULTI`
 
 There is no READ_MULTI. Not sure why, but there just isn't one right now.
 
 
-#### SUBSCRIBE <mode> <addr>
+#### `SUBSCRIBE <mode> <addr>`
 
 This command usually is used to continuously read single values. If no error occured, the server will send a `MEM` command for that address. The server will also continue to send a `MEM` command each time the value at the given address changes.
 
 mode
   : can either be 8, 16 or 32, depending on how many bits to read
+
 addr
   : address where to subscribe to
 
 
-#### SUBSCRIBE_MULTI <size> <addr>...
+#### `SUBSCRIBE_MULTI <size> <addr>...`
 
-This command usually is used to continuously read sequences or strings. If no error occured, the server will send a `MEM_MULTI` command for that address space (<addr> and <size> consecutive 32-bit words). The server will also continue to send a `MEM_MULTI` command each time any of the values within the given address space changes.
+This command usually is used to continuously read sequences or strings. If no error occured, the server will send a `MEM_MULTI` command for that address space (`<addr>` and `<size>` consecutive 32-bit words). The server will also continue to send a `MEM_MULTI` command each time any of the values within the given address space changes.
 
 size:
-  : number of 32-bit values to subscribe to. all 32-bit values are read consecutively, starting at <addr>
+  : number of 32-bit values to subscribe to. all 32-bit values are read consecutively, starting at `<addr>`
+
 addr:
   : address where to subscribe to
 
 
-#### UNSUBSCRIBE <addr>
+#### `UNSUBSCRIBE <addr>`
 
-Undoes a previous `SUBSCRIBE` at address <addr>. The server will no longer send `MEM` commands when the value changes.
-
-addr
-  : address where to unsubscribe from
-
-
-#### UNSUBSCRIBE_MULTI <addr>
-
-Undoes a previous `SUBSCRIBE_MULTI` at address <addr>. The server will no longer send `MEM_MULTI` commands when any value in the address space changes.
+Undoes a previous `SUBSCRIBE` at address `<addr>`. The server will no longer send `MEM` commands when the value changes.
 
 addr
   : address where to unsubscribe from
 
-#### BUTTONSTATES_WII <i_wiimote> <states>
+
+#### `UNSUBSCRIBE_MULTI <addr>`
+
+Undoes a previous `SUBSCRIBE_MULTI` at address `<addr>`. The server will no longer send `MEM_MULTI` commands when any value in the address space changes.
+
+addr
+  : address where to unsubscribe from
+
+#### `BUTTONSTATES_WII <i_wiimote> <states>`
 
 Sets the buttonstates (pressed or not) of a Wiimote. 
 
 i_wiimote
   : index of the Wiimote, between 0 and 3.
+
 states
   : buttonstates represented as a 16-bit number. [Click here for the data-layout](http://wiibrew.org/wiki/Wiimote#Buttons)
 
 *Implementation detail*: DolphinWatch hijacks the respective emulated wiimote to do this. All user-input on that wiimote will be ignored and replaced by these buttonstates for roughly 500ms.
 
-#### BUTTONSTATES_GC <i_gcpad> <states> <sx> <sy> <ssx> <ssy>
+#### `BUTTONSTATES_GC <i_gcpad> <states> <sx> <sy> <ssx> <ssy>`
 
 Sets the buttonstates and joystick-positions of a Gamecube-Controller
 
 i_gcpad
   : index of the Gamecube-Controller, between 0 and 3
+
 states
   : buttonstates represented as a 16-bit number. [Click here for the data-layout](http://pastebin.com/raw.php?i=4txWae07)
+
 sx
   : x-position of the main joystick, as a float between -1.0 and 1.0
+
 sy
   : y-position of the main joystick, as a float between -1.0 and 1.0
+
 ssx
   : x-position of the sub-joystick (c-stick), as a float between -1.0 and 1.0
+
 ssy
   : y-position of the sub-joystick (c-stick), as a float between -1.0 and 1.0
 
-#### PAUSE
+#### `PAUSE`
 
 Pauses emulation. Does nothing if already paused.
 
-#### RESUME
+#### `RESUME`
 
 Resumes emulation. Does nothing if not paused.
 
-#### RESET
+#### `RESET`
 
 Resets the emulation. (Might not work properly with Wii games)
 
-#### SAVE <filename>
+#### `SAVE <filename>`
 
 Makes a savestate and saves it at the given location.
 
 filename
-  : location of the file to save to. <filename> can contain spaces because it is the last (and only) argument. <filename> must not contain any of these characters: `?"<>|`.
+  : location of the file to save to. `<filename>` can contain spaces because it is the last (and only) argument. `<filename>` must not contain any of these characters: `?"<>|`.
 
-#### LOAD <filename>
+#### `LOAD <filename>`
 
-<filename> underlies the same restrictions as in the SAVE command. Loads a savestate from the given location.
+`<filename>` underlies the same restrictions as in the SAVE command. Loads a savestate from the given location.
 The server will either send "SUCCESS" or "FAIL" after this command was processed. This behavious is guaranteed, and it's recommended for the client to synchronously wait for this response before sending further commands.
 
-#### VOLUME <volume>
+#### `VOLUME <volume>`
 
 Sets Dolphin's volume. Must be a number between 0 and 100.
 
-#### STOP
+#### `STOP`
 
 Stops the emulation. There is no command to start a different emulation, so this pretty much is a one-way command for shutdown.
 
-#### INSERT <filename>
+#### `INSERT <filename>`
 
-<filename> underlies the same restrictions as in the SAVE command. Changes the inserted game.
+`<filename>` underlies the same restrictions as in the SAVE command. Changes the inserted game.
 **This command is not working right now and does nothing. [Why?](https://bugs.dolphin-emu.org/issues/9019)**
 
 ### server to client
 
-#### LOG <level> <message>
+#### `LOG <level> <message>`
 
 Sends a log message from Dolphin. Useful to collect all logs in a central place.
 
 level
   : the log severity. Can be between 1 and 5, which represent NOTICE, ERROR, WARNING, INFO and DEBUG.
-message
-  : log-message. <message> can contain spaces, as it is the last argument.
 
-#### SUCCESS
+message
+  : log-message. `<message>` can contain spaces, as it is the last argument.
+
+#### `SUCCESS`
 
 Indicating success of a previously transmitted command that returns whether it succeeded or not (currently only used by LOAD).
 
-#### FAIL
+#### `FAIL`
 
 Indicating failure of a previously transmitted command that returns whether it succeeded or not (currently only used by LOAD).
 
-#### MEM <addr> <val>
+#### `MEM <addr> <val>`
 
 Reports the current value at the given address. Size of the returned value depends on what <mode> was submitted to either READ or SUBSCRIBE.
 
 addr
   : address where the value was read from
+
 val
   : value at that address, as an integer.
 
-#### MEM_MULTI <addr> <val>...
+#### `MEM_MULTI <addr> <val>...`
 
 Reports the current values starting at the given address. 
 
 addr
   : address where the values were read from.
+
 val
   : consecutive 32-bit values read starting from <addr>
