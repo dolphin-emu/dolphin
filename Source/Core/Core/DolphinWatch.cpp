@@ -545,8 +545,8 @@ namespace DolphinWatch {
 			}
 
 			// Not working yet, see https://bugs.dolphin-emu.org/issues/9019
-			DVDInterface::ChangeDisc(file);
-			ProcessorInterface::ResetButton_Tap();
+			//DVDInterface::ChangeDisc(file);
+			//ProcessorInterface::ResetButton_Tap();
 		}
 		else {
 			ERROR_LOG(DOLPHINWATCH, "Unknown command: %s", cmd.c_str());

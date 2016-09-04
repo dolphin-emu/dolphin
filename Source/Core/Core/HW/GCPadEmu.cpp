@@ -89,8 +89,7 @@ GCPadStatus GCPad::GetInput() const
   // if there is valid forced input, this controller is hijacked
   // just return that then
   if (m_forced_input.err == PadError::PAD_ERR_NONE) {
-    memcpy(pad, &m_forced_input, sizeof(m_forced_input));
-    return;
+    return m_forced_input;
   }
 
   ControlState x, y, triggers[2];

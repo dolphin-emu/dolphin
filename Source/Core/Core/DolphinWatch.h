@@ -88,7 +88,7 @@ namespace DolphinWatch {
 	WiimoteEmu::Wiimote* GetWiimote(int i_wiimote);
 	GCPad* GetGCPad(int i_pad);
 	void SendButtonsWii(int i_wiimote, u16 _buttons);
-	void SendButtonsGC(int i_pad, u16 _buttons);
+	void SendButtonsGC(int i_pad, u16 _buttons, float stickX, float stickY, float substickX, float substickY);
 	void CheckHijacks();
 
 	void Log(LogTypes::LOG_LEVELS level, const char* msg);
