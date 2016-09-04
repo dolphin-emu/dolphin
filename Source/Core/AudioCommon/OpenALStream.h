@@ -63,6 +63,7 @@ public:
   void Stop() override;
   void Clear(bool mute) override;
   void Update() override;
+  void ALCheckError(ALenum* err, const char desc[]);
 
   static bool isValid() { return true; }
 private:
