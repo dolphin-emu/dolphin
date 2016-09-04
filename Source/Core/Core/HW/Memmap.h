@@ -35,7 +35,6 @@ extern u8* m_pRAM;
 extern u8* m_pEXRAM;
 extern u8* m_pL1Cache;
 extern u8* m_pFakeVMEM;
-extern bool bFakeVMEM;
 
 enum
 {

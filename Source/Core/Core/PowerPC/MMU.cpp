@@ -211,7 +211,7 @@ __forceinline static T ReadFromHardware(u32 em_address)
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (Memory::bFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
+  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
     return bswap(*(T*)&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK]);
   }
@@ -295,7 +295,7 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (Memory::bFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
+  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
     *(T*)&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK] = bswap(data);
     return;
@@ -395,7 +395,7 @@ TryReadInstResult TryReadInstruction(u32 address)
 
   u32 hex;
   // TODO: Refactor this. This icache implementation is totally wrong if used with the fake vmem.
-  if (Memory::bFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
+  if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
   {
     hex = bswap(*(const u32*)&Memory::m_pFakeVMEM[address & Memory::FAKEVMEM_MASK]);
   }
@@ -639,7 +639,7 @@ bool HostIsRAMAddress(u32 address)
     return true;
   else if (Memory::m_pEXRAM && segment == 0x1 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
     return true;
-  else if (Memory::bFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
+  else if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
     return true;
   else if (segment == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
     return true;
@@ -1166,7 +1166,7 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
         // The bottom bit is whether the translation is valid; the second
         // bit from the bottom is whether we can use the fastmem arena.
         u32 valid_bit = 0x1;
-        if (Memory::bFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
+        if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
           valid_bit = 0x3;
         else if (address < Memory::REALRAM_SIZE)
           valid_bit = 0x3;
@@ -1202,7 +1202,7 @@ void DBATUpdated()
   bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
   if (extended_bats)
     UpdateBATs(dbat_table, SPR_DBAT4U);
-  if (Memory::bFakeVMEM)
+  if (Memory::m_pFakeVMEM)
   {
     // In Fake-MMU mode, insert some extra entries into the BAT tables.
     UpdateFakeMMUBat(dbat_table, 0x40000000);
@@ -1221,7 +1221,7 @@ void IBATUpdated()
   bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
   if (extended_bats)
     UpdateBATs(ibat_table, SPR_IBAT4U);
-  if (Memory::bFakeVMEM)
+  if (Memory::m_pFakeVMEM)
   {
     // In Fake-MMU mode, insert some extra entries into the BAT tables.
     UpdateFakeMMUBat(ibat_table, 0x40000000);

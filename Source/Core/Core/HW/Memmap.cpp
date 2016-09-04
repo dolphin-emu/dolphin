@@ -34,9 +34,6 @@
 
 namespace Memory
 {
-// (See comment below describing memory map.)
-bool bFakeVMEM = false;
-
 // =================================
 // Init() declarations
 // ----------------
@@ -169,6 +166,7 @@ void Init()
 {
   bool wii = SConfig::GetInstance().bWii;
   bool bMMU = SConfig::GetInstance().bMMU;
+  bool bFakeVMEM = false;
 #ifndef _ARCH_32
   // If MMU is turned off in GameCube mode, turn on fake VMEM hack.
   // The fake VMEM hack's address space is above the memory space that we
@@ -269,7 +267,7 @@ void DoState(PointerWrap& p)
   p.DoArray(m_pRAM, RAM_SIZE);
   p.DoArray(m_pL1Cache, L1_CACHE_SIZE);
   p.DoMarker("Memory RAM");
-  if (bFakeVMEM)
+  if (m_pFakeVMEM)
     p.DoArray(m_pFakeVMEM, FAKEVMEM_SIZE);
   p.DoMarker("Memory FakeVMEM");
   if (wii)
@@ -283,7 +281,7 @@ void Shutdown()
   u32 flags = 0;
   if (SConfig::GetInstance().bWii)
     flags |= PhysicalMemoryRegion::WII_ONLY;
-  if (bFakeVMEM)
+  if (m_pFakeVMEM)
     flags |= PhysicalMemoryRegion::FAKE_VMEM;
   for (PhysicalMemoryRegion& region : physical_regions)
   {
@@ -397,7 +395,7 @@ u8* GetPointer(u32 address)
   if (address < REALRAM_SIZE)
     return m_pRAM + address;
 
-  if (SConfig::GetInstance().bWii)
+  if (m_pEXRAM)
   {
     if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
       return m_pEXRAM + (address & EXRAM_MASK);
