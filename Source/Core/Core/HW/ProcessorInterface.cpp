@@ -10,6 +10,9 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
+#include "Core/HW/SystemTimers.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace ProcessorInterface
@@ -28,8 +31,11 @@ static u32 m_FlipperRev;
 static u32 m_Unknown;
 
 // ID and callback for scheduling reset button presses/releases
-static int toggleResetButton;
+static CoreTiming::EventType* toggleResetButton;
 static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate);
+
+static CoreTiming::EventType* iosNotifyResetButton;
+static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate);
 
 // Let the PPC know that an external exception is set/cleared
 void UpdateException();
@@ -67,6 +73,8 @@ void Init()
   m_InterruptCause = INT_CAUSE_RST_BUTTON | INT_CAUSE_VI;
 
   toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
+  iosNotifyResetButton =
+      CoreTiming::RegisterEvent("IOSNotifyResetButton", IOSNotifyResetButtonCallback);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -195,10 +203,23 @@ static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate)
   SetResetButton(!!userdata);
 }
 
+static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate)
+{
+  if (SConfig::GetInstance().bWii)
+  {
+    std::shared_ptr<IWII_IPC_HLE_Device> stm =
+        WII_IPC_HLE_Interface::GetDeviceByName("/dev/stm/eventhook");
+    if (stm)
+      std::static_pointer_cast<CWII_IPC_HLE_Device_stm_eventhook>(stm)->ResetButton();
+  }
+}
+
 void ResetButton_Tap()
 {
-  CoreTiming::ScheduleEvent_AnyThread(0, toggleResetButton, true);
-  CoreTiming::ScheduleEvent_AnyThread(243000000, toggleResetButton, false);
+  CoreTiming::ScheduleEvent(0, toggleResetButton, true, CoreTiming::FromThread::ANY);
+  CoreTiming::ScheduleEvent(0, iosNotifyResetButton, 0, CoreTiming::FromThread::ANY);
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, toggleResetButton, false,
+                            CoreTiming::FromThread::ANY);
 }
 
 }  // namespace ProcessorInterface

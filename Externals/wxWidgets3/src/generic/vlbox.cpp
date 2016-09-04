@@ -41,7 +41,7 @@
 // event tables
 // ----------------------------------------------------------------------------
 
-BEGIN_EVENT_TABLE(wxVListBox, wxVScrolledWindow)
+wxBEGIN_EVENT_TABLE(wxVListBox, wxVScrolledWindow)
     EVT_PAINT(wxVListBox::OnPaint)
 
     EVT_KEY_DOWN(wxVListBox::OnKeyDown)
@@ -52,13 +52,13 @@ BEGIN_EVENT_TABLE(wxVListBox, wxVScrolledWindow)
     EVT_KILL_FOCUS(wxVListBox::OnSetOrKillFocus)
 
     EVT_SIZE(wxVListBox::OnSize)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 // ============================================================================
 // implementation
 // ============================================================================
 
-IMPLEMENT_ABSTRACT_CLASS(wxVListBox, wxVScrolledWindow)
+wxIMPLEMENT_ABSTRACT_CLASS(wxVListBox, wxVScrolledWindow);
 const char wxVListBoxNameStr[] = "wxVListBox";
 
 // ----------------------------------------------------------------------------
@@ -696,13 +696,7 @@ void wxVListBox::OnLeftDown(wxMouseEvent& event)
         if ( event.ShiftDown() )
            flags |= ItemClick_Shift;
 
-        // under Mac Apple-click is used in the same way as Ctrl-click
-        // elsewhere
-#ifdef __WXMAC__
-        if ( event.MetaDown() )
-#else
         if ( event.ControlDown() )
-#endif
             flags |= ItemClick_Ctrl;
 
         DoHandleItemClick(item, flags);

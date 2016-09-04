@@ -263,9 +263,7 @@ wxBoxSizer* TASInputDlg::CreateCCLayout()
   m_cc_r_stick_szr = CreateStickLayout(&m_cc_r_stick, _("Right stick"));
 
   m_cc_l = CreateControl(wxSL_VERTICAL, -1, 100, false, 31, 0);
-  ;
   m_cc_r = CreateControl(wxSL_VERTICAL, -1, 100, false, 31, 0);
-  ;
 
   wxStaticBoxSizer* const shoulder_box =
       new wxStaticBoxSizer(wxHORIZONTAL, this, _("Shoulder Buttons"));
@@ -289,7 +287,8 @@ wxBoxSizer* TASInputDlg::CreateCCLayout()
   cc_buttons_dpad->AddSpacer(20);
 
   for (auto button : m_cc_buttons)
-    cc_buttons_grid->Add(button.checkbox);
+    if (!button.checkbox->GetContainingSizer())
+      cc_buttons_grid->Add(button.checkbox);
   cc_buttons_grid->AddSpacer(5);
 
   cc_buttons_box->Add(cc_buttons_grid);
@@ -442,26 +441,23 @@ TASInputDlg::Stick TASInputDlg::CreateStick(int id_stick, int xRange, int yRange
   tempStick.bitmap->Bind(wxEVT_RIGHT_UP, &TASInputDlg::OnMouseUpR, this);
   tempStick.x_cont = CreateControl(wxSL_HORIZONTAL | (reverseX ? wxSL_INVERSE : 0), 120, -1,
                                    reverseX, xRange, defaultX);
-  tempStick.y_cont = CreateControl(wxSL_VERTICAL | (reverseY ? wxSL_INVERSE : 0), -1, 120, reverseY,
-                                   yRange, defaultY);
+  tempStick.y_cont = CreateControl(wxSL_VERTICAL | wxSL_LEFT | (reverseY ? wxSL_INVERSE : 0), -1,
+                                   120, reverseY, yRange, defaultY);
   return tempStick;
 }
 
 wxStaticBoxSizer* TASInputDlg::CreateStickLayout(Stick* tempStick, const wxString& title)
 {
   wxStaticBoxSizer* const temp_box = new wxStaticBoxSizer(wxHORIZONTAL, this, title);
-  wxBoxSizer* const temp_xslider_box = new wxBoxSizer(wxHORIZONTAL);
-  wxBoxSizer* const temp_yslider_box = new wxBoxSizer(wxVERTICAL);
-  wxBoxSizer* const temp_stick_box = new wxBoxSizer(wxVERTICAL);
+  wxFlexGridSizer* grid = new wxFlexGridSizer(2, 3, 3);
 
-  temp_xslider_box->Add(tempStick->x_cont.slider, 0, wxALIGN_TOP);
-  temp_xslider_box->Add(tempStick->x_cont.text, 0, wxALIGN_TOP);
-  temp_stick_box->Add(temp_xslider_box);
-  temp_stick_box->Add(tempStick->bitmap, 0, wxALL | wxALIGN_CENTER, 3);
-  temp_box->Add(temp_stick_box);
-  temp_yslider_box->Add(tempStick->y_cont.slider, 0, wxALIGN_CENTER_VERTICAL);
-  temp_yslider_box->Add(tempStick->y_cont.text, 0, wxALIGN_CENTER_VERTICAL);
-  temp_box->Add(temp_yslider_box);
+  grid->Add(tempStick->x_cont.slider, 0, wxALIGN_CENTER_HORIZONTAL | wxALIGN_BOTTOM);
+  grid->Add(tempStick->x_cont.text, 0, wxEXPAND);
+  grid->Add(tempStick->bitmap, 0, wxALL | wxALIGN_CENTER, 3);
+  grid->Add(tempStick->y_cont.slider, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_LEFT);
+  grid->Add(1, 1);
+  grid->Add(tempStick->y_cont.text, 0, wxEXPAND);
+  temp_box->Add(grid, 1, wxEXPAND | wxALL, 3);
   return temp_box;
 }
 
@@ -473,12 +469,12 @@ wxStaticBoxSizer* TASInputDlg::CreateAccelLayout(Control* x, Control* y, Control
   wxStaticBoxSizer* const yBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Y"));
   wxStaticBoxSizer* const zBox = new wxStaticBoxSizer(wxVERTICAL, this, _("Z"));
 
-  xBox->Add(x->slider, 0, wxALIGN_CENTER_VERTICAL);
-  xBox->Add(x->text, 0, wxALIGN_CENTER_VERTICAL);
-  yBox->Add(y->slider, 0, wxALIGN_CENTER_VERTICAL);
-  yBox->Add(y->text, 0, wxALIGN_CENTER_VERTICAL);
-  zBox->Add(z->slider, 0, wxALIGN_CENTER_VERTICAL);
-  zBox->Add(z->text, 0, wxALIGN_CENTER_VERTICAL);
+  xBox->Add(x->slider, 0, wxALIGN_CENTER_HORIZONTAL);
+  xBox->Add(x->text, 0, wxALIGN_CENTER_HORIZONTAL);
+  yBox->Add(y->slider, 0, wxALIGN_CENTER_HORIZONTAL);
+  yBox->Add(y->text, 0, wxALIGN_CENTER_HORIZONTAL);
+  zBox->Add(z->slider, 0, wxALIGN_CENTER_HORIZONTAL);
+  zBox->Add(z->text, 0, wxALIGN_CENTER_HORIZONTAL);
   temp_box->Add(xBox, 0, wxLEFT | wxBOTTOM | wxRIGHT, 5);
   temp_box->Add(yBox, 0, wxRIGHT, 5);
   temp_box->Add(zBox, 0, wxRIGHT, 5);
@@ -510,6 +506,7 @@ void TASInputDlg::ResetValues()
     if (button != nullptr)
     {
       button->value = false;
+      button->is_checked = false;
       button->checkbox->SetValue(false);
     }
   }
@@ -528,6 +525,7 @@ void TASInputDlg::ResetValues()
     for (Button& button : m_cc_buttons)
     {
       button.value = false;
+      button.is_checked = false;
       button.checkbox->SetValue(false);
     }
 
@@ -1073,21 +1071,8 @@ void TASInputDlg::OnMouseDownL(wxMouseEvent& event)
 
 void TASInputDlg::SetTurbo(wxMouseEvent& event)
 {
-  Button* button = nullptr;
-
-  for (Button* const btn : m_buttons)
-  {
-    if (btn != nullptr && event.GetId() == btn->id)
-      button = btn;
-  }
-  if (m_ext == 2)
-  {
-    for (size_t i = 0; i < ArraySize(m_cc_buttons); ++i)
-    {
-      if (event.GetId() == m_cc_buttons[i].id)
-        button = &m_cc_buttons[i];
-    }
-  }
+  auto cbox = static_cast<wxCheckBox*>(event.GetEventObject());
+  auto button = static_cast<Button*>(cbox->GetClientData());
 
   if (event.LeftDown())
   {
@@ -1101,6 +1086,7 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
   if (button)
   {
     button->checkbox->SetValue(true);
+    button->is_checked = true;
     button->turbo_on = !button->turbo_on;
   }
 
@@ -1110,11 +1096,11 @@ void TASInputDlg::SetTurbo(wxMouseEvent& event)
 // NOTE: Host / CPU Thread
 void TASInputDlg::ButtonTurbo()
 {
-  static u64 frame = Movie::g_currentFrame;
+  static u64 frame = Movie::GetCurrentFrame();
 
-  if (frame != Movie::g_currentFrame)
+  if (frame != Movie::GetCurrentFrame())
   {
-    frame = Movie::g_currentFrame;
+    frame = Movie::GetCurrentFrame();
     for (Button* const button : m_buttons)
     {
       if (button != nullptr && button->turbo_on)
@@ -1208,13 +1194,9 @@ wxBitmap TASInputDlg::CreateStickBitmap(int x, int y)
   memDC.SetBackground(*wxLIGHT_GREY_BRUSH);
   memDC.Clear();
   memDC.SetBrush(*wxWHITE_BRUSH);
-  memDC.DrawCircle(65, 65, 64);
-  memDC.SetBrush(*wxRED_BRUSH);
+  memDC.DrawCircle(64, 64, 64);
+  memDC.SetPen(wxPen(*wxBLACK, 3, wxPENSTYLE_SOLID));
   memDC.DrawLine(64, 64, x, y);
-  memDC.DrawLine(63, 64, x - 1, y);
-  memDC.DrawLine(65, 64, x + 1, y);
-  memDC.DrawLine(64, 63, x, y - 1);
-  memDC.DrawLine(64, 65, x, y + 1);
   memDC.SetPen(*wxBLACK_PEN);
   memDC.CrossHair(64, 64);
   memDC.SetBrush(*wxBLUE_BRUSH);

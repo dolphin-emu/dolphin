@@ -394,6 +394,18 @@ public final class EmulationActivity extends AppCompatActivity
 				return;
 			}
 
+			case R.id.menu_emulation_configure_controls:
+				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager().findFragmentById(R.id.frame_emulation_fragment);
+				if (emulationFragment.isConfiguringControls())
+				{
+					emulationFragment.stopConfiguringControls();
+				}
+				else
+				{
+					emulationFragment.startConfiguringControls();
+				}
+				break;
+
 			case R.id.menu_refresh_wiimotes:
 				NativeLibrary.RefreshWiimotes();
 				return;

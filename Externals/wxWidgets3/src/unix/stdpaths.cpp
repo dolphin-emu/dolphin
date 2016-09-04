@@ -233,7 +233,7 @@ wxStandardPaths::GetLocalizedResourcesDir(const wxString& lang,
     return GetInstallPrefix() + wxT("/share/locale/") + lang + wxT("/LC_MESSAGES");
 }
 
-wxString wxStandardPaths::GetDocumentsDir() const
+wxString wxStandardPaths::GetUserDir(Dir userDir) const
 {
     {
         wxLogNull logNull;
@@ -246,6 +246,29 @@ wxString wxStandardPaths::GetDocumentsDir() const
         wxString dirsFile = configPath + wxT("/user-dirs.dirs");
         if (wxFileExists(dirsFile))
         {
+            wxString userDirId;
+            switch (userDir)
+            {
+                case Dir_Desktop:
+                    userDirId = "XDG_DESKTOP_DIR";
+                    break;
+                case Dir_Downloads:
+                    userDirId = "XDG_DOWNLOAD_DIR";
+                    break;
+                case Dir_Music:
+                    userDirId = "XDG_MUSIC_DIR";
+                    break;
+                case Dir_Pictures:
+                    userDirId = "XDG_PICTURES_DIR";
+                    break;
+                case Dir_Videos:
+                    userDirId = "XDG_VIDEOS_DIR";
+                    break;
+                default:
+                    userDirId = "XDG_DOCUMENTS_DIR";
+                    break;
+            }
+
             wxTextFile textFile;
             if (textFile.Open(dirsFile))
             {
@@ -253,13 +276,15 @@ wxString wxStandardPaths::GetDocumentsDir() const
                 for (i = 0; i < textFile.GetLineCount(); i++)
                 {
                     wxString line(textFile[i]);
-                    int pos = line.Find(wxT("XDG_DOCUMENTS_DIR"));
+                    int pos = line.Find(userDirId);
                     if (pos != wxNOT_FOUND)
                     {
                         wxString value = line.AfterFirst(wxT('='));
                         value.Replace(wxT("$HOME"), homeDir);
                         value.Trim(true);
                         value.Trim(false);
+                        // Remove quotes
+                        value.Replace("\"", "", true /* replace all */);
                         if (!value.IsEmpty() && wxDirExists(value))
                             return value;
                         else
@@ -270,7 +295,7 @@ wxString wxStandardPaths::GetDocumentsDir() const
         }
     }
 
-    return wxStandardPathsBase::GetDocumentsDir();
+    return wxStandardPathsBase::GetUserDir(userDir);
 }
 
 #endif // __VMS/!__VMS

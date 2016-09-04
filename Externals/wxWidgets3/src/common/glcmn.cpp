@@ -17,7 +17,6 @@
 
 // for compilers that support precompilation, includes "wx.h".
 #include "wx/wxprec.h"
-#define GL_GLEXT_PROTOTYPES
 
 #ifdef __BORLANDC__
     #pragma hdrstop
@@ -35,10 +34,38 @@
 #include "wx/build.h"
 WX_CHECK_BUILD_OPTIONS("wxGL")
 
-IMPLEMENT_CLASS(wxGLApp, wxApp)
+wxIMPLEMENT_CLASS(wxGLApp, wxApp);
 
 // ============================================================================
 // implementation
+// ============================================================================
+
+void wxGLAttribsBase::AddAttribBits(int searchVal, int combineVal)
+{
+    // Search for searchVal
+    wxVector<int>::iterator it = m_GLValues.begin();
+    while ( it != m_GLValues.end() && *it != searchVal )
+        it++;
+    // Have we searchVal?
+    if ( it != m_GLValues.end() )
+    {
+        if ( ++it == m_GLValues.end() )
+        {
+            m_GLValues.push_back(combineVal);
+        }
+        else
+        {
+            *it |= combineVal;
+        }
+    }
+    else
+    {
+        // Add the identifier and the bits
+        m_GLValues.push_back(searchVal);
+        m_GLValues.push_back(combineVal);
+    }
+}
+
 // ============================================================================
 
 wxGLCanvasBase::wxGLCanvasBase()
@@ -57,7 +84,7 @@ bool wxGLCanvasBase::SetCurrent(const wxGLContext& context) const
     // although on MSW it works even if the window is still hidden, it doesn't
     // work in other ports (notably X11-based ones) and documentation mentions
     // that SetCurrent() can only be called for a shown window, so check for it
-    wxASSERT_MSG( IsShownOnScreen(), wxT("can't make hidden GL canvas current") );
+    wxASSERT_MSG( IsShown(), wxT("can't make hidden GL canvas current") );
 
 
     return context.SetCurrent(*static_cast<const wxGLCanvas *>(this));
@@ -146,6 +173,207 @@ bool wxGLCanvasBase::IsExtensionInList(const char *list, const char *extension)
     }
 
     return false;
+}
+
+/* static */
+bool wxGLCanvasBase::ParseAttribList(const int *attribList,
+                                     wxGLAttributes& dispAttrs,
+                                     wxGLContextAttrs* ctxAttrs)
+{
+    // Some attributes are usually needed
+    dispAttrs.PlatformDefaults();
+    if ( ctxAttrs )
+        ctxAttrs->PlatformDefaults();
+
+    if ( !attribList )
+    {
+        // Set default attributes
+        dispAttrs.Defaults();
+        dispAttrs.EndList();
+        if ( ctxAttrs )
+            ctxAttrs->EndList();
+        return true;
+    }
+
+    int src = 0;
+    int minColo[4] = {0, 0, 0, 0};
+    int minAcum[4] = {0, 0, 0, 0};
+    int num = 0;
+    while ( attribList[src] )
+    {
+        // Check a non zero-terminated list. This may help a bit with malformed lists.
+        if ( ++num > 200 )
+        {
+            wxFAIL_MSG("The attributes list is not zero-terminated");
+        }
+
+        switch ( attribList[src++] )
+        {
+            // Pixel format attributes
+
+            case WX_GL_RGBA:
+                dispAttrs.RGBA();
+                break;
+
+            case WX_GL_BUFFER_SIZE:
+                dispAttrs.BufferSize(attribList[src++]);
+                break;
+
+            case WX_GL_LEVEL:
+                dispAttrs.Level(attribList[src++]);
+                break;
+
+            case WX_GL_DOUBLEBUFFER:
+                dispAttrs.DoubleBuffer();
+                break;
+
+            case WX_GL_STEREO:
+                dispAttrs.Stereo();
+                break;
+
+            case WX_GL_AUX_BUFFERS:
+                dispAttrs.AuxBuffers(attribList[src++]);
+                break;
+
+            case WX_GL_MIN_RED:
+                minColo[0] = attribList[src++];
+                break;
+
+            case WX_GL_MIN_GREEN:
+                minColo[1] = attribList[src++];
+                break;
+
+            case WX_GL_MIN_BLUE:
+                minColo[2] = attribList[src++];
+                break;
+
+            case WX_GL_MIN_ALPHA:
+                minColo[3] = attribList[src++];
+                break;
+
+            case WX_GL_DEPTH_SIZE:
+                dispAttrs.Depth(attribList[src++]);
+                break;
+
+            case WX_GL_STENCIL_SIZE:
+                dispAttrs.Stencil(attribList[src++]);
+                break;
+
+            case WX_GL_MIN_ACCUM_RED:
+                minAcum[0] = attribList[src++];
+                break;
+
+            case WX_GL_MIN_ACCUM_GREEN:
+                minAcum[1] = attribList[src++];
+                break;
+
+            case WX_GL_MIN_ACCUM_BLUE:
+                minAcum[2] = attribList[src++];
+                break;
+
+            case WX_GL_MIN_ACCUM_ALPHA:
+                minAcum[3] = attribList[src++];
+                break;
+
+            case WX_GL_SAMPLE_BUFFERS:
+                dispAttrs.SampleBuffers(attribList[src++]);
+                break;
+
+            case WX_GL_SAMPLES:
+                dispAttrs.Samplers(attribList[src++]);
+                break;
+
+            case WX_GL_FRAMEBUFFER_SRGB:
+                dispAttrs.FrameBuffersRGB();
+                break;
+
+            // Context attributes
+
+            case WX_GL_CORE_PROFILE:
+                if ( ctxAttrs )
+                    ctxAttrs->CoreProfile();
+                break;
+
+            case WX_GL_MAJOR_VERSION:
+                if ( ctxAttrs )
+                    ctxAttrs->MajorVersion(attribList[src]);
+                src++;
+                break;
+
+            case WX_GL_MINOR_VERSION:
+                if ( ctxAttrs )
+                    ctxAttrs->MinorVersion(attribList[src]);
+                src++;
+                break;
+
+            case wx_GL_COMPAT_PROFILE:
+                if ( ctxAttrs )
+                    ctxAttrs->CompatibilityProfile();
+                break;
+
+            case WX_GL_FORWARD_COMPAT:
+                if ( ctxAttrs )
+                    ctxAttrs->ForwardCompatible();
+                break;
+
+            case WX_GL_ES2:
+                if ( ctxAttrs )
+                    ctxAttrs->ES2();
+                break;
+
+            case WX_GL_DEBUG:
+                if ( ctxAttrs )
+                    ctxAttrs->DebugCtx();
+                break;
+
+            case WX_GL_ROBUST_ACCESS:
+                if ( ctxAttrs )
+                    ctxAttrs->Robust();
+                break;
+
+            case WX_GL_NO_RESET_NOTIFY:
+                if ( ctxAttrs )
+                    ctxAttrs->NoResetNotify();
+                break;
+
+            case WX_GL_LOSE_ON_RESET:
+                if ( ctxAttrs )
+                    ctxAttrs->LoseOnReset();
+                break;
+
+            case WX_GL_RESET_ISOLATION:
+                if ( ctxAttrs )
+                    ctxAttrs->ResetIsolation();
+                break;
+
+            case WX_GL_RELEASE_FLUSH:
+                if ( ctxAttrs )
+                    ctxAttrs->ReleaseFlush(1);
+                break;
+
+            case WX_GL_RELEASE_NONE:
+                if ( ctxAttrs )
+                    ctxAttrs->ReleaseFlush(0);
+                break;
+
+            default:
+                wxFAIL_MSG("Unexpected value in attributes list");
+                return false;
+        }
+    }
+
+    // Set color and accumulation
+    if ( minColo[0] || minColo[1] || minColo[2] || minColo[3] )
+        dispAttrs.MinRGBA(minColo[0], minColo[1], minColo[2], minColo[3]);
+    if ( minAcum[0] || minAcum[1] || minAcum[2] || minAcum[3] )
+        dispAttrs.MinAcumRGBA(minAcum[0], minAcum[1], minAcum[2], minAcum[3]);
+
+    // The attributes lists must be zero-terminated
+    dispAttrs.EndList();
+    if ( ctxAttrs )
+        ctxAttrs->EndList();
+
+    return true;
 }
 
 // ============================================================================

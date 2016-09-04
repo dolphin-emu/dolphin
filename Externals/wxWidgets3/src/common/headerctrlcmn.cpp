@@ -75,12 +75,12 @@ public:
 
 extern WXDLLIMPEXP_DATA_CORE(const char) wxHeaderCtrlNameStr[] = "wxHeaderCtrl";
 
-BEGIN_EVENT_TABLE(wxHeaderCtrlBase, wxControl)
+wxBEGIN_EVENT_TABLE(wxHeaderCtrlBase, wxControl)
     EVT_HEADER_SEPARATOR_DCLICK(wxID_ANY, wxHeaderCtrlBase::OnSeparatorDClick)
 #if wxUSE_MENUS
     EVT_HEADER_RIGHT_CLICK(wxID_ANY, wxHeaderCtrlBase::OnRClick)
 #endif // wxUSE_MENUS
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxHeaderCtrlBase::ScrollWindow(int dx,
                                     int WXUNUSED_UNLESS_DEBUG(dy),
@@ -218,15 +218,10 @@ unsigned int wxHeaderCtrlBase::GetColumnPos(unsigned int idx) const
     wxCHECK_MSG( idx < count, wxNO_COLUMN, "invalid index" );
 
     const wxArrayInt order = GetColumnsOrder();
-    for ( unsigned n = 0; n < count; n++ )
-    {
-        if ( (unsigned)order[n] == idx )
-            return n;
-    }
+    int pos = order.Index(idx);
+    wxCHECK_MSG( pos != wxNOT_FOUND, wxNO_COLUMN, "column unexpectedly not displayed at all" );
 
-    wxFAIL_MSG( "column unexpectedly not displayed at all" );
-
-    return wxNO_COLUMN;
+    return (unsigned int)pos;
 }
 
 /* static */
@@ -234,31 +229,14 @@ void wxHeaderCtrlBase::MoveColumnInOrderArray(wxArrayInt& order,
                                               unsigned int idx,
                                               unsigned int pos)
 {
-    const unsigned count = order.size();
+    int posOld = order.Index(idx);
+    wxASSERT_MSG( posOld != wxNOT_FOUND, "invalid index" );
 
-    wxArrayInt orderNew;
-    orderNew.reserve(count);
-    for ( unsigned n = 0; ; n++ )
+    if ( pos != (unsigned int)posOld )
     {
-        // NB: order of checks is important for this to work when the new
-        //     column position is the same as the old one
-
-        // insert the column at its new position
-        if ( orderNew.size() == pos )
-            orderNew.push_back(idx);
-
-        if ( n == count )
-            break;
-
-        // delete the column from its old position
-        const unsigned idxOld = order[n];
-        if ( idxOld == idx )
-            continue;
-
-        orderNew.push_back(idxOld);
+        order.RemoveAt(posOld);
+        order.Insert(idx, pos);
     }
-
-    order.swap(orderNew);
 }
 
 void
@@ -492,7 +470,7 @@ wxHeaderCtrlSimple::UpdateColumnWidthToFit(unsigned int idx, int widthTitle)
 // wxHeaderCtrlEvent implementation
 // ============================================================================
 
-IMPLEMENT_DYNAMIC_CLASS(wxHeaderCtrlEvent, wxNotifyEvent)
+wxIMPLEMENT_DYNAMIC_CLASS(wxHeaderCtrlEvent, wxNotifyEvent);
 
 wxDEFINE_EVENT( wxEVT_HEADER_CLICK, wxHeaderCtrlEvent);
 wxDEFINE_EVENT( wxEVT_HEADER_RIGHT_CLICK, wxHeaderCtrlEvent);

@@ -73,9 +73,10 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
-  m_options->settings.emplace_back(
-      new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
-  m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
+  m_options->boolean_settings.emplace_back(
+      std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
+      _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
 }
 
 std::string GCKeyboard::GetName() const
@@ -83,14 +84,20 @@ std::string GCKeyboard::GetName() const
   return std::string("GCKeyboard") + char('1' + m_index);
 }
 
-void GCKeyboard::GetInput(KeyboardStatus* const kb)
+KeyboardStatus GCKeyboard::GetInput() const
 {
-  m_keys0x->GetState(&kb->key0x, keys0_bitmasks);
-  m_keys1x->GetState(&kb->key1x, keys1_bitmasks);
-  m_keys2x->GetState(&kb->key2x, keys2_bitmasks);
-  m_keys3x->GetState(&kb->key3x, keys3_bitmasks);
-  m_keys4x->GetState(&kb->key4x, keys4_bitmasks);
-  m_keys5x->GetState(&kb->key5x, keys5_bitmasks);
+  auto lock = ControllerEmu::GetStateLock();
+
+  KeyboardStatus kb = {};
+
+  m_keys0x->GetState(&kb.key0x, keys0_bitmasks);
+  m_keys1x->GetState(&kb.key1x, keys1_bitmasks);
+  m_keys2x->GetState(&kb.key2x, keys2_bitmasks);
+  m_keys3x->GetState(&kb.key3x, keys3_bitmasks);
+  m_keys4x->GetState(&kb.key4x, keys4_bitmasks);
+  m_keys5x->GetState(&kb.key5x, keys5_bitmasks);
+
+  return kb;
 }
 
 void GCKeyboard::LoadDefaults(const ControllerInterface& ciface)

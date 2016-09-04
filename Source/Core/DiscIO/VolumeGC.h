@@ -10,13 +10,17 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "DiscIO/Blob.h"
 #include "DiscIO/Volume.h"
 
 // --- this volume type is used for GC disc images ---
 
 namespace DiscIO
 {
+enum class BlobType;
+enum class Country;
+enum class Language;
+enum class Platform;
+
 class CVolumeGC : public IVolume
 {
 public:
@@ -27,18 +31,18 @@ public:
   std::string GetMakerID() const override;
   u16 GetRevision() const override;
   std::string GetInternalName() const override;
-  std::map<ELanguage, std::string> GetShortNames() const override;
-  std::map<ELanguage, std::string> GetLongNames() const override;
-  std::map<ELanguage, std::string> GetShortMakers() const override;
-  std::map<ELanguage, std::string> GetLongMakers() const override;
-  std::map<ELanguage, std::string> GetDescriptions() const override;
+  std::map<Language, std::string> GetShortNames() const override;
+  std::map<Language, std::string> GetLongNames() const override;
+  std::map<Language, std::string> GetShortMakers() const override;
+  std::map<Language, std::string> GetLongMakers() const override;
+  std::map<Language, std::string> GetDescriptions() const override;
   std::vector<u32> GetBanner(int* width, int* height) const override;
   u64 GetFSTSize() const override;
   std::string GetApploaderDate() const override;
   u8 GetDiscNumber() const override;
 
-  EPlatform GetVolumeType() const override;
-  ECountry GetCountry() const override;
+  Platform GetVolumeType() const override;
+  Country GetCountry() const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;
   u64 GetRawSize() const override;
@@ -73,12 +77,12 @@ private:
   static const size_t BNR1_SIZE = sizeof(GCBanner) - sizeof(GCBannerInformation) * 5;
   static const size_t BNR2_SIZE = sizeof(GCBanner);
 
-  mutable std::map<ELanguage, std::string> m_short_names;
+  mutable std::map<Language, std::string> m_short_names;
 
-  mutable std::map<ELanguage, std::string> m_long_names;
-  mutable std::map<ELanguage, std::string> m_short_makers;
-  mutable std::map<ELanguage, std::string> m_long_makers;
-  mutable std::map<ELanguage, std::string> m_descriptions;
+  mutable std::map<Language, std::string> m_long_names;
+  mutable std::map<Language, std::string> m_short_makers;
+  mutable std::map<Language, std::string> m_long_makers;
+  mutable std::map<Language, std::string> m_descriptions;
 
   mutable bool m_banner_loaded = false;
   mutable std::vector<u32> m_image_buffer;

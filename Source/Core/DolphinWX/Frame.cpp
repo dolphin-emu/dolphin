@@ -6,11 +6,18 @@
 #include <Cocoa/Cocoa.h>
 #endif
 
+#include <atomic>
 #include <cstddef>
 #include <fstream>
 #include <string>
 #include <utility>
 #include <vector>
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include <signal.h>
+#endif
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 #include <wx/filename.h>
@@ -29,6 +36,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Flag.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Thread.h"
 
@@ -57,8 +65,6 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
-
-int g_saveSlot = 1;
 
 #if defined(HAVE_X11) && HAVE_X11
 // X11Utils nastiness that's only used here
@@ -124,7 +130,7 @@ void CRenderFrame::OnDropFiles(wxDropFilesEvent& event)
   }
   else
   {
-    DVDInterface::ChangeDisc(filepath);
+    DVDInterface::ChangeDiscAsHost(filepath);
   }
 }
 
@@ -247,6 +253,7 @@ EVT_MENU(IDM_TOGGLE_PAUSE_MOVIE, CFrame::OnTogglePauseMovie)
 EVT_MENU(IDM_SHOW_LAG, CFrame::OnShowLag)
 EVT_MENU(IDM_SHOW_FRAME_COUNT, CFrame::OnShowFrameCount)
 EVT_MENU(IDM_SHOW_INPUT_DISPLAY, CFrame::OnShowInputDisplay)
+EVT_MENU(IDM_SHOW_RTC_DISPLAY, CFrame::OnShowRTCDisplay)
 EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
 EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
 EVT_MENU(IDM_TOGGLE_DUMP_FRAMES, CFrame::OnToggleDumpFrames)
@@ -340,18 +347,41 @@ bool CFrame::InitControllers()
     Window win = X11Utils::XWindowFromHandle(GetHandle());
     Pad::Initialize(reinterpret_cast<void*>(win));
     Keyboard::Initialize(reinterpret_cast<void*>(win));
-    Wiimote::Initialize(reinterpret_cast<void*>(win));
+    Wiimote::Initialize(reinterpret_cast<void*>(win),
+                        Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
     HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
 #else
     Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
     Keyboard::Initialize(reinterpret_cast<void*>(GetHandle()));
-    Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()));
+    Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()),
+                        Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
     HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
 #endif
     return true;
   }
   return false;
 }
+
+static Common::Flag s_shutdown_signal_received;
+
+#ifdef _WIN32
+static BOOL WINAPI s_ctrl_handler(DWORD fdwCtrlType)
+{
+  switch (fdwCtrlType)
+  {
+  case CTRL_C_EVENT:
+  case CTRL_BREAK_EVENT:
+  case CTRL_CLOSE_EVENT:
+  case CTRL_LOGOFF_EVENT:
+  case CTRL_SHUTDOWN_EVENT:
+    SetConsoleCtrlHandler(s_ctrl_handler, FALSE);
+    s_shutdown_signal_received.Set();
+    return TRUE;
+  default:
+    return FALSE;
+  }
+}
+#endif
 
 CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
                const wxSize& size, bool _UseDebugger, bool _BatchMode, bool ShowLogWindow,
@@ -498,8 +528,29 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPo
   InitControllers();
 
   m_poll_hotkey_timer.SetOwner(this);
-  Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this);
+  Bind(wxEVT_TIMER, &CFrame::PollHotkeys, this, m_poll_hotkey_timer.GetId());
   m_poll_hotkey_timer.Start(1000 / 60, wxTIMER_CONTINUOUS);
+
+  // Shut down cleanly on SIGINT, SIGTERM (Unix) and on various signals on Windows
+  m_handle_signal_timer.SetOwner(this);
+  Bind(wxEVT_TIMER, &CFrame::HandleSignal, this, m_handle_signal_timer.GetId());
+  m_handle_signal_timer.Start(100, wxTIMER_CONTINUOUS);
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+  struct sigaction sa;
+  sa.sa_handler = [](int unused) {
+    char message[] = "A signal was received. A second signal will force Dolphin to stop.\n";
+    write(STDERR_FILENO, message, sizeof(message));
+    s_shutdown_signal_received.Set();
+  };
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_RESETHAND;
+  sigaction(SIGINT, &sa, nullptr);
+  sigaction(SIGTERM, &sa, nullptr);
+#endif
+#ifdef _WIN32
+  SetConsoleCtrlHandler(s_ctrl_handler, TRUE);
+#endif
 }
 // Destructor
 CFrame::~CFrame()
@@ -1450,6 +1501,8 @@ void CFrame::ParseHotkeys()
     OSDChoice = 4;
     g_Config.bDisableFog = !g_Config.bDisableFog;
   }
+  if (IsHotkey(HK_TOGGLE_TEXTURES))
+    g_Config.bHiresTextures = !g_Config.bHiresTextures;
   Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
   if (IsHotkey(HK_DECREASE_EMULATION_SPEED))
   {
@@ -1479,11 +1532,11 @@ void CFrame::ParseHotkeys()
   }
   if (IsHotkey(HK_SAVE_STATE_SLOT_SELECTED))
   {
-    State::Save(g_saveSlot);
+    State::Save(m_saveSlot);
   }
   if (IsHotkey(HK_LOAD_STATE_SLOT_SELECTED))
   {
-    State::Load(g_saveSlot);
+    State::Load(m_saveSlot);
   }
 
   if (IsHotkey(HK_TOGGLE_STEREO_SBS))
@@ -1682,4 +1735,11 @@ void CFrame::HandleFrameSkipHotkeys()
     holdFrameStep = false;
     holdFrameStepDelayCount = 0;
   }
+}
+
+void CFrame::HandleSignal(wxTimerEvent& event)
+{
+  if (!s_shutdown_signal_received.TestAndClear())
+    return;
+  Close();
 }

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -23,11 +24,12 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
 
     GeckoCode gcode;
 
+    lines.erase(std::remove_if(lines.begin(), lines.end(),
+                               [](const auto& line) { return line.empty() || line[0] == '#'; }),
+                lines.end());
+
     for (auto& line : lines)
     {
-      if (line.empty())
-        continue;
-
       std::istringstream ss(line);
 
       switch ((line)[0])

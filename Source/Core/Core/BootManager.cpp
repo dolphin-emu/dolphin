@@ -63,6 +63,7 @@ public:
 private:
   bool valid;
   bool bCPUThread;
+  bool bEnableCheats;
   bool bSkipIdle;
   bool bSyncGPUOnSkipIdleHack;
   bool bFPRF;
@@ -94,6 +95,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   valid = true;
 
   bCPUThread = config.bCPUThread;
+  bEnableCheats = config.bEnableCheats;
   bSkipIdle = config.bSkipIdle;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
   bFPRF = config.bFPRF;
@@ -136,6 +138,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   valid = false;
 
   config->bCPUThread = bCPUThread;
+  config->bEnableCheats = bEnableCheats;
   config->bSkipIdle = bSkipIdle;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
   config->bFPRF = bFPRF;
@@ -245,6 +248,7 @@ bool BootCore(const std::string& _rFilename)
     IniFile::Section* controls_section = game_ini.GetOrCreateSection("Controls");
 
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
+    core_section->Get("EnableCheats", &StartUp.bEnableCheats, StartUp.bEnableCheats);
     core_section->Get("SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
@@ -283,7 +287,7 @@ bool BootCore(const std::string& _rFilename)
     {
       int source;
       controls_section->Get(StringFromFormat("PadType%u", i), &source, -1);
-      if (source >= (int)SIDEVICE_NONE && source <= (int)SIDEVICE_WIIU_ADAPTER)
+      if (source >= SIDEVICE_NONE && source < SIDEVICE_COUNT)
       {
         SConfig::GetInstance().m_SIDevice[i] = (SIDevices)source;
         config_cache.bSetPads[i] = true;
@@ -332,6 +336,8 @@ bool BootCore(const std::string& _rFilename)
     StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
     StartUp.iCPUCore = Movie::GetCPUMode();
     StartUp.bSyncGPU = Movie::IsSyncGPU();
+    if (!StartUp.bWii)
+      StartUp.SelectedLanguage = Movie::GetLanguage();
     for (int i = 0; i < 2; ++i)
     {
       if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
@@ -347,6 +353,7 @@ bool BootCore(const std::string& _rFilename)
   if (NetPlay::IsNetPlayRunning())
   {
     StartUp.bCPUThread = g_NetPlaySettings.m_CPUthread;
+    StartUp.bEnableCheats = g_NetPlaySettings.m_EnableCheats;
     StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
     StartUp.bEnableMemcardSdWriting = g_NetPlaySettings.m_WriteToMemcard;
     StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;

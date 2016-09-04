@@ -49,7 +49,6 @@ public :
            wxDouble GetVectorAngle() const;
     inline void SetVectorLength( wxDouble length );
            void SetVectorAngle( wxDouble degrees );
-           void SetPolarCoordinates( wxInt32 angle , wxInt32 length );
     // set the vector length to 1.0, preserving the angle
     inline void Normalize();
 
@@ -87,9 +86,12 @@ inline wxPoint2DInt operator+(const wxPoint2DInt& pt1 , const wxPoint2DInt& pt2)
 inline wxPoint2DInt operator-(const wxPoint2DInt& pt1 , const wxPoint2DInt& pt2);
 inline wxPoint2DInt operator*(const wxPoint2DInt& pt1 , const wxPoint2DInt& pt2);
 inline wxPoint2DInt operator*(wxInt32 n , const wxPoint2DInt& pt);
+inline wxPoint2DInt operator*(wxDouble n , const wxPoint2DInt& pt);
 inline wxPoint2DInt operator*(const wxPoint2DInt& pt , wxInt32 n);
+inline wxPoint2DInt operator*(const wxPoint2DInt& pt , wxDouble n);
 inline wxPoint2DInt operator/(const wxPoint2DInt& pt1 , const wxPoint2DInt& pt2);
 inline wxPoint2DInt operator/(const wxPoint2DInt& pt , wxInt32 n);
+inline wxPoint2DInt operator/(const wxPoint2DInt& pt , wxDouble n);
 
 inline wxPoint2DInt::wxPoint2DInt()
 {
@@ -202,15 +204,15 @@ inline wxPoint2DInt& wxPoint2DInt::operator-=(const wxPoint2DInt& pt)
 
 inline wxPoint2DInt& wxPoint2DInt::operator*=(const wxPoint2DInt& pt)
 {
-    m_x = m_x + pt.m_x;
-    m_y = m_y + pt.m_y;
+    m_x = m_x * pt.m_x;
+    m_y = m_y * pt.m_y;
     return *this;
 }
 
 inline wxPoint2DInt& wxPoint2DInt::operator/=(const wxPoint2DInt& pt)
 {
-    m_x = m_x - pt.m_x;
-    m_y = m_y - pt.m_y;
+    m_x = m_x / pt.m_x;
+    m_y = m_y / pt.m_y;
     return *this;
 }
 
@@ -247,7 +249,8 @@ inline wxPoint2DInt operator*(wxInt32 n , const wxPoint2DInt& pt)
 
 inline wxPoint2DInt operator*(wxDouble n , const wxPoint2DInt& pt)
 {
-    return wxPoint2DInt( (int) (pt.m_x * n) , (int) (pt.m_y * n) );
+    return wxPoint2DInt( static_cast<wxInt32>(pt.m_x * n) ,
+        static_cast<wxInt32>(pt.m_y * n) );
 }
 
 inline wxPoint2DInt operator*(const wxPoint2DInt& pt , wxInt32 n)
@@ -257,7 +260,8 @@ inline wxPoint2DInt operator*(const wxPoint2DInt& pt , wxInt32 n)
 
 inline wxPoint2DInt operator*(const wxPoint2DInt& pt , wxDouble n)
 {
-    return wxPoint2DInt( (int) (pt.m_x * n) , (int) (pt.m_y * n) );
+    return wxPoint2DInt( static_cast<wxInt32>(pt.m_x * n) ,
+        static_cast<wxInt32>(pt.m_y * n) );
 }
 
 inline wxPoint2DInt operator/(const wxPoint2DInt& pt1 , const wxPoint2DInt& pt2)
@@ -272,7 +276,8 @@ inline wxPoint2DInt operator/(const wxPoint2DInt& pt , wxInt32 n)
 
 inline wxPoint2DInt operator/(const wxPoint2DInt& pt , wxDouble n)
 {
-    return wxPoint2DInt( (int) (pt.m_x / n) , (int) (pt.m_y / n) );
+    return wxPoint2DInt( static_cast<wxInt32>(pt.m_x / n) ,
+        static_cast<wxInt32>(pt.m_y / n) );
 }
 
 // wxPoint2Ds represent a point or a vector in a 2d coordinate system
@@ -296,7 +301,6 @@ public :
      wxDouble GetVectorAngle() const ;
     void SetVectorLength( wxDouble length );
     void SetVectorAngle( wxDouble degrees );
-    void SetPolarCoordinates( wxDouble angle , wxDouble length );
     // set the vector length to 1.0, preserving the angle
     void Normalize();
 

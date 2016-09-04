@@ -68,10 +68,11 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
-  m_options->settings.emplace_back(
-      new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
-  m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
-
+  m_options->boolean_settings.emplace_back(
+      std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
+      _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
+      
   // no forced input initially
   m_forced_input.err = PadError::PAD_ERR_NO_CONTROLLER;
 }
@@ -81,8 +82,10 @@ std::string GCPad::GetName() const
   return std::string("GCPad") + char('1' + m_index);
 }
 
-void GCPad::GetInput(GCPadStatus* const pad)
+GCPadStatus GCPad::GetInput() const
 {
+  auto lock = ControllerEmu::GetStateLock();
+
   // if there is valid forced input, this controller is hijacked
   // just return that then
   if (m_forced_input.err == PadError::PAD_ERR_NONE) {
@@ -91,40 +94,44 @@ void GCPad::GetInput(GCPadStatus* const pad)
   }
 
   ControlState x, y, triggers[2];
+  GCPadStatus pad = {};
 
   // buttons
-  m_buttons->GetState(&pad->button, button_bitmasks);
+  m_buttons->GetState(&pad.button, button_bitmasks);
 
   // set analog A/B analog to full or w/e, prolly not needed
-  if (pad->button & PAD_BUTTON_A)
-    pad->analogA = 0xFF;
-  if (pad->button & PAD_BUTTON_B)
-    pad->analogB = 0xFF;
+  if (pad.button & PAD_BUTTON_A)
+    pad.analogA = 0xFF;
+  if (pad.button & PAD_BUTTON_B)
+    pad.analogB = 0xFF;
 
   // dpad
-  m_dpad->GetState(&pad->button, dpad_bitmasks);
+  m_dpad->GetState(&pad.button, dpad_bitmasks);
 
   // sticks
   m_main_stick->GetState(&x, &y);
-  pad->stickX =
+  pad.stickX =
       static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_X + (x * GCPadStatus::MAIN_STICK_RADIUS));
-  pad->stickY =
+  pad.stickY =
       static_cast<u8>(GCPadStatus::MAIN_STICK_CENTER_Y + (y * GCPadStatus::MAIN_STICK_RADIUS));
 
   m_c_stick->GetState(&x, &y);
-  pad->substickX =
+  pad.substickX =
       static_cast<u8>(GCPadStatus::C_STICK_CENTER_X + (x * GCPadStatus::C_STICK_RADIUS));
-  pad->substickY =
+  pad.substickY =
       static_cast<u8>(GCPadStatus::C_STICK_CENTER_Y + (y * GCPadStatus::C_STICK_RADIUS));
 
   // triggers
-  m_triggers->GetState(&pad->button, trigger_bitmasks, triggers);
-  pad->triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
-  pad->triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+  m_triggers->GetState(&pad.button, trigger_bitmasks, triggers);
+  pad.triggerLeft = static_cast<u8>(triggers[0] * 0xFF);
+  pad.triggerRight = static_cast<u8>(triggers[1] * 0xFF);
+
+  return pad;
 }
 
 void GCPad::SetOutput(const ControlState strength)
 {
+  auto lock = ControllerEmu::GetStateLock();
   m_rumble->controls[0]->control_ref->State(strength);
 }
 
@@ -204,5 +211,6 @@ void GCPad::LoadDefaults(const ControllerInterface& ciface)
 
 bool GCPad::GetMicButton() const
 {
+  auto lock = ControllerEmu::GetStateLock();
   return (0.0f != m_buttons->controls.back()->control_ref->State());
 }

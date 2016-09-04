@@ -24,7 +24,6 @@
 #include "wx/scopeguard.h"
 #include "wx/apptrait.h"
 #include "wx/private/eventloopsourcesmanager.h"
-
 // ----------------------------------------------------------------------------
 // wxEventLoopBase
 // ----------------------------------------------------------------------------
@@ -35,8 +34,7 @@ wxEventLoopBase::wxEventLoopBase()
 {
     m_isInsideRun = false;
     m_shouldExit = false;
-
-    m_isInsideYield = false;
+    m_yieldLevel = 0;
     m_eventsToProcessInsideYield = wxEVT_CATEGORY_ALL;
 }
 
@@ -84,7 +82,6 @@ void wxEventLoopBase::Exit(int rc)
 
     ScheduleExit(rc);
 }
-
 void wxEventLoopBase::OnExit()
 {
     if (wxTheApp)
@@ -103,17 +100,77 @@ bool wxEventLoopBase::ProcessIdle()
 
 bool wxEventLoopBase::Yield(bool onlyIfNeeded)
 {
-    if ( m_isInsideYield )
-    {
-        if ( !onlyIfNeeded )
-        {
-            wxFAIL_MSG( wxT("wxYield called recursively" ) );
-        }
-
+    if ( onlyIfNeeded && IsYielding() )
         return false;
-    }
 
     return YieldFor(wxEVT_CATEGORY_ALL);
+}
+
+bool wxEventLoopBase::YieldFor(long eventsToProcess)
+{
+#if wxUSE_THREADS
+    if ( !wxThread::IsMain() )
+    {
+        // Don't ever dispatch events from non-main threads.
+        return false;
+    }
+#endif // wxUSE_THREADS
+
+    // set the flag and don't forget to reset it before returning
+    const int yieldLevelOld = m_yieldLevel;
+    const long eventsToProcessOld = m_eventsToProcessInsideYield;
+
+    m_yieldLevel++;
+    wxON_BLOCK_EXIT_SET(m_yieldLevel, yieldLevelOld);
+
+    m_eventsToProcessInsideYield = eventsToProcess;
+    wxON_BLOCK_EXIT_SET(m_eventsToProcessInsideYield, eventsToProcessOld);
+
+#if wxUSE_LOG
+    // disable log flushing from here because a call to wxYield() shouldn't
+    // normally result in message boxes popping up &c
+    wxLog::Suspend();
+
+    // ensure the logs will be flashed again when we exit
+    wxON_BLOCK_EXIT0(wxLog::Resume);
+#endif
+
+    DoYieldFor(eventsToProcess);
+
+#if wxUSE_EXCEPTIONS
+    // If any handlers called from inside DoYieldFor() threw exceptions, they
+    // may have been stored for later rethrow as it's unsafe to let them escape
+    // from inside DoYieldFor() itself, as it calls native functions through
+    // which the exceptions can't propagate. But now that we're back to our own
+    // code, we may rethrow them.
+    if ( wxTheApp )
+        wxTheApp->RethrowStoredException();
+#endif // wxUSE_EXCEPTIONS
+
+    return true;
+}
+
+void wxEventLoopBase::DoYieldFor(long eventsToProcess)
+{
+    // Normally yielding dispatches not only the pending native events, but
+    // also the events pending in wxWidgets itself and idle events.
+    //
+    // Notice however that we must not do it if we're asked to process only the
+    // events of specific kind, as pending events could be of any kind at all
+    // (ideal would be to have a filtering version of ProcessPendingEvents()
+    // too but we don't have this right now) and idle events are typically
+    // unexpected when yielding for the specific event kinds only.
+    if ( eventsToProcess == wxEVT_CATEGORY_ALL )
+    {
+        if ( wxTheApp )
+            wxTheApp->ProcessPendingEvents();
+
+        // We call it just once, even if it returns true, because we don't want
+        // to get stuck inside wxYield() forever if the application does some
+        // constant background processing in its idle handler, we do need to
+        // get back to the main loop soon.
+        ProcessIdle();
+    }
 }
 
 #if wxUSE_EVENTLOOP_SOURCE
@@ -136,7 +193,6 @@ wxEventLoopBase::AddSourceForFD(int fd,
 }
 
 #endif // wxUSE_EVENTLOOP_SOURCE
-
 // wxEventLoopManual is unused in the other ports
 #if defined(__WINDOWS__) || defined(__WXDFB__) || ( ( defined(__UNIX__) && !defined(__WXOSX__) ) && wxUSE_BASE)
 
@@ -169,11 +225,21 @@ bool wxEventLoopManual::ProcessEvents()
             return false;
     }
 
-    return Dispatch();
+    const bool res = Dispatch();
+
+#if wxUSE_EXCEPTIONS
+    // Rethrow any exceptions which could have been produced by the handlers
+    // ran by Dispatch().
+    if ( wxTheApp )
+        wxTheApp->RethrowStoredException();
+#endif // wxUSE_EXCEPTIONS
+
+    return res;
 }
 
 int wxEventLoopManual::DoRun()
 {
+
     // we must ensure that OnExit() is called even if an exception is thrown
     // from inside ProcessEvents() but we must call it from Exit() in normal
     // situations because it is supposed to be called synchronously,
@@ -198,6 +264,7 @@ int wxEventLoopManual::DoRun()
                     ;
 
                 if ( m_shouldExit )
+
                     break;
 
                 // a message came or no more idle processing to do, dispatch
@@ -236,7 +303,6 @@ int wxEventLoopManual::DoRun()
                 if ( !hasMoreEvents )
                     break;
             }
-
 #if wxUSE_EXCEPTIONS
             // exit the outer loop as well
             break;

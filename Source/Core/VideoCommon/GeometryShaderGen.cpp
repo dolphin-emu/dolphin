@@ -7,8 +7,10 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/BPMemory.h"
+#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 static const char* primitives_ogl[] = {"points", "lines", "triangles"};
@@ -16,9 +18,9 @@ static const char* primitives_ogl[] = {"points", "lines", "triangles"};
 static const char* primitives_d3d[] = {"point", "line", "triangle"};
 
 template <class T>
-static void EmitVertex(T& out, const char* vertex, API_TYPE ApiType, bool first_vertex = false);
+static void EmitVertex(T& out, const char* vertex, APIType ApiType, bool first_vertex = false);
 template <class T>
-static void EndPrimitive(T& out, API_TYPE ApiType);
+static void EndPrimitive(T& out, APIType ApiType);
 
 GeometryShaderUid GetGeometryShaderUid(u32 primitive_type)
 {
@@ -38,11 +40,11 @@ GeometryShaderUid GetGeometryShaderUid(u32 primitive_type)
 }
 
 static void EmitVertex(ShaderCode& out, const geometry_shader_uid_data* uid_data,
-                       const char* vertex, API_TYPE ApiType, bool first_vertex = false);
+                       const char* vertex, APIType ApiType, bool first_vertex = false);
 static void EndPrimitive(ShaderCode& out, const geometry_shader_uid_data* uid_data,
-                         API_TYPE ApiType);
+                         APIType ApiType);
 
-ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_uid_data* uid_data)
+ShaderCode GenerateGeometryShaderCode(APIType ApiType, const geometry_shader_uid_data* uid_data)
 {
   ShaderCode out;
   // Non-uid template parameters will write to the dummy data (=> gets optimized out)
@@ -53,7 +55,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   if (uid_data->wireframe)
     vertex_out++;
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     // Insert layout parameters
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
@@ -75,7 +77,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
     out.Write("layout(std140%s) uniform GSBlock {\n",
               g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 3" : "");
   else
@@ -90,7 +92,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
                                       "");
   out.Write("};\n");
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     if (g_ActiveConfig.backend_info.bSupportsGSInstancing)
       out.Write("#define InstanceID gl_InvocationID\n");
@@ -144,7 +146,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
 
   if (uid_data->primitive_type == PRIMITIVE_LINES)
   {
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
     {
       out.Write("\tVS_OUTPUT start, end;\n");
       AssignVSOutputMembers(out, "start", "vs[0]", uid_data->numTexGens, uid_data->pixel_lighting);
@@ -175,7 +177,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   }
   else if (uid_data->primitive_type == PRIMITIVE_POINTS)
   {
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
     {
       out.Write("\tVS_OUTPUT center;\n");
       AssignVSOutputMembers(out, "center", "vs[0]", uid_data->numTexGens, uid_data->pixel_lighting);
@@ -206,10 +208,19 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
 
   out.Write("\tfor (int i = 0; i < %d; ++i) {\n", vertex_in);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     out.Write("\tVS_OUTPUT f;\n");
     AssignVSOutputMembers(out, "f", "vs[i]", uid_data->numTexGens, uid_data->pixel_lighting);
+
+    if (g_ActiveConfig.backend_info.bSupportsDepthClamp &&
+        DriverDetails::HasBug(DriverDetails::BUG_BROKENCLIPDISTANCE))
+    {
+      // On certain GPUs we have to consume the clip distance from the vertex shader
+      // or else the other vertex shader outputs will get corrupted.
+      out.Write("\tf.clipDist0 = gl_in[i].gl_ClipDistance[0];\n");
+      out.Write("\tf.clipDist1 = gl_in[i].gl_ClipDistance[1];\n");
+    }
   }
   else
   {
@@ -220,7 +231,7 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
   {
     // Select the output layer
     out.Write("\tps.layer = eye;\n");
-    if (ApiType == API_OPENGL)
+    if (ApiType == APIType::OpenGL)
       out.Write("\tgl_Layer = eye;\n");
 
     // For stereoscopy add a small horizontal offset in Normalized Device Coordinates proportional
@@ -303,14 +314,19 @@ ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_ui
 }
 
 static void EmitVertex(ShaderCode& out, const geometry_shader_uid_data* uid_data,
-                       const char* vertex, API_TYPE ApiType, bool first_vertex)
+                       const char* vertex, APIType ApiType, bool first_vertex)
 {
   if (uid_data->wireframe && first_vertex)
     out.Write("\tif (i == 0) first = %s;\n", vertex);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     out.Write("\tgl_Position = %s.pos;\n", vertex);
+    if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+    {
+      out.Write("\tgl_ClipDistance[0] = %s.clipDist0;\n", vertex);
+      out.Write("\tgl_ClipDistance[1] = %s.clipDist1;\n", vertex);
+    }
     AssignVSOutputMembers(out, "ps", vertex, uid_data->numTexGens, uid_data->pixel_lighting);
   }
   else
@@ -318,19 +334,18 @@ static void EmitVertex(ShaderCode& out, const geometry_shader_uid_data* uid_data
     out.Write("\tps.o = %s;\n", vertex);
   }
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
     out.Write("\tEmitVertex();\n");
   else
     out.Write("\toutput.Append(ps);\n");
 }
 
-static void EndPrimitive(ShaderCode& out, const geometry_shader_uid_data* uid_data,
-                         API_TYPE ApiType)
+static void EndPrimitive(ShaderCode& out, const geometry_shader_uid_data* uid_data, APIType ApiType)
 {
   if (uid_data->wireframe)
     EmitVertex(out, uid_data, "first", ApiType);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
     out.Write("\tEndPrimitive();\n");
   else
     out.Write("\toutput.RestartStrip();\n");

@@ -21,7 +21,7 @@
 #include "Core/Movie.h"
 
 // This shouldn't be a global, at least not here.
-SoundStream* g_sound_stream = nullptr;
+std::unique_ptr<SoundStream> g_sound_stream;
 
 static bool s_audio_dump_start = false;
 
@@ -30,61 +30,51 @@ namespace AudioCommon
 static const int AUDIO_VOLUME_MIN = 0;
 static const int AUDIO_VOLUME_MAX = 100;
 
-SoundStream* InitSoundStream()
+void InitSoundStream()
 {
   std::string backend = SConfig::GetInstance().sBackend;
   if (backend == BACKEND_OPENAL && OpenALStream::isValid())
-    g_sound_stream = new OpenALStream();
+    g_sound_stream = std::make_unique<OpenALStream>();
   else if (backend == BACKEND_NULLSOUND && NullSound::isValid())
-    g_sound_stream = new NullSound();
+    g_sound_stream = std::make_unique<NullSound>();
   else if (backend == BACKEND_XAUDIO2)
   {
     if (XAudio2::isValid())
-      g_sound_stream = new XAudio2();
+      g_sound_stream = std::make_unique<XAudio2>();
     else if (XAudio2_7::isValid())
-      g_sound_stream = new XAudio2_7();
+      g_sound_stream = std::make_unique<XAudio2_7>();
   }
   else if (backend == BACKEND_AOSOUND && AOSound::isValid())
-    g_sound_stream = new AOSound();
+    g_sound_stream = std::make_unique<AOSound>();
   else if (backend == BACKEND_ALSA && AlsaSound::isValid())
-    g_sound_stream = new AlsaSound();
+    g_sound_stream = std::make_unique<AlsaSound>();
   else if (backend == BACKEND_COREAUDIO && CoreAudioSound::isValid())
-    g_sound_stream = new CoreAudioSound();
+    g_sound_stream = std::make_unique<CoreAudioSound>();
   else if (backend == BACKEND_PULSEAUDIO && PulseAudio::isValid())
-    g_sound_stream = new PulseAudio();
+    g_sound_stream = std::make_unique<PulseAudio>();
   else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
-    g_sound_stream = new OpenSLESStream();
+    g_sound_stream = std::make_unique<OpenSLESStream>();
 
   if (!g_sound_stream && NullSound::isValid())
   {
     WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead.", backend.c_str(),
              BACKEND_NULLSOUND);
-    g_sound_stream = new NullSound();
+    g_sound_stream = std::make_unique<NullSound>();
   }
 
-  if (g_sound_stream)
+  UpdateSoundStream();
+
+  if (!g_sound_stream->Start())
   {
-    UpdateSoundStream();
-    if (!g_sound_stream->Start())
-    {
-      ERROR_LOG(AUDIO, "Could not start backend %s, using %s instead", backend.c_str(),
-                BACKEND_NULLSOUND);
-      delete g_sound_stream;
-      g_sound_stream = new NullSound();
-      g_sound_stream->Start();
-    }
+    ERROR_LOG(AUDIO, "Could not start backend %s, using %s instead", backend.c_str(),
+              BACKEND_NULLSOUND);
 
-    if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
-      StartAudioDump();
-
-    return g_sound_stream;
+    g_sound_stream = std::make_unique<NullSound>();
+    g_sound_stream->Start();
   }
 
-  PanicAlertT("Sound backend %s is not valid.", backend.c_str());
-
-  delete g_sound_stream;
-  g_sound_stream = nullptr;
-  return nullptr;
+  if (SConfig::GetInstance().m_DumpAudio && !s_audio_dump_start)
+    StartAudioDump();
 }
 
 void ShutdownSoundStream()
@@ -94,10 +84,11 @@ void ShutdownSoundStream()
   if (g_sound_stream)
   {
     g_sound_stream->Stop();
+
     if (SConfig::GetInstance().m_DumpAudio && s_audio_dump_start)
       StopAudioDump();
-    delete g_sound_stream;
-    g_sound_stream = nullptr;
+
+    g_sound_stream.reset();
   }
 
   INFO_LOG(AUDIO, "Done shutting down sound stream");
@@ -141,7 +132,7 @@ void ClearAudioBuffer(bool mute)
     g_sound_stream->Clear(mute);
 }
 
-void SendAIBuffer(short* samples, unsigned int num_samples)
+void SendAIBuffer(const short* samples, unsigned int num_samples)
 {
   if (!g_sound_stream)
     return;

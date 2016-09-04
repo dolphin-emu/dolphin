@@ -5,14 +5,15 @@
 #pragma once
 
 #include <atomic>
-#include <condition_variable>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/Event.h"
 #include "Common/FifoQueue.h"
+#include "Common/Flag.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteRealBase.h"
@@ -79,8 +80,8 @@ protected:
   Report m_last_input_report;
   u16 m_channel;
   u8 m_last_connect_request_counter;
-  // If true, the Wiimote will be really disconnected when it is disconnected by Dolphin,
-  // instead of just pausing data reporting.
+  // If true, the Wiimote will be really disconnected when it is disconnected by Dolphin.
+  // In any other case, data reporting is not paused to allow reconnecting on any button press.
   // This is not enabled on all platforms as connecting a Wiimote can be a pain on some platforms.
   bool m_really_disconnect = false;
 
@@ -93,63 +94,61 @@ private:
   virtual void IOWakeup() = 0;
 
   void ThreadFunc();
-  void SetReady();
-  void WaitReady();
 
   bool m_rumble_state;
 
   std::thread m_wiimote_thread;
   // Whether to keep running the thread.
-  std::atomic<bool> m_run_thread{false};
+  Common::Flag m_run_thread;
   // Whether to call PrepareOnThread.
-  std::atomic<bool> m_need_prepare{false};
-  // Whether the thread has finished ConnectInternal.
-  std::atomic<bool> m_thread_ready{false};
-  std::mutex m_thread_ready_mutex;
-  std::condition_variable m_thread_ready_cond;
+  Common::Flag m_need_prepare;
+  // Triggered when the thread has finished ConnectInternal.
+  Common::Event m_thread_ready_event;
 
   Common::FifoQueue<Report> m_read_reports;
   Common::FifoQueue<Report> m_write_reports;
 };
 
+class WiimoteScannerBackend
+{
+public:
+  virtual ~WiimoteScannerBackend() = default;
+  virtual bool IsReady() const = 0;
+  virtual void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&) = 0;
+  // function called when not looking for more Wiimotes
+  virtual void Update() = 0;
+};
+
+enum class WiimoteScanMode
+{
+  DO_NOT_SCAN,
+  CONTINUOUSLY_SCAN,
+  SCAN_ONCE
+};
+
 class WiimoteScanner
 {
 public:
-  WiimoteScanner();
-  ~WiimoteScanner();
+  WiimoteScanner() = default;
+  void StartThread();
+  void StopThread();
+  void SetScanMode(WiimoteScanMode scan_mode);
 
+  void AddScannerBackend(std::unique_ptr<WiimoteScannerBackend> backend);
   bool IsReady() const;
-
-  void WantWiimotes(bool do_want);
-  void WantBB(bool do_want);
-
-  void StartScanning();
-  void StopScanning();
-
-  void FindWiimotes(std::vector<Wiimote*>&, Wiimote*&);
-
-  // function called when not looking for more Wiimotes
-  void Update();
 
 private:
   void ThreadFunc();
-
   std::thread m_scan_thread;
+  Common::Flag m_scan_thread_running;
 
-  std::atomic<bool> m_run_thread{false};
-  std::atomic<bool> m_want_wiimotes{false};
-  std::atomic<bool> m_want_bb{false};
+  Common::Event m_scan_mode_changed_event;
+  std::atomic<WiimoteScanMode> m_scan_mode{WiimoteScanMode::DO_NOT_SCAN};
 
-#if defined(_WIN32)
-  void CheckDeviceType(std::basic_string<TCHAR>& devicepath, WinWriteMethod& write_method,
-                       bool& real_wiimote, bool& is_bb);
-#elif defined(__linux__) && HAVE_BLUEZ
-  int device_id;
-  int device_sock;
-#endif
+  std::vector<std::unique_ptr<WiimoteScannerBackend>> m_scanner_backends;
 };
 
-extern std::recursive_mutex g_refresh_lock;
+extern std::mutex g_wiimotes_mutex;
 extern WiimoteScanner g_wiimote_scanner;
 extern Wiimote* g_wiimotes[MAX_BBMOTES];
 

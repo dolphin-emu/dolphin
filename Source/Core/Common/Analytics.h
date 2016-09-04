@@ -11,12 +11,12 @@
 #include <utility>
 #include <vector>
 
+#include <curl/curl.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/FifoQueue.h"
 #include "Common/Flag.h"
-
-typedef void CURL;
 
 // Utilities for analytics reporting in Dolphin. This reporting is designed to
 // provide anonymous data about how well Dolphin performs in the wild. It also

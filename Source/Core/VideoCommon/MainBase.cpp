@@ -49,30 +49,18 @@ void VideoBackendBase::Video_ExitLoop()
 // Run from the CPU thread (from VideoInterface.cpp)
 void VideoBackendBase::Video_BeginField(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight)
 {
-  if (m_initialized && g_ActiveConfig.bUseXFB)
-  {
-    s_beginFieldArgs.xfbAddr = xfbAddr;
-    s_beginFieldArgs.fbWidth = fbWidth;
-    s_beginFieldArgs.fbStride = fbStride;
-    s_beginFieldArgs.fbHeight = fbHeight;
-  }
-}
-
-// Run from the CPU thread (from VideoInterface.cpp)
-void VideoBackendBase::Video_EndField()
-{
   if (m_initialized && g_ActiveConfig.bUseXFB && g_renderer)
   {
-    Fifo::SyncGPU(Fifo::SYNC_GPU_SWAP);
+    Fifo::SyncGPU(Fifo::SyncGPUReason::Swap);
 
     AsyncRequests::Event e;
     e.time = 0;
     e.type = AsyncRequests::Event::SWAP_EVENT;
 
-    e.swap_event.xfbAddr = s_beginFieldArgs.xfbAddr;
-    e.swap_event.fbWidth = s_beginFieldArgs.fbWidth;
-    e.swap_event.fbStride = s_beginFieldArgs.fbStride;
-    e.swap_event.fbHeight = s_beginFieldArgs.fbHeight;
+    e.swap_event.xfbAddr = xfbAddr;
+    e.swap_event.fbWidth = fbWidth;
+    e.swap_event.fbStride = fbStride;
+    e.swap_event.fbHeight = fbHeight;
     AsyncRequests::GetInstance()->PushEvent(e, false);
   }
 }
@@ -118,7 +106,7 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
     return 0;
   }
 
-  Fifo::SyncGPU(Fifo::SYNC_GPU_PERFQUERY);
+  Fifo::SyncGPU(Fifo::SyncGPUReason::PerfQuery);
 
   AsyncRequests::Event e;
   e.time = 0;
@@ -145,7 +133,7 @@ u16 VideoBackendBase::Video_GetBoundingBox(int index)
     return 0;
   }
 
-  Fifo::SyncGPU(Fifo::SYNC_GPU_BBOX);
+  Fifo::SyncGPU(Fifo::SyncGPUReason::BBox);
 
   AsyncRequests::Event e;
   u16 result;

@@ -54,11 +54,9 @@ int CSIDevice_Keyboard::RunBuffer(u8* _pBuffer, int _iLength)
   return _iLength;
 }
 
-KeyboardStatus CSIDevice_Keyboard::GetKeyboardStatus()
+KeyboardStatus CSIDevice_Keyboard::GetKeyboardStatus() const
 {
-  KeyboardStatus KeyStatus = {};
-  Keyboard::GetStatus(ISIDevice::m_iDeviceNumber, &KeyStatus);
-  return KeyStatus;
+  return Keyboard::GetStatus(m_iDeviceNumber);
 }
 
 bool CSIDevice_Keyboard::GetData(u32& _Hi, u32& _Low)
@@ -102,7 +100,7 @@ void CSIDevice_Keyboard::DoState(PointerWrap& p)
   p.Do(m_Counter);
 }
 
-void CSIDevice_Keyboard::MapKeys(KeyboardStatus& KeyStatus, u8* key)
+void CSIDevice_Keyboard::MapKeys(const KeyboardStatus& KeyStatus, u8* key)
 {
   u8 keys_held = 0;
   const u8 MAX_KEYS_HELD = 3;

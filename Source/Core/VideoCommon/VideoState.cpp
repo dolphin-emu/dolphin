@@ -57,7 +57,7 @@ void VideoCommon_DoState(PointerWrap& p)
   GeometryShaderManager::DoState(p);
   p.DoMarker("GeometryShaderManager");
 
-  VertexManagerBase::DoState(p);
+  g_vertex_manager->DoState(p);
   p.DoMarker("VertexManager");
 
   BoundingBox::DoState(p);

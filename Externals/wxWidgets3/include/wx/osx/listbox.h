@@ -91,24 +91,26 @@ public:
     virtual ~wxListBox();
 
     // implement base class pure virtuals
-    virtual void Refresh(bool eraseBack = true, const wxRect *rect = NULL);
+    virtual void Refresh(bool eraseBack = true, const wxRect *rect = NULL) wxOVERRIDE;
 
-    virtual unsigned int GetCount() const;
-    virtual wxString GetString(unsigned int n) const;
-    virtual void SetString(unsigned int n, const wxString& s);
-    virtual int FindString(const wxString& s, bool bCase = false) const;
+    virtual unsigned int GetCount() const wxOVERRIDE;
+    virtual wxString GetString(unsigned int n) const wxOVERRIDE;
+    virtual void SetString(unsigned int n, const wxString& s) wxOVERRIDE;
+    virtual int FindString(const wxString& s, bool bCase = false) const wxOVERRIDE;
 
     // data callbacks
     virtual void GetValueCallback( unsigned int n, wxListWidgetColumn* col , wxListWidgetCellValue& value );
     virtual void SetValueCallback( unsigned int n, wxListWidgetColumn* col , wxListWidgetCellValue& value );
 
-    virtual bool IsSelected(int n) const;
-    virtual int GetSelection() const;
-    virtual int GetSelections(wxArrayInt& aSelections) const;
+    virtual bool IsSelected(int n) const wxOVERRIDE;
+    virtual int GetSelection() const wxOVERRIDE;
+    virtual int GetSelections(wxArrayInt& aSelections) const wxOVERRIDE;
 
-    virtual void EnsureVisible(int n);
+    virtual void EnsureVisible(int n) wxOVERRIDE;
 
-    virtual wxVisualAttributes GetDefaultAttributes() const
+    virtual int GetTopItem() const wxOVERRIDE;
+
+    virtual wxVisualAttributes GetDefaultAttributes() const wxOVERRIDE
     {
         return GetClassDefaultAttributes(GetWindowVariant());
     }
@@ -127,27 +129,27 @@ protected:
     // at a certain line - which cannot be predetermined for sorted list data
     virtual void OnItemInserted(unsigned int pos);
 
-    virtual void DoClear();
-    virtual void DoDeleteOneItem(unsigned int n);
+    virtual void DoClear() wxOVERRIDE;
+    virtual void DoDeleteOneItem(unsigned int n) wxOVERRIDE;
 
     // from wxItemContainer
     virtual int DoInsertItems(const wxArrayStringsAdapter& items,
                               unsigned int pos,
-                              void **clientData, wxClientDataType type);
+                              void **clientData, wxClientDataType type) wxOVERRIDE;
 
-    virtual void DoSetItemClientData(unsigned int n, void* clientData);
-    virtual void* DoGetItemClientData(unsigned int n) const;
+    virtual void DoSetItemClientData(unsigned int n, void* clientData) wxOVERRIDE;
+    virtual void* DoGetItemClientData(unsigned int n) const wxOVERRIDE;
 
     // from wxListBoxBase
-    virtual void DoSetSelection(int n, bool select);
-    virtual void DoSetFirstItem(int n);
-    virtual int DoListHitTest(const wxPoint& point) const;
+    virtual void DoSetSelection(int n, bool select) wxOVERRIDE;
+    virtual void DoSetFirstItem(int n) wxOVERRIDE;
+    virtual int DoListHitTest(const wxPoint& point) const wxOVERRIDE;
 
     // free memory (common part of Clear() and dtor)
     // prevent collision with some BSD definitions of macro Free()
     void FreeData();
 
-    virtual wxSize DoGetBestSize() const;
+    virtual wxSize DoGetBestSize() const wxOVERRIDE;
 
     bool m_blockEvents;
 
@@ -167,13 +169,9 @@ protected:
     wxArrayPtrVoid m_itemsClientData;
 
 private:
-#ifdef __WXOSX_CARBON__
-    // It needs to call our CalcAndSendEvent().
-    friend class wxMacDataBrowserListControl;
-#endif // Carbon
 
-    DECLARE_DYNAMIC_CLASS(wxListBox)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxListBox);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif // _WX_LISTBOX_H_

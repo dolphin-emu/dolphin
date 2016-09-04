@@ -12,6 +12,7 @@
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 VertexShaderUid GetVertexShaderUid()
@@ -78,13 +79,13 @@ VertexShaderUid GetVertexShaderUid()
   return out;
 }
 
-ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_data* uid_data)
+ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_data* uid_data)
 {
   ShaderCode out;
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (api_type == API_OPENGL)
+  if (api_type == APIType::OpenGL)
     out.Write("layout(std140%s) uniform VSBlock {\n",
               g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
   else
@@ -96,7 +97,7 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
   GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting, "");
   out.Write("};\n");
 
-  if (api_type == API_OPENGL)
+  if (api_type == APIType::OpenGL)
   {
     out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
     if (uid_data->components & VB_HAS_POSMTXIDX)
@@ -380,6 +381,18 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
                 i, i, i, i);
     }
 
+    // When q is 0, the GameCube appears to have a special case
+    // This can be seen in devkitPro's neheGX Lesson08 example for Wii
+    // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
+    // TODO: check if this only affects XF_TEXGEN_REGULAR
+    if (texinfo.texgentype == XF_TEXGEN_REGULAR)
+    {
+      out.Write("if(o.tex%d.z == 0.0f)\n", i);
+      out.Write(
+          "\to.tex%d.xy = clamp(o.tex%d.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n", i,
+          i);
+    }
+
     out.Write("}\n");
   }
 
@@ -398,28 +411,46 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
       out.Write("o.colors_1 = color1;\n");
   }
 
-  // write the true depth value, if the game uses depth textures pixel shaders will override with
-  // the correct values
-  // if not early z culling will improve speed
-  if (g_ActiveConfig.backend_info.bSupportsClipControl)
+  // Write the true depth value. If the game uses depth textures, then the pixel shader will
+  // override it with the correct values if not then early z culling will improve speed.
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
+    // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
+    // our own depth clipping and calculate the depth range before the perspective divide.
+
+    // Since we're adjusting z for the depth range before the perspective divide, we have to do our
+    // own clipping. We want to clip so that -w <= z <= 0, which matches the console -1..0 range.
+    // We adjust our depth value for clipping purposes to match the perspective projection in the
+    // software backend, which is a hack to fix Sonic Adventure and Unleashed games.
+    out.Write("float clipDepth = o.pos.z * (1.0 - 1e-7);\n");
+    out.Write("o.clipDist0 = clipDepth + o.pos.w;\n");  // Near: z < -w
+    out.Write("o.clipDist1 = -clipDepth;\n");           // Far: z > 0
+
+    // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
+    // so we can map the console -1..0 range to the 0..1 range used in the depth buffer.
+    // We have to handle the depth range in the vertex shader instead of after the perspective
+    // divide, because some games will use a depth range larger than what is allowed by the
+    // graphics API. These large depth ranges will still be clipped to the 0..1 range, so these
+    // games effectively add a depth bias to the values written to the depth buffer.
+    out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
+              "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
+  }
+  else
+  {
+    // If we can't disable the incorrect depth clipping planes, then we need to rely on the
+    // graphics API to handle the depth range after the perspective divide. This can result in
+    // inaccurate depth values due to the missing depth bias, but that can be least corrected by
+    // overriding depth values in the pixel shader. We still need to take care of the reversed depth
+    // though, so we do that here.
     out.Write("o.pos.z = -o.pos.z;\n");
   }
-  else  // OGL
+
+  if (!g_ActiveConfig.backend_info.bSupportsClipControl)
   {
-    // this results in a scale from -1..0 to -1..1 after perspective
-    // divide
-    out.Write("o.pos.z = o.pos.z * -2.0 - o.pos.w;\n");
-
-    // the next steps of the OGL pipeline are:
-    // (x_c,y_c,z_c,w_c) = o.pos  //switch to OGL spec terminology
-    // clipping to -w_c <= (x_c,y_c,z_c) <= w_c
-    // (x_d,y_d,z_d) = (x_c,y_c,z_c)/w_c//perspective divide
-    // z_w = (f-n)/2*z_d + (n+f)/2
-    // z_w now contains the value to go to the 0..1 depth buffer
-
-    // trying to get the correct semantic while not using glDepthRange
-    // seems to get rather complicated
+    // If the graphics API doesn't support a depth range of 0..1, then we need to map z to
+    // the -1..1 range. Unfortunately we have to use a substraction, which is a lossy floating-point
+    // operation that can introduce a round-trip error.
+    out.Write("o.pos.z = o.pos.z * 2.0 - o.pos.w;\n");
   }
 
   // The console GPU places the pixel center at 7/12 in screen space unless
@@ -430,7 +461,7 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
   // get rasterized correctly.
   out.Write("o.pos.xy = o.pos.xy - o.pos.w * " I_PIXELCENTERCORRECTION ".xy;\n");
 
-  if (api_type == API_OPENGL)
+  if (api_type == APIType::OpenGL)
   {
     if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
     {
@@ -452,6 +483,11 @@ ShaderCode GenerateVertexShaderCode(API_TYPE api_type, const vertex_shader_uid_d
       out.Write("colors_1 = o.colors_1;\n");
     }
 
+    if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+    {
+      out.Write("gl_ClipDistance[0] = o.clipDist0;\n");
+      out.Write("gl_ClipDistance[1] = o.clipDist1;\n");
+    }
     out.Write("gl_Position = o.pos;\n");
   }
   else  // D3D

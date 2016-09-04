@@ -196,7 +196,6 @@ void JitArm64::WriteExit(u32 destination)
   linkData.linkStatus = false;
   b->linkData.push_back(linkData);
 
-  // the code generated in JitArm64BlockCache::WriteDestroyBlock must fit in this block
   MOVI2R(DISPATCHER_PC, destination);
   B(dispatcher);
 }
@@ -406,6 +405,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
   js.assumeNoPairedQuantize = false;
   js.blockStart = em_address;
   js.fifoBytesThisBlock = 0;
+  js.mustCheckFifo = false;
   js.downcountAmount = 0;
   js.skipInstructions = 0;
   js.curBlock = b;
@@ -492,9 +492,11 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
     bool gatherPipeIntCheck =
         jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end();
 
-    if (jo.optimizeGatherPipe && js.fifoBytesThisBlock >= 32)
+    if (jo.optimizeGatherPipe && (js.fifoBytesThisBlock >= 32 || js.mustCheckFifo))
     {
-      js.fifoBytesThisBlock -= 32;
+      if (js.fifoBytesThisBlock >= 32)
+        js.fifoBytesThisBlock -= 32;
+      js.mustCheckFifo = false;
 
       gpr.Lock(W30);
       BitSet32 regs_in_use = gpr.GetCallerSavedUsed();

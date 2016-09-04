@@ -8,11 +8,14 @@
 #include <string>
 #include <vector>
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
+
 namespace ciface
 {
 namespace evdev
 {
 void Init();
+void Shutdown();
 
 class evdevDevice : public Core::Device
 {
@@ -62,12 +65,12 @@ private:
 
 public:
   void UpdateInput() override;
+  bool IsValid() const override;
 
-  evdevDevice(const std::string& devnode, int id);
+  evdevDevice(const std::string& devnode);
   ~evdevDevice();
 
   std::string GetName() const override { return m_name; }
-  int GetId() const override { return m_id; }
   std::string GetSource() const override { return "evdev"; }
   bool IsInteresting() const { return m_initialized && m_interesting; }
 private:
@@ -75,7 +78,6 @@ private:
   int m_fd;
   libevdev* m_dev;
   std::string m_name;
-  const int m_id;
   bool m_initialized;
   bool m_interesting;
 };

@@ -7,14 +7,15 @@
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
+#include "Common/StringUtil.h"
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
 
 namespace ciface
 {
 namespace OSX
 {
-Joystick::Joystick(IOHIDDeviceRef device, std::string name, int index)
-    : m_device(device), m_device_name(name), m_index(index), m_ff_device(nullptr)
+Joystick::Joystick(IOHIDDeviceRef device, std::string name)
+    : m_device(device), m_device_name(name), m_ff_device(nullptr)
 {
   // Buttons
   NSDictionary* buttonDict = @{
@@ -92,11 +93,6 @@ std::string Joystick::GetSource() const
   return "Input";
 }
 
-int Joystick::GetId() const
-{
-  return m_index;
-}
-
 ControlState Joystick::Button::GetState() const
 {
   IOHIDValueRef value;
@@ -110,7 +106,7 @@ std::string Joystick::Button::GetName() const
 {
   std::ostringstream s;
   s << IOHIDElementGetUsage(m_element);
-  return std::string("Button ") + s.str();
+  return std::string("Button ") + StripSpaces(s.str());
 }
 
 Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction dir)
@@ -150,7 +146,7 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
   {
     std::ostringstream s;
     s << usage;
-    description = s.str();
+    description = StripSpaces(s.str());
     break;
   }
   }

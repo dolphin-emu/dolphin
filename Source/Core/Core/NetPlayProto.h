@@ -13,6 +13,7 @@ struct NetSettings
 {
   bool m_CPUthread;
   int m_CPUcore;
+  bool m_EnableCheats;
   int m_SelectedLanguage;
   bool m_OverrideGCLanguage;
   bool m_ProgressiveScan;
@@ -52,9 +53,16 @@ enum
   NP_MSG_CHANGE_GAME = 0xA1,
   NP_MSG_STOP_GAME = 0xA2,
   NP_MSG_DISABLE_GAME = 0xA3,
+  NP_MSG_GAME_STATUS = 0xA4,
 
   NP_MSG_TIMEBASE = 0xB0,
   NP_MSG_DESYNC_DETECTED = 0xB1,
+
+  NP_MSG_COMPUTE_MD5 = 0xC0,
+  NP_MSG_MD5_PROGRESS = 0xC1,
+  NP_MSG_MD5_RESULT = 0xC2,
+  NP_MSG_MD5_ABORT = 0xC3,
+  NP_MSG_MD5_ERROR = 0xC4,
 
   NP_MSG_READY = 0xD0,
   NP_MSG_NOT_READY = 0xD1,

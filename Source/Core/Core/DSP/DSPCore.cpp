@@ -90,10 +90,10 @@ static bool VerifyRoms()
 
 static void DSPCore_FreeMemoryPages()
 {
-  FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
-  FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
-  FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
-  FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
+  Common::FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
+  Common::FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
+  Common::FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
+  Common::FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
   g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = nullptr;
 }
 
@@ -103,10 +103,10 @@ bool DSPCore_Init(const DSPInitOptions& opts)
   g_cycles_left = 0;
   g_init_hax = false;
 
-  g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
-  g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
-  g_dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
-  g_dsp.coef = (u16*)AllocateMemoryPages(DSP_COEF_BYTE_SIZE);
+  g_dsp.irom = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IROM_BYTE_SIZE));
+  g_dsp.iram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IRAM_BYTE_SIZE));
+  g_dsp.dram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_DRAM_BYTE_SIZE));
+  g_dsp.coef = static_cast<u16*>(Common::AllocateMemoryPages(DSP_COEF_BYTE_SIZE));
 
   memcpy(g_dsp.irom, opts.irom_contents.data(), DSP_IROM_BYTE_SIZE);
   memcpy(g_dsp.coef, opts.coef_contents.data(), DSP_COEF_BYTE_SIZE);
@@ -142,7 +142,7 @@ bool DSPCore_Init(const DSPInitOptions& opts)
   gdsp_ifx_init();
   // Mostly keep IRAM write protected. We unprotect only when DMA-ing
   // in new ucodes.
-  WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+  Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
   // Initialize JIT, if necessary
   if (opts.core_type == DSPInitOptions::CORE_JIT)

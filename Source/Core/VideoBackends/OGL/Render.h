@@ -55,7 +55,6 @@ struct VideoConfig
   const char* gl_vendor;
   const char* gl_renderer;
   const char* gl_version;
-  const char* glsl_version;
 
   s32 max_samples;
 };

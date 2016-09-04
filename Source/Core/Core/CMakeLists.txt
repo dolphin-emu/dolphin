@@ -91,7 +91,6 @@ set(SRCS	ActionReplay.cpp
 			HW/EXI_Device.cpp
 			HW/EXI_DeviceAD16.cpp
 			HW/EXI_DeviceAGP.cpp
-			HW/EXI_DeviceAMBaseboard.cpp
 			HW/EXI_DeviceEthernet.cpp
 			HW/EXI_DeviceGecko.cpp
 			HW/EXI_DeviceIPL.cpp
@@ -111,7 +110,6 @@ set(SRCS	ActionReplay.cpp
 			HW/MMIO.cpp
 			HW/ProcessorInterface.cpp
 			HW/SI.cpp
-			HW/SI_DeviceAMBaseboard.cpp
 			HW/SI_Device.cpp
 			HW/SI_DeviceDanceMat.cpp
 			HW/SI_DeviceGBA.cpp
@@ -257,12 +255,10 @@ elseif(APPLE)
 elseif(UNIX)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Unix.cpp)
 	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND BLUEZ_FOUND)
-		set(SRCS ${SRCS} HW/WiimoteReal/IONix.cpp)
+		set(SRCS ${SRCS} HW/WiimoteReal/IOLinux.cpp)
 		set(LIBS ${LIBS} bluetooth)
 	elseif(ANDROID)
 		set(SRCS ${SRCS} HW/WiimoteReal/IOAndroid.cpp)
-	else()
-		set(SRCS ${SRCS} HW/WiimoteReal/IODummy.cpp)
 	endif()
 endif()
 

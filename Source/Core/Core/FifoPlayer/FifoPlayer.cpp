@@ -5,14 +5,15 @@
 #include <algorithm>
 #include <mutex>
 
+#include "Core/FifoPlayer/FifoPlayer.h"
+
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/FifoPlayer/FifoAnalyzer.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
@@ -28,7 +29,6 @@ bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
 FifoPlayer::~FifoPlayer()
 {
-  delete m_File;
 }
 
 bool FifoPlayer::Open(const std::string& filename)
@@ -40,7 +40,7 @@ bool FifoPlayer::Open(const std::string& filename)
   if (m_File)
   {
     FifoAnalyzer::Init();
-    FifoPlaybackAnalyzer::AnalyzeFrames(m_File, m_FrameInfo);
+    FifoPlaybackAnalyzer::AnalyzeFrames(m_File.get(), m_FrameInfo);
 
     m_FrameRangeEnd = m_File->GetFrameCount();
   }
@@ -53,8 +53,7 @@ bool FifoPlayer::Open(const std::string& filename)
 
 void FifoPlayer::Close()
 {
-  delete m_File;
-  m_File = nullptr;
+  m_File.reset();
 
   m_FrameRangeStart = 0;
   m_FrameRangeEnd = 0;
@@ -86,7 +85,7 @@ public:
   {
     // NOTE: AdvanceFrame() will get stuck forever in Dual Core because the FIFO
     //   is disabled by CPU::EnableStepping(true) so the frame never gets displayed.
-    PanicAlert("Cannot SingleStep the FIFO. Use Frame Advance instead.");
+    PanicAlertT("Cannot SingleStep the FIFO. Use Frame Advance instead.");
   }
 
   const char* GetName() override { return "FifoPlayer"; }
@@ -146,7 +145,7 @@ std::unique_ptr<CPUCoreBase> FifoPlayer::GetCPUCore()
   return std::make_unique<CPUCore>(this);
 }
 
-u32 FifoPlayer::GetFrameObjectCount()
+u32 FifoPlayer::GetFrameObjectCount() const
 {
   if (m_CurrentFrame < m_FrameInfo.size())
   {
@@ -209,7 +208,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   // Core timing information
   m_CyclesPerFrame = SystemTimers::GetTicksPerSecond() / VideoInterface::GetTargetRefreshRate();
   m_ElapsedCycles = 0;
-  m_FrameFifoSize = frame.fifoDataSize;
+  m_FrameFifoSize = static_cast<u32>(frame.fifoData.size());
 
   // Determine start and end objects
   u32 numObjects = (u32)(info.objectStarts.size());
@@ -258,7 +257,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
   }
 
   // Write data after the last object
-  WriteFramePart(position, frame.fifoDataSize, memoryUpdate, frame, info);
+  WriteFramePart(position, static_cast<u32>(frame.fifoData.size()), memoryUpdate, frame, info);
 
   FlushWGP();
 
@@ -273,7 +272,7 @@ void FifoPlayer::WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo&
 void FifoPlayer::WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate,
                                 const FifoFrameInfo& frame, const AnalyzedFrameInfo& info)
 {
-  u8* data = frame.fifoData;
+  const u8* const data = frame.fifoData.data();
 
   while (nextMemUpdate < frame.memoryUpdates.size() && dataStart < dataEnd)
   {
@@ -325,10 +324,10 @@ void FifoPlayer::WriteMemory(const MemoryUpdate& memUpdate)
   else
     mem = &Memory::m_pRAM[memUpdate.address & Memory::RAM_MASK];
 
-  memcpy(mem, memUpdate.data, memUpdate.size);
+  std::copy(memUpdate.data.begin(), memUpdate.data.end(), mem);
 }
 
-void FifoPlayer::WriteFifo(u8* data, u32 start, u32 end)
+void FifoPlayer::WriteFifo(const u8* data, u32 start, u32 end)
 {
   u32 written = start;
   u32 lastBurstEnd = end - 1;
@@ -414,7 +413,7 @@ void FifoPlayer::LoadMemory()
 
   SetupFifo();
 
-  u32* regs = m_File->GetBPMem();
+  const u32* regs = m_File->GetBPMem();
   for (int i = 0; i < FifoDataFile::BP_MEM_SIZE; ++i)
   {
     if (ShouldLoadBP(i))
@@ -495,7 +494,7 @@ void FifoPlayer::LoadXFReg(u16 reg, u32 value)
   GPFifo::Write32(value);
 }
 
-void FifoPlayer::LoadXFMem16(u16 address, u32* data)
+void FifoPlayer::LoadXFMem16(u16 address, const u32* data)
 {
   // Loads 16 * 4 bytes in xf memory starting at address
   GPFifo::Write8(0x10);                              // load XF reg

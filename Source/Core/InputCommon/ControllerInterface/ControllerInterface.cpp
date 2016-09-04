@@ -106,17 +106,6 @@ void ControllerInterface::Shutdown()
   if (!m_is_init)
     return;
 
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
-
-  for (const auto& d : m_devices)
-  {
-    // Set outputs to ZERO before destroying device
-    for (ciface::Core::Device::Output* o : d->Outputs())
-      o->SetState(0);
-  }
-
-  m_devices.clear();
-
 #ifdef CIFACE_USE_XINPUT
   ciface::XInput::DeInit();
 #endif
@@ -136,6 +125,20 @@ void ControllerInterface::Shutdown()
 #ifdef CIFACE_USE_ANDROID
 // nothing needed
 #endif
+#ifdef CIFACE_USE_EVDEV
+  ciface::evdev::Shutdown();
+#endif
+
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+
+  for (const auto& d : m_devices)
+  {
+    // Set outputs to ZERO before destroying device
+    for (ciface::Core::Device::Output* o : d->Outputs())
+      o->SetState(0);
+  }
+
+  m_devices.clear();
 
   m_is_init = false;
 }
@@ -143,7 +146,29 @@ void ControllerInterface::Shutdown()
 void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device)
 {
   std::lock_guard<std::mutex> lk(m_devices_mutex);
+  // Try to find an ID for this device
+  int id = 0;
+  while (true)
+  {
+    const auto it = std::find_if(m_devices.begin(), m_devices.end(), [&device, &id](const auto& d) {
+      return d->GetSource() == device->GetSource() && d->GetName() == device->GetName() &&
+             d->GetId() == id;
+    });
+    if (it == m_devices.end())  // no device with the same name with this ID, so we can use it
+      break;
+    else
+      id++;
+  }
+  device->SetId(id);
   m_devices.emplace_back(std::move(device));
+}
+
+void ControllerInterface::RemoveDevice(std::function<bool(const ciface::Core::Device*)> callback)
+{
+  std::lock_guard<std::mutex> lk(m_devices_mutex);
+  m_devices.erase(std::remove_if(m_devices.begin(), m_devices.end(),
+                                 [&callback](const auto& dev) { return callback(dev.get()); }),
+                  m_devices.end());
 }
 
 //
@@ -153,9 +178,35 @@ void ControllerInterface::AddDevice(std::shared_ptr<ciface::Core::Device> device
 //
 void ControllerInterface::UpdateInput()
 {
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
-  for (const auto& d : m_devices)
-    d->UpdateInput();
+  // Don't block the UI or CPU thread (to avoid a short but noticeable frame drop)
+  if (m_devices_mutex.try_lock())
+  {
+    std::lock_guard<std::mutex> lk(m_devices_mutex, std::adopt_lock);
+    for (const auto& d : m_devices)
+      d->UpdateInput();
+  }
+}
+
+//
+// RegisterHotplugCallback
+//
+// Register a callback to be called from the input backends' hotplug thread
+// when there is a new device
+//
+void ControllerInterface::RegisterHotplugCallback(std::function<void()> callback)
+{
+  m_hotplug_callbacks.emplace_back(std::move(callback));
+}
+
+//
+// InvokeHotplugCallbacks
+//
+// Invoke all callbacks that were registered
+//
+void ControllerInterface::InvokeHotplugCallbacks() const
+{
+  for (const auto& callback : m_hotplug_callbacks)
+    callback();
 }
 
 //

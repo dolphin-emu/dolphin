@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/FifoPlayer/FifoRecordAnalyzer.h"
 
 class FifoRecorder
 {
@@ -20,11 +19,11 @@ public:
   void StartRecording(s32 numFrames, CallbackFunc finishedCb);
   void StopRecording();
 
-  FifoDataFile* GetRecordedFile() { return m_File; }
+  FifoDataFile* GetRecordedFile() const { return m_File; }
   // Called from video thread
 
   // Must write one full GP command at a time
-  void WriteGPCommand(u8* data, u32 size);
+  void WriteGPCommand(const u8* data, u32 size);
 
   // Track memory that has been used and write it to the fifolog if it has changed.
   // If memory is updated by the video backend (dynamicUpdate == true) take special care to make
@@ -37,7 +36,8 @@ public:
   // This function must be called before writing GP commands
   // bpMem must point to the actual bp mem array used by the plugin because it will be read as fifo
   // data is recorded
-  void SetVideoMemory(u32* bpMem, u32* cpMem, u32* xfMem, u32* xfRegs, u32 xfRegsSize);
+  void SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem, const u32* xfRegs,
+                      u32 xfRegsSize);
 
   // Checked once per frame prior to callng EndFrame()
   bool IsRecording() const { return m_IsRecording; }

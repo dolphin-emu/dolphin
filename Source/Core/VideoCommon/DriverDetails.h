@@ -17,6 +17,7 @@ enum OS
   OS_OSX = (1 << 3),
   OS_ANDROID = (1 << 4),
   OS_FREEBSD = (1 << 5),
+  OS_OPENBSD = (1 << 6),
 };
 // Enum of known vendors
 // Tegra and Nvidia are separated out due to such substantial differences
@@ -203,6 +204,15 @@ enum Bug
   // GPU memory to system memory. Use glMapBufferRange for BBox reads on AMD, and glGetBufferSubData
   // everywhere else.
   BUG_SLOWGETBUFFERSUBDATA,
+
+  // Bug: Broken lines in geometry shaders when writing to gl_ClipDistance in the vertex shader
+  // Affected Devices: Mesa i965
+  // Started Version: -1
+  // Ended Version: -1
+  // Writing to gl_ClipDistance in both the vertex shader and the geometry shader will break
+  // the geometry shader. Current workaround is to make sure the geometry shader always consumes
+  // the gl_ClipDistance inputs from the vertex shader.
+  BUG_BROKENCLIPDISTANCE,
 };
 
 // Initializes our internal vendor, device family, and driver version

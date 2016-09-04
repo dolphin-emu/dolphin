@@ -224,6 +224,9 @@ void ApplyFramePatches()
 void Shutdown()
 {
   onFrame.clear();
+  speedHacks.clear();
+  ActionReplay::ApplyCodes({});
+  Gecko::SetActiveCodes({});
 }
 
 }  // namespace

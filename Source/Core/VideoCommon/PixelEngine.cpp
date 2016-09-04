@@ -4,9 +4,8 @@
 
 // http://www.nvidia.com/object/General_FAQ.html#t6 !!!!!
 
-#include <atomic>
+#include <mutex>
 
-#include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -90,13 +89,18 @@ static UPEDstAlphaConfReg m_DstAlphaConf;
 static UPEAlphaModeConfReg m_AlphaModeConf;
 static UPEAlphaReadReg m_AlphaRead;
 static UPECtrlReg m_Control;
-// static u16                 m_Token; // token value most recently encountered
 
-static std::atomic<u32> s_signal_token_interrupt;
-static std::atomic<u32> s_signal_finish_interrupt;
+static std::mutex s_token_finish_mutex;
+static u16 s_token;
+static u16 s_token_pending;
+static bool s_token_interrupt_pending;
+static bool s_finish_interrupt_pending;
+static bool s_event_raised;
 
-static int et_SetTokenOnMainThread;
-static int et_SetFinishOnMainThread;
+static bool s_signal_token_interrupt;
+static bool s_signal_finish_interrupt;
+
+static CoreTiming::EventType* et_SetTokenFinishOnMainThread;
 
 enum
 {
@@ -113,15 +117,18 @@ void DoState(PointerWrap& p)
   p.Do(m_AlphaRead);
   p.DoPOD(m_Control);
 
+  p.Do(s_token);
+  p.Do(s_token_pending);
+  p.Do(s_token_interrupt_pending);
+  p.Do(s_finish_interrupt_pending);
+  p.Do(s_event_raised);
+
   p.Do(s_signal_token_interrupt);
   p.Do(s_signal_finish_interrupt);
 }
 
 static void UpdateInterrupts();
-static void UpdateTokenInterrupt(bool active);
-static void UpdateFinishInterrupt(bool active);
-static void SetToken_OnMainThread(u64 userdata, s64 cyclesLate);
-static void SetFinish_OnMainThread(u64 userdata, s64 cyclesLate);
+static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate);
 
 void Init()
 {
@@ -132,11 +139,17 @@ void Init()
   m_AlphaModeConf.Hex = 0;
   m_AlphaRead.Hex = 0;
 
-  s_signal_token_interrupt.store(0);
-  s_signal_finish_interrupt.store(0);
+  s_token = 0;
+  s_token_pending = 0;
+  s_token_interrupt_pending = false;
+  s_finish_interrupt_pending = false;
+  s_event_raised = false;
 
-  et_SetTokenOnMainThread = CoreTiming::RegisterEvent("SetToken", SetToken_OnMainThread);
-  et_SetFinishOnMainThread = CoreTiming::RegisterEvent("SetFinish", SetFinish_OnMainThread);
+  s_signal_token_interrupt = false;
+  s_signal_finish_interrupt = false;
+
+  et_SetTokenFinishOnMainThread =
+      CoreTiming::RegisterEvent("SetTokenFinish", SetTokenFinish_OnMainThread);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -191,10 +204,10 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    UPECtrlReg tmpCtrl(val);
 
                    if (tmpCtrl.PEToken)
-                     s_signal_token_interrupt.store(0);
+                     s_signal_token_interrupt = false;
 
                    if (tmpCtrl.PEFinish)
-                     s_signal_finish_interrupt.store(0);
+                     s_signal_finish_interrupt = false;
 
                    m_Control.PETokenEnable = tmpCtrl.PETokenEnable;
                    m_Control.PEFinishEnable = tmpCtrl.PEFinishEnable;
@@ -206,7 +219,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   // Token register, readonly.
-  mmio->Register(base | PE_TOKEN_REG, MMIO::DirectRead<u16>(&CommandProcessor::fifo.PEToken),
+  mmio->Register(base | PE_TOKEN_REG, MMIO::ComplexRead<u16>([](u32) { return s_token; }),
                  MMIO::InvalidWrite<u16>());
 
   // BBOX registers, readonly and need to update a flag.
@@ -223,82 +236,79 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 static void UpdateInterrupts()
 {
   // check if there is a token-interrupt
-  UpdateTokenInterrupt((s_signal_token_interrupt.load() & m_Control.PETokenEnable) != 0);
+  ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN,
+                                   s_signal_token_interrupt && m_Control.PETokenEnable);
 
   // check if there is a finish-interrupt
-  UpdateFinishInterrupt((s_signal_finish_interrupt.load() & m_Control.PEFinishEnable) != 0);
+  ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH,
+                                   s_signal_finish_interrupt && m_Control.PEFinishEnable);
 }
 
-static void UpdateTokenInterrupt(bool active)
+static void SetTokenFinish_OnMainThread(u64 userdata, s64 cyclesLate)
 {
-  ProcessorInterface::SetInterrupt(INT_CAUSE_PE_TOKEN, active);
-}
+  std::unique_lock<std::mutex> lk(s_token_finish_mutex);
+  s_event_raised = false;
 
-static void UpdateFinishInterrupt(bool active)
-{
-  ProcessorInterface::SetInterrupt(INT_CAUSE_PE_FINISH, active);
-}
+  s_token = s_token_pending;
 
-// TODO(mb2): Refactor SetTokenINT_OnMainThread(u64 userdata, int cyclesLate).
-//            Think about the right order between tokenVal and tokenINT... one day maybe.
-//            Cleanup++
-
-// Called only if BPMEM_PE_TOKEN_INT_ID is ack by GP
-static void SetToken_OnMainThread(u64 userdata, s64 cyclesLate)
-{
-  // XXX: No 16-bit atomic store available, so cheat and use 32-bit.
-  // That's what we've always done. We're counting on fifo.PEToken to be
-  // 4-byte padded.
-  Common::AtomicStore(*(volatile u32*)&CommandProcessor::fifo.PEToken, userdata & 0xffff);
-  INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)",
-           CommandProcessor::fifo.PEToken);
-  if (userdata >> 16)
+  if (s_token_interrupt_pending)
   {
-    s_signal_token_interrupt.store(1);
+    s_token_interrupt_pending = false;
+    s_signal_token_interrupt = true;
     UpdateInterrupts();
   }
-  CommandProcessor::SetInterruptTokenWaiting(false);
+
+  if (s_finish_interrupt_pending)
+  {
+    s_finish_interrupt_pending = false;
+    s_signal_finish_interrupt = true;
+    UpdateInterrupts();
+    lk.unlock();
+    Core::FrameUpdateOnCPUThread();
+  }
 }
 
-static void SetFinish_OnMainThread(u64 userdata, s64 cyclesLate)
+// Raise the event handler above on the CPU thread.
+// s_token_finish_mutex must be locked.
+// THIS IS EXECUTED FROM VIDEO THREAD
+static void RaiseEvent()
 {
-  s_signal_finish_interrupt.store(1);
-  UpdateInterrupts();
-  CommandProcessor::SetInterruptFinishWaiting(false);
+  if (s_event_raised)
+    return;
 
-  Core::FrameUpdateOnCPUThread();
+  s_event_raised = true;
+
+  CoreTiming::FromThread from = CoreTiming::FromThread::NON_CPU;
+  if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
+    from = CoreTiming::FromThread::CPU;
+  CoreTiming::ScheduleEvent(0, et_SetTokenFinishOnMainThread, 0, from);
 }
 
 // SetToken
 // THIS IS EXECUTED FROM VIDEO THREAD
-void SetToken(const u16 _token, const int _bSetTokenAcknowledge)
+void SetToken(const u16 token, const bool interrupt)
 {
-  if (_bSetTokenAcknowledge)  // set token INT
-  {
-    s_signal_token_interrupt.store(1);
-  }
+  INFO_LOG(PIXELENGINE, "VIDEO Backend raises INT_CAUSE_PE_TOKEN (btw, token: %04x)", token);
 
-  CommandProcessor::SetInterruptTokenWaiting(true);
+  std::lock_guard<std::mutex> lk(s_token_finish_mutex);
 
-  if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
-    CoreTiming::ScheduleEvent(0, et_SetTokenOnMainThread, _token | (_bSetTokenAcknowledge << 16));
-  else
-    CoreTiming::ScheduleEvent_Threadsafe(0, et_SetTokenOnMainThread,
-                                         _token | (_bSetTokenAcknowledge << 16));
+  s_token_pending = token;
+  s_token_interrupt_pending |= interrupt;
+
+  RaiseEvent();
 }
 
 // SetFinish
 // THIS IS EXECUTED FROM VIDEO THREAD (BPStructs.cpp) when a new frame has been drawn
 void SetFinish()
 {
-  CommandProcessor::SetInterruptFinishWaiting(true);
-
-  if (!SConfig::GetInstance().bCPUThread || Fifo::UseDeterministicGPUThread())
-    CoreTiming::ScheduleEvent(0, et_SetFinishOnMainThread, 0);
-  else
-    CoreTiming::ScheduleEvent_Threadsafe(0, et_SetFinishOnMainThread, 0);
-
   INFO_LOG(PIXELENGINE, "VIDEO Set Finish");
+
+  std::lock_guard<std::mutex> lk(s_token_finish_mutex);
+
+  s_finish_interrupt_pending |= true;
+
+  RaiseEvent();
 }
 
 UPEAlphaReadReg GetAlphaReadMode()

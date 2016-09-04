@@ -791,11 +791,6 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 
   int a = inst.RA, b = inst.RB;
 
-  u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-  // The following masks the region used by the GC/Wii virtual memory lib
-  mem_mask |= Memory::ADDR_MASK_MEM1;
-
   gpr.Lock(W0);
 
   ARM64Reg addr_reg = W0;
@@ -857,4 +852,16 @@ void JitArm64::dcbz(UGeckoInstruction inst)
                        gprs_to_push, fprs_to_push);
 
   gpr.Unlock(W0);
+}
+
+void JitArm64::eieio(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITLoadStoreOff);
+
+  // optimizeGatherPipe generally postpones FIFO checks to the end of the JIT block,
+  // which is generally safe. However postponing FIFO writes across eieio instructions
+  // is incorrect (would crash NBA2K11 strap screen if we improve our FIFO detection).
+  if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+    js.mustCheckFifo = true;
 }

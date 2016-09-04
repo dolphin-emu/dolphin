@@ -54,8 +54,8 @@ SWVertexLoader::~SWVertexLoader()
 
 void SWVertexLoader::ResetBuffer(u32 stride)
 {
-  s_pCurBufferPointer = s_pBaseBufferPointer = LocalVBuffer.data();
-  s_pEndBufferPointer = s_pCurBufferPointer + LocalVBuffer.size();
+  m_cur_buffer_pointer = m_base_buffer_pointer = LocalVBuffer.data();
+  m_end_buffer_pointer = m_cur_buffer_pointer + LocalVBuffer.size();
   IndexGenerator::Start(GetIndexBuffer());
 }
 
@@ -64,7 +64,7 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
   DebugUtil::OnObjectBegin();
 
   u8 primitiveType = 0;
-  switch (current_primitive_type)
+  switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
     primitiveType = GX_DRAW_POINTS;

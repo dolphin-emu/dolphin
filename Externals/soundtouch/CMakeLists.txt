@@ -16,3 +16,4 @@ set(SRCS
 	)
 
 add_library(SoundTouch STATIC ${SRCS})
+add_definitions(-w)

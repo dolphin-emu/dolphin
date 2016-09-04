@@ -68,9 +68,9 @@ void DSPLLE::DoState(PointerWrap& p)
   p.DoArray(g_dsp.ifx_regs);
   p.Do(g_dsp.mbox[0]);
   p.Do(g_dsp.mbox[1]);
-  UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+  Common::UnWriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
   p.DoArray(g_dsp.iram, DSP_IRAM_SIZE);
-  WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+  Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
   if (p.GetMode() == PointerWrap::MODE_READ)
     DSPHost::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
   p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
@@ -166,11 +166,9 @@ bool DSPLLE::Initialize(bool bWii, bool bDSPThread)
     return false;
 
   // needs to be after DSPCore_Init for the dspjit ptr
-  if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || Core::g_want_determinism ||
-      !g_dsp_jit)
-  {
+  if (Core::g_want_determinism || !g_dsp_jit)
     bDSPThread = false;
-  }
+
   m_bWii = bWii;
   m_bDSPThread = bDSPThread;
 
@@ -310,8 +308,7 @@ void DSPLLE::DSP_Update(int cycles)
   */
   if (m_bDSPThread)
   {
-    if (requestDisableThread || NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() ||
-        Core::g_want_determinism)
+    if (requestDisableThread || Core::g_want_determinism)
     {
       DSP_StopSoundStream();
       m_bDSPThread = false;

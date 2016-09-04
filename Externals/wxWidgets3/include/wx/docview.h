@@ -148,9 +148,7 @@ public:
     virtual bool AddView(wxView *view);
     virtual bool RemoveView(wxView *view);
 
-#ifndef __VISUALC6__
     wxViewVector GetViewsVector() const;
-#endif // !__VISUALC6__
 
     wxList& GetViews() { return m_documentViews; }
     const wxList& GetViews() const { return m_documentViews; }
@@ -220,7 +218,7 @@ private:
     typedef wxDList<wxDocument> DocsList;
     DocsList m_childDocuments;
 
-    DECLARE_ABSTRACT_CLASS(wxDocument)
+    wxDECLARE_ABSTRACT_CLASS(wxDocument);
     wxDECLARE_NO_COPY_CLASS(wxDocument);
 };
 
@@ -284,7 +282,7 @@ public:
 
 protected:
     // hook the document into event handlers chain here
-    virtual bool TryBefore(wxEvent& event);
+    virtual bool TryBefore(wxEvent& event) wxOVERRIDE;
 
     wxDocument*       m_viewDocument;
     wxString          m_viewTypeName;
@@ -293,7 +291,7 @@ protected:
     wxDocChildFrameAnyBase *m_docChildFrame;
 
 private:
-    DECLARE_ABSTRACT_CLASS(wxView)
+    wxDECLARE_ABSTRACT_CLASS(wxView);
     wxDECLARE_NO_COPY_CLASS(wxView);
 };
 
@@ -378,7 +376,7 @@ protected:
     virtual wxView *DoCreateView();
 
 private:
-    DECLARE_CLASS(wxDocTemplate)
+    wxDECLARE_CLASS(wxDocTemplate);
     wxDECLARE_NO_COPY_CLASS(wxDocTemplate);
 };
 
@@ -480,10 +478,8 @@ public:
     wxView *GetAnyUsableView() const;
 
 
-#ifndef __VISUALC6__
     wxDocVector GetDocumentsVector() const;
     wxDocTemplateVector GetTemplatesVector() const;
-#endif // !__VISUALC6__
 
     wxList& GetDocuments() { return m_docs; }
     wxList& GetTemplates() { return m_templates; }
@@ -533,12 +529,6 @@ public:
     );
 #endif
 
-#if WXWIN_COMPATIBILITY_2_6
-    // deprecated, use GetHistoryFilesCount() instead
-    wxDEPRECATED( size_t GetNoHistoryFiles() const );
-#endif // WXWIN_COMPATIBILITY_2_6
-
-
 protected:
     // Called when a file selected from the MRU list doesn't exist any more.
     // The default behaviour is to remove the file from the MRU and notify the
@@ -554,7 +544,7 @@ protected:
 #endif // wxUSE_PRINTING_ARCHITECTURE
 
     // hook the currently active view into event handlers chain here
-    virtual bool TryBefore(wxEvent& event);
+    virtual bool TryBefore(wxEvent& event) wxOVERRIDE;
 
     // return the command processor for the current document, if any
     wxCommandProcessor *GetCurrentCommandProcessor() const;
@@ -572,17 +562,10 @@ protected:
     wxPageSetupDialogData m_pageSetupDialogData;
 #endif // wxUSE_PRINTING_ARCHITECTURE
 
-    DECLARE_EVENT_TABLE()
-    DECLARE_DYNAMIC_CLASS(wxDocManager)
+    wxDECLARE_EVENT_TABLE();
+    wxDECLARE_DYNAMIC_CLASS(wxDocManager);
     wxDECLARE_NO_COPY_CLASS(wxDocManager);
 };
-
-#if WXWIN_COMPATIBILITY_2_6
-inline size_t wxDocManager::GetNoHistoryFiles() const
-{
-    return GetHistoryFilesCount();
-}
-#endif // WXWIN_COMPATIBILITY_2_6
 
 // ----------------------------------------------------------------------------
 // Base class for child frames -- this is what wxView renders itself into
@@ -774,15 +757,6 @@ private:
 // otherwise we could simply typedef it
 // ----------------------------------------------------------------------------
 
-#ifdef __VISUALC6__
-    // "non dll-interface class 'wxDocChildFrameAny<>' used as base interface
-    // for dll-interface class 'wxDocChildFrame'" -- this is bogus as the
-    // template will be DLL-exported but only once it is used as base class
-    // here!
-    #pragma warning (push)
-    #pragma warning (disable:4275)
-#endif
-
 typedef wxDocChildFrameAny<wxFrame, wxFrame> wxDocChildFrameBase;
 
 class WXDLLIMPEXP_CORE wxDocChildFrame : public wxDocChildFrameBase
@@ -824,7 +798,7 @@ public:
     }
 
 private:
-    DECLARE_CLASS(wxDocChildFrame)
+    wxDECLARE_CLASS(wxDocChildFrame);
     wxDECLARE_NO_COPY_CLASS(wxDocChildFrame);
 };
 
@@ -976,14 +950,9 @@ public:
     }
 
 private:
-    DECLARE_CLASS(wxDocParentFrame)
+    wxDECLARE_CLASS(wxDocParentFrame);
     wxDECLARE_NO_COPY_CLASS(wxDocParentFrame);
 };
-
-#ifdef __VISUALC6__
-    // reenable warning 4275
-    #pragma warning (pop)
-#endif
 
 // ----------------------------------------------------------------------------
 // Provide simple default printing facilities
@@ -996,11 +965,11 @@ public:
     wxDocPrintout(wxView *view = NULL, const wxString& title = wxString());
 
     // implement wxPrintout methods
-    virtual bool OnPrintPage(int page);
-    virtual bool HasPage(int page);
-    virtual bool OnBeginDocument(int startPage, int endPage);
+    virtual bool OnPrintPage(int page) wxOVERRIDE;
+    virtual bool HasPage(int page) wxOVERRIDE;
+    virtual bool OnBeginDocument(int startPage, int endPage) wxOVERRIDE;
     virtual void GetPageInfo(int *minPage, int *maxPage,
-                             int *selPageFrom, int *selPageTo);
+                             int *selPageFrom, int *selPageTo) wxOVERRIDE;
 
     virtual wxView *GetView() { return m_printoutView; }
 
@@ -1008,7 +977,7 @@ protected:
     wxView*       m_printoutView;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxDocPrintout)
+    wxDECLARE_DYNAMIC_CLASS(wxDocPrintout);
     wxDECLARE_NO_COPY_CLASS(wxDocPrintout);
 };
 #endif // wxUSE_PRINTING_ARCHITECTURE
@@ -1039,7 +1008,6 @@ enum
 };
 #endif // WXWIN_COMPATIBILITY_2_8
 
-#ifndef __VISUALC6__
 inline wxViewVector wxDocument::GetViewsVector() const
 {
     return m_documentViews.AsVector<wxView*>();
@@ -1054,7 +1022,6 @@ inline wxDocTemplateVector wxDocManager::GetTemplatesVector() const
 {
     return m_templates.AsVector<wxDocTemplate*>();
 }
-#endif // !__VISUALC6__
 
 #endif // wxUSE_DOC_VIEW_ARCHITECTURE
 

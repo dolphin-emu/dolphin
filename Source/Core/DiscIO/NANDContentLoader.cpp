@@ -23,8 +23,8 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
-#include "DiscIO/Volume.h"
 #include "DiscIO/WiiWad.h"
 
 namespace DiscIO
@@ -303,10 +303,10 @@ std::vector<u8> CNANDContentLoader::GetKeyFromTicket(const std::vector<u8>& tick
   return AESDecode(common_key, iv, &ticket[0x01BF], 16);
 }
 
-DiscIO::IVolume::ECountry CNANDContentLoader::GetCountry() const
+DiscIO::Country CNANDContentLoader::GetCountry() const
 {
   if (!IsValid())
-    return DiscIO::IVolume::COUNTRY_UNKNOWN;
+    return DiscIO::Country::COUNTRY_UNKNOWN;
 
   return CountrySwitch(m_Country);
 }

@@ -6,7 +6,10 @@
 
 #include <QSettings>
 
-#include "DiscIO/Volume.h"
+namespace DiscIO
+{
+enum class Language;
+}
 
 // UI settings to be stored in the config directory.
 class Settings final : public QSettings
@@ -18,6 +21,7 @@ public:
 
   // UI
   QString GetThemeDir() const;
+  bool IsInDevelopmentWarningEnabled() const;
 
   // GameList
   QString GetLastGame() const;
@@ -33,8 +37,8 @@ public:
   void SetApploader(const QString& path);
   QString GetWiiNAND() const;
   void SetWiiNAND(const QString& path);
-  DiscIO::IVolume::ELanguage GetWiiSystemLanguage() const;
-  DiscIO::IVolume::ELanguage GetGCSystemLanguage() const;
+  DiscIO::Language GetWiiSystemLanguage() const;
+  DiscIO::Language GetGCSystemLanguage() const;
   bool GetPreferredView() const;
   void SetPreferredView(bool table);
 

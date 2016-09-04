@@ -75,19 +75,19 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::ResetBuffer(u32 stride)
 {
-  if (s_cull_all)
+  if (m_cull_all)
   {
     // This buffer isn't getting sent to the GPU. Just allocate it on the cpu.
-    s_pCurBufferPointer = s_pBaseBufferPointer = m_cpu_v_buffer.data();
-    s_pEndBufferPointer = s_pBaseBufferPointer + m_cpu_v_buffer.size();
+    m_cur_buffer_pointer = m_base_buffer_pointer = m_cpu_v_buffer.data();
+    m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_v_buffer.size();
 
     IndexGenerator::Start((u16*)m_cpu_i_buffer.data());
   }
   else
   {
     auto buffer = s_vertexBuffer->Map(MAXVBUFFERSIZE, stride);
-    s_pCurBufferPointer = s_pBaseBufferPointer = buffer.first;
-    s_pEndBufferPointer = buffer.first + MAXVBUFFERSIZE;
+    m_cur_buffer_pointer = m_base_buffer_pointer = buffer.first;
+    m_end_buffer_pointer = buffer.first + MAXVBUFFERSIZE;
     s_baseVertex = buffer.second / stride;
 
     buffer = s_indexBuffer->Map(MAXIBUFFERSIZE * sizeof(u16));
@@ -102,7 +102,7 @@ void VertexManager::Draw(u32 stride)
   u32 max_index = IndexGenerator::GetNumVerts();
   GLenum primitive_mode = 0;
 
-  switch (current_primitive_type)
+  switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
     primitive_mode = GL_POINTS;
@@ -131,7 +131,7 @@ void VertexManager::Draw(u32 stride)
 
   INCSTAT(stats.thisFrame.numDrawCalls);
 
-  if (current_primitive_type != PRIMITIVE_TRIANGLES)
+  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
     static_cast<Renderer*>(g_renderer.get())->SetGenerationMode();
 }
 
@@ -155,11 +155,11 @@ void VertexManager::vFlush(bool useDstAlpha)
   // the same pass as regular rendering.
   if (useDstAlpha && dualSourcePossible)
   {
-    ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, current_primitive_type);
+    ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, m_current_primitive_type);
   }
   else
   {
-    ProgramShaderCache::SetShader(DSTALPHA_NONE, current_primitive_type);
+    ProgramShaderCache::SetShader(DSTALPHA_NONE, m_current_primitive_type);
   }
 
   // upload global constants
@@ -173,7 +173,7 @@ void VertexManager::vFlush(bool useDstAlpha)
   // run through vertex groups again to set alpha
   if (useDstAlpha && !dualSourcePossible)
   {
-    ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, current_primitive_type);
+    ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, m_current_primitive_type);
 
     // only update alpha
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);

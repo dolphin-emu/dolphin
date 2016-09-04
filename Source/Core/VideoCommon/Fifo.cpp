@@ -36,7 +36,7 @@ static bool s_skip_current_frame = false;
 
 static Common::BlockingLoop s_gpu_mainloop;
 
-static std::atomic<bool> s_emu_running_state;
+static Common::Flag s_emu_running_state;
 
 // Most of this array is unlikely to be faulted in...
 static u8 s_fifo_aux_data[FIFO_SIZE];
@@ -48,7 +48,7 @@ static u8* s_fifo_aux_read_ptr;
 static bool s_use_deterministic_gpu_thread;
 
 static u64 s_last_sync_gpu_tick;
-static int s_event_sync_gpu;
+static CoreTiming::EventType* s_event_sync_gpu;
 
 // STATE_TO_SAVE
 static u8* s_video_buffer;
@@ -92,7 +92,7 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 {
   if (doLock)
   {
-    SyncGPU(SYNC_GPU_OTHER);
+    SyncGPU(SyncGPUReason::Other);
     EmulatorState(false);
     FlushGpu();
   }
@@ -106,7 +106,7 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock)
 void Init()
 {
   // Padded so that SIMD overreads in the vertex loader are safe
-  s_video_buffer = (u8*)AllocateMemoryPages(FIFO_SIZE + 4);
+  s_video_buffer = static_cast<u8*>(Common::AllocateMemoryPages(FIFO_SIZE + 4));
   ResetVideoBuffer();
   if (SConfig::GetInstance().bCPUThread)
     s_gpu_mainloop.Prepare();
@@ -118,7 +118,7 @@ void Shutdown()
   if (s_gpu_mainloop.IsRunning())
     PanicAlert("Fifo shutting down while active");
 
-  FreeMemoryPages(s_video_buffer, FIFO_SIZE + 4);
+  Common::FreeMemoryPages(s_video_buffer, FIFO_SIZE + 4);
   s_video_buffer = nullptr;
   s_video_buffer_write_ptr = nullptr;
   s_video_buffer_pp_read_ptr = nullptr;
@@ -147,14 +147,17 @@ void ExitGpuLoop()
   FlushGpu();
 
   // Terminate GPU thread loop
-  s_emu_running_state.store(true);
+  s_emu_running_state.Set();
   s_gpu_mainloop.Stop(false);
 }
 
 void EmulatorState(bool running)
 {
-  s_emu_running_state.store(running);
-  s_gpu_mainloop.Wakeup();
+  s_emu_running_state.Set(running);
+  if (running)
+    s_gpu_mainloop.Wakeup();
+  else
+    s_gpu_mainloop.AllowSleep();
 }
 
 void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
@@ -196,7 +199,7 @@ void PushFifoAuxBuffer(void* ptr, size_t size)
 {
   if (size > (size_t)(s_fifo_aux_data + FIFO_SIZE - s_fifo_aux_write_ptr))
   {
-    SyncGPU(SYNC_GPU_AUX_SPACE, /* may_move_read_ptr */ false);
+    SyncGPU(SyncGPUReason::AuxSpace, /* may_move_read_ptr */ false);
     if (!s_gpu_mainloop.IsRunning())
     {
       // GPU is shutting down
@@ -252,7 +255,7 @@ static void ReadDataFromFifoOnCPU(u32 readPtr)
   {
     // We can't wrap around while the GPU is working on the data.
     // This should be very rare due to the reset in SyncGPU.
-    SyncGPU(SYNC_GPU_WRAPAROUND);
+    SyncGPU(SyncGPUReason::Wraparound);
     if (!s_gpu_mainloop.IsRunning())
     {
       // GPU is shutting down, so the next asserts may fail
@@ -304,7 +307,7 @@ void RunGpuLoop()
         g_video_backend->PeekMessages();
 
         // Do nothing while paused
-        if (!s_emu_running_state.load())
+        if (!s_emu_running_state.IsSet())
           return;
 
         if (s_use_deterministic_gpu_thread)
@@ -387,7 +390,7 @@ void RunGpuLoop()
 
           // The fifo is empty and it's unlikely we will get any more work in the near future.
           // Make sure VertexManager finishes drawing any primitives it has stored in it's buffer.
-          VertexManagerBase::Flush();
+          g_vertex_manager->Flush();
         }
       },
       100);

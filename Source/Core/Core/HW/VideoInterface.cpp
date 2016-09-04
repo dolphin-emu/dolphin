@@ -678,10 +678,12 @@ static void BeginField(FieldType field)
     // has the first line. For the field with the second line, we
     // offset the xfb by (-stride_of_one_line) to get the start
     // address of the full xfb.
-    if (field == FieldType::FIELD_ODD && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1)
+    if (field == FieldType::FIELD_ODD && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1 &&
+        xfbAddr)
       xfbAddr -= fbStride * 2;
 
-    if (field == FieldType::FIELD_EVEN && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1)
+    if (field == FieldType::FIELD_EVEN && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1 &&
+        xfbAddr)
       xfbAddr -= fbStride * 2;
   }
 
@@ -700,13 +702,16 @@ static void BeginField(FieldType field)
   DEBUG_LOG(VIDEOINTERFACE, "HorizScaling: %04x | fbwidth %d | %u | %u", m_HorizontalScaling.Hex,
             m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
 
+  // This assumes the game isn't going to change the VI registers while a
+  // frame is scanning out.
+  // To correctly handle that case we would need to collate all changes
+  // to VI during scanout and delay outputting the frame till then.
   if (xfbAddr)
     g_video_backend->Video_BeginField(xfbAddr, fbWidth, fbStride, fbHeight);
 }
 
 static void EndField()
 {
-  g_video_backend->Video_EndField();
   Core::VideoThrottle();
 }
 

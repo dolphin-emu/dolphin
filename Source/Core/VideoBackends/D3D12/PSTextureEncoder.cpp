@@ -16,6 +16,7 @@
 #include "VideoBackends/D3D12/TextureCache.h"
 
 #include "VideoCommon/TextureConversionShader.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace DX12
 {
@@ -249,7 +250,7 @@ D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format,
     }
 
     ID3DBlob* bytecode = nullptr;
-    const char* shader = TextureConversionShader::GenerateEncodingShader(format, API_D3D);
+    const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::D3D);
     if (!D3D::CompilePixelShader(shader, &bytecode))
     {
       WARN_LOG(VIDEO, "EFB encoder shader for dst_format 0x%X, src_format %d, is_intensity %d, "

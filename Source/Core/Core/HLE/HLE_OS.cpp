@@ -14,16 +14,15 @@
 
 namespace HLE_OS
 {
-void GetStringVA(std::string& _rOutBuffer, u32 strReg = 3);
+std::string GetStringVA(u32 strReg = 3);
 
 void HLE_OSPanic()
 {
-  std::string Error, Msg;
-  GetStringVA(Error);
-  GetStringVA(Msg, 5);
+  std::string error = GetStringVA();
+  std::string msg = GetStringVA(5);
 
-  PanicAlert("OSPanic: %s: %s", Error.c_str(), Msg.c_str());
-  ERROR_LOG(OSREPORT, "%08x->%08x| OSPanic: %s: %s", LR, PC, Error.c_str(), Msg.c_str());
+  PanicAlert("OSPanic: %s: %s", error.c_str(), msg.c_str());
+  ERROR_LOG(OSREPORT, "%08x->%08x| OSPanic: %s: %s", LR, PC, error.c_str(), msg.c_str());
 
   NPC = LR;
 }
@@ -31,49 +30,50 @@ void HLE_OSPanic()
 // Generalized func for just printing string pointed to by r3.
 void HLE_GeneralDebugPrint()
 {
-  std::string ReportMessage;
+  std::string report_message;
+
   if (PowerPC::HostRead_U32(GPR(3)) > 0x80000000)
   {
-    GetStringVA(ReportMessage, 4);
+    report_message = GetStringVA(4);
   }
   else
   {
-    GetStringVA(ReportMessage);
+    report_message = GetStringVA();
   }
+
   NPC = LR;
 
-  // PanicAlert("(%08x->%08x) %s", LR, PC, ReportMessage.c_str());
-  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());
+  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, report_message.c_str());
 }
 
 // __write_console is slightly abnormal
 void HLE_write_console()
 {
-  std::string ReportMessage;
-  GetStringVA(ReportMessage, 4);
+  std::string report_message = GetStringVA(4);
+
   NPC = LR;
 
-  // PanicAlert("(%08x->%08x) %s", LR, PC, ReportMessage.c_str());
-  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, ReportMessage.c_str());
+  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, report_message.c_str());
 }
 
-void GetStringVA(std::string& _rOutBuffer, u32 strReg)
+std::string GetStringVA(u32 strReg)
 {
-  _rOutBuffer = "";
-  std::string ArgumentBuffer = "";
+  std::string ArgumentBuffer;
   u32 ParameterCounter = strReg + 1;
   u32 FloatingParameterCounter = 1;
+
+  std::string result;
   std::string string = PowerPC::HostGetString(GPR(strReg));
 
-  for (u32 i = 0; i < string.size(); i++)
+  for (size_t i = 0; i < string.size(); i++)
   {
     if (string[i] == '%')
     {
-      ArgumentBuffer = "%";
+      ArgumentBuffer = '%';
       i++;
       if (string[i] == '%')
       {
-        _rOutBuffer += "%";
+        result += '%';
         continue;
       }
       while (string[i] < 'A' || string[i] > 'z' || string[i] == 'l' || string[i] == '-')
@@ -102,20 +102,20 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
       switch (string[i])
       {
       case 's':
-        _rOutBuffer += StringFromFormat(ArgumentBuffer.c_str(),
-                                        PowerPC::HostGetString((u32)Parameter).c_str());
+        result += StringFromFormat(ArgumentBuffer.c_str(),
+                                   PowerPC::HostGetString((u32)Parameter).c_str());
         break;
 
       case 'd':
       case 'i':
       {
-        _rOutBuffer += StringFromFormat(ArgumentBuffer.c_str(), Parameter);
+        result += StringFromFormat(ArgumentBuffer.c_str(), Parameter);
         break;
       }
 
       case 'f':
       {
-        _rOutBuffer += StringFromFormat(ArgumentBuffer.c_str(), rPS0(FloatingParameterCounter));
+        result += StringFromFormat(ArgumentBuffer.c_str(), rPS0(FloatingParameterCounter));
         FloatingParameterCounter++;
         ParameterCounter--;
         break;
@@ -123,21 +123,24 @@ void GetStringVA(std::string& _rOutBuffer, u32 strReg)
 
       case 'p':
         // Override, so 64bit Dolphin prints 32bit pointers, since the ppc is 32bit :)
-        _rOutBuffer += StringFromFormat("%x", (u32)Parameter);
+        result += StringFromFormat("%x", (u32)Parameter);
         break;
 
       default:
-        _rOutBuffer += StringFromFormat(ArgumentBuffer.c_str(), Parameter);
+        result += StringFromFormat(ArgumentBuffer.c_str(), Parameter);
         break;
       }
     }
     else
     {
-      _rOutBuffer += string[i];
+      result += string[i];
     }
   }
-  if (!_rOutBuffer.empty() && _rOutBuffer[_rOutBuffer.length() - 1] == '\n')
-    _rOutBuffer.resize(_rOutBuffer.length() - 1);
+
+  if (!result.empty() && result.back() == '\n')
+    result.pop_back();
+
+  return result;
 }
 
 }  // end of namespace HLE_OS

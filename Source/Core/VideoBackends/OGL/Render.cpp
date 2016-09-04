@@ -352,7 +352,6 @@ Renderer::Renderer()
   g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
   g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
   g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
-  g_ogl_config.glsl_version = (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION);
 
   InitDriverInfo();
 
@@ -481,6 +480,9 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsBindingLayout =
       GLExtensions::Supports("GL_ARB_shading_language_420pack");
 
+  // Clip distance support is useless without a method to clamp the depth range
+  g_Config.backend_info.bSupportsDepthClamp = GLExtensions::Supports("GL_ARB_depth_clamp");
+
   g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
   g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
@@ -520,13 +522,17 @@ Renderer::Renderer()
     g_ogl_config.bSupportsGLSLCache = true;
     g_ogl_config.bSupportsGLSync = true;
 
-    if (strstr(g_ogl_config.glsl_version, "3.0"))
+    // TODO: Implement support for GL_EXT_clip_cull_distance when there is an extension for
+    // depth clamping.
+    g_Config.backend_info.bSupportsDepthClamp = false;
+
+    if (GLExtensions::Version() == 300)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
       g_ogl_config.bSupportsAEP = false;
       g_Config.backend_info.bSupportsGeometryShaders = false;
     }
-    else if (strstr(g_ogl_config.glsl_version, "3.1"))
+    else if (GLExtensions::Version() == 310)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
       g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
@@ -568,16 +574,15 @@ Renderer::Renderer()
   }
   else
   {
-    if (strstr(g_ogl_config.glsl_version, "1.00") || strstr(g_ogl_config.glsl_version, "1.10") ||
-        strstr(g_ogl_config.glsl_version, "1.20"))
+    if (GLExtensions::Version() < 300)
     {
       PanicAlert("GPU: OGL ERROR: Need at least GLSL 1.30\n"
                  "GPU: Does your video card support OpenGL 3.0?\n"
                  "GPU: Your driver supports GLSL %s",
-                 g_ogl_config.glsl_version);
+                 (const char*)glGetString(GL_SHADING_LANGUAGE_VERSION));
       bSuccess = false;
     }
-    else if (strstr(g_ogl_config.glsl_version, "1.30"))
+    else if (GLExtensions::Version() == 300)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_130;
       g_ogl_config.bSupportsEarlyFragmentTests =
@@ -587,7 +592,7 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsGeometryShaders =
           false;  // geometry shaders are only supported on glsl150+
     }
-    else if (strstr(g_ogl_config.glsl_version, "1.40"))
+    else if (GLExtensions::Version() == 310)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_140;
       g_ogl_config.bSupportsEarlyFragmentTests =
@@ -597,11 +602,11 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsGeometryShaders =
           false;  // geometry shaders are only supported on glsl150+
     }
-    else if (strstr(g_ogl_config.glsl_version, "1.50"))
+    else if (GLExtensions::Version() == 320)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_150;
     }
-    else if (strstr(g_ogl_config.glsl_version, "3.30"))
+    else if (GLExtensions::Version() == 330)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_330;
     }
@@ -669,7 +674,7 @@ Renderer::Renderer()
                                    g_ogl_config.gl_renderer, g_ogl_config.gl_version),
                   5000);
 
-  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s",
+  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s%s",
            g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
            g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
            g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
@@ -681,7 +686,8 @@ Renderer::Renderer()
            g_ActiveConfig.backend_info.bSupportsSSAA ? "" : "SSAA ",
            g_ActiveConfig.backend_info.bSupportsGSInstancing ? "" : "GSInstancing ",
            g_ActiveConfig.backend_info.bSupportsClipControl ? "" : "ClipControl ",
-           g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ");
+           g_ogl_config.bSupportsCopySubImage ? "" : "CopyImageSubData ",
+           g_ActiveConfig.backend_info.bSupportsDepthClamp ? "" : "DepthClamp ");
 
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_MSAASamples = s_last_multisamples;
@@ -724,6 +730,12 @@ Renderer::Renderer()
   glClearDepthf(1.0f);
   glEnable(GL_DEPTH_TEST);
   glDepthFunc(GL_LEQUAL);
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
+    glEnable(GL_CLIP_DISTANCE0);
+    glEnable(GL_CLIP_DISTANCE1);
+    glEnable(GL_DEPTH_CLAMP);
+  }
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 
@@ -821,7 +833,7 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 // therefore the width and height are (scissorBR + 1) - scissorTL
 void Renderer::SetScissorRect(const EFBRectangle& rc)
 {
-  TargetRectangle trc = g_renderer->ConvertEFBRectangle(rc);
+  TargetRectangle trc = ConvertEFBRectangle(rc);
   glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
 }
 
@@ -940,13 +952,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     {
       if (s_MSAASamples > 1)
       {
-        g_renderer->ResetAPIState();
+        ResetAPIState();
 
         // Resolve our rectangle.
         FramebufferManager::GetEFBDepthTexture(efbPixelRc);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 
-        g_renderer->RestoreAPIState();
+        RestoreAPIState();
       }
 
       std::unique_ptr<float[]> depthMap(new float[targetPixelRcWidth * targetPixelRcHeight]);
@@ -979,13 +991,13 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     {
       if (s_MSAASamples > 1)
       {
-        g_renderer->ResetAPIState();
+        ResetAPIState();
 
         // Resolve our rectangle.
         FramebufferManager::GetEFBColorTexture(efbPixelRc);
         glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetResolvedFramebuffer());
 
-        g_renderer->RestoreAPIState();
+        RestoreAPIState();
       }
 
       std::unique_ptr<u32[]> colorMap(new u32[targetPixelRcWidth * targetPixelRcHeight]);
@@ -1142,7 +1154,22 @@ void Renderer::SetViewport()
     auto iceilf = [](float f) { return static_cast<GLint>(ceilf(f)); };
     glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
   }
-  glDepthRangef(GLFar, GLNear);
+
+  // Set the reversed depth range. If we do depth clipping and depth range in the
+  // vertex shader we only need to ensure depth values don't exceed the maximum
+  // value supported by the console GPU. If not, we simply clamp the near/far values
+  // themselves to the maximum value as done above.
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
+    if (xfmem.viewport.zRange < 0.0f)
+      glDepthRangef(0.0f, GX_MAX_DEPTH);
+    else
+      glDepthRangef(GX_MAX_DEPTH, 0.0f);
+  }
+  else
+  {
+    glDepthRangef(GLFar, GLNear);
+  }
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
@@ -1647,6 +1674,11 @@ void Renderer::ResetAPIState()
   glDisable(GL_BLEND);
   if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
     glDisable(GL_COLOR_LOGIC_OP);
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
+    glDisable(GL_CLIP_DISTANCE0);
+    glDisable(GL_CLIP_DISTANCE1);
+  }
   glDepthMask(GL_FALSE);
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
 }
@@ -1655,6 +1687,11 @@ void Renderer::RestoreAPIState()
 {
   // Gets us back into a more game-like state.
   glEnable(GL_SCISSOR_TEST);
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  {
+    glEnable(GL_CLIP_DISTANCE0);
+    glEnable(GL_CLIP_DISTANCE1);
+  }
   SetGenerationMode();
   BPFunctions::SetScissor();
   SetColorMask();

@@ -4,14 +4,17 @@
 
 #include <cstring>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
+#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/Sram.h"
@@ -29,6 +32,8 @@ static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserv
 
 static const char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
                                       "(C) 1999 ArtX Inc.  All rights reserved.";
+
+static constexpr u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
 
 // bootrom descrambler reversed by segher
 // Copyright 2008 Segher Boessenkool <segher@kernel.crashing.org>
@@ -89,7 +94,7 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
   m_bNTSC = SConfig::GetInstance().bNTSC;
 
   // Create the IPL
-  m_pIPL = (u8*)AllocateMemoryPages(ROM_SIZE);
+  m_pIPL = static_cast<u8*>(Common::AllocateMemoryPages(ROM_SIZE));
 
   if (SConfig::GetInstance().bHLE_BS2)
   {
@@ -118,13 +123,13 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
   g_SRAM.lang = SConfig::GetInstance().SelectedLanguage;
   FixSRAMChecksums();
 
-  WriteProtectMemory(m_pIPL, ROM_SIZE);
+  Common::WriteProtectMemory(m_pIPL, ROM_SIZE);
   m_uAddress = 0;
 }
 
 CEXIIPL::~CEXIIPL()
 {
-  FreeMemoryPages(m_pIPL, ROM_SIZE);
+  Common::FreeMemoryPages(m_pIPL, ROM_SIZE);
   m_pIPL = nullptr;
 
   // SRAM
@@ -336,7 +341,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
 
         if (_uByte == '\r')
         {
-          NOTICE_LOG(OSREPORT, "%s", m_buffer.c_str());
+          NOTICE_LOG(OSREPORT, "%s", SHIFTJISToUTF8(m_buffer).c_str());
           m_buffer.clear();
         }
       }
@@ -403,7 +408,6 @@ void CEXIIPL::TransferByte(u8& _uByte)
 u32 CEXIIPL::GetGCTime()
 {
   u64 ltime = 0;
-  static const u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
 
   if (Movie::IsMovieActive())
   {
@@ -421,7 +425,8 @@ u32 CEXIIPL::GetGCTime()
   }
   else
   {
-    ltime = Common::Timer::GetLocalTimeSinceJan1970();
+    _assert_(!Core::g_want_determinism);
+    ltime = Common::Timer::GetLocalTimeSinceJan1970() - SystemTimers::GetLocalTimeRTCOffset();
   }
 
   return ((u32)ltime - cJanuary2000);
@@ -442,4 +447,9 @@ u32 CEXIIPL::GetGCTime()
 	u64 ltime = Common::Timer::GetTimeSinceJan1970();
 	return ((u32)ltime - cJanuary2000 - Bias);
 #endif
+}
+
+u32 CEXIIPL::GetGCTimeJan1970()
+{
+  return GetGCTime() + cJanuary2000;
 }

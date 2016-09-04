@@ -28,7 +28,7 @@ void Shutdown()
   g_controller_interface.Shutdown();
 }
 
-void Initialize(void* const hwnd, bool wait)
+void Initialize(void* const hwnd, InitializeMode init_mode)
 {
   if (s_config.ControllersNeedToBeCreated())
   {
@@ -37,10 +37,11 @@ void Initialize(void* const hwnd, bool wait)
   }
 
   g_controller_interface.Initialize(hwnd);
+  g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   s_config.LoadConfig(false);
 
-  WiimoteReal::Initialize(wait);
+  WiimoteReal::Initialize(init_mode);
 
   // Reload Wiimotes with our settings
   if (Movie::IsMovieActive())
@@ -71,9 +72,7 @@ void Pause()
 // An L2CAP packet is passed from the Core to the Wiimote on the HID CONTROL channel.
 void ControlChannel(int number, u16 channel_id, const void* data, u32 size)
 {
-  if (WIIMOTE_SRC_REAL & g_wiimote_sources[number])
-    WiimoteReal::ControlChannel(number, channel_id, data, size);
-  else if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[number])
+  if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[number])
     static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
         ->ControlChannel(channel_id, data, size);
 }

@@ -35,7 +35,7 @@ public:
     GetRGB(int pixel,
            unsigned char *red, unsigned char *green, unsigned char *blue) const;
 
-    // implemetation
+    // implementation
     WXHPALETTE GetHPALETTE() const;
     void SetHPALETTE(WXHPALETTE pal);
 
@@ -44,7 +44,7 @@ protected:
     virtual wxGDIRefData *CloneGDIRefData(const wxGDIRefData *data) const;
 
 private:
-    DECLARE_DYNAMIC_CLASS(wxPalette)
+    wxDECLARE_DYNAMIC_CLASS(wxPalette);
 };
 
 #endif // _WX_PALETTE_H_

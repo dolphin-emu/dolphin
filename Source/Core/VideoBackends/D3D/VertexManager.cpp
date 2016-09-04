@@ -61,8 +61,8 @@ VertexManager::VertexManager()
 {
   LocalVBuffer.resize(MAXVBUFFERSIZE);
 
-  s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
-  s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
+  m_cur_buffer_pointer = m_base_buffer_pointer = &LocalVBuffer[0];
+  m_end_buffer_pointer = m_base_buffer_pointer + LocalVBuffer.size();
 
   LocalIBuffer.resize(MAXIBUFFERSIZE);
 
@@ -78,7 +78,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 {
   D3D11_MAPPED_SUBRESOURCE map;
 
-  u32 vertexBufferSize = u32(s_pCurBufferPointer - s_pBaseBufferPointer);
+  u32 vertexBufferSize = u32(m_cur_buffer_pointer - m_base_buffer_pointer);
   u32 indexBufferSize = IndexGenerator::GetIndexLen() * sizeof(u16);
   u32 totalBufferSize = vertexBufferSize + indexBufferSize;
 
@@ -103,7 +103,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
   D3D::context->Map(m_buffers[m_currentBuffer], 0, MapType, 0, &map);
   u8* mappedData = reinterpret_cast<u8*>(map.pData);
-  memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
+  memcpy(mappedData + m_vertexDrawOffset, m_base_buffer_pointer, vertexBufferSize);
   memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
   D3D::context->Unmap(m_buffers[m_currentBuffer], 0);
 
@@ -123,7 +123,7 @@ void VertexManager::Draw(u32 stride)
   u32 baseVertex = m_vertexDrawOffset / stride;
   u32 startIndex = m_indexDrawOffset / sizeof(u16);
 
-  switch (current_primitive_type)
+  switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
     D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
@@ -143,7 +143,7 @@ void VertexManager::Draw(u32 stride)
 
   INCSTAT(stats.thisFrame.numDrawCalls);
 
-  if (current_primitive_type != PRIMITIVE_TRIANGLES)
+  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
     static_cast<Renderer*>(g_renderer.get())->RestoreCull();
 }
 
@@ -161,7 +161,7 @@ void VertexManager::vFlush(bool useDstAlpha)
     return;
   }
 
-  if (!GeometryShaderCache::SetShader(current_primitive_type))
+  if (!GeometryShaderCache::SetShader(m_current_primitive_type))
   {
     GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
     return;
@@ -188,7 +188,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 void VertexManager::ResetBuffer(u32 stride)
 {
-  s_pCurBufferPointer = s_pBaseBufferPointer;
+  m_cur_buffer_pointer = m_base_buffer_pointer;
   IndexGenerator::Start(GetIndexBuffer());
 }
 

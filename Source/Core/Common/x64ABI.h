@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Common/BitSet.h"
-#include "Common/x64Emitter.h"
+#include "Common/x64Reg.h"
 
 // x64 ABI:s, and helpers to help follow them when JIT-ing code.
 // All convensions return values in EAX (+ possibly EDX).

@@ -318,8 +318,13 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
   for (const auto& p : m_players)
   {
     spac.clear();
-    spac << (MessageId)NP_MSG_PLAYER_JOIN;
+    spac << static_cast<MessageId>(NP_MSG_PLAYER_JOIN);
     spac << p.second.pid << p.second.name << p.second.revision;
+    Send(player.socket, spac);
+
+    spac.clear();
+    spac << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+    spac << p.second.pid << static_cast<u32>(p.second.game_status);
     Send(player.socket, spac);
   }
 
@@ -345,15 +350,13 @@ unsigned int NetPlayServer::OnDisconnect(Client& player)
     {
       if (mapping == pid && pid != 1)
       {
-        PanicAlertT("Client disconnect while game is running!! NetPlay is disabled. You must "
-                    "manually stop the game.");
         std::lock_guard<std::recursive_mutex> lkg(m_crit.game);
         m_is_running = false;
 
         sf::Packet spac;
         spac << (MessageId)NP_MSG_DISABLE_GAME;
         // this thread doesn't need players lock
-        SendToClients(spac, 1);
+        SendToClients(spac, -1);
         break;
       }
     }
@@ -592,6 +595,23 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
   }
   break;
 
+  case NP_MSG_GAME_STATUS:
+  {
+    u32 status;
+    packet >> status;
+
+    m_players[player.pid].game_status = static_cast<PlayerGameStatus>(status);
+
+    // send msg to other clients
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+    spac << player.pid;
+    spac << status;
+
+    SendToClients(spac);
+  }
+  break;
+
   case NP_MSG_TIMEBASE:
   {
     u32 x, y, frame;
@@ -614,19 +634,15 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
           }))
       {
         int pid_to_blame = -1;
-        if (timebases.size() > 2)
+        for (auto pair : timebases)
         {
-          for (auto pair : timebases)
+          if (std::all_of(timebases.begin(), timebases.end(), [&](std::pair<PlayerId, u64> other) {
+                return other.first == pair.first || other.second != pair.second;
+              }))
           {
-            if (std::all_of(timebases.begin(), timebases.end(),
-                            [&](std::pair<PlayerId, u64> other) {
-                              return other.first == pair.first || other.second != pair.second;
-                            }))
-            {
-              // we are the only outlier
-              pid_to_blame = pair.first;
-              break;
-            }
+            // we are the only outlier
+            pid_to_blame = pair.first;
+            break;
           }
         }
 
@@ -642,6 +658,49 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
     }
   }
   break;
+
+  case NP_MSG_MD5_PROGRESS:
+  {
+    int progress;
+    packet >> progress;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
+    spac << player.pid;
+    spac << progress;
+
+    SendToClients(spac);
+  }
+  break;
+
+  case NP_MSG_MD5_RESULT:
+  {
+    std::string result;
+    packet >> result;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_RESULT);
+    spac << player.pid;
+    spac << result;
+
+    SendToClients(spac);
+  }
+  break;
+
+  case NP_MSG_MD5_ERROR:
+  {
+    std::string error;
+    packet >> error;
+
+    sf::Packet spac;
+    spac << static_cast<MessageId>(NP_MSG_MD5_ERROR);
+    spac << player.pid;
+    spac << error;
+
+    SendToClients(spac);
+  }
+  break;
+
   default:
     PanicAlertT("Unknown message with id:%d received from player:%d Kicking player!", mid,
                 player.pid);
@@ -655,16 +714,16 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
 void NetPlayServer::OnTraversalStateChanged()
 {
-  if (m_dialog)
-    m_dialog->Update();
+  if (m_dialog && m_traversal_client->m_State == TraversalClient::Failure)
+    m_dialog->OnTraversalError(m_traversal_client->m_FailureReason);
 }
 
 // called from ---GUI--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
   auto spac = std::make_unique<sf::Packet>();
-  *spac << (MessageId)NP_MSG_CHAT_MESSAGE;
-  *spac << (PlayerId)0;  // server id always 0
+  *spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
+  *spac << static_cast<PlayerId>(0);  // server id always 0
   *spac << msg;
 
   SendAsyncToClients(std::move(spac));
@@ -679,8 +738,31 @@ bool NetPlayServer::ChangeGame(const std::string& game)
 
   // send changed game to clients
   auto spac = std::make_unique<sf::Packet>();
-  *spac << (MessageId)NP_MSG_CHANGE_GAME;
+  *spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
   *spac << game;
+
+  SendAsyncToClients(std::move(spac));
+
+  return true;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::ComputeMD5(const std::string& file_identifier)
+{
+  auto spac = std::make_unique<sf::Packet>();
+  *spac << static_cast<MessageId>(NP_MSG_COMPUTE_MD5);
+  *spac << file_identifier;
+
+  SendAsyncToClients(std::move(spac));
+
+  return true;
+}
+
+// called from ---GUI--- thread
+bool NetPlayServer::AbortMD5()
+{
+  auto spac = std::make_unique<sf::Packet>();
+  *spac << static_cast<MessageId>(NP_MSG_MD5_ABORT);
 
   SendAsyncToClients(std::move(spac));
 
@@ -704,7 +786,10 @@ bool NetPlayServer::StartGame()
   // no change, just update with clients
   AdjustPadBufferSize(m_target_buffer_size);
 
-  g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
+  if (SConfig::GetInstance().bEnableCustomRTC)
+    g_netplay_initial_gctime = SConfig::GetInstance().m_customRTCValue;
+  else
+    g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
 
   // tell clients to start game
   auto spac = std::make_unique<sf::Packet>();
@@ -712,6 +797,7 @@ bool NetPlayServer::StartGame()
   *spac << m_current_game;
   *spac << m_settings.m_CPUthread;
   *spac << m_settings.m_CPUcore;
+  *spac << m_settings.m_EnableCheats;
   *spac << m_settings.m_SelectedLanguage;
   *spac << m_settings.m_OverrideGCLanguage;
   *spac << m_settings.m_ProgressiveScan;
@@ -845,6 +931,7 @@ std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceList
 
 struct UPNPUrls NetPlayServer::m_upnp_urls;
 struct IGDdatas NetPlayServer::m_upnp_data;
+std::string NetPlayServer::m_upnp_ourip;
 u16 NetPlayServer::m_upnp_mapped = 0;
 bool NetPlayServer::m_upnp_inited = false;
 bool NetPlayServer::m_upnp_error = false;
@@ -861,23 +948,17 @@ void NetPlayServer::TryPortmapping(u16 port)
 // UPnP thread: try to map a port
 void NetPlayServer::mapPortThread(const u16 port)
 {
-  ENetAddress adr = {ENET_HOST_ANY, port};
-  char cIP[20];
-
-  enet_address_get_host(&adr, cIP, 20);
-  std::string ourIP(cIP);
-
   if (!m_upnp_inited)
     if (!initUPnP())
       goto fail;
 
-  if (!UPnPMapPort(ourIP, port))
+  if (!UPnPMapPort(m_upnp_ourip, port))
     goto fail;
 
-  NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, ourIP.c_str());
+  NOTICE_LOG(NETPLAY, "Successfully mapped port %d to %s.", port, m_upnp_ourip.c_str());
   return;
 fail:
-  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, ourIP.c_str());
+  WARN_LOG(NETPLAY, "Failed to map port %d to %s.", port, m_upnp_ourip.c_str());
   return;
 }
 
@@ -894,6 +975,7 @@ bool NetPlayServer::initUPnP()
 {
   std::vector<UPNPDev*> igds;
   int descXMLsize = 0, upnperror = 0;
+  char cIP[20];
 
   // Don't init if already inited
   if (m_upnp_inited)
@@ -935,14 +1017,18 @@ bool NetPlayServer::initUPnP()
     std::unique_ptr<char, decltype(&std::free)> descXML(nullptr, std::free);
     int statusCode = 200;
 #if MINIUPNPC_API_VERSION >= 16
-    descXML.reset(static_cast<char*>(miniwget(dev->descURL, &descXMLsize, 0, &statusCode)));
+    descXML.reset(static_cast<char*>(
+        miniwget_getaddr(dev->descURL, &descXMLsize, cIP, sizeof(cIP), 0, &statusCode)));
 #else
-    descXML.reset(static_cast<char*>(miniwget(dev->descURL, &descXMLsize, 0)));
+    descXML.reset(
+        static_cast<char*>(miniwget_getaddr(dev->descURL, &descXMLsize, cIP, sizeof(cIP), 0)));
 #endif
     if (descXML && statusCode == 200)
     {
       parserootdesc(descXML.get(), descXMLsize, &m_upnp_data);
       GetUPNPUrls(&m_upnp_urls, &m_upnp_data, dev->descURL, 0);
+
+      m_upnp_ourip = cIP;
 
       NOTICE_LOG(NETPLAY, "Got info from IGD at %s.", dev->descURL);
       break;

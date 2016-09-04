@@ -70,7 +70,7 @@ wxBEGIN_FLAGS( wxStaticBoxStyle )
     wxFLAGS_MEMBER(wxHSCROLL)
 wxEND_FLAGS( wxStaticBoxStyle )
 
-wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxStaticBox, wxControl, "wx/statbox.h")
+wxIMPLEMENT_DYNAMIC_CLASS_XTI(wxStaticBox, wxControl, "wx/statbox.h");
 
 wxBEGIN_PROPERTIES_TABLE(wxStaticBox)
     wxPROPERTY( Label, wxString, SetLabel, GetLabel, wxString(), 0 /*flags*/, \

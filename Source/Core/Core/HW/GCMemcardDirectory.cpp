@@ -24,7 +24,7 @@
 const int NO_INDEX = -1;
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 
-int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::ECountry card_region,
+int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::Country card_region,
                                 bool currentGameOnly)
 {
   File::IOFile gcifile(fileName, "rb");
@@ -39,15 +39,15 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
       return NO_INDEX;
     }
 
-    DiscIO::IVolume::ECountry gci_region;
+    DiscIO::Country gci_region;
     // check region
     switch (gci.m_gci_header.Gamecode[3])
     {
     case 'J':
-      gci_region = DiscIO::IVolume::COUNTRY_JAPAN;
+      gci_region = DiscIO::Country::COUNTRY_JAPAN;
       break;
     case 'E':
-      gci_region = DiscIO::IVolume::COUNTRY_USA;
+      gci_region = DiscIO::Country::COUNTRY_USA;
       break;
     case 'C':
       // Used by Datel Action Replay Save
@@ -55,7 +55,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
       gci_region = card_region;
       break;
     default:
-      gci_region = DiscIO::IVolume::COUNTRY_EUROPE;
+      gci_region = DiscIO::Country::COUNTRY_EUROPE;
       break;
     }
 
@@ -146,8 +146,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::IVolume::EC
 }
 
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 sizeMb,
-                                       bool ascii, DiscIO::IVolume::ECountry card_region,
-                                       int gameId)
+                                       bool ascii, DiscIO::Country card_region, int gameId)
     : MemoryCardBase(slot, sizeMb), m_GameId(gameId), m_LastBlock(-1), m_hdr(slot, sizeMb, ascii),
       m_bat1(sizeMb), m_saves(0), m_SaveDirectory(directory), m_exiting(false)
 {
@@ -206,19 +205,13 @@ void GCMemcardDirectory::FlushThread()
     // no-op until signalled
     m_flush_trigger.Wait();
 
-    if (m_exiting)
-    {
-      m_exiting = false;
+    if (m_exiting.TestAndClear())
       return;
-    }
     // no-op as long as signalled within flush_interval
     while (m_flush_trigger.WaitFor(flush_interval))
     {
-      if (m_exiting)
-      {
-        m_exiting = false;
+      if (m_exiting.TestAndClear())
         return;
-      }
     }
 
     FlushToFile();
@@ -227,7 +220,7 @@ void GCMemcardDirectory::FlushThread()
 
 GCMemcardDirectory::~GCMemcardDirectory()
 {
-  m_exiting = true;
+  m_exiting.Set();
   m_flush_trigger.Set();
   m_flush_thread.join();
 

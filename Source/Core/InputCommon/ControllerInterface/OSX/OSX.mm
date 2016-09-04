@@ -6,6 +6,8 @@
 #include <Foundation/Foundation.h>
 #include <IOKit/hid/IOHIDLib.h>
 
+#include "Common/StringUtil.h"
+
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
 #include "InputCommon/ControllerInterface/OSX/OSXJoystick.h"
@@ -19,7 +21,6 @@ namespace OSX
 {
 static IOHIDManagerRef HIDManager = nullptr;
 static CFStringRef OurRunLoop = CFSTR("DolphinOSXInput");
-static std::map<std::string, int> kbd_name_counts, joy_name_counts;
 
 void DeviceElementDebugPrint(const void* value, void* context)
 {
@@ -137,23 +138,19 @@ static void DeviceMatching_callback(void* inContext, IOReturn inResult, void* in
                                     IOHIDDeviceRef inIOHIDDeviceRef)
 {
   NSString* pName = (NSString*)IOHIDDeviceGetProperty(inIOHIDDeviceRef, CFSTR(kIOHIDProductKey));
-  std::string name = (pName != nullptr) ? [pName UTF8String] : "Unknown device";
+  std::string name = (pName != nullptr) ? StripSpaces([pName UTF8String]) : "Unknown device";
 
   DeviceDebugPrint(inIOHIDDeviceRef);
 
   // Add a device if it's of a type we want
   if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Keyboard))
-    g_controller_interface.AddDevice(
-        std::make_shared<Keyboard>(inIOHIDDeviceRef, name, kbd_name_counts[name]++, g_window));
+    g_controller_interface.AddDevice(std::make_shared<Keyboard>(inIOHIDDeviceRef, name, g_window));
 #if 0
-	else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef,
-		kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
-		g_controller_interface.AddDevice(new Mouse(inIOHIDDeviceRef,
-			name, mouse_name_counts[name]++));
+  else if (IOHIDDeviceConformsTo(inIOHIDDeviceRef, kHIDPage_GenericDesktop, kHIDUsage_GD_Mouse))
+    g_controller_interface.AddDevice(new Mouse(inIOHIDDeviceRef, name));
 #endif
   else
-    g_controller_interface.AddDevice(
-        std::make_shared<Joystick>(inIOHIDDeviceRef, name, joy_name_counts[name]++));
+    g_controller_interface.AddDevice(std::make_shared<Joystick>(inIOHIDDeviceRef, name));
 }
 
 void Init(void* window)
@@ -173,9 +170,6 @@ void Init(void* window)
   IOHIDManagerScheduleWithRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
   if (IOHIDManagerOpen(HIDManager, kIOHIDOptionsTypeNone) != kIOReturnSuccess)
     NSLog(@"Failed to open HID Manager");
-
-  kbd_name_counts.clear();
-  joy_name_counts.clear();
 
   // Wait while current devices are initialized
   while (CFRunLoopRunInMode(OurRunLoop, 0, TRUE) == kCFRunLoopRunHandledSource)

@@ -12,6 +12,7 @@
 
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/VideoCommon.h"
 
 namespace DX12
 {
@@ -203,7 +204,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
   }
   else
   {
-    ShaderCode gs_code = GenerateGeometryShaderCode(API_D3D, gs_uid.GetUidData());
+    ShaderCode gs_code = GenerateGeometryShaderCode(APIType::D3D, gs_uid.GetUidData());
     ID3DBlob* gs_bytecode = nullptr;
 
     if (!D3D::CompileGeometryShader(gs_code.GetBuffer(), &gs_bytecode))
@@ -230,7 +231,8 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_
   }
   else
   {
-    ShaderCode ps_code = GeneratePixelShaderCode(ps_dst_alpha_mode, API_D3D, ps_uid.GetUidData());
+    ShaderCode ps_code =
+        GeneratePixelShaderCode(ps_dst_alpha_mode, APIType::D3D, ps_uid.GetUidData());
     ID3DBlob* ps_bytecode = nullptr;
 
     if (!D3D::CompilePixelShader(ps_code.GetBuffer(), &ps_bytecode))
@@ -260,7 +262,7 @@ void ShaderCache::HandleVSUIDChange(VertexShaderUid vs_uid)
   }
   else
   {
-    ShaderCode vs_code = GenerateVertexShaderCode(API_D3D, vs_uid.GetUidData());
+    ShaderCode vs_code = GenerateVertexShaderCode(APIType::D3D, vs_uid.GetUidData());
     ID3DBlob* vs_bytecode = nullptr;
 
     if (!D3D::CompileVertexShader(vs_code.GetBuffer(), &vs_bytecode))

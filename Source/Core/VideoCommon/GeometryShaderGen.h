@@ -6,7 +6,8 @@
 
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/VertexManagerBase.h"
-#include "VideoCommon/VideoCommon.h"
+
+enum class APIType;
 
 #pragma pack(1)
 
@@ -31,5 +32,5 @@ struct geometry_shader_uid_data
 
 typedef ShaderUid<geometry_shader_uid_data> GeometryShaderUid;
 
-ShaderCode GenerateGeometryShaderCode(API_TYPE ApiType, const geometry_shader_uid_data* uid_data);
+ShaderCode GenerateGeometryShaderCode(APIType ApiType, const geometry_shader_uid_data* uid_data);
 GeometryShaderUid GetGeometryShaderUid(u32 primitive_type);

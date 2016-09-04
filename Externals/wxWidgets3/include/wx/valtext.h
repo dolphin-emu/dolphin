@@ -46,18 +46,18 @@ public:
     // if you're passing a reference to a validator.
     // Another possibility is to always pass a pointer to a new validator
     // (so the calling code can use a copy constructor of the relevant class).
-    virtual wxObject *Clone() const { return new wxTextValidator(*this); }
+    virtual wxObject *Clone() const wxOVERRIDE { return new wxTextValidator(*this); }
     bool Copy(const wxTextValidator& val);
 
     // Called when the value in the window must be validated.
     // This function can pop up an error message.
-    virtual bool Validate(wxWindow *parent);
+    virtual bool Validate(wxWindow *parent) wxOVERRIDE;
 
     // Called to transfer data to the window
-    virtual bool TransferToWindow();
+    virtual bool TransferToWindow() wxOVERRIDE;
 
     // Called to transfer data from the window
-    virtual bool TransferFromWindow();
+    virtual bool TransferFromWindow() wxOVERRIDE;
 
     // Filter keystrokes
     void OnChar(wxKeyEvent& event);
@@ -98,8 +98,8 @@ protected:
 
 private:
     wxDECLARE_NO_ASSIGN_CLASS(wxTextValidator);
-    DECLARE_DYNAMIC_CLASS(wxTextValidator)
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_DYNAMIC_CLASS(wxTextValidator);
+    wxDECLARE_EVENT_TABLE();
 };
 
 #endif

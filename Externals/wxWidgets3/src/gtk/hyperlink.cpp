@@ -32,6 +32,10 @@
 #include <gtk/gtk.h>
 #include "wx/gtk/private.h"
 
+#ifdef __WXGTK3__
+    #include "wx/gtk/private/object.h"
+#endif
+
 // ----------------------------------------------------------------------------
 // local functions
 // ----------------------------------------------------------------------------
@@ -54,18 +58,80 @@ static inline bool UseNative()
 // "clicked"
 // ----------------------------------------------------------------------------
 
+#ifdef __WXGTK3__
 extern "C" {
-static void gtk_hyperlink_clicked_callback( GtkWidget *WXUNUSED(widget),
-                                            wxHyperlinkCtrl *linkCtrl )
+static gboolean activate_link(GtkWidget*, wxHyperlinkCtrl* win)
 {
-    // send the event
-    linkCtrl->SendEvent();
+    win->SetVisited(true);
+    win->SendEvent();
+    return true;
 }
 }
+#else
+static GSList* gs_hyperlinkctrl_list;
+extern "C" {
+static void clicked_hook(GtkLinkButton* button, const char*, void*)
+{
+    for (GSList* p = gs_hyperlinkctrl_list; p; p = p->next)
+    {
+        wxHyperlinkCtrl* win = static_cast<wxHyperlinkCtrl*>(p->data);
+        if (win->m_widget == (GtkWidget*)button)
+        {
+            win->SetVisited(true);
+            win->SendEvent();
+            return;
+        }
+    }
+    gtk_link_button_set_uri_hook(NULL, NULL, NULL);
+    GTK_BUTTON_GET_CLASS(button)->clicked(GTK_BUTTON(button));
+    gtk_link_button_set_uri_hook(clicked_hook, NULL, NULL);
+}
+}
+#endif
+
+#ifdef __WXGTK3__
+
+// Used to store GtkCssProviders we need to change the link colours with GTK+3.
+class wxHyperlinkCtrlColData
+{
+public:
+    wxHyperlinkCtrlColData() :
+        m_normalLinkCssProvider(gtk_css_provider_new()),
+        m_visitedLinkCssProvider(gtk_css_provider_new())
+    {}
+
+    wxGtkObject<GtkCssProvider> m_normalLinkCssProvider;
+    wxGtkObject<GtkCssProvider> m_visitedLinkCssProvider;
+};
+
+#endif // __WXGTK3__
 
 // ----------------------------------------------------------------------------
 // wxHyperlinkCtrl
 // ----------------------------------------------------------------------------
+
+wxHyperlinkCtrl::wxHyperlinkCtrl()
+{
+}
+
+wxHyperlinkCtrl::wxHyperlinkCtrl(wxWindow *parent,
+                                 wxWindowID id,
+                                 const wxString& label,
+                                 const wxString& url,
+                                 const wxPoint& pos,
+                                 const wxSize& size,
+                                 long style,
+                                 const wxString& name)
+{
+    (void)Create(parent, id, label, url, pos, size, style, name);
+}
+
+wxHyperlinkCtrl::~wxHyperlinkCtrl()
+{
+#ifndef __WXGTK3__
+    gs_hyperlinkctrl_list = g_slist_remove(gs_hyperlinkctrl_list, this);
+#endif
+}
 
 bool wxHyperlinkCtrl::Create(wxWindow *parent, wxWindowID id,
     const wxString& label, const wxString& url, const wxPoint& pos,
@@ -92,16 +158,21 @@ bool wxHyperlinkCtrl::Create(wxWindow *parent, wxWindowID id,
             x_alignment = 0.0;
         else if (HasFlag(wxHL_ALIGN_RIGHT))
             x_alignment = 1.0;
+
+        wxGCC_WARNING_SUPPRESS(deprecated-declarations)
         gtk_button_set_alignment(GTK_BUTTON(m_widget), x_alignment, 0.5);
+        wxGCC_WARNING_RESTORE()
 
         // set to non empty strings both the url and the label
         SetURL(url.empty() ? label : url);
         SetLabel(label.empty() ? url : label);
 
-        // our signal handlers:
-        g_signal_connect_after (m_widget, "clicked",
-                                G_CALLBACK (gtk_hyperlink_clicked_callback),
-                                this);
+#ifdef __WXGTK3__
+        g_signal_connect(m_widget, "activate_link", G_CALLBACK(activate_link), this);
+#else
+        gs_hyperlinkctrl_list = g_slist_prepend(gs_hyperlinkctrl_list, this);
+        gtk_link_button_set_uri_hook(clicked_hook, NULL, NULL);
+#endif
 
         m_parent->DoAddChild( this );
 
@@ -163,12 +234,45 @@ wxString wxHyperlinkCtrl::GetURL() const
     return wxGenericHyperlinkCtrl::GetURL();
 }
 
+void wxHyperlinkCtrl::DoSetLinkColour(LinkKind linkKind, const wxColour& colour)
+{
+#ifdef __WXGTK3__
+    if ( !m_colData )
+        m_colData.reset(new wxHyperlinkCtrlColData());
+
+    const char* cssProp = NULL;
+    GtkCssProvider* cssProvider = NULL;
+    switch ( linkKind )
+    {
+        case Link_Normal:
+            cssProp = "link-color";
+            cssProvider = m_colData->m_normalLinkCssProvider;
+            break;
+
+        case Link_Visited:
+            cssProp = "visited-link-color";
+            cssProvider = m_colData->m_visitedLinkCssProvider;
+            break;
+    }
+
+    wxCHECK_RET( cssProvider, wxS("unknown link kind") );
+
+    const GdkRGBA *col = colour;
+
+    wxGtkString
+        css(g_strdup_printf("* { %s: %s; }", cssProp, gdk_rgba_to_string(col)));
+    ApplyCssStyle(cssProvider, css);
+#else // !__WXGTK3__
+    // simply do nothing: GTK+ does not allow us to change it :(
+    wxUnusedVar(linkKind);
+    wxUnusedVar(colour);
+#endif
+}
+
 void wxHyperlinkCtrl::SetNormalColour(const wxColour &colour)
 {
     if ( UseNative() )
-    {
-        // simply do nothing: GTK+ does not allow us to change it :(
-    }
+        DoSetLinkColour(Link_Normal, colour);
     else
         wxGenericHyperlinkCtrl::SetNormalColour(colour);
 }
@@ -178,13 +282,31 @@ wxColour wxHyperlinkCtrl::GetNormalColour() const
     wxColour ret;
     if ( UseNative() )
     {
-        GdkColor *link_color = NULL;
-
-        // convert GdkColor in wxColour
+#ifdef __WXGTK3__
+        GdkRGBA *link_color = NULL;
         gtk_widget_style_get(m_widget, "link-color", &link_color, NULL);
-        if (link_color)
+
+        if ( link_color )
+        {
             ret = wxColour(*link_color);
-        gdk_color_free (link_color);
+            gdk_rgba_free (link_color);
+        }
+#else // !__WXGTK3__
+        GdkColor* link_color;
+        GdkColor color = { 0, 0, 0, 0xeeee };
+
+        GtkWidget* widget = gtk_bin_get_child(GTK_BIN(m_widget));
+        wxGCC_WARNING_SUPPRESS(deprecated-declarations)
+        gtk_widget_ensure_style(widget);
+        gtk_widget_style_get(widget, "link-color", &link_color, NULL);
+        if (link_color)
+        {
+            color = *link_color;
+            gdk_color_free(link_color);
+        }
+        wxGCC_WARNING_RESTORE()
+        ret = wxColour(color);
+#endif // __WXGTK3__/!__WXGTK3__
     }
     else
         ret = wxGenericHyperlinkCtrl::GetNormalColour();
@@ -196,7 +318,7 @@ void wxHyperlinkCtrl::SetVisitedColour(const wxColour &colour)
 {
     if ( UseNative() )
     {
-        // simply do nothing: GTK+ does not allow us to change it :(
+        DoSetLinkColour(Link_Visited, colour);
     }
     else
         wxGenericHyperlinkCtrl::SetVisitedColour(colour);
@@ -207,18 +329,62 @@ wxColour wxHyperlinkCtrl::GetVisitedColour() const
     wxColour ret;
     if ( UseNative() )
     {
-        GdkColor *link_color = NULL;
-
-        // convert GdkColor in wxColour
+#ifdef __WXGTK3__
+        GdkRGBA *link_color = NULL;
         gtk_widget_style_get(m_widget, "visited-link-color", &link_color, NULL);
-        if (link_color)
+
+        if ( link_color )
+        {
             ret = wxColour(*link_color);
-        gdk_color_free (link_color);
+            gdk_rgba_free (link_color);
+        }
+#else // !__WXGTK3__
+        GdkColor* link_color;
+        GdkColor color = { 0, 0x5555, 0x1a1a, 0x8b8b };
+
+        GtkWidget* widget = gtk_bin_get_child(GTK_BIN(m_widget));
+        wxGCC_WARNING_SUPPRESS(deprecated-declarations)
+        gtk_widget_ensure_style(widget);
+        gtk_widget_style_get(widget, "visited-link-color", &link_color, NULL);
+        if (link_color)
+        {
+            color = *link_color;
+            gdk_color_free(link_color);
+        }
+        wxGCC_WARNING_RESTORE()
+        ret = wxColour(color);
+#endif // __WXGTK3__/!__WXGTK3__
     }
     else
-        return wxGenericHyperlinkCtrl::GetVisitedColour();
+        ret = base_type::GetVisitedColour();
 
     return ret;
+}
+
+void wxHyperlinkCtrl::SetVisited(bool visited)
+{
+    base_type::SetVisited(visited);
+#if GTK_CHECK_VERSION(2,14,0)
+#ifndef __WXGTK3__
+    if (gtk_check_version(2,14,0) == NULL)
+#endif
+    {
+        gtk_link_button_set_visited(GTK_LINK_BUTTON(m_widget), visited);
+    }
+#endif
+}
+
+bool wxHyperlinkCtrl::GetVisited() const
+{
+#if GTK_CHECK_VERSION(2,14,0)
+#ifndef __WXGTK3__
+    if (gtk_check_version(2,14,0) == NULL)
+#endif
+    {
+        return gtk_link_button_get_visited(GTK_LINK_BUTTON(m_widget)) != 0;
+    }
+#endif
+    return base_type::GetVisited();
 }
 
 void wxHyperlinkCtrl::SetHoverColour(const wxColour &colour)

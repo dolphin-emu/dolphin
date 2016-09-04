@@ -30,6 +30,8 @@ private:
   void OnDVDRootChanged(wxCommandEvent&);
   void OnApploaderPathChanged(wxCommandEvent&);
   void OnNANDRootChanged(wxCommandEvent&);
+  void OnDumpPathChanged(wxCommandEvent&);
+  void OnSdCardPathChanged(wxCommandEvent&);
 
   void SaveISOPathChanges();
 
@@ -42,4 +44,6 @@ private:
   wxDirPickerCtrl* m_nand_root_dirpicker;
   wxFilePickerCtrl* m_default_iso_filepicker;
   wxFilePickerCtrl* m_apploader_path_filepicker;
+  wxDirPickerCtrl* m_dump_path_dirpicker;
+  wxFilePickerCtrl* m_wii_sdcard_filepicker;
 };

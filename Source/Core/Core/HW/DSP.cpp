@@ -188,8 +188,8 @@ static void UpdateInterrupts();
 static void Do_ARAM_DMA();
 static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate = 0);
 
-static int et_GenerateDSPInterrupt;
-static int et_CompleteARAM;
+static CoreTiming::EventType* et_GenerateDSPInterrupt;
+static CoreTiming::EventType* et_CompleteARAM;
 
 static void CompleteARAM(u64 userdata, s64 cyclesLate)
 {
@@ -244,7 +244,7 @@ void Init(bool hle)
     g_ARAM.wii_mode = false;
     g_ARAM.size = ARAM_SIZE;
     g_ARAM.mask = ARAM_MASK;
-    g_ARAM.ptr = (u8*)AllocateMemoryPages(g_ARAM.size);
+    g_ARAM.ptr = static_cast<u8*>(Common::AllocateMemoryPages(g_ARAM.size));
   }
 
   memset(&g_audioDMA, 0, sizeof(g_audioDMA));
@@ -270,7 +270,7 @@ void Shutdown()
 {
   if (!g_ARAM.wii_mode)
   {
-    FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
+    Common::FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
     g_ARAM.ptr = nullptr;
   }
 
@@ -464,8 +464,8 @@ static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
 {
-  // TODO: Maybe rethink this? ScheduleEvent_Threadsafe_Immediate has unpredictable timing.
-  CoreTiming::ScheduleEvent_Threadsafe_Immediate(et_GenerateDSPInterrupt, type);
+  // TODO: Maybe rethink this? The timing is unpredictable.
+  CoreTiming::ScheduleEvent(0, et_GenerateDSPInterrupt, type, CoreTiming::FromThread::ANY);
 }
 
 // called whenever SystemTimers thinks the DSP deserves a few more cycles

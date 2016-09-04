@@ -34,6 +34,7 @@ set(GUI_SRCS
 	Debugger/WatchView.cpp
 	Debugger/WatchWindow.cpp
 	NetPlay/ChangeGameDialog.cpp
+	NetPlay/MD5Dialog.cpp
 	NetPlay/NetPlaySetupFrame.cpp
 	NetPlay/NetWindow.cpp
 	NetPlay/PadMapDialog.cpp
@@ -67,7 +68,7 @@ endif()
 
 set(WXLIBS ${wxWidgets_LIBRARIES})
 
-if(NOT CMAKE_SYSTEM_NAME MATCHES FreeBSD)
+if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	set(WXLIBS ${WXLIBS} dl)
 endif()
 

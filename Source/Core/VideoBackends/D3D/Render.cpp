@@ -578,14 +578,12 @@ void Renderer::SetViewport()
   Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
   Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(
-      X, Y, Wd, Ht,
-      1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
-      1.0f -
-          MathUtil::Clamp<float>(xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange,
-                                                                              0.0f, 16777216.0f),
-                                 0.0f, 16777215.0f) /
-              16777216.0f);
+  // We do depth clipping and depth range in the vertex shader instead of relying
+  // on the graphics API. However we still need to ensure depth values don't exceed
+  // the maximum value supported by the console GPU. We also need to account for the
+  // fact that the entire depth buffer is inverted on D3D, so we set GX_MAX_DEPTH as
+  // an inverted near value.
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - GX_MAX_DEPTH, D3D11_MAX_DEPTH);
   D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -630,8 +628,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
   // TODO: MSAA support..
-  D3D11_RECT source =
-      CD3D11_RECT(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
+  D3D11_RECT source = CD3D11_RECT(0, 0, GetTargetWidth(), GetTargetHeight());
 
   ID3D11PixelShader* pixel_shader;
   if (convtype == 0)
@@ -646,21 +643,21 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   }
 
   // convert data and set the target texture as our new EFB
-  g_renderer->ResetAPIState();
+  ResetAPIState();
 
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetTargetWidth(),
-                                      (float)g_renderer->GetTargetHeight());
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, static_cast<float>(GetTargetWidth()),
+                                      static_cast<float>(GetTargetHeight()));
   D3D::context->RSSetViewports(1, &vp);
 
   D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(),
                                    nullptr);
   D3D::SetPointCopySampler();
   D3D::drawShadedTexQuad(
-      FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, g_renderer->GetTargetWidth(),
-      g_renderer->GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(),
+      FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, GetTargetWidth(),
+      GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(),
       VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
 
-  g_renderer->RestoreAPIState();
+  RestoreAPIState();
 
   FramebufferManager::SwapReinterpretTexture();
   D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),

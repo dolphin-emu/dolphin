@@ -28,6 +28,8 @@
 // wxSelectionStore
 // ============================================================================
 
+const unsigned wxSelectionStore::NO_SELECTION = static_cast<unsigned>(-1);
+
 // ----------------------------------------------------------------------------
 // tests
 // ----------------------------------------------------------------------------
@@ -190,6 +192,31 @@ bool wxSelectionStore::SelectRange(unsigned itemFrom, unsigned itemTo,
 // callbacks
 // ----------------------------------------------------------------------------
 
+void wxSelectionStore::OnItemsInserted(unsigned item, unsigned numItems)
+{
+    const size_t count = m_itemsSel.GetCount();
+
+    size_t idx = m_itemsSel.IndexForInsert(item);
+
+    for ( size_t i = idx; i < count; i++ )
+    {
+        m_itemsSel[i] += numItems;
+    }
+
+    if ( m_defaultState )
+    {
+        // All newly inserted items are not selected, so if the default state
+        // is to be selected, we need to manually add them to the deselected
+        // items indices.
+        for ( unsigned n = item; n < item + numItems; n++ )
+        {
+            m_itemsSel.AddAt(item, idx++);
+        }
+    }
+
+    m_count += numItems;
+}
+
 void wxSelectionStore::OnItemDelete(unsigned item)
 {
     size_t count = m_itemsSel.GetCount(),
@@ -211,7 +238,43 @@ void wxSelectionStore::OnItemDelete(unsigned item)
 
         m_itemsSel[i++]--;
     }
+
+    m_count--;
 }
+
+bool wxSelectionStore::OnItemsDeleted(unsigned item, unsigned numItems)
+{
+    bool anyDeletedInSelItems = false,
+         allDeletedInSelItems = true;
+
+    size_t i = m_itemsSel.IndexForInsert(item);
+
+    const unsigned firstAfterDeleted = item + numItems;
+    while ( i < m_itemsSel.size() )
+    {
+        if ( m_itemsSel[i] < firstAfterDeleted )
+        {
+            // This item is going to be deleted, so remove it from the
+            // selected indices entirely. Notice that we do not update i here
+            // as it now refers to the next element.
+            m_itemsSel.RemoveAt(i);
+
+            anyDeletedInSelItems = true;
+        }
+        else
+        {
+            // This item remains, just update its index.
+            m_itemsSel[i++] -= numItems;
+
+            allDeletedInSelItems = false;
+        }
+    }
+
+    m_count -= numItems;
+
+    return m_defaultState ? allDeletedInSelItems : anyDeletedInSelItems;
+}
+
 
 void wxSelectionStore::SetItemCount(unsigned count)
 {
@@ -228,4 +291,43 @@ void wxSelectionStore::SetItemCount(unsigned count)
 
     // remember the new number of items
     m_count = count;
+}
+
+// ----------------------------------------------------------------------------
+// Iteration
+// ----------------------------------------------------------------------------
+
+unsigned wxSelectionStore::GetFirstSelectedItem(IterationState& cookie) const
+{
+    cookie = 0;
+
+    return GetNextSelectedItem(cookie);
+}
+
+unsigned wxSelectionStore::GetNextSelectedItem(IterationState& cookie) const
+{
+    if ( m_defaultState )
+    {
+        // We have no choice but to iterate over all items in this case. It
+        // shouldn't be that bad in practice because (almost) all items are
+        // supposed to be selected if m_defaultState == true anyhow.
+        for ( unsigned item = cookie; ; item++ )
+        {
+            if ( item >= m_count )
+                return NO_SELECTION;
+
+            if ( IsSelected(item) )
+            {
+                cookie = item + 1;
+                return item;
+            }
+        }
+    }
+    else // Simple case when we directly have the selected items.
+    {
+        if ( cookie >= m_itemsSel.size() )
+            return NO_SELECTION;
+
+        return m_itemsSel[cookie++];
+    }
 }

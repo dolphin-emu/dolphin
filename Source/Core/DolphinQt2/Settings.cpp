@@ -23,6 +23,13 @@ QString Settings::GetThemeDir() const
   return QString::fromStdString(File::GetThemeDir(theme_name.toStdString()));
 }
 
+bool Settings::IsInDevelopmentWarningEnabled() const
+{
+  // There's intentionally no way to set this from the UI.
+  // Add it to your INI manually instead.
+  return value(QStringLiteral("ShowDevelopmentWarning"), true).toBool();
+}
+
 QString Settings::GetLastGame() const
 {
   return value(QStringLiteral("GameList/LastGame")).toString();
@@ -94,12 +101,12 @@ void Settings::SetWiiNAND(const QString& path)
   SConfig::GetInstance().SaveSettings();
 }
 
-DiscIO::IVolume::ELanguage Settings::GetWiiSystemLanguage() const
+DiscIO::Language Settings::GetWiiSystemLanguage() const
 {
   return SConfig::GetInstance().GetCurrentLanguage(true);
 }
 
-DiscIO::IVolume::ELanguage Settings::GetGCSystemLanguage() const
+DiscIO::Language Settings::GetGCSystemLanguage() const
 {
   return SConfig::GetInstance().GetCurrentLanguage(false);
 }

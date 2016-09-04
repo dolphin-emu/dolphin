@@ -15,7 +15,7 @@
 
 #include "wx/fontdata.h"
 
-IMPLEMENT_DYNAMIC_CLASS(wxFontData, wxObject)
+wxIMPLEMENT_DYNAMIC_CLASS(wxFontData, wxObject);
 
 wxFontData::wxFontData()
 {

@@ -73,17 +73,15 @@ private:
   };
 
 public:
-  Joystick(IOHIDDeviceRef device, std::string name, int index);
+  Joystick(IOHIDDeviceRef device, std::string name);
   ~Joystick();
 
   std::string GetName() const override;
   std::string GetSource() const override;
-  int GetId() const override;
 
 private:
   const IOHIDDeviceRef m_device;
   const std::string m_device_name;
-  const int m_index;
 
   ForceFeedback::FFDeviceAdapterReference m_ff_device;
 };

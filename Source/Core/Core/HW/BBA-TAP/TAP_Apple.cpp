@@ -43,7 +43,7 @@ bool CEXIETHERNET::IsActivated()
   return fd != -1;
 }
 
-bool CEXIETHERNET::SendFrame(u8* frame, u32 size)
+bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
 {
   INFO_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 

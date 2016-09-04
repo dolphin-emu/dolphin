@@ -2,15 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <atomic>
 #include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/Logging/LogManager.h"
-
-#include "Core/Host.h"
 
 #include "VideoBackends/Software/Clipper.h"
 #include "VideoBackends/Software/DebugUtil.h"
@@ -22,18 +17,11 @@
 #include "VideoBackends/Software/SWVertexLoader.h"
 #include "VideoBackends/Software/VideoBackend.h"
 
-#include "VideoCommon/BPStructs.h"
-#include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/Fifo.h"
 #include "VideoCommon/FramebufferManagerBase.h"
-#include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/OpcodeDecoding.h"
 #include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/TextureCacheBase.h"
-#include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 #define VSYNC_ENABLED 0
@@ -136,7 +124,7 @@ std::string VideoSoftware::GetDisplayName() const
 
 void VideoSoftware::InitBackendInfo()
 {
-  g_Config.backend_info.APIType = API_NONE;
+  g_Config.backend_info.api_type = APIType::Nothing;
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsEarlyZ = true;
@@ -154,7 +142,6 @@ bool VideoSoftware::Initialize(void* window_handle)
 
   SWOGLWindow::Init(window_handle);
 
-  PixelEngine::Init();
   Clipper::Init();
   Rasterizer::Init();
   SWRenderer::Init();

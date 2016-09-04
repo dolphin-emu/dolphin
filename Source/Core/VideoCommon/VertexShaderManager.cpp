@@ -386,6 +386,33 @@ void VertexShaderManager::SetConstants()
     const float pixel_size_y = 2.f / Renderer::EFBToScaledXf(2.f * xfmem.viewport.ht);
     constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
     constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
+
+    // The depth range is handled in the vertex shader. We need to reverse
+    // the far value to get a reversed depth range mapping. This is necessary
+    // because the standard depth range equation pushes all depth values towards
+    // the back of the depth buffer where conventionally depth buffers have the
+    // least precision.
+    if (g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    {
+      // For backends that support reversing the depth range we also support cases
+      // where the console also uses reversed depth with the same accuracy. We need
+      // to make sure the depth range is positive here and then reverse the depth in
+      // the backend viewport.
+      constants.pixelcentercorrection[2] = fabs(xfmem.viewport.zRange) / 16777215.0f;
+      if (xfmem.viewport.zRange < 0.0f)
+        constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
+      else
+        constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+    }
+    else
+    {
+      // For backends that don't support reversing the depth range we can still render
+      // cases where the console uses reversed depth correctly. But we simply can't
+      // provide the same accuracy as the console.
+      constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
+      constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+    }
+
     dirty = true;
     // This is so implementation-dependent that we can't have it here.
     g_renderer->SetViewport();
@@ -427,8 +454,7 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[12] = 0.0f;
       g_fProjectionMatrix[13] = 0.0f;
 
-      // Hack to fix depth clipping precision issues (such as Sonic Adventure UI)
-      g_fProjectionMatrix[14] = -(1.0f + FLT_EPSILON);
+      g_fProjectionMatrix[14] = -1.0f;
       g_fProjectionMatrix[15] = 0.0f;
 
       // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
@@ -484,9 +510,7 @@ void VertexShaderManager::SetConstants()
       g_fProjectionMatrix[13] = 0.0f;
 
       g_fProjectionMatrix[14] = 0.0f;
-
-      // Hack to fix depth clipping precision issues (such as Sonic Unleashed UI)
-      g_fProjectionMatrix[15] = 1.0f + FLT_EPSILON;
+      g_fProjectionMatrix[15] = 1.0f;
 
       SETSTAT_FT(stats.g2proj_0, g_fProjectionMatrix[0]);
       SETSTAT_FT(stats.g2proj_1, g_fProjectionMatrix[1]);
@@ -667,7 +691,7 @@ void VertexShaderManager::SetTexMatrixChangedA(u32 Value)
 {
   if (g_main_cp_state.matrix_index_a.Hex != Value)
   {
-    VertexManagerBase::Flush();
+    g_vertex_manager->Flush();
     if (g_main_cp_state.matrix_index_a.PosNormalMtxIdx != (Value & 0x3f))
       bPosNormalMatrixChanged = true;
     bTexMatricesChanged[0] = true;
@@ -679,7 +703,7 @@ void VertexShaderManager::SetTexMatrixChangedB(u32 Value)
 {
   if (g_main_cp_state.matrix_index_b.Hex != Value)
   {
-    VertexManagerBase::Flush();
+    g_vertex_manager->Flush();
     bTexMatricesChanged[1] = true;
     g_main_cp_state.matrix_index_b.Hex = Value;
   }

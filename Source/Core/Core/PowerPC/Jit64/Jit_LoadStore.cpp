@@ -149,7 +149,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     BitSet32 registersInUse = CallerSavedRegistersInUse();
     ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
-    ABI_CallFunction((void*)&CoreTiming::Idle);
+    ABI_CallFunction(CoreTiming::Idle);
 
     ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
@@ -308,8 +308,9 @@ void Jit64::dcbx(UGeckoInstruction inst)
   SHL(32, R(ABI_PARAM1), Imm8(5));
   MOV(32, R(ABI_PARAM2), Imm32(32));
   XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
-  ABI_CallFunction((void*)JitInterface::InvalidateICache);
+  ABI_CallFunction(JitInterface::InvalidateICache);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+  asm_routines.ResetStack(*this);
   c = J(true);
   SwitchToNearCode();
   SetJumpTarget(c);
@@ -324,7 +325,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
     SetJumpTarget(c);
     ABI_PushRegistersAndAdjustStack(registersInUse, 0);
     SHL(32, R(addr), Imm8(5));
-    ABI_CallFunctionR((void*)DSP::FlushInstantDMA, addr);
+    ABI_CallFunctionR(DSP::FlushInstantDMA, addr);
     ABI_PopRegistersAndAdjustStack(registersInUse, 0);
     c = J(true);
     SwitchToNearCode();
@@ -383,7 +384,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
   MOV(32, M(&PC), Imm32(jit->js.compilerPC));
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  ABI_CallFunctionR((void*)&PowerPC::ClearCacheLine, RSCRATCH);
+  ABI_CallFunctionR(PowerPC::ClearCacheLine, RSCRATCH);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
   FixupBranch exit = J(true);
   SwitchToNearCode();
@@ -596,4 +597,16 @@ void Jit64::stmw(UGeckoInstruction inst)
     }
   }
   gpr.UnlockAllX();
+}
+
+void Jit64::eieio(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITLoadStoreOff);
+
+  // optimizeGatherPipe generally postpones FIFO checks to the end of the JIT block,
+  // which is generally safe. However postponing FIFO writes across eieio instructions
+  // is incorrect (would crash NBA2K11 strap screen if we improve our FIFO detection).
+  if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+    js.mustCheckFifo = true;
 }

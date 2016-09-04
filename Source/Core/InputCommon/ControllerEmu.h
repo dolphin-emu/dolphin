@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cmath>
 #include <memory>
+#include <mutex>
 #include <string>
 #include <vector>
 
@@ -71,48 +72,63 @@ public:
       Output(const std::string& _name) : Control(new ControllerInterface::OutputReference, _name) {}
     };
 
-    class Setting
+    enum class SettingType
     {
-    public:
-      Setting(const std::string& _name, const ControlState def_value, const unsigned int _low = 0,
-              const unsigned int _high = 100)
-          : name(_name), value(def_value), default_value(def_value), low(_low), high(_high),
-            is_virtual(false), is_iterate(false)
-      {
-      }
-
-      virtual ~Setting() {}
-      const std::string name;
-      ControlState value;
-      const ControlState default_value;
-      const unsigned int low, high;
-      bool is_virtual;
-      bool is_iterate;
-
-      virtual void SetValue(ControlState new_value) { value = new_value; }
-      virtual ControlState GetValue() { return value; }
+      NORMAL,   // normal settings are saved to configuration files
+      VIRTUAL,  // virtual settings are not saved at all
     };
 
-    class BackgroundInputSetting : public Setting
+    class NumericSetting
     {
     public:
-      BackgroundInputSetting(const std::string& _name) : Setting(_name, false)
+      NumericSetting(const std::string& setting_name, const ControlState default_value,
+                     const unsigned int low = 0, const unsigned int high = 100,
+                     const SettingType setting_type = SettingType::NORMAL)
+          : m_type(setting_type), m_name(setting_name), m_default_value(default_value), m_low(low),
+            m_high(high)
       {
-        is_virtual = true;
       }
 
-      void SetValue(ControlState new_value) override
-      {
-        SConfig::GetInstance().m_BackgroundInput = !!new_value;
-      }
-
-      ControlState GetValue() override { return SConfig::GetInstance().m_BackgroundInput; }
+      ControlState GetValue() const { return m_value; }
+      void SetValue(ControlState value) { m_value = value; }
+      const SettingType m_type;
+      const std::string m_name;
+      const ControlState m_default_value;
+      const unsigned int m_low, m_high;
+      ControlState m_value;
     };
 
-    class IterateUI : public Setting
+    class BooleanSetting
     {
     public:
-      IterateUI(const std::string& _name) : Setting(_name, false) { is_iterate = true; }
+      BooleanSetting(const std::string& setting_name, const bool default_value,
+                     const SettingType setting_type = SettingType::NORMAL)
+          : m_type(setting_type), m_name(setting_name), m_default_value(default_value)
+      {
+      }
+
+      virtual bool GetValue() const { return m_value; }
+      virtual void SetValue(bool value) { m_value = value; }
+      const SettingType m_type;
+      const std::string m_name;
+      const bool m_default_value;
+      bool m_value;
+    };
+
+    class BackgroundInputSetting : public BooleanSetting
+    {
+    public:
+      BackgroundInputSetting(const std::string& setting_name)
+          : BooleanSetting(setting_name, false, SettingType::VIRTUAL)
+      {
+      }
+
+      bool GetValue() const override { return SConfig::GetInstance().m_BackgroundInput; }
+      void SetValue(bool value) override
+      {
+        m_value = value;
+        SConfig::GetInstance().m_BackgroundInput = value;
+      }
     };
 
     ControlGroup(const std::string& _name, const unsigned int _type = GROUP_TYPE_OTHER)
@@ -137,7 +153,8 @@ public:
     const unsigned int type;
 
     std::vector<std::unique_ptr<Control>> controls;
-    std::vector<std::unique_ptr<Setting>> settings;
+    std::vector<std::unique_ptr<NumericSetting>> numeric_settings;
+    std::vector<std::unique_ptr<BooleanSetting>> boolean_settings;
   };
 
   class AnalogStick : public ControlGroup
@@ -152,8 +169,8 @@ public:
       ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
       ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
-      ControlState radius = settings[SETTING_RADIUS]->value;
-      ControlState deadzone = settings[SETTING_DEADZONE]->value;
+      ControlState radius = numeric_settings[SETTING_RADIUS]->GetValue();
+      ControlState deadzone = numeric_settings[SETTING_DEADZONE]->GetValue();
       ControlState m = controls[4]->control_ref->State();
 
       ControlState ang = atan2(yy, xx);
@@ -192,7 +209,7 @@ public:
     {
       for (auto& control : controls)
       {
-        if (control->control_ref->State() > settings[0]->value)  // threshold
+        if (control->control_ref->State() > numeric_settings[0]->GetValue())  // threshold
           *buttons |= *bitmasks;
 
         bitmasks++;
@@ -210,7 +227,7 @@ public:
       const unsigned int trig_count = ((unsigned int)(controls.size() / 2));
       for (unsigned int i = 0; i < trig_count; ++i, ++bitmasks, ++analog)
       {
-        if (controls[i]->control_ref->State() > settings[0]->value)  // threshold
+        if (controls[i]->control_ref->State() > numeric_settings[0]->GetValue())  // threshold
         {
           *analog = 1.0;
           *digital |= *bitmasks;
@@ -231,7 +248,7 @@ public:
     void GetState(ControlState* analog)
     {
       const unsigned int trig_count = ((unsigned int)(controls.size()));
-      const ControlState deadzone = settings[0]->value;
+      const ControlState deadzone = numeric_settings[0]->GetValue();
       for (unsigned int i = 0; i < trig_count; ++i, ++analog)
         *analog = std::max(controls[i]->control_ref->State() - deadzone, 0.0) / (1 - deadzone);
     }
@@ -244,7 +261,7 @@ public:
 
     void GetState(ControlState* const slider)
     {
-      const ControlState deadzone = settings[0]->value;
+      const ControlState deadzone = numeric_settings[0]->GetValue();
       const ControlState state =
           controls[1]->control_ref->State() - controls[0]->control_ref->State();
 
@@ -262,7 +279,7 @@ public:
 
     void GetState(ControlState* axis)
     {
-      const ControlState deadzone = settings[0]->value;
+      const ControlState deadzone = numeric_settings[0]->GetValue();
       for (unsigned int i = 0; i < 6; i += 2)
       {
         ControlState tmpf = 0;
@@ -293,9 +310,9 @@ public:
       ControlState yy = controls[0]->control_ref->State() - controls[1]->control_ref->State();
       ControlState xx = controls[3]->control_ref->State() - controls[2]->control_ref->State();
 
-      ControlState deadzone = settings[0]->value;
-      ControlState circle = settings[1]->value;
-      auto const angle = settings[2]->value / 1.8;
+      ControlState deadzone = numeric_settings[0]->GetValue();
+      ControlState circle = numeric_settings[1]->GetValue();
+      auto const angle = numeric_settings[2]->GetValue() / 1.8;
       ControlState m = controls[4]->control_ref->State();
 
       // deadzone / circle stick code
@@ -386,9 +403,9 @@ public:
         // adjust cursor according to settings
         if (adjusted)
         {
-          xx *= (settings[1]->value * 2);
-          yy *= (settings[2]->value * 2);
-          yy += (settings[0]->value - 0.5);
+          xx *= (numeric_settings[1]->GetValue() * 2);
+          yy *= (numeric_settings[2]->GetValue() * 2);
+          yy += (numeric_settings[0]->GetValue() - 0.5);
         }
 
         *x = xx;
@@ -427,6 +444,12 @@ public:
   void UpdateDefaultDevice();
 
   void UpdateReferences(ControllerInterface& devi);
+
+  // This returns a lock that should be held before calling State() on any control
+  // references and GetState(), by extension. This prevents a race condition
+  // which happens while handling a hotplug event because a control reference's State()
+  // could be called before we have finished updating the reference.
+  static std::unique_lock<std::recursive_mutex> GetStateLock();
 
   std::vector<std::unique_ptr<ControlGroup>> groups;
 

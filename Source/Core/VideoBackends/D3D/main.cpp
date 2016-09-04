@@ -6,11 +6,9 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/Host.h"
 
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
@@ -24,16 +22,7 @@
 #include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoBackends/D3D/VideoBackend.h"
 
-#include "VideoCommon/BPStructs.h"
-#include "VideoCommon/CommandProcessor.h"
-#include "VideoCommon/Fifo.h"
-#include "VideoCommon/GeometryShaderManager.h"
-#include "VideoCommon/IndexGenerator.h"
-#include "VideoCommon/OpcodeDecoding.h"
-#include "VideoCommon/PixelEngine.h"
-#include "VideoCommon/PixelShaderManager.h"
-#include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11
@@ -72,7 +61,7 @@ void VideoBackend::InitBackendInfo()
     return;
   }
 
-  g_Config.backend_info.APIType = API_D3D;
+  g_Config.backend_info.api_type = APIType::D3D;
   g_Config.backend_info.bSupportsExclusiveFullscreen = true;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
@@ -82,6 +71,8 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsPostProcessing = false;
   g_Config.backend_info.bSupportsPaletteConversion = true;
   g_Config.backend_info.bSupportsClipControl = true;
+  g_Config.backend_info.bSupportsDepthClamp = true;
+  g_Config.backend_info.bSupportsReversedDepthRange = false;
 
   IDXGIFactory* factory;
   IDXGIAdapter* ad;

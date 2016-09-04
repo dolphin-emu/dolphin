@@ -482,15 +482,12 @@ void Renderer::SetViewport()
   width = (x + width <= GetTargetWidth()) ? width : (GetTargetWidth() - x);
   height = (y + height <= GetTargetHeight()) ? height : (GetTargetHeight() - y);
 
-  D3D12_VIEWPORT vp = {
-      x, y, width, height,
-      1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
-      1.0f -
-          MathUtil::Clamp<float>(xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange,
-                                                                              0.0f, 16777216.0f),
-                                 0.0f, 16777215.0f) /
-              16777216.0f};
-
+  // We do depth clipping and depth range in the vertex shader instead of relying
+  // on the graphics API. However we still need to ensure depth values don't exceed
+  // the maximum value supported by the console GPU. We also need to account for the
+  // fact that the entire depth buffer is inverted on D3D, so we set GX_MAX_DEPTH as
+  // an inverted near value.
+  D3D12_VIEWPORT vp = {x, y, width, height, 1.0f - GX_MAX_DEPTH, D3D12_MAX_DEPTH};
   D3D::current_command_list->RSSetViewports(1, &vp);
 }
 
@@ -530,7 +527,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
                      FramebufferManager::GetEFBColorTexture()->GetMultisampled());
 
   // Restores proper viewport/scissor settings.
-  g_renderer->SetViewport();
+  SetViewport();
   BPFunctions::SetScissor();
 
   FramebufferManager::InvalidateEFBAccessCopies();
@@ -539,9 +536,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
   // EXISTINGD3D11TODO: MSAA support..
-  D3D12_RECT source =
-      CD3DX12_RECT(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
-
+  D3D12_RECT source = CD3DX12_RECT(0, 0, GetTargetWidth(), GetTargetHeight());
   D3D12_SHADER_BYTECODE pixel_shader = {};
 
   if (convtype == 0)
@@ -559,7 +554,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
     return;
   }
 
-  D3D::SetViewportAndScissor(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
+  D3D::SetViewportAndScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 
   FramebufferManager::GetEFBColorTempTexture()->TransitionToResourceState(
       D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -568,8 +563,8 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
   D3D::SetPointCopySampler();
   D3D::DrawShadedTexQuad(
-      FramebufferManager::GetEFBColorTexture(), &source, g_renderer->GetTargetWidth(),
-      g_renderer->GetTargetHeight(), pixel_shader, StaticShaderCache::GetSimpleVertexShader(),
+      FramebufferManager::GetEFBColorTexture(), &source, GetTargetWidth(), GetTargetHeight(),
+      pixel_shader, StaticShaderCache::GetSimpleVertexShader(),
       StaticShaderCache::GetSimpleVertexShaderInputLayout(),
       StaticShaderCache::GetCopyGeometryShader(), 1.0f, 0, DXGI_FORMAT_R8G8B8A8_UNORM, false,
       FramebufferManager::GetEFBColorTempTexture()->GetMultisampled());

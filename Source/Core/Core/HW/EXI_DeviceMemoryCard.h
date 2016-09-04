@@ -26,6 +26,12 @@ public:
   void DMARead(u32 _uAddr, u32 _uSize) override;
   void DMAWrite(u32 _uAddr, u32 _uSize) override;
 
+  // CoreTiming events need to be registered during boot since CoreTiming is DoState()-ed
+  // before ExpansionInterface so we'll lose the save stated events if the callbacks are
+  // not already registered first.
+  static void Init();
+  static void Shutdown();
+
 private:
   void SetupGciFolder(u16 sizeMb);
   void SetupRawMemcard(u16 sizeMb);
@@ -67,7 +73,6 @@ private:
   };
 
   int card_index;
-  int et_cmd_done, et_transfer_complete;
   //! memory card state
 
   // STATE_TO_SAVE

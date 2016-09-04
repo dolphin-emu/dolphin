@@ -116,6 +116,7 @@ public:
   void dcbx(UGeckoInstruction inst);
   void dcbt(UGeckoInstruction inst);
   void dcbz(UGeckoInstruction inst);
+  void eieio(UGeckoInstruction inst);
 
   // LoadStore floating point
   void lfXX(UGeckoInstruction inst);

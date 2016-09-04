@@ -2,13 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cinttypes>
 #include <mutex>
 #include <string>
+#include <unordered_map>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/FifoQueue.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
@@ -20,68 +24,60 @@
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/VideoBackendBase.h"
 
-#define MAX_SLICE_LENGTH 20000
-
 namespace CoreTiming
 {
 struct EventType
 {
   TimedCallback callback;
-  std::string name;
+  const std::string* name;
 };
 
-static std::vector<EventType> event_types;
-
-struct BaseEvent
+struct Event
 {
   s64 time;
   u64 userdata;
-  int type;
+  EventType* type;
 };
 
-typedef LinkedListItem<BaseEvent> Event;
+constexpr bool operator>(const Event& left, const Event& right)
+{
+  return left.time > right.time;
+}
+constexpr bool operator<(const Event& left, const Event& right)
+{
+  return left.time < right.time;
+}
+
+// unordered_map stores each element separately as a linked list node so pointers to elements
+// remain stable regardless of rehashes/resizing.
+static std::unordered_map<std::string, EventType> s_event_types;
 
 // STATE_TO_SAVE
-static Event* first;
-static std::mutex tsWriteLock;
-static Common::FifoQueue<BaseEvent, false> tsQueue;
+// The queue is a min-heap using std::make_heap/push_heap/pop_heap.
+// We don't use std::priority_queue because we need to be able to serialize, unserialize and
+// erase arbitrary events (RemoveEvent()) regardless of the queue order. These aren't accomodated
+// by the standard adaptor class.
+static std::vector<Event> s_event_queue;
+static std::mutex s_ts_write_lock;
+static Common::FifoQueue<Event, false> s_ts_queue;
 
-// event pools
-static Event* eventPool = nullptr;
+static float s_last_OC_factor;
+float g_last_OC_factor_inverted;
+int g_slice_length;
+static constexpr int MAX_SLICE_LENGTH = 20000;
 
-static float s_lastOCFactor;
-float g_lastOCFactor_inverted;
-int g_slicelength;
-static int maxslicelength = MAX_SLICE_LENGTH;
-
-static s64 idledCycles;
-static u32 fakeDecStartValue;
-static u64 fakeDecStartTicks;
+static s64 s_idled_cycles;
+static u32 s_fake_dec_start_value;
+static u64 s_fake_dec_start_ticks;
 
 // Are we in a function that has been called from Advance()
-static bool globalTimerIsSane;
+static bool s_is_global_timer_sane;
 
-s64 g_globalTimer;
-u64 g_fakeTBStartValue;
-u64 g_fakeTBStartTicks;
+s64 g_global_timer;
+u64 g_fake_TB_start_value;
+u64 g_fake_TB_start_ticks;
 
-static int ev_lost;
-
-static Event* GetNewEvent()
-{
-  if (!eventPool)
-    return new Event;
-
-  Event* ev = eventPool;
-  eventPool = ev->next;
-  return ev;
-}
-
-static void FreeEvent(Event* ev)
-{
-  ev->next = eventPool;
-  eventPool = ev;
-}
+static EventType* s_ev_lost = nullptr;
 
 static void EmptyTimedCallback(u64 userdata, s64 cyclesLate)
 {
@@ -96,282 +92,194 @@ static void EmptyTimedCallback(u64 userdata, s64 cyclesLate)
 // but the effect is largely the same.
 static int DowncountToCycles(int downcount)
 {
-  return (int)(downcount * g_lastOCFactor_inverted);
+  return static_cast<int>(downcount * g_last_OC_factor_inverted);
 }
 
 static int CyclesToDowncount(int cycles)
 {
-  return (int)(cycles * s_lastOCFactor);
+  return static_cast<int>(cycles * s_last_OC_factor);
 }
 
-int RegisterEvent(const std::string& name, TimedCallback callback)
+EventType* RegisterEvent(const std::string& name, TimedCallback callback)
 {
-  EventType type;
-  type.name = name;
-  type.callback = callback;
-
   // check for existing type with same name.
   // we want event type names to remain unique so that we can use them for serialization.
-  for (auto& event_type : event_types)
-  {
-    if (name == event_type.name)
-    {
-      WARN_LOG(
-          POWERPC,
-          "Discarded old event type \"%s\" because a new type with the same name was registered.",
-          name.c_str());
-      // we don't know if someone might be holding on to the type index,
-      // so we gut the old event type instead of actually removing it.
-      event_type.name = "_discarded_event";
-      event_type.callback = &EmptyTimedCallback;
-    }
-  }
+  _assert_msg_(POWERPC, s_event_types.find(name) == s_event_types.end(),
+               "CoreTiming Event \"%s\" is already registered. Events should only be registered "
+               "during Init to avoid breaking save states.",
+               name.c_str());
 
-  event_types.push_back(type);
-  return (int)event_types.size() - 1;
+  auto info = s_event_types.emplace(name, EventType{callback, nullptr});
+  EventType* event_type = &info.first->second;
+  event_type->name = &info.first->first;
+  return event_type;
 }
 
 void UnregisterAllEvents()
 {
-  if (first)
-    PanicAlert("Cannot unregister events with events pending");
-  event_types.clear();
+  _assert_msg_(POWERPC, s_event_queue.empty(), "Cannot unregister events with events pending");
+  s_event_types.clear();
 }
 
 void Init()
 {
-  s_lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
-  g_lastOCFactor_inverted = 1.0f / s_lastOCFactor;
-  PowerPC::ppcState.downcount = CyclesToDowncount(maxslicelength);
-  g_slicelength = maxslicelength;
-  g_globalTimer = 0;
-  idledCycles = 0;
-  globalTimerIsSane = true;
+  s_last_OC_factor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
+  g_last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  PowerPC::ppcState.downcount = CyclesToDowncount(MAX_SLICE_LENGTH);
+  g_slice_length = MAX_SLICE_LENGTH;
+  g_global_timer = 0;
+  s_idled_cycles = 0;
 
-  ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
+  // The time between CoreTiming being intialized and the first call to Advance() is considered
+  // the slice boundary between slice -1 and slice 0. Dispatcher loops must call Advance() before
+  // executing the first PPC cycle of each slice to prepare the slice length and downcount for
+  // that slice.
+  s_is_global_timer_sane = true;
+
+  s_ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
 }
 
 void Shutdown()
 {
-  std::lock_guard<std::mutex> lk(tsWriteLock);
+  std::lock_guard<std::mutex> lk(s_ts_write_lock);
   MoveEvents();
   ClearPendingEvents();
   UnregisterAllEvents();
-
-  while (eventPool)
-  {
-    Event* ev = eventPool;
-    eventPool = ev->next;
-    delete ev;
-  }
-}
-
-static void EventDoState(PointerWrap& p, BaseEvent* ev)
-{
-  p.Do(ev->time);
-
-  // this is why we can't have (nice things) pointers as userdata
-  p.Do(ev->userdata);
-
-  // we can't savestate ev->type directly because events might not get registered in the same order
-  // (or at all) every time.
-  // so, we savestate the event's type's name, and derive ev->type from that when loading.
-  std::string name;
-  if (p.GetMode() != PointerWrap::MODE_READ)
-    name = event_types[ev->type].name;
-
-  p.Do(name);
-  if (p.GetMode() == PointerWrap::MODE_READ)
-  {
-    bool foundMatch = false;
-    for (unsigned int i = 0; i < event_types.size(); ++i)
-    {
-      if (name == event_types[i].name)
-      {
-        ev->type = i;
-        foundMatch = true;
-        break;
-      }
-    }
-    if (!foundMatch)
-    {
-      WARN_LOG(POWERPC,
-               "Lost event from savestate because its type, \"%s\", has not been registered.",
-               name.c_str());
-      ev->type = ev_lost;
-    }
-  }
 }
 
 void DoState(PointerWrap& p)
 {
-  std::lock_guard<std::mutex> lk(tsWriteLock);
-  p.Do(g_slicelength);
-  p.Do(g_globalTimer);
-  p.Do(idledCycles);
-  p.Do(fakeDecStartValue);
-  p.Do(fakeDecStartTicks);
-  p.Do(g_fakeTBStartValue);
-  p.Do(g_fakeTBStartTicks);
-  p.Do(s_lastOCFactor);
-  if (p.GetMode() == PointerWrap::MODE_READ)
-    g_lastOCFactor_inverted = 1.0f / s_lastOCFactor;
+  std::lock_guard<std::mutex> lk(s_ts_write_lock);
+  p.Do(g_slice_length);
+  p.Do(g_global_timer);
+  p.Do(s_idled_cycles);
+  p.Do(s_fake_dec_start_value);
+  p.Do(s_fake_dec_start_ticks);
+  p.Do(g_fake_TB_start_value);
+  p.Do(g_fake_TB_start_ticks);
+  p.Do(s_last_OC_factor);
+  g_last_OC_factor_inverted = 1.0f / s_last_OC_factor;
 
   p.DoMarker("CoreTimingData");
 
   MoveEvents();
+  p.DoEachElement(s_event_queue, [](PointerWrap& pw, Event& ev) {
+    pw.Do(ev.time);
 
-  p.DoLinkedList<BaseEvent, GetNewEvent, FreeEvent, EventDoState>(first);
+    // this is why we can't have (nice things) pointers as userdata
+    pw.Do(ev.userdata);
+
+    // we can't savestate ev.type directly because events might not get registered in the same
+    // order (or at all) every time.
+    // so, we savestate the event's type's name, and derive ev.type from that when loading.
+    std::string name;
+    if (pw.GetMode() != PointerWrap::MODE_READ)
+      name = *ev.type->name;
+
+    pw.Do(name);
+    if (pw.GetMode() == PointerWrap::MODE_READ)
+    {
+      auto itr = s_event_types.find(name);
+      if (itr != s_event_types.end())
+      {
+        ev.type = &itr->second;
+      }
+      else
+      {
+        WARN_LOG(POWERPC,
+                 "Lost event from savestate because its type, \"%s\", has not been registered.",
+                 name.c_str());
+        ev.type = s_ev_lost;
+      }
+    }
+  });
   p.DoMarker("CoreTimingEvents");
+
+  // When loading from a save state, we must assume the Event order is random and meaningless.
+  // The exact layout of the heap in memory is implementation defined, therefore it is platform
+  // and library version specific.
+  if (p.GetMode() == PointerWrap::MODE_READ)
+    std::make_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
 }
 
-// This should only be called from the CPU thread, if you are calling it any other thread, you are
-// doing something evil
+// This should only be called from the CPU thread. If you are calling
+// it from any other thread, you are doing something evil
 u64 GetTicks()
 {
-  u64 ticks = (u64)g_globalTimer;
-  if (!globalTimerIsSane)
+  u64 ticks = static_cast<u64>(g_global_timer);
+  if (!s_is_global_timer_sane)
   {
     int downcount = DowncountToCycles(PowerPC::ppcState.downcount);
-    ticks += g_slicelength - downcount;
+    ticks += g_slice_length - downcount;
   }
   return ticks;
 }
 
 u64 GetIdleTicks()
 {
-  return (u64)idledCycles;
-}
-
-// This is to be called when outside threads, such as the graphics thread, wants to
-// schedule things to be executed on the main thread.
-void ScheduleEvent_Threadsafe(s64 cyclesIntoFuture, int event_type, u64 userdata)
-{
-  _assert_msg_(POWERPC, !Core::IsCPUThread(), "ScheduleEvent_Threadsafe from wrong thread");
-  if (Core::g_want_determinism)
-  {
-    ERROR_LOG(POWERPC,
-              "Someone scheduled an off-thread \"%s\" event while netplay or movie play/record "
-              "was active.  This is likely to cause a desync.",
-              event_types[event_type].name.c_str());
-  }
-  std::lock_guard<std::mutex> lk(tsWriteLock);
-  Event ne;
-  ne.time = g_globalTimer + cyclesIntoFuture;
-  ne.type = event_type;
-  ne.userdata = userdata;
-  tsQueue.Push(ne);
-}
-
-// Executes an event immediately, then returns.
-void ScheduleEvent_Immediate(int event_type, u64 userdata)
-{
-  _assert_msg_(POWERPC, Core::IsCPUThread(), "ScheduleEvent_Immediate from wrong thread");
-  event_types[event_type].callback(userdata, 0);
-}
-
-// Same as ScheduleEvent_Threadsafe(0, ...) EXCEPT if we are already on the CPU thread
-// in which case this is the same as ScheduleEvent_Immediate.
-void ScheduleEvent_Threadsafe_Immediate(int event_type, u64 userdata)
-{
-  if (Core::IsCPUThread())
-  {
-    event_types[event_type].callback(userdata, 0);
-  }
-  else
-  {
-    ScheduleEvent_Threadsafe(0, event_type, userdata);
-  }
-}
-
-// To be used from any thread, including the CPU thread
-void ScheduleEvent_AnyThread(s64 cyclesIntoFuture, int event_type, u64 userdata)
-{
-  if (Core::IsCPUThread())
-    ScheduleEvent(cyclesIntoFuture, event_type, userdata);
-  else
-    ScheduleEvent_Threadsafe(cyclesIntoFuture, event_type, userdata);
+  return static_cast<u64>(s_idled_cycles);
 }
 
 void ClearPendingEvents()
 {
-  while (first)
-  {
-    Event* e = first->next;
-    FreeEvent(first);
-    first = e;
-  }
+  s_event_queue.clear();
 }
 
-static void AddEventToQueue(Event* ne)
+void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, FromThread from)
 {
-  Event* prev = nullptr;
-  Event** pNext = &first;
-  for (;;)
+  _assert_msg_(POWERPC, event_type, "Event type is nullptr, will crash now.");
+
+  bool from_cpu_thread;
+  if (from == FromThread::ANY)
   {
-    Event*& next = *pNext;
-    if (!next || ne->time < next->time)
+    from_cpu_thread = Core::IsCPUThread();
+  }
+  else
+  {
+    from_cpu_thread = from == FromThread::CPU;
+    _assert_msg_(POWERPC, from_cpu_thread == Core::IsCPUThread(),
+                 "ScheduleEvent from wrong thread (%s)", from_cpu_thread ? "CPU" : "non-CPU");
+  }
+
+  if (from_cpu_thread)
+  {
+    s64 timeout = GetTicks() + cycles_into_future;
+
+    // If this event needs to be scheduled before the next advance(), force one early
+    if (!s_is_global_timer_sane)
+      ForceExceptionCheck(cycles_into_future);
+
+    s_event_queue.emplace_back(Event{timeout, userdata, event_type});
+    std::push_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
+  }
+  else
+  {
+    if (Core::g_want_determinism)
     {
-      ne->next = next;
-      next = ne;
-      break;
+      ERROR_LOG(POWERPC, "Someone scheduled an off-thread \"%s\" event while netplay or "
+                         "movie play/record was active.  This is likely to cause a desync.",
+                event_type->name->c_str());
     }
-    prev = next;
-    pNext = &prev->next;
+
+    std::lock_guard<std::mutex> lk(s_ts_write_lock);
+    s_ts_queue.Push(Event{g_global_timer + cycles_into_future, userdata, event_type});
   }
 }
 
-// This must be run ONLY from within the CPU thread
-// cyclesIntoFuture may be VERY inaccurate if called from anything else
-// than Advance
-void ScheduleEvent(s64 cyclesIntoFuture, int event_type, u64 userdata)
+void RemoveEvent(EventType* event_type)
 {
-  _assert_msg_(POWERPC, Core::IsCPUThread() || Core::GetState() == Core::CORE_PAUSE,
-               "ScheduleEvent from wrong thread");
+  auto itr = std::remove_if(s_event_queue.begin(), s_event_queue.end(),
+                            [&](const Event& e) { return e.type == event_type; });
 
-  Event* ne = GetNewEvent();
-  ne->userdata = userdata;
-  ne->type = event_type;
-  ne->time = GetTicks() + cyclesIntoFuture;
-
-  // If this event needs to be scheduled before the next advance(), force one early
-  if (!globalTimerIsSane)
-    ForceExceptionCheck(cyclesIntoFuture);
-
-  AddEventToQueue(ne);
-}
-
-void RemoveEvent(int event_type)
-{
-  while (first && first->type == event_type)
+  // Removing random items breaks the invariant so we have to re-establish it.
+  if (itr != s_event_queue.end())
   {
-    Event* next = first->next;
-    FreeEvent(first);
-    first = next;
-  }
-
-  if (!first)
-    return;
-
-  Event* prev = first;
-  Event* ptr = prev->next;
-  while (ptr)
-  {
-    if (ptr->type == event_type)
-    {
-      prev->next = ptr->next;
-      FreeEvent(ptr);
-      ptr = prev->next;
-    }
-    else
-    {
-      prev = ptr;
-      ptr = ptr->next;
-    }
+    s_event_queue.erase(itr, s_event_queue.end());
+    std::make_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
   }
 }
 
-void RemoveAllEvents(int event_type)
+void RemoveAllEvents(EventType* event_type)
 {
   MoveEvents();
   RemoveEvent(event_type);
@@ -379,26 +287,22 @@ void RemoveAllEvents(int event_type)
 
 void ForceExceptionCheck(s64 cycles)
 {
-  if (s64(DowncountToCycles(PowerPC::ppcState.downcount)) > cycles)
+  cycles = std::max<s64>(0, cycles);
+  if (DowncountToCycles(PowerPC::ppcState.downcount) > cycles)
   {
     // downcount is always (much) smaller than MAX_INT so we can safely cast cycles to an int here.
-    g_slicelength -=
-        (DowncountToCycles(PowerPC::ppcState.downcount) -
-         (int)cycles);  // Account for cycles already executed by adjusting the g_slicelength
-    PowerPC::ppcState.downcount = CyclesToDowncount((int)cycles);
+    // Account for cycles already executed by adjusting the g_slice_length
+    g_slice_length -= DowncountToCycles(PowerPC::ppcState.downcount) - static_cast<int>(cycles);
+    PowerPC::ppcState.downcount = CyclesToDowncount(static_cast<int>(cycles));
   }
 }
 
 void MoveEvents()
 {
-  BaseEvent sevt;
-  while (tsQueue.Pop(sevt))
+  for (Event ev; s_ts_queue.Pop(ev);)
   {
-    Event* evt = GetNewEvent();
-    evt->time = sevt.time;
-    evt->userdata = sevt.userdata;
-    evt->type = sevt.type;
-    AddEventToQueue(evt);
+    s_event_queue.emplace_back(std::move(ev));
+    std::push_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
   }
 }
 
@@ -406,35 +310,34 @@ void Advance()
 {
   MoveEvents();
 
-  int cyclesExecuted = g_slicelength - DowncountToCycles(PowerPC::ppcState.downcount);
-  g_globalTimer += cyclesExecuted;
-  s_lastOCFactor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
-  g_lastOCFactor_inverted = 1.0f / s_lastOCFactor;
-  g_slicelength = maxslicelength;
+  int cyclesExecuted = g_slice_length - DowncountToCycles(PowerPC::ppcState.downcount);
+  g_global_timer += cyclesExecuted;
+  s_last_OC_factor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
+  g_last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  g_slice_length = MAX_SLICE_LENGTH;
 
-  globalTimerIsSane = true;
+  s_is_global_timer_sane = true;
 
-  while (first && first->time <= g_globalTimer)
+  while (!s_event_queue.empty() && s_event_queue.front().time <= g_global_timer)
   {
-    // LOG(POWERPC, "[Scheduler] %s     (%lld, %lld) ",
-    //             event_types[first->type].name ? event_types[first->type].name : "?",
-    //             (u64)g_globalTimer, (u64)first->time);
-    Event* evt = first;
-    first = first->next;
-    event_types[evt->type].callback(evt->userdata, (int)(g_globalTimer - evt->time));
-    FreeEvent(evt);
+    Event evt = std::move(s_event_queue.front());
+    std::pop_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
+    s_event_queue.pop_back();
+    // NOTICE_LOG(POWERPC, "[Scheduler] %-20s (%lld, %lld)", evt.type->name->c_str(),
+    //            g_global_timer, evt.time);
+    evt.type->callback(evt.userdata, g_global_timer - evt.time);
   }
 
-  globalTimerIsSane = false;
+  s_is_global_timer_sane = false;
 
-  if (first)
+  // Still events left (scheduled in the future)
+  if (!s_event_queue.empty())
   {
-    g_slicelength = (int)(first->time - g_globalTimer);
-    if (g_slicelength > maxslicelength)
-      g_slicelength = maxslicelength;
+    g_slice_length = static_cast<int>(
+        std::min<s64>(s_event_queue.front().time - g_global_timer, MAX_SLICE_LENGTH));
   }
 
-  PowerPC::ppcState.downcount = CyclesToDowncount(g_slicelength);
+  PowerPC::ppcState.downcount = CyclesToDowncount(g_slice_length);
 
   // Check for any external exceptions.
   // It's important to do this after processing events otherwise any exceptions will be delayed
@@ -445,12 +348,12 @@ void Advance()
 
 void LogPendingEvents()
 {
-  Event* ptr = first;
-  while (ptr)
+  auto clone = s_event_queue;
+  std::sort(clone.begin(), clone.end());
+  for (const Event& ev : clone)
   {
-    INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %d", g_globalTimer,
-             ptr->time, ptr->type);
-    ptr = ptr->next;
+    INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %s", g_global_timer,
+             ev.time, ev.type->name->c_str());
   }
 }
 
@@ -464,68 +367,63 @@ void Idle()
     Fifo::FlushGpu();
   }
 
-  idledCycles += DowncountToCycles(PowerPC::ppcState.downcount);
+  s_idled_cycles += DowncountToCycles(PowerPC::ppcState.downcount);
   PowerPC::ppcState.downcount = 0;
 }
 
 std::string GetScheduledEventsSummary()
 {
-  Event* ptr = first;
   std::string text = "Scheduled events\n";
   text.reserve(1000);
-  while (ptr)
+
+  auto clone = s_event_queue;
+  std::sort(clone.begin(), clone.end());
+  for (const Event& ev : clone)
   {
-    unsigned int t = ptr->type;
-    if (t >= event_types.size())
-      PanicAlertT("Invalid event type %i", t);
-
-    const std::string& name = event_types[ptr->type].name;
-
-    text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", name.c_str(), ptr->time,
-                             ptr->userdata);
-    ptr = ptr->next;
+    text += StringFromFormat("%s : %" PRIi64 " %016" PRIx64 "\n", ev.type->name->c_str(), ev.time,
+                             ev.userdata);
   }
   return text;
 }
 
 u32 GetFakeDecStartValue()
 {
-  return fakeDecStartValue;
+  return s_fake_dec_start_value;
 }
 
 void SetFakeDecStartValue(u32 val)
 {
-  fakeDecStartValue = val;
+  s_fake_dec_start_value = val;
 }
 
 u64 GetFakeDecStartTicks()
 {
-  return fakeDecStartTicks;
+  return s_fake_dec_start_ticks;
 }
 
 void SetFakeDecStartTicks(u64 val)
 {
-  fakeDecStartTicks = val;
+  s_fake_dec_start_ticks = val;
 }
 
 u64 GetFakeTBStartValue()
 {
-  return g_fakeTBStartValue;
+  return g_fake_TB_start_value;
 }
 
 void SetFakeTBStartValue(u64 val)
 {
-  g_fakeTBStartValue = val;
+  g_fake_TB_start_value = val;
 }
 
 u64 GetFakeTBStartTicks()
 {
-  return g_fakeTBStartTicks;
+  return g_fake_TB_start_ticks;
 }
 
 void SetFakeTBStartTicks(u64 val)
 {
-  g_fakeTBStartTicks = val;
+  g_fake_TB_start_ticks = val;
 }
 
 }  // namespace

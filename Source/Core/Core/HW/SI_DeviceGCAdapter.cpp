@@ -8,6 +8,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SI_DeviceGCAdapter.h"
 #include "Core/NetPlayProto.h"
@@ -24,29 +25,27 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber)
 
 GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
 {
-  GCPadStatus PadStatus;
-  memset(&PadStatus, 0, sizeof(PadStatus));
+  GCPadStatus pad_status = {};
 
   // For netplay, the local controllers are polled in GetNetPads(), and
   // the remote controllers receive their status there as well
   if (!NetPlay::IsNetPlayRunning())
   {
-    GCAdapter::Input(ISIDevice::m_iDeviceNumber, &PadStatus);
+    pad_status = GCAdapter::Input(m_iDeviceNumber);
   }
 
-  HandleMoviePadStatus(&PadStatus);
+  HandleMoviePadStatus(&pad_status);
 
-  return PadStatus;
+  return pad_status;
 }
 
 int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
 {
-  if (!NetPlay::IsNetPlayRunning())
+  if (!Core::g_want_determinism)
   {
-    // The previous check is a hack to prevent a netplay desync due to
-    // SI devices being different and returning different values on
-    // RunBuffer(); the corresponding code in GCAdapter.cpp has the same
-    // check.
+    // The previous check is a hack to prevent a desync due to SI devices
+    // being different and returning different values on RunBuffer();
+    // the corresponding code in GCAdapter.cpp has the same check.
 
     // This returns an error value if there is no controller plugged
     // into this port on the hardware gc adapter, exposing it to the game.

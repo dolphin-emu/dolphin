@@ -89,7 +89,7 @@ void DSPEmitter::checkExceptions(u32 retval)
 
   DSPJitRegCache c(gpr);
   gpr.SaveRegs();
-  ABI_CallFunction((void*)&DSPCore_CheckExceptions);
+  ABI_CallFunction(DSPCore_CheckExceptions);
   MOV(32, R(EAX), Imm32(retval));
   JMP(returnDispatcher, true);
   gpr.LoadRegs(false);
@@ -121,7 +121,7 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
   // Fall back to interpreter
   gpr.PushRegs();
   _assert_msg_(DSPLLE, opTable[inst]->intFunc, "No function for %04x", inst);
-  ABI_CallFunctionC16((void*)opTable[inst]->intFunc, inst);
+  ABI_CallFunctionC16(opTable[inst]->intFunc, inst);
   gpr.PopRegs();
 }
 
@@ -139,7 +139,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
       {
         // Fall back to interpreter
         gpr.PushRegs();
-        ABI_CallFunctionC16((void*)extOpTable[inst & 0x7F]->intFunc, inst);
+        ABI_CallFunctionC16(extOpTable[inst & 0x7F]->intFunc, inst);
         gpr.PopRegs();
         INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x\n", inst);
         ext_is_jit = false;
@@ -156,7 +156,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
       {
         // Fall back to interpreter
         gpr.PushRegs();
-        ABI_CallFunctionC16((void*)extOpTable[inst & 0xFF]->intFunc, inst);
+        ABI_CallFunctionC16(extOpTable[inst & 0xFF]->intFunc, inst);
         gpr.PopRegs();
         INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x\n", inst);
         ext_is_jit = false;
@@ -188,7 +188,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
       // need to call the online cleanup function because
       // the writeBackLog gets populated at runtime
       gpr.PushRegs();
-      ABI_CallFunction((void*)::applyWriteBackLog);
+      ABI_CallFunction(::applyWriteBackLog);
       gpr.PopRegs();
     }
     else
@@ -376,7 +376,7 @@ void DSPEmitter::Compile(u16 start_addr)
 const u8* DSPEmitter::CompileStub()
 {
   const u8* entryPoint = AlignCode16();
-  ABI_CallFunction((void*)&CompileCurrent);
+  ABI_CallFunction(CompileCurrent);
   XOR(32, R(EAX), R(EAX));  // Return 0 cycles executed
   JMP(returnDispatcher);
   return entryPoint;

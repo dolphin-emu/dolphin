@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/x64Emitter.h"
+#include "Common/x64Reg.h"
 
 namespace Gen
 {
@@ -1540,13 +1541,6 @@ void XEmitter::XOR(int bits, const OpArg& a1, const OpArg& a2)
 }
 void XEmitter::MOV(int bits, const OpArg& a1, const OpArg& a2)
 {
-  // Shortcut to zero a register
-  if (a2.IsZero() && a1.IsSimpleReg() && !flags_locked)
-  {
-    XOR(bits, a1, a1);
-    return;
-  }
-
   if (a1.IsSimpleReg() && a2.IsSimpleReg() && a1.GetSimpleReg() == a2.GetSimpleReg())
     ERROR_LOG(DYNA_REC, "Redundant MOV @ %p - bug in JIT?", code);
   WriteNormalOp(bits, nrmMOV, a1, a2);

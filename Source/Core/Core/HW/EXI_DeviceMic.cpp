@@ -59,7 +59,7 @@ static int Pa_Callback(const void* inputBuffer, void* outputBuffer, unsigned lon
   if (mic->stream_wpos + mic->buff_size_samples > mic->stream_size)
     mic->stream_wpos = 0;
 
-  s16* buff_in = (s16*)inputBuffer;
+  const s16* buff_in = static_cast<const s16*>(inputBuffer);
   s16* buff_out = &mic->stream_buffer[mic->stream_wpos];
 
   if (buff_in == nullptr)
@@ -179,7 +179,7 @@ void CEXIMic::UpdateNextInterruptTicks()
 {
   int diff = (SystemTimers::GetTicksPerSecond() / sample_rate) * buff_size_samples;
   next_int_ticks = CoreTiming::GetTicks() + diff;
-  ExpansionInterface::ScheduleUpdateInterrupts(diff);
+  ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, diff);
 }
 
 bool CEXIMic::IsInterruptSet()

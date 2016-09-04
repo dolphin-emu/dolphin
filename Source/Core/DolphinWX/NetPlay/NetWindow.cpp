@@ -6,11 +6,13 @@
 #include <cstddef>
 #include <sstream>
 #include <string>
+#include <tuple>
 #include <vector>
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/clipbrd.h>
+#include <wx/colour.h>
 #include <wx/dialog.h>
 #include <wx/frame.h>
 #include <wx/listbox.h>
@@ -23,6 +25,7 @@
 #include <wx/string.h>
 #include <wx/textctrl.h>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Common/FileUtil.h"
@@ -34,6 +37,8 @@
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
 
+#include "DiscIO/Enums.h"
+
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/ISOFile.h"
@@ -42,34 +47,19 @@
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/NetPlay/PadMapDialog.h"
 #include "DolphinWX/WxUtils.h"
+#include "MD5Dialog.h"
+
+#include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoConfig.h"
 
 NetPlayServer* NetPlayDialog::netplay_server = nullptr;
 NetPlayClient* NetPlayDialog::netplay_client = nullptr;
 NetPlayDialog* NetPlayDialog::npd = nullptr;
 
-static wxString FailureReasonStringForHostLabel(int reason)
-{
-  switch (reason)
-  {
-  case TraversalClient::BadHost:
-    return _("(Error: Bad host)");
-  case TraversalClient::VersionTooOld:
-    return _("(Error: Dolphin too old)");
-  case TraversalClient::ServerForgotAboutUs:
-    return _("(Error: Disconnected)");
-  case TraversalClient::SocketSendError:
-    return _("(Error: Socket)");
-  case TraversalClient::ResendTimeout:
-    return _("(Error: Timeout)");
-  default:
-    return _("(Error: Unknown)");
-  }
-}
-
 static std::string BuildGameName(const GameListItem& game)
 {
   // Lang needs to be consistent
-  DiscIO::IVolume::ELanguage const lang = DiscIO::IVolume::LANGUAGE_ENGLISH;
+  const DiscIO::Language lang = DiscIO::Language::LANGUAGE_ENGLISH;
   std::vector<std::string> info;
   if (!game.GetUniqueID().empty())
     info.push_back(game.GetUniqueID());
@@ -118,7 +108,8 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 
   wxPanel* const panel = new wxPanel(this);
 
-  // top crap
+  wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
+
   m_game_btn = new wxButton(panel, wxID_ANY, StrToWxStr(m_selected_game).Prepend(_(" Game : ")),
                             wxDefaultPosition, wxDefaultSize, wxBU_LEFT);
 
@@ -126,6 +117,21 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
     m_game_btn->Bind(wxEVT_BUTTON, &NetPlayDialog::OnChangeGame, this);
   else
     m_game_btn->Disable();
+
+  top_szr->Add(m_game_btn, 1, wxALL | wxEXPAND);
+
+  if (m_is_hosting)
+  {
+    m_MD5_choice = new wxChoice(panel, wxID_ANY, wxDefaultPosition, wxSize(150, -1));
+    m_MD5_choice->Bind(wxEVT_CHOICE, &NetPlayDialog::OnMD5ComputeRequested, this);
+    m_MD5_choice->Append(_("MD5 check..."));
+    m_MD5_choice->Append(_("Current game"));
+    m_MD5_choice->Append(_("Other game"));
+    m_MD5_choice->Append(_("SD card"));
+    m_MD5_choice->SetSelection(0);
+
+    top_szr->Add(m_MD5_choice, 0, wxALL);
+  }
 
   // middle crap
 
@@ -230,20 +236,29 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 
   // main sizer
   wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
-  main_szr->Add(m_game_btn, 0, wxEXPAND | wxALL, 5);
+  main_szr->Add(top_szr, 0, wxEXPAND | wxALL, 5);
   main_szr->Add(mid_szr, 1, wxEXPAND | wxLEFT | wxRIGHT, 5);
   main_szr->Add(bottom_szr, 0, wxEXPAND | wxALL, 5);
 
   panel->SetSizerAndFit(main_szr);
 
   main_szr->SetSizeHints(this);
-  SetSize(768, 768 - 128);
-
-  Center();
 }
 
 NetPlayDialog::~NetPlayDialog()
 {
+  IniFile inifile;
+  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
+  inifile.Load(dolphin_ini);
+  IniFile::Section& netplay_config = *inifile.GetOrCreateSection("NetPlay");
+
+  netplay_config.Set("NetWindowPosX", GetPosition().x);
+  netplay_config.Set("NetWindowPosY", GetPosition().y);
+  netplay_config.Set("NetWindowWidth", GetSize().GetWidth());
+  netplay_config.Set("NetWindowHeight", GetSize().GetHeight());
+
+  inifile.Save(dolphin_ini);
+
   if (netplay_client)
   {
     delete netplay_client;
@@ -259,13 +274,13 @@ NetPlayDialog::~NetPlayDialog()
 
 void NetPlayDialog::OnChat(wxCommandEvent&)
 {
-  wxString text = m_chat_msg_text->GetValue();
+  std::string text = WxStrToStr(m_chat_msg_text->GetValue());
 
   if (!text.empty())
   {
-    netplay_client->SendChatMessage(WxStrToStr(text));
-    m_chat_text->AppendText(text.Prepend(" >> ").Append('\n'));
+    netplay_client->SendChatMessage(text);
     m_chat_msg_text->Clear();
+    AddChatMessage(ChatMessageType::UserOut, text);
   }
 }
 
@@ -274,6 +289,7 @@ void NetPlayDialog::GetNetSettings(NetSettings& settings)
   SConfig& instance = SConfig::GetInstance();
   settings.m_CPUthread = instance.bCPUThread;
   settings.m_CPUcore = instance.iCPUCore;
+  settings.m_EnableCheats = instance.bEnableCheats;
   settings.m_SelectedLanguage = instance.SelectedLanguage;
   settings.m_OverrideGCLanguage = instance.bOverrideGCLanguage;
   settings.m_ProgressiveScan = instance.bProgressive;
@@ -287,19 +303,33 @@ void NetPlayDialog::GetNetSettings(NetSettings& settings)
   settings.m_EXIDevice[1] = instance.m_EXIDevice[1];
 }
 
-std::string NetPlayDialog::FindGame()
+std::string NetPlayDialog::FindGame(const std::string& target_game)
 {
   // find path for selected game, sloppy..
   for (u32 i = 0; auto game = m_game_list->GetISO(i); ++i)
-    if (m_selected_game == BuildGameName(*game))
+    if (target_game == BuildGameName(*game))
       return game->GetFileName();
 
-  WxUtils::ShowErrorDialog(_("Game not found!"));
   return "";
+}
+
+std::string NetPlayDialog::FindCurrentGame()
+{
+  return FindGame(m_selected_game);
 }
 
 void NetPlayDialog::OnStart(wxCommandEvent&)
 {
+  bool should_start = true;
+  if (!netplay_client->DoAllPlayersHaveGame())
+  {
+    should_start = wxMessageBox(_("Not all players have the game. Do you really want to start?"),
+                                _("Warning"), wxYES_NO) == wxYES;
+  }
+
+  if (!should_start)
+    return;
+
   NetSettings settings;
   GetNetSettings(settings);
   netplay_server->SetNetSettings(settings);
@@ -370,11 +400,46 @@ void NetPlayDialog::OnAdjustBuffer(wxCommandEvent& event)
 {
   const int val = ((wxSpinCtrl*)event.GetEventObject())->GetValue();
   netplay_server->AdjustPadBufferSize(val);
+}
 
-  std::ostringstream ss;
-  ss << "< Pad Buffer: " << val << " >";
-  netplay_client->SendChatMessage(ss.str());
-  m_chat_text->AppendText(StrToWxStr(ss.str()).Append('\n'));
+void NetPlayDialog::OnPadBufferChanged(u32 buffer)
+{
+  m_pad_buffer = buffer;
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_PAD_BUFFER_CHANGE);
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::OnDesync(u32 frame, const std::string& player)
+{
+  m_desync_frame = frame;
+  m_desync_player = player;
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_DESYNC);
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::OnConnectionLost()
+{
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_CONNECTION_LOST);
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::OnTraversalError(int error)
+{
+  switch (error)
+  {
+  case TraversalClient::BadHost:
+    PanicAlertT("Couldn't look up central server");
+    break;
+  case TraversalClient::VersionTooOld:
+    PanicAlertT("Dolphin is too old for traversal server");
+    break;
+  case TraversalClient::ServerForgotAboutUs:
+  case TraversalClient::SocketSendError:
+  case TraversalClient::ResendTimeout:
+    wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_TRAVERSAL_CONNECTION_ERROR);
+    GetEventHandler()->AddPendingEvent(evt);
+    break;
+  }
 }
 
 void NetPlayDialog::OnQuit(wxCommandEvent&)
@@ -441,15 +506,79 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   case NP_GUI_EVT_START_GAME:
     // client start game :/
     {
-      netplay_client->StartGame(FindGame());
+      netplay_client->StartGame(FindCurrentGame());
+      std::string msg = "Starting game";
+      AddChatMessage(ChatMessageType::Info, msg);
     }
     break;
   case NP_GUI_EVT_STOP_GAME:
     // client stop game
     {
-      netplay_client->StopGame();
+      std::string msg = "Stopping game";
+      AddChatMessage(ChatMessageType::Info, msg);
     }
     break;
+  case NP_GUI_EVT_DISPLAY_MD5_DIALOG:
+  {
+    m_MD5_dialog = new MD5Dialog(this, netplay_server, netplay_client->GetPlayers(),
+                                 event.GetString().ToStdString());
+    m_MD5_dialog->Show();
+  }
+  break;
+  case NP_GUI_EVT_MD5_PROGRESS:
+  {
+    if (m_MD5_dialog == nullptr || m_MD5_dialog->IsBeingDeleted())
+      break;
+
+    std::pair<int, int> payload = event.GetPayload<std::pair<int, int>>();
+    m_MD5_dialog->SetProgress(payload.first, payload.second);
+  }
+  break;
+  case NP_GUI_EVT_MD5_RESULT:
+  {
+    if (m_MD5_dialog == nullptr || m_MD5_dialog->IsBeingDeleted())
+      break;
+
+    std::pair<int, std::string> payload = event.GetPayload<std::pair<int, std::string>>();
+    m_MD5_dialog->SetResult(payload.first, payload.second);
+  }
+  break;
+  case NP_GUI_EVT_PAD_BUFFER_CHANGE:
+  {
+    std::string msg = StringFromFormat("Pad buffer: %d", m_pad_buffer);
+
+    if (g_ActiveConfig.bShowNetPlayMessages)
+    {
+      OSD::AddTypedMessage(OSD::MessageType::NetPlayBuffer, msg, OSD::Duration::NORMAL);
+    }
+
+    AddChatMessage(ChatMessageType::Info, msg);
+  }
+  break;
+  case NP_GUI_EVT_DESYNC:
+  {
+    std::string msg = "Possible desync detected from player " + m_desync_player + " on frame " +
+                      std::to_string(m_desync_frame);
+
+    AddChatMessage(ChatMessageType::Error, msg);
+
+    if (g_ActiveConfig.bShowNetPlayMessages)
+    {
+      OSD::AddMessage(msg, OSD::Duration::VERY_LONG, OSD::Color::RED);
+    }
+  }
+  break;
+  case NP_GUI_EVT_CONNECTION_LOST:
+  {
+    std::string msg = "Lost connection to server";
+    AddChatMessage(ChatMessageType::Error, msg);
+  }
+  break;
+  case NP_GUI_EVT_TRAVERSAL_CONNECTION_ERROR:
+  {
+    std::string msg = "Traversal server connection error";
+    AddChatMessage(ChatMessageType::Error, msg);
+  }
   }
 
   // chat messages
@@ -457,17 +586,21 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   {
     std::string s;
     chat_msgs.Pop(s);
-    // PanicAlert("message: %s", s.c_str());
-    m_chat_text->AppendText(StrToWxStr(s).Append('\n'));
+    AddChatMessage(ChatMessageType::UserIn, s);
+
+    if (g_ActiveConfig.bShowNetPlayMessages)
+    {
+      OSD::AddMessage(s, OSD::Duration::NORMAL, OSD::Color::GREEN);
+    }
   }
 }
 
 void NetPlayDialog::OnChangeGame(wxCommandEvent&)
 {
-  ChangeGameDialog cgd(this, m_game_list);
-  cgd.ShowModal();
+  ChangeGameDialog change_game_dialog(this, m_game_list);
+  change_game_dialog.ShowModal();
 
-  wxString game_name = cgd.GetChosenGameName();
+  wxString game_name = change_game_dialog.GetChosenGameName();
   if (game_name.empty())
     return;
 
@@ -476,12 +609,73 @@ void NetPlayDialog::OnChangeGame(wxCommandEvent&)
   m_game_btn->SetLabel(game_name.Prepend(_(" Game : ")));
 }
 
+void NetPlayDialog::OnMD5ComputeRequested(wxCommandEvent&)
+{
+  MD5Target selection = static_cast<MD5Target>(m_MD5_choice->GetSelection());
+  std::string file_identifier;
+  ChangeGameDialog change_game_dialog(this, m_game_list);
+
+  m_MD5_choice->SetSelection(0);
+
+  switch (selection)
+  {
+  case MD5Target::CurrentGame:
+    file_identifier = m_selected_game;
+    break;
+
+  case MD5Target::OtherGame:
+    change_game_dialog.ShowModal();
+
+    file_identifier = WxStrToStr(change_game_dialog.GetChosenGameName());
+    if (file_identifier.empty())
+      return;
+    break;
+
+  case MD5Target::SdCard:
+    file_identifier = WII_SDCARD;
+    break;
+
+  default:
+    return;
+  }
+
+  netplay_server->ComputeMD5(file_identifier);
+}
+
+void NetPlayDialog::ShowMD5Dialog(const std::string& file_identifier)
+{
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_DISPLAY_MD5_DIALOG);
+  evt.SetString(file_identifier);
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::SetMD5Progress(int pid, int progress)
+{
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_MD5_PROGRESS);
+  evt.SetPayload(std::pair<int, int>(pid, progress));
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::SetMD5Result(int pid, const std::string& result)
+{
+  wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_MD5_RESULT);
+  evt.SetPayload(std::pair<int, std::string>(pid, result));
+  GetEventHandler()->AddPendingEvent(evt);
+}
+
+void NetPlayDialog::AbortMD5()
+{
+  if (m_MD5_dialog != nullptr && !m_MD5_dialog->IsBeingDeleted())
+    m_MD5_dialog->Destroy();
+}
+
 void NetPlayDialog::OnAssignPads(wxCommandEvent&)
 {
   PadMapDialog pmd(this, netplay_server, netplay_client);
   pmd.ShowModal();
 
   netplay_server->SetPadMapping(pmd.GetModifiedPadMappings());
+  netplay_server->SetWiimoteMapping(pmd.GetModifiedWiimoteMappings());
 }
 
 void NetPlayDialog::OnKick(wxCommandEvent&)
@@ -564,7 +758,7 @@ void NetPlayDialog::UpdateHostLabel()
       break;
     case TraversalClient::Failure:
       m_host_label->SetForegroundColour(*wxBLACK);
-      m_host_label->SetLabel(FailureReasonStringForHostLabel(g_TraversalClient->m_FailureReason));
+      m_host_label->SetLabel("...");
       m_host_copy_btn->SetLabel(_("Retry"));
       m_host_copy_btn->Enable();
       m_host_copy_btn_is_retry = true;
@@ -597,4 +791,37 @@ void NetPlayDialog::UpdateHostLabel()
       count--;
     }
   }
+}
+
+void NetPlayDialog::AddChatMessage(ChatMessageType type, const std::string& msg)
+{
+  wxColour colour = *wxBLACK;
+  std::string printed_msg = msg;
+
+  switch (type)
+  {
+  case ChatMessageType::Info:
+    colour = wxColour(0, 150, 150);  // cyan
+    break;
+
+  case ChatMessageType::Error:
+    colour = *wxRED;
+    break;
+
+  case ChatMessageType::UserIn:
+    colour = wxColour(0, 150, 0);  // green
+    printed_msg = "▶ " + msg;
+    break;
+
+  case ChatMessageType::UserOut:
+    colour = wxColour(100, 100, 100);  // grey
+    printed_msg = "◀ " + msg;
+    break;
+  }
+
+  if (type == ChatMessageType::Info || type == ChatMessageType::Error)
+    printed_msg = "― " + msg + " ―";
+
+  m_chat_text->SetDefaultStyle(wxTextAttr(colour));
+  m_chat_text->AppendText(StrToWxStr(printed_msg + "\n"));
 }

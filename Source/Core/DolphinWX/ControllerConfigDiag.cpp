@@ -42,7 +42,7 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
 {
   m_gc_pad_type_strs = {{_("None"), _("Standard Controller"), _("GameCube Adapter for Wii U"),
                          _("Steering Wheel"), _("Dance Mat"), _("DK Bongos"), _("GBA"),
-                         _("Keyboard"), _("AM Baseboard")}};
+                         _("Keyboard")}};
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
 
@@ -87,18 +87,13 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
     const wxWindowID choice_id = wxWindow::NewControlId();
     m_gc_port_choice_ids.emplace(choice_id, i);
 
-    // Only add AM-Baseboard to the first pad.
-    if (i == 0)
-      pad_type_choices[i] = new wxChoice(this, choice_id, wxDefaultPosition, wxDefaultSize,
-                                         m_gc_pad_type_strs.size(), m_gc_pad_type_strs.data());
-    else
-      pad_type_choices[i] = new wxChoice(this, choice_id, wxDefaultPosition, wxDefaultSize,
-                                         m_gc_pad_type_strs.size() - 1, m_gc_pad_type_strs.data());
+    pad_type_choices[i] = new wxChoice(this, choice_id, wxDefaultPosition, wxDefaultSize,
+                                       m_gc_pad_type_strs.size(), m_gc_pad_type_strs.data());
 
     pad_type_choices[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::OnGameCubePortChanged, this);
 
     // Disable controller type selection for certain circumstances.
-    if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive())
+    if (Core::g_want_determinism)
       pad_type_choices[i]->Disable();
 
     // Set the saved pad type as the default choice.
@@ -125,9 +120,6 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateGamecubeSizer()
       break;
     case SIDEVICE_GC_KEYBOARD:
       pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[7]);
-      break;
-    case SIDEVICE_AM_BASEBOARD:
-      pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[8]);
       break;
     default:
       pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[0]);
@@ -179,7 +171,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
     // Disable controller type selection for certain circumstances.
     bool wii_game_started =
         SConfig::GetInstance().bWii || Core::GetState() == Core::CORE_UNINITIALIZED;
-    if (NetPlay::IsNetPlayRunning() || Movie::IsMovieActive() || !wii_game_started)
+    if (Core::g_want_determinism || !wii_game_started)
       wiimote_source_ch[i]->Disable();
 
     m_orig_wiimote_sources[i] = g_wiimote_sources[i];
@@ -481,11 +473,6 @@ void ControllerConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
   else if (device_name == m_gc_pad_type_strs[7])
   {
     tempType = SIDEVICE_GC_KEYBOARD;
-    gamecube_configure_bt[device_num]->Enable();
-  }
-  else if (device_name == m_gc_pad_type_strs[8])
-  {
-    tempType = SIDEVICE_AM_BASEBOARD;
     gamecube_configure_bt[device_num]->Enable();
   }
   else

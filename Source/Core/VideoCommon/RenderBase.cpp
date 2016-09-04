@@ -86,6 +86,12 @@ unsigned int Renderer::efb_scale_numeratorY = 1;
 unsigned int Renderer::efb_scale_denominatorX = 1;
 unsigned int Renderer::efb_scale_denominatorY = 1;
 
+// The maximum depth that is written to the depth buffer should never exceed this value.
+// This is necessary because we use a 2^24 divisor for all our depth values to prevent
+// floating-point round-trip errors. However the console GPU doesn't ever write a value
+// to the depth buffer that exceeds 2^24 - 1.
+const float Renderer::GX_MAX_DEPTH = 16777215.0f / 16777216.0f;
+
 static float AspectToWidescreen(float aspect)
 {
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
@@ -310,9 +316,11 @@ void Renderer::DrawDebugText()
       final_cyan += " - ";
     if (SConfig::GetInstance().m_ShowFrameCount)
     {
-      final_cyan += StringFromFormat("Frame: %llu", (unsigned long long)Movie::g_currentFrame);
+      final_cyan += StringFromFormat("Frame: %llu", (unsigned long long)Movie::GetCurrentFrame());
       if (Movie::IsPlayingInput())
-        final_cyan += StringFromFormat(" / %llu", (unsigned long long)Movie::g_totalFrames);
+        final_cyan += StringFromFormat("\nInput: %llu / %llu",
+                                       (unsigned long long)Movie::GetCurrentInputCount(),
+                                       (unsigned long long)Movie::GetTotalInputCount());
     }
 
     final_cyan += "\n";
@@ -321,13 +329,19 @@ void Renderer::DrawDebugText()
 
   if (SConfig::GetInstance().m_ShowLag)
   {
-    final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::g_currentLagCount);
+    final_cyan += StringFromFormat("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount());
     final_yellow += "\n";
   }
 
   if (SConfig::GetInstance().m_ShowInputDisplay)
   {
     final_cyan += Movie::GetInputDisplay();
+    final_yellow += "\n";
+  }
+
+  if (SConfig::GetInstance().m_ShowRTC)
+  {
+    final_cyan += Movie::GetRTCDisplay();
     final_yellow += "\n";
   }
 
@@ -589,15 +603,14 @@ void Renderer::CheckFifoRecording()
 
 void Renderer::RecordVideoMemory()
 {
-  u32* bpmem_ptr = (u32*)&bpmem;
-  u32 cpmem[256];
+  const u32* bpmem_ptr = reinterpret_cast<const u32*>(&bpmem);
+  u32 cpmem[256] = {};
   // The FIFO recording format splits XF memory into xfmem and xfregs; follow
   // that split here.
-  u32* xfmem_ptr = (u32*)&xfmem;
-  u32* xfregs_ptr = (u32*)&xfmem + FifoDataFile::XF_MEM_SIZE;
+  const u32* xfmem_ptr = reinterpret_cast<const u32*>(&xfmem);
+  const u32* xfregs_ptr = reinterpret_cast<const u32*>(&xfmem) + FifoDataFile::XF_MEM_SIZE;
   u32 xfregs_size = sizeof(XFMemory) / 4 - FifoDataFile::XF_MEM_SIZE;
 
-  memset(cpmem, 0, 256 * 4);
   FillCPMemoryArray(cpmem);
 
   FifoRecorder::GetInstance().SetVideoMemory(bpmem_ptr, cpmem, xfmem_ptr, xfregs_ptr, xfregs_size);

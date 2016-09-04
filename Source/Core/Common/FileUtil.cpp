@@ -45,11 +45,6 @@
 #define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
 #endif
 
-#if defined BSD4_4 || defined __FreeBSD__
-#define stat64 stat
-#define fstat64 fstat
-#endif
-
 // This namespace has various generic functions related to files and paths.
 // The code still needs a ton of cleanup.
 // REMEMBER: strdup considered harmful!
@@ -69,7 +64,7 @@ static void StripTailDirSlashes(std::string& fname)
 // Returns true if file filename exists
 bool Exists(const std::string& filename)
 {
-  struct stat64 file_info;
+  struct stat file_info;
 
   std::string copy(filename);
   StripTailDirSlashes(copy);
@@ -77,7 +72,7 @@ bool Exists(const std::string& filename)
 #ifdef _WIN32
   int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
 #else
-  int result = stat64(copy.c_str(), &file_info);
+  int result = stat(copy.c_str(), &file_info);
 #endif
 
   return (result == 0);
@@ -86,7 +81,7 @@ bool Exists(const std::string& filename)
 // Returns true if filename is a directory
 bool IsDirectory(const std::string& filename)
 {
-  struct stat64 file_info;
+  struct stat file_info;
 
   std::string copy(filename);
   StripTailDirSlashes(copy);
@@ -94,7 +89,7 @@ bool IsDirectory(const std::string& filename)
 #ifdef _WIN32
   int result = _tstat64(UTF8ToTStr(copy).c_str(), &file_info);
 #else
-  int result = stat64(copy.c_str(), &file_info);
+  int result = stat(copy.c_str(), &file_info);
 #endif
 
   if (result < 0)
@@ -381,11 +376,11 @@ u64 GetSize(const std::string& filename)
     return 0;
   }
 
-  struct stat64 buf;
+  struct stat buf;
 #ifdef _WIN32
   if (_tstat64(UTF8ToTStr(filename).c_str(), &buf) == 0)
 #else
-  if (stat64(filename.c_str(), &buf) == 0)
+  if (stat(filename.c_str(), &buf) == 0)
 #endif
   {
     DEBUG_LOG(COMMON, "GetSize: %s: %lld", filename.c_str(), (long long)buf.st_size);
@@ -399,8 +394,8 @@ u64 GetSize(const std::string& filename)
 // Overloaded GetSize, accepts file descriptor
 u64 GetSize(const int fd)
 {
-  struct stat64 buf;
-  if (fstat64(fd, &buf) != 0)
+  struct stat buf;
+  if (fstat(fd, &buf) != 0)
   {
     ERROR_LOG(COMMON, "GetSize: stat failed %i: %s", fd, GetLastErrorMsg().c_str());
     return 0;
@@ -798,6 +793,7 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[F_ARAMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + ARAM_DUMP;
     s_user_paths[F_FAKEVMEMDUMP_IDX] = s_user_paths[D_DUMP_IDX] + FAKEVMEM_DUMP;
     s_user_paths[F_GCSRAM_IDX] = s_user_paths[D_GCUSER_IDX] + GC_SRAM;
+    s_user_paths[F_WIISDCARD_IDX] = s_user_paths[D_WIIROOT_IDX] + DIR_SEP WII_SDCARD;
 
     s_user_paths[D_MEMORYWATCHER_IDX] = s_user_paths[D_USER_IDX] + MEMORYWATCHER_DIR DIR_SEP;
     s_user_paths[F_MEMORYWATCHERLOCATIONS_IDX] =
@@ -866,12 +862,16 @@ void SetUserPath(unsigned int dir_index, const std::string& path)
 std::string GetThemeDir(const std::string& theme_name)
 {
   std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
+  if (File::Exists(dir))
+    return dir;
 
-  // If theme does not exist in user's dir load from shared directory
-  if (!File::Exists(dir))
-    dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+  // If the theme doesn't exist in the user dir, load from shared directory
+  dir = GetSysDirectory() + THEMES_DIR "/" + theme_name + "/";
+  if (File::Exists(dir))
+    return dir;
 
-  return dir;
+  // If the theme doesn't exist at all, load the default theme
+  return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 }
 
 bool WriteStringToFile(const std::string& str, const std::string& filename)

@@ -19,7 +19,9 @@
 #include "Core/HW/SI.h"
 #include "Core/PowerPC/PowerPC.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
 #include "AudioCommon/AudioDevice.h"
@@ -89,6 +91,20 @@ void SConfig::SaveSettings()
   m_SYSCONF->Save();
 }
 
+namespace
+{
+void CreateDumpPath(const std::string& path)
+{
+  if (path.empty())
+    return;
+  File::SetUserPath(D_DUMP_IDX, path + '/');
+  File::CreateFullPath(File::GetUserPath(D_DUMPAUDIO_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPDSP_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPFRAMES_IDX));
+  File::CreateFullPath(File::GetUserPath(D_DUMPTEXTURES_IDX));
+}
+}  // namespace
+
 void SConfig::SaveGeneralSettings(IniFile& ini)
 {
   IniFile::Section* general = ini.GetOrCreateSection("General");
@@ -116,7 +132,10 @@ void SConfig::SaveGeneralSettings(IniFile& ini)
 
   general->Set("RecursiveISOPaths", m_RecursiveISOFolder);
   general->Set("NANDRootPath", m_NANDPath);
+  general->Set("DumpPath", m_DumpPath);
+  CreateDumpPath(m_DumpPath);
   general->Set("WirelessMac", m_WirelessMac);
+  general->Set("WiiSDCardPath", m_strWiiSDCardPath);
 
 #ifdef USE_GDBSTUB
 #ifndef _WIN32
@@ -259,6 +278,8 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("GFXBackend", m_strVideoBackend);
   core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
   core->Set("PerfMapDir", m_perfDir);
+  core->Set("EnableCustomRTC", bEnableCustomRTC);
+  core->Set("CustomRTCValue", m_customRTCValue);
 }
 
 void SConfig::SaveMovieSettings(IniFile& ini)
@@ -270,6 +291,7 @@ void SConfig::SaveMovieSettings(IniFile& ini)
   movie->Set("DumpFrames", m_DumpFrames);
   movie->Set("DumpFramesSilent", m_DumpFramesSilent);
   movie->Set("ShowInputDisplay", m_ShowInputDisplay);
+  movie->Set("ShowRTC", m_ShowRTC);
 }
 
 void SConfig::SaveDSPSettings(IniFile& ini)
@@ -384,7 +406,11 @@ void SConfig::LoadGeneralSettings(IniFile& ini)
 
   general->Get("NANDRootPath", &m_NANDPath);
   File::SetUserPath(D_WIIROOT_IDX, m_NANDPath);
+  general->Get("DumpPath", &m_DumpPath);
+  CreateDumpPath(m_DumpPath);
   general->Get("WirelessMac", &m_WirelessMac);
+  general->Get("WiiSDCardPath", &m_strWiiSDCardPath, File::GetUserPath(F_WIISDCARD_IDX));
+  File::SetUserPath(F_WIISDCARD_IDX, m_strWiiSDCardPath);
 }
 
 void SConfig::LoadInterfaceSettings(IniFile& ini)
@@ -406,7 +432,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ShowLogWindow", &m_InterfaceLogWindow, false);
   interface->Get("ShowLogConfigWindow", &m_InterfaceLogConfigWindow, false);
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
-  interface->Get("ThemeName40", &theme_name, "Clean");
+  interface->Get("ThemeName40", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
 }
 
@@ -536,6 +562,9 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("GFXBackend", &m_strVideoBackend, "");
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");
   core->Get("PerfMapDir", &m_perfDir, "");
+  core->Get("EnableCustomRTC", &bEnableCustomRTC, false);
+  // Default to seconds between 1.1.1970 and 1.1.2000
+  core->Get("CustomRTCValue", &m_customRTCValue, 946684800);
 }
 
 void SConfig::LoadMovieSettings(IniFile& ini)
@@ -547,6 +576,7 @@ void SConfig::LoadMovieSettings(IniFile& ini)
   movie->Get("DumpFrames", &m_DumpFrames, false);
   movie->Get("DumpFramesSilent", &m_DumpFramesSilent, false);
   movie->Get("ShowInputDisplay", &m_ShowInputDisplay, false);
+  movie->Get("ShowRTC", &m_ShowRTC, false);
 }
 
 void SConfig::LoadDSPSettings(IniFile& ini)
@@ -625,6 +655,7 @@ void SConfig::LoadDefaults()
   iBBDumpPort = -1;
   bSyncGPU = false;
   bFastDiscSpeed = false;
+  m_strWiiSDCardPath = File::GetUserPath(F_WIISDCARD_IDX);
   bEnableMemcardSdWriting = true;
   SelectedLanguage = 0;
   bOverrideGCLanguage = false;
@@ -657,31 +688,32 @@ void SConfig::LoadDefaults()
   m_strUniqueID = "00000000";
   m_revision = 0;
 }
-static const char* GetRegionOfCountry(DiscIO::IVolume::ECountry country)
+
+static const char* GetRegionOfCountry(DiscIO::Country country)
 {
   switch (country)
   {
-  case DiscIO::IVolume::COUNTRY_USA:
+  case DiscIO::Country::COUNTRY_USA:
     return USA_DIR;
 
-  case DiscIO::IVolume::COUNTRY_TAIWAN:
-  case DiscIO::IVolume::COUNTRY_KOREA:
+  case DiscIO::Country::COUNTRY_TAIWAN:
+  case DiscIO::Country::COUNTRY_KOREA:
   // TODO: Should these have their own Region Dir?
-  case DiscIO::IVolume::COUNTRY_JAPAN:
+  case DiscIO::Country::COUNTRY_JAPAN:
     return JAP_DIR;
 
-  case DiscIO::IVolume::COUNTRY_AUSTRALIA:
-  case DiscIO::IVolume::COUNTRY_EUROPE:
-  case DiscIO::IVolume::COUNTRY_FRANCE:
-  case DiscIO::IVolume::COUNTRY_GERMANY:
-  case DiscIO::IVolume::COUNTRY_ITALY:
-  case DiscIO::IVolume::COUNTRY_NETHERLANDS:
-  case DiscIO::IVolume::COUNTRY_RUSSIA:
-  case DiscIO::IVolume::COUNTRY_SPAIN:
-  case DiscIO::IVolume::COUNTRY_WORLD:
+  case DiscIO::Country::COUNTRY_AUSTRALIA:
+  case DiscIO::Country::COUNTRY_EUROPE:
+  case DiscIO::Country::COUNTRY_FRANCE:
+  case DiscIO::Country::COUNTRY_GERMANY:
+  case DiscIO::Country::COUNTRY_ITALY:
+  case DiscIO::Country::COUNTRY_NETHERLANDS:
+  case DiscIO::Country::COUNTRY_RUSSIA:
+  case DiscIO::Country::COUNTRY_SPAIN:
+  case DiscIO::Country::COUNTRY_WORLD:
     return EUR_DIR;
 
-  case DiscIO::IVolume::COUNTRY_UNKNOWN:
+  case DiscIO::Country::COUNTRY_UNKNOWN:
   default:
     return nullptr;
   }
@@ -715,10 +747,10 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       if (pVolume == nullptr)
       {
         if (bootDrive)
-          PanicAlertT("Could not read \"%s\".  "
-                      "There is no disc in the drive, or it is not a GC/Wii backup.  "
-                      "Please note that original GameCube and Wii discs cannot be read "
-                      "by most PC DVD drives.",
+          PanicAlertT("Could not read \"%s\". "
+                      "There is no disc in the drive or it is not a GameCube/Wii backup. "
+                      "Please note that Dolphin cannot play games directly from the original "
+                      "GameCube and Wii discs.",
                       m_strFilename.c_str());
         else
           PanicAlertT("\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO.",
@@ -730,7 +762,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       m_revision = pVolume->GetRevision();
 
       // Check if we have a Wii disc
-      bWii = pVolume->GetVolumeType() == DiscIO::IVolume::WII_DISC;
+      bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;
 
       const char* retrieved_region_dir = GetRegionOfCountry(pVolume->GetCountry());
       if (!retrieved_region_dir)
@@ -932,17 +964,19 @@ void SConfig::CheckMemcardPath(std::string& memcardPath, const std::string& game
   }
 }
 
-DiscIO::IVolume::ELanguage SConfig::GetCurrentLanguage(bool wii) const
+DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
 {
-  DiscIO::IVolume::ELanguage language;
+  int language_value;
   if (wii)
-    language = (DiscIO::IVolume::ELanguage)SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+    language_value = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
   else
-    language = (DiscIO::IVolume::ELanguage)(SConfig::GetInstance().SelectedLanguage + 1);
+    language_value = SConfig::GetInstance().SelectedLanguage + 1;
+  DiscIO::Language language = static_cast<DiscIO::Language>(language_value);
 
   // Get rid of invalid values (probably doesn't matter, but might as well do it)
-  if (language > DiscIO::IVolume::ELanguage::LANGUAGE_UNKNOWN || language < 0)
-    language = DiscIO::IVolume::ELanguage::LANGUAGE_UNKNOWN;
+  if (language > DiscIO::Language::LANGUAGE_UNKNOWN ||
+      language < DiscIO::Language::LANGUAGE_JAPANESE)
+    language = DiscIO::Language::LANGUAGE_UNKNOWN;
   return language;
 }
 

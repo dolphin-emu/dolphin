@@ -156,16 +156,16 @@ private:
 };
 
 template <class T>
-inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifier,
-                               const char* type, const char* name, int var_index,
-                               const char* semantic = "", int semantic_index = -1)
+inline void DefineOutputMember(T& object, APIType api_type, const char* qualifier, const char* type,
+                               const char* name, int var_index, const char* semantic = "",
+                               int semantic_index = -1)
 {
   object.Write("\t%s %s %s", qualifier, type, name);
 
   if (var_index != -1)
     object.Write("%d", var_index);
 
-  if (api_type == API_D3D && strlen(semantic) > 0)
+  if (api_type == APIType::D3D && strlen(semantic) > 0)
   {
     if (semantic_index != -1)
       object.Write(" : %s%d", semantic, semantic_index);
@@ -177,7 +177,7 @@ inline void DefineOutputMember(T& object, API_TYPE api_type, const char* qualifi
 }
 
 template <class T>
-inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 texgens,
+inline void GenerateVSOutputMembers(T& object, APIType api_type, u32 texgens,
                                     bool per_pixel_lighting, const char* qualifier)
 {
   DefineOutputMember(object, api_type, qualifier, "float4", "pos", -1, "POSITION");
@@ -196,6 +196,9 @@ inline void GenerateVSOutputMembers(T& object, API_TYPE api_type, u32 texgens,
     DefineOutputMember(object, api_type, qualifier, "float3", "WorldPos", -1, "TEXCOORD",
                        texgens + 2);
   }
+
+  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 0, "SV_ClipDistance", 0);
+  DefineOutputMember(object, api_type, qualifier, "float", "clipDist", 1, "SV_ClipDistance", 1);
 }
 
 template <class T>
@@ -216,6 +219,9 @@ inline void AssignVSOutputMembers(T& object, const char* a, const char* b, u32 t
     object.Write("\t%s.Normal = %s.Normal;\n", a, b);
     object.Write("\t%s.WorldPos = %s.WorldPos;\n", a, b);
   }
+
+  object.Write("\t%s.clipDist0 = %s.clipDist0;\n", a, b);
+  object.Write("\t%s.clipDist1 = %s.clipDist1;\n", a, b);
 }
 
 // We use the flag "centroid" to fix some MSAA rendering bugs. With MSAA, the

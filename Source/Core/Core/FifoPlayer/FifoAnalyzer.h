@@ -6,16 +6,15 @@
 
 #include "Common/CommonTypes.h"
 
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CPMemory.h"
 
 namespace FifoAnalyzer
 {
 void Init();
 
-u8 ReadFifo8(u8*& data);
-u16 ReadFifo16(u8*& data);
-u32 ReadFifo32(u8*& data);
+u8 ReadFifo8(const u8*& data);
+u16 ReadFifo16(const u8*& data);
+u32 ReadFifo32(const u8*& data);
 
 enum DecodeMode
 {
@@ -23,7 +22,7 @@ enum DecodeMode
   DECODE_PLAYBACK,
 };
 
-u32 AnalyzeCommand(u8* data, DecodeMode mode);
+u32 AnalyzeCommand(const u8* data, DecodeMode mode);
 
 struct CPMemory
 {

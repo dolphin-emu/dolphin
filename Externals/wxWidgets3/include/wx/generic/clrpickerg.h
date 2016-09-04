@@ -75,7 +75,7 @@ protected:
     static wxColourData ms_data;
 
 private:
-   DECLARE_DYNAMIC_CLASS(wxGenericColourButton)
+    wxDECLARE_DYNAMIC_CLASS(wxGenericColourButton);
 };
 
 

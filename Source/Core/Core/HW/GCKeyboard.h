@@ -17,5 +17,5 @@ void LoadConfig();
 
 InputConfig* GetConfig();
 
-void GetStatus(u8 port, KeyboardStatus* keyboard_status);
+KeyboardStatus GetStatus(u8 port);
 }

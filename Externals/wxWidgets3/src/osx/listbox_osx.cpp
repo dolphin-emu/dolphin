@@ -23,8 +23,8 @@
     #include "wx/dcclient.h"
 #endif
 
-BEGIN_EVENT_TABLE(wxListBox, wxControl)
-END_EVENT_TABLE()
+wxBEGIN_EVENT_TABLE(wxListBox, wxControl)
+wxEND_EVENT_TABLE()
 
 #include "wx/osx/private.h"
 
@@ -83,7 +83,7 @@ bool wxListBox::Create(
         return false;
 
     if ( IsSorted() )
-        m_strings.sorted = new wxSortedArrayString;
+        m_strings.sorted = new wxSortedArrayString(wxDictionaryStringSortAscending);
     else
         m_strings.unsorted = new wxArrayString;
 
@@ -145,6 +145,11 @@ void wxListBox::EnsureVisible(int n)
     GetListPeer()->ListScrollTo( n );
 }
 
+int wxListBox::GetTopItem() const
+{
+    return GetListPeer()->ListGetTopItem();
+}
+
 void wxListBox::DoDeleteOneItem(unsigned int n)
 {
     wxCHECK_RET( IsValid(n), wxT("invalid index in wxListBox::Delete") );
@@ -191,6 +196,9 @@ void wxListBox::DoSetSelection(int n, bool select)
     m_blockEvents = false;
 
     UpdateOldSelections();
+
+    if (select)
+        EnsureVisible(n);
 }
 
 bool wxListBox::IsSelected(int n) const

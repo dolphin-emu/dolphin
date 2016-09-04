@@ -11,6 +11,7 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoCommon.h"
 
 #define WRITE p += sprintf
 
@@ -76,7 +77,7 @@ u16 GetEncodedSampleCount(u32 format)
 
 // block dimensions : widthStride, heightStride
 // texture dims : width, height, x offset, y offset
-static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
+static void WriteSwizzler(char*& p, u32 format, APIType ApiType)
 {
   // left, top, of source rectangle within source texture
   // width of the destination rectangle, scale_factor (1 or 2)
@@ -86,7 +87,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
   int blkH = TexDecoder_GetBlockHeightInTexels(format);
   int samples = GetEncodedSampleCount(format);
 
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     WRITE(p, "#define samp0 samp9\n");
     WRITE(p, "SAMPLER_BINDING(9) uniform sampler2DArray samp0;\n");
@@ -134,7 +135,7 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
                                               // pixel)
   WRITE(p, "  uv0 += float2(position.xy);\n");                    // move to copied rect
   WRITE(p, "  uv0 /= float2(%d, %d);\n", EFB_WIDTH, EFB_HEIGHT);  // normalize to [0:1]
-  if (ApiType == API_OPENGL)                                      // ogl has to flip up and down
+  if (ApiType == APIType::OpenGL)                                 // ogl has to flip up and down
   {
     WRITE(p, "  uv0.y = 1.0-uv0.y;\n");
   }
@@ -143,9 +144,9 @@ static void WriteSwizzler(char*& p, u32 format, API_TYPE ApiType)
 }
 
 static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, int xoffset,
-                             API_TYPE ApiType, bool depth = false)
+                             APIType ApiType, bool depth = false)
 {
-  if (ApiType == API_OPENGL)
+  if (ApiType == APIType::OpenGL)
   {
     WRITE(p, "  %s = texture(samp0, float3(uv0 + float2(%d, 0) * sample_offset, 0.0)).%s;\n", dest,
           xoffset, colorComp);
@@ -157,7 +158,7 @@ static void WriteSampleColor(char*& p, const char* colorComp, const char* dest, 
 
     // Handle D3D depth inversion.
     if (depth)
-      WRITE(p, "  %s = 1.0f - %s;\n", dest, dest);
+      WRITE(p, "  %s = 1.0 - %s;\n", dest, dest);
   }
 }
 
@@ -184,7 +185,7 @@ static void WriteEncoderEnd(char*& p)
   IntensityConstantAdded = false;
 }
 
-static void WriteI8Encoder(char*& p, API_TYPE ApiType)
+static void WriteI8Encoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_TF_I8, ApiType);
   WRITE(p, "  float3 texSample;\n");
@@ -206,7 +207,7 @@ static void WriteI8Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteI4Encoder(char*& p, API_TYPE ApiType)
+static void WriteI4Encoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_TF_I4, ApiType);
   WRITE(p, "  float3 texSample;\n");
@@ -247,7 +248,7 @@ static void WriteI4Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteIA8Encoder(char*& p, API_TYPE ApiType)
+static void WriteIA8Encoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_TF_IA8, ApiType);
   WRITE(p, "  float4 texSample;\n");
@@ -265,7 +266,7 @@ static void WriteIA8Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteIA4Encoder(char*& p, API_TYPE ApiType)
+static void WriteIA4Encoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_TF_IA4, ApiType);
   WRITE(p, "  float4 texSample;\n");
@@ -297,7 +298,7 @@ static void WriteIA4Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteRGB565Encoder(char*& p, API_TYPE ApiType)
+static void WriteRGB565Encoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_TF_RGB565, ApiType);
 
@@ -320,7 +321,7 @@ static void WriteRGB565Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteRGB5A3Encoder(char*& p, API_TYPE ApiType)
+static void WriteRGB5A3Encoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_TF_RGB5A3, ApiType);
 
@@ -384,7 +385,7 @@ static void WriteRGB5A3Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteRGBA8Encoder(char*& p, API_TYPE ApiType)
+static void WriteRGBA8Encoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_TF_RGBA8, ApiType);
 
@@ -409,7 +410,7 @@ static void WriteRGBA8Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteC4Encoder(char*& p, const char* comp, API_TYPE ApiType, bool depth = false)
+static void WriteC4Encoder(char*& p, const char* comp, APIType ApiType, bool depth = false)
 {
   WriteSwizzler(p, GX_CTF_R4, ApiType);
   WRITE(p, "  float4 color0;\n");
@@ -431,7 +432,7 @@ static void WriteC4Encoder(char*& p, const char* comp, API_TYPE ApiType, bool de
   WriteEncoderEnd(p);
 }
 
-static void WriteC8Encoder(char*& p, const char* comp, API_TYPE ApiType, bool depth = false)
+static void WriteC8Encoder(char*& p, const char* comp, APIType ApiType, bool depth = false)
 {
   WriteSwizzler(p, GX_CTF_R8, ApiType);
 
@@ -443,7 +444,7 @@ static void WriteC8Encoder(char*& p, const char* comp, API_TYPE ApiType, bool de
   WriteEncoderEnd(p);
 }
 
-static void WriteCC4Encoder(char*& p, const char* comp, API_TYPE ApiType)
+static void WriteCC4Encoder(char*& p, const char* comp, APIType ApiType)
 {
   WriteSwizzler(p, GX_CTF_RA4, ApiType);
   WRITE(p, "  float2 texSample;\n");
@@ -473,7 +474,7 @@ static void WriteCC4Encoder(char*& p, const char* comp, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteCC8Encoder(char*& p, const char* comp, API_TYPE ApiType)
+static void WriteCC8Encoder(char*& p, const char* comp, APIType ApiType)
 {
   WriteSwizzler(p, GX_CTF_RA8, ApiType);
 
@@ -483,7 +484,7 @@ static void WriteCC8Encoder(char*& p, const char* comp, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteZ8Encoder(char*& p, const char* multiplier, API_TYPE ApiType)
+static void WriteZ8Encoder(char*& p, const char* multiplier, APIType ApiType)
 {
   WriteSwizzler(p, GX_CTF_Z8M, ApiType);
 
@@ -504,7 +505,7 @@ static void WriteZ8Encoder(char*& p, const char* multiplier, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteZ16Encoder(char*& p, API_TYPE ApiType)
+static void WriteZ16Encoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_TF_Z16, ApiType);
 
@@ -536,7 +537,7 @@ static void WriteZ16Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteZ16LEncoder(char*& p, API_TYPE ApiType)
+static void WriteZ16LEncoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_CTF_Z16L, ApiType);
 
@@ -572,7 +573,7 @@ static void WriteZ16LEncoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-static void WriteZ24Encoder(char*& p, API_TYPE ApiType)
+static void WriteZ24Encoder(char*& p, APIType ApiType)
 {
   WriteSwizzler(p, GX_TF_Z24X8, ApiType);
 
@@ -612,7 +613,7 @@ static void WriteZ24Encoder(char*& p, API_TYPE ApiType)
   WriteEncoderEnd(p);
 }
 
-const char* GenerateEncodingShader(u32 format, API_TYPE ApiType)
+const char* GenerateEncodingShader(u32 format, APIType ApiType)
 {
   text[sizeof(text) - 1] = 0x7C;  // canary
 

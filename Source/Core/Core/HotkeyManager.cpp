@@ -50,6 +50,7 @@ const std::string hotkey_labels[] = {
     _trans("Toggle EFB Copies"),
     _trans("Toggle Fog"),
     _trans("Disable Emulation Speed Limit"),
+    _trans("Toggle Custom Textures"),
     _trans("Decrease Emulation Speed"),
     _trans("Increase Emulation Speed"),
 
@@ -186,6 +187,7 @@ void Initialize(void* const hwnd)
     s_config.CreateController<HotkeyManager>();
 
   g_controller_interface.Initialize(hwnd);
+  g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // load the saved controller config
   s_config.LoadConfig(true);
@@ -222,9 +224,10 @@ HotkeyManager::HotkeyManager()
   }
 
   groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
-  m_options->settings.emplace_back(
-      new ControlGroup::BackgroundInputSetting(_trans("Background Input")));
-  m_options->settings.emplace_back(new ControlGroup::IterateUI(_trans("Iterative Input")));
+  m_options->boolean_settings.emplace_back(
+      std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
+      _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
 }
 
 HotkeyManager::~HotkeyManager()
@@ -238,6 +241,7 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
+  auto lock = ControllerEmu::GetStateLock();
   for (int set = 0; set < (NUM_HOTKEYS + 31) / 32; set++)
   {
     std::vector<u32> bitmasks;

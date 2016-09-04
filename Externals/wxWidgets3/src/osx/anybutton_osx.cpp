@@ -22,10 +22,10 @@
 
 #include "wx/osx/private.h"
 
-BEGIN_EVENT_TABLE(wxAnyButton, wxControl)
+wxBEGIN_EVENT_TABLE(wxAnyButton, wxControl)
     EVT_ENTER_WINDOW(wxAnyButton::OnEnterWindow)
     EVT_LEAVE_WINDOW(wxAnyButton::OnLeaveWindow)
-END_EVENT_TABLE()
+wxEND_EVENT_TABLE()
 
 void wxAnyButton::SetLabel(const wxString& label)
 {

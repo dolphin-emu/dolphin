@@ -206,6 +206,8 @@ wxMenuBar* CFrame::CreateMenu()
   movieMenu->Check(IDM_RECORD_READ_ONLY, true);
   movieMenu->AppendCheckItem(IDM_SHOW_INPUT_DISPLAY, _("Show Input Display"));
   movieMenu->Check(IDM_SHOW_INPUT_DISPLAY, SConfig::GetInstance().m_ShowInputDisplay);
+  movieMenu->AppendCheckItem(IDM_SHOW_RTC_DISPLAY, _("Show System Clock"));
+  movieMenu->Check(IDM_SHOW_RTC_DISPLAY, SConfig::GetInstance().m_ShowRTC);
   movieMenu->AppendSeparator();
   movieMenu->AppendCheckItem(IDM_TOGGLE_DUMP_FRAMES, _("Dump Frames"));
   movieMenu->Check(IDM_TOGGLE_DUMP_FRAMES, SConfig::GetInstance().m_DumpFrames);
@@ -495,11 +497,11 @@ wxString CFrame::GetMenuLabel(int Id)
     break;
 
   case HK_SAVE_STATE_SLOT_SELECTED:
-    Label = _("Save state to selected slot");
+    Label = _("Save State to Selected Slot");
     break;
 
   case HK_LOAD_STATE_SLOT_SELECTED:
-    Label = _("Load state from selected slot");
+    Label = _("Load State from Selected Slot");
     break;
 
   case HK_SELECT_STATE_SLOT_1:
@@ -554,7 +556,7 @@ void CFrame::PopulateToolbar(wxToolBar* ToolBar)
 // Delete and recreate the toolbar
 void CFrame::RecreateToolbar()
 {
-  static const long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT;
+  static const long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT | wxTB_FLAT;
 
   if (m_ToolBar != nullptr)
   {
@@ -691,7 +693,7 @@ void CFrame::DoOpen(bool Boot)
   }
   else
   {
-    DVDInterface::ChangeDisc(WxStrToStr(path));
+    DVDInterface::ChangeDiscAsHost(WxStrToStr(path));
   }
 }
 
@@ -754,6 +756,12 @@ void CFrame::OnShowFrameCount(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnShowInputDisplay(wxCommandEvent& WXUNUSED(event))
 {
   SConfig::GetInstance().m_ShowInputDisplay = !SConfig::GetInstance().m_ShowInputDisplay;
+  SConfig::GetInstance().SaveSettings();
+}
+
+void CFrame::OnShowRTCDisplay(wxCommandEvent& WXUNUSED(event))
+{
+  SConfig::GetInstance().m_ShowRTC = !SConfig::GetInstance().m_ShowRTC;
   SConfig::GetInstance().SaveSettings();
 }
 
@@ -1034,6 +1042,13 @@ void CFrame::StartGame(const std::string& filename)
                                    X11Utils::XWindowFromHandle(GetHandle()), true);
 #endif
 
+#ifdef _WIN32
+    // Prevents Windows from sleeping, turning off the display, or idling
+    EXECUTION_STATE shouldScreenSave =
+        SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
+    SetThreadExecutionState(ES_CONTINUOUS | shouldScreenSave | ES_SYSTEM_REQUIRED);
+#endif
+
     m_RenderParent->SetFocus();
 
     wxTheApp->Bind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
@@ -1117,10 +1132,17 @@ void CFrame::DoStop()
       // Pause the state during confirmation and restore it afterwards
       Core::EState state = Core::GetState();
 
+      // Do not pause if netplay is running as CPU thread might be blocked
+      // waiting on inputs
+      bool should_pause = !NetPlayDialog::GetNetPlayClient();
+
       // If exclusive fullscreen is not enabled then we can pause the emulation
       // before we've exited fullscreen. If not then we need to exit fullscreen first.
-      if (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
-          SConfig::GetInstance().bRenderToMain)
+      should_pause =
+          should_pause && (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
+                           SConfig::GetInstance().bRenderToMain);
+
+      if (should_pause)
       {
         Core::SetState(Core::CORE_PAUSE);
       }
@@ -1134,7 +1156,9 @@ void CFrame::DoStop()
       HotkeyManagerEmu::Enable(true);
       if (Ret != wxID_YES)
       {
-        Core::SetState(state);
+        if (should_pause)
+          Core::SetState(state);
+
         m_confirmStop = false;
         return;
       }
@@ -1181,6 +1205,12 @@ void CFrame::OnStopped()
     X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
                                  X11Utils::XWindowFromHandle(GetHandle()), false);
 #endif
+
+#ifdef _WIN32
+  // Allow windows to resume normal idling behavior
+  SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+
   m_RenderFrame->SetTitle(StrToWxStr(scm_rev_str));
 
   // Destroy the renderer frame when not rendering to main
@@ -1264,7 +1294,7 @@ void CFrame::OnStop(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnReset(wxCommandEvent& WXUNUSED(event))
 {
   if (Movie::IsRecordingInput())
-    Movie::g_bReset = true;
+    Movie::SetReset(true);
   ProcessorInterface::ResetButton_Tap();
 }
 
@@ -1643,9 +1673,9 @@ void CFrame::OnFrameSkip(wxCommandEvent& event)
 
 void CFrame::OnSelectSlot(wxCommandEvent& event)
 {
-  g_saveSlot = event.GetId() - IDM_SELECT_SLOT_1 + 1;
-  Core::DisplayMessage(StringFromFormat("Selected slot %d - %s", g_saveSlot,
-                                        State::GetInfoStringOfSlot(g_saveSlot).c_str()),
+  m_saveSlot = event.GetId() - IDM_SELECT_SLOT_1 + 1;
+  Core::DisplayMessage(StringFromFormat("Selected slot %d - %s", m_saveSlot,
+                                        State::GetInfoStringOfSlot(m_saveSlot).c_str()),
                        2500);
 }
 
@@ -1653,7 +1683,7 @@ void CFrame::OnLoadCurrentSlot(wxCommandEvent& event)
 {
   if (Core::IsRunningAndStarted())
   {
-    State::Load(g_saveSlot);
+    State::Load(m_saveSlot);
   }
 }
 
@@ -1661,7 +1691,7 @@ void CFrame::OnSaveCurrentSlot(wxCommandEvent& event)
 {
   if (Core::IsRunningAndStarted())
   {
-    State::Save(g_saveSlot);
+    State::Save(m_saveSlot);
   }
 }
 

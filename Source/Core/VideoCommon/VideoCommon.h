@@ -69,11 +69,11 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
 
 #define LOG_VTX()
 
-enum API_TYPE
+enum class APIType
 {
-  API_OPENGL = 1,
-  API_D3D = 2,
-  API_NONE = 3
+  OpenGL,
+  D3D,
+  Nothing
 };
 
 inline u32 RGBA8ToRGBA6ToRGBA8(u32 src)

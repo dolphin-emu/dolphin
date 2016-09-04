@@ -12,7 +12,11 @@
 #include "Common/SysConf.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/SI_Device.h"
-#include "DiscIO/Volume.h"
+
+namespace DiscIO
+{
+enum class Language;
+}
 
 // DSP Backend Types
 #define BACKEND_NULLSOUND _trans("No audio output")
@@ -135,6 +139,10 @@ struct SConfig : NonCopyable
   // Fifo Player related settings
   bool bLoopFifoReplay;
 
+  // Custom RTC
+  bool bEnableCustomRTC;
+  u32 m_customRTCValue;
+
   enum EBootBS2
   {
     BOOT_DEFAULT,
@@ -169,6 +177,7 @@ struct SConfig : NonCopyable
   std::string m_strApploader;
   std::string m_strUniqueID;
   std::string m_strName;
+  std::string m_strWiiSDCardPath;
   u16 m_revision;
 
   std::string m_perfDir;
@@ -177,7 +186,7 @@ struct SConfig : NonCopyable
   bool AutoSetup(EBootBS2 _BootBS2);
   const std::string& GetUniqueID() const { return m_strUniqueID; }
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
-  DiscIO::IVolume::ELanguage GetCurrentLanguage(bool wii) const;
+  DiscIO::Language GetCurrentLanguage(bool wii) const;
 
   IniFile LoadDefaultGameIni() const;
   IniFile LoadLocalGameIni() const;
@@ -190,6 +199,7 @@ struct SConfig : NonCopyable
   static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision);
 
   std::string m_NANDPath;
+  std::string m_DumpPath;
 
   std::string m_strMemoryCardA;
   std::string m_strMemoryCardB;
@@ -250,6 +260,7 @@ struct SConfig : NonCopyable
   bool m_PauseMovie;
   bool m_ShowLag;
   bool m_ShowFrameCount;
+  bool m_ShowRTC;
   std::string m_strMovieAuthor;
   unsigned int m_FrameSkip;
   bool m_DumpFrames;

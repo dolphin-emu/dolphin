@@ -235,8 +235,9 @@ public:
   ControlQualifier qualifier;
   Device::Control* control;
 
-  ControlExpression(ControlQualifier qualifier_, Device::Control* control_)
-      : qualifier(qualifier_), control(control_)
+  ControlExpression(ControlQualifier qualifier_, std::shared_ptr<Device> device,
+                    Device::Control* control_)
+      : qualifier(qualifier_), control(control_), m_device(device)
   {
   }
 
@@ -244,6 +245,8 @@ public:
   void SetValue(ControlState value) override { control->ToOutput()->SetGatedState(value); }
   int CountNumControls() override { return 1; }
   operator std::string() override { return "`" + (std::string)qualifier + "`"; }
+private:
+  std::shared_ptr<Device> m_device;
 };
 
 class BinaryExpression : public ExpressionNode
@@ -393,14 +396,15 @@ private:
     {
     case TOK_CONTROL:
     {
+      std::shared_ptr<Device> device = finder.FindDevice(tok.qualifier);
       Device::Control* control = finder.FindControl(tok.qualifier);
       if (control == nullptr)
       {
         *expr_out = new DummyExpression(tok.qualifier);
-        return EXPRESSION_PARSE_SUCCESS;
+        return EXPRESSION_PARSE_NO_DEVICE;
       }
 
-      *expr_out = new ControlExpression(tok.qualifier, control);
+      *expr_out = new ControlExpression(tok.qualifier, device, control);
       return EXPRESSION_PARSE_SUCCESS;
     }
     case TOK_LPAREN:
@@ -423,13 +427,12 @@ private:
 
   ExpressionParseStatus Unary(ExpressionNode** expr_out)
   {
-    ExpressionParseStatus status;
-
     if (IsUnaryExpression(Peek().type))
     {
       Token tok = Chew();
       ExpressionNode* atom_expr;
-      if ((status = Atom(&atom_expr)) != EXPRESSION_PARSE_SUCCESS)
+      ExpressionParseStatus status = Atom(&atom_expr);
+      if (status == EXPRESSION_PARSE_SYNTAX_ERROR)
         return status;
       *expr_out = new UnaryExpression(tok.type, atom_expr);
       return EXPRESSION_PARSE_SUCCESS;
@@ -453,16 +456,16 @@ private:
 
   ExpressionParseStatus Binary(ExpressionNode** expr_out)
   {
-    ExpressionParseStatus status;
-
-    if ((status = Unary(expr_out)) != EXPRESSION_PARSE_SUCCESS)
+    ExpressionParseStatus status = Unary(expr_out);
+    if (status == EXPRESSION_PARSE_SYNTAX_ERROR)
       return status;
 
     while (IsBinaryToken(Peek().type))
     {
       Token tok = Chew();
       ExpressionNode* unary_expr;
-      if ((status = Unary(&unary_expr)) != EXPRESSION_PARSE_SUCCESS)
+      status = Unary(&unary_expr);
+      if (status == EXPRESSION_PARSE_SYNTAX_ERROR)
       {
         delete *expr_out;
         return status;
@@ -550,10 +553,11 @@ ExpressionParseStatus ParseExpression(const std::string& str, ControlFinder& fin
   qualifier.control_name = str;
   qualifier.has_device = false;
 
+  std::shared_ptr<Device> device = finder.FindDevice(qualifier);
   Device::Control* control = finder.FindControl(qualifier);
   if (control)
   {
-    *expr_out = new Expression(new ControlExpression(qualifier, control));
+    *expr_out = new Expression(new ControlExpression(qualifier, device, control));
     return EXPRESSION_PARSE_SUCCESS;
   }
 

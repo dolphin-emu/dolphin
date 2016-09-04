@@ -69,7 +69,14 @@ public:
     // makes sense to use it for tooltips associated with a single window only.
     void SetRect(const wxRect& rc);
 
+    // Called when TLW shown state is changed and hides the tooltip itself if
+    // the window it's associated with is hidden.
+    static void UpdateVisibility();
+
 private:
+    // This module calls our DeleteToolTipCtrl().
+    friend class wxToolTipModule;
+
     // Adds a window other than our main m_window to this tooltip.
     void DoAddHWND(WXHWND hWnd);
 
@@ -88,11 +95,17 @@ private:
     // create the tooltip ctrl if it doesn't exist yet and return its HWND
     static WXHWND GetToolTipCtrl();
 
+    // to be used in wxModule for deleting tooltip ctrl window when exiting mainloop
+    static void DeleteToolTipCtrl();
+
     // new tooltip maximum width, defaults to min(display width, 400)
     static int ms_maxWidth;
 
     // remove this tooltip from the tooltip control
     void Remove();
+
+    // adjust tooltip max width based on current tooltip text
+    bool AdjustMaxWidth();
 
     wxString  m_text;           // tooltip text
     wxWindow* m_window;         // main window we're associated with
@@ -101,7 +114,7 @@ private:
                                 // (or a rect with width/height == 0 to show it for the entire window)
     unsigned int m_id;          // the id of this tooltip (ignored when m_rect width/height is 0)
 
-    DECLARE_ABSTRACT_CLASS(wxToolTip)
+    wxDECLARE_ABSTRACT_CLASS(wxToolTip);
     wxDECLARE_NO_COPY_CLASS(wxToolTip);
 };
 

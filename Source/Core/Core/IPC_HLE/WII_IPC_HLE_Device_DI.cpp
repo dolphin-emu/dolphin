@@ -15,6 +15,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
+#include "DiscIO/Volume.h"
 
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
@@ -112,7 +113,7 @@ void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt
   // IOS also seems to write back the command that was responded to in the FD field.
   Memory::Write_U32(Memory::Read_U32(command_address), command_address + 8);
   // Generate a reply to the IPC command
-  WII_IPC_HLE_Interface::EnqueueReply_Immediate(command_address);
+  WII_IPC_HLE_Interface::EnqueueReply(command_address);
 
   // DVDInterface is now ready to execute another command,
   // so we start executing a command from the queue if there is one

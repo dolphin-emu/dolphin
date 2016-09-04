@@ -46,7 +46,6 @@ public:
   Touchscreen(int padID);
   ~Touchscreen() {}
   std::string GetName() const;
-  int GetId() const;
   std::string GetSource() const;
 
 private:

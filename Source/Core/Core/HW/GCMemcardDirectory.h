@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <atomic>
 #include <chrono>
 #include <mutex>
 #include <string>
@@ -14,7 +13,7 @@
 #include "Common/Event.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/GCMemcard.h"
-#include "DiscIO/Volume.h"
+#include "DiscIO/Enums.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc
 //#define _WRITE_MC_HEADER 1
@@ -25,8 +24,7 @@ class GCMemcardDirectory : public MemoryCardBase, NonCopyable
 public:
   GCMemcardDirectory(const std::string& directory, int slot = 0, u16 sizeMb = MemCard2043Mb,
                      bool ascii = true,
-                     DiscIO::IVolume::ECountry card_region = DiscIO::IVolume::COUNTRY_EUROPE,
-                     int gameId = 0);
+                     DiscIO::Country card_region = DiscIO::Country::COUNTRY_EUROPE, int gameId = 0);
   ~GCMemcardDirectory();
   void FlushToFile();
   void FlushThread();
@@ -37,8 +35,7 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  int LoadGCI(const std::string& fileName, DiscIO::IVolume::ECountry card_region,
-              bool currentGameOnly);
+  int LoadGCI(const std::string& fileName, DiscIO::Country card_region, bool currentGameOnly);
   inline s32 SaveAreaRW(u32 block, bool writing = false);
   // s32 DirectoryRead(u32 offset, u32 length, u8* destaddress);
   s32 DirectoryWrite(u32 destaddress, u32 length, u8* srcaddress);
@@ -59,6 +56,6 @@ private:
   const std::chrono::seconds flush_interval = std::chrono::seconds(1);
   Common::Event m_flush_trigger;
   std::mutex m_write_mutex;
-  std::atomic<bool> m_exiting;
+  Common::Flag m_exiting;
   std::thread m_flush_thread;
 };

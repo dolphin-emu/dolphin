@@ -158,6 +158,7 @@ private:
   bool m_bGameLoading;
   bool m_bClosing;
   bool m_confirmStop;
+  int m_saveSlot = 1;
 
   std::vector<std::string> drives;
 
@@ -186,6 +187,7 @@ private:
   };
 
   wxTimer m_poll_hotkey_timer;
+  wxTimer m_handle_signal_timer;
 
   wxBitmap m_Bitmaps[EToolbar_Max];
 
@@ -264,6 +266,7 @@ private:
   void OnShowLag(wxCommandEvent& event);
   void OnShowFrameCount(wxCommandEvent& event);
   void OnShowInputDisplay(wxCommandEvent& event);
+  void OnShowRTCDisplay(wxCommandEvent& event);
   void OnChangeDisc(wxCommandEvent& event);
   void OnScreenshot(wxCommandEvent& event);
   void OnActive(wxActivateEvent& event);
@@ -328,6 +331,7 @@ private:
 
   void PollHotkeys(wxTimerEvent&);
   void ParseHotkeys();
+  void HandleSignal(wxTimerEvent&);
 
   bool InitControllers();
 
@@ -344,4 +348,3 @@ void OnStoppedCallback();
 void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID);
 void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
                          const wiimote_key key);
-extern int g_saveSlot;

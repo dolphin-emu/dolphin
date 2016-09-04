@@ -12,7 +12,7 @@ class GCPad : public ControllerEmu
 {
 public:
   GCPad(const unsigned int index);
-  void GetInput(GCPadStatus* const pad);
+  GCPadStatus GetInput() const;
   void SetOutput(const ControlState strength);
 
   bool GetMicButton() const;

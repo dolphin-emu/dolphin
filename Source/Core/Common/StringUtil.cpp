@@ -28,7 +28,7 @@
 #include <locale.h>
 #endif
 
-#if !defined(_WIN32) && !defined(ANDROID)
+#if !defined(_WIN32) && !defined(ANDROID) && !defined(__OpenBSD__)
 static locale_t GetCLocale()
 {
   static locale_t c_locale = newlocale(LC_ALL_MASK, "C", nullptr);
@@ -121,11 +121,11 @@ bool CharArrayFromFormatV(char* out, int outsize, const char* format, va_list ar
     c_locale = _create_locale(LC_ALL, "C");
   writtenCount = _vsnprintf_l(out, outsize, format, c_locale, args);
 #else
-#if !defined(ANDROID)
+#if !defined(ANDROID) && !defined(__OpenBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   writtenCount = vsnprintf(out, outsize, format, args);
-#if !defined(ANDROID)
+#if !defined(ANDROID) && !defined(__OpenBSD__)
   uselocale(previousLocale);
 #endif
 #endif
@@ -162,12 +162,12 @@ std::string StringFromFormatV(const char* format, va_list args)
   std::string temp = buf;
   delete[] buf;
 #else
-#if !defined(ANDROID)
+#if !defined(ANDROID) && !defined(__OpenBSD__)
   locale_t previousLocale = uselocale(GetCLocale());
 #endif
   if (vasprintf(&buf, format, args) < 0)
     ERROR_LOG(COMMON, "Unable to allocate memory for string");
-#if !defined(ANDROID)
+#if !defined(ANDROID) && !defined(__OpenBSD__)
   uselocale(previousLocale);
 #endif
 
@@ -247,9 +247,11 @@ bool TryParse(const std::string& str, u32* const output)
 
 bool TryParse(const std::string& str, bool* const output)
 {
-  if ("1" == str || !strcasecmp("true", str.c_str()))
+  float value;
+  const bool is_valid_float = TryParse(str, &value);
+  if ((is_valid_float && value == 1) || !strcasecmp("true", str.c_str()))
     *output = true;
-  else if ("0" == str || !strcasecmp("false", str.c_str()))
+  else if ((is_valid_float && value == 0) || !strcasecmp("false", str.c_str()))
     *output = false;
   else
     return false;

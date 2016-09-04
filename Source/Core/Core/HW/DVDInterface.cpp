@@ -28,6 +28,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 #include "Core/Movie.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
@@ -237,17 +238,14 @@ static u32 s_error_code = 0;
 static bool s_disc_inside = false;
 static bool s_stream = false;
 static bool s_stop_at_track_end = false;
-static int s_finish_executing_command = 0;
-static int s_dtk = 0;
+static CoreTiming::EventType* s_finish_executing_command;
+static CoreTiming::EventType* s_dtk;
 
 static u64 s_last_read_offset;
 static u64 s_last_read_time;
 
-// GC-AM only
-static unsigned char s_media_buffer[0x40];
-
-static int s_eject_disc;
-static int s_insert_disc;
+static CoreTiming::EventType* s_eject_disc;
+static CoreTiming::EventType* s_insert_disc;
 
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
@@ -472,16 +470,25 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
   delete _FileName;
 }
 
-void ChangeDisc(const std::string& newFileName)
+// Can only be called by the host thread
+void ChangeDiscAsHost(const std::string& newFileName)
 {
-  // WARNING: Can only run on Host Thread
   bool was_unpaused = Core::PauseAndLock(true);
+
+  // The host thread is now temporarily the CPU thread
+  ChangeDiscAsCPU(newFileName);
+
+  Core::PauseAndLock(false, was_unpaused);
+}
+
+// Can only be called by the CPU thread
+void ChangeDiscAsCPU(const std::string& newFileName)
+{
   std::string* _FileName = new std::string(newFileName);
   CoreTiming::ScheduleEvent(0, s_eject_disc);
-  CoreTiming::ScheduleEvent(500000000, s_insert_disc, (u64)_FileName);
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc, (u64)_FileName);
   if (Movie::IsRecordingInput())
   {
-    Movie::g_bDiscChange = true;
     std::string fileName = newFileName;
     auto sizeofpath = fileName.find_last_of("/\\") + 1;
     if (fileName.substr(sizeofpath).length() > 40)
@@ -490,9 +497,8 @@ void ChangeDisc(const std::string& newFileName)
                   "The filename of the disc image must not be longer than 40 characters.",
                   newFileName.c_str());
     }
-    Movie::g_discChange = fileName.substr(sizeofpath);
+    Movie::SignalDiscChange(fileName.substr(sizeofpath));
   }
-  Core::PauseAndLock(false, was_unpaused);
 }
 
 void SetLidOpen(bool open)
@@ -672,44 +678,23 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
   u64 ticks_until_completion = SystemTimers::GetTicksPerSecond() / 15000;
   bool command_handled_by_thread = false;
 
-  bool GCAM = (SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_AM_BASEBOARD) &&
-              (SConfig::GetInstance().m_EXIDevice[2] == EXIDEVICE_AM_BASEBOARD);
-
   // DVDLowRequestError needs access to the error code set by the previous command
   if (command_0 >> 24 != DVDLowRequestError)
     s_error_code = 0;
-
-  if (GCAM)
-  {
-    ERROR_LOG(DVDINTERFACE, "DVD: %08x, %08x, %08x, DMA=addr:%08x,len:%08x,ctrl:%08x", command_0,
-              command_1, command_2, output_address, output_length, s_DICR.Hex);
-    // decrypt command. But we have a zero key, that simplifies things a lot.
-    // If you get crazy dvd command errors, make sure 0x80000000 - 0x8000000c is zero'd
-    command_0 <<= 24;
-  }
 
   switch (command_0 >> 24)
   {
   // Seems to be used by both GC and Wii
   case DVDLowInquiry:
-    if (GCAM)
-    {
-      // 0x29484100...
-      // was 21 i'm not entirely sure about this, but it works well.
-      WriteImmediate(0x21000000, output_address, reply_to_ios);
-    }
-    else
-    {
-      // (shuffle2) Taken from my Wii
-      Memory::Write_U32(0x00000002, output_address);
-      Memory::Write_U32(0x20060526, output_address + 4);
-      // This was in the oubuf even though this cmd is only supposed to reply with 64bits
-      // However, this and other tests strongly suggest that the buffer is static, and it's never -
-      // or rarely cleared.
-      Memory::Write_U32(0x41000000, output_address + 8);
+    // (shuffle2) Taken from my Wii
+    Memory::Write_U32(0x00000002, output_address);
+    Memory::Write_U32(0x20060526, output_address + 4);
+    // This was in the oubuf even though this cmd is only supposed to reply with 64bits
+    // However, this and other tests strongly suggest that the buffer is static, and it's never -
+    // or rarely cleared.
+    Memory::Write_U32(0x41000000, output_address + 8);
 
-      INFO_LOG(DVDINTERFACE, "DVDLowInquiry (Buffer 0x%08x, 0x%x)", output_address, output_length);
-    }
+    INFO_LOG(DVDINTERFACE, "DVDLowInquiry (Buffer 0x%08x, 0x%x)", output_address, output_length);
     break;
 
   // Only seems to be used from WII_IPC, not through direct access
@@ -856,56 +841,6 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
                              ", DMABuffer = %08x, SrcLength = %08x, DMALength = %08x",
                iDVDOffset, output_address, command_2, output_length);
 
-      if (GCAM)
-      {
-        if (iDVDOffset & 0x80000000)  // read request to hardware buffer
-        {
-          switch (iDVDOffset)
-          {
-          case 0x80000000:
-            ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (80000000)");
-            for (u32 i = 0; i < output_length; i += 4)
-              Memory::Write_U32(0, output_address + i);
-            break;
-          case 0x80000040:
-            ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (2) (80000040)");
-            for (u32 i = 0; i < output_length; i += 4)
-              Memory::Write_U32(~0, output_address + i);
-            Memory::Write_U32(0x00000020, output_address);      // DIMM SIZE, LE
-            Memory::Write_U32(0x4743414D, output_address + 4);  // GCAM signature
-            break;
-          case 0x80000120:
-            ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000120)");
-            for (u32 i = 0; i < output_length; i += 4)
-              Memory::Write_U32(0x01010101, output_address + i);
-            break;
-          case 0x80000140:
-            ERROR_LOG(DVDINTERFACE, "GC-AM: READ FIRMWARE STATUS (80000140)");
-            for (u32 i = 0; i < output_length; i += 4)
-              Memory::Write_U32(0x01010101, output_address + i);
-            break;
-          case 0x84000020:
-            ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD STATUS (1) (84000020)");
-            for (u32 i = 0; i < output_length; i += 4)
-              Memory::Write_U32(0x00000000, output_address + i);
-            break;
-          default:
-            ERROR_LOG(DVDINTERFACE, "GC-AM: UNKNOWN MEDIA BOARD LOCATION %" PRIx64, iDVDOffset);
-            break;
-          }
-          break;
-        }
-        else if ((iDVDOffset == 0x1f900000) || (iDVDOffset == 0x1f900020))
-        {
-          ERROR_LOG(DVDINTERFACE, "GC-AM: READ MEDIA BOARD COMM AREA (1f900020)");
-          u8* source = s_media_buffer + iDVDOffset - 0x1f900000;
-          Memory::CopyToEmu(output_address, source, output_length);
-          for (u32 i = 0; i < output_length; i += 4)
-            ERROR_LOG(DVDINTERFACE, "GC-AM: %08x", Memory::Read_U32(output_address + i));
-          break;
-        }
-      }
-
       command_handled_by_thread =
           ExecuteReadCommand(iDVDOffset, output_address, command_2, output_length, false,
                              reply_to_ios, &interrupt_type, &ticks_until_completion);
@@ -925,138 +860,10 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     }
     break;
 
-  // GC-AM only
-  case 0xAA:
-    if (GCAM)
-    {
-      ERROR_LOG(DVDINTERFACE, "GC-AM: 0xAA, DMABuffer=%08x, DMALength=%08x", output_address,
-                output_length);
-      u64 iDVDOffset = (u64)command_1 << 2;
-      u32 len = output_length;
-      s64 offset = iDVDOffset - 0x1F900000;
-      /*
-      if (iDVDOffset == 0x84800000)
-      {
-        ERROR_LOG(DVDINTERFACE, "Firmware upload");
-      }
-      else*/
-      if ((offset < 0) || ((offset + len) > 0x40) || len > 0x40)
-      {
-        u32 addr = output_address;
-        if (iDVDOffset == 0x84800000)
-        {
-          ERROR_LOG(DVDINTERFACE, "FIRMWARE UPLOAD");
-        }
-        else
-        {
-          ERROR_LOG(DVDINTERFACE, "ILLEGAL MEDIA WRITE");
-        }
-
-        while (len >= 4)
-        {
-          ERROR_LOG(DVDINTERFACE, "GC-AM Media Board WRITE (0xAA): %08" PRIx64 ": %08x", iDVDOffset,
-                    Memory::Read_U32(addr));
-          addr += 4;
-          len -= 4;
-          iDVDOffset += 4;
-        }
-      }
-      else
-      {
-        u32 addr = s_DIMAR.Address;
-        Memory::CopyFromEmu(s_media_buffer + offset, addr, len);
-        while (len >= 4)
-        {
-          ERROR_LOG(DVDINTERFACE, "GC-AM Media Board WRITE (0xAA): %08" PRIx64 ": %08x", iDVDOffset,
-                    Memory::Read_U32(addr));
-          addr += 4;
-          len -= 4;
-          iDVDOffset += 4;
-        }
-      }
-    }
-    break;
-
   // Seems to be used by both GC and Wii
   case DVDLowSeek:
-    if (!GCAM)
-    {
-      // Currently unimplemented
-      INFO_LOG(DVDINTERFACE, "Seek: offset=%09" PRIx64 " (ignoring)", (u64)command_1 << 2);
-    }
-    else
-    {
-      memset(s_media_buffer, 0, 0x20);
-      s_media_buffer[0] = s_media_buffer[0x20];  // ID
-      s_media_buffer[2] = s_media_buffer[0x22];
-      s_media_buffer[3] = s_media_buffer[0x23] | 0x80;
-      int cmd = (s_media_buffer[0x23] << 8) | s_media_buffer[0x22];
-      ERROR_LOG(DVDINTERFACE, "GC-AM: execute buffer, cmd=%04x", cmd);
-      switch (cmd)
-      {
-      case 0x00:
-        s_media_buffer[4] = 1;
-        break;
-      case 0x1:
-        s_media_buffer[7] = 0x20;  // DIMM Size
-        break;
-      case 0x100:
-      {
-        // urgh
-        static int percentage = 0;
-        static int status = 0;
-        percentage++;
-        if (percentage > 100)
-        {
-          status++;
-          percentage = 0;
-        }
-        s_media_buffer[4] = status;
-        /* status:
-        0 - "Initializing media board. Please wait.."
-        1 - "Checking network. Please wait..."
-        2 - "Found a system disc. Insert a game disc"
-        3 - "Testing a game program. %d%%"
-        4 - "Loading a game program. %d%%"
-        5  - go
-        6  - error xx
-        */
-        s_media_buffer[8] = percentage;
-        s_media_buffer[4] = 0x05;
-        s_media_buffer[8] = 0x64;
-        break;
-      }
-      case 0x101:
-        s_media_buffer[4] = 3;  // version
-        s_media_buffer[5] = 3;
-        s_media_buffer[6] = 1;  // xxx
-        s_media_buffer[8] = 1;
-        s_media_buffer[16] = 0xFF;
-        s_media_buffer[17] = 0xFF;
-        s_media_buffer[18] = 0xFF;
-        s_media_buffer[19] = 0xFF;
-        break;
-      case 0x102:               // get error code
-        s_media_buffer[4] = 1;  // 0: download incomplete (31), 1: corrupted, other error 1
-        s_media_buffer[5] = 0;
-        break;
-      case 0x103:
-        memcpy(s_media_buffer + 4, "A89E27A50364511", 15);  // serial
-        break;
-#if 0
-			case 0x301: // unknown
-				memcpy(s_media_buffer + 4, s_media_buffer + 0x24, 0x1c);
-				break;
-			case 0x302:
-				break;
-#endif
-      default:
-        ERROR_LOG(DVDINTERFACE, "GC-AM: execute buffer (unknown)");
-        break;
-      }
-      memset(s_media_buffer + 0x20, 0, 0x20);
-      WriteImmediate(0x66556677, output_address, reply_to_ios);  // just a random value that works.
-    }
+    // Currently unimplemented
+    INFO_LOG(DVDINTERFACE, "Seek: offset=%09" PRIx64 " (ignoring)", (u64)command_1 << 2);
     break;
 
   // Probably only used by Wii
@@ -1408,7 +1215,7 @@ s64 CalculateRawDiscReadTime(u64 offset, s64 length)
   // Note that the speed at a track (in bytes per second) is the same as
   // the radius of that track because of the length unit used.
   double speed;
-  if (s_inserted_volume->GetVolumeType() == DiscIO::IVolume::WII_DISC)
+  if (s_inserted_volume->GetVolumeType() == DiscIO::Platform::WII_DISC)
   {
     speed = std::sqrt(((average_offset - WII_DISC_LOCATION_1_OFFSET) / WII_BYTES_PER_AREA_UNIT +
                        WII_DISC_AREA_UP_TO_LOCATION_1) /

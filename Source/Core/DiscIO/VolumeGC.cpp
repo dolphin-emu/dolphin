@@ -15,6 +15,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
+#include "DiscIO/Enums.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
@@ -60,10 +61,10 @@ std::string CVolumeGC::GetUniqueID() const
   return DecodeString(ID);
 }
 
-IVolume::ECountry CVolumeGC::GetCountry() const
+Country CVolumeGC::GetCountry() const
 {
   if (!m_pReader)
-    return COUNTRY_UNKNOWN;
+    return Country::COUNTRY_UNKNOWN;
 
   u8 country_code;
   m_pReader->Read(3, 1, &country_code);
@@ -104,31 +105,31 @@ std::string CVolumeGC::GetInternalName() const
   return "";
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::GetShortNames() const
+std::map<Language, std::string> CVolumeGC::GetShortNames() const
 {
   LoadBannerFile();
   return m_short_names;
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::GetLongNames() const
+std::map<Language, std::string> CVolumeGC::GetLongNames() const
 {
   LoadBannerFile();
   return m_long_names;
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::GetShortMakers() const
+std::map<Language, std::string> CVolumeGC::GetShortMakers() const
 {
   LoadBannerFile();
   return m_short_makers;
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::GetLongMakers() const
+std::map<Language, std::string> CVolumeGC::GetLongMakers() const
 {
   LoadBannerFile();
   return m_long_makers;
 }
 
-std::map<IVolume::ELanguage, std::string> CVolumeGC::GetDescriptions() const
+std::map<Language, std::string> CVolumeGC::GetDescriptions() const
 {
   LoadBannerFile();
   return m_descriptions;
@@ -194,9 +195,9 @@ u8 CVolumeGC::GetDiscNumber() const
   return disc_number;
 }
 
-IVolume::EPlatform CVolumeGC::GetVolumeType() const
+Platform CVolumeGC::GetVolumeType() const
 {
-  return GAMECUBE_DISC;
+  return Platform::GAMECUBE_DISC;
 }
 
 void CVolumeGC::LoadBannerFile() const
@@ -241,18 +242,18 @@ void CVolumeGC::LoadBannerFile() const
 void CVolumeGC::ExtractBannerInformation(const GCBanner& banner_file, bool is_bnr1) const
 {
   u32 number_of_languages = 0;
-  ELanguage start_language = LANGUAGE_UNKNOWN;
-  bool is_japanese = GetCountry() == ECountry::COUNTRY_JAPAN;
+  Language start_language = Language::LANGUAGE_UNKNOWN;
 
   if (is_bnr1)  // NTSC
   {
+    bool is_japanese = GetCountry() == Country::COUNTRY_JAPAN;
     number_of_languages = 1;
-    start_language = is_japanese ? ELanguage::LANGUAGE_JAPANESE : ELanguage::LANGUAGE_ENGLISH;
+    start_language = is_japanese ? Language::LANGUAGE_JAPANESE : Language::LANGUAGE_ENGLISH;
   }
   else  // PAL
   {
     number_of_languages = 6;
-    start_language = ELanguage::LANGUAGE_ENGLISH;
+    start_language = Language::LANGUAGE_ENGLISH;
   }
 
   m_image_width = GC_BANNER_WIDTH;
@@ -264,7 +265,7 @@ void CVolumeGC::ExtractBannerInformation(const GCBanner& banner_file, bool is_bn
   for (u32 i = 0; i < number_of_languages; ++i)
   {
     const GCBannerInformation& info = banner_file.information[i];
-    ELanguage language = static_cast<ELanguage>(start_language + i);
+    Language language = static_cast<Language>(static_cast<int>(start_language) + i);
 
     std::string description = DecodeString(info.description);
     if (!description.empty())

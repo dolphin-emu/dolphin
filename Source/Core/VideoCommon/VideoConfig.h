@@ -82,6 +82,8 @@ struct VideoConfig final
 
   // Information
   bool bShowFPS;
+  bool bShowNetPlayPing;
+  bool bShowNetPlayMessages;
   bool bOverlayStats;
   bool bOverlayProjStats;
   bool bTexFmtOverlayEnable;
@@ -145,7 +147,7 @@ struct VideoConfig final
   // TODO: Move this out of VideoConfig
   struct
   {
-    API_TYPE APIType;
+    APIType api_type;
 
     std::vector<std::string> Adapters;  // for D3D
     std::vector<int> AAModes;
@@ -169,6 +171,8 @@ struct VideoConfig final
     bool bSupportsPaletteConversion;
     bool bSupportsClipControl;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsSSAA;
+    bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
+    bool bSupportsReversedDepthRange;
   } backend_info;
 
   // Utility

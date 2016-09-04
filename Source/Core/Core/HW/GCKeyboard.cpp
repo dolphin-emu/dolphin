@@ -36,6 +36,7 @@ void Initialize(void* const hwnd)
   }
 
   g_controller_interface.Initialize(hwnd);
+  g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // Load the saved controller config
   s_config.LoadConfig(true);
@@ -46,12 +47,8 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
-void GetStatus(u8 port, KeyboardStatus* keyboard_status)
+KeyboardStatus GetStatus(u8 port)
 {
-  memset(keyboard_status, 0, sizeof(*keyboard_status));
-  keyboard_status->err = PAD_ERR_NONE;
-
-  // Get input
-  static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput(keyboard_status);
+  return static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput();
 }
 }

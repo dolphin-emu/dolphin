@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 
@@ -64,8 +65,8 @@ public:
   // PowerPC state.
   std::unique_ptr<CPUCoreBase> GetCPUCore();
 
-  FifoDataFile* GetFile() { return m_File; }
-  u32 GetFrameObjectCount();
+  FifoDataFile* GetFile() const { return m_File.get(); }
+  u32 GetFrameObjectCount() const;
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
   const AnalyzedFrameInfo& GetAnalyzedFrameInfo(u32 frame) const { return m_FrameInfo[frame]; }
   // Frame range
@@ -104,7 +105,7 @@ private:
 
   // writes a range of data to the fifo
   // start and end must be relative to frame's fifo data so elapsed cycles are figured correctly
-  void WriteFifo(u8* data, u32 start, u32 end);
+  void WriteFifo(const u8* data, u32 start, u32 end);
 
   void SetupFifo();
 
@@ -118,7 +119,7 @@ private:
   void LoadBPReg(u8 reg, u32 value);
   void LoadCPReg(u8 reg, u32 value);
   void LoadXFReg(u16 reg, u32 value);
-  void LoadXFMem16(u16 address, u32* data);
+  void LoadXFMem16(u16 address, const u32* data);
 
   bool ShouldLoadBP(u8 address);
 
@@ -143,7 +144,7 @@ private:
   CallbackFunc m_FileLoadedCb;
   CallbackFunc m_FrameWrittenCb;
 
-  FifoDataFile* m_File;
+  std::unique_ptr<FifoDataFile> m_File;
 
   std::vector<AnalyzedFrameInfo> m_FrameInfo;
 };

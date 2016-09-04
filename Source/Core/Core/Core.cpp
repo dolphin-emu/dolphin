@@ -18,6 +18,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
@@ -73,15 +74,11 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
-// This can mostly be removed when we move to VS2015
-// to use the thread_local keyword
-#ifdef _MSC_VER
-#define ThreadLocalStorage __declspec(thread)
-#elif defined __ANDROID__ || defined __APPLE__
-// This will most likely have to stay, to support android
+// Android and OSX haven't implemented the keyword yet.
+#if defined __ANDROID__ || defined __APPLE__
 #include <pthread.h>
-#else  // Everything besides VS and Android
-#define ThreadLocalStorage __thread
+#else  // Everything besides OSX and Android
+#define ThreadLocalStorage thread_local
 #endif
 
 namespace Core
@@ -105,7 +102,7 @@ void EmuThread();
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
-static std::atomic<bool> s_is_booting{false};
+static Common::Flag s_is_booting;
 static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
@@ -166,7 +163,7 @@ void FrameUpdateOnCPUThread()
 std::string StopMessage(bool main_thread, const std::string& message)
 {
   return StringFromFormat("Stop [%s %i]\t%s\t%s", main_thread ? "Main Thread" : "Video Thread",
-                          Common::CurrentThreadId(), MemUsage().c_str(), message.c_str());
+                          Common::CurrentThreadId(), Common::MemUsage().c_str(), message.c_str());
 }
 
 void DisplayMessage(const std::string& message, int time_in_ms)
@@ -473,7 +470,7 @@ static void FifoPlayerThread()
 void EmuThread()
 {
   const SConfig& core_parameter = SConfig::GetInstance();
-  s_is_booting.store(true);
+  s_is_booting.Set();
 
   Common::SetCurrentThreadName("Emuthread - Starting");
 
@@ -492,7 +489,7 @@ void EmuThread()
 
   if (!g_video_backend->Initialize(s_window_handle))
   {
-    s_is_booting.store(false);
+    s_is_booting.Clear();
     PanicAlert("Failed to initialize video backend!");
     Host_Message(WM_USER_STOP);
     return;
@@ -507,7 +504,7 @@ void EmuThread()
 
   if (!DSP::GetDSPEmulator()->Initialize(core_parameter.bWii, core_parameter.bDSPThread))
   {
-    s_is_booting.store(false);
+    s_is_booting.Clear();
     HW::Shutdown();
     g_video_backend->Shutdown();
     PanicAlert("Failed to initialize DSP emulation!");
@@ -533,7 +530,9 @@ void EmuThread()
   if (core_parameter.bWii)
   {
     if (init_controllers)
-      Wiimote::Initialize(s_window_handle, !s_state_filename.empty());
+      Wiimote::Initialize(s_window_handle, !s_state_filename.empty() ?
+                                               Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
+                                               Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
     else
       Wiimote::LoadConfig();
 
@@ -547,7 +546,7 @@ void EmuThread()
 
   // The hardware is initialized.
   s_hardware_initialized = true;
-  s_is_booting.store(false);
+  s_is_booting.Clear();
 
   // Set execution state to known values (CPU/FIFO/Audio Paused)
   CPU::Break();
@@ -901,14 +900,13 @@ void UpdateTitle()
   std::string SFPS;
 
   if (Movie::IsPlayingInput())
-    SFPS = StringFromFormat("VI: %u/%u - Input: %u/%u - FPS: %.0f - VPS: %.0f - %.0f%%",
-                            (u32)Movie::g_currentFrame, (u32)Movie::g_totalFrames,
-                            (u32)Movie::g_currentInputCount, (u32)Movie::g_totalInputCount, FPS,
-                            VPS, Speed);
+    SFPS = StringFromFormat("Input: %u/%u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
+                            (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetTotalInputCount(),
+                            (u32)Movie::GetCurrentFrame(), FPS, VPS, Speed);
   else if (Movie::IsRecordingInput())
-    SFPS = StringFromFormat("VI: %u - Input: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
-                            (u32)Movie::g_currentFrame, (u32)Movie::g_currentInputCount, FPS, VPS,
-                            Speed);
+    SFPS = StringFromFormat("Input: %u - VI: %u - FPS: %.0f - VPS: %.0f - %.0f%%",
+                            (u32)Movie::GetCurrentInputCount(), (u32)Movie::GetCurrentFrame(), FPS,
+                            VPS, Speed);
   else
   {
     SFPS = StringFromFormat("FPS: %.0f - VPS: %.0f - %.0f%%", FPS, VPS, Speed);
@@ -976,8 +974,7 @@ void UpdateWantDeterminism(bool initial)
   // For now, this value is not itself configurable.  Instead, individual
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
-  bool new_want_determinism =
-      Movie::IsPlayingInput() || Movie::IsRecordingInput() || NetPlay::IsNetPlayRunning();
+  bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != g_want_determinism || initial)
   {
     WARN_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
@@ -1028,7 +1025,7 @@ void HostDispatchJobs()
     //   CORE_UNINITIALIZED: s_is_booting -> s_hardware_initialized
     //   We need to check variables in the same order as the state
     //   transition, otherwise we race and get transient failures.
-    if (!job.run_after_stop && !s_is_booting.load() && !IsRunning())
+    if (!job.run_after_stop && !s_is_booting.IsSet() && !IsRunning())
       continue;
 
     guard.unlock();

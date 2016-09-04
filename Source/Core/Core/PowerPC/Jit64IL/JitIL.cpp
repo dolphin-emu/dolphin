@@ -310,7 +310,7 @@ void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 
 void JitIL::HLEFunction(UGeckoInstruction _inst)
 {
-  ABI_CallFunctionCC((void*)&HLE::Execute, js.compilerPC, _inst.hex);
+  ABI_CallFunctionCC(HLE::Execute, js.compilerPC, _inst.hex);
   MOV(32, R(RSCRATCH), PPCSTATE(npc));
   WriteExitDestInOpArg(R(RSCRATCH));
 }
@@ -353,7 +353,7 @@ void JitIL::Cleanup()
 {
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
   if (MMCR0.Hex || MMCR1.Hex)
-    ABI_CallFunctionCCC((void*)&PowerPC::UpdatePerformanceMonitor, js.downcountAmount,
+    ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount,
                         jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
 }
 
@@ -362,7 +362,7 @@ void JitIL::WriteExit(u32 destination)
   Cleanup();
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
-    ABI_CallFunction((void*)JitILProfiler::End);
+    ABI_CallFunction(JitILProfiler::End);
   }
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
 
@@ -373,19 +373,9 @@ void JitIL::WriteExit(u32 destination)
   linkData.exitPtrs = GetWritableCodePtr();
   linkData.linkStatus = false;
 
-  // Link opportunity!
-  int block;
-  if (jo.enableBlocklink && (block = blocks.GetBlockNumberFromStartAddress(destination)) >= 0)
-  {
-    // It exists! Joy of joy!
-    JMP(blocks.GetBlock(block)->checkedEntry, true);
-    linkData.linkStatus = true;
-  }
-  else
-  {
-    MOV(32, PPCSTATE(pc), Imm32(destination));
-    JMP(asm_routines.dispatcher, true);
-  }
+  MOV(32, PPCSTATE(pc), Imm32(destination));
+  JMP(asm_routines.dispatcher, true);
+
   b->linkData.push_back(linkData);
 }
 
@@ -395,7 +385,7 @@ void JitIL::WriteExitDestInOpArg(const OpArg& arg)
   Cleanup();
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
-    ABI_CallFunction((void*)JitILProfiler::End);
+    ABI_CallFunction(JitILProfiler::End);
   }
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, true);
@@ -408,9 +398,9 @@ void JitIL::WriteRfiExitDestInOpArg(const OpArg& arg)
   Cleanup();
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
-    ABI_CallFunction((void*)JitILProfiler::End);
+    ABI_CallFunction(JitILProfiler::End);
   }
-  ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckExceptions));
+  ABI_CallFunction(PowerPC::CheckExceptions);
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, true);
 }
@@ -420,11 +410,11 @@ void JitIL::WriteExceptionExit()
   Cleanup();
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
-    ABI_CallFunction((void*)JitILProfiler::End);
+    ABI_CallFunction(JitILProfiler::End);
   }
   MOV(32, R(EAX), PPCSTATE(pc));
   MOV(32, PPCSTATE(npc), R(EAX));
-  ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckExceptions));
+  ABI_CallFunction(PowerPC::CheckExceptions);
   SUB(32, PPCSTATE(downcount), Imm32(js.downcountAmount));
   JMP(asm_routines.dispatcher, true);
 }
@@ -547,9 +537,9 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   const u8* normalEntry = GetCodePtr();
   b->normalEntry = normalEntry;
 
+  // Used to get a trace of the last few blocks before a crash, sometimes VERY useful.
   if (ImHereDebug)
-    ABI_CallFunction((void*)&ImHere);  // Used to get a trace of the last few blocks before a crash,
-                                       // sometimes VERY useful
+    ABI_CallFunction(ImHere);
 
   if (js.fpa.any)
   {
@@ -583,7 +573,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   if (SConfig::GetInstance().bJITILTimeProfiling)
   {
     JitILProfiler::Block& block = JitILProfiler::Add(codeHash);
-    ABI_CallFunctionC((void*)JitILProfiler::Begin, block.index);
+    ABI_CallFunctionC(JitILProfiler::Begin, block.index);
   }
 
   // Start up IR builder (structure that collects the

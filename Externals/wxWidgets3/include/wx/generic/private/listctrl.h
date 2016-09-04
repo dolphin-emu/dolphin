@@ -200,6 +200,8 @@ public:
     // is this item selected? [NB: not used in virtual mode]
     bool m_highlighted;
 
+    bool m_checked;
+
     // back pointer to the list ctrl
     wxListMainWindow *m_owner;
 
@@ -248,6 +250,9 @@ public:
     int GetImage() const { return GetImage(0); }
     void SetImage( int index, int image );
     int GetImage( int index ) const;
+
+    void Check(bool check) { m_checked = check; }
+    bool IsChecked() { return m_checked; }
 
     bool HasImage() const { return GetImage() != -1; }
     bool HasText() const { return !GetText(0).empty(); }
@@ -349,7 +354,7 @@ public:
     virtual ~wxListHeaderWindow();
 
     // We never need focus as we don't have any keyboard interface.
-    virtual bool AcceptsFocus() const { return false; }
+    virtual bool AcceptsFocus() const wxOVERRIDE { return false; }
 
     void DrawCurrent();
     void AdjustDC( wxDC& dc );
@@ -365,7 +370,7 @@ public:
     int m_colToSend;
     int m_widthToSend;
 
-    virtual void OnInternalIdle();
+    virtual void OnInternalIdle() wxOVERRIDE;
 
 private:
     // common part of all ctors
@@ -375,7 +380,7 @@ private:
     // it wasn't vetoed, i.e. if we should proceed
     bool SendListEvent(wxEventType type, const wxPoint& pos);
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 //-----------------------------------------------------------------------------
@@ -389,7 +394,7 @@ private:
 
 public:
     wxListRenameTimer( wxListMainWindow *owner );
-    void Notify();
+    void Notify() wxOVERRIDE;
 };
 
 //-----------------------------------------------------------------------------
@@ -407,7 +412,7 @@ public:
     {
     }
 
-    virtual void Notify();
+    virtual void Notify() wxOVERRIDE;
 
 private:
     wxListMainWindow *m_owner;
@@ -458,7 +463,7 @@ private:
     size_t              m_itemEdited;
     bool                m_aboutToFinish;
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 };
 
 //-----------------------------------------------------------------------------
@@ -564,6 +569,9 @@ public:
     // start editing the label of the given item
     wxTextCtrl *EditLabel(long item,
                           wxClassInfo* textControlClass = wxCLASSINFO(wxTextCtrl));
+
+    bool EndEditLabel(bool cancel);
+
     wxTextCtrl *GetEditControl() const
     {
         return m_textctrlWrapper ? m_textctrlWrapper->GetText() : NULL;
@@ -633,6 +641,11 @@ public:
     bool GetItemPosition( long item, wxPoint& pos ) const;
     int GetSelectedItemCount() const;
 
+    bool HasCheckboxes() const;
+    bool EnableCheckboxes(bool enable = true);
+    bool IsItemChecked(long item) const;
+    void CheckItem(long item, bool check);
+
     wxString GetItemText(long item, int col = 0) const
     {
         wxListItem info;
@@ -691,7 +704,7 @@ public:
                      const wxPoint& point = wxDefaultPosition );
 
     // override base class virtual to reset m_lineHeight when the font changes
-    virtual bool SetFont(const wxFont& font)
+    virtual bool SetFont(const wxFont& font) wxOVERRIDE
     {
         if ( !wxWindow::SetFont(font) )
             return false;
@@ -721,7 +734,7 @@ public:
         return m_hasFocus ? m_highlightBrush : m_highlightUnfocusedBrush;
     }
 
-    bool HasFocus() const
+    bool HasFocus() const wxOVERRIDE
     {
         return m_hasFocus;
     }
@@ -776,8 +789,10 @@ protected:
            m_lineBeforeLastClicked,
            m_lineSelectSingleOnUp;
 
+    bool m_hasCheckboxes;
+
 protected:
-    wxWindow *GetMainWindowOfCompositeControl() { return GetParent(); }
+    wxWindow *GetMainWindowOfCompositeControl() wxOVERRIDE { return GetParent(); }
 
     // the total count of items in a virtual list control
     size_t m_countVirt;
@@ -835,6 +850,10 @@ private:
     // Compute the minimal width needed to fully display the column header.
     int ComputeMinHeaderWidth(const wxListHeaderData* header) const;
 
+    // Check if the given point is inside the checkbox of this item.
+    //
+    // Always returns false if there are no checkboxes.
+    bool IsInsideCheckbox(long item, int x, int y);
 
     // the height of one line using the current font
     wxCoord m_lineHeight;
@@ -857,9 +876,10 @@ private:
     wxListTextCtrlWrapper *m_textctrlWrapper;
 
 
-    DECLARE_EVENT_TABLE()
+    wxDECLARE_EVENT_TABLE();
 
     friend class wxGenericListCtrl;
+    friend class wxListCtrlMaxWidthCalculator;
 };
 
 #endif // wxUSE_LISTCTRL

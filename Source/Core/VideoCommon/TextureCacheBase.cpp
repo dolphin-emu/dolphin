@@ -63,15 +63,15 @@ void TextureCacheBase::CheckTempSize(size_t required_size)
     return;
 
   temp_size = required_size;
-  FreeAlignedMemory(temp);
-  temp = (u8*)AllocateAlignedMemory(temp_size, 16);
+  Common::FreeAlignedMemory(temp);
+  temp = static_cast<u8*>(Common::AllocateAlignedMemory(temp_size, 16));
 }
 
 TextureCacheBase::TextureCacheBase()
 {
   temp_size = 2048 * 2048 * 4;
   if (!temp)
-    temp = (u8*)AllocateAlignedMemory(temp_size, 16);
+    temp = static_cast<u8*>(Common::AllocateAlignedMemory(temp_size, 16));
 
   TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable,
                                      g_ActiveConfig.bTexFmtOverlayCenter);
@@ -103,7 +103,7 @@ TextureCacheBase::~TextureCacheBase()
 {
   HiresTexture::Shutdown();
   Invalidate();
-  FreeAlignedMemory(temp);
+  Common::FreeAlignedMemory(temp);
   temp = nullptr;
 }
 
@@ -505,9 +505,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   const bool use_mipmaps = SamplerCommon::AreBpTexMode0MipmapsEnabled(tex.texMode0[id]);
   u32 tex_levels = use_mipmaps ? ((tex.texMode1[id].max_lod + 0xf) / 0x10 + 1) : 1;
   const bool from_tmem = tex.texImage1[id].image_type != 0;
-
-  if (0 == address)
-    return nullptr;
 
   // TexelSizeInNibbles(format) * width * height / 16;
   const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat);

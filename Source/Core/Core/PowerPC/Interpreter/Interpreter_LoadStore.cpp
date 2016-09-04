@@ -497,39 +497,29 @@ void Interpreter::lhzx(UGeckoInstruction _inst)
   }
 }
 
-// TODO: is this right?
 // FIXME: Should rollback if a DSI occurs
 void Interpreter::lswx(UGeckoInstruction _inst)
 {
   u32 EA = Helper_Get_EA_X(_inst);
-  u32 n = (u8)PowerPC::ppcState.xer_stringctrl;
-  int r = _inst.RD;
-  int i = 0;
 
-  if (n > 0)
+  // Confirmed by hardware test that the zero case doesn't zero rGPR[r]
+  for (u32 n = 0; n < static_cast<u8>(PowerPC::ppcState.xer_stringctrl); n++)
   {
-    rGPR[r] = 0;
-    do
-    {
-      u32 TempValue = PowerPC::Read_U8(EA) << (24 - i);
-      if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
-      {
-        PanicAlert("DSI exception in lswx.");
-        NOTICE_LOG(POWERPC, "DSI exception in lswx");
-        return;
-      }
-      rGPR[r] |= TempValue;
+    int reg = (_inst.RD + (n >> 2)) & 0x1f;
+    int offset = (n & 3) << 3;
+    if ((n & 3) == 0)
+      rGPR[reg] = 0;
 
-      EA++;
-      n--;
-      i += 8;
-      if (i == 32)
-      {
-        i = 0;
-        r = (r + 1) & 31;
-        rGPR[r] = 0;
-      }
-    } while (n > 0);
+    u32 TempValue = PowerPC::Read_U8(EA) << (24 - offset);
+    if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+    {
+      PanicAlert("DSI exception in lswx.");
+      NOTICE_LOG(POWERPC, "DSI exception in lswx");
+      return;
+    }
+    rGPR[reg] |= TempValue;
+
+    EA++;
   }
 }
 
@@ -740,7 +730,7 @@ void Interpreter::stswx(UGeckoInstruction _inst)
     if (i == 32)
     {
       i = 0;
-      r++;
+      r = (r + 1) & 0x1f;  // wrap
     }
   }
 }

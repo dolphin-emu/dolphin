@@ -6,7 +6,6 @@
 
 #include <SFML/Network/Packet.hpp>
 #include <array>
-#include <atomic>
 #include <map>
 #include <memory>
 #include <mutex>
@@ -14,6 +13,7 @@
 #include <thread>
 #include <vector>
 #include "Common/CommonTypes.h"
+#include "Common/Event.h"
 #include "Common/FifoQueue.h"
 #include "Common/TraversalClient.h"
 #include "Core/NetPlayProto.h"
@@ -32,7 +32,23 @@ public:
   virtual void OnMsgChangeGame(const std::string& filename) = 0;
   virtual void OnMsgStartGame() = 0;
   virtual void OnMsgStopGame() = 0;
+  virtual void OnPadBufferChanged(u32 buffer) = 0;
+  virtual void OnDesync(u32 frame, const std::string& player) = 0;
+  virtual void OnConnectionLost() = 0;
+  virtual void OnTraversalError(int error) = 0;
   virtual bool IsRecording() = 0;
+  virtual std::string FindGame(const std::string& game) = 0;
+  virtual void ShowMD5Dialog(const std::string& file_identifier) = 0;
+  virtual void SetMD5Progress(int pid, int progress) = 0;
+  virtual void SetMD5Result(int pid, const std::string& result) = 0;
+  virtual void AbortMD5() = 0;
+};
+
+enum class PlayerGameStatus
+{
+  Unknown,
+  Ok,
+  NotFound
 };
 
 class Player
@@ -42,6 +58,7 @@ public:
   std::string name;
   std::string revision;
   u32 ping;
+  PlayerGameStatus game_status;
 };
 
 class NetPlayClient : public TraversalClientClient
@@ -80,9 +97,8 @@ public:
   u8 InGamePadToLocalPad(u8 ingame_pad);
   u8 LocalPadToInGamePad(u8 localPad);
 
-  u8 LocalWiimoteToInGameWiimote(u8 local_pad);
-
   static void SendTimeBase();
+  bool DoAllPlayersHaveGame();
 
 protected:
   void ClearBuffers();
@@ -107,8 +123,8 @@ protected:
   std::thread m_thread;
 
   std::string m_selected_game;
-  std::atomic<bool> m_is_running{false};
-  std::atomic<bool> m_do_loop{true};
+  Common::Flag m_is_running{false};
+  Common::Flag m_do_loop{true};
 
   unsigned int m_target_buffer_size = 20;
 
@@ -144,6 +160,9 @@ private:
   void Send(sf::Packet& packet);
   void Disconnect();
   bool Connect();
+  void ComputeMD5(const std::string& file_identifier);
+  void DisplayPlayersPing();
+  u32 GetPlayersMaxPing() const;
 
   bool m_is_connected = false;
   ConnectionState m_connection_state = ConnectionState::Failure;
@@ -154,6 +173,10 @@ private:
   std::string m_player_name;
   bool m_connecting = false;
   TraversalClient* m_traversal_client = nullptr;
+  std::thread m_MD5_thread;
+  bool m_should_compute_MD5 = false;
+  Common::Event m_gc_pad_event;
+  Common::Event m_wii_pad_event;
 
   u32 m_timebase_frame = 0;
 };

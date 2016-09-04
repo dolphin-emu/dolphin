@@ -139,10 +139,6 @@ protected:
     // set the height of the visible part of the control to m_heightOwn
     void MSWUpdateVisibleHeight();
 
-    // Call GetComboBoxInfo() and return false if it's not supported by this
-    // system. Notice that the caller must initialize info.cbSize.
-    bool MSWGetComboBoxInfo(tagCOMBOBOXINFO* info) const;
-
     // create and initialize the control
     bool CreateAndInit(wxWindow *parent, wxWindowID id,
                        const wxPoint& pos,
@@ -174,7 +170,7 @@ protected:
     // wxDefaultCoord if it hadn't
     int m_heightOwn;
 
-    DECLARE_DYNAMIC_CLASS_NO_COPY(wxChoice)
+    wxDECLARE_DYNAMIC_CLASS_NO_COPY(wxChoice);
 };
 
 #endif // _WX_CHOICE_H_
