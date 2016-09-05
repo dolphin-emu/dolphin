@@ -362,6 +362,17 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       break;
     }
 
+    // When q is 0, the GameCube appears to have a special case
+    // This can be seen in devkitPro's neheGX Lesson08 example for Wii
+    // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
+    // TODO: check if this only affects XF_TEXGEN_REGULAR
+    if (texinfo.texgentype == XF_TEXGEN_REGULAR &&
+        ((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
+    {
+      out.Write("if(o.tex%d.z == 0.0)\n", i);
+      out.Write("\to.tex%d.xy = clamp(o.tex%d.xy, float2(-2.0,-2.0), float2(2.0,2.0));\n", i, i);
+    }
+
     // CHECKME: does this only work for regular tex gen types?
     if (uid_data->dualTexTrans_enabled && texinfo.texgentype == XF_TEXGEN_REGULAR)
     {
@@ -379,18 +390,6 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("o.tex%d.xyz = float3(dot(P0.xyz, o.tex%d.xyz) + P0.w, dot(P1.xyz, o.tex%d.xyz) + "
                 "P1.w, dot(P2.xyz, o.tex%d.xyz) + P2.w);\n",
                 i, i, i, i);
-    }
-
-    // When q is 0, the GameCube appears to have a special case
-    // This can be seen in devkitPro's neheGX Lesson08 example for Wii
-    // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
-    // TODO: check if this only affects XF_TEXGEN_REGULAR
-    if (texinfo.texgentype == XF_TEXGEN_REGULAR)
-    {
-      out.Write("if(o.tex%d.z == 0.0f)\n", i);
-      out.Write(
-          "\to.tex%d.xy = clamp(o.tex%d.xy / 2.0f, float2(-1.0f,-1.0f), float2(1.0f,1.0f));\n", i,
-          i);
     }
 
     out.Write("}\n");
