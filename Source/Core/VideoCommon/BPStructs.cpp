@@ -227,9 +227,9 @@ static void BPWritten(const BPCmd& bp)
     {
       // bpmem.zcontrol.pixel_format to PEControl::Z24 is when the game wants to copy from ZBuffer
       // (Zbuffer uses 24-bit Format)
-      TextureCacheBase::CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
-                                                  bpmem.zcontrol.pixel_format, srcRect,
-                                                  !!PE_copy.intensity_fmt, !!PE_copy.half_scale);
+      g_texture_cache->CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
+                                                 bpmem.zcontrol.pixel_format, srcRect,
+                                                 !!PE_copy.intensity_fmt, !!PE_copy.half_scale);
     }
     else
     {

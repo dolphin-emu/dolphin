@@ -243,6 +243,6 @@ void VideoBackendBase::CheckInvalidState()
     m_invalid = false;
 
     BPReload();
-    TextureCacheBase::Invalidate();
+    g_texture_cache->Invalidate();
   }
 }

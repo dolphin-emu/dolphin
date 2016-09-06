@@ -100,7 +100,6 @@ static float AspectToWidescreen(float aspect)
 Renderer::Renderer() : frame_data(), bLastFrameDumped(false)
 {
   UpdateActiveConfig();
-  TextureCacheBase::OnConfigChanged(g_ActiveConfig);
 
 #if defined _WIN32 || defined HAVE_LIBAV
   bAVIDumping = false;
