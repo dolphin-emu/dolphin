@@ -373,7 +373,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
   MOV(32, M(&PC), Imm32(jit->js.compilerPC));
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  ABI_CallFunctionR(&PowerPC::ClearCacheLine, RSCRATCH);
+  ABI_CallFunctionR(PowerPC::ClearCacheLine, RSCRATCH);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
   if (UReg_MSR(MSR).DR)
