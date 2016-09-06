@@ -910,8 +910,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   // Disadvantage of all methods: Calling this function requires the GPU to perform a pipeline flush
   // which stalls any further CPU processing.
   //
-  // For historical reasons, Dolphin doesn't actually implement "pure" EFB to RAM emulation, but
-  // only EFB to texture and hybrid EFB copies.
+  // For historical reasons, Dolphin doesn't actually expose "pure" EFB to RAM emulation, but
+  // only EFB to texture and hybrid EFB copies. Except for the video software backend which only
+  // supports EFB to RAM.
 
   float colmat[28] = {0};
   float* const fConstAdd = colmat + 16;
@@ -922,7 +923,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   bool efbHasAlpha = srcFormat == PEControl::RGBA6_Z24;
 
   bool copy_to_ram = !g_ActiveConfig.bSkipEFBCopyToRam;
-  bool copy_to_vram = true;
+  bool copy_to_vram = g_ActiveConfig.backend_info.bSupportsCopyToVram;
 
   bool is_xfb_copy = false;
 
