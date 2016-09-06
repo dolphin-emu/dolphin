@@ -251,7 +251,6 @@ void SingleStep()
 
 void RunLoop()
 {
-  Host_UpdateDisasmDialog();
   s_cpu_core_base->Run();
   Host_UpdateDisasmDialog();
 }
