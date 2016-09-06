@@ -45,6 +45,9 @@ namespace WII_IPC_HLE_Interface
 // Init
 void Init();
 
+// Needs to be called after Reset(true) to recreate the device tree
+void Reinit();
+
 // Shutdown
 void Shutdown();
 
