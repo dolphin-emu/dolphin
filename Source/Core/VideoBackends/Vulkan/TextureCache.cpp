@@ -328,7 +328,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
     g_command_buffer_mgr->DeferFramebufferDestruction(m_framebuffer);
 }
 
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
+void TextureCache::TCacheEntry::Load(const u8* buffer, unsigned int width, unsigned int height,
                                      unsigned int expanded_width, unsigned int level)
 {
   // Can't copy data larger than the texture extents.
@@ -383,7 +383,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
     u8* image_upload_buffer_pointer = upload_buffer->GetCurrentHostPointer();
 
     // Copy to the buffer using the stride from the subresource layout
-    const u8* source_ptr = TextureCache::temp;
+    const u8* source_ptr = buffer;
     if (upload_pitch != source_pitch)
     {
       VkDeviceSize copy_pitch = std::min(source_pitch, upload_pitch);
@@ -429,7 +429,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
     }
 
     // Copy data to staging texture first, then to the "real" texture.
-    staging_texture->WriteTexels(0, 0, width, height, TextureCache::temp, source_pitch);
+    staging_texture->WriteTexels(0, 0, width, height, buffer, source_pitch);
     staging_texture->CopyToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                  m_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width,
                                  height, level, 0);

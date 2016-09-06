@@ -1508,7 +1508,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   }
 
   // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
-  TextureCache::Cleanup(frameCount);
+  g_texture_cache->Cleanup(frameCount);
 
   // Render to the framebuffer.
   FramebufferManager::SetFramebuffer(0);
@@ -1518,7 +1518,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   g_Config.iSaveTargetId = 0;
 
   UpdateActiveConfig();
-  TextureCache::OnConfigChanged(g_ActiveConfig);
+  g_texture_cache->OnConfigChanged(g_ActiveConfig);
 
   // For testing zbuffer targets.
   // Renderer::SetZBufferRender();
