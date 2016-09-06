@@ -350,7 +350,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
   }
 
-  if (!jit->jo.alwaysUseMemFuncs && !slowmem)
+  if (!slowmem)
   {
     if (farcode.Enabled())
     {
