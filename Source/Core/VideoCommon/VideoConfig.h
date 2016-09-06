@@ -173,6 +173,7 @@ struct VideoConfig final
     bool bSupportsSSAA;
     bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsReversedDepthRange;
+    bool bSupportsCopyToVram;
   } backend_info;
 
   // Utility
