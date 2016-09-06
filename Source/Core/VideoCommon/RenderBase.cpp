@@ -605,12 +605,15 @@ void Renderer::RecordVideoMemory()
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
                     float Gamma)
 {
-  // Get the current XFB from texture cache
-  auto* xfb_entry = TextureCacheBase::GetTexture(xfbAddr, fbWidth, fbHeight, GX_CTF_XFB);
-  // TODO, check if xfb_entry is a duplicate of the previous frame and skip SwapImpl
+  if (xfbAddr && fbWidth && fbStride && fbHeight)
+  {
+    // Get the current XFB from texture cache
+    auto* xfb_entry = TextureCacheBase::GetTexture(xfbAddr, fbWidth, fbHeight, GX_CTF_XFB);
+    // TODO, check if xfb_entry is a duplicate of the previous frame and skip SwapImpl
 
-  // TODO: merge more generic parts into VideoCommon
-  g_renderer->SwapImpl(xfb_entry->texture.get(), rc, Gamma);
+    // TODO: merge more generic parts into VideoCommon
+    g_renderer->SwapImpl(xfb_entry->texture.get(), rc, Gamma);
+  }
 
   if (XFBWrited)
     g_renderer->m_fps_counter.Update();
