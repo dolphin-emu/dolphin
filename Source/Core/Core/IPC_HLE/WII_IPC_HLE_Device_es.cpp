@@ -1000,7 +1000,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
 
       WII_IPC_HLE_Interface::Reset(true);
-      WII_IPC_HLE_Interface::Init();
+      WII_IPC_HLE_Interface::Reinit();
       s_Usb = GetUsbPointer();
       for (unsigned int i = 0; i < s_Usb->m_WiiMotes.size(); i++)
       {

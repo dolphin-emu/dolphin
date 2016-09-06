@@ -119,9 +119,9 @@ std::shared_ptr<T> AddDevice(const char* deviceName)
   return device;
 }
 
-void Init()
+void Reinit()
 {
-  _dbg_assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "DeviceMap isn't empty on init");
+  _assert_msg_(WII_IPC_HLE, g_DeviceMap.empty(), "Reinit called while already initialized");
   CWII_IPC_HLE_Device_es::m_ContentFile = "";
 
   num_devices = 0;
@@ -156,6 +156,11 @@ void Init()
 #endif
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
   AddDevice<IWII_IPC_HLE_Device>("_Unimplemented_Device_");
+}
+
+void Init()
+{
+  Reinit();
 
   event_enqueue = CoreTiming::RegisterEvent("IPCEvent", EnqueueEvent);
   event_sdio_notify = CoreTiming::RegisterEvent("SDIO_EventNotify", SDIO_EventNotify_CPUThread);
