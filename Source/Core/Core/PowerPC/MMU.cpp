@@ -1234,7 +1234,7 @@ void IBATUpdated()
 // So we first check if there is a matching BAT entry, else we look for the TLB in
 // TranslatePageAddress().
 template <const XCheckTLBFlag flag>
-TranslateAddressResult TranslateAddress(const u32 address)
+__forceinline TranslateAddressResult TranslateAddress(const u32 address)
 {
   u32 bat_result = (flag == FLAG_OPCODE ? ibat_table : dbat_table)[address >> BAT_INDEX_SHIFT];
   if (bat_result & 1)
