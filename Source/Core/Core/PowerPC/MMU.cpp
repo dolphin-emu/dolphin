@@ -163,7 +163,7 @@ BatTable dbat_table;
 static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-__forceinline static T ReadFromHardware(u32 em_address)
+static T ReadFromHardware(u32 em_address)
 {
   if (!never_translate && UReg_MSR(MSR).DR)
   {
@@ -243,7 +243,7 @@ __forceinline static T ReadFromHardware(u32 em_address)
 }
 
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-__forceinline static void WriteToHardware(u32 em_address, const T data)
+static void WriteToHardware(u32 em_address, const T data)
 {
   if (!never_translate && UReg_MSR(MSR).DR)
   {
@@ -412,7 +412,7 @@ u32 HostRead_Instruction(const u32 address)
   return inst.hex;
 }
 
-static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
+static void Memcheck(u32 address, u32 var, bool write, int size)
 {
   if (PowerPC::memchecks.HasAny())
   {
@@ -953,8 +953,7 @@ enum TLBLookupResult
   TLB_UPDATE_C
 };
 
-static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa,
-                                                          u32* paddr)
+static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
 {
   u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
   PowerPC::tlb_entry* tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
@@ -1005,7 +1004,7 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag fl
   return TLB_NOTFOUND;
 }
 
-static __forceinline void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
+static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
 {
   if (IsNoExceptionFlag(flag))
     return;
@@ -1032,8 +1031,7 @@ void InvalidateTLBEntry(u32 address)
 }
 
 // Page Address Translation
-static __forceinline TranslateAddressResult TranslatePageAddress(const u32 address,
-                                                                 const XCheckTLBFlag flag)
+static TranslateAddressResult TranslatePageAddress(const u32 address, const XCheckTLBFlag flag)
 {
   // TLB cache
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
@@ -1235,7 +1233,7 @@ void IBATUpdated()
 // So we first check if there is a matching BAT entry, else we look for the TLB in
 // TranslatePageAddress().
 template <const XCheckTLBFlag flag>
-TranslateAddressResult TranslateAddress(const u32 address)
+static TranslateAddressResult TranslateAddress(const u32 address)
 {
   u32 bat_result = (flag == FLAG_OPCODE ? ibat_table : dbat_table)[address >> BAT_INDEX_SHIFT];
   if (bat_result & 1)
