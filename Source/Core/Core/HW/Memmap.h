@@ -9,6 +9,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Core/PowerPC/PowerPC.h"
 
 // Enable memory checks in the Debug/DebugFast builds, but NOT in release
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -57,13 +58,6 @@ enum
   IO_SIZE = 0x00010000,
   EXRAM_SIZE = 0x04000000,
   EXRAM_MASK = EXRAM_SIZE - 1,
-
-  ADDR_MASK_HW_ACCESS = 0x0c000000,
-  ADDR_MASK_MEM1 = 0x20000000,
-
-#if _ARCH_32
-  MEMVIEW32_MASK = 0x3FFFFFFF,
-#endif
 };
 
 // MMIO mapping object.
@@ -74,6 +68,8 @@ bool IsInitialized();
 void Init();
 void Shutdown();
 void DoState(PointerWrap& p);
+
+void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table);
 
 void Clear();
 bool AreMemoryBreakpointsActivated();

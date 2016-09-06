@@ -23,6 +23,9 @@ void JitArm64::psq_l(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStorePairedOff);
   FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
+  // The asm routines assume address translation is on.
+  FALLBACK_IF(!UReg_MSR(MSR).DR);
+
   // X30 is LR
   // X0 contains the scale
   // X1 is the address
@@ -103,6 +106,9 @@ void JitArm64::psq_st(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStorePairedOff);
   FALLBACK_IF(jo.memcheck || !jo.fastmem);
 
+  // The asm routines assume address translation is on.
+  FALLBACK_IF(!UReg_MSR(MSR).DR);
+
   // X30 is LR
   // X0 contains the scale
   // X1 is the address
@@ -179,6 +185,7 @@ void JitArm64::psq_st(UGeckoInstruction inst)
     UBFM(scale_reg, scale_reg, 8, 13);  // Scale
 
     // Inline address check
+    // FIXME: This doesn't correctly account for the BAT configuration.
     TST(addr_reg, 6, 1);
     FixupBranch pass = B(CC_EQ);
     FixupBranch fail = B();

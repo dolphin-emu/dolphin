@@ -365,38 +365,40 @@ void Jit64::dcbz(UGeckoInstruction inst)
   int a = inst.RA;
   int b = inst.RB;
 
-  u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-  // The following masks the region used by the GC/Wii virtual memory lib
-  mem_mask |= Memory::ADDR_MASK_MEM1;
-
   MOV(32, R(RSCRATCH), gpr.R(b));
   if (a)
     ADD(32, R(RSCRATCH), gpr.R(a));
   AND(32, R(RSCRATCH), Imm32(~31));
-  TEST(32, R(RSCRATCH), Imm32(mem_mask));
-  FixupBranch slow = J_CC(CC_NZ, true);
 
-  // Should this code ever run? I can't find any games that use DCBZ on non-physical addresses, but
-  // supposedly there are, at least for some MMU titles. Let's be careful and support it to be sure.
-  SwitchToFarCode();
-  SetJumpTarget(slow);
+  if (UReg_MSR(MSR).DR)
+  {
+    // Perform lookup to see if we can use fast path.
+    MOV(32, R(RSCRATCH2), R(RSCRATCH));
+    SHR(32, R(RSCRATCH2), Imm8(PowerPC::BAT_INDEX_SHIFT));
+    TEST(32, MScaled(RSCRATCH2, SCALE_4, (u32)(u64)&PowerPC::dbat_table[0]), Imm32(2));
+    FixupBranch slow = J_CC(CC_Z, true);
+
+    // Fast path: compute full address, then zero out 32 bytes of memory.
+    PXOR(XMM0, R(XMM0));
+    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
+    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
+
+    // Slow path: call the general-case code.
+    SwitchToFarCode();
+    SetJumpTarget(slow);
+  }
   MOV(32, M(&PC), Imm32(jit->js.compilerPC));
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  ABI_CallFunctionR(PowerPC::ClearCacheLine, RSCRATCH);
+  ABI_CallFunctionR(&PowerPC::ClearCacheLine, RSCRATCH);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-  FixupBranch exit = J(true);
-  SwitchToNearCode();
 
-  // Mask out the address so we don't write to MEM1 out of bounds
-  // FIXME: Work out why the AGP disc writes out of bounds
-  if (!SConfig::GetInstance().bWii)
-    AND(32, R(RSCRATCH), Imm32(Memory::RAM_MASK));
-  PXOR(XMM0, R(XMM0));
-  MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
-  MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
-  SetJumpTarget(exit);
+  if (UReg_MSR(MSR).DR)
+  {
+    FixupBranch end = J(true);
+    SwitchToNearCode();
+    SetJumpTarget(end);
+  }
 }
 
 void Jit64::stX(UGeckoInstruction inst)
