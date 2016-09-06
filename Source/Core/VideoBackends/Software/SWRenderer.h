@@ -14,15 +14,9 @@
 class SWRenderer : public Renderer
 {
 public:
-  ~SWRenderer() override;
 
   static void Init();
   static void Shutdown();
-
-  static u8* GetNextColorTexture();
-  static u8* GetCurrentColorTexture();
-  void SwapColorTexture();
-  void UpdateColorTexture(EfbInterface::yuv422_packed* xfb, u32 fbWidth, u32 fbHeight);
 
   void RenderText(const std::string& pstr, int left, int top, u32 color) override;
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;
