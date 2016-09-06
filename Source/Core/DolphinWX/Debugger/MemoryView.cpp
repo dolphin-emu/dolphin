@@ -17,6 +17,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Common/StringUtil.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
@@ -335,7 +336,11 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
             word = ' ';
         }
 
-        dis = StringFromFormat("%c%c%c%c", a[0], a[1], a[2], a[3]);
+        Symbol* sym = g_symbolDB.GetSymbolFromAddr(mem_data);
+        if (sym == nullptr)
+          dis = StringFromFormat("%c%c%c%c", a[0], a[1], a[2], a[3]);
+        else
+          dis = StringFromFormat("# -> %s", sym->name.c_str());
       }
       else if (viewAsType == VIEWAS_HEX)
       {
