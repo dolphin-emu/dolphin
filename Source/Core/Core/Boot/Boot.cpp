@@ -52,7 +52,7 @@ void CBoot::Load_FST(bool _bIsWii)
 
   const DiscIO::IVolume& volume = DVDInterface::GetVolume();
 
-  // copy first 20 bytes of disc to start of Mem 1
+  // copy first 32 bytes of disc to start of Mem 1
   DVDRead(/*offset*/ 0, /*address*/ 0, /*length*/ 0x20, false);
 
   // copy of game id
