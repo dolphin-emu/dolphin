@@ -5,6 +5,7 @@
 #include "InputCommon/ControllerEmu.h"
 #include <memory>
 #include "Common/Common.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 // This should be called before calling GetState() or State() on a control reference
 // to prevent a race condition.
@@ -189,6 +190,51 @@ ControllerEmu::AnalogStick::AnalogStick(const char* const _name, const char* con
 ControllerEmu::Buttons::Buttons(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_BUTTONS)
 {
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
+}
+
+ControllerEmu::ModifySettingsButton::ModifySettingsButton(std::string button_name)
+    : Buttons(std::move(button_name))
+{
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
+}
+
+void ControllerEmu::ModifySettingsButton::AddInput(std::string button_name, bool toggle)
+{
+  controls.emplace_back(new ControlGroup::Input(std::move(button_name)));
+  threshold_exceeded.emplace_back(false);
+  associated_settings.emplace_back(false);
+  associated_settings_toggle.emplace_back(toggle);
+}
+
+void ControllerEmu::ModifySettingsButton::GetState()
+{
+  for (size_t i = 0; i < controls.size(); ++i)
+  {
+    ControlState state = controls[i]->control_ref->State();
+
+    if (!associated_settings_toggle[i])
+    {
+      // not toggled
+      associated_settings[i] = state > numeric_settings[0]->GetValue();
+    }
+    else
+    {
+      // toggle (loading savestates does not en-/disable toggle)
+      // after we passed the threshold, we en-/disable. but after that, we don't change it
+      // anymore
+      if (!threshold_exceeded[i] && state > numeric_settings[0]->GetValue())
+      {
+        associated_settings[i] = !associated_settings[i];
+        if (associated_settings[i])
+          OSD::AddMessage(controls[i]->name + ": " + _trans("on"));
+        else
+          OSD::AddMessage(controls[i]->name + ": " + _trans("off"));
+        threshold_exceeded[i] = true;
+      }
+      if (state < numeric_settings[0]->GetValue())
+        threshold_exceeded[i] = false;
+    }
+  }
 }
 
 ControllerEmu::MixedTriggers::MixedTriggers(const std::string& _name)
