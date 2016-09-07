@@ -54,7 +54,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_ven.h"
 
-#if defined(__LIBUSB__) || defined(_WIN32)
+#if defined(__LIBUSB__)
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
 #endif
 
@@ -151,7 +151,7 @@ void Reinit()
   AddDevice<CWII_IPC_HLE_Device_usb_ven>("/dev/usb/ven");
   AddDevice<CWII_IPC_HLE_Device_sdio_slot0>("/dev/sdio/slot0");
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/sdio/slot1");
-#if defined(__LIBUSB__) || defined(_WIN32)
+#if defined(__LIBUSB__)
   AddDevice<CWII_IPC_HLE_Device_hid>("/dev/usb/hid");
 #else
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/hid");
