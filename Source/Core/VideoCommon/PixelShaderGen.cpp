@@ -646,9 +646,13 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
     {
       out.Write("\tint2 fixpoint_uv%d = itrunc(", i);
       // optional perspective divides
+      // When q is 0, the GameCube appears to have a special case
+      // This can be seen in devkitPro's neheGX Lesson08 example for Wii
+      // Makes differences in Rogue Squadron 3 (Hoth sky) and The Last Story (shadow culling)
+      // TODO: check if this only affects XF_TEXGEN_REGULAR
       if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
       {
-        out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
+        out.Write("(uv%d.z == 0.0 ? uv%d.xy / 2.0 : uv%d.xy / uv%d.z)", i, i, i, i);
       }
       else
       {
