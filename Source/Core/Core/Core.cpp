@@ -296,7 +296,7 @@ void Stop()  // - Hammertime!
 
     g_video_backend->Video_ExitLoop();
   }
-#if defined(__LIBUSB__) || defined(_WIN32)
+#if defined(__LIBUSB__)
   GCAdapter::ResetRumble();
 #endif
 
@@ -696,7 +696,7 @@ void SetState(EState state)
     //   stopped (including the CPU).
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
-#if defined(__LIBUSB__) || defined(_WIN32)
+#if defined(__LIBUSB__)
     GCAdapter::ResetRumble();
 #endif
     break;
@@ -816,7 +816,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
   // (s_efbAccessRequested).
   Fifo::PauseAndLock(do_lock, false);
 
-#if defined(__LIBUSB__) || defined(_WIN32)
+#if defined(__LIBUSB__)
   GCAdapter::ResetRumble();
 #endif
 

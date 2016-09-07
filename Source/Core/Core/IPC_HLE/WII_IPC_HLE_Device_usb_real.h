@@ -4,7 +4,7 @@
 
 #pragma once
 
-#if defined(__LIBUSB__) || defined(_WIN32)
+#if defined(__LIBUSB__)
 #include <thread>
 
 #include <libusb.h>
