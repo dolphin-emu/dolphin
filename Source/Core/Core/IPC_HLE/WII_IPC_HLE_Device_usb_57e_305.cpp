@@ -4,6 +4,7 @@
 
 #include "Core/HW/WII_IPC.h"
 #include "Common/Thread.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_57e_305.h"
@@ -19,6 +20,15 @@ static void EnqueueReply(const u32 command_address,
   Memory::Write_U32(Memory::Read_U32(command_address), command_address + 8);
   Memory::Write_U32(IPC_REP_ASYNC, command_address);
   WII_IPC_HLE_Interface::EnqueueReply(command_address, 0, from_thread);
+}
+
+static bool IsWantedDevice(libusb_device_descriptor& descriptor)
+{
+  const int vid = SConfig::GetInstance().m_bt_passthrough_vid;
+  const int pid = SConfig::GetInstance().m_bt_passthrough_pid;
+  if (vid == -1 || pid == -1)
+    return true;
+  return descriptor.idVendor == vid && descriptor.idProduct == pid;
 }
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(
@@ -48,11 +58,11 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305::CWII_IPC_HLE_Device_usb_oh1_57e_305(
       continue;
     }
 
-    // TODO: allow using a specific Bluetooth adapter (with a configuration option)?
     const libusb_interface* interface = &config_descriptor->interface[INTERFACE];
     const libusb_interface_descriptor* descriptor = &interface->altsetting[0];
     if (descriptor->bNumEndpoints == 3 && descriptor->bInterfaceClass == LIBUSB_CLASS_WIRELESS &&
-        descriptor->bInterfaceProtocol == PROTOCOL_BLUETOOTH && OpenDevice(device))
+        descriptor->bInterfaceProtocol == PROTOCOL_BLUETOOTH && IsWantedDevice(device_descriptor) &&
+        OpenDevice(device))
     {
       NOTICE_LOG(WII_IPC_WIIMOTE, "Using device %02x:%02x for Bluetooth",
                  device_descriptor.idVendor, device_descriptor.idProduct);
