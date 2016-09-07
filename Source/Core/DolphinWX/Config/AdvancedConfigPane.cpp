@@ -22,6 +22,7 @@ AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id) : wxPane
 {
   InitializeGUI();
   LoadGUIValues();
+  RefreshGUI();
 }
 
 void AdvancedConfigPane::InitializeGUI()
@@ -207,4 +208,21 @@ void AdvancedConfigPane::UpdateCustomRTC(time_t date, time_t time)
   SConfig::GetInstance().m_customRTCValue = ToSeconds(custom_rtc.FromUTC());
   m_custom_rtc_date_picker->SetValue(custom_rtc);
   m_custom_rtc_time_picker->SetValue(custom_rtc);
+}
+
+void AdvancedConfigPane::RefreshGUI()
+{
+  // Don't allow users to edit the RTC while the game is running
+  if (Core::IsRunning())
+  {
+    m_custom_rtc_checkbox->Disable();
+    m_custom_rtc_date_picker->Disable();
+    m_custom_rtc_time_picker->Disable();
+  }
+  // Allow users to edit CPU clock speed in game, but not while needing determinism
+  if (Core::IsRunning() && Core::g_want_determinism)
+  {
+    m_clock_override_checkbox->Disable();
+    m_clock_override_slider->Disable();
+  }
 }
