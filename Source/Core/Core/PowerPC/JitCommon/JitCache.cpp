@@ -28,7 +28,7 @@
 
 using namespace Gen;
 
-static int s_clear_jit_cache_thread_safe;
+static CoreTiming::EventType* s_clear_jit_cache_thread_safe;
 
 static void ClearCacheThreadSafe(u64 userdata, s64 cyclesdata)
 {
