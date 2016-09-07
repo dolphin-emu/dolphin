@@ -645,15 +645,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
       out.Write("\tint2 fixpoint_uv%d = itrunc(", i);
-      // optional perspective divides
-      if (((uid_data->texMtxInfo_n_projection >> i) & 1) == XF_TEXPROJ_STQ)
-      {
-        out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
-      }
-      else
-      {
-        out.Write("uv%d.xy", i);
-      }
+      out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
       out.Write(" * " I_TEXDIMS "[%d].zw);\n", i);
       // TODO: S24 overflows here?
     }
