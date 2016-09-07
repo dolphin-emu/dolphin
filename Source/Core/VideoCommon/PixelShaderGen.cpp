@@ -169,6 +169,7 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
   uid_data->per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   uid_data->bounding_box = g_ActiveConfig.backend_info.bSupportsBBox &&
                            g_ActiveConfig.bBBoxEnable && BoundingBox::active;
+  uid_data->rgba6_format = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
@@ -344,6 +345,8 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
                            bool per_pixel_depth);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, const char* type,
+                       const char* color);
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data)
 {
@@ -779,12 +782,14 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   if (uid_data->dstAlphaMode == DSTALPHA_ALPHA_PASS)
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-    out.Write("\tocol0 = float4(float3(prev.rgb), float(" I_ALPHA ".a)) / 255.0;\n");
+    out.Write("\tocol0 = ");
+    WriteColor(out, uid_data, "float4", "prev.rgb, " I_ALPHA ".a");
   }
   else
   {
     WriteFog(out, uid_data);
-    out.Write("\tocol0 = float4(prev) / 255.0;\n");
+    out.Write("\tocol0 = ");
+    WriteColor(out, uid_data, "float4", "prev");
   }
 
   // Use dual-source color blending to perform dst alpha in a single pass
@@ -794,8 +799,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 
     // Colors will be blended against the alpha from ocol1 and
     // the alpha from ocol0 will be written to the framebuffer.
-    out.Write("\tocol1 = float4(prev) / 255.0;\n");
-    out.Write("\tocol0.a = float(" I_ALPHA ".a) / 255.0;\n");
+    out.Write("\tocol1 = ");
+    WriteColor(out, uid_data, "float4", "prev");
+    out.Write("\tocol0.a = ");
+    WriteColor(out, uid_data, "float", I_ALPHA ".a");
   }
 
   if (uid_data->bounding_box)
@@ -1294,4 +1301,13 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 
   out.Write("\tint ifog = iround(fog * 256.0);\n");
   out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
+}
+
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, const char* type,
+                       const char* color)
+{
+  if (uid_data->rgba6_format)
+    out.Write("%s(%s >> 2) / 63.0;\n", type, color);
+  else
+    out.Write("%s(%s) / 255.0;\n", type, color);
 }

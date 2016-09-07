@@ -53,7 +53,8 @@ struct pixel_shader_uid_data
   u32 msaa : 1;
   u32 ssaa : 1;
   u32 numColorChans : 2;
-  u32 pad : 14;
+  u32 rgba6_format : 1;
+  u32 pad : 13;
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;
