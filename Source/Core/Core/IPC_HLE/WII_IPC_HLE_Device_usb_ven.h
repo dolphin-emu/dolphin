@@ -14,15 +14,15 @@ public:
 
   ~CWII_IPC_HLE_Device_usb_ven() override;
 
-  virtual IPCCommandResult Open(u32 _CommandAddress, u32 _Mode);
-  virtual IPCCommandResult Close(u32 _CommandAddress, bool _bForce);
+  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
+  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
-  virtual IPCCommandResult IOCtlV(u32 _CommandAddress);
-  virtual IPCCommandResult IOCtl(u32 _CommandAddress);
+  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IPCCommandResult IOCtl(u32 _CommandAddress) override;
 
-  virtual u32 Update();
+  u32 Update() override;
 
-  void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p) override;
 
 private:
   enum USBIOCtl
