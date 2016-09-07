@@ -171,7 +171,7 @@ void MemChecks::Add(const TMemCheck& _rMemoryCheck)
   // If this is the first one, clear the JIT cache so it can switch to
   // watchpoint-compatible code.
   if (!had_any && jit)
-    jit->ClearCache();
+    jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
 }
 
 void MemChecks::Remove(u32 _Address)
@@ -181,11 +181,11 @@ void MemChecks::Remove(u32 _Address)
     if (i->StartAddress == _Address)
     {
       m_MemChecks.erase(i);
+      if (!HasAny() && jit)
+        jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
       return;
     }
   }
-  if (!HasAny() && jit)
-    jit->ClearCache();
 }
 
 TMemCheck* MemChecks::GetMemCheck(u32 address)
