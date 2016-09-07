@@ -170,6 +170,7 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
   uid_data->bounding_box = g_ActiveConfig.backend_info.bSupportsBBox &&
                            g_ActiveConfig.bBBoxEnable && BoundingBox::active;
   uid_data->rgba6_format = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+  uid_data->dither = bpmem.blendmode.dither;
 
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
@@ -777,6 +778,12 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
       out.Write("\tdepth = 1.0 - float(zCoord) / 16777216.0;\n");
     else
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
+  }
+
+  if (uid_data->dither && uid_data->rgba6_format)
+  {
+    out.Write("\tint2 dither = int2(rawpos.xy) & 1;\n");
+    out.Write("\tprev.rgb = (prev.rgb - (prev.rgb >> 6)) + abs(dither.y * 3 - dither.x * 2);\n");
   }
 
   if (uid_data->dstAlphaMode == DSTALPHA_ALPHA_PASS)
