@@ -96,7 +96,9 @@ public:
 
   // memory breakpoint
   TMemCheck* GetMemCheck(u32 address);
+  void EnableAllMemChecks(bool enable = true);
   void Remove(u32 _Address);
+  void DisableAllMemChecks();
 
   void Clear() { m_MemChecks.clear(); }
   bool HasAny() const { return !m_MemChecks.empty(); }
