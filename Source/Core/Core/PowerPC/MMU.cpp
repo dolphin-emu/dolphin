@@ -203,6 +203,20 @@ static T ReadFromHardware(u32 em_address)
 
   // TODO: Make sure these are safe for unaligned addresses.
 
+  if ((em_address & 0xF8000000) == 0x00000000)
+  {
+    // Handle RAM; the masking intentionally discards bits (essentially creating
+    // mirrors of memory).
+    // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
+    return bswap((*(const T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK]));
+  }
+
+  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
+      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+  {
+    return bswap((*(const T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF]));
+  }
+
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
   if ((em_address >> 28) == 0xE && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
   {
@@ -222,20 +236,6 @@ static T ReadFromHardware(u32 em_address)
       return EFB_Read(em_address);
     else
       return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
-  }
-
-  if ((em_address & 0xF8000000) == 0x00000000)
-  {
-    // Handle RAM; the masking intentionally discards bits (essentially creating
-    // mirrors of memory).
-    // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
-    return bswap((*(const T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK]));
-  }
-
-  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
-  {
-    return bswap((*(const T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF]));
   }
 
   PanicAlert("Unable to resolve read address %x PC %x", em_address, PC);
@@ -284,6 +284,22 @@ static void WriteToHardware(u32 em_address, const T data)
   }
 
   // TODO: Make sure these are safe for unaligned addresses.
+
+  if ((em_address & 0xF8000000) == 0x00000000)
+  {
+    // Handle RAM; the masking intentionally discards bits (essentially creating
+    // mirrors of memory).
+    // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
+    *(T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK] = bswap(data);
+    return;
+  }
+
+  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
+      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+  {
+    *(T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF] = bswap(data);
+    return;
+  }
 
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
   if ((em_address >> 28 == 0xE) && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
@@ -335,22 +351,6 @@ static void WriteToHardware(u32 em_address, const T data)
       Memory::mmio_mapping->Write(em_address, data);
       return;
     }
-  }
-
-  if ((em_address & 0xF8000000) == 0x00000000)
-  {
-    // Handle RAM; the masking intentionally discards bits (essentially creating
-    // mirrors of memory).
-    // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
-    *(T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK] = bswap(data);
-    return;
-  }
-
-  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
-  {
-    *(T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF] = bswap(data);
-    return;
   }
 
   PanicAlert("Unable to resolve write address %x PC %x", em_address, PC);
