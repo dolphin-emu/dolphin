@@ -272,6 +272,10 @@ static wxString stereo_convergence_desc =
 static wxString stereo_swap_desc =
     wxTRANSLATE("Swaps the left and right eye. Mostly useful if you want to view side-by-side "
                 "cross-eyed.\n\nIf unsure, leave this unchecked.");
+static wxString true_color_desc =
+    wxTRANSLATE("Forces the game to render the RGB color channels in 24-bit, thereby increasing "
+                "quality by reducing color banding.\nIt has no impact on performance and causes "
+                "few graphical issues.\n\n\nIf unsure, leave this unchecked.");
 
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
@@ -590,6 +594,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                 vconfig.bWidescreenHack));
     szr_enh->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc),
                                 vconfig.bDisableFog));
+    szr_enh->Add(CreateCheckBox(page_enh, _("Force True Color"), wxGetTranslation(true_color_desc),
+                                vconfig.bForceTrueColor));
 
     wxStaticBoxSizer* const group_enh =
         new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Enhancements"));
