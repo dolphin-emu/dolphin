@@ -32,49 +32,57 @@ void CachedInterpreter::Shutdown()
   JitBaseBlockCache::Shutdown();
 }
 
+void CachedInterpreter::ExecuteOneBlock()
+{
+  const u8* normal_entry = JitBaseBlockCache::Dispatch();
+  const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
+
+  for (; code->type != Instruction::INSTRUCTION_ABORT; ++code)
+  {
+    switch (code->type)
+    {
+    case Instruction::INSTRUCTION_TYPE_COMMON:
+      code->common_callback(UGeckoInstruction(code->data));
+      break;
+
+    case Instruction::INSTRUCTION_TYPE_CONDITIONAL:
+      if (code->conditional_callback(code->data))
+        return;
+      break;
+
+    default:
+      ERROR_LOG(POWERPC, "Unknown CachedInterpreter Instruction: %d", code->type);
+      break;
+    }
+  }
+}
+
 void CachedInterpreter::Run()
 {
-  while (!CPU::GetState())
+  while (CPU::GetState() == CPU::CPU_RUNNING)
   {
-    SingleStep();
+    // Start new timing slice
+    // NOTE: Exceptions may change PC
+    CoreTiming::Advance();
+
+    do
+    {
+      ExecuteOneBlock();
+    } while (PowerPC::ppcState.downcount > 0);
   }
 }
 
 void CachedInterpreter::SingleStep()
 {
-  const u8* normalEntry = jit->GetBlockCache()->Dispatch();
-  const Instruction* code = reinterpret_cast<const Instruction*>(normalEntry);
-
-  while (true)
-  {
-    switch (code->type)
-    {
-    case Instruction::INSTRUCTION_ABORT:
-      return;
-
-    case Instruction::INSTRUCTION_TYPE_COMMON:
-      code->common_callback(UGeckoInstruction(code->data));
-      code++;
-      break;
-
-    case Instruction::INSTRUCTION_TYPE_CONDITIONAL:
-      bool ret = code->conditional_callback(code->data);
-      code++;
-      if (ret)
-        return;
-      break;
-    }
-  }
+  // Enter new timing slice
+  CoreTiming::Advance();
+  ExecuteOneBlock();
 }
 
 static void EndBlock(UGeckoInstruction data)
 {
   PC = NPC;
   PowerPC::ppcState.downcount -= data.hex;
-  if (PowerPC::ppcState.downcount <= 0)
-  {
-    CoreTiming::Advance();
-  }
 }
 
 static void WritePC(UGeckoInstruction data)
