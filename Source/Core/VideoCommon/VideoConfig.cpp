@@ -102,6 +102,7 @@ void VideoConfig::Load(const std::string& ini_file)
   enhancements->Get("ForceFiltering", &bForceFiltering, 0);
   enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
   enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
+  enhancements->Get("ForceTrueColor", &bForceTrueColor, false);
 
   IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
   stereoscopy->Get("StereoMode", &iStereoMode, 0);
@@ -166,6 +167,7 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
   CHECK_SETTING("Video_Settings", "MSAA", iMultisamples);
   CHECK_SETTING("Video_Settings", "SSAA", bSSAA);
+  CHECK_SETTING("Video_Settings", "ForceTrueColor", bForceTrueColor);
 
   int tmp = -9000;
   CHECK_SETTING("Video_Settings", "EFBScale", tmp);  // integral
@@ -316,6 +318,7 @@ void VideoConfig::Save(const std::string& ini_file)
   enhancements->Set("ForceFiltering", bForceFiltering);
   enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
   enhancements->Set("PostProcessingShader", sPostProcessingShader);
+  enhancements->Set("ForceTrueColor", bForceTrueColor);
 
   IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
   stereoscopy->Set("StereoMode", iStereoMode);

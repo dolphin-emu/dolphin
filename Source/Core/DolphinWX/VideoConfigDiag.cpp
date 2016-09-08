@@ -278,6 +278,10 @@ static wxString validation_layer_desc =
 static wxString backend_multithreading_desc =
     wxTRANSLATE("Enables multi-threading in the video backend, which may result in performance "
                 "gains in some scenarios.\n\nIf unsure, leave this unchecked.");
+static wxString true_color_desc =
+    wxTRANSLATE("Forces the game to render the RGB color channels in 24-bit, thereby increasing "
+                "quality by reducing color banding.\nIt has no impact on performance and causes "
+                "few graphical issues.\n\n\nIf unsure, leave this unchecked.");
 
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
@@ -603,6 +607,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                 vconfig.bWidescreenHack));
     szr_enh->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc),
                                 vconfig.bDisableFog));
+    szr_enh->Add(CreateCheckBox(page_enh, _("Force True Color"), wxGetTranslation(true_color_desc),
+                                vconfig.bForceTrueColor));
 
     wxStaticBoxSizer* const group_enh =
         new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Enhancements"));
