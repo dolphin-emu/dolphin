@@ -35,17 +35,19 @@ struct EventType
 struct Event
 {
   s64 time;
+  u64 fifo_order;
   u64 userdata;
   EventType* type;
 };
 
-constexpr bool operator>(const Event& left, const Event& right)
+// Sort by time, unless the times are the same, in which case sort by the order added to the queue
+static bool operator>(const Event& left, const Event& right)
 {
-  return left.time > right.time;
+  return std::tie(left.time, left.fifo_order) > std::tie(right.time, right.fifo_order);
 }
-constexpr bool operator<(const Event& left, const Event& right)
+static bool operator<(const Event& left, const Event& right)
 {
-  return left.time < right.time;
+  return std::tie(left.time, left.fifo_order) < std::tie(right.time, right.fifo_order);
 }
 
 // unordered_map stores each element separately as a linked list node so pointers to elements
@@ -58,6 +60,7 @@ static std::unordered_map<std::string, EventType> s_event_types;
 // erase arbitrary events (RemoveEvent()) regardless of the queue order. These aren't accomodated
 // by the standard adaptor class.
 static std::vector<Event> s_event_queue;
+static u64 s_event_fifo_id;
 static std::mutex s_ts_write_lock;
 static Common::FifoQueue<Event, false> s_ts_queue;
 
@@ -136,6 +139,7 @@ void Init()
   // that slice.
   s_is_global_timer_sane = true;
 
+  s_event_fifo_id = 0;
   s_ev_lost = RegisterEvent("_lost_event", &EmptyTimedCallback);
 }
 
@@ -159,12 +163,14 @@ void DoState(PointerWrap& p)
   p.Do(g_fake_TB_start_ticks);
   p.Do(s_last_OC_factor);
   g_last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  p.Do(s_event_fifo_id);
 
   p.DoMarker("CoreTimingData");
 
   MoveEvents();
   p.DoEachElement(s_event_queue, [](PointerWrap& pw, Event& ev) {
     pw.Do(ev.time);
+    pw.Do(ev.fifo_order);
 
     // this is why we can't have (nice things) pointers as userdata
     pw.Do(ev.userdata);
@@ -249,7 +255,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
     if (!s_is_global_timer_sane)
       ForceExceptionCheck(cycles_into_future);
 
-    s_event_queue.emplace_back(Event{timeout, userdata, event_type});
+    s_event_queue.emplace_back(Event{timeout, s_event_fifo_id++, userdata, event_type});
     std::push_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
   }
   else
@@ -262,7 +268,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
     }
 
     std::lock_guard<std::mutex> lk(s_ts_write_lock);
-    s_ts_queue.Push(Event{g_global_timer + cycles_into_future, userdata, event_type});
+    s_ts_queue.Push(Event{g_global_timer + cycles_into_future, 0, userdata, event_type});
   }
 }
 
@@ -301,6 +307,7 @@ void MoveEvents()
 {
   for (Event ev; s_ts_queue.Pop(ev);)
   {
+    ev.fifo_order = s_event_fifo_id++;
     s_event_queue.emplace_back(std::move(ev));
     std::push_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
   }
