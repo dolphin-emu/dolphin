@@ -25,6 +25,7 @@ struct TMemCheck
     numHits = 0;
     StartAddress = EndAddress = 0;
     bRange = OnRead = OnWrite = Log = Break = false;
+    isTemporarilyDisabled = false;
   }
 
   u32 StartAddress;
@@ -37,6 +38,8 @@ struct TMemCheck
 
   bool Log;
   bool Break;
+
+  bool isTemporarilyDisabled;
 
   u32 numHits;
 
@@ -96,6 +99,8 @@ public:
 
   // memory breakpoint
   TMemCheck* GetMemCheck(u32 address);
+  void EnableAllTemporarilyDisabledMemChecks();
+  void DisableAllMemChecksTemporarily(bool disable = true);
   void Remove(u32 _Address);
 
   void Clear() { m_MemChecks.clear(); }

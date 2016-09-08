@@ -174,6 +174,19 @@ void MemChecks::Add(const TMemCheck& _rMemoryCheck)
     jit->ClearCache();
 }
 
+void MemChecks::EnableAllTemporarilyDisabledMemChecks()
+{
+  DisableAllMemChecksTemporarily(false);
+}
+
+void MemChecks::DisableAllMemChecksTemporarily(bool disable)
+{
+  for (TMemCheck& mc : m_MemChecks)
+  {
+    mc.isTemporarilyDisabled = disable;
+  }
+}
+
 void MemChecks::Remove(u32 _Address)
 {
   for (auto i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
@@ -210,7 +223,7 @@ TMemCheck* MemChecks::GetMemCheck(u32 address)
 bool TMemCheck::Action(DebugInterface* debug_interface, u32 iValue, u32 addr, bool write, int size,
                        u32 pc)
 {
-  if ((write && OnWrite) || (!write && OnRead))
+  if (((write && OnWrite) || (!write && OnRead)) && Break && !isTemporarilyDisabled)
   {
     if (Log)
     {
