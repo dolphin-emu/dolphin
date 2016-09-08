@@ -346,8 +346,8 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
                            bool per_pixel_depth);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
-static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, const char* type,
-                       const char* color);
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, const char* color);
+static void WriteAlpha(ShaderCode& out, const char* alpha);
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data)
 {
@@ -780,8 +780,11 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
   }
 
+  // No dithering for RGB8 mode
   if (uid_data->dither && uid_data->rgba6_format)
   {
+    // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
+    // Here the matrix is encoded into the two factor constants
     out.Write("\tint2 dither = int2(rawpos.xy) & 1;\n");
     out.Write("\tprev.rgb = (prev.rgb - (prev.rgb >> 6)) + abs(dither.y * 3 - dither.x * 2);\n");
   }
@@ -789,14 +792,18 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   if (uid_data->dstAlphaMode == DSTALPHA_ALPHA_PASS)
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-    out.Write("\tocol0 = ");
-    WriteColor(out, uid_data, "float4", "prev.rgb, " I_ALPHA ".a");
+    out.Write("\tocol0.rgb = ");
+    WriteColor(out, uid_data, "prev.rgb");
+    out.Write("\tocol0.a = ");
+    WriteAlpha(out, I_ALPHA ".a");
   }
   else
   {
     WriteFog(out, uid_data);
-    out.Write("\tocol0 = ");
-    WriteColor(out, uid_data, "float4", "prev");
+    out.Write("\tocol0.rgb = ");
+    WriteColor(out, uid_data, "prev.rgb");
+    out.Write("\tocol0.a = ");
+    WriteAlpha(out, "prev.a");
   }
 
   // Use dual-source color blending to perform dst alpha in a single pass
@@ -806,10 +813,12 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 
     // Colors will be blended against the alpha from ocol1 and
     // the alpha from ocol0 will be written to the framebuffer.
-    out.Write("\tocol1 = ");
-    WriteColor(out, uid_data, "float4", "prev");
+    out.Write("\tocol1.rgb = ");
+    WriteColor(out, uid_data, "prev.rgb");
+    out.Write("\tocol1.a = ");
+    WriteAlpha(out, "prev.a");
     out.Write("\tocol0.a = ");
-    WriteColor(out, uid_data, "float", I_ALPHA ".a");
+    WriteAlpha(out, I_ALPHA ".a");
   }
 
   if (uid_data->bounding_box)
@@ -1310,11 +1319,17 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
 }
 
-static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, const char* type,
-                       const char* color)
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, const char* color)
 {
   if (uid_data->rgba6_format)
-    out.Write("%s(%s >> 2) / 63.0;\n", type, color);
+    out.Write("float3(%s >> 2) / 63.0;\n", color);
   else
-    out.Write("%s(%s) / 255.0;\n", type, color);
+    out.Write("float3(%s) / 255.0;\n", color);
+}
+
+static void WriteAlpha(ShaderCode& out, const char* color)
+{
+  // Always truncate the alpha to 6-bit, as there is no format available
+  // on flipper that supports 8-bit.
+  out.Write("float(%s >> 2) / 63.0;\n", color);
 }
