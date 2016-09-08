@@ -174,6 +174,14 @@ void MemChecks::Add(const TMemCheck& _rMemoryCheck)
     jit->ClearCache();
 }
 
+void MemChecks::EnableAllMemChecks()
+{
+  for (TMemCheck& mc : m_MemChecks)
+  {
+    mc.Break = true;
+  }
+}
+
 void MemChecks::Remove(u32 _Address)
 {
   for (auto i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
@@ -186,6 +194,14 @@ void MemChecks::Remove(u32 _Address)
   }
   if (!HasAny() && jit)
     jit->ClearCache();
+}
+
+void MemChecks::DisableAllMemChecks()
+{
+  for (TMemCheck& mc : m_MemChecks)
+  {
+    mc.Break = false;
+  }
 }
 
 TMemCheck* MemChecks::GetMemCheck(u32 address)
@@ -210,7 +226,7 @@ TMemCheck* MemChecks::GetMemCheck(u32 address)
 bool TMemCheck::Action(DebugInterface* debug_interface, u32 iValue, u32 addr, bool write, int size,
                        u32 pc)
 {
-  if ((write && OnWrite) || (!write && OnRead))
+  if (((write && OnWrite) || (!write && OnRead)) && (Break))
   {
     if (Log)
     {
