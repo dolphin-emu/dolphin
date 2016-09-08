@@ -92,10 +92,12 @@ void Run()
         if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
 #endif
         {
+          PowerPC::memchecks.DisableAllMemChecksTemporarily();
           PowerPC::CoreMode old_mode = PowerPC::GetMode();
           PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
           PowerPC::SingleStep();
           PowerPC::SetMode(old_mode);
+          PowerPC::memchecks.EnableAllTemporarilyDisabledMemChecks();
         }
       }
 
