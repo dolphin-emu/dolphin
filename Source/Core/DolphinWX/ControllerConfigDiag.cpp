@@ -259,6 +259,11 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
                                            "You must manually connect your Wiimotes.")),
         0, wxALIGN_CENTER | wxALL, 5);
 
+  auto* const enable_passthrough = new wxCheckBox(this, wxID_ANY, _("Enable Passthrough Mode"));
+  enable_passthrough->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnPassthroughMode, this);
+  enable_passthrough->SetValue(SConfig::GetInstance().m_bt_passthrough_mode ==
+                               SConfig::BLUETOOTH_PASSTHROUGH_ENABLED);
+
   wxCheckBox* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
   continuous_scanning->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnContinuousScanning, this);
   continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
@@ -267,6 +272,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
   real_wiimotes_sizer->AddStretchSpacer();
   real_wiimotes_sizer->Add(refresh_btn, 0, wxALL | wxALIGN_CENTER, 5);
 
+  real_wiimotes_group->Add(enable_passthrough, 0, wxALIGN_CENTER_VERTICAL);
   real_wiimotes_group->Add(real_wiimotes_sizer, 0, wxEXPAND);
 
   return real_wiimotes_group;

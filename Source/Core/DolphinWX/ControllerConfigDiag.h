@@ -63,6 +63,14 @@ private:
     event.Skip();
   }
 
+  void OnPassthroughMode(wxCommandEvent& event)
+  {
+    SConfig::GetInstance().m_bt_passthrough_mode = event.IsChecked() ?
+                                                       SConfig::BLUETOOTH_PASSTHROUGH_ENABLED :
+                                                       SConfig::BLUETOOTH_PASSTHROUGH_DISABLED;
+    event.Skip();
+  }
+
   void OnEnableSpeaker(wxCommandEvent& event)
   {
     SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
