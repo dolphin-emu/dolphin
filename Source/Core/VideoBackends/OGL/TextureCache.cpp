@@ -399,14 +399,14 @@ void TextureCache::CompileShaders()
   const char* depth_layer = g_ActiveConfig.bStereoEFBMonoDepth ? "0.0" : "f_uv0.z";
 
   ProgramShaderCache::CompileShader(s_ColorCopyProgram,
-                                    StringFromFormat(vertex_program, prefix, prefix).c_str(),
+                                    StringFromFormat(vertex_program, prefix, prefix),
                                     color_copy_program, geo_program);
   ProgramShaderCache::CompileShader(s_ColorMatrixProgram,
-                                    StringFromFormat(vertex_program, prefix, prefix).c_str(),
+                                    StringFromFormat(vertex_program, prefix, prefix),
                                     color_matrix_program, geo_program);
   ProgramShaderCache::CompileShader(
-      s_DepthMatrixProgram, StringFromFormat(vertex_program, prefix, prefix).c_str(),
-      StringFromFormat(depth_matrix_program, depth_layer).c_str(), geo_program);
+      s_DepthMatrixProgram, StringFromFormat(vertex_program, prefix, prefix),
+      StringFromFormat(depth_matrix_program, depth_layer), geo_program);
 
   s_ColorMatrixUniform = glGetUniformLocation(s_ColorMatrixProgram.glprogid, "colmat");
   s_DepthMatrixUniform = glGetUniformLocation(s_DepthMatrixProgram.glprogid, "colmat");
