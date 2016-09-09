@@ -26,6 +26,8 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/Debugger/BreakpointWindow.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/MemoryView.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"
 #include "DolphinWX/Globals.h"
@@ -63,9 +65,10 @@ EVT_CHECKBOX(IDM_ASCII, CMemoryWindow::onAscii)
 EVT_CHECKBOX(IDM_HEX, CMemoryWindow::onHex)
 END_EVENT_TABLE()
 
-CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos,
-                             const wxSize& size, long style, const wxString& name)
-    : wxPanel(parent, id, pos, size, style, name)
+CMemoryWindow::CMemoryWindow(CCodeWindow* code_window, wxWindow* parent, wxWindowID id,
+                             const wxPoint& pos, const wxSize& size, long style,
+                             const wxString& name)
+    : wxPanel(parent, id, pos, size, style, name), m_code_window(code_window)
 {
   DebugInterface* di = &PowerPC::debug_interface;
 
@@ -242,6 +245,10 @@ void CMemoryWindow::OnHostMessage(wxCommandEvent& event)
   {
   case IDM_NOTIFY_MAP_LOADED:
     NotifyMapLoaded();
+    break;
+  case IDM_UPDATE_BREAKPOINTS:
+    if (m_code_window->m_BreakpointWindow)
+      m_code_window->m_BreakpointWindow->NotifyUpdate();
     break;
   }
 }
