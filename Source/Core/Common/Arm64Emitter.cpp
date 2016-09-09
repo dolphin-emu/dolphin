@@ -329,11 +329,33 @@ void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
   // Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
   sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
 #else
-#ifdef __clang__
-  __clear_cache(start, end);
-#else
-  __builtin___clear_cache(start, end);
-#endif
+  /* Don't rely on GCC's __clear_cache implementation, as it caches
+   * icache/dcache cache line sizes, that can vary between cores on
+   * big.LITTLE architectures. */
+  u64 end = (u64) (code + size);
+  u64 addr, ctr_el0;
+  static size_t icache_line_size = 0xffff, dcache_line_size = 0xffff;
+  size_t isize, dsize;
+
+  __asm__ volatile ("mrs %0, ctr_el0" : "=r" (ctr_el0));
+  isize = 4 << ((ctr_el0 >> 0 ) & 0xf);
+  dsize = 4 << ((ctr_el0 >> 16) & 0xf);
+
+  /* use the global minimum cache line size */
+  icache_line_size = isize = MIN (icache_line_size, isize);
+  dcache_line_size = dsize = MIN (dcache_line_size, dsize);
+
+  addr = (u64) code & ~(u64) (dsize - 1);
+  for (; addr < end; addr += dsize)
+      __asm__ volatile("dc civac, %0" : : "r" (addr) : "memory");
+  __asm__ volatile("dsb ish" : : : "memory");
+
+  addr = (u64) code & ~(u64) (isize - 1);
+  for (; addr < end; addr += isize)
+      __asm__ volatile("ic ivau, %0" : : "r" (addr) : "memory");
+
+  __asm__ volatile ("dsb ish" : : : "memory");
+  __asm__ volatile ("isb" : : : "memory");
 #endif
 }
 
