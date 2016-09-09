@@ -14,7 +14,7 @@ class DSPRegisterView;
 class CCodeView;
 class CMemoryView;
 class wxAuiNotebook;
-class wxAuiToolBar;
+class DolphinAuiToolBar;
 class wxListBox;
 
 class DSPDebuggerLLE : public wxPanel
@@ -45,7 +45,7 @@ private:
 
   // GUI items
   wxAuiManager m_mgr;
-  wxAuiToolBar* m_Toolbar;
+  DolphinAuiToolBar* m_Toolbar;
   CCodeView* m_CodeView;
   CMemoryView* m_MemView;
   DSPRegisterView* m_Regs;

@@ -6,7 +6,6 @@
 
 // clang-format off
 #include <wx/bitmap.h>
-#include <wx/aui/auibar.h>
 #include <wx/panel.h>
 // clang-format on
 
@@ -16,14 +15,15 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
+#include "DolphinWX/AuiToolBar.h"
 #include "DolphinWX/WxUtils.h"
 
-class CWatchToolbar : public wxAuiToolBar
+class CWatchToolbar : public DolphinAuiToolBar
 {
 public:
   CWatchToolbar(CWatchWindow* parent, const wxWindowID id)
-      : wxAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
-                     wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
+      : DolphinAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
+                          wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
   {
     SetToolBitmapSize(wxSize(16, 16));
 
