@@ -316,15 +316,6 @@ void Clear()
     memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 
-bool AreMemoryBreakpointsActivated()
-{
-#ifdef ENABLE_MEM_CHECK
-  return true;
-#else
-  return false;
-#endif
-}
-
 static inline u8* GetPointerForRange(u32 address, size_t size)
 {
   // Make sure we don't have a range spanning 2 separate banks

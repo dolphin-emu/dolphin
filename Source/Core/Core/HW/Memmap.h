@@ -11,11 +11,6 @@
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/PowerPC.h"
 
-// Enable memory checks in the Debug/DebugFast builds, but NOT in release
-#if defined(_DEBUG) || defined(DEBUGFAST)
-#define ENABLE_MEM_CHECK
-#endif
-
 // Global declarations
 class PointerWrap;
 namespace MMIO
@@ -72,7 +67,6 @@ void DoState(PointerWrap& p);
 void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table);
 
 void Clear();
-bool AreMemoryBreakpointsActivated();
 
 // Routines to access physically addressed memory, designed for use by
 // emulated hardware outside the CPU. Use "Device_" prefix.

@@ -261,9 +261,7 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
 
   if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1) && (col == 1 || col == 2))
   {
-#ifdef ENABLE_MEM_CHECK
     menu.Append(IDM_ADDMEMCHECK, _("Add memory &breakpoint"));
-#endif
     menu.Append(IDM_VIEWMEMORY, _("View &memory"));
   }
   PopupMenu(&menu);

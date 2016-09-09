@@ -47,12 +47,8 @@ public:
     AddTool(ID_ADDBP, "+BP", m_Bitmaps[Toolbar_Add_BP]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::OnAddBreakPoint, parent, ID_ADDBP);
 
-    // Add memory breakpoints if you can use them
-    if (Memory::AreMemoryBreakpointsActivated())
-    {
-      AddTool(ID_ADDMC, "+MC", m_Bitmaps[Toolbar_Add_MC]);
-      Bind(wxEVT_TOOL, &CBreakPointWindow::OnAddMemoryCheck, parent, ID_ADDMC);
-    }
+    AddTool(ID_ADDMC, "+MC", m_Bitmaps[Toolbar_Add_MC]);
+    Bind(wxEVT_TOOL, &CBreakPointWindow::OnAddMemoryCheck, parent, ID_ADDMC);
 
     AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_Delete]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::Event_LoadAll, parent, ID_LOAD);
