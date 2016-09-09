@@ -198,13 +198,13 @@ void VertexManager::vFlush(bool useDstAlpha)
         "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
     std::ofstream fps;
     OpenFStream(fps, filename, std::ios_base::out);
-    fps << prog.shader.strpprog.c_str();
+    fps << prog.shader.strpprog;
 
     filename = StringFromFormat("%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
                                 g_ActiveConfig.iSaveTargetId);
     std::ofstream fvs;
     OpenFStream(fvs, filename, std::ios_base::out);
-    fvs << prog.shader.strvprog.c_str();
+    fvs << prog.shader.strvprog;
   }
 
   if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
