@@ -84,7 +84,7 @@ public:
   void SendChatMessage(const std::string& msg);
 
   // Send and receive pads values
-  bool WiimoteUpdate(int _number, u8* data, const u8 size);
+  bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
   bool GetNetPads(const u8 pad_nb, GCPadStatus* pad_status);
 
   void OnTraversalStateChanged() override;
