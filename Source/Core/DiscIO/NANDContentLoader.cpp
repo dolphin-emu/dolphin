@@ -29,6 +29,8 @@
 
 namespace DiscIO
 {
+CNANDContentData::~CNANDContentData() = default;
+
 CSharedContent::CSharedContent()
 {
   UpdateLocation();
