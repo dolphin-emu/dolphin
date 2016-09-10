@@ -17,6 +17,7 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_real.h"
 #include "InputCommon/GCAdapter.h"
 
 class InputConfig;
@@ -73,6 +74,18 @@ private:
     UpdateUI();
   }
 
+  void OnPassthroughScanButton(wxCommandEvent& event)
+  {
+    CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TriggerSyncButtonPressedEvent();
+    event.Skip();
+  }
+
+  void OnPassthroughResetButton(wxCommandEvent& event)
+  {
+    CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TriggerSyncButtonHeldEvent();
+    event.Skip();
+  }
+
   void OnEnableSpeaker(wxCommandEvent& event)
   {
     SConfig::GetInstance().m_WiimoteEnableSpeaker = event.IsChecked();
@@ -82,8 +95,8 @@ private:
   void UpdateUI()
   {
     const bool enable_bt_passthrough_mode = SConfig::GetInstance().m_bt_passthrough_enabled;
-    m_continuous_scanning->Show(!enable_bt_passthrough_mode);
-    m_wm_refresh_button->Show(!enable_bt_passthrough_mode);
+    m_real_wiimotes_sizer->ShowItems(!enable_bt_passthrough_mode);
+    m_bt_passthrough_sizer->ShowItems(enable_bt_passthrough_mode);
     m_unsupported_bt_text->Show(!enable_bt_passthrough_mode);
     m_bt_passthrough_text->Show(enable_bt_passthrough_mode);
     m_balance_board_group->ShowItems(!enable_bt_passthrough_mode);
@@ -121,8 +134,8 @@ private:
 
   std::array<wxStaticText*, 4> m_wiimote_labels;
   std::array<wxChoice*, 4> m_wiimote_sources;
-  wxButton* m_wm_refresh_button;
-  wxCheckBox* m_continuous_scanning;
+  wxBoxSizer* m_real_wiimotes_sizer;
+  wxBoxSizer* m_bt_passthrough_sizer;
   wxStaticText* m_unsupported_bt_text;
   wxStaticText* m_bt_passthrough_text;
   wxStaticBoxSizer* m_general_wm_settings;

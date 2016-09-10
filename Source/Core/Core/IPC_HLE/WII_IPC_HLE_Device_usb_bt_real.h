@@ -36,6 +36,9 @@ public:
   void DoState(PointerWrap& p) override;
   u32 Update() override { return 0; }
   static void UpdateSyncButtonState(bool is_held);
+  // These two functions trigger the events immediately, unlike UpdateSyncButtonState.
+  static void TriggerSyncButtonPressedEvent();
+  static void TriggerSyncButtonHeldEvent();
 
 private:
   static constexpr u8 INTERFACE = 0x00;
@@ -54,7 +57,6 @@ private:
   Common::Flag m_thread_running;
   std::thread m_thread;
 
-  void SendHCICommandPacket(const CtrlMessage& cmd_message);
   void SendHCIResetCommand();
   void FakeSyncButtonEvent(const CtrlBuffer& ctrl, const u8* payload, u8 size);
   void FakeSyncButtonPressedEvent(const CtrlBuffer& ctrl);
@@ -64,6 +66,7 @@ private:
   void StartTransferThread();
   void StopTransferThread();
   void TransferThread();
+  static void CommandCallback(libusb_transfer* transfer);
   static void TransferCallback(libusb_transfer* transfer);
 };
 

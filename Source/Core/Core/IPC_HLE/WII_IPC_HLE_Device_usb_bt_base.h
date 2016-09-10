@@ -124,5 +124,7 @@ public:
   }
   // Needed to be a stub for CWII_IPC_HLE_Device_usb_oh1_57e_305_real
   static void UpdateSyncButtonState() {}
+  static void TriggerSyncButtonPressedEvent() {}
+  static void TriggerSyncButtonHeldEvent() {}
   u32 Update() override { return 0; }
 };
