@@ -166,14 +166,14 @@ void JitArm64::GenerateCommonAsm()
   BRK(100);
   const u8* loadPairedFloatTwo = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LD1(32, 1, D0, addr_reg);
     float_emit.REV32(8, D0, D0);
     RET(X30);
   }
   const u8* loadPairedU8Two = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.UXTL(8, D0, D0);
     float_emit.UXTL(16, D0, D0);
@@ -187,7 +187,7 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedS8Two = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.SXTL(8, D0, D0);
     float_emit.SXTL(16, D0, D0);
@@ -201,7 +201,7 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedU16Two = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LD1(16, 1, D0, addr_reg);
     float_emit.REV16(8, D0, D0);
     float_emit.UXTL(16, D0, D0);
@@ -215,7 +215,7 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedS16Two = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LD1(16, 1, D0, addr_reg);
     float_emit.REV16(8, D0, D0);
     float_emit.SXTL(16, D0, D0);
@@ -230,14 +230,14 @@ void JitArm64::GenerateCommonAsm()
 
   const u8* loadPairedFloatOne = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(32, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.REV32(8, D0, D0);
     RET(X30);
   }
   const u8* loadPairedU8One = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.UXTL(8, D0, D0);
     float_emit.UXTL(16, D0, D0);
@@ -251,7 +251,7 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedS8One = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.SXTL(8, D0, D0);
     float_emit.SXTL(16, D0, D0);
@@ -265,7 +265,7 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedU16One = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.REV16(8, D0, D0);
     float_emit.UXTL(16, D0, D0);
@@ -279,7 +279,7 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedS16One = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.REV16(8, D0, D0);
     float_emit.SXTL(16, D0, D0);
@@ -324,7 +324,7 @@ void JitArm64::GenerateCommonAsm()
   {
     storePairedFloat = GetCodePtr();
     float_emit.REV32(8, D0, D0);
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(64, Q0, 0, addr_reg, SP);
     RET(X30);
 
@@ -351,7 +351,7 @@ void JitArm64::GenerateCommonAsm()
 
     storePairedU8 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(16, Q0, 0, addr_reg, SP);
     RET(X30);
 
@@ -378,7 +378,7 @@ void JitArm64::GenerateCommonAsm()
 
     storePairedS8 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(16, Q0, 0, addr_reg, SP);
     RET(X30);
 
@@ -406,7 +406,7 @@ void JitArm64::GenerateCommonAsm()
 
     storePairedU16 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(32, Q0, 0, addr_reg, SP);
     RET(X30);
 
@@ -433,7 +433,7 @@ void JitArm64::GenerateCommonAsm()
 
     storePairedS16 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(32, Q0, 0, addr_reg, SP);
     RET(X30);
 
@@ -450,7 +450,7 @@ void JitArm64::GenerateCommonAsm()
   {
     storeSingleFloat = GetCodePtr();
     float_emit.REV32(8, D0, D0);
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.STR(32, INDEX_UNSIGNED, D0, addr_reg, 0);
     RET(X30);
 
@@ -475,7 +475,7 @@ void JitArm64::GenerateCommonAsm()
 
     storeSingleU8 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(8, Q0, 0, addr_reg);
     RET(X30);
 
@@ -501,7 +501,7 @@ void JitArm64::GenerateCommonAsm()
 
     storeSingleS8 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(8, Q0, 0, addr_reg);
     RET(X30);
 
@@ -526,7 +526,7 @@ void JitArm64::GenerateCommonAsm()
 
     storeSingleU16 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.REV16(8, D0, D0);
     float_emit.ST1(16, Q0, 0, addr_reg);
     RET(X30);
@@ -552,7 +552,7 @@ void JitArm64::GenerateCommonAsm()
 
     storeSingleS16 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.REV16(8, D0, D0);
     float_emit.ST1(16, Q0, 0, addr_reg);
     RET(X30);

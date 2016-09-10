@@ -666,8 +666,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
     MOVI2R(WA, (u32)(s32)(s16)inst.SIMM_16);
   }
 
-  u8* base = UReg_MSR(MSR).DR ? Memory::logical_base : Memory::physical_base;
-  MOVK(XA, ((u64)base >> 32) & 0xFFFF, SHIFT_32);
+  ADD(XA, XA, MEM_REG);
 
   for (int i = inst.RD; i < 32; i++)
   {
