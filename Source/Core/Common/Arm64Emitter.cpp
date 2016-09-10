@@ -346,6 +346,8 @@ void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
 
   addr = (u64)start & ~(u64)(dsize - 1);
   for (; addr < (u64)end; addr += dsize)
+    // use "civac" instead of "cvau", as this is the suggested workaround for
+    // Cortex-A53 errata 819472, 826319, 827319 and 824069.
     __asm__ volatile("dc civac, %0" : : "r"(addr) : "memory");
   __asm__ volatile("dsb ish" : : : "memory");
 
