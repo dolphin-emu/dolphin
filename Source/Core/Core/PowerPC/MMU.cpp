@@ -412,31 +412,32 @@ u32 HostRead_Instruction(const u32 address)
 
 static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
 {
-#ifdef ENABLE_MEM_CHECK
-  TMemCheck* mc = PowerPC::memchecks.GetMemCheck(address);
-  if (mc)
+  if (PowerPC::memchecks.HasAny())
   {
-    if (CPU::IsStepping())
+    TMemCheck* mc = PowerPC::memchecks.GetMemCheck(address);
+    if (mc)
     {
-      // Disable when stepping so that resume works.
-      return;
-    }
-    mc->numHits++;
-    bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
-    if (pause)
-    {
-      CPU::Break();
-      // Fake a DSI so that all the code that tests for it in order to skip
-      // the rest of the instruction will apply.  (This means that
-      // watchpoints will stop the emulator before the offending load/store,
-      // not after like GDB does, but that's better anyway.  Just need to
-      // make sure resuming after that works.)
-      // It doesn't matter if ReadFromHardware triggers its own DSI because
-      // we'll take it after resuming.
-      PowerPC::ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+      if (CPU::IsStepping())
+      {
+        // Disable when stepping so that resume works.
+        return;
+      }
+      mc->numHits++;
+      bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
+      if (pause)
+      {
+        CPU::Break();
+        // Fake a DSI so that all the code that tests for it in order to skip
+        // the rest of the instruction will apply.  (This means that
+        // watchpoints will stop the emulator before the offending load/store,
+        // not after like GDB does, but that's better anyway.  Just need to
+        // make sure resuming after that works.)
+        // It doesn't matter if ReadFromHardware triggers its own DSI because
+        // we'll take it after resuming.
+        PowerPC::ppcState.Exceptions |= EXCEPTION_DSI | EXCEPTION_FAKE_MEMCHECK_HIT;
+      }
     }
   }
-#endif
 }
 
 u8 Read_U8(const u32 address)
@@ -604,9 +605,8 @@ std::string HostGetString(u32 address, size_t size)
 
 bool IsOptimizableRAMAddress(const u32 address)
 {
-#ifdef ENABLE_MEM_CHECK
-  return false;
-#endif
+  if (PowerPC::memchecks.HasAny())
+    return false;
 
   if (!UReg_MSR(MSR).DR)
     return false;
@@ -745,9 +745,8 @@ void ClearCacheLine(u32 address)
 
 u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
 {
-#ifdef ENABLE_MEM_CHECK
-  return 0;
-#endif
+  if (PowerPC::memchecks.HasAny())
+    return 0;
 
   if (!UReg_MSR(MSR).DR)
     return 0;
@@ -768,9 +767,8 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
 
 bool IsOptimizableGatherPipeWrite(u32 address)
 {
-#ifdef ENABLE_MEM_CHECK
-  return 0;
-#endif
+  if (PowerPC::memchecks.HasAny())
+    return 0;
 
   if (!UReg_MSR(MSR).DR)
     return 0;

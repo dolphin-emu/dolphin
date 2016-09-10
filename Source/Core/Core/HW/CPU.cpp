@@ -88,9 +88,7 @@ void Run()
       // If watchpoints are enabled, any instruction could be a breakpoint.
       if (PowerPC::GetMode() != PowerPC::MODE_INTERPRETER)
       {
-#ifndef ENABLE_MEM_CHECK
-        if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
-#endif
+        if (PowerPC::breakpoints.IsAddressBreakPoint(PC) || PowerPC::memchecks.HasAny())
         {
           PowerPC::CoreMode old_mode = PowerPC::GetMode();
           PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
