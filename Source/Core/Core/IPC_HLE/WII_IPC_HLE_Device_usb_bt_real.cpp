@@ -16,6 +16,10 @@
 static std::atomic<SyncButtonState> s_sync_button_state{SyncButtonState::Unpressed};
 static Common::Timer s_sync_button_held_timer;  // when the sync button started to be held
 
+// This flag is set when a libusb transfer failed (for reasons other than timing out)
+// and we showed an OSD message about it.
+static Common::Flag s_showed_failed_transfer;
+
 static void EnqueueReply(const u32 command_address)
 {
   Memory::Write_U32(Memory::Read_U32(command_address), command_address + 8);
@@ -299,8 +303,21 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::ThreadFunc()
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CommandCallback(libusb_transfer* tr)
 {
   const auto* cmd = static_cast<CtrlMessage*>(tr->user_data);
-  if (tr->status != LIBUSB_TRANSFER_COMPLETED)
-    ERROR_LOG(WII_IPC_WIIMOTE, "libusb transfer failed, status: 0x%02x", tr->status);
+  if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_NO_DEVICE)
+  {
+    ERROR_LOG(WII_IPC_WIIMOTE, "libusb command transfer failed, status: 0x%02x", tr->status);
+    if (!s_showed_failed_transfer.IsSet())
+    {
+      Core::DisplayMessage("Failed to send a command to the Bluetooth adapter.", 10000);
+      Core::DisplayMessage("It may not be compatible with passthrough mode.", 10000);
+      s_showed_failed_transfer.Set();
+    }
+  }
+  else
+  {
+    s_showed_failed_transfer.Clear();
+  }
+
   EnqueueReply(cmd->address);
   delete cmd;
 }
@@ -308,8 +325,21 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CommandCallback(libusb_transfer* 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer* tr)
 {
   const auto* ctrl = static_cast<CtrlBuffer*>(tr->user_data);
-  if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_TIMED_OUT)
+  if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_TIMED_OUT &&
+      tr->status != LIBUSB_TRANSFER_NO_DEVICE)
+  {
     ERROR_LOG(WII_IPC_WIIMOTE, "libusb transfer failed, status: 0x%02x", tr->status);
+    if (!s_showed_failed_transfer.IsSet())
+    {
+      Core::DisplayMessage("Failed to transfer to or from to the Bluetooth adapter.", 10000);
+      Core::DisplayMessage("It may not be compatible with passthrough mode.", 10000);
+      s_showed_failed_transfer.Set();
+    }
+  }
+  else
+  {
+    s_showed_failed_transfer.Clear();
+  }
   ctrl->SetRetVal(tr->actual_length);
   EnqueueReply(ctrl->m_cmd_address);
   delete ctrl;
