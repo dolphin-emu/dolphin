@@ -448,7 +448,7 @@ void JitArm64::lXX(UGeckoInstruction inst)
 
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);
-    MOVI2R(XA, (u64)&CoreTiming::Idle);
+    MOVP2R(XA, &CoreTiming::Idle);
     BLR(XA);
     gpr.Unlock(WA);
 
@@ -700,7 +700,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   AND(value, addr, 32 - 10, 28 - 10);  // upper three bits and last 10 bit are masked for the bitset
                                        // of cachelines, 0x1ffffc00
   LSR(value, value, 5 + 5);            // >> 5 for cache line size, >> 5 for width of bitset
-  MOVI2R(EncodeRegTo64(WA), (u64)jit->GetBlockCache()->GetBlockBitSet());
+  MOVP2R(EncodeRegTo64(WA), jit->GetBlockCache()->GetBlockBitSet());
   LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
 
   LSR(addr, addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
@@ -721,7 +721,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   LSL(W0, addr, 5);
   MOVI2R(X1, 32);
   MOVI2R(X2, 0);
-  MOVI2R(X3, (u64)(void*)JitInterface::InvalidateICache);
+  MOVP2R(X3, &JitInterface::InvalidateICache);
   BLR(X3);
 
   m_float_emit.ABI_PopRegisters(fprs_to_push, X30);
