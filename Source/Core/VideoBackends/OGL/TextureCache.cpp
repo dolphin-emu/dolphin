@@ -345,7 +345,7 @@ void TextureCache::CompileShaders()
       "\n"
       "void main(){\n"
       "	vec4 texcol = texture(samp9, vec3(f_uv0.xy, %s));\n"
-      "	int depth = int(texcol.x * 16777216.0);\n"
+      "	int depth = int((1.0 - texcol.x) * 16777216.0);\n"
 
       // Convert to Z24 format
       "	ivec4 workspace;\n"
