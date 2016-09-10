@@ -18,7 +18,7 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
     s64 distance = ((s64)dest->normalEntry - (s64)location) >> 2;
     if (distance >= -0x40000 && distance <= 0x3FFFF)
     {
-      emit.B(CC_LE, dest->normalEntry);
+      emit.B(CC_PL, dest->normalEntry);
     }
 
     // Use the checked entry if either downcount is smaller zero,
