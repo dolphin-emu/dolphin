@@ -243,13 +243,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateBalanceBoardSizer()
 
 wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
 {
-  // "Real wiimotes" controls
-  m_wm_refresh_button = new wxButton(this, wxID_ANY, _("Refresh"));
-  m_wm_refresh_button->Bind(wxEVT_BUTTON, &ControllerConfigDiag::RefreshRealWiimotes, this);
-
-  wxStaticBoxSizer* const real_wiimotes_group =
-      new wxStaticBoxSizer(wxVERTICAL, this, _("Real Wiimotes"));
-  wxBoxSizer* const real_wiimotes_sizer = new wxBoxSizer(wxHORIZONTAL);
+  auto* const real_wiimotes_group = new wxStaticBoxSizer(wxVERTICAL, this, _("Real Wiimotes"));
 
   m_unsupported_bt_text =
       new wxStaticText(this, wxID_ANY, _("A supported Bluetooth device could not be found.\n"
@@ -257,6 +251,7 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
   real_wiimotes_group->Add(m_unsupported_bt_text, 0, wxALIGN_CENTER | wxALL, 5);
   m_unsupported_bt_text->Show(!WiimoteReal::g_wiimote_scanner.IsReady());
 
+  // Bluetooth adapter passthrough
   m_bt_passthrough_text = new wxStaticText(
       this, wxID_ANY, _("A Bluetooth adapter will be passed through to the game.\n"
                         "Only real Wiimotes will be usable.\n"
@@ -267,19 +262,44 @@ wxStaticBoxSizer* ControllerConfigDiag::CreateRealWiimoteSizer()
       new wxCheckBox(this, wxID_ANY, _("Enable Bluetooth Adapter Passthrough"));
   enable_passthrough->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnPassthroughMode, this);
   enable_passthrough->SetValue(SConfig::GetInstance().m_bt_passthrough_enabled);
+
+  auto* const wm_bt_sync_button = new wxButton(this, wxID_ANY, _("Sync Wiimotes"));
+  wm_bt_sync_button->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnPassthroughScanButton, this);
+  auto* const wm_bt_reset_button = new wxButton(this, wxID_ANY, _("Reset pairings"));
+  wm_bt_reset_button->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnPassthroughResetButton, this);
+
   if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  {
     enable_passthrough->Disable();
+    if (!SConfig::GetInstance().bWii)
+      m_bt_passthrough_text->Disable();
+  }
 
-  m_continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
-  m_continuous_scanning->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnContinuousScanning, this);
-  m_continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
+  if (!SConfig::GetInstance().bWii || Core::GetState() == Core::CORE_UNINITIALIZED)
+  {
+    wm_bt_sync_button->Disable();
+    wm_bt_reset_button->Disable();
+  }
 
-  real_wiimotes_sizer->Add(m_continuous_scanning, 0, wxALIGN_CENTER_VERTICAL);
-  real_wiimotes_sizer->AddStretchSpacer();
-  real_wiimotes_sizer->Add(m_wm_refresh_button, 0, wxALL | wxALIGN_CENTER, 5);
+  m_bt_passthrough_sizer = new wxBoxSizer(wxHORIZONTAL);
+  m_bt_passthrough_sizer->Add(wm_bt_sync_button, 0, wxALIGN_CENTER_VERTICAL);
+  m_bt_passthrough_sizer->Add(wm_bt_reset_button, 0, wxALL | wxALIGN_CENTER, 5);
+
+  // Regular real Wiimotes controls
+  auto* const continuous_scanning = new wxCheckBox(this, wxID_ANY, _("Continuous Scanning"));
+  continuous_scanning->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnContinuousScanning, this);
+  continuous_scanning->SetValue(SConfig::GetInstance().m_WiimoteContinuousScanning);
+  auto* const wm_refresh_button = new wxButton(this, wxID_ANY, _("Refresh"));
+  wm_refresh_button->Bind(wxEVT_BUTTON, &ControllerConfigDiag::RefreshRealWiimotes, this);
+
+  m_real_wiimotes_sizer = new wxBoxSizer(wxHORIZONTAL);
+  m_real_wiimotes_sizer->Add(continuous_scanning, 0, wxALIGN_CENTER_VERTICAL);
+  m_real_wiimotes_sizer->AddStretchSpacer();
+  m_real_wiimotes_sizer->Add(wm_refresh_button, 0, wxALL | wxALIGN_CENTER, 5);
 
   real_wiimotes_group->Add(enable_passthrough, 0);
-  real_wiimotes_group->Add(real_wiimotes_sizer, 0, wxEXPAND);
+  real_wiimotes_group->Add(m_bt_passthrough_sizer, 0, wxEXPAND);
+  real_wiimotes_group->Add(m_real_wiimotes_sizer, 0, wxEXPAND);
 
   return real_wiimotes_group;
 }

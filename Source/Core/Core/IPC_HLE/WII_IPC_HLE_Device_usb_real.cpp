@@ -44,7 +44,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::UpdateSyncButtonState(const bool 
   if (!s_ignore_sync_button.IsSet() && is_held &&
       s_sync_button_held_timer.GetTimeDifference() > SYNC_BUTTON_HOLD_MS_TO_RESET)
   {
-    s_trigger_sync_button_reset.Set();
+    TriggerSyncButtonHeldEvent();
     s_ignore_sync_button.Set();
   }
   // Sync button was pressed and released
@@ -53,11 +53,21 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::UpdateSyncButtonState(const bool 
     // On a real Wii, holding the reset button for 15 seconds then releasing it
     // doesn't trigger a sync.
     if (!s_ignore_sync_button.IsSet())
-      s_trigger_sync_button.Set();
+      TriggerSyncButtonPressedEvent();
     s_ignore_sync_button.Clear();
   }
 
   s_is_sync_button_held.Set(is_held);
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TriggerSyncButtonPressedEvent()
+{
+  s_trigger_sync_button.Set();
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TriggerSyncButtonHeldEvent()
+{
+  s_trigger_sync_button_reset.Set();
 }
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CWII_IPC_HLE_Device_usb_oh1_57e_305_real(
@@ -141,8 +151,15 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
   // HCI commands to the Bluetooth adapter
   case USBV0_IOCTL_CTRLMSG:
   {
-    const CtrlMessage message(cmd_buffer);
-    SendHCICommandPacket(message);
+    const auto cmd = new CtrlMessage(cmd_buffer);
+    auto buffer = std::vector<u8>(cmd->length + LIBUSB_CONTROL_SETUP_SIZE);
+    libusb_fill_control_setup(buffer.data(), cmd->request_type, cmd->request, cmd->value,
+                              cmd->index, cmd->length);
+    Memory::CopyFromEmu(buffer.data() + LIBUSB_CONTROL_SETUP_SIZE, cmd->payload_addr, cmd->length);
+    libusb_transfer* transfer = libusb_alloc_transfer(0);
+    transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
+    libusb_fill_control_transfer(transfer, m_handle, buffer.data(), CommandCallback, cmd, 0);
+    libusb_submit_transfer(transfer);
     break;
   }
   // ACL data (incoming or outgoing) and incoming HCI events (respectively)
@@ -193,16 +210,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::DoState(PointerWrap& p)
     Core::DisplayMessage("State needs Bluetooth passthrough to be disabled. Aborting load.", 4000);
     p.SetMode(PointerWrap::MODE_VERIFY);
   }
-}
-
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCICommandPacket(const CtrlMessage& cmd)
-{
-  u8* packet = Memory::GetPointer(cmd.payload_addr);
-  const int ret = libusb_control_transfer(m_handle, cmd.request_type, cmd.request, cmd.value,
-                                          cmd.index, packet, cmd.length, TIMEOUT);
-  EnqueueReply(cmd.address);
-  if (ret < 0)
-    ERROR_LOG(WII_IPC_WIIMOTE, "Failed to send HCI command: %s", libusb_error_name(ret));
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIResetCommand()
@@ -297,7 +304,16 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::ThreadFunc()
   }
 }
 
-// This is called from libusb code on a separate thread.
+// The callbacks are called from libusb code on a separate thread.
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CommandCallback(libusb_transfer* tr)
+{
+  const auto* cmd = static_cast<CtrlMessage*>(tr->user_data);
+  if (tr->status != LIBUSB_TRANSFER_COMPLETED)
+    ERROR_LOG(WII_IPC_WIIMOTE, "libusb transfer failed, status: 0x%02x", tr->status);
+  EnqueueReply(cmd->address);
+  delete cmd;
+}
+
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer* tr)
 {
   const auto* ctrl = static_cast<CtrlBuffer*>(tr->user_data);
