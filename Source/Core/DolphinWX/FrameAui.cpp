@@ -297,9 +297,11 @@ void CFrame::DoFloatNotebookPage(wxWindowID Id)
     wxAuiNotebook* nb = GetNotebookFromId(i);
     if (nb->GetPageIndex(Win) != wxNOT_FOUND)
     {
-      nb->RemovePage(nb->GetPageIndex(Win));
+      // Set the selected tab manually so the window is drawn before reparenting the window
+      nb->SetSelection(nb->GetPageIndex(Win));
       // Create the parent frame and reparent the window
       CreateParentFrame(Win->GetId() + IDM_LOG_WINDOW_PARENT - IDM_LOG_WINDOW, Win->GetName(), Win);
+      nb->RemovePage(nb->GetPageIndex(Win));
       if (nb->GetPageCount() == 0)
         AddRemoveBlankPage();
     }
