@@ -95,14 +95,11 @@ private:
   u32 m_ACLSetup;
   CtrlBuffer m_ACLEndpoint;
 
-  static const int m_acl_pkt_size = 339;
-  static const int m_acl_pkts_num = 10;
-
   class ACLPool
   {
     struct Packet
     {
-      u8 data[m_acl_pkt_size];
+      u8 data[ACL_PKT_SIZE];
       u16 size;
       u16 conn_handle;
     };

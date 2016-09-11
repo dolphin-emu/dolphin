@@ -140,6 +140,12 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
   case USBV0_IOCTL_CTRLMSG:
   {
     auto cmd = std::make_unique<CtrlMessage>(cmd_buffer);
+    const u16 opcode = *reinterpret_cast<u16*>(Memory::GetPointer(cmd->payload_addr));
+    if (opcode == HCI_CMD_READ_BUFFER_SIZE)
+    {
+      m_fake_read_buffer_size_reply.Set();
+      return GetNoReply();
+    }
     auto buffer = std::vector<u8>(cmd->length + LIBUSB_CONTROL_SETUP_SIZE);
     libusb_fill_control_setup(buffer.data(), cmd->request_type, cmd->request, cmd->value,
                               cmd->index, cmd->length);
@@ -156,6 +162,11 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
   case USBV0_IOCTL_INTRMSG:
   {
     auto buffer = std::make_unique<CtrlBuffer>(cmd_buffer, command_address);
+    if (cmd_buffer.Parameter == USBV0_IOCTL_INTRMSG && m_fake_read_buffer_size_reply.TestAndClear())
+    {
+      FakeReadBufferSizeReply(*buffer);
+      return GetNoReply();
+    }
     if (cmd_buffer.Parameter == USBV0_IOCTL_INTRMSG &&
         m_sync_button_state == SyncButtonState::Pressed)
     {
@@ -239,6 +250,32 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIResetCommand()
   memcpy(packet, payload, sizeof(payload));
   libusb_control_transfer(m_handle, type, 0, 0, 0, packet, sizeof(packet), TIMEOUT);
   INFO_LOG(WII_IPC_WIIMOTE, "Sent a reset command to adapter");
+}
+
+// Due to how the widcomm stack which Nintendo uses is coded, we must never
+// let the stack think the controller is buffering more than 10 data packets
+// - it will cause a u8 underflow and royally screw things up.
+// Therefore, the reply to this command has to be faked to avoid random, weird issues
+// (including Wiimote disconnects and "event mismatch" warning messages).
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeReadBufferSizeReply(const CtrlBuffer& ctrl)
+{
+  u8* packet = Memory::GetPointer(ctrl.m_payload_addr);
+  auto* hci_event = reinterpret_cast<SHCIEventCommand*>(packet);
+  hci_event->EventType = HCI_EVENT_COMMAND_COMPL;
+  hci_event->PayloadLength = sizeof(SHCIEventCommand) - 2 + sizeof(hci_read_buffer_size_rp);
+  hci_event->PacketIndicator = 0x01;
+  hci_event->Opcode = HCI_CMD_READ_BUFFER_SIZE;
+
+  hci_read_buffer_size_rp reply;
+  reply.status = 0x00;
+  reply.max_acl_size = ACL_PKT_SIZE;
+  reply.num_acl_pkts = ACL_PKT_NUM;
+  reply.max_sco_size = SCO_PKT_SIZE;
+  reply.num_sco_pkts = SCO_PKT_NUM;
+
+  memcpy(packet + sizeof(SHCIEventCommand), &reply, sizeof(hci_read_buffer_size_rp));
+  ctrl.SetRetVal(sizeof(SHCIEventCommand) + sizeof(hci_read_buffer_size_rp));
+  EnqueueReply(ctrl.m_cmd_address);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonEvent(const CtrlBuffer& ctrl,

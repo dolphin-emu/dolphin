@@ -64,7 +64,11 @@ private:
   Common::Flag m_thread_running;
   std::thread m_thread;
 
+  // Set when we received a command to read the buffer size, and we need to fake a reply
+  Common::Flag m_fake_read_buffer_size_reply;
+
   void SendHCIResetCommand();
+  void FakeReadBufferSizeReply(const CtrlBuffer& ctrl);
   void FakeSyncButtonEvent(const CtrlBuffer& ctrl, const u8* payload, u8 size);
   void FakeSyncButtonPressedEvent(const CtrlBuffer& ctrl);
   void FakeSyncButtonHeldEvent(const CtrlBuffer& ctrl);
