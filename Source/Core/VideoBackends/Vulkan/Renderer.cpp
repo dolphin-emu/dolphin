@@ -337,8 +337,18 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   // Native -> EFB coordinates
   TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);
 
+  // Determine whether the EFB has an alpha channel. If it doesn't, we can clear the alpha
+  // channel to 0xFF. This hopefully allows us to use the fast path in most cases.
+  if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16 ||
+      bpmem.zcontrol.pixel_format == PEControl::RGB8_Z24 ||
+      bpmem.zcontrol.pixel_format == PEControl::Z24)
+  {
+    // Force alpha writes, and set the color to 0xFF.
+    alpha_enable = true;
+    color |= 0xFF000000;
+  }
+
   // Fast path: when both color and alpha are enabled, we can blow away the entire buffer
-  // TODO: Can we also do it when the buffer is not an RGBA format?
   VkClearAttachment clear_attachments[2];
   uint32_t num_clear_attachments = 0;
   if (color_enable && alpha_enable)
