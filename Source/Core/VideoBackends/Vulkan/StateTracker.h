@@ -35,7 +35,8 @@ public:
   void SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset);
   void SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexType type);
 
-  void SetRenderPass(VkRenderPass render_pass);
+  void SetRenderPass(VkRenderPass load_render_pass, VkRenderPass clear_render_pass);
+
   void SetFramebuffer(VkFramebuffer framebuffer, const VkRect2D& render_area);
 
   void SetVertexFormat(const VertexFormat* vertex_format);
@@ -76,6 +77,10 @@ public:
   void BeginRenderPass();
   void EndRenderPass();
 
+  // Ends the current render pass if it was a clear render pass.
+  void BeginClearRenderPass(const VkRect2D& area, const VkClearValue clear_values[2]);
+  void EndClearRenderPass();
+
   void SetViewport(const VkViewport& viewport);
   void SetScissor(const VkRect2D& scissor);
 
@@ -96,7 +101,12 @@ public:
   // Use when queries are active.
   void SetBackgroundCommandBufferExecution(bool enabled);
 
+  bool IsWithinRenderArea(s32 x, s32 y, u32 width, u32 height) const;
+
 private:
+  // Check that the specified viewport is within the render area.
+  // If not, ends the render pass if it is a clear render pass.
+  bool IsViewportWithinRenderArea() const;
   bool UpdatePipeline();
   bool UpdateDescriptorSet();
   void UploadAllConstants();
@@ -162,8 +172,11 @@ private:
   std::unique_ptr<StreamBuffer> m_uniform_stream_buffer;
 
   VkFramebuffer m_framebuffer = VK_NULL_HANDLE;
+  VkRenderPass m_load_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_clear_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_current_render_pass = VK_NULL_HANDLE;
+  VkRect2D m_framebuffer_size = {};
   VkRect2D m_framebuffer_render_area = {};
-  bool m_in_render_pass = false;
   bool m_bbox_enabled = false;
 
   // CPU access tracking
