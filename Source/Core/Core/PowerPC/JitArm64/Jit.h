@@ -238,9 +238,6 @@ private:
   void ComputeCarry(bool Carry);
   void ComputeCarry();
 
-  typedef u32 (*Operation)(u32, u32);
-  void reg_imm(u32 d, u32 a, u32 value, Operation do_op,
-               void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg,
-                                         ArithOption),
-               bool Rc = false);
+  void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
+               void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc = false);
 };
