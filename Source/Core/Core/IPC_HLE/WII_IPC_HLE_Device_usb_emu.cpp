@@ -521,7 +521,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ACLPool::Store(const u8* data, con
     return;
   }
 
-  _dbg_assert_msg_(WII_IPC_WIIMOTE, size < m_acl_pkt_size, "ACL packet too large for pool");
+  _dbg_assert_msg_(WII_IPC_WIIMOTE, size < ACL_PKT_SIZE, "ACL packet too large for pool");
 
   m_queue.push_back(Packet());
   auto& packet = m_queue.back();
@@ -1824,13 +1824,13 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CommandReadBufferSize(const u8* in
 {
   hci_read_buffer_size_rp reply;
   reply.status = 0x00;
-  reply.max_acl_size = m_acl_pkt_size;
+  reply.max_acl_size = ACL_PKT_SIZE;
   // Due to how the widcomm stack which Nintendo uses is coded, we must never
   // let the stack think the controller is buffering more than 10 data packets
   // - it will cause a u8 underflow and royally screw things up.
-  reply.num_acl_pkts = m_acl_pkts_num;
-  reply.max_sco_size = 64;
-  reply.num_sco_pkts = 0;
+  reply.num_acl_pkts = ACL_PKT_NUM;
+  reply.max_sco_size = SCO_PKT_SIZE;
+  reply.num_sco_pkts = SCO_PKT_NUM;
 
   INFO_LOG(WII_IPC_WIIMOTE, "Command: HCI_CMD_READ_BUFFER_SIZE:");
   DEBUG_LOG(WII_IPC_WIIMOTE, "return:");
