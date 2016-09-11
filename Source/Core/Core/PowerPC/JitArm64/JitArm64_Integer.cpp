@@ -255,37 +255,37 @@ void JitArm64::boolX(UGeckoInstruction inst)
     gpr.BindToRegister(a, (a == s) || (a == b));
     if (inst.SUBOP10 == 28)  // andx
     {
-      AND(gpr.R(a), gpr.R(s), gpr.R(b), ArithOption(gpr.R(a), ST_LSL, 0));
+      AND(gpr.R(a), gpr.R(s), gpr.R(b));
     }
     else if (inst.SUBOP10 == 476)  // nandx
     {
-      AND(gpr.R(a), gpr.R(s), gpr.R(b), ArithOption(gpr.R(a), ST_LSL, 0));
+      AND(gpr.R(a), gpr.R(s), gpr.R(b));
       MVN(gpr.R(a), gpr.R(a));
     }
     else if (inst.SUBOP10 == 60)  // andcx
     {
-      BIC(gpr.R(a), gpr.R(s), gpr.R(b), ArithOption(gpr.R(a), ST_LSL, 0));
+      BIC(gpr.R(a), gpr.R(s), gpr.R(b));
     }
     else if (inst.SUBOP10 == 444)  // orx
     {
-      ORR(gpr.R(a), gpr.R(s), gpr.R(b), ArithOption(gpr.R(a), ST_LSL, 0));
+      ORR(gpr.R(a), gpr.R(s), gpr.R(b));
     }
     else if (inst.SUBOP10 == 124)  // norx
     {
-      ORR(gpr.R(a), gpr.R(s), gpr.R(b), ArithOption(gpr.R(a), ST_LSL, 0));
+      ORR(gpr.R(a), gpr.R(s), gpr.R(b));
       MVN(gpr.R(a), gpr.R(a));
     }
     else if (inst.SUBOP10 == 412)  // orcx
     {
-      ORN(gpr.R(a), gpr.R(s), gpr.R(b), ArithOption(gpr.R(a), ST_LSL, 0));
+      ORN(gpr.R(a), gpr.R(s), gpr.R(b));
     }
     else if (inst.SUBOP10 == 316)  // xorx
     {
-      EOR(gpr.R(a), gpr.R(s), gpr.R(b), ArithOption(gpr.R(a), ST_LSL, 0));
+      EOR(gpr.R(a), gpr.R(s), gpr.R(b));
     }
     else if (inst.SUBOP10 == 284)  // eqvx
     {
-      EON(gpr.R(a), gpr.R(b), gpr.R(s), ArithOption(gpr.R(a), ST_LSL, 0));
+      EON(gpr.R(a), gpr.R(b), gpr.R(s));
     }
     else
     {
@@ -401,7 +401,7 @@ void JitArm64::negx(UGeckoInstruction inst)
   else
   {
     gpr.BindToRegister(d, d == a);
-    SUB(gpr.R(d), WSP, gpr.R(a), ArithOption(gpr.R(a), ST_LSL, 0));
+    SUB(gpr.R(d), WSP, gpr.R(a));
     if (inst.Rc)
       ComputeRC(gpr.R(d), 0);
   }
@@ -675,8 +675,11 @@ void JitArm64::addic(UGeckoInstruction inst)
     else
     {
       ARM64Reg WA = gpr.GetReg();
-      MOVI2R(WA, imm);
-      ADDS(gpr.R(d), gpr.R(a), WA);
+      MOVI2R(WA, std::abs(simm));
+      if (simm < 0)
+        SUBS(gpr.R(d), gpr.R(a), WA);
+      else
+        ADDS(gpr.R(d), gpr.R(a), WA);
       gpr.Unlock(WA);
     }
 
