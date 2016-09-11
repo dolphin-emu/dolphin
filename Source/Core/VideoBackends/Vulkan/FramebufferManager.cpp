@@ -137,9 +137,19 @@ bool FramebufferManager::CreateEFBRenderPass()
                                       0,
                                       nullptr};
 
-  VkResult res =
-      vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr, &m_efb_render_pass);
+  VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr,
+                                    &m_efb_load_render_pass);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateRenderPass (EFB) failed: ");
+    return false;
+  }
 
+  // render pass for clearing color/depth on load, as opposed to loading it
+  attachments[0].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+  attachments[1].loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+  res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr,
+                           &m_efb_clear_render_pass);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateRenderPass (EFB) failed: ");
@@ -189,10 +199,10 @@ bool FramebufferManager::CreateEFBRenderPass()
 
 void FramebufferManager::DestroyEFBRenderPass()
 {
-  if (m_efb_render_pass != VK_NULL_HANDLE)
+  if (m_efb_load_render_pass != VK_NULL_HANDLE)
   {
-    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_efb_render_pass, nullptr);
-    m_efb_render_pass = VK_NULL_HANDLE;
+    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_efb_load_render_pass, nullptr);
+    m_efb_load_render_pass = VK_NULL_HANDLE;
   }
 
   if (m_depth_resolve_render_pass != VK_NULL_HANDLE)
@@ -280,7 +290,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
   VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                                               nullptr,
                                               0,
-                                              m_efb_render_pass,
+                                              m_efb_load_render_pass,
                                               static_cast<u32>(ArraySize(framebuffer_attachments)),
                                               framebuffer_attachments,
                                               m_efb_width,
@@ -398,7 +408,7 @@ void FramebufferManager::ReinterpretPixelData(int convtype)
                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(), m_efb_render_pass,
+                         g_object_cache->GetStandardPipelineLayout(), m_efb_load_render_pass,
                          g_object_cache->GetScreenQuadVertexShader(),
                          g_object_cache->GetScreenQuadGeometryShader(), pixel_shader);
 
@@ -1136,7 +1146,7 @@ void FramebufferManager::DrawPokeVertices(StateTracker* state_tracker,
   pipeline_info.vs = m_poke_vertex_shader;
   pipeline_info.gs = (m_efb_layers > 1) ? m_poke_geometry_shader : VK_NULL_HANDLE;
   pipeline_info.ps = m_poke_fragment_shader;
-  pipeline_info.render_pass = m_efb_render_pass;
+  pipeline_info.render_pass = m_efb_load_render_pass;
   pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
   pipeline_info.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
   pipeline_info.blend_state.bits = Util::GetNoBlendingBlendState().bits;
@@ -1184,6 +1194,7 @@ void FramebufferManager::DrawPokeVertices(StateTracker* state_tracker,
   m_poke_vertex_stream_buffer->CommitMemory(vertices_size);
 
   // Set up state.
+  state_tracker->EndClearRenderPass();
   state_tracker->BeginRenderPass();
   state_tracker->SetPendingRebind();
   Util::SetViewportAndScissor(command_buffer, 0, 0, m_efb_width, m_efb_height);
