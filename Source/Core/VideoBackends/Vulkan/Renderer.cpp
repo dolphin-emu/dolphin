@@ -336,6 +336,18 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 {
   // Native -> EFB coordinates
   TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);
+  VkRect2D target_vk_rc = {
+      {target_rc.left, target_rc.top},
+      {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
+
+  // Convert RGBA8 -> floating-point values.
+  VkClearValue clear_color_value = {};
+  VkClearValue clear_depth_value = {};
+  clear_color_value.color.float32[0] = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
+  clear_color_value.color.float32[1] = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
+  clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
+  clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
+  clear_depth_value.depthStencil.depth = (1.0f - (static_cast<float>(z & 0xFFFFFF) / 16777216.0f));
 
   // Determine whether the EFB has an alpha channel. If it doesn't, we can clear the alpha
   // channel to 0xFF. This hopefully allows us to use the fast path in most cases.
@@ -348,55 +360,71 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
     color |= 0xFF000000;
   }
 
-  // Fast path: when both color and alpha are enabled, we can blow away the entire buffer
-  VkClearAttachment clear_attachments[2];
-  uint32_t num_clear_attachments = 0;
-  if (color_enable && alpha_enable)
+  // If we're not in a render pass (start of the frame), we can use a clear render pass
+  // to discard the data, rather than loading and then clearing.
+  bool use_clear_render_pass = (color_enable && alpha_enable && z_enable);
+  if (m_state_tracker->InRenderPass())
   {
-    clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-    clear_attachments[num_clear_attachments].colorAttachment = 0;
-    clear_attachments[num_clear_attachments].clearValue.color.float32[0] =
-        float((color >> 16) & 0xFF) / 255.0f;
-    clear_attachments[num_clear_attachments].clearValue.color.float32[1] =
-        float((color >> 8) & 0xFF) / 255.0f;
-    clear_attachments[num_clear_attachments].clearValue.color.float32[2] =
-        float((color >> 0) & 0xFF) / 255.0f;
-    clear_attachments[num_clear_attachments].clearValue.color.float32[3] =
-        float((color >> 24) & 0xFF) / 255.0f;
-    num_clear_attachments++;
-    color_enable = false;
-    alpha_enable = false;
-  }
-  if (z_enable)
-  {
-    clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
-    clear_attachments[num_clear_attachments].colorAttachment = 0;
-    clear_attachments[num_clear_attachments].clearValue.depthStencil.depth =
-        1.0f - (float(z & 0xFFFFFF) / 16777216.0f);
-    clear_attachments[num_clear_attachments].clearValue.depthStencil.stencil = 0;
-    num_clear_attachments++;
-    z_enable = false;
-  }
-  if (num_clear_attachments > 0)
-  {
-    VkClearRect rect = {};
-    rect.rect.offset = {target_rc.left, target_rc.top};
-    rect.rect.extent = {static_cast<uint32_t>(target_rc.GetWidth()),
-                        static_cast<uint32_t>(target_rc.GetHeight())};
-
-    rect.baseArrayLayer = 0;
-    rect.layerCount = m_framebuffer_mgr->GetEFBLayers();
-
-    m_state_tracker->BeginRenderPass();
-
-    vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments,
-                          clear_attachments, 1, &rect);
+    // Prefer not to end a render pass just to do a clear.
+    use_clear_render_pass = false;
   }
 
+  // Fastest path: Use a render pass to clear the buffers.
+  if (use_clear_render_pass)
+  {
+    VkClearValue clear_values[2] = {clear_color_value, clear_depth_value};
+    m_state_tracker->BeginClearRenderPass(target_vk_rc, clear_values);
+    return;
+  }
+
+  // Fast path: Use vkCmdClearAttachments to clear the buffers within a render path
+  // We can't use this when preserving alpha but clearing color.
+  {
+    VkClearAttachment clear_attachments[2];
+    uint32_t num_clear_attachments = 0;
+    if (color_enable && alpha_enable)
+    {
+      clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+      clear_attachments[num_clear_attachments].colorAttachment = 0;
+      clear_attachments[num_clear_attachments].clearValue = clear_color_value;
+      num_clear_attachments++;
+      color_enable = false;
+      alpha_enable = false;
+    }
+    if (z_enable)
+    {
+      clear_attachments[num_clear_attachments].aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+      clear_attachments[num_clear_attachments].colorAttachment = 0;
+      clear_attachments[num_clear_attachments].clearValue = clear_depth_value;
+      num_clear_attachments++;
+      z_enable = false;
+    }
+    if (num_clear_attachments > 0)
+    {
+      VkClearRect clear_rect = {target_vk_rc, 0, m_framebuffer_mgr->GetEFBLayers()};
+      if (!m_state_tracker->IsWithinRenderArea(target_vk_rc.offset.x, target_vk_rc.offset.y,
+                                               target_vk_rc.extent.width,
+                                               target_vk_rc.extent.height))
+      {
+        m_state_tracker->EndClearRenderPass();
+      }
+      m_state_tracker->BeginRenderPass();
+
+      vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments,
+                            clear_attachments, 1, &clear_rect);
+    }
+  }
+
+  // Anything left over for the slow path?
   if (!color_enable && !alpha_enable && !z_enable)
     return;
 
   // Clearing must occur within a render pass.
+  if (!m_state_tracker->IsWithinRenderArea(target_vk_rc.offset.x, target_vk_rc.offset.y,
+                                           target_vk_rc.extent.width, target_vk_rc.extent.height))
+  {
+    m_state_tracker->EndClearRenderPass();
+  }
   m_state_tracker->BeginRenderPass();
   m_state_tracker->SetPendingRebind();
 
@@ -421,21 +449,17 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   // No need to start a new render pass, but we do need to restore viewport state
   UtilityShaderDraw draw(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), g_object_cache->GetStandardPipelineLayout(),
-      m_framebuffer_mgr->GetEFBRenderPass(), g_object_cache->GetPassthroughVertexShader(),
+      m_framebuffer_mgr->GetEFBLoadRenderPass(), g_object_cache->GetPassthroughVertexShader(),
       g_object_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
 
   draw.SetRasterizationState(rs_state);
   draw.SetDepthStencilState(depth_state);
   draw.SetBlendState(blend_state);
 
-  float vertex_r = float((color >> 16) & 0xFF) / 255.0f;
-  float vertex_g = float((color >> 8) & 0xFF) / 255.0f;
-  float vertex_b = float((color >> 0) & 0xFF) / 255.0f;
-  float vertex_a = float((color >> 24) & 0xFF) / 255.0f;
-  float vertex_z = 1.0f - (float(z & 0xFFFFFF) / 16777216.0f);
-
   draw.DrawColoredQuad(target_rc.left, target_rc.top, target_rc.GetWidth(), target_rc.GetHeight(),
-                       vertex_r, vertex_g, vertex_b, vertex_a, vertex_z);
+                       clear_color_value.color.float32[0], clear_color_value.color.float32[1],
+                       clear_color_value.color.float32[2], clear_color_value.color.float32[3],
+                       clear_depth_value.depthStencil.depth);
 }
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
@@ -952,10 +976,11 @@ void Renderer::OnSwapChainResized()
 void Renderer::BindEFBToStateTracker()
 {
   // Update framebuffer in state tracker
-  VkRect2D framebuffer_render_area = {
+  VkRect2D framebuffer_size = {
       {0, 0}, {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
-  m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBRenderPass());
-  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_render_area);
+  m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBLoadRenderPass(),
+                                 m_framebuffer_mgr->GetEFBClearRenderPass());
+  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_size);
 
   // Update rasterization state with MSAA info
   RasterizationState rs_state = {};

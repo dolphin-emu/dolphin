@@ -111,24 +111,28 @@ void StateTracker::SetIndexBuffer(VkBuffer buffer, VkDeviceSize offset, VkIndexT
   m_dirty_flags |= DIRTY_FLAG_INDEX_BUFFER;
 }
 
-void StateTracker::SetRenderPass(VkRenderPass render_pass)
+void StateTracker::SetRenderPass(VkRenderPass load_render_pass, VkRenderPass clear_render_pass)
 {
   // Should not be changed within a render pass.
-  assert(!m_in_render_pass);
+  _assert_(!InRenderPass());
 
-  if (m_pipeline_state.render_pass == render_pass)
-    return;
+  // The clear and load render passes are compatible, so we don't need to change our pipeline.
+  if (m_pipeline_state.render_pass != load_render_pass)
+  {
+    m_pipeline_state.render_pass = load_render_pass;
+    m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+  }
 
-  m_pipeline_state.render_pass = render_pass;
-  m_dirty_flags |= DIRTY_FLAG_PIPELINE;
+  m_load_render_pass = load_render_pass;
+  m_clear_render_pass = clear_render_pass;
 }
 
 void StateTracker::SetFramebuffer(VkFramebuffer framebuffer, const VkRect2D& render_area)
 {
   // Should not be changed within a render pass.
-  assert(!m_in_render_pass);
+  _assert_(!InRenderPass());
   m_framebuffer = framebuffer;
-  m_framebuffer_render_area = render_area;
+  m_framebuffer_size = render_area;
 }
 
 void StateTracker::SetVertexFormat(const VertexFormat* vertex_format)
@@ -508,12 +512,15 @@ void StateTracker::SetPendingRebind()
 
 void StateTracker::BeginRenderPass()
 {
-  if (m_in_render_pass)
+  if (InRenderPass())
     return;
+
+  m_current_render_pass = m_load_render_pass;
+  m_framebuffer_render_area = m_framebuffer_size;
 
   VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
                                       nullptr,
-                                      m_pipeline_state.render_pass,
+                                      m_current_render_pass,
                                       m_framebuffer,
                                       m_framebuffer_render_area,
                                       0,
@@ -521,17 +528,34 @@ void StateTracker::BeginRenderPass()
 
   vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
                        VK_SUBPASS_CONTENTS_INLINE);
-
-  m_in_render_pass = true;
 }
 
 void StateTracker::EndRenderPass()
 {
-  if (!m_in_render_pass)
+  if (!InRenderPass())
     return;
 
   vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
-  m_in_render_pass = false;
+  m_current_render_pass = nullptr;
+}
+
+void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue clear_values[2])
+{
+  _assert_(!InRenderPass());
+
+  m_current_render_pass = m_clear_render_pass;
+  m_framebuffer_render_area = area;
+
+  VkRenderPassBeginInfo begin_info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+                                      nullptr,
+                                      m_current_render_pass,
+                                      m_framebuffer,
+                                      m_framebuffer_render_area,
+                                      2,
+                                      clear_values};
+
+  vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &begin_info,
+                       VK_SUBPASS_CONTENTS_INLINE);
 }
 
 void StateTracker::SetViewport(const VkViewport& viewport)
@@ -554,6 +578,10 @@ void StateTracker::SetScissor(const VkRect2D& scissor)
 
 bool StateTracker::Bind(bool rebind_all /*= false*/)
 {
+  // Check the render area if we were in a clear pass.
+  if (m_current_render_pass == m_clear_render_pass && !IsViewportWithinRenderArea())
+    EndRenderPass();
+
   // Get new pipeline object if any parts have changed
   if (m_dirty_flags & DIRTY_FLAG_PIPELINE && !UpdatePipeline())
   {
@@ -580,7 +608,7 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   }
 
   // Start render pass if not already started
-  if (!m_in_render_pass)
+  if (!InRenderPass())
     BeginRenderPass();
 
   // Re-bind parts of the pipeline
@@ -705,6 +733,38 @@ void StateTracker::OnEndFrame()
 void StateTracker::SetBackgroundCommandBufferExecution(bool enabled)
 {
   m_allow_background_execution = enabled;
+}
+
+bool StateTracker::IsWithinRenderArea(s32 x, s32 y, u32 width, u32 height) const
+{
+  // Check that the viewport does not lie outside the render area.
+  // If it does, we need to switch to a normal load/store render pass.
+  s32 left = m_framebuffer_render_area.offset.x;
+  s32 top = m_framebuffer_render_area.offset.y;
+  s32 right = left + static_cast<s32>(m_framebuffer_render_area.extent.width);
+  s32 bottom = top + static_cast<s32>(m_framebuffer_render_area.extent.height);
+  s32 test_left = x;
+  s32 test_top = y;
+  s32 test_right = test_left + static_cast<s32>(width);
+  s32 test_bottom = test_top + static_cast<s32>(height);
+  return test_left >= left && test_right <= right && test_top >= top && test_bottom <= bottom;
+}
+
+bool StateTracker::IsViewportWithinRenderArea() const
+{
+  return IsWithinRenderArea(static_cast<s32>(m_viewport.x), static_cast<s32>(m_viewport.y),
+                            static_cast<u32>(m_viewport.width),
+                            static_cast<u32>(m_viewport.height));
+}
+
+void StateTracker::EndClearRenderPass()
+{
+  if (m_current_render_pass != m_clear_render_pass)
+    return;
+
+  // End clear render pass. Bind() will call BeginRenderPass() which
+  // will switch to the load/store render pass.
+  EndRenderPass();
 }
 
 bool StateTracker::UpdatePipeline()
