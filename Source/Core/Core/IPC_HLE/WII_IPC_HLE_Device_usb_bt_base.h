@@ -28,6 +28,11 @@ public:
   virtual void TriggerSyncButtonPressedEvent() {}
   virtual void TriggerSyncButtonHeldEvent() {}
 protected:
+  static constexpr int ACL_PKT_SIZE = 339;
+  static constexpr int ACL_PKT_NUM = 10;
+  static constexpr int SCO_PKT_SIZE = 64;
+  static constexpr int SCO_PKT_NUM = 0;
+
   enum USBIOCtl
   {
     USBV0_IOCTL_CTRLMSG = 0,
