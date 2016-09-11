@@ -104,7 +104,8 @@ enum Bug
   // Ended Version: -1
   // Both Adreno and Mali have issues when you call glBufferSubData or glMapBufferRange
   // The driver stalls in each instance no matter what you do
-  // Apparently Mali and Adreno share code in this regard since it was wrote by the same person.
+  // Apparently Mali and Adreno share code in this regard since they were written by the same
+  // person.
   BUG_BROKENBUFFERSTREAM,
   // Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams
   // Affected devices: GeForce 4xx+
@@ -153,8 +154,8 @@ enum Bug
   // This bug has a secondary issue tied to it unlike other bugs.
   // The correction of this bug is to check the boolean value against false which results in us
   // not doing a negation of the source but instead checking against the boolean value we want.
-  // The issue with this is that Intel's Window driver is broken when checking if a boolean value is
-  // equal to true or false, so one has to do a boolean negation of the source
+  // The issue with this is that Intel's Windows driver is broken when checking if a boolean value
+  // is equal to true or false, so one has to do a boolean negation of the source
   //
   // eg.
   // Broken on Qualcomm
@@ -198,7 +199,7 @@ enum Bug
   // Started Version: -1
   // Ended Version: -1
   // Our ARB_buffer_storage code uses explicit flush to avoid coherent mapping.
-  // Qualcomm seems to have lots of overhead on exlicit flushing, but the coherent mapping path is
+  // Qualcomm seems to have lots of overhead on explicit flushing, but the coherent mapping path is
   // fine.
   // So let's use coherent mapping there.
   BUG_BROKENEXPLICITFLUSH,

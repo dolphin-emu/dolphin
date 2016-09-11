@@ -295,7 +295,7 @@ void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
 
   UnlinkBlock(block_num);
 
-  // Delete linking adresses
+  // Delete linking addresses
   auto it = links_to.equal_range(b.effectiveAddress);
   while (it.first != it.second)
   {

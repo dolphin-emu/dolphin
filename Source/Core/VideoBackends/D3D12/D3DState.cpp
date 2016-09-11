@@ -133,7 +133,7 @@ void StateCache::Init()
   // Root signature isn't available at time of StateCache construction, so fill it in now.
   gx_state_cache.m_current_pso_desc.pRootSignature = D3D::default_root_signature;
 
-  // Multi-sample configuration isn't available at time of StateCache construction, so fille it in
+  // Multi-sample configuration isn't available at time of StateCache construction, so fill it in
   // now.
   gx_state_cache.m_current_pso_desc.SampleDesc.Count = g_ActiveConfig.iMultisamples;
   gx_state_cache.m_current_pso_desc.SampleDesc.Quality = 0;
@@ -154,7 +154,8 @@ void StateCache::Init()
     // - The file itself is corrupt.
     // - A driver/HW change has occurred, causing the existing cache blobs to be invalid.
     //
-    // In either case, we want to re-create the disk cache. This should not be a frequent occurence.
+    // In either case, we want to re-create the disk cache. This should not be a frequent
+    // occurrence.
 
     s_pso_disk_cache.Close();
 

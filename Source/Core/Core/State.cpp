@@ -75,7 +75,7 @@ static const u32 STATE_VERSION = 65;  // Last changed in PR 4120
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
-// beacuse they save the exact Dolphin version to savestates.
+// because they save the exact Dolphin version to savestates.
 static const std::map<u32, std::pair<std::string, std::string>> s_old_versions = {
     // The 16 -> 17 change modified the size of StateHeader,
     // so versions older than that can't even be decompressed anymore
