@@ -23,8 +23,10 @@
 #include "DolphinWX/Debugger/CodeView.h"
 #include "DolphinWX/Debugger/DSPDebugWindow.h"
 #include "DolphinWX/Debugger/DSPRegisterView.h"
+#include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/MemoryView.h"
 #include "DolphinWX/WxUtils.h"
+#include "wx/aui/dockart.h"
 
 static DSPDebuggerLLE* m_DebuggerFrame = nullptr;
 
@@ -97,6 +99,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
   m_mgr.AddPane(m_Regs,
                 wxAuiPaneInfo().Right().CloseButton(false).Caption(_("Registers")).Dockable(true));
 
+  m_mgr.GetArtProvider()->SetFont(wxAUI_DOCKART_CAPTION_FONT, DebuggerFont);
   UpdateState();
 
   m_mgr.Update();
