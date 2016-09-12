@@ -28,17 +28,27 @@ void JitArm64::GenerateAsm()
 
   MOVP2R(PPC_REG, &PowerPC::ppcState);
 
-  // Load the current PC into DISPATCHER_PC
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
-  FixupBranch to_dispatcher = B();
+  // The PC will be loaded into DISPATCHER_PC after the call to CoreTiming::Advance().
+  // Advance() does an exception check so we don't know what PC to use until afterwards.
+  FixupBranch to_start_of_timing_slice = B();
 
   // If we align the dispatcher to a page then we can load its location with one ADRP instruction
+  // do
+  // {
+  //   CoreTiming::Advance();  // <-- Checks for exceptions (changes PC)
+  //   DISPATCHER_PC = PC;
+  //   do
+  //   {
+  // dispatcherNoCheck:
+  //     ExecuteBlock(JitBase::Dispatch());
+  // dispatcher:
+  //   } while (PowerPC::ppcState.downcount > 0);
+  // doTiming:
+  //   NPC = PC = DISPATCHER_PC;
+  // } while (CPU::GetState() == CPU::CPU_RUNNING);
   AlignCodePage();
   dispatcher = GetCodePtr();
   WARN_LOG(DYNA_REC, "Dispatcher is %p\n", dispatcher);
-
-  SetJumpTarget(to_dispatcher);
 
   // Downcount Check
   // The result of slice decrementation should be in flags if somebody jumped here
@@ -119,12 +129,6 @@ void JitArm64::GenerateAsm()
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
-  MOVP2R(X30, &CoreTiming::Advance);
-  BLR(X30);
-
-  // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
   MOVP2R(X0, CPU::GetStatePtr());
@@ -133,11 +137,17 @@ void JitArm64::GenerateAsm()
   CMP(W0, 0);
   FixupBranch Exit = B(CC_NEQ);
 
-  B(dispatcher);
+  SetJumpTarget(to_start_of_timing_slice);
+  MOVP2R(X30, &CoreTiming::Advance);
+  BLR(X30);
+
+  // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
+  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
+  // We can safely assume that downcount >= 1
+  B(dispatcherNoCheck);
 
   SetJumpTarget(Exit);
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
   ABI_PopRegisters(regs_to_save);
   RET(X30);
 
