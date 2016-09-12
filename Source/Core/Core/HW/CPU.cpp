@@ -92,10 +92,12 @@ void Run()
         if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
 #endif
         {
+          s_state = CPU_STEPPING;
           PowerPC::CoreMode old_mode = PowerPC::GetMode();
           PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
           PowerPC::SingleStep();
           PowerPC::SetMode(old_mode);
+          s_state = CPU_RUNNING;
         }
       }
 
