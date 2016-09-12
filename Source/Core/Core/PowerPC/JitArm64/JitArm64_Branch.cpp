@@ -103,7 +103,7 @@ void JitArm64::bx(UGeckoInstruction inst)
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);
 
-    MOVI2R(XA, (u64)&CoreTiming::Idle);
+    MOVP2R(XA, &CoreTiming::Idle);
     BLR(XA);
     gpr.Unlock(WA);
 

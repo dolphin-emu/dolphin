@@ -616,7 +616,7 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
     ARM64Reg XA = EncodeRegTo64(WA);
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg XB = EncodeRegTo64(WB);
-    MOVI2R(XB, (u64)m_crTable);
+    MOVP2R(XB, m_crTable);
     for (int i = 0; i < 8; ++i)
     {
       if ((crm & (0x80 >> i)) != 0)

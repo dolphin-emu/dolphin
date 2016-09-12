@@ -52,7 +52,7 @@ private:
 
   void WriteRegToAddr(int sbits, const void* ptr, u32 mask)
   {
-    m_emit->MOVI2R(X0, (u64)ptr);
+    m_emit->MOVP2R(X0, ptr);
 
     // If we do not need to mask, we can do the sign extend while loading
     // from memory. If masking is required, we have to first zero extend,
@@ -146,7 +146,7 @@ private:
 
   void LoadAddrMaskToReg(int sbits, const void* ptr, u32 mask)
   {
-    m_emit->MOVI2R(X0, (u64)ptr);
+    m_emit->MOVP2R(X0, ptr);
 
     // If we do not need to mask, we can do the sign extend while loading
     // from memory. If masking is required, we have to first zero extend,

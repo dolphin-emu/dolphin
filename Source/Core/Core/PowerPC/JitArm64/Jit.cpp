@@ -95,7 +95,7 @@ void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
 
   Interpreter::Instruction instr = GetInterpreterOp(inst);
   MOVI2R(W0, inst.hex);
-  MOVI2R(X30, (u64)instr);
+  MOVP2R(X30, instr);
   BLR(X30);
 
   if (js.op->opinfo->flags & FL_ENDBLOCK)
@@ -129,7 +129,7 @@ void JitArm64::HLEFunction(UGeckoInstruction inst)
 
   MOVI2R(W0, js.compilerPC);
   MOVI2R(W1, inst.hex);
-  MOVI2R(X30, (u64)&HLE::Execute);
+  MOVP2R(X30, &HLE::Execute);
   BLR(X30);
 
   ARM64Reg WA = gpr.GetReg();
@@ -153,7 +153,7 @@ void JitArm64::Cleanup()
   if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
   {
     gpr.Lock(W0);
-    MOVI2R(X0, (u64)&GPFifo::FastCheckGatherPipe);
+    MOVP2R(X0, &GPFifo::FastCheckGatherPipe);
     BLR(X0);
     gpr.Unlock(W0);
   }
@@ -227,9 +227,9 @@ void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
   if (only_external)
-    MOVI2R(X30, (u64)&PowerPC::CheckExternalExceptions);
+    MOVP2R(X30, &PowerPC::CheckExternalExceptions);
   else
-    MOVI2R(X30, (u64)&PowerPC::CheckExceptions);
+    MOVP2R(X30, &PowerPC::CheckExceptions);
   BLR(X30);
   LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
@@ -254,9 +254,9 @@ void JitArm64::WriteExceptionExit(ARM64Reg dest, bool only_external)
   STR(INDEX_UNSIGNED, dest, PPC_REG, PPCSTATE_OFF(pc));
   STR(INDEX_UNSIGNED, dest, PPC_REG, PPCSTATE_OFF(npc));
   if (only_external)
-    MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExternalExceptions);
+    MOVP2R(EncodeRegTo64(dest), &PowerPC::CheckExternalExceptions);
   else
-    MOVI2R(EncodeRegTo64(dest), (u64)&PowerPC::CheckExceptions);
+    MOVP2R(EncodeRegTo64(dest), &PowerPC::CheckExceptions);
   BLR(EncodeRegTo64(dest));
   LDR(INDEX_UNSIGNED, dest, PPC_REG, PPCSTATE_OFF(npc));
 
@@ -307,13 +307,13 @@ void JitArm64::BeginTimeProfile(JitBlock* b)
   {
     EmitResetCycleCounters();
     EmitGetCycles(X1);
-    MOVI2R(X0, (u64)&b->ticStart);
+    MOVP2R(X0, &b->ticStart);
     STR(INDEX_UNSIGNED, X1, X0, 0);
   }
   else
   {
-    MOVI2R(X1, (u64)QueryPerformanceCounter);
-    MOVI2R(X0, (u64)&b->ticStart);
+    MOVP2R(X1, &QueryPerformanceCounter);
+    MOVP2R(X0, &b->ticStart);
     BLR(X1);
   }
 }
@@ -323,15 +323,15 @@ void JitArm64::EndTimeProfile(JitBlock* b)
   if (m_supports_cycle_counter)
   {
     EmitGetCycles(X2);
-    MOVI2R(X0, (u64)&b->ticStart);
+    MOVP2R(X0, &b->ticStart);
   }
   else
   {
-    MOVI2R(X1, (u64)QueryPerformanceCounter);
-    MOVI2R(X0, (u64)&b->ticStop);
+    MOVP2R(X1, &QueryPerformanceCounter);
+    MOVP2R(X0, &b->ticStop);
     BLR(X1);
 
-    MOVI2R(X0, (u64)&b->ticStart);
+    MOVP2R(X0, &b->ticStart);
     LDR(INDEX_UNSIGNED, X2, X0, 8);  // Stop
   }
 
@@ -434,7 +434,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);
     ARM64Reg XB = EncodeRegTo64(WB);
-    MOVI2R(XA, (u64)&b->runCount);
+    MOVP2R(XA, &b->runCount);
     LDR(INDEX_UNSIGNED, XB, XA, 0);
     ADD(XB, XB, 1);
     STR(INDEX_UNSIGNED, XB, XA, 0);
@@ -457,7 +457,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
       MOVI2R(DISPATCHER_PC, js.blockStart);
       STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
       MOVI2R(W0, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
-      MOVI2R(X1, (u64)&JitInterface::CompileExceptionCheck);
+      MOVP2R(X1, &JitInterface::CompileExceptionCheck);
       BLR(X1);
       B(dispatcher);
       SwitchToNearCode();
@@ -508,7 +508,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
       FixupBranch exit = B();
       SetJumpTarget(Exception);
       ABI_PushRegisters(regs_in_use);
-      MOVI2R(X30, (u64)&GPFifo::FastCheckGatherPipe);
+      MOVP2R(X30, &GPFifo::FastCheckGatherPipe);
       BLR(X30);
       ABI_PopRegisters(regs_in_use);
 
@@ -517,7 +517,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
       TBZ(W30, 3, done_here);  // EXCEPTION_EXTERNAL_INT
       LDR(INDEX_UNSIGNED, W30, PPC_REG, PPCSTATE_OFF(msr));
       TBZ(W30, 11, done_here);
-      MOVI2R(X30, (u64)&ProcessorInterface::m_InterruptCause);
+      MOVP2R(X30, &ProcessorInterface::m_InterruptCause);
       LDR(INDEX_UNSIGNED, W30, X30, 0);
       TST(W30, 23, 2);
       B(CC_EQ, done_here);
@@ -548,7 +548,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
       SetJumpTarget(Exception);
       LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));
       TBZ(WA, 11, done_here);
-      MOVI2R(XA, (u64)&ProcessorInterface::m_InterruptCause);
+      MOVP2R(XA, &ProcessorInterface::m_InterruptCause);
       LDR(INDEX_UNSIGNED, WA, XA, 0);
       TST(WA, 23, 2);
       B(CC_EQ, done_here);

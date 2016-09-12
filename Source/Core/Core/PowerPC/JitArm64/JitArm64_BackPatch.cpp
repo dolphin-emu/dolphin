@@ -181,13 +181,13 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       {
         m_float_emit.FCVT(32, 64, D0, RS);
         m_float_emit.UMOV(32, W0, Q0, 0);
-        MOVI2R(X30, (u64)&PowerPC::Write_U32);
+        MOVP2R(X30, &PowerPC::Write_U32);
         BLR(X30);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32I)
       {
         m_float_emit.UMOV(32, W0, RS, 0);
-        MOVI2R(X30, (u64)&PowerPC::Write_U32);
+        MOVP2R(X30, &PowerPC::Write_U32);
         BLR(X30);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2)
@@ -195,19 +195,19 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
         m_float_emit.FCVTN(32, D0, RS);
         m_float_emit.UMOV(64, X0, D0, 0);
         ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
-        MOVI2R(X30, (u64)PowerPC::Write_U64);
+        MOVP2R(X30, &PowerPC::Write_U64);
         BLR(X30);
       }
       else if (flags & BackPatchInfo::FLAG_SIZE_F32X2I)
       {
         m_float_emit.UMOV(64, X0, RS, 0);
         ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
-        MOVI2R(X30, (u64)PowerPC::Write_U64);
+        MOVP2R(X30, &PowerPC::Write_U64);
         BLR(X30);
       }
       else
       {
-        MOVI2R(X30, (u64)&PowerPC::Write_U64);
+        MOVP2R(X30, &PowerPC::Write_U64);
         m_float_emit.UMOV(64, X0, RS, 0);
         BLR(X30);
       }
@@ -216,13 +216,13 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
     {
       if (flags & BackPatchInfo::FLAG_SIZE_F32)
       {
-        MOVI2R(X30, (u64)&PowerPC::Read_U32);
+        MOVP2R(X30, &PowerPC::Read_U32);
         BLR(X30);
         m_float_emit.INS(32, RS, 0, X0);
       }
       else
       {
-        MOVI2R(X30, (u64)&PowerPC::Read_F64);
+        MOVP2R(X30, &PowerPC::Read_F64);
         BLR(X30);
         m_float_emit.INS(64, RS, 0, X0);
       }
@@ -232,27 +232,27 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
       MOV(W0, RS);
 
       if (flags & BackPatchInfo::FLAG_SIZE_32)
-        MOVI2R(X30, (u64)&PowerPC::Write_U32);
+        MOVP2R(X30, &PowerPC::Write_U32);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        MOVI2R(X30, (u64)&PowerPC::Write_U16);
+        MOVP2R(X30, &PowerPC::Write_U16);
       else
-        MOVI2R(X30, (u64)&PowerPC::Write_U8);
+        MOVP2R(X30, &PowerPC::Write_U8);
 
       BLR(X30);
     }
     else if (flags & BackPatchInfo::FLAG_ZERO_256)
     {
-      MOVI2R(X30, (u64)&PowerPC::ClearCacheLine);
+      MOVP2R(X30, &PowerPC::ClearCacheLine);
       BLR(X30);
     }
     else
     {
       if (flags & BackPatchInfo::FLAG_SIZE_32)
-        MOVI2R(X30, (u64)&PowerPC::Read_U32);
+        MOVP2R(X30, &PowerPC::Read_U32);
       else if (flags & BackPatchInfo::FLAG_SIZE_16)
-        MOVI2R(X30, (u64)&PowerPC::Read_U16);
+        MOVP2R(X30, &PowerPC::Read_U16);
       else if (flags & BackPatchInfo::FLAG_SIZE_8)
-        MOVI2R(X30, (u64)&PowerPC::Read_U8);
+        MOVP2R(X30, &PowerPC::Read_U8);
 
       BLR(X30);
 
