@@ -59,7 +59,7 @@ void main()
   }
   else
   {
-    offsetAdd = 0 - stereoOffset;
+    offsetAdd = 0.0 - stereoOffset;
   }
 
   // convert coordinates to NDC space
@@ -69,7 +69,7 @@ void main()
   float destR = length(fragPos);
 
   // find the radius multiplier
-  float srcR = destR * sizeAdjust + ( ka * pow(destR,2) + kb * pow(destR,4));
+  float srcR = destR * sizeAdjust + ( ka * pow(destR, 2.0) + kb * pow(destR, 4.0));
 
   // Calculate the source vector (radial)
   vec2 correctedRadial = normalize(fragPos) * srcR;
@@ -81,10 +81,10 @@ void main()
   vec2 uv = (widenedRadial/2.0f) + vec2(0.5f) + vec2(offsetAdd, 0.0f);
 
   // Sample the texture at the source location
-  if (uv[0] > 1.0 || uv[1] > 1.0 || uv[0] < 0.0 || uv[1] < 0.0)
+  if(clamp(uv, 0.0, 1.0) != uv)
   {
     // black if beyond bounds
-    SetOutput(float4(0,0,0,0));
+    SetOutput(float4(0.0, 0.0, 0.0, 0.0));
   }
   else
   {
