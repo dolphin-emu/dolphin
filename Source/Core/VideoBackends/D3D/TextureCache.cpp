@@ -130,7 +130,7 @@ void TextureCache::ConvertTexture(TCacheEntry* dest, TCacheEntry* source, void* 
   D3D::stateman->SetTexture(1, palette_buf_srv);
 
   // TODO: Add support for C14X2 format.  (Different multiplier, more palette entries.)
-  float params[4] = {(source->format & 0xff) == GX_TF_I4 ? 15.f : 255.f};
+  float params[4] = {source->format() == GX_TF_I4 ? 15.f : 255.f};
   D3D::context->UpdateSubresource(palette_uniform, 0, nullptr, &params, 0, 0);
   D3D::stateman->SetPixelConstants(palette_uniform);
 

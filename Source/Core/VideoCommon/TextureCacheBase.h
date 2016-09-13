@@ -36,9 +36,7 @@ public:
     u32 size_in_bytes;
     u64 base_hash;
     u64 hash;    // for paletted textures, hash = base_hash ^ palette_hash
-    u32 format;  // bits 0-3 will contain the in-memory format.
-    bool is_efb_copy;
-    bool is_custom_tex;
+    u32 info = 0;
     u32 memory_stride;
 
     unsigned int native_width,
@@ -69,7 +67,7 @@ public:
     {
       addr = _addr;
       size_in_bytes = _size;
-      format = _format;
+      info = (info & 0xffff0000) | (_format & 0xffff);
     }
 
     void SetDimensions(unsigned int _native_width, unsigned int _native_height,
@@ -101,16 +99,24 @@ public:
 
     TextureCacheBase::TCacheEntry* ApplyPalette(u8* palette, u32 tlutfmt);
 
-    bool IsEfbCopy() const { return is_efb_copy; }
+    bool IsEfbCopy() const { return (info & EFB_COPY) != 0; }
+    bool IsCustomTexture() const { return (info & CUSTOM_TEXTURE) != 0; }
     u32 NumBlocksY() const;
     u32 BytesPerRow() const;
 
     u64 CalculateHash() const;
 
+    enum Flags {
+      CUSTOM_TEXTURE = 1 << 16,
+      EFB_COPY = 1 << 17,
+    };
+
     u32 width() const { return texture->config.width; }
     u32 height() const { return texture->config.height; }
     u32 levels() const { return texture->config.levels; }
     u32 layers() const { return texture->config.layers; }
+    u32 format() const { return info & 0xff; }
+    u32 full_format() const { return info & 0xffff; }  // includes tlut format
   };
 
   virtual ~TextureCacheBase();  // needs virtual for DX11 dtor

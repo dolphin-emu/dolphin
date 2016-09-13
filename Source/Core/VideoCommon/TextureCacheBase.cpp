@@ -217,11 +217,11 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::TCacheEntry::ApplyPalette(u8* p
 
   if (decoded_entry)
   {
-    decoded_entry->SetGeneralParameters(addr, size_in_bytes, format);
+    decoded_entry->SetGeneralParameters(addr, size_in_bytes, format());
     decoded_entry->SetDimensions(native_width, native_height, 1);
     decoded_entry->SetHashes(base_hash, hash);
     decoded_entry->frameCount = FRAMECOUNT_INVALID;
-    decoded_entry->is_efb_copy = false;
+    decoded_entry->info |= TCacheEntry::EFB_COPY;
 
     g_texture_cache->ConvertTexture(decoded_entry, this, palette, static_cast<TlutFormat>(tlutfmt));
     textures_by_address.emplace(addr, decoded_entry);
@@ -273,18 +273,18 @@ TextureCacheBase::TCacheEntry* TextureCacheBase::DoPartialTextureUpdates(TexCach
 {
   TCacheEntry* entry_to_update = iter_t->second;
   const bool isPaletteTexture =
-      (entry_to_update->format == GX_TF_C4 || entry_to_update->format == GX_TF_C8 ||
-       entry_to_update->format == GX_TF_C14X2 || entry_to_update->format >= 0x10000);
+      (entry_to_update->format() == GX_TF_C4 || entry_to_update->format() == GX_TF_C8 ||
+       entry_to_update->format() == GX_TF_C14X2);
 
   // EFB copies are excluded from these updates, until there's an example where a game would
   // benefit from updating. This would require more work to be done.
   if (entry_to_update->IsEfbCopy())
     return entry_to_update;
 
-  u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format & 0xff);
-  u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format & 0xff);
+  u32 block_width = TexDecoder_GetBlockWidthInTexels(entry_to_update->format());
+  u32 block_height = TexDecoder_GetBlockHeightInTexels(entry_to_update->format());
   u32 block_size = block_width * block_height *
-                   TexDecoder_GetTexelSizeInNibbles(entry_to_update->format & 0xff) / 2;
+                   TexDecoder_GetTexelSizeInNibbles(entry_to_update->format()) / 2;
 
   u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
@@ -506,7 +506,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const int texfo
     return nullptr;
 
   if (isPaletteTexture)
-    full_format = texformat | (tlutfmt << 16);
+    full_format = texformat | (tlutfmt << 8);
 
   const u32 texture_size =
       TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
@@ -650,7 +650,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const int texfo
     else
     {
       // For normal textures, all texture parameters need to match
-      if (entry->hash == full_hash && entry->format == full_format &&
+      if (entry->hash == full_hash && entry->full_format() == full_format &&
           entry->native_levels >= tex_levels && entry->native_width == nativeW &&
           entry->native_height == nativeH)
       {
@@ -700,7 +700,7 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const int texfo
     {
       TCacheEntry* entry = iter->second;
       // All parameters, except the address, need to match here
-      if (entry->format == full_format && entry->native_levels >= tex_levels &&
+      if (entry->full_format() == full_format && entry->native_levels >= tex_levels &&
           entry->native_width == nativeW && entry->native_height == nativeH)
       {
         entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
@@ -756,6 +756,8 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const int texfo
 
   if (!hires_tex)
   {
+    entry->info |= TCacheEntry::CUSTOM_TEXTURE;
+
     if (!(texformat == GX_TF_RGBA8 && from_tmem))
     {
       const u8* tlut = &texMem[tlutaddr];
@@ -780,8 +782,6 @@ TextureCacheBase::GetTexture(u32 address, u32 width, u32 height, const int texfo
   entry->SetGeneralParameters(address, texture_size, full_format);
   entry->SetDimensions(nativeW, nativeH, tex_levels);
   entry->SetHashes(base_hash, full_hash);
-  entry->is_efb_copy = false;
-  entry->is_custom_tex = hires_tex != nullptr;
 
   // load texture
   entry->texture->Load(temp, width, height, expandedWidth, 0);
@@ -1317,7 +1317,6 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
       entry->frameCount = FRAMECOUNT_INVALID;
       entry->SetEfbCopy(dstStride);
-      entry->is_custom_tex = false;
 
       entry->texture->FromRenderTarget(dst, srcFormat, srcRect, scaleByHalf, cbufid, colmat);
 
@@ -1396,7 +1395,7 @@ TextureCacheBase::TexCache::iterator TextureCacheBase::InvalidateTexture(TexCach
 
 u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
 {
-  const u32 blockW = TexDecoder_GetBlockWidthInTexels(format);
+  const u32 blockW = TexDecoder_GetBlockWidthInTexels(format());
 
   // Round up source height to multiple of block size
   const u32 actualWidth = ROUND_UP(native_width, blockW);
@@ -1404,14 +1403,14 @@ u32 TextureCacheBase::TCacheEntry::BytesPerRow() const
   const u32 numBlocksX = actualWidth / blockW;
 
   // RGBA takes two cache lines per block; all others take one
-  const u32 bytes_per_block = format == GX_TF_RGBA8 ? 64 : 32;
+  const u32 bytes_per_block = format() == GX_TF_RGBA8 ? 64 : 32;
 
   return numBlocksX * bytes_per_block;
 }
 
 u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
 {
-  u32 blockH = TexDecoder_GetBlockHeightInTexels(format);
+  u32 blockH = TexDecoder_GetBlockHeightInTexels(format());
   // Round up source height to multiple of block size
   u32 actualHeight = ROUND_UP(native_height, blockH);
 
@@ -1420,7 +1419,7 @@ u32 TextureCacheBase::TCacheEntry::NumBlocksY() const
 
 void TextureCacheBase::TCacheEntry::SetEfbCopy(u32 stride)
 {
-  is_efb_copy = true;
+  info |= EFB_COPY;
   memory_stride = stride;
 
   _assert_msg_(VIDEO, memory_stride >= BytesPerRow(), "Memory stride is too small");

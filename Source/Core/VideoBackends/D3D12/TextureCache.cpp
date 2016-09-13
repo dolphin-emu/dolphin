@@ -176,7 +176,7 @@ void TextureCache::ConvertTexture(TCacheEntry* dest, TCacheEntry* source, void* 
 
   // D3D12: See TextureCache::TextureCache() - because there are only two possible buffer contents
   // here, just pre-populate the data in two parts of the same upload heap.
-  if ((source->format & 0xf) == GX_TF_I4)
+  if (source->format() == GX_TF_I4)
   {
     D3D::current_command_list->SetGraphicsRootConstantBufferView(
         DESCRIPTOR_TABLE_PS_CBVONE, m_palette_uniform_buffer->GetGPUVirtualAddress());

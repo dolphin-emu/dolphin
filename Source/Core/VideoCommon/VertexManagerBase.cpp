@@ -221,7 +221,7 @@ void VertexManagerBase::Flush()
 
       if (tentry)
       {
-        g_renderer->SetSamplerState(i & 3, i >> 2, tentry->is_custom_tex);
+        g_renderer->SetSamplerState(i & 3, i >> 2, tentry->IsCustomTexture());
         PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
       }
       else
