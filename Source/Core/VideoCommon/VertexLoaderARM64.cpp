@@ -9,19 +9,18 @@
 
 using namespace Arm64Gen;
 
-ARM64Reg src_reg = X0;
-ARM64Reg dst_reg = X1;
-ARM64Reg count_reg = W2;
-ARM64Reg skipped_reg = W17;
-ARM64Reg scratch1_reg = W16;
-ARM64Reg scratch2_reg = W15;
-ARM64Reg scratch3_reg = W14;
-ARM64Reg scratch4_reg = W13;
-ARM64Reg saved_count = W12;
+static const ARM64Reg src_reg = X0;
+static const ARM64Reg dst_reg = X1;
+static const ARM64Reg count_reg = W2;
+static const ARM64Reg skipped_reg = W17;
+static const ARM64Reg scratch1_reg = W16;
+static const ARM64Reg scratch2_reg = W15;
+static const ARM64Reg scratch3_reg = W14;
+static const ARM64Reg saved_count = W12;
 
-ARM64Reg stride_reg = X11;
-ARM64Reg arraybase_reg = X10;
-ARM64Reg scale_reg = X9;
+static const ARM64Reg stride_reg = X11;
+static const ARM64Reg arraybase_reg = X10;
+static const ARM64Reg scale_reg = X9;
 
 alignas(16) static const float scale_factors[] = {
     1.0 / (1ULL << 0),  1.0 / (1ULL << 1),  1.0 / (1ULL << 2),  1.0 / (1ULL << 3),
