@@ -77,7 +77,7 @@ class CNANDContentLoader final
 {
 public:
   explicit CNANDContentLoader(const std::string& content_name);
-  virtual ~CNANDContentLoader();
+  ~CNANDContentLoader();
 
   bool IsValid() const { return m_Valid; }
   void RemoveTitle() const;
