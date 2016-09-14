@@ -35,6 +35,13 @@ public:
     Refresh();
   }
 
+  void SetMemCheckOptions(bool read, bool write, bool log)
+  {
+    memCheckRead = read;
+    memCheckWrite = write;
+    memCheckLog = log;
+  }
+
 private:
   void OnPaint(wxPaintEvent& event);
   void OnMouseDownL(wxMouseEvent& event);
@@ -59,6 +66,10 @@ private:
   int memory;
   int curAddress;
   MemoryDataType dataType;
+
+  bool memCheckRead;
+  bool memCheckWrite;
+  bool memCheckLog;
 
   enum EViewAsType
   {

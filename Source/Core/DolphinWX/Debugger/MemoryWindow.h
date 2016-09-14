@@ -15,6 +15,7 @@ class wxCheckBox;
 class wxListBox;
 class wxSearchCtrl;
 class wxTextCtrl;
+class wxRadioButton;
 
 class CMemoryWindow : public wxPanel
 {
@@ -48,6 +49,7 @@ private:
   void OnDumpMemory(wxCommandEvent& event);
   void OnDumpMem2(wxCommandEvent& event);
   void OnDumpFakeVMEM(wxCommandEvent& event);
+  void onMemCheckOptionChange(wxCommandEvent& event);
 
   wxCheckBox* chk8;
   wxCheckBox* chk16;
@@ -55,6 +57,10 @@ private:
   wxButton* btnSearch;
   wxCheckBox* chkAscii;
   wxCheckBox* chkHex;
+  wxCheckBox* chkLog;
+  wxRadioButton* rdbRead;
+  wxRadioButton* rdbWrite;
+  wxRadioButton* rdbReadWrite;
 
   CCodeWindow* m_code_window;
 

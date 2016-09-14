@@ -82,7 +82,7 @@ void CMemoryView::OnMouseDownL(wxMouseEvent& event)
   }
   else
   {
-    debugger->ToggleMemCheck(YToAddress(y));
+    debugger->ToggleMemCheck(YToAddress(y), memCheckRead, memCheckWrite, memCheckLog);
 
     Refresh();
 

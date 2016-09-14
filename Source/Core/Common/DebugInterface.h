@@ -28,7 +28,9 @@ public:
   virtual void AddWatch(unsigned int /*address*/) {}
   virtual void ClearAllMemChecks() {}
   virtual bool IsMemCheck(unsigned int /*address*/) { return false; }
-  virtual void ToggleMemCheck(unsigned int /*address*/) {}
+  virtual void ToggleMemCheck(unsigned int /*address*/, bool /*read*/, bool /*write*/, bool /*log*/)
+  {
+  }
   virtual unsigned int ReadMemory(unsigned int /*address*/) { return 0; }
   virtual void WriteExtraMemory(int /*memory*/, unsigned int /*value*/, unsigned int /*address*/) {}
   virtual unsigned int ReadExtraMemory(int /*memory*/, unsigned int /*address*/) { return 0; }
