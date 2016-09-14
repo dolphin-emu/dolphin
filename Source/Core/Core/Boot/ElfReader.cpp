@@ -182,14 +182,14 @@ bool ElfReader::LoadSymbols()
       if (bRelocate)
         value += sectionAddrs[sectionIndex];
 
-      int symtype = Symbol::SYMBOL_DATA;
+      auto symtype = Symbol::Type::Data;
       switch (type)
       {
       case STT_OBJECT:
-        symtype = Symbol::SYMBOL_DATA;
+        symtype = Symbol::Type::Data;
         break;
       case STT_FUNC:
-        symtype = Symbol::SYMBOL_FUNCTION;
+        symtype = Symbol::Type::Function;
         break;
       default:
         continue;

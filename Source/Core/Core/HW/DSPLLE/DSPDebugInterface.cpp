@@ -170,7 +170,7 @@ int DSPDebugInterface::GetColor(unsigned int address)
   Symbol* symbol = DSPSymbols::g_dsp_symbol_db.GetSymbolFromAddr(addr);
   if (!symbol)
     return 0xFFFFFF;
-  if (symbol->type != Symbol::SYMBOL_FUNCTION)
+  if (symbol->type != Symbol::Type::Function)
     return 0xEEEEFF;
   return colors[symbol->index % 6];
 }

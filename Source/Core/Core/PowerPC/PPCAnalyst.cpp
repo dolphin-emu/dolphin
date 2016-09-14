@@ -75,7 +75,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 {
   if (!func.name.size())
     func.name = StringFromFormat("zz_%07x_", startAddr & 0x0FFFFFF);
-  if (func.analyzed >= 1)
+  if (func.analyzed)
     return true;  // No error, just already did it.
 
   func.calls.clear();
@@ -96,7 +96,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
     if (max_size && func.size > max_size)
     {
       func.address = startAddr;
-      func.analyzed = 1;
+      func.analyzed = true;
       func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
       if (numInternalBranches == 0)
         func.flags |= FFLAG_STRAIGHT;
@@ -117,7 +117,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
           // We're done! Looks like we have a neat valid function. Perfect.
           // Let's calc the checksum and get outta here
           func.address = startAddr;
-          func.analyzed = 1;
+          func.analyzed = true;
           func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
           if (numInternalBranches == 0)
             func.flags |= FFLAG_STRAIGHT;
