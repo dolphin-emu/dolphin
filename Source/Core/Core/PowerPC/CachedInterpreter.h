@@ -56,7 +56,8 @@ private:
   };
 
   const u8* GetCodePtr() { return (u8*)(m_code.data() + m_code.size()); }
-  std::vector<Instruction> m_code;
+  void ExecuteOneBlock();
 
+  std::vector<Instruction> m_code;
   PPCAnalyst::CodeBuffer code_buffer;
 };
