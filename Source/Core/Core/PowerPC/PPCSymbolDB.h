@@ -27,7 +27,7 @@ public:
 
   Symbol* AddFunction(u32 startAddr) override;
   void AddKnownSymbol(u32 startAddr, u32 size, const std::string& name,
-                      int type = Symbol::SYMBOL_FUNCTION);
+                      Symbol::Type type = Symbol::Type::Function);
 
   Symbol* GetSymbolFromAddr(u32 addr) override;
 

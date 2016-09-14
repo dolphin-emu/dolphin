@@ -224,7 +224,7 @@ void DSPDebuggerLLE::OnSymbolListChange(wxCommandEvent& event)
     Symbol* pSymbol = static_cast<Symbol*>(m_SymbolList->GetClientData(index));
     if (pSymbol != nullptr)
     {
-      if (pSymbol->type == Symbol::SYMBOL_FUNCTION)
+      if (pSymbol->type == Symbol::Type::Function)
       {
         JumpToAddress(pSymbol->address);
       }

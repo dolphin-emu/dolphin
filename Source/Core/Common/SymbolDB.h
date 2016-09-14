@@ -23,10 +23,10 @@ struct SCall
 
 struct Symbol
 {
-  enum
+  enum class Type
   {
-    SYMBOL_FUNCTION = 0,
-    SYMBOL_DATA = 1,
+    Function,
+    Data,
   };
 
   std::string name;
@@ -37,7 +37,7 @@ struct Symbol
   u32 flags = 0;
   int size = 0;
   int numCalls = 0;
-  int type = SYMBOL_FUNCTION;
+  Type type = Type::Function;
   int index = 0;  // only used for coloring the disasm view
   int analyzed = 0;
 };

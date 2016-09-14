@@ -485,7 +485,7 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
     Symbol* pSymbol = static_cast<Symbol*>(symbols->GetClientData(index));
     if (pSymbol != nullptr)
     {
-      if (pSymbol->type == Symbol::SYMBOL_DATA)
+      if (pSymbol->type == Symbol::Type::Data)
       {
         if (m_MemoryWindow)  // && m_MemoryWindow->IsVisible())
           m_MemoryWindow->JumpToAddress(pSymbol->address);
