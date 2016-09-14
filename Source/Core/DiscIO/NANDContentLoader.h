@@ -35,7 +35,7 @@ public:
 class CNANDContentDataFile final : public CNANDContentData
 {
 public:
-  CNANDContentDataFile(const std::string& filename) : m_filename(filename){};
+  explicit CNANDContentDataFile(const std::string& filename) : m_filename(filename){};
 
   void Open() override;
   std::vector<u8> Get() override;
@@ -51,7 +51,7 @@ private:
 class CNANDContentDataBuffer final : public CNANDContentData
 {
 public:
-  CNANDContentDataBuffer(const std::vector<u8>& buffer) : m_buffer(buffer){};
+  explicit CNANDContentDataBuffer(const std::vector<u8>& buffer) : m_buffer(buffer){};
 
   std::vector<u8> Get() override { return m_buffer; };
   bool GetRange(u32 start, u32 size, u8* buffer) override;
@@ -76,7 +76,7 @@ struct SNANDContent
 class CNANDContentLoader final
 {
 public:
-  CNANDContentLoader(const std::string& content_name);
+  explicit CNANDContentLoader(const std::string& content_name);
   virtual ~CNANDContentLoader();
 
   bool IsValid() const { return m_Valid; }
