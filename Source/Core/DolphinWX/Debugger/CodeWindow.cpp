@@ -369,6 +369,7 @@ void CCodeWindow::StepOut()
 
     JumpToAddress(PC);
     Update();
+    Host_UpdateDisasmDialog();
 
     UpdateButtonStates();
     // Update all toolbars in the aui manager
