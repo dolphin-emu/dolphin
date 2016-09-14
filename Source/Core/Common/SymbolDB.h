@@ -39,7 +39,7 @@ struct Symbol
   int numCalls = 0;
   Type type = Type::Function;
   int index = 0;  // only used for coloring the disasm view
-  int analyzed = 0;
+  bool analyzed = false;
 };
 
 enum
