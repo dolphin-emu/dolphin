@@ -27,7 +27,7 @@ class CNANDContentData
 public:
   virtual ~CNANDContentData() = 0;
   virtual void Open(){};
-  virtual const std::vector<u8> Get() = 0;
+  virtual std::vector<u8> Get() = 0;
   virtual bool GetRange(u32 start, u32 size, u8* buffer) = 0;
   virtual void Close(){};
 };
@@ -38,7 +38,7 @@ public:
   CNANDContentDataFile(const std::string& filename) : m_filename(filename){};
 
   void Open() override;
-  const std::vector<u8> Get() override;
+  std::vector<u8> Get() override;
   bool GetRange(u32 start, u32 size, u8* buffer) override;
   void Close() override;
 
@@ -53,7 +53,7 @@ class CNANDContentDataBuffer final : public CNANDContentData
 public:
   CNANDContentDataBuffer(const std::vector<u8>& buffer) : m_buffer(buffer){};
 
-  const std::vector<u8> Get() override { return m_buffer; };
+  std::vector<u8> Get() override { return m_buffer; };
   bool GetRange(u32 start, u32 size, u8* buffer) override;
 
 private:

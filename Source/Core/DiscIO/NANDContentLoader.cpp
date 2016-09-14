@@ -107,7 +107,7 @@ void CNANDContentDataFile::Open()
 {
   EnsureOpen();
 }
-const std::vector<u8> CNANDContentDataFile::Get()
+std::vector<u8> CNANDContentDataFile::Get()
 {
   std::vector<u8> result;
   EnsureOpen();
