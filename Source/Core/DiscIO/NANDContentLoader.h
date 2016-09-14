@@ -25,6 +25,7 @@ bool AddTicket(u64 title_id, const std::vector<u8>& ticket);
 class CNANDContentData
 {
 public:
+  virtual ~CNANDContentData() = 0;
   virtual void Open(){};
   virtual const std::vector<u8> Get() = 0;
   virtual bool GetRange(u32 start, u32 size, u8* buffer) = 0;
