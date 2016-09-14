@@ -29,21 +29,17 @@ struct Symbol
     SYMBOL_DATA = 1,
   };
 
-  Symbol() : hash(0), address(0), flags(0), size(0), numCalls(0), type(SYMBOL_FUNCTION), analyzed(0)
-  {
-  }
-
   std::string name;
   std::vector<SCall> callers;  // addresses of functions that call this function
   std::vector<SCall> calls;    // addresses of functions that are called by this function
-  u32 hash;                    // use for HLE function finding
-  u32 address;
-  u32 flags;
-  int size;
-  int numCalls;
-  int type;
-  int index;  // only used for coloring the disasm view
-  int analyzed;
+  u32 hash = 0;                // use for HLE function finding
+  u32 address = 0;
+  u32 flags = 0;
+  int size = 0;
+  int numCalls = 0;
+  int type = SYMBOL_FUNCTION;
+  int index = 0;  // only used for coloring the disasm view
+  int analyzed = 0;
 };
 
 enum
