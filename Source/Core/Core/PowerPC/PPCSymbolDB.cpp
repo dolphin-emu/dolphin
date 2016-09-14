@@ -285,15 +285,15 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     if (!started)
       continue;
 
-    u32 address, vaddress, size, offset, unknown;
+    u32 address, vaddress, size, offset, alignment;
     char name[512], container[512];
     if (four_columns)
     {
-      // sometimes there is no unknown number, and sometimes it is because it is an entry of
+      // sometimes there is no alignment value, and sometimes it is because it is an entry of
       // something else
       if (length > 37 && line[37] == ' ')
       {
-        unknown = 0;
+        alignment = 0;
         sscanf(line, "%08x %08x %08x %08x %511s", &address, &size, &vaddress, &offset, name);
         char* s = strstr(line, "(entry of ");
         if (s)
@@ -311,8 +311,8 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
       }
       else
       {
-        sscanf(line, "%08x %08x %08x %08x %i %511s", &address, &size, &vaddress, &offset, &unknown,
-               name);
+        sscanf(line, "%08x %08x %08x %08x %i %511s", &address, &size, &vaddress, &offset,
+               &alignment, name);
       }
     }
     // some entries in the table have a function name followed by " (entry of " followed by a
@@ -320,7 +320,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     // instead of a space followed by a number followed by a space followed by a name
     else if (length > 27 && line[27] != ' ' && strstr(line, "(entry of "))
     {
-      unknown = 0;
+      alignment = 0;
       sscanf(line, "%08x %08x %08x %511s", &address, &size, &vaddress, name);
       char* s = strstr(line, "(entry of ");
       if (s)
@@ -338,7 +338,7 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     }
     else
     {
-      sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &unknown, name);
+      sscanf(line, "%08x %08x %08x %i %511s", &address, &size, &vaddress, &alignment, name);
     }
 
     const char* namepos = strstr(line, name);
