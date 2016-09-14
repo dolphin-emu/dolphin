@@ -109,16 +109,16 @@ void CNANDContentDataFile::Open()
 }
 std::vector<u8> CNANDContentDataFile::Get()
 {
-  std::vector<u8> result;
   EnsureOpen();
+
   if (!m_file->IsGood())
-    return result;
+    return {};
 
   u64 size = m_file->GetSize();
   if (size == 0)
-    return result;
+    return {};
 
-  result.resize(size);
+  std::vector<u8> result(size);
   m_file->ReadBytes(result.data(), result.size());
 
   return result;
