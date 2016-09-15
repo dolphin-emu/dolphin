@@ -156,34 +156,24 @@ static bool InstallCodeHandler()
 
 void RunCodeHandler()
 {
-  if (SConfig::GetInstance().bEnableCheats && active_codes.size() > 0)
+  if (!SConfig::GetInstance().bEnableCheats || active_codes.empty())
+    return;
+
+  if (!code_handler_installed || PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS) - 0xd01f1bad > 5)
   {
-    if (!code_handler_installed || PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS) - 0xd01f1bad > 5)
-      code_handler_installed = InstallCodeHandler();
+    code_handler_installed = InstallCodeHandler();
 
+    // A warning was already issued for the install failing
     if (!code_handler_installed)
-    {
-      // A warning was already issued.
       return;
-    }
+  }
 
-    if (PC == LR)
-    {
-      u32 oldLR = LR;
-      PowerPC::CoreMode oldMode = PowerPC::GetMode();
-
-      PC = INSTALLER_BASE_ADDRESS + 0xA8;
-      LR = 0;
-
-      // Execute the code handler in interpreter mode to track when it exits
-      PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
-
-      while (PC != 0)
-        PowerPC::SingleStep();
-
-      PowerPC::SetMode(oldMode);
-      PC = LR = oldLR;
-    }
+  // If the last block that just executed ended with a BLR instruction then we can intercept it and
+  // redirect control into the Gecko Code Handler. The Code Handler will automatically BLR back to
+  // the original return address (which will still be in the link register) at the end.
+  if (PC == LR)
+  {
+    PC = NPC = INSTALLER_BASE_ADDRESS + 0xA8;
   }
 }
 
