@@ -108,28 +108,38 @@ static bool InstallCodeHandlerLocked()
   PowerPC::HostWrite_U32(0x00d0c0de, codelist_base_address);
   PowerPC::HostWrite_U32(0x00d0c0de, codelist_base_address + 4);
 
-  int i = 0;
+  // Each code is 8 bytes (2 words) wide. There is a starter code and an end code.
+  const u32 start_address = codelist_base_address + CODE_SIZE;
+  const u32 end_address = codelist_end_address - CODE_SIZE;
+  u32 next_address = start_address;
 
+  // NOTE: Only active codes are in the list
   for (const GeckoCode& active_code : s_active_codes)
   {
-    if (active_code.enabled)
+    // If the code is not going to fit in the space we have left then we have to skip it
+    if (next_address + active_code.codes.size() * CODE_SIZE > end_address)
     {
-      for (const GeckoCode::Code& code : active_code.codes)
-      {
-        // Make sure we have enough memory to hold the code list
-        if ((codelist_base_address + CODE_SIZE * 3 + i) < codelist_end_address)
-        {
-          PowerPC::HostWrite_U32(code.address, codelist_base_address + CODE_SIZE + i);
-          PowerPC::HostWrite_U32(code.data, codelist_base_address + CODE_SIZE + 4 + i);
-          i += CODE_SIZE;
-        }
-      }
+      NOTICE_LOG(ACTIONREPLAY, "Too many GeckoCodes! Ran out of storage space in Game RAM. Could "
+                               "not write: \"%s\". Need %zu bytes, only %u remain.",
+                 active_code.name.c_str(), active_code.codes.size() * CODE_SIZE,
+                 end_address - next_address);
+      continue;
+    }
+
+    for (const GeckoCode::Code& code : active_code.codes)
+    {
+      PowerPC::HostWrite_U32(code.address, next_address);
+      PowerPC::HostWrite_U32(code.data, next_address + 4);
+      next_address += CODE_SIZE;
     }
   }
 
+  WARN_LOG(ACTIONREPLAY, "GeckoCodes: Using %u of %u bytes", next_address - start_address,
+           end_address - start_address);
+
   // Stop code. Tells the handler that this is the end of the list.
-  PowerPC::HostWrite_U32(0xF0000000, codelist_base_address + CODE_SIZE + i);
-  PowerPC::HostWrite_U32(0x00000000, codelist_base_address + CODE_SIZE + 4 + i);
+  PowerPC::HostWrite_U32(0xF0000000, next_address);
+  PowerPC::HostWrite_U32(0x00000000, next_address + 4);
 
   // Turn on codes
   PowerPC::HostWrite_U8(1, INSTALLER_BASE_ADDRESS + 7);
