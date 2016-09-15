@@ -77,7 +77,7 @@ retry:
   printf("failed to find key '");
   for (size_t i = 0; i < sizeof(key); i++)
   {
-    printf("%02x", ((u8*)&key)[i]);
+    printf("%02x", reinterpret_cast<const u8*>(key.data())[i]);
   }
   printf("'\n");
 #endif
@@ -101,7 +101,7 @@ struct hash<TraversalHostId>
 {
   size_t operator()(const TraversalHostId& id) const
   {
-    auto p = (u32*)id.data();
+    auto p = reinterpret_cast<const u32*>(id.data());
     return p[0] ^ ((p[1] << 13) | (p[1] >> 19));
   }
 };
@@ -119,7 +119,7 @@ static TraversalInetAddress MakeInetAddress(const sockaddr_in6& addr)
     fprintf(stderr, "bad sockaddr_in6\n");
     exit(1);
   }
-  u32* words = (u32*)addr.sin6_addr.s6_addr;
+  const u32* words = reinterpret_cast<const u32*>(addr.sin6_addr.s6_addr);
   TraversalInetAddress result = {0};
   if (words[0] == 0 && words[1] == 0 && words[2] == 0xffff0000)
   {
@@ -150,7 +150,7 @@ static sockaddr_in6 MakeSinAddr(const TraversalInetAddress& addr)
   }
   else
   {
-    u32* words = (u32*)result.sin6_addr.s6_addr;
+    u32* words = reinterpret_cast<u32*>(result.sin6_addr.s6_addr);
     words[0] = 0;
     words[1] = 0;
     words[2] = 0xffff0000;
@@ -197,10 +197,13 @@ static const char* SenderName(sockaddr_in6* addr)
 static void TrySend(const void* buffer, size_t size, sockaddr_in6* addr)
 {
 #if DEBUG
-  printf("-> %d %llu %s\n", ((TraversalPacket*)buffer)->type,
-         (long long)((TraversalPacket*)buffer)->requestId, SenderName(addr));
+  auto packet = reinterpret_cast<const TraversalPacket*>(buffer);
+  printf("-> %d %llu %s\n", packet->type, static_cast<long long>(packet->requestId),
+         SenderName(addr));
 #endif
-  if ((size_t)sendto(sock, buffer, size, 0, (sockaddr*)addr, sizeof(*addr)) != size)
+  size_t bytes_sent =
+      sendto(sock, buffer, size, 0, reinterpret_cast<sockaddr*>(addr), sizeof(*addr));
+  if (bytes_sent != size)
   {
     perror("sendto");
   }
@@ -235,7 +238,7 @@ static void ResendPackets()
   for (auto it = outgoingPackets.begin(); it != outgoingPackets.end();)
   {
     OutgoingPacketInfo* info = &it->second;
-    if (currentTime - info->sendTime >= (u64)(300000 * info->tries))
+    if (currentTime - info->sendTime >= static_cast<u64>(300000 * info->tries))
     {
       if (info->tries >= NUMBER_OF_TRIES)
       {
@@ -266,7 +269,8 @@ static void ResendPackets()
 static void HandlePacket(TraversalPacket* packet, sockaddr_in6* addr)
 {
 #if DEBUG
-  printf("<- %d %llu %s\n", packet->type, (long long)packet->requestId, SenderName(addr));
+  printf("<- %d %llu %s\n", packet->type, static_cast<long long>(packet->requestId),
+         SenderName(addr));
 #endif
   bool packetOk = true;
   switch (packet->type)
@@ -402,7 +406,7 @@ int main()
   addr.sin6_addr = any;
   addr.sin6_scope_id = 0;
 
-  rv = bind(sock, (sockaddr*)&addr, sizeof(addr));
+  rv = bind(sock, reinterpret_cast<sockaddr*>(&addr), sizeof(addr));
   if (rv < 0)
   {
     perror("bind");
@@ -426,13 +430,13 @@ int main()
     TraversalPacket packet;
     // note: switch to recvmmsg (yes, mmsg) if this becomes
     // expensive
-    rv = recvfrom(sock, &packet, sizeof(packet), 0, (sockaddr*)&raddr, &addrLen);
+    rv = recvfrom(sock, &packet, sizeof(packet), 0, reinterpret_cast<sockaddr*>(&raddr), &addrLen);
     if (gettimeofday(&tv, nullptr) < 0)
     {
       perror("gettimeofday");
       exit(1);
     }
-    currentTime = (u64)tv.tv_sec * 1000000 + tv.tv_usec;
+    currentTime = static_cast<u64>(tv.tv_sec) * 1000000 + tv.tv_usec;
     if (rv < 0)
     {
       if (errno != EINTR && errno != EAGAIN)
@@ -441,7 +445,7 @@ int main()
         return 1;
       }
     }
-    else if ((size_t)rv < sizeof(packet))
+    else if (static_cast<size_t>(rv) < sizeof(packet))
     {
       fprintf(stderr, "received short packet from %s\n", SenderName(&raddr));
     }

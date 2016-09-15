@@ -49,7 +49,7 @@ struct SSysConfEntry
   template <class T>
   T GetData()
   {
-    return *(T*)data;
+    return *reinterpret_cast<T*>(data);
   }
   bool GetArrayData(u8* dest, u16 destSize)
   {
@@ -163,7 +163,7 @@ public:
       return false;
     }
 
-    *(T*)index->data = newValue;
+    *reinterpret_cast<T*>(index->data) = newValue;
     return true;
   }
 

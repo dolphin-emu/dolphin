@@ -25,7 +25,7 @@ enum TEXIDevices : int
   // Converted to EXIDEVICE_MEMORYCARD internally.
   EXIDEVICE_MEMORYCARDFOLDER,
   EXIDEVICE_AGP,
-  EXIDEVICE_NONE = (u8)-1
+  EXIDEVICE_NONE = static_cast<u8>(-1)
 };
 
 class IEXIDevice
