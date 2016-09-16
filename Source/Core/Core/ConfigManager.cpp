@@ -73,6 +73,7 @@ void SConfig::SaveSettings()
   NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
+  m_SYSCONF->Reload();
 
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
@@ -335,6 +336,7 @@ void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
   section->Set("Enabled", m_bt_passthrough_enabled);
   section->Set("VID", m_bt_passthrough_vid);
   section->Set("PID", m_bt_passthrough_pid);
+  section->Set("LinkKeys", m_bt_passthrough_link_keys);
 }
 
 void SConfig::LoadSettings()
@@ -641,6 +643,7 @@ void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
   section->Get("Enabled", &m_bt_passthrough_enabled, false);
   section->Get("VID", &m_bt_passthrough_vid, -1);
   section->Get("PID", &m_bt_passthrough_pid, -1);
+  section->Get("LinkKeys", &m_bt_passthrough_link_keys, "");
 }
 
 void SConfig::LoadDefaults()

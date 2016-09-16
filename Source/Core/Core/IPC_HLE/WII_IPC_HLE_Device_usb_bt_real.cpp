@@ -3,18 +3,29 @@
 // Refer to the license.txt file included.
 
 #include <atomic>
+#include <iomanip>
+#include <map>
+#include <sstream>
 #include <string>
 
+#include "Common/Network.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/HW/WII_IPC.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
 #include "Core/IPC_HLE/hci.h"
 
 static std::atomic<SyncButtonState> s_sync_button_state{SyncButtonState::Unpressed};
 static Common::Timer s_sync_button_held_timer;  // when the sync button started to be held
+
+static std::atomic<LinkKeysState> s_link_keys_state;
+// This stores the address of paired devices and associated link keys.
+// It is needed because some adapters forget all stored link keys when they are reset,
+// which breaks pairings because the Wii relies on the Bluetooth module to remember them.
+static std::map<btaddr_t, linkkey_t> s_link_keys;
 
 // This flag is set when a libusb transfer failed (for reasons other than timing out)
 // and we showed an OSD message about it.
@@ -111,6 +122,9 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CWII_IPC_HLE_Device_usb_oh1_57e_305_re
     PanicAlert("Bluetooth passthrough mode enabled, but no usable Bluetooth USB device was found."
                "\nDolphin will likely crash now.");
   StartThread();
+
+  s_link_keys.clear();
+  LoadLinkKeys();
 }
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305_real::~CWII_IPC_HLE_Device_usb_oh1_57e_305_real()
@@ -119,6 +133,8 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_real::~CWII_IPC_HLE_Device_usb_oh1_57e_305_r
   StopThread();
   libusb_unref_device(m_device);
   libusb_exit(m_libusb_context);
+
+  SaveLinkKeys();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::Open(u32 command_address, u32 mode)
@@ -151,6 +167,27 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
       m_fake_read_buffer_size_reply.Set();
       delete cmd;
       return GetNoReply();
+    }
+    if (opcode == HCI_CMD_DELETE_STORED_LINK_KEY)
+    {
+      // Delete link key(s) from our own link key storage when the game tells the adapter to
+      const auto* delete_cmd =
+          reinterpret_cast<hci_delete_stored_link_key_cp*>(Memory::GetPointer(cmd->payload_addr));
+      if (delete_cmd->delete_all)
+      {
+        s_link_keys.clear();
+      }
+      else
+      {
+        btaddr_t addr;
+        std::copy(std::begin(delete_cmd->bdaddr.b), std::end(delete_cmd->bdaddr.b), addr.begin());
+        s_link_keys.erase(addr);
+      }
+    }
+    if (s_link_keys_state == LinkKeysState::NeedsWrite)
+    {
+      SendHCIStoreLinkKeyCommand();
+      s_link_keys_state = LinkKeysState::SentWriteCommand;
     }
     auto buffer = std::vector<u8>(cmd->length + LIBUSB_CONTROL_SETUP_SIZE);
     libusb_fill_control_setup(buffer.data(), cmd->request_type, cmd->request, cmd->value,
@@ -227,6 +264,44 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIResetCommand()
   libusb_control_transfer(m_handle, type, 0, 0, 0, packet, sizeof(packet), TIMEOUT);
 }
 
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIStoreLinkKeyCommand()
+{
+  if (s_link_keys.empty())
+    return;
+
+  const u8 type = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE;
+  // The HCI command field is limited to uint8_t, and libusb to uint16_t.
+  const u8 payload_size =
+      static_cast<u8>(sizeof(hci_write_stored_link_key_cp)) +
+      (sizeof(btaddr_t) + sizeof(linkkey_t)) * static_cast<u8>(s_link_keys.size());
+  std::vector<u8> packet(sizeof(hci_cmd_hdr_t) + payload_size);
+
+  auto* header = reinterpret_cast<hci_cmd_hdr_t*>(packet.data());
+  header->opcode = HCI_CMD_WRITE_STORED_LINK_KEY;
+  header->length = payload_size;
+
+  auto* cmd =
+      reinterpret_cast<hci_write_stored_link_key_cp*>(packet.data() + sizeof(hci_cmd_hdr_t));
+  cmd->num_keys_write = static_cast<u8>(s_link_keys.size());
+
+  // This is really ugly, but necessary because of the HCI command structure:
+  //   u8 num_keys;
+  //   u8 bdaddr[6];
+  //   u8 key[16];
+  // where the two last items are repeated num_keys times.
+  auto iterator = packet.begin() + sizeof(hci_cmd_hdr_t) + sizeof(hci_write_stored_link_key_cp);
+  for (auto& entry : s_link_keys)
+  {
+    std::copy(entry.first.begin(), entry.first.end(), iterator);
+    iterator += entry.first.size();
+    std::copy(entry.second.begin(), entry.second.end(), iterator);
+    iterator += entry.second.size();
+  }
+
+  libusb_control_transfer(m_handle, type, 0, 0, 0, packet.data(), static_cast<u16>(packet.size()),
+                          TIMEOUT);
+}
+
 // Due to how the widcomm stack which Nintendo uses is coded, we must never
 // let the stack think the controller is buffering more than 10 data packets
 // - it will cause a u8 underflow and royally screw things up.
@@ -284,6 +359,59 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonHeldEvent(const Ctr
   const u8 payload[1] = {0x09};
   FakeSyncButtonEvent(ctrl, payload, sizeof(payload));
   s_sync_button_state = SyncButtonState::Ignored;
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::LoadLinkKeys()
+{
+  const std::string& entries = SConfig::GetInstance().m_bt_passthrough_link_keys;
+  if (entries.empty())
+    return;
+  std::vector<std::string> pairs;
+  SplitString(entries, ',', pairs);
+  for (const auto& pair : pairs)
+  {
+    const auto index = pair.find('=');
+    if (index == std::string::npos)
+      continue;
+
+    btaddr_t address;
+    StringToMacAddress(pair.substr(0, index), address.data());
+    std::reverse(address.begin(), address.end());
+
+    const std::string& key_string = pair.substr(index + 1);
+    linkkey_t key;
+    size_t pos = 0;
+    for (size_t i = 0; i < key_string.length(); i = i + 2)
+    {
+      int value;
+      std::stringstream(key_string.substr(i, 2)) >> std::hex >> value;
+      key[pos++] = value;
+    }
+
+    s_link_keys[address] = key;
+  }
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SaveLinkKeys()
+{
+  std::ostringstream oss;
+  for (const auto& entry : s_link_keys)
+  {
+    btaddr_t address;
+    // Reverse the address so that it is stored in the correct order in the config file
+    std::reverse_copy(entry.first.begin(), entry.first.end(), address.begin());
+    oss << MacAddressToString(address.data());
+    oss << '=';
+    oss << std::hex;
+    for (const u16& data : entry.second)
+      oss << std::setfill('0') << std::setw(2) << data;
+    oss << std::dec << ',';
+  }
+  std::string config_string = oss.str();
+  if (!config_string.empty())
+    config_string.pop_back();
+  SConfig::GetInstance().m_bt_passthrough_link_keys = config_string;
+  SConfig::GetInstance().SaveSettings();
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305_real::OpenDevice(libusb_device* device)
@@ -378,6 +506,40 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer*
   {
     s_showed_failed_transfer.Clear();
   }
+
+  if (tr->status == LIBUSB_TRANSFER_COMPLETED && tr->endpoint == HCI_EVENT)
+  {
+    const auto* event = reinterpret_cast<hci_event_hdr_t*>(tr->buffer);
+
+    if (event->event == HCI_EVENT_COMMAND_COMPL &&
+        reinterpret_cast<SHCIEventCommand*>(tr->buffer)->Opcode == HCI_CMD_RESET)
+      s_link_keys_state = LinkKeysState::NeedsWrite;
+
+    if (s_link_keys_state == LinkKeysState::SentWriteCommand &&
+        event->event == HCI_EVENT_COMMAND_COMPL &&
+        reinterpret_cast<SHCIEventCommand*>(tr->buffer)->Opcode == HCI_CMD_WRITE_STORED_LINK_KEY)
+    {
+      // Ignore this command complete event to avoid possibly confusing games.
+      s_link_keys_state = LinkKeysState::Written;
+      ctrl->SetRetVal(0);
+      EnqueueReply(ctrl->m_cmd_address);
+      delete ctrl;
+      return;
+    }
+
+    if (event->event == HCI_EVENT_LINK_KEY_NOTIFICATION)
+    {
+      const auto* notification =
+          reinterpret_cast<hci_link_key_notification_ep*>(tr->buffer + sizeof(*event));
+
+      btaddr_t addr;
+      std::copy(std::begin(notification->bdaddr.b), std::end(notification->bdaddr.b), addr.begin());
+      linkkey_t key;
+      std::copy(std::begin(notification->key), std::end(notification->key), std::begin(key));
+      s_link_keys[addr] = key;
+    }
+  }
+
   ctrl->SetRetVal(tr->actual_length);
   EnqueueReply(ctrl->m_cmd_address);
   delete ctrl;

@@ -22,6 +22,16 @@ enum class SyncButtonState
   Ignored,
 };
 
+enum class LinkKeysState
+{
+  NeedsWrite,
+  SentWriteCommand,
+  Written,
+};
+
+using btaddr_t = std::array<u8, 6>;
+using linkkey_t = std::array<u8, 16>;
+
 class CWII_IPC_HLE_Device_usb_oh1_57e_305_real final
     : public CWII_IPC_HLE_Device_usb_oh1_57e_305_base
 {
@@ -60,10 +70,14 @@ private:
   Common::Flag m_fake_read_buffer_size_reply;
 
   void SendHCIResetCommand();
+  void SendHCIStoreLinkKeyCommand();
   void FakeReadBufferSizeReply(const CtrlBuffer& ctrl);
   void FakeSyncButtonEvent(const CtrlBuffer& ctrl, const u8* payload, u8 size);
   void FakeSyncButtonPressedEvent(const CtrlBuffer& ctrl);
   void FakeSyncButtonHeldEvent(const CtrlBuffer& ctrl);
+
+  void LoadLinkKeys();
+  void SaveLinkKeys();
 
   bool OpenDevice(libusb_device* device);
   void StartThread();
