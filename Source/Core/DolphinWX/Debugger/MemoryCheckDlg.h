@@ -5,6 +5,8 @@
 #pragma once
 
 #include <wx/dialog.h>
+#include <wx/radiobut.h>
+#include <wx/stattext.h>
 
 class CBreakPointWindow;
 class wxCheckBox;
@@ -17,12 +19,21 @@ public:
 
 private:
   CBreakPointWindow* m_parent;
-  wxCheckBox* m_pReadFlag;
-  wxCheckBox* m_pWriteFlag;
-  wxCheckBox* m_log_flag;
-  wxCheckBox* m_break_flag;
+  wxStaticText* m_textAddress;
+  wxStaticText* m_textStartAddress;
+  wxStaticText* m_textEndAddress;
+  wxRadioButton* m_radioLog;
+  wxRadioButton* m_radioBreak;
+  wxRadioButton* m_radioBreakLog;
+  wxRadioButton* m_radioRead;
+  wxRadioButton* m_radioWrite;
+  wxRadioButton* m_radioReadWrite;
+  wxRadioButton* m_radioAddress;
+  wxRadioButton* m_radioRange;
+  wxTextCtrl* m_pEditAddress;
   wxTextCtrl* m_pEditEndAddress;
   wxTextCtrl* m_pEditStartAddress;
 
+  void OnRadioButtonClick(wxCommandEvent& event);
   void OnOK(wxCommandEvent& event);
 };
