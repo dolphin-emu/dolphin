@@ -296,11 +296,13 @@ void CCodeWindow::SingleStep()
 {
   if (CPU::IsStepping())
   {
+    PowerPC::CoreMode oldMode = PowerPC::GetMode();
+    PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
     PowerPC::breakpoints.ClearAllTemporary();
-    JitInterface::InvalidateICache(PC, 4, true);
     CPU::StepOpcode(&sync_event);
     wxThread::Sleep(20);
     // need a short wait here
+    PowerPC::SetMode(oldMode);
     JumpToAddress(PC);
     Update();
   }
@@ -313,9 +315,21 @@ void CCodeWindow::StepOver()
     UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
     if (inst.LK)
     {
+      CPU::PauseAndLock(true, false);
       PowerPC::breakpoints.ClearAllTemporary();
-      PowerPC::breakpoints.Add(PC + 4, true);
-      CPU::EnableStepping(false);
+      PowerPC::CoreMode oldMode = PowerPC::GetMode();
+      PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+      u64 timeout = SystemTimers::GetTicksPerSecond();
+      u64 steps = 0;
+      u32 next_pc = PC + 4;
+      while (PC != next_pc && steps < timeout)
+      {
+        PowerPC::SingleStep();
+        ++steps;
+      }
+
+      PowerPC::SetMode(oldMode);
+      CPU::PauseAndLock(false, false);
       JumpToAddress(PC);
       Update();
     }
@@ -343,7 +357,10 @@ void CCodeWindow::StepOut()
     PowerPC::CoreMode oldMode = PowerPC::GetMode();
     PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
     UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
-    while (inst.hex != 0x4e800020 && steps < timeout)  // check for blr
+    int counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
+    int condition = ((inst.BO_2 >> 4) | (GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+    bool isBclr = (inst.OPCD_7 == 0b010011) && ((inst.hex >> 1) & 0b10000);
+    while (!(isBclr && !inst.LK_3 && condition && counter) && steps < timeout)
     {
       if (inst.LK)
       {
@@ -361,6 +378,9 @@ void CCodeWindow::StepOut()
         ++steps;
       }
       inst = PowerPC::HostRead_Instruction(PC);
+      counter = ((inst.BO_2 >> 2) | ((CTR != 0) ^ (inst.BO_2 >> 1))) & 1;
+      condition = ((inst.BO_2 >> 4) | (GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1))) & 1;
+      isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1) & 0b10000;
     }
 
     PowerPC::SingleStep();
