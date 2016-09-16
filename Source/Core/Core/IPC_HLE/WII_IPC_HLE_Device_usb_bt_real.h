@@ -5,6 +5,7 @@
 #pragma once
 
 #if defined(__LIBUSB__)
+#include <array>
 #include <atomic>
 #include <thread>
 
@@ -26,6 +27,9 @@ enum class SyncButtonState
   // On a real Wii, after a long press, the button release is ignored and doesn't trigger a sync.
   Ignored,
 };
+
+using btaddr_t = std::array<u8, 6>;
+using linkkey_t = std::array<u8, 16>;
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305_real final
     : public CWII_IPC_HLE_Device_usb_oh1_57e_305_base
@@ -67,11 +71,19 @@ private:
   // Set when we received a command to read the buffer size, and we need to fake a reply
   Common::Flag m_fake_read_buffer_size_reply;
 
+  bool m_is_wii_bt_module = false;
+
+  void WaitForHCICommandComplete(u16 opcode);
   void SendHCIResetCommand();
+  void SendHCIDeleteLinkKeyCommand();
+  bool SendHCIStoreLinkKeyCommand();
   void FakeReadBufferSizeReply(const CtrlBuffer& ctrl);
   void FakeSyncButtonEvent(const CtrlBuffer& ctrl, const u8* payload, u8 size);
   void FakeSyncButtonPressedEvent(const CtrlBuffer& ctrl);
   void FakeSyncButtonHeldEvent(const CtrlBuffer& ctrl);
+
+  void LoadLinkKeys();
+  void SaveLinkKeys();
 
   bool OpenDevice(libusb_device* device);
   void StartTransferThread();

@@ -147,6 +147,7 @@ struct SConfig : NonCopyable
   bool m_bt_passthrough_enabled = false;
   int m_bt_passthrough_pid = -1;
   int m_bt_passthrough_vid = -1;
+  std::string m_bt_passthrough_link_keys;
 
   // Fifo Player related settings
   bool bLoopFifoReplay = true;
