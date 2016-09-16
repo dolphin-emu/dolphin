@@ -57,10 +57,21 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// Retrieve screen dimensions.
 		DisplayMetrics dm = context.getResources().getDisplayMetrics();
 
-		return Bitmap.createScaledBitmap(bitmap,
-				(int)(dm.heightPixels * scale),
-				(int)(dm.heightPixels * scale),
-				true);
+		// Scale buttons based on smaller screen dimension.
+		if (dm.heightPixels > dm.widthPixels)
+		{
+			return Bitmap.createScaledBitmap(bitmap,
+					(int)(dm.widthPixels * scale),
+					(int)(dm.widthPixels * scale),
+					true);
+		}
+		else
+		{
+			return Bitmap.createScaledBitmap(bitmap,
+					(int)(dm.heightPixels * scale),
+					(int)(dm.heightPixels * scale),
+					true);
+		}
 	}
 
 	/**
