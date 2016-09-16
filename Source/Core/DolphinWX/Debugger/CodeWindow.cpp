@@ -149,8 +149,6 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 
   case IDM_UPDATE_DISASM_DIALOG:
     Update();
-    if (codeview)
-      codeview->Center(PC);
     if (CPU::IsStepping())
       Parent->UpdateGUI();
     if (m_RegisterWindow)
@@ -296,13 +294,13 @@ void CCodeWindow::SingleStep()
 {
   if (CPU::IsStepping())
   {
+    PowerPC::CoreMode old_mode = PowerPC::GetMode();
+    PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
     PowerPC::breakpoints.ClearAllTemporary();
-    JitInterface::InvalidateICache(PC, 4, true);
     CPU::StepOpcode(&sync_event);
-    wxThread::Sleep(20);
-    // need a short wait here
-    JumpToAddress(PC);
-    Update();
+    sync_event.WaitFor(std::chrono::milliseconds(20));
+    PowerPC::SetMode(old_mode);
+    // Will get a IDM_UPDATE_DISASM_DIALOG. Don't update the GUI here.
   }
 }
 
@@ -316,18 +314,21 @@ void CCodeWindow::StepOver()
       PowerPC::breakpoints.ClearAllTemporary();
       PowerPC::breakpoints.Add(PC + 4, true);
       CPU::EnableStepping(false);
-      JumpToAddress(PC);
-      Update();
     }
     else
     {
       SingleStep();
     }
-
-    UpdateButtonStates();
-    // Update all toolbars in the aui manager
-    Parent->UpdateGUI();
   }
+}
+
+// Gets a boolean that tells if the instruction it gets is a bclr that will branch.
+static bool GetBclrStatusUpdate(UGeckoInstruction inst)
+{
+  bool counter = (inst.BO_2 >> 2) != 0 || (CTR != 0) != ((inst.BO_2 >> 1) != 0);
+  bool condition = (inst.BO_2 >> 4) != 0 || (GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1));
+  bool isBclr = (inst.OPCD_7 == 0b010011) && ((inst.hex >> 1) & 0b10000) != 0;
+  return isBclr && counter && condition;
 }
 
 void CCodeWindow::StepOut()
@@ -337,13 +338,16 @@ void CCodeWindow::StepOut()
     CPU::PauseAndLock(true, false);
     PowerPC::breakpoints.ClearAllTemporary();
 
-    // Keep stepping until the next blr or timeout after one second
+    // Keep stepping until the next bclr or timeout after one second
     u64 timeout = SystemTimers::GetTicksPerSecond();
     u64 steps = 0;
-    PowerPC::CoreMode oldMode = PowerPC::GetMode();
+    PowerPC::CoreMode old_mode = PowerPC::GetMode();
     PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
     UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
-    while (inst.hex != 0x4e800020 && steps < timeout)  // check for blr
+    // Loop until either the current instruction is a branching bclr with no Link flag
+    // or a breakpoint is detected so it can step at the breakpoint.
+    while (!(GetBclrStatusUpdate(inst) && !inst.LK_3) && steps < timeout &&
+           !PowerPC::breakpoints.IsAddressBreakPoint(PC))
     {
       if (inst.LK)
       {
@@ -362,15 +366,14 @@ void CCodeWindow::StepOut()
       }
       inst = PowerPC::HostRead_Instruction(PC);
     }
-
-    PowerPC::SingleStep();
-    PowerPC::SetMode(oldMode);
+    // If the loop stopped because of a breakpoint, we do not want to step to
+    // an instruction after it.
+    if (!PowerPC::breakpoints.IsAddressBreakPoint(PC))
+      PowerPC::SingleStep();
+    PowerPC::SetMode(old_mode);
     CPU::PauseAndLock(false, false);
 
-    JumpToAddress(PC);
-    Update();
     Host_UpdateDisasmDialog();
-
     UpdateButtonStates();
     // Update all toolbars in the aui manager
     Parent->UpdateGUI();
@@ -698,7 +701,7 @@ void CCodeWindow::Update()
   if (!codeview)
     return;
 
-  codeview->Refresh();
+  codeview->Center(PC);
   UpdateCallstack();
   UpdateButtonStates();
 
