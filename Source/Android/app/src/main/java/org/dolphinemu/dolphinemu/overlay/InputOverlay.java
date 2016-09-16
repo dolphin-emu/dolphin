@@ -57,9 +57,22 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// Retrieve screen dimensions.
 		DisplayMetrics dm = context.getResources().getDisplayMetrics();
 
+		// Determine the button size based on the smaller screen dimension.
+		// This makes sure the buttons are the same size in both portrait and landscape.
+		int buttonSize;
+
+		if (dm.heightPixels > dm.widthPixels)
+		{
+			buttonSize = (int)(dm.widthPixels * scale);
+		}
+		else
+		{
+			buttonSize = (int)(dm.heightPixels * scale);
+		}
+
 		return Bitmap.createScaledBitmap(bitmap,
-				(int)(dm.heightPixels * scale),
-				(int)(dm.heightPixels * scale),
+				buttonSize,
+				buttonSize,
 				true);
 	}
 
