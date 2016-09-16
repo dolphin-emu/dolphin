@@ -296,11 +296,13 @@ void CCodeWindow::SingleStep()
 {
   if (CPU::IsStepping())
   {
+    PowerPC::CoreMode old_mode = PowerPC::GetMode();
+    PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
     PowerPC::breakpoints.ClearAllTemporary();
-    JitInterface::InvalidateICache(PC, 4, true);
     CPU::StepOpcode(&sync_event);
     wxThread::Sleep(20);
     // need a short wait here
+    PowerPC::SetMode(old_mode);
     JumpToAddress(PC);
     Update();
   }
@@ -313,9 +315,21 @@ void CCodeWindow::StepOver()
     UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
     if (inst.LK)
     {
+      CPU::PauseAndLock(true, false);
       PowerPC::breakpoints.ClearAllTemporary();
-      PowerPC::breakpoints.Add(PC + 4, true);
-      CPU::EnableStepping(false);
+      PowerPC::CoreMode old_mode = PowerPC::GetMode();
+      PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+      u64 timeout = SystemTimers::GetTicksPerSecond();
+      u64 steps = 0;
+      u32 next_pc = PC + 4;
+      while (PC != next_pc && steps < timeout && !PowerPC::breakpoints.IsAddressBreakPoint(PC))
+      {
+        PowerPC::SingleStep();
+        ++steps;
+      }
+
+      PowerPC::SetMode(old_mode);
+      CPU::PauseAndLock(false, false);
       JumpToAddress(PC);
       Update();
     }
@@ -330,6 +344,14 @@ void CCodeWindow::StepOver()
   }
 }
 
+static bool GetBclrStatusUpdate(UGeckoInstruction inst)
+{
+  bool counter = (inst.BO_2 >> 2) != 0 || (CTR != 0) != ((inst.BO_2 >> 1) != 0);
+  bool condition = (inst.BO_2 >> 4) != 0 || (GetCRBit(inst.BI_2) == ((inst.BO_2 >> 3) & 1));
+  bool isBclr = (inst.OPCD_7 == 0b010011) && ((inst.hex >> 1) & 0b10000) != 0;
+  return isBclr && counter && condition;
+}
+
 void CCodeWindow::StepOut()
 {
   if (CPU::IsStepping())
@@ -340,10 +362,11 @@ void CCodeWindow::StepOut()
     // Keep stepping until the next blr or timeout after one second
     u64 timeout = SystemTimers::GetTicksPerSecond();
     u64 steps = 0;
-    PowerPC::CoreMode oldMode = PowerPC::GetMode();
+    PowerPC::CoreMode old_mode = PowerPC::GetMode();
     PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
     UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
-    while (inst.hex != 0x4e800020 && steps < timeout)  // check for blr
+    while (!(GetBclrStatusUpdate(inst) && !inst.LK_3) && steps < timeout &&
+           !PowerPC::breakpoints.IsAddressBreakPoint(PC))
     {
       if (inst.LK)
       {
@@ -362,9 +385,9 @@ void CCodeWindow::StepOut()
       }
       inst = PowerPC::HostRead_Instruction(PC);
     }
-
-    PowerPC::SingleStep();
-    PowerPC::SetMode(oldMode);
+    if (!PowerPC::breakpoints.IsAddressBreakPoint(PC))
+      PowerPC::SingleStep();
+    PowerPC::SetMode(old_mode);
     CPU::PauseAndLock(false, false);
 
     JumpToAddress(PC);
