@@ -15,6 +15,7 @@ enum class Language;
 
 class wxCheckBox;
 class wxChoice;
+class wxRadioBox;
 
 class WiiConfigPane final : public wxPanel
 {
@@ -27,21 +28,22 @@ private:
   void RefreshGUI();
 
   void OnScreenSaverCheckBoxChanged(wxCommandEvent&);
-  void OnPAL60CheckBoxChanged(wxCommandEvent&);
   void OnSDCardCheckBoxChanged(wxCommandEvent&);
   void OnConnectKeyboardCheckBoxChanged(wxCommandEvent&);
   void OnSystemLanguageChoiceChanged(wxCommandEvent&);
   void OnAspectRatioChoiceChanged(wxCommandEvent&);
+  void OnRefreshRateRadioBoxChanged(wxCommandEvent&);
 
   static u8 GetSADRCountryCode(DiscIO::Language language);
 
+  wxArrayString m_refresh_rate_strings;
   wxArrayString m_system_language_strings;
   wxArrayString m_aspect_ratio_strings;
 
   wxCheckBox* m_screensaver_checkbox;
-  wxCheckBox* m_pal60_mode_checkbox;
   wxCheckBox* m_sd_card_checkbox;
   wxCheckBox* m_connect_keyboard_checkbox;
   wxChoice* m_system_language_choice;
   wxChoice* m_aspect_ratio_choice;
+  wxRadioBox* m_refresh_rate_radiobox;
 };
