@@ -117,26 +117,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
     signExtend = true;
   }
 
-  // TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
-  // Will give nice boost to dual core mode
-  // (mb2): I agree,
-  // IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle
-  // methode
-  // ... maybe the throttle one already do that :p
-  // TODO: We shouldn't use a debug read here.  It should be possible to get
-  // the following instructions out of the JIT state.
   if (CPU::GetState() != CPU::CPU_STEPPING && inst.OPCD == 32 && MergeAllowedNextInstructions(2) &&
       (inst.hex & 0xFFFF0000) == 0x800D0000 &&
       (js.op[1].inst.hex == 0x28000000 ||
        (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&
       js.op[2].inst.hex == 0x4182fff8)
   {
-    // TODO(LinesPrower):
-    // - Rewrite this!
-    // It seems to be ugly and inefficient, but I don't know JIT stuff enough to make it right
-    // It only demonstrates the idea
-
-    // do our job at first
     s32 offset = (s32)(s16)inst.SIMM_16;
     gpr.BindToRegister(a, true, false);
     gpr.BindToRegister(d, false, true);
