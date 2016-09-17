@@ -85,7 +85,7 @@ bool PauseAndLock(bool doLock, bool unpauseOnUnlock = true);
 
 // for calling back into UI code without introducing a dependency on it in core
 typedef void (*StoppedCallbackFunc)(void);
-void SetOnStoppedCallback(StoppedCallbackFunc callback);
+StoppedCallbackFunc SetOnStoppedCallback(StoppedCallbackFunc callback);
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(bool initial = false);
