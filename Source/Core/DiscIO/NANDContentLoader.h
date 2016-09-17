@@ -26,19 +26,18 @@ class CNANDContentData
 {
 public:
   virtual ~CNANDContentData() = 0;
-  virtual void Open(){};
-  virtual const std::vector<u8> Get() = 0;
+  virtual void Open() {}
+  virtual std::vector<u8> Get() = 0;
   virtual bool GetRange(u32 start, u32 size, u8* buffer) = 0;
-  virtual void Close(){};
+  virtual void Close() {}
 };
 
 class CNANDContentDataFile final : public CNANDContentData
 {
 public:
-  CNANDContentDataFile(const std::string& filename) : m_filename(filename){};
-
+  explicit CNANDContentDataFile(const std::string& filename) : m_filename(filename) {}
   void Open() override;
-  const std::vector<u8> Get() override;
+  std::vector<u8> Get() override;
   bool GetRange(u32 start, u32 size, u8* buffer) override;
   void Close() override;
 
@@ -51,9 +50,8 @@ private:
 class CNANDContentDataBuffer final : public CNANDContentData
 {
 public:
-  CNANDContentDataBuffer(const std::vector<u8>& buffer) : m_buffer(buffer){};
-
-  const std::vector<u8> Get() override { return m_buffer; };
+  explicit CNANDContentDataBuffer(const std::vector<u8>& buffer) : m_buffer(buffer) {}
+  std::vector<u8> Get() override { return m_buffer; }
   bool GetRange(u32 start, u32 size, u8* buffer) override;
 
 private:
@@ -76,8 +74,8 @@ struct SNANDContent
 class CNANDContentLoader final
 {
 public:
-  CNANDContentLoader(const std::string& content_name);
-  virtual ~CNANDContentLoader();
+  explicit CNANDContentLoader(const std::string& content_name);
+  ~CNANDContentLoader();
 
   bool IsValid() const { return m_Valid; }
   void RemoveTitle() const;
