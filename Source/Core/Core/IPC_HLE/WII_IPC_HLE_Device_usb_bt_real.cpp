@@ -110,8 +110,16 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CWII_IPC_HLE_Device_usb_oh1_57e_305_re
         descriptor->bInterfaceProtocol == PROTOCOL_BLUETOOTH && IsWantedDevice(device_descriptor) &&
         OpenDevice(device))
     {
-      NOTICE_LOG(WII_IPC_WIIMOTE, "Using device %04x:%04x for Bluetooth",
-                 device_descriptor.idVendor, device_descriptor.idProduct);
+      unsigned char manufacturer[50] = {}, product[50] = {}, serial_number[50] = {};
+      libusb_get_string_descriptor_ascii(m_handle, device_descriptor.iManufacturer, manufacturer,
+                                         sizeof(manufacturer));
+      libusb_get_string_descriptor_ascii(m_handle, device_descriptor.iProduct, product,
+                                         sizeof(product));
+      libusb_get_string_descriptor_ascii(m_handle, device_descriptor.iSerialNumber, serial_number,
+                                         sizeof(serial_number));
+      NOTICE_LOG(WII_IPC_WIIMOTE, "Using device %04x:%04x (rev %x) for Bluetooth: %s %s %s",
+                 device_descriptor.idVendor, device_descriptor.idProduct,
+                 device_descriptor.bcdDevice, manufacturer, product, serial_number);
       libusb_free_config_descriptor(config_descriptor);
       break;
     }
@@ -162,6 +170,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
   {
     const auto cmd = new CtrlMessage(cmd_buffer);
     const u16 opcode = *reinterpret_cast<u16*>(Memory::GetPointer(cmd->payload_addr));
+    INFO_LOG(WII_IPC_WIIMOTE, "Sending command %04x", opcode);
     if (opcode == HCI_CMD_READ_BUFFER_SIZE)
     {
       m_fake_read_buffer_size_reply.Set();
@@ -262,6 +271,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIResetCommand()
   u8 packet[3] = {};
   *reinterpret_cast<u16*>(&packet[0]) = HCI_CMD_RESET;
   libusb_control_transfer(m_handle, type, 0, 0, 0, packet, sizeof(packet), TIMEOUT);
+  INFO_LOG(WII_IPC_WIIMOTE, "Sent a reset command to adapter");
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIStoreLinkKeyCommand()
@@ -300,6 +310,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIStoreLinkKeyCommand()
 
   libusb_control_transfer(m_handle, type, 0, 0, 0, packet.data(), static_cast<u16>(packet.size()),
                           TIMEOUT);
+  INFO_LOG(WII_IPC_WIIMOTE, "Wrote link keys to the adapter");
 }
 
 // Due to how the widcomm stack which Nintendo uses is coded, we must never
