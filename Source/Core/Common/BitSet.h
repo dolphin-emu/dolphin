@@ -175,15 +175,16 @@ public:
   {
     m_val = 0;
     for (int bit : init)
-      m_val |= (IntTy)1 << bit;
+      m_val |= static_cast<IntTy>(1) << bit;
   }
 
   constexpr static BitSet AllTrue(size_t count)
   {
-    return BitSet(count == sizeof(IntTy) * 8 ? ~(IntTy)0 : (((IntTy)1 << count) - 1));
+    return BitSet(count == sizeof(IntTy) * 8 ? ~static_cast<IntTy>(0) :
+                                               ((static_cast<IntTy>(1) << count) - 1));
   }
 
-  Ref operator[](size_t bit) { return Ref(this, (IntTy)1 << bit); }
+  Ref operator[](size_t bit) { return Ref(this, static_cast<IntTy>(1) << bit); }
   constexpr const Ref operator[](size_t bit) const { return (*const_cast<BitSet*>(this))[bit]; }
   constexpr bool operator==(BitSet other) const { return m_val == other.m_val; }
   constexpr bool operator!=(BitSet other) const { return m_val != other.m_val; }

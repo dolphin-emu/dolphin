@@ -383,7 +383,7 @@ u64 GetSize(const std::string& filename)
   if (stat(filename.c_str(), &buf) == 0)
 #endif
   {
-    DEBUG_LOG(COMMON, "GetSize: %s: %lld", filename.c_str(), (long long)buf.st_size);
+    DEBUG_LOG(COMMON, "GetSize: %s: %lld", filename.c_str(), static_cast<long long>(buf.st_size));
     return buf.st_size;
   }
 

@@ -192,15 +192,15 @@ inline u64 swap64(u64 data)
 
 inline u16 swap16(const u8* _pData)
 {
-  return swap16(*(const u16*)_pData);
+  return swap16(*reinterpret_cast<const u16*>(_pData));
 }
 inline u32 swap32(const u8* _pData)
 {
-  return swap32(*(const u32*)_pData);
+  return swap32(*reinterpret_cast<const u32*>(_pData));
 }
 inline u64 swap64(const u8* _pData)
 {
-  return swap64(*(const u64*)_pData);
+  return swap64(*reinterpret_cast<const u64*>(_pData));
 }
 
 template <int count>

@@ -48,7 +48,7 @@ size_t XEmitter::ABI_PushRegistersAndAdjustStack(BitSet32 mask, size_t rsp_align
                          &xmm_offset);
 
   for (int r : mask& ABI_ALL_GPRS)
-    PUSH((X64Reg)r);
+    PUSH(static_cast<X64Reg>(r));
 
   if (subtraction)
     SUB(64, R(RSP), subtraction >= 0x80 ? Imm32((u32)subtraction) : Imm8((u8)subtraction));

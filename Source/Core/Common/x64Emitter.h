@@ -136,9 +136,9 @@ struct OpArg
   OpArg(u64 _offset, int _scale, X64Reg rmReg = RAX, X64Reg scaledReg = RAX)
   {
     operandReg = 0;
-    scale = (u8)_scale;
-    offsetOrBaseReg = (u16)rmReg;
-    indexReg = (u16)scaledReg;
+    scale = static_cast<u8>(_scale);
+    offsetOrBaseReg = static_cast<u16>(rmReg);
+    indexReg = static_cast<u16>(scaledReg);
     // if scale == 0 never mind offsetting
     offset = _offset;
   }
@@ -157,64 +157,64 @@ struct OpArg
   u64 Imm64() const
   {
     _dbg_assert_(DYNA_REC, scale == SCALE_IMM64);
-    return (u64)offset;
+    return offset;
   }
   u32 Imm32() const
   {
     _dbg_assert_(DYNA_REC, scale == SCALE_IMM32);
-    return (u32)offset;
+    return static_cast<u32>(offset);
   }
   u16 Imm16() const
   {
     _dbg_assert_(DYNA_REC, scale == SCALE_IMM16);
-    return (u16)offset;
+    return static_cast<u16>(offset);
   }
   u8 Imm8() const
   {
     _dbg_assert_(DYNA_REC, scale == SCALE_IMM8);
-    return (u8)offset;
+    return static_cast<u8>(offset);
   }
 
   s64 SImm64() const
   {
     _dbg_assert_(DYNA_REC, scale == SCALE_IMM64);
-    return (s64)offset;
+    return static_cast<s64>(offset);
   }
   s32 SImm32() const
   {
     _dbg_assert_(DYNA_REC, scale == SCALE_IMM32);
-    return (s32)offset;
+    return static_cast<s32>(offset);
   }
   s16 SImm16() const
   {
     _dbg_assert_(DYNA_REC, scale == SCALE_IMM16);
-    return (s16)offset;
+    return static_cast<s16>(offset);
   }
   s8 SImm8() const
   {
     _dbg_assert_(DYNA_REC, scale == SCALE_IMM8);
-    return (s8)offset;
+    return static_cast<s8>(offset);
   }
 
   OpArg AsImm64() const
   {
     _dbg_assert_(DYNA_REC, IsImm());
-    return OpArg((u64)offset, SCALE_IMM64);
+    return OpArg(static_cast<u64>(offset), SCALE_IMM64);
   }
   OpArg AsImm32() const
   {
     _dbg_assert_(DYNA_REC, IsImm());
-    return OpArg((u32)offset, SCALE_IMM32);
+    return OpArg(static_cast<u32>(offset), SCALE_IMM32);
   }
   OpArg AsImm16() const
   {
     _dbg_assert_(DYNA_REC, IsImm());
-    return OpArg((u16)offset, SCALE_IMM16);
+    return OpArg(static_cast<u16>(offset), SCALE_IMM16);
   }
   OpArg AsImm8() const
   {
     _dbg_assert_(DYNA_REC, IsImm());
-    return OpArg((u8)offset, SCALE_IMM8);
+    return OpArg(static_cast<u8>(offset), SCALE_IMM8);
   }
 
   void WriteNormalOp(XEmitter* emit, bool toRM, NormalOp op, const OpArg& operand, int bits) const;
@@ -246,7 +246,7 @@ struct OpArg
   X64Reg GetSimpleReg() const
   {
     if (scale == SCALE_NONE)
-      return (X64Reg)offsetOrBaseReg;
+      return static_cast<X64Reg>(offsetOrBaseReg);
     else
       return INVALID_REG;
   }
@@ -269,7 +269,7 @@ private:
 template <typename T>
 inline OpArg M(const T* ptr)
 {
-  return OpArg((u64)(const void*)ptr, (int)SCALE_RIP);
+  return OpArg(reinterpret_cast<u64>(ptr), static_cast<int>(SCALE_RIP));
 }
 inline OpArg R(X64Reg value)
 {
@@ -282,7 +282,7 @@ inline OpArg MatR(X64Reg value)
 
 inline OpArg MDisp(X64Reg value, int offset)
 {
-  return OpArg((u32)offset, SCALE_ATREG, value);
+  return OpArg(static_cast<u32>(offset), SCALE_ATREG, value);
 }
 
 inline OpArg MComplex(X64Reg base, X64Reg scaled, int scale, int offset)
@@ -321,19 +321,19 @@ inline OpArg Imm64(u64 imm)
 }
 inline OpArg ImmPtr(const void* imm)
 {
-  return Imm64((u64)imm);
+  return Imm64(reinterpret_cast<u64>(imm));
 }
 
 inline u32 PtrOffset(const void* ptr, const void* base)
 {
-  s64 distance = (s64)ptr - (s64)base;
+  s64 distance = reinterpret_cast<s64>(ptr) - reinterpret_cast<s64>(base);
   if (distance >= 0x80000000LL || distance < -0x80000000LL)
   {
     _assert_msg_(DYNA_REC, 0, "pointer offset out of range");
     return 0;
   }
 
-  return (u32)distance;
+  return static_cast<u32>(distance);
 }
 
 // usage: int a[]; ARRAY_OFFSET(a,10)
