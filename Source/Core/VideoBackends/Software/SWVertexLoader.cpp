@@ -39,17 +39,12 @@ SWVertexLoader::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_de
   return new NullNativeVertexFormat(vtx_decl);
 }
 
-SWVertexLoader::SWVertexLoader()
+SWVertexLoader::SWVertexLoader() : LocalVBuffer(MAXVBUFFERSIZE), LocalIBuffer(MAXIBUFFERSIZE)
 {
-  LocalVBuffer.resize(MAXVBUFFERSIZE);
-  LocalIBuffer.resize(MAXIBUFFERSIZE);
-  m_SetupUnit = new SetupUnit;
 }
 
 SWVertexLoader::~SWVertexLoader()
 {
-  delete m_SetupUnit;
-  m_SetupUnit = nullptr;
 }
 
 void SWVertexLoader::ResetBuffer(u32 stride)
@@ -78,7 +73,7 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
     break;
   }
 
-  m_SetupUnit->Init(primitiveType);
+  m_SetupUnit.Init(primitiveType);
 
   // set all states with are stored within video sw
   for (int i = 0; i < 4; i++)
@@ -96,7 +91,7 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
     if (index == 0xffff)
     {
       // primitive restart
-      m_SetupUnit->Init(primitiveType);
+      m_SetupUnit.Init(primitiveType);
       continue;
     }
     memset(&m_Vertex, 0, sizeof(m_Vertex));
@@ -109,7 +104,7 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
     ParseVertex(VertexLoaderManager::GetCurrentVertexFormat()->GetVertexDeclaration(), index);
 
     // transform this vertex so that it can be used for rasterization (outVertex)
-    OutputVertexData* outVertex = m_SetupUnit->GetVertex();
+    OutputVertexData* outVertex = m_SetupUnit.GetVertex();
     TransformUnit::TransformPosition(&m_Vertex, outVertex);
     memset(&outVertex->normal, 0, sizeof(outVertex->normal));
     if (VertexLoaderManager::g_current_components & VB_HAS_NRM0)
@@ -121,7 +116,7 @@ void SWVertexLoader::vFlush(bool useDstAlpha)
     TransformUnit::TransformTexCoord(&m_Vertex, outVertex, m_TexGenSpecialCase);
 
     // assemble and rasterize the primitive
-    m_SetupUnit->SetupVertex();
+    m_SetupUnit.SetupVertex();
 
     INCSTAT(stats.thisFrame.numVerticesLoaded)
   }

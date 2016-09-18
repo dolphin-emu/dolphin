@@ -4,18 +4,15 @@
 
 #pragma once
 
-#include <memory>
-#include <unordered_map>
 #include <vector>
 
 #include "Common/CommonTypes.h"
 
 #include "VideoBackends/Software/NativeVertexFormat.h"
+#include "VideoBackends/Software/SetupUnit.h"
 
 #include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexManagerBase.h"
-
-class SetupUnit;
 
 class SWVertexLoader : public VertexManagerBase
 {
@@ -37,7 +34,7 @@ private:
 
   void ParseVertex(const PortableVertexDeclaration& vdec, int index);
 
-  SetupUnit* m_SetupUnit;
+  SetupUnit m_SetupUnit;
 
   bool m_TexGenSpecialCase;
 
