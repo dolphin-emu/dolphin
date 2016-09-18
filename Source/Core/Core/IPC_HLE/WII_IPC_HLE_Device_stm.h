@@ -31,36 +31,36 @@ enum
 };
 
 // The /dev/stm/immediate
-class CWII_IPC_HLE_Device_stm_immediate : public IWII_IPC_HLE_Device
+class CWII_IPC_HLE_Device_stm_immediate final : public IWII_IPC_HLE_Device
 {
 public:
-  CWII_IPC_HLE_Device_stm_immediate(u32 _DeviceID, const std::string& _rDeviceName)
-      : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+  CWII_IPC_HLE_Device_stm_immediate(u32 device_id, const std::string& device_name)
+      : IWII_IPC_HLE_Device(device_id, device_name)
   {
   }
 
   ~CWII_IPC_HLE_Device_stm_immediate() override = default;
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
+  IPCCommandResult Open(u32 command_address, u32 mode) override;
+  IPCCommandResult Close(u32 command_address, bool force) override;
+  IPCCommandResult IOCtl(u32 command_address) override;
 };
 
 // The /dev/stm/eventhook
-class CWII_IPC_HLE_Device_stm_eventhook : public IWII_IPC_HLE_Device
+class CWII_IPC_HLE_Device_stm_eventhook final : public IWII_IPC_HLE_Device
 {
 public:
-  CWII_IPC_HLE_Device_stm_eventhook(u32 _DeviceID, const std::string& _rDeviceName)
-      : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName), m_EventHookAddress(0)
+  CWII_IPC_HLE_Device_stm_eventhook(u32 device_id, const std::string& device_name)
+      : IWII_IPC_HLE_Device(device_id, device_name)
   {
   }
 
   ~CWII_IPC_HLE_Device_stm_eventhook() override = default;
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
+  IPCCommandResult Open(u32 command_address, u32 mode) override;
+  IPCCommandResult Close(u32 command_address, bool force) override;
+  IPCCommandResult IOCtl(u32 command_address) override;
 
   void ResetButton();
 
   // STATE_TO_SAVE
-  u32 m_EventHookAddress;
+  u32 m_event_hook_address = 0;
 };
