@@ -33,7 +33,6 @@
 
 namespace Common
 {
-
 #if !defined(_WIN32)
 #include <unistd.h>
 static uintptr_t RoundPage(uintptr_t addr)
