@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-09-11 15:52+0200\n"
-"PO-Revision-Date: 2016-09-11 13:52+0000\n"
+"POT-Creation-Date: 2016-09-18 11:27+0200\n"
+"PO-Revision-Date: 2016-09-18 09:27+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Norwegian Bokmål (http://www.transifex.com/delroth/dolphin-"
 "emu/language/nb/)\n"
@@ -262,27 +262,27 @@ msgstr "%zu minnebyte"
 msgid "&& AND"
 msgstr "&& OG"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:372
-msgid "&About..."
-msgstr "&Om…"
+#: Source/Core/DolphinWX/FrameTools.cpp:373
+msgid "&About"
+msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:223
+#: Source/Core/DolphinWX/FrameTools.cpp:224
 msgid "&Audio Settings"
 msgstr "&Lyd-innstillinger"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:125
-msgid "&Boot from DVD Backup..."
-msgstr "&Start fra DVD-sikkerhetskopi…"
+#: Source/Core/DolphinWX/FrameTools.cpp:126
+msgid "&Boot from DVD Backup"
+msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:273
+#: Source/Core/DolphinWX/FrameTools.cpp:274
 msgid "&Breakpoints"
 msgstr "&Brytepunkter"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:238
+#: Source/Core/DolphinWX/FrameTools.cpp:239
 msgid "&Cheat Manager"
 msgstr "&Juksekode-behandler"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:224
+#: Source/Core/DolphinWX/FrameTools.cpp:225
 msgid "&Controller Settings"
 msgstr "&Kontroller-innstillinger"
 
@@ -294,71 +294,71 @@ msgstr "&Slett fil…"
 msgid "&Delete selected ISOs..."
 msgstr "&Slett merkede ISO-filer…"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:189
+#: Source/Core/DolphinWX/FrameTools.cpp:190
 msgid "&Emulation"
 msgstr "&Emulering"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:138
+#: Source/Core/DolphinWX/FrameTools.cpp:139
 msgid "&File"
 msgstr "&Fil"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:407
+#: Source/Core/DolphinWX/FrameTools.cpp:408
 msgid "&Frame Advance"
 msgstr "&Bilde for bilde"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:424
+#: Source/Core/DolphinWX/FrameTools.cpp:425
 msgid "&Fullscreen"
 msgstr "&Fullskjerm"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:370
+#: Source/Core/DolphinWX/FrameTools.cpp:371
 msgid "&GitHub Repository"
 msgstr "&GitHub-pakkebrønn"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:222
+#: Source/Core/DolphinWX/FrameTools.cpp:223
 msgid "&Graphics Settings"
 msgstr "&Grafikkinstllinger"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:373
+#: Source/Core/DolphinWX/FrameTools.cpp:374
 msgid "&Help"
 msgstr "&Hjelp"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:225
+#: Source/Core/DolphinWX/FrameTools.cpp:226
 msgid "&Hotkey Settings"
 msgstr "Innstillinger for &hurtigtaster"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:274
+#: Source/Core/DolphinWX/FrameTools.cpp:275
 msgid "&JIT"
 msgstr "&JIT"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:163
+#: Source/Core/DolphinWX/FrameTools.cpp:164
 msgid "&Load State"
 msgstr "Åpne hurtiglagring"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:235
+#: Source/Core/DolphinWX/FrameTools.cpp:236
 msgid "&Memcard Manager (GC)"
 msgstr "&Minnekort-behandler (GC)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:274
+#: Source/Core/DolphinWX/FrameTools.cpp:275
 msgid "&Memory"
 msgstr "&Minne"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:216
+#: Source/Core/DolphinWX/FrameTools.cpp:217
 msgid "&Movie"
 msgstr "&Film"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:385
+#: Source/Core/DolphinWX/FrameTools.cpp:386
 msgid "&Open..."
 msgstr "&Åpne…"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:231
+#: Source/Core/DolphinWX/FrameTools.cpp:232
 msgid "&Options"
 msgstr "&Innstillinger"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:396
+#: Source/Core/DolphinWX/FrameTools.cpp:397
 msgid "&Pause"
 msgstr "&Pause"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:398
+#: Source/Core/DolphinWX/FrameTools.cpp:399
 msgid "&Play"
 msgstr "&Spill"
 
@@ -366,47 +366,47 @@ msgstr "&Spill"
 msgid "&Properties"
 msgstr "&Egenskaper"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:420
+#: Source/Core/DolphinWX/FrameTools.cpp:421
 msgid "&Read-Only Mode"
 msgstr "&Skrivebeskyttet modus"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:391
+#: Source/Core/DolphinWX/FrameTools.cpp:392
 msgid "&Refresh List"
 msgstr "&Oppdater liste"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:273
+#: Source/Core/DolphinWX/FrameTools.cpp:274
 msgid "&Registers"
 msgstr "&Register"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:404
+#: Source/Core/DolphinWX/FrameTools.cpp:405
 msgid "&Reset"
 msgstr "&Tilbakestill"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:274
+#: Source/Core/DolphinWX/FrameTools.cpp:275
 msgid "&Sound"
 msgstr "&Lyd"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:401
+#: Source/Core/DolphinWX/FrameTools.cpp:402
 msgid "&Stop"
 msgstr "S&topp"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:257
+#: Source/Core/DolphinWX/FrameTools.cpp:258
 msgid "&Tools"
 msgstr "&Verktøy"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:275
+#: Source/Core/DolphinWX/FrameTools.cpp:276
 msgid "&Video"
 msgstr "&Video"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:357
+#: Source/Core/DolphinWX/FrameTools.cpp:358
 msgid "&View"
 msgstr "Vi&s"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:273
+#: Source/Core/DolphinWX/FrameTools.cpp:274
 msgid "&Watch"
 msgstr "&Se"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:368
+#: Source/Core/DolphinWX/FrameTools.cpp:369
 msgid "&Website"
 msgstr "&Nettside"
 
@@ -684,7 +684,7 @@ msgid "Advanced Settings"
 msgstr "Avanserte innstillinger"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:43
-#: Source/Core/DolphinWX/FrameTools.cpp:672
+#: Source/Core/DolphinWX/FrameTools.cpp:673
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "Alle GameCube/Wii -filer (elf, dol, gcm, wbfs, ciso, gcz, wad)"
 
@@ -892,7 +892,7 @@ msgstr "Bakover"
 msgid "Balance Board"
 msgstr "Balansebrett"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:342
+#: Source/Core/DolphinWX/FrameTools.cpp:343
 #: Source/Core/DolphinWX/GameListCtrl.cpp:273
 #: Source/Core/DolphinWX/MemcardManager.cpp:643
 msgid "Banner"
@@ -1087,7 +1087,7 @@ msgstr "Senter"
 msgid "Change &Disc"
 msgstr "Endre &disk"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:388
+#: Source/Core/DolphinWX/FrameTools.cpp:389
 msgid "Change &Disc..."
 msgstr "Endre &disk…"
 
@@ -1211,7 +1211,7 @@ msgstr "Tøm"
 msgid "Close"
 msgstr "Lukk"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:220
+#: Source/Core/DolphinWX/FrameTools.cpp:221
 msgid "Co&nfigure..."
 msgstr "&Sett opp…"
 
@@ -1277,7 +1277,7 @@ msgstr ""
 msgid "Computing: "
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:548
+#: Source/Core/DolphinWX/FrameTools.cpp:549
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:562
 msgid "Config"
 msgstr "Oppsett"
@@ -1292,7 +1292,7 @@ msgstr "Sett opp"
 msgid "Configure Control"
 msgstr "Sett opp kontroller"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:549
+#: Source/Core/DolphinWX/FrameTools.cpp:550
 msgid "Configure..."
 msgstr "Sett opp…"
 
@@ -1312,7 +1312,7 @@ msgid "Connect"
 msgstr "Koble til"
 
 #: Source/Core/Core/HotkeyManager.cpp:39
-#: Source/Core/DolphinWX/FrameTools.cpp:440
+#: Source/Core/DolphinWX/FrameTools.cpp:441
 msgid "Connect Balance Board"
 msgstr "Koble til balansebrett"
 
@@ -1320,7 +1320,7 @@ msgstr "Koble til balansebrett"
 msgid "Connect USB Keyboard"
 msgstr "Koble til USB-tastatur"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:437
+#: Source/Core/DolphinWX/FrameTools.cpp:438
 #, c-format
 msgid "Connect Wiimote %i"
 msgstr "Koble til Wiikontroller %i"
@@ -1341,13 +1341,9 @@ msgstr "Koble til Wiikontroller 3"
 msgid "Connect Wiimote 4"
 msgstr "Koble til Wiikontroller 4"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:249
+#: Source/Core/DolphinWX/FrameTools.cpp:250
 msgid "Connect Wiimotes"
 msgstr "Koble til WiiMote-er"
-
-#: Source/Core/DolphinWX/FrameTools.cpp:1557
-msgid "Connected"
-msgstr "Tilkoblet"
 
 #: Source/Core/DolphinWX/Main.cpp:512
 msgid "Connecting..."
@@ -1373,11 +1369,11 @@ msgstr "Sirkel-joystick"
 msgid "Controller Ports"
 msgstr "Kontrollerporter"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:553
+#: Source/Core/DolphinWX/FrameTools.cpp:554
 msgid "Controller settings"
 msgstr "&Kontroller-innstillinger"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:552
+#: Source/Core/DolphinWX/FrameTools.cpp:553
 msgid "Controllers"
 msgstr "Kontrollere"
 
@@ -1521,7 +1517,7 @@ msgstr "Land:"
 msgid "Create AR Code"
 msgstr "Lag AR-kode"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:546
+#: Source/Core/DolphinWX/FrameAui.cpp:548
 msgid "Create new perspective"
 msgstr "Lag nytt perspektiv"
 
@@ -1551,7 +1547,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "Kryssutfasing"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:684
+#: Source/Core/DolphinWX/FrameTools.cpp:685
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "Nåværende mappe endret fra %s til %s etter wxFileSelector!"
@@ -1794,10 +1790,6 @@ msgstr "Disk"
 msgid "Disc Read Error"
 msgstr "Feil ved lesing av disk"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1557
-msgid "Disconnected"
-msgstr "Frakoblet"
-
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:482
 msgid "Display"
 msgstr "Visning"
@@ -1816,7 +1808,7 @@ msgstr ""
 msgid "Divide"
 msgstr "Del"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1150
+#: Source/Core/DolphinWX/FrameTools.cpp:1151
 msgid "Do you want to stop the current emulation?"
 msgstr "Vil du stoppe pågående emulering?"
 
@@ -1825,7 +1817,7 @@ msgid "Dolby Pro Logic II decoder"
 msgstr "Dolby Pro Logic II-dekoder"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:30
-#: Source/Core/DolphinWX/FrameTools.cpp:994
+#: Source/Core/DolphinWX/FrameTools.cpp:995
 msgid "Dolphin"
 msgstr "Dolphin"
 
@@ -1851,7 +1843,7 @@ msgstr "Dolphin oppsett av emulert Wiikontroller"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1351
+#: Source/Core/DolphinWX/FrameTools.cpp:1352
 msgid "Dolphin Hotkeys"
 msgstr "Dolphin-hurtigtaster"
 
@@ -1863,8 +1855,8 @@ msgstr "Dolphin NetPlay"
 msgid "Dolphin NetPlay Setup"
 msgstr "Dolphin NetPlay-oppsett"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:817
-#: Source/Core/DolphinWX/FrameTools.cpp:1276
+#: Source/Core/DolphinWX/FrameTools.cpp:818
+#: Source/Core/DolphinWX/FrameTools.cpp:1277
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS-Filmer (*.dtm)"
 
@@ -1927,7 +1919,7 @@ msgstr "Trommer"
 msgid "Dummy"
 msgstr "Juksedukke"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:214
+#: Source/Core/DolphinWX/FrameTools.cpp:215
 msgid "Dump Audio"
 msgstr "Dump lyd"
 
@@ -1935,7 +1927,7 @@ msgstr "Dump lyd"
 msgid "Dump EFB Target"
 msgstr "Dump EFB-mål"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:212
+#: Source/Core/DolphinWX/FrameTools.cpp:213
 msgid "Dump Frames"
 msgstr "Dumping av bilder"
 
@@ -1986,7 +1978,7 @@ msgstr ""
 msgid "Dutch"
 msgstr "Nederlansk"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:137
+#: Source/Core/DolphinWX/FrameTools.cpp:138
 msgid "E&xit"
 msgstr "&Avslutt"
 
@@ -2281,7 +2273,7 @@ msgstr "Engelsk"
 msgid "Enhancements"
 msgstr "Forbedringer"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:545
+#: Source/Core/DolphinWX/FrameAui.cpp:547
 msgid "Enter a name for the new perspective:"
 msgstr "Skriv inn et navn for det nye perspektivet:"
 
@@ -2350,11 +2342,11 @@ msgid "Execute"
 msgstr "Kjør"
 
 #: Source/Core/Core/HotkeyManager.cpp:33
-#: Source/Core/DolphinWX/FrameTools.cpp:430
+#: Source/Core/DolphinWX/FrameTools.cpp:431
 msgid "Exit"
 msgstr "Avslutt"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:237
+#: Source/Core/DolphinWX/FrameTools.cpp:238
 msgid "Export All Wii Saves"
 msgstr "Eksporter alle Wii-lagringsfiler"
 
@@ -2366,7 +2358,7 @@ msgstr "Eksporter fil"
 msgid "Export Recording"
 msgstr "Eksporter opptak"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:417
+#: Source/Core/DolphinWX/FrameTools.cpp:418
 msgid "Export Recording..."
 msgstr "Eksporter opptak…"
 
@@ -2441,7 +2433,7 @@ msgid "Extracting..."
 msgstr "Pakker ut…"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:46
-#: Source/Core/DolphinWX/FrameTools.cpp:245
+#: Source/Core/DolphinWX/FrameTools.cpp:246
 msgid "FIFO Player"
 msgstr "FIFO-spiller"
 
@@ -2612,11 +2604,11 @@ msgstr "Fil"
 msgid "File Info"
 msgstr "Fil-informasjon"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:346
+#: Source/Core/DolphinWX/FrameTools.cpp:347
 msgid "File Name"
 msgstr "Filnavn"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:352
+#: Source/Core/DolphinWX/FrameTools.cpp:353
 msgid "File Size"
 msgstr "Filstørrelse"
 
@@ -2819,7 +2811,7 @@ msgstr "Bildeinfo"
 msgid "Frame Range"
 msgstr "Bildespennvidde"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:150
+#: Source/Core/DolphinWX/FrameTools.cpp:151
 msgid "Frame S&kipping"
 msgstr "&Hopp over rammer"
 
@@ -2890,7 +2882,7 @@ msgstr "Frets"
 msgid "From"
 msgstr "Fra"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:543
+#: Source/Core/DolphinWX/FrameTools.cpp:544
 msgid "FullScr"
 msgstr "Fullskjerm"
 
@@ -2957,7 +2949,7 @@ msgstr ""
 msgid "Game Boy Advance Carts (*.gba)"
 msgstr "Game Boy Advance-disker (*.gba)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:348
+#: Source/Core/DolphinWX/FrameTools.cpp:349
 msgid "Game ID"
 msgstr "Spill-ID"
 
@@ -3042,11 +3034,11 @@ msgstr "Tysk"
 msgid "Germany"
 msgstr "Tyskland"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:550
+#: Source/Core/DolphinWX/FrameTools.cpp:551
 msgid "Graphics"
 msgstr "Grafikk"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:551
+#: Source/Core/DolphinWX/FrameTools.cpp:552
 msgid "Graphics settings"
 msgstr "Innstillinger for grafikk"
 
@@ -3321,9 +3313,9 @@ msgstr ""
 msgid "Import Save"
 msgstr "Importer lagringsfil"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:236
-msgid "Import Wii Save"
-msgstr "Importer Wii-lagringsfil"
+#: Source/Core/DolphinWX/FrameTools.cpp:237
+msgid "Import Wii Save..."
+msgstr ""
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:122
 msgid "Import failed"
@@ -3390,15 +3382,15 @@ msgstr "Sett inn"
 msgid "Insert SD Card"
 msgstr "Sett inn SD-kort"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:242
-msgid "Install WAD"
-msgstr "Installer WAD"
+#: Source/Core/DolphinWX/FrameTools.cpp:243
+msgid "Install WAD..."
+msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:969
 msgid "Install to Wii Menu"
 msgstr "Installer til Wii-meny"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1501
+#: Source/Core/DolphinWX/FrameTools.cpp:1502
 msgid "Installing WAD..."
 msgstr "Installerer WAD…"
 
@@ -3597,7 +3589,7 @@ msgstr "Venstre-analog"
 msgid "Language:"
 msgstr "Språk:"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:483
+#: Source/Core/DolphinWX/FrameTools.cpp:484
 #, c-format
 msgid "Last %i"
 msgstr "Siste %i"
@@ -3757,19 +3749,19 @@ msgstr "Åpne hurtiglagringsplass nr. 8"
 msgid "Load State Slot 9"
 msgstr "Last inn hurtiglagring siste 9"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:504
+#: Source/Core/DolphinWX/FrameTools.cpp:505
 msgid "Load State from Selected Slot"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:486
+#: Source/Core/DolphinWX/FrameTools.cpp:487
 msgid "Load State..."
 msgstr "Åpne hurtiglagring…"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1533
+#: Source/Core/DolphinWX/FrameTools.cpp:1534
 msgid "Load Wii System Menu"
 msgstr "Last inn Wii systemmeny"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1528
+#: Source/Core/DolphinWX/FrameTools.cpp:1529
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Last inn Wii systemmeny %d %c"
@@ -3788,7 +3780,7 @@ msgstr ""
 msgid "Load from selected slot"
 msgstr "Last fra valgt minnekortplass"
 
-#: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:389
+#: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:390
 #, c-format
 msgid "Loaded %d good functions, ignored %d bad functions."
 msgstr "Lastet inn %d gode funksjoner, ignorerte %d dårlige funksjoner."
@@ -3860,7 +3852,7 @@ msgstr "MadCatz Gameshark-filer(*.gcs)"
 msgid "Main Stick"
 msgstr "Hoved-joystick"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:344
+#: Source/Core/DolphinWX/FrameTools.cpp:345
 #: Source/Core/DolphinWX/GameListCtrl.cpp:276
 msgid "Maker"
 msgstr "Skaper"
@@ -4231,9 +4223,9 @@ msgid "Notes: "
 msgstr "Notater:"
 
 #: Source/Core/DolphinWX/FrameAui.cpp:80 Source/Core/DolphinWX/FrameAui.cpp:84
-#: Source/Core/DolphinWX/FrameAui.cpp:517
-#: Source/Core/DolphinWX/FrameAui.cpp:562
-#: Source/Core/DolphinWX/FrameAui.cpp:569
+#: Source/Core/DolphinWX/FrameAui.cpp:519
+#: Source/Core/DolphinWX/FrameAui.cpp:564
+#: Source/Core/DolphinWX/FrameAui.cpp:571
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
 msgid "Notice"
 msgstr "Merknad"
@@ -4284,7 +4276,7 @@ msgstr "Offset:"
 msgid "On-Screen Display Messages"
 msgstr "Skjerm-meldinger"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:369
+#: Source/Core/DolphinWX/FrameTools.cpp:370
 msgid "Online &Documentation"
 msgstr "Nettbasert & dokumentasjon"
 
@@ -4294,7 +4286,7 @@ msgid "Only %d blocks available"
 msgstr "Kun %d blokker tilgjengelig"
 
 #: Source/Core/Core/HotkeyManager.cpp:14
-#: Source/Core/DolphinWX/FrameTools.cpp:536
+#: Source/Core/DolphinWX/FrameTools.cpp:537
 msgid "Open"
 msgstr "Åpne"
 
@@ -4306,7 +4298,7 @@ msgstr "Åpne &inneholdende mappe"
 msgid "Open Wii &save folder"
 msgstr "Åpne Wii-&lagringsfil-mappe"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:537
+#: Source/Core/DolphinWX/FrameTools.cpp:538
 msgid "Open file..."
 msgstr "Åpne fil…"
 
@@ -4378,7 +4370,7 @@ msgstr "Overleggs-informasjon"
 msgid "Override Language on NTSC Games"
 msgstr "Overskriv språk for NTSC-spill"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:414
+#: Source/Core/DolphinWX/FrameTools.cpp:415
 msgid "P&lay Input Recording..."
 msgstr "Spi&ll av inndataopptak…"
 
@@ -4421,7 +4413,7 @@ msgstr "Mappestier"
 msgid "Pause"
 msgstr "Pause"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:200
+#: Source/Core/DolphinWX/FrameTools.cpp:201
 msgid "Pause at End of Movie"
 msgstr "Pause på slutten av filmen"
 
@@ -4441,17 +4433,17 @@ msgstr "Belysning per piksel"
 msgid "Perfect"
 msgstr "Perfekt"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:547
+#: Source/Core/DolphinWX/FrameAui.cpp:549
 #, c-format
 msgid "Perspective %d"
 msgstr "Perspektiv %d"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:340
+#: Source/Core/DolphinWX/FrameTools.cpp:341
 msgid "Platform"
 msgstr "Plattform"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:155
-#: Source/Core/DolphinWX/FrameTools.cpp:541
+#: Source/Core/DolphinWX/FrameTools.cpp:542
 #: Source/Core/DolphinWX/FrameTools.cpp:1804
 #: Source/Core/DolphinWX/FrameTools.cpp:1806
 msgid "Play"
@@ -4473,11 +4465,11 @@ msgstr "Avspillingsalterntiver"
 msgid "Players"
 msgstr "Spillere"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1151
+#: Source/Core/DolphinWX/FrameTools.cpp:1152
 msgid "Please confirm..."
 msgstr "Bekreft…"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:517
+#: Source/Core/DolphinWX/FrameAui.cpp:519
 msgid "Please create a perspective before saving"
 msgstr "Vennligst lag et persektiv før du lagrer"
 
@@ -4542,7 +4534,7 @@ msgstr "Profil"
 msgid "Properties"
 msgstr "Egenskaper"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:336
+#: Source/Core/DolphinWX/FrameTools.cpp:337
 msgid "Purge Game List Cache"
 msgstr "Tøm spillistehurtiglager"
 
@@ -4654,7 +4646,7 @@ msgstr ""
 "teksturer."
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:249
-#: Source/Core/DolphinWX/FrameTools.cpp:538
+#: Source/Core/DolphinWX/FrameTools.cpp:539
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1031
 msgid "Refresh"
 msgstr "Oppdater"
@@ -4663,11 +4655,11 @@ msgstr "Oppdater"
 msgid "Refresh List"
 msgstr "Oppdater liste"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:539
+#: Source/Core/DolphinWX/FrameTools.cpp:540
 msgid "Refresh game list"
 msgstr "Oppdater spilliste"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:350
+#: Source/Core/DolphinWX/FrameTools.cpp:351
 msgid "Region"
 msgstr "Region"
 
@@ -4766,7 +4758,7 @@ msgstr ""
 msgid "SD card"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:164
+#: Source/Core/DolphinWX/FrameTools.cpp:165
 msgid "Sa&ve State"
 msgstr "Lagre &stadie"
 
@@ -4784,7 +4776,7 @@ msgid "Save GCI as..."
 msgstr "Lagre GCI som…"
 
 #: Source/Core/Core/HotkeyManager.cpp:125
-#: Source/Core/DolphinWX/FrameTools.cpp:490
+#: Source/Core/DolphinWX/FrameTools.cpp:491
 msgid "Save Oldest State"
 msgstr "Lagre eldste hurtiglagring"
 
@@ -4832,11 +4824,11 @@ msgstr "Hurtiglagringsplass nr. 8"
 msgid "Save State Slot 9"
 msgstr "Lagre hurtiglagring nr 9"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:500
+#: Source/Core/DolphinWX/FrameTools.cpp:501
 msgid "Save State to Selected Slot"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:470
+#: Source/Core/DolphinWX/FrameTools.cpp:471
 msgid "Save State..."
 msgstr "Hurtiglagring…"
 
@@ -4883,7 +4875,7 @@ msgstr "Søker etter ISO-filer"
 msgid "Scanning..."
 msgstr "Søker…"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:545
+#: Source/Core/DolphinWX/FrameTools.cpp:546
 msgid "ScrShot"
 msgstr "SkjDump"
 
@@ -4928,7 +4920,7 @@ msgstr "Seksjon %s ikke funnet i SYSCONF"
 msgid "Select"
 msgstr "Velg"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:339
+#: Source/Core/DolphinWX/FrameTools.cpp:340
 msgid "Select Columns"
 msgstr "Velg kolonner"
 
@@ -4936,12 +4928,12 @@ msgstr "Velg kolonner"
 msgid "Select Game"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:518
+#: Source/Core/DolphinWX/FrameTools.cpp:519
 #, c-format
 msgid "Select Slot %i - %s"
 msgstr "Velg slot %i - %s"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:165
+#: Source/Core/DolphinWX/FrameTools.cpp:166
 msgid "Select State Slot"
 msgstr "Velg kortplass for lagringsstadie"
 
@@ -4985,12 +4977,12 @@ msgstr "Velg lagringsstadie kortplass 8"
 msgid "Select State Slot 9"
 msgstr "Velg lagringsstadie kortplass 9"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:816
-#: Source/Core/DolphinWX/FrameTools.cpp:1275
+#: Source/Core/DolphinWX/FrameTools.cpp:817
+#: Source/Core/DolphinWX/FrameTools.cpp:1276
 msgid "Select The Recording File"
 msgstr "Velg opptaksfil"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1491
+#: Source/Core/DolphinWX/FrameTools.cpp:1492
 msgid "Select a Wii WAD file to install"
 msgstr "Velg en Wii WAD-fil å innstallere"
 
@@ -4998,15 +4990,15 @@ msgstr "Velg en Wii WAD-fil å innstallere"
 msgid "Select a save file to import"
 msgstr "Velg en lagringsfil å importere"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:330
+#: Source/Core/DolphinWX/FrameAui.cpp:332
 msgid "Select floating windows"
 msgstr "Velg flytvindu"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:671
+#: Source/Core/DolphinWX/FrameTools.cpp:672
 msgid "Select the file to load"
 msgstr "Velg fil å laste"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1453
+#: Source/Core/DolphinWX/FrameTools.cpp:1454
 msgid "Select the save file"
 msgstr "Velg lagringsfil"
 
@@ -5188,19 +5180,19 @@ msgstr "Rist"
 msgid "Shoulder Buttons"
 msgstr "Skulderknapper"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:265
+#: Source/Core/DolphinWX/FrameTools.cpp:266
 msgid "Show &Log"
 msgstr "Vis &logg"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:262
+#: Source/Core/DolphinWX/FrameTools.cpp:263
 msgid "Show &Status Bar"
 msgstr "Vis &statusbjelke"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:260
+#: Source/Core/DolphinWX/FrameTools.cpp:261
 msgid "Show &Toolbar"
 msgstr "Vis &verktøylinje"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:311
+#: Source/Core/DolphinWX/FrameTools.cpp:312
 msgid "Show Australia"
 msgstr "Vis Australia"
 
@@ -5208,11 +5200,11 @@ msgstr "Vis Australia"
 msgid "Show Defaults"
 msgstr "Vis forvalgte verdier"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:334
+#: Source/Core/DolphinWX/FrameTools.cpp:335
 msgid "Show Drives"
 msgstr "Vis DVD-stasjoner"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:299
+#: Source/Core/DolphinWX/FrameTools.cpp:300
 msgid "Show ELF/DOL"
 msgstr "Vis ELF/DOL"
 
@@ -5220,39 +5212,39 @@ msgstr "Vis ELF/DOL"
 msgid "Show FPS"
 msgstr "Vis bildefrekvens (FPS)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:204
+#: Source/Core/DolphinWX/FrameTools.cpp:205
 msgid "Show Frame Counter"
 msgstr "Vis bildeteller"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:313
+#: Source/Core/DolphinWX/FrameTools.cpp:314
 msgid "Show France"
 msgstr "Vis Frankrike"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:295
+#: Source/Core/DolphinWX/FrameTools.cpp:296
 msgid "Show GameCube"
 msgstr "Vis GameCube"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:315
+#: Source/Core/DolphinWX/FrameTools.cpp:316
 msgid "Show Germany"
 msgstr "Vis Tyskland"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:207
+#: Source/Core/DolphinWX/FrameTools.cpp:208
 msgid "Show Input Display"
 msgstr "Vis Inndata"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:317
+#: Source/Core/DolphinWX/FrameTools.cpp:318
 msgid "Show Italy"
 msgstr "Vis Italia"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:304
+#: Source/Core/DolphinWX/FrameTools.cpp:305
 msgid "Show JAP"
 msgstr "Vis JAP"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:319
+#: Source/Core/DolphinWX/FrameTools.cpp:320
 msgid "Show Korea"
 msgstr "Vis Korea"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:202
+#: Source/Core/DolphinWX/FrameTools.cpp:203
 msgid "Show Lag Counter"
 msgstr "Vis lagteller"
 
@@ -5260,7 +5252,7 @@ msgstr "Vis lagteller"
 msgid "Show Language:"
 msgstr "Vis språk:"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:266
+#: Source/Core/DolphinWX/FrameTools.cpp:267
 msgid "Show Log &Configuration"
 msgstr "Vis logg&oppsett"
 
@@ -5272,27 +5264,27 @@ msgstr ""
 msgid "Show NetPlay Ping"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:321
+#: Source/Core/DolphinWX/FrameTools.cpp:322
 msgid "Show Netherlands"
 msgstr "Vis Nederland"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:306
+#: Source/Core/DolphinWX/FrameTools.cpp:307
 msgid "Show PAL"
 msgstr "Vis PAL"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:292
+#: Source/Core/DolphinWX/FrameTools.cpp:293
 msgid "Show Platforms"
 msgstr "Vis plattformer"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:303
+#: Source/Core/DolphinWX/FrameTools.cpp:304
 msgid "Show Regions"
 msgstr "Vis regioner"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:323
+#: Source/Core/DolphinWX/FrameTools.cpp:324
 msgid "Show Russia"
 msgstr "Vis Russland"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:325
+#: Source/Core/DolphinWX/FrameTools.cpp:326
 msgid "Show Spain"
 msgstr "Vis Spania"
 
@@ -5300,31 +5292,31 @@ msgstr "Vis Spania"
 msgid "Show Statistics"
 msgstr "Vis statistikker"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:209
+#: Source/Core/DolphinWX/FrameTools.cpp:210
 msgid "Show System Clock"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:327
+#: Source/Core/DolphinWX/FrameTools.cpp:328
 msgid "Show Taiwan"
 msgstr "Vis Taiwan"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:308
+#: Source/Core/DolphinWX/FrameTools.cpp:309
 msgid "Show USA"
 msgstr "Vis USA"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:331
+#: Source/Core/DolphinWX/FrameTools.cpp:332
 msgid "Show Unknown"
 msgstr "Vis ukjent"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:297
+#: Source/Core/DolphinWX/FrameTools.cpp:298
 msgid "Show WAD"
 msgstr "Vis WAD"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:293
+#: Source/Core/DolphinWX/FrameTools.cpp:294
 msgid "Show Wii"
 msgstr "Vis Wii"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:329
+#: Source/Core/DolphinWX/FrameTools.cpp:330
 msgid "Show World"
 msgstr "Vis verden"
 
@@ -5445,8 +5437,8 @@ msgstr ""
 "\n"
 "Hvis usikker, la stå umerket."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:452
-#: Source/Core/DolphinWX/FrameTools.cpp:466
+#: Source/Core/DolphinWX/FrameTools.cpp:453
+#: Source/Core/DolphinWX/FrameTools.cpp:467
 #, c-format
 msgid "Slot %i - %s"
 msgstr "Slot %i - %s"
@@ -5552,11 +5544,11 @@ msgstr "Forvalgt kontroller"
 msgid "Start"
 msgstr "Start"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:240
-msgid "Start &NetPlay"
-msgstr "Start &NetPlay"
+#: Source/Core/DolphinWX/FrameTools.cpp:241
+msgid "Start &NetPlay..."
+msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:411
+#: Source/Core/DolphinWX/FrameTools.cpp:412
 msgid "Start Re&cording Input"
 msgstr "Start Inndata-&opptak"
 
@@ -5564,7 +5556,7 @@ msgstr "Start Inndata-&opptak"
 msgid "Start Recording"
 msgstr "Start opptak"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:354
+#: Source/Core/DolphinWX/FrameTools.cpp:355
 #: Source/Core/DolphinWX/GameListCtrl.cpp:281
 msgid "State"
 msgstr "Hurtiglagring"
@@ -5588,7 +5580,7 @@ msgstr "Joystick"
 
 #: Source/Core/Core/HotkeyManager.cpp:19
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:430
-#: Source/Core/DolphinWX/FrameTools.cpp:542
+#: Source/Core/DolphinWX/FrameTools.cpp:543
 msgid "Stop"
 msgstr "Stopp"
 
@@ -5685,17 +5677,17 @@ msgstr "Syntaksfeil"
 msgid "System Language:"
 msgstr "Systemspråk:"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:198
+#: Source/Core/DolphinWX/FrameTools.cpp:199
 #: Source/Core/DolphinWX/TASInputDlg.h:24
 msgid "TAS Input"
 msgstr "TAS-inndata"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:714
+#: Source/Core/DolphinWX/FrameTools.cpp:715
 #, c-format
 msgid "TAS Input - Controller %d"
 msgstr "TAS-inndata - Kontroller %d"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:722
+#: Source/Core/DolphinWX/FrameTools.cpp:723
 #, c-format
 msgid "TAS Input - Wiimote %d"
 msgstr "TAS Inndata - WiiMote %d"
@@ -5717,11 +5709,11 @@ msgid "Taiwan"
 msgstr "Taiwan"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
-#: Source/Core/DolphinWX/FrameTools.cpp:427
+#: Source/Core/DolphinWX/FrameTools.cpp:428
 msgid "Take Screenshot"
 msgstr "Ta skjermbilde"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:546
+#: Source/Core/DolphinWX/FrameTools.cpp:547
 msgid "Take screenshot"
 msgstr "Ta skjermbilde"
 
@@ -5821,11 +5813,11 @@ msgstr ""
 msgid "The file %s was already open, the file header will not be written."
 msgstr "Filen %s er allerede åpen, fil-hodet vil ikke bli skrevet."
 
-#: Source/Core/DolphinWX/FrameAui.cpp:569
+#: Source/Core/DolphinWX/FrameAui.cpp:571
 msgid "The name cannot be empty"
 msgstr "Navnet kan ikke være blankt"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:562
+#: Source/Core/DolphinWX/FrameAui.cpp:564
 msgid "The name cannot contain the character ','"
 msgstr "Navnet kan ikke inneholde tegnet ','"
 
@@ -6055,7 +6047,7 @@ msgstr "Bytt mellom fullskjermspilling eller vinduspilling."
 msgid "Toggle Pause"
 msgstr "Slå av/på pause"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:544
+#: Source/Core/DolphinWX/FrameTools.cpp:545
 msgid "Toggle fullscreen"
 msgstr "Bytt til/fra fullskjermsvisning"
 
@@ -6154,18 +6146,18 @@ msgstr ""
 "\n"
 "Ønsker du å ignorere denne linjen og fortsette fortolkning?"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:523
+#: Source/Core/DolphinWX/FrameTools.cpp:524
 #, c-format
 msgid "Undefined %i"
 msgstr "Udefinert %i"
 
 #: Source/Core/Core/HotkeyManager.cpp:126
-#: Source/Core/DolphinWX/FrameTools.cpp:493
+#: Source/Core/DolphinWX/FrameTools.cpp:494
 msgid "Undo Load State"
 msgstr "Angre åpning av hurtiglagring"
 
 #: Source/Core/Core/HotkeyManager.cpp:127
-#: Source/Core/DolphinWX/FrameTools.cpp:496
+#: Source/Core/DolphinWX/FrameTools.cpp:497
 msgid "Undo Save State"
 msgstr "Angre hurtiglagring"
 
@@ -6347,13 +6339,13 @@ msgstr "Demp/avdemp lydstyrke"
 msgid "Volume Up"
 msgstr "Øk lydstyrke"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:470
-#: Source/Core/DiscIO/NANDContentLoader.cpp:494
+#: Source/Core/DiscIO/NANDContentLoader.cpp:472
+#: Source/Core/DiscIO/NANDContentLoader.cpp:496
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD-installasjon feilet: Skaper feil %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:509
+#: Source/Core/DiscIO/NANDContentLoader.cpp:511
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD-installasjon mislyktes: Feil ved ticket-laging"
 
@@ -6506,11 +6498,11 @@ msgstr "Wii NAND-rot:"
 msgid "Wii U Gamecube Controller Adapter Configuration"
 msgstr "Oppsett av Wii U GameCube-kontroller-adapter"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1492
+#: Source/Core/DolphinWX/FrameTools.cpp:1493
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WAD-filer (*.wad)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1454
+#: Source/Core/DolphinWX/FrameTools.cpp:1455
 msgid "Wii save files (*.bin)"
 msgstr "Wii-lagringsfiler (*:bin)"
 
@@ -6530,11 +6522,6 @@ msgstr ""
 #, c-format
 msgid "Wiimote %i"
 msgstr "Wiikontroller %i"
-
-#: Source/Core/DolphinWX/FrameTools.cpp:1556
-#, c-format
-msgid "Wiimote %i %s"
-msgstr "WiiMote %i %s"
 
 #: Source/Core/DolphinWX/Main.cpp:515
 msgid "Wiimote Connected"
@@ -6564,7 +6551,7 @@ msgstr "Vinduer høyre"
 msgid "Word Wrap"
 msgstr "Tekstbryting"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1501
+#: Source/Core/DolphinWX/FrameTools.cpp:1502
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1183
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1302
 #: Source/Core/DolphinWX/ISOProperties.cpp:1018
