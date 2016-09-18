@@ -60,4 +60,8 @@ public:
   IPCCommandResult IOCtl(u32 command_address) override;
 
   void ResetButton() const;
+  void PowerButton() const;
+
+private:
+  void TriggerEvent(u32 event) const;
 };

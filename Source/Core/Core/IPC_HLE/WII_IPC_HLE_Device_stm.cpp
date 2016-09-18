@@ -4,6 +4,12 @@
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
 
+namespace Core
+{
+void QueueHostJob(std::function<void()> job, bool run_during_stop);
+void Stop();
+}
+
 static u32 s_event_hook_address = 0;
 
 IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::Open(u32 command_address, u32 mode)
@@ -38,6 +44,12 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(u32 command_address)
 
   switch (parameter)
   {
+  case IOCTL_STM_IDLE:
+  case IOCTL_STM_SHUTDOWN:
+    NOTICE_LOG(WII_IPC_STM, "IOCTL_STM_IDLE or IOCTL_STM_SHUTDOWN received, shutting down");
+    Core::QueueHostJob(&Core::Stop, false);
+    break;
+
   case IOCTL_STM_RELEASE_EH:
     if (s_event_hook_address == 0)
     {
@@ -123,7 +135,7 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::IOCtl(u32 command_address)
   return GetNoReply();
 }
 
-void CWII_IPC_HLE_Device_stm_eventhook::ResetButton() const
+void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
 {
   if (!m_Active || s_event_hook_address == 0)
   {
@@ -133,7 +145,7 @@ void CWII_IPC_HLE_Device_stm_eventhook::ResetButton() const
 
   // The reset button returns STM_EVENT_RESET.
   u32 buffer_out = Memory::Read_U32(s_event_hook_address + 0x18);
-  Memory::Write_U32(STM_EVENT_RESET, buffer_out);
+  Memory::Write_U32(event, buffer_out);
 
   // Fill in command buffer.
   Memory::Write_U32(FS_SUCCESS, s_event_hook_address + 4);
@@ -143,4 +155,15 @@ void CWII_IPC_HLE_Device_stm_eventhook::ResetButton() const
   // Generate a reply to the IPC command.
   WII_IPC_HLE_Interface::EnqueueReply(s_event_hook_address);
   s_event_hook_address = 0;
+}
+
+void CWII_IPC_HLE_Device_stm_eventhook::ResetButton() const
+{
+  // The reset button returns STM_EVENT_RESET.
+  TriggerEvent(STM_EVENT_RESET);
+}
+
+void CWII_IPC_HLE_Device_stm_eventhook::PowerButton() const
+{
+  TriggerEvent(STM_EVENT_POWER);
 }

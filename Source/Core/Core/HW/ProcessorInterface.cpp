@@ -37,6 +37,9 @@ static void ToggleResetButtonCallback(u64 userdata, s64 cyclesLate);
 static CoreTiming::EventType* iosNotifyResetButton;
 static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate);
 
+static CoreTiming::EventType* iosNotifyPowerButton;
+static void IOSNotifyPowerButtonCallback(u64 userdata, s64 cyclesLate);
+
 // Let the PPC know that an external exception is set/cleared
 void UpdateException();
 
@@ -75,6 +78,8 @@ void Init()
   toggleResetButton = CoreTiming::RegisterEvent("ToggleResetButton", ToggleResetButtonCallback);
   iosNotifyResetButton =
       CoreTiming::RegisterEvent("IOSNotifyResetButton", IOSNotifyResetButtonCallback);
+  iosNotifyPowerButton =
+      CoreTiming::RegisterEvent("IOSNotifyPowerButton", IOSNotifyPowerButtonCallback);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -214,12 +219,28 @@ static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate)
   }
 }
 
+static void IOSNotifyPowerButtonCallback(u64 userdata, s64 cyclesLate)
+{
+  if (SConfig::GetInstance().bWii)
+  {
+    std::shared_ptr<IWII_IPC_HLE_Device> stm =
+        WII_IPC_HLE_Interface::GetDeviceByName("/dev/stm/eventhook");
+    if (stm)
+      std::static_pointer_cast<CWII_IPC_HLE_Device_stm_eventhook>(stm)->PowerButton();
+  }
+}
+
 void ResetButton_Tap()
 {
   CoreTiming::ScheduleEvent(0, toggleResetButton, true, CoreTiming::FromThread::ANY);
   CoreTiming::ScheduleEvent(0, iosNotifyResetButton, 0, CoreTiming::FromThread::ANY);
   CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, toggleResetButton, false,
                             CoreTiming::FromThread::ANY);
+}
+
+void PowerButton_Tap()
+{
+  CoreTiming::ScheduleEvent(0, iosNotifyPowerButton, 0, CoreTiming::FromThread::ANY);
 }
 
 }  // namespace ProcessorInterface
