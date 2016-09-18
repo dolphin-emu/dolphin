@@ -59,7 +59,7 @@ public:
   IPCCommandResult Close(u32 command_address, bool force) override;
   IPCCommandResult IOCtl(u32 command_address) override;
 
-  void ResetButton();
+  void ResetButton() const;
 
   // STATE_TO_SAVE
   u32 m_event_hook_address = 0;

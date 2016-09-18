@@ -112,7 +112,7 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::IOCtl(u32 command_address)
   return GetNoReply();
 }
 
-void CWII_IPC_HLE_Device_stm_eventhook::ResetButton()
+void CWII_IPC_HLE_Device_stm_eventhook::ResetButton() const
 {
   if (!m_Active || m_event_hook_address == 0)
   {
