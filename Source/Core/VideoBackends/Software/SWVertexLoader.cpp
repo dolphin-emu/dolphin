@@ -40,16 +40,13 @@ SWVertexLoader::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_de
 }
 
 SWVertexLoader::SWVertexLoader()
+    : LocalVBuffer(MAXVBUFFERSIZE), LocalIBuffer(MAXIBUFFERSIZE),
+      m_SetupUnit{std::make_unique<SetupUnit>()}
 {
-  LocalVBuffer.resize(MAXVBUFFERSIZE);
-  LocalIBuffer.resize(MAXIBUFFERSIZE);
-  m_SetupUnit = new SetupUnit;
 }
 
 SWVertexLoader::~SWVertexLoader()
 {
-  delete m_SetupUnit;
-  m_SetupUnit = nullptr;
 }
 
 void SWVertexLoader::ResetBuffer(u32 stride)

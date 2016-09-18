@@ -37,7 +37,7 @@ private:
 
   void ParseVertex(const PortableVertexDeclaration& vdec, int index);
 
-  SetupUnit* m_SetupUnit;
+  std::unique_ptr<SetupUnit> m_SetupUnit;
 
   bool m_TexGenSpecialCase;
 
