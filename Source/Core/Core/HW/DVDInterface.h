@@ -108,8 +108,8 @@ bool VolumeIsValid();
 // Disc detection and swapping
 void SetDiscInside(bool _DiscInside);
 bool IsDiscInside();
-void ChangeDiscAsHost(const std::string& path);  // Can only be called by the host thread
-void ChangeDiscAsCPU(const std::string& path);   // Can only be called by the CPU thread
+void ChangeDiscAsHost(const std::string& new_path);  // Can only be called by the host thread
+void ChangeDiscAsCPU(const std::string& new_path);   // Can only be called by the CPU thread
 
 // DVD Access Functions
 bool ChangePartition(u64 offset);
