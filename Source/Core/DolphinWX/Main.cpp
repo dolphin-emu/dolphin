@@ -70,10 +70,6 @@
 
 #endif
 
-#ifdef __APPLE__
-#import <AppKit/AppKit.h>
-#endif
-
 class wxFrame;
 
 // ------------

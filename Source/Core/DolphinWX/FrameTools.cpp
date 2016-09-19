@@ -21,10 +21,6 @@
 #include <wx/toolbar.h>
 #include <wx/toplevel.h>
 
-#ifdef __APPLE__
-#include <AppKit/AppKit.h>
-#endif
-
 #include "Common/CDUtils.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileSearch.h"
@@ -1014,10 +1010,7 @@ void CFrame::StartGame(const std::string& filename)
   }
 
 #if defined(__APPLE__)
-  NSView* view = (NSView*)m_RenderFrame->GetHandle();
-  NSWindow* window = [view window];
-
-  [window setCollectionBehavior:NSWindowCollectionBehaviorFullScreenPrimary];
+  m_RenderFrame->EnableFullScreenView(true);
 #endif
 
   wxBeginBusyCursor();
@@ -1233,10 +1226,7 @@ void CFrame::OnStopped()
   {
 #if defined(__APPLE__)
     // Disable the full screen button when not in a game.
-    NSView* view = (NSView*)m_RenderFrame->GetHandle();
-    NSWindow* window = [view window];
-
-    [window setCollectionBehavior:NSWindowCollectionBehaviorDefault];
+    m_RenderFrame->EnableFullScreenView(false);
 #endif
 
     // Make sure the window is not longer set to stay on top
