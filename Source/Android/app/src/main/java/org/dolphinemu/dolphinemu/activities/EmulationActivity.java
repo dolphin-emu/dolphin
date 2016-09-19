@@ -426,11 +426,17 @@ public final class EmulationActivity extends AppCompatActivity
 
 			// TV Menu only
 			case R.id.menu_emulation_save_root:
-				showMenu(SaveStateFragment.FRAGMENT_ID);
+				if (!mDeviceHasTouchScreen)
+				{
+					showMenu(SaveStateFragment.FRAGMENT_ID);
+				}
 				return;
 
 			case R.id.menu_emulation_load_root:
-				showMenu(LoadStateFragment.FRAGMENT_ID);
+				if (!mDeviceHasTouchScreen)
+				{
+					showMenu(LoadStateFragment.FRAGMENT_ID);
+				}
 				return;
 
 			// Save state slots
