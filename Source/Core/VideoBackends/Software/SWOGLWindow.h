@@ -10,17 +10,20 @@
 
 #include "Common/CommonTypes.h"
 
+#include "VideoCommon/AbstractTextureBase.h"
+
 class SWOGLWindow
 {
 public:
   static void Init(void* window_handle);
+  void Prepare();
   static void Shutdown();
 
   // Will be printed on the *next* image
   void PrintText(const std::string& text, int x, int y, u32 color);
 
   // Image to show, will be swapped immediately
-  void ShowImage(u8* data, int stride, int width, int height, float aspect);
+  void ShowImage(AbstractTextureBase* image, float aspect);
 
   int PeekMessages();
 
@@ -28,7 +31,6 @@ public:
 
 private:
   SWOGLWindow() {}
-  void Prepare();
 
   struct TextData
   {
@@ -40,5 +42,5 @@ private:
 
   bool m_init{false};
 
-  u32 m_image_program, m_image_texture, m_image_vao;
+  u32 m_image_program, m_image_vao;
 };

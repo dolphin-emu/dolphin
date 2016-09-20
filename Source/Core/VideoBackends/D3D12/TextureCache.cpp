@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/TextureCache.h"
+#include "VideoBackends/D3D12/AbstractTexture.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
@@ -23,285 +24,11 @@ namespace DX12
 {
 static std::unique_ptr<TextureEncoder> s_encoder = nullptr;
 
-static std::unique_ptr<D3DStreamBuffer> s_efb_copy_stream_buffer = nullptr;
-static u32 s_efb_copy_last_cbuf_id = UINT_MAX;
+std::unique_ptr<D3DStreamBuffer> s_efb_copy_stream_buffer = nullptr;
+u32 s_efb_copy_last_cbuf_id = UINT_MAX;
 
-static ID3D12Resource* s_texture_cache_entry_readback_buffer = nullptr;
-static size_t s_texture_cache_entry_readback_buffer_size = 0;
-
-TextureCache::TCacheEntry::~TCacheEntry()
-{
-  m_texture->Release();
-}
-
-void TextureCache::TCacheEntry::Bind(unsigned int stage)
-{
-  // Textures bound as group in TextureCache::BindTextures method.
-}
-
-bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
-{
-  u32 level_width = std::max(config.width >> level, 1u);
-  u32 level_height = std::max(config.height >> level, 1u);
-  size_t level_pitch =
-      D3D::AlignValue(level_width * sizeof(u32), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
-  size_t required_readback_buffer_size = level_pitch * level_height;
-
-  // Check if the current readback buffer is large enough
-  if (required_readback_buffer_size > s_texture_cache_entry_readback_buffer_size)
-  {
-    // Reallocate the buffer with the new size. Safe to immediately release because we're the only
-    // user and we block until completion.
-    if (s_texture_cache_entry_readback_buffer)
-      s_texture_cache_entry_readback_buffer->Release();
-
-    s_texture_cache_entry_readback_buffer_size = required_readback_buffer_size;
-    CheckHR(D3D::device12->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK), D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC::Buffer(s_texture_cache_entry_readback_buffer_size),
-        D3D12_RESOURCE_STATE_COPY_DEST, nullptr,
-        IID_PPV_ARGS(&s_texture_cache_entry_readback_buffer)));
-  }
-
-  m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_SOURCE);
-
-  D3D12_TEXTURE_COPY_LOCATION dst_location = {};
-  dst_location.pResource = s_texture_cache_entry_readback_buffer;
-  dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-  dst_location.PlacedFootprint.Offset = 0;
-  dst_location.PlacedFootprint.Footprint.Depth = 1;
-  dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-  dst_location.PlacedFootprint.Footprint.Width = level_width;
-  dst_location.PlacedFootprint.Footprint.Height = level_height;
-  dst_location.PlacedFootprint.Footprint.RowPitch = static_cast<UINT>(level_pitch);
-
-  D3D12_TEXTURE_COPY_LOCATION src_location =
-      CD3DX12_TEXTURE_COPY_LOCATION(m_texture->GetTex12(), level);
-
-  D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, nullptr);
-
-  D3D::command_list_mgr->ExecuteQueuedWork(true);
-
-  // Map readback buffer and save to file.
-  void* readback_texture_map;
-  D3D12_RANGE read_range = {0, required_readback_buffer_size};
-  CheckHR(s_texture_cache_entry_readback_buffer->Map(0, &read_range, &readback_texture_map));
-
-  bool saved = TextureToPng(static_cast<u8*>(readback_texture_map),
-                            dst_location.PlacedFootprint.Footprint.RowPitch, filename,
-                            dst_location.PlacedFootprint.Footprint.Width,
-                            dst_location.PlacedFootprint.Footprint.Height);
-
-  D3D12_RANGE write_range = {};
-  s_texture_cache_entry_readback_buffer->Unmap(0, &write_range);
-  return saved;
-}
-
-void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* source,
-                                                         const MathUtil::Rectangle<int>& src_rect,
-                                                         const MathUtil::Rectangle<int>& dst_rect)
-{
-  const TCacheEntry* srcentry = reinterpret_cast<const TCacheEntry*>(source);
-  if (src_rect.GetWidth() == dst_rect.GetWidth() && src_rect.GetHeight() == dst_rect.GetHeight())
-  {
-    // These assertions should hold true unless the base code is passing us sizes too large, in
-    // which case it should be fixed instead.
-    _assert_msg_(VIDEO, static_cast<u32>(src_rect.GetWidth()) <= source->config.width &&
-                            static_cast<u32>(src_rect.GetHeight()) <= source->config.height,
-                 "Source rect is too large for CopyRectangleFromTexture");
-
-    _assert_msg_(VIDEO, static_cast<u32>(dst_rect.GetWidth()) <= config.width &&
-                            static_cast<u32>(dst_rect.GetHeight()) <= config.height,
-                 "Dest rect is too large for CopyRectangleFromTexture");
-
-    CD3DX12_BOX src_box(src_rect.left, src_rect.top, 0, src_rect.right, src_rect.bottom,
-                        srcentry->config.layers);
-    D3D12_TEXTURE_COPY_LOCATION dst_location =
-        CD3DX12_TEXTURE_COPY_LOCATION(m_texture->GetTex12(), 0);
-    D3D12_TEXTURE_COPY_LOCATION src_location =
-        CD3DX12_TEXTURE_COPY_LOCATION(srcentry->m_texture->GetTex12(), 0);
-
-    m_texture->TransitionToResourceState(D3D::current_command_list, D3D12_RESOURCE_STATE_COPY_DEST);
-    srcentry->m_texture->TransitionToResourceState(D3D::current_command_list,
-                                                   D3D12_RESOURCE_STATE_COPY_SOURCE);
-    D3D::current_command_list->CopyTextureRegion(&dst_location, dst_rect.left, dst_rect.top, 0,
-                                                 &src_location, &src_box);
-
-    m_texture->TransitionToResourceState(D3D::current_command_list,
-                                         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-    srcentry->m_texture->TransitionToResourceState(D3D::current_command_list,
-                                                   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-    return;
-  }
-  else if (!config.rendertarget)
-  {
-    return;
-  }
-
-  D3D::SetViewportAndScissor(dst_rect.left, dst_rect.top, dst_rect.GetWidth(),
-                             dst_rect.GetHeight());
-
-  m_texture->TransitionToResourceState(D3D::current_command_list,
-                                       D3D12_RESOURCE_STATE_RENDER_TARGET);
-  D3D::current_command_list->OMSetRenderTargets(1, &m_texture->GetRTV12(), FALSE, nullptr);
-
-  D3D::SetLinearCopySampler();
-
-  D3D12_RECT src_rc;
-  src_rc.left = src_rect.left;
-  src_rc.right = src_rect.right;
-  src_rc.top = src_rect.top;
-  src_rc.bottom = src_rect.bottom;
-
-  D3D::DrawShadedTexQuad(
-      srcentry->m_texture, &src_rc, srcentry->config.width, srcentry->config.height,
-      StaticShaderCache::GetColorCopyPixelShader(false), StaticShaderCache::GetSimpleVertexShader(),
-      StaticShaderCache::GetSimpleVertexShaderInputLayout(), D3D12_SHADER_BYTECODE(), 1.0, 0,
-      DXGI_FORMAT_R8G8B8A8_UNORM, false, m_texture->GetMultisampled());
-
-  m_texture->TransitionToResourceState(D3D::current_command_list,
-                                       D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-  FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(
-      D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-  FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(
-      D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
-  g_renderer->RestoreAPIState();
-}
-
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-                                     unsigned int expanded_width, unsigned int level)
-{
-  unsigned int src_pitch = 4 * expanded_width;
-  D3D::ReplaceRGBATexture2D(m_texture->GetTex12(), TextureCache::temp, width, height, src_pitch,
-                            level, m_texture->GetResourceUsageState());
-}
-
-TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
-{
-  if (config.rendertarget)
-  {
-    D3DTexture2D* texture =
-        D3DTexture2D::Create(config.width, config.height,
-                             TEXTURE_BIND_FLAG_SHADER_RESOURCE | TEXTURE_BIND_FLAG_RENDER_TARGET,
-                             DXGI_FORMAT_R8G8B8A8_UNORM, 1, config.layers);
-
-    TCacheEntry* entry = new TCacheEntry(config, texture);
-
-    entry->m_texture_srv_cpu_handle = texture->GetSRV12CPU();
-    entry->m_texture_srv_gpu_handle = texture->GetSRV12GPU();
-    entry->m_texture_srv_gpu_handle_cpu_shadow = texture->GetSRV12GPUCPUShadow();
-
-    return entry;
-  }
-  else
-  {
-    ID3D12Resource* texture_resource = nullptr;
-
-    D3D12_RESOURCE_DESC texture_resource_desc = CD3DX12_RESOURCE_DESC::Tex2D(
-        DXGI_FORMAT_R8G8B8A8_UNORM, config.width, config.height, 1, config.levels);
-
-    CheckHR(D3D::device12->CreateCommittedResource(
-        &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_DEFAULT), D3D12_HEAP_FLAG_NONE,
-        &CD3DX12_RESOURCE_DESC(texture_resource_desc), D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
-        nullptr, IID_PPV_ARGS(&texture_resource)));
-
-    D3DTexture2D* texture =
-        new D3DTexture2D(texture_resource, TEXTURE_BIND_FLAG_SHADER_RESOURCE, DXGI_FORMAT_UNKNOWN,
-                         DXGI_FORMAT_UNKNOWN, DXGI_FORMAT_UNKNOWN, false,
-                         D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-    TCacheEntry* const entry = new TCacheEntry(config, texture);
-
-    entry->m_texture_srv_cpu_handle = texture->GetSRV12CPU();
-    entry->m_texture_srv_gpu_handle = texture->GetSRV12GPU();
-    entry->m_texture_srv_gpu_handle_cpu_shadow = texture->GetSRV12GPUCPUShadow();
-
-    // EXISTINGD3D11TODO: better debug names
-    D3D::SetDebugObjectName12(entry->m_texture->GetTex12(), "a texture of the TextureCache");
-
-    SAFE_RELEASE(texture_resource);
-
-    return entry;
-  }
-}
-
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat src_format,
-                                                 const EFBRectangle& srcRect, bool scale_by_half,
-                                                 unsigned int cbuf_id, const float* colmat)
-{
-  // When copying at half size, in multisampled mode, resolve the color/depth buffer first.
-  // This is because multisampled texture reads go through Load, not Sample, and the linear
-  // filter is ignored.
-  bool multisampled = (g_ActiveConfig.iMultisamples > 1);
-  D3DTexture2D* efb_tex = (src_format == PEControl::Z24) ?
-                              FramebufferManager::GetEFBDepthTexture() :
-                              FramebufferManager::GetEFBColorTexture();
-  if (multisampled && scale_by_half)
-  {
-    multisampled = false;
-    efb_tex = (src_format == PEControl::Z24) ? FramebufferManager::GetResolvedEFBDepthTexture() :
-                                               FramebufferManager::GetResolvedEFBColorTexture();
-  }
-
-  // set transformation
-  if (s_efb_copy_last_cbuf_id != cbuf_id)
-  {
-    s_efb_copy_stream_buffer->AllocateSpaceInBuffer(28 * sizeof(float), 256);
-
-    memcpy(s_efb_copy_stream_buffer->GetCPUAddressOfCurrentAllocation(), colmat,
-           28 * sizeof(float));
-
-    s_efb_copy_last_cbuf_id = cbuf_id;
-  }
-
-  // stretch picture with increased internal resolution
-  D3D::SetViewportAndScissor(0, 0, config.width, config.height);
-
-  D3D::current_command_list->SetGraphicsRootConstantBufferView(
-      DESCRIPTOR_TABLE_PS_CBVONE, s_efb_copy_stream_buffer->GetGPUAddressOfCurrentAllocation());
-  D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PS_CBV, true);
-
-  const TargetRectangle targetSource = g_renderer->ConvertEFBRectangle(srcRect);
-  // EXISTINGD3D11TODO: try targetSource.asRECT();
-  const D3D12_RECT sourcerect =
-      CD3DX12_RECT(targetSource.left, targetSource.top, targetSource.right, targetSource.bottom);
-
-  // Use linear filtering if (bScaleByHalf), use point filtering otherwise
-  if (scale_by_half)
-    D3D::SetLinearCopySampler();
-  else
-    D3D::SetPointCopySampler();
-
-  // Make sure we don't draw with the texture set as both a source and target.
-  // (This can happen because we don't unbind textures when we free them.)
-
-  m_texture->TransitionToResourceState(D3D::current_command_list,
-                                       D3D12_RESOURCE_STATE_RENDER_TARGET);
-  D3D::current_command_list->OMSetRenderTargets(1, &m_texture->GetRTV12(), FALSE, nullptr);
-
-  // Create texture copy
-  D3D::DrawShadedTexQuad(
-      efb_tex, &sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-      (src_format == PEControl::Z24) ? StaticShaderCache::GetDepthMatrixPixelShader(multisampled) :
-                                       StaticShaderCache::GetColorMatrixPixelShader(multisampled),
-      StaticShaderCache::GetSimpleVertexShader(),
-      StaticShaderCache::GetSimpleVertexShaderInputLayout(),
-      StaticShaderCache::GetCopyGeometryShader(), 1.0f, 0, DXGI_FORMAT_R8G8B8A8_UNORM, false,
-      m_texture->GetMultisampled());
-
-  m_texture->TransitionToResourceState(D3D::current_command_list,
-                                       D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-
-  FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(
-      D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-  FramebufferManager::GetEFBDepthTexture()->TransitionToResourceState(
-      D3D::current_command_list, D3D12_RESOURCE_STATE_DEPTH_WRITE);
-
-  g_renderer->RestoreAPIState();
-}
+ID3D12Resource* s_texture_cache_entry_readback_buffer = nullptr;
+size_t s_texture_cache_entry_readback_buffer_size = 0;
 
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
                            u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat srcFormat,
@@ -391,16 +118,19 @@ void main(
 }
 )HLSL";
 
-void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted,
-                                  void* palette, TlutFormat format)
+void TextureCache::ConvertTexture(TCacheEntry* dest, TCacheEntry* source, void* palette,
+                                  TlutFormat format)
 {
   const unsigned int palette_buffer_allocation_size = 512;
   m_palette_stream_buffer->AllocateSpaceInBuffer(palette_buffer_allocation_size, 256);
   memcpy(m_palette_stream_buffer->GetCPUAddressOfCurrentAllocation(), palette,
          palette_buffer_allocation_size);
 
+  AbstractTexture* dest_tex = static_cast<AbstractTexture*>(dest->texture.get());
+  const AbstractTexture* source_tex = static_cast<AbstractTexture*>(source->texture.get());
+
   // stretch picture with increased internal resolution
-  D3D::SetViewportAndScissor(0, 0, unconverted->config.width, unconverted->config.height);
+  D3D::SetViewportAndScissor(0, 0, source->width(), source->height());
 
   // D3D12: Because the second SRV slot is occupied by this buffer, and an arbitrary texture
   // occupies the first SRV slot,
@@ -432,13 +162,11 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
                                           &palette_buffer_srv_desc, srv_group_cpu_handle[1]);
 
   // Now, copy the existing texture's descriptor into the new temporary location.
-  static_cast<TCacheEntry*>(unconverted)
-      ->m_texture->TransitionToResourceState(D3D::current_command_list,
-                                             D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-  D3D::device12->CopyDescriptorsSimple(
-      1, srv_group_cpu_handle[0],
-      static_cast<TCacheEntry*>(unconverted)->m_texture->GetSRV12GPUCPUShadow(),
-      D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+  source_tex->m_texture->TransitionToResourceState(D3D::current_command_list,
+                                                   D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+  D3D::device12->CopyDescriptorsSimple(1, srv_group_cpu_handle[0],
+                                       source_tex->m_texture->GetSRV12GPUCPUShadow(),
+                                       D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
   // Finally, bind our temporary location.
   D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV,
@@ -447,9 +175,8 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
   // D3D11EXISTINGTODO: Add support for C14X2 format.  (Different multiplier, more palette entries.)
 
   // D3D12: See TextureCache::TextureCache() - because there are only two possible buffer contents
-  // here,
-  // just pre-populate the data in two parts of the same upload heap.
-  if ((unconverted->format & 0xf) == GX_TF_I4)
+  // here, just pre-populate the data in two parts of the same upload heap.
+  if (source->format() == GX_TF_I4)
   {
     D3D::current_command_list->SetGraphicsRootConstantBufferView(
         DESCRIPTOR_TABLE_PS_CBVONE, m_palette_uniform_buffer->GetGPUVirtualAddress());
@@ -462,30 +189,28 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
 
   D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PS_CBV, true);
 
-  const D3D12_RECT source_rect =
-      CD3DX12_RECT(0, 0, unconverted->config.width, unconverted->config.height);
+  const D3D12_RECT source_rect = CD3DX12_RECT(0, 0, source->width(), source->height());
 
   D3D::SetPointCopySampler();
 
   // Make sure we don't draw with the texture set as both a source and target.
   // (This can happen because we don't unbind textures when we free them.)
 
-  static_cast<TCacheEntry*>(entry)->m_texture->TransitionToResourceState(
-      D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
-  D3D::current_command_list->OMSetRenderTargets(
-      1, &static_cast<TCacheEntry*>(entry)->m_texture->GetRTV12(), FALSE, nullptr);
+  dest_tex->m_texture->TransitionToResourceState(D3D::current_command_list,
+                                                 D3D12_RESOURCE_STATE_RENDER_TARGET);
+  D3D::current_command_list->OMSetRenderTargets(1, &source_tex->m_texture->GetRTV12(), FALSE,
+                                                nullptr);
 
   // Create texture copy
-  D3D::DrawShadedTexQuad(
-      static_cast<TCacheEntry*>(unconverted)->m_texture, &source_rect, unconverted->config.width,
-      unconverted->config.height, m_palette_pixel_shaders[format],
-      StaticShaderCache::GetSimpleVertexShader(),
-      StaticShaderCache::GetSimpleVertexShaderInputLayout(),
-      StaticShaderCache::GetCopyGeometryShader(), 1.0f, 0, DXGI_FORMAT_R8G8B8A8_UNORM, true,
-      static_cast<TCacheEntry*>(entry)->m_texture->GetMultisampled());
+  D3D::DrawShadedTexQuad(source_tex->m_texture, &source_rect, source->width(), source->height(),
+                         m_palette_pixel_shaders[format],
+                         StaticShaderCache::GetSimpleVertexShader(),
+                         StaticShaderCache::GetSimpleVertexShaderInputLayout(),
+                         StaticShaderCache::GetCopyGeometryShader(), 1.0f, 0,
+                         DXGI_FORMAT_R8G8B8A8_UNORM, true, dest_tex->m_texture->GetMultisampled());
 
-  static_cast<TCacheEntry*>(entry)->m_texture->TransitionToResourceState(
-      D3D::current_command_list, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
+  dest_tex->m_texture->TransitionToResourceState(D3D::current_command_list,
+                                                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
   FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(
       D3D::current_command_list, D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -594,9 +319,9 @@ void TextureCache::BindTextures()
 
   if (last_texture == 0 && bound_textures[0] != nullptr)
   {
+    auto* texture = static_cast<AbstractTexture*>(bound_textures[0]->texture.get());
     DX12::D3D::current_command_list->SetGraphicsRootDescriptorTable(
-        DESCRIPTOR_TABLE_PS_SRV,
-        reinterpret_cast<TCacheEntry*>(bound_textures[0])->m_texture_srv_gpu_handle);
+        DESCRIPTOR_TABLE_PS_SRV, texture->m_texture_srv_gpu_handle);
     return;
   }
 
@@ -613,11 +338,11 @@ void TextureCache::BindTextures()
       D3D12_CPU_DESCRIPTOR_HANDLE textureDestDescriptor;
       textureDestDescriptor.ptr =
           s_group_base_texture_cpu_handle.ptr + stage * D3D::resource_descriptor_size;
+      auto* texture = static_cast<AbstractTexture*>(bound_textures[0]->texture.get());
 
-      DX12::D3D::device12->CopyDescriptorsSimple(
-          1, textureDestDescriptor, reinterpret_cast<TCacheEntry*>(bound_textures[stage])
-                                        ->m_texture_srv_gpu_handle_cpu_shadow,
-          D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+      DX12::D3D::device12->CopyDescriptorsSimple(1, textureDestDescriptor,
+                                                 texture->m_texture_srv_gpu_handle_cpu_shadow,
+                                                 D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
     else
     {
@@ -634,5 +359,11 @@ void TextureCache::BindTextures()
   // Actually bind the textures.
   DX12::D3D::current_command_list->SetGraphicsRootDescriptorTable(DESCRIPTOR_TABLE_PS_SRV,
                                                                   s_group_base_texture_gpu_handle);
+}
+
+std::unique_ptr<AbstractTextureBase>
+TextureCache::CreateTexture(const AbstractTextureBase::TextureConfig& config)
+{
+  return std::make_unique<AbstractTexture>(config);
 }
 }

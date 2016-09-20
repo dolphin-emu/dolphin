@@ -704,10 +704,6 @@ Renderer::Renderer()
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
     GLInterface->SwapInterval(s_vsync);
 
-  // TODO: Move these somewhere else?
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
 
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
@@ -1355,8 +1351,7 @@ static void DumpFrame(const std::vector<u8>& data, int w, int h)
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
-void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma)
+void Renderer::SwapImpl(AbstractTextureBase* texture, const EFBRectangle& rc, float Gamma)
 {
   if (g_ogl_config.bSupportsDebug)
   {
@@ -1367,25 +1362,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   }
 
   static int w = 0, h = 0;
-  if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
-      !fbWidth || !fbHeight)
-  {
-    DumpFrame(frame_data, w, h);
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
-
-  u32 xfbCount = 0;
-  const XFBSourceBase* const* xfbSourceList =
-      FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
-  if (g_ActiveConfig.VirtualXFBEnabled() && (!xfbSourceList || xfbCount == 0))
-  {
-    DumpFrame(frame_data, w, h);
-    Core::Callback_VideoCopiedToXFB(false);
-    return;
-  }
-
-  ResetAPIState();
+  // TODO:
+  //if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()))
+  //{
+  //  DumpFrame(frame_data, w, h);
+  //  Core::Callback_VideoCopiedToXFB(false);
+  //  return;
+  //}
 
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
   TargetRectangle flipped_trc = GetTargetRectangle();
@@ -1393,77 +1376,24 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // Flip top and bottom for some reason; TODO: Fix the code to suck less?
   std::swap(flipped_trc.top, flipped_trc.bottom);
 
-  // Copy the framebuffer to screen.
-  const XFBSource* xfbSource = nullptr;
+  // TODO: If the XFB texture cache entry hasn't changed since the last Swap, we can return early.
+  auto* xfb_texture = static_cast<AbstractTexture*>(texture);
 
-  if (g_ActiveConfig.bUseXFB)
-  {
-    // draw each xfb source
-    for (u32 i = 0; i < xfbCount; ++i)
-    {
-      xfbSource = (const XFBSource*)xfbSourceList[i];
+  TargetRectangle sourceRc = ConvertEFBRectangle(rc);
+  sourceRc.left = 0;
+  sourceRc.right = xfb_texture->config.width;
+  sourceRc.top = xfb_texture->config.height;
+  sourceRc.bottom = 0;
 
-      TargetRectangle drawRc;
-      TargetRectangle sourceRc;
-      sourceRc.left = xfbSource->sourceRc.left;
-      sourceRc.right = xfbSource->sourceRc.right;
-      sourceRc.top = xfbSource->sourceRc.top;
-      sourceRc.bottom = xfbSource->sourceRc.bottom;
+  ResetAPIState();
 
-      if (g_ActiveConfig.bUseRealXFB)
-      {
-        drawRc = flipped_trc;
-        sourceRc.right -= fbStride - fbWidth;
+  // And blit it to the screen.
+  BlitScreen(sourceRc, flipped_trc, xfb_texture->texture, xfb_texture->config.width,
+             xfb_texture->config.height);
 
-        // RealXFB doesn't call ConvertEFBRectangle for sourceRc, therefore it is still assuming a
-        // top-left origin.
-        // The top offset is always zero (see FramebufferManagerBase::GetRealXFBSource).
-        sourceRc.top = sourceRc.bottom;
-        sourceRc.bottom = 0;
-      }
-      else
-      {
-        // use virtual xfb with offset
-        int xfbHeight = xfbSource->srcHeight;
-        int xfbWidth = xfbSource->srcWidth;
-        int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
-
-        drawRc.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / (s32)fbHeight;
-        drawRc.bottom =
-            flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / (s32)fbHeight;
-        drawRc.left =
-            flipped_trc.left +
-            (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-        drawRc.right =
-            flipped_trc.left +
-            (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-
-        // The following code disables auto stretch.  Kept for reference.
-        // scale draw area for a 1 to 1 pixel mapping with the draw target
-        // float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
-        // float hScale = (float)fbWidth / (float)flipped_trc.GetWidth();
-        // drawRc.top *= vScale;
-        // drawRc.bottom *= vScale;
-        // drawRc.left *= hScale;
-        // drawRc.right *= hScale;
-
-        sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
-      }
-      // Tell the OSD Menu about the current internal resolution
-      OSDInternalW = xfbSource->sourceRc.GetWidth();
-      OSDInternalH = xfbSource->sourceRc.GetHeight();
-
-      BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
-    }
-  }
-  else
-  {
-    TargetRectangle targetRc = ConvertEFBRectangle(rc);
-
-    // for msaa mode, we must resolve the efb content to non-msaa
-    GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
-    BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
-  }
+  // Tell the OSD Menu about the current internal resolution
+  OSDInternalW = sourceRc.GetWidth();
+  OSDInternalH = sourceRc.GetHeight();
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
@@ -1541,23 +1471,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 #endif
   // Finish up the current frame, print some stats
 
-  SetWindowSize(fbStride, fbHeight);
+  SetWindowSize(xfb_texture->config.width, xfb_texture->config.height);
 
   GLInterface->Update();  // just updates the render window position and the backbuffer size
-
-  bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
-
-  if (FramebufferManagerBase::LastXfbWidth() != fbStride ||
-      FramebufferManagerBase::LastXfbHeight() != fbHeight)
-  {
-    xfbchanged = true;
-    unsigned int const last_w =
-        (fbStride < 1 || fbStride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fbStride;
-    unsigned int const last_h =
-        (fbHeight < 1 || fbHeight > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fbHeight;
-    FramebufferManagerBase::SetLastXfbWidth(last_w);
-    FramebufferManagerBase::SetLastXfbHeight(last_h);
-  }
 
   bool WindowResized = false;
   int W = (int)GLInterface->GetBackBufferWidth();
@@ -1575,7 +1491,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     TargetSizeChanged = true;
   }
-  if (TargetSizeChanged || xfbchanged || WindowResized ||
+  if (TargetSizeChanged || WindowResized ||
       (s_last_multisamples != g_ActiveConfig.iMultisamples) ||
       (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
   {
@@ -1705,7 +1621,7 @@ void Renderer::RestoreAPIState()
   if (vm->m_last_vao)
     glBindVertexArray(vm->m_last_vao);
 
-  TextureCache::SetStage();
+  AbstractTexture::SetStage();
 }
 
 void Renderer::SetGenerationMode()

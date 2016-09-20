@@ -525,15 +525,6 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
   // Scanline buffer, leave room for borders
   yuv444 scanline[EFB_WIDTH + 2];
 
-  // our internal yuv444 type is not normalized, so black is {0, 0, 0} instead of {16, 128, 128}
-  yuv444 black;
-  black.Y = 0;
-  black.U = 0;
-  black.V = 0;
-
-  scanline[0] = black;          // black border at start
-  scanline[right + 1] = black;  // black border at end
-
   for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
   {
     // Get a scanline of YUV pixels in 4:4:4 format
@@ -542,6 +533,10 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
     {
       GetColorYUV(x, y, &scanline[i]);
     }
+
+    // Flipper clamps the border colors
+    scanline[0] = scanline[1];
+    scanline[right + 1] = scanline[right];
 
     // And Downsample them to 4:2:2
     for (int i = 1, x = left; x < right; i += 2, x += 2)
@@ -567,28 +562,7 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
 // main memory or doing a yuyv conversion
 void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc, float Gamma)
 {
-  if (fbWidth * fbHeight > MAX_XFB_WIDTH * MAX_XFB_HEIGHT)
-  {
-    ERROR_LOG(VIDEO, "Framebuffer is too large: %ix%i", fbWidth, fbHeight);
-    return;
-  }
-
-  u32 color;
-  u8* colorPtr = (u8*)&color;
-  u32* texturePtr = (u32*)texture;
-  u32 textureAddress = 0;
-
-  int left = sourceRc.left;
-  int right = sourceRc.right;
-
-  for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
-  {
-    for (u16 x = left; x < right; x++)
-    {
-      GetColor(x, y, colorPtr);
-      texturePtr[textureAddress++] = Common::swap32(color | 0xFF);
-    }
-  }
+  // TODO: Upload directly to texture cache.
 }
 
 bool ZCompare(u16 x, u16 y, u32 z)

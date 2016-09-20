@@ -217,11 +217,11 @@ void VertexManagerBase::Flush()
     TextureCacheBase::UnbindTextures();
     for (unsigned int i : usedtextures)
     {
-      const TextureCacheBase::TCacheEntryBase* tentry = TextureCacheBase::Load(i);
+      const TextureCacheBase::TCacheEntry* tentry = TextureCacheBase::Load(i);
 
       if (tentry)
       {
-        g_renderer->SetSamplerState(i & 3, i >> 2, tentry->is_custom_tex);
+        g_renderer->SetSamplerState(i & 3, i >> 2, tentry->IsCustomTexture());
         PixelShaderManager::SetTexDims(i, tentry->native_width, tentry->native_height);
       }
       else

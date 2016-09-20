@@ -48,9 +48,6 @@
     <ClCompile Include="Render.cpp">
       <Filter>Render</Filter>
     </ClCompile>
-    <ClCompile Include="Television.cpp">
-      <Filter>Render</Filter>
-    </ClCompile>
     <ClCompile Include="TextureCache.cpp">
       <Filter>Render</Filter>
     </ClCompile>
@@ -65,6 +62,9 @@
     </ClCompile>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="BoundingBox.cpp">
+      <Filter>Render</Filter>
+    </ClCompile>
+    <ClCompile Include="AbstractTexture.cpp">
       <Filter>Render</Filter>
     </ClCompile>
   </ItemGroup>
@@ -105,9 +105,6 @@
     <ClInclude Include="Render.h">
       <Filter>Render</Filter>
     </ClInclude>
-    <ClInclude Include="Television.h">
-      <Filter>Render</Filter>
-    </ClInclude>
     <ClInclude Include="TextureCache.h">
       <Filter>Render</Filter>
     </ClInclude>
@@ -125,6 +122,9 @@
     </ClInclude>
     <ClInclude Include="VideoBackend.h" />
     <ClInclude Include="BoundingBox.h">
+      <Filter>Render</Filter>
+    </ClInclude>
+    <ClInclude Include="AbstractTexture.h">
       <Filter>Render</Filter>
     </ClInclude>
   </ItemGroup>

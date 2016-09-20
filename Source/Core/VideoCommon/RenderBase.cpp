@@ -134,37 +134,23 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
 
   if (g_ActiveConfig.bUseXFB)
   {
-    FramebufferManagerBase::CopyToXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
+    //	FramebufferManagerBase::CopyToXFB(xfbAddr, fbStride, fbHeight, sourceRc, Gamma);
   }
   else
   {
     // below div two to convert from bytes to pixels - it expects width, not stride
-    Swap(xfbAddr, fbStride / 2, fbStride / 2, fbHeight, sourceRc, Gamma);
+    //	Swap(xfbAddr, fbStride/2, fbStride/2, fbHeight, sourceRc, Gamma);
   }
 }
 
 int Renderer::EFBToScaledX(int x)
 {
-  switch (g_ActiveConfig.iEFBScale)
-  {
-  case SCALE_AUTO:  // fractional
-    return FramebufferManagerBase::ScaleToVirtualXfbWidth(x);
-
-  default:
-    return x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
-  };
+  return x * (int)efb_scale_numeratorX / (int)efb_scale_denominatorX;
 }
 
 int Renderer::EFBToScaledY(int y)
 {
-  switch (g_ActiveConfig.iEFBScale)
-  {
-  case SCALE_AUTO:  // fractional
-    return FramebufferManagerBase::ScaleToVirtualXfbHeight(y);
-
-  default:
-    return y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
-  };
+  return y * (int)efb_scale_numeratorY / (int)efb_scale_denominatorY;
 }
 
 void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY)
@@ -192,8 +178,8 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
   {
   case SCALE_AUTO:
   case SCALE_AUTO_INTEGRAL:
-    newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH);
-    newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT);
+    newEFBWidth = framebuffer_width;
+    newEFBHeight = framebuffer_height;
 
     if (s_last_efb_scale == SCALE_AUTO_INTEGRAL)
     {
@@ -619,8 +605,15 @@ void Renderer::RecordVideoMemory()
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
                     float Gamma)
 {
-  // TODO: merge more generic parts into VideoCommon
-  g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, Gamma);
+  if (xfbAddr && fbWidth && fbStride && fbHeight)
+  {
+    // Get the current XFB from texture cache
+    auto* xfb_entry = TextureCacheBase::GetTexture(xfbAddr, fbWidth, fbHeight, GX_CTF_XFB);
+    // TODO, check if xfb_entry is a duplicate of the previous frame and skip SwapImpl
+
+    // TODO: merge more generic parts into VideoCommon
+    g_renderer->SwapImpl(xfb_entry->texture.get(), rc, Gamma);
+  }
 
   if (XFBWrited)
     g_renderer->m_fps_counter.Update();
