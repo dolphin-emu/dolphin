@@ -140,6 +140,7 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_es.cpp
 			IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
 			IPC_HLE/WII_IPC_HLE_Device_fs.cpp
+			IPC_HLE/WII_IPC_HLE_Device_hid.cpp
 			IPC_HLE/WII_Socket.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
@@ -229,7 +230,9 @@ set(LIBS
 	discio
 	enet
 	inputcommon
+	${LIBUSB_LIBRARIES}
 	${LZO}
+	${MBEDTLS_LIBRARIES}
 	sfml-network
 	sfml-system
 	videonull
@@ -237,14 +240,6 @@ set(LIBS
 	videosoftware
 	z
 	)
-
-if(LIBUSB_FOUND)
-	# Using shared LibUSB
-	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
-endif(LIBUSB_FOUND)
-
-set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 
 if(WIN32)
 	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
