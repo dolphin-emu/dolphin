@@ -25,6 +25,9 @@ public:
 
   void Repopulate();
 
+  // To prevent deadlocks.
+  void StopStepping();
+
 private:
   enum
   {

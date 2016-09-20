@@ -47,8 +47,9 @@ private:
   void ChangeSearchResult(unsigned int result_idx);
   void ResetSearch();
 
-  void OnRecordingFinished(wxEvent& event);
-  void OnFrameWritten(wxEvent& event);
+  void OnRecordingFinished(wxThreadEvent& event);
+  void OnFileLoaded(wxThreadEvent& event);
+  void OnFrameWritten(wxThreadEvent& event);
 
   void OnFrameListSelectionChanged(wxCommandEvent& event);
   void OnObjectListSelectionChanged(wxCommandEvent& event);

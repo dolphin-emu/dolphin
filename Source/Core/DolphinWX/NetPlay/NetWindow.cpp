@@ -405,11 +405,25 @@ void NetPlayDialog::OnStart(wxCommandEvent&)
 
 void NetPlayDialog::BootGame(const std::string& filename)
 {
+  // Cannot create or destroy windows (i.e. render window) outside main thread
+  wxASSERT_MSG(wxIsMainThread(), "Attempting to start emulation from outside the Main thread. The "
+                                 "render window cannot be created and this is a data race and may "
+                                 "cause crashes.");
+
   main_frame->BootGame(filename);
 }
 
 void NetPlayDialog::StopGame()
 {
+  // Cannot create or destroy windows (i.e. render window) outside main thread
+  // Core::Stop is not threadsafe, only the Main thread can call it.
+  if (!wxIsMainThread())
+  {
+    // Call this function again from the main thread instead.
+    CallAfter(&NetPlayDialog::StopGame);
+    return;
+  }
+
   main_frame->DoStop();
 }
 
@@ -438,29 +452,12 @@ void NetPlayDialog::OnMsgStartGame()
 {
   wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_START_GAME);
   GetEventHandler()->AddPendingEvent(evt);
-  if (m_is_hosting)
-  {
-    m_start_btn->Disable();
-    m_memcard_write->Disable();
-    m_game_btn->Disable();
-    m_player_config_btn->Disable();
-  }
-
-  m_record_chkbox->Disable();
 }
 
 void NetPlayDialog::OnMsgStopGame()
 {
   wxThreadEvent evt(wxEVT_THREAD, NP_GUI_EVT_STOP_GAME);
   GetEventHandler()->AddPendingEvent(evt);
-  if (m_is_hosting)
-  {
-    m_start_btn->Enable();
-    m_memcard_write->Enable();
-    m_game_btn->Enable();
-    m_player_config_btn->Enable();
-  }
-  m_record_chkbox->Enable();
 }
 
 void NetPlayDialog::OnAdjustBuffer(wxCommandEvent& event)
@@ -573,6 +570,15 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   case NP_GUI_EVT_START_GAME:
     // client start game :/
     {
+      if (m_is_hosting)
+      {
+        m_start_btn->Disable();
+        m_memcard_write->Disable();
+        m_game_btn->Disable();
+        m_player_config_btn->Disable();
+      }
+      m_record_chkbox->Disable();
+
       netplay_client->StartGame(FindCurrentGame());
       std::string msg = "Starting game";
       AddChatMessage(ChatMessageType::Info, msg);
@@ -581,6 +587,15 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   case NP_GUI_EVT_STOP_GAME:
     // client stop game
     {
+      if (m_is_hosting)
+      {
+        m_start_btn->Enable();
+        m_memcard_write->Enable();
+        m_game_btn->Enable();
+        m_player_config_btn->Enable();
+      }
+      m_record_chkbox->Enable();
+
       std::string msg = "Stopping game";
       AddChatMessage(ChatMessageType::Info, msg);
     }
@@ -608,6 +623,12 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
 
     std::pair<int, std::string> payload = event.GetPayload<std::pair<int, std::string>>();
     m_MD5_dialog->SetResult(payload.first, payload.second);
+  }
+  break;
+  case NP_GUI_EVT_MD5_ABORT:
+  {
+    if (m_MD5_dialog != nullptr && !m_MD5_dialog->IsBeingDeleted())
+      m_MD5_dialog->Destroy();
   }
   break;
   case NP_GUI_EVT_PAD_BUFFER_CHANGE:
@@ -646,6 +667,7 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
     std::string msg = "Traversal server connection error";
     AddChatMessage(ChatMessageType::Error, msg);
   }
+  break;
   }
 
   // chat messages
@@ -732,8 +754,7 @@ void NetPlayDialog::SetMD5Result(int pid, const std::string& result)
 
 void NetPlayDialog::AbortMD5()
 {
-  if (m_MD5_dialog != nullptr && !m_MD5_dialog->IsBeingDeleted())
-    m_MD5_dialog->Destroy();
+  GetEventHandler()->QueueEvent(new wxThreadEvent(wxEVT_THREAD, NP_GUI_EVT_MD5_ABORT));
 }
 
 void NetPlayDialog::OnAssignPads(wxCommandEvent&)
