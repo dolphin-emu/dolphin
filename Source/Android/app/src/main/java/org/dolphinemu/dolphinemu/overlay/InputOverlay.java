@@ -233,7 +233,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				case MotionEvent.ACTION_POINTER_UP:
 					if (mJoystickBeingConfigured != null)
 					{
-						saveControlPosition(mJoystickBeingConfigured.getSharedPrefsId(), mJoystickBeingConfigured.getBounds().left, mJoystickBeingConfigured.getBounds().right);
+						saveControlPosition(mJoystickBeingConfigured.getSharedPrefsId(), mJoystickBeingConfigured.getBounds().left, mJoystickBeingConfigured.getBounds().top);
 						mJoystickBeingConfigured = null;
 					}
 					break;
