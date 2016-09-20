@@ -4,6 +4,8 @@
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
 
+static u32 s_event_hook_address = 0;
+
 IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::Open(u32 command_address, u32 mode)
 {
   INFO_LOG(WII_IPC_STM, "STM immediate: Open");
@@ -37,8 +39,17 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(u32 command_address)
   switch (parameter)
   {
   case IOCTL_STM_RELEASE_EH:
-    INFO_LOG(WII_IPC_STM, "%s - IOCtl:", GetDeviceName().c_str());
-    INFO_LOG(WII_IPC_STM, "    IOCTL_STM_RELEASE_EH");
+    if (s_event_hook_address == 0)
+    {
+      return_value = FS_ENOENT;
+      break;
+    }
+    Memory::Write_U32(0, Memory::Read_U32(s_event_hook_address + 0x18));
+    Memory::Write_U32(FS_SUCCESS, s_event_hook_address + 4);
+    Memory::Write_U32(IPC_REP_ASYNC, s_event_hook_address);
+    Memory::Write_U32(IPC_CMD_IOCTL, s_event_hook_address + 8);
+    WII_IPC_HLE_Interface::EnqueueReply(s_event_hook_address);
+    s_event_hook_address = 0;
     break;
 
   case IOCTL_STM_HOTRESET:
@@ -87,7 +98,7 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::Open(u32 command_address, u3
 
 IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::Close(u32 command_address, bool force)
 {
-  m_event_hook_address = 0;
+  s_event_hook_address = 0;
 
   INFO_LOG(WII_IPC_STM, "STM eventhook: Close");
   if (!force)
@@ -108,27 +119,28 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::IOCtl(u32 command_address)
 
   // IOCTL_STM_EVENTHOOK waits until the reset button or power button
   // is pressed.
-  m_event_hook_address = command_address;
+  s_event_hook_address = command_address;
   return GetNoReply();
 }
 
 void CWII_IPC_HLE_Device_stm_eventhook::ResetButton() const
 {
-  if (!m_Active || m_event_hook_address == 0)
+  if (!m_Active || s_event_hook_address == 0)
   {
     // If the device isn't open, ignore the button press.
     return;
   }
 
   // The reset button returns STM_EVENT_RESET.
-  u32 buffer_out = Memory::Read_U32(m_event_hook_address + 0x18);
+  u32 buffer_out = Memory::Read_U32(s_event_hook_address + 0x18);
   Memory::Write_U32(STM_EVENT_RESET, buffer_out);
 
   // Fill in command buffer.
-  Memory::Write_U32(FS_SUCCESS, m_event_hook_address + 4);
-  Memory::Write_U32(IPC_REP_ASYNC, m_event_hook_address);
-  Memory::Write_U32(IPC_CMD_IOCTL, m_event_hook_address + 8);
+  Memory::Write_U32(FS_SUCCESS, s_event_hook_address + 4);
+  Memory::Write_U32(IPC_REP_ASYNC, s_event_hook_address);
+  Memory::Write_U32(IPC_CMD_IOCTL, s_event_hook_address + 8);
 
   // Generate a reply to the IPC command.
-  WII_IPC_HLE_Interface::EnqueueReply(m_event_hook_address);
+  WII_IPC_HLE_Interface::EnqueueReply(s_event_hook_address);
+  s_event_hook_address = 0;
 }
