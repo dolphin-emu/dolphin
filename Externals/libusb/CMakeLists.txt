@@ -31,7 +31,7 @@ elseif(APPLE)
         ${OBJC_LIBRARY}
     )
     set(OS_DARWIN TRUE)
-elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
+elseif(ANDROID OR ${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_sources(usb PRIVATE libusb/os/linux_usbfs.c)
     find_package(Libudev)
     if(LIBUDEV_FOUND)
