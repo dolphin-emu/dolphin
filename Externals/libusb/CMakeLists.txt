@@ -7,6 +7,7 @@ add_library(usb SHARED EXCLUDE_FROM_ALL
     libusb/strerror.c
     libusb/sync.c
 )
+set_target_properties(usb PROPERTIES VERSION 1.0.19)
 target_include_directories(usb
     # turns out other projects also have "config.h", so make sure the
     # LibUSB one comes first
