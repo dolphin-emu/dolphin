@@ -739,7 +739,7 @@ if(ENABLE_SDL)
 endif()
 
 if(NOT APPLE)
-	find_package(FindLibUSB)
+	find_package(LibUSB)
 endif()
 add_definitions(-D__LIBUSB__)
 if(LIBUSB_FOUND)
