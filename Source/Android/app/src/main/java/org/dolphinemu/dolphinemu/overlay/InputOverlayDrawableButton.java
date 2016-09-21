@@ -23,7 +23,6 @@ public final class InputOverlayDrawableButton extends BitmapDrawable
 	private int mButtonType;
 	private int mPreviousTouchX, mPreviousTouchY;
 	private int mControlPositionX, mControlPositionY;
-	private String mSharedPrefsId;
 
 	/**
 	 * Constructor
@@ -31,13 +30,11 @@ public final class InputOverlayDrawableButton extends BitmapDrawable
 	 * @param res         {@link Resources} instance.
 	 * @param bitmap      {@link Bitmap} to use with this Drawable.
 	 * @param buttonType  Identifier for this type of button.
-	 * @param sharedPrefsId  Identifier for getting X and Y control positions from Shared Preferences.
 	 */
-	public InputOverlayDrawableButton(Resources res, Bitmap bitmap, int buttonType, String sharedPrefsId)
+	public InputOverlayDrawableButton(Resources res, Bitmap bitmap, int buttonType)
 	{
 		super(res, bitmap);
 		mButtonType = buttonType;
-		mSharedPrefsId = sharedPrefsId;
 	}
 
 	/**
@@ -71,11 +68,6 @@ public final class InputOverlayDrawableButton extends BitmapDrawable
 
 		}
 		return true;
-	}
-
-	public String getSharedPrefsId()
-	{
-		return mSharedPrefsId;
 	}
 
 	public void setPosition(int x, int y)
