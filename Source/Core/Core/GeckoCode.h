@@ -34,7 +34,6 @@ public:
 };
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes);
-bool RunActiveCodes();
 void RunCodeHandler();
 
 }  // namespace Gecko
