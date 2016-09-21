@@ -202,7 +202,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					if (mButtonBeingConfigured == button)
 					{
 						//Persist button position by saving new place.
-						saveControlPosition(mButtonBeingConfigured.getSharedPrefsId(), mButtonBeingConfigured.getBounds().left, mButtonBeingConfigured.getBounds().top);
+						saveControlPosition(mButtonBeingConfigured.getId(), mButtonBeingConfigured.getBounds().left, mButtonBeingConfigured.getBounds().top);
 						mButtonBeingConfigured = null;
 					}
 					break;
@@ -233,7 +233,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				case MotionEvent.ACTION_POINTER_UP:
 					if (mJoystickBeingConfigured != null)
 					{
-						saveControlPosition(mJoystickBeingConfigured.getSharedPrefsId(), mJoystickBeingConfigured.getBounds().left, mJoystickBeingConfigured.getBounds().top);
+						saveControlPosition(mJoystickBeingConfigured.getId(), mJoystickBeingConfigured.getBounds().left, mJoystickBeingConfigured.getBounds().top);
 						mJoystickBeingConfigured = null;
 					}
 					break;
@@ -245,7 +245,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		return true;
 	}
 
-	private void saveControlPosition(String sharedPrefsId, int x, int y)
+	private void saveControlPosition(int sharedPrefsId, int x, int y)
 	{
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(getContext());
 		SharedPreferences.Editor sPrefsEditor = sPrefs.edit();
@@ -318,15 +318,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Initialize the InputOverlayDrawableButton.
 		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), scale);
-		// String ID of the Drawable. This is what is passed into SharedPreferences
-		// to check whether or not a value has been set. Send to button so it can be referenced.
-		final String drawableId = res.getResourceEntryName(resId);
-		final InputOverlayDrawableButton overlayDrawable = new InputOverlayDrawableButton(res, bitmap, buttonId, drawableId);
+		final InputOverlayDrawableButton overlayDrawable = new InputOverlayDrawableButton(res, bitmap, buttonId);
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(drawableId+"-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(drawableId+"-Y", 0f);
+		int drawableX = (int) sPrefs.getFloat(buttonId+"-X", 0f);
+		int drawableY = (int) sPrefs.getFloat(buttonId+"-Y", 0f);
 
 		// Intrinsic width and height of the InputOverlayDrawableButton.
 		// For any who may not know, intrinsic width/height
@@ -369,14 +366,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), 0.30f * overlaySize);
 		final Bitmap bitmapInner = BitmapFactory.decodeResource(res, resInner);
 
-		// String ID of the Drawable. This is what is passed into SharedPreferences
-		// to check whether or not a value has been set.
-		final String drawableId = res.getResourceEntryName(resOuter);
-
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(drawableId+"-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(drawableId+"-Y", 0f);
+		int drawableX = (int) sPrefs.getFloat(joystick+"-X", 0f);
+		int drawableY = (int) sPrefs.getFloat(joystick+"-Y", 0f);
 
 		// Now set the bounds for the InputOverlayDrawableJoystick.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
@@ -389,7 +382,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				= new InputOverlayDrawableJoystick(res,
 					bitmapOuter, bitmapInner,
 					outerRect, innerRect,
-					joystick, drawableId);
+					joystick);
 
 		// Need to set the image's position
 		overlayDrawable.setPosition(drawableX, drawableY);
