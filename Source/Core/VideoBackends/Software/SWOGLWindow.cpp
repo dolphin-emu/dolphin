@@ -86,8 +86,7 @@ void SWOGLWindow::Prepare()
 
 void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
 {
-  TextData data{text, x, y, color};
-  m_text.emplace_back(data);
+  m_text.push_back({text, x, y, color});
 }
 
 void SWOGLWindow::ShowImage(const u8* data, int stride, int width, int height, float aspect)
