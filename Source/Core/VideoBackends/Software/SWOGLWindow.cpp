@@ -90,7 +90,7 @@ void SWOGLWindow::PrintText(const std::string& text, int x, int y, u32 color)
   m_text.emplace_back(data);
 }
 
-void SWOGLWindow::ShowImage(u8* data, int stride, int width, int height, float aspect)
+void SWOGLWindow::ShowImage(const u8* data, int stride, int width, int height, float aspect)
 {
   GLInterface->MakeCurrent();
   GLInterface->Update();
