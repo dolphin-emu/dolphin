@@ -25,13 +25,14 @@ LogConfigWindow::LogConfigWindow(wxWindow* parent, wxWindowID id)
               _("Log Configuration")),
       enableAll(true)
 {
+  Bind(wxEVT_CLOSE_WINDOW, &LogConfigWindow::OnClose, this);
   SetMinSize(wxSize(100, 100));
   m_LogManager = LogManager::GetInstance();
   CreateGUIControls();
   LoadSettings();
 }
 
-LogConfigWindow::~LogConfigWindow()
+void LogConfigWindow::OnClose(wxCloseEvent& event)
 {
   SaveSettings();
 }
