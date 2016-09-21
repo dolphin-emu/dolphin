@@ -278,7 +278,7 @@ static wxString backend_multithreading_desc =
 static wxString true_color_desc =
     wxTRANSLATE("Forces the game to render the RGB color channels in 24-bit, thereby increasing "
                 "quality by reducing color banding.\nIt has no impact on performance and causes "
-                "few graphical issues.\n\n\nIf unsure, leave this unchecked.");
+                "few graphical issues.\n\n\nIf unsure, leave this checked.");
 
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?

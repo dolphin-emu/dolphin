@@ -103,7 +103,7 @@ void VideoConfig::Load(const std::string& ini_file)
   enhancements->Get("ForceFiltering", &bForceFiltering, 0);
   enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
   enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
-  enhancements->Get("ForceTrueColor", &bForceTrueColor, false);
+  enhancements->Get("ForceTrueColor", &bForceTrueColor, true);
 
   IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
   stereoscopy->Get("StereoMode", &iStereoMode, 0);
