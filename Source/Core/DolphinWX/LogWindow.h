@@ -28,7 +28,6 @@ public:
   CLogWindow(CFrame* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition,
              const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL,
              const wxString& name = _("Log"));
-  ~CLogWindow();
 
   void SaveSettings();
   void Log(LogTypes::LOG_LEVELS, const char* text) override;
@@ -63,5 +62,6 @@ private:
   void OnWrapLineCheck(wxCommandEvent& event);
   void OnClear(wxCommandEvent& event);
   void OnLogTimer(wxTimerEvent& WXUNUSED(event));
+  void RemoveAllListeners();
   void UpdateLog();
 };
