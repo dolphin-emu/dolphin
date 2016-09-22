@@ -356,6 +356,7 @@
 
     <!-- Emulation Menu -->
     <string name="emulation_toggle_input">Toggle Touch Controls</string>
+    <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_quicksave">Quick Save</string>
     <string name="emulation_quickload">Quick Load</string>
     <string name="emulation_refresh_wiimotes">Refresh Wiimotes</string>
