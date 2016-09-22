@@ -46,6 +46,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	private InputOverlayDrawableDpad mDpadBeingConfigured;
 	private InputOverlayDrawableJoystick mJoystickBeingConfigured;
 
+	private SharedPreferences mPreferences;
+
 	/**
 	 * Resizes a {@link Bitmap} by a given scale factor
 	 * 
@@ -78,47 +80,10 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	{
 		super(context, attrs);
 
-		// Add all the overlay items to the HashSet.
-		if (EmulationActivity.isGameCubeGame())
-		{
-			// GameCube
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_a, ButtonType.BUTTON_A));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_b, ButtonType.BUTTON_B));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_x, ButtonType.BUTTON_X));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_y, ButtonType.BUTTON_Y));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_z, ButtonType.BUTTON_Z));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_start, ButtonType.BUTTON_START));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_l, ButtonType.TRIGGER_L));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_r, ButtonType.TRIGGER_R));
-			overlayDpads.add(initializeOverlayDpad(context, R.drawable.gcwii_dpad,
-					ButtonType.BUTTON_UP, ButtonType.BUTTON_DOWN,
-					ButtonType.BUTTON_LEFT, ButtonType.BUTTON_RIGHT));
-			overlayJoysticks.add(initializeOverlayJoystick(context,
-					R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
-					ButtonType.STICK_MAIN));
-			overlayJoysticks.add(initializeOverlayJoystick(context,
-					R.drawable.gcwii_joystick_range, R.drawable.gcpad_c,
-					ButtonType.STICK_C));
-		}
-		else
-		{
-			// Wiimote + Nunchuk
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_a, ButtonType.WIIMOTE_BUTTON_A));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_b, ButtonType.WIIMOTE_BUTTON_B));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_one, ButtonType.WIIMOTE_BUTTON_1));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_two, ButtonType.WIIMOTE_BUTTON_2));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_plus, ButtonType.WIIMOTE_BUTTON_PLUS));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_minus, ButtonType.WIIMOTE_BUTTON_MINUS));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_home, ButtonType.WIIMOTE_BUTTON_HOME));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.nunchuk_c, ButtonType.NUNCHUK_BUTTON_C));
-			overlayButtons.add(initializeOverlayButton(context, R.drawable.nunchuk_z, ButtonType.NUNCHUK_BUTTON_Z));
-			overlayDpads.add(initializeOverlayDpad(context, R.drawable.gcwii_dpad,
-					ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN,
-					ButtonType.WIIMOTE_LEFT, ButtonType.WIIMOTE_RIGHT));
-			overlayJoysticks.add(initializeOverlayJoystick(context,
-					R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
-					ButtonType.NUNCHUK_STICK));
-		}
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(getContext());
+
+		// Load the controls.
+		refreshControls();
 
 		// Set the on touch listener.
 		setOnTouchListener(this);
@@ -356,6 +321,124 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 
 		return true;
+	}
+
+	public void refreshControls()
+	{
+		// Remove all the overlay buttons from the HashSet.
+		overlayButtons.removeAll(overlayButtons);
+		overlayDpads.removeAll(overlayDpads);
+		overlayJoysticks.removeAll(overlayJoysticks);
+
+		// Add all the enabled overlay items back to the HashSet.
+		if (EmulationActivity.isGameCubeGame())
+		{
+			// GameCube
+			if (mPreferences.getBoolean("buttonToggleGc0", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_a, ButtonType.BUTTON_A));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc1", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_b, ButtonType.BUTTON_B));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc2", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_x, ButtonType.BUTTON_X));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc3", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_y, ButtonType.BUTTON_Y));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc4", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_z, ButtonType.BUTTON_Z));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc5", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_start, ButtonType.BUTTON_START));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc6", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_l, ButtonType.TRIGGER_L));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc7", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_r, ButtonType.TRIGGER_R));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc8", true))
+			{
+				overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
+						ButtonType.BUTTON_UP, ButtonType.BUTTON_DOWN,
+						ButtonType.BUTTON_LEFT, ButtonType.BUTTON_RIGHT));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc9", true))
+			{
+				overlayJoysticks.add(initializeOverlayJoystick(getContext(),
+						R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
+						ButtonType.STICK_MAIN));
+			}
+			if (mPreferences.getBoolean("buttonToggleGc10", true))
+			{
+				overlayJoysticks.add(initializeOverlayJoystick(getContext(),
+						R.drawable.gcwii_joystick_range, R.drawable.gcpad_c,
+						ButtonType.STICK_C));
+			}
+		}
+		else
+		{
+			// Wiimote + Nunchuk
+			if (mPreferences.getBoolean("buttonToggleWii0", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_a, ButtonType.WIIMOTE_BUTTON_A));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii1", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_b, ButtonType.WIIMOTE_BUTTON_B));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii2", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_one, ButtonType.WIIMOTE_BUTTON_1));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii3", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_two, ButtonType.WIIMOTE_BUTTON_2));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii4", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_plus, ButtonType.WIIMOTE_BUTTON_PLUS));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii5", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_minus, ButtonType.WIIMOTE_BUTTON_MINUS));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii6", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_home, ButtonType.WIIMOTE_BUTTON_HOME));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii7", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.nunchuk_c, ButtonType.NUNCHUK_BUTTON_C));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii8", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.nunchuk_z, ButtonType.NUNCHUK_BUTTON_Z));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii9", true))
+			{
+				overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
+						ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN,
+						ButtonType.WIIMOTE_LEFT, ButtonType.WIIMOTE_RIGHT));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii10", true))
+			{
+				overlayJoysticks.add(initializeOverlayJoystick(getContext(),
+						R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
+						ButtonType.NUNCHUK_STICK));
+			}
+		}
+
+		invalidate();
 	}
 
 	private void saveControlPosition(int sharedPrefsId, int x, int y)

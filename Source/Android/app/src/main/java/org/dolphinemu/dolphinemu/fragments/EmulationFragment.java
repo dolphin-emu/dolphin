@@ -162,6 +162,11 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 		editor.apply();
 	}
 
+	public void refreshInputOverlay()
+	{
+		mInputOverlay.refreshControls();
+	}
+
 	@Override
 	public void surfaceCreated(SurfaceHolder holder)
 	{
