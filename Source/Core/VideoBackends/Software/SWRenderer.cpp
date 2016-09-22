@@ -176,8 +176,7 @@ u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
   }
   case PEEK_COLOR:
   {
-    u32 color = 0;
-    EfbInterface::GetColor(x, y, (u8*)&color);
+    const u32 color = EfbInterface::GetColor(x, y);
 
     // rgba to argb
     value = (color >> 8) | (color & 0xff) << 24;

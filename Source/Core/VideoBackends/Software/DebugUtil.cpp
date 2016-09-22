@@ -2,13 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/DebugUtil.h"
+
+#include <cstring>
+
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 
-#include "VideoBackends/Software/DebugUtil.h"
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/TextureSampler.h"
@@ -133,18 +137,16 @@ static void DumpEfb(const std::string& filename)
 {
   u8* data = new u8[EFB_WIDTH * EFB_HEIGHT * 4];
   u8* writePtr = data;
-  u8 sample[4];
 
   for (int y = 0; y < EFB_HEIGHT; y++)
   {
     for (int x = 0; x < EFB_WIDTH; x++)
     {
-      EfbInterface::GetColor(x, y, sample);
       // ABGR to RGBA
-      *(writePtr++) = sample[3];
-      *(writePtr++) = sample[2];
-      *(writePtr++) = sample[1];
-      *(writePtr++) = sample[0];
+      const u32 sample = Common::swap32(EfbInterface::GetColor(x, y));
+
+      std::memcpy(writePtr, &sample, sizeof(u32));
+      writePtr += sizeof(u32);
     }
   }
 

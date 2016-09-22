@@ -2,12 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/EfbInterface.h"
+
 #include <algorithm>
+#include <cstddef>
+#include <cstring>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "VideoBackends/Software/EfbInterface.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PerfQueryBase.h"
@@ -132,39 +135,30 @@ static void SetPixelAlphaColor(u32 offset, u8* color)
   }
 }
 
-static void GetPixelColor(u32 offset, u8* color)
+static u32 GetPixelColor(u32 offset)
 {
+  u32 src;
+  std::memcpy(&src, &efb[offset], sizeof(u32));
+
   switch (bpmem.zcontrol.pixel_format)
   {
   case PEControl::RGB8_Z24:
   case PEControl::Z24:
-  {
-    u32 src = *(u32*)&efb[offset];
-    u32* dst = (u32*)color;
-    u32 val = 0xff | ((src & 0x00ffffff) << 8);
-    *dst = val;
-  }
-  break;
+    return 0xff | ((src & 0x00ffffff) << 8);
+
   case PEControl::RGBA6_Z24:
-  {
-    u32 src = *(u32*)&efb[offset];
-    color[ALP_C] = Convert6To8(src & 0x3f);
-    color[BLU_C] = Convert6To8((src >> 6) & 0x3f);
-    color[GRN_C] = Convert6To8((src >> 12) & 0x3f);
-    color[RED_C] = Convert6To8((src >> 18) & 0x3f);
-  }
-  break;
+    return Convert6To8(src & 0x3f) |                // Alpha
+           Convert6To8((src >> 6) & 0x3f) << 8 |    // Blue
+           Convert6To8((src >> 12) & 0x3f) << 16 |  // Green
+           Convert6To8((src >> 18) & 0x3f) << 24;   // Red
+
   case PEControl::RGB565_Z16:
-  {
     INFO_LOG(VIDEO, "RGB565_Z16 is not supported correctly yet");
-    u32 src = *(u32*)&efb[offset];
-    u32* dst = (u32*)color;
-    u32 val = 0xff | ((src & 0x00ffffff) << 8);
-    *dst = val;
-  }
-  break;
+    return 0xff | ((src & 0x00ffffff) << 8);
+
   default:
     ERROR_LOG(VIDEO, "Unsupported pixel format: %i", static_cast<int>(bpmem.zcontrol.pixel_format));
+    return 0;
   }
 }
 
@@ -406,12 +400,10 @@ static void Dither(u16 x, u16 y, u8* color)
 
 void BlendTev(u16 x, u16 y, u8* color)
 {
-  u32 dstClr;
-  u32 offset = GetColorOffset(x, y);
+  const u32 offset = GetColorOffset(x, y);
+  u32 dstClr = GetPixelColor(offset);
 
   u8* dstClrPtr = (u8*)&dstClr;
-
-  GetPixelColor(offset, dstClrPtr);
 
   if (bpmem.blendmode.blendenable)
   {
@@ -468,23 +460,25 @@ void SetDepth(u16 x, u16 y, u32 depth)
     SetPixelDepth(GetDepthOffset(x, y), depth);
 }
 
-void GetColor(u16 x, u16 y, u8* color)
+u32 GetColor(u16 x, u16 y)
 {
   u32 offset = GetColorOffset(x, y);
-  GetPixelColor(offset, color);
+  return GetPixelColor(offset);
 }
 
 // For internal used only, return a non-normalized value, which saves work later.
-void GetColorYUV(u16 x, u16 y, yuv444* out)
+yuv444 GetColorYUV(u16 x, u16 y)
 {
-  u8 color[4];
-  GetColor(x, y, color);
+  const u32 color = GetColor(x, y);
+  const u8 red = static_cast<u8>(color >> 24);
+  const u8 green = static_cast<u8>(color >> 16);
+  const u8 blue = static_cast<u8>(color >> 8);
 
   // GameCube/Wii uses the BT.601 standard algorithm for converting to YCbCr; see
   // http://www.equasys.de/colorconversion.html#YCbCr-RGBColorFormatConversion
-  out->Y = (u8)(0.257f * color[RED_C] + 0.504f * color[GRN_C] + 0.098f * color[BLU_C]);
-  out->U = (u8)(-0.148f * color[RED_C] + -0.291f * color[GRN_C] + 0.439f * color[BLU_C]);
-  out->V = (u8)(0.439f * color[RED_C] + -0.368f * color[GRN_C] + -0.071f * color[BLU_C]);
+  return {static_cast<u8>(0.257f * red + 0.504f * green + 0.098f * blue),
+          static_cast<s8>(-0.148f * red + -0.291f * green + 0.439f * blue),
+          static_cast<s8>(0.439f * red + -0.368f * green + -0.071f * blue)};
 }
 
 u32 GetDepth(u16 x, u16 y)
@@ -540,7 +534,7 @@ void CopyToXFB(yuv422_packed* xfb_in_ram, u32 fbWidth, u32 fbHeight, const EFBRe
 
     for (int i = 1, x = left; x < right; i++, x++)
     {
-      GetColorYUV(x, y, &scanline[i]);
+      scanline[i] = GetColorYUV(x, y);
     }
 
     // And Downsample them to 4:2:2
@@ -573,20 +567,18 @@ void BypassXFB(u8* texture, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourc
     return;
   }
 
-  u32 color;
-  u8* colorPtr = (u8*)&color;
-  u32* texturePtr = (u32*)texture;
-  u32 textureAddress = 0;
-
-  int left = sourceRc.left;
-  int right = sourceRc.right;
+  size_t textureAddress = 0;
+  const int left = sourceRc.left;
+  const int right = sourceRc.right;
 
   for (u16 y = sourceRc.top; y < sourceRc.bottom; y++)
   {
     for (u16 x = left; x < right; x++)
     {
-      GetColor(x, y, colorPtr);
-      texturePtr[textureAddress++] = Common::swap32(color | 0xFF);
+      const u32 color = Common::swap32(GetColor(x, y) | 0xFF);
+
+      std::memcpy(&texture[textureAddress], &color, sizeof(u32));
+      textureAddress += sizeof(u32);
     }
   }
 }
