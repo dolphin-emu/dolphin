@@ -2,13 +2,17 @@ package org.dolphinemu.dolphinemu.activities;
 
 import android.app.Activity;
 import android.app.ActivityOptions;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
@@ -47,6 +51,8 @@ public final class EmulationActivity extends AppCompatActivity
 	private LinearLayout mMenuLayout;
 
 	private String mSubmenuFragmentTag;
+
+	private SharedPreferences mPreferences;
 
 	// So that MainActivity knows which view to invalidate before the return animation.
 	private int mPosition;
@@ -211,6 +217,8 @@ public final class EmulationActivity extends AppCompatActivity
 				menuFragment.setTitleText(mSelectedTitle);
 			}
 		}
+
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
 
 		mIsGameCubeGame = (NativeLibrary.GetPlatform(path) == 0);
 	}
@@ -387,13 +395,92 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		switch (id)
 		{
-			// Enable/Disable input overlay.
+			// Enable/Disable specific buttons or the entire input overlay.
 			case R.id.menu_emulation_input_overlay:
 			{
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+				boolean[] enabledButtons = new boolean[11];
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(R.string.emulation_toggle_input);
+				if (mIsGameCubeGame)
+				{
+					for (int i = 0; i < enabledButtons.length; i++)
+					{
+						enabledButtons[i] = mPreferences.getBoolean("buttonToggleGc" + i, true);
+					}
+					builder.setMultiChoiceItems(R.array.gcpadButtons, enabledButtons,
+							new DialogInterface.OnMultiChoiceClickListener()
+					{
+						@Override
+						public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+						{
+							SharedPreferences.Editor editor = mPreferences.edit();
 
-				emulationFragment.toggleInputOverlayVisibility();
+							if (mPreferences.getBoolean("buttonToggleGc" + indexSelected, true))
+							{
+								// If the button is enabled, disable it.
+								editor.putBoolean("buttonToggleGc" + indexSelected, false);
+							}
+							else
+							{
+								// If the button is disabled, enable it.
+								editor.putBoolean("buttonToggleGc" + indexSelected, true);
+							}
+							editor.apply();
+						}
+					});
+				}
+				else
+				{
+					for (int i = 0; i < enabledButtons.length; i++)
+					{
+						enabledButtons[i] = mPreferences.getBoolean("buttonToggleWii" + i, true);
+					}
+					builder.setMultiChoiceItems(R.array.wiimoteButtons, enabledButtons,
+							new DialogInterface.OnMultiChoiceClickListener()
+					{
+						@Override
+						public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+						{
+							SharedPreferences.Editor editor = mPreferences.edit();
+
+							if (mPreferences.getBoolean("buttonToggleWii" + indexSelected, true))
+							{
+								// If the button is enabled, disable it.
+								editor.putBoolean("buttonToggleWii" + indexSelected, false);
+							}
+							else
+							{
+								// If the button is disabled, enable it.
+								editor.putBoolean("buttonToggleWii" + indexSelected, true);
+							}
+
+							editor.apply();
+						}
+					});
+				}
+				builder.setNeutralButton(getString(R.string.emulation_toggle_all), new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i)
+					{
+						EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+						emulationFragment.toggleInputOverlayVisibility();
+					}
+				});
+				builder.setPositiveButton(getString(R.string.emulation_done), new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i)
+					{
+						EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+						emulationFragment.refreshInputOverlay();
+					}
+				});
+
+				AlertDialog alertDialog = builder.create();
+				alertDialog.show();
 
 				return;
 			}
