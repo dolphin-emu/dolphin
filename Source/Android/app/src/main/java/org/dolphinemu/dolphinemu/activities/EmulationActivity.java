@@ -55,6 +55,8 @@ public final class EmulationActivity extends AppCompatActivity
 	private boolean mSystemUiVisible;
 	private boolean mMenuVisible;
 
+	private static boolean mIsGameCubeGame;
+
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
 	 * on the UI thread. This Handler responds to any message, even blank ones, by
@@ -209,6 +211,8 @@ public final class EmulationActivity extends AppCompatActivity
 				menuFragment.setTitleText(mSelectedTitle);
 			}
 		}
+
+		mIsGameCubeGame = (NativeLibrary.GetPlatform(path) == 0);
 	}
 
 	@Override
@@ -665,6 +669,11 @@ public final class EmulationActivity extends AppCompatActivity
 	public String getSelectedTitle()
 	{
 		return mSelectedTitle;
+	}
+
+	public static boolean isGameCubeGame()
+	{
+		return mIsGameCubeGame;
 	}
 
 	public static void launch(Activity activity, String path, String title, String screenshotPath, int position, View sharedView)

@@ -26,6 +26,7 @@ import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonState;
 import org.dolphinemu.dolphinemu.NativeLibrary.ButtonType;
 import org.dolphinemu.dolphinemu.R;
+import org.dolphinemu.dolphinemu.activities.EmulationActivity;
 
 import java.util.HashSet;
 import java.util.Set;
@@ -78,20 +79,46 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		super(context, attrs);
 
 		// Add all the overlay items to the HashSet.
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_a, ButtonType.BUTTON_A));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_b, ButtonType.BUTTON_B));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_x, ButtonType.BUTTON_X));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_y, ButtonType.BUTTON_Y));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_z, ButtonType.BUTTON_Z));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_start, ButtonType.BUTTON_START));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_l, ButtonType.TRIGGER_L));
-		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_r, ButtonType.TRIGGER_R));
-		overlayDpads.add(initializeOverlayDpad(context, R.drawable.gcpad_dpad,
-				ButtonType.BUTTON_UP, ButtonType.BUTTON_DOWN,
-				ButtonType.BUTTON_LEFT, ButtonType.BUTTON_RIGHT));
-		overlayJoysticks.add(initializeOverlayJoystick(context,
-				R.drawable.gcpad_joystick_range, R.drawable.gcpad_joystick,
-				ButtonType.STICK_MAIN));
+		if (EmulationActivity.isGameCubeGame())
+		{
+			// GameCube
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_a, ButtonType.BUTTON_A));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_b, ButtonType.BUTTON_B));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_x, ButtonType.BUTTON_X));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_y, ButtonType.BUTTON_Y));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_z, ButtonType.BUTTON_Z));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_start, ButtonType.BUTTON_START));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_l, ButtonType.TRIGGER_L));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_r, ButtonType.TRIGGER_R));
+			overlayDpads.add(initializeOverlayDpad(context, R.drawable.gcwii_dpad,
+					ButtonType.BUTTON_UP, ButtonType.BUTTON_DOWN,
+					ButtonType.BUTTON_LEFT, ButtonType.BUTTON_RIGHT));
+			overlayJoysticks.add(initializeOverlayJoystick(context,
+					R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
+					ButtonType.STICK_MAIN));
+			overlayJoysticks.add(initializeOverlayJoystick(context,
+					R.drawable.gcwii_joystick_range, R.drawable.gcpad_c,
+					ButtonType.STICK_C));
+		}
+		else
+		{
+			// Wiimote + Nunchuk
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_a, ButtonType.WIIMOTE_BUTTON_A));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_b, ButtonType.WIIMOTE_BUTTON_B));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_one, ButtonType.WIIMOTE_BUTTON_1));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_two, ButtonType.WIIMOTE_BUTTON_2));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_plus, ButtonType.WIIMOTE_BUTTON_PLUS));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_minus, ButtonType.WIIMOTE_BUTTON_MINUS));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.wiimote_home, ButtonType.WIIMOTE_BUTTON_HOME));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.nunchuk_c, ButtonType.NUNCHUK_BUTTON_C));
+			overlayButtons.add(initializeOverlayButton(context, R.drawable.nunchuk_z, ButtonType.NUNCHUK_BUTTON_Z));
+			overlayDpads.add(initializeOverlayDpad(context, R.drawable.gcwii_dpad,
+					ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN,
+					ButtonType.WIIMOTE_LEFT, ButtonType.WIIMOTE_RIGHT));
+			overlayJoysticks.add(initializeOverlayJoystick(context,
+					R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
+					ButtonType.NUNCHUK_STICK));
+		}
 
 		// Set the on touch listener.
 		setOnTouchListener(this);
