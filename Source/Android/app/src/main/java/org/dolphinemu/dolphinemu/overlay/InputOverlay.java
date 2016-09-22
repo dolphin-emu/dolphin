@@ -37,10 +37,12 @@ import java.util.Set;
 public final class InputOverlay extends SurfaceView implements OnTouchListener
 {
 	private final Set<InputOverlayDrawableButton> overlayButtons = new HashSet<>();
+	private final Set<InputOverlayDrawableDpad> overlayDpads = new HashSet<>();
 	private final Set<InputOverlayDrawableJoystick> overlayJoysticks = new HashSet<>();
 
 	private boolean mIsInEditMode = false;
 	private InputOverlayDrawableButton mButtonBeingConfigured;
+	private InputOverlayDrawableDpad mDpadBeingConfigured;
 	private InputOverlayDrawableJoystick mJoystickBeingConfigured;
 
 	/**
@@ -84,6 +86,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_start, ButtonType.BUTTON_START));
 		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_l, ButtonType.TRIGGER_L));
 		overlayButtons.add(initializeOverlayButton(context, R.drawable.gcpad_r, ButtonType.TRIGGER_R));
+		overlayDpads.add(initializeOverlayDpad(context, R.drawable.gcpad_dpad,
+				ButtonType.BUTTON_UP, ButtonType.BUTTON_DOWN,
+				ButtonType.BUTTON_LEFT, ButtonType.BUTTON_RIGHT));
 		overlayJoysticks.add(initializeOverlayJoystick(context,
 				R.drawable.gcpad_joystick_range, R.drawable.gcpad_joystick,
 				ButtonType.STICK_MAIN));
@@ -106,6 +111,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
 			button.draw(canvas);
+		}
+
+		for (InputOverlayDrawableDpad dpad : overlayDpads)
+		{
+			dpad.draw(canvas);
 		}
 
 		for (InputOverlayDrawableJoystick joystick: overlayJoysticks)
@@ -149,6 +159,48 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			}
 		}
 
+		for (InputOverlayDrawableDpad dpad : overlayDpads)
+		{
+			// Determine the button state to apply based on the MotionEvent action flag.
+			switch (event.getAction() & MotionEvent.ACTION_MASK)
+			{
+				case MotionEvent.ACTION_DOWN:
+				case MotionEvent.ACTION_POINTER_DOWN:
+				case MotionEvent.ACTION_MOVE:
+					// If a pointer enters the bounds of a button, press that button.
+					if (dpad.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+					{
+						if (dpad.getBounds().top + (dpad.getIntrinsicHeight() / 3) > (int)event.getY(pointerIndex))
+						{
+							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(0), ButtonState.PRESSED);
+						}
+						if (dpad.getBounds().bottom - (dpad.getIntrinsicHeight() / 3) < (int)event.getY(pointerIndex))
+						{
+							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(1), ButtonState.PRESSED);
+						}
+						if (dpad.getBounds().left + (dpad.getIntrinsicWidth() / 3) > (int)event.getX(pointerIndex))
+						{
+							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(2), ButtonState.PRESSED);
+						}
+						if (dpad.getBounds().right - (dpad.getIntrinsicWidth() / 3) < (int)event.getX(pointerIndex))
+						{
+							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(3), ButtonState.PRESSED);
+						}
+					}
+					break;
+				case MotionEvent.ACTION_UP:
+				case MotionEvent.ACTION_POINTER_UP:
+					// If a pointer ends, release the buttons.
+					if (dpad.getBounds().contains((int)event.getX(pointerIndex), (int)event.getY(pointerIndex)))
+					{
+						for(int i = 0; i < 4; i++)
+						{
+							NativeLibrary.onGamePadEvent(NativeLibrary.TouchScreenDevice, dpad.getId(i), ButtonState.RELEASED);
+						}
+					}
+					break;
+			}
+		}
 
 		for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
 		{
@@ -209,6 +261,40 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			}
 		}
 
+		for (InputOverlayDrawableDpad dpad : overlayDpads)
+		{
+			// Determine the button state to apply based on the MotionEvent action flag.
+			switch (event.getAction() & MotionEvent.ACTION_MASK)
+			{
+				case MotionEvent.ACTION_DOWN:
+				case MotionEvent.ACTION_POINTER_DOWN:
+					// If no button is being moved now, remember the currently touched button to move.
+					if (mButtonBeingConfigured == null && dpad.getBounds().contains(fingerPositionX, fingerPositionY))
+					{
+						mDpadBeingConfigured = dpad;
+						mDpadBeingConfigured.onConfigureTouch(v, event);
+					}
+					break;
+				case MotionEvent.ACTION_MOVE:
+					if (mDpadBeingConfigured != null)
+					{
+						mDpadBeingConfigured.onConfigureTouch(v, event);
+						invalidate();
+						return true;
+					}
+					break;
+
+				case MotionEvent.ACTION_UP:
+				case MotionEvent.ACTION_POINTER_UP:
+					if (mDpadBeingConfigured == dpad)
+					{
+						//Persist button position by saving new place.
+						saveControlPosition(mDpadBeingConfigured.getId(0), mDpadBeingConfigured.getBounds().left, mDpadBeingConfigured.getBounds().top);
+						mDpadBeingConfigured = null;
+					}
+					break;
+			}
+		}
 
 		for (InputOverlayDrawableJoystick joystick : overlayJoysticks)
 		{
@@ -333,6 +419,57 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Now set the bounds for the InputOverlayDrawableButton.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableButton will be.
+		overlayDrawable.setBounds(drawableX, drawableY, drawableX+intrinWidth, drawableY+intrinHeight);
+
+		// Need to set the image's position
+		overlayDrawable.setPosition(drawableX, drawableY);
+
+		return overlayDrawable;
+	}
+
+	/**
+	 * Initializes an {@link InputOverlayDrawableDpad}
+	 *
+	 * @param context  The current {@link Context}.
+	 * @param resId    The resource ID of the {@link Drawable} to get the {@link Bitmap} of.
+	 * @param buttonUp  Identifier for the up button.
+	 * @param buttonDown  Identifier for the down button.
+	 * @param buttonLeft  Identifier for the left button.
+	 * @param buttonRight  Identifier for the right button.
+	 *
+	 * @return the initialized {@link InputOverlayDrawableDpad}
+	 */
+	private static InputOverlayDrawableDpad initializeOverlayDpad(Context context, int resId,
+								      int buttonUp, int buttonDown,
+								      int buttonLeft, int buttonRight)
+	{
+		// Resources handle for fetching the initial Drawable resource.
+		final Resources res = context.getResources();
+
+		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableDpad.
+		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
+
+		// Initialize the InputOverlayDrawableDpad.
+		float overlaySize = sPrefs.getInt("controls_size", 20);
+		overlaySize += 30;
+		overlaySize /= 50;
+		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), 0.30f * overlaySize);
+		final InputOverlayDrawableDpad overlayDrawable = new InputOverlayDrawableDpad(res, bitmap,
+				buttonUp, buttonDown, buttonLeft, buttonRight);
+
+		// The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
+		// These were set in the input overlay configuration menu.
+		int drawableX = (int) sPrefs.getFloat(buttonUp+"-X", 0f);
+		int drawableY = (int) sPrefs.getFloat(buttonUp+"-Y", 0f);
+
+		// Intrinsic width and height of the InputOverlayDrawableDpad.
+		// For any who may not know, intrinsic width/height
+		// are the original unmodified width and height of the image.
+		int intrinWidth = overlayDrawable.getIntrinsicWidth();
+		int intrinHeight = overlayDrawable.getIntrinsicHeight();
+
+		// Now set the bounds for the InputOverlayDrawableDpad.
+		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableDpad will be.
 		overlayDrawable.setBounds(drawableX, drawableY, drawableX+intrinWidth, drawableY+intrinHeight);
 
 		// Need to set the image's position
