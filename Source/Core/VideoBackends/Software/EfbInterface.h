@@ -48,7 +48,7 @@ void BlendTev(u16 x, u16 y, u8* color);
 bool ZCompare(u16 x, u16 y, u32 z);
 
 // sets the color and alpha
-void SetColor(u16 x, u16 y, u8* color);
+void SetColor(u16 x, u16 y, u32 color);
 void SetDepth(u16 x, u16 y, u32 depth);
 
 u32 GetColor(u16 x, u16 y);
