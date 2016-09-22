@@ -607,8 +607,8 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                 vconfig.bWidescreenHack));
     szr_enh->Add(CreateCheckBox(page_enh, _("Disable Fog"), wxGetTranslation(disable_fog_desc),
                                 vconfig.bDisableFog));
-    szr_enh->Add(CreateCheckBox(page_enh, _("Force True Color"), wxGetTranslation(true_color_desc),
-                                vconfig.bForceTrueColor));
+    szr_enh->Add(CreateCheckBox(page_enh, _("Force 24-bit Color"),
+                                wxGetTranslation(true_color_desc), vconfig.bForceTrueColor));
 
     wxStaticBoxSizer* const group_enh =
         new wxStaticBoxSizer(wxVERTICAL, page_enh, _("Enhancements"));
