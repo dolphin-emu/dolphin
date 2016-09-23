@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <iterator>
 #include <mutex>
 #include <vector>
 
@@ -16,128 +18,118 @@
 
 namespace Gecko
 {
-static const u32 INSTALLER_BASE_ADDRESS = 0x80001800;
-static const u32 INSTALLER_END_ADDRESS = 0x80003000;
+static constexpr u32 INSTALLER_BASE_ADDRESS = 0x80001800;
+static constexpr u32 INSTALLER_END_ADDRESS = 0x80003000;
+static constexpr u32 CODE_SIZE = 8;
+static constexpr u32 MAGIC_GAMEID = 0xD01F1BAD;
 
 // return true if a code exists
 bool GeckoCode::Exist(u32 address, u32 data) const
 {
-  for (const GeckoCode::Code& code : codes)
-  {
-    if (code.address == address && code.data == data)
-      return true;
-  }
-
-  return false;
+  return std::find_if(codes.begin(), codes.end(), [&](const Code& code) {
+           return code.address == address && code.data == data;
+         }) != codes.end();
 }
 
 // return true if the code is identical
 bool GeckoCode::Compare(const GeckoCode& compare) const
 {
-  if (codes.size() != compare.codes.size())
-    return false;
-
-  unsigned int exist = 0;
-
-  for (const GeckoCode::Code& code : codes)
-  {
-    if (compare.Exist(code.address, code.data))
-      exist++;
-  }
-
-  return exist == codes.size();
+  return codes.size() == compare.codes.size() &&
+         std::equal(codes.begin(), codes.end(), compare.codes.begin(),
+                    [](const Code& a, const Code& b) {
+                      return a.address == b.address && a.data == b.data;
+                    });
 }
 
-static bool code_handler_installed = false;
+static bool s_code_handler_installed = false;
 // the currently active codes
-static std::vector<GeckoCode> active_codes;
-static std::mutex active_codes_lock;
+static std::vector<GeckoCode> s_active_codes;
+static std::mutex s_active_codes_lock;
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
 {
-  std::lock_guard<std::mutex> lk(active_codes_lock);
+  std::lock_guard<std::mutex> lk(s_active_codes_lock);
 
-  active_codes.clear();
+  s_active_codes.clear();
+  s_active_codes.reserve(gcodes.size());
+  std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
+               [](const GeckoCode& code) { return code.enabled; });
+  s_active_codes.shrink_to_fit();
 
-  // add enabled codes
-  for (const GeckoCode& gecko_code : gcodes)
-  {
-    if (gecko_code.enabled)
-    {
-      // TODO: apply modifiers
-      // TODO: don't need description or creator string, just takin up memory
-      active_codes.push_back(gecko_code);
-    }
-  }
-
-  code_handler_installed = false;
+  s_code_handler_installed = false;
 }
 
-static bool InstallCodeHandler()
+// Requires s_active_codes_lock
+// NOTE: Refer to "codehandleronly.s" from Gecko OS.
+static bool InstallCodeHandlerLocked()
 {
   std::string data;
-  std::string _rCodeHandlerFilename = File::GetSysDirectory() + GECKO_CODE_HANDLER;
-  if (!File::ReadFileToString(_rCodeHandlerFilename, data))
+  if (!File::ReadFileToString(File::GetSysDirectory() + GECKO_CODE_HANDLER, data))
   {
-    WARN_LOG(ACTIONREPLAY, "Could not enable cheats because codehandler.bin was missing.");
+    ERROR_LOG(ACTIONREPLAY, "Could not enable cheats because " GECKO_CODE_HANDLER " was missing.");
     return false;
   }
 
-  u8 mmioAddr = 0xCC;
+  if (data.size() > INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS - CODE_SIZE)
+  {
+    ERROR_LOG(ACTIONREPLAY, GECKO_CODE_HANDLER " is too big. The file may be corrupt.");
+    return false;
+  }
 
+  u8 mmio_addr = 0xCC;
   if (SConfig::GetInstance().bWii)
   {
-    mmioAddr = 0xCD;
+    mmio_addr = 0xCD;
   }
 
   // Install code handler
-  for (size_t i = 0, e = data.length(); i < e; ++i)
-    PowerPC::HostWrite_U8(data[i], (u32)(INSTALLER_BASE_ADDRESS + i));
+  for (u32 i = 0; i < data.size(); ++i)
+    PowerPC::HostWrite_U8(data[i], INSTALLER_BASE_ADDRESS + i);
 
-  // Patch the code handler to the system starting up
+  // Patch the code handler to the current system type (Gamecube/Wii)
   for (unsigned int h = 0; h < data.length(); h += 4)
   {
     // Patch MMIO address
-    if (PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS + h) == (0x3f000000u | ((mmioAddr ^ 1) << 8)))
+    if (PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS + h) == (0x3f000000u | ((mmio_addr ^ 1) << 8)))
     {
       NOTICE_LOG(ACTIONREPLAY, "Patching MMIO access at %08x", INSTALLER_BASE_ADDRESS + h);
-      PowerPC::HostWrite_U32(0x3f000000u | mmioAddr << 8, INSTALLER_BASE_ADDRESS + h);
+      PowerPC::HostWrite_U32(0x3f000000u | mmio_addr << 8, INSTALLER_BASE_ADDRESS + h);
     }
   }
 
-  u32 codelist_base_address = INSTALLER_BASE_ADDRESS + (u32)data.length() - 8;
-  u32 codelist_end_address = INSTALLER_END_ADDRESS;
+  const u32 codelist_base_address =
+      INSTALLER_BASE_ADDRESS + static_cast<u32>(data.size()) - CODE_SIZE;
+  const u32 codelist_end_address = INSTALLER_END_ADDRESS;
 
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).
-  PowerPC::HostWrite_U32(0xd01f1bad, INSTALLER_BASE_ADDRESS);
+  PowerPC::HostWrite_U32(MAGIC_GAMEID, INSTALLER_BASE_ADDRESS);
 
   // Create GCT in memory
   PowerPC::HostWrite_U32(0x00d0c0de, codelist_base_address);
   PowerPC::HostWrite_U32(0x00d0c0de, codelist_base_address + 4);
 
-  std::lock_guard<std::mutex> lk(active_codes_lock);
-
   int i = 0;
 
-  for (const GeckoCode& active_code : active_codes)
+  for (const GeckoCode& active_code : s_active_codes)
   {
     if (active_code.enabled)
     {
       for (const GeckoCode::Code& code : active_code.codes)
       {
         // Make sure we have enough memory to hold the code list
-        if ((codelist_base_address + 24 + i) < codelist_end_address)
+        if ((codelist_base_address + CODE_SIZE * 3 + i) < codelist_end_address)
         {
-          PowerPC::HostWrite_U32(code.address, codelist_base_address + 8 + i);
-          PowerPC::HostWrite_U32(code.data, codelist_base_address + 12 + i);
-          i += 8;
+          PowerPC::HostWrite_U32(code.address, codelist_base_address + CODE_SIZE + i);
+          PowerPC::HostWrite_U32(code.data, codelist_base_address + CODE_SIZE + 4 + i);
+          i += CODE_SIZE;
         }
       }
     }
   }
 
-  PowerPC::HostWrite_U32(0xff000000, codelist_base_address + 8 + i);
-  PowerPC::HostWrite_U32(0x00000000, codelist_base_address + 12 + i);
+  // Stop code. Tells the handler that this is the end of the list.
+  PowerPC::HostWrite_U32(0xF0000000, codelist_base_address + CODE_SIZE + i);
+  PowerPC::HostWrite_U32(0x00000000, codelist_base_address + CODE_SIZE + 4 + i);
 
   // Turn on codes
   PowerPC::HostWrite_U8(1, INSTALLER_BASE_ADDRESS + 7);
@@ -147,24 +139,24 @@ static bool InstallCodeHandler()
   {
     PowerPC::ppcState.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
   }
-  for (unsigned int k = codelist_base_address; k < codelist_end_address; k += 32)
-  {
-    PowerPC::ppcState.iCache.Invalidate(k);
-  }
   return true;
 }
 
 void RunCodeHandler()
 {
-  if (!SConfig::GetInstance().bEnableCheats || active_codes.empty())
+  if (!SConfig::GetInstance().bEnableCheats)
     return;
 
-  if (!code_handler_installed || PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS) - 0xd01f1bad > 5)
+  std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+  if (s_active_codes.empty())
+    return;
+
+  if (!s_code_handler_installed || PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS) - MAGIC_GAMEID > 5)
   {
-    code_handler_installed = InstallCodeHandler();
+    s_code_handler_installed = InstallCodeHandlerLocked();
 
     // A warning was already issued for the install failing
-    if (!code_handler_installed)
+    if (!s_code_handler_installed)
       return;
   }
 
