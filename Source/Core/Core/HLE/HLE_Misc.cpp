@@ -7,6 +7,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
+#include "Core/GeckoCode.h"
 #include "Core/HLE/HLE_Misc.h"
 #include "Core/HW/CPU.h"
 #include "Core/Host.h"
@@ -47,17 +48,17 @@ void HLEGeckoCodehandler()
   // been read into memory, or such, so we do the first 5 frames.  More
   // robust alternative would be to actually detect memory writes, but that
   // would be even uglier.)
-  u32 magic = 0xd01f1bad;
-  u32 existing = PowerPC::HostRead_U32(0x80001800);
-  if (existing - magic == 5)
+  u32 gch_gameid = PowerPC::HostRead_U32(Gecko::INSTALLER_BASE_ADDRESS);
+  if (gch_gameid - Gecko::MAGIC_GAMEID == 5)
   {
     return;
   }
-  else if (existing - magic > 5)
+  else if (gch_gameid - Gecko::MAGIC_GAMEID > 5)
   {
-    existing = magic;
+    gch_gameid = Gecko::MAGIC_GAMEID;
   }
-  PowerPC::HostWrite_U32(existing + 1, 0x80001800);
+  PowerPC::HostWrite_U32(gch_gameid + 1, Gecko::INSTALLER_BASE_ADDRESS);
+
   PowerPC::ppcState.iCache.Reset();
 }
 }

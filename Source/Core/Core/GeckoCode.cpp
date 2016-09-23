@@ -18,10 +18,8 @@
 
 namespace Gecko
 {
-static constexpr u32 INSTALLER_BASE_ADDRESS = 0x80001800;
 static constexpr u32 INSTALLER_END_ADDRESS = 0x80003000;
 static constexpr u32 CODE_SIZE = 8;
-static constexpr u32 MAGIC_GAMEID = 0xD01F1BAD;
 
 // return true if a code exists
 bool GeckoCode::Exist(u32 address, u32 data) const
@@ -102,6 +100,7 @@ static bool InstallCodeHandlerLocked()
   const u32 codelist_end_address = INSTALLER_END_ADDRESS;
 
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).
+  // This value will be read back and modified over time by HLE_Misc::HLEGeckoCodehandler.
   PowerPC::HostWrite_U32(MAGIC_GAMEID, INSTALLER_BASE_ADDRESS);
 
   // Create GCT in memory
@@ -161,7 +160,7 @@ void RunCodeHandler()
   if (s_active_codes.empty())
     return;
 
-  if (!s_code_handler_installed || PowerPC::HostRead_U32(INSTALLER_BASE_ADDRESS) - MAGIC_GAMEID > 5)
+  if (!s_code_handler_installed)
   {
     s_code_handler_installed = InstallCodeHandlerLocked();
 
@@ -175,7 +174,7 @@ void RunCodeHandler()
   // the original return address (which will still be in the link register) at the end.
   if (PC == LR)
   {
-    PC = NPC = INSTALLER_BASE_ADDRESS + 0xA8;
+    PC = NPC = ENTRY_POINT;
   }
 }
 
