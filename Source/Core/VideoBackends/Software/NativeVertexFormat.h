@@ -44,7 +44,7 @@ struct OutputVertexData
   u8 color[2][4] = {};
   Vec3 texCoords[8] = {};
 
-  void Lerp(float t, OutputVertexData* a, OutputVertexData* b)
+  void Lerp(float t, const OutputVertexData* a, const OutputVertexData* b)
   {
 #define LINTERP(T, OUT, IN) (OUT) + ((IN - OUT) * T)
 
