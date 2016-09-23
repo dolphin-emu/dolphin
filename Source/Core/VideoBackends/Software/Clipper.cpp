@@ -72,7 +72,7 @@ enum
   CLIP_NEG_Z_BIT = 0x20
 };
 
-static inline int CalcClipMask(OutputVertexData* v)
+static inline int CalcClipMask(const OutputVertexData* v)
 {
   int cmask = 0;
   Vec4 pos = v->projectedPosition;
@@ -329,7 +329,7 @@ void ProcessTriangle(OutputVertexData* v0, OutputVertexData* v1, OutputVertexDat
   }
 }
 
-static void CopyVertex(OutputVertexData* dst, OutputVertexData* src, float dx, float dy,
+static void CopyVertex(OutputVertexData* dst, const OutputVertexData* src, float dx, float dy,
                        unsigned int sOffset)
 {
   dst->screenPosition.x = src->screenPosition.x + dx;
@@ -403,7 +403,8 @@ void ProcessLine(OutputVertexData* lineV0, OutputVertexData* lineV1)
   }
 }
 
-bool CullTest(OutputVertexData* v0, OutputVertexData* v1, OutputVertexData* v2, bool& backface)
+bool CullTest(const OutputVertexData* v0, const OutputVertexData* v1, const OutputVertexData* v2,
+              bool& backface)
 {
   int mask = CalcClipMask(v0);
   mask &= CalcClipMask(v1);

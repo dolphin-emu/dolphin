@@ -154,7 +154,8 @@ static void DumpEfb(const std::string& filename)
   delete[] data;
 }
 
-void DrawObjectBuffer(s16 x, s16 y, u8* color, int bufferBase, int subBuffer, const char* name)
+void DrawObjectBuffer(s16 x, s16 y, const u8* color, int bufferBase, int subBuffer,
+                      const char* name)
 {
   int buffer = bufferBase + subBuffer;
 
@@ -170,7 +171,7 @@ void DrawObjectBuffer(s16 x, s16 y, u8* color, int bufferBase, int subBuffer, co
   BufferBase[buffer] = bufferBase;
 }
 
-void DrawTempBuffer(u8* color, int buffer)
+void DrawTempBuffer(const u8* color, int buffer)
 {
   u8* dst = (u8*)&TempBuffer[buffer];
   *(dst++) = color[2];

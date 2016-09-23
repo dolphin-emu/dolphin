@@ -157,7 +157,7 @@ static inline void BoxfilterRGB_to_RGB8(const u8* src, u8* r, u8* g, u8* b)
   *b = b16 >> 2;
 }
 
-static inline void BoxfilterRGB_to_x8(u8* src, u8* x8, int comp)
+static inline void BoxfilterRGB_to_x8(const u8* src, u8* x8, int comp)
 {
   u16 x16 = 0;
 
@@ -260,7 +260,7 @@ static void SetSpans(int sBlkSize, int tBlkSize, s32* tSpan, s32* sBlkSpan, s32*
   dstBlockStart += writeStride;                                                                    \
   }
 
-static void EncodeRGBA6(u8* dst, u8* src, u32 format)
+static void EncodeRGBA6(u8* dst, const u8* src, u32 format)
 {
   u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
   s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -499,7 +499,7 @@ static void EncodeRGBA6(u8* dst, u8* src, u32 format)
   }
 }
 
-static void EncodeRGBA6halfscale(u8* dst, u8* src, u32 format)
+static void EncodeRGBA6halfscale(u8* dst, const u8* src, u32 format)
 {
   u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
   s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -734,7 +734,7 @@ static void EncodeRGBA6halfscale(u8* dst, u8* src, u32 format)
   }
 }
 
-static void EncodeRGB8(u8* dst, u8* src, u32 format)
+static void EncodeRGB8(u8* dst, const u8* src, u32 format)
 {
   u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
   s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -946,7 +946,7 @@ static void EncodeRGB8(u8* dst, u8* src, u32 format)
   }
 }
 
-static void EncodeRGB8halfscale(u8* dst, u8* src, u32 format)
+static void EncodeRGB8halfscale(u8* dst, const u8* src, u32 format)
 {
   u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
   s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -1174,7 +1174,7 @@ static void EncodeRGB8halfscale(u8* dst, u8* src, u32 format)
   }
 }
 
-static void EncodeZ24(u8* dst, u8* src, u32 format)
+static void EncodeZ24(u8* dst, const u8* src, u32 format)
 {
   u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
   s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -1278,7 +1278,7 @@ static void EncodeZ24(u8* dst, u8* src, u32 format)
   }
 }
 
-static void EncodeZ24halfscale(u8* dst, u8* src, u32 format)
+static void EncodeZ24halfscale(u8* dst, const u8* src, u32 format)
 {
   u16 sBlkCount, tBlkCount, sBlkSize, tBlkSize;
   s32 tSpan, sBlkSpan, tBlkSpan, writeStride;
@@ -1409,7 +1409,8 @@ void Encode(u8* dest_ptr)
   else if (copyfmt > GX_TF_RGBA8 || (copyfmt < GX_TF_RGB565 && !bIsIntensityFmt))
     format |= _GX_TF_CTF;
 
-  u8* src = EfbInterface::GetPixelPointer(bpmem.copyTexSrcXY.x, bpmem.copyTexSrcXY.y, bFromZBuffer);
+  const u8* src =
+      EfbInterface::GetPixelPointer(bpmem.copyTexSrcXY.x, bpmem.copyTexSrcXY.y, bFromZBuffer);
 
   if (bpmem.triggerEFBCopy.half_scale)
   {
