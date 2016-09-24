@@ -244,6 +244,8 @@ static CoreTiming::EventType* s_dtk;
 static u64 s_last_read_offset;
 static u64 s_last_read_time;
 
+static std::string s_disc_path_to_insert;
+
 static CoreTiming::EventType* s_eject_disc;
 static CoreTiming::EventType* s_insert_disc;
 
@@ -288,6 +290,8 @@ void DoState(PointerWrap& p)
 
   p.Do(s_last_read_offset);
   p.Do(s_last_read_time);
+
+  p.Do(s_disc_path_to_insert);
 
   p.Do(s_stop_at_track_end);
 
@@ -389,6 +393,8 @@ void Init()
   s_last_read_offset = 0;
   s_last_read_time = 0;
 
+  s_disc_path_to_insert.clear();
+
   s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
   s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
 
@@ -458,16 +464,16 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 {
   const std::string& old_path = SConfig::GetInstance().m_strFilename;
-  std::string* new_path = reinterpret_cast<std::string*>(userdata);
 
-  if (!SetVolumeName(*new_path))
+  if (!SetVolumeName(s_disc_path_to_insert))
   {
     // Put back the old one
     SetVolumeName(old_path);
-    PanicAlertT("Invalid file");
+    PanicAlertT("The disc that was about to be inserted couldn't be found.");
   }
   SetDiscInside(VolumeIsValid());
-  delete new_path;
+
+  s_disc_path_to_insert.clear();
 }
 
 // Can only be called by the host thread
@@ -484,11 +490,15 @@ void ChangeDiscAsHost(const std::string& new_path)
 // Can only be called by the CPU thread
 void ChangeDiscAsCPU(const std::string& new_path)
 {
-  // TODO: This is bad. Pointers in CoreTiming userdata require
-  // manual memory management and aren't savestate-safe.
-  u64 new_path_pointer = reinterpret_cast<u64>(new std::string(new_path));
+  if (!s_disc_path_to_insert.empty())
+  {
+    PanicAlertT("A disc is already about to be inserted.");
+    return;
+  }
+
+  s_disc_path_to_insert = new_path;
   CoreTiming::ScheduleEvent(0, s_eject_disc);
-  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc, new_path_pointer);
+  CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond(), s_insert_disc);
 
   Movie::SignalDiscChange(new_path);
 }
