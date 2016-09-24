@@ -97,8 +97,8 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, const char* caller, bool isRW)
     return ret;
   }
 
-  INFO_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d", caller, errorCode,
-           DecodeError(errorCode), ret);
+  ERROR_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d", caller, errorCode,
+            DecodeError(errorCode), ret);
 
   s32 ReturnValue = TranslateErrorCode(errorCode, isRW);
   WiiSockMan::GetInstance().SetLastNetError(ReturnValue);
@@ -449,13 +449,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
                            has_destaddr ? sizeof(sockaddr) : 0);
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
 
-          INFO_LOG(WII_IPC_NET,
-                   "%s = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
-                   has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ", ReturnValue, fd,
-                   BufferIn, BufferInSize, BufferIn2, BufferInSize2,
-                   local_name.sin_addr.s_addr & 0xFF, (local_name.sin_addr.s_addr >> 8) & 0xFF,
-                   (local_name.sin_addr.s_addr >> 16) & 0xFF,
-                   (local_name.sin_addr.s_addr >> 24) & 0xFF);
+          DEBUG_LOG(
+              WII_IPC_NET,
+              "%s = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
+              has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ", ReturnValue, fd, BufferIn,
+              BufferInSize, BufferIn2, BufferInSize2, local_name.sin_addr.s_addr & 0xFF,
+              (local_name.sin_addr.s_addr >> 8) & 0xFF, (local_name.sin_addr.s_addr >> 16) & 0xFF,
+              (local_name.sin_addr.s_addr >> 24) & 0xFF);
           break;
         }
         case IOCTLV_SO_RECVFROM:

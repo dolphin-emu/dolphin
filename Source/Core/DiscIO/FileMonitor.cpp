@@ -83,7 +83,7 @@ void ReadFileSystem(const std::string& filename)
 void CheckFile(const std::string& file, u64 size)
 {
   // Don't do anything if the log is unselected
-  if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
+  if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LNOTICE))
     return;
   // Do nothing if we found the same file again
   if (CurrentFile == file)
@@ -99,7 +99,7 @@ void CheckFile(const std::string& file, u64 size)
   }
   else
   {
-    WARN_LOG(FILEMON, "%s", str.c_str());
+    NOTICE_LOG(FILEMON, "%s", str.c_str());
   }
 
   // Update the current file
@@ -114,7 +114,7 @@ void FindFilename(u64 offset)
     return;
 
   // Or if the log is unselected
-  if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
+  if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LNOTICE))
     return;
 
   // Or if we don't have file access

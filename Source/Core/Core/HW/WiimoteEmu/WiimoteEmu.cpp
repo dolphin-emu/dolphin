@@ -808,8 +808,8 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 
   const hid_packet* const hidp = (hid_packet*)_pData;
 
-  INFO_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index,
-           hidp->type, hidp->param);
+  DEBUG_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index,
+            hidp->type, hidp->param);
 
   switch (hidp->type)
   {
