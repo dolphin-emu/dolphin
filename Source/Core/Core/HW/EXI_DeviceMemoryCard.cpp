@@ -385,8 +385,8 @@ void CEXIMemoryCard::TransferByte(u8& byte)
     case cmdPageProgram:
     case cmdExtraByteProgram:
     case cmdChipErase:
-      INFO_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.",
-               command);
+      DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.",
+                command);
       break;
     default:
       WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0", command);
@@ -558,7 +558,7 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 
   if ((address + _uSize) % BLOCK_SIZE == 0)
   {
-    DEBUG_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on read speed
@@ -574,7 +574,7 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 
   if (((address + _uSize) % BLOCK_SIZE) == 0)
   {
-    DEBUG_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on write speed

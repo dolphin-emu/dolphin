@@ -842,14 +842,14 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
     {
       if (fst[index].m_FullPath == _rFullPath)
       {
-        DEBUG_LOG(DISCIO, "Found the directory at %u", index);
+        INFO_LOG(DISCIO, "Found the directory at %u", index);
         size = (u32)fst[index].m_FileSize;
         break;
       }
     }
 
-    DEBUG_LOG(DISCIO, "Directory found from %u to %u\nextracting to:\n%s", index, size,
-              _rExportFolder.c_str());
+    INFO_LOG(DISCIO, "Directory found from %u to %u\nextracting to:\n%s", index, size,
+             _rExportFolder.c_str());
   }
 
   wxString dialogTitle = (index != 0) ? _("Extracting Directory") : _("Extracting All Files");
@@ -872,7 +872,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
     {
       const std::string exportName =
           StringFromFormat("%s/%s/", _rExportFolder.c_str(), fst[i].m_FullPath.c_str());
-      DEBUG_LOG(DISCIO, "%s", exportName.c_str());
+      INFO_LOG(DISCIO, "%s", exportName.c_str());
 
       if (!File::Exists(exportName) && !File::CreateFullPath(exportName))
       {
@@ -883,14 +883,14 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
         if (!File::IsDirectory(exportName))
           ERROR_LOG(DISCIO, "%s already exists and is not a directory", exportName.c_str());
 
-        DEBUG_LOG(DISCIO, "Folder %s already exists", exportName.c_str());
+        ERROR_LOG(DISCIO, "Folder %s already exists", exportName.c_str());
       }
     }
     else
     {
       const std::string exportName =
           StringFromFormat("%s/%s", _rExportFolder.c_str(), fst[i].m_FullPath.c_str());
-      DEBUG_LOG(DISCIO, "%s", exportName.c_str());
+      INFO_LOG(DISCIO, "%s", exportName.c_str());
 
       if (!File::Exists(exportName) && !fs->ExportFile(fst[i].m_FullPath, exportName))
       {
@@ -898,7 +898,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
       }
       else
       {
-        DEBUG_LOG(DISCIO, "%s already exists", exportName.c_str());
+        ERROR_LOG(DISCIO, "%s already exists", exportName.c_str());
       }
     }
   }

@@ -21,7 +21,7 @@
 
 void CEXIMic::StreamLog(const char* msg)
 {
-  DEBUG_LOG(EXPANSIONINTERFACE, "%s: %s", msg, Pa_GetErrorText(pa_error));
+  INFO_LOG(EXPANSIONINTERFACE, "%s: %s", msg, Pa_GetErrorText(pa_error));
 }
 
 void CEXIMic::StreamInit()

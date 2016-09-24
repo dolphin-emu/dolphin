@@ -234,7 +234,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 {
   SIOCtlVBuffer Buffer(_CommandAddress);
 
-  DEBUG_LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), Buffer.Parameter);
+  INFO_LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), Buffer.Parameter);
 
   // Prepare the out buffer(s) with zeroes as a safety precaution
   // to avoid returning bad values
@@ -326,8 +326,8 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     else
     {
       Memory::Write_U32((u32)rNANDContent.GetContentSize(), _CommandAddress + 0x4);
-      INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
-               rNANDContent.GetContentSize());
+      ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
+                rNANDContent.GetContentSize());
     }
 
     return GetDefaultReply();
@@ -779,7 +779,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
   case IOCTL_ES_GETCONSUMPTION:  // This is at least what crediar's ES module does
     Memory::Write_U32(0, Buffer.PayloadBuffer[1].m_Address);
     Memory::Write_U32(0, _CommandAddress + 0x4);
-    WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETCONSUMPTION:%d", Memory::Read_U32(_CommandAddress + 4));
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETCONSUMPTION:%d", Memory::Read_U32(_CommandAddress + 4));
     return GetDefaultReply();
 
   case IOCTL_ES_DELETETICKET:
@@ -1061,13 +1061,13 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     // IOS70 has this to let system menu 4.2 check if the console is region changed. it returns
     // -1017
     // if the IOS didn't find the Korean keys and 0 if it does. 0 leads to a error 003
-    WARN_LOG(WII_IPC_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
     Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT, _CommandAddress + 0x4);
     return GetDefaultReply();
 
   case IOCTL_ES_GETDEVICECERT:  // (Input: none, Output: 384 bytes)
   {
-    WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
     _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
     u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
 
@@ -1078,7 +1078,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_SIGN:
   {
-    WARN_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
     u8* ap_cert_out = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
     u8* data = Memory::GetPointer(Buffer.InBuffer[0].m_Address);
     u32 data_size = Buffer.InBuffer[0].m_Size;
@@ -1092,7 +1092,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_GETBOOT2VERSION:
   {
-    WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETBOOT2VERSION");
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETBOOT2VERSION");
 
     Memory::Write_U32(
         4, Buffer.PayloadBuffer[0].m_Address);  // as of 26/02/2012, this was latest bootmii version
@@ -1107,12 +1107,12 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     break;
 
   case IOCTL_ES_GETOWNEDTITLECNT:
-    WARN_LOG(WII_IPC_ES, "IOCTL_ES_GETOWNEDTITLECNT");
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETOWNEDTITLECNT");
     Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
     break;
 
   default:
-    WARN_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
+    INFO_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
     DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_ES);
     INFO_LOG(WII_IPC_ES, "command.Parameter: 0x%08x", Buffer.Parameter);
     break;

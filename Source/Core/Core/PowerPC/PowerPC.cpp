@@ -363,7 +363,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000400;
 
-    INFO_LOG(POWERPC, "EXCEPTION_ISI");
+    DEBUG_LOG(POWERPC, "EXCEPTION_ISI");
     ppcState.Exceptions &= ~EXCEPTION_ISI;
   }
   else if (exceptions & EXCEPTION_PROGRAM)
@@ -375,7 +375,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000700;
 
-    INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
+    DEBUG_LOG(POWERPC, "EXCEPTION_PROGRAM");
     ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
   }
   else if (exceptions & EXCEPTION_SYSCALL)
@@ -386,7 +386,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000C00;
 
-    INFO_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
+    DEBUG_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
     ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
   }
   else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
@@ -398,7 +398,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000800;
 
-    INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
+    DEBUG_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
     ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
   }
   else if (exceptions & EXCEPTION_FAKE_MEMCHECK_HIT)
@@ -414,7 +414,7 @@ void CheckExceptions()
     PC = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
 
-    INFO_LOG(POWERPC, "EXCEPTION_DSI");
+    DEBUG_LOG(POWERPC, "EXCEPTION_DSI");
     ppcState.Exceptions &= ~EXCEPTION_DSI;
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
@@ -429,7 +429,7 @@ void CheckExceptions()
 
     // TODO crazy amount of DSISR options to check out
 
-    INFO_LOG(POWERPC, "EXCEPTION_ALIGNMENT");
+    DEBUG_LOG(POWERPC, "EXCEPTION_ALIGNMENT");
     ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;
   }
 
@@ -456,7 +456,7 @@ void CheckExternalExceptions()
       MSR &= ~0x04EF36;
       PC = NPC = 0x00000500;
 
-      INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
+      DEBUG_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
       ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 
       _dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
@@ -469,7 +469,7 @@ void CheckExternalExceptions()
       MSR &= ~0x04EF36;
       PC = NPC = 0x00000F00;
 
-      INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
+      DEBUG_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
       ppcState.Exceptions &= ~EXCEPTION_PERFORMANCE_MONITOR;
     }
     else if (exceptions & EXCEPTION_DECREMENTER)
@@ -480,7 +480,7 @@ void CheckExternalExceptions()
       MSR &= ~0x04EF36;
       PC = NPC = 0x00000900;
 
-      INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
+      DEBUG_LOG(POWERPC, "EXCEPTION_DECREMENTER");
       ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
     }
     else
