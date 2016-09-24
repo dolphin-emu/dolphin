@@ -21,7 +21,6 @@
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/DVD/DVDMath.h"
 #include "Core/HW/DVD/DVDThread.h"
-#include "Core/HW/DVD/FileMonitor.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
@@ -195,8 +194,6 @@ union UDICFG
   UDICFG(u32 _hex) { Hex = _hex; }
 };
 
-static std::unique_ptr<DiscIO::IVolume> s_inserted_volume;
-
 // STATE_TO_SAVE
 
 // Hardware registers
@@ -255,8 +252,6 @@ void ScheduleReads(u64 offset, u32 length, bool decrypt, u32 output_address, Rep
 
 void DoState(PointerWrap& p)
 {
-  bool disc_inside = IsDiscInside();
-
   p.DoPOD(s_DISR);
   p.DoPOD(s_DICVR);
   p.DoArray(s_DICMDBUF);
@@ -276,7 +271,6 @@ void DoState(PointerWrap& p)
   p.Do(s_pending_samples);
 
   p.Do(s_error_code);
-  p.Do(disc_inside);
 
   p.Do(s_read_buffer_start_time);
   p.Do(s_read_buffer_end_time);
@@ -286,24 +280,6 @@ void DoState(PointerWrap& p)
   p.Do(s_disc_path_to_insert);
 
   DVDThread::DoState(p);
-
-  // s_inserted_volume isn't savestated (because it points to
-  // files on the local system). Instead, we check that the
-  // savestated disc_inside matches our IsDiscInside(). This
-  // won't catch cases of having the wrong disc inserted, though.
-  // TODO: Check the game ID, disc number, revision?
-  if (disc_inside != IsDiscInside())
-  {
-    if (disc_inside)
-    {
-      PanicAlertT("An inserted disc was expected but not found.");
-    }
-    else
-    {
-      s_inserted_volume.reset();
-      FileMonitor::SetFileSystem(nullptr);
-    }
-  }
 }
 
 static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8>& audio_data)
@@ -452,27 +428,17 @@ void Reset()
 void Shutdown()
 {
   DVDThread::Stop();
-  s_inserted_volume.reset();
-  FileMonitor::SetFileSystem(nullptr);
 }
 
 void SetDisc(std::unique_ptr<DiscIO::IVolume> disc)
 {
-  DVDThread::WaitUntilIdle();
-  s_inserted_volume = std::move(disc);
-  FileMonitor::SetFileSystem(s_inserted_volume.get());
+  DVDThread::SetDisc(std::move(disc));
   SetLidOpen();
-}
-
-const DiscIO::IVolume& GetVolume()
-{
-  _assert_(IsDiscInside());
-  return *s_inserted_volume;
 }
 
 bool IsDiscInside()
 {
-  return s_inserted_volume != nullptr;
+  return DVDThread::HasDisc();
 }
 
 // Take care of all logic of "swapping discs"
@@ -481,10 +447,7 @@ bool IsDiscInside()
 // that the userdata string exists when called
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  DVDThread::WaitUntilIdle();
-  s_inserted_volume.reset();
-  FileMonitor::SetFileSystem(s_inserted_volume.get());
-  SetLidOpen();
+  SetDisc(nullptr);
 }
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
@@ -535,10 +498,7 @@ void SetLidOpen()
 
 bool ChangePartition(u64 offset)
 {
-  DVDThread::WaitUntilIdle();
-  const bool success = s_inserted_volume->ChangePartition(offset);
-  FileMonitor::SetFileSystem(s_inserted_volume.get());
-  return success;
+  return DVDThread::ChangePartition(offset);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -1150,7 +1110,7 @@ void ScheduleReads(u64 offset, u32 length, bool decrypt, u32 output_address, Rep
 
   const u64 current_time = CoreTiming::GetTicks();
   const u32 ticks_per_second = SystemTimers::GetTicksPerSecond();
-  const bool wii_disc = s_inserted_volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
+  const bool wii_disc = DVDThread::GetDiscType() == DiscIO::Platform::WII_DISC;
 
   // Where the DVD read head is (usually parked at the end of the buffer,
   // unless we've interrupted it mid-buffer-read).
@@ -1166,7 +1126,7 @@ void ScheduleReads(u64 offset, u32 length, bool decrypt, u32 output_address, Rep
   // It's rounded to a whole ECC block and never uses Wii partition addressing.
   u64 dvd_offset = offset;
   if (decrypt)
-    dvd_offset = s_inserted_volume->PartitionOffsetToRawOffset(offset);
+    dvd_offset = DVDThread::PartitionOffsetToRawOffset(offset);
   dvd_offset = Common::AlignDown(dvd_offset, DVD_ECC_BLOCK_SIZE);
 
   if (SConfig::GetInstance().bFastDiscSpeed)

@@ -761,20 +761,11 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
   // the disc header instead of the TMD. They can differ.
   // (IOS HLE ES calls us with a TMDReader rather than a volume when launching
   // a disc game, because ES has no reason to be accessing the disc directly.)
-  if (DVDInterface::IsDiscInside())
+  if (!DVDThread::UpdateRunningGameMetadata(tmd_title_id))
   {
-    DVDThread::WaitUntilIdle();
-    const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-    u64 volume_title_id;
-    if (volume.GetTitleID(&volume_title_id) && volume_title_id == tmd_title_id)
-    {
-      SetRunningGameMetadata(volume.GetGameID(), volume_title_id, volume.GetRevision());
-      return;
-    }
+    // If not launching a disc game, just read everything from the TMD.
+    SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion());
   }
-
-  // If not launching a disc game, just read everything from the TMD.
-  SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion());
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision)
