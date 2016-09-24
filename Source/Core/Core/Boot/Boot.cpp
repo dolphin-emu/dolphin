@@ -37,6 +37,7 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
+#include "DiscIO/VolumeCreator.h"
 
 bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt)
 {
@@ -277,7 +278,7 @@ bool CBoot::BootUp()
   {
   case SConfig::BOOT_ISO:
   {
-    DVDInterface::SetVolumeName(_StartupPara.m_strFilename);
+    DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename));
     if (!DVDInterface::IsDiscInside())
       return false;
 
@@ -333,13 +334,14 @@ bool CBoot::BootUp()
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii,
-                                       _StartupPara.m_strApploader, _StartupPara.m_strFilename);
+      DVDInterface::SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, dolWii,
+                                                              _StartupPara.m_strApploader,
+                                                              _StartupPara.m_strFilename));
     }
     else if (!_StartupPara.m_strDefaultISO.empty())
     {
       NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
-      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
+      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
     }
 
     if (!EmulatedBS2(dolWii))
@@ -369,12 +371,13 @@ bool CBoot::BootUp()
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, _StartupPara.bWii);
+      DVDInterface::SetDisc(
+          DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, _StartupPara.bWii));
     }
     else if (!_StartupPara.m_strDefaultISO.empty())
     {
       NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
-      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
+      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
     }
 
     // Poor man's bootup
@@ -409,9 +412,9 @@ bool CBoot::BootUp()
 
     // load default image or create virtual drive from directory
     if (!_StartupPara.m_strDVDRoot.empty())
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, true);
+      DVDInterface::SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, true));
     else if (!_StartupPara.m_strDefaultISO.empty())
-      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
+      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
 
     break;
 

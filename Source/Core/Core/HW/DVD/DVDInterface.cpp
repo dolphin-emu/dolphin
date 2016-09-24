@@ -456,30 +456,18 @@ void Shutdown()
   FileMonitor::SetFileSystem(nullptr);
 }
 
+void SetDisc(std::unique_ptr<DiscIO::IVolume> disc)
+{
+  DVDThread::WaitUntilIdle();
+  s_inserted_volume = std::move(disc);
+  FileMonitor::SetFileSystem(s_inserted_volume.get());
+  SetLidOpen();
+}
+
 const DiscIO::IVolume& GetVolume()
 {
   _assert_(IsDiscInside());
   return *s_inserted_volume;
-}
-
-bool SetVolumeName(const std::string& disc_path)
-{
-  DVDThread::WaitUntilIdle();
-  s_inserted_volume = DiscIO::CreateVolumeFromFilename(disc_path);
-  FileMonitor::SetFileSystem(s_inserted_volume.get());
-  SetLidOpen();
-  return IsDiscInside();
-}
-
-bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
-                        const std::string& apploader_path, const std::string& DOL_path)
-{
-  DVDThread::WaitUntilIdle();
-  s_inserted_volume =
-      DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path);
-  FileMonitor::SetFileSystem(s_inserted_volume.get());
-  SetLidOpen();
-  return IsDiscInside();
 }
 
 bool IsDiscInside()
@@ -501,16 +489,13 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  const std::string& old_path = SConfig::GetInstance().m_strFilename;
+  std::unique_ptr<DiscIO::IVolume> new_volume =
+      DiscIO::CreateVolumeFromFilename(s_disc_path_to_insert);
 
-  if (!SetVolumeName(s_disc_path_to_insert))
-  {
-    // Put back the old one
-    SetVolumeName(old_path);
+  if (new_volume)
+    SetDisc(std::move(new_volume));
+  else
     PanicAlertT("The disc that was about to be inserted couldn't be found.");
-  }
-
-  s_disc_path_to_insert.clear();
 }
 
 // Can only be called by the host thread
