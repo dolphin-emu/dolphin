@@ -9,7 +9,7 @@
 
 INITUCode::INITUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
-  DEBUG_LOG(DSPHLE, "INITUCode - initialized");
+  INFO_LOG(DSPHLE, "INITUCode - initialized");
   m_mail_handler.PushMail(0x80544348);
 }
 

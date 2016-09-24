@@ -976,7 +976,7 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
       WriteImmediate(s_current_length >> 2, output_address, reply_to_ios);
       break;
     default:
-      WARN_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s",
+      INFO_LOG(DVDINTERFACE, "(Audio): Subcommand: %02x  Request Audio status %s",
                command_0 >> 16 & 0xFF, s_stream ? "on" : "off");
       break;
     }
@@ -1006,13 +1006,13 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     {
       // TODO: What is this actually supposed to do?
       s_stream = true;
-      WARN_LOG(DVDINTERFACE, "(Audio): Audio enabled");
+      INFO_LOG(DVDINTERFACE, "(Audio): Audio enabled");
     }
     else
     {
       // TODO: What is this actually supposed to do?
       s_stream = false;
-      WARN_LOG(DVDINTERFACE, "(Audio): Audio disabled");
+      INFO_LOG(DVDINTERFACE, "(Audio): Audio disabled");
     }
     break;
 

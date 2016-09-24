@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
@@ -279,8 +280,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
     bool success = s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::seconds(10),
                                                   [] { return !s_state_cpu_thread_active; });
     if (!success)
-      NOTICE_LOG(
-          POWERPC,
+      PanicAlert(
           "Abandoned CPU Thread synchronization in CPU::PauseAndLock! We'll probably crash now.");
 
     if (control_adjacent)

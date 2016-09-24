@@ -79,7 +79,7 @@ static bool InstallCodeHandler()
   std::string _rCodeHandlerFilename = File::GetSysDirectory() + GECKO_CODE_HANDLER;
   if (!File::ReadFileToString(_rCodeHandlerFilename, data))
   {
-    NOTICE_LOG(ACTIONREPLAY, "Could not enable cheats because codehandler.bin was missing.");
+    WARN_LOG(ACTIONREPLAY, "Could not enable cheats because codehandler.bin was missing.");
     return false;
   }
 

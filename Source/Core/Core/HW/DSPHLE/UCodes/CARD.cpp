@@ -11,7 +11,7 @@
 
 CARDUCode::CARDUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
-  DEBUG_LOG(DSPHLE, "CARDUCode - initialized");
+  INFO_LOG(DSPHLE, "CARDUCode - initialized");
   m_mail_handler.PushMail(DSP_INIT);
 }
 
@@ -37,7 +37,7 @@ void CARDUCode::HandleMail(u32 mail)
   }
   else
   {
-    DEBUG_LOG(DSPHLE, "CARDUCode - unknown command: %x", mail);
+    WARN_LOG(DSPHLE, "CARDUCode - unknown command: %x", mail);
   }
 
   m_mail_handler.PushMail(DSP_DONE);

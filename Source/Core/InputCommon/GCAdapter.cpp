@@ -393,8 +393,8 @@ GCPadStatus Input(int chan)
   if (payload_size != sizeof(controller_payload_copy) ||
       controller_payload_copy[0] != LIBUSB_DT_HID)
   {
-    INFO_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
-             controller_payload_copy[0]);
+    ERROR_LOG(SERIALINTERFACE, "error reading payload (size: %d, type: %02x)", payload_size,
+              controller_payload_copy[0]);
     Reset();
   }
   else
@@ -503,7 +503,7 @@ static void ResetRumbleLockNeeded()
   int size = 0;
   libusb_interrupt_transfer(s_handle, s_endpoint_out, rumble, sizeof(rumble), &size, 16);
 
-  DEBUG_LOG(SERIALINTERFACE, "Rumble state reset");
+  INFO_LOG(SERIALINTERFACE, "Rumble state reset");
 }
 
 void Output(int chan, u8 rumble_command)
@@ -525,7 +525,7 @@ void Output(int chan, u8 rumble_command)
     // Netplay sends invalid data which results in size = 0x00.  Ignore it.
     if (size != 0x05 && size != 0x00)
     {
-      INFO_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
+      ERROR_LOG(SERIALINTERFACE, "error writing rumble (size: %d)", size);
       Reset();
     }
   }

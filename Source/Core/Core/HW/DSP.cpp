@@ -498,8 +498,8 @@ static void Do_ARAM_DMA()
   if (g_arDMA.Cnt.dir)
   {
     // ARAM -> MRAM
-    INFO_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x", g_arDMA.Cnt.count,
-             g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
+    DEBUG_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x",
+              g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
 
     // Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
     g_arDMA.ARAddr &= 0x3ffffff;
@@ -545,8 +545,8 @@ static void Do_ARAM_DMA()
   else
   {
     // MRAM -> ARAM
-    INFO_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x", g_arDMA.Cnt.count,
-             g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
+    DEBUG_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x",
+              g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
 
     // Incoming data into ARAM is mirrored every 64MB (verified on real HW)
     g_arDMA.ARAddr &= 0x3ffffff;

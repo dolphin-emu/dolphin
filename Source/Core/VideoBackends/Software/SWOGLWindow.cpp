@@ -18,7 +18,7 @@ void SWOGLWindow::Init(void* window_handle)
   GLInterface->SetMode(GLInterfaceMode::MODE_DETECT);
   if (!GLInterface->Create(window_handle))
   {
-    INFO_LOG(VIDEO, "GLInterface::Create failed.");
+    ERROR_LOG(VIDEO, "GLInterface::Create failed.");
   }
 
   s_instance.reset(new SWOGLWindow());
