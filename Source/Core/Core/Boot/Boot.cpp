@@ -262,7 +262,7 @@ bool CBoot::BootUp()
   // GCM and Wii
   case SConfig::BOOT_ISO:
   {
-    DVDInterface::SetVolumeName(_StartupPara.m_strFilename);
+    DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename));
     if (!DVDInterface::VolumeIsValid())
       return false;
 
@@ -346,15 +346,16 @@ bool CBoot::BootUp()
               DVDInterface::GetVolume().GetVolumeType() != DiscIO::Platform::WII_DISC) &&
              !_StartupPara.m_strDefaultISO.empty())
     {
-      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
+      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
       BS2Success = EmulatedBS2(dolWii);
     }
 
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii,
-                                       _StartupPara.m_strApploader, _StartupPara.m_strFilename);
+      DVDInterface::SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, dolWii,
+                                                              _StartupPara.m_strApploader,
+                                                              _StartupPara.m_strFilename));
       BS2Success = EmulatedBS2(dolWii);
     }
 
@@ -395,20 +396,22 @@ bool CBoot::BootUp()
   case SConfig::BOOT_ELF:
   {
     // load image or create virtual drive from directory
+    std::unique_ptr<DiscIO::IVolume> volume;
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, _StartupPara.bWii);
+      volume = DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, _StartupPara.bWii);
     }
     else if (!_StartupPara.m_strDefaultISO.empty())
     {
       NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
-      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
+      volume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO);
     }
     else
     {
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strFilename, _StartupPara.bWii);
+      volume = DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strFilename, _StartupPara.bWii);
     }
+    DVDInterface::SetDisc(std::move(volume));
 
     // Poor man's bootup
     if (_StartupPara.bWii)
@@ -434,9 +437,9 @@ bool CBoot::BootUp()
 
     // load default image or create virtual drive from directory
     if (!_StartupPara.m_strDVDRoot.empty())
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, true);
+      DVDInterface::SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, true));
     else if (!_StartupPara.m_strDefaultISO.empty())
-      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
+      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
 
     break;
 
