@@ -343,8 +343,7 @@ bool CBoot::BootUp()
     {
       BS2Success = EmulatedBS2(dolWii, volume.get());
     }
-    else if ((!volume || volume->GetVolumeType() != DiscIO::Platform::WII_DISC) &&
-             !_StartupPara.m_strDefaultISO.empty())
+    else if (!_StartupPara.m_strDefaultISO.empty())
     {
       volume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO);
       BS2Success = EmulatedBS2(dolWii, volume.get());
