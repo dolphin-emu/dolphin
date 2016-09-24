@@ -215,8 +215,6 @@ union UDICFG {
   UDICFG(u32 _hex) { Hex = _hex; }
 };
 
-static std::unique_ptr<DiscIO::IVolume> s_inserted_volume;
-
 // STATE_TO_SAVE
 
 // Hardware registers
@@ -295,7 +293,6 @@ void DoState(PointerWrap& p)
   p.Do(s_pending_samples);
 
   p.Do(s_error_code);
-  p.Do(s_disc_inside);
 
   p.Do(s_last_read_offset);
   p.Do(s_last_read_time);
@@ -303,19 +300,6 @@ void DoState(PointerWrap& p)
   p.Do(s_disc_path_to_insert);
 
   DVDThread::DoState(p);
-
-  // s_inserted_volume isn't savestated (because it points to
-  // files on the local system). Instead, we check that
-  // s_disc_inside matches the status of s_inserted_volume.
-  // This won't catch cases of having the wrong disc inserted, though.
-  // TODO: Check the game ID, disc number, revision?
-  if (s_disc_inside != (s_inserted_volume != nullptr))
-  {
-    if (s_disc_inside)
-      PanicAlertT("An inserted disc was expected but not found.");
-    else
-      s_inserted_volume.reset();
-  }
 }
 
 static size_t ProcessDTKSamples(std::vector<s16>* temp_pcm, const std::vector<u8>& audio_data)
@@ -456,24 +440,17 @@ void Init()
 void Shutdown()
 {
   DVDThread::Stop();
-  s_inserted_volume.reset();
 }
 
 void SetDisc(std::unique_ptr<DiscIO::IVolume> disc)
 {
-  DVDThread::WaitUntilIdle();
-  s_inserted_volume = std::move(disc);
+  DVDThread::SetDisc(std::move(disc));
   SetDiscInside(VolumeIsValid());
-}
-
-const DiscIO::IVolume& GetVolume()
-{
-  return *s_inserted_volume;
 }
 
 bool VolumeIsValid()
 {
-  return s_inserted_volume != nullptr;
+  return DVDThread::HasDisc();
 }
 
 void SetDiscInside(bool disc_inside)
@@ -495,9 +472,7 @@ bool IsDiscInside()
 // that the userdata string exists when called
 static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
-  DVDThread::WaitUntilIdle();
-  s_inserted_volume.reset();
-  SetDiscInside(false);
+  SetDisc(nullptr);
 }
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
@@ -547,8 +522,7 @@ void SetLidOpen(bool open)
 
 bool ChangePartition(u64 offset)
 {
-  DVDThread::WaitUntilIdle();
-  return s_inserted_volume->ChangePartition(offset);
+  return DVDThread::ChangePartition(offset);
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
@@ -1267,7 +1241,7 @@ s64 CalculateRawDiscReadTime(u64 offset, s64 length)
   // Note that the speed at a track (in bytes per second) is the same as
   // the radius of that track because of the length unit used.
   double speed;
-  if (s_inserted_volume->GetVolumeType() == DiscIO::Platform::WII_DISC)
+  if (DVDThread::GetDiscType() == DiscIO::Platform::WII_DISC)
   {
     speed = std::sqrt(((average_offset - WII_DISC_LOCATION_1_OFFSET) / WII_BYTES_PER_AREA_UNIT +
                        WII_DISC_AREA_UP_TO_LOCATION_1) /

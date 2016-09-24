@@ -108,7 +108,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // Disc access
 void SetDisc(std::unique_ptr<DiscIO::IVolume> disc);
-const DiscIO::IVolume& GetVolume();
 bool VolumeIsValid();
 bool IsDiscInside();
 void ChangeDiscAsHost(const std::string& new_path);  // Can only be called by the host thread

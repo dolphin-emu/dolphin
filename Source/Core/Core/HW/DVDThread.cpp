@@ -4,6 +4,7 @@
 
 #include <cinttypes>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <thread>
 #include <utility>
@@ -26,6 +27,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 
+#include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
 namespace DVDThread
@@ -60,6 +62,7 @@ static void StartDVDThread();
 static void StopDVDThread();
 
 static void DVDThread();
+static void WaitUntilIdle();
 
 static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
                               bool decrypt, DVDInterface::ReplyType reply_type,
@@ -78,6 +81,8 @@ static Common::Flag s_dvd_thread_exiting(false);  // Is set by CPU thread
 static Common::FifoQueue<ReadRequest, false> s_request_queue;
 static Common::FifoQueue<ReadResult, false> s_result_queue;
 static std::map<u64, ReadResult> s_result_map;
+
+static std::unique_ptr<DiscIO::IVolume> s_disc;
 
 void Start()
 {
@@ -105,6 +110,7 @@ static void StartDVDThread()
 void Stop()
 {
   StopDVDThread();
+  s_disc.reset();
 }
 
 static void StopDVDThread()
@@ -122,23 +128,36 @@ static void StopDVDThread()
 
 void DoState(PointerWrap& p)
 {
-  // By waiting for the DVD thread to be done working, we ensure that
-  // there are no pending requests. The DVD thread won't be touching
-  // s_result_queue, and everything we need to save will be in either
-  // s_result_queue or s_result_map (other than s_next_id).
+  // By waiting for the DVD thread to be done working, we ensure
+  // that s_request_queue will be empty and that the DVD thread
+  // won't be touching anything while this function runs.
   WaitUntilIdle();
 
-  // Move everything from s_result_queue to s_result_map because
+  // Move all results from s_result_queue to s_result_map because
   // PointerWrap::Do supports std::map but not Common::FifoQueue.
   // This won't affect the behavior of FinishRead.
   ReadResult result;
   while (s_result_queue.Pop(result))
     s_result_map.emplace(result.first.id, std::move(result));
 
-  // Everything is now in s_result_map, so we simply savestate that.
-  // We also savestate s_next_id to avoid ID collisions.
+  // Both queues are now empty, so we don't need to savestate them.
   p.Do(s_result_map);
   p.Do(s_next_id);
+
+  // s_disc isn't savestated (because it points to files on the
+  // local system). Instead, we check that the status of the disc
+  // is the same as when the savestate was made. This won't catch
+  // cases of having the wrong disc inserted, though.
+  // TODO: Check the game ID, disc number, revision?
+  bool had_disc = HasDisc();
+  p.Do(had_disc);
+  if (had_disc != HasDisc())
+  {
+    if (had_disc)
+      PanicAlertT("An inserted disc was expected but not found.");
+    else
+      s_disc.reset();
+  }
 
   // TODO: Savestates can be smaller if the buffers of results aren't saved,
   // but instead get re-read from the disc when loading the savestate.
@@ -149,6 +168,41 @@ void DoState(PointerWrap& p)
   // After loading a savestate, the debug log in FinishRead will report
   // screwed up times for requests that were submitted before the savestate
   // was made. Handling that properly may be more effort than it's worth.
+}
+
+void SetDisc(std::unique_ptr<DiscIO::IVolume> disc)
+{
+  WaitUntilIdle();
+  s_disc = std::move(disc);
+}
+
+bool HasDisc()
+{
+  return s_disc != nullptr;
+}
+
+DiscIO::Platform GetDiscType()
+{
+  // GetVolumeType is thread-safe, so calling WaitUntilIdle isn't necessary.
+  return s_disc->GetVolumeType();
+}
+
+bool GetTitleID(u64* title_id)
+{
+  WaitUntilIdle();
+  return s_disc->GetTitleID(title_id);
+}
+
+std::vector<u8> GetTMD()
+{
+  WaitUntilIdle();
+  return s_disc->GetTMD();
+}
+
+bool ChangePartition(u64 offset)
+{
+  WaitUntilIdle();
+  return s_disc->ChangePartition(offset);
 }
 
 void WaitUntilIdle()
@@ -278,8 +332,7 @@ static void DVDThread()
     while (s_request_queue.Pop(request))
     {
       std::vector<u8> buffer(request.length);
-      const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-      if (!volume.Read(request.dvd_offset, request.length, buffer.data(), request.decrypt))
+      if (!s_disc->Read(request.dvd_offset, request.length, buffer.data(), request.decrypt))
         buffer.resize(0);
 
       request.realtime_done_us = Common::Timer::GetTimeUs();

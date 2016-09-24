@@ -46,6 +46,7 @@
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVDThread.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
@@ -117,7 +118,7 @@ void CWII_IPC_HLE_Device_es::OpenInternal()
   {
     // blindly grab the titleID from the disc - it's unencrypted at:
     // offset 0x0F8001DC and 0x0F80044C
-    DVDInterface::GetVolume().GetTitleID(&m_TitleID);
+    DVDThread::GetTitleID(&m_TitleID);
   }
   else
   {

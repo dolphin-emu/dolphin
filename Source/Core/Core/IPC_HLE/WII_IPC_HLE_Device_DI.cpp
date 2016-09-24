@@ -11,6 +11,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVDThread.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
@@ -150,12 +151,11 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
     INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
     // Read TMD to the buffer
-    const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-    std::vector<u8> tmd_buffer = volume.GetTMD();
+    std::vector<u8> tmd_buffer = DVDThread::GetTMD();
     Memory::CopyToEmu(CommandBuffer.PayloadBuffer[0].m_Address, tmd_buffer.data(),
                       tmd_buffer.size());
     u64 title_id;
-    if (volume.GetTitleID(&title_id))
+    if (DVDThread::GetTitleID(&title_id))
       WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer, title_id);
 
     ReturnValue = 1;
