@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Software/Vec3.h"
 
 struct Vec4

@@ -11,8 +11,6 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "Core/ConfigManager.h"
-
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/TextureSampler.h"

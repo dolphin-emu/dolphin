@@ -2,14 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/TransformUnit.h"
+
 #include <algorithm>
 #include <cmath>
 
+#include "Common/Assert.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Software/NativeVertexFormat.h"
-#include "VideoBackends/Software/TransformUnit.h"
 #include "VideoBackends/Software/Vec3.h"
 
 #include "VideoCommon/BPMemory.h"
