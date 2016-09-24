@@ -214,9 +214,9 @@ bool TMemCheck::Action(DebugInterface* debug_interface, u32 iValue, u32 addr, bo
   {
     if (Log)
     {
-      INFO_LOG(MEMMAP, "CHK %08x (%s) %s%i %0*x at %08x (%s)", pc,
-               debug_interface->GetDescription(pc).c_str(), write ? "Write" : "Read", size * 8,
-               size * 2, iValue, addr, debug_interface->GetDescription(addr).c_str());
+      NOTICE_LOG(MEMMAP, "CHK %08x (%s) %s%i %0*x at %08x (%s)", pc,
+                 debug_interface->GetDescription(pc).c_str(), write ? "Write" : "Read", size * 8,
+                 size * 2, iValue, addr, debug_interface->GetDescription(addr).c_str());
     }
 
     return true;

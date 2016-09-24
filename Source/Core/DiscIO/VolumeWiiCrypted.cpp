@@ -333,7 +333,7 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
     u8 IV[16] = {0};
     if (!m_pReader->Read(clusterOff, 0x400, clusterMDCrypted))
     {
-      NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", clusterID);
+      WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read metadata", clusterID);
       return false;
     }
     mbedtls_aes_crypt_cbc(m_AES_ctx.get(), MBEDTLS_AES_DECRYPT, 0x400, IV, clusterMDCrypted,
@@ -358,7 +358,7 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
     u8 clusterData[0x7C00];
     if (!Read((u64)clusterID * 0x7C00, 0x7C00, clusterData, true))
     {
-      NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", clusterID);
+      WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: could not read data", clusterID);
       return false;
     }
 
@@ -371,8 +371,8 @@ bool CVolumeWiiCrypted::CheckIntegrity() const
       // Note that we do not use strncmp here
       if (memcmp(hash, clusterMD + hashID * 20, 20))
       {
-        NOTICE_LOG(DISCIO, "Integrity Check: fail at cluster %d: hash %d is invalid", clusterID,
-                   hashID);
+        WARN_LOG(DISCIO, "Integrity Check: fail at cluster %d: hash %d is invalid", clusterID,
+                 hashID);
         return false;
       }
     }

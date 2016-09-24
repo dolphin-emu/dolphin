@@ -70,8 +70,8 @@ void Wiimote::ReportMode(const wm_report_mode* const dr)
 */
 void Wiimote::HidOutputReport(const wm_report* const sr, const bool send_ack)
 {
-  INFO_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index,
-           m_reporting_channel, sr->wm);
+  DEBUG_LOG(WIIMOTE, "HidOutputReport (page: %i, cid: 0x%02x, wm: 0x%02x)", m_index,
+            m_reporting_channel, sr->wm);
 
   // WiiBrew:
   // In every single Output Report, bit 0 (0x01) of the first byte controls the Rumble feature.

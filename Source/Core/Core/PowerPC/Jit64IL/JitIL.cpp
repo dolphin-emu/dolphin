@@ -345,7 +345,7 @@ static void ImHere()
       return;
   }
 
-  DEBUG_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
+  INFO_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
   been_here[PC] = 1;
 }
 

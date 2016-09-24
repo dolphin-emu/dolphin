@@ -49,11 +49,11 @@ void gdsp_mbox_write_l(Mailbox mbx, u16 val)
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (mbx == MAILBOX_DSP)
-    INFO_LOG(DSP_MAIL, "DSP(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP),
-             g_dsp.pc);
+    DEBUG_LOG(DSP_MAIL, "DSP(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP),
+              g_dsp.pc);
   else
-    INFO_LOG(DSP_MAIL, "CPU(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU),
-             g_dsp.pc);
+    DEBUG_LOG(DSP_MAIL, "CPU(WM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU),
+              g_dsp.pc);
 #endif
 }
 
@@ -81,11 +81,11 @@ u16 gdsp_mbox_read_l(Mailbox mbx)
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (mbx == MAILBOX_DSP)
-    INFO_LOG(DSP_MAIL, "DSP(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP),
-             g_dsp.pc);
+    DEBUG_LOG(DSP_MAIL, "DSP(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_DSP),
+              g_dsp.pc);
   else
-    INFO_LOG(DSP_MAIL, "CPU(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU),
-             g_dsp.pc);
+    DEBUG_LOG(DSP_MAIL, "CPU(RM) B:%i M:0x%08x (pc=0x%04x)", mbx, gdsp_mbox_peek(MAILBOX_CPU),
+              g_dsp.pc);
 #endif
 
   return (u16)value;
@@ -101,7 +101,7 @@ void gdsp_ifx_write(u32 addr, u32 val)
     if (val & 0x1)
       DSPHost::InterruptRequest();
     else
-      INFO_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
+      WARN_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
     break;
 
   case DSP_DMBH:
@@ -136,7 +136,7 @@ void gdsp_ifx_write(u32 addr, u32 val)
   case DSP_GAIN:
     if (val)
     {
-      INFO_LOG(DSPLLE, "Gain Written: 0x%04x", val);
+      DEBUG_LOG(DSPLLE, "Gain Written: 0x%04x", val);
     }
   case DSP_DSPA:
   case DSP_DSMAH:
@@ -154,7 +154,7 @@ void gdsp_ifx_write(u32 addr, u32 val)
     {
       if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description)
       {
-        INFO_LOG(DSPLLE, "%04x MW %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
+        DEBUG_LOG(DSPLLE, "%04x MW %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name, val);
       }
       else
       {
@@ -200,8 +200,8 @@ static u16 _gdsp_ifx_read(u16 addr)
     {
       if (pdlabels[(addr & 0xFF) - 0xa0].name && pdlabels[(addr & 0xFF) - 0xa0].description)
       {
-        INFO_LOG(DSPLLE, "%04x MR %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name,
-                 g_dsp.ifx_regs[addr & 0xFF]);
+        DEBUG_LOG(DSPLLE, "%04x MR %s (%04x)", g_dsp.pc, pdlabels[(addr & 0xFF) - 0xa0].name,
+                  g_dsp.ifx_regs[addr & 0xFF]);
       }
       else
       {
@@ -280,8 +280,8 @@ static const u8* gdsp_ddma_in(u16 dsp_addr, u32 addr, u32 size)
           Common::swap16(*(const u16*)&g_dsp.cpu_ram[(addr + i) & 0x7FFFFFFF]);
     }
   }
-  INFO_LOG(DSPLLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)", addr,
-           dsp_addr / 2, size);
+  DEBUG_LOG(DSPLLE, "*** ddma_in RAM (0x%08x) -> DRAM_DSP (0x%04x) : size (0x%08x)", addr,
+            dsp_addr / 2, size);
 
   return dst + dsp_addr;
 }
@@ -309,8 +309,8 @@ static const u8* gdsp_ddma_out(u16 dsp_addr, u32 addr, u32 size)
     }
   }
 
-  INFO_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2,
-           addr, size);
+  DEBUG_LOG(DSPLLE, "*** ddma_out DRAM_DSP (0x%04x) -> RAM (0x%08x) : size (0x%08x)", dsp_addr / 2,
+            addr, size);
 
   return src + dsp_addr;
 }

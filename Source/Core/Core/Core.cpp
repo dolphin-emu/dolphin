@@ -977,7 +977,7 @@ void UpdateWantDeterminism(bool initial)
   bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != g_want_determinism || initial)
   {
-    WARN_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
+    NOTICE_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
 
     bool was_unpaused = Core::PauseAndLock(true);
 

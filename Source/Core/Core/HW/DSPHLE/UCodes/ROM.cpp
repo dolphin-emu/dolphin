@@ -21,7 +21,7 @@
 ROMUCode::ROMUCode(DSPHLE* dsphle, u32 crc)
     : UCodeInterface(dsphle, crc), m_current_ucode(), m_boot_task_num_steps(0), m_next_parameter(0)
 {
-  DEBUG_LOG(DSPHLE, "UCode_Rom - initialized");
+  INFO_LOG(DSPHLE, "UCode_Rom - initialized");
   m_mail_handler.Clear();
   m_mail_handler.PushMail(0x8071FEED);
 }
@@ -107,13 +107,13 @@ void ROMUCode::BootUCode()
     }
   }
 
-  DEBUG_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_current_ucode.m_ram_address);
-  DEBUG_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_current_ucode.m_length);
-  DEBUG_LOG(DSPHLE, "CurrentUCode DEST Addr:   0x%08x", m_current_ucode.m_imem_address);
-  DEBUG_LOG(DSPHLE, "CurrentUCode DMEM Length: 0x%08x", m_current_ucode.m_dmem_length);
-  DEBUG_LOG(DSPHLE, "CurrentUCode init_vector: 0x%08x", m_current_ucode.m_start_pc);
-  DEBUG_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", ector_crc);
-  DEBUG_LOG(DSPHLE, "BootTask - done");
+  INFO_LOG(DSPHLE, "CurrentUCode SOURCE Addr: 0x%08x", m_current_ucode.m_ram_address);
+  INFO_LOG(DSPHLE, "CurrentUCode Length:      0x%08x", m_current_ucode.m_length);
+  INFO_LOG(DSPHLE, "CurrentUCode DEST Addr:   0x%08x", m_current_ucode.m_imem_address);
+  INFO_LOG(DSPHLE, "CurrentUCode DMEM Length: 0x%08x", m_current_ucode.m_dmem_length);
+  INFO_LOG(DSPHLE, "CurrentUCode init_vector: 0x%08x", m_current_ucode.m_start_pc);
+  INFO_LOG(DSPHLE, "CurrentUCode CRC:         0x%08x", ector_crc);
+  INFO_LOG(DSPHLE, "BootTask - done");
 
   m_dsphle->SetUCode(ector_crc);
 }
