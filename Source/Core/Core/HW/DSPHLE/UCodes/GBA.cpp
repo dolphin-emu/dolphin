@@ -134,12 +134,12 @@ void GBAUCode::HandleMail(u32 mail)
       m_dsphle->SetUCode(UCODE_ROM);
       break;
     default:
-      DEBUG_LOG(DSPHLE, "GBAUCode - unknown 0xcdd1 command: %08x", mail);
+      WARN_LOG(DSPHLE, "GBAUCode - unknown 0xcdd1 command: %08x", mail);
       break;
     }
   }
   else
   {
-    DEBUG_LOG(DSPHLE, "GBAUCode - unknown command: %08x", mail);
+    WARN_LOG(DSPHLE, "GBAUCode - unknown command: %08x", mail);
   }
 }

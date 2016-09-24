@@ -36,7 +36,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtlV(u32 _CommandAddress)
 {
   SIOCtlVBuffer CommandBuffer(_CommandAddress);
 
-  DEBUG_LOG(OSHLE, "%s - IOCtlV:", GetDeviceName().c_str());
+  INFO_LOG(OSHLE, "%s - IOCtlV:", GetDeviceName().c_str());
   DEBUG_LOG(OSHLE, "  Parameter: 0x%x", CommandBuffer.Parameter);
   DEBUG_LOG(OSHLE, "  NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
   DEBUG_LOG(OSHLE, "  NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
@@ -57,7 +57,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(u32 _CommandAddress)
   u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
   u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1c);
 
-  DEBUG_LOG(OSHLE, "%s - IOCtl: %x", GetDeviceName().c_str(), Command);
+  INFO_LOG(OSHLE, "%s - IOCtl: %x", GetDeviceName().c_str(), Command);
   DEBUG_LOG(OSHLE, "%x:%x %x:%x", BufferIn, BufferInSize, BufferOut, BufferOutSize);
 
   switch (Command)

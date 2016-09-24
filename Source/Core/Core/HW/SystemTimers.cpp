@@ -191,8 +191,8 @@ static void ThrottleCallback(u64 last_time, s64 cyclesLate)
     const int max_fallback = config.iTimingVariance;
     if (abs(diff) > max_fallback)
     {
-      DEBUG_LOG(COMMON, "system too %s, %d ms skipped", diff < 0 ? "slow" : "fast",
-                abs(diff) - max_fallback);
+      INFO_LOG(COMMON, "system too %s, %d ms skipped", diff < 0 ? "slow" : "fast",
+               abs(diff) - max_fallback);
       last_time = time - max_fallback;
     }
     else if (diff > 0)

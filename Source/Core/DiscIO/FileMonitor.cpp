@@ -99,7 +99,7 @@ void CheckFile(const std::string& file, u64 size)
   }
   else
   {
-    WARN_LOG(FILEMON, "%s", str.c_str());
+    INFO_LOG(FILEMON, "%s", str.c_str());
   }
 
   // Update the current file

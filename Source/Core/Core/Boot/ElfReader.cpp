@@ -115,15 +115,15 @@ bool ElfReader::LoadIntoMemory()
     return false;
   }
 
-  INFO_LOG(MASTER_LOG, "%i segments:", header->e_phnum);
+  DEBUG_LOG(MASTER_LOG, "%i segments:", header->e_phnum);
 
   // Copy segments into ram.
   for (int i = 0; i < header->e_phnum; i++)
   {
     Elf32_Phdr* p = segments + i;
 
-    INFO_LOG(MASTER_LOG, "Type: %i Vaddr: %08x Filesz: %i Memsz: %i ", p->p_type, p->p_vaddr,
-             p->p_filesz, p->p_memsz);
+    DEBUG_LOG(MASTER_LOG, "Type: %i Vaddr: %08x Filesz: %i Memsz: %i ", p->p_type, p->p_vaddr,
+              p->p_filesz, p->p_memsz);
 
     if (p->p_type == PT_LOAD)
     {
@@ -136,7 +136,7 @@ bool ElfReader::LoadIntoMemory()
       if (srcSize < dstSize)
         Memory::Memset(writeAddr + srcSize, 0, dstSize - srcSize);  // zero out bss
 
-      INFO_LOG(MASTER_LOG, "Loadable Segment Copied to %08x, size %08x", writeAddr, p->p_memsz);
+      DEBUG_LOG(MASTER_LOG, "Loadable Segment Copied to %08x, size %08x", writeAddr, p->p_memsz);
     }
   }
 

@@ -132,13 +132,13 @@ static void FinishRead(u64 userdata, s64 cycles_late)
 {
   WaitUntilIdle();
 
-  DEBUG_LOG(DVDINTERFACE, "Disc has been read. Real time: %" PRIu64 " us. "
-                          "Real time including delay: %" PRIu64
-                          " us. Emulated time including delay: %" PRIu64 " us.",
-            s_realtime_done_us - s_realtime_started_us,
-            Common::Timer::GetTimeUs() - s_realtime_started_us,
-            (CoreTiming::GetTicks() - s_time_read_started) /
-                (SystemTimers::GetTicksPerSecond() / 1000 / 1000));
+  INFO_LOG(DVDINTERFACE, "Disc has been read. Real time: %" PRIu64 " us. "
+                         "Real time including delay: %" PRIu64
+                         " us. Emulated time including delay: %" PRIu64 " us.",
+           s_realtime_done_us - s_realtime_started_us,
+           Common::Timer::GetTimeUs() - s_realtime_started_us,
+           (CoreTiming::GetTicks() - s_time_read_started) /
+               (SystemTimers::GetTicksPerSecond() / 1000 / 1000));
 
   if (s_dvd_success)
     Memory::CopyToEmu(s_output_address, s_dvd_buffer.data(), s_length);
