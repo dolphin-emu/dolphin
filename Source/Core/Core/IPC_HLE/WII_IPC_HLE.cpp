@@ -376,8 +376,8 @@ void ExecuteCommand(u32 _Address)
   std::shared_ptr<IWII_IPC_HLE_Device> pDevice =
       (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? g_FdMap[DeviceID] : nullptr;
 
-  INFO_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) %p", _Address,
-           Command, DeviceID, pDevice.get());
+  DEBUG_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) %p", _Address,
+            Command, DeviceID, pDevice.get());
 
   switch (Command)
   {
@@ -388,7 +388,7 @@ void ExecuteCommand(u32 _Address)
 
     std::string DeviceName = Memory::GetString(Memory::Read_U32(_Address + 0xC));
 
-    WARN_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
+    INFO_LOG(WII_IPC_HLE, "Trying to open %s as %d", DeviceName.c_str(), DeviceID);
     if (DeviceID >= 0)
     {
       if (DeviceName.find("/dev/es") == 0)
@@ -419,8 +419,8 @@ void ExecuteCommand(u32 _Address)
         {
           g_FdMap[DeviceID] = pDevice;
           result = pDevice->Open(_Address, Mode);
-          INFO_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
-                   pDevice->GetDeviceName().c_str(), DeviceID, Mode);
+          DEBUG_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
+                    pDevice->GetDeviceName().c_str(), DeviceID, Mode);
           Memory::Write_U32(DeviceID, _Address + 4);
         }
         else
@@ -435,8 +435,8 @@ void ExecuteCommand(u32 _Address)
         pDevice = CreateFileIO(DeviceID, DeviceName);
         result = pDevice->Open(_Address, Mode);
 
-        INFO_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
-                 pDevice->GetDeviceName().c_str(), DeviceID, Mode);
+        DEBUG_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
+                  pDevice->GetDeviceName().c_str(), DeviceID, Mode);
         if (Memory::Read_U32(_Address + 4) == (u32)DeviceID)
         {
           g_FdMap[DeviceID] = pDevice;
@@ -583,7 +583,7 @@ void Update()
   if (request_queue.size())
   {
     WII_IPCInterface::GenerateAck(request_queue.front());
-    INFO_LOG(WII_IPC_HLE, "||-- Acknowledge IPC Request @ 0x%08x", request_queue.front());
+    DEBUG_LOG(WII_IPC_HLE, "||-- Acknowledge IPC Request @ 0x%08x", request_queue.front());
     u32 command = request_queue.front();
     request_queue.pop_front();
     ExecuteCommand(command);
@@ -593,7 +593,7 @@ void Update()
   if (reply_queue.size())
   {
     WII_IPCInterface::GenerateReply(reply_queue.front());
-    INFO_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
+    DEBUG_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", reply_queue.front());
     reply_queue.pop_front();
     return;
   }

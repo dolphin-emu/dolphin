@@ -145,7 +145,7 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
     WARN_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
     break;
   case GL_DEBUG_SEVERITY_LOW_ARB:
-    WARN_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
+    DEBUG_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
     break;
   case GL_DEBUG_SEVERITY_NOTIFICATION:
     DEBUG_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
