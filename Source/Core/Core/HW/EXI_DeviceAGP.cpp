@@ -254,7 +254,7 @@ u32 CEXIAgp::ImmRead(u32 _uSize)
     m_current_cmd = 0;
     break;
   }
-  INFO_LOG(EXPANSIONINTERFACE, "AGP read %x", uData);
+  DEBUG_LOG(EXPANSIONINTERFACE, "AGP read %x", uData);
   return uData;
 }
 
@@ -266,7 +266,7 @@ void CEXIAgp::ImmWrite(u32 _uData, u32 _uSize)
 
   u8 HashCmd;
   u64 Mask;
-  INFO_LOG(EXPANSIONINTERFACE, "AGP command %x", _uData);
+  DEBUG_LOG(EXPANSIONINTERFACE, "AGP command %x", _uData);
   switch (m_current_cmd)
   {
   case 0xAE020000:  // set up 24 bit address for read 2 bytes

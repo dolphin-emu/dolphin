@@ -19,9 +19,9 @@ namespace EfbCopy
 static void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
                       float Gamma)
 {
-  INFO_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), Gamma %f",
-           xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom, sourceRc.right,
-           Gamma);
+  DEBUG_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), Gamma %f",
+            xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom,
+            sourceRc.right, Gamma);
 
   EfbInterface::yuv422_packed* xfb_in_ram =
       (EfbInterface::yuv422_packed*)Memory::GetPointer(xfbAddr);
