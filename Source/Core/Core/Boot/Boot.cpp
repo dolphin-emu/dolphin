@@ -39,24 +39,33 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
-bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt)
+// Inserts a disc into the emulated disc drive and returns a pointer to it.
+// The returned pointer must only be used while we are still booting,
+// because DVDThread can do whatever it wants to the disc after that.
+static const DiscIO::IVolume* SetDisc(std::unique_ptr<DiscIO::IVolume> volume)
+{
+  const DiscIO::IVolume* pointer = volume.get();
+  DVDInterface::SetDisc(std::move(volume));
+  return pointer;
+}
+
+bool CBoot::DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_address, u32 length,
+                    bool decrypt)
 {
   std::vector<u8> buffer(length);
-  if (!DVDInterface::GetVolume().Read(dvd_offset, length, buffer.data(), decrypt))
+  if (!volume.Read(dvd_offset, length, buffer.data(), decrypt))
     return false;
   Memory::CopyToEmu(output_address, buffer.data(), length);
   return true;
 }
 
-void CBoot::Load_FST(bool is_wii)
+void CBoot::Load_FST(bool is_wii, const DiscIO::IVolume* volume)
 {
-  if (!DVDInterface::IsDiscInside())
+  if (!volume)
     return;
 
-  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-
   // copy first 32 bytes of disc to start of Mem 1
-  DVDRead(/*offset*/ 0, /*address*/ 0, /*length*/ 0x20, false);
+  DVDRead(*volume, /*offset*/ 0, /*address*/ 0, /*length*/ 0x20, false);
 
   // copy of game id
   Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
@@ -69,15 +78,15 @@ void CBoot::Load_FST(bool is_wii)
   u32 fst_size = 0;
   u32 max_fst_size = 0;
 
-  volume.ReadSwapped(0x0424, &fst_offset, is_wii);
-  volume.ReadSwapped(0x0428, &fst_size, is_wii);
-  volume.ReadSwapped(0x042c, &max_fst_size, is_wii);
+  volume->ReadSwapped(0x0424, &fst_offset, is_wii);
+  volume->ReadSwapped(0x0428, &fst_size, is_wii);
+  volume->ReadSwapped(0x042c, &max_fst_size, is_wii);
 
   u32 arena_high = Common::AlignDown(0x817FFFFF - (max_fst_size << shift), 0x20);
   Memory::Write_U32(arena_high, 0x00000034);
 
   // load FST
-  DVDRead(fst_offset << shift, arena_high, fst_size << shift, is_wii);
+  DVDRead(*volume, fst_offset << shift, arena_high, fst_size << shift, is_wii);
   Memory::Write_U32(arena_high, 0x00000038);
   Memory::Write_U32(max_fst_size << shift, 0x0000003c);
 
@@ -278,22 +287,22 @@ bool CBoot::BootUp()
   {
   case SConfig::BOOT_ISO:
   {
-    DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename));
-    if (!DVDInterface::IsDiscInside())
+    const DiscIO::IVolume* volume =
+        SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename));
+
+    if (!volume)
       return false;
 
-    const DiscIO::IVolume& pVolume = DVDInterface::GetVolume();
-
-    if ((pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC) != _StartupPara.bWii)
+    if ((volume->GetVolumeType() == DiscIO::Platform::WII_DISC) != _StartupPara.bWii)
     {
       PanicAlertT("Warning - starting ISO in wrong console mode!");
     }
 
-    _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;
+    _StartupPara.bWii = volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
 
     // We HLE the bootrom if requested or if LLEing it fails
     if (_StartupPara.bHLE_BS2 || !Load_BS2(_StartupPara.m_strBootROM))
-      EmulatedBS2(_StartupPara.bWii);
+      EmulatedBS2(_StartupPara.bWii, volume);
 
     PatchEngine::LoadPatches();
 
@@ -331,29 +340,28 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting DOL in wrong console mode!");
     }
 
+    const DiscIO::IVolume* volume = nullptr;
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      DVDInterface::SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, dolWii,
-                                                              _StartupPara.m_strApploader,
-                                                              _StartupPara.m_strFilename));
+      volume = SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, dolWii,
+                                                         _StartupPara.m_strApploader,
+                                                         _StartupPara.m_strFilename));
     }
     else if (!_StartupPara.m_strDefaultISO.empty())
     {
       NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
-      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
+      volume = SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
     }
 
-    if (!EmulatedBS2(dolWii))
+    if (!EmulatedBS2(dolWii, volume))
     {
       if (dolWii)
         HID4.SBE = 1;
       SetupBAT(dolWii);
 
-      // Because there is no TMD to get the requested system (IOS) version from,
-      // we default to IOS58, which is the version used by the Homebrew Channel.
       if (dolWii)
-        SetupWiiMemory(0x000000010000003a);
+        SetupWiiMemory(volume, 0x000000010000003a);
 
       dolLoader.Load();
       PC = dolLoader.GetEntryPoint();
@@ -367,17 +375,19 @@ bool CBoot::BootUp()
 
   case SConfig::BOOT_ELF:
   {
+    const DiscIO::IVolume* volume = nullptr;
+
     // load image or create virtual drive from directory
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      DVDInterface::SetDisc(
-          DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, _StartupPara.bWii));
+      volume =
+          SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, _StartupPara.bWii));
     }
     else if (!_StartupPara.m_strDefaultISO.empty())
     {
       NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
-      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
+      volume = SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
     }
 
     // Poor man's bootup
@@ -385,14 +395,14 @@ bool CBoot::BootUp()
     {
       // Because there is no TMD to get the requested system (IOS) version from,
       // we default to IOS58, which is the version used by the Homebrew Channel.
-      SetupWiiMemory(0x000000010000003a);
+      SetupWiiMemory(volume, 0x000000010000003a);
     }
     else
     {
-      EmulatedBS2_GC(true);
+      EmulatedBS2_GC(volume, true);
     }
 
-    Load_FST(_StartupPara.bWii);
+    Load_FST(_StartupPara.bWii, volume);
     if (!Boot_ELF(_StartupPara.m_strFilename))
       return false;
 
@@ -412,9 +422,9 @@ bool CBoot::BootUp()
 
     // load default image or create virtual drive from directory
     if (!_StartupPara.m_strDVDRoot.empty())
-      DVDInterface::SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, true));
+      SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, true));
     else if (!_StartupPara.m_strDefaultISO.empty())
-      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
+      SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
 
     break;
 

@@ -9,6 +9,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace DiscIO
+{
+class IVolume;
+}
+
 struct RegionSetting
 {
   const std::string area;
@@ -40,7 +45,8 @@ public:
   static bool LoadMapFromFilename();
 
 private:
-  static bool DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt);
+  static bool DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_address, u32 length,
+                      bool decrypt);
   static void RunFunction(u32 address);
 
   static void UpdateDebugger_MapLoaded();
@@ -49,12 +55,12 @@ private:
   static bool Boot_WiiWAD(const std::string& filename);
 
   static void SetupBAT(bool is_wii);
-  static bool RunApploader(bool is_wii);
-  static bool EmulatedBS2_GC(bool skip_app_loader = false);
-  static bool EmulatedBS2_Wii();
-  static bool EmulatedBS2(bool is_wii);
+  static bool RunApploader(bool is_wii, const DiscIO::IVolume& volume);
+  static bool EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skip_app_loader = false);
+  static bool EmulatedBS2_Wii(const DiscIO::IVolume* volume);
+  static bool EmulatedBS2(bool is_wii, const DiscIO::IVolume* volume);
   static bool Load_BS2(const std::string& boot_rom_filename);
-  static void Load_FST(bool is_wii);
+  static void Load_FST(bool is_wii, const DiscIO::IVolume* volume);
 
-  static bool SetupWiiMemory(u64 ios_title_id);
+  static bool SetupWiiMemory(const DiscIO::IVolume* volume, u64 ios_title_id);
 };
