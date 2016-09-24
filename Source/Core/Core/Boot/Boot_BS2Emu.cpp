@@ -14,7 +14,6 @@
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/MemTools.h"
@@ -37,7 +36,7 @@ void CBoot::RunFunction(u32 _iAddr)
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
+bool CBoot::EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skipAppLoader)
 {
   INFO_LOG(BOOT, "Faking GC BS2...");
 
@@ -61,8 +60,8 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   // to 0x80000000 according to YAGCD 4.2.
 
   // It's possible to boot DOL and ELF files without a disc inserted
-  if (DVDInterface::VolumeIsValid())
-    DVDRead(/*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, false);  // write disc info
+  if (volume)
+    DVDRead(*volume, /*offset*/ 0x00000000, /*address*/ 0x00000000, 0x20, false);
 
   PowerPC::HostWrite_U32(0x0D15EA5E,
                          0x80000020);  // Booted from bootrom. 0xE5207C22 = booted from jtag
@@ -94,23 +93,22 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 
   HLE::Patch(0x81300000, "OSReport");  // HLE OSReport for Apploader
 
-  if (!DVDInterface::VolumeIsValid())
+  if (!volume)
     return false;
 
   // Load Apploader to Memory - The apploader is hardcoded to begin at 0x2440 on the disc,
   // but the size can differ between discs. Compare with YAGCD chap 13.
-  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
   const u32 apploader_offset = 0x2440;
   u32 apploader_entry, apploader_size, apploader_trailer;
-  if (skipAppLoader || !volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, false) ||
-      !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, false) ||
-      !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, false) ||
+  if (skipAppLoader || !volume->ReadSwapped(apploader_offset + 0x10, &apploader_entry, false) ||
+      !volume->ReadSwapped(apploader_offset + 0x14, &apploader_size, false) ||
+      !volume->ReadSwapped(apploader_offset + 0x18, &apploader_trailer, false) ||
       apploader_entry == (u32)-1 || apploader_size + apploader_trailer == (u32)-1)
   {
     INFO_LOG(BOOT, "GC BS2: Not running apploader!");
     return false;
   }
-  DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer, false);
+  DVDRead(*volume, apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer, false);
 
   // Setup pointers like real BS2 does
   if (SConfig::GetInstance().bNTSC)
@@ -164,7 +162,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
 
     INFO_LOG(MASTER_LOG, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset,
              iRamAddress, iLength);
-    DVDRead(iDVDOffset, iRamAddress, iLength, false);
+    DVDRead(*volume, iDVDOffset, iRamAddress, iLength, false);
 
   } while (PowerPC::ppcState.gpr[3] != 0x00);
 
@@ -181,7 +179,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   return true;
 }
 
-bool CBoot::SetupWiiMemory(DiscIO::Country country)
+bool CBoot::SetupWiiMemory(DiscIO::Country country, const DiscIO::IVolume* volume)
 {
   static const CountrySetting SETTING_EUROPE = {"EUR", "PAL", "EU", "LE"};
   static const CountrySetting SETTING_USA = {"USA", "NTSC", "US", "LU"};
@@ -269,8 +267,8 @@ bool CBoot::SetupWiiMemory(DiscIO::Country country)
   */
 
   // When booting a WAD or the system menu, there will probably not be a disc inserted
-  if (DVDInterface::VolumeIsValid())
-    DVDRead(0x00000000, 0x00000000, 0x20, false);  // Game Code
+  if (volume)
+    DVDRead(*volume, 0x00000000, 0x00000000, 0x20, false);  // Game Code
 
   Memory::Write_U32(0x0D15EA5E, 0x00000020);            // Another magic word
   Memory::Write_U32(0x00000001, 0x00000024);            // Unknown
@@ -331,27 +329,26 @@ bool CBoot::SetupWiiMemory(DiscIO::Country country)
 // Wii Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader
-bool CBoot::EmulatedBS2_Wii()
+bool CBoot::EmulatedBS2_Wii(const DiscIO::IVolume* volume)
 {
   INFO_LOG(BOOT, "Faking Wii BS2...");
 
   // Setup Wii memory
   DiscIO::Country country_code = DiscIO::Country::COUNTRY_UNKNOWN;
-  if (DVDInterface::VolumeIsValid())
-    country_code = DVDInterface::GetVolume().GetCountry();
-  if (SetupWiiMemory(country_code) == false)
+  if (volume)
+    country_code = volume->GetCountry();
+  if (SetupWiiMemory(country_code, volume) == false)
     return false;
 
   // Execute the apploader
   bool apploaderRan = false;
-  if (DVDInterface::VolumeIsValid() &&
-      DVDInterface::GetVolume().GetVolumeType() == DiscIO::Platform::WII_DISC)
+  if (volume && volume->GetVolumeType() == DiscIO::Platform::WII_DISC)
   {
     // This is some kind of consistency check that is compared to the 0x00
     // values as the game boots. This location keeps the 4 byte ID for as long
     // as the game is running. The 6 byte ID at 0x00 is overwritten sometime
     // after this check during booting.
-    DVDRead(0, 0x3180, 4, true);
+    DVDRead(*volume, 0, 0x3180, 4, true);
 
     // Set up MSR and the BAT SPR registers.
     UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
@@ -385,16 +382,15 @@ bool CBoot::EmulatedBS2_Wii()
     const u32 apploader_offset = 0x2440;  // 0x1c40;
 
     // Load Apploader to Memory
-    const DiscIO::IVolume& volume = DVDInterface::GetVolume();
     u32 apploader_entry, apploader_size;
-    if (!volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, true) ||
-        !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, true) ||
+    if (!volume->ReadSwapped(apploader_offset + 0x10, &apploader_entry, true) ||
+        !volume->ReadSwapped(apploader_offset + 0x14, &apploader_size, true) ||
         apploader_entry == (u32)-1 || apploader_size == (u32)-1)
     {
       ERROR_LOG(BOOT, "Invalid apploader. Probably your image is corrupted.");
       return false;
     }
-    DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size, true);
+    DVDRead(*volume, apploader_offset + 0x20, 0x01200000, apploader_size, true);
 
     // call iAppLoaderEntry
     DEBUG_LOG(BOOT, "Call iAppLoaderEntry");
@@ -433,7 +429,7 @@ bool CBoot::EmulatedBS2_Wii()
 
       INFO_LOG(BOOT, "DVDRead: offset: %08x   memOffset: %08x   length: %i", iDVDOffset,
                iRamAddress, iLength);
-      DVDRead(iDVDOffset, iRamAddress, iLength, true);
+      DVDRead(*volume, iDVDOffset, iRamAddress, iLength, true);
     } while (PowerPC::ppcState.gpr[3] != 0x00);
 
     // iAppLoaderClose
@@ -459,7 +455,7 @@ bool CBoot::EmulatedBS2_Wii()
 }
 
 // Returns true if apploader has run successfully
-bool CBoot::EmulatedBS2(bool _bIsWii)
+bool CBoot::EmulatedBS2(bool _bIsWii, const DiscIO::IVolume* volume)
 {
-  return _bIsWii ? EmulatedBS2_Wii() : EmulatedBS2_GC();
+  return _bIsWii ? EmulatedBS2_Wii(volume) : EmulatedBS2_GC(volume);
 }

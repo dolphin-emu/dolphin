@@ -232,9 +232,9 @@ void SetDefaultContentFile(const std::string& file_name)
   }
 }
 
-void ES_DIVerify(const std::vector<u8>& tmd)
+void ES_DIVerify(const std::vector<u8>& tmd, u64 title_id)
 {
-  CWII_IPC_HLE_Device_es::ES_DIVerify(tmd);
+  CWII_IPC_HLE_Device_es::ES_DIVerify(tmd, title_id);
 }
 
 void SDIO_EventNotify()

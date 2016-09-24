@@ -36,7 +36,7 @@ public:
 
   IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-  static u32 ES_DIVerify(const std::vector<u8>& tmd);
+  static u32 ES_DIVerify(const std::vector<u8>& tmd, u64 title_id);
 
   // This should only be cleared on power reset
   static std::string m_ContentFile;

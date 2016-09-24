@@ -150,10 +150,13 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
     INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
     // Read TMD to the buffer
-    std::vector<u8> tmd_buffer = DVDInterface::GetVolume().GetTMD();
+    const DiscIO::IVolume& volume = DVDInterface::GetVolume();
+    std::vector<u8> tmd_buffer = volume.GetTMD();
     Memory::CopyToEmu(CommandBuffer.PayloadBuffer[0].m_Address, tmd_buffer.data(),
                       tmd_buffer.size());
-    WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
+    u64 title_id;
+    if (volume.GetTitleID(&title_id))
+      WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer, title_id);
 
     ReturnValue = 1;
   }

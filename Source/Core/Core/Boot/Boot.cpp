@@ -38,24 +38,23 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
-bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt)
+bool CBoot::DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_address, u32 length,
+                    bool decrypt)
 {
   std::vector<u8> buffer(length);
-  if (!DVDInterface::GetVolume().Read(dvd_offset, length, buffer.data(), decrypt))
+  if (!volume.Read(dvd_offset, length, buffer.data(), decrypt))
     return false;
   Memory::CopyToEmu(output_address, buffer.data(), length);
   return true;
 }
 
-void CBoot::Load_FST(bool _bIsWii)
+void CBoot::Load_FST(bool _bIsWii, const DiscIO::IVolume* volume)
 {
-  if (!DVDInterface::VolumeIsValid())
+  if (volume)
     return;
 
-  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
-
   // copy first 32 bytes of disc to start of Mem 1
-  DVDRead(/*offset*/ 0, /*address*/ 0, /*length*/ 0x20, false);
+  DVDRead(*volume, /*offset*/ 0, /*address*/ 0, /*length*/ 0x20, false);
 
   // copy of game id
   Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
@@ -68,15 +67,15 @@ void CBoot::Load_FST(bool _bIsWii)
   u32 fst_size = 0;
   u32 max_fst_size = 0;
 
-  volume.ReadSwapped(0x0424, &fst_offset, _bIsWii);
-  volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
-  volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
+  volume->ReadSwapped(0x0424, &fst_offset, _bIsWii);
+  volume->ReadSwapped(0x0428, &fst_size, _bIsWii);
+  volume->ReadSwapped(0x042c, &max_fst_size, _bIsWii);
 
   u32 arena_high = ROUND_DOWN(0x817FFFFF - (max_fst_size << shift), 0x20);
   Memory::Write_U32(arena_high, 0x00000034);
 
   // load FST
-  DVDRead(fst_offset << shift, arena_high, fst_size << shift, _bIsWii);
+  DVDRead(*volume, fst_offset << shift, arena_high, fst_size << shift, _bIsWii);
   Memory::Write_U32(arena_high, 0x00000038);
   Memory::Write_U32(max_fst_size << shift, 0x0000003c);
 }
@@ -257,43 +256,45 @@ bool CBoot::BootUp()
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
   VideoInterface::Preset(_StartupPara.bNTSC || (_StartupPara.bWii && _StartupPara.bPAL60));
 
+  std::unique_ptr<DiscIO::IVolume> volume;
+
   switch (_StartupPara.m_BootType)
   {
   // GCM and Wii
   case SConfig::BOOT_ISO:
   {
-    DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename));
-    if (!DVDInterface::VolumeIsValid())
+    volume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strFilename);
+    if (!volume)
       return false;
 
-    const DiscIO::IVolume& pVolume = DVDInterface::GetVolume();
-
-    if ((pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC) != _StartupPara.bWii)
+    if ((volume->GetVolumeType() == DiscIO::Platform::WII_DISC) != _StartupPara.bWii)
     {
       PanicAlertT("Warning - starting ISO in wrong console mode!");
     }
 
-    std::string unique_id = DVDInterface::GetVolume().GetUniqueID();
+    std::string unique_id = volume->GetUniqueID();
     if (unique_id.size() >= 4)
       VideoInterface::SetRegionReg(unique_id.at(3));
 
-    std::vector<u8> tmd_buffer = pVolume.GetTMD();
+    std::vector<u8> tmd_buffer = volume->GetTMD();
     if (!tmd_buffer.empty())
     {
-      WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
+      u64 title_id;
+      if (volume->GetTitleID(&title_id))
+        WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer, title_id);
     }
 
-    _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;
+    _StartupPara.bWii = volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
 
     // HLE BS2 or not
     if (_StartupPara.bHLE_BS2)
     {
-      EmulatedBS2(_StartupPara.bWii);
+      EmulatedBS2(_StartupPara.bWii, volume.get());
     }
     else if (!Load_BS2(_StartupPara.m_strBootROM))
     {
       // If we can't load the bootrom file we HLE it instead
-      EmulatedBS2(_StartupPara.bWii);
+      EmulatedBS2(_StartupPara.bWii, volume.get());
     }
     else
     {
@@ -340,23 +341,22 @@ bool CBoot::BootUp()
 
     if (dolWii)
     {
-      BS2Success = EmulatedBS2(dolWii);
+      BS2Success = EmulatedBS2(dolWii, volume.get());
     }
-    else if ((!DVDInterface::VolumeIsValid() ||
-              DVDInterface::GetVolume().GetVolumeType() != DiscIO::Platform::WII_DISC) &&
+    else if ((!volume || volume->GetVolumeType() != DiscIO::Platform::WII_DISC) &&
              !_StartupPara.m_strDefaultISO.empty())
     {
-      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
-      BS2Success = EmulatedBS2(dolWii);
+      volume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO);
+      BS2Success = EmulatedBS2(dolWii, volume.get());
     }
 
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
-      DVDInterface::SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, dolWii,
-                                                              _StartupPara.m_strApploader,
-                                                              _StartupPara.m_strFilename));
-      BS2Success = EmulatedBS2(dolWii);
+      volume = DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, dolWii,
+                                                 _StartupPara.m_strApploader,
+                                                 _StartupPara.m_strFilename);
+      BS2Success = EmulatedBS2(dolWii, volume.get());
     }
 
     if (!BS2Success)
@@ -396,7 +396,6 @@ bool CBoot::BootUp()
   case SConfig::BOOT_ELF:
   {
     // load image or create virtual drive from directory
-    std::unique_ptr<DiscIO::IVolume> volume;
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
@@ -411,15 +410,14 @@ bool CBoot::BootUp()
     {
       volume = DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strFilename, _StartupPara.bWii);
     }
-    DVDInterface::SetDisc(std::move(volume));
 
     // Poor man's bootup
     if (_StartupPara.bWii)
-      SetupWiiMemory(DiscIO::Country::COUNTRY_UNKNOWN);
+      SetupWiiMemory(DiscIO::Country::COUNTRY_UNKNOWN, volume.get());
     else
-      EmulatedBS2_GC(true);
+      EmulatedBS2_GC(volume.get(), true);
 
-    Load_FST(_StartupPara.bWii);
+    Load_FST(_StartupPara.bWii, volume.get());
     if (!Boot_ELF(_StartupPara.m_strFilename))
       return false;
 
@@ -437,9 +435,9 @@ bool CBoot::BootUp()
 
     // load default image or create virtual drive from directory
     if (!_StartupPara.m_strDVDRoot.empty())
-      DVDInterface::SetDisc(DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, true));
+      volume = DiscIO::CreateVolumeFromDirectory(_StartupPara.m_strDVDRoot, true);
     else if (!_StartupPara.m_strDefaultISO.empty())
-      DVDInterface::SetDisc(DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO));
+      volume = DiscIO::CreateVolumeFromFilename(_StartupPara.m_strDefaultISO);
 
     break;
 
@@ -469,8 +467,11 @@ bool CBoot::BootUp()
   }
   }
 
-  // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code
-  // handler
+  // Insert the disc if there is one
+  DVDInterface::SetDisc(std::move(volume));
+
+  // HLE jump to loader (homebrew).
+  // Disabled when Gecko is active as it interferes with the code handler
   if (!SConfig::GetInstance().bEnableCheats)
   {
     HLE::Patch(0x80001800, "HBReload");

@@ -1131,24 +1131,19 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
 const DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 title_id)
 {
-  // for WADs, the passed title id and the stored title id match; along with m_ContentFile being set
-  // to the
-  // actual WAD file name. We cannot simply get a NAND Loader for the title id in those cases, since
-  // the WAD
-  // need not be installed in the NAND, but it could be opened directly from a WAD file anywhere on
-  // disk.
+  // for WADs, the passed title id and the stored title id match; along with
+  // m_ContentFile being set to the actual WAD file name. We cannot simply get a NAND
+  // Loader for the title id in those cases, since the WAD need not be installed
+  // in the NAND, but it could be opened directly from a WAD file anywhere on disk.
   if (m_TitleID == title_id && !m_ContentFile.empty())
     return DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
 
   return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
-u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
+u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd, u64 title_id)
 {
-  u64 title_id = 0xDEADBEEFDEADBEEFull;
   u64 tmd_title_id = Common::swap64(&tmd[0x18C]);
-
-  DVDInterface::GetVolume().GetTitleID(&title_id);
   if (title_id != tmd_title_id)
     return -1;
 

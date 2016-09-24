@@ -59,7 +59,7 @@ void DoState(PointerWrap& p);
 
 // Set default content file
 void SetDefaultContentFile(const std::string& _rFilename);
-void ES_DIVerify(const std::vector<u8>& tmd);
+void ES_DIVerify(const std::vector<u8>& tmd, u64 title_id);
 
 void SDIO_EventNotify();
 

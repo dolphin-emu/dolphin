@@ -10,6 +10,7 @@
 namespace DiscIO
 {
 enum class Country;
+class IVolume;
 }
 
 struct CountrySetting
@@ -42,7 +43,8 @@ public:
                           std::string* title_id = nullptr);
 
 private:
-  static bool DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt);
+  static bool DVDRead(const DiscIO::IVolume& volume, u64 dvd_offset, u32 output_address, u32 length,
+                      bool decrypt);
   static void RunFunction(u32 _iAddr);
 
   static void UpdateDebugger_MapLoaded();
@@ -51,11 +53,11 @@ private:
   static bool Boot_ELF(const std::string& filename);
   static bool Boot_WiiWAD(const std::string& filename);
 
-  static bool EmulatedBS2_GC(bool skipAppLoader = false);
-  static bool EmulatedBS2_Wii();
-  static bool EmulatedBS2(bool _bIsWii);
+  static bool EmulatedBS2_GC(const DiscIO::IVolume* volume, bool skipAppLoader = false);
+  static bool EmulatedBS2_Wii(const DiscIO::IVolume* volume);
+  static bool EmulatedBS2(bool _bIsWii, const DiscIO::IVolume* volume);
   static bool Load_BS2(const std::string& _rBootROMFilename);
-  static void Load_FST(bool _bIsWii);
+  static void Load_FST(bool _bIsWii, const DiscIO::IVolume* volume);
 
-  static bool SetupWiiMemory(DiscIO::Country country);
+  static bool SetupWiiMemory(DiscIO::Country country, const DiscIO::IVolume* volume);
 };
