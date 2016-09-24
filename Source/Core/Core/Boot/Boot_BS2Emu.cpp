@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -178,7 +179,8 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   PatchEngine::LoadPatches();
 
   // If we have any patches that need to be applied very early, here's a good place
-  PatchEngine::ApplyFramePatches();
+  bool patched = PatchEngine::ApplyFramePatches();
+  _assert_(patched);
 
   return true;
 }

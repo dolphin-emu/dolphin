@@ -52,6 +52,6 @@ constexpr u32 HLE_TRAMPOLINE_ADDRESS = INSTALLER_END_ADDRESS - 4;
 constexpr u32 MAGIC_GAMEID = 0xD01F1BAD;
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes);
-void RunCodeHandler(u32 msr_reg);
+void RunCodeHandler();
 
 }  // namespace Gecko

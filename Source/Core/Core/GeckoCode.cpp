@@ -157,24 +157,10 @@ static Installation InstallCodeHandlerLocked()
   return Installation::Installed;
 }
 
-void RunCodeHandler(u32 msr_reg)
+void RunCodeHandler()
 {
   if (!SConfig::GetInstance().bEnableCheats)
     return;
-
-  // Dolphin's hook mechanism is less 'precise' than Gecko OS' which detects particular
-  // instruction sequences (uses configuration, not automatic) that only run once per frame
-  // which includes a BLR as one of the instructions. It then overwrites the BLR with a
-  // "B 0x800018A8" to establish the hook. Dolphin uses its own internal VI interrupt which
-  // means the PC is non-deterministic and could be anywhere.
-  UReg_MSR msr = msr_reg;
-  if (!msr.DR || !msr.IR)
-  {
-    WARN_LOG(ACTIONREPLAY, "GeckoCode: Skipping frame update. MSR.IR/DR is currently disabled. "
-                           "PC = 0x%08X, MSR = 0x%08X",
-             PC, msr_reg);
-    return;
-  }
 
   std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
   // Don't spam retry if the install failed. The corrupt / missing disk file is not likely to be

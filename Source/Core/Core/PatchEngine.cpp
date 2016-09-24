@@ -203,22 +203,29 @@ static void ApplyPatches(const std::vector<Patch>& patches)
   }
 }
 
-void ApplyFramePatches()
+bool ApplyFramePatches()
 {
-  // TODO: Messing with MSR this way is really, really, evil; we should
-  // probably be using some sort of Gecko OS-style hooking mechanism
-  // so the emulated CPU is in a predictable state when we process cheats.
-  u32 oldMSR = MSR;
-  UReg_MSR newMSR = oldMSR;
-  newMSR.IR = 1;
-  newMSR.DR = 1;
-  MSR = newMSR.Hex;
+  // Because we're using the VI Interrupt to time this instead of patching the game with a
+  // callback hook we can end up catching the game in an exception vector.
+  // We deal with this by returning false so that SystemTimers will reschedule us in a few cycles
+  // where we can try again after the CPU hopefully returns back to the normal instruction flow.
+  UReg_MSR msr = MSR;
+  if (!msr.DR || !msr.IR)
+  {
+    INFO_LOG(
+        ACTIONREPLAY,
+        "Need to retry later. CPU configuration is currently incorrect. PC = 0x%08X, MSR = 0x%08X",
+        PC, MSR);
+    return false;
+  }
+
   ApplyPatches(onFrame);
 
   // Run the Gecko code handler
-  Gecko::RunCodeHandler(oldMSR);
+  Gecko::RunCodeHandler();
   ActionReplay::RunAllActive();
-  MSR = oldMSR;
+
+  return true;
 }
 
 void Shutdown()
