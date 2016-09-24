@@ -39,7 +39,14 @@ bool GeckoCode::Compare(const GeckoCode& compare) const
                     });
 }
 
-static bool s_code_handler_installed = false;
+enum class Installation
+{
+  Uninstalled,
+  Installed,
+  Failed
+};
+
+static Installation s_code_handler_installed = Installation::Uninstalled;
 // the currently active codes
 static std::vector<GeckoCode> s_active_codes;
 static std::mutex s_active_codes_lock;
@@ -54,24 +61,24 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
                [](const GeckoCode& code) { return code.enabled; });
   s_active_codes.shrink_to_fit();
 
-  s_code_handler_installed = false;
+  s_code_handler_installed = Installation::Uninstalled;
 }
 
 // Requires s_active_codes_lock
 // NOTE: Refer to "codehandleronly.s" from Gecko OS.
-static bool InstallCodeHandlerLocked()
+static Installation InstallCodeHandlerLocked()
 {
   std::string data;
   if (!File::ReadFileToString(File::GetSysDirectory() + GECKO_CODE_HANDLER, data))
   {
     ERROR_LOG(ACTIONREPLAY, "Could not enable cheats because " GECKO_CODE_HANDLER " was missing.");
-    return false;
+    return Installation::Failed;
   }
 
   if (data.size() > INSTALLER_END_ADDRESS - INSTALLER_BASE_ADDRESS - CODE_SIZE)
   {
     ERROR_LOG(ACTIONREPLAY, GECKO_CODE_HANDLER " is too big. The file may be corrupt.");
-    return false;
+    return Installation::Failed;
   }
 
   u8 mmio_addr = 0xCC;
@@ -148,7 +155,7 @@ static bool InstallCodeHandlerLocked()
   {
     PowerPC::ppcState.iCache.Invalidate(INSTALLER_BASE_ADDRESS + j);
   }
-  return true;
+  return Installation::Installed;
 }
 
 void RunCodeHandler()
@@ -157,15 +164,17 @@ void RunCodeHandler()
     return;
 
   std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
-  if (s_active_codes.empty())
+  // Don't spam retry if the install failed. The corrupt / missing disk file is not likely to be
+  // fixed within 1 frame of the last error.
+  if (s_active_codes.empty() || s_code_handler_installed == Installation::Failed)
     return;
 
-  if (!s_code_handler_installed)
+  if (s_code_handler_installed != Installation::Installed)
   {
     s_code_handler_installed = InstallCodeHandlerLocked();
 
     // A warning was already issued for the install failing
-    if (!s_code_handler_installed)
+    if (s_code_handler_installed != Installation::Installed)
       return;
   }
 
