@@ -218,8 +218,8 @@ bool TMemCheck::Action(DebugInterface* debug_interface, u32 iValue, u32 addr, bo
                debug_interface->GetDescription(pc).c_str(), write ? "Write" : "Read", size * 8,
                size * 2, iValue, addr, debug_interface->GetDescription(addr).c_str());
     }
-
-    return true;
+    if (Break)
+      return true;
   }
   return false;
 }
