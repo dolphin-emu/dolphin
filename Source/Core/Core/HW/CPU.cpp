@@ -279,7 +279,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
     bool success = s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::seconds(10),
                                                   [] { return !s_state_cpu_thread_active; });
     if (!success)
-      NOTICE_LOG(
+      ERROR_LOG(
           POWERPC,
           "Abandoned CPU Thread synchronization in CPU::PauseAndLock! We'll probably crash now.");
 

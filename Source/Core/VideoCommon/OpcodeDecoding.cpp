@@ -211,7 +211,7 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list)
       if (in_display_list)
       {
         totalCycles += 6;
-        WARN_LOG(VIDEO, "recursive display list detected");
+        INFO_LOG(VIDEO, "recursive display list detected");
       }
       else
       {

@@ -186,8 +186,8 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
     ReturnValue = FS_RESULT_FATAL;
 
     const s32 fileSize = (s32)m_file->GetSize();
-    INFO_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", SeekPosition,
-             Mode, m_Name.c_str(), fileSize);
+    DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)",
+              SeekPosition, Mode, m_Name.c_str(), fileSize);
 
     switch (Mode)
     {
@@ -256,8 +256,8 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
     }
     else
     {
-      INFO_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address,
-               m_Name.c_str());
+      DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address,
+                m_Name.c_str());
       m_file->Seek(m_SeekPos, SEEK_SET);  // File might be opened twice, need to seek before we read
       ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, m_file->GetHandle());
       if (ReturnValue != Size && ferror(m_file->GetHandle()))
@@ -299,8 +299,8 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
     }
     else
     {
-      INFO_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", Size, Address,
-               m_Name.c_str());
+      DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", Size, Address,
+                m_Name.c_str());
       m_file->Seek(m_SeekPos,
                    SEEK_SET);  // File might be opened twice, need to seek before we write
       if (m_file->WriteBytes(Memory::GetPointer(Address), Size))
@@ -324,7 +324,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 {
-  INFO_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", m_Name.c_str());
+  DEBUG_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", m_Name.c_str());
 #if defined(_DEBUG) || defined(DEBUGFAST)
   DumpCommands(_CommandAddress);
 #endif
@@ -340,8 +340,8 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
       u32 m_FileLength = (u32)m_file->GetSize();
 
       const u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-      INFO_LOG(WII_IPC_FILEIO, "  File: %s, Length: %i, Pos: %i", m_Name.c_str(), m_FileLength,
-               m_SeekPos);
+      DEBUG_LOG(WII_IPC_FILEIO, "  File: %s, Length: %i, Pos: %i", m_Name.c_str(), m_FileLength,
+                m_SeekPos);
 
       Memory::Write_U32(m_FileLength, BufferOut);
       Memory::Write_U32(m_SeekPos, BufferOut + 4);

@@ -306,7 +306,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
   case BBA_NCRA:
     if (data & NCRA_RESET)
     {
-      DEBUG_LOG(SP1, "Software reset");
+      INFO_LOG(SP1, "Software reset");
       // MXSoftReset();
       Activate();
     }
@@ -328,7 +328,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 
       if (data & NCRA_ST0)
       {
-        WARN_LOG(SP1, "start tx - local DMA");
+        INFO_LOG(SP1, "start tx - local DMA");
         SendFromPacketBuffer();
       }
       else if (data & NCRA_ST1)
@@ -491,10 +491,10 @@ bool CEXIETHERNET::RecvHandlePacket()
     goto wait_for_next;
 
 #ifdef BBA_TRACK_PAGE_PTRS
-  WARN_LOG(SP1, "RecvHandlePacket %x\n%s", mRecvBufferLength,
+  INFO_LOG(SP1, "RecvHandlePacket %x\n%s", mRecvBufferLength,
            ArrayToString(mRecvBuffer, mRecvBufferLength, 0x100).c_str());
 
-  WARN_LOG(SP1, "%x %x %x %x", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
+  INFO_LOG(SP1, "%x %x %x %x", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
            page_ptr(BBA_RHBP));
 #endif
 
@@ -542,7 +542,7 @@ bool CEXIETHERNET::RecvHandlePacket()
     inc_rwp();
 
 #ifdef BBA_TRACK_PAGE_PTRS
-  WARN_LOG(SP1, "%x %x %x %x", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
+  INFO_LOG(SP1, "%x %x %x %x", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
            page_ptr(BBA_RHBP));
 #endif
 

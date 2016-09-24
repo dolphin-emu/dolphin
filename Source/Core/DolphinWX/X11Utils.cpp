@@ -58,7 +58,7 @@ void InhibitScreensaver(Display* dpy, Window win, bool suspend)
     while (waitpid(pid, &status, 0) == -1)
       ;
 
-    DEBUG_LOG(VIDEO, "Started xdg-screensaver (PID = %d)", (int)pid);
+    INFO_LOG(VIDEO, "Started xdg-screensaver (PID = %d)", (int)pid);
   }
 }
 

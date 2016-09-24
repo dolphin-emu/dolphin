@@ -754,7 +754,7 @@ std::string GetSysDirectory()
 #endif
   sysDir += DIR_SEP;
 
-  INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
+  DEBUG_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
   return sysDir;
 }
 
