@@ -17,7 +17,7 @@ class CBlobBigEndianReader;
 class WiiWAD
 {
 public:
-  WiiWAD(const std::string& name);
+  explicit WiiWAD(const std::string& name);
   ~WiiWAD();
 
   bool IsValid() const { return m_valid; }
