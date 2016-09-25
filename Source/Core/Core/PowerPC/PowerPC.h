@@ -209,6 +209,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 u8 HostRead_U8(const u32 address);
 u16 HostRead_U16(const u32 address);
 u32 HostRead_U32(const u32 address);
+u64 HostRead_U64(const u32 address);
 u32 HostRead_Instruction(const u32 address);
 
 void HostWrite_U8(const u8 var, const u32 address);

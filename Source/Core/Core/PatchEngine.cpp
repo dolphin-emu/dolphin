@@ -216,7 +216,7 @@ void ApplyFramePatches()
   ApplyPatches(onFrame);
 
   // Run the Gecko code handler
-  Gecko::RunCodeHandler();
+  Gecko::RunCodeHandler(oldMSR);
   ActionReplay::RunAllActive();
   MSR = oldMSR;
 }

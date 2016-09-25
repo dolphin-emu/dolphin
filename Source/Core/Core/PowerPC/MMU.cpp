@@ -565,6 +565,11 @@ u32 HostRead_U32(const u32 address)
   return var;
 }
 
+u64 HostRead_U64(const u32 address)
+{
+  return ReadFromHardware<FLAG_NO_EXCEPTION, u64>(address);
+}
+
 void HostWrite_U8(const u8 var, const u32 address)
 {
   WriteToHardware<FLAG_NO_EXCEPTION, u8>(address, var);

@@ -60,7 +60,9 @@ static const SPatch OSPatches[] = {
     {"___blank", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
     {"__write_console", HLE_OS::HLE_write_console, HLE_HOOK_REPLACE,
      HLE_TYPE_DEBUG},  // used by sysmenu (+more?)
-    {"GeckoCodehandler", HLE_Misc::HLEGeckoCodehandler, HLE_HOOK_START, HLE_TYPE_GENERIC},
+    {"GeckoCodehandler", HLE_Misc::GeckoCodeHandlerICacheFlush, HLE_HOOK_START, HLE_TYPE_GENERIC},
+    {"GeckoHandlerReturnTrampoline", HLE_Misc::GeckoReturnTrampoline, HLE_HOOK_REPLACE,
+     HLE_TYPE_GENERIC},
 };
 
 static const SPatch OSBreakPoints[] = {

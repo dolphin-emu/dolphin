@@ -18,7 +18,6 @@
 
 namespace Gecko
 {
-static constexpr u32 INSTALLER_END_ADDRESS = 0x80003000;
 static constexpr u32 CODE_SIZE = 8;
 
 // return true if a code exists
@@ -107,7 +106,7 @@ static Installation InstallCodeHandlerLocked()
   const u32 codelist_end_address = INSTALLER_END_ADDRESS;
 
   // Write a magic value to 'gameid' (codehandleronly does not actually read this).
-  // This value will be read back and modified over time by HLE_Misc::HLEGeckoCodehandler.
+  // This value will be read back and modified over time by HLE_Misc::GeckoCodeHandlerICacheFlush.
   PowerPC::HostWrite_U32(MAGIC_GAMEID, INSTALLER_BASE_ADDRESS);
 
   // Create GCT in memory
@@ -158,10 +157,24 @@ static Installation InstallCodeHandlerLocked()
   return Installation::Installed;
 }
 
-void RunCodeHandler()
+void RunCodeHandler(u32 msr_reg)
 {
   if (!SConfig::GetInstance().bEnableCheats)
     return;
+
+  // Dolphin's hook mechanism is less 'precise' than Gecko OS' which detects particular
+  // instruction sequences (uses configuration, not automatic) that only run once per frame
+  // which includes a BLR as one of the instructions. It then overwrites the BLR with a
+  // "B 0x800018A8" to establish the hook. Dolphin uses its own internal VI interrupt which
+  // means the PC is non-deterministic and could be anywhere.
+  UReg_MSR msr = msr_reg;
+  if (!msr.DR || !msr.IR)
+  {
+    WARN_LOG(ACTIONREPLAY, "GeckoCode: Skipping frame update. MSR.IR/DR is currently disabled. "
+                           "PC = 0x%08X, MSR = 0x%08X",
+             PC, msr_reg);
+    return;
+  }
 
   std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
   // Don't spam retry if the install failed. The corrupt / missing disk file is not likely to be
@@ -180,11 +193,36 @@ void RunCodeHandler()
 
   // If the last block that just executed ended with a BLR instruction then we can intercept it and
   // redirect control into the Gecko Code Handler. The Code Handler will automatically BLR back to
-  // the original return address (which will still be in the link register) at the end.
-  if (PC == LR)
+  // the original return address (which will still be in the link register).
+  if (PC != LR)
   {
-    PC = NPC = ENTRY_POINT;
+    // We're at a random address in the middle of something so we have to do this the hard way.
+    // The codehandler will STMW all of the GPR registers, but we need to fix the Stack's Red
+    // Zone, the LR, PC (return address) and the volatile floating point registers.
+    // Build a function call stack frame.
+    u32 SFP = GPR(1);                     // Stack Frame Pointer
+    GPR(1) -= 224;                        // Stack's Red Zone
+    GPR(1) -= 16 + 2 * 14 * sizeof(u64);  // Our stack frame (HLE_Misc::GeckoReturnTrampoline)
+    GPR(1) -= 8;                          // Fake stack frame for codehandler
+    GPR(1) &= 0xFFFFFFF0;                 // Align stack to 16bytes
+    u32 SP = GPR(1);                      // Stack Pointer
+    PowerPC::HostWrite_U32(SP + 8, SP);
+    // SP + 4 is reserved for the codehandler to save LR to the stack.
+    PowerPC::HostWrite_U32(SFP, SP + 8);  // Real stack frame
+    PowerPC::HostWrite_U32(PC, SP + 12);
+    PowerPC::HostWrite_U32(LR, SP + 16);
+    // Registers FPR0->13 are volatile
+    for (int i = 0; i < 14; ++i)
+    {
+      PowerPC::HostWrite_U64(riPS0(i), SP + 24 + 2 * i * sizeof(u64));
+      PowerPC::HostWrite_U64(riPS1(i), SP + 24 + (2 * i + 1) * sizeof(u64));
+    }
+    LR = HLE_TRAMPOLINE_ADDRESS;
+    DEBUG_LOG(ACTIONREPLAY, "GeckoCodes: Initiating phantom branch-and-link. "
+                            "PC = 0x%08X, SP = 0x%08X, SFP = 0x%08X",
+              PC, SP, SFP);
   }
+  PC = NPC = ENTRY_POINT;
 }
 
 }  // namespace Gecko
