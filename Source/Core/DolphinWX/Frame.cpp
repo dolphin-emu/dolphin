@@ -386,13 +386,8 @@ static BOOL WINAPI s_ctrl_handler(DWORD fdwCtrlType)
 CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, const wxPoint& pos,
                const wxSize& size, bool _UseDebugger, bool _BatchMode, bool ShowLogWindow,
                long style)
-    : CRenderFrame(parent, id, title, pos, size, style), g_pCodeWindow(nullptr),
-      g_NetPlaySetupDiag(nullptr), g_CheatsWindow(nullptr), m_SavedPerspectives(nullptr),
-      m_ToolBar(nullptr), m_GameListCtrl(nullptr), m_Panel(nullptr), m_RenderFrame(nullptr),
-      m_RenderParent(nullptr), m_LogWindow(nullptr), m_LogConfigWindow(nullptr),
-      m_FifoPlayerDlg(nullptr), UseDebugger(_UseDebugger), m_bBatchMode(_BatchMode), m_bEdit(false),
-      m_bTabSplit(false), m_bNoDocking(false), m_bGameLoading(false), m_bClosing(false),
-      m_confirmStop(false), m_menubar_shadow(nullptr)
+    : CRenderFrame(parent, id, title, pos, size, style), UseDebugger(_UseDebugger),
+      m_bBatchMode(_BatchMode)
 {
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
     bFloatWindow[i] = false;

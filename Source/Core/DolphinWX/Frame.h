@@ -79,9 +79,9 @@ public:
   }
 
   // These have to be public
-  CCodeWindow* g_pCodeWindow;
-  NetPlaySetupFrame* g_NetPlaySetupDiag;
-  wxCheatsWindow* g_CheatsWindow;
+  CCodeWindow* g_pCodeWindow = nullptr;
+  NetPlaySetupFrame* g_NetPlaySetupDiag = nullptr;
+  wxCheatsWindow* g_CheatsWindow = nullptr;
   TASInputDlg* g_TASInputDlg[8];
 
   void InitBitmaps();
@@ -123,11 +123,11 @@ public:
   X11Utils::XRRConfiguration* m_XRRConfig;
 #endif
 
-  wxMenu* m_SavedPerspectives;
+  wxMenu* m_SavedPerspectives = nullptr;
 
-  wxToolBar* m_ToolBar;
+  wxToolBar* m_ToolBar = nullptr;
   // AUI
-  wxAuiManager* m_Mgr;
+  wxAuiManager* m_Mgr = nullptr;
   bool bFloatWindow[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
 
   // Perspectives (Should find a way to make all of this private)
@@ -143,21 +143,21 @@ public:
   u32 ActivePerspective;
 
 private:
-  CGameListCtrl* m_GameListCtrl;
-  wxPanel* m_Panel;
-  CRenderFrame* m_RenderFrame;
-  wxWindow* m_RenderParent;
-  CLogWindow* m_LogWindow;
-  LogConfigWindow* m_LogConfigWindow;
-  FifoPlayerDlg* m_FifoPlayerDlg;
-  bool UseDebugger;
-  bool m_bBatchMode;
-  bool m_bEdit;
-  bool m_bTabSplit;
-  bool m_bNoDocking;
-  bool m_bGameLoading;
-  bool m_bClosing;
-  bool m_confirmStop;
+  CGameListCtrl* m_GameListCtrl = nullptr;
+  wxPanel* m_Panel = nullptr;
+  CRenderFrame* m_RenderFrame = nullptr;
+  wxWindow* m_RenderParent = nullptr;
+  CLogWindow* m_LogWindow = nullptr;
+  LogConfigWindow* m_LogConfigWindow = nullptr;
+  FifoPlayerDlg* m_FifoPlayerDlg = nullptr;
+  bool UseDebugger = false;
+  bool m_bBatchMode = false;
+  bool m_bEdit = false;
+  bool m_bTabSplit = false;
+  bool m_bNoDocking = false;
+  bool m_bGameLoading = false;
+  bool m_bClosing = false;
+  bool m_confirmStop = false;
   int m_saveSlot = 1;
 
   std::vector<std::string> drives;
@@ -191,7 +191,7 @@ private:
 
   wxBitmap m_Bitmaps[EToolbar_Max];
 
-  wxMenuBar* m_menubar_shadow;
+  wxMenuBar* m_menubar_shadow = nullptr;
 
   void PopulateToolbar(wxToolBar* toolBar);
   void RecreateToolbar();
