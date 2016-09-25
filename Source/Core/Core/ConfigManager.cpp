@@ -27,24 +27,6 @@
 SConfig* SConfig::m_Instance;
 
 SConfig::SConfig()
-    : bEnableDebugging(false), bAutomaticStart(false), bBootToPause(false), bJITNoBlockCache(false),
-      bJITNoBlockLinking(false), bJITOff(false), bJITLoadStoreOff(false),
-      bJITLoadStorelXzOff(false), bJITLoadStorelwzOff(false), bJITLoadStorelbzxOff(false),
-      bJITLoadStoreFloatingOff(false), bJITLoadStorePairedOff(false), bJITFloatingPointOff(false),
-      bJITIntegerOff(false), bJITPairedOff(false), bJITSystemRegistersOff(false),
-      bJITBranchOff(false), bJITILTimeProfiling(false), bJITILOutputIR(false), bFPRF(false),
-      bAccurateNaNs(false), iTimingVariance(40), bCPUThread(true), bDSPThread(false), bDSPHLE(true),
-      bSkipIdle(true), bSyncGPUOnSkipIdleHack(true), bNTSC(false), bForceNTSCJ(false),
-      bHLE_BS2(true), bEnableCheats(false), bEnableMemcardSdWriting(true), bDPL2Decoder(false),
-      iLatency(14), bRunCompareServer(false), bRunCompareClient(false), bMMU(false),
-      bDCBZOFF(false), iBBDumpPort(0), bFastDiscSpeed(false), bSyncGPU(false), SelectedLanguage(0),
-      bOverrideGCLanguage(false), bWii(false), bConfirmStop(false), bHideCursor(false),
-      bAutoHideCursor(false), bUsePanicHandlers(true), bOnScreenDisplayMessages(true),
-      iRenderWindowXPos(-1), iRenderWindowYPos(-1), iRenderWindowWidth(640),
-      iRenderWindowHeight(480), bRenderWindowAutoSize(false), bKeepWindowOnTop(false),
-      bFullscreen(false), bRenderToMain(false), bProgressive(false), bPAL60(false),
-      bDisableScreenSaver(false), iPosX(100), iPosY(100), iWidth(800), iHeight(600),
-      m_analytics_enabled(false), m_analytics_permission_asked(false), bLoopFifoReplay(true)
 {
   LoadDefaults();
   // Make sure we have log manager

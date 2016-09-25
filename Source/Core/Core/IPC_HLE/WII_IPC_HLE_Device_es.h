@@ -132,8 +132,8 @@ private:
   CContentAccessMap m_ContentAccessMap;
 
   std::vector<u64> m_TitleIDs;
-  u64 m_TitleID;
-  u32 m_AccessIdentID;
+  u64 m_TitleID = -1;
+  u32 m_AccessIdentID = 0x6000000;
 
   static u8* keyTable[11];
 

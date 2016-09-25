@@ -53,91 +53,98 @@ struct SConfig : NonCopyable
   bool m_RecursiveISOFolder;
 
   // Settings
-  bool bEnableDebugging;
+  bool bEnableDebugging = false;
 #ifdef USE_GDBSTUB
   int iGDBPort;
 #ifndef _WIN32
   std::string gdb_socket;
 #endif
 #endif
-  bool bAutomaticStart;
-  bool bBootToPause;
+  bool bAutomaticStart = false;
+  bool bBootToPause = false;
 
   int iCPUCore;
 
   // JIT (shared between JIT and JITIL)
-  bool bJITNoBlockCache, bJITNoBlockLinking;
-  bool bJITOff;
-  bool bJITLoadStoreOff, bJITLoadStorelXzOff, bJITLoadStorelwzOff, bJITLoadStorelbzxOff;
-  bool bJITLoadStoreFloatingOff;
-  bool bJITLoadStorePairedOff;
-  bool bJITFloatingPointOff;
-  bool bJITIntegerOff;
-  bool bJITPairedOff;
-  bool bJITSystemRegistersOff;
-  bool bJITBranchOff;
-  bool bJITILTimeProfiling;
-  bool bJITILOutputIR;
+  bool bJITNoBlockCache = false;
+  bool bJITNoBlockLinking = false;
+  bool bJITOff = false;
+  bool bJITLoadStoreOff = false;
+  bool bJITLoadStorelXzOff = false;
+  bool bJITLoadStorelwzOff = false;
+  bool bJITLoadStorelbzxOff = false;
+  bool bJITLoadStoreFloatingOff = false;
+  bool bJITLoadStorePairedOff = false;
+  bool bJITFloatingPointOff = false;
+  bool bJITIntegerOff = false;
+  bool bJITPairedOff = false;
+  bool bJITSystemRegistersOff = false;
+  bool bJITBranchOff = false;
+  bool bJITILTimeProfiling = false;
+  bool bJITILOutputIR = false;
 
   bool bFastmem;
-  bool bFPRF;
-  bool bAccurateNaNs;
+  bool bFPRF = false;
+  bool bAccurateNaNs = false;
 
-  int iTimingVariance;  // in milli secounds
-  bool bCPUThread;
-  bool bDSPThread;
-  bool bDSPHLE;
-  bool bSkipIdle;
-  bool bSyncGPUOnSkipIdleHack;
-  bool bNTSC;
-  bool bForceNTSCJ;
-  bool bHLE_BS2;
-  bool bEnableCheats;
-  bool bEnableMemcardSdWriting;
+  int iTimingVariance = 40;  // in milli secounds
+  bool bCPUThread = true;
+  bool bDSPThread = false;
+  bool bDSPHLE = true;
+  bool bSkipIdle = true;
+  bool bSyncGPUOnSkipIdleHack = true;
+  bool bNTSC = false;
+  bool bForceNTSCJ = false;
+  bool bHLE_BS2 = true;
+  bool bEnableCheats = false;
+  bool bEnableMemcardSdWriting = true;
 
-  bool bDPL2Decoder;
-  int iLatency;
+  bool bDPL2Decoder = false;
+  int iLatency = 14;
 
-  bool bRunCompareServer;
-  bool bRunCompareClient;
+  bool bRunCompareServer = false;
+  bool bRunCompareClient = false;
 
-  bool bMMU;
-  bool bDCBZOFF;
-  int iBBDumpPort;
-  bool bFastDiscSpeed;
+  bool bMMU = false;
+  bool bDCBZOFF = false;
+  int iBBDumpPort = 0;
+  bool bFastDiscSpeed = false;
 
-  bool bSyncGPU;
+  bool bSyncGPU = false;
   int iSyncGpuMaxDistance;
   int iSyncGpuMinDistance;
   float fSyncGpuOverclock;
 
-  int SelectedLanguage;
-  bool bOverrideGCLanguage;
+  int SelectedLanguage = 0;
+  bool bOverrideGCLanguage = false;
 
-  bool bWii;
+  bool bWii = false;
 
   // Interface settings
-  bool bConfirmStop, bHideCursor, bAutoHideCursor, bUsePanicHandlers, bOnScreenDisplayMessages;
+  bool bConfirmStop = false;
+  bool bHideCursor = false, bAutoHideCursor = false;
+  bool bUsePanicHandlers = true;
+  bool bOnScreenDisplayMessages = true;
   std::string theme_name;
 
   // Display settings
   std::string strFullscreenResolution;
-  int iRenderWindowXPos, iRenderWindowYPos;
-  int iRenderWindowWidth, iRenderWindowHeight;
-  bool bRenderWindowAutoSize, bKeepWindowOnTop;
-  bool bFullscreen, bRenderToMain;
-  bool bProgressive, bPAL60;
-  bool bDisableScreenSaver;
+  int iRenderWindowXPos = -1, iRenderWindowYPos = -1;
+  int iRenderWindowWidth = 640, iRenderWindowHeight = 480;
+  bool bRenderWindowAutoSize = false, bKeepWindowOnTop = false;
+  bool bFullscreen = false, bRenderToMain = false;
+  bool bProgressive = false, bPAL60 = false;
+  bool bDisableScreenSaver = false;
 
   int iPosX, iPosY, iWidth, iHeight;
 
   // Analytics settings.
   std::string m_analytics_id;
-  bool m_analytics_enabled;
-  bool m_analytics_permission_asked;
+  bool m_analytics_enabled = false;
+  bool m_analytics_permission_asked = false;
 
   // Fifo Player related settings
-  bool bLoopFifoReplay;
+  bool bLoopFifoReplay = true;
 
   // Custom RTC
   bool bEnableCustomRTC;

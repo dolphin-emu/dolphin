@@ -17,7 +17,7 @@
 
 #include "Core/Movie.h"
 
-SysConf::SysConf() : m_IsValid(false)
+SysConf::SysConf()
 {
   UpdateLocation();
 }
