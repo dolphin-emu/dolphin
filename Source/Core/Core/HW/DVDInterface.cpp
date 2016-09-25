@@ -296,6 +296,19 @@ void DoState(PointerWrap& p)
   p.Do(s_stop_at_track_end);
 
   DVDThread::DoState(p);
+
+  // s_inserted_volume isn't savestated (because it points to
+  // files on the local system). Instead, we check that
+  // s_disc_inside matches the status of s_inserted_volume.
+  // This won't catch cases of having the wrong disc inserted, though.
+  // TODO: Check the game ID, disc number, revision?
+  if (s_disc_inside != (s_inserted_volume != nullptr))
+  {
+    if (s_disc_inside)
+      PanicAlertT("An inserted disc was expected but not found.");
+    else
+      s_inserted_volume.reset();
+  }
 }
 
 static u32 ProcessDTKSamples(short* tempPCM, u32 num_samples)
