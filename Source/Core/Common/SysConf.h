@@ -182,5 +182,5 @@ private:
   std::string m_Filename;
   std::string m_FilenameDefault;
   std::vector<SSysConfEntry> m_Entries;
-  bool m_IsValid;
+  bool m_IsValid = false;
 };
