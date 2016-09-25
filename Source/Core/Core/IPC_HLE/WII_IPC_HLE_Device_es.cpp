@@ -61,8 +61,8 @@
 
 std::string CWII_IPC_HLE_Device_es::m_ContentFile;
 
-CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName), m_TitleID(-1), m_AccessIdentID(0x6000000)
+CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 device_id, const std::string& device_name)
+    : IWII_IPC_HLE_Device(device_id, device_name)
 {
 }
 
