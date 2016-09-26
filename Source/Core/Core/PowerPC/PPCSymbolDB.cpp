@@ -112,7 +112,7 @@ Symbol* PPCSymbolDB::GetSymbolFromAddr(u32 addr)
   return nullptr;
 }
 
-const std::string PPCSymbolDB::GetDescription(u32 addr)
+std::string PPCSymbolDB::GetDescription(u32 addr)
 {
   Symbol* symbol = GetSymbolFromAddr(addr);
   if (symbol)
