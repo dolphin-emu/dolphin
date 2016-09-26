@@ -57,7 +57,7 @@ public final class NativeLibrary
 		public static final int WIIMOTE_BUTTON_2             = 106;
 		public static final int WIIMOTE_UP                   = 107;
 		public static final int WIIMOTE_DOWN                 = 108;
-		public static final int WIIMOTE_LEFT                 = 119;
+		public static final int WIIMOTE_LEFT                 = 109;
 		public static final int WIIMOTE_RIGHT                = 110;
 		public static final int WIIMOTE_IR                   = 111;
 		public static final int WIIMOTE_IR_UP                = 112;
