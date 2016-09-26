@@ -77,6 +77,11 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
     {
       PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
       checksumToFunction[tf.hash] = &(functions[startAddr]);
+
+      tf.function_name = tf.name.substr(0, tf.name.find('('));
+      size_t position = tf.function_name.find(' ');
+      if (position != std::string::npos)
+        tf.function_name.erase(position);
     }
     tf.size = size;
     functions[startAddr] = tf;
