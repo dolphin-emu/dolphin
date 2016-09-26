@@ -43,7 +43,7 @@ void HLE_GeneralDebugPrint()
 
   NPC = LR;
 
-  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, report_message.c_str());
+  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
 }
 
 // __write_console is slightly abnormal
@@ -53,7 +53,7 @@ void HLE_write_console()
 
   NPC = LR;
 
-  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, report_message.c_str());
+  NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
 }
 
 std::string GetStringVA(u32 strReg)
