@@ -30,9 +30,9 @@
 
 namespace PPCAnalyst
 {
-static const int CODEBUFFER_SIZE = 32000;
+constexpr int CODEBUFFER_SIZE = 32000;
 // 0 does not perform block merging
-static const u32 FUNCTION_FOLLOWING_THRESHOLD = 16;
+constexpr u32 FUNCTION_FOLLOWING_THRESHOLD = 16;
 
 CodeBuffer::CodeBuffer(int size)
 {
