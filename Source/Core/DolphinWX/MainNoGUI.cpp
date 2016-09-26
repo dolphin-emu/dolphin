@@ -6,12 +6,14 @@
 #include <cstdio>
 #include <cstring>
 #include <getopt.h>
+#include <signal.h>
 #include <string>
 #include <thread>
 #include <unistd.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/Flag.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MsgHandler.h"
 
@@ -31,7 +33,16 @@
 
 static bool rendererHasFocus = true;
 static bool rendererIsFullscreen = false;
-static bool running = true;
+static Common::Flag s_running{true};
+
+static void signal_handler(int)
+{
+  const char message[] = "A signal was received. A second signal will force Dolphin to stop.\n";
+  if (write(STDERR_FILENO, message, sizeof(message)) < 0)
+  {
+  }
+  s_running.Clear();
+}
 
 class Platform
 {
@@ -40,7 +51,7 @@ public:
   virtual void SetTitle(const std::string& title) {}
   virtual void MainLoop()
   {
-    while (running)
+    while (s_running.IsSet())
     {
       Core::HostDispatchJobs();
       std::this_thread::sleep_for(std::chrono::milliseconds(100));
@@ -64,7 +75,7 @@ void Host_Message(int Id)
 {
   if (Id == WM_USER_STOP)
   {
-    running = false;
+    s_running.Clear();
     updateMainFrameEvent.Set();
   }
 }
@@ -209,7 +220,7 @@ class PlatformX11 : public Platform
     }
 
     // The actual loop
-    while (running)
+    while (s_running.IsSet())
     {
       XEvent event;
       KeySym key;
@@ -275,7 +286,7 @@ class PlatformX11 : public Platform
           break;
         case ClientMessage:
           if ((unsigned long)event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
-            running = false;
+            s_running.Clear();
           break;
         }
       }
@@ -366,6 +377,14 @@ int main(int argc, char* argv[])
 
   platform->Init();
 
+  // Shut down cleanly on SIGINT and SIGTERM
+  struct sigaction sa;
+  sa.sa_handler = signal_handler;
+  sigemptyset(&sa.sa_mask);
+  sa.sa_flags = SA_RESETHAND;
+  sigaction(SIGINT, &sa, nullptr);
+  sigaction(SIGTERM, &sa, nullptr);
+
   DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
 
   if (!BootManager::BootCore(argv[optind]))
@@ -374,13 +393,13 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  while (!Core::IsRunning() && running)
+  while (!Core::IsRunning() && s_running.IsSet())
   {
     Core::HostDispatchJobs();
     updateMainFrameEvent.Wait();
   }
 
-  if (running)
+  if (s_running.IsSet())
     platform->MainLoop();
   Core::Stop();
 
