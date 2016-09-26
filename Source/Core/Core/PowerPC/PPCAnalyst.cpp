@@ -34,6 +34,8 @@ constexpr int CODEBUFFER_SIZE = 32000;
 // 0 does not perform block merging
 constexpr u32 FUNCTION_FOLLOWING_THRESHOLD = 16;
 
+constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
+
 CodeBuffer::CodeBuffer(int size)
 {
   codebuffer = new PPCAnalyst::CodeOp[size];
@@ -44,8 +46,6 @@ CodeBuffer::~CodeBuffer()
 {
   delete[] codebuffer;
 }
-
-#define INVALID_TARGET ((u32)-1)
 
 static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
@@ -60,7 +60,7 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
     return target;
   }
   default:
-    return INVALID_TARGET;
+    return INVALID_BRANCH_TARGET;
   }
 }
 
@@ -168,7 +168,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
         else
         {
           u32 target = EvaluateBranchTarget(instr, addr);
-          if (target != INVALID_TARGET && instr.LK)
+          if (target != INVALID_BRANCH_TARGET && instr.LK)
           {
             // we found a branch-n-link!
             func.calls.emplace_back(target, addr);
