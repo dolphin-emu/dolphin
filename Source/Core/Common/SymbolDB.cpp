@@ -41,7 +41,11 @@ Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
 {
   for (auto& func : functions)
   {
-    if (func.second.name == name)
+    // If name contains more than only the function name, only look for exact matches.
+    if (name.find('(') != std::string::npos && func.second.name == name)
+      return &func.second;
+    // If name only contains a function name, it is assumed that we only want to match by the name.
+    if (func.second.name.find(name) == 0)
       return &func.second;
   }
 
