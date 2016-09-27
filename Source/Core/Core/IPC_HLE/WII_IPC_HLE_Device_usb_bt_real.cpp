@@ -171,6 +171,12 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
       m_fake_read_buffer_size_reply.Set();
       return GetNoReply();
     }
+    if (!m_is_wii_bt_module && (opcode == 0xFC4C || opcode == 0xFC4F))
+    {
+      m_fake_vendor_command_reply.Set();
+      m_fake_vendor_command_reply_opcode = opcode;
+      return GetNoReply();
+    }
     if (opcode == HCI_CMD_DELETE_STORED_LINK_KEY)
     {
       // Delete link key(s) from our own link key storage when the game tells the adapter to
@@ -206,6 +212,11 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
     if (cmd_buffer.Parameter == USBV0_IOCTL_INTRMSG && m_fake_read_buffer_size_reply.TestAndClear())
     {
       FakeReadBufferSizeReply(*buffer);
+      return GetNoReply();
+    }
+    if (cmd_buffer.Parameter == USBV0_IOCTL_INTRMSG && m_fake_vendor_command_reply.TestAndClear())
+    {
+      FakeVendorCommandReply(*buffer);
       return GetNoReply();
     }
     if (cmd_buffer.Parameter == USBV0_IOCTL_INTRMSG &&
@@ -362,6 +373,18 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIStoreLinkKeyCommand()
   libusb_control_transfer(m_handle, type, 0, 0, 0, packet.data(), static_cast<u16>(packet.size()),
                           TIMEOUT);
   return true;
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeVendorCommandReply(const CtrlBuffer& ctrl)
+{
+  u8* packet = Memory::GetPointer(ctrl.m_payload_addr);
+  auto* hci_event = reinterpret_cast<SHCIEventCommand*>(packet);
+  hci_event->EventType = HCI_EVENT_COMMAND_COMPL;
+  hci_event->PayloadLength = sizeof(SHCIEventCommand) - 2;
+  hci_event->PacketIndicator = 0x01;
+  hci_event->Opcode = m_fake_vendor_command_reply_opcode;
+  ctrl.SetRetVal(sizeof(SHCIEventCommand));
+  EnqueueReply(ctrl.m_cmd_address);
 }
 
 // Due to how the widcomm stack which Nintendo uses is coded, we must never
