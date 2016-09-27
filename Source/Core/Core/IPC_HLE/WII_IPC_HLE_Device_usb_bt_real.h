@@ -68,8 +68,10 @@ private:
   Common::Flag m_thread_running;
   std::thread m_thread;
 
-  // Set when we received a command to read the buffer size, and we need to fake a reply
+  // Set when we received a command to which we need to fake a reply
   Common::Flag m_fake_read_buffer_size_reply;
+  Common::Flag m_fake_vendor_command_reply;
+  u16 m_fake_vendor_command_reply_opcode;
 
   bool m_is_wii_bt_module = false;
 
@@ -77,6 +79,7 @@ private:
   void SendHCIResetCommand();
   void SendHCIDeleteLinkKeyCommand();
   bool SendHCIStoreLinkKeyCommand();
+  void FakeVendorCommandReply(const CtrlBuffer& ctrl);
   void FakeReadBufferSizeReply(const CtrlBuffer& ctrl);
   void FakeSyncButtonEvent(const CtrlBuffer& ctrl, const u8* payload, u8 size);
   void FakeSyncButtonPressedEvent(const CtrlBuffer& ctrl);
