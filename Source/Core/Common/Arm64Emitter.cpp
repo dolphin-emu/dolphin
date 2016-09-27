@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <vector>
 
@@ -200,10 +201,10 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   // To repeat a value every d bits, we multiply it by a number of the form
   // (1 + 2^d + 2^(2d) + ...), i.e. 0x0001000100010001 or similar. These can
   // be derived using a table lookup on CLZ(d).
-  static const std::array<uint64_t, 6> multipliers = {
-      0x0000000000000001UL, 0x0000000100000001UL, 0x0001000100010001UL,
-      0x0101010101010101UL, 0x1111111111111111UL, 0x5555555555555555UL,
-  };
+  static const std::array<uint64_t, 6> multipliers = {{
+      0x0000000000000001UL, 0x0000000100000001UL, 0x0001000100010001UL, 0x0101010101010101UL,
+      0x1111111111111111UL, 0x5555555555555555UL,
+  }};
 
   int multiplier_idx = CountLeadingZeros(d, kXRegSizeInBits) - 57;
 
