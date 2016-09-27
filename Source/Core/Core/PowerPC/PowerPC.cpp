@@ -73,6 +73,11 @@ void DoState(PointerWrap& p)
   // comes first :)
 
   p.DoPOD(ppcState);
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    IBATUpdated();
+    DBATUpdated();
+  }
 
   // SystemTimers::DecrementerSet();
   // SystemTimers::TimeBaseSet();
@@ -107,6 +112,9 @@ static void ResetRegisters()
   ppcState.Exceptions = 0;
   for (auto& v : ppcState.cr_val)
     v = 0x8000000000000001;
+
+  DBATUpdated();
+  IBATUpdated();
 
   TL = 0;
   TU = 0;
