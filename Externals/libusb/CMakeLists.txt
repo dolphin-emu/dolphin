@@ -8,7 +8,6 @@ add_library(usb SHARED EXCLUDE_FROM_ALL
     libusb/sync.c
 )
 set_target_properties(usb PROPERTIES
-        MACOSX_RPATH TRUE
         VERSION 1.0.19
 )
 target_include_directories(usb

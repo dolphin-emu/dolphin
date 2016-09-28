@@ -319,6 +319,9 @@ if(APPLE)
 	# page on x86_64 is 4GB in size.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
 
+        # Tools/deploy-mac.py doesn't know how to handle @rpath
+        set(CMAKE_MACOSX_RPATH FALSE)
+
 	find_library(APPKIT_LIBRARY AppKit)
 	find_library(APPSERV_LIBRARY ApplicationServices)
 	find_library(ATB_LIBRARY AudioToolbox)
