@@ -551,22 +551,26 @@ if(ENCODE_FRAMEDUMPS)
 
 endif()
 
-set(CMAKE_REQUIRED_LIBRARIES portaudio)
-CHECK_CXX_SOURCE_RUNS(
-	"#include <portaudio.h>
-	int main(int argc, char **argv)
-	{ if(Pa_GetVersion() >= 1890) return 0; else return 1; }"
-	PORTAUDIO)
-unset(CMAKE_REQUIRED_LIBRARIES)
-if(PORTAUDIO)
-	message("PortAudio found, enabling mic support")
-	add_definitions(-DHAVE_PORTAUDIO=1)
+if(NOT ANDROID)
 	set(PORTAUDIO_FOUND TRUE)
-else()
-	message("PortAudio not found, disabling mic support")
-	add_definitions(-DHAVE_PORTAUDIO=0)
-	set(PORTAUDIO_FOUND FALSE)
-endif(PORTAUDIO)
+	add_definitions(-DHAVE_PORTAUDIO=1)
+
+	if(NOT APPLE)
+	    set(CMAKE_REQUIRED_LIBRARIES portaudio)
+	    CHECK_CXX_SOURCE_RUNS(
+		    "#include <portaudio.h>
+			int main(int argc, char **argv)
+			{ if(Pa_GetVersion() >= 1890) return 0; else return 1; }"
+			SYSTEM_PORTAUDIO)
+		unset(CMAKE_REQUIRED_LIBRARIES)
+	endif()
+	if(SYSTEM_PORTAUDIO AND NOT APPLE)
+		message("Using shared PortAudio for mic support")
+	else()
+		message("Using static PortAudio from Externals for mic support")
+		add_subdirectory(Externals/portaudio)
+	endif()
+endif()
 
 if(OPROFILING)
 	include(FindOProfile)
