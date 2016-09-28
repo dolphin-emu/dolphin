@@ -83,6 +83,7 @@ bool CommandBufferManager::CreateCommandBuffers()
 
   for (FrameResources& resources : m_frame_resources)
   {
+    resources.init_command_buffer_used = false;
     resources.needs_fence_wait = false;
 
     VkCommandBufferAllocateInfo allocate_info = {
@@ -325,6 +326,13 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
                               0,
                               nullptr};
 
+  // If the init command buffer did not have any commands recorded, don't submit it.
+  if (!m_frame_resources[index].init_command_buffer_used)
+  {
+    submit_info.commandBufferCount = 1;
+    submit_info.pCommandBuffers = &m_frame_resources[index].command_buffers[1];
+  }
+
   if (wait_semaphore != VK_NULL_HANDLE)
   {
     submit_info.pWaitSemaphores = &wait_semaphore;
@@ -407,6 +415,7 @@ void CommandBufferManager::ActivateCommandBuffer()
   // Reset command buffer to beginning since we can re-use the memory now
   VkCommandBufferBeginInfo begin_info = {VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO, nullptr,
                                          VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT, nullptr};
+  resources.init_command_buffer_used = false;
   for (VkCommandBuffer command_buffer : resources.command_buffers)
   {
     res = vkResetCommandBuffer(command_buffer, 0);

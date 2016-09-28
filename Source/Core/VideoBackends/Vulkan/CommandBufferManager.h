@@ -35,8 +35,9 @@ public:
   VkCommandPool GetCommandPool() const { return m_command_pool; }
   // These command buffers are allocated per-frame. They are valid until the command buffer
   // is submitted, after that you should call these functions again.
-  VkCommandBuffer GetCurrentInitCommandBuffer() const
+  VkCommandBuffer GetCurrentInitCommandBuffer()
   {
+    m_frame_resources[m_current_frame].init_command_buffer_used = true;
     return m_frame_resources[m_current_frame].command_buffers[0];
   }
   VkCommandBuffer GetCurrentCommandBuffer() const
@@ -119,6 +120,7 @@ private:
     std::array<VkCommandBuffer, 2> command_buffers;
     VkDescriptorPool descriptor_pool;
     VkFence fence;
+    bool init_command_buffer_used;
     bool needs_fence_wait;
 
     std::vector<DeferredResourceDestruction> cleanup_resources;
