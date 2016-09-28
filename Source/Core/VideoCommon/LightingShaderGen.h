@@ -46,6 +46,6 @@ static const char s_lighting_struct[] = "struct Light {\n"
                                         "\tfloat4 dir;\n"
                                         "};\n";
 
-void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data, int components,
+void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data, int components, u32 numColorChans,
                                 const char* inColorName, const char* dest);
 void GetLightingShaderUid(LightingUidData& uid_data);
