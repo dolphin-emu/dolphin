@@ -34,14 +34,15 @@ elseif(APPLE)
         ${OBJC_LIBRARY}
     )
     set(OS_DARWIN TRUE)
-elseif(ANDROID)
-    target_sources(usb PRIVATE
-        libusb/os/linux_usbfs.c
-        libusb/os/linux_netlink.c
-    )
-    find_library(LOG_LIBRARY log)
-    target_link_libraries(usb PRIVATE ${LOG_LIBRARY})
-    set(OS_LINUX TRUE)
+# # Dolphin on Android doesn't use libusb.
+#elseif(ANDROID)
+#    target_sources(usb PRIVATE
+#        libusb/os/linux_usbfs.c
+#        libusb/os/linux_netlink.c
+#    )
+#    find_library(LOG_LIBRARY log)
+#    target_link_libraries(usb PRIVATE ${LOG_LIBRARY})
+#    set(OS_LINUX TRUE)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux")
     target_sources(usb PRIVATE libusb/os/linux_usbfs.c)
     find_package(Libudev)
