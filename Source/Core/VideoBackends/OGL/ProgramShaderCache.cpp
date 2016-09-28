@@ -202,6 +202,11 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
     return &last_entry->shader;
   }
 
+  return CompileShader(uid);
+}
+
+SHADER* ProgramShaderCache::CompileShader(const SHADERUID& uid)
+{
   // Make an entry in the table
   PCacheEntry& newentry = pshaders[uid];
   last_entry = &newentry;
@@ -273,9 +278,6 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
   glAttachShader(pid, psid);
   if (gsid)
     glAttachShader(pid, gsid);
-
-  if (g_ogl_config.bSupportsGLSLCache)
-    glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 
   shader.SetProgramBindings();
 
@@ -398,6 +400,13 @@ ProgramShaderCache::PCacheEntry ProgramShaderCache::GetShaderProgram()
   return *last_entry;
 }
 
+void ProgramShaderCache::ProgramShaderCacheInserter::Read(const SHADERUID& key, const u8* value,
+                                                          u32 value_size)
+{
+  CompileShader(key);
+  last_entry->in_cache = true;
+}
+
 void ProgramShaderCache::Init()
 {
   // We have to get the UBO alignment here because
@@ -414,78 +423,37 @@ void ProgramShaderCache::Init()
   // Then once more to get bytes
   s_buffer = StreamBuffer::Create(GL_UNIFORM_BUFFER, UBO_LENGTH);
 
-  // Read our shader cache, only if supported
-  if (g_ogl_config.bSupportsGLSLCache)
-  {
-    GLint Supported;
-    glGetIntegerv(GL_NUM_PROGRAM_BINARY_FORMATS, &Supported);
-    if (!Supported)
-    {
-      ERROR_LOG(VIDEO, "GL_ARB_get_program_binary is supported, but no binary format is known. So "
-                       "disable shader cache.");
-      g_ogl_config.bSupportsGLSLCache = false;
-    }
-    else
-    {
-      if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-        File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
-
-      std::string cache_filename =
-          StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                           SConfig::GetInstance().m_strUniqueID.c_str());
-
-      ProgramShaderCacheInserter inserter;
-      g_program_disk_cache.OpenAndRead(cache_filename, inserter);
-    }
-    SETSTAT(stats.numPixelShadersAlive, pshaders.size());
-  }
-
   CreateHeader();
 
   CurrentProgram = 0;
   last_entry = nullptr;
 }
 
+void ProgramShaderCache::LoadCache()
+{
+  // Read our shader cache
+  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+
+  std::string cache_filename =
+      StringFromFormat("%sogl-%s-shaders.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+                       SConfig::GetInstance().m_strUniqueID.c_str());
+
+  ProgramShaderCacheInserter inserter;
+  g_program_disk_cache.OpenAndRead(cache_filename, inserter);
+}
+
 void ProgramShaderCache::Shutdown()
 {
   // store all shaders in cache on disk
-  if (g_ogl_config.bSupportsGLSLCache)
+  for (const auto& entry : pshaders)
   {
-    for (auto& entry : pshaders)
+    if (!entry.second.in_cache)
     {
-      // Clear any prior error code
-      glGetError();
-
-      if (entry.second.in_cache)
-      {
-        continue;
-      }
-
-      GLint link_status = GL_FALSE, delete_status = GL_TRUE, binary_size = 0;
-      glGetProgramiv(entry.second.shader.glprogid, GL_LINK_STATUS, &link_status);
-      glGetProgramiv(entry.second.shader.glprogid, GL_DELETE_STATUS, &delete_status);
-      glGetProgramiv(entry.second.shader.glprogid, GL_PROGRAM_BINARY_LENGTH, &binary_size);
-      if (glGetError() != GL_NO_ERROR || link_status == GL_FALSE || delete_status == GL_TRUE ||
-          !binary_size)
-      {
-        continue;
-      }
-
-      std::vector<u8> data(binary_size + sizeof(GLenum));
-      u8* binary = &data[sizeof(GLenum)];
-      GLenum* prog_format = (GLenum*)&data[0];
-      glGetProgramBinary(entry.second.shader.glprogid, binary_size, nullptr, prog_format, binary);
-      if (glGetError() != GL_NO_ERROR)
-      {
-        continue;
-      }
-
-      g_program_disk_cache.Append(entry.first, &data[0], binary_size + sizeof(GLenum));
+      g_program_disk_cache.Append(entry.first, nullptr, 0);
     }
-
-    g_program_disk_cache.Sync();
-    g_program_disk_cache.Close();
   }
+  g_program_disk_cache.Close();
 
   glUseProgram(0);
 
@@ -639,32 +607,6 @@ void ProgramShaderCache::CreateHeader()
           "precision highp usamplerBuffer;" :
           "",
       v > GLSLES_300 ? "precision highp sampler2DMS;" : "");
-}
-
-void ProgramShaderCache::ProgramShaderCacheInserter::Read(const SHADERUID& key, const u8* value,
-                                                          u32 value_size)
-{
-  const u8* binary = value + sizeof(GLenum);
-  GLenum* prog_format = (GLenum*)value;
-  GLint binary_size = value_size - sizeof(GLenum);
-
-  PCacheEntry entry;
-  entry.in_cache = 1;
-  entry.shader.glprogid = glCreateProgram();
-  glProgramBinary(entry.shader.glprogid, *prog_format, binary, binary_size);
-
-  GLint success;
-  glGetProgramiv(entry.shader.glprogid, GL_LINK_STATUS, &success);
-
-  if (success)
-  {
-    pshaders[key] = entry;
-    entry.shader.SetProgramVariables();
-  }
-  else
-  {
-    glDeleteProgram(entry.shader.glprogid);
-  }
 }
 
 }  // namespace OGL
