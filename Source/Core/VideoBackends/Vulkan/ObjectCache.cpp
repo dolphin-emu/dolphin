@@ -525,8 +525,7 @@ VkShaderModule ObjectCache::GetGeometryShaderForUid(const GeometryShaderUid& uid
   return module;
 }
 
-VkShaderModule ObjectCache::GetPixelShaderForUid(const PixelShaderUid& uid,
-                                                 DSTALPHA_MODE dstalpha_mode)
+VkShaderModule ObjectCache::GetPixelShaderForUid(const PixelShaderUid& uid)
 {
   auto it = m_ps_cache.shader_map.find(uid);
   if (it != m_ps_cache.shader_map.end())
@@ -535,8 +534,7 @@ VkShaderModule ObjectCache::GetPixelShaderForUid(const PixelShaderUid& uid,
   // Not in the cache, so compile the shader.
   ShaderCompiler::SPIRVCodeVector spv;
   VkShaderModule module = VK_NULL_HANDLE;
-  ShaderCode source_code =
-      GeneratePixelShaderCode(dstalpha_mode, APIType::Vulkan, uid.GetUidData());
+  ShaderCode source_code = GeneratePixelShaderCode(APIType::Vulkan, uid.GetUidData());
   if (ShaderCompiler::CompileFragmentShader(&spv, source_code.GetBuffer().c_str(),
                                             source_code.GetBuffer().length()))
   {

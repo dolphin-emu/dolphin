@@ -578,7 +578,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
   }
 
   // Need to compile a new shader
-  ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, APIType::D3D, uid.GetUidData());
+  ShaderCode code = GeneratePixelShaderCode(APIType::D3D, uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))

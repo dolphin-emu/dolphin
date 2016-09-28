@@ -101,7 +101,7 @@ public:
   // Accesses ShaderGen shader caches
   VkShaderModule GetVertexShaderForUid(const VertexShaderUid& uid);
   VkShaderModule GetGeometryShaderForUid(const GeometryShaderUid& uid);
-  VkShaderModule GetPixelShaderForUid(const PixelShaderUid& uid, DSTALPHA_MODE dstalpha_mode);
+  VkShaderModule GetPixelShaderForUid(const PixelShaderUid& uid);
 
   // Static samplers
   VkSampler GetPointSampler() const { return m_point_sampler; }

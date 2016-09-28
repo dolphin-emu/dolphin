@@ -342,11 +342,10 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
 static void SampleTexture(ShaderCode& out, const char* texcoords, const char* texswap, int texmap,
                           bool stereo, APIType ApiType);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
-                           DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth);
+                           bool per_pixel_depth);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 
-ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
-                                   const pixel_shader_uid_data* uid_data)
+ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data)
 {
   ShaderCode out;
 
@@ -515,7 +514,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
-    if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+    if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
     {
       if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
       {
@@ -587,8 +586,9 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   {
     out.Write("void main(\n");
     out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
-              dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ? "\n  out float4 ocol1 : SV_Target1," :
-                                                           "",
+              uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ?
+                  "\n  out float4 ocol1 : SV_Target1," :
+                  "",
               uid_data->per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
 
     out.Write("  in %s float4 colors_0 : COLOR0,\n",
@@ -716,7 +716,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   // testing result)
   if (uid_data->Pretest == AlphaTest::UNDETERMINED ||
       (uid_data->Pretest == AlphaTest::FAIL && uid_data->late_ztest))
-    WriteAlphaTest(out, uid_data, ApiType, dstAlphaMode, uid_data->per_pixel_depth);
+    WriteAlphaTest(out, uid_data, ApiType, uid_data->per_pixel_depth);
 
   if (uid_data->zfreeze)
   {
@@ -787,7 +787,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
   }
 
-  if (dstAlphaMode == DSTALPHA_ALPHA_PASS)
+  if (uid_data->dstAlphaMode == DSTALPHA_ALPHA_PASS)
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
     out.Write("\tocol0 = float4(float3(prev.rgb), float(" I_ALPHA ".a)) / 255.0;\n");
@@ -799,7 +799,7 @@ ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
   }
 
   // Use dual-source color blending to perform dst alpha in a single pass
-  if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+  if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 
@@ -1195,7 +1195,7 @@ static const char* tevAlphaFunclogicTable[] = {
 };
 
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
-                           DSTALPHA_MODE dstAlphaMode, bool per_pixel_depth)
+                           bool per_pixel_depth)
 {
   static const char* alphaRef[2] = {I_ALPHA ".r", I_ALPHA ".g"};
 
@@ -1222,7 +1222,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
     out.Write(")) {\n");
 
   out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-  if (dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+  if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
     out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   if (per_pixel_depth)
   {
