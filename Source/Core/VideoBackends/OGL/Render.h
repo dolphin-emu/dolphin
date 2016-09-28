@@ -38,7 +38,6 @@ enum class ES_TEXBUF_TYPE
 // ogl-only config, so not in VideoConfig.h
 struct VideoConfig
 {
-  bool bSupportsGLSLCache;
   bool bSupportsGLPinnedMemory;
   bool bSupportsGLSync;
   bool bSupportsGLBaseVertex;

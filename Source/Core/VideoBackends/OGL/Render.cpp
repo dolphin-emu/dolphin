@@ -475,7 +475,6 @@ Renderer::Renderer()
   // Clip distance support is useless without a method to clamp the depth range
   g_Config.backend_info.bSupportsDepthClamp = GLExtensions::Supports("GL_ARB_depth_clamp");
 
-  g_ogl_config.bSupportsGLSLCache = GLExtensions::Supports("GL_ARB_get_program_binary");
   g_ogl_config.bSupportsGLPinnedMemory = GLExtensions::Supports("GL_AMD_pinned_memory");
   g_ogl_config.bSupportsGLSync = GLExtensions::Supports("GL_ARB_sync");
   g_ogl_config.bSupportsGLBaseVertex = GLExtensions::Supports("GL_ARB_draw_elements_base_vertex") ||
@@ -511,7 +510,6 @@ Renderer::Renderer()
                                                 ES_TEXBUF_TYPE::TEXBUF_EXT :
                                                 ES_TEXBUF_TYPE::TEXBUF_NONE;
 
-    g_ogl_config.bSupportsGLSLCache = true;
     g_ogl_config.bSupportsGLSync = true;
 
     // TODO: Implement support for GL_EXT_clip_cull_distance when there is an extension for
@@ -666,12 +664,11 @@ Renderer::Renderer()
                                    g_ogl_config.gl_renderer, g_ogl_config.gl_version),
                   5000);
 
-  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s%s",
+  WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s%s",
            g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
            g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? "" : "PrimitiveRestart ",
            g_ActiveConfig.backend_info.bSupportsEarlyZ ? "" : "EarlyZ ",
            g_ogl_config.bSupportsGLPinnedMemory ? "" : "PinnedMemory ",
-           g_ogl_config.bSupportsGLSLCache ? "" : "ShaderCache ",
            g_ogl_config.bSupportsGLBaseVertex ? "" : "BaseVertex ",
            g_ogl_config.bSupportsGLBufferStorage ? "" : "BufferStorage ",
            g_ogl_config.bSupportsGLSync ? "" : "Sync ", g_ogl_config.bSupportsMSAA ? "" : "MSAA ",
