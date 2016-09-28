@@ -208,7 +208,7 @@ SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_
   newentry.in_cache = 0;
 
   ShaderCode vcode = GenerateVertexShaderCode(APIType::OpenGL, uid.vuid.GetUidData());
-  ShaderCode pcode = GeneratePixelShaderCode(dstAlphaMode, APIType::OpenGL, uid.puid.GetUidData());
+  ShaderCode pcode = GeneratePixelShaderCode(APIType::OpenGL, uid.puid.GetUidData());
   ShaderCode gcode;
   if (g_ActiveConfig.backend_info.bSupportsGeometryShaders &&
       !uid.guid.GetUidData()->IsPassthrough())
