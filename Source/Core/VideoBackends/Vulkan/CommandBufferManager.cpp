@@ -84,6 +84,9 @@ bool CommandBufferManager::CreateCommandBuffers()
   for (size_t i = 0; i < m_frame_resources.size(); i++)
   {
     FrameResources& resources = m_frame_resources[i];
+    resources.init_command_buffer_used = false;
+    resources.needs_fence_wait = false;
+
     VkCommandBufferAllocateInfo allocate_info = {
         VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO, nullptr, m_command_pool,
         VK_COMMAND_BUFFER_LEVEL_PRIMARY,
@@ -326,6 +329,13 @@ void CommandBufferManager::SubmitCommandBuffer(size_t index, VkSemaphore wait_se
                               0,
                               nullptr};
 
+  // If the init command buffer did not have any commands recorded, don't submit it.
+  if (!m_frame_resources[index].init_command_buffer_used)
+  {
+    submit_info.commandBufferCount = 1;
+    submit_info.pCommandBuffers = &m_frame_resources[index].draw_command_buffer;
+  }
+
   if (wait_semaphore != VK_NULL_HANDLE)
   {
     submit_info.pWaitSemaphores = &wait_semaphore;
@@ -406,6 +416,7 @@ void CommandBufferManager::ActivateCommandBuffer()
     LOG_VULKAN_ERROR(res, "vkResetFences failed: ");
 
   // Reset command buffer to beginning since we can re-use the memory now
+  resources.init_command_buffer_used = false;
   res = vkResetCommandBuffer(resources.init_command_buffer, 0);
   if (res != VK_SUCCESS)
     LOG_VULKAN_ERROR(res, "vkResetCommandBuffer failed: ");
