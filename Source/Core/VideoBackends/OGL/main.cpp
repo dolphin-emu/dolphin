@@ -150,6 +150,7 @@ void VideoBackend::Video_Prepare()
   Renderer::Init();
   TextureConverter::Init();
   BoundingBox::Init();
+  ProgramShaderCache::LoadCache();
 }
 
 void VideoBackend::Shutdown()
