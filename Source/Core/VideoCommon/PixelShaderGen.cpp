@@ -500,17 +500,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
       out.Write("[earlydepthstencil]\n");
     }
   }
-  else if (bpmem.UseEarlyDepthTest() &&
-           (uid_data->fast_depth_calc || bpmem.alpha_test.TestResult() == AlphaTest::UNDETERMINED))
-  {
-    static bool warn_once = true;
-    if (warn_once)
-      WARN_LOG(VIDEO, "Early z test enabled but not possible to emulate with current "
-                      "configuration. Make sure to enable fast depth calculations. If this message "
-                      "still shows up your hardware isn't able to emulate the feature properly (a "
-                      "GPU with D3D 11.0 / OGL 4.2 support is required).");
-    warn_once = false;
-  }
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
