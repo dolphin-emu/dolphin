@@ -92,7 +92,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
     if (func.size >= CODEBUFFER_SIZE * 4)  // weird
       return false;
 
-    UGeckoInstruction instr = (UGeckoInstruction)PowerPC::HostRead_U32(addr);
+    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
     if (max_size && func.size > max_size)
     {
       func.address = startAddr;
@@ -269,7 +269,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func
 {
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
-    UGeckoInstruction instr = (UGeckoInstruction)PowerPC::HostRead_U32(addr);
+    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
 
     if (PPCTables::IsValidInstruction(instr))
     {
