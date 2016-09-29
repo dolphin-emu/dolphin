@@ -491,24 +491,37 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Decide scale based on button ID
 		float scale;
-		float overlaySize = sPrefs.getInt("controls_size", 25);
-		overlaySize += 25;
-		overlaySize /= 50;
 
-		switch (resId)
+		switch (buttonId)
 		{
-		case R.drawable.gcpad_b:
-			scale = 0.13f * overlaySize;
+		case ButtonType.BUTTON_A:
+		case ButtonType.WIIMOTE_BUTTON_B:
+		case ButtonType.NUNCHUK_BUTTON_Z:
+			scale = 0.2f;
 			break;
-		case R.drawable.gcpad_x:
-		case R.drawable.gcpad_y:
-			scale = 0.18f * overlaySize;
+		case ButtonType.BUTTON_X:
+		case ButtonType.BUTTON_Y:
+			scale = 0.175f;
 			break;
-		case R.drawable.gcpad_start:
-			scale = 0.12f * overlaySize;
+		case ButtonType.BUTTON_Z:
+		case ButtonType.TRIGGER_L:
+		case ButtonType.TRIGGER_R:
+			scale = 0.22f;
+			break;
+		case ButtonType.BUTTON_START:
+			scale = 0.075f;
+			break;
+		case ButtonType.WIIMOTE_BUTTON_1:
+		case ButtonType.WIIMOTE_BUTTON_2:
+			scale = 0.0875f;
+			break;
+		case ButtonType.WIIMOTE_BUTTON_PLUS:
+		case ButtonType.WIIMOTE_BUTTON_MINUS:
+		case ButtonType.WIIMOTE_BUTTON_HOME:
+			scale = 0.0625f;
 			break;
 		default:
-			scale = 0.20f * overlaySize;
+			scale = 0.125f;
 			break;
 		}
 
@@ -559,11 +572,24 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableDpad.
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
+		// Decide scale based on button ID
+		float scale;
+
+		switch (buttonUp)
+		{
+		case ButtonType.BUTTON_UP:
+			scale = 0.2375f;
+			break;
+		case ButtonType.WIIMOTE_UP:
+			scale = 0.2125f;
+			break;
+		default:
+			scale = 0.275f;
+			break;
+		}
+
 		// Initialize the InputOverlayDrawableDpad.
-		float overlaySize = sPrefs.getInt("controls_size", 20);
-		overlaySize += 30;
-		overlaySize /= 50;
-		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), 0.30f * overlaySize);
+		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), scale);
 		final InputOverlayDrawableDpad overlayDrawable = new InputOverlayDrawableDpad(res, bitmap,
 				buttonUp, buttonDown, buttonLeft, buttonRight);
 
@@ -607,10 +633,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
 		// Initialize the InputOverlayDrawableJoystick.
-		float overlaySize = sPrefs.getInt("controls_size", 20);
-		overlaySize += 30;
-		overlaySize /= 50;
-		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), 0.30f * overlaySize);
+		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), 0.275f);
 		final Bitmap bitmapInner = BitmapFactory.decodeResource(res, resInner);
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
@@ -618,11 +641,24 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		int drawableX = (int) sPrefs.getFloat(joystick+"-X", 0f);
 		int drawableY = (int) sPrefs.getFloat(joystick+"-Y", 0f);
 
+		// Decide inner scale based on joystick ID
+		float scale;
+
+		switch (joystick)
+		{
+		case ButtonType.STICK_C:
+			scale = 1.833f;
+			break;
+		default:
+			scale = 1.375f;
+			break;
+		}
+
 		// Now set the bounds for the InputOverlayDrawableJoystick.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
 		int outerSize = bitmapOuter.getWidth();
 		Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
-		Rect innerRect = new Rect(0, 0, outerSize / 4, outerSize / 4);
+		Rect innerRect = new Rect(0, 0, (int) (outerSize / scale), (int) (outerSize / scale));
 
 		// Send the drawableId to the joystick so it can be referenced when saving control position.
 		final InputOverlayDrawableJoystick overlayDrawable
