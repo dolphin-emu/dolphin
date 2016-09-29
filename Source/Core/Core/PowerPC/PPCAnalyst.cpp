@@ -191,16 +191,10 @@ static void AnalyzeFunction2(Symbol* func)
 {
   u32 flags = func->flags;
 
-  bool nonleafcall = false;
-  for (const SCall& c : func->calls)
-  {
-    Symbol* called_func = g_symbolDB.GetSymbolFromAddr(c.function);
-    if (called_func && (called_func->flags & FFLAG_LEAF) == 0)
-    {
-      nonleafcall = true;
-      break;
-    }
-  }
+  bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [](const auto& call) {
+    const Symbol* called_func = g_symbolDB.GetSymbolFromAddr(call.function);
+    return called_func && (called_func->flags & FFLAG_LEAF) == 0;
+  });
 
   if (nonleafcall && !(flags & FFLAG_EVIL) && !(flags & FFLAG_RFI))
     flags |= FFLAG_ONLYCALLSNICELEAFS;
