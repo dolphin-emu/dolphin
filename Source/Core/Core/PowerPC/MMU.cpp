@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstring>
+
 #include "Common/Atomic.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
@@ -470,24 +472,22 @@ u64 Read_U64(const u32 address)
 
 double Read_F64(const u32 address)
 {
-  union {
-    u64 i;
-    double d;
-  } cvt;
+  const u64 integral = Read_U64(address);
 
-  cvt.i = Read_U64(address);
-  return cvt.d;
+  double real;
+  std::memcpy(&real, &integral, sizeof(double));
+
+  return real;
 }
 
 float Read_F32(const u32 address)
 {
-  union {
-    u32 i;
-    float d;
-  } cvt;
+  const u32 integral = Read_U32(address);
 
-  cvt.i = Read_U32(address);
-  return cvt.d;
+  float real;
+  std::memcpy(&real, &integral, sizeof(float));
+
+  return real;
 }
 
 u32 Read_U8_ZX(const u32 address)
@@ -541,12 +541,10 @@ void Write_U64_Swap(const u64 var, const u32 address)
 
 void Write_F64(const double var, const u32 address)
 {
-  union {
-    u64 i;
-    double d;
-  } cvt;
-  cvt.d = var;
-  Write_U64(cvt.i, address);
+  u64 integral;
+  std::memcpy(&integral, &var, sizeof(u64));
+
+  Write_U64(integral, address);
 }
 
 u8 HostRead_U8(const u32 address)
