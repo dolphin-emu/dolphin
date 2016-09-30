@@ -177,7 +177,6 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
 
 CGameListCtrl::~CGameListCtrl()
 {
-  ClearIsoFiles();
 }
 
 template <typename T>
@@ -648,7 +647,7 @@ void CGameListCtrl::ScanForISOs()
         }
 
         if (list)
-          m_ISOFiles.push_back(iso_file.release());
+          m_ISOFiles.push_back(std::move(iso_file));
       }
     }
   }
@@ -662,7 +661,7 @@ void CGameListCtrl::ScanForISOs()
       auto gli = std::make_unique<GameListItem>(drive, custom_title_map);
 
       if (gli->IsValid())
-        m_ISOFiles.push_back(gli.release());
+        m_ISOFiles.push_back(std::move(gli));
     }
   }
 
@@ -715,9 +714,9 @@ void CGameListCtrl::OnColBeginDrag(wxListEvent& event)
 const GameListItem* CGameListCtrl::GetISO(size_t index) const
 {
   if (index < m_ISOFiles.size())
-    return m_ISOFiles[index];
-  else
-    return nullptr;
+    return m_ISOFiles[index].get();
+
+  return nullptr;
 }
 
 static CGameListCtrl* caller;
@@ -850,10 +849,10 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
       // Emulation status
       static const char* const emuState[] = {"Broken", "Intro", "In-Game", "Playable", "Perfect"};
 
-      const GameListItem& rISO = *m_ISOFiles[GetItemData(item)];
+      const GameListItem* iso = m_ISOFiles[GetItemData(item)].get();
 
-      const int emu_state = rISO.GetEmuState();
-      const std::string& issues = rISO.GetIssues();
+      const int emu_state = iso->GetEmuState();
+      const std::string& issues = iso->GetIssues();
 
       // Show a tooltip containing the EmuState and the state description
       if (emu_state > 0 && emu_state < 6)
@@ -984,21 +983,17 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 
 const GameListItem* CGameListCtrl::GetSelectedISO() const
 {
-  if (m_ISOFiles.size() == 0)
-  {
+  if (m_ISOFiles.empty())
     return nullptr;
-  }
-  else if (GetSelectedItemCount() == 0)
-  {
+
+  if (GetSelectedItemCount() == 0)
     return nullptr;
-  }
-  else
-  {
-    long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if (item == wxNOT_FOUND)
-      return nullptr;
-    return m_ISOFiles[GetItemData(item)];
-  }
+
+  long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+  if (item == wxNOT_FOUND)
+    return nullptr;
+
+  return m_ISOFiles[GetItemData(item)].get();
 }
 
 std::vector<const GameListItem*> CGameListCtrl::GetAllSelectedISOs() const
@@ -1010,7 +1005,7 @@ std::vector<const GameListItem*> CGameListCtrl::GetAllSelectedISOs() const
     item = GetNextItem(item, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
     if (item == wxNOT_FOUND)
       return result;
-    result.push_back(m_ISOFiles[GetItemData(item)]);
+    result.push_back(m_ISOFiles[GetItemData(item)].get());
   }
 }
 
