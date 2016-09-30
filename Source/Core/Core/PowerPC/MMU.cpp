@@ -446,14 +446,14 @@ u8 Read_U8(const u32 address)
 {
   u8 var = ReadFromHardware<FLAG_READ, u8>(address);
   Memcheck(address, var, false, 1);
-  return (u8)var;
+  return var;
 }
 
 u16 Read_U16(const u32 address)
 {
   u16 var = ReadFromHardware<FLAG_READ, u16>(address);
   Memcheck(address, var, false, 2);
-  return (u16)var;
+  return var;
 }
 
 u32 Read_U32(const u32 address)
@@ -492,12 +492,12 @@ float Read_F32(const u32 address)
 
 u32 Read_U8_ZX(const u32 address)
 {
-  return (u32)Read_U8(address);
+  return Read_U8(address);
 }
 
 u32 Read_U16_ZX(const u32 address)
 {
-  return (u32)Read_U16(address);
+  return Read_U16(address);
 }
 
 void Write_U8(const u8 var, const u32 address)
