@@ -9,6 +9,8 @@
 
 #include "Common/CommonTypes.h"
 
+class PointerWrap;
+
 namespace Gecko
 {
 class GeckoCode
@@ -53,5 +55,7 @@ constexpr u32 MAGIC_GAMEID = 0xD01F1BAD;
 
 void SetActiveCodes(const std::vector<GeckoCode>& gcodes);
 void RunCodeHandler();
+void Shutdown();
+void DoState(PointerWrap&);
 
 }  // namespace Gecko

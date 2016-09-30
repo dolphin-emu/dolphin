@@ -7,9 +7,9 @@
 #include <mutex>
 #include <vector>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
-#include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/GeckoCode.h"
@@ -55,9 +55,12 @@ void SetActiveCodes(const std::vector<GeckoCode>& gcodes)
   std::lock_guard<std::mutex> lk(s_active_codes_lock);
 
   s_active_codes.clear();
-  s_active_codes.reserve(gcodes.size());
-  std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
-               [](const GeckoCode& code) { return code.enabled; });
+  if (SConfig::GetInstance().bEnableCheats)
+  {
+    s_active_codes.reserve(gcodes.size());
+    std::copy_if(gcodes.begin(), gcodes.end(), std::back_inserter(s_active_codes),
+                 [](const GeckoCode& code) { return code.enabled; });
+  }
   s_active_codes.shrink_to_fit();
 
   s_code_handler_installed = Installation::Uninstalled;
@@ -158,11 +161,25 @@ static Installation InstallCodeHandlerLocked()
   return Installation::Installed;
 }
 
-// FIXME: Gecko needs to participate in the savestate system (remember installation state).
-//   Current bug: Loading a savestate causes the handler to be replaced, if the PC is inside it
-//    and the on disk codehandler.bin is different then the PC will effectively be pointing to
-//    a random instruction different from the one when the state was created and break or crash.
-//    [Also, self-modifying handler will break it since the modifications will be reset]
+// Gecko needs to participate in the savestate system because the handler is embedded within the
+// game directly. The PC may be inside the code handler in the save state and the codehandler.bin
+// on the disk may be different resulting in the PC pointing at a different instruction and then
+// the game malfunctions or crashes. [Also, self-modifying codes will break since the
+// modifications will be reset]
+void DoState(PointerWrap& p)
+{
+  std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+  p.Do(s_code_handler_installed);
+  // FIXME: The active codes list will disagree with the embedded GCT
+}
+
+void Shutdown()
+{
+  std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
+  s_active_codes.clear();
+  s_code_handler_installed = Installation::Uninstalled;
+}
+
 void RunCodeHandler()
 {
   if (!SConfig::GetInstance().bEnableCheats)
@@ -171,13 +188,12 @@ void RunCodeHandler()
   // NOTE: Need to release the lock because of GUI deadlocks with PanicAlert in HostWrite_*
   {
     std::lock_guard<std::mutex> codes_lock(s_active_codes_lock);
-    // Don't spam retry if the install failed. The corrupt / missing disk file is not likely to be
-    // fixed within 1 frame of the last error.
-    if (s_active_codes.empty() || s_code_handler_installed == Installation::Failed)
-      return;
-
     if (s_code_handler_installed != Installation::Installed)
     {
+      // Don't spam retry if the install failed. The corrupt / missing disk file is not likely to be
+      // fixed within 1 frame of the last error.
+      if (s_active_codes.empty() || s_code_handler_installed == Installation::Failed)
+        return;
       s_code_handler_installed = InstallCodeHandlerLocked();
 
       // A warning was already issued for the install failing

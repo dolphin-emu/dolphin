@@ -23,6 +23,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/GeckoCode.h"
 #include "Core/HW/HW.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
@@ -70,7 +71,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 60;  // Last changed in PR 4242
+static const u32 STATE_VERSION = 61;  // Last changed in PR 4216
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -174,6 +175,8 @@ static std::string DoState(PointerWrap& p)
   p.DoMarker("HW");
   Movie::DoState(p);
   p.DoMarker("Movie");
+  Gecko::DoState(p);
+  p.DoMarker("Gecko");
 
 #if defined(HAVE_LIBAV) || defined(_WIN32)
   AVIDump::DoState();
