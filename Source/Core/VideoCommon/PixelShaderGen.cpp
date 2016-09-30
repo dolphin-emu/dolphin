@@ -171,7 +171,7 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
                            g_ActiveConfig.bBBoxEnable && BoundingBox::active;
   uid_data->rgba6_format =
       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;
-  uid_data->dither = bpmem.blendmode.dither;
+  uid_data->dither = bpmem.blendmode.dither && uid_data->rgba6_format;
 
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
@@ -782,7 +782,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   }
 
   // No dithering for RGB8 mode
-  if (uid_data->dither && uid_data->rgba6_format)
+  if (uid_data->dither)
   {
     // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
     // Here the matrix is encoded into the two factor constants
