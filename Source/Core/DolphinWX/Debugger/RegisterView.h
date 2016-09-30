@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <cstring>
 #include <wx/grid.h>
 
@@ -25,8 +26,6 @@
 // Exceptions
 // Interrupt Mask (PI)
 // Interrupt Cause(PI)
-
-#define NUM_SPECIALS 14
 
 class CRegTable : public wxGridTableBase
 {
@@ -52,6 +51,8 @@ public:
   void UpdateCachedRegs();
 
 private:
+  static constexpr size_t NUM_SPECIALS = 14;
+
   u32 m_CachedRegs[32];
   u32 m_CachedSpecialRegs[NUM_SPECIALS];
   u64 m_CachedFRegs[32][2];
