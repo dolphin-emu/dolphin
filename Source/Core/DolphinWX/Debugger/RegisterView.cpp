@@ -220,17 +220,8 @@ bool TryParseGPR(wxString str, CRegTable::FormatSpecifier format, u32* value)
 
 CRegTable::CRegTable()
 {
-  m_formatRegs.fill(FormatSpecifier::Hex8);
-
   for (auto& entry : m_formatFRegs)
     entry.fill(FormatSpecifier::Hex16);
-
-  memset(m_CachedRegs, 0, sizeof(m_CachedRegs));
-  memset(m_CachedSpecialRegs, 0, sizeof(m_CachedSpecialRegs));
-  memset(m_CachedFRegs, 0, sizeof(m_CachedFRegs));
-  memset(m_CachedRegHasChanged, 0, sizeof(m_CachedRegHasChanged));
-  memset(m_CachedSpecialRegHasChanged, 0, sizeof(m_CachedSpecialRegHasChanged));
-  memset(m_CachedFRegHasChanged, 0, sizeof(m_CachedFRegHasChanged));
 }
 
 wxString CRegTable::FormatGPR(int reg_index)

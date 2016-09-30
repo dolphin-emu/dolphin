@@ -53,13 +53,13 @@ public:
 private:
   static constexpr size_t NUM_SPECIALS = 14;
 
-  u32 m_CachedRegs[32];
-  u32 m_CachedSpecialRegs[NUM_SPECIALS];
-  u64 m_CachedFRegs[32][2];
-  bool m_CachedRegHasChanged[32];
-  bool m_CachedSpecialRegHasChanged[NUM_SPECIALS];
-  bool m_CachedFRegHasChanged[32][2];
-  std::array<FormatSpecifier, 32> m_formatRegs;
+  std::array<u32, 32> m_CachedRegs{};
+  std::array<u32, NUM_SPECIALS> m_CachedSpecialRegs{};
+  std::array<std::array<u64, 2>, 32> m_CachedFRegs{};
+  std::array<bool, 32> m_CachedRegHasChanged{};
+  std::array<bool, NUM_SPECIALS> m_CachedSpecialRegHasChanged{};
+  std::array<std::array<bool, 2>, 32> m_CachedFRegHasChanged{};
+  std::array<FormatSpecifier, 32> m_formatRegs{};
   std::array<std::array<FormatSpecifier, 2>, 32> m_formatFRegs;
 
   wxString FormatGPR(int reg_index);
