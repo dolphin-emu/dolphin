@@ -36,16 +36,6 @@ enum
   IDM_VIEW_INT
 };
 
-enum class FormatSpecifier
-{
-  Hex8,
-  Hex16,
-  Float,
-  Double,
-  UInt,
-  Int
-};
-
 constexpr const char* special_reg_names[] = {"PC",        "LR",    "CTR",  "CR",         "FPSCR",
                                              "MSR",       "SRR0",  "SRR1", "Exceptions", "Int Mask",
                                              "Int Cause", "DSISR", "DAR",  "PT hashmask"};
@@ -541,27 +531,33 @@ void CRegisterView::OnPopupMenu(wxCommandEvent& event)
     Refresh();
     break;
   case IDM_VIEW_HEX8:
-    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Hex8);
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow,
+                                        CRegTable::FormatSpecifier::Hex8);
     Refresh();
     break;
   case IDM_VIEW_HEX16:
-    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Hex16);
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow,
+                                        CRegTable::FormatSpecifier::Hex16);
     Refresh();
     break;
   case IDM_VIEW_INT:
-    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Int);
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow,
+                                        CRegTable::FormatSpecifier::Int);
     Refresh();
     break;
   case IDM_VIEW_UINT:
-    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::UInt);
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow,
+                                        CRegTable::FormatSpecifier::UInt);
     Refresh();
     break;
   case IDM_VIEW_FLOAT:
-    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Float);
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow,
+                                        CRegTable::FormatSpecifier::Float);
     Refresh();
     break;
   case IDM_VIEW_DOUBLE:
-    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow, FormatSpecifier::Double);
+    m_register_table->SetRegisterFormat(m_selectedColumn, m_selectedRow,
+                                        CRegTable::FormatSpecifier::Double);
     Refresh();
     break;
   }

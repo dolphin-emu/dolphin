@@ -28,11 +28,19 @@
 
 #define NUM_SPECIALS 14
 
-enum class FormatSpecifier;
-
 class CRegTable : public wxGridTableBase
 {
 public:
+  enum class FormatSpecifier
+  {
+    Hex8,
+    Hex16,
+    Float,
+    Double,
+    UInt,
+    Int
+  };
+
   CRegTable();
   int GetNumberCols() override { return 9; }
   int GetNumberRows() override { return 32 + NUM_SPECIALS; }
