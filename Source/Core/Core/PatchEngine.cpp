@@ -20,6 +20,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -203,6 +204,32 @@ static void ApplyPatches(const std::vector<Patch>& patches)
   }
 }
 
+// Requires MSR.DR, MSR.IR
+// There's no perfect way to do this, it's just a heuristic.
+// We require at least 2 stack frames, if the stack is shallower than that then it won't work.
+static bool IsStackSane()
+{
+  _dbg_assert_(ACTIONREPLAY, UReg_MSR(MSR).DR && UReg_MSR(MSR).IR);
+
+  // Check the stack pointer
+  u32 SP = GPR(1);
+  if (!PowerPC::HostIsRAMAddress(SP))
+    return false;
+
+  // Read the frame pointer from the stack (find 2nd frame from top), assert that it makes sense
+  u32 next_SP = PowerPC::HostRead_U32(SP);
+  if (next_SP <= SP || !PowerPC::HostIsRAMAddress(next_SP) ||
+      !PowerPC::HostIsRAMAddress(next_SP + 4))
+    return false;
+
+  // Check the link register makes sense (that it points to a valid IBAT address)
+  auto insn = PowerPC::TryReadInstruction(PowerPC::HostRead_U32(next_SP + 4));
+  if (!insn.valid || !insn.hex)
+    return false;
+
+  return true;
+}
+
 bool ApplyFramePatches()
 {
   // Because we're using the VI Interrupt to time this instead of patching the game with a
@@ -210,7 +237,7 @@ bool ApplyFramePatches()
   // We deal with this by returning false so that SystemTimers will reschedule us in a few cycles
   // where we can try again after the CPU hopefully returns back to the normal instruction flow.
   UReg_MSR msr = MSR;
-  if (!msr.DR || !msr.IR)
+  if (!msr.DR || !msr.IR || !IsStackSane())
   {
     INFO_LOG(
         ACTIONREPLAY,

@@ -178,10 +178,6 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   // Load patches
   PatchEngine::LoadPatches();
 
-  // If we have any patches that need to be applied very early, here's a good place
-  bool patched = PatchEngine::ApplyFramePatches();
-  _assert_(patched);
-
   return true;
 }
 

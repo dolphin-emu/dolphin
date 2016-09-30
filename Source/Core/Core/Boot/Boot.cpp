@@ -483,9 +483,8 @@ bool CBoot::BootUp()
   // Not part of the binary itself, but either we or Gecko OS might insert
   // this, and it doesn't clear the icache properly.
   HLE::Patch(Gecko::ENTRY_POINT, "GeckoCodehandler");
-  if (SConfig::GetInstance().bEnableCheats)
-  {
-    HLE::Patch(Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
-  }
+  // This has to always be installed even if cheats are not enabled because of the possiblity of
+  // loading a savestate where PC is inside the code handler while cheats are disabled.
+  HLE::Patch(Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
   return true;
 }
