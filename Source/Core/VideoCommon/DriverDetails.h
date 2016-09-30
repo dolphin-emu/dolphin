@@ -8,6 +8,15 @@
 
 namespace DriverDetails
 {
+// API types supported by driver details
+// This is separate to APIType in VideoConfig.h due to the fact that a bug
+// can affect multiple APIs.
+enum API
+{
+  API_OPENGL = (1 << 0),
+  API_VULKAN = (1 << 1)
+};
+
 // Enum of supported operating systems
 enum OS
 {
@@ -213,12 +222,23 @@ enum Bug
   // the geometry shader. Current workaround is to make sure the geometry shader always consumes
   // the gl_ClipDistance inputs from the vertex shader.
   BUG_BROKENCLIPDISTANCE,
+
+  // Bug: Dual-source outputs from fragment shaders are broken on AMD Vulkan drivers
+  // Started Version: -1
+  // Ended Version: -1
+  // Fragment shaders that specify dual-source outputs, via layout(location = 0, index = ...) cause
+  // the driver to fail to create graphics pipelines. The workaround for this is to specify the
+  // index as a MRT location instead, or omit the binding completely.
+  BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION,
 };
 
 // Initializes our internal vendor, device family, and driver version
-void Init(Vendor vendor, Driver driver, const double version, const Family family);
+void Init(API api, Vendor vendor, Driver driver, const double version, const Family family);
 
 // Once Vendor and driver version is set, this will return if it has the applicable bug passed to
 // it.
 bool HasBug(Bug bug);
+
+// Attempts to map a PCI vendor ID to our Vendor enumeration
+Vendor TranslatePCIVendorID(u32 vendor_id);
 }

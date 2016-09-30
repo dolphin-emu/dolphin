@@ -554,7 +554,8 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // early-z
       "%s\n"  // 420pack
       "%s\n"  // msaa
-      "%s\n"  // Sampler binding
+      "%s\n"  // Input/output/sampler binding
+      "%s\n"  // Varying location
       "%s\n"  // storage buffer
       "%s\n"  // shader5
       "%s\n"  // SSAA
@@ -595,9 +596,23 @@ void ProgramShaderCache::CreateHeader()
       (g_ogl_config.bSupportsMSAA && v < GLSL_150) ?
           "#extension GL_ARB_texture_multisample : enable" :
           "",
+      // Attribute and fragment output bindings are still done via glBindAttribLocation and
+      // glBindFragDataLocation. In the future this could be moved to the layout qualifier
+      // in GLSL, but requires verification of GL_ARB_explicit_attrib_location.
       g_ActiveConfig.backend_info.bSupportsBindingLayout ?
-          "#define SAMPLER_BINDING(x) layout(binding = x)" :
-          "#define SAMPLER_BINDING(x)",
+          "#define ATTRIBUTE_LOCATION(x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
+          "#define UBO_BINDING(packing, x) layout(packing, binding = x)\n"
+          "#define SAMPLER_BINDING(x) layout(binding = x)\n"
+          "#define SSBO_BINDING(x) layout(binding = x)\n" :
+          "#define ATTRIBUTE_LOCATION(x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION(x)\n"
+          "#define FRAGMENT_OUTPUT_LOCATION_INDEXED(x, y)\n"
+          "#define UBO_BINDING(packing, x) layout(packing)\n"
+          "#define SAMPLER_BINDING(x)\n",
+      // Input/output blocks are matched by name during program linking
+      "#define VARYING_LOCATION(x)\n",
       !is_glsles && g_ActiveConfig.backend_info.bSupportsBBox ?
           "#extension GL_ARB_shader_storage_buffer_object : enable" :
           "",
