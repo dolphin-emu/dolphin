@@ -23,6 +23,8 @@
 
 // F-zero 80005e60 wtf??
 
+namespace
+{
 enum
 {
   IDM_WATCHADDRESS,
@@ -40,154 +42,28 @@ constexpr const char* special_reg_names[] = {"PC",        "LR",    "CTR",  "CR",
                                              "MSR",       "SRR0",  "SRR1", "Exceptions", "Int Mask",
                                              "Int Cause", "DSISR", "DAR",  "PT hashmask"};
 
-CRegTable::CRegTable()
-{
-  m_formatRegs.fill(FormatSpecifier::Hex8);
-
-  for (auto& entry : m_formatFRegs)
-    entry.fill(FormatSpecifier::Hex16);
-
-  memset(m_CachedRegs, 0, sizeof(m_CachedRegs));
-  memset(m_CachedSpecialRegs, 0, sizeof(m_CachedSpecialRegs));
-  memset(m_CachedFRegs, 0, sizeof(m_CachedFRegs));
-  memset(m_CachedRegHasChanged, 0, sizeof(m_CachedRegHasChanged));
-  memset(m_CachedSpecialRegHasChanged, 0, sizeof(m_CachedSpecialRegHasChanged));
-  memset(m_CachedFRegHasChanged, 0, sizeof(m_CachedFRegHasChanged));
-}
-
-wxString CRegTable::GetFormatString(FormatSpecifier specifier)
+wxString GetFormatString(CRegTable::FormatSpecifier specifier)
 {
   switch (specifier)
   {
-  case FormatSpecifier::Hex8:
+  case CRegTable::FormatSpecifier::Hex8:
     return wxString("%08x");
-  case FormatSpecifier::Hex16:
+  case CRegTable::FormatSpecifier::Hex16:
     return wxString("%016llx");
-  case FormatSpecifier::Float:
+  case CRegTable::FormatSpecifier::Float:
     return wxString("%g");
-  case FormatSpecifier::Double:
+  case CRegTable::FormatSpecifier::Double:
     return wxString("%g");
-  case FormatSpecifier::UInt:
+  case CRegTable::FormatSpecifier::UInt:
     return wxString("%u");
-  case FormatSpecifier::Int:
+  case CRegTable::FormatSpecifier::Int:
     return wxString("%i");
   default:
     return wxString("");
   }
 }
 
-wxString CRegTable::FormatGPR(int reg_index)
-{
-  if (m_formatRegs[reg_index] == FormatSpecifier::Int)
-  {
-    return wxString::Format(GetFormatString(m_formatRegs[reg_index]),
-                            static_cast<s32>(GPR(reg_index)));
-  }
-  if (m_formatRegs[reg_index] == FormatSpecifier::Float)
-  {
-    float value;
-    std::memcpy(&value, &GPR(reg_index), sizeof(float));
-    return wxString::Format(GetFormatString(m_formatRegs[reg_index]), value);
-  }
-  return wxString::Format(GetFormatString(m_formatRegs[reg_index]), GPR(reg_index));
-}
-
-wxString CRegTable::FormatFPR(int reg_index, int reg_part)
-{
-  if (m_formatFRegs[reg_index][reg_part] == FormatSpecifier::Double)
-  {
-    double reg = (reg_part == 0) ? rPS0(reg_index) : rPS1(reg_index);
-    return wxString::Format(GetFormatString(m_formatFRegs[reg_index][reg_part]), reg);
-  }
-  u64 reg = (reg_part == 0) ? riPS0(reg_index) : riPS1(reg_index);
-  return wxString::Format(GetFormatString(m_formatFRegs[reg_index][reg_part]), reg);
-}
-
-bool CRegTable::TryParseGPR(wxString str, FormatSpecifier format, u32* value)
-{
-  if (format == FormatSpecifier::Hex8)
-  {
-    unsigned long val;
-    if (str.ToCULong(&val, 16))
-    {
-      *value = static_cast<u32>(val);
-      return true;
-    }
-    return false;
-  }
-  if (format == FormatSpecifier::Int)
-  {
-    long signed_val;
-    if (str.ToCLong(&signed_val))
-    {
-      *value = static_cast<u32>(signed_val);
-      return true;
-    }
-    return false;
-  }
-  if (format == FormatSpecifier::UInt)
-  {
-    unsigned long val;
-    if (str.ToCULong(&val))
-    {
-      *value = static_cast<u32>(val);
-      return true;
-    }
-    return false;
-  }
-  if (format == FormatSpecifier::Float)
-  {
-    double double_val;
-    if (str.ToCDouble(&double_val))
-    {
-      float float_val = static_cast<float>(double_val);
-      std::memcpy(value, &float_val, sizeof(float));
-      return true;
-    }
-    return false;
-  }
-  return false;
-}
-
-bool CRegTable::TryParseFPR(wxString str, FormatSpecifier format, unsigned long long* value)
-{
-  if (format == FormatSpecifier::Hex16)
-  {
-    return str.ToULongLong(value, 16);
-  }
-  if (format == FormatSpecifier::Double)
-  {
-    double double_val;
-    if (str.ToCDouble(&double_val))
-    {
-      std::memcpy(value, &double_val, sizeof(u64));
-      return true;
-    }
-    return false;
-  }
-  return false;
-}
-
-void CRegTable::SetRegisterFormat(int col, int row, FormatSpecifier specifier)
-{
-  if (row >= 32)
-    return;
-
-  switch (col)
-  {
-  case 1:
-    m_formatRegs[row] = specifier;
-    return;
-  case 3:
-    m_formatFRegs[row][0] = specifier;
-    return;
-  case 4:
-    m_formatFRegs[row][1] = specifier;
-    return;
-  }
-}
-
-u32 CRegTable::GetSpecialRegValue(int reg)
+u32 GetSpecialRegValue(int reg)
 {
   switch (reg)
   {
@@ -221,6 +97,185 @@ u32 CRegTable::GetSpecialRegValue(int reg)
     return (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
   default:
     return 0;
+  }
+}
+
+void SetSpecialRegValue(int reg, u32 value)
+{
+  switch (reg)
+  {
+  case 0:
+    PowerPC::ppcState.pc = value;
+    break;
+  case 1:
+    PowerPC::ppcState.spr[SPR_LR] = value;
+    break;
+  case 2:
+    PowerPC::ppcState.spr[SPR_CTR] = value;
+    break;
+  case 3:
+    SetCR(value);
+    break;
+  case 4:
+    PowerPC::ppcState.fpscr = value;
+    break;
+  case 5:
+    PowerPC::ppcState.msr = value;
+    break;
+  case 6:
+    PowerPC::ppcState.spr[SPR_SRR0] = value;
+    break;
+  case 7:
+    PowerPC::ppcState.spr[SPR_SRR1] = value;
+    break;
+  case 8:
+    PowerPC::ppcState.Exceptions = value;
+    break;
+  // Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system
+  // aware?
+  // case 9: return ProcessorInterface::GetMask();
+  // case 10: return ProcessorInterface::GetCause();
+  case 11:
+    PowerPC::ppcState.spr[SPR_DSISR] = value;
+    break;
+  case 12:
+    PowerPC::ppcState.spr[SPR_DAR] = value;
+    break;
+  // case 13: (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
+  default:
+    return;
+  }
+}
+
+bool TryParseFPR(wxString str, CRegTable::FormatSpecifier format, unsigned long long* value)
+{
+  if (format == CRegTable::FormatSpecifier::Hex16)
+    return str.ToULongLong(value, 16);
+
+  if (format == CRegTable::FormatSpecifier::Double)
+  {
+    double double_val;
+    if (str.ToCDouble(&double_val))
+    {
+      std::memcpy(value, &double_val, sizeof(u64));
+      return true;
+    }
+
+    return false;
+  }
+
+  return false;
+}
+
+bool TryParseGPR(wxString str, CRegTable::FormatSpecifier format, u32* value)
+{
+  if (format == CRegTable::FormatSpecifier::Hex8)
+  {
+    unsigned long val;
+    if (str.ToCULong(&val, 16))
+    {
+      *value = static_cast<u32>(val);
+      return true;
+    }
+    return false;
+  }
+
+  if (format == CRegTable::FormatSpecifier::Int)
+  {
+    long signed_val;
+    if (str.ToCLong(&signed_val))
+    {
+      *value = static_cast<u32>(signed_val);
+      return true;
+    }
+    return false;
+  }
+
+  if (format == CRegTable::FormatSpecifier::UInt)
+  {
+    unsigned long val;
+    if (str.ToCULong(&val))
+    {
+      *value = static_cast<u32>(val);
+      return true;
+    }
+    return false;
+  }
+
+  if (format == CRegTable::FormatSpecifier::Float)
+  {
+    double double_val;
+    if (str.ToCDouble(&double_val))
+    {
+      float float_val = static_cast<float>(double_val);
+      std::memcpy(value, &float_val, sizeof(float));
+      return true;
+    }
+    return false;
+  }
+  return false;
+}
+
+}  // Anonymous namespace
+
+CRegTable::CRegTable()
+{
+  m_formatRegs.fill(FormatSpecifier::Hex8);
+
+  for (auto& entry : m_formatFRegs)
+    entry.fill(FormatSpecifier::Hex16);
+
+  memset(m_CachedRegs, 0, sizeof(m_CachedRegs));
+  memset(m_CachedSpecialRegs, 0, sizeof(m_CachedSpecialRegs));
+  memset(m_CachedFRegs, 0, sizeof(m_CachedFRegs));
+  memset(m_CachedRegHasChanged, 0, sizeof(m_CachedRegHasChanged));
+  memset(m_CachedSpecialRegHasChanged, 0, sizeof(m_CachedSpecialRegHasChanged));
+  memset(m_CachedFRegHasChanged, 0, sizeof(m_CachedFRegHasChanged));
+}
+
+wxString CRegTable::FormatGPR(int reg_index)
+{
+  if (m_formatRegs[reg_index] == FormatSpecifier::Int)
+  {
+    return wxString::Format(GetFormatString(m_formatRegs[reg_index]),
+                            static_cast<s32>(GPR(reg_index)));
+  }
+  if (m_formatRegs[reg_index] == FormatSpecifier::Float)
+  {
+    float value;
+    std::memcpy(&value, &GPR(reg_index), sizeof(float));
+    return wxString::Format(GetFormatString(m_formatRegs[reg_index]), value);
+  }
+  return wxString::Format(GetFormatString(m_formatRegs[reg_index]), GPR(reg_index));
+}
+
+wxString CRegTable::FormatFPR(int reg_index, int reg_part)
+{
+  if (m_formatFRegs[reg_index][reg_part] == FormatSpecifier::Double)
+  {
+    double reg = (reg_part == 0) ? rPS0(reg_index) : rPS1(reg_index);
+    return wxString::Format(GetFormatString(m_formatFRegs[reg_index][reg_part]), reg);
+  }
+  u64 reg = (reg_part == 0) ? riPS0(reg_index) : riPS1(reg_index);
+  return wxString::Format(GetFormatString(m_formatFRegs[reg_index][reg_part]), reg);
+}
+
+void CRegTable::SetRegisterFormat(int col, int row, FormatSpecifier specifier)
+{
+  if (row >= 32)
+    return;
+
+  switch (col)
+  {
+  case 1:
+    m_formatRegs[row] = specifier;
+    return;
+  case 3:
+    m_formatFRegs[row][0] = specifier;
+    return;
+  case 4:
+    m_formatFRegs[row][1] = specifier;
+    return;
   }
 }
 
@@ -313,53 +368,6 @@ wxString CRegTable::GetValue(int row, int col)
     }
   }
   return wxEmptyString;
-}
-
-void CRegTable::SetSpecialRegValue(int reg, u32 value)
-{
-  switch (reg)
-  {
-  case 0:
-    PowerPC::ppcState.pc = value;
-    break;
-  case 1:
-    PowerPC::ppcState.spr[SPR_LR] = value;
-    break;
-  case 2:
-    PowerPC::ppcState.spr[SPR_CTR] = value;
-    break;
-  case 3:
-    SetCR(value);
-    break;
-  case 4:
-    PowerPC::ppcState.fpscr = value;
-    break;
-  case 5:
-    PowerPC::ppcState.msr = value;
-    break;
-  case 6:
-    PowerPC::ppcState.spr[SPR_SRR0] = value;
-    break;
-  case 7:
-    PowerPC::ppcState.spr[SPR_SRR1] = value;
-    break;
-  case 8:
-    PowerPC::ppcState.Exceptions = value;
-    break;
-  // Should we just change the value, or use ProcessorInterface::SetInterrupt() to make the system
-  // aware?
-  // case 9: return ProcessorInterface::GetMask();
-  // case 10: return ProcessorInterface::GetCause();
-  case 11:
-    PowerPC::ppcState.spr[SPR_DSISR] = value;
-    break;
-  case 12:
-    PowerPC::ppcState.spr[SPR_DAR] = value;
-    break;
-  // case 13: (PowerPC::ppcState.pagetable_hashmask << 6) | PowerPC::ppcState.pagetable_base;
-  default:
-    return;
-  }
 }
 
 void CRegTable::SetValue(int row, int col, const wxString& strNewVal)

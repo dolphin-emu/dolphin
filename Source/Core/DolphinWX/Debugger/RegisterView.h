@@ -61,13 +61,8 @@ private:
   std::array<FormatSpecifier, 32> m_formatRegs;
   std::array<std::array<FormatSpecifier, 2>, 32> m_formatFRegs;
 
-  u32 GetSpecialRegValue(int reg);
-  void SetSpecialRegValue(int reg, u32 value);
-  wxString GetFormatString(FormatSpecifier specifier);
   wxString FormatGPR(int reg_index);
   wxString FormatFPR(int reg_index, int reg_part);
-  bool TryParseGPR(wxString str, FormatSpecifier format, u32* value);
-  bool TryParseFPR(wxString str, FormatSpecifier format, unsigned long long int* value);
 
   DECLARE_NO_COPY_CLASS(CRegTable);
 };
