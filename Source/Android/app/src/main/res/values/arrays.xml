@@ -159,6 +159,20 @@
         <item>12</item>
     </integer-array>
 
+    <string-array name="gcpadButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>X</item>
+        <item>Y</item>
+        <item>Z</item>
+        <item>Start</item>
+        <item>L</item>
+        <item>R</item>
+        <item>D-Pad</item>
+        <item>Main Stick</item>
+        <item>C Stick</item>
+    </string-array>
+
     <string-array name="wiimoteTypeEntries">
         <item>Disabled</item>
         <item>Emulated</item>
@@ -169,5 +183,19 @@
         <item>1</item>
         <item>2</item>
     </integer-array>
+
+    <string-array name="wiimoteButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>1</item>
+        <item>2</item>
+        <item>+</item>
+        <item>-</item>
+	<item>Home</item>
+        <item>C</item>
+        <item>Z</item>
+        <item>D-Pad</item>
+        <item>Nunchuk Stick</item>
+    </string-array>
 
 </resources>
