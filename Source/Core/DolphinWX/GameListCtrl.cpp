@@ -715,8 +715,8 @@ const GameListItem* CGameListCtrl::GetISO(size_t index) const
 {
   if (index < m_ISOFiles.size())
     return m_ISOFiles[index].get();
-  else
-    return nullptr;
+
+  return nullptr;
 }
 
 static CGameListCtrl* caller;
@@ -983,21 +983,17 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
 
 const GameListItem* CGameListCtrl::GetSelectedISO() const
 {
-  if (m_ISOFiles.size() == 0)
-  {
+  if (m_ISOFiles.empty())
     return nullptr;
-  }
-  else if (GetSelectedItemCount() == 0)
-  {
+
+  if (GetSelectedItemCount() == 0)
     return nullptr;
-  }
-  else
-  {
-    long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
-    if (item == wxNOT_FOUND)
-      return nullptr;
-    return m_ISOFiles[GetItemData(item)].get();
-  }
+
+  long item = GetNextItem(-1, wxLIST_NEXT_ALL, wxLIST_STATE_SELECTED);
+  if (item == wxNOT_FOUND)
+    return nullptr;
+
+  return m_ISOFiles[GetItemData(item)].get();
 }
 
 std::vector<const GameListItem*> CGameListCtrl::GetAllSelectedISOs() const
