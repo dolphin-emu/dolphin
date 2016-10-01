@@ -1206,7 +1206,10 @@ void DBATUpdated()
     UpdateFakeMMUBat(dbat_table, 0x40000000);
     UpdateFakeMMUBat(dbat_table, 0x70000000);
   }
+
+#ifndef _ARCH_32
   Memory::UpdateLogicalMemory(dbat_table);
+#endif
 
   // IsOptimizable*Address and dcbz depends on the BAT mapping, so we need a flush here.
   JitInterface::ClearSafe();
