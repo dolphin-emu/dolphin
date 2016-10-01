@@ -25,7 +25,6 @@ LogConfigWindow::LogConfigWindow(wxWindow* parent, wxWindowID id)
               _("Log Configuration")),
       enableAll(true)
 {
-  SetMinSize(wxSize(100, 100));
   m_LogManager = LogManager::GetInstance();
   CreateGUIControls();
   LoadSettings();
@@ -67,23 +66,26 @@ void LogConfigWindow::CreateGUIControls()
   for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; i++)
     m_checks->Append(StrToWxStr(m_LogManager->GetFullName((LogTypes::LOG_TYPE)i)));
 
+  const int space1 = FromDIP(1);
+  const int space5 = FromDIP(5);
+
   // Sizers
   wxStaticBoxSizer* sbOutputs = new wxStaticBoxSizer(wxVERTICAL, this, _("Logger Outputs"));
-  sbOutputs->Add(m_writeFileCB, 0, wxDOWN, 1);
-  sbOutputs->Add(m_writeConsoleCB, 0, wxDOWN, 1);
-  sbOutputs->Add(m_writeWindowCB, 0);
+  sbOutputs->Add(m_writeFileCB, 0);
+  sbOutputs->Add(m_writeConsoleCB, 0, wxTOP, space1);
+  sbOutputs->Add(m_writeWindowCB, 0, wxTOP, space1);
 
   wxStaticBoxSizer* sbLogTypes = new wxStaticBoxSizer(wxVERTICAL, this, _("Log Types"));
   sbLogTypes->Add(m_checks, 1, wxEXPAND);
 
   wxBoxSizer* sMain = new wxBoxSizer(wxVERTICAL);
-  sMain->Add(m_verbosity, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
-  sMain->Add(sbOutputs, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
-  sMain->Add(btn_toggle_all, 0, wxEXPAND | wxLEFT | wxRIGHT, 5);
-  sMain->Add(sbLogTypes, 1, wxEXPAND | wxLEFT | wxRIGHT, 5);
+  sMain->Add(m_verbosity, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMain->Add(sbOutputs, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMain->Add(btn_toggle_all, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMain->Add(sbLogTypes, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
 
-  SetSizer(sMain);
-  Layout();
+  sMain->SetMinSize(FromDIP(wxSize(100, 100)));
+  SetSizerAndFit(sMain);
 }
 
 void LogConfigWindow::LoadSettings()

@@ -13,8 +13,12 @@ enum class MemoryDataType
 {
   U8,
   U16,
-  U32
+  U32,
+  ASCII,
+  FloatingPoint
 };
+
+wxDECLARE_EVENT(DOLPHIN_EVT_MEMORY_VIEW_DATA_TYPE_CHANGED, wxCommandEvent);
 
 class CMemoryView : public wxControl
 {
@@ -29,12 +33,8 @@ public:
     Refresh();
   }
 
-  void SetDataType(MemoryDataType data_type)
-  {
-    dataType = data_type;
-    Refresh();
-  }
-
+  void SetDataType(MemoryDataType data_type);
+  MemoryDataType GetDataType() const { return m_data_type; }
   void SetMemCheckOptions(bool read, bool write, bool log)
   {
     memCheckRead = read;
@@ -43,6 +43,12 @@ public:
   }
 
 private:
+  int YToAddress(int y);
+  bool IsHexMode() const
+  {
+    return m_data_type != MemoryDataType::ASCII && m_data_type != MemoryDataType::FloatingPoint;
+  }
+
   void OnPaint(wxPaintEvent& event);
   void OnMouseDownL(wxMouseEvent& event);
   void OnMouseMove(wxMouseEvent& event);
@@ -50,14 +56,15 @@ private:
   void OnMouseDownR(wxMouseEvent& event);
   void OnScrollWheel(wxMouseEvent& event);
   void OnPopupMenu(wxCommandEvent& event);
-
-  int YToAddress(int y);
   void OnResize(wxSizeEvent& event);
+
+  static constexpr int LEFT_COL_WIDTH = 16;
 
   DebugInterface* debugger;
 
-  int align;
+  unsigned int align;
   int rowHeight;
+  int m_left_col_width;
 
   u32 selection;
   u32 oldSelection;
@@ -65,18 +72,11 @@ private:
 
   int memory;
   int curAddress;
-  MemoryDataType dataType;
 
   bool memCheckRead;
   bool memCheckWrite;
   bool memCheckLog;
 
-  enum EViewAsType
-  {
-    VIEWAS_ASCII = 0,
-    VIEWAS_FP,
-    VIEWAS_HEX,
-  };
-
-  EViewAsType viewAsType;
+  MemoryDataType m_data_type;
+  MemoryDataType m_last_hex_type = MemoryDataType::U8;
 };

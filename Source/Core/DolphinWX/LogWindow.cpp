@@ -39,7 +39,6 @@ CLogWindow::CLogWindow(CFrame* parent, wxWindowID id, const wxPoint& pos, const 
     : wxPanel(parent, id, pos, size, style, name), x(0), y(0), winpos(0), Parent(parent),
       m_LogAccess(true), m_Log(nullptr), m_cmdline(nullptr), m_FontChoice(nullptr)
 {
-  Bind(wxEVT_CLOSE_WINDOW, &CLogWindow::OnClose, this);
   Bind(wxEVT_TIMER, &CLogWindow::OnLogTimer, this);
 
   m_LogManager = LogManager::GetInstance();
@@ -132,11 +131,13 @@ void CLogWindow::CreateGUIControls()
       new wxButton(this, wxID_ANY, _("Clear"), wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
   m_clear_log_btn->Bind(wxEVT_BUTTON, &CLogWindow::OnClear, this);
 
+  const int space3 = FromDIP(3);
+
   // Sizers
   wxBoxSizer* sTop = new wxBoxSizer(wxHORIZONTAL);
-  sTop->Add(m_clear_log_btn);
-  sTop->Add(m_FontChoice, 0, wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, 3);
-  sTop->Add(m_WrapLine, 0, wxALIGN_CENTER_VERTICAL);
+  sTop->Add(m_clear_log_btn, 0, wxALIGN_CENTER_VERTICAL);
+  sTop->Add(m_FontChoice, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space3);
+  sTop->Add(m_WrapLine, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space3);
 
   sBottom = new wxBoxSizer(wxVERTICAL);
   PopulateBottom();
@@ -155,12 +156,6 @@ CLogWindow::~CLogWindow()
   {
     m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
   }
-}
-
-void CLogWindow::OnClose(wxCloseEvent& event)
-{
-  SaveSettings();
-  event.Skip();
 }
 
 void CLogWindow::SaveSettings()

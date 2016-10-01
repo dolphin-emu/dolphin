@@ -66,13 +66,6 @@ void ShowErrorDialog(const wxString& error_msg)
   wxMessageBox(error_msg, _("Error"), wxOK | wxICON_ERROR);
 }
 
-wxBitmap LoadResourceBitmap(const std::string& name, const wxSize& padded_size)
-{
-  wxWindow* context = wxTheApp->GetTopWindow();
-  return LoadScaledResourceBitmap(name, context, padded_size, wxDefaultSize,
-                                  LSI_SCALE_DOWN | LSI_ALIGN_VCENTER, *wxWHITE);
-}
-
 wxBitmap CreateDisabledButtonBitmap(const wxBitmap& original)
 {
   wxImage image = original.ConvertToImage();

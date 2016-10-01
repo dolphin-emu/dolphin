@@ -58,7 +58,6 @@ private:
   void CreateGUIControls();
   void PopulateBottom();
   void UnPopulateBottom();
-  void OnClose(wxCloseEvent& event);
   void OnFontChange(wxCommandEvent& event);
   void OnWrapLineCheck(wxCommandEvent& event);
   void OnClear(wxCommandEvent& event);

@@ -22,6 +22,8 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
   Bind(wxEVT_BUTTON, &MemoryCheckDlg::OnOK, this, wxID_OK);
   Bind(wxEVT_RADIOBUTTON, &MemoryCheckDlg::OnRadioButtonClick, this);
 
+  const int space5 = FromDIP(5);
+
   m_textAddress = new wxStaticText(this, wxID_ANY, _("Address"));
   m_textStartAddress = new wxStaticText(this, wxID_ANY, _("Start"));
   m_textStartAddress->Disable();
@@ -46,14 +48,22 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
   m_radioBreakLog->SetValue(true);
 
   auto* sAddressBox = new wxBoxSizer(wxHORIZONTAL);
-  sAddressBox->Add(m_textAddress, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sAddressBox->Add(m_pEditAddress, 1, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 10);
+  sAddressBox->AddSpacer(space5);
+  sAddressBox->Add(m_textAddress, 0, wxALIGN_CENTER_VERTICAL);
+  sAddressBox->AddSpacer(space5);
+  sAddressBox->Add(m_pEditAddress, 1, wxALIGN_CENTER_VERTICAL);
+  sAddressBox->AddSpacer(space5);
 
   auto* sAddressRangeBox = new wxBoxSizer(wxHORIZONTAL);
-  sAddressRangeBox->Add(m_textStartAddress, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sAddressRangeBox->Add(m_pEditStartAddress, 1, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 10);
-  sAddressRangeBox->Add(m_textEndAddress, 0, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  sAddressRangeBox->Add(m_pEditEndAddress, 1, wxALIGN_CENTER_VERTICAL | wxTOP | wxBOTTOM, 5);
+  sAddressRangeBox->AddSpacer(space5);
+  sAddressRangeBox->Add(m_textStartAddress, 0, wxALIGN_CENTER_VERTICAL);
+  sAddressRangeBox->AddSpacer(space5);
+  sAddressRangeBox->Add(m_pEditStartAddress, 1, wxALIGN_CENTER_VERTICAL);
+  sAddressRangeBox->AddSpacer(space5);
+  sAddressRangeBox->Add(m_textEndAddress, 0, wxALIGN_CENTER_VERTICAL);
+  sAddressRangeBox->AddSpacer(space5);
+  sAddressRangeBox->Add(m_pEditEndAddress, 1, wxALIGN_CENTER_VERTICAL);
+  sAddressRangeBox->AddSpacer(space5);
 
   auto* sActions = new wxStaticBoxSizer(wxVERTICAL, this, _("Action"));
   sActions->Add(m_radioRead, 0, wxEXPAND);
@@ -67,19 +77,26 @@ MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
   sFlags->Add(m_radioBreakLog);
 
   auto* sOptionsBox = new wxBoxSizer(wxHORIZONTAL);
-  sOptionsBox->Add(sActions, 1, wxEXPAND | wxRIGHT | wxTOP | wxBOTTOM, 5);
-  sOptionsBox->Add(sFlags, 1, wxEXPAND | wxLEFT | wxTOP | wxBOTTOM, 5);
+  sOptionsBox->Add(sActions, 1, wxEXPAND, space5);
+  sOptionsBox->Add(sFlags, 1, wxEXPAND | wxLEFT, space5);
 
   auto* sControls = new wxBoxSizer(wxVERTICAL);
   sControls->Add(m_radioAddress, 0, wxEXPAND);
+  sControls->AddSpacer(5);
   sControls->Add(sAddressBox, 0, wxEXPAND);
+  sControls->AddSpacer(5);
   sControls->Add(m_radioRange, 0, wxEXPAND);
+  sControls->AddSpacer(5);
   sControls->Add(sAddressRangeBox, 0, wxEXPAND);
+  sControls->AddSpacer(5);
   sControls->Add(sOptionsBox, 0, wxEXPAND);
 
   auto* sMainSizer = new wxBoxSizer(wxVERTICAL);
-  sMainSizer->Add(sControls, 0, wxEXPAND | wxTOP | wxRIGHT | wxLEFT, 5);
-  sMainSizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+  sMainSizer->AddSpacer(space5);
+  sMainSizer->Add(sControls, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMainSizer->AddSpacer(space5);
+  sMainSizer->Add(CreateButtonSizer(wxOK | wxCANCEL), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMainSizer->AddSpacer(space5);
 
   SetSizerAndFit(sMainSizer);
   SetFocus();
