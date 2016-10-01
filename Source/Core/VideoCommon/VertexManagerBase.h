@@ -37,7 +37,7 @@ private:
   static const u32 LARGEST_POSSIBLE_VERTEX =
       sizeof(float) * 45 + sizeof(u32) * 2;  // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
 
-  static const u32 MAX_PRIMITIVES_PER_COMMAND = (u16)-1;
+  static const u32 MAX_PRIMITIVES_PER_COMMAND = 65535;
 
 public:
   static const u32 MAXVBUFFERSIZE =
