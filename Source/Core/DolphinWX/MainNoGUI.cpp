@@ -34,6 +34,8 @@
 static bool rendererHasFocus = true;
 static bool rendererIsFullscreen = false;
 static Common::Flag s_running{true};
+static Common::Flag s_shutdown_requested{false};
+static Common::Flag s_tried_graceful_shutdown{false};
 
 static void signal_handler(int)
 {
@@ -41,7 +43,12 @@ static void signal_handler(int)
   if (write(STDERR_FILENO, message, sizeof(message)) < 0)
   {
   }
-  s_running.Clear();
+  s_shutdown_requested.Set();
+}
+
+namespace ProcessorInterface
+{
+void PowerButton_Tap();
 }
 
 class Platform
@@ -222,6 +229,19 @@ class PlatformX11 : public Platform
     // The actual loop
     while (s_running.IsSet())
     {
+      if (s_shutdown_requested.TestAndClear())
+      {
+        if (!s_tried_graceful_shutdown.IsSet() && SConfig::GetInstance().bWii)
+        {
+          ProcessorInterface::PowerButton_Tap();
+          s_tried_graceful_shutdown.Set();
+        }
+        else
+        {
+          s_running.Clear();
+        }
+      }
+
       XEvent event;
       KeySym key;
       for (int num_events = XPending(dpy); num_events > 0; num_events--)
@@ -286,7 +306,7 @@ class PlatformX11 : public Platform
           break;
         case ClientMessage:
           if ((unsigned long)event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
-            s_running.Clear();
+            s_shutdown_requested.Set();
           break;
         }
       }
@@ -375,6 +395,7 @@ int main(int argc, char* argv[])
   UICommon::SetUserDirectory("");  // Auto-detect user folder
   UICommon::Init();
 
+  Core::SetOnStoppedCallback([]() { s_running.Clear(); });
   platform->Init();
 
   // Shut down cleanly on SIGINT and SIGTERM
