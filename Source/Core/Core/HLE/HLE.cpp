@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
+#include <map>
+
 #include "Common/CommonTypes.h"
 
 #include "Core/ConfigManager.h"
@@ -33,11 +36,12 @@ struct SPatch
 {
   char m_szPatchName[128];
   TPatchFunction PatchFunction;
-  int type;
-  int flags;
+  HookType type;
+  HookFlag flags;
 };
 
 static const SPatch OSPatches[] = {
+    // Placeholder, OSPatches[0] is the "non-existent function" index
     {"FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC},
 
     {"PanicAlert", HLE_Misc::HLEPanicAlert, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
@@ -60,9 +64,10 @@ static const SPatch OSPatches[] = {
     {"___blank", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
     {"__write_console", HLE_OS::HLE_write_console, HLE_HOOK_REPLACE,
      HLE_TYPE_DEBUG},  // used by sysmenu (+more?)
-    {"GeckoCodehandler", HLE_Misc::GeckoCodeHandlerICacheFlush, HLE_HOOK_START, HLE_TYPE_GENERIC},
+
+    {"GeckoCodehandler", HLE_Misc::GeckoCodeHandlerICacheFlush, HLE_HOOK_START, HLE_TYPE_FIXED},
     {"GeckoHandlerReturnTrampoline", HLE_Misc::GeckoReturnTrampoline, HLE_HOOK_REPLACE,
-     HLE_TYPE_GENERIC},
+     HLE_TYPE_FIXED},
 };
 
 static const SPatch OSBreakPoints[] = {
@@ -71,11 +76,12 @@ static const SPatch OSBreakPoints[] = {
 
 void Patch(u32 addr, const char* hle_func_name)
 {
-  for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
+  for (u32 i = 1; i < ArraySize(OSPatches); ++i)
   {
     if (!strcmp(OSPatches[i].m_szPatchName, hle_func_name))
     {
       s_original_instructions[addr] = i;
+      PowerPC::ppcState.iCache.Invalidate(addr);
       return;
     }
   }
@@ -83,15 +89,33 @@ void Patch(u32 addr, const char* hle_func_name)
 
 void PatchFunctions()
 {
-  s_original_instructions.clear();
-  for (u32 i = 0; i < sizeof(OSPatches) / sizeof(SPatch); i++)
+  // Remove all hooks that aren't fixed address hooks
+  for (auto i = s_original_instructions.begin(); i != s_original_instructions.end();)
   {
+    if (OSPatches[i->second].flags != HLE_TYPE_FIXED)
+    {
+      PowerPC::ppcState.iCache.Invalidate(i->first);
+      i = s_original_instructions.erase(i);
+    }
+    else
+    {
+      ++i;
+    }
+  }
+
+  for (u32 i = 1; i < ArraySize(OSPatches); ++i)
+  {
+    // Fixed hooks don't map to symbols
+    if (OSPatches[i].flags == HLE_TYPE_FIXED)
+      continue;
+
     Symbol* symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
     if (symbol)
     {
       for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
       {
         s_original_instructions[addr] = i;
+        PowerPC::ppcState.iCache.Invalidate(addr);
       }
       INFO_LOG(OSHLE, "Patching %s %08x", OSPatches[i].m_szPatchName, symbol->address);
     }
@@ -99,7 +123,7 @@ void PatchFunctions()
 
   if (SConfig::GetInstance().bEnableDebugging)
   {
-    for (size_t i = 1; i < sizeof(OSBreakPoints) / sizeof(SPatch); i++)
+    for (size_t i = 1; i < ArraySize(OSBreakPoints); ++i)
     {
       Symbol* symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
       if (symbol)
@@ -113,10 +137,15 @@ void PatchFunctions()
   // CBreakPoints::AddBreakPoint(0x8000D3D0, false);
 }
 
+void Clear()
+{
+  s_original_instructions.clear();
+}
+
 void Execute(u32 _CurrentPC, u32 _Instruction)
 {
   unsigned int FunctionIndex = _Instruction & 0xFFFFF;
-  if ((FunctionIndex > 0) && (FunctionIndex < (sizeof(OSPatches) / sizeof(SPatch))))
+  if (FunctionIndex > 0 && FunctionIndex < ArraySize(OSPatches))
   {
     OSPatches[FunctionIndex].PatchFunction();
   }
@@ -154,21 +183,60 @@ bool IsEnabled(int flags)
   return true;
 }
 
-u32 UnPatch(const std::string& patchName)
+u32 UnPatch(const std::string& patch_name)
 {
-  Symbol* symbol = g_symbolDB.GetSymbolFromName(patchName);
+  auto* patch = std::find_if(std::begin(OSPatches), std::end(OSPatches), [&](const SPatch& patch) {
+    return patch_name == patch.m_szPatchName;
+  });
+  if (patch == std::end(OSPatches))
+    return 0;
 
-  if (symbol)
+  if (patch->type == HLE_TYPE_FIXED)
+  {
+    u32 patch_idx = static_cast<u32>(patch - OSPatches);
+    u32 addr = 0;
+    // Reverse search by OSPatch key instead of address
+    for (auto i = s_original_instructions.begin(); i != s_original_instructions.end();)
+    {
+      if (i->second == patch_idx)
+      {
+        addr = i->first;
+        PowerPC::ppcState.iCache.Invalidate(i->first);
+        i = s_original_instructions.erase(i);
+      }
+      else
+      {
+        ++i;
+      }
+    }
+    return addr;
+  }
+
+  if (Symbol* symbol = g_symbolDB.GetSymbolFromName(patch_name))
   {
     for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
     {
-      s_original_instructions[addr] = 0;
+      s_original_instructions.erase(addr);
       PowerPC::ppcState.iCache.Invalidate(addr);
     }
     return symbol->address;
   }
 
   return 0;
+}
+
+bool UnPatch(u32 addr, const std::string& name)
+{
+  auto itr = s_original_instructions.find(addr);
+  if (itr == s_original_instructions.end())
+    return false;
+
+  if (!name.empty() && name != OSPatches[itr->second].m_szPatchName)
+    return false;
+
+  s_original_instructions.erase(itr);
+  PowerPC::ppcState.iCache.Invalidate(addr);
+  return true;
 }
 
 }  // end of namespace HLE

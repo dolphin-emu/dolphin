@@ -38,6 +38,7 @@
 #endif
 #include "Core/Boot/Boot.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/HLE/HLE.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
@@ -674,6 +675,7 @@ void EmuThread()
   INFO_LOG(CONSOLE, "Stop [Video Thread]\t\t---- Shutdown complete ----");
   Movie::Shutdown();
   PatchEngine::Shutdown();
+  HLE::Clear();
 
   s_is_stopping = false;
 
