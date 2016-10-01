@@ -33,18 +33,19 @@ struct Slope
 class VertexManagerBase
 {
 private:
-  static const u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float) * 3;  // 3 pos
-  static const u32 LARGEST_POSSIBLE_VERTEX =
-      sizeof(float) * 45 + sizeof(u32) * 2;  // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
+  // 3 pos
+  static constexpr u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float) * 3;
+  // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
+  static constexpr u32 LARGEST_POSSIBLE_VERTEX = sizeof(float) * 45 + sizeof(u32) * 2;
 
-  static const u32 MAX_PRIMITIVES_PER_COMMAND = 65535;
+  static constexpr u32 MAX_PRIMITIVES_PER_COMMAND = 65535;
 
 public:
-  static const u32 MAXVBUFFERSIZE =
+  static constexpr u32 MAXVBUFFERSIZE =
       ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
 
   // We may convert triangle-fans to triangle-lists, almost 3x as many indices.
-  static const u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
+  static constexpr u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
 
   VertexManagerBase();
   // needs to be virtual for DX11's dtor
