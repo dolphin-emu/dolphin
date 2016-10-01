@@ -2,13 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/FramebufferManager.h"
+
 #include <algorithm>
-#include <cassert>
+#include <cstddef>
 
 #include "Common/CommonFuncs.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"

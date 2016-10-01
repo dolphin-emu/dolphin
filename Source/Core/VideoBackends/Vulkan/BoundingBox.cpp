@@ -5,6 +5,7 @@
 #include <vector>
 
 #include "Common/Assert.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoBackends/Vulkan/BoundingBox.h"
 #include "VideoBackends/Vulkan/CommandBufferManager.h"

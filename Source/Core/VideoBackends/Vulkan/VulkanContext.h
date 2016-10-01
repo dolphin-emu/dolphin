@@ -7,6 +7,7 @@
 #include <memory>
 #include <vector>
 
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/VideoConfig.h"
 

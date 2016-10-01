@@ -2,14 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/StreamBuffer.h"
+
 #include <algorithm>
 #include <cstdint>
+#include <functional>
 
 #include "Common/Assert.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 

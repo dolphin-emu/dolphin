@@ -2,12 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/TextureCache.h"
+
 #include <algorithm>
 #include <cstring>
+#include <string>
 #include <vector>
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
@@ -18,7 +23,6 @@
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
-#include "VideoBackends/Vulkan/TextureCache.h"
 #include "VideoBackends/Vulkan/TextureEncoder.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"

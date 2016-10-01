@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/ObjectCache.h"
+
 #include <algorithm>
+#include <sstream>
 #include <type_traits>
 #include <xxhash.h>
 
@@ -10,7 +13,6 @@
 #include "Common/LinearDiskCache.h"
 #include "Core/ConfigManager.h"
 
-#include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"

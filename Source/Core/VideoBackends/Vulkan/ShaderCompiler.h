@@ -4,9 +4,10 @@
 
 #pragma once
 
+#include <cstddef>
 #include <vector>
 
-#include "VideoBackends/Vulkan/Constants.h"
+#include "Common/CommonTypes.h"
 
 namespace Vulkan
 {

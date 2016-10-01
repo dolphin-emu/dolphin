@@ -2,15 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/SwapChain.h"
+
 #include <algorithm>
 #include <cstdint>
 
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/SwapChain.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #if defined(VK_USE_PLATFORM_XLIB_KHR)

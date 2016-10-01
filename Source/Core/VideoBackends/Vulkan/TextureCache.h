@@ -6,8 +6,8 @@
 
 #include <memory>
 
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
-
 #include "VideoCommon/TextureCacheBase.h"
 
 namespace Vulkan

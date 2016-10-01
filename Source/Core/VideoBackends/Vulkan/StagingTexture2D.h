@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
 
 namespace Vulkan
