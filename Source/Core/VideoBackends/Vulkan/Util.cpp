@@ -2,17 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/Util.h"
+
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
-#include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
-#include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 namespace Vulkan

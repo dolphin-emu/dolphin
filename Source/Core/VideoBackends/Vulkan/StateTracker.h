@@ -4,9 +4,13 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
 #include <memory>
 
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderBase.h"

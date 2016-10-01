@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <deque>
 #include <memory>
 #include <utility>

@@ -5,11 +5,13 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <map>
 #include <memory>
 #include <string>
 #include <unordered_map>
 
+#include "Common/CommonTypes.h"
 #include "Common/LinearDiskCache.h"
 
 #include "VideoBackends/Vulkan/Constants.h"

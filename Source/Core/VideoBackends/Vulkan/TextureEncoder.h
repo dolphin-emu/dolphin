@@ -4,10 +4,12 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 
-#include "VideoBackends/Vulkan/StreamBuffer.h"
-
+#include "Common/CommonTypes.h"
+#include "VideoBackends/Vulkan/VulkanLoader.h"
+#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace Vulkan

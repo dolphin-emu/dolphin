@@ -5,8 +5,10 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <memory>
 
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/RenderBase.h"
 
