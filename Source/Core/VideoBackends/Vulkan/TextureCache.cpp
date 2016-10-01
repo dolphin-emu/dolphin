@@ -316,7 +316,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
   m_parent->m_state_tracker->UnbindTexture(m_texture->GetView());
 
   if (m_framebuffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_framebuffer);
+    g_command_buffer_mgr->DeferFramebufferDestruction(m_framebuffer);
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,

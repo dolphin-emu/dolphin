@@ -526,7 +526,8 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   device_info.pQueueCreateInfos = &queue_info;
 
   ExtensionList enabled_extensions;
-  if (!SelectDeviceExtensions(&enabled_extensions, (surface != nullptr), enable_validation_layer))
+  if (!SelectDeviceExtensions(&enabled_extensions, (surface != VK_NULL_HANDLE),
+                              enable_validation_layer))
     return false;
 
   device_info.enabledLayerCount = 0;

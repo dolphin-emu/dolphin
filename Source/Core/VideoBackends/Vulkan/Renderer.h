@@ -105,8 +105,8 @@ private:
 
   FramebufferManager* m_framebuffer_mgr = nullptr;
 
-  VkSemaphore m_image_available_semaphore = nullptr;
-  VkSemaphore m_rendering_finished_semaphore = nullptr;
+  VkSemaphore m_image_available_semaphore = VK_NULL_HANDLE;
+  VkSemaphore m_rendering_finished_semaphore = VK_NULL_HANDLE;
 
   std::unique_ptr<SwapChain> m_swap_chain;
   std::unique_ptr<StateTracker> m_state_tracker;

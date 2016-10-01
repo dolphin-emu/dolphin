@@ -280,8 +280,8 @@ void SwapChain::DestroyRenderPass()
   if (!m_render_pass)
     return;
 
-  g_command_buffer_mgr->DeferResourceDestruction(m_render_pass);
-  m_render_pass = nullptr;
+  vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_render_pass, nullptr);
+  m_render_pass = VK_NULL_HANDLE;
 }
 
 bool SwapChain::CreateSwapChain()

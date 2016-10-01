@@ -66,28 +66,6 @@ VkShaderModule CompileAndCreateFragmentShader(const std::string& source_code,
                                               bool prepend_header = true);
 }
 
-// Helper methods for cleaning up device objects, used by deferred destruction
-struct DeferredResourceDestruction
-{
-  union Object {
-    VkCommandPool command_pool;
-    VkDeviceMemory device_memory;
-    VkBuffer buffer;
-    VkBufferView buffer_view;
-    VkImage image;
-    VkImageView image_view;
-    VkRenderPass render_pass;
-    VkFramebuffer framebuffer;
-    VkShaderModule shader_module;
-    VkPipeline pipeline;
-  } object;
-
-  void (*destroy_callback)(VkDevice device, const Object& object);
-
-  template <typename T>
-  static DeferredResourceDestruction Wrapper(T object);
-};
-
 // Utility shader vertex format
 #pragma pack(push, 1)
 struct UtilityShaderVertex

@@ -133,8 +133,8 @@ StagingTexture2DLinear::~StagingTexture2DLinear()
   if (m_map_pointer)
     Unmap();
 
-  g_command_buffer_mgr->DeferResourceDestruction(m_memory);
-  g_command_buffer_mgr->DeferResourceDestruction(m_image);
+  g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_memory);
+  g_command_buffer_mgr->DeferImageDestruction(m_image);
 }
 
 void StagingTexture2DLinear::CopyFromImage(VkCommandBuffer command_buffer, VkImage image,
@@ -362,8 +362,8 @@ StagingTexture2DBuffer::~StagingTexture2DBuffer()
   if (m_map_pointer)
     Unmap();
 
-  g_command_buffer_mgr->DeferResourceDestruction(m_memory);
-  g_command_buffer_mgr->DeferResourceDestruction(m_buffer);
+  g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_memory);
+  g_command_buffer_mgr->DeferBufferDestruction(m_buffer);
 }
 
 void StagingTexture2DBuffer::CopyFromImage(VkCommandBuffer command_buffer, VkImage image,

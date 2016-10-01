@@ -81,12 +81,12 @@ public:
 
   // Schedule a vulkan resource for destruction later on. This will occur when the command buffer
   // is next re-used, and the GPU has finished working with the specified resource.
-  template <typename T>
-  void DeferResourceDestruction(T object)
-  {
-    DeferredResourceDestruction wrapper = DeferredResourceDestruction::Wrapper<T>(object);
-    m_frame_resources[m_current_frame].cleanup_resources.push_back(wrapper);
-  }
+  void DeferBufferDestruction(VkBuffer object);
+  void DeferBufferViewDestruction(VkBufferView object);
+  void DeferDeviceMemoryDestruction(VkDeviceMemory object);
+  void DeferFramebufferDestruction(VkFramebuffer object);
+  void DeferImageDestruction(VkImage object);
+  void DeferImageViewDestruction(VkImageView object);
 
   // Instruct the manager to fire the specified callback when a fence is flagged to be signaled.
   // This happens when command buffers are executed, and can be tested if signaled, which means
@@ -124,7 +124,7 @@ private:
     bool init_command_buffer_used;
     bool needs_fence_wait;
 
-    std::vector<DeferredResourceDestruction> cleanup_resources;
+    std::vector<std::function<void()>> cleanup_resources;
   };
 
   std::array<FrameResources, NUM_COMMAND_BUFFERS> m_frame_resources = {};

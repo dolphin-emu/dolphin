@@ -77,15 +77,15 @@ private:
   };
 
   void* m_native_handle = nullptr;
-  VkSurfaceKHR m_surface = nullptr;
+  VkSurfaceKHR m_surface = VK_NULL_HANDLE;
   VkSurfaceFormatKHR m_surface_format = {};
   VkPresentModeKHR m_present_mode = VK_PRESENT_MODE_RANGE_SIZE_KHR;
 
-  VkSwapchainKHR m_swap_chain = nullptr;
+  VkSwapchainKHR m_swap_chain = VK_NULL_HANDLE;
   std::vector<SwapChainImage> m_swap_chain_images;
   u32 m_current_swap_chain_image_index = 0;
 
-  VkRenderPass m_render_pass = nullptr;
+  VkRenderPass m_render_pass = VK_NULL_HANDLE;
 
   u32 m_width = 0;
   u32 m_height = 0;

@@ -164,13 +164,13 @@ void Renderer::DestroySemaphores()
   if (m_image_available_semaphore)
   {
     vkDestroySemaphore(g_vulkan_context->GetDevice(), m_image_available_semaphore, nullptr);
-    m_image_available_semaphore = nullptr;
+    m_image_available_semaphore = VK_NULL_HANDLE;
   }
 
   if (m_rendering_finished_semaphore)
   {
     vkDestroySemaphore(g_vulkan_context->GetDevice(), m_rendering_finished_semaphore, nullptr);
-    m_rendering_finished_semaphore = nullptr;
+    m_rendering_finished_semaphore = VK_NULL_HANDLE;
   }
 }
 

@@ -73,7 +73,7 @@ void CommandBufferManager::DestroyCommandPool()
   if (m_command_pool)
   {
     vkDestroyCommandPool(g_vulkan_context->GetDevice(), m_command_pool, nullptr);
-    m_command_pool = nullptr;
+    m_command_pool = VK_NULL_HANDLE;
   }
 }
 
@@ -141,8 +141,8 @@ void CommandBufferManager::DestroyCommandBuffers()
 
   for (FrameResources& resources : m_frame_resources)
   {
-    for (const auto& it : resources.cleanup_resources)
-      it.destroy_callback(device, it.object);
+    for (auto& it : resources.cleanup_resources)
+      it();
     resources.cleanup_resources.clear();
 
     if (resources.fence != VK_NULL_HANDLE)
@@ -385,8 +385,8 @@ void CommandBufferManager::OnCommandBufferExecuted(size_t index)
     iter.second.second(resources.fence);
 
   // Clean up all objects pending destruction on this command buffer
-  for (const auto& it : resources.cleanup_resources)
-    it.destroy_callback(g_vulkan_context->GetDevice(), it.object);
+  for (auto& it : resources.cleanup_resources)
+    it();
   resources.cleanup_resources.clear();
 }
 
@@ -444,6 +444,48 @@ void CommandBufferManager::ExecuteCommandBuffer(bool submit_off_thread, bool wai
 
   if (wait_for_completion)
     WaitForFence(pending_fence);
+}
+
+void CommandBufferManager::DeferBufferDestruction(VkBuffer object)
+{
+  FrameResources& resources = m_frame_resources[m_current_frame];
+  resources.cleanup_resources.push_back(
+      [object]() { vkDestroyBuffer(g_vulkan_context->GetDevice(), object, nullptr); });
+}
+
+void CommandBufferManager::DeferBufferViewDestruction(VkBufferView object)
+{
+  FrameResources& resources = m_frame_resources[m_current_frame];
+  resources.cleanup_resources.push_back(
+      [object]() { vkDestroyBufferView(g_vulkan_context->GetDevice(), object, nullptr); });
+}
+
+void CommandBufferManager::DeferDeviceMemoryDestruction(VkDeviceMemory object)
+{
+  FrameResources& resources = m_frame_resources[m_current_frame];
+  resources.cleanup_resources.push_back(
+      [object]() { vkFreeMemory(g_vulkan_context->GetDevice(), object, nullptr); });
+}
+
+void CommandBufferManager::DeferFramebufferDestruction(VkFramebuffer object)
+{
+  FrameResources& resources = m_frame_resources[m_current_frame];
+  resources.cleanup_resources.push_back(
+      [object]() { vkDestroyFramebuffer(g_vulkan_context->GetDevice(), object, nullptr); });
+}
+
+void CommandBufferManager::DeferImageDestruction(VkImage object)
+{
+  FrameResources& resources = m_frame_resources[m_current_frame];
+  resources.cleanup_resources.push_back(
+      [object]() { vkDestroyImage(g_vulkan_context->GetDevice(), object, nullptr); });
+}
+
+void CommandBufferManager::DeferImageViewDestruction(VkImageView object)
+{
+  FrameResources& resources = m_frame_resources[m_current_frame];
+  resources.cleanup_resources.push_back(
+      [object]() { vkDestroyImageView(g_vulkan_context->GetDevice(), object, nullptr); });
 }
 
 void CommandBufferManager::AddFencePointCallback(
