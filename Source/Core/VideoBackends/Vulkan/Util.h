@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
+
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 

@@ -4,8 +4,10 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
+#include "Common/CommonTypes.h"
 #include "VideoCommon/VertexManagerBase.h"
 
 namespace Vulkan

@@ -2,8 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/Renderer.h"
+
+#include <cstddef>
 #include <cstdio>
 #include <limits>
+#include <string>
+
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
 
@@ -12,7 +19,6 @@
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/RasterFont.h"
-#include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/SwapChain.h"

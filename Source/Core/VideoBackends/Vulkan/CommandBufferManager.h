@@ -5,6 +5,7 @@
 #pragma once
 
 #include <array>
+#include <cstddef>
 #include <deque>
 #include <functional>
 #include <map>

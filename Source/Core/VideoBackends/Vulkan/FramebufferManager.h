@@ -2,11 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include <memory>
 
-#include "VideoCommon/FramebufferManagerBase.h"
-
+#include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoCommon/FramebufferManagerBase.h"
 
 namespace Vulkan
 {

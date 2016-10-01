@@ -2,10 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/RasterFont.h"
+
+#include <cstring>
 #include <vector>
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
-#include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"

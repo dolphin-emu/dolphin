@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <memory>
 
 #include "VideoBackends/Vulkan/Constants.h"

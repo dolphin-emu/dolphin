@@ -2,7 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/ShaderCompiler.h"
+
+#include <cstddef>
+#include <cstdlib>
 #include <fstream>
+#include <memory>
 #include <string>
 
 // glslang includes
@@ -15,7 +20,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "VideoBackends/Vulkan/ShaderCompiler.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
