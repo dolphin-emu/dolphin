@@ -22,6 +22,7 @@
 #include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/SwapChain.h"
+#include "VideoBackends/Vulkan/TextureCache.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -553,7 +554,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Clean up stale textures
-  TextureCacheBase::Cleanup(frameCount);
+  TextureCache::Cleanup(frameCount);
 
   // Handle window resizes.
   CheckForTargetResize(fb_width, fb_stride, fb_height);
@@ -927,6 +928,9 @@ void Renderer::CheckForConfigChanges()
 
   // Copy g_Config to g_ActiveConfig.
   UpdateActiveConfig();
+
+  // Update texture cache settings with any changed options.
+  TextureCache::OnConfigChanged(g_ActiveConfig);
 
   // MSAA samples changed, we need to recreate the EFB render pass, and all shaders.
   if (msaa_changed)
