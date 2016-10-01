@@ -41,6 +41,9 @@ PaletteTextureConverter::~PaletteTextureConverter()
   if (m_palette_buffer_view != VK_NULL_HANDLE)
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_palette_buffer_view, nullptr);
 
+  if (m_pipeline_layout != VK_NULL_HANDLE)
+    vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), m_pipeline_layout, nullptr);
+
   if (m_palette_set_layout != VK_NULL_HANDLE)
     vkDestroyDescriptorSetLayout(g_vulkan_context->GetDevice(), m_palette_set_layout, nullptr);
 }

@@ -61,6 +61,8 @@ Renderer::~Renderer()
 {
   g_Config.bRunning = false;
   UpdateActiveConfig();
+  DestroyScreenshotResources();
+  DestroyShaders();
   DestroySemaphores();
 }
 
