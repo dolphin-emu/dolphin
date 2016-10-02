@@ -149,18 +149,20 @@ void CLogWindow::CreateGUIControls()
   m_cmdline->SetFocus();
 }
 
-CLogWindow::~CLogWindow()
-{
-  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
-  {
-    m_LogManager->RemoveListener((LogTypes::LOG_TYPE)i, LogListener::LOG_WINDOW_LISTENER);
-  }
-}
-
 void CLogWindow::OnClose(wxCloseEvent& event)
 {
   SaveSettings();
   event.Skip();
+  RemoveAllListeners();
+}
+
+void CLogWindow::RemoveAllListeners()
+{
+  for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
+  {
+    m_LogManager->RemoveListener(static_cast<LogTypes::LOG_TYPE>(i),
+                                 LogListener::LOG_WINDOW_LISTENER);
+  }
 }
 
 void CLogWindow::SaveSettings()
