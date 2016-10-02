@@ -46,6 +46,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu
   else
   {
     sysconf = SConfig::GetInstance().m_SYSCONF;
+    BackUpBTInfoSection();
   }
 
   // Activate only first Wiimote by default
@@ -62,24 +63,13 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu
     u8 i = 0;
     while (i < MAX_BBMOTES)
     {
-      if (i < BT_DINF.num_registered)
-      {
-        tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0];
-        tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1];
-        tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2];
-        tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3];
-        tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4];
-        tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5];
-      }
-      else
-      {
-        tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = i;
-        tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = 0;
-        tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = 0x79;
-        tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = 0x19;
-        tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = 2;
-        tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = 0x11;
-      }
+      // Previous records can be safely overwritten, since they are backed up
+      tmpBD.b[5] = BT_DINF.active[i].bdaddr[0] = BT_DINF.registered[i].bdaddr[0] = i;
+      tmpBD.b[4] = BT_DINF.active[i].bdaddr[1] = BT_DINF.registered[i].bdaddr[1] = 0;
+      tmpBD.b[3] = BT_DINF.active[i].bdaddr[2] = BT_DINF.registered[i].bdaddr[2] = 0x79;
+      tmpBD.b[2] = BT_DINF.active[i].bdaddr[3] = BT_DINF.registered[i].bdaddr[3] = 0x19;
+      tmpBD.b[1] = BT_DINF.active[i].bdaddr[4] = BT_DINF.registered[i].bdaddr[4] = 2;
+      tmpBD.b[0] = BT_DINF.active[i].bdaddr[5] = BT_DINF.registered[i].bdaddr[5] = 0x11;
 
       const char* wmName;
       if (i == WIIMOTE_BALANCE_BOARD)
@@ -95,6 +85,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu
       i++;
     }
 
+    BT_DINF.num_registered = MAX_BBMOTES;
     // save now so that when games load sysconf file it includes the new Wiimotes
     // and the correct order for connected Wiimotes
     if (!sysconf->SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !sysconf->Save())
