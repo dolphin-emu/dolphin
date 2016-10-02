@@ -458,8 +458,8 @@ void NetPlaySetupFrame::OnResetTraversal(wxCommandEvent& event)
   const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
   inifile.Load(dolphin_ini);
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
-  netplay_section.Set("TraversalServer", DEFAULT_TRAVERSAL_SERVER);
-  netplay_section.Set("TraversalPort", DEFAULT_TRAVERSAL_PORT);
+  netplay_section.Delete("TraversalServer");
+  netplay_section.Delete("TraversalPort");
   inifile.Save(dolphin_ini);
 
   m_traversal_lbl->SetLabelText(GetTraversalLabelText(netplay_section));
