@@ -153,6 +153,10 @@ bool SysConf::LoadFromFileInternal(FILE* fh)
       curEntry.dataLength = 4;
       break;
 
+    case Type_LongLong:
+      curEntry.dataLength = 8;
+      break;
+
     default:
       PanicAlertT("Unknown entry type %i in SYSCONF (%s@%x)!", curEntry.type, curEntry.name,
                   curEntry.offset);
