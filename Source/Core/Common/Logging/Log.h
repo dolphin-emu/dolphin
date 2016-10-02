@@ -82,7 +82,7 @@ void GenericLog(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char*
 #define MAX_LOGLEVEL LogTypes::LOG_LEVELS::LDEBUG
 #else
 #ifndef MAX_LOGLEVEL
-#define MAX_LOGLEVEL LogTypes::LOG_LEVELS::LWARNING
+#define MAX_LOGLEVEL LogTypes::LOG_LEVELS::LINFO
 #endif  // loglevel
 #endif  // logging
 

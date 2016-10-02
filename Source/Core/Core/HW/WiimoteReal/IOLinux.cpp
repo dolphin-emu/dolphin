@@ -79,7 +79,7 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
   // Display discovered devices
   for (int i = 0; i < found_devices; ++i)
   {
-    ERROR_LOG(WIIMOTE, "found a device...");
+    NOTICE_LOG(WIIMOTE, "found a device...");
 
     // BT names are a maximum of 248 bytes apparently
     char name[255] = {};
@@ -89,7 +89,7 @@ void WiimoteScannerLinux::FindWiimotes(std::vector<Wiimote*>& found_wiimotes, Wi
       continue;
     }
 
-    ERROR_LOG(WIIMOTE, "device name %s", name);
+    NOTICE_LOG(WIIMOTE, "device name %s", name);
     if (!IsValidBluetoothName(name))
       continue;
 
