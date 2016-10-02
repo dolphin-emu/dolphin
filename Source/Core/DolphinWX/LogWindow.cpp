@@ -355,5 +355,5 @@ void CLogWindow::Log(LogTypes::LOG_LEVELS level, const char* text)
   if (msgQueue.size() >= MSGQUEUE_MAX_SIZE)
     msgQueue.pop();
 
-  msgQueue.push(std::make_pair(u8(level), StrToWxStr(text)));
+  msgQueue.emplace(static_cast<u8>(level), StrToWxStr(text));
 }
