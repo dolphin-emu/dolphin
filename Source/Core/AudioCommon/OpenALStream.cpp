@@ -159,44 +159,15 @@ void OpenALStream::SoundLoop()
   // Generate a Source to playback the Buffers
   alGenSources(1, &uiSource);
 
-  // Short Silence
-  if (float32_capable)
-    memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_FLOAT);
-  else
-    memset(sampleBuffer, 0, OAL_MAX_SAMPLES * numBuffers * FRAME_SURROUND_SHORT);
-
-  memset(realtimeBuffer, 0, OAL_MAX_SAMPLES * FRAME_STEREO_SHORT);
-
-  for (int i = 0; i < numBuffers; i++)
-  {
-    if (surround_capable)
-    {
-      if (float32_capable)
-        alBufferData(uiBuffers[i], AL_FORMAT_51CHN32, sampleBuffer, 4 * FRAME_SURROUND_FLOAT,
-                     ulFrequency);
-      else
-        alBufferData(uiBuffers[i], AL_FORMAT_51CHN16, sampleBuffer, 4 * FRAME_SURROUND_SHORT,
-                     ulFrequency);
-    }
-    else
-    {
-      alBufferData(uiBuffers[i], AL_FORMAT_STEREO16, realtimeBuffer, 4 * FRAME_STEREO_SHORT,
-                   ulFrequency);
-    }
-  }
-  alSourceQueueBuffers(uiSource, numBuffers, uiBuffers);
-  alSourcePlay(uiSource);
-
   // Set the default sound volume as saved in the config file.
   alSourcef(uiSource, AL_GAIN, fVolume);
 
   // TODO: Error handling
   // ALenum err = alGetError();
 
-  ALint iBuffersFilled = 0;
-  ALint iBuffersProcessed = 0;
+  unsigned int nextBuffer = 0;
+  unsigned int numBuffersQueued = 0;
   ALint iState = 0;
-  ALuint uiBufferTemp[OAL_MAX_BUFFERS] = {0};
 
   soundTouch.setChannels(2);
   soundTouch.setSampleRate(ulFrequency);
@@ -209,6 +180,28 @@ void OpenALStream::SoundLoop()
 
   while (m_run_thread.IsSet())
   {
+    // Block until we have a free buffer
+    int numBuffersProcessed;
+    alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &numBuffersProcessed);
+    if (numBuffers == numBuffersQueued && !numBuffersProcessed)
+    {
+      soundSyncEvent.Wait();
+      continue;
+    }
+
+    // Remove the Buffer from the Queue.
+    if (numBuffersProcessed)
+    {
+      ALuint unqueuedBufferIds[OAL_MAX_BUFFERS];
+      alSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds);
+      ALenum err = alGetError();
+      if (err != 0)
+      {
+        ERROR_LOG(AUDIO, "Error unqueuing buffers: %08x", err);
+      }
+      numBuffersQueued -= numBuffersProcessed;
+    }
+
     // num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
     const u32 stereo_16_bit_size = 4;
     const u32 dma_length = 32;
@@ -232,14 +225,6 @@ void OpenALStream::SoundLoop()
 
     soundTouch.putSamples(dest, numSamples);
 
-    if (iBuffersProcessed == iBuffersFilled)
-    {
-      alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &iBuffersProcessed);
-      iBuffersFilled = 0;
-    }
-
-    if (iBuffersProcessed)
-    {
       double rate = (double)m_mixer->GetCurrentSpeed();
       if (rate <= 0)
       {
@@ -263,18 +248,6 @@ void OpenALStream::SoundLoop()
       if (nSamples <= minSamples)
         continue;
 
-      // Remove the Buffer from the Queue.  (uiBuffer contains the Buffer ID for the unqueued
-      // Buffer)
-      if (iBuffersFilled == 0)
-      {
-        alSourceUnqueueBuffers(uiSource, iBuffersProcessed, uiBufferTemp);
-        ALenum err = alGetError();
-        if (err != 0)
-        {
-          ERROR_LOG(AUDIO, "Error unqueuing buffers: %08x", err);
-        }
-      }
-
       if (surround_capable)
       {
         float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
@@ -291,7 +264,7 @@ void OpenALStream::SoundLoop()
 
         if (float32_capable)
         {
-          alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN32, dpl2,
+          alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2,
                        nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
         }
         else
@@ -300,7 +273,7 @@ void OpenALStream::SoundLoop()
           for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
             surround_short[i] = (short)((float)dpl2[i] * (1 << 15));
 
-          alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_51CHN16, surround_short,
+          alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short,
                        nSamples * FRAME_SURROUND_SHORT, ulFrequency);
         }
 
@@ -322,7 +295,7 @@ void OpenALStream::SoundLoop()
       {
         if (float32_capable)
         {
-          alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
+          alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
                        nSamples * FRAME_STEREO_FLOAT, ulFrequency);
           ALenum err = alGetError();
           if (err == AL_INVALID_ENUM)
@@ -334,7 +307,6 @@ void OpenALStream::SoundLoop()
             ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
           }
         }
-
         else
         {
           // Convert the samples from float to short
@@ -342,28 +314,19 @@ void OpenALStream::SoundLoop()
           for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
             stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
 
-          alBufferData(uiBufferTemp[iBuffersFilled], AL_FORMAT_STEREO16, stereo,
+          alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO16, stereo,
                        nSamples * FRAME_STEREO_SHORT, ulFrequency);
         }
       }
 
-      alSourceQueueBuffers(uiSource, 1, &uiBufferTemp[iBuffersFilled]);
+      alSourceQueueBuffers(uiSource, 1, &uiBuffers[nextBuffer]);
       ALenum err = alGetError();
       if (err != 0)
       {
         ERROR_LOG(AUDIO, "Error queuing buffers: %08x", err);
       }
-      iBuffersFilled++;
-
-      if (iBuffersFilled == numBuffers)
-      {
-        alSourcePlay(uiSource);
-        err = alGetError();
-        if (err != 0)
-        {
-          ERROR_LOG(AUDIO, "Error occurred during playback: %08x", err);
-        }
-      }
+      numBuffersQueued++;
+      nextBuffer = (nextBuffer + 1) % numBuffers;
 
       alGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
       if (iState != AL_PLAYING)
@@ -376,11 +339,6 @@ void OpenALStream::SoundLoop()
           ERROR_LOG(AUDIO, "Error occurred resuming playback: %08x", err);
         }
       }
-    }
-    else
-    {
-      soundSyncEvent.Wait();
-    }
   }
 }
 
