@@ -23,6 +23,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
@@ -217,6 +218,25 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
   return GPU_DETERMINISM_AUTO;
 }
 
+static constexpr u16 BT_INFO_SECTION_LENGTH = 0x460;
+static void RestoreBTInfoSection()
+{
+  const std::string filename = File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_BTDINF_BACKUP;
+  if (!File::Exists(filename))
+    return;
+  File::IOFile backup(filename, "rb");
+  std::vector<u8> section(BT_INFO_SECTION_LENGTH);
+  if (!backup.ReadBytes(section.data(), section.size()))
+  {
+    ERROR_LOG(WII_IPC_WIIMOTE, "Failed to read backed up BT.DINF section");
+    return;
+  }
+  SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", section.data(),
+                                                 static_cast<u16>(section.size()));
+  SConfig::GetInstance().m_SYSCONF->Save();
+  File::Delete(filename);
+}
+
 // Boot the ISO or file
 bool BootCore(const std::string& _rFilename)
 {
@@ -391,6 +411,8 @@ bool BootCore(const std::string& _rFilename)
 
   SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
   SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
+
+  RestoreBTInfoSection();
 
   // Run the game
   // Init the core

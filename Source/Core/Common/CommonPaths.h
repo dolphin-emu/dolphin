@@ -119,6 +119,7 @@
 #define WII_STATE "state.dat"
 
 #define WII_SDCARD "sd.raw"
+#define WII_BTDINF_BACKUP "btdinf.bak"
 
 #define WII_SETTING "setting.txt"
 
