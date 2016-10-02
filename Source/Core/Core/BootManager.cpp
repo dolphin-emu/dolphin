@@ -35,6 +35,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -391,6 +392,8 @@ bool BootCore(const std::string& _rFilename)
 
   SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
   SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
+
+  RestoreBTInfoSection();
 
   // Run the game
   // Init the core
