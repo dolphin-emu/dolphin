@@ -25,13 +25,13 @@ class RasterFont;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer();
+  Renderer(std::unique_ptr<SwapChain> swap_chain);
   ~Renderer();
 
   SwapChain* GetSwapChain() const { return m_swap_chain.get(); }
   StateTracker* GetStateTracker() const { return m_state_tracker.get(); }
   BoundingBox* GetBoundingBox() const { return m_bounding_box.get(); }
-  bool Initialize(FramebufferManager* framebuffer_mgr, void* window_handle, VkSurfaceKHR surface);
+  bool Initialize(FramebufferManager* framebuffer_mgr);
 
   void RenderText(const std::string& pstr, int left, int top, u32 color) override;
   u32 AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data) override;

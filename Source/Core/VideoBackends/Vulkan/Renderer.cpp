@@ -42,20 +42,25 @@
 
 namespace Vulkan
 {
-Renderer::Renderer()
+Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::move(swap_chain))
 {
+  g_Config.bRunning = true;
+  UpdateActiveConfig();
+
   // Set to something invalid, forcing all states to be re-initialized.
   for (size_t i = 0; i < m_sampler_states.size(); i++)
     m_sampler_states[i].bits = std::numeric_limits<decltype(m_sampler_states[i].bits)>::max();
 
-  // Set default size so a decent EFB is created initially.
-  s_backbuffer_width = MAX_XFB_WIDTH;
-  s_backbuffer_height = MAX_XFB_HEIGHT;
+  // These have to be initialized before FramebufferManager is created.
+  // If running surfaceless, assume a window size of MAX_XFB_{WIDTH,HEIGHT}.
   FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
   FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-  PixelShaderManager::SetEfbScaleChanged();
+  s_backbuffer_width = m_swap_chain ? m_swap_chain->GetWidth() : MAX_XFB_WIDTH;
+  s_backbuffer_height = m_swap_chain ? m_swap_chain->GetHeight() : MAX_XFB_HEIGHT;
+  s_last_efb_scale = g_ActiveConfig.iEFBScale;
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
   CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+  PixelShaderManager::SetEfbScaleChanged();
 }
 
 Renderer::~Renderer()
@@ -67,14 +72,9 @@ Renderer::~Renderer()
   DestroySemaphores();
 }
 
-bool Renderer::Initialize(FramebufferManager* framebuffer_mgr, void* window_handle,
-                          VkSurfaceKHR surface)
+bool Renderer::Initialize(FramebufferManager* framebuffer_mgr)
 {
   m_framebuffer_mgr = framebuffer_mgr;
-  g_Config.bRunning = true;
-  UpdateActiveConfig();
-
-  // Create state tracker, doesn't require any resources
   m_state_tracker = std::make_unique<StateTracker>();
   BindEFBToStateTracker();
 
@@ -110,24 +110,6 @@ bool Renderer::Initialize(FramebufferManager* framebuffer_mgr, void* window_hand
     m_state_tracker->SetBBoxBuffer(m_bounding_box->GetGPUBuffer(),
                                    m_bounding_box->GetGPUBufferOffset(),
                                    m_bounding_box->GetGPUBufferSize());
-  }
-
-  // Initialize annoying statics
-  s_last_efb_scale = g_ActiveConfig.iEFBScale;
-
-  // Create swap chain
-  if (surface)
-  {
-    // Update backbuffer dimensions
-    m_swap_chain = SwapChain::Create(window_handle, surface);
-    if (!m_swap_chain)
-    {
-      PanicAlert("Failed to create swap chain.");
-      return false;
-    }
-
-    // Update render rectangle etc.
-    OnSwapChainResized();
   }
 
   // Various initialization routines will have executed commands on the command buffer.
@@ -494,9 +476,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // Scale the source rectangle to the selected internal resolution.
   TargetRectangle source_rc = Renderer::ConvertEFBRectangle(rc);
 
-  // Target rectangle can change if the VI aspect ratio changes.
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-
   // Transition the EFB render target to a shader resource.
   VkRect2D src_region = {{0, 0},
                          {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
@@ -522,6 +501,10 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       StopFrameDump();
   }
 
+  // Restore the EFB color texture to color attachment ready for rendering the next frame.
+  m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
   // Ensure the worker thread is not still submitting a previous command buffer.
   // In other words, the last frame has been submitted (otherwise the next call would
   // be a race, as the image may not have been consumed yet).
@@ -546,22 +529,28 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     g_command_buffer_mgr->SubmitCommandBuffer(true);
   }
 
+  // NOTE: It is important that no rendering calls are made to the EFB between submitting the
+  // (now-previous) frame and after the below config checks are completed. If the target size
+  // changes, as the resize methods to not defer the destruction of the framebuffer, the current
+  // command buffer will contain references to a now non-existent framebuffer.
+
   // Prep for the next frame (get command buffer ready) before doing anything else.
   BeginFrame();
 
-  // Restore the EFB color texture to color attachment ready for rendering.
-  m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  // Determine what (if anything) has changed in the config.
+  CheckForConfigChanges();
 
-  // Clean up stale textures
-  TextureCache::Cleanup(frameCount);
-
-  // Handle window resizes.
-  CheckForTargetResize(fb_width, fb_stride, fb_height);
+  // Handle host window resizes.
   CheckForSurfaceChange();
 
-  // Determine what has changed in the config.
-  CheckForConfigChanges();
+  // Handle output size changes from the guest.
+  // There is a downside to doing this here is that if the game changes its XFB source area,
+  // the changes will be delayed by one frame. For the moment it has to be done here because
+  // this can cause a target size change, which would result in a black frame if done earlier.
+  CheckForTargetResize(fb_width, fb_stride, fb_height);
+
+  // Clean up stale textures.
+  TextureCacheBase::Cleanup(frameCount);
 }
 
 void Renderer::DrawScreen(const TargetRectangle& src_rect, const Texture2D* src_tex)
@@ -832,13 +821,23 @@ void Renderer::StopFrameDump()
 
 void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
 {
-  if (FramebufferManagerBase::LastXfbWidth() != fb_stride ||
-      FramebufferManagerBase::LastXfbHeight() != fb_height)
+  if (FramebufferManagerBase::LastXfbWidth() == fb_stride &&
+      FramebufferManagerBase::LastXfbHeight() == fb_height)
   {
-    u32 last_w = (fb_stride < 1 || fb_stride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fb_stride;
-    u32 last_h = (fb_height < 1 || fb_height > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fb_height;
-    FramebufferManagerBase::SetLastXfbWidth(last_w);
-    FramebufferManagerBase::SetLastXfbHeight(last_h);
+    return;
+  }
+
+  u32 new_width = (fb_stride < 1 || fb_stride > MAX_XFB_WIDTH) ? MAX_XFB_WIDTH : fb_stride;
+  u32 new_height = (fb_height < 1 || fb_height > MAX_XFB_HEIGHT) ? MAX_XFB_HEIGHT : fb_height;
+  FramebufferManagerBase::SetLastXfbWidth(new_width);
+  FramebufferManagerBase::SetLastXfbHeight(new_height);
+
+  // Changing the XFB source area will likely change the final drawing rectangle.
+  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+  {
+    PixelShaderManager::SetEfbScaleChanged();
+    ResizeEFBTextures();
   }
 
   // This call is needed for auto-resizing to work.
@@ -853,9 +852,6 @@ void Renderer::CheckForSurfaceChange()
   u32 old_width = m_swap_chain ? m_swap_chain->GetWidth() : 0;
   u32 old_height = m_swap_chain ? m_swap_chain->GetHeight() : 0;
 
-  // Wait for the GPU to catch up since we're going to destroy the swap chain.
-  g_command_buffer_mgr->WaitForGPUIdle();
-
   // Fast path, if the surface handle is the same, the window has just been resized.
   if (m_swap_chain && s_new_surface_handle == m_swap_chain->GetNativeHandle())
   {
@@ -869,6 +865,9 @@ void Renderer::CheckForSurfaceChange()
   }
   else
   {
+    // Wait for the GPU to catch up since we're going to destroy the swap chain.
+    g_command_buffer_mgr->WaitForGPUIdle();
+
     // Did we previously have a swap chain?
     if (m_swap_chain)
     {
@@ -976,13 +975,12 @@ void Renderer::OnSwapChainResized()
 {
   s_backbuffer_width = m_swap_chain->GetWidth();
   s_backbuffer_height = m_swap_chain->GetHeight();
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
   UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
   if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+  {
+    PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();
-
-  PixelShaderManager::SetEfbScaleChanged();
+  }
 }
 
 void Renderer::BindEFBToStateTracker()
