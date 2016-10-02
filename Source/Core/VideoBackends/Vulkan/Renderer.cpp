@@ -890,7 +890,7 @@ void Renderer::CheckForSurfaceChange()
                                                             s_new_surface_handle);
       if (surface != VK_NULL_HANDLE)
       {
-        m_swap_chain = SwapChain::Create(s_new_surface_handle, surface);
+        m_swap_chain = SwapChain::Create(s_new_surface_handle, surface, g_ActiveConfig.IsVSync());
         if (!m_swap_chain)
           PanicAlert("Failed to create swap chain.");
       }
@@ -917,7 +917,6 @@ void Renderer::CheckForSurfaceChange()
 void Renderer::CheckForConfigChanges()
 {
   // Compare g_Config to g_ActiveConfig to determine what has changed before copying.
-  bool vsync_changed = (g_Config.bVSync != g_ActiveConfig.bVSync);
   bool msaa_changed = (g_Config.iMultisamples != g_ActiveConfig.iMultisamples);
   bool ssaa_changed = (g_Config.bSSAA != g_ActiveConfig.bSSAA);
   bool anisotropy_changed = (g_Config.iMaxAnisotropy != g_ActiveConfig.iMaxAnisotropy);
@@ -963,8 +962,11 @@ void Renderer::CheckForConfigChanges()
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
-  if (vsync_changed)
-    ResizeSwapChain();
+  if (m_swap_chain && g_ActiveConfig.IsVSync() != m_swap_chain->IsVSyncEnabled())
+  {
+    g_command_buffer_mgr->WaitForGPUIdle();
+    m_swap_chain->SetVSync(g_ActiveConfig.IsVSync());
+  }
 
   // Wipe sampler cache if force texture filtering or anisotropy changes.
   if (anisotropy_changed || force_texture_filtering_changed)
