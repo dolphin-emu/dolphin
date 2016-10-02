@@ -1,9 +1,9 @@
-# Dolphin - A GameCube / Wii Emulator
+# Dolphin - A GameCube and Wii Emulator
 
 [Homepage](https://dolphin-emu.org/) | [Project Site](https://github.com/dolphin-emu/dolphin) | [Forums](https://forums.dolphin-emu.org/) | [Wiki](https://wiki.dolphin-emu.org/) | [Issue Tracker](https://bugs.dolphin-emu.org/projects/emulator/issues) | [Coding Style](https://github.com/dolphin-emu/dolphin/blob/master/Contributing.md) | [Transifex Page](https://www.transifex.com/projects/p/dolphin-emu/)
 
 Dolphin is an emulator for running GameCube and Wii games on Windows,
-Linux, OS X, and recent Android devices. It's licensed under the terms
+Linux, macOS, and recent Android devices. It's licensed under the terms
 of the GNU General Public License, version 2 or later (GPLv2+).
 
 Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
@@ -13,7 +13,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 * OS
     * Windows (7 SP1 or higher is officially supported, but Vista SP2 might also work).
     * Linux.
-    * OS X (10.10 Yosemite or higher).
+    * macOS (10.10 Yosemite or higher).
     * Unix-like systems other than Linux are not officially supported but might work.
 * Processor
     * A CPU with SSE2 support.
@@ -24,7 +24,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 ### Android
 * OS
-    * Android 5.0 (Lollipop) or higher.
+    * Android (5.0 Lollipop or higher).
 * Processor
     * An ARM processor with support for 64-bit applications. (An Intel x86 processor could also work in theory, but no known x86 devices support 64-bit applications.)
 * Graphics
@@ -44,13 +44,13 @@ Installer directory. This will require the Nullsoft Scriptable Install System
 (NSIS) to be installed. Creating an installer is not necessary to run Dolphin
 since the Binary directory contains a working Dolphin distribution.
 
-## Building for Linux and OS X
+## Building for Linux and macOS
 Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
 
-### OS X Build Steps:
+### macOS Build Steps:
 1. `mkdir build`
 2. `cd build`
 3. `cmake ..`
@@ -130,7 +130,7 @@ Dolphin like any other Windows application.
 Linux users can run `cat install_manifest.txt | xargs -d '\n' rm` as root from the build directory
 to uninstall Dolphin from their system.
 
-OS X users can simply delete Dolphin.app to uninstall it.
+macOS users can simply delete Dolphin.app to uninstall it.
 
 Additionally, you'll want to remove the global user directory (see below to
 see where it's stored) if you don't plan to reinstall Dolphin.
@@ -192,7 +192,7 @@ rules folder.
 
 ## User Folder Structure
 A number of user writeable directories are created for caching purposes or for
-allowing the user to edit their contents. On OS X and Linux these folders are
+allowing the user to edit their contents. On macOS and Linux these folders are
 stored in `~/Library/Application Support/Dolphin/` and `~/.dolphin-emu`
 respectively. On Windows the user directory is stored in the `My Documents`
 folder by default, but there are various way to override this behavior:
