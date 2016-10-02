@@ -47,6 +47,13 @@ static std::string GetTraversalServer(IniFile::Section& section)
   return GetFromINI(section, "TraversalServer", DEFAULT_TRAVERSAL_SERVER);
 }
 
+static wxString GetTraversalLabelText(IniFile::Section& section)
+{
+  std::string server = GetTraversalServer(section);
+  std::string port = GetTraversalPort(section);
+  return wxString::Format(_("Traversal Server: %s"), (server + ":" + port).c_str());
+}
+
 NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl* const game_list)
     : wxFrame(parent, wxID_ANY, _("Dolphin NetPlay Setup")), m_game_list(game_list)
 {
@@ -106,11 +113,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
       m_direct_traversal->Select(DIRECT_CHOICE);
     }
 
-    std::string centralPort = GetTraversalPort(netplay_section);
-    std::string centralServer = GetTraversalServer(netplay_section);
-
-    m_traversal_lbl = new wxStaticText(panel, wxID_ANY, _("Traversal Server:") + " " +
-                                                            centralServer + ":" + centralPort);
+    m_traversal_lbl = new wxStaticText(panel, wxID_ANY, GetTraversalLabelText(netplay_section));
   }
   // tabs
   m_notebook = new wxNotebook(panel, wxID_ANY);
@@ -459,7 +462,7 @@ void NetPlaySetupFrame::OnResetTraversal(wxCommandEvent& event)
   netplay_section.Set("TraversalPort", DEFAULT_TRAVERSAL_PORT);
   inifile.Save(dolphin_ini);
 
-  m_traversal_lbl->SetLabelText(_("Traversal Server: ") + "stun.dolphin-emu.org:6262");
+  m_traversal_lbl->SetLabelText(GetTraversalLabelText(netplay_section));
 }
 
 void NetPlaySetupFrame::OnTraversalListenPortChanged(wxCommandEvent& event)
