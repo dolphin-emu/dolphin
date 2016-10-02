@@ -137,12 +137,12 @@ void PPCDebugInterface::ClearAllMemChecks()
 
 bool PPCDebugInterface::IsMemCheck(unsigned int address)
 {
-  return (PowerPC::memchecks.HasAny() && PowerPC::memchecks.GetMemCheck(address));
+  return PowerPC::memchecks.GetMemCheck(address) != nullptr;
 }
 
 void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool write, bool log)
 {
-  if (PowerPC::memchecks.HasAny() && !PowerPC::memchecks.GetMemCheck(address))
+  if (!IsMemCheck(address))
   {
     // Add Memory Check
     TMemCheck MemCheck;
@@ -157,7 +157,9 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
     PowerPC::memchecks.Add(MemCheck);
   }
   else
+  {
     PowerPC::memchecks.Remove(address);
+  }
 }
 
 void PPCDebugInterface::InsertBLR(unsigned int address, unsigned int value)
