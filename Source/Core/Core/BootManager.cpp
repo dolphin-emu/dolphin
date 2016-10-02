@@ -35,6 +35,7 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -399,6 +400,8 @@ bool BootCore(const std::string& _rFilename)
     // TODO: remove this if and once Dolphin supports WC24 standby mode.
     SConfig::GetInstance().m_SYSCONF->SetData<u8>("IPL.IDL", 0x00);
     NOTICE_LOG(BOOT, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
+
+    RestoreBTInfoSection();
   }
 
   // Run the game

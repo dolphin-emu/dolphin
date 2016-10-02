@@ -2,14 +2,56 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+#include <string>
+#include <vector>
+
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+
+constexpr u16 BT_INFO_SECTION_LENGTH = 0x460;
+
+void BackUpBTInfoSection()
+{
+  const std::string filename = File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_BTDINF_BACKUP;
+  if (File::Exists(filename))
+    return;
+  File::IOFile backup(filename, "wb");
+  std::vector<u8> section(BT_INFO_SECTION_LENGTH);
+  if (!SConfig::GetInstance().m_SYSCONF->GetArrayData("BT.DINF", section.data(),
+                                                      static_cast<u16>(section.size())))
+  {
+    ERROR_LOG(WII_IPC_WIIMOTE, "Failed to read source BT.DINF section");
+    return;
+  }
+  if (!backup.WriteBytes(section.data(), section.size()))
+    ERROR_LOG(WII_IPC_WIIMOTE, "Failed to back up BT.DINF section");
+}
+
+void RestoreBTInfoSection()
+{
+  const std::string filename = File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_BTDINF_BACKUP;
+  if (!File::Exists(filename))
+    return;
+  File::IOFile backup(filename, "rb");
+  std::vector<u8> section(BT_INFO_SECTION_LENGTH);
+  if (!backup.ReadBytes(section.data(), section.size()))
+  {
+    ERROR_LOG(WII_IPC_WIIMOTE, "Failed to read backed up BT.DINF section");
+    return;
+  }
+  SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", section.data(),
+                                                 static_cast<u16>(section.size()));
+  SConfig::GetInstance().m_SYSCONF->Save();
+  File::Delete(filename);
+}
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_base::IOCtl(u32 command_address)
 {
