@@ -1367,13 +1367,9 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
   }
 
   // If mipmaps are disabled, clamp min/max lod
-  new_state.max_lod = (SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0)) ?
-                          static_cast<u32>(MathUtil::Clamp(tm1.max_lod / 16.0f, 0.0f, 255.0f)) :
-                          0;
-  new_state.min_lod =
-      std::min(new_state.max_lod.Value(),
-               static_cast<u32>(MathUtil::Clamp(tm1.min_lod / 16.0f, 0.0f, 255.0f)));
-  new_state.lod_bias = static_cast<s32>(tm0.lod_bias / 32.0f);
+  new_state.max_lod = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm1.max_lod : 0;
+  new_state.min_lod = std::min(new_state.max_lod.Value(), tm1.min_lod);
+  new_state.lod_bias = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? tm0.lod_bias : 0;
 
   // Custom textures may have a greater number of mips
   if (custom_tex)
@@ -1387,15 +1383,7 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
   new_state.wrap_v = address_modes[tm0.wrap_t];
 
   // Only use anisotropic filtering for textures that would be linearly filtered.
-  if (g_vulkan_context->SupportsAnisotropicFiltering() && g_ActiveConfig.iMaxAnisotropy > 0 &&
-      !SamplerCommon::IsBpTexMode0PointFiltering(tm0))
-  {
-    new_state.anisotropy = g_ActiveConfig.iMaxAnisotropy;
-  }
-  else
-  {
-    new_state.anisotropy = 0;
-  }
+  new_state.enable_anisotropic_filtering = SamplerCommon::IsBpTexMode0PointFiltering(tm0) ? 0 : 1;
 
   // Skip lookup if the state hasn't changed.
   size_t bind_index = (texindex * 4) + stage;
@@ -1417,6 +1405,7 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 void Renderer::ResetSamplerStates()
 {
   // Ensure none of the sampler objects are in use.
+  // This assumes that none of the samplers are in use on the command list currently being recorded.
   g_command_buffer_mgr->WaitForGPUIdle();
 
   // Invalidate all sampler states, next draw will re-initialize them.

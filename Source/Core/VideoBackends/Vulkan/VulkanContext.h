@@ -93,7 +93,7 @@ public:
   {
     return m_device_properties.limits.bufferImageGranularity;
   }
-  float GetMaxSaxmplerAnisotropy() const { return m_device_properties.limits.maxSamplerAnisotropy; }
+  float GetMaxSamplerAnisotropy() const { return m_device_properties.limits.maxSamplerAnisotropy; }
   // Finds a memory type index for the specified memory properties and the bits returned by
   // vkGetImageMemoryRequirements
   bool GetMemoryType(u32 bits, VkMemoryPropertyFlags properties, u32* out_type_index);
