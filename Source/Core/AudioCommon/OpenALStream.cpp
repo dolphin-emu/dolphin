@@ -225,120 +225,120 @@ void OpenALStream::SoundLoop()
 
     soundTouch.putSamples(dest, numSamples);
 
-      double rate = (double)m_mixer->GetCurrentSpeed();
-      if (rate <= 0)
+    double rate = (double)m_mixer->GetCurrentSpeed();
+    if (rate <= 0)
+    {
+      Core::RequestRefreshInfo();
+      rate = (double)m_mixer->GetCurrentSpeed();
+    }
+
+    // Place a lower limit of 10% speed.  When a game boots up, there will be
+    // many silence samples.  These do not need to be timestretched.
+    if (rate > 0.10)
+    {
+      soundTouch.setTempo(rate);
+      if (rate > 10)
       {
-        Core::RequestRefreshInfo();
-        rate = (double)m_mixer->GetCurrentSpeed();
+        soundTouch.clear();
+      }
+    }
+
+    unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * numBuffers);
+
+    if (nSamples <= minSamples)
+      continue;
+
+    if (surround_capable)
+    {
+      float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
+      DPL2Decode(sampleBuffer, nSamples, dpl2);
+
+      // zero-out the subwoofer channel - DPL2Decode generates a pretty
+      // good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
+      // AL_FORMAT_50CHN32 to make this super-explicit.
+      // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
+      for (u32 i = 0; i < nSamples; ++i)
+      {
+        dpl2[i * SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
       }
 
-      // Place a lower limit of 10% speed.  When a game boots up, there will be
-      // many silence samples.  These do not need to be timestretched.
-      if (rate > 0.10)
+      if (float32_capable)
       {
-        soundTouch.setTempo(rate);
-        if (rate > 10)
-        {
-          soundTouch.clear();
-        }
+        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2,
+                     nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
+      }
+      else
+      {
+        short surround_short[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+        for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
+          surround_short[i] = (short)((float)dpl2[i] * (1 << 15));
+
+        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short,
+                     nSamples * FRAME_SURROUND_SHORT, ulFrequency);
       }
 
-      unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * numBuffers);
-
-      if (nSamples <= minSamples)
-        continue;
-
-      if (surround_capable)
+      ALenum err = alGetError();
+      if (err == AL_INVALID_ENUM)
       {
-        float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
-        DPL2Decode(sampleBuffer, nSamples, dpl2);
+        // 5.1 is not supported by the host, fallback to stereo
+        WARN_LOG(AUDIO,
+                 "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
+        surround_capable = false;
+      }
+      else if (err != 0)
+      {
+        ERROR_LOG(AUDIO, "Error occurred while buffering data: %08x", err);
+      }
+    }
 
-        // zero-out the subwoofer channel - DPL2Decode generates a pretty
-        // good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
-        // AL_FORMAT_50CHN32 to make this super-explicit.
-        // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-        for (u32 i = 0; i < nSamples; ++i)
-        {
-          dpl2[i * SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
-        }
-
-        if (float32_capable)
-        {
-          alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2,
-                       nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
-        }
-        else
-        {
-          short surround_short[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-          for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
-            surround_short[i] = (short)((float)dpl2[i] * (1 << 15));
-
-          alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short,
-                       nSamples * FRAME_SURROUND_SHORT, ulFrequency);
-        }
-
+    else
+    {
+      if (float32_capable)
+      {
+        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
+                     nSamples * FRAME_STEREO_FLOAT, ulFrequency);
         ALenum err = alGetError();
         if (err == AL_INVALID_ENUM)
         {
-          // 5.1 is not supported by the host, fallback to stereo
-          WARN_LOG(AUDIO,
-                   "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
-          surround_capable = false;
+          float32_capable = false;
         }
         else if (err != 0)
         {
-          ERROR_LOG(AUDIO, "Error occurred while buffering data: %08x", err);
+          ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
         }
       }
-
       else
       {
-        if (float32_capable)
-        {
-          alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
-                       nSamples * FRAME_STEREO_FLOAT, ulFrequency);
-          ALenum err = alGetError();
-          if (err == AL_INVALID_ENUM)
-          {
-            float32_capable = false;
-          }
-          else if (err != 0)
-          {
-            ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
-          }
-        }
-        else
-        {
-          // Convert the samples from float to short
-          short stereo[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
-          for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
-            stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
+        // Convert the samples from float to short
+        short stereo[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
+        for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
+          stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
 
-          alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO16, stereo,
-                       nSamples * FRAME_STEREO_SHORT, ulFrequency);
-        }
+        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO16, stereo,
+                     nSamples * FRAME_STEREO_SHORT, ulFrequency);
       }
+    }
 
-      alSourceQueueBuffers(uiSource, 1, &uiBuffers[nextBuffer]);
-      ALenum err = alGetError();
+    alSourceQueueBuffers(uiSource, 1, &uiBuffers[nextBuffer]);
+    ALenum err = alGetError();
+    if (err != 0)
+    {
+      ERROR_LOG(AUDIO, "Error queuing buffers: %08x", err);
+    }
+    numBuffersQueued++;
+    nextBuffer = (nextBuffer + 1) % numBuffers;
+
+    alGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
+    if (iState != AL_PLAYING)
+    {
+      // Buffer underrun occurred, resume playback
+      alSourcePlay(uiSource);
+      err = alGetError();
       if (err != 0)
       {
-        ERROR_LOG(AUDIO, "Error queuing buffers: %08x", err);
+        ERROR_LOG(AUDIO, "Error occurred resuming playback: %08x", err);
       }
-      numBuffersQueued++;
-      nextBuffer = (nextBuffer + 1) % numBuffers;
-
-      alGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
-      if (iState != AL_PLAYING)
-      {
-        // Buffer underrun occurred, resume playback
-        alSourcePlay(uiSource);
-        err = alGetError();
-        if (err != 0)
-        {
-          ERROR_LOG(AUDIO, "Error occurred resuming playback: %08x", err);
-        }
-      }
+    }
   }
 }
 
