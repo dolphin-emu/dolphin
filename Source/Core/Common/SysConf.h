@@ -27,7 +27,7 @@ enum SysconfType
   Type_Byte,
   Type_Short,
   Type_Long,
-  Type_Unknown,
+  Type_LongLong,
   Type_Bool
 };
 
