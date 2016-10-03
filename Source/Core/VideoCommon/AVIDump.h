@@ -12,6 +12,7 @@ private:
   static bool CreateFile();
   static void CloseFile();
   static void CheckResolution(int width, int height);
+  static void StoreFrameData(const u8* data, int width, int height);
 
 public:
   enum class DumpFormat

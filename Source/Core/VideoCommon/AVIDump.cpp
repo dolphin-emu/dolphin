@@ -43,11 +43,15 @@ static int s_width;
 static int s_height;
 static u64 s_last_frame;
 static bool s_start_dumping = false;
+static bool s_stop_dumping = false;
 static u64 s_last_pts;
 static int s_current_width;
 static int s_current_height;
 static int s_file_index = 0;
 static AVIDump::DumpFormat s_current_format;
+static const u8* s_stored_frame_data;
+static int s_stored_frame_width;
+static int s_stored_frame_height;
 
 static void InitAVCodec()
 {
@@ -81,6 +85,8 @@ bool AVIDump::Start(int w, int h, DumpFormat format)
 
   s_last_frame = CoreTiming::GetTicks();
   s_last_pts = 0;
+
+  s_stop_dumping = false;
 
   InitAVCodec();
   bool success = CreateFile();
@@ -177,6 +183,9 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
+  // Store current frame data in case frame dumping stops before next frame update
+  if (!s_stop_dumping)
+    StoreFrameData(data, width, height);
   CheckResolution(width, height);
   s_src_frame->data[0] = const_cast<u8*>(data);
   s_src_frame->linesize[0] = width * s_bytes_per_pixel;
@@ -252,6 +261,9 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 
 void AVIDump::Stop()
 {
+  s_stop_dumping = true;
+  // Write the last stored frame just in case frame dumping stops before the next frame update
+  AddFrame(s_stored_frame_data, s_stored_frame_width, s_stored_frame_height);
   av_write_trailer(s_format_context);
   CloseFile();
   s_file_index = 0;
@@ -310,4 +322,11 @@ void AVIDump::CheckResolution(int width, int height)
     s_current_width = width;
     s_current_height = height;
   }
+}
+
+void AVIDump::StoreFrameData(const u8* data, int width, int height)
+{
+  s_stored_frame_data = data;
+  s_stored_frame_width = width;
+  s_stored_frame_height = height;
 }
