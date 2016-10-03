@@ -17,6 +17,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/GeckoCode.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI_DeviceIPL.h"
@@ -481,6 +482,9 @@ bool CBoot::BootUp()
 
   // Not part of the binary itself, but either we or Gecko OS might insert
   // this, and it doesn't clear the icache properly.
-  HLE::Patch(0x800018a8, "GeckoCodehandler");
+  HLE::Patch(Gecko::ENTRY_POINT, "GeckoCodehandler");
+  // This has to always be installed even if cheats are not enabled because of the possiblity of
+  // loading a savestate where PC is inside the code handler while cheats are disabled.
+  HLE::Patch(Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
   return true;
 }

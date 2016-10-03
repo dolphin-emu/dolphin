@@ -166,11 +166,29 @@ s64 GetLocalTimeRTCOffset()
   return s_localtime_rtc_offset;
 }
 
-static void PatchEngineCallback(u64 userdata, s64 cyclesLate)
+static void PatchEngineCallback(u64 userdata, s64 cycles_late)
 {
-  // Patch mem and run the Action Replay
-  PatchEngine::ApplyFramePatches();
-  CoreTiming::ScheduleEvent(VideoInterface::GetTicksPerField() - cyclesLate, et_PatchEngine);
+  // We have 2 periods, a 1000 cycle error period and the VI period.
+  // We have to carefully combine these together so that we stay on the VI period without drifting.
+  u32 vi_interval = VideoInterface::GetTicksPerField();
+  s64 cycles_pruned = (userdata + cycles_late) % vi_interval;
+  s64 next_schedule = 0;
+
+  // Try to patch mem and run the Action Replay
+  if (PatchEngine::ApplyFramePatches())
+  {
+    next_schedule = vi_interval - cycles_pruned;
+    cycles_pruned = 0;
+  }
+  else
+  {
+    // The patch failed, usually because the CPU is in an inappropriate state (interrupt handler).
+    // We'll try again after 1000 cycles.
+    next_schedule = 1000;
+    cycles_pruned += next_schedule;
+  }
+
+  CoreTiming::ScheduleEvent(next_schedule, et_PatchEngine, cycles_pruned);
 }
 
 static void ThrottleCallback(u64 last_time, s64 cyclesLate)
