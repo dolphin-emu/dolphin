@@ -5,7 +5,6 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Common/Thread.h"
 
 #include "VideoBackends/Software/EfbInterface.h"
 

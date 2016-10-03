@@ -11,7 +11,6 @@
 #include "VideoBackends/Software/NativeVertexFormat.h"
 #include "VideoBackends/Software/SetupUnit.h"
 
-#include "VideoCommon/VertexLoaderBase.h"
 #include "VideoCommon/VertexManagerBase.h"
 
 class SWVertexLoader : public VertexManagerBase

@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/Software/SetupUnit.h"
-#include "Common/ChunkFile.h"
+
+#include "Common/Logging/Log.h"
+
 #include "VideoBackends/Software/Clipper.h"
 
 #include "VideoCommon/OpcodeDecoding.h"
