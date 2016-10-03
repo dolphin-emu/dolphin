@@ -295,10 +295,13 @@ ControllerEmu::Cursor::Cursor(const std::string& _name)
   controls.emplace_back(std::make_unique<Input>("Forward"));
   controls.emplace_back(std::make_unique<Input>("Backward"));
   controls.emplace_back(std::make_unique<Input>(_trans("Hide")));
+  controls.emplace_back(std::make_unique<Input>("Recenter"));
 
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Center"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Width"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Height"), 0.5));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 20));
+  boolean_settings.emplace_back(std::make_unique<BooleanSetting>(_trans("Relative Input"), false));
 }
 
 void ControllerEmu::LoadDefaults(const ControllerInterface& ciface)
