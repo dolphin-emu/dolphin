@@ -31,7 +31,7 @@ public:
 
   Symbol* GetSymbolFromAddr(u32 addr) override;
 
-  const std::string GetDescription(u32 addr);
+  std::string GetDescription(u32 addr);
 
   void FillInCallers();
 
