@@ -3,12 +3,14 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <mbedtls/error.h>
 #ifndef _WIN32
 #include <arpa/inet.h>
 #include <unistd.h>
 #endif
 
 #include "Common/FileUtil.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
@@ -312,7 +314,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           {
           case IOCTLV_NET_SSL_DOHANDSHAKE:
           {
-            int ret = mbedtls_ssl_handshake(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx);
+            mbedtls_ssl_context* ctx = &CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx;
+            int ret = mbedtls_ssl_handshake(ctx);
+            if (ret)
+            {
+              char error_buffer[256] = "";
+              mbedtls_strerror(ret, error_buffer, sizeof(error_buffer));
+              ERROR_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE: %s", error_buffer);
+            }
             switch (ret)
             {
             case 0:
@@ -328,9 +337,47 @@ void WiiSocket::Update(bool read, bool write, bool except)
               if (!nonBlock)
                 ReturnValue = SSL_ERR_WAGAIN;
               break;
+            case MBEDTLS_ERR_X509_CERT_VERIFY_FAILED:
+            {
+              char error_buffer[256] = "";
+              int res = mbedtls_ssl_get_verify_result(ctx);
+              mbedtls_x509_crt_verify_info(error_buffer, sizeof(error_buffer), "", res);
+              ERROR_LOG(WII_IPC_SSL, "MBEDTLS_ERR_X509_CERT_VERIFY_FAILED (verify_result = %d): %s",
+                        res, error_buffer);
+
+              if (res & MBEDTLS_X509_BADCERT_CN_MISMATCH)
+                res = SSL_ERR_VCOMMONNAME;
+              else if (res & MBEDTLS_X509_BADCERT_NOT_TRUSTED)
+                res = SSL_ERR_VROOTCA;
+              else if (res & MBEDTLS_X509_BADCERT_REVOKED)
+                res = SSL_ERR_VCHAIN;
+              else if (res & MBEDTLS_X509_BADCERT_EXPIRED || res & MBEDTLS_X509_BADCERT_FUTURE)
+                res = SSL_ERR_VDATE;
+              else
+                res = SSL_ERR_FAILED;
+
+              Memory::Write_U32(res, BufferIn);
+              if (!nonBlock)
+                ReturnValue = res;
+              break;
+            }
             default:
               Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
               break;
+            }
+
+            // mbedtls_ssl_get_peer_cert(ctx) seems not to work if handshake failed
+            // Below is an alternative to dump the peer certificate
+            if (SConfig::GetInstance().m_SSLDumpPeerCert && ctx->session_negotiate != nullptr)
+            {
+              const mbedtls_x509_crt* cert = ctx->session_negotiate->peer_cert;
+              if (cert != nullptr)
+              {
+                std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
+                                       ((ctx->hostname != nullptr) ? ctx->hostname : "") +
+                                       "_peercert.der";
+                File::IOFile(filename, "wb").WriteBytes(cert->raw.p, cert->raw.len);
+              }
             }
 
             INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE = (%d) "
@@ -345,10 +392,13 @@ void WiiSocket::Update(bool read, bool write, bool except)
             int ret = mbedtls_ssl_write(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx,
                                         Memory::GetPointer(BufferOut2), BufferOutSize2);
 
-#ifdef DEBUG_SSL
-            File::IOFile("ssl_write.bin", "ab")
-                .WriteBytes(Memory::GetPointer(BufferOut2), BufferOutSize2);
-#endif
+            if (SConfig::GetInstance().m_SSLDumpWrite && ret > 0)
+            {
+              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
+                                     SConfig::GetInstance().GetUniqueID() + "_write.bin";
+              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferOut2), ret);
+            }
+
             if (ret >= 0)
             {
               // Return bytes written or SSL_ERR_ZERO if none
@@ -379,12 +429,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
           {
             int ret = mbedtls_ssl_read(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx,
                                        Memory::GetPointer(BufferIn2), BufferInSize2);
-#ifdef DEBUG_SSL
-            if (ret > 0)
+
+            if (SConfig::GetInstance().m_SSLDumpRead && ret > 0)
             {
-              File::IOFile("ssl_read.bin", "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
+              std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
+                                     SConfig::GetInstance().GetUniqueID() + "_read.bin";
+              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
             }
-#endif
+
             if (ret >= 0)
             {
               // Return bytes read or SSL_ERR_ZERO if none
