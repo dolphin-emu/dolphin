@@ -17,6 +17,9 @@ class wxListBox;
 class wxStaticText;
 class wxTextCtrl;
 
+// GetClientData() -> GeckoCode* [immutable]
+wxDECLARE_EVENT(DOLPHIN_EVT_GECKOCODE_TOGGLED, wxCommandEvent);
+
 namespace Gecko
 {
 class CodeConfigPanel : public wxPanel

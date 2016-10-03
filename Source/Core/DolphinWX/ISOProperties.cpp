@@ -13,6 +13,7 @@
 #include <type_traits>
 #include <vector>
 #include <wx/app.h>
+#include <wx/artprov.h>
 #include <wx/bitmap.h>
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -50,9 +51,9 @@
 #include "Common/MD5.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
-#include "Core/ActionReplay.h"
 #include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
 #include "DiscIO/Blob.h"
@@ -60,13 +61,127 @@
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
-#include "DolphinWX/ARCodeAddEdit.h"
+#include "DolphinWX/Cheats/ActionReplayCodesPanel.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
+#include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
+
+// A warning message displayed on the ARCodes and GeckoCodes pages when cheats are
+// disabled globally to explain why turning cheats on does not work.
+// Also displays a different warning when the game is currently running to explain
+// that toggling codes has no effect while the game is already running.
+class CheatWarningMessage final : public wxPanel
+{
+public:
+  CheatWarningMessage(wxWindow* parent, std::string game_id)
+      : wxPanel(parent), m_game_id(std::move(game_id))
+  {
+    SetExtraStyle(GetExtraStyle() | wxWS_EX_BLOCK_EVENTS);
+    CreateGUI();
+    wxTheApp->Bind(wxEVT_IDLE, &CheatWarningMessage::OnAppIdle, this);
+    Hide();
+  }
+
+  void UpdateState()
+  {
+    // If cheats are disabled then show the notification about that.
+    // If cheats are enabled and the game is currently running then display that warning.
+    State new_state = State::Hidden;
+    if (!SConfig::GetInstance().bEnableCheats)
+      new_state = State::DisabledCheats;
+    else if (Core::IsRunning() && SConfig::GetInstance().GetUniqueID() == m_game_id)
+      new_state = State::GameRunning;
+    ApplyState(new_state);
+  }
+
+private:
+  enum class State
+  {
+    Inactive,
+    Hidden,
+    DisabledCheats,
+    GameRunning
+  };
+
+  void CreateGUI()
+  {
+    wxStaticBitmap* icon =
+        new wxStaticBitmap(this, wxID_ANY, wxArtProvider::GetMessageBoxIcon(wxICON_WARNING));
+    m_message = new wxStaticText(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                 wxST_NO_AUTORESIZE);
+    m_btn_configure = new wxButton(this, wxID_ANY, _("Configure Dolphin"));
+
+    m_btn_configure->Bind(wxEVT_BUTTON, &CheatWarningMessage::OnConfigureClicked, this);
+
+    wxBoxSizer* sizer = new wxBoxSizer(wxHORIZONTAL);
+    sizer->Add(icon, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 15);
+    sizer->Add(m_message, 1, wxALIGN_CENTER_VERTICAL | wxLEFT, 15);
+    sizer->Add(m_btn_configure, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, 10);
+    sizer->AddSpacer(10);
+
+    SetSizer(sizer);
+  }
+
+  void OnConfigureClicked(wxCommandEvent&)
+  {
+    main_frame->OpenGeneralConfiguration();
+    UpdateState();
+  }
+
+  void OnAppIdle(wxIdleEvent& ev)
+  {
+    ev.Skip();
+    // Only respond to setting changes if we've been triggered once already.
+    if (m_state != State::Inactive)
+      UpdateState();
+  }
+
+  void ApplyState(State new_state)
+  {
+    // The purpose of this function is to prevent unnecessary UI updates which cause flickering.
+    if (new_state == m_state || (m_state == State::Inactive && new_state == State::Hidden))
+      return;
+
+    bool visible = true;
+    switch (new_state)
+    {
+    case State::Inactive:
+    case State::Hidden:
+      visible = false;
+      break;
+
+    case State::DisabledCheats:
+      m_btn_configure->Show();
+      m_message->SetLabelText(_("Dolphin's cheat system is currently disabled."));
+      break;
+
+    case State::GameRunning:
+      m_btn_configure->Hide();
+      m_message->SetLabelText(
+          _("Changing cheats will only take effect when the game is restarted."));
+      break;
+    }
+    m_state = new_state;
+    Show(visible);
+    GetParent()->Layout();
+    if (visible)
+    {
+      m_message->Wrap(m_message->GetSize().GetWidth());
+      m_message->InvalidateBestSize();
+      GetParent()->Layout();
+    }
+  }
+
+  std::string m_game_id;
+  wxStaticText* m_message = nullptr;
+  wxButton* m_btn_configure = nullptr;
+  State m_state = State::Inactive;
+};
 
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 EVT_CLOSE(CISOProperties::OnClose)
@@ -75,14 +190,10 @@ EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
 EVT_BUTTON(ID_MD5SUMCOMPUTE, CISOProperties::OnComputeMD5Sum)
 EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 EVT_CHOICE(ID_EMUSTATE, CISOProperties::OnEmustateChanged)
-EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::ListSelectionChanged)
+EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::PatchListSelectionChanged)
 EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
 EVT_BUTTON(ID_REMOVEPATCH, CISOProperties::PatchButtonClicked)
-EVT_LISTBOX(ID_CHEATS_LIST, CISOProperties::ListSelectionChanged)
-EVT_BUTTON(ID_EDITCHEAT, CISOProperties::ActionReplayButtonClicked)
-EVT_BUTTON(ID_ADDCHEAT, CISOProperties::ActionReplayButtonClicked)
-EVT_BUTTON(ID_REMOVECHEAT, CISOProperties::ActionReplayButtonClicked)
 EVT_MENU(IDM_BNRSAVEAS, CISOProperties::OnBannerImageSave)
 EVT_TREE_ITEM_RIGHT_CLICK(ID_TREECTRL, CISOProperties::OnRightClickOnTree)
 EVT_MENU(IDM_EXTRACTFILE, CISOProperties::OnExtractFile)
@@ -92,7 +203,6 @@ EVT_MENU(IDM_EXTRACTAPPLOADER, CISOProperties::OnExtractDataFromHeader)
 EVT_MENU(IDM_EXTRACTDOL, CISOProperties::OnExtractDataFromHeader)
 EVT_MENU(IDM_CHECKINTEGRITY, CISOProperties::CheckPartitionIntegrity)
 EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
-EVT_CHECKLISTBOX(ID_CHEATS_LIST, CISOProperties::OnActionReplayCodeChecked)
 END_EVENT_TABLE()
 
 CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* parent, wxWindowID id,
@@ -315,8 +425,8 @@ void CISOProperties::CreateGUIControls()
   m_Notebook->AddPage(m_PatchPage, _("Patches"));
   wxPanel* const m_CheatPage = new wxPanel(m_Notebook, ID_ARCODE_PAGE);
   m_Notebook->AddPage(m_CheatPage, _("AR Codes"));
-  m_geckocode_panel = new Gecko::CodeConfigPanel(m_Notebook);
-  m_Notebook->AddPage(m_geckocode_panel, _("Gecko Codes"));
+  wxPanel* const gecko_cheat_page = new wxPanel(m_Notebook);
+  m_Notebook->AddPage(gecko_cheat_page, _("Gecko Codes"));
   wxPanel* const m_Information = new wxPanel(m_Notebook, ID_INFORMATION);
   m_Notebook->AddPage(m_Information, _("Info"));
 
@@ -472,26 +582,29 @@ void CISOProperties::CreateGUIControls()
   m_PatchPage->SetSizer(sPatchPage);
 
   // Action Replay Cheats
-  wxBoxSizer* const sCheats = new wxBoxSizer(wxVERTICAL);
-  Cheats = new wxCheckListBox(m_CheatPage, ID_CHEATS_LIST, wxDefaultPosition, wxDefaultSize, 0,
-                              nullptr, wxLB_HSCROLL);
-  wxBoxSizer* const sCheatButtons = new wxBoxSizer(wxHORIZONTAL);
-  EditCheat = new wxButton(m_CheatPage, ID_EDITCHEAT, _("Edit..."));
-  wxButton* const AddCheat = new wxButton(m_CheatPage, ID_ADDCHEAT, _("Add..."));
-  RemoveCheat = new wxButton(m_CheatPage, ID_REMOVECHEAT, _("Remove"));
-  EditCheat->Disable();
-  RemoveCheat->Disable();
+  m_ar_code_panel =
+      new ActionReplayCodesPanel(m_CheatPage, ActionReplayCodesPanel::STYLE_MODIFY_BUTTONS);
+  m_cheats_disabled_ar = new CheatWarningMessage(m_CheatPage, game_id);
 
-  wxBoxSizer* sCheatPage = new wxBoxSizer(wxVERTICAL);
-  sCheats->Add(Cheats, 1, wxEXPAND | wxALL, 0);
-  sCheatButtons->Add(EditCheat, 0, wxEXPAND | wxALL, 0);
-  sCheatButtons->AddStretchSpacer();
-  sCheatButtons->Add(AddCheat, 0, wxEXPAND | wxALL, 0);
-  sCheatButtons->Add(RemoveCheat, 0, wxEXPAND | wxALL, 0);
-  sCheats->Add(sCheatButtons, 0, wxEXPAND | wxALL, 0);
-  sCheatPage->Add(sCheats, 1, wxEXPAND | wxALL, 5);
+  m_ar_code_panel->Bind(DOLPHIN_EVT_ARCODE_TOGGLED, &CISOProperties::OnCheatCodeToggled, this);
+
+  wxBoxSizer* const sCheatPage = new wxBoxSizer(wxVERTICAL);
+  sCheatPage->Add(m_cheats_disabled_ar, 0, wxEXPAND | wxTOP, 5);
+  sCheatPage->Add(m_ar_code_panel, 1, wxEXPAND | wxALL, 5);
   m_CheatPage->SetSizer(sCheatPage);
 
+  // Gecko Cheats
+  m_geckocode_panel = new Gecko::CodeConfigPanel(gecko_cheat_page);
+  m_cheats_disabled_gecko = new CheatWarningMessage(gecko_cheat_page, game_id);
+
+  m_geckocode_panel->Bind(DOLPHIN_EVT_GECKOCODE_TOGGLED, &CISOProperties::OnCheatCodeToggled, this);
+
+  wxBoxSizer* gecko_layout = new wxBoxSizer(wxVERTICAL);
+  gecko_layout->Add(m_cheats_disabled_gecko, 0, wxEXPAND | wxTOP, 5);
+  gecko_layout->Add(m_geckocode_panel, 1, wxEXPAND);
+  gecko_cheat_page->SetSizer(gecko_layout);
+
+  // Info Page
   wxStaticText* const m_InternalNameText =
       new wxStaticText(m_Information, wxID_ANY, _("Internal Name:"));
   m_InternalName = new wxTextCtrl(m_Information, ID_NAME, wxEmptyString, wxDefaultPosition,
@@ -1127,7 +1240,7 @@ void CISOProperties::LoadGameConfig()
   Convergence->SetValue(iTemp);
 
   PatchList_Load();
-  ActionReplayList_Load();
+  m_ar_code_panel->LoadCodes(GameIniDefault, GameIniLocal);
   m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, m_open_iso->GetUniqueID());
 }
 
@@ -1213,7 +1326,7 @@ bool CISOProperties::SaveGameConfig()
   SAVE_IF_NOT_DEFAULT("Video_Stereoscopy", "StereoConvergence", Convergence->GetValue(), 0);
 
   PatchList_Save();
-  ActionReplayList_Save();
+  m_ar_code_panel->SaveCodes(&GameIniLocal);
   Gecko::SaveCodes(GameIniLocal, m_geckocode_panel->GetCodes());
 
   bool success = GameIniLocal.Save(GameIniFileLocal);
@@ -1299,6 +1412,12 @@ void CISOProperties::OnEditConfig(wxCommandEvent& WXUNUSED(event))
   GenerateLocalIniModified();
 }
 
+void CISOProperties::OnCheatCodeToggled(wxCommandEvent&)
+{
+  m_cheats_disabled_ar->UpdateState();
+  m_cheats_disabled_gecko->UpdateState();
+}
+
 void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED(event))
 {
   wxProgressDialog progressDialog(_("Computing MD5 checksum"), _("Working..."), 100, this,
@@ -1323,45 +1442,20 @@ void CISOProperties::OnShowDefaultConfig(wxCommandEvent& WXUNUSED(event))
   }
 }
 
-void CISOProperties::ListSelectionChanged(wxCommandEvent& event)
+void CISOProperties::PatchListSelectionChanged(wxCommandEvent& event)
 {
-  switch (event.GetId())
+  if (Patches->GetSelection() == wxNOT_FOUND ||
+      DefaultPatches.find(Patches->GetString(Patches->GetSelection()).ToStdString()) !=
+          DefaultPatches.end())
   {
-  case ID_PATCHES_LIST:
-    if (Patches->GetSelection() == wxNOT_FOUND ||
-        DefaultPatches.find(Patches->GetString(Patches->GetSelection()).ToStdString()) !=
-            DefaultPatches.end())
-    {
-      EditPatch->Disable();
-      RemovePatch->Disable();
-    }
-    else
-    {
-      EditPatch->Enable();
-      RemovePatch->Enable();
-    }
-    break;
-  case ID_CHEATS_LIST:
-    if (Cheats->GetSelection() == wxNOT_FOUND ||
-        DefaultCheats.find(
-            Cheats->RemoveMnemonics(Cheats->GetString(Cheats->GetSelection())).ToStdString()) !=
-            DefaultCheats.end())
-    {
-      EditCheat->Disable();
-      RemoveCheat->Disable();
-    }
-    else
-    {
-      EditCheat->Enable();
-      RemoveCheat->Enable();
-    }
-    break;
+    EditPatch->Disable();
+    RemovePatch->Disable();
   }
-}
-
-void CISOProperties::OnActionReplayCodeChecked(wxCommandEvent& event)
-{
-  arCodes[event.GetSelection()].active = Cheats->IsChecked(event.GetSelection());
+  else
+  {
+    EditPatch->Enable();
+    RemovePatch->Enable();
+  }
 }
 
 void CISOProperties::PatchList_Load()
@@ -1446,67 +1540,6 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 
   EditPatch->Disable();
   RemovePatch->Disable();
-}
-
-void CISOProperties::ActionReplayList_Load()
-{
-  arCodes = ActionReplay::LoadCodes(GameIniDefault, GameIniLocal);
-  DefaultCheats.clear();
-
-  Cheats->Freeze();
-  Cheats->Clear();
-  for (const ActionReplay::ARCode& arCode : arCodes)
-  {
-    int idx = Cheats->Append(Cheats->EscapeMnemonics(StrToWxStr(arCode.name)));
-    Cheats->Check(idx, arCode.active);
-    if (!arCode.user_defined)
-      DefaultCheats.insert(arCode.name);
-  }
-  Cheats->Thaw();
-}
-
-void CISOProperties::ActionReplayList_Save()
-{
-  ActionReplay::SaveCodes(&GameIniLocal, arCodes);
-}
-
-void CISOProperties::ActionReplayButtonClicked(wxCommandEvent& event)
-{
-  int selection = Cheats->GetSelection();
-
-  switch (event.GetId())
-  {
-  case ID_EDITCHEAT:
-  {
-    CARCodeAddEdit dlg(selection, &arCodes, this);
-    dlg.ShowModal();
-    Raise();
-  }
-  break;
-  case ID_ADDCHEAT:
-  {
-    CARCodeAddEdit dlg(-1, &arCodes, this, 1, _("Add ActionReplay Code"));
-    int res = dlg.ShowModal();
-    Raise();
-    if (res == wxID_OK)
-    {
-      Cheats->Append(StrToWxStr(arCodes.back().name));
-      Cheats->Check((unsigned int)(arCodes.size() - 1), arCodes.back().active);
-    }
-  }
-  break;
-  case ID_REMOVECHEAT:
-    arCodes.erase(arCodes.begin() + Cheats->GetSelection());
-    Cheats->Delete(Cheats->GetSelection());
-    break;
-  }
-
-  ActionReplayList_Save();
-  Cheats->Clear();
-  ActionReplayList_Load();
-
-  EditCheat->Disable();
-  RemoveCheat->Disable();
 }
 
 void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)

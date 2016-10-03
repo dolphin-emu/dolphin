@@ -19,6 +19,10 @@ struct AREntry
   u32 cmd_addr;
   u32 value;
 };
+constexpr bool operator==(const AREntry& left, const AREntry& right)
+{
+  return left.cmd_addr == right.cmd_addr && left.value == right.value;
+}
 
 struct ARCode
 {
