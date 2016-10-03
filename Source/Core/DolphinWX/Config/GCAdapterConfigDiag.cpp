@@ -46,7 +46,7 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
   szr->Add(m_adapter_status, 0, wxEXPAND);
   szr->Add(gamecube_rumble, 0, wxEXPAND);
   szr->Add(gamecube_konga, 0, wxEXPAND);
-  szr->Add(CreateButtonSizer(wxOK | wxNO_DEFAULT), 0, wxEXPAND | wxALL, 5);
+  szr->Add(CreateButtonSizer(wxCLOSE), 0, wxEXPAND | wxALL, 5);
 
   SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
   SetSizerAndFit(szr);

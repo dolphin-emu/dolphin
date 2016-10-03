@@ -252,7 +252,8 @@ public:
   InputConfigDialog(wxWindow* const parent, InputConfig& config, const wxString& name,
                     const int tab_num = 0);
 
-  void ClickSave(wxCommandEvent& event);
+  void OnClose(wxCloseEvent& event);
+  void OnCloseButton(wxCommandEvent& event);
 
   void UpdateDeviceComboBox();
   void UpdateProfileComboBox();
