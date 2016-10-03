@@ -185,13 +185,12 @@ bool IsEnabled(int flags)
 
 u32 UnPatch(const std::string& patch_name)
 {
-  auto* patch = std::find_if(std::begin(OSPatches), std::end(OSPatches), [&](const SPatch& patch) {
-    return patch_name == patch.m_szPatchName;
-  });
+  auto* patch = std::find_if(std::begin(OSPatches), std::end(OSPatches),
+                             [&](const SPatch& p) { return patch_name == p.m_szPatchName; });
   if (patch == std::end(OSPatches))
     return 0;
 
-  if (patch->type == HLE_TYPE_FIXED)
+  if (patch->flags == HLE_TYPE_FIXED)
   {
     u32 patch_idx = static_cast<u32>(patch - OSPatches);
     u32 addr = 0;
