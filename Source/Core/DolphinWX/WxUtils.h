@@ -36,6 +36,9 @@ wxBitmap CreateDisabledButtonBitmap(const wxBitmap& original);
 void AddToolbarButton(wxToolBar* toolbar, int toolID, const wxString& label, const wxBitmap& bitmap,
                       const wxString& shortHelp);
 
+// Gets a complete set of window icons at all relevant sizes, use with wxTopLevelWindow::SetIcons
+wxIconBundle GetDolphinIconBundle();
+
 // Get the dimensions of the virtual desktop that spans all monitors.
 // Matches GetSystemMetrics(SM_XVIRTUALSCREEN), etc on Windows.
 wxRect GetVirtualScreenGeometry();

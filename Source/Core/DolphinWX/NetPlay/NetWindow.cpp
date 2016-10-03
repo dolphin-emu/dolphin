@@ -70,6 +70,7 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 {
   Bind(wxEVT_THREAD, &NetPlayDialog::OnThread, this);
   CreateGUI();
+  SetIcons(WxUtils::GetDolphinIconBundle());
   Center();
 
   // Remember the window size and position for NetWindow

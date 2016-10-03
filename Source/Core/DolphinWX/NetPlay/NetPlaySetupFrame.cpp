@@ -43,11 +43,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
   CreateGUI();
-  {
-    wxIcon icon;
-    icon.CopyFromBitmap(WxUtils::LoadScaledResourceBitmap("Dolphin", this));
-    SetIcon(icon);
-  }
+  SetIcons(WxUtils::GetDolphinIconBundle());
 
   {
     std::string temp;

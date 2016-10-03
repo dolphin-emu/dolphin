@@ -85,9 +85,7 @@ CRenderFrame::CRenderFrame(wxFrame* parent, wxWindowID id, const wxString& title
     : wxFrame(parent, id, title, pos, size, style)
 {
   // Give it an icon
-  wxIcon IconTemp;
-  IconTemp.CopyFromBitmap(WxUtils::LoadScaledResourceBitmap("Dolphin", this));
-  SetIcon(IconTemp);
+  SetIcons(WxUtils::GetDolphinIconBundle());
 
   DragAcceptFiles(true);
   Bind(wxEVT_DROP_FILES, &CRenderFrame::OnDropFiles, this);

@@ -28,6 +28,10 @@
 
 #include "DolphinWX/WxUtils.h"
 
+#ifdef _WIN32
+#include <Windows.h>
+#endif
+
 namespace WxUtils
 {
 // Launch a file according to its mime type
@@ -79,6 +83,50 @@ void AddToolbarButton(wxToolBar* toolbar, int toolID, const wxString& label, con
   // incorrectly desaturates it instead of lightening it.
   toolbar->AddTool(toolID, label, bitmap, WxUtils::CreateDisabledButtonBitmap(bitmap),
                    wxITEM_NORMAL, shortHelp);
+}
+
+wxIconBundle GetDolphinIconBundle()
+{
+  static wxIconBundle s_bundle;
+  if (!s_bundle.IsEmpty())
+    return s_bundle;
+
+#ifdef _WIN32
+
+  // Convert the Windows ICO file into a wxIconBundle by tearing it apart into each individual
+  // sub-icon using the Win32 API. This is necessary because WX uses its own wxIcons internally
+  // which (unlike QIcon in Qt) only contain 1 image per icon, hence why wxIconBundle exists.
+  HINSTANCE dolphin = GetModuleHandleW(nullptr);
+  for (int size : {16, 32, 48, 256})
+  {
+    // Extract resource from embedded DolphinWX.rc
+    HANDLE win32_icon =
+        LoadImageW(dolphin, L"\"DOLPHIN\"", IMAGE_ICON, size, size, LR_CREATEDIBSECTION);
+    if (win32_icon && win32_icon != INVALID_HANDLE_VALUE)
+    {
+      wxIcon icon;
+      icon.CreateFromHICON(reinterpret_cast<HICON>(win32_icon));
+      s_bundle.AddIcon(icon);
+    }
+  }
+
+#else
+
+  for (const char* fname : {"Dolphin.png", "dolphin_logo.png", "dolphin_logo@2x.png"})
+  {
+    wxImage image{StrToWxStr(File::GetSysDirectory() + RESOURCES_DIR DIR_SEP + fname),
+                  wxBITMAP_TYPE_PNG};
+    if (image.IsOk())
+    {
+      wxIcon icon;
+      icon.CopyFromBitmap(image);
+      s_bundle.AddIcon(icon);
+    }
+  }
+
+#endif
+
+  return s_bundle;
 }
 
 wxRect GetVirtualScreenGeometry()

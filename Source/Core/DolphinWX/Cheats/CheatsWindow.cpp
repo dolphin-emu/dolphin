@@ -61,6 +61,7 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
   UpdateGUI();
   wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &wxCheatsWindow::OnLocalGameIniModified, this);
 
+  SetIcons(WxUtils::GetDolphinIconBundle());
   SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
   SetLayoutAdaptationLevel(wxDIALOG_ADAPTATION_STANDARD_SIZER);
   Center();
