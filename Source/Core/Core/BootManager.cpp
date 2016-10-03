@@ -397,7 +397,7 @@ bool BootCore(const std::string& _rFilename)
     // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
     // shutdown commands in the State Transition Manager (STM).
     // TODO: remove this if and once Dolphin supports WC24 standby mode.
-    SConfig::GetInstance().m_SYSCONF->SetData("IPL.IDL", 0x00);
+    SConfig::GetInstance().m_SYSCONF->SetData<u8>("IPL.IDL", 0x00);
     NOTICE_LOG(BOOT, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
   }
 
