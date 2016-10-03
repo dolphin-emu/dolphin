@@ -29,6 +29,7 @@ private:
   static constexpr int DIRECT_CHOICE = 0;
   static constexpr int TRAVERSAL_CHOICE = 1;
 
+  void GetWindowRect(const IniFile::Section& section, wxRect* rect) const;
   void OnJoin(wxCommandEvent& event);
   void OnHost(wxCommandEvent& event);
   void DoJoin();
@@ -41,8 +42,6 @@ private:
   void OnTabChanged(wxCommandEvent& event);
   void OnAfterTabChange(wxIdleEvent& event);
   void DispatchFocus();
-
-  void MakeNetPlayDiag(int port, const std::string& game, bool is_hosting);
 
   wxStaticText* m_ip_lbl;
   wxStaticText* m_client_port_lbl;

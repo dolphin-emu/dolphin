@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="GUI">
@@ -205,6 +205,9 @@
     <ClCompile Include="Cheats\ARCodeAddEdit.cpp">
       <Filter>GUI\Cheats</Filter>
     </ClCompile>
+    <ClCompile Include="NetPlay\NetPlayLauncher.cpp">
+      <Filter>GUI\NetPlay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -374,6 +377,9 @@
     </ClInclude>
     <ClInclude Include="Cheats\ARCodeAddEdit.h">
       <Filter>GUI\Cheats</Filter>
+    </ClInclude>
+    <ClInclude Include="NetPlay\NetPlayLauncher.h">
+      <Filter>GUI\NetPlay</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
