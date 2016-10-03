@@ -362,7 +362,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     FixupBranch slow = J_CC(CC_Z, true);
 
     // Fast path: compute full address, then zero out 32 bytes of memory.
-    PXOR(XMM0, R(XMM0));
+    XORPS(XMM0, R(XMM0));
     MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
     MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
 
