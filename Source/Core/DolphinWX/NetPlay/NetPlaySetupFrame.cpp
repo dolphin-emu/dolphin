@@ -23,11 +23,13 @@
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
-static const std::string DEFAULT_TRAVERSAL_SERVER = "stun.dolphin-emu.org";
-static const std::string DEFAULT_TRAVERSAL_PORT = "6262";
+namespace
+{
+const std::string DEFAULT_TRAVERSAL_SERVER = "stun.dolphin-emu.org";
+const std::string DEFAULT_TRAVERSAL_PORT = "6262";
 
-static std::string GetFromINI(IniFile::Section& section, const std::string& key,
-                              const std::string& default_value)
+std::string GetFromINI(IniFile::Section& section, const std::string& key,
+                       const std::string& default_value)
 {
   std::string result;
   section.Get(key, &result, default_value);
@@ -37,22 +39,23 @@ static std::string GetFromINI(IniFile::Section& section, const std::string& key,
   return result;
 }
 
-static std::string GetTraversalPort(IniFile::Section& section)
+std::string GetTraversalPort(IniFile::Section& section)
 {
   return GetFromINI(section, "TraversalPort", DEFAULT_TRAVERSAL_PORT);
 }
 
-static std::string GetTraversalServer(IniFile::Section& section)
+std::string GetTraversalServer(IniFile::Section& section)
 {
   return GetFromINI(section, "TraversalServer", DEFAULT_TRAVERSAL_SERVER);
 }
 
-static wxString GetTraversalLabelText(IniFile::Section& section)
+wxString GetTraversalLabelText(IniFile::Section& section)
 {
   std::string server = GetTraversalServer(section);
   std::string port = GetTraversalPort(section);
   return wxString::Format(_("Traversal Server: %s"), (server + ":" + port).c_str());
 }
+}  // Anonymous namespace
 
 NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl* const game_list)
     : wxFrame(parent, wxID_ANY, _("Dolphin NetPlay Setup")), m_game_list(game_list)
