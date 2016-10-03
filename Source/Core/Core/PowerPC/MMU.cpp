@@ -163,7 +163,7 @@ BatTable dbat_table;
 static void GenerateDSIException(u32 _EffectiveAddress, bool _bWrite);
 
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-__forceinline static T ReadFromHardware(u32 em_address)
+static T ReadFromHardware(u32 em_address)
 {
   if (!never_translate && UReg_MSR(MSR).DR)
   {
@@ -203,27 +203,6 @@ __forceinline static T ReadFromHardware(u32 em_address)
 
   // TODO: Make sure these are safe for unaligned addresses.
 
-  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
-  if ((em_address >> 28) == 0xE && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
-  {
-    return bswap((*(const T*)&Memory::m_pL1Cache[em_address & 0x0FFFFFFF]));
-  }
-  // In Fake-VMEM mode, we need to map the memory somewhere into
-  // physical memory for BAT translation to work; we currently use
-  // [0x7E000000, 0x80000000).
-  if (Memory::bFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
-  {
-    return bswap(*(T*)&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK]);
-  }
-
-  if (flag == FLAG_READ && (em_address & 0xF8000000) == 0x08000000)
-  {
-    if (em_address < 0x0c000000)
-      return EFB_Read(em_address);
-    else
-      return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
-  }
-
   if ((em_address & 0xF8000000) == 0x00000000)
   {
     // Handle RAM; the masking intentionally discards bits (essentially creating
@@ -238,12 +217,33 @@ __forceinline static T ReadFromHardware(u32 em_address)
     return bswap((*(const T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF]));
   }
 
+  // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
+  if ((em_address >> 28) == 0xE && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
+  {
+    return bswap((*(const T*)&Memory::m_pL1Cache[em_address & 0x0FFFFFFF]));
+  }
+  // In Fake-VMEM mode, we need to map the memory somewhere into
+  // physical memory for BAT translation to work; we currently use
+  // [0x7E000000, 0x80000000).
+  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
+  {
+    return bswap(*(T*)&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK]);
+  }
+
+  if (flag == FLAG_READ && (em_address & 0xF8000000) == 0x08000000)
+  {
+    if (em_address < 0x0c000000)
+      return EFB_Read(em_address);
+    else
+      return (T)Memory::mmio_mapping->Read<typename std::make_unsigned<T>::type>(em_address);
+  }
+
   PanicAlert("Unable to resolve read address %x PC %x", em_address, PC);
   return 0;
 }
 
 template <XCheckTLBFlag flag, typename T, bool never_translate = false>
-__forceinline static void WriteToHardware(u32 em_address, const T data)
+static void WriteToHardware(u32 em_address, const T data)
 {
   if (!never_translate && UReg_MSR(MSR).DR)
   {
@@ -285,6 +285,22 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
 
   // TODO: Make sure these are safe for unaligned addresses.
 
+  if ((em_address & 0xF8000000) == 0x00000000)
+  {
+    // Handle RAM; the masking intentionally discards bits (essentially creating
+    // mirrors of memory).
+    // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
+    *(T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK] = bswap(data);
+    return;
+  }
+
+  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
+      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+  {
+    *(T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF] = bswap(data);
+    return;
+  }
+
   // Locked L1 technically doesn't have a fixed address, but games all use 0xE0000000.
   if ((em_address >> 28 == 0xE) && (em_address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
   {
@@ -295,7 +311,7 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
   // In Fake-VMEM mode, we need to map the memory somewhere into
   // physical memory for BAT translation to work; we currently use
   // [0x7E000000, 0x80000000).
-  if (Memory::bFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
+  if (Memory::m_pFakeVMEM && ((em_address & 0xFE000000) == 0x7E000000))
   {
     *(T*)&Memory::m_pFakeVMEM[em_address & Memory::RAM_MASK] = bswap(data);
     return;
@@ -335,22 +351,6 @@ __forceinline static void WriteToHardware(u32 em_address, const T data)
       Memory::mmio_mapping->Write(em_address, data);
       return;
     }
-  }
-
-  if ((em_address & 0xF8000000) == 0x00000000)
-  {
-    // Handle RAM; the masking intentionally discards bits (essentially creating
-    // mirrors of memory).
-    // TODO: Only the first REALRAM_SIZE is supposed to be backed by actual memory.
-    *(T*)&Memory::m_pRAM[em_address & Memory::RAM_MASK] = bswap(data);
-    return;
-  }
-
-  if (Memory::m_pEXRAM && (em_address >> 28) == 0x1 &&
-      (em_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
-  {
-    *(T*)&Memory::m_pEXRAM[em_address & 0x0FFFFFFF] = bswap(data);
-    return;
   }
 
   PanicAlert("Unable to resolve write address %x PC %x", em_address, PC);
@@ -395,7 +395,7 @@ TryReadInstResult TryReadInstruction(u32 address)
 
   u32 hex;
   // TODO: Refactor this. This icache implementation is totally wrong if used with the fake vmem.
-  if (Memory::bFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
+  if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
   {
     hex = bswap(*(const u32*)&Memory::m_pFakeVMEM[address & Memory::FAKEVMEM_MASK]);
   }
@@ -412,7 +412,7 @@ u32 HostRead_Instruction(const u32 address)
   return inst.hex;
 }
 
-static __forceinline void Memcheck(u32 address, u32 var, bool write, int size)
+static void Memcheck(u32 address, u32 var, bool write, int size)
 {
   if (PowerPC::memchecks.HasAny())
   {
@@ -639,7 +639,7 @@ bool HostIsRAMAddress(u32 address)
     return true;
   else if (Memory::m_pEXRAM && segment == 0x1 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
     return true;
-  else if (Memory::bFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
+  else if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
     return true;
   else if (segment == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
     return true;
@@ -953,8 +953,7 @@ enum TLBLookupResult
   TLB_UPDATE_C
 };
 
-static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa,
-                                                          u32* paddr)
+static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
 {
   u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
   PowerPC::tlb_entry* tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
@@ -1005,7 +1004,7 @@ static __forceinline TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag fl
   return TLB_NOTFOUND;
 }
 
-static __forceinline void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
+static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 address)
 {
   if (IsNoExceptionFlag(flag))
     return;
@@ -1032,8 +1031,7 @@ void InvalidateTLBEntry(u32 address)
 }
 
 // Page Address Translation
-static __forceinline TranslateAddressResult TranslatePageAddress(const u32 address,
-                                                                 const XCheckTLBFlag flag)
+static TranslateAddressResult TranslatePageAddress(const u32 address, const XCheckTLBFlag flag)
 {
   // TLB cache
   // This catches 99%+ of lookups in practice, so the actual page table entry code below doesn't
@@ -1166,7 +1164,7 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
         // The bottom bit is whether the translation is valid; the second
         // bit from the bottom is whether we can use the fastmem arena.
         u32 valid_bit = 0x1;
-        if (Memory::bFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
+        if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
           valid_bit = 0x3;
         else if (address < Memory::REALRAM_SIZE)
           valid_bit = 0x3;
@@ -1202,13 +1200,16 @@ void DBATUpdated()
   bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
   if (extended_bats)
     UpdateBATs(dbat_table, SPR_DBAT4U);
-  if (Memory::bFakeVMEM)
+  if (Memory::m_pFakeVMEM)
   {
     // In Fake-MMU mode, insert some extra entries into the BAT tables.
     UpdateFakeMMUBat(dbat_table, 0x40000000);
     UpdateFakeMMUBat(dbat_table, 0x70000000);
   }
+
+#ifndef _ARCH_32
   Memory::UpdateLogicalMemory(dbat_table);
+#endif
 
   // IsOptimizable*Address and dcbz depends on the BAT mapping, so we need a flush here.
   JitInterface::ClearSafe();
@@ -1221,7 +1222,7 @@ void IBATUpdated()
   bool extended_bats = SConfig::GetInstance().bWii && HID4.SBE;
   if (extended_bats)
     UpdateBATs(ibat_table, SPR_IBAT4U);
-  if (Memory::bFakeVMEM)
+  if (Memory::m_pFakeVMEM)
   {
     // In Fake-MMU mode, insert some extra entries into the BAT tables.
     UpdateFakeMMUBat(ibat_table, 0x40000000);
@@ -1235,7 +1236,7 @@ void IBATUpdated()
 // So we first check if there is a matching BAT entry, else we look for the TLB in
 // TranslatePageAddress().
 template <const XCheckTLBFlag flag>
-TranslateAddressResult TranslateAddress(const u32 address)
+static TranslateAddressResult TranslateAddress(const u32 address)
 {
   u32 bat_result = (flag == FLAG_OPCODE ? ibat_table : dbat_table)[address >> BAT_INDEX_SHIFT];
   if (bat_result & 1)
