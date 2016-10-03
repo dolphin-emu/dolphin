@@ -1273,7 +1273,7 @@ void Renderer::SetInterlacingMode()
   // TODO
 }
 
-int Renderer::GetMaxTextureSize()
+u32 Renderer::GetMaxTextureSize()
 {
   return DX11::D3D::GetMaxTextureSize();
 }
