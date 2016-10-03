@@ -42,8 +42,6 @@ private:
   void OnAfterTabChange(wxIdleEvent& event);
   void DispatchFocus();
 
-  void MakeNetPlayDiag(int port, const std::string& game, bool is_hosting);
-
   wxStaticText* m_ip_lbl;
   wxStaticText* m_client_port_lbl;
   wxTextCtrl* m_nickname_text;
