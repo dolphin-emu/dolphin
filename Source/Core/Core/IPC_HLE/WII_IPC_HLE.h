@@ -67,7 +67,6 @@ std::shared_ptr<IWII_IPC_HLE_Device> CreateFileIO(u32 _DeviceID, const std::stri
 
 std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& _rDeviceName);
 std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 _ID);
-int getFreeDeviceId();
 
 // Update
 void Update();

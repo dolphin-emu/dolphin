@@ -12,6 +12,7 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/IPC_HLE/hci.h"
 
 class CWII_IPC_HLE_WiiMote;
@@ -19,8 +20,8 @@ class CWII_IPC_HLE_WiiMote;
 struct SQueuedEvent
 {
   u8 m_buffer[1024];
-  u32 m_size;
-  u16 m_connectionHandle;
+  u32 m_size = 0;
+  u16 m_connectionHandle = 0;
 
   SQueuedEvent(u32 size, u16 connectionHandle) : m_size(size), m_connectionHandle(connectionHandle)
   {
@@ -32,19 +33,20 @@ struct SQueuedEvent
     memset(m_buffer, 0, 1024);
   }
 
-  SQueuedEvent() : m_size(0), m_connectionHandle(0) {}
+  SQueuedEvent() = default;
 };
 
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus
 // 57e/305 -> VendorID/ProductID of device on usb bus
 // This device is ONLY the internal Bluetooth module (based on BCM2045 chip)
-class CWII_IPC_HLE_Device_usb_oh1_57e_305 : public IWII_IPC_HLE_Device
+class CWII_IPC_HLE_Device_usb_oh1_57e_305_emu final
+    : public CWII_IPC_HLE_Device_usb_oh1_57e_305_base
 {
 public:
-  CWII_IPC_HLE_Device_usb_oh1_57e_305(u32 _DeviceID, const std::string& _rDeviceName);
+  CWII_IPC_HLE_Device_usb_oh1_57e_305_emu(u32 _DeviceID, const std::string& _rDeviceName);
 
-  virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305();
+  virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305_emu();
 
   IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
   IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
@@ -61,8 +63,6 @@ public:
 
   bool RemoteDisconnect(u16 _connectionHandle);
 
-  // hack for Wiimote plugin
-public:
   std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
   CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
   CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
@@ -70,21 +70,6 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  enum USBIOCtl
-  {
-    USBV0_IOCTL_CTRLMSG = 0,
-    USBV0_IOCTL_BLKMSG = 1,
-    USBV0_IOCTL_INTRMSG = 2,
-  };
-
-  enum USBEndpoint
-  {
-    HCI_CTRL = 0x00,
-    HCI_EVENT = 0x81,
-    ACL_DATA_IN = 0x82,
-    ACL_DATA_OUT = 0x02
-  };
-
   struct SHCICommandMessage
   {
     u8 bRequestType;
@@ -98,36 +83,10 @@ private:
     u32 m_Address;
   };
 
-  // This is a lightweight/specialized version of SIOCtlVBuffer
-  struct CtrlBuffer
-  {
-    u32 m_address;
-    u32 m_buffer;
-
-    CtrlBuffer(u32 _Address) : m_address(_Address), m_buffer()
-    {
-      if (m_address)
-      {
-        u32 InBufferNum = Memory::Read_U32(m_address + 0x10);
-        u32 BufferVector = Memory::Read_U32(m_address + 0x18);
-        m_buffer = Memory::Read_U32(BufferVector + InBufferNum * sizeof(SIOCtlVBuffer::SBuffer));
-      }
-    }
-
-    inline void FillBuffer(const void* src, const size_t size) const
-    {
-      Memory::CopyToEmu(m_buffer, (u8*)src, size);
-    }
-
-    inline void SetRetVal(const u32 retval) const { Memory::Write_U32(retval, m_address + 4); }
-    inline bool IsValid() const { return m_address != 0; }
-    inline void Invalidate() { m_address = m_buffer = 0; }
-  };
-
   bdaddr_t m_ControllerBD;
 
   // this is used to trigger connecting via ACL
-  u8 m_ScanEnable;
+  u8 m_ScanEnable = 0;
 
   SHCICommandMessage m_CtrlSetup;
   CtrlBuffer m_HCIEndpoint;
@@ -136,14 +95,11 @@ private:
   u32 m_ACLSetup;
   CtrlBuffer m_ACLEndpoint;
 
-  static const int m_acl_pkt_size = 339;
-  static const int m_acl_pkts_num = 10;
-
   class ACLPool
   {
     struct Packet
     {
-      u8 data[m_acl_pkt_size];
+      u8 data[ACL_PKT_SIZE];
       u16 size;
       u16 conn_handle;
     };
@@ -162,7 +118,7 @@ private:
   } m_acl_pool;
 
   u32 m_PacketCount[MAX_BBMOTES];
-  u64 m_last_ticks;
+  u64 m_last_ticks = 0;
 
   // Send ACL data to a device (wiimote)
   void IncDataPacket(u16 _ConnectionHandle);

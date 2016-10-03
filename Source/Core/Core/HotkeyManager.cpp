@@ -32,6 +32,7 @@ const std::string hotkey_labels[] = {
     _trans("Take Screenshot"),
     _trans("Exit"),
 
+    _trans("Press Sync Button"),
     _trans("Connect Wiimote 1"),
     _trans("Connect Wiimote 2"),
     _trans("Connect Wiimote 3"),

@@ -23,7 +23,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/State.h"
 
@@ -139,7 +139,8 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
-  if (Core::IsRunning() && SConfig::GetInstance().bWii)
+  if (Core::IsRunning() && SConfig::GetInstance().bWii &&
+      !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     Core::QueueHostJob([=] {
       bool was_unpaused = Core::PauseAndLock(true);

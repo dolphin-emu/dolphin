@@ -143,6 +143,12 @@ struct SConfig : NonCopyable
   bool m_analytics_enabled = false;
   bool m_analytics_permission_asked = false;
 
+  // Bluetooth passthrough mode settings
+  bool m_bt_passthrough_enabled = false;
+  int m_bt_passthrough_pid = -1;
+  int m_bt_passthrough_vid = -1;
+  std::string m_bt_passthrough_link_keys;
+
   // Fifo Player related settings
   bool bLoopFifoReplay = true;
 
@@ -325,6 +331,7 @@ private:
   void SaveFifoPlayerSettings(IniFile& ini);
   void SaveNetworkSettings(IniFile& ini);
   void SaveAnalyticsSettings(IniFile& ini);
+  void SaveBluetoothPassthroughSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
@@ -337,6 +344,7 @@ private:
   void LoadFifoPlayerSettings(IniFile& ini);
   void LoadNetworkSettings(IniFile& ini);
   void LoadAnalyticsSettings(IniFile& ini);
+  void LoadBluetoothPassthroughSettings(IniFile& ini);
 
   static SConfig* m_Instance;
 };

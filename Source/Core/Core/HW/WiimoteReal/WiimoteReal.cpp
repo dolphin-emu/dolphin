@@ -702,7 +702,8 @@ void Initialize(::Wiimote::InitializeMode init_mode)
     g_wiimote_scanner.StartThread();
   }
 
-  if (SConfig::GetInstance().m_WiimoteContinuousScanning)
+  if (SConfig::GetInstance().m_WiimoteContinuousScanning &&
+      !SConfig::GetInstance().m_bt_passthrough_enabled)
     g_wiimote_scanner.SetScanMode(WiimoteScanMode::CONTINUOUSLY_SCAN);
   else
     g_wiimote_scanner.SetScanMode(WiimoteScanMode::DO_NOT_SCAN);
