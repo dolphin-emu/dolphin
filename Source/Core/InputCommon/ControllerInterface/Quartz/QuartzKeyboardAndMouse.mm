@@ -11,8 +11,8 @@ namespace ciface
 {
 namespace Quartz
 {
-
-std::string KeycodeToName(const CGKeyCode keycode) {
+std::string KeycodeToName(const CGKeyCode keycode)
+{
   static const std::map<CGKeyCode, std::string> named_keys = {
       {kVK_ANSI_A, "A"},
       {kVK_ANSI_B, "B"},
