@@ -273,10 +273,9 @@ if(APPLE)
 		# increase the chance of not depending on a bunch of copies of them
 		# installed by MacPorts, Fink, Homebrew, etc, and ending up copying
 		# them into the bundle.  Since we optionally depend on libraries which
-		# are not part of OS X (ffmpeg, libusb, etc.), however, don't remove
-		# the default path entirely as was done in a previous version of this
-		# file.  This is still kinda evil, since it defeats the user's path
-		# settings...
+		# are not part of OS X (ffmpeg, etc.), however, don't remove the default
+		# path entirely as was done in a previous version of this file.  This is
+		# still kinda evil, since it defeats the user's path settings...
 		# See http://www.cmake.org/cmake/help/v3.0/command/find_program.html
 		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
 	endif()
@@ -743,12 +742,20 @@ if(ENABLE_SDL)
 	endif(SDL2_FOUND)
 endif()
 
-include(FindLibUSB OPTIONAL)
-if(LIBUSB_FOUND)
-	message("Using shared LibUSB")
-	add_definitions(-D__LIBUSB__)
-	include_directories(${LIBUSB_INCLUDE_DIR})
-endif(LIBUSB_FOUND)
+if(NOT ANDROID)
+        add_definitions(-D__LIBUSB__)
+        if(NOT APPLE)
+	        find_package(LibUSB)
+        endif()
+        if(LIBUSB_FOUND AND NOT APPLE)
+	        message("Using shared LibUSB")
+        	include_directories(${LIBUSB_INCLUDE_DIR})
+        else()
+	        message("Using static LibUSB from Externals")
+        	add_subdirectory(Externals/libusb)
+	        set(LIBUSB_LIBRARIES usb)
+        endif()
+endif()
 
 set(SFML_REQD_VERSION 2.1)
 if(NOT APPLE)
