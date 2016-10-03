@@ -30,6 +30,11 @@
 #include <wx/tipwin.h>
 #include <wx/wxcrt.h>
 
+#ifdef __WXMSW__
+#include <CommCtrl.h>
+#include <wx/msw/dc.h>
+#endif
+
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -1384,3 +1389,30 @@ bool CGameListCtrl::WiiCompressWarning()
                         "by removing padding data. Your disc image will still work. Continue?"),
                       _("Warning"), wxYES_NO) == wxYES;
 }
+
+#ifdef __WXMSW__
+// Windows draws vertical rules between columns when using UXTheme (e.g. Aero, Win10)
+// This function paints over those lines which removes them.
+// [The repaint background idea is ripped off from Eclipse SWT which does the same thing]
+bool CGameListCtrl::MSWOnNotify(int id, WXLPARAM lparam, WXLPARAM* result)
+{
+  NMLVCUSTOMDRAW* nmlv = reinterpret_cast<NMLVCUSTOMDRAW*>(lparam);
+  // Intercept the NM_CUSTOMDRAW[CDDS_PREPAINT]
+  // This event occurs after the background has been painted before the content of the list
+  // is painted. We can repaint the background to eliminate the column lines here.
+  if (nmlv->nmcd.hdr.hwndFrom == GetHWND() && nmlv->nmcd.hdr.code == NM_CUSTOMDRAW &&
+      nmlv->nmcd.dwDrawStage == CDDS_PREPAINT)
+  {
+    // The column separators have already been painted, paint over them.
+    wxDCTemp dc(nmlv->nmcd.hdc);
+    dc.SetBrush(GetBackgroundColour());
+    dc.SetPen(*wxTRANSPARENT_PEN);
+    dc.DrawRectangle(nmlv->nmcd.rc.left, nmlv->nmcd.rc.top,
+                     nmlv->nmcd.rc.right - nmlv->nmcd.rc.left,
+                     nmlv->nmcd.rc.bottom - nmlv->nmcd.rc.top);
+  }
+
+  // Defer to wxWidgets for normal processing.
+  return wxListCtrl::MSWOnNotify(id, lparam, result);
+}
+#endif

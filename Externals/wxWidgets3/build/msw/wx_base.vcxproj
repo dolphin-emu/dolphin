@@ -1273,7 +1273,9 @@
     <ClCompile Include="..\..\src\msw\printwin.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\..\src\msw\progdlg.cpp" />
+    <ClCompile Include="..\..\src\msw\progdlg.cpp">
+      <ExcludedFromBuild>true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="..\..\src\msw\radiobox.cpp" />
     <ClCompile Include="..\..\src\msw\radiobut.cpp" />
     <ClCompile Include="..\..\src\msw\regconf.cpp" />
