@@ -2,13 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "NetPlayLauncher.h"
+#include <wx/gdicmn.h>
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "DolphinWX/NetPlay/NetPlayLauncher.h"
+#include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
-#include "NetWindow.h"
 
 bool NetPlayLauncher::Host(const NetPlayHostConfig& config)
 {
@@ -49,6 +51,7 @@ bool NetPlayLauncher::Host(const NetPlayHostConfig& config)
 
   if (netplay_client->IsConnected())
   {
+    npd->SetSize(config.window_pos);
     npd->Show();
     netplay_server->SetNetPlayUI(NetPlayDialog::GetInstance());
     return true;
@@ -78,6 +81,7 @@ bool NetPlayLauncher::Join(const NetPlayJoinConfig& config)
                         config.traversal_host, config.traversal_port);
   if (netplay_client->IsConnected())
   {
+    npd->SetSize(config.window_pos);
     npd->Show();
     return true;
   }
@@ -89,10 +93,9 @@ bool NetPlayLauncher::Join(const NetPlayJoinConfig& config)
 }
 
 const std::string NetPlayLaunchConfig::DEFAULT_TRAVERSAL_HOST = "stun.dolphin-emu.org";
-const u16 NetPlayLaunchConfig::DEFAULT_TRAVERSAL_PORT = 6262;
-const u16 NetPlayHostConfig::DEFAULT_LISTEN_PORT = 2626;
 
-std::string NetPlayLaunchConfig::GetTraversalHostFromIniConfig(IniFile::Section& netplay_section)
+std::string
+NetPlayLaunchConfig::GetTraversalHostFromIniConfig(const IniFile::Section& netplay_section)
 {
   std::string host;
 
@@ -105,7 +108,7 @@ std::string NetPlayLaunchConfig::GetTraversalHostFromIniConfig(IniFile::Section&
   return host;
 }
 
-u16 NetPlayLaunchConfig::GetTraversalPortFromIniConfig(IniFile::Section& netplay_section)
+u16 NetPlayLaunchConfig::GetTraversalPortFromIniConfig(const IniFile::Section& netplay_section)
 {
   std::string port_str;
   unsigned long port;
@@ -117,6 +120,22 @@ u16 NetPlayLaunchConfig::GetTraversalPortFromIniConfig(IniFile::Section& netplay
     port = DEFAULT_TRAVERSAL_PORT;
 
   return static_cast<u16>(port);
+}
+
+void NetPlayLaunchConfig::SetDialogInfo(const IniFile::Section& section, wxWindow* parent)
+{
+  parent_window = parent;
+
+  section.Get("NetWindowPosX", &window_pos.x, window_defaults.GetX());
+  section.Get("NetWindowPosY", &window_pos.y, window_defaults.GetY());
+  section.Get("NetWindowWidth", &window_pos.width, window_defaults.GetWidth());
+  section.Get("NetWindowHeight", &window_pos.height, window_defaults.GetHeight());
+
+  if (window_pos.GetX() == window_defaults.GetX() || window_pos.GetY() == window_defaults.GetY())
+  {
+    // Center over toplevel dolphin window
+    window_pos = window_defaults.CenterIn(parent_window->GetScreenRect());
+  }
 }
 
 void NetPlayHostConfig::FromIniConfig(IniFile::Section& netplay_section)

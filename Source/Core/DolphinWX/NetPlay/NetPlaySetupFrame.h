@@ -29,6 +29,7 @@ private:
   static constexpr int DIRECT_CHOICE = 0;
   static constexpr int TRAVERSAL_CHOICE = 1;
 
+  void GetWindowRect(const IniFile::Section& section, wxRect* rect) const;
   void OnJoin(wxCommandEvent& event);
   void OnHost(wxCommandEvent& event);
   void DoJoin();
