@@ -19,6 +19,7 @@
  */
 
 #include <config.h>
+
 #include <objbase.h>
 #include <errno.h>
 #include <stdarg.h>
@@ -185,7 +186,8 @@ int usbi_cond_timedwait(usbi_cond_t *cond,
 	// GetSystemTimeAsFileTime() is not available on CE
 	SYSTEMTIME st;
 	GetSystemTime(&st);
-	SystemTimeToFileTime(&st, &filetime);
+	if (!SystemTimeToFileTime(&st, &filetime))
+		return 0;
 	rtime.LowPart   = filetime.dwLowDateTime;
 	rtime.HighPart  = filetime.dwHighDateTime;
 	rtime.QuadPart -= epoch_time;

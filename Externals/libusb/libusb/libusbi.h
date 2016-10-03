@@ -21,7 +21,7 @@
 #ifndef LIBUSBI_H
 #define LIBUSBI_H
 
-#include "config.h"
+#include <config.h>
 
 #include <stdlib.h>
 
@@ -32,10 +32,10 @@
 #ifdef HAVE_POLL_H
 #include <poll.h>
 #endif
-
 #ifdef HAVE_MISSING_H
-#include "missing.h"
+#include <missing.h>
 #endif
+
 #include "libusb.h"
 #include "version.h"
 
@@ -47,6 +47,10 @@
  *   return_type LIBUSB_CALL function_name(params);
  */
 #define API_EXPORTED LIBUSB_CALL DEFAULT_VISIBILITY
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #define DEVICE_DESC_LENGTH		18
 
@@ -81,6 +85,9 @@ struct list_head {
  */
 #define list_entry(ptr, type, member) \
 	((type *)((uintptr_t)(ptr) - (uintptr_t)offsetof(type, member)))
+
+#define list_first_entry(ptr, type, member) \
+	list_entry((ptr)->next, type, member)
 
 /* Get each entry from a list
  *  pos - A structure pointer has a "member" element
@@ -144,8 +151,12 @@ static inline void *usbi_reallocf(void *ptr, size_t size)
         const typeof( ((type *)0)->member ) *mptr = (ptr);    \
         (type *)( (char *)mptr - offsetof(type,member) );})
 
+#ifndef MIN
 #define MIN(a, b)	((a) < (b) ? (a) : (b))
+#endif
+#ifndef MAX
 #define MAX(a, b)	((a) > (b) ? (a) : (b))
+#endif
 
 #define TIMESPEC_IS_SET(ts) ((ts)->tv_sec != 0 || (ts)->tv_nsec != 0)
 
@@ -228,13 +239,15 @@ static inline void usbi_dbg(const char *format, ...)
 
 extern struct libusb_context *usbi_default_context;
 
+/* Forward declaration for use in context (fully defined inside poll abstraction) */
+struct pollfd;
+
 struct libusb_context {
 	int debug;
 	int debug_fixed;
 
-	/* internal control pipe, used for interrupting event handling when
-	 * something needs to modify poll fds. */
-	int ctrl_pipe[2];
+	/* internal event pipe, used for signalling occurrence of an internal event. */
+	int event_pipe[2];
 
 	struct list_head usb_devs;
 	usbi_mutex_t usb_devs_lock;
@@ -247,7 +260,6 @@ struct libusb_context {
 	/* A list of registered hotplug callbacks */
 	struct list_head hotplug_cbs;
 	usbi_mutex_t hotplug_cbs_lock;
-	int hotplug_pipe[2];
 
 	/* this is a list of in-flight transfer handles, sorted by timeout
 	 * expiration. URBs to timeout the soonest are placed at the beginning of
@@ -255,15 +267,6 @@ struct libusb_context {
 	 * infinite timeout are always placed at the very end. */
 	struct list_head flying_transfers;
 	usbi_mutex_t flying_transfers_lock;
-
-	/* list of poll fds */
-	struct list_head pollfds;
-	usbi_mutex_t pollfds_lock;
-
-	/* a counter that is set when we want to interrupt event handling, in order
-	 * to modify the poll fd set. and a lock to protect it. */
-	unsigned int pollfd_modify;
-	usbi_mutex_t pollfd_modify_lock;
 
 	/* user callbacks for pollfd changes */
 	libusb_pollfd_added_cb fd_added_cb;
@@ -281,6 +284,28 @@ struct libusb_context {
 	usbi_mutex_t event_waiters_lock;
 	usbi_cond_t event_waiters_cond;
 
+	/* A lock to protect internal context event data. */
+	usbi_mutex_t event_data_lock;
+
+	/* A counter that is set when we want to interrupt and prevent event handling,
+	 * in order to safely close a device. Protected by event_data_lock. */
+	unsigned int device_close;
+
+	/* list and count of poll fds and an array of poll fd structures that is
+	 * (re)allocated as necessary prior to polling, and a flag to indicate
+	 * when the list of poll fds has changed since the last poll.
+	 * Protected by event_data_lock. */
+	struct list_head ipollfds;
+	struct pollfd *pollfds;
+	POLL_NFDS_TYPE pollfds_cnt;
+	unsigned int pollfds_modified;
+
+	/* A list of pending hotplug messages. Protected by event_data_lock. */
+	struct list_head hotplug_msgs;
+
+	/* A list of pending completed transfers. Protected by event_data_lock. */
+	struct list_head completed_transfers;
+
 #ifdef USBI_TIMERFD_AVAILABLE
 	/* used for timeout handling, if supported by OS.
 	 * this timerfd is maintained to trigger on the next pending timeout */
@@ -289,6 +314,11 @@ struct libusb_context {
 
 	struct list_head list;
 };
+
+/* Update the following macro if new event sources are added */
+#define usbi_pending_events(ctx) \
+	((ctx)->device_close || (ctx)->pollfds_modified \
+	 || !list_empty(&(ctx)->hotplug_msgs) || !list_empty(&(ctx)->completed_transfers))
 
 #ifdef USBI_TIMERFD_AVAILABLE
 #define usbi_using_timerfd(ctx) ((ctx)->timerfd >= 0)
@@ -364,6 +394,7 @@ enum {
 struct usbi_transfer {
 	int num_iso_packets;
 	struct list_head list;
+	struct list_head completed_list;
 	struct timeval timeout;
 	int transferred;
 	uint32_t stream_id;
@@ -377,6 +408,10 @@ struct usbi_transfer {
 	 * its completion (presumably there would be races within your OS backend
 	 * if this were possible). */
 	usbi_mutex_t lock;
+
+	/* this lock should be held whenever viewing or modifying flags
+	 * relating to the transfer state */
+	usbi_mutex_t flags_lock;
 };
 
 enum usbi_transfer_flags {
@@ -392,8 +427,17 @@ enum usbi_transfer_flags {
 	/* Operation on the transfer failed because the device disappeared */
 	USBI_TRANSFER_DEVICE_DISAPPEARED = 1 << 3,
 
-	/* Set by backend submit_transfer() if the fds in use have been updated */
-	USBI_TRANSFER_UPDATED_FDS = 1 << 4,
+	/* Transfer is currently being submitted */
+	USBI_TRANSFER_SUBMITTING = 1 << 4,
+
+	/* Transfer successfully submitted by backend */
+	USBI_TRANSFER_IN_FLIGHT = 1 << 5,
+
+	/* Completion handler has run */
+	USBI_TRANSFER_COMPLETED = 1 << 6,
+
+	/* The transfer timeout has been handled */
+	USBI_TRANSFER_TIMEOUT_HANDLED = 1 << 7,
 };
 
 #define USBI_TRANSFER_TO_LIBUSB_TRANSFER(transfer) \
@@ -434,6 +478,7 @@ void usbi_handle_disconnect(struct libusb_device_handle *handle);
 int usbi_handle_transfer_completion(struct usbi_transfer *itransfer,
 	enum libusb_transfer_status status);
 int usbi_handle_transfer_cancellation(struct usbi_transfer *transfer);
+void usbi_signal_transfer_completion(struct usbi_transfer *transfer);
 
 int usbi_parse_descriptor(const unsigned char *source, const char *descriptor,
 	void *dest, int host_endian);
@@ -444,8 +489,11 @@ int usbi_get_config_index_by_value(struct libusb_device *dev,
 void usbi_connect_device (struct libusb_device *dev);
 void usbi_disconnect_device (struct libusb_device *dev);
 
+int usbi_signal_event(struct libusb_context *ctx);
+int usbi_clear_event(struct libusb_context *ctx);
+
 /* Internal abstraction for poll (needs struct usbi_transfer on Windows) */
-#if defined(OS_LINUX) || defined(OS_DARWIN) || defined(OS_OPENBSD) || defined(OS_NETBSD)
+#if defined(OS_LINUX) || defined(OS_DARWIN) || defined(OS_OPENBSD) || defined(OS_NETBSD) || defined(OS_HAIKU)
 #include <unistd.h>
 #include "os/poll_posix.h"
 #elif defined(OS_WINDOWS) || defined(OS_WINCE)
@@ -474,7 +522,6 @@ struct usbi_pollfd {
 
 int usbi_add_pollfd(struct libusb_context *ctx, int fd, short events);
 void usbi_remove_pollfd(struct libusb_context *ctx, int fd);
-void usbi_fd_notification(struct libusb_context *ctx);
 
 /* device discovery */
 
@@ -765,7 +812,7 @@ struct usbi_os_backend {
 	 * This function should not generate any bus I/O and should not block.
 	 * Interface claiming is a logical operation that simply ensures that
 	 * no other drivers/applications are using the interface, and after
-	 * claiming, no other drivers/applicatiosn can use the interface because
+	 * claiming, no other drivers/applications can use the interface because
 	 * we now "own" it.
 	 *
 	 * Return:
@@ -943,8 +990,14 @@ struct usbi_os_backend {
 	 */
 	void (*clear_transfer_priv)(struct usbi_transfer *itransfer);
 
-	/* Handle any pending events. This involves monitoring any active
-	 * transfers and processing their completion or cancellation.
+	/* Handle any pending events on file descriptors. Optional.
+	 *
+	 * Provide this function when file descriptors directly indicate device
+	 * or transfer activity. If your backend does not have such file descriptors,
+	 * implement the handle_transfer_completion function below.
+	 *
+	 * This involves monitoring any active transfers and processing their
+	 * completion or cancellation.
 	 *
 	 * The function is passed an array of pollfd structures (size nfds)
 	 * as a result of the poll() system call. The num_ready parameter
@@ -971,6 +1024,31 @@ struct usbi_os_backend {
 	 */
 	int (*handle_events)(struct libusb_context *ctx,
 		struct pollfd *fds, POLL_NFDS_TYPE nfds, int num_ready);
+
+	/* Handle transfer completion. Optional.
+	 *
+	 * Provide this function when there are no file descriptors available
+	 * that directly indicate device or transfer activity. If your backend does
+	 * have such file descriptors, implement the handle_events function above.
+	 *
+	 * Your backend must tell the library when a transfer has completed by
+	 * calling usbi_signal_transfer_completion(). You should store any private
+	 * information about the transfer and its completion status in the transfer's
+	 * private backend data.
+	 *
+	 * During event handling, this function will be called on each transfer for
+	 * which usbi_signal_transfer_completion() was called.
+	 *
+	 * For any cancelled transfers, call usbi_handle_transfer_cancellation().
+	 * For completed transfers, call usbi_handle_transfer_completion().
+	 * For control/bulk/interrupt transfers, populate the "transferred"
+	 * element of the appropriate usbi_transfer structure before calling the
+	 * above functions. For isochronous transfers, populate the status and
+	 * transferred fields of the iso packet descriptors of the transfer.
+	 *
+	 * Return 0 on success, or a LIBUSB_ERROR code on failure.
+	 */
+	int (*handle_transfer_completion)(struct usbi_transfer *itransfer);
 
 	/* Get time from specified clock. At least two clocks must be implemented
 	   by the backend: USBI_CLOCK_REALTIME, and USBI_CLOCK_MONOTONIC.
@@ -1002,12 +1080,6 @@ struct usbi_os_backend {
 	 * usbi_transfer_get_os_priv() on the appropriate usbi_transfer instance.
 	 */
 	size_t transfer_priv_size;
-
-	/* Mumber of additional bytes for os_priv for each iso packet.
-	 * Can your backend use this? */
-	/* FIXME: linux can't use this any more. if other OS's cannot either,
-	 * then remove this */
-	size_t add_iso_packet_size;
 };
 
 extern const struct usbi_os_backend * const usbi_backend;
@@ -1018,8 +1090,13 @@ extern const struct usbi_os_backend openbsd_backend;
 extern const struct usbi_os_backend netbsd_backend;
 extern const struct usbi_os_backend windows_backend;
 extern const struct usbi_os_backend wince_backend;
+extern const struct usbi_os_backend haiku_usb_raw_backend;
 
 extern struct list_head active_contexts_list;
 extern usbi_mutex_static_t active_contexts_lock;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
