@@ -312,11 +312,11 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
       dc.SetTextForeground(*wxBLACK);
     }
 
-    if (!PowerPC::HostIsRAMAddress(address))
-      continue;
-
     if (debugger->IsAlive())
     {
+      if (!PowerPC::HostIsRAMAddress(address))
+        continue;
+
       std::string dis;
       u32 mem_data = debugger->ReadExtraMemory(memory, address);
 
