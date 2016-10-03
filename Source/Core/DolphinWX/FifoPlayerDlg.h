@@ -121,7 +121,5 @@ private:
   std::vector<SearchResult> search_results;
   unsigned int m_search_result_idx;
 
-  wxButton* m_Close;
-
   s32 m_FramesToRecord;
 };

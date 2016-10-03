@@ -30,7 +30,7 @@
 #include "DolphinWX/X11Utils.h"
 #endif
 
-static const std::array<std::string, 29> language_ids = {
+static const std::array<std::string, 29> language_ids = {{
     "",
 
     "ms", "ca", "cs",    "da", "de", "en", "es",    "fr",    "hr", "it", "hu", "nl",
@@ -38,7 +38,7 @@ static const std::array<std::string, 29> language_ids = {
     "pl", "pt", "pt_BR", "ro", "sr", "sv", "tr",
 
     "el", "ru", "ar",    "fa", "ko", "ja", "zh_CN", "zh_TW",
-};
+}};
 
 InterfaceConfigPane::InterfaceConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {

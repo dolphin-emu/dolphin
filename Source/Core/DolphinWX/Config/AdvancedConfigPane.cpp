@@ -138,7 +138,7 @@ void AdvancedConfigPane::OnClockOverrideSliderChanged(wxCommandEvent& event)
   UpdateCPUClock();
 }
 
-u32 ToSeconds(wxDateTime date)
+static u32 ToSeconds(wxDateTime date)
 {
   return static_cast<u32>(date.GetValue().GetValue() / 1000);
 }

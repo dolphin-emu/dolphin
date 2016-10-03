@@ -345,7 +345,7 @@ wxString CRegTable::GetValue(int row, int col)
   }
   else
   {
-    if (row - 32 < NUM_SPECIALS)
+    if (static_cast<size_t>(row - 32) < NUM_SPECIALS)
     {
       switch (col)
       {
@@ -386,7 +386,7 @@ void CRegTable::SetValue(int row, int col, const wxString& strNewVal)
   }
   else
   {
-    if ((row - 32 < NUM_SPECIALS) && (col == 1))
+    if ((static_cast<size_t>(row - 32) < NUM_SPECIALS) && col == 1)
     {
       u32 new_val = 0;
       if (TryParse("0x" + WxStrToStr(strNewVal), &new_val))
@@ -407,7 +407,7 @@ void CRegTable::UpdateCachedRegs()
     m_CachedFRegHasChanged[i][1] = (m_CachedFRegs[i][1] != riPS1(i));
     m_CachedFRegs[i][1] = riPS1(i);
   }
-  for (int i = 0; i < NUM_SPECIALS; ++i)
+  for (size_t i = 0; i < NUM_SPECIALS; ++i)
   {
     m_CachedSpecialRegHasChanged[i] = (m_CachedSpecialRegs[i] != GetSpecialRegValue(i));
     m_CachedSpecialRegs[i] = GetSpecialRegValue(i);
