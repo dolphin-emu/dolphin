@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <iterator>
 #include <mutex>
+#include <tuple>
 #include <vector>
 
 #include "Common/ChunkFile.h"
@@ -20,22 +21,32 @@ namespace Gecko
 {
 static constexpr u32 CODE_SIZE = 8;
 
+bool operator==(const GeckoCode& lhs, const GeckoCode& rhs)
+{
+  return lhs.codes == rhs.codes;
+}
+
+bool operator!=(const GeckoCode& lhs, const GeckoCode& rhs)
+{
+  return !operator==(lhs, rhs);
+}
+
+bool operator==(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
+{
+  return std::tie(lhs.address, lhs.data) == std::tie(rhs.address, rhs.data);
+}
+
+bool operator!=(const GeckoCode::Code& lhs, const GeckoCode::Code& rhs)
+{
+  return !operator==(lhs, rhs);
+}
+
 // return true if a code exists
 bool GeckoCode::Exist(u32 address, u32 data) const
 {
   return std::find_if(codes.begin(), codes.end(), [&](const Code& code) {
            return code.address == address && code.data == data;
          }) != codes.end();
-}
-
-// return true if the code is identical
-bool GeckoCode::Compare(const GeckoCode& compare) const
-{
-  return codes.size() == compare.codes.size() &&
-         std::equal(codes.begin(), codes.end(), compare.codes.begin(),
-                    [](const Code& a, const Code& b) {
-                      return a.address == b.address && a.data == b.data;
-                    });
 }
 
 enum class Installation
