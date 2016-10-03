@@ -20,6 +20,8 @@ elseif(APPLE)
 				ControllerInterface/OSX/OSX.mm
 				ControllerInterface/OSX/OSXKeyboard.mm
 				ControllerInterface/OSX/OSXJoystick.mm
+				ControllerInterface/Quartz/Quartz.mm
+				ControllerInterface/Quartz/QuartzKeyboardAndMouse.mm
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
 	set(LIBS ${LIBS} ${COREFOUNDATION_LIBRARY} ${CARBON_LIBRARY} ${COCOA_LIBRARY})
 elseif(X11_FOUND)

@@ -18,6 +18,7 @@
 #endif
 #ifdef CIFACE_USE_OSX
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
+#include "InputCommon/ControllerInterface/Quartz/Quartz.h"
 #endif
 #ifdef CIFACE_USE_SDL
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
@@ -64,6 +65,7 @@ void ControllerInterface::Initialize(void* const hwnd)
 #endif
 #ifdef CIFACE_USE_OSX
   ciface::OSX::Init(hwnd);
+  ciface::Quartz::Init(hwnd);
 #endif
 #ifdef CIFACE_USE_SDL
   ciface::SDL::Init();
@@ -111,6 +113,7 @@ void ControllerInterface::Shutdown()
 #endif
 #ifdef CIFACE_USE_OSX
   ciface::OSX::DeInit();
+  ciface::Quartz::DeInit();
 #endif
 #ifdef CIFACE_USE_SDL
   // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up
