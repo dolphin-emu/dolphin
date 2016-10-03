@@ -275,8 +275,8 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
       for (const GeckoCode& code : gcodes)
       {
         // only add codes which do not already exist
-        std::vector<GeckoCode>::const_iterator existing_gcodes_iter = m_gcodes.begin(),
-                                               existing_gcodes_end = m_gcodes.end();
+        auto existing_gcodes_iter = m_gcodes.begin();
+        auto existing_gcodes_end = m_gcodes.end();
         for (;; ++existing_gcodes_iter)
         {
           if (existing_gcodes_end == existing_gcodes_iter)
@@ -287,7 +287,7 @@ void CodeConfigPanel::DownloadCodes(wxCommandEvent&)
           }
 
           // code exists
-          if (existing_gcodes_iter->Compare(code))
+          if (*existing_gcodes_iter == code)
             break;
         }
       }
