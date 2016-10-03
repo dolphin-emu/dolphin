@@ -612,7 +612,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
 
   // Downcount flag check. The last block decremented downcounter, and the flag should still be
   // available.
-  FixupBranch skip = J_CC(CC_NBE);
+  FixupBranch skip = J_CC(CC_G);
   MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
   JMP(asm_routines.doTiming, true);  // downcount hit zero - go doTiming.
   SetJumpTarget(skip);
@@ -675,7 +675,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       ABI_CallFunctionC(JitInterface::CompileExceptionCheck,
                         (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
       ABI_PopRegistersAndAdjustStack({}, 0);
-      JMP(asm_routines.dispatcher, true);
+      JMP(asm_routines.dispatcherNoCheck, true);
       SwitchToNearCode();
 
       // Insert a check that the GQRs are still the value we expect at

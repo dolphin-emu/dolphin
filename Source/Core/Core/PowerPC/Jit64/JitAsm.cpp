@@ -69,9 +69,9 @@ void Jit64AsmRoutineManager::Generate()
   SUB(32, PPCSTATE(downcount), R(RSCRATCH2));
 
   dispatcher = GetCodePtr();
-  // The result of slice decrementation should be in flags if somebody jumped here
-  // IMPORTANT - We jump on negative, not carry!!!
-  FixupBranch bail = J_CC(CC_BE, true);
+  // Expected result of SUB(32, PPCSTATE(downcount), Imm32(block_cycles)) is in RFLAGS.
+  // Branch if downcount is <= 0 (signed).
+  FixupBranch bail = J_CC(CC_LE, true);
 
   FixupBranch dbg_exit;
 
