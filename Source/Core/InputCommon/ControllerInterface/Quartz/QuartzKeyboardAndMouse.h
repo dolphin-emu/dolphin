@@ -12,7 +12,6 @@ namespace ciface
 {
 namespace Quartz
 {
-
 std::string KeycodeToName(const CGKeyCode keycode);
 
 class KeyboardAndMouse : public Core::Device
