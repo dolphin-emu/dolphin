@@ -23,20 +23,35 @@
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
 
-static void GetTraversalPort(IniFile::Section& section, std::string* port)
+static const std::string DEFAULT_TRAVERSAL_SERVER = "stun.dolphin-emu.org";
+static const std::string DEFAULT_TRAVERSAL_PORT = "6262";
+
+static std::string GetFromINI(IniFile::Section& section, const std::string& key,
+                              const std::string& default_value)
 {
-  section.Get("TraversalPort", port, "6262");
-  port->erase(std::remove(port->begin(), port->end(), ' '), port->end());
-  if (port->empty())
-    *port = "6262";
+  std::string result;
+  section.Get(key, &result, default_value);
+  result.erase(std::remove(result.begin(), result.end(), ' '), result.end());
+  if (result.empty())
+    return default_value;
+  return result;
 }
 
-static void GetTraversalServer(IniFile::Section& section, std::string* server)
+static std::string GetTraversalPort(IniFile::Section& section)
 {
-  section.Get("TraversalServer", server, "stun.dolphin-emu.org");
-  server->erase(std::remove(server->begin(), server->end(), ' '), server->end());
-  if (server->empty())
-    *server = "stun.dolphin-emu.org";
+  return GetFromINI(section, "TraversalPort", DEFAULT_TRAVERSAL_PORT);
+}
+
+static std::string GetTraversalServer(IniFile::Section& section)
+{
+  return GetFromINI(section, "TraversalServer", DEFAULT_TRAVERSAL_SERVER);
+}
+
+static wxString GetTraversalLabelText(IniFile::Section& section)
+{
+  std::string server = GetTraversalServer(section);
+  std::string port = GetTraversalPort(section);
+  return wxString::Format(_("Traversal Server: %s"), (server + ":" + port).c_str());
 }
 
 NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl* const game_list)
@@ -98,13 +113,7 @@ NetPlaySetupFrame::NetPlaySetupFrame(wxWindow* const parent, const CGameListCtrl
       m_direct_traversal->Select(DIRECT_CHOICE);
     }
 
-    std::string centralPort;
-    GetTraversalPort(netplay_section, &centralPort);
-    std::string centralServer;
-    GetTraversalServer(netplay_section, &centralServer);
-
-    m_traversal_lbl = new wxStaticText(panel, wxID_ANY, _("Traversal Server:") + " " +
-                                                            centralServer + ":" + centralPort);
+    m_traversal_lbl = new wxStaticText(panel, wxID_ANY, GetTraversalLabelText(netplay_section));
   }
   // tabs
   m_notebook = new wxNotebook(panel, wxID_ANY);
@@ -312,13 +321,11 @@ void NetPlaySetupFrame::MakeNetPlayDiag(int port, const std::string& game, bool 
   inifile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
-  std::string centralPortString;
-  GetTraversalPort(netplay_section, &centralPortString);
+  std::string centralPortString = GetTraversalPort(netplay_section);
   unsigned long int centralPort;
   StrToWxStr(centralPortString).ToULong(&centralPort);
 
-  std::string centralServer;
-  GetTraversalServer(netplay_section, &centralServer);
+  std::string centralServer = GetTraversalServer(netplay_section);
 
   netplay_client = new NetPlayClient(ip, (u16)port, npd, WxStrToStr(m_nickname_text->GetValue()),
                                      trav, centralServer, (u16)centralPort);
@@ -394,13 +401,11 @@ void NetPlaySetupFrame::DoHost()
     m_host_port_text->GetValue().ToULong(&listen_port);
   }
 
-  std::string centralPortString;
-  GetTraversalPort(netplay_section, &centralPortString);
+  std::string centralPortString = GetTraversalPort(netplay_section);
   unsigned long int centralPort;
   StrToWxStr(centralPortString).ToULong(&centralPort);
 
-  std::string centralServer;
-  GetTraversalServer(netplay_section, &centralServer);
+  std::string centralServer = GetTraversalServer(netplay_section);
 
   netplay_server = new NetPlayServer((u16)listen_port, trav, centralServer, (u16)centralPort);
   if (netplay_server->is_connected)
@@ -453,11 +458,11 @@ void NetPlaySetupFrame::OnResetTraversal(wxCommandEvent& event)
   const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
   inifile.Load(dolphin_ini);
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
-  netplay_section.Set("TraversalServer", (std::string) "stun.dolphin-emu.org");
-  netplay_section.Set("TraversalPort", (std::string) "6262");
+  netplay_section.Delete("TraversalServer");
+  netplay_section.Delete("TraversalPort");
   inifile.Save(dolphin_ini);
 
-  m_traversal_lbl->SetLabelText(_("Traversal Server: ") + "stun.dolphin-emu.org:6262");
+  m_traversal_lbl->SetLabelText(GetTraversalLabelText(netplay_section));
 }
 
 void NetPlaySetupFrame::OnTraversalListenPortChanged(wxCommandEvent& event)
