@@ -18,6 +18,7 @@
 #include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/Frame.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 enum
@@ -232,7 +233,7 @@ CWatchView::CWatchView(wxWindow* parent, wxWindowID id) : wxGrid(parent, id)
   Bind(wxEVT_MENU, &CWatchView::OnPopupMenu, this);
 }
 
-void CWatchView::Update()
+void CWatchView::Repopulate()
 {
   if (Core::IsRunning())
   {
@@ -269,11 +270,12 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
 
 void CWatchView::OnPopupMenu(wxCommandEvent& event)
 {
-  CFrame* main_frame = static_cast<CFrame*>(GetGrandParent()->GetParent());
-  CCodeWindow* code_window = main_frame->g_pCodeWindow;
-  CWatchWindow* watch_window = code_window->m_WatchWindow;
-  CMemoryWindow* memory_window = code_window->m_MemoryWindow;
-  CBreakPointWindow* breakpoint_window = code_window->m_BreakpointWindow;
+  // FIXME: This is terrible. Generate events instead.
+  CFrame* cframe = wxGetApp().GetCFrame();
+  CCodeWindow* code_window = cframe->g_pCodeWindow;
+  CWatchWindow* watch_window = code_window->GetPanel<CWatchWindow>();
+  CMemoryWindow* memory_window = code_window->GetPanel<CMemoryWindow>();
+  CBreakPointWindow* breakpoint_window = code_window->GetPanel<CBreakPointWindow>();
 
   wxString strNewVal;
   TMemCheck MemCheck;

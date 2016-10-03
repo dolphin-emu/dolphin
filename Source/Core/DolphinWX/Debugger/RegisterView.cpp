@@ -19,6 +19,7 @@
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
+#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 // F-zero 80005e60 wtf??
@@ -466,7 +467,7 @@ CRegisterView::CRegisterView(wxWindow* parent, wxWindowID id) : wxGrid(parent, i
   AutoSizeColumns();
 }
 
-void CRegisterView::Update()
+void CRegisterView::Repopulate()
 {
   m_register_table->UpdateCachedRegs();
   ForceRefresh();
@@ -507,10 +508,11 @@ void CRegisterView::OnMouseDownR(wxGridEvent& event)
 
 void CRegisterView::OnPopupMenu(wxCommandEvent& event)
 {
-  CFrame* main_frame = static_cast<CFrame*>(GetGrandParent()->GetParent());
-  CCodeWindow* code_window = main_frame->g_pCodeWindow;
-  CWatchWindow* watch_window = code_window->m_WatchWindow;
-  CMemoryWindow* memory_window = code_window->m_MemoryWindow;
+  // FIXME: This is terrible. Generate events instead.
+  CFrame* cframe = wxGetApp().GetCFrame();
+  CCodeWindow* code_window = cframe->g_pCodeWindow;
+  CWatchWindow* watch_window = code_window->GetPanel<CWatchWindow>();
+  CMemoryWindow* memory_window = code_window->GetPanel<CMemoryWindow>();
 
   switch (event.GetId())
   {

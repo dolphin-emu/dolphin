@@ -71,7 +71,7 @@ wxGridCellAttr* CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKi
 }
 
 DSPRegisterView::DSPRegisterView(wxWindow* parent, wxWindowID id)
-    : wxGrid(parent, id, wxDefaultPosition, wxSize(130, 120))
+    : wxGrid(parent, id, wxDefaultPosition, wxDLG_UNIT(parent, wxSize(100, 80)))
 {
   m_register_table = new CDSPRegTable();
 
@@ -83,7 +83,7 @@ DSPRegisterView::DSPRegisterView(wxWindow* parent, wxWindowID id)
   AutoSizeColumns();
 }
 
-void DSPRegisterView::Update()
+void DSPRegisterView::Repopulate()
 {
   m_register_table->UpdateCachedRegs();
   ForceRefresh();

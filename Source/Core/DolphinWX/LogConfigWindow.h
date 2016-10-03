@@ -31,7 +31,6 @@ private:
 
   void CreateGUIControls();
   void OnVerbosityChange(wxCommandEvent& event);
-  void OnClose(wxCloseEvent& event);
   void OnWriteFileChecked(wxCommandEvent& event);
   void OnWriteConsoleChecked(wxCommandEvent& event);
   void OnWriteWindowChecked(wxCommandEvent& event);

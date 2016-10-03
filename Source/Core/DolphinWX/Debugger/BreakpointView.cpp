@@ -25,7 +25,7 @@ CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id)
   Refresh();
 }
 
-void CBreakPointView::Update()
+void CBreakPointView::Repopulate()
 {
   ClearAll();
 
@@ -98,6 +98,6 @@ void CBreakPointView::DeleteCurrentSelection()
     u32 Address = (u32)GetItemData(item);
     PowerPC::breakpoints.Remove(Address);
     PowerPC::memchecks.Remove(Address);
-    Update();
+    Repopulate();
   }
 }

@@ -25,9 +25,12 @@ public:
       : DolphinAuiToolBar(parent, id, wxDefaultPosition, wxDefaultSize,
                           wxAUI_TB_DEFAULT_STYLE | wxAUI_TB_TEXT)
   {
-    SetToolBitmapSize(wxSize(16, 16));
+    wxSize bitmap_size = FromDIP(wxSize(16, 16));
+    SetToolBitmapSize(bitmap_size);
 
-    m_Bitmaps[Toolbar_File] = WxUtils::LoadResourceBitmap("toolbar_debugger_delete");
+    m_Bitmaps[Toolbar_File] = WxUtils::LoadScaledResourceBitmap(
+        "toolbar_debugger_delete", this, bitmap_size, wxDefaultSize,
+        WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER);
 
     AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_File]);
     Bind(wxEVT_TOOL, &CWatchWindow::Event_LoadAll, parent, ID_LOAD);
@@ -80,7 +83,7 @@ CWatchWindow::~CWatchWindow()
 void CWatchWindow::NotifyUpdate()
 {
   if (m_GPRGridView != nullptr)
-    m_GPRGridView->Update();
+    m_GPRGridView->Repopulate();
 }
 
 void CWatchWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
