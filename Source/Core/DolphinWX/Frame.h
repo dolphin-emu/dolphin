@@ -158,6 +158,7 @@ private:
   bool m_bGameLoading = false;
   bool m_bClosing = false;
   bool m_confirmStop = false;
+  bool m_tried_graceful_shutdown = false;
   int m_saveSlot = 1;
 
   std::vector<std::string> drives;

@@ -1148,9 +1148,12 @@ void CFrame::DoStop()
         Core::SetState(Core::CORE_PAUSE);
       }
 
-      wxMessageDialog m_StopDlg(this, _("Do you want to stop the current emulation?"),
-                                _("Please confirm..."),
-                                wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION, wxDefaultPosition);
+      wxMessageDialog m_StopDlg(
+          this, !m_tried_graceful_shutdown ? _("Do you want to stop the current emulation?") :
+                                             _("A shutdown is already in progress. Unsaved data "
+                                               "may be lost if you stop the current emulation "
+                                               "before it completes. Force stop?"),
+          _("Please confirm..."), wxYES_NO | wxSTAY_ON_TOP | wxICON_EXCLAMATION, wxDefaultPosition);
 
       HotkeyManagerEmu::Enable(false);
       int Ret = m_StopDlg.ShowModal();
@@ -1163,6 +1166,16 @@ void CFrame::DoStop()
         m_confirmStop = false;
         return;
       }
+    }
+
+    if (SConfig::GetInstance().bWii && !m_tried_graceful_shutdown)
+    {
+      Core::DisplayMessage("Shutting down", 30000);
+      Core::SetState(Core::CORE_RUN);
+      ProcessorInterface::PowerButton_Tap();
+      m_confirmStop = false;
+      m_tried_graceful_shutdown = true;
+      return;
     }
 
     if (UseDebugger && g_pCodeWindow)
@@ -1200,6 +1213,7 @@ void CFrame::DoStop()
 void CFrame::OnStopped()
 {
   m_confirmStop = false;
+  m_tried_graceful_shutdown = false;
 
 #if defined(HAVE_X11) && HAVE_X11
   if (SConfig::GetInstance().bDisableScreenSaver)
