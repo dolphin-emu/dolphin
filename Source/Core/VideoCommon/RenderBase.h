@@ -133,7 +133,7 @@ public:
   static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
   PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
   // Max height/width
-  virtual int GetMaxTextureSize() = 0;
+  virtual u32 GetMaxTextureSize() = 0;
 
   static Common::Event s_screenshotCompleted;
 

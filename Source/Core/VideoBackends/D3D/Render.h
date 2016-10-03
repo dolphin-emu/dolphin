@@ -58,7 +58,7 @@ public:
 
   static bool CheckForResize();
 
-  int GetMaxTextureSize() override;
+  u32 GetMaxTextureSize() override;
 
 private:
   void BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D* src_texture,
