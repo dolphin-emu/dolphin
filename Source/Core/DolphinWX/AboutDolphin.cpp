@@ -12,10 +12,6 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
-#ifdef __APPLE__
-#import <AppKit/AppKit.h>
-#endif
-
 #include "Common/Common.h"
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/WxUtils.h"

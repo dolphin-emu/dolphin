@@ -2,10 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#ifdef __APPLE__
-#include <Cocoa/Cocoa.h>
-#endif
-
 #include <atomic>
 #include <cstddef>
 #include <fstream>
@@ -578,16 +574,6 @@ bool CFrame::RendererIsFullscreen()
   {
     fullscreen = m_RenderFrame->IsFullScreen();
   }
-
-#if defined(__APPLE__)
-  if (m_RenderFrame != nullptr)
-  {
-    NSView* view = (NSView*)m_RenderFrame->GetHandle();
-    NSWindow* window = [view window];
-
-    fullscreen = (([window styleMask] & NSFullScreenWindowMask) == NSFullScreenWindowMask);
-  }
-#endif
 
   return fullscreen;
 }
@@ -1279,15 +1265,6 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
 
   ToggleDisplayMode(enable_fullscreen);
 
-#if defined(__APPLE__)
-  NSView* view = (NSView*)m_RenderFrame->GetHandle();
-  NSWindow* window = [view window];
-
-  if (enable_fullscreen != RendererIsFullscreen())
-  {
-    [window toggleFullScreen:nil];
-  }
-#else
   if (enable_fullscreen)
   {
     m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
@@ -1298,7 +1275,6 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
     // Therefore we don't exit fullscreen from here if we are in exclusive mode.
     m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
   }
-#endif
 
   if (SConfig::GetInstance().bRenderToMain)
   {

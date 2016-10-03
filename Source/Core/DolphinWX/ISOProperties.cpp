@@ -2,10 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#ifdef __APPLE__
-#import <Cocoa/Cocoa.h>
-#endif
-
 #include <cinttypes>
 #include <cstddef>
 #include <cstdio>
@@ -1235,9 +1231,9 @@ bool CISOProperties::SaveGameConfig()
 void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait_until_closed)
 {
 #ifdef __APPLE__
-  // wxTheMimeTypesManager is not yet implemented for wxCocoa
-  [[NSWorkspace sharedWorkspace] openFile:[NSString stringWithUTF8String:filename.c_str()]
-                          withApplication:@"TextEdit"];
+  // GetOpenCommand does not work for wxCocoa
+  const char* OpenCommandConst[] = {"open", "-a", "TextEdit", filename.c_str(), NULL};
+  char** OpenCommand = const_cast<char**>(OpenCommandConst);
 #else
   wxFileType* filetype = wxTheMimeTypesManager->GetFileTypeFromExtension("ini");
   if (filetype == nullptr)  // From extension failed, trying with MIME type now
@@ -1256,6 +1252,7 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait
     WxUtils::ShowErrorDialog(_("Couldn't find open command for extension 'ini'!"));
     return;
   }
+#endif
 
   long result;
 
@@ -1269,7 +1266,6 @@ void CISOProperties::LaunchExternalEditor(const std::string& filename, bool wait
     WxUtils::ShowErrorDialog(_("wxExecute returned -1 on application run!"));
     return;
   }
-#endif
 }
 
 void CISOProperties::GenerateLocalIniModified()

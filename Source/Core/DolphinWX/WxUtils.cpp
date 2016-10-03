@@ -17,10 +17,6 @@
 
 #include "DolphinWX/WxUtils.h"
 
-#ifdef __APPLE__
-#import <AppKit/AppKit.h>
-#endif
-
 namespace WxUtils
 {
 // Launch a file according to its mime type
