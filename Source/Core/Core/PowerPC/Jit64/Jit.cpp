@@ -996,7 +996,7 @@ void Jit64::IntializeSpeculativeConstants()
         MOV(32, PPCSTATE(pc), Imm32(js.blockStart));
         ABI_PushRegistersAndAdjustStack({}, 0);
         ABI_CallFunctionC(
-            reinterpret_cast<void*>(&JitInterface::CompileExceptionCheck),
+            JitInterface::CompileExceptionCheck,
             static_cast<u32>(JitInterface::ExceptionType::EXCEPTIONS_SPECULATIVE_CONSTANTS));
         ABI_PopRegistersAndAdjustStack({}, 0);
         JMP(asm_routines.dispatcher, true);
