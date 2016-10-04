@@ -32,12 +32,23 @@ void HLE_GeneralDebugPrint()
 {
   std::string report_message;
 
+  // Is gpr3 pointing to a pointer rather than an ASCII string
   if (PowerPC::HostRead_U32(GPR(3)) > 0x80000000)
   {
-    report_message = GetStringVA(4);
+    if (GPR(4) > 0x80000000)
+    {
+      // ___blank(void* this, const char* fmt, ...);
+      report_message = GetStringVA(4);
+    }
+    else
+    {
+      // ___blank(void* this, int log_type, const char* fmt, ...);
+      report_message = GetStringVA(5);
+    }
   }
   else
   {
+    // ___blank(const char* fmt, ...);
     report_message = GetStringVA();
   }
 
