@@ -1344,7 +1344,9 @@ void CFrame::DoStop()
     if (SConfig::GetInstance().bWii && !m_tried_graceful_shutdown)
     {
       Core::DisplayMessage("Shutting down", 30000);
-      Core::SetState(Core::CORE_RUN);
+      // Unpause because gracefully shutting down needs the game to actually request a shutdown
+      if (Core::GetState() == Core::CORE_PAUSE)
+        DoPause();
       ProcessorInterface::PowerButton_Tap();
       m_confirmStop = false;
       m_tried_graceful_shutdown = true;
