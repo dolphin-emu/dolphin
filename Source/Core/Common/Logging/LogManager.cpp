@@ -122,12 +122,18 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const 
 
   if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
     return;
+  std::string path;
+  std::string filename;
+  std::string extension;
+
+  SplitPath(file, &path, &filename, &extension);
 
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
-  std::string msg = StringFromFormat(
-      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
-      LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
+  std::string msg =
+      StringFromFormat("%s %s%s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(),
+                       filename.c_str(), extension.c_str(), line,
+                       LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
 
   for (auto listener_id : *log)
     m_listeners[listener_id]->Log(level, msg.c_str());
