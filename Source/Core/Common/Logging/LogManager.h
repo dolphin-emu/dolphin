@@ -91,6 +91,8 @@ private:
   LogManager();
   ~LogManager();
 
+  size_t m_path_cutoff_point = 0;
+
 public:
   static u32 GetMaxLevel() { return MAX_LOGLEVEL; }
   void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,
