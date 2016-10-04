@@ -615,8 +615,7 @@ void CFrame::OnClose(wxCloseEvent& event)
       event.Veto();
     }
     // Tell OnStopped to resubmit the Close event
-    if (m_confirmStop)
-      m_bClosing = true;
+    m_bClosing = true;
     return;
   }
 
@@ -1716,6 +1715,7 @@ void CFrame::HandleSignal(wxTimerEvent& event)
 {
   if (!s_shutdown_signal_received.TestAndClear())
     return;
+  m_bClosing = true;
   Close();
 }
 
