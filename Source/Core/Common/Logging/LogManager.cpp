@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -102,6 +103,10 @@ LogManager::LogManager()
     if (enable && write_console)
       container->AddListener(LogListener::CONSOLE_LISTENER);
   }
+
+  constexpr const char* pattern = DIR_SEP "Source" DIR_SEP "Core" DIR_SEP;
+  if (std::string(__FILE__).find(pattern) != std::string::npos)
+    m_path_cutoff_point = std::string(__FILE__).find(pattern) + strlen(pattern);
 }
 
 LogManager::~LogManager()
@@ -123,10 +128,12 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const 
   if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
     return;
 
+  const char* path_to_print = m_path_cutoff_point + file;
+
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
   std::string msg = StringFromFormat(
-      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
+      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), path_to_print, line,
       LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
 
   for (auto listener_id : *log)
