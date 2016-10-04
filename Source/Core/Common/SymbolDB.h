@@ -71,6 +71,7 @@ public:
   void AddCompleteSymbol(const Symbol& symbol);
 
   Symbol* GetSymbolFromName(const std::string& name);
+  std::vector<Symbol*> GetSymbolsFromName(const std::string& name);
   Symbol* GetSymbolFromHash(u32 hash)
   {
     XFuncPtrMap::iterator iter = checksumToFunction.find(hash);

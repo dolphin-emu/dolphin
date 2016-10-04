@@ -109,8 +109,7 @@ void PatchFunctions()
     if (OSPatches[i].flags == HLE_TYPE_FIXED)
       continue;
 
-    Symbol* symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
-    if (symbol)
+    for (const auto& symbol : g_symbolDB.GetSymbolsFromName(OSPatches[i].m_szPatchName))
     {
       for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
       {
@@ -125,8 +124,7 @@ void PatchFunctions()
   {
     for (size_t i = 1; i < ArraySize(OSBreakPoints); ++i)
     {
-      Symbol* symbol = g_symbolDB.GetSymbolFromName(OSBreakPoints[i].m_szPatchName);
-      if (symbol)
+      for (const auto& symbol : g_symbolDB.GetSymbolsFromName(OSBreakPoints[i].m_szPatchName))
       {
         PowerPC::breakpoints.Add(symbol->address, false);
         INFO_LOG(OSHLE, "Adding BP to %s %08x", OSBreakPoints[i].m_szPatchName, symbol->address);
@@ -211,7 +209,7 @@ u32 UnPatch(const std::string& patch_name)
     return addr;
   }
 
-  if (Symbol* symbol = g_symbolDB.GetSymbolFromName(patch_name))
+  for (const auto& symbol : g_symbolDB.GetSymbolsFromName(patch_name))
   {
     for (u32 addr = symbol->address; addr < symbol->address + symbol->size; addr += 4)
     {

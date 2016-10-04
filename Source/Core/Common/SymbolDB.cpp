@@ -48,6 +48,19 @@ Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
   return nullptr;
 }
 
+std::vector<Symbol*> SymbolDB::GetSymbolsFromName(const std::string& name)
+{
+  std::vector<Symbol*> symbols;
+
+  for (auto& func : functions)
+  {
+    if (func.second.function_name == name)
+      symbols.push_back(&func.second);
+  }
+
+  return symbols;
+}
+
 void SymbolDB::AddCompleteSymbol(const Symbol& symbol)
 {
   functions.emplace(symbol.address, symbol);
