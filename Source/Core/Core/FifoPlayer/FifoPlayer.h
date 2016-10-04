@@ -65,6 +65,7 @@ public:
   // PowerPC state.
   std::unique_ptr<CPUCoreBase> GetCPUCore();
 
+  bool IsRunning() const { return m_File != nullptr; }
   FifoDataFile* GetFile() const { return m_File.get(); }
   u32 GetFrameObjectCount() const;
   u32 GetCurrentFrameNum() const { return m_CurrentFrame; }
