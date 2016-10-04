@@ -62,7 +62,9 @@ bool PaletteTextureConverter::Initialize()
   return true;
 }
 
-void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, VkRenderPass render_pass,
+void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
+                                             VkCommandBuffer command_buffer,
+                                             VkRenderPass render_pass,
                                              VkFramebuffer dst_framebuffer, Texture2D* src_texture,
                                              u32 width, u32 height, void* palette,
                                              TlutFormat format)
@@ -113,14 +115,14 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, VkRend
                                           &m_palette_buffer_view};
   vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), 1, &texel_set_write, 0, nullptr);
 
-  Util::BufferMemoryBarrier(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                            m_palette_stream_buffer->GetBuffer(), VK_ACCESS_HOST_WRITE_BIT,
-                            VK_ACCESS_SHADER_READ_BIT, palette_offset, palette_size,
-                            VK_PIPELINE_STAGE_HOST_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+  Util::BufferMemoryBarrier(command_buffer, m_palette_stream_buffer->GetBuffer(),
+                            VK_ACCESS_HOST_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, palette_offset,
+                            palette_size, VK_PIPELINE_STAGE_HOST_BIT,
+                            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
   // Set up draw
-  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), m_pipeline_layout,
-                         render_pass, g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+  UtilityShaderDraw draw(command_buffer, m_pipeline_layout, render_pass,
+                         g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
                          m_shaders[format]);
 
   VkRect2D region = {{0, 0}, {width, height}};
@@ -138,8 +140,7 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker, VkRend
   draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
 
   // We have to bind the texel buffer descriptor set separately.
-  vkCmdBindDescriptorSets(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                          VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1,
+  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1,
                           &texel_buffer_descriptor_set, 0, nullptr);
 
   // Draw

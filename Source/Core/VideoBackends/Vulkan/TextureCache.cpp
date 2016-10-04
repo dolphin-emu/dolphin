@@ -92,9 +92,26 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   TCacheEntry* unconverted = static_cast<TCacheEntry*>(base_unconverted);
   _assert_(entry->config.rendertarget);
 
+  // EFB copies can be used as paletted textures as well. For these, we can't assume them to be
+  // contain the correct data before the frame begins (when the init command buffer is executed),
+  // so we must convert them at the appropriate time, during the drawing command buffer.
+  VkCommandBuffer command_buffer;
+  if (unconverted->IsEfbCopy())
+  {
+    command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+    m_state_tracker->EndRenderPass();
+    m_state_tracker->SetPendingRebind();
+  }
+  else
+  {
+    // Use initialization command buffer and perform conversion before the drawing commands.
+    command_buffer = g_command_buffer_mgr->GetCurrentInitCommandBuffer();
+  }
+
   m_palette_texture_converter->ConvertTexture(
-      m_state_tracker, GetRenderPassForTextureUpdate(entry->GetTexture()), entry->GetFramebuffer(),
-      unconverted->GetTexture(), entry->config.width, entry->config.height, palette, format);
+      m_state_tracker, command_buffer, GetRenderPassForTextureUpdate(entry->GetTexture()),
+      entry->GetFramebuffer(), unconverted->GetTexture(), entry->config.width, entry->config.height,
+      palette, format);
 
   // Render pass transitions to SHADER_READ_ONLY.
   entry->GetTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
