@@ -59,6 +59,7 @@ public:
   IPCCommandResult Close(u32 command_address, bool force) override;
   IPCCommandResult IOCtl(u32 command_address) override;
 
+  bool HasHookInstalled() const;
   void ResetButton() const;
   void PowerButton() const;
 

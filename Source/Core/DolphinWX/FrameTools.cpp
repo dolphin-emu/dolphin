@@ -42,6 +42,8 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/HotkeyManager.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/Movie.h"
@@ -1341,7 +1343,9 @@ void CFrame::DoStop()
       }
     }
 
-    if (SConfig::GetInstance().bWii && !m_tried_graceful_shutdown)
+    const auto& stm = WII_IPC_HLE_Interface::GetDeviceByName("/dev/stm/eventhook");
+    if (!m_tried_graceful_shutdown && stm &&
+        std::static_pointer_cast<CWII_IPC_HLE_Device_stm_eventhook>(stm)->HasHookInstalled())
     {
       Core::DisplayMessage("Shutting down", 30000);
       // Unpause because gracefully shutting down needs the game to actually request a shutdown

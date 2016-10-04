@@ -135,6 +135,11 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::IOCtl(u32 command_address)
   return GetNoReply();
 }
 
+bool CWII_IPC_HLE_Device_stm_eventhook::HasHookInstalled() const
+{
+  return s_event_hook_address != 0;
+}
+
 void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
 {
   if (!m_Active || s_event_hook_address == 0)
