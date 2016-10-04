@@ -313,12 +313,12 @@ void Renderer::DrawDebugText()
   if (SConfig::GetInstance().m_ShowFrameCount)
   {
     draw_text(OSD::MessageType::FrameCount,
-              StringFromFormat("Frame: %" PRIx64, Movie::GetCurrentFrame()));
+              StringFromFormat("Frame: %" PRIu64, Movie::GetCurrentFrame()));
 
     if (Movie::IsPlayingInput())
     {
       draw_text(OSD::MessageType::MovieInputCount,
-                StringFromFormat("Input: %" PRIx64 " / %" PRIx64, Movie::GetCurrentInputCount(),
+                StringFromFormat("Input: %" PRIu64 " / %" PRIu64, Movie::GetCurrentInputCount(),
                                  Movie::GetTotalInputCount()));
     }
   }
