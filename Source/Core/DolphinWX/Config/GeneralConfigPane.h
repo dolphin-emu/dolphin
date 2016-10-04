@@ -29,7 +29,6 @@ private:
   void RefreshGUI();
 
   void OnDualCoreCheckBoxChanged(wxCommandEvent&);
-  void OnIdleSkipCheckBoxChanged(wxCommandEvent&);
   void OnCheatCheckBoxChanged(wxCommandEvent&);
   void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
   void OnThrottlerChoiceChanged(wxCommandEvent&);
@@ -41,7 +40,6 @@ private:
   wxArrayString m_cpu_engine_array_string;
 
   wxCheckBox* m_dual_core_checkbox;
-  wxCheckBox* m_idle_skip_checkbox;
   wxCheckBox* m_cheats_checkbox;
   wxCheckBox* m_force_ntscj_checkbox;
 

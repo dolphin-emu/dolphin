@@ -220,7 +220,6 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("Fastmem", bFastmem);
   core->Set("CPUThread", bCPUThread);
   core->Set("DSPHLE", bDSPHLE);
-  core->Set("SkipIdle", bSkipIdle);
   core->Set("SyncOnSkipIdle", bSyncGPUOnSkipIdleHack);
   core->Set("SyncGPU", bSyncGPU);
   core->Set("SyncGpuMaxDistance", iSyncGpuMaxDistance);
@@ -493,7 +492,6 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("DSPHLE", &bDSPHLE, true);
   core->Get("TimingVariance", &iTimingVariance, 40);
   core->Get("CPUThread", &bCPUThread, true);
-  core->Get("SkipIdle", &bSkipIdle, true);
   core->Get("SyncOnSkipIdle", &bSyncGPUOnSkipIdleHack, true);
   core->Get("DefaultISO", &m_strDefaultISO);
   core->Get("DVDRoot", &m_strDVDRoot);
@@ -644,7 +642,6 @@ void SConfig::LoadDefaults()
   iCPUCore = PowerPC::CORE_JIT64;
   iTimingVariance = 40;
   bCPUThread = false;
-  bSkipIdle = false;
   bSyncGPUOnSkipIdleHack = true;
   bRunCompareServer = false;
   bDSPHLE = true;

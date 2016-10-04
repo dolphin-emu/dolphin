@@ -288,7 +288,6 @@ enum
   // --------------------------------------------------------------
 
   IDM_TOGGLE_DUAL_CORE,  // Other
-  IDM_TOGGLE_SKIP_IDLE,
   IDM_TOGGLE_TOOLBAR,
   IDM_TOGGLE_STATUSBAR,
   IDM_NOTIFY_MAP_LOADED,

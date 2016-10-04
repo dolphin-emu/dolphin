@@ -65,7 +65,6 @@ private:
   bool valid;
   bool bCPUThread;
   bool bEnableCheats;
-  bool bSkipIdle;
   bool bSyncGPUOnSkipIdleHack;
   bool bFPRF;
   bool bAccurateNaNs;
@@ -97,7 +96,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
 
   bCPUThread = config.bCPUThread;
   bEnableCheats = config.bEnableCheats;
-  bSkipIdle = config.bSkipIdle;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
   bFPRF = config.bFPRF;
   bAccurateNaNs = config.bAccurateNaNs;
@@ -140,7 +138,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
   config->bCPUThread = bCPUThread;
   config->bEnableCheats = bEnableCheats;
-  config->bSkipIdle = bSkipIdle;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
   config->bFPRF = bFPRF;
   config->bAccurateNaNs = bAccurateNaNs;
@@ -250,7 +247,6 @@ bool BootCore(const std::string& _rFilename)
 
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
     core_section->Get("EnableCheats", &StartUp.bEnableCheats, StartUp.bEnableCheats);
-    core_section->Get("SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
     core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);
@@ -330,7 +326,6 @@ bool BootCore(const std::string& _rFilename)
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
   {
     StartUp.bCPUThread = Movie::IsDualCore();
-    StartUp.bSkipIdle = Movie::IsSkipIdle();
     StartUp.bDSPHLE = Movie::IsDSPHLE();
     StartUp.bProgressive = Movie::IsProgressive();
     StartUp.bPAL60 = Movie::IsPAL60();
