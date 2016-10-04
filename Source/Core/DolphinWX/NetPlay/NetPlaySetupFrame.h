@@ -12,6 +12,7 @@ class CGameListCtrl;
 class wxCheckBox;
 class wxChoice;
 class wxListBox;
+class wxNotebook;
 class wxSpinCtrl;
 class wxStaticText;
 class wxTextCtrl;
@@ -29,7 +30,9 @@ private:
   static constexpr int DIRECT_CHOICE = 0;
   static constexpr int TRAVERSAL_CHOICE = 1;
 
-  void GetWindowRect(const IniFile::Section& section, wxRect* rect) const;
+  void CreateGUI();
+  wxNotebook* CreateNotebookGUI(wxWindow* parent);
+
   void OnJoin(wxCommandEvent& event);
   void OnHost(wxCommandEvent& event);
   void DoJoin();
@@ -40,7 +43,6 @@ private:
   void OnTraversalListenPortChanged(wxCommandEvent& event);
   void OnKeyDown(wxKeyEvent& event);
   void OnTabChanged(wxCommandEvent& event);
-  void OnAfterTabChange(wxIdleEvent& event);
   void DispatchFocus();
 
   wxStaticText* m_ip_lbl;
@@ -63,5 +65,6 @@ private:
   wxCheckBox* m_upnp_chk;
 #endif
 
+  wxString m_traversal_string;
   const CGameListCtrl* const m_game_list;
 };

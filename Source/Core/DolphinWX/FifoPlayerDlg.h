@@ -39,7 +39,6 @@ private:
   void OnRecordStop(wxCommandEvent& event);
   void OnSaveFile(wxCommandEvent& event);
   void OnNumFramesToRecord(wxSpinEvent& event);
-  void OnCloseClick(wxCommandEvent& event);
 
   void OnBeginSearch(wxCommandEvent& event);
   void OnFindNextClick(wxCommandEvent& event);

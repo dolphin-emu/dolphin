@@ -51,7 +51,7 @@ public:
   void UpdateCachedRegs();
 
 private:
-  static constexpr size_t NUM_SPECIALS = 14;
+  static constexpr int NUM_SPECIALS = 14;
 
   std::array<u32, 32> m_CachedRegs{};
   std::array<u32, NUM_SPECIALS> m_CachedSpecialRegs{};
@@ -72,7 +72,7 @@ class CRegisterView : public wxGrid
 {
 public:
   CRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
-  void Update() override;
+  void Repopulate();
 
 private:
   void OnMouseDownR(wxGridEvent& event);

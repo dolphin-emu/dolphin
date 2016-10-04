@@ -4,14 +4,16 @@
 
 #pragma once
 
-#include <map>
+#include <memory>
 #include <string>
+#include <unordered_map>
+#include <utility>
 #include <vector>
 
 #include <wx/dialog.h>
-#include <wx/slider.h>
 #include <wx/textctrl.h>
 
+#include "DolphinWX/DolphinSlider.h"
 #include "VideoCommon/PostProcessing.h"
 
 class wxButton;
@@ -54,9 +56,12 @@ private:
     {
     }
 
-    void AddChild(ConfigGrouping* child) { m_children.push_back(child); }
+    void AddChild(std::unique_ptr<ConfigGrouping>&& child)
+    {
+      m_children.emplace_back(std::move(child));
+    }
     bool HasChildren() { return m_children.size() != 0; }
-    std::vector<ConfigGrouping*>& GetChildren() { return m_children; }
+    const std::vector<std::unique_ptr<ConfigGrouping>>& GetChildren() { return m_children; }
     // Gets the string that is shown in the UI for the option
     const std::string& GetGUIName() { return m_gui_name; }
     // Gets the option name for use in the shader
@@ -86,21 +91,19 @@ private:
 
     // For TYPE_SLIDER
     // Can have up to 4
-    std::vector<wxSlider*> m_option_sliders;
+    std::vector<DolphinSlider*> m_option_sliders;
     std::vector<wxTextCtrl*> m_option_text_ctrls;
 
-    std::vector<ConfigGrouping*> m_children;
+    std::vector<std::unique_ptr<ConfigGrouping>> m_children;
   };
 
   // WX UI things
-  void Event_Close(wxCloseEvent&);
-  void Event_ClickClose(wxCommandEvent&);
   void Event_Slider(wxCommandEvent& ev);
   void Event_CheckBox(wxCommandEvent& ev);
 
   const std::string& m_shader;
   PostProcessingShaderConfiguration* m_post_processor;
 
-  std::map<std::string, ConfigGrouping*> m_config_map;
-  std::vector<ConfigGrouping*> m_config_groups;
+  std::unordered_map<std::string, ConfigGrouping*> m_config_map;
+  std::vector<std::unique_ptr<ConfigGrouping>> m_config_groups;
 };

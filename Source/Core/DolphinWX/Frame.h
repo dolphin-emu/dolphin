@@ -46,7 +46,7 @@ class CRenderFrame : public wxFrame
 public:
   CRenderFrame(wxFrame* parent, wxWindowID id = wxID_ANY, const wxString& title = "Dolphin",
                const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-               long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
+               long style = wxDEFAULT_FRAME_STYLE);
 
   bool ShowFullScreen(bool show, long style = wxFULLSCREEN_ALL) override;
 
@@ -63,8 +63,8 @@ class CFrame : public CRenderFrame
 {
 public:
   CFrame(wxFrame* parent, wxWindowID id = wxID_ANY, const wxString& title = "Dolphin",
-         const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-         bool _UseDebugger = false, bool _BatchMode = false, bool ShowLogWindow = false,
+         wxRect geometry = wxDefaultSize, bool use_debugger = false, bool batch_mode = false,
+         bool show_log_window = false,
          long style = wxDEFAULT_FRAME_STYLE | wxNO_FULL_REPAINT_ON_RESIZE);
 
   virtual ~CFrame();
@@ -113,6 +113,7 @@ public:
 
   const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
+  const wxSize& GetToolbarBitmapSize() const;  // Needed before the toolbar exists
 
 #ifdef __WXGTK__
   Common::Event panic_event;
@@ -129,7 +130,7 @@ public:
   wxToolBar* m_ToolBar = nullptr;
   // AUI
   wxAuiManager* m_Mgr = nullptr;
-  bool bFloatWindow[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
+  bool bFloatWindow[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START] = {};
 
   // Perspectives (Should find a way to make all of this private)
   void DoAddPage(wxWindow* Win, int i, bool Float);
@@ -191,6 +192,7 @@ private:
   wxTimer m_poll_hotkey_timer;
   wxTimer m_handle_signal_timer;
 
+  wxSize m_toolbar_bitmap_size;
   wxBitmap m_Bitmaps[EToolbar_Max];
 
   wxMenuBar* m_menubar_shadow = nullptr;
@@ -209,12 +211,12 @@ private:
 
   // Perspectives
   void AddRemoveBlankPage();
-  void OnNotebookPageClose(wxAuiNotebookEvent& event);
-  void OnAllowNotebookDnD(wxAuiNotebookEvent& event);
+  void OnNotebookAllowDnD(wxAuiNotebookEvent& event);
   void OnNotebookPageChanged(wxAuiNotebookEvent& event);
+  void OnNotebookPageClose(wxAuiNotebookEvent& event);
+  void OnNotebookTabRightUp(wxAuiNotebookEvent& event);
   void OnFloatWindow(wxCommandEvent& event);
   void ToggleFloatWindow(int Id);
-  void OnTab(wxAuiNotebookEvent& event);
   int GetNotebookAffiliation(wxWindowID Id);
   void ClosePages();
   void CloseAllNotebooks();
@@ -226,7 +228,6 @@ private:
   // Float window
   void DoUnfloatPage(int Id);
   void OnFloatingPageClosed(wxCloseEvent& event);
-  void OnFloatingPageSize(wxSizeEvent& event);
   void DoFloatNotebookPage(wxWindowID Id);
   wxFrame* CreateParentFrame(wxWindowID Id = wxID_ANY, const wxString& title = "",
                              wxWindow* = nullptr);

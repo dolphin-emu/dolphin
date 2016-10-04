@@ -55,13 +55,15 @@ wxCheatsWindow::wxCheatsWindow(wxWindow* const parent)
                    wxDIALOG_NO_PARENT)
 {
   // Create the GUI controls
-  Init_ChildControls();
+  CreateGUI();
 
   // load codes
   UpdateGUI();
   wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &wxCheatsWindow::OnLocalGameIniModified, this);
 
-  SetSize(wxSize(-1, 600));
+  SetIcons(WxUtils::GetDolphinIconBundle());
+  SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
+  SetLayoutAdaptationLevel(wxDIALOG_ADAPTATION_STANDARD_SIZER);
   Center();
   Show();
 }
@@ -71,8 +73,11 @@ wxCheatsWindow::~wxCheatsWindow()
   main_frame->g_CheatsWindow = nullptr;
 }
 
-void wxCheatsWindow::Init_ChildControls()
+void wxCheatsWindow::CreateGUI()
 {
+  const int space5 = FromDIP(5);
+  const int space10 = FromDIP(10);
+
   // Main Notebook
   m_notebook_main = new wxNotebook(this, wxID_ANY);
 
@@ -84,13 +89,15 @@ void wxCheatsWindow::Init_ChildControls()
       new ActionReplayCodesPanel(tab_cheats, ActionReplayCodesPanel::STYLE_SIDE_PANEL |
                                                  ActionReplayCodesPanel::STYLE_MODIFY_BUTTONS);
 
-  wxBoxSizer* sizer_tab_cheats = new wxBoxSizer(wxHORIZONTAL);
-  sizer_tab_cheats->Add(m_ar_codes_panel, 1, wxEXPAND | wxALL, 5);
+  wxBoxSizer* sizer_tab_cheats = new wxBoxSizer(wxVERTICAL);
+  sizer_tab_cheats->AddSpacer(space5);
+  sizer_tab_cheats->Add(m_ar_codes_panel, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sizer_tab_cheats->AddSpacer(space5);
 
   tab_cheats->SetSizerAndFit(sizer_tab_cheats);
 
   // Cheat Search Tab
-  wxPanel* const tab_cheat_search = new CheatSearchTab(m_notebook_main);
+  m_tab_cheat_search = new CheatSearchTab(m_notebook_main);
 
   // Log Tab
   m_tab_log = new wxPanel(m_notebook_main, wxID_ANY);
@@ -105,25 +112,30 @@ void wxCheatsWindow::Init_ChildControls()
                           &wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange, this);
 
   m_checkbox_log_ar->SetValue(ActionReplay::IsSelfLogging());
-  m_textctrl_log = new wxTextCtrl(m_tab_log, wxID_ANY, "", wxDefaultPosition, wxSize(100, -1),
-                                  wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
+  m_textctrl_log = new wxTextCtrl(m_tab_log, wxID_ANY, wxEmptyString, wxDefaultPosition,
+                                  wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY | wxTE_DONTWRAP);
 
-  wxBoxSizer* HStrip1 = new wxBoxSizer(wxHORIZONTAL);
-  HStrip1->Add(m_checkbox_log_ar, 0, wxALL | wxALIGN_CENTER_VERTICAL, 5);
-  HStrip1->Add(button_updatelog, 0, wxALL, 5);
-  HStrip1->Add(button_clearlog, 0, wxALL, 5);
+  wxBoxSizer* log_control_sizer = new wxBoxSizer(wxHORIZONTAL);
+  log_control_sizer->Add(m_checkbox_log_ar, 0, wxALIGN_CENTER_VERTICAL);
+  log_control_sizer->Add(button_updatelog, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space10);
+  log_control_sizer->Add(button_clearlog, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space10);
 
   wxBoxSizer* sTabLog = new wxBoxSizer(wxVERTICAL);
-  sTabLog->Add(HStrip1, 0, wxALL, 5);
-  sTabLog->Add(m_textctrl_log, 1, wxALL | wxEXPAND, 5);
+  sTabLog->AddSpacer(space5);
+  sTabLog->Add(log_control_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space10);
+  sTabLog->AddSpacer(space5);
+  sTabLog->Add(m_textctrl_log, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sTabLog->AddSpacer(space5);
 
   m_tab_log->SetSizerAndFit(sTabLog);
 
+  // Gecko tab
+  m_geckocode_panel = new Gecko::CodeConfigPanel(m_notebook_main);
+
   // Add Tabs to Notebook
   m_notebook_main->AddPage(tab_cheats, _("AR Codes"));
-  m_geckocode_panel = new Gecko::CodeConfigPanel(m_notebook_main);
   m_notebook_main->AddPage(m_geckocode_panel, _("Gecko Codes"));
-  m_notebook_main->AddPage(tab_cheat_search, _("Cheat Search"));
+  m_notebook_main->AddPage(m_tab_cheat_search, _("Cheat Search"));
   m_notebook_main->AddPage(m_tab_log, _("Logging"));
 
   Bind(wxEVT_BUTTON, &wxCheatsWindow::OnEvent_ApplyChanges_Press, this, wxID_APPLY);
@@ -137,18 +149,23 @@ void wxCheatsWindow::Init_ChildControls()
   SetAffirmativeId(wxID_CANCEL);
 
   wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
-  sMain->Add(m_notebook_main, 1, wxEXPAND | wxALL, 5);
-  sMain->Add(sButtons, 0, wxRIGHT | wxBOTTOM | wxALIGN_RIGHT, 5);
+  sMain->AddSpacer(space5);
+  sMain->Add(m_notebook_main, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMain->AddSpacer(space5);
+  sMain->Add(sButtons, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sMain->AddSpacer(space5);
+  sMain->SetMinSize(FromDIP(wxSize(-1, 600)));
   SetSizerAndFit(sMain);
 }
 
-void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent& WXUNUSED(event))
+void wxCheatsWindow::OnEvent_ButtonClose_Press(wxCommandEvent&)
 {
   Close();
 }
 
-void wxCheatsWindow::OnEvent_Close(wxCloseEvent& ev)
+void wxCheatsWindow::OnEvent_Close(wxCloseEvent&)
 {
+  // This dialog is created on the heap instead of the stack so we have to destroy ourself.
   Destroy();
 }
 
@@ -164,6 +181,7 @@ void wxCheatsWindow::UpdateGUI()
   m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
   Load_ARCodes();
   Load_GeckoCodes();
+  m_tab_cheat_search->UpdateGUI();
 
   // enable controls
   m_button_apply->Enable(Core::IsRunning());
@@ -194,8 +212,7 @@ void wxCheatsWindow::Load_ARCodes()
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-  m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local,
-                               SConfig::GetInstance().GetUniqueID(), true);
+  m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, m_game_id, true);
 }
 
 void wxCheatsWindow::OnNewARCodeCreated(wxCommandEvent& ev)
@@ -243,7 +260,7 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
   ev.Skip();
 }
 
-void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent& WXUNUSED(event))
+void wxCheatsWindow::OnEvent_ButtonUpdateLog_Press(wxCommandEvent&)
 {
   wxBeginBusyCursor();
   m_textctrl_log->Freeze();
@@ -284,7 +301,7 @@ void wxCheatsWindow::OnClearActionReplayLog(wxCommandEvent& event)
   OnEvent_ButtonUpdateLog_Press(event);
 }
 
-void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent& WXUNUSED(event))
+void wxCheatsWindow::OnEvent_CheckBoxEnableLogging_StateChange(wxCommandEvent&)
 {
   ActionReplay::EnableSelfLogging(m_checkbox_log_ar->IsChecked());
 }

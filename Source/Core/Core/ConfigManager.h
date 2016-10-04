@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <limits>
 #include <string>
 #include <vector>
 
@@ -129,8 +130,10 @@ struct SConfig : NonCopyable
 
   // Display settings
   std::string strFullscreenResolution;
-  int iRenderWindowXPos = -1, iRenderWindowYPos = -1;
-  int iRenderWindowWidth = 640, iRenderWindowHeight = 480;
+  int iRenderWindowXPos = std::numeric_limits<int>::min();
+  int iRenderWindowYPos = std::numeric_limits<int>::min();
+  int iRenderWindowWidth = -1;
+  int iRenderWindowHeight = -1;
   bool bRenderWindowAutoSize = false, bKeepWindowOnTop = false;
   bool bFullscreen = false, bRenderToMain = false;
   bool bProgressive = false, bPAL60 = false;

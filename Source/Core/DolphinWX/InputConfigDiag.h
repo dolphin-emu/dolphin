@@ -27,11 +27,11 @@
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+class DolphinSlider;
 class InputConfig;
 class wxComboBox;
 class wxListBox;
 class wxNotebook;
-class wxSlider;
 class wxStaticBitmap;
 class wxStaticText;
 class wxTextCtrl;
@@ -62,15 +62,7 @@ class PadSettingSpin : public PadSetting
 {
 public:
   PadSettingSpin(wxWindow* const parent,
-                 ControllerEmu::ControlGroup::NumericSetting* const _setting)
-      : PadSetting(new wxSpinCtrl(parent, wxID_ANY, wxEmptyString, wxDefaultPosition,
-                                  wxSize(54, -1), 0, _setting->m_low, _setting->m_high,
-                                  (int)(_setting->GetValue() * 100))),
-        setting(_setting)
-  {
-    wxcontrol->SetLabel(setting->m_name);
-  }
-
+                 ControllerEmu::ControlGroup::NumericSetting* const setting);
   void UpdateGUI() override;
   void UpdateValue() override;
 
@@ -136,6 +128,9 @@ private:
 
   void SetSelectedControl(wxCommandEvent& event);
   void AppendControl(wxCommandEvent& event);
+  void OnRangeSlide(wxScrollEvent&);
+  void OnRangeSpin(wxSpinEvent&);
+  void OnRangeThumbtrack(wxScrollEvent&);
 
   bool GetExpressionForSelectedControl(wxString& expr);
 
@@ -143,7 +138,8 @@ private:
   wxComboBox* device_cbox;
   wxTextCtrl* textctrl;
   wxListBox* control_lbox;
-  wxSlider* range_slider;
+  DolphinSlider* m_range_slider;
+  wxSpinCtrl* m_range_spinner;
   wxStaticText* m_bound_label;
   wxStaticText* m_error_label;
   InputEventFilter m_event_filter;
@@ -165,10 +161,15 @@ class ControlButton : public wxButton
 {
 public:
   ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref,
-                const std::string& name, const unsigned int width, const std::string& label = "");
+                const std::string& name, const unsigned int width, const std::string& label = {});
 
   ControllerInterface::ControlReference* const control_reference;
   const std::string m_name;
+
+protected:
+  wxSize DoGetBestSize() const override;
+
+  int m_configured_width = wxDefaultCoord;
 };
 
 class ControlGroupBox : public wxBoxSizer
@@ -178,11 +179,18 @@ public:
                   GamepadPage* const eventsink);
   ~ControlGroupBox();
 
+  bool HasBitmapHeading() const
+  {
+    return control_group->type == GROUP_TYPE_STICK || control_group->type == GROUP_TYPE_TILT ||
+           control_group->type == GROUP_TYPE_CURSOR || control_group->type == GROUP_TYPE_FORCE;
+  }
+
   std::vector<PadSetting*> options;
 
   ControllerEmu::ControlGroup* const control_group;
   wxStaticBitmap* static_bitmap;
   std::vector<ControlButton*> control_buttons;
+  double m_scale;
 };
 
 class ControlGroupsSizer : public wxBoxSizer

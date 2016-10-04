@@ -19,11 +19,11 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
 
+class DolphinSlider;
 class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
 class wxChoice;
-class wxSlider;
 class wxSpinCtrl;
 class wxStaticBitmap;
 class wxTextCtrl;
@@ -90,7 +90,7 @@ private:
   wxCheckBox* EnableWideScreen;
 
   // Stereoscopy
-  wxSlider* DepthPercentage;
+  DolphinSlider* DepthPercentage;
   wxSpinCtrl* Convergence;
   wxCheckBox* MonoDepth;
 

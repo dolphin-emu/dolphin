@@ -23,7 +23,7 @@ public:
   DSPDebuggerLLE(wxWindow* parent, wxWindowID id = wxID_ANY);
   virtual ~DSPDebuggerLLE();
 
-  void Update() override;
+  void Repopulate();
 
 private:
   enum
@@ -52,8 +52,8 @@ private:
   wxListBox* m_SymbolList;
   wxTextCtrl* m_addr_txtctrl;
   wxAuiNotebook* m_MainNotebook;
+  wxSize m_toolbar_item_size;
 
-  void OnClose(wxCloseEvent& event);
   void OnChangeState(wxCommandEvent& event);
   // void OnRightClick(wxListEvent& event);
   // void OnDoubleClick(wxListEvent& event);

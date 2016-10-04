@@ -13,6 +13,7 @@ namespace DiscIO
 enum class Language;
 }
 
+class DolphinSlider;
 class wxCheckBox;
 class wxChoice;
 class wxSlider;
@@ -53,7 +54,7 @@ private:
   wxChoice* m_aspect_ratio_choice;
 
   wxChoice* m_bt_sensor_bar_pos;
-  wxSlider* m_bt_sensor_bar_sens;
-  wxSlider* m_bt_speaker_volume;
+  DolphinSlider* m_bt_sensor_bar_sens;
+  DolphinSlider* m_bt_speaker_volume;
   wxCheckBox* m_bt_wiimote_motor;
 };

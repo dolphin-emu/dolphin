@@ -17,7 +17,6 @@ class InputConfig;
 class wxCheckBox;
 class wxChoice;
 class wxRadioButton;
-class wxStaticBoxSizer;
 class wxStaticText;
 
 class ControllerConfigDiag final : public wxDialog
@@ -28,10 +27,10 @@ public:
 private:
   void UpdateUI();
 
-  wxStaticBoxSizer* CreateGamecubeSizer();
-  wxStaticBoxSizer* CreateWiimoteConfigSizer();
-  wxBoxSizer* CreatePassthroughBTConfigSizer();
-  wxBoxSizer* CreateEmulatedBTConfigSizer();
+  wxSizer* CreateGamecubeSizer();
+  wxSizer* CreateWiimoteConfigSizer();
+  wxSizer* CreatePassthroughBTConfigSizer();
+  wxSizer* CreateEmulatedBTConfigSizer();
 
   void OnClose(wxCloseEvent& event);
   void OnCloseButton(wxCommandEvent& event);

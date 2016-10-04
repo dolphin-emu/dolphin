@@ -453,7 +453,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   break;
   case IDM_PATCH_HLE_FUNCTIONS:
     HLE::PatchFunctions();
-    Update();
+    Repopulate();
     break;
   }
 }
@@ -464,7 +464,6 @@ void CCodeWindow::NotifyMapLoaded()
     return;
 
   g_symbolDB.FillInCallers();
-  // symbols->Show(false); // hide it for faster filling
   symbols->Freeze();  // HyperIris: wx style fast filling
   symbols->Clear();
   for (const auto& symbol : g_symbolDB.Symbols())
@@ -473,8 +472,7 @@ void CCodeWindow::NotifyMapLoaded()
     symbols->SetClientData(idx, (void*)&symbol.second);
   }
   symbols->Thaw();
-  // symbols->Show(true);
-  Update();
+  Repopulate();
 }
 
 void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
@@ -487,8 +485,9 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
     {
       if (pSymbol->type == Symbol::Type::Data)
       {
-        if (m_MemoryWindow)  // && m_MemoryWindow->IsVisible())
-          m_MemoryWindow->JumpToAddress(pSymbol->address);
+        CMemoryWindow* memory = GetPanel<CMemoryWindow>();
+        if (memory)
+          memory->JumpToAddress(pSymbol->address);
       }
       else
       {
@@ -496,10 +495,6 @@ void CCodeWindow::OnSymbolListChange(wxCommandEvent& event)
       }
     }
   }
-}
-
-void CCodeWindow::OnSymbolListContextMenu(wxContextMenuEvent& event)
-{
 }
 
 // Change the global DebuggerFont
@@ -511,157 +506,104 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
   wxFontDialog dialog(this, data);
   if (dialog.ShowModal() == wxID_OK)
     DebuggerFont = dialog.GetFontData().GetChosenFont();
+
+  // TODO: Send event to all panels that tells them to reload the font when it changes.
 }
 
 // Toggle windows
 
+wxPanel* CCodeWindow::GetUntypedPanel(int id) const
+{
+  wxASSERT_MSG(id >= IDM_DEBUG_WINDOW_LIST_START && id < IDM_DEBUG_WINDOW_LIST_END,
+               "ID out of range");
+  wxASSERT_MSG(id != IDM_LOG_WINDOW && id != IDM_LOG_CONFIG_WINDOW,
+               "Log windows are managed separately");
+  return m_sibling_panels.at(id - IDM_DEBUG_WINDOW_LIST_START);
+}
+
+void CCodeWindow::TogglePanel(int id, bool show)
+{
+  wxPanel* panel = GetUntypedPanel(id);
+
+  // Not all the panels (i.e. CodeWindow) have corresponding menu options.
+  wxMenuItem* item = GetMenuBar()->FindItem(id);
+  if (item)
+    item->Check(show);
+
+  if (show)
+  {
+    if (!panel)
+    {
+      panel = CreateSiblingPanel(id);
+    }
+    Parent->DoAddPage(panel, iNbAffiliation[id - IDM_DEBUG_WINDOW_LIST_START],
+                      Parent->bFloatWindow[id - IDM_DEBUG_WINDOW_LIST_START]);
+  }
+  else if (panel)  // Close
+  {
+    Parent->DoRemovePage(panel, panel == this);
+    m_sibling_panels[id - IDM_DEBUG_WINDOW_LIST_START] = nullptr;
+  }
+}
+
+wxPanel* CCodeWindow::CreateSiblingPanel(int id)
+{
+  // Includes range check inside the get call
+  wxASSERT_MSG(!GetUntypedPanel(id), "Panel must not already exist");
+
+  wxPanel* panel = nullptr;
+  switch (id)
+  {
+  // case IDM_LOG_WINDOW:  // These exist separately in CFrame.
+  // case IDM_LOG_CONFIG_WINDOW:
+  case IDM_REGISTER_WINDOW:
+    panel = new CRegisterWindow(Parent, IDM_REGISTER_WINDOW);
+    break;
+  case IDM_WATCH_WINDOW:
+    panel = new CWatchWindow(Parent, IDM_WATCH_WINDOW);
+    break;
+  case IDM_BREAKPOINT_WINDOW:
+    panel = new CBreakPointWindow(this, Parent, IDM_BREAKPOINT_WINDOW);
+    break;
+  case IDM_MEMORY_WINDOW:
+    panel = new CMemoryWindow(Parent, IDM_MEMORY_WINDOW);
+    break;
+  case IDM_JIT_WINDOW:
+    panel = new CJitWindow(Parent, IDM_JIT_WINDOW);
+    break;
+  case IDM_SOUND_WINDOW:
+    panel = new DSPDebuggerLLE(Parent, IDM_SOUND_WINDOW);
+    break;
+  case IDM_VIDEO_WINDOW:
+    panel = new GFXDebuggerPanel(Parent, IDM_VIDEO_WINDOW);
+    break;
+  case IDM_CODE_WINDOW:
+    panel = this;
+    break;
+  default:
+    wxTrap();
+    break;
+  }
+
+  m_sibling_panels[id - IDM_DEBUG_WINDOW_LIST_START] = panel;
+  return panel;
+}
+
 void CCodeWindow::OpenPages()
 {
-  ToggleCodeWindow(true);
-  if (bShowOnStart[0])
+  // This is forced, and should always be placed as the first tab in the notebook.
+  TogglePanel(IDM_CODE_WINDOW, true);
+
+  // These panels are managed separately by CFrame
+  if (bShowOnStart[IDM_LOG_WINDOW - IDM_DEBUG_WINDOW_LIST_START])
     Parent->ToggleLogWindow(true);
-  if (bShowOnStart[IDM_LOG_CONFIG_WINDOW - IDM_LOG_WINDOW])
+  if (bShowOnStart[IDM_LOG_CONFIG_WINDOW - IDM_DEBUG_WINDOW_LIST_START])
     Parent->ToggleLogConfigWindow(true);
-  if (bShowOnStart[IDM_REGISTER_WINDOW - IDM_LOG_WINDOW])
-    ToggleRegisterWindow(true);
-  if (bShowOnStart[IDM_WATCH_WINDOW - IDM_LOG_WINDOW])
-    ToggleWatchWindow(true);
-  if (bShowOnStart[IDM_BREAKPOINT_WINDOW - IDM_LOG_WINDOW])
-    ToggleBreakPointWindow(true);
-  if (bShowOnStart[IDM_MEMORY_WINDOW - IDM_LOG_WINDOW])
-    ToggleMemoryWindow(true);
-  if (bShowOnStart[IDM_JIT_WINDOW - IDM_LOG_WINDOW])
-    ToggleJitWindow(true);
-  if (bShowOnStart[IDM_SOUND_WINDOW - IDM_LOG_WINDOW])
-    ToggleSoundWindow(true);
-  if (bShowOnStart[IDM_VIDEO_WINDOW - IDM_LOG_WINDOW])
-    ToggleVideoWindow(true);
-}
 
-void CCodeWindow::ToggleCodeWindow(bool bShow)
-{
-  if (bShow)
-    Parent->DoAddPage(this, iNbAffiliation[IDM_CODE_WINDOW - IDM_LOG_WINDOW],
-                      Parent->bFloatWindow[IDM_CODE_WINDOW - IDM_LOG_WINDOW]);
-  else  // Hide
-    Parent->DoRemovePage(this);
-}
-
-void CCodeWindow::ToggleRegisterWindow(bool bShow)
-{
-  GetMenuBar()->FindItem(IDM_REGISTER_WINDOW)->Check(bShow);
-  if (bShow)
+  // Iterate normal panels that don't have weird rules.
+  for (int i = IDM_REGISTER_WINDOW; i < IDM_CODE_WINDOW; ++i)
   {
-    if (!m_RegisterWindow)
-      m_RegisterWindow = new CRegisterWindow(Parent, IDM_REGISTER_WINDOW);
-    Parent->DoAddPage(m_RegisterWindow, iNbAffiliation[IDM_REGISTER_WINDOW - IDM_LOG_WINDOW],
-                      Parent->bFloatWindow[IDM_REGISTER_WINDOW - IDM_LOG_WINDOW]);
-  }
-  else  // Close
-  {
-    Parent->DoRemovePage(m_RegisterWindow, false);
-    m_RegisterWindow = nullptr;
-  }
-}
-
-void CCodeWindow::ToggleWatchWindow(bool bShow)
-{
-  GetMenuBar()->FindItem(IDM_WATCH_WINDOW)->Check(bShow);
-  if (bShow)
-  {
-    if (!m_WatchWindow)
-      m_WatchWindow = new CWatchWindow(Parent, IDM_WATCH_WINDOW);
-    Parent->DoAddPage(m_WatchWindow, iNbAffiliation[IDM_WATCH_WINDOW - IDM_LOG_WINDOW],
-                      Parent->bFloatWindow[IDM_WATCH_WINDOW - IDM_LOG_WINDOW]);
-  }
-  else  // Close
-  {
-    Parent->DoRemovePage(m_WatchWindow, false);
-    m_WatchWindow = nullptr;
-  }
-}
-
-void CCodeWindow::ToggleBreakPointWindow(bool bShow)
-{
-  GetMenuBar()->FindItem(IDM_BREAKPOINT_WINDOW)->Check(bShow);
-  if (bShow)
-  {
-    if (!m_BreakpointWindow)
-      m_BreakpointWindow = new CBreakPointWindow(this, Parent, IDM_BREAKPOINT_WINDOW);
-    Parent->DoAddPage(m_BreakpointWindow, iNbAffiliation[IDM_BREAKPOINT_WINDOW - IDM_LOG_WINDOW],
-                      Parent->bFloatWindow[IDM_BREAKPOINT_WINDOW - IDM_LOG_WINDOW]);
-  }
-  else  // Close
-  {
-    Parent->DoRemovePage(m_BreakpointWindow, false);
-    m_BreakpointWindow = nullptr;
-  }
-}
-
-void CCodeWindow::ToggleMemoryWindow(bool bShow)
-{
-  GetMenuBar()->FindItem(IDM_MEMORY_WINDOW)->Check(bShow);
-  if (bShow)
-  {
-    if (!m_MemoryWindow)
-      m_MemoryWindow = new CMemoryWindow(this, Parent, IDM_MEMORY_WINDOW);
-    Parent->DoAddPage(m_MemoryWindow, iNbAffiliation[IDM_MEMORY_WINDOW - IDM_LOG_WINDOW],
-                      Parent->bFloatWindow[IDM_MEMORY_WINDOW - IDM_LOG_WINDOW]);
-  }
-  else  // Close
-  {
-    Parent->DoRemovePage(m_MemoryWindow, false);
-    m_MemoryWindow = nullptr;
-  }
-}
-
-void CCodeWindow::ToggleJitWindow(bool bShow)
-{
-  GetMenuBar()->FindItem(IDM_JIT_WINDOW)->Check(bShow);
-  if (bShow)
-  {
-    if (!m_JitWindow)
-      m_JitWindow = new CJitWindow(Parent, IDM_JIT_WINDOW);
-    Parent->DoAddPage(m_JitWindow, iNbAffiliation[IDM_JIT_WINDOW - IDM_LOG_WINDOW],
-                      Parent->bFloatWindow[IDM_JIT_WINDOW - IDM_LOG_WINDOW]);
-  }
-  else  // Close
-  {
-    Parent->DoRemovePage(m_JitWindow, false);
-    m_JitWindow = nullptr;
-  }
-}
-
-void CCodeWindow::ToggleSoundWindow(bool bShow)
-{
-  GetMenuBar()->FindItem(IDM_SOUND_WINDOW)->Check(bShow);
-  if (bShow)
-  {
-    if (!m_SoundWindow)
-      m_SoundWindow = new DSPDebuggerLLE(Parent, IDM_SOUND_WINDOW);
-    Parent->DoAddPage(m_SoundWindow, iNbAffiliation[IDM_SOUND_WINDOW - IDM_LOG_WINDOW],
-                      Parent->bFloatWindow[IDM_SOUND_WINDOW - IDM_LOG_WINDOW]);
-  }
-  else  // Close
-  {
-    Parent->DoRemovePage(m_SoundWindow, false);
-    m_SoundWindow = nullptr;
-  }
-}
-
-void CCodeWindow::ToggleVideoWindow(bool bShow)
-{
-  GetMenuBar()->FindItem(IDM_VIDEO_WINDOW)->Check(bShow);
-  if (bShow)
-  {
-    if (!m_VideoWindow)
-      m_VideoWindow = new GFXDebuggerPanel(Parent, IDM_VIDEO_WINDOW);
-    Parent->DoAddPage(m_VideoWindow, iNbAffiliation[IDM_VIDEO_WINDOW - IDM_LOG_WINDOW],
-                      Parent->bFloatWindow[IDM_VIDEO_WINDOW - IDM_LOG_WINDOW]);
-  }
-  else  // Close
-  {
-    Parent->DoRemovePage(m_VideoWindow, false);
-    m_VideoWindow = nullptr;
+    if (bShowOnStart[i - IDM_DEBUG_WINDOW_LIST_START])
+      TogglePanel(i, true);
   }
 }

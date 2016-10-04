@@ -38,7 +38,7 @@ public:
                 long style);
   ~CGameListCtrl();
 
-  void Update() override;
+  void ReloadList();
 
   void BrowseForDirectory();
   const GameListItem* GetISO(size_t index) const;
@@ -70,6 +70,7 @@ private:
   std::vector<int> m_FlagImageIndex;
   std::vector<int> m_PlatformImageIndex;
   std::vector<int> m_EmuStateImageIndex;
+  std::vector<int> m_utility_game_banners;
   std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
 
   void ClearIsoFiles() { m_ISOFiles.clear(); }
