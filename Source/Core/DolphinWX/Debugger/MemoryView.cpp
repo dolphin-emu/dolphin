@@ -269,22 +269,15 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
   wxPaintDC dc(this);
   wxRect rc = GetClientRect();
 
-  if (DebuggerFont.IsFixedWidth())
-  {
-    dc.SetFont(DebuggerFont);
-  }
-  else
-  {
-    dc.SetFont(wxFont(DebuggerFont.GetPointSize(), wxFONTFAMILY_TELETYPE, wxFONTSTYLE_NORMAL,
-                      wxFONTWEIGHT_NORMAL, false, "Courier"));
-  }
+  dc.SetFont(DebuggerFont);
 
   int font_width;
   {
     wxFontMetrics metrics = dc.GetFontMetrics();
     font_width = metrics.averageWidth;
-    if (metrics.height > rowHeight)
-      rowHeight = metrics.height;
+    rowHeight = std::max(rowHeight, metrics.height);
+    if (!DebuggerFont.IsFixedWidth())
+      font_width = dc.GetTextExtent("mxx").GetWidth() / 3;  // (1em + 2ex) / 3
   }
 
   const int row_start_x = m_left_col_width + 1;

@@ -390,8 +390,9 @@ void CCodeView::OnPaint(wxPaintEvent& event)
   {
     wxFontMetrics metrics = paint_dc.GetFontMetrics();
     char_width = metrics.averageWidth;
-    if (metrics.height > m_rowHeight)
-      m_rowHeight = metrics.height;
+    m_rowHeight = std::max(metrics.height, m_rowHeight);
+    if (!DebuggerFont.IsFixedWidth())
+      char_width = paint_dc.GetTextExtent("mxx").GetWidth() / 3;  // (1em + 2ex) / 3
   }
 
   std::unique_ptr<wxGraphicsContext> ctx(wxGraphicsContext::Create(paint_dc));
@@ -545,7 +546,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
         // UnDecorateSymbolName(desc,temp,255,UNDNAME_COMPLETE);
         if (!desc.empty())
         {
-          ctx->DrawText(StrToWxStr(desc), text_col + 45 * char_width, row_y);
+          ctx->DrawText(StrToWxStr(desc), text_col + 44 * char_width, row_y);
         }
       }
 
@@ -569,7 +570,7 @@ void CCodeView::OnPaint(wxPaintEvent& event)
 
   for (int i = 0; i < num_branches; ++i)
   {
-    int x = text_col + 52 * char_width + (branches[i].srcAddr % 9) * 8;
+    int x = text_col + 60 * char_width + (branches[i].srcAddr % 9) * 8;
     branch_path.MoveToPoint(x - 2 * scale, branches[i].src);
 
     if (branches[i].dst < rc.height + 400 && branches[i].dst > -400)
