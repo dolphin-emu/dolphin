@@ -185,7 +185,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 {
   // Store current frame data in case frame dumping stops before next frame update,
   // but make sure that you don't store the last stored frame and check the resolution upon
-  // closing the file or else you store recusion, and dolphins don't like recursion.
+  // closing the file or else you store recursion, and dolphins don't like recursion.
   if (!s_stop_dumping)
   {
     StoreFrameData(data, width, height);

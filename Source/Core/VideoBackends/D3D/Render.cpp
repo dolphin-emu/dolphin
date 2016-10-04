@@ -923,8 +923,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     if (bLastFrameDumped && bAVIDumping)
     {
-      std::vector<u8>().swap(frame_data);
       AVIDump::Stop();
+      std::vector<u8>().swap(frame_data);
       bAVIDumping = false;
       OSD::AddMessage("Stop dumping frames to AVI", 2000);
     }

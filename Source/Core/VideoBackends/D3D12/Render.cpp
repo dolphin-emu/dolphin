@@ -508,9 +508,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   D3D12_DEPTH_STENCIL_DESC* depth_stencil_desc = nullptr;
 
   // EXISTINGD3D11TODO: Should we enable Z testing here?
-  /*if (!bpmem.zmode.testenable) depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_DISABLED];
-	else */ if (
-      z_enable)
+  /*if (!bpmem.zmode.testenable) depth_stencil_desc =
+  &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_DISABLED];
+  else */
+  if (z_enable)
     depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_ENABLED];
   else /*if (!z_enable)*/
     depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_DISABLED];
@@ -903,9 +904,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   {
     if (bLastFrameDumped && bAVIDumping)
     {
-      std::vector<u8>().swap(frame_data);
-
       AVIDump::Stop();
+      std::vector<u8>().swap(frame_data);
       bAVIDumping = false;
       OSD::AddMessage("Stop dumping frames to AVI", 2000);
     }
