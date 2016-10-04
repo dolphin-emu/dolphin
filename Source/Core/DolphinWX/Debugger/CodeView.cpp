@@ -390,8 +390,9 @@ void CCodeView::OnPaint(wxPaintEvent& event)
   {
     wxFontMetrics metrics = paint_dc.GetFontMetrics();
     char_width = metrics.averageWidth;
-    if (metrics.height > m_rowHeight)
-      m_rowHeight = metrics.height;
+    m_rowHeight = std::max(metrics.height, m_rowHeight);
+    if (!DebuggerFont.IsFixedWidth())
+      char_width = paint_dc.GetTextExtent("mxx").GetWidth() / 3;  // (1em + 2ex) / 3
   }
 
   std::unique_ptr<wxGraphicsContext> ctx(wxGraphicsContext::Create(paint_dc));
