@@ -735,7 +735,6 @@ static void SetInputDisplayString(ControllerState padState, int controllerID)
   display_str += Analog1DToString(padState.TriggerR, " R");
   display_str += Analog2DToString(padState.AnalogStickX, padState.AnalogStickY, " ANA");
   display_str += Analog2DToString(padState.CStickX, padState.CStickY, " C");
-  display_str += '\n';
 
   std::lock_guard<std::mutex> guard(s_input_display_lock);
   s_InputDisplay[controllerID] = std::move(display_str);
@@ -858,8 +857,6 @@ static void SetWiiInputDisplayString(int remoteID, u8* const data,
     display_str += Analog2DToString(cc.regular_data.lx, cc.regular_data.ly, " ANA", 63);
     display_str += Analog2DToString(cc.rx1 | (cc.rx2 << 1) | (cc.rx3 << 3), cc.ry, " R-ANA", 31);
   }
-
-  display_str += '\n';
 
   std::lock_guard<std::mutex> guard(s_input_display_lock);
   s_InputDisplay[controllerID] = std::move(display_str);
