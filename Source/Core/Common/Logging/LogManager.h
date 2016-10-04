@@ -91,6 +91,10 @@ private:
   LogManager();
   ~LogManager();
 
+  size_t DeterminePathCutOffPoint(std::string path);
+
+  size_t m_pathCutOffPoint = 0;
+
 public:
   static u32 GetMaxLevel() { return MAX_LOGLEVEL; }
   void Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file, int line,

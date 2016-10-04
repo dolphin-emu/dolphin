@@ -9,6 +9,7 @@
 #include <set>
 #include <string>
 
+#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
@@ -114,6 +115,13 @@ LogManager::~LogManager()
   delete m_listeners[LogListener::FILE_LISTENER];
 }
 
+size_t LogManager::DeterminePathCutOffPoint(std::string path)
+{
+  std::string pattern = DIR_SEP "Source" DIR_SEP "Core" DIR_SEP;
+  return std::string(path).find(pattern) + pattern.length();
+  ;
+}
+
 void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const char* file,
                      int line, const char* format, va_list args)
 {
@@ -123,10 +131,16 @@ void LogManager::Log(LogTypes::LOG_LEVELS level, LogTypes::LOG_TYPE type, const 
   if (!log->IsEnabled() || level > log->GetLevel() || !log->HasListeners())
     return;
 
+  if (!m_pathCutOffPoint)
+  {
+    m_pathCutOffPoint = DeterminePathCutOffPoint(std::string(file));
+  }
+  const char* path_to_print = m_pathCutOffPoint + file;
+
   CharArrayFromFormatV(temp, MAX_MSGLEN, format, args);
 
   std::string msg = StringFromFormat(
-      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), file, line,
+      "%s %s:%u %c[%s]: %s\n", Common::Timer::GetTimeFormatted().c_str(), path_to_print, line,
       LogTypes::LOG_LEVEL_TO_CHAR[(int)level], log->GetShortName().c_str(), temp);
 
   for (auto listener_id : *log)
