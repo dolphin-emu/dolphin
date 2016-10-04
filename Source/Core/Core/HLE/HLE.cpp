@@ -125,7 +125,7 @@ void PatchFunctions()
   {
     for (size_t i = 1; i < ArraySize(OSBreakPoints); ++i)
     {
-      Symbol* symbol = g_symbolDB.GetSymbolFromName(OSPatches[i].m_szPatchName);
+      Symbol* symbol = g_symbolDB.GetSymbolFromName(OSBreakPoints[i].m_szPatchName);
       if (symbol)
       {
         PowerPC::breakpoints.Add(symbol->address, false);
