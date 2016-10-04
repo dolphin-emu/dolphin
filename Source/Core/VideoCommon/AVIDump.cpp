@@ -183,10 +183,14 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height)
 {
-  // Store current frame data in case frame dumping stops before next frame update
+  // Store current frame data in case frame dumping stops before next frame update,
+  // but make sure that you don't store the last stored frame and check the resolution upon
+  // closing the file or else you store recusion, and dolphins don't like recursion.
   if (!s_stop_dumping)
+  {
     StoreFrameData(data, width, height);
-  CheckResolution(width, height);
+    CheckResolution(width, height);
+  }
   s_src_frame->data[0] = const_cast<u8*>(data);
   s_src_frame->linesize[0] = width * s_bytes_per_pixel;
   s_src_frame->format = s_pix_fmt;
