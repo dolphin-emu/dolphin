@@ -539,7 +539,7 @@ void StateTracker::EndRenderPass()
     return;
 
   vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
-  m_current_render_pass = nullptr;
+  m_current_render_pass = VK_NULL_HANDLE;
 }
 
 void StateTracker::BeginClearRenderPass(const VkRect2D& area, const VkClearValue clear_values[2])

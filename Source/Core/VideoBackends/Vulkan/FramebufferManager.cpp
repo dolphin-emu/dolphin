@@ -46,6 +46,7 @@ FramebufferManager::~FramebufferManager()
   DestroyReadbackRenderPasses();
 
   DestroyPokeVertexBuffer();
+  DestroyPokeShaders();
 }
 
 bool FramebufferManager::Initialize()
@@ -207,6 +208,12 @@ void FramebufferManager::DestroyEFBRenderPass()
     m_efb_load_render_pass = VK_NULL_HANDLE;
   }
 
+  if (m_efb_clear_render_pass != VK_NULL_HANDLE)
+  {
+    vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_efb_clear_render_pass, nullptr);
+    m_efb_clear_render_pass = VK_NULL_HANDLE;
+  }
+
   if (m_depth_resolve_render_pass != VK_NULL_HANDLE)
   {
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_depth_resolve_render_pass, nullptr);
@@ -350,6 +357,18 @@ void FramebufferManager::DestroyEFBFramebuffer()
   {
     vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_efb_framebuffer, nullptr);
     m_efb_framebuffer = VK_NULL_HANDLE;
+  }
+
+  if (m_efb_convert_framebuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_efb_convert_framebuffer, nullptr);
+    m_efb_convert_framebuffer = VK_NULL_HANDLE;
+  }
+
+  if (m_depth_resolve_framebuffer != VK_NULL_HANDLE)
+  {
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_depth_resolve_framebuffer, nullptr);
+    m_depth_resolve_framebuffer = VK_NULL_HANDLE;
   }
 
   m_efb_color_texture.reset();
@@ -899,9 +918,15 @@ bool FramebufferManager::CreateReadbackRenderPasses()
 void FramebufferManager::DestroyReadbackRenderPasses()
 {
   if (m_copy_color_render_pass != VK_NULL_HANDLE)
+  {
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_copy_color_render_pass, nullptr);
+    m_copy_color_render_pass = VK_NULL_HANDLE;
+  }
   if (m_copy_depth_render_pass != VK_NULL_HANDLE)
+  {
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_copy_depth_render_pass, nullptr);
+    m_copy_depth_render_pass = VK_NULL_HANDLE;
+  }
 }
 
 bool FramebufferManager::CompileReadbackShaders()
@@ -1238,6 +1263,7 @@ bool FramebufferManager::CreatePokeVertexBuffer()
 
 void FramebufferManager::DestroyPokeVertexBuffer()
 {
+  m_poke_vertex_stream_buffer.reset();
 }
 
 bool FramebufferManager::CompilePokeShaders()

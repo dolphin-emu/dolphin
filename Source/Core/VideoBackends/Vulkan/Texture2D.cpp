@@ -21,13 +21,13 @@ Texture2D::Texture2D(u32 width, u32 height, u32 levels, u32 layers, VkFormat for
 
 Texture2D::~Texture2D()
 {
-  g_command_buffer_mgr->DeferResourceDestruction(m_view);
+  g_command_buffer_mgr->DeferImageViewDestruction(m_view);
 
   // If we don't have device memory allocated, the image is not owned by us (e.g. swapchain)
   if (m_device_memory != VK_NULL_HANDLE)
   {
-    g_command_buffer_mgr->DeferResourceDestruction(m_image);
-    g_command_buffer_mgr->DeferResourceDestruction(m_device_memory);
+    g_command_buffer_mgr->DeferImageDestruction(m_image);
+    g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_device_memory);
   }
 }
 
@@ -134,6 +134,8 @@ std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(u32 width, u32 hei
                                      static_cast<VkImageAspectFlags>(VK_IMAGE_ASPECT_COLOR_BIT),
        0, levels, 0, layers}};
 
+  // Memory is managed by the owner of the image.
+  VkDeviceMemory memory = VK_NULL_HANDLE;
   VkImageView view = VK_NULL_HANDLE;
   VkResult res = vkCreateImageView(g_vulkan_context->GetDevice(), &view_info, nullptr, &view);
   if (res != VK_SUCCESS)
@@ -143,7 +145,7 @@ std::unique_ptr<Texture2D> Texture2D::CreateFromExistingImage(u32 width, u32 hei
   }
 
   return std::make_unique<Texture2D>(width, height, levels, layers, format, samples, view_type,
-                                     existing_image, nullptr, view);
+                                     existing_image, memory, view);
 }
 
 void Texture2D::OverrideImageLayout(VkImageLayout new_layout)

@@ -198,8 +198,14 @@ void VertexManager::vFlush(bool use_dst_alpha)
   vkCmdDrawIndexed(g_command_buffer_mgr->GetCurrentCommandBuffer(), index_count, 1,
                    m_current_draw_base_index, m_current_draw_base_vertex, 0);
 
-  // If we can't do single pass dst alpha, we now need to draw the alpha pass.
-  if (use_dst_alpha && !g_vulkan_context->SupportsDualSourceBlend())
+  // If the GPU does not support dual-source blending, we can approximate the effect by drawing
+  // the object a second time, with the write mask set to alpha only using a shader that outputs
+  // the destination/constant alpha value (which would normally be SRC_COLOR.a).
+  //
+  // This is also used when logic ops and destination alpha is enabled, since we can't enable
+  // blending and logic ops concurrently (and the logical operation applies to all channels).
+  bool logic_op_enabled = bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable;
+  if (use_dst_alpha && (!g_vulkan_context->SupportsDualSourceBlend() || logic_op_enabled))
   {
     m_state_tracker->CheckForShaderChanges(m_current_primitive_type, DSTALPHA_ALPHA_PASS);
     if (!m_state_tracker->Bind())

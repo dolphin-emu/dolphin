@@ -165,6 +165,18 @@ bool VideoBackend::Initialize(void* window_handle)
     return false;
   }
 
+  // Create swap chain. This has to be done early so that the target size is correct for auto-scale.
+  std::unique_ptr<SwapChain> swap_chain;
+  if (surface != VK_NULL_HANDLE)
+  {
+    swap_chain = SwapChain::Create(window_handle, surface, g_Config.IsVSync());
+    if (!swap_chain)
+    {
+      PanicAlert("Failed to create Vulkan swap chain.");
+      return false;
+    }
+  }
+
   // Create command buffers. We do this separately because the other classes depend on it.
   g_command_buffer_mgr = std::make_unique<CommandBufferManager>(g_Config.bBackendMultithreading);
   if (!g_command_buffer_mgr->Initialize())
@@ -180,7 +192,7 @@ bool VideoBackend::Initialize(void* window_handle)
   // Create main wrapper instances.
   g_object_cache = std::make_unique<ObjectCache>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
-  g_renderer = std::make_unique<Renderer>();
+  g_renderer = std::make_unique<Renderer>(std::move(swap_chain));
 
   // Cast to our wrapper classes, so we can call the init methods.
   Renderer* renderer = static_cast<Renderer*>(g_renderer.get());
@@ -191,7 +203,7 @@ bool VideoBackend::Initialize(void* window_handle)
   // These have to be done before the others because the destructors
   // for the remaining classes may call methods on these.
   if (!g_object_cache->Initialize() || !framebuffer_mgr->Initialize() ||
-      !renderer->Initialize(framebuffer_mgr, window_handle, surface))
+      !renderer->Initialize(framebuffer_mgr))
   {
     PanicAlert("Failed to initialize Vulkan classes.");
     g_renderer.reset();

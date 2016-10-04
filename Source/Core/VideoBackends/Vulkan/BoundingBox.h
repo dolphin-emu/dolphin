@@ -40,7 +40,7 @@ private:
   void Readback(StateTracker* state_tracker);
 
   VkBuffer m_gpu_buffer = VK_NULL_HANDLE;
-  VkDeviceMemory m_gpu_memory = nullptr;
+  VkDeviceMemory m_gpu_memory = VK_NULL_HANDLE;
 
   static const size_t NUM_VALUES = 4;
   static const size_t BUFFER_SIZE = sizeof(u32) * NUM_VALUES;

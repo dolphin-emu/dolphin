@@ -35,9 +35,9 @@ StreamBuffer::~StreamBuffer()
     vkUnmapMemory(g_vulkan_context->GetDevice(), m_memory);
 
   if (m_buffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_buffer);
+    g_command_buffer_mgr->DeferBufferDestruction(m_buffer);
   if (m_memory != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_memory);
+    g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_memory);
 }
 
 std::unique_ptr<StreamBuffer> StreamBuffer::Create(VkBufferUsageFlags usage, size_t initial_size,
@@ -124,9 +124,9 @@ bool StreamBuffer::ResizeBuffer(size_t size)
 
   // Destroy the backings for the buffer after the command buffer executes
   if (m_buffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_buffer);
+    g_command_buffer_mgr->DeferBufferDestruction(m_buffer);
   if (m_memory != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_memory);
+    g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_memory);
 
   // Replace with the new buffer
   m_buffer = buffer;

@@ -24,8 +24,8 @@
 
 namespace Vulkan
 {
-SwapChain::SwapChain(void* native_handle, VkSurfaceKHR surface)
-    : m_native_handle(native_handle), m_surface(surface)
+SwapChain::SwapChain(void* native_handle, VkSurfaceKHR surface, bool vsync)
+    : m_native_handle(native_handle), m_surface(surface), m_vsync_enabled(vsync)
 {
 }
 
@@ -127,9 +127,10 @@ VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
 #endif
 }
 
-std::unique_ptr<SwapChain> SwapChain::Create(void* native_handle, VkSurfaceKHR surface)
+std::unique_ptr<SwapChain> SwapChain::Create(void* native_handle, VkSurfaceKHR surface, bool vsync)
 {
-  std::unique_ptr<SwapChain> swap_chain = std::make_unique<SwapChain>(native_handle, surface);
+  std::unique_ptr<SwapChain> swap_chain =
+      std::make_unique<SwapChain>(native_handle, surface, vsync);
 
   if (!swap_chain->CreateSwapChain() || !swap_chain->CreateRenderPass() ||
       !swap_chain->SetupSwapChainImages())
@@ -198,7 +199,7 @@ bool SwapChain::SelectPresentMode()
   };
 
   // If vsync is enabled, prefer VK_PRESENT_MODE_FIFO_KHR.
-  if (g_ActiveConfig.IsVSync())
+  if (m_vsync_enabled)
   {
     // Try for relaxed vsync first, since it's likely the VI won't line up with
     // the refresh rate of the system exactly, so tearing once is better than
@@ -280,8 +281,8 @@ void SwapChain::DestroyRenderPass()
   if (!m_render_pass)
     return;
 
-  g_command_buffer_mgr->DeferResourceDestruction(m_render_pass);
-  m_render_pass = nullptr;
+  vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_render_pass, nullptr);
+  m_render_pass = VK_NULL_HANDLE;
 }
 
 bool SwapChain::CreateSwapChain()
@@ -456,17 +457,24 @@ VkResult SwapChain::AcquireNextImage(VkSemaphore available_semaphore)
 
 bool SwapChain::ResizeSwapChain()
 {
-  if (!CreateSwapChain())
-    return false;
-
   DestroySwapChainImages();
-  if (!SetupSwapChainImages())
+  if (!CreateSwapChain() || !SetupSwapChainImages())
   {
     PanicAlert("Failed to re-configure swap chain images, this is fatal (for now)");
     return false;
   }
 
   return true;
+}
+
+bool SwapChain::SetVSync(bool enabled)
+{
+  if (m_vsync_enabled == enabled)
+    return true;
+
+  // Resizing recreates the swap chain with the new present mode.
+  m_vsync_enabled = enabled;
+  return ResizeSwapChain();
 }
 
 bool SwapChain::RecreateSurface(void* native_handle)

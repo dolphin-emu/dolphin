@@ -26,8 +26,8 @@ StagingBuffer::~StagingBuffer()
   if (m_map_pointer)
     Unmap();
 
-  g_command_buffer_mgr->DeferResourceDestruction(m_memory);
-  g_command_buffer_mgr->DeferResourceDestruction(m_buffer);
+  g_command_buffer_mgr->DeferDeviceMemoryDestruction(m_memory);
+  g_command_buffer_mgr->DeferBufferDestruction(m_buffer);
 }
 
 bool StagingBuffer::Map(VkDeviceSize offset, VkDeviceSize size)

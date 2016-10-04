@@ -41,6 +41,7 @@ TextureCache::~TextureCache()
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_initialize_render_pass, nullptr);
   if (m_update_render_pass != VK_NULL_HANDLE)
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_update_render_pass, nullptr);
+  TextureCache::DeleteShaders();
 }
 
 bool TextureCache::Initialize(StateTracker* state_tracker)
@@ -316,7 +317,7 @@ TextureCache::TCacheEntry::~TCacheEntry()
   m_parent->m_state_tracker->UnbindTexture(m_texture->GetView());
 
   if (m_framebuffer != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_framebuffer);
+    g_command_buffer_mgr->DeferFramebufferDestruction(m_framebuffer);
 }
 
 void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
@@ -725,20 +726,25 @@ bool TextureCache::CompileShaders()
 
 void TextureCache::DeleteShaders()
 {
-  auto DestroyShader = [this](VkShaderModule& shader) {
-    if (shader != VK_NULL_HANDLE)
-    {
-      vkDestroyShaderModule(g_vulkan_context->GetDevice(), shader, nullptr);
-      shader = VK_NULL_HANDLE;
-    }
-  };
-
-  // Since this can be called by the base class we need to wait for idle.
-  g_command_buffer_mgr->WaitForGPUIdle();
-
-  DestroyShader(m_copy_shader);
-  DestroyShader(m_efb_color_to_tex_shader);
-  DestroyShader(m_efb_depth_to_tex_shader);
+  // It is safe to destroy shader modules after they are consumed by creating a pipeline.
+  // Therefore, no matter where this function is called from, it won't cause an issue due to
+  // pending commands, although at the time of writing should only be called at the end of
+  // a frame. See Vulkan spec, section 2.3.1. Object Lifetime.
+  if (m_copy_shader != VK_NULL_HANDLE)
+  {
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_copy_shader, nullptr);
+    m_copy_shader = VK_NULL_HANDLE;
+  }
+  if (m_efb_color_to_tex_shader != VK_NULL_HANDLE)
+  {
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_efb_color_to_tex_shader, nullptr);
+    m_efb_color_to_tex_shader = VK_NULL_HANDLE;
+  }
+  if (m_efb_depth_to_tex_shader != VK_NULL_HANDLE)
+  {
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_efb_depth_to_tex_shader, nullptr);
+    m_efb_depth_to_tex_shader = VK_NULL_HANDLE;
+  }
 }
 
 }  // namespace Vulkan

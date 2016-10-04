@@ -19,18 +19,19 @@ class ObjectCache;
 class SwapChain
 {
 public:
-  SwapChain(void* native_handle, VkSurfaceKHR surface);
+  SwapChain(void* native_handle, VkSurfaceKHR surface, bool vsync);
   ~SwapChain();
 
   // Creates a vulkan-renderable surface for the specified window handle.
   static VkSurfaceKHR CreateVulkanSurface(VkInstance instance, void* hwnd);
 
   // Create a new swap chain from a pre-existing surface.
-  static std::unique_ptr<SwapChain> Create(void* native_handle, VkSurfaceKHR surface);
+  static std::unique_ptr<SwapChain> Create(void* native_handle, VkSurfaceKHR surface, bool vsync);
 
   void* GetNativeHandle() const { return m_native_handle; }
   VkSurfaceKHR GetSurface() const { return m_surface; }
   VkSurfaceFormatKHR GetSurfaceFormat() const { return m_surface_format; }
+  bool IsVSyncEnabled() const { return m_vsync_enabled; }
   VkSwapchainKHR GetSwapChain() const { return m_swap_chain; }
   VkRenderPass GetRenderPass() const { return m_render_pass; }
   u32 GetWidth() const { return m_width; }
@@ -54,6 +55,9 @@ public:
   bool RecreateSurface(void* native_handle);
   bool ResizeSwapChain();
 
+  // Change vsync enabled state. This may fail as it causes a swapchain recreation.
+  bool SetVSync(bool enabled);
+
 private:
   bool SelectSurfaceFormat();
   bool SelectPresentMode();
@@ -76,16 +80,17 @@ private:
     VkFramebuffer framebuffer;
   };
 
-  void* m_native_handle = nullptr;
-  VkSurfaceKHR m_surface = nullptr;
+  void* m_native_handle;
+  VkSurfaceKHR m_surface = VK_NULL_HANDLE;
   VkSurfaceFormatKHR m_surface_format = {};
   VkPresentModeKHR m_present_mode = VK_PRESENT_MODE_RANGE_SIZE_KHR;
+  bool m_vsync_enabled;
 
-  VkSwapchainKHR m_swap_chain = nullptr;
+  VkSwapchainKHR m_swap_chain = VK_NULL_HANDLE;
   std::vector<SwapChainImage> m_swap_chain_images;
   u32 m_current_swap_chain_image_index = 0;
 
-  VkRenderPass m_render_pass = nullptr;
+  VkRenderPass m_render_pass = VK_NULL_HANDLE;
 
   u32 m_width = 0;
   u32 m_height = 0;

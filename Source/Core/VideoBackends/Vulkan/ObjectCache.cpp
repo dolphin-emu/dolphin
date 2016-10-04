@@ -784,11 +784,6 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
   if (iter != m_sampler_cache.end())
     return iter->second;
 
-  // Cap anisotropy to device limits.
-  VkBool32 anisotropy_enable = (info.anisotropy != 0) ? VK_TRUE : VK_FALSE;
-  float max_anisotropy = std::min(static_cast<float>(1 << info.anisotropy),
-                                  g_vulkan_context->GetMaxSaxmplerAnisotropy());
-
   VkSamplerCreateInfo create_info = {
       VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO,      // VkStructureType         sType
       nullptr,                                    // const void*             pNext
@@ -799,16 +794,25 @@ VkSampler ObjectCache::GetSampler(const SamplerState& info)
       info.wrap_u,                                // VkSamplerAddressMode    addressModeU
       info.wrap_v,                                // VkSamplerAddressMode    addressModeV
       VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE,      // VkSamplerAddressMode    addressModeW
-      static_cast<float>(info.lod_bias.Value()),  // float                   mipLodBias
-      anisotropy_enable,                          // VkBool32                anisotropyEnable
-      max_anisotropy,                             // float                   maxAnisotropy
+      static_cast<float>(info.lod_bias / 32.0f),  // float                   mipLodBias
+      VK_FALSE,                                   // VkBool32                anisotropyEnable
+      0.0f,                                       // float                   maxAnisotropy
       VK_FALSE,                                   // VkBool32                compareEnable
       VK_COMPARE_OP_ALWAYS,                       // VkCompareOp             compareOp
-      static_cast<float>(info.min_lod.Value()),   // float                   minLod
-      static_cast<float>(info.max_lod.Value()),   // float                   maxLod
+      static_cast<float>(info.min_lod / 16.0f),   // float                   minLod
+      static_cast<float>(info.max_lod / 16.0f),   // float                   maxLod
       VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK,    // VkBorderColor           borderColor
       VK_FALSE                                    // VkBool32                unnormalizedCoordinates
   };
+
+  // Can we use anisotropic filtering with this sampler?
+  if (info.enable_anisotropic_filtering && g_vulkan_context->SupportsAnisotropicFiltering())
+  {
+    // Cap anisotropy to device limits.
+    create_info.anisotropyEnable = VK_TRUE;
+    create_info.maxAnisotropy = std::min(static_cast<float>(1 << g_ActiveConfig.iMaxAnisotropy),
+                                         g_vulkan_context->GetMaxSamplerAnisotropy());
+  }
 
   VkSampler sampler = VK_NULL_HANDLE;
   VkResult res = vkCreateSampler(g_vulkan_context->GetDevice(), &create_info, nullptr, &sampler);

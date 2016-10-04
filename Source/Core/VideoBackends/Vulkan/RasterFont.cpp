@@ -170,9 +170,9 @@ RasterFont::RasterFont()
 RasterFont::~RasterFont()
 {
   if (m_vertex_shader != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_vertex_shader);
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_vertex_shader, nullptr);
   if (m_fragment_shader != VK_NULL_HANDLE)
-    g_command_buffer_mgr->DeferResourceDestruction(m_fragment_shader);
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_fragment_shader, nullptr);
 }
 
 bool RasterFont::Initialize()
@@ -279,8 +279,8 @@ bool RasterFont::CreateTexture()
   // Free temp buffers after command buffer executes
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  g_command_buffer_mgr->DeferResourceDestruction(temp_buffer);
-  g_command_buffer_mgr->DeferResourceDestruction(temp_buffer_memory);
+  g_command_buffer_mgr->DeferBufferDestruction(temp_buffer);
+  g_command_buffer_mgr->DeferDeviceMemoryDestruction(temp_buffer_memory);
   return true;
 }
 

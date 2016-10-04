@@ -130,8 +130,8 @@ union SamplerState {
   BitField<5, 2, VkSamplerAddressMode> wrap_v;
   BitField<7, 8, u32> min_lod;
   BitField<15, 8, u32> max_lod;
-  BitField<23, 6, s32> lod_bias;    // tm0.lod_bias (8 bits) / 32 gives us 0-7.
-  BitField<29, 3, u32> anisotropy;  // max_anisotropy = 1 << anisotropy, max of 16, so range 0-4.
+  BitField<23, 8, s32> lod_bias;
+  BitField<31, 1, u32> enable_anisotropic_filtering;
 
   u32 bits;
 };
