@@ -326,7 +326,7 @@ void Renderer::DrawDebugText()
   if (SConfig::GetInstance().m_ShowLag)
   {
     draw_text(OSD::MessageType::MovieLag,
-              StringFromFormat("Lag: %" PRIu64 "\n", Movie::GetCurrentLagCount()));
+              StringFromFormat("Lag: %" PRIu64, Movie::GetCurrentLagCount()));
   }
 
   if (SConfig::GetInstance().m_ShowInputDisplay)
