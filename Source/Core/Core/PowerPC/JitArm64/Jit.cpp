@@ -170,7 +170,7 @@ void JitArm64::Break(UGeckoInstruction inst)
 
 void JitArm64::Cleanup()
 {
-  if (jo.optimizeGatherPipe && js.fifoBytesThisBlock > 0)
+  if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
   {
     gpr.Lock(W0);
     MOVP2R(X0, &GPFifo::FastCheckGatherPipe);
@@ -424,7 +424,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
   js.firstFPInstructionFound = false;
   js.assumeNoPairedQuantize = false;
   js.blockStart = em_address;
-  js.fifoBytesThisBlock = 0;
+  js.fifoBytesSinceCheck = 0;
   js.mustCheckFifo = false;
   js.downcountAmount = 0;
   js.skipInstructions = 0;
@@ -512,10 +512,9 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
     bool gatherPipeIntCheck =
         jit->js.fifoWriteAddresses.find(ops[i].address) != jit->js.fifoWriteAddresses.end();
 
-    if (jo.optimizeGatherPipe && (js.fifoBytesThisBlock >= 32 || js.mustCheckFifo))
+    if (jo.optimizeGatherPipe && (js.fifoBytesSinceCheck >= 32 || js.mustCheckFifo))
     {
-      if (js.fifoBytesThisBlock >= 32)
-        js.fifoBytesThisBlock -= 32;
+      js.fifoBytesSinceCheck = 0;
       js.mustCheckFifo = false;
 
       gpr.Lock(W30);

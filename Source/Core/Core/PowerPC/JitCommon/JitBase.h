@@ -104,7 +104,7 @@ protected:
     u8* trampolineExceptionHandler;
 
     bool mustCheckFifo;
-    int fifoBytesThisBlock;
+    int fifoBytesSinceCheck;
 
     PPCAnalyst::BlockStats st;
     PPCAnalyst::BlockRegStats gpa;
@@ -116,6 +116,7 @@ protected:
 
     std::unordered_set<u32> fifoWriteAddresses;
     std::unordered_set<u32> pairedQuantizeAddresses;
+    std::unordered_set<u32> noSpeculativeConstantsAddresses;
   };
 
   PPCAnalyst::CodeBlock code_block;

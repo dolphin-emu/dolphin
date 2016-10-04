@@ -144,7 +144,7 @@ void CachedInterpreter::Jit(u32 address)
 
   js.blockStart = PC;
   js.firstFPInstructionFound = false;
-  js.fifoBytesThisBlock = 0;
+  js.fifoBytesSinceCheck = 0;
   js.downcountAmount = 0;
   js.curBlock = b;
 

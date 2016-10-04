@@ -227,10 +227,12 @@ void RegCache::DiscardRegContentsIfCached(size_t preg)
   }
 }
 
-void GPRRegCache::SetImmediate32(size_t preg, u32 immValue)
+void GPRRegCache::SetImmediate32(size_t preg, u32 immValue, bool dirty)
 {
+  // "dirty" can be false to avoid redundantly flushing an immediate when
+  // processing speculative constants.
   DiscardRegContentsIfCached(preg);
-  regs[preg].away = true;
+  regs[preg].away |= dirty;
   regs[preg].location = Imm32(immValue);
 }
 
@@ -282,10 +284,7 @@ void RegCache::KillImmediate(size_t preg, bool doLoad, bool makeDirty)
 
 void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
 {
-  if (!regs[i].away && regs[i].location.IsImm())
-    PanicAlert("Bad immediate");
-
-  if (!regs[i].away || (regs[i].away && regs[i].location.IsImm()))
+  if (!regs[i].away || regs[i].location.IsImm())
   {
     X64Reg xr = GetFreeXReg();
     if (xregs[xr].dirty)
@@ -294,7 +293,7 @@ void RegCache::BindToRegister(size_t i, bool doLoad, bool makeDirty)
       PanicAlert("GetFreeXReg returned locked register");
     xregs[xr].free = false;
     xregs[xr].ppcReg = i;
-    xregs[xr].dirty = makeDirty || regs[i].location.IsImm();
+    xregs[xr].dirty = makeDirty || regs[i].away;
     if (doLoad)
       LoadRegister(i, xr);
     for (size_t j = 0; j < regs.size(); j++)
