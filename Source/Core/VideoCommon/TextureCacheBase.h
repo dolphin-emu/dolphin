@@ -193,6 +193,7 @@ private:
   static void CheckTempSize(size_t required_size);
 
   static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
+  static TexPool::iterator FindMatchingTextureFromPool(const TCacheEntryConfig& config);
   static TexCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
 
   // Removes and unlinks texture from texture cache and returns it to the pool
