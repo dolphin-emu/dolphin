@@ -72,14 +72,8 @@ public:
 
   Symbol* GetSymbolFromName(const std::string& name);
   std::vector<Symbol*> GetSymbolsFromName(const std::string& name);
-  Symbol* GetSymbolFromHash(u32 hash)
-  {
-    XFuncPtrMap::iterator iter = checksumToFunction.find(hash);
-    if (iter != checksumToFunction.end())
-      return iter->second;
-    else
-      return nullptr;
-  }
+  Symbol* GetSymbolFromHash(u32 hash);
+  std::vector<Symbol*> GetSymbolsFromHash(u32 hash);
 
   const XFuncMap& Symbols() const { return functions; }
   XFuncMap& AccessSymbols() { return functions; }

@@ -72,12 +72,10 @@ void SignatureDB::Apply(PPCSymbolDB* symbol_db)
 {
   for (const auto& entry : m_database)
   {
-    u32 hash = entry.first;
-    Symbol* function = symbol_db->GetSymbolFromHash(hash);
-    if (function)
+    for (const auto& function : symbol_db->GetSymbolsFromHash(entry.first))
     {
       // Found the function. Let's rename it according to the symbol file.
-      if (entry.second.size == (unsigned int)function->size)
+      if (entry.second.size == static_cast<unsigned int>(function->size))
       {
         function->name = entry.second.name;
         INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", entry.second.name.c_str(),
