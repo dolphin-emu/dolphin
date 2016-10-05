@@ -57,6 +57,7 @@ static const SPatch OSPatches[] = {
     {"WUD_DEBUGPrint", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
     {"vprintf", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
     {"printf", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"nlPrintf", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
     {"puts", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE,
      HLE_TYPE_DEBUG},  // gcc-optimized printf?
     {"___blank", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE,
