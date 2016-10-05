@@ -1521,7 +1521,7 @@ bool Renderer::CompileShaders()
 
     void main()
     {
-      ocol0 = texture(samp0, uv0);
+      ocol0 = float4(texture(samp0, uv0).xyz, 1.0);
     }
   )";
 
