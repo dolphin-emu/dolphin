@@ -59,9 +59,8 @@ static const SPatch OSPatches[] = {
     {"printf", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
     {"puts", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE,
      HLE_TYPE_DEBUG},  // gcc-optimized printf?
-    {"___blank(char *,...)", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE,
+    {"___blank", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE,
      HLE_TYPE_DEBUG},  // used for early init things (normally)
-    {"___blank", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
     {"__write_console", HLE_OS::HLE_write_console, HLE_HOOK_REPLACE,
      HLE_TYPE_DEBUG},  // used by sysmenu (+more?)
 
