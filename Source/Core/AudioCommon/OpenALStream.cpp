@@ -127,6 +127,42 @@ void OpenALStream::Clear(bool mute)
   }
 }
 
+static ALenum CheckALError(const char* desc)
+{
+  ALenum err = alGetError();
+
+  if (err != AL_NO_ERROR)
+  {
+    std::string type;
+
+    switch (err)
+    {
+    case AL_INVALID_NAME:
+      type = "AL_INVALID_NAME";
+      break;
+    case AL_INVALID_ENUM:
+      type = "AL_INVALID_ENUM";
+      break;
+    case AL_INVALID_VALUE:
+      type = "AL_INVALID_VALUE";
+      break;
+    case AL_INVALID_OPERATION:
+      type = "AL_INVALID_OPERATION";
+      break;
+    case AL_OUT_OF_MEMORY:
+      type = "AL_OUT_OF_MEMORY";
+      break;
+    default:
+      type = "UNKNOWN_ERROR";
+      break;
+    }
+
+    ERROR_LOG(AUDIO, "Error %s: %08x %s", desc, err, type.c_str());
+  }
+
+  return err;
+}
+
 void OpenALStream::SoundLoop()
 {
   Common::SetCurrentThreadName("Audio thread - openal");
@@ -154,10 +190,16 @@ void OpenALStream::SoundLoop()
   if (strstr(alGetString(AL_RENDERER), "X-Fi"))
     float32_capable = false;
 
+  // Clear error state before querying or else we get false positives.
+  ALenum err = alGetError();
+
   // Generate some AL Buffers for streaming
   alGenBuffers(numBuffers, (ALuint*)uiBuffers);
+  err = CheckALError("generating buffers");
+
   // Generate a Source to playback the Buffers
   alGenSources(1, &uiSource);
+  err = CheckALError("generating sources");
 
   // Set the default sound volume as saved in the config file.
   alSourcef(uiSource, AL_GAIN, fVolume);
@@ -194,11 +236,8 @@ void OpenALStream::SoundLoop()
     {
       ALuint unqueuedBufferIds[OAL_MAX_BUFFERS];
       alSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds);
-      ALenum err = alGetError();
-      if (err != 0)
-      {
-        ERROR_LOG(AUDIO, "Error unqueuing buffers: %08x", err);
-      }
+      err = CheckALError("unqueuing buffers");
+
       numBuffersQueued -= numBuffersProcessed;
     }
 
@@ -277,7 +316,7 @@ void OpenALStream::SoundLoop()
                      nSamples * FRAME_SURROUND_SHORT, ulFrequency);
       }
 
-      ALenum err = alGetError();
+      err = CheckALError("buffering data");
       if (err == AL_INVALID_ENUM)
       {
         // 5.1 is not supported by the host, fallback to stereo
@@ -285,26 +324,18 @@ void OpenALStream::SoundLoop()
                  "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
         surround_capable = false;
       }
-      else if (err != 0)
-      {
-        ERROR_LOG(AUDIO, "Error occurred while buffering data: %08x", err);
-      }
     }
-
     else
     {
       if (float32_capable)
       {
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
                      nSamples * FRAME_STEREO_FLOAT, ulFrequency);
-        ALenum err = alGetError();
+
+        err = CheckALError("buffering float32 data");
         if (err == AL_INVALID_ENUM)
         {
           float32_capable = false;
-        }
-        else if (err != 0)
-        {
-          ERROR_LOG(AUDIO, "Error occurred while buffering float32 data: %08x", err);
         }
       }
       else
@@ -320,11 +351,8 @@ void OpenALStream::SoundLoop()
     }
 
     alSourceQueueBuffers(uiSource, 1, &uiBuffers[nextBuffer]);
-    ALenum err = alGetError();
-    if (err != 0)
-    {
-      ERROR_LOG(AUDIO, "Error queuing buffers: %08x", err);
-    }
+    err = CheckALError("queuing buffers");
+
     numBuffersQueued++;
     nextBuffer = (nextBuffer + 1) % numBuffers;
 
@@ -333,11 +361,7 @@ void OpenALStream::SoundLoop()
     {
       // Buffer underrun occurred, resume playback
       alSourcePlay(uiSource);
-      err = alGetError();
-      if (err != 0)
-      {
-        ERROR_LOG(AUDIO, "Error occurred resuming playback: %08x", err);
-      }
+      err = CheckALError("occurred resuming playback");
     }
   }
 }
