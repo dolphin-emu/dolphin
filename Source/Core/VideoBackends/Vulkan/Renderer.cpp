@@ -65,6 +65,15 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::mo
 
 Renderer::~Renderer()
 {
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  // Stop frame dumping if it was left enabled at shutdown time.
+  if (bAVIDumping)
+  {
+    AVIDump::Stop();
+    bAVIDumping = false;
+  }
+#endif
+
   g_Config.bRunning = false;
   UpdateActiveConfig();
   DestroyScreenshotResources();
