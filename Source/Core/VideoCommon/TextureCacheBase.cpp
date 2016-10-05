@@ -1353,7 +1353,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 TextureCacheBase::TCacheEntryBase*
 TextureCacheBase::AllocateTexture(const TCacheEntryConfig& config)
 {
-  TexPool::iterator iter = texture_pool.find(config);
+  TexPool::iterator iter = FindMatchingTextureFromPool(config);
   TextureCacheBase::TCacheEntryBase* entry;
   if (iter != texture_pool.end())
   {
@@ -1371,6 +1371,24 @@ TextureCacheBase::AllocateTexture(const TCacheEntryConfig& config)
 
   entry->textures_by_hash_iter = textures_by_hash.end();
   return entry;
+}
+
+TextureCacheBase::TexPool::iterator
+TextureCacheBase::FindMatchingTextureFromPool(const TCacheEntryConfig& config)
+{
+  // Find a texture from the pool that does not have a frameCount of FRAMECOUNT_INVALID.
+  // This prevents a texture from being used twice in a single frame with different data,
+  // which potentially means that a driver has to maintain two copies of the texture anyway.
+  auto range = texture_pool.equal_range(config);
+  for (auto iter = range.first; iter != range.second; iter++)
+  {
+    if (iter->second->frameCount == FRAMECOUNT_INVALID && !iter->second->IsEfbCopy())
+      continue;
+
+    return iter;
+  }
+
+  return texture_pool.end();
 }
 
 TextureCacheBase::TexCache::iterator
