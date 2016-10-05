@@ -30,6 +30,11 @@ LogConfigWindow::LogConfigWindow(wxWindow* parent, wxWindowID id)
   LoadSettings();
 }
 
+LogConfigWindow::~LogConfigWindow()
+{
+  SaveSettings();
+}
+
 void LogConfigWindow::CreateGUIControls()
 {
   // Verbosity

@@ -15,6 +15,7 @@ class LogConfigWindow : public wxPanel
 {
 public:
   LogConfigWindow(wxWindow* parent, wxWindowID id = wxID_ANY);
+  ~LogConfigWindow();
 
   void SaveSettings();
   void LoadSettings();
