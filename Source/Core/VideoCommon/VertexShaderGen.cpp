@@ -250,7 +250,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
   }
 
-  GenerateLightingShaderCode(out, uid_data->lighting, uid_data->components, "color", "o.colors_");
+  GenerateLightingShaderCode(out, uid_data->lighting, uid_data->components, uid_data->numColorChans,
+                             "color", "o.colors_");
 
   if (uid_data->numColorChans < 2)
   {

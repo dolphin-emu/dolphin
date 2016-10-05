@@ -72,9 +72,9 @@ static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_d
 // inColorName is color in vs and colors_ in ps
 // dest is o.colors_ in vs and colors_ in ps
 void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data, int components,
-                                const char* inColorName, const char* dest)
+                                u32 numColorChans, const char* inColorName, const char* dest)
 {
-  for (unsigned int j = 0; j < xfmem.numChan.numColorChans; j++)
+  for (unsigned int j = 0; j < numColorChans; j++)
   {
     object.Write("{\n");
 

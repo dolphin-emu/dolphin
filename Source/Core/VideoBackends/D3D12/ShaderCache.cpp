@@ -231,8 +231,7 @@ void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_
   }
   else
   {
-    ShaderCode ps_code =
-        GeneratePixelShaderCode(ps_dst_alpha_mode, APIType::D3D, ps_uid.GetUidData());
+    ShaderCode ps_code = GeneratePixelShaderCode(APIType::D3D, ps_uid.GetUidData());
     ID3DBlob* ps_bytecode = nullptr;
 
     if (!D3D::CompilePixelShader(ps_code.GetBuffer(), &ps_bytecode))
