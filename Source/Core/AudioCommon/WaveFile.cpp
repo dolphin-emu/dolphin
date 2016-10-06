@@ -137,3 +137,47 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int
   file.WriteBytes(conv_buffer.data(), count * 4);
   audio_size += count * 4;
 }
+
+
+void WaveFileWriter::AddStereoSamplesLE(const short* sample_data, u32 count, int sample_rate)
+{
+  if (!file)
+    PanicAlertT("WaveFileWriter - file not open.");
+
+  if (count > BUFFER_SIZE * 2)
+    PanicAlert("WaveFileWriter - buffer too small (count = %u).", count);
+
+  if (skip_silence)
+  {
+    bool all_zero = true;
+
+    for (u32 i = 0; i < count * 2; i++)
+    {
+      if (sample_data[i])
+        all_zero = false;
+    }
+
+    if (all_zero)
+      return;
+  }
+
+  for (u32 i = 0; i < count; i++)
+  {
+    // Channels don't need to be flipped for LE
+    conv_buffer[2 * i] = sample_data[2 * i];
+    conv_buffer[2 * i + 1] = sample_data[2 * i + 1];
+  }
+
+  if (sample_rate != current_sample_rate)
+  {
+    Stop();
+    file_index++;
+    std::stringstream filename;
+    filename << File::GetUserPath(D_DUMPAUDIO_IDX) << basename << file_index << ".wav";
+    Start(filename.str(), sample_rate);
+    current_sample_rate = sample_rate;
+  }
+
+  file.WriteBytes(conv_buffer.data(), count * 4);
+  audio_size += count * 4;
+}

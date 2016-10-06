@@ -48,6 +48,18 @@ constexpr bool IsPow2(u32 imm)
   return (imm & (imm - 1)) == 0;
 }
 
+// Convert s16 to float
+constexpr float SignedShortToFloat(const s16 s)
+{
+  return (s > 0) ? (float)(s / (float)0x7fff) : (float)(s / (float)0x8000);
+}
+
+// Converts float to s16 without rounding
+constexpr s16 FloatToSignedShort(const float f)
+{
+  return (f > 0) ? (s16)(f * 0x7fff) : (s16)(f * 0x8000);
+}
+
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
 
 static const u64 DOUBLE_SIGN = 0x8000000000000000ULL, DOUBLE_EXP = 0x7FF0000000000000ULL,
