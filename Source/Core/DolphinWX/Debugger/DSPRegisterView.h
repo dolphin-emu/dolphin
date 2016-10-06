@@ -33,7 +33,7 @@ private:
 class DSPRegisterView final : public wxGrid
 {
 public:
-  DSPRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
+  explicit DSPRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
   void Repopulate();
 
 private:
