@@ -65,6 +65,15 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::mo
 
 Renderer::~Renderer()
 {
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  // Stop frame dumping if it was left enabled at shutdown time.
+  if (bAVIDumping)
+  {
+    AVIDump::Stop();
+    bAVIDumping = false;
+  }
+#endif
+
   g_Config.bRunning = false;
   UpdateActiveConfig();
   DestroyScreenshotResources();
@@ -609,8 +618,15 @@ void Renderer::DrawScreen(const TargetRectangle& src_rect, const Texture2D* src_
 
 bool Renderer::DrawScreenshot(const TargetRectangle& src_rect, const Texture2D* src_tex)
 {
-  u32 width = std::max(1u, static_cast<u32>(s_backbuffer_width));
-  u32 height = std::max(1u, static_cast<u32>(s_backbuffer_height));
+  // Draw the screenshot to an image containing only the active screen area, removing any
+  // borders as a result of the game rendering in a different aspect ratio.
+  TargetRectangle target_rect = GetTargetRectangle();
+  target_rect.right = target_rect.GetWidth();
+  target_rect.bottom = target_rect.GetHeight();
+  target_rect.left = 0;
+  target_rect.top = 0;
+  u32 width = std::max(1u, static_cast<u32>(target_rect.GetWidth()));
+  u32 height = std::max(1u, static_cast<u32>(target_rect.GetHeight()));
   if (!ResizeScreenshotBuffer(width, height))
     return false;
 
@@ -628,8 +644,8 @@ bool Renderer::DrawScreenshot(const TargetRectangle& src_rect, const Texture2D* 
                        VK_SUBPASS_CONTENTS_INLINE);
   vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), 1, &clear_attachment, 1,
                         &clear_rect);
-  BlitScreen(m_framebuffer_mgr->GetColorCopyForReadbackRenderPass(), GetTargetRectangle(), src_rect,
-             src_tex, true);
+  BlitScreen(m_framebuffer_mgr->GetColorCopyForReadbackRenderPass(), target_rect, src_rect, src_tex,
+             true);
   vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
 
   // Copy to the readback texture.
@@ -1521,7 +1537,7 @@ bool Renderer::CompileShaders()
 
     void main()
     {
-      ocol0 = texture(samp0, uv0);
+      ocol0 = float4(texture(samp0, uv0).xyz, 1.0);
     }
   )";
 

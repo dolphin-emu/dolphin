@@ -118,6 +118,10 @@ private:
 
   // Shaders used for clear/blit.
   VkShaderModule m_clear_fragment_shader = VK_NULL_HANDLE;
+
+  // NOTE: The blit shader here is used for the final copy from the source buffer(s) to the swap
+  // chain buffer for presentation. It ignores the alpha channel of the input image and sets the
+  // alpha channel to 1.0 to avoid issues with frame dumping and screenshots.
   VkShaderModule m_blit_fragment_shader = VK_NULL_HANDLE;
 
   // Texture used for screenshot/frame dumping
