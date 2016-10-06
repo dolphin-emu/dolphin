@@ -111,7 +111,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   m_palette_texture_converter->ConvertTexture(
       m_state_tracker, command_buffer, GetRenderPassForTextureUpdate(entry->GetTexture()),
       entry->GetFramebuffer(), unconverted->GetTexture(), entry->config.width, entry->config.height,
-      palette, format);
+      palette, format, unconverted->format);
 
   // Render pass transitions to SHADER_READ_ONLY.
   entry->GetTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

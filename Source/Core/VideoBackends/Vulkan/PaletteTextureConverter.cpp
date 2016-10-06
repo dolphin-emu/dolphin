@@ -67,7 +67,7 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
                                              VkRenderPass render_pass,
                                              VkFramebuffer dst_framebuffer, Texture2D* src_texture,
                                              u32 width, u32 height, void* palette,
-                                             TlutFormat format)
+                                             TlutFormat format, u32 src_format)
 {
   struct PSUniformBlock
   {
@@ -78,7 +78,7 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
 
   _assert_(static_cast<size_t>(format) < NUM_PALETTE_CONVERSION_SHADERS);
 
-  size_t palette_size = ((format & 0xF) == GX_TF_I4) ? 32 : 512;
+  size_t palette_size = (src_format & 0xF) == GX_TF_I4 ? 32 : 512;
   VkDescriptorSet texel_buffer_descriptor_set;
 
   // Allocate memory for the palette, and descriptor sets for the buffer.
@@ -134,7 +134,7 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
 
   // PS Uniforms/Samplers
   PSUniformBlock uniforms = {};
-  uniforms.multiplier = ((format & 0xF)) == GX_TF_I4 ? 15.0f : 255.0f;
+  uniforms.multiplier = (src_format & 0xF) == GX_TF_I4 ? 15.0f : 255.0f;
   uniforms.texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
   draw.SetPushConstants(&uniforms, sizeof(uniforms));
   draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
