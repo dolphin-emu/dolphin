@@ -17,7 +17,7 @@
 #include "DolphinWX/WxUtils.h"
 
 MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
-    : wxDialog(parent, wxID_ANY, _("Add a Memory Check")), m_parent(parent)
+    : wxDialog(parent, wxID_ANY, _("Add a Memory Breakpoint")), m_parent(parent)
 {
   Bind(wxEVT_BUTTON, &MemoryCheckDlg::OnOK, this, wxID_OK);
   Bind(wxEVT_RADIOBUTTON, &MemoryCheckDlg::OnRadioButtonClick, this);

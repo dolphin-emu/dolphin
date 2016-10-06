@@ -63,7 +63,7 @@ void CBreakPointView::Repopulate()
   {
     wxString memcheck_on_str = StrToWxStr((rMemCheck.Break || rMemCheck.Log) ? "on" : " ");
     int item = InsertItem(0, memcheck_on_str);
-    SetItem(item, 1, StrToWxStr("MC"));
+    SetItem(item, 1, StrToWxStr("MBP"));
 
     Symbol* symbol = g_symbolDB.GetSymbolFromAddr(rMemCheck.StartAddress);
     if (symbol)

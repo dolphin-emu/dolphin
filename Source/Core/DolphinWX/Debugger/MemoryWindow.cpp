@@ -117,7 +117,7 @@ CMemoryWindow::CMemoryWindow(wxWindow* parent, wxWindowID id, const wxPoint& pos
                                     wxDefaultSize, data_type_options, 1);
 
   wxStaticBoxSizer* const memcheck_options_sizer =
-      new wxStaticBoxSizer(wxVERTICAL, this, "Memory check options");
+      new wxStaticBoxSizer(wxVERTICAL, this, "Memory breakpoint options");
   memcheck_options_sizer->Add(rdbReadWrite = new wxRadioButton(this, IDM_MEMCHECK_OPTIONS_CHANGE,
                                                                "Read and Write", wxDefaultPosition,
                                                                wxDefaultSize, wxRB_GROUP));

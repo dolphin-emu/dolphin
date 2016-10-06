@@ -53,7 +53,7 @@ public:
     AddTool(ID_ADDBP, "+BP", m_Bitmaps[Toolbar_Add_BP]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::OnAddBreakPoint, parent, ID_ADDBP);
 
-    AddTool(ID_ADDMC, "+MC", m_Bitmaps[Toolbar_Add_MC]);
+    AddTool(ID_ADDMC, "+MBP", m_Bitmaps[Toolbar_Add_MC]);
     Bind(wxEVT_TOOL, &CBreakPointWindow::OnAddMemoryCheck, parent, ID_ADDMC);
 
     AddTool(ID_LOAD, _("Load"), m_Bitmaps[Toolbar_Delete]);
@@ -167,7 +167,7 @@ void CBreakPointWindow::SaveAll()
   ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini",
            false);
   ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
-  ini.SetLines("MemoryChecks", PowerPC::memchecks.GetStrings());
+  ini.SetLines("MemoryBreakPoints", PowerPC::memchecks.GetStrings());
   ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() + ".ini");
 }
 
@@ -196,7 +196,7 @@ void CBreakPointWindow::LoadAll()
     PowerPC::breakpoints.AddFromStrings(newbps);
   }
 
-  if (ini.GetLines("MemoryChecks", &newmcs, false))
+  if (ini.GetLines("MemoryBreakPoints", &newmcs, false))
   {
     PowerPC::memchecks.Clear();
     PowerPC::memchecks.AddFromStrings(newmcs);
