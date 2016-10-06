@@ -289,7 +289,7 @@ Wiimote::Wiimote(const unsigned int index)
   m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
       _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
   m_options->numeric_settings.emplace_back(
-      std::make_unique<ControlGroup::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
+      std::make_unique<ControlGroup::NumericSetting>(_trans("Speaker Pan"), 0, -128, 128));
   m_options->numeric_settings.emplace_back(
       std::make_unique<ControlGroup::NumericSetting>(_trans("Battery"), 95.0 / 100, 0, 255));
 
