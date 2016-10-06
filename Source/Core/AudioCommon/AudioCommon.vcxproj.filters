@@ -1,8 +1,11 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="SoundStreams">
       <UniqueIdentifier>{25ec8f16-fc60-4a63-bc3e-ad0272fd5942}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="InterpolationFilters">
+      <UniqueIdentifier>{81e8c4a8-a15d-4389-84c2-dfbb8c110ccd}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -22,6 +25,10 @@
     </ClCompile>
     <ClCompile Include="XAudio2_7Stream.cpp">
       <Filter>SoundStreams</Filter>
+    </ClCompile>
+    <ClCompile Include="Dither.cpp" />
+    <ClCompile Include="WindowedSincFilter.cpp">
+      <Filter>InterpolationFilters</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -59,6 +66,16 @@
     </ClInclude>
     <ClInclude Include="SoundStream.h">
       <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="Dither.h" />
+    <ClInclude Include="WindowedSincFilter.h">
+      <Filter>InterpolationFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="BaseFilter.h">
+      <Filter>InterpolationFilters</Filter>
+    </ClInclude>
+    <ClInclude Include="LinearFilter.h">
+      <Filter>InterpolationFilters</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
