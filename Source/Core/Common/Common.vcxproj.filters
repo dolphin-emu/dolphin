@@ -226,6 +226,7 @@
     <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="Semaphore.h" />
+    <ClInclude Include="RingBuffer.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />

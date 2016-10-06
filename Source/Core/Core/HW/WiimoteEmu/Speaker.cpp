@@ -122,17 +122,14 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
   unsigned int left_volume = (unsigned int)((128 + vol) * speaker_volume_ratio);
   unsigned int right_volume = (unsigned int)((128 - vol) * speaker_volume_ratio);
 
-  if (left_volume > 255)
-    left_volume = 255;
-  if (right_volume > 255)
-    right_volume = 255;
+  left_volume = std::min(left_volume, 256u);
+  right_volume = std::min(right_volume, 256u);
 
-  g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(left_volume, right_volume);
+  g_sound_stream->GetMixer()->SetWiimoteSpeakerVolume(m_index, left_volume, right_volume);
 
   // ADPCM sample rate is thought to be x2.(3000 x2 = 6000).
-  g_sound_stream->GetMixer()->PushWiimoteSpeakerSamples(samples.get(), sample_length,
+  g_sound_stream->GetMixer()->PushWiimoteSpeakerSamples(m_index, samples.get(), sample_length,
                                                         sample_rate * 2);
-
 #ifdef WIIMOTE_SPEAKER_DUMP
   static int num = 0;
 
