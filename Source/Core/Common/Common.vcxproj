@@ -123,6 +123,7 @@
     <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
+    <ClInclude Include="RingBuffer.h" />
     <ClInclude Include="ScopeGuard.h" />
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="Semaphore.h" />
