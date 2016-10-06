@@ -11,13 +11,6 @@
 
 class CDSPRegTable : public wxGridTableBase
 {
-private:
-  u64 m_CachedCounter = 0;
-  std::array<u16, 32> m_CachedRegs{};
-  std::array<bool, 32> m_CachedRegHasChanged{};
-
-  DECLARE_NO_COPY_CLASS(CDSPRegTable);
-
 public:
   CDSPRegTable() = default;
 
@@ -28,6 +21,13 @@ public:
   void SetValue(int row, int col, const wxString&) override;
   wxGridCellAttr* GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
   void UpdateCachedRegs();
+
+private:
+  u64 m_CachedCounter = 0;
+  std::array<u16, 32> m_CachedRegs{};
+  std::array<bool, 32> m_CachedRegHasChanged{};
+
+  DECLARE_NO_COPY_CLASS(CDSPRegTable);
 };
 
 class DSPRegisterView : public wxGrid
