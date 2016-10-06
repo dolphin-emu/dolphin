@@ -51,7 +51,6 @@ void VideoConfig::UpdateProjectionHack()
   ::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
-static int OSDInternalW, OSDInternalH;
 static int s_max_texture_size = 0;
 
 namespace OGL
@@ -333,9 +332,6 @@ static void InitDriverInfo()
 // Init functions
 Renderer::Renderer()
 {
-  OSDInternalW = 0;
-  OSDInternalH = 0;
-
   s_blendMode = 0;
 
   bool bSuccess = true;
@@ -1449,9 +1445,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
         sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
       }
-      // Tell the OSD Menu about the current internal resolution
-      OSDInternalW = xfbSource->sourceRc.GetWidth();
-      OSDInternalH = xfbSource->sourceRc.GetHeight();
 
       BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
     }
