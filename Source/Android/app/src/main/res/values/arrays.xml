@@ -6,10 +6,16 @@
     <string-array name="string_emu_cores" translatable="false">
         <item>@string/interpreter</item>
         <item>@string/cached_interpreter</item>
+        <item>@string/jit_arm64_recompiler</item>
+        <!--<item>@string/jit64_recompiler</item>
+        <item>@string/jitil_recompiler</item>-->
     </string-array>
     <integer-array name="int_emu_cores" translatable="false">
         <item>0</item>
         <item>5</item>
+        <item>4</item>
+        <!--<item>1</item>
+        <item>2</item>-->
     </integer-array>
 
     <!-- Video backend selection -->

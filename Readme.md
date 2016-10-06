@@ -99,29 +99,7 @@ If using Android Studio, import the Gradle project located in `./Source/Android`
 
 Android apps are compiled using a build system called Gradle. Dolphin's native component,
 however, is compiled using CMake. The Gradle script will attempt to run a CMake build
-automatically while building the Java code, if you create the file `Source/Android/build.properties`,
-and place the following inside:
-
-```
-# Specifies arguments for the 'make' command. Can be blank.
-makeArgs=
-
-# The path to your machine's Git executable. Will autodetect if blank (on Linux only).
-gitPath=
-
-# The path to the CMake executable. Will autodetect if blank (on Linux only).
-cmakePath=
-
-# The path to the extracted NDK package. Will autodetect if blank (on Linux only).
-ndkPath=
-```
-
-If you prefer, you can run the CMake step manually, and it will copy the resulting
-binary into the correct location for inclusion in the Android APK.
-
-Execute the Gradle task `assembleArm_64Debug` to build, or `installArm_64Debug` to
-install the application onto a connected device. If other ABIs are eventually supported,
-execute the tasks corresponding to the desired ABI.
+automatically while building the Java code.
 
 ## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall
