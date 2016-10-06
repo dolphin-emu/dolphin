@@ -9,7 +9,7 @@
 
 #include "Common/CommonTypes.h"
 
-class CDSPRegTable : public wxGridTableBase
+class CDSPRegTable final : public wxGridTableBase
 {
 public:
   CDSPRegTable() = default;
@@ -30,7 +30,7 @@ private:
   DECLARE_NO_COPY_CLASS(CDSPRegTable);
 };
 
-class DSPRegisterView : public wxGrid
+class DSPRegisterView final : public wxGrid
 {
 public:
   DSPRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
