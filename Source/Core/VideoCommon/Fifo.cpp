@@ -369,7 +369,8 @@ void RunGpuLoop()
 
             if (param.bSyncGPU)
             {
-              cyclesExecuted = (int)(cyclesExecuted / param.fSyncGpuOverclock);
+              if (param.m_GPUOCEnable)
+                cyclesExecuted = (int)(cyclesExecuted / param.fSyncGpuOverclock);
               int old = s_sync_ticks.fetch_sub(cyclesExecuted);
               if (old > 0 && old - (int)cyclesExecuted <= 0)
                 s_sync_wakeup_event.Set();
@@ -444,11 +445,19 @@ void RunGpu()
   }
 }
 
+static int GetAvailableTicks(int ticks)
+{
+  if (SConfig::GetInstance().m_GPUOCEnable)
+    return static_cast<int>(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
+
+  return static_cast<int>(ticks + s_sync_ticks.load());
+}
+
 static int RunGpuOnCpu(int ticks)
 {
   SCPFifoStruct& fifo = CommandProcessor::fifo;
   bool reset_simd_state = false;
-  int available_ticks = int(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
+  int available_ticks = GetAvailableTicks(ticks);
   while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() &&
          available_ticks >= 0)
   {
