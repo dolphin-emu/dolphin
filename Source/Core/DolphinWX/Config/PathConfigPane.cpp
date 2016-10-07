@@ -223,7 +223,6 @@ void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
   File::SetUserPath(D_WIIROOT_IDX, nand_path);
   m_nand_root_dirpicker->SetPath(StrToWxStr(nand_path));
 
-  SConfig::GetInstance().m_SYSCONF->UpdateLocation();
   DiscIO::CNANDContentManager::Access().ClearCache();
 
   main_frame->UpdateWiiMenuChoice();

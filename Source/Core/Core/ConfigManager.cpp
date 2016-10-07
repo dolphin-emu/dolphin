@@ -10,6 +10,8 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Boot/Boot.h"
@@ -48,7 +50,6 @@ void SConfig::Shutdown()
 SConfig::~SConfig()
 {
   SaveSettings();
-  delete m_SYSCONF;
 }
 
 void SConfig::SaveSettings()
@@ -56,7 +57,6 @@ void SConfig::SaveSettings()
   NOTICE_LOG(BOOT, "Saving settings to %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));  // load first to not kill unknown stuff
-  m_SYSCONF->Reload();
 
   SaveGeneralSettings(ini);
   SaveInterfaceSettings(ini);
@@ -70,9 +70,9 @@ void SConfig::SaveSettings()
   SaveAnalyticsSettings(ini);
   SaveNetworkSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
+  SaveSysconfSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  m_SYSCONF->Save();
 }
 
 namespace
@@ -334,6 +334,19 @@ void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
   section->Set("LinkKeys", m_bt_passthrough_link_keys);
 }
 
+void SConfig::SaveSysconfSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
+
+  section->Set("SensorBarPosition", m_sensor_bar_position);
+  section->Set("SensorBarSensitivity", m_sensor_bar_sensitivity);
+  section->Set("SpeakerVolume", m_speaker_volume);
+  section->Set("WiimoteMotor", m_wiimote_motor);
+  section->Set("WiiLanguage", m_wii_language);
+  section->Set("AspectRatio", m_wii_aspect_ratio);
+  section->Set("Screensaver", m_wii_screensaver);
+}
+
 void SConfig::LoadSettings()
 {
   INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
@@ -352,8 +365,7 @@ void SConfig::LoadSettings()
   LoadNetworkSettings(ini);
   LoadAnalyticsSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
-
-  m_SYSCONF = new SysConf();
+  LoadSysconfSettings(ini);
 }
 
 void SConfig::LoadGeneralSettings(IniFile& ini)
@@ -624,6 +636,19 @@ void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
   section->Get("VID", &m_bt_passthrough_vid, -1);
   section->Get("PID", &m_bt_passthrough_pid, -1);
   section->Get("LinkKeys", &m_bt_passthrough_link_keys, "");
+}
+
+void SConfig::LoadSysconfSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
+
+  section->Get("SensorBarPosition", &m_sensor_bar_position, m_sensor_bar_position);
+  section->Get("SensorBarSensitivity", &m_sensor_bar_sensitivity, m_sensor_bar_sensitivity);
+  section->Get("SpeakerVolume", &m_speaker_volume, m_speaker_volume);
+  section->Get("WiimoteMotor", &m_wiimote_motor, m_wiimote_motor);
+  section->Get("WiiLanguage", &m_wii_language, m_wii_language);
+  section->Get("AspectRatio", &m_wii_aspect_ratio, m_wii_aspect_ratio);
+  section->Get("Screensaver", &m_wii_screensaver, m_wii_screensaver);
 }
 
 void SConfig::LoadDefaults()
@@ -966,7 +991,7 @@ DiscIO::Language SConfig::GetCurrentLanguage(bool wii) const
 {
   int language_value;
   if (wii)
-    language_value = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+    language_value = SConfig::GetInstance().m_wii_language;
   else
     language_value = SConfig::GetInstance().SelectedLanguage + 1;
   DiscIO::Language language = static_cast<DiscIO::Language>(language_value);

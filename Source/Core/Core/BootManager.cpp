@@ -38,6 +38,7 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+#include "DiscIO/Enums.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace BootManager
@@ -153,9 +154,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->SelectedLanguage = iSelectedLanguage;
   config->iCPUCore = iCPUCore;
 
-  config->m_SYSCONF->SetData("IPL.PGS", bProgressive);
-  config->m_SYSCONF->SetData("IPL.E60", bPAL60);
-
   // Only change these back if they were actually set by game ini, since they can be changed while a
   // game is running.
   if (bSetVolume)
@@ -213,6 +211,83 @@ static GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode)
 
   NOTICE_LOG(BOOT, "Unknown GPU determinism mode %s", mode.c_str());
   return GPU_DETERMINISM_AUTO;
+}
+
+// Change from IPL.LNG value to IPL.SADR country code.
+// http://wiibrew.org/wiki/Country_Codes
+static u8 GetSADRCountryCode(DiscIO::Language language)
+{
+  switch (language)
+  {
+  case DiscIO::Language::LANGUAGE_JAPANESE:
+    return 1;  // Japan
+  case DiscIO::Language::LANGUAGE_ENGLISH:
+    return 49;  // USA
+  case DiscIO::Language::LANGUAGE_GERMAN:
+    return 78;  // Germany
+  case DiscIO::Language::LANGUAGE_FRENCH:
+    return 77;  // France
+  case DiscIO::Language::LANGUAGE_SPANISH:
+    return 105;  // Spain
+  case DiscIO::Language::LANGUAGE_ITALIAN:
+    return 83;  // Italy
+  case DiscIO::Language::LANGUAGE_DUTCH:
+    return 94;  // Netherlands
+  case DiscIO::Language::LANGUAGE_SIMPLIFIED_CHINESE:
+  case DiscIO::Language::LANGUAGE_TRADITIONAL_CHINESE:
+    return 157;  // China
+  case DiscIO::Language::LANGUAGE_KOREAN:
+    return 136;  // Korea
+  case DiscIO::Language::LANGUAGE_UNKNOWN:
+    break;
+  }
+
+  PanicAlert("Invalid language. Defaulting to Japanese.");
+  return 1;
+}
+
+static void UpdateSettingsFromSysconf()
+{
+  SysConf sysconf;
+
+  SConfig::GetInstance().m_wii_screensaver = sysconf.GetData<u8>("IPL.SSV");
+  SConfig::GetInstance().m_wii_language = sysconf.GetData<u8>("IPL.LNG");
+  SConfig::GetInstance().m_wii_aspect_ratio = sysconf.GetData<u8>("IPL.AR");
+  SConfig::GetInstance().m_sensor_bar_position = sysconf.GetData<u8>("BT.BAR");
+  SConfig::GetInstance().m_sensor_bar_sensitivity = sysconf.GetData<u32>("BT.SENS");
+  SConfig::GetInstance().m_speaker_volume = sysconf.GetData<u8>("BT.SPKV");
+  SConfig::GetInstance().m_wiimote_motor = sysconf.GetData<u8>("BT.MOT") != 0;
+  SConfig::GetInstance().bProgressive = sysconf.GetData<u8>("IPL.PGS") != 0;
+  SConfig::GetInstance().bPAL60 = sysconf.GetData<u8>("IPL.E60") != 0;
+}
+
+static void WriteSettingsToSysconf()
+{
+  SysConf sysconf;
+
+  sysconf.SetData<u8>("IPL.SSV", SConfig::GetInstance().m_wii_screensaver);
+  sysconf.SetData<u8>("IPL.LNG", SConfig::GetInstance().m_wii_language);
+  u8 country_code =
+      GetSADRCountryCode(static_cast<DiscIO::Language>(SConfig::GetInstance().m_wii_language));
+  sysconf.SetArrayData("IPL.SADR", &country_code, 1);
+
+  sysconf.SetData<u8>("IPL.AR", SConfig::GetInstance().m_wii_aspect_ratio);
+  sysconf.SetData<u8>("BT.BAR", SConfig::GetInstance().m_sensor_bar_position);
+  sysconf.SetData<u32>("BT.SENS", SConfig::GetInstance().m_sensor_bar_sensitivity);
+  sysconf.SetData<u8>("BT.SPKV", SConfig::GetInstance().m_speaker_volume);
+  sysconf.SetData("BT.MOT", SConfig::GetInstance().m_wiimote_motor);
+  sysconf.SetData("IPL.PGS", SConfig::GetInstance().bProgressive);
+  sysconf.SetData("IPL.E60", SConfig::GetInstance().bPAL60);
+
+  // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
+  // shutdown commands in the State Transition Manager (STM).
+  // TODO: remove this if and once Dolphin supports WC24 standby mode.
+  sysconf.SetData<u8>("IPL.IDL", 0x00);
+  NOTICE_LOG(BOOT, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
+
+  RestoreBTInfoSection(&sysconf);
+
+  sysconf.Save();
 }
 
 // Boot the ISO or file
@@ -294,9 +369,6 @@ bool BootCore(const std::string& _rFilename)
     // Wii settings
     if (StartUp.bWii)
     {
-      // Flush possible changes to SYSCONF to file
-      SConfig::GetInstance().m_SYSCONF->Save();
-
       int source;
       for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
       {
@@ -385,19 +457,8 @@ bool BootCore(const std::string& _rFilename)
     StartUp.bPAL60 = false;
   }
 
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
-
   if (StartUp.bWii)
-  {
-    // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
-    // shutdown commands in the State Transition Manager (STM).
-    // TODO: remove this if and once Dolphin supports WC24 standby mode.
-    SConfig::GetInstance().m_SYSCONF->SetData<u8>("IPL.IDL", 0x00);
-    NOTICE_LOG(BOOT, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
-
-    RestoreBTInfoSection();
-  }
+    WriteSettingsToSysconf();
 
   // Run the game
   // Init the core
@@ -413,10 +474,14 @@ bool BootCore(const std::string& _rFilename)
 void Stop()
 {
   Core::Stop();
+  RestoreConfig();
+}
 
-  SConfig& StartUp = SConfig::GetInstance();
-  StartUp.m_strUniqueID = "00000000";
-  config_cache.RestoreConfig(&StartUp);
+void RestoreConfig()
+{
+  UpdateSettingsFromSysconf();
+  SConfig::GetInstance().m_strUniqueID = "00000000";
+  config_cache.RestoreConfig(&SConfig::GetInstance());
 }
 
 }  // namespace

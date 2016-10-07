@@ -8,11 +8,6 @@
 #include <wx/panel.h>
 #include "Common/CommonTypes.h"
 
-namespace DiscIO
-{
-enum class Language;
-}
-
 class DolphinSlider;
 class wxCheckBox;
 class wxChoice;
@@ -39,8 +34,6 @@ private:
   void OnSensorBarSensChanged(wxCommandEvent&);
   void OnSpeakerVolumeChanged(wxCommandEvent&);
   void OnWiimoteMotorChanged(wxCommandEvent&);
-
-  static u8 GetSADRCountryCode(DiscIO::Language language);
 
   wxArrayString m_system_language_strings;
   wxArrayString m_aspect_ratio_strings;

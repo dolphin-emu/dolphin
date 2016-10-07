@@ -82,6 +82,11 @@
 #define ThreadLocalStorage thread_local
 #endif
 
+namespace BootManager
+{
+void RestoreConfig();
+}
+
 namespace Core
 {
 // TODO: ugly, remove
@@ -248,8 +253,8 @@ bool Init()
   if (g_aspect_wide)
   {
     IniFile gameIni = _CoreParameter.LoadGameIni();
-    gameIni.GetOrCreateSection("Wii")->Get(
-        "Widescreen", &g_aspect_wide, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
+    gameIni.GetOrCreateSection("Wii")->Get("Widescreen", &g_aspect_wide,
+                                           !!SConfig::GetInstance().m_wii_aspect_ratio);
   }
 
   s_window_handle = Host_GetRenderHandle();
@@ -661,9 +666,7 @@ void EmuThread()
   // Clear on screen messages that haven't expired
   OSD::ClearMessages();
 
-  // Reload sysconf file in order to see changes committed during emulation
-  if (core_parameter.bWii)
-    SConfig::GetInstance().m_SYSCONF->Reload();
+  BootManager::RestoreConfig();
 
   INFO_LOG(CONSOLE, "Stop [Video Thread]\t\t---- Shutdown complete ----");
   Movie::Shutdown();

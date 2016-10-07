@@ -130,9 +130,7 @@ protected:
 
   void Event_ProgressiveScan(wxCommandEvent& ev)
   {
-    SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", ev.GetInt());
     SConfig::GetInstance().bProgressive = ev.IsChecked();
-
     ev.Skip();
   }
 

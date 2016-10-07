@@ -11,4 +11,5 @@ namespace BootManager
 bool BootCore(const std::string& _rFilename);
 
 void Stop();
+void RestoreConfig();
 }
