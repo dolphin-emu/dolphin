@@ -209,7 +209,6 @@ wxMenuBar* CFrame::CreateMenu()
   pOptionsMenu->Append(wxID_PREFERENCES, _("Co&nfigure..."));
   pOptionsMenu->AppendSeparator();
   pOptionsMenu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
-  pOptionsMenu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
   pOptionsMenu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
   pOptionsMenu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
   if (g_pCodeWindow)
