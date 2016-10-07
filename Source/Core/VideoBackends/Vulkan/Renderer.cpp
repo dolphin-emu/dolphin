@@ -26,10 +26,7 @@
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
 #include "VideoCommon/AVIDump.h"
-#endif
-
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ImageWrite.h"
@@ -65,15 +62,6 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::mo
 
 Renderer::~Renderer()
 {
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  // Stop frame dumping if it was left enabled at shutdown time.
-  if (bAVIDumping)
-  {
-    AVIDump::Stop();
-    bAVIDumping = false;
-  }
-#endif
-
   g_Config.bRunning = false;
   UpdateActiveConfig();
   DestroyScreenshotResources();
@@ -494,20 +482,22 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Draw to the screenshot buffer if needed.
-  bool needs_screenshot = (s_bScreenshot || SConfig::GetInstance().m_DumpFrames);
+  bool needs_framedump = IsFrameDumping();
+  bool needs_screenshot = s_bScreenshot || needs_framedump;
   if (needs_screenshot && DrawScreenshot(source_rc, efb_color_texture))
   {
     if (s_bScreenshot)
+    {
       WriteScreenshot();
+    }
 
-    if (SConfig::GetInstance().m_DumpFrames)
-      WriteFrameDump();
-  }
-  else
-  {
-    // Stop frame dump if requested.
-    if (bAVIDumping)
-      StopFrameDump();
+    if (needs_framedump)
+    {
+      DumpFrameData(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
+                    static_cast<int>(m_screenshot_render_texture->GetWidth()),
+                    static_cast<int>(m_screenshot_render_texture->GetHeight()),
+                    AVIDump::DumpFormat::FORMAT_RGBA);
+    }
   }
 
   // Restore the EFB color texture to color attachment ready for rendering the next frame.
@@ -783,56 +773,6 @@ void Renderer::WriteScreenshot()
   s_sScreenshotName.clear();
   s_bScreenshot = false;
   s_screenshotCompleted.Set();
-}
-
-void Renderer::WriteFrameDump()
-{
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (!bLastFrameDumped)
-  {
-    bLastFrameDumped = true;
-    bAVIDumping = AVIDump::Start(static_cast<int>(m_screenshot_render_texture->GetWidth()),
-                                 static_cast<int>(m_screenshot_render_texture->GetHeight()),
-                                 AVIDump::DumpFormat::FORMAT_RGBA);
-
-    if (!bAVIDumping)
-    {
-      OSD::AddMessage("Failed to start frame dumping.", 2000);
-      return;
-    }
-
-    OSD::AddMessage(StringFromFormat("Frame dumping started (%ux%u RGBA8).",
-                                     m_screenshot_render_texture->GetWidth(),
-                                     m_screenshot_render_texture->GetHeight()),
-                    2000);
-  }
-
-  if (bAVIDumping)
-  {
-    AVIDump::AddFrame(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
-                      static_cast<int>(m_screenshot_render_texture->GetWidth()),
-                      static_cast<int>(m_screenshot_render_texture->GetHeight()));
-  }
-#else
-  if (!bLastFrameDumped)
-  {
-    OSD::AddMessage("Dumping frames not supported", 2000);
-    bLastFrameDumped = true;
-  }
-#endif
-}
-
-void Renderer::StopFrameDump()
-{
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (bAVIDumping)
-  {
-    OSD::AddMessage("Frame dumping stopped.", 2000);
-    bAVIDumping = false;
-    bLastFrameDumped = false;
-    AVIDump::Stop();
-  }
-#endif
 }
 
 void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)

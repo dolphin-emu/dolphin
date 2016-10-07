@@ -20,6 +20,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Profiler.h"
 #include "Common/StringUtil.h"
@@ -97,14 +98,10 @@ static float AspectToWidescreen(float aspect)
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-Renderer::Renderer() : frame_data(), bLastFrameDumped(false)
+Renderer::Renderer()
 {
   UpdateActiveConfig();
   TextureCacheBase::OnConfigChanged(g_ActiveConfig);
-
-#if defined _WIN32 || defined HAVE_LIBAV
-  bAVIDumping = false;
-#endif
 }
 
 Renderer::~Renderer()
@@ -113,9 +110,14 @@ Renderer::~Renderer()
   prev_efb_format = PEControl::INVALID_FMT;
 
   efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
-#if defined _WIN32 || defined HAVE_LIBAV
-  if (SConfig::GetInstance().m_DumpFrames && bLastFrameDumped && bAVIDumping)
+
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  // Stop frame dumping if it was left enabled at shutdown time.
+  if (m_AVI_dumping)
+  {
     AVIDump::Stop();
+    m_AVI_dumping = false;
+  }
 #endif
 }
 
@@ -532,6 +534,86 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   Core::Callback_VideoCopiedToXFB(XFBWrited ||
                                   (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
   XFBWrited = false;
+}
+
+bool Renderer::IsFrameDumping()
+{
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  if (SConfig::GetInstance().m_DumpFrames)
+    return true;
+
+  if (m_last_frame_dumped && m_AVI_dumping)
+  {
+    AVIDump::Stop();
+    std::vector<u8>().swap(m_frame_data);
+    m_last_framedump_width = m_last_framedump_height = 0;
+    m_AVI_dumping = false;
+    OSD::AddMessage("Stop dumping frames", 2000);
+  }
+  m_last_frame_dumped = false;
+#endif
+  return false;
+}
+
+void Renderer::DumpFrameData(const u8* data, int w, int h, AVIDump::DumpFormat format,
+                             bool swap_upside_down)
+{
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  if (w == 0 || h == 0)
+    return;
+
+  size_t image_size;
+  switch (format)
+  {
+  case AVIDump::DumpFormat::FORMAT_BGR:
+    image_size = 3 * w * h;
+    break;
+  case AVIDump::DumpFormat::FORMAT_RGBA:
+    image_size = 4 * w * h;
+    break;
+  }
+
+  m_last_framedump_width = w;
+  m_last_framedump_height = h;
+  m_last_framedump_format = format;
+
+  // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
+  //       It's also used to repeat the last frame.
+  m_frame_data.assign(data, data + image_size);
+
+  if (!m_last_frame_dumped)
+  {
+    m_AVI_dumping = AVIDump::Start(w, h, format);
+    if (!m_AVI_dumping)
+    {
+      OSD::AddMessage("AVIDump Start failed", 2000);
+    }
+    else
+    {
+      OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+                                       File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h),
+                      2000);
+    }
+  }
+  if (m_AVI_dumping)
+  {
+    if (swap_upside_down)
+      FlipImageData(m_frame_data.data(), w, h, 4);
+    AVIDump::AddFrame(m_frame_data.data(), w, h);
+  }
+
+  m_last_frame_dumped = true;
+#endif
+}
+
+void Renderer::RepeatFrameDumpFrame()
+{
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  if (SConfig::GetInstance().m_DumpFrames && m_AVI_dumping && !m_frame_data.empty())
+  {
+    AVIDump::AddFrame(m_frame_data.data(), m_last_framedump_width, m_last_framedump_height);
+  }
+#endif
 }
 
 void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
