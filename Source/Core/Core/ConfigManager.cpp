@@ -259,6 +259,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("FrameSkip", m_FrameSkip);
   core->Set("Overclock", m_OCFactor);
   core->Set("OverclockEnable", m_OCEnable);
+  core->Set("GPUOverclockEnable", m_GPUOCEnable);
   core->Set("GFXBackend", m_strVideoBackend);
   core->Set("GPUDeterminismMode", m_strGPUDeterminismMode);
   core->Set("PerfMapDir", m_perfDir);
@@ -537,6 +538,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
   core->Get("Overclock", &m_OCFactor, 1.0f);
   core->Get("OverclockEnable", &m_OCEnable, false);
+  core->Get("GPUOverclockEnable", &m_OCEnable, false);
   core->Get("FrameSkip", &m_FrameSkip, 0);
   core->Get("GFXBackend", &m_strVideoBackend, "");
   core->Get("GPUDeterminismMode", &m_strGPUDeterminismMode, "auto");

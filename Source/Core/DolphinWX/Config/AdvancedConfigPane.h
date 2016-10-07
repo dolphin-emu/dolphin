@@ -24,11 +24,15 @@ private:
 
   void OnClockOverrideCheckBoxChanged(wxCommandEvent&);
   void OnClockOverrideSliderChanged(wxCommandEvent&);
+  void OnGPUClockOverrideCheckBoxChanged(wxCommandEvent&);
+  void OnGPUClockOverrideSliderChanged(wxCommandEvent&);
+  void OnSyncGPUCheckBoxChanged(wxCommandEvent&);
   void OnCustomRTCCheckBoxChanged(wxCommandEvent&);
   void OnCustomRTCDateChanged(wxCommandEvent&);
   void OnCustomRTCTimeChanged(wxCommandEvent&);
 
   void UpdateCPUClock();
+  void UpdateGPUClock();
 
   // Custom RTC
   void LoadCustomRTC();
@@ -39,6 +43,10 @@ private:
   wxCheckBox* m_clock_override_checkbox;
   DolphinSlider* m_clock_override_slider;
   wxStaticText* m_clock_override_text;
+  wxCheckBox* m_gpu_clock_override_checkbox;
+  DolphinSlider* m_gpu_clock_override_slider;
+  wxStaticText* m_gpu_clock_override_text;
+  wxCheckBox* m_sync_gpu_checkbox;
   wxCheckBox* m_custom_rtc_checkbox;
   wxDatePickerCtrl* m_custom_rtc_date_picker;
   wxTimePickerCtrl* m_custom_rtc_time_picker;
