@@ -32,8 +32,6 @@ namespace Fifo
 {
 static constexpr u32 FIFO_SIZE = 2 * 1024 * 1024;
 
-static bool s_skip_current_frame = false;
-
 static Common::BlockingLoop s_gpu_mainloop;
 
 static Common::Flag s_emu_running_state;
@@ -126,11 +124,6 @@ void Shutdown()
   s_video_buffer_seen_ptr = nullptr;
   s_fifo_aux_write_ptr = nullptr;
   s_fifo_aux_read_ptr = nullptr;
-}
-
-void SetRendering(bool enabled)
-{
-  s_skip_current_frame = !enabled;
 }
 
 bool WillSkipCurrentFrame()
