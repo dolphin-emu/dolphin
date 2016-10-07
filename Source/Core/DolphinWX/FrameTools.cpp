@@ -1187,7 +1187,7 @@ void CFrame::DoStop()
     if (NetPlayDialog::GetNetPlayClient())
       NetPlayDialog::GetNetPlayClient()->Stop();
 
-    BootManager::Stop();
+    Core::Stop();
     UpdateGUI();
   }
 }

@@ -7,8 +7,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
-void BackUpBTInfoSection();
-void RestoreBTInfoSection();
+class SysConf;
+
+void BackUpBTInfoSection(SysConf* sysconf);
+void RestoreBTInfoSection(SysConf* sysconf);
 
 class CWII_IPC_HLE_Device_usb_oh1_57e_305_base : public IWII_IPC_HLE_Device
 {

@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
@@ -18,15 +19,14 @@
 
 constexpr u16 BT_INFO_SECTION_LENGTH = 0x460;
 
-void BackUpBTInfoSection()
+void BackUpBTInfoSection(SysConf* sysconf)
 {
   const std::string filename = File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_BTDINF_BACKUP;
   if (File::Exists(filename))
     return;
   File::IOFile backup(filename, "wb");
   std::vector<u8> section(BT_INFO_SECTION_LENGTH);
-  if (!SConfig::GetInstance().m_SYSCONF->GetArrayData("BT.DINF", section.data(),
-                                                      static_cast<u16>(section.size())))
+  if (!sysconf->GetArrayData("BT.DINF", section.data(), static_cast<u16>(section.size())))
   {
     ERROR_LOG(WII_IPC_WIIMOTE, "Failed to read source BT.DINF section");
     return;
@@ -35,7 +35,7 @@ void BackUpBTInfoSection()
     ERROR_LOG(WII_IPC_WIIMOTE, "Failed to back up BT.DINF section");
 }
 
-void RestoreBTInfoSection()
+void RestoreBTInfoSection(SysConf* sysconf)
 {
   const std::string filename = File::GetUserPath(D_SESSION_WIIROOT_IDX) + DIR_SEP WII_BTDINF_BACKUP;
   if (!File::Exists(filename))
@@ -47,9 +47,7 @@ void RestoreBTInfoSection()
     ERROR_LOG(WII_IPC_WIIMOTE, "Failed to read backed up BT.DINF section");
     return;
   }
-  SConfig::GetInstance().m_SYSCONF->SetArrayData("BT.DINF", section.data(),
-                                                 static_cast<u16>(section.size()));
-  SConfig::GetInstance().m_SYSCONF->Save();
+  sysconf->SetArrayData("BT.DINF", section.data(), static_cast<u16>(section.size()));
   File::Delete(filename);
 }
 
