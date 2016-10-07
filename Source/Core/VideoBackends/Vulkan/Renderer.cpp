@@ -932,49 +932,63 @@ void Renderer::CheckForSurfaceChange()
 
 void Renderer::CheckForConfigChanges()
 {
-  // Compare g_Config to g_ActiveConfig to determine what has changed before copying.
-  bool msaa_changed = (g_Config.iMultisamples != g_ActiveConfig.iMultisamples);
-  bool ssaa_changed = (g_Config.bSSAA != g_ActiveConfig.bSSAA);
-  bool anisotropy_changed = (g_Config.iMaxAnisotropy != g_ActiveConfig.iMaxAnisotropy);
-  bool force_texture_filtering_changed =
-      (g_Config.bForceFiltering != g_ActiveConfig.bForceFiltering);
-  bool stereo_changed = (g_Config.iStereoMode != g_ActiveConfig.iStereoMode);
+  // Save the video config so we can compare against to determine which settings have changed.
+  int old_multisamples = g_ActiveConfig.iMultisamples;
+  int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+  int old_stereo_mode = g_ActiveConfig.iStereoMode;
+  int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
+  bool old_force_filtering = g_ActiveConfig.bForceFiltering;
+  bool old_ssaa = g_ActiveConfig.bSSAA;
 
   // Copy g_Config to g_ActiveConfig.
+  // NOTE: This can potentially race with the UI thread, however if it does, the changes will be
+  // delayed until the next time CheckForConfigChanges is called.
   UpdateActiveConfig();
+
+  // Determine which (if any) settings have changed.
+  bool msaa_changed = old_multisamples != g_ActiveConfig.iMultisamples;
+  bool ssaa_changed = old_ssaa != g_ActiveConfig.bSSAA;
+  bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
+  bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
+  bool stereo_changed = old_stereo_mode != g_ActiveConfig.iStereoMode;
+  bool efb_scale_changed = s_last_efb_scale != g_ActiveConfig.iEFBScale;
+  bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
 
   // Update texture cache settings with any changed options.
   TextureCache::OnConfigChanged(g_ActiveConfig);
 
-  // MSAA samples changed, we need to recreate the EFB render pass, and all shaders.
-  if (msaa_changed)
-  {
-    m_framebuffer_mgr->RecreateRenderPass();
-    m_framebuffer_mgr->ResizeEFBTextures();
-  }
-
-  // SSAA changed on/off, we can leave the buffers/render pass, but have to recompile shaders.
-  if (msaa_changed || ssaa_changed)
-  {
-    BindEFBToStateTracker();
-    m_framebuffer_mgr->RecompileShaders();
-    g_object_cache->ClearPipelineCache();
-  }
-
   // Handle internal resolution changes.
-  if (s_last_efb_scale != g_ActiveConfig.iEFBScale)
-  {
+  if (efb_scale_changed)
     s_last_efb_scale = g_ActiveConfig.iEFBScale;
+
+  // If the aspect ratio is changed, this changes the area that the game is drawn to.
+  if (aspect_changed)
+    UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+
+  if (efb_scale_changed || aspect_changed)
+  {
     if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
       ResizeEFBTextures();
   }
 
-  // Handle stereoscopy mode changes.
-  if (stereo_changed)
+  // MSAA samples changed, we need to recreate the EFB render pass.
+  // If the stereoscopy mode changed, we need to recreate the buffers as well.
+  if (msaa_changed || stereo_changed)
   {
-    ResizeEFBTextures();
+    g_command_buffer_mgr->WaitForGPUIdle();
+    m_framebuffer_mgr->RecreateRenderPass();
+    m_framebuffer_mgr->ResizeEFBTextures();
     BindEFBToStateTracker();
+  }
+
+  // SSAA changed on/off, we can leave the buffers/render pass, but have to recompile shaders.
+  // Changing stereoscopy from off<->on also requires shaders to be recompiled.
+  if (msaa_changed || ssaa_changed || stereo_changed)
+  {
+    g_command_buffer_mgr->WaitForGPUIdle();
     RecompileShaders();
+    m_framebuffer_mgr->RecompileShaders();
+    g_object_cache->ClearPipelineCache();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
@@ -1022,10 +1036,7 @@ void Renderer::ResizeEFBTextures()
 {
   // Ensure the GPU is finished with the current EFB textures.
   g_command_buffer_mgr->WaitForGPUIdle();
-
   m_framebuffer_mgr->ResizeEFBTextures();
-  s_last_efb_scale = g_ActiveConfig.iEFBScale;
-
   BindEFBToStateTracker();
 
   // Viewport and scissor rect have to be reset since they will be scaled differently.
