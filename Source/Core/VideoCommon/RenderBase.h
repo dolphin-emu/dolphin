@@ -156,13 +156,6 @@ protected:
   static std::mutex s_criticalScreenshot;
   static std::string s_sScreenshotName;
 
-  std::vector<u8> frame_data;
-  bool bAVIDumping = false;
-  bool bLastFrameDumped = false;
-  int m_last_framedump_width = 0;
-  int m_last_framedump_height = 0;
-  AVIDump::DumpFormat m_last_framedump_format;
-
   // The framebuffer size
   static int s_target_width;
   static int s_target_height;
@@ -194,6 +187,14 @@ private:
   static unsigned int efb_scale_numeratorY;
   static unsigned int efb_scale_denominatorX;
   static unsigned int efb_scale_denominatorY;
+
+  // framedumping
+  std::vector<u8> m_frame_data;
+  bool m_AVI_dumping = false;
+  bool m_last_frame_dumped = false;
+  int m_last_framedump_width = 0;
+  int m_last_framedump_height = 0;
+  AVIDump::DumpFormat m_last_framedump_format;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;
