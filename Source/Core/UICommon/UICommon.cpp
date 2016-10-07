@@ -9,6 +9,7 @@
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
