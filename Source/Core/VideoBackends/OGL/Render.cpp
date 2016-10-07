@@ -32,9 +32,7 @@
 #include "VideoBackends/OGL/TextureCache.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
 #include "VideoCommon/AVIDump.h"
-#endif
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Fifo.h"
@@ -1340,16 +1338,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
   s_blendMode = newval;
 }
 
-static void DumpFrame(const std::vector<u8>& data, int w, int h)
-{
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (SConfig::GetInstance().m_DumpFrames && !data.empty())
-  {
-    AVIDump::AddFrame(&data[0], w, h);
-  }
-#endif
-}
-
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                         const EFBRectangle& rc, float Gamma)
@@ -1362,11 +1350,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       glDisable(GL_DEBUG_OUTPUT);
   }
 
-  static int w = 0, h = 0;
   if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
       !fbWidth || !fbHeight)
   {
-    DumpFrame(frame_data, w, h);
+    RepeatFrameDumpFrame();
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -1376,7 +1363,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
   if (g_ActiveConfig.VirtualXFBEnabled() && (!xfbSourceList || xfbCount == 0))
   {
-    DumpFrame(frame_data, w, h);
+    RepeatFrameDumpFrame();
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -1474,64 +1461,18 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     s_screenshotCompleted.Set();
   }
 
-// Frame dumps are handled a little differently in Windows
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (SConfig::GetInstance().m_DumpFrames)
+  if (IsFrameDumping())
   {
     std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-
-    if (frame_data.empty() || w != flipped_trc.GetWidth() || h != flipped_trc.GetHeight())
-    {
-      w = flipped_trc.GetWidth();
-      h = flipped_trc.GetHeight();
-      frame_data.resize(4 * w * h);
-    }
+    std::vector<u8> image(flipped_trc.GetWidth() * flipped_trc.GetHeight() * 4);
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_RGBA, GL_UNSIGNED_BYTE,
-                 &frame_data[0]);
-    if (w > 0 && h > 0)
-    {
-      if (!bLastFrameDumped)
-      {
-        bAVIDumping = AVIDump::Start(w, h, AVIDump::DumpFormat::FORMAT_RGBA);
-        if (!bAVIDumping)
-        {
-          OSD::AddMessage("AVIDump Start failed", 2000);
-        }
-        else
-        {
-          OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                           File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h),
-                          2000);
-        }
-      }
-      if (bAVIDumping)
-      {
-        FlipImageData(&frame_data[0], w, h, 4);
-        AVIDump::AddFrame(&frame_data[0], w, h);
-      }
+    glReadPixels(flipped_trc.left, flipped_trc.bottom, flipped_trc.GetWidth(),
+                 flipped_trc.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, image.data());
 
-      bLastFrameDumped = true;
-    }
-    else
-    {
-      NOTICE_LOG(VIDEO, "Error reading framebuffer");
-    }
+    DumpFrameData(image.data(), flipped_trc.GetWidth(), flipped_trc.GetHeight(),
+                  AVIDump::DumpFormat::FORMAT_RGBA, true);
   }
-  else
-  {
-    if (bLastFrameDumped && bAVIDumping)
-    {
-      AVIDump::Stop();
-      std::vector<u8>().swap(frame_data);
-      w = h = 0;
-      bAVIDumping = false;
-      OSD::AddMessage("Stop dumping frames", 2000);
-    }
-    bLastFrameDumped = false;
-  }
-#endif
   // Finish up the current frame, print some stats
 
   SetWindowSize(fbStride, fbHeight);
