@@ -711,7 +711,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
       !fb_width || !fb_height)
   {
-    RepeatFrameDumpFrame();
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -721,7 +720,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       FramebufferManager::GetXFBSource(xfb_addr, fb_stride, fb_height, &xfb_count);
   if ((!xfb_source_list || xfb_count == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
   {
-    RepeatFrameDumpFrame();
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
