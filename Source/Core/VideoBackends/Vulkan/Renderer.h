@@ -100,9 +100,6 @@ private:
   bool ResizeScreenshotBuffer(u32 new_width, u32 new_height);
   void DestroyScreenshotResources();
   void WriteScreenshot();
-  void WriteFrameDump();
-  void StopFrameDump();
-
   FramebufferManager* m_framebuffer_mgr = nullptr;
 
   VkSemaphore m_image_available_semaphore = VK_NULL_HANDLE;
