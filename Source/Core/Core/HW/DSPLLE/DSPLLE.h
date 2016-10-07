@@ -39,7 +39,7 @@ private:
 
   std::thread m_hDSPThread;
   std::mutex m_csDSPThreadActive;
-  bool m_bDSPThread;
+  bool m_bDSPThread = false;
   Common::Flag m_bIsRunning;
-  std::atomic<u32> m_cycle_count;
+  std::atomic<u32> m_cycle_count{};
 };

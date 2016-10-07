@@ -28,15 +28,11 @@
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 
-DSPLLE::DSPLLE()
-    : m_hDSPThread(), m_csDSPThreadActive(), m_bDSPThread(false), m_bIsRunning(false),
-      m_cycle_count(0)
-{
-}
-
 static Common::Event dspEvent;
 static Common::Event ppcEvent;
 static bool requestDisableThread;
+
+DSPLLE::DSPLLE() = default;
 
 void DSPLLE::DoState(PointerWrap& p)
 {
