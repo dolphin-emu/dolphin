@@ -605,6 +605,10 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, AVIDump::DumpFormat f
 #endif
 }
 
+void Renderer::FinishFrameData()
+{
+}
+
 void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
 {
   for (int y = 0; y < h / 2; ++y)

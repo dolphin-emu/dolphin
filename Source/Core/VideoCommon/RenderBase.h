@@ -150,6 +150,7 @@ protected:
   bool IsFrameDumping();
   void DumpFrameData(const u8* data, int w, int h, AVIDump::DumpFormat format,
                      bool swap_upside_down = false);
+  void FinishFrameData();
 
   static volatile bool s_bScreenshot;
   static std::mutex s_criticalScreenshot;

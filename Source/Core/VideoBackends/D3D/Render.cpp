@@ -891,6 +891,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     formatBufferDump((u8*)map.pData, image.data(), source_width, source_height, map.RowPitch);
 
     DumpFrameData(image.data(), source_width, source_height, AVIDump::DumpFormat::FORMAT_BGR, true);
+    FinishFrameData();
 
     D3D::context->Unmap(s_screenshot_texture, 0);
   }
