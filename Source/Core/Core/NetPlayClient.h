@@ -85,17 +85,17 @@ public:
 
   // Send and receive pads values
   bool WiimoteUpdate(int _number, u8* data, const u8 size, u8 reporting_mode);
-  bool GetNetPads(const u8 pad_nb, GCPadStatus* pad_status);
+  bool GetNetPads(int pad_nb, GCPadStatus* pad_status);
 
   void OnTraversalStateChanged() override;
   void OnConnectReady(ENetAddress addr) override;
   void OnConnectFailed(u8 reason) override;
 
-  bool IsFirstInGamePad(u8 ingame_pad) const;
-  u8 NumLocalPads() const;
+  bool IsFirstInGamePad(int ingame_pad) const;
+  int NumLocalPads() const;
 
-  u8 InGamePadToLocalPad(u8 ingame_pad);
-  u8 LocalPadToInGamePad(u8 localPad);
+  int InGamePadToLocalPad(int ingame_pad);
+  int LocalPadToInGamePad(int localPad);
 
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
@@ -154,8 +154,8 @@ private:
   void SendStopGamePacket();
 
   void UpdateDevices();
-  void SendPadState(const PadMapping in_game_pad, const GCPadStatus& np);
-  void SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw);
+  void SendPadState(int in_game_pad, const GCPadStatus& np);
+  void SendWiimoteState(int in_game_pad, const NetWiimote& nw);
   unsigned int OnData(sf::Packet& packet);
   void Send(sf::Packet& packet);
   void Disconnect();

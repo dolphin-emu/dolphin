@@ -739,11 +739,11 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 }
 
 // called from ---CPU--- thread
-void NetPlayClient::SendPadState(const PadMapping in_game_pad, const GCPadStatus& pad)
+void NetPlayClient::SendPadState(const int in_game_pad, const GCPadStatus& pad)
 {
   auto spac = std::make_unique<sf::Packet>();
   *spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
-  *spac << in_game_pad;
+  *spac << static_cast<PadMapping>(in_game_pad);
   *spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
         << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
@@ -751,11 +751,11 @@ void NetPlayClient::SendPadState(const PadMapping in_game_pad, const GCPadStatus
 }
 
 // called from ---CPU--- thread
-void NetPlayClient::SendWiimoteState(const PadMapping in_game_pad, const NetWiimote& nw)
+void NetPlayClient::SendWiimoteState(const int in_game_pad, const NetWiimote& nw)
 {
   auto spac = std::make_unique<sf::Packet>();
   *spac << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
-  *spac << in_game_pad;
+  *spac << static_cast<PadMapping>(in_game_pad);
   *spac << static_cast<u8>(nw.size());
   for (auto it : nw)
   {
@@ -940,7 +940,7 @@ void NetPlayClient::OnConnectFailed(u8 reason)
 }
 
 // called from ---CPU--- thread
-bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
+bool NetPlayClient::GetNetPads(const int pad_nb, GCPadStatus* pad_status)
 {
   // The interface for this is extremely silly.
   //
@@ -965,8 +965,8 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
   // clients.
   if (IsFirstInGamePad(pad_nb))
   {
-    const u8 num_local_pads = NumLocalPads();
-    for (u8 local_pad = 0; local_pad < num_local_pads; local_pad++)
+    const int num_local_pads = NumLocalPads();
+    for (int local_pad = 0; local_pad < num_local_pads; local_pad++)
     {
       switch (SConfig::GetInstance().m_SIDevice[local_pad])
       {
@@ -979,7 +979,7 @@ bool NetPlayClient::GetNetPads(const u8 pad_nb, GCPadStatus* pad_status)
         break;
       }
 
-      u8 ingame_pad = LocalPadToInGamePad(local_pad);
+      int ingame_pad = LocalPadToInGamePad(local_pad);
 
       // adjust the buffer either up or down
       // inserting multiple padstates or dropping states
@@ -1140,20 +1140,20 @@ bool NetPlayClient::LocalPlayerHasControllerMapped() const
          std::any_of(m_wiimote_map.begin(), m_wiimote_map.end(), mapping_matches_player_id);
 }
 
-bool NetPlayClient::IsFirstInGamePad(u8 ingame_pad) const
+bool NetPlayClient::IsFirstInGamePad(int ingame_pad) const
 {
   return std::none_of(m_pad_map.begin(), m_pad_map.begin() + ingame_pad,
                       [](auto mapping) { return mapping > 0; });
 }
 
-u8 NetPlayClient::NumLocalPads() const
+int NetPlayClient::NumLocalPads() const
 {
-  return static_cast<u8>(std::count_if(m_pad_map.begin(), m_pad_map.end(), [this](auto mapping) {
+  return static_cast<int>(std::count_if(m_pad_map.begin(), m_pad_map.end(), [this](auto mapping) {
     return mapping == m_local_player->pid;
   }));
 }
 
-u8 NetPlayClient::InGamePadToLocalPad(u8 ingame_pad)
+int NetPlayClient::InGamePadToLocalPad(int ingame_pad)
 {
   // not our pad
   if (m_pad_map[ingame_pad] != m_local_player->pid)
@@ -1171,7 +1171,7 @@ u8 NetPlayClient::InGamePadToLocalPad(u8 ingame_pad)
   return local_pad;
 }
 
-u8 NetPlayClient::LocalPadToInGamePad(u8 local_pad)
+int NetPlayClient::LocalPadToInGamePad(int local_pad)
 {
   // Figure out which in-game pad maps to which local pad.
   // The logic we have here is that the local slots always
@@ -1258,7 +1258,7 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
 
 // called from ---CPU--- thread
 // Actual Core function which is called on every frame
-bool CSIDevice_GCController::NetPlay_GetInput(u8 numPAD, GCPadStatus* PadStatus)
+bool CSIDevice_GCController::NetPlay_GetInput(int numPAD, GCPadStatus* PadStatus)
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
 
@@ -1294,7 +1294,7 @@ u64 CEXIIPL::NetPlay_GetGCTime()
 
 // called from ---CPU--- thread
 // return the local pad num that should rumble given a ingame pad num
-u8 CSIDevice_GCController::NetPlay_InGamePadToLocalPad(u8 numPAD)
+int CSIDevice_GCController::NetPlay_InGamePadToLocalPad(int numPAD)
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
 
