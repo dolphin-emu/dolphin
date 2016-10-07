@@ -228,6 +228,7 @@ struct SConfig : NonCopyable
   std::string m_InterfaceLanguage;
   float m_EmulationSpeed;
   bool m_OCEnable;
+  bool m_GPUOCEnable;
   float m_OCFactor;
   // other interface settings
   bool m_InterfaceToolbar;

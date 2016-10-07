@@ -26,15 +26,29 @@ AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id) : wxPane
 
 void AdvancedConfigPane::InitializeGUI()
 {
-  m_clock_override_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable CPU Clock Override"));
-  m_clock_override_slider =
+  m_cpu_clock_override_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable CPU Clock Override"));
+  m_cpu_clock_override_slider =
       new DolphinSlider(this, wxID_ANY, 100, 0, 150, wxDefaultPosition, FromDIP(wxSize(200, -1)));
-  m_clock_override_text = new wxStaticText(this, wxID_ANY, "");
+  m_cpu_clock_override_text = new wxStaticText(this, wxID_ANY, "");
 
-  m_clock_override_checkbox->Bind(wxEVT_CHECKBOX,
-                                  &AdvancedConfigPane::OnClockOverrideCheckBoxChanged, this);
-  m_clock_override_slider->Bind(wxEVT_SLIDER, &AdvancedConfigPane::OnClockOverrideSliderChanged,
-                                this);
+  m_cpu_clock_override_checkbox->Bind(wxEVT_CHECKBOX,
+                                      &AdvancedConfigPane::OnClockOverrideCheckBoxChanged, this);
+  m_cpu_clock_override_slider->Bind(wxEVT_SLIDER, &AdvancedConfigPane::OnClockOverrideSliderChanged,
+                                    this);
+
+  m_gpu_clock_override_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable GPU Clock Override"));
+  m_gpu_clock_override_slider =
+      new DolphinSlider(this, wxID_ANY, 100, 0, 150, wxDefaultPosition, FromDIP(wxSize(200, -1)));
+  m_gpu_clock_override_text = new wxStaticText(this, wxID_ANY, "");
+
+  m_gpu_clock_override_checkbox->Bind(wxEVT_CHECKBOX,
+                                      &AdvancedConfigPane::OnGPUClockOverrideCheckBoxChanged, this);
+  m_gpu_clock_override_slider->Bind(wxEVT_SLIDER,
+                                    &AdvancedConfigPane::OnGPUClockOverrideSliderChanged, this);
+
+  m_sync_gpu_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Synchronous GPU"));
+
+  m_sync_gpu_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnSyncGPUCheckBoxChanged, this);
 
   m_custom_rtc_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Custom RTC"));
   m_custom_rtc_date_picker = new wxDatePickerCtrl(this, wxID_ANY);
@@ -55,7 +69,7 @@ void AdvancedConfigPane::InitializeGUI()
                                          "WARNING: Changing this from the default (100%) "
                                          "can and will break games and cause glitches. "
                                          "Do so at your own risk. Please do not report "
-                                         "bugs that occur with a non-default clock. "));
+                                         "bugs that occur with a non-default clock."));
 
   wxStaticText* const custom_rtc_description = new wxStaticText(
       this, wxID_ANY,
@@ -73,15 +87,25 @@ void AdvancedConfigPane::InitializeGUI()
   const int space5 = FromDIP(5);
 
   wxBoxSizer* const clock_override_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
-  clock_override_slider_sizer->Add(m_clock_override_slider, 1);
-  clock_override_slider_sizer->Add(m_clock_override_text, 1, wxLEFT, space5);
+  clock_override_slider_sizer->Add(m_cpu_clock_override_slider, 1);
+  clock_override_slider_sizer->Add(m_cpu_clock_override_text, 1, wxLEFT, space5);
+
+  wxBoxSizer* const gpu_clock_override_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
+  gpu_clock_override_slider_sizer->Add(m_gpu_clock_override_slider, 1);
+  gpu_clock_override_slider_sizer->Add(m_gpu_clock_override_text, 1, wxLEFT, space5);
 
   wxStaticBoxSizer* const cpu_options_sizer =
-      new wxStaticBoxSizer(wxVERTICAL, this, _("CPU Options"));
+      new wxStaticBoxSizer(wxVERTICAL, this, _("Overclock Options"));
   cpu_options_sizer->AddSpacer(space5);
-  cpu_options_sizer->Add(m_clock_override_checkbox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  cpu_options_sizer->Add(m_cpu_clock_override_checkbox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   cpu_options_sizer->AddSpacer(space5);
   cpu_options_sizer->Add(clock_override_slider_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  cpu_options_sizer->AddSpacer(space5);
+  cpu_options_sizer->Add(m_sync_gpu_checkbox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  cpu_options_sizer->AddSpacer(space5);
+  cpu_options_sizer->Add(m_gpu_clock_override_checkbox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  cpu_options_sizer->AddSpacer(space5);
+  cpu_options_sizer->Add(gpu_clock_override_slider_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   cpu_options_sizer->AddSpacer(space5);
   cpu_options_sizer->Add(clock_override_description, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   cpu_options_sizer->AddSpacer(space5);
@@ -113,19 +137,17 @@ void AdvancedConfigPane::InitializeGUI()
 
 void AdvancedConfigPane::LoadGUIValues()
 {
-  int ocFactor = (int)(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f + 0.5f);
-  bool oc_enabled = SConfig::GetInstance().m_OCEnable;
-  m_clock_override_checkbox->SetValue(oc_enabled);
-  m_clock_override_slider->SetValue(ocFactor);
-  m_clock_override_slider->Enable(oc_enabled);
+  LoadCPUOverclock();
+  LoadGPUOverclock();
   UpdateCPUClock();
+  UpdateGPUClock();
   LoadCustomRTC();
 }
 
 void AdvancedConfigPane::OnClockOverrideCheckBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_OCEnable = m_clock_override_checkbox->IsChecked();
-  m_clock_override_slider->Enable(SConfig::GetInstance().m_OCEnable);
+  SConfig::GetInstance().m_OCEnable = m_cpu_clock_override_checkbox->IsChecked();
+  m_cpu_clock_override_slider->Enable(SConfig::GetInstance().m_OCEnable);
   UpdateCPUClock();
 }
 
@@ -133,8 +155,37 @@ void AdvancedConfigPane::OnClockOverrideSliderChanged(wxCommandEvent& event)
 {
   // Vaguely exponential scaling?
   SConfig::GetInstance().m_OCFactor =
-      std::exp2f((m_clock_override_slider->GetValue() - 100.f) / 25.f);
+      std::exp2f((m_cpu_clock_override_slider->GetValue() - 100.f) / 25.f);
   UpdateCPUClock();
+}
+
+void AdvancedConfigPane::OnGPUClockOverrideCheckBoxChanged(wxCommandEvent&)
+{
+  SConfig::GetInstance().m_GPUOCEnable = m_gpu_clock_override_checkbox->IsChecked();
+  m_gpu_clock_override_slider->Enable(SConfig::GetInstance().m_GPUOCEnable);
+  UpdateGPUClock();
+}
+
+void AdvancedConfigPane::OnGPUClockOverrideSliderChanged(wxCommandEvent&)
+{
+  // Vaguely exponential scaling?
+  SConfig::GetInstance().fSyncGpuOverclock =
+      std::exp2f((m_gpu_clock_override_slider->GetValue() - 100.f) / 25.f);
+  UpdateGPUClock();
+}
+
+void AdvancedConfigPane::OnSyncGPUCheckBoxChanged(wxCommandEvent&)
+{
+  SConfig::GetInstance().bSyncGPU = m_sync_gpu_checkbox->IsChecked();
+  m_gpu_clock_override_checkbox->Enable(SConfig::GetInstance().bSyncGPU);
+  if (!SConfig::GetInstance().bSyncGPU)
+  {
+    // Disable GPU Overclocking
+    m_gpu_clock_override_checkbox->SetValue(false);
+    SConfig::GetInstance().m_GPUOCEnable = false;
+  }
+  m_gpu_clock_override_slider->Enable(m_gpu_clock_override_checkbox->IsChecked());
+  UpdateGPUClock();
 }
 
 static u32 ToSeconds(wxDateTime date)
@@ -165,11 +216,19 @@ void AdvancedConfigPane::OnCustomRTCTimeChanged(wxCommandEvent& event)
 void AdvancedConfigPane::UpdateCPUClock()
 {
   bool wii = SConfig::GetInstance().bWii;
-  int percent = (int)(std::roundf(SConfig::GetInstance().m_OCFactor * 100.f));
-  int clock = (int)(std::roundf(SConfig::GetInstance().m_OCFactor * (wii ? 729.f : 486.f)));
+  int percent = static_cast<int>(std::roundf(SConfig::GetInstance().m_OCFactor * 100.f));
+  int clock =
+      static_cast<int>(std::roundf(SConfig::GetInstance().m_OCFactor * (wii ? 729.f : 486.f)));
 
-  m_clock_override_text->SetLabel(
+  m_cpu_clock_override_text->SetLabel(
       SConfig::GetInstance().m_OCEnable ? wxString::Format("%d %% (%d mhz)", percent, clock) : "");
+}
+
+void AdvancedConfigPane::UpdateGPUClock()
+{
+  int percent = static_cast<int>(std::roundf(SConfig::GetInstance().fSyncGpuOverclock * 100.f));
+  m_gpu_clock_override_text->SetLabel(
+      SConfig::GetInstance().m_GPUOCEnable ? wxString::Format("%d %%", percent) : "");
 }
 
 void AdvancedConfigPane::LoadCustomRTC()
@@ -218,10 +277,47 @@ void AdvancedConfigPane::RefreshGUI()
     m_custom_rtc_date_picker->Disable();
     m_custom_rtc_time_picker->Disable();
   }
-  // Allow users to edit CPU clock speed in game, but not while needing determinism
+  // Allow users to edit CPU/GPU clock speed in game, but not while needing determinism
   if (Core::IsRunning() && Core::g_want_determinism)
   {
-    m_clock_override_checkbox->Disable();
-    m_clock_override_slider->Disable();
+    m_cpu_clock_override_checkbox->Disable();
+    m_cpu_clock_override_slider->Disable();
+    m_gpu_clock_override_checkbox->Disable();
+    m_gpu_clock_override_slider->Disable();
   }
+}
+
+void AdvancedConfigPane::LoadCPUOverclock()
+{
+  int cpu_oc_factor =
+      static_cast<int>(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f + 0.5f);
+  bool cpu_oc_enabled = SConfig::GetInstance().m_OCEnable;
+  m_cpu_clock_override_checkbox->SetValue(cpu_oc_enabled);
+  m_cpu_clock_override_slider->SetValue(cpu_oc_factor);
+  m_cpu_clock_override_slider->Enable(cpu_oc_enabled);
+}
+
+void AdvancedConfigPane::LoadGPUOverclock()
+{
+  int gpu_oc_factor =
+      static_cast<int>(std::log2f(SConfig::GetInstance().fSyncGpuOverclock) * 25.f + 100.f + 0.5f);
+  bool gpu_oc_enabled = SConfig::GetInstance().m_GPUOCEnable;
+  bool sync_gpu_enabled = SConfig::GetInstance().bSyncGPU;
+  if (SConfig::GetInstance().bCPUThread)
+  {
+    m_sync_gpu_checkbox->Enable();
+    m_sync_gpu_checkbox->SetValue(sync_gpu_enabled);
+  }
+  else  // SyncGPU is always enabled in single core mode
+  {
+    m_sync_gpu_checkbox->Disable();
+    m_sync_gpu_checkbox->SetValue(true);
+  }
+  if (m_sync_gpu_checkbox->GetValue())
+    m_gpu_clock_override_checkbox->Enable();
+  else
+    m_gpu_clock_override_checkbox->Disable();
+  m_gpu_clock_override_checkbox->SetValue(gpu_oc_enabled);
+  m_gpu_clock_override_slider->SetValue(gpu_oc_factor);
+  m_gpu_clock_override_slider->Enable(gpu_oc_enabled);
 }
