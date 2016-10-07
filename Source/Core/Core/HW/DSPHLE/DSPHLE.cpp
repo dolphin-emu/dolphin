@@ -16,9 +16,9 @@ DSPHLE::DSPHLE()
 {
 }
 
-bool DSPHLE::Initialize(bool bWii, bool bDSPThread)
+bool DSPHLE::Initialize(bool wii, bool dsp_thread)
 {
-  m_bWii = bWii;
+  m_wii = wii;
   m_pUCode = nullptr;
   m_lastUCode = nullptr;
   m_bHalt = false;
@@ -76,7 +76,7 @@ void DSPHLE::SetUCode(u32 _crc)
 
   m_pUCode = nullptr;
   m_MailHandler.Clear();
-  m_pUCode = UCodeFactory(_crc, this, m_bWii);
+  m_pUCode = UCodeFactory(_crc, this, m_wii);
 }
 
 // TODO do it better?
@@ -89,7 +89,7 @@ void DSPHLE::SwapUCode(u32 _crc)
   if (m_lastUCode == nullptr)
   {
     m_lastUCode = m_pUCode;
-    m_pUCode = UCodeFactory(_crc, this, m_bWii);
+    m_pUCode = UCodeFactory(_crc, this, m_wii);
   }
   else
   {
@@ -125,10 +125,10 @@ void DSPHLE::DoState(PointerWrap& p)
   // if a different type of ucode was being used when the savestate was created,
   // we have to reconstruct the old type of ucode so that we have a valid thing to call DoState on.
   UCodeInterface* ucode =
-      (ucode_crc == ucode_crc_beforeLoad) ? m_pUCode : UCodeFactory(ucode_crc, this, m_bWii);
+      (ucode_crc == ucode_crc_beforeLoad) ? m_pUCode : UCodeFactory(ucode_crc, this, m_wii);
   UCodeInterface* lastucode = (lastucode_crc != lastucode_crc_beforeLoad) ?
                                   m_lastUCode :
-                                  UCodeFactory(lastucode_crc, this, m_bWii);
+                                  UCodeFactory(lastucode_crc, this, m_wii);
 
   if (ucode)
     ucode->DoState(p);

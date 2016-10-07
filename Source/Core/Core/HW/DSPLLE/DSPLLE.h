@@ -18,7 +18,7 @@ class DSPLLE : public DSPEmulator
 public:
   DSPLLE();
 
-  bool Initialize(bool bWii, bool bDSPThread) override;
+  bool Initialize(bool wii, bool dsp_thread) override;
   void Shutdown() override;
   bool IsLLE() override { return true; }
   void DoState(PointerWrap& p) override;
@@ -39,8 +39,7 @@ private:
 
   std::thread m_hDSPThread;
   std::mutex m_csDSPThreadActive;
-  bool m_bWii;
-  bool m_bDSPThread;
+  bool m_bDSPThread = false;
   Common::Flag m_bIsRunning;
-  std::atomic<u32> m_cycle_count;
+  std::atomic<u32> m_cycle_count{};
 };
