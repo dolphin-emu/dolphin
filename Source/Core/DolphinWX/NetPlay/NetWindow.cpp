@@ -32,6 +32,7 @@
 #include "Common/FifoQueue.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI_Device.h"
