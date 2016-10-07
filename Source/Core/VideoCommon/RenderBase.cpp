@@ -113,10 +113,10 @@ Renderer::~Renderer()
 
 #if defined(HAVE_LIBAV) || defined(_WIN32)
   // Stop frame dumping if it was left enabled at shutdown time.
-  if (bAVIDumping)
+  if (m_AVI_dumping)
   {
     AVIDump::Stop();
-    bAVIDumping = false;
+    m_AVI_dumping = false;
   }
 #endif
 }
@@ -542,15 +542,15 @@ bool Renderer::IsFrameDumping()
   if (SConfig::GetInstance().m_DumpFrames)
     return true;
 
-  if (bLastFrameDumped && bAVIDumping)
+  if (m_last_frame_dumped && m_AVI_dumping)
   {
     AVIDump::Stop();
-    std::vector<u8>().swap(frame_data);
+    std::vector<u8>().swap(m_frame_data);
     m_last_framedump_width = m_last_framedump_height = 0;
-    bAVIDumping = false;
+    m_AVI_dumping = false;
     OSD::AddMessage("Stop dumping frames", 2000);
   }
-  bLastFrameDumped = false;
+  m_last_frame_dumped = false;
 #endif
   return false;
 }
@@ -579,12 +579,12 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, AVIDump::DumpFormat f
 
   // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
   //       It's also used to repeat the last frame.
-  frame_data.assign(data, data + image_size);
+  m_frame_data.assign(data, data + image_size);
 
-  if (!bLastFrameDumped)
+  if (!m_last_frame_dumped)
   {
-    bAVIDumping = AVIDump::Start(w, h, format);
-    if (!bAVIDumping)
+    m_AVI_dumping = AVIDump::Start(w, h, format);
+    if (!m_AVI_dumping)
     {
       OSD::AddMessage("AVIDump Start failed", 2000);
     }
@@ -595,23 +595,23 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, AVIDump::DumpFormat f
                       2000);
     }
   }
-  if (bAVIDumping)
+  if (m_AVI_dumping)
   {
     if (swap_upside_down)
-      FlipImageData(&frame_data[0], w, h, 4);
-    AVIDump::AddFrame(&frame_data[0], w, h);
+      FlipImageData(m_frame_data.data(), w, h, 4);
+    AVIDump::AddFrame(m_frame_data.data(), w, h);
   }
 
-  bLastFrameDumped = true;
+  m_last_frame_dumped = true;
 #endif
 }
 
 void Renderer::RepeatFrameDumpFrame()
 {
 #if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (SConfig::GetInstance().m_DumpFrames && bAVIDumping && !frame_data.empty())
+  if (SConfig::GetInstance().m_DumpFrames && m_AVI_dumping && !m_frame_data.empty())
   {
-    AVIDump::AddFrame(&frame_data[0], m_last_framedump_width, m_last_framedump_height);
+    AVIDump::AddFrame(m_frame_data.data(), m_last_framedump_width, m_last_framedump_height);
   }
 #endif
 }
