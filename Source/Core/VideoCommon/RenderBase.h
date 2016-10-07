@@ -23,6 +23,7 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
+#include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -146,14 +147,21 @@ protected:
   static void CheckFifoRecording();
   static void RecordVideoMemory();
 
+  bool IsFrameDumping();
+  void DumpFrameData(const u8* data, int w, int h, AVIDump::DumpFormat format,
+                     bool swap_upside_down = false);
+  void RepeatFrameDumpFrame();
+
   static volatile bool s_bScreenshot;
   static std::mutex s_criticalScreenshot;
   static std::string s_sScreenshotName;
 
-  bool bAVIDumping;
-
   std::vector<u8> frame_data;
-  bool bLastFrameDumped;
+  bool bAVIDumping = false;
+  bool bLastFrameDumped = false;
+  int m_last_framedump_width = 0;
+  int m_last_framedump_height = 0;
+  AVIDump::DumpFormat m_last_framedump_format;
 
   // The framebuffer size
   static int s_target_width;
