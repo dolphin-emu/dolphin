@@ -869,6 +869,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
                      source_height, dst_location.PlacedFootprint.Footprint.RowPitch);
 
     DumpFrameData(image.data(), source_width, source_height, AVIDump::DumpFormat::FORMAT_BGR, true);
+    FinishFrameData();
 
     D3D12_RANGE write_range = {};
     s_screenshot_texture->Unmap(0, &write_range);
