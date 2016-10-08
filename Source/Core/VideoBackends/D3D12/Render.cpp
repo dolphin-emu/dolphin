@@ -688,22 +688,6 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
   return saved_png;
 }
 
-void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
-{
-  for (int y = 0; y < h; ++y)
-  {
-    auto line = (in + (h - y - 1) * p);
-    for (int x = 0; x < w; ++x)
-    {
-      out[0] = line[2];
-      out[1] = line[1];
-      out[2] = line[0];
-      out += 3;
-      line += 4;
-    }
-  }
-}
-
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                         const EFBRectangle& rc, float gamma)
@@ -863,12 +847,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     D3D12_RANGE read_range = {0, dst_location.PlacedFootprint.Footprint.RowPitch * source_height};
     CheckHR(s_screenshot_texture->Map(0, &read_range, &screenshot_texture_map));
 
-    // TODO: This convertion is not needed. Get rid of it.
-    std::vector<u8> image(source_width * source_height * 3);
-    formatBufferDump(static_cast<u8*>(screenshot_texture_map), image.data(), source_width,
-                     source_height, dst_location.PlacedFootprint.Footprint.RowPitch);
-
-    DumpFrameData(image.data(), source_width, source_height, AVIDump::DumpFormat::FORMAT_BGR, true);
+    DumpFrameData(reinterpret_cast<const u8*>(screenshot_texture_map), source_width, source_height,
+                  AVIDump::DumpFormat::FORMAT_RGBA);
     FinishFrameData();
 
     D3D12_RANGE write_range = {};
