@@ -56,7 +56,6 @@ public:
   // alone on restore (false)
   bool bSetEmulationSpeed;
   bool bSetVolume;
-  bool bSetFrameSkip;
   std::array<bool, MAX_BBMOTES> bSetWiimoteSource;
   std::array<bool, MAX_SI_CHANNELS> bSetPads;
   std::array<bool, MAX_EXI_CHANNELS> bSetEXIDevice;
@@ -80,7 +79,6 @@ private:
   int iSelectedLanguage;
   int iCPUCore;
   int Volume;
-  unsigned int frameSkip;
   float m_EmulationSpeed;
   std::string strBackend;
   std::string sBackend;
@@ -112,7 +110,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   iCPUCore = config.iCPUCore;
   Volume = config.m_Volume;
   m_EmulationSpeed = config.m_EmulationSpeed;
-  frameSkip = config.m_FrameSkip;
   strBackend = config.m_strVideoBackend;
   sBackend = config.sBackend;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
@@ -123,7 +120,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
 
   bSetEmulationSpeed = false;
   bSetVolume = false;
-  bSetFrameSkip = false;
   bSetWiimoteSource.fill(false);
   bSetPads.fill(false);
   bSetEXIDevice.fill(false);
@@ -181,12 +177,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
   if (bSetEmulationSpeed)
     config->m_EmulationSpeed = m_EmulationSpeed;
-
-  if (bSetFrameSkip)
-  {
-    config->m_FrameSkip = frameSkip;
-    Movie::SetFrameSkipping(frameSkip);
-  }
 
   for (unsigned int i = 0; i < MAX_EXI_CHANNELS; ++i)
   {
@@ -264,11 +254,6 @@ bool BootCore(const std::string& _rFilename)
     if (core_section->Get("EmulationSpeed", &SConfig::GetInstance().m_EmulationSpeed,
                           SConfig::GetInstance().m_EmulationSpeed))
       config_cache.bSetEmulationSpeed = true;
-    if (core_section->Get("FrameSkip", &SConfig::GetInstance().m_FrameSkip))
-    {
-      config_cache.bSetFrameSkip = true;
-      Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
-    }
 
     if (dsp_section->Get("Volume", &SConfig::GetInstance().m_Volume,
                          SConfig::GetInstance().m_Volume))
