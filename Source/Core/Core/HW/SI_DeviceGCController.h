@@ -102,11 +102,11 @@ public:
   virtual EButtonCombo HandleButtonCombos(const GCPadStatus& pad_status);
 
   // Send and Receive pad input from network
-  static bool NetPlay_GetInput(u8 numPAD, GCPadStatus* status);
-  static u8 NetPlay_InGamePadToLocalPad(u8 numPAD);
+  static bool NetPlay_GetInput(int numPAD, GCPadStatus* status);
+  static int NetPlay_InGamePadToLocalPad(int numPAD);
 
   // Direct rumble to the right GC Controller
-  static void Rumble(u8 numPad, ControlState strength);
+  static void Rumble(int numPad, ControlState strength);
 
 protected:
   void Calibrate();
