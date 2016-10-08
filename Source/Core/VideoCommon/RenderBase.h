@@ -123,9 +123,9 @@ public:
 
   // Finish up the current frame, print some stats
   static void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                   float Gamma = 1.0f);
+                   u64 ticks, float Gamma = 1.0f);
   virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma = 1.0f) = 0;
+                        const EFBRectangle& rc, u64 ticks, float Gamma = 1.0f) = 0;
 
   static PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
   static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
@@ -146,7 +146,8 @@ protected:
   static void RecordVideoMemory();
 
   bool IsFrameDumping();
-  void DumpFrameData(const u8* data, int w, int h, int stride, bool swap_upside_down = false);
+  void DumpFrameData(const u8* data, int w, int h, int stride, u64 ticks,
+                     bool swap_upside_down = false);
   void FinishFrameData();
 
   static volatile bool s_bScreenshot;

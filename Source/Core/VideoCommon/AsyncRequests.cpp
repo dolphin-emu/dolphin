@@ -135,7 +135,7 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 
   case Event::SWAP_EVENT:
     Renderer::Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
-                   e.swap_event.fbHeight, rc);
+                   e.swap_event.fbHeight, rc, e.time);
     break;
 
   case Event::BBOX_READ:
