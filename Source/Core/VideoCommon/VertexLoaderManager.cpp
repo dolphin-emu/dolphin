@@ -180,8 +180,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
   return loader;
 }
 
-int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing,
-                bool is_preprocess)
+int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess)
 {
   if (!count)
     return 0;
@@ -192,7 +191,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
   if ((int)src.size() < size)
     return -1;
 
-  if (skip_drawing || is_preprocess)
+  if (is_preprocess)
     return size;
 
   // If the native vertex format changed, force a flush.
