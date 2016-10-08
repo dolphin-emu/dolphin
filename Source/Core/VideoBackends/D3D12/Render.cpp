@@ -509,8 +509,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
   // EXISTINGD3D11TODO: Should we enable Z testing here?
   /*if (!bpmem.zmode.testenable) depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_DISABLED];
-	else */ if (
-      z_enable)
+	else */ if (z_enable)
     depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_ENABLED];
   else /*if (!z_enable)*/
     depth_stencil_desc = &s_clear_depth_descs[CLEAR_DEPTH_DESC_DEPTH_ENABLED_WRITES_DISABLED];
@@ -707,8 +706,7 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                         const EFBRectangle& rc, float gamma)
 {
-  if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
-      !fb_width || !fb_height)
+  if ((!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
   {
     if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
       AVIDump::AddFrame(&frame_data[0], fb_width, fb_height);
