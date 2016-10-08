@@ -555,8 +555,7 @@ bool Renderer::IsFrameDumping()
   return false;
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, AVIDump::DumpFormat format,
-                             bool swap_upside_down)
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, bool swap_upside_down)
 {
 #if defined(HAVE_LIBAV) || defined(_WIN32)
   if (w == 0 || h == 0)
@@ -564,7 +563,6 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, AVIDump::
 
   m_last_framedump_width = w;
   m_last_framedump_height = h;
-  m_last_framedump_format = format;
   m_last_framedump_stride = stride;
 
   // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
@@ -572,7 +570,7 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, AVIDump::
 
   if (!m_last_frame_dumped)
   {
-    m_AVI_dumping = AVIDump::Start(w, h, format);
+    m_AVI_dumping = AVIDump::Start(w, h);
     if (!m_AVI_dumping)
     {
       OSD::AddMessage("AVIDump Start failed", 2000);

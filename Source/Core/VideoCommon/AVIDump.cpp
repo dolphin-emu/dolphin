@@ -47,7 +47,6 @@ static u64 s_last_pts;
 static int s_current_width;
 static int s_current_height;
 static int s_file_index = 0;
-static AVIDump::DumpFormat s_current_format;
 static const u8* s_stored_frame_data;
 static int s_stored_frame_width;
 static int s_stored_frame_height;
@@ -63,18 +62,9 @@ static void InitAVCodec()
   }
 }
 
-bool AVIDump::Start(int w, int h, DumpFormat format)
+bool AVIDump::Start(int w, int h)
 {
-  if (format == DumpFormat::FORMAT_BGR)
-  {
-    s_pix_fmt = AV_PIX_FMT_BGR24;
-  }
-  else
-  {
-    s_pix_fmt = AV_PIX_FMT_RGBA;
-  }
-
-  s_current_format = format;
+  s_pix_fmt = AV_PIX_FMT_RGBA;
 
   s_width = w;
   s_height = h;
@@ -320,7 +310,7 @@ void AVIDump::CheckResolution(int width, int height)
     int temp_file_index = s_file_index;
     Stop();
     s_file_index = temp_file_index + 1;
-    Start(width, height, s_current_format);
+    Start(width, height);
     s_current_width = width;
     s_current_height = height;
   }

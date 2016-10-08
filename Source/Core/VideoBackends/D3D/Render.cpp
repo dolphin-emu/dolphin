@@ -870,8 +870,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     D3D11_MAPPED_SUBRESOURCE map;
     D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
 
-    DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height, map.RowPitch,
-                  AVIDump::DumpFormat::FORMAT_RGBA);
+    DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height,
+                  map.RowPitch);
     FinishFrameData();
 
     D3D::context->Unmap(s_screenshot_texture, 0);
