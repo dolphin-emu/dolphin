@@ -15,13 +15,7 @@ private:
   static void StoreFrameData(const u8* data, int width, int height, int stride);
 
 public:
-  enum class DumpFormat
-  {
-    FORMAT_BGR,
-    FORMAT_RGBA
-  };
-
-  static bool Start(int w, int h, DumpFormat format);
+  static bool Start(int w, int h);
   static void AddFrame(const u8* data, int width, int height, int stride);
   static void Stop();
   static void DoState();
