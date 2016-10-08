@@ -546,7 +546,6 @@ bool Renderer::IsFrameDumping()
   {
     AVIDump::Stop();
     std::vector<u8>().swap(m_frame_data);
-    m_last_framedump_width = m_last_framedump_height = 0;
     m_AVI_dumping = false;
     OSD::AddMessage("Stop dumping frames", 2000);
   }
@@ -560,10 +559,6 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, bool swap
 #if defined(HAVE_LIBAV) || defined(_WIN32)
   if (w == 0 || h == 0)
     return;
-
-  m_last_framedump_width = w;
-  m_last_framedump_height = h;
-  m_last_framedump_stride = stride;
 
   // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
   m_frame_data.assign(data, data + stride * h);

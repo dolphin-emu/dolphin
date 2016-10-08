@@ -191,9 +191,6 @@ private:
   std::vector<u8> m_frame_data;
   bool m_AVI_dumping = false;
   bool m_last_frame_dumped = false;
-  int m_last_framedump_width = 0;
-  int m_last_framedump_height = 0;
-  int m_last_framedump_stride = 0;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;
