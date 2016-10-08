@@ -380,19 +380,16 @@ static void BPWritten(const BPCmd& bp)
   // -------------------------
   case BPMEM_CLEARBBOX1:
   case BPMEM_CLEARBBOX2:
-    // Don't compute bounding box if this frame is being skipped!
-    // Wrong but valid values are better than bogus values...
-    if (!Fifo::WillSkipCurrentFrame())
-    {
-      u8 offset = bp.address & 2;
-      BoundingBox::active = true;
+  {
+    u8 offset = bp.address & 2;
+    BoundingBox::active = true;
 
-      if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
-      {
-        g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
-        g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
-      }
+    if (g_ActiveConfig.backend_info.bSupportsBBox && g_ActiveConfig.bBBoxEnable)
+    {
+      g_renderer->BBoxWrite(offset, bp.newvalue & 0x3ff);
+      g_renderer->BBoxWrite(offset + 1, bp.newvalue >> 10);
     }
+  }
     return;
   case BPMEM_TEXINVALIDATE:
     // TODO: Needs some restructuring in TextureCacheBase.
