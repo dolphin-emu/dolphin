@@ -555,31 +555,20 @@ bool Renderer::IsFrameDumping()
   return false;
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, AVIDump::DumpFormat format,
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, AVIDump::DumpFormat format,
                              bool swap_upside_down)
 {
 #if defined(HAVE_LIBAV) || defined(_WIN32)
   if (w == 0 || h == 0)
     return;
 
-  size_t image_size;
-  switch (format)
-  {
-  case AVIDump::DumpFormat::FORMAT_BGR:
-    image_size = 3 * w * h;
-    break;
-  case AVIDump::DumpFormat::FORMAT_RGBA:
-    image_size = 4 * w * h;
-    break;
-  }
-
   m_last_framedump_width = w;
   m_last_framedump_height = h;
   m_last_framedump_format = format;
+  m_last_framedump_stride = stride;
 
   // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
-  //       It's also used to repeat the last frame.
-  m_frame_data.assign(data, data + image_size);
+  m_frame_data.assign(data, data + stride * h);
 
   if (!m_last_frame_dumped)
   {
@@ -599,21 +588,15 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, AVIDump::DumpFormat f
   {
     if (swap_upside_down)
       FlipImageData(m_frame_data.data(), w, h, 4);
-    AVIDump::AddFrame(m_frame_data.data(), w, h);
+    AVIDump::AddFrame(m_frame_data.data(), w, h, stride);
   }
 
   m_last_frame_dumped = true;
 #endif
 }
 
-void Renderer::RepeatFrameDumpFrame()
+void Renderer::FinishFrameData()
 {
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (SConfig::GetInstance().m_DumpFrames && m_AVI_dumping && !m_frame_data.empty())
-  {
-    AVIDump::AddFrame(m_frame_data.data(), m_last_framedump_width, m_last_framedump_height);
-  }
-#endif
 }
 
 void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
