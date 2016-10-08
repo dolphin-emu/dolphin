@@ -148,9 +148,9 @@ protected:
   static void RecordVideoMemory();
 
   bool IsFrameDumping();
-  void DumpFrameData(const u8* data, int w, int h, AVIDump::DumpFormat format,
+  void DumpFrameData(const u8* data, int w, int h, int stride, AVIDump::DumpFormat format,
                      bool swap_upside_down = false);
-  void RepeatFrameDumpFrame();
+  void FinishFrameData();
 
   static volatile bool s_bScreenshot;
   static std::mutex s_criticalScreenshot;
@@ -194,6 +194,7 @@ private:
   bool m_last_frame_dumped = false;
   int m_last_framedump_width = 0;
   int m_last_framedump_height = 0;
+  int m_last_framedump_stride = 0;
   AVIDump::DumpFormat m_last_framedump_format;
 };
 

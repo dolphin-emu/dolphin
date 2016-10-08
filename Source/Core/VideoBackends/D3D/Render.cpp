@@ -745,22 +745,6 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
   return saved_png;
 }
 
-void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
-{
-  for (int y = 0; y < h; ++y)
-  {
-    auto line = (in + (h - y - 1) * p);
-    for (int x = 0; x < w; ++x)
-    {
-      out[0] = line[2];
-      out[1] = line[1];
-      out[2] = line[0];
-      out += 3;
-      line += 4;
-    }
-  }
-}
-
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                         const EFBRectangle& rc, float Gamma)
@@ -768,7 +752,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
       !fbWidth || !fbHeight)
   {
-    RepeatFrameDumpFrame();
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -778,7 +761,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
   if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
   {
-    RepeatFrameDumpFrame();
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -888,11 +870,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     D3D11_MAPPED_SUBRESOURCE map;
     D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
 
-    // TODO: This convertion is not needed. Get rid of it.
-    std::vector<u8> image(source_width * source_height * 3);
-    formatBufferDump((u8*)map.pData, image.data(), source_width, source_height, map.RowPitch);
-
-    DumpFrameData(image.data(), source_width, source_height, AVIDump::DumpFormat::FORMAT_BGR, true);
+    DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height, map.RowPitch,
+                  AVIDump::DumpFormat::FORMAT_RGBA);
+    FinishFrameData();
 
     D3D::context->Unmap(s_screenshot_texture, 0);
   }
