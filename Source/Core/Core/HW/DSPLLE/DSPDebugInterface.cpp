@@ -2,12 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/DSPLLE/DSPDebugInterface.h"
+
 #include <string>
 
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
-#include "Core/HW/DSPLLE/DSPDebugInterface.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"
 
 std::string DSPDebugInterface::Disassemble(unsigned int address)
@@ -16,14 +18,10 @@ std::string DSPDebugInterface::Disassemble(unsigned int address)
   return DSPSymbols::GetLineText(address);
 }
 
-void DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address, char* dest,
-                                           int max_size)
+std::string DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address)
 {
   if (DSPCore_GetState() == DSPCORE_STOP)
-  {
-    dest[0] = 0;
-    return;
-  }
+    return "";
 
   switch (memory)
   {
@@ -32,29 +30,25 @@ void DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address, cha
     {
     case 0:
     case 0x8:
-      sprintf(dest, "%04x", dsp_imem_read(address));
-      break;
+      return StringFromFormat("%04x", dsp_imem_read(address));
     default:
-      sprintf(dest, "--IMEM--");
-      break;
+      return "--IMEM--";
     }
-    break;
+
   case 1:  // DMEM
     switch (address >> 12)
     {
     case 0:
     case 1:
-      sprintf(dest, "%04x (DMEM)", dsp_dmem_read(address));
-      break;
+      return StringFromFormat("%04x (DMEM)", dsp_dmem_read(address));
     case 0xf:
-      sprintf(dest, "%04x (MMIO)", g_dsp.ifx_regs[address & 0xFF]);
-      break;
+      return StringFromFormat("%04x (MMIO)", g_dsp.ifx_regs[address & 0xFF]);
     default:
-      sprintf(dest, "--DMEM--");
-      break;
+      return "--DMEM--";
     }
-    break;
   }
+
+  return "";
 }
 
 unsigned int DSPDebugInterface::ReadMemory(unsigned int address)
