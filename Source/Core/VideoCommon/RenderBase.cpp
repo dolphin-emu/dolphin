@@ -24,6 +24,7 @@
 #include "Common/Flag.h"
 #include "Common/Profiler.h"
 #include "Common/StringUtil.h"
+#include "Common/Thread.h"
 #include "Common/Timer.h"
 
 #include "Core/ConfigManager.h"
@@ -113,14 +114,9 @@ Renderer::~Renderer()
 
   efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  // Stop frame dumping if it was left enabled at shutdown time.
-  if (m_AVI_dumping)
-  {
-    AVIDump::Stop();
-    m_AVI_dumping = false;
-  }
-#endif
+  ShutdownFrameDumping();
+  if (m_framedump_thread.joinable())
+    m_framedump_thread.join();
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
@@ -549,73 +545,121 @@ bool Renderer::IsFrameDumping()
 #if defined(HAVE_LIBAV) || defined(_WIN32)
   if (SConfig::GetInstance().m_DumpFrames)
     return true;
-
-  if (m_last_frame_dumped && m_AVI_dumping)
-  {
-    AVIDump::Stop();
-    std::vector<u8>().swap(m_frame_data);
-    m_AVI_dumping = false;
-    OSD::AddMessage("Stop dumping frames", 2000);
-  }
-  m_last_frame_dumped = false;
 #endif
+
+  ShutdownFrameDumping();
   return false;
+}
+
+void Renderer::ShutdownFrameDumping()
+{
+  if (m_framedump_thread_running.IsSet())
+  {
+    FinishFrameData();
+    m_framedump_thread_running.Clear();
+    m_framedump_start.Set();
+  }
 }
 
 void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, u64 ticks,
                              bool swap_upside_down)
 {
-  if (w == 0 || h == 0)
-    return;
+  FinishFrameData();
 
-  // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
-  m_frame_data.assign(data, data + stride * h);
-  if (swap_upside_down)
-    FlipImageData(m_frame_data.data(), w, h, 4);
+  m_framedump = FrameDumpConfig{data, w, h, stride, ticks, swap_upside_down};
 
-  // Save screenshot
-  if (s_bScreenshot)
+  if (!m_framedump_thread_running.IsSet())
   {
-    std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-
-    if (TextureToPng(m_frame_data.data(), stride, s_sScreenshotName, w, h, false))
-      OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
-
-    // Reset settings
-    s_sScreenshotName.clear();
-    s_bScreenshot = false;
-    s_screenshotCompleted.Set();
+    if (m_framedump_thread.joinable())
+      m_framedump_thread.join();
+    m_framedump_thread_running.Set();
+    m_framedump_thread = std::thread(&Renderer::RunFrameDumps, this);
   }
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (SConfig::GetInstance().m_DumpFrames)
-  {
-    if (!m_last_frame_dumped)
-    {
-      m_AVI_dumping = AVIDump::Start(w, h);
-      if (!m_AVI_dumping)
-      {
-        OSD::AddMessage("AVIDump Start failed", 2000);
-      }
-      else
-      {
-        OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                         File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h),
-                        2000);
-      }
-    }
-    if (m_AVI_dumping)
-    {
-      AVIDump::AddFrame(m_frame_data.data(), w, h, stride, ticks);
-    }
-
-    m_last_frame_dumped = true;
-  }
-#endif
+  m_framedump_start.Set();
+  m_framedump_frame_running = true;
 }
 
 void Renderer::FinishFrameData()
 {
+  if (m_framedump_frame_running)
+  {
+    m_framedump_done.Wait();
+    m_framedump_frame_running = false;
+  }
+}
+
+void Renderer::RunFrameDumps()
+{
+  Common::SetCurrentThreadName("FrameDumping");
+  bool AVI_dump_started = false;
+  std::vector<u8> data;
+
+  while (true)
+  {
+    m_framedump_start.Wait();
+    if (!m_framedump_thread_running.IsSet())
+      break;
+
+    const auto config = m_framedump;
+
+    // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
+    data.assign(config.data, config.data + config.stride * config.height);
+
+    // As we've done a copy now, there is no need to block the GPU thread any longer.
+    m_framedump_done.Set();
+
+    if (config.upside_down)
+      FlipImageData(data.data(), config.width, config.height, 4);
+
+    // Save screenshot
+    if (s_bScreenshot)
+    {
+      std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+
+      if (TextureToPng(data.data(), config.stride, s_sScreenshotName, config.width, config.height,
+                       false))
+        OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
+
+      // Reset settings
+      s_sScreenshotName.clear();
+      s_bScreenshot = false;
+      s_screenshotCompleted.Set();
+    }
+
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+    if (SConfig::GetInstance().m_DumpFrames)
+    {
+      if (!AVI_dump_started)
+      {
+        if (AVIDump::Start(m_framedump.width, m_framedump.height))
+        {
+          AVI_dump_started = true;
+          OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+                                           File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+                                           m_framedump.width, m_framedump.height));
+        }
+        else
+        {
+          SConfig::GetInstance().m_DumpFrames = false;
+          OSD::AddMessage("AVIDump Start failed");
+          return;
+        }
+      }
+
+      AVIDump::AddFrame(data.data(), config.width, config.height, config.stride, config.ticks);
+    }
+#endif
+  }
+
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  if (AVI_dump_started)
+  {
+    AVI_dump_started = false;
+    AVIDump::Stop();
+    OSD::AddMessage("Stop dumping frames");
+  }
+#endif
 }
 
 void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)

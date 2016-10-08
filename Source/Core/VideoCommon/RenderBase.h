@@ -14,9 +14,11 @@
 
 #pragma once
 
+#include <condition_variable>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -180,6 +182,9 @@ protected:
   static void* s_new_surface_handle;
 
 private:
+  void RunFrameDumps();
+  void ShutdownFrameDumping();
+
   static PEControl::PixelFormat prev_efb_format;
   static unsigned int efb_scale_numeratorX;
   static unsigned int efb_scale_numeratorY;
@@ -187,9 +192,20 @@ private:
   static unsigned int efb_scale_denominatorY;
 
   // framedumping
-  std::vector<u8> m_frame_data;
-  bool m_AVI_dumping = false;
-  bool m_last_frame_dumped = false;
+  std::thread m_framedump_thread;
+  Common::Event m_framedump_start;
+  Common::Event m_framedump_done;
+  Common::Flag m_framedump_thread_running;
+  bool m_framedump_frame_running = false;
+  struct FrameDumpConfig
+  {
+    const u8* data;
+    int width;
+    int height;
+    int stride;
+    u64 ticks;
+    bool upside_down;
+  } m_framedump;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;
