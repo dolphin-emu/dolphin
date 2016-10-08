@@ -44,16 +44,12 @@
 // The chunk to allocate movie data in multiples of.
 #define DTM_BASE_LENGTH (1024)
 
-static std::mutex cs_frameSkip;
-
 namespace Movie
 {
 static bool s_bFrameStep = false;
 static bool s_bReadOnly = true;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = MODE_NONE;
-
-static u32 s_framesToSkip = 0, s_frameSkipCounter = 0;
 
 static u8 s_numPads = 0;
 static ControllerState s_padState;
@@ -211,9 +207,6 @@ void FrameUpdate()
     CPU::Break();
   }
 
-  if (s_framesToSkip)
-    FrameSkipping();
-
   s_bPolled = false;
 }
 
@@ -247,7 +240,6 @@ void Init()
     s_tickCountAtLastInput = 0;
   }
 
-  s_frameSkipCounter = s_framesToSkip;
   memset(&s_padState, 0, sizeof(s_padState));
   if (!tmpHeader.bFromSaveState || !IsPlayingInput())
     Core::SetStateFileName("");
@@ -276,20 +268,6 @@ void InputUpdate()
     s_totalTickCount += CoreTiming::GetTicks() - s_tickCountAtLastInput;
     s_tickCountAtLastInput = CoreTiming::GetTicks();
   }
-}
-
-// NOTE: Host Thread
-void SetFrameSkipping(unsigned int framesToSkip)
-{
-  std::lock_guard<std::mutex> lk(cs_frameSkip);
-
-  s_framesToSkip = framesToSkip;
-  s_frameSkipCounter = 0;
-
-  // Don't forget to re-enable rendering in case it wasn't...
-  // as this won't be changed anymore when frameskip is turned off
-  if (framesToSkip == 0)
-    Fifo::SetRendering(true);
 }
 
 // NOTE: CPU Thread
@@ -322,22 +300,6 @@ void SetReadOnly(bool bEnabled)
     Core::DisplayMessage(bEnabled ? "Read-only mode." : "Read+Write mode.", 1000);
 
   s_bReadOnly = bEnabled;
-}
-
-// NOTE: GPU Thread
-void FrameSkipping()
-{
-  // Frameskipping will desync movie playback
-  if (!Core::g_want_determinism)
-  {
-    std::lock_guard<std::mutex> lk(cs_frameSkip);
-
-    s_frameSkipCounter++;
-    if (s_frameSkipCounter > s_framesToSkip || Core::ShouldSkipFrame(s_frameSkipCounter) == false)
-      s_frameSkipCounter = 0;
-
-    Fifo::SetRendering(!s_frameSkipCounter);
-  }
 }
 
 bool IsRecordingInput()
