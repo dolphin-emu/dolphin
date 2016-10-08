@@ -29,7 +29,6 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -482,23 +481,13 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Draw to the screenshot buffer if needed.
-  bool needs_framedump = IsFrameDumping();
-  bool needs_screenshot = s_bScreenshot || needs_framedump;
-  if (needs_screenshot && DrawScreenshot(source_rc, efb_color_texture))
+  if (IsFrameDumping() && DrawScreenshot(source_rc, efb_color_texture))
   {
-    if (s_bScreenshot)
-    {
-      WriteScreenshot();
-    }
-
-    if (needs_framedump)
-    {
-      DumpFrameData(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
-                    static_cast<int>(m_screenshot_render_texture->GetWidth()),
-                    static_cast<int>(m_screenshot_render_texture->GetHeight()),
-                    static_cast<int>(m_screenshot_readback_texture->GetRowStride()));
-      FinishFrameData();
-    }
+    DumpFrameData(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
+                  static_cast<int>(m_screenshot_render_texture->GetWidth()),
+                  static_cast<int>(m_screenshot_render_texture->GetHeight()),
+                  static_cast<int>(m_screenshot_readback_texture->GetRowStride()));
+    FinishFrameData();
   }
 
   // Restore the EFB color texture to color attachment ready for rendering the next frame.
@@ -757,23 +746,6 @@ void Renderer::DestroyScreenshotResources()
 
   m_screenshot_render_texture.reset();
   m_screenshot_readback_texture.reset();
-}
-
-void Renderer::WriteScreenshot()
-{
-  std::lock_guard<std::mutex> guard(s_criticalScreenshot);
-
-  if (!TextureToPng(reinterpret_cast<u8*>(m_screenshot_readback_texture->GetMapPointer()),
-                    static_cast<int>(m_screenshot_readback_texture->GetRowStride()),
-                    s_sScreenshotName, static_cast<int>(m_screenshot_render_texture->GetWidth()),
-                    static_cast<int>(m_screenshot_render_texture->GetHeight()), false))
-  {
-    WARN_LOG(VIDEO, "Failed to write screenshot to %s", s_sScreenshotName.c_str());
-  }
-
-  s_sScreenshotName.clear();
-  s_bScreenshot = false;
-  s_screenshotCompleted.Set();
 }
 
 void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)

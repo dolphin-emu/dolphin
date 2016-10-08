@@ -32,7 +32,6 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -712,39 +711,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
   }
 }
 
-bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle& rc)
-{
-  if (!s_screenshot_texture)
-    CreateScreenshotTexture();
-
-  // copy back buffer to system memory
-  D3D11_BOX source_box = GetScreenshotSourceBox(rc);
-  D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
-                                      (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0,
-                                      &source_box);
-
-  D3D11_MAPPED_SUBRESOURCE map;
-  D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
-
-  bool saved_png =
-      TextureToPng((u8*)map.pData, map.RowPitch, filename, source_box.right - source_box.left,
-                   source_box.bottom - source_box.top, false);
-
-  D3D::context->Unmap(s_screenshot_texture, 0);
-
-  if (saved_png)
-  {
-    OSD::AddMessage(
-        StringFromFormat("Saved %i x %i %s", rc.GetWidth(), rc.GetHeight(), filename.c_str()));
-  }
-  else
-  {
-    OSD::AddMessage(StringFromFormat("Error saving %s", filename.c_str()));
-  }
-
-  return saved_png;
-}
-
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                         const EFBRectangle& rc, float Gamma)
@@ -841,17 +807,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     // texture as source
     D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
     BlitScreen(sourceRc, targetRc, read_texture, GetTargetWidth(), GetTargetHeight(), Gamma);
-  }
-
-  // done with drawing the game stuff, good moment to save a screenshot
-  if (s_bScreenshot)
-  {
-    std::lock_guard<std::mutex> guard(s_criticalScreenshot);
-
-    SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
-    s_sScreenshotName.clear();
-    s_bScreenshot = false;
-    s_screenshotCompleted.Set();
   }
 
   // Dump frames

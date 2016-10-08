@@ -34,7 +34,6 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -631,63 +630,6 @@ void Renderer::SetBlendMode(bool force_update)
   D3D::command_list_mgr->SetCommandListDirtyState(COMMAND_LIST_STATE_PSO, true);
 }
 
-bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle& rc)
-{
-  if (!s_screenshot_texture)
-    CreateScreenshotTexture();
-
-  // copy back buffer to system memory
-  bool saved_png = false;
-
-  D3D12_BOX source_box = GetScreenshotSourceBox(rc);
-
-  D3D12_TEXTURE_COPY_LOCATION dst_location = {};
-  dst_location.pResource = s_screenshot_texture;
-  dst_location.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
-  dst_location.PlacedFootprint.Offset = 0;
-  dst_location.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
-  dst_location.PlacedFootprint.Footprint.Width = D3D::GetBackBufferWidth();
-  dst_location.PlacedFootprint.Footprint.Height = D3D::GetBackBufferHeight();
-  dst_location.PlacedFootprint.Footprint.Depth = 1;
-  dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(
-      dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
-
-  D3D12_TEXTURE_COPY_LOCATION src_location = {};
-  src_location.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
-  src_location.SubresourceIndex = 0;
-  src_location.pResource = D3D::GetBackBuffer()->GetTex12();
-
-  D3D::GetBackBuffer()->TransitionToResourceState(D3D::current_command_list,
-                                                  D3D12_RESOURCE_STATE_COPY_SOURCE);
-  D3D::current_command_list->CopyTextureRegion(&dst_location, 0, 0, 0, &src_location, &source_box);
-
-  D3D::command_list_mgr->ExecuteQueuedWork(true);
-
-  void* screenshot_texture_map;
-  D3D12_RANGE read_range = {0, dst_location.PlacedFootprint.Footprint.RowPitch *
-                                   (source_box.bottom - source_box.top)};
-  CheckHR(s_screenshot_texture->Map(0, &read_range, &screenshot_texture_map));
-
-  saved_png = TextureToPng(
-      static_cast<u8*>(screenshot_texture_map), dst_location.PlacedFootprint.Footprint.RowPitch,
-      filename, source_box.right - source_box.left, source_box.bottom - source_box.top, false);
-
-  D3D12_RANGE write_range = {};
-  s_screenshot_texture->Unmap(0, &write_range);
-
-  if (saved_png)
-  {
-    OSD::AddMessage(
-        StringFromFormat("Saved %i x %i %s", rc.GetWidth(), rc.GetHeight(), filename.c_str()));
-  }
-  else
-  {
-    OSD::AddMessage(StringFromFormat("Error saving %s", filename.c_str()));
-  }
-
-  return saved_png;
-}
-
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                         const EFBRectangle& rc, float gamma)
@@ -796,17 +738,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     D3DTexture2D* read_texture = FramebufferManager::GetResolvedEFBColorTexture();
 
     BlitScreen(source_rc, target_rc, read_texture, GetTargetWidth(), GetTargetHeight(), gamma);
-  }
-
-  // done with drawing the game stuff, good moment to save a screenshot
-  if (s_bScreenshot)
-  {
-    std::lock_guard<std::mutex> guard(s_criticalScreenshot);
-
-    SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
-    s_sScreenshotName.clear();
-    s_bScreenshot = false;
-    s_screenshotCompleted.Set();
   }
 
   // Dump frames
