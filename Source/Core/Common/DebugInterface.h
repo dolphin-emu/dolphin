@@ -13,10 +13,9 @@ protected:
   virtual ~DebugInterface() {}
 public:
   virtual std::string Disassemble(unsigned int /*address*/) { return "NODEBUGGER"; }
-  virtual void GetRawMemoryString(int /*memory*/, unsigned int /*address*/, char* dest,
-                                  int /*max_size*/)
+  virtual std::string GetRawMemoryString(int /*memory*/, unsigned int /*address*/)
   {
-    strcpy(dest, "NODEBUGGER");
+    return "NODEBUGGER";
   }
   virtual int GetInstructionSize(int /*instruction*/) { return 1; }
   virtual bool IsAlive() { return true; }

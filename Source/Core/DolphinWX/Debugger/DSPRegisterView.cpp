@@ -13,7 +13,7 @@
 
 wxString CDSPRegTable::GetValue(int row, int col)
 {
-  if (row < 32)  // 32 "normal" regs
+  if (row < GetNumberRows())
   {
     switch (col)
     {
@@ -41,10 +41,12 @@ void CDSPRegTable::UpdateCachedRegs()
 
   m_CachedCounter = g_dsp.step_counter;
 
-  for (int i = 0; i < 32; ++i)
+  for (size_t i = 0; i < m_CachedRegs.size(); ++i)
   {
-    m_CachedRegHasChanged[i] = (m_CachedRegs[i] != DSPCore_ReadRegister(i));
-    m_CachedRegs[i] = DSPCore_ReadRegister(i);
+    const u16 value = DSPCore_ReadRegister(i);
+
+    m_CachedRegHasChanged[i] = m_CachedRegs[i] != value;
+    m_CachedRegs[i] = value;
   }
 }
 

@@ -745,22 +745,6 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
   return saved_png;
 }
 
-void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
-{
-  for (int y = 0; y < h; ++y)
-  {
-    auto line = (in + (h - y - 1) * p);
-    for (int x = 0; x < w; ++x)
-    {
-      out[0] = line[2];
-      out[1] = line[1];
-      out[2] = line[0];
-      out += 3;
-      line += 4;
-    }
-  }
-}
-
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                         const EFBRectangle& rc, float Gamma)
@@ -768,9 +752,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
       !fbWidth || !fbHeight)
   {
-    if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
-      AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
-
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -780,9 +761,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
   if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
   {
-    if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
-      AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
-
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -877,7 +855,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   }
 
   // Dump frames
-  if (SConfig::GetInstance().m_DumpFrames)
+  if (IsFrameDumping())
   {
     if (!s_screenshot_texture)
       CreateScreenshotTexture();
@@ -888,47 +866,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
                                         (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0,
                                         &source_box);
-    if (!bLastFrameDumped)
-    {
-      bAVIDumping = AVIDump::Start(source_width, source_height, AVIDump::DumpFormat::FORMAT_BGR);
-      if (!bAVIDumping)
-      {
-        PanicAlert("Error dumping frames to AVI.");
-      }
-      else
-      {
-        std::string msg = StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                           File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                                           source_width, source_height);
 
-        OSD::AddMessage(msg, 2000);
-      }
-    }
-    if (bAVIDumping)
-    {
-      D3D11_MAPPED_SUBRESOURCE map;
-      D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
+    D3D11_MAPPED_SUBRESOURCE map;
+    D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
 
-      if (frame_data.capacity() != 3 * source_width * source_height)
-        frame_data.resize(3 * source_width * source_height);
+    DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height, map.RowPitch,
+                  AVIDump::DumpFormat::FORMAT_RGBA);
+    FinishFrameData();
 
-      formatBufferDump((u8*)map.pData, &frame_data[0], source_width, source_height, map.RowPitch);
-      FlipImageData(&frame_data[0], source_width, source_height);
-      AVIDump::AddFrame(&frame_data[0], source_width, source_height);
-      D3D::context->Unmap(s_screenshot_texture, 0);
-    }
-    bLastFrameDumped = true;
-  }
-  else
-  {
-    if (bLastFrameDumped && bAVIDumping)
-    {
-      AVIDump::Stop();
-      std::vector<u8>().swap(frame_data);
-      bAVIDumping = false;
-      OSD::AddMessage("Stop dumping frames to AVI", 2000);
-    }
-    bLastFrameDumped = false;
+    D3D::context->Unmap(s_screenshot_texture, 0);
   }
 
   // Reset viewport for drawing text

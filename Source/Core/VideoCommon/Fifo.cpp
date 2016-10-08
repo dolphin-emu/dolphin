@@ -371,7 +371,8 @@ void RunGpuLoop()
             {
               cyclesExecuted = (int)(cyclesExecuted / param.fSyncGpuOverclock);
               int old = s_sync_ticks.fetch_sub(cyclesExecuted);
-              if (old > 0 && old - (int)cyclesExecuted <= 0)
+              if (old >= param.iSyncGpuMaxDistance &&
+                  old - (int)cyclesExecuted < param.iSyncGpuMaxDistance)
                 s_sync_wakeup_event.Set();
             }
 
@@ -386,7 +387,7 @@ void RunGpuLoop()
           if (s_sync_ticks.load() > 0)
           {
             int old = s_sync_ticks.exchange(0);
-            if (old > 0)
+            if (old >= param.iSyncGpuMaxDistance)
               s_sync_wakeup_event.Set();
           }
 
@@ -554,36 +555,26 @@ static int WaitForGpuThread(int ticks)
 {
   const SConfig& param = SConfig::GetInstance();
 
-  // GPU is sleeping, so no need for synchronization
-  if (s_gpu_mainloop.IsDone() || s_use_deterministic_gpu_thread)
-  {
-    if ((s_sync_ticks.load() + ticks) < 0)
-    {
-      s_sync_ticks.store(s_sync_ticks.load() + ticks);
-      return 0 - s_sync_ticks.load();
-    }
-    else
-    {
-      s_sync_ticks.store(0);
-      return -1;
-    }
-  }
+  int old = s_sync_ticks.fetch_add(ticks);
+  int now = old + ticks;
+
+  // GPU is idle, so stop polling.
+  if (old >= 0 && s_gpu_mainloop.IsDone())
+    return -1;
 
   // Wakeup GPU
-  int old = s_sync_ticks.fetch_add(ticks);
-  if (old < param.iSyncGpuMinDistance && old + ticks >= param.iSyncGpuMinDistance)
+  if (old < param.iSyncGpuMinDistance && now >= param.iSyncGpuMinDistance)
     RunGpu();
 
-  // Wait for GPU
-  if (s_sync_ticks.load() >= param.iSyncGpuMaxDistance)
-  {
-    while (s_sync_ticks.load() > 0)
-    {
-      s_sync_wakeup_event.Wait();
-    }
-  }
+  // If the GPU is still sleeping, wait for a longer time
+  if (now < param.iSyncGpuMinDistance)
+    return GPU_TIME_SLOT_SIZE + param.iSyncGpuMinDistance - now;
 
-  return param.iSyncGpuMaxDistance - s_sync_ticks.load();
+  // Wait for GPU
+  if (now >= param.iSyncGpuMaxDistance)
+    s_sync_wakeup_event.Wait();
+
+  return GPU_TIME_SLOT_SIZE;
 }
 
 static void SyncGPUCallback(u64 ticks, s64 cyclesLate)

@@ -688,22 +688,6 @@ bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle
   return saved_png;
 }
 
-void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
-{
-  for (int y = 0; y < h; ++y)
-  {
-    auto line = (in + (h - y - 1) * p);
-    for (int x = 0; x < w; ++x)
-    {
-      out[0] = line[2];
-      out[1] = line[1];
-      out[2] = line[0];
-      out += 3;
-      line += 4;
-    }
-  }
-}
-
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                         const EFBRectangle& rc, float gamma)
@@ -711,9 +695,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
       !fb_width || !fb_height)
   {
-    if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
-      AVIDump::AddFrame(&frame_data[0], fb_width, fb_height);
-
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -723,9 +704,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
       FramebufferManager::GetXFBSource(xfb_addr, fb_stride, fb_height, &xfb_count);
   if ((!xfb_source_list || xfb_count == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
   {
-    if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
-      AVIDump::AddFrame(&frame_data[0], fb_width, fb_height);
-
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -832,7 +810,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   }
 
   // Dump frames
-  if (SConfig::GetInstance().m_DumpFrames)
+  if (IsFrameDumping())
   {
     if (!s_screenshot_texture)
       CreateScreenshotTexture();
@@ -865,51 +843,17 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
     D3D::command_list_mgr->ExecuteQueuedWork(true);
 
-    if (!bLastFrameDumped)
-    {
-      bAVIDumping = AVIDump::Start(source_width, source_height, AVIDump::DumpFormat::FORMAT_BGR);
-      if (!bAVIDumping)
-      {
-        PanicAlert("Error dumping frames to AVI.");
-      }
-      else
-      {
-        std::string msg = StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                           File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                                           source_width, source_height);
+    void* screenshot_texture_map;
+    D3D12_RANGE read_range = {0, dst_location.PlacedFootprint.Footprint.RowPitch * source_height};
+    CheckHR(s_screenshot_texture->Map(0, &read_range, &screenshot_texture_map));
 
-        OSD::AddMessage(msg, 2000);
-      }
-    }
-    if (bAVIDumping)
-    {
-      if (frame_data.capacity() != 3 * source_width * source_height)
-        frame_data.resize(3 * source_width * source_height);
+    DumpFrameData(reinterpret_cast<const u8*>(screenshot_texture_map), source_width, source_height,
+                  dst_location.PlacedFootprint.Footprint.RowPitch,
+                  AVIDump::DumpFormat::FORMAT_RGBA);
+    FinishFrameData();
 
-      void* screenshot_texture_map;
-      D3D12_RANGE read_range = {0, dst_location.PlacedFootprint.Footprint.RowPitch * source_height};
-      CheckHR(s_screenshot_texture->Map(0, &read_range, &screenshot_texture_map));
-      formatBufferDump(static_cast<u8*>(screenshot_texture_map), &frame_data[0], source_width,
-                       source_height, dst_location.PlacedFootprint.Footprint.RowPitch);
-
-      D3D12_RANGE write_range = {};
-      s_screenshot_texture->Unmap(0, &write_range);
-
-      FlipImageData(&frame_data[0], source_width, source_height);
-      AVIDump::AddFrame(&frame_data[0], source_width, source_height);
-    }
-    bLastFrameDumped = true;
-  }
-  else
-  {
-    if (bLastFrameDumped && bAVIDumping)
-    {
-      AVIDump::Stop();
-      std::vector<u8>().swap(frame_data);
-      bAVIDumping = false;
-      OSD::AddMessage("Stop dumping frames to AVI", 2000);
-    }
-    bLastFrameDumped = false;
+    D3D12_RANGE write_range = {};
+    s_screenshot_texture->Unmap(0, &write_range);
   }
 
   // Reset viewport for drawing text

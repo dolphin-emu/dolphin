@@ -26,10 +26,7 @@
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
 #include "VideoCommon/AVIDump.h"
-#endif
-
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/ImageWrite.h"
@@ -65,15 +62,6 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::mo
 
 Renderer::~Renderer()
 {
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  // Stop frame dumping if it was left enabled at shutdown time.
-  if (bAVIDumping)
-  {
-    AVIDump::Stop();
-    bAVIDumping = false;
-  }
-#endif
-
   g_Config.bRunning = false;
   UpdateActiveConfig();
   DestroyScreenshotResources();
@@ -494,20 +482,24 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Draw to the screenshot buffer if needed.
-  bool needs_screenshot = (s_bScreenshot || SConfig::GetInstance().m_DumpFrames);
+  bool needs_framedump = IsFrameDumping();
+  bool needs_screenshot = s_bScreenshot || needs_framedump;
   if (needs_screenshot && DrawScreenshot(source_rc, efb_color_texture))
   {
     if (s_bScreenshot)
+    {
       WriteScreenshot();
+    }
 
-    if (SConfig::GetInstance().m_DumpFrames)
-      WriteFrameDump();
-  }
-  else
-  {
-    // Stop frame dump if requested.
-    if (bAVIDumping)
-      StopFrameDump();
+    if (needs_framedump)
+    {
+      DumpFrameData(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
+                    static_cast<int>(m_screenshot_render_texture->GetWidth()),
+                    static_cast<int>(m_screenshot_render_texture->GetHeight()),
+                    static_cast<int>(m_screenshot_readback_texture->GetRowStride()),
+                    AVIDump::DumpFormat::FORMAT_RGBA);
+      FinishFrameData();
+    }
   }
 
   // Restore the EFB color texture to color attachment ready for rendering the next frame.
@@ -785,56 +777,6 @@ void Renderer::WriteScreenshot()
   s_screenshotCompleted.Set();
 }
 
-void Renderer::WriteFrameDump()
-{
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (!bLastFrameDumped)
-  {
-    bLastFrameDumped = true;
-    bAVIDumping = AVIDump::Start(static_cast<int>(m_screenshot_render_texture->GetWidth()),
-                                 static_cast<int>(m_screenshot_render_texture->GetHeight()),
-                                 AVIDump::DumpFormat::FORMAT_RGBA);
-
-    if (!bAVIDumping)
-    {
-      OSD::AddMessage("Failed to start frame dumping.", 2000);
-      return;
-    }
-
-    OSD::AddMessage(StringFromFormat("Frame dumping started (%ux%u RGBA8).",
-                                     m_screenshot_render_texture->GetWidth(),
-                                     m_screenshot_render_texture->GetHeight()),
-                    2000);
-  }
-
-  if (bAVIDumping)
-  {
-    AVIDump::AddFrame(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
-                      static_cast<int>(m_screenshot_render_texture->GetWidth()),
-                      static_cast<int>(m_screenshot_render_texture->GetHeight()));
-  }
-#else
-  if (!bLastFrameDumped)
-  {
-    OSD::AddMessage("Dumping frames not supported", 2000);
-    bLastFrameDumped = true;
-  }
-#endif
-}
-
-void Renderer::StopFrameDump()
-{
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (bAVIDumping)
-  {
-    OSD::AddMessage("Frame dumping stopped.", 2000);
-    bAVIDumping = false;
-    bLastFrameDumped = false;
-    AVIDump::Stop();
-  }
-#endif
-}
-
 void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
 {
   if (FramebufferManagerBase::LastXfbWidth() == fb_stride &&
@@ -932,49 +874,63 @@ void Renderer::CheckForSurfaceChange()
 
 void Renderer::CheckForConfigChanges()
 {
-  // Compare g_Config to g_ActiveConfig to determine what has changed before copying.
-  bool msaa_changed = (g_Config.iMultisamples != g_ActiveConfig.iMultisamples);
-  bool ssaa_changed = (g_Config.bSSAA != g_ActiveConfig.bSSAA);
-  bool anisotropy_changed = (g_Config.iMaxAnisotropy != g_ActiveConfig.iMaxAnisotropy);
-  bool force_texture_filtering_changed =
-      (g_Config.bForceFiltering != g_ActiveConfig.bForceFiltering);
-  bool stereo_changed = (g_Config.iStereoMode != g_ActiveConfig.iStereoMode);
+  // Save the video config so we can compare against to determine which settings have changed.
+  int old_multisamples = g_ActiveConfig.iMultisamples;
+  int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
+  int old_stereo_mode = g_ActiveConfig.iStereoMode;
+  int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
+  bool old_force_filtering = g_ActiveConfig.bForceFiltering;
+  bool old_ssaa = g_ActiveConfig.bSSAA;
 
   // Copy g_Config to g_ActiveConfig.
+  // NOTE: This can potentially race with the UI thread, however if it does, the changes will be
+  // delayed until the next time CheckForConfigChanges is called.
   UpdateActiveConfig();
+
+  // Determine which (if any) settings have changed.
+  bool msaa_changed = old_multisamples != g_ActiveConfig.iMultisamples;
+  bool ssaa_changed = old_ssaa != g_ActiveConfig.bSSAA;
+  bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
+  bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
+  bool stereo_changed = old_stereo_mode != g_ActiveConfig.iStereoMode;
+  bool efb_scale_changed = s_last_efb_scale != g_ActiveConfig.iEFBScale;
+  bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
 
   // Update texture cache settings with any changed options.
   TextureCache::OnConfigChanged(g_ActiveConfig);
 
-  // MSAA samples changed, we need to recreate the EFB render pass, and all shaders.
-  if (msaa_changed)
-  {
-    m_framebuffer_mgr->RecreateRenderPass();
-    m_framebuffer_mgr->ResizeEFBTextures();
-  }
-
-  // SSAA changed on/off, we can leave the buffers/render pass, but have to recompile shaders.
-  if (msaa_changed || ssaa_changed)
-  {
-    BindEFBToStateTracker();
-    m_framebuffer_mgr->RecompileShaders();
-    g_object_cache->ClearPipelineCache();
-  }
-
   // Handle internal resolution changes.
-  if (s_last_efb_scale != g_ActiveConfig.iEFBScale)
-  {
+  if (efb_scale_changed)
     s_last_efb_scale = g_ActiveConfig.iEFBScale;
+
+  // If the aspect ratio is changed, this changes the area that the game is drawn to.
+  if (aspect_changed)
+    UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+
+  if (efb_scale_changed || aspect_changed)
+  {
     if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
       ResizeEFBTextures();
   }
 
-  // Handle stereoscopy mode changes.
-  if (stereo_changed)
+  // MSAA samples changed, we need to recreate the EFB render pass.
+  // If the stereoscopy mode changed, we need to recreate the buffers as well.
+  if (msaa_changed || stereo_changed)
   {
-    ResizeEFBTextures();
+    g_command_buffer_mgr->WaitForGPUIdle();
+    m_framebuffer_mgr->RecreateRenderPass();
+    m_framebuffer_mgr->ResizeEFBTextures();
     BindEFBToStateTracker();
+  }
+
+  // SSAA changed on/off, we can leave the buffers/render pass, but have to recompile shaders.
+  // Changing stereoscopy from off<->on also requires shaders to be recompiled.
+  if (msaa_changed || ssaa_changed || stereo_changed)
+  {
+    g_command_buffer_mgr->WaitForGPUIdle();
     RecompileShaders();
+    m_framebuffer_mgr->RecompileShaders();
+    g_object_cache->ClearPipelineCache();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
@@ -1022,10 +978,7 @@ void Renderer::ResizeEFBTextures()
 {
   // Ensure the GPU is finished with the current EFB textures.
   g_command_buffer_mgr->WaitForGPUIdle();
-
   m_framebuffer_mgr->ResizeEFBTextures();
-  s_last_efb_scale = g_ActiveConfig.iEFBScale;
-
   BindEFBToStateTracker();
 
   // Viewport and scissor rect have to be reset since they will be scaled differently.

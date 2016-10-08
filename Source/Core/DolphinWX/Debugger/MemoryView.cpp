@@ -332,8 +332,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
 
     if (!IsHexMode())
     {
-      char mem[256];
-      debugger->GetRawMemoryString(memory, address, mem, 256);
+      const std::string mem = debugger->GetRawMemoryString(memory, address);
       dc.SetTextForeground(navy_color);
       draw_text(StrToWxStr(mem), 2);
     }
