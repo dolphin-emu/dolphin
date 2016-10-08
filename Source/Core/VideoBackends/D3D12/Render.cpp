@@ -708,8 +708,7 @@ void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                         const EFBRectangle& rc, float gamma)
 {
-  if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
-      !fb_width || !fb_height)
+  if ((!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
   {
     RepeatFrameDumpFrame();
     Core::Callback_VideoCopiedToXFB(false);

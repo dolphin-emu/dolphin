@@ -45,6 +45,5 @@ void EmulatorState(bool running);
 bool AtBreakpoint();
 void ResetVideoBuffer();
 void SetRendering(bool bEnabled);
-bool WillSkipCurrentFrame();
 
 }  // namespace Fifo
