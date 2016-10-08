@@ -220,19 +220,6 @@ void VertexManager::vFlush(bool useDstAlpha)
     OpenFStream(fvs, filename, std::ios_base::out);
     fvs << prog.shader.strvprog;
   }
-
-  if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
-  {
-    std::string filename =
-        StringFromFormat("%starg%.3d.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                         g_ActiveConfig.iSaveTargetId);
-    TargetRectangle tr;
-    tr.left = 0;
-    tr.right = Renderer::GetTargetWidth();
-    tr.top = 0;
-    tr.bottom = Renderer::GetTargetHeight();
-    g_renderer->SaveScreenshot(filename, tr);
-  }
 #endif
   g_Config.iSaveTargetId++;
 

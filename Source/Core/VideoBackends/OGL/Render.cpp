@@ -36,7 +36,6 @@
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
@@ -1445,23 +1444,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
-  // Save screenshot
-  if (s_bScreenshot)
-  {
-    std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-
-    if (SaveScreenshot(s_sScreenshotName, flipped_trc))
-      OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
-
-    // Reset settings
-    s_sScreenshotName.clear();
-    s_bScreenshot = false;
-    s_screenshotCompleted.Set();
-  }
-
   if (IsFrameDumping())
   {
-    std::lock_guard<std::mutex> lk(s_criticalScreenshot);
     std::vector<u8> image(flipped_trc.GetWidth() * flipped_trc.GetHeight() * 4);
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
@@ -1727,21 +1711,6 @@ void Renderer::SetInterlacingMode()
 
 namespace OGL
 {
-bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle& back_rc)
-{
-  u32 W = back_rc.GetWidth();
-  u32 H = back_rc.GetHeight();
-  std::unique_ptr<u8[]> data(new u8[W * 4 * H]);
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-  glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
-
-  // Turn image upside down
-  FlipImageData(data.get(), W, H, 4);
-
-  return TextureToPng(data.get(), W * 4, filename, W, H, false);
-}
-
 u32 Renderer::GetMaxTextureSize()
 {
   // Right now nvidia seems to do something very weird if we try to cache GL_MAX_TEXTURE_SIZE in

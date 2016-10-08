@@ -127,8 +127,6 @@ public:
   virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                         const EFBRectangle& rc, float Gamma = 1.0f) = 0;
 
-  virtual bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) = 0;
-
   static PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
   static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
   PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
