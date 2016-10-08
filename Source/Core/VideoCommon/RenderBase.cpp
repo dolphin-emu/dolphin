@@ -28,6 +28,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
@@ -138,8 +139,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
   }
   else
   {
+    // The timing is not predictable here. So try to use the XFB path to dump frames.
+    u64 ticks = CoreTiming::GetTicks();
+
     // below div two to convert from bytes to pixels - it expects width, not stride
-    Swap(xfbAddr, fbStride / 2, fbStride / 2, fbHeight, sourceRc, Gamma);
+    Swap(xfbAddr, fbStride / 2, fbStride / 2, fbHeight, sourceRc, ticks, Gamma);
   }
 }
 
@@ -516,10 +520,10 @@ void Renderer::RecordVideoMemory()
 }
 
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                    float Gamma)
+                    u64 ticks, float Gamma)
 {
   // TODO: merge more generic parts into VideoCommon
-  g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, Gamma);
+  g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, ticks, Gamma);
 
   if (XFBWrited)
     g_renderer->m_fps_counter.Update();
@@ -558,7 +562,8 @@ bool Renderer::IsFrameDumping()
   return false;
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, bool swap_upside_down)
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, u64 ticks,
+                             bool swap_upside_down)
 {
   if (w == 0 || h == 0)
     return;
@@ -601,7 +606,7 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, bool swap
     }
     if (m_AVI_dumping)
     {
-      AVIDump::AddFrame(m_frame_data.data(), w, h, stride);
+      AVIDump::AddFrame(m_frame_data.data(), w, h, stride, ticks);
     }
 
     m_last_frame_dumped = true;
