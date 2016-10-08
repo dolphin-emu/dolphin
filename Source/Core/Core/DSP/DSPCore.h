@@ -7,6 +7,7 @@
 
 #include <array>
 #include <atomic>
+#include <cstddef>
 #include <memory>
 #include <string>
 
@@ -358,5 +359,5 @@ DSPCoreState DSPCore_GetState();
 
 void DSPCore_Step();
 
-u16 DSPCore_ReadRegister(int reg);
-void DSPCore_WriteRegister(int reg, u16 val);
+u16 DSPCore_ReadRegister(size_t reg);
+void DSPCore_WriteRegister(size_t reg, u16 val);

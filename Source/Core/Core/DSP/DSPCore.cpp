@@ -331,7 +331,7 @@ void CompileCurrent()
   }
 }
 
-u16 DSPCore_ReadRegister(int reg)
+u16 DSPCore_ReadRegister(size_t reg)
 {
   switch (reg)
   {
@@ -388,7 +388,7 @@ u16 DSPCore_ReadRegister(int reg)
   }
 }
 
-void DSPCore_WriteRegister(int reg, u16 val)
+void DSPCore_WriteRegister(size_t reg, u16 val)
 {
   switch (reg)
   {
