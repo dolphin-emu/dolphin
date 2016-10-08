@@ -39,8 +39,8 @@ Visual Studio 2015 Update 2 is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
 recommended to be used. Git and Windows 10 SDK 10.0.10586.0 must be installed.
 
-To build the Qt Client, you will need Qt 5.5 or later installed in the 
-`Externals/Qt/` directory.
+To build the DolphinQt2 project, you will need to install the Qt submodule in
+the `Externals/Qt` repository.
 
 An installer can be created by using the `Installer.nsi` script in the
 Installer directory. This will require the Nullsoft Scriptable Install System
