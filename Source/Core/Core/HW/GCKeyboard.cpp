@@ -47,7 +47,7 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
-KeyboardStatus GetStatus(u8 port)
+KeyboardStatus GetStatus(int port)
 {
   return static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput();
 }
