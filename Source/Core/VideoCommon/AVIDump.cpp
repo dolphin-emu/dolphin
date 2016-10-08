@@ -37,7 +37,6 @@ static AVStream* s_stream = nullptr;
 static AVFrame* s_src_frame = nullptr;
 static AVFrame* s_scaled_frame = nullptr;
 static AVPixelFormat s_pix_fmt = AV_PIX_FMT_BGR24;
-static int s_bytes_per_pixel;
 static SwsContext* s_sws_context = nullptr;
 static int s_width;
 static int s_height;
@@ -52,6 +51,7 @@ static AVIDump::DumpFormat s_current_format;
 static const u8* s_stored_frame_data;
 static int s_stored_frame_width;
 static int s_stored_frame_height;
+static int s_stored_frame_stride;
 
 static void InitAVCodec()
 {
@@ -68,12 +68,10 @@ bool AVIDump::Start(int w, int h, DumpFormat format)
   if (format == DumpFormat::FORMAT_BGR)
   {
     s_pix_fmt = AV_PIX_FMT_BGR24;
-    s_bytes_per_pixel = 3;
   }
   else
   {
     s_pix_fmt = AV_PIX_FMT_RGBA;
-    s_bytes_per_pixel = 4;
   }
 
   s_current_format = format;
@@ -181,18 +179,18 @@ static void PreparePacket(AVPacket* pkt)
   pkt->size = 0;
 }
 
-void AVIDump::AddFrame(const u8* data, int width, int height)
+void AVIDump::AddFrame(const u8* data, int width, int height, int stride)
 {
   // Store current frame data in case frame dumping stops before next frame update,
   // but make sure that you don't store the last stored frame and check the resolution upon
   // closing the file or else you store recursion, and dolphins don't like recursion.
   if (!s_stop_dumping)
   {
-    StoreFrameData(data, width, height);
+    StoreFrameData(data, width, height, stride);
     CheckResolution(width, height);
   }
   s_src_frame->data[0] = const_cast<u8*>(data);
-  s_src_frame->linesize[0] = width * s_bytes_per_pixel;
+  s_src_frame->linesize[0] = stride;
   s_src_frame->format = s_pix_fmt;
   s_src_frame->width = s_width;
   s_src_frame->height = s_height;
@@ -267,7 +265,7 @@ void AVIDump::Stop()
 {
   s_stop_dumping = true;
   // Write the last stored frame just in case frame dumping stops before the next frame update
-  AddFrame(s_stored_frame_data, s_stored_frame_width, s_stored_frame_height);
+  AddFrame(s_stored_frame_data, s_stored_frame_width, s_stored_frame_height, s_stored_frame_stride);
   av_write_trailer(s_format_context);
   CloseFile();
   s_file_index = 0;
@@ -328,9 +326,10 @@ void AVIDump::CheckResolution(int width, int height)
   }
 }
 
-void AVIDump::StoreFrameData(const u8* data, int width, int height)
+void AVIDump::StoreFrameData(const u8* data, int width, int height, int stride)
 {
   s_stored_frame_data = data;
   s_stored_frame_width = width;
   s_stored_frame_height = height;
+  s_stored_frame_stride = stride;
 }
