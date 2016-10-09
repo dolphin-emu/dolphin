@@ -500,7 +500,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
     wxBitmap bitmap(g->static_bitmap->GetBitmap());
     // NOTE: Selecting the bitmap inherits the bitmap's ScaleFactor onto the DC as well.
-    dc.SelectObject(bitmap);
+    dc.SelectObjectAsSource(bitmap);
     dc.SetBackground(*wxWHITE_BRUSH);
     dc.Clear();
 
