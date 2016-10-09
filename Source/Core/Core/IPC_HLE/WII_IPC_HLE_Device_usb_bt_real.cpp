@@ -193,16 +193,9 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
         s_link_keys.erase(addr);
       }
     }
-    auto buffer = std::vector<u8>(cmd->length + LIBUSB_CONTROL_SETUP_SIZE);
-    libusb_fill_control_setup(buffer.data(), cmd->request_type, cmd->request, cmd->value,
-                              cmd->index, cmd->length);
-    Memory::CopyFromEmu(buffer.data() + LIBUSB_CONTROL_SETUP_SIZE, cmd->payload_addr, cmd->length);
-    libusb_transfer* transfer = libusb_alloc_transfer(0);
-    transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
-    libusb_fill_control_transfer(transfer, m_handle, buffer.data(), CommandCallback, cmd.release(),
-                                 0);
-    libusb_submit_transfer(transfer);
-    break;
+    libusb_control_transfer(m_handle, cmd->request_type, cmd->request, cmd->value, cmd->index,
+                            Memory::GetPointer(cmd->payload_addr), cmd->length, 0);
+    return GetDefaultReply();
   }
   // ACL data (incoming or outgoing) and incoming HCI events (respectively)
   case USBV0_IOCTL_BLKMSG:
@@ -549,28 +542,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferThread()
   }
 }
 
-// The callbacks are called from libusb code on a separate thread.
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CommandCallback(libusb_transfer* tr)
-{
-  const std::unique_ptr<CtrlMessage> cmd(static_cast<CtrlMessage*>(tr->user_data));
-  if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_NO_DEVICE)
-  {
-    ERROR_LOG(WII_IPC_WIIMOTE, "libusb command transfer failed, status: 0x%02x", tr->status);
-    if (!s_showed_failed_transfer.IsSet())
-    {
-      Core::DisplayMessage("Failed to send a command to the Bluetooth adapter.", 10000);
-      Core::DisplayMessage("It may not be compatible with passthrough mode.", 10000);
-      s_showed_failed_transfer.Set();
-    }
-  }
-  else
-  {
-    s_showed_failed_transfer.Clear();
-  }
-
-  EnqueueReply(cmd->address);
-}
-
+// This is called from libusb code on the event handling thread.
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer* tr)
 {
   const std::unique_ptr<CtrlBuffer> ctrl(static_cast<CtrlBuffer*>(tr->user_data));
