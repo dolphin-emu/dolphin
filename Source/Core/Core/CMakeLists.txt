@@ -236,7 +236,6 @@ set(LIBS
 	sfml-network
 	sfml-system
 	videonull
-	videovulkan
 	videoogl
 	videosoftware
 	z
@@ -248,6 +247,10 @@ if(LIBUSB_FOUND)
 	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
 	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp)
 endif(LIBUSB_FOUND)
+
+if(NOT APPLE)
+	set(LIBS ${LIBS} videovulkan)
+endif()
 
 set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 
