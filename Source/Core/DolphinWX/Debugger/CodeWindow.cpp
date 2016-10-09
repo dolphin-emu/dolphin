@@ -52,6 +52,8 @@
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 
+wxDEFINE_EVENT(wxEVT_JUMPTO_ADDRESS, wxCommandEvent);
+
 CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* parent, wxWindowID id,
                          const wxPoint& position, const wxSize& size, long style,
                          const wxString& name)
@@ -128,6 +130,7 @@ CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* pare
 
   // Other
   Bind(wxEVT_HOST_COMMAND, &CCodeWindow::OnHostMessage, this);
+  Bind(wxEVT_JUMPTO_ADDRESS, &CCodeWindow::OnJumpToAddress, this);
 }
 
 CCodeWindow::~CCodeWindow()
@@ -160,6 +163,7 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
 
   case IDM_UPDATE_DISASM_DIALOG:
     Repopulate();
+    JumpToAddress(PC);
     if (HasPanel<CRegisterWindow>())
       GetPanel<CRegisterWindow>()->NotifyUpdate();
     if (HasPanel<CWatchWindow>())
@@ -180,6 +184,13 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
     RequirePanel<CJitWindow>()->ViewAddr(codeview->GetSelection());
     break;
   }
+}
+
+void CCodeWindow::OnJumpToAddress(wxCommandEvent& event)
+{
+  unsigned long address;
+  event.GetString().ToCULong(&address, 16);
+  JumpToAddress(static_cast<u32>(address));
 }
 
 // The Play, Stop, Step, Skip, Go to PC and Show PC buttons go here
@@ -205,11 +216,13 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 
   case IDM_SKIP:
     PC += 4;
+    JumpToAddress(PC);
     Repopulate();
     break;
 
   case IDM_SETPC:
     PC = codeview->GetSelection();
+    JumpToAddress(PC);
     Repopulate();
     break;
 
@@ -714,7 +727,6 @@ void CCodeWindow::Repopulate()
   if (!codeview)
     return;
 
-  codeview->Center(PC);
   UpdateCallstack();
   UpdateButtonStates();
 

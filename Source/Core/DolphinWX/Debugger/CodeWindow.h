@@ -31,6 +31,8 @@ class wxMenu;
 class wxMenuBar;
 class wxToolBar;
 
+wxDECLARE_EVENT(wxEVT_JUMPTO_ADDRESS, wxCommandEvent);
+
 namespace Details
 {
 template <class T>
@@ -141,6 +143,7 @@ private:
   void OnChangeFont(wxCommandEvent& event);
 
   void OnCodeStep(wxCommandEvent& event);
+  void OnJumpToAddress(wxCommandEvent& event);
   void OnAddrBoxChange(wxCommandEvent& event);
   void OnSymbolsMenu(wxCommandEvent& event);
   void OnJitMenu(wxCommandEvent& event);
