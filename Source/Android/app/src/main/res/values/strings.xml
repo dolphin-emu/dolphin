@@ -355,13 +355,15 @@
     <string name="dialog_seekbar_neg">Cancel</string>
 
     <!-- Emulation Menu -->
-    <string name="emulation_toggle_input">Toggle Touch Controls</string>
-    <string name="emulation_toggle_all">Toggle All</string>
     <string name="emulation_quicksave">Quick Save</string>
     <string name="emulation_quickload">Quick Load</string>
     <string name="emulation_refresh_wiimotes">Refresh Wiimotes</string>
     <string name="emulation_configure_controls">Configure Controls</string>
+    <string name="emulation_edit_layout">Edit Layout</string>
     <string name="emulation_done">Done</string>
+    <string name="emulation_toggle_controls">Toggle Controls</string>
+    <string name="emulation_toggle_all">Toggle All</string>
+    <string name="emulation_control_scale">Adjust Scale</string>
     
     <!-- GC Adapter Menu-->
     <string name="gc_adapter_rumble">Enable Vibration</string>

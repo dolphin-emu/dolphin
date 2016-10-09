@@ -9,12 +9,12 @@
         android:id="@+id/seekbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginLeft="@dimen/spacing_xlarge"
-        android:layout_marginRight="@dimen/spacing_xlarge"
+        android:layout_marginLeft="@dimen/spacing_large"
+        android:layout_marginRight="@dimen/spacing_large"
         android:layout_alignParentEnd="true"
         android:layout_alignParentStart="true"
         android:layout_below="@+id/text_value"
-        android:layout_marginBottom="@dimen/spacing_xlarge"/>
+        android:layout_marginBottom="@dimen/spacing_medlarge"/>
 
     <TextView
         android:layout_width="wrap_content"
@@ -23,8 +23,8 @@
         android:id="@+id/text_value"
         android:layout_alignParentTop="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginTop="@dimen/spacing_xlarge"
-        android:layout_marginBottom="@dimen/spacing_large"/>
+        android:layout_marginTop="@dimen/spacing_medlarge"
+        android:layout_marginBottom="@dimen/spacing_medlarge"/>
 
     <TextView
         android:layout_width="wrap_content"
