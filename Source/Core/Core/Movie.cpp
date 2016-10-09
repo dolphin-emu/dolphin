@@ -1482,7 +1482,7 @@ void GetSettings()
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
   {
-    s_language = SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG");
+    s_language = SConfig::GetInstance().m_wii_language;
   }
   else
   {

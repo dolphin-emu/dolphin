@@ -12,7 +12,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "DiscIO/Enums.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/WxUtils.h"
@@ -154,18 +153,18 @@ void WiiConfigPane::InitializeGUI()
 
 void WiiConfigPane::LoadGUIValues()
 {
-  m_screensaver_checkbox->SetValue(!!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.SSV"));
+  m_screensaver_checkbox->SetValue(!!SConfig::GetInstance().m_wii_screensaver);
   m_pal60_mode_checkbox->SetValue(SConfig::GetInstance().bPAL60);
-  m_aspect_ratio_choice->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
-  m_system_language_choice->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.LNG"));
+  m_aspect_ratio_choice->SetSelection(SConfig::GetInstance().m_wii_aspect_ratio);
+  m_system_language_choice->SetSelection(SConfig::GetInstance().m_wii_language);
 
   m_sd_card_checkbox->SetValue(SConfig::GetInstance().m_WiiSDCard);
   m_connect_keyboard_checkbox->SetValue(SConfig::GetInstance().m_WiiKeyboard);
 
-  m_bt_sensor_bar_pos->SetSelection(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR"));
-  m_bt_sensor_bar_sens->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u32>("BT.SENS"));
-  m_bt_speaker_volume->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.SPKV"));
-  m_bt_wiimote_motor->SetValue(SConfig::GetInstance().m_SYSCONF->GetData<bool>("BT.MOT"));
+  m_bt_sensor_bar_pos->SetSelection(SConfig::GetInstance().m_sensor_bar_position);
+  m_bt_sensor_bar_sens->SetValue(SConfig::GetInstance().m_sensor_bar_sensitivity);
+  m_bt_speaker_volume->SetValue(SConfig::GetInstance().m_speaker_volume);
+  m_bt_wiimote_motor->SetValue(SConfig::GetInstance().m_wiimote_motor);
 }
 
 void WiiConfigPane::RefreshGUI()
@@ -186,13 +185,12 @@ void WiiConfigPane::RefreshGUI()
 
 void WiiConfigPane::OnScreenSaverCheckBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.SSV", m_screensaver_checkbox->IsChecked());
+  SConfig::GetInstance().m_wii_screensaver = m_screensaver_checkbox->IsChecked();
 }
 
 void WiiConfigPane::OnPAL60CheckBoxChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().bPAL60 = m_pal60_mode_checkbox->IsChecked();
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", m_pal60_mode_checkbox->IsChecked());
 }
 
 void WiiConfigPane::OnSDCardCheckBoxChanged(wxCommandEvent& event)
@@ -208,69 +206,30 @@ void WiiConfigPane::OnConnectKeyboardCheckBoxChanged(wxCommandEvent& event)
 
 void WiiConfigPane::OnSystemLanguageChoiceChanged(wxCommandEvent& event)
 {
-  DiscIO::Language wii_system_lang =
-      static_cast<DiscIO::Language>(m_system_language_choice->GetSelection());
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.LNG", wii_system_lang);
-  u8 country_code = GetSADRCountryCode(wii_system_lang);
-
-  if (!SConfig::GetInstance().m_SYSCONF->SetArrayData("IPL.SADR", &country_code, 1))
-    WxUtils::ShowErrorDialog(_("Failed to update country code in SYSCONF"));
+  SConfig::GetInstance().m_wii_language = m_system_language_choice->GetSelection();
 }
 
 void WiiConfigPane::OnAspectRatioChoiceChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.AR", m_aspect_ratio_choice->GetSelection());
+  SConfig::GetInstance().m_wii_aspect_ratio = m_aspect_ratio_choice->GetSelection();
 }
 
 void WiiConfigPane::OnSensorBarPosChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_SYSCONF->SetData("BT.BAR", event.GetInt());
+  SConfig::GetInstance().m_sensor_bar_position = event.GetInt();
 }
 
 void WiiConfigPane::OnSensorBarSensChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_SYSCONF->SetData("BT.SENS", event.GetInt());
+  SConfig::GetInstance().m_sensor_bar_sensitivity = event.GetInt();
 }
 
 void WiiConfigPane::OnSpeakerVolumeChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_SYSCONF->SetData("BT.SPKV", event.GetInt());
+  SConfig::GetInstance().m_speaker_volume = event.GetInt();
 }
 
 void WiiConfigPane::OnWiimoteMotorChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().m_SYSCONF->SetData("BT.MOT", event.GetInt());
-}
-
-// Change from IPL.LNG value to IPL.SADR country code.
-// http://wiibrew.org/wiki/Country_Codes
-u8 WiiConfigPane::GetSADRCountryCode(DiscIO::Language language)
-{
-  switch (language)
-  {
-  case DiscIO::Language::LANGUAGE_JAPANESE:
-    return 1;  // Japan
-  case DiscIO::Language::LANGUAGE_ENGLISH:
-    return 49;  // USA
-  case DiscIO::Language::LANGUAGE_GERMAN:
-    return 78;  // Germany
-  case DiscIO::Language::LANGUAGE_FRENCH:
-    return 77;  // France
-  case DiscIO::Language::LANGUAGE_SPANISH:
-    return 105;  // Spain
-  case DiscIO::Language::LANGUAGE_ITALIAN:
-    return 83;  // Italy
-  case DiscIO::Language::LANGUAGE_DUTCH:
-    return 94;  // Netherlands
-  case DiscIO::Language::LANGUAGE_SIMPLIFIED_CHINESE:
-  case DiscIO::Language::LANGUAGE_TRADITIONAL_CHINESE:
-    return 157;  // China
-  case DiscIO::Language::LANGUAGE_KOREAN:
-    return 136;  // Korea
-  case DiscIO::Language::LANGUAGE_UNKNOWN:
-    break;
-  }
-
-  PanicAlert("Invalid language. Defaulting to Japanese.");
-  return 1;
+  SConfig::GetInstance().m_wiimote_motor = event.IsChecked();
 }

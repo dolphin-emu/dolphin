@@ -10,7 +10,6 @@
 
 #include "Common/IniFile.h"
 #include "Common/NonCopyable.h"
-#include "Common/SysConf.h"
 #include "Core/HW/EXI_Device.h"
 #include "Core/HW/SI_Device.h"
 
@@ -150,6 +149,15 @@ struct SConfig : NonCopyable
   int m_bt_passthrough_pid = -1;
   int m_bt_passthrough_vid = -1;
   std::string m_bt_passthrough_link_keys;
+
+  // SYSCONF settings
+  int m_sensor_bar_position = 0x01;
+  int m_sensor_bar_sensitivity = 0x03;
+  int m_speaker_volume = 0x58;
+  bool m_wiimote_motor = true;
+  int m_wii_language = 0x01;
+  int m_wii_aspect_ratio = 0x01;
+  int m_wii_screensaver = 0x00;
 
   // Fifo Player related settings
   bool bLoopFifoReplay = true;
@@ -305,13 +313,14 @@ struct SConfig : NonCopyable
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
 
-  SysConf* m_SYSCONF;
-
   // Save settings
   void SaveSettings();
 
   // Load settings
   void LoadSettings();
+
+  void LoadSettingsFromSysconf();
+  void SaveSettingsToSysconf();
 
   // Return the permanent and somewhat globally used instance of this struct
   static SConfig& GetInstance() { return (*m_Instance); }
@@ -334,6 +343,7 @@ private:
   void SaveNetworkSettings(IniFile& ini);
   void SaveAnalyticsSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
+  void SaveSysconfSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
   void LoadInterfaceSettings(IniFile& ini);
@@ -347,6 +357,7 @@ private:
   void LoadNetworkSettings(IniFile& ini);
   void LoadAnalyticsSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
+  void LoadSysconfSettings(IniFile& ini);
 
   static SConfig* m_Instance;
 };

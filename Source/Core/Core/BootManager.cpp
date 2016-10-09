@@ -26,7 +26,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/SysConf.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -35,7 +36,6 @@
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -148,9 +148,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bPAL60 = bPAL60;
   config->SelectedLanguage = iSelectedLanguage;
   config->iCPUCore = iCPUCore;
-
-  config->m_SYSCONF->SetData("IPL.PGS", bProgressive);
-  config->m_SYSCONF->SetData("IPL.E60", bPAL60);
 
   // Only change these back if they were actually set by game ini, since they can be changed while a
   // game is running.
@@ -279,9 +276,6 @@ bool BootCore(const std::string& _rFilename)
     // Wii settings
     if (StartUp.bWii)
     {
-      // Flush possible changes to SYSCONF to file
-      SConfig::GetInstance().m_SYSCONF->Save();
-
       int source;
       for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
       {
@@ -370,19 +364,8 @@ bool BootCore(const std::string& _rFilename)
     StartUp.bPAL60 = false;
   }
 
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
-
   if (StartUp.bWii)
-  {
-    // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
-    // shutdown commands in the State Transition Manager (STM).
-    // TODO: remove this if and once Dolphin supports WC24 standby mode.
-    SConfig::GetInstance().m_SYSCONF->SetData<u8>("IPL.IDL", 0x00);
-    NOTICE_LOG(BOOT, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
-
-    RestoreBTInfoSection();
-  }
+    SConfig::GetInstance().SaveSettingsToSysconf();
 
   // Run the game
   // Init the core
@@ -398,10 +381,14 @@ bool BootCore(const std::string& _rFilename)
 void Stop()
 {
   Core::Stop();
+  RestoreConfig();
+}
 
-  SConfig& StartUp = SConfig::GetInstance();
-  StartUp.m_strUniqueID = "00000000";
-  config_cache.RestoreConfig(&StartUp);
+void RestoreConfig()
+{
+  SConfig::GetInstance().LoadSettingsFromSysconf();
+  SConfig::GetInstance().m_strUniqueID = "00000000";
+  config_cache.RestoreConfig(&SConfig::GetInstance());
 }
 
 }  // namespace
