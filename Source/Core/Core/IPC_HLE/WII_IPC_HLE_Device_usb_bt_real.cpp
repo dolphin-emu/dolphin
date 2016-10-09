@@ -496,7 +496,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SaveLinkKeys()
   if (!config_string.empty())
     config_string.pop_back();
   SConfig::GetInstance().m_bt_passthrough_link_keys = config_string;
-  SConfig::GetInstance().SaveSettings();
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305_real::OpenDevice(libusb_device* device)

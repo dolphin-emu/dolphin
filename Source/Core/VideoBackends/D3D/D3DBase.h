@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/Common.h"
+#include "Common/MsgHandler.h"
 
 namespace DX11
 {

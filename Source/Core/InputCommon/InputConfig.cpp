@@ -6,6 +6,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerEmu.h"
