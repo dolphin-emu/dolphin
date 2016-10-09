@@ -16,6 +16,7 @@ import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -24,6 +25,8 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -395,12 +398,25 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		switch (id)
 		{
+			// Edit the placement of the controls
+			case R.id.menu_emulation_edit_layout:
+				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager().findFragmentById(R.id.frame_emulation_fragment);
+				if (emulationFragment.isConfiguringControls())
+				{
+					emulationFragment.stopConfiguringControls();
+				}
+				else
+				{
+					emulationFragment.startConfiguringControls();
+				}
+				break;
+
 			// Enable/Disable specific buttons or the entire input overlay.
-			case R.id.menu_emulation_input_overlay:
+			case R.id.menu_emulation_toggle_controls:
 			{
 				boolean[] enabledButtons = new boolean[11];
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
-				builder.setTitle(R.string.emulation_toggle_input);
+				builder.setTitle(R.string.emulation_toggle_controls);
 				if (mIsGameCubeGame)
 				{
 					for (int i = 0; i < enabledButtons.length; i++)
@@ -485,17 +501,60 @@ public final class EmulationActivity extends AppCompatActivity
 				return;
 			}
 
-			case R.id.menu_emulation_configure_controls:
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager().findFragmentById(R.id.frame_emulation_fragment);
-				if (emulationFragment.isConfiguringControls())
+			// Adjust the scale of the overlay controls.
+			case R.id.menu_emulation_adjust_scale:
+			{
+				LayoutInflater inflater = LayoutInflater.from(this);
+				View view = inflater.inflate(R.layout.dialog_seekbar, null);
+
+				final SeekBar seekbar = (SeekBar) view.findViewById(R.id.seekbar);
+				final TextView value = (TextView) view.findViewById(R.id.text_value);
+				final TextView units = (TextView) view.findViewById(R.id.text_units);
+
+				seekbar.setMax(150);
+				seekbar.setProgress(mPreferences.getInt("controlScale", 50));
+				seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
 				{
-					emulationFragment.stopConfiguringControls();
-				}
-				else
+					public void onStartTrackingTouch(SeekBar seekBar)
+					{
+						// Do nothing
+					}
+					public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+					{
+						value.setText(String.valueOf(progress + 50));
+					}
+					public void onStopTrackingTouch(SeekBar seekBar)
+					{
+						// Do nothing
+					}
+				});
+
+				value.setText(String.valueOf(seekbar.getProgress() + 50));
+				units.setText("%");
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(R.string.emulation_control_scale);
+				builder.setView(view);
+				builder.setPositiveButton(getString(R.string.emulation_done), new DialogInterface.OnClickListener()
 				{
-					emulationFragment.startConfiguringControls();
-				}
-				break;
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i)
+					{
+						SharedPreferences.Editor editor = mPreferences.edit();
+						editor.putInt("controlScale", seekbar.getProgress());
+						editor.apply();
+
+						EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+						emulationFragment.refreshInputOverlay();
+					}
+				});
+
+				AlertDialog alertDialog = builder.create();
+				alertDialog.show();
+
+				return;
+			}
 
 			case R.id.menu_refresh_wiimotes:
 				NativeLibrary.RefreshWiimotes();

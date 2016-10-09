@@ -489,7 +489,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableButton.
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-		// Decide scale based on button ID
+		// Decide scale based on button ID and user preference
 		float scale;
 
 		switch (buttonId)
@@ -524,6 +524,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			scale = 0.125f;
 			break;
 		}
+
+		scale *= (sPrefs.getInt("controlScale", 50) + 50);
+		scale /= 100;
 
 		// Initialize the InputOverlayDrawableButton.
 		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), scale);
@@ -572,7 +575,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableDpad.
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-		// Decide scale based on button ID
+		// Decide scale based on button ID and user preference
 		float scale;
 
 		switch (buttonUp)
@@ -587,6 +590,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			scale = 0.275f;
 			break;
 		}
+
+		scale *= (sPrefs.getInt("controlScale", 50) + 50);
+		scale /= 100;
 
 		// Initialize the InputOverlayDrawableDpad.
 		final Bitmap bitmap = resizeBitmap(context, BitmapFactory.decodeResource(res, resId), scale);
@@ -632,8 +638,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// SharedPreference to retrieve the X and Y coordinates for the InputOverlayDrawableJoystick.
 		final SharedPreferences sPrefs = PreferenceManager.getDefaultSharedPreferences(context);
 
+		// Decide scale based on user preference
+		float scale = 0.275f;
+		scale *= (sPrefs.getInt("controlScale", 50) + 50);
+		scale /= 100;
+
 		// Initialize the InputOverlayDrawableJoystick.
-		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), 0.275f);
+		final Bitmap bitmapOuter = resizeBitmap(context, BitmapFactory.decodeResource(res, resOuter), scale);
 		final Bitmap bitmapInner = BitmapFactory.decodeResource(res, resInner);
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
@@ -642,15 +653,15 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		int drawableY = (int) sPrefs.getFloat(joystick+"-Y", 0f);
 
 		// Decide inner scale based on joystick ID
-		float scale;
+		float innerScale;
 
 		switch (joystick)
 		{
 		case ButtonType.STICK_C:
-			scale = 1.833f;
+			innerScale = 1.833f;
 			break;
 		default:
-			scale = 1.375f;
+			innerScale = 1.375f;
 			break;
 		}
 
@@ -658,7 +669,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableJoystick will be.
 		int outerSize = bitmapOuter.getWidth();
 		Rect outerRect = new Rect(drawableX, drawableY, drawableX + outerSize, drawableY + outerSize);
-		Rect innerRect = new Rect(0, 0, (int) (outerSize / scale), (int) (outerSize / scale));
+		Rect innerRect = new Rect(0, 0, (int) (outerSize / innerScale), (int) (outerSize / innerScale));
 
 		// Send the drawableId to the joystick so it can be referenced when saving control position.
 		final InputOverlayDrawableJoystick overlayDrawable
