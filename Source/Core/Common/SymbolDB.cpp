@@ -65,7 +65,7 @@ Symbol* SymbolDB::GetSymbolFromHash(u32 hash)
 {
   XFuncPtrMap::iterator iter = checksumToFunction.find(hash);
   if (iter != checksumToFunction.end())
-    return iter->second;
+    return *iter->second.begin();
   else
     return nullptr;
 }
@@ -76,7 +76,8 @@ std::vector<Symbol*> SymbolDB::GetSymbolsFromHash(u32 hash)
 
   for (const auto& iter : checksumToFunction)
     if (iter.first == hash)
-      symbols.push_back(iter.second);
+      for (const auto& symbol : iter.second)
+        symbols.push_back(symbol);
 
   return symbols;
 }

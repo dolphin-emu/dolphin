@@ -57,7 +57,7 @@ Symbol* PPCSymbolDB::AddFunction(u32 startAddr)
     // LOG(OSHLE, "Symbol found at %08x", startAddr);
     functions[startAddr] = tempFunc;
     tempFunc.type = Symbol::Type::Function;
-    checksumToFunction[tempFunc.hash] = &(functions[startAddr]);
+    checksumToFunction[tempFunc.hash].insert(&functions[startAddr]);
     return &functions[startAddr];
   }
 }
@@ -86,7 +86,7 @@ void PPCSymbolDB::AddKnownSymbol(u32 startAddr, u32 size, const std::string& nam
     if (tf.type == Symbol::Type::Function)
     {
       PPCAnalyst::AnalyzeFunction(startAddr, tf, size);
-      checksumToFunction[tf.hash] = &(functions[startAddr]);
+      checksumToFunction[tf.hash].insert(&functions[startAddr]);
       tf.function_name = GetStrippedFunctionName(name);
     }
     tf.size = size;
