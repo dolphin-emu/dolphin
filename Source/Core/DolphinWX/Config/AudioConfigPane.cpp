@@ -55,8 +55,8 @@ void AudioConfigPane::InitializeGUI()
 
   m_audio_backend_choice->SetToolTip(
       _("Changing this will have no effect while the emulator is running."));
-  m_audio_latency_spinctrl->SetToolTip(_(
-      "Sets the latency (in ms). Higher values may reduce audio crackling. Certain backends only."));
+  m_audio_latency_spinctrl->SetToolTip(_("Sets the latency (in ms). Higher values may reduce audio "
+                                         "crackling. Certain backends only."));
   m_dpl2_decoder_checkbox->SetToolTip(
       _("Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends only."));
 
@@ -78,8 +78,10 @@ void AudioConfigPane::InitializeGUI()
                           wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   backend_grid_sizer->Add(m_audio_backend_choice, wxGBPosition(0, 1), wxDefaultSpan,
                           wxALIGN_CENTER_VERTICAL);
-  backend_grid_sizer->Add(m_dpl2_decoder_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALIGN_CENTER_VERTICAL);
-  backend_grid_sizer->Add(m_audio_latency_label, wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  backend_grid_sizer->Add(m_dpl2_decoder_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2),
+                          wxALIGN_CENTER_VERTICAL);
+  backend_grid_sizer->Add(m_audio_latency_label, wxGBPosition(2, 0), wxDefaultSpan,
+                          wxALIGN_CENTER_VERTICAL);
   backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(2, 1), wxDefaultSpan,
                           wxALIGN_CENTER_VERTICAL);
 
@@ -127,10 +129,14 @@ void AudioConfigPane::LoadGUIValues()
 void AudioConfigPane::ToggleBackendSpecificControls(const std::string& backend)
 {
   m_dpl2_decoder_checkbox->Enable(AudioCommon::SupportsDPL2Decoder(backend));
-  m_audio_latency_spinctrl->Enable(AudioCommon::SupportsLatencyControl(backend));
-  m_audio_latency_label->Enable(AudioCommon::SupportsLatencyControl(backend));
-  m_volume_slider->Enable(AudioCommon::SupportsVolumeChanges(backend));
-  m_volume_text->Enable(AudioCommon::SupportsVolumeChanges(backend));
+
+  bool supports_latency_control = AudioCommon::SupportsLatencyControl(backend);
+  m_audio_latency_spinctrl->Enable(supports_latency_control);
+  m_audio_latency_label->Enable(supports_latency_control);
+
+  bool supports_volume_changes = AudioCommon::SupportsVolumeChanges(backend);
+  m_volume_slider->Enable(supports_volume_changes);
+  m_volume_text->Enable(supports_volume_changes);
 }
 
 void AudioConfigPane::RefreshGUI()
