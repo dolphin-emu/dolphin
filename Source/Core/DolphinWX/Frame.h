@@ -206,6 +206,10 @@ private:
   wxMenu* CreateOptionsMenu();
   wxMenu* CreateToolsMenu();
   wxMenu* CreateViewMenu();
+  wxMenu* CreateJITMenu();
+  wxMenu* CreateDebugMenu();
+  wxMenu* CreateSymbolsMenu();
+  wxMenu* CreateProfilerMenu();
   wxMenu* CreateHelpMenu();
 
   // Utility

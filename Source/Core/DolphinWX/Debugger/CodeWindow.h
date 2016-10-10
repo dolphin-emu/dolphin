@@ -97,9 +97,6 @@ public:
 
   void Repopulate();
   void NotifyMapLoaded();
-  void CreateMenu(const SConfig& _LocalCoreStartupParameter, wxMenuBar* pMenuBar);
-  void CreateMenuOptions(wxMenu* pMenu);
-  void CreateMenuSymbols(wxMenuBar* pMenuBar);
   void PopulateToolbar(wxToolBar* toolBar);
   void UpdateButtonStates();
   void OpenPages();
@@ -130,8 +127,6 @@ public:
   }
 
   // Settings
-  bool bAutomaticStart;
-  bool bBootToPause;
   bool bShowOnStart[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START];
   int iNbAffiliation[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START];
 
