@@ -43,4 +43,5 @@ private:
   wxStaticText* m_volume_text;
   wxChoice* m_audio_backend_choice;
   wxSpinCtrl* m_audio_latency_spinctrl;
+  wxStaticText* m_audio_latency_label;
 };

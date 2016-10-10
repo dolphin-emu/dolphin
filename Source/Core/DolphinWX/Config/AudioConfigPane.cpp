@@ -44,6 +44,7 @@ void AudioConfigPane::InitializeGUI()
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_audio_backend_strings);
   m_audio_latency_spinctrl =
       new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
+  m_audio_latency_label = new wxStaticText(this, wxID_ANY, _("Latency:"));
 
   m_dsp_engine_radiobox->Bind(wxEVT_RADIOBOX, &AudioConfigPane::OnDSPEngineRadioBoxChanged, this);
   m_dpl2_decoder_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnDPL2DecoderCheckBoxChanged,
@@ -78,8 +79,7 @@ void AudioConfigPane::InitializeGUI()
   backend_grid_sizer->Add(m_audio_backend_choice, wxGBPosition(0, 1), wxDefaultSpan,
                           wxALIGN_CENTER_VERTICAL);
   backend_grid_sizer->Add(m_dpl2_decoder_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALIGN_CENTER_VERTICAL);
-  backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Latency:")), wxGBPosition(2, 0),
-                          wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  backend_grid_sizer->Add(m_audio_latency_label, wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(2, 1), wxDefaultSpan,
                           wxALIGN_CENTER_VERTICAL);
 
@@ -128,7 +128,9 @@ void AudioConfigPane::ToggleBackendSpecificControls(const std::string& backend)
 {
   m_dpl2_decoder_checkbox->Enable(AudioCommon::SupportsDPL2Decoder(backend));
   m_audio_latency_spinctrl->Enable(AudioCommon::SupportsLatencyControl(backend));
+  m_audio_latency_label->Enable(AudioCommon::SupportsLatencyControl(backend));
   m_volume_slider->Enable(AudioCommon::SupportsVolumeChanges(backend));
+  m_volume_text->Enable(AudioCommon::SupportsVolumeChanges(backend));
 }
 
 void AudioConfigPane::RefreshGUI()
