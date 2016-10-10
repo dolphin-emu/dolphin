@@ -401,10 +401,10 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
     GetStatusBar()->Hide();
 
   // Give it a menu bar
-  wxMenuBar* menubar_active = CreateMenu();
+  wxMenuBar* menubar_active = CreateMenuBar();
   SetMenuBar(menubar_active);
   // Create a menubar to service requests while the real menubar is hidden from the screen
-  m_menubar_shadow = CreateMenu();
+  m_menubar_shadow = CreateMenuBar();
 
   // ---------------
   // Main panel
@@ -1306,7 +1306,7 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
       // Recreate the menubar if needed.
       if (wxFrame::GetMenuBar() == nullptr)
       {
-        SetMenuBar(CreateMenu());
+        SetMenuBar(CreateMenuBar());
       }
 
       // Show statusbar if enabled

@@ -199,7 +199,14 @@ private:
 
   void PopulateToolbar(wxToolBar* toolBar);
   void RecreateToolbar();
-  wxMenuBar* CreateMenu();
+  wxMenuBar* CreateMenuBar();
+  wxMenu* CreateFileMenu();
+  wxMenu* CreateEmulationMenu();
+  wxMenu* CreateMovieMenu();
+  wxMenu* CreateOptionsMenu();
+  wxMenu* CreateToolsMenu();
+  wxMenu* CreateViewMenu();
+  wxMenu* CreateHelpMenu();
 
   // Utility
   wxString GetMenuLabel(int Id);
