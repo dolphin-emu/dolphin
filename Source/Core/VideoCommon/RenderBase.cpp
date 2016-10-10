@@ -41,6 +41,7 @@
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
+#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
@@ -538,6 +539,9 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
 bool Renderer::IsFrameDumping()
 {
+  if (s_bScreenshot)
+    return true;
+
 #if defined(HAVE_LIBAV) || defined(_WIN32)
   if (SConfig::GetInstance().m_DumpFrames)
     return true;
@@ -546,7 +550,6 @@ bool Renderer::IsFrameDumping()
   {
     AVIDump::Stop();
     std::vector<u8>().swap(m_frame_data);
-    m_last_framedump_width = m_last_framedump_height = 0;
     m_AVI_dumping = false;
     OSD::AddMessage("Stop dumping frames", 2000);
   }
@@ -555,43 +558,54 @@ bool Renderer::IsFrameDumping()
   return false;
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, AVIDump::DumpFormat format,
-                             bool swap_upside_down)
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, bool swap_upside_down)
 {
-#if defined(HAVE_LIBAV) || defined(_WIN32)
   if (w == 0 || h == 0)
     return;
 
-  m_last_framedump_width = w;
-  m_last_framedump_height = h;
-  m_last_framedump_format = format;
-  m_last_framedump_stride = stride;
-
   // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
   m_frame_data.assign(data, data + stride * h);
+  if (swap_upside_down)
+    FlipImageData(m_frame_data.data(), w, h, 4);
 
-  if (!m_last_frame_dumped)
+  // Save screenshot
+  if (s_bScreenshot)
   {
-    m_AVI_dumping = AVIDump::Start(w, h, format);
-    if (!m_AVI_dumping)
-    {
-      OSD::AddMessage("AVIDump Start failed", 2000);
-    }
-    else
-    {
-      OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                       File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h),
-                      2000);
-    }
-  }
-  if (m_AVI_dumping)
-  {
-    if (swap_upside_down)
-      FlipImageData(m_frame_data.data(), w, h, 4);
-    AVIDump::AddFrame(m_frame_data.data(), w, h, stride);
+    std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+
+    if (TextureToPng(m_frame_data.data(), stride, s_sScreenshotName, w, h, false))
+      OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
+
+    // Reset settings
+    s_sScreenshotName.clear();
+    s_bScreenshot = false;
+    s_screenshotCompleted.Set();
   }
 
-  m_last_frame_dumped = true;
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  if (SConfig::GetInstance().m_DumpFrames)
+  {
+    if (!m_last_frame_dumped)
+    {
+      m_AVI_dumping = AVIDump::Start(w, h);
+      if (!m_AVI_dumping)
+      {
+        OSD::AddMessage("AVIDump Start failed", 2000);
+      }
+      else
+      {
+        OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+                                         File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h),
+                        2000);
+      }
+    }
+    if (m_AVI_dumping)
+    {
+      AVIDump::AddFrame(m_frame_data.data(), w, h, stride);
+    }
+
+    m_last_frame_dumped = true;
+  }
 #endif
 }
 

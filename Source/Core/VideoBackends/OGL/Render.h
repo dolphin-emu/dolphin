@@ -101,8 +101,6 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) override;
-
   u32 GetMaxTextureSize() override;
 
   void ChangeSurface(void* new_surface_handle) override;
