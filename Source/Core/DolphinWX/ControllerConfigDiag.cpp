@@ -222,7 +222,7 @@ wxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
   const int space5 = FromDIP(5);
   const int space20 = FromDIP(20);
 
-  auto* const box = new wxStaticBoxSizer(wxVERTICAL, this, _("Wiimotes"));
+  auto* const box = new wxStaticBoxSizer(wxVERTICAL, this, _("Wii Remotes"));
 
   m_passthrough_bt_radio = new wxRadioButton(this, wxID_ANY, _("Passthrough a Bluetooth adapter"),
                                              wxDefaultPosition, wxDefaultSize, wxRB_GROUP);
@@ -253,13 +253,13 @@ wxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 
 wxSizer* ControllerConfigDiag::CreatePassthroughBTConfigSizer()
 {
-  m_passthrough_sync_text = new wxStaticText(this, wxID_ANY, _("Sync real Wiimotes and pair them"));
+  m_passthrough_sync_text = new wxStaticText(this, wxID_ANY, _("Sync real Wii Remotes and pair them"));
   m_passthrough_sync_btn =
       new wxButton(this, wxID_ANY, _("Sync"), wxDefaultPosition, wxDLG_UNIT(this, wxSize(60, -1)));
   m_passthrough_sync_btn->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnPassthroughScanButton, this);
 
   m_passthrough_reset_text =
-      new wxStaticText(this, wxID_ANY, _("Reset all saved Wiimote pairings"));
+      new wxStaticText(this, wxID_ANY, _("Reset all saved Wii Remote pairings"));
   m_passthrough_reset_btn =
       new wxButton(this, wxID_ANY, _("Reset"), wxDefaultPosition, wxDLG_UNIT(this, wxSize(60, -1)));
   m_passthrough_reset_btn->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnPassthroughResetButton,
@@ -284,7 +284,7 @@ wxSizer* ControllerConfigDiag::CreatePassthroughBTConfigSizer()
 wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
 {
   const std::array<wxString, 4> src_choices{
-      {_("None"), _("Emulated Wiimote"), _("Real Wiimote"), _("Hybrid Wiimote")}};
+      {_("None"), _("Emulated Wii Remote"), _("Real Wii Remote"), _("Hybrid Wii Remote")}};
 
   const int space5 = FromDIP(5);
 
@@ -304,7 +304,7 @@ wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
     m_wiimote_index_from_config_id.emplace(config_bt_id, i);
 
     m_wiimote_labels[i] =
-        new wxStaticText(this, wxID_ANY, wxString::Format(_("Wiimote %i"), i + 1));
+        new wxStaticText(this, wxID_ANY, wxString::Format(_("Wii Remote %i"), i + 1));
     m_wiimote_sources[i] = new wxChoice(this, source_ctrl_id, wxDefaultPosition, wxDefaultSize,
                                         src_choices.size(), src_choices.data());
     m_wiimote_sources[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::OnWiimoteSourceChanged, this);
@@ -330,7 +330,7 @@ wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
 
   m_unsupported_bt_text =
       new wxStaticText(this, wxID_ANY, _("A supported Bluetooth device could not be found,\n"
-                                         "so you must connect Wiimotes manually."));
+                                         "so you must connect Wii Remotes manually."));
   m_unsupported_bt_text->Show(!WiimoteReal::g_wiimote_scanner.IsReady());
 
   // Balance Board
@@ -452,7 +452,7 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
   }
   else if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_WIIU_ADAPTER)
   {
-    GCAdapterConfigDiag config_diag(this, _("Wii U Gamecube Controller Adapter Configuration"),
+    GCAdapterConfigDiag config_diag(this, _("Wii U GameCube Controller Adapter Configuration"),
                                     port_num);
     config_diag.ShowModal();
   }
@@ -494,7 +494,7 @@ void ControllerConfigDiag::OnWiimoteConfigButton(wxCommandEvent& ev)
   HotkeyManagerEmu::Enable(false);
 
   InputConfigDialog m_ConfigFrame(this, *wiimote_plugin,
-                                  _("Dolphin Emulated Wiimote Configuration"),
+                                  _("Dolphin Emulated Wii Remote Configuration"),
                                   m_wiimote_index_from_config_id[ev.GetId()]);
   m_ConfigFrame.ShowModal();
 
@@ -512,7 +512,7 @@ void ControllerConfigDiag::OnPassthroughScanButton(wxCommandEvent& event)
 {
   if (!Core::IsRunning())
   {
-    wxMessageBox(_("A sync can only be triggered when a Wii game is running."), _("Sync Wiimotes"),
+    wxMessageBox(_("A sync can only be triggered when a Wii game is running."), _("Sync Wii Remotes"),
                  wxICON_WARNING);
     return;
   }
@@ -526,8 +526,8 @@ void ControllerConfigDiag::OnPassthroughResetButton(wxCommandEvent& event)
 {
   if (!Core::IsRunning())
   {
-    wxMessageBox(_("Saved Wiimote pairings can only be reset when a Wii game is running."),
-                 _("Reset Wiimote pairings"), wxICON_WARNING);
+    wxMessageBox(_("Saved Wii Remote pairings can only be reset when a Wii game is running."),
+                 _("Reset Wii Remote pairings"), wxICON_WARNING);
     return;
   }
   auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
@@ -567,7 +567,7 @@ void ControllerConfigDiag::SaveWiimoteSource()
 
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
-    std::string secname("Wiimote");
+    std::string secname("Wii Remote");
     secname += (char)('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 

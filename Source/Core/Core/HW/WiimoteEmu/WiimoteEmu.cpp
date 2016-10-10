@@ -283,9 +283,9 @@ Wiimote::Wiimote(const unsigned int index)
   m_options->boolean_settings.emplace_back(
       std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BooleanSetting>(_trans("Sideways Wiimote"), false));
+      std::make_unique<ControlGroup::BooleanSetting>(_trans("Sideways Wii Remote"), false));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BooleanSetting>(_trans("Upright Wiimote"), false));
+      std::make_unique<ControlGroup::BooleanSetting>(_trans("Upright Wii Remote"), false));
   m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
       _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
   m_options->numeric_settings.emplace_back(
@@ -312,7 +312,7 @@ Wiimote::Wiimote(const unsigned int index)
 
 std::string Wiimote::GetName() const
 {
-  return std::string("Wiimote") + char('1' + m_index);
+  return std::string("Wii Remote") + char('1' + m_index);
 }
 
 bool Wiimote::Step()

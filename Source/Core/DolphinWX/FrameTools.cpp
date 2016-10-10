@@ -235,7 +235,7 @@ wxMenuBar* CFrame::CreateMenu()
 
   toolsMenu->AppendSeparator();
   wxMenu* wiimoteMenu = new wxMenu;
-  toolsMenu->AppendSubMenu(wiimoteMenu, _("Connect Wiimotes"));
+  toolsMenu->AppendSubMenu(wiimoteMenu, _("Connect Wii Remotes"));
   wiimoteMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, GetMenuLabel(HK_WIIMOTE1_CONNECT));
   wiimoteMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, GetMenuLabel(HK_WIIMOTE2_CONNECT));
   wiimoteMenu->AppendCheckItem(IDM_CONNECT_WIIMOTE3, GetMenuLabel(HK_WIIMOTE3_CONNECT));
@@ -423,7 +423,7 @@ wxString CFrame::GetMenuLabel(int Id)
   case HK_WIIMOTE2_CONNECT:
   case HK_WIIMOTE3_CONNECT:
   case HK_WIIMOTE4_CONNECT:
-    Label = wxString::Format(_("Connect Wiimote %i"), Id - HK_WIIMOTE1_CONNECT + 1);
+    Label = wxString::Format(_("Connect Wii Remote %i"), Id - HK_WIIMOTE1_CONNECT + 1);
     break;
   case HK_BALANCEBOARD_CONNECT:
     Label = _("Connect Balance Board");
@@ -713,7 +713,7 @@ void CFrame::OnTASInput(wxCommandEvent& event)
     {
       g_TASInputDlg[i + 4]->CreateWiiLayout(i);
       g_TASInputDlg[i + 4]->Show();
-      g_TASInputDlg[i + 4]->SetTitle(wxString::Format(_("TAS Input - Wiimote %d"), i + 1));
+      g_TASInputDlg[i + 4]->SetTitle(wxString::Format(_("TAS Input - Wii Remote %d"), i + 1));
     }
   }
 }
@@ -1538,7 +1538,7 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
   {
     bool was_unpaused = Core::PauseAndLock(true);
     GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-    const char* message = connect ? "Wiimote %i connected" : "Wiimote %i disconnected";
+    const char* message = connect ? "Wiimote %i connected" : "Wii Remote %i disconnected";
     Core::DisplayMessage(StringFromFormat(message, wm_idx + 1), 3000);
     Host_UpdateMainFrame();
     Core::PauseAndLock(false, was_unpaused);
