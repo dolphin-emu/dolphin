@@ -66,9 +66,6 @@ void AudioConfigPane::InitializeGUI()
   dsp_engine_sizer->Add(m_dsp_engine_radiobox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   dsp_engine_sizer->AddSpacer(space5);
   dsp_engine_sizer->AddStretchSpacer();
-  dsp_engine_sizer->Add(m_dpl2_decoder_checkbox, 0, wxLEFT | wxRIGHT, space5);
-  dsp_engine_sizer->AddStretchSpacer();
-  dsp_engine_sizer->AddSpacer(space5);
 
   wxStaticBoxSizer* const volume_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Volume"));
   volume_sizer->Add(m_volume_slider, 1, wxALIGN_CENTER_HORIZONTAL);
@@ -80,9 +77,10 @@ void AudioConfigPane::InitializeGUI()
                           wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   backend_grid_sizer->Add(m_audio_backend_choice, wxGBPosition(0, 1), wxDefaultSpan,
                           wxALIGN_CENTER_VERTICAL);
-  backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Latency:")), wxGBPosition(1, 0),
+  backend_grid_sizer->Add(m_dpl2_decoder_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2), wxALIGN_CENTER_VERTICAL);
+  backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Latency:")), wxGBPosition(2, 0),
                           wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-  backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(1, 1), wxDefaultSpan,
+  backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(2, 1), wxDefaultSpan,
                           wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const backend_static_box_sizer =
