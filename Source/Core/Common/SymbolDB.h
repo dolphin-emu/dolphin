@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -57,7 +58,7 @@ class SymbolDB
 {
 public:
   typedef std::map<u32, Symbol> XFuncMap;
-  typedef std::map<u32, Symbol*> XFuncPtrMap;
+  typedef std::map<u32, std::set<Symbol*>> XFuncPtrMap;
 
 protected:
   XFuncMap functions;
