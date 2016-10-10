@@ -127,8 +127,6 @@ public:
   virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                         const EFBRectangle& rc, float Gamma = 1.0f) = 0;
 
-  virtual bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) = 0;
-
   static PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
   static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
   PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
@@ -148,8 +146,7 @@ protected:
   static void RecordVideoMemory();
 
   bool IsFrameDumping();
-  void DumpFrameData(const u8* data, int w, int h, int stride, AVIDump::DumpFormat format,
-                     bool swap_upside_down = false);
+  void DumpFrameData(const u8* data, int w, int h, int stride, bool swap_upside_down = false);
   void FinishFrameData();
 
   static volatile bool s_bScreenshot;
@@ -192,10 +189,6 @@ private:
   std::vector<u8> m_frame_data;
   bool m_AVI_dumping = false;
   bool m_last_frame_dumped = false;
-  int m_last_framedump_width = 0;
-  int m_last_framedump_height = 0;
-  int m_last_framedump_stride = 0;
-  AVIDump::DumpFormat m_last_framedump_format;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

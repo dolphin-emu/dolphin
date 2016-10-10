@@ -31,9 +31,5 @@ public:
   }
 
   void ReinterpretPixelData(unsigned int convtype) override {}
-  bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) override
-  {
-    return false;
-  }
 };
 }
