@@ -380,7 +380,7 @@ ID3D11BlendState* StateCache::Get(BlendState state)
   blenddc.RenderTarget[0].BlendOpAlpha = state.blend_op;
 
   if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_COLOR)
-    blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+    blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_SRC1_ALPHA;
   else if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_INV_SRC_COLOR)
     blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
   else if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_DEST_COLOR)
@@ -391,7 +391,7 @@ ID3D11BlendState* StateCache::Get(BlendState state)
     blenddc.RenderTarget[0].SrcBlendAlpha = blenddc.RenderTarget[0].SrcBlend;
 
   if (blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_SRC_COLOR)
-    blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC_ALPHA;
+    blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_SRC1_ALPHA;
   else if (blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_INV_SRC_COLOR)
     blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_INV_SRC_ALPHA;
   else if (blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_DEST_COLOR)
@@ -403,18 +403,6 @@ ID3D11BlendState* StateCache::Get(BlendState state)
 
   if (state.use_dst_alpha)
   {
-    // Colors should blend against SRC1_ALPHA
-    if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_SRC_ALPHA)
-      blenddc.RenderTarget[0].SrcBlend = D3D11_BLEND_SRC1_ALPHA;
-    else if (blenddc.RenderTarget[0].SrcBlend == D3D11_BLEND_INV_SRC_ALPHA)
-      blenddc.RenderTarget[0].SrcBlend = D3D11_BLEND_INV_SRC1_ALPHA;
-
-    // Colors should blend against SRC1_ALPHA
-    if (blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_SRC_ALPHA)
-      blenddc.RenderTarget[0].DestBlend = D3D11_BLEND_SRC1_ALPHA;
-    else if (blenddc.RenderTarget[0].DestBlend == D3D11_BLEND_INV_SRC_ALPHA)
-      blenddc.RenderTarget[0].DestBlend = D3D11_BLEND_INV_SRC1_ALPHA;
-
     blenddc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
     blenddc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
     blenddc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;

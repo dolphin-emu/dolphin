@@ -1241,7 +1241,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
   bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
   bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
-  bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+  bool useDualSource = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
   const GLenum glSrcFactors[8] = {
       GL_ZERO,
@@ -1269,7 +1269,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
   // 3-5 - srcRGB function
   // 6-8 - dstRGB function
 
-  u32 newval = useDualSource << 1;
+  u32 newval = useDstAlpha << 1;
   newval |= bpmem.blendmode.subtract << 2;
 
   if (bpmem.blendmode.subtract)
@@ -1295,7 +1295,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
   {
     // subtract enable change
     GLenum equation = newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-    GLenum equationAlpha = useDualSource ? GL_FUNC_ADD : equation;
+    GLenum equationAlpha = useDstAlpha ? GL_FUNC_ADD : equation;
 
     glBlendEquationSeparate(equation, equationAlpha);
   }
@@ -1308,7 +1308,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
     GLenum dstFactor = glDestFactors[dstidx];
 
     // adjust alpha factors
-    if (useDualSource)
+    if (useDstAlpha)
     {
       srcidx = BlendMode::ONE;
       dstidx = BlendMode::ZERO;
