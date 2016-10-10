@@ -347,8 +347,7 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
                            bool per_pixel_depth);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
-static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, const char* color);
-static void WriteAlpha(ShaderCode& out, const char* alpha);
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data)
 {
@@ -508,22 +507,15 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
-    if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+    if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
     {
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
-        out.Write("FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
-      }
-      else
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
-      }
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+      out.Write("FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
     }
     else
     {
-      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
     }
 
     if (uid_data->per_pixel_depth)
@@ -579,11 +571,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   else  // D3D
   {
     out.Write("void main(\n");
-    out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
-              uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ?
-                  "\n  out float4 ocol1 : SV_Target1," :
-                  "",
-              uid_data->per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
+    out.Write("  out float4 ocol0 : SV_Target0,\n"
+              "  out float4 ocol1 : SV_Target1,\n%s"
+              "  in float4 rawpos : SV_Position,\n",
+              uid_data->per_pixel_depth ? "  out float depth : SV_Depth,\n" : "");
 
     out.Write("  in %s float4 colors_0 : COLOR0,\n",
               GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
@@ -790,37 +781,11 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     out.Write("\tprev.rgb = (prev.rgb - (prev.rgb >> 6)) + abs(dither.y * 3 - dither.x * 2);\n");
   }
 
-  if (uid_data->dstAlphaMode == DSTALPHA_ALPHA_PASS)
-  {
-    out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-    out.Write("\tocol0.rgb = ");
-    WriteColor(out, uid_data, "prev.rgb");
-    out.Write("\tocol0.a = ");
-    WriteAlpha(out, I_ALPHA ".a");
-  }
-  else
-  {
+  if (uid_data->dstAlphaMode != DSTALPHA_ALPHA_PASS)
     WriteFog(out, uid_data);
-    out.Write("\tocol0.rgb = ");
-    WriteColor(out, uid_data, "prev.rgb");
-    out.Write("\tocol0.a = ");
-    WriteAlpha(out, "prev.a");
-  }
 
-  // Use dual-source color blending to perform dst alpha in a single pass
-  if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-  {
-    out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-
-    // Colors will be blended against the alpha from ocol1 and
-    // the alpha from ocol0 will be written to the framebuffer.
-    out.Write("\tocol1.rgb = ");
-    WriteColor(out, uid_data, "prev.rgb");
-    out.Write("\tocol1.a = ");
-    WriteAlpha(out, "prev.a");
-    out.Write("\tocol0.a = ");
-    WriteAlpha(out, I_ALPHA ".a");
-  }
+  // Write the color and alpha values to the framebuffer
+  WriteColor(out, uid_data);
 
   if (uid_data->bounding_box)
   {
@@ -1320,17 +1285,29 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
 }
 
-static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, const char* color)
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 {
   if (uid_data->rgba6_format)
-    out.Write("float3(%s >> 2) / 63.0;\n", color);
+    out.Write("\tocol0.rgb = (prev.rgb >> 2) / 63.0;\n");
   else
-    out.Write("float3(%s) / 255.0;\n", color);
-}
+    out.Write("\tocol0.rgb = prev.rgb / 255.0;\n");
 
-static void WriteAlpha(ShaderCode& out, const char* color)
-{
-  // Always truncate the alpha to 6-bit, as there is no format available
-  // on flipper that supports 8-bit.
-  out.Write("float(%s >> 2) / 63.0;\n", color);
+  // Colors will be blended against the 8-bit alpha from ocol1 and
+  // the 6-bit alpha from ocol0 will be written to the framebuffer
+  if (uid_data->dstAlphaMode == DSTALPHA_NONE)
+  {
+    out.Write("\tocol0.a = (prev.a >> 2) / 63.0;\n");
+    out.Write("\tocol1.a = prev.a / 255.0;\n");
+  }
+  else
+  {
+    out.SetConstantsUsed(C_ALPHA, C_ALPHA);
+    out.Write("\tocol0.a = (" I_ALPHA ".a >> 2) / 63.0;\n");
+
+    // Use dual-source color blending to perform dst alpha in a single pass
+    if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+      out.Write("\tocol1.a = prev.a / 255.0;\n");
+    else
+      out.Write("\tocol1.a = " I_ALPHA ".a / 255.0;\n");
+  }
 }
