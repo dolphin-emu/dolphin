@@ -111,9 +111,12 @@ wxMenuBar* CFrame::CreateMenuBar()
   menu_bar->Append(CreateToolsMenu(), _("&Tools"));
   menu_bar->Append(CreateViewMenu(), _("&View"));
 
-  if (g_pCodeWindow)
+  if (UseDebugger)
   {
-    g_pCodeWindow->CreateMenu(SConfig::GetInstance(), menu_bar);
+    menu_bar->Append(CreateJITMenu(), _("&JIT"));
+    menu_bar->Append(CreateDebugMenu(), _("&Debug"));
+    menu_bar->Append(CreateSymbolsMenu(), _("&Symbols"));
+    menu_bar->Append(CreateProfilerMenu(), _("&Profiler"));
   }
 
   menu_bar->Append(CreateHelpMenu(), _("&Help"));
@@ -230,10 +233,27 @@ wxMenu* CFrame::CreateOptionsMenu()
   options_menu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
   options_menu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
 
-  if (g_pCodeWindow)
+  if (UseDebugger)
   {
     options_menu->AppendSeparator();
-    g_pCodeWindow->CreateMenuOptions(options_menu);
+
+    const auto& config_instance = SConfig::GetInstance();
+
+    auto* const boot_to_pause =
+        options_menu->AppendCheckItem(IDM_BOOT_TO_PAUSE, _("Boot to Pause"),
+                                      _("Start the game directly instead of booting to pause"));
+    boot_to_pause->Check(config_instance.bBootToPause);
+
+    auto* const automatic_start = options_menu->AppendCheckItem(
+        IDM_AUTOMATIC_START, _("&Automatic Start"),
+        _("Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
+          " if you have not given it an elf file with the --elf command line. [This can be"
+          " convenient if you are bug-testing with a certain game and want to rebuild"
+          " and retry it several times, either with changes to Dolphin or if you are"
+          " developing a homebrew game.]"));
+    automatic_start->Check(config_instance.bAutomaticStart);
+
+    options_menu->Append(IDM_FONT_PICKER, _("&Font..."));
   }
 
   return options_menu;
@@ -371,6 +391,153 @@ wxMenu* CFrame::CreateViewMenu()
   view_menu->AppendSubMenu(columns_menu, _("Select Columns"));
 
   return view_menu;
+}
+
+wxMenu* CFrame::CreateJITMenu()
+{
+  auto* const jit_menu = new wxMenu;
+  const auto& config_instance = SConfig::GetInstance();
+
+  auto* const interpreter = jit_menu->AppendCheckItem(
+      IDM_INTERPRETER, _("&Interpreter Core"),
+      _("This is necessary to get break points"
+        " and stepping to work as explained in the Developer Documentation. But it can be very"
+        " slow, perhaps slower than 1 fps."));
+  interpreter->Check(config_instance.iCPUCore == PowerPC::CORE_INTERPRETER);
+
+  jit_menu->AppendSeparator();
+  jit_menu->AppendCheckItem(IDM_JIT_NO_BLOCK_LINKING, _("&JIT Block Linking Off"),
+                            _("Provide safer execution by not linking the JIT blocks."));
+
+  jit_menu->AppendCheckItem(
+      IDM_JIT_NO_BLOCK_CACHE, _("&Disable JIT Cache"),
+      _("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from "
+        "crashing.\n[This option must be selected before a game is started.]"));
+
+  jit_menu->Append(IDM_CLEAR_CODE_CACHE, _("&Clear JIT Cache"));
+  jit_menu->AppendSeparator();
+  jit_menu->Append(IDM_LOG_INSTRUCTIONS, _("&Log JIT Instruction Coverage"));
+  jit_menu->Append(IDM_SEARCH_INSTRUCTION, _("&Search for an Instruction"));
+  jit_menu->AppendSeparator();
+
+  jit_menu->AppendCheckItem(
+      IDM_JIT_OFF, _("&JIT Off (JIT Core)"),
+      _("Turn off all JIT functions, but still use the JIT core from Jit.cpp"));
+
+  jit_menu->AppendCheckItem(IDM_JIT_LS_OFF, _("&JIT LoadStore Off"));
+  jit_menu->AppendCheckItem(IDM_JIT_LSLBZX_OFF, _("&JIT LoadStore lbzx Off"));
+  jit_menu->AppendCheckItem(IDM_JIT_LSLXZ_OFF, _("&JIT LoadStore lXz Off"));
+  jit_menu->AppendCheckItem(IDM_JIT_LSLWZ_OFF, _("&JIT LoadStore lwz Off"));
+  jit_menu->AppendCheckItem(IDM_JIT_LSF_OFF, _("&JIT LoadStore Floating Off"));
+  jit_menu->AppendCheckItem(IDM_JIT_LSP_OFF, _("&JIT LoadStore Paired Off"));
+  jit_menu->AppendCheckItem(IDM_JIT_FP_OFF, _("&JIT FloatingPoint Off"));
+  jit_menu->AppendCheckItem(IDM_JIT_I_OFF, _("&JIT Integer Off"));
+  jit_menu->AppendCheckItem(IDM_JIT_P_OFF, _("&JIT Paired Off"));
+  jit_menu->AppendCheckItem(IDM_JIT_SR_OFF, _("&JIT SystemRegisters Off"));
+
+  return jit_menu;
+}
+
+wxMenu* CFrame::CreateDebugMenu()
+{
+  m_SavedPerspectives = new wxMenu;
+  PopulateSavedPerspectives();
+
+  auto* const add_pane_menu = new wxMenu;
+  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_TOP, _("Top"));
+  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_BOTTOM, _("Bottom"));
+  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_LEFT, _("Left"));
+  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_RIGHT, _("Right"));
+  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_CENTER, _("Center"));
+
+  auto* const perspective_menu = new wxMenu;
+  perspective_menu->Append(IDM_SAVE_PERSPECTIVE, _("Save Perspectives"),
+                           _("Save currently-toggled perspectives"));
+  perspective_menu->AppendCheckItem(IDM_EDIT_PERSPECTIVES, _("Edit Perspectives"),
+                                    _("Toggle editing of perspectives"));
+  perspective_menu->AppendSeparator();
+  perspective_menu->Append(IDM_ADD_PERSPECTIVE, _("Create New Perspective"));
+  perspective_menu->AppendSubMenu(m_SavedPerspectives, _("Saved Perspectives"));
+  perspective_menu->AppendSeparator();
+  perspective_menu->AppendSubMenu(add_pane_menu, _("Add New Pane To"));
+  perspective_menu->AppendCheckItem(IDM_TAB_SPLIT, _("Tab Split"));
+  perspective_menu->AppendCheckItem(IDM_NO_DOCKING, _("Disable Docking"),
+                                    _("Disable docking of perspective panes to main window"));
+
+  auto* const debug_menu = new wxMenu;
+  debug_menu->Append(IDM_STEP, _("Step &Into\tF11"));
+  debug_menu->Append(IDM_STEPOVER, _("Step &Over\tF10"));
+  debug_menu->Append(IDM_STEPOUT, _("Step O&ut\tSHIFT+F11"));
+  debug_menu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint\tF9"));
+  debug_menu->AppendSeparator();
+  debug_menu->AppendSubMenu(perspective_menu, _("Perspectives"), _("Edit Perspectives"));
+
+  return debug_menu;
+}
+
+wxMenu* CFrame::CreateSymbolsMenu()
+{
+  auto* const symbols_menu = new wxMenu;
+  symbols_menu->Append(IDM_CLEAR_SYMBOLS, _("&Clear Symbols"),
+                       _("Remove names from all functions and variables."));
+  symbols_menu->Append(IDM_SCAN_FUNCTIONS, _("&Generate Symbol Map"),
+                       _("Recognise standard functions from sys\\totaldb.dsy, and use generic zz_ "
+                         "names for other functions."));
+  symbols_menu->AppendSeparator();
+  symbols_menu->Append(IDM_LOAD_MAP_FILE, _("&Load Symbol Map"),
+                       _("Try to load this game's function names automatically - but doesn't check "
+                         ".map files stored on the disc image yet."));
+  symbols_menu->Append(IDM_SAVEMAPFILE, _("&Save Symbol Map"),
+                       _("Save the function names for each address to a .map file in your user "
+                         "settings map folder, named after the title id."));
+  symbols_menu->AppendSeparator();
+  symbols_menu->Append(
+      IDM_LOAD_MAP_FILE_AS, _("Load &Other Map File..."),
+      _("Load any .map file containing the function names and addresses for this game."));
+  symbols_menu->Append(
+      IDM_LOAD_BAD_MAP_FILE, _("Load &Bad Map File..."),
+      _("Try to load a .map file that might be from a slightly different version."));
+  symbols_menu->Append(IDM_SAVE_MAP_FILE_AS, _("Save Symbol Map &As..."),
+                       _("Save the function names and addresses for this game as a .map file. If "
+                         "you want to open it in IDA pro, use the .idc script."));
+  symbols_menu->AppendSeparator();
+  symbols_menu->Append(
+      IDM_SAVE_MAP_FILE_WITH_CODES, _("Save Code"),
+      _("Save the entire disassembled code. This may take a several seconds"
+        " and may require between 50 and 100 MB of hard drive space. It will only save code"
+        " that are in the first 4 MB of memory, if you are debugging a game that load .rel"
+        " files with code to memory you may want to increase that to perhaps 8 MB, you can do"
+        " that from SymbolDB::SaveMap()."));
+
+  symbols_menu->AppendSeparator();
+  symbols_menu->Append(
+      IDM_CREATE_SIGNATURE_FILE, _("&Create Signature File..."),
+      _("Create a .dsy file that can be used to recognise these same functions in other games."));
+  symbols_menu->Append(IDM_APPEND_SIGNATURE_FILE, _("Append to &Existing Signature File..."),
+                       _("Add any named functions missing from a .dsy file, so it can also "
+                         "recognise these additional functions in other games."));
+  symbols_menu->Append(IDM_COMBINE_SIGNATURE_FILES, _("Combine Two Signature Files..."),
+                       _("Make a new .dsy file which can recognise more functions, by combining "
+                         "two existing files. The first input file has priority."));
+  symbols_menu->Append(
+      IDM_USE_SIGNATURE_FILE, _("Apply Signat&ure File..."),
+      _("Must use Generate symbol map first! Recognise names of any standard library functions "
+        "used in multiple games, by loading them from a .dsy file."));
+  symbols_menu->AppendSeparator();
+  symbols_menu->Append(IDM_PATCH_HLE_FUNCTIONS, _("&Patch HLE Functions"));
+  symbols_menu->Append(IDM_RENAME_SYMBOLS, _("&Rename Symbols from File..."));
+
+  return symbols_menu;
+}
+
+wxMenu* CFrame::CreateProfilerMenu()
+{
+  auto* const profiler_menu = new wxMenu;
+  profiler_menu->AppendCheckItem(IDM_PROFILE_BLOCKS, _("&Profile Blocks"));
+  profiler_menu->AppendSeparator();
+  profiler_menu->Append(IDM_WRITE_PROFILE, _("&Write to profile.txt, Show"));
+
+  return profiler_menu;
 }
 
 wxMenu* CFrame::CreateHelpMenu()
