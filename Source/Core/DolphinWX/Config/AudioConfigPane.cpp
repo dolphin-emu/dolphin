@@ -115,9 +115,9 @@ void AudioConfigPane::InitializeGUI()
 
 void AudioConfigPane::LoadGUIValues()
 {
-  PopulateBackendChoiceBox();
-
   const SConfig& startup_params = SConfig::GetInstance();
+  PopulateBackendChoiceBox();
+  ToggleBackendSpecificControls(SConfig::GetInstance().sBackend);
 
   // Audio DSP Engine
   if (startup_params.bDSPHLE)
@@ -125,18 +125,22 @@ void AudioConfigPane::LoadGUIValues()
   else
     m_dsp_engine_radiobox->SetSelection(SConfig::GetInstance().m_DSPEnableJIT ? 1 : 2);
 
-  m_volume_slider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
   m_volume_slider->SetValue(SConfig::GetInstance().m_Volume);
-
   m_volume_text->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
-
-  m_dpl2_decoder_checkbox->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL ||
-                                  std::string(SConfig::GetInstance().sBackend) ==
-                                      BACKEND_PULSEAUDIO);
   m_dpl2_decoder_checkbox->SetValue(startup_params.bDPL2Decoder);
-
-  m_audio_latency_spinctrl->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
   m_audio_latency_spinctrl->SetValue(startup_params.iLatency);
+}
+
+void AudioConfigPane::ToggleBackendSpecificControls(const std::string& backend)
+{
+  m_dpl2_decoder_checkbox->Enable(backend == BACKEND_OPENAL || backend == BACKEND_PULSEAUDIO);
+  m_audio_latency_spinctrl->Enable(backend == BACKEND_OPENAL);
+
+  // FIXME: this one should ask the backend whether it supports it.
+  //       but getting the backend from string etc. is probably
+  //       too much just to enable/disable a stupid slider...
+  m_volume_slider->Enable(backend == BACKEND_COREAUDIO || backend == BACKEND_OPENAL ||
+                          backend == BACKEND_XAUDIO2);
 }
 
 void AudioConfigPane::RefreshGUI()
@@ -171,19 +175,11 @@ void AudioConfigPane::OnVolumeSliderChanged(wxCommandEvent& event)
 
 void AudioConfigPane::OnAudioBackendChanged(wxCommandEvent& event)
 {
-  m_volume_slider->Enable(
-      SupportsVolumeChanges(WxStrToStr(m_audio_backend_choice->GetStringSelection())));
-  m_audio_latency_spinctrl->Enable(WxStrToStr(m_audio_backend_choice->GetStringSelection()) ==
-                                   BACKEND_OPENAL);
-  m_dpl2_decoder_checkbox->Enable(
-      WxStrToStr(m_audio_backend_choice->GetStringSelection()) == BACKEND_OPENAL ||
-      WxStrToStr(m_audio_backend_choice->GetStringSelection()) == BACKEND_PULSEAUDIO);
-
   // Don't save the translated BACKEND_NULLSOUND string
   SConfig::GetInstance().sBackend = m_audio_backend_choice->GetSelection() ?
                                         WxStrToStr(m_audio_backend_choice->GetStringSelection()) :
                                         BACKEND_NULLSOUND;
-
+  ToggleBackendSpecificControls(WxStrToStr(m_audio_backend_choice->GetStringSelection()));
   AudioCommon::UpdateSoundStream();
 }
 
@@ -201,12 +197,4 @@ void AudioConfigPane::PopulateBackendChoiceBox()
 
   int num = m_audio_backend_choice->FindString(StrToWxStr(SConfig::GetInstance().sBackend));
   m_audio_backend_choice->SetSelection(num);
-}
-
-bool AudioConfigPane::SupportsVolumeChanges(const std::string& backend)
-{
-  // FIXME: this one should ask the backend whether it supports it.
-  //       but getting the backend from string etc. is probably
-  //       too much just to enable/disable a stupid slider...
-  return (backend == BACKEND_COREAUDIO || backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2);
 }

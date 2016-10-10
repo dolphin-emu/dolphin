@@ -26,7 +26,7 @@ private:
   void RefreshGUI();
 
   void PopulateBackendChoiceBox();
-  static bool SupportsVolumeChanges(const std::string&);
+  void ToggleBackendSpecificControls(const std::string& backend);
 
   void OnDSPEngineRadioBoxChanged(wxCommandEvent&);
   void OnDPL2DecoderCheckBoxChanged(wxCommandEvent&);
