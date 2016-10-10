@@ -55,14 +55,9 @@ void AudioConfigPane::InitializeGUI()
   m_audio_backend_choice->SetToolTip(
       _("Changing this will have no effect while the emulator is running."));
   m_audio_latency_spinctrl->SetToolTip(_(
-      "Sets the latency (in ms). Higher values may reduce audio crackling. OpenAL backend only."));
-#if defined(__APPLE__)
+      "Sets the latency (in ms). Higher values may reduce audio crackling. Certain backends only."));
   m_dpl2_decoder_checkbox->SetToolTip(
-      _("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OS X."));
-#else
-  m_dpl2_decoder_checkbox->SetToolTip(
-      _("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL or Pulse backends only."));
-#endif
+      _("Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends only."));
 
   const int space5 = FromDIP(5);
 
@@ -133,14 +128,9 @@ void AudioConfigPane::LoadGUIValues()
 
 void AudioConfigPane::ToggleBackendSpecificControls(const std::string& backend)
 {
-  m_dpl2_decoder_checkbox->Enable(backend == BACKEND_OPENAL || backend == BACKEND_PULSEAUDIO);
-  m_audio_latency_spinctrl->Enable(backend == BACKEND_OPENAL);
-
-  // FIXME: this one should ask the backend whether it supports it.
-  //       but getting the backend from string etc. is probably
-  //       too much just to enable/disable a stupid slider...
-  m_volume_slider->Enable(backend == BACKEND_COREAUDIO || backend == BACKEND_OPENAL ||
-                          backend == BACKEND_XAUDIO2);
+  m_dpl2_decoder_checkbox->Enable(AudioCommon::SupportsDPL2Decoder(backend));
+  m_audio_latency_spinctrl->Enable(AudioCommon::SupportsLatencyControl(backend));
+  m_volume_slider->Enable(AudioCommon::SupportsVolumeChanges(backend));
 }
 
 void AudioConfigPane::RefreshGUI()
