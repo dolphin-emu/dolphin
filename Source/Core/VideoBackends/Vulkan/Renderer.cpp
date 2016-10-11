@@ -460,7 +460,7 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 }
 
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
-                        const EFBRectangle& rc, float gamma)
+                        const EFBRectangle& rc, u64 ticks, float gamma)
 {
   // Flush any pending EFB pokes.
   m_framebuffer_mgr->FlushEFBPokes(m_state_tracker.get());
@@ -486,7 +486,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     DumpFrameData(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
                   static_cast<int>(m_screenshot_render_texture->GetWidth()),
                   static_cast<int>(m_screenshot_render_texture->GetHeight()),
-                  static_cast<int>(m_screenshot_readback_texture->GetRowStride()));
+                  static_cast<int>(m_screenshot_readback_texture->GetRowStride()), ticks);
     FinishFrameData();
   }
 
