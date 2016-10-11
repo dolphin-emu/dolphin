@@ -85,6 +85,7 @@ void DoState(PointerWrap& p)
   }
 
   p.Do(s_sync_ticks);
+  p.Do(s_syncing_suspended);
 }
 
 void PauseAndLock(bool doLock, bool unpauseOnUnlock)
