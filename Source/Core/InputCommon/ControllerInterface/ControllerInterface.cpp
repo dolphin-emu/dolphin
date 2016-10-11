@@ -102,6 +102,19 @@ void ControllerInterface::Shutdown()
   if (!m_is_init)
     return;
 
+  {
+    std::lock_guard<std::mutex> lk(m_devices_mutex);
+
+    for (const auto& d : m_devices)
+    {
+      // Set outputs to ZERO before destroying device
+      for (ciface::Core::Device::Output* o : d->Outputs())
+        o->SetState(0);
+    }
+
+    m_devices.clear();
+  }
+
 #ifdef CIFACE_USE_XINPUT
   ciface::XInput::DeInit();
 #endif
@@ -125,17 +138,6 @@ void ControllerInterface::Shutdown()
 #ifdef CIFACE_USE_EVDEV
   ciface::evdev::Shutdown();
 #endif
-
-  std::lock_guard<std::mutex> lk(m_devices_mutex);
-
-  for (const auto& d : m_devices)
-  {
-    // Set outputs to ZERO before destroying device
-    for (ciface::Core::Device::Output* o : d->Outputs())
-      o->SetState(0);
-  }
-
-  m_devices.clear();
 
   m_is_init = false;
 }
