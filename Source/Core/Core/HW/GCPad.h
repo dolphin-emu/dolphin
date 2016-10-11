@@ -13,7 +13,7 @@ struct GCPadStatus;
 namespace Pad
 {
 void Shutdown();
-void Initialize(void* const hwnd);
+void Initialize();
 void LoadConfig();
 
 InputConfig* GetConfig();

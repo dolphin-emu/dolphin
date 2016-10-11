@@ -12,7 +12,7 @@ struct KeyboardStatus;
 namespace Keyboard
 {
 void Shutdown();
-void Initialize(void* const hwnd);
+void Initialize();
 void LoadConfig();
 
 InputConfig* GetConfig();

@@ -155,7 +155,7 @@ private:
 
 namespace HotkeyManagerEmu
 {
-void Initialize(void* const hwnd);
+void Initialize();
 void Shutdown();
 void LoadConfig();
 

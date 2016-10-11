@@ -182,12 +182,11 @@ bool IsPressed(int Id, bool held)
   return false;
 }
 
-void Initialize(void* const hwnd)
+void Initialize()
 {
   if (s_config.ControllersNeedToBeCreated())
     s_config.CreateController<HotkeyManager>();
 
-  g_controller_interface.Initialize(hwnd);
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // load the saved controller config
@@ -207,8 +206,6 @@ void LoadConfig()
 void Shutdown()
 {
   s_config.ClearControllers();
-
-  g_controller_interface.Shutdown();
 }
 }
 

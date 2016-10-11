@@ -510,8 +510,9 @@ void EmuThread()
   bool init_controllers = false;
   if (!g_controller_interface.IsInit())
   {
-    Pad::Initialize(s_window_handle);
-    Keyboard::Initialize(s_window_handle);
+    g_controller_interface.Initialize(s_window_handle);
+    Pad::Initialize();
+    Keyboard::Initialize();
     init_controllers = true;
   }
   else
@@ -525,9 +526,9 @@ void EmuThread()
   if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     if (init_controllers)
-      Wiimote::Initialize(s_window_handle, !s_state_filename.empty() ?
-                                               Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
-                                               Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+      Wiimote::Initialize(!s_state_filename.empty() ?
+                              Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
+                              Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
     else
       Wiimote::LoadConfig();
 
@@ -651,6 +652,7 @@ void EmuThread()
     Wiimote::Shutdown();
     Keyboard::Shutdown();
     Pad::Shutdown();
+    g_controller_interface.Shutdown();
     init_controllers = false;
   }
 
