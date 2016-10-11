@@ -17,6 +17,14 @@ std::unique_lock<std::recursive_mutex> ControllerEmu::GetStateLock()
   return lock;
 }
 
+void ControllerEmu::RefreshDevices()
+{
+  ControllerInterface face;
+  UpdateReferences(face);
+  g_controller_interface.Reinitialize();
+  UpdateReferences(g_controller_interface);
+}
+
 void ControllerEmu::UpdateReferences(ControllerInterface& devi)
 {
   auto lock = ControllerEmu::GetStateLock();

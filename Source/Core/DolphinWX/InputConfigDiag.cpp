@@ -872,7 +872,7 @@ void GamepadPage::RefreshDevices(wxCommandEvent&)
   bool was_unpaused = Core::PauseAndLock(true);
 
   // refresh devices
-  g_controller_interface.Reinitialize();
+  controller->RefreshDevices();
 
   // update all control references
   m_config_dialog->UpdateControlReferences();

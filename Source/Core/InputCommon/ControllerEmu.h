@@ -491,6 +491,7 @@ public:
   virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");
   void UpdateDefaultDevice();
 
+  void RefreshDevices();
   void UpdateReferences(ControllerInterface& devi);
 
   // This returns a lock that should be held before calling State() on any control
