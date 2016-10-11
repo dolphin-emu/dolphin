@@ -24,11 +24,9 @@ void Shutdown()
   s_config.ClearControllers();
 
   WiimoteReal::Stop();
-
-  g_controller_interface.Shutdown();
 }
 
-void Initialize(void* const hwnd, InitializeMode init_mode)
+void Initialize(InitializeMode init_mode)
 {
   if (s_config.ControllersNeedToBeCreated())
   {
@@ -36,7 +34,6 @@ void Initialize(void* const hwnd, InitializeMode init_mode)
       s_config.CreateController<WiimoteEmu::Wiimote>(i);
   }
 
-  g_controller_interface.Initialize(hwnd);
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   s_config.LoadConfig(false);
