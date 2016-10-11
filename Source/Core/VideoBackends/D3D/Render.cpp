@@ -713,7 +713,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma)
+                        const EFBRectangle& rc, u64 ticks, float Gamma)
 {
   if ((!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
   {
@@ -824,8 +824,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     D3D11_MAPPED_SUBRESOURCE map;
     D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
 
-    DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height,
-                  map.RowPitch);
+    DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height, map.RowPitch,
+                  ticks);
     FinishFrameData();
 
     D3D::context->Unmap(s_screenshot_texture, 0);
