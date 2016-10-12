@@ -254,7 +254,7 @@ wxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 wxSizer* ControllerConfigDiag::CreatePassthroughBTConfigSizer()
 {
   m_passthrough_sync_text = 
-	  new wxStaticText(this, wxID_ANY, _("Sync real Wii Remotes and pair them"));
+      new wxStaticText(this, wxID_ANY, _("Sync real Wii Remotes and pair them"));
   m_passthrough_sync_btn =
       new wxButton(this, wxID_ANY, _("Sync"), wxDefaultPosition, wxDLG_UNIT(this, wxSize(60, -1)));
   m_passthrough_sync_btn->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnPassthroughScanButton, this);
