@@ -12,7 +12,7 @@
 
 namespace Wiimote
 {
-static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wii Remote"), "Wii Remote");
+static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wii Remote"), "Wiimote");
 
 InputConfig* GetConfig()
 {

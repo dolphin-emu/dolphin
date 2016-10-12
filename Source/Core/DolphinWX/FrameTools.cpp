@@ -1538,7 +1538,7 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
   {
     bool was_unpaused = Core::PauseAndLock(true);
     GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-    const char* message = connect ? "Wiimote %i connected" : "Wii Remote %i disconnected";
+    const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
     Core::DisplayMessage(StringFromFormat(message, wm_idx + 1), 3000);
     Host_UpdateMainFrame();
     Core::PauseAndLock(false, was_unpaused);

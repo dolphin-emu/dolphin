@@ -253,7 +253,8 @@ wxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()
 
 wxSizer* ControllerConfigDiag::CreatePassthroughBTConfigSizer()
 {
-  m_passthrough_sync_text = new wxStaticText(this, wxID_ANY, _("Sync real Wii Remotes and pair them"));
+  m_passthrough_sync_text = 
+	  new wxStaticText(this, wxID_ANY, _("Sync real Wii Remotes and pair them"));
   m_passthrough_sync_btn =
       new wxButton(this, wxID_ANY, _("Sync"), wxDefaultPosition, wxDLG_UNIT(this, wxSize(60, -1)));
   m_passthrough_sync_btn->Bind(wxEVT_BUTTON, &ControllerConfigDiag::OnPassthroughScanButton, this);
@@ -512,8 +513,8 @@ void ControllerConfigDiag::OnPassthroughScanButton(wxCommandEvent& event)
 {
   if (!Core::IsRunning())
   {
-    wxMessageBox(_("A sync can only be triggered when a Wii game is running."), _("Sync Wii Remotes"),
-                 wxICON_WARNING);
+    wxMessageBox(_("A sync can only be triggered when a Wii game is running."), 
+		         _("Sync Wii Remotes"), wxICON_WARNING);
     return;
   }
   auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
@@ -567,7 +568,7 @@ void ControllerConfigDiag::SaveWiimoteSource()
 
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
-    std::string secname("Wii Remote");
+    std::string secname("Wiimote");
     secname += (char)('1' + i);
     IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
 

@@ -312,7 +312,7 @@ Wiimote::Wiimote(const unsigned int index)
 
 std::string Wiimote::GetName() const
 {
-  return std::string("Wii Remote") + char('1' + m_index);
+  return std::string("Wiimote") + char('1' + m_index);
 }
 
 bool Wiimote::Step()
