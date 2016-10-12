@@ -27,6 +27,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.SeekBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -383,7 +384,14 @@ public final class EmulationActivity extends AppCompatActivity
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.menu_emulation, menu);
+		if (mIsGameCubeGame)
+		{
+			getMenuInflater().inflate(R.menu.menu_emulation, menu);
+		}
+		else
+		{
+			getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
+		}
 		return true;
 	}
 
@@ -414,10 +422,10 @@ public final class EmulationActivity extends AppCompatActivity
 			// Enable/Disable specific buttons or the entire input overlay.
 			case R.id.menu_emulation_toggle_controls:
 			{
-				boolean[] enabledButtons = new boolean[11];
+				boolean[] enabledButtons = new boolean[14];
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setTitle(R.string.emulation_toggle_controls);
-				if (mIsGameCubeGame)
+				if (mIsGameCubeGame || mPreferences.getInt("wiiController", 1) == 0)
 				{
 					for (int i = 0; i < enabledButtons.length; i++)
 					{
@@ -430,22 +438,12 @@ public final class EmulationActivity extends AppCompatActivity
 						public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
 						{
 							SharedPreferences.Editor editor = mPreferences.edit();
-
-							if (mPreferences.getBoolean("buttonToggleGc" + indexSelected, true))
-							{
-								// If the button is enabled, disable it.
-								editor.putBoolean("buttonToggleGc" + indexSelected, false);
-							}
-							else
-							{
-								// If the button is disabled, enable it.
-								editor.putBoolean("buttonToggleGc" + indexSelected, true);
-							}
+							editor.putBoolean("buttonToggleGc" + indexSelected, isChecked);
 							editor.apply();
 						}
 					});
 				}
-				else
+				else if (mPreferences.getInt("wiiController", 1) == 1)
 				{
 					for (int i = 0; i < enabledButtons.length; i++)
 					{
@@ -458,18 +456,25 @@ public final class EmulationActivity extends AppCompatActivity
 						public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
 						{
 							SharedPreferences.Editor editor = mPreferences.edit();
-
-							if (mPreferences.getBoolean("buttonToggleWii" + indexSelected, true))
-							{
-								// If the button is enabled, disable it.
-								editor.putBoolean("buttonToggleWii" + indexSelected, false);
-							}
-							else
-							{
-								// If the button is disabled, enable it.
-								editor.putBoolean("buttonToggleWii" + indexSelected, true);
-							}
-
+							editor.putBoolean("buttonToggleWii" + indexSelected, isChecked);
+							editor.apply();
+						}
+					});
+				}
+				else
+				{
+					for (int i = 0; i < enabledButtons.length; i++)
+					{
+						enabledButtons[i] = mPreferences.getBoolean("buttonToggleClassic" + i, true);
+					}
+					builder.setMultiChoiceItems(R.array.classicButtons, enabledButtons,
+							new DialogInterface.OnMultiChoiceClickListener()
+					{
+						@Override
+						public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+						{
+							SharedPreferences.Editor editor = mPreferences.edit();
+							editor.putBoolean("buttonToggleClassic" + indexSelected, isChecked);
 							editor.apply();
 						}
 					});
@@ -555,6 +560,42 @@ public final class EmulationActivity extends AppCompatActivity
 
 				return;
 			}
+
+			// (Wii games only) Change the controller for the input overlay.
+			case R.id.menu_emulation_choose_controller:
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(R.string.emulation_choose_controller);
+				builder.setSingleChoiceItems(R.array.controllersEntries, mPreferences.getInt("wiiController", 1),
+						new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialog, int indexSelected)
+					{
+						SharedPreferences.Editor editor = mPreferences.edit();
+						editor.putInt("wiiController", indexSelected);
+						editor.apply();
+
+						NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
+								getResources().getStringArray(R.array.controllersValues)[indexSelected]);
+					}
+				});
+				builder.setPositiveButton(getString(R.string.emulation_done), new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i)
+					{
+						EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+						emulationFragment.refreshInputOverlay();
+
+						Toast.makeText(getApplication(), R.string.emulation_controller_changed, Toast.LENGTH_SHORT).show();
+					}
+				});
+
+				AlertDialog alertDialog = builder.create();
+				alertDialog.show();
+
+				return;
 
 			case R.id.menu_refresh_wiimotes:
 				NativeLibrary.RefreshWiimotes();

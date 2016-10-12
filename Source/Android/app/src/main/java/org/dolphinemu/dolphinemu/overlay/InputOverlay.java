@@ -331,9 +331,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		overlayJoysticks.removeAll(overlayJoysticks);
 
 		// Add all the enabled overlay items back to the HashSet.
-		if (EmulationActivity.isGameCubeGame())
+		if (EmulationActivity.isGameCubeGame() || mPreferences.getInt("wiiController", 1) == 0)
 		{
-			// GameCube
+			// GameCube Controller
 			if (mPreferences.getBoolean("buttonToggleGc0", true))
 			{
 				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.gcpad_a, ButtonType.BUTTON_A));
@@ -385,9 +385,9 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 						ButtonType.STICK_C));
 			}
 		}
-		else
+		else if (mPreferences.getInt("wiiController", 1) == 1)
 		{
-			// Wiimote + Nunchuk
+			// Wii Remote + Nunchuk
 			if (mPreferences.getBoolean("buttonToggleWii0", true))
 			{
 				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_a, ButtonType.WIIMOTE_BUTTON_A));
@@ -418,23 +418,89 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 			}
 			if (mPreferences.getBoolean("buttonToggleWii7", true))
 			{
-				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.nunchuk_c, ButtonType.NUNCHUK_BUTTON_C));
-			}
-			if (mPreferences.getBoolean("buttonToggleWii8", true))
-			{
-				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.nunchuk_z, ButtonType.NUNCHUK_BUTTON_Z));
-			}
-			if (mPreferences.getBoolean("buttonToggleWii9", true))
-			{
 				overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
 						ButtonType.WIIMOTE_UP, ButtonType.WIIMOTE_DOWN,
 						ButtonType.WIIMOTE_LEFT, ButtonType.WIIMOTE_RIGHT));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii8", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.nunchuk_c, ButtonType.NUNCHUK_BUTTON_C));
+			}
+			if (mPreferences.getBoolean("buttonToggleWii9", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.nunchuk_z, ButtonType.NUNCHUK_BUTTON_Z));
 			}
 			if (mPreferences.getBoolean("buttonToggleWii10", true))
 			{
 				overlayJoysticks.add(initializeOverlayJoystick(getContext(),
 						R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
 						ButtonType.NUNCHUK_STICK));
+			}
+		}
+		else
+		{
+			// Classic Controller
+			if (mPreferences.getBoolean("buttonToggleClassic0", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_a, ButtonType.CLASSIC_BUTTON_A));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic1", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_b, ButtonType.CLASSIC_BUTTON_B));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic2", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_x, ButtonType.CLASSIC_BUTTON_X));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic3", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_y, ButtonType.CLASSIC_BUTTON_Y));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic4", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_plus, ButtonType.CLASSIC_BUTTON_PLUS));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic5", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_minus, ButtonType.CLASSIC_BUTTON_MINUS));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic6", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.wiimote_home, ButtonType.CLASSIC_BUTTON_HOME));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic7", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_l, ButtonType.CLASSIC_TRIGGER_L));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic8", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_r, ButtonType.CLASSIC_TRIGGER_R));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic9", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_zl, ButtonType.CLASSIC_BUTTON_ZL));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic10", true))
+			{
+				overlayButtons.add(initializeOverlayButton(getContext(), R.drawable.classic_zr, ButtonType.CLASSIC_BUTTON_ZR));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic11", true))
+			{
+				overlayDpads.add(initializeOverlayDpad(getContext(), R.drawable.gcwii_dpad,
+						ButtonType.CLASSIC_DPAD_UP, ButtonType.CLASSIC_DPAD_DOWN,
+						ButtonType.CLASSIC_DPAD_LEFT, ButtonType.CLASSIC_DPAD_RIGHT));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic12", true))
+			{
+				overlayJoysticks.add(initializeOverlayJoystick(getContext(),
+						R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
+						ButtonType.CLASSIC_STICK_LEFT));
+			}
+			if (mPreferences.getBoolean("buttonToggleClassic13", true))
+			{
+				overlayJoysticks.add(initializeOverlayJoystick(getContext(),
+						R.drawable.gcwii_joystick_range, R.drawable.gcwii_joystick,
+						ButtonType.CLASSIC_STICK_RIGHT));
 			}
 		}
 
@@ -506,7 +572,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		case ButtonType.BUTTON_Z:
 		case ButtonType.TRIGGER_L:
 		case ButtonType.TRIGGER_R:
-			scale = 0.22f;
+			scale = 0.225f;
 			break;
 		case ButtonType.BUTTON_START:
 			scale = 0.075f;
@@ -518,7 +584,16 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		case ButtonType.WIIMOTE_BUTTON_PLUS:
 		case ButtonType.WIIMOTE_BUTTON_MINUS:
 		case ButtonType.WIIMOTE_BUTTON_HOME:
+		case ButtonType.CLASSIC_BUTTON_PLUS:
+		case ButtonType.CLASSIC_BUTTON_MINUS:
+		case ButtonType.CLASSIC_BUTTON_HOME:
 			scale = 0.0625f;
+			break;
+		case ButtonType.CLASSIC_TRIGGER_L:
+		case ButtonType.CLASSIC_TRIGGER_R:
+		case ButtonType.CLASSIC_BUTTON_ZL:
+		case ButtonType.CLASSIC_BUTTON_ZR:
+			scale = 0.25f;
 			break;
 		default:
 			scale = 0.125f;
@@ -583,11 +658,11 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		case ButtonType.BUTTON_UP:
 			scale = 0.2375f;
 			break;
-		case ButtonType.WIIMOTE_UP:
-			scale = 0.2125f;
+		case ButtonType.CLASSIC_DPAD_UP:
+			scale = 0.275f;
 			break;
 		default:
-			scale = 0.275f;
+			scale = 0.2125f;
 			break;
 		}
 
