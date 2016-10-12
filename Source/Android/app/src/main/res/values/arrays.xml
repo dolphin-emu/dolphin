@@ -32,7 +32,7 @@
         <item>3</item>
     </integer-array>
 
-    <!-- Wiimote extensions -->
+    <!-- Wii Remote extensions -->
     <string-array name="wiimoteExtEntries" translatable="false">
         <item>"None"</item>
         <item>"Nunchuk"</item>
@@ -179,6 +179,32 @@
         <item>12</item>
     </integer-array>
 
+    <string-array name="wiimoteTypeEntries">
+        <item>Disabled</item>
+        <item>Emulated</item>
+        <item>Real Wii Remote (DolphinBar required)</item>
+    </string-array>
+    <integer-array name="wiimoteTypeValues">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+    </integer-array>
+
+    <string-array name="controllersEntries">
+        <item>GameCube Controller</item>
+        <item>Wii Remote</item>
+        <item>Horizontal Wii Remote</item>
+        <item>Wii Remote + Nunchuk</item>
+        <item>Classic Controller</item>
+    </string-array>
+    <string-array name="controllersValues">
+        <item>None</item>
+        <item>None</item>
+        <item>None</item>
+        <item>Nunchuk</item>
+        <item>Classic</item>
+    </string-array>
+
     <string-array name="gcpadButtons">
         <item>A</item>
         <item>B</item>
@@ -193,17 +219,6 @@
         <item>C Stick</item>
     </string-array>
 
-    <string-array name="wiimoteTypeEntries">
-        <item>Disabled</item>
-        <item>Emulated</item>
-        <item>Real Wiimote (DolphinBar required)</item>
-    </string-array>
-    <integer-array name="wiimoteTypeValues">
-        <item>0</item>
-        <item>1</item>
-        <item>2</item>
-    </integer-array>
-
     <string-array name="wiimoteButtons">
         <item>A</item>
         <item>B</item>
@@ -212,10 +227,38 @@
         <item>+</item>
         <item>-</item>
         <item>Home</item>
+        <item>D-Pad</item>
+    </string-array>
+
+    <string-array name="nunchukButtons">
+        <item>A</item>
+        <item>B</item>
+        <item>1</item>
+        <item>2</item>
+        <item>+</item>
+        <item>-</item>
+        <item>Home</item>
+        <item>D-Pad</item>
         <item>C</item>
         <item>Z</item>
-        <item>D-Pad</item>
         <item>Nunchuk Stick</item>
+    </string-array>
+
+    <string-array name="classicButtons">
+        <item>a</item>
+        <item>b</item>
+        <item>x</item>
+        <item>y</item>
+        <item>+</item>
+        <item>-</item>
+        <item>Home</item>
+        <item>L</item>
+        <item>R</item>
+        <item>ZL</item>
+        <item>ZR</item>
+        <item>D-Pad</item>
+        <item>Left Stick</item>
+        <item>Right Stick</item>
     </string-array>
 
 </resources>

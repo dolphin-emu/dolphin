@@ -118,7 +118,7 @@ public final class NativeLibrary
 		public static final int CLASSIC_DPAD_UP              = 309;
 		public static final int CLASSIC_DPAD_DOWN            = 310;
 		public static final int CLASSIC_DPAD_LEFT            = 311;
-		public static final int CLASSIC_DPADON_RIGHT         = 312;
+		public static final int CLASSIC_DPAD_RIGHT           = 312;
 		public static final int CLASSIC_STICK_LEFT           = 313;
 		public static final int CLASSIC_STICK_LEFT_UP        = 314;
 		public static final int CLASSIC_STICK_LEFT_DOWN      = 315;
