@@ -14,6 +14,7 @@
 #include "Common/IniFile.h"
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -50,27 +51,27 @@ public:
     class Control
     {
     protected:
-      Control(ControllerInterface::ControlReference* const _ref, const std::string& _name)
+      Control(ControlReference* const _ref, const std::string& _name)
           : control_ref(_ref), name(_name)
       {
       }
 
     public:
       virtual ~Control() {}
-      std::unique_ptr<ControllerInterface::ControlReference> const control_ref;
+      std::unique_ptr<ControlReference> const control_ref;
       const std::string name;
     };
 
     class Input : public Control
     {
     public:
-      Input(const std::string& _name) : Control(new ControllerInterface::InputReference, _name) {}
+      Input(const std::string& _name) : Control(new InputReference, _name) {}
     };
 
     class Output : public Control
     {
     public:
-      Output(const std::string& _name) : Control(new ControllerInterface::OutputReference, _name) {}
+      Output(const std::string& _name) : Control(new OutputReference, _name) {}
     };
 
     enum class SettingType

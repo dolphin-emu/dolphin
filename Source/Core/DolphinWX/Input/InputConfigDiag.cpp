@@ -52,10 +52,10 @@
 #include "DolphinWX/Input/NunchukInputConfigDiag.h"
 #include "DolphinWX/Input/TurntableInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
+#include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
-#include "InputCommon/ControllerInterface/ExpressionParser.h"
 #include "InputCommon/InputConfig.h"
 
 using namespace ciface::ExpressionParser;
@@ -177,7 +177,7 @@ void PadSettingSpin::UpdateValue()
 }
 
 ControlDialog::ControlDialog(InputConfigDialog* const parent, InputConfig& config,
-                             ControllerInterface::ControlReference* const ref)
+                             ControlReference* const ref)
     : wxDialog(parent, wxID_ANY, _("Configure Control"), wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
       control_reference(ref), m_config(config), m_parent(parent)
@@ -220,8 +220,7 @@ ExtensionButton::ExtensionButton(wxWindow* const parent, ControllerEmu::Extensio
 {
 }
 
-ControlButton::ControlButton(wxWindow* const parent,
-                             ControllerInterface::ControlReference* const _ref,
+ControlButton::ControlButton(wxWindow* const parent, ControlReference* const _ref,
                              const std::string& name, const unsigned int width,
                              const std::string& label)
     : wxButton(parent, wxID_ANY), control_reference(_ref), m_name(name),
@@ -387,8 +386,8 @@ bool ControlDialog::Validate()
   control_reference->expression = WxStrToStr(textctrl->GetValue());
 
   auto lock = ControllerEmu::GetStateLock();
-  g_controller_interface.UpdateReference(control_reference,
-                                         m_parent->GetController()->default_device);
+  control_reference->UpdateReference(g_controller_interface,
+                                     m_parent->GetController()->default_device);
 
   UpdateGUI();
 
@@ -426,8 +425,8 @@ void ControlDialog::ClearControl(wxCommandEvent&)
   control_reference->expression.clear();
 
   auto lock = ControllerEmu::GetStateLock();
-  g_controller_interface.UpdateReference(control_reference,
-                                         m_parent->GetController()->default_device);
+  control_reference->UpdateReference(g_controller_interface,
+                                     m_parent->GetController()->default_device);
 
   UpdateGUI();
 }
@@ -485,8 +484,8 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
   control_reference->expression = textctrl->GetValue();
 
   auto lock = ControllerEmu::GetStateLock();
-  g_controller_interface.UpdateReference(control_reference,
-                                         m_parent->GetController()->default_device);
+  control_reference->UpdateReference(g_controller_interface,
+                                     m_parent->GetController()->default_device);
 
   UpdateGUI();
 }
@@ -521,8 +520,8 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
   control_reference->expression = textctrl->GetValue();
 
   auto lock = ControllerEmu::GetStateLock();
-  g_controller_interface.UpdateReference(control_reference,
-                                         m_parent->GetController()->default_device);
+  control_reference->UpdateReference(g_controller_interface,
+                                     m_parent->GetController()->default_device);
 
   UpdateGUI();
 }
@@ -703,7 +702,8 @@ bool InputConfigDialog::DetectButton(ControlButton* button)
       GetExpressionForControl(expr, control_name);
       button->control_reference->expression = expr;
       auto lock = ControllerEmu::GetStateLock();
-      g_controller_interface.UpdateReference(button->control_reference, controller->default_device);
+      button->control_reference->UpdateReference(g_controller_interface,
+                                                 controller->default_device);
       success = true;
     }
 

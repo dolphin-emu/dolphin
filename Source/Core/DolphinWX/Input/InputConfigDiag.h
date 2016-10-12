@@ -23,8 +23,8 @@
 #include <wx/spinctrl.h>
 #include <wx/timer.h>
 
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 class DolphinSlider;
@@ -100,14 +100,13 @@ class InputConfigDialog;
 class ControlDialog : public wxDialog
 {
 public:
-  ControlDialog(InputConfigDialog* const parent, InputConfig& config,
-                ControllerInterface::ControlReference* const ref);
+  ControlDialog(InputConfigDialog* const parent, InputConfig& config, ControlReference* const ref);
 
   bool Validate() override;
 
   int GetRangeSliderValue() const;
 
-  ControllerInterface::ControlReference* const control_reference;
+  ControlReference* const control_reference;
   InputConfig& m_config;
 
 private:
@@ -151,10 +150,10 @@ public:
 class ControlButton : public wxButton
 {
 public:
-  ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref,
-                const std::string& name, const unsigned int width, const std::string& label = {});
+  ControlButton(wxWindow* const parent, ControlReference* const _ref, const std::string& name,
+                const unsigned int width, const std::string& label = {});
 
-  ControllerInterface::ControlReference* const control_reference;
+  ControlReference* const control_reference;
   const std::string m_name;
 
 protected:
