@@ -514,7 +514,7 @@ void ControllerConfigDiag::OnPassthroughScanButton(wxCommandEvent& event)
   if (!Core::IsRunning())
   {
     wxMessageBox(_("A sync can only be triggered when a Wii game is running."), 
-		         _("Sync Wii Remotes"), wxICON_WARNING);
+                 _("Sync Wii Remotes"), wxICON_WARNING);
     return;
   }
   auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
