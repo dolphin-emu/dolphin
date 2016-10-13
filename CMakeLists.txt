@@ -291,17 +291,6 @@ if(APPLE)
 	# features can be used, not the minimum required version to run.
 	set(OSX_MIN_VERSION "10.9")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.9.sdk")
-	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk")
-	if(EXISTS "${SYSROOT_PATH}/")
-		set(TARGET_SYSROOT ${SYSROOT_PATH})
-	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
-		set(TARGET_SYSROOT ${SYSROOT_LEGACY_PATH})
-	endif()
-	if(${TARGET_SYSROOT})
-		set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,${TARGET_SYSROOT}")
-	endif()
 	# Do not warn about frameworks that are not available on all architectures.
 	# This avoids a warning when linking with QuickTime.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
