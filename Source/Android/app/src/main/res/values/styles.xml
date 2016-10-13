@@ -69,7 +69,7 @@
         <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
-    <style name="DolphinEmulationBase" parent="Theme.AppCompat">
+    <style name="DolphinEmulationBase" parent="Theme.AppCompat.Light.DarkActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="android:windowTranslucentNavigation">true</item>
@@ -95,7 +95,7 @@
         <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
-    <style name="DolphinEmulationTvBase" parent="Theme.AppCompat.NoActionBar">
+    <style name="DolphinEmulationTvBase" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
         <item name="android:windowTranslucentNavigation">true</item>
