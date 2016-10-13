@@ -92,7 +92,6 @@ private:
   void StartTransferThread();
   void StopTransferThread();
   void TransferThread();
-  static void CommandCallback(libusb_transfer* transfer);
   static void TransferCallback(libusb_transfer* transfer);
 };
 
