@@ -21,6 +21,7 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
@@ -232,7 +233,8 @@ class PlatformX11 : public Platform
     {
       if (s_shutdown_requested.TestAndClear())
       {
-        if (!s_tried_graceful_shutdown.IsSet() && SConfig::GetInstance().bWii)
+        if (!s_tried_graceful_shutdown.IsSet() && SConfig::GetInstance().bWii &&
+            !FifoPlayer::GetInstance().IsRunning())
         {
           ProcessorInterface::PowerButton_Tap();
           s_tried_graceful_shutdown.Set();

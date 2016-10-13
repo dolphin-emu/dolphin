@@ -32,6 +32,7 @@
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/GCKeyboard.h"
@@ -1146,7 +1147,8 @@ void CFrame::DoStop()
       }
     }
 
-    if (SConfig::GetInstance().bWii && !m_tried_graceful_shutdown)
+    if (SConfig::GetInstance().bWii && !FifoPlayer::GetInstance().IsRunning() &&
+        !m_tried_graceful_shutdown)
     {
       Core::DisplayMessage("Shutting down", 30000);
       Core::SetState(Core::CORE_RUN);
