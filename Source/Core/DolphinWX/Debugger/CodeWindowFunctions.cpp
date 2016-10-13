@@ -56,10 +56,12 @@ void CCodeWindow::Load()
   // The font to override DebuggerFont with
   std::string fontDesc;
 
+  auto& config_instance = SConfig::GetInstance();
+
   IniFile::Section* general = ini.GetOrCreateSection("General");
   general->Get("DebuggerFont", &fontDesc);
-  general->Get("AutomaticStart", &bAutomaticStart, false);
-  general->Get("BootToPause", &bBootToPause, true);
+  general->Get("AutomaticStart", &config_instance.bAutomaticStart, false);
+  general->Get("BootToPause", &config_instance.bBootToPause, true);
 
   if (!fontDesc.empty())
     DebuggerFont.SetNativeFontInfoUserDesc(StrToWxStr(fontDesc));
@@ -113,68 +115,6 @@ void CCodeWindow::Save()
                                          !!FindWindowById(i));
 
   ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-}
-
-// Symbols, JIT, Profiler
-// ----------------
-void CCodeWindow::CreateMenuSymbols(wxMenuBar* pMenuBar)
-{
-  wxMenu* pSymbolsMenu = new wxMenu;
-  pSymbolsMenu->Append(IDM_CLEAR_SYMBOLS, _("&Clear Symbols"),
-                       _("Remove names from all functions and variables."));
-  pSymbolsMenu->Append(IDM_SCAN_FUNCTIONS, _("&Generate Symbol Map"),
-                       _("Recognise standard functions from sys\\totaldb.dsy, and use generic zz_ "
-                         "names for other functions."));
-  pSymbolsMenu->AppendSeparator();
-  pSymbolsMenu->Append(IDM_LOAD_MAP_FILE, _("&Load Symbol Map"),
-                       _("Try to load this game's function names automatically - but doesn't check "
-                         ".map files stored on the disc image yet."));
-  pSymbolsMenu->Append(IDM_SAVEMAPFILE, _("&Save Symbol Map"),
-                       _("Save the function names for each address to a .map file in your user "
-                         "settings map folder, named after the title id."));
-  pSymbolsMenu->AppendSeparator();
-  pSymbolsMenu->Append(
-      IDM_LOAD_MAP_FILE_AS, _("Load &Other Map File..."),
-      _("Load any .map file containing the function names and addresses for this game."));
-  pSymbolsMenu->Append(
-      IDM_LOAD_BAD_MAP_FILE, _("Load &Bad Map File..."),
-      _("Try to load a .map file that might be from a slightly different version."));
-  pSymbolsMenu->Append(IDM_SAVE_MAP_FILE_AS, _("Save Symbol Map &As..."),
-                       _("Save the function names and addresses for this game as a .map file. If "
-                         "you want to open it in IDA pro, use the .idc script."));
-  pSymbolsMenu->AppendSeparator();
-  pSymbolsMenu->Append(
-      IDM_SAVE_MAP_FILE_WITH_CODES, _("Save Code"),
-      _("Save the entire disassembled code. This may take a several seconds"
-        " and may require between 50 and 100 MB of hard drive space. It will only save code"
-        " that are in the first 4 MB of memory, if you are debugging a game that load .rel"
-        " files with code to memory you may want to increase that to perhaps 8 MB, you can do"
-        " that from SymbolDB::SaveMap()."));
-
-  pSymbolsMenu->AppendSeparator();
-  pSymbolsMenu->Append(
-      IDM_CREATE_SIGNATURE_FILE, _("&Create Signature File..."),
-      _("Create a .dsy file that can be used to recognise these same functions in other games."));
-  pSymbolsMenu->Append(IDM_APPEND_SIGNATURE_FILE, _("Append to &Existing Signature File..."),
-                       _("Add any named functions missing from a .dsy file, so it can also "
-                         "recognise these additional functions in other games."));
-  pSymbolsMenu->Append(IDM_COMBINE_SIGNATURE_FILES, _("Combine Two Signature Files..."),
-                       _("Make a new .dsy file which can recognise more functions, by combining "
-                         "two existing files. The first input file has priority."));
-  pSymbolsMenu->Append(
-      IDM_USE_SIGNATURE_FILE, _("Apply Signat&ure File..."),
-      _("Must use Generate symbol map first! Recognise names of any standard library functions "
-        "used in multiple games, by loading them from a .dsy file."));
-  pSymbolsMenu->AppendSeparator();
-  pSymbolsMenu->Append(IDM_PATCH_HLE_FUNCTIONS, _("&Patch HLE Functions"));
-  pSymbolsMenu->Append(IDM_RENAME_SYMBOLS, _("&Rename Symbols from File..."));
-  pMenuBar->Append(pSymbolsMenu, _("&Symbols"));
-
-  wxMenu* pProfilerMenu = new wxMenu;
-  pProfilerMenu->Append(IDM_PROFILE_BLOCKS, _("&Profile Blocks"), wxEmptyString, wxITEM_CHECK);
-  pProfilerMenu->AppendSeparator();
-  pProfilerMenu->Append(IDM_WRITE_PROFILE, _("&Write to profile.txt, Show"));
-  pMenuBar->Append(pProfilerMenu, _("&Profiler"));
 }
 
 void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
