@@ -272,26 +272,31 @@ if(APPLE)
 		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
 	endif()
 
+	set(_APPLE_PLATFORM_DIR "MacOSX")
+
+	exec_program(/usr/bin/xcode-select ARGS --print-path OUTPUT_VARIABLE _XCODE_DEVELOPER_DIR)
+	set (_APPLE_PLATFORM_SDK_DIR "${_XCODE_DEVELOPER_DIR}/Platforms/${_APPLE_PLATFORM_DIR}.platform/Developer/SDKs")
+	file (GLOB _APPLE_PLATFORM_SDKS "${_APPLE_PLATFORM_SDK_DIR}/*")
+	if(_APPLE_PLATFORM_SDKS)
+		list (SORT _APPLE_PLATFORM_SDKS)
+		list (REVERSE _APPLE_PLATFORM_SDKS)
+		list (GET _APPLE_PLATFORM_SDKS 0 TARGET_SYSROOT)
+
+		if(${TARGET_SYSROOT})
+			set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
+			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,${TARGET_SYSROOT}")
+		endif()
+	endif()
+
 	# Identify the target system:
 	# Ask for 64-bit binary.
-	set(TARGET_FLAGS "-arch x86_64")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -arch x86_64")
 	# Minimum OS X version.
 	# This is inserted into the Info.plist as well.
 	# Note that the SDK determines the maximum version of which optional
 	# features can be used, not the minimum required version to run.
 	set(OSX_MIN_VERSION "10.9")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	set(SYSROOT_LEGACY_PATH "/Developer/SDKs/MacOSX10.9.sdk")
-	set(SYSROOT_PATH "/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk")
-	if(EXISTS "${SYSROOT_PATH}/")
-		set(TARGET_SYSROOT ${SYSROOT_PATH})
-	elseif(EXISTS "${SYSROOT_LEGACY_PATH}/")
-		set(TARGET_SYSROOT ${SYSROOT_LEGACY_PATH})
-	endif()
-	if(${TARGET_SYSROOT})
-		set(TARGET_FLAGS "${TARGET_FLAGS} -isysroot ${TARGET_SYSROOT}")
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-syslibroot,${TARGET_SYSROOT}")
-	endif()
 	# Do not warn about frameworks that are not available on all architectures.
 	# This avoids a warning when linking with QuickTime.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
