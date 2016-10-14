@@ -196,7 +196,7 @@ wxNotebook* NetPlaySetupFrame::CreateNotebookGUI(wxWindow* parent)
           "If DSP LLE is used, DSP ROMs must be identical between players.\n"
           "If connecting directly, the host must have the chosen UDP port open/forwarded!\n"
           "\n"
-          "Wiimote netplay is experimental and should not be expected to work.\n"));
+          "Wii Remote support in netplay is experimental and should not be expected to work.\n"));
 
     wxBoxSizer* const top_szr = new wxBoxSizer(wxHORIZONTAL);
     top_szr->Add(m_ip_lbl, 0, wxALIGN_CENTER_VERTICAL);
