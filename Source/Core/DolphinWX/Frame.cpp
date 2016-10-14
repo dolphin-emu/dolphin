@@ -220,96 +220,17 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
   return result;
 }
 
-// event tables
-// Notice that wxID_HELP will be processed for the 'About' menu and the toolbar
-// help button.
-
 wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_LOCAL_INI_CHANGED, wxCommandEvent);
 
+// Event tables
 BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
 
-// Menu bar
-EVT_MENU(wxID_OPEN, CFrame::OnOpen)
-EVT_MENU(wxID_EXIT, CFrame::OnQuit)
-EVT_MENU(IDM_HELP_WEBSITE, CFrame::OnHelp)
-EVT_MENU(IDM_HELP_ONLINE_DOCS, CFrame::OnHelp)
-EVT_MENU(IDM_HELP_GITHUB, CFrame::OnHelp)
-EVT_MENU(wxID_ABOUT, CFrame::OnHelp)
-EVT_MENU(wxID_REFRESH, CFrame::OnRefresh)
-EVT_MENU(IDM_PLAY, CFrame::OnPlay)
-EVT_MENU(IDM_STOP, CFrame::OnStop)
-EVT_MENU(IDM_RESET, CFrame::OnReset)
-EVT_MENU(IDM_RECORD, CFrame::OnRecord)
-EVT_MENU(IDM_PLAY_RECORD, CFrame::OnPlayRecording)
-EVT_MENU(IDM_RECORD_EXPORT, CFrame::OnRecordExport)
-EVT_MENU(IDM_RECORD_READ_ONLY, CFrame::OnRecordReadOnly)
-EVT_MENU(IDM_TAS_INPUT, CFrame::OnTASInput)
-EVT_MENU(IDM_TOGGLE_PAUSE_MOVIE, CFrame::OnTogglePauseMovie)
-EVT_MENU(IDM_SHOW_LAG, CFrame::OnShowLag)
-EVT_MENU(IDM_SHOW_FRAME_COUNT, CFrame::OnShowFrameCount)
-EVT_MENU(IDM_SHOW_INPUT_DISPLAY, CFrame::OnShowInputDisplay)
-EVT_MENU(IDM_SHOW_RTC_DISPLAY, CFrame::OnShowRTCDisplay)
-EVT_MENU(IDM_FRAMESTEP, CFrame::OnFrameStep)
-EVT_MENU(IDM_SCREENSHOT, CFrame::OnScreenshot)
-EVT_MENU(IDM_TOGGLE_DUMP_FRAMES, CFrame::OnToggleDumpFrames)
-EVT_MENU(IDM_TOGGLE_DUMP_AUDIO, CFrame::OnToggleDumpAudio)
-EVT_MENU(wxID_PREFERENCES, CFrame::OnConfigMain)
-EVT_MENU(IDM_CONFIG_GFX_BACKEND, CFrame::OnConfigGFX)
-EVT_MENU(IDM_CONFIG_AUDIO, CFrame::OnConfigAudio)
-EVT_MENU(IDM_CONFIG_CONTROLLERS, CFrame::OnConfigControllers)
-EVT_MENU(IDM_CONFIG_HOTKEYS, CFrame::OnConfigHotkey)
-
-EVT_MENU(IDM_SAVE_PERSPECTIVE, CFrame::OnPerspectiveMenu)
-EVT_MENU(IDM_EDIT_PERSPECTIVES, CFrame::OnPerspectiveMenu)
-// Drop down
-EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_TOP, CFrame::OnPerspectiveMenu)
-EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_BOTTOM, CFrame::OnPerspectiveMenu)
-EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_LEFT, CFrame::OnPerspectiveMenu)
-EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_RIGHT, CFrame::OnPerspectiveMenu)
-EVT_MENU(IDM_PERSPECTIVES_ADD_PANE_CENTER, CFrame::OnPerspectiveMenu)
-EVT_MENU_RANGE(IDM_PERSPECTIVES_0, IDM_PERSPECTIVES_100, CFrame::OnSelectPerspective)
-EVT_MENU(IDM_ADD_PERSPECTIVE, CFrame::OnPerspectiveMenu)
-EVT_MENU(IDM_TAB_SPLIT, CFrame::OnPerspectiveMenu)
-EVT_MENU(IDM_NO_DOCKING, CFrame::OnPerspectiveMenu)
-// Drop down float
+// Debugger pane context menu
 EVT_MENU_RANGE(IDM_FLOAT_LOG_WINDOW, IDM_FLOAT_CODE_WINDOW, CFrame::OnFloatWindow)
 
-EVT_MENU(IDM_NETPLAY, CFrame::OnNetPlay)
-EVT_MENU(IDM_MEMCARD, CFrame::OnMemcard)
-EVT_MENU(IDM_IMPORT_SAVE, CFrame::OnImportSave)
-EVT_MENU(IDM_EXPORT_ALL_SAVE, CFrame::OnExportAllSaves)
-EVT_MENU(IDM_CHEATS, CFrame::OnShowCheatsWindow)
-EVT_MENU(IDM_CHANGE_DISC, CFrame::OnChangeDisc)
-EVT_MENU(IDM_MENU_INSTALL_WAD, CFrame::OnInstallWAD)
+// Game list context menu
 EVT_MENU(IDM_LIST_INSTALL_WAD, CFrame::OnInstallWAD)
-EVT_MENU(IDM_LOAD_WII_MENU, CFrame::OnLoadWiiMenu)
-EVT_MENU(IDM_FIFOPLAYER, CFrame::OnFifoPlayer)
-
-EVT_MENU(IDM_TOGGLE_FULLSCREEN, CFrame::OnToggleFullscreen)
-EVT_MENU(IDM_TOGGLE_DUAL_CORE, CFrame::OnToggleDualCore)
-EVT_MENU(IDM_TOGGLE_TOOLBAR, CFrame::OnToggleToolbar)
-EVT_MENU(IDM_TOGGLE_STATUSBAR, CFrame::OnToggleStatusbar)
-EVT_MENU_RANGE(IDM_LOG_WINDOW, IDM_VIDEO_WINDOW, CFrame::OnToggleWindow)
-EVT_MENU_RANGE(IDM_SHOW_SYSTEM, IDM_SHOW_STATE, CFrame::OnChangeColumnsVisible)
-
-EVT_MENU(IDM_PURGE_GAME_LIST_CACHE, CFrame::GameListChanged)
-
-EVT_MENU(IDM_SAVE_FIRST_STATE, CFrame::OnSaveFirstState)
-EVT_MENU(IDM_UNDO_LOAD_STATE, CFrame::OnUndoLoadState)
-EVT_MENU(IDM_UNDO_SAVE_STATE, CFrame::OnUndoSaveState)
-EVT_MENU(IDM_LOAD_STATE_FILE, CFrame::OnLoadStateFromFile)
-EVT_MENU(IDM_SAVE_STATE_FILE, CFrame::OnSaveStateToFile)
-EVT_MENU(IDM_SAVE_SELECTED_SLOT, CFrame::OnSaveCurrentSlot)
-EVT_MENU(IDM_LOAD_SELECTED_SLOT, CFrame::OnLoadCurrentSlot)
-
-EVT_MENU_RANGE(IDM_LOAD_SLOT_1, IDM_LOAD_SLOT_10, CFrame::OnLoadState)
-EVT_MENU_RANGE(IDM_LOAD_LAST_1, IDM_LOAD_LAST_10, CFrame::OnLoadLastState)
-EVT_MENU_RANGE(IDM_SAVE_SLOT_1, IDM_SAVE_SLOT_10, CFrame::OnSaveState)
-EVT_MENU_RANGE(IDM_SELECT_SLOT_1, IDM_SELECT_SLOT_10, CFrame::OnSelectSlot)
-EVT_MENU_RANGE(IDM_DRIVE1, IDM_DRIVE24, CFrame::OnBootDrive)
-EVT_MENU_RANGE(IDM_CONNECT_WIIMOTE1, IDM_CONNECT_BALANCEBOARD, CFrame::OnConnectWiimote)
-EVT_MENU_RANGE(IDM_LIST_WAD, IDM_LIST_DRIVES, CFrame::GameListChanged)
 
 // Other
 EVT_ACTIVATE(CFrame::OnActive)
@@ -378,6 +299,8 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
       UseDebugger(use_debugger), m_bBatchMode(batch_mode),
       m_toolbar_bitmap_size(FromDIP(wxSize(32, 32)))
 {
+  BindMenuBarEvents();
+
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
     bFloatWindow[i] = false;
 
@@ -401,8 +324,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
     GetStatusBar()->Hide();
 
   // Give it a menu bar
-  wxMenuBar* menubar_active = CreateMenuBar();
-  SetMenuBar(menubar_active);
+  SetMenuBar(CreateMenuBar());
   // Create a menubar to service requests while the real menubar is hidden from the screen
   m_menubar_shadow = CreateMenuBar();
 

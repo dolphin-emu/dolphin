@@ -53,6 +53,7 @@ set(GUI_SRCS
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
+	MainMenuBar.cpp
 	MemcardManager.cpp
 	PatchAddEdit.cpp
 	PostProcessingConfigDiag.cpp
