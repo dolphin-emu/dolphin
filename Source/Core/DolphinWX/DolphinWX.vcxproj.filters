@@ -148,6 +148,9 @@
     <ClCompile Include="LogWindow.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="MainMenuBar.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
     <ClCompile Include="MemcardManager.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -322,6 +325,9 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="LogWindow.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="MainMenuBar.h">
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="MemcardManager.h">
