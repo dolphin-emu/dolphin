@@ -86,6 +86,7 @@ void SConfig::Shutdown()
 SConfig::~SConfig()
 {
   SaveSettings();
+  SaveSettingsToSysconf();
 }
 
 void SConfig::SaveSettings()
