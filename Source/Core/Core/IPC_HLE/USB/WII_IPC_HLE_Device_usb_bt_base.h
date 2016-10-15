@@ -4,10 +4,10 @@
 
 #pragma once
 
-#include <cstddef>
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Core/IPC_HLE/USB/Common.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
@@ -43,48 +43,11 @@ protected:
   static constexpr int SCO_PKT_SIZE = 64;
   static constexpr int SCO_PKT_NUM = 0;
 
-  enum USBIOCtl
-  {
-    USBV0_IOCTL_CTRLMSG = 0,
-    USBV0_IOCTL_BLKMSG = 1,
-    USBV0_IOCTL_INTRMSG = 2,
-  };
-
   enum USBEndpoint
   {
     HCI_CTRL = 0x00,
     HCI_EVENT = 0x81,
     ACL_DATA_IN = 0x82,
     ACL_DATA_OUT = 0x02
-  };
-
-  struct CtrlMessage
-  {
-    CtrlMessage() = default;
-    CtrlMessage(const SIOCtlVBuffer& cmd_buffer);
-
-    u8 request_type = 0;
-    u8 request = 0;
-    u16 value = 0;
-    u16 index = 0;
-    u16 length = 0;
-    u32 payload_addr = 0;
-    u32 address = 0;
-  };
-
-  class CtrlBuffer
-  {
-  public:
-    CtrlBuffer() = default;
-    CtrlBuffer(const SIOCtlVBuffer& cmd_buffer, u32 command_address);
-
-    void FillBuffer(const u8* src, size_t size) const;
-    void SetRetVal(const u32 retval) const;
-    bool IsValid() const { return m_cmd_address != 0; }
-    void Invalidate() { m_cmd_address = m_payload_addr = 0; }
-    u8 m_endpoint = 0;
-    u16 m_length = 0;
-    u32 m_payload_addr = 0;
-    u32 m_cmd_address = 0;
   };
 };

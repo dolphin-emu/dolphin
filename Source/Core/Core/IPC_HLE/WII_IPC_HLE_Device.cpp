@@ -46,6 +46,15 @@ SIOCtlVBuffer::SIOCtlVBuffer(const u32 address) : m_Address(address)
   }
 }
 
+IOCtlBuffer::IOCtlBuffer(const u32 address) : m_address(address)
+{
+  m_request = Memory::Read_U32(m_address + 0x0c);          // arg0
+  m_in_buffer_addr = Memory::Read_U32(m_address + 0x10);   // arg1
+  m_in_buffer_size = Memory::Read_U32(m_address + 0x14);   // arg2
+  m_out_buffer_addr = Memory::Read_U32(m_address + 0x18);  // arg3
+  m_out_buffer_size = Memory::Read_U32(m_address + 0x1c);  // arg4
+}
+
 IWII_IPC_HLE_Device::IWII_IPC_HLE_Device(const u32 device_id, const std::string& device_name,
                                          const bool hardware)
     : m_Name(device_name), m_DeviceID(device_id), m_Hardware(hardware)

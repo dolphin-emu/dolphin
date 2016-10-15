@@ -21,7 +21,7 @@
 #include "Core/Core.h"  // for bWii
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HW/SI.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
