@@ -39,7 +39,10 @@ static int s_d3d12_dll_ref = 0;
 D3D12CREATEDEVICE d3d12_create_device = nullptr;
 D3D12SERIALIZEROOTSIGNATURE d3d12_serialize_root_signature = nullptr;
 D3D12GETDEBUGINTERFACE d3d12_get_debug_interface = nullptr;
-
+  
+#define NUM_SUPPORTED_FEATURE_LEVELS 3
+const  D3D_FEATURE_LEVEL supported_feature_levels[NUM_SUPPORTED_FEATURE_LEVELS] = {
+  D3D_FEATURE_LEVEL_12_1, D3D_FEATURE_LEVEL_12_0, D3D_FEATURE_LEVEL_11_1};
 namespace D3D
 {
 // Begin extern'd variables.
