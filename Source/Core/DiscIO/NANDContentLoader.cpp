@@ -96,6 +96,12 @@ std::string CSharedContent::AddSharedContent(const u8* hash)
   return filename;
 }
 
+CNANDContentDataFile::CNANDContentDataFile(const std::string& filename) : m_filename{filename}
+{
+}
+
+CNANDContentDataFile::~CNANDContentDataFile() = default;
+
 void CNANDContentDataFile::EnsureOpen()
 {
   if (!m_file)

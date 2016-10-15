@@ -13,13 +13,15 @@
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 
-namespace DiscIO
+namespace File
 {
-enum class Country;
+class IOFile;
 }
 
 namespace DiscIO
 {
+enum class Country;
+
 bool AddTicket(u64 title_id, const std::vector<u8>& ticket);
 
 class CNANDContentData
@@ -35,7 +37,9 @@ public:
 class CNANDContentDataFile final : public CNANDContentData
 {
 public:
-  explicit CNANDContentDataFile(const std::string& filename) : m_filename(filename) {}
+  explicit CNANDContentDataFile(const std::string& filename);
+  ~CNANDContentDataFile();
+
   void Open() override;
   std::vector<u8> Get() override;
   bool GetRange(u32 start, u32 size, u8* buffer) override;
