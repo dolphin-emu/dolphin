@@ -4,17 +4,22 @@
 
 #pragma once
 
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+#include <string>
 
-class CWII_IPC_HLE_Device_usb_oh1_57e_305_stub final
-    : public CWII_IPC_HLE_Device_usb_oh1_57e_305_base
+#include "Common/CommonTypes.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+
+class PointerWrap;
+
+class CWII_IPC_HLE_Device_usb_stub final : public CWII_IPC_HLE_Device_usb
 {
 public:
-  CWII_IPC_HLE_Device_usb_oh1_57e_305_stub(u32 device_id, const std::string& device_name)
-      : CWII_IPC_HLE_Device_usb_oh1_57e_305_base(device_id, device_name)
+  CWII_IPC_HLE_Device_usb_stub(u32 device_id, const std::string& device_name)
+      : CWII_IPC_HLE_Device_usb(device_id, device_name)
   {
   }
-  ~CWII_IPC_HLE_Device_usb_oh1_57e_305_stub() override {}
+  ~CWII_IPC_HLE_Device_usb_stub() override {}
   IPCCommandResult Open(u32 command_address, u32 mode) override;
   IPCCommandResult Close(u32 command_address, bool force) override { return GetNoReply(); }
   IPCCommandResult IOCtl(u32 command_address) override { return GetDefaultReply(); }

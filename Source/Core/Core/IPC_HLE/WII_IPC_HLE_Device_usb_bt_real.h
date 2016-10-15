@@ -97,6 +97,6 @@ private:
 };
 
 #else
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.h"
-using CWII_IPC_HLE_Device_usb_oh1_57e_305_real = CWII_IPC_HLE_Device_usb_oh1_57e_305_stub;
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_stub.h"
+using CWII_IPC_HLE_Device_usb_oh1_57e_305_real = CWII_IPC_HLE_Device_usb_stub;
 #endif
