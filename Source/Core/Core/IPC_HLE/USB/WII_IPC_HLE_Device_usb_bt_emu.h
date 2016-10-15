@@ -4,17 +4,17 @@
 
 #pragma once
 
-#include <algorithm>
 #include <deque>
-#include <queue>
 #include <string>
 #include <vector>
 
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/USB/Common.h"
+#include "Core/IPC_HLE/USB/USBV0.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/hci.h"
 
@@ -82,11 +82,11 @@ private:
   u8 m_ScanEnable = 0;
 
   SHCICommandMessage m_CtrlSetup;
-  CtrlBuffer m_HCIEndpoint;
+  USBV0IntrMessage m_HCIEndpoint;
   std::deque<SQueuedEvent> m_EventQueue;
 
   u32 m_ACLSetup;
-  CtrlBuffer m_ACLEndpoint;
+  USBV0BulkMessage m_ACLEndpoint;
 
   class ACLPool
   {
@@ -103,7 +103,7 @@ private:
     ACLPool() : m_queue() {}
     void Store(const u8* data, const u16 size, const u16 conn_handle);
 
-    void WriteToEndpoint(CtrlBuffer& endpoint);
+    void WriteToEndpoint(USBV0BulkMessage& endpoint);
 
     bool IsEmpty() const { return m_queue.empty(); }
     // For SaveStates
