@@ -22,14 +22,6 @@ struct Message
 
 enum class MessageType
 {
-  FPS,
-  FrameCount,
-  RTC,
-
-  MovieInputCount,
-  MovieLag,
-  MovieInput,
-
   NetPlayPing,
   NetPlayBuffer,
 
