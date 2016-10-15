@@ -347,13 +347,6 @@ private:
 
   bool InitControllers();
 
-  // OSD
-  void OSDPrintInternalResolution();
-  void OSDPrintAspectRatio();
-  void OSDPrintEFB();
-  void OSDPrintFog();
-  void OSDPrintEmulationSpeed();
-
   // Event table
   DECLARE_EVENT_TABLE();
 };
