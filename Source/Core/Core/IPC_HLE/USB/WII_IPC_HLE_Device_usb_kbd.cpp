@@ -10,7 +10,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // Local core functions
 #include "Core/HW/Memmap.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_kbd.h"
 
 #ifdef _WIN32
 #include <windows.h>

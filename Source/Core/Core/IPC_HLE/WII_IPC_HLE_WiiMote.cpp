@@ -16,7 +16,7 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/WiiMote_HID_Attr.h"
 #include "Core/IPC_HLE/l2cap.h"

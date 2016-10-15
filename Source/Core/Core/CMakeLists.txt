@@ -148,11 +148,11 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
 			IPC_HLE/WII_IPC_HLE_Device_stm.cpp
 			IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_ven.cpp
+			IPC_HLE/USB/Common.cpp
+			IPC_HLE/USB/USBV0.cpp
+			IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_base.cpp
+			IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_emu.cpp
+			IPC_HLE/USB/WII_IPC_HLE_Device_usb_kbd.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
 			IPC_HLE/WiiMote_HID_Attr.cpp
 			IPC_HLE/WiiNetConfig.cpp
@@ -247,9 +247,9 @@ set(LIBS
 
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
-	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
-	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp)
+	set(LIBS ${LIBS} ${LIBUSB_LIBRARIES})
+	set(SRCS ${SRCS} IPC_HLE/USB/WII_IPC_HLE_Device_hid.cpp
+	                 IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_real.cpp)
 endif(LIBUSB_FOUND)
 
 if(NOT APPLE)
