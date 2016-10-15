@@ -56,6 +56,9 @@ struct ReadRequest
 
 using ReadResult = std::pair<ReadRequest, std::vector<u8>>;
 
+static void StartDVDThread();
+static void StopDVDThread();
+
 static void DVDThread();
 
 static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
@@ -70,7 +73,6 @@ static u64 s_next_id = 0;
 static std::thread s_dvd_thread;
 static Common::Event s_request_queue_expanded;    // Is set by CPU thread
 static Common::Event s_result_queue_expanded;     // Is set by DVD thread
-static Common::Event s_dvd_thread_done_working;   // Is set by DVD thread
 static Common::Flag s_dvd_thread_exiting(false);  // Is set by CPU thread
 
 static Common::FifoQueue<ReadRequest, false> s_request_queue;
@@ -81,7 +83,6 @@ void Start()
 {
   s_finish_read = CoreTiming::RegisterEvent("FinishReadDVDThread", FinishRead);
 
-  s_dvd_thread_exiting.Clear();
   s_request_queue_expanded.Reset();
   s_result_queue_expanded.Reset();
   s_request_queue.Clear();
@@ -91,11 +92,22 @@ void Start()
   // much, because this will never get exposed to the emulated game.
   s_next_id = 0;
 
+  StartDVDThread();
+}
+
+static void StartDVDThread()
+{
   _assert_(!s_dvd_thread.joinable());
+  s_dvd_thread_exiting.Clear();
   s_dvd_thread = std::thread(DVDThread);
 }
 
 void Stop()
+{
+  StopDVDThread();
+}
+
+static void StopDVDThread()
 {
   _assert_(s_dvd_thread.joinable());
 
@@ -131,6 +143,9 @@ void DoState(PointerWrap& p)
   // TODO: Savestates can be smaller if the buffers of results aren't saved,
   // but instead get re-read from the disc when loading the savestate.
 
+  // TODO: It would be possible to create a savestate faster by stopping
+  // the DVD thread regardless of whether there are pending requests.
+
   // After loading a savestate, the debug log in FinishRead will report
   // screwed up times for requests that were submitted before the savestate
   // was made. Handling that properly may be more effort than it's worth.
@@ -140,13 +155,11 @@ void WaitUntilIdle()
 {
   _assert_(Core::IsCPUThread());
 
-  // Wait until DVD thread isn't working
-  s_dvd_thread_done_working.Wait();
+  while (!s_request_queue.Empty())
+    s_result_queue_expanded.Wait();
 
-  // Set the event again so that we still know that the DVD thread
-  // isn't working. This is needed in case this function gets called
-  // again before the DVD thread starts working.
-  s_dvd_thread_done_working.Set();
+  StopDVDThread();
+  StartDVDThread();
 }
 
 void StartRead(u64 dvd_offset, u32 length, bool decrypt, DVDInterface::ReplyType reply_type,
@@ -162,8 +175,9 @@ void StartReadToEmulatedRAM(u32 output_address, u64 dvd_offset, u32 length, bool
                     ticks_until_completion);
 }
 
-void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
-                       bool decrypt, DVDInterface::ReplyType reply_type, s64 ticks_until_completion)
+static void StartReadInternal(bool copy_to_ram, u32 output_address, u64 dvd_offset, u32 length,
+                              bool decrypt, DVDInterface::ReplyType reply_type,
+                              s64 ticks_until_completion)
 {
   _assert_(Core::IsCPUThread());
 
@@ -255,14 +269,10 @@ static void DVDThread()
 
   while (true)
   {
-    s_dvd_thread_done_working.Set();
-
     s_request_queue_expanded.Wait();
 
     if (s_dvd_thread_exiting.IsSet())
       return;
-
-    s_dvd_thread_done_working.Reset();
 
     ReadRequest request;
     while (s_request_queue.Pop(request))
