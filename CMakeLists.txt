@@ -749,6 +749,7 @@ if(NOT ANDROID)
         	add_subdirectory(Externals/libusb)
 	        set(LIBUSB_LIBRARIES usb)
         endif()
+        set(LIBUSB_FOUND true)
 endif()
 
 set(SFML_REQD_VERSION 2.1)
