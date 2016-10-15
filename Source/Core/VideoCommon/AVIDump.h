@@ -12,7 +12,6 @@ private:
   static bool CreateFile();
   static void CloseFile();
   static void CheckResolution(int width, int height);
-  static void StoreFrameData(const u8* data, int width, int height, int stride, u64 ticks);
 
 public:
   static bool Start(int w, int h);

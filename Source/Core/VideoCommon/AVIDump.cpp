@@ -42,16 +42,10 @@ static int s_height;
 static u64 s_last_frame;
 static bool s_last_frame_is_valid = false;
 static bool s_start_dumping = false;
-static bool s_stop_dumping = false;
 static u64 s_last_pts;
 static int s_current_width;
 static int s_current_height;
 static int s_file_index = 0;
-static const u8* s_stored_frame_data;
-static int s_stored_frame_width;
-static int s_stored_frame_height;
-static int s_stored_frame_stride;
-static u64 s_stored_frame_ticks;
 
 static void InitAVCodec()
 {
@@ -74,8 +68,6 @@ bool AVIDump::Start(int w, int h)
 
   s_last_frame_is_valid = false;
   s_last_pts = 0;
-
-  s_stop_dumping = false;
 
   InitAVCodec();
   bool success = CreateFile();
@@ -172,14 +164,7 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height, int stride, u64 ticks)
 {
-  // Store current frame data in case frame dumping stops before next frame update,
-  // but make sure that you don't store the last stored frame and check the resolution upon
-  // closing the file or else you store recursion, and dolphins don't like recursion.
-  if (!s_stop_dumping)
-  {
-    StoreFrameData(data, width, height, stride, ticks);
-    CheckResolution(width, height);
-  }
+  CheckResolution(width, height);
   s_src_frame->data[0] = const_cast<u8*>(data);
   s_src_frame->linesize[0] = stride;
   s_src_frame->format = s_pix_fmt;
@@ -259,10 +244,6 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, u64 ti
 
 void AVIDump::Stop()
 {
-  s_stop_dumping = true;
-  // Write the last stored frame just in case frame dumping stops before the next frame update
-  AddFrame(s_stored_frame_data, s_stored_frame_width, s_stored_frame_height, s_stored_frame_stride,
-           s_stored_frame_ticks);
   av_write_trailer(s_format_context);
   CloseFile();
   s_file_index = 0;
@@ -321,13 +302,4 @@ void AVIDump::CheckResolution(int width, int height)
     s_current_width = width;
     s_current_height = height;
   }
-}
-
-void AVIDump::StoreFrameData(const u8* data, int width, int height, int stride, u64 ticks)
-{
-  s_stored_frame_data = data;
-  s_stored_frame_width = width;
-  s_stored_frame_height = height;
-  s_stored_frame_stride = stride;
-  s_stored_frame_ticks = ticks;
 }
