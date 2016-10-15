@@ -32,11 +32,15 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/WII_IPC.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_emu.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_real.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_kbd.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
@@ -48,19 +52,11 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stub.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_ven.h"
 
 namespace CoreTiming
 {
 struct EventType;
 }  // namespace CoreTiming
-
-#if defined(__LIBUSB__)
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
-#endif
 
 namespace WII_IPC_HLE_Interface
 {
@@ -114,7 +110,7 @@ static void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
 static u32 num_devices;
 
 template <typename T>
-std::shared_ptr<T> AddDevice(const char* device_name)
+std::shared_ptr<T> AddDevice(const std::string& device_name)
 {
   auto device = std::make_shared<T>(num_devices, device_name);
   s_device_map[num_devices] = device;
@@ -155,14 +151,8 @@ void Reinit()
   AddDevice<CWII_IPC_HLE_Device_net_ip_top>("/dev/net/ip/top");
   AddDevice<CWII_IPC_HLE_Device_net_ssl>("/dev/net/ssl");
   AddDevice<CWII_IPC_HLE_Device_usb_kbd>("/dev/usb/kbd");
-  AddDevice<CWII_IPC_HLE_Device_usb_ven>("/dev/usb/ven");
   AddDevice<CWII_IPC_HLE_Device_sdio_slot0>("/dev/sdio/slot0");
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/sdio/slot1");
-#if defined(__LIBUSB__)
-  AddDevice<CWII_IPC_HLE_Device_hid>("/dev/usb/hid");
-#else
-  AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/hid");
-#endif
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
 }
 
@@ -428,11 +418,14 @@ void ExecuteCommand(u32 address)
         device = GetDeviceByName(device_name);
         if (device)
         {
-          s_fdmap[DeviceID] = device;
           result = device->Open(address, Mode);
           DEBUG_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
                     device->GetDeviceName().c_str(), DeviceID, Mode);
-          Memory::Write_U32(DeviceID, address + 4);
+          if (static_cast<s32>(Memory::Read_U32(address + 4)) > -1)
+          {
+            s_fdmap[DeviceID] = device;
+            Memory::Write_U32(DeviceID, address + 4);
+          }
         }
         else
         {
