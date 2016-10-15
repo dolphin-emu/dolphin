@@ -37,3 +37,15 @@ void CWII_IPC_HLE_Device_usb::CtrlBuffer::FillBuffer(const u8* src, const size_t
                    m_length);
   Memory::CopyToEmu(m_payload_addr, src, size);
 }
+
+CWII_IPC_HLE_Device_usb::IsoMessageBuffer::IsoMessageBuffer(const SIOCtlVBuffer& cmd_buffer,
+                                                            const u32 command_address)
+{
+  m_endpoint = Memory::Read_U8(cmd_buffer.InBuffer[0].m_Address);
+  m_length = Memory::Read_U16(cmd_buffer.InBuffer[1].m_Address);
+  m_num_packets = Memory::Read_U8(cmd_buffer.InBuffer[2].m_Address);
+  m_packet_sizes =
+      reinterpret_cast<u16*>(Memory::GetPointer(cmd_buffer.PayloadBuffer[0].m_Address));
+  m_packets = Memory::GetPointer(cmd_buffer.PayloadBuffer[1].m_Address);
+  m_cmd_address = command_address;
+}

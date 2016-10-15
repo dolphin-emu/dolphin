@@ -14,7 +14,43 @@
 
 class PointerWrap;
 
-// Base class for USB devices
+enum USBV0IOCtl
+{
+  USBV0_IOCTL_CTRLMSG = 0,
+  USBV0_IOCTL_BLKMSG = 1,
+  USBV0_IOCTL_INTRMSG = 2,
+  USBV0_IOCTL_SUSPENDDEV = 5,
+  USBV0_IOCTL_RESUMEDEV = 6,
+  USBV0_IOCTL_ISOMSG = 9,
+  USBV0_IOCTL_GETDEVLIST = 12,
+  USBV0_IOCTL_DEVREMOVALHOOK = 26,
+  USBV0_IOCTL_DEVINSERTHOOK = 27,
+  USBV0_IOCTL_DEVICECLASSCHANGE = 28,
+};
+
+enum StandardDeviceRequestCodes
+{
+  REQUEST_SET_CONFIGURATION = 9,
+  REQUEST_GET_INTERFACE = 10,
+  REQUEST_SET_INTERFACE = 11,
+};
+
+enum ControlRequestTypes
+{
+  USB_DIR_HOST2DEVICE = 0,
+  USB_DIR_DEVICE2HOST = 1,
+  USB_TYPE_STANDARD = 0,
+  USB_TYPE_VENDOR = 2,
+  USB_REC_DEVICE = 0,
+  USB_REC_INTERFACE = 1,
+};
+
+constexpr u16 USBHDR(u8 dir, u8 type, u8 recipient, u8 request)
+{
+  return ((dir << 7 | type << 5 | recipient) << 8) | request;
+}
+
+// Base class for USBV0 devices
 class CWII_IPC_HLE_Device_usb : public IWII_IPC_HLE_Device
 {
 public:
@@ -30,13 +66,6 @@ public:
   virtual IPCCommandResult IOCtlV(u32 command_address) override = 0;
 
 protected:
-  enum USBIOCtl
-  {
-    USBV0_IOCTL_CTRLMSG = 0,
-    USBV0_IOCTL_BLKMSG = 1,
-    USBV0_IOCTL_INTRMSG = 2,
-  };
-
   struct CtrlMessage
   {
     CtrlMessage() = default;
@@ -64,6 +93,19 @@ protected:
     u8 m_endpoint;
     u16 m_length;
     u32 m_payload_addr;
+    u32 m_cmd_address;
+  };
+
+  class IsoMessageBuffer
+  {
+  public:
+    IsoMessageBuffer() = default;
+    IsoMessageBuffer(const SIOCtlVBuffer& cmd_buffer, u32 command_address);
+    u8 m_endpoint;
+    u16 m_length;
+    u8 m_num_packets;
+    u16* m_packet_sizes;
+    u8* m_packets;
     u32 m_cmd_address;
   };
 };

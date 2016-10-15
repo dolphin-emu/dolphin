@@ -51,6 +51,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_oh0_real.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_ven.h"
 
 namespace CoreTiming
@@ -163,6 +164,9 @@ void Reinit()
 #else
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/hid");
 #endif
+  AddDevice<CWII_IPC_HLE_Device_usb_oh0_real>("/dev/usb/oh0");
+  AddDevice<CWII_IPC_HLE_Device_usb_oh0_real_device>("/dev/usb/oh0/57e/308");
+  AddDevice<CWII_IPC_HLE_Device_usb_oh0_real_device>("/dev/usb/oh0/46d/a03");
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
 }
 
@@ -428,11 +432,14 @@ void ExecuteCommand(u32 address)
         device = GetDeviceByName(device_name);
         if (device)
         {
-          s_fdmap[DeviceID] = device;
           result = device->Open(address, Mode);
           DEBUG_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
                     device->GetDeviceName().c_str(), DeviceID, Mode);
-          Memory::Write_U32(DeviceID, address + 4);
+          if (static_cast<int32_t>(Memory::Read_U32(address + 4)) > -1)
+          {
+            s_fdmap[DeviceID] = device;
+            Memory::Write_U32(DeviceID, address + 4);
+          }
         }
         else
         {

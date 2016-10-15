@@ -57,6 +57,18 @@ struct SIOCtlVBuffer
   std::vector<SBuffer> PayloadBuffer;
 };
 
+struct IOCtlBuffer
+{
+  explicit IOCtlBuffer(u32 address);
+
+  const u32 m_address;
+  u32 m_request;
+  u32 m_in_buffer_addr;
+  u32 m_in_buffer_size;
+  u32 m_out_buffer_addr;
+  u32 m_out_buffer_size;
+};
+
 class IWII_IPC_HLE_Device
 {
 public:

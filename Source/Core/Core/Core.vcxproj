@@ -193,6 +193,9 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_real.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_oh0_real.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_stub.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.cpp" />
@@ -402,6 +405,7 @@
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_base.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_emu.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_real.h" />
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_oh0.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_stub.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.h" />

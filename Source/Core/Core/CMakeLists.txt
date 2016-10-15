@@ -248,7 +248,8 @@ if(LIBUSB_FOUND)
 	# Using shared LibUSB
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
 	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
-	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp)
+	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp
+	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_oh0_real.cpp)
 endif(LIBUSB_FOUND)
 
 if(NOT APPLE)
