@@ -18,7 +18,7 @@ namespace ciface
 {
 namespace XInput2
 {
-void Init(void* const hwnd);
+void PopulateDevices(void* const hwnd);
 
 class KeyboardMouse : public Core::Device
 {

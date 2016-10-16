@@ -55,41 +55,70 @@ void ControllerInterface::Initialize(void* const hwnd)
   m_hwnd = hwnd;
 
 #ifdef CIFACE_USE_DINPUT
-  ciface::DInput::Init((HWND)hwnd);
+// nothing needed
 #endif
 #ifdef CIFACE_USE_XINPUT
   ciface::XInput::Init();
 #endif
 #ifdef CIFACE_USE_XLIB
-  ciface::XInput2::Init(hwnd);
+// nothing needed
 #endif
 #ifdef CIFACE_USE_OSX
   ciface::OSX::Init(hwnd);
-  ciface::Quartz::Init(hwnd);
+// nothing needed for Quartz
 #endif
 #ifdef CIFACE_USE_SDL
   ciface::SDL::Init();
 #endif
 #ifdef CIFACE_USE_ANDROID
-  ciface::Android::Init();
+// nothing needed
 #endif
 #ifdef CIFACE_USE_EVDEV
   ciface::evdev::Init();
 #endif
 #ifdef CIFACE_USE_PIPES
-  ciface::Pipes::Init();
+// nothing needed
 #endif
 
   m_is_init = true;
+  RefreshDevices();
 }
 
-void ControllerInterface::Reinitialize()
+void ControllerInterface::RefreshDevices()
 {
   if (!m_is_init)
     return;
 
-  Shutdown();
-  Initialize(m_hwnd);
+  {
+    std::lock_guard<std::mutex> lk(m_devices_mutex);
+    m_devices.clear();
+  }
+
+#ifdef CIFACE_USE_DINPUT
+  ciface::DInput::PopulateDevices(reinterpret_cast<HWND>(m_hwnd));
+#endif
+#ifdef CIFACE_USE_XINPUT
+  ciface::XInput::PopulateDevices();
+#endif
+#ifdef CIFACE_USE_XLIB
+  ciface::XInput2::PopulateDevices(m_hwnd);
+#endif
+#ifdef CIFACE_USE_OSX
+  ciface::OSX::PopulateDevices(m_hwnd);
+  ciface::Quartz::PopulateDevices(m_hwnd);
+#endif
+#ifdef CIFACE_USE_SDL
+  ciface::SDL::PopulateDevices();
+#endif
+#ifdef CIFACE_USE_ANDROID
+  ciface::Android::PopulateDevices();
+#endif
+#ifdef CIFACE_USE_EVDEV
+  ciface::evdev::PopulateDevices();
+#endif
+#ifdef CIFACE_USE_PIPES
+  ciface::Pipes::PopulateDevices();
+#endif
 }
 
 //
