@@ -47,6 +47,12 @@ void Init()
     // Failed to initialize
     return;
   }
+}
+
+void GetDevices()
+{
+  if (!(SDL_WasInit(SDL_INIT_EVERYTHING) & SDL_INIT_JOYSTICK))
+    return;
 
   // joysticks
   for (int i = 0; i < SDL_NumJoysticks(); ++i)

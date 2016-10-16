@@ -184,6 +184,12 @@ void Init()
   StartHotplugThread();
 }
 
+void GetDevices()
+{
+  Shutdown();
+  Init();
+}
+
 void Shutdown()
 {
   StopHotplugThread();

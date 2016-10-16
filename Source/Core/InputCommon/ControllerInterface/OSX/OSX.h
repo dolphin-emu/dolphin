@@ -9,6 +9,7 @@ namespace ciface
 namespace OSX
 {
 void Init(void* window);
+void GetDevices(void* window);
 void DeInit();
 
 void DeviceElementDebugPrint(const void*, void*);

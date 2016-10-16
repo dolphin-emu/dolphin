@@ -21,6 +21,7 @@ namespace ciface
 namespace SDL
 {
 void Init();
+void GetDevices();
 
 class Joystick : public Core::Device
 {
