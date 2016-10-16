@@ -94,6 +94,10 @@
             <item
                 android:id="@+id/menu_emulation_adjust_scale"
                 android:title="@string/emulation_control_scale"/>
+
+            <item
+                android:id="@+id/menu_emulation_choose_controller"
+                android:title="@string/emulation_choose_controller"/>
         </menu>
     </item>
 </menu>
