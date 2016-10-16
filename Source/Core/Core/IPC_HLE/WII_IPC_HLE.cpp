@@ -164,7 +164,6 @@ void Reinit()
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/hid");
 #endif
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
-  AddDevice<IWII_IPC_HLE_Device>("_Unimplemented_Device_");
 }
 
 void Init()
