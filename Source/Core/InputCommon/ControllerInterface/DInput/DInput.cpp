@@ -44,7 +44,7 @@ std::string GetDeviceName(const LPDIRECTINPUTDEVICE8 device)
   return result;
 }
 
-void Init(HWND hwnd)
+void PopulateDevices(HWND hwnd)
 {
   IDirectInput8* idi8;
   if (FAILED(DirectInput8Create(GetModuleHandle(nullptr), DIRECTINPUT_VERSION, IID_IDirectInput8,

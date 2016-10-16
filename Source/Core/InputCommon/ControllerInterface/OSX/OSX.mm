@@ -182,6 +182,12 @@ void Init(void* window)
   IOHIDManagerUnscheduleFromRunLoop(HIDManager, CFRunLoopGetCurrent(), OurRunLoop);
 }
 
+void PopulateDevices(void* window)
+{
+  DeInit();
+  Init(window);
+}
+
 void DeInit()
 {
   // This closes all devices as well

@@ -141,10 +141,15 @@ static void StopHotplugThread()
 void Init()
 {
   s_devnode_name_map.clear();
+  PopulateDevices();
+  StartHotplugThread();
+}
 
-  // During initialization we use udev to iterate over all /dev/input/event* devices.
-  // Note: the Linux kernel is currently limited to just 32 event devices. If this ever
-  //            changes, hopefully udev will take care of this.
+void PopulateDevices()
+{
+  // We use udev to iterate over all /dev/input/event* devices.
+  // Note: the Linux kernel is currently limited to just 32 event devices. If
+  // this ever changes, hopefully udev will take care of this.
 
   udev* udev = udev_new();
   _assert_msg_(PAD, udev != nullptr, "Couldn't initialize libudev.");
@@ -182,8 +187,6 @@ void Init()
   }
   udev_enumerate_unref(enumerate);
   udev_unref(udev);
-
-  StartHotplugThread();
 }
 
 void Shutdown()
