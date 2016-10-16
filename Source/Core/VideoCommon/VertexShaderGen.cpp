@@ -130,7 +130,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("VARYING_LOCATION(0) out VertexData {\n");
       GenerateVSOutputMembers(
           out, api_type, uid_data->numTexGens, uid_data->pixel_lighting,
-          GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false, true));
+          GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, false));
       out.Write("} vs;\n");
     }
     else
