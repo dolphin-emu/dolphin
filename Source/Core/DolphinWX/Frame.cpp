@@ -333,19 +333,16 @@ bool CFrame::InitControllers()
   if (!g_controller_interface.IsInit())
   {
 #if defined(HAVE_X11) && HAVE_X11
-    Window win = X11Utils::XWindowFromHandle(GetHandle());
-    Pad::Initialize(reinterpret_cast<void*>(win));
-    Keyboard::Initialize(reinterpret_cast<void*>(win));
-    Wiimote::Initialize(reinterpret_cast<void*>(win),
-                        Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-    HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(win));
+    void* win = reinterpret_cast<void*>(X11Utils::XWindowFromHandle(GetHandle()));
 #else
-    Pad::Initialize(reinterpret_cast<void*>(GetHandle()));
-    Keyboard::Initialize(reinterpret_cast<void*>(GetHandle()));
-    Wiimote::Initialize(reinterpret_cast<void*>(GetHandle()),
-                        Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
-    HotkeyManagerEmu::Initialize(reinterpret_cast<void*>(GetHandle()));
+    void* win = reinterpret_cast<void*>(GetHandle());
 #endif
+    g_controller_interface.Initialize(win);
+    Pad::Initialize();
+    Keyboard::Initialize();
+    Wiimote::Initialize(Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+    HotkeyManagerEmu::Initialize();
+
     return true;
   }
   return false;
@@ -547,6 +544,7 @@ CFrame::~CFrame()
   Keyboard::Shutdown();
   Pad::Shutdown();
   HotkeyManagerEmu::Shutdown();
+  g_controller_interface.Shutdown();
 
   drives.clear();
 

@@ -22,11 +22,9 @@ InputConfig* GetConfig()
 void Shutdown()
 {
   s_config.ClearControllers();
-
-  g_controller_interface.Shutdown();
 }
 
-void Initialize(void* const hwnd)
+void Initialize()
 {
   if (s_config.ControllersNeedToBeCreated())
   {
@@ -34,7 +32,6 @@ void Initialize(void* const hwnd)
       s_config.CreateController<GCPad>(i);
   }
 
-  g_controller_interface.Initialize(hwnd);
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // Load the saved controller config
