@@ -44,6 +44,7 @@ void AudioConfigPane::InitializeGUI()
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_audio_backend_strings);
   m_audio_latency_spinctrl =
       new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
+  m_audio_latency_label = new wxStaticText(this, wxID_ANY, _("Latency:"));
 
   m_dsp_engine_radiobox->Bind(wxEVT_RADIOBOX, &AudioConfigPane::OnDSPEngineRadioBoxChanged, this);
   m_dpl2_decoder_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnDPL2DecoderCheckBoxChanged,
@@ -54,15 +55,10 @@ void AudioConfigPane::InitializeGUI()
 
   m_audio_backend_choice->SetToolTip(
       _("Changing this will have no effect while the emulator is running."));
-  m_audio_latency_spinctrl->SetToolTip(_(
-      "Sets the latency (in ms). Higher values may reduce audio crackling. OpenAL backend only."));
-#if defined(__APPLE__)
+  m_audio_latency_spinctrl->SetToolTip(_("Sets the latency (in ms). Higher values may reduce audio "
+                                         "crackling. Certain backends only."));
   m_dpl2_decoder_checkbox->SetToolTip(
-      _("Enables Dolby Pro Logic II emulation using 5.1 surround. Not available on OS X."));
-#else
-  m_dpl2_decoder_checkbox->SetToolTip(
-      _("Enables Dolby Pro Logic II emulation using 5.1 surround. OpenAL or Pulse backends only."));
-#endif
+      _("Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends only."));
 
   const int space5 = FromDIP(5);
 
@@ -71,9 +67,6 @@ void AudioConfigPane::InitializeGUI()
   dsp_engine_sizer->Add(m_dsp_engine_radiobox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   dsp_engine_sizer->AddSpacer(space5);
   dsp_engine_sizer->AddStretchSpacer();
-  dsp_engine_sizer->Add(m_dpl2_decoder_checkbox, 0, wxLEFT | wxRIGHT, space5);
-  dsp_engine_sizer->AddStretchSpacer();
-  dsp_engine_sizer->AddSpacer(space5);
 
   wxStaticBoxSizer* const volume_sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Volume"));
   volume_sizer->Add(m_volume_slider, 1, wxALIGN_CENTER_HORIZONTAL);
@@ -85,9 +78,11 @@ void AudioConfigPane::InitializeGUI()
                           wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   backend_grid_sizer->Add(m_audio_backend_choice, wxGBPosition(0, 1), wxDefaultSpan,
                           wxALIGN_CENTER_VERTICAL);
-  backend_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Latency:")), wxGBPosition(1, 0),
-                          wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-  backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(1, 1), wxDefaultSpan,
+  backend_grid_sizer->Add(m_dpl2_decoder_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2),
+                          wxALIGN_CENTER_VERTICAL);
+  backend_grid_sizer->Add(m_audio_latency_label, wxGBPosition(2, 0), wxDefaultSpan,
+                          wxALIGN_CENTER_VERTICAL);
+  backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(2, 1), wxDefaultSpan,
                           wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const backend_static_box_sizer =
@@ -115,9 +110,9 @@ void AudioConfigPane::InitializeGUI()
 
 void AudioConfigPane::LoadGUIValues()
 {
-  PopulateBackendChoiceBox();
-
   const SConfig& startup_params = SConfig::GetInstance();
+  PopulateBackendChoiceBox();
+  ToggleBackendSpecificControls(SConfig::GetInstance().sBackend);
 
   // Audio DSP Engine
   if (startup_params.bDSPHLE)
@@ -125,18 +120,23 @@ void AudioConfigPane::LoadGUIValues()
   else
     m_dsp_engine_radiobox->SetSelection(SConfig::GetInstance().m_DSPEnableJIT ? 1 : 2);
 
-  m_volume_slider->Enable(SupportsVolumeChanges(SConfig::GetInstance().sBackend));
   m_volume_slider->SetValue(SConfig::GetInstance().m_Volume);
-
   m_volume_text->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
-
-  m_dpl2_decoder_checkbox->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL ||
-                                  std::string(SConfig::GetInstance().sBackend) ==
-                                      BACKEND_PULSEAUDIO);
   m_dpl2_decoder_checkbox->SetValue(startup_params.bDPL2Decoder);
-
-  m_audio_latency_spinctrl->Enable(std::string(SConfig::GetInstance().sBackend) == BACKEND_OPENAL);
   m_audio_latency_spinctrl->SetValue(startup_params.iLatency);
+}
+
+void AudioConfigPane::ToggleBackendSpecificControls(const std::string& backend)
+{
+  m_dpl2_decoder_checkbox->Enable(AudioCommon::SupportsDPL2Decoder(backend));
+
+  bool supports_latency_control = AudioCommon::SupportsLatencyControl(backend);
+  m_audio_latency_spinctrl->Enable(supports_latency_control);
+  m_audio_latency_label->Enable(supports_latency_control);
+
+  bool supports_volume_changes = AudioCommon::SupportsVolumeChanges(backend);
+  m_volume_slider->Enable(supports_volume_changes);
+  m_volume_text->Enable(supports_volume_changes);
 }
 
 void AudioConfigPane::RefreshGUI()
@@ -171,19 +171,11 @@ void AudioConfigPane::OnVolumeSliderChanged(wxCommandEvent& event)
 
 void AudioConfigPane::OnAudioBackendChanged(wxCommandEvent& event)
 {
-  m_volume_slider->Enable(
-      SupportsVolumeChanges(WxStrToStr(m_audio_backend_choice->GetStringSelection())));
-  m_audio_latency_spinctrl->Enable(WxStrToStr(m_audio_backend_choice->GetStringSelection()) ==
-                                   BACKEND_OPENAL);
-  m_dpl2_decoder_checkbox->Enable(
-      WxStrToStr(m_audio_backend_choice->GetStringSelection()) == BACKEND_OPENAL ||
-      WxStrToStr(m_audio_backend_choice->GetStringSelection()) == BACKEND_PULSEAUDIO);
-
   // Don't save the translated BACKEND_NULLSOUND string
   SConfig::GetInstance().sBackend = m_audio_backend_choice->GetSelection() ?
                                         WxStrToStr(m_audio_backend_choice->GetStringSelection()) :
                                         BACKEND_NULLSOUND;
-
+  ToggleBackendSpecificControls(WxStrToStr(m_audio_backend_choice->GetStringSelection()));
   AudioCommon::UpdateSoundStream();
 }
 
@@ -201,12 +193,4 @@ void AudioConfigPane::PopulateBackendChoiceBox()
 
   int num = m_audio_backend_choice->FindString(StrToWxStr(SConfig::GetInstance().sBackend));
   m_audio_backend_choice->SetSelection(num);
-}
-
-bool AudioConfigPane::SupportsVolumeChanges(const std::string& backend)
-{
-  // FIXME: this one should ask the backend whether it supports it.
-  //       but getting the backend from string etc. is probably
-  //       too much just to enable/disable a stupid slider...
-  return (backend == BACKEND_COREAUDIO || backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2);
 }
