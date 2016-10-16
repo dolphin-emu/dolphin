@@ -660,7 +660,7 @@ bool Renderer::IsFrameDumping()
     AVIDump::Stop();
     std::vector<u8>().swap(m_frame_data);
     m_AVI_dumping = false;
-    OSD::AddMessage("Stop dumping frames", 2000);
+    OSD::AddMessage("Stop dumping frames");
   }
   m_last_frame_dumped = false;
 #endif
@@ -698,16 +698,6 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, u64 ticks
     if (!m_last_frame_dumped)
     {
       m_AVI_dumping = AVIDump::Start(w, h);
-      if (!m_AVI_dumping)
-      {
-        OSD::AddMessage("AVIDump Start failed", 2000);
-      }
-      else
-      {
-        OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                         File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h),
-                        2000);
-      }
     }
     if (m_AVI_dumping)
     {

@@ -23,7 +23,9 @@ extern "C" {
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"  //for TargetRefreshRate
 #include "Core/Movie.h"
+
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
@@ -68,7 +70,10 @@ bool AVIDump::Start(int w, int h)
   InitAVCodec();
   bool success = CreateFile();
   if (!success)
+  {
     CloseFile();
+    OSD::AddMessage("AVIDump Start failed");
+  }
   return success;
 }
 
@@ -147,6 +152,9 @@ bool AVIDump::CreateFile()
     WARN_LOG(VIDEO, "Could not open %s", s_format_context->filename);
     return false;
   }
+
+  OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d)", s_format_context->filename,
+                                   s_width, s_height));
 
   return true;
 }
