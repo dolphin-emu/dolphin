@@ -115,13 +115,18 @@ void BreakPoints::Clear()
 
 void BreakPoints::ClearAllTemporary()
 {
-  for (const TBreakPoint& bp : m_BreakPoints)
+  auto bp = m_BreakPoints.begin();
+  while (bp != m_BreakPoints.end())
   {
-    if (bp.bTemporary)
+    if (bp->bTemporary)
     {
       if (jit)
-        jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
-      Remove(bp.iAddress);
+        jit->GetBlockCache()->InvalidateICache(bp->iAddress, 4, true);
+      bp = m_BreakPoints.erase(bp);
+    }
+    else
+    {
+      ++bp;
     }
   }
 }
