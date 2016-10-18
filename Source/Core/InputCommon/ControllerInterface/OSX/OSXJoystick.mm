@@ -270,5 +270,10 @@ std::string Joystick::Hat::GetName() const
 {
   return m_name;
 }
+
+bool Joystick::IsSameDevice(const IOHIDDeviceRef other_device) const
+{
+  return m_device == other_device;
+}
 }
 }
