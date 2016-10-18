@@ -65,7 +65,6 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
 
-private:
   struct
   {
     float x, y;

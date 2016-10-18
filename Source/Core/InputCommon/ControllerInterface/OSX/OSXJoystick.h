@@ -79,7 +79,6 @@ public:
   std::string GetName() const override;
   std::string GetSource() const override;
 
-private:
   const IOHIDDeviceRef m_device;
   const std::string m_device_name;
 
