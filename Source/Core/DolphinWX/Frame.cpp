@@ -866,7 +866,7 @@ static bool IsHotkey(int id, bool held = false)
   return HotkeyManagerEmu::IsPressed(id, held);
 }
 
-int GetCmdForHotkey(unsigned int key)
+static int GetMenuIDFromHotkey(unsigned int key)
 {
   switch (key)
   {
@@ -1288,11 +1288,11 @@ void CFrame::ParseHotkeys()
 
       if (IsHotkey(i))
       {
-        int cmd = GetCmdForHotkey(i);
-        if (cmd >= 0)
+        const int id = GetMenuIDFromHotkey(i);
+        if (id >= 0)
         {
-          wxCommandEvent evt(wxEVT_MENU, cmd);
-          wxMenuItem* item = GetMenuBar()->FindItem(cmd);
+          wxCommandEvent evt(wxEVT_MENU, id);
+          wxMenuItem* item = GetMenuBar()->FindItem(id);
           if (item && item->IsCheckable())
           {
             item->wxMenuItemBase::Toggle();

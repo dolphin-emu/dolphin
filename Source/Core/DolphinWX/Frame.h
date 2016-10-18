@@ -342,8 +342,6 @@ private:
   DECLARE_EVENT_TABLE();
 };
 
-int GetCmdForHotkey(unsigned int key);
-
 void OnAfterLoadCallback();
 void OnStoppedCallback();
 
