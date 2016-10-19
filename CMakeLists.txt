@@ -202,7 +202,7 @@ elseif(_ARCH_64 AND (
 	set(_M_X86 1)
 	set(_M_X86_64 1)
 	add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie -no-pie")
 elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
 	set(_M_ARM 1)
 	set(_M_ARM_64 1)
