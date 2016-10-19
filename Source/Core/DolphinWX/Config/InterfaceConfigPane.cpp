@@ -54,34 +54,34 @@ void InterfaceConfigPane::InitializeGUI()
   // keep these in sync with the language_ids array at the beginning of this file
   m_interface_lang_strings.Add(_("<System Language>"));
 
-  m_interface_lang_strings.Add(u8"Bahasa Melayu");		// Malay
-  m_interface_lang_strings.Add(u8"Català");				// Catalan
-  m_interface_lang_strings.Add(u8"Čeština");			// Czech
-  m_interface_lang_strings.Add(u8"Dansk");				// Danish
-  m_interface_lang_strings.Add(u8"Deutsch");			// German
-  m_interface_lang_strings.Add(u8"English");			// English
-  m_interface_lang_strings.Add(u8"Español");			// Spanish
-  m_interface_lang_strings.Add(u8"Français");			// French
-  m_interface_lang_strings.Add(u8"Hrvatski");			// Croatian
-  m_interface_lang_strings.Add(u8"Italiano");			// Italian
-  m_interface_lang_strings.Add(u8"Magyar");				// Hungarian
-  m_interface_lang_strings.Add(u8"Nederlands");			// Dutch
-  m_interface_lang_strings.Add(u8"Norsk bokmål");		// Norwegian
-  m_interface_lang_strings.Add(u8"Polski");				// Polish
-  m_interface_lang_strings.Add(u8"Português");			// Portuguese
-  m_interface_lang_strings.Add(u8"Português (Brasil)");	// Portuguese (Brazil)
-  m_interface_lang_strings.Add(u8"Română");				// Romanian
-  m_interface_lang_strings.Add(u8"Srpski");				// Serbian
-  m_interface_lang_strings.Add(u8"Svenska");			// Swedish
-  m_interface_lang_strings.Add(u8"Türkçe");				// Turkish
-  m_interface_lang_strings.Add(u8"Ελληνικά");			// Greek
-  m_interface_lang_strings.Add(u8"Русский");			// Russian
-  m_interface_lang_strings.Add(u8"العربية");			// Arabic
-  m_interface_lang_strings.Add(u8"فارسی");				// Farsi
-  m_interface_lang_strings.Add(u8"한국어");				// Korean
-  m_interface_lang_strings.Add(u8"日本語");				// Japanese
-  m_interface_lang_strings.Add(u8"简体中文");			// Simplified Chinese
-  m_interface_lang_strings.Add(u8"繁體中文");			// Traditional Chinese
+  m_interface_lang_strings.Add(u8"Bahasa Melayu");      // Malay
+  m_interface_lang_strings.Add(u8"Català");             // Catalan
+  m_interface_lang_strings.Add(u8"Čeština");            // Czech
+  m_interface_lang_strings.Add(u8"Dansk");              // Danish
+  m_interface_lang_strings.Add(u8"Deutsch");            // German
+  m_interface_lang_strings.Add(u8"English");            // English
+  m_interface_lang_strings.Add(u8"Español");            // Spanish
+  m_interface_lang_strings.Add(u8"Français");           // French
+  m_interface_lang_strings.Add(u8"Hrvatski");           // Croatian
+  m_interface_lang_strings.Add(u8"Italiano");           // Italian
+  m_interface_lang_strings.Add(u8"Magyar");             // Hungarian
+  m_interface_lang_strings.Add(u8"Nederlands");         // Dutch
+  m_interface_lang_strings.Add(u8"Norsk bokmål");       // Norwegian
+  m_interface_lang_strings.Add(u8"Polski");             // Polish
+  m_interface_lang_strings.Add(u8"Português");          // Portuguese
+  m_interface_lang_strings.Add(u8"Português (Brasil)"); // Portuguese (Brazil)
+  m_interface_lang_strings.Add(u8"Română");             // Romanian
+  m_interface_lang_strings.Add(u8"Srpski");             // Serbian
+  m_interface_lang_strings.Add(u8"Svenska");            // Swedish
+  m_interface_lang_strings.Add(u8"Türkçe");             // Turkish
+  m_interface_lang_strings.Add(u8"Ελληνικά");           // Greek
+  m_interface_lang_strings.Add(u8"Русский");            // Russian
+  m_interface_lang_strings.Add(u8"العربية");           // Arabic
+  m_interface_lang_strings.Add(u8"فارسی");              // Farsi
+  m_interface_lang_strings.Add(u8"한국어");              // Korean
+  m_interface_lang_strings.Add(u8"日本語");              // Japanese
+  m_interface_lang_strings.Add(u8"简体中文");            // Simplified Chinese
+  m_interface_lang_strings.Add(u8"繁體中文");            // Traditional Chinese
 
   m_confirm_stop_checkbox = new wxCheckBox(this, wxID_ANY, _("Confirm on Stop"));
   m_panic_handlers_checkbox = new wxCheckBox(this, wxID_ANY, _("Use Panic Handlers"));
