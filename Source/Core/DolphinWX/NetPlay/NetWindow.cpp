@@ -841,12 +841,12 @@ void NetPlayDialog::AddChatMessage(ChatMessageType type, const std::string& msg)
 
   case ChatMessageType::UserIn:
     colour = wxColour(0, 150, 0);  // green
-    printed_msg = "▶ " + msg;
+    printed_msg = u8"▶ " + msg;
     break;
 
   case ChatMessageType::UserOut:
     colour = wxColour(100, 100, 100);  // grey
-    printed_msg = "◀ " + msg;
+    printed_msg = u8"◀ " + msg;
     break;
   }
 
