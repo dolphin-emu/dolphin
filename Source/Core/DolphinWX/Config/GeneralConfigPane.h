@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <vector>
 #include <wx/arrstr.h>
 #include <wx/panel.h>
 
