@@ -2,13 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/GCAdapterConfigDiag.h"
+
 #include <wx/checkbox.h>
+#include <wx/sizer.h>
 #include <wx/stattext.h>
 
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "InputCommon/GCAdapter.h"
 
 wxDEFINE_EVENT(wxEVT_ADAPTER_UPDATE, wxCommandEvent);
@@ -57,6 +59,11 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
   Bind(wxEVT_ADAPTER_UPDATE, &GCAdapterConfigDiag::UpdateAdapter, this);
 }
 
+GCAdapterConfigDiag::~GCAdapterConfigDiag()
+{
+  GCAdapter::SetAdapterCallback(nullptr);
+}
+
 void GCAdapterConfigDiag::ScheduleAdapterUpdate()
 {
   wxQueueEvent(this, new wxCommandEvent(wxEVT_ADAPTER_UPDATE));
@@ -72,7 +79,12 @@ void GCAdapterConfigDiag::UpdateAdapter(wxCommandEvent& ev)
   Core::PauseAndLock(false, unpause);
 }
 
-GCAdapterConfigDiag::~GCAdapterConfigDiag()
+void GCAdapterConfigDiag::OnAdapterRumble(wxCommandEvent& event)
 {
-  GCAdapter::SetAdapterCallback(nullptr);
+  SConfig::GetInstance().m_AdapterRumble[m_pad_id] = event.IsChecked();
+}
+
+void GCAdapterConfigDiag::OnAdapterKonga(wxCommandEvent& event)
+{
+  SConfig::GetInstance().m_AdapterKonga[m_pad_id] = event.IsChecked();
 }
