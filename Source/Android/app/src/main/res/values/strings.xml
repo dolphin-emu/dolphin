@@ -47,7 +47,7 @@
 
     <!-- Game List Activity - Device Compatibility AlertDialog -->
     <string name="device_compat_warning">Device Compatibility Warning</string>
-    <string name="device_compat_warning_msg">Your phone doesn\'t support NEON which makes it incapable of running Dolphin Mobile?\nDo you want to try anyway?</string>
+    <string name="device_compat_warning_msg">Your device doesn\'t support NEON which makes it incapable of running Dolphin.\nDo you want to try anyway?</string>
     <string name="device_gles3compat_warning_msg">Your device has known buggy video drivers for OpenGL ES 3.\nDo you want to try anyway?</string>
 
     <!-- Game List Fragment -->
