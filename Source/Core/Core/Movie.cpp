@@ -9,6 +9,8 @@
 #include <mbedtls/config.h>
 #include <mbedtls/md.h>
 #include <mutex>
+#include <thread>
+#include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
