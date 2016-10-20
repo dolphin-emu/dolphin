@@ -21,6 +21,7 @@
 #else
 #define LIBUSB_CALL
 #endif
+struct libusb_context;
 struct libusb_config_descriptor;
 struct libusb_device_descriptor;
 struct libusb_device_handle;
@@ -139,6 +140,7 @@ private:
   std::mutex m_open_devices_mutex;
   std::mutex m_device_list_reply_mutex;
 
+  libusb_context* m_libusb_context = nullptr;
   std::thread usb_thread;
   bool usb_thread_running;
 };
