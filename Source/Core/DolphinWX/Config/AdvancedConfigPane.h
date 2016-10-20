@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <ctime>
 #include <wx/panel.h>
+
+#include "Common/CommonTypes.h"
 
 class DolphinSlider;
 class wxCheckBox;
