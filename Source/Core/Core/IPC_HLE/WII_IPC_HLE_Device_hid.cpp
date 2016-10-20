@@ -47,7 +47,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
       }
     }
     timeToFill += 8;
-    libusb_handle_events_timeout(nullptr, &tv);
+    libusb_handle_events_timeout(hid->m_libusb_context, &tv);
   }
 
   return;
@@ -72,7 +72,7 @@ CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::strin
 {
   deviceCommandAddress = 0;
   memset(hidDeviceAliases, 0, sizeof(hidDeviceAliases));
-  int ret = libusb_init(nullptr);
+  int ret = libusb_init(&m_libusb_context);
   if (ret)
   {
     ERROR_LOG(WII_IPC_HID, "libusb_init failed with error: %d", ret);
@@ -101,7 +101,10 @@ CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
   m_open_devices.clear();
 
   if (deinit_libusb)
-    libusb_exit(nullptr);
+  {
+    libusb_exit(m_libusb_context);
+    m_libusb_context = nullptr;
+  }
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
@@ -370,7 +373,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
   libusb_device** list;
   // libusb_device *found = nullptr;
-  ssize_t cnt = libusb_get_device_list(nullptr, &list);
+  ssize_t cnt = libusb_get_device_list(m_libusb_context, &list);
   INFO_LOG(WII_IPC_HID, "Found %ld viable USB devices.", cnt);
   for (d = 0; d < cnt; d++)
   {
@@ -530,7 +533,7 @@ libusb_device_handle* CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
     }
   }
 
-  cnt = libusb_get_device_list(nullptr, &list);
+  cnt = libusb_get_device_list(m_libusb_context, &list);
 
   if (cnt < 0)
     return nullptr;
