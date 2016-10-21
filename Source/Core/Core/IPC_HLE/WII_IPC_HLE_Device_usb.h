@@ -13,6 +13,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 class PointerWrap;
+struct libusb_config_descriptor;
+struct libusb_device_descriptor;
+struct libusb_endpoint_descriptor;
+struct libusb_interface_descriptor;
 
 enum USBV0IOCtl
 {
@@ -26,6 +30,23 @@ enum USBV0IOCtl
   USBV0_IOCTL_DEVREMOVALHOOK = 26,
   USBV0_IOCTL_DEVINSERTHOOK = 27,
   USBV0_IOCTL_DEVICECLASSCHANGE = 28,
+};
+
+enum USBV5IOCtl
+{
+  USBV5_IOCTL_GETVERSION = 0,
+  USBV5_IOCTL_GETDEVICECHANGE = 1,
+  USBV5_IOCTL_SHUTDOWN = 2,
+  USBV5_IOCTL_GETDEVPARAMS = 3,
+  USBV5_IOCTL_ATTACHFINISH = 6,
+  USBV5_IOCTL_SETALTERNATE = 7,
+  USBV5_IOCTL_SUSPEND_RESUME = 16,
+  USBV5_IOCTL_CANCELENDPOINT = 17,
+  // IOCtlVs
+  USBV5_IOCTL_CTRLMSG = 18,
+  USBV5_IOCTL_INTRMSG = 19,
+  USBV5_IOCTL_ISOMSG = 20,
+  USBV5_IOCTL_BULKMSG = 21
 };
 
 enum StandardDeviceRequestCodes
@@ -44,6 +65,69 @@ enum ControlRequestTypes
   USB_REC_DEVICE = 0,
   USB_REC_INTERFACE = 1,
 };
+
+struct IOSDeviceDescriptor
+{
+  u8 bLength;
+  u8 bDescriptorType;
+  u16 bcdUSB;
+  u8 bDeviceClass;
+  u8 bDeviceSubClass;
+  u8 bDeviceProtocol;
+  u8 bMaxPacketSize0;
+  u16 idVendor;
+  u16 idProduct;
+  u16 bcdDevice;
+  u8 iManufacturer;
+  u8 iProduct;
+  u8 iSerialNumber;
+  u8 bNumConfigurations;
+  u8 pad[2];
+};
+
+struct IOSConfigDescriptor
+{
+  u8 bLength;
+  u8 bDescriptorType;
+  u16 wTotalLength;
+  u8 bNumInterfaces;
+  u8 bConfigurationValue;
+  u8 iConfiguration;
+  u8 bmAttributes;
+  u8 MaxPower;
+  u8 pad[3];
+};
+
+struct IOSInterfaceDescriptor
+{
+  u8 bLength;
+  u8 bDescriptorType;
+  u8 bInterfaceNumber;
+  u8 bAlternateSetting;
+  u8 bNumEndpoints;
+  u8 bInterfaceClass;
+  u8 bInterfaceSubClass;
+  u8 bInterfaceProtocol;
+  u8 iInterface;
+  u8 pad[3];
+};
+
+struct IOSEndpointDescriptor
+{
+  u8 bLength;
+  u8 bDescriptorType;
+  u8 bEndpointAddress;
+  u8 bmAttributes;
+  u16 wMaxPacketSize;
+  u8 bInterval;
+  u8 pad[1];
+};
+
+void ConvertDeviceToWii(IOSDeviceDescriptor* dest, const libusb_device_descriptor* src);
+void ConvertConfigToWii(IOSConfigDescriptor* dest, const libusb_config_descriptor* src);
+void ConvertInterfaceToWii(IOSInterfaceDescriptor* dest, const libusb_interface_descriptor* src);
+void ConvertEndpointToWii(IOSEndpointDescriptor* dest, const libusb_endpoint_descriptor* src);
+int Align(int num, int alignment);
 
 constexpr u16 USBHDR(u8 dir, u8 type, u8 recipient, u8 request)
 {

@@ -12,6 +12,37 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
+void ConvertDeviceToWii(IOSDeviceDescriptor* dest, const libusb_device_descriptor* src)
+{
+  memcpy(dest, src, sizeof(IOSDeviceDescriptor));
+  dest->bcdUSB = Common::swap16(dest->bcdUSB);
+  dest->idVendor = Common::swap16(dest->idVendor);
+  dest->idProduct = Common::swap16(dest->idProduct);
+  dest->bcdDevice = Common::swap16(dest->bcdDevice);
+}
+
+void ConvertConfigToWii(IOSConfigDescriptor* dest, const libusb_config_descriptor* src)
+{
+  memcpy(dest, src, sizeof(IOSConfigDescriptor));
+  dest->wTotalLength = Common::swap16(dest->wTotalLength);
+}
+
+void ConvertInterfaceToWii(IOSInterfaceDescriptor* dest, const libusb_interface_descriptor* src)
+{
+  memcpy(dest, src, sizeof(IOSInterfaceDescriptor));
+}
+
+void ConvertEndpointToWii(IOSEndpointDescriptor* dest, const libusb_endpoint_descriptor* src)
+{
+  memcpy(dest, src, sizeof(IOSEndpointDescriptor));
+  dest->wMaxPacketSize = Common::swap16(dest->wMaxPacketSize);
+}
+
+int Align(const int num, const int alignment)
+{
+  return (num + (alignment - 1)) & ~(alignment - 1);
+}
+
 CWII_IPC_HLE_Device_usb::CtrlMessage::CtrlMessage(const SIOCtlVBuffer& cmd_buffer)
 {
   request_type = Memory::Read_U8(cmd_buffer.InBuffer[0].m_Address);

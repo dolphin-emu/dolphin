@@ -152,7 +152,6 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_stub.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_ven.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
 			IPC_HLE/WiiMote_HID_Attr.cpp
 			PowerPC/MMU.cpp
@@ -249,7 +248,8 @@ if(LIBUSB_FOUND)
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
 	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
 	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp
-	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_oh0_real.cpp)
+	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_oh0_real.cpp
+	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_ven.cpp)
 endif(LIBUSB_FOUND)
 
 if(NOT APPLE)

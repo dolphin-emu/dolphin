@@ -198,7 +198,9 @@
     </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_stub.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.cpp" />
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
     <ClCompile Include="IPC_HLE\WII_Socket.cpp" />
     <ClCompile Include="MemTools.cpp" />
