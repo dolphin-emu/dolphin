@@ -675,8 +675,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
       D3D11_BLEND_ONE,
       D3D11_BLEND_DEST_COLOR,
       D3D11_BLEND_INV_DEST_COLOR,
-      D3D11_BLEND_SRC_ALPHA,
-      D3D11_BLEND_INV_SRC_ALPHA,  // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
+      D3D11_BLEND_SRC1_ALPHA,
+      D3D11_BLEND_INV_SRC1_ALPHA,
       (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
       (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO};
   const D3D11_BLEND d3dDestFactors[8] = {
@@ -684,8 +684,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
       D3D11_BLEND_ONE,
       D3D11_BLEND_SRC_COLOR,
       D3D11_BLEND_INV_SRC_COLOR,
-      D3D11_BLEND_SRC_ALPHA,
-      D3D11_BLEND_INV_SRC_ALPHA,  // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
+      D3D11_BLEND_SRC1_ALPHA,
+      D3D11_BLEND_INV_SRC1_ALPHA,
       (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
       (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO};
 

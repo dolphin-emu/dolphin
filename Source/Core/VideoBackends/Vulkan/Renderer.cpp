@@ -1107,8 +1107,8 @@ void Renderer::SetBlendMode(bool force_update)
   // Our render target always uses an alpha channel, so we need to override the blend functions to
   // assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel.
   bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-  bool use_dst_alpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha &&
-                       g_vulkan_context->SupportsDualSourceBlend();
+  bool use_dst_alpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
+  bool use_dual_src = g_vulkan_context->SupportsDualSourceBlend();
 
   new_blend_state.blend_enable = VK_TRUE;
   new_blend_state.blend_op = VK_BLEND_OP_ADD;
@@ -1129,11 +1129,11 @@ void Renderer::SetBlendMode(bool force_update)
     break;
   case BlendMode::SRCALPHA:
     new_blend_state.src_blend =
-        use_dst_alpha ? VK_BLEND_FACTOR_SRC1_ALPHA : VK_BLEND_FACTOR_SRC_ALPHA;
+        use_dual_src ? VK_BLEND_FACTOR_SRC1_ALPHA : VK_BLEND_FACTOR_SRC_ALPHA;
     break;
   case BlendMode::INVSRCALPHA:
     new_blend_state.src_blend =
-        use_dst_alpha ? VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        use_dual_src ? VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     break;
   case BlendMode::DSTALPHA:
     new_blend_state.src_blend = target_has_alpha ? VK_BLEND_FACTOR_DST_ALPHA : VK_BLEND_FACTOR_ONE;
@@ -1163,11 +1163,11 @@ void Renderer::SetBlendMode(bool force_update)
     break;
   case BlendMode::SRCALPHA:
     new_blend_state.dst_blend =
-        use_dst_alpha ? VK_BLEND_FACTOR_SRC1_ALPHA : VK_BLEND_FACTOR_SRC_ALPHA;
+        use_dual_src ? VK_BLEND_FACTOR_SRC1_ALPHA : VK_BLEND_FACTOR_SRC_ALPHA;
     break;
   case BlendMode::INVSRCALPHA:
     new_blend_state.dst_blend =
-        use_dst_alpha ? VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+        use_dual_src ? VK_BLEND_FACTOR_ONE_MINUS_SRC1_ALPHA : VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
     break;
   case BlendMode::DSTALPHA:
     new_blend_state.dst_blend = target_has_alpha ? VK_BLEND_FACTOR_DST_ALPHA : VK_BLEND_FACTOR_ONE;

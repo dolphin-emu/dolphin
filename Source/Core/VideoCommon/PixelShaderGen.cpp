@@ -169,6 +169,9 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
   uid_data->per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
   uid_data->bounding_box = g_ActiveConfig.backend_info.bSupportsBBox &&
                            g_ActiveConfig.bBBoxEnable && BoundingBox::active;
+  uid_data->rgba6_format =
+      bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;
+  uid_data->dither = bpmem.blendmode.dither && uid_data->rgba6_format;
 
   u32 numStages = uid_data->genMode_numtevstages + 1;
 
@@ -344,6 +347,7 @@ static void SampleTexture(ShaderCode& out, const char* texcoords, const char* te
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
                            bool per_pixel_depth);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data);
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data)
 {
@@ -503,22 +507,15 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
-    if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+    if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
     {
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
-        out.Write("FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
-      }
-      else
-      {
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
-        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
-      }
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+      out.Write("FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
     }
     else
     {
-      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
+      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
     }
 
     if (uid_data->per_pixel_depth)
@@ -574,11 +571,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   else  // D3D
   {
     out.Write("void main(\n");
-    out.Write("  out float4 ocol0 : SV_Target0,%s%s\n  in float4 rawpos : SV_Position,\n",
-              uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND ?
-                  "\n  out float4 ocol1 : SV_Target1," :
-                  "",
-              uid_data->per_pixel_depth ? "\n  out float depth : SV_Depth," : "");
+    out.Write("  out float4 ocol0 : SV_Target0,\n"
+              "  out float4 ocol1 : SV_Target1,\n%s"
+              "  in float4 rawpos : SV_Position,\n",
+              uid_data->per_pixel_depth ? "  out float depth : SV_Depth,\n" : "");
 
     out.Write("  in %s float4 colors_0 : COLOR0,\n",
               GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa));
@@ -776,27 +772,20 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
       out.Write("\tdepth = float(zCoord) / 16777216.0;\n");
   }
 
-  if (uid_data->dstAlphaMode == DSTALPHA_ALPHA_PASS)
+  // No dithering for RGB8 mode
+  if (uid_data->dither)
   {
-    out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-    out.Write("\tocol0 = float4(float3(prev.rgb), float(" I_ALPHA ".a)) / 255.0;\n");
+    // Flipper uses a standard 2x2 Bayer Matrix for 6 bit dithering
+    // Here the matrix is encoded into the two factor constants
+    out.Write("\tint2 dither = int2(rawpos.xy) & 1;\n");
+    out.Write("\tprev.rgb = (prev.rgb - (prev.rgb >> 6)) + abs(dither.y * 3 - dither.x * 2);\n");
   }
-  else
-  {
+
+  if (uid_data->dstAlphaMode != DSTALPHA_ALPHA_PASS)
     WriteFog(out, uid_data);
-    out.Write("\tocol0 = float4(prev) / 255.0;\n");
-  }
 
-  // Use dual-source color blending to perform dst alpha in a single pass
-  if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-  {
-    out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-
-    // Colors will be blended against the alpha from ocol1 and
-    // the alpha from ocol0 will be written to the framebuffer.
-    out.Write("\tocol1 = float4(prev) / 255.0;\n");
-    out.Write("\tocol0.a = float(" I_ALPHA ".a) / 255.0;\n");
-  }
+  // Write the color and alpha values to the framebuffer
+  WriteColor(out, uid_data);
 
   if (uid_data->bounding_box)
   {
@@ -1294,4 +1283,31 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 
   out.Write("\tint ifog = iround(fog * 256.0);\n");
   out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
+}
+
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data)
+{
+  if (uid_data->rgba6_format)
+    out.Write("\tocol0.rgb = (prev.rgb >> 2) / 63.0;\n");
+  else
+    out.Write("\tocol0.rgb = prev.rgb / 255.0;\n");
+
+  // Colors will be blended against the 8-bit alpha from ocol1 and
+  // the 6-bit alpha from ocol0 will be written to the framebuffer
+  if (uid_data->dstAlphaMode == DSTALPHA_NONE)
+  {
+    out.Write("\tocol0.a = (prev.a >> 2) / 63.0;\n");
+    out.Write("\tocol1.a = prev.a / 255.0;\n");
+  }
+  else
+  {
+    out.SetConstantsUsed(C_ALPHA, C_ALPHA);
+    out.Write("\tocol0.a = (" I_ALPHA ".a >> 2) / 63.0;\n");
+
+    // Use dual-source color blending to perform dst alpha in a single pass
+    if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+      out.Write("\tocol1.a = prev.a / 255.0;\n");
+    else
+      out.Write("\tocol1.a = " I_ALPHA ".a / 255.0;\n");
+  }
 }
