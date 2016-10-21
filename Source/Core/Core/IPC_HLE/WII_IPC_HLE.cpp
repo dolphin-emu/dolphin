@@ -553,14 +553,7 @@ void ExecuteCommand(u32 address)
   s_last_reply_time = CoreTiming::GetTicks() + result.reply_delay_ticks;
 
   if (result.send_reply)
-  {
-    // The original hardware overwrites the command type with the async reply type.
-    Memory::Write_U32(IPC_REP_ASYNC, address);
-    // IOS also seems to write back the command that was responded to in the FD field.
-    Memory::Write_U32(Command, address + 8);
-    // Generate a reply to the IPC command
-    EnqueueReply(address, (int)result.reply_delay_ticks);
-  }
+    EnqueueReply(address, static_cast<int>(result.reply_delay_ticks));
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
@@ -569,12 +562,13 @@ void EnqueueRequest(u32 address)
   CoreTiming::ScheduleEvent(1000, s_event_enqueue, address | ENQUEUE_REQUEST_FLAG);
 }
 
-// Called when IOS module has some reply
-// NOTE: Only call this if you have correctly handled
-//       CommandAddress+0 and CommandAddress+8.
-//       Please search for examples of this being called elsewhere.
+// Called to send a reply to an IOS syscall
 void EnqueueReply(u32 address, int cycles_in_future, CoreTiming::FromThread from)
 {
+  // IOS writes back the command that was responded to in the FD field.
+  Memory::Write_U32(Memory::Read_U32(address), address + 8);
+  // IOS also overwrites the command type with the async reply type.
+  Memory::Write_U32(IPC_REP_ASYNC, address);
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, address, from);
 }
 

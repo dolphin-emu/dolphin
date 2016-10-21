@@ -29,7 +29,6 @@ public:
   IPCCommandResult IOCtl(u32 _CommandAddress) override;
   IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-  static void EnqueueReply(u32 CommandAddress, u32 ReturnValue);
   void EventNotify();
 
 private:
