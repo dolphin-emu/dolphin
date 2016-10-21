@@ -2,13 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/StringUtil.h"
-
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_ven.h"
+#include "Common/Logging/Log.h"
+#include "Core/HW/Memmap.h"
 
-CWII_IPC_HLE_Device_usb_ven::CWII_IPC_HLE_Device_usb_ven(u32 _DeviceID,
-                                                         const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+CWII_IPC_HLE_Device_usb_ven::CWII_IPC_HLE_Device_usb_ven(const u32 device_id,
+                                                         const std::string& device_name)
+    : IWII_IPC_HLE_Device(device_id, device_name)
 {
 }
 
@@ -16,55 +16,55 @@ CWII_IPC_HLE_Device_usb_ven::~CWII_IPC_HLE_Device_usb_ven()
 {
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_ven::Open(u32 _CommandAddress, u32 _Mode)
+IPCCommandResult CWII_IPC_HLE_Device_usb_ven::Open(u32 command_address, u32 mode)
 {
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
+  Memory::Write_U32(GetDeviceID(), command_address + 4);
   m_Active = true;
   return GetDefaultReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_ven::Close(u32 _CommandAddress, bool _bForce)
+IPCCommandResult CWII_IPC_HLE_Device_usb_ven::Close(u32 command_address, bool force)
 {
-  if (!_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
+  if (!force)
+    Memory::Write_U32(0, command_address + 4);
 
   m_Active = false;
   return GetDefaultReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtlV(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtlV(u32 command_address)
 {
-  SIOCtlVBuffer CommandBuffer(_CommandAddress);
+  SIOCtlVBuffer command_buffer(command_address);
 
   INFO_LOG(OSHLE, "%s - IOCtlV:", GetDeviceName().c_str());
-  INFO_LOG(OSHLE, "  Parameter: 0x%x", CommandBuffer.Parameter);
-  INFO_LOG(OSHLE, "  NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
-  INFO_LOG(OSHLE, "  NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
-  INFO_LOG(OSHLE, "  BufferVector: 0x%08x", CommandBuffer.BufferVector);
-  DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer,
-            CommandBuffer.NumberPayloadBuffer);
+  INFO_LOG(OSHLE, "  Parameter: 0x%x", command_buffer.Parameter);
+  INFO_LOG(OSHLE, "  NumberIn: 0x%08x", command_buffer.NumberInBuffer);
+  INFO_LOG(OSHLE, "  NumberOut: 0x%08x", command_buffer.NumberPayloadBuffer);
+  INFO_LOG(OSHLE, "  BufferVector: 0x%08x", command_buffer.BufferVector);
+  DumpAsync(command_buffer.BufferVector, command_buffer.NumberInBuffer,
+            command_buffer.NumberPayloadBuffer);
 
-  Memory::Write_U32(0, _CommandAddress + 4);
+  Memory::Write_U32(0, command_address + 4);
   return GetNoReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(u32 command_address)
 {
-  IPCCommandResult Reply = GetNoReply();
-  u32 Command = Memory::Read_U32(_CommandAddress + 0x0c);
-  u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
-  u32 BufferInSize = Memory::Read_U32(_CommandAddress + 0x14);
-  u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-  u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1c);
+  IPCCommandResult reply = GetNoReply();
+  u32 command = Memory::Read_U32(command_address + 0x0c);
+  u32 buffer_in = Memory::Read_U32(command_address + 0x10);
+  u32 buffer_in_size = Memory::Read_U32(command_address + 0x14);
+  u32 buffer_out = Memory::Read_U32(command_address + 0x18);
+  u32 buffer_out_size = Memory::Read_U32(command_address + 0x1c);
 
-  INFO_LOG(OSHLE, "%s - IOCtl: %x", GetDeviceName().c_str(), Command);
-  INFO_LOG(OSHLE, "%x:%x %x:%x", BufferIn, BufferInSize, BufferOut, BufferOutSize);
+  INFO_LOG(OSHLE, "%s - IOCtl: %x", GetDeviceName().c_str(), command);
+  INFO_LOG(OSHLE, "%x:%x %x:%x", buffer_in, buffer_in_size, buffer_out, buffer_out_size);
 
-  switch (Command)
+  switch (command)
   {
   case USBV5_IOCTL_GETVERSION:
-    Memory::Write_U32(0x50001, BufferOut);
-    Reply = GetDefaultReply();
+    Memory::Write_U32(0x50001, buffer_out);
+    reply = GetDefaultReply();
     break;
 
   case USBV5_IOCTL_GETDEVICECHANGE:
@@ -73,51 +73,46 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(u32 _CommandAddress)
     static bool firstcall = true;
     if (firstcall)
     {
-      Reply = GetDefaultReply();
+      reply = GetDefaultReply();
       firstcall = false;
     }
 
     // num devices
-    Memory::Write_U32(0, _CommandAddress + 4);
-    return Reply;
+    Memory::Write_U32(0, command_address + 4);
+    return reply;
   }
   break;
 
   case USBV5_IOCTL_ATTACHFINISH:
-    Reply = GetDefaultReply();
+    reply = GetDefaultReply();
     break;
 
   case USBV5_IOCTL_SUSPEND_RESUME:
-    DEBUG_LOG(OSHLE, "Device: %i Resumed: %i", Memory::Read_U32(BufferIn),
-              Memory::Read_U32(BufferIn + 4));
-    Reply = GetDefaultReply();
+    DEBUG_LOG(OSHLE, "Device: %i Resumed: %i", Memory::Read_U32(buffer_in),
+              Memory::Read_U32(buffer_in + 4));
+    reply = GetDefaultReply();
     break;
 
   case USBV5_IOCTL_GETDEVPARAMS:
   {
-    s32 device = Memory::Read_U32(BufferIn);
-    u32 unk = Memory::Read_U32(BufferIn + 4);
+    s32 device = Memory::Read_U32(buffer_in);
+    u32 unk = Memory::Read_U32(buffer_in + 4);
 
     DEBUG_LOG(OSHLE, "USBV5_IOCTL_GETDEVPARAMS device: %i unk: %i", device, unk);
 
-    Memory::Write_U32(0, BufferOut);
+    Memory::Write_U32(0, buffer_out);
 
-    Reply = GetDefaultReply();
+    reply = GetDefaultReply();
   }
   break;
 
   default:
-    DEBUG_LOG(OSHLE, "%x:%x %x:%x", BufferIn, BufferInSize, BufferOut, BufferOutSize);
+    DEBUG_LOG(OSHLE, "%x:%x %x:%x", buffer_in, buffer_in_size, buffer_out, buffer_out_size);
     break;
   }
 
-  Memory::Write_U32(0, _CommandAddress + 4);
-  return Reply;
-}
-
-u32 CWII_IPC_HLE_Device_usb_ven::Update()
-{
-  return IWII_IPC_HLE_Device::Update();
+  Memory::Write_U32(0, command_address + 4);
+  return reply;
 }
 
 void CWII_IPC_HLE_Device_usb_ven::DoState(PointerWrap& p)

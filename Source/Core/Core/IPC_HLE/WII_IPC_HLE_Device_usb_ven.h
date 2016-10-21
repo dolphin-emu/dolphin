@@ -4,23 +4,26 @@
 
 #pragma once
 
+#include <string>
+
+#include "Common/CommonTypes.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
-class CWII_IPC_HLE_Device_usb_ven : public IWII_IPC_HLE_Device
+class PointerWrap;
+
+class CWII_IPC_HLE_Device_usb_ven final : public IWII_IPC_HLE_Device
 {
 public:
-  CWII_IPC_HLE_Device_usb_ven(u32 _DeviceID, const std::string& _rDeviceName);
+  CWII_IPC_HLE_Device_usb_ven(u32 device_id, const std::string& device_name);
 
   ~CWII_IPC_HLE_Device_usb_ven() override;
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
+  IPCCommandResult Open(u32 command_address, u32 mode) override;
+  IPCCommandResult Close(u32 command_address, bool force) override;
 
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
-
-  u32 Update() override;
+  IPCCommandResult IOCtlV(u32 command_address) override;
+  IPCCommandResult IOCtl(u32 command_address) override;
 
   void DoState(PointerWrap& p) override;
 
