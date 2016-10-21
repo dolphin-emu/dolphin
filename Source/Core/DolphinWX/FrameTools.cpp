@@ -67,6 +67,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/LogWindow.h"
+#include "DolphinWX/MainMenuBar.h"
 #include "DolphinWX/MemcardManager.h"
 #include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
@@ -103,606 +104,100 @@ const wxSize& CFrame::GetToolbarBitmapSize() const
 
 // Create menu items
 // ---------------------
-wxMenuBar* CFrame::CreateMenuBar()
+wxMenuBar* CFrame::CreateMenuBar() const
 {
-  auto* const menu_bar = new wxMenuBar;
-  menu_bar->Append(CreateFileMenu(), _("&File"));
-  menu_bar->Append(CreateEmulationMenu(), _("&Emulation"));
-  menu_bar->Append(CreateMovieMenu(), _("&Movie"));
-  menu_bar->Append(CreateOptionsMenu(), _("&Options"));
-  menu_bar->Append(CreateToolsMenu(), _("&Tools"));
-  menu_bar->Append(CreateViewMenu(), _("&View"));
+  const auto menu_type =
+      UseDebugger ? MainMenuBar::MenuType::Debug : MainMenuBar::MenuType::Regular;
 
-  if (UseDebugger)
-  {
-    menu_bar->Append(CreateJITMenu(), _("&JIT"));
-    menu_bar->Append(CreateDebugMenu(), _("&Debug"));
-    menu_bar->Append(CreateSymbolsMenu(), _("&Symbols"));
-    menu_bar->Append(CreateProfilerMenu(), _("&Profiler"));
-  }
-
-  menu_bar->Append(CreateHelpMenu(), _("&Help"));
-
-  return menu_bar;
+  return new MainMenuBar{menu_type};
 }
 
-wxMenu* CFrame::CreateFileMenu()
+void CFrame::BindMenuBarEvents()
 {
-  auto* const external_drive_menu = new wxMenu;
-
-  drives = cdio_get_devices();
-  // Windows Limitation of 24 character drives
-  for (unsigned int i = 0; i < drives.size() && i < 24; i++)
-  {
-    external_drive_menu->Append(IDM_DRIVE1 + i, StrToWxStr(drives[i]));
-  }
-
-  auto* const file_menu = new wxMenu;
-  file_menu->Append(wxID_OPEN, GetMenuLabel(HK_OPEN));
-  file_menu->Append(IDM_CHANGE_DISC, GetMenuLabel(HK_CHANGE_DISC));
-  file_menu->Append(IDM_DRIVES, _("&Boot from DVD Backup"), external_drive_menu);
-  file_menu->AppendSeparator();
-  file_menu->Append(wxID_REFRESH, GetMenuLabel(HK_REFRESH_LIST));
-  file_menu->AppendSeparator();
-  file_menu->Append(wxID_EXIT, _("E&xit") + "\tAlt+F4");
-
-  return file_menu;
-}
-
-wxMenu* CFrame::CreateEmulationMenu()
-{
-  auto* const load_state_menu = new wxMenu;
-  load_state_menu->Append(IDM_LOAD_STATE_FILE, GetMenuLabel(HK_LOAD_STATE_FILE));
-  load_state_menu->Append(IDM_LOAD_SELECTED_SLOT, GetMenuLabel(HK_LOAD_STATE_SLOT_SELECTED));
-  load_state_menu->Append(IDM_UNDO_LOAD_STATE, GetMenuLabel(HK_UNDO_LOAD_STATE));
-  load_state_menu->AppendSeparator();
-
-  auto* const save_state_menu = new wxMenu;
-  save_state_menu->Append(IDM_SAVE_STATE_FILE, GetMenuLabel(HK_SAVE_STATE_FILE));
-  save_state_menu->Append(IDM_SAVE_SELECTED_SLOT, GetMenuLabel(HK_SAVE_STATE_SLOT_SELECTED));
-  save_state_menu->Append(IDM_SAVE_FIRST_STATE, GetMenuLabel(HK_SAVE_FIRST_STATE));
-  save_state_menu->Append(IDM_UNDO_SAVE_STATE, GetMenuLabel(HK_UNDO_SAVE_STATE));
-  save_state_menu->AppendSeparator();
-
-  auto* const slot_select_menu = new wxMenu;
-
-  for (unsigned int i = 0; i < State::NUM_STATES; i++)
-  {
-    load_state_menu->Append(IDM_LOAD_SLOT_1 + i, GetMenuLabel(HK_LOAD_STATE_SLOT_1 + i));
-    save_state_menu->Append(IDM_SAVE_SLOT_1 + i, GetMenuLabel(HK_SAVE_STATE_SLOT_1 + i));
-    slot_select_menu->Append(IDM_SELECT_SLOT_1 + i, GetMenuLabel(HK_SELECT_STATE_SLOT_1 + i));
-  }
-
-  load_state_menu->AppendSeparator();
-  for (unsigned int i = 0; i < State::NUM_STATES; i++)
-    load_state_menu->Append(IDM_LOAD_LAST_1 + i, GetMenuLabel(HK_LOAD_LAST_STATE_1 + i));
-
-  auto* const emulation_menu = new wxMenu;
-  emulation_menu->Append(IDM_PLAY, GetMenuLabel(HK_PLAY_PAUSE));
-  emulation_menu->Append(IDM_STOP, GetMenuLabel(HK_STOP));
-  emulation_menu->Append(IDM_RESET, GetMenuLabel(HK_RESET));
-  emulation_menu->AppendSeparator();
-  emulation_menu->Append(IDM_TOGGLE_FULLSCREEN, GetMenuLabel(HK_FULLSCREEN));
-  emulation_menu->Append(IDM_FRAMESTEP, GetMenuLabel(HK_FRAME_ADVANCE));
-  emulation_menu->AppendSeparator();
-  emulation_menu->Append(IDM_SCREENSHOT, GetMenuLabel(HK_SCREENSHOT));
-  emulation_menu->AppendSeparator();
-  emulation_menu->Append(IDM_LOAD_STATE, _("&Load State"), load_state_menu);
-  emulation_menu->Append(IDM_SAVE_STATE, _("Sa&ve State"), save_state_menu);
-  emulation_menu->Append(IDM_SELECT_SLOT, _("Select State Slot"), slot_select_menu);
-
-  return emulation_menu;
-}
-
-wxMenu* CFrame::CreateMovieMenu()
-{
-  auto* const movie_menu = new wxMenu;
-  const auto& config_instance = SConfig::GetInstance();
-
-  movie_menu->Append(IDM_RECORD, GetMenuLabel(HK_START_RECORDING));
-  movie_menu->Append(IDM_PLAY_RECORD, GetMenuLabel(HK_PLAY_RECORDING));
-  movie_menu->Append(IDM_RECORD_EXPORT, GetMenuLabel(HK_EXPORT_RECORDING));
-  movie_menu->AppendCheckItem(IDM_RECORD_READ_ONLY, GetMenuLabel(HK_READ_ONLY_MODE));
-  movie_menu->Append(IDM_TAS_INPUT, _("TAS Input"));
-  movie_menu->AppendSeparator();
-  movie_menu->AppendCheckItem(IDM_TOGGLE_PAUSE_MOVIE, _("Pause at End of Movie"));
-  movie_menu->Check(IDM_TOGGLE_PAUSE_MOVIE, config_instance.m_PauseMovie);
-  movie_menu->AppendCheckItem(IDM_SHOW_LAG, _("Show Lag Counter"));
-  movie_menu->Check(IDM_SHOW_LAG, config_instance.m_ShowLag);
-  movie_menu->AppendCheckItem(IDM_SHOW_FRAME_COUNT, _("Show Frame Counter"));
-  movie_menu->Check(IDM_SHOW_FRAME_COUNT, config_instance.m_ShowFrameCount);
-  movie_menu->Check(IDM_RECORD_READ_ONLY, true);
-  movie_menu->AppendCheckItem(IDM_SHOW_INPUT_DISPLAY, _("Show Input Display"));
-  movie_menu->Check(IDM_SHOW_INPUT_DISPLAY, config_instance.m_ShowInputDisplay);
-  movie_menu->AppendCheckItem(IDM_SHOW_RTC_DISPLAY, _("Show System Clock"));
-  movie_menu->Check(IDM_SHOW_RTC_DISPLAY, config_instance.m_ShowRTC);
-  movie_menu->AppendSeparator();
-  movie_menu->AppendCheckItem(IDM_TOGGLE_DUMP_FRAMES, _("Dump Frames"));
-  movie_menu->Check(IDM_TOGGLE_DUMP_FRAMES, config_instance.m_DumpFrames);
-  movie_menu->AppendCheckItem(IDM_TOGGLE_DUMP_AUDIO, _("Dump Audio"));
-  movie_menu->Check(IDM_TOGGLE_DUMP_AUDIO, config_instance.m_DumpAudio);
-
-  return movie_menu;
-}
-
-wxMenu* CFrame::CreateOptionsMenu()
-{
-  auto* const options_menu = new wxMenu;
-  options_menu->Append(wxID_PREFERENCES, _("Co&nfigure..."));
-  options_menu->AppendSeparator();
-  options_menu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
-  options_menu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
-  options_menu->Append(IDM_CONFIG_CONTROLLERS, _("&Controller Settings"));
-  options_menu->Append(IDM_CONFIG_HOTKEYS, _("&Hotkey Settings"));
-
-  if (UseDebugger)
-  {
-    options_menu->AppendSeparator();
-
-    const auto& config_instance = SConfig::GetInstance();
-
-    auto* const boot_to_pause =
-        options_menu->AppendCheckItem(IDM_BOOT_TO_PAUSE, _("Boot to Pause"),
-                                      _("Start the game directly instead of booting to pause"));
-    boot_to_pause->Check(config_instance.bBootToPause);
-
-    auto* const automatic_start = options_menu->AppendCheckItem(
-        IDM_AUTOMATIC_START, _("&Automatic Start"),
-        _("Automatically load the Default ISO when Dolphin starts, or the last game you loaded,"
-          " if you have not given it an elf file with the --elf command line. [This can be"
-          " convenient if you are bug-testing with a certain game and want to rebuild"
-          " and retry it several times, either with changes to Dolphin or if you are"
-          " developing a homebrew game.]"));
-    automatic_start->Check(config_instance.bAutomaticStart);
-
-    options_menu->Append(IDM_FONT_PICKER, _("&Font..."));
-  }
-
-  return options_menu;
-}
-
-wxMenu* CFrame::CreateToolsMenu()
-{
-  auto* const wiimote_menu = new wxMenu;
-  wiimote_menu->AppendCheckItem(IDM_CONNECT_WIIMOTE1, GetMenuLabel(HK_WIIMOTE1_CONNECT));
-  wiimote_menu->AppendCheckItem(IDM_CONNECT_WIIMOTE2, GetMenuLabel(HK_WIIMOTE2_CONNECT));
-  wiimote_menu->AppendCheckItem(IDM_CONNECT_WIIMOTE3, GetMenuLabel(HK_WIIMOTE3_CONNECT));
-  wiimote_menu->AppendCheckItem(IDM_CONNECT_WIIMOTE4, GetMenuLabel(HK_WIIMOTE4_CONNECT));
-  wiimote_menu->AppendSeparator();
-  wiimote_menu->AppendCheckItem(IDM_CONNECT_BALANCEBOARD, GetMenuLabel(HK_BALANCEBOARD_CONNECT));
-
-  auto* const tools_menu = new wxMenu;
-  tools_menu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
-  tools_menu->Append(IDM_IMPORT_SAVE, _("Import Wii Save..."));
-  tools_menu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
-  tools_menu->Append(IDM_CHEATS, _("&Cheat Manager"));
-  tools_menu->Append(IDM_NETPLAY, _("Start &NetPlay..."));
-  tools_menu->Append(IDM_MENU_INSTALL_WAD, _("Install WAD..."));
-
-  UpdateWiiMenuChoice(tools_menu->Append(IDM_LOAD_WII_MENU, "Dummy string to keep wxw happy"));
-
-  tools_menu->Append(IDM_FIFOPLAYER, _("FIFO Player"));
-  tools_menu->AppendSeparator();
-  tools_menu->AppendSubMenu(wiimote_menu, _("Connect Wiimotes"));
-
-  return tools_menu;
-}
-
-wxMenu* CFrame::CreateViewMenu()
-{
-  const auto& config_instance = SConfig::GetInstance();
-
-  auto* const platform_menu = new wxMenu;
-  platform_menu->AppendCheckItem(IDM_LIST_WII, _("Show Wii"));
-  platform_menu->Check(IDM_LIST_WII, config_instance.m_ListWii);
-  platform_menu->AppendCheckItem(IDM_LIST_GC, _("Show GameCube"));
-  platform_menu->Check(IDM_LIST_GC, config_instance.m_ListGC);
-  platform_menu->AppendCheckItem(IDM_LIST_WAD, _("Show WAD"));
-  platform_menu->Check(IDM_LIST_WAD, config_instance.m_ListWad);
-  platform_menu->AppendCheckItem(IDM_LIST_ELFDOL, _("Show ELF/DOL"));
-  platform_menu->Check(IDM_LIST_ELFDOL, config_instance.m_ListElfDol);
-
-  auto* const region_menu = new wxMenu;
-  region_menu->AppendCheckItem(IDM_LIST_JAP, _("Show JAP"));
-  region_menu->Check(IDM_LIST_JAP, config_instance.m_ListJap);
-  region_menu->AppendCheckItem(IDM_LIST_PAL, _("Show PAL"));
-  region_menu->Check(IDM_LIST_PAL, config_instance.m_ListPal);
-  region_menu->AppendCheckItem(IDM_LIST_USA, _("Show USA"));
-  region_menu->Check(IDM_LIST_USA, config_instance.m_ListUsa);
-  region_menu->AppendSeparator();
-  region_menu->AppendCheckItem(IDM_LIST_AUSTRALIA, _("Show Australia"));
-  region_menu->Check(IDM_LIST_AUSTRALIA, config_instance.m_ListAustralia);
-  region_menu->AppendCheckItem(IDM_LIST_FRANCE, _("Show France"));
-  region_menu->Check(IDM_LIST_FRANCE, config_instance.m_ListFrance);
-  region_menu->AppendCheckItem(IDM_LIST_GERMANY, _("Show Germany"));
-  region_menu->Check(IDM_LIST_GERMANY, config_instance.m_ListGermany);
-  region_menu->AppendCheckItem(IDM_LIST_ITALY, _("Show Italy"));
-  region_menu->Check(IDM_LIST_ITALY, config_instance.m_ListItaly);
-  region_menu->AppendCheckItem(IDM_LIST_KOREA, _("Show Korea"));
-  region_menu->Check(IDM_LIST_KOREA, config_instance.m_ListKorea);
-  region_menu->AppendCheckItem(IDM_LIST_NETHERLANDS, _("Show Netherlands"));
-  region_menu->Check(IDM_LIST_NETHERLANDS, config_instance.m_ListNetherlands);
-  region_menu->AppendCheckItem(IDM_LIST_RUSSIA, _("Show Russia"));
-  region_menu->Check(IDM_LIST_RUSSIA, config_instance.m_ListRussia);
-  region_menu->AppendCheckItem(IDM_LIST_SPAIN, _("Show Spain"));
-  region_menu->Check(IDM_LIST_SPAIN, config_instance.m_ListSpain);
-  region_menu->AppendCheckItem(IDM_LIST_TAIWAN, _("Show Taiwan"));
-  region_menu->Check(IDM_LIST_TAIWAN, config_instance.m_ListTaiwan);
-  region_menu->AppendCheckItem(IDM_LIST_WORLD, _("Show World"));
-  region_menu->Check(IDM_LIST_WORLD, config_instance.m_ListWorld);
-  region_menu->AppendCheckItem(IDM_LIST_UNKNOWN, _("Show Unknown"));
-  region_menu->Check(IDM_LIST_UNKNOWN, config_instance.m_ListUnknown);
-
-  auto* const columns_menu = new wxMenu;
-  columns_menu->AppendCheckItem(IDM_SHOW_SYSTEM, _("Platform"));
-  columns_menu->Check(IDM_SHOW_SYSTEM, config_instance.m_showSystemColumn);
-  columns_menu->AppendCheckItem(IDM_SHOW_BANNER, _("Banner"));
-  columns_menu->Check(IDM_SHOW_BANNER, config_instance.m_showBannerColumn);
-  columns_menu->AppendCheckItem(IDM_SHOW_MAKER, _("Maker"));
-  columns_menu->Check(IDM_SHOW_MAKER, config_instance.m_showMakerColumn);
-  columns_menu->AppendCheckItem(IDM_SHOW_FILENAME, _("File Name"));
-  columns_menu->Check(IDM_SHOW_FILENAME, config_instance.m_showFileNameColumn);
-  columns_menu->AppendCheckItem(IDM_SHOW_ID, _("Game ID"));
-  columns_menu->Check(IDM_SHOW_ID, config_instance.m_showIDColumn);
-  columns_menu->AppendCheckItem(IDM_SHOW_REGION, _("Region"));
-  columns_menu->Check(IDM_SHOW_REGION, config_instance.m_showRegionColumn);
-  columns_menu->AppendCheckItem(IDM_SHOW_SIZE, _("File Size"));
-  columns_menu->Check(IDM_SHOW_SIZE, config_instance.m_showSizeColumn);
-  columns_menu->AppendCheckItem(IDM_SHOW_STATE, _("State"));
-  columns_menu->Check(IDM_SHOW_STATE, config_instance.m_showStateColumn);
-
-  auto* const view_menu = new wxMenu;
-  view_menu->AppendCheckItem(IDM_TOGGLE_TOOLBAR, _("Show &Toolbar"));
-  view_menu->Check(IDM_TOGGLE_TOOLBAR, config_instance.m_InterfaceToolbar);
-  view_menu->AppendCheckItem(IDM_TOGGLE_STATUSBAR, _("Show &Status Bar"));
-  view_menu->Check(IDM_TOGGLE_STATUSBAR, config_instance.m_InterfaceStatusbar);
-  view_menu->AppendSeparator();
-  view_menu->AppendCheckItem(IDM_LOG_WINDOW, _("Show &Log"));
-  view_menu->AppendCheckItem(IDM_LOG_CONFIG_WINDOW, _("Show Log &Configuration"));
-  view_menu->AppendSeparator();
-
-  if (g_pCodeWindow)
-  {
-    view_menu->Check(IDM_LOG_WINDOW, g_pCodeWindow->bShowOnStart[0]);
-
-    static const wxString menu_text[] = {_("&Registers"), _("&Watch"), _("&Breakpoints"),
-                                         _("&Memory"),    _("&JIT"),   _("&Sound"),
-                                         _("&Video")};
-
-    for (int i = IDM_REGISTER_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
-    {
-      view_menu->AppendCheckItem(i, menu_text[i - IDM_REGISTER_WINDOW]);
-      view_menu->Check(i, g_pCodeWindow->bShowOnStart[i - IDM_LOG_WINDOW]);
-    }
-
-    view_menu->AppendSeparator();
-  }
-  else
-  {
-    view_menu->Check(IDM_LOG_WINDOW, config_instance.m_InterfaceLogWindow);
-    view_menu->Check(IDM_LOG_CONFIG_WINDOW, config_instance.m_InterfaceLogConfigWindow);
-  }
-
-  view_menu->AppendSubMenu(platform_menu, _("Show Platforms"));
-  view_menu->AppendSubMenu(region_menu, _("Show Regions"));
-
-  view_menu->AppendCheckItem(IDM_LIST_DRIVES, _("Show Drives"));
-  view_menu->Check(IDM_LIST_DRIVES, config_instance.m_ListDrives);
-
-  view_menu->Append(IDM_PURGE_GAME_LIST_CACHE, _("Purge Game List Cache"));
-  view_menu->AppendSubMenu(columns_menu, _("Select Columns"));
-
-  return view_menu;
-}
-
-wxMenu* CFrame::CreateJITMenu()
-{
-  auto* const jit_menu = new wxMenu;
-  const auto& config_instance = SConfig::GetInstance();
-
-  auto* const interpreter = jit_menu->AppendCheckItem(
-      IDM_INTERPRETER, _("&Interpreter Core"),
-      _("This is necessary to get break points"
-        " and stepping to work as explained in the Developer Documentation. But it can be very"
-        " slow, perhaps slower than 1 fps."));
-  interpreter->Check(config_instance.iCPUCore == PowerPC::CORE_INTERPRETER);
-
-  jit_menu->AppendSeparator();
-  jit_menu->AppendCheckItem(IDM_JIT_NO_BLOCK_LINKING, _("&JIT Block Linking Off"),
-                            _("Provide safer execution by not linking the JIT blocks."));
-
-  jit_menu->AppendCheckItem(
-      IDM_JIT_NO_BLOCK_CACHE, _("&Disable JIT Cache"),
-      _("Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from "
-        "crashing.\n[This option must be selected before a game is started.]"));
-
-  jit_menu->Append(IDM_CLEAR_CODE_CACHE, _("&Clear JIT Cache"));
-  jit_menu->AppendSeparator();
-  jit_menu->Append(IDM_LOG_INSTRUCTIONS, _("&Log JIT Instruction Coverage"));
-  jit_menu->Append(IDM_SEARCH_INSTRUCTION, _("&Search for an Instruction"));
-  jit_menu->AppendSeparator();
-
-  jit_menu->AppendCheckItem(
-      IDM_JIT_OFF, _("&JIT Off (JIT Core)"),
-      _("Turn off all JIT functions, but still use the JIT core from Jit.cpp"));
-
-  jit_menu->AppendCheckItem(IDM_JIT_LS_OFF, _("&JIT LoadStore Off"));
-  jit_menu->AppendCheckItem(IDM_JIT_LSLBZX_OFF, _("&JIT LoadStore lbzx Off"));
-  jit_menu->AppendCheckItem(IDM_JIT_LSLXZ_OFF, _("&JIT LoadStore lXz Off"));
-  jit_menu->AppendCheckItem(IDM_JIT_LSLWZ_OFF, _("&JIT LoadStore lwz Off"));
-  jit_menu->AppendCheckItem(IDM_JIT_LSF_OFF, _("&JIT LoadStore Floating Off"));
-  jit_menu->AppendCheckItem(IDM_JIT_LSP_OFF, _("&JIT LoadStore Paired Off"));
-  jit_menu->AppendCheckItem(IDM_JIT_FP_OFF, _("&JIT FloatingPoint Off"));
-  jit_menu->AppendCheckItem(IDM_JIT_I_OFF, _("&JIT Integer Off"));
-  jit_menu->AppendCheckItem(IDM_JIT_P_OFF, _("&JIT Paired Off"));
-  jit_menu->AppendCheckItem(IDM_JIT_SR_OFF, _("&JIT SystemRegisters Off"));
-
-  return jit_menu;
-}
-
-wxMenu* CFrame::CreateDebugMenu()
-{
-  m_SavedPerspectives = new wxMenu;
-  PopulateSavedPerspectives();
-
-  auto* const add_pane_menu = new wxMenu;
-  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_TOP, _("Top"));
-  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_BOTTOM, _("Bottom"));
-  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_LEFT, _("Left"));
-  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_RIGHT, _("Right"));
-  add_pane_menu->Append(IDM_PERSPECTIVES_ADD_PANE_CENTER, _("Center"));
-
-  auto* const perspective_menu = new wxMenu;
-  perspective_menu->Append(IDM_SAVE_PERSPECTIVE, _("Save Perspectives"),
-                           _("Save currently-toggled perspectives"));
-  perspective_menu->AppendCheckItem(IDM_EDIT_PERSPECTIVES, _("Edit Perspectives"),
-                                    _("Toggle editing of perspectives"));
-  perspective_menu->AppendSeparator();
-  perspective_menu->Append(IDM_ADD_PERSPECTIVE, _("Create New Perspective"));
-  perspective_menu->AppendSubMenu(m_SavedPerspectives, _("Saved Perspectives"));
-  perspective_menu->AppendSeparator();
-  perspective_menu->AppendSubMenu(add_pane_menu, _("Add New Pane To"));
-  perspective_menu->AppendCheckItem(IDM_TAB_SPLIT, _("Tab Split"));
-  perspective_menu->AppendCheckItem(IDM_NO_DOCKING, _("Disable Docking"),
-                                    _("Disable docking of perspective panes to main window"));
-
-  auto* const debug_menu = new wxMenu;
-  debug_menu->Append(IDM_STEP, _("Step &Into\tF11"));
-  debug_menu->Append(IDM_STEPOVER, _("Step &Over\tF10"));
-  debug_menu->Append(IDM_STEPOUT, _("Step O&ut\tSHIFT+F11"));
-  debug_menu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint\tF9"));
-  debug_menu->AppendSeparator();
-  debug_menu->AppendSubMenu(perspective_menu, _("Perspectives"), _("Edit Perspectives"));
-
-  return debug_menu;
-}
-
-wxMenu* CFrame::CreateSymbolsMenu()
-{
-  auto* const symbols_menu = new wxMenu;
-  symbols_menu->Append(IDM_CLEAR_SYMBOLS, _("&Clear Symbols"),
-                       _("Remove names from all functions and variables."));
-  symbols_menu->Append(IDM_SCAN_FUNCTIONS, _("&Generate Symbol Map"),
-                       _("Recognise standard functions from sys\\totaldb.dsy, and use generic zz_ "
-                         "names for other functions."));
-  symbols_menu->AppendSeparator();
-  symbols_menu->Append(IDM_LOAD_MAP_FILE, _("&Load Symbol Map"),
-                       _("Try to load this game's function names automatically - but doesn't check "
-                         ".map files stored on the disc image yet."));
-  symbols_menu->Append(IDM_SAVEMAPFILE, _("&Save Symbol Map"),
-                       _("Save the function names for each address to a .map file in your user "
-                         "settings map folder, named after the title id."));
-  symbols_menu->AppendSeparator();
-  symbols_menu->Append(
-      IDM_LOAD_MAP_FILE_AS, _("Load &Other Map File..."),
-      _("Load any .map file containing the function names and addresses for this game."));
-  symbols_menu->Append(
-      IDM_LOAD_BAD_MAP_FILE, _("Load &Bad Map File..."),
-      _("Try to load a .map file that might be from a slightly different version."));
-  symbols_menu->Append(IDM_SAVE_MAP_FILE_AS, _("Save Symbol Map &As..."),
-                       _("Save the function names and addresses for this game as a .map file. If "
-                         "you want to open it in IDA pro, use the .idc script."));
-  symbols_menu->AppendSeparator();
-  symbols_menu->Append(
-      IDM_SAVE_MAP_FILE_WITH_CODES, _("Save Code"),
-      _("Save the entire disassembled code. This may take a several seconds"
-        " and may require between 50 and 100 MB of hard drive space. It will only save code"
-        " that are in the first 4 MB of memory, if you are debugging a game that load .rel"
-        " files with code to memory you may want to increase that to perhaps 8 MB, you can do"
-        " that from SymbolDB::SaveMap()."));
-
-  symbols_menu->AppendSeparator();
-  symbols_menu->Append(
-      IDM_CREATE_SIGNATURE_FILE, _("&Create Signature File..."),
-      _("Create a .dsy file that can be used to recognise these same functions in other games."));
-  symbols_menu->Append(IDM_APPEND_SIGNATURE_FILE, _("Append to &Existing Signature File..."),
-                       _("Add any named functions missing from a .dsy file, so it can also "
-                         "recognise these additional functions in other games."));
-  symbols_menu->Append(IDM_COMBINE_SIGNATURE_FILES, _("Combine Two Signature Files..."),
-                       _("Make a new .dsy file which can recognise more functions, by combining "
-                         "two existing files. The first input file has priority."));
-  symbols_menu->Append(
-      IDM_USE_SIGNATURE_FILE, _("Apply Signat&ure File..."),
-      _("Must use Generate symbol map first! Recognise names of any standard library functions "
-        "used in multiple games, by loading them from a .dsy file."));
-  symbols_menu->AppendSeparator();
-  symbols_menu->Append(IDM_PATCH_HLE_FUNCTIONS, _("&Patch HLE Functions"));
-  symbols_menu->Append(IDM_RENAME_SYMBOLS, _("&Rename Symbols from File..."));
-
-  return symbols_menu;
-}
-
-wxMenu* CFrame::CreateProfilerMenu()
-{
-  auto* const profiler_menu = new wxMenu;
-  profiler_menu->AppendCheckItem(IDM_PROFILE_BLOCKS, _("&Profile Blocks"));
-  profiler_menu->AppendSeparator();
-  profiler_menu->Append(IDM_WRITE_PROFILE, _("&Write to profile.txt, Show"));
-
-  return profiler_menu;
-}
-
-wxMenu* CFrame::CreateHelpMenu()
-{
-  auto* const help_menu = new wxMenu;
-  help_menu->Append(IDM_HELP_WEBSITE, _("&Website"));
-  help_menu->Append(IDM_HELP_ONLINE_DOCS, _("Online &Documentation"));
-  help_menu->Append(IDM_HELP_GITHUB, _("&GitHub Repository"));
-  help_menu->AppendSeparator();
-  help_menu->Append(wxID_ABOUT, _("&About"));
-
-  return help_menu;
-}
-
-wxString CFrame::GetMenuLabel(int Id)
-{
-  wxString Label;
-
-  switch (Id)
-  {
-  case HK_OPEN:
-    Label = _("&Open...");
-    break;
-  case HK_CHANGE_DISC:
-    Label = _("Change &Disc...");
-    break;
-  case HK_REFRESH_LIST:
-    Label = _("&Refresh List");
-    break;
-
-  case HK_PLAY_PAUSE:
-    if (Core::GetState() == Core::CORE_RUN)
-      Label = _("&Pause");
-    else
-      Label = _("&Play");
-    break;
-  case HK_STOP:
-    Label = _("&Stop");
-    break;
-  case HK_RESET:
-    Label = _("&Reset");
-    break;
-  case HK_FRAME_ADVANCE:
-    Label = _("&Frame Advance");
-    break;
-
-  case HK_START_RECORDING:
-    Label = _("Start Re&cording Input");
-    break;
-  case HK_PLAY_RECORDING:
-    Label = _("P&lay Input Recording...");
-    break;
-  case HK_EXPORT_RECORDING:
-    Label = _("Export Recording...");
-    break;
-  case HK_READ_ONLY_MODE:
-    Label = _("&Read-Only Mode");
-    break;
-
-  case HK_FULLSCREEN:
-    Label = _("&Fullscreen");
-    break;
-  case HK_SCREENSHOT:
-    Label = _("Take Screenshot");
-    break;
-  case HK_EXIT:
-    Label = _("Exit");
-    break;
-
-  case HK_WIIMOTE1_CONNECT:
-  case HK_WIIMOTE2_CONNECT:
-  case HK_WIIMOTE3_CONNECT:
-  case HK_WIIMOTE4_CONNECT:
-    Label = wxString::Format(_("Connect Wiimote %i"), Id - HK_WIIMOTE1_CONNECT + 1);
-    break;
-  case HK_BALANCEBOARD_CONNECT:
-    Label = _("Connect Balance Board");
-    break;
-  case HK_LOAD_STATE_SLOT_1:
-  case HK_LOAD_STATE_SLOT_2:
-  case HK_LOAD_STATE_SLOT_3:
-  case HK_LOAD_STATE_SLOT_4:
-  case HK_LOAD_STATE_SLOT_5:
-  case HK_LOAD_STATE_SLOT_6:
-  case HK_LOAD_STATE_SLOT_7:
-  case HK_LOAD_STATE_SLOT_8:
-  case HK_LOAD_STATE_SLOT_9:
-  case HK_LOAD_STATE_SLOT_10:
-    Label = wxString::Format(_("Slot %i - %s"), Id - HK_LOAD_STATE_SLOT_1 + 1,
-                             StrToWxStr(State::GetInfoStringOfSlot(Id - HK_LOAD_STATE_SLOT_1 + 1)));
-    break;
-
-  case HK_SAVE_STATE_SLOT_1:
-  case HK_SAVE_STATE_SLOT_2:
-  case HK_SAVE_STATE_SLOT_3:
-  case HK_SAVE_STATE_SLOT_4:
-  case HK_SAVE_STATE_SLOT_5:
-  case HK_SAVE_STATE_SLOT_6:
-  case HK_SAVE_STATE_SLOT_7:
-  case HK_SAVE_STATE_SLOT_8:
-  case HK_SAVE_STATE_SLOT_9:
-  case HK_SAVE_STATE_SLOT_10:
-    Label = wxString::Format(_("Slot %i - %s"), Id - HK_SAVE_STATE_SLOT_1 + 1,
-                             StrToWxStr(State::GetInfoStringOfSlot(Id - HK_SAVE_STATE_SLOT_1 + 1)));
-    break;
-  case HK_SAVE_STATE_FILE:
-    Label = _("Save State...");
-    break;
-
-  case HK_LOAD_LAST_STATE_1:
-  case HK_LOAD_LAST_STATE_2:
-  case HK_LOAD_LAST_STATE_3:
-  case HK_LOAD_LAST_STATE_4:
-  case HK_LOAD_LAST_STATE_5:
-  case HK_LOAD_LAST_STATE_6:
-  case HK_LOAD_LAST_STATE_7:
-  case HK_LOAD_LAST_STATE_8:
-  case HK_LOAD_LAST_STATE_9:
-  case HK_LOAD_LAST_STATE_10:
-    Label = wxString::Format(_("Last %i"), Id - HK_LOAD_LAST_STATE_1 + 1);
-    break;
-  case HK_LOAD_STATE_FILE:
-    Label = _("Load State...");
-    break;
-
-  case HK_SAVE_FIRST_STATE:
-    Label = _("Save Oldest State");
-    break;
-  case HK_UNDO_LOAD_STATE:
-    Label = _("Undo Load State");
-    break;
-  case HK_UNDO_SAVE_STATE:
-    Label = _("Undo Save State");
-    break;
-
-  case HK_SAVE_STATE_SLOT_SELECTED:
-    Label = _("Save State to Selected Slot");
-    break;
-
-  case HK_LOAD_STATE_SLOT_SELECTED:
-    Label = _("Load State from Selected Slot");
-    break;
-
-  case HK_SELECT_STATE_SLOT_1:
-  case HK_SELECT_STATE_SLOT_2:
-  case HK_SELECT_STATE_SLOT_3:
-  case HK_SELECT_STATE_SLOT_4:
-  case HK_SELECT_STATE_SLOT_5:
-  case HK_SELECT_STATE_SLOT_6:
-  case HK_SELECT_STATE_SLOT_7:
-  case HK_SELECT_STATE_SLOT_8:
-  case HK_SELECT_STATE_SLOT_9:
-  case HK_SELECT_STATE_SLOT_10:
-    Label =
-        wxString::Format(_("Select Slot %i - %s"), Id - HK_SELECT_STATE_SLOT_1 + 1,
-                         StrToWxStr(State::GetInfoStringOfSlot(Id - HK_SELECT_STATE_SLOT_1 + 1)));
-    break;
-
-  default:
-    Label = wxString::Format(_("Undefined %i"), Id);
-  }
-
-  return Label;
+  // File menu
+  Bind(wxEVT_MENU, &CFrame::OnOpen, this, wxID_OPEN);
+  Bind(wxEVT_MENU, &CFrame::OnChangeDisc, this, IDM_CHANGE_DISC);
+  Bind(wxEVT_MENU, &CFrame::OnBootDrive, this, IDM_DRIVE1, IDM_DRIVE24);
+  Bind(wxEVT_MENU, &CFrame::OnRefresh, this, wxID_REFRESH);
+  Bind(wxEVT_MENU, &CFrame::OnQuit, this, wxID_EXIT);
+
+  // Emulation menu
+  Bind(wxEVT_MENU, &CFrame::OnPlay, this, IDM_PLAY);
+  Bind(wxEVT_MENU, &CFrame::OnStop, this, IDM_STOP);
+  Bind(wxEVT_MENU, &CFrame::OnReset, this, IDM_RESET);
+  Bind(wxEVT_MENU, &CFrame::OnToggleFullscreen, this, IDM_TOGGLE_FULLSCREEN);
+  Bind(wxEVT_MENU, &CFrame::OnFrameStep, this, IDM_FRAMESTEP);
+  Bind(wxEVT_MENU, &CFrame::OnScreenshot, this, IDM_SCREENSHOT);
+  Bind(wxEVT_MENU, &CFrame::OnLoadStateFromFile, this, IDM_LOAD_STATE_FILE);
+  Bind(wxEVT_MENU, &CFrame::OnLoadCurrentSlot, this, IDM_LOAD_SELECTED_SLOT);
+  Bind(wxEVT_MENU, &CFrame::OnUndoLoadState, this, IDM_UNDO_LOAD_STATE);
+  Bind(wxEVT_MENU, &CFrame::OnLoadState, this, IDM_LOAD_SLOT_1, IDM_LOAD_SLOT_10);
+  Bind(wxEVT_MENU, &CFrame::OnLoadLastState, this, IDM_LOAD_LAST_1, IDM_LOAD_LAST_10);
+  Bind(wxEVT_MENU, &CFrame::OnSaveStateToFile, this, IDM_SAVE_STATE_FILE);
+  Bind(wxEVT_MENU, &CFrame::OnSaveCurrentSlot, this, IDM_SAVE_SELECTED_SLOT);
+  Bind(wxEVT_MENU, &CFrame::OnSaveFirstState, this, IDM_SAVE_FIRST_STATE);
+  Bind(wxEVT_MENU, &CFrame::OnUndoSaveState, this, IDM_UNDO_SAVE_STATE);
+  Bind(wxEVT_MENU, &CFrame::OnSaveState, this, IDM_SAVE_SLOT_1, IDM_SAVE_SLOT_10);
+  Bind(wxEVT_MENU, &CFrame::OnSelectSlot, this, IDM_SELECT_SLOT_1, IDM_SELECT_SLOT_10);
+
+  // Movie menu
+  Bind(wxEVT_MENU, &CFrame::OnRecord, this, IDM_RECORD);
+  Bind(wxEVT_MENU, &CFrame::OnPlayRecording, this, IDM_PLAY_RECORD);
+  Bind(wxEVT_MENU, &CFrame::OnRecordExport, this, IDM_RECORD_EXPORT);
+  Bind(wxEVT_MENU, &CFrame::OnRecordReadOnly, this, IDM_RECORD_READ_ONLY);
+  Bind(wxEVT_MENU, &CFrame::OnTASInput, this, IDM_TAS_INPUT);
+  Bind(wxEVT_MENU, &CFrame::OnTogglePauseMovie, this, IDM_TOGGLE_PAUSE_MOVIE);
+  Bind(wxEVT_MENU, &CFrame::OnShowLag, this, IDM_SHOW_LAG);
+  Bind(wxEVT_MENU, &CFrame::OnShowFrameCount, this, IDM_SHOW_FRAME_COUNT);
+  Bind(wxEVT_MENU, &CFrame::OnShowInputDisplay, this, IDM_SHOW_INPUT_DISPLAY);
+  Bind(wxEVT_MENU, &CFrame::OnShowRTCDisplay, this, IDM_SHOW_RTC_DISPLAY);
+  Bind(wxEVT_MENU, &CFrame::OnToggleDumpFrames, this, IDM_TOGGLE_DUMP_FRAMES);
+  Bind(wxEVT_MENU, &CFrame::OnToggleDumpAudio, this, IDM_TOGGLE_DUMP_AUDIO);
+
+  // Options menu
+  Bind(wxEVT_MENU, &CFrame::OnConfigMain, this, wxID_PREFERENCES);
+  Bind(wxEVT_MENU, &CFrame::OnConfigGFX, this, IDM_CONFIG_GFX_BACKEND);
+  Bind(wxEVT_MENU, &CFrame::OnConfigAudio, this, IDM_CONFIG_AUDIO);
+  Bind(wxEVT_MENU, &CFrame::OnConfigControllers, this, IDM_CONFIG_CONTROLLERS);
+  Bind(wxEVT_MENU, &CFrame::OnConfigHotkey, this, IDM_CONFIG_HOTKEYS);
+
+  // Tools menu
+  Bind(wxEVT_MENU, &CFrame::OnMemcard, this, IDM_MEMCARD);
+  Bind(wxEVT_MENU, &CFrame::OnImportSave, this, IDM_IMPORT_SAVE);
+  Bind(wxEVT_MENU, &CFrame::OnExportAllSaves, this, IDM_EXPORT_ALL_SAVE);
+  Bind(wxEVT_MENU, &CFrame::OnShowCheatsWindow, this, IDM_CHEATS);
+  Bind(wxEVT_MENU, &CFrame::OnNetPlay, this, IDM_NETPLAY);
+  Bind(wxEVT_MENU, &CFrame::OnInstallWAD, this, IDM_MENU_INSTALL_WAD);
+  Bind(wxEVT_MENU, &CFrame::OnLoadWiiMenu, this, IDM_LOAD_WII_MENU);
+  Bind(wxEVT_MENU, &CFrame::OnFifoPlayer, this, IDM_FIFOPLAYER);
+  Bind(wxEVT_MENU, &CFrame::OnConnectWiimote, this, IDM_CONNECT_WIIMOTE1, IDM_CONNECT_BALANCEBOARD);
+
+  // View menu
+  Bind(wxEVT_MENU, &CFrame::OnToggleToolbar, this, IDM_TOGGLE_TOOLBAR);
+  Bind(wxEVT_MENU, &CFrame::OnToggleStatusbar, this, IDM_TOGGLE_STATUSBAR);
+  Bind(wxEVT_MENU, &CFrame::OnToggleWindow, this, IDM_LOG_WINDOW, IDM_VIDEO_WINDOW);
+  Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_LIST_WAD, IDM_LIST_DRIVES);
+  Bind(wxEVT_MENU, &CFrame::GameListChanged, this, IDM_PURGE_GAME_LIST_CACHE);
+  Bind(wxEVT_MENU, &CFrame::OnChangeColumnsVisible, this, IDM_SHOW_SYSTEM, IDM_SHOW_STATE);
+
+  // Debug menu
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_SAVE_PERSPECTIVE);
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_EDIT_PERSPECTIVES);
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_PERSPECTIVES_ADD_PANE_TOP);
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_PERSPECTIVES_ADD_PANE_BOTTOM);
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_PERSPECTIVES_ADD_PANE_LEFT);
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_PERSPECTIVES_ADD_PANE_RIGHT);
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_PERSPECTIVES_ADD_PANE_CENTER);
+  Bind(wxEVT_MENU, &CFrame::OnSelectPerspective, this, IDM_PERSPECTIVES_0, IDM_PERSPECTIVES_100);
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_ADD_PERSPECTIVE);
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_TAB_SPLIT);
+  Bind(wxEVT_MENU, &CFrame::OnPerspectiveMenu, this, IDM_NO_DOCKING);
+
+  // Help menu
+  Bind(wxEVT_MENU, &CFrame::OnHelp, this, IDM_HELP_WEBSITE);
+  Bind(wxEVT_MENU, &CFrame::OnHelp, this, IDM_HELP_ONLINE_DOCS);
+  Bind(wxEVT_MENU, &CFrame::OnHelp, this, IDM_HELP_GITHUB);
+  Bind(wxEVT_MENU, &CFrame::OnHelp, this, wxID_ABOUT);
 }
 
 // Create toolbar items
@@ -1885,6 +1380,8 @@ void CFrame::UpdateGUI()
     m_ToolBar->EnableTool(IDM_SCREENSHOT, Running || Paused);
   }
 
+  GetMenuBar()->Refresh(false);
+
   // File
   GetMenuBar()->FindItem(wxID_OPEN)->Enable(!Initialized);
   GetMenuBar()->FindItem(IDM_DRIVES)->Enable(!Initialized);
@@ -1899,16 +1396,6 @@ void CFrame::UpdateGUI()
   GetMenuBar()->FindItem(IDM_FRAMESTEP)->Enable(Running || Paused);
   GetMenuBar()->FindItem(IDM_SCREENSHOT)->Enable(Running || Paused);
   GetMenuBar()->FindItem(IDM_TOGGLE_FULLSCREEN)->Enable(Running || Paused);
-
-  // Update Key Shortcuts
-  for (unsigned int i = 0; i < NUM_HOTKEYS; i++)
-  {
-    if (GetCmdForHotkey(i) == -1)
-      continue;
-    if (GetMenuBar()->FindItem(GetCmdForHotkey(i)))
-      GetMenuBar()->FindItem(GetCmdForHotkey(i))->SetItemLabel(GetMenuLabel(i));
-  }
-
   GetMenuBar()->FindItem(IDM_LOAD_STATE)->Enable(Initialized);
   GetMenuBar()->FindItem(IDM_SAVE_STATE)->Enable(Initialized);
   // Misc

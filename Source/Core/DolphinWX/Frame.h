@@ -106,7 +106,6 @@ public:
   void DoFullscreen(bool bF);
   void ToggleDisplayMode(bool bFullscreen);
   void UpdateWiiMenuChoice(wxMenuItem* WiiMenuItem = nullptr);
-  void PopulateSavedPerspectives();
   static void ConnectWiimote(int wm_idx, bool connect);
   void UpdateTitle(const std::string& str);
   void OpenGeneralConfiguration(int tab = -1);
@@ -199,21 +198,11 @@ private:
 
   void PopulateToolbar(wxToolBar* toolBar);
   void RecreateToolbar();
-  wxMenuBar* CreateMenuBar();
-  wxMenu* CreateFileMenu();
-  wxMenu* CreateEmulationMenu();
-  wxMenu* CreateMovieMenu();
-  wxMenu* CreateOptionsMenu();
-  wxMenu* CreateToolsMenu();
-  wxMenu* CreateViewMenu();
-  wxMenu* CreateJITMenu();
-  wxMenu* CreateDebugMenu();
-  wxMenu* CreateSymbolsMenu();
-  wxMenu* CreateProfilerMenu();
-  wxMenu* CreateHelpMenu();
+
+  wxMenuBar* CreateMenuBar() const;
+  void BindMenuBarEvents();
 
   // Utility
-  wxString GetMenuLabel(int Id);
   wxWindow* GetNotebookPageFromId(wxWindowID Id);
   wxAuiNotebook* GetNotebookFromId(u32 NBId);
   int GetNotebookCount();
@@ -236,6 +225,8 @@ private:
   void SetPaneSize();
   void TogglePaneStyle(bool On, int EventId);
   void ToggleNotebookStyle(bool On, long Style);
+  void PopulateSavedPerspectives();
+
   // Float window
   void DoUnfloatPage(int Id);
   void OnFloatingPageClosed(wxCloseEvent& event);
@@ -350,8 +341,6 @@ private:
   // Event table
   DECLARE_EVENT_TABLE();
 };
-
-int GetCmdForHotkey(unsigned int key);
 
 void OnAfterLoadCallback();
 void OnStoppedCallback();

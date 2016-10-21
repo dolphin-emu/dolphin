@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstddef>
 #include <string>
 #include <vector>
@@ -36,6 +37,7 @@
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/LogConfigWindow.h"
 #include "DolphinWX/LogWindow.h"
+#include "DolphinWX/MainMenuBar.h"
 #include "DolphinWX/WxUtils.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 
@@ -484,32 +486,16 @@ void CFrame::DoAddPage(wxWindow* Win, int i, bool Float)
 
 void CFrame::PopulateSavedPerspectives()
 {
-  // If the perspective submenu hasn't been created yet, return
-  if (!m_SavedPerspectives)
-    return;
+  std::vector<std::string> perspective_names(Perspectives.size());
 
-  // Delete all saved perspective menu items
-  while (m_SavedPerspectives->GetMenuItemCount() != 0)
-  {
-    // Delete the first menu item in the list (while there are menu items)
-    m_SavedPerspectives->Delete(m_SavedPerspectives->FindItemByPosition(0));
-  }
+  std::transform(Perspectives.begin(), Perspectives.end(), perspective_names.begin(),
+                 [](const auto& perspective) { return perspective.Name; });
 
-  if (Perspectives.size() > 0)
-  {
-    for (u32 i = 0; i < Perspectives.size(); i++)
-    {
-      wxMenuItem* mItem = new wxMenuItem(m_SavedPerspectives, IDM_PERSPECTIVES_0 + i,
-                                         StrToWxStr(Perspectives[i].Name), "", wxITEM_CHECK);
+  MainMenuBar::PopulatePerspectivesEvent event{GetId(), EVT_POPULATE_PERSPECTIVES_MENU,
+                                               std::move(perspective_names),
+                                               static_cast<int>(ActivePerspective)};
 
-      m_SavedPerspectives->Append(mItem);
-
-      if (i == ActivePerspective)
-      {
-        mItem->Check(true);
-      }
-    }
-  }
+  wxPostEvent(GetMenuBar(), event);
 }
 
 void CFrame::OnPerspectiveMenu(wxCommandEvent& event)
