@@ -56,8 +56,6 @@ public:
 
   u32 Update() override;
 
-  static void EnqueueReply(u32 CommandAddress);
-
   // Send ACL data back to Bluetooth stack
   void SendACLPacket(u16 connection_handle, const u8* data, u32 size);
 
