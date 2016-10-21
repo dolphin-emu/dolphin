@@ -578,6 +578,16 @@ void EnqueueReply(u32 address, int cycles_in_future, CoreTiming::FromThread from
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, address, from);
 }
 
+// Helper function that handles overwriting the cmd and fd fields for async replies.
+void EnqueueAsyncReply(const u32 command_address)
+{
+  // IOS writes back the command that was responded to in the FD field.
+  Memory::Write_U32(Memory::Read_U32(command_address), command_address + 8);
+  // IOS also overwrites the command type with the async reply type.
+  Memory::Write_U32(IPC_REP_ASYNC, command_address);
+  EnqueueReply(command_address, 0, CoreTiming::FromThread::ANY);
+}
+
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)
 {
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue,

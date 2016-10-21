@@ -14,17 +14,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 
-void CWII_IPC_HLE_Device_sdio_slot0::EnqueueReply(u32 CommandAddress, u32 ReturnValue)
+void CWII_IPC_HLE_Device_sdio_slot0::EnqueueReply(const u32 command_address, const u32 return_value)
 {
-  // IOS seems to write back the command that was responded to, this class does not
-  // overwrite the command so it is safe to read.
-  Memory::Write_U32(Memory::Read_U32(CommandAddress), CommandAddress + 8);
-  // The original hardware overwrites the command type with the async reply type.
-  Memory::Write_U32(IPC_REP_ASYNC, CommandAddress);
-
-  Memory::Write_U32(ReturnValue, CommandAddress + 4);
-
-  WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
+  Memory::Write_U32(return_value, command_address + 4);
+  WII_IPC_HLE_Interface::EnqueueAsyncReply(command_address);
 }
 
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID,
