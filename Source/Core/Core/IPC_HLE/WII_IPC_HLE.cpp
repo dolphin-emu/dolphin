@@ -32,6 +32,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -115,7 +116,7 @@ static void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
 static u32 num_devices;
 
 template <typename T>
-std::shared_ptr<T> AddDevice(const char* device_name)
+std::shared_ptr<T> AddDevice(const std::string& device_name)
 {
   auto device = std::make_shared<T>(num_devices, device_name);
   s_device_map[num_devices] = device;
@@ -164,9 +165,14 @@ void Reinit()
 #else
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/hid");
 #endif
+
   AddDevice<CWII_IPC_HLE_Device_usb_oh0_real>("/dev/usb/oh0");
-  AddDevice<CWII_IPC_HLE_Device_usb_oh0_real_device>("/dev/usb/oh0/57e/308");
-  AddDevice<CWII_IPC_HLE_Device_usb_oh0_real_device>("/dev/usb/oh0/46d/a03");
+  for (const auto& device : SConfig::GetInstance().m_usb_passthrough_devices)
+  {
+    AddDevice<CWII_IPC_HLE_Device_usb_oh0_real_device>(
+        StringFromFormat("/dev/usb/oh0/%x/%x", device.first, device.second));
+  }
+
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
 }
 
