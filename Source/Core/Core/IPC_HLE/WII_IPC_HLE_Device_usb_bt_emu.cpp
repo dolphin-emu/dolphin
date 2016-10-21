@@ -18,17 +18,6 @@
 #include "Core/Movie.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::EnqueueReply(u32 CommandAddress)
-{
-  // IOS seems to write back the command that was responded to in the FD field, this
-  // class does not overwrite the command so it is safe to read back.
-  Memory::Write_U32(Memory::Read_U32(CommandAddress), CommandAddress + 8);
-  // The original hardware overwrites the command type with the async reply type.
-  Memory::Write_U32(IPC_REP_ASYNC, CommandAddress);
-
-  WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
-}
-
 // The device class
 CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu(
     u32 _DeviceID, const std::string& _rDeviceName)
@@ -368,7 +357,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendACLPacket(u16 connection_handl
     memcpy(reinterpret_cast<u8*>(header) + sizeof(hci_acldata_hdr_t), data, header->length);
 
     m_ACLEndpoint.SetRetVal(sizeof(hci_acldata_hdr_t) + size);
-    EnqueueReply(m_ACLEndpoint.m_cmd_address);
+    WII_IPC_HLE_Interface::EnqueueReply(m_ACLEndpoint.m_cmd_address);
     m_ACLEndpoint.Invalidate();
   }
   else
@@ -397,7 +386,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
       m_HCIEndpoint.FillBuffer(_event.m_buffer, _event.m_size);
       m_HCIEndpoint.SetRetVal(_event.m_size);
       // Send a reply to indicate HCI buffer is filled
-      EnqueueReply(m_HCIEndpoint.m_cmd_address);
+      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint.m_cmd_address);
       m_HCIEndpoint.Invalidate();
     }
     else  // push new one, pop oldest
@@ -413,7 +402,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
       m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
       m_HCIEndpoint.SetRetVal(event.m_size);
       // Send a reply to indicate HCI buffer is filled
-      EnqueueReply(m_HCIEndpoint.m_cmd_address);
+      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint.m_cmd_address);
       m_HCIEndpoint.Invalidate();
       m_EventQueue.pop_front();
     }
@@ -441,7 +430,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
     m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
     m_HCIEndpoint.SetRetVal(event.m_size);
     // Send a reply to indicate HCI buffer is filled
-    EnqueueReply(m_HCIEndpoint.m_cmd_address);
+    WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint.m_cmd_address);
     m_HCIEndpoint.Invalidate();
     m_EventQueue.pop_front();
     packet_transferred = true;
@@ -542,7 +531,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ACLPool::WriteToEndpoint(CtrlBuffe
 
   m_queue.pop_front();
 
-  EnqueueReply(endpoint.m_cmd_address);
+  WII_IPC_HLE_Interface::EnqueueReply(endpoint.m_cmd_address);
   endpoint.Invalidate();
 }
 
@@ -1264,7 +1253,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ExecuteHCICommandMessage(
   }
 
   // HCI command is finished, send a reply to command
-  EnqueueReply(_rHCICommandMessage.m_Address);
+  WII_IPC_HLE_Interface::EnqueueReply(_rHCICommandMessage.m_Address);
 }
 
 //
