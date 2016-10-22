@@ -54,6 +54,7 @@ set(GUI_SRCS
 	LogWindow.cpp
 	Main.cpp
 	MainMenuBar.cpp
+	MainToolBar.cpp
 	MemcardManager.cpp
 	PatchAddEdit.cpp
 	PostProcessingConfigDiag.cpp

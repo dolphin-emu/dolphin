@@ -18,7 +18,6 @@
 #include <wx/textctrl.h>
 #include <wx/textdlg.h>
 #include <wx/thread.h>
-#include <wx/toolbar.h>
 #include <wx/aui/auibar.h>
 #include <wx/aui/dockart.h>
 // clang-format on
@@ -58,8 +57,6 @@ CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* pare
     : wxPanel(parent, id, position, size, style, name), m_sibling_panels(), Parent(parent),
       codeview(nullptr)
 {
-  InitBitmaps();
-
   DebugInterface* di = &PowerPC::debug_interface;
 
   codeview = new CCodeView(di, &g_symbolDB, this, wxID_ANY);
@@ -138,11 +135,6 @@ CCodeWindow::~CCodeWindow()
 wxMenuBar* CCodeWindow::GetMenuBar()
 {
   return Parent->GetMenuBar();
-}
-
-wxToolBar* CCodeWindow::GetToolBar()
-{
-  return Parent->m_ToolBar;
 }
 
 // ----------
@@ -574,36 +566,6 @@ bool CCodeWindow::JITNoBlockLinking()
   return GetMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_LINKING);
 }
 
-// Toolbar
-void CCodeWindow::InitBitmaps()
-{
-  static constexpr std::array<const char* const, Toolbar_Debug_Bitmap_Max> s_image_names{
-      {"toolbar_debugger_step", "toolbar_debugger_step_over", "toolbar_debugger_step_out",
-       "toolbar_debugger_skip", "toolbar_debugger_goto_pc", "toolbar_debugger_set_pc"}};
-  const wxSize tool_size = Parent->GetToolbarBitmapSize();
-  for (std::size_t i = 0; i < s_image_names.size(); ++i)
-    m_Bitmaps[i] =
-        WxUtils::LoadScaledResourceBitmap(s_image_names[i], Parent, tool_size, wxDefaultSize,
-                                          WxUtils::LSI_SCALE_DOWN | WxUtils::LSI_ALIGN_CENTER);
-}
-
-void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
-{
-  WxUtils::AddToolbarButton(toolBar, IDM_STEP, _("Step"), m_Bitmaps[Toolbar_Step],
-                            _("Step into the next instruction"));
-  WxUtils::AddToolbarButton(toolBar, IDM_STEPOVER, _("Step Over"), m_Bitmaps[Toolbar_StepOver],
-                            _("Step over the next instruction"));
-  WxUtils::AddToolbarButton(toolBar, IDM_STEPOUT, _("Step Out"), m_Bitmaps[Toolbar_StepOut],
-                            _("Step out of the current function"));
-  WxUtils::AddToolbarButton(toolBar, IDM_SKIP, _("Skip"), m_Bitmaps[Toolbar_Skip],
-                            _("Skips the next instruction completely"));
-  toolBar->AddSeparator();
-  WxUtils::AddToolbarButton(toolBar, IDM_GOTOPC, _("Show PC"), m_Bitmaps[Toolbar_GotoPC],
-                            _("Go to the current instruction"));
-  WxUtils::AddToolbarButton(toolBar, IDM_SETPC, _("Set PC"), m_Bitmaps[Toolbar_SetPC],
-                            _("Set the current instruction"));
-}
-
 // Update GUI
 void CCodeWindow::Repopulate()
 {
@@ -625,21 +587,7 @@ void CCodeWindow::UpdateButtonStates()
   bool Pause = (Core::GetState() == Core::CORE_PAUSE);
   bool Stepping = CPU::IsStepping();
   bool can_step = Initialized && Stepping;
-  wxToolBar* ToolBar = GetToolBar();
 
-  // Toolbar
-  if (!ToolBar)
-    return;
-
-  ToolBar->EnableTool(IDM_STEP, can_step);
-  ToolBar->EnableTool(IDM_STEPOVER, can_step);
-  ToolBar->EnableTool(IDM_STEPOUT, can_step);
-  ToolBar->EnableTool(IDM_SKIP, can_step);
-  ToolBar->EnableTool(IDM_SETPC, Pause);
-  ToolBar->Realize();
-
-  // Menu bar
-  // ------------------
   GetMenuBar()->Enable(IDM_INTERPRETER, Pause);  // CPU Mode
 
   GetMenuBar()->Enable(IDM_STEP, can_step);

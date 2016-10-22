@@ -25,7 +25,6 @@
 #include "DolphinWX/Config/InterfaceConfigPane.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/InputConfigDiag.h"
-#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
@@ -241,6 +240,7 @@ void InterfaceConfigPane::OnThemeSelected(wxCommandEvent& event)
 {
   SConfig::GetInstance().theme_name = WxStrToStr(m_theme_choice->GetStringSelection());
 
-  main_frame->InitBitmaps();
-  main_frame->UpdateGameList();
+  wxCommandEvent theme_event{DOLPHIN_EVT_RELOAD_THEME_BITMAPS};
+  theme_event.SetEventObject(this);
+  ProcessEvent(theme_event);
 }
