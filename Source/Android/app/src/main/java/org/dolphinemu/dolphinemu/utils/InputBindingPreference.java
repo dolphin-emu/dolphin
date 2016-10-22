@@ -61,6 +61,4 @@ public final class InputBindingPreference extends EditTextPreference
 		String summary = super.getSummary().toString();
 		return String.format(summary, getText());
 	}
-
-
 }

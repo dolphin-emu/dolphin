@@ -47,7 +47,7 @@ public final class InputOverlayDrawableButton extends BitmapDrawable
 		return mButtonType;
 	}
 
-	public boolean onConfigureTouch(View v, MotionEvent event)
+	public boolean onConfigureTouch(MotionEvent event)
 	{
 		int pointerIndex = event.getActionIndex();
 		int fingerPositionX = (int)event.getX(pointerIndex);

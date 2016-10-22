@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu;
 
-
 import android.view.Surface;
 import android.widget.Toast;
 
@@ -290,15 +289,7 @@ public final class NativeLibrary
 	public static native String GetVersionString();
 
 	/**
-	 * Returns if the phone supports NEON or not
-	 *
-	 * @return true if it supports NEON, false otherwise.
-	 */
-	public static native boolean SupportsNEON();
-
-	/**
 	 * Saves a screen capture of the game
-	 *
 	 */
 	public static native void SaveScreenShot();
 
@@ -360,21 +351,6 @@ public final class NativeLibrary
 	 * Writes out the block profile results
 	 */
 	public static native void WriteProfileResults();
-
-	/**
-	 * @return If we have an alert
-	 */
-	public static native boolean HasAlertMsg();
-
-	/**
-	 * @return The alert string
-	 */
-	public static native String GetAlertMsg();
-
-	/**
-	 * Clears event in the JNI so we can continue onward
-	 */
-	public static native void ClearAlertMsg();
 
 	/** Native EGL functions not exposed by Java bindings **/
 	public static native void eglBindAPI(int api);

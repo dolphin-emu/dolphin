@@ -142,7 +142,7 @@ public final class EGLHelper
 	 * Whether or not this device supports OpenGL ES 2.
 	 * <br/>
 	 * Note that if this returns true, then OpenGL ES 1 is also supported.
-	 * 
+	 *
 	 * @return true if this device supports OpenGL ES 2; false otherwise.
 	 */
 	public boolean supportsGLES2()
