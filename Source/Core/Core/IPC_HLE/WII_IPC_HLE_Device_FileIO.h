@@ -80,8 +80,8 @@ private:
     ISFS_IOCTL_SHUTDOWN = 13
   };
 
-  u32 m_Mode;
-  u32 m_SeekPos;
+  u32 m_Mode = 0;
+  u32 m_SeekPos = 0;
 
   std::string m_filepath;
   std::shared_ptr<File::IOFile> m_file;
