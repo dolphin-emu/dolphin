@@ -122,6 +122,7 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
 #endif
 }
 
+#ifdef __linux__
 static void ReadThreadHandler(CEXIETHERNET* self)
 {
   while (!self->readThreadShutdown.IsSet())
@@ -150,6 +151,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
     }
   }
 }
+#endif
 
 bool CEXIETHERNET::RecvInit()
 {
