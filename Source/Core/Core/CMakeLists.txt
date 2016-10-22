@@ -137,6 +137,8 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/ICMPLin.cpp
 			IPC_HLE/NWC24Config.cpp
 			IPC_HLE/WII_IPC_HLE.cpp
+			IPC_HLE/WII_IPC_HLE_Device.cpp
+			IPC_HLE/WII_IPC_HLE_Device_stub.cpp
 			IPC_HLE/WII_IPC_HLE_Device_DI.cpp
 			IPC_HLE/WII_IPC_HLE_Device_es.cpp
 			IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp

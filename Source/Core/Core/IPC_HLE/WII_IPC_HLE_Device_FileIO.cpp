@@ -14,6 +14,7 @@
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"

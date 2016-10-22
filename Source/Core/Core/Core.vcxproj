@@ -171,6 +171,8 @@
     <ClCompile Include="IPC_HLE\NWC24Config.cpp" />
     <ClCompile Include="IPC_HLE\WiiMote_HID_Attr.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE.cpp" />
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device.cpp" />
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stub.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_DI.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_es.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp" />
@@ -388,6 +390,7 @@
     <ClInclude Include="IPC_HLE\WiiMote_HID_Attr.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device.h" />
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stub.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_DI.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_es.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_FileIO.h" />
