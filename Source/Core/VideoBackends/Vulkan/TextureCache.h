@@ -63,6 +63,10 @@ public:
                u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
                bool is_intensity, bool scale_by_half) override;
 
+  // This function assumes that both textures are in SHADER_READ_ONLY layout.
+  void CopyRectangleFromTexture(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
+                                Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
+
 private:
   bool CreateRenderPasses();
   VkRenderPass GetRenderPassForTextureUpdate(const Texture2D* texture) const;
