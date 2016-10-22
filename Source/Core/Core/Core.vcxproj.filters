@@ -555,6 +555,12 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stub.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_DI.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\DI</Filter>
     </ClCompile>
@@ -1125,6 +1131,9 @@
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device.h">
+      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stub.h">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stm.h">
