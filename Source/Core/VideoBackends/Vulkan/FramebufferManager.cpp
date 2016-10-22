@@ -10,6 +10,8 @@
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/HW/Memmap.h"
+
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StagingTexture2D.h"
@@ -1362,6 +1364,98 @@ void FramebufferManager::DestroyPokeShaders()
   {
     vkDestroyShaderModule(g_vulkan_context->GetDevice(), m_poke_fragment_shader, nullptr);
     m_poke_vertex_shader = VK_NULL_HANDLE;
+  }
+}
+
+std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int target_width,
+                                                                   unsigned int target_height,
+                                                                   unsigned int layers)
+{
+  TextureCacheBase::TCacheEntryConfig config;
+  config.width = target_width;
+  config.height = target_height;
+  config.layers = layers;
+  config.rendertarget = true;
+  auto* base_texture = TextureCache::GetInstance()->CreateTexture(config);
+  auto* texture = static_cast<TextureCache::TCacheEntry*>(base_texture);
+  if (!texture)
+  {
+    PanicAlert("Failed to create texture for XFB source");
+    return nullptr;
+  }
+
+  return std::make_unique<XFBSource>(std::unique_ptr<TextureCache::TCacheEntry>(texture));
+}
+
+void FramebufferManager::CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_height,
+                                       const EFBRectangle& source_rc, float gamma)
+{
+  // Pending/batched EFB pokes should be included in the copied image.
+  FlushEFBPokes();
+
+  // Schedule early command-buffer execution.
+  StateTracker::GetInstance()->EndRenderPass();
+  StateTracker::GetInstance()->OnReadback();
+
+  // GPU EFB textures -> Guest memory
+  u8* xfb_ptr = Memory::GetPointer(xfb_addr);
+  _assert_(xfb_ptr);
+
+  // source_rc is in native coordinates, so scale it to the internal resolution.
+  TargetRectangle scaled_rc = g_renderer->ConvertEFBRectangle(source_rc);
+  VkRect2D scaled_rc_vk = {
+      {scaled_rc.left, scaled_rc.top},
+      {static_cast<u32>(scaled_rc.GetWidth()), static_cast<u32>(scaled_rc.GetHeight())}};
+  Texture2D* src_texture = ResolveEFBColorTexture(scaled_rc_vk);
+
+  // 2 bytes per pixel, so divide fb_stride by 2 to get the width.
+  TextureCache::GetInstance()->EncodeYUYVTextureToMemory(xfb_ptr, fb_stride / 2, fb_stride,
+                                                         fb_height, src_texture, scaled_rc);
+
+  // If we sourced directly from the EFB framebuffer, restore it to a color attachment.
+  if (src_texture == m_efb_color_texture.get())
+  {
+    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+  }
+}
+
+XFBSource::XFBSource(std::unique_ptr<TextureCache::TCacheEntry> texture)
+    : XFBSourceBase(), m_texture(std::move(texture))
+{
+}
+
+XFBSource::~XFBSource()
+{
+}
+
+void XFBSource::DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height)
+{
+  // Guest memory -> GPU EFB Textures
+  const u8* src_ptr = Memory::GetPointer(xfb_addr);
+  _assert_(src_ptr);
+  TextureCache::GetInstance()->DecodeYUYVTextureFromMemory(m_texture.get(), src_ptr, fb_width,
+                                                           fb_width * 2, fb_height);
+}
+
+void XFBSource::CopyEFB(float gamma)
+{
+  // Pending/batched EFB pokes should be included in the copied image.
+  FramebufferManager::GetInstance()->FlushEFBPokes();
+
+  // Virtual XFB, copy EFB at native resolution to m_texture
+  MathUtil::Rectangle<int> rect(0, 0, static_cast<int>(texWidth), static_cast<int>(texHeight));
+  VkRect2D vk_rect = {{rect.left, rect.top},
+                      {static_cast<u32>(rect.GetWidth()), static_cast<u32>(rect.GetHeight())}};
+
+  Texture2D* src_texture = FramebufferManager::GetInstance()->ResolveEFBColorTexture(vk_rect);
+  TextureCache::GetInstance()->CopyRectangleFromTexture(m_texture.get(), rect, src_texture, rect);
+
+  // If we sourced directly from the EFB framebuffer, restore it to a color attachment.
+  if (src_texture == FramebufferManager::GetInstance()->GetEFBColorTexture())
+  {
+    src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                    VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
   }
 }
 

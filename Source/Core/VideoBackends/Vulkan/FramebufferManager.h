@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoBackends/Vulkan/TextureCache.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 
 namespace Vulkan
@@ -17,12 +18,7 @@ class StateTracker;
 class StreamBuffer;
 class Texture2D;
 class VertexFormat;
-
-class XFBSource : public XFBSourceBase
-{
-  void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override {}
-  void CopyEFB(float gamma) override {}
-};
+class XFBSource;
 
 class FramebufferManager : public FramebufferManagerBase
 {
@@ -47,15 +43,11 @@ public:
 
   std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
                                                  unsigned int target_height,
-                                                 unsigned int layers) override
-  {
-    return std::make_unique<XFBSource>();
-  }
+                                                 unsigned int layers) override;
 
+  // GPU EFB textures -> Guest
   void CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_height, const EFBRectangle& source_rc,
-                     float gamma = 1.0f) override
-  {
-  }
+                     float gamma = 1.0f) override;
 
   void ResizeEFBTextures();
 
@@ -173,6 +165,26 @@ private:
   VkShaderModule m_poke_vertex_shader = VK_NULL_HANDLE;
   VkShaderModule m_poke_geometry_shader = VK_NULL_HANDLE;
   VkShaderModule m_poke_fragment_shader = VK_NULL_HANDLE;
+};
+
+// The XFB source class simply wraps a texture cache entry.
+// All the required functionality is provided by TextureCache.
+class XFBSource final : public XFBSourceBase
+{
+public:
+  explicit XFBSource(std::unique_ptr<TextureCache::TCacheEntry> texture);
+  ~XFBSource();
+
+  TextureCache::TCacheEntry* GetTexture() const { return m_texture.get(); }
+  // Guest -> GPU EFB Textures
+  void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override;
+
+  // Used for virtual XFB
+  void CopyEFB(float gamma) override;
+
+private:
+  std::unique_ptr<TextureCache::TCacheEntry> m_texture;
+  VkFramebuffer m_framebuffer;
 };
 
 }  // namespace Vulkan
