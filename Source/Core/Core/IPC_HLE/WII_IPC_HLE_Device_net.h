@@ -8,8 +8,8 @@
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 #include "Common/Timer.h"
-
 #include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 #ifdef _WIN32
