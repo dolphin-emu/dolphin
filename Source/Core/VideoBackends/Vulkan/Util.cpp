@@ -195,13 +195,12 @@ void BufferMemoryBarrier(VkCommandBuffer command_buffer, VkBuffer buffer,
                        &buffer_info, 0, nullptr);
 }
 
-void ExecuteCurrentCommandsAndRestoreState(StateTracker* state_tracker, bool execute_off_thread,
-                                           bool wait_for_completion)
+void ExecuteCurrentCommandsAndRestoreState(bool execute_off_thread, bool wait_for_completion)
 {
-  state_tracker->EndRenderPass();
+  g_state_tracker->EndRenderPass();
   g_command_buffer_mgr->ExecuteCommandBuffer(execute_off_thread, wait_for_completion);
-  state_tracker->InvalidateDescriptorSets();
-  state_tracker->SetPendingRebind();
+  g_state_tracker->InvalidateDescriptorSets();
+  g_state_tracker->SetPendingRebind();
 }
 
 VkShaderModule CreateShaderModule(const u32* spv, size_t spv_word_count)

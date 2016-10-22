@@ -12,7 +12,6 @@
 
 namespace Vulkan
 {
-class StateTracker;
 class StreamBuffer;
 
 class VertexManager : public VertexManagerBase
@@ -21,7 +20,9 @@ public:
   VertexManager();
   ~VertexManager();
 
-  bool Initialize(StateTracker* state_tracker);
+  static VertexManager* GetInstance();
+
+  bool Initialize();
 
   NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
 
@@ -31,8 +32,6 @@ protected:
 
 private:
   void vFlush(bool use_dst_alpha) override;
-
-  StateTracker* m_state_tracker = nullptr;
 
   std::vector<u8> m_cpu_vertex_buffer;
   std::vector<u16> m_cpu_index_buffer;

@@ -192,21 +192,19 @@ bool VideoBackend::Initialize(void* window_handle)
   // Create main wrapper instances.
   g_object_cache = std::make_unique<ObjectCache>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
+  g_state_tracker = std::make_unique<StateTracker>();
   g_renderer = std::make_unique<Renderer>(std::move(swap_chain));
-
-  // Cast to our wrapper classes, so we can call the init methods.
-  Renderer* renderer = static_cast<Renderer*>(g_renderer.get());
-  FramebufferManager* framebuffer_mgr =
-      static_cast<FramebufferManager*>(g_framebuffer_manager.get());
 
   // Invoke init methods on main wrapper classes.
   // These have to be done before the others because the destructors
   // for the remaining classes may call methods on these.
-  if (!g_object_cache->Initialize() || !framebuffer_mgr->Initialize() ||
-      !renderer->Initialize(framebuffer_mgr))
+  if (!g_object_cache->Initialize() || !FramebufferManager::GetInstance()->Initialize() ||
+      !g_state_tracker->Initialize() || !Renderer::GetInstance()->Initialize())
   {
     PanicAlert("Failed to initialize Vulkan classes.");
     g_renderer.reset();
+    g_state_tracker.reset();
+    g_framebuffer_manager.reset();
     g_object_cache.reset();
     g_command_buffer_mgr.reset();
     g_vulkan_context.reset();
@@ -219,18 +217,16 @@ bool VideoBackend::Initialize(void* window_handle)
   g_vertex_manager = std::make_unique<VertexManager>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_perf_query = std::make_unique<PerfQuery>();
-  VertexManager* vertex_manager = static_cast<VertexManager*>(g_vertex_manager.get());
-  TextureCache* texture_cache = static_cast<TextureCache*>(g_texture_cache.get());
-  PerfQuery* perf_query = static_cast<PerfQuery*>(g_perf_query.get());
-  if (!vertex_manager->Initialize(renderer->GetStateTracker()) ||
-      !texture_cache->Initialize(renderer->GetStateTracker()) ||
-      !perf_query->Initialize(renderer->GetStateTracker()))
+  if (!VertexManager::GetInstance()->Initialize() || !TextureCache::GetInstance()->Initialize() ||
+      !PerfQuery::GetInstance()->Initialize())
   {
     PanicAlert("Failed to initialize Vulkan classes.");
     g_perf_query.reset();
     g_texture_cache.reset();
     g_vertex_manager.reset();
     g_renderer.reset();
+    g_state_tracker.reset();
+    g_framebuffer_manager.reset();
     g_object_cache.reset();
     g_command_buffer_mgr.reset();
     g_vulkan_context.reset();
@@ -273,11 +269,12 @@ void VideoBackend::Video_Cleanup()
   // Save all cached pipelines out to disk for next time.
   g_object_cache->SavePipelineCache();
 
-  g_texture_cache.reset();
   g_perf_query.reset();
+  g_texture_cache.reset();
   g_vertex_manager.reset();
-  g_renderer.reset();
   g_framebuffer_manager.reset();
+  g_state_tracker.reset();
+  g_renderer.reset();
 
   CleanupShared();
 }

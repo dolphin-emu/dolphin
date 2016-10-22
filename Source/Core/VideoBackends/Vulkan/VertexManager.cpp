@@ -36,10 +36,13 @@ VertexManager::~VertexManager()
 {
 }
 
-bool VertexManager::Initialize(StateTracker* state_tracker)
+VertexManager* VertexManager::GetInstance()
 {
-  m_state_tracker = state_tracker;
+  return static_cast<VertexManager*>(g_vertex_manager.get());
+}
 
+bool VertexManager::Initialize()
+{
   m_vertex_stream_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_VERTEX_BUFFER_BIT,
                                                 INITIAL_VERTEX_BUFFER_SIZE, MAX_VERTEX_BUFFER_SIZE);
 
@@ -72,8 +75,8 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
   ADDSTAT(stats.thisFrame.bytesVertexStreamed, static_cast<int>(vertex_data_size));
   ADDSTAT(stats.thisFrame.bytesIndexStreamed, static_cast<int>(index_data_size));
 
-  m_state_tracker->SetVertexBuffer(m_vertex_stream_buffer->GetBuffer(), 0);
-  m_state_tracker->SetIndexBuffer(m_index_stream_buffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT16);
+  g_state_tracker->SetVertexBuffer(m_vertex_stream_buffer->GetBuffer(), 0);
+  g_state_tracker->SetIndexBuffer(m_index_stream_buffer->GetBuffer(), 0, VK_INDEX_TYPE_UINT16);
 }
 
 void VertexManager::ResetBuffer(u32 stride)
@@ -94,7 +97,7 @@ void VertexManager::ResetBuffer(u32 stride)
   {
     // Flush any pending commands first, so that we can wait on the fences
     WARN_LOG(VIDEO, "Executing command list while waiting for space in vertex/index buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(m_state_tracker, false);
+    Util::ExecuteCurrentCommandsAndRestoreState(false);
 
     // Attempt to allocate again, this may cause a fence wait
     if (!has_vbuffer_allocation)
@@ -133,21 +136,21 @@ void VertexManager::vFlush(bool use_dst_alpha)
   u32 index_count = IndexGenerator::GetIndexLen();
 
   // Update assembly state
-  m_state_tracker->SetVertexFormat(vertex_format);
+  g_state_tracker->SetVertexFormat(vertex_format);
   switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
-    m_state_tracker->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
-    m_state_tracker->DisableBackFaceCulling();
+    g_state_tracker->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_POINT_LIST);
+    g_state_tracker->DisableBackFaceCulling();
     break;
 
   case PRIMITIVE_LINES:
-    m_state_tracker->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
-    m_state_tracker->DisableBackFaceCulling();
+    g_state_tracker->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_LINE_LIST);
+    g_state_tracker->DisableBackFaceCulling();
     break;
 
   case PRIMITIVE_TRIANGLES:
-    m_state_tracker->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+    g_state_tracker->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
     g_renderer->SetGenerationMode();
     break;
   }
@@ -158,37 +161,34 @@ void VertexManager::vFlush(bool use_dst_alpha)
     dstalpha_mode = DSTALPHA_DUAL_SOURCE_BLEND;
 
   // Check for any shader stage changes
-  m_state_tracker->CheckForShaderChanges(m_current_primitive_type, dstalpha_mode);
+  g_state_tracker->CheckForShaderChanges(m_current_primitive_type, dstalpha_mode);
 
   // Update any changed constants
-  m_state_tracker->UpdateVertexShaderConstants();
-  m_state_tracker->UpdateGeometryShaderConstants();
-  m_state_tracker->UpdatePixelShaderConstants();
+  g_state_tracker->UpdateVertexShaderConstants();
+  g_state_tracker->UpdateGeometryShaderConstants();
+  g_state_tracker->UpdatePixelShaderConstants();
 
   // Flush all EFB pokes and invalidate the peek cache.
-  // TODO: Cleaner way without the cast.
-  FramebufferManager* framebuffer_mgr =
-      static_cast<FramebufferManager*>(g_framebuffer_manager.get());
-  framebuffer_mgr->InvalidatePeekCache();
-  framebuffer_mgr->FlushEFBPokes(m_state_tracker);
+  FramebufferManager::GetInstance()->InvalidatePeekCache();
+  FramebufferManager::GetInstance()->FlushEFBPokes();
 
   // If bounding box is enabled, we need to flush any changes first, then invalidate what we have.
   if (g_vulkan_context->SupportsBoundingBox())
   {
-    BoundingBox* bounding_box = static_cast<Renderer*>(g_renderer.get())->GetBoundingBox();
+    BoundingBox* bounding_box = Renderer::GetInstance()->GetBoundingBox();
     bool bounding_box_enabled = (::BoundingBox::active && g_ActiveConfig.bBBoxEnable);
     if (bounding_box_enabled)
     {
-      bounding_box->Flush(m_state_tracker);
-      bounding_box->Invalidate(m_state_tracker);
+      bounding_box->Flush();
+      bounding_box->Invalidate();
     }
 
     // Update which descriptor set/pipeline layout to use.
-    m_state_tracker->SetBBoxEnable(bounding_box_enabled);
+    g_state_tracker->SetBBoxEnable(bounding_box_enabled);
   }
 
   // Bind all pending state to the command buffer
-  if (!m_state_tracker->Bind())
+  if (!g_state_tracker->Bind())
   {
     WARN_LOG(VIDEO, "Skipped draw of %u indices", index_count);
     return;
@@ -207,8 +207,8 @@ void VertexManager::vFlush(bool use_dst_alpha)
   bool logic_op_enabled = bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable;
   if (use_dst_alpha && (!g_vulkan_context->SupportsDualSourceBlend() || logic_op_enabled))
   {
-    m_state_tracker->CheckForShaderChanges(m_current_primitive_type, DSTALPHA_ALPHA_PASS);
-    if (!m_state_tracker->Bind())
+    g_state_tracker->CheckForShaderChanges(m_current_primitive_type, DSTALPHA_ALPHA_PASS);
+    if (!g_state_tracker->Bind())
     {
       WARN_LOG(VIDEO, "Skipped draw of %u indices (alpha pass)", index_count);
       return;
@@ -218,7 +218,7 @@ void VertexManager::vFlush(bool use_dst_alpha)
                      m_current_draw_base_index, m_current_draw_base_vertex, 0);
   }
 
-  m_state_tracker->OnDraw();
+  g_state_tracker->OnDraw();
 }
 
 }  // namespace Vulkan

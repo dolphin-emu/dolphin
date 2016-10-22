@@ -24,8 +24,10 @@ class VertexFormat;
 class StateTracker
 {
 public:
-  StateTracker();
-  ~StateTracker();
+  StateTracker() = default;
+  ~StateTracker() = default;
+
+  bool Initialize();
 
   const RasterizationState& GetRasterizationState() const
   {
@@ -189,4 +191,6 @@ private:
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;
 };
+
+extern std::unique_ptr<StateTracker> g_state_tracker;
 }
