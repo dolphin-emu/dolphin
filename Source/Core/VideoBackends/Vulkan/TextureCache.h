@@ -23,7 +23,9 @@ public:
   TextureCache();
   ~TextureCache();
 
-  bool Initialize(StateTracker* state_tracker);
+  static TextureCache* GetInstance();
+
+  bool Initialize();
 
   bool CompileShaders() override;
   void DeleteShaders() override;
@@ -37,8 +39,8 @@ public:
 private:
   struct TCacheEntry : TCacheEntryBase
   {
-    TCacheEntry(const TCacheEntryConfig& config_, TextureCache* parent,
-                std::unique_ptr<Texture2D> texture, VkFramebuffer framebuffer);
+    TCacheEntry(const TCacheEntryConfig& config_, std::unique_ptr<Texture2D> texture,
+                VkFramebuffer framebuffer);
     ~TCacheEntry();
 
     Texture2D* GetTexture() const { return m_texture.get(); }
@@ -55,7 +57,6 @@ private:
     bool Save(const std::string& filename, unsigned int level) override;
 
   private:
-    TextureCache* m_parent;
     std::unique_ptr<Texture2D> m_texture;
 
     // If we're an EFB copy, framebuffer for drawing into.
@@ -67,8 +68,6 @@ private:
   bool CreateRenderPasses();
 
   VkRenderPass GetRenderPassForTextureUpdate(const Texture2D* texture) const;
-
-  StateTracker* m_state_tracker = nullptr;
 
   VkRenderPass m_initialize_render_pass = VK_NULL_HANDLE;
   VkRenderPass m_update_render_pass = VK_NULL_HANDLE;
