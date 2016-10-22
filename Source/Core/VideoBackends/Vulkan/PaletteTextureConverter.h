@@ -13,7 +13,6 @@
 
 namespace Vulkan
 {
-class StateTracker;
 class Texture2D;
 
 // Since this converter uses a uniform texel buffer, we can't use the general pipeline generators.
@@ -26,10 +25,9 @@ public:
 
   bool Initialize();
 
-  void ConvertTexture(StateTracker* state_tracker, VkCommandBuffer command_buffer,
-                      VkRenderPass render_pass, VkFramebuffer dst_framebuffer,
-                      Texture2D* src_texture, u32 width, u32 height, void* palette,
-                      TlutFormat format, u32 src_format);
+  void ConvertTexture(VkCommandBuffer command_buffer, VkRenderPass render_pass,
+                      VkFramebuffer dst_framebuffer, Texture2D* src_texture, u32 width, u32 height,
+                      void* palette, TlutFormat format, u32 src_format);
 
 private:
   static const size_t NUM_PALETTE_CONVERSION_SHADERS = 3;

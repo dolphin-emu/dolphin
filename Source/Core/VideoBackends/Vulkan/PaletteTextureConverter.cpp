@@ -62,8 +62,7 @@ bool PaletteTextureConverter::Initialize()
   return true;
 }
 
-void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
-                                             VkCommandBuffer command_buffer,
+void PaletteTextureConverter::ConvertTexture(VkCommandBuffer command_buffer,
                                              VkRenderPass render_pass,
                                              VkFramebuffer dst_framebuffer, Texture2D* src_texture,
                                              u32 width, u32 height, void* palette,
@@ -89,7 +88,7 @@ void PaletteTextureConverter::ConvertTexture(StateTracker* state_tracker,
            g_command_buffer_mgr->AllocateDescriptorSet(m_palette_set_layout)) == VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(state_tracker, false);
+    Util::ExecuteCurrentCommandsAndRestoreState(false);
 
     if (!m_palette_stream_buffer->ReserveMemory(palette_size,
                                                 g_vulkan_context->GetTexelBufferAlignment()) ||

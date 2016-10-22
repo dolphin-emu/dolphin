@@ -32,10 +32,13 @@ PerfQuery::~PerfQuery()
     vkDestroyQueryPool(g_vulkan_context->GetDevice(), m_query_pool, nullptr);
 }
 
-bool PerfQuery::Initialize(StateTracker* state_tracker)
+Vulkan::PerfQuery* PerfQuery::GetInstance()
 {
-  m_state_tracker = state_tracker;
+  return static_cast<PerfQuery*>(g_perf_query.get());
+}
 
+bool PerfQuery::Initialize()
+{
   if (!CreateQueryPool())
   {
     PanicAlert("Failed to create query pool");
@@ -86,11 +89,11 @@ void PerfQuery::EnableQuery(PerfQueryGroup type)
 
     // Ensure the query starts within a render pass.
     // TODO: Is this needed?
-    m_state_tracker->BeginRenderPass();
+    StateTracker::GetInstance()->BeginRenderPass();
     vkCmdBeginQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, index, flags);
 
     // Prevent background command buffer submission while the query is active.
-    m_state_tracker->SetBackgroundCommandBufferExecution(false);
+    StateTracker::GetInstance()->SetBackgroundCommandBufferExecution(false);
   }
 }
 
@@ -101,7 +104,7 @@ void PerfQuery::DisableQuery(PerfQueryGroup type)
     // DisableQuery should be called for each EnableQuery, so subtract one to get the previous one.
     u32 index = (m_query_read_pos + m_query_count - 1) % PERF_QUERY_BUFFER_SIZE;
     vkCmdEndQuery(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, index);
-    m_state_tracker->SetBackgroundCommandBufferExecution(true);
+    StateTracker::GetInstance()->SetBackgroundCommandBufferExecution(true);
     DEBUG_LOG(VIDEO, "end query %u", index);
   }
 }
@@ -113,7 +116,7 @@ void PerfQuery::ResetQuery()
   std::fill_n(m_results, ArraySize(m_results), 0);
 
   // Reset entire query pool, ensuring all queries are ready to write to.
-  m_state_tracker->EndRenderPass();
+  StateTracker::GetInstance()->EndRenderPass();
   vkCmdResetQueryPool(g_command_buffer_mgr->GetCurrentCommandBuffer(), m_query_pool, 0,
                       PERF_QUERY_BUFFER_SIZE);
 
@@ -346,7 +349,7 @@ void PerfQuery::NonBlockingPartialFlush()
   // Submit a command buffer in the background if the front query is not bound to one.
   // Ideally this will complete before the buffer fills.
   if (m_query_buffer[m_query_read_pos].pending_fence == VK_NULL_HANDLE)
-    Util::ExecuteCurrentCommandsAndRestoreState(m_state_tracker, true, false);
+    Util::ExecuteCurrentCommandsAndRestoreState(true, false);
 }
 
 void PerfQuery::BlockingPartialFlush()
@@ -360,7 +363,7 @@ void PerfQuery::BlockingPartialFlush()
   {
     // This will callback OnCommandBufferQueued which will set the fence on the entry.
     // We wait for completion, which will also call OnCommandBufferExecuted, and clear the fence.
-    Util::ExecuteCurrentCommandsAndRestoreState(m_state_tracker, false, true);
+    Util::ExecuteCurrentCommandsAndRestoreState(false, true);
   }
   else
   {

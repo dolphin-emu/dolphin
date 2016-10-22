@@ -14,7 +14,6 @@
 namespace Vulkan
 {
 class StagingBuffer;
-class StateTracker;
 
 class PerfQuery : public PerfQueryBase
 {
@@ -22,7 +21,9 @@ public:
   PerfQuery();
   ~PerfQuery();
 
-  bool Initialize(StateTracker* state_tracker);
+  static PerfQuery* GetInstance();
+
+  bool Initialize();
 
   void EnableQuery(PerfQueryGroup type) override;
   void DisableQuery(PerfQueryGroup type) override;
@@ -51,8 +52,6 @@ private:
 
   void NonBlockingPartialFlush();
   void BlockingPartialFlush();
-
-  StateTracker* m_state_tracker = nullptr;
 
   // when testing in SMS: 64 was too small, 128 was ok
   // TODO: This should be size_t, but the base class uses u32s
