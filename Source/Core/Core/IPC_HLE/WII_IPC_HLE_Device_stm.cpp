@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
+#include "Core/HW/Memmap.h"
 
 namespace Core
 {
