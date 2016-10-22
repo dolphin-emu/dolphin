@@ -9,7 +9,6 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-
 #include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
 

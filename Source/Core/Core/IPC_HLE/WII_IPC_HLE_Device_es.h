@@ -9,9 +9,12 @@
 #include <string>
 #include <vector>
 
+#include "Common/CommonTypes.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 class PointerWrap;
+
 namespace DiscIO
 {
 class CNANDContentLoader;

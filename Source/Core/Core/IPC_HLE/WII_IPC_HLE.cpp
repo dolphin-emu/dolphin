@@ -20,27 +20,23 @@ in case of success they are
 They will also generate a true or false return for UpdateInterrupts() in WII_IPC.cpp.
 */
 
-#include <list>
+#include <deque>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/Thread.h"
-
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
 #include "Core/HW/WII_IPC.h"
-
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
@@ -57,11 +53,14 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_ven.h"
 
+namespace CoreTiming
+{
+struct EventType;
+}  // namespace CoreTiming
+
 #if defined(__LIBUSB__)
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
 #endif
-
-#include "Core/PowerPC/PowerPC.h"
 
 namespace WII_IPC_HLE_Interface
 {
