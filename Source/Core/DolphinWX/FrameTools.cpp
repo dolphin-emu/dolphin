@@ -523,13 +523,15 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED(event))
     // Core is initialized and emulator is running
     if (UseDebugger)
     {
-      CPU::EnableStepping(!CPU::IsStepping());
-
-      wxThread::Sleep(20);
-      g_pCodeWindow->JumpToAddress(PC);
-      g_pCodeWindow->Repopulate();
-      // Update toolbar with Play/Pause status
-      UpdateGUI();
+      bool was_stopped = CPU::IsStepping();
+      CPU::EnableStepping(!was_stopped);
+      // When the CPU stops it generates a IDM_UPDATE_DISASM_DIALOG which automatically refreshes
+      // the UI, the UI only needs to be refreshed manually when unpausing.
+      if (was_stopped)
+      {
+        g_pCodeWindow->Repopulate();
+        UpdateGUI();
+      }
     }
     else
     {
