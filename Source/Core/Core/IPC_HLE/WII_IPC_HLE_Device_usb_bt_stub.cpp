@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.h"
+
+#include "Common/ChunkFile.h"
 #include "Common/MsgHandler.h"
 
 namespace Core
