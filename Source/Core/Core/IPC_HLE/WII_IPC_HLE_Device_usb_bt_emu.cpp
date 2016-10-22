@@ -185,20 +185,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtl(u32 _CommandAddr
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtlV(u32 _CommandAddress)
 {
-  /*
-    Memory::Write_U8(255, 0x80149950);  // BTM LOG  // 3 logs L2Cap  // 4 logs l2_csm$
-    Memory::Write_U8(255, 0x80149949);  // Security Manager
-    Memory::Write_U8(255, 0x80149048);  // HID
-    Memory::Write_U8(3, 0x80152058);    // low ??   // >= 4 and you will get a lot of event messages
-    of the same type
-    Memory::Write_U8(1, 0x80152018);    // WUD
-    Memory::Write_U8(1, 0x80151FC8);    // DEBUGPrint
-    Memory::Write_U8(1, 0x80151488);    // WPAD_LOG
-    Memory::Write_U8(1, 0x801514A8);    // USB_LOG
-    Memory::Write_U8(1, 0x801514D8);    // WUD_DEBUGPrint
-    Memory::Write_U8(1, 0x80148E09);    // HID LOG
-  */
-
   bool _SendReply = false;
 
   SIOCtlVBuffer CommandBuffer(_CommandAddress);
@@ -221,17 +207,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtlV(u32 _CommandAdd
     _dbg_assert_msg_(WII_IPC_WIIMOTE,
                      *(u8*)Memory::GetPointer(CommandBuffer.InBuffer[5].m_Address) == 0,
                      "WIIMOTE: Termination != 0");
-
-#if 0  // this log can get really annoying
-			DEBUG_LOG(WII_IPC_WIIMOTE, "USB_IOCTL_CTRLMSG (0x%08x) - execute command", _CommandAddress);
-			DEBUG_LOG(WII_IPC_WIIMOTE, "    bRequestType: 0x%x", m_CtrlSetup.bRequestType);
-			DEBUG_LOG(WII_IPC_WIIMOTE, "    bRequest: 0x%x", m_CtrlSetup.bRequest);
-			DEBUG_LOG(WII_IPC_WIIMOTE, "    wValue: 0x%x", m_CtrlSetup.wValue);
-			DEBUG_LOG(WII_IPC_WIIMOTE, "    wIndex: 0x%x", m_CtrlSetup.wIndex);
-			DEBUG_LOG(WII_IPC_WIIMOTE, "    wLength: 0x%x", m_CtrlSetup.wLength);
-			DEBUG_LOG(WII_IPC_WIIMOTE, "    m_PayLoadAddr:  0x%x", m_CtrlSetup.m_PayLoadAddr);
-			DEBUG_LOG(WII_IPC_WIIMOTE, "    m_PayLoadSize:  0x%x", m_CtrlSetup.m_PayLoadSize);
-#endif
 
     // Replies are generated inside
     ExecuteHCICommandMessage(m_CtrlSetup);
@@ -339,16 +314,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendToDevice(u16 _ConnectionHandle
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IncDataPacket(u16 _ConnectionHandle)
 {
   m_PacketCount[_ConnectionHandle & 0xff]++;
-
-// I don't think this makes sense or should be necessary
-// m_PacketCount refers to "completed" packets and is not related to some buffer size, yes?
-#if 0
-	if (m_PacketCount[_ConnectionHandle & 0xff] > (unsigned int)m_acl_pkts_num)
-	{
-		DEBUG_LOG(WII_IPC_WIIMOTE, "ACL buffer overflow");
-		m_PacketCount[_ConnectionHandle & 0xff] = m_acl_pkts_num;
-	}
-#endif
 }
 
 // Here we send ACL packets to CPU. They will consist of header + data.
@@ -1003,7 +968,6 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendEventLinkKeyNotification(const
     DEBUG_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", link_key_info->bdaddr.b[0],
               link_key_info->bdaddr.b[1], link_key_info->bdaddr.b[2], link_key_info->bdaddr.b[3],
               link_key_info->bdaddr.b[4], link_key_info->bdaddr.b[5]);
-    LOG_LinkKey(link_key_info->key);
   }
 
   AddEventToQueue(Event);
@@ -1378,7 +1342,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CommandLinkKeyRep(const u8* input)
   DEBUG_LOG(WII_IPC_WIIMOTE, "  bd: %02x:%02x:%02x:%02x:%02x:%02x", key_rep->bdaddr.b[0],
             key_rep->bdaddr.b[1], key_rep->bdaddr.b[2], key_rep->bdaddr.b[3], key_rep->bdaddr.b[4],
             key_rep->bdaddr.b[5]);
-  LOG_LinkKey(key_rep->key);
 
   hci_link_key_rep_rp reply;
   reply.status = 0x00;
@@ -1922,14 +1885,4 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::DisplayDisconnectMessage(const int
   // and display things like "Wii Remote %i disconnected due to inactivity!" etc.
   Core::DisplayMessage(
       StringFromFormat("Wii Remote %i disconnected by emulated software", wiimoteNumber), 3000);
-}
-
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::LOG_LinkKey(const u8* _pLinkKey)
-{
-  DEBUG_LOG(WII_IPC_WIIMOTE, "  link key: "
-                             "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x "
-                             "0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x 0x%02x ",
-            _pLinkKey[0], _pLinkKey[1], _pLinkKey[2], _pLinkKey[3], _pLinkKey[4], _pLinkKey[5],
-            _pLinkKey[6], _pLinkKey[7], _pLinkKey[8], _pLinkKey[9], _pLinkKey[10], _pLinkKey[11],
-            _pLinkKey[12], _pLinkKey[13], _pLinkKey[14], _pLinkKey[15]);
 }
