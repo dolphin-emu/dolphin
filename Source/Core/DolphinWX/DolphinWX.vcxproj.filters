@@ -151,6 +151,9 @@
     <ClCompile Include="MainMenuBar.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
+    <ClCompile Include="MainToolBar.cpp">
+      <Filter>GUI</Filter>
+    </ClCompile>
     <ClCompile Include="MemcardManager.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -328,6 +331,9 @@
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="MainMenuBar.h">
+      <Filter>GUI</Filter>
+    </ClInclude>
+    <ClInclude Include="MainToolBar.h">
       <Filter>GUI</Filter>
     </ClInclude>
     <ClInclude Include="MemcardManager.h">

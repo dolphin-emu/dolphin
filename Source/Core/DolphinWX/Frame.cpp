@@ -27,6 +27,7 @@
 #include <wx/statusbr.h>
 #include <wx/textctrl.h>
 #include <wx/thread.h>
+#include <wx/toolbar.h>
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -222,6 +223,7 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 
 wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_LOCAL_INI_CHANGED, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, wxCommandEvent);
 
 // Event tables
 BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
@@ -293,10 +295,9 @@ static BOOL WINAPI s_ctrl_handler(DWORD fdwCtrlType)
 CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geometry,
                bool use_debugger, bool batch_mode, bool show_log_window, long style)
     : CRenderFrame(parent, id, title, wxDefaultPosition, wxSize(800, 600), style),
-      UseDebugger(use_debugger), m_bBatchMode(batch_mode),
-      m_toolbar_bitmap_size(FromDIP(wxSize(32, 32)))
+      UseDebugger(use_debugger), m_bBatchMode(batch_mode)
 {
-  BindMenuBarEvents();
+  BindEvents();
 
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
     bFloatWindow[i] = false;
@@ -312,8 +313,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
     g_pCodeWindow->Load();
   }
 
-  // Create toolbar bitmaps
-  InitBitmaps();
+  wxFrame::CreateToolBar(wxTB_DEFAULT_STYLE | wxTB_TEXT | wxTB_FLAT);
 
   // Give it a status bar
   SetStatusBar(CreateStatusBar(2, wxST_SIZEGRIP, ID_STATUSBAR));
@@ -361,8 +361,6 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
                                               .Hide());
   AuiFullscreen = m_Mgr->SavePerspective();
 
-  // Create toolbar
-  RecreateToolbar();
   if (!SConfig::GetInstance().m_InterfaceToolbar)
     DoToggleToolbar(false);
 
@@ -481,6 +479,13 @@ CFrame::~CFrame()
   // This object is owned by us, not wxw
   m_menubar_shadow->Destroy();
   m_menubar_shadow = nullptr;
+}
+
+void CFrame::BindEvents()
+{
+  BindMenuBarEvents();
+
+  Bind(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, &CFrame::OnReloadThemeBitmaps, this);
 }
 
 bool CFrame::RendererIsFullscreen()

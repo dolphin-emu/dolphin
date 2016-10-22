@@ -37,6 +37,8 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
   Bind(wxEVT_BUTTON, &CConfigMain::OnCloseButton, this, wxID_CLOSE);
   Bind(wxDOLPHIN_CFG_REFRESH_LIST, &CConfigMain::OnSetRefreshGameListOnClose, this);
 
+  wxDialog::SetExtraStyle(GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
+
   CreateGUIControls();
 }
 
