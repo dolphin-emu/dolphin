@@ -121,6 +121,11 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   entry->GetTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
+static bool IsDepthCopyFormat(PEControl::PixelFormat format)
+{
+  return format == PEControl::Z24;
+}
+
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
                            u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat src_format,
                            const EFBRectangle& src_rect, bool is_intensity, bool scale_by_half)
@@ -135,7 +140,7 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
                      {static_cast<u32>(scaled_src_rect.GetWidth()),
                       static_cast<u32>(scaled_src_rect.GetHeight())}};
   Texture2D* src_texture;
-  if (src_format == PEControl::Z24)
+  if (IsDepthCopyFormat(src_format))
     src_texture = FramebufferManager::GetInstance()->ResolveEFBDepthTexture(region);
   else
     src_texture = FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
@@ -157,6 +162,95 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
 
   // Transition back to original state
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
+}
+
+void TextureCache::CopyRectangleFromTexture(TCacheEntry* dst_texture,
+                                            const MathUtil::Rectangle<int>& dst_rect,
+                                            Texture2D* src_texture,
+                                            const MathUtil::Rectangle<int>& src_rect)
+{
+  // Fast path when not scaling the image.
+  if (src_rect.GetWidth() == dst_rect.GetWidth() && src_rect.GetHeight() == dst_rect.GetHeight())
+    CopyTextureRectangle(dst_texture, dst_rect, src_texture, src_rect);
+  else
+    ScaleTextureRectangle(dst_texture, dst_rect, src_texture, src_rect);
+}
+
+void TextureCache::CopyTextureRectangle(TCacheEntry* dst_texture,
+                                        const MathUtil::Rectangle<int>& dst_rect,
+                                        Texture2D* src_texture,
+                                        const MathUtil::Rectangle<int>& src_rect)
+{
+  _assert_msg_(VIDEO, static_cast<u32>(src_rect.GetWidth()) <= src_texture->GetWidth() &&
+                          static_cast<u32>(src_rect.GetHeight()) <= src_texture->GetHeight(),
+               "Source rect is too large for CopyRectangleFromTexture");
+
+  _assert_msg_(VIDEO, static_cast<u32>(dst_rect.GetWidth()) <= dst_texture->config.width &&
+                          static_cast<u32>(dst_rect.GetHeight()) <= dst_texture->config.height,
+               "Dest rect is too large for CopyRectangleFromTexture");
+
+  VkImageCopy image_copy = {
+      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
+       src_texture->GetLayers()},        // VkImageSubresourceLayers    srcSubresource
+      {src_rect.left, src_rect.top, 0},  // VkOffset3D                  srcOffset
+      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,  // VkImageSubresourceLayers    dstSubresource
+       dst_texture->config.layers},
+      {dst_rect.left, dst_rect.top, 0},  // VkOffset3D                  dstOffset
+      {static_cast<uint32_t>(src_rect.GetWidth()), static_cast<uint32_t>(src_rect.GetHeight()),
+       1}  // VkExtent3D                  extent
+  };
+
+  // Must be called outside of a render pass.
+  StateTracker::GetInstance()->EndRenderPass();
+
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  dst_texture->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+
+  vkCmdCopyImage(g_command_buffer_mgr->GetCurrentCommandBuffer(), src_texture->GetImage(),
+                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, dst_texture->GetTexture()->GetImage(),
+                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+}
+
+void TextureCache::ScaleTextureRectangle(TCacheEntry* dst_texture,
+                                         const MathUtil::Rectangle<int>& dst_rect,
+                                         Texture2D* src_texture,
+                                         const MathUtil::Rectangle<int>& src_rect)
+{
+  // Can't do this within a game render pass.
+  StateTracker::GetInstance()->EndRenderPass();
+  StateTracker::GetInstance()->SetPendingRebind();
+
+  // Can't render to a non-rendertarget (no framebuffer).
+  _assert_msg_(VIDEO, dst_texture->config.rendertarget,
+               "Destination texture for partial copy is not a rendertarget");
+
+  // Render pass expects dst_texture to be in SHADER_READ_ONLY state.
+  src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  dst_texture->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         g_object_cache->GetStandardPipelineLayout(),
+                         GetRenderPassForTextureUpdate(dst_texture->GetTexture()),
+                         g_object_cache->GetPassthroughVertexShader(),
+                         g_object_cache->GetPassthroughGeometryShader(), m_copy_shader);
+
+  VkRect2D region = {
+      {dst_rect.left, dst_rect.top},
+      {static_cast<u32>(dst_rect.GetWidth()), static_cast<u32>(dst_rect.GetHeight())}};
+  draw.BeginRenderPass(dst_texture->GetFramebuffer(), region);
+  draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetLinearSampler());
+  draw.DrawQuad(dst_rect.left, dst_rect.top, dst_rect.GetWidth(), dst_rect.GetHeight(),
+                src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
+                static_cast<int>(src_texture->GetWidth()),
+                static_cast<int>(src_texture->GetHeight()));
+  draw.EndRenderPass();
+
+  // Render pass transitions destination texture to SHADER_READ_ONLY.
+  dst_texture->GetTexture()->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
@@ -466,7 +560,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   FramebufferManager* framebuffer_mgr =
       static_cast<FramebufferManager*>(g_framebuffer_manager.get());
   TargetRectangle scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
-  bool is_depth_copy = (src_format == PEControl::Z24);
+  bool is_depth_copy = IsDepthCopyFormat(src_format);
 
   // Flush EFB pokes first, as they're expected to be included.
   framebuffer_mgr->FlushEFBPokes();
@@ -528,74 +622,14 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
                                                          const MathUtil::Rectangle<int>& dst_rect)
 {
   const TCacheEntry* source_vk = static_cast<const TCacheEntry*>(source);
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+  TextureCache::GetInstance()->CopyRectangleFromTexture(this, dst_rect, source_vk->GetTexture(),
+                                                        src_rect);
 
-  // Fast path when not scaling the image.
-  if (src_rect.GetWidth() == dst_rect.GetWidth() && src_rect.GetHeight() == dst_rect.GetHeight())
-  {
-    // These assertions should hold true unless the base code is passing us sizes too large, in
-    // which case it should be fixed instead.
-    _assert_msg_(VIDEO, static_cast<u32>(src_rect.GetWidth()) <= source->config.width &&
-                            static_cast<u32>(src_rect.GetHeight()) <= source->config.height,
-                 "Source rect is too large for CopyRectangleFromTexture");
-
-    _assert_msg_(VIDEO, static_cast<u32>(dst_rect.GetWidth()) <= config.width &&
-                            static_cast<u32>(dst_rect.GetHeight()) <= config.height,
-                 "Dest rect is too large for CopyRectangleFromTexture");
-
-    VkImageCopy image_copy = {
-        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
-         source->config.layers},           // VkImageSubresourceLayers    srcSubresource
-        {src_rect.left, src_rect.top, 0},  // VkOffset3D                  srcOffset
-        {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
-         config.layers},                   // VkImageSubresourceLayers    dstSubresource
-        {dst_rect.left, dst_rect.top, 0},  // VkOffset3D                  dstOffset
-        {static_cast<uint32_t>(src_rect.GetWidth()), static_cast<uint32_t>(src_rect.GetHeight()),
-         1}  // VkExtent3D                  extent
-    };
-
-    // Must be called outside of a render pass.
-    StateTracker::GetInstance()->EndRenderPass();
-
-    source_vk->m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-    m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-
-    vkCmdCopyImage(command_buffer, source_vk->m_texture->GetImage(),
-                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_texture->GetImage(),
-                   VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
-
-    m_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    source_vk->m_texture->TransitionToLayout(command_buffer,
-                                             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    return;
-  }
-
-  // Can't do this within a game render pass.
-  StateTracker::GetInstance()->EndRenderPass();
-  StateTracker::GetInstance()->SetPendingRebind();
-
-  // Can't render to a non-rendertarget (no framebuffer).
-  _assert_msg_(VIDEO, config.rendertarget,
-               "Destination texture for partial copy is not a rendertarget");
-
-  UtilityShaderDraw draw(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), g_object_cache->GetStandardPipelineLayout(),
-      TextureCache::GetInstance()->GetRenderPassForTextureUpdate(m_texture.get()),
-      g_object_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
-      TextureCache::GetInstance()->m_copy_shader);
-
-  VkRect2D region = {
-      {dst_rect.left, dst_rect.top},
-      {static_cast<u32>(dst_rect.GetWidth()), static_cast<u32>(dst_rect.GetHeight())}};
-  draw.BeginRenderPass(m_framebuffer, region);
-  draw.SetPSSampler(0, source_vk->GetTexture()->GetView(), g_object_cache->GetLinearSampler());
-  draw.DrawQuad(dst_rect.left, dst_rect.top, dst_rect.GetWidth(), dst_rect.GetHeight(),
-                src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
-                source->config.width, source->config.height);
-  draw.EndRenderPass();
-
-  // Render pass transitions texture to SHADER_READ_ONLY.
-  m_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  // Ensure textures are ready for use again.
+  m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  source_vk->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 }
 
 void TextureCache::TCacheEntry::Bind(unsigned int stage)

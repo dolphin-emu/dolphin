@@ -63,9 +63,20 @@ public:
                u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
                bool is_intensity, bool scale_by_half) override;
 
+  void CopyRectangleFromTexture(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
+                                Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
+
 private:
   bool CreateRenderPasses();
   VkRenderPass GetRenderPassForTextureUpdate(const Texture2D* texture) const;
+
+  // Copies the contents of a texture using vkCmdCopyImage
+  void CopyTextureRectangle(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
+                            Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
+
+  // Copies (and optionally scales) the contents of a texture using a framgent shader.
+  void ScaleTextureRectangle(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
+                             Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
 
   VkRenderPass m_initialize_render_pass = VK_NULL_HANDLE;
   VkRenderPass m_update_render_pass = VK_NULL_HANDLE;
