@@ -130,7 +130,11 @@ void CBreakPointWindow::OnSelectBP(wxListEvent& event)
   {
     u32 Address = (u32)m_BreakPointListView->GetItemData(Index);
     if (m_pCodeWindow)
-      m_pCodeWindow->JumpToAddress(Address);
+    {
+      wxCommandEvent ev(wxEVT_JUMPTO_ADDRESS);
+      ev.SetString(wxString::Format("%08x", Address));
+      m_pCodeWindow->GetEventHandler()->ProcessEvent(ev);
+    }
   }
 }
 

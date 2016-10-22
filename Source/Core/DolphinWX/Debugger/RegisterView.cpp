@@ -513,6 +513,7 @@ void CRegisterView::OnPopupMenu(wxCommandEvent& event)
   CCodeWindow* code_window = cframe->g_pCodeWindow;
   CWatchWindow* watch_window = code_window->GetPanel<CWatchWindow>();
   CMemoryWindow* memory_window = code_window->GetPanel<CMemoryWindow>();
+  wxCommandEvent ev(wxEVT_JUMPTO_ADDRESS);
 
   switch (event.GetId())
   {
@@ -528,7 +529,8 @@ void CRegisterView::OnPopupMenu(wxCommandEvent& event)
     Refresh();
     break;
   case IDM_VIEWCODE:
-    code_window->JumpToAddress(m_selectedAddress);
+    ev.SetString(wxString::Format("%08x", m_selectedAddress));
+    code_window->GetEventHandler()->ProcessEvent(ev);
     Refresh();
     break;
   case IDM_VIEW_HEX8:
