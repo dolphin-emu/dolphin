@@ -95,7 +95,7 @@ public:
   bool JITNoBlockLinking();
   bool JumpToAddress(u32 address);
 
-  void Repopulate();
+  void Repopulate(bool refresh_codeview = true);
   void NotifyMapLoaded();
   void PopulateToolbar(wxToolBar* toolBar);
   void UpdateButtonStates();
