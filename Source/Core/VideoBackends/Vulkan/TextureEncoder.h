@@ -23,6 +23,10 @@ public:
   TextureEncoder();
   ~TextureEncoder();
 
+  VkRenderPass GetEncodingRenderPass() const { return m_encoding_render_pass; }
+  Texture2D* GetEncodingTexture() const { return m_encoding_texture.get(); }
+  VkFramebuffer GetEncodingTextureFramebuffer() const { return m_encoding_texture_framebuffer; }
+  StagingTexture2D* GetDownloadTexture() const { return m_download_texture.get(); }
   bool Initialize();
 
   // Uses an encoding shader to copy src_texture to dest_ptr.

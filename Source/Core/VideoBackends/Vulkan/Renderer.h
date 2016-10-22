@@ -12,6 +12,8 @@
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoCommon/RenderBase.h"
 
+struct XFBSourceBase;
+
 namespace Vulkan
 {
 class BoundingBox;
@@ -88,10 +90,29 @@ private:
   bool CompileShaders();
   void DestroyShaders();
 
-  void DrawScreen(const TargetRectangle& src_rect, const Texture2D* src_tex);
-  bool DrawScreenshot(const TargetRectangle& src_rect, const Texture2D* src_tex);
+  // Draw either the EFB, or specified XFB sources to the currently-bound framebuffer.
+  void DrawFrame(VkRenderPass render_pass, const EFBRectangle& rc, u32 xfb_addr,
+                 const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                 u32 fb_stride, u32 fb_height);
+  void DrawEFB(VkRenderPass render_pass, const EFBRectangle& rc);
+  void DrawVirtualXFB(VkRenderPass render_pass, u32 xfb_addr,
+                      const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                      u32 fb_stride, u32 fb_height);
+  void DrawRealXFB(VkRenderPass render_pass, const XFBSourceBase* const* xfb_sources, u32 xfb_count,
+                   u32 fb_width, u32 fb_stride, u32 fb_height);
+
+  // Draw the frame, as well as the OSD to the swap chain.
+  void DrawScreen(const EFBRectangle& rc, u32 xfb_addr, const XFBSourceBase* const* xfb_sources,
+                  u32 xfb_count, u32 fb_width, u32 fb_stride, u32 fb_height);
+
+  // Draw the frame only to the screenshot buffer.
+  bool DrawScreenshot(const EFBRectangle& rc, u32 xfb_addr, const XFBSourceBase* const* xfb_sources,
+                      u32 xfb_count, u32 fb_width, u32 fb_stride, u32 fb_height);
+
+  // Copies/scales an image to the currently-bound framebuffer.
   void BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
                   const TargetRectangle& src_rect, const Texture2D* src_tex, bool linear_filter);
+
   bool ResizeScreenshotBuffer(u32 new_width, u32 new_height);
   void DestroyScreenshotResources();
 
