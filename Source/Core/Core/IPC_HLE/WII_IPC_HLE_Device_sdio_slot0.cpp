@@ -17,10 +17,9 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 
-CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID,
-                                                               const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName), m_Status(CARD_NOT_EXIST), m_BlockLength(0),
-      m_BusWidth(0), m_Card(nullptr)
+CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(const u32 device_id,
+                                                               const std::string& device_name)
+    : IWII_IPC_HLE_Device(device_id, device_name)
 {
 }
 

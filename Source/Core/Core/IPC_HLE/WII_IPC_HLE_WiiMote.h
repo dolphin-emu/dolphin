@@ -76,14 +76,14 @@ private:
   };
   ConnectionState m_ConnectionState;
 
-  bool m_HIDControlChannel_Connected;
-  bool m_HIDControlChannel_ConnectedWait;
-  bool m_HIDControlChannel_Config;
-  bool m_HIDControlChannel_ConfigWait;
-  bool m_HIDInterruptChannel_Connected;
-  bool m_HIDInterruptChannel_ConnectedWait;
-  bool m_HIDInterruptChannel_Config;
-  bool m_HIDInterruptChannel_ConfigWait;
+  bool m_HIDControlChannel_Connected = false;
+  bool m_HIDControlChannel_ConnectedWait = false;
+  bool m_HIDControlChannel_Config = false;
+  bool m_HIDControlChannel_ConfigWait = false;
+  bool m_HIDInterruptChannel_Connected = false;
+  bool m_HIDInterruptChannel_ConnectedWait = false;
+  bool m_HIDInterruptChannel_Config = false;
+  bool m_HIDInterruptChannel_ConfigWait = false;
 
   // STATE_TO_SAVE
   bdaddr_t m_BD;
