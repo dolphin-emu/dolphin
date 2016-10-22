@@ -526,7 +526,6 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED(event))
       CPU::EnableStepping(!CPU::IsStepping());
 
       wxThread::Sleep(20);
-      g_pCodeWindow->JumpToAddress(PC);
       g_pCodeWindow->Repopulate();
       // Update toolbar with Play/Pause status
       UpdateGUI();
