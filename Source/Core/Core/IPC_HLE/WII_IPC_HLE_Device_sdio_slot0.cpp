@@ -23,10 +23,8 @@ void CWII_IPC_HLE_Device_sdio_slot0::EnqueueReply(const u32 command_address, con
   WII_IPC_HLE_Interface::EnqueueAsyncReply(command_address);
 }
 
-CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 _DeviceID,
-                                                               const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName), m_Status(CARD_NOT_EXIST), m_BlockLength(0),
-      m_BusWidth(0), m_Card(nullptr)
+CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(u32 dev_id, const std::string& name)
+    : IWII_IPC_HLE_Device(dev_id, name)
 {
 }
 

@@ -110,14 +110,13 @@ private:
   // TODO do we need more than one?
   struct Event
   {
-    EventType type;
-    u32 addr;
-    Event() : type(EVENT_NONE), addr() {}
+    EventType type = EVENT_NONE;
+    u32 addr = 0;
   } m_event;
 
-  u32 m_Status;
-  u32 m_BlockLength;
-  u32 m_BusWidth;
+  u32 m_Status = CARD_NOT_EXIST;
+  u32 m_BlockLength = 0;
+  u32 m_BusWidth = 0;
 
   u32 m_Registers[0x200 / 4];
 
