@@ -4,15 +4,15 @@
 
 #include <cinttypes>
 #include <memory>
+#include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/LogManager.h"
-#include "Core/ConfigManager.h"
-#include "Core/CoreTiming.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 #include "DiscIO/Volume.h"
