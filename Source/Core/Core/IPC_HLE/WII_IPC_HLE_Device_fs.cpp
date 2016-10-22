@@ -12,6 +12,7 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
+#include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
