@@ -5,9 +5,14 @@
 #pragma once
 
 #include <string>
+
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 class PointerWrap;
+
 namespace File
 {
 class IOFile;

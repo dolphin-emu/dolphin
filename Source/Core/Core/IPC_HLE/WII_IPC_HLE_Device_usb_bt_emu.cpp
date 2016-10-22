@@ -2,21 +2,36 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/WII_IPC.h"
+#include <algorithm>
+#include <cstdint>
+#include <cstring>
+#include <memory>
+
+#include "Common/Assert.h"
 #include "Common/CommonPaths.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Common/SysConf.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
-#include "Core/Movie.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+
+SQueuedEvent::SQueuedEvent(u32 size, u16 handle) : m_size(size), m_connectionHandle(handle)
+{
+  if (m_size > 1024)
+    PanicAlert("SQueuedEvent: The size is too large.");
+}
 
 // The device class
 CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu(
