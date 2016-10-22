@@ -188,9 +188,6 @@ private:
 
   static void DisplayDisconnectMessage(const int wiimoteNumber, const int reason);
 
-  // Debugging
-  void LOG_LinkKey(const u8* _pLinkKey);
-
 #pragma pack(push, 1)
 #define CONF_PAD_MAX_REGISTERED 10
 
