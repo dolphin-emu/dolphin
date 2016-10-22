@@ -131,7 +131,9 @@ static void StopHotplugThread()
   {
     // Write something to efd so that select() stops blocking.
     uint64_t value = 1;
-    write(s_wakeup_eventfd, &value, sizeof(uint64_t));
+    if (write(s_wakeup_eventfd, &value, sizeof(uint64_t)) < 0)
+    {
+    }
     s_hotplug_thread.join();
   }
 }
@@ -404,7 +406,9 @@ void evdevDevice::ForceFeedback::SetState(ControlState state)
     play.code = m_id;
     play.value = 1;
 
-    write(m_fd, (const void*)&play, sizeof(play));
+    if (write(m_fd, &play, sizeof(play)) < 0)
+    {
+    }
   }
 }
 
