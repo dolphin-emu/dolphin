@@ -56,17 +56,7 @@
     <!-- Emulation Overlay -->
     <string name="enable_input_overlay">Enable Input Overlay</string>
     <string name="disable_input_overlay">Disable Input Overlay</string>
-    <string name="overlay_screenshot">Take Screenshot</string>
-    <string name="overlay_savestate">Save State</string>
-    <string name="overlay_loadstate">Load State</string>
-    <string name="overlay_exit_emulation">Exit</string>
     <string name="overlay_exit_emulation_confirm">Are you sure you wish to exit this game?</string>
-    <string name="overlay_slot1">Slot 1</string>
-    <string name="overlay_slot2">Slot 2</string>
-    <string name="overlay_slot3">Slot 3</string>
-    <string name="overlay_slot4">Slot 4</string>
-    <string name="overlay_slot5">Slot 5</string>
-    <string name="overlay_slot6">Slot 6</string>
 
     <!-- Input Config Fragment -->
     <string name="input_settings">Input</string>
@@ -93,7 +83,7 @@
     <string name="controller_main">Main Stick Navigation</string>
     <string name="controller_c">C-Stick Navigation</string>
     <string name="controller_trig">Analog Triggers</string>
-	<string name="modifier_range">Modifier Range</string>
+    <string name="modifier_range">Modifier Range</string>
     <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
     <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
 
@@ -170,7 +160,7 @@
     <string name="tilt_backward">Tilt Backward</string>
     <string name="tilt_left">Tilt Left</string>
     <string name="tilt_right">Tilt Right</string>
-	<string name="tilt_modifier">Tilt Modifier</string>
+    <string name="tilt_modifier">Tilt Modifier</string>
     <string name="shake_x">Shake X</string>
     <string name="shake_y">Shake Y</string>
     <string name="shake_z">Shake Z</string>
@@ -323,6 +313,7 @@
     <!-- Miscellaneous -->
     <string name="yes">Yes</string>
     <string name="no">No</string>
+    <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
@@ -355,6 +346,16 @@
     <string name="dialog_seekbar_neg">Cancel</string>
 
     <!-- Emulation Menu -->
+    <string name="emulation_screenshot">Take Screenshot</string>
+    <string name="emulation_savestate">Save State</string>
+    <string name="emulation_loadstate">Load State</string>
+    <string name="emulation_exit">Exit</string>
+    <string name="emulation_slot1">Slot 1</string>
+    <string name="emulation_slot2">Slot 2</string>
+    <string name="emulation_slot3">Slot 3</string>
+    <string name="emulation_slot4">Slot 4</string>
+    <string name="emulation_slot5">Slot 5</string>
+    <string name="emulation_slot6">Slot 6</string>
     <string name="emulation_quicksave">Quick Save</string>
     <string name="emulation_quickload">Quick Load</string>
     <string name="emulation_refresh_wiimotes">Refresh Wiimotes</string>

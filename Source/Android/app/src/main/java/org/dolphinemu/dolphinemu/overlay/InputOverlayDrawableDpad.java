@@ -29,10 +29,10 @@ public final class InputOverlayDrawableDpad extends BitmapDrawable
 	 *
 	 * @param res         {@link Resources} instance.
 	 * @param bitmap      {@link Bitmap} to use with this Drawable.
-	 * @param buttonUp  Identifier for the up button.
+	 * @param buttonUp    Identifier for the up button.
 	 * @param buttonDown  Identifier for the down button.
 	 * @param buttonLeft  Identifier for the left button.
-	 * @param buttonRight  Identifier for the right button.
+	 * @param buttonRight Identifier for the right button.
 	 */
 	public InputOverlayDrawableDpad(Resources res, Bitmap bitmap,
 					int buttonUp, int buttonDown,

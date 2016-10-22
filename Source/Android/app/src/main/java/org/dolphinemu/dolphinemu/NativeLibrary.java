@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu;
 
-
 import android.view.Surface;
 import android.widget.Toast;
 
@@ -298,7 +297,6 @@ public final class NativeLibrary
 
 	/**
 	 * Saves a screen capture of the game
-	 *
 	 */
 	public static native void SaveScreenShot();
 

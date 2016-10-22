@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.model.settings.view;
 
-
 import org.dolphinemu.dolphinemu.model.settings.IntSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 

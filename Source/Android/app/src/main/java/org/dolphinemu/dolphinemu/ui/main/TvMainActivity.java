@@ -250,7 +250,7 @@ public final class TvMainActivity extends Activity implements MainView
 				R.string.grid_menu_refresh));
 
 		// Create a header for this row.
-		HeaderItem header = new HeaderItem(R.string.settings, getString(R.string.settings));
+		HeaderItem header = new HeaderItem(R.string.preferences_settings, getString(R.string.preferences_settings));
 
 		return new ListRow(header, rowItems);
 	}

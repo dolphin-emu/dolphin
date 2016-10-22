@@ -1,14 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <!-- inherit from the material theme -->
+
+    <!-- Inherit from the material theme -->
     <style name="DolphinBase" parent="Theme.AppCompat.Light.NoActionBar">
         <!-- Main theme colors -->
-        <!--   your app branding color for the app bar -->
+        <!-- Branding color for the app bar -->
         <item name="colorPrimary">@color/dolphin_blue</item>
-        <!--   darker variant for the status bar and contextual app bars -->
+        <!-- Darker variant for the status bar and contextual app bars -->
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
 
-        <!--enable window content transitions-->
+        <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
@@ -22,9 +23,9 @@
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
     </style>
 
-    <!-- Inherit from the Base Dolphin Theme-->
+    <!-- Inherit from the Base Dolphin Theme -->
     <style name="DolphinWii" parent="DolphinBase">
-        <!--   theme UI controls like checkboxes and text fields -->
+        <!-- Theme UI controls like checkboxes and text fields -->
         <item name="colorAccent">@color/dolphin_accent_wii</item>
     </style>
 
@@ -36,7 +37,7 @@
         <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
-    <!-- Inherit from the Base Dolphin Settings Theme-->
+    <!-- Inherit from the Base Dolphin Settings Theme -->
     <style name="DolphinSettingsWii" parent="DolphinSettingsBase">
         <item name="colorAccent">@color/dolphin_accent_wii</item>
     </style>
@@ -46,7 +47,7 @@
     </style>
 
     <style name="DolphinSettingsWiiware" parent="DolphinSettingsBase">
-        <!--   theme UI controls like checkboxes and text fields -->
+        <!-- Theme UI controls like checkboxes and text fields -->
         <item name="colorAccent">@color/dolphin_accent_wiiware</item>
     </style>
 
@@ -56,7 +57,7 @@
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
     </style>
 
-    <!-- Inherit from the Base Dolphin Dialog Theme-->
+    <!-- Inherit from the Base Dolphin Dialog Theme -->
     <style name="DolphinDialogWii" parent="DolphinDialogBase">
         <item name="colorAccent">@color/dolphin_accent_wii</item>
     </style>
@@ -76,13 +77,13 @@
 
         <item name="android:windowBackground">@android:color/black</item>
 
-        <!--enable window content transitions-->
+        <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
-    <!-- Inherit from the Base Dolphin Emulation Theme-->
+    <!-- Inherit from the Base Dolphin Emulation Theme -->
     <style name="DolphinEmulationWii" parent="DolphinEmulationBase">
         <item name="colorAccent">@color/dolphin_accent_wii</item>
     </style>
@@ -102,13 +103,13 @@
 
         <item name="android:windowBackground">@android:color/black</item>
 
-        <!--enable window content transitions-->
+        <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
     </style>
 
-    <!-- Inherit from the Base Dolphin Emulation Theme-->
+    <!-- Inherit from the Base Dolphin Emulation Theme -->
     <style name="DolphinEmulationTvWii" parent="DolphinEmulationTvBase">
         <item name="colorAccent">@color/dolphin_accent_wii</item>
     </style>
@@ -131,7 +132,7 @@
         <item name="colorPrimary">@color/dolphin_blue</item>
         <item name="colorPrimaryDark">@color/dolphin_blue_dark</item>
 
-        <!--enable window content transitions-->
+        <!-- Enable window content transitions -->
         <item name="android:windowContentTransitions">true</item>
         <item name="android:windowAllowEnterTransitionOverlap">true</item>
         <item name="android:windowAllowReturnTransitionOverlap">true</item>
