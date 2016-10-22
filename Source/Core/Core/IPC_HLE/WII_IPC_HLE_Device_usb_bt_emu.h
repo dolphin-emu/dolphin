@@ -5,14 +5,21 @@
 #pragma once
 
 #include <algorithm>
+#include <cstring>
 #include <deque>
 #include <queue>
+#include <string>
 #include <vector>
 
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/hci.h"
 
 class CWII_IPC_HLE_WiiMote;

@@ -4,9 +4,13 @@
 
 #pragma once
 
+#include <cstring>
 #include <queue>
 #include <string>
 
+#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device

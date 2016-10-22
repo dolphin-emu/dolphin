@@ -4,12 +4,19 @@
 
 #pragma once
 
+#include <cstring>
+#include <string>
+
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/Timer.h"
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 #ifdef _WIN32

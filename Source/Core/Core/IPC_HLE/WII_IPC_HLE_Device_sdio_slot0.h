@@ -7,9 +7,14 @@
 #pragma once
 
 #include <string>
+
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 class PointerWrap;
+
 namespace File
 {
 class IOFile;
