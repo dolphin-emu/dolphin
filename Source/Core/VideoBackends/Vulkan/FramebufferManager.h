@@ -30,6 +30,8 @@ public:
   FramebufferManager();
   ~FramebufferManager();
 
+  static FramebufferManager* GetInstance();
+
   bool Initialize();
 
   VkRenderPass GetEFBLoadRenderPass() const { return m_efb_load_render_pass; }
@@ -69,18 +71,18 @@ public:
   // This render pass can be used for other readback operations.
   VkRenderPass GetColorCopyForReadbackRenderPass() const { return m_copy_color_render_pass; }
   // Resolve color/depth textures to a non-msaa texture, and return it.
-  Texture2D* ResolveEFBColorTexture(StateTracker* state_tracker, const VkRect2D& region);
-  Texture2D* ResolveEFBDepthTexture(StateTracker* state_tracker, const VkRect2D& region);
+  Texture2D* ResolveEFBColorTexture(const VkRect2D& region);
+  Texture2D* ResolveEFBDepthTexture(const VkRect2D& region);
 
   // Reads a framebuffer value back from the GPU. This may block if the cache is not current.
-  u32 PeekEFBColor(StateTracker* state_tracker, u32 x, u32 y);
-  float PeekEFBDepth(StateTracker* state_tracker, u32 x, u32 y);
+  u32 PeekEFBColor(u32 x, u32 y);
+  float PeekEFBDepth(u32 x, u32 y);
   void InvalidatePeekCache();
 
   // Writes a value to the framebuffer. This will never block, and writes will be batched.
-  void PokeEFBColor(StateTracker* state_tracker, u32 x, u32 y, u32 color);
-  void PokeEFBDepth(StateTracker* state_tracker, u32 x, u32 y, float depth);
-  void FlushEFBPokes(StateTracker* state_tracker);
+  void PokeEFBColor(u32 x, u32 y, u32 color);
+  void PokeEFBDepth(u32 x, u32 y, float depth);
+  void FlushEFBPokes();
 
 private:
   struct EFBPokeVertex
@@ -112,14 +114,14 @@ private:
   bool CompilePokeShaders();
   void DestroyPokeShaders();
 
-  bool PopulateColorReadbackTexture(StateTracker* state_tracker);
-  bool PopulateDepthReadbackTexture(StateTracker* state_tracker);
+  bool PopulateColorReadbackTexture();
+  bool PopulateDepthReadbackTexture();
 
   void CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x, u32 y, float z,
                           u32 color);
 
-  void DrawPokeVertices(StateTracker* state_tracker, const EFBPokeVertex* vertices,
-                        size_t vertex_count, bool write_color, bool write_depth);
+  void DrawPokeVertices(const EFBPokeVertex* vertices, size_t vertex_count, bool write_color,
+                        bool write_depth);
 
   VkRenderPass m_efb_load_render_pass = VK_NULL_HANDLE;
   VkRenderPass m_efb_clear_render_pass = VK_NULL_HANDLE;

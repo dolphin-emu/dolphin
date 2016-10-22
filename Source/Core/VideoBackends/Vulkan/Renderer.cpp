@@ -68,10 +68,13 @@ Renderer::~Renderer()
   DestroySemaphores();
 }
 
-bool Renderer::Initialize(FramebufferManager* framebuffer_mgr)
+Renderer* Renderer::GetInstance()
 {
-  m_framebuffer_mgr = framebuffer_mgr;
-  m_state_tracker = std::make_unique<StateTracker>();
+  return static_cast<Renderer*>(g_renderer.get());
+}
+
+bool Renderer::Initialize()
+{
   BindEFBToStateTracker();
 
   if (!CreateSemaphores())
@@ -103,9 +106,9 @@ bool Renderer::Initialize(FramebufferManager* framebuffer_mgr)
   if (g_vulkan_context->SupportsBoundingBox())
   {
     // Bind bounding box to state tracker
-    m_state_tracker->SetBBoxBuffer(m_bounding_box->GetGPUBuffer(),
-                                   m_bounding_box->GetGPUBufferOffset(),
-                                   m_bounding_box->GetGPUBufferSize());
+    StateTracker::GetInstance()->SetBBoxBuffer(m_bounding_box->GetGPUBuffer(),
+                                               m_bounding_box->GetGPUBufferOffset(),
+                                               m_bounding_box->GetGPUBufferSize());
   }
 
   // Various initialization routines will have executed commands on the command buffer.
@@ -170,7 +173,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
   if (type == PEEK_COLOR)
   {
-    u32 color = m_framebuffer_mgr->PeekEFBColor(m_state_tracker.get(), x, y);
+    u32 color = FramebufferManager::GetInstance()->PeekEFBColor(x, y);
 
     // a little-endian value is expected to be returned
     color = ((color & 0xFF00FF00) | ((color >> 16) & 0xFF) | ((color << 16) & 0xFF0000));
@@ -207,7 +210,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   else  // if (type == PEEK_Z)
   {
     // Depth buffer is inverted for improved precision near far plane
-    float depth = 1.0f - m_framebuffer_mgr->PeekEFBDepth(m_state_tracker.get(), x, y);
+    float depth = 1.0f - FramebufferManager::GetInstance()->PeekEFBDepth(x, y);
     u32 ret = 0;
 
     if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16)
@@ -235,7 +238,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       const EfbPokeData& point = points[i];
       u32 color = ((point.data & 0xFF00FF00) | ((point.data >> 16) & 0xFF) |
                    ((point.data << 16) & 0xFF0000));
-      m_framebuffer_mgr->PokeEFBColor(m_state_tracker.get(), point.x, point.y, color);
+      FramebufferManager::GetInstance()->PokeEFBColor(point.x, point.y, color);
     }
   }
   else  // if (type == POKE_Z)
@@ -245,14 +248,14 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       // Convert to floating-point depth.
       const EfbPokeData& point = points[i];
       float depth = (1.0f - float(point.data & 0xFFFFFF) / 16777216.0f);
-      m_framebuffer_mgr->PokeEFBDepth(m_state_tracker.get(), point.x, point.y, depth);
+      FramebufferManager::GetInstance()->PokeEFBDepth(point.x, point.y, depth);
     }
   }
 }
 
 u16 Renderer::BBoxRead(int index)
 {
-  s32 value = m_bounding_box->Get(m_state_tracker.get(), static_cast<size_t>(index));
+  s32 value = m_bounding_box->Get(static_cast<size_t>(index));
 
   // Here we get the min/max value of the truncated position of the upscaled framebuffer.
   // So we have to correct them to the unscaled EFB sizes.
@@ -294,7 +297,7 @@ void Renderer::BBoxWrite(int index, u16 value)
     scaled_value = scaled_value * s_target_height / EFB_HEIGHT;
   }
 
-  m_bounding_box->Set(m_state_tracker.get(), static_cast<size_t>(index), scaled_value);
+  m_bounding_box->Set(static_cast<size_t>(index), scaled_value);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -314,8 +317,8 @@ void Renderer::BeginFrame()
 
   // Ensure that the state tracker rebinds everything, and allocates a new set
   // of descriptors out of the next pool.
-  m_state_tracker->InvalidateDescriptorSets();
-  m_state_tracker->SetPendingRebind();
+  StateTracker::GetInstance()->InvalidateDescriptorSets();
+  StateTracker::GetInstance()->SetPendingRebind();
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha_enable,
@@ -350,7 +353,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   // If we're not in a render pass (start of the frame), we can use a clear render pass
   // to discard the data, rather than loading and then clearing.
   bool use_clear_render_pass = (color_enable && alpha_enable && z_enable);
-  if (m_state_tracker->InRenderPass())
+  if (StateTracker::GetInstance()->InRenderPass())
   {
     // Prefer not to end a render pass just to do a clear.
     use_clear_render_pass = false;
@@ -360,7 +363,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
   if (use_clear_render_pass)
   {
     VkClearValue clear_values[2] = {clear_color_value, clear_depth_value};
-    m_state_tracker->BeginClearRenderPass(target_vk_rc, clear_values);
+    StateTracker::GetInstance()->BeginClearRenderPass(target_vk_rc, clear_values);
     return;
   }
 
@@ -388,17 +391,17 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
     }
     if (num_clear_attachments > 0)
     {
-      VkClearRect clear_rect = {target_vk_rc, 0, m_framebuffer_mgr->GetEFBLayers()};
-      if (!m_state_tracker->IsWithinRenderArea(target_vk_rc.offset.x, target_vk_rc.offset.y,
-                                               target_vk_rc.extent.width,
-                                               target_vk_rc.extent.height))
+      VkClearRect vk_rect = {target_vk_rc, 0, FramebufferManager::GetInstance()->GetEFBLayers()};
+      if (!StateTracker::GetInstance()->IsWithinRenderArea(
+              target_vk_rc.offset.x, target_vk_rc.offset.y, target_vk_rc.extent.width,
+              target_vk_rc.extent.height))
       {
-        m_state_tracker->EndClearRenderPass();
+        StateTracker::GetInstance()->EndClearRenderPass();
       }
-      m_state_tracker->BeginRenderPass();
+      StateTracker::GetInstance()->BeginRenderPass();
 
       vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), num_clear_attachments,
-                            clear_attachments, 1, &clear_rect);
+                            clear_attachments, 1, &vk_rect);
     }
   }
 
@@ -407,13 +410,14 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
     return;
 
   // Clearing must occur within a render pass.
-  if (!m_state_tracker->IsWithinRenderArea(target_vk_rc.offset.x, target_vk_rc.offset.y,
-                                           target_vk_rc.extent.width, target_vk_rc.extent.height))
+  if (!StateTracker::GetInstance()->IsWithinRenderArea(target_vk_rc.offset.x, target_vk_rc.offset.y,
+                                                       target_vk_rc.extent.width,
+                                                       target_vk_rc.extent.height))
   {
-    m_state_tracker->EndClearRenderPass();
+    StateTracker::GetInstance()->EndClearRenderPass();
   }
-  m_state_tracker->BeginRenderPass();
-  m_state_tracker->SetPendingRebind();
+  StateTracker::GetInstance()->BeginRenderPass();
+  StateTracker::GetInstance()->SetPendingRebind();
 
   // Mask away the appropriate colors and use a shader
   BlendState blend_state = Util::GetNoBlendingBlendState();
@@ -431,13 +435,14 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
   RasterizationState rs_state = Util::GetNoCullRasterizationState();
   rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
-  rs_state.samples = m_framebuffer_mgr->GetEFBSamples();
+  rs_state.samples = FramebufferManager::GetInstance()->GetEFBSamples();
 
   // No need to start a new render pass, but we do need to restore viewport state
-  UtilityShaderDraw draw(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), g_object_cache->GetStandardPipelineLayout(),
-      m_framebuffer_mgr->GetEFBLoadRenderPass(), g_object_cache->GetPassthroughVertexShader(),
-      g_object_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         g_object_cache->GetStandardPipelineLayout(),
+                         FramebufferManager::GetInstance()->GetEFBLoadRenderPass(),
+                         g_object_cache->GetPassthroughVertexShader(),
+                         g_object_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
 
   draw.SetRasterizationState(rs_state);
   draw.SetDepthStencilState(depth_state);
@@ -451,9 +456,9 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
-  m_state_tracker->EndRenderPass();
-  m_state_tracker->SetPendingRebind();
-  m_framebuffer_mgr->ReinterpretPixelData(convtype);
+  StateTracker::GetInstance()->EndRenderPass();
+  StateTracker::GetInstance()->SetPendingRebind();
+  FramebufferManager::GetInstance()->ReinterpretPixelData(convtype);
 
   // EFB framebuffer has now changed, so update accordingly.
   BindEFBToStateTracker();
@@ -463,20 +468,21 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
                         const EFBRectangle& rc, u64 ticks, float gamma)
 {
   // Flush any pending EFB pokes.
-  m_framebuffer_mgr->FlushEFBPokes(m_state_tracker.get());
+  FramebufferManager::GetInstance()->FlushEFBPokes();
 
   // End the current render pass.
-  m_state_tracker->EndRenderPass();
-  m_state_tracker->OnEndFrame();
+  StateTracker::GetInstance()->EndRenderPass();
+  StateTracker::GetInstance()->OnEndFrame();
 
   // Scale the source rectangle to the selected internal resolution.
   TargetRectangle source_rc = Renderer::ConvertEFBRectangle(rc);
 
   // Transition the EFB render target to a shader resource.
   VkRect2D src_region = {{0, 0},
-                         {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
+                         {FramebufferManager::GetInstance()->GetEFBWidth(),
+                          FramebufferManager::GetInstance()->GetEFBHeight()}};
   Texture2D* efb_color_texture =
-      m_framebuffer_mgr->ResolveEFBColorTexture(m_state_tracker.get(), src_region);
+      FramebufferManager::GetInstance()->ResolveEFBColorTexture(src_region);
   efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
@@ -491,7 +497,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   }
 
   // Restore the EFB color texture to color attachment ready for rendering the next frame.
-  m_framebuffer_mgr->GetEFBColorTexture()->TransitionToLayout(
+  FramebufferManager::GetInstance()->GetEFBColorTexture()->TransitionToLayout(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Ensure the worker thread is not still submitting a previous command buffer.
@@ -613,19 +619,20 @@ bool Renderer::DrawScreenshot(const TargetRectangle& src_rect, const Texture2D* 
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
   VkClearRect clear_rect = {{{0, 0}, {width, height}}, 0, 1};
   VkClearAttachment clear_attachment = {VK_IMAGE_ASPECT_COLOR_BIT, 0, clear_value};
-  VkRenderPassBeginInfo info = {VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
-                                nullptr,
-                                m_framebuffer_mgr->GetColorCopyForReadbackRenderPass(),
-                                m_screenshot_framebuffer,
-                                {{0, 0}, {width, height}},
-                                1,
-                                &clear_value};
+  VkRenderPassBeginInfo info = {
+      VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
+      nullptr,
+      FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass(),
+      m_screenshot_framebuffer,
+      {{0, 0}, {width, height}},
+      1,
+      &clear_value};
   vkCmdBeginRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer(), &info,
                        VK_SUBPASS_CONTENTS_INLINE);
   vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), 1, &clear_attachment, 1,
                         &clear_rect);
-  BlitScreen(m_framebuffer_mgr->GetColorCopyForReadbackRenderPass(), target_rect, src_rect, src_tex,
-             true);
+  BlitScreen(FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass(), target_rect,
+             src_rect, src_tex, true);
   vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
 
   // Copy to the readback texture.
@@ -712,7 +719,7 @@ bool Renderer::ResizeScreenshotBuffer(u32 new_width, u32 new_height)
   VkImageView attachment = m_screenshot_render_texture->GetView();
   VkFramebufferCreateInfo info = {};
   info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-  info.renderPass = m_framebuffer_mgr->GetColorCopyForReadbackRenderPass();
+  info.renderPass = FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass();
   info.attachmentCount = 1;
   info.pAttachments = &attachment;
   info.width = new_width;
@@ -889,8 +896,8 @@ void Renderer::CheckForConfigChanges()
   if (msaa_changed || stereo_changed)
   {
     g_command_buffer_mgr->WaitForGPUIdle();
-    m_framebuffer_mgr->RecreateRenderPass();
-    m_framebuffer_mgr->ResizeEFBTextures();
+    FramebufferManager::GetInstance()->RecreateRenderPass();
+    FramebufferManager::GetInstance()->ResizeEFBTextures();
     BindEFBToStateTracker();
   }
 
@@ -900,7 +907,7 @@ void Renderer::CheckForConfigChanges()
   {
     g_command_buffer_mgr->WaitForGPUIdle();
     RecompileShaders();
-    m_framebuffer_mgr->RecompileShaders();
+    FramebufferManager::GetInstance()->RecompileShaders();
     g_object_cache->ClearPipelineCache();
   }
 
@@ -931,25 +938,28 @@ void Renderer::OnSwapChainResized()
 void Renderer::BindEFBToStateTracker()
 {
   // Update framebuffer in state tracker
-  VkRect2D framebuffer_size = {
-      {0, 0}, {m_framebuffer_mgr->GetEFBWidth(), m_framebuffer_mgr->GetEFBHeight()}};
-  m_state_tracker->SetRenderPass(m_framebuffer_mgr->GetEFBLoadRenderPass(),
-                                 m_framebuffer_mgr->GetEFBClearRenderPass());
-  m_state_tracker->SetFramebuffer(m_framebuffer_mgr->GetEFBFramebuffer(), framebuffer_size);
+  VkRect2D framebuffer_size = {{0, 0},
+                               {FramebufferManager::GetInstance()->GetEFBWidth(),
+                                FramebufferManager::GetInstance()->GetEFBHeight()}};
+  StateTracker::GetInstance()->SetRenderPass(
+      FramebufferManager::GetInstance()->GetEFBLoadRenderPass(),
+      FramebufferManager::GetInstance()->GetEFBClearRenderPass());
+  StateTracker::GetInstance()->SetFramebuffer(
+      FramebufferManager::GetInstance()->GetEFBFramebuffer(), framebuffer_size);
 
   // Update rasterization state with MSAA info
   RasterizationState rs_state = {};
-  rs_state.bits = m_state_tracker->GetRasterizationState().bits;
-  rs_state.samples = m_framebuffer_mgr->GetEFBSamples();
+  rs_state.bits = StateTracker::GetInstance()->GetRasterizationState().bits;
+  rs_state.samples = FramebufferManager::GetInstance()->GetEFBSamples();
   rs_state.per_sample_shading = g_ActiveConfig.bSSAA ? VK_TRUE : VK_FALSE;
-  m_state_tracker->SetRasterizationState(rs_state);
+  StateTracker::GetInstance()->SetRasterizationState(rs_state);
 }
 
 void Renderer::ResizeEFBTextures()
 {
   // Ensure the GPU is finished with the current EFB textures.
   g_command_buffer_mgr->WaitForGPUIdle();
-  m_framebuffer_mgr->ResizeEFBTextures();
+  FramebufferManager::GetInstance()->ResizeEFBTextures();
   BindEFBToStateTracker();
 
   // Viewport and scissor rect have to be reset since they will be scaled differently.
@@ -976,19 +986,19 @@ void Renderer::ApplyState(bool bUseDstAlpha)
 void Renderer::ResetAPIState()
 {
   // End the EFB render pass if active
-  m_state_tracker->EndRenderPass();
+  StateTracker::GetInstance()->EndRenderPass();
 }
 
 void Renderer::RestoreAPIState()
 {
   // Instruct the state tracker to re-bind everything before the next draw
-  m_state_tracker->SetPendingRebind();
+  StateTracker::GetInstance()->SetPendingRebind();
 }
 
 void Renderer::SetGenerationMode()
 {
   RasterizationState new_rs_state = {};
-  new_rs_state.bits = m_state_tracker->GetRasterizationState().bits;
+  new_rs_state.bits = StateTracker::GetInstance()->GetRasterizationState().bits;
 
   switch (bpmem.genMode.cullmode)
   {
@@ -1009,7 +1019,7 @@ void Renderer::SetGenerationMode()
     break;
   }
 
-  m_state_tracker->SetRasterizationState(new_rs_state);
+  StateTracker::GetInstance()->SetRasterizationState(new_rs_state);
 }
 
 void Renderer::SetDepthMode()
@@ -1050,7 +1060,7 @@ void Renderer::SetDepthMode()
     break;
   }
 
-  m_state_tracker->SetDepthStencilState(new_ds_state);
+  StateTracker::GetInstance()->SetDepthStencilState(new_ds_state);
 }
 
 void Renderer::SetColorMask()
@@ -1066,16 +1076,16 @@ void Renderer::SetColorMask()
   }
 
   BlendState new_blend_state = {};
-  new_blend_state.bits = m_state_tracker->GetBlendState().bits;
+  new_blend_state.bits = StateTracker::GetInstance()->GetBlendState().bits;
   new_blend_state.write_mask = color_mask;
 
-  m_state_tracker->SetBlendState(new_blend_state);
+  StateTracker::GetInstance()->SetBlendState(new_blend_state);
 }
 
 void Renderer::SetBlendMode(bool force_update)
 {
   BlendState new_blend_state = {};
-  new_blend_state.bits = m_state_tracker->GetBlendState().bits;
+  new_blend_state.bits = StateTracker::GetInstance()->GetBlendState().bits;
 
   // Fast path for blending disabled
   if (!bpmem.blendmode.blendenable)
@@ -1087,7 +1097,7 @@ void Renderer::SetBlendMode(bool force_update)
     new_blend_state.alpha_blend_op = VK_BLEND_OP_ADD;
     new_blend_state.src_alpha_blend = VK_BLEND_FACTOR_ONE;
     new_blend_state.dst_alpha_blend = VK_BLEND_FACTOR_ZERO;
-    m_state_tracker->SetBlendState(new_blend_state);
+    StateTracker::GetInstance()->SetBlendState(new_blend_state);
     return;
   }
   // Fast path for subtract blending
@@ -1100,7 +1110,7 @@ void Renderer::SetBlendMode(bool force_update)
     new_blend_state.alpha_blend_op = VK_BLEND_OP_REVERSE_SUBTRACT;
     new_blend_state.src_alpha_blend = VK_BLEND_FACTOR_ONE;
     new_blend_state.dst_alpha_blend = VK_BLEND_FACTOR_ONE;
-    m_state_tracker->SetBlendState(new_blend_state);
+    StateTracker::GetInstance()->SetBlendState(new_blend_state);
     return;
   }
 
@@ -1195,13 +1205,13 @@ void Renderer::SetBlendMode(bool force_update)
     new_blend_state.dst_alpha_blend = Util::GetAlphaBlendFactor(new_blend_state.dst_blend);
   }
 
-  m_state_tracker->SetBlendState(new_blend_state);
+  StateTracker::GetInstance()->SetBlendState(new_blend_state);
 }
 
 void Renderer::SetLogicOpMode()
 {
   BlendState new_blend_state = {};
-  new_blend_state.bits = m_state_tracker->GetBlendState().bits;
+  new_blend_state.bits = StateTracker::GetInstance()->GetBlendState().bits;
 
   // Does our device support logic ops?
   bool logic_op_enable = bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable;
@@ -1224,7 +1234,7 @@ void Renderer::SetLogicOpMode()
       new_blend_state.logic_op = VK_LOGIC_OP_CLEAR;
     }
 
-    m_state_tracker->SetBlendState(new_blend_state);
+    StateTracker::GetInstance()->SetBlendState(new_blend_state);
   }
   else
   {
@@ -1269,7 +1279,7 @@ void Renderer::SetLogicOpMode()
       new_blend_state.src_alpha_blend = Util::GetAlphaBlendFactor(new_blend_state.src_blend);
       new_blend_state.dst_alpha_blend = Util::GetAlphaBlendFactor(new_blend_state.dst_blend);
 
-      m_state_tracker->SetBlendState(new_blend_state);
+      StateTracker::GetInstance()->SetBlendState(new_blend_state);
     }
     else
     {
@@ -1338,7 +1348,7 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
     sampler = g_object_cache->GetPointSampler();
   }
 
-  m_state_tracker->SetSampler(bind_index, sampler);
+  StateTracker::GetInstance()->SetSampler(bind_index, sampler);
   m_sampler_states[bind_index].bits = new_state.bits;
 }
 
@@ -1352,7 +1362,7 @@ void Renderer::ResetSamplerStates()
   for (size_t i = 0; i < m_sampler_states.size(); i++)
   {
     m_sampler_states[i].bits = std::numeric_limits<decltype(m_sampler_states[i].bits)>::max();
-    m_state_tracker->SetSampler(i, g_object_cache->GetPointSampler());
+    StateTracker::GetInstance()->SetSampler(i, g_object_cache->GetPointSampler());
   }
 
   // Invalidate all sampler objects (some will be unused now).
@@ -1375,7 +1385,7 @@ void Renderer::SetScissorRect(const EFBRectangle& rc)
       {target_rc.left, target_rc.top},
       {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
 
-  m_state_tracker->SetScissor(scissor);
+  StateTracker::GetInstance()->SetScissor(scissor);
 }
 
 void Renderer::SetViewport()
@@ -1420,7 +1430,7 @@ void Renderer::SetViewport()
   }
 
   VkViewport viewport = {x, y, width, height, min_depth, max_depth};
-  m_state_tracker->SetViewport(viewport);
+  StateTracker::GetInstance()->SetViewport(viewport);
 }
 
 void Renderer::ChangeSurface(void* new_surface_handle)
