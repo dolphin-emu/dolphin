@@ -3,19 +3,30 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstdint>
+#include <cstring>
 #include <iomanip>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <libusb.h>
 
+#include "Common/Assert.h"
+#include "Common/ChunkFile.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/Network.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
 #include "Core/IPC_HLE/hci.h"
 

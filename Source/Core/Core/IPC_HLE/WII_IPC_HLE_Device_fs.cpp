@@ -4,14 +4,19 @@
 
 #include <algorithm>
 #include <cstring>
+#include <deque>
+#include <memory>
+#include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
-
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
@@ -27,6 +32,13 @@ CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string&
 
 CWII_IPC_HLE_Device_fs::~CWII_IPC_HLE_Device_fs()
 {
+}
+
+// ~1/1000th of a second is too short and causes hangs in Wii Party
+// Play it safe at 1/500th
+IPCCommandResult CWII_IPC_HLE_Device_fs::GetFSReply() const
+{
+  return {true, SystemTimers::GetTicksPerSecond() / 500};
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)

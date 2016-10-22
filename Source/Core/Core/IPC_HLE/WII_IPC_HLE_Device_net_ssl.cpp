@@ -2,12 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <algorithm>
+#include <cstring>
+#include <memory>
+#include <vector>
+
+#include <mbedtls/md.h>
 
 #include "Common/FileUtil.h"
-#include "Common/NandPaths.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_Socket.h"
 
