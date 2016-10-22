@@ -7,7 +7,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Timer.h"
-
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/NWC24Config.h"
