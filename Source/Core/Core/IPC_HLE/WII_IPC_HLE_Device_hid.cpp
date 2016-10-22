@@ -2,15 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cerrno>
+#include <cstdlib>
+#include <cstring>
+#include <memory>
+#include <utility>
+#include <vector>
+
 #include <libusb.h>
 
-#include "Common/Thread.h"
+#include "Common/CommonFuncs.h"
+#include "Common/Logging/Log.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/WII_IPC.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
 

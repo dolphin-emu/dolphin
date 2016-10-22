@@ -7,15 +7,19 @@
 #if defined(__LIBUSB__)
 #include <array>
 #include <atomic>
+#include <string>
 #include <thread>
 
+#include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Timer.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 
+class PointerWrap;
+struct libusb_context;
 struct libusb_device;
 struct libusb_device_handle;
-struct libusb_context;
 struct libusb_transfer;
 
 enum class SyncButtonState
@@ -96,5 +100,6 @@ private:
 
 #else
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.h"
+
 using CWII_IPC_HLE_Device_usb_oh1_57e_305_real = CWII_IPC_HLE_Device_usb_oh1_57e_305_stub;
 #endif

@@ -2,16 +2,33 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/FileUtil.h"
+#include <cstring>
 
+#include "Common/CommonFuncs.h"
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // Local core functions
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
+#include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 
 #ifdef _WIN32
 #include <windows.h>
 #endif
+
+CWII_IPC_HLE_Device_usb_kbd::SMessageData::SMessageData(u32 type, u8 modifiers, u8* pressed_keys)
+{
+  MsgType = Common::swap32(type);
+  Unk1 = 0;  // swapped
+  Modifiers = modifiers;
+  Unk2 = 0;
+
+  if (pressed_keys)  // Doesn't need to be in a specific order
+    memcpy(PressedKeys, pressed_keys, sizeof(PressedKeys));
+  else
+    memset(PressedKeys, 0, sizeof(PressedKeys));
+}
 
 // TODO: support in netplay/movies.
 

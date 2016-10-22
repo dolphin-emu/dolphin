@@ -4,9 +4,14 @@
 
 #pragma once
 
+#include <cstddef>
+#include <string>
+
+#include "Common/CommonTypes.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
+class PointerWrap;
 class SysConf;
 
 void BackUpBTInfoSection(SysConf* sysconf);
@@ -74,7 +79,7 @@ protected:
     CtrlBuffer(const SIOCtlVBuffer& cmd_buffer, u32 command_address);
 
     void FillBuffer(const u8* src, size_t size) const;
-    void SetRetVal(const u32 retval) const { Memory::Write_U32(retval, m_cmd_address + 4); }
+    void SetRetVal(const u32 retval) const;
     bool IsValid() const { return m_cmd_address != 0; }
     void Invalidate() { m_cmd_address = m_payload_addr = 0; }
     u8 m_endpoint = 0;
