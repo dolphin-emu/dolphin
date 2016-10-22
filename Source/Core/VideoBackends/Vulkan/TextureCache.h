@@ -20,23 +20,6 @@ class TextureEncoder;
 class TextureCache : public TextureCacheBase
 {
 public:
-  TextureCache();
-  ~TextureCache();
-
-  static TextureCache* GetInstance();
-
-  bool Initialize();
-
-  bool CompileShaders() override;
-  void DeleteShaders() override;
-  void ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* base_unconverted, void* palette,
-                      TlutFormat format) override;
-
-  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
-               bool is_intensity, bool scale_by_half) override;
-
-private:
   struct TCacheEntry : TCacheEntryBase
   {
     TCacheEntry(const TCacheEntryConfig& config_, std::unique_ptr<Texture2D> texture,
@@ -58,15 +41,30 @@ private:
 
   private:
     std::unique_ptr<Texture2D> m_texture;
-
-    // If we're an EFB copy, framebuffer for drawing into.
     VkFramebuffer m_framebuffer;
   };
 
+  TextureCache();
+  ~TextureCache();
+
+  static TextureCache* GetInstance();
+
+  bool Initialize();
+
+  bool CompileShaders() override;
+  void DeleteShaders() override;
+
   TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 
-  bool CreateRenderPasses();
+  void ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* base_unconverted, void* palette,
+                      TlutFormat format) override;
 
+  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
+               u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
+               bool is_intensity, bool scale_by_half) override;
+
+private:
+  bool CreateRenderPasses();
   VkRenderPass GetRenderPassForTextureUpdate(const Texture2D* texture) const;
 
   VkRenderPass m_initialize_render_pass = VK_NULL_HANDLE;
