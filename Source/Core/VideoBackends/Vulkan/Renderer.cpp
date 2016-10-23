@@ -331,15 +331,6 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
       {target_rc.left, target_rc.top},
       {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
 
-  // Convert RGBA8 -> floating-point values.
-  VkClearValue clear_color_value = {};
-  VkClearValue clear_depth_value = {};
-  clear_color_value.color.float32[0] = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
-  clear_color_value.color.float32[1] = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
-  clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
-  clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
-  clear_depth_value.depthStencil.depth = (1.0f - (static_cast<float>(z & 0xFFFFFF) / 16777216.0f));
-
   // Determine whether the EFB has an alpha channel. If it doesn't, we can clear the alpha
   // channel to 0xFF. This hopefully allows us to use the fast path in most cases.
   if (bpmem.zcontrol.pixel_format == PEControl::RGB565_Z16 ||
@@ -350,6 +341,15 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
     alpha_enable = true;
     color |= 0xFF000000;
   }
+
+  // Convert RGBA8 -> floating-point values.
+  VkClearValue clear_color_value = {};
+  VkClearValue clear_depth_value = {};
+  clear_color_value.color.float32[0] = static_cast<float>((color >> 16) & 0xFF) / 255.0f;
+  clear_color_value.color.float32[1] = static_cast<float>((color >> 8) & 0xFF) / 255.0f;
+  clear_color_value.color.float32[2] = static_cast<float>((color >> 0) & 0xFF) / 255.0f;
+  clear_color_value.color.float32[3] = static_cast<float>((color >> 24) & 0xFF) / 255.0f;
+  clear_depth_value.depthStencil.depth = (1.0f - (static_cast<float>(z & 0xFFFFFF) / 16777216.0f));
 
   // If we're not in a render pass (start of the frame), we can use a clear render pass
   // to discard the data, rather than loading and then clearing.
