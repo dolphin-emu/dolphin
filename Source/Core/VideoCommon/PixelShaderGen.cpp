@@ -1288,26 +1288,26 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data)
 {
   if (uid_data->rgba6_format)
-    out.Write("\tocol0.rgb = (prev.rgb >> 2) / 63.0;\n");
+    out.Write("\tocol0.rgb = float3(prev.rgb >> 2) / 63.0;\n");
   else
-    out.Write("\tocol0.rgb = prev.rgb / 255.0;\n");
+    out.Write("\tocol0.rgb = float3(prev.rgb) / 255.0;\n");
 
   // Colors will be blended against the 8-bit alpha from ocol1 and
   // the 6-bit alpha from ocol0 will be written to the framebuffer
   if (uid_data->dstAlphaMode == DSTALPHA_NONE)
   {
-    out.Write("\tocol0.a = (prev.a >> 2) / 63.0;\n");
-    out.Write("\tocol1.a = prev.a / 255.0;\n");
+    out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
+    out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
   }
   else
   {
     out.SetConstantsUsed(C_ALPHA, C_ALPHA);
-    out.Write("\tocol0.a = (" I_ALPHA ".a >> 2) / 63.0;\n");
+    out.Write("\tocol0.a = float(" I_ALPHA ".a >> 2) / 63.0;\n");
 
     // Use dual-source color blending to perform dst alpha in a single pass
     if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-      out.Write("\tocol1.a = prev.a / 255.0;\n");
+      out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
     else
-      out.Write("\tocol1.a = " I_ALPHA ".a / 255.0;\n");
+      out.Write("\tocol1.a = float(" I_ALPHA ".a) / 255.0;\n");
   }
 }
