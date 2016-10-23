@@ -84,7 +84,7 @@ void JitBaseBlockCache::Clear()
 
 void JitBaseBlockCache::SchedulateClearCacheThreadSafe()
 {
-  CoreTiming::ScheduleEvent(0, s_clear_jit_cache_thread_safe);
+  CoreTiming::ScheduleEvent(0, s_clear_jit_cache_thread_safe, 0, CoreTiming::FromThread::NON_CPU);
 }
 
 void JitBaseBlockCache::Reset()
