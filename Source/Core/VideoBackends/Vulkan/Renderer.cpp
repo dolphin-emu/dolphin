@@ -1001,6 +1001,7 @@ void Renderer::CheckForConfigChanges()
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
     g_object_cache->ClearPipelineCache();
+    g_object_cache->RecompileSharedShaders();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
