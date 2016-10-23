@@ -757,10 +757,7 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
   {
     TargetRectangle left_rect;
     TargetRectangle right_rect;
-    if (g_ActiveConfig.iStereoMode == STEREO_TAB)
-      ConvertStereoRectangle(dst_rect, right_rect, left_rect);
-    else
-      ConvertStereoRectangle(dst_rect, left_rect, right_rect);
+    ConvertStereoRectangle(dst_rect, left_rect, right_rect);
 
     draw.DrawQuad(left_rect.left, left_rect.top, left_rect.GetWidth(), left_rect.GetHeight(),
                   src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
