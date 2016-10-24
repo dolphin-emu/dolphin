@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-10-16 14:52+0200\n"
-"PO-Revision-Date: 2016-10-16 12:53+0000\n"
+"POT-Creation-Date: 2016-10-24 12:37+0200\n"
+"PO-Revision-Date: 2016-10-24 10:38+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
@@ -256,7 +256,7 @@ msgstr "%zu メモリ バイト"
 msgid "&& AND"
 msgstr "&& (...と...)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:552
+#: Source/Core/DolphinWX/MainMenuBar.cpp:484
 msgid "&About"
 msgstr "Dolphinについて(&A)"
 
@@ -264,43 +264,43 @@ msgstr "Dolphinについて(&A)"
 msgid "&Add New Code..."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:234
+#: Source/Core/DolphinWX/MainMenuBar.cpp:173
 msgid "&Audio Settings"
 msgstr "サウンド設定(&A)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:250
+#: Source/Core/DolphinWX/MainMenuBar.cpp:189
 msgid "&Automatic Start"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:143
+#: Source/Core/DolphinWX/MainMenuBar.cpp:82
 msgid "&Boot from DVD Backup"
 msgstr "DVDバックアップから起動(&B)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:368
+#: Source/Core/DolphinWX/MainMenuBar.cpp:306
 msgid "&Breakpoints"
 msgstr "&Breakpoints"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:278
+#: Source/Core/DolphinWX/MainMenuBar.cpp:218
 msgid "&Cheat Manager"
 msgstr "チートマネージャ(&C)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:419
+#: Source/Core/DolphinWX/MainMenuBar.cpp:352
 msgid "&Clear JIT Cache"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:483
+#: Source/Core/DolphinWX/MainMenuBar.cpp:415
 msgid "&Clear Symbols"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:235
+#: Source/Core/DolphinWX/MainMenuBar.cpp:174
 msgid "&Controller Settings"
 msgstr "コントローラ設定(&C)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:516
+#: Source/Core/DolphinWX/MainMenuBar.cpp:448
 msgid "&Create Signature File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:119
+#: Source/Core/DolphinWX/MainMenuBar.cpp:54
 msgid "&Debug"
 msgstr ""
 
@@ -312,7 +312,7 @@ msgstr "このタイトルの実体を削除(&D)"
 msgid "&Delete selected ISOs..."
 msgstr "選択したタイトルの実体を全て削除(&D)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:415
+#: Source/Core/DolphinWX/MainMenuBar.cpp:348
 msgid "&Disable JIT Cache"
 msgstr ""
 
@@ -321,152 +321,152 @@ msgstr ""
 msgid "&Edit Code..."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:110
+#: Source/Core/DolphinWX/MainMenuBar.cpp:45
 msgid "&Emulation"
 msgstr "エミュレーション(&E)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:109
+#: Source/Core/DolphinWX/MainMenuBar.cpp:44
 msgid "&File"
 msgstr "ファイル(&F)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:258
+#: Source/Core/DolphinWX/MainMenuBar.cpp:197
 msgid "&Font..."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:586
+#: Source/Core/DolphinWX/MainMenuBar.cpp:125
 msgid "&Frame Advance"
 msgstr "Frame Advance(&F)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:603
+#: Source/Core/DolphinWX/MainMenuBar.cpp:124
 msgid "&Fullscreen"
 msgstr "フルスクリーンで表示(&F)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:485
+#: Source/Core/DolphinWX/MainMenuBar.cpp:417
 msgid "&Generate Symbol Map"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:550
+#: Source/Core/DolphinWX/MainMenuBar.cpp:482
 msgid "&GitHub Repository"
 msgstr "GitHub リポジトリ(&G)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:233
+#: Source/Core/DolphinWX/MainMenuBar.cpp:172
 msgid "&Graphics Settings"
 msgstr "グラフィック設定(&G)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:124
+#: Source/Core/DolphinWX/MainMenuBar.cpp:59
 msgid "&Help"
 msgstr "ヘルプ(&H)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:236
+#: Source/Core/DolphinWX/MainMenuBar.cpp:175
 msgid "&Hotkey Settings"
 msgstr "ホットキーのカスタマイズ(&H)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:404
+#: Source/Core/DolphinWX/MainMenuBar.cpp:337
 msgid "&Interpreter Core"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:118
-#: Source/Core/DolphinWX/FrameTools.cpp:369
+#: Source/Core/DolphinWX/MainMenuBar.cpp:53
+#: Source/Core/DolphinWX/MainMenuBar.cpp:308
 msgid "&JIT"
 msgstr "&JIT"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:411
+#: Source/Core/DolphinWX/MainMenuBar.cpp:344
 msgid "&JIT Block Linking Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:435
+#: Source/Core/DolphinWX/MainMenuBar.cpp:368
 msgid "&JIT FloatingPoint Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:436
+#: Source/Core/DolphinWX/MainMenuBar.cpp:369
 msgid "&JIT Integer Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:433
+#: Source/Core/DolphinWX/MainMenuBar.cpp:366
 msgid "&JIT LoadStore Floating Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:429
+#: Source/Core/DolphinWX/MainMenuBar.cpp:362
 msgid "&JIT LoadStore Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:434
+#: Source/Core/DolphinWX/MainMenuBar.cpp:367
 msgid "&JIT LoadStore Paired Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:431
+#: Source/Core/DolphinWX/MainMenuBar.cpp:364
 msgid "&JIT LoadStore lXz Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:430
+#: Source/Core/DolphinWX/MainMenuBar.cpp:363
 msgid "&JIT LoadStore lbzx Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:432
+#: Source/Core/DolphinWX/MainMenuBar.cpp:365
 msgid "&JIT LoadStore lwz Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:426
+#: Source/Core/DolphinWX/MainMenuBar.cpp:359
 msgid "&JIT Off (JIT Core)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:437
+#: Source/Core/DolphinWX/MainMenuBar.cpp:370
 msgid "&JIT Paired Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:438
+#: Source/Core/DolphinWX/MainMenuBar.cpp:371
 msgid "&JIT SystemRegisters Off"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:190
+#: Source/Core/DolphinWX/MainMenuBar.cpp:129
 msgid "&Load State"
 msgstr "ステートロード(&L)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:489
+#: Source/Core/DolphinWX/MainMenuBar.cpp:421
 msgid "&Load Symbol Map"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:421
+#: Source/Core/DolphinWX/MainMenuBar.cpp:354
 msgid "&Log JIT Instruction Coverage"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:275
+#: Source/Core/DolphinWX/MainMenuBar.cpp:215
 msgid "&Memcard Manager (GC)"
 msgstr "GCメモリーカードマネージャ(&M)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:369
+#: Source/Core/DolphinWX/MainMenuBar.cpp:307
 msgid "&Memory"
 msgstr "&Memory"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:111
+#: Source/Core/DolphinWX/MainMenuBar.cpp:46
 msgid "&Movie"
 msgstr "記録(&M)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:564
+#: Source/Core/DolphinWX/MainMenuBar.cpp:80
 msgid "&Open..."
 msgstr "開く(&O)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:112
+#: Source/Core/DolphinWX/MainMenuBar.cpp:47
 msgid "&Options"
 msgstr "設定(&O)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:529
+#: Source/Core/DolphinWX/MainMenuBar.cpp:461
 msgid "&Patch HLE Functions"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:575
+#: Source/Core/DolphinWX/MainMenuBar.cpp:513
 msgid "&Pause"
 msgstr "一時停止(&P)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:577
+#: Source/Core/DolphinWX/MainMenuBar.cpp:515
 msgid "&Play"
 msgstr "開始(&P)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:538
+#: Source/Core/DolphinWX/MainMenuBar.cpp:470
 msgid "&Profile Blocks"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:121
+#: Source/Core/DolphinWX/MainMenuBar.cpp:56
 msgid "&Profiler"
 msgstr ""
 
@@ -474,15 +474,15 @@ msgstr ""
 msgid "&Properties"
 msgstr "プロパティ(&P)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:599
+#: Source/Core/DolphinWX/MainMenuBar.cpp:144
 msgid "&Read-Only Mode"
 msgstr "読み込み専用(&R)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:570
+#: Source/Core/DolphinWX/MainMenuBar.cpp:84
 msgid "&Refresh List"
 msgstr "ゲームリストを再更新(&R)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:368
+#: Source/Core/DolphinWX/MainMenuBar.cpp:304
 msgid "&Registers"
 msgstr "&Registers"
 
@@ -490,51 +490,51 @@ msgstr "&Registers"
 msgid "&Remove Code"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:530
+#: Source/Core/DolphinWX/MainMenuBar.cpp:462
 msgid "&Rename Symbols from File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:583
+#: Source/Core/DolphinWX/MainMenuBar.cpp:122
 msgid "&Reset"
 msgstr "リセット(&R)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:492
+#: Source/Core/DolphinWX/MainMenuBar.cpp:424
 msgid "&Save Symbol Map"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:422
+#: Source/Core/DolphinWX/MainMenuBar.cpp:355
 msgid "&Search for an Instruction"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:369
+#: Source/Core/DolphinWX/MainMenuBar.cpp:309
 msgid "&Sound"
 msgstr "&Sound"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:580
+#: Source/Core/DolphinWX/MainMenuBar.cpp:121
 msgid "&Stop"
 msgstr "停止(&S)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:120
+#: Source/Core/DolphinWX/MainMenuBar.cpp:55
 msgid "&Symbols"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:113
+#: Source/Core/DolphinWX/MainMenuBar.cpp:48
 msgid "&Tools"
 msgstr "ツール(&T)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:370
+#: Source/Core/DolphinWX/MainMenuBar.cpp:310
 msgid "&Video"
 msgstr "&Video"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:114
+#: Source/Core/DolphinWX/MainMenuBar.cpp:49
 msgid "&View"
 msgstr "表示(&V)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:368
+#: Source/Core/DolphinWX/MainMenuBar.cpp:305
 msgid "&Watch"
 msgstr "&Watch"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:548
+#: Source/Core/DolphinWX/MainMenuBar.cpp:480
 msgid "&Website"
 msgstr "公式ウェブサイト(&W)"
 
@@ -542,7 +542,7 @@ msgstr "公式ウェブサイト(&W)"
 msgid "&Wiki"
 msgstr "公式Wiki(英語)で動作状況を確認(&W)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:540
+#: Source/Core/DolphinWX/MainMenuBar.cpp:472
 msgid "&Write to profile.txt, Show"
 msgstr ""
 
@@ -554,7 +554,7 @@ msgstr ""
 "(c) 2003-2015+ Dolphin Team. \"GameCube\" and \"Wii\" are trademarks of "
 "Nintendo. Dolphin is not affiliated with Nintendo in any way."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1065
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1071
 msgid "(off)"
 msgstr "オフ"
 
@@ -576,7 +576,7 @@ msgstr "-"
 msgid "1"
 msgstr "1"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:535
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:539
 msgid "1.5x Native (960x792)"
 msgstr "1.5x Native (960x792)"
 
@@ -588,11 +588,11 @@ msgstr "16 ビット"
 msgid "2"
 msgstr "2"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:537
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:541
 msgid "2.5x Native (1600x1320)"
 msgstr "2.5x Native (1600x1320)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:536
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:540
 msgid "2x Native (1280x1056) for 720p"
 msgstr "2x Native (1280x1056) for 720p"
 
@@ -600,23 +600,23 @@ msgstr "2x Native (1280x1056) for 720p"
 msgid "32-bit"
 msgstr "32 ビット"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:538
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:542
 msgid "3x Native (1920x1584) for 1080p"
 msgstr "3x Native (1920x1584) for 1080p"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:539
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:543
 msgid "4x Native (2560x2112) for 1440p"
 msgstr "4x Native (2560x2112) for 1440p"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:540
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:544
 msgid "5x Native (3200x2640)"
 msgstr "5x Native (3200x2640)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:541
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:545
 msgid "6x Native (3840x3168) for 4K"
 msgstr "6x Native (3840x3168) for 4K"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:542
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:546
 msgid "7x Native (4480x3696)"
 msgstr "7x Native (4480x3696)"
 
@@ -624,7 +624,7 @@ msgstr "7x Native (4480x3696)"
 msgid "8-bit"
 msgstr "8 ビット"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:543
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:547
 msgid "8x Native (5120x4224) for 5K"
 msgstr "8x Native (5120x4224) for 5K"
 
@@ -632,7 +632,7 @@ msgstr "8x Native (5120x4224) for 5K"
 msgid "<Insert name here>"
 msgstr "コード名を入力してください"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:410
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:414
 msgid "<No resolutions found>"
 msgstr "＜対応する解像度が見つかりません＞"
 
@@ -662,7 +662,7 @@ msgstr ""
 msgid "A game is not currently running."
 msgstr "ゲームは現在、起動されていません"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1328
+#: Source/Core/DolphinWX/FrameTools.cpp:823
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -711,7 +711,7 @@ msgstr "アクションリプレイコード"
 msgid "About Dolphin"
 msgstr "Dolphinについて"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:738
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:744
 msgid "Accuracy:"
 msgstr "精度："
 
@@ -804,17 +804,17 @@ msgstr "Action Replay: 通常コード %i: 不正なサブタイプ %08x (%s)"
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "Action Replay: 通常コード 0: 不正なサブタイプ %08x (%s)"
 
-#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:40
-#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:69
+#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:42
+#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:76
 msgid "Adapter Detected"
 msgstr "タップが接続されています"
 
-#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:28
-#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:71
+#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:30
+#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:78
 msgid "Adapter Not Detected"
 msgstr "タップは未接続です"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:396
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:400
 msgid "Adapter:"
 msgstr "ビデオカード："
 
@@ -827,7 +827,7 @@ msgstr "追加"
 msgid "Add ActionReplay Code"
 msgstr "コードを追加"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:464
+#: Source/Core/DolphinWX/MainMenuBar.cpp:396
 msgid "Add New Pane To"
 msgstr ""
 
@@ -835,7 +835,7 @@ msgstr ""
 msgid "Add Patch"
 msgstr "パッチを追加"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:519
+#: Source/Core/DolphinWX/MainMenuBar.cpp:451
 msgid ""
 "Add any named functions missing from a .dsy file, so it can also recognise "
 "these additional functions in other games."
@@ -859,7 +859,7 @@ msgid "Advance Game Port"
 msgstr "アドバンスコネクタ"
 
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:77
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:816
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:822
 msgid "Advanced"
 msgstr "高度な設定"
 
@@ -868,7 +868,7 @@ msgid "Advanced Settings"
 msgstr "高度な設定"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:43
-#: Source/Core/DolphinWX/FrameTools.cpp:856
+#: Source/Core/DolphinWX/FrameTools.cpp:351
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "全ての GC/Wii ファイル (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
@@ -876,8 +876,8 @@ msgstr "全ての GC/Wii ファイル (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)
 msgid "All GameCube GCM files (gcm)"
 msgstr "ゲームキューブ GCMファイル (gcm)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1772
-#: Source/Core/DolphinWX/FrameTools.cpp:1784
+#: Source/Core/DolphinWX/FrameTools.cpp:1267
+#: Source/Core/DolphinWX/FrameTools.cpp:1279
 msgid "All Save States (sav, s##)"
 msgstr "全てのステートセーブファイル (sav, s##)"
 
@@ -910,7 +910,7 @@ msgstr ""
 msgid "An inserted disc was expected but not found."
 msgstr ""
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:643
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
 msgid "Anaglyph"
 msgstr "Anaglyph"
 
@@ -922,15 +922,15 @@ msgstr "分析"
 msgid "Angle"
 msgstr "角度"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:576
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:580
 msgid "Anisotropic Filtering:"
 msgstr "異方性フィルタリング："
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:562
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:566
 msgid "Anti-Aliasing:"
 msgstr "アンチエイリアス："
 
-#: Source/Core/DolphinWX/FrameTools.cpp:518
+#: Source/Core/DolphinWX/MainMenuBar.cpp:450
 msgid "Append to &Existing Signature File..."
 msgstr ""
 
@@ -951,7 +951,7 @@ msgstr "Apploader ファイルから読み込むことができません"
 msgid "Apploader:"
 msgstr "Apploader:"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:525
+#: Source/Core/DolphinWX/MainMenuBar.cpp:457
 msgid "Apply Signat&ure File..."
 msgstr ""
 
@@ -984,7 +984,7 @@ msgid "Are you trying to use the same file in both slots?"
 msgstr "両方のスロットで同じファイルを使用しようとしていませんか？"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:83
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:435
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:439
 msgid "Aspect Ratio:"
 msgstr "アスペクト比："
 
@@ -992,7 +992,7 @@ msgstr "アスペクト比："
 msgid "Assign Controller Ports"
 msgstr "コントローラ割り当て設定"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:80
+#: Source/Core/DolphinWX/FrameAui.cpp:82
 msgid "At least one pane must remain open."
 msgstr "At least one pane must remain open."
 
@@ -1020,20 +1020,20 @@ msgstr "オーストラリア"
 msgid "Authors"
 msgstr "開発チーム"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:284
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:432
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:288
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:436
 msgid "Auto"
 msgstr "自動"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:533
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:537
 msgid "Auto (Multiple of 640x528)"
 msgstr "自動 (ゲーム解像度の倍数)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:532
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:536
 msgid "Auto (Window Size)"
 msgstr "自動 (ウィンドウサイズに拡大)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:465
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:469
 msgid "Auto Adjust Window Size"
 msgstr "ウィンドウサイズを自動調整"
 
@@ -1047,7 +1047,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:251
+#: Source/Core/DolphinWX/MainMenuBar.cpp:190
 msgid ""
 "Automatically load the Default ISO when Dolphin starts, or the last game you "
 "loaded, if you have not given it an elf file with the --elf command line. "
@@ -1056,7 +1056,7 @@ msgid ""
 "you are developing a homebrew game.]"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:416
+#: Source/Core/DolphinWX/MainMenuBar.cpp:349
 msgid ""
 "Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from "
 "crashing.\n"
@@ -1085,7 +1085,7 @@ msgid "Backend Settings"
 msgstr "出力設定"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:62
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:366
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:370
 msgid "Backend:"
 msgstr "描画API："
 
@@ -1099,8 +1099,8 @@ msgstr "バックグラウンド操作を許可"
 msgid "Backward"
 msgstr "後方"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:339
 #: Source/Core/DolphinWX/GameListCtrl.cpp:306
+#: Source/Core/DolphinWX/MainMenuBar.cpp:277
 #: Source/Core/DolphinWX/MemcardManager.cpp:641
 msgid "Banner"
 msgstr "バナー"
@@ -1117,7 +1117,7 @@ msgstr "バナー表示"
 msgid "Bar"
 msgstr "バー"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:491
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:495
 msgid "Basic"
 msgstr "基本設定"
 
@@ -1165,16 +1165,16 @@ msgid ""
 "was found. Aborting."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:245
+#: Source/Core/DolphinWX/MainMenuBar.cpp:184
 msgid "Boot to Pause"
 msgstr ""
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:894
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:900
 msgid "Borderless Fullscreen"
 msgstr "ボーダレス フルスクリーン"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:42
-#: Source/Core/DolphinWX/FrameTools.cpp:450
+#: Source/Core/DolphinWX/MainMenuBar.cpp:382
 msgid "Bottom"
 msgstr "下"
 
@@ -1308,7 +1308,7 @@ msgstr ""
 msgid "Caps Lock"
 msgstr "Caps Lock"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:453
+#: Source/Core/DolphinWX/MainMenuBar.cpp:385
 #: Source/Core/InputCommon/ControllerEmu.cpp:300
 msgid "Center"
 msgstr "Center"
@@ -1317,7 +1317,7 @@ msgstr "Center"
 msgid "Change &Disc"
 msgstr "ディスクの入れ替え(&D)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:567
+#: Source/Core/DolphinWX/MainMenuBar.cpp:81
 msgid "Change &Disc..."
 msgstr "ディスクの入れ替え(&D)"
 
@@ -1325,7 +1325,7 @@ msgstr "ディスクの入れ替え(&D)"
 msgid "Change Disc"
 msgstr "ディスクの入れ替え"
 
-#: Source/Core/Core/Movie.cpp:1271
+#: Source/Core/Core/Movie.cpp:1273
 #, c-format
 msgid "Change the disc to %s"
 msgstr "次のディスクに変更：%s"
@@ -1444,11 +1444,11 @@ msgstr ""
 #: Source/Core/DolphinWX/MemcardManager.cpp:241
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:135
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:153
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:916
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:922
 msgid "Close"
 msgstr "閉じる"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:231
+#: Source/Core/DolphinWX/MainMenuBar.cpp:170
 msgid "Co&nfigure..."
 msgstr "Dolphinの設定(&N)"
 
@@ -1464,7 +1464,7 @@ msgstr "コード："
 msgid "Code: "
 msgstr "コード："
 
-#: Source/Core/DolphinWX/FrameTools.cpp:521
+#: Source/Core/DolphinWX/MainMenuBar.cpp:453
 msgid "Combine Two Signature Files..."
 msgstr ""
 
@@ -1520,8 +1520,8 @@ msgstr "計算中..."
 msgid "Computing: "
 msgstr "計算中..."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:724
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:589
+#: Source/Core/DolphinWX/FrameTools.cpp:219
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:593
 msgid "Config"
 msgstr "設定"
 
@@ -1539,7 +1539,7 @@ msgstr "コントロールの設定"
 msgid "Configure Dolphin"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:725
+#: Source/Core/DolphinWX/FrameTools.cpp:220
 msgid "Configure..."
 msgstr "Dolphinの設定を行います"
 
@@ -1559,7 +1559,7 @@ msgid "Connect"
 msgstr "ホストに接続"
 
 #: Source/Core/Core/HotkeyManager.cpp:40
-#: Source/Core/DolphinWX/FrameTools.cpp:619
+#: Source/Core/DolphinWX/MainMenuBar.cpp:212
 msgid "Connect Balance Board"
 msgstr "バランスWii ボードを接続"
 
@@ -1567,7 +1567,7 @@ msgstr "バランスWii ボードを接続"
 msgid "Connect USB Keyboard"
 msgstr "USBキーボードの接続をエミュレート"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:616
+#: Source/Core/DolphinWX/MainMenuBar.cpp:209
 #, c-format
 msgid "Connect Wiimote %i"
 msgstr "%iPのWiiリモコンを接続"
@@ -1588,7 +1588,7 @@ msgstr "3PのWiiリモコンを接続"
 msgid "Connect Wiimote 4"
 msgstr "4PのWiiリモコンを接続"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:286
+#: Source/Core/DolphinWX/MainMenuBar.cpp:224
 msgid "Connect Wiimotes"
 msgstr "Wiiリモコンを接続"
 
@@ -1616,11 +1616,11 @@ msgstr "コントロールスティック"
 msgid "Controller Ports"
 msgstr "コントローラ割り当て設定"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:729
+#: Source/Core/DolphinWX/FrameTools.cpp:224
 msgid "Controller settings"
 msgstr "コントローラの設定を行います"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:728
+#: Source/Core/DolphinWX/FrameTools.cpp:223
 msgid "Controllers"
 msgstr "コントローラ"
 
@@ -1644,7 +1644,7 @@ msgstr ""
 "仮想カメラ間の距離調整。\n"
 "値を高くすると効果が強くなり、 低くすると目の負担が軽減されます。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:669
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:675
 msgid "Convergence:"
 msgstr "収束点 (Convergence):"
 
@@ -1759,17 +1759,17 @@ msgstr "発売国"
 msgid "Create AR Code"
 msgstr "アクションリプレイコードを作成"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:461
+#: Source/Core/DolphinWX/MainMenuBar.cpp:393
 msgid "Create New Perspective"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:517
+#: Source/Core/DolphinWX/MainMenuBar.cpp:449
 msgid ""
 "Create a .dsy file that can be used to recognise these same functions in "
 "other games."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameAui.cpp:553
+#: Source/Core/DolphinWX/FrameAui.cpp:539
 msgid "Create new perspective"
 msgstr "Create new perspective"
 
@@ -1781,7 +1781,7 @@ msgstr "制作者： "
 msgid "Critical"
 msgstr "致命的なエラー"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:878
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:884
 msgid "Crop"
 msgstr "クロッピング"
 
@@ -1799,7 +1799,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "クロスフェーダー"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:868
+#: Source/Core/DolphinWX/FrameTools.cpp:363
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "Current directory changed from %s to %s after wxFileSelector!"
@@ -1808,7 +1808,7 @@ msgstr "Current directory changed from %s to %s after wxFileSelector!"
 msgid "Current game"
 msgstr "選択中のタイトル"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:544
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:548
 msgid "Custom"
 msgstr "カスタム"
 
@@ -1875,7 +1875,7 @@ msgstr "デバッグ"
 msgid "Debug Only"
 msgstr "デバッグ用"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:834
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:840
 msgid "Debugging"
 msgstr "デバッグ用項目"
 
@@ -1942,11 +1942,11 @@ msgstr "既存ファイル '%s' を削除しますか？"
 msgid "Depth Percentage: "
 msgstr "深度 比率変更:"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:658
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:664
 msgid "Depth:"
 msgstr "深度 (Depth):"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1040
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1046
 msgid "Description"
 msgstr "説明"
 
@@ -1994,15 +1994,15 @@ msgstr ""
 "ディレクトリのチェックサムに失敗\n"
 "ディレクトリバックアップのチェックサムにも失敗"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:769
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:775
 msgid "Disable"
 msgstr "無効化"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:794
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:800
 msgid "Disable Bounding Box"
 msgstr "Disable Bounding Box"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:466
+#: Source/Core/DolphinWX/MainMenuBar.cpp:398
 msgid "Disable Docking"
 msgstr ""
 
@@ -2010,7 +2010,7 @@ msgstr ""
 msgid "Disable Emulation Speed Limit"
 msgstr "エミュレーション速度 無効化"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:619
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:623
 msgid "Disable Fog"
 msgstr "Disable Fog"
 
@@ -2028,7 +2028,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを外さないでください。"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:467
+#: Source/Core/DolphinWX/MainMenuBar.cpp:399
 msgid "Disable docking of perspective panes to main window"
 msgstr ""
 
@@ -2052,7 +2052,7 @@ msgstr "ディスク"
 msgid "Disc Read Error"
 msgstr "ディスク読み取りエラー"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:496
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:500
 msgid "Display"
 msgstr "表示設定"
 
@@ -2070,7 +2070,7 @@ msgstr ""
 msgid "Divide"
 msgstr "Divide"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1327
+#: Source/Core/DolphinWX/FrameTools.cpp:822
 msgid "Do you want to stop the current emulation?"
 msgstr "動作中のゲームを停止しますか？"
 
@@ -2079,12 +2079,12 @@ msgid "Dolby Pro Logic II decoder"
 msgstr "Dolby Pro Logic II decoder"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:1168
+#: Source/Core/DolphinWX/FrameTools.cpp:663
 msgid "Dolphin"
 msgstr "Dolphin"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:36
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:343
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:347
 #, c-format
 msgid "Dolphin %s Graphics Configuration"
 msgstr "Dolphin %s グラフィック設定"
@@ -2105,7 +2105,7 @@ msgstr "Wiiリモコンのエミュレーション設定"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1529
+#: Source/Core/DolphinWX/FrameTools.cpp:1024
 msgid "Dolphin Hotkeys"
 msgstr "Dolphin ホットキー設定"
 
@@ -2117,8 +2117,8 @@ msgstr "Dolphin ネットプレイ"
 msgid "Dolphin NetPlay Setup"
 msgstr "Dolphin ネットプレイ《セットアップ》"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1001
-#: Source/Core/DolphinWX/FrameTools.cpp:1464
+#: Source/Core/DolphinWX/FrameTools.cpp:496
+#: Source/Core/DolphinWX/FrameTools.cpp:959
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Dolphin TAS ムービー (*.dtm)"
 
@@ -2175,7 +2175,7 @@ msgstr "%lu個のコードが見つかりました。( 新規追加： %lu個 )"
 msgid "Drawn Object Range"
 msgstr "Drawn Object Range"
 
-#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:34
+#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:36
 msgid "Driver Not Detected"
 msgstr "ドライバが見つかりません"
 
@@ -2187,15 +2187,15 @@ msgstr "ドラムコントローラ"
 msgid "Dummy"
 msgstr "ダミーデバイス"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:222
+#: Source/Core/DolphinWX/MainMenuBar.cpp:161
 msgid "Dump Audio"
 msgstr "サウンドのダンプを行う"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:855
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:861
 msgid "Dump EFB Target"
 msgstr "EFBターゲットをダンプ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:220
+#: Source/Core/DolphinWX/MainMenuBar.cpp:159
 msgid "Dump Frames"
 msgstr "フレームのダンプを行う"
 
@@ -2216,7 +2216,7 @@ msgid "Dump Texture Fetches"
 msgstr "Dump Texture Fetches"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:113
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:846
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:852
 msgid "Dump Textures"
 msgstr "テクスチャのダンプを行う"
 
@@ -2251,7 +2251,7 @@ msgstr ""
 msgid "Dutch"
 msgstr "オランダ語"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:147
+#: Source/Core/DolphinWX/MainMenuBar.cpp:86
 msgid "E&xit"
 msgstr "終了"
 
@@ -2283,8 +2283,8 @@ msgstr "iniを編集"
 msgid "Edit Patch"
 msgstr "パッチを編集"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:458
-#: Source/Core/DolphinWX/FrameTools.cpp:475
+#: Source/Core/DolphinWX/MainMenuBar.cpp:390
+#: Source/Core/DolphinWX/MainMenuBar.cpp:407
 msgid "Edit Perspectives"
 msgstr ""
 
@@ -2302,7 +2302,7 @@ msgid ""
 "Search settings."
 msgstr ""
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:698
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:704
 msgid "Embedded Frame Buffer (EFB)"
 msgstr "Embedded Frame Buffer (内蔵フレームバッファ)"
 
@@ -2357,7 +2357,7 @@ msgstr "Wiiリモコンをエミュレート"
 msgid "Emulation State: "
 msgstr "動作状況："
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:829
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:835
 msgid "Enable API Validation Layers"
 msgstr ""
 
@@ -2393,11 +2393,11 @@ msgstr "Enable FPRF"
 msgid "Enable MMU"
 msgstr "Enable MMU"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:484
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:488
 msgid "Enable Multi-threading"
 msgstr ""
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:883
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:889
 msgid "Enable Progressive Scan"
 msgstr "プログレッシブ表示を有効化"
 
@@ -2417,7 +2417,7 @@ msgstr "統計レポートの収集に協力する"
 msgid "Enable WideScreen"
 msgstr "ワイドスクリーンを有効化"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:823
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:829
 msgid "Enable Wireframe"
 msgstr "ワイヤーフレームを有効化"
 
@@ -2561,12 +2561,12 @@ msgstr "Enet Didn't Initialize"
 msgid "English"
 msgstr "英語"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:522
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:625
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:526
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:631
 msgid "Enhancements"
 msgstr "画質向上の設定"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:552
+#: Source/Core/DolphinWX/FrameAui.cpp:538
 msgid "Enter a name for the new perspective:"
 msgstr "Enter a name for the new perspective:"
 
@@ -2636,11 +2636,10 @@ msgid "Execute"
 msgstr "Execute"
 
 #: Source/Core/Core/HotkeyManager.cpp:33
-#: Source/Core/DolphinWX/FrameTools.cpp:609
 msgid "Exit"
 msgstr "Dolphinを終了"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:277
+#: Source/Core/DolphinWX/MainMenuBar.cpp:217
 msgid "Export All Wii Saves"
 msgstr "全てのWiiセーブデータをエクスポート"
 
@@ -2652,7 +2651,7 @@ msgstr "ファイルを抽出"
 msgid "Export Recording"
 msgstr "録画ファイルのエクスポート"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:596
+#: Source/Core/DolphinWX/MainMenuBar.cpp:143
 msgid "Export Recording..."
 msgstr "録画ファイルのエクスポート"
 
@@ -2681,7 +2680,7 @@ msgstr "セーブデータのエクスポート先を選択"
 msgid "Extension"
 msgstr "拡張コントローラ"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:766
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:772
 msgid "External Frame Buffer (XFB)"
 msgstr "External Frame Buffer (外部フレームバッファ)"
 
@@ -2727,7 +2726,7 @@ msgid "Extracting..."
 msgstr "抽出しています..."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:46
-#: Source/Core/DolphinWX/FrameTools.cpp:284
+#: Source/Core/DolphinWX/MainMenuBar.cpp:222
 msgid "FIFO Player"
 msgstr "FIFO プレーヤー"
 
@@ -2796,7 +2795,7 @@ msgstr ""
 "出力先が書き込み可能なメディアか、また書き込み権限があるかどうかを確認してく"
 "ださい"
 
-#: Source/Core/Core/Movie.cpp:1013
+#: Source/Core/Core/Movie.cpp:1015
 #, c-format
 msgid "Failed to read %s"
 msgstr "Failed to read %s"
@@ -2875,15 +2874,15 @@ msgstr ""
 "次のファイルの保存に失敗 \"%s\"\n"
 "保存先のディスクに十分な空き容量があるか確認してください"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:744
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:750
 msgid "Fast"
 msgstr "Fast"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:791
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:797
 msgid "Fast Depth Calculation"
 msgstr "Fast Depth Calculation"
 
-#: Source/Core/Core/Movie.cpp:1303
+#: Source/Core/Core/Movie.cpp:1305
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -2899,11 +2898,11 @@ msgstr "ファイル名"
 msgid "File Info"
 msgstr "ファイル情報"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:343
+#: Source/Core/DolphinWX/MainMenuBar.cpp:281
 msgid "File Name"
 msgstr "ファイル名"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:349
+#: Source/Core/DolphinWX/MainMenuBar.cpp:287
 msgid "File Size"
 msgstr "ファイルサイズ"
 
@@ -2989,11 +2988,15 @@ msgstr "ブロック開始位置"
 msgid "Fix Checksums"
 msgstr "チェックサムを修正"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:432
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:436
 msgid "Force 16:9"
 msgstr "強制的に 16:9 にする"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:432
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:625
+msgid "Force 24-bit Color"
+msgstr ""
+
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:436
 msgid "Force 4:3"
 msgstr "強制的に 4:3 にする"
 
@@ -3005,7 +3008,7 @@ msgstr "コンソールを日本向け (NTSC-J) に設定"
 msgid "Force Listen Port: "
 msgstr "接続待ちポートを次の番号で固定："
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:615
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:619
 msgid "Force Texture Filtering"
 msgstr "Force Texture Filtering"
 
@@ -3039,6 +3042,16 @@ msgstr ""
 "ワイドスクリーン化のチートコードを使用する場合は無効にしてください。\n"
 "\n"
 "よく分からなければ、チェックを入れないでください。"
+
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:279
+msgid ""
+"Forces the game to render the RGB color channels in 24-bit, thereby "
+"increasing quality by reducing color banding.\n"
+"It has no impact on performance and causes few graphical issues.\n"
+"\n"
+"\n"
+"If unsure, leave this checked."
+msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:37
 msgid ""
@@ -3092,7 +3105,7 @@ msgstr "Frame Advance速度 増加"
 msgid "Frame Advance Reset Speed"
 msgstr "Frame Advance速度 リセット"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:860
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:866
 msgid "Frame Dumps Use FFV1"
 msgstr "フレームダンプにFFV1を使用"
 
@@ -3112,7 +3125,7 @@ msgstr "録画フレーム数"
 msgid "France"
 msgstr "フランス"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:857
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:863
 msgid "Free Look"
 msgstr "フリールック"
 
@@ -3171,11 +3184,11 @@ msgstr "フレットボタン"
 msgid "From"
 msgstr "開始"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:719
+#: Source/Core/DolphinWX/FrameTools.cpp:214
 msgid "FullScr"
 msgstr "全画面"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:412
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:416
 msgid "Fullscreen Resolution:"
 msgstr "フルスクリーン時の解像度："
 
@@ -3237,7 +3250,7 @@ msgstr ""
 msgid "Game Boy Advance Carts (*.gba)"
 msgstr "ゲームボーイアドバンスROMファイル (*.gba)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:345
+#: Source/Core/DolphinWX/MainMenuBar.cpp:283
 msgid "Game ID"
 msgstr "ゲームID"
 
@@ -3301,7 +3314,7 @@ msgstr "Geckoコード"
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:71
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:48
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:357
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:361
 msgid "General"
 msgstr "一般"
 
@@ -3320,11 +3333,11 @@ msgstr "ドイツ語"
 msgid "Germany"
 msgstr "ドイツ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:726
+#: Source/Core/DolphinWX/FrameTools.cpp:221
 msgid "Graphics"
 msgstr "ビデオ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:727
+#: Source/Core/DolphinWX/FrameTools.cpp:222
 msgid "Graphics settings"
 msgstr "グラフィックの設定を行います"
 
@@ -3364,11 +3377,11 @@ msgstr "緑 - 右"
 msgid "Guitar"
 msgstr "ギターコントローラ"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:693
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:699
 msgid "Hacks"
 msgstr "高速化(Hacks)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:750
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:756
 #, c-format
 msgid ""
 "Hash tap count is set to %d which is non-standard.\n"
@@ -3399,7 +3412,7 @@ msgstr "ヘルプ"
 msgid "Hide"
 msgstr "隠す"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:474
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:478
 msgid "Hide Mouse Cursor"
 msgstr "マウスカーソルを隠す"
 
@@ -3559,7 +3572,7 @@ msgstr ""
 "\n"
 "ご協力いただけますか？"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:704
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:710
 msgid "Ignore Format Changes"
 msgstr "Ignore Format Changes"
 
@@ -3616,7 +3629,7 @@ msgstr ""
 msgid "Import Save"
 msgstr "セーブデータをインポート"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:276
+#: Source/Core/DolphinWX/MainMenuBar.cpp:216
 msgid "Import Wii Save..."
 msgstr "Wii セーブデータのインポート"
 
@@ -3685,7 +3698,7 @@ msgstr "Insert"
 msgid "Insert SD Card"
 msgstr "SDカードの挿入をエミュレート"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:280
+#: Source/Core/DolphinWX/MainMenuBar.cpp:220
 msgid "Install WAD..."
 msgstr "WiiメニューにWADファイルを追加"
 
@@ -3693,7 +3706,7 @@ msgstr "WiiメニューにWADファイルを追加"
 msgid "Install to Wii Menu"
 msgstr "Wiiメニューへインストール"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1679
+#: Source/Core/DolphinWX/FrameTools.cpp:1174
 msgid "Installing WAD..."
 msgstr "追加しています..."
 
@@ -3747,7 +3760,7 @@ msgstr "Internal LZO Error - lzo_init() failed"
 msgid "Internal Name:"
 msgstr "内部名称"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:554
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:558
 msgid "Internal Resolution:"
 msgstr "内部解像度の変更："
 
@@ -3775,7 +3788,7 @@ msgstr "このホストコードは無効です"
 msgid "Invalid index"
 msgstr "Invalid index"
 
-#: Source/Core/Core/Movie.cpp:954
+#: Source/Core/Core/Movie.cpp:956
 msgid "Invalid recording file"
 msgstr "不正な録画ファイル"
 
@@ -3832,7 +3845,7 @@ msgstr "日本"
 msgid "Japanese"
 msgstr "日本語"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:471
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:475
 msgid "Keep Window on Top"
 msgstr "最前面に表示"
 
@@ -3895,7 +3908,7 @@ msgstr "L (アナログ)"
 msgid "Language:"
 msgstr "GUI言語："
 
-#: Source/Core/DolphinWX/FrameTools.cpp:662
+#: Source/Core/DolphinWX/MainMenuBar.cpp:117
 #, c-format
 msgid "Last %i"
 msgstr "%i個前のステートをロード"
@@ -3904,7 +3917,7 @@ msgstr "%i個前のステートをロード"
 msgid "Latency:"
 msgstr "レイテンシ："
 
-#: Source/Core/DolphinWX/FrameTools.cpp:451
+#: Source/Core/DolphinWX/MainMenuBar.cpp:383
 #: Source/Core/DolphinWX/TASInputDlg.cpp:80
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:70
@@ -3969,15 +3982,15 @@ msgstr ""
 msgid "Load"
 msgstr "読込"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:500
+#: Source/Core/DolphinWX/MainMenuBar.cpp:432
 msgid "Load &Bad Map File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:497
+#: Source/Core/DolphinWX/MainMenuBar.cpp:429
 msgid "Load &Other Map File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:848
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:854
 msgid "Load Custom Textures"
 msgstr "カスタムテクスチャを読み込む"
 
@@ -4065,24 +4078,30 @@ msgstr "ステートロード - スロット 8"
 msgid "Load State Slot 9"
 msgstr "ステートロード - スロット 9"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:683
+#: Source/Core/DolphinWX/MainMenuBar.cpp:95
 msgid "Load State from Selected Slot"
 msgstr "選択したスロットから読込"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:665
+#: Source/Core/DolphinWX/MainMenuBar.cpp:94
 msgid "Load State..."
 msgstr "ファイルからロード"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1711
+#: Source/Core/DolphinWX/FrameTools.cpp:1206
+#: Source/Core/DolphinWX/MainMenuBar.cpp:554
 msgid "Load Wii System Menu"
 msgstr "Wiiメニューを起動"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1706
+#: Source/Core/DolphinWX/FrameTools.cpp:1201
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Wiiメニューを起動 ( バージョン：%d %c )"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:498
+#: Source/Core/DolphinWX/MainMenuBar.cpp:549
+#, c-format
+msgid "Load Wii System Menu %u%c"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:430
 msgid ""
 "Load any .map file containing the function names and addresses for this game."
 msgstr ""
@@ -4120,7 +4139,7 @@ msgstr "ログ"
 msgid "Log Configuration"
 msgstr "ログの設定"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:462
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:466
 msgid "Log Render Time to File"
 msgstr "レンダリング時間を記録"
 
@@ -4146,7 +4165,7 @@ msgid "Logger Outputs"
 msgstr "ログ出力先"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:139
-#: Source/Core/DolphinWX/Frame.cpp:434
+#: Source/Core/DolphinWX/Frame.cpp:356
 msgid "Logging"
 msgstr "ログ"
 
@@ -4175,14 +4194,14 @@ msgstr "MadCatz Gameshark セーブファイル(*.gcs)"
 msgid "Main Stick"
 msgstr "コントロールスティック"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:522
+#: Source/Core/DolphinWX/MainMenuBar.cpp:454
 msgid ""
 "Make a new .dsy file which can recognise more functions, by combining two "
 "existing files. The first input file has priority."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:341
 #: Source/Core/DolphinWX/GameListCtrl.cpp:309
+#: Source/Core/DolphinWX/MainMenuBar.cpp:279
 msgid "Maker"
 msgstr "メーカー"
 
@@ -4289,7 +4308,7 @@ msgstr "マイク"
 msgid "Min"
 msgstr "最小"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:901
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:907
 msgid "Misc"
 msgstr "その他"
 
@@ -4340,7 +4359,7 @@ msgstr ""
 msgid "Multiply"
 msgstr "Multiply"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:526
+#: Source/Core/DolphinWX/MainMenuBar.cpp:458
 msgid ""
 "Must use Generate symbol map first! Recognise names of any standard library "
 "functions used in multiple games, by loading them from a .dsy file."
@@ -4449,7 +4468,7 @@ msgstr "名前"
 msgid "Name: "
 msgstr "名前： "
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:534
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:538
 msgid "Native (640x528)"
 msgstr "Native (640x528)"
 
@@ -4521,7 +4540,7 @@ msgstr ""
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:47
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:287
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:26
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1102
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:1108
 msgid "None"
 msgstr "なし"
 
@@ -4547,10 +4566,10 @@ msgstr "未接続"
 msgid "Notes: "
 msgstr "補足： "
 
-#: Source/Core/DolphinWX/FrameAui.cpp:80 Source/Core/DolphinWX/FrameAui.cpp:84
-#: Source/Core/DolphinWX/FrameAui.cpp:524
-#: Source/Core/DolphinWX/FrameAui.cpp:569
-#: Source/Core/DolphinWX/FrameAui.cpp:576
+#: Source/Core/DolphinWX/FrameAui.cpp:82 Source/Core/DolphinWX/FrameAui.cpp:86
+#: Source/Core/DolphinWX/FrameAui.cpp:510
+#: Source/Core/DolphinWX/FrameAui.cpp:555
+#: Source/Core/DolphinWX/FrameAui.cpp:562
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:42
 msgid "Notice"
 msgstr "注意"
@@ -4576,7 +4595,7 @@ msgstr "ヌンチャク モーションセンサー"
 msgid "Nunchuk stick"
 msgstr "ヌンチャク コントローラスティック"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:643
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:649
 msgid "Nvidia 3D Vision"
 msgstr "Nvidia 3D Vision"
 
@@ -4589,7 +4608,7 @@ msgstr "Object %zu"
 msgid "Object Range"
 msgstr "オブジェクトの範囲"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:642
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:648
 msgid "Off"
 msgstr "オフ"
 
@@ -4601,7 +4620,7 @@ msgstr "オフセット値："
 msgid "On-Screen Display Messages"
 msgstr "オンスクリーンメッセージを表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:549
+#: Source/Core/DolphinWX/MainMenuBar.cpp:481
 msgid "Online &Documentation"
 msgstr "オンラインガイドを表示(&D)"
 
@@ -4611,7 +4630,7 @@ msgid "Only %d blocks available"
 msgstr "残り %d ブロックしかありません！"
 
 #: Source/Core/Core/HotkeyManager.cpp:14
-#: Source/Core/DolphinWX/FrameTools.cpp:712
+#: Source/Core/DolphinWX/FrameTools.cpp:207
 msgid "Open"
 msgstr "開く"
 
@@ -4623,7 +4642,7 @@ msgstr "実体のあるフォルダを開く(&C)"
 msgid "Open Wii &save folder"
 msgstr "セーブデータのあるフォルダを開く(&S)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:713
+#: Source/Core/DolphinWX/FrameTools.cpp:208
 msgid "Open file..."
 msgstr "起動するファイルを選択"
 
@@ -4671,8 +4690,8 @@ msgstr ""
 msgid "Orientation"
 msgstr "モーションセンサー"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:501
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:799
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:505
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:805
 msgid "Other"
 msgstr "その他"
 
@@ -4692,7 +4711,7 @@ msgstr "Overlay Information"
 msgid "Override Language on NTSC Games"
 msgstr "Override Language on NTSC Games"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:593
+#: Source/Core/DolphinWX/MainMenuBar.cpp:142
 msgid "P&lay Input Recording..."
 msgstr "録画ファイルを再生(&L)"
 
@@ -4737,13 +4756,13 @@ msgstr "パッチ"
 msgid "Paths"
 msgstr "フォルダ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1964
-#: Source/Core/DolphinWX/FrameTools.cpp:1966
+#: Source/Core/DolphinWX/FrameTools.cpp:1451
+#: Source/Core/DolphinWX/FrameTools.cpp:1453
 #: Source/Core/DolphinWX/WXInputBase.cpp:62
 msgid "Pause"
 msgstr "一時停止"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:208
+#: Source/Core/DolphinWX/MainMenuBar.cpp:147
 msgid "Pause at End of Movie"
 msgstr "再生終了時に一時停止"
 
@@ -4756,7 +4775,7 @@ msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr ""
 "エミュレーションウィンドウからフォーカスが外れた際に一時停止するようにします"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:612
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:616
 msgid "Per-Pixel Lighting"
 msgstr "Per-Pixel Lighting"
 
@@ -4770,23 +4789,23 @@ msgid ""
 "before any Searching can be performed."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameAui.cpp:554
+#: Source/Core/DolphinWX/FrameAui.cpp:540
 #, c-format
 msgid "Perspective %d"
 msgstr "Perspective %d"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:475
+#: Source/Core/DolphinWX/MainMenuBar.cpp:407
 msgid "Perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:337
+#: Source/Core/DolphinWX/MainMenuBar.cpp:275
 msgid "Platform"
 msgstr "機種"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:148
-#: Source/Core/DolphinWX/FrameTools.cpp:717
-#: Source/Core/DolphinWX/FrameTools.cpp:1971
-#: Source/Core/DolphinWX/FrameTools.cpp:1973
+#: Source/Core/DolphinWX/FrameTools.cpp:212
+#: Source/Core/DolphinWX/FrameTools.cpp:1458
+#: Source/Core/DolphinWX/FrameTools.cpp:1460
 msgid "Play"
 msgstr "開始"
 
@@ -4806,11 +4825,11 @@ msgstr "再生に関する設定"
 msgid "Players"
 msgstr "プレイヤー一覧"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1331
+#: Source/Core/DolphinWX/FrameTools.cpp:826
 msgid "Please confirm..."
 msgstr "確認"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:524
+#: Source/Core/DolphinWX/FrameAui.cpp:510
 msgid "Please create a perspective before saving"
 msgstr "Please create a perspective before saving"
 
@@ -4832,25 +4851,25 @@ msgstr "ポート:"
 msgid "Post Processing Shader Configuration"
 msgstr "ポストプロセス シェーダー設定"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:596
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:600
 msgid "Post-Processing Effect:"
 msgstr "ポストプロセス："
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:852
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:858
 msgid "Prefetch Custom Textures"
 msgstr "カスタムテクスチャの事前読込"
 
-#: Source/Core/Core/Movie.cpp:1190
+#: Source/Core/Core/Movie.cpp:1192
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "Premature movie end in PlayController. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1316
+#: Source/Core/Core/Movie.cpp:1318
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "Premature movie end in PlayWiimote. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1291
+#: Source/Core/Core/Movie.cpp:1293
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Premature movie end in PlayWiimote. %u > %u"
@@ -4879,11 +4898,11 @@ msgstr "プロファイル"
 msgid "Properties"
 msgstr "プロパティ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:412
+#: Source/Core/DolphinWX/MainMenuBar.cpp:345
 msgid "Provide safer execution by not linking the JIT blocks."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:392
+#: Source/Core/DolphinWX/MainMenuBar.cpp:325
 msgid "Purge Game List Cache"
 msgstr "ゲームリストのキャッシュを消去"
 
@@ -4931,7 +4950,7 @@ msgstr "範囲／強さ"
 msgid "Read-only mode"
 msgstr "読み込み専用 切替"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:772
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:778
 msgid "Real"
 msgstr "Real"
 
@@ -4943,7 +4962,7 @@ msgstr "実機バランスWii ボードを接続"
 msgid "Real Wiimote"
 msgstr "実機Wiiリモコンを接続"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:486
+#: Source/Core/DolphinWX/MainMenuBar.cpp:418
 msgid ""
 "Recognise standard functions from sys\\totaldb.dsy, and use generic zz_ "
 "names for other functions."
@@ -5001,7 +5020,7 @@ msgstr ""
 "よく分からなければ、【なし】のままにしておいてください。"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:327
-#: Source/Core/DolphinWX/FrameTools.cpp:714
+#: Source/Core/DolphinWX/FrameTools.cpp:209
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1186
 msgid "Refresh"
 msgstr "再更新"
@@ -5010,11 +5029,11 @@ msgstr "再更新"
 msgid "Refresh List"
 msgstr "ゲームリストを再更新"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:715
+#: Source/Core/DolphinWX/FrameTools.cpp:210
 msgid "Refresh game list"
 msgstr "ゲームリストを再更新します"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:347
+#: Source/Core/DolphinWX/MainMenuBar.cpp:285
 msgid "Region"
 msgstr "リージョン"
 
@@ -5028,7 +5047,7 @@ msgstr ""
 msgid "Remove"
 msgstr "削除"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:484
+#: Source/Core/DolphinWX/MainMenuBar.cpp:416
 msgid "Remove names from all functions and variables."
 msgstr ""
 
@@ -5042,7 +5061,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:478
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:482
 msgid "Render to Main Window"
 msgstr "メインウィンドウ部分に描画"
 
@@ -5098,7 +5117,7 @@ msgstr "リビジョン"
 msgid "Revision: %s"
 msgstr "Revision: %s"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:452
+#: Source/Core/DolphinWX/MainMenuBar.cpp:384
 #: Source/Core/DolphinWX/TASInputDlg.cpp:76
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:74
@@ -5120,7 +5139,7 @@ msgstr "ルームID："
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:61
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:273
-#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:20
+#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:22
 msgid "Rumble"
 msgstr "振動"
 
@@ -5136,11 +5155,11 @@ msgstr "SDカード"
 msgid "SD card"
 msgstr "SDカード"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:191
+#: Source/Core/DolphinWX/MainMenuBar.cpp:130
 msgid "Sa&ve State"
 msgstr "ステートセーブ(&V)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:741
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:747
 msgid "Safe"
 msgstr "Safe"
 
@@ -5149,7 +5168,7 @@ msgstr "Safe"
 msgid "Save"
 msgstr "保存"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:507
+#: Source/Core/DolphinWX/MainMenuBar.cpp:439
 msgid "Save Code"
 msgstr ""
 
@@ -5158,11 +5177,11 @@ msgid "Save GCI as..."
 msgstr "セーブデータの保存先を選択"
 
 #: Source/Core/Core/HotkeyManager.cpp:126
-#: Source/Core/DolphinWX/FrameTools.cpp:669
+#: Source/Core/DolphinWX/MainMenuBar.cpp:102
 msgid "Save Oldest State"
 msgstr "最古のステートに上書き保存"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:456
+#: Source/Core/DolphinWX/MainMenuBar.cpp:388
 msgid "Save Perspectives"
 msgstr ""
 
@@ -5210,15 +5229,15 @@ msgstr "ステートセーブ - スロット 8"
 msgid "Save State Slot 9"
 msgstr "ステートセーブ - スロット 9"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:679
+#: Source/Core/DolphinWX/MainMenuBar.cpp:101
 msgid "Save State to Selected Slot"
 msgstr "選択したスロットに保存"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:649
+#: Source/Core/DolphinWX/MainMenuBar.cpp:100
 msgid "Save State..."
 msgstr "ファイルとして保存"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:502
+#: Source/Core/DolphinWX/MainMenuBar.cpp:434
 msgid "Save Symbol Map &As..."
 msgstr ""
 
@@ -5231,7 +5250,7 @@ msgstr "ファイルとして保存"
 msgid "Save compressed GCM/ISO"
 msgstr "圧縮するタイトルの保存先を選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:457
+#: Source/Core/DolphinWX/MainMenuBar.cpp:389
 msgid "Save currently-toggled perspectives"
 msgstr ""
 
@@ -5239,7 +5258,7 @@ msgstr ""
 msgid "Save decompressed GCM/ISO"
 msgstr "復元するタイトルの保存先を選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:508
+#: Source/Core/DolphinWX/MainMenuBar.cpp:440
 msgid ""
 "Save the entire disassembled code. This may take a several seconds and may "
 "require between 50 and 100 MB of hard drive space. It will only save code "
@@ -5248,13 +5267,13 @@ msgid ""
 "you can do that from SymbolDB::SaveMap()."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:503
+#: Source/Core/DolphinWX/MainMenuBar.cpp:435
 msgid ""
 "Save the function names and addresses for this game as a .map file. If you "
 "want to open it in IDA pro, use the .idc script."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:493
+#: Source/Core/DolphinWX/MainMenuBar.cpp:425
 msgid ""
 "Save the function names for each address to a .map file in your user "
 "settings map folder, named after the title id."
@@ -5264,7 +5283,7 @@ msgstr ""
 msgid "Save to selected slot"
 msgstr "選択したスロットに保存"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:462
+#: Source/Core/DolphinWX/MainMenuBar.cpp:394
 msgid "Saved Perspectives"
 msgstr ""
 
@@ -5278,12 +5297,12 @@ msgstr ""
 "以下の場所に128MBの仮想SDファイルを作成します\n"
 "/Wii/sd.raw"
 
-#: Source/Core/Core/Movie.cpp:1022
+#: Source/Core/Core/Movie.cpp:1024
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "Savestate movie %s の破損を確認しました。録画を中止しています..."
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:610
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:614
 msgid "Scaled EFB Copy"
 msgstr "Scaled EFB Copy"
 
@@ -5300,7 +5319,7 @@ msgstr "確認中..."
 msgid "Scanning..."
 msgstr "確認中..."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:721
+#: Source/Core/DolphinWX/FrameTools.cpp:216
 msgid "ScrShot"
 msgstr "画面撮影"
 
@@ -5346,7 +5365,7 @@ msgstr "Section %s not found in SYSCONF"
 msgid "Select"
 msgstr "選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:393
+#: Source/Core/DolphinWX/MainMenuBar.cpp:326
 msgid "Select Columns"
 msgstr "ゲームリストカラムの表示"
 
@@ -5354,12 +5373,12 @@ msgstr "ゲームリストカラムの表示"
 msgid "Select Game"
 msgstr "タイトルを選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:697
+#: Source/Core/DolphinWX/MainMenuBar.cpp:532
 #, c-format
-msgid "Select Slot %i - %s"
-msgstr "スロット %i - %s"
+msgid "Select Slot %u - %s"
+msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:192
+#: Source/Core/DolphinWX/MainMenuBar.cpp:131
 msgid "Select State Slot"
 msgstr "スロットの選択"
 
@@ -5403,12 +5422,12 @@ msgstr "ステートスロット 8"
 msgid "Select State Slot 9"
 msgstr "ステートスロット 9"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1000
-#: Source/Core/DolphinWX/FrameTools.cpp:1463
+#: Source/Core/DolphinWX/FrameTools.cpp:495
+#: Source/Core/DolphinWX/FrameTools.cpp:958
 msgid "Select The Recording File"
 msgstr "録画ファイルを選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1669
+#: Source/Core/DolphinWX/FrameTools.cpp:1164
 msgid "Select a Wii WAD file to install"
 msgstr "追加するWADファイルを選択"
 
@@ -5416,23 +5435,23 @@ msgstr "追加するWADファイルを選択"
 msgid "Select a save file to import"
 msgstr "インポートするセーブファイルを選択"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:326
+#: Source/Core/DolphinWX/FrameAui.cpp:328
 msgid "Select floating windows"
 msgstr "Select floating windows"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:855
+#: Source/Core/DolphinWX/FrameTools.cpp:350
 msgid "Select the file to load"
 msgstr "ロードするファイルを選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1631
+#: Source/Core/DolphinWX/FrameTools.cpp:1126
 msgid "Select the save file"
 msgstr "セーブファイルを選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1771
+#: Source/Core/DolphinWX/FrameTools.cpp:1266
 msgid "Select the state to load"
 msgstr "ロードするステートセーブファイルを選択"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1783
+#: Source/Core/DolphinWX/FrameTools.cpp:1278
 msgid "Select the state to save"
 msgstr "ステートセーブの保存先を選択"
 
@@ -5605,19 +5624,19 @@ msgstr "シェイク"
 msgid "Shoulder Buttons"
 msgstr "LRトリガー"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:360
+#: Source/Core/DolphinWX/MainMenuBar.cpp:298
 msgid "Show &Log"
 msgstr "ログを表示(&L)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:357
+#: Source/Core/DolphinWX/MainMenuBar.cpp:295
 msgid "Show &Status Bar"
 msgstr "ステータスバー(&S)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:355
+#: Source/Core/DolphinWX/MainMenuBar.cpp:293
 msgid "Show &Toolbar"
 msgstr "ツールバー(&T)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:313
+#: Source/Core/DolphinWX/MainMenuBar.cpp:251
 msgid "Show Australia"
 msgstr "オーストラリア"
 
@@ -5625,51 +5644,51 @@ msgstr "オーストラリア"
 msgid "Show Defaults"
 msgstr "デフォルト設定を表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:389
+#: Source/Core/DolphinWX/MainMenuBar.cpp:322
 msgid "Show Drives"
 msgstr "DVDドライブ内のソフトを表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:302
+#: Source/Core/DolphinWX/MainMenuBar.cpp:240
 msgid "Show ELF/DOL"
 msgstr "ELF/DOL"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:457
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:461
 msgid "Show FPS"
 msgstr "FPSを表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:212
+#: Source/Core/DolphinWX/MainMenuBar.cpp:151
 msgid "Show Frame Counter"
 msgstr "フレームカウンタを表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:315
+#: Source/Core/DolphinWX/MainMenuBar.cpp:253
 msgid "Show France"
 msgstr "フランス"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:298
+#: Source/Core/DolphinWX/MainMenuBar.cpp:236
 msgid "Show GameCube"
 msgstr "ゲームキューブ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:317
+#: Source/Core/DolphinWX/MainMenuBar.cpp:255
 msgid "Show Germany"
 msgstr "ドイツ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:215
+#: Source/Core/DolphinWX/MainMenuBar.cpp:154
 msgid "Show Input Display"
 msgstr "入力された操作を表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:319
+#: Source/Core/DolphinWX/MainMenuBar.cpp:257
 msgid "Show Italy"
 msgstr "イタリア"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:306
+#: Source/Core/DolphinWX/MainMenuBar.cpp:244
 msgid "Show JAP"
 msgstr "日本"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:321
+#: Source/Core/DolphinWX/MainMenuBar.cpp:259
 msgid "Show Korea"
 msgstr "韓国"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:210
+#: Source/Core/DolphinWX/MainMenuBar.cpp:149
 msgid "Show Lag Counter"
 msgstr "ラグカウンタを表示"
 
@@ -5677,71 +5696,71 @@ msgstr "ラグカウンタを表示"
 msgid "Show Language:"
 msgstr "次の言語で表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:361
+#: Source/Core/DolphinWX/MainMenuBar.cpp:299
 msgid "Show Log &Configuration"
 msgstr "ログの設定を表示(&C)"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:468
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:472
 msgid "Show NetPlay Messages"
 msgstr "ネットプレイ：OSD表示"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:459
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:463
 msgid "Show NetPlay Ping"
 msgstr "ネットプレイ：Ping表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:323
+#: Source/Core/DolphinWX/MainMenuBar.cpp:261
 msgid "Show Netherlands"
 msgstr "オランダ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:308
+#: Source/Core/DolphinWX/MainMenuBar.cpp:246
 msgid "Show PAL"
 msgstr "PAL規格"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:386
+#: Source/Core/DolphinWX/MainMenuBar.cpp:319
 msgid "Show Platforms"
 msgstr "特定機種のソフトだけを表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:387
+#: Source/Core/DolphinWX/MainMenuBar.cpp:320
 msgid "Show Regions"
 msgstr "特定リージョンのソフトだけを表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:325
+#: Source/Core/DolphinWX/MainMenuBar.cpp:263
 msgid "Show Russia"
 msgstr "ロシア"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:327
+#: Source/Core/DolphinWX/MainMenuBar.cpp:265
 msgid "Show Spain"
 msgstr "スペイン"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:825
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:831
 msgid "Show Statistics"
 msgstr "統計情報を表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:217
+#: Source/Core/DolphinWX/MainMenuBar.cpp:156
 msgid "Show System Clock"
 msgstr "システム時間を表示"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:329
+#: Source/Core/DolphinWX/MainMenuBar.cpp:267
 msgid "Show Taiwan"
 msgstr "台湾"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:310
+#: Source/Core/DolphinWX/MainMenuBar.cpp:248
 msgid "Show USA"
 msgstr "アメリカ合衆国"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:333
+#: Source/Core/DolphinWX/MainMenuBar.cpp:271
 msgid "Show Unknown"
 msgstr "不明"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:300
+#: Source/Core/DolphinWX/MainMenuBar.cpp:238
 msgid "Show WAD"
 msgstr "WAD(Wiiウェア/VC/チャンネル)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:296
+#: Source/Core/DolphinWX/MainMenuBar.cpp:234
 msgid "Show Wii"
 msgstr "Wii"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:331
+#: Source/Core/DolphinWX/MainMenuBar.cpp:269
 msgid "Show World"
 msgstr "地域なし"
 
@@ -5811,7 +5830,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:642
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:648
 msgid "Side-by-Side"
 msgstr "Side-by-Side"
 
@@ -5832,7 +5851,7 @@ msgstr "横持ち(Sideways)で使用"
 msgid "Simplified Chinese"
 msgstr "簡体字中国語"
 
-#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:24
+#: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:26
 msgid "Simulate DK Bongos"
 msgstr "タルコンガのシミュレート"
 
@@ -5848,7 +5867,7 @@ msgstr "BIOSの起動を省略"
 msgid "Skip DCBZ clearing"
 msgstr "Skip DCBZ clearing"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:700
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:706
 msgid "Skip EFB Access from CPU"
 msgstr "Skip EFB Access from CPU"
 
@@ -5866,11 +5885,11 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:631
-#: Source/Core/DolphinWX/FrameTools.cpp:645
+#: Source/Core/DolphinWX/MainMenuBar.cpp:526
+#: Source/Core/DolphinWX/MainMenuBar.cpp:529
 #, c-format
-msgid "Slot %i - %s"
-msgstr "スロット %i - %s"
+msgid "Slot %u - %s"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:83
 msgid "Slot A"
@@ -5972,11 +5991,11 @@ msgstr "標準コントローラ"
 msgid "Start"
 msgstr "スタート"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:279
+#: Source/Core/DolphinWX/MainMenuBar.cpp:219
 msgid "Start &NetPlay..."
 msgstr "ネットプレイを開始(&N)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:590
+#: Source/Core/DolphinWX/MainMenuBar.cpp:141
 msgid "Start Re&cording Input"
 msgstr "操作の記録を開始(&C)"
 
@@ -5984,12 +6003,12 @@ msgstr "操作の記録を開始(&C)"
 msgid "Start Recording"
 msgstr "操作の記録を開始"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:246
+#: Source/Core/DolphinWX/MainMenuBar.cpp:185
 msgid "Start the game directly instead of booting to pause"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:351
 #: Source/Core/DolphinWX/GameListCtrl.cpp:314
+#: Source/Core/DolphinWX/MainMenuBar.cpp:289
 msgid "State"
 msgstr "動作率"
 
@@ -5997,24 +6016,24 @@ msgstr "動作率"
 msgid "Steering Wheel"
 msgstr "SPEED FORCE"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:470
+#: Source/Core/DolphinWX/MainMenuBar.cpp:402
 msgid "Step &Into\tF11"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:471
+#: Source/Core/DolphinWX/MainMenuBar.cpp:403
 msgid "Step &Over\tF10"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:472
+#: Source/Core/DolphinWX/MainMenuBar.cpp:404
 msgid "Step O&ut\tSHIFT+F11"
 msgstr ""
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:639
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:645
 msgid "Stereoscopic 3D Mode:"
 msgstr "表示方式"
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:562
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:676
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:682
 msgid "Stereoscopy"
 msgstr "立体視"
 
@@ -6024,11 +6043,11 @@ msgstr "スティック"
 
 #: Source/Core/Core/HotkeyManager.cpp:19
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:412
-#: Source/Core/DolphinWX/FrameTools.cpp:718
+#: Source/Core/DolphinWX/FrameTools.cpp:213
 msgid "Stop"
 msgstr "停止"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:709
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:715
 msgid "Store EFB Copies to Texture Only"
 msgstr "Store EFB Copies to Texture Only"
 
@@ -6050,7 +6069,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを外さないでください。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:433
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:437
 msgid "Stretch to Window"
 msgstr "ウィンドウに合わせる"
 
@@ -6080,7 +6099,7 @@ msgstr "セーブファイルのインポートに成功"
 msgid "Support"
 msgstr "サポート"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:672
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:678
 msgid "Swap Eyes"
 msgstr "視点を入れ替える"
 
@@ -6132,17 +6151,17 @@ msgstr "構文エラー"
 msgid "System Language:"
 msgstr "システムの言語："
 
-#: Source/Core/DolphinWX/FrameTools.cpp:206
+#: Source/Core/DolphinWX/MainMenuBar.cpp:145
 #: Source/Core/DolphinWX/TASInputDlg.h:24
 msgid "TAS Input"
 msgstr "TAS Input"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:898
+#: Source/Core/DolphinWX/FrameTools.cpp:393
 #, c-format
 msgid "TAS Input - Controller %d"
 msgstr "TAS Input - ゲームキューブコントローラ %d"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:906
+#: Source/Core/DolphinWX/FrameTools.cpp:401
 #, c-format
 msgid "TAS Input - Wiimote %d"
 msgstr "TAS Input - Wiiリモコン %d"
@@ -6151,7 +6170,7 @@ msgstr "TAS Input - Wiiリモコン %d"
 msgid "Tab"
 msgstr "Tab"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:465
+#: Source/Core/DolphinWX/MainMenuBar.cpp:397
 msgid "Tab Split"
 msgstr ""
 
@@ -6168,11 +6187,11 @@ msgid "Taiwan"
 msgstr "台湾"
 
 #: Source/Core/Core/HotkeyManager.cpp:32
-#: Source/Core/DolphinWX/FrameTools.cpp:606
+#: Source/Core/DolphinWX/MainMenuBar.cpp:127
 msgid "Take Screenshot"
 msgstr "画面撮影"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:722
+#: Source/Core/DolphinWX/FrameTools.cpp:217
 msgid "Take screenshot"
 msgstr "現在の画面を撮影します"
 
@@ -6180,11 +6199,11 @@ msgstr "現在の画面を撮影します"
 msgid "Test"
 msgstr "テスト"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:721
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:727
 msgid "Texture Cache"
 msgstr "Texture Cache"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:827
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:833
 msgid "Texture Format Overlay"
 msgstr "テクスチャフォーマット情報表示"
 
@@ -6217,7 +6236,7 @@ msgstr "チェックサムの修正に成功しました"
 msgid "The chosen directory is already in the list."
 msgstr "選択したフォルダはすでにリストに存在します！"
 
-#: Source/Core/Core/Movie.cpp:389
+#: Source/Core/Core/Movie.cpp:391
 #, c-format
 msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
@@ -6273,15 +6292,15 @@ msgid "The file %s was already open, the file header will not be written."
 msgstr ""
 "ファイル %s は既に開かれているため、ファイルヘッダーは書き込まれません。"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:576
+#: Source/Core/DolphinWX/FrameAui.cpp:562
 msgid "The name cannot be empty"
 msgstr "空の名前は使用できません"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:569
+#: Source/Core/DolphinWX/FrameAui.cpp:555
 msgid "The name cannot contain the character ','"
 msgstr "',' を含む名前は使用できません"
 
-#: Source/Core/Core/Movie.cpp:229
+#: Source/Core/Core/Movie.cpp:231
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "録画したタイトル (%s) と起動されたタイトル (%s) が同一ではありません"
@@ -6399,7 +6418,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:405
+#: Source/Core/DolphinWX/MainMenuBar.cpp:338
 msgid ""
 "This is necessary to get break points and stepping to work as explained in "
 "the Developer Documentation. But it can be very slow, perhaps slower than 1 "
@@ -6479,7 +6498,7 @@ msgstr "タイトル"
 msgid "To"
 msgstr "終了"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:473
+#: Source/Core/DolphinWX/MainMenuBar.cpp:405
 msgid "Toggle &Breakpoint\tF9"
 msgstr ""
 
@@ -6531,20 +6550,20 @@ msgstr "フルスクリーン表示 切替"
 msgid "Toggle Pause"
 msgstr "一時停止 切替"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:459
+#: Source/Core/DolphinWX/MainMenuBar.cpp:391
 msgid "Toggle editing of perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:720
+#: Source/Core/DolphinWX/FrameTools.cpp:215
 msgid "Toggle fullscreen"
 msgstr "フルスクリーン表示 切替"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:43
-#: Source/Core/DolphinWX/FrameTools.cpp:449
+#: Source/Core/DolphinWX/MainMenuBar.cpp:381
 msgid "Top"
 msgstr "上"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:642
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:648
 msgid "Top-and-Bottom"
 msgstr "Top-and-Bottom"
 
@@ -6579,12 +6598,12 @@ msgstr "不明なファイルタイプを読み込もうとしました"
 msgid "Triggers"
 msgstr "トリガー"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:501
+#: Source/Core/DolphinWX/MainMenuBar.cpp:433
 msgid ""
 "Try to load a .map file that might be from a slightly different version."
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:490
+#: Source/Core/DolphinWX/MainMenuBar.cpp:422
 msgid ""
 "Try to load this game's function names automatically - but doesn't check ."
 "map files stored on the disc image yet."
@@ -6602,7 +6621,7 @@ msgstr ""
 "Trying to read from invalid SYSCONF\n"
 "Wiimote bt ids are not available"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:427
+#: Source/Core/DolphinWX/MainMenuBar.cpp:360
 msgid "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
 msgstr ""
 
@@ -6644,18 +6663,13 @@ msgid ""
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:702
-#, c-format
-msgid "Undefined %i"
-msgstr "未定義 %i"
-
 #: Source/Core/Core/HotkeyManager.cpp:127
-#: Source/Core/DolphinWX/FrameTools.cpp:672
+#: Source/Core/DolphinWX/MainMenuBar.cpp:96
 msgid "Undo Load State"
 msgstr "直前のステートロードを取消"
 
 #: Source/Core/Core/HotkeyManager.cpp:128
-#: Source/Core/DolphinWX/FrameTools.cpp:675
+#: Source/Core/DolphinWX/MainMenuBar.cpp:103
 msgid "Undo Save State"
 msgstr "直前のステートセーブの取消"
 
@@ -6749,7 +6763,7 @@ msgstr ""
 "ます。このボタンを押すことで、このPC用の新しいIDを発行し、以前の情報との関連"
 "をなくすことができます"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:447
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:451
 msgid "Use Fullscreen"
 msgstr "フルスクリーンで表示"
 
@@ -6785,11 +6799,11 @@ msgstr ""
 "両方の目に単一のデプスバッファを使用します。必要となるタイトルはわずかです。"
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:105
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:865
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:871
 msgid "Utility"
 msgstr "ユーティリティ"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:445
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:449
 msgid "V-Sync"
 msgstr "垂直同期 (V-Sync)"
 
@@ -6827,7 +6841,7 @@ msgstr "Various Statistics"
 msgid "Verbosity"
 msgstr "出力するログのレベル設定"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:770
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:776
 msgid "Virtual"
 msgstr "Virtual"
 
@@ -6921,7 +6935,7 @@ msgstr ""
 "\n"
 "続けますか？"
 
-#: Source/Core/Core/Movie.cpp:1071
+#: Source/Core/Core/Movie.cpp:1073
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6929,7 +6943,7 @@ msgid ""
 "load this state with read-only mode off."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1045
+#: Source/Core/Core/Movie.cpp:1047
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6937,7 +6951,7 @@ msgid ""
 "continuing."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1097
+#: Source/Core/Core/Movie.cpp:1099
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -6945,7 +6959,7 @@ msgid ""
 "only mode off. Otherwise you'll probably get a desync."
 msgstr ""
 
-#: Source/Core/Core/Movie.cpp:1112
+#: Source/Core/Core/Movie.cpp:1114
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -6984,7 +6998,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/VideoConfigDiag.cpp:617
+#: Source/Core/DolphinWX/VideoConfigDiag.cpp:621
 msgid "Widescreen Hack"
 msgstr "疑似ワイドスクリーン化"
 
@@ -7012,11 +7026,11 @@ msgstr ""
 msgid "Wii U Gamecube Controller Adapter Configuration"
 msgstr "Wii U GCコントローラ接続タップ 設定"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1670
+#: Source/Core/DolphinWX/FrameTools.cpp:1165
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WADファイル (*.wad)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1632
+#: Source/Core/DolphinWX/FrameTools.cpp:1127
 msgid "Wii save files (*.bin)"
 msgstr "Wii セーブファイル (*.bin)"
 
@@ -7062,7 +7076,7 @@ msgstr "Windows Right"
 msgid "Word Wrap"
 msgstr "ワードラップ"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1679
+#: Source/Core/DolphinWX/FrameTools.cpp:1174
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1243
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1362
 #: Source/Core/DolphinWX/ISOProperties.cpp:1157
@@ -7110,7 +7124,7 @@ msgstr "Y"
 msgid "Yellow"
 msgstr "黄"
 
-#: Source/Core/DolphinWX/FrameAui.cpp:84
+#: Source/Core/DolphinWX/FrameAui.cpp:86
 msgid "You can't close panes that have pages in them."
 msgstr "You can't close panes that have pages in them."
 
