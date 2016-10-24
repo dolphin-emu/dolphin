@@ -507,15 +507,22 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
-    if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
     {
-      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
-      out.Write("FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");
+      }
+      else
+      {
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
+        out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
+      }
     }
     else
     {
-      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 0) out vec4 ocol0;\n");
-      out.Write("FRAGMENT_OUTPUT_LOCATION_INDEXED(0, 1) out vec4 ocol1;\n");
+      out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
     }
 
     if (uid_data->per_pixel_depth)
@@ -1200,7 +1207,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
     out.Write(")) {\n");
 
   out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-  if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+  if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
     out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   if (per_pixel_depth)
   {
@@ -1297,7 +1304,8 @@ static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   if (uid_data->dstAlphaMode == DSTALPHA_NONE)
   {
     out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
-    out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
+    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+      out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
   }
   else
   {
@@ -1305,9 +1313,12 @@ static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     out.Write("\tocol0.a = float(" I_ALPHA ".a >> 2) / 63.0;\n");
 
     // Use dual-source color blending to perform dst alpha in a single pass
-    if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
-      out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
-    else
-      out.Write("\tocol1.a = float(" I_ALPHA ".a) / 255.0;\n");
+    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+    {
+      if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+        out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
+      else
+        out.Write("\tocol1.a = float(" I_ALPHA ".a) / 255.0;\n");
+    }
   }
 }
