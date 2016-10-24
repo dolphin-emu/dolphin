@@ -1,0 +1,17 @@
+; Top-most EditorConfig file
+root = true
+
+; 2 space indentation by default
+[*]
+indent_style = space
+indent_size = 2
+
+; 4 space indentation for markdown
+[*.md]
+indent_style = space
+indent_size = 4
+
+; Tab indentation for python scripts
+[*.py]
+indent_style = tab
+indent_size = 4
