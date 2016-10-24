@@ -50,8 +50,6 @@ public:
 
 private:
   static constexpr u8 INTERFACE = 0x00;
-  static constexpr u8 SUBCLASS = 0x01;
-  static constexpr u8 PROTOCOL_BLUETOOTH = 0x01;
   // Arbitrarily chosen value that allows emulated software to send commands often enough
   // so that the sync button event is triggered at least every 200ms.
   // Ideally this should be equal to 0, so we don't trigger unnecessary libusb transfers.

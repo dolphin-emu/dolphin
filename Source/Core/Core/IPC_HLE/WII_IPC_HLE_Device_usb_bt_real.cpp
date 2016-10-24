@@ -36,13 +36,25 @@ static void EnqueueReply(const u32 command_address)
   WII_IPC_HLE_Interface::EnqueueReply(command_address, 0, CoreTiming::FromThread::ANY);
 }
 
-static bool IsWantedDevice(libusb_device_descriptor& descriptor)
+static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
 {
   const int vid = SConfig::GetInstance().m_bt_passthrough_vid;
   const int pid = SConfig::GetInstance().m_bt_passthrough_pid;
   if (vid == -1 || pid == -1)
     return true;
   return descriptor.idVendor == vid && descriptor.idProduct == pid;
+}
+
+static bool IsBluetoothDevice(const libusb_interface_descriptor& descriptor)
+{
+  constexpr u8 SUBCLASS = 0x01;
+  constexpr u8 PROTOCOL_BLUETOOTH = 0x01;
+  if (SConfig::GetInstance().m_bt_passthrough_vid != -1 &&
+      SConfig::GetInstance().m_bt_passthrough_pid != -1)
+    return true;
+  return descriptor.bInterfaceClass == LIBUSB_CLASS_WIRELESS &&
+         descriptor.bInterfaceSubClass == SUBCLASS &&
+         descriptor.bInterfaceProtocol == PROTOCOL_BLUETOOTH;
 }
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CWII_IPC_HLE_Device_usb_oh1_57e_305_real(
@@ -94,10 +106,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::Open(u32 command_addr
 
     const libusb_interface& interface = config_descriptor->interface[INTERFACE];
     const libusb_interface_descriptor& descriptor = interface.altsetting[0];
-    if (descriptor.bInterfaceClass == LIBUSB_CLASS_WIRELESS &&
-        descriptor.bInterfaceSubClass == SUBCLASS &&
-        descriptor.bInterfaceProtocol == PROTOCOL_BLUETOOTH && IsWantedDevice(device_descriptor) &&
-        OpenDevice(device))
+    if (IsBluetoothDevice(descriptor) && IsWantedDevice(device_descriptor) && OpenDevice(device))
     {
       unsigned char manufacturer[50] = {}, product[50] = {}, serial_number[50] = {};
       libusb_get_string_descriptor_ascii(m_handle, device_descriptor.iManufacturer, manufacturer,
