@@ -121,7 +121,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	{
 		if (isInEditMode())
 		{
-			return onTouchWhileEditing(v, event);
+			return onTouchWhileEditing(event);
 		}
 
 		int pointerIndex = event.getActionIndex();
@@ -209,7 +209,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		return true;
 	}
 
-	public boolean onTouchWhileEditing(View v, MotionEvent event)
+	public boolean onTouchWhileEditing(MotionEvent event)
 	{
 		int pointerIndex = event.getActionIndex();
 		int fingerPositionX = (int)event.getX(pointerIndex);
@@ -229,13 +229,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					if (mButtonBeingConfigured == null && button.getBounds().contains(fingerPositionX, fingerPositionY))
 					{
 						mButtonBeingConfigured = button;
-						mButtonBeingConfigured.onConfigureTouch(v, event);
+						mButtonBeingConfigured.onConfigureTouch(event);
 					}
 					break;
 				case MotionEvent.ACTION_MOVE:
 					if (mButtonBeingConfigured != null)
 					{
-						mButtonBeingConfigured.onConfigureTouch(v, event);
+						mButtonBeingConfigured.onConfigureTouch(event);
 						invalidate();
 						return true;
 					}
@@ -264,13 +264,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					if (mButtonBeingConfigured == null && dpad.getBounds().contains(fingerPositionX, fingerPositionY))
 					{
 						mDpadBeingConfigured = dpad;
-						mDpadBeingConfigured.onConfigureTouch(v, event);
+						mDpadBeingConfigured.onConfigureTouch(event);
 					}
 					break;
 				case MotionEvent.ACTION_MOVE:
 					if (mDpadBeingConfigured != null)
 					{
-						mDpadBeingConfigured.onConfigureTouch(v, event);
+						mDpadBeingConfigured.onConfigureTouch(event);
 						invalidate();
 						return true;
 					}
@@ -297,13 +297,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					if (mJoystickBeingConfigured == null && joystick.getBounds().contains(fingerPositionX, fingerPositionY))
 					{
 						mJoystickBeingConfigured = joystick;
-						mJoystickBeingConfigured.onConfigureTouch(v, event);
+						mJoystickBeingConfigured.onConfigureTouch(event);
 					}
 					break;
 				case MotionEvent.ACTION_MOVE:
 					if (mJoystickBeingConfigured != null)
 					{
-						mJoystickBeingConfigured.onConfigureTouch(v, event);
+						mJoystickBeingConfigured.onConfigureTouch(event);
 						invalidate();
 					}
 					break;

@@ -34,15 +34,7 @@
     </integer-array>
 
     <!-- Wii Remote extensions -->
-    <string-array name="wiimoteExtEntries" translatable="false">
-        <item>"None"</item>
-        <item>"Nunchuk"</item>
-        <item>"Classic"</item>
-        <item>"Guitar"</item>
-        <item>"Drums"</item>
-        <item>"Turntable"</item>
-    </string-array>
-    <string-array name="wiimoteExtValues" translatable="false">
+    <string-array name="wiimoteExtensions" translatable="false">
         <item>None</item>
         <item>Nunchuk</item>
         <item>Classic</item>
