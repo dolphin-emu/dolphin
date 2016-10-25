@@ -2,15 +2,16 @@
 
 <!-- All lists for ListPreference keys/values are placed here -->
 <resources>
+
     <!-- New UI CPU Core selection - Default -->
-    <string-array name="string_emu_cores" translatable="false">
-        <item>@string/interpreter</item>
-        <item>@string/cached_interpreter</item>
-        <item>@string/jit_arm64_recompiler</item>
-        <!--<item>@string/jit64_recompiler</item>
-        <item>@string/jitil_recompiler</item>-->
+    <string-array name="emuCoresEntries" translatable="false">
+        <item>Interpreter</item>
+        <item>Cached Interpreter</item>
+        <item>JIT ARM64 Recompiler</item>
+        <!--<item>JIT64 Recompiler</item>
+        <item>JITIL Recompiler</item>-->
     </string-array>
-    <integer-array name="int_emu_cores" translatable="false">
+    <integer-array name="emuCoresValues" translatable="false">
         <item>0</item>
         <item>5</item>
         <item>4</item>
@@ -33,15 +34,7 @@
     </integer-array>
 
     <!-- Wii Remote extensions -->
-    <string-array name="wiimoteExtEntries" translatable="false">
-        <item>"None"</item>
-        <item>"Nunchuk"</item>
-        <item>"Classic"</item>
-        <item>"Guitar"</item>
-        <item>"Drums"</item>
-        <item>"Turntable"</item>
-    </string-array>
-    <string-array name="wiimoteExtValues" translatable="false">
+    <string-array name="wiimoteExtensions" translatable="false">
         <item>None</item>
         <item>Nunchuk</item>
         <item>Classic</item>
@@ -52,9 +45,9 @@
 
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">
-        <item>@string/texture_cache_accuracy_low</item>
-        <item>@string/texture_cache_accuracy_medium</item>
-        <item>@string/texture_cache_accuracy_high</item>
+        <item>Low</item>
+        <item>Medium</item>
+        <item>High</item>
     </string-array>
     <integer-array name="textureCacheAccuracyValues" translatable="false">
         <item>128</item>
@@ -64,9 +57,9 @@
 
     <!-- External Frame Buffer Preference -->
     <string-array name="externalFrameBufferEntries" translatable="false">
-        <item>@string/disabled</item>
-        <item>@string/external_frame_buffer_virtual</item>
-        <item>@string/external_frame_buffer_real</item>
+        <item>Disabled</item>
+        <item>Virtual</item>
+        <item>Real</item>
     </string-array>
     <integer-array name="externalFrameBufferValues" translatable="false">
         <item>0</item>
@@ -152,7 +145,7 @@
         <item>3</item>
     </integer-array>
 
-    <string-array name="country_names">
+    <string-array name="countryNames">
         <item>Europe</item>
         <item>Japan</item>
         <item>USA</item>

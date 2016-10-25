@@ -33,7 +33,7 @@ import java.util.Set;
 
 /**
  * Draws the interactive input overlay on top of the
- * {@link NativeGLSurfaceView} that is rendering emulation.
+ * {@link SurfaceView} that is rendering emulation.
  */
 public final class InputOverlay extends SurfaceView implements OnTouchListener
 {
@@ -121,7 +121,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	{
 		if (isInEditMode())
 		{
-			return onTouchWhileEditing(v, event);
+			return onTouchWhileEditing(event);
 		}
 
 		int pointerIndex = event.getActionIndex();
@@ -209,14 +209,14 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 		return true;
 	}
 
-	public boolean onTouchWhileEditing(View v, MotionEvent event)
+	public boolean onTouchWhileEditing(MotionEvent event)
 	{
 		int pointerIndex = event.getActionIndex();
 		int fingerPositionX = (int)event.getX(pointerIndex);
 		int fingerPositionY = (int)event.getY(pointerIndex);
 
-		//Maybe combine Button and Joystick as subclasses of the same parent?
-		//Or maybe create an interface like IMoveableHUDControl?
+		// Maybe combine Button and Joystick as subclasses of the same parent?
+		// Or maybe create an interface like IMoveableHUDControl?
 
 		for (InputOverlayDrawableButton button : overlayButtons)
 		{
@@ -229,13 +229,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					if (mButtonBeingConfigured == null && button.getBounds().contains(fingerPositionX, fingerPositionY))
 					{
 						mButtonBeingConfigured = button;
-						mButtonBeingConfigured.onConfigureTouch(v, event);
+						mButtonBeingConfigured.onConfigureTouch(event);
 					}
 					break;
 				case MotionEvent.ACTION_MOVE:
 					if (mButtonBeingConfigured != null)
 					{
-						mButtonBeingConfigured.onConfigureTouch(v, event);
+						mButtonBeingConfigured.onConfigureTouch(event);
 						invalidate();
 						return true;
 					}
@@ -245,7 +245,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				case MotionEvent.ACTION_POINTER_UP:
 					if (mButtonBeingConfigured == button)
 					{
-						//Persist button position by saving new place.
+						// Persist button position by saving new place.
 						saveControlPosition(mButtonBeingConfigured.getId(), mButtonBeingConfigured.getBounds().left, mButtonBeingConfigured.getBounds().top);
 						mButtonBeingConfigured = null;
 					}
@@ -264,13 +264,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					if (mButtonBeingConfigured == null && dpad.getBounds().contains(fingerPositionX, fingerPositionY))
 					{
 						mDpadBeingConfigured = dpad;
-						mDpadBeingConfigured.onConfigureTouch(v, event);
+						mDpadBeingConfigured.onConfigureTouch(event);
 					}
 					break;
 				case MotionEvent.ACTION_MOVE:
 					if (mDpadBeingConfigured != null)
 					{
-						mDpadBeingConfigured.onConfigureTouch(v, event);
+						mDpadBeingConfigured.onConfigureTouch(event);
 						invalidate();
 						return true;
 					}
@@ -280,7 +280,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 				case MotionEvent.ACTION_POINTER_UP:
 					if (mDpadBeingConfigured == dpad)
 					{
-						//Persist button position by saving new place.
+						// Persist button position by saving new place.
 						saveControlPosition(mDpadBeingConfigured.getId(0), mDpadBeingConfigured.getBounds().left, mDpadBeingConfigured.getBounds().top);
 						mDpadBeingConfigured = null;
 					}
@@ -297,13 +297,13 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 					if (mJoystickBeingConfigured == null && joystick.getBounds().contains(fingerPositionX, fingerPositionY))
 					{
 						mJoystickBeingConfigured = joystick;
-						mJoystickBeingConfigured.onConfigureTouch(v, event);
+						mJoystickBeingConfigured.onConfigureTouch(event);
 					}
 					break;
 				case MotionEvent.ACTION_MOVE:
 					if (mJoystickBeingConfigured != null)
 					{
-						mJoystickBeingConfigured.onConfigureTouch(v, event);
+						mJoystickBeingConfigured.onConfigureTouch(event);
 						invalidate();
 					}
 					break;
@@ -638,8 +638,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(buttonId+"-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(buttonId+"-Y", 0f);
+		int drawableX = (int) sPrefs.getFloat(buttonId + "-X", 0f);
+		int drawableY = (int) sPrefs.getFloat(buttonId + "-Y", 0f);
 
 		// Intrinsic width and height of the InputOverlayDrawableButton.
 		// For any who may not know, intrinsic width/height
@@ -649,7 +649,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Now set the bounds for the InputOverlayDrawableButton.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableButton will be.
-		overlayDrawable.setBounds(drawableX, drawableY, drawableX+intrinWidth, drawableY+intrinHeight);
+		overlayDrawable.setBounds(drawableX, drawableY, drawableX + intrinWidth, drawableY + intrinHeight);
 
 		// Need to set the image's position
 		overlayDrawable.setPosition(drawableX, drawableY);
@@ -660,12 +660,12 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	/**
 	 * Initializes an {@link InputOverlayDrawableDpad}
 	 *
-	 * @param context  The current {@link Context}.
-	 * @param resId    The resource ID of the {@link Drawable} to get the {@link Bitmap} of.
-	 * @param buttonUp  Identifier for the up button.
+	 * @param context     The current {@link Context}.
+	 * @param resId       The resource ID of the {@link Drawable} to get the {@link Bitmap} of.
+	 * @param buttonUp    Identifier for the up button.
 	 * @param buttonDown  Identifier for the down button.
 	 * @param buttonLeft  Identifier for the left button.
-	 * @param buttonRight  Identifier for the right button.
+	 * @param buttonRight Identifier for the right button.
 	 *
 	 * @return the initialized {@link InputOverlayDrawableDpad}
 	 */
@@ -705,8 +705,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// The X and Y coordinates of the InputOverlayDrawableDpad on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(buttonUp+"-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(buttonUp+"-Y", 0f);
+		int drawableX = (int) sPrefs.getFloat(buttonUp + "-X", 0f);
+		int drawableY = (int) sPrefs.getFloat(buttonUp + "-Y", 0f);
 
 		// Intrinsic width and height of the InputOverlayDrawableDpad.
 		// For any who may not know, intrinsic width/height
@@ -716,7 +716,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// Now set the bounds for the InputOverlayDrawableDpad.
 		// This will dictate where on the screen (and the what the size) the InputOverlayDrawableDpad will be.
-		overlayDrawable.setBounds(drawableX, drawableY, drawableX+intrinWidth, drawableY+intrinHeight);
+		overlayDrawable.setBounds(drawableX, drawableY, drawableX + intrinWidth, drawableY + intrinHeight);
 
 		// Need to set the image's position
 		overlayDrawable.setPosition(drawableX, drawableY);
@@ -730,7 +730,7 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	 * @param context   The current {@link Context}
 	 * @param resOuter  Resource ID for the outer image of the joystick (the static image that shows the circular bounds).
 	 * @param resInner  Resource ID for the inner image of the joystick (the one you actually move around).
-	 * @param joystick    Identifier for which joystick this is.
+	 * @param joystick  Identifier for which joystick this is.
 	 * 
 	 * @return the initialized {@link InputOverlayDrawableJoystick}.
 	 */
@@ -753,8 +753,8 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 
 		// The X and Y coordinates of the InputOverlayDrawableButton on the InputOverlay.
 		// These were set in the input overlay configuration menu.
-		int drawableX = (int) sPrefs.getFloat(joystick+"-X", 0f);
-		int drawableY = (int) sPrefs.getFloat(joystick+"-Y", 0f);
+		int drawableX = (int) sPrefs.getFloat(joystick + "-X", 0f);
+		int drawableY = (int) sPrefs.getFloat(joystick + "-Y", 0f);
 
 		// Decide inner scale based on joystick ID
 		float innerScale;
@@ -797,5 +797,4 @@ public final class InputOverlay extends SurfaceView implements OnTouchListener
 	{
 		return mIsInEditMode;
 	}
-	
 }

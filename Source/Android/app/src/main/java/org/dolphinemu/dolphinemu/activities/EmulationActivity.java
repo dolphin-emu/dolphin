@@ -121,8 +121,7 @@ public final class EmulationActivity extends AppCompatActivity
 								getSupportActionBar().hide();
 							}
 						}
-					}
-			);
+					});
 		}
 		else
 		{
@@ -408,7 +407,8 @@ public final class EmulationActivity extends AppCompatActivity
 		{
 			// Edit the placement of the controls
 			case R.id.menu_emulation_edit_layout:
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager().findFragmentById(R.id.frame_emulation_fragment);
+				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+						.findFragmentById(R.id.frame_emulation_fragment);
 				if (emulationFragment.isConfiguringControls())
 				{
 					emulationFragment.stopConfiguringControls();
@@ -434,13 +434,13 @@ public final class EmulationActivity extends AppCompatActivity
 					}
 					builder.setMultiChoiceItems(R.array.gcpadButtons, enabledButtons,
 							new DialogInterface.OnMultiChoiceClickListener()
-					{
-						@Override
-						public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
-						{
-							editor.putBoolean("buttonToggleGc" + indexSelected, isChecked);
-						}
-					});
+							{
+								@Override
+								public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+								{
+									editor.putBoolean("buttonToggleGc" + indexSelected, isChecked);
+								}
+							});
 				}
 				else if (mPreferences.getInt("wiiController", 3) == 4)
 				{
@@ -450,13 +450,13 @@ public final class EmulationActivity extends AppCompatActivity
 					}
 					builder.setMultiChoiceItems(R.array.classicButtons, enabledButtons,
 							new DialogInterface.OnMultiChoiceClickListener()
-					{
-						@Override
-						public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
-						{
-							editor.putBoolean("buttonToggleClassic" + indexSelected, isChecked);
-						}
-					});
+							{
+								@Override
+								public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+								{
+									editor.putBoolean("buttonToggleClassic" + indexSelected, isChecked);
+								}
+							});
 				}
 				else
 				{
@@ -468,25 +468,25 @@ public final class EmulationActivity extends AppCompatActivity
 					{
 						builder.setMultiChoiceItems(R.array.nunchukButtons, enabledButtons,
 								new DialogInterface.OnMultiChoiceClickListener()
-						{
-							@Override
-							public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
-							{
-								editor.putBoolean("buttonToggleWii" + indexSelected, isChecked);
-							}
-						});
+								{
+									@Override
+									public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+									{
+										editor.putBoolean("buttonToggleWii" + indexSelected, isChecked);
+									}
+								});
 					}
 					else
 					{
 						builder.setMultiChoiceItems(R.array.wiimoteButtons, enabledButtons,
 								new DialogInterface.OnMultiChoiceClickListener()
-						{
-							@Override
-							public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
-							{
-								editor.putBoolean("buttonToggleWii" + indexSelected, isChecked);
-							}
-						});
+								{
+									@Override
+									public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+									{
+										editor.putBoolean("buttonToggleWii" + indexSelected, isChecked);
+									}
+								});
 					}
 				}
 				builder.setNeutralButton(getString(R.string.emulation_toggle_all), new DialogInterface.OnClickListener()
@@ -499,7 +499,7 @@ public final class EmulationActivity extends AppCompatActivity
 						emulationFragment.toggleInputOverlayVisibility();
 					}
 				});
-				builder.setPositiveButton(getString(R.string.emulation_done), new DialogInterface.OnClickListener()
+				builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener()
 				{
 					@Override
 					public void onClick(DialogInterface dialogInterface, int i)
@@ -552,7 +552,7 @@ public final class EmulationActivity extends AppCompatActivity
 				AlertDialog.Builder builder = new AlertDialog.Builder(this);
 				builder.setTitle(R.string.emulation_control_scale);
 				builder.setView(view);
-				builder.setPositiveButton(getString(R.string.emulation_done), new DialogInterface.OnClickListener()
+				builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener()
 				{
 					@Override
 					public void onClick(DialogInterface dialogInterface, int i)
@@ -580,17 +580,17 @@ public final class EmulationActivity extends AppCompatActivity
 				builder.setTitle(R.string.emulation_choose_controller);
 				builder.setSingleChoiceItems(R.array.controllersEntries, mPreferences.getInt("wiiController", 3),
 						new DialogInterface.OnClickListener()
-				{
-					@Override
-					public void onClick(DialogInterface dialog, int indexSelected)
-					{
-						editor.putInt("wiiController", indexSelected);
+						{
+							@Override
+							public void onClick(DialogInterface dialog, int indexSelected)
+							{
+								editor.putInt("wiiController", indexSelected);
 
-						NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
-								getResources().getStringArray(R.array.controllersValues)[indexSelected]);
-					}
-				});
-				builder.setPositiveButton(getString(R.string.emulation_done), new DialogInterface.OnClickListener()
+								NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
+										getResources().getStringArray(R.array.controllersValues)[indexSelected]);
+							}
+						});
+				builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener()
 				{
 					@Override
 					public void onClick(DialogInterface dialogInterface, int i)
@@ -619,7 +619,7 @@ public final class EmulationActivity extends AppCompatActivity
 				NativeLibrary.SaveScreenShot();
 				return;
 
-			// Quicksave / Load
+			// Quick save / load
 			case R.id.menu_quicksave:
 				NativeLibrary.SaveState(9);
 				return;

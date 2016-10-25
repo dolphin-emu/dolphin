@@ -1,5 +1,6 @@
-<!-- res/anim/button_elevation.xml -->
-<selector xmlns:android="http://schemas.android.com/apk/res/android">
+<?xml version="1.0" encoding="utf-8"?>
+<set xmlns:android="http://schemas.android.com/apk/res/android">
+
     <item android:state_pressed="true">
         <objectAnimator
             android:propertyName="translationZ"
@@ -8,6 +9,7 @@
             android:valueTo="@dimen/elevation_high"
             android:valueType="floatType"/>
     </item>
+
     <item>
         <objectAnimator
             android:propertyName="translationZ"
@@ -16,4 +18,5 @@
             android:valueTo="@dimen/elevation_low"
             android:valueType="floatType"/>
     </item>
-</selector>
+
+</set>

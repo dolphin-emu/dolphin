@@ -18,7 +18,6 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.overlay.InputOverlay;
 import org.dolphinemu.dolphinemu.utils.Log;
 
-
 public final class EmulationFragment extends Fragment implements SurfaceHolder.Callback
 {
 	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".emulation_fragment";
@@ -35,7 +34,6 @@ public final class EmulationFragment extends Fragment implements SurfaceHolder.C
 
 	private boolean mEmulationStarted;
 	private boolean mEmulationRunning;
-
 
 	public static EmulationFragment newInstance(String path)
 	{

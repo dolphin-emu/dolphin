@@ -158,8 +158,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		builder.setTitle(item.getNameId());
 		builder.setView(view);
-		builder.setPositiveButton(R.string.dialog_seekbar_pos, this);
-		builder.setNegativeButton(R.string.dialog_seekbar_neg, this);
+		builder.setPositiveButton(R.string.ok, this);
+		builder.setNegativeButton(R.string.cancel, this);
 		mDialog = builder.show();
 
 		mTextSliderValue = (TextView) view.findViewById(R.id.text_value);
