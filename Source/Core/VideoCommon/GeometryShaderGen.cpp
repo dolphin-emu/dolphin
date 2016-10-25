@@ -106,7 +106,7 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const geometry_shader_uid
     out.Write("VARYING_LOCATION(0) out VertexData {\n");
     GenerateVSOutputMembers<ShaderCode>(
         out, ApiType, uid_data->numTexGens, uid_data->pixel_lighting,
-        GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false, true));
+        GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, false));
 
     if (uid_data->stereo)
       out.Write("\tflat int layer;\n");
