@@ -206,7 +206,7 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   for (int i = 0; i < 4; i++)
   {
     wiimote_menu->AppendCheckItem(IDM_CONNECT_WIIMOTE1 + i,
-                                  wxString::Format(_("Connect Wiimote %i"), i + 1));
+                                  wxString::Format(_("Connect Wii Remote %i"), i + 1));
   }
   wiimote_menu->AppendSeparator();
   wiimote_menu->AppendCheckItem(IDM_CONNECT_BALANCEBOARD, _("Connect Balance Board"));
@@ -221,7 +221,7 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   tools_menu->Append(IDM_LOAD_WII_MENU, dummy_string);
   tools_menu->Append(IDM_FIFOPLAYER, _("FIFO Player"));
   tools_menu->AppendSeparator();
-  tools_menu->AppendSubMenu(wiimote_menu, _("Connect Wiimotes"));
+  tools_menu->AppendSubMenu(wiimote_menu, _("Connect Wii Remotes"));
 
   return tools_menu;
 }

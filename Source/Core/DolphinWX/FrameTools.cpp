@@ -398,7 +398,7 @@ void CFrame::OnTASInput(wxCommandEvent& event)
     {
       g_TASInputDlg[i + 4]->CreateWiiLayout(i);
       g_TASInputDlg[i + 4]->Show();
-      g_TASInputDlg[i + 4]->SetTitle(wxString::Format(_("TAS Input - Wiimote %d"), i + 1));
+      g_TASInputDlg[i + 4]->SetTitle(wxString::Format(_("TAS Input - Wii Remote %d"), i + 1));
     }
   }
 }
@@ -930,7 +930,7 @@ void CFrame::OnStopped()
   // Clean framerate indications from the status bar.
   GetStatusBar()->SetStatusText(" ", 0);
 
-  // Clear wiimote connection status from the status bar.
+  // Clear Wii Remote connection status from the status bar.
   GetStatusBar()->SetStatusText(" ", 1);
 
   // If batch mode was specified on the command-line or we were already closing, exit now.
@@ -1227,7 +1227,7 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
   {
     bool was_unpaused = Core::PauseAndLock(true);
     GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
-    const char* message = connect ? "Wiimote %i connected" : "Wiimote %i disconnected";
+    const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
     Core::DisplayMessage(StringFromFormat(message, wm_idx + 1), 3000);
     Host_UpdateMainFrame();
     Core::PauseAndLock(false, was_unpaused);
