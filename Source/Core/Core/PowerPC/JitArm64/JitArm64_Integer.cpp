@@ -869,6 +869,28 @@ void JitArm64::subfcx(UGeckoInstruction inst)
   }
 }
 
+void JitArm64::subfzex(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITIntegerOff);
+  FALLBACK_IF(inst.OE);
+
+  int a = inst.RA, d = inst.RD;
+
+  gpr.BindToRegister(d, d == a);
+
+  ARM64Reg WA = gpr.GetReg();
+  LDRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+  MVN(gpr.R(d), gpr.R(a));
+  ADDS(gpr.R(d), gpr.R(d), WA);
+  gpr.Unlock(WA);
+
+  ComputeCarry();
+
+  if (inst.Rc)
+    ComputeRC(gpr.R(d));
+}
+
 void JitArm64::subfic(UGeckoInstruction inst)
 {
   INSTRUCTION_START
