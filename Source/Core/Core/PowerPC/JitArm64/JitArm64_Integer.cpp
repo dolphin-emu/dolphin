@@ -1009,6 +1009,79 @@ void JitArm64::divwux(UGeckoInstruction inst)
   }
 }
 
+void JitArm64::divwx(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITIntegerOff);
+  FALLBACK_IF(inst.OE);
+
+  int a = inst.RA, b = inst.RB, d = inst.RD;
+
+  if (gpr.IsImm(a) && gpr.IsImm(b))
+  {
+    s32 imm_a = gpr.GetImm(a);
+    s32 imm_b = gpr.GetImm(b);
+    s32 imm_d;
+    if (imm_b == 0 || ((u32)imm_a == 0x80000000 && imm_b == -1))
+    {
+      if (((u32)imm_a & 0x80000000) && imm_b == 0)
+        imm_d = -1;
+      else
+        imm_d = 0;
+    }
+    else
+    {
+      imm_d = (u32)(imm_a / imm_b);
+    }
+    gpr.SetImmediate(d, imm_d);
+
+    if (inst.Rc)
+      ComputeRC(imm_d);
+  }
+  else if (gpr.IsImm(b) && gpr.GetImm(b) != 0 && gpr.GetImm(b) != -1)
+  {
+    ARM64Reg WA = gpr.GetReg();
+    MOVI2R(WA, gpr.GetImm(b));
+
+    gpr.BindToRegister(d, d == a);
+
+    SDIV(gpr.R(d), gpr.R(a), WA);
+
+    gpr.Unlock(WA);
+
+    if (inst.Rc)
+      ComputeRC(gpr.R(d));
+  }
+  else
+  {
+    gpr.BindToRegister(d, d == a || d == b);
+
+    ARM64Reg WA = gpr.GetReg();
+
+    FixupBranch slow1 = CBZ(gpr.R(b));
+    MOVI2R(WA, -0x80000000LL);
+    CMP(gpr.R(a), WA);
+    CCMN(gpr.R(b), 1, 0, CC_EQ);
+    FixupBranch slow2 = B(CC_EQ);
+    SDIV(gpr.R(d), gpr.R(a), gpr.R(b));
+    FixupBranch done = B();
+
+    SetJumpTarget(slow1);
+    SetJumpTarget(slow2);
+
+    CMP(gpr.R(b), 0);
+    CCMP(gpr.R(a), 0, 0, CC_EQ);
+    CSETM(gpr.R(d), CC_LT);
+
+    SetJumpTarget(done);
+
+    gpr.Unlock(WA);
+
+    if (inst.Rc)
+      ComputeRC(gpr.R(d));
+  }
+}
+
 void JitArm64::slwx(UGeckoInstruction inst)
 {
   INSTRUCTION_START

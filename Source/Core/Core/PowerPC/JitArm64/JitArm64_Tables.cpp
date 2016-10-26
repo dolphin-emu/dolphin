@@ -178,36 +178,36 @@ static GekkoOPTemplate table19[] = {
 };
 
 static GekkoOPTemplate table31[] = {
-    {266, &JitArm64::addx},                    // addx
-    {778, &JitArm64::addx},                    // addox
-    {10, &JitArm64::addcx},                    // addcx
-    {522, &JitArm64::addcx},                   // addcox
-    {138, &JitArm64::addex},                   // addex
-    {650, &JitArm64::addex},                   // addeox
-    {234, &JitArm64::FallBackToInterpreter},   // addmex
-    {746, &JitArm64::FallBackToInterpreter},   // addmeox
-    {202, &JitArm64::addzex},                  // addzex
-    {714, &JitArm64::addzex},                  // addzeox
-    {491, &JitArm64::FallBackToInterpreter},   // divwx
-    {1003, &JitArm64::FallBackToInterpreter},  // divwox
-    {459, &JitArm64::divwux},                  // divwux
-    {971, &JitArm64::divwux},                  // divwuox
-    {75, &JitArm64::mulhwx},                   // mulhwx
-    {11, &JitArm64::mulhwux},                  // mulhwux
-    {235, &JitArm64::mullwx},                  // mullwx
-    {747, &JitArm64::mullwx},                  // mullwox
-    {104, &JitArm64::negx},                    // negx
-    {616, &JitArm64::negx},                    // negox
-    {40, &JitArm64::subfx},                    // subfx
-    {552, &JitArm64::subfx},                   // subfox
-    {8, &JitArm64::subfcx},                    // subfcx
-    {520, &JitArm64::subfcx},                  // subfcox
-    {136, &JitArm64::subfex},                  // subfex
-    {648, &JitArm64::subfex},                  // subfeox
-    {232, &JitArm64::FallBackToInterpreter},   // subfmex
-    {744, &JitArm64::FallBackToInterpreter},   // subfmeox
-    {200, &JitArm64::FallBackToInterpreter},   // subfzex
-    {712, &JitArm64::FallBackToInterpreter},   // subfzeox
+    {266, &JitArm64::addx},                   // addx
+    {778, &JitArm64::addx},                   // addox
+    {10, &JitArm64::addcx},                   // addcx
+    {522, &JitArm64::addcx},                  // addcox
+    {138, &JitArm64::addex},                  // addex
+    {650, &JitArm64::addex},                  // addeox
+    {234, &JitArm64::FallBackToInterpreter},  // addmex
+    {746, &JitArm64::FallBackToInterpreter},  // addmeox
+    {202, &JitArm64::addzex},                 // addzex
+    {714, &JitArm64::addzex},                 // addzeox
+    {491, &JitArm64::divwx},                  // divwx
+    {1003, &JitArm64::divwx},                 // divwox
+    {459, &JitArm64::divwux},                 // divwux
+    {971, &JitArm64::divwux},                 // divwuox
+    {75, &JitArm64::mulhwx},                  // mulhwx
+    {11, &JitArm64::mulhwux},                 // mulhwux
+    {235, &JitArm64::mullwx},                 // mullwx
+    {747, &JitArm64::mullwx},                 // mullwox
+    {104, &JitArm64::negx},                   // negx
+    {616, &JitArm64::negx},                   // negox
+    {40, &JitArm64::subfx},                   // subfx
+    {552, &JitArm64::subfx},                  // subfox
+    {8, &JitArm64::subfcx},                   // subfcx
+    {520, &JitArm64::subfcx},                 // subfcox
+    {136, &JitArm64::subfex},                 // subfex
+    {648, &JitArm64::subfex},                 // subfeox
+    {232, &JitArm64::FallBackToInterpreter},  // subfmex
+    {744, &JitArm64::FallBackToInterpreter},  // subfmeox
+    {200, &JitArm64::FallBackToInterpreter},  // subfzex
+    {712, &JitArm64::FallBackToInterpreter},  // subfzeox
 
     {28, &JitArm64::boolX},    // andx
     {60, &JitArm64::boolX},    // andcx
