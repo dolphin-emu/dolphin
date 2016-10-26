@@ -582,7 +582,7 @@ void JitArm64::srawix(UGeckoInstruction inst)
     if (inst.Rc)
       ComputeRC(RA, 0);
 
-    ANDS(WSP, WA, RA, ArithOption(RA, ST_LSL, 0));
+    ANDS(WSP, WA, RA);
     CSINC(WA, WSP, WSP, CC_EQ);
     STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
     gpr.Unlock(WA);
