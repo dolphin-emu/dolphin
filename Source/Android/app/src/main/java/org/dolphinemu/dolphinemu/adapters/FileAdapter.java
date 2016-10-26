@@ -198,7 +198,7 @@ public final class FileAdapter extends RecyclerView.Adapter<FileViewHolder> impl
 
 	public void upOneLevel()
 	{
-		if (!mPath.equals(Environment.getExternalStorageDirectory().getPath()))
+		if (!mPath.equals("/"))
 		{
 			File currentDirectory = new File(mPath);
 			File parentDirectory = currentDirectory.getParentFile();
