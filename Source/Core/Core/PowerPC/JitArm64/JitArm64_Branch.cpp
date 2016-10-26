@@ -54,17 +54,14 @@ void JitArm64::rfi(UGeckoInstruction inst)
   ARM64Reg WB = gpr.GetReg();
   ARM64Reg WC = gpr.GetReg();
 
-  MOVI2R(WA, (~mask) & clearMSR13);
-  MOVI2R(WB, mask & clearMSR13);
-
   LDR(INDEX_UNSIGNED, WC, PPC_REG, PPCSTATE_OFF(msr));
 
-  AND(WC, WC, WA);  // rD = Masked MSR
+  ANDI2R(WC, WC, (~mask) & clearMSR13, WA);  // rD = Masked MSR
 
   LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_SRR1]));  // rB contains SRR1 here
 
-  AND(WA, WA, WB);  // rB contains masked SRR1 here
-  ORR(WA, WA, WC);  // rB = Masked MSR OR masked SRR1
+  ANDI2R(WA, WA, mask & clearMSR13, WB);  // rB contains masked SRR1 here
+  ORR(WA, WA, WC);                        // rB = Masked MSR OR masked SRR1
 
   STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));  // STR rB in to rA
 

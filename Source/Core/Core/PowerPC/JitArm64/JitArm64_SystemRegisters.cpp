@@ -151,16 +151,7 @@ void JitArm64::twx(UGeckoInstruction inst)
 
   if (inst.OPCD == 3)  // twi
   {
-    if (inst.SIMM_16 >= 0 && inst.SIMM_16 < 4096)
-    {
-      // Can fit in immediate in to the instruction encoding
-      CMP(gpr.R(a), inst.SIMM_16);
-    }
-    else
-    {
-      MOVI2R(WA, (s32)(s16)inst.SIMM_16);
-      CMP(gpr.R(a), WA);
-    }
+    CMPI2R(gpr.R(a), (s32)(s16)inst.SIMM_16, WA);
   }
   else  // tw
   {

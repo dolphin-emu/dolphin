@@ -101,19 +101,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
     {
       if (offset_reg == -1)
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, gpr.R(a), offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, gpr.R(a), std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, gpr.R(a));
-        }
+        ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
       }
       else
       {
@@ -132,19 +120,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
       }
       else if (a)
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, gpr.R(a), offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, gpr.R(a), std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, gpr.R(a));
-        }
+        ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
       }
       else
       {
@@ -298,19 +274,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     {
       if (offset_reg == -1)
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, gpr.R(a), offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, gpr.R(a), std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, gpr.R(a));
-        }
+        ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
       }
       else
       {
@@ -329,19 +293,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
       }
       else if (a)
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, gpr.R(a), offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, gpr.R(a), std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, gpr.R(a));
-        }
+        ADDI2R(addr_reg, gpr.R(a), offset, addr_reg);
       }
       else
       {

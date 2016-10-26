@@ -64,8 +64,7 @@ private:
     }
     else
     {
-      m_emit->MOVI2R(W1, mask);
-      m_emit->AND(W1, m_src_reg, W1, ArithOption(W1, ST_LSL, 0));
+      m_emit->ANDI2R(W1, m_src_reg, mask, W1);
       StoreFromRegister(sbits, W1);
     }
   }
@@ -159,8 +158,7 @@ private:
     else
     {
       LoadToRegister(sbits, true);
-      m_emit->MOVI2R(W0, mask);
-      m_emit->AND(m_dst_reg, m_dst_reg, W0, ArithOption(W0, ST_LSL, 0));
+      m_emit->ANDI2R(m_dst_reg, m_dst_reg, mask, W0);
       if (m_sign_extend)
         m_emit->SBFM(m_dst_reg, m_dst_reg, 0, sbits - 1);
     }
