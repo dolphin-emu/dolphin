@@ -4131,9 +4131,14 @@ void ARM64XEmitter::ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   u32 val;
   bool shift;
+  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
   if (IsImmArithmetic(imm, &val, &shift))
   {
     ADD(Rd, Rn, val, shift);
+  }
+  else if (IsImmArithmetic(imm_neg, &val, &shift))
+  {
+    SUB(Rd, Rn, val, shift);
   }
   else
   {
@@ -4149,9 +4154,14 @@ void ARM64XEmitter::ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   u32 val;
   bool shift;
+  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
   if (IsImmArithmetic(imm, &val, &shift))
   {
     ADDS(Rd, Rn, val, shift);
+  }
+  else if (IsImmArithmetic(imm_neg, &val, &shift))
+  {
+    SUBS(Rd, Rn, val, shift);
   }
   else
   {
@@ -4167,9 +4177,14 @@ void ARM64XEmitter::SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   u32 val;
   bool shift;
+  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
   if (IsImmArithmetic(imm, &val, &shift))
   {
     SUB(Rd, Rn, val, shift);
+  }
+  else if (IsImmArithmetic(imm_neg, &val, &shift))
+  {
+    ADD(Rd, Rn, val, shift);
   }
   else
   {
@@ -4185,9 +4200,14 @@ void ARM64XEmitter::SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
   u32 val;
   bool shift;
+  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
   if (IsImmArithmetic(imm, &val, &shift))
   {
     SUBS(Rd, Rn, val, shift);
+  }
+  else if (IsImmArithmetic(imm_neg, &val, &shift))
+  {
+    ADDS(Rd, Rn, val, shift);
   }
   else
   {
