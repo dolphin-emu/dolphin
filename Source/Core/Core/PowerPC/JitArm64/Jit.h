@@ -81,6 +81,7 @@ public:
   void addic(UGeckoInstruction inst);
   void mulli(UGeckoInstruction inst);
   void addzex(UGeckoInstruction inst);
+  void divwx(UGeckoInstruction inst);
   void subfx(UGeckoInstruction inst);
   void addcx(UGeckoInstruction inst);
   void slwx(UGeckoInstruction inst);
