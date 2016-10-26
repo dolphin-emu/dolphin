@@ -206,8 +206,8 @@ static GekkoOPTemplate table31[] = {
     {648, &JitArm64::subfex},                 // subfeox
     {232, &JitArm64::FallBackToInterpreter},  // subfmex
     {744, &JitArm64::FallBackToInterpreter},  // subfmeox
-    {200, &JitArm64::FallBackToInterpreter},  // subfzex
-    {712, &JitArm64::FallBackToInterpreter},  // subfzeox
+    {200, &JitArm64::subfzex},                // subfzex
+    {712, &JitArm64::subfzex},                // subfzeox
 
     {28, &JitArm64::boolX},    // andx
     {60, &JitArm64::boolX},    // andcx
