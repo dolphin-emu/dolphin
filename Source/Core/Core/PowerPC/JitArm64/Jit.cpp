@@ -606,6 +606,8 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
       }
 
       JitArm64Tables::CompileInstruction(ops[i]);
+      if (!MergeAllowedNextInstructions(1) || js.op[1].opinfo->type != OPTYPE_INTEGER)
+        FlushCarry();
 
       // If we have a register that will never be used again, flush it.
       gpr.StoreRegisters(~ops[i].gprInUse);

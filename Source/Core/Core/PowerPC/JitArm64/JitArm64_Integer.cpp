@@ -74,7 +74,7 @@ void JitArm64::ComputeCarry()
     return;
 
   js.carryFlagSet = true;
-  if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
+  if (MergeAllowedNextInstructions(1) && js.op[1].opinfo->type == OPTYPE_INTEGER)
   {
     return;
   }
