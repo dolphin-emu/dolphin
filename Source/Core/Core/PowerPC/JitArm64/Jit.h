@@ -99,6 +99,7 @@ public:
   void mtmsr(UGeckoInstruction inst);
   void mfmsr(UGeckoInstruction inst);
   void mcrf(UGeckoInstruction inst);
+  void mcrxr(UGeckoInstruction inst);
   void mfsr(UGeckoInstruction inst);
   void mtsr(UGeckoInstruction inst);
   void mfsrin(UGeckoInstruction inst);
