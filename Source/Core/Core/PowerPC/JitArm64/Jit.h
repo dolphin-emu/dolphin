@@ -241,6 +241,7 @@ private:
   void ComputeRC(u64 imm, int crf = 0, bool needs_sext = true);
   void ComputeCarry(bool Carry);
   void ComputeCarry();
+  void FlushCarry();
 
   void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
                void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc = false);

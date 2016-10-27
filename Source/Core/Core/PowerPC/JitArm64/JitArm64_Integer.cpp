@@ -49,6 +49,8 @@ void JitArm64::ComputeRC(u64 imm, int crf, bool needs_sext)
 
 void JitArm64::ComputeCarry(bool Carry)
 {
+  js.carryFlagSet = false;
+
   if (!js.op->wantsCA)
     return;
 
@@ -66,13 +68,31 @@ void JitArm64::ComputeCarry(bool Carry)
 
 void JitArm64::ComputeCarry()
 {
+  js.carryFlagSet = false;
+
   if (!js.op->wantsCA)
+    return;
+
+  js.carryFlagSet = true;
+  if (MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags)
+  {
+    return;
+  }
+
+  FlushCarry();
+}
+
+void JitArm64::FlushCarry()
+{
+  if (!js.carryFlagSet)
     return;
 
   ARM64Reg WA = gpr.GetReg();
   CSINC(WA, WSP, WSP, CC_CC);
   STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
   gpr.Unlock(WA);
+
+  js.carryFlagSet = false;
 }
 
 void JitArm64::reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
@@ -732,6 +752,8 @@ void JitArm64::addzex(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
 
+  FlushCarry();
+
   int a = inst.RA, d = inst.RD;
 
   if (d == a)
@@ -783,6 +805,8 @@ void JitArm64::subfex(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
+
+  FlushCarry();
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
@@ -875,6 +899,8 @@ void JitArm64::subfzex(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
 
+  FlushCarry();
+
   int a = inst.RA, d = inst.RD;
 
   gpr.BindToRegister(d, d == a);
@@ -925,6 +951,8 @@ void JitArm64::addex(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITIntegerOff);
   FALLBACK_IF(inst.OE);
+
+  FlushCarry();
 
   int a = inst.RA, b = inst.RB, d = inst.RD;
 
