@@ -492,29 +492,7 @@ void JitArm64::lmw(UGeckoInstruction inst)
   ARM64Reg XA = EncodeRegTo64(WA);
   if (a)
   {
-    bool add = inst.SIMM_16 >= 0;
-    u16 off = std::abs(inst.SIMM_16);
-    if (off < 4096)
-    {
-      if (add)
-        ADD(WA, gpr.R(a), off);
-      else
-        SUB(WA, gpr.R(a), off);
-    }
-    else
-    {
-      u16 remaining = off >> 12;
-      if (add)
-      {
-        ADD(WA, gpr.R(a), off & 0xFFF);
-        ADD(WA, WA, remaining, true);
-      }
-      else
-      {
-        SUB(WA, gpr.R(a), off & 0xFFF);
-        SUB(WA, WA, remaining, true);
-      }
-    }
+    ADDI2R(WA, gpr.R(a), inst.SIMM_16, WA);
     ADD(XA, XA, MEM_REG);
   }
   else
@@ -579,29 +557,7 @@ void JitArm64::stmw(UGeckoInstruction inst)
 
   if (a)
   {
-    bool add = inst.SIMM_16 >= 0;
-    u16 off = std::abs(inst.SIMM_16);
-    if (off < 4096)
-    {
-      if (add)
-        ADD(WA, gpr.R(a), off);
-      else
-        SUB(WA, gpr.R(a), off);
-    }
-    else
-    {
-      u16 remaining = off >> 12;
-      if (add)
-      {
-        ADD(WA, gpr.R(a), off & 0xFFF);
-        ADD(WA, WA, remaining, true);
-      }
-      else
-      {
-        SUB(WA, gpr.R(a), off & 0xFFF);
-        SUB(WA, WA, remaining, true);
-      }
-    }
+    ADDI2R(WA, gpr.R(a), inst.SIMM_16, WA);
     ADD(XA, XA, MEM_REG);
   }
   else

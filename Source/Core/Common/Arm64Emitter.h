@@ -835,6 +835,7 @@ public:
 
   // Wrapper around MOVZ+MOVK
   void MOVI2R(ARM64Reg Rd, u64 imm, bool optimize = true);
+  bool MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2);
   template <class P>
   void MOVP2R(ARM64Reg Rd, P* ptr)
   {

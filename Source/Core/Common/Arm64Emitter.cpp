@@ -2055,6 +2055,28 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   }
 }
 
+bool ARM64XEmitter::MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2)
+{
+  // TODO: Also optimize for performance, not just for code size.
+  u8* start_pointer = GetWritableCodePtr();
+
+  MOVI2R(Rd, imm1);
+  int size1 = GetCodePtr() - start_pointer;
+
+  SetCodePtrUnsafe(start_pointer);
+
+  MOVI2R(Rd, imm2);
+  int size2 = GetCodePtr() - start_pointer;
+
+  SetCodePtrUnsafe(start_pointer);
+
+  bool element = size1 > size2;
+
+  MOVI2R(Rd, element ? imm2 : imm1);
+
+  return element;
+}
+
 void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
 {
   int num_regs = registers.Count();
@@ -4140,13 +4162,25 @@ void ARM64XEmitter::ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   {
     SUB(Rd, Rn, val, shift);
   }
+  else if ((imm >= 0x10000u || scratch == INVALID_REG) && imm < 0x1000000u)
+  {
+    ADD(Rd, Rn, imm & 0xFFF, false);
+    ADD(Rd, Rd, imm >> 12, true);
+  }
+  else if ((imm_neg >= 0x10000u || scratch == INVALID_REG) && imm_neg < 0x1000000u)
+  {
+    SUB(Rd, Rn, imm_neg & 0xFFF, false);
+    SUB(Rd, Rd, imm_neg >> 12, true);
+  }
   else
   {
     _assert_msg_(DYNA_REC, scratch != INVALID_REG,
                  "ADDI2R - failed to construct arithmetic immediate value from %08x, need scratch",
                  (u32)imm);
-    MOVI2R(scratch, imm);
-    ADD(Rd, Rn, scratch);
+    if (MOVI2R2(scratch, imm, imm_neg))
+      SUB(Rd, Rn, scratch);
+    else
+      ADD(Rd, Rn, scratch);
   }
 }
 
@@ -4168,8 +4202,10 @@ void ARM64XEmitter::ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
     _assert_msg_(DYNA_REC, scratch != INVALID_REG,
                  "ADDSI2R - failed to construct arithmetic immediate value from %08x, need scratch",
                  (u32)imm);
-    MOVI2R(scratch, imm);
-    ADDS(Rd, Rn, scratch);
+    if (MOVI2R2(scratch, imm, imm_neg))
+      SUBS(Rd, Rn, scratch);
+    else
+      ADDS(Rd, Rn, scratch);
   }
 }
 
@@ -4186,13 +4222,25 @@ void ARM64XEmitter::SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   {
     ADD(Rd, Rn, val, shift);
   }
+  else if ((imm >= 0x10000u || scratch == INVALID_REG) && imm < 0x1000000u)
+  {
+    SUB(Rd, Rn, imm & 0xFFF, false);
+    SUB(Rd, Rd, imm >> 12, true);
+  }
+  else if ((imm_neg >= 0x10000u || scratch == INVALID_REG) && imm_neg < 0x1000000u)
+  {
+    ADD(Rd, Rn, imm_neg & 0xFFF, false);
+    ADD(Rd, Rd, imm_neg >> 12, true);
+  }
   else
   {
     _assert_msg_(DYNA_REC, scratch != INVALID_REG,
                  "SUBI2R - failed to construct arithmetic immediate value from %08x, need scratch",
                  (u32)imm);
-    MOVI2R(scratch, imm);
-    SUB(Rd, Rn, scratch);
+    if (MOVI2R2(scratch, imm, imm_neg))
+      ADD(Rd, Rn, scratch);
+    else
+      SUB(Rd, Rn, scratch);
   }
 }
 
@@ -4213,8 +4261,10 @@ void ARM64XEmitter::SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   {
     _assert_msg_(DYNA_REC, scratch != INVALID_REG,
                  "ANDSI2R - failed to construct immediate value from %08x, need scratch", (u32)imm);
-    MOVI2R(scratch, imm);
-    SUBS(Rd, Rn, scratch);
+    if (MOVI2R2(scratch, imm, imm_neg))
+      ADDS(Rd, Rn, scratch);
+    else
+      SUBS(Rd, Rn, scratch);
   }
 }
 
