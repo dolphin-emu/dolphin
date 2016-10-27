@@ -423,8 +423,7 @@ void JitArm64::cmp(UGeckoInstruction inst)
   SXTW(XB, RB);
 
   SUB(XA, XA, XB);
-  STR(INDEX_UNSIGNED, XA, PPC_REG,
-      PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
+  STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[crf]));
 
   gpr.Unlock(WA, WB);
 }
@@ -451,8 +450,7 @@ void JitArm64::cmpl(UGeckoInstruction inst)
   ARM64Reg WA = gpr.GetReg();
   ARM64Reg XA = EncodeRegTo64(WA);
   SUB(XA, EncodeRegTo64(gpr.R(a)), EncodeRegTo64(gpr.R(b)));
-  STR(INDEX_UNSIGNED, XA, PPC_REG,
-      PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
+  STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[crf]));
   gpr.Unlock(WA);
 }
 
@@ -502,8 +500,7 @@ void JitArm64::cmpli(UGeckoInstruction inst)
 
   SUBI2R(XA, EncodeRegTo64(gpr.R(a)), inst.UIMM, XA);
 
-  STR(INDEX_UNSIGNED, XA, PPC_REG,
-      PPCSTATE_OFF(cr_val[0]) + (sizeof(PowerPC::ppcState.cr_val[0]) * crf));
+  STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[crf]));
   gpr.Unlock(WA);
 }
 

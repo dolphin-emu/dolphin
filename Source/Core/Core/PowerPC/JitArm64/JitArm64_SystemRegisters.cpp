@@ -417,7 +417,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);
-    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * field);
+    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
     switch (bit)
     {
     case CR_SO_BIT:
@@ -436,7 +436,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
       AND(XA, XA, 64 - 63, 62, true);  // XA & ~(1<<62)
       break;
     }
-    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * field);
+    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
     gpr.Unlock(WA);
     return;
   }
@@ -450,7 +450,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);
-    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * field);
+    LDR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
 
     if (bit != CR_GT_BIT)
     {
@@ -483,7 +483,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 
     ORR(XA, XA, 32, 0, true);  // XA | 1<<32
 
-    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * field);
+    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[field]));
     gpr.Unlock(WA);
     return;
   }
@@ -509,7 +509,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
 
     ARM64Reg WC = gpr.GetReg();
     ARM64Reg XC = EncodeRegTo64(WC);
-    LDR(INDEX_UNSIGNED, XC, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * field);
+    LDR(INDEX_UNSIGNED, XC, PPC_REG, PPCSTATE_OFF(cr_val[field]));
     switch (bit)
     {
     case CR_SO_BIT:  // check bit 61 set
@@ -565,7 +565,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   int field = inst.CRBD >> 2;
   int bit = 3 - (inst.CRBD & 3);
 
-  LDR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * field);
+  LDR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val[field]));
 
   // Gross but necessary; if the input is totally zero and we set SO or LT,
   // or even just add the (1<<32), GT will suddenly end up set without us
@@ -603,7 +603,7 @@ void JitArm64::crXXX(UGeckoInstruction inst)
   }
 
   ORR(XA, XA, 32, 0, true);  // XA | 1<<32
-  STR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * field);
+  STR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val[field]));
 
   gpr.Unlock(WA);
   gpr.Unlock(WB);
@@ -653,7 +653,7 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
         }
 
         LDR(XA, XB, ArithOption(XA, true));
-        STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * i);
+        STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(cr_val[i]));
       }
     }
     gpr.Unlock(WA, WB);
