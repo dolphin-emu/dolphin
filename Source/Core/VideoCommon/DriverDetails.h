@@ -230,6 +230,14 @@ enum Bug
   // the driver to fail to create graphics pipelines. The workaround for this is to specify the
   // index as a MRT location instead, or omit the binding completely.
   BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION,
+
+  // Bug: Dual-source outputs from fragment shaders are broken on AMD OpenGL drivers
+  // Started Version: -1
+  // Ended Version: -1
+  // Fragment shaders that specify dual-source outputs, cause the driver to crash
+  // sometimes this happens in the kernel mode part of the driver resulting in a BSOD.
+  // Disable dual-source blending support for now.
+  BUG_BROKEN_DUAL_SOURCE_BLENDING,
 };
 
 // Initializes our internal vendor, device family, and driver version

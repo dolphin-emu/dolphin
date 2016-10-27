@@ -444,8 +444,9 @@ Renderer::Renderer()
   g_Config.backend_info.AdapterName = g_ogl_config.gl_renderer;
 
   g_Config.backend_info.bSupportsDualSourceBlend =
-      GLExtensions::Supports("GL_ARB_blend_func_extended") ||
-      GLExtensions::Supports("GL_EXT_blend_func_extended");
+      (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
+       GLExtensions::Supports("GL_EXT_blend_func_extended")) &&
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING);
   g_Config.backend_info.bSupportsPrimitiveRestart =
       !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
