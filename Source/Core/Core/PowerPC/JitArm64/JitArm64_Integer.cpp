@@ -595,17 +595,24 @@ void JitArm64::srawix(UGeckoInstruction inst)
     gpr.BindToRegister(a, a == s);
     ARM64Reg RA = gpr.R(a);
     ARM64Reg RS = gpr.R(s);
-    ARM64Reg WA = gpr.GetReg();
+    ARM64Reg WA;
 
-    ORR(WA, WSP, RS, ArithOption(RS, ST_LSL, 32 - amount));
+    if (js.op->wantsCA)
+    {
+      WA = gpr.GetReg();
+      ORR(WA, WSP, RS, ArithOption(RS, ST_LSL, 32 - amount));
+    }
     ORR(RA, WSP, RS, ArithOption(RS, ST_ASR, amount));
     if (inst.Rc)
       ComputeRC(RA, 0);
 
-    ANDS(WSP, WA, RA);
-    CSINC(WA, WSP, WSP, CC_EQ);
-    STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-    gpr.Unlock(WA);
+    if (js.op->wantsCA)
+    {
+      ANDS(WSP, WA, RA);
+      CSINC(WA, WSP, WSP, CC_EQ);
+      STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+      gpr.Unlock(WA);
+    }
   }
   else
   {
@@ -613,7 +620,7 @@ void JitArm64::srawix(UGeckoInstruction inst)
     ARM64Reg RA = gpr.R(a);
     ARM64Reg RS = gpr.R(s);
     MOV(RA, RS);
-    STRB(INDEX_UNSIGNED, WSP, PPC_REG, PPCSTATE_OFF(xer_ca));
+    ComputeCarry(false);
   }
 }
 
