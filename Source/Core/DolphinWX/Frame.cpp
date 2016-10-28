@@ -504,10 +504,10 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 // Events
 void CFrame::OnActive(wxActivateEvent& event)
 {
-  m_bHasFocus = (event.GetActive() && event.GetEventObject() == m_RenderFrame);
+  m_bRendererHasFocus = (event.GetActive() && event.GetEventObject() == m_RenderFrame);
   if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
   {
-    if (m_bHasFocus)
+    if (m_bRendererHasFocus)
     {
       if (SConfig::GetInstance().bRenderToMain)
         m_RenderParent->SetFocus();
@@ -777,20 +777,6 @@ bool CFrame::RendererHasFocus()
   if (m_RenderParent == nullptr)
     return false;
   return m_bRendererHasFocus;
-}
-
-// Returns true any time any one of our UI windows
-// has the focus, including any dialogs or other windows.
-bool CFrame::UIHasFocus()
-{
-  // UIHasFocus should return true any time any one of our UI
-  // windows has the focus, including any dialogs or other windows.
-  //
-  // wxWindow::FindFocus() returns the current wxWindow which has
-  // focus. If it's not one of our windows, then it will return
-  // null.
-
-  return m_bHasFocus;
 }
 
 void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))

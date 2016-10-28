@@ -16,6 +16,7 @@ extern CFrame* main_frame;
 class DolphinApp : public wxApp
 {
 public:
+  bool IsActiveThreadsafe() const { return m_is_active; }
   CFrame* GetCFrame();
 
 private:
@@ -33,10 +34,12 @@ private:
   void OnEndSession(wxCloseEvent& event);
   void InitLanguageSupport();
   void AfterInit();
+  void OnActivate(wxActivateEvent& ev);
   void OnIdle(wxIdleEvent&);
 
   bool m_batch_mode = false;
   bool m_confirm_stop = false;
+  bool m_is_active = true;
   bool m_load_file = false;
   bool m_play_movie = false;
   bool m_use_debugger = false;
