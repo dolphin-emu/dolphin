@@ -223,14 +223,14 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
     if (cmd_buffer.Parameter == USBV0_IOCTL_INTRMSG &&
         m_sync_button_state == SyncButtonState::Pressed)
     {
-      Core::DisplayMessage("Scanning for Wiimotes", 2000);
+      Core::DisplayMessage("Scanning for Wii Remotes", 2000);
       FakeSyncButtonPressedEvent(*buffer);
       return GetNoReply();
     }
     if (cmd_buffer.Parameter == USBV0_IOCTL_INTRMSG &&
         m_sync_button_state == SyncButtonState::LongPressed)
     {
-      Core::DisplayMessage("Reset saved Wiimote pairings", 2000);
+      Core::DisplayMessage("Reset saved Wii Remote pairings", 2000);
       FakeSyncButtonHeldEvent(*buffer);
       return GetNoReply();
     }

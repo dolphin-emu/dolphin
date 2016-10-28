@@ -487,7 +487,7 @@ void Host_SetWiiMoteConnectionState(int _State)
     event.SetString(_("Connecting..."));
     break;
   case 2:
-    event.SetString(_("Wiimote Connected"));
+    event.SetString(_("Wii Remote Connected"));
     break;
   }
   // Update field 1 or 2
