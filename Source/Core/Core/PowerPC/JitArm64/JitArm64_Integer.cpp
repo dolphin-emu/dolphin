@@ -576,6 +576,7 @@ void JitArm64::srawix(UGeckoInstruction inst)
   int a = inst.RA;
   int s = inst.RS;
   int amount = inst.SH;
+  bool inplace_carry = MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags;
 
   if (gpr.IsImm(s))
   {
@@ -587,37 +588,54 @@ void JitArm64::srawix(UGeckoInstruction inst)
     else
       ComputeCarry(false);
   }
-  else if (amount != 0)
-  {
-    gpr.BindToRegister(a, a == s);
-    ARM64Reg RA = gpr.R(a);
-    ARM64Reg RS = gpr.R(s);
-    ARM64Reg WA;
-
-    if (js.op->wantsCA)
-    {
-      WA = gpr.GetReg();
-      ORR(WA, WSP, RS, ArithOption(RS, ST_LSL, 32 - amount));
-    }
-    ORR(RA, WSP, RS, ArithOption(RS, ST_ASR, amount));
-    if (inst.Rc)
-      ComputeRC(RA, 0);
-
-    if (js.op->wantsCA)
-    {
-      ANDS(WSP, WA, RA);
-      CSINC(WA, WSP, WSP, CC_EQ);
-      STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
-      gpr.Unlock(WA);
-    }
-  }
-  else
+  else if (amount == 0)
   {
     gpr.BindToRegister(a, a == s);
     ARM64Reg RA = gpr.R(a);
     ARM64Reg RS = gpr.R(s);
     MOV(RA, RS);
     ComputeCarry(false);
+  }
+  else
+  {
+    gpr.BindToRegister(a, a == s);
+    ARM64Reg RA = gpr.R(a);
+    ARM64Reg RS = gpr.R(s);
+
+    if (js.op->wantsCA)
+    {
+      ARM64Reg WA = gpr.GetReg();
+      ARM64Reg dest = inplace_carry ? WA : WSP;
+      if (a != s)
+      {
+        ASR(RA, RS, amount);
+        ANDS(dest, RA, RS, ArithOption(RS, ST_LSL, 32 - amount));
+      }
+      else
+      {
+        LSL(WA, RS, 32 - amount);
+        ASR(RA, RS, amount);
+        ANDS(dest, WA, RA);
+      }
+      if (inplace_carry)
+      {
+        CMP(dest, 1);
+        ComputeCarry();
+      }
+      else
+      {
+        CSINC(WA, WSP, WSP, CC_EQ);
+        STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+      }
+      gpr.Unlock(WA);
+    }
+    else
+    {
+      ASR(RA, RS, amount);
+    }
+
+    if (inst.Rc)
+      ComputeRC(RA, 0);
   }
 }
 
@@ -1266,6 +1284,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
 
   int a = inst.RA, b = inst.RB, s = inst.RS;
+  bool inplace_carry = MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags;
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
@@ -1337,7 +1356,15 @@ void JitArm64::srawx(UGeckoInstruction inst)
     SetJumpTarget(end);
 
     MOV(gpr.R(a), WB);
-    STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+    if (inplace_carry)
+    {
+      CMP(WA, 1);
+      ComputeCarry();
+    }
+    else
+    {
+      STRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+    }
 
     gpr.Unlock(WA, WB, WC);
   }
