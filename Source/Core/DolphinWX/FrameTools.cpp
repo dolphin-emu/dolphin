@@ -924,7 +924,7 @@ void CFrame::OnStopped()
     m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
   }
   m_RenderParent = nullptr;
-  m_bHasFocus = false;
+  m_bRendererHasFocus = false;
 
   // Clean framerate indications from the status bar.
   GetStatusBar()->SetStatusText(" ", 0);
