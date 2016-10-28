@@ -102,6 +102,7 @@ public:
   void OnRenderParentMove(wxMoveEvent& event);
   bool RendererHasFocus();
   bool UIHasFocus();
+  void SetUiFocusStatus(bool hasFocus);
   bool RendererIsFullscreen();
   void DoFullscreen(bool bF);
   void ToggleDisplayMode(bool bFullscreen);
@@ -159,6 +160,7 @@ private:
   bool m_bGameLoading = false;
   bool m_bClosing = false;
   bool m_bHasFocus = false;
+  bool m_bUIHasFocus = false;
   bool m_confirmStop = false;
   bool m_tried_graceful_shutdown = false;
   int m_saveSlot = 1;

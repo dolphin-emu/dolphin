@@ -84,6 +84,7 @@ bool DolphinApp::OnInit()
   Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
   Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
   Bind(wxEVT_IDLE, &DolphinApp::OnIdle, this);
+  Bind(wxEVT_ACTIVATE_APP, &DolphinApp::OnActivate, this);
 
   // Register message box and translation handlers
   RegisterMsgAlertHandler(&wxMsgAlert);
@@ -254,6 +255,11 @@ void DolphinApp::AfterInit()
       main_frame->BootGame("");
     }
   }
+}
+
+void DolphinApp::OnActivate(wxActivateEvent& event)
+{
+  main_frame->SetUiFocusStatus(event.GetActive());
 }
 
 void DolphinApp::InitLanguageSupport()
