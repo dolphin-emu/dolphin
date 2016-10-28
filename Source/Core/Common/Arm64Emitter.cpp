@@ -2055,6 +2055,28 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
   }
 }
 
+bool ARM64XEmitter::MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2)
+{
+  // TODO: Also optimize for performance, not just for code size.
+  u8* start_pointer = GetWritableCodePtr();
+
+  MOVI2R(Rd, imm1);
+  int size1 = GetCodePtr() - start_pointer;
+
+  SetCodePtrUnsafe(start_pointer);
+
+  MOVI2R(Rd, imm2);
+  int size2 = GetCodePtr() - start_pointer;
+
+  SetCodePtrUnsafe(start_pointer);
+
+  bool element = size1 > size2;
+
+  MOVI2R(Rd, element ? imm2 : imm1);
+
+  return element;
+}
+
 void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
 {
   int num_regs = registers.Count();
@@ -4127,58 +4149,115 @@ void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   }
 }
 
+void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
+                                    ARM64Reg scratch)
+{
+  auto addi = [this](ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative, bool flags) {
+    switch ((negative << 1) | flags)
+    {
+    case 0:
+      ADD(Rd, Rn, imm, shift);
+      break;
+    case 1:
+      ADDS(Rd, Rn, imm, shift);
+      break;
+    case 2:
+      SUB(Rd, Rn, imm, shift);
+      break;
+    case 3:
+      SUBS(Rd, Rn, imm, shift);
+      break;
+    }
+  };
+
+  bool has_scratch = scratch != INVALID_REG;
+  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
+  bool neg_neg = negative ? false : true;
+
+  // Fast paths, aarch64 immediate instructions
+  // Try them all first
+  if (imm <= 0xFFF)
+  {
+    addi(Rd, Rn, imm, false, negative, flags);
+    return;
+  }
+  if (imm <= 0xFFFFFF && (imm & 0xFFF) == 0)
+  {
+    addi(Rd, Rn, imm >> 12, true, negative, flags);
+    return;
+  }
+  if (imm_neg <= 0xFFF)
+  {
+    addi(Rd, Rn, imm_neg, false, neg_neg, flags);
+    return;
+  }
+  if (imm_neg <= 0xFFFFFF && (imm_neg & 0xFFF) == 0)
+  {
+    addi(Rd, Rn, imm_neg >> 12, true, neg_neg, flags);
+    return;
+  }
+
+  // ADD+ADD is slower than MOVK+ADD, but inplace.
+  // But it supports a few more bits, so use it to avoid MOVK+MOVK+ADD.
+  // As this splits the addition in two parts, this must not be done on setting flags.
+  if (!flags && (imm >= 0x10000u || !has_scratch) && imm < 0x1000000u)
+  {
+    addi(Rd, Rn, imm & 0xFFF, false, negative, false);
+    addi(Rd, Rd, imm >> 12, true, negative, false);
+    return;
+  }
+  if (!flags && (imm_neg >= 0x10000u || !has_scratch) && imm_neg < 0x1000000u)
+  {
+    addi(Rd, Rn, imm_neg & 0xFFF, false, neg_neg, false);
+    addi(Rd, Rd, imm_neg >> 12, true, neg_neg, false);
+    return;
+  }
+
+  _assert_msg_(DYNA_REC, has_scratch,
+               "ADDI2R - failed to construct arithmetic immediate value from %08x, need scratch",
+               (u32)imm);
+
+  negative ^= MOVI2R2(scratch, imm, imm_neg);
+  switch ((negative << 1) | flags)
+  {
+  case 0:
+    ADD(Rd, Rn, scratch);
+    break;
+  case 1:
+    ADDS(Rd, Rn, scratch);
+    break;
+  case 2:
+    SUB(Rd, Rn, scratch);
+    break;
+  case 3:
+    SUBS(Rd, Rn, scratch);
+    break;
+  }
+}
+
 void ARM64XEmitter::ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-  {
-    ADD(Rd, Rn, val, shift);
-  }
-  else
-  {
-    _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "ADDI2R - failed to construct arithmetic immediate value from %08x, need scratch",
-                 (u32)imm);
-    MOVI2R(scratch, imm);
-    ADD(Rd, Rn, scratch);
-  }
+  ADDI2R_internal(Rd, Rn, imm, false, false, scratch);
+}
+
+void ARM64XEmitter::ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
+{
+  ADDI2R_internal(Rd, Rn, imm, false, true, scratch);
 }
 
 void ARM64XEmitter::SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-  {
-    SUB(Rd, Rn, val, shift);
-  }
-  else
-  {
-    _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "SUBI2R - failed to construct arithmetic immediate value from %08x, need scratch",
-                 (u32)imm);
-    MOVI2R(scratch, imm);
-    SUB(Rd, Rn, scratch);
-  }
+  ADDI2R_internal(Rd, Rn, imm, true, false, scratch);
+}
+
+void ARM64XEmitter::SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
+{
+  ADDI2R_internal(Rd, Rn, imm, true, true, scratch);
 }
 
 void ARM64XEmitter::CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-  {
-    CMP(Rn, val, shift);
-  }
-  else
-  {
-    _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "CMPI2R - failed to construct arithmetic immediate value from %08x, need scratch",
-                 (u32)imm);
-    MOVI2R(scratch, imm);
-    CMP(Rn, scratch);
-  }
+  ADDI2R_internal(Is64Bit(Rn) ? ZR : WZR, Rn, imm, true, true, scratch);
 }
 
 bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
@@ -4318,23 +4397,6 @@ void ARM64FloatEmitter::MOVI2FDUP(ARM64Reg Rd, float value, ARM64Reg scratch)
   ARM64Reg s = (ARM64Reg)(S0 + DecodeReg(Rd));
   MOVI2F(s, value, scratch);
   DUP(32, Rd, Rd, 0);
-}
-
-void ARM64XEmitter::SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
-{
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-  {
-    SUBS(Rd, Rn, val, shift);
-  }
-  else
-  {
-    _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "ANDSI2R - failed to construct immediate value from %08x, need scratch", (u32)imm);
-    MOVI2R(scratch, imm);
-    SUBS(Rd, Rn, scratch);
-  }
 }
 
 }  // namespace

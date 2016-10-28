@@ -58,19 +58,7 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
       }
       else
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, up_reg, offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, up_reg, std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, up_reg);
-        }
+        ADDI2R(addr_reg, up_reg, offset, addr_reg);
       }
     }
     else
@@ -91,28 +79,12 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
       else if (gpr.IsImm(addr) && !gpr.IsImm(offsetReg))
       {
         u32 reg_offset = gpr.GetImm(addr);
-        if (reg_offset < 4096)
-        {
-          ADD(addr_reg, off_reg, reg_offset);
-        }
-        else
-        {
-          MOVI2R(addr_reg, gpr.GetImm(addr));
-          ADD(addr_reg, addr_reg, off_reg);
-        }
+        ADDI2R(addr_reg, off_reg, reg_offset, addr_reg);
       }
       else if (!gpr.IsImm(addr) && gpr.IsImm(offsetReg))
       {
         u32 reg_offset = gpr.GetImm(offsetReg);
-        if (reg_offset < 4096)
-        {
-          ADD(addr_reg, up_reg, reg_offset);
-        }
-        else
-        {
-          MOVI2R(addr_reg, gpr.GetImm(offsetReg));
-          ADD(addr_reg, addr_reg, up_reg);
-        }
+        ADDI2R(addr_reg, up_reg, reg_offset, addr_reg);
       }
       else
       {
@@ -202,19 +174,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
       }
       else
       {
-        if (offset >= 0 && offset < 4096)
-        {
-          ADD(addr_reg, reg_dest, offset);
-        }
-        else if (offset < 0 && offset > -4096)
-        {
-          SUB(addr_reg, reg_dest, std::abs(offset));
-        }
-        else
-        {
-          MOVI2R(addr_reg, offset);
-          ADD(addr_reg, addr_reg, reg_dest);
-        }
+        ADDI2R(addr_reg, reg_dest, offset, addr_reg);
       }
     }
     else
@@ -235,28 +195,12 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
       else if (gpr.IsImm(dest) && !gpr.IsImm(regOffset))
       {
         u32 reg_offset = gpr.GetImm(dest);
-        if (reg_offset < 4096)
-        {
-          ADD(addr_reg, reg_off, reg_offset);
-        }
-        else
-        {
-          MOVI2R(addr_reg, reg_offset);
-          ADD(addr_reg, addr_reg, reg_off);
-        }
+        ADDI2R(addr_reg, reg_off, reg_offset, addr_reg);
       }
       else if (!gpr.IsImm(dest) && gpr.IsImm(regOffset))
       {
         u32 reg_offset = gpr.GetImm(regOffset);
-        if (reg_offset < 4096)
-        {
-          ADD(addr_reg, reg_dest, reg_offset);
-        }
-        else
-        {
-          MOVI2R(addr_reg, gpr.GetImm(regOffset));
-          ADD(addr_reg, addr_reg, reg_dest);
-        }
+        ADDI2R(addr_reg, reg_dest, reg_offset, addr_reg);
       }
       else
       {
@@ -526,8 +470,7 @@ void JitArm64::stX(UGeckoInstruction inst)
       RB = gpr.R(regOffset);
     if (regOffset == -1)
     {
-      MOVI2R(WA, offset);
-      ADD(RA, RA, WA);
+      ADDI2R(RA, RA, offset, WA);
     }
     else
     {
@@ -549,36 +492,13 @@ void JitArm64::lmw(UGeckoInstruction inst)
   ARM64Reg XA = EncodeRegTo64(WA);
   if (a)
   {
-    bool add = inst.SIMM_16 >= 0;
-    u16 off = std::abs(inst.SIMM_16);
-    if (off < 4096)
-    {
-      if (add)
-        ADD(WA, gpr.R(a), off);
-      else
-        SUB(WA, gpr.R(a), off);
-    }
-    else
-    {
-      u16 remaining = off >> 12;
-      if (add)
-      {
-        ADD(WA, gpr.R(a), off & 0xFFF);
-        ADD(WA, WA, remaining, true);
-      }
-      else
-      {
-        SUB(WA, gpr.R(a), off & 0xFFF);
-        SUB(WA, WA, remaining, true);
-      }
-    }
+    ADDI2R(WA, gpr.R(a), inst.SIMM_16, WA);
+    ADD(XA, XA, MEM_REG);
   }
   else
   {
-    MOVI2R(WA, (u32)(s32)(s16)inst.SIMM_16);
+    ADDI2R(XA, MEM_REG, (u32)(s32)(s16)inst.SIMM_16, XA);
   }
-
-  ADD(XA, XA, MEM_REG);
 
   for (int i = inst.RD; i < 32; i++)
   {
@@ -637,36 +557,13 @@ void JitArm64::stmw(UGeckoInstruction inst)
 
   if (a)
   {
-    bool add = inst.SIMM_16 >= 0;
-    u16 off = std::abs(inst.SIMM_16);
-    if (off < 4096)
-    {
-      if (add)
-        ADD(WA, gpr.R(a), off);
-      else
-        SUB(WA, gpr.R(a), off);
-    }
-    else
-    {
-      u16 remaining = off >> 12;
-      if (add)
-      {
-        ADD(WA, gpr.R(a), off & 0xFFF);
-        ADD(WA, WA, remaining, true);
-      }
-      else
-      {
-        SUB(WA, gpr.R(a), off & 0xFFF);
-        SUB(WA, WA, remaining, true);
-      }
-    }
+    ADDI2R(WA, gpr.R(a), inst.SIMM_16, WA);
+    ADD(XA, XA, MEM_REG);
   }
   else
   {
-    MOVI2R(WA, (u32)(s32)(s16)inst.SIMM_16);
+    ADDI2R(XA, MEM_REG, (u32)(s32)(s16)inst.SIMM_16, XA);
   }
-
-  ADD(XA, XA, MEM_REG);
 
   for (int i = inst.RD; i < 32; i++)
   {
@@ -782,15 +679,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
       // Only one register is an immediate
       ARM64Reg base = is_imm_a ? gpr.R(b) : gpr.R(a);
       u32 imm_offset = is_imm_a ? gpr.GetImm(a) : gpr.GetImm(b);
-      if (imm_offset < 4096)
-      {
-        ADD(addr_reg, base, imm_offset);
-      }
-      else
-      {
-        MOVI2R(addr_reg, imm_offset);
-        ADD(addr_reg, addr_reg, base);
-      }
+      ADDI2R(addr_reg, base, imm_offset, addr_reg);
     }
     else
     {
