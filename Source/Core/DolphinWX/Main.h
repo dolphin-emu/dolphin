@@ -33,6 +33,7 @@ private:
   void OnEndSession(wxCloseEvent& event);
   void InitLanguageSupport();
   void AfterInit();
+  void OnActivate(wxActivateEvent& event);
   void OnIdle(wxIdleEvent&);
 
   bool m_batch_mode = false;

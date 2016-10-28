@@ -504,10 +504,10 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 // Events
 void CFrame::OnActive(wxActivateEvent& event)
 {
-  m_bHasFocus = (event.GetActive() && event.GetEventObject() == m_RenderFrame);
+  m_bRendererHasFocus = (event.GetActive() && event.GetEventObject() == m_RenderFrame);
   if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
   {
-    if (m_bHasFocus)
+    if (m_bRendererHasFocus)
     {
       if (SConfig::GetInstance().bRenderToMain)
         m_RenderParent->SetFocus();
@@ -680,6 +680,13 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
     UpdateTitle(WxStrToStr(event.GetString()));
     break;
 
+  case IDM_UI_FOCUS_CHANGE:
+    if (event.GetInt())
+      m_bUIHasFocus = true;
+    else
+      m_bUIHasFocus = false;
+    break;
+
   case IDM_WINDOW_SIZE_REQUEST:
   {
     std::pair<int, int>* win_size = (std::pair<int, int>*)(event.GetClientData());
@@ -785,21 +792,16 @@ bool CFrame::RendererHasFocus()
   if (m_RenderFrame->GetHWND() == window)
     return true;
 #else
-  return m_bHasFocus;
+  return m_bRendererHasFocus;
 #endif
   return false;
 }
 
+// Returns true any time any one of our UI windows
+// has the focus, including any dialogs or other windows.
 bool CFrame::UIHasFocus()
 {
-  // UIHasFocus should return true any time any one of our UI
-  // windows has the focus, including any dialogs or other windows.
-  //
-  // wxWindow::FindFocus() returns the current wxWindow which has
-  // focus. If it's not one of our windows, then it will return
-  // null.
-
-  return m_bHasFocus;
+  return m_bUIHasFocus;
 }
 
 void CFrame::OnGameListCtrlItemActivated(wxListEvent& WXUNUSED(event))
