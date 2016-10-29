@@ -44,7 +44,7 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
   return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
 
-std::string CVolumeGC::GetUniqueID() const
+std::string CVolumeGC::GetGameID() const
 {
   static const std::string NO_UID("NO_UID");
   if (m_pReader == nullptr)

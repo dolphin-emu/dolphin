@@ -232,7 +232,7 @@ void GFXDebuggerPanel::OnPauseAtNextFrameButton(wxCommandEvent& event)
 void GFXDebuggerPanel::OnDumpButton(wxCommandEvent& event)
 {
   std::string dump_path =
-      File::GetUserPath(D_DUMP_IDX) + "Debug/" + SConfig::GetInstance().m_strUniqueID + "/";
+      File::GetUserPath(D_DUMP_IDX) + "Debug/" + SConfig::GetInstance().m_strGameID + "/";
   if (!File::CreateFullPath(dump_path))
     return;
 

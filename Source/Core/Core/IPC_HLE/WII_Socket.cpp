@@ -395,7 +395,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
             if (SConfig::GetInstance().m_SSLDumpWrite && ret > 0)
             {
               std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetUniqueID() + "_write.bin";
+                                     SConfig::GetInstance().GetGameID() + "_write.bin";
               File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferOut2), ret);
             }
 
@@ -433,7 +433,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
             if (SConfig::GetInstance().m_SSLDumpRead && ret > 0)
             {
               std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
-                                     SConfig::GetInstance().GetUniqueID() + "_read.bin";
+                                     SConfig::GetInstance().GetGameID() + "_read.bin";
               File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
             }
 

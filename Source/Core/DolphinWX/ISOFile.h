@@ -46,7 +46,7 @@ public:
   std::vector<DiscIO::Language> GetLanguages() const;
   std::string GetCompany() const { return m_company; }
   u16 GetRevision() const { return m_Revision; }
-  const std::string& GetUniqueID() const { return m_UniqueID; }
+  const std::string& GetGameID() const { return m_game_id; }
   const std::string GetWiiFSPath() const;
   DiscIO::Country GetCountry() const { return m_Country; }
   DiscIO::Platform GetPlatform() const { return m_Platform; }
@@ -73,7 +73,7 @@ private:
   std::map<DiscIO::Language, std::string> m_descriptions;
   std::string m_company;
 
-  std::string m_UniqueID;
+  std::string m_game_id;
   u64 m_title_id;
 
   std::string m_issues;

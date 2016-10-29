@@ -35,7 +35,7 @@ CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
   m_rootDirectory = ExtractDirectoryName(_rDirectory);
 
   // create the default disk header
-  SetUniqueID("AGBJ01");
+  SetGameID("AGBJ01");
   SetName("Default name");
 
   if (_bIsWii)
@@ -154,12 +154,12 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
   return true;
 }
 
-std::string CVolumeDirectory::GetUniqueID() const
+std::string CVolumeDirectory::GetGameID() const
 {
   return std::string(m_diskHeader.begin(), m_diskHeader.begin() + MAX_ID_LENGTH);
 }
 
-void CVolumeDirectory::SetUniqueID(const std::string& id)
+void CVolumeDirectory::SetGameID(const std::string& id)
 {
   memcpy(m_diskHeader.data(), id.c_str(), std::min(id.length(), MAX_ID_LENGTH));
 }

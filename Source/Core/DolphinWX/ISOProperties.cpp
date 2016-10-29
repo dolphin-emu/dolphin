@@ -95,7 +95,7 @@ public:
     State new_state = State::Hidden;
     if (!SConfig::GetInstance().bEnableCheats)
       new_state = State::DisabledCheats;
-    else if (Core::IsRunning() && SConfig::GetInstance().GetUniqueID() == m_game_id)
+    else if (Core::IsRunning() && SConfig::GetInstance().GetGameID() == m_game_id)
       new_state = State::GameRunning;
     ApplyState(new_state);
   }
@@ -217,7 +217,7 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
   // Load ISO data
   m_open_iso = DiscIO::CreateVolumeFromFilename(OpenGameListItem.GetFileName());
 
-  game_id = m_open_iso->GetUniqueID();
+  game_id = m_open_iso->GetGameID();
 
   // Load game INIs
   GameIniFileLocal = File::GetUserPath(D_GAMESETTINGS_IDX) + game_id + ".ini";
@@ -232,7 +232,7 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
   // Disk header and apploader
 
   m_InternalName->SetValue(StrToWxStr(m_open_iso->GetInternalName()));
-  m_GameID->SetValue(StrToWxStr(m_open_iso->GetUniqueID()));
+  m_GameID->SetValue(StrToWxStr(m_open_iso->GetGameID()));
   switch (m_open_iso->GetCountry())
   {
   case DiscIO::Country::COUNTRY_AUSTRALIA:
@@ -1270,7 +1270,7 @@ void CISOProperties::LoadGameConfig()
 
   PatchList_Load();
   m_ar_code_panel->LoadCodes(GameIniDefault, GameIniLocal);
-  m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, m_open_iso->GetUniqueID());
+  m_geckocode_panel->LoadCodes(GameIniDefault, GameIniLocal, m_open_iso->GetGameID());
 }
 
 void CISOProperties::SaveGameIniValueFrom3StateCheckbox(const char* section, const char* key,
@@ -1593,6 +1593,6 @@ void CISOProperties::ChangeBannerDetails(DiscIO::Language language)
     filename = path + ' ';
   // Also sets the window's title
   SetTitle(StrToWxStr(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(),
-                                       OpenGameListItem.GetUniqueID().c_str())) +
+                                       OpenGameListItem.GetGameID().c_str())) +
            name);
 }

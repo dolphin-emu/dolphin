@@ -338,7 +338,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
   // Setting up the header
   StateHeader header;
-  strncpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
+  strncpy(header.gameID, SConfig::GetInstance().GetGameID().c_str(), 6);
   header.size = g_use_compression ? (u32)buffer_size : 0;
   header.time = Common::Timer::GetDoubleTime();
 
@@ -469,7 +469,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   StateHeader header;
   f.ReadArray(&header, 1);
 
-  if (strncmp(SConfig::GetInstance().GetUniqueID().c_str(), header.gameID, 6))
+  if (strncmp(SConfig::GetInstance().GetGameID().c_str(), header.gameID, 6))
   {
     Core::DisplayMessage(
         StringFromFormat("State belongs to a different game (ID %.*s)", 6, header.gameID), 2000);
@@ -657,7 +657,7 @@ void Shutdown()
 static std::string MakeStateFilename(int number)
 {
   return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(),
-                          SConfig::GetInstance().GetUniqueID().c_str(), number);
+                          SConfig::GetInstance().GetGameID().c_str(), number);
 }
 
 void Save(int slot, bool wait)

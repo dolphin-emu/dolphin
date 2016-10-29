@@ -347,7 +347,7 @@ static std::string GetGameId(std::string filename)
   if (volume == nullptr)
     return std::string();
 
-  std::string id = volume->GetUniqueID();
+  std::string id = volume->GetGameID();
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Game ID: %s", id.c_str());
   return id;
 }

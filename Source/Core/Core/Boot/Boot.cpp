@@ -121,7 +121,7 @@ bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_ma
     break;
 
   default:
-    title_id_str = _StartupPara.GetUniqueID();
+    title_id_str = _StartupPara.GetGameID();
     break;
   }
 
@@ -274,9 +274,9 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting ISO in wrong console mode!");
     }
 
-    std::string unique_id = DVDInterface::GetVolume().GetUniqueID();
-    if (unique_id.size() >= 4)
-      VideoInterface::SetRegionReg(unique_id.at(3));
+    std::string game_id = DVDInterface::GetVolume().GetGameID();
+    if (game_id.size() >= 4)
+      VideoInterface::SetRegionReg(game_id.at(3));
 
     std::vector<u8> tmd_buffer = pVolume.GetTMD();
     if (!tmd_buffer.empty())

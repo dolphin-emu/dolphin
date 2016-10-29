@@ -128,7 +128,7 @@ void GameList::OpenProperties()
 
 void GameList::OpenWiki()
 {
-  QString game_id = GameFile(GetSelectedGame()).GetUniqueID();
+  QString game_id = GameFile(GetSelectedGame()).GetGameID();
   QString url = QStringLiteral("https://wiki.dolphin-emu.org/index.php?title=").append(game_id);
   QDesktopServices::openUrl(QUrl(url));
 }

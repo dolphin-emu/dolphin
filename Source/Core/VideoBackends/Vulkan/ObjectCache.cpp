@@ -291,7 +291,7 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
 std::string ObjectCache::GetDiskCacheFileName(const char* type)
 {
   return StringFromFormat("%svulkan-%s-%s.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                          SConfig::GetInstance().m_strUniqueID.c_str(), type);
+                          SConfig::GetInstance().m_strGameID.c_str(), type);
 }
 
 class PipelineCacheReadCallback : public LinearDiskCacheReader<u32, u8>
