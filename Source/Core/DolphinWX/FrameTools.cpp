@@ -68,6 +68,7 @@
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/MainMenuBar.h"
+#include "DolphinWX/MainToolBar.h"
 #include "DolphinWX/MemcardManager.h"
 #include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
@@ -95,11 +96,6 @@ wxMenuBar* CFrame::GetMenuBar() const
   {
     return m_menubar_shadow;
   }
-}
-
-const wxSize& CFrame::GetToolbarBitmapSize() const
-{
-  return m_toolbar_bitmap_size;
 }
 
 // Create menu items
@@ -200,69 +196,12 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnHelp, this, wxID_ABOUT);
 }
 
-// Create toolbar items
-// ---------------------
-void CFrame::PopulateToolbar(wxToolBar* ToolBar)
+wxToolBar* CFrame::OnCreateToolBar(long style, wxWindowID id, const wxString& name)
 {
-  WxUtils::AddToolbarButton(ToolBar, wxID_OPEN, _("Open"), m_Bitmaps[Toolbar_FileOpen],
-                            _("Open file..."));
-  WxUtils::AddToolbarButton(ToolBar, wxID_REFRESH, _("Refresh"), m_Bitmaps[Toolbar_Refresh],
-                            _("Refresh game list"));
-  ToolBar->AddSeparator();
-  WxUtils::AddToolbarButton(ToolBar, IDM_PLAY, _("Play"), m_Bitmaps[Toolbar_Play], _("Play"));
-  WxUtils::AddToolbarButton(ToolBar, IDM_STOP, _("Stop"), m_Bitmaps[Toolbar_Stop], _("Stop"));
-  WxUtils::AddToolbarButton(ToolBar, IDM_TOGGLE_FULLSCREEN, _("FullScr"),
-                            m_Bitmaps[Toolbar_FullScreen], _("Toggle fullscreen"));
-  WxUtils::AddToolbarButton(ToolBar, IDM_SCREENSHOT, _("ScrShot"), m_Bitmaps[Toolbar_Screenshot],
-                            _("Take screenshot"));
-  ToolBar->AddSeparator();
-  WxUtils::AddToolbarButton(ToolBar, wxID_PREFERENCES, _("Config"), m_Bitmaps[Toolbar_ConfigMain],
-                            _("Configure..."));
-  WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_GFX_BACKEND, _("Graphics"),
-                            m_Bitmaps[Toolbar_ConfigGFX], _("Graphics settings"));
-  WxUtils::AddToolbarButton(ToolBar, IDM_CONFIG_CONTROLLERS, _("Controllers"),
-                            m_Bitmaps[Toolbar_Controller], _("Controller settings"));
-}
+  const auto type =
+      UseDebugger ? MainToolBar::ToolBarType::Debug : MainToolBar::ToolBarType::Regular;
 
-// Delete and recreate the toolbar
-void CFrame::RecreateToolbar()
-{
-  static constexpr long TOOLBAR_STYLE = wxTB_DEFAULT_STYLE | wxTB_TEXT | wxTB_FLAT;
-
-  if (m_ToolBar != nullptr)
-  {
-    m_ToolBar->Destroy();
-    m_ToolBar = nullptr;
-  }
-
-  m_ToolBar = CreateToolBar(TOOLBAR_STYLE, wxID_ANY);
-  m_ToolBar->SetToolBitmapSize(m_toolbar_bitmap_size);
-
-  if (g_pCodeWindow)
-  {
-    g_pCodeWindow->PopulateToolbar(m_ToolBar);
-    m_ToolBar->AddSeparator();
-  }
-
-  PopulateToolbar(m_ToolBar);
-  // after adding the buttons to the toolbar, must call Realize() to reflect
-  // the changes
-  m_ToolBar->Realize();
-
-  UpdateGUI();
-}
-
-void CFrame::InitBitmaps()
-{
-  static constexpr std::array<const char* const, EToolbar_Max> s_image_names{
-      {"open", "refresh", "play", "stop", "pause", "screenshot", "fullscreen", "config", "graphics",
-       "classic"}};
-  for (std::size_t i = 0; i < s_image_names.size(); ++i)
-    m_Bitmaps[i] = WxUtils::LoadScaledThemeBitmap(s_image_names[i], this, m_toolbar_bitmap_size);
-
-  // Update in case the bitmap has been updated
-  if (m_ToolBar != nullptr)
-    RecreateToolbar();
+  return new MainToolBar{type, this, id, wxDefaultPosition, wxDefaultSize, style};
 }
 
 void CFrame::OpenGeneralConfiguration(int tab)
@@ -631,8 +570,7 @@ void CFrame::StartGame(const std::string& filename)
     return;
   m_bGameLoading = true;
 
-  if (m_ToolBar)
-    m_ToolBar->EnableTool(IDM_PLAY, false);
+  GetToolBar()->EnableTool(IDM_PLAY, false);
   GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
 
   if (SConfig::GetInstance().bRenderToMain)
@@ -1068,6 +1006,15 @@ void CFrame::OnHelp(wxCommandEvent& event)
   }
 }
 
+void CFrame::OnReloadThemeBitmaps(wxCommandEvent& WXUNUSED(event))
+{
+  wxCommandEvent reload_event{DOLPHIN_EVT_RELOAD_TOOLBAR_BITMAPS};
+  reload_event.SetEventObject(this);
+  wxPostEvent(GetToolBar(), reload_event);
+
+  UpdateGameList();
+}
+
 void CFrame::ClearStatusBar()
 {
   if (this->GetStatusBar()->IsEnabled())
@@ -1370,18 +1317,7 @@ void CFrame::UpdateGUI()
   bool Paused = Core::GetState() == Core::CORE_PAUSE;
   bool Stopping = Core::GetState() == Core::CORE_STOPPING;
 
-  // Make sure that we have a toolbar
-  if (m_ToolBar)
-  {
-    // Enable/disable the Config and Stop buttons
-    m_ToolBar->EnableTool(wxID_OPEN, !Initialized);
-    // Don't allow refresh when we don't show the list
-    m_ToolBar->EnableTool(wxID_REFRESH, !Initialized);
-    m_ToolBar->EnableTool(IDM_STOP, Running || Paused);
-    m_ToolBar->EnableTool(IDM_TOGGLE_FULLSCREEN, Running || Paused);
-    m_ToolBar->EnableTool(IDM_SCREENSHOT, Running || Paused);
-  }
-
+  GetToolBar()->Refresh(false);
   GetMenuBar()->Refresh(false);
 
   // File
@@ -1438,33 +1374,6 @@ void CFrame::UpdateGUI()
     Core::PauseAndLock(false, was_unpaused);
   }
 
-  if (m_ToolBar)
-  {
-    // Get the tool that controls pausing/playing
-    wxToolBarToolBase* PlayTool = m_ToolBar->FindById(IDM_PLAY);
-
-    if (PlayTool)
-    {
-      int position = m_ToolBar->GetToolPos(IDM_PLAY);
-
-      if (Running)
-      {
-        m_ToolBar->DeleteTool(IDM_PLAY);
-        m_ToolBar->InsertTool(position, IDM_PLAY, _("Pause"), m_Bitmaps[Toolbar_Pause],
-                              WxUtils::CreateDisabledButtonBitmap(m_Bitmaps[Toolbar_Pause]),
-                              wxITEM_NORMAL, _("Pause"));
-      }
-      else
-      {
-        m_ToolBar->DeleteTool(IDM_PLAY);
-        m_ToolBar->InsertTool(position, IDM_PLAY, _("Play"), m_Bitmaps[Toolbar_Play],
-                              WxUtils::CreateDisabledButtonBitmap(m_Bitmaps[Toolbar_Play]),
-                              wxITEM_NORMAL, _("Play"));
-      }
-      m_ToolBar->Realize();
-    }
-  }
-
   GetMenuBar()->FindItem(IDM_RECORD_READ_ONLY)->Enable(Running || Paused);
 
   if (!Initialized && !m_bGameLoading)
@@ -1474,8 +1383,7 @@ void CFrame::UpdateGUI()
       // Prepare to load Default ISO, enable play button
       if (!SConfig::GetInstance().m_strDefaultISO.empty())
       {
-        if (m_ToolBar)
-          m_ToolBar->EnableTool(IDM_PLAY, true);
+        GetToolBar()->EnableTool(IDM_PLAY, true);
         GetMenuBar()->FindItem(IDM_PLAY)->Enable();
         GetMenuBar()->FindItem(IDM_RECORD)->Enable();
         GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
@@ -1484,8 +1392,7 @@ void CFrame::UpdateGUI()
       else if (!SConfig::GetInstance().m_LastFilename.empty() &&
                File::Exists(SConfig::GetInstance().m_LastFilename))
       {
-        if (m_ToolBar)
-          m_ToolBar->EnableTool(IDM_PLAY, true);
+        GetToolBar()->EnableTool(IDM_PLAY, true);
         GetMenuBar()->FindItem(IDM_PLAY)->Enable();
         GetMenuBar()->FindItem(IDM_RECORD)->Enable();
         GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
@@ -1493,8 +1400,7 @@ void CFrame::UpdateGUI()
       else
       {
         // No game has been selected yet, disable play button
-        if (m_ToolBar)
-          m_ToolBar->EnableTool(IDM_PLAY, false);
+        GetToolBar()->EnableTool(IDM_PLAY, false);
         GetMenuBar()->FindItem(IDM_PLAY)->Enable(false);
         GetMenuBar()->FindItem(IDM_RECORD)->Enable(false);
         GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable(false);
@@ -1510,8 +1416,7 @@ void CFrame::UpdateGUI()
     // Game has been selected but not started, enable play button
     if (m_GameListCtrl->GetSelectedISO() != nullptr && m_GameListCtrl->IsEnabled())
     {
-      if (m_ToolBar)
-        m_ToolBar->EnableTool(IDM_PLAY, true);
+      GetToolBar()->EnableTool(IDM_PLAY, true);
       GetMenuBar()->FindItem(IDM_PLAY)->Enable();
       GetMenuBar()->FindItem(IDM_RECORD)->Enable();
       GetMenuBar()->FindItem(IDM_PLAY_RECORD)->Enable();
@@ -1520,19 +1425,14 @@ void CFrame::UpdateGUI()
   else if (Initialized)
   {
     // Game has been loaded, enable the pause button
-    if (m_ToolBar)
-      m_ToolBar->EnableTool(IDM_PLAY, !Stopping);
+    GetToolBar()->EnableTool(IDM_PLAY, !Stopping);
     GetMenuBar()->FindItem(IDM_PLAY)->Enable(!Stopping);
 
     // Reset game loading flag
     m_bGameLoading = false;
   }
 
-  // Refresh toolbar
-  if (m_ToolBar)
-  {
-    m_ToolBar->Refresh();
-  }
+  GetToolBar()->Refresh(false);
 
   // Commit changes to manager
   m_Mgr->Update();

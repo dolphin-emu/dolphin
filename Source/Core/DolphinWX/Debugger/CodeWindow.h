@@ -7,7 +7,6 @@
 #include <array>
 
 #include <wx/aui/framemanager.h>
-#include <wx/bitmap.h>
 #include <wx/panel.h>
 
 #include "Common/CommonTypes.h"
@@ -86,7 +85,6 @@ public:
 
   // Parent interaction
   wxMenuBar* GetMenuBar();
-  wxToolBar* GetToolBar();
 
   bool UseInterpreter();
   bool BootToPause();
@@ -97,7 +95,6 @@ public:
 
   void Repopulate(bool refresh_codeview = true);
   void NotifyMapLoaded();
-  void PopulateToolbar(wxToolBar* toolBar);
   void UpdateButtonStates();
   void OpenPages();
 
@@ -157,10 +154,7 @@ private:
   void UpdateLists();
   void UpdateCallstack();
 
-  void InitBitmaps();
   wxPanel* CreateSiblingPanel(int id);
-
-  wxBitmap m_Bitmaps[Toolbar_Debug_Bitmap_Max];
 
   // Sibling debugger panels
   // FIXME: This obviously belongs in some manager class above this one.

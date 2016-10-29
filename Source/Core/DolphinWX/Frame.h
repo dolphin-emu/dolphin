@@ -59,6 +59,8 @@ private:
 #endif
 };
 
+wxDECLARE_EVENT(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, wxCommandEvent);
+
 class CFrame : public CRenderFrame
 {
 public:
@@ -84,7 +86,6 @@ public:
   wxCheatsWindow* g_CheatsWindow = nullptr;
   TASInputDlg* g_TASInputDlg[8];
 
-  void InitBitmaps();
   void DoPause();
   void DoStop();
   void OnStopped();
@@ -111,7 +112,6 @@ public:
 
   const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
-  const wxSize& GetToolbarBitmapSize() const;  // Needed before the toolbar exists
 
 #ifdef __WXGTK__
   Common::Event panic_event;
@@ -125,7 +125,6 @@ public:
 
   wxMenu* m_SavedPerspectives = nullptr;
 
-  wxToolBar* m_ToolBar = nullptr;
   // AUI
   wxAuiManager* m_Mgr = nullptr;
   bool bFloatWindow[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START] = {};
@@ -164,21 +163,6 @@ private:
 
   std::vector<std::string> drives;
 
-  enum EToolbar
-  {
-    Toolbar_FileOpen,
-    Toolbar_Refresh,
-    Toolbar_Play,
-    Toolbar_Stop,
-    Toolbar_Pause,
-    Toolbar_Screenshot,
-    Toolbar_FullScreen,
-    Toolbar_ConfigMain,
-    Toolbar_ConfigGFX,
-    Toolbar_Controller,
-    EToolbar_Max
-  };
-
   enum
   {
     ADD_PANE_TOP,
@@ -191,16 +175,13 @@ private:
   wxTimer m_poll_hotkey_timer;
   wxTimer m_handle_signal_timer;
 
-  wxSize m_toolbar_bitmap_size;
-  wxBitmap m_Bitmaps[EToolbar_Max];
-
   wxMenuBar* m_menubar_shadow = nullptr;
 
-  void PopulateToolbar(wxToolBar* toolBar);
-  void RecreateToolbar();
-
-  wxMenuBar* CreateMenuBar() const;
+  void BindEvents();
   void BindMenuBarEvents();
+
+  wxToolBar* OnCreateToolBar(long style, wxWindowID id, const wxString& name) override;
+  wxMenuBar* CreateMenuBar() const;
 
   // Utility
   wxWindow* GetNotebookPageFromId(wxWindowID Id);
@@ -251,6 +232,8 @@ private:
   // Event functions
   void OnQuit(wxCommandEvent& event);
   void OnHelp(wxCommandEvent& event);
+
+  void OnReloadThemeBitmaps(wxCommandEvent& event);
 
   void OnOpen(wxCommandEvent& event);  // File menu
   void DoOpen(bool Boot);

@@ -11,17 +11,6 @@
 
 enum
 {
-  Toolbar_Step,
-  Toolbar_StepOver,
-  Toolbar_StepOut,
-  Toolbar_Skip,
-  Toolbar_GotoPC,
-  Toolbar_SetPC,
-  Toolbar_Debug_Bitmap_Max
-};
-
-enum
-{
   // Emulation menu
   IDM_LOAD_STATE = 200,
   IDM_SAVE_STATE,
