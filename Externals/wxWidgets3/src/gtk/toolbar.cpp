@@ -56,6 +56,7 @@ public:
     void SetImage();
     void CreateDropDown();
     void ShowDropdown(GtkToggleButton* button);
+    virtual void SetLabel(const wxString& label) wxOVERRIDE;
 
     GtkToolItem* m_item;
 };
@@ -316,6 +317,36 @@ void wxToolBarTool::ShowDropdown(GtkToggleButton* button)
             toolbar->PopupMenu(menu, x, y);
         }
     }
+}
+
+void wxToolBarTool::SetLabel(const wxString& label)
+{
+    wxASSERT_MSG( IsButton(),
+       wxS("Label can be set for button tool only") );
+
+    if ( label == m_label )
+        return;
+
+    wxToolBarToolBase::SetLabel(label);
+    if ( IsButton() )
+    {
+        if ( !label.empty() )
+        {
+            wxString newLabel = wxControl::RemoveMnemonics(label);
+            gtk_tool_button_set_label(GTK_TOOL_BUTTON(m_item),
+                                      wxGTK_CONV(newLabel));
+            // To show the label for toolbar with wxTB_HORZ_LAYOUT.
+            gtk_tool_item_set_is_important(m_item, true);
+        }
+        else
+        {
+            gtk_tool_button_set_label(GTK_TOOL_BUTTON(m_item), NULL);
+            // To hide the label for toolbar with wxTB_HORZ_LAYOUT.
+            gtk_tool_item_set_is_important(m_item, false);
+        }
+    }
+
+    // TODO: Set label for control tool, if it's possible.
 }
 
 wxToolBarToolBase *wxToolBar::CreateTool(int id,
