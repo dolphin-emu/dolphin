@@ -445,8 +445,7 @@ Renderer::Renderer()
 
   g_Config.backend_info.bSupportsDualSourceBlend =
       (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
-       GLExtensions::Supports("GL_EXT_blend_func_extended")) &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING);
+       GLExtensions::Supports("GL_EXT_blend_func_extended"));
   g_Config.backend_info.bSupportsPrimitiveRestart =
       !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
@@ -1243,6 +1242,10 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
   bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
   bool useDualSource = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+
+  // Only use dual-source blending when required on drivers that don't support it very well.
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) && !useDstAlpha)
+    useDualSource = false;
 
   const GLenum glSrcFactors[8] = {
       GL_ZERO,
