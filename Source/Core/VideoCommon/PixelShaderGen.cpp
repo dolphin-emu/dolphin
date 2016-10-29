@@ -508,10 +508,10 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
     if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
-        (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
+        (!DriverDetails::HasBug(DriverDetails::BUG_BROKENDUALSOURCEBLENDING) ||
          uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND))
     {
-      if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
+      if (DriverDetails::HasBug(DriverDetails::BUG_BROKENFRAGMENTSHADERINDEXDECORATION))
       {
         out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
         out.Write("FRAGMENT_OUTPUT_LOCATION(1) out vec4 ocol1;\n");

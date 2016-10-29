@@ -229,7 +229,7 @@ enum Bug
   // Fragment shaders that specify dual-source outputs, via layout(location = 0, index = ...) cause
   // the driver to fail to create graphics pipelines. The workaround for this is to specify the
   // index as a MRT location instead, or omit the binding completely.
-  BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION,
+  BUG_BROKENFRAGMENTSHADERINDEXDECORATION,
 
   // Bug: Dual-source outputs from fragment shaders will break some drivers.
   // Started Version: -1
@@ -237,7 +237,7 @@ enum Bug
   // Fragment shaders that specify dual-source outputs, but don't use them in the blending mode
   // will cause graphical errors and crashes in some drivers. The workaround is to only use
   // dual-source blending when absolutely required and not just for blending precision.
-  BUG_BROKEN_DUAL_SOURCE_BLENDING,
+  BUG_BROKENDUALSOURCEBLENDING,
 };
 
 // Initializes our internal vendor, device family, and driver version

@@ -1244,7 +1244,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
   bool useDualSource = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
 
   // Only use dual-source blending when required on drivers that don't support it very well.
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) && !useDstAlpha)
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKENDUALSOURCEBLENDING) && !useDstAlpha)
     useDualSource = false;
 
   const GLenum glSrcFactors[8] = {
