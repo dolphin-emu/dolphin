@@ -81,12 +81,15 @@ public:
   void addic(UGeckoInstruction inst);
   void mulli(UGeckoInstruction inst);
   void addzex(UGeckoInstruction inst);
+  void divwx(UGeckoInstruction inst);
   void subfx(UGeckoInstruction inst);
   void addcx(UGeckoInstruction inst);
   void slwx(UGeckoInstruction inst);
   void srwx(UGeckoInstruction inst);
+  void srawx(UGeckoInstruction inst);
   void rlwimix(UGeckoInstruction inst);
   void subfex(UGeckoInstruction inst);
+  void subfzex(UGeckoInstruction inst);
   void subfcx(UGeckoInstruction inst);
   void subfic(UGeckoInstruction inst);
   void addex(UGeckoInstruction inst);
@@ -96,6 +99,7 @@ public:
   void mtmsr(UGeckoInstruction inst);
   void mfmsr(UGeckoInstruction inst);
   void mcrf(UGeckoInstruction inst);
+  void mcrxr(UGeckoInstruction inst);
   void mfsr(UGeckoInstruction inst);
   void mtsr(UGeckoInstruction inst);
   void mfsrin(UGeckoInstruction inst);

@@ -84,6 +84,36 @@ void JitArm64::mcrf(UGeckoInstruction inst)
   }
 }
 
+void JitArm64::mcrxr(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITSystemRegistersOff);
+
+  ARM64Reg WA = gpr.GetReg();
+  ARM64Reg XA = EncodeRegTo64(WA);
+  ARM64Reg WB = gpr.GetReg();
+  ARM64Reg XB = EncodeRegTo64(WB);
+
+  // Copy XER[0-3] into CR[inst.CRFD]
+  LDRB(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(xer_ca));
+  LDRB(INDEX_UNSIGNED, WB, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+
+  // [0 SO OV CA]
+  ADD(WA, WA, WB, ArithOption(WB, ST_LSL, 2));
+  // [SO OV CA 0] << 3
+  LSL(WA, WA, 4);
+
+  MOVP2R(XB, m_crTable);
+  LDR(XB, XB, XA);
+  STR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val[inst.CRFD]));
+
+  // Clear XER[0-3]
+  STRB(INDEX_UNSIGNED, WZR, PPC_REG, PPCSTATE_OFF(xer_ca));
+  STRB(INDEX_UNSIGNED, WZR, PPC_REG, PPCSTATE_OFF(xer_so_ov));
+
+  gpr.Unlock(WA, WB);
+}
+
 void JitArm64::mfsr(UGeckoInstruction inst)
 {
   INSTRUCTION_START

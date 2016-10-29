@@ -651,6 +651,11 @@ public:
     ARM64Reg zr = Is64Bit(Rd) ? ZR : WZR;
     CSINC(Rd, zr, zr, (CCFlags)((u32)cond ^ 1));
   }
+  void CSETM(ARM64Reg Rd, CCFlags cond)
+  {
+    ARM64Reg zr = Is64Bit(Rd) ? ZR : WZR;
+    CSINV(Rd, zr, zr, (CCFlags)((u32)cond ^ 1));
+  }
   void NEG(ARM64Reg Rd, ARM64Reg Rs) { SUB(Rd, Is64Bit(Rd) ? ZR : WZR, Rs); }
   // Data-Processing 1 source
   void RBIT(ARM64Reg Rd, ARM64Reg Rn);
