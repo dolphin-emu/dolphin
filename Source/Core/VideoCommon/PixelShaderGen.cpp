@@ -1194,7 +1194,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
 
   out.SetConstantsUsed(C_ALPHA, C_ALPHA);
 
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKENNEGATEDBOOLEAN))
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_NEGATED_BOOLEAN))
     out.Write("\tif(( ");
   else
     out.Write("\tif(!( ");
@@ -1209,7 +1209,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
   compindex = uid_data->alpha_test_comp1;
   out.Write(tevAlphaFuncsTable[compindex], alphaRef[1]);
 
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKENNEGATEDBOOLEAN))
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_NEGATED_BOOLEAN))
     out.Write(") == false) {\n");
   else
     out.Write(")) {\n");
