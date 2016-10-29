@@ -159,7 +159,8 @@ void CCodeWindow::OnHostMessage(wxCommandEvent& event)
     break;
 
   case IDM_UPDATE_DISASM_DIALOG:
-    Repopulate();
+    codeview->Center(PC);
+    Repopulate(false);
     if (HasPanel<CRegisterWindow>())
       GetPanel<CRegisterWindow>()->NotifyUpdate();
     if (HasPanel<CWatchWindow>())
@@ -205,12 +206,14 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
 
   case IDM_SKIP:
     PC += 4;
-    Repopulate();
+    codeview->Center(PC);
+    Repopulate(false);
     break;
 
   case IDM_SETPC:
     PC = codeview->GetSelection();
-    Repopulate();
+    codeview->Center(PC);
+    Repopulate(false);
     break;
 
   case IDM_GOTOPC:
@@ -383,11 +386,8 @@ void CCodeWindow::StepOut()
     PowerPC::SetMode(old_mode);
     CPU::PauseAndLock(false, false);
 
-    JumpToAddress(PC);
-    {
-      wxCommandEvent ev(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
-      GetEventHandler()->ProcessEvent(ev);
-    }
+    wxCommandEvent ev(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
+    GetEventHandler()->ProcessEvent(ev);
 
     // Update all toolbars in the aui manager
     Parent->UpdateGUI();
@@ -605,12 +605,13 @@ void CCodeWindow::PopulateToolbar(wxToolBar* toolBar)
 }
 
 // Update GUI
-void CCodeWindow::Repopulate()
+void CCodeWindow::Repopulate(bool refresh_codeview)
 {
   if (!codeview)
     return;
 
-  codeview->Center(PC);
+  if (refresh_codeview)
+    codeview->Refresh();
   UpdateCallstack();
   UpdateButtonStates();
 
