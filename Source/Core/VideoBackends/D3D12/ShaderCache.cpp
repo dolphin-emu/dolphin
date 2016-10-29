@@ -75,14 +75,14 @@ void ShaderCache::Init()
   if (!File::Exists(shader_cache_path))
     File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-  std::string title_unique_id = SConfig::GetInstance().m_strUniqueID.c_str();
+  std::string title_game_id = SConfig::GetInstance().m_strGameID.c_str();
 
   std::string gs_cache_filename =
-      StringFromFormat("%sdx11-%s-gs.cache", shader_cache_path.c_str(), title_unique_id.c_str());
+      StringFromFormat("%sdx11-%s-gs.cache", shader_cache_path.c_str(), title_game_id.c_str());
   std::string ps_cache_filename =
-      StringFromFormat("%sdx11-%s-ps.cache", shader_cache_path.c_str(), title_unique_id.c_str());
+      StringFromFormat("%sdx11-%s-ps.cache", shader_cache_path.c_str(), title_game_id.c_str());
   std::string vs_cache_filename =
-      StringFromFormat("%sdx11-%s-vs.cache", shader_cache_path.c_str(), title_unique_id.c_str());
+      StringFromFormat("%sdx11-%s-vs.cache", shader_cache_path.c_str(), title_game_id.c_str());
 
   ShaderCacheInserter<GeometryShaderUid, GsBytecodeCache, &s_gs_bytecode_cache> gs_inserter;
   s_gs_disk_cache.OpenAndRead(gs_cache_filename, gs_inserter);

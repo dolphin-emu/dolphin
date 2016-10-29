@@ -30,7 +30,7 @@ QVariant GameListModel::data(const QModelIndex& index, int role) const
     case COL_TITLE:
       return game->GetLongName();
     case COL_ID:
-      return game->GetUniqueID();
+      return game->GetGameID();
     case COL_DESCRIPTION:
       return game->GetDescription();
     case COL_MAKER:

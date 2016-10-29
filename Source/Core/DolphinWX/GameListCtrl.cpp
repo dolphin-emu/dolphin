@@ -97,8 +97,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
   case CGameListCtrl::COLUMN_TITLE:
     if (!strcasecmp(iso1->GetName().c_str(), iso2->GetName().c_str()))
     {
-      if (iso1->GetUniqueID() != iso2->GetUniqueID())
-        return t * (iso1->GetUniqueID() > iso2->GetUniqueID() ? 1 : -1);
+      if (iso1->GetGameID() != iso2->GetGameID())
+        return t * (iso1->GetGameID() > iso2->GetGameID() ? 1 : -1);
       if (iso1->GetRevision() != iso2->GetRevision())
         return t * (iso1->GetRevision() > iso2->GetRevision() ? 1 : -1);
       if (iso1->GetDiscNumber() != iso2->GetDiscNumber())
@@ -118,7 +118,7 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
                      wxFileNameFromPath(iso2->GetFileName())) *
            t;
   case CGameListCtrl::COLUMN_ID:
-    return strcasecmp(iso1->GetUniqueID().c_str(), iso2->GetUniqueID().c_str()) * t;
+    return strcasecmp(iso1->GetGameID().c_str(), iso2->GetGameID().c_str()) * t;
   case CGameListCtrl::COLUMN_COUNTRY:
     if (iso1->GetCountry() > iso2->GetCountry())
       return 1 * t;
@@ -479,7 +479,7 @@ void CGameListCtrl::UpdateItemAtColumn(long _Index, int column)
     SetItem(_Index, COLUMN_SIZE, NiceSizeFormat(rISOFile.GetFileSize()), -1);
     break;
   case COLUMN_ID:
-    SetItem(_Index, COLUMN_ID, rISOFile.GetUniqueID(), -1);
+    SetItem(_Index, COLUMN_ID, rISOFile.GetGameID(), -1);
     break;
   }
 }
@@ -716,7 +716,7 @@ void CGameListCtrl::OnLocalIniModified(wxCommandEvent& ev)
   //   physical copies in the search paths.
   for (std::size_t i = 0; i < m_ISOFiles.size(); ++i)
   {
-    if (m_ISOFiles[i]->GetUniqueID() != game_id)
+    if (m_ISOFiles[i]->GetGameID() != game_id)
       continue;
     m_ISOFiles[i]->ReloadINI();
 
@@ -1152,7 +1152,7 @@ void CGameListCtrl::OnWiki(wxCommandEvent& WXUNUSED(event))
     return;
 
   std::string wikiUrl =
-      "https://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=" + iso->GetUniqueID();
+      "https://wiki.dolphin-emu.org/dolphin-redirect.php?gameid=" + iso->GetGameID();
   WxUtils::Launch(wikiUrl);
 }
 

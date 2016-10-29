@@ -183,10 +183,10 @@ void DolphinAnalytics::MakePerGameBuilder()
   Common::AnalyticsReportBuilder builder(m_base_builder);
 
   // Gameid.
-  builder.AddData("gameid", SConfig::GetInstance().GetUniqueID());
+  builder.AddData("gameid", SConfig::GetInstance().GetGameID());
 
   // Unique id bound to the gameid.
-  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetUniqueID()));
+  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
 
   // Configuration.
   builder.AddData("cfg-dsp-hle", SConfig::GetInstance().bDSPHLE);

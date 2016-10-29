@@ -104,7 +104,7 @@ GameListItem::GameListItem(const std::string& _rFileName,
       m_FileSize = volume->GetRawSize();
       m_VolumeSize = volume->GetSize();
 
-      m_UniqueID = volume->GetUniqueID();
+      m_game_id = volume->GetGameID();
       volume->GetTitleID(&m_title_id);
       m_disc_number = volume->GetDiscNumber();
       m_Revision = volume->GetRevision();
@@ -117,18 +117,18 @@ GameListItem::GameListItem(const std::string& _rFileName,
     }
   }
 
-  if (m_company.empty() && m_UniqueID.size() >= 6)
-    m_company = DiscIO::GetCompanyFromID(m_UniqueID.substr(4, 2));
+  if (m_company.empty() && m_game_id.size() >= 6)
+    m_company = DiscIO::GetCompanyFromID(m_game_id.substr(4, 2));
 
   if (IsValid())
   {
-    std::string game_id = m_UniqueID;
+    std::string short_game_id = m_game_id;
 
     // Ignore publisher ID for WAD files
-    if (m_Platform == DiscIO::Platform::WII_WAD && game_id.size() > 4)
-      game_id.erase(4);
+    if (m_Platform == DiscIO::Platform::WII_WAD && short_game_id.size() > 4)
+      short_game_id.erase(4);
 
-    auto it = custom_titles.find(game_id);
+    auto it = custom_titles.find(short_game_id);
     if (it != custom_titles.end())
     {
       m_custom_name_titles_txt = it->second;
@@ -179,7 +179,7 @@ void GameListItem::ReloadINI()
   if (!IsValid())
     return;
 
-  IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
+  IniFile ini = SConfig::LoadGameIni(m_game_id, m_Revision);
   ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state, 0);
   ini.GetIfExists("EmuState", "EmulationIssues", &m_issues, std::string());
 
@@ -210,7 +210,7 @@ void GameListItem::DoState(PointerWrap& p)
   p.Do(m_names);
   p.Do(m_descriptions);
   p.Do(m_company);
-  p.Do(m_UniqueID);
+  p.Do(m_game_id);
   p.Do(m_title_id);
   p.Do(m_FileSize);
   p.Do(m_VolumeSize);
@@ -316,8 +316,8 @@ std::string GameListItem::GetUniqueIdentifier() const
 {
   const DiscIO::Language lang = DiscIO::Language::LANGUAGE_ENGLISH;
   std::vector<std::string> info;
-  if (!GetUniqueID().empty())
-    info.push_back(GetUniqueID());
+  if (!GetGameID().empty())
+    info.push_back(GetGameID());
   if (GetRevision() != 0)
   {
     std::string rev_str = "Revision ";
