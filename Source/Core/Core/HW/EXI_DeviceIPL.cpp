@@ -430,23 +430,6 @@ u32 CEXIIPL::GetGCTime()
   }
 
   return ((u32)ltime - cJanuary2000);
-
-#if 0
-	// (mb2): I think we can get rid of the IPL bias.
-	// I know, it's another hack so I let the previous code for a while.
-
-	// Get SRAM bias
-	u32 Bias;
-
-	for (int i = 0; i < 4; i++)
-	{
-		((u8*)&Bias)[i] = sram_dump[0xc + (i^3)];
-	}
-
-	// Get the time ...
-	u64 ltime = Common::Timer::GetTimeSinceJan1970();
-	return ((u32)ltime - cJanuary2000 - Bias);
-#endif
 }
 
 u32 CEXIIPL::GetGCTimeJan1970()
