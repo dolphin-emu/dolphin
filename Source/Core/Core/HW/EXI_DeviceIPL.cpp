@@ -33,8 +33,6 @@ static const char iplverPAL[0x100] = "(C) 1999-2001 Nintendo.  All rights reserv
 static const char iplverNTSC[0x100] = "(C) 1999-2001 Nintendo.  All rights reserved."
                                       "(C) 1999 ArtX Inc.  All rights reserved.";
 
-static constexpr u32 cJanuary2000 = 0x386D4380;  // Seconds between 1.1.1970 and 1.1.2000
-
 // bootrom descrambler reversed by segher
 // Copyright 2008 Segher Boessenkool <segher@kernel.crashing.org>
 void CEXIIPL::Descrambler(u8* data, u32 size)
@@ -231,16 +229,8 @@ void CEXIIPL::SetCS(int _iCS)
 
 void CEXIIPL::UpdateRTC()
 {
-  // Seconds between 1.1.2000 and 4.1.2008 16:00:38
-  static constexpr u32 WII_BIAS = 0x0F1114A6;
-
-  u32 rtc;
-
-  if (SConfig::GetInstance().bWii)
-    rtc = Common::swap32(GetGCTime() - WII_BIAS);
-  else
-    rtc = Common::swap32(GetGCTime());
-
+  u32 epoch = SConfig::GetInstance().bWii ? WII_EPOCH : GC_EPOCH;
+  u32 rtc = Common::swap32(GetEmulatedTime(epoch));
   std::memcpy(m_RTC, &rtc, sizeof(u32));
 }
 
@@ -405,7 +395,7 @@ void CEXIIPL::TransferByte(u8& _uByte)
   m_uPosition++;
 }
 
-u32 CEXIIPL::GetGCTime()
+u32 CEXIIPL::GetEmulatedTime(u32 epoch)
 {
   u64 ltime = 0;
 
@@ -418,7 +408,7 @@ u32 CEXIIPL::GetGCTime()
   }
   else if (NetPlay::IsNetPlayRunning())
   {
-    ltime = NetPlay_GetGCTime();
+    ltime = NetPlay_GetEmulatedTime();
 
     // let's keep time moving forward, regardless of what it starts at
     ltime += CoreTiming::GetTicks() / SystemTimers::GetTicksPerSecond();
@@ -429,10 +419,5 @@ u32 CEXIIPL::GetGCTime()
     ltime = Common::Timer::GetLocalTimeSinceJan1970() - SystemTimers::GetLocalTimeRTCOffset();
   }
 
-  return ((u32)ltime - cJanuary2000);
-}
-
-u32 CEXIIPL::GetGCTimeJan1970()
-{
-  return GetGCTime() + cJanuary2000;
+  return static_cast<u32>(ltime) - epoch;
 }

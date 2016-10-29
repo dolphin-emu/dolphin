@@ -517,18 +517,18 @@ private:
 
   // TODO: depending on CEXIIPL is a hack which I don't feel like removing
   // because the function itself is pretty hackish; wait until I re-port my
-  // netplay rewrite; also, is that random 16:00:38 actually meaningful?
+  // netplay rewrite; also, is WII_EPOCH's random 16:00:38 actually meaningful?
   // seems very very doubtful since Wii was released in 2006
-
-  // Seconds between 1.1.2000 and 4.1.2008 16:00:38
-  static const u64 wii_bias = 0x477E5826 - 0x386D4380;
 
   // Returns seconds since Wii epoch
   // +/- any bias set from IOCTL_NW24_SET_UNIVERSAL_TIME
-  u64 GetAdjustedUTC() const { return CEXIIPL::GetGCTime() - wii_bias + utcdiff; }
+  u64 GetAdjustedUTC() const { return CEXIIPL::GetEmulatedTime(CEXIIPL::WII_EPOCH) + utcdiff; }
   // Store the difference between what the Wii thinks is UTC and
   // what the host OS thinks
-  void SetAdjustedUTC(u64 wii_utc) { utcdiff = CEXIIPL::GetGCTime() - wii_bias - wii_utc; }
+  void SetAdjustedUTC(u64 wii_utc)
+  {
+    utcdiff = CEXIIPL::GetEmulatedTime(CEXIIPL::WII_EPOCH) - wii_utc;
+  }
 };
 
 enum NET_IOCTL

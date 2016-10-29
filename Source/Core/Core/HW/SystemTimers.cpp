@@ -253,7 +253,7 @@ void Init()
         Common::Timer::GetLocalTimeSinceJan1970() - SConfig::GetInstance().m_customRTCValue;
   }
   CoreTiming::SetFakeTBStartValue((u64)(s_cpu_core_clock / TIMER_RATIO) *
-                                  (u64)CEXIIPL::GetGCTime());
+                                  (u64)CEXIIPL::GetEmulatedTime(CEXIIPL::GC_EPOCH));
   CoreTiming::SetFakeTBStartTicks(CoreTiming::GetTicks());
 
   CoreTiming::SetFakeDecStartValue(0xFFFFFFFF);
