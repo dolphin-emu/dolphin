@@ -1207,7 +1207,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
     out.Write(")) {\n");
 
   out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-  if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend && uid_data->dstAlphaMode != DSTALPHA_NONE)
     out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   if (per_pixel_depth)
   {
@@ -1304,8 +1304,6 @@ static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   if (uid_data->dstAlphaMode == DSTALPHA_NONE)
   {
     out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
-    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
-      out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
   }
   else
   {
