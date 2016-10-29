@@ -101,7 +101,6 @@ public:
   void OnRenderParentClose(wxCloseEvent& event);
   void OnRenderParentMove(wxMoveEvent& event);
   bool RendererHasFocus();
-  bool UIHasFocus();
   bool RendererIsFullscreen();
   void DoFullscreen(bool bF);
   void ToggleDisplayMode(bool bFullscreen);
@@ -158,6 +157,7 @@ private:
   bool m_bNoDocking = false;
   bool m_bGameLoading = false;
   bool m_bClosing = false;
+  bool m_bRendererHasFocus = false;
   bool m_confirmStop = false;
   bool m_tried_graceful_shutdown = false;
   int m_saveSlot = 1;
@@ -305,8 +305,6 @@ private:
 
   void OnKeyDown(wxKeyEvent& event);  // Keyboard
   void OnMouse(wxMouseEvent& event);  // Mouse
-
-  void OnFocusChange(wxFocusEvent& event);
 
   void OnHostMessage(wxCommandEvent& event);
 

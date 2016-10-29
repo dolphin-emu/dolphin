@@ -735,8 +735,6 @@ void CFrame::StartGame(const std::string& filename)
     wxTheApp->Bind(wxEVT_MIDDLE_DOWN, &CFrame::OnMouse, this);
     wxTheApp->Bind(wxEVT_MIDDLE_UP, &CFrame::OnMouse, this);
     wxTheApp->Bind(wxEVT_MOTION, &CFrame::OnMouse, this);
-    wxTheApp->Bind(wxEVT_SET_FOCUS, &CFrame::OnFocusChange, this);
-    wxTheApp->Bind(wxEVT_KILL_FOCUS, &CFrame::OnFocusChange, this);
     m_RenderParent->Bind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
   }
 }
@@ -928,6 +926,8 @@ void CFrame::OnStopped()
     m_RenderFrame->SetWindowStyle(m_RenderFrame->GetWindowStyle() & ~wxSTAY_ON_TOP);
   }
   m_RenderParent = nullptr;
+  m_bRendererHasFocus = false;
+  m_RenderFrame = nullptr;
 
   // Clean framerate indications from the status bar.
   GetStatusBar()->SetStatusText(" ", 0);
