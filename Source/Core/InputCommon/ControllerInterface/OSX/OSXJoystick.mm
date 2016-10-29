@@ -145,7 +145,6 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
   default:
   {
     IOHIDElementCookie elementCookie = IOHIDElementGetCookie(m_element);
-    
     // Not a well-known axis so cook a descriptive name. Previously the usage
     // number was used for this but for the PS3 controller at least all the
     // unknown axes were returning kHIDUsage_GD_Pointer (1) so all unknown
