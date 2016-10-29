@@ -144,8 +144,17 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
     break;
   default:
   {
+    IOHIDElementCookie elementCookie = IOHIDElementGetCookie(m_element);
+    
+    // Not a well-known axis so cook a descriptive name. Previously the usage
+    // number was used for this but for the PS3 controller at least all the
+    // unknown axes were returning kHIDUsage_GD_Pointer (1) so all unknown
+    // axes clashed on name as they were all called "1". Each element actually
+    // has a unique ID number available via IOHIDElementGetCookie() so we use
+    // that for the unique axis name instead
     std::ostringstream s;
-    s << usage;
+    s << "CK-";
+    s << elementCookie;
     description = StripSpaces(s.str());
     break;
   }
