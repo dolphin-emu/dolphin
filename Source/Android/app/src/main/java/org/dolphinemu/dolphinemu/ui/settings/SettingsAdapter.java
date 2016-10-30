@@ -210,7 +210,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 				SharedPreferences sharedPreferences = PreferenceManager.getDefaultSharedPreferences(mContext);
 				SharedPreferences.Editor editor = sharedPreferences.edit();
-				editor.putString(item.getKey(), "");
+				editor.remove(item.getKey());
 				editor.apply();
 			}
 		});
@@ -250,7 +250,12 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 			if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_TYPE))
 			{
-				mView.onWiimoteSettingChanged(scSetting.getSetting().getSection(), value);
+				mView.onWiimoteSettingChanged(scSetting.getSection(), value);
+			}
+
+			if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_EXTENSION))
+			{
+				mView.onExtensionSettingChanged(scSetting.getKey() + Character.getNumericValue(scSetting.getSection().charAt(scSetting.getSection().length() - 1)), value);
 			}
 
 			// Get the backing Setting, which may be null (if for example it was missing from the file)
@@ -268,6 +273,10 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				else if (scSetting.getKey().equals(SettingsFile.KEY_XFB_METHOD))
 				{
 					putXfbSetting(which);
+				}
+				else if (scSetting.getKey().equals(SettingsFile.KEY_WIIMOTE_EXTENSION))
+				{
+					putExtensionSetting(which, Character.getNumericValue(scSetting.getSection().charAt(scSetting.getSection().length() - 1)));
 				}
 			}
 
@@ -426,5 +435,12 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		mView.putSetting(xfbEnable);
 		mView.putSetting(xfbReal);
+	}
+
+	public void putExtensionSetting(int which, int wiimoteNumber)
+	{
+		StringSetting extension = new StringSetting(SettingsFile.KEY_WIIMOTE_EXTENSION, SettingsFile.SECTION_WIIMOTE + wiimoteNumber,
+				SettingsFile.SETTINGS_WIIMOTE, mContext.getResources().getStringArray(R.array.wiimoteExtensionsEntries)[which]);
+		mView.putSetting(extension);
 	}
 }
