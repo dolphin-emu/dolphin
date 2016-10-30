@@ -51,6 +51,8 @@ public final class GameRowPresenter extends Presenter
 
 		String screenPath = game.getScreenshotPath();
 
+		holder.imageScreenshot.setImageDrawable(null);
+
 		// Fill in the view contents.
 		Picasso.with(holder.imageScreenshot.getContext())
 				.load(screenPath)
