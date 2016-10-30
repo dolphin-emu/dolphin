@@ -52,9 +52,6 @@ CVolumeWiiCrypted::~CVolumeWiiCrypted()
 
 bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
-  if (m_pReader == nullptr)
-    return false;
-
   if (!decrypt)
     return m_pReader->Read(_ReadOffset, _Length, _pBuffer);
 
@@ -142,9 +139,6 @@ std::vector<u8> CVolumeWiiCrypted::GetTMD() const
 
 std::string CVolumeWiiCrypted::GetUniqueID() const
 {
-  if (m_pReader == nullptr)
-    return std::string();
-
   char ID[6];
 
   if (!Read(0, 6, (u8*)ID, false))
@@ -155,9 +149,6 @@ std::string CVolumeWiiCrypted::GetUniqueID() const
 
 Country CVolumeWiiCrypted::GetCountry() const
 {
-  if (!m_pReader)
-    return Country::COUNTRY_UNKNOWN;
-
   u8 country_byte;
   if (!m_pReader->Read(3, 1, &country_byte))
     return Country::COUNTRY_UNKNOWN;
@@ -203,9 +194,6 @@ Country CVolumeWiiCrypted::GetCountry() const
 
 std::string CVolumeWiiCrypted::GetMakerID() const
 {
-  if (m_pReader == nullptr)
-    return std::string();
-
   char makerID[2];
 
   if (!Read(0x4, 0x2, (u8*)&makerID, false))
@@ -216,9 +204,6 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 
 u16 CVolumeWiiCrypted::GetRevision() const
 {
-  if (!m_pReader)
-    return 0;
-
   u8 revision;
   if (!m_pReader->Read(7, 1, &revision))
     return 0;
@@ -229,7 +214,7 @@ u16 CVolumeWiiCrypted::GetRevision() const
 std::string CVolumeWiiCrypted::GetInternalName() const
 {
   char name_buffer[0x60];
-  if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name_buffer, false))
+  if (Read(0x20, 0x60, (u8*)&name_buffer, false))
     return DecodeString(name_buffer);
 
   return "";
@@ -258,9 +243,6 @@ std::vector<u32> CVolumeWiiCrypted::GetBanner(int* width, int* height) const
 
 u64 CVolumeWiiCrypted::GetFSTSize() const
 {
-  if (m_pReader == nullptr)
-    return 0;
-
   u32 size;
 
   if (!Read(0x428, 0x4, (u8*)&size, true))
@@ -271,9 +253,6 @@ u64 CVolumeWiiCrypted::GetFSTSize() const
 
 std::string CVolumeWiiCrypted::GetApploaderDate() const
 {
-  if (m_pReader == nullptr)
-    return std::string();
-
   char date[16];
 
   if (!Read(0x2440, 0x10, (u8*)&date, true))
@@ -296,23 +275,17 @@ u8 CVolumeWiiCrypted::GetDiscNumber() const
 
 BlobType CVolumeWiiCrypted::GetBlobType() const
 {
-  return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
+  return m_pReader->GetBlobType();
 }
 
 u64 CVolumeWiiCrypted::GetSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetDataSize();
-  else
-    return 0;
+  return m_pReader->GetDataSize();
 }
 
 u64 CVolumeWiiCrypted::GetRawSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetRawSize();
-  else
-    return 0;
+  return m_pReader->GetRawSize();
 }
 
 bool CVolumeWiiCrypted::CheckIntegrity() const

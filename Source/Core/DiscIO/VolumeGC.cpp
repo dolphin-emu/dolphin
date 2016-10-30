@@ -36,9 +36,6 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
   if (decrypt)
     PanicAlertT("Tried to decrypt data from a non-Wii volume");
 
-  if (m_pReader == nullptr)
-    return false;
-
   FileMon::FindFilename(_Offset);
 
   return m_pReader->Read(_Offset, _Length, _pBuffer);
@@ -47,8 +44,6 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 std::string CVolumeGC::GetUniqueID() const
 {
   static const std::string NO_UID("NO_UID");
-  if (m_pReader == nullptr)
-    return NO_UID;
 
   char ID[6];
 
@@ -63,9 +58,6 @@ std::string CVolumeGC::GetUniqueID() const
 
 Country CVolumeGC::GetCountry() const
 {
-  if (!m_pReader)
-    return Country::COUNTRY_UNKNOWN;
-
   u8 country_code;
   m_pReader->Read(3, 1, &country_code);
 
@@ -74,9 +66,6 @@ Country CVolumeGC::GetCountry() const
 
 std::string CVolumeGC::GetMakerID() const
 {
-  if (m_pReader == nullptr)
-    return std::string();
-
   char makerID[2];
   if (!Read(0x4, 0x2, (u8*)&makerID))
     return std::string();
@@ -86,9 +75,6 @@ std::string CVolumeGC::GetMakerID() const
 
 u16 CVolumeGC::GetRevision() const
 {
-  if (!m_pReader)
-    return 0;
-
   u8 revision;
   if (!Read(7, 1, &revision))
     return 0;
@@ -99,7 +85,7 @@ u16 CVolumeGC::GetRevision() const
 std::string CVolumeGC::GetInternalName() const
 {
   char name[0x60];
-  if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)name))
+  if (Read(0x20, 0x60, (u8*)name))
     return DecodeString(name);
 
   return "";
@@ -145,9 +131,6 @@ std::vector<u32> CVolumeGC::GetBanner(int* width, int* height) const
 
 u64 CVolumeGC::GetFSTSize() const
 {
-  if (m_pReader == nullptr)
-    return 0;
-
   u32 size;
   if (!Read(0x428, 0x4, (u8*)&size))
     return 0;
@@ -157,9 +140,6 @@ u64 CVolumeGC::GetFSTSize() const
 
 std::string CVolumeGC::GetApploaderDate() const
 {
-  if (m_pReader == nullptr)
-    return std::string();
-
   char date[16];
   if (!Read(0x2440, 0x10, (u8*)&date))
     return std::string();
@@ -169,23 +149,17 @@ std::string CVolumeGC::GetApploaderDate() const
 
 BlobType CVolumeGC::GetBlobType() const
 {
-  return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
+  return m_pReader->GetBlobType();
 }
 
 u64 CVolumeGC::GetSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetDataSize();
-  else
-    return 0;
+  return m_pReader->GetDataSize();
 }
 
 u64 CVolumeGC::GetRawSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetRawSize();
-  else
-    return 0;
+  return m_pReader->GetRawSize();
 }
 
 u8 CVolumeGC::GetDiscNumber() const

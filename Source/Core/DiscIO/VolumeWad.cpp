@@ -49,17 +49,11 @@ bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) cons
   if (decrypt)
     PanicAlertT("Tried to decrypt data from a non-Wii volume");
 
-  if (m_pReader == nullptr)
-    return false;
-
   return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
 
 Country CVolumeWAD::GetCountry() const
 {
-  if (!m_pReader)
-    return Country::COUNTRY_UNKNOWN;
-
   // read the last digit of the titleID in the ticket
   u8 country_code;
   Read(m_tmd_offset + 0x0193, 1, &country_code);
@@ -142,23 +136,17 @@ std::vector<u32> CVolumeWAD::GetBanner(int* width, int* height) const
 
 BlobType CVolumeWAD::GetBlobType() const
 {
-  return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
+  return m_pReader->GetBlobType();
 }
 
 u64 CVolumeWAD::GetSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetDataSize();
-  else
-    return 0;
+  return m_pReader->GetDataSize();
 }
 
 u64 CVolumeWAD::GetRawSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetRawSize();
-  else
-    return 0;
+  return m_pReader->GetRawSize();
 }
 
 }  // namespace
