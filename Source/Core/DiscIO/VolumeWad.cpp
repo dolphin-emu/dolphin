@@ -11,6 +11,7 @@
 #include <vector>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -24,6 +25,8 @@ namespace DiscIO
 {
 CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_reader(std::move(reader))
 {
+  _assert_(m_reader);
+
   // Source: http://wiibrew.org/wiki/WAD_files
   ReadSwapped(0x00, &m_hdr_size, false);
   ReadSwapped(0x08, &m_cert_size, false);
@@ -56,9 +59,6 @@ bool CVolumeWAD::Read(u64 offset, u64 length, u8* buffer, bool decrypt) const
 {
   if (decrypt)
     PanicAlertT("Tried to decrypt data from a non-Wii volume");
-
-  if (m_reader == nullptr)
-    return false;
 
   return m_reader->Read(offset, length, buffer);
 }
@@ -150,17 +150,17 @@ std::vector<u32> CVolumeWAD::GetBanner(int* width, int* height) const
 
 BlobType CVolumeWAD::GetBlobType() const
 {
-  return m_reader ? m_reader->GetBlobType() : BlobType::PLAIN;
+  return m_reader->GetBlobType();
 }
 
 u64 CVolumeWAD::GetSize() const
 {
-  return m_reader ? m_reader->GetDataSize() : 0;
+  return m_reader->GetDataSize();
 }
 
 u64 CVolumeWAD::GetRawSize() const
 {
-  return m_reader ? m_reader->GetRawSize() : 0;
+  return m_reader->GetRawSize();
 }
 
 }  // namespace

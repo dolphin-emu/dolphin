@@ -9,6 +9,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ColorUtil.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -25,6 +26,7 @@ namespace DiscIO
 {
 CVolumeGC::CVolumeGC(std::unique_ptr<IBlobReader> reader) : m_pReader(std::move(reader))
 {
+  _assert_(m_pReader);
 }
 
 CVolumeGC::~CVolumeGC()
@@ -35,9 +37,6 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
   if (decrypt)
     PanicAlertT("Tried to decrypt data from a non-Wii volume");
-
-  if (m_pReader == nullptr)
-    return false;
 
   FileMon::FindFilename(_Offset);
 
@@ -162,17 +161,17 @@ std::string CVolumeGC::GetApploaderDate() const
 
 BlobType CVolumeGC::GetBlobType() const
 {
-  return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
+  return m_pReader->GetBlobType();
 }
 
 u64 CVolumeGC::GetSize() const
 {
-  return m_pReader ? m_pReader->GetDataSize() : 0;
+  return m_pReader->GetDataSize();
 }
 
 u64 CVolumeGC::GetRawSize() const
 {
-  return m_pReader ? m_pReader->GetRawSize() : 0;
+  return m_pReader->GetRawSize();
 }
 
 u8 CVolumeGC::GetDiscNumber() const
