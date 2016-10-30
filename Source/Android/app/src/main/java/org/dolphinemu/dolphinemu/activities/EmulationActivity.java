@@ -43,6 +43,7 @@ import org.dolphinemu.dolphinemu.utils.Animations;
 import org.dolphinemu.dolphinemu.utils.Java_GCAdapter;
 import org.dolphinemu.dolphinemu.utils.Java_WiimoteAdapter;
 import org.dolphinemu.dolphinemu.utils.Log;
+import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import java.util.List;
 
@@ -586,7 +587,8 @@ public final class EmulationActivity extends AppCompatActivity
 							{
 								editor.putInt("wiiController", indexSelected);
 
-								NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
+								NativeLibrary.SetConfig(SettingsFile.FILE_NAME_WIIMOTE + ".ini",
+										SettingsFile.SECTION_WIIMOTE + "1", SettingsFile.KEY_WIIMOTE_EXTENSION,
 										getResources().getStringArray(R.array.controllersValues)[indexSelected]);
 							}
 						});

@@ -55,6 +55,14 @@ public final class SettingsActivityPresenter
 				mView.showSettingsFragment(mFileName, false);
 			}
 
+			// TODO this is hacky, but the new ini reader crashes if a section isn't initialized
+			if (NativeLibrary.GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", SettingsFile.SECTION_BINDINGS,
+					SettingsFile.KEY_GCBIND_A + "0", "").equals(""))
+			{
+				NativeLibrary.SetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini", SettingsFile.SECTION_BINDINGS,
+						SettingsFile.KEY_GCBIND_A + "0", "");
+			}
+
 			SettingsFile.readFile(mFileName)
 					.subscribeOn(Schedulers.io())
 					.observeOn(AndroidSchedulers.mainThread())
@@ -107,6 +115,41 @@ public final class SettingsActivityPresenter
 						public void call(Boolean aBoolean)
 						{
 							mView.showToastMessage("Saved successfully to " + mFileName + ".ini");
+
+							// Get the Wii extension value and set it in the Wii ini.
+							// TODO this is hacky, we should be able to switch files on a per-setting basis
+							for (int i = 1; i < 5; i++)
+							{
+								int extensionValue = Integer.valueOf(NativeLibrary.GetConfig(SettingsFile.FILE_NAME_DOLPHIN + ".ini",
+										SettingsFile.SECTION_BINDINGS, SettingsFile.KEY_WIIMOTE_EXTENSION + i, "0"));
+								String extension;
+
+								switch (extensionValue)
+								{
+									default:
+									case 0:
+										extension = "None";
+										break;
+									case 1:
+										extension = "Nunchuk";
+										break;
+									case 2:
+										extension = "Classic";
+										break;
+									case 3:
+										extension = "Guitar";
+										break;
+									case 4:
+										extension = "Drums";
+										break;
+									case 5:
+										extension = "Turntable";
+										break;
+								}
+
+								NativeLibrary.SetConfig(SettingsFile.FILE_NAME_WIIMOTE + ".ini", SettingsFile.SECTION_WIIMOTE + i,
+										SettingsFile.KEY_WIIMOTE_EXTENSION, extension);
+							}
 						}
 					},
 					new Action1<Throwable>()
@@ -174,6 +217,22 @@ public final class SettingsActivityPresenter
 		switch (value)
 		{
 			case 1:
+				// Switch to the main ini for binding.
+				// TODO this is hacky, we should be able to switch files on a per-setting basis
+				mFileName = SettingsFile.FILE_NAME_DOLPHIN;
+				SettingsFile.readFile(mFileName)
+						.subscribeOn(Schedulers.io())
+						.observeOn(AndroidSchedulers.mainThread())
+						.subscribe(new Action1<HashMap<String, SettingSection>>()
+								   {
+									   @Override
+									   public void call(HashMap<String, SettingSection> settingsBySection)
+									   {
+										   mSettingsBySection = settingsBySection;
+										   mView.onSettingsFileLoaded(settingsBySection);
+									   }
+								   });
+
 				mView.showSettingsFragment(section, true);
 				break;
 
