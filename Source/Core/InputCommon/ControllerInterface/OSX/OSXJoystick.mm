@@ -145,12 +145,10 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
   default:
   {
     IOHIDElementCookie elementCookie = IOHIDElementGetCookie(m_element);
-    // Not a well-known axis so cook a descriptive name. Previously the usage
-    // number was used for this but for the PS3 controller at least all the
-    // unknown axes were returning kHIDUsage_GD_Pointer (1) so all unknown
-    // axes clashed on name as they were all called "1". Each element actually
-    // has a unique ID number available via IOHIDElementGetCookie() so we use
-    // that for the unique axis name instead
+    // This axis isn't a 'well-known' one so cook a descriptive and uniquely
+    // identifiable name. macOS provides a 'cookie' for each element that
+    // will persist between sessions and identify the same physical controller
+    // element so we can use that as a component of the axis name
     std::ostringstream s;
     s << "CK-";
     s << elementCookie;
