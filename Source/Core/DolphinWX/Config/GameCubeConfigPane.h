@@ -7,6 +7,8 @@
 #include <wx/arrstr.h>
 #include <wx/panel.h>
 
+enum TEXIDevices : int;
+
 class wxButton;
 class wxCheckBox;
 class wxChoice;

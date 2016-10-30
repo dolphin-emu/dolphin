@@ -77,45 +77,49 @@ void PathConfigPane::InitializeGUI()
   m_wii_sdcard_filepicker->Bind(wxEVT_FILEPICKER_CHANGED, &PathConfigPane::OnSdCardPathChanged,
                                 this);
 
+  const int space5 = FromDIP(5);
+
   wxBoxSizer* const iso_button_sizer = new wxBoxSizer(wxHORIZONTAL);
-  iso_button_sizer->Add(m_recursive_iso_paths_checkbox, 0, wxALL | wxALIGN_CENTER);
+  iso_button_sizer->Add(m_recursive_iso_paths_checkbox, 0, wxALIGN_CENTER_VERTICAL);
   iso_button_sizer->AddStretchSpacer();
-  iso_button_sizer->Add(m_add_iso_path_button, 0, wxALL);
-  iso_button_sizer->Add(m_remove_iso_path_button, 0, wxALL);
+  iso_button_sizer->Add(m_add_iso_path_button, 0, wxALIGN_CENTER_VERTICAL);
+  iso_button_sizer->Add(m_remove_iso_path_button, 0, wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const iso_listbox_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("ISO Directories"));
-  iso_listbox_sizer->Add(m_iso_paths_listbox, 1, wxEXPAND | wxALL, 0);
-  iso_listbox_sizer->Add(iso_button_sizer, 0, wxEXPAND | wxALL, 5);
+  iso_listbox_sizer->Add(m_iso_paths_listbox, 1, wxEXPAND);
+  iso_listbox_sizer->AddSpacer(space5);
+  iso_listbox_sizer->Add(iso_button_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  iso_listbox_sizer->AddSpacer(space5);
 
-  wxGridBagSizer* const picker_sizer = new wxGridBagSizer();
+  wxGridBagSizer* const picker_sizer = new wxGridBagSizer(space5, space5);
   picker_sizer->Add(new wxStaticText(this, wxID_ANY, _("Default ISO:")), wxGBPosition(0, 0),
-                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  picker_sizer->Add(m_default_iso_filepicker, wxGBPosition(0, 1), wxDefaultSpan, wxEXPAND | wxALL,
-                    5);
+                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  picker_sizer->Add(m_default_iso_filepicker, wxGBPosition(0, 1), wxDefaultSpan, wxEXPAND);
   picker_sizer->Add(new wxStaticText(this, wxID_ANY, _("DVD Root:")), wxGBPosition(1, 0),
-                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  picker_sizer->Add(m_dvd_root_dirpicker, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
+                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  picker_sizer->Add(m_dvd_root_dirpicker, wxGBPosition(1, 1), wxDefaultSpan, wxEXPAND);
   picker_sizer->Add(new wxStaticText(this, wxID_ANY, _("Apploader:")), wxGBPosition(2, 0),
-                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  picker_sizer->Add(m_apploader_path_filepicker, wxGBPosition(2, 1), wxDefaultSpan,
-                    wxEXPAND | wxALL, 5);
+                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  picker_sizer->Add(m_apploader_path_filepicker, wxGBPosition(2, 1), wxDefaultSpan, wxEXPAND);
   picker_sizer->Add(new wxStaticText(this, wxID_ANY, _("Wii NAND Root:")), wxGBPosition(3, 0),
-                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  picker_sizer->Add(m_nand_root_dirpicker, wxGBPosition(3, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
+                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  picker_sizer->Add(m_nand_root_dirpicker, wxGBPosition(3, 1), wxDefaultSpan, wxEXPAND);
   picker_sizer->Add(new wxStaticText(this, wxID_ANY, _("Dump Path:")), wxGBPosition(4, 0),
-                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  picker_sizer->Add(m_dump_path_dirpicker, wxGBPosition(4, 1), wxDefaultSpan, wxEXPAND | wxALL, 5);
+                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  picker_sizer->Add(m_dump_path_dirpicker, wxGBPosition(4, 1), wxDefaultSpan, wxEXPAND);
   picker_sizer->Add(new wxStaticText(this, wxID_ANY, _("SD Card Path:")), wxGBPosition(5, 0),
-                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  picker_sizer->Add(m_wii_sdcard_filepicker, wxGBPosition(5, 1), wxDefaultSpan, wxEXPAND | wxALL,
-                    5);
+                    wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  picker_sizer->Add(m_wii_sdcard_filepicker, wxGBPosition(5, 1), wxDefaultSpan, wxEXPAND);
   picker_sizer->AddGrowableCol(1);
 
   // Populate the Paths page
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
-  main_sizer->Add(iso_listbox_sizer, 1, wxEXPAND | wxALL, 5);
-  main_sizer->Add(picker_sizer, 0, wxEXPAND | wxALL, 5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(iso_listbox_sizer, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(picker_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
 
   SetSizer(main_sizer);
 }
@@ -219,7 +223,6 @@ void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
   File::SetUserPath(D_WIIROOT_IDX, nand_path);
   m_nand_root_dirpicker->SetPath(StrToWxStr(nand_path));
 
-  SConfig::GetInstance().m_SYSCONF->UpdateLocation();
   DiscIO::CNANDContentManager::Access().ClearCache();
 
   main_frame->UpdateWiiMenuChoice();

@@ -33,7 +33,7 @@ bool ReadHeader(const std::string& filename, StateHeader& header);
 
 // Returns a string containing information of the savestate in the given slot
 // which can be presented to the user for identification purposes
-std::string GetInfoStringOfSlot(int slot);
+std::string GetInfoStringOfSlot(int slot, bool translate = true);
 
 // These don't happen instantly - they get scheduled as events.
 // ...But only if we're not in the main CPU thread.

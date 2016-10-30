@@ -196,11 +196,14 @@ int Interpreter::SingleStepInner()
 
 void Interpreter::SingleStep()
 {
+  // Declare start of new slice
+  CoreTiming::Advance();
+
   SingleStepInner();
 
+  // The interpreter ignores instruction timing information outside the 'fast runloop'.
   CoreTiming::g_slice_length = 1;
   PowerPC::ppcState.downcount = 0;
-  CoreTiming::Advance();
 
   if (PowerPC::ppcState.Exceptions)
   {
@@ -222,6 +225,11 @@ void Interpreter::Run()
 {
   while (!CPU::GetState())
   {
+    // CoreTiming Advance() ends the previous slice and declares the start of the next
+    // one so it must always be called at the start. At boot, we are in slice -1 and must
+    // advance into slice 0 to get a correct slice length before executing any cycles.
+    CoreTiming::Advance();
+
     // we have to check exceptions at branches apparently (or maybe just rfi?)
     if (SConfig::GetInstance().bEnableDebugging)
     {
@@ -295,8 +303,6 @@ void Interpreter::Run()
         PowerPC::ppcState.downcount -= cycles;
       }
     }
-
-    CoreTiming::Advance();
   }
 }
 

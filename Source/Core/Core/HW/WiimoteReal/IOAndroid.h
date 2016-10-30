@@ -7,6 +7,7 @@
 #ifdef ANDROID
 #include <jni.h>
 
+#include "Common/StringUtil.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 
 namespace WiimoteReal
@@ -16,7 +17,7 @@ class WiimoteAndroid final : public Wiimote
 public:
   WiimoteAndroid(int index);
   ~WiimoteAndroid() override;
-
+  std::string GetId() const override { return "Android " + StringFromInt(m_mayflash_index); }
 protected:
   bool ConnectInternal() override;
   void DisconnectInternal() override;

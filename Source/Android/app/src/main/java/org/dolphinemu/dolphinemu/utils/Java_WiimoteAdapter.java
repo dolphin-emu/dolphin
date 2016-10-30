@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.utils;
 
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.hardware.usb.UsbConfiguration;
@@ -15,7 +14,6 @@ import org.dolphinemu.dolphinemu.services.USBPermService;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class Java_WiimoteAdapter

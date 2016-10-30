@@ -23,11 +23,9 @@ InputConfig* GetConfig()
 void Shutdown()
 {
   s_config.ClearControllers();
-
-  g_controller_interface.Shutdown();
 }
 
-void Initialize(void* const hwnd)
+void Initialize()
 {
   if (s_config.ControllersNeedToBeCreated())
   {
@@ -35,7 +33,6 @@ void Initialize(void* const hwnd)
       s_config.CreateController<GCKeyboard>(i);
   }
 
-  g_controller_interface.Initialize(hwnd);
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // Load the saved controller config
@@ -47,7 +44,7 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
-KeyboardStatus GetStatus(u8 port)
+KeyboardStatus GetStatus(int port)
 {
   return static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput();
 }

@@ -143,9 +143,13 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_Socket.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net.cpp
 			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
+			IPC_HLE/WII_IPC_HLE_Device_stm.cpp
 			IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb_ven.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
 			IPC_HLE/WiiMote_HID_Attr.cpp
 			PowerPC/MMU.cpp
@@ -240,8 +244,13 @@ set(LIBS
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp)
+	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
+	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp)
 endif(LIBUSB_FOUND)
+
+if(NOT APPLE)
+	set(LIBS ${LIBS} videovulkan)
+endif()
 
 set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 
@@ -260,6 +269,9 @@ elseif(UNIX)
 		set(SRCS ${SRCS} HW/WiimoteReal/IOAndroid.cpp)
 	endif()
 endif()
+if(HIDAPI_FOUND)
+	set(SRCS ${SRCS} HW/WiimoteReal/IOhidapi.cpp)
+endif(HIDAPI_FOUND)
 
 if(PORTAUDIO_FOUND)
 	set(LIBS ${LIBS} portaudio)

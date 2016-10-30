@@ -26,19 +26,29 @@ void JitArm64::GenerateAsm()
 
   ABI_PushRegisters(regs_to_save);
 
-  MOVI2R(PPC_REG, (u64)&PowerPC::ppcState);
+  MOVP2R(PPC_REG, &PowerPC::ppcState);
 
-  // Load the current PC into DISPATCHER_PC
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
-  FixupBranch to_dispatcher = B();
+  // The PC will be loaded into DISPATCHER_PC after the call to CoreTiming::Advance().
+  // Advance() does an exception check so we don't know what PC to use until afterwards.
+  FixupBranch to_start_of_timing_slice = B();
 
   // If we align the dispatcher to a page then we can load its location with one ADRP instruction
+  // do
+  // {
+  //   CoreTiming::Advance();  // <-- Checks for exceptions (changes PC)
+  //   DISPATCHER_PC = PC;
+  //   do
+  //   {
+  // dispatcherNoCheck:
+  //     ExecuteBlock(JitBase::Dispatch());
+  // dispatcher:
+  //   } while (PowerPC::ppcState.downcount > 0);
+  // doTiming:
+  //   NPC = PC = DISPATCHER_PC;
+  // } while (CPU::GetState() == CPU::CPU_RUNNING);
   AlignCodePage();
   dispatcher = GetCodePtr();
   WARN_LOG(DYNA_REC, "Dispatcher is %p\n", dispatcher);
-
-  SetJumpTarget(to_dispatcher);
 
   // Downcount Check
   // The result of slice decrementation should be in flags if somebody jumped here
@@ -54,10 +64,10 @@ void JitArm64::GenerateAsm()
     // set the mem_base based on MSR flags
     LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
     FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
-    MOVI2R(MEM_REG, (u64)Memory::physical_base);
+    MOVP2R(MEM_REG, Memory::physical_base);
     FixupBranch membaseend = B();
     SetJumpTarget(physmem);
-    MOVI2R(MEM_REG, (u64)Memory::logical_base);
+    MOVP2R(MEM_REG, Memory::logical_base);
     SetJumpTarget(membaseend);
 
     // iCache[(address >> 2) & iCache_Mask];
@@ -104,10 +114,10 @@ void JitArm64::GenerateAsm()
   // set the mem_base based on MSR flags
   LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
   FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
-  MOVI2R(MEM_REG, (u64)Memory::physical_base);
+  MOVP2R(MEM_REG, Memory::physical_base);
   FixupBranch membaseend = B();
   SetJumpTarget(physmem);
-  MOVI2R(MEM_REG, (u64)Memory::logical_base);
+  MOVP2R(MEM_REG, Memory::logical_base);
   SetJumpTarget(membaseend);
 
   // Jump to next block.
@@ -119,25 +129,25 @@ void JitArm64::GenerateAsm()
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
   STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(npc));
 
-  MOVI2R(X30, (u64)&CoreTiming::Advance);
-  BLR(X30);
-
-  // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
-  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
   // Check the state pointer to see if we are exiting
   // Gets checked on at the end of every slice
-  MOVI2R(X0, (u64)CPU::GetStatePtr());
+  MOVP2R(X0, CPU::GetStatePtr());
   LDR(INDEX_UNSIGNED, W0, X0, 0);
 
   CMP(W0, 0);
   FixupBranch Exit = B(CC_NEQ);
 
-  B(dispatcher);
+  SetJumpTarget(to_start_of_timing_slice);
+  MOVP2R(X30, &CoreTiming::Advance);
+  BLR(X30);
+
+  // Load the PC back into DISPATCHER_PC (the exception handler might have changed it)
+  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+
+  // We can safely assume that downcount >= 1
+  B(dispatcherNoCheck);
 
   SetJumpTarget(Exit);
-  STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-
   ABI_PopRegisters(regs_to_save);
   RET(X30);
 
@@ -166,20 +176,20 @@ void JitArm64::GenerateCommonAsm()
   BRK(100);
   const u8* loadPairedFloatTwo = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LD1(32, 1, D0, addr_reg);
     float_emit.REV32(8, D0, D0);
     RET(X30);
   }
   const u8* loadPairedU8Two = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.UXTL(8, D0, D0);
     float_emit.UXTL(16, D0, D0);
     float_emit.UCVTF(32, D0, D0);
 
-    MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+    MOVP2R(addr_reg, &m_dequantizeTableS);
     ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
     float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
@@ -187,13 +197,13 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedS8Two = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.SXTL(8, D0, D0);
     float_emit.SXTL(16, D0, D0);
     float_emit.SCVTF(32, D0, D0);
 
-    MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+    MOVP2R(addr_reg, &m_dequantizeTableS);
     ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
     float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
@@ -201,13 +211,13 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedU16Two = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LD1(16, 1, D0, addr_reg);
     float_emit.REV16(8, D0, D0);
     float_emit.UXTL(16, D0, D0);
     float_emit.UCVTF(32, D0, D0);
 
-    MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+    MOVP2R(addr_reg, &m_dequantizeTableS);
     ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
     float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
@@ -215,13 +225,13 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedS16Two = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LD1(16, 1, D0, addr_reg);
     float_emit.REV16(8, D0, D0);
     float_emit.SXTL(16, D0, D0);
     float_emit.SCVTF(32, D0, D0);
 
-    MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+    MOVP2R(addr_reg, &m_dequantizeTableS);
     ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
     float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
@@ -230,20 +240,20 @@ void JitArm64::GenerateCommonAsm()
 
   const u8* loadPairedFloatOne = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(32, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.REV32(8, D0, D0);
     RET(X30);
   }
   const u8* loadPairedU8One = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.UXTL(8, D0, D0);
     float_emit.UXTL(16, D0, D0);
     float_emit.UCVTF(32, D0, D0);
 
-    MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+    MOVP2R(addr_reg, &m_dequantizeTableS);
     ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
     float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
@@ -251,13 +261,13 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedS8One = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(8, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.SXTL(8, D0, D0);
     float_emit.SXTL(16, D0, D0);
     float_emit.SCVTF(32, D0, D0);
 
-    MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+    MOVP2R(addr_reg, &m_dequantizeTableS);
     ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
     float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
@@ -265,13 +275,13 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedU16One = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.REV16(8, D0, D0);
     float_emit.UXTL(16, D0, D0);
     float_emit.UCVTF(32, D0, D0);
 
-    MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+    MOVP2R(addr_reg, &m_dequantizeTableS);
     ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
     float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
@@ -279,13 +289,13 @@ void JitArm64::GenerateCommonAsm()
   }
   const u8* loadPairedS16One = GetCodePtr();
   {
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.LDR(16, INDEX_UNSIGNED, D0, addr_reg, 0);
     float_emit.REV16(8, D0, D0);
     float_emit.SXTL(16, D0, D0);
     float_emit.SCVTF(32, D0, D0);
 
-    MOVI2R(addr_reg, (u64)&m_dequantizeTableS);
+    MOVP2R(addr_reg, &m_dequantizeTableS);
     ADD(scale_reg, addr_reg, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
     float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
     float_emit.FMUL(32, D0, D0, D1, 0);
@@ -324,14 +334,14 @@ void JitArm64::GenerateCommonAsm()
   {
     storePairedFloat = GetCodePtr();
     float_emit.REV32(8, D0, D0);
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(64, Q0, 0, addr_reg, SP);
     RET(X30);
 
     storePairedFloatSlow = GetCodePtr();
     float_emit.UMOV(64, X0, Q0, 0);
     ORR(X0, SP, X0, ArithOption(X0, ST_ROR, 32));
-    MOVI2R(X2, (u64)PowerPC::Write_U64);
+    MOVP2R(X2, &PowerPC::Write_U64);
     BR(X2);
   }
 
@@ -339,7 +349,7 @@ void JitArm64::GenerateCommonAsm()
   const u8* storePairedU8Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVI2R(X2, (u64)&m_quantizeTableS);
+      MOVP2R(X2, &m_quantizeTableS);
       ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
       float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1, 0);
@@ -351,7 +361,7 @@ void JitArm64::GenerateCommonAsm()
 
     storePairedU8 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(16, Q0, 0, addr_reg, SP);
     RET(X30);
 
@@ -359,14 +369,14 @@ void JitArm64::GenerateCommonAsm()
     emit_quantize();
     float_emit.UMOV(16, W0, Q0, 0);
     REV16(W0, W0);
-    MOVI2R(X2, (u64)PowerPC::Write_U16);
+    MOVP2R(X2, &PowerPC::Write_U16);
     BR(X2);
   }
   const u8* storePairedS8;
   const u8* storePairedS8Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVI2R(X2, (u64)&m_quantizeTableS);
+      MOVP2R(X2, &m_quantizeTableS);
       ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
       float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1, 0);
@@ -378,7 +388,7 @@ void JitArm64::GenerateCommonAsm()
 
     storePairedS8 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(16, Q0, 0, addr_reg, SP);
     RET(X30);
 
@@ -386,7 +396,7 @@ void JitArm64::GenerateCommonAsm()
     emit_quantize();
     float_emit.UMOV(16, W0, Q0, 0);
     REV16(W0, W0);
-    MOVI2R(X2, (u64)PowerPC::Write_U16);
+    MOVP2R(X2, &PowerPC::Write_U16);
     BR(X2);
   }
 
@@ -394,7 +404,7 @@ void JitArm64::GenerateCommonAsm()
   const u8* storePairedU16Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVI2R(X2, (u64)&m_quantizeTableS);
+      MOVP2R(X2, &m_quantizeTableS);
       ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
       float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1, 0);
@@ -406,7 +416,7 @@ void JitArm64::GenerateCommonAsm()
 
     storePairedU16 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(32, Q0, 0, addr_reg, SP);
     RET(X30);
 
@@ -414,14 +424,14 @@ void JitArm64::GenerateCommonAsm()
     emit_quantize();
     float_emit.REV32(8, D0, D0);
     float_emit.UMOV(32, W0, Q0, 0);
-    MOVI2R(X2, (u64)PowerPC::Write_U32);
+    MOVP2R(X2, &PowerPC::Write_U32);
     BR(X2);
   }
   const u8* storePairedS16;  // Used by Viewtiful Joe's intro movie
   const u8* storePairedS16Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVI2R(X2, (u64)&m_quantizeTableS);
+      MOVP2R(X2, &m_quantizeTableS);
       ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
       float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1, 0);
@@ -433,7 +443,7 @@ void JitArm64::GenerateCommonAsm()
 
     storePairedS16 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(32, Q0, 0, addr_reg, SP);
     RET(X30);
 
@@ -441,7 +451,7 @@ void JitArm64::GenerateCommonAsm()
     emit_quantize();
     float_emit.REV32(8, D0, D0);
     float_emit.UMOV(32, W0, Q0, 0);
-    MOVI2R(X2, (u64)PowerPC::Write_U32);
+    MOVP2R(X2, &PowerPC::Write_U32);
     BR(X2);
   }
 
@@ -450,20 +460,20 @@ void JitArm64::GenerateCommonAsm()
   {
     storeSingleFloat = GetCodePtr();
     float_emit.REV32(8, D0, D0);
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.STR(32, INDEX_UNSIGNED, D0, addr_reg, 0);
     RET(X30);
 
     storeSingleFloatSlow = GetCodePtr();
     float_emit.UMOV(32, W0, Q0, 0);
-    MOVI2R(X2, (u64)&PowerPC::Write_U32);
+    MOVP2R(X2, &PowerPC::Write_U32);
     BR(X2);
   }
   const u8* storeSingleU8;  // Used by MKWii
   const u8* storeSingleU8Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVI2R(X2, (u64)&m_quantizeTableS);
+      MOVP2R(X2, &m_quantizeTableS);
       ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
       float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1);
@@ -475,21 +485,21 @@ void JitArm64::GenerateCommonAsm()
 
     storeSingleU8 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(8, Q0, 0, addr_reg);
     RET(X30);
 
     storeSingleU8Slow = GetCodePtr();
     emit_quantize();
     float_emit.UMOV(8, W0, Q0, 0);
-    MOVI2R(X2, (u64)&PowerPC::Write_U8);
+    MOVP2R(X2, &PowerPC::Write_U8);
     BR(X2);
   }
   const u8* storeSingleS8;
   const u8* storeSingleS8Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVI2R(X2, (u64)&m_quantizeTableS);
+      MOVP2R(X2, &m_quantizeTableS);
       ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
       float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1);
@@ -501,21 +511,21 @@ void JitArm64::GenerateCommonAsm()
 
     storeSingleS8 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.ST1(8, Q0, 0, addr_reg);
     RET(X30);
 
     storeSingleS8Slow = GetCodePtr();
     emit_quantize();
     float_emit.SMOV(8, W0, Q0, 0);
-    MOVI2R(X2, (u64)&PowerPC::Write_U8);
+    MOVP2R(X2, &PowerPC::Write_U8);
     BR(X2);
   }
   const u8* storeSingleU16;  // Used by MKWii
   const u8* storeSingleU16Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVI2R(X2, (u64)&m_quantizeTableS);
+      MOVP2R(X2, &m_quantizeTableS);
       ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
       float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1);
@@ -526,7 +536,7 @@ void JitArm64::GenerateCommonAsm()
 
     storeSingleU16 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.REV16(8, D0, D0);
     float_emit.ST1(16, Q0, 0, addr_reg);
     RET(X30);
@@ -534,14 +544,14 @@ void JitArm64::GenerateCommonAsm()
     storeSingleU16Slow = GetCodePtr();
     emit_quantize();
     float_emit.UMOV(16, W0, Q0, 0);
-    MOVI2R(X2, (u64)&PowerPC::Write_U16);
+    MOVP2R(X2, &PowerPC::Write_U16);
     BR(X2);
   }
   const u8* storeSingleS16;
   const u8* storeSingleS16Slow;
   {
     auto emit_quantize = [this, &float_emit, scale_reg]() {
-      MOVI2R(X2, (u64)&m_quantizeTableS);
+      MOVP2R(X2, &m_quantizeTableS);
       ADD(scale_reg, X2, scale_reg, ArithOption(scale_reg, ST_LSL, 3));
       float_emit.LDR(32, INDEX_UNSIGNED, D1, scale_reg, 0);
       float_emit.FMUL(32, D0, D0, D1);
@@ -552,7 +562,7 @@ void JitArm64::GenerateCommonAsm()
 
     storeSingleS16 = GetCodePtr();
     emit_quantize();
-    MOVK(addr_reg, ((u64)Memory::logical_base >> 32) & 0xFFFF, SHIFT_32);
+    ADD(addr_reg, addr_reg, MEM_REG);
     float_emit.REV16(8, D0, D0);
     float_emit.ST1(16, Q0, 0, addr_reg);
     RET(X30);
@@ -560,7 +570,7 @@ void JitArm64::GenerateCommonAsm()
     storeSingleS16Slow = GetCodePtr();
     emit_quantize();
     float_emit.SMOV(16, W0, Q0, 0);
-    MOVI2R(X2, (u64)&PowerPC::Write_U16);
+    MOVP2R(X2, &PowerPC::Write_U16);
     BR(X2);
   }
 

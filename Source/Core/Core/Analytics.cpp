@@ -193,7 +193,6 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-dsp-jit", SConfig::GetInstance().m_DSPEnableJIT);
   builder.AddData("cfg-dsp-thread", SConfig::GetInstance().bDSPThread);
   builder.AddData("cfg-cpu-thread", SConfig::GetInstance().bCPUThread);
-  builder.AddData("cfg-idle-skip", SConfig::GetInstance().bSkipIdle);
   builder.AddData("cfg-fastmem", SConfig::GetInstance().bFastmem);
   builder.AddData("cfg-syncgpu", SConfig::GetInstance().bSyncGPU);
   builder.AddData("cfg-audio-backend", SConfig::GetInstance().sBackend);

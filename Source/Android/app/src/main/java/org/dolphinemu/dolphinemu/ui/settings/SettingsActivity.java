@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
-
 import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;

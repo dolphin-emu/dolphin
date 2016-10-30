@@ -301,18 +301,6 @@ D3D12_BLEND_DESC StateCache::GetDesc12(BlendState state)
 
   if (state.use_dst_alpha)
   {
-    // Colors should blend against SRC1_ALPHA
-    if (blenddc.RenderTarget[0].SrcBlend == D3D12_BLEND_SRC_ALPHA)
-      blenddc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC1_ALPHA;
-    else if (blenddc.RenderTarget[0].SrcBlend == D3D12_BLEND_INV_SRC_ALPHA)
-      blenddc.RenderTarget[0].SrcBlend = D3D12_BLEND_INV_SRC1_ALPHA;
-
-    // Colors should blend against SRC1_ALPHA
-    if (blenddc.RenderTarget[0].DestBlend == D3D12_BLEND_SRC_ALPHA)
-      blenddc.RenderTarget[0].DestBlend = D3D12_BLEND_SRC1_ALPHA;
-    else if (blenddc.RenderTarget[0].DestBlend == D3D12_BLEND_INV_SRC_ALPHA)
-      blenddc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC1_ALPHA;
-
     blenddc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
     blenddc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
     blenddc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;

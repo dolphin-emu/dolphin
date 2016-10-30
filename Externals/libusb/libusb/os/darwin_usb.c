@@ -246,7 +246,7 @@ static usb_device_t **darwin_device_from_service (io_service_t service)
                                              &score);
 
   if (kIOReturnSuccess != result || !plugInInterface) {
-    usbi_dbg ("could not set up plugin for service: %s\n", darwin_error_str (result));
+    usbi_dbg ("could not set up plugin for service: %s", darwin_error_str (result));
     return NULL;
   }
 
@@ -279,6 +279,7 @@ static void darwin_devices_attached (void *ptr, io_iterator_t add_devices) {
 static void darwin_devices_detached (void *ptr, io_iterator_t rem_devices) {
   struct libusb_device *dev = NULL;
   struct libusb_context *ctx;
+  struct darwin_cached_device *old_device;
 
   io_service_t device;
   UInt64 session;
@@ -292,6 +293,17 @@ static void darwin_devices_detached (void *ptr, io_iterator_t rem_devices) {
     IOObjectRelease (device);
     if (!ret)
       continue;
+
+    /* we need to match darwin_ref_cached_device call made in darwin_get_cached_device function
+       otherwise no cached device will ever get freed */
+    usbi_mutex_lock(&darwin_cached_devices_lock);
+    list_for_each_entry(old_device, &darwin_cached_devices, list, struct darwin_cached_device) {
+      if (old_device->session == session) {
+        darwin_deref_cached_device (old_device);
+        break;
+      }
+    }
+    usbi_mutex_unlock(&darwin_cached_devices_lock);
 
     list_for_each_entry(ctx, &active_contexts_list, list, struct libusb_context) {
       usbi_dbg ("notifying context %p of device disconnect", ctx);
@@ -973,14 +985,6 @@ static int darwin_open (struct libusb_device_handle *dev_handle) {
   /* device opened successfully */
   dpriv->open_count++;
 
-  /* create a file descriptor for notifications */
-  pipe (priv->fds);
-
-  /* set the pipe to be non-blocking */
-  fcntl (priv->fds[1], F_SETFD, O_NONBLOCK);
-
-  usbi_add_pollfd(HANDLE_CTX(dev_handle), priv->fds[0], POLLIN);
-
   usbi_dbg ("device open for access");
 
   return 0;
@@ -994,7 +998,7 @@ static void darwin_close (struct libusb_device_handle *dev_handle) {
 
   if (dpriv->open_count == 0) {
     /* something is probably very wrong if this is the case */
-    usbi_err (HANDLE_CTX (dev_handle), "Close called on a device that was not open!\n");
+    usbi_err (HANDLE_CTX (dev_handle), "Close called on a device that was not open!");
     return;
   }
 
@@ -1024,13 +1028,6 @@ static void darwin_close (struct libusb_device_handle *dev_handle) {
       }
     }
   }
-
-  /* file descriptors are maintained per-instance */
-  usbi_remove_pollfd (HANDLE_CTX (dev_handle), priv->fds[0]);
-  close (priv->fds[1]);
-  close (priv->fds[0]);
-
-  priv->fds[0] = priv->fds[1] = -1;
 }
 
 static int darwin_get_configuration(struct libusb_device_handle *dev_handle, int *config) {
@@ -1761,9 +1758,7 @@ static void darwin_clear_transfer_priv (struct usbi_transfer *itransfer) {
 static void darwin_async_io_callback (void *refcon, IOReturn result, void *arg0) {
   struct usbi_transfer *itransfer = (struct usbi_transfer *)refcon;
   struct libusb_transfer *transfer = USBI_TRANSFER_TO_LIBUSB_TRANSFER(itransfer);
-  struct darwin_device_handle_priv *priv = (struct darwin_device_handle_priv *)transfer->dev_handle->os_priv;
-  struct darwin_msg_async_io_complete message = {.itransfer = itransfer, .result = result,
-                                                 .size = (UInt32) (uintptr_t) arg0};
+  struct darwin_transfer_priv *tpriv = usbi_transfer_get_os_priv(itransfer);
 
   usbi_dbg ("an async io operation has completed");
 
@@ -1777,8 +1772,11 @@ static void darwin_async_io_callback (void *refcon, IOReturn result, void *arg0)
     (*(cInterface->interface))->WritePipe (cInterface->interface, pipeRef, transfer->buffer, 0);
   }
 
-  /* send a completion message to the device's file descriptor */
-  write (priv->fds[1], &message, sizeof (message));
+  tpriv->result = result;
+  tpriv->size = (UInt32) (uintptr_t) arg0;
+
+  /* signal the core that this transfer is complete */
+  usbi_signal_transfer_completion(itransfer);
 }
 
 static int darwin_transfer_status (struct usbi_transfer *itransfer, kern_return_t result) {
@@ -1807,7 +1805,7 @@ static int darwin_transfer_status (struct usbi_transfer *itransfer, kern_return_
   }
 }
 
-static void darwin_handle_callback (struct usbi_transfer *itransfer, kern_return_t result, UInt32 io_size) {
+static int darwin_handle_transfer_completion (struct usbi_transfer *itransfer) {
   struct libusb_transfer *transfer = USBI_TRANSFER_TO_LIBUSB_TRANSFER(itransfer);
   struct darwin_transfer_priv *tpriv = usbi_transfer_get_os_priv(itransfer);
   int isIsoc      = LIBUSB_TRANSFER_TYPE_ISOCHRONOUS == transfer->type;
@@ -1818,13 +1816,13 @@ static void darwin_handle_callback (struct usbi_transfer *itransfer, kern_return
 
   if (!isIsoc && !isBulk && !isControl && !isInterrupt) {
     usbi_err (TRANSFER_CTX(transfer), "unknown endpoint type %d", transfer->type);
-    return;
+    return LIBUSB_ERROR_INVALID_PARAM;
   }
 
   usbi_dbg ("handling %s completion with kernel status %d",
-             isControl ? "control" : isBulk ? "bulk" : isIsoc ? "isoc" : "interrupt", result);
+             isControl ? "control" : isBulk ? "bulk" : isIsoc ? "isoc" : "interrupt", tpriv->result);
 
-  if (kIOReturnSuccess == result || kIOReturnUnderrun == result) {
+  if (kIOReturnSuccess == tpriv->result || kIOReturnUnderrun == tpriv->result) {
     if (isIsoc && tpriv->isoc_framelist) {
       /* copy isochronous results back */
 
@@ -1834,48 +1832,11 @@ static void darwin_handle_callback (struct usbi_transfer *itransfer, kern_return
         lib_desc->actual_length = tpriv->isoc_framelist[i].frActCount;
       }
     } else if (!isIsoc)
-      itransfer->transferred += io_size;
+      itransfer->transferred += tpriv->size;
   }
 
   /* it is ok to handle cancelled transfers without calling usbi_handle_transfer_cancellation (we catch timeout transfers) */
-  usbi_handle_transfer_completion (itransfer, darwin_transfer_status (itransfer, result));
-}
-
-static int op_handle_events(struct libusb_context *ctx, struct pollfd *fds, POLL_NFDS_TYPE nfds, int num_ready) {
-  struct darwin_msg_async_io_complete message;
-  POLL_NFDS_TYPE i = 0;
-  ssize_t ret;
-
-  usbi_mutex_lock(&ctx->open_devs_lock);
-
-  for (i = 0; i < nfds && num_ready > 0; i++) {
-    struct pollfd *pollfd = &fds[i];
-
-    usbi_dbg ("checking fd %i with revents = %x", pollfd->fd, pollfd->revents);
-
-    if (!pollfd->revents)
-      continue;
-
-    num_ready--;
-
-    if (pollfd->revents & POLLERR) {
-      /* this probably will never happen so ignore the error an move on. */
-      continue;
-    }
-
-    /* there is only one type of message */
-    ret = read (pollfd->fd, &message, sizeof (message));
-    if (ret < (ssize_t) sizeof (message)) {
-      usbi_dbg ("WARNING: short read on async io completion pipe\n");
-      continue;
-    }
-
-    darwin_handle_callback (message.itransfer, message.result, message.size);
-  }
-
-  usbi_mutex_unlock(&ctx->open_devs_lock);
-
-  return 0;
+  return usbi_handle_transfer_completion (itransfer, darwin_transfer_status (itransfer, tpriv->result));
 }
 
 static int darwin_clock_gettime(int clk_id, struct timespec *tp) {
@@ -1998,12 +1959,11 @@ const struct usbi_os_backend darwin_backend = {
         .cancel_transfer = darwin_cancel_transfer,
         .clear_transfer_priv = darwin_clear_transfer_priv,
 
-        .handle_events = op_handle_events,
+        .handle_transfer_completion = darwin_handle_transfer_completion,
 
         .clock_gettime = darwin_clock_gettime,
 
         .device_priv_size = sizeof(struct darwin_device_priv),
         .device_handle_priv_size = sizeof(struct darwin_device_handle_priv),
         .transfer_priv_size = sizeof(struct darwin_transfer_priv),
-        .add_iso_packet_size = 0,
 };

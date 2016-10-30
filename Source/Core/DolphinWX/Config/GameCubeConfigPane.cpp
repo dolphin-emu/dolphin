@@ -100,42 +100,51 @@ void GameCubeConfigPane::InitializeGUI()
       new wxButton(this, wxID_ANY, "...", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
   m_memcard_path[1]->Bind(wxEVT_BUTTON, &GameCubeConfigPane::OnSlotBButtonClick, this);
 
+  const int space5 = FromDIP(5);
+  const int space10 = FromDIP(10);
+
   // Populate the GameCube page
-  wxGridBagSizer* const sGamecubeIPLSettings = new wxGridBagSizer();
-  sGamecubeIPLSettings->Add(m_skip_bios_checkbox, wxGBPosition(0, 0), wxGBSpan(1, 2), wxALL, 5);
+  wxGridBagSizer* const sGamecubeIPLSettings = new wxGridBagSizer(space5, space5);
+  sGamecubeIPLSettings->Add(m_skip_bios_checkbox, wxGBPosition(0, 0), wxGBSpan(1, 2));
   sGamecubeIPLSettings->Add(new wxStaticText(this, wxID_ANY, _("System Language:")),
-                            wxGBPosition(1, 0), wxDefaultSpan,
-                            wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+                            wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   sGamecubeIPLSettings->Add(m_system_lang_choice, wxGBPosition(1, 1), wxDefaultSpan,
-                            wxLEFT | wxRIGHT | wxBOTTOM, 5);
-  sGamecubeIPLSettings->Add(m_override_lang_checkbox, wxGBPosition(2, 0), wxGBSpan(1, 2), wxALL, 5);
+                            wxALIGN_CENTER_VERTICAL);
+  sGamecubeIPLSettings->Add(m_override_lang_checkbox, wxGBPosition(2, 0), wxGBSpan(1, 2));
 
   wxStaticBoxSizer* const sbGamecubeIPLSettings =
       new wxStaticBoxSizer(wxVERTICAL, this, _("IPL Settings"));
-  sbGamecubeIPLSettings->Add(sGamecubeIPLSettings);
+  sbGamecubeIPLSettings->AddSpacer(space5);
+  sbGamecubeIPLSettings->Add(sGamecubeIPLSettings, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sbGamecubeIPLSettings->AddSpacer(space5);
+
   wxStaticBoxSizer* const sbGamecubeDeviceSettings =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Device Settings"));
-  wxGridBagSizer* const sbGamecubeEXIDevSettings = new wxGridBagSizer(10, 10);
-
+  wxGridBagSizer* const gamecube_EXIDev_sizer = new wxGridBagSizer(space10, space10);
   for (int i = 0; i < 3; ++i)
   {
-    sbGamecubeEXIDevSettings->Add(GCEXIDeviceText[i], wxGBPosition(i, 0), wxDefaultSpan,
-                                  wxALIGN_CENTER_VERTICAL);
-    sbGamecubeEXIDevSettings->Add(m_exi_devices[i], wxGBPosition(i, 1),
-                                  wxGBSpan(1, (i < 2) ? 1 : 2), wxALIGN_CENTER_VERTICAL);
+    gamecube_EXIDev_sizer->Add(GCEXIDeviceText[i], wxGBPosition(i, 0), wxDefaultSpan,
+                               wxALIGN_CENTER_VERTICAL);
+    gamecube_EXIDev_sizer->Add(m_exi_devices[i], wxGBPosition(i, 1), wxGBSpan(1, (i < 2) ? 1 : 2),
+                               wxALIGN_CENTER_VERTICAL);
 
     if (i < 2)
-      sbGamecubeEXIDevSettings->Add(m_memcard_path[i], wxGBPosition(i, 2), wxDefaultSpan,
-                                    wxALIGN_CENTER_VERTICAL);
+      gamecube_EXIDev_sizer->Add(m_memcard_path[i], wxGBPosition(i, 2), wxDefaultSpan,
+                                 wxALIGN_CENTER_VERTICAL);
 
     if (NetPlay::IsNetPlayRunning())
       m_exi_devices[i]->Disable();
   }
-  sbGamecubeDeviceSettings->Add(sbGamecubeEXIDevSettings, 0, wxALL, 5);
+  sbGamecubeDeviceSettings->AddSpacer(space5);
+  sbGamecubeDeviceSettings->Add(gamecube_EXIDev_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  sbGamecubeDeviceSettings->AddSpacer(space5);
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
-  main_sizer->Add(sbGamecubeIPLSettings, 0, wxEXPAND | wxALL, 5);
-  main_sizer->Add(sbGamecubeDeviceSettings, 0, wxEXPAND | wxALL, 5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(sbGamecubeIPLSettings, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(sbGamecubeDeviceSettings, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
 
   SetSizer(main_sizer);
 }

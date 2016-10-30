@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Boot/Boot.h"
@@ -17,6 +18,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/GeckoCode.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI_DeviceIPL.h"
@@ -52,7 +54,7 @@ void CBoot::Load_FST(bool _bIsWii)
 
   const DiscIO::IVolume& volume = DVDInterface::GetVolume();
 
-  // copy first 20 bytes of disc to start of Mem 1
+  // copy first 32 bytes of disc to start of Mem 1
   DVDRead(/*offset*/ 0, /*address*/ 0, /*length*/ 0x20, false);
 
   // copy of game id
@@ -237,6 +239,8 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
   PowerPC::ppcState.spr[SPR_DBAT1L] = 0x0000002a;
   PowerPC::ppcState.spr[SPR_DBAT3U] = 0xfff0001f;
   PowerPC::ppcState.spr[SPR_DBAT3L] = 0xfff00001;
+  PowerPC::DBATUpdated();
+  PowerPC::IBATUpdated();
   PC = 0x81200150;
   return true;
 }
@@ -299,7 +303,7 @@ bool CBoot::BootUp()
     }
 
     // Scan for common HLE functions
-    if (_StartupPara.bSkipIdle && _StartupPara.bHLE_BS2 && !_StartupPara.bEnableDebugging)
+    if (_StartupPara.bHLE_BS2 && !_StartupPara.bEnableDebugging)
     {
       PPCAnalyst::FindFunctions(0x80004000, 0x811fffff, &g_symbolDB);
       SignatureDB db;
@@ -377,6 +381,8 @@ bool CBoot::BootUp()
       PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
       PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
       PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+      PowerPC::DBATUpdated();
+      PowerPC::IBATUpdated();
 
       dolLoader.Load();
       PC = dolLoader.GetEntryPoint();
@@ -477,6 +483,9 @@ bool CBoot::BootUp()
 
   // Not part of the binary itself, but either we or Gecko OS might insert
   // this, and it doesn't clear the icache properly.
-  HLE::Patch(0x800018a8, "GeckoCodehandler");
+  HLE::Patch(Gecko::ENTRY_POINT, "GeckoCodehandler");
+  // This has to always be installed even if cheats are not enabled because of the possiblity of
+  // loading a savestate where PC is inside the code handler while cheats are disabled.
+  HLE::Patch(Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
   return true;
 }

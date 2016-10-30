@@ -5,6 +5,7 @@ import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.settings.IntSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
+import org.dolphinemu.dolphinemu.model.settings.StringSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.HeaderSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
@@ -137,6 +138,7 @@ public final class SettingsFragmentPresenter
 		Setting dualCore = null;
 		Setting overclockEnable = null;
 		Setting overclock = null;
+		IntSetting videoBackend = new IntSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, getVideoBackendValue());
 		Setting continuousScan = null;
 		Setting wiimoteSpeaker = null;
 
@@ -158,10 +160,17 @@ public final class SettingsFragmentPresenter
 		}
 
 		// TODO Set default value for cpuCore based on arch.
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_CPU_CORE, SettingsFile.SECTION_CORE, R.string.cpu_core, 0, R.array.string_emu_cores, R.array.int_emu_cores, 4, cpuCore));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_CPU_CORE, SettingsFile.SECTION_CORE, R.string.cpu_core, 0, R.array.emuCoresEntries, R.array.emuCoresValues, 4, cpuCore));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_DUAL_CORE, SettingsFile.SECTION_CORE, R.string.dual_core, R.string.dual_core_descrip, true, dualCore));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_OVERCLOCK_ENABLE, SettingsFile.SECTION_CORE, R.string.overclock_enable, R.string.overclock_enable_description, false, overclockEnable));
 		sl.add(new SliderSetting(SettingsFile.KEY_OVERCLOCK_PERCENT, SettingsFile.SECTION_CORE, R.string.overclock_title, 0, 400, "%", 100, overclock));
+
+		// While it doesn't seem appropriate to store the video backend with the CPU settings, the video
+		// backend is stored in the main INI, which can't be changed by the graphics settings page, so
+		// we have to put it here.
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_VIDEO_BACKEND_INDEX, SettingsFile.SECTION_CORE, R.string.video_backend, R.string.video_backend_descrip,
+		       R.array.videoBackendEntries, R.array.videoBackendValues, 0, videoBackend));
+
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SCAN, SettingsFile.SECTION_CORE, R.string.wiimote_scanning, R.string.wiimote_scanning_description, true, continuousScan));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_WIIMOTE_SPEAKER, SettingsFile.SECTION_CORE, R.string.wiimote_speaker, R.string.wiimote_speaker_description, true, wiimoteSpeaker));
 	}
@@ -261,10 +270,10 @@ public final class SettingsFragmentPresenter
 		Setting skipEFB = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_SKIP_EFB);
 		Setting ignoreFormat = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_IGNORE_FORMAT);
 		Setting efbToTexture = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_EFB_TEXTURE);
-		Setting texCacheAccuracy = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_TEXCACHE_ACCURACY);
+		Setting texCacheAccuracy = mSettings.get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_TEXCACHE_ACCURACY);
 		IntSetting xfb = new IntSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_HACKS, xfbValue);
 		Setting fastDepth = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_FAST_DEPTH);
-		Setting aspectRatio = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_ASPECT_RATIO);
+		Setting aspectRatio = mSettings.get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_ASPECT_RATIO);
 
 		sl.add(new HeaderSetting(null, null, R.string.embedded_frame_buffer, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SKIP_EFB, SettingsFile.SECTION_GFX_HACKS, R.string.skip_efb_access, R.string.skip_efb_access_descrip, false, skipEFB));
@@ -272,14 +281,14 @@ public final class SettingsFragmentPresenter
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_EFB_TEXTURE, SettingsFile.SECTION_GFX_HACKS, R.string.efb_copy_method, R.string.efb_copy_method_descrip, true, efbToTexture));
 
 		sl.add(new HeaderSetting(null, null, R.string.texture_cache, 0));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_TEXCACHE_ACCURACY, SettingsFile.SECTION_GFX_HACKS, R.string.texture_cache_accuracy, R.string.texture_cache_accuracy_descrip, R.array.textureCacheAccuracyEntries, R.array.textureCacheAccuracyValues, 128, texCacheAccuracy));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_TEXCACHE_ACCURACY, SettingsFile.SECTION_GFX_SETTINGS, R.string.texture_cache_accuracy, R.string.texture_cache_accuracy_descrip, R.array.textureCacheAccuracyEntries, R.array.textureCacheAccuracyValues, 128, texCacheAccuracy));
 
 		sl.add(new HeaderSetting(null, null, R.string.external_frame_buffer, 0));
 		sl.add(new SingleChoiceSetting(SettingsFile.KEY_XFB_METHOD, SettingsFile.SECTION_GFX_HACKS, R.string.external_frame_buffer, R.string.external_frame_buffer_descrip, R.array.externalFrameBufferEntries, R.array.externalFrameBufferValues, 0, xfb));
 
 		sl.add(new HeaderSetting(null, null, R.string.other, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_FAST_DEPTH, SettingsFile.SECTION_GFX_HACKS, R.string.fast_depth_calculation, R.string.fast_depth_calculation_descrip, true, fastDepth));
-		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_HACKS, R.string.aspect_ratio, R.string.aspect_ratio_descrip, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
+		sl.add(new SingleChoiceSetting(SettingsFile.KEY_ASPECT_RATIO, SettingsFile.SECTION_GFX_SETTINGS, R.string.aspect_ratio, R.string.aspect_ratio_descrip, R.array.aspectRatioEntries, R.array.aspectRatioValues, 0, aspectRatio));
 	}
 
 	private void addGcAdapterSettings(ArrayList<SettingsItem> sl, int gcPadNumber)
@@ -289,6 +298,32 @@ public final class SettingsFragmentPresenter
 
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, SettingsFile.SECTION_CORE, R.string.gc_adapter_rumble, R.string.gc_adapter_rumble_description, false, rumble));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber, SettingsFile.SECTION_CORE, R.string.gc_adapter_bongos, R.string.gc_adapter_bongos_description, false, bongos));
+	}
+
+	private int getVideoBackendValue()
+	{
+		int videoBackendValue;
+
+		try
+		{
+			String videoBackend = ((StringSetting)mSettings.get(SettingsFile.SECTION_CORE).getSetting(SettingsFile.KEY_VIDEO_BACKEND)).getValue();
+			if (videoBackend.equals("OGL"))
+				videoBackendValue = 0;
+			else if (videoBackend.equals("Vulkan"))
+				videoBackendValue = 1;
+			else if (videoBackend.equals("Software"))
+				videoBackendValue = 2;
+			else if (videoBackend.equals("Null"))
+				videoBackendValue = 3;
+			else
+				videoBackendValue = 0;
+		}
+		catch (NullPointerException ex)
+		{
+			videoBackendValue = 0;
+		}
+
+		return videoBackendValue;
 	}
 
 	private int getXfbValue()

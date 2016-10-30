@@ -12,6 +12,9 @@ void JitILBase::psq_st(UGeckoInstruction inst)
   JITDISABLE(bJITLoadStorePairedOff);
   FALLBACK_IF(jo.memcheck || inst.W);
 
+  // For performance, the AsmCommon routines assume address translation is on.
+  FALLBACK_IF(!UReg_MSR(MSR).DR);
+
   IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12);
   IREmitter::InstLoc val;
 
@@ -31,6 +34,9 @@ void JitILBase::psq_l(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITLoadStorePairedOff);
   FALLBACK_IF(jo.memcheck || inst.W);
+
+  // For performance, the AsmCommon routines assume address translation is on.
+  FALLBACK_IF(!UReg_MSR(MSR).DR);
 
   IREmitter::InstLoc addr = ibuild.EmitIntConst(inst.SIMM_12);
   IREmitter::InstLoc val;

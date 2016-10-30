@@ -20,7 +20,6 @@ extern "C" {
 #include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"  //for TargetRefreshRate
 #include "Core/Movie.h"
@@ -37,17 +36,22 @@ static AVStream* s_stream = nullptr;
 static AVFrame* s_src_frame = nullptr;
 static AVFrame* s_scaled_frame = nullptr;
 static AVPixelFormat s_pix_fmt = AV_PIX_FMT_BGR24;
-static int s_bytes_per_pixel;
 static SwsContext* s_sws_context = nullptr;
 static int s_width;
 static int s_height;
 static u64 s_last_frame;
+static bool s_last_frame_is_valid = false;
 static bool s_start_dumping = false;
+static bool s_stop_dumping = false;
 static u64 s_last_pts;
 static int s_current_width;
 static int s_current_height;
 static int s_file_index = 0;
-static AVIDump::DumpFormat s_current_format;
+static const u8* s_stored_frame_data;
+static int s_stored_frame_width;
+static int s_stored_frame_height;
+static int s_stored_frame_stride;
+static u64 s_stored_frame_ticks;
 
 static void InitAVCodec()
 {
@@ -59,28 +63,19 @@ static void InitAVCodec()
   }
 }
 
-bool AVIDump::Start(int w, int h, DumpFormat format)
+bool AVIDump::Start(int w, int h)
 {
-  if (format == DumpFormat::FORMAT_BGR)
-  {
-    s_pix_fmt = AV_PIX_FMT_BGR24;
-    s_bytes_per_pixel = 3;
-  }
-  else
-  {
-    s_pix_fmt = AV_PIX_FMT_RGBA;
-    s_bytes_per_pixel = 4;
-  }
-
-  s_current_format = format;
+  s_pix_fmt = AV_PIX_FMT_RGBA;
 
   s_width = w;
   s_height = h;
   s_current_width = w;
   s_current_height = h;
 
-  s_last_frame = CoreTiming::GetTicks();
+  s_last_frame_is_valid = false;
   s_last_pts = 0;
+
+  s_stop_dumping = false;
 
   InitAVCodec();
   bool success = CreateFile();
@@ -175,11 +170,18 @@ static void PreparePacket(AVPacket* pkt)
   pkt->size = 0;
 }
 
-void AVIDump::AddFrame(const u8* data, int width, int height)
+void AVIDump::AddFrame(const u8* data, int width, int height, int stride, u64 ticks)
 {
-  CheckResolution(width, height);
+  // Store current frame data in case frame dumping stops before next frame update,
+  // but make sure that you don't store the last stored frame and check the resolution upon
+  // closing the file or else you store recursion, and dolphins don't like recursion.
+  if (!s_stop_dumping)
+  {
+    StoreFrameData(data, width, height, stride, ticks);
+    CheckResolution(width, height);
+  }
   s_src_frame->data[0] = const_cast<u8*>(data);
-  s_src_frame->linesize[0] = width * s_bytes_per_pixel;
+  s_src_frame->linesize[0] = stride;
   s_src_frame->format = s_pix_fmt;
   s_src_frame->width = s_width;
   s_src_frame->height = s_height;
@@ -204,15 +206,20 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
   // Check to see if the first frame being dumped is the first frame of output from the emulator.
   // This prevents an issue with starting dumping later in emulation from placing the frames
   // incorrectly.
+  if (!s_last_frame_is_valid)
+  {
+    s_last_frame = ticks;
+    s_last_frame_is_valid = true;
+  }
   if (!s_start_dumping && Movie::GetCurrentFrame() < 1)
   {
-    delta = CoreTiming::GetTicks();
+    delta = ticks;
     last_pts = AV_NOPTS_VALUE;
     s_start_dumping = true;
   }
   else
   {
-    delta = CoreTiming::GetTicks() - s_last_frame;
+    delta = ticks - s_last_frame;
     last_pts = (s_last_pts * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
   }
   u64 pts_in_ticks = s_last_pts + delta;
@@ -220,7 +227,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
       (pts_in_ticks * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
   if (s_scaled_frame->pts != last_pts)
   {
-    s_last_frame = CoreTiming::GetTicks();
+    s_last_frame = ticks;
     s_last_pts = pts_in_ticks;
     error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
   }
@@ -252,6 +259,10 @@ void AVIDump::AddFrame(const u8* data, int width, int height)
 
 void AVIDump::Stop()
 {
+  s_stop_dumping = true;
+  // Write the last stored frame just in case frame dumping stops before the next frame update
+  AddFrame(s_stored_frame_data, s_stored_frame_width, s_stored_frame_height, s_stored_frame_stride,
+           s_stored_frame_ticks);
   av_write_trailer(s_format_context);
   CloseFile();
   s_file_index = 0;
@@ -291,7 +302,7 @@ void AVIDump::CloseFile()
 
 void AVIDump::DoState()
 {
-  s_last_frame = CoreTiming::GetTicks();
+  s_last_frame_is_valid = false;
 }
 
 void AVIDump::CheckResolution(int width, int height)
@@ -306,8 +317,17 @@ void AVIDump::CheckResolution(int width, int height)
     int temp_file_index = s_file_index;
     Stop();
     s_file_index = temp_file_index + 1;
-    Start(width, height, s_current_format);
+    Start(width, height);
     s_current_width = width;
     s_current_height = height;
   }
+}
+
+void AVIDump::StoreFrameData(const u8* data, int width, int height, int stride, u64 ticks)
+{
+  s_stored_frame_data = data;
+  s_stored_frame_width = width;
+  s_stored_frame_height = height;
+  s_stored_frame_stride = stride;
+  s_stored_frame_ticks = ticks;
 }

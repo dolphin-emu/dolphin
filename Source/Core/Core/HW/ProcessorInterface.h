@@ -76,5 +76,6 @@ void SetInterrupt(u32 _causemask, bool _bSet = true);
 
 // Thread-safe func which sets and clears reset button state automagically
 void ResetButton_Tap();
+void PowerButton_Tap();
 
 }  // namespace ProcessorInterface

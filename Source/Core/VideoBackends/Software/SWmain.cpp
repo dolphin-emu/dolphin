@@ -19,7 +19,6 @@
 
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/OnScreenDisplay.h"
-#include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -47,10 +46,12 @@ public:
 class TextureCache : public TextureCacheBase
 {
 public:
-  void CompileShaders() override{};
-  void DeleteShaders() override{};
+  bool CompileShaders() override { return true; }
+  void DeleteShaders() override {}
   void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
-                      TlutFormat format) override{};
+                      TlutFormat format) override
+  {
+  }
   void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
                u32 memory_stride, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
                bool isIntensity, bool scaleByHalf) override
@@ -130,6 +131,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsEarlyZ = true;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = false;
+  g_Config.backend_info.bSupportsMultithreading = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};

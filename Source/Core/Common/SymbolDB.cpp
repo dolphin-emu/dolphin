@@ -41,7 +41,7 @@ Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
 {
   for (auto& func : functions)
   {
-    if (func.second.name == name)
+    if (func.second.function_name == name)
       return &func.second;
   }
 

@@ -17,7 +17,7 @@ class CBlobBigEndianReader;
 class WiiWAD
 {
 public:
-  WiiWAD(const std::string& name);
+  explicit WiiWAD(const std::string& name);
   ~WiiWAD();
 
   bool IsValid() const { return m_valid; }
@@ -28,8 +28,6 @@ public:
   const std::vector<u8>& GetFooter() const { return m_footer; }
 private:
   bool ParseWAD(IBlobReader& reader);
-  static std::vector<u8> CreateWADEntry(IBlobReader& reader, u32 size, u64 offset);
-  static bool IsWiiWAD(const CBlobBigEndianReader& reader);
 
   bool m_valid;
 

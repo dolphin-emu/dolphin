@@ -545,18 +545,18 @@ IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::IOCtlV(u32 CommandAddress)
              CommandBuffer.NumberInBuffer, CommandBuffer.NumberPayloadBuffer);
     for (u32 i = 0; i < CommandBuffer.NumberInBuffer; ++i)
     {
-      INFO_LOG(WII_IPC_NET, "in %i addr %x size %i", i, CommandBuffer.InBuffer.at(i).m_Address,
-               CommandBuffer.InBuffer.at(i).m_Size);
-      INFO_LOG(WII_IPC_NET, "%s",
-               ArrayToString(Memory::GetPointer(CommandBuffer.InBuffer.at(i).m_Address),
-                             CommandBuffer.InBuffer.at(i).m_Size)
-                   .c_str());
+      DEBUG_LOG(WII_IPC_NET, "in %i addr %x size %i", i, CommandBuffer.InBuffer.at(i).m_Address,
+                CommandBuffer.InBuffer.at(i).m_Size);
+      DEBUG_LOG(WII_IPC_NET, "%s",
+                ArrayToString(Memory::GetPointer(CommandBuffer.InBuffer.at(i).m_Address),
+                              CommandBuffer.InBuffer.at(i).m_Size)
+                    .c_str());
     }
     for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; ++i)
     {
-      INFO_LOG(WII_IPC_NET, "out %i addr %x size %i", i,
-               CommandBuffer.PayloadBuffer.at(i).m_Address,
-               CommandBuffer.PayloadBuffer.at(i).m_Size);
+      DEBUG_LOG(WII_IPC_NET, "out %i addr %x size %i", i,
+                CommandBuffer.PayloadBuffer.at(i).m_Address,
+                CommandBuffer.PayloadBuffer.at(i).m_Size);
     }
     break;
   }
@@ -703,9 +703,9 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
     u32 fd = Memory::Read_U32(BufferIn);
     WiiSockMan& sm = WiiSockMan::GetInstance();
     ReturnValue = sm.DeleteSocket(fd);
-    DEBUG_LOG(WII_IPC_NET, "%s(%x) %x",
-              Command == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE", fd,
-              ReturnValue);
+    INFO_LOG(WII_IPC_NET, "%s(%x) %x",
+             Command == IOCTL_SO_ICMPCLOSE ? "IOCTL_SO_ICMPCLOSE" : "IOCTL_SO_CLOSE", fd,
+             ReturnValue);
     break;
   }
   case IOCTL_SO_ACCEPT:
@@ -1081,7 +1081,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
     {
       for (int i = 0; remoteHost->h_aliases[i]; ++i)
       {
-        INFO_LOG(WII_IPC_NET, "alias%i:%s", i, remoteHost->h_aliases[i]);
+        DEBUG_LOG(WII_IPC_NET, "alias%i:%s", i, remoteHost->h_aliases[i]);
       }
 
       for (int i = 0; remoteHost->h_addr_list[i]; ++i)
@@ -1488,7 +1488,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
                ip_info.length, ip_info.addr_family);
     }
 
-    DEBUG_LOG(WII_IPC_NET, "IOCTLV_SO_ICMPPING %x", ip_info.ip);
+    INFO_LOG(WII_IPC_NET, "IOCTLV_SO_ICMPPING %x", ip_info.ip);
 
     sockaddr_in addr;
     addr.sin_family = AF_INET;

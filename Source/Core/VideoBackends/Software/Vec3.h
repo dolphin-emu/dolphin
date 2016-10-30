@@ -7,8 +7,6 @@
 #include <cmath>
 #include <cstdlib>
 
-#include "Common/ChunkFile.h"
-
 class Vec3
 {
 public:

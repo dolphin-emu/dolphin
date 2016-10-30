@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
+#include <limits>
 #include <string>
 
 #include <wx/button.h>
@@ -9,57 +11,35 @@
 #include <wx/choice.h>
 #include <wx/gbsizer.h>
 #include <wx/language.h>
+#include <wx/msgdlg.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
+#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/Config/InterfaceConfigPane.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/InputConfigDiag.h"
-#include "DolphinWX/Main.h"
 #include "DolphinWX/WxUtils.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include "DolphinWX/X11Utils.h"
 #endif
 
-static const wxLanguage language_ids[] = {
-    wxLANGUAGE_DEFAULT,
+static const std::array<std::string, 29> language_ids{{
+    "",
 
-    wxLANGUAGE_MALAY,
-    wxLANGUAGE_CATALAN,
-    wxLANGUAGE_CZECH,
-    wxLANGUAGE_DANISH,
-    wxLANGUAGE_GERMAN,
-    wxLANGUAGE_ENGLISH,
-    wxLANGUAGE_SPANISH,
-    wxLANGUAGE_FRENCH,
-    wxLANGUAGE_CROATIAN,
-    wxLANGUAGE_ITALIAN,
-    wxLANGUAGE_HUNGARIAN,
-    wxLANGUAGE_DUTCH,
-    wxLANGUAGE_NORWEGIAN_BOKMAL,
-    wxLANGUAGE_POLISH,
-    wxLANGUAGE_PORTUGUESE,
-    wxLANGUAGE_PORTUGUESE_BRAZILIAN,
-    wxLANGUAGE_ROMANIAN,
-    wxLANGUAGE_SERBIAN,
-    wxLANGUAGE_SWEDISH,
-    wxLANGUAGE_TURKISH,
+    "ms", "ca", "cs",    "da", "de", "en", "es",    "fr",    "hr", "it", "hu", "nl",
+    "nb",  // wxWidgets won't accept "no"
+    "pl", "pt", "pt_BR", "ro", "sr", "sv", "tr",
 
-    wxLANGUAGE_GREEK,
-    wxLANGUAGE_RUSSIAN,
-    wxLANGUAGE_ARABIC,
-    wxLANGUAGE_FARSI,
-    wxLANGUAGE_KOREAN,
-    wxLANGUAGE_JAPANESE,
-    wxLANGUAGE_CHINESE_SIMPLIFIED,
-    wxLANGUAGE_CHINESE_TRADITIONAL,
-};
+    "el", "ru", "ar",    "fa", "ko", "ja", "zh_CN", "zh_TW",
+}};
 
 InterfaceConfigPane::InterfaceConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
@@ -136,27 +116,36 @@ void InterfaceConfigPane::InitializeGUI()
   m_interface_lang_choice->SetToolTip(
       _("Change the language of the user interface.\nRequires restart."));
 
-  wxGridBagSizer* const language_and_theme_grid_sizer = new wxGridBagSizer();
+  const int space5 = FromDIP(5);
+
+  wxGridBagSizer* const language_and_theme_grid_sizer = new wxGridBagSizer(space5, space5);
   language_and_theme_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Language:")),
-                                     wxGBPosition(0, 0), wxDefaultSpan,
-                                     wxALIGN_CENTER_VERTICAL | wxALL, 5);
+                                     wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   language_and_theme_grid_sizer->Add(m_interface_lang_choice, wxGBPosition(0, 1), wxDefaultSpan,
-                                     wxALL, 5);
+                                     wxALIGN_CENTER_VERTICAL);
   language_and_theme_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Theme:")),
-                                     wxGBPosition(1, 0), wxDefaultSpan,
-                                     wxALIGN_CENTER_VERTICAL | wxALL, 5);
-  language_and_theme_grid_sizer->Add(m_theme_choice, wxGBPosition(1, 1), wxDefaultSpan, wxALL, 5);
+                                     wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  language_and_theme_grid_sizer->Add(m_theme_choice, wxGBPosition(1, 1), wxDefaultSpan,
+                                     wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const main_static_box_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Interface Settings"));
-  main_static_box_sizer->Add(m_confirm_stop_checkbox, 0, wxALL, 5);
-  main_static_box_sizer->Add(m_panic_handlers_checkbox, 0, wxALL, 5);
-  main_static_box_sizer->Add(m_osd_messages_checkbox, 0, wxALL, 5);
-  main_static_box_sizer->Add(m_pause_focus_lost_checkbox, 0, wxALL, 5);
-  main_static_box_sizer->Add(language_and_theme_grid_sizer, 0, wxEXPAND | wxALL, 0);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_confirm_stop_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_panic_handlers_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_osd_messages_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_pause_focus_lost_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(language_and_theme_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
 
   wxBoxSizer* const main_box_sizer = new wxBoxSizer(wxVERTICAL);
-  main_box_sizer->Add(main_static_box_sizer, 0, wxEXPAND | wxALL, 5);
+  main_box_sizer->AddSpacer(space5);
+  main_box_sizer->Add(main_static_box_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_box_sizer->AddSpacer(space5);
 
   SetSizer(main_box_sizer);
 }
@@ -170,14 +159,26 @@ void InterfaceConfigPane::LoadGUIValues()
   m_osd_messages_checkbox->SetValue(startup_params.bOnScreenDisplayMessages);
   m_pause_focus_lost_checkbox->SetValue(SConfig::GetInstance().m_PauseOnFocusLost);
 
-  for (size_t i = 0; i < sizeof(language_ids) / sizeof(wxLanguage); i++)
+  const std::string exact_language = SConfig::GetInstance().m_InterfaceLanguage;
+  const std::string loose_language = exact_language.substr(0, exact_language.find('_'));
+  size_t exact_match_index = std::numeric_limits<size_t>::max();
+  size_t loose_match_index = std::numeric_limits<size_t>::max();
+  for (size_t i = 0; i < language_ids.size(); i++)
   {
-    if (language_ids[i] == SConfig::GetInstance().m_InterfaceLanguage)
+    if (language_ids[i] == exact_language)
     {
-      m_interface_lang_choice->SetSelection(i);
+      exact_match_index = i;
       break;
     }
+    else if (language_ids[i] == loose_language)
+    {
+      loose_match_index = i;
+    }
   }
+  if (exact_match_index != std::numeric_limits<size_t>::max())
+    m_interface_lang_choice->SetSelection(exact_match_index);
+  else if (loose_match_index != std::numeric_limits<size_t>::max())
+    m_interface_lang_choice->SetSelection(loose_match_index);
 
   LoadThemes();
 }
@@ -221,7 +222,10 @@ void InterfaceConfigPane::OnInterfaceLanguageChoiceChanged(wxCommandEvent& event
 {
   if (SConfig::GetInstance().m_InterfaceLanguage !=
       language_ids[m_interface_lang_choice->GetSelection()])
-    SuccessAlertT("You must restart Dolphin in order for the change to take effect.");
+  {
+    wxMessageBox(_("You must restart Dolphin in order for the change to take effect."),
+                 _("Restart Required"), wxOK | wxICON_INFORMATION, this);
+  }
 
   SConfig::GetInstance().m_InterfaceLanguage =
       language_ids[m_interface_lang_choice->GetSelection()];
@@ -236,6 +240,7 @@ void InterfaceConfigPane::OnThemeSelected(wxCommandEvent& event)
 {
   SConfig::GetInstance().theme_name = WxStrToStr(m_theme_choice->GetStringSelection());
 
-  main_frame->InitBitmaps();
-  main_frame->UpdateGameList();
+  wxCommandEvent theme_event{DOLPHIN_EVT_RELOAD_THEME_BITMAPS};
+  theme_event.SetEventObject(this);
+  ProcessEvent(theme_event);
 }

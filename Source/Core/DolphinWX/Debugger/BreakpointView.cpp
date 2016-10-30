@@ -25,7 +25,7 @@ CBreakPointView::CBreakPointView(wxWindow* parent, const wxWindowID id)
   Refresh();
 }
 
-void CBreakPointView::Update()
+void CBreakPointView::Repopulate()
 {
   ClearAll();
 
@@ -63,7 +63,7 @@ void CBreakPointView::Update()
   {
     wxString memcheck_on_str = StrToWxStr((rMemCheck.Break || rMemCheck.Log) ? "on" : " ");
     int item = InsertItem(0, memcheck_on_str);
-    SetItem(item, 1, StrToWxStr("MC"));
+    SetItem(item, 1, StrToWxStr("MBP"));
 
     Symbol* symbol = g_symbolDB.GetSymbolFromAddr(rMemCheck.StartAddress);
     if (symbol)
@@ -98,6 +98,6 @@ void CBreakPointView::DeleteCurrentSelection()
     u32 Address = (u32)GetItemData(item);
     PowerPC::breakpoints.Remove(Address);
     PowerPC::memchecks.Remove(Address);
-    Update();
+    Repopulate();
   }
 }

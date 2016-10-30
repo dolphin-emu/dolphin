@@ -2,16 +2,21 @@ package org.dolphinemu.dolphinemu.activities;
 
 import android.app.Activity;
 import android.app.ActivityOptions;
+import android.app.AlertDialog;
 import android.app.Fragment;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.hardware.usb.UsbManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
+import android.preference.PreferenceManager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.InputDevice;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
@@ -20,6 +25,9 @@ import android.view.ViewTreeObserver;
 import android.widget.FrameLayout;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.SeekBar;
+import android.widget.TextView;
+import android.widget.Toast;
 
 import com.squareup.picasso.Callback;
 import com.squareup.picasso.Picasso;
@@ -48,12 +56,16 @@ public final class EmulationActivity extends AppCompatActivity
 
 	private String mSubmenuFragmentTag;
 
+	private SharedPreferences mPreferences;
+
 	// So that MainActivity knows which view to invalidate before the return animation.
 	private int mPosition;
 
 	private boolean mDeviceHasTouchScreen;
 	private boolean mSystemUiVisible;
 	private boolean mMenuVisible;
+
+	private static boolean mIsGameCubeGame;
 
 	/**
 	 * Handlers are a way to pass a message to an Activity telling it to do something
@@ -109,8 +121,7 @@ public final class EmulationActivity extends AppCompatActivity
 								getSupportActionBar().hide();
 							}
 						}
-					}
-			);
+					});
 		}
 		else
 		{
@@ -209,6 +220,10 @@ public final class EmulationActivity extends AppCompatActivity
 				menuFragment.setTitleText(mSelectedTitle);
 			}
 		}
+
+		mPreferences = PreferenceManager.getDefaultSharedPreferences(this);
+
+		mIsGameCubeGame = (NativeLibrary.GetPlatform(path) == 0);
 	}
 
 	@Override
@@ -368,7 +383,14 @@ public final class EmulationActivity extends AppCompatActivity
 	public boolean onCreateOptionsMenu(Menu menu)
 	{
 		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.menu_emulation, menu);
+		if (mIsGameCubeGame)
+		{
+			getMenuInflater().inflate(R.menu.menu_emulation, menu);
+		}
+		else
+		{
+			getMenuInflater().inflate(R.menu.menu_emulation_wii, menu);
+		}
 		return true;
 	}
 
@@ -383,19 +405,10 @@ public final class EmulationActivity extends AppCompatActivity
 	{
 		switch (id)
 		{
-			// Enable/Disable input overlay.
-			case R.id.menu_emulation_input_overlay:
-			{
+			// Edit the placement of the controls
+			case R.id.menu_emulation_edit_layout:
 				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
-						.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
-
-				emulationFragment.toggleInputOverlayVisibility();
-
-				return;
-			}
-
-			case R.id.menu_emulation_configure_controls:
-				EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager().findFragmentById(R.id.frame_emulation_fragment);
+						.findFragmentById(R.id.frame_emulation_fragment);
 				if (emulationFragment.isConfiguringControls())
 				{
 					emulationFragment.stopConfiguringControls();
@@ -406,6 +419,197 @@ public final class EmulationActivity extends AppCompatActivity
 				}
 				break;
 
+			// Enable/Disable specific buttons or the entire input overlay.
+			case R.id.menu_emulation_toggle_controls:
+			{
+				final SharedPreferences.Editor editor = mPreferences.edit();
+				boolean[] enabledButtons = new boolean[14];
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(R.string.emulation_toggle_controls);
+				if (mIsGameCubeGame || mPreferences.getInt("wiiController", 3) == 0)
+				{
+					for (int i = 0; i < enabledButtons.length; i++)
+					{
+						enabledButtons[i] = mPreferences.getBoolean("buttonToggleGc" + i, true);
+					}
+					builder.setMultiChoiceItems(R.array.gcpadButtons, enabledButtons,
+							new DialogInterface.OnMultiChoiceClickListener()
+							{
+								@Override
+								public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+								{
+									editor.putBoolean("buttonToggleGc" + indexSelected, isChecked);
+								}
+							});
+				}
+				else if (mPreferences.getInt("wiiController", 3) == 4)
+				{
+					for (int i = 0; i < enabledButtons.length; i++)
+					{
+						enabledButtons[i] = mPreferences.getBoolean("buttonToggleClassic" + i, true);
+					}
+					builder.setMultiChoiceItems(R.array.classicButtons, enabledButtons,
+							new DialogInterface.OnMultiChoiceClickListener()
+							{
+								@Override
+								public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+								{
+									editor.putBoolean("buttonToggleClassic" + indexSelected, isChecked);
+								}
+							});
+				}
+				else
+				{
+					for (int i = 0; i < enabledButtons.length; i++)
+					{
+						enabledButtons[i] = mPreferences.getBoolean("buttonToggleWii" + i, true);
+					}
+					if (mPreferences.getInt("wiiController", 3) == 3)
+					{
+						builder.setMultiChoiceItems(R.array.nunchukButtons, enabledButtons,
+								new DialogInterface.OnMultiChoiceClickListener()
+								{
+									@Override
+									public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+									{
+										editor.putBoolean("buttonToggleWii" + indexSelected, isChecked);
+									}
+								});
+					}
+					else
+					{
+						builder.setMultiChoiceItems(R.array.wiimoteButtons, enabledButtons,
+								new DialogInterface.OnMultiChoiceClickListener()
+								{
+									@Override
+									public void onClick(DialogInterface dialog, int indexSelected, boolean isChecked)
+									{
+										editor.putBoolean("buttonToggleWii" + indexSelected, isChecked);
+									}
+								});
+					}
+				}
+				builder.setNeutralButton(getString(R.string.emulation_toggle_all), new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i)
+					{
+						EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+						emulationFragment.toggleInputOverlayVisibility();
+					}
+				});
+				builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i)
+					{
+						editor.apply();
+
+						EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+						emulationFragment.refreshInputOverlay();
+					}
+				});
+
+				AlertDialog alertDialog = builder.create();
+				alertDialog.show();
+
+				return;
+			}
+
+			// Adjust the scale of the overlay controls.
+			case R.id.menu_emulation_adjust_scale:
+			{
+				LayoutInflater inflater = LayoutInflater.from(this);
+				View view = inflater.inflate(R.layout.dialog_seekbar, null);
+
+				final SeekBar seekbar = (SeekBar) view.findViewById(R.id.seekbar);
+				final TextView value = (TextView) view.findViewById(R.id.text_value);
+				final TextView units = (TextView) view.findViewById(R.id.text_units);
+
+				seekbar.setMax(150);
+				seekbar.setProgress(mPreferences.getInt("controlScale", 50));
+				seekbar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener()
+				{
+					public void onStartTrackingTouch(SeekBar seekBar)
+					{
+						// Do nothing
+					}
+					public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser)
+					{
+						value.setText(String.valueOf(progress + 50));
+					}
+					public void onStopTrackingTouch(SeekBar seekBar)
+					{
+						// Do nothing
+					}
+				});
+
+				value.setText(String.valueOf(seekbar.getProgress() + 50));
+				units.setText("%");
+
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(R.string.emulation_control_scale);
+				builder.setView(view);
+				builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i)
+					{
+						SharedPreferences.Editor editor = mPreferences.edit();
+						editor.putInt("controlScale", seekbar.getProgress());
+						editor.apply();
+
+						EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+						emulationFragment.refreshInputOverlay();
+					}
+				});
+
+				AlertDialog alertDialog = builder.create();
+				alertDialog.show();
+
+				return;
+			}
+
+			// (Wii games only) Change the controller for the input overlay.
+			case R.id.menu_emulation_choose_controller:
+				final SharedPreferences.Editor editor = mPreferences.edit();
+				AlertDialog.Builder builder = new AlertDialog.Builder(this);
+				builder.setTitle(R.string.emulation_choose_controller);
+				builder.setSingleChoiceItems(R.array.controllersEntries, mPreferences.getInt("wiiController", 3),
+						new DialogInterface.OnClickListener()
+						{
+							@Override
+							public void onClick(DialogInterface dialog, int indexSelected)
+							{
+								editor.putInt("wiiController", indexSelected);
+
+								NativeLibrary.SetConfig("WiimoteNew.ini", "Wiimote1", "Extension",
+										getResources().getStringArray(R.array.controllersValues)[indexSelected]);
+							}
+						});
+				builder.setPositiveButton(getString(R.string.ok), new DialogInterface.OnClickListener()
+				{
+					@Override
+					public void onClick(DialogInterface dialogInterface, int i)
+					{
+						editor.apply();
+
+						EmulationFragment emulationFragment = (EmulationFragment) getFragmentManager()
+								.findFragmentByTag(EmulationFragment.FRAGMENT_TAG);
+						emulationFragment.refreshInputOverlay();
+
+						Toast.makeText(getApplication(), R.string.emulation_controller_changed, Toast.LENGTH_SHORT).show();
+					}
+				});
+
+				AlertDialog alertDialog = builder.create();
+				alertDialog.show();
+
+				return;
+
 			case R.id.menu_refresh_wiimotes:
 				NativeLibrary.RefreshWiimotes();
 				return;
@@ -415,7 +619,7 @@ public final class EmulationActivity extends AppCompatActivity
 				NativeLibrary.SaveScreenShot();
 				return;
 
-			// Quicksave / Load
+			// Quick save / load
 			case R.id.menu_quicksave:
 				NativeLibrary.SaveState(9);
 				return;
@@ -426,11 +630,17 @@ public final class EmulationActivity extends AppCompatActivity
 
 			// TV Menu only
 			case R.id.menu_emulation_save_root:
-				showMenu(SaveStateFragment.FRAGMENT_ID);
+				if (!mDeviceHasTouchScreen)
+				{
+					showMenu(SaveStateFragment.FRAGMENT_ID);
+				}
 				return;
 
 			case R.id.menu_emulation_load_root:
-				showMenu(LoadStateFragment.FRAGMENT_ID);
+				if (!mDeviceHasTouchScreen)
+				{
+					showMenu(LoadStateFragment.FRAGMENT_ID);
+				}
 				return;
 
 			// Save state slots
@@ -659,6 +869,11 @@ public final class EmulationActivity extends AppCompatActivity
 	public String getSelectedTitle()
 	{
 		return mSelectedTitle;
+	}
+
+	public static boolean isGameCubeGame()
+	{
+		return mIsGameCubeGame;
 	}
 
 	public static void launch(Activity activity, String path, String title, String screenshotPath, int position, View sharedView)

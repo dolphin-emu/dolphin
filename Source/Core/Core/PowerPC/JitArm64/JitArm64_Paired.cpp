@@ -85,13 +85,10 @@ void JitArm64::ps_mulsX(UGeckoInstruction inst)
   ARM64Reg VA = fpr.R(a, type);
   ARM64Reg VC = fpr.R(c, type);
   ARM64Reg VD = fpr.RW(d, type);
-  ARM64Reg V0 = fpr.GetReg();
 
-  m_float_emit.DUP(size, reg_encoder(V0), reg_encoder(VC), upper ? 1 : 0);
-  m_float_emit.FMUL(size, reg_encoder(VD), reg_encoder(VA), reg_encoder(V0));
+  m_float_emit.FMUL(size, reg_encoder(VD), reg_encoder(VA), reg_encoder(VC), upper ? 1 : 0);
 
   fpr.FixSinglePrecision(d);
-  fpr.Unlock(V0);
 }
 
 void JitArm64::ps_maddXX(UGeckoInstruction inst)
@@ -121,13 +118,11 @@ void JitArm64::ps_maddXX(UGeckoInstruction inst)
   switch (op5)
   {
   case 14:  // ps_madds0
-    m_float_emit.DUP(size, V0, VC, 0);
-    m_float_emit.FMUL(size, V0, V0, VA);
+    m_float_emit.FMUL(size, V0, VA, VC, 0);
     m_float_emit.FADD(size, VD, V0, VB);
     break;
   case 15:  // ps_madds1
-    m_float_emit.DUP(size, V0, VC, 1);
-    m_float_emit.FMUL(size, V0, V0, VA);
+    m_float_emit.FMUL(size, V0, VA, VC, 1);
     m_float_emit.FADD(size, VD, V0, VB);
     break;
   case 28:  // ps_msub

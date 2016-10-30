@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/Core.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
@@ -88,14 +89,14 @@ void Run()
       // If watchpoints are enabled, any instruction could be a breakpoint.
       if (PowerPC::GetMode() != PowerPC::MODE_INTERPRETER)
       {
-#ifndef ENABLE_MEM_CHECK
-        if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
-#endif
+        if (PowerPC::breakpoints.IsAddressBreakPoint(PC) || PowerPC::memchecks.HasAny())
         {
+          s_state = CPU_STEPPING;
           PowerPC::CoreMode old_mode = PowerPC::GetMode();
           PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
           PowerPC::SingleStep();
           PowerPC::SetMode(old_mode);
+          s_state = CPU_RUNNING;
         }
       }
 
@@ -279,8 +280,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
     bool success = s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::seconds(10),
                                                   [] { return !s_state_cpu_thread_active; });
     if (!success)
-      NOTICE_LOG(
-          POWERPC,
+      PanicAlert(
           "Abandoned CPU Thread synchronization in CPU::PauseAndLock! We'll probably crash now.");
 
     if (control_adjacent)

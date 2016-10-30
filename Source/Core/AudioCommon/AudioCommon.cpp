@@ -117,6 +117,30 @@ std::vector<std::string> GetSoundBackends()
   return backends;
 }
 
+bool SupportsDPL2Decoder(const std::string& backend)
+{
+#ifndef __APPLE__
+  if (backend == BACKEND_OPENAL)
+    return true;
+#endif
+  if (backend == BACKEND_PULSEAUDIO)
+    return true;
+  return false;
+}
+
+bool SupportsLatencyControl(const std::string& backend)
+{
+  return backend == BACKEND_OPENAL;
+}
+
+bool SupportsVolumeChanges(const std::string& backend)
+{
+  // FIXME: this one should ask the backend whether it supports it.
+  //       but getting the backend from string etc. is probably
+  //       too much just to enable/disable a stupid slider...
+  return backend == BACKEND_COREAUDIO || backend == BACKEND_OPENAL || backend == BACKEND_XAUDIO2;
+}
+
 void UpdateSoundStream()
 {
   if (g_sound_stream)

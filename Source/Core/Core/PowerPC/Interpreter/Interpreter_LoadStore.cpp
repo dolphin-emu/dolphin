@@ -336,14 +336,6 @@ void Interpreter::dcbi(UGeckoInstruction _inst)
   // should use icbi consistently, but games aren't portable.)
   u32 address = Helper_Get_EA_X(_inst);
   JitInterface::InvalidateICache(address & ~0x1f, 32, false);
-
-  // The following detects a situation where the game is writing to the dcache at the address being
-  // DMA'd. As we do not
-  // have dcache emulation, invalid data is being DMA'd causing audio glitches. The following code
-  // detects this and
-  // enables the DMA to complete instantly before the invalid data is written. Resident Evil 2 & 3
-  // trigger this.
-  DSP::FlushInstantDMA(address);
 }
 
 void Interpreter::dcbst(UGeckoInstruction _inst)

@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.ui.settings;
 
-
 import android.os.Bundle;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
@@ -58,23 +57,23 @@ public final class SettingsActivityPresenter
 					.subscribeOn(Schedulers.io())
 					.observeOn(AndroidSchedulers.mainThread())
 					.subscribe(new Action1<HashMap<String, SettingSection>>()
-							   {
-								   @Override
-								   public void call(HashMap<String, SettingSection> settingsBySection)
-								   {
-									   mSettingsBySection = settingsBySection;
-									   mView.onSettingsFileLoaded(settingsBySection);
-								   }
-							   },
-							new Action1<Throwable>()
-							{
-								@Override
-								public void call(Throwable throwable)
-								{
-									Log.error("[SettingsActivityPresenter] Error reading file " + filename + ".ini: "+ throwable.getMessage());
-									mView.onSettingsFileNotFound();
-								}
-							});
+					{
+						@Override
+						public void call(HashMap<String, SettingSection> settingsBySection)
+						{
+							mSettingsBySection = settingsBySection;
+							mView.onSettingsFileLoaded(settingsBySection);
+						}
+					},
+					new Action1<Throwable>()
+					{
+						@Override
+						public void call(Throwable throwable)
+						{
+							Log.error("[SettingsActivityPresenter] Error reading file " + filename + ".ini: "+ throwable.getMessage());
+							mView.onSettingsFileNotFound();
+						}
+					});
 		}
 		else
 		{
@@ -100,23 +99,22 @@ public final class SettingsActivityPresenter
 			SettingsFile.saveFile(mFileName, mSettingsBySection)
 					.subscribeOn(Schedulers.io())
 					.observeOn(AndroidSchedulers.mainThread())
-					.subscribe(
-							new Action1<Boolean>()
-							{
-								@Override
-								public void call(Boolean aBoolean)
-								{
-									mView.showToastMessage("Saved successfully to " + mFileName + ".ini");
-								}
-							},
-							new Action1<Throwable>()
-							{
-								@Override
-								public void call(Throwable throwable)
-								{
-									mView.showToastMessage("Error saving " + mFileName + ".ini: " + throwable.getMessage());
-								}
-							});
+					.subscribe(new Action1<Boolean>()
+					{
+						@Override
+						public void call(Boolean aBoolean)
+						{
+							mView.showToastMessage("Saved successfully to " + mFileName + ".ini");
+						}
+					},
+					new Action1<Throwable>()
+					{
+						@Override
+						public void call(Throwable throwable)
+						{
+							mView.showToastMessage("Error saving " + mFileName + ".ini: " + throwable.getMessage());
+						}
+					});
 		}
 	}
 

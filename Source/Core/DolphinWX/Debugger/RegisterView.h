@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
 #include <cstring>
 #include <wx/grid.h>
 
@@ -25,36 +27,43 @@
 // Interrupt Mask (PI)
 // Interrupt Cause(PI)
 
-#define NUM_SPECIALS 14
-
 class CRegTable : public wxGridTableBase
 {
 public:
-  CRegTable()
+  enum class FormatSpecifier
   {
-    memset(m_CachedRegs, 0, sizeof(m_CachedRegs));
-    memset(m_CachedSpecialRegs, 0, sizeof(m_CachedSpecialRegs));
-    memset(m_CachedFRegs, 0, sizeof(m_CachedFRegs));
-    memset(m_CachedRegHasChanged, 0, sizeof(m_CachedRegHasChanged));
-    memset(m_CachedSpecialRegHasChanged, 0, sizeof(m_CachedSpecialRegHasChanged));
-    memset(m_CachedFRegHasChanged, 0, sizeof(m_CachedFRegHasChanged));
-  }
+    Hex8,
+    Hex16,
+    Float,
+    Double,
+    UInt,
+    Int
+  };
 
+  CRegTable();
   int GetNumberCols() override { return 9; }
   int GetNumberRows() override { return 32 + NUM_SPECIALS; }
   bool IsEmptyCell(int row, int col) override { return row > 31 && col > 2; }
   wxString GetValue(int row, int col) override;
   void SetValue(int row, int col, const wxString&) override;
   wxGridCellAttr* GetAttr(int, int, wxGridCellAttr::wxAttrKind) override;
+  void SetRegisterFormat(int col, int row, FormatSpecifier specifier);
   void UpdateCachedRegs();
 
 private:
-  u32 m_CachedRegs[32];
-  u32 m_CachedSpecialRegs[NUM_SPECIALS];
-  u64 m_CachedFRegs[32][2];
-  bool m_CachedRegHasChanged[32];
-  bool m_CachedSpecialRegHasChanged[NUM_SPECIALS];
-  bool m_CachedFRegHasChanged[32][2];
+  static constexpr int NUM_SPECIALS = 14;
+
+  std::array<u32, 32> m_CachedRegs{};
+  std::array<u32, NUM_SPECIALS> m_CachedSpecialRegs{};
+  std::array<std::array<u64, 2>, 32> m_CachedFRegs{};
+  std::array<bool, 32> m_CachedRegHasChanged{};
+  std::array<bool, NUM_SPECIALS> m_CachedSpecialRegHasChanged{};
+  std::array<std::array<bool, 2>, 32> m_CachedFRegHasChanged{};
+  std::array<FormatSpecifier, 32> m_formatRegs{};
+  std::array<std::array<FormatSpecifier, 2>, 32> m_formatFRegs;
+
+  wxString FormatGPR(int reg_index);
+  wxString FormatFPR(int reg_index, int reg_part);
 
   DECLARE_NO_COPY_CLASS(CRegTable);
 };
@@ -63,13 +72,15 @@ class CRegisterView : public wxGrid
 {
 public:
   CRegisterView(wxWindow* parent, wxWindowID id = wxID_ANY);
-  void Update() override;
+  void Repopulate();
 
 private:
   void OnMouseDownR(wxGridEvent& event);
   void OnPopupMenu(wxCommandEvent& event);
 
   u32 m_selectedAddress = 0;
+  int m_selectedRow = 0;
+  int m_selectedColumn = 0;
 
   // Owned by wx. Deleted implicitly upon destruction.
   CRegTable* m_register_table;

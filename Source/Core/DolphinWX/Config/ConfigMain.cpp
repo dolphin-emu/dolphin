@@ -34,8 +34,10 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
   m_refresh_game_list_on_close = false;
 
   Bind(wxEVT_CLOSE_WINDOW, &CConfigMain::OnClose, this);
-  Bind(wxEVT_BUTTON, &CConfigMain::OnOk, this, wxID_OK);
+  Bind(wxEVT_BUTTON, &CConfigMain::OnCloseButton, this, wxID_CLOSE);
   Bind(wxDOLPHIN_CFG_REFRESH_LIST, &CConfigMain::OnSetRefreshGameListOnClose, this);
+
+  wxDialog::SetExtraStyle(GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
 
   CreateGUIControls();
 }
@@ -75,19 +77,24 @@ void CConfigMain::CreateGUIControls()
   Notebook->AddPage(wii_pane, _("Wii"));
   Notebook->AddPage(path_pane, _("Paths"));
   Notebook->AddPage(advanced_pane, _("Advanced"));
-  if (Core::g_want_determinism)
-    advanced_pane->Disable();
+
+  const int space5 = FromDIP(5);
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
-  main_sizer->Add(Notebook, 1, wxEXPAND | wxALL, 5);
-  main_sizer->Add(CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT | wxBOTTOM, 5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(Notebook, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(CreateButtonSizer(wxCLOSE), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
 
 #ifdef __APPLE__
   main_sizer->SetMinSize(550, 0);
 #else
-  main_sizer->SetMinSize(400, 0);
+  main_sizer->SetMinSize(FromDIP(400), 0);
 #endif
 
+  SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
+  SetLayoutAdaptationLevel(wxDIALOG_ADAPTATION_STANDARD_SIZER);
   SetSizerAndFit(main_sizer);
   Center();
   SetFocus();
@@ -101,7 +108,7 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED(event))
   SConfig::GetInstance().SaveSettings();
 }
 
-void CConfigMain::OnOk(wxCommandEvent& WXUNUSED(event))
+void CConfigMain::OnCloseButton(wxCommandEvent& WXUNUSED(event))
 {
   Close();
 }

@@ -12,11 +12,17 @@ NETBSD_USB_SRC = os/netbsd_usb.c
 WINDOWS_USB_SRC = os/poll_windows.c os/windows_usb.c libusb-1.0.rc libusb-1.0.def
 WINCE_USB_SRC = os/wince_usb.c os/wince_usb.h
 
+DIST_SUBDIRS = 
+
 EXTRA_DIST = $(LINUX_USBFS_SRC) $(DARWIN_USB_SRC) $(OPENBSD_USB_SRC) \
 	$(NETBSD_USB_SRC) $(WINDOWS_USB_SRC) $(WINCE_USB_SRC) \
 	$(POSIX_POLL_SRC) \
 	os/threads_posix.c os/threads_windows.c \
 	os/linux_udev.c os/linux_netlink.c
+
+dist-hook:
+	cp -r os/haiku $(distdir)/os/haiku
+	rm -rf $(distdir)/os/haiku/autom4te.cache
 
 if OS_LINUX
 
@@ -41,6 +47,11 @@ endif
 
 if OS_NETBSD
 OS_SRC = $(NETBSD_USB_SRC) $(POSIX_POLL_SRC)
+endif
+
+if OS_HAIKU
+OS_SRC = $(POSIX_POLL_SRC)
+SUBDIRS = os/haiku
 endif
 
 if OS_WINDOWS
@@ -70,6 +81,10 @@ libusb_1_0_la_SOURCES = libusbi.h core.c descriptor.c io.c strerror.c sync.c \
 	os/linux_usbfs.h os/darwin_usb.h os/windows_usb.h os/windows_common.h \
 	hotplug.h hotplug.c $(THREADS_SRC) $(OS_SRC) \
 	os/poll_posix.h os/poll_windows.h
+
+if OS_HAIKU
+libusb_1_0_la_LIBADD = os/haiku/libhaikuusb.la
+endif
 
 hdrdir = $(includedir)/libusb-1.0
 hdr_HEADERS = libusb.h

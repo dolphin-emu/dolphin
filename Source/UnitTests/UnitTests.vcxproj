@@ -81,6 +81,9 @@
     <ProjectReference Include="$(CoreDir)VideoBackends\Null\Null.vcxproj">
       <Project>{53A5391B-737E-49A8-BC8F-312ADA00736F}</Project>
     </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
+      <Project>{29F29A19-F141-45AD-9679-5A2923B49DA3}</Project>
+    </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\D3D12\D3D12.vcxproj">
       <Project>{570215b7-e32f-4438-95ae-c8d955f9fca3}</Project>
     </ProjectReference>

@@ -154,6 +154,9 @@ struct CodeBlock
 
   // Which GQRs this block modifies, if any.
   BitSet8 m_gqr_modified;
+
+  // Which GPRs this block reads from before defining, if any.
+  BitSet32 m_gpr_inputs;
 };
 
 class PPCAnalyzer

@@ -22,11 +22,9 @@ InputConfig* GetConfig()
 void Shutdown()
 {
   s_config.ClearControllers();
-
-  g_controller_interface.Shutdown();
 }
 
-void Initialize(void* const hwnd)
+void Initialize()
 {
   if (s_config.ControllersNeedToBeCreated())
   {
@@ -34,7 +32,6 @@ void Initialize(void* const hwnd)
       s_config.CreateController<GCPad>(i);
   }
 
-  g_controller_interface.Initialize(hwnd);
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // Load the saved controller config
@@ -46,17 +43,17 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
-GCPadStatus GetStatus(u8 pad_num)
+GCPadStatus GetStatus(int pad_num)
 {
   return static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput();
 }
 
-void Rumble(const u8 pad_num, const ControlState strength)
+void Rumble(const int pad_num, const ControlState strength)
 {
   static_cast<GCPad*>(s_config.GetController(pad_num))->SetOutput(strength);
 }
 
-bool GetMicButton(const u8 pad_num)
+bool GetMicButton(const int pad_num)
 {
   return static_cast<GCPad*>(s_config.GetController(pad_num))->GetMicButton();
 }

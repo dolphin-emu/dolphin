@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.model.settings.view;
 
-
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 
 public final class HeaderSetting extends SettingsItem

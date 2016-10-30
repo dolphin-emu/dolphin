@@ -80,8 +80,5 @@ u8* GetARAMPtr();
 
 void UpdateAudioDMA();
 void UpdateDSPSlice(int cycles);
-u64 DMAInProgress();
-void EnableInstantDMA();
-void FlushInstantDMA(u32 address);
 
 }  // end of namespace DSP

@@ -17,7 +17,7 @@
 
 #include "Core/Movie.h"
 
-SysConf::SysConf() : m_IsValid(false)
+SysConf::SysConf()
 {
   UpdateLocation();
 }
@@ -151,6 +151,10 @@ bool SysConf::LoadFromFileInternal(FILE* fh)
 
     case Type_Long:
       curEntry.dataLength = 4;
+      break;
+
+    case Type_LongLong:
+      curEntry.dataLength = 8;
       break;
 
     default:
@@ -310,7 +314,7 @@ void SysConf::GenerateSysConf()
 
   // IPL.IDL
   current_offset += create_item(items[23], Type_SmallArray, "IPL.IDL", 1, current_offset);
-  items[23].data[0] = 0x01;
+  items[23].data[0] = 0x00;
 
   // IPL.EULA
   current_offset += create_item(items[24], Type_Bool, "IPL.EULA", 1, current_offset);
