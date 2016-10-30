@@ -34,7 +34,7 @@
     </integer-array>
 
     <!-- Wii Remote extensions -->
-    <string-array name="wiimoteExtensions" translatable="false">
+    <string-array name="wiimoteExtensionsEntries" translatable="false">
         <item>None</item>
         <item>Nunchuk</item>
         <item>Classic</item>
@@ -42,6 +42,14 @@
         <item>Drums</item>
         <item>Turntable</item>
     </string-array>
+    <integer-array name="wiimoteExtensionsValues" translatable="false">
+        <item>0</item>
+        <item>1</item>
+        <item>2</item>
+        <item>3</item>
+        <item>4</item>
+        <item>5</item>
+    </integer-array>
 
     <!-- Texture Cache Accuracy Preference -->
     <string-array name="textureCacheAccuracyEntries" translatable="false">

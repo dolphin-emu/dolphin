@@ -248,6 +248,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				mView.onWiimoteSettingChanged(scSetting.getSetting().getSection(), value);
 			}
 
+			if (scSetting.getKey().startsWith(SettingsFile.KEY_WIIMOTE_EXTENSION))
+			{
+				mView.onExtensionSettingChanged(scSetting.getKey(), value);
+			}
+
 			// Get the backing Setting, which may be null (if for example it was missing from the file)
 			IntSetting setting = scSetting.setSelectedValue(value);
 			if (setting != null)
