@@ -260,6 +260,21 @@ static inline u8* GetPointerForRange(u32 address, size_t size)
   return pointer;
 }
 
+//Exactly the same as GetPointerForRange, but returns NULL on error rather than panic
+static inline u8* GetPointerForRangeByHost(u32 address, size_t size)
+{
+  // Make sure we don't have a range spanning 2 separate banks
+  if (size >= EXRAM_SIZE)
+    return nullptr;
+
+  // Check that the beginning and end of the range are valid
+  u8* pointer = GetPointerByHost(address);
+  if (!pointer || !GetPointerByHost(address + u32(size) - 1))
+    return nullptr;
+
+  return pointer;
+}
+
 void CopyFromEmu(void* data, u32 address, size_t size)
 {
   if (size == 0)
@@ -272,6 +287,20 @@ void CopyFromEmu(void* data, u32 address, size_t size)
     return;
   }
   memcpy(data, pointer, size);
+}
+
+bool CopyFromEmuByHost(void* data, u32 address, size_t size)
+{
+  if (size == 0)
+    return true;
+
+  void* pointer = GetPointerForRangeByHost(address, size);
+  if (!pointer)
+  {
+    return false;
+  }
+  memcpy(data, pointer, size);
+  return true;
 }
 
 void CopyToEmu(u32 address, const void* data, size_t size)
@@ -334,6 +363,24 @@ u8* GetPointer(u32 address)
   }
 
   PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
+
+  return nullptr;
+}
+
+//Exactly the same as GetPointer, but returns NULL on error rather than panic
+u8* GetPointerByHost(u32 address)
+{
+  // TODO: Should we be masking off more bits here?  Can all devices access
+  // EXRAM?
+  address &= 0x3FFFFFFF;
+  if (address < REALRAM_SIZE)
+    return m_pRAM + address;
+
+  if (SConfig::GetInstance().bWii)
+  {
+    if ((address >> 28) == 0x1 && (address & 0x0fffffff) < EXRAM_SIZE)
+      return m_pEXRAM + (address & EXRAM_MASK);
+  }
 
   return nullptr;
 }
