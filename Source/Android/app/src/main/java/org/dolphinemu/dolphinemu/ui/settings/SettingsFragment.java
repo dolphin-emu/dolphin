@@ -168,6 +168,12 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 		mActivity.onWiimoteSettingChanged(section, value);
 	}
 
+	@Override
+	public void onExtensionSettingChanged(String key, int value)
+	{
+		mActivity.onExtensionSettingChanged(key, value);
+	}
+
 	public static final String FRAGMENT_TAG = BuildConfig.APPLICATION_ID + ".fragment.settings";
 
 	public static final String ARGUMENT_MENU_TAG = FRAGMENT_TAG + ".menu_tag";
