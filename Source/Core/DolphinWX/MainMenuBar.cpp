@@ -415,7 +415,7 @@ wxMenu* MainMenuBar::CreateSymbolsMenu() const
   symbols_menu->Append(IDM_CLEAR_SYMBOLS, _("&Clear Symbols"),
                        _("Remove names from all functions and variables."));
   symbols_menu->Append(IDM_SCAN_FUNCTIONS, _("&Generate Symbol Map"),
-                       _("Recognise standard functions from sys\\totaldb.dsy, and use generic zz_ "
+                       _("Recognise standard functions from Sys/totaldb.dsy, and use generic zz_ "
                          "names for other functions."));
   symbols_menu->AppendSeparator();
   symbols_menu->Append(IDM_LOAD_MAP_FILE, _("&Load Symbol Map"),
@@ -423,7 +423,7 @@ wxMenu* MainMenuBar::CreateSymbolsMenu() const
                          ".map files stored on the disc image yet."));
   symbols_menu->Append(IDM_SAVEMAPFILE, _("&Save Symbol Map"),
                        _("Save the function names for each address to a .map file in your user "
-                         "settings map folder, named after the title id."));
+                         "settings map folder, named after the title ID."));
   symbols_menu->AppendSeparator();
   symbols_menu->Append(
       IDM_LOAD_MAP_FILE_AS, _("Load &Other Map File..."),
@@ -432,30 +432,30 @@ wxMenu* MainMenuBar::CreateSymbolsMenu() const
       IDM_LOAD_BAD_MAP_FILE, _("Load &Bad Map File..."),
       _("Try to load a .map file that might be from a slightly different version."));
   symbols_menu->Append(IDM_SAVE_MAP_FILE_AS, _("Save Symbol Map &As..."),
-                       _("Save the function names and addresses for this game as a .map file. If "
-                         "you want to open it in IDA pro, use the .idc script."));
+                       _("Save the function names and addresses for this game as a .map file. "
+                         "If you want to open the .map file in IDA Pro, use the .idc script."));
   symbols_menu->AppendSeparator();
   symbols_menu->Append(
       IDM_SAVE_MAP_FILE_WITH_CODES, _("Save Code"),
-      _("Save the entire disassembled code. This may take a several seconds"
-        " and may require between 50 and 100 MB of hard drive space. It will only save code"
-        " that are in the first 4 MB of memory, if you are debugging a game that load .rel"
-        " files with code to memory you may want to increase that to perhaps 8 MB, you can do"
-        " that from SymbolDB::SaveMap()."));
+      _("Save the entire disassembled code. This may take a several seconds "
+        "and may require between 50 and 100 MB of hard drive space. It will only save code "
+        "that is in the first 4 MB of memory. If you are debugging a game that loads .rel "
+        "files with code to memory, you may want to increase the limit to perhaps 8 MB. "
+        "That can be done in SymbolDB::SaveMap()."));
 
   symbols_menu->AppendSeparator();
   symbols_menu->Append(
       IDM_CREATE_SIGNATURE_FILE, _("&Create Signature File..."),
       _("Create a .dsy file that can be used to recognise these same functions in other games."));
   symbols_menu->Append(IDM_APPEND_SIGNATURE_FILE, _("Append to &Existing Signature File..."),
-                       _("Add any named functions missing from a .dsy file, so it can also "
-                         "recognise these additional functions in other games."));
+                       _("Add any named functions missing from a .dsy file, so that these "
+                         "additional functions can also be recognized in other games."));
   symbols_menu->Append(IDM_COMBINE_SIGNATURE_FILES, _("Combine Two Signature Files..."),
                        _("Make a new .dsy file which can recognise more functions, by combining "
                          "two existing files. The first input file has priority."));
   symbols_menu->Append(
       IDM_USE_SIGNATURE_FILE, _("Apply Signat&ure File..."),
-      _("Must use Generate symbol map first! Recognise names of any standard library functions "
+      _("Must use Generate Symbol Map first! Recognise names of any standard library functions "
         "used in multiple games, by loading them from a .dsy file."));
   symbols_menu->AppendSeparator();
   symbols_menu->Append(IDM_PATCH_HLE_FUNCTIONS, _("&Patch HLE Functions"));
