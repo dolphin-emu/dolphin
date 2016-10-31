@@ -2,11 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "DolphinWX/Config/WiiConfigPane.h"
-
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/gbsizer.h>
+#include <wx/listbox.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/stattext.h>
@@ -14,9 +14,12 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IOS/IPC.h"
+#include "DolphinWX/Config/AddUSBDeviceDiag.h"
+#include "DolphinWX/Config/WiiConfigPane.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
+#include "UICommon/USBUtils.h"
 
 WiiConfigPane::WiiConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
@@ -52,6 +55,10 @@ void WiiConfigPane::InitializeGUI()
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_system_language_strings);
   m_sd_card_checkbox = new wxCheckBox(this, wxID_ANY, _("Insert SD Card"));
   m_connect_keyboard_checkbox = new wxCheckBox(this, wxID_ANY, _("Connect USB Keyboard"));
+  m_usb_passthrough_devices_listbox =
+      new wxListBox(this, wxID_ANY, wxDefaultPosition, wxSize(-1, 100));
+  m_usb_passthrough_add_device_btn = new wxButton(this, wxID_ANY, _("Add..."));
+  m_usb_passthrough_rem_device_btn = new wxButton(this, wxID_ANY, _("Remove"));
   m_bt_sensor_bar_pos =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_bt_sensor_bar_pos_strings);
   m_bt_sensor_bar_sens = new DolphinSlider(this, wxID_ANY, 0, 0, 4);
@@ -78,6 +85,12 @@ void WiiConfigPane::InitializeGUI()
                                 wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   misc_settings_grid_sizer->Add(m_system_language_choice, wxGBPosition(3, 1), wxDefaultSpan,
                                 wxALIGN_CENTER_VERTICAL);
+
+  auto* const usb_passthrough_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+  usb_passthrough_btn_sizer->AddStretchSpacer();
+  usb_passthrough_btn_sizer->Add(m_usb_passthrough_add_device_btn, 0,
+                                 wxALIGN_CENTER_VERTICAL | wxLEFT | wxRIGHT, space5);
+  usb_passthrough_btn_sizer->Add(m_usb_passthrough_rem_device_btn, 0, wxALIGN_CENTER_VERTICAL);
 
   auto* const bt_sensor_bar_pos_sizer = new wxBoxSizer(wxHORIZONTAL);
   bt_sensor_bar_pos_sizer->Add(new wxStaticText(this, wxID_ANY, _("Min")), 0,
@@ -123,6 +136,15 @@ void WiiConfigPane::InitializeGUI()
   device_settings_sizer->Add(m_connect_keyboard_checkbox, 0, wxLEFT | wxRIGHT, space5);
   device_settings_sizer->AddSpacer(space5);
 
+  auto* const usb_passthrough_sizer =
+      new wxStaticBoxSizer(wxVERTICAL, this, _("Whitelisted USB Passthrough Devices"));
+  usb_passthrough_sizer->AddSpacer(space5);
+  usb_passthrough_sizer->Add(m_usb_passthrough_devices_listbox, 0, wxEXPAND | wxLEFT | wxRIGHT,
+                             space5);
+  usb_passthrough_sizer->AddSpacer(space5);
+  usb_passthrough_sizer->Add(usb_passthrough_btn_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  usb_passthrough_sizer->AddSpacer(space5);
+
   auto* const bt_settings_static_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Wii Remote Settings"));
   bt_settings_static_sizer->AddSpacer(space5);
@@ -134,6 +156,8 @@ void WiiConfigPane::InitializeGUI()
   main_sizer->Add(misc_settings_static_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
   main_sizer->Add(device_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(usb_passthrough_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
   main_sizer->Add(bt_settings_static_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
@@ -151,10 +175,24 @@ void WiiConfigPane::LoadGUIValues()
   m_sd_card_checkbox->SetValue(SConfig::GetInstance().m_WiiSDCard);
   m_connect_keyboard_checkbox->SetValue(SConfig::GetInstance().m_WiiKeyboard);
 
+  PopulateUSBPassthroughListbox();
+
   m_bt_sensor_bar_pos->SetSelection(SConfig::GetInstance().m_sensor_bar_position);
   m_bt_sensor_bar_sens->SetValue(SConfig::GetInstance().m_sensor_bar_sensitivity);
   m_bt_speaker_volume->SetValue(SConfig::GetInstance().m_speaker_volume);
   m_bt_wiimote_motor->SetValue(SConfig::GetInstance().m_wiimote_motor);
+}
+
+void WiiConfigPane::PopulateUSBPassthroughListbox()
+{
+  m_usb_passthrough_devices_listbox->Freeze();
+  m_usb_passthrough_devices_listbox->Clear();
+  for (const auto& device : SConfig::GetInstance().m_usb_passthrough_devices)
+  {
+    m_usb_passthrough_devices_listbox->Append(USBUtils::GetDeviceName(device),
+                                              new USBPassthroughDeviceEntry(device));
+  }
+  m_usb_passthrough_devices_listbox->Thaw();
 }
 
 void WiiConfigPane::BindEvents()
@@ -186,6 +224,38 @@ void WiiConfigPane::BindEvents()
 
   m_bt_wiimote_motor->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnWiimoteMotorChanged, this);
   m_bt_wiimote_motor->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_usb_passthrough_add_device_btn->Bind(wxEVT_BUTTON, &WiiConfigPane::OnUSBWhitelistAddButton,
+                                         this);
+
+  m_usb_passthrough_rem_device_btn->Bind(wxEVT_BUTTON, &WiiConfigPane::OnUSBWhitelistRemoveButton,
+                                         this);
+  m_usb_passthrough_rem_device_btn->Bind(wxEVT_UPDATE_UI,
+                                         &WiiConfigPane::OnUSBWhitelistRemoveButtonUpdate, this);
+}
+
+void WiiConfigPane::OnUSBWhitelistAddButton(wxCommandEvent&)
+{
+  AddUSBDeviceDiag add_dialog{this};
+  // Reload the USB device whitelist
+  if (add_dialog.ShowModal() == wxID_OK)
+    PopulateUSBPassthroughListbox();
+}
+
+void WiiConfigPane::OnUSBWhitelistRemoveButton(wxCommandEvent&)
+{
+  const int index = m_usb_passthrough_devices_listbox->GetSelection();
+  if (index == wxNOT_FOUND)
+    return;
+  auto* const entry = static_cast<const USBPassthroughDeviceEntry*>(
+      m_usb_passthrough_devices_listbox->GetClientObject(index));
+  SConfig::GetInstance().m_usb_passthrough_devices.erase({entry->m_vid, entry->m_pid});
+  m_usb_passthrough_devices_listbox->Delete(index);
+}
+
+void WiiConfigPane::OnUSBWhitelistRemoveButtonUpdate(wxUpdateUIEvent& event)
+{
+  event.Enable(m_usb_passthrough_devices_listbox->GetSelection() != wxNOT_FOUND);
 }
 
 void WiiConfigPane::OnScreenSaverCheckBoxChanged(wxCommandEvent& event)
