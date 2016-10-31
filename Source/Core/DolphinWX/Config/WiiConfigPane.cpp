@@ -54,7 +54,7 @@ void WiiConfigPane::InitializeGUI()
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_bt_sensor_bar_pos_strings);
   m_bt_sensor_bar_sens = new DolphinSlider(this, wxID_ANY, 0, 0, 4);
   m_bt_speaker_volume = new DolphinSlider(this, wxID_ANY, 0, 0, 127);
-  m_bt_wiimote_motor = new wxCheckBox(this, wxID_ANY, _("Wiimote Motor"));
+  m_bt_wiimote_motor = new wxCheckBox(this, wxID_ANY, _("Wii Remote Motor"));
 
   m_screensaver_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnScreenSaverCheckBoxChanged, this);
   m_pal60_mode_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnPAL60CheckBoxChanged, this);

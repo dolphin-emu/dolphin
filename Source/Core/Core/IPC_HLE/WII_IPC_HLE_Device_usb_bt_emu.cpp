@@ -46,13 +46,13 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu
     BackUpBTInfoSection(&sysconf);
   }
 
-  // Activate only first Wiimote by default
+  // Activate only first Wii Remote by default
 
   _conf_pads BT_DINF;
   SetUsbPointer(this);
   if (!sysconf.GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
   {
-    PanicAlertT("Trying to read from invalid SYSCONF\nWiimote bt ids are not available");
+    PanicAlertT("Trying to read from invalid SYSCONF\nWii Remote bt ids are not available");
   }
   else
   {
@@ -1906,7 +1906,7 @@ CWII_IPC_HLE_WiiMote* CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AccessWiiMote(u16
   }
 
   ERROR_LOG(WII_IPC_WIIMOTE, "Can't find Wiimote by connection handle %02x", _ConnectionHandle);
-  PanicAlertT("Can't find Wiimote by connection handle %02x", _ConnectionHandle);
+  PanicAlertT("Can't find Wii Remote by connection handle %02x", _ConnectionHandle);
   return nullptr;
 }
 
@@ -1917,7 +1917,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::DisplayDisconnectMessage(const int
   // mean
   // and display things like "Wiimote %i disconnected due to inactivity!" etc.
   Core::DisplayMessage(
-      StringFromFormat("Wiimote %i disconnected by emulated software", wiimoteNumber), 3000);
+      StringFromFormat("Wii Remote %i disconnected by emulated software", wiimoteNumber), 3000);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::LOG_LinkKey(const u8* _pLinkKey)
