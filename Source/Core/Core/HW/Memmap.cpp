@@ -314,32 +314,39 @@ void Clear()
     memset(m_pEXRAM, 0, EXRAM_SIZE);
 }
 
-static inline u8* GetPointerForRange(u32 address, size_t size)
+static inline u8* GetPointerForRange(u32 address, size_t size, bool panicOnError = true)
 {
   // Make sure we don't have a range spanning 2 separate banks
   if (size >= EXRAM_SIZE)
     return nullptr;
 
   // Check that the beginning and end of the range are valid
-  u8* pointer = GetPointer(address);
-  if (!pointer || !GetPointer(address + u32(size) - 1))
+  u8* pointer = GetPointer(address, panicOnError);
+  if (!pointer || !GetPointer(address + u32(size) - 1, panicOnError))
     return nullptr;
 
   return pointer;
 }
 
-void CopyFromEmu(void* data, u32 address, size_t size)
+bool CopyFromEmu(void* data, u32 address, size_t size, bool panicOnError)
 {
   if (size == 0)
-    return;
+    return true;
 
-  void* pointer = GetPointerForRange(address, size);
+  void* pointer = GetPointerForRange(address, size, panicOnError);
   if (!pointer)
   {
-    PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
-    return;
+    if(panicOnError)
+    {
+      PanicAlert("Invalid range in CopyFromEmu. %zx bytes from 0x%08x", size, address);
+    }
+    else
+    {
+      return false;
+    }
   }
   memcpy(data, pointer, size);
+  return true;
 }
 
 void CopyToEmu(u32 address, const void* data, size_t size)
@@ -387,7 +394,7 @@ std::string GetString(u32 em_address, size_t size)
   }
 }
 
-u8* GetPointer(u32 address)
+u8* GetPointer(u32 address, bool panicOnError)
 {
   // TODO: Should we be masking off more bits here?  Can all devices access
   // EXRAM?
@@ -401,7 +408,10 @@ u8* GetPointer(u32 address)
       return m_pEXRAM + (address & EXRAM_MASK);
   }
 
-  PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
+  if (panicOnError)
+  {
+    PanicAlert("Unknown Pointer 0x%08x PC 0x%08x LR 0x%08x", address, PC, LR);
+  }
 
   return nullptr;
 }

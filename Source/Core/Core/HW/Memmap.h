@@ -70,8 +70,9 @@ void Clear();
 // Routines to access physically addressed memory, designed for use by
 // emulated hardware outside the CPU. Use "Device_" prefix.
 std::string GetString(u32 em_address, size_t size = 0);
-u8* GetPointer(const u32 address);
-void CopyFromEmu(void* data, u32 address, size_t size);
+u8* GetPointer(const u32 address, bool panicOnError = true);
+u8* GetPointerByHost(const u32 address, bool panicOnError = true);
+bool CopyFromEmu(void* data, u32 address, size_t size, bool panicOnError = true);
 void CopyToEmu(u32 address, const void* data, size_t size);
 void Memset(u32 address, u8 value, size_t size);
 u8 Read_U8(const u32 address);
