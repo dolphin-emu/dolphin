@@ -214,9 +214,15 @@ void MainToolBar::AddMainToolBarButtons()
 
 void MainToolBar::AddDebuggerToolBarButtons()
 {
+  // i18n: Here, "Step" is a verb. This function is used for
+  // going through code step by step.
   AddToolBarButton(IDM_STEP, TOOLBAR_DEBUG_STEP, _("Step"), _("Step into the next instruction"));
+  // i18n: Here, "Step" is a verb. This function is used for
+  // going through code step by step.
   AddToolBarButton(IDM_STEPOVER, TOOLBAR_DEBUG_STEPOVER, _("Step Over"),
                    _("Step over the next instruction"));
+  // i18n: Here, "Step" is a verb. This function is used for
+  // going through code step by step.
   AddToolBarButton(IDM_STEPOUT, TOOLBAR_DEBUG_STEPOUT, _("Step Out"),
                    _("Step out of the current function"));
   AddToolBarButton(IDM_SKIP, TOOLBAR_DEBUG_SKIP, _("Skip"),

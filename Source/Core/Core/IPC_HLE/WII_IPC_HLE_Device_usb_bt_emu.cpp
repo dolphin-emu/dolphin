@@ -52,7 +52,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu
   SetUsbPointer(this);
   if (!sysconf.GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
   {
-    PanicAlertT("Trying to read from invalid SYSCONF\nWii Remote bt ids are not available");
+    PanicAlertT("Trying to read from invalid SYSCONF\nWii Remote Bluetooth IDs are not available");
   }
   else
   {
