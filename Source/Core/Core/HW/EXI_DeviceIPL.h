@@ -20,9 +20,14 @@ public:
   bool IsPresent() const override;
   void DoState(PointerWrap& p) override;
 
-  static u32 GetGCTime();
-  static u32 GetGCTimeJan1970();
-  static u64 NetPlay_GetGCTime();
+  static constexpr u32 UNIX_EPOCH = 0;          // 1970-01-01 00:00:00
+  static constexpr u32 GC_EPOCH = 0x386D4380;   // 2000-01-01 00:00:00
+  static constexpr u32 WII_EPOCH = 0x477E5826;  // 2008-01-04 16:00:38
+  // The Wii epoch is suspiciously random, and the Wii was even
+  // released before it, but apparently it works anyway?
+
+  static u32 GetEmulatedTime(u32 epoch);
+  static u64 NetPlay_GetEmulatedTime();
 
   static void Descrambler(u8* data, u32 size);
 

@@ -180,7 +180,7 @@ std::string GetInputDisplay()
 // NOTE: GPU Thread
 std::string GetRTCDisplay()
 {
-  time_t current_time = CEXIIPL::GetGCTimeJan1970();
+  time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
   tm* gm_time = gmtime(&current_time);
   char buffer[256];
   strftime(buffer, sizeof(buffer), "Date/Time: %c", gm_time);
@@ -552,7 +552,7 @@ bool BeginRecordingInput(int controllers)
   if (NetPlay::IsNetPlayRunning())
   {
     s_bNetPlay = true;
-    s_recordingStartTime = CEXIIPL::NetPlay_GetGCTime();
+    s_recordingStartTime = CEXIIPL::NetPlay_GetEmulatedTime();
   }
   else if (SConfig::GetInstance().bEnableCustomRTC)
   {
