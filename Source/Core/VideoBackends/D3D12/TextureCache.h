@@ -25,9 +25,6 @@ private:
   struct TCacheEntry : TCacheEntryBase
   {
     D3DTexture2D* const m_texture = nullptr;
-    D3D12_CPU_DESCRIPTOR_HANDLE m_texture_srv_cpu_handle = {};
-    D3D12_GPU_DESCRIPTOR_HANDLE m_texture_srv_gpu_handle = {};
-    D3D12_CPU_DESCRIPTOR_HANDLE m_texture_srv_gpu_handle_cpu_shadow = {};
 
     TCacheEntry(const TCacheEntryConfig& config, D3DTexture2D* tex)
         : TCacheEntryBase(config), m_texture(tex)

@@ -82,6 +82,8 @@ public:
 
   static void Init();
 
+  static void CheckDiskCacheState(IDXGIAdapter* adapter);
+
   // Get D3D12 descs for the internal state bitfields.
   static D3D12_SAMPLER_DESC GetDesc12(SamplerState state);
   static D3D12_BLEND_DESC GetDesc12(BlendState state);
@@ -187,6 +189,8 @@ private:
   std::unordered_map<SmallPsoDesc, ID3D12PipelineState*, hash_small_pso_desc,
                      equality_small_pipeline_state_desc>
       m_small_pso_map;
+
+  bool m_enable_disk_cache;
 };
 
 }  // namespace DX12

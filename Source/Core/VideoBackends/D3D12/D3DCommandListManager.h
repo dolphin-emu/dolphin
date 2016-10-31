@@ -22,6 +22,8 @@ enum COMMAND_LIST_STATE
   COMMAND_LIST_STATE_VERTEX_BUFFER = 32
 };
 
+class D3DDescriptorHeapManager;
+
 // This class provides an abstraction for D3D12 descriptor heaps.
 class D3DCommandListManager
 {
@@ -38,6 +40,8 @@ public:
   void ExecuteQueuedWorkAndPresent(IDXGISwapChain* swap_chain, UINT sync_interval, UINT flags);
 
   void DestroyResourceAfterCurrentCommandListExecuted(ID3D12Resource* resource);
+  void FreeDescriptorAfterCurrentCommandListExecuted(D3DDescriptorHeapManager* descriptor_heap,
+                                                     size_t index);
 
   void SetCommandListDirtyState(unsigned int command_list_state, bool dirty);
   bool GetCommandListDirtyState(COMMAND_LIST_STATE command_list_state) const;
@@ -68,6 +72,8 @@ private:
   void MoveToNextCommandAllocator();
   void ResetCommandList();
 
+  using PendingDescriptorFree = std::pair<D3DDescriptorHeapManager*, size_t>;
+
   unsigned int m_command_list_dirty_state = UINT_MAX;
   D3D_PRIMITIVE_TOPOLOGY m_command_list_current_topology = D3D_PRIMITIVE_TOPOLOGY_UNDEFINED;
 
@@ -92,6 +98,7 @@ private:
 
   UINT m_current_deferred_destruction_list;
   std::array<std::vector<ID3D12Resource*>, 2> m_deferred_destruction_lists;
+  std::array<std::vector<PendingDescriptorFree>, 2> m_deferred_descriptor_free_lists;
   std::array<UINT64, 2> m_deferred_destruction_list_fences;
 };
 

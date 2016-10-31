@@ -276,7 +276,7 @@ int CD3DFont::Init()
 
   tex_initial_data.release();
 
-  D3D::gpu_descriptor_heap_mgr->Allocate(&m_texture12_cpu, &m_texture12_gpu);
+  D3D::gpu_descriptor_heap_mgr->Allocate(nullptr, &m_texture12_cpu, nullptr, &m_texture12_gpu);
 
   D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
   srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;

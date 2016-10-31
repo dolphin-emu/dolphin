@@ -194,14 +194,14 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3DTexture2D::GetSRV12CPU() const
   return m_srv12_cpu;
 }
 
+D3D12_CPU_DESCRIPTOR_HANDLE D3DTexture2D::GetSRV12CPUShadow() const
+{
+  return m_srv12_cpu_shadow;
+}
+
 D3D12_GPU_DESCRIPTOR_HANDLE D3DTexture2D::GetSRV12GPU() const
 {
   return m_srv12_gpu;
-}
-
-D3D12_CPU_DESCRIPTOR_HANDLE D3DTexture2D::GetSRV12GPUCPUShadow() const
-{
-  return m_srv12_gpu_cpu_shadow;
 }
 
 D3D12_CPU_DESCRIPTOR_HANDLE D3DTexture2D::GetDSV12() const
@@ -217,7 +217,7 @@ D3D12_CPU_DESCRIPTOR_HANDLE D3DTexture2D::GetRTV12() const
 D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, u32 bind, DXGI_FORMAT srv_format,
                            DXGI_FORMAT dsv_format, DXGI_FORMAT rtv_format, bool multisampled,
                            D3D12_RESOURCE_STATES resource_state)
-    : m_tex12(texptr), m_resource_state(resource_state), m_multisampled(multisampled)
+    : m_tex12(texptr), m_bind_flags(bind), m_resource_state(resource_state), m_multisampled(multisampled)
 {
   D3D12_SRV_DIMENSION srv_dim12 =
       multisampled ? D3D12_SRV_DIMENSION_TEXTURE2DMSARRAY : D3D12_SRV_DIMENSION_TEXTURE2DARRAY;
@@ -247,13 +247,11 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, u32 bind, DXGI_FORMAT srv_for
 
     srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
 
-    CHECK(
-        D3D::gpu_descriptor_heap_mgr->Allocate(&m_srv12_cpu, &m_srv12_gpu, &m_srv12_gpu_cpu_shadow),
-        "Error: Ran out of permenant slots in GPU descriptor heap, but don't support rolling over "
-        "heap.");
+    if (!D3D::gpu_descriptor_heap_mgr->Allocate(&m_srv12_index, &m_srv12_cpu, &m_srv12_cpu_shadow, &m_srv12_gpu))
+      PanicAlert("Failed to allocate SRV for texture.");
 
     D3D::device12->CreateShaderResourceView(m_tex12, &srv_desc, m_srv12_cpu);
-    D3D::device12->CreateShaderResourceView(m_tex12, &srv_desc, m_srv12_gpu_cpu_shadow);
+    D3D::device12->CreateShaderResourceView(m_tex12, &srv_desc, m_srv12_cpu_shadow);
   }
 
   if (bind & TEXTURE_BIND_FLAG_DEPTH_STENCIL)
@@ -269,7 +267,7 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, u32 bind, DXGI_FORMAT srv_for
     else
       dsv_desc.Texture2DMSArray.ArraySize = -1;
 
-    D3D::dsv_descriptor_heap_mgr->Allocate(&m_dsv12);
+    D3D::dsv_descriptor_heap_mgr->Allocate(&m_dsv12_index, &m_dsv12, nullptr, nullptr);
     D3D::device12->CreateDepthStencilView(m_tex12, &dsv_desc, m_dsv12);
   }
 
@@ -285,7 +283,7 @@ D3DTexture2D::D3DTexture2D(ID3D12Resource* texptr, u32 bind, DXGI_FORMAT srv_for
     else
       rtv_desc.Texture2DMSArray.ArraySize = -1;
 
-    D3D::rtv_descriptor_heap_mgr->Allocate(&m_rtv12);
+    D3D::rtv_descriptor_heap_mgr->Allocate(&m_rtv12_index, &m_rtv12, nullptr, nullptr);
     D3D::device12->CreateRenderTargetView(m_tex12, &rtv_desc, m_rtv12);
   }
 
@@ -302,7 +300,22 @@ void D3DTexture2D::TransitionToResourceState(ID3D12GraphicsCommandList* command_
 
 D3DTexture2D::~D3DTexture2D()
 {
-  DX12::D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_tex12);
+  D3D::command_list_mgr->DestroyResourceAfterCurrentCommandListExecuted(m_tex12);
+
+  if (m_bind_flags & TEXTURE_BIND_FLAG_SHADER_RESOURCE)
+  {
+    D3D::command_list_mgr->FreeDescriptorAfterCurrentCommandListExecuted(D3D::gpu_descriptor_heap_mgr.get(), m_srv12_index);
+  }
+
+  if (m_bind_flags & TEXTURE_BIND_FLAG_RENDER_TARGET)
+  {
+    D3D::command_list_mgr->FreeDescriptorAfterCurrentCommandListExecuted(D3D::rtv_descriptor_heap_mgr.get(), m_rtv12_index);
+  }
+  
+  if (m_bind_flags & TEXTURE_BIND_FLAG_DEPTH_STENCIL)
+  {
+    D3D::command_list_mgr->FreeDescriptorAfterCurrentCommandListExecuted(D3D::dsv_descriptor_heap_mgr.get(), m_dsv12_index);
+  }
 }
 
 }  // namespace DX12

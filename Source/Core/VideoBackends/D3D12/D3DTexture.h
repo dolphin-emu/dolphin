@@ -53,8 +53,8 @@ public:
   ID3D12Resource* GetTex12() const;
 
   D3D12_CPU_DESCRIPTOR_HANDLE GetSRV12CPU() const;
+  D3D12_CPU_DESCRIPTOR_HANDLE GetSRV12CPUShadow() const;
   D3D12_GPU_DESCRIPTOR_HANDLE GetSRV12GPU() const;
-  D3D12_CPU_DESCRIPTOR_HANDLE GetSRV12GPUCPUShadow() const;
   D3D12_CPU_DESCRIPTOR_HANDLE GetDSV12() const;
   D3D12_CPU_DESCRIPTOR_HANDLE GetRTV12() const;
 
@@ -66,13 +66,18 @@ private:
   ~D3DTexture2D();
 
   ID3D12Resource* m_tex12 = nullptr;
+  u32 m_bind_flags = 0;
 
   D3D12_CPU_DESCRIPTOR_HANDLE m_srv12_cpu = {};
+  D3D12_CPU_DESCRIPTOR_HANDLE m_srv12_cpu_shadow = {};
   D3D12_GPU_DESCRIPTOR_HANDLE m_srv12_gpu = {};
-  D3D12_CPU_DESCRIPTOR_HANDLE m_srv12_gpu_cpu_shadow = {};
+  size_t m_srv12_index = 0;
 
   D3D12_CPU_DESCRIPTOR_HANDLE m_dsv12 = {};
+  size_t m_dsv12_index = 0;
+
   D3D12_CPU_DESCRIPTOR_HANDLE m_rtv12 = {};
+  size_t m_rtv12_index = 0;
 
   D3D12_RESOURCE_STATES m_resource_state = D3D12_RESOURCE_STATE_COMMON;
 

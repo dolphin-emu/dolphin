@@ -190,10 +190,6 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
 
     TCacheEntry* entry = new TCacheEntry(config, texture);
 
-    entry->m_texture_srv_cpu_handle = texture->GetSRV12CPU();
-    entry->m_texture_srv_gpu_handle = texture->GetSRV12GPU();
-    entry->m_texture_srv_gpu_handle_cpu_shadow = texture->GetSRV12GPUCPUShadow();
-
     return entry;
   }
   else
@@ -214,10 +210,6 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
                          D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
 
     TCacheEntry* const entry = new TCacheEntry(config, texture);
-
-    entry->m_texture_srv_cpu_handle = texture->GetSRV12CPU();
-    entry->m_texture_srv_gpu_handle = texture->GetSRV12GPU();
-    entry->m_texture_srv_gpu_handle_cpu_shadow = texture->GetSRV12GPUCPUShadow();
 
     // EXISTINGD3D11TODO: better debug names
     D3D::SetDebugObjectName12(entry->m_texture->GetTex12(), "a texture of the TextureCache");
@@ -399,9 +391,6 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
   memcpy(m_palette_stream_buffer->GetCPUAddressOfCurrentAllocation(), palette,
          palette_buffer_allocation_size);
 
-  // stretch picture with increased internal resolution
-  D3D::SetViewportAndScissor(0, 0, unconverted->config.width, unconverted->config.height);
-
   // D3D12: Because the second SRV slot is occupied by this buffer, and an arbitrary texture
   // occupies the first SRV slot,
   // we need to allocate temporary space out of our descriptor heap, place the palette SRV in the
@@ -409,12 +398,21 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
   // existing texture's descriptor into the first slot.
 
   // First, allocate the (temporary) space in the descriptor heap.
-  D3D12_CPU_DESCRIPTOR_HANDLE srv_group_cpu_handle[2] = {};
-  D3D12_GPU_DESCRIPTOR_HANDLE srv_group_gpu_handle[2] = {};
-  D3D::gpu_descriptor_heap_mgr->AllocateGroup(srv_group_cpu_handle, 2, srv_group_gpu_handle,
-                                              nullptr, true);
+  D3D12_CPU_DESCRIPTOR_HANDLE srv_group_cpu_handle[8];
+  D3D12_GPU_DESCRIPTOR_HANDLE srv_group_gpu_handle[8];
+  if (!D3D::gpu_descriptor_heap_mgr->AllocateTemporary(8, srv_group_cpu_handle, srv_group_gpu_handle))
+  {
+    // Kick command buffer, this should free up enough descriptors.
+    D3D::command_list_mgr->ExecuteQueuedWork(false);
+    if (!D3D::gpu_descriptor_heap_mgr->AllocateTemporary(8, srv_group_cpu_handle, srv_group_gpu_handle))
+    {
+      PanicAlert("Failed to allocate temporary descriptors");
+      return;
+    }
+  }
 
-  srv_group_cpu_handle[1].ptr = srv_group_cpu_handle[0].ptr + D3D::resource_descriptor_size;
+  // stretch picture with increased internal resolution
+  D3D::SetViewportAndScissor(0, 0, unconverted->config.width, unconverted->config.height);
 
   // Now, create the palette SRV at the appropriate offset.
   D3D12_SHADER_RESOURCE_VIEW_DESC palette_buffer_srv_desc = {
@@ -437,7 +435,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
                                              D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
   D3D::device12->CopyDescriptorsSimple(
       1, srv_group_cpu_handle[0],
-      static_cast<TCacheEntry*>(unconverted)->m_texture->GetSRV12GPUCPUShadow(),
+      static_cast<TCacheEntry*>(unconverted)->m_texture->GetSRV12CPU(),
       D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
 
   // Finally, bind our temporary location.
@@ -596,15 +594,23 @@ void TextureCache::BindTextures()
   {
     DX12::D3D::current_command_list->SetGraphicsRootDescriptorTable(
         DESCRIPTOR_TABLE_PS_SRV,
-        reinterpret_cast<TCacheEntry*>(bound_textures[0])->m_texture_srv_gpu_handle);
+        reinterpret_cast<TCacheEntry*>(bound_textures[0])->m_texture->GetSRV12GPU());
     return;
   }
 
   // If more than one texture, allocate space for group.
   D3D12_CPU_DESCRIPTOR_HANDLE s_group_base_texture_cpu_handle;
   D3D12_GPU_DESCRIPTOR_HANDLE s_group_base_texture_gpu_handle;
-  DX12::D3D::gpu_descriptor_heap_mgr->AllocateGroup(
-      &s_group_base_texture_cpu_handle, 8, &s_group_base_texture_gpu_handle, nullptr, true);
+  if (!D3D::gpu_descriptor_heap_mgr->AllocateTemporary(8, &s_group_base_texture_cpu_handle, &s_group_base_texture_gpu_handle))
+  {
+    // Kick command buffer before attempting to allocate again. This is slow.
+    D3D::command_list_mgr->ExecuteQueuedWork(false);
+    if (!D3D::gpu_descriptor_heap_mgr->AllocateTemporary(8, &s_group_base_texture_cpu_handle, &s_group_base_texture_gpu_handle))
+    {
+      PanicAlert("Failed to allocate temporary descriptors.");
+      return;
+    }
+  }
 
   for (unsigned int stage = 0; stage < 8; stage++)
   {
@@ -616,7 +622,7 @@ void TextureCache::BindTextures()
 
       DX12::D3D::device12->CopyDescriptorsSimple(
           1, textureDestDescriptor, reinterpret_cast<TCacheEntry*>(bound_textures[stage])
-                                        ->m_texture_srv_gpu_handle_cpu_shadow,
+                                        ->m_texture->GetSRV12CPUShadow(),
           D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
     }
     else
