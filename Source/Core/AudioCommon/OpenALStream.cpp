@@ -169,15 +169,11 @@ void OpenALStream::SoundLoop()
   Common::SetCurrentThreadName("Audio thread - openal");
 
   bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
-#if defined(__APPLE__)
   bool float32_capable = false;
-  const ALenum AL_FORMAT_STEREO_FLOAT32 = 0;
-  // OS X does not have the alext AL_FORMAT_51CHN32 yet.
+  bool fixed32_capable = false;
+
+#if defined(__APPLE__)
   surround_capable = false;
-  const ALenum AL_FORMAT_51CHN32 = 0;
-  const ALenum AL_FORMAT_51CHN16 = 0;
-#else
-  bool float32_capable = true;
 #endif
 
   u32 ulFrequency = m_mixer->GetSampleRate();
@@ -186,10 +182,14 @@ void OpenALStream::SoundLoop()
   memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
   uiSource = 0;
 
-  // Checks if a X-Fi is being used. If it is, disable FLOAT32 support as this sound card has no
-  // support for it even though it reports it does.
+  if (alIsExtensionPresent("AL_EXT_float32"))
+    float32_capable = true;
+
+  // As there is no extension to check for 32-bit fixed point support
+  // and we know that only a X-Fi with hardware OpenAL supports it,
+  // we just check if one is being used.
   if (strstr(alGetString(AL_RENDERER), "X-Fi"))
-    float32_capable = false;
+    fixed32_capable = true;
 
   // Clear error state before querying or else we get false positives.
   ALenum err = alGetError();
@@ -307,11 +307,41 @@ void OpenALStream::SoundLoop()
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2,
                      nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
       }
+      else if (fixed32_capable)
+      {
+        int surround_int32[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+
+        for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
+        {
+          // For some reason the ffdshow's DPL2 decoder outputs samples bigger than 1.
+          // Most are close to 2.5 and some go up to 8. Hard clamping here, we need to
+          // fix the decoder or implement a limiter.
+          dpl2[i] = dpl2[i] * (INT64_C(1) << 31);
+          if (dpl2[i] > INT_MAX)
+            surround_int32[i] = INT_MAX;
+          else if (dpl2[i] < INT_MIN)
+            surround_int32[i] = INT_MIN;
+          else
+            surround_int32[i] = (int)dpl2[i];
+        }
+
+        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, surround_int32,
+                     nSamples * FRAME_SURROUND_INT32, ulFrequency);
+      }
       else
       {
         short surround_short[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
+
         for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
-          surround_short[i] = (short)((float)dpl2[i] * (1 << 15));
+        {
+          dpl2[i] = dpl2[i] * (1 << 15);
+          if (dpl2[i] > SHRT_MAX)
+            surround_short[i] = SHRT_MAX;
+          else if (dpl2[i] < SHRT_MIN)
+            surround_short[i] = SHRT_MIN;
+          else
+            surround_short[i] = (int)dpl2[i];
+        }
 
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short,
                      nSamples * FRAME_SURROUND_SHORT, ulFrequency);
@@ -338,6 +368,16 @@ void OpenALStream::SoundLoop()
         {
           float32_capable = false;
         }
+      }
+      else if (fixed32_capable)
+      {
+        // Clamping is not necessary here, samples are always between (-1,1)
+        int stereo_int32[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
+        for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
+          stereo_int32[i] = (int)((float)sampleBuffer[i] * (INT64_C(1) << 31));
+
+        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO32, stereo_int32,
+                     nSamples * FRAME_STEREO_INT32, ulFrequency);
       }
       else
       {
