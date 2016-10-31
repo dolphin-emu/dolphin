@@ -222,8 +222,10 @@ void MainToolBar::AddDebuggerToolBarButtons()
   AddToolBarButton(IDM_SKIP, TOOLBAR_DEBUG_SKIP, _("Skip"),
                    _("Skips the next instruction completely"));
   AddSeparator();
+  // i18n: Here, PC is an acronym for program counter, not personal computer.
   AddToolBarButton(IDM_GOTOPC, TOOLBAR_DEBUG_GOTOPC, _("Show PC"),
                    _("Go to the current instruction"));
+  // i18n: Here, PC is an acronym for program counter, not personal computer.
   AddToolBarButton(IDM_SETPC, TOOLBAR_DEBUG_SETPC, _("Set PC"), _("Set the current instruction"));
 }
 

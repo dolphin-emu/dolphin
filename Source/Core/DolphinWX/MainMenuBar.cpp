@@ -467,6 +467,7 @@ wxMenu* MainMenuBar::CreateSymbolsMenu() const
 wxMenu* MainMenuBar::CreateProfilerMenu() const
 {
   auto* const profiler_menu = new wxMenu;
+  // i18n: "Profile" is used as a verb, not a noun.
   profiler_menu->AppendCheckItem(IDM_PROFILE_BLOCKS, _("&Profile Blocks"));
   profiler_menu->AppendSeparator();
   profiler_menu->Append(IDM_WRITE_PROFILE, _("&Write to profile.txt, Show"));
