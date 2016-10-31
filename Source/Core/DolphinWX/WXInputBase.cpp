@@ -225,10 +225,13 @@ const wxString WXKeyToString(int keycode)
   case WXK_NUMPAD_DIVIDE:
     return _("NP Divide");
   case WXK_WINDOWS_LEFT:
+    // i18n: The left Windows key on PC keyboards
     return _("Windows Left");
   case WXK_WINDOWS_RIGHT:
+    // i18n: The right Windows key on PC keyboards
     return _("Windows Right");
   case WXK_WINDOWS_MENU:
+    // i18n: The context menu key on the right of PC keyboards
     return _("Windows Menu");
   }
 

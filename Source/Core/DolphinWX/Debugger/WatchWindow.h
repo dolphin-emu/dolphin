@@ -14,6 +14,7 @@ class CWatchWindow : public wxPanel
 public:
   CWatchWindow(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL | wxNO_BORDER,
+               // i18n: Not the kind of watch that shows time
                const wxString& name = _("Watch"));
   ~CWatchWindow();
 

@@ -302,6 +302,7 @@ wxMenu* MainMenuBar::CreateViewMenu() const
   if (m_type == MenuType::Debug)
   {
     view_menu->AppendCheckItem(IDM_REGISTER_WINDOW, _("&Registers"));
+    // i18n: Not the kind of watch that shows time
     view_menu->AppendCheckItem(IDM_WATCH_WINDOW, _("&Watch"));
     view_menu->AppendCheckItem(IDM_BREAKPOINT_WINDOW, _("&Breakpoints"));
     view_menu->AppendCheckItem(IDM_MEMORY_WINDOW, _("&Memory"));

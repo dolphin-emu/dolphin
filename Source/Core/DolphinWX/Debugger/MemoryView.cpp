@@ -250,6 +250,7 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
   menu.Append(IDM_COPYADDRESS, _("Copy &address"));
   menu.Append(IDM_COPYHEX, _("Copy &hex"));
 #endif
+  // i18n: Not the kind of watch that shows time
   menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
   menu.AppendCheckItem(IDM_TOGGLEMEMORY, _("Toggle &memory"))->Check(memory != 0);
 

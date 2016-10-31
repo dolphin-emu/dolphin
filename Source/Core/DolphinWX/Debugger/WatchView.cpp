@@ -87,6 +87,7 @@ static wxString GetValueByRowCol(int row, int col)
     case 3:
       return _("Decimal");
     case 4:
+      // i18n: Data type used in computing
       return _("String");
     default:
       return wxEmptyString;
@@ -256,6 +257,7 @@ void CWatchView::OnMouseDownR(wxGridEvent& event)
     TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
   }
 
+  // i18n: Not the kind of watch that shows time
   wxMenu menu;
   if (row != 0 && row != (int)(PowerPC::watches.GetWatches().size() + 1))
     menu.Append(IDM_DELETEWATCH, _("&Delete watch"));
