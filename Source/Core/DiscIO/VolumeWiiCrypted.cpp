@@ -140,7 +140,7 @@ std::vector<u8> CVolumeWiiCrypted::GetTMD() const
   return buffer;
 }
 
-std::string CVolumeWiiCrypted::GetUniqueID() const
+std::string CVolumeWiiCrypted::GetGameID() const
 {
   if (m_pReader == nullptr)
     return std::string();

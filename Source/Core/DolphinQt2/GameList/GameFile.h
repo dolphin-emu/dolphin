@@ -34,7 +34,7 @@ public:
   QString GetFileFolder() const { return m_folder; }
   qint64 GetFileSize() const { return m_size; }
   // The rest will not.
-  QString GetUniqueID() const { return m_unique_id; }
+  QString GetGameID() const { return m_game_id; }
   QString GetMakerID() const { return m_maker_id; }
   QString GetMaker() const { return m_maker; }
   u16 GetRevision() const { return m_revision; }
@@ -84,7 +84,7 @@ private:
   QDateTime m_last_modified;
   qint64 m_size = 0;
 
-  QString m_unique_id;
+  QString m_game_id;
   QString m_maker;
   QString m_maker_id;
   u16 m_revision = 0;

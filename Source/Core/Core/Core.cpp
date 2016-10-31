@@ -731,7 +731,7 @@ EState GetState()
 
 static std::string GenerateScreenshotFolderPath()
 {
-  const std::string& gameId = SConfig::GetInstance().GetUniqueID();
+  const std::string& gameId = SConfig::GetInstance().GetGameID();
   std::string path = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
 
   if (!File::CreateFullPath(path))
@@ -748,7 +748,7 @@ static std::string GenerateScreenshotName()
   std::string path = GenerateScreenshotFolderPath();
 
   // append gameId, path only contains the folder here.
-  path += SConfig::GetInstance().GetUniqueID();
+  path += SConfig::GetInstance().GetGameID();
 
   std::string name;
   for (int i = 1; File::Exists(name = StringFromFormat("%s-%d.png", path.c_str(), i)); ++i)

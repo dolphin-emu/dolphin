@@ -142,7 +142,7 @@ bool CRenderFrame::IsValidSavestateDropped(const std::string& filepath)
   std::string internal_game_id(game_id_length, ' ');
   file.read(&internal_game_id[0], game_id_length);
 
-  return internal_game_id == SConfig::GetInstance().GetUniqueID();
+  return internal_game_id == SConfig::GetInstance().GetGameID();
 }
 
 #ifdef _WIN32

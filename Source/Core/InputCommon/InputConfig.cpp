@@ -21,7 +21,7 @@ bool InputConfig::LoadConfig(bool isGC)
   std::string profile[MAX_BBMOTES];
   std::string path;
 
-  if (SConfig::GetInstance().GetUniqueID() != "00000000")
+  if (SConfig::GetInstance().GetGameID() != "00000000")
   {
     std::string type;
     if (isGC)
