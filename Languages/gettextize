@@ -2,7 +2,7 @@
 
 cd ${0/gettextize/}/..
 SRCDIR=Source
-find $SRCDIR \( -name '*.cpp' -o -name '*.h' -o -name '*.c' \) -a ! -path '*Debug*' | \
+find $SRCDIR -name '*.cpp' -o -name '*.h' -o -name '*.c' | \
 	xgettext -d dolphin-emu -s --keyword=_ --keyword=wxTRANSLATE --keyword=SuccessAlertT \
 	--keyword=PanicAlertT --keyword=PanicYesNoT --keyword=AskYesNoT --keyword=CriticalAlertT \
 	--keyword=GetStringT --keyword=_trans --add-comments=i18n -p ./Languages/po \
