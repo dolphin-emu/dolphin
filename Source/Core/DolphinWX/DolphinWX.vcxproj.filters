@@ -194,6 +194,9 @@
     <ClCompile Include="Config\PathConfigPane.cpp">
       <Filter>GUI\Config</Filter>
     </ClCompile>
+    <ClCompile Include="Config\AddUSBDeviceDiag.cpp">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
     <ClCompile Include="Config\AdvancedConfigPane.cpp">
       <Filter>GUI\Config</Filter>
     </ClCompile>
@@ -377,6 +380,9 @@
     <ClInclude Include="Config\PathConfigPane.h">
       <Filter>GUI\Config</Filter>
     </ClInclude>
+    <ClCompile Include="Config\AddUSBDeviceDiag.h">
+      <Filter>GUI\Config</Filter>
+    </ClCompile>
     <ClInclude Include="Config\AdvancedConfigPane.h">
       <Filter>GUI\Config</Filter>
     </ClInclude>

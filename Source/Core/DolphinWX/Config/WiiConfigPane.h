@@ -6,11 +6,12 @@
 
 #include <wx/arrstr.h>
 #include <wx/panel.h>
-#include "Common/CommonTypes.h"
 
 class DolphinSlider;
+class wxButton;
 class wxCheckBox;
 class wxChoice;
+class wxListBox;
 class wxSlider;
 
 class WiiConfigPane final : public wxPanel
@@ -30,6 +31,11 @@ private:
   void OnSystemLanguageChoiceChanged(wxCommandEvent&);
   void OnAspectRatioChoiceChanged(wxCommandEvent&);
 
+  void OnUSBWhitelistResetButton(wxCommandEvent&);
+  void OnUSBWhitelistAddButton(wxCommandEvent&);
+  void OnUSBWhitelistRemoveButton(wxCommandEvent&);
+  void OnUSBWhitelistRemoveButtonUpdate(wxUpdateUIEvent&);
+
   void OnSensorBarPosChanged(wxCommandEvent&);
   void OnSensorBarSensChanged(wxCommandEvent&);
   void OnSpeakerVolumeChanged(wxCommandEvent&);
@@ -45,6 +51,11 @@ private:
   wxCheckBox* m_connect_keyboard_checkbox;
   wxChoice* m_system_language_choice;
   wxChoice* m_aspect_ratio_choice;
+
+  wxListBox* m_usb_passthrough_devices_listbox;
+  wxButton* m_usb_passthrough_reset_btn;
+  wxButton* m_usb_passthrough_add_device_btn;
+  wxButton* m_usb_passthrough_rem_device_btn;
 
   wxChoice* m_bt_sensor_bar_pos;
   DolphinSlider* m_bt_sensor_bar_sens;
