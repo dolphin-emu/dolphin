@@ -166,6 +166,41 @@ struct libusb_hid_descriptor {
 #define LIBUSB_REQ_IN(request_type) ((request_type) & LIBUSB_ENDPOINT_IN)
 #define LIBUSB_REQ_OUT(request_type) (!LIBUSB_REQ_IN(request_type))
 
+/* start libusbk_shared.h definitions, must match libusbk_shared.h for isochronous support */
+
+//KISO_PACKET is equivalent of libusb_iso_packet_descriptor except uses absolute "offset" field instead of sequential Lengths
+typedef struct _KISO_PACKET
+{
+	UINT offset;
+	USHORT actual_length; //changed from libusbk_shared.h "Length" for clarity
+	USHORT status;
+
+} KISO_PACKET;
+
+typedef KISO_PACKET* PKISO_PACKET;
+
+typedef enum _KISO_FLAG
+{
+	KISO_FLAG_NONE = 0,
+	KISO_FLAG_SET_START_FRAME = 0x00000001,
+} KISO_FLAG;
+
+//KISO_CONTEXT is the conceptual equivalent of libusb_transfer except is isochronous-specific and must match libusbk's version
+typedef struct _KISO_CONTEXT
+{
+	KISO_FLAG Flags;
+	UINT StartFrame;
+	SHORT ErrorCount;
+	SHORT NumberOfPackets;
+	UINT UrbHdrStatus;
+	KISO_PACKET IsoPackets[0];
+
+} KISO_CONTEXT;
+
+typedef KISO_CONTEXT* PKISO_CONTEXT;
+
+/* end libusbk_shared.h definitions */
+
 // The following are used for HID reports IOCTLs
 #define HID_CTL_CODE(id) \
   CTL_CODE (FILE_DEVICE_KEYBOARD, (id), METHOD_NEITHER, FILE_ANY_ACCESS)
@@ -299,6 +334,8 @@ struct windows_transfer_priv {
 	uint8_t *hid_buffer; // 1 byte extended data buffer, required for HID
 	uint8_t *hid_dest;   // transfer buffer destination, required for HID
 	size_t hid_expected_size;
+	/* Isoc */
+	PKISO_CONTEXT iso_context;
 };
 
 // used to match a device driver (including filter drivers) against a supported API
@@ -794,6 +831,22 @@ typedef BOOL (WINAPI *WinUsb_WritePipe_t)(
 typedef BOOL (WINAPI *WinUsb_ResetDevice_t)(
 	WINUSB_INTERFACE_HANDLE InterfaceHandle
 );
+typedef BOOL(WINAPI *WinUsb_IsoReadPipe_t)(
+	WINUSB_INTERFACE_HANDLE InterfaceHandle,
+	UCHAR PipeID,
+	PUCHAR Buffer,
+	ULONG BufferLength,
+	LPOVERLAPPED Overlapped,
+	PKISO_CONTEXT IsoContext
+	);
+typedef BOOL(WINAPI *WinUsb_IsoWritePipe_t)(
+	WINUSB_INTERFACE_HANDLE InterfaceHandle,
+	UCHAR PipeID,
+	PUCHAR Buffer,
+	ULONG BufferLength,
+	LPOVERLAPPED Overlapped,
+	PKISO_CONTEXT IsoContext
+	);
 
 /* /!\ These must match the ones from the official libusbk.h */
 typedef enum _KUSB_FNID
@@ -876,6 +929,8 @@ struct winusb_interface {
 	WinUsb_SetPowerPolicy_t SetPowerPolicy;
 	WinUsb_WritePipe_t WritePipe;
 	WinUsb_ResetDevice_t ResetDevice;
+	WinUsb_IsoReadPipe_t IsoReadPipe;
+	WinUsb_IsoWritePipe_t IsoWritePipe;
 };
 
 /* hid.dll interface */
