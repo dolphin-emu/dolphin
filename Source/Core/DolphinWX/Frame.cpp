@@ -292,6 +292,17 @@ static BOOL WINAPI s_ctrl_handler(DWORD fdwCtrlType)
 }
 #endif
 
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+static void SignalHandler(int)
+{
+  const char message[] = "A signal was received. A second signal will force Dolphin to stop.\n";
+  if (write(STDERR_FILENO, message, sizeof(message)) < 0)
+  {
+  }
+  s_shutdown_signal_received.Set();
+}
+#endif
+
 CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geometry,
                bool use_debugger, bool batch_mode, bool show_log_window, long style)
     : CRenderFrame(parent, id, title, wxDefaultPosition, wxSize(800, 600), style),
@@ -443,11 +454,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
 
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
   struct sigaction sa;
-  sa.sa_handler = [](int unused) {
-    char message[] = "A signal was received. A second signal will force Dolphin to stop.\n";
-    write(STDERR_FILENO, message, sizeof(message));
-    s_shutdown_signal_received.Set();
-  };
+  sa.sa_handler = SignalHandler;
   sigemptyset(&sa.sa_mask);
   sa.sa_flags = SA_RESETHAND;
   sigaction(SIGINT, &sa, nullptr);

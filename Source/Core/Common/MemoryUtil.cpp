@@ -33,7 +33,7 @@
 
 namespace Common
 {
-#if !defined(_WIN32)
+#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
 #include <unistd.h>
 static uintptr_t RoundPage(uintptr_t addr)
 {
