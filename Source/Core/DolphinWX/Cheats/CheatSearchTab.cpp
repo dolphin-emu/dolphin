@@ -65,7 +65,9 @@ CheatSearchTab::CheatSearchTab(wxWindow* const parent) : wxPanel(parent)
                                           wxLC_REPORT | wxLC_SINGLE_SEL);
   m_lview_search_results->AppendColumn(_("Address"));
   m_lview_search_results->AppendColumn(_("Value"));
+  // i18n: Float means floating point number
   m_lview_search_results->AppendColumn(_("Value (float)"));
+  // i18n: Double means double-precision floating point number
   m_lview_search_results->AppendColumn(_("Value (double)"));
   m_lview_search_results->Bind(wxEVT_LIST_ITEM_ACTIVATED, &CheatSearchTab::OnListViewItemActivated,
                                this);

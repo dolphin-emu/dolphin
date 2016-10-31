@@ -59,7 +59,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
     // This looks a little weird but it's fine because we're using a grid bag sizer;
     // we can add columns in any order.
     build_choice(0, i, m_pad_mapping, _("GC Port"));
-    build_choice(4, i, m_wii_mapping, _("Wiimote"));
+    build_choice(4, i, m_wii_mapping, _("Wii Remote"));
   }
 
   wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);

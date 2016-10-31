@@ -250,6 +250,8 @@ void CMemoryView::OnMouseDownR(wxMouseEvent& event)
   menu.Append(IDM_COPYADDRESS, _("Copy &address"));
   menu.Append(IDM_COPYHEX, _("Copy &hex"));
 #endif
+  // i18n: This kind of "watch" is used for watching emulated memory.
+  // It's not related to timekeeping devices.
   menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
   menu.AppendCheckItem(IDM_TOGGLEMEMORY, _("Toggle &memory"))->Check(memory != 0);
 
