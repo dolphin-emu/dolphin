@@ -345,9 +345,10 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
 static void SampleTexture(ShaderCode& out, const char* texcoords, const char* texswap, int texmap,
                           bool stereo, APIType ApiType);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
-                           bool per_pixel_depth);
+                           bool per_pixel_depth, bool use_dual_source);
 static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data);
-static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data);
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data,
+                       bool use_dual_source);
 
 ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data)
 {
@@ -505,9 +506,15 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     }
   }
 
+  // Only use dual-source blending when required on drivers that don't support it very well.
+  const bool use_dual_source =
+      g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
+       uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND);
+
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
-    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+    if (use_dual_source)
     {
       if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_FRAGMENT_SHADER_INDEX_DECORATION))
       {
@@ -523,6 +530,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     else
     {
       out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
+      out.Write("vec4 ocol1;\n");  // Consume the output we don't use
     }
 
     if (uid_data->per_pixel_depth)
@@ -708,7 +716,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   // testing result)
   if (uid_data->Pretest == AlphaTest::UNDETERMINED ||
       (uid_data->Pretest == AlphaTest::FAIL && uid_data->late_ztest))
-    WriteAlphaTest(out, uid_data, ApiType, uid_data->per_pixel_depth);
+    WriteAlphaTest(out, uid_data, ApiType, uid_data->per_pixel_depth, use_dual_source);
 
   if (uid_data->zfreeze)
   {
@@ -792,7 +800,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     WriteFog(out, uid_data);
 
   // Write the color and alpha values to the framebuffer
-  WriteColor(out, uid_data);
+  WriteColor(out, uid_data, use_dual_source);
 
   if (uid_data->bounding_box)
   {
@@ -1180,7 +1188,7 @@ static const char* tevAlphaFunclogicTable[] = {
 };
 
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
-                           bool per_pixel_depth)
+                           bool per_pixel_depth, bool use_dual_source)
 {
   static const char* alphaRef[2] = {I_ALPHA ".r", I_ALPHA ".g"};
 
@@ -1207,7 +1215,7 @@ static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_dat
     out.Write(")) {\n");
 
   out.Write("\t\tocol0 = float4(0.0, 0.0, 0.0, 0.0);\n");
-  if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  if (use_dual_source)
     out.Write("\t\tocol1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   if (per_pixel_depth)
   {
@@ -1292,7 +1300,7 @@ static void WriteFog(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   out.Write("\tprev.rgb = (prev.rgb * (256 - ifog) + " I_FOGCOLOR ".rgb * ifog) >> 8;\n");
 }
 
-static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data)
+static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, bool use_dual_source)
 {
   if (uid_data->rgba6_format)
     out.Write("\tocol0.rgb = float3(prev.rgb >> 2) / 63.0;\n");
@@ -1304,7 +1312,7 @@ static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data)
   if (uid_data->dstAlphaMode == DSTALPHA_NONE)
   {
     out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
-    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+    if (use_dual_source)
       out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
   }
   else
@@ -1313,7 +1321,7 @@ static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data)
     out.Write("\tocol0.a = float(" I_ALPHA ".a >> 2) / 63.0;\n");
 
     // Use dual-source color blending to perform dst alpha in a single pass
-    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+    if (use_dual_source)
     {
       if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
         out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
