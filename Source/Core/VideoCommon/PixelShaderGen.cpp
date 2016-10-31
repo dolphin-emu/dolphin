@@ -530,7 +530,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     else
     {
       out.Write("FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;\n");
-      out.Write("vec4 ocol1;\n");  // Consume the output we don't use
     }
 
     if (uid_data->per_pixel_depth)
