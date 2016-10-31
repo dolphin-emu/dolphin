@@ -84,7 +84,7 @@ enum Bug
   // The offset of glBindBufferRange was ignored on all Mesa Gallium3D drivers until 9.1.3
   // Nouveau stored the offset as u16 which isn't enough for all cases with range until 9.1.6
   // I965 has broken data fetches from uniform buffers which results in a dithering until 9.2.0
-  BUG_BROKENUBO,
+  BUG_BROKEN_UBO,
   // Bug: The pinned memory extension isn't working for index buffers
   // Affected devices: AMD as they are the only vendor providing this extension
   // Started Version: ?
@@ -97,7 +97,7 @@ enum Bug
   // This bug only happens when paired with base_vertex.
   // Please see issue #6105. Let's hope buffer storage solves this issue.
   // TODO: Detect broken drivers.
-  BUG_BROKENPINNEDMEMORY,
+  BUG_BROKEN_PINNED_MEMORY,
   // Bug: glBufferSubData/glMapBufferRange stalls + OOM
   // Affected devices: Adreno a3xx/Mali-t6xx
   // Started Version: -1
@@ -106,7 +106,7 @@ enum Bug
   // The driver stalls in each instance no matter what you do
   // Apparently Mali and Adreno share code in this regard since they were written by the same
   // person.
-  BUG_BROKENBUFFERSTREAM,
+  BUG_BROKEN_BUFFER_STREAM,
   // Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams
   // Affected devices: GeForce 4xx+
   // Started Version: -1
@@ -114,7 +114,7 @@ enum Bug
   // The buffer_storage streaming method is required for greater speed gains in our buffer streaming
   // It reduces what is needed for streaming to basically a memcpy call
   // It seems to work for all buffer types except GL_ARRAY_BUFFER
-  BUG_BROKENBUFFERSTORAGE,
+  BUG_BROKEN_BUFFER_STORAGE,
   // Bug: Intel HD 3000 on OS X has broken primitive restart
   // Affected devices: Intel HD 3000
   // Affected OS: OS X
@@ -122,7 +122,7 @@ enum Bug
   // Ended Version: -1
   // The drivers on OS X has broken primitive restart.
   // Intel HD 4000 series isn't affected by the bug
-  BUG_PRIMITIVERESTART,
+  BUG_PRIMITIVE_RESTART,
   // Bug: unsync mapping doesn't work fine
   // Affected devices: Nvidia driver
   // Started Version: -1
@@ -133,7 +133,7 @@ enum Bug
   // Workaround: Use BufferSubData
   // TODO: some Windows AMD driver/GPU combination seems also affected
   //       but as they all support pinned memory, it doesn't matter
-  BUG_BROKENUNSYNCMAPPING,
+  BUG_BROKEN_UNSYNC_MAPPING,
   // Bug: Intel's Window driver broke buffer_storage with GL_ELEMENT_ARRAY_BUFFER
   // Affected devices: Intel (Windows)
   // Started Version: 15.36.3.64.3907 (10.18.10.3907)
@@ -141,7 +141,7 @@ enum Bug
   // Intel implemented buffer_storage in their GL 4.3 driver.
   // It works for all the buffer types we use except GL_ELEMENT_ARRAY_BUFFER.
   // Causes complete blackscreen issues.
-  BUG_INTELBROKENBUFFERSTORAGE,
+  BUG_INTEL_BROKEN_BUFFER_STORAGE,
   // Bug: Qualcomm has broken boolean negation
   // Affected devices: Adreno
   // Started Version: -1
@@ -165,13 +165,13 @@ enum Bug
   // Works on Qualcomm
   // Broken on Windows Intel
   // if (cond == false)
-  BUG_BROKENNEGATEDBOOLEAN,
+  BUG_BROKEN_NEGATED_BOOLEAN,
 
   // Bug: glCopyImageSubData doesn't work on i965
   // Started Version: -1
   // Ended Version: 10.6.4
   // Mesa meta misses to disable the scissor test.
-  BUG_BROKENCOPYIMAGE,
+  BUG_BROKEN_COPYIMAGE,
 
   // Bug: ARM Mali managed to break disabling vsync
   // Affected Devices: Mali
@@ -184,7 +184,7 @@ enum Bug
   // We can't actually detect what the driver version is on Android, so until the driver version
   // lands that displays the version in
   // the GL_VERSION string, we will have to force vsync to be enabled at all times.
-  BUG_BROKENVSYNC,
+  BUG_BROKEN_VSYNC,
 
   // Bug: Broken lines in geometry shaders
   // Affected Devices: Mesa r600/radeonsi, Mesa Sandy Bridge
@@ -193,7 +193,7 @@ enum Bug
   // Mesa introduced geometry shader support for radeon and sandy bridge devices and failed to test
   // it with us.
   // Causes misrenderings on a large amount of things that draw lines.
-  BUG_BROKENGEOMETRYSHADERS,
+  BUG_BROKEN_GEOMETRY_SHADERS,
 
   // Bug: Explicit flush is very slow on Qualcomm
   // Started Version: -1
@@ -202,7 +202,7 @@ enum Bug
   // Qualcomm seems to have lots of overhead on explicit flushing, but the coherent mapping path is
   // fine.
   // So let's use coherent mapping there.
-  BUG_BROKENEXPLICITFLUSH,
+  BUG_BROKEN_EXPLICIT_FLUSH,
 
   // Bug: glGetBufferSubData for bounding box reads is slow on AMD drivers
   // Started Version: -1
@@ -213,7 +213,7 @@ enum Bug
   // first call moving the buffer from
   // GPU memory to system memory. Use glMapBufferRange for BBox reads on AMD, and glGetBufferSubData
   // everywhere else.
-  BUG_SLOWGETBUFFERSUBDATA,
+  BUG_SLOW_GETBUFFERSUBDATA,
 
   // Bug: Broken lines in geometry shaders when writing to gl_ClipDistance in the vertex shader
   // Affected Devices: Mesa i965
@@ -222,7 +222,7 @@ enum Bug
   // Writing to gl_ClipDistance in both the vertex shader and the geometry shader will break
   // the geometry shader. Current workaround is to make sure the geometry shader always consumes
   // the gl_ClipDistance inputs from the vertex shader.
-  BUG_BROKENCLIPDISTANCE,
+  BUG_BROKEN_CLIP_DISTANCE,
 
   // Bug: Dual-source outputs from fragment shaders are broken on AMD Vulkan drivers
   // Started Version: -1

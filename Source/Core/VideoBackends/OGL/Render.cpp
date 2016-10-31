@@ -413,7 +413,7 @@ Renderer::Renderer()
                  "GPU: Does your video card support OpenGL 3.1?");
       bSuccess = false;
     }
-    else if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
+    else if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_UBO))
     {
       PanicAlert(
           "Buggy GPU driver detected.\n"
@@ -447,7 +447,7 @@ Renderer::Renderer()
       (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
        GLExtensions::Supports("GL_EXT_blend_func_extended"));
   g_Config.backend_info.bSupportsPrimitiveRestart =
-      !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
+      !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
   g_Config.backend_info.bSupportsBBox =
       GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
@@ -456,7 +456,7 @@ Renderer::Renderer()
                                         GLExtensions::Supports("GL_ARB_sample_shading");
   g_Config.backend_info.bSupportsGeometryShaders =
       GLExtensions::Version() >= 320 &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKENGEOMETRYSHADERS);
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_GEOMETRY_SHADERS);
   g_Config.backend_info.bSupportsPaletteConversion =
       GLExtensions::Supports("GL_ARB_texture_buffer_object") ||
       GLExtensions::Supports("GL_OES_texture_buffer") ||
@@ -466,7 +466,7 @@ Renderer::Renderer()
       (GLExtensions::Supports("GL_ARB_copy_image") || GLExtensions::Supports("GL_NV_copy_image") ||
        GLExtensions::Supports("GL_EXT_copy_image") ||
        GLExtensions::Supports("GL_OES_copy_image")) &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKENCOPYIMAGE);
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_COPYIMAGE);
 
   // Desktop OpenGL supports the binding layout if it supports 420pack
   // OpenGL ES 3.1 supports it implicitly without an extension
@@ -694,7 +694,7 @@ Renderer::Renderer()
 
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
-  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
+  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
     GLInterface->SwapInterval(s_vsync);
 
   // TODO: Move these somewhere else?
@@ -1561,7 +1561,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   if (s_vsync != g_ActiveConfig.IsVSync())
   {
     s_vsync = g_ActiveConfig.IsVSync();
-    if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
+    if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
       GLInterface->SwapInterval(s_vsync);
   }
 
