@@ -629,7 +629,7 @@ void JitArm64::GenMfcr()
   const u8* start = GetCodePtr();
   for (int i = 0; i < 8; i++)
   {
-    LDR(INDEX_UNSIGNED, X1, PPC_REG, PPCSTATE_OFF(cr_val) + 8 * i);
+    LDR(INDEX_UNSIGNED, X1, PPC_REG, PPCSTATE_OFF(cr_val[i]));
 
     // SO
     if (i == 0)
