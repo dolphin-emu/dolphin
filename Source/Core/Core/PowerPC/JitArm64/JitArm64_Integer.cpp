@@ -1305,10 +1305,16 @@ void JitArm64::srawx(UGeckoInstruction inst)
       ComputeRC(gpr.GetImm(a), 0);
     return;
   }
-  else if (gpr.IsImm(b) && (gpr.GetImm(b) & 0x20) == 0 && !js.op->wantsCA)
+
+  if (gpr.IsImm(b) && !js.op->wantsCA)
   {
+    int amount = gpr.GetImm(b);
+    if (amount & 0x20)
+      amount = 0x1F;
+    else
+      amount &= 0x1F;
     gpr.BindToRegister(a, a == s);
-    ASR(gpr.R(a), gpr.R(a), gpr.GetImm(b) & 0x1F);
+    ASR(gpr.R(a), gpr.R(s), amount);
   }
   else if (!js.op->wantsCA)
   {
