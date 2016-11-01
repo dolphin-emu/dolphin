@@ -540,6 +540,13 @@ void VertexShaderManager::SetConstants()
       ERROR_LOG(VIDEO, "Unknown projection type: %d", xfmem.projection.type);
     }
 
+    Matrix44 flipper;
+    Matrix44::LoadIdentity(flipper);
+    if(xfmem.viewport.wd < 0.0f)
+      flipper.data[0] = -1.0f;
+    if(xfmem.viewport.ht > 0.0f)
+      flipper.data[5] = -1.0f;
+
     PRIM_LOG("Projection: %f %f %f %f %f %f\n", rawProjection[0], rawProjection[1],
              rawProjection[2], rawProjection[3], rawProjection[4], rawProjection[5]);
 
@@ -564,7 +571,10 @@ void VertexShaderManager::SetConstants()
 
       Matrix44 correctedMtx;
       Matrix44::Multiply(s_viewportCorrection, projMtx, correctedMtx);
-      memcpy(constants.projection, correctedMtx.data, 4 * sizeof(float4));
+
+      Matrix44 recorrectedMtx;
+      Matrix44::Multiply(flipper, correctedMtx, recorrectedMtx);
+      memcpy(constants.projection, recorrectedMtx.data, 4 * sizeof(float4));
     }
 
     dirty = true;
