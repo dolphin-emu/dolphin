@@ -3,7 +3,6 @@
 #include <atomic>
 
 #include "DolphinWatch.h"
-#include "Common/Logging/LogManager.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
@@ -20,7 +19,7 @@
 #include "Core/Host.h"
 
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+//#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
 
 namespace DolphinWatch {
 

@@ -2,6 +2,7 @@
 
 #include <sstream>
 #include <SFML/Network.hpp>
+#include "Common/Logging/LogManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "InputCommon/InputConfig.h"
 #include "Core/HW/Wiimote.h"
