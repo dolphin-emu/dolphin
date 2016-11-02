@@ -492,7 +492,7 @@ public:
       break;
 
     default:
-      ERROR_LOG(WII_IPC_NET, "%s - unknown IOCtl: %x\n", GetDeviceName().c_str(), Parameter);
+      ERROR_LOG(WII_IPC_NET, "%s - unknown IOCtl: %x", GetDeviceName().c_str(), Parameter);
       break;
     }
 

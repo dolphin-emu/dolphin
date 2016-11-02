@@ -107,7 +107,7 @@ void PixelShaderManager::SetTevColor(int index, int component, s32 value)
   c[component] = value;
   dirty = true;
 
-  PRIM_LOG("tev color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
+  PRIM_LOG("tev color%d: %d %d %d %d", index, c[0], c[1], c[2], c[3]);
 }
 
 void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
@@ -116,7 +116,7 @@ void PixelShaderManager::SetTevKonstColor(int index, int component, s32 value)
   c[component] = value;
   dirty = true;
 
-  PRIM_LOG("tev konst color%d: %d %d %d %d\n", index, c[0], c[1], c[2], c[3]);
+  PRIM_LOG("tev konst color%d: %d %d %d %d", index, c[0], c[1], c[2], c[3]);
 }
 
 void PixelShaderManager::SetAlpha()
@@ -201,7 +201,7 @@ void PixelShaderManager::SetIndMatrixChanged(int matrixidx)
   constants.indtexmtx[2 * matrixidx + 1][3] = 17 - scale;
   dirty = true;
 
-  PRIM_LOG("indmtx%d: scale=%d, mat=(%d %d %d; %d %d %d)\n", matrixidx, scale,
+  PRIM_LOG("indmtx%d: scale=%d, mat=(%d %d %d; %d %d %d)", matrixidx, scale,
            bpmem.indmtx[matrixidx].col0.ma, bpmem.indmtx[matrixidx].col1.mc,
            bpmem.indmtx[matrixidx].col2.me, bpmem.indmtx[matrixidx].col0.mb,
            bpmem.indmtx[matrixidx].col1.md, bpmem.indmtx[matrixidx].col2.mf);

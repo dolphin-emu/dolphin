@@ -141,7 +141,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
         gpr.PushRegs();
         ABI_CallFunctionC16(extOpTable[inst & 0x7F]->intFunc, inst);
         gpr.PopRegs();
-        INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x\n", inst);
+        INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x", inst);
         ext_is_jit = false;
       }
       else
@@ -158,7 +158,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
         gpr.PushRegs();
         ABI_CallFunctionC16(extOpTable[inst & 0xFF]->intFunc, inst);
         gpr.PopRegs();
-        INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x\n", inst);
+        INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x", inst);
         ext_is_jit = false;
       }
       else
@@ -173,7 +173,7 @@ void DSPEmitter::EmitInstruction(UDSPInstruction inst)
   if (!opTable[inst]->jitFunc)
   {
     FallBackToInterpreter(inst);
-    INFO_LOG(DSPLLE, "Instruction not JITed(main part): %04x\n", inst);
+    INFO_LOG(DSPLLE, "Instruction not JITed(main part): %04x", inst);
   }
   else
   {
