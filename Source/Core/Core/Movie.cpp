@@ -12,6 +12,7 @@
 #include <thread>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
@@ -1151,6 +1152,7 @@ void LoadInput(const std::string& filename)
       if (s_playMode != MODE_PLAYING)
       {
         s_playMode = MODE_PLAYING;
+        Core::UpdateWantDeterminism();
         Core::DisplayMessage("Switched to playback", 2000);
       }
     }
@@ -1159,6 +1161,7 @@ void LoadInput(const std::string& filename)
       if (s_playMode != MODE_RECORDING)
       {
         s_playMode = MODE_RECORDING;
+        Core::UpdateWantDeterminism();
         Core::DisplayMessage("Switched to recording", 2000);
       }
     }
@@ -1335,6 +1338,9 @@ void EndPlayInput(bool cont)
 {
   if (cont)
   {
+    // If !IsMovieActive(), changing s_playMode requires calling UpdateWantDeterminism
+    _assert_(IsMovieActive());
+
     s_playMode = MODE_RECORDING;
     Core::DisplayMessage("Reached movie end. Resuming recording.", 2000);
   }
