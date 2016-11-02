@@ -302,6 +302,8 @@ wxMenu* MainMenuBar::CreateViewMenu() const
   if (m_type == MenuType::Debug)
   {
     view_menu->AppendCheckItem(IDM_REGISTER_WINDOW, _("&Registers"));
+    // i18n: This kind of "watch" is used for watching emulated memory.
+    // It's not related to timekeeping devices.
     view_menu->AppendCheckItem(IDM_WATCH_WINDOW, _("&Watch"));
     view_menu->AppendCheckItem(IDM_BREAKPOINT_WINDOW, _("&Breakpoints"));
     view_menu->AppendCheckItem(IDM_MEMORY_WINDOW, _("&Memory"));

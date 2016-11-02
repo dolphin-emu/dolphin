@@ -14,6 +14,8 @@ class CWatchWindow : public wxPanel
 public:
   CWatchWindow(wxWindow* parent, wxWindowID id = wxID_ANY, const wxPoint& pos = wxDefaultPosition,
                const wxSize& size = wxDefaultSize, long style = wxTAB_TRAVERSAL | wxNO_BORDER,
+               // i18n: This kind of "watch" is used for watching emulated memory.
+               // It's not related to timekeeping devices.
                const wxString& name = _("Watch"));
   ~CWatchWindow();
 

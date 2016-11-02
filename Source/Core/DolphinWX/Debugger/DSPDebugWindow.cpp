@@ -46,9 +46,12 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
       new DolphinAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
   m_Toolbar->AddTool(ID_RUNTOOL, _("Pause"),
                      wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, m_toolbar_item_size));
+  // i18n: Here, "Step" is a verb. This function is used for
+  // going through code step by step.
   m_Toolbar->AddTool(ID_STEPTOOL, _("Step"),
                      wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, m_toolbar_item_size));
   m_Toolbar->AddTool(
+      // i18n: Here, PC is an acronym for program counter, not personal computer.
       ID_SHOWPCTOOL, _("Show PC"),
       wxArtProvider::GetBitmap(wxART_GO_TO_PARENT, wxART_OTHER, m_toolbar_item_size));
   m_Toolbar->AddSeparator();
