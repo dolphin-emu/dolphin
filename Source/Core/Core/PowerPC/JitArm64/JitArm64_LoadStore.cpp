@@ -38,11 +38,6 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
   if (offsetReg != -1 && !gpr.IsImm(offsetReg))
     off_reg = gpr.R(offsetReg);
 
-  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
-  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
-  regs_in_use[W0] = 0;
-  regs_in_use[dest_reg] = 0;
-
   ARM64Reg addr_reg = W0;
   u32 imm_addr = 0;
   bool is_immediate = false;
@@ -115,6 +110,11 @@ void JitArm64::SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 o
     gpr.BindToRegister(addr, false);
     MOV(gpr.R(addr), addr_reg);
   }
+
+  BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+  BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
+  regs_in_use[W0] = 0;
+  regs_in_use[dest_reg] = 0;
 
   u32 access_size = BackPatchInfo::GetFlagSize(flags);
   u32 mmio_address = 0;
