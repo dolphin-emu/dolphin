@@ -987,7 +987,7 @@ void CISOProperties::ExportDir(const std::string& _rFullPath, const std::string&
       }
     }
 
-    INFO_LOG(DISCIO, "Directory found from %u to %u\nextracting to:\n%s", index, size,
+    INFO_LOG(DISCIO, "Directory found from %u to %u\nextracting to: %s", index, size,
              _rExportFolder.c_str());
   }
 

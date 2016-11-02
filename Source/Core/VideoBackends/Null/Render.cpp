@@ -25,7 +25,7 @@ Renderer::~Renderer()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-  NOTICE_LOG(VIDEO, "RenderText: %s\n", text.c_str());
+  NOTICE_LOG(VIDEO, "RenderText: %s", text.c_str());
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)

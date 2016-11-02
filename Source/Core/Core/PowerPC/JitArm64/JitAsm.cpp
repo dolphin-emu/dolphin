@@ -48,7 +48,7 @@ void JitArm64::GenerateAsm()
   // } while (CPU::GetState() == CPU::CPU_RUNNING);
   AlignCodePage();
   dispatcher = GetCodePtr();
-  WARN_LOG(DYNA_REC, "Dispatcher is %p\n", dispatcher);
+  WARN_LOG(DYNA_REC, "Dispatcher is %p", dispatcher);
 
   // Downcount Check
   // The result of slice decrementation should be in flags if somebody jumped here

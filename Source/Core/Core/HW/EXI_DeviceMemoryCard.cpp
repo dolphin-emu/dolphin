@@ -510,7 +510,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       break;
 
     default:
-      WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x\n", byte);
+      WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x", byte);
       byte = 0xFF;
     }
   }
