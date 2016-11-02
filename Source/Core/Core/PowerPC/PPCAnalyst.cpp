@@ -7,6 +7,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
@@ -30,9 +31,11 @@
 
 namespace PPCAnalyst
 {
-static const int CODEBUFFER_SIZE = 32000;
+constexpr int CODEBUFFER_SIZE = 32000;
 // 0 does not perform block merging
-static const u32 FUNCTION_FOLLOWING_THRESHOLD = 16;
+constexpr u32 FUNCTION_FOLLOWING_THRESHOLD = 16;
+
+constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
 
 CodeBuffer::CodeBuffer(int size)
 {
@@ -44,8 +47,6 @@ CodeBuffer::~CodeBuffer()
 {
   delete[] codebuffer;
 }
-
-#define INVALID_TARGET ((u32)-1)
 
 static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
 {
@@ -60,7 +61,7 @@ static u32 EvaluateBranchTarget(UGeckoInstruction instr, u32 pc)
     return target;
   }
   default:
-    return INVALID_TARGET;
+    return INVALID_BRANCH_TARGET;
   }
 }
 
@@ -75,7 +76,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
 {
   if (!func.name.size())
     func.name = StringFromFormat("zz_%07x_", startAddr & 0x0FFFFFF);
-  if (func.analyzed >= 1)
+  if (func.analyzed)
     return true;  // No error, just already did it.
 
   func.calls.clear();
@@ -92,11 +93,11 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
     if (func.size >= CODEBUFFER_SIZE * 4)  // weird
       return false;
 
-    UGeckoInstruction instr = (UGeckoInstruction)PowerPC::HostRead_U32(addr);
+    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
     if (max_size && func.size > max_size)
     {
       func.address = startAddr;
-      func.analyzed = 1;
+      func.analyzed = true;
       func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
       if (numInternalBranches == 0)
         func.flags |= FFLAG_STRAIGHT;
@@ -117,7 +118,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
           // We're done! Looks like we have a neat valid function. Perfect.
           // Let's calc the checksum and get outta here
           func.address = startAddr;
-          func.analyzed = 1;
+          func.analyzed = true;
           func.hash = SignatureDB::ComputeCodeChecksum(startAddr, addr);
           if (numInternalBranches == 0)
             func.flags |= FFLAG_STRAIGHT;
@@ -168,7 +169,7 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
         else
         {
           u32 target = EvaluateBranchTarget(instr, addr);
-          if (target != INVALID_TARGET && instr.LK)
+          if (target != INVALID_BRANCH_TARGET && instr.LK)
           {
             // we found a branch-n-link!
             func.calls.emplace_back(target, addr);
@@ -191,16 +192,10 @@ static void AnalyzeFunction2(Symbol* func)
 {
   u32 flags = func->flags;
 
-  bool nonleafcall = false;
-  for (const SCall& c : func->calls)
-  {
-    Symbol* called_func = g_symbolDB.GetSymbolFromAddr(c.function);
-    if (called_func && (called_func->flags & FFLAG_LEAF) == 0)
-    {
-      nonleafcall = true;
-      break;
-    }
-  }
+  bool nonleafcall = std::any_of(func->calls.begin(), func->calls.end(), [](const auto& call) {
+    const Symbol* called_func = g_symbolDB.GetSymbolFromAddr(call.function);
+    return called_func && (called_func->flags & FFLAG_LEAF) == 0;
+  });
 
   if (nonleafcall && !(flags & FFLAG_EVIL) && !(flags & FFLAG_RFI))
     flags |= FFLAG_ONLYCALLSNICELEAFS;
@@ -275,7 +270,7 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func
 {
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
-    UGeckoInstruction instr = (UGeckoInstruction)PowerPC::HostRead_U32(addr);
+    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
 
     if (PPCTables::IsValidInstruction(instr))
     {
@@ -849,10 +844,13 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
   }
 
   // Forward scan, for flags that need the other direction for calculation.
-  BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe;
+  BitSet32 fprIsSingle, fprIsDuplicated, fprIsStoreSafe, gprDefined, gprBlockInputs;
   BitSet8 gqrUsed, gqrModified;
   for (u32 i = 0; i < block->m_num_instructions; i++)
   {
+    gprBlockInputs |= code[i].regsIn & ~gprDefined;
+    gprDefined |= code[i].regsOut;
+
     code[i].fprIsSingle = fprIsSingle;
     code[i].fprIsDuplicated = fprIsDuplicated;
     code[i].fprIsStoreSafe = fprIsStoreSafe;
@@ -905,6 +903,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
   }
   block->m_gqr_used = gqrUsed;
   block->m_gqr_modified = gqrModified;
+  block->m_gpr_inputs = gprBlockInputs;
   return address;
 }
 

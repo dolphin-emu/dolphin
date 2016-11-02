@@ -20,6 +20,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Profiler.h"
 #include "Common/StringUtil.h"
@@ -27,6 +28,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
@@ -39,6 +41,8 @@
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
+#include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
@@ -60,10 +64,6 @@ Common::Event Renderer::s_screenshotCompleted;
 
 volatile bool Renderer::s_bScreenshot;
 
-// Final surface changing
-Common::Flag Renderer::s_SurfaceNeedsChanged;
-Common::Event Renderer::s_ChangedSurface;
-
 // The framebuffer size
 int Renderer::s_target_width;
 int Renderer::s_target_height;
@@ -73,6 +73,11 @@ int Renderer::s_backbuffer_width;
 int Renderer::s_backbuffer_height;
 
 std::unique_ptr<PostProcessingShaderImplementation> Renderer::m_post_processor;
+
+// Final surface changing
+Common::Flag Renderer::s_surface_needs_change;
+Common::Event Renderer::s_surface_changed;
+void* Renderer::s_new_surface_handle;
 
 TargetRectangle Renderer::target_rc;
 
@@ -97,14 +102,10 @@ static float AspectToWidescreen(float aspect)
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-Renderer::Renderer() : frame_data(), bLastFrameDumped(false)
+Renderer::Renderer()
 {
   UpdateActiveConfig();
   TextureCacheBase::OnConfigChanged(g_ActiveConfig);
-
-#if defined _WIN32 || defined HAVE_LIBAV
-  bAVIDumping = false;
-#endif
 
   OSDChoice = 0;
   OSDTime = 0;
@@ -116,9 +117,14 @@ Renderer::~Renderer()
   prev_efb_format = PEControl::INVALID_FMT;
 
   efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
-#if defined _WIN32 || defined HAVE_LIBAV
-  if (SConfig::GetInstance().m_DumpFrames && bLastFrameDumped && bAVIDumping)
+
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  // Stop frame dumping if it was left enabled at shutdown time.
+  if (m_AVI_dumping)
+  {
     AVIDump::Stop();
+    m_AVI_dumping = false;
+  }
 #endif
 }
 
@@ -138,8 +144,11 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
   }
   else
   {
+    // The timing is not predictable here. So try to use the XFB path to dump frames.
+    u64 ticks = CoreTiming::GetTicks();
+
     // below div two to convert from bytes to pixels - it expects width, not stride
-    Swap(xfbAddr, fbStride / 2, fbStride / 2, fbHeight, sourceRc, Gamma);
+    Swap(xfbAddr, fbStride / 2, fbStride / 2, fbHeight, sourceRc, ticks, Gamma);
   }
 }
 
@@ -236,11 +245,10 @@ bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int 
     efb_scale_numeratorX = efb_scale_numeratorY = s_last_efb_scale - 3;
     efb_scale_denominatorX = efb_scale_denominatorY = 1;
 
-    int maxSize;
-    maxSize = GetMaxTextureSize();
-    if ((unsigned)maxSize < EFB_WIDTH * efb_scale_numeratorX / efb_scale_denominatorX)
+    const u32 max_size = GetMaxTextureSize();
+    if (max_size < EFB_WIDTH * efb_scale_numeratorX / efb_scale_denominatorX)
     {
-      efb_scale_numeratorX = efb_scale_numeratorY = (maxSize / EFB_WIDTH);
+      efb_scale_numeratorX = efb_scale_numeratorY = (max_size / EFB_WIDTH);
       efb_scale_denominatorX = efb_scale_denominatorY = 1;
     }
 
@@ -617,10 +625,10 @@ void Renderer::RecordVideoMemory()
 }
 
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                    float Gamma)
+                    u64 ticks, float Gamma)
 {
   // TODO: merge more generic parts into VideoCommon
-  g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, Gamma);
+  g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, ticks, Gamma);
 
   if (XFBWrited)
     g_renderer->m_fps_counter.Update();
@@ -636,6 +644,83 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
   Core::Callback_VideoCopiedToXFB(XFBWrited ||
                                   (g_ActiveConfig.bUseXFB && g_ActiveConfig.bUseRealXFB));
   XFBWrited = false;
+}
+
+bool Renderer::IsFrameDumping()
+{
+  if (s_bScreenshot)
+    return true;
+
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  if (SConfig::GetInstance().m_DumpFrames)
+    return true;
+
+  if (m_last_frame_dumped && m_AVI_dumping)
+  {
+    AVIDump::Stop();
+    std::vector<u8>().swap(m_frame_data);
+    m_AVI_dumping = false;
+    OSD::AddMessage("Stop dumping frames", 2000);
+  }
+  m_last_frame_dumped = false;
+#endif
+  return false;
+}
+
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, u64 ticks,
+                             bool swap_upside_down)
+{
+  if (w == 0 || h == 0)
+    return;
+
+  // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
+  m_frame_data.assign(data, data + stride * h);
+  if (swap_upside_down)
+    FlipImageData(m_frame_data.data(), w, h, 4);
+
+  // Save screenshot
+  if (s_bScreenshot)
+  {
+    std::lock_guard<std::mutex> lk(s_criticalScreenshot);
+
+    if (TextureToPng(m_frame_data.data(), stride, s_sScreenshotName, w, h, false))
+      OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
+
+    // Reset settings
+    s_sScreenshotName.clear();
+    s_bScreenshot = false;
+    s_screenshotCompleted.Set();
+  }
+
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+  if (SConfig::GetInstance().m_DumpFrames)
+  {
+    if (!m_last_frame_dumped)
+    {
+      m_AVI_dumping = AVIDump::Start(w, h);
+      if (!m_AVI_dumping)
+      {
+        OSD::AddMessage("AVIDump Start failed", 2000);
+      }
+      else
+      {
+        OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
+                                         File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h),
+                        2000);
+      }
+    }
+    if (m_AVI_dumping)
+    {
+      AVIDump::AddFrame(m_frame_data.data(), w, h, stride, ticks);
+    }
+
+    m_last_frame_dumped = true;
+  }
+#endif
+}
+
+void Renderer::FinishFrameData()
+{
 }
 
 void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)

@@ -40,8 +40,8 @@ public:
 
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
 
-  std::string GetUniqueID() const override;
-  void SetUniqueID(const std::string& _ID);
+  std::string GetGameID() const override;
+  void SetGameID(const std::string& _ID);
 
   std::string GetMakerID() const override;
 

@@ -24,4 +24,5 @@
         android:startOffset="@android:integer/config_shortAnimTime"
         android:valueFrom="0"
         android:valueTo="-100.0"/>
+
 </set>

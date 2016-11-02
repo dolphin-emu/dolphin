@@ -14,13 +14,11 @@
 #include "InputCommon/ControllerInterface/DInput/DInput.h"
 #endif
 #ifdef CIFACE_USE_XLIB
-#include "InputCommon/ControllerInterface/Xlib/Xlib.h"
-#ifdef CIFACE_USE_X11_XINPUT2
 #include "InputCommon/ControllerInterface/Xlib/XInput2.h"
-#endif
 #endif
 #ifdef CIFACE_USE_OSX
 #include "InputCommon/ControllerInterface/OSX/OSX.h"
+#include "InputCommon/ControllerInterface/Quartz/Quartz.h"
 #endif
 #ifdef CIFACE_USE_SDL
 #include "InputCommon/ControllerInterface/SDL/SDL.h"
@@ -63,13 +61,11 @@ void ControllerInterface::Initialize(void* const hwnd)
   ciface::XInput::Init();
 #endif
 #ifdef CIFACE_USE_XLIB
-  ciface::Xlib::Init(hwnd);
-#ifdef CIFACE_USE_X11_XINPUT2
   ciface::XInput2::Init(hwnd);
-#endif
 #endif
 #ifdef CIFACE_USE_OSX
   ciface::OSX::Init(hwnd);
+  ciface::Quartz::Init(hwnd);
 #endif
 #ifdef CIFACE_USE_SDL
   ciface::SDL::Init();
@@ -117,6 +113,7 @@ void ControllerInterface::Shutdown()
 #endif
 #ifdef CIFACE_USE_OSX
   ciface::OSX::DeInit();
+  ciface::Quartz::DeInit();
 #endif
 #ifdef CIFACE_USE_SDL
   // TODO: there seems to be some sort of memory leak with SDL, quit isn't freeing everything up

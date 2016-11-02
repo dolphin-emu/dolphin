@@ -118,7 +118,7 @@ ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
   m_flags = it->second;
   m_renderer.SetFlags(m_flags);
 
-  WARN_LOG(DSPHLE, "Zelda UCode loaded, crc=%08x, flags=%08x", crc, m_flags);
+  INFO_LOG(DSPHLE, "Zelda UCode loaded, crc=%08x, flags=%08x", crc, m_flags);
 
   if (m_flags & LIGHT_PROTOCOL)
   {

@@ -500,7 +500,7 @@ void PixelShaderCache::Init()
 
   std::string cache_filename =
       StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                       SConfig::GetInstance().m_strUniqueID.c_str());
+                       SConfig::GetInstance().m_strGameID.c_str());
   PixelShaderCacheInserter inserter;
   g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
 
@@ -578,7 +578,7 @@ bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
   }
 
   // Need to compile a new shader
-  ShaderCode code = GeneratePixelShaderCode(dstAlphaMode, APIType::D3D, uid.GetUidData());
+  ShaderCode code = GeneratePixelShaderCode(APIType::D3D, uid.GetUidData());
 
   D3DBlob* pbytecode;
   if (!D3D::CompilePixelShader(code.GetBuffer(), &pbytecode))

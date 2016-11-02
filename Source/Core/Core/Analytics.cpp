@@ -183,17 +183,16 @@ void DolphinAnalytics::MakePerGameBuilder()
   Common::AnalyticsReportBuilder builder(m_base_builder);
 
   // Gameid.
-  builder.AddData("gameid", SConfig::GetInstance().GetUniqueID());
+  builder.AddData("gameid", SConfig::GetInstance().GetGameID());
 
   // Unique id bound to the gameid.
-  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetUniqueID()));
+  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
 
   // Configuration.
   builder.AddData("cfg-dsp-hle", SConfig::GetInstance().bDSPHLE);
   builder.AddData("cfg-dsp-jit", SConfig::GetInstance().m_DSPEnableJIT);
   builder.AddData("cfg-dsp-thread", SConfig::GetInstance().bDSPThread);
   builder.AddData("cfg-cpu-thread", SConfig::GetInstance().bCPUThread);
-  builder.AddData("cfg-idle-skip", SConfig::GetInstance().bSkipIdle);
   builder.AddData("cfg-fastmem", SConfig::GetInstance().bFastmem);
   builder.AddData("cfg-syncgpu", SConfig::GetInstance().bSyncGPU);
   builder.AddData("cfg-audio-backend", SConfig::GetInstance().sBackend);

@@ -17,7 +17,7 @@ class DSPHLE : public DSPEmulator
 public:
   DSPHLE();
 
-  bool Initialize(bool bWii, bool bDSPThread) override;
+  bool Initialize(bool wii, bool dsp_thread) override;
   void Shutdown() override;
   bool IsLLE() override { return false; }
   void DoState(PointerWrap& p) override;
@@ -41,9 +41,6 @@ public:
 
 private:
   void SendMailToDSP(u32 _uMail);
-
-  // Declarations and definitions
-  bool m_bWii;
 
   // Fake mailbox utility
   struct DSPState

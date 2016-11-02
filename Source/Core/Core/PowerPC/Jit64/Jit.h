@@ -68,6 +68,8 @@ public:
   BitSet32 CallerSavedRegistersInUse() const;
   BitSet8 ComputeStaticGQRs(const PPCAnalyst::CodeBlock&) const;
 
+  void IntializeSpeculativeConstants();
+
   JitBlockCache* GetBlockCache() override { return &blocks; }
   void Trace();
 

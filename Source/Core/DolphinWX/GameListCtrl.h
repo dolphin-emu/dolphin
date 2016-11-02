@@ -5,6 +5,7 @@
 #pragma once
 
 #include <cstddef>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -37,7 +38,7 @@ public:
                 long style);
   ~CGameListCtrl();
 
-  void Update() override;
+  void ReloadList();
 
   void BrowseForDirectory();
   const GameListItem* GetISO(size_t index) const;
@@ -61,21 +62,18 @@ public:
     NUMBER_OF_COLUMN
   };
 
+#ifdef __WXMSW__
+  bool MSWOnNotify(int id, WXLPARAM lparam, WXLPARAM* result) override;
+#endif
+
 private:
   std::vector<int> m_FlagImageIndex;
   std::vector<int> m_PlatformImageIndex;
   std::vector<int> m_EmuStateImageIndex;
-  std::vector<GameListItem*> m_ISOFiles;
+  std::vector<int> m_utility_game_banners;
+  std::vector<std::unique_ptr<GameListItem>> m_ISOFiles;
 
-  void ClearIsoFiles()
-  {
-    while (!m_ISOFiles.empty())  // so lazy
-    {
-      delete m_ISOFiles.back();
-      m_ISOFiles.pop_back();
-    }
-  }
-
+  void ClearIsoFiles() { m_ISOFiles.clear(); }
   int last_column;
   int last_sort;
   wxSize lastpos;
@@ -96,6 +94,7 @@ private:
   void OnSize(wxSizeEvent& event);
   void OnProperties(wxCommandEvent& event);
   void OnWiki(wxCommandEvent& event);
+  void OnNetPlayHost(wxCommandEvent& event);
   void OnOpenContainingFolder(wxCommandEvent& event);
   void OnOpenSaveFolder(wxCommandEvent& event);
   void OnExportSave(wxCommandEvent& event);

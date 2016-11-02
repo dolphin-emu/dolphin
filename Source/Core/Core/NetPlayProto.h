@@ -27,7 +27,7 @@ struct NetSettings
 };
 
 extern NetSettings g_NetPlaySettings;
-extern u64 g_netplay_initial_gctime;
+extern u64 g_netplay_initial_rtc;
 
 struct Rpt : public std::vector<u8>
 {

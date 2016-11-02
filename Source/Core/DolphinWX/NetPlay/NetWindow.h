@@ -19,6 +19,7 @@ class wxButton;
 class wxCheckBox;
 class wxChoice;
 class wxListBox;
+class wxSizer;
 class wxStaticText;
 class wxString;
 class wxTextCtrl;
@@ -101,6 +102,13 @@ public:
   bool IsRecording() override;
 
 private:
+  void CreateGUI();
+  wxSizer* CreateTopGUI(wxWindow* parent);
+  wxSizer* CreateMiddleGUI(wxWindow* parent);
+  wxSizer* CreateChatGUI(wxWindow* parent);
+  wxSizer* CreatePlayerListGUI(wxWindow* parent);
+  wxSizer* CreateBottomGUI(wxWindow* parent);
+
   void OnChat(wxCommandEvent& event);
   void OnQuit(wxCommandEvent& event);
   void OnThread(wxThreadEvent& event);
@@ -133,7 +141,7 @@ private:
   wxStaticText* m_host_label;
   wxChoice* m_host_type_choice;
   wxButton* m_host_copy_btn;
-  wxChoice* m_MD5_choice;
+  wxChoice* m_MD5_choice = nullptr;
   MD5Dialog* m_MD5_dialog = nullptr;
   bool m_host_copy_btn_is_retry;
   bool m_is_hosting;

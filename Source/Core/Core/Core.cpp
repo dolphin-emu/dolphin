@@ -27,6 +27,7 @@
 #include "Common/Timer.h"
 
 #include "Core/Analytics.h"
+#include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -38,6 +39,7 @@
 #endif
 #include "Core/Boot/Boot.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
+#include "Core/HLE/HLE.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
@@ -51,7 +53,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/WII_Socket.h"
 #include "Core/Movie.h"
@@ -254,8 +256,8 @@ bool Init()
   if (g_aspect_wide)
   {
     IniFile gameIni = _CoreParameter.LoadGameIni();
-    gameIni.GetOrCreateSection("Wii")->Get(
-        "Widescreen", &g_aspect_wide, !!SConfig::GetInstance().m_SYSCONF->GetData<u8>("IPL.AR"));
+    gameIni.GetOrCreateSection("Wii")->Get("Widescreen", &g_aspect_wide,
+                                           !!SConfig::GetInstance().m_wii_aspect_ratio);
   }
 
   s_window_handle = Host_GetRenderHandle();
@@ -296,7 +298,7 @@ void Stop()  // - Hammertime!
 
     g_video_backend->Video_ExitLoop();
   }
-#if defined(__LIBUSB__) || defined(_WIN32)
+#if defined(__LIBUSB__)
   GCAdapter::ResetRumble();
 #endif
 
@@ -515,8 +517,9 @@ void EmuThread()
   bool init_controllers = false;
   if (!g_controller_interface.IsInit())
   {
-    Pad::Initialize(s_window_handle);
-    Keyboard::Initialize(s_window_handle);
+    g_controller_interface.Initialize(s_window_handle);
+    Pad::Initialize();
+    Keyboard::Initialize();
     init_controllers = true;
   }
   else
@@ -527,12 +530,12 @@ void EmuThread()
   }
 
   // Load and Init Wiimotes - only if we are booting in Wii mode
-  if (core_parameter.bWii)
+  if (core_parameter.bWii && !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     if (init_controllers)
-      Wiimote::Initialize(s_window_handle, !s_state_filename.empty() ?
-                                               Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
-                                               Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
+      Wiimote::Initialize(!s_state_filename.empty() ?
+                              Wiimote::InitializeMode::DO_WAIT_FOR_WIIMOTES :
+                              Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
     else
       Wiimote::LoadConfig();
 
@@ -656,6 +659,7 @@ void EmuThread()
     Wiimote::Shutdown();
     Keyboard::Shutdown();
     Pad::Shutdown();
+    g_controller_interface.Shutdown();
     init_controllers = false;
   }
 
@@ -667,13 +671,12 @@ void EmuThread()
   // Clear on screen messages that haven't expired
   OSD::ClearMessages();
 
-  // Reload sysconf file in order to see changes committed during emulation
-  if (core_parameter.bWii)
-    SConfig::GetInstance().m_SYSCONF->Reload();
+  BootManager::RestoreConfig();
 
   INFO_LOG(CONSOLE, "Stop [Video Thread]\t\t---- Shutdown complete ----");
   Movie::Shutdown();
   PatchEngine::Shutdown();
+  HLE::Clear();
 
   s_is_stopping = false;
 
@@ -696,7 +699,7 @@ void SetState(EState state)
     //   stopped (including the CPU).
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
-#if defined(__LIBUSB__) || defined(_WIN32)
+#if defined(__LIBUSB__)
     GCAdapter::ResetRumble();
 #endif
     break;
@@ -728,7 +731,7 @@ EState GetState()
 
 static std::string GenerateScreenshotFolderPath()
 {
-  const std::string& gameId = SConfig::GetInstance().GetUniqueID();
+  const std::string& gameId = SConfig::GetInstance().GetGameID();
   std::string path = File::GetUserPath(D_SCREENSHOTS_IDX) + gameId + DIR_SEP_CHR;
 
   if (!File::CreateFullPath(path))
@@ -745,7 +748,7 @@ static std::string GenerateScreenshotName()
   std::string path = GenerateScreenshotFolderPath();
 
   // append gameId, path only contains the folder here.
-  path += SConfig::GetInstance().GetUniqueID();
+  path += SConfig::GetInstance().GetGameID();
 
   std::string name;
   for (int i = 1; File::Exists(name = StringFromFormat("%s-%d.png", path.c_str(), i)); ++i)
@@ -816,7 +819,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock)
   // (s_efbAccessRequested).
   Fifo::PauseAndLock(do_lock, false);
 
-#if defined(__LIBUSB__) || defined(_WIN32)
+#if defined(__LIBUSB__)
   GCAdapter::ResetRumble();
 #endif
 
@@ -929,11 +932,9 @@ void UpdateTitle()
       float TicksPercentage =
           (float)diff / (float)(SystemTimers::GetTicksPerSecond() / 1000000) * 100;
 
-      SFPS +=
-          StringFromFormat(" | CPU: %s%i MHz [Real: %i + IdleSkip: %i] / %i MHz (%s%3.0f%%)",
-                           _CoreParameter.bSkipIdle ? "~" : "", (int)(diff), (int)(diff - idleDiff),
-                           (int)(idleDiff), SystemTimers::GetTicksPerSecond() / 1000000,
-                           _CoreParameter.bSkipIdle ? "~" : "", TicksPercentage);
+      SFPS += StringFromFormat(" | CPU: ~%i MHz [Real: %i + IdleSkip: %i] / %i MHz (~%3.0f%%)",
+                               (int)(diff), (int)(diff - idleDiff), (int)(idleDiff),
+                               SystemTimers::GetTicksPerSecond() / 1000000, TicksPercentage);
     }
   }
   // This is our final "frame counter" string
@@ -977,7 +978,7 @@ void UpdateWantDeterminism(bool initial)
   bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
   if (new_want_determinism != g_want_determinism || initial)
   {
-    WARN_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
+    NOTICE_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
 
     bool was_unpaused = Core::PauseAndLock(true);
 

@@ -103,7 +103,7 @@ bool CEXIETHERNET::IsActivated()
 bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
 {
 #ifdef __linux__
-  INFO_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
+  DEBUG_LOG(SP1, "SendFrame %x\n%s", size, ArrayToString(frame, size, 0x10).c_str());
 
   int writtenBytes = write(fd, frame, size);
   if ((u32)writtenBytes != size)
@@ -122,6 +122,7 @@ bool CEXIETHERNET::SendFrame(const u8* frame, u32 size)
 #endif
 }
 
+#ifdef __linux__
 static void ReadThreadHandler(CEXIETHERNET* self)
 {
   while (!self->readThreadShutdown.IsSet())
@@ -143,13 +144,14 @@ static void ReadThreadHandler(CEXIETHERNET* self)
     }
     else if (self->readEnabled.IsSet())
     {
-      INFO_LOG(SP1, "Read data: %s",
-               ArrayToString(self->mRecvBuffer.get(), readBytes, 0x10).c_str());
+      DEBUG_LOG(SP1, "Read data: %s",
+                ArrayToString(self->mRecvBuffer.get(), readBytes, 0x10).c_str());
       self->mRecvBufferLength = readBytes;
       self->RecvHandlePacket();
     }
   }
 }
+#endif
 
 bool CEXIETHERNET::RecvInit()
 {

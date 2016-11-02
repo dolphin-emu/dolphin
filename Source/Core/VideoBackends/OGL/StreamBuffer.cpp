@@ -341,7 +341,7 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
   // without basevertex support, only streaming methods whith uploads everything to zero works fine:
   if (!g_ogl_config.bSupportsGLBaseVertex)
   {
-    if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTREAM))
+    if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BUFFER_STREAM))
       return std::make_unique<BufferSubData>(type, size);
 
     // BufferData is by far the worst way, only use it if needed
@@ -353,21 +353,21 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
   {
     // pinned memory is much faster than buffer storage on AMD cards
     if (g_ogl_config.bSupportsGLPinnedMemory &&
-        !(DriverDetails::HasBug(DriverDetails::BUG_BROKENPINNEDMEMORY) &&
+        !(DriverDetails::HasBug(DriverDetails::BUG_BROKEN_PINNED_MEMORY) &&
           type == GL_ELEMENT_ARRAY_BUFFER))
       return std::make_unique<PinnedMemory>(type, size);
 
     // buffer storage works well in most situations
-    bool coherent = DriverDetails::HasBug(DriverDetails::BUG_BROKENEXPLICITFLUSH);
+    bool coherent = DriverDetails::HasBug(DriverDetails::BUG_BROKEN_EXPLICIT_FLUSH);
     if (g_ogl_config.bSupportsGLBufferStorage &&
-        !(DriverDetails::HasBug(DriverDetails::BUG_BROKENBUFFERSTORAGE) &&
+        !(DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BUFFER_STORAGE) &&
           type == GL_ARRAY_BUFFER) &&
-        !(DriverDetails::HasBug(DriverDetails::BUG_INTELBROKENBUFFERSTORAGE) &&
+        !(DriverDetails::HasBug(DriverDetails::BUG_INTEL_BROKEN_BUFFER_STORAGE) &&
           type == GL_ELEMENT_ARRAY_BUFFER))
       return std::make_unique<BufferStorage>(type, size, coherent);
 
     // don't fall back to MapAnd* for Nvidia drivers
-    if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUNSYNCMAPPING))
+    if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_UNSYNC_MAPPING))
       return std::make_unique<BufferSubData>(type, size);
 
     // mapping fallback

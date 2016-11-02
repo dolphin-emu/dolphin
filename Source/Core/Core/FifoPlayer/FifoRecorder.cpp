@@ -7,6 +7,7 @@
 
 #include "Core/FifoPlayer/FifoRecorder.h"
 
+#include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/FifoPlayer/FifoAnalyzer.h"

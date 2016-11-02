@@ -51,8 +51,8 @@ bool ZCompare(u16 x, u16 y, u32 z);
 void SetColor(u16 x, u16 y, u8* color);
 void SetDepth(u16 x, u16 y, u32 depth);
 
-void GetColor(u16 x, u16 y, u8* color);
-void GetColorYUV(u16 x, u16 y, yuv444* color);
+u32 GetColor(u16 x, u16 y);
+yuv444 GetColorYUV(u16 x, u16 y);
 u32 GetDepth(u16 x, u16 y);
 
 u8* GetPixelPointer(u16 x, u16 y, bool depth);

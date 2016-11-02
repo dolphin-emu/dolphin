@@ -28,7 +28,10 @@
 namespace VertexLoaderManager
 {
 float position_cache[3][4];
-u32 position_matrix_index[3];
+
+// The counter added to the address of the array is 1, 2, or 3, but never zero.
+// So only index 1 - 3 are used.
+u32 position_matrix_index[4];
 
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
@@ -177,8 +180,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
   return loader;
 }
 
-int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool skip_drawing,
-                bool is_preprocess)
+int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bool is_preprocess)
 {
   if (!count)
     return 0;
@@ -189,7 +191,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
   if ((int)src.size() < size)
     return -1;
 
-  if (skip_drawing || is_preprocess)
+  if (is_preprocess)
     return size;
 
   // If the native vertex format changed, force a flush.

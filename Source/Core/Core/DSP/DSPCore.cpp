@@ -82,7 +82,7 @@ static bool VerifyRoms()
   {
     DSPHost::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
     DSPHost::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
-    DSPHost::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.\n", 8000);
+    DSPHost::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.", 8000);
   }
 
   return true;
@@ -331,7 +331,7 @@ void CompileCurrent()
   }
 }
 
-u16 DSPCore_ReadRegister(int reg)
+u16 DSPCore_ReadRegister(size_t reg)
 {
   switch (reg)
   {
@@ -388,7 +388,7 @@ u16 DSPCore_ReadRegister(int reg)
   }
 }
 
-void DSPCore_WriteRegister(int reg, u16 val)
+void DSPCore_WriteRegister(size_t reg, u16 val)
 {
   switch (reg)
   {

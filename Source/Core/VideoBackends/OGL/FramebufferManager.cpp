@@ -364,9 +364,9 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
                                   "	}\n"
                                   "}\n";
 
-  ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6.c_str(),
+  ProgramShaderCache::CompileShader(m_pixel_format_shaders[0], vs, ps_rgb8_to_rgba6,
                                     (m_EFBLayers > 1) ? gs : "");
-  ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8.c_str(),
+  ProgramShaderCache::CompileShader(m_pixel_format_shaders[1], vs, ps_rgba6_to_rgb8,
                                     (m_EFBLayers > 1) ? gs : "");
 
   ProgramShaderCache::CompileShader(

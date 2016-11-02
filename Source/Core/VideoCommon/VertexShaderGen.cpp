@@ -85,11 +85,11 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   out.Write("%s", s_lighting_struct);
 
   // uniforms
-  if (api_type == APIType::OpenGL)
-    out.Write("layout(std140%s) uniform VSBlock {\n",
-              g_ActiveConfig.backend_info.bSupportsBindingLayout ? ", binding = 2" : "");
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
+    out.Write("UBO_BINDING(std140, 2) uniform VSBlock {\n");
   else
     out.Write("cbuffer VSBlock {\n");
+
   out.Write(s_shader_uniforms);
   out.Write("};\n");
 
@@ -97,37 +97,40 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   GenerateVSOutputMembers(out, api_type, uid_data->numTexGens, uid_data->pixel_lighting, "");
   out.Write("};\n");
 
-  if (api_type == APIType::OpenGL)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    out.Write("in float4 rawpos; // ATTR%d,\n", SHADER_POSITION_ATTRIB);
+    out.Write("ATTRIBUTE_LOCATION(%d) in float4 rawpos;\n", SHADER_POSITION_ATTRIB);
     if (uid_data->components & VB_HAS_POSMTXIDX)
-      out.Write("in int posmtx; // ATTR%d,\n", SHADER_POSMTX_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in uint4 posmtx;\n", SHADER_POSMTX_ATTRIB);
     if (uid_data->components & VB_HAS_NRM0)
-      out.Write("in float3 rawnorm0; // ATTR%d,\n", SHADER_NORM0_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm0;\n", SHADER_NORM0_ATTRIB);
     if (uid_data->components & VB_HAS_NRM1)
-      out.Write("in float3 rawnorm1; // ATTR%d,\n", SHADER_NORM1_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm1;\n", SHADER_NORM1_ATTRIB);
     if (uid_data->components & VB_HAS_NRM2)
-      out.Write("in float3 rawnorm2; // ATTR%d,\n", SHADER_NORM2_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float3 rawnorm2;\n", SHADER_NORM2_ATTRIB);
 
     if (uid_data->components & VB_HAS_COL0)
-      out.Write("in float4 color0; // ATTR%d,\n", SHADER_COLOR0_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float4 color0;\n", SHADER_COLOR0_ATTRIB);
     if (uid_data->components & VB_HAS_COL1)
-      out.Write("in float4 color1; // ATTR%d,\n", SHADER_COLOR1_ATTRIB);
+      out.Write("ATTRIBUTE_LOCATION(%d) in float4 color1;\n", SHADER_COLOR1_ATTRIB);
 
     for (int i = 0; i < 8; ++i)
     {
       u32 hastexmtx = (uid_data->components & (VB_HAS_TEXMTXIDX0 << i));
       if ((uid_data->components & (VB_HAS_UV0 << i)) || hastexmtx)
-        out.Write("in float%d tex%d; // ATTR%d,\n", hastexmtx ? 3 : 2, i,
-                  SHADER_TEXTURE0_ATTRIB + i);
+      {
+        out.Write("ATTRIBUTE_LOCATION(%d) in float%d tex%d;\n", SHADER_TEXTURE0_ATTRIB + i,
+                  hastexmtx ? 3 : 2, i);
+      }
     }
 
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    // We need to always use output blocks for Vulkan, but geometry shaders are also optional.
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || api_type == APIType::Vulkan)
     {
-      out.Write("out VertexData {\n");
+      out.Write("VARYING_LOCATION(0) out VertexData {\n");
       GenerateVSOutputMembers(
           out, api_type, uid_data->numTexGens, uid_data->pixel_lighting,
-          GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, false, true));
+          GetInterpolationQualifier(uid_data->msaa, uid_data->ssaa, true, false));
       out.Write("} vs;\n");
     }
     else
@@ -180,7 +183,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
         out.Write("  float%d tex%d : TEXCOORD%d,\n", hastexmtx ? 3 : 2, i, i);
     }
     if (uid_data->components & VB_HAS_POSMTXIDX)
-      out.Write("  int posmtx : BLENDINDICES,\n");
+      out.Write("  uint4 posmtx : BLENDINDICES,\n");
     out.Write("  float4 rawpos : POSITION) {\n");
   }
 
@@ -189,13 +192,14 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   // transforms
   if (uid_data->components & VB_HAS_POSMTXIDX)
   {
+    out.Write("int posidx = int(posmtx.r);\n");
     out.Write("float4 pos = float4(dot(" I_TRANSFORMMATRICES
-              "[posmtx], rawpos), dot(" I_TRANSFORMMATRICES
-              "[posmtx+1], rawpos), dot(" I_TRANSFORMMATRICES "[posmtx+2], rawpos), 1);\n");
+              "[posidx], rawpos), dot(" I_TRANSFORMMATRICES
+              "[posidx+1], rawpos), dot(" I_TRANSFORMMATRICES "[posidx+2], rawpos), 1);\n");
 
     if (uid_data->components & VB_HAS_NRMALL)
     {
-      out.Write("int normidx = posmtx & 31;\n");
+      out.Write("int normidx = posidx & 31;\n");
       out.Write("float3 N0 = " I_NORMALMATRICES "[normidx].xyz, N1 = " I_NORMALMATRICES
                 "[normidx+1].xyz, N2 = " I_NORMALMATRICES "[normidx+2].xyz;\n");
     }
@@ -246,7 +250,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("o.colors_0 = float4(1.0, 1.0, 1.0, 1.0);\n");
   }
 
-  GenerateLightingShaderCode(out, uid_data->lighting, uid_data->components, "color", "o.colors_");
+  GenerateLightingShaderCode(out, uid_data->lighting, uid_data->components, uid_data->numColorChans,
+                             "color", "o.colors_");
 
   if (uid_data->numColorChans < 2)
   {
@@ -461,9 +466,9 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   // get rasterized correctly.
   out.Write("o.pos.xy = o.pos.xy - o.pos.w * " I_PIXELCENTERCORRECTION ".xy;\n");
 
-  if (api_type == APIType::OpenGL)
+  if (api_type == APIType::OpenGL || api_type == APIType::Vulkan)
   {
-    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders)
+    if (g_ActiveConfig.backend_info.bSupportsGeometryShaders || api_type == APIType::Vulkan)
     {
       AssignVSOutputMembers(out, "vs", "o", uid_data->numTexGens, uid_data->pixel_lighting);
     }
@@ -488,7 +493,12 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
       out.Write("gl_ClipDistance[0] = o.clipDist0;\n");
       out.Write("gl_ClipDistance[1] = o.clipDist1;\n");
     }
-    out.Write("gl_Position = o.pos;\n");
+
+    // Vulkan NDC space has Y pointing down (right-handed NDC space).
+    if (api_type == APIType::Vulkan)
+      out.Write("gl_Position = float4(o.pos.x, -o.pos.y, o.pos.z, o.pos.w);\n");
+    else
+      out.Write("gl_Position = o.pos;\n");
   }
   else  // D3D
   {

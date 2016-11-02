@@ -37,7 +37,7 @@ public:
 
   virtual bool GetTitleID(u64*) const { return false; }
   virtual std::vector<u8> GetTMD() const { return {}; }
-  virtual std::string GetUniqueID() const = 0;
+  virtual std::string GetGameID() const = 0;
   virtual std::string GetMakerID() const = 0;
   virtual u16 GetRevision() const = 0;
   virtual std::string GetInternalName() const = 0;

@@ -2,16 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Debugger/PPCDebugInterface.h"
+
 #include <string>
 
 #include "Common/GekkoDisassembler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/Core.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/Memmap.h"
-#include "Core/Host.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -48,24 +47,19 @@ std::string PPCDebugInterface::Disassemble(unsigned int address)
   }
 }
 
-void PPCDebugInterface::GetRawMemoryString(int memory, unsigned int address, char* dest,
-                                           int max_size)
+std::string PPCDebugInterface::GetRawMemoryString(int memory, unsigned int address)
 {
   if (IsAlive())
   {
-    if (memory || PowerPC::HostIsRAMAddress(address))
-    {
-      snprintf(dest, max_size, "%08X%s", ReadExtraMemory(memory, address), memory ? " (ARAM)" : "");
-    }
-    else
-    {
-      strcpy(dest, memory ? "--ARAM--" : "--------");
-    }
+    const bool is_aram = memory != 0;
+
+    if (is_aram || PowerPC::HostIsRAMAddress(address))
+      return StringFromFormat("%08X%s", ReadExtraMemory(memory, address), is_aram ? " (ARAM)" : "");
+
+    return is_aram ? "--ARAM--" : "--------";
   }
-  else
-  {
-    strcpy(dest, "<unknwn>");  // bad spelling - 8 chars
-  }
+
+  return "<unknwn>";  // bad spelling - 8 chars
 }
 
 unsigned int PPCDebugInterface::ReadMemory(unsigned int address)
@@ -137,27 +131,29 @@ void PPCDebugInterface::ClearAllMemChecks()
 
 bool PPCDebugInterface::IsMemCheck(unsigned int address)
 {
-  return (Memory::AreMemoryBreakpointsActivated() && PowerPC::memchecks.GetMemCheck(address));
+  return PowerPC::memchecks.GetMemCheck(address) != nullptr;
 }
 
-void PPCDebugInterface::ToggleMemCheck(unsigned int address)
+void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool write, bool log)
 {
-  if (Memory::AreMemoryBreakpointsActivated() && !PowerPC::memchecks.GetMemCheck(address))
+  if (!IsMemCheck(address))
   {
     // Add Memory Check
     TMemCheck MemCheck;
     MemCheck.StartAddress = address;
     MemCheck.EndAddress = address;
-    MemCheck.OnRead = true;
-    MemCheck.OnWrite = true;
+    MemCheck.OnRead = read;
+    MemCheck.OnWrite = write;
 
-    MemCheck.Log = true;
+    MemCheck.Log = log;
     MemCheck.Break = true;
 
     PowerPC::memchecks.Add(MemCheck);
   }
   else
+  {
     PowerPC::memchecks.Remove(address);
+  }
 }
 
 void PPCDebugInterface::InsertBLR(unsigned int address, unsigned int value)
@@ -186,7 +182,7 @@ int PPCDebugInterface::GetColor(unsigned int address)
   Symbol* symbol = g_symbolDB.GetSymbolFromAddr(address);
   if (!symbol)
     return 0xFFFFFF;
-  if (symbol->type != Symbol::SYMBOL_FUNCTION)
+  if (symbol->type != Symbol::Type::Function)
     return 0xEEEEFF;
   return colors[symbol->index % 6];
 }

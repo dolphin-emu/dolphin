@@ -11,11 +11,11 @@
 #include "Common/CommonTypes.h"
 #include "Core/IPC_HLE/hci.h"
 
-class CWII_IPC_HLE_Device_usb_oh1_57e_305;
+class CWII_IPC_HLE_Device_usb_oh1_57e_305_emu;
 class PointerWrap;
 
-CWII_IPC_HLE_Device_usb_oh1_57e_305* GetUsbPointer();
-void SetUsbPointer(CWII_IPC_HLE_Device_usb_oh1_57e_305* ptr);
+CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* GetUsbPointer();
+void SetUsbPointer(CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* ptr);
 
 class CBigEndianBuffer
 {
@@ -35,7 +35,7 @@ private:
 class CWII_IPC_HLE_WiiMote
 {
 public:
-  CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305* _pHost, int _Number, bdaddr_t _BD,
+  CWII_IPC_HLE_WiiMote(CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* _pHost, int _Number, bdaddr_t _BD,
                        bool ready = false);
 
   virtual ~CWII_IPC_HLE_WiiMote() {}
@@ -93,7 +93,7 @@ private:
   u16 lmp_subversion;
   u8 m_LinkKey[HCI_KEY_SIZE];
   std::string m_Name;
-  CWII_IPC_HLE_Device_usb_oh1_57e_305* m_pHost;
+  CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* m_pHost;
 
   struct SChannel
   {

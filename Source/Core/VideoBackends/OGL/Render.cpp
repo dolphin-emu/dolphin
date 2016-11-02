@@ -32,13 +32,10 @@
 #include "VideoBackends/OGL/TextureCache.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
 #include "VideoCommon/AVIDump.h"
-#endif
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
@@ -51,7 +48,6 @@ void VideoConfig::UpdateProjectionHack()
   ::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
-static int OSDInternalW, OSDInternalH;
 static int s_max_texture_size = 0;
 
 namespace OGL
@@ -145,7 +141,7 @@ static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum
     WARN_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
     break;
   case GL_DEBUG_SEVERITY_LOW_ARB:
-    WARN_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
+    DEBUG_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
     break;
   case GL_DEBUG_SEVERITY_NOTIFICATION:
     DEBUG_LOG(HOST_GPU, "id: %x, source: %s, type: %s - %s", id, s_source, s_type, message);
@@ -327,15 +323,12 @@ static void InitDriverInfo()
   default:
     break;
   }
-  DriverDetails::Init(vendor, driver, version, family);
+  DriverDetails::Init(DriverDetails::API_OPENGL, vendor, driver, version, family);
 }
 
 // Init functions
 Renderer::Renderer()
 {
-  OSDInternalW = 0;
-  OSDInternalH = 0;
-
   s_blendMode = 0;
 
   bool bSuccess = true;
@@ -420,7 +413,7 @@ Renderer::Renderer()
                  "GPU: Does your video card support OpenGL 3.1?");
       bSuccess = false;
     }
-    else if (DriverDetails::HasBug(DriverDetails::BUG_BROKENUBO))
+    else if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_UBO))
     {
       PanicAlert(
           "Buggy GPU driver detected.\n"
@@ -451,10 +444,10 @@ Renderer::Renderer()
   g_Config.backend_info.AdapterName = g_ogl_config.gl_renderer;
 
   g_Config.backend_info.bSupportsDualSourceBlend =
-      GLExtensions::Supports("GL_ARB_blend_func_extended") ||
-      GLExtensions::Supports("GL_EXT_blend_func_extended");
+      (GLExtensions::Supports("GL_ARB_blend_func_extended") ||
+       GLExtensions::Supports("GL_EXT_blend_func_extended"));
   g_Config.backend_info.bSupportsPrimitiveRestart =
-      !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVERESTART) &&
+      !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
   g_Config.backend_info.bSupportsBBox =
       GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
@@ -463,7 +456,7 @@ Renderer::Renderer()
                                         GLExtensions::Supports("GL_ARB_sample_shading");
   g_Config.backend_info.bSupportsGeometryShaders =
       GLExtensions::Version() >= 320 &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKENGEOMETRYSHADERS);
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_GEOMETRY_SHADERS);
   g_Config.backend_info.bSupportsPaletteConversion =
       GLExtensions::Supports("GL_ARB_texture_buffer_object") ||
       GLExtensions::Supports("GL_OES_texture_buffer") ||
@@ -473,7 +466,7 @@ Renderer::Renderer()
       (GLExtensions::Supports("GL_ARB_copy_image") || GLExtensions::Supports("GL_NV_copy_image") ||
        GLExtensions::Supports("GL_EXT_copy_image") ||
        GLExtensions::Supports("GL_OES_copy_image")) &&
-      !DriverDetails::HasBug(DriverDetails::BUG_BROKENCOPYIMAGE);
+      !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_COPYIMAGE);
 
   // Desktop OpenGL supports the binding layout if it supports 420pack
   // OpenGL ES 3.1 supports it implicitly without an extension
@@ -701,7 +694,7 @@ Renderer::Renderer()
 
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
-  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
+  if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
     GLInterface->SwapInterval(s_vsync);
 
   // TODO: Move these somewhere else?
@@ -1248,7 +1241,11 @@ void Renderer::SetBlendMode(bool forceUpdate)
   bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
   bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
-  bool useDualSource = useDstAlpha && g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+  bool useDualSource = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+
+  // Only use dual-source blending when required on drivers that don't support it very well.
+  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) && !useDstAlpha)
+    useDualSource = false;
 
   const GLenum glSrcFactors[8] = {
       GL_ZERO,
@@ -1276,7 +1273,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
   // 3-5 - srcRGB function
   // 6-8 - dstRGB function
 
-  u32 newval = useDualSource << 1;
+  u32 newval = useDstAlpha << 1;
   newval |= bpmem.blendmode.subtract << 2;
 
   if (bpmem.blendmode.subtract)
@@ -1302,7 +1299,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
   {
     // subtract enable change
     GLenum equation = newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-    GLenum equationAlpha = useDualSource ? GL_FUNC_ADD : equation;
+    GLenum equationAlpha = useDstAlpha ? GL_FUNC_ADD : equation;
 
     glBlendEquationSeparate(equation, equationAlpha);
   }
@@ -1315,7 +1312,7 @@ void Renderer::SetBlendMode(bool forceUpdate)
     GLenum dstFactor = glDestFactors[dstidx];
 
     // adjust alpha factors
-    if (useDualSource)
+    if (useDstAlpha)
     {
       srcidx = BlendMode::ONE;
       dstidx = BlendMode::ZERO;
@@ -1344,19 +1341,9 @@ void Renderer::SetBlendMode(bool forceUpdate)
   s_blendMode = newval;
 }
 
-static void DumpFrame(const std::vector<u8>& data, int w, int h)
-{
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (SConfig::GetInstance().m_DumpFrames && !data.empty())
-  {
-    AVIDump::AddFrame(&data[0], w, h);
-  }
-#endif
-}
-
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma)
+                        const EFBRectangle& rc, u64 ticks, float Gamma)
 {
   if (g_ogl_config.bSupportsDebug)
   {
@@ -1366,11 +1353,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       glDisable(GL_DEBUG_OUTPUT);
   }
 
-  static int w = 0, h = 0;
-  if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
-      !fbWidth || !fbHeight)
+  if ((!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
   {
-    DumpFrame(frame_data, w, h);
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -1380,7 +1364,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
   if (g_ActiveConfig.VirtualXFBEnabled() && (!xfbSourceList || xfbCount == 0))
   {
-    DumpFrame(frame_data, w, h);
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -1449,9 +1432,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
         sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
       }
-      // Tell the OSD Menu about the current internal resolution
-      OSDInternalW = xfbSource->sourceRc.GetWidth();
-      OSDInternalH = xfbSource->sourceRc.GetHeight();
 
       BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
     }
@@ -1467,78 +1447,18 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
-  // Save screenshot
-  if (s_bScreenshot)
+  if (IsFrameDumping())
   {
-    std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-
-    if (SaveScreenshot(s_sScreenshotName, flipped_trc))
-      OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
-
-    // Reset settings
-    s_sScreenshotName.clear();
-    s_bScreenshot = false;
-    s_screenshotCompleted.Set();
-  }
-
-// Frame dumps are handled a little differently in Windows
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (SConfig::GetInstance().m_DumpFrames)
-  {
-    std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-
-    if (frame_data.empty() || w != flipped_trc.GetWidth() || h != flipped_trc.GetHeight())
-    {
-      w = flipped_trc.GetWidth();
-      h = flipped_trc.GetHeight();
-      frame_data.resize(4 * w * h);
-    }
+    std::vector<u8> image(flipped_trc.GetWidth() * flipped_trc.GetHeight() * 4);
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
-    glReadPixels(flipped_trc.left, flipped_trc.bottom, w, h, GL_RGBA, GL_UNSIGNED_BYTE,
-                 &frame_data[0]);
-    if (w > 0 && h > 0)
-    {
-      if (!bLastFrameDumped)
-      {
-        bAVIDumping = AVIDump::Start(w, h, AVIDump::DumpFormat::FORMAT_RGBA);
-        if (!bAVIDumping)
-        {
-          OSD::AddMessage("AVIDump Start failed", 2000);
-        }
-        else
-        {
-          OSD::AddMessage(StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                           File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), w, h),
-                          2000);
-        }
-      }
-      if (bAVIDumping)
-      {
-        FlipImageData(&frame_data[0], w, h, 4);
-        AVIDump::AddFrame(&frame_data[0], w, h);
-      }
+    glReadPixels(flipped_trc.left, flipped_trc.bottom, flipped_trc.GetWidth(),
+                 flipped_trc.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, image.data());
 
-      bLastFrameDumped = true;
-    }
-    else
-    {
-      NOTICE_LOG(VIDEO, "Error reading framebuffer");
-    }
+    DumpFrameData(image.data(), flipped_trc.GetWidth(), flipped_trc.GetHeight(),
+                  flipped_trc.GetWidth() * 4, ticks, true);
+    FinishFrameData();
   }
-  else
-  {
-    if (bLastFrameDumped && bAVIDumping)
-    {
-      std::vector<u8>().swap(frame_data);
-      w = h = 0;
-      AVIDump::Stop();
-      bAVIDumping = false;
-      OSD::AddMessage("Stop dumping frames", 2000);
-    }
-    bLastFrameDumped = false;
-  }
-#endif
   // Finish up the current frame, print some stats
 
   SetWindowSize(fbStride, fbHeight);
@@ -1620,12 +1540,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
   OSD::DrawMessages();
 
-  if (s_SurfaceNeedsChanged.IsSet())
+#ifdef ANDROID
+  if (s_surface_needs_change.IsSet())
   {
+    GLInterface->UpdateHandle(s_new_surface_handle);
     GLInterface->UpdateSurface();
-    s_SurfaceNeedsChanged.Clear();
-    s_ChangedSurface.Set();
+    s_new_surface_handle = nullptr;
+    s_surface_needs_change.Clear();
+    s_surface_changed.Set();
   }
+#endif
 
   // Copy the rendered frame to the real window
   GLInterface->Swap();
@@ -1637,7 +1561,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   if (s_vsync != g_ActiveConfig.IsVSync())
   {
     s_vsync = g_ActiveConfig.IsVSync();
-    if (!DriverDetails::HasBug(DriverDetails::BUG_BROKENVSYNC))
+    if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
       GLInterface->SwapInterval(s_vsync);
   }
 
@@ -1790,28 +1714,25 @@ void Renderer::SetInterlacingMode()
 
 namespace OGL
 {
-bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle& back_rc)
-{
-  u32 W = back_rc.GetWidth();
-  u32 H = back_rc.GetHeight();
-  std::unique_ptr<u8[]> data(new u8[W * 4 * H]);
-  glPixelStorei(GL_PACK_ALIGNMENT, 1);
-
-  glReadPixels(back_rc.left, back_rc.bottom, W, H, GL_RGBA, GL_UNSIGNED_BYTE, data.get());
-
-  // Turn image upside down
-  FlipImageData(data.get(), W, H, 4);
-
-  return TextureToPng(data.get(), W * 4, filename, W, H, false);
-}
-
-int Renderer::GetMaxTextureSize()
+u32 Renderer::GetMaxTextureSize()
 {
   // Right now nvidia seems to do something very weird if we try to cache GL_MAX_TEXTURE_SIZE in
   // init. This is a workaround that lets
   // us keep the perf improvement that caching it gives us.
   if (s_max_texture_size == 0)
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &s_max_texture_size);
-  return s_max_texture_size;
+  return static_cast<u32>(s_max_texture_size);
+}
+
+void Renderer::ChangeSurface(void* new_surface_handle)
+{
+// Win32 polls the window size when redrawing, X11 runs an event loop in another thread.
+// This is only necessary for Android at this point, although handling resizes here
+// would be more efficient than polling.
+#ifdef ANDROID
+  s_new_surface_handle = new_surface_handle;
+  s_surface_needs_change.Set();
+  s_surface_changed.Wait();
+#endif
 }
 }

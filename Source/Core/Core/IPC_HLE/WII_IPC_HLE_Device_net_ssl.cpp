@@ -6,11 +6,22 @@
 
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_Socket.h"
 
 WII_SSL CWII_IPC_HLE_Device_net_ssl::_SSL[NET_SSL_MAXINSTANCES];
+
+static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
+    /* Hashes from SHA-1 and above */
+    MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA1) | MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_RIPEMD160) |
+        MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA224) | MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA256) |
+        MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA384) | MBEDTLS_X509_ID_FLAG(MBEDTLS_MD_SHA512),
+    0xFFFFFFF, /* Any PK alg          */
+    0xFFFFFFF, /* Any curve           */
+    0,         /* No RSA min key size */
+};
 
 CWII_IPC_HLE_Device_net_ssl::CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID,
                                                          const std::string& _rDeviceName)
@@ -30,12 +41,15 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
     if (ssl.active)
     {
       mbedtls_ssl_close_notify(&ssl.ctx);
-      mbedtls_ssl_session_free(&ssl.session);
-      mbedtls_ssl_free(&ssl.ctx);
-      mbedtls_ssl_config_free(&ssl.config);
 
       mbedtls_x509_crt_free(&ssl.cacert);
       mbedtls_x509_crt_free(&ssl.clicert);
+
+      mbedtls_ssl_session_free(&ssl.session);
+      mbedtls_ssl_free(&ssl.ctx);
+      mbedtls_ssl_config_free(&ssl.config);
+      mbedtls_ctr_drbg_free(&ssl.ctr_drbg);
+      mbedtls_entropy_free(&ssl.entropy);
 
       ssl.hostname.clear();
 
@@ -152,13 +166,14 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_ssl_init(&ssl->ctx);
       mbedtls_entropy_init(&ssl->entropy);
-      const char* pers = "dolphin-emu";
+      static constexpr const char* pers = "dolphin-emu";
       mbedtls_ctr_drbg_init(&ssl->ctr_drbg);
       int ret = mbedtls_ctr_drbg_seed(&ssl->ctr_drbg, mbedtls_entropy_func, &ssl->entropy,
                                       (const unsigned char*)pers, strlen(pers));
       if (ret)
       {
         mbedtls_ssl_free(&ssl->ctx);
+        mbedtls_ctr_drbg_free(&ssl->ctr_drbg);
         mbedtls_entropy_free(&ssl->entropy);
         goto _SSL_NEW_ERROR;
       }
@@ -171,10 +186,13 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
       // For some reason we can't use TLSv1.2, v1.1 and below are fine!
       mbedtls_ssl_conf_max_version(&ssl->config, MBEDTLS_SSL_MAJOR_VERSION_3,
                                    MBEDTLS_SSL_MINOR_VERSION_2);
-
+      mbedtls_ssl_conf_cert_profile(&ssl->config, &mbedtls_x509_crt_profile_wii);
       mbedtls_ssl_set_session(&ssl->ctx, &ssl->session);
 
-      mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_NONE);
+      if (SConfig::GetInstance().m_SSLVerifyCert && verifyOption)
+        mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_REQUIRED);
+      else
+        mbedtls_ssl_conf_authmode(&ssl->config, MBEDTLS_SSL_VERIFY_NONE);
       mbedtls_ssl_conf_renegotiation(&ssl->config, MBEDTLS_SSL_RENEGOTIATION_ENABLED);
 
       ssl->hostname = hostname;
@@ -204,15 +222,17 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
     if (SSLID_VALID(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      mbedtls_ssl_close_notify(&ssl->ctx);
-      mbedtls_ssl_session_free(&ssl->session);
-      mbedtls_ssl_free(&ssl->ctx);
-      mbedtls_ssl_config_free(&ssl->config);
 
-      mbedtls_entropy_free(&ssl->entropy);
+      mbedtls_ssl_close_notify(&ssl->ctx);
 
       mbedtls_x509_crt_free(&ssl->cacert);
       mbedtls_x509_crt_free(&ssl->clicert);
+
+      mbedtls_ssl_session_free(&ssl->session);
+      mbedtls_ssl_free(&ssl->ctx);
+      mbedtls_ssl_config_free(&ssl->config);
+      mbedtls_ctr_drbg_free(&ssl->ctr_drbg);
+      mbedtls_entropy_free(&ssl->entropy);
 
       ssl->hostname.clear();
 
@@ -247,6 +267,12 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(u32 _CommandAddress)
       WII_SSL* ssl = &_SSL[sslID];
       int ret =
           mbedtls_x509_crt_parse_der(&ssl->cacert, Memory::GetPointer(BufferOut2), BufferOutSize2);
+
+      if (SConfig::GetInstance().m_SSLDumpRootCA)
+      {
+        std::string filename = File::GetUserPath(D_DUMPSSL_IDX) + ssl->hostname + "_rootca.der";
+        File::IOFile(filename, "wb").WriteBytes(Memory::GetPointer(BufferOut2), BufferOutSize2);
+      }
 
       if (ret)
       {

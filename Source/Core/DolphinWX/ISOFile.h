@@ -40,12 +40,13 @@ public:
   const std::string& GetFileName() const { return m_FileName; }
   std::string GetName(DiscIO::Language language) const;
   std::string GetName() const;
+  std::string GetUniqueIdentifier() const;
   std::string GetDescription(DiscIO::Language language) const;
   std::string GetDescription() const;
   std::vector<DiscIO::Language> GetLanguages() const;
   std::string GetCompany() const { return m_company; }
   u16 GetRevision() const { return m_Revision; }
-  const std::string& GetUniqueID() const { return m_UniqueID; }
+  const std::string& GetGameID() const { return m_game_id; }
   const std::string GetWiiFSPath() const;
   DiscIO::Country GetCountry() const { return m_Country; }
   DiscIO::Platform GetPlatform() const { return m_Platform; }
@@ -58,7 +59,9 @@ public:
   // 0 is the first disc, 1 is the second disc
   u8 GetDiscNumber() const { return m_disc_number; }
 #if defined(HAVE_WX) && HAVE_WX
-  const wxBitmap& GetBitmap() const { return m_Bitmap; }
+  // NOTE: Banner image is at the original resolution, use WxUtils::ScaleImageToBitmap
+  //   to display it
+  const wxImage& GetBannerImage() const { return m_image; }
 #endif
 
   void DoState(PointerWrap& p);
@@ -70,7 +73,7 @@ private:
   std::map<DiscIO::Language, std::string> m_descriptions;
   std::string m_company;
 
-  std::string m_UniqueID;
+  std::string m_game_id;
   u64 m_title_id;
 
   std::string m_issues;
@@ -85,7 +88,7 @@ private:
   u16 m_Revision;
 
 #if defined(HAVE_WX) && HAVE_WX
-  wxBitmap m_Bitmap;
+  wxImage m_image;
 #endif
   bool m_Valid;
   std::vector<u8> m_pImage;
@@ -106,6 +109,4 @@ private:
   void ReadVolumeBanner(const std::vector<u32>& buffer, int width, int height);
   // Outputs to m_Bitmap
   bool ReadPNGBanner(const std::string& path);
-
-  static wxBitmap ScaleBanner(wxImage* image);
 };

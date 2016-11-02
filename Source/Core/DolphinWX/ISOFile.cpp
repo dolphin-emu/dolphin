@@ -38,9 +38,6 @@
 
 static const u32 CACHE_REVISION = 0x127;  // Last changed in PR 3309
 
-#define DVD_BANNER_WIDTH 96
-#define DVD_BANNER_HEIGHT 32
-
 static std::string GetLanguageString(DiscIO::Language language,
                                      std::map<DiscIO::Language, std::string> strings)
 {
@@ -107,7 +104,7 @@ GameListItem::GameListItem(const std::string& _rFileName,
       m_FileSize = volume->GetRawSize();
       m_VolumeSize = volume->GetSize();
 
-      m_UniqueID = volume->GetUniqueID();
+      m_game_id = volume->GetGameID();
       volume->GetTitleID(&m_title_id);
       m_disc_number = volume->GetDiscNumber();
       m_Revision = volume->GetRevision();
@@ -120,18 +117,18 @@ GameListItem::GameListItem(const std::string& _rFileName,
     }
   }
 
-  if (m_company.empty() && m_UniqueID.size() >= 6)
-    m_company = DiscIO::GetCompanyFromID(m_UniqueID.substr(4, 2));
+  if (m_company.empty() && m_game_id.size() >= 6)
+    m_company = DiscIO::GetCompanyFromID(m_game_id.substr(4, 2));
 
   if (IsValid())
   {
-    std::string game_id = m_UniqueID;
+    std::string short_game_id = m_game_id;
 
     // Ignore publisher ID for WAD files
-    if (m_Platform == DiscIO::Platform::WII_WAD && game_id.size() > 4)
-      game_id.erase(4);
+    if (m_Platform == DiscIO::Platform::WII_WAD && short_game_id.size() > 4)
+      short_game_id.erase(4);
 
-    auto it = custom_titles.find(game_id);
+    auto it = custom_titles.find(short_game_id);
     if (it != custom_titles.end())
     {
       m_custom_name_titles_txt = it->second;
@@ -165,13 +162,12 @@ GameListItem::GameListItem(const std::string& _rFileName,
   // Volume banner. Typical for everything that isn't a DOL or ELF.
   if (!m_pImage.empty())
   {
-    wxImage image(m_ImageWidth, m_ImageHeight, &m_pImage[0], true);
-    m_Bitmap = ScaleBanner(&image);
+    // Need to make explicit copy as wxImage uses reference counting for copies combined with only
+    // taking a pointer, not the content, when given a buffer to its constructor.
+    m_image.Create(m_ImageWidth, m_ImageHeight, false);
+    std::memcpy(m_image.GetData(), m_pImage.data(), m_pImage.size());
     return;
   }
-
-  // Fallback in case no banner is available.
-  ReadPNGBanner(File::GetSysDirectory() + RESOURCES_DIR + DIR_SEP + "nobanner.png");
 }
 
 GameListItem::~GameListItem()
@@ -183,7 +179,7 @@ void GameListItem::ReloadINI()
   if (!IsValid())
     return;
 
-  IniFile ini = SConfig::LoadGameIni(m_UniqueID, m_Revision);
+  IniFile ini = SConfig::LoadGameIni(m_game_id, m_Revision);
   ini.GetIfExists("EmuState", "EmulationStateId", &m_emu_state, 0);
   ini.GetIfExists("EmuState", "EmulationIssues", &m_issues, std::string());
 
@@ -214,7 +210,7 @@ void GameListItem::DoState(PointerWrap& p)
   p.Do(m_names);
   p.Do(m_descriptions);
   p.Do(m_company);
-  p.Do(m_UniqueID);
+  p.Do(m_game_id);
   p.Do(m_title_id);
   p.Do(m_FileSize);
   p.Do(m_VolumeSize);
@@ -277,25 +273,11 @@ bool GameListItem::ReadPNGBanner(const std::string& path)
     return false;
 
   wxImage image(StrToWxStr(path), wxBITMAP_TYPE_PNG);
-  m_Bitmap = ScaleBanner(&image);
-  return true;
-}
+  if (!image.IsOk())
+    return false;
 
-wxBitmap GameListItem::ScaleBanner(wxImage* image)
-{
-  const double gui_scale = wxTheApp->GetTopWindow()->GetContentScaleFactor();
-  const double target_width = DVD_BANNER_WIDTH * gui_scale;
-  const double target_height = DVD_BANNER_HEIGHT * gui_scale;
-  const double banner_scale =
-      std::min(target_width / image->GetWidth(), target_height / image->GetHeight());
-  image->Rescale(image->GetWidth() * banner_scale, image->GetHeight() * banner_scale,
-                 wxIMAGE_QUALITY_HIGH);
-  image->Resize(wxSize(target_width, target_height), wxPoint(), 0xFF, 0xFF, 0xFF);
-#ifdef __APPLE__
-  return wxBitmap(*image, -1, gui_scale);
-#else
-  return wxBitmap(*image, -1);
-#endif
+  m_image = image;
+  return true;
 }
 
 std::string GameListItem::GetDescription(DiscIO::Language language) const
@@ -328,6 +310,41 @@ std::string GameListItem::GetName() const
   std::string ext;
   SplitPath(GetFileName(), nullptr, &name, &ext);
   return name + ext;
+}
+
+std::string GameListItem::GetUniqueIdentifier() const
+{
+  const DiscIO::Language lang = DiscIO::Language::LANGUAGE_ENGLISH;
+  std::vector<std::string> info;
+  if (!GetGameID().empty())
+    info.push_back(GetGameID());
+  if (GetRevision() != 0)
+  {
+    std::string rev_str = "Revision ";
+    info.push_back(rev_str + std::to_string((long long)GetRevision()));
+  }
+
+  std::string name(GetName(lang));
+  if (name.empty())
+    name = GetName();
+
+  int disc_number = GetDiscNumber() + 1;
+
+  std::string lower_name = name;
+  std::transform(lower_name.begin(), lower_name.end(), lower_name.begin(), ::tolower);
+  if (disc_number > 1 &&
+      lower_name.find(std::string(wxString::Format("disc %i", disc_number))) == std::string::npos &&
+      lower_name.find(std::string(wxString::Format("disc%i", disc_number))) == std::string::npos)
+  {
+    std::string disc_text = "Disc ";
+    info.push_back(disc_text + std::to_string(disc_number));
+  }
+  if (info.empty())
+    return name;
+  std::ostringstream ss;
+  std::copy(info.begin(), info.end() - 1, std::ostream_iterator<std::string>(ss, ", "));
+  ss << info.back();
+  return name + " (" + ss.str() + ")";
 }
 
 std::vector<DiscIO::Language> GameListItem::GetLanguages() const

@@ -23,7 +23,7 @@ void BoundingBox::Init()
     glGenBuffers(1, &s_bbox_buffer_id);
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
     glBufferData(GL_SHADER_STORAGE_BUFFER, 4 * sizeof(s32), initial_values, GL_DYNAMIC_DRAW);
-    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 3, s_bbox_buffer_id);
+    glBindBufferBase(GL_SHADER_STORAGE_BUFFER, 0, s_bbox_buffer_id);
   }
 }
 
@@ -45,7 +45,7 @@ int BoundingBox::Get(int index)
   int data = 0;
   glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
 
-  if (!DriverDetails::HasBug(DriverDetails::BUG_SLOWGETBUFFERSUBDATA))
+  if (!DriverDetails::HasBug(DriverDetails::BUG_SLOW_GETBUFFERSUBDATA))
   {
     // Using glMapBufferRange to read back the contents of the SSBO is extremely slow
     // on nVidia drivers. This is more noticeable at higher internal resolutions.

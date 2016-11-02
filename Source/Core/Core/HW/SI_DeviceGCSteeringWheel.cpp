@@ -82,7 +82,7 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 _Cmd, u8 _Poll)
     unsigned int uType = command.Parameter2;  // 06 = motor on, 04 = motor off
 
     // get the correct pad number that should rumble locally when using netplay
-    const u8 numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
+    const int numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
 
     if (numPAD < 4)
     {

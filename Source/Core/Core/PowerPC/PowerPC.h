@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <tuple>
 
@@ -208,6 +209,7 @@ void UpdatePerformanceMonitor(u32 cycles, u32 num_load_stores, u32 num_fp_inst);
 u8 HostRead_U8(const u32 address);
 u16 HostRead_U16(const u32 address);
 u32 HostRead_U32(const u32 address);
+u64 HostRead_U64(const u32 address);
 u32 HostRead_Instruction(const u32 address);
 
 void HostWrite_U8(const u8 var, const u32 address);
@@ -265,6 +267,8 @@ void ClearCacheLine(const u32 address);  // Zeroes 32 bytes; address should be 3
 // TLB functions
 void SDRUpdated();
 void InvalidateTLBEntry(u32 address);
+void DBATUpdated();
+void IBATUpdated();
 
 // Result changes based on the BAT registers and MSR.DR.  Returns whether
 // it's safe to optimize a read or write to this address to an unguarded
@@ -280,6 +284,19 @@ struct TranslateResult
   u32 address;
 };
 TranslateResult JitCache_TranslateAddress(u32 address);
+
+static const int BAT_INDEX_SHIFT = 17;
+using BatTable = std::array<u32, 1 << (32 - BAT_INDEX_SHIFT)>;  // 128 KB
+extern BatTable ibat_table;
+extern BatTable dbat_table;
+inline bool TranslateBatAddess(const BatTable& bat_table, u32* address)
+{
+  u32 bat_result = bat_table[*address >> BAT_INDEX_SHIFT];
+  if ((bat_result & 1) == 0)
+    return false;
+  *address = (bat_result & ~3) | (*address & 0x0001FFFF);
+  return true;
+}
 }  // namespace
 
 enum CRBits

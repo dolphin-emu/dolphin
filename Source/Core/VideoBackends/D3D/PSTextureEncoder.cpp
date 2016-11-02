@@ -126,8 +126,11 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
     D3D::context->UpdateSubresource(m_encodeParams, 0, nullptr, &params, 0, 0);
     D3D::stateman->SetPixelConstants(m_encodeParams);
 
-    // Use linear filtering if (bScaleByHalf), use point filtering otherwise
-    if (scaleByHalf)
+    // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
+    // TODO: This only produces perfect downsampling for 1.5x and 2x IR, other resolution will
+    //       need more complex down filtering to average all pixels and produce the correct result.
+    // Also, box filtering won't be correct for anything other than 1x IR
+    if (scaleByHalf || g_ActiveConfig.iEFBScale != SCALE_1X)
       D3D::SetLinearCopySampler();
     else
       D3D::SetPointCopySampler();

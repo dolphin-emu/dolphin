@@ -19,9 +19,9 @@ namespace EfbCopy
 static void CopyToXfb(u32 xfbAddr, u32 fbWidth, u32 fbHeight, const EFBRectangle& sourceRc,
                       float Gamma)
 {
-  INFO_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), Gamma %f",
-           xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom, sourceRc.right,
-           Gamma);
+  DEBUG_LOG(VIDEO, "xfbaddr: %x, fbwidth: %i, fbheight: %i, source: (%i, %i, %i, %i), Gamma %f",
+            xfbAddr, fbWidth, fbHeight, sourceRc.top, sourceRc.left, sourceRc.bottom,
+            sourceRc.right, Gamma);
 
   EfbInterface::yuv422_packed* xfb_in_ram =
       (EfbInterface::yuv422_packed*)Memory::GetPointer(xfbAddr);
@@ -67,34 +67,31 @@ void CopyEfb()
   rc.right = rc.left + (int)bpmem.copyTexSrcWH.x + 1;
   rc.bottom = rc.top + (int)bpmem.copyTexSrcWH.y + 1;
 
-  if (!Fifo::WillSkipCurrentFrame())
+  if (bpmem.triggerEFBCopy.copy_to_xfb)
   {
-    if (bpmem.triggerEFBCopy.copy_to_xfb)
-    {
-      float yScale;
-      if (bpmem.triggerEFBCopy.scale_invert)
-        yScale = 256.0f / (float)bpmem.dispcopyyscale;
-      else
-        yScale = (float)bpmem.dispcopyyscale / 256.0f;
-
-      float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
-
-      if (yScale != 1.0)
-        WARN_LOG(VIDEO, "yScale of %f is currently unsupported", yScale);
-
-      if ((u32)xfbLines > MAX_XFB_HEIGHT)
-      {
-        INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines (%f)", xfbLines);
-        xfbLines = MAX_XFB_HEIGHT;
-      }
-
-      CopyToXfb(bpmem.copyTexDest << 5, bpmem.copyMipMapStrideChannels << 4, (u32)xfbLines, rc,
-                s_gammaLUT[bpmem.triggerEFBCopy.gamma]);
-    }
+    float yScale;
+    if (bpmem.triggerEFBCopy.scale_invert)
+      yScale = 256.0f / (float)bpmem.dispcopyyscale;
     else
+      yScale = (float)bpmem.dispcopyyscale / 256.0f;
+
+    float xfbLines = ((bpmem.copyTexSrcWH.y + 1.0f) * yScale);
+
+    if (yScale != 1.0)
+      WARN_LOG(VIDEO, "yScale of %f is currently unsupported", yScale);
+
+    if ((u32)xfbLines > MAX_XFB_HEIGHT)
     {
-      CopyToRam();  // FIXME: should use the rectangle we have already created above
+      INFO_LOG(VIDEO, "Tried to scale EFB to too many XFB lines (%f)", xfbLines);
+      xfbLines = MAX_XFB_HEIGHT;
     }
+
+    CopyToXfb(bpmem.copyTexDest << 5, bpmem.copyMipMapStrideChannels << 4, (u32)xfbLines, rc,
+              s_gammaLUT[bpmem.triggerEFBCopy.gamma]);
+  }
+  else
+  {
+    CopyToRam();  // FIXME: should use the rectangle we have already created above
   }
 }
 }

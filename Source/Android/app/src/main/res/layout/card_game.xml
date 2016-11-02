@@ -1,15 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
-
 <android.support.v7.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
                                     xmlns:tools="http://schemas.android.com/tools"
-                                    android:layout_width="0dp"
+                                    android:layout_width="match_parent"
                                     tools:layout_width="224dp"
                                     android:layout_height="256dp"
                                     android:transitionName="card_game"
                                     android:focusable="true"
                                     android:clickable="true"
-                                    android:foreground="?android:attr/selectableItemBackground"
-    >
+                                    android:foreground="?android:attr/selectableItemBackground">
 
     <LinearLayout
         android:layout_width="match_parent"

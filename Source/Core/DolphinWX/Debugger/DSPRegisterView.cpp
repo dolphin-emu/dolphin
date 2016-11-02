@@ -13,7 +13,7 @@
 
 wxString CDSPRegTable::GetValue(int row, int col)
 {
-  if (row < 32)  // 32 "normal" regs
+  if (row < GetNumberRows())
   {
     switch (col)
     {
@@ -41,10 +41,12 @@ void CDSPRegTable::UpdateCachedRegs()
 
   m_CachedCounter = g_dsp.step_counter;
 
-  for (int i = 0; i < 32; ++i)
+  for (size_t i = 0; i < m_CachedRegs.size(); ++i)
   {
-    m_CachedRegHasChanged[i] = (m_CachedRegs[i] != DSPCore_ReadRegister(i));
-    m_CachedRegs[i] = DSPCore_ReadRegister(i);
+    const u16 value = DSPCore_ReadRegister(i);
+
+    m_CachedRegHasChanged[i] = m_CachedRegs[i] != value;
+    m_CachedRegs[i] = value;
   }
 }
 
@@ -71,7 +73,7 @@ wxGridCellAttr* CDSPRegTable::GetAttr(int row, int col, wxGridCellAttr::wxAttrKi
 }
 
 DSPRegisterView::DSPRegisterView(wxWindow* parent, wxWindowID id)
-    : wxGrid(parent, id, wxDefaultPosition, wxSize(130, 120))
+    : wxGrid(parent, id, wxDefaultPosition, wxDLG_UNIT(parent, wxSize(100, 80)))
 {
   m_register_table = new CDSPRegTable();
 
@@ -83,7 +85,7 @@ DSPRegisterView::DSPRegisterView(wxWindow* parent, wxWindowID id)
   AutoSizeColumns();
 }
 
-void DSPRegisterView::Update()
+void DSPRegisterView::Repopulate()
 {
   m_register_table->UpdateCachedRegs();
   ForceRefresh();

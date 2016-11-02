@@ -28,13 +28,13 @@ static const char* const named_buttons[] = {"A",          "B", "X", "Y", "Z", _t
                                             _trans("Mic")};
 
 static const char* const named_triggers[] = {
-    // i18n:  Left
+    // i18n: The left trigger button (labeled L on real controllers)
     _trans("L"),
-    // i18n:  Right
+    // i18n: The right trigger button (labeled R on real controllers)
     _trans("R"),
-    // i18n:  Left-Analog
+    // i18n: The left trigger button (labeled L on real controllers) used as an analog input
     _trans("L-Analog"),
-    // i18n:  Right-Analog
+    // i18n: The right trigger button (labeled R on real controllers) used as an analog input
     _trans("R-Analog")};
 
 GCPad::GCPad(const unsigned int index) : m_index(index)

@@ -478,7 +478,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     // check if the file already exist
     if (File::Exists(Filename))
     {
-      WARN_LOG(WII_IPC_FILEIO, "\tresult = FS_RESULT_EXISTS");
+      INFO_LOG(WII_IPC_FILEIO, "\tresult = FS_RESULT_EXISTS");
       return FS_FILE_EXIST;
     }
 

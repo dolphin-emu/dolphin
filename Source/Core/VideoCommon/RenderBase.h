@@ -23,6 +23,7 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/MathUtil.h"
+#include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -123,24 +124,21 @@ public:
 
   // Finish up the current frame, print some stats
   static void Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
-                   float Gamma = 1.0f);
+                   u64 ticks, float Gamma = 1.0f);
   virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma = 1.0f) = 0;
-
-  virtual bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) = 0;
+                        const EFBRectangle& rc, u64 ticks, float Gamma = 1.0f) = 0;
 
   static PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
   static void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
   PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
   // Max height/width
-  virtual int GetMaxTextureSize() = 0;
+  virtual u32 GetMaxTextureSize() = 0;
 
   static Common::Event s_screenshotCompleted;
 
   // Final surface changing
-  static Common::Flag s_SurfaceNeedsChanged;
-  static Common::Event s_ChangedSurface;
-
+  // This is called when the surface is resized (WX) or the window changes (Android).
+  virtual void ChangeSurface(void* new_surface_handle) {}
 protected:
   static void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY);
   bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height);
@@ -148,14 +146,14 @@ protected:
   static void CheckFifoRecording();
   static void RecordVideoMemory();
 
+  bool IsFrameDumping();
+  void DumpFrameData(const u8* data, int w, int h, int stride, u64 ticks,
+                     bool swap_upside_down = false);
+  void FinishFrameData();
+
   static volatile bool s_bScreenshot;
   static std::mutex s_criticalScreenshot;
   static std::string s_sScreenshotName;
-
-  bool bAVIDumping;
-
-  std::vector<u8> frame_data;
-  bool bLastFrameDumped;
 
   // The framebuffer size
   static int s_target_width;
@@ -178,12 +176,21 @@ protected:
 
   static const float GX_MAX_DEPTH;
 
+  static Common::Flag s_surface_needs_change;
+  static Common::Event s_surface_changed;
+  static void* s_new_surface_handle;
+
 private:
   static PEControl::PixelFormat prev_efb_format;
   static unsigned int efb_scale_numeratorX;
   static unsigned int efb_scale_numeratorY;
   static unsigned int efb_scale_denominatorX;
   static unsigned int efb_scale_denominatorY;
+
+  // framedumping
+  std::vector<u8> m_frame_data;
+  bool m_AVI_dumping = false;
+  bool m_last_frame_dumped = false;
 };
 
 extern std::unique_ptr<Renderer> g_renderer;

@@ -66,9 +66,7 @@ public final class SettingsFile
 
 	public static final String KEY_SKIP_EFB = "EFBAccessEnable";
 	public static final String KEY_IGNORE_FORMAT = "EFBEmulateFormatChanges";
-	public static final String KEY_EFB_COPY = "EFBCopyEnable";
 	public static final String KEY_EFB_TEXTURE = "EFBToTextureEnable";
-	public static final String KEY_EFB_CACHE = "EFBCopyCacheEnable";
 	public static final String KEY_TEXCACHE_ACCURACY = "SafeTextureCacheColorSamples";
 	public static final String KEY_XFB = "UseXFB";
 	public static final String KEY_XFB_REAL = "UseRealXFB";
@@ -86,6 +84,7 @@ public final class SettingsFile
 	public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
 
 	// Internal only, not actually found in settings file.
+	public static final String KEY_VIDEO_BACKEND_INDEX = "VideoBackendIndex";
 	public static final String KEY_XFB_METHOD = "XFBMethod";
 
 	private SettingsFile()

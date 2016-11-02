@@ -47,18 +47,16 @@ public:
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
   void SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, const EFBRectangle& rc,
-                float gamma) override;
+                u64 ticks, float gamma) override;
 
   void ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha_enable, bool z_enable,
                    u32 color, u32 z) override;
 
   void ReinterpretPixelData(unsigned int conv_type) override;
 
-  bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) override;
-
   static bool CheckForResize();
 
-  int GetMaxTextureSize() override;
+  u32 GetMaxTextureSize() override;
 
   static D3D12_BLEND_DESC GetResetBlendDesc();
   static D3D12_DEPTH_STENCIL_DESC GetResetDepthStencilDesc();

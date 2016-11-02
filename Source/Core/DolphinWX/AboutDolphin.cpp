@@ -12,10 +12,6 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
-#ifdef __APPLE__
-#import <AppKit/AppKit.h>
-#endif
-
 #include "Common/Common.h"
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/WxUtils.h"
@@ -24,8 +20,8 @@ AboutDolphin::AboutDolphin(wxWindow* parent, wxWindowID id, const wxString& titl
                            const wxPoint& position, const wxSize& size, long style)
     : wxDialog(parent, id, title, position, size, style)
 {
-  wxGenericStaticBitmap* const sbDolphinLogo =
-      new wxGenericStaticBitmap(this, wxID_ANY, WxUtils::LoadResourceBitmap("dolphin_logo"));
+  wxGenericStaticBitmap* const sbDolphinLogo = new wxGenericStaticBitmap(
+      this, wxID_ANY, WxUtils::LoadScaledResourceBitmap("dolphin_logo", this));
 
   const wxString DolphinText = _("Dolphin");
   const wxString RevisionText = scm_desc_str;
@@ -84,6 +80,12 @@ AboutDolphin::AboutDolphin(wxWindow* parent, wxWindowID id, const wxString& titl
 
   wxSizerFlags center_flag;
   center_flag.Center();
+  const int space5 = FromDIP(5);
+  const int space10 = FromDIP(10);
+  const int space15 = FromDIP(15);
+  const int space30 = FromDIP(30);
+  const int space40 = FromDIP(40);
+  const int space75 = FromDIP(75);
 
   wxBoxSizer* const sCheckUpdates = new wxBoxSizer(wxHORIZONTAL);
   sCheckUpdates->Add(UpdateText, center_flag);
@@ -98,30 +100,30 @@ AboutDolphin::AboutDolphin(wxWindow* parent, wxWindowID id, const wxString& titl
 
   wxBoxSizer* const sInfo = new wxBoxSizer(wxVERTICAL);
   sInfo->Add(Dolphin);
-  sInfo->AddSpacer(5);
+  sInfo->AddSpacer(space5);
   sInfo->Add(Revision);
-  sInfo->AddSpacer(10);
+  sInfo->AddSpacer(space10);
   sInfo->Add(Branch);
   sInfo->Add(sCheckUpdates);
   sInfo->Add(Message);
   sInfo->Add(sLinks);
 
   wxBoxSizer* const sLogo = new wxBoxSizer(wxVERTICAL);
-  sLogo->AddSpacer(75);
+  sLogo->AddSpacer(space75);
   sLogo->Add(sbDolphinLogo);
-  sLogo->AddSpacer(40);
+  sLogo->AddSpacer(space40);
 
   wxBoxSizer* const sMainHor = new wxBoxSizer(wxHORIZONTAL);
-  sMainHor->AddSpacer(30);
+  sMainHor->AddSpacer(space30);
   sMainHor->Add(sLogo);
-  sMainHor->AddSpacer(30);
+  sMainHor->AddSpacer(space30);
   sMainHor->Add(sInfo);
-  sMainHor->AddSpacer(30);
+  sMainHor->AddSpacer(space30);
 
   wxBoxSizer* const sFooter = new wxBoxSizer(wxVERTICAL);
-  sFooter->AddSpacer(15);
+  sFooter->AddSpacer(space15);
   sFooter->Add(Copyright, 0, wxALIGN_CENTER_HORIZONTAL);
-  sFooter->AddSpacer(5);
+  sFooter->AddSpacer(space5);
 
   wxBoxSizer* const sMain = new wxBoxSizer(wxVERTICAL);
   sMain->Add(sMainHor, 1, wxEXPAND);

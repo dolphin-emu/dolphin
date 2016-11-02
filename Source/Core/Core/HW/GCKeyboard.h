@@ -12,10 +12,10 @@ struct KeyboardStatus;
 namespace Keyboard
 {
 void Shutdown();
-void Initialize(void* const hwnd);
+void Initialize();
 void LoadConfig();
 
 InputConfig* GetConfig();
 
-KeyboardStatus GetStatus(u8 port);
+KeyboardStatus GetStatus(int port);
 }

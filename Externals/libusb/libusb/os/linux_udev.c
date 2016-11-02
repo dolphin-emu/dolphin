@@ -20,7 +20,7 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA
  */
 
-#include "config.h"
+#include <config.h>
 
 #include <assert.h>
 #include <ctype.h>
@@ -39,7 +39,6 @@
 #include <unistd.h>
 #include <libudev.h>
 
-#include "libusb.h"
 #include "libusbi.h"
 #include "linux_usbfs.h"
 

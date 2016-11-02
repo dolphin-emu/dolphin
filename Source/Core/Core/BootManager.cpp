@@ -26,7 +26,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/SysConf.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -55,7 +56,6 @@ public:
   // alone on restore (false)
   bool bSetEmulationSpeed;
   bool bSetVolume;
-  bool bSetFrameSkip;
   std::array<bool, MAX_BBMOTES> bSetWiimoteSource;
   std::array<bool, MAX_SI_CHANNELS> bSetPads;
   std::array<bool, MAX_EXI_CHANNELS> bSetEXIDevice;
@@ -64,7 +64,6 @@ private:
   bool valid;
   bool bCPUThread;
   bool bEnableCheats;
-  bool bSkipIdle;
   bool bSyncGPUOnSkipIdleHack;
   bool bFPRF;
   bool bAccurateNaNs;
@@ -80,7 +79,6 @@ private:
   int iSelectedLanguage;
   int iCPUCore;
   int Volume;
-  unsigned int frameSkip;
   float m_EmulationSpeed;
   std::string strBackend;
   std::string sBackend;
@@ -96,7 +94,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
 
   bCPUThread = config.bCPUThread;
   bEnableCheats = config.bEnableCheats;
-  bSkipIdle = config.bSkipIdle;
   bSyncGPUOnSkipIdleHack = config.bSyncGPUOnSkipIdleHack;
   bFPRF = config.bFPRF;
   bAccurateNaNs = config.bAccurateNaNs;
@@ -113,7 +110,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
   iCPUCore = config.iCPUCore;
   Volume = config.m_Volume;
   m_EmulationSpeed = config.m_EmulationSpeed;
-  frameSkip = config.m_FrameSkip;
   strBackend = config.m_strVideoBackend;
   sBackend = config.sBackend;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
@@ -124,7 +120,6 @@ void ConfigCache::SaveConfig(const SConfig& config)
 
   bSetEmulationSpeed = false;
   bSetVolume = false;
-  bSetFrameSkip = false;
   bSetWiimoteSource.fill(false);
   bSetPads.fill(false);
   bSetEXIDevice.fill(false);
@@ -139,7 +134,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
   config->bCPUThread = bCPUThread;
   config->bEnableCheats = bEnableCheats;
-  config->bSkipIdle = bSkipIdle;
   config->bSyncGPUOnSkipIdleHack = bSyncGPUOnSkipIdleHack;
   config->bFPRF = bFPRF;
   config->bAccurateNaNs = bAccurateNaNs;
@@ -154,9 +148,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bPAL60 = bPAL60;
   config->SelectedLanguage = iSelectedLanguage;
   config->iCPUCore = iCPUCore;
-
-  config->m_SYSCONF->SetData("IPL.PGS", bProgressive);
-  config->m_SYSCONF->SetData("IPL.E60", bPAL60);
 
   // Only change these back if they were actually set by game ini, since they can be changed while a
   // game is running.
@@ -183,12 +174,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
 
   if (bSetEmulationSpeed)
     config->m_EmulationSpeed = m_EmulationSpeed;
-
-  if (bSetFrameSkip)
-  {
-    config->m_FrameSkip = frameSkip;
-    Movie::SetFrameSkipping(frameSkip);
-  }
 
   for (unsigned int i = 0; i < MAX_EXI_CHANNELS; ++i)
   {
@@ -249,7 +234,6 @@ bool BootCore(const std::string& _rFilename)
 
     core_section->Get("CPUThread", &StartUp.bCPUThread, StartUp.bCPUThread);
     core_section->Get("EnableCheats", &StartUp.bEnableCheats, StartUp.bEnableCheats);
-    core_section->Get("SkipIdle", &StartUp.bSkipIdle, StartUp.bSkipIdle);
     core_section->Get("SyncOnSkipIdle", &StartUp.bSyncGPUOnSkipIdleHack,
                       StartUp.bSyncGPUOnSkipIdleHack);
     core_section->Get("FPRF", &StartUp.bFPRF, StartUp.bFPRF);
@@ -267,11 +251,6 @@ bool BootCore(const std::string& _rFilename)
     if (core_section->Get("EmulationSpeed", &SConfig::GetInstance().m_EmulationSpeed,
                           SConfig::GetInstance().m_EmulationSpeed))
       config_cache.bSetEmulationSpeed = true;
-    if (core_section->Get("FrameSkip", &SConfig::GetInstance().m_FrameSkip))
-    {
-      config_cache.bSetFrameSkip = true;
-      Movie::SetFrameSkipping(SConfig::GetInstance().m_FrameSkip);
-    }
 
     if (dsp_section->Get("Volume", &SConfig::GetInstance().m_Volume,
                          SConfig::GetInstance().m_Volume))
@@ -297,9 +276,6 @@ bool BootCore(const std::string& _rFilename)
     // Wii settings
     if (StartUp.bWii)
     {
-      // Flush possible changes to SYSCONF to file
-      SConfig::GetInstance().m_SYSCONF->Save();
-
       int source;
       for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
       {
@@ -329,7 +305,6 @@ bool BootCore(const std::string& _rFilename)
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
   {
     StartUp.bCPUThread = Movie::IsDualCore();
-    StartUp.bSkipIdle = Movie::IsSkipIdle();
     StartUp.bDSPHLE = Movie::IsDSPHLE();
     StartUp.bProgressive = Movie::IsProgressive();
     StartUp.bPAL60 = Movie::IsPAL60();
@@ -389,8 +364,8 @@ bool BootCore(const std::string& _rFilename)
     StartUp.bPAL60 = false;
   }
 
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
+  if (StartUp.bWii)
+    SConfig::GetInstance().SaveSettingsToSysconf();
 
   // Run the game
   // Init the core
@@ -406,10 +381,14 @@ bool BootCore(const std::string& _rFilename)
 void Stop()
 {
   Core::Stop();
+  RestoreConfig();
+}
 
-  SConfig& StartUp = SConfig::GetInstance();
-  StartUp.m_strUniqueID = "00000000";
-  config_cache.RestoreConfig(&StartUp);
+void RestoreConfig()
+{
+  SConfig::GetInstance().LoadSettingsFromSysconf();
+  SConfig::GetInstance().m_strGameID = "00000000";
+  config_cache.RestoreConfig(&SConfig::GetInstance());
 }
 
 }  // namespace

@@ -345,7 +345,7 @@ static void ImHere()
       return;
   }
 
-  DEBUG_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
+  INFO_LOG(DYNA_REC, "I'm here - PC = %08x , LR = %08x", PC, LR);
   been_here[PC] = 1;
 }
 
@@ -515,7 +515,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
 {
   js.isLastInstruction = false;
   js.blockStart = em_address;
-  js.fifoBytesThisBlock = 0;
+  js.fifoBytesSinceCheck = 0;
   js.curBlock = b;
   jit->js.numLoadStoreInst = 0;
   jit->js.numFloatingPointInst = 0;

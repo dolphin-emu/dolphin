@@ -153,10 +153,10 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
   DiscIO::Country country_code = DiscIO::Country::COUNTRY_UNKNOWN;
-  auto strUniqueID = SConfig::GetInstance().m_strUniqueID;
+  std::string game_id = SConfig::GetInstance().m_strGameID;
 
   u32 CurrentGameId = 0;
-  if (strUniqueID == TITLEID_SYSMENU_STRING)
+  if (game_id == TITLEID_SYSMENU_STRING)
   {
     const DiscIO::CNANDContentLoader& SysMenu_Loader =
         DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU,
@@ -166,10 +166,10 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
       country_code = DiscIO::CountrySwitch(SysMenu_Loader.GetCountryChar());
     }
   }
-  else if (strUniqueID.length() >= 4)
+  else if (game_id.length() >= 4)
   {
-    country_code = DiscIO::CountrySwitch(strUniqueID.at(3));
-    CurrentGameId = BE32((u8*)strUniqueID.c_str());
+    country_code = DiscIO::CountrySwitch(game_id.at(3));
+    CurrentGameId = BE32((u8*)game_id.c_str());
   }
   bool ascii = true;
   std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
@@ -385,8 +385,8 @@ void CEXIMemoryCard::TransferByte(u8& byte)
     case cmdPageProgram:
     case cmdExtraByteProgram:
     case cmdChipErase:
-      INFO_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.",
-               command);
+      DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.",
+                command);
       break;
     default:
       WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0", command);
@@ -558,7 +558,7 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 
   if ((address + _uSize) % BLOCK_SIZE == 0)
   {
-    DEBUG_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on read speed
@@ -574,7 +574,7 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 
   if (((address + _uSize) % BLOCK_SIZE) == 0)
   {
-    DEBUG_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on write speed

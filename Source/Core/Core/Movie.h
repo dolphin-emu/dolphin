@@ -129,7 +129,7 @@ u64 GetCurrentLagCount();
 u64 GetTotalLagCount();
 
 void SetClearSave(bool enabled);
-void SignalDiscChange(const std::string& new_disc_filename);
+void SignalDiscChange(const std::string& new_path);
 void SetReset(bool reset);
 void SetTitleId(u64 title_id);
 
@@ -157,9 +157,6 @@ void ChangeWiiPads(bool instantly = false);
 
 void DoFrameStep();
 void SetReadOnly(bool bEnabled);
-
-void SetFrameSkipping(unsigned int framesToSkip);
-void FrameSkipping();
 
 bool BeginRecordingInput(int controllers);
 void RecordInput(GCPadStatus* PadStatus, int controllerID);

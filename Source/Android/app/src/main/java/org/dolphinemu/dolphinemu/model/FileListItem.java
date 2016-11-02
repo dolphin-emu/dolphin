@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.model;
 
-
 import org.dolphinemu.dolphinemu.NativeLibrary;
 
 import java.io.File;

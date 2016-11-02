@@ -9,6 +9,7 @@
 #endif
 
 #include <cstddef>
+#include <cstring>
 #include <string>
 #include "Common/CommonTypes.h"
 
@@ -190,17 +191,26 @@ inline u64 swap64(u64 data)
 }
 #endif
 
-inline u16 swap16(const u8* _pData)
+inline u16 swap16(const u8* data)
 {
-  return swap16(*(const u16*)_pData);
+  u16 value;
+  std::memcpy(&value, data, sizeof(u16));
+
+  return swap16(value);
 }
-inline u32 swap32(const u8* _pData)
+inline u32 swap32(const u8* data)
 {
-  return swap32(*(const u32*)_pData);
+  u32 value;
+  std::memcpy(&value, data, sizeof(u32));
+
+  return swap32(value);
 }
-inline u64 swap64(const u8* _pData)
+inline u64 swap64(const u8* data)
 {
-  return swap64(*(const u64*)_pData);
+  u64 value;
+  std::memcpy(&value, data, sizeof(u64));
+
+  return swap64(value);
 }
 
 template <int count>
@@ -214,19 +224,25 @@ inline void swap<1>(u8* data)
 template <>
 inline void swap<2>(u8* data)
 {
-  *reinterpret_cast<u16*>(data) = swap16(data);
+  const u16 value = swap16(data);
+
+  std::memcpy(data, &value, sizeof(u16));
 }
 
 template <>
 inline void swap<4>(u8* data)
 {
-  *reinterpret_cast<u32*>(data) = swap32(data);
+  const u32 value = swap32(data);
+
+  std::memcpy(data, &value, sizeof(u32));
 }
 
 template <>
 inline void swap<8>(u8* data)
 {
-  *reinterpret_cast<u64*>(data) = swap64(data);
+  const u64 value = swap64(data);
+
+  std::memcpy(data, &value, sizeof(u64));
 }
 
 template <typename T>

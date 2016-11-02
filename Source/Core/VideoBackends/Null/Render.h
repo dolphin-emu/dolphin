@@ -19,11 +19,11 @@ public:
   void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points) override {}
   u16 BBoxRead(int index) override { return 0; }
   void BBoxWrite(int index, u16 value) override {}
-  int GetMaxTextureSize() override { return 16 * 1024; }
+  u32 GetMaxTextureSize() override { return 16 * 1024; }
   TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) override;
 
   void SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height, const EFBRectangle& rc,
-                float gamma) override;
+                u64 ticks, float gamma) override;
 
   void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                    u32 color, u32 z) override
@@ -31,9 +31,5 @@ public:
   }
 
   void ReinterpretPixelData(unsigned int convtype) override {}
-  bool SaveScreenshot(const std::string& filename, const TargetRectangle& rc) override
-  {
-    return false;
-  }
 };
 }

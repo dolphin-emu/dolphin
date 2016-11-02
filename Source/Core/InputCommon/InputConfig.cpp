@@ -6,6 +6,7 @@
 
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/ControllerEmu.h"
@@ -20,7 +21,7 @@ bool InputConfig::LoadConfig(bool isGC)
   std::string profile[MAX_BBMOTES];
   std::string path;
 
-  if (SConfig::GetInstance().GetUniqueID() != "00000000")
+  if (SConfig::GetInstance().GetGameID() != "00000000")
   {
     std::string type;
     if (isGC)
@@ -126,7 +127,8 @@ bool InputConfig::IsControllerControlledByGamepadDevice(int index) const
   const auto& controller = m_controllers.at(index).get()->default_device;
 
   // Filter out anything which obviously not a gamepad
-  return !((controller.source == "Keyboard")    // OSX Keyboard/Mouse
+  return !((controller.source == "Keyboard")    // OSX IOKit Keyboard/Mouse
+           || (controller.source == "Quartz")   // OSX Quartz Keyboard/Mouse
            || (controller.source == "XInput2")  // Linux and BSD Keyboard/Mouse
            || (controller.source == "Android" &&
                controller.name == "Touchscreen")  // Android Touchscreen

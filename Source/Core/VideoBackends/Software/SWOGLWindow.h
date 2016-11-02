@@ -20,7 +20,7 @@ public:
   void PrintText(const std::string& text, int x, int y, u32 color);
 
   // Image to show, will be swapped immediately
-  void ShowImage(u8* data, int stride, int width, int height, float aspect);
+  void ShowImage(const u8* data, int stride, int width, int height, float aspect);
 
   int PeekMessages();
 

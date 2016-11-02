@@ -133,7 +133,7 @@ void StateCache::Init()
   // Root signature isn't available at time of StateCache construction, so fill it in now.
   gx_state_cache.m_current_pso_desc.pRootSignature = D3D::default_root_signature;
 
-  // Multi-sample configuration isn't available at time of StateCache construction, so fille it in
+  // Multi-sample configuration isn't available at time of StateCache construction, so fill it in
   // now.
   gx_state_cache.m_current_pso_desc.SampleDesc.Count = g_ActiveConfig.iMultisamples;
   gx_state_cache.m_current_pso_desc.SampleDesc.Quality = 0;
@@ -143,7 +143,7 @@ void StateCache::Init()
 
   std::string cache_filename =
       StringFromFormat("%sdx12-%s-pso.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                       SConfig::GetInstance().m_strUniqueID.c_str());
+                       SConfig::GetInstance().m_strGameID.c_str());
 
   PipelineStateCacheInserter inserter;
   s_pso_disk_cache.OpenAndRead(cache_filename, inserter);
@@ -154,7 +154,8 @@ void StateCache::Init()
     // - The file itself is corrupt.
     // - A driver/HW change has occurred, causing the existing cache blobs to be invalid.
     //
-    // In either case, we want to re-create the disk cache. This should not be a frequent occurence.
+    // In either case, we want to re-create the disk cache. This should not be a frequent
+    // occurrence.
 
     s_pso_disk_cache.Close();
 
@@ -301,18 +302,6 @@ D3D12_BLEND_DESC StateCache::GetDesc12(BlendState state)
 
   if (state.use_dst_alpha)
   {
-    // Colors should blend against SRC1_ALPHA
-    if (blenddc.RenderTarget[0].SrcBlend == D3D12_BLEND_SRC_ALPHA)
-      blenddc.RenderTarget[0].SrcBlend = D3D12_BLEND_SRC1_ALPHA;
-    else if (blenddc.RenderTarget[0].SrcBlend == D3D12_BLEND_INV_SRC_ALPHA)
-      blenddc.RenderTarget[0].SrcBlend = D3D12_BLEND_INV_SRC1_ALPHA;
-
-    // Colors should blend against SRC1_ALPHA
-    if (blenddc.RenderTarget[0].DestBlend == D3D12_BLEND_SRC_ALPHA)
-      blenddc.RenderTarget[0].DestBlend = D3D12_BLEND_SRC1_ALPHA;
-    else if (blenddc.RenderTarget[0].DestBlend == D3D12_BLEND_INV_SRC_ALPHA)
-      blenddc.RenderTarget[0].DestBlend = D3D12_BLEND_INV_SRC1_ALPHA;
-
     blenddc.RenderTarget[0].SrcBlendAlpha = D3D12_BLEND_ONE;
     blenddc.RenderTarget[0].DestBlendAlpha = D3D12_BLEND_ZERO;
     blenddc.RenderTarget[0].BlendOpAlpha = D3D12_BLEND_OP_ADD;
