@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-10-24 12:37+0200\n"
-"PO-Revision-Date: 2016-10-24 10:38+0000\n"
+"POT-Creation-Date: 2016-11-02 18:35+0100\n"
+"PO-Revision-Date: 2016-11-02 17:35+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -39,7 +39,7 @@ msgstr ""
 msgid " (internal IP)"
 msgstr " (내부 IP)"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:263
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:265
 msgid " (too many to display)"
 msgstr " (표시하기에는 너무 김)"
 
@@ -258,13 +258,17 @@ msgstr "%zu 메모리 바이트"
 msgid "&& AND"
 msgstr "&& AND"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:484
+#: Source/Core/DolphinWX/MainMenuBar.cpp:487
 msgid "&About"
 msgstr "돌핀 정보(&A)"
 
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:106
 msgid "&Add New Code..."
 msgstr "새로운 코드 추가... (&A)"
+
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:371
+msgid "&Add function"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:173
 msgid "&Audio Settings"
@@ -278,7 +282,7 @@ msgstr "자동 시작 (&A)"
 msgid "&Boot from DVD Backup"
 msgstr "DVD 백업에서 부트(&B)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:306
+#: Source/Core/DolphinWX/MainMenuBar.cpp:308
 msgid "&Breakpoints"
 msgstr "중단점 (&B)"
 
@@ -286,11 +290,11 @@ msgstr "중단점 (&B)"
 msgid "&Cheat Manager"
 msgstr "치트 매니저(&C)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:352
+#: Source/Core/DolphinWX/MainMenuBar.cpp:354
 msgid "&Clear JIT Cache"
 msgstr "JIT 캐시 청소 (&C)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:415
+#: Source/Core/DolphinWX/MainMenuBar.cpp:417
 msgid "&Clear Symbols"
 msgstr "부호 지우기 (& C)"
 
@@ -298,7 +302,7 @@ msgstr "부호 지우기 (& C)"
 msgid "&Controller Settings"
 msgstr "컨트롤러 설정(&C)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:448
+#: Source/Core/DolphinWX/MainMenuBar.cpp:450
 msgid "&Create Signature File..."
 msgstr "서명 파일 생성 (&C)"
 
@@ -314,7 +318,13 @@ msgstr "파일 삭제...(&D)"
 msgid "&Delete selected ISOs..."
 msgstr "선택된 ISO를 삭제...(&D)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:348
+#. i18n: This kind of "watch" is used for watching emulated memory.
+#. It's not related to timekeeping devices.
+#: Source/Core/DolphinWX/Debugger/WatchView.cpp:265
+msgid "&Delete watch"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:350
 msgid "&Disable JIT Cache"
 msgstr "JIT 캐시 비활성 (&D)"
 
@@ -331,6 +341,10 @@ msgstr "에뮬레이션(&E)"
 msgid "&File"
 msgstr "파일(&F)"
 
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:358
+msgid "&Follow branch"
+msgstr ""
+
 #: Source/Core/DolphinWX/MainMenuBar.cpp:197
 msgid "&Font..."
 msgstr "폰트 (&F)"
@@ -343,11 +357,11 @@ msgstr "프레임 진행(&F)"
 msgid "&Fullscreen"
 msgstr "전체화면(&F)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:417
+#: Source/Core/DolphinWX/MainMenuBar.cpp:419
 msgid "&Generate Symbol Map"
 msgstr "심볼 맵 생성 (&G)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:482
+#: Source/Core/DolphinWX/MainMenuBar.cpp:485
 msgid "&GitHub Repository"
 msgstr "GitHub 저장소(&G)"
 
@@ -363,60 +377,60 @@ msgstr "도움말(&H)"
 msgid "&Hotkey Settings"
 msgstr "단축키 설정(&H)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:337
+#: Source/Core/DolphinWX/MainMenuBar.cpp:339
 msgid "&Interpreter Core"
 msgstr "코어 인터프리터 (&I)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:53
-#: Source/Core/DolphinWX/MainMenuBar.cpp:308
+#: Source/Core/DolphinWX/MainMenuBar.cpp:310
 msgid "&JIT"
 msgstr "JIT(&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:344
+#: Source/Core/DolphinWX/MainMenuBar.cpp:346
 msgid "&JIT Block Linking Off"
 msgstr "JIT 블록 연결 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:368
+#: Source/Core/DolphinWX/MainMenuBar.cpp:370
 msgid "&JIT FloatingPoint Off"
 msgstr "JIT 소수점 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:369
+#: Source/Core/DolphinWX/MainMenuBar.cpp:371
 msgid "&JIT Integer Off"
 msgstr "JIT 정수 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:366
+#: Source/Core/DolphinWX/MainMenuBar.cpp:368
 msgid "&JIT LoadStore Floating Off"
 msgstr "JIT 로드스토어 부동 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:362
+#: Source/Core/DolphinWX/MainMenuBar.cpp:364
 msgid "&JIT LoadStore Off"
 msgstr "JIT 로드스토어 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:367
+#: Source/Core/DolphinWX/MainMenuBar.cpp:369
 msgid "&JIT LoadStore Paired Off"
 msgstr "JIT 로드스토어 짝짓기 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:364
+#: Source/Core/DolphinWX/MainMenuBar.cpp:366
 msgid "&JIT LoadStore lXz Off"
 msgstr "JIT 로드스토어 lXz 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:363
+#: Source/Core/DolphinWX/MainMenuBar.cpp:365
 msgid "&JIT LoadStore lbzx Off"
 msgstr "JIT 로드스토어 lbzx 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:365
+#: Source/Core/DolphinWX/MainMenuBar.cpp:367
 msgid "&JIT LoadStore lwz Off"
 msgstr "JIT 로드스토어 lwz 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:359
+#: Source/Core/DolphinWX/MainMenuBar.cpp:361
 msgid "&JIT Off (JIT Core)"
 msgstr "JIT 끄기 (JIT 코어) (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:370
+#: Source/Core/DolphinWX/MainMenuBar.cpp:372
 msgid "&JIT Paired Off"
 msgstr "JIT 짝짓기 끄기 (&J)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:371
+#: Source/Core/DolphinWX/MainMenuBar.cpp:373
 msgid "&JIT SystemRegisters Off"
 msgstr "JIT 시스템레지스터 끄기 (&J)"
 
@@ -424,11 +438,11 @@ msgstr "JIT 시스템레지스터 끄기 (&J)"
 msgid "&Load State"
 msgstr "상태 로드(&L)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:421
+#: Source/Core/DolphinWX/MainMenuBar.cpp:423
 msgid "&Load Symbol Map"
 msgstr "로드 심볼 맵 (&L)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:354
+#: Source/Core/DolphinWX/MainMenuBar.cpp:356
 msgid "&Log JIT Instruction Coverage"
 msgstr "JIT 명령 커버리지 로그 (&L)"
 
@@ -436,7 +450,7 @@ msgstr "JIT 명령 커버리지 로그 (&L)"
 msgid "&Memcard Manager (GC)"
 msgstr "메모리 카드 매니저 (GC)(&M)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:307
+#: Source/Core/DolphinWX/MainMenuBar.cpp:309
 msgid "&Memory"
 msgstr "메모리(&M)"
 
@@ -452,19 +466,20 @@ msgstr "열기...(&O)"
 msgid "&Options"
 msgstr "옵션(&O)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:461
+#: Source/Core/DolphinWX/MainMenuBar.cpp:463
 msgid "&Patch HLE Functions"
 msgstr "HLE 함수 패치 (&P)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:513
+#: Source/Core/DolphinWX/MainMenuBar.cpp:516
 msgid "&Pause"
 msgstr "일시정지(&P)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:515
+#: Source/Core/DolphinWX/MainMenuBar.cpp:518
 msgid "&Play"
 msgstr "실행(&P)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:470
+#. i18n: "Profile" is used as a verb, not a noun.
+#: Source/Core/DolphinWX/MainMenuBar.cpp:473
 msgid "&Profile Blocks"
 msgstr "블록 프로파일 (&P)"
 
@@ -480,6 +495,10 @@ msgstr "속성(&P)"
 msgid "&Read-Only Mode"
 msgstr "읽기 전용 모드(&R)"
 
+#: Source/Core/DolphinWX/Debugger/JitWindow.cpp:44
+msgid "&Refresh"
+msgstr ""
+
 #: Source/Core/DolphinWX/MainMenuBar.cpp:84
 msgid "&Refresh List"
 msgstr "게임 목록 새로고침(&R)"
@@ -492,7 +511,7 @@ msgstr "등록(&R)"
 msgid "&Remove Code"
 msgstr "코드 삭제 (&R)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:462
+#: Source/Core/DolphinWX/MainMenuBar.cpp:464
 msgid "&Rename Symbols from File..."
 msgstr "파일로부터 부호들 이름 바꾸기... (&R)"
 
@@ -500,15 +519,19 @@ msgstr "파일로부터 부호들 이름 바꾸기... (&R)"
 msgid "&Reset"
 msgstr "리셋(&R)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:424
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:370
+msgid "&Run To Here"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:426
 msgid "&Save Symbol Map"
 msgstr "심볼 맵 저장 (&S)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:355
+#: Source/Core/DolphinWX/MainMenuBar.cpp:357
 msgid "&Search for an Instruction"
 msgstr "명령 찾기 (&S)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:309
+#: Source/Core/DolphinWX/MainMenuBar.cpp:311
 msgid "&Sound"
 msgstr "사운드(&S)"
 
@@ -524,7 +547,7 @@ msgstr "부호 (&S)"
 msgid "&Tools"
 msgstr "도구(&T)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:310
+#: Source/Core/DolphinWX/MainMenuBar.cpp:312
 msgid "&Video"
 msgstr "비디오(&V)"
 
@@ -532,11 +555,13 @@ msgstr "비디오(&V)"
 msgid "&View"
 msgstr "보기(&V)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:305
+#. i18n: This kind of "watch" is used for watching emulated memory.
+#. It's not related to timekeeping devices.
+#: Source/Core/DolphinWX/MainMenuBar.cpp:307
 msgid "&Watch"
 msgstr "관찰(&W)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:480
+#: Source/Core/DolphinWX/MainMenuBar.cpp:483
 msgid "&Website"
 msgstr "웹사이트(&W)"
 
@@ -544,7 +569,7 @@ msgstr "웹사이트(&W)"
 msgid "&Wiki"
 msgstr "위키(&W)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:472
+#: Source/Core/DolphinWX/MainMenuBar.cpp:475
 msgid "&Write to profile.txt, Show"
 msgstr "profile.txt 에 쓰기, 보여주기 (&W)"
 
@@ -642,7 +667,7 @@ msgstr "<발견된 해상도가 없음>"
 msgid "<Nothing>"
 msgstr "<없음>"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:55
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:54
 msgid "<System Language>"
 msgstr "<시스템 언어>"
 
@@ -659,12 +684,12 @@ msgstr "넷플레이 창이 이미 열려있습니다!"
 msgid "A disc is already about to be inserted."
 msgstr "디스크가 이미 삽입되려는 중입니다."
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:158
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:189
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:160
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:191
 msgid "A game is not currently running."
 msgstr "현재 게임이 구동되고 있지 않습니다."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:823
+#: Source/Core/DolphinWX/FrameTools.cpp:761
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -672,15 +697,13 @@ msgstr ""
 "종료가 이미 진행 중입니다. 저장되지 않은 데이터는 완료되기 전에 현재 에뮬레이"
 "션을 중단하면 잃을 수도 있습니다. 중지시키겠습니까?"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:332
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:333
 msgid ""
 "A supported Bluetooth device could not be found,\n"
-"so you must connect Wiimotes manually."
+"so you must connect Wii Remotes manually."
 msgstr ""
-"지원되는 블루투스 장치를 찾을 수 없습니다,\n"
-"수동으로 위모트를 연결해야 합니다."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:515
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:516
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "Wii 게임이 구동 중일 때만 동기화가 발동될 수 있습니다."
 
@@ -695,17 +718,9 @@ msgid ""
 "If connecting directly, the host must have the chosen UDP port open/"
 "forwarded!\n"
 "\n"
-"Wiimote netplay is experimental and should not be expected to work.\n"
+"Wii Remote support in netplay is experimental and should not be expected to "
+"work.\n"
 msgstr ""
-"주의:\n"
-"\n"
-"모든 플레이어들은 같은 돌핀 버전을 사용해야 합니다.\n"
-"모든 메모리 카드, SD 카드 그리고 치트는 플레이어들 사이에 같거나 꺼야 합니"
-"다.\n"
-"DSP LLE가 사용된다면, DSP 롬들이 플레이어들 사이에 같아야 합니다.\n"
-"직접 연결하려면, 호스트는 선택된 UDP 포트를 열기/포워드되게 해야 합니다!\n"
-"\n"
-"위모트 넷플레이는 실험적이라서 작동을 기대해서는 안됩니다.\n"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:136
 #: Source/Core/DolphinWX/ISOProperties.cpp:443
@@ -719,6 +734,10 @@ msgstr "돌핀에 대해"
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:744
 msgid "Accuracy:"
 msgstr "정확성:"
+
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:68
+msgid "Action"
+msgstr ""
 
 #: Source/Core/Core/ARDecrypt.cpp:473
 #, c-format
@@ -808,6 +827,10 @@ msgstr "액션 리플레이: 일반 코드 %i: 올바르지 않은 하위 분류
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "액션 리플레이: 일반 코드 0: 올바르지 않은 하위 분류 %08x (%s)"
 
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:32
+msgid "Active"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:42
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:76
 msgid "Adapter Detected"
@@ -831,7 +854,11 @@ msgstr "추가"
 msgid "Add ActionReplay Code"
 msgstr "액션 리플레이 코드 추가"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:396
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:20
+msgid "Add Breakpoint"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:398
 msgid "Add New Pane To"
 msgstr "새로운 창 추가"
 
@@ -839,13 +866,26 @@ msgstr "새로운 창 추가"
 msgid "Add Patch"
 msgstr "패치 추가"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:451
-msgid ""
-"Add any named functions missing from a .dsy file, so it can also recognise "
-"these additional functions in other games."
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:20
+msgid "Add a Memory Breakpoint"
 msgstr ""
-"a .dsy 파일로부터 놓친 네임드 함수들을 추가합니다, 그러면 다른 게임에서도 이"
-"러한 추가된 함수들을 인식할 수 있습니다."
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:453
+msgid ""
+"Add any named functions missing from a .dsy file, so that these additional "
+"functions can also be recognized in other games."
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/WatchView.cpp:270
+msgid "Add memory &breakpoint"
+msgstr ""
+
+#. i18n: This kind of "watch" is used for watching emulated memory.
+#. It's not related to timekeeping devices.
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:255
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:488
+msgid "Add to &watch"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 #: Source/Core/DolphinWX/ISOProperties.cpp:590
@@ -853,8 +893,16 @@ msgid "Add..."
 msgstr "추가..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:66
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:35
+#: Source/Core/DolphinWX/Debugger/JitWindow.cpp:173
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:27
+#: Source/Core/DolphinWX/Debugger/WatchView.cpp:84
 msgid "Address"
 msgstr "주소"
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:369
+msgid "Address Out of Range"
+msgstr ""
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1016
 msgid "Adjust the analog control pressure required to activate buttons."
@@ -864,7 +912,7 @@ msgstr "버튼 활성화에 필요한 아날로그 컨트롤의 압력을 조정
 msgid "Advance Game Port"
 msgstr "고급 게임 포트"
 
-#: Source/Core/DolphinWX/Config/ConfigMain.cpp:77
+#: Source/Core/DolphinWX/Config/ConfigMain.cpp:79
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:822
 msgid "Advanced"
 msgstr "고급"
@@ -874,7 +922,7 @@ msgid "Advanced Settings"
 msgstr "고급 설정"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:43
-#: Source/Core/DolphinWX/FrameTools.cpp:351
+#: Source/Core/DolphinWX/FrameTools.cpp:290
 msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgstr "모든 GC/Wii 파일들 (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 
@@ -882,8 +930,8 @@ msgstr "모든 GC/Wii 파일들 (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgid "All GameCube GCM files (gcm)"
 msgstr "모든 게임큐브 GCM 파일 (gcm)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1267
-#: Source/Core/DolphinWX/FrameTools.cpp:1279
+#: Source/Core/DolphinWX/FrameTools.cpp:1216
+#: Source/Core/DolphinWX/FrameTools.cpp:1228
 msgid "All Save States (sav, s##)"
 msgstr "모든 저장 상태 (sav, s##)"
 
@@ -936,7 +984,11 @@ msgstr "비등방성 필터링:"
 msgid "Anti-Aliasing:"
 msgstr "안티-앨리어싱:"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:450
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:335
+msgid "Append signature to"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:452
 msgid "Append to &Existing Signature File..."
 msgstr "존재하는 서명 파일에 덧붙이기... (&E)"
 
@@ -956,7 +1008,7 @@ msgstr "앱로더가 파일으로 부터 로드할 수 없음"
 msgid "Apploader:"
 msgstr "앱로더:"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:457
+#: Source/Core/DolphinWX/MainMenuBar.cpp:459
 msgid "Apply Signat&ure File..."
 msgstr "서명 파일 적용하기... (&u)"
 
@@ -969,6 +1021,11 @@ msgstr ""
 "프레임을 마친후 후처리 효과를 적용합니다.\n"
 "\n"
 "잘 모르겠으면, (끄기)를 선택하세요."
+
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:269
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:353
+msgid "Apply signature file"
+msgstr ""
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:848
 #, c-format
@@ -1005,7 +1062,7 @@ msgid "Attempted to load a state. Bluetooth will likely be broken now."
 msgstr ""
 "상태를 로드하려 시도했습니다. 블루투스가 이제 아마도 작동하지 않을 것입니다."
 
-#: Source/Core/DolphinWX/Config/ConfigMain.cpp:73
+#: Source/Core/DolphinWX/Config/ConfigMain.cpp:75
 msgid "Audio"
 msgstr "오디오"
 
@@ -1065,7 +1122,7 @@ msgstr ""
 "팅하고 리빌드하고를 여러번 재시도할 때 이것은 편리할 수 있습니다, 홈브류 게임"
 "을 개발하고 있는데 돌핀을 변경할 때도 마찬가지입니다.]"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:349
+#: Source/Core/DolphinWX/MainMenuBar.cpp:351
 msgid ""
 "Avoid any involuntary JIT cache clearing, this may prevent Zelda TP from "
 "crashing.\n"
@@ -1190,7 +1247,7 @@ msgid "Borderless Fullscreen"
 msgstr "틀 없는 전체화면"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:42
-#: Source/Core/DolphinWX/MainMenuBar.cpp:382
+#: Source/Core/DolphinWX/MainMenuBar.cpp:384
 msgid "Bottom"
 msgstr "아래"
 
@@ -1203,6 +1260,18 @@ msgstr "연결된 컨트롤: %lu"
 #, c-format
 msgid "Branch: %s"
 msgstr "분기: %s"
+
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
+msgid "Break"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
+msgid "Break and log"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.h:18
+msgid "Breakpoints"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
 msgid "Broadband Adapter"
@@ -1294,10 +1363,14 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:94
+msgid "Callstack"
+msgstr ""
+
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1909
 #, c-format
-msgid "Can't find Wiimote by connection handle %02x"
-msgstr "%02x 연결 핸들로 위모트를 찾을 수 없음"
+msgid "Can't find Wii Remote by connection handle %02x"
+msgstr ""
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:44
 msgid "Cancel"
@@ -1306,6 +1379,10 @@ msgstr "취소"
 #: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:88
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr "FIFO 를 단일단계로 처리할 수 없습니다. 프레임 진행을 대신 사용하세요."
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:168
+msgid "Cannot set uninitialized memory."
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:342
 #, c-format
@@ -1322,7 +1399,7 @@ msgstr ""
 msgid "Caps Lock"
 msgstr "Caps Lock"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:385
+#: Source/Core/DolphinWX/MainMenuBar.cpp:387
 #: Source/Core/InputCommon/ControllerEmu.cpp:300
 msgid "Center"
 msgstr "중앙"
@@ -1339,12 +1416,12 @@ msgstr "디스크 변경...(&D)"
 msgid "Change Disc"
 msgstr "디스크 변경"
 
-#: Source/Core/Core/Movie.cpp:1273
+#: Source/Core/Core/Movie.cpp:1276
 #, c-format
 msgid "Change the disc to %s"
 msgstr "%s 로 디스크를 변경합니다."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:118
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:117
 msgid ""
 "Change the language of the user interface.\n"
 "Requires restart."
@@ -1427,6 +1504,14 @@ msgid ""
 msgstr ""
 "앱로더로 사용할 파일을 선택: (디렉토리들로만 구성된 디스크에게만 적용됨)"
 
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:369
+msgid "Choose priority input file"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:376
+msgid "Choose secondary input file"
+msgstr ""
+
 #: Source/Core/DolphinWX/ISOProperties.cpp:1049
 #: Source/Core/DolphinWX/ISOProperties.cpp:1105
 msgid "Choose the folder to extract to"
@@ -1441,12 +1526,31 @@ msgid "Classic"
 msgstr "클래식"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:107
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:50
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:705
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1205
 #: Source/Core/DolphinWX/LogWindow.cpp:132
 #: Source/Core/DolphinWX/WXInputBase.cpp:48
 msgid "Clear"
 msgstr "지움"
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:126
+msgid "Clear Pixel Shaders"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:109
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:110
+msgid "Clear Screen"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:114
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:115
+msgid "Clear Textures"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:119
+msgid "Clear Vertex Shaders"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:206
 msgid "Clone and &Edit Code..."
@@ -1465,6 +1569,10 @@ msgstr "닫기"
 msgid "Co&nfigure..."
 msgstr "환경설정...(&n)"
 
+#: Source/Core/DolphinWX/Debugger/CodeWindow.h:80
+msgid "Code"
+msgstr ""
+
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:77
 msgid "Code Info"
 msgstr "코드 정보"
@@ -1477,7 +1585,7 @@ msgstr "코드:"
 msgid "Code: "
 msgstr "코드:"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:453
+#: Source/Core/DolphinWX/MainMenuBar.cpp:455
 msgid "Combine Two Signature Files..."
 msgstr "두 서명 파일을 합치기..."
 
@@ -1536,13 +1644,13 @@ msgstr "계산중..."
 msgid "Computing: "
 msgstr "계산: "
 
-#: Source/Core/DolphinWX/FrameTools.cpp:219
+#: Source/Core/DolphinWX/MainToolBar.cpp:208
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:593
 msgid "Config"
 msgstr " 환경설정"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:161
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:313
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:314
 #: Source/Core/DolphinWX/InputConfigDiag.h:153
 msgid "Configure"
 msgstr "설정"
@@ -1555,7 +1663,7 @@ msgstr "컨트롤 설정"
 msgid "Configure Dolphin"
 msgstr "돌핀 환경설정"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:220
+#: Source/Core/DolphinWX/MainToolBar.cpp:208
 msgid "Configure..."
 msgstr "환경설정..."
 
@@ -1565,7 +1673,7 @@ msgstr "환경설정..."
 msgid "Confirm File Overwrite"
 msgstr "파일 덮어쓰기 확인"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:87
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:86
 msgid "Confirm on Stop"
 msgstr "멈출 때 확인"
 
@@ -1585,30 +1693,30 @@ msgstr "USB 키보드 연결"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:209
 #, c-format
-msgid "Connect Wiimote %i"
-msgstr "위모트 %i 연결"
+msgid "Connect Wii Remote %i"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:36
-msgid "Connect Wiimote 1"
-msgstr "위모트 1 연결"
+msgid "Connect Wii Remote 1"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:37
-msgid "Connect Wiimote 2"
-msgstr "위모트 2 연결"
+msgid "Connect Wii Remote 2"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:38
-msgid "Connect Wiimote 3"
-msgstr "위모트 3 연결"
+msgid "Connect Wii Remote 3"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:39
-msgid "Connect Wiimote 4"
-msgstr "위모트 4 연결"
+msgid "Connect Wii Remote 4"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:224
-msgid "Connect Wiimotes"
-msgstr "위모트 연결"
+msgid "Connect Wii Remotes"
+msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:487
+#: Source/Core/DolphinWX/Main.cpp:493
 msgid "Connecting..."
 msgstr "연결 중..."
 
@@ -1616,7 +1724,12 @@ msgstr "연결 중..."
 msgid "Connection Type:"
 msgstr "연결 종류:"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:323
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:85
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:86
+msgid "Continue"
+msgstr ""
+
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:324
 msgid "Continuous Scanning"
 msgstr "지속적인 스캐닝"
 
@@ -1632,11 +1745,11 @@ msgstr "컨트롤 스틱"
 msgid "Controller Ports"
 msgstr "컨트롤러 포트"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:224
+#: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Controller settings"
 msgstr "컨트롤러 설정"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:223
+#: Source/Core/DolphinWX/MainToolBar.cpp:211
 msgid "Controllers"
 msgstr "컨트롤러"
 
@@ -1680,6 +1793,24 @@ msgstr "GCI 로 변환"
 msgid "Copy"
 msgstr "복사"
 
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:362
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:250
+msgid "Copy &address"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:364
+msgid "Copy &code line"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:363
+msgid "Copy &function"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:365
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:251
+msgid "Copy &hex"
+msgstr ""
+
 #: Source/Core/Core/ConfigManager.cpp:1056
 msgid "Copy failed"
 msgstr "복사에 실패했습니다."
@@ -1692,6 +1823,11 @@ msgstr "메모리카드 %c 에 복사"
 #: Source/Core/DolphinWX/ISOProperties.cpp:540
 msgid "Core"
 msgstr "코어"
+
+#. i18n: Performance cost, not monetary cost
+#: Source/Core/DolphinWX/Debugger/JitWindow.cpp:184
+msgid "Cost"
+msgstr ""
 
 #: Source/Core/Core/ConfigManager.cpp:853
 #, c-format
@@ -1757,11 +1893,15 @@ msgstr ""
 msgid "Couldn't look up central server"
 msgstr "중앙 서버를 찾을 수 없습니다"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:78
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:90
+msgid "Count"
+msgstr ""
+
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:80
 msgid "Count:"
 msgstr "카운트:"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:260
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:262
 #, c-format
 msgid "Count: %lu"
 msgstr "카운트: %lu"
@@ -1775,11 +1915,11 @@ msgstr "국가:"
 msgid "Create AR Code"
 msgstr "AR 코드 생성"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:393
+#: Source/Core/DolphinWX/MainMenuBar.cpp:395
 msgid "Create New Perspective"
 msgstr "새로운 관점 생성"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:449
+#: Source/Core/DolphinWX/MainMenuBar.cpp:451
 msgid ""
 "Create a .dsy file that can be used to recognise these same functions in "
 "other games."
@@ -1817,7 +1957,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "크로스페이드"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:363
+#: Source/Core/DolphinWX/FrameTools.cpp:302
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "wxFileSelector 후에 현재 디렉토리가 %s에서 %s로 변경되었습니다!"
@@ -1851,6 +1991,10 @@ msgstr "DSP 에뮬레이터 엔진"
 msgid "DSP HLE emulation (fast)"
 msgstr "DSP HLE 에뮬레이션 (빠름)"
 
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:34
+msgid "DSP LLE Debugger"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:34
 msgid "DSP LLE interpreter (slow)"
 msgstr "DSP LLE 인터프리터 (느림)"
@@ -1870,6 +2014,10 @@ msgstr "댄스 매트"
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:60
 msgid "Data Size"
 msgstr "데이터 크기"
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:116
+msgid "Data Type"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:537
 #: Source/Core/DolphinWX/MemcardManager.cpp:572
@@ -1893,10 +2041,12 @@ msgstr "디버그"
 msgid "Debug Only"
 msgstr "디버그 전용"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:177
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:840
 msgid "Debugging"
 msgstr "디버깅"
 
+#: Source/Core/DolphinWX/Debugger/WatchView.cpp:88
 #: Source/Core/DolphinWX/WXInputBase.cpp:118
 msgid "Decimal"
 msgstr "10 진수"
@@ -1942,6 +2092,7 @@ msgstr "기본 ISO:"
 msgid "Default font"
 msgstr "기본 폰트"
 
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:47
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1225
 #: Source/Core/DolphinWX/WXInputBase.cpp:29
 msgid "Delete"
@@ -2018,7 +2169,7 @@ msgstr "비활성화"
 msgid "Disable Bounding Box"
 msgstr "바운딩 박스 끄기"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:398
+#: Source/Core/DolphinWX/MainMenuBar.cpp:400
 msgid "Disable Docking"
 msgstr "도킹 끄기"
 
@@ -2044,7 +2195,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 이것을 체크해 두세요."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:399
+#: Source/Core/DolphinWX/MainMenuBar.cpp:401
 msgid "Disable docking of perspective panes to main window"
 msgstr "메인 창에 관점 창의 도킹을 끕니다"
 
@@ -2061,6 +2212,10 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크해 두세요."
 
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:79
+msgid "Disassembly"
+msgstr ""
+
 #: Source/Core/DolphinWX/ISOProperties.cpp:801
 msgid "Disc"
 msgstr "디스크"
@@ -2073,7 +2228,7 @@ msgstr "디스크 읽기 오류"
 msgid "Display"
 msgstr "디스플레이"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:113
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:112
 msgid ""
 "Display messages over the emulation screen area.\n"
 "These messages include memory card writes, video backend and CPU "
@@ -2087,7 +2242,11 @@ msgstr ""
 msgid "Divide"
 msgstr "나누기"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:822
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:173
+msgid "Do you want to clear the list of symbol names?"
+msgstr ""
+
+#: Source/Core/DolphinWX/FrameTools.cpp:760
 msgid "Do you want to stop the current emulation?"
 msgstr "에뮬레이션을 중단하고 싶습니까?"
 
@@ -2096,7 +2255,7 @@ msgid "Dolby Pro Logic II decoder"
 msgstr "돌비 프로 로직 II 디코더"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:663
+#: Source/Core/DolphinWX/FrameTools.cpp:603
 msgid "Dolphin"
 msgstr "돌핀"
 
@@ -2114,17 +2273,23 @@ msgstr "돌핀 환경설정"
 msgid "Dolphin Controller Configuration"
 msgstr "돌핀 컨트롤러 환경설정"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:497
-msgid "Dolphin Emulated Wiimote Configuration"
-msgstr "돌핀 에뮬된 위모트 환경설정"
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:498
+msgid "Dolphin Emulated Wii Remote Configuration"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:376
 msgid "Dolphin FIFO"
 msgstr "돌핀 FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1024
+#: Source/Core/DolphinWX/FrameTools.cpp:964
 msgid "Dolphin Hotkeys"
 msgstr "돌핀 단축키"
+
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:220
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:236
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:255
+msgid "Dolphin Map File (*.map)"
+msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:68
 msgid "Dolphin NetPlay"
@@ -2134,8 +2299,21 @@ msgstr "돌핀 넷플레이"
 msgid "Dolphin NetPlay Setup"
 msgstr "돌핀 넷플레이 설정"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:496
-#: Source/Core/DolphinWX/FrameTools.cpp:959
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:311
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:336
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:354
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:370
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:377
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:385
+msgid "Dolphin Signature File (*.dsy)"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:270
+msgid "Dolphin Symbol Rename File (*.sym)"
+msgstr ""
+
+#: Source/Core/DolphinWX/FrameTools.cpp:435
+#: Source/Core/DolphinWX/FrameTools.cpp:899
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "돌핀 TAS 무비 (*.dtm)"
 
@@ -2204,6 +2382,11 @@ msgstr "드럼"
 msgid "Dummy"
 msgstr "더미"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:101
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:102
+msgid "Dump"
+msgstr ""
+
 #: Source/Core/DolphinWX/MainMenuBar.cpp:161
 msgid "Dump Audio"
 msgstr "오디오 덤프"
@@ -2212,9 +2395,21 @@ msgstr "오디오 덤프"
 msgid "Dump EFB Target"
 msgstr "EFB 타겟 덤프"
 
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:96
+msgid "Dump EXRAM"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:98
+msgid "Dump FakeVMEM"
+msgstr ""
+
 #: Source/Core/DolphinWX/MainMenuBar.cpp:159
 msgid "Dump Frames"
 msgstr "프레임들 덤프"
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:95
+msgid "Dump MRAM"
+msgstr ""
 
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:115
 msgid "Dump Objects"
@@ -2257,6 +2452,10 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 이것을 체크 해제해 두세요."
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
+msgid "DumpList"
+msgstr ""
+
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:262
 msgid "Duplicate Bundled ActionReplay Code"
 msgstr "번들 액션리플레이 코드를 복제"
@@ -2270,6 +2469,10 @@ msgstr "네덜란드어"
 #: Source/Core/DolphinWX/MainMenuBar.cpp:86
 msgid "E&xit"
 msgstr "종료(&x)"
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:57
+msgid "EFB Cmd"
+msgstr ""
 
 #: Source/Core/Core/HW/BBA-TAP/TAP_Win32.cpp:206
 #, c-format
@@ -2299,8 +2502,8 @@ msgstr "환경 편집"
 msgid "Edit Patch"
 msgstr "패치 편집"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:390
-#: Source/Core/DolphinWX/MainMenuBar.cpp:407
+#: Source/Core/DolphinWX/MainMenuBar.cpp:392
+#: Source/Core/DolphinWX/MainMenuBar.cpp:409
 msgid "Edit Perspectives"
 msgstr "관점 편집"
 
@@ -2365,9 +2568,9 @@ msgstr ""
 msgid "Emulate the Wii's Bluetooth adapter"
 msgstr "Wii 의 블루투스 어댑터를 에뮬"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:287
-msgid "Emulated Wiimote"
-msgstr "가상 위모트"
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:288
+msgid "Emulated Wii Remote"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:525
 msgid "Emulation State: "
@@ -2421,7 +2624,7 @@ msgstr "프로그레시브 스캔 활성화"
 msgid "Enable Screen Saver"
 msgstr "화면 보호기 활성화"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:343
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:344
 msgid "Enable Speaker Data"
 msgstr "스피커 데이터 활성화"
 
@@ -2572,6 +2775,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 이것을 체크 해제해 두세요."
 
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:30
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:145
 #: Source/Core/DolphinWX/WXInputBase.cpp:66
 msgid "End"
@@ -2606,19 +2810,20 @@ msgstr "목록 %d/%d"
 msgid "Entry 1/%d"
 msgstr "목록 1/%d"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:105
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:107
 msgid "Equal"
 msgstr "같음"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
-#: Source/Core/DolphinWX/Main.cpp:299 Source/Core/DolphinWX/Main.cpp:307
+#: Source/Core/DolphinWX/Main.cpp:305 Source/Core/DolphinWX/Main.cpp:313
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:242
 #: Source/Core/DolphinWX/WxUtils.cpp:70
 msgid "Error"
 msgstr "오류"
 
-#: Source/Core/DolphinWX/Main.cpp:298
+#: Source/Core/DolphinWX/Main.cpp:304
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "선택된 언어 가져오는 데 오류가 발생했습니다. 기본 시스템 언어로 돌아갑니다."
@@ -2636,7 +2841,7 @@ msgstr ""
 "오류: \"%s\" 뒤에, %d (0x%X)를 발견하였습니다, 저장 표식 %d (0x%X) 대신에. 상"
 "태 저장 로드를 취소합니다..."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:387
+#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:377
 #, c-format
 msgid ""
 "Error: Trying to access %s fonts but they are not loaded. Games may not show "
@@ -2756,6 +2961,10 @@ msgstr "압축 푸는 중..."
 msgid "FIFO Player"
 msgstr "FIFO 플레이어"
 
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:259
+msgid "FP value"
+msgstr ""
+
 #: Source/Core/DolphinWX/ISOProperties.cpp:650
 msgid "FST Size:"
 msgstr "FST 크기:"
@@ -2824,7 +3033,7 @@ msgstr ""
 "타겟 폴더에 쓰기 권한을 가지고 있는지와 미디어가 쓰여질 수 있는지를 확인하세"
 "요."
 
-#: Source/Core/Core/Movie.cpp:1015
+#: Source/Core/Core/Movie.cpp:1016
 #, c-format
 msgid "Failed to read %s"
 msgstr "%s 을 읽을 수 없습니다."
@@ -2911,7 +3120,7 @@ msgstr "빠름"
 msgid "Fast Depth Calculation"
 msgstr "빠른 깊이 계산"
 
-#: Source/Core/Core/Movie.cpp:1305
+#: Source/Core/Core/Movie.cpp:1308
 #, c-format
 msgid ""
 "Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s"
@@ -3017,13 +3226,33 @@ msgstr "첫번째 블록"
 msgid "Fix Checksums"
 msgstr "체크섬을 고치기"
 
+#. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
+#. not the kinds of flags that represent e.g. countries
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:36
+#: Source/Core/DolphinWX/Debugger/JitWindow.cpp:180
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:74
+msgid "Flags"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:163
+msgid "Flow Control"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:49
+msgid "Flush"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:63
+msgid "Fog Cmd"
+msgstr ""
+
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:436
 msgid "Force 16:9"
 msgstr "강제 16:9"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:625
 msgid "Force 24-bit Color"
-msgstr ""
+msgstr "강제 24-비트 컬러"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:436
 msgid "Force 4:3"
@@ -3081,6 +3310,12 @@ msgid ""
 "\n"
 "If unsure, leave this checked."
 msgstr ""
+"게임이 RGB 컬러 채널을 24-비트로 렌더하게 만듭니다, 색 줄무늬 현상을 줄여서 "
+"품질이 증가합니다.\n"
+"성능에 영향이 없고 소수의 그래픽 이슈를 읽으킵니다.\n"
+"\n"
+"\n"
+"잘 모르겠으면, 체크해 두세요."
 
 #: Source/Core/Core/HW/GCMemcard.cpp:37
 msgid ""
@@ -3108,6 +3343,10 @@ msgstr "%u 결과를 찾았습니다 '"
 msgid "Found %zu save files"
 msgstr "%zu 저장 파일들을 찾았습니다"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:48
+msgid "Frame"
+msgstr ""
+
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:885
 #, c-format
 msgid "Frame %u"
@@ -3133,6 +3372,10 @@ msgstr "프레임 진행 속도 증가"
 #: Source/Core/Core/HotkeyManager.cpp:24
 msgid "Frame Advance Reset Speed"
 msgstr "프레임 진행 속도 리셋"
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:140
+msgid "Frame Buffer"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:866
 msgid "Frame Dumps Use FFV1"
@@ -3213,13 +3456,25 @@ msgstr "프렛들"
 msgid "From"
 msgstr "From"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:214
+#: Source/Core/DolphinWX/MainToolBar.cpp:205
 msgid "FullScr"
 msgstr "전체화면"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:416
 msgid "Fullscreen Resolution:"
 msgstr "전체화면 해상도:"
+
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:34
+msgid "Function"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:112
+msgid "Function callers"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:106
+msgid "Function calls"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:48
 msgid "GBA"
@@ -3250,6 +3505,10 @@ msgstr ""
 #: Source/Core/Core/HW/GCMemcardDirectory.cpp:359
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: 부적합한 블록 주소로 호출된 클리어블록"
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.h:19
+msgid "GFX Debugger"
+msgstr ""
 
 #: Source/Core/VideoCommon/OpcodeDecoding.cpp:81
 #, c-format
@@ -3304,7 +3563,7 @@ msgstr "게임-상세 설정"
 msgid "GameConfig"
 msgstr "게임 설정"
 
-#: Source/Core/DolphinWX/Config/ConfigMain.cpp:74
+#: Source/Core/DolphinWX/Config/ConfigMain.cpp:76
 msgid "GameCube"
 msgstr "게임큐브"
 
@@ -3312,7 +3571,7 @@ msgstr "게임큐브"
 msgid "GameCube Adapter for Wii U"
 msgstr "Wii U용 게임큐브 어댑터"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:461
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:462
 msgid "GameCube Controller Configuration"
 msgstr "게임큐브 컨트롤러 환경설정"
 
@@ -3320,7 +3579,7 @@ msgstr "게임큐브 컨트롤러 환경설정"
 msgid "GameCube Controllers"
 msgstr "게임큐브 컨트롤러"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:449
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:450
 msgid "GameCube Keyboard Configuration"
 msgstr "게임큐브 키보드 환경설정"
 
@@ -3338,7 +3597,7 @@ msgstr "게임큐브 게임저장 파일(*.gci;*.gcs;*.sav)"
 msgid "Gecko Codes"
 msgstr "Gecko 코드"
 
-#: Source/Core/DolphinWX/Config/ConfigMain.cpp:71
+#: Source/Core/DolphinWX/Config/ConfigMain.cpp:73
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:48
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:361
@@ -3350,6 +3609,10 @@ msgstr "일반"
 msgid "Generate a New Statistics Identity"
 msgstr "새로운 통계 식별자 생성"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:141
+msgid "Geometry data"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:48
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
 #: Source/Core/DolphinWX/ISOProperties.cpp:679
@@ -3360,15 +3623,23 @@ msgstr "독일어"
 msgid "Germany"
 msgstr "독일"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:221
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:81
+msgid "Go to Next Frame"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainToolBar.cpp:233
+msgid "Go to the current instruction"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainToolBar.cpp:209
 msgid "Graphics"
 msgstr "그래픽"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:222
+#: Source/Core/DolphinWX/MainToolBar.cpp:210
 msgid "Graphics settings"
 msgstr "그래픽 설정"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:106
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:108
 msgid "Greater Than"
 msgstr "보다 큰"
 
@@ -3435,6 +3706,15 @@ msgstr "높이"
 #: Source/Core/DolphinWX/WXInputBase.cpp:88
 msgid "Help"
 msgstr "도움"
+
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:263
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:104
+msgid "Hex"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/WatchView.cpp:86
+msgid "Hexadecimal"
+msgstr ""
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:297
 msgid "Hide"
@@ -3504,9 +3784,9 @@ msgstr "넷플레이로 호스트"
 msgid "Hotkeys"
 msgstr "단축키들"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:287
-msgid "Hybrid Wiimote"
-msgstr "하이브리드 위모트"
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:288
+msgid "Hybrid Wii Remote"
+msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:311
 msgid "ID"
@@ -3570,7 +3850,7 @@ msgstr "아이콘"
 msgid "Identity generation"
 msgstr "식별자 생성"
 
-#: Source/Core/DolphinWX/Main.cpp:201
+#: Source/Core/DolphinWX/Main.cpp:202
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -3716,6 +3996,14 @@ msgstr "입력"
 msgid "Insert"
 msgstr "삽입"
 
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:373
+msgid "Insert &blr"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:374
+msgid "Insert &nop"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:51
 msgid "Insert SD Card"
 msgstr "SD 카드 삽입"
@@ -3728,7 +4016,7 @@ msgstr "WAD 설치..."
 msgid "Install to Wii Menu"
 msgstr "Wii 메뉴에 설치"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1174
+#: Source/Core/DolphinWX/FrameTools.cpp:1123
 msgid "Installing WAD..."
 msgstr "WAD 설치하기..."
 
@@ -3753,11 +4041,11 @@ msgstr ""
 "%s 에 대한 무결성 체크를 실패했습니다. 디스크 이미지가 오염되었거나 잘못 패치"
 "된 것 같습니다."
 
-#: Source/Core/DolphinWX/Config/ConfigMain.cpp:72
+#: Source/Core/DolphinWX/Config/ConfigMain.cpp:74
 msgid "Interface"
 msgstr "인터페이스"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:133
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:132
 msgid "Interface Settings"
 msgstr "인터페이스 설정"
 
@@ -3798,6 +4086,11 @@ msgstr "소개화면"
 msgid "Invalid Mixed Code"
 msgstr "부적합 복합 코드"
 
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:179
+#, c-format
+msgid "Invalid address: %s"
+msgstr ""
+
 #: Source/Core/DolphinWX/MemcardManager.cpp:466
 msgid "Invalid bat.map or dir entry."
 msgstr "부적합 bat.map 혹은 디렉토리 엔트리."
@@ -3810,7 +4103,7 @@ msgstr "부적합 호스트"
 msgid "Invalid index"
 msgstr "부적합 목록"
 
-#: Source/Core/Core/Movie.cpp:956
+#: Source/Core/Core/Movie.cpp:957
 msgid "Invalid recording file"
 msgstr "부적합 기록 파일"
 
@@ -3829,6 +4122,11 @@ msgstr "부적합한 찾기 스트링 (짝수 길이 스트링만 지원됩니�
 #: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:79
 msgid "Invalid value."
 msgstr "부적합한 값."
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:185
+#, c-format
+msgid "Invalid value: %s"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:51
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:36
@@ -3849,6 +4147,10 @@ msgstr "반복 입력"
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:33
 msgid "JIT Arm64 (experimental)"
 msgstr "JIT Arm64 (실험적)"
+
+#: Source/Core/DolphinWX/Debugger/JitWindow.h:33
+msgid "JIT Block Viewer"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:30
 msgid "JIT Recompiler (recommended)"
@@ -3909,7 +4211,7 @@ msgstr "한국"
 msgid "Korean"
 msgstr "한국어"
 
-#. i18n:  Left
+#. i18n: The left trigger button (labeled L on real controllers)
 #: Source/Core/Core/HW/GCPadEmu.cpp:32
 #: Source/Core/DolphinWX/TASInputDlg.cpp:252
 #: Source/Core/DolphinWX/TASInputDlg.cpp:397
@@ -3920,12 +4222,16 @@ msgstr "L"
 msgid "L Button"
 msgstr "L 버튼"
 
-#. i18n:  Left-Analog
+#. i18n: The left trigger button (labeled L on real controllers) used as an analog input
 #: Source/Core/Core/HW/GCPadEmu.cpp:36
 msgid "L-Analog"
 msgstr "L-아날로그"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:123
+#: Source/Core/DolphinWX/Debugger/WatchView.cpp:82
+msgid "Label"
+msgstr ""
+
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:122
 msgid "Language:"
 msgstr "언어:"
 
@@ -3938,7 +4244,7 @@ msgstr "최근 %i"
 msgid "Latency:"
 msgstr "지연:"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:383
+#: Source/Core/DolphinWX/MainMenuBar.cpp:385
 #: Source/Core/DolphinWX/TASInputDlg.cpp:80
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:70
@@ -3972,7 +4278,7 @@ msgstr ""
 "좌/우-클릭 옵션들 더.\n"
 "중-클릭 지우기."
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:107
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:109
 msgid "Less Than"
 msgstr "보다 더 적은"
 
@@ -3990,6 +4296,10 @@ msgstr ""
 msgid "License"
 msgstr "라이슨스"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:62
+msgid "Light Cmd"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:87
 msgid ""
 "Limits the emulation speed to the specified percentage.\n"
@@ -4000,15 +4310,17 @@ msgstr ""
 "에뮬 속도를 올리거나 낮추면 소리 끊김 방지를 위해 소리의 높낮이 또한 오르거"
 "나 낮아지게 된다는 것을 알아두세요."
 
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:59
+#: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:35
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1221
 msgid "Load"
 msgstr "로드"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:432
+#: Source/Core/DolphinWX/MainMenuBar.cpp:434
 msgid "Load &Bad Map File..."
 msgstr "배드 맵 파일 로드... (&B)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:429
+#: Source/Core/DolphinWX/MainMenuBar.cpp:431
 msgid "Load &Other Map File..."
 msgstr "다른 맵 파일 로드... (&O)"
 
@@ -4108,25 +4420,29 @@ msgstr "선택된 슬롯에서 상태를 로드합니다"
 msgid "Load State..."
 msgstr "상태 로드..."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1206
-#: Source/Core/DolphinWX/MainMenuBar.cpp:554
+#: Source/Core/DolphinWX/FrameTools.cpp:1155
+#: Source/Core/DolphinWX/MainMenuBar.cpp:557
 msgid "Load Wii System Menu"
 msgstr "Wii 시스템 메뉴 로드"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1201
+#: Source/Core/DolphinWX/FrameTools.cpp:1150
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Wii 시스템 메뉴 %d %c 로드"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:549
+#: Source/Core/DolphinWX/MainMenuBar.cpp:552
 #, c-format
 msgid "Load Wii System Menu %u%c"
-msgstr ""
+msgstr "Wii 시스템 메뉴 %u%c 로드"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:430
+#: Source/Core/DolphinWX/MainMenuBar.cpp:432
 msgid ""
 "Load any .map file containing the function names and addresses for this game."
 msgstr "이 게임을 위한 함수 이름과 주소를 담고 있는 .map 파일을 로드합니다."
+
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:235
+msgid "Load bad map file"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:233
 msgid ""
@@ -4142,6 +4458,10 @@ msgstr ""
 msgid "Load from selected slot"
 msgstr "선택된 슬롯에서 로드"
 
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:219
+msgid "Load map file"
+msgstr ""
+
 #: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:392
 #, c-format
 msgid "Loaded %d good functions, ignored %d bad functions."
@@ -4152,6 +4472,7 @@ msgstr "%d 훌륭한 함수들이 로드되었습니다, %d 나쁜 함수들이 
 msgid "Localhost"
 msgstr "로컬호스트"
 
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:45
 #: Source/Core/DolphinWX/LogWindow.h:30
 msgid "Log"
 msgstr "로그"
@@ -4185,7 +4506,7 @@ msgid "Logger Outputs"
 msgstr "로거 출력"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:139
-#: Source/Core/DolphinWX/Frame.cpp:356
+#: Source/Core/DolphinWX/Frame.cpp:367
 msgid "Logging"
 msgstr "로깅"
 
@@ -4214,7 +4535,7 @@ msgstr "MadCatz 게임샤크 파일들(*.gcs)"
 msgid "Main Stick"
 msgstr "메인 스틱"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:454
+#: Source/Core/DolphinWX/MainMenuBar.cpp:456
 msgid ""
 "Make a new .dsy file which can recognise more functions, by combining two "
 "existing files. The first input file has priority."
@@ -4250,6 +4571,14 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 이것을 체크 해제해 두세요."
 
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:386
+msgid "Match Found"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:59
+msgid "Matrix Cmd"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:96
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:103
 msgid "Max"
@@ -4266,6 +4595,11 @@ msgstr "메모리카드에 이미 이 타이틀에 대한 저장이 있습니다
 #: Source/Core/DolphinWX/MemcardManager.cpp:289
 msgid "Memcard already opened"
 msgstr "메모리카드가 이미 열려 있음"
+
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:86
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.h:28
+msgid "Memory"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:31
 #: Source/Core/DolphinWX/MemcardManager.cpp:215
@@ -4292,6 +4626,10 @@ msgstr ""
 "슬롯 %c 경로는 바뀌지 않었습니다\n"
 "%s로\n"
 "오래된 파일을 이 새로운 위치로 복사하고 싶습니까?\n"
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:299
+msgid "Memory Not Ready"
+msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:93
 msgid "Memory card file size does not match the header size"
@@ -4380,11 +4718,11 @@ msgstr "자세한 설명을 보려면 마우스 포인터를 옵션위로 이동
 msgid "Multiply"
 msgstr "곱하기"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:458
+#: Source/Core/DolphinWX/MainMenuBar.cpp:460
 msgid ""
-"Must use Generate symbol map first! Recognise names of any standard library "
+"Must use Generate Symbol Map first! Recognise names of any standard library "
 "functions used in multiple games, by loading them from a .dsy file."
-msgstr "심볼 맵 생성하기를 먼저 사용해야 합니다!"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:633
 msgid "NOTE: Stream size doesn't match actual data length\n"
@@ -4508,9 +4846,17 @@ msgstr "넷플레이가 갈렸습니다. 이것으로부터 복구할 방법이 
 msgid "New Scan"
 msgstr "새로운 스캔"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:54
+msgid "New Texture"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:223
 msgid "New identity generated."
 msgstr "새로운 식별자가 생성되었습니다."
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:82
+msgid "Next Frame"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:189
 #: Source/Core/DolphinWX/MemcardManager.cpp:832
@@ -4524,6 +4870,14 @@ msgstr "다음 스캔"
 #: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:127
 msgid "Nickname:"
 msgstr "별명:"
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:380
+msgid "No Match"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:344
+msgid "No Value Given"
+msgstr ""
 
 #: Source/Core/Core/ConfigManager.h:22
 msgid "No audio output"
@@ -4556,13 +4910,13 @@ msgstr ""
 "undo.dtm 이 없습니다, 무비 갈림을 막기위해서 상태로드 되돌리기를 취소합니다"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:47
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:287
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:288
 #: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:26
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:1108
 msgid "None"
 msgstr "없음"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:104
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:106
 msgid "Not Equal"
 msgstr "같지 않음"
 
@@ -4572,14 +4926,33 @@ msgstr "같지 않음"
 msgid "Not Set"
 msgstr "설정 안됨"
 
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:322
+msgid "Not Valid Hex"
+msgstr ""
+
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:357
 msgid "Not all players have the game. Do you really want to start?"
 msgstr ""
 "모든 플레이어가 그 게임을 가지고 있지는 않습니다. 정말 시작하고 싶습니까?"
 
-#: Source/Core/DolphinWX/Main.cpp:484
+#: Source/Core/DolphinWX/Main.cpp:490
 msgid "Not connected"
 msgstr "연결되지 않음"
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:253
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:258
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:263
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:268
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:273
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:278
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:283
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:288
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:302
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:313
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:319
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:324
+msgid "Not implemented"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:31
 msgid "Notes: "
@@ -4596,6 +4969,11 @@ msgstr "알림"
 #: Source/Core/DolphinWX/WXInputBase.cpp:170
 msgid "Num Lock"
 msgstr "Num Lock"
+
+#. i18n: The number of times a code block has been executed
+#: Source/Core/DolphinWX/Debugger/JitWindow.cpp:182
+msgid "NumExec"
+msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:81
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:189
@@ -4635,11 +5013,11 @@ msgstr "끄기"
 msgid "Offset:"
 msgstr "오프셋:"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:89
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:88
 msgid "On-Screen Display Messages"
 msgstr "온-스크린 메시지 보여주기"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:481
+#: Source/Core/DolphinWX/MainMenuBar.cpp:484
 msgid "Online &Documentation"
 msgstr "온라인 문서(&D)"
 
@@ -4648,8 +5026,19 @@ msgstr "온라인 문서(&D)"
 msgid "Only %d blocks available"
 msgstr "%d 블록 사용 가능"
 
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:303
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:327
+msgid ""
+"Only export symbols with prefix:\n"
+"(Blank for all symbols)"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:524
+msgid "Op?"
+msgstr ""
+
 #: Source/Core/Core/HotkeyManager.cpp:14
-#: Source/Core/DolphinWX/FrameTools.cpp:207
+#: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Open"
 msgstr "열기"
 
@@ -4661,7 +5050,7 @@ msgstr "담고 있는 폴더 열기(&c)"
 msgid "Open Wii &save folder"
 msgstr "Wii 저장 폴더 열기(&s)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:208
+#: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Open file..."
 msgstr "파일 열기..."
 
@@ -4735,6 +5124,14 @@ msgstr "NTSC 게임에서 언어 오버라이드"
 msgid "P&lay Input Recording..."
 msgstr "입력 기록 플레이...(&l)"
 
+#: Source/Core/DolphinWX/Debugger/JitWindow.cpp:174
+msgid "PPC Size"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:372
+msgid "PPC vs x86"
+msgstr ""
+
 #: Source/Core/Core/HW/GCPad.cpp:16
 msgid "Pad"
 msgstr "패드"
@@ -4772,25 +5169,40 @@ msgstr "블루투스 어댑터를 패스쓰루"
 msgid "Patches"
 msgstr "패치"
 
-#: Source/Core/DolphinWX/Config/ConfigMain.cpp:76
+#: Source/Core/DolphinWX/Config/ConfigMain.cpp:78
 msgid "Paths"
 msgstr "경로"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1451
-#: Source/Core/DolphinWX/FrameTools.cpp:1453
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:73
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:74
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:47
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:178
+#: Source/Core/DolphinWX/MainToolBar.cpp:252
 #: Source/Core/DolphinWX/WXInputBase.cpp:62
 msgid "Pause"
 msgstr "일시정지"
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:77
+msgid "Pause After"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:78
+msgid "Pause At Next"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:147
 msgid "Pause at End of Movie"
 msgstr "무비의 끝에서 일시정지"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:90
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:89
 msgid "Pause on Focus Lost"
 msgstr "초점 잃을 때 일시정지"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:116
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:94
+msgid "PauseAtList"
+msgstr ""
+
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:115
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr "에뮬레이션 창에서 포커스가 없어졌을 때 에뮬레이터를 일시정지합니다."
 
@@ -4813,18 +5225,26 @@ msgstr "현재 데이터 크기로 게임 램의 전체 목록을 수행합니�
 msgid "Perspective %d"
 msgstr "관점 %d"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:407
+#: Source/Core/DolphinWX/MainMenuBar.cpp:409
 msgid "Perspectives"
 msgstr "관점"
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:51
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:135
+msgid "Pixel Shader"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:137
+msgid "Pixel Shader Constants"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:275
 msgid "Platform"
 msgstr "플랫폼"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:148
-#: Source/Core/DolphinWX/FrameTools.cpp:212
-#: Source/Core/DolphinWX/FrameTools.cpp:1458
-#: Source/Core/DolphinWX/FrameTools.cpp:1460
+#: Source/Core/DolphinWX/MainToolBar.cpp:203
+#: Source/Core/DolphinWX/MainToolBar.cpp:257
 msgid "Play"
 msgstr " 실행  "
 
@@ -4844,7 +5264,7 @@ msgstr "재생 옵션"
 msgid "Players"
 msgstr "플레이어"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:826
+#: Source/Core/DolphinWX/FrameTools.cpp:764
 msgid "Please confirm..."
 msgstr "확인해주세요..."
 
@@ -4878,17 +5298,17 @@ msgstr "후-처리 효과:"
 msgid "Prefetch Custom Textures"
 msgstr "커스텀 텍스처 프리패치"
 
-#: Source/Core/Core/Movie.cpp:1192
+#: Source/Core/Core/Movie.cpp:1195
 #, c-format
 msgid "Premature movie end in PlayController. %u + 8 > %u"
 msgstr "PlayController에 무비 마무리가 미완성되었습니다. %u + 8 > %u"
 
-#: Source/Core/Core/Movie.cpp:1318
+#: Source/Core/Core/Movie.cpp:1321
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u + %d > %u"
 msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. %u + %d > %u"
 
-#: Source/Core/Core/Movie.cpp:1293
+#: Source/Core/Core/Movie.cpp:1296
 #, c-format
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "PlayWiimote에 무비 마무리가 미완성되었습니다. %u > %u"
@@ -4917,11 +5337,11 @@ msgstr "프로파일"
 msgid "Properties"
 msgstr "속성"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:345
+#: Source/Core/DolphinWX/MainMenuBar.cpp:347
 msgid "Provide safer execution by not linking the JIT blocks."
 msgstr "JIT 블록을 링크하지 않는 더 안전한 실행을 제공합니다."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:325
+#: Source/Core/DolphinWX/MainMenuBar.cpp:327
 msgid "Purge Game List Cache"
 msgstr "게임 목록 캐쉬 제거"
 
@@ -4941,7 +5361,7 @@ msgstr "종료"
 msgid "Quit Netplay"
 msgstr "넷플레이 중지"
 
-#. i18n:  Right
+#. i18n: The right trigger button (labeled R on real controllers)
 #: Source/Core/Core/HW/GCPadEmu.cpp:34
 #: Source/Core/DolphinWX/TASInputDlg.cpp:253
 #: Source/Core/DolphinWX/TASInputDlg.cpp:399
@@ -4952,7 +5372,7 @@ msgstr "R"
 msgid "R Button"
 msgstr "R 버튼"
 
-#. i18n:  Right-Analog
+#. i18n: The right trigger button (labeled R on real controllers) used as an analog input
 #: Source/Core/Core/HW/GCPadEmu.cpp:38
 msgid "R-Analog"
 msgstr "R-아날로그"
@@ -4965,6 +5385,14 @@ msgstr "반지름"
 msgid "Range"
 msgstr "범위"
 
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:41
+msgid "Read"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
+msgid "Read and write"
+msgstr ""
+
 #: Source/Core/Core/HotkeyManager.cpp:29
 msgid "Read-only mode"
 msgstr "읽기-전용 모드"
@@ -4973,21 +5401,19 @@ msgstr "읽기-전용 모드"
 msgid "Real"
 msgstr "실제"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:337
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:338
 msgid "Real Balance Board"
 msgstr "실제 밸런스 보드"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:287
-msgid "Real Wiimote"
-msgstr "실제 위모트"
-
-#: Source/Core/DolphinWX/MainMenuBar.cpp:418
-msgid ""
-"Recognise standard functions from sys\\totaldb.dsy, and use generic zz_ "
-"names for other functions."
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:288
+msgid "Real Wii Remote"
 msgstr ""
-"sys\\totaldb.dsy 로부터 표준 함수들을 인식합니다, 그리고 다른 함수들에 대해서"
-"는 통칭 zz_ 이름을 사용합니다."
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:420
+msgid ""
+"Recognise standard functions from Sys/totaldb.dsy, and use generic zz_ names "
+"for other functions."
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:161
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:202
@@ -5039,9 +5465,9 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 없음을 선택하세요."
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:327
-#: Source/Core/DolphinWX/FrameTools.cpp:209
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:328
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1186
+#: Source/Core/DolphinWX/MainToolBar.cpp:201
 msgid "Refresh"
 msgstr "새로고침"
 
@@ -5049,13 +5475,18 @@ msgstr "새로고침"
 msgid "Refresh List"
 msgstr "목록 새로고침"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:210
+#: Source/Core/DolphinWX/MainToolBar.cpp:201
 msgid "Refresh game list"
 msgstr "게임 목록 새로고침"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:285
 msgid "Region"
 msgstr "지역"
+
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:102
+#: Source/Core/DolphinWX/Debugger/RegisterWindow.h:17
+msgid "Registers"
+msgstr ""
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:304
 msgid "Relative Input"
@@ -5067,9 +5498,17 @@ msgstr "연관 입력"
 msgid "Remove"
 msgstr "제거"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:416
+#: Source/Core/DolphinWX/MainMenuBar.cpp:418
 msgid "Remove names from all functions and variables."
 msgstr "모든 함수와 변수로부터 이름을 제거합니다."
+
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:368
+msgid "Rename &symbol"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeView.cpp:331
+msgid "Rename symbol:"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:195
 msgid ""
@@ -5095,7 +5534,7 @@ msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "알림: GCIFolder가 할당되지 않은 블록 0x%x 에 씀"
 
 #: Source/Core/Core/HotkeyManager.cpp:20
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:264
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:265
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1201
 msgid "Reset"
 msgstr "리셋"
@@ -5104,19 +5543,19 @@ msgstr "리셋"
 msgid "Reset Traversal Settings"
 msgstr "횡단 설정 리셋"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:530
-msgid "Reset Wiimote pairings"
-msgstr "위모트 페어링 재설정"
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:531
+msgid "Reset Wii Remote pairings"
+msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:262
-msgid "Reset all saved Wiimote pairings"
-msgstr "저장된 모든 위모트 페어링 재설정"
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:263
+msgid "Reset all saved Wii Remote pairings"
+msgstr ""
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:228
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:227
 msgid "Restart Required"
 msgstr "재시작이 요구됩니다"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:84
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:86
 msgid "Results"
 msgstr "결과"
 
@@ -5137,7 +5576,7 @@ msgstr "개정:"
 msgid "Revision: %s"
 msgstr "개정: %s"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:384
+#: Source/Core/DolphinWX/MainMenuBar.cpp:386
 #: Source/Core/DolphinWX/TASInputDlg.cpp:76
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:74
@@ -5163,6 +5602,10 @@ msgstr "룸 ID:"
 msgid "Rumble"
 msgstr "진동"
 
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:185
+msgid "Run"
+msgstr ""
+
 #: Source/Core/DolphinWX/ISOProperties.cpp:257
 msgid "Russia"
 msgstr "러시아"
@@ -5183,12 +5626,14 @@ msgstr "상태 저장(&v) "
 msgid "Safe"
 msgstr "안전"
 
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:62
+#: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:38
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:162
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:1223
 msgid "Save"
 msgstr "저장"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:439
+#: Source/Core/DolphinWX/MainMenuBar.cpp:441
 msgid "Save Code"
 msgstr "코드 저장"
 
@@ -5201,7 +5646,7 @@ msgstr "다른 이름으로 GCI 저장..."
 msgid "Save Oldest State"
 msgstr "가장 오래된 상태 저장"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:388
+#: Source/Core/DolphinWX/MainMenuBar.cpp:390
 msgid "Save Perspectives"
 msgstr "관점 저장"
 
@@ -5257,7 +5702,7 @@ msgstr "선택된 슬롯에 상태를 저장합니다"
 msgid "Save State..."
 msgstr "상태 저장..."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:434
+#: Source/Core/DolphinWX/MainMenuBar.cpp:436
 msgid "Save Symbol Map &As..."
 msgstr "심볼 맵 다른 이름으로 저장... (&A)"
 
@@ -5266,11 +5711,15 @@ msgstr "심볼 맵 다른 이름으로 저장... (&A)"
 msgid "Save as..."
 msgstr "다른 이름으로 저장..."
 
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:384
+msgid "Save combined output file as"
+msgstr ""
+
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1344
 msgid "Save compressed GCM/ISO"
 msgstr "압축된 GCM/ISO를 저장"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:389
+#: Source/Core/DolphinWX/MainMenuBar.cpp:391
 msgid "Save currently-toggled perspectives"
 msgstr "최근-토글된 관점 저장"
 
@@ -5278,53 +5727,52 @@ msgstr "최근-토글된 관점 저장"
 msgid "Save decompressed GCM/ISO"
 msgstr "압축풀린 GCM/ISO를 저장"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:440
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:254
+msgid "Save map file as"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:310
+msgid "Save signature as"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:442
 msgid ""
 "Save the entire disassembled code. This may take a several seconds and may "
 "require between 50 and 100 MB of hard drive space. It will only save code "
-"that are in the first 4 MB of memory, if you are debugging a game that load ."
-"rel files with code to memory you may want to increase that to perhaps 8 MB, "
-"you can do that from SymbolDB::SaveMap()."
+"that is in the first 4 MB of memory. If you are debugging a game that loads ."
+"rel files with code to memory, you may want to increase the limit to perhaps "
+"8 MB. That can be done in SymbolDB::SaveMap()."
 msgstr ""
-"전체 디스어셈블된 코드를 저장합니다. 이것은 수 초가 걸릴 수 있으며 50 에서 "
-"100 MB 의 하드 드라이브 공간을 차지할 수 있습니다. 이것은 첫 4 MB 의 메모리"
-"에 있는 코드만 저장합니다, 그것을 아마도 8 MB 로 증가시키기를 원했을지 모를 "
-"기억할 코드를 지닌 .rel 파일을 로드하는 게임을 디버깅한다면 말이죠, 그것을 "
-"SymbolDB::SaveMap() 에서 할 수 있습니다."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:435
+#: Source/Core/DolphinWX/MainMenuBar.cpp:437
 msgid ""
 "Save the function names and addresses for this game as a .map file. If you "
-"want to open it in IDA pro, use the .idc script."
+"want to open the .map file in IDA Pro, use the .idc script."
 msgstr ""
-"이 게임을 위한 함수 이름과 주소들을 .map 파일로 저장합니다. IDA 프로에서 열"
-"고 싶다면, .idc 스크립트를 사용하세요."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:425
+#: Source/Core/DolphinWX/MainMenuBar.cpp:427
 msgid ""
 "Save the function names for each address to a .map file in your user "
-"settings map folder, named after the title id."
+"settings map folder, named after the title ID."
 msgstr ""
-"각 주소에 대한 함수 이름을 유저 설정 맵 폴더에서 .map 파일로 저장합니다, 제"
-"목 id 를 따라 이름 지어져 있습니다."
 
 #: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Save to selected slot"
 msgstr "선택된 슬롯에 저장"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:394
+#: Source/Core/DolphinWX/MainMenuBar.cpp:396
 msgid "Saved Perspectives"
 msgstr "저장된 관점"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:529
-msgid "Saved Wiimote pairings can only be reset when a Wii game is running."
-msgstr "저장된 위모트 페어링은 게임이 구동 중일 때만 재설정될 수 있습니다."
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:530
+msgid "Saved Wii Remote pairings can only be reset when a Wii game is running."
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:75
 msgid "Saved to /Wii/sd.raw (default size is 128mb)"
 msgstr "/Wii/sd.raw 에 저장되었습니다 (기본 크기 128mb)"
 
-#: Source/Core/Core/Movie.cpp:1024
+#: Source/Core/Core/Movie.cpp:1025
 #, c-format
 msgid "Savestate movie %s is corrupted, movie recording stopping..."
 msgstr "상태저장 무비 %s 가 손상되었습니다, 무비 기록 중지 중..."
@@ -5346,7 +5794,7 @@ msgstr "ISO들을 검사하기"
 msgid "Scanning..."
 msgstr "스캐닝..."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:216
+#: Source/Core/DolphinWX/MainToolBar.cpp:206
 msgid "ScrShot"
 msgstr "스크린샷"
 
@@ -5359,13 +5807,20 @@ msgstr "스크린샷 실패: 파일 \"%s\" 를 열 수 없습니다 (오류 %d)"
 msgid "Scroll Lock"
 msgstr "스크롤 락"
 
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:100
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:101
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:231
 msgid "Search"
 msgstr "찾기"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:113
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:115
 msgid "Search (clear to use previous value)"
 msgstr "찾기 (이전 값 사용에 쉬움)"
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:81
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:79
+msgid "Search Address"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:36
 msgid "Search Subfolders"
@@ -5391,7 +5846,7 @@ msgstr "섹션 %s를 SYSCONF에서 찾을 수 없음"
 msgid "Select"
 msgstr "선택"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:326
+#: Source/Core/DolphinWX/MainMenuBar.cpp:328
 msgid "Select Columns"
 msgstr "세로줄 선택"
 
@@ -5399,10 +5854,10 @@ msgstr "세로줄 선택"
 msgid "Select Game"
 msgstr "게임 선택"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:532
+#: Source/Core/DolphinWX/MainMenuBar.cpp:535
 #, c-format
 msgid "Select Slot %u - %s"
-msgstr ""
+msgstr "슬롯 선택 %u - %s"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:131
 msgid "Select State Slot"
@@ -5448,12 +5903,12 @@ msgstr "상태 슬롯 8 선택"
 msgid "Select State Slot 9"
 msgstr "상태 슬롯 9 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:495
-#: Source/Core/DolphinWX/FrameTools.cpp:958
+#: Source/Core/DolphinWX/FrameTools.cpp:434
+#: Source/Core/DolphinWX/FrameTools.cpp:898
 msgid "Select The Recording File"
 msgstr "기록 파일 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1164
+#: Source/Core/DolphinWX/FrameTools.cpp:1113
 msgid "Select a Wii WAD file to install"
 msgstr "설치할 Wii WAD 파일 선택"
 
@@ -5465,19 +5920,19 @@ msgstr "가져올 저장 파일을 선택"
 msgid "Select floating windows"
 msgstr "떠있는 창들 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:350
+#: Source/Core/DolphinWX/FrameTools.cpp:289
 msgid "Select the file to load"
 msgstr "로드할 파일 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1126
+#: Source/Core/DolphinWX/FrameTools.cpp:1075
 msgid "Select the save file"
 msgstr "저장 파일을 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1266
+#: Source/Core/DolphinWX/FrameTools.cpp:1215
 msgid "Select the state to load"
 msgstr "로드할 상태 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1278
+#: Source/Core/DolphinWX/FrameTools.cpp:1227
 msgid "Select the state to save"
 msgstr "저장할 상태 선택"
 
@@ -5603,6 +6058,15 @@ msgstr "시리얼 포트 1 - 이것은 넷 어댑터같은 디바이스가 사�
 msgid "Server rejected traversal attempt"
 msgstr "서버가 횡단 시도를 거절했습니다"
 
+#. i18n: Here, PC is an acronym for program counter, not personal computer.
+#: Source/Core/DolphinWX/MainToolBar.cpp:235
+msgid "Set PC"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:92
+msgid "Set Value"
+msgstr ""
+
 #: Source/Core/DolphinWX/GameListCtrl.cpp:987
 msgid "Set as &default ISO"
 msgstr "기본 ISO로 설정(&d)"
@@ -5611,6 +6075,10 @@ msgstr "기본 ISO로 설정(&d)"
 #, c-format
 msgid "Set as default Memcard %c"
 msgstr "기본 메모리카드 %c 로 설정"
+
+#: Source/Core/DolphinWX/MainToolBar.cpp:235
+msgid "Set the current instruction"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:56
 msgid "Sets the GameCube system language."
@@ -5671,7 +6139,7 @@ msgstr "오스트레일리아 보기"
 msgid "Show Defaults"
 msgstr "기본값 보기"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:322
+#: Source/Core/DolphinWX/MainMenuBar.cpp:324
 msgid "Show Drives"
 msgstr "드라이브 표시"
 
@@ -5743,11 +6211,17 @@ msgstr "네덜란드 보기"
 msgid "Show PAL"
 msgstr "PAL (유럽 방식)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:319
+#. i18n: Here, PC is an acronym for program counter, not personal computer.
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:55
+#: Source/Core/DolphinWX/MainToolBar.cpp:232
+msgid "Show PC"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:321
 msgid "Show Platforms"
 msgstr "플랫폼 표시"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:320
+#: Source/Core/DolphinWX/MainMenuBar.cpp:322
 msgid "Show Regions"
 msgstr "지역 표시"
 
@@ -5791,11 +6265,11 @@ msgstr "Wii"
 msgid "Show World"
 msgstr "세계 보기"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:107
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:106
 msgid "Show a confirmation box before stopping a game."
 msgstr "게임을 멈추기 전에 확인 상자 보여주기."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:109
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:108
 msgid ""
 "Show a message box when a potentially serious error has occurred.\n"
 "Disabling this may avoid annoying and non-fatal messages, but it may result "
@@ -5869,8 +6343,8 @@ msgid "Sideways Toggle"
 msgstr "옆방향 토글"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:286
-msgid "Sideways Wiimote"
-msgstr "위모트 옆으로"
+msgid "Sideways Wii Remote"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:38
 #: Source/Core/DolphinWX/ISOProperties.cpp:694
@@ -5885,6 +6359,10 @@ msgstr "DK 봉고 시뮬"
 msgid "Size"
 msgstr "크기"
 
+#: Source/Core/DolphinWX/MainToolBar.cpp:228
+msgid "Skip"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:66
 msgid "Skip BIOS"
 msgstr "바이오스 스킵"
@@ -5896,6 +6374,10 @@ msgstr "DCBZ 청소 스킵"
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:706
 msgid "Skip EFB Access from CPU"
 msgstr "CPU로부터 EFB 엑세스 스킵"
+
+#: Source/Core/DolphinWX/MainToolBar.cpp:229
+msgid "Skips the next instruction completely"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:254
 msgid ""
@@ -5910,11 +6392,11 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:526
 #: Source/Core/DolphinWX/MainMenuBar.cpp:529
+#: Source/Core/DolphinWX/MainMenuBar.cpp:532
 #, c-format
 msgid "Slot %u - %s"
-msgstr ""
+msgstr "슬롯 %u - %s"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:83
 msgid "Slot A"
@@ -6011,6 +6493,7 @@ msgid "Standard Controller"
 msgstr "표준 컨트롤러"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:27
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:28
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:249
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:144
 #: Source/Core/DolphinWX/TASInputDlg.cpp:403
@@ -6039,21 +6522,56 @@ msgstr "부팅하고 멈추는 대신에 게임을 직접 시작합니다"
 msgid "State"
 msgstr "상태"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:144
+msgid "Statistics"
+msgstr ""
+
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:48
 msgid "Steering Wheel"
 msgstr "운전대"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:402
+#. i18n: Here, "Step" is a verb. This function is used for
+#. going through code step by step.
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:51
+#: Source/Core/DolphinWX/MainToolBar.cpp:219
+msgid "Step"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:404
 msgid "Step &Into\tF11"
 msgstr "스텝 들어가기\tF11 (&I)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:403
+#: Source/Core/DolphinWX/MainMenuBar.cpp:405
 msgid "Step &Over\tF10"
 msgstr "스텝 넘어가기\tF10 (&O)"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:404
+#: Source/Core/DolphinWX/MainMenuBar.cpp:406
 msgid "Step O&ut\tSHIFT+F11"
 msgstr "스텝 나오기\tSHIFT+F11 (&u)"
+
+#. i18n: Here, "Step" is a verb. This function is used for
+#. going through code step by step.
+#: Source/Core/DolphinWX/MainToolBar.cpp:226
+msgid "Step Out"
+msgstr ""
+
+#. i18n: Here, "Step" is a verb. This function is used for
+#. going through code step by step.
+#: Source/Core/DolphinWX/MainToolBar.cpp:222
+msgid "Step Over"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainToolBar.cpp:219
+msgid "Step into the next instruction"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainToolBar.cpp:227
+msgid "Step out of the current function"
+msgstr ""
+
+#: Source/Core/DolphinWX/MainToolBar.cpp:223
+msgid "Step over the next instruction"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:645
 msgid "Stereoscopic 3D Mode:"
@@ -6070,7 +6588,7 @@ msgstr "스틱"
 
 #: Source/Core/Core/HotkeyManager.cpp:19
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:412
-#: Source/Core/DolphinWX/FrameTools.cpp:213
+#: Source/Core/DolphinWX/MainToolBar.cpp:204
 msgid "Stop"
 msgstr "중지"
 
@@ -6099,6 +6617,11 @@ msgstr ""
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:437
 msgid "Stretch to Window"
 msgstr "창으로 늘림"
+
+#. i18n: Data type used in computing
+#: Source/Core/DolphinWX/Debugger/WatchView.cpp:91
+msgid "String"
+msgstr ""
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:41
 msgid "Strum"
@@ -6146,17 +6669,27 @@ msgstr ""
 msgid "Swing"
 msgstr "스윙"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:258
+#. i18n: The symbolic name of a code block
+#: Source/Core/DolphinWX/Debugger/JitWindow.cpp:177
+msgid "Symbol"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:100
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:95
+msgid "Symbols"
+msgstr ""
+
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:259
 msgid "Sync"
 msgstr "동기화"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:515
-msgid "Sync Wiimotes"
-msgstr "위모트 동기화"
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:517
+msgid "Sync Wii Remotes"
+msgstr ""
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:256
-msgid "Sync real Wiimotes and pair them"
-msgstr "실제 위모트들을 동기화하고 페어링"
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:257
+msgid "Sync real Wii Remotes and pair them"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties.cpp:469
 msgid "Synchronize GPU thread"
@@ -6184,21 +6717,25 @@ msgstr "시스템 언어:"
 msgid "TAS Input"
 msgstr "TAS 입력"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:393
+#: Source/Core/DolphinWX/FrameTools.cpp:332
 #, c-format
 msgid "TAS Input - Controller %d"
 msgstr "TAS 입력 - 컨트롤러 %d"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:401
+#: Source/Core/DolphinWX/FrameTools.cpp:340
 #, c-format
-msgid "TAS Input - Wiimote %d"
-msgstr "TAS 입력 - 위모트 %d"
+msgid "TAS Input - Wii Remote %d"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:65
+msgid "TLUT Cmd"
+msgstr ""
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:21
 msgid "Tab"
 msgstr "탭"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:397
+#: Source/Core/DolphinWX/MainMenuBar.cpp:399
 msgid "Tab Split"
 msgstr "탭 분리"
 
@@ -6219,7 +6756,7 @@ msgstr "타이완"
 msgid "Take Screenshot"
 msgstr "스크린샷 찍기"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:217
+#: Source/Core/DolphinWX/MainToolBar.cpp:206
 msgid "Take screenshot"
 msgstr "스크린샷 찍기"
 
@@ -6227,13 +6764,25 @@ msgstr "스크린샷 찍기"
 msgid "Test"
 msgstr "테스트"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:53
+msgid "Texture"
+msgstr ""
+
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:727
 msgid "Texture Cache"
 msgstr "텍스처 캐쉬"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:61
+msgid "Texture Cmd"
+msgstr ""
+
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:833
 msgid "Texture Format Overlay"
 msgstr "텍스처 포맷 오버레이"
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:139
+msgid "Textures"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:191
 msgid ""
@@ -6252,6 +6801,11 @@ msgstr ""
 msgid "The WAD has been installed successfully"
 msgstr "WAD가 성공적으로 설치되었습니다"
 
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:51
+#, c-format
+msgid "The address %s is invalid."
+msgstr ""
+
 #: Source/Core/Core/ActionReplay.cpp:218
 msgid "The address is invalid"
 msgstr "주소가 부적합합니다"
@@ -6264,7 +6818,7 @@ msgstr "체크섬이 성공적으로 고쳐졌습니다."
 msgid "The chosen directory is already in the list."
 msgstr "선택된 디렉토리는 이미 목록에 있습니다."
 
-#: Source/Core/Core/Movie.cpp:391
+#: Source/Core/Core/Movie.cpp:392
 #, c-format
 msgid ""
 "The disc change to \"%s\" could not be saved in the .dtm file.\n"
@@ -6329,7 +6883,7 @@ msgstr "이름은 비워둘 수 없습니다"
 msgid "The name cannot contain the character ','"
 msgstr "이름은 ',' 문자를 포함할 수 없습니다"
 
-#: Source/Core/Core/Movie.cpp:231
+#: Source/Core/Core/Movie.cpp:232
 #, c-format
 msgid "The recorded game (%s) is not the same as the selected game (%s)"
 msgstr "기록된 게임 (%s) 은 선택된 게임 (%s) 과 같지 않습니다"
@@ -6342,7 +6896,7 @@ msgstr "해독된 AR 코드 결과가 없습니다."
 msgid "The save you are trying to copy has an invalid file size."
 msgstr "당신이 복사하려는 저장은 부적합한 파일 크기입니다."
 
-#: Source/Core/DolphinWX/Main.cpp:306
+#: Source/Core/DolphinWX/Main.cpp:312
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -6375,7 +6929,7 @@ msgstr "기술된 \"%s\" 파일은 존재하지 않습니다"
 msgid "The value is invalid"
 msgstr "값이 부적합합니다"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:127
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:126
 msgid "Theme:"
 msgstr "테마:"
 
@@ -6450,7 +7004,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:338
+#: Source/Core/DolphinWX/MainMenuBar.cpp:340
 msgid ""
 "This is necessary to get break points and stepping to work as explained in "
 "the Developer Documentation. But it can be very slow, perhaps slower than 1 "
@@ -6532,9 +7086,13 @@ msgstr "제목"
 msgid "To"
 msgstr "To"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:405
+#: Source/Core/DolphinWX/MainMenuBar.cpp:407
 msgid "Toggle &Breakpoint\tF9"
 msgstr "중단점 토글\tF9 (&B)"
+
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:256
+msgid "Toggle &memory"
+msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:71
 msgid "Toggle 3D Anaglyph"
@@ -6584,16 +7142,16 @@ msgstr "전체화면 토글"
 msgid "Toggle Pause"
 msgstr "일시정지 토글"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:391
+#: Source/Core/DolphinWX/MainMenuBar.cpp:393
 msgid "Toggle editing of perspectives"
 msgstr "관점 편집하기 토글"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:215
+#: Source/Core/DolphinWX/MainToolBar.cpp:205
 msgid "Toggle fullscreen"
 msgstr "전체화면 토글"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:43
-#: Source/Core/DolphinWX/MainMenuBar.cpp:381
+#: Source/Core/DolphinWX/MainMenuBar.cpp:383
 msgid "Top"
 msgstr "위"
 
@@ -6632,12 +7190,12 @@ msgstr "알려지지 않은 파일 타입을 로드 시도했습니다."
 msgid "Triggers"
 msgstr "트리거"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:433
+#: Source/Core/DolphinWX/MainMenuBar.cpp:435
 msgid ""
 "Try to load a .map file that might be from a slightly different version."
 msgstr "약간 다른 버전에서 왔을지 모를 .map 파일을 로드 시도합니다."
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:422
+#: Source/Core/DolphinWX/MainMenuBar.cpp:424
 msgid ""
 "Try to load this game's function names automatically - but doesn't check ."
 "map files stored on the disc image yet."
@@ -6652,12 +7210,10 @@ msgstr "부적합한 SYSCONF로 부터 읽기 시도"
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:55
 msgid ""
 "Trying to read from invalid SYSCONF\n"
-"Wiimote bt ids are not available"
+"Wii Remote Bluetooth IDs are not available"
 msgstr ""
-"부적합한 SYSCONF에서 읽기 시도\n"
-"위모트 bt id들은 유용하지 않습니다"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:360
+#: Source/Core/DolphinWX/MainMenuBar.cpp:362
 msgid "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
 msgstr ""
 "모든 JIT 함수들을 끕니다, 하지만 여전히 Jit.cpp 로부터 JIT 코어를 사용합니다."
@@ -6666,6 +7222,7 @@ msgstr ""
 msgid "Turntable"
 msgstr "턴테이블"
 
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:33
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:74
 msgid "Type"
 msgstr "타입"
@@ -6719,13 +7276,13 @@ msgid "Unexpected 0x80 call? Aborting..."
 msgstr "예상하지 못한 0x80 요청? 중단 중..."
 
 #: Source/Core/Core/State.cpp:454
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:103
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:105
 #: Source/Core/DolphinWX/ISOProperties.cpp:279
 #: Source/Core/DolphinWX/ISOProperties.cpp:704
 msgid "Unknown"
 msgstr "알려지지 않음"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:1106
+#: Source/Core/Core/HW/DVDInterface.cpp:1107
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "알려지지 않은 DVD 명령 %08x - 치명적 오류"
@@ -6775,6 +7332,11 @@ msgstr "위쪽"
 msgid "Update"
 msgstr "업데이트"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:105
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:106
+msgid "Update Screen"
+msgstr ""
+
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:304
 msgid "Upright Hold"
 msgstr "똑바로 잡기"
@@ -6784,14 +7346,14 @@ msgid "Upright Toggle"
 msgstr "똑바로 토글"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:288
-msgid "Upright Wiimote"
-msgstr "위모트 똑바로"
+msgid "Upright Wii Remote"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:120
 msgid "Usage Statistics Reporting Settings"
 msgstr "사용 통계 보고 설정"
 
-#: Source/Core/DolphinWX/Main.cpp:212
+#: Source/Core/DolphinWX/Main.cpp:213
 msgid "Usage statistics reporting"
 msgstr "사용 통계 보고"
 
@@ -6817,7 +7379,7 @@ msgstr "16진수 사용"
 msgid "Use PAL60 Mode (EuRGB60)"
 msgstr "PAL60 모드 (EuRGB60) 사용"
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:88
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:87
 msgid "Use Panic Handlers"
 msgstr "패닉 핸들러 사용"
 
@@ -6853,15 +7415,21 @@ msgstr "수직-동기화"
 msgid "Value"
 msgstr "값"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:69
+#. i18n: Double means double-precision floating point number
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:71
 msgid "Value (double)"
 msgstr "값 (더블)"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:68
+#. i18n: Float means floating point number
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:69
 msgid "Value (float)"
 msgstr "값 (플로트)"
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:97
+#: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:338
+msgid "Value Too Large"
+msgstr ""
+
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:99
 msgid ""
 "Value to match against. Can be Hex (\"0x\"), Octal (\"0\") or Decimal. Leave "
 "blank to filter each result against its own previous value."
@@ -6884,6 +7452,63 @@ msgstr "다양한 통계"
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:49
 msgid "Verbosity"
 msgstr "상세설명"
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:60
+msgid "Vertex Cmd"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:142
+msgid "Vertex Description"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:143
+msgid "Vertex Matrices"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:52
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:136
+msgid "Vertex Shader"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:138
+msgid "Vertex Shader Constants"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:490
+msgid "View &code"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:489
+#: Source/Core/DolphinWX/Debugger/WatchView.cpp:271
+msgid "View &memory"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:264
+msgid "View As:"
+msgstr ""
+
+#. i18n: Double means double-precision floating point number
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:507
+msgid "View as double"
+msgstr ""
+
+#. i18n: Float means floating point number
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:501
+msgid "View as float"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:497
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:505
+msgid "View as hexadecimal"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:498
+msgid "View as signed integer"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/RegisterView.cpp:499
+msgid "View as unsigned integer"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:776
 msgid "Virtual"
@@ -6978,7 +7603,7 @@ msgstr ""
 "그리고 당신의 메모리카드에 파일로 같은 이름을 가집니다\n"
 "계속합니까?"
 
-#: Source/Core/Core/Movie.cpp:1073
+#: Source/Core/Core/Movie.cpp:1074
 #, c-format
 msgid ""
 "Warning: You loaded a save that's after the end of the current movie. (byte "
@@ -6989,7 +7614,7 @@ msgstr ""
 "력 %u > %u). 계속하기전에 다른 저장을 로드해야합니다, 그렇지 않으면 읽기-전"
 "용 모드가 꺼진 상태로 이것을 로드합니다."
 
-#: Source/Core/Core/Movie.cpp:1047
+#: Source/Core/Core/Movie.cpp:1048
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie ends before the current frame in the "
@@ -6999,7 +7624,7 @@ msgstr ""
 "경고: 저장 (byte %u < %u) (frame %u < %u)에서 현재 프레임 전에 무비가 끝나는 "
 "저장을 로드했습니다. 계속하기 전에 다른 저장을 로드해야합니다."
 
-#: Source/Core/Core/Movie.cpp:1099
+#: Source/Core/Core/Movie.cpp:1100
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on byte %zu (0x%zX). You "
@@ -7010,7 +7635,7 @@ msgstr ""
 "전에 다른 저장을 로드해야 합니다, 혹은 읽기-전용 모드를 끄고 로드하세요. 그렇"
 "지 않으면 아마도 싱크 문제가 생길겁니다."
 
-#: Source/Core/Core/Movie.cpp:1114
+#: Source/Core/Core/Movie.cpp:1115
 #, c-format
 msgid ""
 "Warning: You loaded a save whose movie mismatches on frame %td. You should "
@@ -7043,6 +7668,12 @@ msgstr ""
 "Start=%d, A=%d, B=%d, X=%d, Y=%d, Z=%d, DUp=%d, DDown=%d, DLeft=%d, DRight="
 "%d, L=%d, R=%d, LT=%d, RT=%d, AnalogX=%d, AnalogY=%d, CX=%d, CY=%d"
 
+#. i18n: This kind of "watch" is used for watching emulated memory.
+#. It's not related to timekeeping devices.
+#: Source/Core/DolphinWX/Debugger/WatchWindow.h:19
+msgid "Watch"
+msgstr ""
+
 #: Source/Core/AudioCommon/WaveFile.cpp:101
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - 파일이 열리지 않습니다."
@@ -7070,7 +7701,7 @@ msgstr "와이드스크린 핵"
 msgid "Width"
 msgstr "너비"
 
-#: Source/Core/DolphinWX/Config/ConfigMain.cpp:75
+#: Source/Core/DolphinWX/Config/ConfigMain.cpp:77
 msgid "Wii"
 msgstr "Wii"
 
@@ -7082,19 +7713,41 @@ msgstr "Wii 콘솔"
 msgid "Wii NAND Root:"
 msgstr "Wii NAND 루트:"
 
+#: Source/Core/Core/HW/Wiimote.cpp:15
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:62
+msgid "Wii Remote"
+msgstr ""
+
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:308
+#, c-format
+msgid "Wii Remote %i"
+msgstr ""
+
+#: Source/Core/DolphinWX/Main.cpp:496
+msgid "Wii Remote Connected"
+msgstr ""
+
+#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:57
+msgid "Wii Remote Motor"
+msgstr ""
+
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:137
 msgid "Wii Remote Settings"
 msgstr "Wii 리모트 설정"
 
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:455
-msgid "Wii U Gamecube Controller Adapter Configuration"
-msgstr "Wii U 게임큐브 컨트롤러 어댑터 환경설정"
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:225
+msgid "Wii Remotes"
+msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1165
+#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:456
+msgid "Wii U GameCube Controller Adapter Configuration"
+msgstr ""
+
+#: Source/Core/DolphinWX/FrameTools.cpp:1114
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WAD 파일 (*.wad)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1127
+#: Source/Core/DolphinWX/FrameTools.cpp:1076
 msgid "Wii save files (*.bin)"
 msgstr "Wii 저장 파일 (*.bin)"
 
@@ -7102,45 +7755,34 @@ msgstr "Wii 저장 파일 (*.bin)"
 msgid "WiiWAD: Could not read from file"
 msgstr "WiiWAD: 파일에서 읽을 수 없습니다."
 
-#: Source/Core/Core/HW/Wiimote.cpp:15
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:62
-msgid "Wiimote"
-msgstr "위모트"
-
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:307
-#, c-format
-msgid "Wiimote %i"
-msgstr "위모트 %i"
-
-#: Source/Core/DolphinWX/Main.cpp:490
-msgid "Wiimote Connected"
-msgstr "위모트가 연결됨"
-
-#: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:57
-msgid "Wiimote Motor"
-msgstr "위모트 모터"
-
-#: Source/Core/DolphinWX/ControllerConfigDiag.cpp:225
-msgid "Wiimotes"
-msgstr "위모트"
-
-#: Source/Core/DolphinWX/WXInputBase.cpp:228
+#. i18n: The left Windows key on PC keyboards
+#: Source/Core/DolphinWX/WXInputBase.cpp:229
 msgid "Windows Left"
 msgstr "왼쪽 창"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:232
+#. i18n: The context menu key on the right of PC keyboards
+#: Source/Core/DolphinWX/WXInputBase.cpp:235
 msgid "Windows Menu"
 msgstr "창 메뉴"
 
-#: Source/Core/DolphinWX/WXInputBase.cpp:230
+#. i18n: The right Windows key on PC keyboards
+#: Source/Core/DolphinWX/WXInputBase.cpp:232
 msgid "Windows Right"
 msgstr "창 오른쪽"
+
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:37
+msgid "With an address"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:39
+msgid "Within a range"
+msgstr ""
 
 #: Source/Core/DolphinWX/LogWindow.cpp:118
 msgid "Word Wrap"
 msgstr "자동 줄바꿈"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1174
+#: Source/Core/DolphinWX/FrameTools.cpp:1123
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1243
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1362
 #: Source/Core/DolphinWX/ISOProperties.cpp:1157
@@ -7151,6 +7793,10 @@ msgstr "작동 중..."
 #: Source/Core/DolphinWX/ISOProperties.cpp:275
 msgid "World"
 msgstr "세계"
+
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
+msgid "Write"
+msgstr ""
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:56
 msgid "Write to Console"
@@ -7178,6 +7824,10 @@ msgstr "X"
 msgid "XF register "
 msgstr "XF 레지스터"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:56
+msgid "XFB Cmd"
+msgstr ""
+
 #: Source/Core/DolphinWX/TASInputDlg.cpp:252
 #: Source/Core/DolphinWX/TASInputDlg.cpp:395
 #: Source/Core/DolphinWX/TASInputDlg.cpp:497
@@ -7200,7 +7850,7 @@ msgstr "게임을 선택해야 합니다!"
 msgid "You must enter a name."
 msgstr "이름을 넣어야 합니다."
 
-#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:369
+#: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:371
 msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "적합한 10진수나 16진수나 8진수 값을 넣어야 합니다."
 
@@ -7208,7 +7858,7 @@ msgstr "적합한 10진수나 16진수나 8진수 값을 넣어야 합니다."
 msgid "You must enter a valid profile name."
 msgstr "적합한 프로파일 이름을 넣어야 합니다."
 
-#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:227
+#: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:226
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "변경이 적용되려면 돌핀을 재시작 해야 합니다."
 
@@ -7296,6 +7946,10 @@ msgstr "켜기"
 #: Source/Core/DolphinWX/ISOProperties.cpp:1407
 msgid "wxExecute returned -1 on application run!"
 msgstr "애플리케이션 구동상에서 wxExecute가 -1을 반환했습니다!"
+
+#: Source/Core/DolphinWX/Debugger/JitWindow.cpp:175
+msgid "x86 Size"
+msgstr ""
 
 #: Source/Core/DolphinWX/InputConfigDiag.cpp:710
 msgid "| OR"
