@@ -93,9 +93,9 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
     MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
     if (w)
-      CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.singleStoreQuantized));
+      CALLptr(MScaled(RSCRATCH, SCALE_8, PtrOffset(asm_routines.singleStoreQuantized)));
     else
-      CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)asm_routines.pairedStoreQuantized));
+      CALLptr(MScaled(RSCRATCH, SCALE_8, PtrOffset(asm_routines.pairedStoreQuantized)));
   }
 
   if (update && jo.memcheck)
@@ -158,7 +158,7 @@ void Jit64::psq_lXX(UGeckoInstruction inst)
     AND(32, R(RSCRATCH2), gqr);
     MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
 
-    CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(&asm_routines.pairedLoadQuantized[w * 8])));
+    CALLptr(MScaled(RSCRATCH, SCALE_8, PtrOffset(&asm_routines.pairedLoadQuantized[w * 8])));
   }
 
   CVTPS2PD(fpr.RX(s), R(XMM0));

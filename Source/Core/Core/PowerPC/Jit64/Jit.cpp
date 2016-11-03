@@ -631,7 +631,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   // Conditionally add profiling code.
   if (Profiler::g_ProfileBlocks)
   {
-    MOV(64, R(RSCRATCH), Imm64((u64)&b->runCount));
+    MOV(64, R(RSCRATCH), ImmPtr(&b->runCount));
     ADD(32, MatR(RSCRATCH), Imm8(1));
     b->ticCounter = 0;
     b->ticStart = 0;

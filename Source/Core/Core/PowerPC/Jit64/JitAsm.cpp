@@ -34,7 +34,7 @@ void Jit64AsmRoutineManager::Generate()
   {
     // Pivot the stack to our custom one.
     MOV(64, R(RSCRATCH), R(RSP));
-    MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
+    MOV(64, R(RSP), ImmPtr(m_stack_top - 0x20));
     MOV(64, MDisp(RSP, 0x18), R(RSCRATCH));
   }
   else
@@ -96,10 +96,10 @@ void Jit64AsmRoutineManager::Generate()
   // need to do this for indirect jumps, just exceptions etc.
   TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
   FixupBranch physmem = J_CC(CC_NZ);
-  MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
+  MOV(64, R(RMEM), ImmPtr(Memory::physical_base));
   FixupBranch membaseend = J();
   SetJumpTarget(physmem);
-  MOV(64, R(RMEM), Imm64((u64)Memory::logical_base));
+  MOV(64, R(RMEM), ImmPtr(Memory::logical_base));
   SetJumpTarget(membaseend);
 
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
