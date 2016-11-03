@@ -64,7 +64,7 @@ Renderer::~Renderer()
 {
   g_Config.bRunning = false;
   UpdateActiveConfig();
-  DestroyScreenshotResources();
+  DestroyFrameDumpResources();
   DestroyShaders();
   DestroySemaphores();
 }
@@ -495,8 +495,8 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // and the readback in one command buffer, wait for it, and then dump the frame. This allows us
   // to render to the screen and dump the frame in one command buffer instead of two.
   VkFence frame_dump_fence = g_command_buffer_mgr->GetCurrentCommandBufferFence();
-  bool dump_this_frame = IsFrameDumping() && DrawScreenshot(rc, xfb_addr, xfb_sources, xfb_count,
-                                                            fb_width, fb_stride, fb_height);
+  bool dump_this_frame = IsFrameDumping() && DrawFrameDump(rc, xfb_addr, xfb_sources, xfb_count,
+                                                           fb_width, fb_stride, fb_height);
 
   // If we're dumping frames, don't bother waking the worker thread, since we have to wait anyway.
   bool submit_on_background_thread = !dump_this_frame;
@@ -532,7 +532,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   if (dump_this_frame)
   {
     g_command_buffer_mgr->WaitForFence(frame_dump_fence);
-    DumpScreenshot(ticks);
+    DumpFrame(ticks);
   }
 
   // NOTE: It is important that no rendering calls are made to the EFB between submitting the
@@ -702,9 +702,9 @@ void Renderer::DrawScreen(const EFBRectangle& rc, u32 xfb_addr,
                                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }
 
-bool Renderer::DrawScreenshot(const EFBRectangle& rc, u32 xfb_addr,
-                              const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                              u32 fb_stride, u32 fb_height)
+bool Renderer::DrawFrameDump(const EFBRectangle& rc, u32 xfb_addr,
+                             const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                             u32 fb_stride, u32 fb_height)
 {
   // Draw the screenshot to an image containing only the active screen area, removing any
   // borders as a result of the game rendering in a different aspect ratio.
@@ -715,7 +715,7 @@ bool Renderer::DrawScreenshot(const EFBRectangle& rc, u32 xfb_addr,
   target_rect.top = 0;
   u32 width = std::max(1u, static_cast<u32>(target_rect.GetWidth()));
   u32 height = std::max(1u, static_cast<u32>(target_rect.GetHeight()));
-  if (!ResizeScreenshotBuffer(width, height))
+  if (!ResizeFrameDumpBuffer(width, height))
     return false;
 
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
@@ -725,7 +725,7 @@ bool Renderer::DrawScreenshot(const EFBRectangle& rc, u32 xfb_addr,
       VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO,
       nullptr,
       FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass(),
-      m_screenshot_framebuffer,
+      m_frame_dump_framebuffer,
       {{0, 0}, {width, height}},
       1,
       &clear_value};
@@ -738,19 +738,19 @@ bool Renderer::DrawScreenshot(const EFBRectangle& rc, u32 xfb_addr,
   vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
 
   // Copy to the readback texture.
-  m_screenshot_readback_texture->CopyFromImage(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_screenshot_render_texture->GetImage(),
+  m_frame_dump_readback_texture->CopyFromImage(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_frame_dump_render_texture->GetImage(),
       VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width, height, 0, 0);
 
   return true;
 }
 
-void Renderer::DumpScreenshot(u64 ticks)
+void Renderer::DumpFrame(u64 ticks)
 {
-  DumpFrameData(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
-                static_cast<int>(m_screenshot_render_texture->GetWidth()),
-                static_cast<int>(m_screenshot_render_texture->GetHeight()),
-                static_cast<int>(m_screenshot_readback_texture->GetRowStride()), ticks);
+  DumpFrameData(reinterpret_cast<const u8*>(m_frame_dump_readback_texture->GetMapPointer()),
+                static_cast<int>(m_frame_dump_render_texture->GetWidth()),
+                static_cast<int>(m_frame_dump_render_texture->GetHeight()),
+                static_cast<int>(m_frame_dump_readback_texture->GetRowStride()), ticks);
   FinishFrameData();
 }
 
@@ -792,37 +792,37 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
   }
 }
 
-bool Renderer::ResizeScreenshotBuffer(u32 new_width, u32 new_height)
+bool Renderer::ResizeFrameDumpBuffer(u32 new_width, u32 new_height)
 {
-  if (m_screenshot_render_texture && m_screenshot_render_texture->GetWidth() == new_width &&
-      m_screenshot_render_texture->GetHeight() == new_height)
+  if (m_frame_dump_render_texture && m_frame_dump_render_texture->GetWidth() == new_width &&
+      m_frame_dump_render_texture->GetHeight() == new_height)
   {
     return true;
   }
 
-  if (m_screenshot_framebuffer != VK_NULL_HANDLE)
+  if (m_frame_dump_framebuffer != VK_NULL_HANDLE)
   {
-    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_screenshot_framebuffer, nullptr);
-    m_screenshot_framebuffer = VK_NULL_HANDLE;
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_frame_dump_framebuffer, nullptr);
+    m_frame_dump_framebuffer = VK_NULL_HANDLE;
   }
 
-  m_screenshot_render_texture =
+  m_frame_dump_render_texture =
       Texture2D::Create(new_width, new_height, 1, 1, EFB_COLOR_TEXTURE_FORMAT,
                         VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
-  m_screenshot_readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, new_width,
+  m_frame_dump_readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, new_width,
                                                            new_height, EFB_COLOR_TEXTURE_FORMAT);
-  if (!m_screenshot_render_texture || !m_screenshot_readback_texture ||
-      !m_screenshot_readback_texture->Map())
+  if (!m_frame_dump_render_texture || !m_frame_dump_readback_texture ||
+      !m_frame_dump_readback_texture->Map())
   {
     WARN_LOG(VIDEO, "Failed to resize screenshot render texture");
-    m_screenshot_render_texture.reset();
-    m_screenshot_readback_texture.reset();
+    m_frame_dump_render_texture.reset();
+    m_frame_dump_readback_texture.reset();
     return false;
   }
 
-  VkImageView attachment = m_screenshot_render_texture->GetView();
+  VkImageView attachment = m_frame_dump_render_texture->GetView();
   VkFramebufferCreateInfo info = {};
   info.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
   info.renderPass = FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass();
@@ -833,32 +833,32 @@ bool Renderer::ResizeScreenshotBuffer(u32 new_width, u32 new_height)
   info.layers = 1;
 
   VkResult res =
-      vkCreateFramebuffer(g_vulkan_context->GetDevice(), &info, nullptr, &m_screenshot_framebuffer);
+      vkCreateFramebuffer(g_vulkan_context->GetDevice(), &info, nullptr, &m_frame_dump_framebuffer);
   if (res != VK_SUCCESS)
   {
     WARN_LOG(VIDEO, "Failed to resize screenshot framebuffer");
-    m_screenshot_render_texture.reset();
-    m_screenshot_readback_texture.reset();
+    m_frame_dump_render_texture.reset();
+    m_frame_dump_readback_texture.reset();
     return false;
   }
 
   // Render pass expects texture is in transfer src to start with.
-  m_screenshot_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+  m_frame_dump_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                                   VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   return true;
 }
 
-void Renderer::DestroyScreenshotResources()
+void Renderer::DestroyFrameDumpResources()
 {
-  if (m_screenshot_framebuffer != VK_NULL_HANDLE)
+  if (m_frame_dump_framebuffer != VK_NULL_HANDLE)
   {
-    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_screenshot_framebuffer, nullptr);
-    m_screenshot_framebuffer = VK_NULL_HANDLE;
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_frame_dump_framebuffer, nullptr);
+    m_frame_dump_framebuffer = VK_NULL_HANDLE;
   }
 
-  m_screenshot_render_texture.reset();
-  m_screenshot_readback_texture.reset();
+  m_frame_dump_render_texture.reset();
+  m_frame_dump_readback_texture.reset();
 }
 
 void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
