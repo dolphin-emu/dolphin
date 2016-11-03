@@ -109,6 +109,11 @@ private:
   bool DrawScreenshot(const EFBRectangle& rc, u32 xfb_addr, const XFBSourceBase* const* xfb_sources,
                       u32 xfb_count, u32 fb_width, u32 fb_stride, u32 fb_height);
 
+  // Copies the screenshot readback texture to the frame dumping buffer.
+  // NOTE: This assumes that DrawScreenshot has been called prior, and the fence associated
+  // with the command buffer where the readback buffer was populated has been reached.
+  void DumpScreenshot(u64 ticks);
+
   // Copies/scales an image to the currently-bound framebuffer.
   void BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
                   const TargetRectangle& src_rect, const Texture2D* src_tex, bool linear_filter);

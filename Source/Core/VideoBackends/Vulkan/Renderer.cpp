@@ -491,15 +491,15 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   StateTracker::GetInstance()->OnEndFrame();
 
   // Draw to the screenshot buffer if needed.
-  if (IsFrameDumping() &&
-      DrawScreenshot(rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height))
-  {
-    DumpFrameData(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
-                  static_cast<int>(m_screenshot_render_texture->GetWidth()),
-                  static_cast<int>(m_screenshot_render_texture->GetHeight()),
-                  static_cast<int>(m_screenshot_readback_texture->GetRowStride()), ticks);
-    FinishFrameData();
-  }
+  // We don't actually copy it to the frame dump here, instead we submit the present to the screen
+  // and the readback in one command buffer, wait for it, and then dump the frame. This allows us
+  // to render to the screen and dump the frame in one command buffer instead of two.
+  VkFence frame_dump_fence = g_command_buffer_mgr->GetCurrentCommandBufferFence();
+  bool dump_this_frame = IsFrameDumping() && DrawScreenshot(rc, xfb_addr, xfb_sources, xfb_count,
+                                                            fb_width, fb_stride, fb_height);
+
+  // If we're dumping frames, don't bother waking the worker thread, since we have to wait anyway.
+  bool submit_on_background_thread = !dump_this_frame;
 
   // Ensure the worker thread is not still submitting a previous command buffer.
   // In other words, the last frame has been submitted (otherwise the next call would
@@ -516,13 +516,23 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     // the available semaphore to be signaled before executing the buffer. This final submission
     // can happen off-thread in the background while we're preparing the next frame.
     g_command_buffer_mgr->SubmitCommandBuffer(
-        true, m_image_available_semaphore, m_rendering_finished_semaphore,
+        submit_on_background_thread, m_image_available_semaphore, m_rendering_finished_semaphore,
         m_swap_chain->GetSwapChain(), m_swap_chain->GetCurrentImageIndex());
   }
   else
   {
     // No swap chain, just execute command buffer.
-    g_command_buffer_mgr->SubmitCommandBuffer(true);
+    g_command_buffer_mgr->SubmitCommandBuffer(submit_on_background_thread);
+  }
+
+  // If we're dumping frames, wait for the GPU to complete these commands, and then copy the image.
+  // NOTE: This call must come immediately after submitting the command buffer. Placing any other
+  // function calls between the submit and wait could cause another command buffer to be submitted,
+  // making frame_dump_fence refer to an incorrect fence.
+  if (dump_this_frame)
+  {
+    g_command_buffer_mgr->WaitForFence(frame_dump_fence);
+    DumpScreenshot(ticks);
   }
 
   // NOTE: It is important that no rendering calls are made to the EFB between submitting the
@@ -732,9 +742,16 @@ bool Renderer::DrawScreenshot(const EFBRectangle& rc, u32 xfb_addr,
       g_command_buffer_mgr->GetCurrentCommandBuffer(), m_screenshot_render_texture->GetImage(),
       VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width, height, 0, 0);
 
-  // Wait for the command buffer to complete.
-  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
   return true;
+}
+
+void Renderer::DumpScreenshot(u64 ticks)
+{
+  DumpFrameData(reinterpret_cast<const u8*>(m_screenshot_readback_texture->GetMapPointer()),
+                static_cast<int>(m_screenshot_render_texture->GetWidth()),
+                static_cast<int>(m_screenshot_render_texture->GetHeight()),
+                static_cast<int>(m_screenshot_readback_texture->GetRowStride()), ticks);
+  FinishFrameData();
 }
 
 void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
