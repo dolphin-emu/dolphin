@@ -529,7 +529,8 @@ void Jit64::mcrxr(UGeckoInstruction inst)
   // [SO OV CA 0] << 3
   SHL(32, R(RSCRATCH), Imm8(4));
 
-  MOV(64, R(RSCRATCH), MDisp(RSCRATCH, (u32)(u64)m_crTable));
+  MOV(64, R(RSCRATCH2), ImmPtr(m_crTable));
+  MOV(64, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
   MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
 
   // Clear XER[0-3]
