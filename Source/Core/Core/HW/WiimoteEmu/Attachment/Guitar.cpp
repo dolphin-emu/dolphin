@@ -9,6 +9,21 @@
 #include "Core/HW/WiimoteEmu/Attachment/Guitar.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+const std::map<const ControlState, const u8> m_touchbar_control_codes{
+  // values determined using a PS3 Guitar Hero 5 controller, which maps the touchbar to Zr on
+  // Windows
+  {0.5, 0x0F},        // not touching
+  {-0.753906, 0x04},  // top fret
+  {-0.4375, 0x07},    // top and second fret
+  {-0.097656, 0x0A},  // second fret
+  {0.195313, 0x0C},   // second and third fret
+  {0.601563, 0x12},   // third fret
+  {0.683594, 0x14},   // third and fourth fret
+  {0.789063, 0x17},   // fourth fret
+  {0.902344, 0x1A},   // fourth and bottom fret
+  {1.0, 0x1F}         // bottom fret
+};
+
 namespace WiimoteEmu
 {
 static const u8 guitar_id[] = {0x00, 0x00, 0xa4, 0x20, 0x01, 0x03};
@@ -56,21 +71,6 @@ Guitar::Guitar(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Guitar"), _r
 
   // touchbar
   groups.emplace_back(m_touchbar = new Slider(_trans("Slider Bar")));
-
-  m_touchbar_control_codes = {
-      // values determined using a PS3 Guitar Hero 5 controller, which maps the touchbar to Zr on
-      // Windows
-      {0.5, 0x0F},        // not touching
-      {-0.753906, 0x04},  // top fret
-      {-0.4375, 0x07},    // top and second fret
-      {-0.097656, 0x0A},  // second fret
-      {0.195313, 0x0C},   // second and third fret
-      {0.601563, 0x12},   // third fret
-      {0.683594, 0x14},   // third and fourth fret
-      {0.789063, 0x17},   // fourth fret
-      {0.902344, 0x1A},   // fourth and bottom fret
-      {1.0, 0x1F}         // bottom fret
-  };
 
   // set up register
   // id
