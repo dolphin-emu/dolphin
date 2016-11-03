@@ -34,3 +34,4 @@ CMakeLists.txt.user
 *.kdev4
 # Ignore IDEA/Clion files/dirs
 /.idea/
+/Source/dolphin-emu.sln.db

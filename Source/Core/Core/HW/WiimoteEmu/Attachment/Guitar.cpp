@@ -54,6 +54,10 @@ Guitar::Guitar(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Guitar"), _r
   groups.emplace_back(m_whammy = new Triggers(_trans("Whammy")));
   m_whammy->controls.emplace_back(new ControlGroup::Input(_trans("Bar")));
 
+	//touchbar
+	groups.emplace_back(m_touchbar = new Slider(_trans("TouchBar")));
+	//m_touchbar->controls.emplace_back(new ControlGroup::Input(_trans("Bar")));
+
   // set up register
   // id
   memcpy(&id, guitar_id, sizeof(guitar_id));
@@ -75,8 +79,10 @@ void Guitar::GetState(u8* const data)
     gdata->sy = static_cast<u8>((y * 0x1F) + 0x20);
   }
 
-  // TODO: touch bar, probably not
-  gdata->tb = 0x0F;  // not touched
+  // touch bar
+	ControlState touchbar;
+	m_touchbar->GetState(&touchbar);
+	gdata->tb = m_controlCodes.lower_bound(touchbar)->second;
 
   // whammy bar
   ControlState whammy;
