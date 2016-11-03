@@ -90,7 +90,7 @@ namespace DolphinWatch {
 		for (int i = 10; i < 16; i++) {
 			ss << ((int)stuff[i]);
 		}
-		DEBUG_LOG(DOLPHINWATCH, ss.str().c_str());
+		DEBUG_LOG(DOLPHINWATCH, "%s", ss.str().c_str());
 
 		Core::Callback_WiimoteInterruptChannel(i_wiimote, wiimote->GetReportingChannel(), data, 23);
 
@@ -565,7 +565,7 @@ namespace DolphinWatch {
 	void CheckSubs(Client& client) {
 		if (!Memory::IsInitialized()) return;
 		for (Subscription& sub : client.subs) {
-			u32 val;
+			u32 val = 0;
 			if (sub.mode == 8) val = PowerPC::HostRead_U8(sub.addr);
 			else if (sub.mode == 16) val = PowerPC::HostRead_U16(sub.addr);
 			else if (sub.mode == 32) val = PowerPC::HostRead_U32(sub.addr);
@@ -650,18 +650,6 @@ namespace DolphinWatch {
 	void SetVolume(int v) {
 		SConfig::GetInstance().m_Volume = v;
 		AudioCommon::UpdateSoundStream();
-	}
-
-	void Log(LogTypes::LOG_LEVELS level, const char* msg)
-	{
-		if (!running) return;
-		for (auto& client : clients)
-		{
-			std::ostringstream stream;
-			stream << "LOG " << level << " " << msg;
-			const std::string str = stream.str();
-			client.socket->send(str.c_str(), str.size());
-		}
 	}
 
 }

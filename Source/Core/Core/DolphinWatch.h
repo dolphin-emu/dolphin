@@ -92,6 +92,4 @@ namespace DolphinWatch {
 	void SendButtonsGC(int i_pad, u16 _buttons, float stickX, float stickY, float substickX, float substickY);
 	void CheckHijacks();
 
-	void Log(LogTypes::LOG_LEVELS level, const char* msg);
-
 }

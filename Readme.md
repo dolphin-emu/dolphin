@@ -179,16 +179,6 @@ Stops the emulation. There is no command to start a different emulation, so this
 
 ### server to client
 
-#### `LOG <level> <message>`
-
-Sends a log message from Dolphin. Useful to collect all logs in a central place.
-
-level
-  : the log severity. Can be between 1 and 5, which represent NOTICE, ERROR, WARNING, INFO and DEBUG.
-
-message
-  : log-message. `<message>` can contain spaces, as it is the last argument.
-
 #### `SUCCESS`
 
 Indicating success of a previously transmitted command that returns whether it succeeded or not (currently only used by LOAD).
