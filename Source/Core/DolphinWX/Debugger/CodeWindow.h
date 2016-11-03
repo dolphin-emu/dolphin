@@ -95,7 +95,6 @@ public:
 
   void Repopulate(bool refresh_codeview = true);
   void NotifyMapLoaded();
-  void UpdateButtonStates();
   void OpenPages();
 
   // Menu bar
@@ -151,6 +150,7 @@ private:
   void StepOut();
   void ToggleBreakpoint();
 
+  void UpdateFonts();
   void UpdateLists();
   void UpdateCallstack();
 

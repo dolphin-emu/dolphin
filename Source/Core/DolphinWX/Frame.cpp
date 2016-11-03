@@ -429,16 +429,11 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
                                                X11Utils::XWindowFromHandle(GetHandle()));
 #endif
 
-  // -------------------------
   // Connect event handlers
-
   m_Mgr->Bind(wxEVT_AUI_RENDER, &CFrame::OnManagerResize, this);
-  // ----------
 
   // Update controls
   UpdateGUI();
-  if (g_pCodeWindow)
-    g_pCodeWindow->UpdateButtonStates();
 
   // check if game is running
   InitControllers();

@@ -447,6 +447,7 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
   if (dialog.ShowModal() == wxID_OK)
     DebuggerFont = dialog.GetFontData().GetChosenFont();
 
+  UpdateFonts();
   // TODO: Send event to all panels that tells them to reload the font when it changes.
 }
 
