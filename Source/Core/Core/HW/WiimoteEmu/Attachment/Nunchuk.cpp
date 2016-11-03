@@ -25,8 +25,11 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"),
   m_buttons->controls.emplace_back(new ControlGroup::Input("C"));
   m_buttons->controls.emplace_back(new ControlGroup::Input("Z"));
 
-  // stick
-  groups.emplace_back(m_stick = new AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
+  // shake
+  groups.emplace_back(m_shake = new Buttons("Shake"));
+  m_shake->controls.emplace_back(new ControlGroup::Input("X"));
+  m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
+  m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
 
   // swing
   groups.emplace_back(m_swing = new Force("Swing"));
@@ -34,11 +37,8 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"),
   // tilt
   groups.emplace_back(m_tilt = new Tilt("Tilt"));
 
-  // shake
-  groups.emplace_back(m_shake = new Buttons("Shake"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("X"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
+  // stick
+  groups.emplace_back(m_stick = new AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // id
   memcpy(&id, nunchuk_id, sizeof(nunchuk_id));
