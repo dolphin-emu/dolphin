@@ -9,7 +9,7 @@ namespace DolphinWatch {
 	{
 	public:
 		~RemoteListener() {}
-		void RemoteListener::Log(LogTypes::LOG_LEVELS level, const char* msg)
+		void Log(LogTypes::LOG_LEVELS level, const char* msg)
 		{
 			DolphinWatch::Log(level, msg);
 		}
