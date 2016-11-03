@@ -39,6 +39,6 @@ private:
   AnalogStick* m_stick;
   Slider* m_touchbar;
 
-  const std::map<const ControlState, const u8> m_touchbar_control_codes};
+  const std::map<const ControlState, const u8> m_touchbar_control_codes;
 };
 }
