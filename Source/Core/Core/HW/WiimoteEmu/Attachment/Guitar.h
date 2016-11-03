@@ -37,20 +37,8 @@ private:
   Buttons* m_strum;
   Triggers* m_whammy;
   AnalogStick* m_stick;
-	Slider* m_touchbar;
+  Slider* m_touchbar;
 
-	const std::map <const ControlState, const u8> m_controlCodes
-	{//values determined using a PS3 Guitar Hero 5 controller, which maps the touchbar to Zr on Windows
-		{0.5, 0x0F},//not touching
-		{-0.753906, 0x04},//top fret
-		{-0.4375, 0x07},//top and second fret
-		{-0.097656, 0x0A},//second fret
-		{0.195313, 0x0C},//second and third fret
-		{0.601563, 0x12},//third fret
-		{0.683594, 0x14},//third and fourth fret
-		{0.789063, 0x17},//fourth fret
-		{0.902344, 0x1A},//fourth and bottom fret
-		{1.0, 0x1F}//bottom fret
-};
+  const std::map<const ControlState, const u8> m_touchbar_control_codes};
 };
 }
