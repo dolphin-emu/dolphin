@@ -37,6 +37,6 @@ private:
   Buttons* m_strum;
   Triggers* m_whammy;
   AnalogStick* m_stick;
-  Slider* m_touchbar;
+  Slider* m_slider_bar;
 };
 }

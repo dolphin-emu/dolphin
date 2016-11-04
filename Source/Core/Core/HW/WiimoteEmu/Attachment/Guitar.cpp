@@ -3,26 +3,12 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
+#include <map>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/Attachment/Guitar.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-
-static const std::map<const ControlState, const u8> s_touchbar_control_codes{
-    // values determined using a PS3 Guitar Hero 5 controller, which maps the touchbar to Zr on
-    // Windows
-    {0.5, 0x0F},        // not touching
-    {-0.753906, 0x04},  // top fret
-    {-0.4375, 0x07},    // top and second fret
-    {-0.097656, 0x0A},  // second fret
-    {0.195313, 0x0C},   // second and third fret
-    {0.601563, 0x12},   // third fret
-    {0.683594, 0x14},   // third and fourth fret
-    {0.789063, 0x17},   // fourth fret
-    {0.902344, 0x1A},   // fourth and bottom fret
-    {1.0, 0x1F}         // bottom fret
-};
 
 namespace WiimoteEmu
 {
@@ -43,6 +29,21 @@ static const u16 guitar_button_bitmasks[] = {
 
 static const u16 guitar_strum_bitmasks[] = {
     Guitar::BAR_UP, Guitar::BAR_DOWN,
+};
+
+static const std::map<const ControlState, const u8> s_slider_bar_control_codes{
+    // values determined using a PS3 Guitar Hero 5 controller, which maps the slider bar to Zr on
+    // Windows
+    {0.5, 0x0F},        // not touching
+    {-0.753906, 0x04},  // top fret
+    {-0.4375, 0x07},    // top and second fret
+    {-0.097656, 0x0A},  // second fret
+    {0.195313, 0x0C},   // second and third fret
+    {0.601563, 0x12},   // third fret
+    {0.683594, 0x14},   // third and fourth fret
+    {0.789063, 0x17},   // fourth fret
+    {0.902344, 0x1A},   // fourth and bottom fret
+    {1.0, 0x1F}         // bottom fret
 };
 
 Guitar::Guitar(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Guitar"), _reg)
@@ -69,8 +70,8 @@ Guitar::Guitar(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Guitar"), _r
   groups.emplace_back(m_whammy = new Triggers(_trans("Whammy")));
   m_whammy->controls.emplace_back(new ControlGroup::Input(_trans("Bar")));
 
-  // touchbar
-  groups.emplace_back(m_touchbar = new Slider(_trans("Slider Bar")));
+  // slider bar
+  groups.emplace_back(m_slider_bar = new Slider(_trans("Slider Bar")));
 
   // set up register
   // id
@@ -93,10 +94,10 @@ void Guitar::GetState(u8* const data)
     gdata->sy = static_cast<u8>((y * 0x1F) + 0x20);
   }
 
-  // touch bar
-  ControlState touchbar;
-  m_touchbar->GetState(&touchbar);
-  gdata->tb = s_touchbar_control_codes.lower_bound(touchbar)->second;
+  // slider bar
+  ControlState slider_bar;
+  m_slider_bar->GetState(&slider_bar);
+  gdata->sb = s_slider_bar_control_codes.lower_bound(slider_bar)->second;
 
   // whammy bar
   ControlState whammy;
