@@ -219,7 +219,7 @@ void Wiimote::Read()
   }
   else if (0 == result)
   {
-    ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wiimote %d.", m_index + 1);
+    ERROR_LOG(WIIMOTE, "Wiimote::IORead failed. Disconnecting Wii Remote %d.", m_index + 1);
     DisconnectInternal();
   }
 }
