@@ -20,25 +20,10 @@ class TextureEncoder;
 class TextureCache : public TextureCacheBase
 {
 public:
-  TextureCache();
-  ~TextureCache();
-
-  bool Initialize(StateTracker* state_tracker);
-
-  bool CompileShaders() override;
-  void DeleteShaders() override;
-  void ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* base_unconverted, void* palette,
-                      TlutFormat format) override;
-
-  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
-               bool is_intensity, bool scale_by_half) override;
-
-private:
   struct TCacheEntry : TCacheEntryBase
   {
-    TCacheEntry(const TCacheEntryConfig& config_, TextureCache* parent,
-                std::unique_ptr<Texture2D> texture, VkFramebuffer framebuffer);
+    TCacheEntry(const TCacheEntryConfig& config_, std::unique_ptr<Texture2D> texture,
+                VkFramebuffer framebuffer);
     ~TCacheEntry();
 
     Texture2D* GetTexture() const { return m_texture.get(); }
@@ -55,20 +40,51 @@ private:
     bool Save(const std::string& filename, unsigned int level) override;
 
   private:
-    TextureCache* m_parent;
     std::unique_ptr<Texture2D> m_texture;
-
-    // If we're an EFB copy, framebuffer for drawing into.
     VkFramebuffer m_framebuffer;
   };
 
+  TextureCache();
+  ~TextureCache();
+
+  static TextureCache* GetInstance();
+
+  bool Initialize();
+
+  bool CompileShaders() override;
+  void DeleteShaders() override;
+
   TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) override;
 
-  bool CreateRenderPasses();
+  void ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* base_unconverted, void* palette,
+                      TlutFormat format) override;
 
+  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
+               u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
+               bool is_intensity, bool scale_by_half) override;
+
+  void CopyRectangleFromTexture(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
+                                Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
+
+  // Encodes texture to guest memory in XFB (YUYV) format.
+  void EncodeYUYVTextureToMemory(void* dst_ptr, u32 dst_width, u32 dst_stride, u32 dst_height,
+                                 Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
+
+  // Decodes data from guest memory in XFB (YUYV) format to a RGBA format texture on the GPU.
+  void DecodeYUYVTextureFromMemory(TCacheEntry* dst_texture, const void* src_ptr, u32 src_width,
+                                   u32 src_stride, u32 src_height);
+
+private:
+  bool CreateRenderPasses();
   VkRenderPass GetRenderPassForTextureUpdate(const Texture2D* texture) const;
 
-  StateTracker* m_state_tracker = nullptr;
+  // Copies the contents of a texture using vkCmdCopyImage
+  void CopyTextureRectangle(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
+                            Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
+
+  // Copies (and optionally scales) the contents of a texture using a framgent shader.
+  void ScaleTextureRectangle(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
+                             Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
 
   VkRenderPass m_initialize_render_pass = VK_NULL_HANDLE;
   VkRenderPass m_update_render_pass = VK_NULL_HANDLE;
@@ -82,6 +98,8 @@ private:
   VkShaderModule m_copy_shader = VK_NULL_HANDLE;
   VkShaderModule m_efb_color_to_tex_shader = VK_NULL_HANDLE;
   VkShaderModule m_efb_depth_to_tex_shader = VK_NULL_HANDLE;
+  VkShaderModule m_rgb_to_yuyv_shader = VK_NULL_HANDLE;
+  VkShaderModule m_yuyv_to_rgb_shader = VK_NULL_HANDLE;
 };
 
 }  // namespace Vulkan

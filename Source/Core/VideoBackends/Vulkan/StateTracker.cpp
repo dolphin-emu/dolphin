@@ -24,10 +24,33 @@
 
 namespace Vulkan
 {
-StateTracker::StateTracker()
+static std::unique_ptr<StateTracker> s_state_tracker;
+
+StateTracker* StateTracker::GetInstance()
+{
+  return s_state_tracker.get();
+}
+
+bool StateTracker::CreateInstance()
+{
+  _assert_(!s_state_tracker);
+  s_state_tracker = std::make_unique<StateTracker>();
+  if (!s_state_tracker->Initialize())
+  {
+    s_state_tracker.reset();
+    return false;
+  }
+  return true;
+}
+
+void StateTracker::DestroyInstance()
+{
+  s_state_tracker.reset();
+}
+
+bool StateTracker::Initialize()
 {
   // Set some sensible defaults
-  m_pipeline_state.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
   m_pipeline_state.rasterization_state.cull_mode = VK_CULL_MODE_NONE;
   m_pipeline_state.rasterization_state.per_sample_shading = VK_FALSE;
   m_pipeline_state.rasterization_state.depth_clamp = VK_FALSE;
@@ -68,7 +91,10 @@ StateTracker::StateTracker()
       StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, INITIAL_UNIFORM_STREAM_BUFFER_SIZE,
                            MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE);
   if (!m_uniform_stream_buffer)
+  {
     PanicAlert("Failed to create uniform stream buffer");
+    return false;
+  }
 
   // The validation layer complains if max(offsets) + max(ubo_ranges) >= ubo_size.
   // To work around this we reserve the maximum buffer size at all times, but only commit
@@ -87,10 +113,7 @@ StateTracker::StateTracker()
 
   // Set default constants
   UploadAllConstants();
-}
-
-StateTracker::~StateTracker()
-{
+  return true;
 }
 
 void StateTracker::SetVertexBuffer(VkBuffer buffer, VkDeviceSize offset)
@@ -372,7 +395,7 @@ void StateTracker::UploadAllConstants()
     // If this fails, wait until the GPU has caught up.
     // The only places that call constant updates are safe to have state restored.
     WARN_LOG(VIDEO, "Executing command list while waiting for space in uniform buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(this, false);
+    Util::ExecuteCurrentCommandsAndRestoreState(false);
     if (!m_uniform_stream_buffer->ReserveMemory(total_allocation_size,
                                                 g_vulkan_context->GetUniformBufferAlignment(), true,
                                                 true, false))

@@ -8,6 +8,7 @@
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
+#include "VideoBackends/Vulkan/TextureCache.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 
 namespace Vulkan
@@ -17,18 +18,15 @@ class StateTracker;
 class StreamBuffer;
 class Texture2D;
 class VertexFormat;
-
-class XFBSource : public XFBSourceBase
-{
-  void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override {}
-  void CopyEFB(float gamma) override {}
-};
+class XFBSource;
 
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
   FramebufferManager();
   ~FramebufferManager();
+
+  static FramebufferManager* GetInstance();
 
   bool Initialize();
 
@@ -45,15 +43,11 @@ public:
 
   std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
                                                  unsigned int target_height,
-                                                 unsigned int layers) override
-  {
-    return std::make_unique<XFBSource>();
-  }
+                                                 unsigned int layers) override;
 
+  // GPU EFB textures -> Guest
   void CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_height, const EFBRectangle& source_rc,
-                     float gamma = 1.0f) override
-  {
-  }
+                     float gamma = 1.0f) override;
 
   void ResizeEFBTextures();
 
@@ -69,18 +63,18 @@ public:
   // This render pass can be used for other readback operations.
   VkRenderPass GetColorCopyForReadbackRenderPass() const { return m_copy_color_render_pass; }
   // Resolve color/depth textures to a non-msaa texture, and return it.
-  Texture2D* ResolveEFBColorTexture(StateTracker* state_tracker, const VkRect2D& region);
-  Texture2D* ResolveEFBDepthTexture(StateTracker* state_tracker, const VkRect2D& region);
+  Texture2D* ResolveEFBColorTexture(const VkRect2D& region);
+  Texture2D* ResolveEFBDepthTexture(const VkRect2D& region);
 
   // Reads a framebuffer value back from the GPU. This may block if the cache is not current.
-  u32 PeekEFBColor(StateTracker* state_tracker, u32 x, u32 y);
-  float PeekEFBDepth(StateTracker* state_tracker, u32 x, u32 y);
+  u32 PeekEFBColor(u32 x, u32 y);
+  float PeekEFBDepth(u32 x, u32 y);
   void InvalidatePeekCache();
 
   // Writes a value to the framebuffer. This will never block, and writes will be batched.
-  void PokeEFBColor(StateTracker* state_tracker, u32 x, u32 y, u32 color);
-  void PokeEFBDepth(StateTracker* state_tracker, u32 x, u32 y, float depth);
-  void FlushEFBPokes(StateTracker* state_tracker);
+  void PokeEFBColor(u32 x, u32 y, u32 color);
+  void PokeEFBDepth(u32 x, u32 y, float depth);
+  void FlushEFBPokes();
 
 private:
   struct EFBPokeVertex
@@ -112,14 +106,14 @@ private:
   bool CompilePokeShaders();
   void DestroyPokeShaders();
 
-  bool PopulateColorReadbackTexture(StateTracker* state_tracker);
-  bool PopulateDepthReadbackTexture(StateTracker* state_tracker);
+  bool PopulateColorReadbackTexture();
+  bool PopulateDepthReadbackTexture();
 
   void CreatePokeVertices(std::vector<EFBPokeVertex>* destination_list, u32 x, u32 y, float z,
                           u32 color);
 
-  void DrawPokeVertices(StateTracker* state_tracker, const EFBPokeVertex* vertices,
-                        size_t vertex_count, bool write_color, bool write_depth);
+  void DrawPokeVertices(const EFBPokeVertex* vertices, size_t vertex_count, bool write_color,
+                        bool write_depth);
 
   VkRenderPass m_efb_load_render_pass = VK_NULL_HANDLE;
   VkRenderPass m_efb_clear_render_pass = VK_NULL_HANDLE;
@@ -171,6 +165,26 @@ private:
   VkShaderModule m_poke_vertex_shader = VK_NULL_HANDLE;
   VkShaderModule m_poke_geometry_shader = VK_NULL_HANDLE;
   VkShaderModule m_poke_fragment_shader = VK_NULL_HANDLE;
+};
+
+// The XFB source class simply wraps a texture cache entry.
+// All the required functionality is provided by TextureCache.
+class XFBSource final : public XFBSourceBase
+{
+public:
+  explicit XFBSource(std::unique_ptr<TextureCache::TCacheEntry> texture);
+  ~XFBSource();
+
+  TextureCache::TCacheEntry* GetTexture() const { return m_texture.get(); }
+  // Guest -> GPU EFB Textures
+  void DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height) override;
+
+  // Used for virtual XFB
+  void CopyEFB(float gamma) override;
+
+private:
+  std::unique_ptr<TextureCache::TCacheEntry> m_texture;
+  VkFramebuffer m_framebuffer;
 };
 
 }  // namespace Vulkan

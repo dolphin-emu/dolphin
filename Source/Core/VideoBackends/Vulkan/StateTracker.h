@@ -24,8 +24,12 @@ class VertexFormat;
 class StateTracker
 {
 public:
-  StateTracker();
-  ~StateTracker();
+  StateTracker() = default;
+  ~StateTracker() = default;
+
+  static StateTracker* GetInstance();
+  static bool CreateInstance();
+  static void DestroyInstance();
 
   const RasterizationState& GetRasterizationState() const
   {
@@ -108,6 +112,8 @@ public:
   bool IsWithinRenderArea(s32 x, s32 y, u32 width, u32 height) const;
 
 private:
+  bool Initialize();
+
   // Check that the specified viewport is within the render area.
   // If not, ends the render pass if it is a clear render pass.
   bool IsViewportWithinRenderArea() const;

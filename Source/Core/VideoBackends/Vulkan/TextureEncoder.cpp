@@ -73,11 +73,11 @@ bool TextureEncoder::Initialize()
   return true;
 }
 
-void TextureEncoder::EncodeTextureToRam(StateTracker* state_tracker, VkImageView src_texture,
-                                        u8* dest_ptr, u32 format, u32 native_width,
-                                        u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                                        PEControl::PixelFormat src_format, bool is_intensity,
-                                        int scale_by_half, const EFBRectangle& src_rect)
+void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u32 format,
+                                        u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
+                                        u32 memory_stride, PEControl::PixelFormat src_format,
+                                        bool is_intensity, int scale_by_half,
+                                        const EFBRectangle& src_rect)
 {
   if (m_texture_encoding_shaders[format] == VK_NULL_HANDLE)
   {
@@ -86,7 +86,7 @@ void TextureEncoder::EncodeTextureToRam(StateTracker* state_tracker, VkImageView
   }
 
   // Can't do our own draw within a render pass.
-  state_tracker->EndRenderPass();
+  StateTracker::GetInstance()->EndRenderPass();
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPushConstantPipelineLayout(), m_encoding_render_pass,
@@ -122,8 +122,8 @@ void TextureEncoder::EncodeTextureToRam(StateTracker* state_tracker, VkImageView
 
   // Block until the GPU has finished copying to the staging texture.
   g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
-  state_tracker->InvalidateDescriptorSets();
-  state_tracker->SetPendingRebind();
+  StateTracker::GetInstance()->InvalidateDescriptorSets();
+  StateTracker::GetInstance()->SetPendingRebind();
 
   // Copy from staging texture to the final destination, adjusting pitch if necessary.
   m_download_texture->ReadTexels(0, 0, render_width, render_height, dest_ptr, memory_stride);
@@ -197,7 +197,8 @@ bool TextureEncoder::CreateEncodingTexture()
   m_encoding_texture = Texture2D::Create(
       ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1, ENCODING_TEXTURE_FORMAT,
       VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
-      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+      VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT |
+          VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
   if (!m_encoding_texture)
     return false;
 

@@ -899,12 +899,12 @@ bool operator<(const SamplerState& lhs, const SamplerState& rhs)
 bool ObjectCache::CompileSharedShaders()
 {
   static const char PASSTHROUGH_VERTEX_SHADER_SOURCE[] = R"(
-    layout(location = 0) in float4 ipos;
-    layout(location = 5) in float4 icol0;
-    layout(location = 8) in float3 itex0;
+    layout(location = 0) in vec4 ipos;
+    layout(location = 5) in vec4 icol0;
+    layout(location = 8) in vec3 itex0;
 
-    layout(location = 0) out float3 uv0;
-    layout(location = 1) out float4 col0;
+    layout(location = 0) out vec3 uv0;
+    layout(location = 1) out vec4 col0;
 
     void main()
     {
@@ -918,17 +918,11 @@ bool ObjectCache::CompileSharedShaders()
     layout(triangles) in;
     layout(triangle_strip, max_vertices = EFB_LAYERS * 3) out;
 
-    in VertexData
-    {
-      float3 uv0;
-      float4 col0;
-    } in_data[];
+    layout(location = 0) in vec3 in_uv0[];
+    layout(location = 1) in vec4 in_col0[];
 
-    out VertexData
-    {
-      float3 uv0;
-      float4 col0;
-    } out_data;
+    layout(location = 0) out vec3 out_uv0;
+    layout(location = 1) out vec4 out_col0;
 
     void main()
     {
@@ -938,8 +932,8 @@ bool ObjectCache::CompileSharedShaders()
         {
           gl_Layer = j;
           gl_Position = gl_in[i].gl_Position;
-          out_data.uv0 = float3(in_data[i].uv0.xy, float(j));
-          out_data.col0 = in_data[i].col0;
+          out_uv0 = vec3(in_uv0[i].xy, float(j));
+          out_col0 = in_col0[i];
           EmitVertex();
         }
         EndPrimitive();
@@ -948,7 +942,7 @@ bool ObjectCache::CompileSharedShaders()
   )";
 
   static const char SCREEN_QUAD_VERTEX_SHADER_SOURCE[] = R"(
-    layout(location = 0) out float3 uv0;
+    layout(location = 0) out vec3 uv0;
 
     void main()
     {
@@ -959,9 +953,9 @@ bool ObjectCache::CompileSharedShaders()
          * 2    0,2   0,1  -1,1       BL
          * 3    1,2   1,1  1,1        BR
          */
-        vec2 rawpos = float2(float(gl_VertexID & 1), clamp(float(gl_VertexID & 2), 0.0f, 1.0f));
-        gl_Position = float4(rawpos * 2.0f - 1.0f, 0.0f, 1.0f);
-        uv0 = float3(rawpos, 0.0f);
+        vec2 rawpos = vec2(float(gl_VertexID & 1), clamp(float(gl_VertexID & 2), 0.0f, 1.0f));
+        gl_Position = vec4(rawpos * 2.0f - 1.0f, 0.0f, 1.0f);
+        uv0 = vec3(rawpos, 0.0f);
     }
   )";
 
@@ -969,15 +963,9 @@ bool ObjectCache::CompileSharedShaders()
     layout(triangles) in;
     layout(triangle_strip, max_vertices = EFB_LAYERS * 3) out;
 
-    in VertexData
-    {
-      float3 uv0;
-    } in_data[];
+    layout(location = 0) in vec3 in_uv0[];
 
-    out VertexData
-    {
-      float3 uv0;
-    } out_data;
+    layout(location = 0) out vec3 out_uv0;
 
     void main()
     {
@@ -987,7 +975,7 @@ bool ObjectCache::CompileSharedShaders()
         {
           gl_Layer = j;
           gl_Position = gl_in[i].gl_Position;
-          out_data.uv0 = float3(in_data[i].uv0.xy, float(j));
+          out_uv0 = vec3(in_uv0[i].xy, float(j));
           EmitVertex();
         }
         EndPrimitive();
