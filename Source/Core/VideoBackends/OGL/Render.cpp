@@ -1455,8 +1455,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     glReadPixels(flipped_trc.left, flipped_trc.bottom, flipped_trc.GetWidth(),
                  flipped_trc.GetHeight(), GL_RGBA, GL_UNSIGNED_BYTE, image.data());
 
+    AVIDump::Frame state = AVIDump::FetchState(ticks);
     DumpFrameData(image.data(), flipped_trc.GetWidth(), flipped_trc.GetHeight(),
-                  flipped_trc.GetWidth() * 4, ticks, true);
+                  flipped_trc.GetWidth() * 4, state, true);
     FinishFrameData();
   }
   // Finish up the current frame, print some stats
