@@ -19,6 +19,7 @@ public:
     u64 ticks = 0;
     u32 ticks_per_second = 0;
     bool first_frame = false;
+    int savestate_index = 0;
   };
 
   static bool Start(int w, int h);

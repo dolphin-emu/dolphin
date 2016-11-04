@@ -46,6 +46,8 @@ static bool s_last_frame_is_valid = false;
 static bool s_start_dumping = false;
 static u64 s_last_pts;
 static int s_file_index = 0;
+static int s_savestate_index = 0;
+static int s_last_savestate_index = 0;
 
 static void InitAVCodec()
 {
@@ -168,6 +170,14 @@ static void PreparePacket(AVPacket* pkt)
 
 void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
 {
+  // Assume that the timing is valid, if the savestate id of the new frame
+  // doesn't match the last one.
+  if (state.savestate_index != s_last_savestate_index)
+  {
+    s_last_savestate_index = state.savestate_index;
+    s_last_frame_is_valid = false;
+  }
+
   CheckResolution(width, height);
   s_src_frame->data[0] = const_cast<u8*>(data);
   s_src_frame->linesize[0] = stride;
@@ -285,7 +295,7 @@ void AVIDump::CloseFile()
 
 void AVIDump::DoState()
 {
-  s_last_frame_is_valid = false;
+  s_savestate_index++;
 }
 
 void AVIDump::CheckResolution(int width, int height)
@@ -310,5 +320,6 @@ AVIDump::Frame AVIDump::FetchState(u64 ticks)
   state.ticks = ticks;
   state.first_frame = Movie::GetCurrentFrame() < 1;
   state.ticks_per_second = SystemTimers::GetTicksPerSecond();
+  state.savestate_index = s_savestate_index;
   return state;
 }
