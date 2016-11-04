@@ -13,7 +13,7 @@ rather than time, so if a game can't keep up with the normal framerate all anima
 actions slows down and the game runs to slow. This is different from PC games that are
 often controlled by time instead and may not have maximum framerates.
 
-However, I'm not sure if the Bluetooth communication for the Wiimote is entirely frame
+However, I'm not sure if the Bluetooth communication for the Wii Remote is entirely frame
 dependent, the timing problems with the ack command in Zelda - TP may be related to
 time rather than frames? For now the IPC_HLE_PERIOD is frame dependent, but because of
 different conditions on the way to PluginWiimote::Wiimote_Update() the updates may actually
@@ -25,7 +25,7 @@ would mean one update per frame and [GetTicksPerSecond() / 250] would mean four 
 frame.
 
 
-IPC_HLE_PERIOD: For the Wiimote this is the call schedule:
+IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
   IPC_HLE_UpdateCallback() // In this file
 
     // This function seems to call all devices' Update() function four times per frame

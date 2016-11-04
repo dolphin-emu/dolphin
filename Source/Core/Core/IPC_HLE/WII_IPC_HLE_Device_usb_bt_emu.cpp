@@ -76,15 +76,15 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu
       memcpy(BT_DINF.registered[i].name, wmName, 20);
       memcpy(BT_DINF.active[i].name, wmName, 20);
 
-      DEBUG_LOG(WII_IPC_WIIMOTE, "Wiimote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1],
+      DEBUG_LOG(WII_IPC_WIIMOTE, "Wii Remote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1],
                 tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
       m_WiiMotes.push_back(CWII_IPC_HLE_WiiMote(this, i, tmpBD, false));
       i++;
     }
 
     BT_DINF.num_registered = MAX_BBMOTES;
-    // save now so that when games load sysconf file it includes the new Wiimotes
-    // and the correct order for connected Wiimotes
+    // save now so that when games load sysconf file it includes the new Wii Remotes
+    // and the correct order for connected Wii Remotes
     if (!sysconf.SetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)) || !sysconf.Save())
       PanicAlertT("Failed to write BT.DINF to SYSCONF");
   }
@@ -203,7 +203,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtlV(u32 _CommandAdd
   {
   case USBV0_IOCTL_CTRLMSG:  // HCI command is received from the stack
   {
-    // This is the HCI datapath from CPU to Wiimote, the USB stuff is little endian..
+    // This is the HCI datapath from CPU to Wii Remote, the USB stuff is little endian..
     m_CtrlSetup.bRequestType = *(u8*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address);
     m_CtrlSetup.bRequest = *(u8*)Memory::GetPointer(CommandBuffer.InBuffer[1].m_Address);
     m_CtrlSetup.wValue = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[2].m_Address);
@@ -241,7 +241,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtlV(u32 _CommandAdd
     {
     case ACL_DATA_OUT:  // ACL data is received from the stack
     {
-      // This is the ACL datapath from CPU to Wiimote
+      // This is the ACL datapath from CPU to Wii Remote
       // Here we only need to record the command address in case we need to delay the reply
       m_ACLSetup = CommandBuffer.m_Address;
 
@@ -378,7 +378,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendACLPacket(u16 connection_handl
   }
 }
 
-// These messages are sent from the Wiimote to the game, for example RequestConnection()
+// These messages are sent from the Wii Remote to the game, for example RequestConnection()
 // or ConnectionComplete().
 //
 // Our WII_IPC_HLE is so efficient that we could fill the buffer immediately
@@ -482,7 +482,7 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
     }
   }
 
-  // The Real Wiimote sends report every ~5ms (200 Hz).
+  // The Real Wii Remote sends report every ~5ms (200 Hz).
   const u64 interval = SystemTimers::GetTicksPerSecond() / 200;
   const u64 now = CoreTiming::GetTicks();
 
@@ -1639,7 +1639,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CommandWritePageTimeOut(const u8* 
   SendEventCommandComplete(HCI_CMD_WRITE_PAGE_TIMEOUT, &reply, sizeof(hci_host_buffer_size_rp));
 }
 
-/* This will enable ScanEnable so that Update() can start the Wiimote. */
+/* This will enable ScanEnable so that Update() can start the Wii Remote. */
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CommandWriteScanEnable(const u8* input)
 {
   const hci_write_scan_enable_cp* write_scan_enable =
@@ -1915,7 +1915,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::DisplayDisconnectMessage(const int
 {
   // TODO: If someone wants to be fancy we could also figure out what the values for pDiscon->reason
   // mean
-  // and display things like "Wiimote %i disconnected due to inactivity!" etc.
+  // and display things like "Wii Remote %i disconnected due to inactivity!" etc.
   Core::DisplayMessage(
       StringFromFormat("Wii Remote %i disconnected by emulated software", wiimoteNumber), 3000);
 }
