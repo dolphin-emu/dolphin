@@ -125,7 +125,8 @@ void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // Save screenshot
   if (IsFrameDumping())
   {
-    DumpFrameData(GetCurrentColorTexture(), fbWidth, fbHeight, fbWidth * 4, ticks);
+    AVIDump::Frame state = AVIDump::FetchState(ticks);
+    DumpFrameData(GetCurrentColorTexture(), fbWidth, fbHeight, fbWidth * 4, state);
     FinishFrameData();
   }
 

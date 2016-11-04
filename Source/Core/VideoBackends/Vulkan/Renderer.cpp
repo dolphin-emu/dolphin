@@ -747,10 +747,11 @@ bool Renderer::DrawFrameDump(const EFBRectangle& rc, u32 xfb_addr,
 
 void Renderer::DumpFrame(u64 ticks)
 {
+  AVIDump::Frame state = AVIDump::FetchState(ticks);
   DumpFrameData(reinterpret_cast<const u8*>(m_frame_dump_readback_texture->GetMapPointer()),
                 static_cast<int>(m_frame_dump_render_texture->GetWidth()),
                 static_cast<int>(m_frame_dump_render_texture->GetHeight()),
-                static_cast<int>(m_frame_dump_readback_texture->GetRowStride()), ticks);
+                static_cast<int>(m_frame_dump_readback_texture->GetRowStride()), state);
   FinishFrameData();
 }
 

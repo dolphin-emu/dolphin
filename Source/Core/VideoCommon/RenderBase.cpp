@@ -667,7 +667,7 @@ bool Renderer::IsFrameDumping()
   return false;
 }
 
-void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, u64 ticks,
+void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, const AVIDump::Frame& state,
                              bool swap_upside_down)
 {
   if (w == 0 || h == 0)
@@ -701,7 +701,7 @@ void Renderer::DumpFrameData(const u8* data, int w, int h, int stride, u64 ticks
     }
     if (m_AVI_dumping)
     {
-      AVIDump::AddFrame(m_frame_data.data(), w, h, stride, ticks);
+      AVIDump::AddFrame(m_frame_data.data(), w, h, stride, state);
     }
 
     m_last_frame_dumped = true;

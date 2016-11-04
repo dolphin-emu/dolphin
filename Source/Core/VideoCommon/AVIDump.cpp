@@ -166,7 +166,7 @@ static void PreparePacket(AVPacket* pkt)
   pkt->size = 0;
 }
 
-void AVIDump::AddFrame(const u8* data, int width, int height, int stride, u64 ticks)
+void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
 {
   CheckResolution(width, height);
   s_src_frame->data[0] = const_cast<u8*>(data);
@@ -196,26 +196,25 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, u64 ti
   // incorrectly.
   if (!s_last_frame_is_valid)
   {
-    s_last_frame = ticks;
+    s_last_frame = state.ticks;
     s_last_frame_is_valid = true;
   }
-  if (!s_start_dumping && Movie::GetCurrentFrame() < 1)
+  if (!s_start_dumping && state.first_frame)
   {
-    delta = ticks;
+    delta = state.ticks;
     last_pts = AV_NOPTS_VALUE;
     s_start_dumping = true;
   }
   else
   {
-    delta = ticks - s_last_frame;
-    last_pts = (s_last_pts * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
+    delta = state.ticks - s_last_frame;
+    last_pts = (s_last_pts * s_stream->codec->time_base.den) / state.ticks_per_second;
   }
   u64 pts_in_ticks = s_last_pts + delta;
-  s_scaled_frame->pts =
-      (pts_in_ticks * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
+  s_scaled_frame->pts = (pts_in_ticks * s_stream->codec->time_base.den) / state.ticks_per_second;
   if (s_scaled_frame->pts != last_pts)
   {
-    s_last_frame = ticks;
+    s_last_frame = state.ticks;
     s_last_pts = pts_in_ticks;
     error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
   }
@@ -303,4 +302,13 @@ void AVIDump::CheckResolution(int width, int height)
     s_file_index = temp_file_index + 1;
     Start(width, height);
   }
+}
+
+AVIDump::Frame AVIDump::FetchState(u64 ticks)
+{
+  Frame state;
+  state.ticks = ticks;
+  state.first_frame = Movie::GetCurrentFrame() < 1;
+  state.ticks_per_second = SystemTimers::GetTicksPerSecond();
+  return state;
 }
