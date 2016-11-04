@@ -210,7 +210,8 @@ void CFrame::BindDebuggerMenuBarUpdateEvents()
   Bind(wxEVT_UPDATE_UI, &CFrame::OnEnableMenuItemIfCPUCanStep, this, IDM_STEPOUT);
   Bind(wxEVT_UPDATE_UI, &CFrame::OnEnableMenuItemIfCPUCanStep, this, IDM_STEPOVER);
 
-  Bind(wxEVT_UPDATE_UI, &CFrame::OnEnableMenuItemIfCorePaused, this, IDM_INTERPRETER);
+  Bind(wxEVT_UPDATE_UI, &CFrame::OnUpdateInterpreterMenuItem, this, IDM_INTERPRETER);
+
   Bind(wxEVT_UPDATE_UI, &CFrame::OnEnableMenuItemIfCorePaused, this, IDM_JIT_OFF);
   Bind(wxEVT_UPDATE_UI, &CFrame::OnEnableMenuItemIfCorePaused, this, IDM_JIT_LS_OFF);
   Bind(wxEVT_UPDATE_UI, &CFrame::OnEnableMenuItemIfCorePaused, this, IDM_JIT_LSLXZ_OFF);
@@ -1084,6 +1085,16 @@ void CFrame::OnEnableMenuItemIfCorePaused(wxUpdateUIEvent& event)
 void CFrame::OnEnableMenuItemIfCPUCanStep(wxUpdateUIEvent& event)
 {
   event.Enable(Core::GetState() != Core::CORE_UNINITIALIZED && CPU::IsStepping());
+}
+
+void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
+{
+  OnEnableMenuItemIfCorePaused(event);
+
+  if (GetMenuBar()->FindItem(IDM_INTERPRETER)->IsChecked())
+    return;
+
+  event.Check(SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
 }
 
 void CFrame::ClearStatusBar()

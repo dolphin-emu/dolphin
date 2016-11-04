@@ -83,9 +83,6 @@ public:
   void Load();
   void Save();
 
-  // Parent interaction
-  wxMenuBar* GetMenuBar();
-
   bool UseInterpreter();
   bool BootToPause();
   bool AutomaticStart();
@@ -97,7 +94,6 @@ public:
   void NotifyMapLoaded();
   void OpenPages();
 
-  // Menu bar
   // FIXME: This belongs in a separate class.
   void TogglePanel(int id, bool show);
   wxPanel* GetUntypedPanel(int id) const;
@@ -127,6 +123,9 @@ public:
   int iNbAffiliation[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START];
 
 private:
+  // Parent interaction
+  wxMenuBar* GetMenuBar();
+
   void OnCPUMode(wxCommandEvent& event);
 
   void OnChangeFont(wxCommandEvent& event);

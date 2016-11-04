@@ -241,6 +241,7 @@ private:
   void OnEnableMenuItemIfCoreUninitialized(wxUpdateUIEvent& event);
   void OnEnableMenuItemIfCorePaused(wxUpdateUIEvent& event);
   void OnEnableMenuItemIfCPUCanStep(wxUpdateUIEvent& event);
+  void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
 
   void OnOpen(wxCommandEvent& event);  // File menu
   void DoOpen(bool Boot);

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/GeneralConfigPane.h"
+
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
@@ -16,10 +18,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "DolphinWX/Config/GeneralConfigPane.h"
-#include "DolphinWX/Debugger/CodeWindow.h"
-#include "DolphinWX/Frame.h"
-#include "DolphinWX/Main.h"
 
 GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
@@ -200,15 +198,7 @@ void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 
 void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)
 {
-  const int selection = m_cpu_engine_radiobox->GetSelection();
-
-  if (main_frame->g_pCodeWindow)
-  {
-    bool using_interp = (SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
-    main_frame->g_pCodeWindow->GetMenuBar()->Check(IDM_INTERPRETER, using_interp);
-  }
-
-  SConfig::GetInstance().iCPUCore = cpu_cores[selection].CPUid;
+  SConfig::GetInstance().iCPUCore = cpu_cores.at(event.GetSelection()).CPUid;
 }
 
 void GeneralConfigPane::OnAnalyticsCheckBoxChanged(wxCommandEvent& event)
