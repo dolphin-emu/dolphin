@@ -34,15 +34,11 @@ static const u16 guitar_strum_bitmasks[] = {
 static const std::map<ControlState, u8> s_slider_bar_control_codes{
     // values determined using a PS3 Guitar Hero 5 controller, which maps the slider bar to Zr on
     // Windows
-    {0.5, 0x0F},        // not touching
-    {-0.753906, 0x04},  // top fret
-    {-0.4375, 0x07},    // top and second fret
+    {0.0, 0x0F},        // not touching
+    {-0.4375, 0x04},    // top fret
     {-0.097656, 0x0A},  // second fret
-    {0.195313, 0x0C},   // second and third fret
-    {0.601563, 0x12},   // third fret
-    {0.683594, 0x14},   // third and fourth fret
-    {0.789063, 0x17},   // fourth fret
-    {0.902344, 0x1A},   // fourth and bottom fret
+    {0.203125, 0x12},   // third fret
+    {0.578125, 0x17},   // fourth fret
     {1.0, 0x1F}         // bottom fret
 };
 
@@ -95,9 +91,16 @@ void Guitar::GetState(u8* const data)
   }
 
   // slider bar
-  ControlState slider_bar;
-  m_slider_bar->GetState(&slider_bar);
-  gdata->sb = s_slider_bar_control_codes.lower_bound(slider_bar)->second;
+  if (m_slider_bar->controls[0]->control_ref->BoundCount())
+  {  // if user has not mapped controls for slider bar, tell game it's untouched
+    ControlState slider_bar;
+    m_slider_bar->GetState(&slider_bar);
+    gdata->sb = s_slider_bar_control_codes.lower_bound(slider_bar)->second;
+  }
+  else
+  {
+    gdata->sb = 0x0F;
+  }
 
   // whammy bar
   ControlState whammy;
