@@ -145,7 +145,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
 
   case IOCTL_NWC24_REQUEST_GENERATED_USER_ID:  // (Input: none, Output: 32 bytes)
     INFO_LOG(WII_IPC_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
-    if (config.CreationStage() == nwc24_config_t::NWC24_IDCS_INITIAL)
+    if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_INITIAL)
     {
       std::string settings_Filename(
           Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
@@ -177,23 +177,23 @@ IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::IOCtl(u32 _CommandAddress)
         s32 ret = NWC24MakeUserID(&UserID, HollywoodID, id_ctr, hardware_model, area_code);
         config.SetId(UserID);
         config.IncrementIdGen();
-        config.SetCreationStage(nwc24_config_t::NWC24_IDCS_GENERATED);
+        config.SetCreationStage(NWC24::NWC24Config::NWC24_IDCS_GENERATED);
         config.WriteConfig();
 
         Memory::Write_U32(ret, BufferOut);
       }
       else
       {
-        Memory::Write_U32(WC24_ERR_FATAL, BufferOut);
+        Memory::Write_U32(NWC24::WC24_ERR_FATAL, BufferOut);
       }
     }
-    else if (config.CreationStage() == nwc24_config_t::NWC24_IDCS_GENERATED)
+    else if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_GENERATED)
     {
-      Memory::Write_U32(WC24_ERR_ID_GENERATED, BufferOut);
+      Memory::Write_U32(NWC24::WC24_ERR_ID_GENERATED, BufferOut);
     }
-    else if (config.CreationStage() == nwc24_config_t::NWC24_IDCS_REGISTERED)
+    else if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_REGISTERED)
     {
-      Memory::Write_U32(WC24_ERR_ID_REGISTERED, BufferOut);
+      Memory::Write_U32(NWC24::WC24_ERR_ID_REGISTERED, BufferOut);
     }
     Memory::Write_U64(config.Id(), BufferOut + 4);
     Memory::Write_U32(config.CreationStage(), BufferOut + 0xC);
@@ -310,9 +310,9 @@ s32 CWII_IPC_HLE_Device_net_kd_request::NWC24MakeUserID(u64* nwc24_id, u32 holly
   *nwc24_id = mix_id;
 
   if (mix_id > 9999999999999999ULL)
-    return WC24_ERR_FATAL;
+    return NWC24::WC24_ERR_FATAL;
 
-  return WC24_OK;
+  return NWC24::WC24_OK;
 }
 
 static void SaveMacAddress(u8* mac)
@@ -417,7 +417,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(u32 _CommandAddress)
   case IOCTLV_NCD_GETLINKSTATUS:
     INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETLINKSTATUS");
     // Always connected
-    Memory::Write_U32(netcfg_connection_t::LINK_WIRED,
+    Memory::Write_U32(Net::ConnectionSettings::LINK_WIRED,
                       CommandBuffer.PayloadBuffer.at(0).m_Address + 4);
     break;
 

@@ -573,6 +573,9 @@
     <ClCompile Include="IPC_HLE\ICMPWin.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClCompile>
+    <ClCompile Include="IPC_HLE\NWC24Config.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClCompile>
@@ -580,6 +583,9 @@
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClCompile>
     <ClCompile Include="IPC_HLE\WII_Socket.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WiiNetConfig.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp">
@@ -1142,6 +1148,9 @@
     <ClInclude Include="IPC_HLE\ICMP.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
+    <ClInclude Include="IPC_HLE\NWC24Config.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
@@ -1149,6 +1158,9 @@
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\WII_Socket.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WiiNetConfig.h">
       <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h">
