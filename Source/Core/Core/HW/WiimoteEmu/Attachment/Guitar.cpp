@@ -3,7 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <cstring>
-#include <unordered_map>
+#include <map>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
@@ -31,7 +31,7 @@ static const u16 guitar_strum_bitmasks[] = {
     Guitar::BAR_UP, Guitar::BAR_DOWN,
 };
 
-static const std::unordered_map<ControlState, u8> s_slider_bar_control_codes{
+static const std::map<ControlState, u8> s_slider_bar_control_codes{
     // values determined using a PS3 Guitar Hero 5 controller, which maps the slider bar to Zr on
     // Windows
     {0.5, 0x0F},        // not touching
