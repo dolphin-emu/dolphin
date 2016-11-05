@@ -21,7 +21,7 @@
 
 GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
-  cpu_cores = {
+  m_cpu_cores = {
       {PowerPC::CORE_INTERPRETER, _("Interpreter (slowest)")},
       {PowerPC::CORE_CACHEDINTERPRETER, _("Cached Interpreter (slower)")},
 #ifdef _M_X86_64
@@ -48,7 +48,7 @@ void GeneralConfigPane::InitializeGUI()
       m_throttler_array_string.Add(wxString::Format(_("%i%%"), i));
   }
 
-  for (const CPUCore& cpu_core : cpu_cores)
+  for (const CPUCore& cpu_core : m_cpu_cores)
     m_cpu_engine_array_string.Add(cpu_core.name);
 
   m_dual_core_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Dual Core (speedup)"));
@@ -154,9 +154,9 @@ void GeneralConfigPane::LoadGUIValues()
   if (selection < m_throttler_array_string.size())
     m_throttler_choice->SetSelection(selection);
 
-  for (size_t i = 0; i < cpu_cores.size(); ++i)
+  for (size_t i = 0; i < m_cpu_cores.size(); ++i)
   {
-    if (cpu_cores[i].CPUid == startup_params.iCPUCore)
+    if (m_cpu_cores[i].CPUid == startup_params.iCPUCore)
       m_cpu_engine_radiobox->SetSelection(i);
   }
 }
@@ -198,7 +198,7 @@ void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 
 void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().iCPUCore = cpu_cores.at(event.GetSelection()).CPUid;
+  SConfig::GetInstance().iCPUCore = m_cpu_cores.at(event.GetSelection()).CPUid;
 }
 
 void GeneralConfigPane::OnAnalyticsCheckBoxChanged(wxCommandEvent& event)
