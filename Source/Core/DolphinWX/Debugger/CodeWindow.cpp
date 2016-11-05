@@ -132,7 +132,7 @@ CCodeWindow::~CCodeWindow()
   m_aui_manager.UnInit();
 }
 
-wxMenuBar* CCodeWindow::GetMenuBar()
+wxMenuBar* CCodeWindow::GetParentMenuBar()
 {
   return Parent->GetMenuBar();
 }
@@ -213,7 +213,6 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
     break;
   }
 
-  UpdateButtonStates();
   // Update all toolbars in the aui manager
   Parent->UpdateGUI();
 }
@@ -502,9 +501,6 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 
   // Clear the JIT cache to enable these changes
   JitInterface::ClearCache();
-
-  // Update
-  UpdateButtonStates();
 }
 
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
@@ -543,27 +539,27 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 // Shortcuts
 bool CCodeWindow::UseInterpreter()
 {
-  return GetMenuBar()->IsChecked(IDM_INTERPRETER);
+  return GetParentMenuBar()->IsChecked(IDM_INTERPRETER);
 }
 
 bool CCodeWindow::BootToPause()
 {
-  return GetMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE);
+  return GetParentMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE);
 }
 
 bool CCodeWindow::AutomaticStart()
 {
-  return GetMenuBar()->IsChecked(IDM_AUTOMATIC_START);
+  return GetParentMenuBar()->IsChecked(IDM_AUTOMATIC_START);
 }
 
 bool CCodeWindow::JITNoBlockCache()
 {
-  return GetMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_CACHE);
+  return GetParentMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_CACHE);
 }
 
 bool CCodeWindow::JITNoBlockLinking()
 {
-  return GetMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_LINKING);
+  return GetParentMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_LINKING);
 }
 
 // Update GUI
@@ -574,63 +570,20 @@ void CCodeWindow::Repopulate(bool refresh_codeview)
 
   if (refresh_codeview)
     codeview->Refresh();
+
   UpdateCallstack();
-  UpdateButtonStates();
 
   // Do not automatically show the current PC position when a breakpoint is hit or
   // when we pause since this can be called at other times too.
   // codeview->Center(PC);
 }
 
-void CCodeWindow::UpdateButtonStates()
+void CCodeWindow::UpdateFonts()
 {
-  bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
-  bool Pause = (Core::GetState() == Core::CORE_PAUSE);
-  bool Stepping = CPU::IsStepping();
-  bool can_step = Initialized && Stepping;
-
-  GetMenuBar()->Enable(IDM_INTERPRETER, Pause);  // CPU Mode
-
-  GetMenuBar()->Enable(IDM_STEP, can_step);
-  GetMenuBar()->Enable(IDM_STEPOVER, can_step);
-  GetMenuBar()->Enable(IDM_STEPOUT, can_step);
-
-  GetMenuBar()->Enable(IDM_JIT_NO_BLOCK_CACHE, !Initialized);
-
-  GetMenuBar()->Enable(IDM_JIT_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LS_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSLXZ_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSLWZ_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSLBZX_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSF_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSP_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_FP_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_I_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_P_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_SR_OFF, Pause);
-
-  GetMenuBar()->Enable(IDM_CLEAR_CODE_CACHE, Pause);  // JIT Menu
-  GetMenuBar()->Enable(IDM_SEARCH_INSTRUCTION, Initialized);
-
-  GetMenuBar()->Enable(IDM_CLEAR_SYMBOLS, Initialized);  // Symbols menu
-  GetMenuBar()->Enable(IDM_SCAN_FUNCTIONS, Initialized);
-  GetMenuBar()->Enable(IDM_LOAD_MAP_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_SAVEMAPFILE, Initialized);
-  GetMenuBar()->Enable(IDM_LOAD_MAP_FILE_AS, Initialized);
-  GetMenuBar()->Enable(IDM_SAVE_MAP_FILE_AS, Initialized);
-  GetMenuBar()->Enable(IDM_LOAD_BAD_MAP_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_SAVE_MAP_FILE_WITH_CODES, Initialized);
-  GetMenuBar()->Enable(IDM_CREATE_SIGNATURE_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_APPEND_SIGNATURE_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_COMBINE_SIGNATURE_FILES, Initialized);
-  GetMenuBar()->Enable(IDM_RENAME_SYMBOLS, Initialized);
-  GetMenuBar()->Enable(IDM_USE_SIGNATURE_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_PATCH_HLE_FUNCTIONS, Initialized);
-
-  // Update Fonts
   callstack->SetFont(DebuggerFont);
   symbols->SetFont(DebuggerFont);
   callers->SetFont(DebuggerFont);
   calls->SetFont(DebuggerFont);
   m_aui_manager.GetArtProvider()->SetFont(wxAUI_DOCKART_CAPTION_FONT, DebuggerFont);
+  m_aui_manager.Update();
 }

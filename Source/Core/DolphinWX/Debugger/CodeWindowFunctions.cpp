@@ -93,8 +93,8 @@ void CCodeWindow::Save()
 
   IniFile::Section* general = ini.GetOrCreateSection("General");
   general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
-  general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATIC_START));
-  general->Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE));
+  general->Set("AutomaticStart", GetParentMenuBar()->IsChecked(IDM_AUTOMATIC_START));
+  general->Set("BootToPause", GetParentMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE));
 
   const char* SettingName[] = {"Log",    "LogConfig", "Console", "Registers", "Breakpoints",
                                "Memory", "JIT",       "Sound",   "Video",     "Code"};
@@ -102,7 +102,7 @@ void CCodeWindow::Save()
   // Save windows settings
   for (int i = IDM_LOG_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
     ini.GetOrCreateSection("ShowOnStart")
-        ->Set(SettingName[i - IDM_LOG_WINDOW], GetMenuBar()->IsChecked(i));
+        ->Set(SettingName[i - IDM_LOG_WINDOW], GetParentMenuBar()->IsChecked(i));
 
   // Save notebook affiliations
   std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
@@ -125,7 +125,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
     Core::SetState(Core::CORE_PAUSE);
     if (jit != nullptr)
       jit->ClearCache();
-    Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILE_BLOCKS);
+    Profiler::g_ProfileBlocks = GetParentMenuBar()->IsChecked(IDM_PROFILE_BLOCKS);
     Core::SetState(Core::CORE_RUN);
     break;
   case IDM_WRITE_PROFILE:
@@ -447,6 +447,7 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
   if (dialog.ShowModal() == wxID_OK)
     DebuggerFont = dialog.GetFontData().GetChosenFont();
 
+  UpdateFonts();
   // TODO: Send event to all panels that tells them to reload the font when it changes.
 }
 
@@ -466,7 +467,7 @@ void CCodeWindow::TogglePanel(int id, bool show)
   wxPanel* panel = GetUntypedPanel(id);
 
   // Not all the panels (i.e. CodeWindow) have corresponding menu options.
-  wxMenuItem* item = GetMenuBar()->FindItem(id);
+  wxMenuItem* item = GetParentMenuBar()->FindItem(id);
   if (item)
     item->Check(show);
 

@@ -179,6 +179,8 @@ private:
 
   void BindEvents();
   void BindMenuBarEvents();
+  void BindDebuggerMenuBarEvents();
+  void BindDebuggerMenuBarUpdateEvents();
 
   wxToolBar* OnCreateToolBar(long style, wxWindowID id, const wxString& name) override;
   wxMenuBar* CreateMenuBar() const;
@@ -234,6 +236,12 @@ private:
   void OnHelp(wxCommandEvent& event);
 
   void OnReloadThemeBitmaps(wxCommandEvent& event);
+
+  void OnEnableMenuItemIfCoreInitialized(wxUpdateUIEvent& event);
+  void OnEnableMenuItemIfCoreUninitialized(wxUpdateUIEvent& event);
+  void OnEnableMenuItemIfCorePaused(wxUpdateUIEvent& event);
+  void OnEnableMenuItemIfCPUCanStep(wxUpdateUIEvent& event);
+  void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
 
   void OnOpen(wxCommandEvent& event);  // File menu
   void DoOpen(bool Boot);

@@ -24,7 +24,7 @@ private:
     int CPUid;
     wxString name;
   };
-  std::vector<CPUCore> cpu_cores;
+  std::vector<CPUCore> m_cpu_cores;
   void InitializeGUI();
   void LoadGUIValues();
   void RefreshGUI();
