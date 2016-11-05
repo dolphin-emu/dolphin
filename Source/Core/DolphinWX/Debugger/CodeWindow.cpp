@@ -132,7 +132,7 @@ CCodeWindow::~CCodeWindow()
   m_aui_manager.UnInit();
 }
 
-wxMenuBar* CCodeWindow::GetMenuBar()
+wxMenuBar* CCodeWindow::GetParentMenuBar()
 {
   return Parent->GetMenuBar();
 }
@@ -539,27 +539,27 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 // Shortcuts
 bool CCodeWindow::UseInterpreter()
 {
-  return GetMenuBar()->IsChecked(IDM_INTERPRETER);
+  return GetParentMenuBar()->IsChecked(IDM_INTERPRETER);
 }
 
 bool CCodeWindow::BootToPause()
 {
-  return GetMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE);
+  return GetParentMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE);
 }
 
 bool CCodeWindow::AutomaticStart()
 {
-  return GetMenuBar()->IsChecked(IDM_AUTOMATIC_START);
+  return GetParentMenuBar()->IsChecked(IDM_AUTOMATIC_START);
 }
 
 bool CCodeWindow::JITNoBlockCache()
 {
-  return GetMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_CACHE);
+  return GetParentMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_CACHE);
 }
 
 bool CCodeWindow::JITNoBlockLinking()
 {
-  return GetMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_LINKING);
+  return GetParentMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_LINKING);
 }
 
 // Update GUI

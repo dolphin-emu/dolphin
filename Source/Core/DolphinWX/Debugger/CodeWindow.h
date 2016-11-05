@@ -123,8 +123,7 @@ public:
   int iNbAffiliation[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START];
 
 private:
-  // Parent interaction
-  wxMenuBar* GetMenuBar();
+  wxMenuBar* GetParentMenuBar();
 
   void OnCPUMode(wxCommandEvent& event);
 
