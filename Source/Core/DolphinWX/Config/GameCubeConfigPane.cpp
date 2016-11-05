@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/GameCubeConfigPane.h"
+
 #include <string>
 
 #include <wx/button.h>
@@ -22,7 +24,7 @@
 #include "Core/HW/GCMemcard.h"
 #include "Core/NetPlayProto.h"
 #include "DolphinWX/Config/ConfigMain.h"
-#include "DolphinWX/Config/GameCubeConfigPane.h"
+#include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
 #define DEV_NONE_STR _trans("<Nothing>")
@@ -39,7 +41,7 @@ GameCubeConfigPane::GameCubeConfigPane(wxWindow* parent, wxWindowID id) : wxPane
 {
   InitializeGUI();
   LoadGUIValues();
-  RefreshGUI();
+  BindEvents();
 }
 
 void GameCubeConfigPane::InitializeGUI()
@@ -54,17 +56,13 @@ void GameCubeConfigPane::InitializeGUI()
   m_system_lang_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_ipl_language_strings);
   m_system_lang_choice->SetToolTip(_("Sets the GameCube system language."));
-  m_system_lang_choice->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSystemLanguageChange, this);
 
   m_override_lang_checkbox = new wxCheckBox(this, wxID_ANY, _("Override Language on NTSC Games"));
   m_override_lang_checkbox->SetToolTip(_(
       "Lets the system language be set to values that games were not designed for. This can allow "
       "the use of extra translations for a few games, but can also lead to text display issues."));
-  m_override_lang_checkbox->Bind(wxEVT_CHECKBOX,
-                                 &GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged, this);
 
   m_skip_bios_checkbox = new wxCheckBox(this, wxID_ANY, _("Skip BIOS"));
-  m_skip_bios_checkbox->Bind(wxEVT_CHECKBOX, &GameCubeConfigPane::OnSkipBiosCheckBoxChanged, this);
 
   if (!File::Exists(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
       !File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
@@ -85,20 +83,15 @@ void GameCubeConfigPane::InitializeGUI()
   };
 
   m_exi_devices[0] = new wxChoice(this, wxID_ANY);
-  m_exi_devices[0]->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSlotAChanged, this);
   m_exi_devices[1] = new wxChoice(this, wxID_ANY);
-  m_exi_devices[1]->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSlotBChanged, this);
   m_exi_devices[2] = new wxChoice(this, wxID_ANY);
-  m_exi_devices[2]->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSP1Changed, this);
   m_exi_devices[2]->SetToolTip(
       _("Serial Port 1 - This is the port which devices such as the net adapter use."));
 
   m_memcard_path[0] =
       new wxButton(this, wxID_ANY, "...", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-  m_memcard_path[0]->Bind(wxEVT_BUTTON, &GameCubeConfigPane::OnSlotAButtonClick, this);
   m_memcard_path[1] =
       new wxButton(this, wxID_ANY, "...", wxDefaultPosition, wxDefaultSize, wxBU_EXACTFIT);
-  m_memcard_path[1]->Bind(wxEVT_BUTTON, &GameCubeConfigPane::OnSlotBButtonClick, this);
 
   const int space5 = FromDIP(5);
   const int space10 = FromDIP(10);
@@ -131,9 +124,6 @@ void GameCubeConfigPane::InitializeGUI()
     if (i < 2)
       gamecube_EXIDev_sizer->Add(m_memcard_path[i], wxGBPosition(i, 2), wxDefaultSpan,
                                  wxALIGN_CENTER_VERTICAL);
-
-    if (NetPlay::IsNetPlayRunning())
-      m_exi_devices[i]->Disable();
   }
   sbGamecubeDeviceSettings->AddSpacer(space5);
   sbGamecubeDeviceSettings->Add(gamecube_EXIDev_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
@@ -218,14 +208,27 @@ void GameCubeConfigPane::LoadGUIValues()
   }
 }
 
-void GameCubeConfigPane::RefreshGUI()
+void GameCubeConfigPane::BindEvents()
 {
-  if (Core::IsRunning())
-  {
-    m_system_lang_choice->Disable();
-    m_override_lang_checkbox->Disable();
-    m_skip_bios_checkbox->Disable();
-  }
+  m_system_lang_choice->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSystemLanguageChange, this);
+  m_system_lang_choice->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_override_lang_checkbox->Bind(wxEVT_CHECKBOX,
+                                 &GameCubeConfigPane::OnOverrideLanguageCheckBoxChanged, this);
+  m_override_lang_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_skip_bios_checkbox->Bind(wxEVT_CHECKBOX, &GameCubeConfigPane::OnSkipBiosCheckBoxChanged, this);
+  m_skip_bios_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_exi_devices[0]->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSlotAChanged, this);
+  m_exi_devices[0]->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfNetplayNotRunning);
+  m_exi_devices[1]->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSlotBChanged, this);
+  m_exi_devices[1]->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfNetplayNotRunning);
+  m_exi_devices[2]->Bind(wxEVT_CHOICE, &GameCubeConfigPane::OnSP1Changed, this);
+  m_exi_devices[2]->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfNetplayNotRunning);
+
+  m_memcard_path[0]->Bind(wxEVT_BUTTON, &GameCubeConfigPane::OnSlotAButtonClick, this);
+  m_memcard_path[1]->Bind(wxEVT_BUTTON, &GameCubeConfigPane::OnSlotBButtonClick, this);
 }
 
 void GameCubeConfigPane::OnSystemLanguageChange(wxCommandEvent& event)

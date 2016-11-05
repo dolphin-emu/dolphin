@@ -61,6 +61,7 @@ set(GUI_SRCS
 	SoftwareVideoConfigDialog.cpp
 	TASInputDlg.cpp
 	VideoConfigDiag.cpp
+	WxEventUtils.cpp
 	WXInputBase.cpp
 	WxUtils.cpp)
 

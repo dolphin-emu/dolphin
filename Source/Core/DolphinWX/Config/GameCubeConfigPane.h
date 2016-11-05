@@ -22,7 +22,7 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
-  void RefreshGUI();
+  void BindEvents();
 
   void OnSystemLanguageChange(wxCommandEvent&);
   void OnOverrideLanguageCheckBoxChanged(wxCommandEvent&);

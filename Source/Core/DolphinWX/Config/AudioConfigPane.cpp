@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/AudioConfigPane.h"
+
 #include <string>
 
 #include <wx/checkbox.h>
@@ -16,15 +18,15 @@
 #include "Common/Common.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "DolphinWX/Config/AudioConfigPane.h"
 #include "DolphinWX/DolphinSlider.h"
+#include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
 AudioConfigPane::AudioConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
   InitializeGUI();
   LoadGUIValues();
-  RefreshGUI();
+  BindEvents();
 }
 
 void AudioConfigPane::InitializeGUI()
@@ -45,13 +47,6 @@ void AudioConfigPane::InitializeGUI()
   m_audio_latency_spinctrl =
       new wxSpinCtrl(this, wxID_ANY, "", wxDefaultPosition, wxDefaultSize, wxSP_ARROW_KEYS, 0, 30);
   m_audio_latency_label = new wxStaticText(this, wxID_ANY, _("Latency:"));
-
-  m_dsp_engine_radiobox->Bind(wxEVT_RADIOBOX, &AudioConfigPane::OnDSPEngineRadioBoxChanged, this);
-  m_dpl2_decoder_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnDPL2DecoderCheckBoxChanged,
-                                this);
-  m_volume_slider->Bind(wxEVT_SLIDER, &AudioConfigPane::OnVolumeSliderChanged, this);
-  m_audio_backend_choice->Bind(wxEVT_CHOICE, &AudioConfigPane::OnAudioBackendChanged, this);
-  m_audio_latency_spinctrl->Bind(wxEVT_SPINCTRL, &AudioConfigPane::OnLatencySpinCtrlChanged, this);
 
   m_audio_backend_choice->SetToolTip(
       _("Changing this will have no effect while the emulator is running."));
@@ -139,15 +134,22 @@ void AudioConfigPane::ToggleBackendSpecificControls(const std::string& backend)
   m_volume_text->Enable(supports_volume_changes);
 }
 
-void AudioConfigPane::RefreshGUI()
+void AudioConfigPane::BindEvents()
 {
-  if (Core::IsRunning())
-  {
-    m_audio_latency_spinctrl->Disable();
-    m_audio_backend_choice->Disable();
-    m_dpl2_decoder_checkbox->Disable();
-    m_dsp_engine_radiobox->Disable();
-  }
+  m_dsp_engine_radiobox->Bind(wxEVT_RADIOBOX, &AudioConfigPane::OnDSPEngineRadioBoxChanged, this);
+  m_dsp_engine_radiobox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_dpl2_decoder_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnDPL2DecoderCheckBoxChanged,
+                                this);
+  m_dpl2_decoder_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_volume_slider->Bind(wxEVT_SLIDER, &AudioConfigPane::OnVolumeSliderChanged, this);
+
+  m_audio_backend_choice->Bind(wxEVT_CHOICE, &AudioConfigPane::OnAudioBackendChanged, this);
+  m_audio_backend_choice->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_audio_latency_spinctrl->Bind(wxEVT_SPINCTRL, &AudioConfigPane::OnLatencySpinCtrlChanged, this);
+  m_audio_latency_spinctrl->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 }
 
 void AudioConfigPane::OnDSPEngineRadioBoxChanged(wxCommandEvent& event)

@@ -23,7 +23,10 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
-  void RefreshGUI();
+  void BindEvents();
+
+  void OnUpdateCPUClockControls(wxUpdateUIEvent&);
+  void OnUpdateRTCDateTimeEntries(wxUpdateUIEvent&);
 
   void OnClockOverrideCheckBoxChanged(wxCommandEvent&);
   void OnClockOverrideSliderChanged(wxCommandEvent&);

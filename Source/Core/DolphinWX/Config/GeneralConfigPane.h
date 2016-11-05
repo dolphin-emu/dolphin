@@ -27,7 +27,7 @@ private:
   std::vector<CPUCore> m_cpu_cores;
   void InitializeGUI();
   void LoadGUIValues();
-  void RefreshGUI();
+  void BindEvents();
 
   void OnDualCoreCheckBoxChanged(wxCommandEvent&);
   void OnCheatCheckBoxChanged(wxCommandEvent&);

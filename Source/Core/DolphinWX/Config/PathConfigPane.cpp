@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/PathConfigPane.h"
+
 #include <string>
 
 #include <wx/button.h>
@@ -18,16 +20,16 @@
 #include "Core/Core.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DolphinWX/Config/ConfigMain.h"
-#include "DolphinWX/Config/PathConfigPane.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
+#include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
 PathConfigPane::PathConfigPane(wxWindow* panel, wxWindowID id) : wxPanel(panel, id)
 {
   InitializeGUI();
   LoadGUIValues();
-  RefreshGUI();
+  BindEvents();
 }
 
 void PathConfigPane::InitializeGUI()
@@ -61,21 +63,6 @@ void PathConfigPane::InitializeGUI()
   m_wii_sdcard_filepicker = new wxFilePickerCtrl(
       this, wxID_ANY, wxEmptyString, _("Choose an SD Card file:"), wxFileSelectorDefaultWildcardStr,
       wxDefaultPosition, wxDefaultSize, wxDIRP_USE_TEXTCTRL | wxDIRP_SMALL);
-
-  m_iso_paths_listbox->Bind(wxEVT_LISTBOX, &PathConfigPane::OnISOPathSelectionChanged, this);
-  m_recursive_iso_paths_checkbox->Bind(wxEVT_CHECKBOX,
-                                       &PathConfigPane::OnRecursiveISOCheckBoxChanged, this);
-  m_add_iso_path_button->Bind(wxEVT_BUTTON, &PathConfigPane::OnAddISOPath, this);
-  m_remove_iso_path_button->Bind(wxEVT_BUTTON, &PathConfigPane::OnRemoveISOPath, this);
-  m_default_iso_filepicker->Bind(wxEVT_FILEPICKER_CHANGED, &PathConfigPane::OnDefaultISOChanged,
-                                 this);
-  m_dvd_root_dirpicker->Bind(wxEVT_DIRPICKER_CHANGED, &PathConfigPane::OnDVDRootChanged, this);
-  m_apploader_path_filepicker->Bind(wxEVT_FILEPICKER_CHANGED,
-                                    &PathConfigPane::OnApploaderPathChanged, this);
-  m_nand_root_dirpicker->Bind(wxEVT_DIRPICKER_CHANGED, &PathConfigPane::OnNANDRootChanged, this);
-  m_dump_path_dirpicker->Bind(wxEVT_DIRPICKER_CHANGED, &PathConfigPane::OnDumpPathChanged, this);
-  m_wii_sdcard_filepicker->Bind(wxEVT_FILEPICKER_CHANGED, &PathConfigPane::OnSdCardPathChanged,
-                                this);
 
   const int space5 = FromDIP(5);
 
@@ -141,10 +128,24 @@ void PathConfigPane::LoadGUIValues()
     m_iso_paths_listbox->Append(StrToWxStr(folder));
 }
 
-void PathConfigPane::RefreshGUI()
+void PathConfigPane::BindEvents()
 {
-  if (Core::IsRunning())
-    Disable();
+  m_iso_paths_listbox->Bind(wxEVT_LISTBOX, &PathConfigPane::OnISOPathSelectionChanged, this);
+  m_recursive_iso_paths_checkbox->Bind(wxEVT_CHECKBOX,
+                                       &PathConfigPane::OnRecursiveISOCheckBoxChanged, this);
+  m_add_iso_path_button->Bind(wxEVT_BUTTON, &PathConfigPane::OnAddISOPath, this);
+  m_remove_iso_path_button->Bind(wxEVT_BUTTON, &PathConfigPane::OnRemoveISOPath, this);
+  m_default_iso_filepicker->Bind(wxEVT_FILEPICKER_CHANGED, &PathConfigPane::OnDefaultISOChanged,
+                                 this);
+  m_dvd_root_dirpicker->Bind(wxEVT_DIRPICKER_CHANGED, &PathConfigPane::OnDVDRootChanged, this);
+  m_apploader_path_filepicker->Bind(wxEVT_FILEPICKER_CHANGED,
+                                    &PathConfigPane::OnApploaderPathChanged, this);
+  m_nand_root_dirpicker->Bind(wxEVT_DIRPICKER_CHANGED, &PathConfigPane::OnNANDRootChanged, this);
+  m_dump_path_dirpicker->Bind(wxEVT_DIRPICKER_CHANGED, &PathConfigPane::OnDumpPathChanged, this);
+  m_wii_sdcard_filepicker->Bind(wxEVT_FILEPICKER_CHANGED, &PathConfigPane::OnSdCardPathChanged,
+                                this);
+
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 }
 
 void PathConfigPane::OnISOPathSelectionChanged(wxCommandEvent& event)
