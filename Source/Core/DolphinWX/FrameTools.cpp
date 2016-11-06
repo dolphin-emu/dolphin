@@ -256,18 +256,13 @@ wxToolBar* CFrame::OnCreateToolBar(long style, wxWindowID id, const wxString& na
   return new MainToolBar{type, this, id, wxDefaultPosition, wxDefaultSize, style};
 }
 
-void CFrame::OpenGeneralConfiguration(int tab)
+void CFrame::OpenGeneralConfiguration(wxWindowID tab_id)
 {
-  CConfigMain config_main(this);
-  if (tab > -1)
-    config_main.SetSelectedTab(tab);
+  if (tab_id > wxID_ANY)
+    m_main_config_dialog->SetSelectedTab(tab_id);
 
-  HotkeyManagerEmu::Enable(false);
-  if (config_main.ShowModal() == wxID_OK)
-    UpdateGameList();
-  HotkeyManagerEmu::Enable(true);
-
-  UpdateGUI();
+  m_main_config_dialog->Show();
+  m_main_config_dialog->SetFocus();
 }
 
 // Menu items
@@ -734,13 +729,11 @@ void CFrame::OnBootDrive(wxCommandEvent& event)
   BootGame(drives[event.GetId() - IDM_DRIVE1]);
 }
 
-// Refresh the file list and browse for a favorites directory
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED(event))
 {
   UpdateGameList();
 }
 
-// Create screenshot
 void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED(event))
 {
   Core::SaveScreenShot();
@@ -1064,6 +1057,11 @@ void CFrame::OnReloadThemeBitmaps(wxCommandEvent& WXUNUSED(event))
   reload_event.SetEventObject(this);
   wxPostEvent(GetToolBar(), reload_event);
 
+  UpdateGameList();
+}
+
+void CFrame::OnReloadGameList(wxCommandEvent& WXUNUSED(event))
+{
   UpdateGameList();
 }
 
@@ -1531,8 +1529,9 @@ void CFrame::UpdateGUI()
 
 void CFrame::UpdateGameList()
 {
-  if (m_GameListCtrl)
-    m_GameListCtrl->ReloadList();
+  wxCommandEvent event{DOLPHIN_EVT_RELOAD_GAMELIST, GetId()};
+  event.SetEventObject(this);
+  wxPostEvent(m_GameListCtrl, event);
 }
 
 void CFrame::GameListChanged(wxCommandEvent& event)

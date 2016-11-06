@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/ConfigMain.h"
+
+#include <wx/debug.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
@@ -10,16 +13,15 @@
 #include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "DolphinWX/Config/AdvancedConfigPane.h"
 #include "DolphinWX/Config/AudioConfigPane.h"
-#include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/Config/GameCubeConfigPane.h"
 #include "DolphinWX/Config/GeneralConfigPane.h"
 #include "DolphinWX/Config/InterfaceConfigPane.h"
 #include "DolphinWX/Config/PathConfigPane.h"
 #include "DolphinWX/Config/WiiConfigPane.h"
+#include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/WxUtils.h"
 
 // Sent by child panes to signify that the game list should
@@ -35,6 +37,7 @@ CConfigMain::CConfigMain(wxWindow* parent, wxWindowID id, const wxString& title,
 
   Bind(wxEVT_CLOSE_WINDOW, &CConfigMain::OnClose, this);
   Bind(wxEVT_BUTTON, &CConfigMain::OnCloseButton, this, wxID_CLOSE);
+  Bind(wxEVT_SHOW, &CConfigMain::OnShow, this);
   Bind(wxDOLPHIN_CFG_REFRESH_LIST, &CConfigMain::OnSetRefreshGameListOnClose, this);
 
   wxDialog::SetExtraStyle(GetExtraStyle() & ~wxWS_EX_BLOCK_EVENTS);
@@ -46,14 +49,22 @@ CConfigMain::~CConfigMain()
 {
 }
 
-void CConfigMain::SetSelectedTab(int tab)
+void CConfigMain::SetSelectedTab(wxWindowID tab_id)
 {
-  // TODO : this is just a quick and dirty way to do it, possible cleanup
-
-  switch (tab)
+  switch (tab_id)
   {
+  case ID_GENERALPAGE:
+  case ID_DISPLAYPAGE:
   case ID_AUDIOPAGE:
-    Notebook->SetSelection(2);
+  case ID_GAMECUBEPAGE:
+  case ID_WIIPAGE:
+  case ID_PATHSPAGE:
+  case ID_ADVANCEDPAGE:
+    Notebook->SetSelection(Notebook->FindPage(Notebook->FindWindowById(tab_id)));
+    break;
+
+  default:
+    wxASSERT_MSG(false, wxString::Format("Invalid tab page ID specified (%d)", tab_id));
     break;
   }
 }
@@ -96,16 +107,22 @@ void CConfigMain::CreateGUIControls()
   SetLayoutAdaptationMode(wxDIALOG_ADAPTATION_MODE_ENABLED);
   SetLayoutAdaptationLevel(wxDIALOG_ADAPTATION_STANDARD_SIZER);
   SetSizerAndFit(main_sizer);
-  Center();
-  SetFocus();
 }
 
 void CConfigMain::OnClose(wxCloseEvent& WXUNUSED(event))
 {
-  EndModal((m_refresh_game_list_on_close) ? wxID_OK : wxID_CANCEL);
+  Hide();
 
-  // Save the config. Dolphin crashes too often to only save the settings on closing
   SConfig::GetInstance().SaveSettings();
+
+  if (m_refresh_game_list_on_close)
+    AddPendingEvent(wxCommandEvent{DOLPHIN_EVT_RELOAD_GAMELIST});
+}
+
+void CConfigMain::OnShow(wxShowEvent& event)
+{
+  if (event.IsShown())
+    CenterOnParent();
 }
 
 void CConfigMain::OnCloseButton(wxCommandEvent& WXUNUSED(event))

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/ISOProperties.h"
+
 #include <array>
 #include <cinttypes>
 #include <cstddef>
@@ -63,11 +65,11 @@
 #include "DiscIO/VolumeCreator.h"
 #include "DolphinWX/Cheats/ActionReplayCodesPanel.h"
 #include "DolphinWX/Cheats/GeckoCodeDiag.h"
+#include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
-#include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
@@ -133,7 +135,7 @@ private:
 
   void OnConfigureClicked(wxCommandEvent&)
   {
-    main_frame->OpenGeneralConfiguration();
+    main_frame->OpenGeneralConfiguration(CConfigMain::ID_GENERALPAGE);
     UpdateState();
   }
 
