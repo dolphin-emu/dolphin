@@ -23,7 +23,9 @@ extern "C" {
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"  //for TargetRefreshRate
 #include "Core/Movie.h"
+
 #include "VideoCommon/AVIDump.h"
+#include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
 
 #if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(55, 28, 1)
@@ -42,16 +44,10 @@ static int s_height;
 static u64 s_last_frame;
 static bool s_last_frame_is_valid = false;
 static bool s_start_dumping = false;
-static bool s_stop_dumping = false;
 static u64 s_last_pts;
-static int s_current_width;
-static int s_current_height;
 static int s_file_index = 0;
-static const u8* s_stored_frame_data;
-static int s_stored_frame_width;
-static int s_stored_frame_height;
-static int s_stored_frame_stride;
-static u64 s_stored_frame_ticks;
+static int s_savestate_index = 0;
+static int s_last_savestate_index = 0;
 
 static void InitAVCodec()
 {
@@ -69,18 +65,17 @@ bool AVIDump::Start(int w, int h)
 
   s_width = w;
   s_height = h;
-  s_current_width = w;
-  s_current_height = h;
 
   s_last_frame_is_valid = false;
   s_last_pts = 0;
 
-  s_stop_dumping = false;
-
   InitAVCodec();
   bool success = CreateFile();
   if (!success)
+  {
     CloseFile();
+    OSD::AddMessage("AVIDump Start failed");
+  }
   return success;
 }
 
@@ -160,6 +155,9 @@ bool AVIDump::CreateFile()
     return false;
   }
 
+  OSD::AddMessage(StringFromFormat("Dumping Frames to \"%s\" (%dx%d)", s_format_context->filename,
+                                   s_width, s_height));
+
   return true;
 }
 
@@ -170,24 +168,24 @@ static void PreparePacket(AVPacket* pkt)
   pkt->size = 0;
 }
 
-void AVIDump::AddFrame(const u8* data, int width, int height, int stride, u64 ticks)
+void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
 {
-  // Store current frame data in case frame dumping stops before next frame update,
-  // but make sure that you don't store the last stored frame and check the resolution upon
-  // closing the file or else you store recursion, and dolphins don't like recursion.
-  if (!s_stop_dumping)
+  // Assume that the timing is valid, if the savestate id of the new frame
+  // doesn't match the last one.
+  if (state.savestate_index != s_last_savestate_index)
   {
-    StoreFrameData(data, width, height, stride, ticks);
-    CheckResolution(width, height);
+    s_last_savestate_index = state.savestate_index;
+    s_last_frame_is_valid = false;
   }
+
+  CheckResolution(width, height);
   s_src_frame->data[0] = const_cast<u8*>(data);
   s_src_frame->linesize[0] = stride;
   s_src_frame->format = s_pix_fmt;
   s_src_frame->width = s_width;
   s_src_frame->height = s_height;
 
-  // Convert image from {BGR24, RGBA} to desired pixel format, and scale to initial
-  // width and height
+  // Convert image from {BGR24, RGBA} to desired pixel format
   if ((s_sws_context =
            sws_getCachedContext(s_sws_context, width, height, s_pix_fmt, s_width, s_height,
                                 s_stream->codec->pix_fmt, SWS_BICUBIC, nullptr, nullptr, nullptr)))
@@ -208,26 +206,25 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, u64 ti
   // incorrectly.
   if (!s_last_frame_is_valid)
   {
-    s_last_frame = ticks;
+    s_last_frame = state.ticks;
     s_last_frame_is_valid = true;
   }
-  if (!s_start_dumping && Movie::GetCurrentFrame() < 1)
+  if (!s_start_dumping && state.first_frame)
   {
-    delta = ticks;
+    delta = state.ticks;
     last_pts = AV_NOPTS_VALUE;
     s_start_dumping = true;
   }
   else
   {
-    delta = ticks - s_last_frame;
-    last_pts = (s_last_pts * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
+    delta = state.ticks - s_last_frame;
+    last_pts = (s_last_pts * s_stream->codec->time_base.den) / state.ticks_per_second;
   }
   u64 pts_in_ticks = s_last_pts + delta;
-  s_scaled_frame->pts =
-      (pts_in_ticks * s_stream->codec->time_base.den) / SystemTimers::GetTicksPerSecond();
+  s_scaled_frame->pts = (pts_in_ticks * s_stream->codec->time_base.den) / state.ticks_per_second;
   if (s_scaled_frame->pts != last_pts)
   {
-    s_last_frame = ticks;
+    s_last_frame = state.ticks;
     s_last_pts = pts_in_ticks;
     error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
   }
@@ -259,10 +256,6 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, u64 ti
 
 void AVIDump::Stop()
 {
-  s_stop_dumping = true;
-  // Write the last stored frame just in case frame dumping stops before the next frame update
-  AddFrame(s_stored_frame_data, s_stored_frame_width, s_stored_frame_height, s_stored_frame_stride,
-           s_stored_frame_ticks);
   av_write_trailer(s_format_context);
   CloseFile();
   s_file_index = 0;
@@ -302,7 +295,7 @@ void AVIDump::CloseFile()
 
 void AVIDump::DoState()
 {
-  s_last_frame_is_valid = false;
+  s_savestate_index++;
 }
 
 void AVIDump::CheckResolution(int width, int height)
@@ -312,22 +305,21 @@ void AVIDump::CheckResolution(int width, int height)
   // (possibly width as well, but no examples known) to have a value of zero. This can occur as the
   // VI is able to be set to a zero value for height/width to disable output. If this is the case,
   // simply keep the last known resolution of the video for the added frame.
-  if ((width != s_current_width || height != s_current_height) && (width > 0 && height > 0))
+  if ((width != s_width || height != s_height) && (width > 0 && height > 0))
   {
     int temp_file_index = s_file_index;
     Stop();
     s_file_index = temp_file_index + 1;
     Start(width, height);
-    s_current_width = width;
-    s_current_height = height;
   }
 }
 
-void AVIDump::StoreFrameData(const u8* data, int width, int height, int stride, u64 ticks)
+AVIDump::Frame AVIDump::FetchState(u64 ticks)
 {
-  s_stored_frame_data = data;
-  s_stored_frame_width = width;
-  s_stored_frame_height = height;
-  s_stored_frame_stride = stride;
-  s_stored_frame_ticks = ticks;
+  Frame state;
+  state.ticks = ticks;
+  state.first_frame = Movie::GetCurrentFrame() < 1;
+  state.ticks_per_second = SystemTimers::GetTicksPerSecond();
+  state.savestate_index = s_savestate_index;
+  return state;
 }
