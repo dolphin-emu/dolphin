@@ -240,10 +240,6 @@ private:
   void OnReloadThemeBitmaps(wxCommandEvent& event);
   void OnReloadGameList(wxCommandEvent& event);
 
-  void OnEnableMenuItemIfCoreInitialized(wxUpdateUIEvent& event);
-  void OnEnableMenuItemIfCoreUninitialized(wxUpdateUIEvent& event);
-  void OnEnableMenuItemIfCorePaused(wxUpdateUIEvent& event);
-  void OnEnableMenuItemIfCPUCanStep(wxUpdateUIEvent& event);
   void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
 
   void OnOpen(wxCommandEvent& event);  // File menu
