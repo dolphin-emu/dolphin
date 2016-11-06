@@ -20,7 +20,7 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
-  void RefreshGUI();
+  void BindEvents();
 
   void OnISOPathSelectionChanged(wxCommandEvent&);
   void OnRecursiveISOCheckBoxChanged(wxCommandEvent&);

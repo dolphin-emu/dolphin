@@ -23,7 +23,7 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
-  void RefreshGUI();
+  void BindEvents();
 
   void PopulateBackendChoiceBox();
   void ToggleBackendSpecificControls(const std::string& backend);

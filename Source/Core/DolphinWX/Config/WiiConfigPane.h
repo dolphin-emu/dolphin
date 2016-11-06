@@ -21,7 +21,7 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
-  void RefreshGUI();
+  void BindEvents();
 
   void OnScreenSaverCheckBoxChanged(wxCommandEvent&);
   void OnPAL60CheckBoxChanged(wxCommandEvent&);

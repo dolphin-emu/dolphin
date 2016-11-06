@@ -155,6 +155,8 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
   return 0;
 }
 
+wxDEFINE_EVENT(DOLPHIN_EVT_RELOAD_GAMELIST, wxCommandEvent);
+
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos,
                              const wxSize& size, long style)
     : wxListCtrl(parent, id, pos, size, style), toolTip(nullptr)
@@ -179,6 +181,8 @@ CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoin
   Bind(wxEVT_MENU, &CGameListCtrl::OnDeleteISO, this, IDM_DELETE_ISO);
   Bind(wxEVT_MENU, &CGameListCtrl::OnChangeDisc, this, IDM_LIST_CHANGE_DISC);
   Bind(wxEVT_MENU, &CGameListCtrl::OnNetPlayHost, this, IDM_START_NETPLAY);
+
+  Bind(DOLPHIN_EVT_RELOAD_GAMELIST, &CGameListCtrl::OnReloadGameList, this);
 
   wxTheApp->Bind(DOLPHIN_EVT_LOCAL_INI_CHANGED, &CGameListCtrl::OnLocalIniModified, this);
 }
@@ -706,6 +710,11 @@ void CGameListCtrl::ScanForISOs()
   }
 
   std::sort(m_ISOFiles.begin(), m_ISOFiles.end());
+}
+
+void CGameListCtrl::OnReloadGameList(wxCommandEvent& WXUNUSED(event))
+{
+  ReloadList();
 }
 
 void CGameListCtrl::OnLocalIniModified(wxCommandEvent& ev)

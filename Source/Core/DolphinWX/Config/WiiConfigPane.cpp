@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/WiiConfigPane.h"
+
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/gbsizer.h>
@@ -12,15 +14,15 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "DolphinWX/Config/WiiConfigPane.h"
 #include "DolphinWX/DolphinSlider.h"
+#include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
 WiiConfigPane::WiiConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
   InitializeGUI();
   LoadGUIValues();
-  RefreshGUI();
+  BindEvents();
 }
 
 void WiiConfigPane::InitializeGUI()
@@ -55,18 +57,6 @@ void WiiConfigPane::InitializeGUI()
   m_bt_sensor_bar_sens = new DolphinSlider(this, wxID_ANY, 0, 0, 4);
   m_bt_speaker_volume = new DolphinSlider(this, wxID_ANY, 0, 0, 127);
   m_bt_wiimote_motor = new wxCheckBox(this, wxID_ANY, _("Wii Remote Motor"));
-
-  m_screensaver_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnScreenSaverCheckBoxChanged, this);
-  m_pal60_mode_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnPAL60CheckBoxChanged, this);
-  m_aspect_ratio_choice->Bind(wxEVT_CHOICE, &WiiConfigPane::OnAspectRatioChoiceChanged, this);
-  m_system_language_choice->Bind(wxEVT_CHOICE, &WiiConfigPane::OnSystemLanguageChoiceChanged, this);
-  m_sd_card_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnSDCardCheckBoxChanged, this);
-  m_connect_keyboard_checkbox->Bind(wxEVT_CHECKBOX,
-                                    &WiiConfigPane::OnConnectKeyboardCheckBoxChanged, this);
-  m_bt_sensor_bar_pos->Bind(wxEVT_CHOICE, &WiiConfigPane::OnSensorBarPosChanged, this);
-  m_bt_sensor_bar_sens->Bind(wxEVT_SLIDER, &WiiConfigPane::OnSensorBarSensChanged, this);
-  m_bt_speaker_volume->Bind(wxEVT_SLIDER, &WiiConfigPane::OnSpeakerVolumeChanged, this);
-  m_bt_wiimote_motor->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnWiimoteMotorChanged, this);
 
   m_screensaver_checkbox->SetToolTip(_("Dims the screen after five minutes of inactivity."));
   m_pal60_mode_checkbox->SetToolTip(_("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
@@ -167,20 +157,35 @@ void WiiConfigPane::LoadGUIValues()
   m_bt_wiimote_motor->SetValue(SConfig::GetInstance().m_wiimote_motor);
 }
 
-void WiiConfigPane::RefreshGUI()
+void WiiConfigPane::BindEvents()
 {
-  if (Core::IsRunning())
-  {
-    m_screensaver_checkbox->Disable();
-    m_pal60_mode_checkbox->Disable();
-    m_aspect_ratio_choice->Disable();
-    m_system_language_choice->Disable();
+  m_screensaver_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnScreenSaverCheckBoxChanged, this);
+  m_screensaver_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
-    m_bt_sensor_bar_pos->Disable();
-    m_bt_sensor_bar_sens->Disable();
-    m_bt_speaker_volume->Disable();
-    m_bt_wiimote_motor->Disable();
-  }
+  m_pal60_mode_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnPAL60CheckBoxChanged, this);
+  m_pal60_mode_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_aspect_ratio_choice->Bind(wxEVT_CHOICE, &WiiConfigPane::OnAspectRatioChoiceChanged, this);
+  m_aspect_ratio_choice->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_system_language_choice->Bind(wxEVT_CHOICE, &WiiConfigPane::OnSystemLanguageChoiceChanged, this);
+  m_system_language_choice->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_sd_card_checkbox->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnSDCardCheckBoxChanged, this);
+  m_connect_keyboard_checkbox->Bind(wxEVT_CHECKBOX,
+                                    &WiiConfigPane::OnConnectKeyboardCheckBoxChanged, this);
+
+  m_bt_sensor_bar_pos->Bind(wxEVT_CHOICE, &WiiConfigPane::OnSensorBarPosChanged, this);
+  m_bt_sensor_bar_pos->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_bt_sensor_bar_sens->Bind(wxEVT_SLIDER, &WiiConfigPane::OnSensorBarSensChanged, this);
+  m_bt_sensor_bar_sens->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_bt_speaker_volume->Bind(wxEVT_SLIDER, &WiiConfigPane::OnSpeakerVolumeChanged, this);
+  m_bt_speaker_volume->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_bt_wiimote_motor->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnWiimoteMotorChanged, this);
+  m_bt_wiimote_motor->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 }
 
 void WiiConfigPane::OnScreenSaverCheckBoxChanged(wxCommandEvent& event)

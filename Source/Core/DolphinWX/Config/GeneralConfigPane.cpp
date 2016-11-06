@@ -18,6 +18,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "DolphinWX/WxEventUtils.h"
 
 GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
@@ -34,7 +35,7 @@ GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(
 
   InitializeGUI();
   LoadGUIValues();
-  RefreshGUI();
+  BindEvents();
 }
 
 void GeneralConfigPane::InitializeGUI()
@@ -85,15 +86,6 @@ void GeneralConfigPane::InitializeGUI()
   m_throttler_choice->SetToolTip(_("Limits the emulation speed to the specified percentage.\nNote "
                                    "that raising or lowering the emulation speed will also raise "
                                    "or lower the audio pitch to prevent audio from stuttering."));
-
-  m_dual_core_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnDualCoreCheckBoxChanged, this);
-  m_cheats_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnCheatCheckBoxChanged, this);
-  m_force_ntscj_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnForceNTSCJCheckBoxChanged,
-                               this);
-  m_analytics_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnAnalyticsCheckBoxChanged, this);
-  m_analytics_new_id->Bind(wxEVT_BUTTON, &GeneralConfigPane::OnAnalyticsNewIdButtonClick, this);
-  m_throttler_choice->Bind(wxEVT_CHOICE, &GeneralConfigPane::OnThrottlerChoiceChanged, this);
-  m_cpu_engine_radiobox->Bind(wxEVT_RADIOBOX, &GeneralConfigPane::OnCPUEngineRadioBoxChanged, this);
 
   const int space5 = FromDIP(5);
 
@@ -161,15 +153,26 @@ void GeneralConfigPane::LoadGUIValues()
   }
 }
 
-void GeneralConfigPane::RefreshGUI()
+void GeneralConfigPane::BindEvents()
 {
-  if (Core::IsRunning())
-  {
-    m_dual_core_checkbox->Disable();
-    m_cheats_checkbox->Disable();
-    m_force_ntscj_checkbox->Disable();
-    m_cpu_engine_radiobox->Disable();
-  }
+  m_dual_core_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnDualCoreCheckBoxChanged, this);
+  m_dual_core_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_cheats_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnCheatCheckBoxChanged, this);
+  m_cheats_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_force_ntscj_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnForceNTSCJCheckBoxChanged,
+                               this);
+  m_force_ntscj_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_analytics_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnAnalyticsCheckBoxChanged, this);
+
+  m_analytics_new_id->Bind(wxEVT_BUTTON, &GeneralConfigPane::OnAnalyticsNewIdButtonClick, this);
+
+  m_throttler_choice->Bind(wxEVT_CHOICE, &GeneralConfigPane::OnThrottlerChoiceChanged, this);
+
+  m_cpu_engine_radiobox->Bind(wxEVT_RADIOBOX, &GeneralConfigPane::OnCPUEngineRadioBoxChanged, this);
+  m_cpu_engine_radiobox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 }
 
 void GeneralConfigPane::OnDualCoreCheckBoxChanged(wxCommandEvent& event)

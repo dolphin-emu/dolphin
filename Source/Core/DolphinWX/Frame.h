@@ -27,6 +27,7 @@
 // Class declarations
 class CGameListCtrl;
 class CCodeWindow;
+class CConfigMain;
 class CLogWindow;
 class FifoPlayerDlg;
 class LogConfigWindow;
@@ -108,7 +109,7 @@ public:
   void UpdateWiiMenuChoice(wxMenuItem* WiiMenuItem = nullptr);
   static void ConnectWiimote(int wm_idx, bool connect);
   void UpdateTitle(const std::string& str);
-  void OpenGeneralConfiguration(int tab = -1);
+  void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
 
   const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
@@ -143,6 +144,7 @@ public:
 
 private:
   CGameListCtrl* m_GameListCtrl = nullptr;
+  CConfigMain* m_main_config_dialog = nullptr;
   wxPanel* m_Panel = nullptr;
   CRenderFrame* m_RenderFrame = nullptr;
   wxWindow* m_RenderParent = nullptr;
@@ -236,6 +238,7 @@ private:
   void OnHelp(wxCommandEvent& event);
 
   void OnReloadThemeBitmaps(wxCommandEvent& event);
+  void OnReloadGameList(wxCommandEvent& event);
 
   void OnEnableMenuItemIfCoreInitialized(wxUpdateUIEvent& event);
   void OnEnableMenuItemIfCoreUninitialized(wxUpdateUIEvent& event);

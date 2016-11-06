@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/AdvancedConfigPane.h"
+
 #include <cmath>
 
 #include <wx/checkbox.h>
@@ -14,14 +16,14 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "DolphinWX/Config/AdvancedConfigPane.h"
 #include "DolphinWX/DolphinSlider.h"
+#include "DolphinWX/WxEventUtils.h"
 
 AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
   InitializeGUI();
   LoadGUIValues();
-  RefreshGUI();
+  BindEvents();
 }
 
 void AdvancedConfigPane::InitializeGUI()
@@ -31,21 +33,9 @@ void AdvancedConfigPane::InitializeGUI()
       new DolphinSlider(this, wxID_ANY, 100, 0, 150, wxDefaultPosition, FromDIP(wxSize(200, -1)));
   m_clock_override_text = new wxStaticText(this, wxID_ANY, "");
 
-  m_clock_override_checkbox->Bind(wxEVT_CHECKBOX,
-                                  &AdvancedConfigPane::OnClockOverrideCheckBoxChanged, this);
-  m_clock_override_slider->Bind(wxEVT_SLIDER, &AdvancedConfigPane::OnClockOverrideSliderChanged,
-                                this);
-
   m_custom_rtc_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Custom RTC"));
   m_custom_rtc_date_picker = new wxDatePickerCtrl(this, wxID_ANY);
   m_custom_rtc_time_picker = new wxTimePickerCtrl(this, wxID_ANY);
-
-  m_custom_rtc_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnCustomRTCCheckBoxChanged,
-                              this);
-  m_custom_rtc_date_picker->Bind(wxEVT_DATE_CHANGED, &AdvancedConfigPane::OnCustomRTCDateChanged,
-                                 this);
-  m_custom_rtc_time_picker->Bind(wxEVT_TIME_CHANGED, &AdvancedConfigPane::OnCustomRTCTimeChanged,
-                                 this);
 
   wxStaticText* const clock_override_description =
       new wxStaticText(this, wxID_ANY, _("Higher values can make variable-framerate games "
@@ -122,6 +112,33 @@ void AdvancedConfigPane::LoadGUIValues()
   LoadCustomRTC();
 }
 
+void AdvancedConfigPane::BindEvents()
+{
+  m_clock_override_checkbox->Bind(wxEVT_CHECKBOX,
+                                  &AdvancedConfigPane::OnClockOverrideCheckBoxChanged, this);
+  m_clock_override_checkbox->Bind(wxEVT_UPDATE_UI, &AdvancedConfigPane::OnUpdateCPUClockControls,
+                                  this);
+
+  m_clock_override_slider->Bind(wxEVT_SLIDER, &AdvancedConfigPane::OnClockOverrideSliderChanged,
+                                this);
+  m_clock_override_slider->Bind(wxEVT_UPDATE_UI, &AdvancedConfigPane::OnUpdateCPUClockControls,
+                                this);
+
+  m_custom_rtc_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnCustomRTCCheckBoxChanged,
+                              this);
+  m_custom_rtc_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_custom_rtc_date_picker->Bind(wxEVT_DATE_CHANGED, &AdvancedConfigPane::OnCustomRTCDateChanged,
+                                 this);
+  m_custom_rtc_date_picker->Bind(wxEVT_UPDATE_UI, &AdvancedConfigPane::OnUpdateRTCDateTimeEntries,
+                                 this);
+
+  m_custom_rtc_time_picker->Bind(wxEVT_TIME_CHANGED, &AdvancedConfigPane::OnCustomRTCTimeChanged,
+                                 this);
+  m_custom_rtc_time_picker->Bind(wxEVT_UPDATE_UI, &AdvancedConfigPane::OnUpdateRTCDateTimeEntries,
+                                 this);
+}
+
 void AdvancedConfigPane::OnClockOverrideCheckBoxChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().m_OCEnable = m_clock_override_checkbox->IsChecked();
@@ -188,17 +205,6 @@ void AdvancedConfigPane::LoadCustomRTC()
   // Limit dates to a valid range (Jan 1/2000 to Dec 31/2099)
   m_custom_rtc_date_picker->SetRange(wxDateTime(1, wxDateTime::Jan, 2000),
                                      wxDateTime(31, wxDateTime::Dec, 2099));
-  if (Core::IsRunning())
-  {
-    m_custom_rtc_checkbox->Enable(false);
-    m_custom_rtc_date_picker->Enable(false);
-    m_custom_rtc_time_picker->Enable(false);
-  }
-  else
-  {
-    m_custom_rtc_date_picker->Enable(custom_rtc_enabled);
-    m_custom_rtc_time_picker->Enable(custom_rtc_enabled);
-  }
 }
 
 void AdvancedConfigPane::UpdateCustomRTC(time_t date, time_t time)
@@ -209,19 +215,18 @@ void AdvancedConfigPane::UpdateCustomRTC(time_t date, time_t time)
   m_custom_rtc_time_picker->SetValue(custom_rtc);
 }
 
-void AdvancedConfigPane::RefreshGUI()
+void AdvancedConfigPane::OnUpdateCPUClockControls(wxUpdateUIEvent& event)
 {
-  // Don't allow users to edit the RTC while the game is running
-  if (Core::IsRunning())
+  if (!Core::IsRunning())
   {
-    m_custom_rtc_checkbox->Disable();
-    m_custom_rtc_date_picker->Disable();
-    m_custom_rtc_time_picker->Disable();
+    event.Enable(true);
+    return;
   }
-  // Allow users to edit CPU clock speed in game, but not while needing determinism
-  if (Core::IsRunning() && Core::g_want_determinism)
-  {
-    m_clock_override_checkbox->Disable();
-    m_clock_override_slider->Disable();
-  }
+
+  event.Enable(!Core::g_want_determinism);
+}
+
+void AdvancedConfigPane::OnUpdateRTCDateTimeEntries(wxUpdateUIEvent& event)
+{
+  event.Enable(!Core::IsRunning() && m_custom_rtc_checkbox->IsChecked());
 }

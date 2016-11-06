@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Frame.h"
+
 #include <atomic>
 #include <cstddef>
 #include <fstream>
@@ -49,8 +51,8 @@
 #include "Core/Movie.h"
 #include "Core/State.h"
 
+#include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
-#include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/LogWindow.h"
@@ -310,6 +312,8 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
 {
   BindEvents();
 
+  m_main_config_dialog = new CConfigMain(this);
+
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
     bFloatWindow[i] = false;
 
@@ -488,6 +492,7 @@ void CFrame::BindEvents()
   BindMenuBarEvents();
 
   Bind(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, &CFrame::OnReloadThemeBitmaps, this);
+  Bind(DOLPHIN_EVT_RELOAD_GAMELIST, &CFrame::OnReloadGameList, this);
 }
 
 bool CFrame::RendererIsFullscreen()
