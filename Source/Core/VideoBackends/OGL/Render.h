@@ -119,9 +119,9 @@ private:
   // avi dumping state to delay one frame
   std::array<u32, 2> m_frame_dumping_pbo = {};
   std::array<bool, 2> m_frame_pbo_is_mapped = {};
+  std::array<int, 2> m_last_frame_width = {};
+  std::array<int, 2> m_last_frame_height = {};
   bool m_last_frame_exported = false;
-  int m_last_frame_width = 0;
-  int m_last_frame_height = 0;
   AVIDump::Frame m_last_frame_state;
 };
 }

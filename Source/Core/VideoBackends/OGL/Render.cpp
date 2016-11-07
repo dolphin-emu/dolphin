@@ -1589,10 +1589,10 @@ void Renderer::FlushFrameDump()
   FinishFrameData();
   glBindBuffer(GL_PIXEL_PACK_BUFFER, m_frame_dumping_pbo[0]);
   m_frame_pbo_is_mapped[0] = true;
-  void* data = glMapBufferRange(GL_PIXEL_PACK_BUFFER, 0,
-                                m_last_frame_width * m_last_frame_height * 4, GL_MAP_READ_BIT);
-  DumpFrameData(reinterpret_cast<u8*>(data), m_last_frame_width, m_last_frame_height,
-                m_last_frame_width * 4, m_last_frame_state, true);
+  void* data = glMapBufferRange(
+      GL_PIXEL_PACK_BUFFER, 0, m_last_frame_width[0] * m_last_frame_height[0] * 4, GL_MAP_READ_BIT);
+  DumpFrameData(reinterpret_cast<u8*>(data), m_last_frame_width[0], m_last_frame_height[0],
+                m_last_frame_width[0] * 4, m_last_frame_state, true);
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
   m_last_frame_exported = false;
 }
@@ -1611,21 +1611,28 @@ void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
   {
     std::swap(m_frame_dumping_pbo[0], m_frame_dumping_pbo[1]);
     std::swap(m_frame_pbo_is_mapped[0], m_frame_pbo_is_mapped[1]);
+    std::swap(m_last_frame_width[0], m_last_frame_width[1]);
+    std::swap(m_last_frame_height[0], m_last_frame_height[1]);
     glBindBuffer(GL_PIXEL_PACK_BUFFER, m_frame_dumping_pbo[0]);
     if (m_frame_pbo_is_mapped[0])
       glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
     m_frame_pbo_is_mapped[0] = false;
   }
 
-  m_last_frame_width = flipped_trc.GetWidth();
-  m_last_frame_height = flipped_trc.GetHeight();
+  if (flipped_trc.GetWidth() != m_last_frame_width[0] ||
+      flipped_trc.GetHeight() != m_last_frame_height[0])
+  {
+    m_last_frame_width[0] = flipped_trc.GetWidth();
+    m_last_frame_height[0] = flipped_trc.GetHeight();
+    glBufferData(GL_PIXEL_PACK_BUFFER, m_last_frame_width[0] * m_last_frame_height[0] * 4, nullptr,
+                 GL_STREAM_READ);
+  }
+
   m_last_frame_state = AVIDump::FetchState(ticks);
   m_last_frame_exported = true;
 
-  glBufferData(GL_PIXEL_PACK_BUFFER, m_last_frame_width * m_last_frame_height * 4, nullptr,
-               GL_STREAM_READ);
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glReadPixels(flipped_trc.left, flipped_trc.bottom, m_last_frame_width, m_last_frame_height,
+  glReadPixels(flipped_trc.left, flipped_trc.bottom, m_last_frame_width[0], m_last_frame_height[0],
                GL_RGBA, GL_UNSIGNED_BYTE, 0);
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
