@@ -153,7 +153,7 @@ protected:
                      bool swap_upside_down = false);
   void FinishFrameData();
 
-  static volatile bool s_bScreenshot;
+  static Common::Flag s_screenshot;
   static std::mutex s_criticalScreenshot;
   static std::string s_sScreenshotName;
 

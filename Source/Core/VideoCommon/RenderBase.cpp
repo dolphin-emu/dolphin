@@ -62,8 +62,7 @@ std::mutex Renderer::s_criticalScreenshot;
 std::string Renderer::s_sScreenshotName;
 
 Common::Event Renderer::s_screenshotCompleted;
-
-volatile bool Renderer::s_bScreenshot;
+Common::Flag Renderer::s_screenshot;
 
 // The framebuffer size
 int Renderer::s_target_width;
@@ -303,7 +302,7 @@ void Renderer::SetScreenshot(const std::string& filename)
 {
   std::lock_guard<std::mutex> lk(s_criticalScreenshot);
   s_sScreenshotName = filename;
-  s_bScreenshot = true;
+  s_screenshot.Set();
 }
 
 // Create On-Screen-Messages
@@ -644,7 +643,7 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
 
 bool Renderer::IsFrameDumping()
 {
-  if (s_bScreenshot)
+  if (s_screenshot.IsSet())
     return true;
 
 #if defined(HAVE_LIBAV) || defined(_WIN32)
@@ -718,7 +717,7 @@ void Renderer::RunFrameDumps()
       FlipImageData(data.data(), config.width, config.height, 4);
 
     // Save screenshot
-    if (s_bScreenshot)
+    if (s_screenshot.TestAndClear())
     {
       std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 
@@ -728,7 +727,6 @@ void Renderer::RunFrameDumps()
 
       // Reset settings
       s_sScreenshotName.clear();
-      s_bScreenshot = false;
       s_screenshotCompleted.Set();
     }
 
