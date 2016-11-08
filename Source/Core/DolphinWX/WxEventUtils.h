@@ -12,6 +12,14 @@ class wxUpdateUIEvent;
 
 namespace WxEventUtils
 {
+void OnEnableIfCoreInitialized(wxUpdateUIEvent&);
+void OnEnableIfCoreUninitialized(wxUpdateUIEvent&);
+void OnEnableIfCoreRunning(wxUpdateUIEvent&);
 void OnEnableIfCoreNotRunning(wxUpdateUIEvent&);
+void OnEnableIfCorePaused(wxUpdateUIEvent&);
+void OnEnableIfCoreRunningOrPaused(wxUpdateUIEvent&);
+
+void OnEnableIfCPUCanStep(wxUpdateUIEvent&);
+
 void OnEnableIfNetplayNotRunning(wxUpdateUIEvent&);
 }  // namespace WxEventUtils

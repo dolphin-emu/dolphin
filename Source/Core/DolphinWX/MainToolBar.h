@@ -53,11 +53,6 @@ private:
   void BindMainButtonEvents();
   void BindDebuggerButtonEvents();
 
-  void OnUpdateIfCoreNotRunning(wxUpdateUIEvent&);
-  void OnUpdateIfCorePaused(wxUpdateUIEvent&);
-  void OnUpdateIfCoreRunningOrPaused(wxUpdateUIEvent&);
-  void OnUpdateIfCPUCanStep(wxUpdateUIEvent&);
-
   void OnReloadBitmaps(wxCommandEvent&);
 
   void InitializeBitmaps();
