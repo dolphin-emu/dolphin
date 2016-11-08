@@ -19,6 +19,7 @@ public abstract class SettingsItem
 
 	private String mKey;
 	private String mSection;
+	private int mFile;
 
 	private Setting mSetting;
 
@@ -35,10 +36,11 @@ public abstract class SettingsItem
 	 * @param nameId        Resource ID for a text string to be displayed as this setting's name.
 	 * @param descriptionId Resource ID for a text string to be displayed as this setting's description.
 	 */
-	public SettingsItem(String key, String section, Setting setting, int nameId, int descriptionId)
+	public SettingsItem(String key, String section, int file, Setting setting, int nameId, int descriptionId)
 	{
 		mKey = key;
 		mSection = section;
+		mFile = file;
 		mSetting = setting;
 		mNameId = nameId;
 		mDescriptionId = descriptionId;
@@ -60,6 +62,15 @@ public abstract class SettingsItem
 	public String getSection()
 	{
 		return mSection;
+	}
+
+	/**
+	 *
+	 * @return The file the backing Setting is saved to.
+	 */
+	public int getFile()
+	{
+		return mFile;
 	}
 
 	/**
