@@ -18,29 +18,36 @@ public interface SettingsActivityView
 	void showSettingsFragment(String menuTag, boolean addToStack);
 
 	/**
-	 * Called by a contained Fragment to get access to the Setting Hashmap
+	 * Called by a contained Fragment to get access to the Setting HashMap
 	 * loaded from disk, so that each Fragment doesn't need to perform its own
 	 * read operation.
 	 *
-	 * @return A possibly null Hashmap of Settings.
+	 * @param fileName The name of the ini file to load.
+	 * @return A possibly null HashMap of Settings.
 	 */
-	HashMap<String, SettingSection> getSettings();
+	HashMap<String, SettingSection> getSettings(String fileName);
 
 	/**
-	 * Used to provide the Activity with a Settings Hashmap if a Fragment already
+	 * Used to provide the Activity with a Settings HashMap if a Fragment already
 	 * has one; for example, if a rotation occurs, the Fragment will not be killed,
-	 * but the Activity will, so the Activity needs to have its Hashmap resupplied.
+	 * but the Activity will, so the Activity needs to have its HashMap resupplied.
 	 *
-	 * @param settings The Fragment's Settings hashmap.
+	 * @param dolphinSettings The Fragment's main Settings HashMap.
+	 * @param gfxSettings     The Fragment's graphics Settings HashMap.
+	 * @param wiimoteSettings The Fragment's Wii Remote Settings HashMap.
 	 */
-	void setSettings(HashMap<String, SettingSection> settings);
+	void setSettings(HashMap<String, SettingSection> dolphinSettings, HashMap<String, SettingSection> gfxSettings,
+			 HashMap<String, SettingSection> wiimoteSettings);
 
 	/**
 	 * Called when an asynchronous load operation completes.
 	 *
-	 * @param settings The (possibly null) result of the load operation.
+	 * @param dolphinSettings The (possibly null) result of the main ini load operation.
+	 * @param gfxSettings     The (possibly null) result of the graphics ini load operation.
+	 * @param wiimoteSettings The (possibly null) result of the Wii Remote ini load operation.
 	 */
-	void onSettingsFileLoaded(HashMap<String, SettingSection> settings);
+	void onSettingsFileLoaded(HashMap<String, SettingSection> dolphinSettings, HashMap<String, SettingSection> gfxSettings,
+				  HashMap<String, SettingSection> wiimoteSettings);
 
 	/**
 	 * Called when an asynchronous load operation fails.

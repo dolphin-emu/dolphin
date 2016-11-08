@@ -17,6 +17,7 @@ import org.dolphinemu.dolphinemu.model.settings.Setting;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.ui.DividerItemDecoration;
+import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -83,9 +84,11 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 		recyclerView.addItemDecoration(new DividerItemDecoration(getActivity(), null));
 
 		SettingsActivityView activity = (SettingsActivityView) getActivity();
-		HashMap<String, SettingSection> settings = activity.getSettings();
+		HashMap<String, SettingSection> dolphinSettings = activity.getSettings(SettingsFile.FILE_NAME_DOLPHIN);
+		HashMap<String, SettingSection> gfxSettings = activity.getSettings(SettingsFile.FILE_NAME_GFX);
+		HashMap<String, SettingSection> wiimoteSettings = activity.getSettings(SettingsFile.FILE_NAME_WIIMOTE);
 
-		mPresenter.onViewCreated(settings);
+		mPresenter.onViewCreated(dolphinSettings, gfxSettings, wiimoteSettings);
 	}
 
 	@Override
@@ -101,17 +104,19 @@ public final class SettingsFragment extends Fragment implements SettingsFragment
 	}
 
 	@Override
-	public void onSettingsFileLoaded(HashMap<String, SettingSection> settings)
+	public void onSettingsFileLoaded(HashMap<String, SettingSection> dolphinSettings, HashMap<String, SettingSection> gfxSettings,
+					 HashMap<String, SettingSection> wiimoteSettings)
 	{
-		mPresenter.setSettings(settings);
+		mPresenter.setSettings(dolphinSettings, wiimoteSettings, gfxSettings);
 	}
 
 	@Override
-	public void passSettingsToActivity(HashMap<String, SettingSection> settings)
+	public void passSettingsToActivity(HashMap<String, SettingSection> dolphinSettings, HashMap<String, SettingSection> gfxSettings,
+					   HashMap<String, SettingSection> wiimoteSettings)
 	{
 		if (mActivity != null)
 		{
-			mActivity.setSettings(settings);
+			mActivity.setSettings(dolphinSettings, gfxSettings, wiimoteSettings);
 		}
 	}
 

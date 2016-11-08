@@ -10,18 +10,15 @@ import org.dolphinemu.dolphinemu.utils.SettingsFile;
 
 import java.util.HashMap;
 
-import rx.android.schedulers.AndroidSchedulers;
-import rx.functions.Action1;
-import rx.schedulers.Schedulers;
-
 public final class SettingsActivityPresenter
 {
 	private static final String SHOULD_SAVE = BuildConfig.APPLICATION_ID + ".should_save";
 
 	private SettingsActivityView mView;
 
-	private String mFileName;
-	private HashMap<String, SettingSection> mSettingsBySection;
+	private HashMap<String, SettingSection> mDolphinSettings;
+	private HashMap<String, SettingSection> mGfxSettings;
+	private HashMap<String, SettingSection> mWiimoteSettings;
 
 	private int mStackCount;
 
@@ -32,48 +29,16 @@ public final class SettingsActivityPresenter
 		mView = view;
 	}
 
-	public void onCreate(Bundle savedInstanceState, final String filename)
+	public void onCreate(Bundle savedInstanceState, String menuTag)
 	{
-		mFileName = filename;
-
 		if (savedInstanceState == null)
 		{
-			// TODO DI should be able to get rid of this hack
-			if (filename.equals(SettingsFile.FILE_NAME_GCPAD))
-			{
-				// Psyche! Don't actually load that file (yet).
-				mFileName = SettingsFile.FILE_NAME_DOLPHIN;
+			mView.showSettingsFragment(menuTag, false);
 
-				// But do display its fragment, as if we had.
-				mView.showSettingsFragment(SettingsFile.FILE_NAME_GCPAD, false);
-			}
-			else
-			{
-				mFileName = filename;
-				mView.showSettingsFragment(mFileName, false);
-			}
-
-			SettingsFile.readFile(mFileName)
-					.subscribeOn(Schedulers.io())
-					.observeOn(AndroidSchedulers.mainThread())
-					.subscribe(new Action1<HashMap<String, SettingSection>>()
-					{
-						@Override
-						public void call(HashMap<String, SettingSection> settingsBySection)
-						{
-							mSettingsBySection = settingsBySection;
-							mView.onSettingsFileLoaded(settingsBySection);
-						}
-					},
-					new Action1<Throwable>()
-					{
-						@Override
-						public void call(Throwable throwable)
-						{
-							Log.error("[SettingsActivityPresenter] Error reading file " + filename + ".ini: "+ throwable.getMessage());
-							mView.onSettingsFileNotFound();
-						}
-					});
+			mDolphinSettings = SettingsFile.readFile(SettingsFile.FILE_NAME_DOLPHIN, mView);
+			mGfxSettings = SettingsFile.readFile(SettingsFile.FILE_NAME_GFX, mView);
+			mWiimoteSettings = SettingsFile.readFile(SettingsFile.FILE_NAME_WIIMOTE, mView);
+			mView.onSettingsFileLoaded(mDolphinSettings, mGfxSettings, mWiimoteSettings);
 		}
 		else
 		{
@@ -81,40 +46,37 @@ public final class SettingsActivityPresenter
 		}
 	}
 
-	public void setSettings(HashMap<String, SettingSection> settings)
+	public void setSettings(HashMap<String, SettingSection> dolphinSettings, HashMap<String, SettingSection> gfxSettings,
+				HashMap<String, SettingSection> wiimoteSettings)
 	{
-		mSettingsBySection = settings;
+		mDolphinSettings = dolphinSettings;
+		mGfxSettings = gfxSettings;
+		mWiimoteSettings = wiimoteSettings;
 	}
 
-	public HashMap<String, SettingSection> getSettings()
+	public HashMap<String, SettingSection> getSettings(String fileName)
 	{
-		return mSettingsBySection;
+		switch (fileName)
+		{
+			case SettingsFile.FILE_NAME_DOLPHIN:
+				return mDolphinSettings;
+			case SettingsFile.FILE_NAME_GFX:
+				return mGfxSettings;
+			case SettingsFile.FILE_NAME_WIIMOTE:
+				return mWiimoteSettings;
+		}
+		return null;
 	}
 
 	public void onStop(boolean finishing)
 	{
-		if (mSettingsBySection != null && finishing && mShouldSave)
+		if (mDolphinSettings != null && finishing && mShouldSave)
 		{
 			Log.debug("[SettingsActivity] Settings activity stopping. Saving settings to INI...");
-			SettingsFile.saveFile(mFileName, mSettingsBySection)
-					.subscribeOn(Schedulers.io())
-					.observeOn(AndroidSchedulers.mainThread())
-					.subscribe(new Action1<Boolean>()
-					{
-						@Override
-						public void call(Boolean aBoolean)
-						{
-							mView.showToastMessage("Saved successfully to " + mFileName + ".ini");
-						}
-					},
-					new Action1<Throwable>()
-					{
-						@Override
-						public void call(Throwable throwable)
-						{
-							mView.showToastMessage("Error saving " + mFileName + ".ini: " + throwable.getMessage());
-						}
-					});
+			SettingsFile.saveFile(SettingsFile.FILE_NAME_DOLPHIN, mDolphinSettings, mView);
+			SettingsFile.saveFile(SettingsFile.FILE_NAME_GFX, mGfxSettings, mView);
+			SettingsFile.saveFile(SettingsFile.FILE_NAME_WIIMOTE, mWiimoteSettings, mView);
+			mView.showToastMessage("Saved settings to INI files");
 		}
 	}
 

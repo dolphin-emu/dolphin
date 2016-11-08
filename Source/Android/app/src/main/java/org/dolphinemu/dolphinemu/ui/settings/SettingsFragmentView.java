@@ -19,23 +19,29 @@ public interface SettingsFragmentView
 	 * Called by the containing Activity to notify the Fragment that an
 	 * asynchronous load operation completed.
 	 *
-	 * @param settings The potentially-null result of the load operation.
+	 * @param dolphinSettings The potentially-null result of the main ini load operation.
+	 * @param gfxSettings     The potentially-null result of the graphics ini load operation.
+	 * @param wiimoteSettings The potentially-null result of the Wii Remote load operation.
 	 */
-	void onSettingsFileLoaded(HashMap<String, SettingSection> settings);
+	void onSettingsFileLoaded(HashMap<String, SettingSection> dolphinSettings, HashMap<String, SettingSection> gfxSettings,
+				  HashMap<String, SettingSection> wiimoteSettings);
 
 	/**
-	 * Pass a settings Hashmap to the containing activity, so that it can
-	 * share the Hashmap with other SettingsFragments; useful so that rotations
+	 * Pass a settings HashMap to the containing activity, so that it can
+	 * share the HashMap with other SettingsFragments; useful so that rotations
 	 * do not require an additional load operation.
 	 *
-	 * @param settings A Hashmap containing all the settings
+	 * @param dolphinSettings A HashMap containing all the main settings
+	 * @param gfxSettings     A HashMap containing all the graphics settings
+	 * @param wiimoteSettings A HashMap containing all the Wii Remote settings
 	 */
-	void passSettingsToActivity(HashMap<String, SettingSection> settings);
+	void passSettingsToActivity(HashMap<String, SettingSection> dolphinSettings, HashMap<String, SettingSection> gfxSettings,
+				    HashMap<String, SettingSection> wiimoteSettings);
 
 	/**
 	 * Pass an ArrayList to the View so that it can be displayed on screen.
 	 *
-	 * @param settingsList The result of converting the Hashmap to an ArrayList
+	 * @param settingsList The result of converting the HashMap to an ArrayList
 	 */
 	void showSettingsList(ArrayList<SettingsItem> settingsList);
 
@@ -66,9 +72,9 @@ public interface SettingsFragmentView
 	void showToastMessage(String message);
 
 	/**
-	 * Have the fragment add a setting to the Hashmap.
+	 * Have the fragment add a setting to the HashMap.
 	 *
-	 * @param setting The (possibly previously missing) new setting.
+	 * @param setting  The (possibly previously missing) new setting.
 	 */
 	void putSetting(Setting setting);
 

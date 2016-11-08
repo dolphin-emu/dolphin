@@ -98,25 +98,27 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	}
 
 	@Override
-	public HashMap<String, SettingSection> getSettings()
+	public HashMap<String, SettingSection> getSettings(String fileName)
 	{
-		return mPresenter.getSettings();
+		return mPresenter.getSettings(fileName);
 	}
 
 	@Override
-	public void setSettings(HashMap<String, SettingSection> settings)
+	public void setSettings(HashMap<String, SettingSection> dolphinSettings, HashMap<String, SettingSection> gfxSettings,
+				HashMap<String, SettingSection> wiimoteSettings)
 	{
-		mPresenter.setSettings(settings);
+		mPresenter.setSettings(dolphinSettings, gfxSettings, wiimoteSettings);
 	}
 
 	@Override
-	public void onSettingsFileLoaded(HashMap<String, SettingSection> settings)
+	public void onSettingsFileLoaded(HashMap<String, SettingSection> dolphinSettings, HashMap<String, SettingSection> gfxSettings,
+					 HashMap<String, SettingSection> wiimoteSettings)
 	{
 		SettingsFragmentView fragment = getFragment();
 
 		if (fragment != null)
 		{
-			fragment.onSettingsFileLoaded(settings);
+			fragment.onSettingsFileLoaded(dolphinSettings, gfxSettings, wiimoteSettings);
 		}
 	}
 

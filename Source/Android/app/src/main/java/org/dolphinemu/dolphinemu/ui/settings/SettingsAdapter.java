@@ -329,19 +329,19 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		switch (which)
 		{
 			case 0:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, "OGL");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.FILE_NAME_DOLPHIN, "OGL");
 				break;
 
 			case 1:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, "Vulkan");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.FILE_NAME_DOLPHIN, "Vulkan");
 				break;
 
 			case 2:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, "SW");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.FILE_NAME_DOLPHIN, "SW");
 				break;
 
 			case 3:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, "Null");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.FILE_NAME_DOLPHIN, "Null");
 				break;
 		}
 
@@ -356,18 +356,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		switch (which)
 		{
 			case 0:
-				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, false);
-				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, false);
+				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.FILE_NAME_GFX, false);
+				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.FILE_NAME_GFX, false);
 				break;
 
 			case 1:
-				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, true);
-				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, false);
+				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.FILE_NAME_GFX, true);
+				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.FILE_NAME_GFX, false);
 				break;
 
 			case 2:
-				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, true);
-				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, true);
+				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.FILE_NAME_GFX, true);
+				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.FILE_NAME_GFX, true);
 				break;
 		}
 
