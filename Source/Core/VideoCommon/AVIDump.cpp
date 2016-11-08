@@ -260,6 +260,7 @@ void AVIDump::Stop()
   CloseFile();
   s_file_index = 0;
   NOTICE_LOG(VIDEO, "Stopping frame dump");
+  OSD::AddMessage("Stopped dumping frames");
 }
 
 void AVIDump::CloseFile()
