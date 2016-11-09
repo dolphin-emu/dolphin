@@ -254,6 +254,7 @@ Renderer::Renderer(void*& window_handle)
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
+  s_last_exclusive_mode = D3D::GetFullscreenState();
   CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
   PixelShaderManager::SetEfbScaleChanged();
 
@@ -875,8 +876,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     std::lock_guard<std::mutex> lk(s_critical_fullscreen);
 
-    bool exclusive_mode = false;
-    D3D::GetFullscreenState(&exclusive_mode);
+    const bool exclusive_mode = D3D::GetFullscreenState();
     if (s_last_exclusive_mode && !exclusive_mode && Host_RendererHasFocus())
       D3D::SetFullscreenState(true);
   }
