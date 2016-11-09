@@ -1426,8 +1426,8 @@ void CFrame::UpdateGUI()
   // Tools
   GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().bEnableCheats);
 
-  bool ShouldEnableWiimotes = Initialized && SConfig::GetInstance().bWii &&
-                              !SConfig::GetInstance().m_bt_passthrough_enabled;
+  bool ShouldEnableWiimotes =
+      Running && SConfig::GetInstance().bWii && !SConfig::GetInstance().m_bt_passthrough_enabled;
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(ShouldEnableWiimotes);
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(ShouldEnableWiimotes);
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(ShouldEnableWiimotes);
