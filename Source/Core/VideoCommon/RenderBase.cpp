@@ -447,7 +447,7 @@ void Renderer::DrawDebugText()
   g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
 
-void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
+TargetRectangle Renderer::CalculateDrawRectangle(int backbuffer_width, int backbuffer_height)
 {
   float FloatGLWidth = (float)backbuffer_width;
   float FloatGLHeight = (float)backbuffer_height;
@@ -568,10 +568,17 @@ void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
       iWhidth % 4;  // ensure divisibility by 4 to make it compatible with all the video encoders
   iHeight -= iHeight % 4;
 
-  target_rc.left = XOffset;
-  target_rc.top = YOffset;
-  target_rc.right = XOffset + iWhidth;
-  target_rc.bottom = YOffset + iHeight;
+  TargetRectangle rc;
+  rc.left = XOffset;
+  rc.top = YOffset;
+  rc.right = XOffset + iWhidth;
+  rc.bottom = YOffset + iHeight;
+  return rc;
+}
+
+void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
+{
+  target_rc = CalculateDrawRectangle(backbuffer_width, backbuffer_height);
 }
 
 void Renderer::SetWindowSize(int width, int height)

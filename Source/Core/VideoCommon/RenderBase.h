@@ -91,6 +91,7 @@ public:
   virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
   static const TargetRectangle& GetTargetRectangle() { return target_rc; }
+  static TargetRectangle CalculateDrawRectangle(int backbuffer_width, int backbuffer_height);
   static void UpdateDrawRectangle(int backbuffer_width, int backbuffer_height);
 
   // Use this to convert a single target rectangle to two stereo rectangles
