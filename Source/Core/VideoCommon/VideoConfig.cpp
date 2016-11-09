@@ -31,10 +31,6 @@ VideoConfig::VideoConfig()
 {
   bRunning = false;
 
-  // Exclusive fullscreen flags
-  bFullscreen = false;
-  bExclusiveMode = false;
-
   // Needed for the first frame, I think
   fAspectRatioHackW = 1;
   fAspectRatioHackH = 1;

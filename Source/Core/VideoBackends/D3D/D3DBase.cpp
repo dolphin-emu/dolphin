@@ -315,7 +315,7 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.OutputWindow = wnd;
   swap_chain_desc.SampleDesc.Count = 1;
   swap_chain_desc.SampleDesc.Quality = 0;
-  swap_chain_desc.Windowed = !g_Config.bFullscreen;
+  swap_chain_desc.Windowed = TRUE;
 
   DXGI_OUTPUT_DESC out_desc = {};
   output->GetDesc(&out_desc);

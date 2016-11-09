@@ -803,8 +803,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   SetWindowSize(fb_stride, fb_height);
 
   const bool window_resized = CheckForResize();
-  const bool fullscreen = g_ActiveConfig.bFullscreen && !g_ActiveConfig.bBorderlessFullscreen &&
-                          !SConfig::GetInstance().bRenderToMain;
 
   bool xfb_changed = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
