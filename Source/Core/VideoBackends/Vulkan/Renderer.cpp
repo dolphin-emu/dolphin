@@ -64,6 +64,11 @@ Renderer::~Renderer()
 {
   g_Config.bRunning = false;
   UpdateActiveConfig();
+
+  // Ensure all frames are written to frame dump at shutdown.
+  if (m_frame_dumping_active)
+    EndFrameDumping();
+
   DestroyFrameDumpResources();
   DestroyShaders();
   DestroySemaphores();
@@ -490,16 +495,21 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   StateTracker::GetInstance()->EndRenderPass();
   StateTracker::GetInstance()->OnEndFrame();
 
-  // Draw to the screenshot buffer if needed.
-  // We don't actually copy it to the frame dump here, instead we submit the present to the screen
-  // and the readback in one command buffer, wait for it, and then dump the frame. This allows us
-  // to render to the screen and dump the frame in one command buffer instead of two.
-  VkFence frame_dump_fence = g_command_buffer_mgr->GetCurrentCommandBufferFence();
-  bool dump_this_frame = IsFrameDumping() && DrawFrameDump(rc, xfb_addr, xfb_sources, xfb_count,
-                                                           fb_width, fb_stride, fb_height);
+  // Render the frame dump image if enabled.
+  if (IsFrameDumping())
+  {
+    // If we haven't dumped a single frame yet, set up frame dumping.
+    if (!m_frame_dumping_active)
+      StartFrameDumping();
 
-  // If we're dumping frames, don't bother waking the worker thread, since we have to wait anyway.
-  bool submit_on_background_thread = !dump_this_frame;
+    DrawFrameDump(rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height, ticks);
+  }
+  else
+  {
+    // If frame dumping was previously enabled, flush all frames and remove the fence callback.
+    if (m_frame_dumping_active)
+      EndFrameDumping();
+  }
 
   // Ensure the worker thread is not still submitting a previous command buffer.
   // In other words, the last frame has been submitted (otherwise the next call would
@@ -516,23 +526,13 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     // the available semaphore to be signaled before executing the buffer. This final submission
     // can happen off-thread in the background while we're preparing the next frame.
     g_command_buffer_mgr->SubmitCommandBuffer(
-        submit_on_background_thread, m_image_available_semaphore, m_rendering_finished_semaphore,
+        true, m_image_available_semaphore, m_rendering_finished_semaphore,
         m_swap_chain->GetSwapChain(), m_swap_chain->GetCurrentImageIndex());
   }
   else
   {
     // No swap chain, just execute command buffer.
-    g_command_buffer_mgr->SubmitCommandBuffer(submit_on_background_thread);
-  }
-
-  // If we're dumping frames, wait for the GPU to complete these commands, and then copy the image.
-  // NOTE: This call must come immediately after submitting the command buffer. Placing any other
-  // function calls between the submit and wait could cause another command buffer to be submitted,
-  // making frame_dump_fence refer to an incorrect fence.
-  if (dump_this_frame)
-  {
-    g_command_buffer_mgr->WaitForFence(frame_dump_fence);
-    DumpFrame(ticks);
+    g_command_buffer_mgr->SubmitCommandBuffer(true);
   }
 
   // NOTE: It is important that no rendering calls are made to the EFB between submitting the
@@ -704,7 +704,7 @@ void Renderer::DrawScreen(const EFBRectangle& rc, u32 xfb_addr,
 
 bool Renderer::DrawFrameDump(const EFBRectangle& rc, u32 xfb_addr,
                              const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                             u32 fb_stride, u32 fb_height)
+                             u32 fb_stride, u32 fb_height, u64 ticks)
 {
   // Draw the screenshot to an image containing only the active screen area, removing any
   // borders as a result of the game rendering in a different aspect ratio.
@@ -737,22 +737,136 @@ bool Renderer::DrawFrameDump(const EFBRectangle& rc, u32 xfb_addr,
             xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
   vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
 
-  // Copy to the readback texture.
-  m_frame_dump_readback_texture->CopyFromImage(
-      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_frame_dump_render_texture->GetImage(),
-      VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width, height, 0, 0);
+  // Prepare the readback texture for copying.
+  StagingTexture2D* readback_texture = PrepareFrameDumpImage(width, height, ticks);
+  if (!readback_texture)
+    return false;
 
+  // Queue a copy to the current frame dump buffer. It will be written to the frame dump later.
+  readback_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                  m_frame_dump_render_texture->GetImage(),
+                                  VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width, height, 0, 0);
   return true;
 }
 
-void Renderer::DumpFrame(u64 ticks)
+void Renderer::StartFrameDumping()
 {
-  AVIDump::Frame state = AVIDump::FetchState(ticks);
-  DumpFrameData(reinterpret_cast<const u8*>(m_frame_dump_readback_texture->GetMapPointer()),
-                static_cast<int>(m_frame_dump_render_texture->GetWidth()),
-                static_cast<int>(m_frame_dump_render_texture->GetHeight()),
-                static_cast<int>(m_frame_dump_readback_texture->GetRowStride()), state);
+  _assert_(!m_frame_dumping_active);
+
+  // Register fence callback so that we know when frames are ready to be written to the dump.
+  // This is done by clearing the fence pointer, so WriteFrameDumpFrame doesn't have to wait.
+  auto queued_callback = [](VkCommandBuffer, VkFence) {};
+  auto signaled_callback = std::bind(&Renderer::OnFrameDumpImageReady, this, std::placeholders::_1);
+
+  // We use the array pointer as a key here, that way if Renderer needed fence callbacks in
+  // the future it could be used without conflicting.
+  // We're not interested in when fences are submitted, so the first callback is a no-op.
+  g_command_buffer_mgr->AddFencePointCallback(
+      m_frame_dump_images.data(), std::move(queued_callback), std::move(signaled_callback));
+  m_frame_dumping_active = true;
+}
+
+void Renderer::EndFrameDumping()
+{
+  _assert_(m_frame_dumping_active);
+
+  // Write any pending frames to the frame dump.
+  FlushFrameDump();
+
+  // Remove the fence callback that we registered earlier, one less function that needs to be
+  // called when preparing a command buffer.
+  g_command_buffer_mgr->RemoveFencePointCallback(m_frame_dump_images.data());
+  m_frame_dumping_active = false;
+}
+
+void Renderer::OnFrameDumpImageReady(VkFence fence)
+{
+  for (FrameDumpImage& frame : m_frame_dump_images)
+  {
+    // fence being a null handle means that we don't have to wait to re-use this image.
+    if (frame.fence == fence)
+      frame.fence = VK_NULL_HANDLE;
+  }
+}
+
+void Renderer::WriteFrameDumpImage(size_t index)
+{
+  FrameDumpImage& frame = m_frame_dump_images[index];
+  _assert_(frame.pending);
+
+  // Check fence has been signaled.
+  // The callback here should set fence to null.
+  if (frame.fence != VK_NULL_HANDLE)
+  {
+    g_command_buffer_mgr->WaitForFence(frame.fence);
+    _assert_(frame.fence == VK_NULL_HANDLE);
+  }
+
+  // Copy the now-populated image data to the output file.
+  DumpFrameData(reinterpret_cast<const u8*>(frame.readback_texture->GetMapPointer()),
+                static_cast<int>(frame.readback_texture->GetWidth()),
+                static_cast<int>(frame.readback_texture->GetHeight()),
+                static_cast<int>(frame.readback_texture->GetRowStride()), frame.dump_state);
+
+  frame.pending = false;
+}
+
+StagingTexture2D* Renderer::PrepareFrameDumpImage(u32 width, u32 height, u64 ticks)
+{
+  // Ensure the last frame that was sent to the frame dump has completed encoding before we send
+  // the next image to it.
   FinishFrameData();
+
+  // If the last image hasn't been written to the frame dump yet, write it now.
+  // This is necessary so that the worker thread is no more than one frame behind, and the pointer
+  // (which is actually the buffer) is safe for us to re-use next time.
+  if (m_frame_dump_images[m_current_frame_dump_image].pending)
+    WriteFrameDumpImage(m_current_frame_dump_image);
+
+  // Move to the next image buffer
+  m_current_frame_dump_image = (m_current_frame_dump_image + 1) % FRAME_DUMP_BUFFERED_FRAMES;
+  FrameDumpImage& image = m_frame_dump_images[m_current_frame_dump_image];
+
+  // Ensure the dimensions of the readback texture are sufficient.
+  if (!image.readback_texture || width != image.readback_texture->GetWidth() ||
+      height != image.readback_texture->GetHeight())
+  {
+    // Allocate a new readback texture.
+    // The reset() call is here so that the memory is released before allocating the new texture.
+    image.readback_texture.reset();
+    image.readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, width, height,
+                                                      EFB_COLOR_TEXTURE_FORMAT);
+
+    if (!image.readback_texture || !image.readback_texture->Map())
+    {
+      // Not actually fatal, just means we can't dump this frame.
+      PanicAlert("Failed to allocate frame dump readback texture.");
+      image.readback_texture.reset();
+      return nullptr;
+    }
+  }
+
+  // The copy happens immediately after this function returns, so flag this frame as pending.
+  image.fence = g_command_buffer_mgr->GetCurrentCommandBufferFence();
+  image.dump_state = AVIDump::FetchState(ticks);
+  image.pending = true;
+  return image.readback_texture.get();
+}
+
+void Renderer::FlushFrameDump()
+{
+  // We must write frames in order, so this is why we use a counter rather than a range.
+  for (size_t i = 0; i < FRAME_DUMP_BUFFERED_FRAMES; i++)
+  {
+    if (m_frame_dump_images[m_current_frame_dump_image].pending)
+      WriteFrameDumpImage(m_current_frame_dump_image);
+
+    m_current_frame_dump_image = (m_current_frame_dump_image + 1) % FRAME_DUMP_BUFFERED_FRAMES;
+  }
+
+  // Since everything has been written now, may as well start at index zero.
+  // count-1 here because the index is incremented before usage.
+  m_current_frame_dump_image = FRAME_DUMP_BUFFERED_FRAMES - 1;
 }
 
 void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_rect,
@@ -812,14 +926,10 @@ bool Renderer::ResizeFrameDumpBuffer(u32 new_width, u32 new_height)
                         VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
-  m_frame_dump_readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, new_width,
-                                                           new_height, EFB_COLOR_TEXTURE_FORMAT);
-  if (!m_frame_dump_render_texture || !m_frame_dump_readback_texture ||
-      !m_frame_dump_readback_texture->Map())
+  if (!m_frame_dump_render_texture)
   {
-    WARN_LOG(VIDEO, "Failed to resize screenshot render texture");
+    WARN_LOG(VIDEO, "Failed to resize frame dump render texture");
     m_frame_dump_render_texture.reset();
-    m_frame_dump_readback_texture.reset();
     return false;
   }
 
@@ -837,9 +947,8 @@ bool Renderer::ResizeFrameDumpBuffer(u32 new_width, u32 new_height)
       vkCreateFramebuffer(g_vulkan_context->GetDevice(), &info, nullptr, &m_frame_dump_framebuffer);
   if (res != VK_SUCCESS)
   {
-    WARN_LOG(VIDEO, "Failed to resize screenshot framebuffer");
+    WARN_LOG(VIDEO, "Failed to create frame dump framebuffer");
     m_frame_dump_render_texture.reset();
-    m_frame_dump_readback_texture.reset();
     return false;
   }
 
@@ -859,7 +968,15 @@ void Renderer::DestroyFrameDumpResources()
   }
 
   m_frame_dump_render_texture.reset();
-  m_frame_dump_readback_texture.reset();
+
+  for (FrameDumpImage& image : m_frame_dump_images)
+  {
+    image.readback_texture.reset();
+    image.fence = VK_NULL_HANDLE;
+    image.dump_state = {};
+    image.pending = false;
+  }
+  m_current_frame_dump_image = FRAME_DUMP_BUFFERED_FRAMES - 1;
 }
 
 void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
