@@ -72,6 +72,7 @@ public:
   virtual void SetSamplerState(int stage, int texindex, bool custom_tex) {}
   virtual void SetInterlacingMode() {}
   virtual void SetViewport() {}
+  virtual void SetFullscreen(bool enable_fullscreen) {}
   virtual void ApplyState(bool bUseDstAlpha) {}
   virtual void RestoreState() {}
   virtual void ResetAPIState() {}

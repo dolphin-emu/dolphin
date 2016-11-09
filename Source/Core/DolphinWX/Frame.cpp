@@ -1131,28 +1131,12 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-  if (g_Config.bExclusiveMode && Core::GetState() == Core::CORE_PAUSE)
-  {
-    // A responsive renderer is required for exclusive fullscreen, but the
-    // renderer can only respond in the running state. Therefore we ignore
-    // fullscreen switches if we are in exclusive fullscreen, but the
-    // renderer is not running.
-    // TODO: Allow the renderer to switch fullscreen modes while paused.
-    return;
-  }
-
   ToggleDisplayMode(enable_fullscreen);
 
-  if (enable_fullscreen)
-  {
-    m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
-  }
-  else if (!g_Config.bExclusiveMode)
-  {
-    // Exiting exclusive fullscreen should be done from a Renderer callback.
-    // Therefore we don't exit fullscreen from here if we are in exclusive mode.
-    m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
-  }
+  if (!enable_fullscreen && g_renderer)
+    g_renderer->SetFullscreen(false);
+
+  m_RenderFrame->ShowFullScreen(enable_fullscreen, wxFULLSCREEN_ALL);
 
   if (SConfig::GetInstance().bRenderToMain)
   {
@@ -1200,9 +1184,10 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
   else
   {
     m_RenderFrame->Raise();
-  }
 
-  g_Config.bFullscreen = enable_fullscreen;
+    if (enable_fullscreen && g_renderer)
+      g_renderer->SetFullscreen(true);
+  }
 }
 
 const CGameListCtrl* CFrame::GetGameListCtrl() const

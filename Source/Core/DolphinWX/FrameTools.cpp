@@ -787,12 +787,6 @@ void CFrame::DoStop()
       // waiting on inputs
       bool should_pause = !NetPlayDialog::GetNetPlayClient();
 
-      // If exclusive fullscreen is not enabled then we can pause the emulation
-      // before we've exited fullscreen. If not then we need to exit fullscreen first.
-      should_pause =
-          should_pause && (!RendererIsFullscreen() || !g_Config.ExclusiveFullscreenEnabled() ||
-                           SConfig::GetInstance().bRenderToMain);
-
       if (should_pause)
       {
         Core::SetState(Core::CORE_PAUSE);

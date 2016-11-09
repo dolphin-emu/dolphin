@@ -25,6 +25,7 @@ public:
   void SetSamplerState(int stage, int texindex, bool custom_tex) override;
   void SetInterlacingMode() override;
   void SetViewport() override;
+  void SetFullscreen(bool enable_fullscreen) override;
 
   // TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
   void ApplyState(bool bUseDstAlpha) override;
