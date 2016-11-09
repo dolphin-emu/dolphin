@@ -61,6 +61,7 @@ private:
 };
 
 wxDECLARE_EVENT(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, wxCommandEvent);
 
 class CFrame : public CRenderFrame
 {
@@ -106,7 +107,6 @@ public:
   bool RendererIsFullscreen();
   void DoFullscreen(bool bF);
   void ToggleDisplayMode(bool bFullscreen);
-  void UpdateWiiMenuChoice(wxMenuItem* WiiMenuItem = nullptr);
   static void ConnectWiimote(int wm_idx, bool connect);
   void UpdateTitle(const std::string& str);
   void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
@@ -241,6 +241,9 @@ private:
   void OnReloadGameList(wxCommandEvent& event);
 
   void OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event);
+
+  void OnUpdateLoadWiiMenuItem(wxCommandEvent&);
+  void UpdateLoadWiiMenuItem() const;
 
   void OnOpen(wxCommandEvent& event);  // File menu
   void DoOpen(bool Boot);

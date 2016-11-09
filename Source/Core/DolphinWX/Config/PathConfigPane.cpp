@@ -21,7 +21,6 @@
 #include "DiscIO/NANDContentLoader.h"
 #include "DolphinWX/Config/ConfigMain.h"
 #include "DolphinWX/Frame.h"
-#include "DolphinWX/Main.h"
 #include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -226,7 +225,9 @@ void PathConfigPane::OnNANDRootChanged(wxCommandEvent& event)
 
   DiscIO::CNANDContentManager::Access().ClearCache();
 
-  main_frame->UpdateWiiMenuChoice();
+  wxCommandEvent update_event{DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, GetId()};
+  update_event.SetEventObject(this);
+  AddPendingEvent(update_event);
 }
 
 void PathConfigPane::OnDumpPathChanged(wxCommandEvent& event)

@@ -1072,6 +1072,11 @@ void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
   event.Check(SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
 }
 
+void CFrame::OnUpdateLoadWiiMenuItem(wxCommandEvent& WXUNUSED(event))
+{
+  UpdateLoadWiiMenuItem();
+}
+
 void CFrame::ClearStatusBar()
 {
   if (this->GetStatusBar()->IsEnabled())
@@ -1184,16 +1189,13 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
   u64 titleID = DiscIO::CNANDContentManager::Access().Install_WiiWAD(fileName);
   if (titleID == TITLEID_SYSMENU)
   {
-    UpdateWiiMenuChoice();
+    UpdateLoadWiiMenuItem();
   }
 }
 
-void CFrame::UpdateWiiMenuChoice(wxMenuItem* WiiMenuItem)
+void CFrame::UpdateLoadWiiMenuItem() const
 {
-  if (!WiiMenuItem)
-  {
-    WiiMenuItem = GetMenuBar()->FindItem(IDM_LOAD_WII_MENU);
-  }
+  auto* const WiiMenuItem = GetMenuBar()->FindItem(IDM_LOAD_WII_MENU);
 
   const DiscIO::CNANDContentLoader& SysMenu_Loader =
       DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU,
