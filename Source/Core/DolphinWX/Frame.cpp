@@ -701,21 +701,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   }
   break;
 
-  case IDM_FULLSCREEN_REQUEST:
-  {
-    bool enable_fullscreen = event.GetInt() == 0 ? false : true;
-    ToggleDisplayMode(enable_fullscreen);
-    if (m_RenderFrame != nullptr)
-      m_RenderFrame->ShowFullScreen(enable_fullscreen);
-
-    // If the stop dialog initiated this fullscreen switch then we need
-    // to pause the emulator after we've completed the switch.
-    // TODO: Allow the renderer to switch fullscreen modes while paused.
-    if (m_confirmStop)
-      Core::SetState(Core::CORE_PAUSE);
-  }
-  break;
-
   case WM_USER_CREATE:
     if (SConfig::GetInstance().bHideCursor)
       m_RenderParent->SetCursor(wxCURSOR_BLANK);

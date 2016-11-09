@@ -100,9 +100,6 @@ void Host_YieldToUI()
 void Host_UpdateMainFrame()
 {
 }
-void Host_RequestFullscreen(bool enable)
-{
-}
 void Host_RequestRenderWindowSize(int w, int h)
 {
 }
