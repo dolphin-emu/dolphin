@@ -5,7 +5,6 @@
 #include <cinttypes>
 #include <cmath>
 #include <memory>
-#include <mutex>
 #include <string>
 #include <strsafe.h>
 #include <unordered_map>
@@ -44,9 +43,6 @@ namespace DX11
 static u32 s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
-static bool s_last_exclusive_mode = false;
-
-static std::mutex s_critical_fullscreen;
 
 static Television s_television;
 
@@ -254,7 +250,6 @@ Renderer::Renderer(void*& window_handle)
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
-  s_last_exclusive_mode = D3D::GetFullscreenState();
   CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
   PixelShaderManager::SetEfbScaleChanged();
 
@@ -872,15 +867,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // Flip/present backbuffer to frontbuffer here
   D3D::Present();
 
-  // Check if we need to regain exclusive mode
-  {
-    std::lock_guard<std::mutex> lk(s_critical_fullscreen);
-
-    const bool exclusive_mode = D3D::GetFullscreenState();
-    if (s_last_exclusive_mode && !exclusive_mode && Host_RendererHasFocus())
-      D3D::SetFullscreenState(true);
-  }
-
   // Resize the back buffers NOW to avoid flickering
   if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || xfbchanged || windowResized ||
       s_last_efb_scale != g_ActiveConfig.iEFBScale ||
@@ -1266,9 +1252,12 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
 
 void Renderer::SetFullscreen(bool enable_fullscreen)
 {
-  std::lock_guard<std::mutex> lk(s_critical_fullscreen);
-  s_last_exclusive_mode = enable_fullscreen;
   D3D::SetFullscreenState(enable_fullscreen);
+}
+
+bool Renderer::IsFullscreen()
+{
+  return D3D::GetFullscreenState();
 }
 
 }  // namespace DX11

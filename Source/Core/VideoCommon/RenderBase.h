@@ -73,6 +73,7 @@ public:
   virtual void SetInterlacingMode() {}
   virtual void SetViewport() {}
   virtual void SetFullscreen(bool enable_fullscreen) {}
+  virtual bool IsFullscreen() { return false; }
   virtual void ApplyState(bool bUseDstAlpha) {}
   virtual void RestoreState() {}
   virtual void ResetAPIState() {}
