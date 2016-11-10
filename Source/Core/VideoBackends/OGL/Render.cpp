@@ -1380,73 +1380,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   std::swap(flipped_trc.top, flipped_trc.bottom);
 
   // Copy the framebuffer to screen.
-  const XFBSource* xfbSource = nullptr;
-
-  if (g_ActiveConfig.bUseXFB)
-  {
-    // draw each xfb source
-    for (u32 i = 0; i < xfbCount; ++i)
-    {
-      xfbSource = (const XFBSource*)xfbSourceList[i];
-
-      TargetRectangle drawRc;
-      TargetRectangle sourceRc;
-      sourceRc.left = xfbSource->sourceRc.left;
-      sourceRc.right = xfbSource->sourceRc.right;
-      sourceRc.top = xfbSource->sourceRc.top;
-      sourceRc.bottom = xfbSource->sourceRc.bottom;
-
-      if (g_ActiveConfig.bUseRealXFB)
-      {
-        drawRc = flipped_trc;
-        sourceRc.right -= fbStride - fbWidth;
-
-        // RealXFB doesn't call ConvertEFBRectangle for sourceRc, therefore it is still assuming a
-        // top-left origin.
-        // The top offset is always zero (see FramebufferManagerBase::GetRealXFBSource).
-        sourceRc.top = sourceRc.bottom;
-        sourceRc.bottom = 0;
-      }
-      else
-      {
-        // use virtual xfb with offset
-        int xfbHeight = xfbSource->srcHeight;
-        int xfbWidth = xfbSource->srcWidth;
-        int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
-
-        drawRc.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / (s32)fbHeight;
-        drawRc.bottom =
-            flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / (s32)fbHeight;
-        drawRc.left =
-            flipped_trc.left +
-            (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-        drawRc.right =
-            flipped_trc.left +
-            (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-
-        // The following code disables auto stretch.  Kept for reference.
-        // scale draw area for a 1 to 1 pixel mapping with the draw target
-        // float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
-        // float hScale = (float)fbWidth / (float)flipped_trc.GetWidth();
-        // drawRc.top *= vScale;
-        // drawRc.bottom *= vScale;
-        // drawRc.left *= hScale;
-        // drawRc.right *= hScale;
-
-        sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
-      }
-
-      BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
-    }
-  }
-  else
-  {
-    TargetRectangle targetRc = ConvertEFBRectangle(rc);
-
-    // for msaa mode, we must resolve the efb content to non-msaa
-    GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
-    BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
-  }
+  DrawFrame(flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
@@ -1578,6 +1512,104 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // Invalidate EFB cache
   ClearEFBCache();
+}
+
+void Renderer::DrawFrame(const TargetRectangle& target_rc, const EFBRectangle& source_rc,
+                         u32 xfb_addr, const XFBSourceBase* const* xfb_sources, u32 xfb_count,
+                         u32 fb_width, u32 fb_stride, u32 fb_height)
+{
+  if (g_ActiveConfig.bUseXFB)
+  {
+    if (g_ActiveConfig.bUseRealXFB)
+      DrawRealXFB(target_rc, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+    else
+      DrawVirtualXFB(target_rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+  }
+  else
+  {
+    DrawEFB(target_rc, source_rc);
+  }
+}
+
+void Renderer::DrawEFB(const TargetRectangle& target_rc, const EFBRectangle& source_rc)
+{
+  TargetRectangle scaled_source_rc = ConvertEFBRectangle(source_rc);
+
+  // for msaa mode, we must resolve the efb content to non-msaa
+  GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(source_rc);
+  BlitScreen(scaled_source_rc, target_rc, tex, s_target_width, s_target_height);
+}
+
+void Renderer::DrawVirtualXFB(const TargetRectangle& target_rc, u32 xfb_addr,
+                              const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                              u32 fb_stride, u32 fb_height)
+{
+  for (u32 i = 0; i < xfb_count; ++i)
+  {
+    const XFBSource* xfbSource = static_cast<const XFBSource*>(xfb_sources[i]);
+
+    TargetRectangle draw_rc;
+    TargetRectangle source_rc;
+    source_rc.left = xfbSource->sourceRc.left;
+    source_rc.right = xfbSource->sourceRc.right;
+    source_rc.top = xfbSource->sourceRc.top;
+    source_rc.bottom = xfbSource->sourceRc.bottom;
+
+    // use virtual xfb with offset
+    int xfbHeight = xfbSource->srcHeight;
+    int xfbWidth = xfbSource->srcWidth;
+    int hOffset = (static_cast<s32>(xfbSource->srcAddr) - static_cast<s32>(xfb_addr)) /
+                  (static_cast<s32>(fb_stride) * 2);
+
+    draw_rc.top = target_rc.top - hOffset * target_rc.GetHeight() / static_cast<s32>(fb_height);
+    draw_rc.bottom =
+        target_rc.top - (hOffset + xfbHeight) * target_rc.GetHeight() / static_cast<s32>(fb_height);
+    draw_rc.left =
+        target_rc.left +
+        (target_rc.GetWidth() - xfbWidth * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
+    draw_rc.right =
+        target_rc.left +
+        (target_rc.GetWidth() + xfbWidth * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
+
+    // The following code disables auto stretch.  Kept for reference.
+    // scale draw area for a 1 to 1 pixel mapping with the draw target
+    // float h_scale = static_cast<float>(fb_width) / static_cast<float>(target_rc.GetWidth());
+    // float v_scale = static_cast<float>(fb_height) / static_cast<float>(target_rc.GetHeight());
+    // draw_rc.top *= v_scale;
+    // draw_rc.bottom *= v_scale;
+    // draw_rc.left *= h_scale;
+    // draw_rc.right *= h_scale;
+
+    source_rc.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
+
+    BlitScreen(source_rc, draw_rc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+  }
+}
+
+void Renderer::DrawRealXFB(const TargetRectangle& target_rc,
+                           const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                           u32 fb_stride, u32 fb_height)
+{
+  for (u32 i = 0; i < xfb_count; ++i)
+  {
+    const XFBSource* xfbSource = static_cast<const XFBSource*>(xfb_sources[i]);
+
+    TargetRectangle source_rc;
+    source_rc.left = xfbSource->sourceRc.left;
+    source_rc.right = xfbSource->sourceRc.right;
+    source_rc.top = xfbSource->sourceRc.top;
+    source_rc.bottom = xfbSource->sourceRc.bottom;
+
+    source_rc.right -= fb_stride - fb_width;
+
+    // RealXFB doesn't call ConvertEFBRectangle for sourceRc, therefore it is still assuming a top-
+    // left origin. The top offset is always zero (see FramebufferManagerBase::GetRealXFBSource).
+    source_rc.top = source_rc.bottom;
+    source_rc.bottom = 0;
+
+    TargetRectangle draw_rc = target_rc;
+    BlitScreen(source_rc, draw_rc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+  }
 }
 
 void Renderer::FlushFrameDump()
