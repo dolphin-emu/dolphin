@@ -124,8 +124,6 @@ public:
   X11Utils::XRRConfiguration* m_XRRConfig;
 #endif
 
-  wxMenu* m_SavedPerspectives = nullptr;
-
   // AUI
   wxAuiManager* m_Mgr = nullptr;
   bool bFloatWindow[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START] = {};
