@@ -768,6 +768,7 @@ Renderer::Renderer()
 Renderer::~Renderer()
 {
   FlushFrameDump();
+  FinishFrameData();
   if (m_frame_dumping_pbo[0])
     glDeleteBuffers(2, m_frame_dumping_pbo.data());
 }
