@@ -44,8 +44,6 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 {
   ApplyShader();
 
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
   glViewport(dst.left, dst.bottom, dst.GetWidth(), dst.GetHeight());
 
   OpenGL_BindAttributelessVAO();

@@ -104,7 +104,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsSSAA = true;
   g_Config.backend_info.bSupportsReversedDepthRange = true;
   g_Config.backend_info.bSupportsMultithreading = false;
-  g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
+  g_Config.backend_info.bSupportsInternalResolutionFrameDumps = true;
 
   // Overwritten in Render.cpp later
   g_Config.backend_info.bSupportsDualSourceBlend = true;
