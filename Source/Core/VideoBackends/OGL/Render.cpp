@@ -700,10 +700,10 @@ Renderer::Renderer()
   FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
   FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+  UpdateDrawRectangle();
 
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
-  CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+  CalculateTargetSize();
 
   PixelShaderManager::SetEfbScaleChanged();
 
@@ -1373,7 +1373,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   ResetAPIState();
 
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+  UpdateDrawRectangle();
   TargetRectangle flipped_trc = GetTargetRectangle();
 
   // Flip top and bottom for some reason; TODO: Fix the code to suck less?
@@ -1484,7 +1484,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     s_last_efb_scale = g_ActiveConfig.iEFBScale;
   }
   bool TargetSizeChanged = false;
-  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+  if (CalculateTargetSize())
   {
     TargetSizeChanged = true;
   }
@@ -1494,7 +1494,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
-    UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+    UpdateDrawRectangle();
 
     if (TargetSizeChanged || s_last_multisamples != g_ActiveConfig.iMultisamples ||
         s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))

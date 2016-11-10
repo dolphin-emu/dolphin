@@ -188,7 +188,7 @@ void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY)
 }
 
 // return true if target size changed
-bool Renderer::CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height)
+bool Renderer::CalculateTargetSize()
 {
   int newEFBWidth, newEFBHeight;
   newEFBWidth = newEFBHeight = 0;
@@ -449,10 +449,10 @@ void Renderer::DrawDebugText()
   g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
 
-void Renderer::UpdateDrawRectangle(int backbuffer_width, int backbuffer_height)
+void Renderer::UpdateDrawRectangle()
 {
-  float FloatGLWidth = (float)backbuffer_width;
-  float FloatGLHeight = (float)backbuffer_height;
+  float FloatGLWidth = static_cast<float>(s_backbuffer_width);
+  float FloatGLHeight = static_cast<float>(s_backbuffer_height);
   float FloatXOffset = 0;
   float FloatYOffset = 0;
 

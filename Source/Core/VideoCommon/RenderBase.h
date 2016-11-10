@@ -93,7 +93,7 @@ public:
   virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
   static const TargetRectangle& GetTargetRectangle() { return target_rc; }
-  static void UpdateDrawRectangle(int backbuffer_width, int backbuffer_height);
+  static void UpdateDrawRectangle();
 
   // Use this to convert a single target rectangle to two stereo rectangles
   static void ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc,
@@ -143,7 +143,7 @@ public:
   virtual void ChangeSurface(void* new_surface_handle) {}
 protected:
   static void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY);
-  bool CalculateTargetSize(unsigned int framebuffer_width, unsigned int framebuffer_height);
+  bool CalculateTargetSize();
 
   static void CheckFifoRecording();
   static void RecordVideoMemory();

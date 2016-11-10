@@ -54,8 +54,8 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::mo
   s_backbuffer_width = m_swap_chain ? m_swap_chain->GetWidth() : MAX_XFB_WIDTH;
   s_backbuffer_height = m_swap_chain ? m_swap_chain->GetHeight() : MAX_XFB_HEIGHT;
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-  CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+  UpdateDrawRectangle();
+  CalculateTargetSize();
   PixelShaderManager::SetEfbScaleChanged();
 }
 
@@ -995,8 +995,8 @@ void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
   FramebufferManagerBase::SetLastXfbHeight(new_height);
 
   // Changing the XFB source area will likely change the final drawing rectangle.
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+  UpdateDrawRectangle();
+  if (CalculateTargetSize())
   {
     PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();
@@ -1109,11 +1109,11 @@ void Renderer::CheckForConfigChanges()
 
   // If the aspect ratio is changed, this changes the area that the game is drawn to.
   if (aspect_changed)
-    UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+    UpdateDrawRectangle();
 
   if (efb_scale_changed || aspect_changed)
   {
-    if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+    if (CalculateTargetSize())
       ResizeEFBTextures();
   }
 
@@ -1154,8 +1154,8 @@ void Renderer::OnSwapChainResized()
 {
   s_backbuffer_width = m_swap_chain->GetWidth();
   s_backbuffer_height = m_swap_chain->GetHeight();
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+  UpdateDrawRectangle();
+  if (CalculateTargetSize())
   {
     PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();
