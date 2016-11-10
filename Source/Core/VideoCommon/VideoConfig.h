@@ -102,6 +102,7 @@ struct VideoConfig final
   bool bCacheHiresTextures;
   bool bDumpEFBTarget;
   bool bUseFFV1;
+  bool bDumpFullResolutionFrames;
   bool bFreeLook;
   bool bBorderlessFullscreen;
 

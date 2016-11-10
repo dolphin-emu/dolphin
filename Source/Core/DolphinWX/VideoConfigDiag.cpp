@@ -236,6 +236,9 @@ static wxString cache_hires_textures_desc =
                 "more RAM but fixes possible stuttering.\n\nIf unsure, leave this unchecked.");
 static wxString dump_efb_desc = wxTRANSLATE(
     "Dump the contents of EFB copies to User/Dump/Textures/.\n\nIf unsure, leave this unchecked.");
+static wxString full_res_frame_dump_desc = wxTRANSLATE(
+    "Create frame dumps and screenshots at the internal resolution of the renderer, rather than "
+    "the size of the window it is displayed within.");
 #if defined(HAVE_LIBAV) || defined(_WIN32)
 static wxString use_ffv1_desc =
     wxTRANSLATE("Encode frame dumps using the FFV1 codec.\n\nIf unsure, leave this unchecked.");
@@ -862,6 +865,9 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
                                       wxGetTranslation(dump_efb_desc), vconfig.bDumpEFBTarget));
       szr_utility->Add(CreateCheckBox(page_advanced, _("Free Look"),
                                       wxGetTranslation(free_look_desc), vconfig.bFreeLook));
+      szr_utility->Add(CreateCheckBox(page_advanced, _("Full Resolution Frame Dumping"),
+                                      wxGetTranslation(full_res_frame_dump_desc),
+                                      vconfig.bDumpFullResolutionFrames));
 #if defined(HAVE_LIBAV) || defined(_WIN32)
       szr_utility->Add(CreateCheckBox(page_advanced, _("Frame Dumps Use FFV1"),
                                       wxGetTranslation(use_ffv1_desc), vconfig.bUseFFV1));
