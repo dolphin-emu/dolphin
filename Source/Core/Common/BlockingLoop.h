@@ -66,6 +66,33 @@ public:
     m_may_sleep.Set();
   }
 
+  // Wait for a complete payload run after the last Wakeup() call.
+  // This version will call a yield function every 100ms.
+  // If stopped, this returns immediately.
+  template <class Rep, class Period, typename Functor>
+  void WaitYield(const std::chrono::duration<Rep, Period>& rel_time, Functor yield_func)
+  {
+    // already done
+    if (IsDone())
+      return;
+
+    // notifying this event will only wake up one thread, so use a mutex here to
+    // allow only one waiting thread. And in this way, we get an event free wakeup
+    // but for the first thread for free
+    std::lock_guard<std::mutex> lk(m_wait_lock);
+
+    // Wait for the worker thread to finish.
+    while (!IsDone())
+    {
+      if (!m_done_event.WaitFor(rel_time))
+        yield_func();
+    }
+
+    // As we wanted to wait for the other thread, there is likely no work remaining.
+    // So there is no need for a busy loop any more.
+    m_may_sleep.Set();
+  }
+
   // Half start the worker.
   // So this object is in a running state and Wait() will block until the worker calls Run().
   // This may be called from any thread and is supposed to be called at least once before Wait() is

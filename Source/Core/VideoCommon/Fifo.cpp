@@ -18,6 +18,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/Host.h"
 #include "Core/NetPlayProto.h"
 
 #include "VideoCommon/AsyncRequests.h"
@@ -94,7 +95,13 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock)
   {
     SyncGPU(SyncGPUReason::Other);
     EmulatorState(false);
-    FlushGpu();
+
+    const SConfig& param = SConfig::GetInstance();
+
+    if (!param.bCPUThread || s_use_deterministic_gpu_thread)
+      return;
+
+    s_gpu_mainloop.WaitYield(std::chrono::milliseconds(100), Host_YieldToUI);
   }
   else
   {

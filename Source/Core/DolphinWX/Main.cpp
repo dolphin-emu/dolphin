@@ -10,6 +10,7 @@
 #include <wx/app.h>
 #include <wx/buffer.h>
 #include <wx/cmdline.h>
+#include <wx/evtloop.h>
 #include <wx/image.h>
 #include <wx/imagpng.h>
 #include <wx/intl.h>
@@ -546,4 +547,9 @@ void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
     VideoConfigDiag diag((wxWindow*)parent, backend_name);
     diag.ShowModal();
   }
+}
+
+void Host_YieldToUI()
+{
+  wxGetApp().GetMainLoop()->YieldFor(wxEVT_CATEGORY_UI);
 }

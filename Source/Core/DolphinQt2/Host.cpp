@@ -89,6 +89,9 @@ bool Host_RendererIsFullscreen()
 {
   return Host::GetInstance()->GetRenderFullscreen();
 }
+void Host_YieldToUI()
+{
+}
 
 // We ignore these, and their purpose should be questioned individually.
 // In particular, RequestRenderWindowSize, RequestFullscreen, and
