@@ -708,13 +708,7 @@ bool Renderer::DrawFrameDump(const EFBRectangle& source_rect, u32 xfb_addr,
                              const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                              u32 fb_stride, u32 fb_height, u64 ticks)
 {
-  // Draw the screenshot to an image containing only the active screen area, removing any
-  // borders as a result of the game rendering in a different aspect ratio.
-  TargetRectangle target_rect = GetTargetRectangle();
-  target_rect.right = target_rect.GetWidth();
-  target_rect.bottom = target_rect.GetHeight();
-  target_rect.left = 0;
-  target_rect.top = 0;
+  TargetRectangle target_rect = CalculateFrameDumpDrawRectangle();
   u32 width = std::max(1u, static_cast<u32>(target_rect.GetWidth()));
   u32 height = std::max(1u, static_cast<u32>(target_rect.GetHeight()));
   if (!ResizeFrameDumpBuffer(width, height))
