@@ -769,8 +769,7 @@ Renderer::~Renderer()
 {
   FlushFrameDump();
   FinishFrameData();
-  if (m_frame_dumping_pbo[0])
-    glDeleteBuffers(2, m_frame_dumping_pbo.data());
+  DestroyFrameDumpResources();
 }
 
 void Renderer::Shutdown()
@@ -1381,14 +1380,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   std::swap(flipped_trc.top, flipped_trc.bottom);
 
   // Copy the framebuffer to screen.
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
   DrawFrame(flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
 
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-
-  DumpFrame(flipped_trc, ticks);
+  // Dump frame if enabled.
+  DumpFrame(flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight, ticks);
 
   // Finish up the current frame, print some stats
-
   SetWindowSize(fbStride, fbHeight);
 
   GLInterface->Update();  // just updates the render window position and the backbuffer size
@@ -1629,10 +1627,29 @@ void Renderer::FlushFrameDump()
   m_last_frame_exported = false;
 }
 
-void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
+void Renderer::DumpFrame(const TargetRectangle& target_rc, const EFBRectangle& source_rc,
+                         u32 xfb_addr, const XFBSourceBase* const* xfb_sources, u32 xfb_count,
+                         u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
 {
   if (!IsFrameDumping())
     return;
+
+  // Remove the borders from the frame dump, we don't need to render this area.
+  TargetRectangle render_rc;
+  render_rc.left = 0;
+  render_rc.top = target_rc.GetHeight();
+  render_rc.right = target_rc.GetWidth();
+  render_rc.bottom = 0;
+
+  // Ensure the render texture meets the size requirements of the draw area.
+  u32 render_width = static_cast<u32>(render_rc.GetWidth());
+  u32 render_height = static_cast<u32>(render_rc.GetHeight());
+  PrepareFrameDumpRenderTexture(render_width, render_height);
+
+  // Render the frame into the frame dump render texture.
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_frame_dump_render_framebuffer);
+  DrawFrame(render_rc, source_rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
 
   if (!m_frame_dumping_pbo[0])
   {
@@ -1652,11 +1669,11 @@ void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
     m_frame_pbo_is_mapped[0] = false;
   }
 
-  if (flipped_trc.GetWidth() != m_last_frame_width[0] ||
-      flipped_trc.GetHeight() != m_last_frame_height[0])
+  if (render_rc.GetWidth() != m_last_frame_width[0] ||
+      render_rc.GetHeight() != m_last_frame_height[0])
   {
-    m_last_frame_width[0] = flipped_trc.GetWidth();
-    m_last_frame_height[0] = flipped_trc.GetHeight();
+    m_last_frame_width[0] = render_rc.GetWidth();
+    m_last_frame_height[0] = render_rc.GetHeight();
     glBufferData(GL_PIXEL_PACK_BUFFER, m_last_frame_width[0] * m_last_frame_height[0] * 4, nullptr,
                  GL_STREAM_READ);
   }
@@ -1664,10 +1681,50 @@ void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
   m_last_frame_state = AVIDump::FetchState(ticks);
   m_last_frame_exported = true;
 
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, m_frame_dump_render_framebuffer);
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glReadPixels(flipped_trc.left, flipped_trc.bottom, m_last_frame_width[0], m_last_frame_height[0],
+  glReadPixels(render_rc.left, render_rc.bottom, m_last_frame_width[0], m_last_frame_height[0],
                GL_RGBA, GL_UNSIGNED_BYTE, 0);
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+}
+
+void Renderer::PrepareFrameDumpRenderTexture(u32 width, u32 height)
+{
+  // Resize texture if it isn't large enough to accommodate the current frame.
+  if (m_frame_dump_render_texture == 0 || m_frame_dump_render_texture_width < width ||
+      m_frame_dump_render_texture_height < height)
+  {
+    glActiveTexture(GL_TEXTURE9);
+    if (m_frame_dump_render_texture == 0)
+      glGenTextures(1, &m_frame_dump_render_texture);
+
+    glBindTexture(GL_TEXTURE_2D, m_frame_dump_render_texture);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+    m_frame_dump_render_texture_width = width;
+    m_frame_dump_render_texture_height = height;
+    TextureCache::SetStage();
+  }
+
+  // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
+  if (m_frame_dump_render_framebuffer == 0)
+  {
+    glGenFramebuffers(1, &m_frame_dump_render_framebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_frame_dump_render_framebuffer);
+    glFramebufferTexture2D(GL_DRAW_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                           m_frame_dump_render_texture, 0);
+  }
+}
+
+void Renderer::DestroyFrameDumpResources()
+{
+  if (m_frame_dump_render_framebuffer)
+    glDeleteFramebuffers(1, &m_frame_dump_render_framebuffer);
+  if (m_frame_dump_render_texture)
+    glDeleteTextures(1, &m_frame_dump_render_texture);
+  if (m_frame_dumping_pbo[0])
+    glDeleteBuffers(2, m_frame_dumping_pbo.data());
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
