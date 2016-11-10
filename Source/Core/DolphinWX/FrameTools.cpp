@@ -1072,6 +1072,11 @@ void CFrame::OnUpdateInterpreterMenuItem(wxUpdateUIEvent& event)
   event.Check(SConfig::GetInstance().iCPUCore == PowerPC::CORE_INTERPRETER);
 }
 
+void CFrame::OnUpdateLoadWiiMenuItem(wxCommandEvent& WXUNUSED(event))
+{
+  UpdateLoadWiiMenuItem();
+}
+
 void CFrame::ClearStatusBar()
 {
   if (this->GetStatusBar()->IsEnabled())
@@ -1184,32 +1189,28 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
   u64 titleID = DiscIO::CNANDContentManager::Access().Install_WiiWAD(fileName);
   if (titleID == TITLEID_SYSMENU)
   {
-    UpdateWiiMenuChoice();
+    UpdateLoadWiiMenuItem();
   }
 }
 
-void CFrame::UpdateWiiMenuChoice(wxMenuItem* WiiMenuItem)
+void CFrame::UpdateLoadWiiMenuItem() const
 {
-  if (!WiiMenuItem)
-  {
-    WiiMenuItem = GetMenuBar()->FindItem(IDM_LOAD_WII_MENU);
-  }
+  auto* const menu_item = GetMenuBar()->FindItem(IDM_LOAD_WII_MENU);
 
-  const DiscIO::CNANDContentLoader& SysMenu_Loader =
-      DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU,
-                                                          Common::FROM_CONFIGURED_ROOT);
-  if (SysMenu_Loader.IsValid())
+  const auto& sys_menu_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(
+      TITLEID_SYSMENU, Common::FROM_CONFIGURED_ROOT);
+
+  if (sys_menu_loader.IsValid())
   {
-    int sysmenuVersion = SysMenu_Loader.GetTitleVersion();
-    char sysmenuRegion = SysMenu_Loader.GetCountryChar();
-    WiiMenuItem->Enable();
-    WiiMenuItem->SetItemLabel(
-        wxString::Format(_("Load Wii System Menu %d%c"), sysmenuVersion, sysmenuRegion));
+    const int version = sys_menu_loader.GetTitleVersion();
+    const char region = sys_menu_loader.GetCountryChar();
+    menu_item->Enable();
+    menu_item->SetItemLabel(wxString::Format(_("Load Wii System Menu %d%c"), version, region));
   }
   else
   {
-    WiiMenuItem->Enable(false);
-    WiiMenuItem->SetItemLabel(_("Load Wii System Menu"));
+    menu_item->Enable(false);
+    menu_item->SetItemLabel(_("Load Wii System Menu"));
   }
 }
 

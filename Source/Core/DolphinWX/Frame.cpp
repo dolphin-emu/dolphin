@@ -226,6 +226,7 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_LOCAL_INI_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, wxCommandEvent);
 
 // Event tables
 BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
@@ -493,6 +494,7 @@ void CFrame::BindEvents()
 
   Bind(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, &CFrame::OnReloadThemeBitmaps, this);
   Bind(DOLPHIN_EVT_RELOAD_GAMELIST, &CFrame::OnReloadGameList, this);
+  Bind(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, &CFrame::OnUpdateLoadWiiMenuItem, this);
 }
 
 bool CFrame::RendererIsFullscreen()
