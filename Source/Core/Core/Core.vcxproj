@@ -168,6 +168,7 @@
     <ClCompile Include="HW\WII_IPC.cpp" />
     <ClCompile Include="HW\WiiSaveCrypted.cpp" />
     <ClCompile Include="IPC_HLE\ICMPWin.cpp" />
+    <ClCompile Include="IPC_HLE\NWC24Config.cpp" />
     <ClCompile Include="IPC_HLE\WiiMote_HID_Attr.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_DI.cpp" />
@@ -195,6 +196,7 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
     <ClCompile Include="IPC_HLE\WII_Socket.cpp" />
+    <ClCompile Include="IPC_HLE\WiiNetConfig.cpp" />
     <ClCompile Include="MemTools.cpp" />
     <ClCompile Include="Movie.cpp" />
     <ClCompile Include="NetPlayClient.cpp" />
@@ -382,6 +384,7 @@
     <ClInclude Include="IPC_HLE\hci.h" />
     <ClInclude Include="IPC_HLE\ICMP.h" />
     <ClInclude Include="IPC_HLE\l2cap.h" />
+    <ClInclude Include="IPC_HLE\NWC24Config.h" />
     <ClInclude Include="IPC_HLE\WiiMote_HID_Attr.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device.h" />
@@ -402,6 +405,7 @@
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_WiiMote.h" />
     <ClInclude Include="IPC_HLE\WII_Socket.h" />
+    <ClInclude Include="IPC_HLE\WiiNetConfig.h" />
     <ClInclude Include="MachineContext.h" />
     <ClInclude Include="MemTools.h" />
     <ClInclude Include="Movie.h" />

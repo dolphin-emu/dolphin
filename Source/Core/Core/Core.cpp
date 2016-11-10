@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Core.h"
+
 #include <atomic>
 #include <cctype>
 #include <cstring>
@@ -22,6 +24,7 @@
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Common/Timer.h"
@@ -29,7 +32,6 @@
 #include "Core/Analytics.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/DSPEmulator.h"
 #include "Core/Host.h"
