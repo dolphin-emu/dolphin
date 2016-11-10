@@ -757,16 +757,3 @@ void Renderer::RunFrameDumps()
   }
 #endif
 }
-
-void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
-{
-  for (int y = 0; y < h / 2; ++y)
-  {
-    for (int x = 0; x < w; ++x)
-    {
-      for (int delta = 0; delta < pixel_width; ++delta)
-        std::swap(data[(y * w + x) * pixel_width + delta],
-                  data[((h - 1 - y) * w + x) * pixel_width + delta]);
-    }
-  }
-}
