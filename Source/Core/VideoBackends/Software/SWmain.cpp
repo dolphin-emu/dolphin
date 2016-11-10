@@ -132,6 +132,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = false;
   g_Config.backend_info.bSupportsMultithreading = false;
+  g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};
