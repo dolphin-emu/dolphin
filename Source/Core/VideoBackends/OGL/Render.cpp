@@ -768,6 +768,7 @@ Renderer::Renderer()
 Renderer::~Renderer()
 {
   FlushFrameDump();
+  FinishFrameData();
   if (m_frame_dumping_pbo[0])
     glDeleteBuffers(2, m_frame_dumping_pbo.data());
 }
@@ -1450,7 +1451,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
 
-  FlushFrameDump();
   DumpFrame(flipped_trc, ticks);
 
   // Finish up the current frame, print some stats
@@ -1609,6 +1609,7 @@ void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
   }
   else
   {
+    FlushFrameDump();
     std::swap(m_frame_dumping_pbo[0], m_frame_dumping_pbo[1]);
     std::swap(m_frame_pbo_is_mapped[0], m_frame_pbo_is_mapped[1]);
     std::swap(m_last_frame_width[0], m_last_frame_width[1]);

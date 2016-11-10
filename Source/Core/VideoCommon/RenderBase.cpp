@@ -705,23 +705,20 @@ void Renderer::RunFrameDumps()
     if (!m_frame_dump_thread_running.IsSet())
       break;
 
-    const auto config = m_frame_dump_config;
-
-    // TODO: Refactor this. Right now it's needed for the implace flipping of the image.
-    data.assign(config.data, config.data + config.stride * config.height);
-
-    // As we've done a copy now, there is no need to block the GPU thread any longer.
-    m_frame_dump_done.Set();
+    auto config = m_frame_dump_config;
 
     if (config.upside_down)
-      FlipImageData(data.data(), config.width, config.height, 4);
+    {
+      config.data = config.data + (config.height - 1) * config.stride;
+      config.stride = -config.stride;
+    }
 
     // Save screenshot
     if (s_screenshot.TestAndClear())
     {
       std::lock_guard<std::mutex> lk(s_criticalScreenshot);
 
-      if (TextureToPng(data.data(), config.stride, s_sScreenshotName, config.width, config.height,
+      if (TextureToPng(config.data, config.stride, s_sScreenshotName, config.width, config.height,
                        false))
         OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
 
@@ -745,9 +742,11 @@ void Renderer::RunFrameDumps()
         }
       }
 
-      AVIDump::AddFrame(data.data(), config.width, config.height, config.stride, config.state);
+      AVIDump::AddFrame(config.data, config.width, config.height, config.stride, config.state);
     }
 #endif
+
+    m_frame_dump_done.Set();
   }
 
 #if defined(HAVE_LIBAV) || defined(_WIN32)
@@ -757,17 +756,4 @@ void Renderer::RunFrameDumps()
     AVIDump::Stop();
   }
 #endif
-}
-
-void Renderer::FlipImageData(u8* data, int w, int h, int pixel_width)
-{
-  for (int y = 0; y < h / 2; ++y)
-  {
-    for (int x = 0; x < w; ++x)
-    {
-      for (int delta = 0; delta < pixel_width; ++delta)
-        std::swap(data[(y * w + x) * pixel_width + delta],
-                  data[((h - 1 - y) * w + x) * pixel_width + delta]);
-    }
-  }
 }
