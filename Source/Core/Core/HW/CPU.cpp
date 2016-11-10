@@ -160,11 +160,15 @@ void Stop()
   std::unique_lock<std::mutex> state_lock(s_state_change_lock);
   s_state = CPU_POWERDOWN;
   s_state_cpu_cvar.notify_one();
-  // FIXME: MsgHandler can cause this to deadlock the GUI Thread. Remove the timeout.
-  bool success = s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::seconds(5),
-                                                [] { return !s_state_cpu_thread_active; });
-  if (!success)
-    ERROR_LOG(POWERPC, "CPU Thread failed to acknowledge CPU_POWERDOWN. It may be deadlocked.");
+
+  while (s_state_cpu_thread_active)
+  {
+    std::cv_status status =
+        s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::milliseconds(100));
+    if (status == std::cv_status::timeout)
+      Host_YieldToUI();
+  }
+
   RunAdjacentSystems(false);
   FlushStepSyncEventLocked();
 }
@@ -226,12 +230,13 @@ void EnableStepping(bool stepping)
   {
     SetStateLocked(CPU_STEPPING);
 
-    // Wait for the CPU Thread to leave the run loop
-    // FIXME: MsgHandler can cause this to deadlock the GUI Thread. Remove the timeout.
-    bool success = s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::seconds(5),
-                                                  [] { return !s_state_cpu_thread_active; });
-    if (!success)
-      ERROR_LOG(POWERPC, "Abandoned waiting for CPU Thread! The Core may be deadlocked.");
+    while (s_state_cpu_thread_active)
+    {
+      std::cv_status status =
+          s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::milliseconds(100));
+      if (status == std::cv_status::timeout)
+        Host_YieldToUI();
+    }
 
     RunAdjacentSystems(false);
   }
@@ -276,12 +281,13 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
     was_unpaused = s_state == CPU_RUNNING;
     SetStateLocked(CPU_STEPPING);
 
-    // FIXME: MsgHandler can cause this to deadlock the GUI Thread. Remove the timeout.
-    bool success = s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::seconds(10),
-                                                  [] { return !s_state_cpu_thread_active; });
-    if (!success)
-      PanicAlert(
-          "Abandoned CPU Thread synchronization in CPU::PauseAndLock! We'll probably crash now.");
+    while (s_state_cpu_thread_active)
+    {
+      std::cv_status status =
+          s_state_cpu_idle_cvar.wait_for(state_lock, std::chrono::milliseconds(100));
+      if (status == std::cv_status::timeout)
+        Host_YieldToUI();
+    }
 
     if (control_adjacent)
       RunAdjacentSystems(false);
