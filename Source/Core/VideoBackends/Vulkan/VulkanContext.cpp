@@ -233,15 +233,15 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsPaletteConversion = true;     // Assumed support.
   config->backend_info.bSupportsClipControl = true;           // Assumed support.
   config->backend_info.bSupportsMultithreading = true;        // Assumed support.
-  config->backend_info.bSupportsInternalResolutionFrameDumps = false; // No support yet.
-  config->backend_info.bSupportsPostProcessing = false;       // No support yet.
-  config->backend_info.bSupportsDualSourceBlend = false;      // Dependent on features.
-  config->backend_info.bSupportsGeometryShaders = false;      // Dependent on features.
-  config->backend_info.bSupportsGSInstancing = false;         // Dependent on features.
-  config->backend_info.bSupportsBBox = false;                 // Dependent on features.
-  config->backend_info.bSupportsSSAA = false;                 // Dependent on features.
-  config->backend_info.bSupportsDepthClamp = false;           // Dependent on features.
-  config->backend_info.bSupportsReversedDepthRange = false;   // No support yet due to driver bugs.
+  config->backend_info.bSupportsInternalResolutionFrameDumps = true;  // Assumed support.
+  config->backend_info.bSupportsPostProcessing = false;               // No support yet.
+  config->backend_info.bSupportsDualSourceBlend = false;              // Dependent on features.
+  config->backend_info.bSupportsGeometryShaders = false;              // Dependent on features.
+  config->backend_info.bSupportsGSInstancing = false;                 // Dependent on features.
+  config->backend_info.bSupportsBBox = false;                         // Dependent on features.
+  config->backend_info.bSupportsSSAA = false;                         // Dependent on features.
+  config->backend_info.bSupportsDepthClamp = false;                   // Dependent on features.
+  config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)

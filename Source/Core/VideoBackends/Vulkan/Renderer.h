@@ -92,15 +92,17 @@ private:
   void DestroyShaders();
 
   // Draw either the EFB, or specified XFB sources to the currently-bound framebuffer.
-  void DrawFrame(VkRenderPass render_pass, const EFBRectangle& rc, u32 xfb_addr,
-                 const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                 u32 fb_stride, u32 fb_height);
-  void DrawEFB(VkRenderPass render_pass, const EFBRectangle& rc);
-  void DrawVirtualXFB(VkRenderPass render_pass, u32 xfb_addr,
+  void DrawFrame(const TargetRectangle& target_rect, VkRenderPass render_pass,
+                 const EFBRectangle& rc, u32 xfb_addr, const XFBSourceBase* const* xfb_sources,
+                 u32 xfb_count, u32 fb_width, u32 fb_stride, u32 fb_height);
+  void DrawEFB(const TargetRectangle& target_rect, VkRenderPass render_pass,
+               const EFBRectangle& rc);
+  void DrawVirtualXFB(const TargetRectangle& target_rect, VkRenderPass render_pass, u32 xfb_addr,
                       const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                       u32 fb_stride, u32 fb_height);
-  void DrawRealXFB(VkRenderPass render_pass, const XFBSourceBase* const* xfb_sources, u32 xfb_count,
-                   u32 fb_width, u32 fb_stride, u32 fb_height);
+  void DrawRealXFB(const TargetRectangle& target_rect, VkRenderPass render_pass,
+                   const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                   u32 fb_stride, u32 fb_height);
 
   // Draw the frame, as well as the OSD to the swap chain.
   void DrawScreen(const EFBRectangle& rc, u32 xfb_addr, const XFBSourceBase* const* xfb_sources,
