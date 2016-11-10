@@ -1384,7 +1384,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   DrawFrame(flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
 
   // Dump frame if enabled.
-  DumpFrame(flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight, ticks);
+  DumpFrame(rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight, ticks);
 
   // Finish up the current frame, print some stats
   SetWindowSize(fbStride, fbHeight);
@@ -1627,19 +1627,16 @@ void Renderer::FlushFrameDump()
   m_last_frame_exported = false;
 }
 
-void Renderer::DumpFrame(const TargetRectangle& target_rc, const EFBRectangle& source_rc,
-                         u32 xfb_addr, const XFBSourceBase* const* xfb_sources, u32 xfb_count,
-                         u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+void Renderer::DumpFrame(const EFBRectangle& source_rc, u32 xfb_addr,
+                         const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                         u32 fb_stride, u32 fb_height, u64 ticks)
 {
   if (!IsFrameDumping())
     return;
 
-  // Remove the borders from the frame dump, we don't need to render this area.
-  TargetRectangle render_rc;
-  render_rc.left = 0;
-  render_rc.top = target_rc.GetHeight();
-  render_rc.right = target_rc.GetWidth();
-  render_rc.bottom = 0;
+  // This needs to be converted to the GL bottom-up window coordinate system.
+  TargetRectangle render_rc = CalculateFrameDumpDrawRectangle();
+  std::swap(render_rc.top, render_rc.bottom);
 
   // Ensure the render texture meets the size requirements of the draw area.
   u32 render_width = static_cast<u32>(render_rc.GetWidth());

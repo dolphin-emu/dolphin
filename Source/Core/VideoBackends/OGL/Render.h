@@ -127,7 +127,7 @@ private:
                   int src_height);
 
   void FlushFrameDump();
-  void DumpFrame(const TargetRectangle& target_rc, const EFBRectangle& source_rc, u32 xfb_addr,
+  void DumpFrame(const EFBRectangle& source_rc, u32 xfb_addr,
                  const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                  u32 fb_stride, u32 fb_height, u64 ticks);
 
