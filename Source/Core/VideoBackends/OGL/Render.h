@@ -8,6 +8,8 @@
 #include <string>
 #include "VideoCommon/RenderBase.h"
 
+struct XFBSourceBase;
+
 namespace OGL
 {
 void ClearEFBCache();
@@ -109,6 +111,17 @@ public:
 private:
   void UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
                       const TargetRectangle& targetPixelRc, const void* data);
+
+  // Draw either the EFB, or specified XFB sources to the currently-bound framebuffer.
+  void DrawFrame(const TargetRectangle& target_rc, const EFBRectangle& source_rc, u32 xfb_addr,
+                 const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                 u32 fb_stride, u32 fb_height);
+  void DrawEFB(const TargetRectangle& target_rc, const EFBRectangle& source_rc);
+  void DrawVirtualXFB(const TargetRectangle& target_rc, u32 xfb_addr,
+                      const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                      u32 fb_stride, u32 fb_height);
+  void DrawRealXFB(const TargetRectangle& target_rc, const XFBSourceBase* const* xfb_sources,
+                   u32 xfb_count, u32 fb_width, u32 fb_stride, u32 fb_height);
 
   void BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture, int src_width,
                   int src_height);
