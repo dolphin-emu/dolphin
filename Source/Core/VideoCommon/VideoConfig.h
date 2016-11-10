@@ -101,6 +101,7 @@ struct VideoConfig final
   bool bDumpEFBTarget;
   bool bDumpFramesAsImages;
   bool bUseFFV1;
+  bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   bool bBorderlessFullscreen;
 
@@ -184,6 +185,7 @@ struct VideoConfig final
     bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsReversedDepthRange;
     bool bSupportsMultithreading;
+    bool bSupportsInternalResolutionFrameDumps;
   } backend_info;
 
   // Utility
