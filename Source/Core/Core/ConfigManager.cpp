@@ -107,6 +107,7 @@ void SConfig::SaveSettings()
   SaveAnalyticsSettings(ini);
   SaveNetworkSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
+  SaveUSBPassthroughSettings(ini);
   SaveSysconfSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -371,6 +372,22 @@ void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
   section->Set("LinkKeys", m_bt_passthrough_link_keys);
 }
 
+void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
+
+  {
+    std::ostringstream oss;
+    for (const auto& device : m_usb_passthrough_devices)
+      oss << StringFromFormat("%04x:%04x", device.first, device.second) << ',';
+    std::string devices_string = oss.str();
+    if (!devices_string.empty())
+      devices_string.pop_back();
+
+    section->Set("Devices", devices_string);
+  }
+}
+
 void SConfig::SaveSysconfSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
@@ -430,6 +447,7 @@ void SConfig::LoadSettings()
   LoadNetworkSettings(ini);
   LoadAnalyticsSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
+  LoadUSBPassthroughSettings(ini);
   LoadSysconfSettings(ini);
 }
 
@@ -703,6 +721,31 @@ void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
   section->Get("LinkKeys", &m_bt_passthrough_link_keys, "");
 }
 
+void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
+  m_usb_passthrough_devices.clear();
+  {
+    std::string devices_string;
+    std::vector<std::string> pairs;
+    section->Get("Devices", &devices_string, "");
+    SplitString(devices_string, ',', pairs);
+    for (const auto& pair : pairs)
+    {
+      const auto index = pair.find(':');
+      if (index == std::string::npos)
+        continue;
+
+      const u16 vid = static_cast<u16>(strtol(pair.substr(0, index).c_str(), nullptr, 16));
+      const u16 pid = static_cast<u16>(strtol(pair.substr(index + 1).c_str(), nullptr, 16));
+      if (vid && pid)
+        m_usb_passthrough_devices.emplace(vid, pid);
+    }
+  }
+  if (!section->Exists("Devices"))
+    ResetUSBWhitelistToDefault();
+}
+
 void SConfig::LoadSysconfSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
@@ -790,6 +833,36 @@ void SConfig::LoadDefaults()
   m_strName = "NONE";
   m_strGameID = "00000000";
   m_revision = 0;
+}
+
+// USB devices which are whitelisted by default for the USB passthrough feature.
+//
+// This whitelist will only contain devices which are primarily designed to work on a Wii
+// or which only work on a Wii, and no other random device.
+static const std::map<std::pair<u16, u16>, const char*> s_default_usb_whitelist = {
+    {{0x046d, 0x0a03}, "Logitech Microphone"},
+    {{0x057e, 0x0308}, "Wii Speak"},
+    {{0x057e, 0x0309}, "Nintendo USB Microphone"},
+    {{0x057e, 0x030a}, "Ubisoft Motion Tracking Camera"},
+    {{0x0e6f, 0x0129}, "Disney Infinity Reader (Portal Device)"},
+    {{0x1430, 0x0100}, "Tony Hawk Ride Skateboard"},
+    {{0x1430, 0x0150}, "Skylanders portals"},
+    {{0x1bad, 0x0004}, "Harmonix Guitar Controller"},
+    {{0x1bad, 0x3110}, "Rock Band 3 Mustang Guitar Dongle"},
+    {{0x1bad, 0x3430}, "Rock Band Drum Set"},
+    {{0x21a4, 0xac40}, "EA Active NFL"},
+};
+
+const std::map<std::pair<u16, u16>, const char*>& SConfig::GetDefaultUSBWhitelist() const
+{
+  return s_default_usb_whitelist;
+}
+
+void SConfig::ResetUSBWhitelistToDefault()
+{
+  m_usb_passthrough_devices.clear();
+  for (const auto& pair : s_default_usb_whitelist)
+    m_usb_passthrough_devices.emplace(pair.first);
 }
 
 static const char* GetRegionOfCountry(DiscIO::Country country)
