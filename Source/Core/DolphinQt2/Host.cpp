@@ -91,6 +91,7 @@ bool Host_RendererIsFullscreen()
 }
 void Host_YieldToUI()
 {
+  qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
 }
 
 // We ignore these, and their purpose should be questioned individually.
