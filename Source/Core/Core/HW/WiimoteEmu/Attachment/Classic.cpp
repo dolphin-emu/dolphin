@@ -134,4 +134,23 @@ bool Classic::IsButtonPressed() const
   m_triggers->GetState(&buttons, classic_trigger_bitmasks, trigs);
   return buttons != 0;
 }
+
+ControllerEmu::ControlGroup* Classic::GetGroup(WiimoteEmu::ClassicGroup group)
+{
+  switch (group)
+  {
+  case WiimoteEmu::ClassicGroup::Buttons:
+    return m_buttons;
+  case WiimoteEmu::ClassicGroup::Triggers:
+    return m_triggers;
+  case WiimoteEmu::ClassicGroup::Dpad:
+    return m_dpad;
+  case WiimoteEmu::ClassicGroup::LeftStick:
+    return m_left_stick;
+  case WiimoteEmu::ClassicGroup::RightStick:
+    return m_right_stick;
+  default:
+    return nullptr;
+  }
+}
 }

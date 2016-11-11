@@ -131,4 +131,25 @@ bool Turntable::IsButtonPressed() const
   m_buttons->GetState(&buttons, turntable_button_bitmasks);
   return buttons != 0;
 }
+
+ControllerEmu::ControlGroup* Turntable::GetGroup(WiimoteEmu::TurntableGroup group)
+{
+  switch (group)
+  {
+  case WiimoteEmu::TurntableGroup::Buttons:
+    return m_buttons;
+  case WiimoteEmu::TurntableGroup::Stick:
+    return m_stick;
+  case WiimoteEmu::TurntableGroup::EffectDial:
+    return m_effect_dial;
+  case WiimoteEmu::TurntableGroup::LeftTable:
+    return m_left_table;
+  case WiimoteEmu::TurntableGroup::RightTable:
+    return m_right_table;
+  case WiimoteEmu::TurntableGroup::Crossfade:
+    return m_crossfade;
+  default:
+    return nullptr;
+  }
+}
 }

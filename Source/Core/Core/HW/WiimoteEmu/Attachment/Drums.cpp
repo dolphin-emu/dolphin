@@ -81,4 +81,19 @@ bool Drums::IsButtonPressed() const
   m_pads->GetState(&buttons, drum_pad_bitmasks);
   return buttons != 0;
 }
+
+ControllerEmu::ControlGroup* Drums::GetGroup(WiimoteEmu::DrumsGroup group)
+{
+  switch (group)
+  {
+  case WiimoteEmu::DrumsGroup::Buttons:
+    return m_buttons;
+  case WiimoteEmu::DrumsGroup::Pads:
+    return m_pads;
+  case WiimoteEmu::DrumsGroup::Stick:
+    return m_stick;
+  default:
+    return nullptr;
+  }
+}
 }

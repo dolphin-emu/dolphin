@@ -102,4 +102,23 @@ bool Guitar::IsButtonPressed() const
   m_strum->GetState(&buttons, guitar_strum_bitmasks);
   return buttons != 0;
 }
+
+ControllerEmu::ControlGroup* Guitar::GetGroup(WiimoteEmu::GuitarGroup group)
+{
+  switch (group)
+  {
+  case WiimoteEmu::GuitarGroup::Buttons:
+    return m_buttons;
+  case WiimoteEmu::GuitarGroup::Frets:
+    return m_frets;
+  case WiimoteEmu::GuitarGroup::Strum:
+    return m_strum;
+  case WiimoteEmu::GuitarGroup::Whammy:
+    return m_whammy;
+  case WiimoteEmu::GuitarGroup::Stick:
+    return m_stick;
+  default:
+    return nullptr;
+  }
+}
 }

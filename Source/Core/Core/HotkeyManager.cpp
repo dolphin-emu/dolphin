@@ -14,10 +14,21 @@ const std::string hotkey_labels[] = {
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Refresh List"),
-
     _trans("Toggle Pause"),
     _trans("Stop"),
     _trans("Reset"),
+    _trans("Toggle Fullscreen"),
+    _trans("Take Screenshot"),
+    _trans("Exit"),
+
+    _trans("Volume Down"),
+    _trans("Volume Up"),
+    _trans("Volume Toggle Mute"),
+
+    _trans("Decrease Emulation Speed"),
+    _trans("Increase Emulation Speed"),
+    _trans("Disable Emulation Speed Limit"),
+
     _trans("Frame Advance"),
     _trans("Frame Advance Decrease Speed"),
     _trans("Frame Advance Increase Speed"),
@@ -28,10 +39,6 @@ const std::string hotkey_labels[] = {
     _trans("Export Recording"),
     _trans("Read-only mode"),
 
-    _trans("Toggle Fullscreen"),
-    _trans("Take Screenshot"),
-    _trans("Exit"),
-
     _trans("Press Sync Button"),
     _trans("Connect Wii Remote 1"),
     _trans("Connect Wii Remote 2"),
@@ -39,21 +46,14 @@ const std::string hotkey_labels[] = {
     _trans("Connect Wii Remote 4"),
     _trans("Connect Balance Board"),
 
-    _trans("Volume Down"),
-    _trans("Volume Up"),
-    _trans("Volume Toggle Mute"),
-
-    _trans("Increase IR"),
-    _trans("Decrease IR"),
-
     _trans("Toggle Crop"),
     _trans("Toggle Aspect Ratio"),
     _trans("Toggle EFB Copies"),
     _trans("Toggle Fog"),
-    _trans("Disable Emulation Speed Limit"),
     _trans("Toggle Custom Textures"),
-    _trans("Decrease Emulation Speed"),
-    _trans("Increase Emulation Speed"),
+
+    _trans("Increase IR"),
+    _trans("Decrease IR"),
 
     _trans("Freelook Decrease Speed"),
     _trans("Freelook Increase Speed"),
@@ -70,7 +70,6 @@ const std::string hotkey_labels[] = {
     _trans("Toggle 3D Top-bottom"),
     _trans("Toggle 3D Anaglyph"),
     _trans("Toggle 3D Vision"),
-
     _trans("Decrease Depth"),
     _trans("Increase Depth"),
     _trans("Decrease Convergence"),
@@ -108,7 +107,6 @@ const std::string hotkey_labels[] = {
     _trans("Select State Slot 8"),
     _trans("Select State Slot 9"),
     _trans("Select State Slot 10"),
-
     _trans("Save to selected slot"),
     _trans("Load from selected slot"),
 
@@ -134,7 +132,7 @@ static_assert(NUM_HOTKEYS == sizeof(hotkey_labels) / sizeof(hotkey_labels[0]),
 
 namespace HotkeyManagerEmu
 {
-static u32 s_hotkeyDown[(NUM_HOTKEYS + 31) / 32];
+static u32 s_hotkeyDown[NUM_GROUPS];
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
@@ -163,20 +161,21 @@ void Enable(bool enable_toggle)
   s_enabled = enable_toggle;
 }
 
-bool IsPressed(int Id, bool held)
+bool IsPressed(int id, bool held)
 {
-  unsigned int set = Id / 32;
-  unsigned int setKey = Id % 32;
-  if (s_hotkey.button[set] & (1 << setKey))
+  unsigned int group = static_cast<HotkeyManager*>(s_config.GetController(0))->FindGroupByID(id);
+  unsigned int groupKey =
+      static_cast<HotkeyManager*>(s_config.GetController(0))->GetIndexForGroup(group, id);
+  if (s_hotkey.button[group] & (1 << groupKey))
   {
-    bool pressed = !!(s_hotkeyDown[set] & (1 << setKey));
-    s_hotkeyDown[set] |= (1 << setKey);
+    bool pressed = !!(s_hotkeyDown[group] & (1 << groupKey));
+    s_hotkeyDown[group] |= (1 << groupKey);
     if (!pressed || held)
       return true;
   }
   else
   {
-    s_hotkeyDown[set] &= ~(1 << setKey);
+    s_hotkeyDown[group] &= ~(1 << groupKey);
   }
 
   return false;
@@ -203,6 +202,16 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
+ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group)
+{
+  return static_cast<HotkeyManager*>(s_config.GetController(0))->GetHotkeyGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetOptionsGroup()
+{
+  return static_cast<HotkeyManager*>(s_config.GetController(0))->GetOptionsGroup();
+}
+
 void Shutdown()
 {
   s_config.ClearControllers();
@@ -211,14 +220,15 @@ void Shutdown()
 
 HotkeyManager::HotkeyManager()
 {
-  for (int key = 0; key < NUM_HOTKEYS; key++)
+  for (int group = 0; group < NUM_GROUPS; group++)
   {
-    int set = key / 32;
-
-    if (key % 32 == 0)
-      groups.emplace_back(m_keys[set] = new Buttons(_trans("Keys")));
-
-    m_keys[set]->controls.emplace_back(new ControlGroup::Input(hotkey_labels[key]));
+    m_hotkey_groups[group] =
+        (m_keys[group] = new Buttons("Keys", _trans(m_groups_info[group].name)));
+    groups.emplace_back(m_hotkey_groups[group]);
+    for (int key = m_groups_info[group].first; key <= m_groups_info[group].last; key++)
+    {
+      m_keys[group]->controls.emplace_back(new ControlGroup::Input(hotkey_labels[key]));
+    }
   }
 
   groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
@@ -240,15 +250,39 @@ std::string HotkeyManager::GetName() const
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
   auto lock = ControllerEmu::GetStateLock();
-  for (int set = 0; set < (NUM_HOTKEYS + 31) / 32; set++)
+  for (int group = 0; group < NUM_GROUPS; group++)
   {
     std::vector<u32> bitmasks;
-    for (int key = 0; key < std::min(32, NUM_HOTKEYS - set * 32); key++)
+    int groupCount = (m_groups_info[group].last - m_groups_info[group].first) + 1;
+    for (int key = 0; key < groupCount; key++)
       bitmasks.push_back(1 << key);
 
-    kb->button[set] = 0;
-    m_keys[set]->GetState(&kb->button[set], bitmasks.data());
+    kb->button[group] = 0;
+    m_keys[group]->GetState(&kb->button[group], bitmasks.data());
   }
+}
+
+ControllerEmu::ControlGroup* HotkeyManager::GetHotkeyGroup(HotkeyGroup group)
+{
+  return m_hotkey_groups[group];
+}
+
+ControllerEmu::ControlGroup* HotkeyManager::GetOptionsGroup()
+{
+  return m_options;
+}
+
+int HotkeyManager::FindGroupByID(int id)
+{
+  const auto i = std::find_if(m_groups_info.begin(), m_groups_info.end(),
+                              [id](const auto& entry) { return entry.last >= id; });
+
+  return static_cast<int>(std::distance(m_groups_info.begin(), i));
+}
+
+int HotkeyManager::GetIndexForGroup(int group, int id)
+{
+  return id - m_groups_info[group].first;
 }
 
 void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
@@ -268,7 +302,9 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   auto set_key_expression = [this](int index, const std::string& expression) {
-    m_keys[index / 32]->controls[index % 32]->control_ref->expression = expression;
+    m_keys[FindGroupByID(index)]
+        ->controls[GetIndexForGroup(FindGroupByID(index), index)]
+        ->control_ref->expression = expression;
   };
 
   // General hotkeys

@@ -5,6 +5,9 @@
 #pragma once
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+
+enum class GuitarGroup;
 
 namespace WiimoteEmu
 {
@@ -16,6 +19,8 @@ public:
   Guitar(WiimoteEmu::ExtensionReg& _reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControlGroup* GetGroup(WiimoteEmu::GuitarGroup group);
 
   enum
   {

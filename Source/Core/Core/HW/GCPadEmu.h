@@ -8,6 +8,19 @@
 
 #include "InputCommon/ControllerEmu.h"
 
+enum class PadGroup
+{
+  Buttons,
+  MainStick,
+  CStick,
+  Dpad,
+  Triggers,
+  Rumble,
+  Options
+};
+
+class ControlGroup;
+
 class GCPad : public ControllerEmu
 {
 public:
@@ -18,6 +31,8 @@ public:
   bool GetMicButton() const;
 
   std::string GetName() const override;
+
+  ControlGroup* GetGroup(PadGroup group);
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 

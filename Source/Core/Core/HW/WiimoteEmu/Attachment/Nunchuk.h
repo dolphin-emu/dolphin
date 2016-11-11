@@ -5,6 +5,9 @@
 #pragma once
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+
+enum class NunchukGroup;
 
 namespace WiimoteEmu
 {
@@ -17,6 +20,8 @@ public:
 
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControlGroup* GetGroup(WiimoteEmu::NunchukGroup group);
 
   enum
   {

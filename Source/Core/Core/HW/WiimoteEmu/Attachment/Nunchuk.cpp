@@ -114,6 +114,25 @@ bool Nunchuk::IsButtonPressed() const
   return buttons != 0;
 }
 
+ControllerEmu::ControlGroup* Nunchuk::GetGroup(WiimoteEmu::NunchukGroup group)
+{
+  switch (group)
+  {
+  case WiimoteEmu::NunchukGroup::Buttons:
+    return m_buttons;
+  case WiimoteEmu::NunchukGroup::Stick:
+    return m_stick;
+  case WiimoteEmu::NunchukGroup::Tilt:
+    return m_tilt;
+  case WiimoteEmu::NunchukGroup::Swing:
+    return m_swing;
+  case WiimoteEmu::NunchukGroup::Shake:
+    return m_shake;
+  default:
+    return nullptr;
+  }
+}
+
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
   // Stick

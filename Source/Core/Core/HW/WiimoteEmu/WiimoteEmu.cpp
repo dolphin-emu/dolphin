@@ -315,6 +315,65 @@ std::string Wiimote::GetName() const
   return std::string("Wiimote") + char('1' + m_index);
 }
 
+ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteEmu::WiimoteGroup group)
+{
+  switch (group)
+  {
+  case WiimoteGroup::Buttons:
+    return m_buttons;
+  case WiimoteGroup::Dpad:
+    return m_dpad;
+  case WiimoteGroup::Shake:
+    return m_shake;
+  case WiimoteGroup::Ir:
+    return m_ir;
+  case WiimoteGroup::Tilt:
+    return m_tilt;
+  case WiimoteGroup::Swing:
+    return m_swing;
+  case WiimoteGroup::Rumble:
+    return m_rumble;
+  case WiimoteGroup::Extension:
+    return m_extension;
+  case WiimoteGroup::Options:
+    return m_options;
+  case WiimoteGroup::Hotkeys:
+    return m_hotkeys;
+  default:
+    return nullptr;
+  }
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(WiimoteEmu::NunchukGroup group)
+{
+  return static_cast<WiimoteEmu::Nunchuk*>(m_extension->attachments[EXT_NUNCHUK].get())
+      ->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(WiimoteEmu::ClassicGroup group)
+{
+  return static_cast<WiimoteEmu::Classic*>(m_extension->attachments[EXT_CLASSIC].get())
+      ->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(WiimoteEmu::GuitarGroup group)
+{
+  return static_cast<WiimoteEmu::Guitar*>(m_extension->attachments[EXT_GUITAR].get())
+      ->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(WiimoteEmu::DrumsGroup group)
+{
+  return static_cast<WiimoteEmu::Drums*>(m_extension->attachments[EXT_DRUMS].get())
+      ->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(WiimoteEmu::TurntableGroup group)
+{
+  return static_cast<WiimoteEmu::Turntable*>(m_extension->attachments[EXT_TURNTABLE].get())
+      ->GetGroup(group);
+}
+
 bool Wiimote::Step()
 {
   // TODO: change this a bit

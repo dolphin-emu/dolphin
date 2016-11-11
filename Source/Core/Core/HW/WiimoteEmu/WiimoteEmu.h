@@ -27,6 +27,66 @@ class Wiimote;
 namespace WiimoteEmu
 {
 #pragma pack(push, 1)
+
+enum class WiimoteGroup
+{
+  Buttons,
+  Dpad,
+  Shake,
+  Ir,
+  Tilt,
+  Swing,
+  Rumble,
+  Extension,
+
+  Options,
+  Hotkeys
+};
+
+enum class NunchukGroup
+{
+  Buttons,
+  Stick,
+  Tilt,
+  Swing,
+  Shake
+};
+
+enum class ClassicGroup
+{
+  Buttons,
+  Triggers,
+  Dpad,
+  LeftStick,
+  RightStick
+};
+
+enum class GuitarGroup
+{
+  Buttons,
+  Frets,
+  Strum,
+  Whammy,
+  Stick
+};
+
+enum class DrumsGroup
+{
+  Buttons,
+  Pads,
+  Stick
+};
+
+enum class TurntableGroup
+{
+  Buttons,
+  Stick,
+  EffectDial,
+  LeftTable,
+  RightTable,
+  Crossfade
+};
+
 struct ReportFeatures
 {
   u8 core, accel, ir, ext, size;
@@ -105,6 +165,12 @@ public:
 
   Wiimote(const unsigned int index);
   std::string GetName() const override;
+  ControlGroup* GetWiimoteGroup(WiimoteEmu::WiimoteGroup group);
+  ControlGroup* GetNunchukGroup(WiimoteEmu::NunchukGroup group);
+  ControllerEmu::ControlGroup* GetClassicGroup(WiimoteEmu::ClassicGroup group);
+  ControllerEmu::ControlGroup* GetGuitarGroup(WiimoteEmu::GuitarGroup group);
+  ControllerEmu::ControlGroup* GetDrumsGroup(WiimoteEmu::DrumsGroup group);
+  ControllerEmu::ControlGroup* GetTurntableGroup(WiimoteEmu::TurntableGroup group);
 
   void Update();
   void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
