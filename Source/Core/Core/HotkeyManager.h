@@ -13,10 +13,20 @@ enum Hotkey
   HK_OPEN,
   HK_CHANGE_DISC,
   HK_REFRESH_LIST,
-
   HK_PLAY_PAUSE,
   HK_STOP,
   HK_RESET,
+  HK_FULLSCREEN,
+  HK_SCREENSHOT,
+  HK_EXIT,
+
+  HK_VOLUME_DOWN,
+  HK_VOLUME_UP,
+  HK_VOLUME_TOGGLE_MUTE,
+
+  HK_DECREASE_EMULATION_SPEED,
+  HK_INCREASE_EMULATION_SPEED,
+
   HK_FRAME_ADVANCE,
   HK_FRAME_ADVANCE_DECREASE_SPEED,
   HK_FRAME_ADVANCE_INCREASE_SPEED,
@@ -27,23 +37,12 @@ enum Hotkey
   HK_EXPORT_RECORDING,
   HK_READ_ONLY_MODE,
 
-  HK_FULLSCREEN,
-  HK_SCREENSHOT,
-  HK_EXIT,
-
   HK_TRIGGER_SYNC_BUTTON,
   HK_WIIMOTE1_CONNECT,
   HK_WIIMOTE2_CONNECT,
   HK_WIIMOTE3_CONNECT,
   HK_WIIMOTE4_CONNECT,
   HK_BALANCEBOARD_CONNECT,
-
-  HK_VOLUME_DOWN,
-  HK_VOLUME_UP,
-  HK_VOLUME_TOGGLE_MUTE,
-
-  HK_INCREASE_IR,
-  HK_DECREASE_IR,
 
   HK_TOGGLE_CROP,
   HK_TOGGLE_AR,
@@ -52,8 +51,8 @@ enum Hotkey
   HK_TOGGLE_THROTTLE,
   HK_TOGGLE_TEXTURES,
 
-  HK_DECREASE_EMULATION_SPEED,
-  HK_INCREASE_EMULATION_SPEED,
+  HK_INCREASE_IR,
+  HK_DECREASE_IR,
 
   HK_FREELOOK_DECREASE_SPEED,
   HK_FREELOOK_INCREASE_SPEED,
@@ -86,6 +85,7 @@ enum Hotkey
   HK_LOAD_STATE_SLOT_8,
   HK_LOAD_STATE_SLOT_9,
   HK_LOAD_STATE_SLOT_10,
+  HK_LOAD_STATE_SLOT_SELECTED,
 
   HK_SAVE_STATE_SLOT_1,
   HK_SAVE_STATE_SLOT_2,
@@ -97,6 +97,7 @@ enum Hotkey
   HK_SAVE_STATE_SLOT_8,
   HK_SAVE_STATE_SLOT_9,
   HK_SAVE_STATE_SLOT_10,
+  HK_SAVE_STATE_SLOT_SELECTED,
 
   HK_SELECT_STATE_SLOT_1,
   HK_SELECT_STATE_SLOT_2,
@@ -108,9 +109,6 @@ enum Hotkey
   HK_SELECT_STATE_SLOT_8,
   HK_SELECT_STATE_SLOT_9,
   HK_SELECT_STATE_SLOT_10,
-
-  HK_SAVE_STATE_SLOT_SELECTED,
-  HK_LOAD_STATE_SLOT_SELECTED,
 
   HK_LOAD_LAST_STATE_1,
   HK_LOAD_LAST_STATE_2,
@@ -132,9 +130,38 @@ enum Hotkey
   NUM_HOTKEYS,
 };
 
+enum HotkeyGroup
+{
+  HKGP_GENERAL,
+  HKGP_VOLUME,
+  HKGP_SPEED,
+  HKGP_FRANE_ADVANCE,
+  HKGP_MOVIE,
+  HKGP_WII,
+  HKGP_GRAPHICS_TOGGLES,
+  HKGP_IR,
+  HKGP_FREELOOK,
+  HKGP_3D_TOGGLE,
+  HKGP_3D_DEPTH,
+  HKGP_LOAD_STATE,
+  HKGP_SAVE_STATE,
+  HKGP_SELECT_STATE,
+  HKGP_LOAD_LAST_STATE,
+  HKGP_STATE_MISC,
+
+  NUM_GROUPS,
+};
+
+struct HotkeyGroupInfo
+{
+  std::string name;
+  Hotkey first;
+  Hotkey last;
+};
+
 struct HotkeyStatus
 {
-  u32 button[(NUM_HOTKEYS + 31) / 32];
+  u32 button[NUM_GROUPS];
   s8 err;
 };
 
@@ -146,11 +173,33 @@ public:
 
   void GetInput(HotkeyStatus* const hk);
   std::string GetName() const override;
+  ControlGroup* GetHotkeyGroup(HotkeyGroup group);
+  ControlGroup* GetOptionsGroup();
+  int GetGroupById(int Id);
+  int GetIndexForGroup(int group, int Id);
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-  Buttons* m_keys[(NUM_HOTKEYS + 31) / 32];
+  Buttons* m_keys[NUM_GROUPS];
+  ControlGroup* m_hotkey_groups[NUM_GROUPS];
   ControlGroup* m_options;
+  HotkeyGroupInfo m_groups_info[NUM_GROUPS] = {
+      {"General", HK_OPEN, HK_EXIT},
+      {"Volume", HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
+      {"Emulation speed", HK_DECREASE_EMULATION_SPEED, HK_INCREASE_EMULATION_SPEED},
+      {"Frame advance", HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
+      {"Movie", HK_START_RECORDING, HK_READ_ONLY_MODE},
+      {"Wii", HK_TRIGGER_SYNC_BUTTON, HK_BALANCEBOARD_CONNECT},
+      {"Graphics toggles", HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
+      {"Internal Resolution", HK_INCREASE_IR, HK_DECREASE_IR},
+      {"Freelook", HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_RESET},
+      {"3D", HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_3DVISION},
+      {"3D depth", HK_DECREASE_DEPTH, HK_INCREASE_CONVERGENCE},
+      {"Load state", HK_LOAD_STATE_SLOT_1, HK_LOAD_STATE_SLOT_SELECTED},
+      {"Save state", HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
+      {"Select state", HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
+      {"Load last state", HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
+      {"Other state hotkeys", HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE}};
 };
 
 namespace HotkeyManagerEmu
@@ -160,6 +209,8 @@ void Shutdown();
 void LoadConfig();
 
 InputConfig* GetConfig();
+ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group);
+ControllerEmu::ControlGroup* GetOptionsGroup();
 void GetStatus();
 bool IsEnabled();
 void Enable(bool enable_toggle);
