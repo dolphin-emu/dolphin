@@ -161,7 +161,7 @@ void IWII_IPC_HLE_Device::DumpAsync(u32 buffer_vector, u32 number_in_buffer, u32
     u32 InBufferSize = Memory::Read_U32(BufferOffset);
     BufferOffset += 4;
 
-    GENERIC_LOG(log_type, LogTypes::LINFO, "%s - IOCtlV InBuffer[%i]:", GetDeviceName().c_str(), i);
+    GENERIC_LOG(log_type, verbosity, "%s - IOCtlV InBuffer[%i]:", GetDeviceName().c_str(), i);
 
     std::string Temp;
     for (u32 j = 0; j < InBufferSize; j++)
@@ -169,7 +169,7 @@ void IWII_IPC_HLE_Device::DumpAsync(u32 buffer_vector, u32 number_in_buffer, u32
       Temp += StringFromFormat("%02x ", Memory::Read_U8(InBuffer + j));
     }
 
-    GENERIC_LOG(log_type, LogTypes::LDEBUG, "    Buffer: %s", Temp.c_str());
+    GENERIC_LOG(log_type, verbosity, "    Buffer: %s", Temp.c_str());
   }
 
   for (u32 i = 0; i < number_io_buffer; i++)
@@ -179,10 +179,8 @@ void IWII_IPC_HLE_Device::DumpAsync(u32 buffer_vector, u32 number_in_buffer, u32
     u32 OutBufferSize = Memory::Read_U32(BufferOffset);
     BufferOffset += 4;
 
-    GENERIC_LOG(log_type, LogTypes::LINFO, "%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(),
-                i);
-    GENERIC_LOG(log_type, LogTypes::LINFO, "    OutBuffer: 0x%08x (0x%x):", OutBuffer,
-                OutBufferSize);
+    GENERIC_LOG(log_type, verbosity, "%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(), i);
+    GENERIC_LOG(log_type, verbosity, "    OutBuffer: 0x%08x (0x%x):", OutBuffer, OutBufferSize);
 
     if (verbosity >= LogTypes::LOG_LEVELS::LINFO)
       DumpCommands(OutBuffer, OutBufferSize, log_type, verbosity);
