@@ -51,9 +51,8 @@
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 
-CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* parent, wxWindowID id,
-                         const wxPoint& position, const wxSize& size, long style,
-                         const wxString& name)
+CCodeWindow::CCodeWindow(CFrame* parent, wxWindowID id, const wxPoint& position, const wxSize& size,
+                         long style, const wxString& name)
     : wxPanel(parent, id, position, size, style, name), m_sibling_panels(), Parent(parent),
       codeview(nullptr)
 {
