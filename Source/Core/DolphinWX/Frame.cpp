@@ -324,7 +324,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   // Debugger class
   if (UseDebugger)
   {
-    g_pCodeWindow = new CCodeWindow(SConfig::GetInstance(), this, IDM_CODE_WINDOW);
+    g_pCodeWindow = new CCodeWindow(this, IDM_CODE_WINDOW);
     LoadIniPerspectives();
     g_pCodeWindow->Load();
   }

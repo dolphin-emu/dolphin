@@ -75,9 +75,10 @@ struct DebugPanelToID<GFXDebuggerPanel>
 class CCodeWindow : public wxPanel
 {
 public:
-  CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* parent, wxWindowID id = wxID_ANY,
-              const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-              long style = wxTAB_TRAVERSAL | wxBORDER_NONE, const wxString& name = _("Code"));
+  explicit CCodeWindow(CFrame* parent, wxWindowID id = wxID_ANY,
+                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+                       long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
+                       const wxString& name = _("Code"));
   ~CCodeWindow();
 
   void Load();
@@ -156,7 +157,7 @@ private:
 
   // Sibling debugger panels
   // FIXME: This obviously belongs in some manager class above this one.
-  std::array<wxPanel*, IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START> m_sibling_panels;
+  std::array<wxPanel*, IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START> m_sibling_panels{};
 
   CFrame* Parent;
   CCodeView* codeview;
