@@ -302,8 +302,11 @@ bool SwapChain::CreateSwapChain()
     return false;
 
   // Select number of images in swap chain, we prefer one buffer in the background to work on
-  uint32_t image_count =
-      std::min(surface_capabilities.minImageCount + 1, surface_capabilities.maxImageCount);
+  uint32_t image_count = surface_capabilities.minImageCount + 1;
+
+  // maxImageCount can be zero, in which case there isn't an upper limit on the number of buffers.
+  if (surface_capabilities.maxImageCount > 0)
+    image_count = std::min(image_count, surface_capabilities.maxImageCount);
 
   // Determine the dimensions of the swap chain. Values of -1 indicate the size we specify here
   // determines window size?
