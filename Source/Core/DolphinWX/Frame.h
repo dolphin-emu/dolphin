@@ -106,6 +106,7 @@ public:
   bool RendererHasFocus();
   bool RendererIsFullscreen();
   void DoFullscreen(bool bF);
+  void DoExclusiveFullscreen(bool bF);
   void ToggleDisplayMode(bool bFullscreen);
   static void ConnectWiimote(int wm_idx, bool connect);
   void UpdateTitle(const std::string& str);

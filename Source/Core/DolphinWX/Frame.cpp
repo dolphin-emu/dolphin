@@ -521,15 +521,7 @@ void CFrame::OnActive(wxActivateEvent& event)
       if (SConfig::GetInstance().bRenderToMain)
         m_RenderParent->SetFocus();
       else if (RendererIsFullscreen() && g_ActiveConfig.ExclusiveFullscreenEnabled())
-      {
-        // Regain exclusive mode if it was lost due to a focus change.
-        if (g_renderer && !g_renderer->IsFullscreen())
-        {
-          bool was_unpaused = Core::PauseAndLock(true);
-          g_renderer->SetFullscreen(true);
-          Core::PauseAndLock(false, was_unpaused);
-        }
-      }
+        DoExclusiveFullscreen(true);  // Regain exclusive mode
 
       if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::CORE_PAUSE)
         DoPause();
@@ -1170,27 +1162,29 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
   }
   else if (g_ActiveConfig.ExclusiveFullscreenEnabled())
   {
-    if (g_renderer && !enable_fullscreen)
-    {
-      bool was_unpaused = Core::PauseAndLock(true);
-      g_renderer->SetFullscreen(false);
-      Core::PauseAndLock(false, was_unpaused);
-    }
+    if (!enable_fullscreen)
+      DoExclusiveFullscreen(false);
 
     m_RenderFrame->ShowFullScreen(enable_fullscreen, wxFULLSCREEN_ALL);
     m_RenderFrame->Raise();
 
-    if (g_renderer && enable_fullscreen)
-    {
-      bool was_unpaused = Core::PauseAndLock(true);
-      g_renderer->SetFullscreen(true);
-      Core::PauseAndLock(false, was_unpaused);
-    }
+    if (enable_fullscreen)
+      DoExclusiveFullscreen(true);
   }
   else
   {
     m_RenderFrame->ShowFullScreen(enable_fullscreen, wxFULLSCREEN_ALL);
     m_RenderFrame->Raise();
+  }
+}
+
+void CFrame::DoExclusiveFullscreen(bool enable_fullscreen)
+{
+  if (g_renderer && g_renderer->IsFullscreen() != enable_fullscreen)
+  {
+    bool was_unpaused = Core::PauseAndLock(true);
+    g_renderer->SetFullscreen(enable_fullscreen);
+    Core::PauseAndLock(false, was_unpaused);
   }
 }
 
