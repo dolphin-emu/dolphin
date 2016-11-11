@@ -8,6 +8,7 @@
 
 namespace WiimoteEmu
 {
+enum class DrumsGroup;
 struct ExtensionReg;
 
 class Drums : public Attachment
@@ -16,6 +17,8 @@ public:
   Drums(WiimoteEmu::ExtensionReg& _reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControlGroup* GetGroup(DrumsGroup group);
 
   enum
   {

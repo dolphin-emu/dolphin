@@ -79,6 +79,29 @@ std::string GCPad::GetName() const
   return std::string("GCPad") + char('1' + m_index);
 }
 
+ControllerEmu::ControlGroup* GCPad::GetGroup(PadGroup group)
+{
+  switch (group)
+  {
+  case PadGroup::Buttons:
+    return m_buttons;
+  case PadGroup::MainStick:
+    return m_main_stick;
+  case PadGroup::CStick:
+    return m_c_stick;
+  case PadGroup::DPad:
+    return m_dpad;
+  case PadGroup::Triggers:
+    return m_triggers;
+  case PadGroup::Rumble:
+    return m_rumble;
+  case PadGroup::Options:
+    return m_options;
+  default:
+    return nullptr;
+  }
+}
+
 GCPadStatus GCPad::GetInput() const
 {
   auto lock = ControllerEmu::GetStateLock();

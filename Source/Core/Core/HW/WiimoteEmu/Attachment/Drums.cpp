@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cassert>
 #include <cstring>
 
 #include "Common/Common.h"
@@ -80,5 +81,21 @@ bool Drums::IsButtonPressed() const
   m_buttons->GetState(&buttons, drum_button_bitmasks);
   m_pads->GetState(&buttons, drum_pad_bitmasks);
   return buttons != 0;
+}
+
+ControllerEmu::ControlGroup* Drums::GetGroup(DrumsGroup group)
+{
+  switch (group)
+  {
+  case DrumsGroup::Buttons:
+    return m_buttons;
+  case DrumsGroup::Pads:
+    return m_pads;
+  case DrumsGroup::Stick:
+    return m_stick;
+  default:
+    assert(false);
+    return nullptr;
+  }
 }
 }

@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cassert>
 #include <cstring>
 
 #include "Common/Common.h"
@@ -133,5 +134,25 @@ bool Classic::IsButtonPressed() const
   m_dpad->GetState(&buttons, classic_dpad_bitmasks);
   m_triggers->GetState(&buttons, classic_trigger_bitmasks, trigs);
   return buttons != 0;
+}
+
+ControllerEmu::ControlGroup* Classic::GetGroup(ClassicGroup group)
+{
+  switch (group)
+  {
+  case ClassicGroup::Buttons:
+    return m_buttons;
+  case ClassicGroup::Triggers:
+    return m_triggers;
+  case ClassicGroup::DPad:
+    return m_dpad;
+  case ClassicGroup::LeftStick:
+    return m_left_stick;
+  case ClassicGroup::RightStick:
+    return m_right_stick;
+  default:
+    assert(false);
+    return nullptr;
+  }
 }
 }
