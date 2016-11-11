@@ -157,7 +157,7 @@ private:
 
   // Sibling debugger panels
   // FIXME: This obviously belongs in some manager class above this one.
-  std::array<wxPanel*, IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START> m_sibling_panels;
+  std::array<wxPanel*, IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START> m_sibling_panels{};
 
   CFrame* Parent;
   CCodeView* codeview;

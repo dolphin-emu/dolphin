@@ -53,8 +53,7 @@
 
 CCodeWindow::CCodeWindow(CFrame* parent, wxWindowID id, const wxPoint& position, const wxSize& size,
                          long style, const wxString& name)
-    : wxPanel(parent, id, position, size, style, name), m_sibling_panels(), Parent(parent),
-      codeview(nullptr)
+    : wxPanel(parent, id, position, size, style, name), Parent(parent)
 {
   DebugInterface* di = &PowerPC::debug_interface;
 
