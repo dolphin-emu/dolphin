@@ -161,6 +161,10 @@ void Host_ShowVideoConfig(void*, const std::string&)
 {
 }
 
+void Host_YieldToUI()
+{
+}
+
 #if HAVE_X11
 #include <X11/keysym.h>
 #include "DolphinWX/X11Utils.h"
