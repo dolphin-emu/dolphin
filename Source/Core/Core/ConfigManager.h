@@ -5,7 +5,10 @@
 #pragma once
 
 #include <limits>
+#include <map>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/IniFile.h"
@@ -149,6 +152,10 @@ struct SConfig : NonCopyable
   int m_bt_passthrough_pid = -1;
   int m_bt_passthrough_vid = -1;
   std::string m_bt_passthrough_link_keys;
+
+  // USB passthrough settings
+  std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
+  bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
 
   // SYSCONF settings
   int m_sensor_bar_position = 0x01;
@@ -343,6 +350,7 @@ private:
   void SaveNetworkSettings(IniFile& ini);
   void SaveAnalyticsSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
+  void SaveUSBPassthroughSettings(IniFile& ini);
   void SaveSysconfSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
@@ -357,6 +365,7 @@ private:
   void LoadNetworkSettings(IniFile& ini);
   void LoadAnalyticsSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
+  void LoadUSBPassthroughSettings(IniFile& ini);
   void LoadSysconfSettings(IniFile& ini);
 
   static SConfig* m_Instance;
