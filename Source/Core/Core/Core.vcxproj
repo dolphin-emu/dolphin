@@ -181,8 +181,17 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stm.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp" />
-    <ClCompile Include="IPC_HLE\USB\Common.cpp" />
+    <ClCompile Include="IPC_HLE\USB\Common.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\USB\Host.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\USB\LibusbDevice.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\USB\USBV0.cpp" />
+    <ClCompile Include="IPC_HLE\USB\USBV5.cpp" />
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_hid.cpp">
       <!--
       Disable "nonstandard extension used : zero-sized array in struct/union" warning,
@@ -195,7 +204,9 @@
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_real.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_oh0.cpp" />
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_kbd.cpp" />
+    <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_ven.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
     <ClCompile Include="IPC_HLE\WII_Socket.cpp" />
     <ClCompile Include="IPC_HLE\WiiNetConfig.cpp" />
@@ -388,12 +399,18 @@
     <ClInclude Include="IPC_HLE\l2cap.h" />
     <ClInclude Include="IPC_HLE\NWC24Config.h" />
     <ClInclude Include="IPC_HLE\USB\Common.h" />
+    <ClInclude Include="IPC_HLE\USB\Host.h" />
+    <ClInclude Include="IPC_HLE\USB\LibusbDevice.h" />
+    <ClInclude Include="IPC_HLE\USB\StubDevice.h" />
     <ClInclude Include="IPC_HLE\USB\USBV0.h" />
+    <ClInclude Include="IPC_HLE\USB\USBV5.h" />
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_hid.h" />
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_base.h" />
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_emu.h" />
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_real.h" />
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_kbd.h" />
+    <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_oh0.h" />
+    <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_ven.h" />
     <ClInclude Include="IPC_HLE\WiiMote_HID_Attr.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device.h" />

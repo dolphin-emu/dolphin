@@ -4,8 +4,13 @@
 
 #include <cstring>
 
+#ifdef __LIBUSB__
+#include <libusb.h>
+#endif
+
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/USB/Common.h"
 
@@ -44,3 +49,30 @@ void TransferCommand::FillBuffer(const u8* src, const size_t size) const
 {
   Memory::CopyToEmu(data_addr, src, size);
 }
+
+void BulkMessage::SetRetVal(const u32 retval) const
+{
+  Memory::Write_U32(retval, cmd_address + 4);
+}
+
+void IntrMessage::SetRetVal(const u32 retval) const
+{
+  Memory::Write_U32(retval, cmd_address + 4);
+}
+
+std::string Device::GetErrorName(const int error_code) const
+{
+  return StringFromFormat("unknown error %d", error_code);
+}
+
+#ifdef __LIBUSB__
+LibusbConfigDescriptor::LibusbConfigDescriptor(libusb_device* device, const u8 config_num)
+{
+  libusb_get_config_descriptor(device, config_num, &m_config);
+}
+
+LibusbConfigDescriptor::~LibusbConfigDescriptor()
+{
+  libusb_free_config_descriptor(m_config);
+}
+#endif

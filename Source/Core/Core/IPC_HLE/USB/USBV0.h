@@ -8,6 +8,8 @@
 
 struct SIOCtlVBuffer;
 
+// Used by early USB interfaces, such as /dev/usb/oh0 and /dev/usb/oh1.
+
 enum USBV0IOCtl
 {
   USBV0_IOCTL_CTRLMSG = 0,

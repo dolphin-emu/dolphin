@@ -603,7 +603,16 @@
     <ClCompile Include="IPC_HLE\USB\Common.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClCompile>
+    <ClInclude Include="IPC_HLE\USB\Host.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
+    <ClCompile Include="IPC_HLE\USB\LibusbDevice.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\USB\USBV0.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\USB\USBV5.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClCompile>
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_hid.cpp">
@@ -617,6 +626,12 @@
     </ClCompile>
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_real.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_oh0.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_ven.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
@@ -1181,7 +1196,19 @@
     <ClInclude Include="IPC_HLE\USB\Common.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClInclude>
+    <ClInclude Include="IPC_HLE\USB\Host.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\USB\LibusbDevice.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\USB\StubDevice.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
     <ClInclude Include="IPC_HLE\USB\USBV0.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\USB\USBV5.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_hid.h">
@@ -1195,6 +1222,12 @@
     </ClInclude>
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_real.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_oh0.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_ven.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_WiiMote.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>

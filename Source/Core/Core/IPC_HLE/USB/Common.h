@@ -5,22 +5,15 @@
 #pragma once
 
 #include <cstddef>
-#include <map>
 #include <memory>
-#include <mutex>
 #include <string>
-#include <thread>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/Event.h"
-#include "Common/Flag.h"
-#include "Core/HW/Memmap.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 class PointerWrap;
 struct libusb_config_descriptor;
+struct libusb_device;
 struct libusb_device_descriptor;
 struct libusb_endpoint_descriptor;
 struct libusb_interface_descriptor;
@@ -134,14 +127,14 @@ struct BulkMessage : TransferCommand
 {
   u16 length;
   u8 endpoint;
-  void SetRetVal(const u32 retval) const { Memory::Write_U32(retval, cmd_address + 4); }
+  void SetRetVal(const u32 retval) const;
 };
 
 struct IntrMessage : TransferCommand
 {
   u16 length;
   u8 endpoint;
-  void SetRetVal(const u32 retval) const { Memory::Write_U32(retval, cmd_address + 4); }
+  void SetRetVal(const u32 retval) const;
 };
 
 struct IsoMessage : TransferCommand
@@ -151,3 +144,45 @@ struct IsoMessage : TransferCommand
   u8 num_packets;
   u8 endpoint;
 };
+
+class Device
+{
+public:
+  Device(u8 interface) : m_interface(interface) {}
+  virtual ~Device() = default;
+  s32 GetId() const { return m_id; }
+  u16 GetVid() const { return m_vid; }
+  u16 GetPid() const { return m_pid; }
+  u8 GetInterfaceClass() const { return m_interface_class; }
+  virtual std::string GetErrorName(int error_code) const;
+  virtual bool AttachDevice() = 0;
+  virtual int CancelTransfer(u8 endpoint) = 0;
+  virtual int ChangeInterface(u8 interface) = 0;
+  virtual int SetAltSetting(u8 alt_setting) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<CtrlMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<BulkMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<IntrMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<IsoMessage> message) = 0;
+  // Returns USB descriptors in the format used by IOS's USBV5 interface.
+  virtual std::vector<u8> GetIOSDescriptors(size_t buffer_size) = 0;
+
+protected:
+  u16 m_vid = 0;
+  u16 m_pid = 0;
+  u8 m_interface_class = -1;
+  s32 m_id = -1;
+  bool m_attached = false;
+  u8 m_interface;
+};
+
+#ifdef __LIBUSB__
+// Simple wrapper around libusb_get_config_descriptor and libusb_free_config_descriptor.
+class LibusbConfigDescriptor
+{
+public:
+  LibusbConfigDescriptor(libusb_device* device, u8 config_num = 0);
+  ~LibusbConfigDescriptor();
+  bool IsValid() const { return m_config != nullptr; }
+  libusb_config_descriptor* m_config = nullptr;
+};
+#endif
