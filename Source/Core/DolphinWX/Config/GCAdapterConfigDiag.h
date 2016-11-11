@@ -16,8 +16,8 @@ public:
 
 private:
   void ScheduleAdapterUpdate();
-  void UpdateAdapter(wxCommandEvent& ev);
 
+  void OnUpdateAdapter(wxCommandEvent& ev);
   void OnAdapterRumble(wxCommandEvent& event);
   void OnAdapterKonga(wxCommandEvent& event);
 
