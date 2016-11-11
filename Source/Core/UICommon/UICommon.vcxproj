@@ -45,10 +45,14 @@
   <ItemGroup>
     <ClCompile Include="UICommon.cpp" />
     <ClCompile Include="Disassembler.cpp" />
+    <ClCompile Include="USBUtils.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="UICommon.h" />
     <ClInclude Include="Disassembler.h" />
+    <ClInclude Include="USBUtils.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
