@@ -69,7 +69,7 @@ void GCAdapterConfigDiag::ScheduleAdapterUpdate()
   wxQueueEvent(this, new wxCommandEvent(wxEVT_ADAPTER_UPDATE));
 }
 
-void GCAdapterConfigDiag::OnUpdateAdapter(wxCommandEvent& ev)
+void GCAdapterConfigDiag::OnUpdateAdapter(wxCommandEvent& WXUNUSED(event))
 {
   bool unpause = Core::PauseAndLock(true);
   if (GCAdapter::IsDetected())
