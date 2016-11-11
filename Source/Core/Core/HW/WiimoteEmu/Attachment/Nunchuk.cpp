@@ -114,6 +114,25 @@ bool Nunchuk::IsButtonPressed() const
   return buttons != 0;
 }
 
+ControllerEmu::ControlGroup* Nunchuk::GetGroup(NunchukGroup group)
+{
+  switch (group)
+  {
+  case NunchukGroup::Buttons:
+    return m_buttons;
+  case NunchukGroup::Stick:
+    return m_stick;
+  case NunchukGroup::Tilt:
+    return m_tilt;
+  case NunchukGroup::Swing:
+    return m_swing;
+  case NunchukGroup::Shake:
+    return m_shake;
+  default:
+    return nullptr;
+  }
+}
+
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)
 {
   // Stick

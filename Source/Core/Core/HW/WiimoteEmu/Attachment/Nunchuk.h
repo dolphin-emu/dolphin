@@ -8,6 +8,7 @@
 
 namespace WiimoteEmu
 {
+enum class NunchukGroup;
 struct ExtensionReg;
 
 class Nunchuk : public Attachment
@@ -17,6 +18,8 @@ public:
 
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControlGroup* GetGroup(NunchukGroup group);
 
   enum
   {

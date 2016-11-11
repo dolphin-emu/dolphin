@@ -44,6 +44,11 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
+ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGroup group)
+{
+  return static_cast<GCKeyboard*>(s_config.GetController(port))->GetGroup(group);
+}
+
 KeyboardStatus GetStatus(int port)
 {
   return static_cast<GCKeyboard*>(s_config.GetController(port))->GetInput();

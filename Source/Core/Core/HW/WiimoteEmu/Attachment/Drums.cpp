@@ -81,4 +81,19 @@ bool Drums::IsButtonPressed() const
   m_pads->GetState(&buttons, drum_pad_bitmasks);
   return buttons != 0;
 }
+
+ControllerEmu::ControlGroup* Drums::GetGroup(DrumsGroup group)
+{
+  switch (group)
+  {
+  case DrumsGroup::Buttons:
+    return m_buttons;
+  case DrumsGroup::Pads:
+    return m_pads;
+  case DrumsGroup::Stick:
+    return m_stick;
+  default:
+    return nullptr;
+  }
+}
 }
