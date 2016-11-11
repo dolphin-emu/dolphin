@@ -17,6 +17,7 @@
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/UICommon.h"
+#include "UICommon/USBUtils.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 
@@ -29,6 +30,7 @@ void Init()
   VideoBackendBase::PopulateList();
   WiimoteReal::LoadSettings();
   GCAdapter::Init();
+  USBUtils::Init();
   VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
   SetEnableAlert(SConfig::GetInstance().bUsePanicHandlers);
@@ -40,6 +42,7 @@ void Shutdown()
   WiimoteReal::Shutdown();
   VideoBackendBase::ClearList();
   SConfig::Shutdown();
+  USBUtils::Shutdown();
   LogManager::Shutdown();
 }
 
