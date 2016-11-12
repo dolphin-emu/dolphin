@@ -137,6 +137,11 @@ std::string GetStringVA(u32 strReg)
         result += StringFromFormat("%x", (u32)Parameter);
         break;
 
+      case 'n':
+        PowerPC::HostWrite_U32(static_cast<u32>(result.size()), static_cast<u32>(Parameter));
+        // %n doesn't output anything, so the result variable is untouched
+        break;
+
       default:
         result += StringFromFormat(ArgumentBuffer.c_str(), Parameter);
         break;
