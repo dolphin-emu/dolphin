@@ -65,7 +65,6 @@ LogManager::LogManager()
   m_Log[LogTypes::IOS_DI] = new LogContainer("IOS_DI", "IOS - Drive Interface");
   m_Log[LogTypes::IOS_ES] = new LogContainer("IOS_ES", "IOS - ETicket Services");
   m_Log[LogTypes::IOS_FILEIO] = new LogContainer("IOS_FILEIO", "IOS - FileIO");
-  m_Log[LogTypes::IOS_HID] = new LogContainer("IOS_HID", "IOS - USB_HID");
   m_Log[LogTypes::IOS_SD] = new LogContainer("IOS_SD", "IOS - SDIO");
   m_Log[LogTypes::IOS_SSL] = new LogContainer("IOS_SSL", "IOS - SSL");
   m_Log[LogTypes::IOS_STM] = new LogContainer("IOS_STM", "IOS - State Transition Manager");
