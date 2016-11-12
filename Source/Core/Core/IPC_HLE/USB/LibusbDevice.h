@@ -33,7 +33,7 @@ public:
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
-  std::vector<u8> GetIOSDescriptors(size_t buffer_size) override;
+  std::vector<u8> GetIOSDescriptors(size_t buffer_size, size_t* real_size, Version ver) override;
 
 private:
   struct PendingTransfer

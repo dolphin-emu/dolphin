@@ -20,6 +20,7 @@ struct libusb_interface_descriptor;
 
 enum StandardDeviceRequestCodes
 {
+  REQUEST_GET_DESCRIPTOR = 6,
   REQUEST_SET_CONFIGURATION = 9,
   REQUEST_GET_INTERFACE = 10,
   REQUEST_SET_INTERFACE = 11,
@@ -145,6 +146,12 @@ struct IsoMessage : TransferCommand
   u8 endpoint;
 };
 
+enum class Version
+{
+  USBV4,
+  USBV5,
+};
+
 class Device
 {
 public:
@@ -164,7 +171,7 @@ public:
   virtual int SubmitTransfer(std::unique_ptr<IntrMessage> message) = 0;
   virtual int SubmitTransfer(std::unique_ptr<IsoMessage> message) = 0;
   // Returns USB descriptors in the format used by IOS's USBV5 interface.
-  virtual std::vector<u8> GetIOSDescriptors(size_t buffer_size) = 0;
+  virtual std::vector<u8> GetIOSDescriptors(size_t buffer_size, size_t* real_size, Version ver) = 0;
 
 protected:
   u16 m_vid = 0;

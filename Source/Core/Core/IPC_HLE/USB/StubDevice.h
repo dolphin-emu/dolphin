@@ -19,5 +19,5 @@ public:
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override { return -1; }
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override { return -1; }
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override { return -1; }
-  std::vector<u8> GetIOSDescriptors(size_t) override { return {}; }
+  std::vector<u8> GetIOSDescriptors(size_t, size_t*, Version) override { return {}; }
 };

@@ -151,9 +151,11 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/USB/Common.cpp
 			IPC_HLE/USB/Host.cpp
 			IPC_HLE/USB/USBV0.cpp
+			IPC_HLE/USB/USBV4.cpp
 			IPC_HLE/USB/USBV5.cpp
 			IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_base.cpp
 			IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_emu.cpp
+			IPC_HLE/USB/WII_IPC_HLE_Device_usb_hid_v4.cpp
 			IPC_HLE/USB/WII_IPC_HLE_Device_usb_kbd.cpp
 			IPC_HLE/USB/WII_IPC_HLE_Device_usb_oh0.cpp
 			IPC_HLE/USB/WII_IPC_HLE_Device_usb_ven.cpp
@@ -253,7 +255,6 @@ if(LIBUSB_FOUND)
 	# Using shared LibUSB
 	set(LIBS ${LIBS} ${LIBUSB_LIBRARIES})
 	set(SRCS ${SRCS} IPC_HLE/USB/LibusbDevice.cpp
-	                 IPC_HLE/USB/WII_IPC_HLE_Device_hid.cpp
 	                 IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_real.cpp)
 endif(LIBUSB_FOUND)
 

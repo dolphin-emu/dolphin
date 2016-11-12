@@ -137,7 +137,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(const u32 command_address)
       return GetDefaultReply();
     }
     const std::vector<u8> descriptors =
-        device->GetIOSDescriptors(cmd_buffer.m_out_buffer_size - 20);
+        device->GetIOSDescriptors(cmd_buffer.m_out_buffer_size - 20, nullptr, Version::USBV5);
     _assert_(descriptors.size() == cmd_buffer.m_out_buffer_size - 20);
     // The first 20 bytes are copied over from the in buffer.
     Memory::CopyToEmu(cmd_buffer.m_out_buffer_addr, Memory::GetPointer(cmd_buffer.m_in_buffer_addr),

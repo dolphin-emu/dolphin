@@ -253,7 +253,8 @@ void LibusbDevice::TransferCallback(libusb_transfer* tr)
   device->m_pending_transfers[tr->endpoint].pop_front();
 }
 
-std::vector<u8> LibusbDevice::GetIOSDescriptors(const size_t buffer_size)
+std::vector<u8> LibusbDevice::GetIOSDescriptors(const size_t buffer_size, size_t* real_size,
+                                                Version version)
 {
   std::vector<u8> buffer(buffer_size);
   u8* dest = buffer.data();
@@ -281,51 +282,52 @@ std::vector<u8> LibusbDevice::GetIOSDescriptors(const size_t buffer_size)
     dest += Align(ios_config_descr.bLength, 4);
 
     // Interface descriptor
-    // IOS presents each interface as a different device (confirmed by hardware test and libogc).
-    const libusb_interface* interface = &config_descr->m_config->interface[m_interface];
-    // Alternate settings don't show up (according to libogc).
-    const libusb_interface_descriptor* interface_descr = &interface->altsetting[0];
-    IOSInterfaceDescriptor ios_interface_descr;
-    ConvertInterfaceToWii(&ios_interface_descr, interface_descr);
-    std::memcpy(dest, &ios_interface_descr, Align(ios_interface_descr.bLength, 4));
-    // The last 3 bytes for the config descriptor are not random padding bytes.
-    // They are the first 3 bytes of the interface descriptor.
-    std::memcpy(dest - 3, &ios_interface_descr, 3);
-    dest += Align(ios_interface_descr.bLength, 4);
-
-    // Endpoint descriptors
-    // While alternate settings don't show up and IOS only presents the interface descriptor
-    // for altsetting 0, it seems to present endpoints from all alternate settings.
-    // This behaviour is relied on in the SDK for interacting with microphones.
-    for (int a = 0; a < interface->num_altsetting; ++a)
+    // Depending on the USB interface, IOS presents each interface as a different device (USBV5,
+    // confirmed by hwtest and libogc), in which case we should only present one interface,
+    // or it presents all interfaces (USBV4), starting from the largest bInterfaceNumber.
+    for (int j = config_descr->m_config->bNumInterfaces - 1; j >= 0; --j)
     {
-      const libusb_interface_descriptor* descr = &interface->altsetting[a];
-      for (u8 e = 0; e < descr->bNumEndpoints; ++e)
+      if (version == Version::USBV5)
+        j = m_interface;
+
+      const libusb_interface* interface = &config_descr->m_config->interface[j];
+      // Alternate settings don't show up (according to libogc).
+      const libusb_interface_descriptor* interface_descr = &interface->altsetting[0];
+      IOSInterfaceDescriptor ios_interface_descr;
+      ConvertInterfaceToWii(&ios_interface_descr, interface_descr);
+      std::memcpy(dest, &ios_interface_descr, Align(ios_interface_descr.bLength, 4));
+      dest += Align(ios_interface_descr.bLength, 4);
+
+      // Endpoint descriptors
+      // While alternate settings don't show up and IOS only presents the interface descriptor
+      // for altsetting 0, it seems to present endpoints from all alternate settings.
+      // This behaviour is relied on in the SDK for interacting with microphones.
+      for (int a = 0; a < interface->num_altsetting; ++a)
       {
-        if (static_cast<size_t>(dest - buffer.data()) > buffer.size())
+        const libusb_interface_descriptor* descr = &interface->altsetting[a];
+        for (u8 e = 0; e < descr->bNumEndpoints; ++e)
         {
-          WARN_LOG(WII_IPC_USB, "Buffer is not large enough. Skipping remaining descriptors.");
-          break;
-        }
-        const libusb_endpoint_descriptor* endpoint_descr = &descr->endpoint[e];
-        IOSEndpointDescriptor ios_endpoint_descr;
-        ConvertEndpointToWii(&ios_endpoint_descr, endpoint_descr);
-        std::memcpy(dest, &ios_endpoint_descr, Align(ios_endpoint_descr.bLength, 4));
-        if (a == 0 && e == 0)
-        {
-          // The last 3 bytes for the interface descriptor are *not* random padding bytes.
-          // As with the config descriptor, they are the first 3 bytes of the endpoint descriptor.
-          std::memcpy(dest - 3, &ios_endpoint_descr, 3);
-        }
-        else
-        {
-          // The last 1 byte for the previous endpoint descriptor is not a random padding byte.
-          // It's the first byte of the current endpoint descriptor.
-          std::memcpy(dest - 1, &ios_endpoint_descr, 1);
-        }
-        dest += Align(ios_endpoint_descr.bLength, 4);
-      }
-    }
+          if (static_cast<size_t>(dest - buffer.data()) > buffer.size())
+          {
+            WARN_LOG(WII_IPC_USB, "Buffer is not large enough. Skipping remaining descriptors.");
+            break;
+          }
+          const libusb_endpoint_descriptor* endpoint_descr = &descr->endpoint[e];
+          IOSEndpointDescriptor ios_endpoint_descr;
+          ConvertEndpointToWii(&ios_endpoint_descr, endpoint_descr);
+          std::memcpy(dest, &ios_endpoint_descr, Align(ios_endpoint_descr.bLength, 4));
+          dest += Align(ios_endpoint_descr.bLength, 4);
+        }  // endpoints
+      }    // alt settings
+
+      // Stop now, since we only want to present one interface.
+      if (version == Version::USBV5)
+        break;
+    }  // interfaces
+  }    // configs
+  if (real_size != nullptr)
+  {
+    *real_size = static_cast<size_t>(dest - buffer.data());
   }
   return buffer;
 }
