@@ -87,8 +87,14 @@ std::string GetStringVA(u32 strReg)
         result += '%';
         continue;
       }
-      while (string[i] < 'A' || string[i] > 'z' || string[i] == 'l' || string[i] == '-')
+
+      while (i < string.size() &&
+             (string[i] < 'A' || string[i] > 'z' || string[i] == 'l' || string[i] == '-'))
+      {
         ArgumentBuffer += string[i++];
+      }
+      if (i >= string.size())
+        break;
 
       ArgumentBuffer += string[i];
 
