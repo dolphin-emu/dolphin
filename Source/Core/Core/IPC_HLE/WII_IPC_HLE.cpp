@@ -40,6 +40,7 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/HW/WII_IPC.h"
 #include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_real.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_hid_v4.h"
 #include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_kbd.h"
 #include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_oh0.h"
 #include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_ven.h"
@@ -152,6 +153,7 @@ void Reinit()
   AddDevice<CWII_IPC_HLE_Device_sdio_slot0>("/dev/sdio/slot0");
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/sdio/slot1");
 
+  AddDevice<CWII_IPC_HLE_Device_usb_hid_v4>("/dev/usb/hid");
   AddDevice<CWII_IPC_HLE_Device_usb_oh0>("/dev/usb/oh0");
   AddDevice<CWII_IPC_HLE_Device_usb_ven>("/dev/usb/ven");
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
