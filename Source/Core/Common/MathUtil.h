@@ -51,13 +51,14 @@ constexpr bool IsPow2(u32 imm)
 // Convert s16 to float
 constexpr float SignedShortToFloat(const s16 s)
 {
-  return (s > 0) ? (float)(s / (float)0x7fff) : (float)(s / (float)0x8000);
+  return static_cast<float>((s > 0) ? (s / static_cast<float>(0x7fff)) :
+                                      (s / static_cast<float>(0x8000)));
 }
 
 // Converts float to s16 without rounding
 constexpr s16 FloatToSignedShort(const float f)
 {
-  return (f > 0) ? (s16)(f * 0x7fff) : (s16)(f * 0x8000);
+  return static_cast<s16>((f > 0) ? (f * 0x7fff) : (f * 0x8000));
 }
 
 // The most significant bit of the fraction is an is-quiet bit on all architectures we care about.
@@ -215,6 +216,13 @@ inline int IntLog2(u64 val)
   }
   return result;
 #endif
+}
+
+// returns a number greater than or equal to val that is also a power of 2.
+// 0 technically undefined, but return 0.
+inline u64 NextIntPow2(u64 val)
+{
+  return (val <= 1) ? val : (1ull << (IntLog2(val - 1) + 1));
 }
 
 // Tiny matrix/vector library.

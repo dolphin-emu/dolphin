@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <cstring>
 
+#include "AudioCommon/Dither.h"
 #include "AudioCommon/LinearFilter.h"
 #include "AudioCommon/WindowedSincFilter.h"
 #include "Common/CommonFuncs.h"
@@ -14,28 +15,36 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/Wiimote.h"
 
 CMixer::CMixer(u32 BackendSampleRate) : m_output_sample_rate(BackendSampleRate)
 {
-  std::shared_ptr<WindowedSincFilter> FIR_filter =
-      std::make_shared<WindowedSincFilter>(17, 512, 0.8f, 6.f);
-  std::shared_ptr<LinearFilter> linear_filter = std::make_shared<LinearFilter>();
+  // These filter parameters give:
+  //   -80db stopband attenuation
+  //   center of transition band at 0.8 of the min(input samplerate, output samplerate)
+  //   transition bandwidth of about 0.5 the min(input samplerate, output samplerate)
+  std::shared_ptr<WindowedSincFilter> lowpass_filter =
+      std::make_shared<WindowedSincFilter>(21, 512, 0.8f, 8.0f);
 
-  m_dma_mixer = std::make_unique<MixerFifo>(this, 32000, FIR_filter);
-  m_streaming_mixer = std::make_unique<MixerFifo>(this, 48000, FIR_filter);
+  m_linear_filter = std::make_shared<LinearFilter>();
+
+  m_dma_mixer = std::make_unique<MixerFifo>(this, 32000, lowpass_filter);
+  m_streaming_mixer = std::make_unique<MixerFifo>(this, 48000, lowpass_filter);
 
   m_dither = std::make_unique<ShapedDither>();
 
-  // wiimote mixers should just use linear interpolation
-  for (u32 i = 0; i < MAX_WIIMOTES; ++i)
-  {
-    m_wiimote_speaker_mixers[i] = (g_wiimote_sources[i] == WIIMOTE_SRC_EMU) ?
-                                      std::make_unique<MixerFifo>(this, 6000, linear_filter) :
-                                      nullptr;
-  }
-
   INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
+}
+
+CMixer::~CMixer()
+{
+}
+
+CMixer::MixerFifo::MixerFifo(CMixer* mixer, unsigned sample_rate,
+                             std::shared_ptr<BaseFilter> filter)
+    : m_mixer(mixer), m_filter(std::move(filter)), m_input_sample_rate(sample_rate)
+{
+  m_floats.Resize(MAX_SAMPLES * 2);
+  m_shorts.Resize(MAX_SAMPLES * 2);
 }
 
 // Executed from sound stream thread
@@ -51,16 +60,17 @@ u32 CMixer::MixerFifo::Mix(std::array<float, MAX_SAMPLES * 2>& samples, u32 numS
   // so we will just ignore new written data while interpolating.
   // Without this cache, the compiler wouldn't be allowed to optimize the
   // interpolation loop.
-  u32 indexR = m_shorts.LoadTail();
-  u32 indexW = m_shorts.LoadHead();
+  size_t indexR = m_shorts.LoadTail();
+  size_t indexW = m_shorts.LoadHead();
 
   u32 low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
   low_waterwark = std::min(low_waterwark, MAX_SAMPLES / 2);
 
-  float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);
+  float numLeft = static_cast<float>(((indexW - indexR) & m_shorts.Mask()) / 2);
   m_numLeftI = (numLeft + m_numLeftI * (CONTROL_AVG - 1)) / CONTROL_AVG;
   float offset = (m_numLeftI - low_waterwark) * CONTROL_FACTOR;
-  offset = MathUtil::Clamp(offset, (float)-MAX_FREQ_SHIFT, (float)MAX_FREQ_SHIFT);
+  offset = MathUtil::Clamp(offset, static_cast<float>(-MAX_FREQ_SHIFT),
+                           static_cast<float>(MAX_FREQ_SHIFT));
 
   // render numleft sample pairs to samples[]
   // advance indexR with sample position
@@ -73,12 +83,12 @@ u32 CMixer::MixerFifo::Mix(std::array<float, MAX_SAMPLES * 2>& samples, u32 numS
     aid_sample_rate *= emulationspeed;
   }
 
-  const float ratio = aid_sample_rate / (float)m_mixer->m_output_sample_rate;
+  const float ratio = aid_sample_rate / static_cast<float>(m_mixer->m_output_sample_rate);
 
-  float lvolume = (float)m_LVolume.load() / 256.f;
-  float rvolume = (float)m_RVolume.load() / 256.f;
+  float lvolume = static_cast<float>(m_LVolume.load() / 256.f);
+  float rvolume = static_cast<float>(m_RVolume.load() / 256.f);
 
-  u32 floatI = m_floats.LoadHead();
+  size_t floatI = m_floats.LoadHead();
 
   // Since we know that samples come in two-channel pairs,
   // might as well unroll a bit
@@ -93,28 +103,29 @@ u32 CMixer::MixerFifo::Mix(std::array<float, MAX_SAMPLES * 2>& samples, u32 numS
   const float rho = 1.f / ratio;  // since Interpolate takes out_rate / in_rate
 
   // Resampling loop
-  for (; currentSample < numSamples * 2 && ((indexW - indexR) & INDEX_MASK) > 2; currentSample += 2)
+  for (; currentSample < numSamples * 2 && ((indexW - indexR) & m_shorts.Mask()) > 2;
+       currentSample += 2)
   {
-    float sample_l, sample_r;
+    float sample_l;
+    float sample_r;
     m_filter->ConvolveStereo(m_floats, indexR, &sample_l, &sample_r, m_frac, rho);
 
     samples[currentSample] += sample_r * rvolume;
     samples[currentSample + 1] += sample_l * lvolume;
 
     m_frac += ratio;
-    indexR += 2 * (s32)m_frac;
-    m_frac -= (s32)m_frac;
+    indexR += 2 * static_cast<s32>(m_frac);
+    m_frac -= static_cast<s32>(m_frac);
   }
 
   // Padding
-  float s[2];
-  s[0] = m_floats[indexR - 1] * rvolume;
-  s[1] = m_floats[indexR - 2] * lvolume;
+  float pad_right = m_floats[indexR - 1] * rvolume;
+  float pad_left = m_floats[indexR - 2] * lvolume;
 
   for (; currentSample < numSamples * 2; currentSample += 2)
   {
-    samples[currentSample] += s[0];
-    samples[currentSample + 1] += s[1];
+    samples[currentSample] += pad_right;
+    samples[currentSample + 1] += pad_left;
   }
 
   // Flush cached variable
@@ -134,13 +145,16 @@ u32 CMixer::Mix(s16* samples, u32 num_samples, bool consider_framelimit)
   m_dma_mixer->Mix(m_accumulator, num_samples, consider_framelimit);
   m_streaming_mixer->Mix(m_accumulator, num_samples, consider_framelimit);
 
-  for (std::unique_ptr<CMixer::MixerFifo>& wiimote_mixer : m_wiimote_speaker_mixers)
+  for (auto& wiimote_mixer : m_wiimote_speaker_mixers)
   {
     if (wiimote_mixer)
       wiimote_mixer->Mix(m_accumulator, num_samples, consider_framelimit);
   }
 
   m_dither->ProcessStereo(m_accumulator.data(), samples, num_samples);
+
+  if (m_log_mix_audio)
+    m_wave_writer_mix.AddStereoSamples(samples, num_samples, m_output_sample_rate, false);
 
   return num_samples;
 }
@@ -156,7 +170,7 @@ void CMixer::PushSamples(const s16* samples, u32 num_samples)
   m_dma_mixer->PushSamples(samples, num_samples);
   int sample_rate = m_dma_mixer->GetInputSampleRate();
   if (m_log_dsp_audio)
-    m_wave_writer_dsp.AddStereoSamplesBE(samples, num_samples, sample_rate);
+    m_wave_writer_dsp.AddStereoSamples(samples, num_samples, sample_rate, true);
 }
 
 void CMixer::PushStreamingSamples(const s16* samples, u32 num_samples)
@@ -164,19 +178,25 @@ void CMixer::PushStreamingSamples(const s16* samples, u32 num_samples)
   m_streaming_mixer->PushSamples(samples, num_samples);
   int sample_rate = m_streaming_mixer->GetInputSampleRate();
   if (m_log_dtk_audio)
-    m_wave_writer_dtk.AddStereoSamplesBE(samples, num_samples, sample_rate);
+    m_wave_writer_dtk.AddStereoSamples(samples, num_samples, sample_rate, true);
 }
 
 void CMixer::PushWiimoteSpeakerSamples(u32 wiimote_index, const s16* samples, u32 num_samples,
                                        u32 sample_rate)
 {
+  if (!m_wiimote_speaker_mixers[wiimote_index])
+  {
+    m_wiimote_speaker_mixers[wiimote_index] =
+        std::make_unique<MixerFifo>(this, 6000, m_linear_filter);
+  }
+
   s16 samples_stereo[MAX_SAMPLES * 2];
 
-  if (num_samples < MAX_SAMPLES && m_wiimote_speaker_mixers[wiimote_index])
+  if (num_samples < MAX_SAMPLES)
   {
     m_wiimote_speaker_mixers[wiimote_index]->SetInputSampleRate(sample_rate);
 
-    for (u32 i = 0; i < num_samples; ++i)
+    for (size_t i = 0; i < num_samples; ++i)
     {
       samples_stereo[i * 2] = Common::swap16(samples[i]);
       samples_stereo[i * 2 + 1] = Common::swap16(samples[i]);
@@ -262,6 +282,35 @@ void CMixer::StopLogDSPAudio()
   else
   {
     WARN_LOG(AUDIO, "DSP Audio logging has already been stopped");
+  }
+}
+
+void CMixer::StartLogMixAudio(const std::string& filename)
+{
+  if (!m_log_mix_audio)
+  {
+    m_log_mix_audio = true;
+    m_wave_writer_mix.Start(filename, m_output_sample_rate);
+    m_wave_writer_mix.SetSkipSilence(false);
+    NOTICE_LOG(AUDIO, "Starting Mix Audio logging");
+  }
+  else
+  {
+    WARN_LOG(AUDIO, "Mix Audio logging has already been started");
+  }
+}
+
+void CMixer::StopLogMixAudio()
+{
+  if (m_log_mix_audio)
+  {
+    m_log_mix_audio = false;
+    m_wave_writer_mix.Stop();
+    NOTICE_LOG(AUDIO, "Stopping Mix Audio logging");
+  }
+  else
+  {
+    WARN_LOG(AUDIO, "Mix Audio logging has already been stopped");
   }
 }
 

@@ -1,4 +1,8 @@
 set(SRCS	AudioCommon.cpp
+			BaseFilter.cpp
+			LinearFilter.cpp
+			WindowedSincFilter.cpp
+			Dither.cpp
 			DPL2Decoder.cpp
 			Mixer.cpp
 			WaveFile.cpp

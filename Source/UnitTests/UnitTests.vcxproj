@@ -61,6 +61,7 @@
     <ClCompile Include="$(ExternalsDir)gtest\src\gtest_main.cc" />
     <!--Lump all of the tests (and supporting code) into one binary-->
     <ClCompile Include="*\*.cpp" />
+    <ClCompile Include="RingBufferTest.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

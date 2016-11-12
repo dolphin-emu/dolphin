@@ -2,22 +2,39 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Dither.h"
+#include "AudioCommon/Dither.h"
+
+#include <cmath>
 
 #include "Common/MathUtil.h"
+
+void Dither::ProcessStereo(const float* input, s16* output, u32 num_samples)
+{
+  for (u32 i = 0; i < num_samples * 2; i += 2)
+  {
+    DitherStereoSample(&input[i], &output[i]);
+  }
+}
+
+float Dither::ScaleFloatToInt(float in)
+{
+  return (in > 0) ? (in * static_cast<float>(0x7fff)) : (in * static_cast<float>(0x8000));
+}
 
 void TriangleDither::DitherStereoSample(const float* in, s16* out)
 {
   float random_l = GenerateNoise();
   float random_r = GenerateNoise();
 
-  float temp_l = ScaleFloatToInt(MathUtil::Clamp(in[0], -1.f, 1.f)) + random_l - state_l;
-  float temp_r = ScaleFloatToInt(MathUtil::Clamp(in[1], -1.f, 1.f)) + random_r - state_r;
-  out[0] = (s16)MathUtil::Clamp((s32)lrintf(temp_l), -32768, 32767);
-  out[1] = (s16)MathUtil::Clamp((s32)lrintf(temp_r), -32768, 32767);
-  state_l = random_l;
-  state_r = random_r;
+  float temp_l = ScaleFloatToInt(MathUtil::Clamp(in[0], -1.f, 1.f)) + random_l - m_state_l;
+  float temp_r = ScaleFloatToInt(MathUtil::Clamp(in[1], -1.f, 1.f)) + random_r - m_state_r;
+  out[0] = static_cast<s16>(MathUtil::Clamp(static_cast<s32>(lrintf(temp_l)), -32768, 32767));
+  out[1] = static_cast<s16>(MathUtil::Clamp(static_cast<s32>(lrintf(temp_r)), -32768, 32767));
+  m_state_l = random_l;
+  m_state_r = random_r;
 }
+
+const std::array<float, 5> ShapedDither::FIR = {2.033f, -2.165f, 1.959f, -1.590f, 0.6149f};
 
 void ShapedDither::DitherStereoSample(const float* in, s16* out)
 {
@@ -45,8 +62,8 @@ void ShapedDither::DitherStereoSample(const float* in, s16* out)
   float result_l = conv_l + random_l;
   float result_r = conv_r + random_r;
 
-  out[0] = (s16)MathUtil::Clamp((s32)lrintf(result_l), -32768, 32767);
-  out[1] = (s16)MathUtil::Clamp((s32)lrintf(result_r), -32768, 32767);
+  out[0] = static_cast<s16>(MathUtil::Clamp(static_cast<s32>(lrintf(result_l)), -32768, 32767));
+  out[1] = static_cast<s16>(MathUtil::Clamp(static_cast<s32>(lrintf(result_r)), -32768, 32767));
 
   m_phase = (m_phase + 1) & MASK;
   m_buffer_l[m_phase] = conv_l - (float)out[0];
