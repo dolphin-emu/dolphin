@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstdio>
+#include <cstdlib>
 #include <cstring>
 #include <fcntl.h>
 #include <limits.h>
@@ -30,7 +31,6 @@
 #include <dirent.h>
 #include <errno.h>
 #include <libgen.h>
-#include <stdlib.h>
 #include <unistd.h>
 #endif
 
@@ -711,6 +711,19 @@ std::string GetBundleDirectory()
   return AppBundlePath;
 }
 #endif
+
+std::string GetAbsolutePath(const std::string& path)
+{
+#ifdef _WIN32
+  wchar_t absolute_path[_MAX_PATH];
+  wchar_t* result = _wfullpath(absolute_path, UTF8ToTStr(path).c_str(), _MAX_PATH);
+  return result ? TStrToUTF8(result) : "";
+#else
+  char absolute_path[MAX_PATH + 1];
+  char* result = realpath(path.c_str(), absolute_path);
+  return result ? result : "";
+#endif
+}
 
 std::string& GetExeDirectory()
 {
