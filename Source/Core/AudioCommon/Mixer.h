@@ -6,18 +6,20 @@
 
 #include <array>
 #include <atomic>
+#include <memory>
 
 #include "AudioCommon/BaseFilter.h"
-#include "AudioCommon/Dither.h"
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/RingBuffer.h"
+
+class Dither;
 
 class CMixer final
 {
 public:
   explicit CMixer(u32 BackendSampleRate);
-  ~CMixer() {}
+  ~CMixer();
   // Called from audio threads
   u32 Mix(s16* samples, u32 numSamples, bool consider_framelimit = true);
 
@@ -38,6 +40,9 @@ public:
   void StartLogDSPAudio(const std::string& filename);
   void StopLogDSPAudio();
 
+  void StartLogMixAudio(const std::string& filename);
+  void StopLogMixAudio();
+
   float GetCurrentSpeed() const { return m_speed.load(); }
   void UpdateSpeed(float val) { m_speed.store(val); }
 private:
@@ -50,12 +55,7 @@ private:
   class MixerFifo
   {
   public:
-    MixerFifo(CMixer* mixer, unsigned sample_rate, std::shared_ptr<BaseFilter> filter = nullptr)
-        : m_mixer(mixer), m_filter(std::move(filter)), m_input_sample_rate(sample_rate)
-    {
-      m_floats.Resize(MAX_SAMPLES * 2);
-      m_shorts.Resize(MAX_SAMPLES * 2);
-    }
+    MixerFifo(CMixer* mixer, unsigned sample_rate, std::shared_ptr<BaseFilter> filter = nullptr);
 
     void PushSamples(const s16* samples, u32 num_samples);
     u32 Mix(std::array<float, MAX_SAMPLES * 2>& samples, u32 numSamples,
@@ -83,16 +83,18 @@ private:
 
   std::unique_ptr<MixerFifo> m_dma_mixer;
   std::unique_ptr<MixerFifo> m_streaming_mixer;
-  std::array<std::unique_ptr<MixerFifo>, 4>
-      m_wiimote_speaker_mixers;  // max # wiimotes = 4, one mixer per wiimote
+  // max # wiimotes = 4, one mixer per wiimote
+  std::array<std::unique_ptr<MixerFifo>, 4> m_wiimote_speaker_mixers;
   std::unique_ptr<Dither> m_dither;
+  std::shared_ptr<BaseFilter> m_linear_filter;
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;
-  WaveFileWriter m_wave_writer_debug;
+  WaveFileWriter m_wave_writer_mix;
 
   bool m_log_dtk_audio = false;
   bool m_log_dsp_audio = false;
+  bool m_log_mix_audio = false;
 
   u32 m_output_sample_rate;
   // Current rate of emulation (1.0 = 100% speed)

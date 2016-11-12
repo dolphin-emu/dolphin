@@ -45,6 +45,20 @@ TEST(MathUtil, IntLog2)
   EXPECT_EQ(63, IntLog2(0xFFFFFFFFFFFFFFFFull));
 }
 
+TEST(MathUtil, NextIntPow2)
+{
+  EXPECT_EQ(0, NextIntPow2(0));
+  EXPECT_EQ(1, NextIntPow2(1));
+  EXPECT_EQ(2, NextIntPow2(2));
+  EXPECT_EQ(4, NextIntPow2(3));
+  EXPECT_EQ(4, NextIntPow2(4));
+  EXPECT_EQ(8, NextIntPow2(5));
+  EXPECT_EQ(16, NextIntPow2(15));
+  EXPECT_EQ(256, NextIntPow2(240));
+  EXPECT_EQ(65536, NextIntPow2(48560));
+  EXPECT_EQ(0x1000000000000000ull, NextIntPow2(0x0FFFFFFFFFFFFFFFull));
+}
+
 TEST(MathUtil, FlushToZero)
 {
   // To test the software implementation we need to make sure FTZ and DAZ are disabled.

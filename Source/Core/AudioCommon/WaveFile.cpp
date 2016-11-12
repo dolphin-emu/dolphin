@@ -95,7 +95,8 @@ void WaveFileWriter::Write4(const char* ptr)
   file.WriteBytes(ptr, 4);
 }
 
-void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int sample_rate)
+void WaveFileWriter::AddStereoSamples(const short* sample_data, u32 count, int sample_rate,
+                                      bool big_endian)
 {
   if (!file)
     PanicAlertT("WaveFileWriter - file not open.");
@@ -117,54 +118,21 @@ void WaveFileWriter::AddStereoSamplesBE(const short* sample_data, u32 count, int
       return;
   }
 
-  for (u32 i = 0; i < count; i++)
+  if (big_endian)
   {
-    // Flip the audio channels from RL to LR
-    conv_buffer[2 * i] = Common::swap16((u16)sample_data[2 * i + 1]);
-    conv_buffer[2 * i + 1] = Common::swap16((u16)sample_data[2 * i]);
+    for (u32 i = 0; i < count; i++)
+    {
+      // Flip the audio channels from RL to LR
+      conv_buffer[2 * i] = Common::swap16((u16)sample_data[2 * i + 1]);
+      conv_buffer[2 * i + 1] = Common::swap16((u16)sample_data[2 * i]);
+    }
   }
-
-  if (sample_rate != current_sample_rate)
+  else
   {
-    Stop();
-    file_index++;
-    std::stringstream filename;
-    filename << File::GetUserPath(D_DUMPAUDIO_IDX) << basename << file_index << ".wav";
-    Start(filename.str(), sample_rate);
-    current_sample_rate = sample_rate;
-  }
-
-  file.WriteBytes(conv_buffer.data(), count * 4);
-  audio_size += count * 4;
-}
-
-void WaveFileWriter::AddStereoSamplesLE(const short* sample_data, u32 count, int sample_rate)
-{
-  if (!file)
-    PanicAlertT("WaveFileWriter - file not open.");
-
-  if (count > BUFFER_SIZE * 2)
-    PanicAlert("WaveFileWriter - buffer too small (count = %u).", count);
-
-  if (skip_silence)
-  {
-    bool all_zero = true;
-
     for (u32 i = 0; i < count * 2; i++)
     {
-      if (sample_data[i])
-        all_zero = false;
+      conv_buffer[i] = sample_data[i];
     }
-
-    if (all_zero)
-      return;
-  }
-
-  for (u32 i = 0; i < count; i++)
-  {
-    // Channels don't need to be flipped for LE
-    conv_buffer[2 * i] = sample_data[2 * i];
-    conv_buffer[2 * i + 1] = sample_data[2 * i + 1];
   }
 
   if (sample_rate != current_sample_rate)

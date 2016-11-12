@@ -30,6 +30,12 @@
     <ClCompile Include="WindowedSincFilter.cpp">
       <Filter>InterpolationFilters</Filter>
     </ClCompile>
+    <ClCompile Include="BaseFilter.cpp">
+      <Filter>InterpolationFilters</Filter>
+    </ClCompile>
+    <ClCompile Include="LinearFilter.cpp">
+      <Filter>InterpolationFilters</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aldlist.h" />

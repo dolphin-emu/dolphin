@@ -180,10 +180,13 @@ void StartAudioDump()
 {
   std::string audio_file_name_dtk = File::GetUserPath(D_DUMPAUDIO_IDX) + "dtkdump.wav";
   std::string audio_file_name_dsp = File::GetUserPath(D_DUMPAUDIO_IDX) + "dspdump.wav";
+  std::string audio_file_name_mix = File::GetUserPath(D_DUMPAUDIO_IDX) + "mixdump.wav";
   File::CreateFullPath(audio_file_name_dtk);
   File::CreateFullPath(audio_file_name_dsp);
+  File::CreateFullPath(audio_file_name_mix);
   g_sound_stream->GetMixer()->StartLogDTKAudio(audio_file_name_dtk);
   g_sound_stream->GetMixer()->StartLogDSPAudio(audio_file_name_dsp);
+  g_sound_stream->GetMixer()->StartLogMixAudio(audio_file_name_mix);
   s_audio_dump_start = true;
 }
 
@@ -191,6 +194,7 @@ void StopAudioDump()
 {
   g_sound_stream->GetMixer()->StopLogDTKAudio();
   g_sound_stream->GetMixer()->StopLogDSPAudio();
+  g_sound_stream->GetMixer()->StopLogMixAudio();
   s_audio_dump_start = false;
 }
 

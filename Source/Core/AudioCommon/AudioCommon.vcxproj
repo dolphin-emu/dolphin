@@ -37,8 +37,10 @@
   <ItemGroup>
     <ClCompile Include="aldlist.cpp" />
     <ClCompile Include="AudioCommon.cpp" />
+    <ClCompile Include="BaseFilter.cpp" />
     <ClCompile Include="Dither.cpp" />
     <ClCompile Include="DPL2Decoder.cpp" />
+    <ClCompile Include="LinearFilter.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="NullSoundStream.cpp" />
     <ClCompile Include="OpenALStream.cpp" />
