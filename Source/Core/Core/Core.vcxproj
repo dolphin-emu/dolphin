@@ -194,14 +194,9 @@
     </ClCompile>
     <ClCompile Include="IOS\USB\OH0\OH0.cpp" />
     <ClCompile Include="IOS\USB\OH0\OH0Device.cpp" />
+    <ClCompile Include="IOS\USB\USB_HID\HIDv4.cpp" />
     <ClCompile Include="IOS\USB\USBV0.cpp" />
-    <ClCompile Include="IOS\USB\USB_HIDv4.cpp">
-      <!--
-      Disable "nonstandard extension used : zero-sized array in struct/union" warning,
-      which is hit in libusb.h.
-      -->
-      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
-    </ClCompile>
+    <ClCompile Include="IOS\USB\USBV4.cpp" />
     <ClCompile Include="IOS\USB\USB_KBD.cpp" />
     <ClCompile Include="IOS\USB\USB_VEN.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTBase.cpp" />
@@ -431,8 +426,9 @@
     <ClInclude Include="IOS\USB\Host.h" />
     <ClInclude Include="IOS\USB\OH0\OH0.h" />
     <ClInclude Include="IOS\USB\OH0\OH0Device.h" />
+    <ClInclude Include="IOS\USB\USB_HID\HIDv4.h" />
     <ClInclude Include="IOS\USB\USBV0.h" />
-    <ClInclude Include="IOS\USB\USB_HIDv4.h" />
+    <ClInclude Include="IOS\USB\USBV4.h" />
     <ClInclude Include="IOS\USB\USB_KBD.h" />
     <ClInclude Include="IOS\USB\USB_VEN.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTBase.h" />

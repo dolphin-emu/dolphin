@@ -51,6 +51,7 @@
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/IOS/USB/OH0/OH0.h"
 #include "Core/IOS/USB/OH0/OH0Device.h"
+#include "Core/IOS/USB/USB_HID/HIDv4.h"
 #include "Core/IOS/USB/USB_KBD.h"
 #include "Core/IOS/USB/USB_VEN.h"
 #include "Core/IOS/WFS/WFSI.h"
@@ -60,10 +61,6 @@ namespace CoreTiming
 {
 struct EventType;
 }  // namespace CoreTiming
-
-#if defined(__LIBUSB__)
-#include "Core/IOS/USB/USB_HIDv4.h"
-#endif
 
 namespace IOS
 {
@@ -513,11 +510,7 @@ void Reinit()
   AddDevice<Device::USB_VEN>("/dev/usb/ven");
   AddDevice<Device::SDIOSlot0>("/dev/sdio/slot0");
   AddDevice<Device::Stub>("/dev/sdio/slot1");
-#if defined(__LIBUSB__)
   AddDevice<Device::USB_HIDv4>("/dev/usb/hid");
-#else
-  AddDevice<Device::Stub>("/dev/usb/hid");
-#endif
   AddDevice<Device::OH0>("/dev/usb/oh0");
   AddDevice<Device::Stub>("/dev/usb/oh1");
   AddDevice<Device::WFSSRV>("/dev/usb/wfssrv");
