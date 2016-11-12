@@ -20,6 +20,7 @@ struct libusb_interface_descriptor;
 
 enum StandardDeviceRequestCodes
 {
+  REQUEST_GET_DESCRIPTOR = 6,
   REQUEST_SET_CONFIGURATION = 9,
   REQUEST_GET_INTERFACE = 10,
   REQUEST_SET_INTERFACE = 11,
@@ -148,6 +149,7 @@ struct IsoMessage : TransferCommand
 
 enum class Version
 {
+  USBV4,
   USBV5,
 };
 

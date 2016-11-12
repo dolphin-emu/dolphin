@@ -612,10 +612,10 @@
     <ClCompile Include="IPC_HLE\USB\USBV0.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClCompile>
-    <ClCompile Include="IPC_HLE\USB\USBV5.cpp">
+    <ClCompile Include="IPC_HLE\USB\USBV4.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClCompile>
-    <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_hid.cpp">
+    <ClCompile Include="IPC_HLE\USB\USBV5.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClCompile>
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_base.cpp">
@@ -626,6 +626,9 @@
     </ClCompile>
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_real.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_hid_v4.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClCompile>
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_oh0.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
@@ -1208,10 +1211,10 @@
     <ClInclude Include="IPC_HLE\USB\USBV0.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClInclude>
-    <ClInclude Include="IPC_HLE\USB\USBV5.h">
+    <ClInclude Include="IPC_HLE\USB\USBV4.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClInclude>
-    <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_hid.h">
+    <ClInclude Include="IPC_HLE\USB\USBV5.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_base.h">
@@ -1222,6 +1225,9 @@
     </ClInclude>
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_real.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_hid_v4.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_oh0.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
