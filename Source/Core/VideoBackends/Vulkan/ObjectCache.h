@@ -143,6 +143,7 @@ public:
 
 private:
   bool CreatePipelineCache(bool load_from_disk);
+  bool ValidatePipelineCache(const u8* data, size_t data_length);
   void DestroyPipelineCache();
   void LoadShaderCaches();
   void DestroyShaderCaches();
