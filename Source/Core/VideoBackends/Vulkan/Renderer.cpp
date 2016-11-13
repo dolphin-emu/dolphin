@@ -448,7 +448,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
   // No need to start a new render pass, but we do need to restore viewport state
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(),
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
                          FramebufferManager::GetInstance()->GetEFBLoadRenderPass(),
                          g_object_cache->GetPassthroughVertexShader(),
                          g_object_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
@@ -879,7 +879,7 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
 
   // Set up common data
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(), render_pass,
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
                          g_object_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
                          m_blit_fragment_shader);
 

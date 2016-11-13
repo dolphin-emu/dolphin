@@ -89,9 +89,9 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
   StateTracker::GetInstance()->EndRenderPass();
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetPushConstantPipelineLayout(), m_encoding_render_pass,
-                         g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
-                         m_texture_encoding_shaders[format]);
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
+                         m_encoding_render_pass, g_object_cache->GetScreenQuadVertexShader(),
+                         VK_NULL_HANDLE, m_texture_encoding_shaders[format]);
 
   // Uniform - int4 of left,top,native_width,scale
   s32 position_uniform[4] = {src_rect.left, src_rect.top, static_cast<s32>(native_width),

@@ -113,9 +113,9 @@ void PaletteTextureConverter::ConvertTexture(VkCommandBuffer command_buffer,
                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
   // Set up draw
-  UtilityShaderDraw draw(command_buffer, g_object_cache->GetTextureConversionPipelineLayout(),
-                         render_pass, g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
-                         m_shaders[format]);
+  UtilityShaderDraw draw(
+      command_buffer, g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
+      render_pass, g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE, m_shaders[format]);
 
   VkRect2D region = {{0, 0}, {width, height}};
   draw.BeginRenderPass(dst_framebuffer, region);
@@ -133,7 +133,7 @@ void PaletteTextureConverter::ConvertTexture(VkCommandBuffer command_buffer,
 
   // We have to bind the texel buffer descriptor set separately.
   vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          g_object_cache->GetTextureConversionPipelineLayout(),
+                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
                           DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER, 1,
                           &texel_buffer_descriptor_set, 0, nullptr);
 

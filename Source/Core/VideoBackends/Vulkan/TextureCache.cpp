@@ -233,7 +233,7 @@ void TextureCache::ScaleTextureRectangle(TCacheEntry* dst_texture,
                                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(),
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
                          GetRenderPassForTextureUpdate(dst_texture->GetTexture()),
                          g_object_cache->GetPassthroughVertexShader(),
                          g_object_cache->GetPassthroughGeometryShader(), m_copy_shader);
@@ -588,7 +588,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   UtilityShaderDraw draw(
-      command_buffer, g_object_cache->GetPushConstantPipelineLayout(),
+      command_buffer, g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
       TextureCache::GetInstance()->GetRenderPassForTextureUpdate(m_texture.get()),
       g_object_cache->GetPassthroughVertexShader(), g_object_cache->GetPassthroughGeometryShader(),
       is_depth_copy ? TextureCache::GetInstance()->m_efb_depth_to_tex_shader :
@@ -880,10 +880,10 @@ void TextureCache::EncodeYUYVTextureToMemory(void* dst_ptr, u32 dst_width, u32 d
   // the order the guest is expecting and we don't have to swap it at readback time. The width
   // is halved because we're using an RGBA8 texture, but the YUYV data is two bytes per pixel.
   u32 output_width = dst_width / 2;
-  UtilityShaderDraw draw(command_buffer, g_object_cache->GetStandardPipelineLayout(),
-                         m_texture_encoder->GetEncodingRenderPass(),
-                         g_object_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
-                         m_rgb_to_yuyv_shader);
+  UtilityShaderDraw draw(
+      command_buffer, g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
+      m_texture_encoder->GetEncodingRenderPass(), g_object_cache->GetPassthroughVertexShader(),
+      VK_NULL_HANDLE, m_rgb_to_yuyv_shader);
   VkRect2D region = {{0, 0}, {output_width, dst_height}};
   draw.BeginRenderPass(m_texture_encoder->GetEncodingTextureFramebuffer(), region);
   draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetLinearSampler());
@@ -953,10 +953,10 @@ void TextureCache::DecodeYUYVTextureFromMemory(TCacheEntry* dst_texture, const v
                                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Convert from the YUYV data now in the intermediate texture to RGBA in the destination.
-  UtilityShaderDraw draw(command_buffer, g_object_cache->GetStandardPipelineLayout(),
-                         m_texture_encoder->GetEncodingRenderPass(),
-                         g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
-                         m_yuyv_to_rgb_shader);
+  UtilityShaderDraw draw(
+      command_buffer, g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
+      m_texture_encoder->GetEncodingRenderPass(), g_object_cache->GetScreenQuadVertexShader(),
+      VK_NULL_HANDLE, m_yuyv_to_rgb_shader);
   VkRect2D region = {{0, 0}, {src_width, src_height}};
   draw.BeginRenderPass(dst_texture->GetFramebuffer(), region);
   draw.SetViewportAndScissor(0, 0, static_cast<int>(src_width), static_cast<int>(src_height));
