@@ -138,6 +138,11 @@ struct IsoMessage : TransferCommand
   u8 endpoint = 0;
 };
 
+enum class Version
+{
+  USBV5,
+};
+
 class Device
 {
 public:
@@ -146,18 +151,21 @@ public:
   s32 GetId() const { return m_id; }
   u16 GetVid() const { return m_vid; }
   u16 GetPid() const { return m_pid; }
+  u8 GetInterface() const { return m_interface; }
   u8 GetInterfaceClass() const { return m_interface_class; }
   virtual std::string GetErrorName(int error_code) const;
   virtual bool AttachDevice() = 0;
   virtual int CancelTransfer(u8 endpoint) = 0;
   virtual int ChangeInterface(u8 interface) = 0;
+  virtual int GetNumberOfAltSettings() = 0;
   virtual int SetAltSetting(u8 alt_setting) = 0;
   virtual int SubmitTransfer(std::unique_ptr<CtrlMessage> message) = 0;
   virtual int SubmitTransfer(std::unique_ptr<BulkMessage> message) = 0;
   virtual int SubmitTransfer(std::unique_ptr<IntrMessage> message) = 0;
   virtual int SubmitTransfer(std::unique_ptr<IsoMessage> message) = 0;
-  // Returns USB descriptors in the format used by IOS's USBV5 interface.
-  virtual std::vector<u8> GetIOSDescriptors() = 0;
+  // Returns USB descriptors in the format used by the USBV4 and USBV5 interfaces.
+  // alt_setting is used to only present interfaces for a specific altsetting (only for USBV5).
+  virtual std::vector<u8> GetIOSDescriptors(Version, u8 alt_setting = -1) = 0;
 
 protected:
   s32 m_id = -1;

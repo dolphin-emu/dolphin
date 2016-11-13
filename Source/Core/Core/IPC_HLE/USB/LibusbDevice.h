@@ -31,12 +31,13 @@ public:
   bool AttachDevice() override;
   int CancelTransfer(u8 endpoint) override;
   int ChangeInterface(u8 interface) override;
+  int GetNumberOfAltSettings() override;
   int SetAltSetting(u8 alt_setting) override;
   int SubmitTransfer(std::unique_ptr<CtrlMessage> message) override;
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override;
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override;
-  std::vector<u8> GetIOSDescriptors() override;
+  std::vector<u8> GetIOSDescriptors(Version, u8 alt_setting) override;
 
 private:
   class TransferEndpoint final
