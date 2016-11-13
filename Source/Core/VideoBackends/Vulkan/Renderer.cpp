@@ -1137,7 +1137,6 @@ void Renderer::CheckForConfigChanges()
     g_command_buffer_mgr->WaitForGPUIdle();
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
-    g_object_cache->ClearPipelineCache();
     g_object_cache->RecompileSharedShaders();
     StateTracker::GetInstance()->LoadPipelineUIDCache();
   }

@@ -382,15 +382,6 @@ void ObjectCache::DestroyPipelineCache()
   m_pipeline_cache = VK_NULL_HANDLE;
 }
 
-void ObjectCache::ClearPipelineCache()
-{
-  // Reallocate the pipeline cache object, so it starts fresh and we don't
-  // save old pipelines to disk. This is for major changes, e.g. MSAA mode change.
-  DestroyPipelineCache();
-  if (!CreatePipelineCache(false))
-    PanicAlert("Failed to re-create pipeline cache");
-}
-
 void ObjectCache::SavePipelineCache()
 {
   size_t data_size;
