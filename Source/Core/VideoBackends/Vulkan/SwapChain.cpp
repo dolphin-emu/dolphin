@@ -198,25 +198,13 @@ bool SwapChain::SelectPresentMode()
     return it != present_modes.end();
   };
 
-  // If vsync is enabled, prefer VK_PRESENT_MODE_FIFO_KHR.
-  if (m_vsync_enabled)
+  // If vsync is enabled, use VK_PRESENT_MODE_FIFO_KHR.
+  // This check should not fail with conforming drivers, as the FIFO present mode is mandated by
+  // the specification (VK_KHR_swapchain). In case it isn't though, fall through to any other mode.
+  if (m_vsync_enabled && CheckForMode(VK_PRESENT_MODE_FIFO_KHR))
   {
-    // Try for relaxed vsync first, since it's likely the VI won't line up with
-    // the refresh rate of the system exactly, so tearing once is better than
-    // waiting for the next vblank.
-    if (CheckForMode(VK_PRESENT_MODE_FIFO_RELAXED_KHR))
-    {
-      m_present_mode = VK_PRESENT_MODE_FIFO_RELAXED_KHR;
-      return true;
-    }
-
-    // Fall back to strict vsync.
-    if (CheckForMode(VK_PRESENT_MODE_FIFO_KHR))
-    {
-      WARN_LOG(VIDEO, "Vulkan: FIFO_RELAXED not available, falling back to FIFO.");
-      m_present_mode = VK_PRESENT_MODE_FIFO_KHR;
-      return true;
-    }
+    m_present_mode = VK_PRESENT_MODE_FIFO_KHR;
+    return true;
   }
 
   // Prefer screen-tearing, if possible, for lowest latency.
