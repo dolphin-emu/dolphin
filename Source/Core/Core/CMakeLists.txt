@@ -155,6 +155,7 @@ set(SRCS	ActionReplay.cpp
 			IOS/STM/STM.cpp
 			IOS/USB/Common.cpp
 			IOS/USB/Host.cpp
+			IOS/USB/OH0/OH0.cpp
 			IOS/USB/USBV0.cpp
 			IOS/USB/USB_KBD.cpp
 			IOS/USB/USB_VEN.cpp

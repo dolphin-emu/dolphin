@@ -42,6 +42,17 @@ V0IntrMessage::V0IntrMessage(const IOCtlVRequest& ioctlv)
   endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address);
   length = Memory::Read_U16(ioctlv.in_vectors[1].address);
 }
+
+V0IsoMessage::V0IsoMessage(const IOCtlVRequest& ioctlv)
+    : IsoMessage(ioctlv, ioctlv.io_vectors[1].address)
+{
+  endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address);
+  length = Memory::Read_U16(ioctlv.in_vectors[1].address);
+  num_packets = Memory::Read_U8(ioctlv.in_vectors[2].address);
+  packet_sizes_addr = ioctlv.io_vectors[0].address;
+  for (size_t i = 0; i < num_packets; ++i)
+    packet_sizes.push_back(Memory::Read_U16(static_cast<u32>(packet_sizes_addr + i * sizeof(u16))));
+}
 }  // namespace USB
 }  // namespace HLE
 }  // namespace IOS

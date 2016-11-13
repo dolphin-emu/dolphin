@@ -49,6 +49,7 @@
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/IOS/USB/OH0/OH0.h"
 #include "Core/IOS/USB/USB_KBD.h"
 #include "Core/IOS/USB/USB_VEN.h"
 #include "Core/IOS/WFS/WFSI.h"
@@ -504,6 +505,7 @@ void Reinit()
 #else
   AddDevice<Device::Stub>("/dev/usb/hid");
 #endif
+  AddDevice<Device::OH0>("/dev/usb/oh0");
   AddDevice<Device::Stub>("/dev/usb/oh1");
   AddDevice<Device::WFSSRV>("/dev/usb/wfssrv");
   AddDevice<Device::WFSI>("/dev/wfsi");
@@ -645,6 +647,10 @@ void DoState(PointerWrap& p)
           s_fdmap[i] = std::make_shared<Device::FileIO>(i, "");
           s_fdmap[i]->DoState(p);
           break;
+        case Device::Device::DeviceType::OH0:
+          s_fdmap[i] = std::make_shared<Device::OH0Device>(i, "");
+          s_fdmap[i]->DoState(p);
+          break;
         }
       }
     }
@@ -710,6 +716,10 @@ static s32 OpenDevice(const OpenRequest& request)
     device = GetUnusedESDevice();
     if (!device)
       return IPC_EESEXHAUSTED;
+  }
+  else if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
+  {
+    device = std::make_shared<Device::OH0Device>(new_fd, request.path);
   }
   else if (request.path.find("/dev/") == 0)
   {
