@@ -159,12 +159,8 @@ GetVulkanColorBlendState(const BlendState& state,
   return vk_state;
 }
 
-VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
+VkPipeline ObjectCache::CreatePipeline(const PipelineInfo& info)
 {
-  auto iter = m_pipeline_objects.find(info);
-  if (iter != m_pipeline_objects.end())
-    return iter->second;
-
   // Declare descriptors for empty vertex buffers/attributes
   static const VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = {
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,  // VkStructureType sType
@@ -278,14 +274,32 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
       -1                     // int32_t                                          basePipelineIndex
   };
 
-  VkPipeline pipeline = VK_NULL_HANDLE;
+  VkPipeline pipeline;
   VkResult res = vkCreateGraphicsPipelines(g_vulkan_context->GetDevice(), m_pipeline_cache, 1,
                                            &pipeline_info, nullptr, &pipeline);
   if (res != VK_SUCCESS)
+  {
     LOG_VULKAN_ERROR(res, "vkCreateGraphicsPipelines failed: ");
+    return VK_NULL_HANDLE;
+  }
 
-  m_pipeline_objects.emplace(info, pipeline);
   return pipeline;
+}
+
+VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
+{
+  return GetPipelineWithCacheResult(info).first;
+}
+
+std::pair<VkPipeline, bool> ObjectCache::GetPipelineWithCacheResult(const PipelineInfo& info)
+{
+  auto iter = m_pipeline_objects.find(info);
+  if (iter != m_pipeline_objects.end())
+    return {iter->second, true};
+
+  VkPipeline pipeline = CreatePipeline(info);
+  m_pipeline_objects.emplace(info, pipeline);
+  return {pipeline, false};
 }
 
 std::string ObjectCache::GetDiskCacheFileName(const char* type)

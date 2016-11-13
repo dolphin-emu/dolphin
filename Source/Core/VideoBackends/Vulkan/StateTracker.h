@@ -9,6 +9,7 @@
 #include <memory>
 
 #include "Common/CommonTypes.h"
+#include "Common/LinearDiskCache.h"
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoCommon/GeometryShaderGen.h"
@@ -111,15 +112,22 @@ public:
 
   bool IsWithinRenderArea(s32 x, s32 y, u32 width, u32 height) const;
 
-private:
-  bool Initialize();
+  // Reloads the UID cache, ensuring all pipelines used by the game so far have been created.
+  void LoadPipelineUIDCache();
 
-  // Check that the specified viewport is within the render area.
-  // If not, ends the render pass if it is a clear render pass.
-  bool IsViewportWithinRenderArea() const;
-  bool UpdatePipeline();
-  bool UpdateDescriptorSet();
-  void UploadAllConstants();
+private:
+  // Serialized version of PipelineInfo, used when loading/saving the pipeline UID cache.
+  struct SerializedPipelineUID
+  {
+    u64 blend_state_bits;
+    u32 rasterizer_state_bits;
+    u32 depth_stencil_state_bits;
+    PortableVertexDeclaration vertex_decl;
+    VertexShaderUid vs_uid;
+    GeometryShaderUid gs_uid;
+    PixelShaderUid ps_uid;
+    VkPrimitiveTopology primitive_topology;
+  };
 
   enum DITRY_FLAG : u32
   {
@@ -140,6 +148,32 @@ private:
     DIRTY_FLAG_ALL_DESCRIPTOR_SETS =
         DIRTY_FLAG_VS_UBO | DIRTY_FLAG_GS_UBO | DIRTY_FLAG_PS_SAMPLERS | DIRTY_FLAG_PS_SSBO
   };
+
+  bool Initialize();
+
+  // Appends the specified pipeline info, combined with the UIDs stored in the class.
+  // The info is here so that we can store variations of a UID, e.g. blend state.
+  void AppendToPipelineUIDCache(const PipelineInfo& info);
+
+  // Precaches a pipeline based on the UID information.
+  bool PrecachePipelineUID(const SerializedPipelineUID& uid);
+
+  // Check that the specified viewport is within the render area.
+  // If not, ends the render pass if it is a clear render pass.
+  bool IsViewportWithinRenderArea() const;
+
+  // Gets a pipeline state that can be used to draw the alpha pass with constant alpha enabled.
+  PipelineInfo GetAlphaPassPipelineConfig(const PipelineInfo& info) const;
+
+  // Obtains a Vulkan pipeline object for the specified pipeline configuration.
+  // Also adds this pipeline configuration to the UID cache if it is not present already.
+  VkPipeline GetPipelineAndCacheUID(const PipelineInfo& info);
+
+  bool UpdatePipeline();
+  bool UpdateDescriptorSet();
+  void UploadAllConstants();
+
+  // Which bindings/state has to be updated before the next draw.
   u32 m_dirty_flags = 0;
 
   // input assembly
@@ -194,5 +228,11 @@ private:
   std::vector<u32> m_cpu_accesses_this_frame;
   std::vector<u32> m_scheduled_command_buffer_kicks;
   bool m_allow_background_execution = true;
+
+  // Draw state cache on disk
+  // We don't actually use the value field here, instead we generate the shaders from the uid
+  // on-demand. If all goes well, it should hit the shader and Vulkan pipeline cache, therefore
+  // loading should be reasonably efficient.
+  LinearDiskCache<SerializedPipelineUID, u32> m_uid_cache;
 };
 }

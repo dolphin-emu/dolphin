@@ -116,6 +116,9 @@ bool Renderer::Initialize()
                                                m_bounding_box->GetGPUBufferSize());
   }
 
+  // Ensure all pipelines previously used by the game have been created.
+  StateTracker::GetInstance()->LoadPipelineUIDCache();
+
   // Various initialization routines will have executed commands on the command buffer.
   // Execute what we have done before beginning the first frame.
   g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
@@ -1136,6 +1139,7 @@ void Renderer::CheckForConfigChanges()
     FramebufferManager::GetInstance()->RecompileShaders();
     g_object_cache->ClearPipelineCache();
     g_object_cache->RecompileSharedShaders();
+    StateTracker::GetInstance()->LoadPipelineUIDCache();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
