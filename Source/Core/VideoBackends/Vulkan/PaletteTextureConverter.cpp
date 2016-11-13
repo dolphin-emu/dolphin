@@ -40,12 +40,6 @@ PaletteTextureConverter::~PaletteTextureConverter()
 
   if (m_palette_buffer_view != VK_NULL_HANDLE)
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_palette_buffer_view, nullptr);
-
-  if (m_pipeline_layout != VK_NULL_HANDLE)
-    vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), m_pipeline_layout, nullptr);
-
-  if (m_palette_set_layout != VK_NULL_HANDLE)
-    vkDestroyDescriptorSetLayout(g_vulkan_context->GetDevice(), m_palette_set_layout, nullptr);
 }
 
 bool PaletteTextureConverter::Initialize()
@@ -54,9 +48,6 @@ bool PaletteTextureConverter::Initialize()
     return false;
 
   if (!CompileShaders())
-    return false;
-
-  if (!CreateDescriptorLayout())
     return false;
 
   return true;
@@ -84,16 +75,18 @@ void PaletteTextureConverter::ConvertTexture(VkCommandBuffer command_buffer,
   // If any of these fail, execute a command buffer, and try again.
   if (!m_palette_stream_buffer->ReserveMemory(palette_size,
                                               g_vulkan_context->GetTexelBufferAlignment()) ||
-      (texel_buffer_descriptor_set =
-           g_command_buffer_mgr->AllocateDescriptorSet(m_palette_set_layout)) == VK_NULL_HANDLE)
+      (texel_buffer_descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(
+           g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS))) ==
+          VK_NULL_HANDLE)
   {
     WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
     Util::ExecuteCurrentCommandsAndRestoreState(false);
 
     if (!m_palette_stream_buffer->ReserveMemory(palette_size,
                                                 g_vulkan_context->GetTexelBufferAlignment()) ||
-        (texel_buffer_descriptor_set =
-             g_command_buffer_mgr->AllocateDescriptorSet(m_palette_set_layout)) == VK_NULL_HANDLE)
+        (texel_buffer_descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(
+             g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS))) ==
+            VK_NULL_HANDLE)
     {
       PanicAlert("Failed to allocate space for texture conversion");
       return;
@@ -120,8 +113,8 @@ void PaletteTextureConverter::ConvertTexture(VkCommandBuffer command_buffer,
                             VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
 
   // Set up draw
-  UtilityShaderDraw draw(command_buffer, m_pipeline_layout, render_pass,
-                         g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
+  UtilityShaderDraw draw(command_buffer, g_object_cache->GetTextureConversionPipelineLayout(),
+                         render_pass, g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
                          m_shaders[format]);
 
   VkRect2D region = {{0, 0}, {width, height}};
@@ -139,7 +132,9 @@ void PaletteTextureConverter::ConvertTexture(VkCommandBuffer command_buffer,
   draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
 
   // We have to bind the texel buffer descriptor set separately.
-  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_layout, 0, 1,
+  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
+                          g_object_cache->GetTextureConversionPipelineLayout(),
+                          DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER, 1,
                           &texel_buffer_descriptor_set, 0, nullptr);
 
   // Draw
@@ -272,48 +267,6 @@ bool PaletteTextureConverter::CompileShaders()
 
   return (m_shaders[GX_TL_IA8] != VK_NULL_HANDLE && m_shaders[GX_TL_RGB565] != VK_NULL_HANDLE &&
           m_shaders[GX_TL_RGB5A3] != VK_NULL_HANDLE);
-}
-
-bool PaletteTextureConverter::CreateDescriptorLayout()
-{
-  static const VkDescriptorSetLayoutBinding set_bindings[] = {
-      {0, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
-  };
-  static const VkDescriptorSetLayoutCreateInfo set_info = {
-      VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-      static_cast<u32>(ArraySize(set_bindings)), set_bindings};
-
-  VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &set_info, nullptr,
-                                             &m_palette_set_layout);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreateDescriptorSetLayout failed: ");
-    return false;
-  }
-
-  VkDescriptorSetLayout sets[] = {m_palette_set_layout, g_object_cache->GetDescriptorSetLayout(
-                                                            DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS)};
-
-  VkPushConstantRange push_constant_range = {
-      VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, PUSH_CONSTANT_BUFFER_SIZE};
-
-  VkPipelineLayoutCreateInfo pipeline_layout_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-                                                     nullptr,
-                                                     0,
-                                                     static_cast<u32>(ArraySize(sets)),
-                                                     sets,
-                                                     1,
-                                                     &push_constant_range};
-
-  res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &pipeline_layout_info, nullptr,
-                               &m_pipeline_layout);
-  if (res != VK_SUCCESS)
-  {
-    LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
-    return false;
-  }
-
-  return true;
 }
 
 }  // namespace Vulkan
