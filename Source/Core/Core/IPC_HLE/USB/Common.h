@@ -148,11 +148,13 @@ public:
   u64 GetId() const { return m_id; }
   u16 GetVid() const { return m_vid; }
   u16 GetPid() const { return m_pid; }
+  u8 GetInterface() const { return m_interface; }
   u8 GetInterfaceClass() const { return m_interface_class; }
   virtual std::string GetErrorName(int error_code) const;
   virtual bool AttachDevice() = 0;
   virtual int CancelTransfer(u8 endpoint) = 0;
   virtual int ChangeInterface(u8 interface) = 0;
+  virtual int GetNumberOfAltSettings() = 0;
   virtual int SetAltSetting(u8 alt_setting) = 0;
   virtual int SubmitTransfer(std::unique_ptr<CtrlMessage> message) = 0;
   virtual int SubmitTransfer(std::unique_ptr<BulkMessage> message) = 0;

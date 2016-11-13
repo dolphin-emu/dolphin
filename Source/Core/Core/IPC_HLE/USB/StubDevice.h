@@ -16,6 +16,7 @@ public:
   int CancelTransfer(u8 endpoint) override { return -1; }
   int ChangeInterface(u8 interface) override { return -1; }
   int SetAltSetting(u8 alt_setting) override { return -1; }
+  int GetNumberOfAltSettings() override { return -1; }
   int SubmitTransfer(std::unique_ptr<CtrlMessage> message) override { return -1; }
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override { return -1; }
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override { return -1; }

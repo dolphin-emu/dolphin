@@ -306,6 +306,17 @@ void LibusbDevice::TransferEndpoint::CancelTransfers()
     libusb_cancel_transfer(pending_transfer.first);
 }
 
+int LibusbDevice::GetNumberOfAltSettings()
+{
+  const auto config_descr = std::make_unique<LibusbConfigDescriptor>(m_device, 0);
+  if (!config_descr->IsValid())
+  {
+    ERROR_LOG(WII_IPC_USB, "Failed to get config descriptor");
+    return -1;
+  }
+  return config_descr->m_descriptor->interface[m_interface].num_altsetting;
+}
+
 static void CopyToBuffer(std::vector<u8>* buffer, const void* data, const size_t size)
 {
   buffer->insert(buffer->end(), reinterpret_cast<const u8*>(data),
