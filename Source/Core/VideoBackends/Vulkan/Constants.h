@@ -42,6 +42,29 @@ enum DESCRIPTOR_SET_BIND_POINT
   NUM_DESCRIPTOR_SET_BIND_POINTS
 };
 
+// We use four pipeline layouts:
+//   - Standard
+//       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS)
+//       - 8 combined image samplers (accessible from PS)
+//   - BBox Enabled
+//       - Same as standard, plus a single SSBO accessible from PS
+//   - Push Constant
+//       - Same as standard, plus 128 bytes of push constants, accessible from all stages.
+//   - Texture Decoding
+//       - Same as push constant, plus a single texel buffer accessible from PS.
+//
+// All four pipeline layout share the first two descriptor sets (uniform buffers, PS samplers).
+// The third descriptor set (see bind points above) is used for storage or texel buffers.
+//
+enum PIPELINE_LAYOUT
+{
+  PIPELINE_LAYOUT_STANDARD,
+  PIPELINE_LAYOUT_BBOX,
+  PIPELINE_LAYOUT_PUSH_CONSTANT,
+  PIPELINE_LAYOUT_TEXTURE_CONVERSION,
+  NUM_PIPELINE_LAYOUTS
+};
+
 // Uniform buffer bindings within the first descriptor set
 enum UNIFORM_BUFFER_DESCRIPTOR_SET_BINDING
 {

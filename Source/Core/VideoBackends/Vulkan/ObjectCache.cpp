@@ -752,47 +752,32 @@ bool ObjectCache::CreatePipelineLayouts()
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, PUSH_CONSTANT_BUFFER_SIZE};
 
   // Info for each pipeline layout
-  VkPipelineLayoutCreateInfo standard_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-                                              nullptr,
-                                              0,
-                                              static_cast<u32>(ArraySize(standard_sets)),
-                                              standard_sets,
-                                              0,
-                                              nullptr};
-  VkPipelineLayoutCreateInfo bbox_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-                                          nullptr,
-                                          0,
-                                          static_cast<u32>(ArraySize(bbox_sets)),
-                                          bbox_sets,
-                                          0,
-                                          nullptr};
-  VkPipelineLayoutCreateInfo push_constant_info = {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-                                                   nullptr,
-                                                   0,
-                                                   static_cast<u32>(ArraySize(standard_sets)),
-                                                   standard_sets,
-                                                   1,
-                                                   &push_constant_range};
-  VkPipelineLayoutCreateInfo texture_conversion_info = {
-      VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
-      nullptr,
-      0,
-      static_cast<u32>(ArraySize(texture_conversion_sets)),
-      texture_conversion_sets,
-      1,
-      &push_constant_range};
+  VkPipelineLayoutCreateInfo pipeline_layout_info[NUM_PIPELINE_LAYOUTS] = {
+      // Standard
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(standard_sets)), standard_sets, 0, nullptr},
 
-  if ((res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &standard_info, nullptr,
-                                    &m_standard_pipeline_layout)) != VK_SUCCESS ||
-      (res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &bbox_info, nullptr,
-                                    &m_bbox_pipeline_layout)) != VK_SUCCESS ||
-      (res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &push_constant_info, nullptr,
-                                    &m_push_constant_pipeline_layout)) != VK_SUCCESS ||
-      (res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &texture_conversion_info,
-                                    nullptr, &m_texture_conversion_pipeline_layout)) != VK_SUCCESS)
+      // BBox
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(bbox_sets)), bbox_sets, 0, nullptr},
+
+      // Push Constant
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(standard_sets)), standard_sets, 1, &push_constant_range},
+
+      // Texture Conversion
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(texture_conversion_sets)), texture_conversion_sets, 1,
+       &push_constant_range}};
+
+  for (size_t i = 0; i < NUM_PIPELINE_LAYOUTS; i++)
   {
-    LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
-    return false;
+    if ((res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &pipeline_layout_info[i],
+                                      nullptr, &m_pipeline_layouts[i])) != VK_SUCCESS)
+    {
+      LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
+      return false;
+    }
   }
 
   return true;
@@ -800,16 +785,11 @@ bool ObjectCache::CreatePipelineLayouts()
 
 void ObjectCache::DestroyPipelineLayouts()
 {
-  if (m_standard_pipeline_layout != VK_NULL_HANDLE)
-    vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), m_standard_pipeline_layout, nullptr);
-  if (m_bbox_pipeline_layout != VK_NULL_HANDLE)
-    vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), m_bbox_pipeline_layout, nullptr);
-  if (m_push_constant_pipeline_layout != VK_NULL_HANDLE)
-    vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), m_push_constant_pipeline_layout,
-                            nullptr);
-  if (m_texture_conversion_pipeline_layout != VK_NULL_HANDLE)
-    vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), m_texture_conversion_pipeline_layout,
-                            nullptr);
+  for (VkPipelineLayout layout : m_pipeline_layouts)
+  {
+    if (layout != VK_NULL_HANDLE)
+      vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), layout, nullptr);
+  }
 }
 
 bool ObjectCache::CreateUtilityShaderVertexFormat()

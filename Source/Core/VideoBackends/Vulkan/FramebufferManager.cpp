@@ -442,8 +442,8 @@ void FramebufferManager::ReinterpretPixelData(int convtype)
                                                   VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(), m_efb_load_render_pass,
-                         g_object_cache->GetScreenQuadVertexShader(),
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
+                         m_efb_load_render_pass, g_object_cache->GetScreenQuadVertexShader(),
                          g_object_cache->GetScreenQuadGeometryShader(), pixel_shader);
 
   RasterizationState rs_state = Util::GetNoCullRasterizationState();
@@ -511,8 +511,8 @@ Texture2D* FramebufferManager::ResolveEFBDepthTexture(const VkRect2D& region)
 
   // Draw using resolve shader to write the minimum depth of all samples to the resolve texture.
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(), m_depth_resolve_render_pass,
-                         g_object_cache->GetScreenQuadVertexShader(),
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
+                         m_depth_resolve_render_pass, g_object_cache->GetScreenQuadVertexShader(),
                          g_object_cache->GetScreenQuadGeometryShader(), m_ps_depth_resolve);
   draw.BeginRenderPass(m_depth_resolve_framebuffer, region);
   draw.SetPSSampler(0, m_efb_depth_texture->GetView(), g_object_cache->GetPointSampler());
@@ -696,9 +696,9 @@ bool FramebufferManager::PopulateColorReadbackTexture()
   if (m_efb_width != EFB_WIDTH || m_efb_height != EFB_HEIGHT)
   {
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                           g_object_cache->GetStandardPipelineLayout(), m_copy_color_render_pass,
-                           g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
-                           m_copy_color_shader);
+                           g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
+                           m_copy_color_render_pass, g_object_cache->GetScreenQuadVertexShader(),
+                           VK_NULL_HANDLE, m_copy_color_shader);
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
     draw.BeginRenderPass(m_color_copy_framebuffer, rect);
@@ -777,9 +777,9 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
   if (m_efb_width != EFB_WIDTH || m_efb_height != EFB_HEIGHT)
   {
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                           g_object_cache->GetStandardPipelineLayout(), m_copy_depth_render_pass,
-                           g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
-                           m_copy_depth_shader);
+                           g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
+                           m_copy_depth_render_pass, g_object_cache->GetScreenQuadVertexShader(),
+                           VK_NULL_HANDLE, m_copy_depth_shader);
 
     VkRect2D rect = {{0, 0}, {EFB_WIDTH, EFB_HEIGHT}};
     draw.BeginRenderPass(m_depth_copy_framebuffer, rect);
@@ -1171,7 +1171,7 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, size_t 
   // We don't use the utility shader in order to keep the vertices compact.
   PipelineInfo pipeline_info = {};
   pipeline_info.vertex_format = m_poke_vertex_format.get();
-  pipeline_info.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
+  pipeline_info.pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
   pipeline_info.vs = m_poke_vertex_shader;
   pipeline_info.gs = (m_efb_layers > 1) ? m_poke_geometry_shader : VK_NULL_HANDLE;
   pipeline_info.ps = m_poke_fragment_shader;
