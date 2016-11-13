@@ -121,6 +121,13 @@ private:
   bool UpdateDescriptorSet();
   void UploadAllConstants();
 
+  // Number of descriptor sets for game draws.
+  enum
+  {
+    NUM_GX_DRAW_DESCRIPTOR_SETS = DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS + 1,
+    NUM_GX_DRAW_WITH_BBOX_DESCRIPTOR_SETS = DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER + 1
+  };
+
   enum DITRY_FLAG : u32
   {
     DIRTY_FLAG_VS_UBO = (1 << 0),
@@ -160,7 +167,7 @@ private:
   VkPipeline m_pipeline_object = VK_NULL_HANDLE;
 
   // shader bindings
-  std::array<VkDescriptorSet, NUM_DESCRIPTOR_SETS> m_descriptor_sets = {};
+  std::array<VkDescriptorSet, NUM_DESCRIPTOR_SET_BIND_POINTS> m_descriptor_sets = {};
   struct
   {
     std::array<VkDescriptorBufferInfo, NUM_UBO_DESCRIPTOR_SET_BINDINGS> uniform_buffer_bindings =

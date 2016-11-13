@@ -34,10 +34,6 @@ private:
 
   bool CreateBuffers();
   bool CompileShaders();
-  bool CreateDescriptorLayout();
-
-  VkDescriptorSetLayout m_palette_set_layout = VK_NULL_HANDLE;
-  VkPipelineLayout m_pipeline_layout = VK_NULL_HANDLE;
 
   std::array<VkShaderModule, NUM_PALETTE_CONVERSION_SHADERS> m_shaders = {};
 
