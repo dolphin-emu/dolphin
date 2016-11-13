@@ -14,6 +14,7 @@
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Util.h"
+#include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
 #include "VideoCommon/GeometryShaderManager.h"
@@ -113,6 +114,93 @@ bool StateTracker::Initialize()
 
   // Set default constants
   UploadAllConstants();
+  return true;
+}
+
+void StateTracker::LoadPipelineUIDCache()
+{
+  class PipelineInserter final : public LinearDiskCacheReader<SerializedPipelineUID, u32>
+  {
+  public:
+    explicit PipelineInserter(StateTracker* this_ptr_) : this_ptr(this_ptr_) {}
+    void Read(const SerializedPipelineUID& key, const u32* value, u32 value_size)
+    {
+      this_ptr->PrecachePipelineUID(key);
+    }
+
+  private:
+    StateTracker* this_ptr;
+  };
+
+  std::string filename = g_object_cache->GetDiskCacheFileName("pipeline-uid");
+  PipelineInserter inserter(this);
+
+  // OpenAndRead calls Close() first, which will flush all data to disk when reloading.
+  // This assertion must hold true, otherwise data corruption will result.
+  m_uid_cache.OpenAndRead(filename, inserter);
+}
+
+void StateTracker::AppendToPipelineUIDCache(const PipelineInfo& info)
+{
+  SerializedPipelineUID sinfo;
+  sinfo.blend_state_bits = info.blend_state.bits;
+  sinfo.rasterizer_state_bits = info.rasterization_state.bits;
+  sinfo.depth_stencil_state_bits = info.depth_stencil_state.bits;
+  sinfo.vertex_decl = m_pipeline_state.vertex_format->GetVertexDeclaration();
+  sinfo.vs_uid = m_vs_uid;
+  sinfo.gs_uid = m_gs_uid;
+  sinfo.ps_uid = m_ps_uid;
+  sinfo.primitive_topology = info.primitive_topology;
+  sinfo.bbox_enabled = m_bbox_enabled;
+
+  u32 dummy_value = 0;
+  m_uid_cache.Append(sinfo, &dummy_value, 1);
+}
+
+bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
+{
+  PipelineInfo pinfo = {};
+
+  // Need to create the vertex declaration first, rather than deferring to when a game creates a
+  // vertex loader that uses this format, since we need it to create a pipeline.
+  pinfo.vertex_format = VertexFormat::GetOrCreateMatchingFormat(uid.vertex_decl);
+  pinfo.pipeline_layout = uid.bbox_enabled ? g_object_cache->GetBBoxPipelineLayout() :
+                                             g_object_cache->GetStandardPipelineLayout();
+  pinfo.vs = g_object_cache->GetVertexShaderForUid(uid.vs_uid);
+  if (pinfo.vs == VK_NULL_HANDLE)
+  {
+    WARN_LOG(VIDEO, "Failed to get vertex shader from cached UID.");
+    return false;
+  }
+  if (!uid.gs_uid.GetUidData()->IsPassthrough())
+  {
+    pinfo.gs = g_object_cache->GetGeometryShaderForUid(uid.gs_uid);
+    if (pinfo.gs == VK_NULL_HANDLE)
+    {
+      WARN_LOG(VIDEO, "Failed to get geometry shader from cached UID.");
+      return false;
+    }
+  }
+  pinfo.ps = g_object_cache->GetPixelShaderForUid(uid.ps_uid);
+  if (pinfo.ps == VK_NULL_HANDLE)
+  {
+    WARN_LOG(VIDEO, "Failed to get pixel shader from cached UID.");
+    return false;
+  }
+  pinfo.render_pass = m_load_render_pass;
+  pinfo.blend_state.bits = uid.blend_state_bits;
+  pinfo.rasterization_state.bits = uid.rasterizer_state_bits;
+  pinfo.depth_stencil_state.bits = uid.depth_stencil_state_bits;
+  pinfo.primitive_topology = uid.primitive_topology;
+
+  VkPipeline pipeline = g_object_cache->GetPipeline(pinfo);
+  if (pipeline == VK_NULL_HANDLE)
+  {
+    WARN_LOG(VIDEO, "Failed to get pipeline from cached UID.");
+    return false;
+  }
+
+  // We don't need to do anything with this pipeline, just make sure it exists.
   return true;
 }
 
@@ -793,6 +881,22 @@ void StateTracker::EndClearRenderPass()
   EndRenderPass();
 }
 
+PipelineInfo StateTracker::GetAlphaPassPipeline(const PipelineInfo& info) const
+{
+  PipelineInfo temp_info = info;
+
+  // Skip depth writes for this pass. The results will be the same, so no
+  // point in overwriting depth values with the same value.
+  temp_info.depth_stencil_state.write_enable = VK_FALSE;
+
+  // Only allow alpha writes, and disable blending.
+  temp_info.blend_state.blend_enable = VK_FALSE;
+  temp_info.blend_state.logic_op_enable = VK_FALSE;
+  temp_info.blend_state.write_mask = VK_COLOR_COMPONENT_A_BIT;
+
+  return temp_info;
+}
+
 bool StateTracker::UpdatePipeline()
 {
   // We need at least a vertex and fragment shader
@@ -802,28 +906,28 @@ bool StateTracker::UpdatePipeline()
   // Grab a new pipeline object, this can fail
   if (m_dstalpha_mode != DSTALPHA_ALPHA_PASS)
   {
-    m_pipeline_object = g_object_cache->GetPipeline(m_pipeline_state);
+    auto result = g_object_cache->GetPipelineWithCacheResult(m_pipeline_state);
+    m_pipeline_object = result.first;
     if (m_pipeline_object == VK_NULL_HANDLE)
       return false;
+
+    // Add to the UID cache if it is a new pipeline.
+    if (!result.second)
+      AppendToPipelineUIDCache(m_pipeline_state);
   }
   else
   {
     // We need to make a few modifications to the pipeline object, but retain
     // the existing state, since we don't want to break the next draw.
-    PipelineInfo temp_info = m_pipeline_state;
-
-    // Skip depth writes for this pass. The results will be the same, so no
-    // point in overwriting depth values with the same value.
-    temp_info.depth_stencil_state.write_enable = VK_FALSE;
-
-    // Only allow alpha writes, and disable blending.
-    temp_info.blend_state.blend_enable = VK_FALSE;
-    temp_info.blend_state.logic_op_enable = VK_FALSE;
-    temp_info.blend_state.write_mask = VK_COLOR_COMPONENT_A_BIT;
-
-    m_pipeline_object = g_object_cache->GetPipeline(temp_info);
+    PipelineInfo temp_info = GetAlphaPassPipeline(m_pipeline_state);
+    auto result = g_object_cache->GetPipelineWithCacheResult(temp_info);
+    m_pipeline_object = result.first;
     if (m_pipeline_object == VK_NULL_HANDLE)
       return false;
+
+    // Add these to the UID cache as well.
+    if (!result.second)
+      AppendToPipelineUIDCache(temp_info);
   }
 
   m_dirty_flags |= DIRTY_FLAG_PIPELINE_BINDING;
