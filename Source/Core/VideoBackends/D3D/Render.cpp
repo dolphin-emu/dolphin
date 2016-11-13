@@ -1255,7 +1255,7 @@ void Renderer::SetFullscreen(bool enable_fullscreen)
   D3D::SetFullscreenState(enable_fullscreen);
 }
 
-bool Renderer::IsFullscreen()
+bool Renderer::IsFullscreen() const
 {
   return D3D::GetFullscreenState();
 }

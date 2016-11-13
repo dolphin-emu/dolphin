@@ -26,7 +26,7 @@ public:
   void SetInterlacingMode() override;
   void SetViewport() override;
   void SetFullscreen(bool enable_fullscreen) override;
-  bool IsFullscreen() override;
+  bool IsFullscreen() const override;
 
   // TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
   void ApplyState(bool bUseDstAlpha) override;
