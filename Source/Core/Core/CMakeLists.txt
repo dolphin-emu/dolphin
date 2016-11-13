@@ -157,10 +157,11 @@ set(SRCS	ActionReplay.cpp
 			IOS/USB/Host.cpp
 			IOS/USB/OH0/OH0.cpp
 			IOS/USB/USB_HID/HIDv4.cpp
+			IOS/USB/USB_VEN/VEN.cpp
 			IOS/USB/USBV0.cpp
 			IOS/USB/USBV4.cpp
+			IOS/USB/USBV5.cpp
 			IOS/USB/USB_KBD.cpp
-			IOS/USB/USB_VEN.cpp
 			IOS/USB/Bluetooth/BTBase.cpp
 			IOS/USB/Bluetooth/BTEmu.cpp
 			IOS/USB/Bluetooth/BTStub.cpp

@@ -52,7 +52,7 @@
 #include "Core/IOS/USB/OH0/OH0.h"
 #include "Core/IOS/USB/USB_HID/HIDv4.h"
 #include "Core/IOS/USB/USB_KBD.h"
-#include "Core/IOS/USB/USB_VEN.h"
+#include "Core/IOS/USB/USB_VEN/VEN.h"
 #include "Core/IOS/WFS/WFSI.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 
@@ -494,12 +494,12 @@ void Reinit()
   AddDevice<Device::NetIPTop>("/dev/net/ip/top");
   AddDevice<Device::NetSSL>("/dev/net/ssl");
   AddDevice<Device::USB_KBD>("/dev/usb/kbd");
-  AddDevice<Device::USB_VEN>("/dev/usb/ven");
   AddDevice<Device::SDIOSlot0>("/dev/sdio/slot0");
   AddDevice<Device::Stub>("/dev/sdio/slot1");
   AddDevice<Device::USB_HIDv4>("/dev/usb/hid");
   AddDevice<Device::OH0>("/dev/usb/oh0");
   AddDevice<Device::Stub>("/dev/usb/oh1");
+  AddDevice<Device::USB_VEN>("/dev/usb/ven");
   AddDevice<Device::WFSSRV>("/dev/usb/wfssrv");
   AddDevice<Device::WFSI>("/dev/wfsi");
 }
