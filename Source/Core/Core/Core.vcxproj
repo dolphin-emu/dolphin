@@ -186,6 +186,12 @@
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp" />
     <ClCompile Include="IOS\STM\STM.cpp" />
     <ClCompile Include="IOS\USB\Common.cpp" />
+    <ClCompile Include="IOS\USB\LibusbDevice.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IOS\USB\Host.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="IOS\USB\USBV0.cpp" />
     <ClCompile Include="IOS\USB\USB_HIDv4.cpp">
       <!--
@@ -419,6 +425,8 @@
     <ClInclude Include="IOS\SDIO\SDIOSlot0.h" />
     <ClInclude Include="IOS\STM\STM.h" />
     <ClInclude Include="IOS\USB\Common.h" />
+    <ClInclude Include="IOS\USB\LibusbDevice.h" />
+    <ClInclude Include="IOS\USB\Host.h" />
     <ClInclude Include="IOS\USB\USBV0.h" />
     <ClInclude Include="IOS\USB\USB_HIDv4.h" />
     <ClInclude Include="IOS\USB\USB_KBD.h" />
