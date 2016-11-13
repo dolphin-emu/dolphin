@@ -123,10 +123,6 @@ public:
   // otherwise for a cache hit it will be true.
   std::pair<VkPipeline, bool> GetPipelineWithCacheResult(const PipelineInfo& info);
 
-  // Wipes out the pipeline cache, use when MSAA modes change, for example
-  // Also destroys the data that would be stored in the disk cache.
-  void ClearPipelineCache();
-
   // Saves the pipeline cache to disk. Call when shutting down.
   void SavePipelineCache();
 
