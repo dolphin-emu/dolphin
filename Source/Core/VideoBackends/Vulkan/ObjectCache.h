@@ -116,10 +116,6 @@ public:
   // a pipeline had to be created or not.
   VkPipeline GetPipeline(const PipelineInfo& info, bool* was_cache_miss = nullptr);
 
-  // Wipes out the pipeline cache, use when MSAA modes change, for example
-  // Also destroys the data that would be stored in the disk cache.
-  void ClearPipelineCache();
-
   // Saves the pipeline cache to disk. Call when shutting down.
   void SavePipelineCache();
 
