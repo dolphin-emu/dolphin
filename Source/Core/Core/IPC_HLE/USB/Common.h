@@ -11,13 +11,6 @@
 
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
-struct libusb_config_descriptor;
-struct libusb_device;
-struct libusb_device_descriptor;
-struct libusb_endpoint_descriptor;
-struct libusb_interface_descriptor;
-
 enum StandardDeviceRequestCodes
 {
   REQUEST_SET_CONFIGURATION = 9,
@@ -51,7 +44,7 @@ struct IOSDeviceDescriptor
   u8 iProduct;
   u8 iSerialNumber;
   u8 bNumConfigurations;
-  u8 pad[2] = {0};
+  u8 pad[2] = {};
 };
 
 struct IOSConfigDescriptor
@@ -92,12 +85,6 @@ struct IOSEndpointDescriptor
   u8 pad[1];
 };
 
-void ConvertDeviceToWii(IOSDeviceDescriptor* dest, const libusb_device_descriptor* src);
-void ConvertConfigToWii(IOSConfigDescriptor* dest, const libusb_config_descriptor* src);
-void ConvertInterfaceToWii(IOSInterfaceDescriptor* dest, const libusb_interface_descriptor* src);
-void ConvertEndpointToWii(IOSEndpointDescriptor* dest, const libusb_endpoint_descriptor* src);
-int Align(int num, int alignment);
-
 constexpr u16 USBHDR(u8 dir, u8 type, u8 recipient, u8 request)
 {
   return static_cast<u16>(((dir << 7 | type << 5 | recipient) << 8) | request);
@@ -109,6 +96,7 @@ struct TransferCommand
   u32 data_addr = 0;
   s32 device_id = -1;
 
+  virtual ~TransferCommand() = default;
   void FillBuffer(const u8* src, size_t size) const;
   bool IsValid() const { return cmd_address != 0; }
   void Invalidate() { cmd_address = data_addr = 0; }
@@ -139,8 +127,45 @@ struct IntrMessage : TransferCommand
 
 struct IsoMessage : TransferCommand
 {
+  u32 packet_sizes_addr = 0;
   std::vector<u16> packet_sizes;
   u16 length = 0;
   u8 num_packets = 0;
   u8 endpoint = 0;
+};
+
+enum class IOSVersion
+{
+  USBV4,
+  USBV5,
+};
+
+class USBDevice
+{
+public:
+  explicit USBDevice(u8 interface) : m_interface(interface) {}
+  virtual ~USBDevice() = default;
+  u64 GetId() const { return m_id; }
+  u16 GetVid() const { return m_vid; }
+  u16 GetPid() const { return m_pid; }
+  u8 GetInterfaceClass() const { return m_interface_class; }
+  virtual std::string GetErrorName(int error_code) const;
+  virtual bool AttachDevice() = 0;
+  virtual int CancelTransfer(u8 endpoint) = 0;
+  virtual int ChangeInterface(u8 interface) = 0;
+  virtual int SetAltSetting(u8 alt_setting) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<CtrlMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<BulkMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<IntrMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<IsoMessage> message) = 0;
+  // Returns USB descriptors in the format used by the USBV4 and USBV5 interfaces.
+  // alt_setting is used to only present interfaces for a specific altsetting (only for USBV5).
+  virtual std::vector<u8> GetIOSDescriptors(IOSVersion, u8 alt_setting = -1) = 0;
+
+protected:
+  u64 m_id = -1;
+  u16 m_vid = 0;
+  u16 m_pid = 0;
+  u8 m_interface = 0;
+  u8 m_interface_class = -1;
 };

@@ -181,7 +181,15 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stm.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp" />
-    <ClCompile Include="IPC_HLE\USB\Common.cpp" />
+    <ClCompile Include="IPC_HLE\USB\Common.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\USB\Host.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\USB\LibusbDevice.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\USB\USBV0.cpp" />
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_base.cpp" />
     <ClCompile Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_emu.cpp" />
@@ -381,6 +389,9 @@
     <ClInclude Include="IPC_HLE\l2cap.h" />
     <ClInclude Include="IPC_HLE\NWC24Config.h" />
     <ClInclude Include="IPC_HLE\USB\Common.h" />
+    <ClInclude Include="IPC_HLE\USB\Host.h" />
+    <ClInclude Include="IPC_HLE\USB\LibusbDevice.h" />
+    <ClInclude Include="IPC_HLE\USB\StubDevice.h" />
     <ClInclude Include="IPC_HLE\USB\USBV0.h" />
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_base.h" />
     <ClInclude Include="IPC_HLE\USB\WII_IPC_HLE_Device_usb_bt_emu.h" />
