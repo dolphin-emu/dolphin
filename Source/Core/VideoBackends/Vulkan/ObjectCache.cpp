@@ -695,15 +695,21 @@ bool ObjectCache::CreateDescriptorSetLayouts()
   static const VkDescriptorSetLayoutBinding ssbo_set_bindings[] = {
       {0, VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT}};
 
-  static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SETS] = {
+  static const VkDescriptorSetLayoutBinding texel_buffer_set_bindings[] = {
+      {0, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
+  };
+
+  static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SET_LAYOUTS] = {
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(ubo_set_bindings)), ubo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(sampler_set_bindings)), sampler_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(ArraySize(ssbo_set_bindings)), ssbo_set_bindings}};
+       static_cast<u32>(ArraySize(ssbo_set_bindings)), ssbo_set_bindings},
+      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(texel_buffer_set_bindings)), texel_buffer_set_bindings}};
 
-  for (size_t i = 0; i < NUM_DESCRIPTOR_SETS; i++)
+  for (size_t i = 0; i < NUM_DESCRIPTOR_SET_LAYOUTS; i++)
   {
     VkResult res = vkCreateDescriptorSetLayout(g_vulkan_context->GetDevice(), &create_infos[i],
                                                nullptr, &m_descriptor_set_layouts[i]);
@@ -732,12 +738,16 @@ bool ObjectCache::CreatePipelineLayouts()
 
   // Descriptor sets for each pipeline layout
   VkDescriptorSetLayout standard_sets[] = {
-      m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
-      m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS]};
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS]};
   VkDescriptorSetLayout bbox_sets[] = {
-      m_descriptor_set_layouts[DESCRIPTOR_SET_UNIFORM_BUFFERS],
-      m_descriptor_set_layouts[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS],
-      m_descriptor_set_layouts[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS]};
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_SHADER_STORAGE_BUFFERS]};
+  VkDescriptorSetLayout texture_conversion_sets[] = {
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS],
+      m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS]};
   VkPushConstantRange push_constant_range = {
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, PUSH_CONSTANT_BUFFER_SIZE};
 
@@ -763,13 +773,23 @@ bool ObjectCache::CreatePipelineLayouts()
                                                    standard_sets,
                                                    1,
                                                    &push_constant_range};
+  VkPipelineLayoutCreateInfo texture_conversion_info = {
+      VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO,
+      nullptr,
+      0,
+      static_cast<u32>(ArraySize(texture_conversion_sets)),
+      texture_conversion_sets,
+      1,
+      &push_constant_range};
 
   if ((res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &standard_info, nullptr,
                                     &m_standard_pipeline_layout)) != VK_SUCCESS ||
       (res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &bbox_info, nullptr,
                                     &m_bbox_pipeline_layout)) != VK_SUCCESS ||
       (res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &push_constant_info, nullptr,
-                                    &m_push_constant_pipeline_layout)))
+                                    &m_push_constant_pipeline_layout)) != VK_SUCCESS ||
+      (res = vkCreatePipelineLayout(g_vulkan_context->GetDevice(), &texture_conversion_info,
+                                    nullptr, &m_texture_conversion_pipeline_layout)) != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreatePipelineLayout failed: ");
     return false;
@@ -786,6 +806,9 @@ void ObjectCache::DestroyPipelineLayouts()
     vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), m_bbox_pipeline_layout, nullptr);
   if (m_push_constant_pipeline_layout != VK_NULL_HANDLE)
     vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), m_push_constant_pipeline_layout,
+                            nullptr);
+  if (m_texture_conversion_pipeline_layout != VK_NULL_HANDLE)
+    vkDestroyPipelineLayout(g_vulkan_context->GetDevice(), m_texture_conversion_pipeline_layout,
                             nullptr);
 }
 
