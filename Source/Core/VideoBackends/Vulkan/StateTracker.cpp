@@ -76,7 +76,7 @@ bool StateTracker::Initialize()
 
   // BBox is disabled by default.
   m_pipeline_state.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
-  m_num_active_descriptor_sets = NUM_DESCRIPTOR_SETS - 1;
+  m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
   m_bbox_enabled = false;
 
   // Initialize all samplers to point by default
@@ -545,16 +545,16 @@ void StateTracker::SetBBoxEnable(bool enable)
   if (enable)
   {
     m_pipeline_state.pipeline_layout = g_object_cache->GetBBoxPipelineLayout();
-    m_num_active_descriptor_sets = NUM_DESCRIPTOR_SETS;
+    m_num_active_descriptor_sets = NUM_GX_DRAW_WITH_BBOX_DESCRIPTOR_SETS;
 
     // The bbox buffer never changes, so we defer descriptor updates until it is enabled.
-    if (m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] == VK_NULL_HANDLE)
+    if (m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER] == VK_NULL_HANDLE)
       m_dirty_flags |= DIRTY_FLAG_PS_SSBO;
   }
   else
   {
     m_pipeline_state.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
-    m_num_active_descriptor_sets = NUM_DESCRIPTOR_SETS - 1;
+    m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
   }
 
   m_dirty_flags |= DIRTY_FLAG_PIPELINE | DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
@@ -731,7 +731,8 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   {
     vkCmdBindDescriptorSets(
         command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_state.pipeline_layout,
-        DESCRIPTOR_SET_UNIFORM_BUFFERS, 1, &m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS],
+        DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS, 1,
+        &m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS],
         NUM_UBO_DESCRIPTOR_SET_BINDINGS, m_bindings.uniform_buffer_offsets.data());
   }
 
@@ -921,10 +922,10 @@ bool StateTracker::UpdateDescriptorSet()
   u32 num_writes = 0;
 
   if (m_dirty_flags & (DIRTY_FLAG_VS_UBO | DIRTY_FLAG_GS_UBO | DIRTY_FLAG_PS_UBO) ||
-      m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] == VK_NULL_HANDLE)
+      m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS] == VK_NULL_HANDLE)
   {
     VkDescriptorSetLayout layout =
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS);
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS);
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(layout);
     if (set == VK_NULL_HANDLE)
       return false;
@@ -943,15 +944,15 @@ bool StateTracker::UpdateDescriptorSet()
                               nullptr};
     }
 
-    m_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] = set;
+    m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
 
   if (m_dirty_flags & DIRTY_FLAG_PS_SAMPLERS ||
-      m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] == VK_NULL_HANDLE)
+      m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS] == VK_NULL_HANDLE)
   {
     VkDescriptorSetLayout layout =
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS);
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS);
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(layout);
     if (set == VK_NULL_HANDLE)
       return false;
@@ -974,16 +975,16 @@ bool StateTracker::UpdateDescriptorSet()
       }
     }
 
-    m_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
+    m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
 
   if (m_bbox_enabled &&
       (m_dirty_flags & DIRTY_FLAG_PS_SSBO ||
-       m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] == VK_NULL_HANDLE))
+       m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER] == VK_NULL_HANDLE))
   {
     VkDescriptorSetLayout layout =
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS);
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_SHADER_STORAGE_BUFFERS);
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(layout);
     if (set == VK_NULL_HANDLE)
       return false;
@@ -999,7 +1000,7 @@ bool StateTracker::UpdateDescriptorSet()
                             &m_bindings.ps_ssbo,
                             nullptr};
 
-    m_descriptor_sets[DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS] = set;
+    m_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER] = set;
     m_dirty_flags |= DIRTY_FLAG_DESCRIPTOR_SET_BINDING;
   }
 

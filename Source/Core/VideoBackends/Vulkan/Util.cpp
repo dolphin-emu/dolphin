@@ -511,7 +511,7 @@ void UtilityShaderDraw::BindVertexBuffer()
 void UtilityShaderDraw::BindDescriptors()
 {
   // TODO: This method is a mess, clean it up
-  std::array<VkDescriptorSet, NUM_DESCRIPTOR_SETS> bind_descriptor_sets = {};
+  std::array<VkDescriptorSet, NUM_DESCRIPTOR_SET_BIND_POINTS> bind_descriptor_sets = {};
   std::array<VkWriteDescriptorSet, NUM_UBO_DESCRIPTOR_SET_BINDINGS + NUM_PIXEL_SHADER_SAMPLERS>
       set_writes = {};
   uint32_t num_set_writes = 0;
@@ -523,7 +523,7 @@ void UtilityShaderDraw::BindDescriptors()
   if (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE || m_ps_uniform_buffer.buffer != VK_NULL_HANDLE)
   {
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS));
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS));
     if (set == VK_NULL_HANDLE)
       PanicAlert("Failed to allocate descriptor set for utility draw");
 
@@ -552,7 +552,7 @@ void UtilityShaderDraw::BindDescriptors()
                                                          &dummy_uniform_buffer,
         nullptr};
 
-    bind_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] = set;
+    bind_descriptor_sets[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS] = set;
   }
 
   // PS samplers
@@ -572,7 +572,7 @@ void UtilityShaderDraw::BindDescriptors()
   {
     // Allocate a new descriptor set
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS));
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
     if (set == VK_NULL_HANDLE)
       PanicAlert("Failed to allocate descriptor set for utility draw");
 
@@ -594,7 +594,7 @@ void UtilityShaderDraw::BindDescriptors()
       }
     }
 
-    bind_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
+    bind_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS] = set;
   }
 
   vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), num_set_writes, set_writes.data(), 0,
@@ -605,24 +605,24 @@ void UtilityShaderDraw::BindDescriptors()
   {
     // UBO only
     vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
-                            &bind_descriptor_sets[0], NUM_UBO_DESCRIPTOR_SET_BINDINGS,
-                            m_ubo_offsets.data());
+                            m_pipeline_info.pipeline_layout,
+                            DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS, 1, &bind_descriptor_sets[0],
+                            NUM_UBO_DESCRIPTOR_SET_BINDINGS, m_ubo_offsets.data());
   }
   else if (bind_descriptor_sets[0] == VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
   {
     // Samplers only
-    vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS,
-                            1, &bind_descriptor_sets[1], 0, nullptr);
+    vkCmdBindDescriptorSets(
+        m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_info.pipeline_layout,
+        DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS, 1, &bind_descriptor_sets[1], 0, nullptr);
   }
   else if (bind_descriptor_sets[0] != VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
   {
     // Both
-    vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_UNIFORM_BUFFERS, 2,
-                            bind_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
-                            m_ubo_offsets.data());
+    vkCmdBindDescriptorSets(
+        m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_pipeline_info.pipeline_layout,
+        DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS, 2, bind_descriptor_sets.data(),
+        NUM_UBO_DESCRIPTOR_SET_BINDINGS, m_ubo_offsets.data());
   }
 }
 
