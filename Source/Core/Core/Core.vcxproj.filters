@@ -788,16 +788,19 @@
     <ClCompile Include="IOS\USB\USB_HID\HIDv4.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\USB\USB_VEN\VEN.cpp">
+      <Filter>IOS\USB</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\USB\USBV0.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
     <ClCompile Include="IOS\USB\USBV4.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\USB\USB_KBD.cpp">
+    <ClCompile Include="IOS\USB\USBV5.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\USB\USB_VEN.cpp">
+    <ClCompile Include="IOS\USB\USB_KBD.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
     <ClCompile Include="IOS\WFS\WFSI.cpp">
@@ -1383,16 +1386,19 @@
     <ClInclude Include="IOS\USB\USB_HID\HIDv4.h">
       <Filter>IOS\USB</Filter>
     </ClInclude>
+    <ClInclude Include="IOS\USB\USB_VEN\VEN.h">
+      <Filter>IOS\USB</Filter>
+    </ClInclude>
     <ClInclude Include="IOS\USB\USBV0.h">
       <Filter>IOS\USB</Filter>
     </ClInclude>
     <ClInclude Include="IOS\USB\USBV4.h">
       <Filter>IOS\USB</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\USB\USB_KBD.h">
+    <ClInclude Include="IOS\USB\USBV5.h">
       <Filter>IOS\USB</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\USB\USB_VEN.h">
+    <ClInclude Include="IOS\USB\USB_KBD.h">
       <Filter>IOS\USB</Filter>
     </ClInclude>
     <ClInclude Include="IOS\WFS\WFSI.h">

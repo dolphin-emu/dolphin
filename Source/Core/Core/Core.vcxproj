@@ -195,10 +195,11 @@
     <ClCompile Include="IOS\USB\OH0\OH0.cpp" />
     <ClCompile Include="IOS\USB\OH0\OH0Device.cpp" />
     <ClCompile Include="IOS\USB\USB_HID\HIDv4.cpp" />
+    <ClCompile Include="IOS\USB\USB_VEN\VEN.cpp" />
     <ClCompile Include="IOS\USB\USBV0.cpp" />
     <ClCompile Include="IOS\USB\USBV4.cpp" />
+    <ClCompile Include="IOS\USB\USBV5.cpp" />
     <ClCompile Include="IOS\USB\USB_KBD.cpp" />
-    <ClCompile Include="IOS\USB\USB_VEN.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTBase.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTEmu.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTStub.cpp" />
@@ -427,10 +428,11 @@
     <ClInclude Include="IOS\USB\OH0\OH0.h" />
     <ClInclude Include="IOS\USB\OH0\OH0Device.h" />
     <ClInclude Include="IOS\USB\USB_HID\HIDv4.h" />
+    <ClInclude Include="IOS\USB\USB_VEN\VEN.h" />
     <ClInclude Include="IOS\USB\USBV0.h" />
     <ClInclude Include="IOS\USB\USBV4.h" />
+    <ClInclude Include="IOS\USB\USBV5.h" />
     <ClInclude Include="IOS\USB\USB_KBD.h" />
-    <ClInclude Include="IOS\USB\USB_VEN.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTBase.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTEmu.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTStub.h" />
