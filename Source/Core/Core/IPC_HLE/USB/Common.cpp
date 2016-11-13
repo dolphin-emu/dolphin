@@ -4,9 +4,14 @@
 
 #include <cstring>
 
+#ifdef __LIBUSB__
+#include <libusb.h>
+#endif
+
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/USB/Common.h"
 
@@ -56,3 +61,22 @@ void IntrMessage::SetRetVal(const u32 retval) const
 {
   Memory::Write_U32(retval, cmd_address + 4);
 }
+
+std::string Device::GetErrorName(const int error_code) const
+{
+  return StringFromFormat("unknown error %d", error_code);
+}
+
+#ifdef __LIBUSB__
+LibusbConfigDescriptor::LibusbConfigDescriptor(libusb_device* device, const u8 config_num)
+{
+  if (libusb_get_config_descriptor(device, config_num, &m_config) != LIBUSB_SUCCESS)
+    m_config = nullptr;
+}
+
+LibusbConfigDescriptor::~LibusbConfigDescriptor()
+{
+  if (m_config != nullptr)
+    libusb_free_config_descriptor(m_config);
+}
+#endif

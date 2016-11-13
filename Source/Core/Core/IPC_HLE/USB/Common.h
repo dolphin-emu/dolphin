@@ -139,8 +139,51 @@ struct IntrMessage : TransferCommand
 
 struct IsoMessage : TransferCommand
 {
+  u32 packet_sizes_addr = 0;
   std::vector<u16> packet_sizes;
   u16 length = 0;
   u8 num_packets = 0;
   u8 endpoint = 0;
 };
+
+class Device
+{
+public:
+  Device(u8 interface) : m_interface(interface) {}
+  virtual ~Device() = default;
+  s32 GetId() const { return m_id; }
+  u16 GetVid() const { return m_vid; }
+  u16 GetPid() const { return m_pid; }
+  u8 GetInterfaceClass() const { return m_interface_class; }
+  virtual std::string GetErrorName(int error_code) const;
+  virtual bool AttachDevice() = 0;
+  virtual int CancelTransfer(u8 endpoint) = 0;
+  virtual int ChangeInterface(u8 interface) = 0;
+  virtual int SetAltSetting(u8 alt_setting) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<CtrlMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<BulkMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<IntrMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<IsoMessage> message) = 0;
+  // Returns USB descriptors in the format used by IOS's USBV5 interface.
+  virtual std::vector<u8> GetIOSDescriptors() = 0;
+
+protected:
+  u16 m_vid = 0;
+  u16 m_pid = 0;
+  u8 m_interface_class = -1;
+  s32 m_id = -1;
+  bool m_attached = false;
+  u8 m_interface;
+};
+
+#ifdef __LIBUSB__
+// Simple wrapper around libusb_get_config_descriptor and libusb_free_config_descriptor.
+class LibusbConfigDescriptor
+{
+public:
+  LibusbConfigDescriptor(libusb_device* device, u8 config_num = 0);
+  ~LibusbConfigDescriptor();
+  bool IsValid() const { return m_config != nullptr; }
+  libusb_config_descriptor* m_config = nullptr;
+};
+#endif
