@@ -76,6 +76,16 @@ bool IOCtlVRequest::HasInputVectorWithAddress(const u32 vector_address) const
                      [&](const auto& in_vector) { return in_vector.address == vector_address; });
 }
 
+bool IOCtlVRequest::HasNumberOfValidVectors(const size_t in_count, const size_t io_count) const
+{
+  if (in_vectors.size() != in_count || io_vectors.size() != io_count)
+    return false;
+
+  auto IsValidVector = [](const auto& vector) { return vector.size == 0 || vector.address != 0; };
+  return std::all_of(in_vectors.begin(), in_vectors.end(), IsValidVector) &&
+         std::all_of(io_vectors.begin(), io_vectors.end(), IsValidVector);
+}
+
 void IOCtlRequest::Log(const std::string& device_name, LogTypes::LOG_TYPE type,
                        LogTypes::LOG_LEVELS verbosity) const
 {

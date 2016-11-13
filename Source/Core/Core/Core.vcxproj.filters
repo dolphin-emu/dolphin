@@ -779,6 +779,12 @@
     <ClCompile Include="IOS\USB\Host.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\USB\OH0\OH0.cpp">
+      <Filter>IOS\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\USB\OH0\OH0Device.cpp">
+      <Filter>IOS\USB</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\USB\USBV0.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
@@ -1363,6 +1369,12 @@
       <Filter>IOS\USB</Filter>
     </ClInclude>
     <ClInclude Include="IOS\USB\Host.h">
+      <Filter>IOS\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\OH0\OH0.h">
+      <Filter>IOS\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\OH0\OH0Device.h">
       <Filter>IOS\USB</Filter>
     </ClInclude>
     <ClInclude Include="IOS\USB\USBV0.h">
