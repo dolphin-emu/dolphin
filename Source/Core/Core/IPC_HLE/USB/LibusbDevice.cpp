@@ -300,13 +300,24 @@ void LibusbDevice::TransferEndpoint::CancelTransfers()
     libusb_cancel_transfer(pending_transfer.first);
 }
 
+int LibusbDevice::GetNumberOfAltSettings()
+{
+  const auto config_descr = std::make_unique<LibusbConfigDescriptor>(m_device, 0);
+  if (!config_descr->IsValid())
+  {
+    ERROR_LOG(WII_IPC_USB, "Failed to get config descriptor");
+    return -1;
+  }
+  return config_descr->m_config->interface[m_interface].num_altsetting;
+}
+
 static void CopyToBuffer(std::vector<u8>* buffer, const void* data, const size_t size)
 {
   buffer->insert(buffer->end(), reinterpret_cast<const u8*>(data),
                  reinterpret_cast<const u8*>(data) + size);
 }
 
-std::vector<u8> LibusbDevice::GetIOSDescriptors()
+std::vector<u8> LibusbDevice::GetIOSDescriptors(const Version version, const u8 alt_setting)
 {
   std::vector<u8> buffer;
 
@@ -331,30 +342,52 @@ std::vector<u8> LibusbDevice::GetIOSDescriptors()
     CopyToBuffer(&buffer, &ios_config_descr, Align(ios_config_descr.bLength, 4));
 
     // Interface descriptor
-    // IOS presents each interface as a different device (confirmed by hardware test and libogc).
-    const libusb_interface* interface = &config_descr->m_config->interface[m_interface];
-    // Alternate settings don't show up (according to libogc).
-    const libusb_interface_descriptor* interface_descr = &interface->altsetting[0];
-    IOSInterfaceDescriptor ios_interface_descr;
-    ConvertInterfaceToWii(&ios_interface_descr, interface_descr);
-    CopyToBuffer(&buffer, &ios_interface_descr, Align(ios_interface_descr.bLength, 4));
-
-    // Endpoint descriptors
-    // While alternate settings don't show up and IOS only presents the interface descriptor
-    // for altsetting 0, it seems to present endpoints from all alternate settings.
-    // This behaviour is relied on in the SDK for interacting with microphones.
-    for (int a = 0; a < interface->num_altsetting; ++a)
+    // Depending on the USB interface, IOS presents each interface as a different device (USBV5,
+    // confirmed by hwtest and libogc), in which case we should only present one interface,
+    // or it presents all interfaces (USBV4), starting from the largest bInterfaceNumber.
+    for (int j = config_descr->m_config->bNumInterfaces - 1; j >= 0; --j)
     {
-      const libusb_interface_descriptor* descr = &interface->altsetting[a];
-      for (u8 e = 0; e < descr->bNumEndpoints; ++e)
+      // For USBV5, only present the interface associated to this device
+      if (version == Version::USBV5)
+        j = m_interface;
+
+      const libusb_interface* interface = &config_descr->m_config->interface[j];
+      for (int a = 0; a < interface->num_altsetting; ++a)
       {
-        const libusb_endpoint_descriptor* endpoint_descr = &descr->endpoint[e];
-        IOSEndpointDescriptor ios_endpoint_descr;
-        ConvertEndpointToWii(&ios_endpoint_descr, endpoint_descr);
-        CopyToBuffer(&buffer, &ios_endpoint_descr, Align(ios_endpoint_descr.bLength, 4));
-      }
-    }
-  }
+        // For USBV5, only present endpoints associated with the requested altsetting
+        if (version == Version::USBV5)
+        {
+          if (alt_setting >= interface->num_altsetting)
+          {
+            ERROR_LOG(WII_IPC_USB, "alt_setting out of range");
+            return {};
+          }
+          a = alt_setting;
+        }
+
+        const libusb_interface_descriptor* interface_descr = &interface->altsetting[a];
+        IOSInterfaceDescriptor ios_interface_descr;
+        ConvertInterfaceToWii(&ios_interface_descr, interface_descr);
+        CopyToBuffer(&buffer, &ios_interface_descr, Align(ios_interface_descr.bLength, 4));
+
+        for (u8 e = 0; e < interface_descr->bNumEndpoints; ++e)
+        {
+          const libusb_endpoint_descriptor* endpoint_descr = &interface_descr->endpoint[e];
+          IOSEndpointDescriptor ios_endpoint_descr;
+          ConvertEndpointToWii(&ios_endpoint_descr, endpoint_descr);
+          // IOS only copies 8 bytes from the endpoint descriptor, regardless of the actual length
+          CopyToBuffer(&buffer, &ios_endpoint_descr, 8);
+        }  // endpoints
+
+        if (version == Version::USBV5)
+          break;
+      }  // alt settings
+
+      // Stop now, since we only want to present one interface for USBV5.
+      if (version == Version::USBV5)
+        break;
+    }  // interfaces
+  }    // configs
   return buffer;
 }
 

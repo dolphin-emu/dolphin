@@ -15,9 +15,10 @@ public:
   bool AttachDevice() override { return false; }
   int CancelTransfer(u8 endpoint) override { return -1; }
   int SetAltSetting(u8 alt_setting) override { return -1; }
+  int GetNumberOfAltSettings() override { return -1; }
   int SubmitTransfer(std::unique_ptr<CtrlMessage> message) override { return -1; }
   int SubmitTransfer(std::unique_ptr<BulkMessage> message) override { return -1; }
   int SubmitTransfer(std::unique_ptr<IntrMessage> message) override { return -1; }
   int SubmitTransfer(std::unique_ptr<IsoMessage> message) override { return -1; }
-  std::vector<u8> GetIOSDescriptors() override { return {}; }
+  std::vector<u8> GetIOSDescriptors(Version, u8) override { return {}; }
 };
