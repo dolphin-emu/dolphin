@@ -159,11 +159,20 @@ GetVulkanColorBlendState(const BlendState& state,
   return vk_state;
 }
 
-VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
+VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info, bool* was_cache_miss)
 {
   auto iter = m_pipeline_objects.find(info);
   if (iter != m_pipeline_objects.end())
+  {
+    if (was_cache_miss)
+      *was_cache_miss = false;
+
     return iter->second;
+  }
+
+  // Cache miss, need to create the pipeline.
+  if (was_cache_miss)
+    *was_cache_miss = true;
 
   // Declare descriptors for empty vertex buffers/attributes
   static const VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = {
