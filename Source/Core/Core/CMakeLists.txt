@@ -154,6 +154,7 @@ set(SRCS	ActionReplay.cpp
 			IOS/SDIO/SDIOSlot0.cpp
 			IOS/STM/STM.cpp
 			IOS/USB/Common.cpp
+			IOS/USB/Host.cpp
 			IOS/USB/USBV0.cpp
 			IOS/USB/USB_KBD.cpp
 			IOS/USB/USB_VEN.cpp
@@ -264,7 +265,8 @@ set(LIBS
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IOS/USB/USB_HIDv4.cpp
+	set(SRCS	${SRCS}	IOS/USB/LibusbDevice.cpp
+	        	       	IOS/USB/USB_HIDv4.cpp
 	        	       	IOS/USB/Bluetooth/BTReal.cpp)
 endif()
 
