@@ -11,13 +11,6 @@
 
 #include "Common/CommonTypes.h"
 
-class PointerWrap;
-struct libusb_config_descriptor;
-struct libusb_device;
-struct libusb_device_descriptor;
-struct libusb_endpoint_descriptor;
-struct libusb_interface_descriptor;
-
 enum StandardDeviceRequestCodes
 {
   REQUEST_SET_CONFIGURATION = 9,
@@ -92,15 +85,14 @@ struct IOSEndpointDescriptor
   u8 pad[1];
 };
 
-void ConvertDeviceToWii(IOSDeviceDescriptor* dest, const libusb_device_descriptor* src);
-void ConvertConfigToWii(IOSConfigDescriptor* dest, const libusb_config_descriptor* src);
-void ConvertInterfaceToWii(IOSInterfaceDescriptor* dest, const libusb_interface_descriptor* src);
-void ConvertEndpointToWii(IOSEndpointDescriptor* dest, const libusb_endpoint_descriptor* src);
-int Align(int num, int alignment);
-
 constexpr u16 USBHDR(u8 dir, u8 type, u8 recipient, u8 request)
 {
   return static_cast<u16>(((dir << 7 | type << 5 | recipient) << 8) | request);
+}
+
+constexpr int Align(const int num, const int alignment)
+{
+  return (num + (alignment - 1)) & ~(alignment - 1);
 }
 
 struct TransferCommand
@@ -139,8 +131,38 @@ struct IntrMessage : TransferCommand
 
 struct IsoMessage : TransferCommand
 {
+  u32 packet_sizes_addr = 0;
   std::vector<u16> packet_sizes;
   u16 length = 0;
   u8 num_packets = 0;
   u8 endpoint = 0;
+};
+
+class Device
+{
+public:
+  Device(u8 interface) : m_interface(interface) {}
+  virtual ~Device() = default;
+  s32 GetId() const { return m_id; }
+  u16 GetVid() const { return m_vid; }
+  u16 GetPid() const { return m_pid; }
+  u8 GetInterfaceClass() const { return m_interface_class; }
+  virtual std::string GetErrorName(int error_code) const;
+  virtual bool AttachDevice() = 0;
+  virtual int CancelTransfer(u8 endpoint) = 0;
+  virtual int ChangeInterface(u8 interface) = 0;
+  virtual int SetAltSetting(u8 alt_setting) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<CtrlMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<BulkMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<IntrMessage> message) = 0;
+  virtual int SubmitTransfer(std::unique_ptr<IsoMessage> message) = 0;
+  // Returns USB descriptors in the format used by IOS's USBV5 interface.
+  virtual std::vector<u8> GetIOSDescriptors() = 0;
+
+protected:
+  s32 m_id = -1;
+  u16 m_vid = 0;
+  u16 m_pid = 0;
+  u8 m_interface = 0;
+  u8 m_interface_class = -1;
 };

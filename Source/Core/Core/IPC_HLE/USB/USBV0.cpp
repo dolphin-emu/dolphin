@@ -45,8 +45,8 @@ USBV0IsoMessage::USBV0IsoMessage(const SIOCtlVBuffer& cmd_buffer)
   endpoint = Memory::Read_U8(cmd_buffer.InBuffer[0].m_Address);
   length = Memory::Read_U16(cmd_buffer.InBuffer[1].m_Address);
   num_packets = Memory::Read_U8(cmd_buffer.InBuffer[2].m_Address);
-  const u16* sizes =
-      reinterpret_cast<const u16*>(Memory::GetPointer(cmd_buffer.PayloadBuffer[0].m_Address));
+  packet_sizes_addr = cmd_buffer.PayloadBuffer[0].m_Address;
+  const u16* sizes = reinterpret_cast<const u16*>(Memory::GetPointer(packet_sizes_addr));
   for (int i = 0; i < num_packets; ++i)
     packet_sizes.push_back(Common::swap16(sizes[i]));
 }
