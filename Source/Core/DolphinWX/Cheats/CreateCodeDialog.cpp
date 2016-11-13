@@ -12,7 +12,6 @@
 #include "Core/ConfigManager.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
-#include "DolphinWX/ISOProperties.h"
 #include "DolphinWX/WxUtils.h"
 
 CreateCodeDialog::CreateCodeDialog(wxWindow* const parent, const u32 address)
