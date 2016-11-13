@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/ISOProperties/ISOProperties.h"
 
 #include <array>
 #include <cinttypes>
@@ -10,7 +10,6 @@
 #include <cstdio>
 #include <cstring>
 #include <fstream>
-#include <mbedtls/md5.h>
 #include <set>
 #include <string>
 #include <type_traits>
@@ -25,7 +24,6 @@
 #include <wx/dialog.h>
 #include <wx/dirdlg.h>
 #include <wx/filedlg.h>
-#include <wx/gbsizer.h>
 #include <wx/image.h>
 #include <wx/imaglist.h>
 #include <wx/itemid.h>
@@ -44,16 +42,13 @@
 #include <wx/treebase.h>
 #include <wx/treectrl.h>
 #include <wx/utils.h>
-#include <wx/validate.h>
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/MD5.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
-#include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/GeckoCodeConfig.h"
@@ -70,6 +65,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
+#include "DolphinWX/ISOProperties/InfoPanel.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/PatchAddEdit.h"
 #include "DolphinWX/WxUtils.h"
@@ -189,18 +185,18 @@ private:
   State m_state = State::Inactive;
 };
 
+wxDEFINE_EVENT(DOLPHIN_EVT_CHANGE_ISO_PROPERTIES_TITLE, wxCommandEvent);
+
 BEGIN_EVENT_TABLE(CISOProperties, wxDialog)
 EVT_CLOSE(CISOProperties::OnClose)
 EVT_BUTTON(wxID_OK, CISOProperties::OnCloseClick)
 EVT_BUTTON(ID_EDITCONFIG, CISOProperties::OnEditConfig)
-EVT_BUTTON(ID_MD5SUMCOMPUTE, CISOProperties::OnComputeMD5Sum)
 EVT_BUTTON(ID_SHOWDEFAULTCONFIG, CISOProperties::OnShowDefaultConfig)
 EVT_CHOICE(ID_EMUSTATE, CISOProperties::OnEmustateChanged)
 EVT_LISTBOX(ID_PATCHES_LIST, CISOProperties::PatchListSelectionChanged)
 EVT_BUTTON(ID_EDITPATCH, CISOProperties::PatchButtonClicked)
 EVT_BUTTON(ID_ADDPATCH, CISOProperties::PatchButtonClicked)
 EVT_BUTTON(ID_REMOVEPATCH, CISOProperties::PatchButtonClicked)
-EVT_MENU(IDM_BNRSAVEAS, CISOProperties::OnBannerImageSave)
 EVT_TREE_ITEM_RIGHT_CLICK(ID_TREECTRL, CISOProperties::OnRightClickOnTree)
 EVT_MENU(IDM_EXTRACTFILE, CISOProperties::OnExtractFile)
 EVT_MENU(IDM_EXTRACTDIR, CISOProperties::OnExtractDir)
@@ -208,7 +204,6 @@ EVT_MENU(IDM_EXTRACTALL, CISOProperties::OnExtractDir)
 EVT_MENU(IDM_EXTRACTAPPLOADER, CISOProperties::OnExtractDataFromHeader)
 EVT_MENU(IDM_EXTRACTDOL, CISOProperties::OnExtractDataFromHeader)
 EVT_MENU(IDM_CHECKINTEGRITY, CISOProperties::CheckPartitionIntegrity)
-EVT_CHOICE(ID_LANG, CISOProperties::OnChangeBannerLang)
 END_EVENT_TABLE()
 
 CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* parent, wxWindowID id,
@@ -216,6 +211,8 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
                                long style)
     : wxDialog(parent, id, title, position, size, style), OpenGameListItem(game_list_item)
 {
+  Bind(DOLPHIN_EVT_CHANGE_ISO_PROPERTIES_TITLE, &CISOProperties::OnChangeTitle, this);
+
   // Load ISO data
   m_open_iso = DiscIO::CreateVolumeFromFilename(OpenGameListItem.GetFileName());
 
@@ -228,81 +225,7 @@ CISOProperties::CISOProperties(const GameListItem& game_list_item, wxWindow* par
 
   // Setup GUI
   CreateGUIControls();
-
   LoadGameConfig();
-
-  // Disk header and apploader
-
-  m_InternalName->SetValue(StrToWxStr(m_open_iso->GetInternalName()));
-  m_GameID->SetValue(StrToWxStr(m_open_iso->GetGameID()));
-  switch (m_open_iso->GetCountry())
-  {
-  case DiscIO::Country::COUNTRY_AUSTRALIA:
-    m_Country->SetValue(_("Australia"));
-    break;
-  case DiscIO::Country::COUNTRY_EUROPE:
-    m_Country->SetValue(_("Europe"));
-    break;
-  case DiscIO::Country::COUNTRY_FRANCE:
-    m_Country->SetValue(_("France"));
-    break;
-  case DiscIO::Country::COUNTRY_ITALY:
-    m_Country->SetValue(_("Italy"));
-    break;
-  case DiscIO::Country::COUNTRY_GERMANY:
-    m_Country->SetValue(_("Germany"));
-    break;
-  case DiscIO::Country::COUNTRY_NETHERLANDS:
-    m_Country->SetValue(_("Netherlands"));
-    break;
-  case DiscIO::Country::COUNTRY_RUSSIA:
-    m_Country->SetValue(_("Russia"));
-    break;
-  case DiscIO::Country::COUNTRY_SPAIN:
-    m_Country->SetValue(_("Spain"));
-    break;
-  case DiscIO::Country::COUNTRY_USA:
-    m_Country->SetValue(_("USA"));
-    break;
-  case DiscIO::Country::COUNTRY_JAPAN:
-    m_Country->SetValue(_("Japan"));
-    break;
-  case DiscIO::Country::COUNTRY_KOREA:
-    m_Country->SetValue(_("Korea"));
-    break;
-  case DiscIO::Country::COUNTRY_TAIWAN:
-    m_Country->SetValue(_("Taiwan"));
-    break;
-  case DiscIO::Country::COUNTRY_WORLD:
-    m_Country->SetValue(_("World"));
-    break;
-  case DiscIO::Country::COUNTRY_UNKNOWN:
-  default:
-    m_Country->SetValue(_("Unknown"));
-    break;
-  }
-
-  wxString temp = "0x" + StrToWxStr(m_open_iso->GetMakerID());
-  m_MakerID->SetValue(temp);
-  m_Revision->SetValue(StrToWxStr(std::to_string(m_open_iso->GetRevision())));
-  m_Date->SetValue(StrToWxStr(m_open_iso->GetApploaderDate()));
-  m_FST->SetValue(StrToWxStr(std::to_string(m_open_iso->GetFSTSize())));
-
-  // Here we set all the info to be shown + we set the window title
-  bool wii = m_open_iso->GetVolumeType() != DiscIO::Platform::GAMECUBE_DISC;
-  ChangeBannerDetails(SConfig::GetInstance().GetCurrentLanguage(wii));
-
-  if (OpenGameListItem.GetBannerImage().IsOk())
-  {
-    m_Banner->SetBitmap(WxUtils::ScaleImageToBitmap(OpenGameListItem.GetBannerImage(), this,
-                                                    m_Banner->GetMinSize()));
-    m_Banner->Bind(wxEVT_RIGHT_DOWN, &CISOProperties::RightClickOnBanner, this);
-  }
-  else
-  {
-    m_Banner->SetBitmap(
-        WxUtils::LoadScaledResourceBitmap("nobanner", this, m_Banner->GetMinSize()));
-  }
 
   // Filesystem browser/dumper
   // TODO : Should we add a way to browse the wad file ?
@@ -445,8 +368,8 @@ void CISOProperties::CreateGUIControls()
   m_Notebook->AddPage(m_CheatPage, _("AR Codes"));
   wxPanel* const gecko_cheat_page = new wxPanel(m_Notebook);
   m_Notebook->AddPage(gecko_cheat_page, _("Gecko Codes"));
-  wxPanel* const m_Information = new wxPanel(m_Notebook, ID_INFORMATION);
-  m_Notebook->AddPage(m_Information, _("Info"));
+  m_Notebook->AddPage(new InfoPanel(m_Notebook, ID_INFORMATION, OpenGameListItem, m_open_iso),
+                      _("Info"));
 
   // GameConfig editing - Overrides and emulation state
   wxStaticText* const OverrideText = new wxStaticText(
@@ -629,159 +552,6 @@ void CISOProperties::CreateGUIControls()
   gecko_layout->Add(m_geckocode_panel, 1, wxEXPAND);
   gecko_cheat_page->SetSizer(gecko_layout);
 
-  // Info Page
-  wxStaticText* const m_InternalNameText =
-      new wxStaticText(m_Information, wxID_ANY, _("Internal Name:"));
-  m_InternalName = new wxTextCtrl(m_Information, ID_NAME, wxEmptyString, wxDefaultPosition,
-                                  wxDefaultSize, wxTE_READONLY);
-  wxStaticText* const m_GameIDText = new wxStaticText(m_Information, wxID_ANY, _("Game ID:"));
-  m_GameID = new wxTextCtrl(m_Information, ID_GAMEID, wxEmptyString, wxDefaultPosition,
-                            wxDefaultSize, wxTE_READONLY);
-  wxStaticText* const m_CountryText = new wxStaticText(m_Information, wxID_ANY, _("Country:"));
-  m_Country = new wxTextCtrl(m_Information, ID_COUNTRY, wxEmptyString, wxDefaultPosition,
-                             wxDefaultSize, wxTE_READONLY);
-  wxStaticText* const m_MakerIDText = new wxStaticText(m_Information, wxID_ANY, _("Maker ID:"));
-  m_MakerID = new wxTextCtrl(m_Information, ID_MAKERID, wxEmptyString, wxDefaultPosition,
-                             wxDefaultSize, wxTE_READONLY);
-  wxStaticText* const m_RevisionText = new wxStaticText(m_Information, wxID_ANY, _("Revision:"));
-  m_Revision = new wxTextCtrl(m_Information, ID_REVISION, wxEmptyString, wxDefaultPosition,
-                              wxDefaultSize, wxTE_READONLY);
-  wxStaticText* const m_DateText = new wxStaticText(m_Information, wxID_ANY, _("Apploader Date:"));
-  m_Date = new wxTextCtrl(m_Information, ID_DATE, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                          wxTE_READONLY);
-  wxStaticText* const m_FSTText = new wxStaticText(m_Information, wxID_ANY, _("FST Size:"));
-  m_FST = new wxTextCtrl(m_Information, ID_FST, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                         wxTE_READONLY);
-  wxStaticText* const m_MD5SumText = new wxStaticText(m_Information, wxID_ANY, _("MD5 Checksum:"));
-  m_MD5Sum = new wxTextCtrl(m_Information, ID_MD5SUM, wxEmptyString, wxDefaultPosition,
-                            wxDefaultSize, wxTE_READONLY);
-  m_MD5SumCompute = new wxButton(m_Information, ID_MD5SUMCOMPUTE, _("Compute"));
-
-  wxStaticText* const m_LangText = new wxStaticText(m_Information, wxID_ANY, _("Show Language:"));
-
-  bool wii = m_open_iso->GetVolumeType() != DiscIO::Platform::GAMECUBE_DISC;
-  DiscIO::Language preferred_language = SConfig::GetInstance().GetCurrentLanguage(wii);
-
-  std::vector<DiscIO::Language> languages = OpenGameListItem.GetLanguages();
-  int preferred_language_index = 0;
-  for (size_t i = 0; i < languages.size(); ++i)
-  {
-    if (languages[i] == preferred_language)
-      preferred_language_index = i;
-
-    switch (languages[i])
-    {
-    case DiscIO::Language::LANGUAGE_JAPANESE:
-      arrayStringFor_Lang.Add(_("Japanese"));
-      break;
-    case DiscIO::Language::LANGUAGE_ENGLISH:
-      arrayStringFor_Lang.Add(_("English"));
-      break;
-    case DiscIO::Language::LANGUAGE_GERMAN:
-      arrayStringFor_Lang.Add(_("German"));
-      break;
-    case DiscIO::Language::LANGUAGE_FRENCH:
-      arrayStringFor_Lang.Add(_("French"));
-      break;
-    case DiscIO::Language::LANGUAGE_SPANISH:
-      arrayStringFor_Lang.Add(_("Spanish"));
-      break;
-    case DiscIO::Language::LANGUAGE_ITALIAN:
-      arrayStringFor_Lang.Add(_("Italian"));
-      break;
-    case DiscIO::Language::LANGUAGE_DUTCH:
-      arrayStringFor_Lang.Add(_("Dutch"));
-      break;
-    case DiscIO::Language::LANGUAGE_SIMPLIFIED_CHINESE:
-      arrayStringFor_Lang.Add(_("Simplified Chinese"));
-      break;
-    case DiscIO::Language::LANGUAGE_TRADITIONAL_CHINESE:
-      arrayStringFor_Lang.Add(_("Traditional Chinese"));
-      break;
-    case DiscIO::Language::LANGUAGE_KOREAN:
-      arrayStringFor_Lang.Add(_("Korean"));
-      break;
-    case DiscIO::Language::LANGUAGE_UNKNOWN:
-    default:
-      arrayStringFor_Lang.Add(_("Unknown"));
-      break;
-    }
-  }
-  m_Lang =
-      new wxChoice(m_Information, ID_LANG, wxDefaultPosition, wxDefaultSize, arrayStringFor_Lang);
-  m_Lang->SetSelection(preferred_language_index);
-  if (arrayStringFor_Lang.size() <= 1)
-    m_Lang->Disable();
-
-  wxStaticText* const m_NameText = new wxStaticText(m_Information, wxID_ANY, _("Name:"));
-  m_Name = new wxTextCtrl(m_Information, ID_SHORTNAME, wxEmptyString, wxDefaultPosition,
-                          wxDefaultSize, wxTE_READONLY);
-  wxStaticText* const m_MakerText = new wxStaticText(m_Information, wxID_ANY, _("Maker:"));
-  m_Maker = new wxTextCtrl(m_Information, ID_MAKER, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                           wxTE_READONLY);
-  wxStaticText* const m_CommentText = new wxStaticText(m_Information, wxID_ANY, _("Description:"));
-  m_Comment = new wxTextCtrl(m_Information, ID_COMMENT, wxEmptyString, wxDefaultPosition,
-                             wxDefaultSize, wxTE_MULTILINE | wxTE_READONLY);
-  wxStaticText* const m_BannerText = new wxStaticText(m_Information, wxID_ANY, _("Banner:"));
-  m_Banner = new wxStaticBitmap(m_Information, ID_BANNER, wxNullBitmap, wxDefaultPosition,
-                                FromDIP(wxSize(96, 32)));
-
-  // ISO Details
-  wxGridBagSizer* const sISODetails = new wxGridBagSizer(space10, space10);
-  sISODetails->Add(m_InternalNameText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sISODetails->Add(m_InternalName, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND);
-  sISODetails->Add(m_GameIDText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sISODetails->Add(m_GameID, wxGBPosition(1, 1), wxGBSpan(1, 2), wxEXPAND);
-  sISODetails->Add(m_CountryText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sISODetails->Add(m_Country, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND);
-  sISODetails->Add(m_MakerIDText, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sISODetails->Add(m_MakerID, wxGBPosition(3, 1), wxGBSpan(1, 2), wxEXPAND);
-  sISODetails->Add(m_RevisionText, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sISODetails->Add(m_Revision, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND);
-  sISODetails->Add(m_DateText, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sISODetails->Add(m_Date, wxGBPosition(5, 1), wxGBSpan(1, 2), wxEXPAND);
-  sISODetails->Add(m_FSTText, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sISODetails->Add(m_FST, wxGBPosition(6, 1), wxGBSpan(1, 2), wxEXPAND);
-  sISODetails->Add(m_MD5SumText, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sISODetails->Add(m_MD5Sum, wxGBPosition(7, 1), wxGBSpan(1, 1), wxEXPAND);
-  sISODetails->Add(m_MD5SumCompute, wxGBPosition(7, 2), wxGBSpan(1, 1), wxEXPAND);
-
-  sISODetails->AddGrowableCol(1);
-  wxStaticBoxSizer* const sbISODetails =
-      new wxStaticBoxSizer(wxVERTICAL, m_Information, _("ISO Details"));
-  sbISODetails->AddSpacer(space5);
-  sbISODetails->Add(sISODetails, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  sbISODetails->AddSpacer(space5);
-
-  // Banner Details
-  wxGridBagSizer* const sBannerDetails = new wxGridBagSizer(space10, space10);
-  sBannerDetails->Add(m_LangText, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  // Comboboxes cannot be safely stretched vertically on Windows.
-  sBannerDetails->Add(WxUtils::GiveMinSize(m_Lang, wxDefaultSize), wxGBPosition(0, 1),
-                      wxGBSpan(1, 1), wxEXPAND);
-  sBannerDetails->Add(m_NameText, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sBannerDetails->Add(m_Name, wxGBPosition(1, 1), wxGBSpan(1, 1), wxEXPAND);
-  sBannerDetails->Add(m_MakerText, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  sBannerDetails->Add(m_Maker, wxGBPosition(2, 1), wxGBSpan(1, 1), wxEXPAND);
-  sBannerDetails->Add(m_CommentText, wxGBPosition(3, 0), wxGBSpan(1, 1));
-  sBannerDetails->Add(m_Comment, wxGBPosition(3, 1), wxGBSpan(1, 1), wxEXPAND);
-  sBannerDetails->Add(m_BannerText, wxGBPosition(4, 0), wxGBSpan(1, 1));
-  sBannerDetails->Add(m_Banner, wxGBPosition(4, 1), wxGBSpan(1, 1), wxEXPAND);
-  sBannerDetails->AddGrowableCol(1);
-  wxStaticBoxSizer* const sbBannerDetails =
-      new wxStaticBoxSizer(wxVERTICAL, m_Information, _("Banner Details"));
-  sbBannerDetails->AddSpacer(space5);
-  sbBannerDetails->Add(sBannerDetails, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  sbBannerDetails->AddSpacer(space5);
-
-  wxBoxSizer* const sInfoPage = new wxBoxSizer(wxVERTICAL);
-  sInfoPage->AddSpacer(space5);
-  sInfoPage->Add(sbISODetails, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  sInfoPage->AddSpacer(space5);
-  sInfoPage->Add(sbBannerDetails, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  sInfoPage->AddSpacer(space5);
-  m_Information->SetSizer(sInfoPage);
-
   if (m_open_iso->GetVolumeType() != DiscIO::Platform::WII_WAD)
   {
     wxPanel* const filesystem_panel = new wxPanel(m_Notebook, ID_FILESYSTEM);
@@ -854,29 +624,6 @@ void CISOProperties::OnClose(wxCloseEvent& WXUNUSED(event))
 void CISOProperties::OnCloseClick(wxCommandEvent& WXUNUSED(event))
 {
   Close();
-}
-
-void CISOProperties::RightClickOnBanner(wxMouseEvent& event)
-{
-  wxMenu popupMenu;
-  popupMenu.Append(IDM_BNRSAVEAS, _("Save as..."));
-  PopupMenu(&popupMenu);
-
-  event.Skip();
-}
-
-void CISOProperties::OnBannerImageSave(wxCommandEvent& WXUNUSED(event))
-{
-  wxString dirHome;
-
-  wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(&dirHome),
-                      wxString::Format("%s.png", m_GameID->GetValue().c_str()), wxALL_FILES_PATTERN,
-                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
-  if (dialog.ShowModal() == wxID_OK)
-  {
-    OpenGameListItem.GetBannerImage().SaveFile(dialog.GetPath());
-  }
-  Raise();
 }
 
 void CISOProperties::OnRightClickOnTree(wxTreeEvent& event)
@@ -1448,15 +1195,9 @@ void CISOProperties::OnCheatCodeToggled(wxCommandEvent&)
   m_cheats_disabled_gecko->UpdateState();
 }
 
-void CISOProperties::OnComputeMD5Sum(wxCommandEvent& WXUNUSED(event))
+void CISOProperties::OnChangeTitle(wxCommandEvent& event)
 {
-  wxProgressDialog progressDialog(_("Computing MD5 checksum"), _("Working..."), 100, this,
-                                  wxPD_APP_MODAL | wxPD_CAN_ABORT | wxPD_ELAPSED_TIME |
-                                      wxPD_ESTIMATED_TIME | wxPD_REMAINING_TIME | wxPD_SMOOTH);
-
-  m_MD5Sum->SetValue(MD5::MD5Sum(OpenGameListItem.GetFileName(), [&progressDialog](int progress) {
-    return progressDialog.Update(progress);
-  }));
+  SetTitle(event.GetString());
 }
 
 // Opens all pre-defined INIs for the game. If there are multiple ones,
@@ -1570,31 +1311,4 @@ void CISOProperties::PatchButtonClicked(wxCommandEvent& event)
 
   EditPatch->Disable();
   RemovePatch->Disable();
-}
-
-void CISOProperties::OnChangeBannerLang(wxCommandEvent& event)
-{
-  ChangeBannerDetails(OpenGameListItem.GetLanguages()[event.GetSelection()]);
-}
-
-void CISOProperties::ChangeBannerDetails(DiscIO::Language language)
-{
-  wxString const name = StrToWxStr(OpenGameListItem.GetName(language));
-  wxString const comment = StrToWxStr(OpenGameListItem.GetDescription(language));
-  wxString const maker = StrToWxStr(OpenGameListItem.GetCompany());
-
-  // Updates the information shown in the window
-  m_Name->SetValue(name);
-  m_Comment->SetValue(comment);
-  m_Maker->SetValue(maker);  // dev too
-
-  std::string path, filename, extension;
-  SplitPath(OpenGameListItem.GetFileName(), &path, &filename, &extension);
-  // Real disk drives don't have filenames on Windows
-  if (filename.empty() && extension.empty())
-    filename = path + ' ';
-  // Also sets the window's title
-  SetTitle(StrToWxStr(StringFromFormat("%s%s: %s - ", filename.c_str(), extension.c_str(),
-                                       OpenGameListItem.GetGameID().c_str())) +
-           name);
 }

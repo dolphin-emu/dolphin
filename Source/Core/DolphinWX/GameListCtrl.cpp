@@ -58,7 +58,7 @@
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
-#include "DolphinWX/ISOProperties.h"
+#include "DolphinWX/ISOProperties/ISOProperties.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/NetPlay/NetPlayLauncher.h"
 #include "DolphinWX/WxUtils.h"
