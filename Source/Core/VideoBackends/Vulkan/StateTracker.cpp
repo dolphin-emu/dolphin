@@ -74,7 +74,7 @@ bool StateTracker::Initialize()
     m_pipeline_state.rasterization_state.depth_clamp = VK_TRUE;
 
   // BBox is disabled by default.
-  m_pipeline_state.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
+  m_pipeline_state.pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
   m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
   m_bbox_enabled = false;
 
@@ -475,7 +475,7 @@ void StateTracker::SetBBoxEnable(bool enable)
   // Change the number of active descriptor sets, as well as the pipeline layout
   if (enable)
   {
-    m_pipeline_state.pipeline_layout = g_object_cache->GetBBoxPipelineLayout();
+    m_pipeline_state.pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_BBOX);
     m_num_active_descriptor_sets = NUM_GX_DRAW_WITH_BBOX_DESCRIPTOR_SETS;
 
     // The bbox buffer never changes, so we defer descriptor updates until it is enabled.
@@ -484,7 +484,7 @@ void StateTracker::SetBBoxEnable(bool enable)
   }
   else
   {
-    m_pipeline_state.pipeline_layout = g_object_cache->GetStandardPipelineLayout();
+    m_pipeline_state.pipeline_layout = g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD);
     m_num_active_descriptor_sets = NUM_GX_DRAW_DESCRIPTOR_SETS;
   }
 
