@@ -105,6 +105,7 @@ void JitArm64::bx(UGeckoInstruction inst)
     gpr.Unlock(WA);
 
     WriteExceptionExit(js.compilerPC);
+    return;
   }
 
   WriteExit(destination);
