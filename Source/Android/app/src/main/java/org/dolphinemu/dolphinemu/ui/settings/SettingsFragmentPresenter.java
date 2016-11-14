@@ -265,10 +265,12 @@ public final class SettingsFragmentPresenter
 
 	private void addHackSettings(ArrayList<SettingsItem> sl)
 	{
+		boolean skipEFBValue = getInvertedBooleanValue(SettingsFile.SECTION_GFX_HACKS, SettingsFile.KEY_SKIP_EFB, false);
+		boolean ignoreFormatValue = getInvertedBooleanValue(SettingsFile.SECTION_GFX_HACKS, SettingsFile.KEY_IGNORE_FORMAT, true);
 		int xfbValue = getXfbValue();
 
-		Setting skipEFB = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_SKIP_EFB);
-		Setting ignoreFormat = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_IGNORE_FORMAT);
+		BooleanSetting skipEFB = new BooleanSetting(SettingsFile.KEY_SKIP_EFB, SettingsFile.SECTION_GFX_HACKS, skipEFBValue);
+		BooleanSetting ignoreFormat = new BooleanSetting(SettingsFile.KEY_IGNORE_FORMAT, SettingsFile.SECTION_GFX_HACKS, ignoreFormatValue);
 		Setting efbToTexture = mSettings.get(SettingsFile.SECTION_GFX_HACKS).getSetting(SettingsFile.KEY_EFB_TEXTURE);
 		Setting texCacheAccuracy = mSettings.get(SettingsFile.SECTION_GFX_SETTINGS).getSetting(SettingsFile.KEY_TEXCACHE_ACCURACY);
 		IntSetting xfb = new IntSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_HACKS, xfbValue);
@@ -277,7 +279,7 @@ public final class SettingsFragmentPresenter
 
 		sl.add(new HeaderSetting(null, null, R.string.embedded_frame_buffer, 0));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_SKIP_EFB, SettingsFile.SECTION_GFX_HACKS, R.string.skip_efb_access, R.string.skip_efb_access_descrip, false, skipEFB));
-		sl.add(new CheckBoxSetting(SettingsFile.KEY_IGNORE_FORMAT, SettingsFile.SECTION_GFX_HACKS, R.string.ignore_format_changes, R.string.ignore_format_changes_descrip, false, ignoreFormat));
+		sl.add(new CheckBoxSetting(SettingsFile.KEY_IGNORE_FORMAT, SettingsFile.SECTION_GFX_HACKS, R.string.ignore_format_changes, R.string.ignore_format_changes_descrip, true, ignoreFormat));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_EFB_TEXTURE, SettingsFile.SECTION_GFX_HACKS, R.string.efb_copy_method, R.string.efb_copy_method_descrip, true, efbToTexture));
 
 		sl.add(new HeaderSetting(null, null, R.string.texture_cache, 0));
@@ -298,6 +300,18 @@ public final class SettingsFragmentPresenter
 
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_RUMBLE + gcPadNumber, SettingsFile.SECTION_CORE, R.string.gc_adapter_rumble, R.string.gc_adapter_rumble_description, false, rumble));
 		sl.add(new CheckBoxSetting(SettingsFile.KEY_GCADAPTER_BONGOS + gcPadNumber, SettingsFile.SECTION_CORE, R.string.gc_adapter_bongos, R.string.gc_adapter_bongos_description, false, bongos));
+	}
+
+	private boolean getInvertedBooleanValue(String section, String key, boolean defaultValue)
+	{
+		try
+		{
+			return !((BooleanSetting) mSettings.get(section).getSetting(key)).getValue();
+		}
+		catch (NullPointerException ex)
+		{
+			return defaultValue;
+		}
 	}
 
 	private int getVideoBackendValue()

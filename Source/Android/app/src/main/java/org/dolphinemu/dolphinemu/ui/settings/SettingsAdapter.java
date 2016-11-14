@@ -130,6 +130,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			mView.putSetting(setting);
 		}
 
+		if (item.getKey().equals(SettingsFile.KEY_SKIP_EFB) || item.getKey().equals(SettingsFile.KEY_IGNORE_FORMAT))
+		{
+			mView.putSetting(new BooleanSetting(item.getKey(), item.getSection(), !checked));
+		}
+
 		mView.onSettingChanged();
 	}
 
