@@ -211,8 +211,6 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-realxfb", g_Config.RealXFBEnabled());
   builder.AddData("cfg-gfx-virtualxfb", g_Config.VirtualXFBEnabled());
   builder.AddData("cfg-gfx-vsync", g_Config.bVSync);
-  builder.AddData("cfg-gfx-fullscreen", g_Config.bFullscreen);
-  builder.AddData("cfg-gfx-exclusive-mode", g_Config.bExclusiveMode);
   builder.AddData("cfg-gfx-aspect-ratio", g_Config.iAspectRatio);
   builder.AddData("cfg-gfx-efb-access", g_Config.bEFBAccessEnable);
   builder.AddData("cfg-gfx-efb-scale", g_Config.iEFBScale);

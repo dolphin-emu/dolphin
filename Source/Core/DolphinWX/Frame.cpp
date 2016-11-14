@@ -202,11 +202,6 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
   {
     // OpenGL requires the pop-up style to activate exclusive mode.
     SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
-
-    // Some backends don't support exclusive fullscreen, so we
-    // can't tell exactly when exclusive mode is activated.
-    if (!g_Config.backend_info.bSupportsExclusiveFullscreen)
-      OSD::AddMessage("Entered exclusive fullscreen.");
   }
 #endif
 
@@ -525,6 +520,8 @@ void CFrame::OnActive(wxActivateEvent& event)
     {
       if (SConfig::GetInstance().bRenderToMain)
         m_RenderParent->SetFocus();
+      else if (RendererIsFullscreen() && g_ActiveConfig.ExclusiveFullscreenEnabled())
+        DoExclusiveFullscreen(true);  // Regain exclusive mode
 
       if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::CORE_PAUSE)
         DoPause();
@@ -698,21 +695,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
     std::pair<int, int>* win_size = (std::pair<int, int>*)(event.GetClientData());
     OnRenderWindowSizeRequest(win_size->first, win_size->second);
     delete win_size;
-  }
-  break;
-
-  case IDM_FULLSCREEN_REQUEST:
-  {
-    bool enable_fullscreen = event.GetInt() == 0 ? false : true;
-    ToggleDisplayMode(enable_fullscreen);
-    if (m_RenderFrame != nullptr)
-      m_RenderFrame->ShowFullScreen(enable_fullscreen);
-
-    // If the stop dialog initiated this fullscreen switch then we need
-    // to pause the emulator after we've completed the switch.
-    // TODO: Allow the renderer to switch fullscreen modes while paused.
-    if (m_confirmStop)
-      Core::SetState(Core::CORE_PAUSE);
   }
   break;
 
@@ -1131,31 +1113,12 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-  if (g_Config.bExclusiveMode && Core::GetState() == Core::CORE_PAUSE)
-  {
-    // A responsive renderer is required for exclusive fullscreen, but the
-    // renderer can only respond in the running state. Therefore we ignore
-    // fullscreen switches if we are in exclusive fullscreen, but the
-    // renderer is not running.
-    // TODO: Allow the renderer to switch fullscreen modes while paused.
-    return;
-  }
-
   ToggleDisplayMode(enable_fullscreen);
-
-  if (enable_fullscreen)
-  {
-    m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
-  }
-  else if (!g_Config.bExclusiveMode)
-  {
-    // Exiting exclusive fullscreen should be done from a Renderer callback.
-    // Therefore we don't exit fullscreen from here if we are in exclusive mode.
-    m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
-  }
 
   if (SConfig::GetInstance().bRenderToMain)
   {
+    m_RenderFrame->ShowFullScreen(enable_fullscreen, wxFULLSCREEN_ALL);
+
     if (enable_fullscreen)
     {
       // Save the current mode before going to fullscreen
@@ -1197,12 +1160,32 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
       }
     }
   }
+  else if (g_ActiveConfig.ExclusiveFullscreenEnabled())
+  {
+    if (!enable_fullscreen)
+      DoExclusiveFullscreen(false);
+
+    m_RenderFrame->ShowFullScreen(enable_fullscreen, wxFULLSCREEN_ALL);
+    m_RenderFrame->Raise();
+
+    if (enable_fullscreen)
+      DoExclusiveFullscreen(true);
+  }
   else
   {
+    m_RenderFrame->ShowFullScreen(enable_fullscreen, wxFULLSCREEN_ALL);
     m_RenderFrame->Raise();
   }
+}
 
-  g_Config.bFullscreen = enable_fullscreen;
+void CFrame::DoExclusiveFullscreen(bool enable_fullscreen)
+{
+  if (!g_renderer || g_renderer->IsFullscreen() == enable_fullscreen)
+    return;
+
+  bool was_unpaused = Core::PauseAndLock(true);
+  g_renderer->SetFullscreen(enable_fullscreen);
+  Core::PauseAndLock(false, was_unpaused);
 }
 
 const CGameListCtrl* CFrame::GetGameListCtrl() const

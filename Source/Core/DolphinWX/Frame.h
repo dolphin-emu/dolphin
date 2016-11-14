@@ -105,7 +105,8 @@ public:
   void OnRenderParentMove(wxMoveEvent& event);
   bool RendererHasFocus();
   bool RendererIsFullscreen();
-  void DoFullscreen(bool bF);
+  void DoFullscreen(bool enable_fullscreen);
+  void DoExclusiveFullscreen(bool enable_fullscreen);
   void ToggleDisplayMode(bool bFullscreen);
   static void ConnectWiimote(int wm_idx, bool connect);
   void UpdateTitle(const std::string& str);
