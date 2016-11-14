@@ -103,6 +103,12 @@ bool FramebufferManager::Initialize()
     return false;
   }
 
+  if (!CompilePokeShaders())
+  {
+    PanicAlert("Failed to compile poke shaders");
+    return false;
+  }
+
   return true;
 }
 
