@@ -7,6 +7,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/PPCAnalyst.h"
@@ -90,11 +91,12 @@ void Jit64::bx(UGeckoInstruction inst)
 #endif
   if (destination == js.compilerPC)
   {
-    // PanicAlert("Idle loop detected at %08x", destination);
-    // CALL(ProtectFunction(&CoreTiming::Idle, 0));
-    // JMP(Asm::testExceptions, true);
-    // make idle loops go faster
-    js.downcountAmount += 8;
+    ABI_PushRegistersAndAdjustStack({}, 0);
+    ABI_CallFunction(CoreTiming::Idle);
+    ABI_PopRegistersAndAdjustStack({}, 0);
+    MOV(32, PPCSTATE(pc), Imm32(destination));
+    WriteExceptionExit();
+    return;
   }
   WriteExit(destination, inst.LK, js.compilerPC + 4);
 }
