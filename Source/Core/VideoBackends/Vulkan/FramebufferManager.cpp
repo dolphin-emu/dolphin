@@ -1181,6 +1181,7 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, size_t 
   pipeline_info.ps = m_poke_fragment_shader;
   pipeline_info.render_pass = m_efb_load_render_pass;
   pipeline_info.rasterization_state.bits = Util::GetNoCullRasterizationState().bits;
+  pipeline_info.rasterization_state.samples = m_efb_samples;
   pipeline_info.depth_stencil_state.bits = Util::GetNoDepthTestingDepthStencilState().bits;
   pipeline_info.blend_state.bits = Util::GetNoBlendingBlendState().bits;
   pipeline_info.blend_state.write_mask = 0;
