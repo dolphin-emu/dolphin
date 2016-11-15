@@ -9,6 +9,7 @@ import org.dolphinemu.dolphinemu.model.settings.IntSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.model.settings.StringSetting;
+import org.dolphinemu.dolphinemu.ui.settings.SettingsActivityView;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -20,14 +21,15 @@ import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Set;
 
-import rx.Observable;
-import rx.Subscriber;
-
 /**
  * Contains static methods for interacting with .ini files in which settings are stored.
  */
 public final class SettingsFile
 {
+	public static final int SETTINGS_DOLPHIN = 0;
+	public static final int SETTINGS_GFX = 1;
+	public static final int SETTINGS_WIIMOTE = 2;
+
 	public static final String FILE_NAME_DOLPHIN = "Dolphin";
 	public static final String FILE_NAME_GFX = "GFX";
 	public static final String FILE_NAME_GCPAD = "GCPadNew";
@@ -92,129 +94,112 @@ public final class SettingsFile
 	}
 
 	/**
-	 * Reads a given .ini file from disk and returns it as an Rx Observable. If successful,
-	 * this Observable emits a Hashmap of SettingSections, themselves effectively a Hashmap of
-	 * key/value settings. If unsuccessful, the observer notifies the subscriber of why it failed.
+	 * Reads a given .ini file from disk and returns it as a HashMap of SettingSections, themselves
+	 * effectively a HashMap of key/value settings. If unsuccessful, outputs an error telling why it
+	 * failed.
 	 *
 	 * @param fileName The name of the settings file without a path or extension.
-	 * @return An Observable that emits a Hashmap of the file's contents, then completes.
+	 * @param view     The current view.
+	 * @return An Observable that emits a HashMap of the file's contents, then completes.
 	 */
-	public static Observable<HashMap<String, SettingSection>> readFile(final String fileName)
+	public static HashMap<String, SettingSection> readFile(final String fileName, SettingsActivityView view)
 	{
-		return Observable.create(new Observable.OnSubscribe<HashMap<String, SettingSection>>()
+		HashMap<String, SettingSection> sections = new HashMap<>();
+
+		File ini = getSettingsFile(fileName);
+
+		BufferedReader reader = null;
+
+		try
 		{
-			@Override
-			public void call(Subscriber<? super HashMap<String, SettingSection>> subscriber)
+			reader = new BufferedReader(new FileReader(ini));
+
+			SettingSection current = null;
+			for (String line; (line = reader.readLine()) != null; )
 			{
-
-				HashMap<String, SettingSection> sections = new HashMap<>();
-
-				File ini = getSettingsFile(fileName);
-
-				BufferedReader reader = null;
-
+				if (line.startsWith("[") && line.endsWith("]"))
+				{
+					current = sectionFromLine(line);
+					sections.put(current.getName(), current);
+				}
+				else if ((current != null) && line.contains("="))
+				{
+					Setting setting = settingFromLine(current, line, fileName);
+					current.putSetting(setting);
+				}
+			}
+		}
+		catch (FileNotFoundException e)
+		{
+			Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
+			view.onSettingsFileNotFound();
+		}
+		catch (IOException e)
+		{
+			Log.error("[SettingsFile] Error reading from: " + fileName + ".ini: " + e.getMessage());
+			view.onSettingsFileNotFound();
+		}
+		finally
+		{
+			if (reader != null)
+			{
 				try
 				{
-					reader = new BufferedReader(new FileReader(ini));
-
-					SettingSection current = null;
-					for (String line; (line = reader.readLine()) != null; )
-					{
-						if (line.startsWith("[") && line.endsWith("]"))
-						{
-							current = sectionFromLine(line);
-							sections.put(current.getName(), current);
-						}
-						else if ((current != null) && line.contains("="))
-						{
-							Setting setting = settingFromLine(current, line);
-							current.putSetting(setting.getKey(), setting);
-						}
-					}
-				}
-				catch (FileNotFoundException e)
-				{
-					Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
-					subscriber.onError(e);
+					reader.close();
 				}
 				catch (IOException e)
 				{
-					Log.error("[SettingsFile] Error reading from: " + fileName + ".ini: " + e.getMessage());
-					subscriber.onError(e);
-				} finally
-				{
-					if (reader != null)
-					{
-						try
-						{
-							reader.close();
-						}
-						catch (IOException e)
-						{
-							Log.error("[SettingsFile] Error closing: " + fileName + ".ini: " + e.getMessage());
-							subscriber.onError(e);
-						}
-					}
+					Log.error("[SettingsFile] Error closing: " + fileName + ".ini: " + e.getMessage());
 				}
-
-				subscriber.onNext(sections);
-				subscriber.onCompleted();
 			}
-		});
+		}
+
+		return sections;
 	}
 
 	/**
-	 * Saves a Settings Hashmap to a given .ini file on disk, returning the operation
-	 * as an Rx Observable. If successful, this Observable emits an event to notify subscribers;
-	 * if unsuccessful, the observer notifies the subscriber of why it failed.
+	 * Saves a Settings HashMap to a given .ini file on disk. If unsuccessful, outputs an error
+	 * telling why it failed.
 	 *
 	 * @param fileName The target filename without a path or extension.
-	 * @param sections The hashmap containing the Settings we want to serialize.
+	 * @param sections The HashMap containing the Settings we want to serialize.
+	 * @param view     The current view.
 	 * @return An Observable representing the operation.
 	 */
-	public static Observable<Boolean> saveFile(final String fileName, final HashMap<String, SettingSection> sections)
+	public static void saveFile(final String fileName, final HashMap<String, SettingSection> sections, SettingsActivityView view)
 	{
-		return Observable.create(new Observable.OnSubscribe<Boolean>()
+		File ini = getSettingsFile(fileName);
+
+		PrintWriter writer = null;
+		try
 		{
-			@Override
-			public void call(Subscriber<? super Boolean> subscriber)
+			writer = new PrintWriter(ini, "UTF-8");
+
+			Set<String> keySet = sections.keySet();
+
+			for (String key : keySet)
 			{
-				File ini = getSettingsFile(fileName);
-
-				PrintWriter writer = null;
-				try
-				{
-					writer = new PrintWriter(ini, "UTF-8");
-
-					Set<String> keySet = sections.keySet();
-
-					for (String key : keySet)
-					{
-						SettingSection section = sections.get(key);
-						writeSection(writer, section);
-					}
-				}
-				catch (FileNotFoundException e)
-				{
-					Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
-					subscriber.onError(e);
-				}
-				catch (UnsupportedEncodingException e)
-				{
-					Log.error("[SettingsFile] Bad encoding; please file a bug report: " + fileName + ".ini: " + e.getMessage());
-					subscriber.onError(e);
-				} finally
-				{
-					if (writer != null)
-					{
-						writer.close();
-					}
-				}
-
-				subscriber.onNext(true);
-				subscriber.onCompleted();
+				SettingSection section = sections.get(key);
+				writeSection(writer, section);
 			}
-		});
+		}
+		catch (FileNotFoundException e)
+		{
+			Log.error("[SettingsFile] File not found: " + fileName + ".ini: " + e.getMessage());
+			view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
+		}
+		catch (UnsupportedEncodingException e)
+		{
+			Log.error("[SettingsFile] Bad encoding; please file a bug report: " + fileName + ".ini: " + e.getMessage());
+			view.showToastMessage("Error saving " + fileName + ".ini: " + e.getMessage());
+		}
+		finally
+		{
+			if (writer != null)
+			{
+				writer.close();
+			}
+		}
 	}
 
 	@NonNull
@@ -234,22 +219,37 @@ public final class SettingsFile
 	 * For a line of text, determines what type of data is being represented, and returns
 	 * a Setting object containing this data.
 	 *
-	 * @param current The section currently being parsed by the consuming method.
-	 * @param line The line of text being parsed.
+	 * @param current  The section currently being parsed by the consuming method.
+	 * @param line     The line of text being parsed.
+	 * @param fileName The name of the ini file the setting is in.
 	 * @return A typed Setting containing the key/value contained in the line.
 	 */
-	private static Setting settingFromLine(SettingSection current, String line)
+	private static Setting settingFromLine(SettingSection current, String line, String fileName)
 	{
 		String[] splitLine = line.split("=");
 
 		String key = splitLine[0].trim();
 		String value = splitLine[1].trim();
 
+		int file;
+		switch (fileName)
+		{
+			case FILE_NAME_GFX:
+				file = SETTINGS_GFX;
+				break;
+			case FILE_NAME_WIIMOTE:
+				file = SETTINGS_WIIMOTE;
+				break;
+			default:
+				file = SETTINGS_DOLPHIN;
+				break;
+		}
+
 		try
 		{
 			int valueAsInt = Integer.valueOf(value);
 
-			return new IntSetting(key, current.getName(), valueAsInt);
+			return new IntSetting(key, current.getName(), file, valueAsInt);
 		}
 		catch (NumberFormatException ex)
 		{
@@ -259,7 +259,7 @@ public final class SettingsFile
 		{
 			float valueAsFloat = Float.valueOf(value);
 
-			return new FloatSetting(key, current.getName(), valueAsFloat);
+			return new FloatSetting(key, current.getName(), file, valueAsFloat);
 		}
 		catch (NumberFormatException ex)
 		{
@@ -268,16 +268,16 @@ public final class SettingsFile
 		switch (value)
 		{
 			case "True":
-				return new BooleanSetting(key, current.getName(), true);
+				return new BooleanSetting(key, current.getName(), file, true);
 			case "False":
-				return new BooleanSetting(key, current.getName(), false);
+				return new BooleanSetting(key, current.getName(), file, false);
 			default:
-				return new StringSetting(key, current.getName(), value);
+				return new StringSetting(key, current.getName(), file, value);
 		}
 	}
 
 	/**
-	 * Writes the contents of a Section hashmap to disk.
+	 * Writes the contents of a Section HashMap to disk.
 	 *
 	 * @param writer A PrintWriter pointed at a file on disk.
 	 * @param section A section containing settings to be written to the file.

@@ -14,6 +14,7 @@ import org.dolphinemu.dolphinemu.BuildConfig;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 
 public final class SettingsActivity extends AppCompatActivity implements SettingsActivityView
@@ -98,19 +99,19 @@ public final class SettingsActivity extends AppCompatActivity implements Setting
 	}
 
 	@Override
-	public HashMap<String, SettingSection> getSettings()
+	public HashMap<String, SettingSection> getSettings(int file)
 	{
-		return mPresenter.getSettings();
+		return mPresenter.getSettings(file);
 	}
 
 	@Override
-	public void setSettings(HashMap<String, SettingSection> settings)
+	public void setSettings(ArrayList<HashMap<String, SettingSection>> settings)
 	{
 		mPresenter.setSettings(settings);
 	}
 
 	@Override
-	public void onSettingsFileLoaded(HashMap<String, SettingSection> settings)
+	public void onSettingsFileLoaded(ArrayList<HashMap<String, SettingSection>> settings)
 	{
 		SettingsFragmentView fragment = getFragment();
 
