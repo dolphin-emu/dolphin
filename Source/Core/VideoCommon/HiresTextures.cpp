@@ -229,7 +229,6 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
                                       bool has_mipmaps, bool dump)
 {
   std::string name = "";
-  bool convert = false;
   if (!dump && s_check_native_format)
   {
     // try to load the old format first
@@ -242,14 +241,11 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
                             (u32)(tex_hash ^ tlut_hash), (u16)format);
     if (s_textureMap.find(name) != s_textureMap.end())
     {
-      if (g_ActiveConfig.bConvertHiresTextures)
-        convert = true;
-      else
         return name;
     }
   }
 
-  if (dump || s_check_new_format || convert)
+  if (dump || s_check_new_format)
   {
     // checking for min/max on paletted textures
     u32 min = 0xffff;
@@ -296,75 +292,6 @@ std::string HiresTexture::GenBaseName(const u8* texture, size_t texture_size, co
     std::string tlutname = tlut_size ? StringFromFormat("_%016" PRIx64, tlut_hash) : "";
     std::string formatname = StringFromFormat("_%d", static_cast<int>(format));
     std::string fullname = basename + tlutname + formatname;
-
-    for (int level = 0; level < 10 && convert; level++)
-    {
-      std::string oldname = name;
-      if (level)
-        oldname += StringFromFormat("_mip%d", level);
-
-      // skip not existing levels
-      if (s_textureMap.find(oldname) == s_textureMap.end())
-        continue;
-
-      for (int i = 0;; i++)
-      {
-        // for hash collisions, padd with an integer
-        std::string newname = fullname;
-        if (level)
-          newname += StringFromFormat("_mip%d", level);
-        if (i)
-          newname += StringFromFormat(".%d", i);
-
-        // new texture
-        if (s_textureMap.find(newname) == s_textureMap.end())
-        {
-          std::string src = s_textureMap[oldname].path;
-          size_t postfix = src.find_last_of('.');
-          std::string dst = src.substr(0, postfix - oldname.length()) + newname +
-                            src.substr(postfix, src.length() - postfix);
-          if (File::Rename(src, dst))
-          {
-            s_textureMap.erase(oldname);
-            s_textureMap[newname] = {dst, false};
-            s_check_new_format = true;
-            OSD::AddMessage(StringFromFormat("Rename custom texture %s to %s", oldname.c_str(),
-                                             newname.c_str()),
-                            5000);
-          }
-          else
-          {
-            ERROR_LOG(VIDEO, "rename failed");
-          }
-          break;
-        }
-        else
-        {
-          // dst fail already exist, compare content
-          std::string a, b;
-          File::ReadFileToString(s_textureMap[oldname].path, a);
-          File::ReadFileToString(s_textureMap[newname].path, b);
-
-          if (a == b && a != "")
-          {
-            // equal, so remove
-            if (File::Delete(s_textureMap[oldname].path))
-            {
-              s_textureMap.erase(oldname);
-              OSD::AddMessage(
-                  StringFromFormat("Delete double old custom texture %s", oldname.c_str()), 5000);
-            }
-            else
-            {
-              ERROR_LOG(VIDEO, "delete failed");
-            }
-            break;
-          }
-
-          // else continue in this loop with the next higher padding variable
-        }
-      }
-    }
 
     // try to match a wildcard template
     if (!dump && s_textureMap.find(basename + "_*" + formatname) != s_textureMap.end())
