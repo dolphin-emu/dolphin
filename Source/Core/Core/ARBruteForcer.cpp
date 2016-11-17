@@ -50,6 +50,8 @@ bool ch_last_search;
 bool ch_bruteforce;
 bool ch_dont_save_settings;
 
+bool ch_screenshot_all = false;
+
 int original_prim_count;
 
 
@@ -84,6 +86,7 @@ void ARBruteForceDriver()
     else
     {
       original_prim_count = SConfig::GetInstance().m_OriginalPrimitiveCount;
+      ch_screenshot_all = SConfig::GetInstance().m_BruteforceScreenshotAll;
       ch_first_search = true;
       ch_begun = true;
       State::Load(1);
@@ -100,7 +103,7 @@ void ARBruteForceDriver()
            (ch_current_position > 0 && ch_cycles_without_snapshot > 30 && ch_last_search) ||
            (ch_current_position >= 0 && ch_cycles_without_snapshot > 100)))
   {
-    NOTICE_LOG(VR, "Next code %d (position = %d, cycles = %d, last = %d)", ch_next_code, ch_current_position, ch_cycles_without_snapshot, ch_last_search);
+    WARN_LOG(VR, "Next code %d (position = %d, cycles = %d, last = %d)", ch_next_code, ch_current_position, ch_cycles_without_snapshot, ch_last_search);
 
     ch_next_code = false;
     ch_first_search = false;
@@ -119,7 +122,7 @@ void ARBruteForceDriver()
     else
     {
       State::Load(1);
-      ERROR_LOG(VR, "Loaded next state");
+      WARN_LOG(VR, "Loaded next state");
     }
   }
   else if (ch_begun)
@@ -130,7 +133,7 @@ void ARBruteForceDriver()
 
 void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sScreenshotName)
 {
-  ERROR_LOG(VR, "screenshot = %d, ch_current_position = %d, ", ch_take_screenshot, ch_current_position);
+  WARN_LOG(VR, "screenshot = %d, ch_current_position = %d, ", ch_take_screenshot, ch_current_position);
   std::string addr;
   if (ch_current_position >= 0)
     addr = ch_map[ch_current_position];
@@ -150,10 +153,11 @@ void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sSc
     {
       original_prim_count = prims;
       SConfig::GetInstance().m_OriginalPrimitiveCount = original_prim_count;
+      SConfig::GetInstance().m_BruteforceScreenshotAll = ch_screenshot_all;
       SConfig::GetInstance().SaveSettings();
       NOTICE_LOG(VR, "Saved setting, prim_count = %d", prims);
     }
-    if (ch_current_position < 0 || prims != original_prim_count)
+    if (ch_current_position < 0 || prims != original_prim_count || ch_screenshot_all)
     {
       *s_bScreenshot = true;
       if (ch_current_position < 0)
@@ -167,11 +171,11 @@ void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sSc
       //*s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" +
       //  std::to_string(ch_current_position) + "_" + addr +
       //  "_" + ch_code + ".png";
-      NOTICE_LOG(VR, "Requested screenshot");
+      WARN_LOG(VR, "Requested screenshot");
     }
     else
     {
-      NOTICE_LOG(VR, "No screenshot");
+      WARN_LOG(VR, "No screenshot");
     }
     ch_cycles_without_snapshot = 0;
     ch_last_search = true;
@@ -219,10 +223,10 @@ void ParseMapFile(std::string unique_id)
 
 void IncrementPositionTxt()
 {
-  NOTICE_LOG(VR, "IncrementPositionTxt");
+  WARN_LOG(VR, "IncrementPositionTxt");
   ch_current_position = LoadLastPosition();
   SaveLastPosition(++ch_current_position);
-  WARN_LOG(VR, "IncrementPositionTxt");
+  WARN_LOG(VR, "IncrementedPositionTxt");
 }
 
 // save last position

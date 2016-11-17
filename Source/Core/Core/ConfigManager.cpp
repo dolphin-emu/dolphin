@@ -414,6 +414,7 @@ void SConfig::SaveVRSettings(IniFile& ini)
 {
   IniFile::Section* vr = ini.GetOrCreateSection("VR");
   vr->Set("OriginalPrimitiveCount", m_OriginalPrimitiveCount);
+  vr->Set("BruteforceScreenshotAll", m_BruteforceScreenshotAll);
 }
 
 void SConfig::SaveDisplaySettings(IniFile& ini)
@@ -723,6 +724,7 @@ void SConfig::LoadVRSettings(IniFile& ini)
 {
   IniFile::Section* vr = ini.GetOrCreateSection("VR");
   vr->Get("OriginalPrimitiveCount", &m_OriginalPrimitiveCount, -1);
+  vr->Get("BruteforceScreenshotAll", &m_BruteforceScreenshotAll, false);
 }
 
 void SConfig::LoadDisplaySettings(IniFile& ini)

@@ -260,8 +260,11 @@ wxMenuBar* CFrame::CreateMenu()
 
   bruteforceMenu->AppendCheckItem(IDM_BRUTEFORCE0, _("return 0"));
   bruteforceMenu->AppendCheckItem(IDM_BRUTEFORCE1, _("return 1"));
+  bruteforceMenu->AppendSeparator();
+  bruteforceMenu->AppendCheckItem(IDM_BRUTEFORCE_ALL, _("Screenshot All"));
   bruteforceMenu->Enable(IDM_BRUTEFORCE0, !ARBruteForcer::ch_bruteforce);
   bruteforceMenu->Enable(IDM_BRUTEFORCE1, !ARBruteForcer::ch_bruteforce);
+  bruteforceMenu->Check(IDM_BRUTEFORCE_ALL, SConfig::GetInstance().m_BruteforceScreenshotAll);
 
   toolsMenu->AppendSeparator();
   wxMenu* wiimoteMenu = new wxMenu;
@@ -1733,6 +1736,14 @@ void CFrame::OnDebugger(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnBruteForce(wxCommandEvent& event)
 {
+  if (event.GetId() == IDM_BRUTEFORCE_ALL)
+  {
+    SConfig::GetInstance().m_BruteforceScreenshotAll = !SConfig::GetInstance().m_BruteforceScreenshotAll;
+    ARBruteForcer::ch_screenshot_all = SConfig::GetInstance().m_BruteforceScreenshotAll;
+    SConfig::GetInstance().SaveSettings();
+
+    return;
+  }
   if (ARBruteForcer::ch_bruteforce)
     return;
   NOTICE_LOG(VR, "OnBruteForce");
