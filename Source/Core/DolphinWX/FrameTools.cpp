@@ -1735,6 +1735,8 @@ void CFrame::OnBruteForce(wxCommandEvent& event)
 {
   if (ARBruteForcer::ch_bruteforce)
     return;
+  NOTICE_LOG(VR, "OnBruteForce");
+
   char result = event.GetId() - IDM_BRUTEFORCE0 + '0';
   bool running = Core::IsRunning();
   bool was_unpaused = running && Core::PauseAndLock(true);
@@ -1746,13 +1748,16 @@ void CFrame::OnBruteForce(wxCommandEvent& event)
   ARBruteForcer::ch_begin_search = false;
   ARBruteForcer::ch_cycles_without_snapshot = 0;
   ARBruteForcer::ch_last_search = false;
+  ARBruteForcer::ch_begun = false;
 
   if (running)
   {
+    NOTICE_LOG(VR, "running");
     std::string existing_map_file, writable_map_file, title_id_str;
     bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file, &title_id_str);
     if (!map_exists)
     {
+      NOTICE_LOG(VR, "map doesn't exist, creating");
       PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
       SignatureDB db;
       if (db.Load(File::GetSysDirectory() + TOTALDB))
@@ -1764,8 +1769,10 @@ void CFrame::OnBruteForce(wxCommandEvent& event)
   }
 
   int position = ARBruteForcer::LoadLastPosition();
+  NOTICE_LOG(VR, "position = %d", position);
   if (running && (position < 0))
   {
+    NOTICE_LOG(VR, "Set render settings and save state");
     g_Config.iEFBScale = SCALE_1X;
     g_Config.bFullscreen = false;
     g_Config.bFreeLook = true;
@@ -1774,10 +1781,12 @@ void CFrame::OnBruteForce(wxCommandEvent& event)
   }
 
   ARBruteForcer::ch_bruteforce = true;
+  NOTICE_LOG(VR, "Starting");
   if (running)
     Core::PauseAndLock(false, was_unpaused);
   else
     BootGame("");
+  NOTICE_LOG(VR, "Bruteforcer Started");
 }
 
 void CFrame::ConnectWiimote(int wm_idx, bool connect)

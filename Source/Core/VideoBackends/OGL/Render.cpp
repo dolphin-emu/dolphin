@@ -682,7 +682,10 @@ Renderer::Renderer()
   // Action Replay culling code brute-forcing
   // begin searching
   if (ARBruteForcer::ch_bruteforce)
+  {
     ARBruteForcer::ch_begin_search = true;
+    NOTICE_LOG(VR, "begin searching GL");
+  }
 
   WARN_LOG(VIDEO, "Missing OGL Extensions: %s%s%s%s%s%s%s%s%s%s%s%s",
            g_ActiveConfig.backend_info.bSupportsDualSourceBlend ? "" : "DualSourceBlend ",
@@ -1533,7 +1536,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 {
   // rafa
   if (ARBruteForcer::ch_bruteforce)
+  {
     ARBruteForcer::ch_last_search = true;
+    WARN_LOG(VR, "last search");
+  }
 
   if (g_ogl_config.bSupportsDebug)
   {
@@ -1934,6 +1940,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // Enable screenshot and write csv if bruteforcing is on
   if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_take_screenshot > 0)
     ARBruteForcer::SetupScreenshotAndWriteCSV(&s_bScreenshot, &s_sScreenshotName);
+  else if (ARBruteForcer::ch_bruteforce)
+    WARN_LOG(VR, "ch_take_screenshot = %d", ARBruteForcer::ch_take_screenshot);
 
   // Save screenshot
   if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
@@ -1942,6 +1950,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
     if (SaveScreenshot(s_sScreenshotName, flipped_trc))
       OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
+    if (ARBruteForcer::ch_bruteforce)
+      NOTICE_LOG(VR, "saved screenshot %s", s_sScreenshotName.c_str());
 
     // Reset settings
     s_sScreenshotName.clear();

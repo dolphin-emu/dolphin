@@ -541,7 +541,7 @@ void LoadAs(const std::string& filename)
   }
 
   // Stop the core while we load the state
-  bool wasUnpaused = Core::PauseAndLock(true);
+  bool wasUnpaused = Core::PauseAndLock(true) || ARBruteForcer::ch_bruteforce;
 
   g_loadDepth++;
 

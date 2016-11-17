@@ -307,13 +307,17 @@ Renderer::Renderer(void*& window_handle)
   // Action Replay culling code brute-forcing
   // begin searching
   if (ARBruteForcer::ch_bruteforce)
+  {
     ARBruteForcer::ch_begin_search = true;
+    NOTICE_LOG(VR, "begin searching");
+  }
 }
 
 Renderer::~Renderer()
 {
-// On Oculus SDK 0.5 and below, we called BeginFrame so we need a matching EndFrame, but on 0.6 this
-// crashes
+  // On Oculus SDK 0.5 and below, we called BeginFrame so we need a matching EndFrame, but on 0.6
+  // this
+  // crashes
   if (g_vr_needs_endframe && g_has_rift && !g_first_rift_frame && g_ActiveConfig.bEnableVR &&
       !g_ActiveConfig.bAsynchronousTimewarp)
   {
@@ -873,7 +877,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 {
   // rafa
   if (ARBruteForcer::ch_bruteforce)
+  {
     ARBruteForcer::ch_last_search = true;
+    WARN_LOG(VR, "last search");
+  }
 
   // VR - before the first frame we need BeginFrame, and we need to configure the tracking
   if (g_first_rift_frame && g_has_hmd && g_ActiveConfig.bEnableVR)
@@ -1229,6 +1236,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // Enable screenshot and write csv if bruteforcing is on
   if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_take_screenshot > 0)
     ARBruteForcer::SetupScreenshotAndWriteCSV(&s_bScreenshot, &s_sScreenshotName);
+  else if (ARBruteForcer::ch_bruteforce)
+    WARN_LOG(VR, "ch_take_screenshot = %d", ARBruteForcer::ch_take_screenshot);
 
   // done with drawing the game stuff, good moment to save a screenshot
   if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
@@ -1236,12 +1245,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     std::lock_guard<std::mutex> guard(s_criticalScreenshot);
 
     SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
+    if (ARBruteForcer::ch_bruteforce)
+      NOTICE_LOG(VR, "saved screenshot %s", s_sScreenshotName.c_str());
     s_sScreenshotName.clear();
     s_bScreenshot = false;
     s_screenshotCompleted.Set();
   }
 
-  // Dump frames
+// Dump frames
 #if defined(HAVE_LIBAV)
   if (SConfig::GetInstance().m_DumpFrames && !g_ActiveConfig.bAsynchronousTimewarp)
   {

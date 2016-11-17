@@ -896,9 +896,10 @@ static bool RunCodeLocked(const ARCode& arcode)
 void RunAllActive()
 {
   // penkamaster's Action Replay culling code brute-forcing
-  if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_current_position > -1 &&
+  if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_begun && ARBruteForcer::ch_current_position > -1 &&
       ARBruteForcer::ch_current_position < ARBruteForcer::ch_map.size())
   {
+    ERROR_LOG(VR, "Applying code");
     ARCode ch_currentCode;
 
     ch_currentCode.active = true;
@@ -938,6 +939,7 @@ void RunAllActive()
       RunCodeLocked(ch_currentCode);
     }
     // b_RanOnce = true;
+    ERROR_LOG(VR, "Code applied");
   }
 
   if (!SConfig::GetInstance().bEnableCheats)

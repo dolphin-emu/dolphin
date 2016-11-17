@@ -46,7 +46,10 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   auto it = backPatchInfo.find(codePtr);
   if (it == backPatchInfo.end())
   {
-    PanicAlert("BackPatch: no register use entry for address %p", codePtr);
+    if (ARBruteForcer::ch_bruteforce)
+      Core::KillDolphinAndRestart();
+    else
+      PanicAlert("BackPatch: no register use entry for address %p", codePtr);
     return false;
   }
 

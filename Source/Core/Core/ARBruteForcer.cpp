@@ -42,6 +42,7 @@ int ch_current_position;
 bool ch_next_code;
 bool ch_begin_search;
 bool ch_first_search;
+bool ch_begun = false;
 // Number of windows messages without saving a screenshot
 int ch_cycles_without_snapshot;
 // To Do: Is this actually needed?
@@ -62,14 +63,19 @@ void ARBruteForceDriver()
   // if begining searching, start from the most recently saved position
   if (ch_begin_search)
   {
+    NOTICE_LOG(VR, "begin search");
     ch_begin_search = false;
     ch_next_code = false;
     ch_current_position = LoadLastPosition();
+    ch_cycles_without_snapshot = 0;
+    ERROR_LOG(VR, "ch_current_position = %d, ch_map.size = %d", ch_current_position, (int)ch_map.size());
     if (ch_current_position >= (int)ch_map.size() && ch_bruteforce)
     {
       ch_first_search = false;
       ch_bruteforce = false;
+      ch_begun = false;
 
+      NOTICE_LOG(VR, "Finished bruteforcing when starting");
       PostProcessCSVFile();
 
       SuccessAlert(
@@ -79,17 +85,23 @@ void ARBruteForceDriver()
     {
       original_prim_count = SConfig::GetInstance().m_OriginalPrimitiveCount;
       ch_first_search = true;
+      ch_begun = true;
       State::Load(1);
+      // not sure why this is needed
+      State::Load(1);
+      ERROR_LOG(VR, "Loaded first state, prim_count = %d", original_prim_count);
     }
   }
   // if we should move on to the next code then do so, and save where we are up to
   // if we have received 30 windows messages without saving a screenshot, then this code is probably
   // bad
   // so skip to the next one
-  else if (ch_next_code ||
+  else if (ch_begun && (ch_next_code ||
            (ch_current_position > 0 && ch_cycles_without_snapshot > 30 && ch_last_search) ||
-           (ch_current_position >= 0 && ch_cycles_without_snapshot > 100))
+           (ch_current_position >= 0 && ch_cycles_without_snapshot > 100)))
   {
+    NOTICE_LOG(VR, "Next code %d (position = %d, cycles = %d, last = %d)", ch_next_code, ch_current_position, ch_cycles_without_snapshot, ch_last_search);
+
     ch_next_code = false;
     ch_first_search = false;
     ch_current_position++;
@@ -98,6 +110,7 @@ void ARBruteForceDriver()
     if (ch_current_position >= (int)ch_map.size())
     {
       ch_bruteforce = 0;
+      NOTICE_LOG(VR, "Finished bruteforcing");
       PostProcessCSVFile();
 
       SuccessAlert(
@@ -106,12 +119,18 @@ void ARBruteForceDriver()
     else
     {
       State::Load(1);
+      ERROR_LOG(VR, "Loaded next state");
     }
+  }
+  else if (ch_begun)
+  {
+    WARN_LOG(VR, "message");
   }
 }
 
 void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sScreenshotName)
 {
+  ERROR_LOG(VR, "screenshot = %d, ch_current_position = %d, ", ch_take_screenshot, ch_current_position);
   std::string addr;
   if (ch_current_position >= 0)
     addr = ch_map[ch_current_position];
@@ -132,6 +151,7 @@ void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sSc
       original_prim_count = prims;
       SConfig::GetInstance().m_OriginalPrimitiveCount = original_prim_count;
       SConfig::GetInstance().SaveSettings();
+      NOTICE_LOG(VR, "Saved setting, prim_count = %d", prims);
     }
     if (ch_current_position < 0 || prims != original_prim_count)
     {
@@ -147,6 +167,11 @@ void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sSc
       //*s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" +
       //  std::to_string(ch_current_position) + "_" + addr +
       //  "_" + ch_code + ".png";
+      NOTICE_LOG(VR, "Requested screenshot");
+    }
+    else
+    {
+      NOTICE_LOG(VR, "No screenshot");
     }
     ch_cycles_without_snapshot = 0;
     ch_last_search = true;
@@ -159,6 +184,7 @@ void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sSc
 // Load the start address of each function from the .map file into a vector.
 void ParseMapFile(std::string unique_id)
 {
+  NOTICE_LOG(VR, "ParseMapFile");
   std::string userPath = File::GetUserPath(D_MAPS_IDX);
   std::string userPathScreens = File::GetUserPath(D_SCREENSHOTS_IDX);
 
@@ -193,8 +219,10 @@ void ParseMapFile(std::string unique_id)
 
 void IncrementPositionTxt()
 {
+  NOTICE_LOG(VR, "IncrementPositionTxt");
   ch_current_position = LoadLastPosition();
   SaveLastPosition(++ch_current_position);
+  WARN_LOG(VR, "IncrementPositionTxt");
 }
 
 // save last position
