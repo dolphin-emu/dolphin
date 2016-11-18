@@ -21,7 +21,6 @@ MainToolBar::MainToolBar(ToolBarType type, wxWindow* parent, wxWindowID id, cons
   wxToolBar::SetToolBitmapSize(FromDIP(wxSize{32, 32}));
   InitializeBitmaps();
   AddToolBarButtons();
-  wxToolBar::Realize();
 
   BindEvents();
 }
