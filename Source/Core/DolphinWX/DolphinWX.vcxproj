@@ -100,8 +100,8 @@
     <ClCompile Include="FrameAui.cpp" />
     <ClCompile Include="FrameTools.cpp" />
     <ClCompile Include="GameListCtrl.cpp" />
-    <ClCompile Include="InputConfigDiag.cpp" />
-    <ClCompile Include="InputConfigDiagBitmaps.cpp" />
+    <ClCompile Include="Input\InputConfigDiag.cpp" />
+    <ClCompile Include="Input\InputConfigDiagBitmaps.cpp" />
     <ClCompile Include="ISOFile.cpp" />
     <ClCompile Include="ISOProperties.cpp" />
     <ClCompile Include="LogConfigWindow.cpp" />
@@ -170,7 +170,7 @@
     <ClInclude Include="Frame.h" />
     <ClInclude Include="GameListCtrl.h" />
     <ClInclude Include="Globals.h" />
-    <ClInclude Include="InputConfigDiag.h" />
+    <ClInclude Include="Input\InputConfigDiag.h" />
     <ClInclude Include="ISOFile.h" />
     <ClInclude Include="ISOProperties.h" />
     <ClInclude Include="LogConfigWindow.h" />

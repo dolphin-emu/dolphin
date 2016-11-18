@@ -193,8 +193,8 @@ ControllerEmu::Buttons::Buttons(const std::string& _name)
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
 }
 
-ControllerEmu::Buttons::Buttons(const std::string& _name, const std::string& _ui_name)
-    : ControlGroup(_name, _ui_name, GROUP_TYPE_BUTTONS)
+ControllerEmu::Buttons::Buttons(const std::string& ini_name, const std::string& group_name)
+    : ControlGroup(ini_name, group_name, GROUP_TYPE_BUTTONS)
 {
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
 }
