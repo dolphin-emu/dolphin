@@ -104,10 +104,10 @@
     <ClCompile Include="NetPlay\NetWindow.cpp">
       <Filter>GUI\NetPlay</Filter>
     </ClCompile>
-    <ClCompile Include="InputConfigDiag.cpp">
+    <ClCompile Include="Input\InputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
-    <ClCompile Include="InputConfigDiagBitmaps.cpp">
+    <ClCompile Include="Input\InputConfigDiagBitmaps.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
     <ClCompile Include="Debugger\DebuggerPanel.cpp">
@@ -290,7 +290,7 @@
     <ClInclude Include="NetPlay\NetWindow.h">
       <Filter>GUI\NetPlay</Filter>
     </ClInclude>
-    <ClInclude Include="InputConfigDiag.h">
+    <ClInclude Include="Input\InputConfigDiag.h">
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\DebuggerPanel.h">

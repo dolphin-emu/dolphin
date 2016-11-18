@@ -204,7 +204,7 @@ public:
   {
   public:
     Buttons(const std::string& _name);
-    Buttons(const std::string& _name, const std::string& _ui_name);
+    Buttons(const std::string& ini_name, const std::string& group_name);
 
     template <typename C>
     void GetState(C* const buttons, const C* bitmasks)

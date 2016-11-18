@@ -40,6 +40,8 @@ set(GUI_SRCS
 	NetPlay/NetPlaySetupFrame.cpp
 	NetPlay/NetWindow.cpp
 	NetPlay/PadMapDialog.cpp
+	Input/InputConfigDiag.cpp
+	Input/InputConfigDiagBitmaps.cpp
 	DolphinSlider.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
@@ -48,8 +50,6 @@ set(GUI_SRCS
 	GameListCtrl.cpp
 	ISOFile.cpp
 	ISOProperties.cpp
-	InputConfigDiag.cpp
-	InputConfigDiagBitmaps.cpp
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
