@@ -62,9 +62,9 @@ protected:
     u8 request;
     u16 value;
     u16 index;
-    u16 length;
-    u32 payload_addr;
-    u32 address;
+    u16 length = 0;
+    u32 payload_addr = 0;
+    u32 address = 0;
   };
 
   class CtrlBuffer
@@ -78,8 +78,8 @@ protected:
     bool IsValid() const { return m_cmd_address != 0; }
     void Invalidate() { m_cmd_address = m_payload_addr = 0; }
     u8 m_endpoint;
-    u16 m_length;
-    u32 m_payload_addr;
-    u32 m_cmd_address;
+    u16 m_length = 0;
+    u32 m_payload_addr = 0;
+    u32 m_cmd_address = 0;
   };
 };
