@@ -22,6 +22,8 @@
 #include "Common/Event.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/Profiler.h"
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
@@ -696,8 +698,18 @@ void Renderer::FinishFrameData()
 void Renderer::RunFrameDumps()
 {
   Common::SetCurrentThreadName("FrameDumping");
-  bool avi_dump_started = false;
-  std::vector<u8> data;
+  bool dump_to_avi = !g_ActiveConfig.bDumpFramesAsImages;
+  bool frame_dump_started = false;
+
+// If Dolphin was compiled without libav, we only support dumping to images.
+#if !defined(HAVE_LIBAV) && !defined(_WIN32)
+  if (dump_to_avi)
+  {
+    WARN_LOG(VIDEO, "AVI frame dump requested, but Dolphin was compiled without libav. "
+                    "Frame dump will be saved as images instead.");
+    dump_to_avi = false;
+  }
+#endif
 
   while (true)
   {
@@ -727,33 +739,103 @@ void Renderer::RunFrameDumps()
       s_screenshotCompleted.Set();
     }
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
     if (SConfig::GetInstance().m_DumpFrames)
     {
-      if (!avi_dump_started)
+      if (!frame_dump_started)
       {
-        if (AVIDump::Start(config.width, config.height))
-        {
-          avi_dump_started = true;
-        }
+        if (dump_to_avi)
+          frame_dump_started = StartFrameDumpToAVI(config);
         else
-        {
+          frame_dump_started = StartFrameDumpToImage(config);
+
+        // Stop frame dumping if we fail to start.
+        if (!frame_dump_started)
           SConfig::GetInstance().m_DumpFrames = false;
-        }
       }
 
-      AVIDump::AddFrame(config.data, config.width, config.height, config.stride, config.state);
+      // If we failed to start frame dumping, don't write a frame.
+      if (frame_dump_started)
+      {
+        if (dump_to_avi)
+          DumpFrameToAVI(config);
+        else
+          DumpFrameToImage(config);
+      }
     }
-#endif
 
     m_frame_dump_done.Set();
   }
 
-#if defined(HAVE_LIBAV) || defined(_WIN32)
-  if (avi_dump_started)
+  if (frame_dump_started)
   {
-    avi_dump_started = false;
-    AVIDump::Stop();
+    // No additional cleanup is needed when dumping to images.
+    if (dump_to_avi)
+      StopFrameDumpToAVI();
   }
-#endif
+}
+
+#if defined(HAVE_LIBAV) || defined(_WIN32)
+
+bool Renderer::StartFrameDumpToAVI(const FrameDumpConfig& config)
+{
+  return AVIDump::Start(config.width, config.height);
+}
+
+void Renderer::DumpFrameToAVI(const FrameDumpConfig& config)
+{
+  AVIDump::AddFrame(config.data, config.width, config.height, config.stride, config.state);
+}
+
+void Renderer::StopFrameDumpToAVI()
+{
+  AVIDump::Stop();
+}
+
+#else
+
+bool Renderer::StartFrameDumpToAVI(const FrameDumpConfig& config)
+{
+  return false;
+}
+
+void Renderer::DumpFrameToAVI(const FrameDumpConfig& config)
+{
+}
+
+void Renderer::StopFrameDumpToAVI()
+{
+}
+
+#endif  // defined(HAVE_LIBAV) || defined(WIN32)
+
+std::string Renderer::GetFrameDumpNextImageFileName() const
+{
+  return StringFromFormat("%sframedump_%u.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
+                          m_frame_dump_image_counter);
+}
+
+bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
+{
+  m_frame_dump_image_counter = 1;
+  if (!SConfig::GetInstance().m_DumpFramesSilent)
+  {
+    // Only check for the presence of the first image to confirm overwriting.
+    // A previous run will always have at least one image, and it's safe to assume that if the user
+    // has allowed the first image to be overwritten, this will apply any remaining images as well.
+    std::string filename = GetFrameDumpNextImageFileName();
+    if (File::Exists(filename))
+    {
+      if (!AskYesNoT("Frame dump image(s) '%s' already exists. Overwrite?", filename.c_str()))
+        return false;
+    }
+  }
+
+  return true;
+}
+
+void Renderer::DumpFrameToImage(const FrameDumpConfig& config)
+{
+  std::string filename = GetFrameDumpNextImageFileName();
+  TextureToPng(config.data, config.stride, filename, config.width, config.height, false);
+  m_frame_dump_image_counter++;
 }
