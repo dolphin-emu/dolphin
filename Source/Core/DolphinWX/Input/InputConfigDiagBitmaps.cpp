@@ -19,7 +19,7 @@
 #include <wx/settings.h>
 #include <wx/statbmp.h>
 
-#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
 #include "InputCommon/ControllerEmu.h"
@@ -487,12 +487,9 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
 
   g_controller_interface.UpdateInput();
 
-  GamepadPage* const current_page =
-      static_cast<GamepadPage*>(m_pad_notebook->GetPage(m_pad_notebook->GetSelection()));
-
   wxMemoryDC dc;
   auto lock = ControllerEmu::GetStateLock();
-  for (ControlGroupBox* g : current_page->control_groups)
+  for (ControlGroupBox* g : control_groups)
   {
     // Only if this control group has a bitmap
     if (!g->static_bitmap)

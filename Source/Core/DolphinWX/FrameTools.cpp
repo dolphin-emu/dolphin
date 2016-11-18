@@ -65,7 +65,7 @@
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
-#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/MainMenuBar.h"
 #include "DolphinWX/MainToolBar.h"
