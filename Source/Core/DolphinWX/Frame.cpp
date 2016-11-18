@@ -324,7 +324,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
     g_pCodeWindow->Load();
   }
 
-  wxFrame::CreateToolBar(wxTB_DEFAULT_STYLE | wxTB_TEXT | wxTB_FLAT);
+  wxFrame::CreateToolBar(wxTB_DEFAULT_STYLE | wxTB_TEXT | wxTB_FLAT)->Realize();
 
   // Give it a status bar
   SetStatusBar(CreateStatusBar(2, wxST_SIZEGRIP, ID_STATUSBAR));
