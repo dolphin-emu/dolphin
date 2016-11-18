@@ -82,7 +82,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::CtrlBuffer(const SIOCtlVBu
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::FillBuffer(const u8* src,
                                                                       const size_t size) const
 {
-  _dbg_assert_msg_(WII_IPC_WIIMOTE, size <= m_length, "FillBuffer: size %li > payload length %i",
-                   size, m_length);
+  _assert_msg_(WII_IPC_WIIMOTE, size <= m_length, "FillBuffer: size %li > payload length %i", size,
+               m_length);
   Memory::CopyToEmu(m_payload_addr, src, size);
 }

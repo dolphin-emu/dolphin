@@ -58,13 +58,13 @@ protected:
     CtrlMessage() = default;
     CtrlMessage(const SIOCtlVBuffer& cmd_buffer);
 
-    u8 request_type;
-    u8 request;
-    u16 value;
-    u16 index;
-    u16 length;
-    u32 payload_addr;
-    u32 address;
+    u8 request_type = 0;
+    u8 request = 0;
+    u16 value = 0;
+    u16 index = 0;
+    u16 length = 0;
+    u32 payload_addr = 0;
+    u32 address = 0;
   };
 
   class CtrlBuffer
@@ -77,9 +77,9 @@ protected:
     void SetRetVal(const u32 retval) const { Memory::Write_U32(retval, m_cmd_address + 4); }
     bool IsValid() const { return m_cmd_address != 0; }
     void Invalidate() { m_cmd_address = m_payload_addr = 0; }
-    u8 m_endpoint;
-    u16 m_length;
-    u32 m_payload_addr;
-    u32 m_cmd_address;
+    u8 m_endpoint = 0;
+    u16 m_length = 0;
+    u32 m_payload_addr = 0;
+    u32 m_cmd_address = 0;
   };
 };
