@@ -65,9 +65,21 @@ private:
 
   bool CompileYUYVConversionShaders();
 
+  // Allocates storage in the texel command buffer of the specified size.
+  // If the buffer does not have enough space, executes the current command buffer and tries again.
+  // If this is done, g_command_buffer_mgr->GetCurrentCommandBuffer() will return a different value,
+  // so it always should be re-obtained after calling this method.
+  // Once the data copy is done, call m_texel_buffer->CommitMemory(size).
+  bool ReserveTexelBufferStorage(size_t size, size_t alignment);
+
+  // Returns the command buffer that the texture conversion should occur in for the given texture.
+  // This can be the initialization/copy command buffer, or the drawing command buffer.
+  VkCommandBuffer GetCommandBufferForTextureConversion(const TextureCache::TCacheEntry* src_entry);
+
   // Shared between conversion types
   std::unique_ptr<StreamBuffer> m_texel_buffer;
   VkBufferView m_texel_buffer_view_r16_uint = VK_NULL_HANDLE;
+  VkBufferView m_texel_buffer_view_rgba8_unorm = VK_NULL_HANDLE;
   size_t m_texel_buffer_size = 0;
 
   // Palette conversion - taking an indexed texture and applying palette
