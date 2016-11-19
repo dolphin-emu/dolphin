@@ -17,13 +17,12 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
-#include "VideoBackends/Vulkan/PaletteTextureConverter.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StagingTexture2D.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
-#include "VideoBackends/Vulkan/TextureEncoder.h"
+#include "VideoBackends/Vulkan/TextureConverter.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
@@ -66,17 +65,10 @@ bool TextureCache::Initialize()
     return false;
   }
 
-  m_texture_encoder = std::make_unique<TextureEncoder>();
-  if (!m_texture_encoder->Initialize())
+  m_texture_converter = std::make_unique<TextureConverter>();
+  if (!m_texture_converter->Initialize())
   {
-    PanicAlert("Failed to initialize texture encoder.");
-    return false;
-  }
-
-  m_palette_texture_converter = std::make_unique<PaletteTextureConverter>();
-  if (!m_palette_texture_converter->Initialize())
-  {
-    PanicAlert("Failed to initialize palette texture converter");
+    PanicAlert("Failed to initialize texture converter");
     return false;
   }
 
@@ -112,7 +104,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
     command_buffer = g_command_buffer_mgr->GetCurrentInitCommandBuffer();
   }
 
-  m_palette_texture_converter->ConvertTexture(
+  m_texture_converter->ConvertTexture(
       command_buffer, GetRenderPassForTextureUpdate(entry->GetTexture()), entry->GetFramebuffer(),
       unconverted->GetTexture(), entry->config.width, entry->config.height, palette, format,
       unconverted->format);
@@ -156,9 +148,9 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-  m_texture_encoder->EncodeTextureToRam(src_texture->GetView(), dst, format, native_width,
-                                        bytes_per_row, num_blocks_y, memory_stride, src_format,
-                                        is_intensity, scale_by_half, src_rect);
+  m_texture_converter->EncodeTextureToMemory(src_texture->GetView(), dst, format, native_width,
+                                             bytes_per_row, num_blocks_y, memory_stride, src_format,
+                                             is_intensity, scale_by_half, src_rect);
 
   // Transition back to original state
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
@@ -871,8 +863,8 @@ void TextureCache::EncodeYUYVTextureToMemory(void* dst_ptr, u32 dst_width, u32 d
   src_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Borrow framebuffer from EFB2RAM encoder.
-  Texture2D* encoding_texture = m_texture_encoder->GetEncodingTexture();
-  StagingTexture2D* download_texture = m_texture_encoder->GetDownloadTexture();
+  Texture2D* encoding_texture = m_texture_converter->GetEncodingTexture();
+  StagingTexture2D* download_texture = m_texture_converter->GetDownloadTexture();
   encoding_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Use fragment shader to convert RGBA to YUYV.
@@ -882,10 +874,10 @@ void TextureCache::EncodeYUYVTextureToMemory(void* dst_ptr, u32 dst_width, u32 d
   u32 output_width = dst_width / 2;
   UtilityShaderDraw draw(
       command_buffer, g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-      m_texture_encoder->GetEncodingRenderPass(), g_object_cache->GetPassthroughVertexShader(),
+      m_texture_converter->GetEncodingRenderPass(), g_object_cache->GetPassthroughVertexShader(),
       VK_NULL_HANDLE, m_rgb_to_yuyv_shader);
   VkRect2D region = {{0, 0}, {output_width, dst_height}};
-  draw.BeginRenderPass(m_texture_encoder->GetEncodingTextureFramebuffer(), region);
+  draw.BeginRenderPass(m_texture_converter->GetEncodingTextureFramebuffer(), region);
   draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetLinearSampler());
   draw.DrawQuad(0, 0, static_cast<int>(output_width), static_cast<int>(dst_height), src_rect.left,
                 src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
@@ -942,7 +934,7 @@ void TextureCache::DecodeYUYVTextureFromMemory(TCacheEntry* dst_texture, const v
       {src_width / 2, src_height, 1}         // VkExtent3D                  imageExtent
   };
   VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  Texture2D* intermediate_texture = m_texture_encoder->GetEncodingTexture();
+  Texture2D* intermediate_texture = m_texture_converter->GetEncodingTexture();
   intermediate_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   vkCmdCopyBufferToImage(command_buffer, m_texture_upload_buffer->GetBuffer(),
                          intermediate_texture->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1,
@@ -955,7 +947,7 @@ void TextureCache::DecodeYUYVTextureFromMemory(TCacheEntry* dst_texture, const v
   // Convert from the YUYV data now in the intermediate texture to RGBA in the destination.
   UtilityShaderDraw draw(
       command_buffer, g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
-      m_texture_encoder->GetEncodingRenderPass(), g_object_cache->GetScreenQuadVertexShader(),
+      m_texture_converter->GetEncodingRenderPass(), g_object_cache->GetScreenQuadVertexShader(),
       VK_NULL_HANDLE, m_yuyv_to_rgb_shader);
   VkRect2D region = {{0, 0}, {src_width, src_height}};
   draw.BeginRenderPass(dst_texture->GetFramebuffer(), region);
