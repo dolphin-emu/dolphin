@@ -1415,9 +1415,11 @@ void FramebufferManager::CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_heigh
       {static_cast<u32>(scaled_rc.GetWidth()), static_cast<u32>(scaled_rc.GetHeight())}};
   Texture2D* src_texture = ResolveEFBColorTexture(scaled_rc_vk);
 
-  // 2 bytes per pixel, so divide fb_stride by 2 to get the width.
-  TextureCache::GetInstance()->EncodeYUYVTextureToMemory(xfb_ptr, fb_stride / 2, fb_stride,
-                                                         fb_height, src_texture, scaled_rc);
+  // The destination stride can differ from the copy region width, in which case the pixels
+  // outside the copy region should not be written to.
+  TextureCache::GetInstance()->EncodeYUYVTextureToMemory(
+      xfb_ptr, static_cast<u32>(source_rc.GetWidth()), fb_stride, fb_height, src_texture,
+      scaled_rc);
 
   // If we sourced directly from the EFB framebuffer, restore it to a color attachment.
   if (src_texture == m_efb_color_texture.get())
