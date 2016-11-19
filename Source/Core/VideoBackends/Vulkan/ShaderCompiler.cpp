@@ -52,6 +52,7 @@ static const char SHADER_HEADER[] = R"(
   #define UBO_BINDING(packing, x) layout(packing, set = 0, binding = (x - 1))
   #define SAMPLER_BINDING(x) layout(set = 1, binding = x)
   #define SSBO_BINDING(x) layout(set = 2, binding = x)
+  #define TEXEL_BUFFER_BINDING(x) layout(set = 2, binding = x)
   #define VARYING_LOCATION(x) layout(location = x)
   #define FORCE_EARLY_Z layout(early_fragment_tests) in
 
