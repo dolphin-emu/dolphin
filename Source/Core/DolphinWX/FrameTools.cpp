@@ -65,6 +65,7 @@
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/ISOFile.h"
+#include "DolphinWX/Input/HotkeyInputConfigDiag.h"
 #include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/LogWindow.h"
 #include "DolphinWX/MainMenuBar.h"
@@ -997,7 +998,7 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED(event))
 
   HotkeyManagerEmu::Enable(false);
 
-  InputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"));
+  HotkeyInputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"));
   m_ConfigFrame.ShowModal();
 
   // Update references in case controllers were refreshed
