@@ -337,7 +337,9 @@ void NetPlaySetupFrame::DoHost()
   host_config.player_name = WxStrToStr(m_nickname_text->GetValue());
   host_config.game_list_ctrl = m_game_list;
   host_config.SetDialogInfo(netplay_section, m_parent);
+#ifdef USE_UPNP
   host_config.forward_port = m_upnp_chk->GetValue();
+#endif
 
   if (host_config.use_traversal)
   {
