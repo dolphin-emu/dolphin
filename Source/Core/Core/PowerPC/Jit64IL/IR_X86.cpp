@@ -984,7 +984,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       regSpillCallerSaved(RI);
       Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
       Jit->MOV(32, PPCSTATE(npc), Imm32(InstLoc + 4));
-      Jit->ABI_CallFunctionC((void*)GetInterpreterOp(InstCode), InstCode);
+      Jit->ABI_CallFunctionC(GetInterpreterOp(InstCode), InstCode);
       break;
     }
     case LoadGReg:
@@ -1940,7 +1940,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
           Jit->MOVSD(XMM0, loc2);
           Jit->MOVSD(M(isSNANTemp[1]), XMM0);
         }
-        Jit->ABI_CallFunction((void*)checkIsSNAN);
+        Jit->ABI_CallFunction(checkIsSNAN);
         Jit->TEST(8, R(ABI_RETURN), R(ABI_RETURN));
         FixupBranch ok = Jit->J_CC(CC_Z);
         Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX));      // FPSCR.FX = 1;
@@ -1969,7 +1969,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
           Jit->MOVSD(XMM0, loc2);
           Jit->MOVSD(M(isSNANTemp[1]), XMM0);
         }
-        Jit->ABI_CallFunction((void*)checkIsSNAN);
+        Jit->ABI_CallFunction(checkIsSNAN);
         Jit->TEST(8, R(ABI_RETURN), R(ABI_RETURN));
         FixupBranch finish = Jit->J_CC(CC_Z);
         Jit->OR(32, PPCSTATE(fpscr), Imm32(FPSCR_FX));    // FPSCR.FX = 1;
@@ -2123,7 +2123,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       FixupBranch noidle = Jit->J_CC(CC_NZ);
 
       RI.Jit->Cleanup();  // is it needed?
-      Jit->ABI_CallFunction((void*)&CoreTiming::Idle);
+      Jit->ABI_CallFunction(CoreTiming::Idle);
 
       Jit->MOV(32, PPCSTATE(pc), Imm32(ibuild->GetImmValue(getOp2(I))));
       Jit->WriteExceptionExit();
@@ -2209,7 +2209,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
     case ShortIdleLoop:
     {
       unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
-      Jit->ABI_CallFunction((void*)&CoreTiming::Idle);
+      Jit->ABI_CallFunction(CoreTiming::Idle);
       Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
       Jit->WriteExceptionExit();
       break;
@@ -2307,7 +2307,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
       unsigned InstLoc = ibuild->GetImmValue(getOp1(I));
 
       Jit->MOV(32, PPCSTATE(pc), Imm32(InstLoc));
-      Jit->ABI_CallFunction(reinterpret_cast<void*>(&PowerPC::CheckBreakPoints));
+      Jit->ABI_CallFunction(PowerPC::CheckBreakPoints);
       Jit->TEST(32, M(CPU::GetStatePtr()), Imm32(0xFFFFFFFF));
       FixupBranch noBreakpoint = Jit->J_CC(CC_Z);
       Jit->WriteExit(InstLoc);

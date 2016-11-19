@@ -6,7 +6,6 @@
 
 package org.dolphinemu.dolphinemu;
 
-
 import android.view.Surface;
 import android.widget.Toast;
 
@@ -57,7 +56,7 @@ public final class NativeLibrary
 		public static final int WIIMOTE_BUTTON_2             = 106;
 		public static final int WIIMOTE_UP                   = 107;
 		public static final int WIIMOTE_DOWN                 = 108;
-		public static final int WIIMOTE_LEFT                 = 119;
+		public static final int WIIMOTE_LEFT                 = 109;
 		public static final int WIIMOTE_RIGHT                = 110;
 		public static final int WIIMOTE_IR                   = 111;
 		public static final int WIIMOTE_IR_UP                = 112;
@@ -118,7 +117,7 @@ public final class NativeLibrary
 		public static final int CLASSIC_DPAD_UP              = 309;
 		public static final int CLASSIC_DPAD_DOWN            = 310;
 		public static final int CLASSIC_DPAD_LEFT            = 311;
-		public static final int CLASSIC_DPADON_RIGHT         = 312;
+		public static final int CLASSIC_DPAD_RIGHT           = 312;
 		public static final int CLASSIC_STICK_LEFT           = 313;
 		public static final int CLASSIC_STICK_LEFT_UP        = 314;
 		public static final int CLASSIC_STICK_LEFT_DOWN      = 315;
@@ -290,15 +289,7 @@ public final class NativeLibrary
 	public static native String GetVersionString();
 
 	/**
-	 * Returns if the phone supports NEON or not
-	 *
-	 * @return true if it supports NEON, false otherwise.
-	 */
-	public static native boolean SupportsNEON();
-
-	/**
 	 * Saves a screen capture of the game
-	 *
 	 */
 	public static native void SaveScreenShot();
 
@@ -360,21 +351,6 @@ public final class NativeLibrary
 	 * Writes out the block profile results
 	 */
 	public static native void WriteProfileResults();
-
-	/**
-	 * @return If we have an alert
-	 */
-	public static native boolean HasAlertMsg();
-
-	/**
-	 * @return The alert string
-	 */
-	public static native String GetAlertMsg();
-
-	/**
-	 * Clears event in the JNI so we can continue onward
-	 */
-	public static native void ClearAlertMsg();
 
 	/** Native EGL functions not exposed by Java bindings **/
 	public static native void eglBindAPI(int api);

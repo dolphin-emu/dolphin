@@ -8,7 +8,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -38,10 +40,6 @@ VideoConfig::VideoConfig()
 {
   bRunning = false;
 
-  // Exclusive fullscreen flags
-  bFullscreen = false;
-  bExclusiveMode = false;
-
   // Needed for the first frame, I think
   fAspectRatioHackW = 1;
   fAspectRatioHackH = 1;
@@ -49,6 +47,10 @@ VideoConfig::VideoConfig()
   // disable all features by default
   backend_info.api_type = APIType::Nothing;
   backend_info.bSupportsExclusiveFullscreen = false;
+  backend_info.bSupportsMultithreading = false;
+
+  bEnableValidationLayer = false;
+  bBackendMultithreading = true;
 
   // VR
   fScale = 1.0f;
@@ -189,6 +191,9 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("WireFrame", &bWireFrame, 0);
   settings->Get("DisableFog", &bDisableFog, 0);
   settings->Get("BorderlessFullscreen", &bBorderlessFullscreen, false);
+  settings->Get("EnableValidationLayer", &bEnableValidationLayer, false);
+  settings->Get("BackendMultithreading", &bBackendMultithreading, true);
+  settings->Get("CommandBufferExecuteInterval", &iCommandBufferExecuteInterval, 100);
 
   settings->Get("SWZComploc", &bZComploc, true);
   settings->Get("SWZFreeze", &bZFreeze, true);
@@ -202,6 +207,7 @@ void VideoConfig::Load(const std::string& ini_file)
   enhancements->Get("ForceFiltering", &bForceFiltering, 0);
   enhancements->Get("MaxAnisotropy", &iMaxAnisotropy, 0);  // NOTE - this is x in (1 << x)
   enhancements->Get("PostProcessingShader", &sPostProcessingShader, "");
+  enhancements->Get("ForceTrueColor", &bForceTrueColor, true);
   if ((g_has_rift || g_has_openvr) && backend_info.bSupportsGeometryShaders)
     iStereoMode = STEREO_OCULUS;
 
@@ -365,6 +371,7 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("Video_Settings", "FastDepthCalc", bFastDepthCalc);
   CHECK_SETTING("Video_Settings", "MSAA", iMultisamples);
   CHECK_SETTING("Video_Settings", "SSAA", bSSAA);
+  CHECK_SETTING("Video_Settings", "ForceTrueColor", bForceTrueColor);
 
   int tmp = -9000;
   CHECK_SETTING("Video_Settings", "EFBScale", tmp);  // integral
@@ -394,6 +401,8 @@ void VideoConfig::GameIniLoad()
   }
 
   CHECK_SETTING("Video_Settings", "DisableFog", bDisableFog);
+  CHECK_SETTING("Video_Settings", "BackendMultithreading", bBackendMultithreading);
+  CHECK_SETTING("Video_Settings", "CommandBufferExecuteInterval", iCommandBufferExecuteInterval);
 
   CHECK_SETTING("Video_Enhancements", "ForceFiltering", bForceFiltering);
   CHECK_SETTING("Video_Enhancements", "MaxAnisotropy",
@@ -538,7 +547,7 @@ void VideoConfig::GameIniSave()
   SAVE_IF_NOT_DEFAULT("VR", "ReadPitch", (float)fReadPitch, 0.0f);
   SAVE_IF_NOT_DEFAULT("VR", "CameraMinPoly", (int)iCameraMinPoly, 0);
 
-  GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetUniqueID() +
+  GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() +
                     ".ini");
   g_SavedConfig = *this;
 }
@@ -661,6 +670,9 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("Wireframe", bWireFrame);
   settings->Set("DisableFog", bDisableFog);
   settings->Set("BorderlessFullscreen", bBorderlessFullscreen);
+  settings->Set("EnableValidationLayer", bEnableValidationLayer);
+  settings->Set("BackendMultithreading", bBackendMultithreading);
+  settings->Set("CommandBufferExecuteInterval", iCommandBufferExecuteInterval);
 
   settings->Set("SWZComploc", bZComploc);
   settings->Set("SWZFreeze", bZFreeze);
@@ -674,6 +686,7 @@ void VideoConfig::Save(const std::string& ini_file)
   enhancements->Set("ForceFiltering", bForceFiltering);
   enhancements->Set("MaxAnisotropy", iMaxAnisotropy);
   enhancements->Set("PostProcessingShader", sPostProcessingShader);
+  enhancements->Set("ForceTrueColor", bForceTrueColor);
 
   IniFile::Section* stereoscopy = iniFile.GetOrCreateSection("Stereoscopy");
   stereoscopy->Set("StereoMode", iStereoMode);

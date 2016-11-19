@@ -24,6 +24,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/GeckoCode.h"
 #include "Core/HW/HW.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
@@ -77,14 +78,14 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 54;  // Last changed in PR 3782
+static const u32 STATE_VERSION = 65;  // Last changed in PR 4120
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
-// beacuse they save the exact Dolphin version to savestates.
+// because they save the exact Dolphin version to savestates.
 static const std::map<u32, std::pair<std::string, std::string>> s_old_versions = {
     // The 16 -> 17 change modified the size of StateHeader,
-    // so version older than that can't even be decompressed anymore
+    // so versions older than that can't even be decompressed anymore
     {17, {"3.5-1311", "3.5-1364"}}, {18, {"3.5-1366", "3.5-1371"}}, {19, {"3.5-1372", "3.5-1408"}},
     {20, {"3.5-1409", "4.0-704"}},  {21, {"4.0-705", "4.0-889"}},   {22, {"4.0-905", "4.0-1871"}},
     {23, {"4.0-1873", "4.0-1900"}}, {24, {"4.0-1902", "4.0-1919"}}, {25, {"4.0-1921", "4.0-1936"}},
@@ -181,6 +182,8 @@ static std::string DoState(PointerWrap& p)
   p.DoMarker("HW");
   Movie::DoState(p);
   p.DoMarker("Movie");
+  Gecko::DoState(p);
+  p.DoMarker("Gecko");
 
 #if defined(HAVE_LIBAV)
   AVIDump::DoState();
@@ -342,7 +345,7 @@ static void CompressAndDumpState(CompressAndDumpState_args save_args)
 
   // Setting up the header
   StateHeader header;
-  strncpy(header.gameID, SConfig::GetInstance().GetUniqueID().c_str(), 6);
+  strncpy(header.gameID, SConfig::GetInstance().GetGameID().c_str(), 6);
   header.size = g_use_compression ? (u32)buffer_size : 0;
   header.time = Common::Timer::GetDoubleTime();
 
@@ -447,15 +450,15 @@ bool ReadHeader(const std::string& filename, StateHeader& header)
   return true;
 }
 
-std::string GetInfoStringOfSlot(int slot)
+std::string GetInfoStringOfSlot(int slot, bool translate)
 {
   std::string filename = MakeStateFilename(slot);
   if (!File::Exists(filename))
-    return GetStringT("Empty");
+    return translate ? GetStringT("Empty") : "Empty";
 
   State::StateHeader header;
   if (!ReadHeader(filename, header))
-    return GetStringT("Unknown");
+    return translate ? GetStringT("Unknown") : "Unknown";
 
   return Common::Timer::GetDateTimeFormatted(header.time);
 }
@@ -473,7 +476,7 @@ static void LoadFileStateData(const std::string& filename, std::vector<u8>& ret_
   StateHeader header;
   f.ReadArray(&header, 1);
 
-  if (strncmp(SConfig::GetInstance().GetUniqueID().c_str(), header.gameID, 6))
+  if (strncmp(SConfig::GetInstance().GetGameID().c_str(), header.gameID, 6))
   {
     Core::DisplayMessage(
         StringFromFormat("State belongs to a different game (ID %.*s)", 6, header.gameID), 2000);
@@ -682,7 +685,7 @@ void Shutdown()
 static std::string MakeStateFilename(int number)
 {
   return StringFromFormat("%s%s.s%02i", File::GetUserPath(D_STATESAVES_IDX).c_str(),
-                          SConfig::GetInstance().GetUniqueID().c_str(), number);
+                          SConfig::GetInstance().GetGameID().c_str(), number);
 }
 
 void Save(int slot, bool wait)

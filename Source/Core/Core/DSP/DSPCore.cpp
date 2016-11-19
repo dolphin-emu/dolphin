@@ -82,7 +82,7 @@ static bool VerifyRoms()
   {
     DSPHost::OSD_AddMessage("You are using a free DSP ROM made by the Dolphin Team.", 8000);
     DSPHost::OSD_AddMessage("All Wii games will work correctly, and most GC games should ", 8000);
-    DSPHost::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.\n", 8000);
+    DSPHost::OSD_AddMessage("also work fine, but the GBA/IPL/CARD UCodes will not work.", 8000);
   }
 
   return true;
@@ -90,10 +90,10 @@ static bool VerifyRoms()
 
 static void DSPCore_FreeMemoryPages()
 {
-  FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
-  FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
-  FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
-  FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
+  Common::FreeMemoryPages(g_dsp.irom, DSP_IROM_BYTE_SIZE);
+  Common::FreeMemoryPages(g_dsp.iram, DSP_IRAM_BYTE_SIZE);
+  Common::FreeMemoryPages(g_dsp.dram, DSP_DRAM_BYTE_SIZE);
+  Common::FreeMemoryPages(g_dsp.coef, DSP_COEF_BYTE_SIZE);
   g_dsp.irom = g_dsp.iram = g_dsp.dram = g_dsp.coef = nullptr;
 }
 
@@ -103,10 +103,10 @@ bool DSPCore_Init(const DSPInitOptions& opts)
   g_cycles_left = 0;
   g_init_hax = false;
 
-  g_dsp.irom = (u16*)AllocateMemoryPages(DSP_IROM_BYTE_SIZE);
-  g_dsp.iram = (u16*)AllocateMemoryPages(DSP_IRAM_BYTE_SIZE);
-  g_dsp.dram = (u16*)AllocateMemoryPages(DSP_DRAM_BYTE_SIZE);
-  g_dsp.coef = (u16*)AllocateMemoryPages(DSP_COEF_BYTE_SIZE);
+  g_dsp.irom = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IROM_BYTE_SIZE));
+  g_dsp.iram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IRAM_BYTE_SIZE));
+  g_dsp.dram = static_cast<u16*>(Common::AllocateMemoryPages(DSP_DRAM_BYTE_SIZE));
+  g_dsp.coef = static_cast<u16*>(Common::AllocateMemoryPages(DSP_COEF_BYTE_SIZE));
 
   memcpy(g_dsp.irom, opts.irom_contents.data(), DSP_IROM_BYTE_SIZE);
   memcpy(g_dsp.coef, opts.coef_contents.data(), DSP_COEF_BYTE_SIZE);
@@ -142,7 +142,7 @@ bool DSPCore_Init(const DSPInitOptions& opts)
   gdsp_ifx_init();
   // Mostly keep IRAM write protected. We unprotect only when DMA-ing
   // in new ucodes.
-  WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
+  Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
   // Initialize JIT, if necessary
   if (opts.core_type == DSPInitOptions::CORE_JIT)
@@ -331,7 +331,7 @@ void CompileCurrent()
   }
 }
 
-u16 DSPCore_ReadRegister(int reg)
+u16 DSPCore_ReadRegister(size_t reg)
 {
   switch (reg)
   {
@@ -388,7 +388,7 @@ u16 DSPCore_ReadRegister(int reg)
   }
 }
 
-void DSPCore_WriteRegister(int reg, u16 val)
+void DSPCore_WriteRegister(size_t reg, u16 val)
 {
   switch (reg)
   {

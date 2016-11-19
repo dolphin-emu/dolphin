@@ -64,14 +64,7 @@ std::unique_ptr<IVolume> CreateVolumeFromFilename(const std::string& filename, u
     return CreateVolumeFromCryptedWiiImage(std::move(reader), partition_group, 0, volume_number);
 
   case DISC_TYPE_UNK:
-  default:
-    std::string name, extension;
-    SplitPath(filename, nullptr, &name, &extension);
-    name += extension;
-    NOTICE_LOG(DISCIO,
-               "%s does not have the Magic word for a gcm, wiidisc or wad file\n"
-               "Set Log Verbosity to Warning and attempt to load the game again to view the values",
-               name.c_str());
+    return nullptr;
   }
 
   return nullptr;
@@ -206,12 +199,7 @@ EDiscType GetDiscType(IBlobReader& _rReader)
   if (GCMagic == 0xC2339F3D)
     return DISC_TYPE_GC;
 
-  WARN_LOG(DISCIO, "No known magic words found");
-  WARN_LOG(DISCIO, "Wii  offset: 0x18 value: 0x%08x", WiiMagic);
-  WARN_LOG(DISCIO, "WiiC offset: 0x60 value: 0x%08x", WiiContainerMagic);
-  WARN_LOG(DISCIO, "WAD  offset: 0x02 value: 0x%08x", WADMagic);
-  WARN_LOG(DISCIO, "GC   offset: 0x1C value: 0x%08x", GCMagic);
-
+  // No known magic words found
   return DISC_TYPE_UNK;
 }
 

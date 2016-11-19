@@ -74,7 +74,7 @@ Country CVolumeWAD::GetCountry() const
   return CountrySwitch(country_code);
 }
 
-std::string CVolumeWAD::GetUniqueID() const
+std::string CVolumeWAD::GetGameID() const
 {
   char GameCode[6];
   if (!Read(m_offset + 0x01E0, 4, (u8*)GameCode))

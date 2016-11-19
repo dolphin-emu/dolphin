@@ -9,6 +9,7 @@
 #include "Common/Atomic.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
@@ -23,7 +24,7 @@
 
 namespace CommandProcessor
 {
-static int et_UpdateInterrupts;
+static CoreTiming::EventType* et_UpdateInterrupts;
 
 // TODO(ector): Warn on bbox read/write
 
@@ -39,10 +40,8 @@ static u16 m_bboxright;
 static u16 m_bboxbottom;
 static u16 m_tokenReg;
 
-static std::atomic<bool> s_interrupt_set;
-static std::atomic<bool> s_interrupt_waiting;
-static std::atomic<bool> s_interrupt_token_waiting;
-static std::atomic<bool> s_interrupt_finish_waiting;
+static Common::Flag s_interrupt_set;
+static Common::Flag s_interrupt_waiting;
 
 static bool IsOnThread()
 {
@@ -68,8 +67,6 @@ void DoState(PointerWrap& p)
 
   p.Do(s_interrupt_set);
   p.Do(s_interrupt_waiting);
-  p.Do(s_interrupt_token_waiting);
-  p.Do(s_interrupt_finish_waiting);
 }
 
 static inline void WriteLow(volatile u32& _reg, u16 lowbits)
@@ -113,10 +110,8 @@ void Init()
   fifo.bFF_LoWatermark = 0;
   fifo.bFF_LoWatermarkInt = 0;
 
-  s_interrupt_set.store(false);
-  s_interrupt_waiting.store(false);
-  s_interrupt_finish_waiting.store(false);
-  s_interrupt_token_waiting.store(false);
+  s_interrupt_set.Clear();
+  s_interrupt_waiting.Clear();
 
   et_UpdateInterrupts = CoreTiming::RegisterEvent("CPInterrupt", UpdateInterrupts_Wrapper);
 }
@@ -246,7 +241,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                      MMIO::DirectRead<u16>(MMIO::Utils::HighPart(&fifo.CPReadWriteDistance)),
                  MMIO::ComplexWrite<u16>([](u32, u16 val) {
                    WriteHigh(fifo.CPReadWriteDistance, val);
-                   Fifo::SyncGPU(Fifo::SYNC_GPU_OTHER);
+                   Fifo::SyncGPU(Fifo::SyncGPUReason::Other);
                    if (fifo.CPReadWriteDistance == 0)
                    {
                      GPFifo::ResetGatherPipe();
@@ -276,8 +271,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 
 void GatherPipeBursted()
 {
-  if (IsOnThread())
-    SetCPStatusFromCPU();
+  SetCPStatusFromCPU();
 
   // if we aren't linked, we don't care about gather pipe data
   if (!m_CPCtrlReg.GPLinkEnable)
@@ -336,40 +330,30 @@ void UpdateInterrupts(u64 userdata)
 {
   if (userdata)
   {
-    s_interrupt_set.store(true);
-    INFO_LOG(COMMANDPROCESSOR, "Interrupt set");
+    s_interrupt_set.Set();
+    DEBUG_LOG(COMMANDPROCESSOR, "Interrupt set");
     ProcessorInterface::SetInterrupt(INT_CAUSE_CP, true);
   }
   else
   {
-    s_interrupt_set.store(false);
-    INFO_LOG(COMMANDPROCESSOR, "Interrupt cleared");
+    s_interrupt_set.Clear();
+    DEBUG_LOG(COMMANDPROCESSOR, "Interrupt cleared");
     ProcessorInterface::SetInterrupt(INT_CAUSE_CP, false);
   }
   CoreTiming::ForceExceptionCheck(0);
-  s_interrupt_waiting.store(false);
+  s_interrupt_waiting.Clear();
   Fifo::RunGpu();
 }
 
 void UpdateInterruptsFromVideoBackend(u64 userdata)
 {
   if (!Fifo::UseDeterministicGPUThread())
-    CoreTiming::ScheduleEvent_Threadsafe(0, et_UpdateInterrupts, userdata);
+    CoreTiming::ScheduleEvent(0, et_UpdateInterrupts, userdata, CoreTiming::FromThread::NON_CPU);
 }
 
 bool IsInterruptWaiting()
 {
-  return s_interrupt_waiting.load();
-}
-
-void SetInterruptTokenWaiting(bool waiting)
-{
-  s_interrupt_token_waiting.store(waiting);
-}
-
-void SetInterruptFinishWaiting(bool waiting)
-{
-  s_interrupt_finish_waiting.store(waiting);
+  return s_interrupt_waiting.IsSet();
 }
 
 void SetCPStatusFromGPU()
@@ -381,21 +365,21 @@ void SetCPStatusFromGPU()
     {
       if (!fifo.bFF_Breakpoint)
       {
-        INFO_LOG(COMMANDPROCESSOR, "Hit breakpoint at %i", fifo.CPReadPointer);
+        DEBUG_LOG(COMMANDPROCESSOR, "Hit breakpoint at %i", fifo.CPReadPointer);
         fifo.bFF_Breakpoint = true;
       }
     }
     else
     {
       if (fifo.bFF_Breakpoint)
-        INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
+        DEBUG_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
       fifo.bFF_Breakpoint = false;
     }
   }
   else
   {
     if (fifo.bFF_Breakpoint)
-      INFO_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
+      DEBUG_LOG(COMMANDPROCESSOR, "Cleared breakpoint at %i", fifo.CPReadPointer);
     fifo.bFF_Breakpoint = false;
   }
 
@@ -409,7 +393,7 @@ void SetCPStatusFromGPU()
 
   bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
 
-  if (interrupt != s_interrupt_set.load() && !s_interrupt_waiting.load())
+  if (interrupt != s_interrupt_set.IsSet() && !s_interrupt_waiting.IsSet())
   {
     u64 userdata = interrupt ? 1 : 0;
     if (IsOnThread())
@@ -417,7 +401,7 @@ void SetCPStatusFromGPU()
       if (!interrupt || bpInt || undfInt || ovfInt)
       {
         // Schedule the interrupt asynchronously
-        s_interrupt_waiting.store(true);
+        s_interrupt_waiting.Set();
         CommandProcessor::UpdateInterruptsFromVideoBackend(userdata);
       }
     }
@@ -440,15 +424,15 @@ void SetCPStatusFromCPU()
 
   bool interrupt = (bpInt || ovfInt || undfInt) && m_CPCtrlReg.GPReadEnable;
 
-  if (interrupt != s_interrupt_set.load() && !s_interrupt_waiting.load())
+  if (interrupt != s_interrupt_set.IsSet() && !s_interrupt_waiting.IsSet())
   {
     u64 userdata = interrupt ? 1 : 0;
     if (IsOnThread())
     {
       if (!interrupt || bpInt || undfInt || ovfInt)
       {
-        s_interrupt_set.store(interrupt);
-        INFO_LOG(COMMANDPROCESSOR, "Interrupt set");
+        s_interrupt_set.Set(interrupt);
+        DEBUG_LOG(COMMANDPROCESSOR, "Interrupt set");
         ProcessorInterface::SetInterrupt(INT_CAUSE_CP, interrupt);
       }
     }
@@ -469,7 +453,7 @@ void SetCpStatusRegister()
   m_CPStatusReg.UnderflowLoWatermark = fifo.bFF_LoWatermark;
   m_CPStatusReg.OverflowHiWatermark = fifo.bFF_HiWatermark;
 
-  INFO_LOG(COMMANDPROCESSOR, "\t Read from STATUS_REGISTER : %04x", m_CPStatusReg.Hex);
+  DEBUG_LOG(COMMANDPROCESSOR, "\t Read from STATUS_REGISTER : %04x", m_CPStatusReg.Hex);
   DEBUG_LOG(
       COMMANDPROCESSOR, "(r) status: iBP %s | fReadIdle %s | fCmdIdle %s | iOvF %s | iUndF %s",
       m_CPStatusReg.Breakpoint ? "ON" : "OFF", m_CPStatusReg.ReadIdle ? "ON" : "OFF",

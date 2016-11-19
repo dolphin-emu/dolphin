@@ -15,7 +15,7 @@ class PPCDebugInterface final : public DebugInterface
 public:
   PPCDebugInterface() {}
   std::string Disassemble(unsigned int address) override;
-  void GetRawMemoryString(int memory, unsigned int address, char* dest, int max_size) override;
+  std::string GetRawMemoryString(int memory, unsigned int address) override;
   int GetInstructionSize(int /*instruction*/) override { return 4; }
   bool IsAlive() override;
   bool IsBreakpoint(unsigned int address) override;
@@ -26,7 +26,8 @@ public:
   void ToggleBreakpoint(unsigned int address) override;
   void ClearAllMemChecks() override;
   bool IsMemCheck(unsigned int address) override;
-  void ToggleMemCheck(unsigned int address) override;
+  void ToggleMemCheck(unsigned int address, bool read = true, bool write = true,
+                      bool log = true) override;
   unsigned int ReadMemory(unsigned int address) override;
 
   enum

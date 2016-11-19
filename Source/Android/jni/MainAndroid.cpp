@@ -113,10 +113,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-void Host_RequestFullscreen(bool enable_fullscreen)
-{
-}
-
 void Host_SetStartupDebuggingParameters()
 {
 }
@@ -145,6 +141,10 @@ void Host_SetWiiMoteConnectionState(int _State)
 }
 
 void Host_ShowVideoConfig(void*, const std::string&)
+{
+}
+
+void Host_YieldToUI()
 {
 }
 
@@ -347,7 +347,7 @@ static std::string GetGameId(std::string filename)
   if (volume == nullptr)
     return std::string();
 
-  std::string id = volume->GetUniqueID();
+  std::string id = volume->GetGameID();
   __android_log_print(ANDROID_LOG_INFO, DOLPHIN_TAG, "Game ID: %s", id.c_str());
   return id;
 }
@@ -429,8 +429,6 @@ JNIEXPORT jint JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetPlatform(
                                                                                 jstring jFilename);
 JNIEXPORT jstring JNICALL
 Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersionString(JNIEnv* env, jobject obj);
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SupportsNEON(JNIEnv* env,
-                                                                                     jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv* env,
                                                                                    jobject obj);
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_eglBindAPI(JNIEnv* env,
@@ -583,12 +581,6 @@ JNIEXPORT jstring JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_GetVersio
                                                                                         jobject obj)
 {
   return env->NewStringUTF(scm_rev_str.c_str());
-}
-
-JNIEXPORT jboolean JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SupportsNEON(JNIEnv* env,
-                                                                                     jobject obj)
-{
-  return cpu_info.bASIMD;
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SaveScreenShot(JNIEnv* env,
@@ -747,34 +739,20 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceChang
   if (surf == nullptr)
     __android_log_print(ANDROID_LOG_ERROR, DOLPHIN_TAG, "Error: Surface is null.");
 
-  // If GLInterface isn't a thing yet then we don't need to let it know that the
-  // surface has changed
-  if (GLInterface)
-  {
-    GLInterface->UpdateHandle(surf);
-    Renderer::s_ChangedSurface.Reset();
-    Renderer::s_SurfaceNeedsChanged.Set();
-    Renderer::s_ChangedSurface.Wait();
-  }
+  if (g_renderer)
+    g_renderer->ChangeSurface(surf);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SurfaceDestroyed(JNIEnv* env,
                                                                                      jobject obj)
 {
+  if (g_renderer)
+    g_renderer->ChangeSurface(nullptr);
+
   if (surf)
   {
     ANativeWindow_release(surf);
     surf = nullptr;
-  }
-
-  // If GLInterface isn't a thing yet then we don't need to let it know that the
-  // surface has changed
-  if (GLInterface)
-  {
-    GLInterface->UpdateHandle(nullptr);
-    Renderer::s_ChangedSurface.Reset();
-    Renderer::s_SurfaceNeedsChanged.Set();
-    Renderer::s_ChangedSurface.Wait();
   }
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_RefreshWiimotes(JNIEnv* env,

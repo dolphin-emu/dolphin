@@ -28,11 +28,8 @@ public:
 
   JitBaseBlockCache* GetBlockCache() override { return this; }
   const char* GetName() override { return "Cached Interpreter"; }
-  void WriteLinkBlock(u8* location, const JitBlock& block) override;
-
-  void WriteDestroyBlock(const u8* location, u32 address) override;
-
-  const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; };
+  void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) override {}
+  const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
 private:
   struct Instruction
   {
@@ -59,7 +56,8 @@ private:
   };
 
   const u8* GetCodePtr() { return (u8*)(m_code.data() + m_code.size()); }
-  std::vector<Instruction> m_code;
+  void ExecuteOneBlock();
 
+  std::vector<Instruction> m_code;
   PPCAnalyst::CodeBuffer code_buffer;
 };

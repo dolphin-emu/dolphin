@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.utils;
 
-import android.app.Activity;
 import android.app.PendingIntent;
 import android.content.Intent;
 import android.hardware.usb.UsbConfiguration;
@@ -15,7 +14,6 @@ import org.dolphinemu.dolphinemu.services.USBPermService;
 
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.Map;
 
 public class Java_WiimoteAdapter
@@ -43,7 +41,7 @@ public class Java_WiimoteAdapter
 			{
 				if (!manager.hasPermission(dev))
 				{
-					Log.warning("Requesting permission for Wiimote adapter");
+					Log.warning("Requesting permission for Wii Remote adapter");
 					Intent intent = new Intent();
 					PendingIntent pend_intent;
 					intent.setClass(NativeLibrary.sEmulationActivity, USBPermService.class);
@@ -132,11 +130,11 @@ public class Java_WiimoteAdapter
 					{
 						for (int i = 0; i < MAX_WIIMOTES; ++i)
 						{
-							// One interface per Wiimote
+							// One interface per Wii Remote
 							usb_intf[i] = dev.getInterface(i);
 							usb_con.claimInterface(usb_intf[i], true);
 
-							// One endpoint per Wiimote. Input only
+							// One endpoint per Wii Remote. Input only
 							// Output reports go through the control channel.
 							usb_in[i] = usb_intf[i].getEndpoint(0);
 							Log.info("Interface " + i + " endpoint count:" + usb_intf[i].getEndpointCount());

@@ -26,7 +26,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
-#include "Common/SysConf.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -155,9 +156,6 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bPAL60 = bPAL60;
   config->SelectedLanguage = iSelectedLanguage;
   config->iCPUCore = iCPUCore;
-
-  config->m_SYSCONF->SetData("IPL.PGS", bProgressive);
-  config->m_SYSCONF->SetData("IPL.E60", bPAL60);
 
   // Only change these back if they were actually set by game ini, since they can be changed while a
   // game is running.
@@ -293,7 +291,7 @@ bool BootCore(const std::string& _rFilename)
     {
       int source;
       controls_section->Get(StringFromFormat("PadType%u", i), &source, -1);
-      if (source >= (int)SIDEVICE_NONE && source <= (int)SIDEVICE_WIIU_ADAPTER)
+      if (source >= SIDEVICE_NONE && source < SIDEVICE_COUNT)
       {
         SConfig::GetInstance().m_SIDevice[i] = (SIDevices)source;
         config_cache.bSetPads[i] = true;
@@ -303,9 +301,6 @@ bool BootCore(const std::string& _rFilename)
     // Wii settings
     if (StartUp.bWii)
     {
-      // Flush possible changes to SYSCONF to file
-      SConfig::GetInstance().m_SYSCONF->Save();
-
       int source;
       for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
       {
@@ -352,6 +347,8 @@ bool BootCore(const std::string& _rFilename)
     StartUp.bFastDiscSpeed = Movie::IsFastDiscSpeed();
     StartUp.iCPUCore = Movie::GetCPUMode();
     StartUp.bSyncGPU = Movie::IsSyncGPU();
+    if (!StartUp.bWii)
+      StartUp.SelectedLanguage = Movie::GetLanguage();
     for (int i = 0; i < 2; ++i)
     {
       if (Movie::IsUsingMemcard(i) && Movie::IsStartingFromClearSave() && !StartUp.bWii)
@@ -403,8 +400,8 @@ bool BootCore(const std::string& _rFilename)
     StartUp.bPAL60 = false;
   }
 
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.PGS", StartUp.bProgressive);
-  SConfig::GetInstance().m_SYSCONF->SetData("IPL.E60", StartUp.bPAL60);
+  if (StartUp.bWii)
+    SConfig::GetInstance().SaveSettingsToSysconf();
 
   // Run the game
   // Init the core
@@ -420,10 +417,14 @@ bool BootCore(const std::string& _rFilename)
 void Stop()
 {
   Core::Stop();
+  RestoreConfig();
+}
 
-  SConfig& StartUp = SConfig::GetInstance();
-  StartUp.m_strUniqueID = "00000000";
-  config_cache.RestoreConfig(&StartUp);
+void RestoreConfig()
+{
+  SConfig::GetInstance().LoadSettingsFromSysconf();
+  SConfig::GetInstance().m_strGameID = "00000000";
+  config_cache.RestoreConfig(&SConfig::GetInstance());
 }
 
 }  // namespace

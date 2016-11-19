@@ -10,6 +10,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
 
 class IWII_IPC_HLE_Device;
@@ -44,6 +45,9 @@ namespace WII_IPC_HLE_Interface
 // Init
 void Init();
 
+// Needs to be called after Reset(true) to recreate the device tree
+void Reinit();
+
 // Shutdown
 void Shutdown();
 
@@ -63,7 +67,6 @@ std::shared_ptr<IWII_IPC_HLE_Device> CreateFileIO(u32 _DeviceID, const std::stri
 
 std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& _rDeviceName);
 std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 _ID);
-int getFreeDeviceId();
 
 // Update
 void Update();
@@ -74,9 +77,8 @@ void UpdateDevices();
 void ExecuteCommand(u32 _Address);
 
 void EnqueueRequest(u32 address);
-void EnqueueReply(u32 address, int cycles_in_future = 0);
-void EnqueueReply_Threadsafe(u32 address, int cycles_in_future = 0);
-void EnqueueReply_Immediate(u32 address);
+void EnqueueReply(u32 address, int cycles_in_future = 0,
+                  CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 void EnqueueCommandAcknowledgement(u32 _Address, int cycles_in_future = 0);
 
 }  // end of namespace WII_IPC_HLE_Interface

@@ -131,7 +131,7 @@ struct Header  // Offset    Size    Description
     memset(this, 0xFF, BLOCK_SIZE);
     *(u16*)SizeMb = BE16(sizeMb);
     Encoding = BE16(ascii ? 0 : 1);
-    u64 rand = CEXIIPL::GetGCTime();
+    u64 rand = CEXIIPL::GetEmulatedTime(CEXIIPL::GC_EPOCH);
     formatTime = Common::swap64(rand);
     for (int i = 0; i < 12; i++)
     {

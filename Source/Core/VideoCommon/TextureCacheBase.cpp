@@ -63,15 +63,15 @@ void TextureCacheBase::CheckTempSize(size_t required_size)
     return;
 
   temp_size = required_size;
-  FreeAlignedMemory(temp);
-  temp = (u8*)AllocateAlignedMemory(temp_size, 16);
+  Common::FreeAlignedMemory(temp);
+  temp = static_cast<u8*>(Common::AllocateAlignedMemory(temp_size, 16));
 }
 
 TextureCacheBase::TextureCacheBase()
 {
   temp_size = 2048 * 2048 * 4;
   if (!temp)
-    temp = (u8*)AllocateAlignedMemory(temp_size, 16);
+    temp = static_cast<u8*>(Common::AllocateAlignedMemory(temp_size, 16));
 
   TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable,
                                      g_ActiveConfig.bTexFmtOverlayCenter);
@@ -103,7 +103,7 @@ TextureCacheBase::~TextureCacheBase()
 {
   HiresTexture::Shutdown();
   Invalidate();
-  FreeAlignedMemory(temp);
+  Common::FreeAlignedMemory(temp);
   temp = nullptr;
 }
 
@@ -133,7 +133,8 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
         config.bStereoEFBMonoDepth != backup_config.s_efb_mono_depth)
     {
       g_texture_cache->DeleteShaders();
-      g_texture_cache->CompileShaders();
+      if (!g_texture_cache->CompileShaders())
+        PanicAlert("Failed to recompile one or more texture conversion shaders.");
     }
   }
 
@@ -445,7 +446,7 @@ TextureCacheBase::DoPartialTextureUpdates(TexCache::iterator iter_t, u8* palette
 
 void TextureCacheBase::DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level)
 {
-  std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().m_strUniqueID;
+  std::string szDir = File::GetUserPath(D_DUMPTEXTURES_IDX) + SConfig::GetInstance().m_strGameID;
 
   // make sure that the directory exists
   if (!File::Exists(szDir) || !File::IsDirectory(szDir))
@@ -505,9 +506,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   const bool use_mipmaps = SamplerCommon::AreBpTexMode0MipmapsEnabled(tex.texMode0[id]);
   u32 tex_levels = use_mipmaps ? ((tex.texMode1[id].max_lod + 0xf) / 0x10 + 1) : 1;
   const bool from_tmem = tex.texImage1[id].image_type != 0;
-
-  if (0 == address)
-    return nullptr;
 
   // TexelSizeInNibbles(format) * width * height / 16;
   const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat);
@@ -1384,7 +1382,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 TextureCacheBase::TCacheEntryBase*
 TextureCacheBase::AllocateTexture(const TCacheEntryConfig& config)
 {
-  TexPool::iterator iter = texture_pool.find(config);
+  TexPool::iterator iter = FindMatchingTextureFromPool(config);
   TextureCacheBase::TCacheEntryBase* entry;
   if (iter != texture_pool.end())
   {
@@ -1402,6 +1400,19 @@ TextureCacheBase::AllocateTexture(const TCacheEntryConfig& config)
 
   entry->textures_by_hash_iter = textures_by_hash.end();
   return entry;
+}
+
+TextureCacheBase::TexPool::iterator
+TextureCacheBase::FindMatchingTextureFromPool(const TCacheEntryConfig& config)
+{
+  // Find a texture from the pool that does not have a frameCount of FRAMECOUNT_INVALID.
+  // This prevents a texture from being used twice in a single frame with different data,
+  // which potentially means that a driver has to maintain two copies of the texture anyway.
+  auto range = texture_pool.equal_range(config);
+  auto matching_iter = std::find_if(range.first, range.second, [](const std::pair<TCacheEntryConfig, TCacheEntryBase*> & iter) {
+    return iter.second->frameCount != FRAMECOUNT_INVALID;
+  });
+  return matching_iter != range.second ? matching_iter : texture_pool.end();
 }
 
 TextureCacheBase::TexCache::iterator

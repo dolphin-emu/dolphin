@@ -29,6 +29,8 @@
 
 namespace DiscIO
 {
+CNANDContentData::~CNANDContentData() = default;
+
 CSharedContent::CSharedContent()
 {
   UpdateLocation();
@@ -94,6 +96,12 @@ std::string CSharedContent::AddSharedContent(const u8* hash)
   return filename;
 }
 
+CNANDContentDataFile::CNANDContentDataFile(const std::string& filename) : m_filename(filename)
+{
+}
+
+CNANDContentDataFile::~CNANDContentDataFile() = default;
+
 void CNANDContentDataFile::EnsureOpen()
 {
   if (!m_file)
@@ -105,18 +113,18 @@ void CNANDContentDataFile::Open()
 {
   EnsureOpen();
 }
-const std::vector<u8> CNANDContentDataFile::Get()
+std::vector<u8> CNANDContentDataFile::Get()
 {
-  std::vector<u8> result;
   EnsureOpen();
+
   if (!m_file->IsGood())
-    return result;
+    return {};
 
   u64 size = m_file->GetSize();
   if (size == 0)
-    return result;
+    return {};
 
-  result.resize(size);
+  std::vector<u8> result(size);
   m_file->ReadBytes(result.data(), result.size());
 
   return result;

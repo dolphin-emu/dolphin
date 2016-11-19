@@ -8,7 +8,7 @@ public final class SubmenuSetting extends SettingsItem
 
 	public SubmenuSetting(String key, Setting setting, int titleId, int descriptionId, String menuKey)
 	{
-		super(key, null, setting, titleId, descriptionId);
+		super(key, null, 0, setting, titleId, descriptionId);
 		mMenuKey = menuKey;
 	}
 

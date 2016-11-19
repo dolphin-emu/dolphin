@@ -24,7 +24,7 @@ namespace BPFunctions
 
 void FlushPipeline()
 {
-  VertexManagerBase::Flush();
+  g_vertex_manager->Flush();
 }
 
 void SetGenerationMode()
@@ -288,7 +288,7 @@ void OnPixelFormatChange()
 
   if (convtype == -1)
   {
-    ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d\n", static_cast<int>(old_format),
+    ERROR_LOG(VIDEO, "Unhandled EFB format change: %d to %d", static_cast<int>(old_format),
               static_cast<int>(new_format));
     goto skip;
   }

@@ -62,15 +62,15 @@ VertexManager::VertexManager()
 {
   LocalVBuffer.resize(MAXVBUFFERSIZE);
 
-  s_pCurBufferPointer = s_pBaseBufferPointer = &LocalVBuffer[0];
-  s_pEndBufferPointer = s_pBaseBufferPointer + LocalVBuffer.size();
+  m_cur_buffer_pointer = m_base_buffer_pointer = &LocalVBuffer[0];
+  m_end_buffer_pointer = m_base_buffer_pointer + LocalVBuffer.size();
 
   LocalVReplayBuffer.resize(3 * MAXVBUFFERSIZE);
-  s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer = &LocalVReplayBuffer[0];
+  m_pCurReplayBufferPointer = m_pBaseReplayBufferPointer = &LocalVReplayBuffer[0];
 
   LocalIBuffer.resize(MAXIBUFFERSIZE);
   LocalIReplayBuffer.resize(3 * MAXIBUFFERSIZE);
-  s_pCurIReplayBufferPointer = s_pBaseIReplayBufferPointer = &LocalIReplayBuffer[0];
+  m_pCurIReplayBufferPointer = m_pBaseIReplayBufferPointer = &LocalIReplayBuffer[0];
 
   CreateDeviceObjects();
 }
@@ -84,7 +84,7 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 {
   D3D11_MAPPED_SUBRESOURCE map;
 
-  u32 vertexBufferSize = u32(s_pCurBufferPointer - s_pBaseBufferPointer);
+  u32 vertexBufferSize = u32(m_cur_buffer_pointer - m_base_buffer_pointer);
   u32 indexBufferSize = IndexGenerator::GetIndexLen() * sizeof(u16);
   u32 totalBufferSize = vertexBufferSize + indexBufferSize;
 
@@ -129,48 +129,48 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
         {
           // To Do: Change this to vectors like used in the ShaderCache code
           LocalVReplayBuffer.resize(3 * MAXVBUFFERSIZE);
-          s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer = &LocalVReplayBuffer[0];
+          m_pCurReplayBufferPointer = m_pBaseReplayBufferPointer = &LocalVReplayBuffer[0];
           LocalIReplayBuffer.resize(3 * MAXVBUFFERSIZE);
-          s_pCurIReplayBufferPointer = s_pBaseIReplayBufferPointer = &LocalIReplayBuffer[0];
+          m_pCurIReplayBufferPointer = m_pBaseIReplayBufferPointer = &LocalIReplayBuffer[0];
         }
       }
-      s_pCurReplayBufferPointer = s_pBaseReplayBufferPointer;
-      s_pCurIReplayBufferPointer = s_pBaseIReplayBufferPointer;
+      m_pCurReplayBufferPointer = m_pBaseReplayBufferPointer;
+      m_pCurIReplayBufferPointer = m_pBaseIReplayBufferPointer;
       previous_replay_vertex_data = g_ActiveConfig.bReplayVertexData;
       g_first_pass = false;
     }
 
     if (!g_ActiveConfig.bReplayVertexData)
     {
-      memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
+      memcpy(mappedData + m_vertexDrawOffset, m_base_buffer_pointer, vertexBufferSize);
       memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
     }
     else if (!g_opcode_replay_frame)
     {
-      memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
+      memcpy(mappedData + m_vertexDrawOffset, m_base_buffer_pointer, vertexBufferSize);
       if (g_opcode_replay_log_frame)
       {
-        memcpy(s_pCurReplayBufferPointer, s_pBaseBufferPointer, vertexBufferSize);
-        s_pCurReplayBufferPointer += vertexBufferSize;
+        memcpy(m_pCurReplayBufferPointer, m_base_buffer_pointer, vertexBufferSize);
+        m_pCurReplayBufferPointer += vertexBufferSize;
 
-        memcpy(s_pCurIReplayBufferPointer, GetIndexBuffer(), indexBufferSize);
-        s_pCurIReplayBufferPointer += indexBufferSize;
+        memcpy(m_pCurIReplayBufferPointer, GetIndexBuffer(), indexBufferSize);
+        m_pCurIReplayBufferPointer += indexBufferSize;
       }
 
       memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
     }
     else
     {
-      memcpy(mappedData + m_vertexDrawOffset, s_pCurReplayBufferPointer, vertexBufferSize);
-      s_pCurReplayBufferPointer += vertexBufferSize;
+      memcpy(mappedData + m_vertexDrawOffset, m_pCurReplayBufferPointer, vertexBufferSize);
+      m_pCurReplayBufferPointer += vertexBufferSize;
 
-      memcpy(mappedData + m_indexDrawOffset, s_pCurIReplayBufferPointer, indexBufferSize);
-      s_pCurIReplayBufferPointer += indexBufferSize;
+      memcpy(mappedData + m_indexDrawOffset, m_pCurIReplayBufferPointer, indexBufferSize);
+      m_pCurIReplayBufferPointer += indexBufferSize;
     }
   }
   else
   {
-    memcpy(mappedData + m_vertexDrawOffset, s_pBaseBufferPointer, vertexBufferSize);
+    memcpy(mappedData + m_vertexDrawOffset, m_base_buffer_pointer, vertexBufferSize);
     memcpy(mappedData + m_indexDrawOffset, GetIndexBuffer(), indexBufferSize);
   }
 
@@ -192,7 +192,7 @@ void VertexManager::Draw(u32 stride)
   u32 baseVertex = m_vertexDrawOffset / stride;
   u32 startIndex = m_indexDrawOffset / sizeof(u16);
 
-  switch (current_primitive_type)
+  switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
     D3D::stateman->SetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_POINTLIST);
@@ -212,7 +212,7 @@ void VertexManager::Draw(u32 stride)
 
   INCSTAT(stats.thisFrame.numDrawCalls);
 
-  if (current_primitive_type != PRIMITIVE_TRIANGLES)
+  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
     static_cast<Renderer*>(g_renderer.get())->RestoreCull();
 }
 
@@ -230,7 +230,7 @@ void VertexManager::vFlush(bool useDstAlpha)
     return;
   }
 
-  if (!GeometryShaderCache::SetShader(current_primitive_type))
+  if (!GeometryShaderCache::SetShader(m_current_primitive_type))
   {
     GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
     return;
@@ -257,7 +257,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 
 void VertexManager::ResetBuffer(u32 stride)
 {
-  s_pCurBufferPointer = s_pBaseBufferPointer;
+  m_cur_buffer_pointer = m_base_buffer_pointer;
   IndexGenerator::Start(GetIndexBuffer());
 }
 

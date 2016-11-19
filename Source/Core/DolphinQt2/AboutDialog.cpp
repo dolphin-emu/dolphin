@@ -28,7 +28,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
               QStringLiteral("</p>"));
   text.append(small + tr("Revision: ") + QString::fromUtf8(scm_rev_git_str.c_str()) +
               QStringLiteral("</p>"));
-  text.append(small + tr("Compiled: ") + QStringLiteral(__DATE__ " " __TIME__ "</p>"));
+  text.append(small + tr("Compiled: ") + QStringLiteral(__DATE__) + QStringLiteral(" ") + QStringLiteral(__TIME__) + QStringLiteral("</p>"));
 
   text.append(medium + tr("Check for updates: ") +
               QStringLiteral(
@@ -41,9 +41,7 @@ AboutDialog::AboutDialog(QWidget* parent) : QDialog(parent)
   text.append(
       medium +
       QStringLiteral(
-          "<a href='https://github.com/dolphin-emu/dolphin/blob/master/license.txt'>%1</a> | "
-          "<a href='https://github.com/dolphin-emu/dolphin/graphs/contributors'>%2</a> | "
-          "<a href='https://forums.dolphin-emu.org/'>%3</a></p>")
+          "<a href='https://github.com/dolphin-emu/dolphin/blob/master/license.txt'>%1</a> | <a href='https://github.com/dolphin-emu/dolphin/graphs/contributors'>%2</a> | <a href='https://forums.dolphin-emu.org/'>%3</a></p>")
           .arg(tr("Licence"))
           .arg(tr("Authors"))
           .arg(tr("Support")));

@@ -111,7 +111,7 @@ void VertexManager::Draw(u32 stride)
 
   D3D_PRIMITIVE_TOPOLOGY d3d_primitive_topology = D3D_PRIMITIVE_TOPOLOGY_TRIANGLESTRIP;
 
-  switch (current_primitive_type)
+  switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
     d3d_primitive_topology = D3D_PRIMITIVE_TOPOLOGY_POINTLIST;
@@ -138,7 +138,7 @@ void VertexManager::Draw(u32 stride)
 void VertexManager::vFlush(bool use_dst_alpha)
 {
   ShaderCache::LoadAndSetActiveShaders(use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
-                                       current_primitive_type);
+                                       m_current_primitive_type);
 
   if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
     BBox::Invalidate();
@@ -180,11 +180,11 @@ void VertexManager::vFlush(bool use_dst_alpha)
 
 void VertexManager::ResetBuffer(u32 stride)
 {
-  if (s_cull_all)
+  if (m_cull_all)
   {
-    s_pCurBufferPointer = m_vertex_cpu_buffer.data();
-    s_pBaseBufferPointer = m_vertex_cpu_buffer.data();
-    s_pEndBufferPointer = m_vertex_cpu_buffer.data() + MAXVBUFFERSIZE;
+    m_cur_buffer_pointer = m_vertex_cpu_buffer.data();
+    m_base_buffer_pointer = m_vertex_cpu_buffer.data();
+    m_end_buffer_pointer = m_vertex_cpu_buffer.data() + MAXVBUFFERSIZE;
 
     IndexGenerator::Start(reinterpret_cast<u16*>(m_index_cpu_buffer.data()));
     return;
@@ -198,9 +198,9 @@ void VertexManager::ResetBuffer(u32 stride)
     m_vertex_stream_buffer_reallocated = false;
   }
 
-  s_pBaseBufferPointer = static_cast<u8*>(m_vertex_stream_buffer->GetBaseCPUAddress());
-  s_pEndBufferPointer = s_pBaseBufferPointer + m_vertex_stream_buffer->GetSize();
-  s_pCurBufferPointer =
+  m_base_buffer_pointer = static_cast<u8*>(m_vertex_stream_buffer->GetBaseCPUAddress());
+  m_end_buffer_pointer = m_base_buffer_pointer + m_vertex_stream_buffer->GetSize();
+  m_cur_buffer_pointer =
       static_cast<u8*>(m_vertex_stream_buffer->GetCPUAddressOfCurrentAllocation());
   m_vertex_draw_offset = static_cast<u32>(m_vertex_stream_buffer->GetOffsetOfCurrentAllocation());
 

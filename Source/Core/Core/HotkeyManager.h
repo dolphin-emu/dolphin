@@ -31,6 +31,7 @@ enum Hotkey
   HK_SCREENSHOT,
   HK_EXIT,
 
+  HK_TRIGGER_SYNC_BUTTON,
   HK_WIIMOTE1_CONNECT,
   HK_WIIMOTE2_CONNECT,
   HK_WIIMOTE3_CONNECT,
@@ -49,6 +50,7 @@ enum Hotkey
   HK_TOGGLE_EFBCOPIES,
   HK_TOGGLE_FOG,
   HK_TOGGLE_THROTTLE,
+  HK_TOGGLE_TEXTURES,
 
   HK_DECREASE_EMULATION_SPEED,
   HK_INCREASE_EMULATION_SPEED,
@@ -186,7 +188,7 @@ private:
 
 namespace HotkeyManagerEmu
 {
-void Initialize(void* const hwnd);
+void Initialize();
 void Shutdown();
 void LoadConfig();
 

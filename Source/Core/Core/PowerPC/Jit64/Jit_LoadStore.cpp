@@ -117,26 +117,12 @@ void Jit64::lXXx(UGeckoInstruction inst)
     signExtend = true;
   }
 
-  // TODO(ector): Make it dynamically enable/disable idle skipping where appropriate
-  // Will give nice boost to dual core mode
-  // (mb2): I agree,
-  // IMHO those Idles should always be skipped and replaced by a more controllable "native" Idle
-  // methode
-  // ... maybe the throttle one already do that :p
-  // TODO: We shouldn't use a debug read here.  It should be possible to get
-  // the following instructions out of the JIT state.
   if (SConfig::GetInstance().bSkipIdle && CPU::GetState() != CPU::CPU_STEPPING && inst.OPCD == 32 &&
-      MergeAllowedNextInstructions(2) && (inst.hex & 0xFFFF0000) == 0x800D0000 &&
-      (js.op[1].inst.hex == 0x28000000 ||
+    MergeAllowedNextInstructions(2) && (inst.hex & 0xFFFF0000) == 0x800D0000 &&
+    (js.op[1].inst.hex == 0x28000000 ||
        (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&
       js.op[2].inst.hex == 0x4182fff8)
   {
-    // TODO(LinesPrower):
-    // - Rewrite this!
-    // It seems to be ugly and inefficient, but I don't know JIT stuff enough to make it right
-    // It only demonstrates the idea
-
-    // do our job at first
     s32 offset = (s32)(s16)inst.SIMM_16;
     gpr.BindToRegister(a, true, false);
     gpr.BindToRegister(d, false, true);
@@ -149,7 +135,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     BitSet32 registersInUse = CallerSavedRegistersInUse();
     ABI_PushRegistersAndAdjustStack(registersInUse, 0);
 
-    ABI_CallFunction((void*)&CoreTiming::Idle);
+    ABI_CallFunction(CoreTiming::Idle);
 
     ABI_PopRegistersAndAdjustStack(registersInUse, 0);
 
@@ -308,28 +294,12 @@ void Jit64::dcbx(UGeckoInstruction inst)
   SHL(32, R(ABI_PARAM1), Imm8(5));
   MOV(32, R(ABI_PARAM2), Imm32(32));
   XOR(32, R(ABI_PARAM3), R(ABI_PARAM3));
-  ABI_CallFunction((void*)JitInterface::InvalidateICache);
+  ABI_CallFunction(JitInterface::InvalidateICache);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
+  asm_routines.ResetStack(*this);
   c = J(true);
   SwitchToNearCode();
   SetJumpTarget(c);
-
-  // dcbi
-  if (inst.SUBOP10 == 470)
-  {
-    // Flush DSP DMA if DMAState bit is set
-    TEST(16, M(&DSP::g_dspState), Imm16(1 << 9));
-    c = J_CC(CC_NZ, true);
-    SwitchToFarCode();
-    SetJumpTarget(c);
-    ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-    SHL(32, R(addr), Imm8(5));
-    ABI_CallFunctionR((void*)DSP::FlushInstantDMA, addr);
-    ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-    c = J(true);
-    SwitchToNearCode();
-    SetJumpTarget(c);
-  }
 
   gpr.UnlockAllX();
 }
@@ -364,38 +334,40 @@ void Jit64::dcbz(UGeckoInstruction inst)
   int a = inst.RA;
   int b = inst.RB;
 
-  u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-  // The following masks the region used by the GC/Wii virtual memory lib
-  mem_mask |= Memory::ADDR_MASK_MEM1;
-
   MOV(32, R(RSCRATCH), gpr.R(b));
   if (a)
     ADD(32, R(RSCRATCH), gpr.R(a));
   AND(32, R(RSCRATCH), Imm32(~31));
-  TEST(32, R(RSCRATCH), Imm32(mem_mask));
-  FixupBranch slow = J_CC(CC_NZ, true);
 
-  // Should this code ever run? I can't find any games that use DCBZ on non-physical addresses, but
-  // supposedly there are, at least for some MMU titles. Let's be careful and support it to be sure.
-  SwitchToFarCode();
-  SetJumpTarget(slow);
+  if (UReg_MSR(MSR).DR)
+  {
+    // Perform lookup to see if we can use fast path.
+    MOV(32, R(RSCRATCH2), R(RSCRATCH));
+    SHR(32, R(RSCRATCH2), Imm8(PowerPC::BAT_INDEX_SHIFT));
+    TEST(32, MScaled(RSCRATCH2, SCALE_4, (u32)(u64)&PowerPC::dbat_table[0]), Imm32(2));
+    FixupBranch slow = J_CC(CC_Z, true);
+
+    // Fast path: compute full address, then zero out 32 bytes of memory.
+    XORPS(XMM0, R(XMM0));
+    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
+    MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
+
+    // Slow path: call the general-case code.
+    SwitchToFarCode();
+    SetJumpTarget(slow);
+  }
   MOV(32, M(&PC), Imm32(jit->js.compilerPC));
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
-  ABI_CallFunctionR((void*)&PowerPC::ClearCacheLine, RSCRATCH);
+  ABI_CallFunctionR(PowerPC::ClearCacheLine, RSCRATCH);
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
-  FixupBranch exit = J(true);
-  SwitchToNearCode();
 
-  // Mask out the address so we don't write to MEM1 out of bounds
-  // FIXME: Work out why the AGP disc writes out of bounds
-  if (!SConfig::GetInstance().bWii)
-    AND(32, R(RSCRATCH), Imm32(Memory::RAM_MASK));
-  PXOR(XMM0, R(XMM0));
-  MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 0), XMM0);
-  MOVAPS(MComplex(RMEM, RSCRATCH, SCALE_1, 16), XMM0);
-  SetJumpTarget(exit);
+  if (UReg_MSR(MSR).DR)
+  {
+    FixupBranch end = J(true);
+    SwitchToNearCode();
+    SetJumpTarget(end);
+  }
 }
 
 void Jit64::stX(UGeckoInstruction inst)
@@ -596,4 +568,16 @@ void Jit64::stmw(UGeckoInstruction inst)
     }
   }
   gpr.UnlockAllX();
+}
+
+void Jit64::eieio(UGeckoInstruction inst)
+{
+  INSTRUCTION_START
+  JITDISABLE(bJITLoadStoreOff);
+
+  // optimizeGatherPipe generally postpones FIFO checks to the end of the JIT block,
+  // which is generally safe. However postponing FIFO writes across eieio instructions
+  // is incorrect (would crash NBA2K11 strap screen if we improve our FIFO detection).
+  if (jo.optimizeGatherPipe && js.fifoBytesSinceCheck > 0)
+    js.mustCheckFifo = true;
 }

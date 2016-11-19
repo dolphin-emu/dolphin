@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
 #include <cstring>
 #include <memory>
 #include <string>
@@ -41,6 +42,9 @@
 static const u32 MC_TRANSFER_RATE_READ = 512 * 1024;
 static const u32 MC_TRANSFER_RATE_WRITE = (u32)(96.125f * 1024.0f);
 
+static std::array<CoreTiming::EventType*, 2> s_et_cmd_done;
+static std::array<CoreTiming::EventType*, 2> s_et_transfer_complete;
+
 // Takes care of the nasty recovery of the 'this' pointer from card_index,
 // stored in the userdata parameter of the CoreTiming event.
 void CEXIMemoryCard::EventCompleteFindInstance(u64 userdata,
@@ -70,25 +74,41 @@ void CEXIMemoryCard::TransferCompleteCallback(u64 userdata, s64 cyclesLate)
                             [](CEXIMemoryCard* instance) { instance->TransferComplete(); });
 }
 
+void CEXIMemoryCard::Init()
+{
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+#define constexpr const
+#define static_assert _ASSERT_EXPR
+#endif
+  static constexpr char DONE_PREFIX[] = "memcardDone";
+  static constexpr char TRANSFER_COMPLETE_PREFIX[] = "memcardTransferComplete";
+
+  static_assert(s_et_cmd_done.size() == s_et_transfer_complete.size(), "Event array size differs");
+  for (unsigned int i = 0; i < s_et_cmd_done.size(); ++i)
+  {
+    std::string name = DONE_PREFIX;
+    name += static_cast<char>('A' + i);
+    s_et_cmd_done[i] = CoreTiming::RegisterEvent(name, CmdDoneCallback);
+
+    name = TRANSFER_COMPLETE_PREFIX;
+    name += static_cast<char>('A' + i);
+    s_et_transfer_complete[i] = CoreTiming::RegisterEvent(name, TransferCompleteCallback);
+  }
+}
+
+void CEXIMemoryCard::Shutdown()
+{
+  s_et_cmd_done.fill(nullptr);
+  s_et_transfer_complete.fill(nullptr);
+}
+
 CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(index)
 {
-  struct
-  {
-    const char* done;
-    const char* transfer_complete;
-  } const event_names[] = {
-      {"memcardDoneA", "memcardTransferCompleteA"}, {"memcardDoneB", "memcardTransferCompleteB"},
-  };
+  _assert_msg_(EXPANSIONINTERFACE, static_cast<std::size_t>(index) < s_et_cmd_done.size(),
+               "Trying to create invalid memory card index %d.", index);
 
-  if ((size_t)index >= ArraySize(event_names))
-  {
-    PanicAlertT("Trying to create invalid memory card index.");
-  }
-  // we're potentially leaking events here, since there's no RemoveEvent
-  // until emu shutdown, but I guess it's inconsequential
-  et_cmd_done = CoreTiming::RegisterEvent(event_names[index].done, CmdDoneCallback);
-  et_transfer_complete =
-      CoreTiming::RegisterEvent(event_names[index].transfer_complete, TransferCompleteCallback);
+  // NOTE: When loading a save state, DMA completion callbacks (s_et_transfer_complete) and such
+  //   may have been restored, we need to anticipate those arriving.
 
   interruptSwitch = 0;
   m_bInterruptSet = 0;
@@ -137,10 +157,10 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
   DiscIO::Country country_code = DiscIO::Country::COUNTRY_UNKNOWN;
-  auto strUniqueID = SConfig::GetInstance().m_strUniqueID;
+  std::string game_id = SConfig::GetInstance().m_strGameID;
 
   u32 CurrentGameId = 0;
-  if (strUniqueID == TITLEID_SYSMENU_STRING)
+  if (game_id == TITLEID_SYSMENU_STRING)
   {
     const DiscIO::CNANDContentLoader& SysMenu_Loader =
         DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU,
@@ -150,10 +170,10 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
       country_code = DiscIO::CountrySwitch(SysMenu_Loader.GetCountryChar());
     }
   }
-  else if (strUniqueID.length() >= 4)
+  else if (game_id.length() >= 4)
   {
-    country_code = DiscIO::CountrySwitch(strUniqueID.at(3));
-    CurrentGameId = BE32((u8*)strUniqueID.c_str());
+    country_code = DiscIO::CountrySwitch(game_id.at(3));
+    CurrentGameId = BE32((u8*)game_id.c_str());
   }
   bool ascii = true;
   std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
@@ -248,8 +268,8 @@ void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)
 
 CEXIMemoryCard::~CEXIMemoryCard()
 {
-  CoreTiming::RemoveEvent(et_cmd_done);
-  CoreTiming::RemoveEvent(et_transfer_complete);
+  CoreTiming::RemoveEvent(s_et_cmd_done[card_index]);
+  CoreTiming::RemoveEvent(s_et_transfer_complete[card_index]);
 }
 
 bool CEXIMemoryCard::UseDelayedTransferCompletion() const
@@ -279,8 +299,8 @@ void CEXIMemoryCard::TransferComplete()
 
 void CEXIMemoryCard::CmdDoneLater(u64 cycles)
 {
-  CoreTiming::RemoveEvent(et_cmd_done);
-  CoreTiming::ScheduleEvent((int)cycles, et_cmd_done, (u64)card_index);
+  CoreTiming::RemoveEvent(s_et_cmd_done[card_index]);
+  CoreTiming::ScheduleEvent((int)cycles, s_et_cmd_done[card_index], (u64)card_index);
 }
 
 void CEXIMemoryCard::SetCS(int cs)
@@ -369,8 +389,8 @@ void CEXIMemoryCard::TransferByte(u8& byte)
     case cmdPageProgram:
     case cmdExtraByteProgram:
     case cmdChipErase:
-      INFO_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.",
-               command);
+      DEBUG_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0. seems normal.",
+                command);
       break;
     default:
       WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: command %02x at position 0", command);
@@ -494,7 +514,7 @@ void CEXIMemoryCard::TransferByte(u8& byte)
       break;
 
     default:
-      WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x\n", byte);
+      WARN_LOG(EXPANSIONINTERFACE, "EXI MEMCARD: unknown command byte %02x", byte);
       byte = 0xFF;
     }
   }
@@ -542,12 +562,12 @@ void CEXIMemoryCard::DMARead(u32 _uAddr, u32 _uSize)
 
   if ((address + _uSize) % BLOCK_SIZE == 0)
   {
-    DEBUG_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "reading from block: %x", address / BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on read speed
   CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_READ),
-                            et_transfer_complete, (u64)card_index);
+                            s_et_transfer_complete[card_index], (u64)card_index);
 }
 
 // DMA write are preceded by all of the necessary setup via IMMWrite
@@ -558,10 +578,10 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
 
   if (((address + _uSize) % BLOCK_SIZE) == 0)
   {
-    DEBUG_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
+    INFO_LOG(EXPANSIONINTERFACE, "writing to block: %x", address / BLOCK_SIZE);
   }
 
   // Schedule transfer complete later based on write speed
   CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
-                            et_transfer_complete, (u64)card_index);
+                            s_et_transfer_complete[card_index], (u64)card_index);
 }

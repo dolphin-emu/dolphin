@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <atomic>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -21,7 +20,7 @@
 u16 GeckoSockServer::server_port;
 int GeckoSockServer::client_count;
 std::thread GeckoSockServer::connectionThread;
-std::atomic<bool> GeckoSockServer::server_running;
+Common::Flag GeckoSockServer::server_running;
 std::mutex GeckoSockServer::connection_lock;
 std::queue<std::unique_ptr<sf::TcpSocket>> GeckoSockServer::waiting_socks;
 
@@ -37,13 +36,13 @@ GeckoSockServer::~GeckoSockServer()
   {
     --client_count;
 
-    client_running.store(false);
+    client_running.Clear();
     clientThread.join();
   }
 
   if (client_count <= 0)
   {
-    server_running.store(false);
+    server_running.Clear();
     connectionThread.join();
   }
 }
@@ -54,14 +53,14 @@ void GeckoSockServer::GeckoConnectionWaiter()
 
   sf::TcpListener server;
   server_port = 0xd6ec;  // "dolphin gecko"
-  for (int bind_tries = 0; bind_tries <= 10 && !server_running.load(); bind_tries++)
+  for (int bind_tries = 0; bind_tries <= 10 && !server_running.IsSet(); bind_tries++)
   {
-    server_running.store(server.listen(server_port) == sf::Socket::Done);
-    if (!server_running.load())
+    server_running.Set(server.listen(server_port) == sf::Socket::Done);
+    if (!server_running.IsSet())
       server_port++;
   }
 
-  if (!server_running.load())
+  if (!server_running.IsSet())
     return;
 
   Core::DisplayMessage(StringFromFormat("USBGecko: Listening on TCP port %u", server_port), 5000);
@@ -69,7 +68,7 @@ void GeckoSockServer::GeckoConnectionWaiter()
   server.setBlocking(false);
 
   auto new_client = std::make_unique<sf::TcpSocket>();
-  while (server_running.load())
+  while (server_running.IsSet())
   {
     if (server.accept(*new_client) == sf::Socket::Done)
     {
@@ -94,7 +93,7 @@ bool GeckoSockServer::GetAvailableSock()
     client = std::move(waiting_socks.front());
     if (clientThread.joinable())
     {
-      client_running.store(false);
+      client_running.Clear();
       clientThread.join();
 
       recv_fifo = std::deque<u8>();
@@ -111,13 +110,13 @@ bool GeckoSockServer::GetAvailableSock()
 
 void GeckoSockServer::ClientThread()
 {
-  client_running.store(true);
+  client_running.Set();
 
   Common::SetCurrentThreadName("Gecko Client");
 
   client->setBlocking(false);
 
-  while (client_running.load())
+  while (client_running.IsSet())
   {
     bool did_nothing = true;
 
@@ -129,7 +128,7 @@ void GeckoSockServer::ClientThread()
       std::size_t got = 0;
 
       if (client->receive(&data[0], ArraySize(data), got) == sf::Socket::Disconnected)
-        client_running.store(false);
+        client_running.Clear();
 
       if (got != 0)
       {
@@ -146,7 +145,7 @@ void GeckoSockServer::ClientThread()
         send_fifo.clear();
 
         if (client->send(&packet[0], packet.size()) == sf::Socket::Disconnected)
-          client_running.store(false);
+          client_running.Clear();
       }
     }  // unlock transfer
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -92,6 +93,13 @@ enum DIInterruptType : int
   INT_CVRINT = 3,
 };
 
+enum class ReplyType : u32
+{
+  Interrupt,
+  IOS_HLE,
+  DTK
+};
+
 void Init();
 void Shutdown();
 void DoState(PointerWrap& p);
@@ -108,13 +116,14 @@ bool VolumeIsValid();
 // Disc detection and swapping
 void SetDiscInside(bool _DiscInside);
 bool IsDiscInside();
-void ChangeDiscAsHost(const std::string& path);  // Can only be called by the host thread
-void ChangeDiscAsCPU(const std::string& path);   // Can only be called by the CPU thread
+void ChangeDiscAsHost(const std::string& new_path);  // Can only be called by the host thread
+void ChangeDiscAsCPU(const std::string& new_path);   // Can only be called by the CPU thread
 
 // DVD Access Functions
 bool ChangePartition(u64 offset);
 void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address,
                     u32 output_length, bool reply_to_ios);
-void FinishExecutingCommand(bool reply_to_ios, DIInterruptType interrupt_type);
+void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type, s64 cycles_late,
+                            const std::vector<u8>& data = std::vector<u8>());
 
 }  // end of namespace DVDInterface

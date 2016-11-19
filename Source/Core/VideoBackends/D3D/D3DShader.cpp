@@ -46,7 +46,7 @@ bool CompileVertexShader(const std::string& code, D3DBlob** blob)
                            D3D::VertexShaderVersionString(), flags, 0, &shaderBuffer, &errorBuffer);
   if (errorBuffer)
   {
-    INFO_LOG(VIDEO, "Vertex shader compiler messages:\n%s\n",
+    INFO_LOG(VIDEO, "Vertex shader compiler messages:\n%s",
              (const char*)errorBuffer->GetBufferPointer());
   }
 
@@ -107,7 +107,7 @@ bool CompileGeometryShader(const std::string& code, D3DBlob** blob,
 
   if (errorBuffer)
   {
-    INFO_LOG(VIDEO, "Geometry shader compiler messages:\n%s\n",
+    INFO_LOG(VIDEO, "Geometry shader compiler messages:\n%s",
              (const char*)errorBuffer->GetBufferPointer());
   }
 

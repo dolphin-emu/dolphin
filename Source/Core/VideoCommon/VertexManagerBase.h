@@ -33,11 +33,13 @@ struct Slope
 class VertexManagerBase
 {
 private:
-  static const u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float) * 3;  // 3 pos
-  static const u32 LARGEST_POSSIBLE_VERTEX =
-      sizeof(float) * 45 + sizeof(u32) * 2;  // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+  // 3 pos
+  static const u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float) * 3;
+  // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
+  static const u32 LARGEST_POSSIBLE_VERTEX = sizeof(float) * 45 + sizeof(u32) * 2;
 
-  static const u32 MAX_PRIMITIVES_PER_COMMAND = (u16)-1;
+  static const u32 MAX_PRIMITIVES_PER_COMMAND = 65535;
 
 public:
   static const u32 MAXVBUFFERSIZE =
@@ -45,49 +47,64 @@ public:
 
   // We may convert triangle-fans to triangle-lists, almost 3x as many indices.
   static const u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
+#else
+  // 3 pos
+  static constexpr u32 SMALLEST_POSSIBLE_VERTEX = sizeof(float) * 3;
+  // 3 pos, 3*3 normal, 2*u32 color, 8*4 tex, 1 posMat
+  static constexpr u32 LARGEST_POSSIBLE_VERTEX = sizeof(float) * 45 + sizeof(u32) * 2;
+
+  static constexpr u32 MAX_PRIMITIVES_PER_COMMAND = 65535;
+
+public:
+  static constexpr u32 MAXVBUFFERSIZE =
+      ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * LARGEST_POSSIBLE_VERTEX);
+
+  // We may convert triangle-fans to triangle-lists, almost 3x as many indices.
+  static constexpr u32 MAXIBUFFERSIZE = ROUND_UP_POW2(MAX_PRIMITIVES_PER_COMMAND * 3);
+#endif
 
   VertexManagerBase();
   // needs to be virtual for DX11's dtor
   virtual ~VertexManagerBase();
 
-  static DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
-  static void FlushData(u32 count, u32 stride);
+  DataReader PrepareForAdditionalData(int primitive, u32 count, u32 stride, bool cullall);
+  void FlushData(u32 count, u32 stride);
 
-  static void Flush();
+  void Flush();
 
   virtual NativeVertexFormat*
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
 
-  static void DoState(PointerWrap& p);
+  void DoState(PointerWrap& p);
 
   int GetNumberOfVertices();
 
 protected:
   virtual void vDoState(PointerWrap& p) {}
-  static PrimitiveType current_primitive_type;
+  PrimitiveType m_current_primitive_type = PrimitiveType::PRIMITIVE_POINTS;
 
   virtual void ResetBuffer(u32 stride) = 0;
 
-  static u8* s_pCurBufferPointer;
-  static u8* s_pBaseBufferPointer;
-  static u8* s_pEndBufferPointer;
+  u8* m_cur_buffer_pointer = nullptr;
+  u8* m_base_buffer_pointer = nullptr;
+  u8* m_end_buffer_pointer = nullptr;
 
-  static u8* s_pCurReplayBufferPointer;
-  static u8* s_pBaseReplayBufferPointer;
+  u8* m_pCurReplayBufferPointer;
+  u8* m_pBaseReplayBufferPointer;
 
-  static u16* s_pCurIReplayBufferPointer;
-  static u16* s_pBaseIReplayBufferPointer;
+  u16* m_pCurIReplayBufferPointer;
+  u16* m_pBaseIReplayBufferPointer;
 
-  static u32 GetRemainingSize();
+  u32 GetRemainingSize() const;
   static u32 GetRemainingIndices(int primitive);
 
-  static Slope s_zslope;
-  static void CalculateZSlope(NativeVertexFormat* format);
+  Slope m_zslope = {};
+  void CalculateZSlope(NativeVertexFormat* format);
 
-  static bool s_cull_all;
+  bool m_cull_all = false;
 
 private:
-  static bool s_is_flushed;
+  bool m_is_flushed = true;
 
   virtual void vFlush(bool useDstAlpha) = 0;
 

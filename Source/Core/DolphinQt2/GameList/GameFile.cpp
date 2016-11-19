@@ -102,7 +102,7 @@ bool GameFile::LoadFileInfo(const QString& path)
 
 void GameFile::LoadState()
 {
-  IniFile ini = SConfig::LoadGameIni(m_unique_id.toStdString(), m_revision);
+  IniFile ini = SConfig::LoadGameIni(m_game_id.toStdString(), m_revision);
   std::string issues_temp;
   ini.GetIfExists("EmuState", "EmulationStateId", &m_rating);
   ini.GetIfExists("EmuState", "EmulationIssues", &issues_temp);
@@ -142,7 +142,7 @@ bool GameFile::TryLoadVolume()
   if (volume == nullptr)
     return false;
 
-  m_unique_id = QString::fromStdString(volume->GetUniqueID());
+  m_game_id = QString::fromStdString(volume->GetGameID());
   std::string maker_id = volume->GetMakerID();
   m_maker = QString::fromStdString(DiscIO::GetCompanyFromID(maker_id));
   m_maker_id = QString::fromStdString(maker_id);

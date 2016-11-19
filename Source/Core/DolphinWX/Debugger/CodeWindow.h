@@ -4,47 +4,89 @@
 
 #pragma once
 
+#include <array>
+
 #include <wx/aui/framemanager.h>
-#include <wx/bitmap.h>
 #include <wx/panel.h>
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "DolphinWX/Globals.h"
 
+class CCodeView;
 class CFrame;
+struct SConfig;
+class CBreakPointWindow;
 class CRegisterWindow;
 class CWatchWindow;
-class CBreakPointWindow;
 class CMemoryWindow;
 class CJitWindow;
-class CCodeView;
 class DSPDebuggerLLE;
 class GFXDebuggerPanel;
-struct SConfig;
 
-class wxAuiToolBar;
+class DolphinAuiToolBar;
 class wxListBox;
 class wxMenu;
 class wxMenuBar;
 class wxToolBar;
 
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+#define constexpr const
+#endif
+
+namespace Details
+{
+template <class T>
+struct DebugPanelToID;
+
+template <>
+struct DebugPanelToID<CBreakPointWindow>
+{
+  static constexpr int ID = IDM_BREAKPOINT_WINDOW;
+};
+template <>
+struct DebugPanelToID<CRegisterWindow>
+{
+  static constexpr int ID = IDM_REGISTER_WINDOW;
+};
+template <>
+struct DebugPanelToID<CWatchWindow>
+{
+  static constexpr int ID = IDM_WATCH_WINDOW;
+};
+template <>
+struct DebugPanelToID<CMemoryWindow>
+{
+  static constexpr int ID = IDM_MEMORY_WINDOW;
+};
+template <>
+struct DebugPanelToID<CJitWindow>
+{
+  static constexpr int ID = IDM_JIT_WINDOW;
+};
+template <>
+struct DebugPanelToID<DSPDebuggerLLE>
+{
+  static constexpr int ID = IDM_SOUND_WINDOW;
+};
+template <>
+struct DebugPanelToID<GFXDebuggerPanel>
+{
+  static constexpr int ID = IDM_VIDEO_WINDOW;
+};
+}
+
 class CCodeWindow : public wxPanel
 {
 public:
-  CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* parent, wxWindowID id = wxID_ANY,
-              const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-              long style = wxTAB_TRAVERSAL | wxBORDER_NONE, const wxString& name = _("Code"));
+  explicit CCodeWindow(CFrame* parent, wxWindowID id = wxID_ANY,
+                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+                       long style = wxTAB_TRAVERSAL | wxBORDER_NONE,
+                       const wxString& name = _("Code"));
   ~CCodeWindow();
 
   void Load();
   void Save();
-
-  // Parent interaction
-  CFrame* Parent;
-  wxMenuBar* GetMenuBar();
-  wxToolBar* GetToolBar();
-  wxBitmap m_Bitmaps[Toolbar_Debug_Bitmap_Max];
 
   bool UseInterpreter();
   bool BootToPause();
@@ -53,41 +95,41 @@ public:
   bool JITNoBlockLinking();
   bool JumpToAddress(u32 address);
 
-  void Update() override;
+  void Repopulate(bool refresh_codeview = true);
   void NotifyMapLoaded();
-  void CreateMenu(const SConfig& _LocalCoreStartupParameter, wxMenuBar* pMenuBar);
-  void CreateMenuOptions(wxMenu* pMenu);
-  void CreateMenuSymbols(wxMenuBar* pMenuBar);
-  void PopulateToolbar(wxToolBar* toolBar);
-  void UpdateButtonStates();
   void OpenPages();
 
-  // Menu bar
-  void ToggleCodeWindow(bool bShow);
-  void ToggleRegisterWindow(bool bShow);
-  void ToggleWatchWindow(bool bShow);
-  void ToggleBreakPointWindow(bool bShow);
-  void ToggleMemoryWindow(bool bShow);
-  void ToggleJitWindow(bool bShow);
-  void ToggleSoundWindow(bool bShow);
-  void ToggleVideoWindow(bool bShow);
+  // FIXME: This belongs in a separate class.
+  void TogglePanel(int id, bool show);
+  wxPanel* GetUntypedPanel(int id) const;
+  bool HasUntypedPanel(int id) const { return GetUntypedPanel(id) != nullptr; }
+  template <class T>
+  T* GetPanel() const
+  {
+    return static_cast<T*>(GetUntypedPanel(Details::DebugPanelToID<T>::ID));
+  }
+  template <class T>
+  bool HasPanel() const
+  {
+    return HasUntypedPanel(Details::DebugPanelToID<T>::ID);
+  }
+  template <class T>
+  T* RequirePanel()
+  {
+    if (T* p = GetPanel<T>())
+      return p;
 
-  // Sub dialogs
-  CRegisterWindow* m_RegisterWindow;
-  CWatchWindow* m_WatchWindow;
-  CBreakPointWindow* m_BreakpointWindow;
-  CMemoryWindow* m_MemoryWindow;
-  CJitWindow* m_JitWindow;
-  DSPDebuggerLLE* m_SoundWindow;
-  GFXDebuggerPanel* m_VideoWindow;
+    TogglePanel(Details::DebugPanelToID<T>::ID, true);
+    return GetPanel<T>();
+  }
 
   // Settings
-  bool bAutomaticStart;
-  bool bBootToPause;
-  bool bShowOnStart[IDM_VIDEO_WINDOW - IDM_LOG_WINDOW + 1];
-  int iNbAffiliation[IDM_CODE_WINDOW - IDM_LOG_WINDOW + 1];
+  bool bShowOnStart[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START];
+  int iNbAffiliation[IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START];
 
 private:
+  wxMenuBar* GetParentMenuBar();
+
   void OnCPUMode(wxCommandEvent& event);
 
   void OnChangeFont(wxCommandEvent& event);
@@ -99,7 +141,6 @@ private:
   void OnProfilerMenu(wxCommandEvent& event);
 
   void OnSymbolListChange(wxCommandEvent& event);
-  void OnSymbolListContextMenu(wxContextMenuEvent& event);
   void OnCallstackListChange(wxCommandEvent& event);
   void OnCallersListChange(wxCommandEvent& event);
   void OnCallsListChange(wxCommandEvent& event);
@@ -112,11 +153,17 @@ private:
   void StepOut();
   void ToggleBreakpoint();
 
+  void UpdateFonts();
   void UpdateLists();
   void UpdateCallstack();
 
-  void InitBitmaps();
+  wxPanel* CreateSiblingPanel(int id);
 
+  // Sibling debugger panels
+  // FIXME: This obviously belongs in some manager class above this one.
+  std::array<wxPanel*, IDM_DEBUG_WINDOW_LIST_END - IDM_DEBUG_WINDOW_LIST_START> m_sibling_panels{};
+
+  CFrame* Parent;
   CCodeView* codeview;
   wxListBox* callstack;
   wxListBox* symbols;
@@ -125,5 +172,8 @@ private:
   Common::Event sync_event;
 
   wxAuiManager m_aui_manager;
-  wxAuiToolBar* m_aui_toolbar;
+  DolphinAuiToolBar* m_aui_toolbar;
 };
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+#undef constexpr
+#endif

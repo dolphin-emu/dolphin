@@ -22,16 +22,25 @@ const std::string hotkey_labels[] = {
 
     _trans("Toggle Fullscreen"), _trans("Take Screenshot"), _trans("Exit"),
 
-    _trans("Connect Wiimote 1"), _trans("Connect Wiimote 2"), _trans("Connect Wiimote 3"),
-    _trans("Connect Wiimote 4"), _trans("Connect Balance Board"),
+    _trans("Press Sync Button"),
+    _trans("Connect Wii Remote 1"),
+    _trans("Connect Wii Remote 2"),
+    _trans("Connect Wii Remote 3"),
+    _trans("Connect Wii Remote 4"),
+    _trans("Connect Balance Board"),
 
     _trans("Volume Down"), _trans("Volume Up"), _trans("Volume Toggle Mute"),
 
     _trans("Increase IR"), _trans("Decrease IR"),
 
-    _trans("Toggle Crop"), _trans("Toggle Aspect Ratio"), _trans("Toggle EFB Copies"),
-    _trans("Toggle Fog"), _trans("Disable Emulation Speed Limit"),
-    _trans("Decrease Emulation Speed"), _trans("Increase Emulation Speed"),
+    _trans("Toggle Crop"),
+    _trans("Toggle Aspect Ratio"),
+    _trans("Toggle EFB Copies"),
+    _trans("Toggle Fog"),
+    _trans("Disable Emulation Speed Limit"),
+    _trans("Toggle Custom Textures"),
+    _trans("Decrease Emulation Speed"),
+    _trans("Increase Emulation Speed"),
 
     _trans("Freelook Decrease Speed"), _trans("Freelook Increase Speed"),
     _trans("Freelook Reset Speed"), _trans("Freelook Move Up"), _trans("Freelook Move Down"),
@@ -137,12 +146,11 @@ bool IsPressed(int Id, bool held)
   return false;
 }
 
-void Initialize(void* const hwnd)
+void Initialize()
 {
   if (s_config.ControllersNeedToBeCreated())
     s_config.CreateController<HotkeyManager>();
 
-  g_controller_interface.Initialize(hwnd);
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
   // load the saved controller config
@@ -162,8 +170,6 @@ void LoadConfig()
 void Shutdown()
 {
   s_config.ClearControllers();
-
-  g_controller_interface.Shutdown();
 }
 }
 

@@ -69,7 +69,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
     WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
     if (SDCardCreate(128, filename))
     {
-      WARN_LOG(WII_IPC_SD, "Successfully created %s", filename.c_str());
+      INFO_LOG(WII_IPC_SD, "Successfully created %s", filename.c_str());
       m_Card.Open(filename, "r+b");
     }
     if (!m_Card)
@@ -128,11 +128,11 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     u32 reg = Memory::Read_U32(BufferIn);
     u32 val = Memory::Read_U32(BufferIn + 16);
 
-    DEBUG_LOG(WII_IPC_SD, "IOCTL_WRITEHCR 0x%08x - 0x%08x", reg, val);
+    INFO_LOG(WII_IPC_SD, "IOCTL_WRITEHCR 0x%08x - 0x%08x", reg, val);
 
     if (reg >= 0x200)
     {
-      DEBUG_LOG(WII_IPC_SD, "IOCTL_WRITEHCR out of range");
+      WARN_LOG(WII_IPC_SD, "IOCTL_WRITEHCR out of range");
       break;
     }
 
@@ -160,12 +160,12 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
     if (reg >= 0x200)
     {
-      DEBUG_LOG(WII_IPC_SD, "IOCTL_READHCR out of range");
+      WARN_LOG(WII_IPC_SD, "IOCTL_READHCR out of range");
       break;
     }
 
     u32 val = m_Registers[reg];
-    DEBUG_LOG(WII_IPC_SD, "IOCTL_READHCR 0x%08x - 0x%08x", reg, val);
+    INFO_LOG(WII_IPC_SD, "IOCTL_READHCR 0x%08x - 0x%08x", reg, val);
 
     // Just reading the register
     Memory::Write_U32(val, BufferOut);
@@ -173,7 +173,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
   break;
 
   case IOCTL_RESETCARD:
-    DEBUG_LOG(WII_IPC_SD, "IOCTL_RESETCARD");
+    INFO_LOG(WII_IPC_SD, "IOCTL_RESETCARD");
     if (m_Card)
       m_Status |= CARD_INITIALIZED;
     // Returns 16bit RCA and 16bit 0s (meaning success)
@@ -182,7 +182,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
   case IOCTL_SETCLK:
   {
-    DEBUG_LOG(WII_IPC_SD, "IOCTL_SETCLK");
+    INFO_LOG(WII_IPC_SD, "IOCTL_SETCLK");
     // libogc only sets it to 1 and makes sure the return isn't negative...
     // one half of the sdclk divisor: a power of two or zero.
     u32 clock = Memory::Read_U32(BufferIn);
@@ -208,7 +208,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     break;
 
   case IOCTL_GETOCR:
-    DEBUG_LOG(WII_IPC_SD, "IOCTL_GETOCR");
+    INFO_LOG(WII_IPC_SD, "IOCTL_GETOCR");
     Memory::Write_U32(0x80ff8000, BufferOut);
     break;
 
@@ -267,8 +267,8 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
   switch (CommandBuffer.Parameter)
   {
   case IOCTLV_SENDCMD:
-    INFO_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x",
-             Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address));
+    DEBUG_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x",
+              Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address));
     ReturnValue = ExecuteCommand(
         CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size,
         CommandBuffer.InBuffer[1].m_Address, CommandBuffer.InBuffer[1].m_Size,
@@ -346,7 +346,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
     break;
 
   case SEND_CSD:
-    DEBUG_LOG(WII_IPC_SD, "SEND_CSD");
+    INFO_LOG(WII_IPC_SD, "SEND_CSD");
     // <WntrMute> shuffle2_, OCR: 0x80ff8000 CID: 0x38a00000 0x480032d5 0x3c608030 0x8803d420
     // CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
 
@@ -359,7 +359,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
   case ALL_SEND_CID:
   case SEND_CID:
-    DEBUG_LOG(WII_IPC_SD, "(ALL_)SEND_CID");
+    INFO_LOG(WII_IPC_SD, "(ALL_)SEND_CID");
     Memory::Write_U32(0x80114d1c, _BufferOut);
     Memory::Write_U32(0x80080000, _BufferOut + 4);
     Memory::Write_U32(0x8007b520, _BufferOut + 8);
@@ -392,8 +392,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
   {
     // Data address (req.arg) is in byte units in a Standard Capacity SD Memory Card
     // and in block (512 Byte) units in a High Capacity SD Memory Card.
-    DEBUG_LOG(WII_IPC_SD, "%sRead %i Block(s) from 0x%08x bsize %i into 0x%08x!",
-              req.isDMA ? "DMA " : "", req.blocks, req.arg, req.bsize, req.addr);
+    INFO_LOG(WII_IPC_SD, "%sRead %i Block(s) from 0x%08x bsize %i into 0x%08x!",
+             req.isDMA ? "DMA " : "", req.blocks, req.arg, req.bsize, req.addr);
 
     if (m_Card)
     {
@@ -421,8 +421,8 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
   {
     // Data address (req.arg) is in byte units in a Standard Capacity SD Memory Card
     // and in block (512 Byte) units in a High Capacity SD Memory Card.
-    DEBUG_LOG(WII_IPC_SD, "%sWrite %i Block(s) from 0x%08x bsize %i to offset 0x%08x!",
-              req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
+    INFO_LOG(WII_IPC_SD, "%sWrite %i Block(s) from 0x%08x bsize %i to offset 0x%08x!",
+             req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
     if (m_Card && SConfig::GetInstance().bEnableMemcardSdWriting)
     {
@@ -443,13 +443,13 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
     break;
 
   case EVENT_REGISTER:  // async
-    DEBUG_LOG(WII_IPC_SD, "Register event %x", req.arg);
+    INFO_LOG(WII_IPC_SD, "Register event %x", req.arg);
     m_event.type = (EventType)req.arg;
     ret = RET_EVENT_REGISTER;
     break;
 
   case EVENT_UNREGISTER:  // synchronous
-    DEBUG_LOG(WII_IPC_SD, "Unregister event %x", req.arg);
+    INFO_LOG(WII_IPC_SD, "Unregister event %x", req.arg);
     m_event.type = (EventType)req.arg;
     ret = RET_EVENT_UNREGISTER;
     break;

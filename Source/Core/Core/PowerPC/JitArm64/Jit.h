@@ -81,12 +81,15 @@ public:
   void addic(UGeckoInstruction inst);
   void mulli(UGeckoInstruction inst);
   void addzex(UGeckoInstruction inst);
+  void divwx(UGeckoInstruction inst);
   void subfx(UGeckoInstruction inst);
   void addcx(UGeckoInstruction inst);
   void slwx(UGeckoInstruction inst);
   void srwx(UGeckoInstruction inst);
+  void srawx(UGeckoInstruction inst);
   void rlwimix(UGeckoInstruction inst);
   void subfex(UGeckoInstruction inst);
+  void subfzex(UGeckoInstruction inst);
   void subfcx(UGeckoInstruction inst);
   void subfic(UGeckoInstruction inst);
   void addex(UGeckoInstruction inst);
@@ -96,6 +99,7 @@ public:
   void mtmsr(UGeckoInstruction inst);
   void mfmsr(UGeckoInstruction inst);
   void mcrf(UGeckoInstruction inst);
+  void mcrxr(UGeckoInstruction inst);
   void mfsr(UGeckoInstruction inst);
   void mtsr(UGeckoInstruction inst);
   void mfsrin(UGeckoInstruction inst);
@@ -116,6 +120,7 @@ public:
   void dcbx(UGeckoInstruction inst);
   void dcbt(UGeckoInstruction inst);
   void dcbz(UGeckoInstruction inst);
+  void eieio(UGeckoInstruction inst);
 
   // LoadStore floating point
   void lfXX(UGeckoInstruction inst);
@@ -236,10 +241,8 @@ private:
   void ComputeRC(u64 imm, int crf = 0, bool needs_sext = true);
   void ComputeCarry(bool Carry);
   void ComputeCarry();
+  void FlushCarry();
 
-  typedef u32 (*Operation)(u32, u32);
-  void reg_imm(u32 d, u32 a, u32 value, Operation do_op,
-               void (ARM64XEmitter::*op)(Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg, Arm64Gen::ARM64Reg,
-                                         ArithOption),
-               bool Rc = false);
+  void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
+               void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc = false);
 };

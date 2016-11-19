@@ -26,6 +26,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Logging/Log.h"
 
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
@@ -131,7 +132,7 @@ void ARBruteForceDriver()
   }
 }
 
-void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sScreenshotName)
+void SetupScreenshotAndWriteCSV(Renderer *render)
 {
   WARN_LOG(VR, "screenshot = %d, ch_current_position = %d, ", ch_take_screenshot, ch_current_position);
   std::string addr;
@@ -159,18 +160,19 @@ void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sSc
     }
     if (ch_current_position < 0 || prims != original_prim_count || ch_screenshot_all)
     {
-      *s_bScreenshot = true;
+      std::string filename;
       if (ch_current_position < 0)
-        *s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("original %d.png", prims);
+        filename = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("original %d.png", prims);
       else if (prims == 0)
-        *s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("blank %s %s.png", addr, ch_code);
+        filename = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("blank %s %s.png", addr, ch_code);
       else if (prims > original_prim_count)
-        *s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("show %d %s %s.png", prims, addr, ch_code);
+        filename = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("show %d %s %s.png", prims, addr, ch_code);
       else
-        *s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("hide %d %s %s.png", prims, addr, ch_code);
-      //*s_sScreenshotName = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" +
+        filename = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" + StringFromFormat("hide %d %s %s.png", prims, addr, ch_code);
+      //filename = File::GetUserPath(D_SCREENSHOTS_IDX) + ch_title_id + "/" +
       //  std::to_string(ch_current_position) + "_" + addr +
       //  "_" + ch_code + ".png";
+      render->SetScreenshot(filename);
       WARN_LOG(VR, "Requested screenshot");
     }
     else

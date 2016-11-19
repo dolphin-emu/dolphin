@@ -1,8 +1,9 @@
 set(GUI_SRCS
-	ARCodeAddEdit.cpp
 	AboutDolphin.cpp
 	ConfigVR.cpp
 	ControllerConfigDiag.cpp
+	Cheats/ActionReplayCodesPanel.cpp
+	Cheats/ARCodeAddEdit.cpp
 	Cheats/CheatSearchTab.cpp
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp
@@ -36,9 +37,11 @@ set(GUI_SRCS
 	Debugger/WatchWindow.cpp
 	NetPlay/ChangeGameDialog.cpp
 	NetPlay/MD5Dialog.cpp
+	NetPlay/NetPlayLauncher.cpp
 	NetPlay/NetPlaySetupFrame.cpp
 	NetPlay/NetWindow.cpp
 	NetPlay/PadMapDialog.cpp
+	DolphinSlider.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
 	FrameAui.cpp
@@ -51,6 +54,8 @@ set(GUI_SRCS
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
+	MainMenuBar.cpp
+	MainToolBar.cpp
 	MemcardManager.cpp
 	PatchAddEdit.cpp
 	PostProcessingConfigDiag.cpp
@@ -58,6 +63,7 @@ set(GUI_SRCS
 	SoftwareVideoConfigDialog.cpp
 	TASInputDlg.cpp
 	VideoConfigDiag.cpp
+	WxEventUtils.cpp
 	WXInputBase.cpp
 	WxUtils.cpp
 	ConfigVR.cpp)
@@ -131,7 +137,13 @@ if(wxWidgets_FOUND)
 				message(\"(Note: This is only necessary to produce a redistributable binary.\")
 				message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
 				set(BU_CHMOD_BUNDLE_ITEMS ON)
-				execute_process(COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py \"${BUNDLE_PATH}\")
+				execute_process(
+					COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py \"${BUNDLE_PATH}\"
+					RESULT_VARIABLE retcode
+				)
+				if(NOT \${retcode} EQUAL 0)
+					message(FATAL_ERROR \"Error when postprocessing bundle (return code: \${retcode}).\")
+				endif()
 				file(INSTALL \"${CMAKE_SOURCE_DIR}/Data/Sys\"
 					DESTINATION \"${BUNDLE_PATH}/Contents/Resources\"
 					)

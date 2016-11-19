@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "VideoCommon/RenderBase.h"
+
 namespace ARBruteForcer
 {
 // take photo
@@ -33,7 +35,7 @@ extern std::string ch_title_id;
 extern std::string ch_code;
 
 void ARBruteForceDriver();
-void SetupScreenshotAndWriteCSV(volatile bool* s_bScreenshot, std::string* s_sScreenshotName);
+void SetupScreenshotAndWriteCSV(Renderer *render);
 void ParseMapFile(std::string unique_id);
 void IncrementPositionTxt();
 void SaveLastPosition(int position);

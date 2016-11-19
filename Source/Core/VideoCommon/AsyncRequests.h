@@ -4,13 +4,13 @@
 
 #pragma once
 
-#include <atomic>
 #include <condition_variable>
 #include <mutex>
 #include <queue>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Flag.h"
 
 struct EfbPokeData;
 
@@ -70,7 +70,7 @@ public:
 
   void PullEvents()
   {
-    if (!m_empty.load())
+    if (!m_empty.IsSet())
       PullEventsInternal();
   }
   void PushEvent(const Event& event, bool blocking = false);
@@ -84,7 +84,7 @@ private:
 
   static AsyncRequests s_singleton;
 
-  std::atomic<bool> m_empty;
+  Common::Flag m_empty;
   std::queue<Event> m_queue;
   std::mutex m_mutex;
   std::condition_variable m_cond;

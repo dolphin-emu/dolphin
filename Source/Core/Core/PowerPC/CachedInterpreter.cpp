@@ -20,6 +20,7 @@ void CachedInterpreter::Init()
   jo.enableBlocklink = false;
 
   JitBaseBlockCache::Init();
+  UpdateMemoryOptions();
 
   code_block.m_stats = &js.st;
   code_block.m_gpa = &js.gpa;
@@ -31,54 +32,57 @@ void CachedInterpreter::Shutdown()
   JitBaseBlockCache::Shutdown();
 }
 
+void CachedInterpreter::ExecuteOneBlock()
+{
+  const u8* normal_entry = JitBaseBlockCache::Dispatch();
+  const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
+
+  for (; code->type != Instruction::INSTRUCTION_ABORT; ++code)
+  {
+    switch (code->type)
+    {
+    case Instruction::INSTRUCTION_TYPE_COMMON:
+      code->common_callback(UGeckoInstruction(code->data));
+      break;
+
+    case Instruction::INSTRUCTION_TYPE_CONDITIONAL:
+      if (code->conditional_callback(code->data))
+        return;
+      break;
+
+    default:
+      ERROR_LOG(POWERPC, "Unknown CachedInterpreter Instruction: %d", code->type);
+      break;
+    }
+  }
+}
+
 void CachedInterpreter::Run()
 {
-  while (!CPU::GetState())
+  while (CPU::GetState() == CPU::CPU_RUNNING)
   {
-    SingleStep();
+    // Start new timing slice
+    // NOTE: Exceptions may change PC
+    CoreTiming::Advance();
+
+    do
+    {
+      ExecuteOneBlock();
+    } while (PowerPC::ppcState.downcount > 0);
   }
 }
 
 void CachedInterpreter::SingleStep()
 {
-  int block = GetBlockNumberFromStartAddress(PC);
-  if (block >= 0)
-  {
-    Instruction* code = (Instruction*)GetCompiledCodeFromBlock(block);
-
-    while (true)
-    {
-      switch (code->type)
-      {
-      case Instruction::INSTRUCTION_ABORT:
-        return;
-
-      case Instruction::INSTRUCTION_TYPE_COMMON:
-        code->common_callback(UGeckoInstruction(code->data));
-        code++;
-        break;
-
-      case Instruction::INSTRUCTION_TYPE_CONDITIONAL:
-        bool ret = code->conditional_callback(code->data);
-        code++;
-        if (ret)
-          return;
-        break;
-      }
-    }
-  }
-
-  Jit(PC);
+  // Enter new timing slice
+  CoreTiming::Advance();
+  ExecuteOneBlock();
 }
 
 static void EndBlock(UGeckoInstruction data)
 {
   PC = NPC;
   PowerPC::ppcState.downcount -= data.hex;
-  if (PowerPC::ppcState.downcount <= 0)
-  {
-    CoreTiming::Advance();
-  }
 }
 
 static void WritePC(UGeckoInstruction data)
@@ -87,14 +91,30 @@ static void WritePC(UGeckoInstruction data)
   NPC = data.hex + 4;
 }
 
+static void WriteBrokenBlockNPC(UGeckoInstruction data)
+{
+  NPC = data.hex;
+}
+
 static bool CheckFPU(u32 data)
 {
   UReg_MSR& msr = (UReg_MSR&)MSR;
   if (!msr.FP)
   {
-    PC = NPC = data;
     PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
     PowerPC::CheckExceptions();
+    PowerPC::ppcState.downcount -= data;
+    return true;
+  }
+  return false;
+}
+
+static bool CheckDSI(u32 data)
+{
+  if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
+  {
+    PowerPC::CheckExceptions();
+    PowerPC::ppcState.downcount -= data;
     return true;
   }
   return false;
@@ -124,7 +144,7 @@ void CachedInterpreter::Jit(u32 address)
 
   js.blockStart = PC;
   js.firstFPInstructionFound = false;
-  js.fifoBytesThisBlock = 0;
+  js.fifoBytesSinceCheck = 0;
   js.downcountAmount = 0;
   js.curBlock = b;
 
@@ -161,22 +181,29 @@ void CachedInterpreter::Jit(u32 address)
 
     if (!ops[i].skip)
     {
-      if ((ops[i].opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound)
+      bool check_fpu = (ops[i].opinfo->flags & FL_USE_FPU) && !js.firstFPInstructionFound;
+      bool endblock = (ops[i].opinfo->flags & FL_ENDBLOCK) != 0;
+      bool memcheck = (ops[i].opinfo->flags & FL_LOADSTORE) && jo.memcheck;
+
+      if (check_fpu)
       {
-        m_code.emplace_back(CheckFPU, ops[i].address);
+        m_code.emplace_back(WritePC, ops[i].address);
+        m_code.emplace_back(CheckFPU, js.downcountAmount);
         js.firstFPInstructionFound = true;
       }
 
-      if (ops[i].opinfo->flags & FL_ENDBLOCK)
+      if (endblock || memcheck)
         m_code.emplace_back(WritePC, ops[i].address);
       m_code.emplace_back(GetInterpreterOp(ops[i].inst), ops[i].inst);
-      if (ops[i].opinfo->flags & FL_ENDBLOCK)
+      if (memcheck)
+        m_code.emplace_back(CheckDSI, js.downcountAmount);
+      if (endblock)
         m_code.emplace_back(EndBlock, js.downcountAmount);
     }
   }
   if (code_block.m_broken)
   {
-    m_code.emplace_back(WritePC, nextPC);
+    m_code.emplace_back(WriteBrokenBlockNPC, nextPC);
     m_code.emplace_back(EndBlock, js.downcountAmount);
   }
   m_code.emplace_back();
@@ -191,12 +218,5 @@ void CachedInterpreter::ClearCache()
 {
   m_code.clear();
   JitBaseBlockCache::Clear();
-}
-
-void CachedInterpreter::WriteDestroyBlock(const u8* location, u32 address)
-{
-}
-
-void CachedInterpreter::WriteLinkBlock(u8* location, const JitBlock& block)
-{
+  UpdateMemoryOptions();
 }

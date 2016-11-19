@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
+#include "Common/GL/GLInterfaceBase.h"
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
@@ -76,19 +77,19 @@ void VertexManager::PrepareDrawBuffers(u32 stride)
 
 void VertexManager::ResetBuffer(u32 stride)
 {
-  if (s_cull_all)
+  if (m_cull_all)
   {
     // This buffer isn't getting sent to the GPU. Just allocate it on the cpu.
-    s_pCurBufferPointer = s_pBaseBufferPointer = m_cpu_v_buffer.data();
-    s_pEndBufferPointer = s_pBaseBufferPointer + m_cpu_v_buffer.size();
+    m_cur_buffer_pointer = m_base_buffer_pointer = m_cpu_v_buffer.data();
+    m_end_buffer_pointer = m_base_buffer_pointer + m_cpu_v_buffer.size();
 
     IndexGenerator::Start((u16*)m_cpu_i_buffer.data());
   }
   else
   {
     auto buffer = s_vertexBuffer->Map(MAXVBUFFERSIZE, stride);
-    s_pCurBufferPointer = s_pBaseBufferPointer = buffer.first;
-    s_pEndBufferPointer = buffer.first + MAXVBUFFERSIZE;
+    m_cur_buffer_pointer = m_base_buffer_pointer = buffer.first;
+    m_end_buffer_pointer = buffer.first + MAXVBUFFERSIZE;
     s_baseVertex = buffer.second / stride;
 
     buffer = s_indexBuffer->Map(MAXIBUFFERSIZE * sizeof(u16));
@@ -103,7 +104,7 @@ void VertexManager::Draw(u32 stride)
   u32 max_index = IndexGenerator::GetNumVerts();
   GLenum primitive_mode = 0;
 
-  switch (current_primitive_type)
+  switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
     primitive_mode = GL_POINTS;
@@ -132,7 +133,7 @@ void VertexManager::Draw(u32 stride)
 
   INCSTAT(stats.thisFrame.numDrawCalls);
 
-  if (current_primitive_type != PRIMITIVE_TRIANGLES)
+  if (m_current_primitive_type != PRIMITIVE_TRIANGLES)
     static_cast<Renderer*>(g_renderer.get())->SetGenerationMode();
 }
 
@@ -158,11 +159,11 @@ void VertexManager::vFlush(bool useDstAlpha)
   // the same pass as regular rendering.
   if (useDstAlpha && dualSourcePossible)
   {
-    ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, current_primitive_type);
+    ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, m_current_primitive_type);
   }
   else
   {
-    ProgramShaderCache::SetShader(DSTALPHA_NONE, current_primitive_type);
+    ProgramShaderCache::SetShader(DSTALPHA_NONE, m_current_primitive_type);
   }
 
   // upload global constants
@@ -173,15 +174,25 @@ void VertexManager::vFlush(bool useDstAlpha)
 
   Draw(stride);
 
-  // run through vertex groups again to set alpha
-  if (useDstAlpha && !dualSourcePossible)
+  // If the GPU does not support dual-source blending, we can approximate the effect by drawing
+  // the object a second time, with the write mask set to alpha only using a shader that outputs
+  // the destination/constant alpha value (which would normally be SRC_COLOR.a).
+  //
+  // This is also used when logic ops and destination alpha is enabled, since we can't enable
+  // blending and logic ops concurrently.
+  bool logic_op_enabled = (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable &&
+                           GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL);
+  if (useDstAlpha && (!dualSourcePossible || logic_op_enabled))
   {
-    ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, current_primitive_type);
+    ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, m_current_primitive_type);
 
     // only update alpha
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
 
     glDisable(GL_BLEND);
+
+    if (logic_op_enabled)
+      glDisable(GL_COLOR_LOGIC_OP);
 
     Draw(stride);
 
@@ -190,6 +201,9 @@ void VertexManager::vFlush(bool useDstAlpha)
 
     if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
       glEnable(GL_BLEND);
+
+    if (logic_op_enabled)
+      glEnable(GL_COLOR_LOGIC_OP);
   }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
@@ -201,26 +215,13 @@ void VertexManager::vFlush(bool useDstAlpha)
         "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
     std::ofstream fps;
     OpenFStream(fps, filename, std::ios_base::out);
-    fps << prog.shader.strpprog.c_str();
+    fps << prog.shader.strpprog;
 
     filename = StringFromFormat("%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
                                 g_ActiveConfig.iSaveTargetId);
     std::ofstream fvs;
     OpenFStream(fvs, filename, std::ios_base::out);
-    fvs << prog.shader.strvprog.c_str();
-  }
-
-  if (g_ActiveConfig.iLog & CONF_SAVETARGETS)
-  {
-    std::string filename =
-        StringFromFormat("%starg%.3d.png", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                         g_ActiveConfig.iSaveTargetId);
-    TargetRectangle tr;
-    tr.left = 0;
-    tr.right = Renderer::GetTargetWidth();
-    tr.top = 0;
-    tr.bottom = Renderer::GetTargetHeight();
-    g_renderer->SaveScreenshot(filename, tr);
+    fvs << prog.shader.strvprog;
   }
 #endif
   g_Config.iSaveTargetId++;

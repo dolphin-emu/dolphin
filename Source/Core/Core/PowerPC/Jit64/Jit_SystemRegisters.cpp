@@ -243,7 +243,7 @@ void Jit64::mtspr(UGeckoInstruction inst)
     FixupBranch dont_reset_icache = J_CC(CC_NC);
     BitSet32 regs = CallerSavedRegistersInUse();
     ABI_PushRegistersAndAdjustStack(regs, 0);
-    ABI_CallFunction((void*)DoICacheReset);
+    ABI_CallFunction(DoICacheReset);
     ABI_PopRegistersAndAdjustStack(regs, 0);
     SetJumpTarget(dont_reset_icache);
     break;
@@ -286,13 +286,13 @@ void Jit64::mfspr(UGeckoInstruction inst)
     // cost of calling out to C for this is actually significant.
     // Scale downcount by the CPU overclocking factor.
     CVTSI2SS(XMM0, PPCSTATE(downcount));
-    MULSS(XMM0, M(&CoreTiming::g_lastOCFactor_inverted));
+    MULSS(XMM0, M(&CoreTiming::g_last_OC_factor_inverted));
     CVTSS2SI(RDX, R(XMM0));  // RDX is downcount scaled by the overclocking factor
-    MOV(32, R(RAX), M(&CoreTiming::g_slicelength));
+    MOV(32, R(RAX), M(&CoreTiming::g_slice_length));
     SUB(64, R(RAX), R(RDX));  // cycles since the last CoreTiming::Advance() event is (slicelength -
                               // Scaled_downcount)
-    ADD(64, R(RAX), M(&CoreTiming::g_globalTimer));
-    SUB(64, R(RAX), M(&CoreTiming::g_fakeTBStartTicks));
+    ADD(64, R(RAX), M(&CoreTiming::g_global_timer));
+    SUB(64, R(RAX), M(&CoreTiming::g_fake_TB_start_ticks));
     // It might seem convenient to correct the timer for the block position here for even more
     // accurate
     // timing, but as of currently, this can break games. If we end up reading a time *after* the
@@ -308,7 +308,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
     // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
     MOV(64, R(RDX), Imm64(0xAAAAAAAAAAAAAAABULL));
     MUL(64, R(RDX));
-    MOV(64, R(RAX), M(&CoreTiming::g_fakeTBStartValue));
+    MOV(64, R(RAX), M(&CoreTiming::g_fake_TB_start_value));
     SHR(64, R(RDX), Imm8(3));
     ADD(64, R(RAX), R(RDX));
     MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
@@ -390,6 +390,10 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   gpr.UnlockAll();
   gpr.Flush();
   fpr.Flush();
+
+  // Our jit cache also stores some MSR bits, as they have changed, we either
+  // have to validate them in the BLR/RET check, or just flush the stack here.
+  asm_routines.ResetStack(*this);
 
   // If some exceptions are pending and EE are now enabled, force checking
   // external exceptions when going out of mtmsr in order to execute delayed

@@ -52,7 +52,10 @@ struct pixel_shader_uid_data
   u32 zfreeze : 1;
   u32 msaa : 1;
   u32 ssaa : 1;
-  u32 pad : 16;
+  u32 numColorChans : 2;
+  u32 rgba6_format : 1;
+  u32 dither : 1;
+  u32 pad : 12;
 
   u32 texMtxInfo_n_projection : 8;  // 8x1 bit
   u32 tevindref_bi0 : 3;
@@ -166,6 +169,5 @@ struct pixel_shader_uid_data
 
 typedef ShaderUid<pixel_shader_uid_data> PixelShaderUid;
 
-ShaderCode GeneratePixelShaderCode(DSTALPHA_MODE dstAlphaMode, APIType ApiType,
-                                   const pixel_shader_uid_data* uid_data);
+ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data* uid_data);
 PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode);

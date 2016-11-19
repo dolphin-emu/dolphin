@@ -25,7 +25,7 @@ Renderer::~Renderer()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-  NOTICE_LOG(VIDEO, "RenderText: %s\n", text.c_str());
+  NOTICE_LOG(VIDEO, "RenderText: %s", text.c_str());
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -38,7 +38,7 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
   return result;
 }
 
-void Renderer::SwapImpl(u32, u32, u32, u32, const EFBRectangle&, float)
+void Renderer::SwapImpl(u32, u32, u32, u32, const EFBRectangle&, u64, float)
 {
   UpdateActiveConfig();
 }

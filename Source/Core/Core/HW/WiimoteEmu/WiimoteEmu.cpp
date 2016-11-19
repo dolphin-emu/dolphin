@@ -300,9 +300,9 @@ Wiimote::Wiimote(const unsigned int index)
   m_options->boolean_settings.emplace_back(
       std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BooleanSetting>(_trans("Sideways Wiimote"), false));
+      std::make_unique<ControlGroup::BooleanSetting>(_trans("Sideways Wii Remote"), false));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BooleanSetting>(_trans("Upright Wiimote"), false));
+      std::make_unique<ControlGroup::BooleanSetting>(_trans("Upright Wii Remote"), false));
   m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
       _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
   m_options->numeric_settings.emplace_back(
@@ -310,8 +310,18 @@ Wiimote::Wiimote(const unsigned int index)
   m_options->numeric_settings.emplace_back(
       std::make_unique<ControlGroup::NumericSetting>(_trans("Battery"), 95.0 / 100, 0, 255));
 
+  // hotkeys
+  groups.emplace_back(m_hotkeys = new ModifySettingsButton(_trans("Hotkeys")));
+  // hotkeys to temporarily modify the Wii Remote orientation (sideways, upright)
+  // this setting modifier is toggled
+  m_hotkeys->AddInput(_trans("Sideways Toggle"), true);
+  m_hotkeys->AddInput(_trans("Upright Toggle"), true);
+  // this setting modifier is not toggled
+  m_hotkeys->AddInput(_trans("Sideways Hold"), false);
+  m_hotkeys->AddInput(_trans("Upright Hold"), false);
+
   // TODO: This value should probably be re-read if SYSCONF gets changed
-  m_sensor_bar_on_top = SConfig::GetInstance().m_SYSCONF->GetData<u8>("BT.BAR") != 0;
+  m_sensor_bar_on_top = SConfig::GetInstance().m_sensor_bar_position != 0;
 
   // --- reset eeprom/register/values to default ---
   Reset();
@@ -357,7 +367,7 @@ bool Wiimote::Step()
   }
 
   // check if a status report needs to be sent
-  // this happens on Wiimote sync and when extensions are switched
+  // this happens on Wii Remote sync and when extensions are switched
   if (m_extension->active_extension != m_extension->switch_extension)
   {
     RequestStatus();
@@ -387,7 +397,10 @@ void Wiimote::UpdateButtonsStatus()
 {
   // update buttons in status struct
   m_status.buttons.hex = 0;
-  const bool is_sideways = m_options->boolean_settings[1]->GetValue();
+  const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
+  const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
+  const bool is_sideways = m_options->boolean_settings[1]->GetValue() ^ sideways_modifier_toggle ^
+                           sideways_modifier_switch;
   m_buttons->GetState(&m_status.buttons.hex, button_bitmasks);
   m_dpad->GetState(&m_status.buttons.hex, is_sideways ? dpad_sideways_bitmasks : dpad_bitmasks);
   bool cycle_extension = false;
@@ -413,8 +426,14 @@ void Wiimote::GetButtonData(u8* const data)
 
 void Wiimote::GetAccelData(u8* const data, const ReportFeatures& rptf)
 {
-  const bool is_sideways = m_options->boolean_settings[1]->GetValue();
-  const bool is_upright = m_options->boolean_settings[2]->GetValue();
+  const bool sideways_modifier_toggle = m_hotkeys->getSettingsModifier()[0];
+  const bool upright_modifier_toggle = m_hotkeys->getSettingsModifier()[1];
+  const bool sideways_modifier_switch = m_hotkeys->getSettingsModifier()[2];
+  const bool upright_modifier_switch = m_hotkeys->getSettingsModifier()[3];
+  const bool is_sideways = m_options->boolean_settings[1]->GetValue() ^ sideways_modifier_toggle ^
+                           sideways_modifier_switch;
+  const bool is_upright = m_options->boolean_settings[2]->GetValue() ^ upright_modifier_toggle ^
+                          upright_modifier_switch;
 
   EmulateTilt(&m_accel, m_tilt, is_sideways, is_upright);
 
@@ -724,6 +743,9 @@ void Wiimote::Update()
 
     auto lock = ControllerEmu::GetStateLock();
 
+    // hotkey/settings modifier
+    m_hotkeys->GetState();  // data is later accessed in UpdateButtonsStatus and GetAccelData
+
     // core buttons
     if (rptf.core)
       GetButtonData(data + rptf.core);
@@ -740,7 +762,7 @@ void Wiimote::Update()
     if (rptf.ext)
       GetExtData(data + rptf.ext);
 
-    // hybrid Wiimote stuff (for now, it's not supported while recording)
+    // hybrid Wii Remote stuff (for now, it's not supported while recording)
     if (WIIMOTE_SRC_HYBRID == g_wiimote_sources[m_index] && !Movie::IsRecordingInput())
     {
       using namespace WiimoteReal;
@@ -823,7 +845,7 @@ void Wiimote::Update()
   }
   if (NetPlay::IsNetPlayRunning())
   {
-    NetPlay_GetWiimoteData(m_index, data, rptf.size);
+    NetPlay_GetWiimoteData(m_index, data, rptf.size, m_reporting_mode);
     if (rptf.core)
       m_status.buttons = *(wm_buttons*)(data + rptf.core);
   }
@@ -846,7 +868,7 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
   // Check for custom communication
   if (99 == _channelID)
   {
-    // Wiimote disconnected
+    // Wii Remote disconnected
     // reset eeprom/register/reporting mode
     Reset();
     if (WIIMOTE_SRC_REAL & g_wiimote_sources[m_index])
@@ -859,8 +881,8 @@ void Wiimote::ControlChannel(const u16 _channelID, const void* _pData, u32 _Size
 
   const hid_packet* const hidp = (hid_packet*)_pData;
 
-  INFO_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index,
-           hidp->type, hidp->param);
+  DEBUG_LOG(WIIMOTE, "Emu ControlChannel (page: %i, type: 0x%02x, param: 0x%02x)", m_index,
+            hidp->type, hidp->param);
 
   switch (hidp->type)
   {
@@ -962,7 +984,7 @@ void Wiimote::ConnectOnInput()
   {
     Host_ConnectWiimote(m_index, true);
     // arbitrary value so it doesn't try to send multiple requests before Dolphin can react
-    // if Wiimotes are polled at 200Hz then this results in one request being sent per 500ms
+    // if Wii Remotes are polled at 200Hz then this results in one request being sent per 500ms
     m_last_connect_request_counter = 100;
   }
 }

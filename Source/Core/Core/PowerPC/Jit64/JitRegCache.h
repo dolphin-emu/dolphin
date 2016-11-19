@@ -161,7 +161,7 @@ public:
   void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
   Gen::OpArg GetDefaultLocation(size_t reg) const override;
   const Gen::X64Reg* GetAllocationOrder(size_t* count) override;
-  void SetImmediate32(size_t preg, u32 immValue);
+  void SetImmediate32(size_t preg, u32 immValue, bool dirty = true);
   BitSet32 GetRegUtilization() override;
   BitSet32 CountRegsIn(size_t preg, u32 lookahead) override;
 };

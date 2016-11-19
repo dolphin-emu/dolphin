@@ -10,6 +10,7 @@
 #include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
@@ -34,6 +35,12 @@ Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
 PPCDebugInterface debug_interface;
+
+static CoreTiming::EventType* s_invalidate_cache_thread_safe;
+static void InvalidateCacheThreadSafe(u64 userdata, s64 cyclesLate)
+{
+  ppcState.iCache.Invalidate(static_cast<u32>(userdata));
+}
 
 u32 CompactCR()
 {
@@ -66,6 +73,11 @@ void DoState(PointerWrap& p)
   // comes first :)
 
   p.DoPOD(ppcState);
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    IBATUpdated();
+    DBATUpdated();
+  }
 
   // SystemTimers::DecrementerSet();
   // SystemTimers::TimeBaseSet();
@@ -101,6 +113,9 @@ static void ResetRegisters()
   for (auto& v : ppcState.cr_val)
     v = 0x8000000000000001;
 
+  DBATUpdated();
+  IBATUpdated();
+
   TL = 0;
   TU = 0;
   SystemTimers::TimeBaseSet();
@@ -116,6 +131,9 @@ void Init(int cpu_core)
   // NOTE: This function runs on EmuThread, not the CPU Thread.
   //   Changing the rounding mode has a limited effect.
   FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
+
+  s_invalidate_cache_thread_safe =
+      CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
 
   memset(ppcState.sr, 0, sizeof(ppcState.sr));
   ppcState.pagetable_base = 0;
@@ -171,6 +189,15 @@ void Init(int cpu_core)
 
   if (SConfig::GetInstance().bEnableDebugging)
     breakpoints.ClearAllTemporary();
+}
+
+void ScheduleInvalidateCacheThreadSafe(u32 address)
+{
+  if (CPU::GetState() == CPU::State::CPU_RUNNING)
+    CoreTiming::ScheduleEvent(0, s_invalidate_cache_thread_safe, address,
+                              CoreTiming::FromThread::NON_CPU);
+  else
+    PowerPC::ppcState.iCache.Invalidate(static_cast<u32>(address));
 }
 
 void Shutdown()
@@ -251,7 +278,6 @@ void SingleStep()
 
 void RunLoop()
 {
-  Host_UpdateDisasmDialog();
   s_cpu_core_base->Run();
   Host_UpdateDisasmDialog();
 }
@@ -345,7 +371,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000400;
 
-    INFO_LOG(POWERPC, "EXCEPTION_ISI");
+    DEBUG_LOG(POWERPC, "EXCEPTION_ISI");
     ppcState.Exceptions &= ~EXCEPTION_ISI;
   }
   else if (exceptions & EXCEPTION_PROGRAM)
@@ -357,7 +383,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000700;
 
-    INFO_LOG(POWERPC, "EXCEPTION_PROGRAM");
+    DEBUG_LOG(POWERPC, "EXCEPTION_PROGRAM");
     ppcState.Exceptions &= ~EXCEPTION_PROGRAM;
   }
   else if (exceptions & EXCEPTION_SYSCALL)
@@ -368,7 +394,7 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000C00;
 
-    INFO_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
+    DEBUG_LOG(POWERPC, "EXCEPTION_SYSCALL (PC=%08x)", PC);
     ppcState.Exceptions &= ~EXCEPTION_SYSCALL;
   }
   else if (exceptions & EXCEPTION_FPU_UNAVAILABLE)
@@ -380,15 +406,13 @@ void CheckExceptions()
     MSR &= ~0x04EF36;
     PC = NPC = 0x00000800;
 
-    INFO_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
+    DEBUG_LOG(POWERPC, "EXCEPTION_FPU_UNAVAILABLE");
     ppcState.Exceptions &= ~EXCEPTION_FPU_UNAVAILABLE;
   }
-#ifdef ENABLE_MEM_CHECK
   else if (exceptions & EXCEPTION_FAKE_MEMCHECK_HIT)
   {
     ppcState.Exceptions &= ~EXCEPTION_DSI & ~EXCEPTION_FAKE_MEMCHECK_HIT;
   }
-#endif
   else if (exceptions & EXCEPTION_DSI)
   {
     SRR0 = PC;
@@ -398,7 +422,7 @@ void CheckExceptions()
     PC = NPC = 0x00000300;
     // DSISR and DAR regs are changed in GenerateDSIException()
 
-    INFO_LOG(POWERPC, "EXCEPTION_DSI");
+    DEBUG_LOG(POWERPC, "EXCEPTION_DSI");
     ppcState.Exceptions &= ~EXCEPTION_DSI;
   }
   else if (exceptions & EXCEPTION_ALIGNMENT)
@@ -413,7 +437,7 @@ void CheckExceptions()
 
     // TODO crazy amount of DSISR options to check out
 
-    INFO_LOG(POWERPC, "EXCEPTION_ALIGNMENT");
+    DEBUG_LOG(POWERPC, "EXCEPTION_ALIGNMENT");
     ppcState.Exceptions &= ~EXCEPTION_ALIGNMENT;
   }
 
@@ -440,7 +464,7 @@ void CheckExternalExceptions()
       MSR &= ~0x04EF36;
       PC = NPC = 0x00000500;
 
-      INFO_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
+      DEBUG_LOG(POWERPC, "EXCEPTION_EXTERNAL_INT");
       ppcState.Exceptions &= ~EXCEPTION_EXTERNAL_INT;
 
       _dbg_assert_msg_(POWERPC, (SRR1 & 0x02) != 0, "EXTERNAL_INT unrecoverable???");
@@ -453,7 +477,7 @@ void CheckExternalExceptions()
       MSR &= ~0x04EF36;
       PC = NPC = 0x00000F00;
 
-      INFO_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
+      DEBUG_LOG(POWERPC, "EXCEPTION_PERFORMANCE_MONITOR");
       ppcState.Exceptions &= ~EXCEPTION_PERFORMANCE_MONITOR;
     }
     else if (exceptions & EXCEPTION_DECREMENTER)
@@ -464,7 +488,7 @@ void CheckExternalExceptions()
       MSR &= ~0x04EF36;
       PC = NPC = 0x00000900;
 
-      INFO_LOG(POWERPC, "EXCEPTION_DECREMENTER");
+      DEBUG_LOG(POWERPC, "EXCEPTION_DECREMENTER");
       ppcState.Exceptions &= ~EXCEPTION_DECREMENTER;
     }
     else

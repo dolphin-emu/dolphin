@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.model.settings.view;
 
-
 import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.settings.Setting;
 
@@ -8,9 +7,9 @@ public final class CheckBoxSetting extends SettingsItem
 {
 	private boolean mDefaultValue;
 
-	public CheckBoxSetting(String key, String section, int titleId, int descriptionId, boolean defaultValue, Setting setting)
+	public CheckBoxSetting(String key, String section, int file, int titleId, int descriptionId, boolean defaultValue, Setting setting)
 	{
-		super(key, section, setting, titleId, descriptionId);
+		super(key, section, file, setting, titleId, descriptionId);
 		mDefaultValue = defaultValue;
 	}
 
@@ -36,7 +35,7 @@ public final class CheckBoxSetting extends SettingsItem
 	{
 		if (getSetting() == null)
 		{
-			BooleanSetting setting = new BooleanSetting(getKey(), getSection(), checked);
+			BooleanSetting setting = new BooleanSetting(getKey(), getSection(), getFile(), checked);
 			setSetting(setting);
 			return setting;
 		}

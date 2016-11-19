@@ -56,4 +56,4 @@ if (DSPTOOL)
 	add_subdirectory(DSPTool)
 endif()
 
-# TODO: Add DSPSpy. Preferrably make it option() and cpack component
+# TODO: Add DSPSpy. Preferably make it option() and cpack component

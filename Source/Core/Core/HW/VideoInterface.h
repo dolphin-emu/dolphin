@@ -337,7 +337,7 @@ u32 GetXFBAddressTop();
 u32 GetXFBAddressBottom();
 
 // Update and draw framebuffer
-void Update();
+void Update(u64 ticks);
 
 // UpdateInterrupts: check if we have to generate a new VI Interrupt
 void UpdateInterrupts();

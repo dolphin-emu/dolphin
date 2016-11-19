@@ -7,6 +7,8 @@
 #include <wx/arrstr.h>
 #include <wx/panel.h>
 
+enum TEXIDevices : int;
+
 class wxButton;
 class wxCheckBox;
 class wxChoice;
@@ -20,7 +22,7 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
-  void RefreshGUI();
+  void BindEvents();
 
   void OnSystemLanguageChange(wxCommandEvent&);
   void OnOverrideLanguageCheckBoxChanged(wxCommandEvent&);

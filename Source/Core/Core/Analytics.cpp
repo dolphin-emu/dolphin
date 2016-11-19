@@ -187,10 +187,10 @@ void DolphinAnalytics::MakePerGameBuilder()
   Common::AnalyticsReportBuilder builder(m_base_builder);
 
   // Gameid.
-  builder.AddData("gameid", SConfig::GetInstance().GetUniqueID());
+  builder.AddData("gameid", SConfig::GetInstance().GetGameID());
 
   // Unique id bound to the gameid.
-  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetUniqueID()));
+  builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
 
   // Configuration.
   builder.AddData("cfg-dsp-hle", SConfig::GetInstance().bDSPHLE);
@@ -216,8 +216,6 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("cfg-gfx-realxfb", g_Config.RealXFBEnabled());
   builder.AddData("cfg-gfx-virtualxfb", g_Config.VirtualXFBEnabled());
   builder.AddData("cfg-gfx-vsync", g_Config.bVSync);
-  builder.AddData("cfg-gfx-fullscreen", g_Config.bFullscreen);
-  builder.AddData("cfg-gfx-exclusive-mode", g_Config.bExclusiveMode);
   builder.AddData("cfg-gfx-aspect-ratio", g_Config.iAspectRatio);
   builder.AddData("cfg-gfx-efb-access", g_Config.bEFBAccessEnable);
   builder.AddData("cfg-gfx-efb-scale", g_Config.iEFBScale);

@@ -14,6 +14,7 @@ import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.BooleanSetting;
 import org.dolphinemu.dolphinemu.model.settings.FloatSetting;
 import org.dolphinemu.dolphinemu.model.settings.IntSetting;
+import org.dolphinemu.dolphinemu.model.settings.StringSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.CheckBoxSetting;
 import org.dolphinemu.dolphinemu.model.settings.view.SettingsItem;
 import org.dolphinemu.dolphinemu.model.settings.view.SingleChoiceSetting;
@@ -129,6 +130,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			mView.putSetting(setting);
 		}
 
+		if (item.getKey().equals(SettingsFile.KEY_SKIP_EFB) || item.getKey().equals(SettingsFile.KEY_IGNORE_FORMAT))
+		{
+			mView.putSetting(new BooleanSetting(item.getKey(), item.getSection(), item.getFile(), !checked));
+		}
+
 		mView.onSettingChanged();
 	}
 
@@ -157,8 +163,8 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 
 		builder.setTitle(item.getNameId());
 		builder.setView(view);
-		builder.setPositiveButton(R.string.dialog_seekbar_pos, this);
-		builder.setNegativeButton(R.string.dialog_seekbar_neg, this);
+		builder.setPositiveButton(R.string.ok, this);
+		builder.setNegativeButton(R.string.cancel, this);
 		mDialog = builder.show();
 
 		mTextSliderValue = (TextView) view.findViewById(R.id.text_value);
@@ -207,7 +213,11 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 			}
 			else
 			{
-				if (scSetting.getKey().equals(SettingsFile.KEY_XFB_METHOD))
+				if (scSetting.getKey().equals(SettingsFile.KEY_VIDEO_BACKEND_INDEX))
+				{
+					putVideoBackendSetting(which);
+				}
+				else if (scSetting.getKey().equals(SettingsFile.KEY_XFB_METHOD))
 				{
 					putXfbSetting(which);
 				}
@@ -318,6 +328,31 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		return -1;
 	}
 
+	public void putVideoBackendSetting(int which)
+	{
+		StringSetting gfxBackend = null;
+		switch (which)
+		{
+			case 0:
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "OGL");
+				break;
+
+			case 1:
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "Vulkan");
+				break;
+
+			case 2:
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "SW");
+				break;
+
+			case 3:
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "Null");
+				break;
+		}
+
+		mView.putSetting(gfxBackend);
+	}
+
 	public void putXfbSetting(int which)
 	{
 		BooleanSetting xfbEnable = null;
@@ -326,18 +361,18 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 		switch (which)
 		{
 			case 0:
-				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, false);
-				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, false);
+				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
+				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
 				break;
 
 			case 1:
-				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, true);
-				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, false);
+				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, true);
+				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, false);
 				break;
 
 			case 2:
-				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, true);
-				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, true);
+				xfbEnable = new BooleanSetting(SettingsFile.KEY_XFB, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, true);
+				xfbReal = new BooleanSetting(SettingsFile.KEY_XFB_REAL, SettingsFile.SECTION_GFX_SETTINGS, SettingsFile.SETTINGS_GFX, true);
 				break;
 		}
 

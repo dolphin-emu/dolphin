@@ -188,36 +188,38 @@ else()
 	add_definitions(-D_ARCH_32=1)
 endif()
 
-if(NOT ENABLE_GENERIC)
-	if(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
-	   ${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
-	   APPLE)
-		if(_ARCH_64)
-			set(_M_X86 1)
-			set(_M_X86_64 1)
-			add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
-			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
-		else()
-			message(FATAL_ERROR "x86_32 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
-		endif()
-	elseif(${CMAKE_SYSTEM_PROCESSOR} MATCHES "^arm")
-		message(FATAL_ERROR "ARMv7 is an unsupported platform. Enable generic build if you really want a JIT-less binary.")
-	elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
-		# This option only applies to 64bit ARM
-		set(_M_ARM 1)
-		set(_M_ARM_64 1)
-		add_definitions(-D_M_ARM=1 -D_M_ARM_64=1)
-		add_definitions(-march=armv8-a+crc)
-	else()
-		set(ENABLE_GENERIC 1)
-	endif()
-endif()
-
+include(CheckCCompilerFlag)
 if(ENABLE_GENERIC)
 	message("Warning! Building generic build!")
 	set(_M_GENERIC 1)
 	add_definitions(-D_M_GENERIC=1)
+elseif(_ARCH_64 AND (
+	${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
+	${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
+	${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
+	APPLE
+))
+	set(_M_X86 1)
+	set(_M_X86_64 1)
+	add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
+	if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+		CHECK_C_COMPILER_FLAG("-no-pie" NO_PIE_UPSTREAM)
+		if(NO_PIE_UPSTREAM)
+			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -no-pie")
+		endif()
+		CHECK_C_COMPILER_FLAG("-nopie" NO_PIE_PATCHED)
+		if(NO_PIE_PATCHED)
+			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nopie")
+		endif()
+	endif()
+elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+	set(_M_ARM 1)
+	set(_M_ARM_64 1)
+	add_definitions(-D_M_ARM=1 -D_M_ARM_64=1)
+	add_definitions(-march=armv8-a+crc)
+else()
+	message(FATAL_ERROR "You're building on an unsupported platform. Enable generic build if you really want a JIT-less binary.")
 endif()
 
 include(CheckCXXCompilerFlag)
@@ -273,10 +275,9 @@ if(APPLE)
 		# increase the chance of not depending on a bunch of copies of them
 		# installed by MacPorts, Fink, Homebrew, etc, and ending up copying
 		# them into the bundle.  Since we optionally depend on libraries which
-		# are not part of OS X (ffmpeg, libusb, etc.), however, don't remove
-		# the default path entirely as was done in a previous version of this
-		# file.  This is still kinda evil, since it defeats the user's path
-		# settings...
+		# are not part of OS X (ffmpeg, etc.), however, don't remove the default
+		# path entirely as was done in a previous version of this file.  This is
+		# still kinda evil, since it defeats the user's path settings...
 		# See http://www.cmake.org/cmake/help/v3.0/command/find_program.html
 		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
 	endif()
@@ -424,6 +425,8 @@ if(ANDROID)
 	# We are cross compiling, search only the toolchain for libraries and includes
 	SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 	SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
+	SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY)
+	SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 elseif(NOT APPLE AND NOT CMAKE_SYSTEM_NAME MATCHES OpenBSD)
 	list(APPEND LIBS rt)
 endif()
@@ -541,12 +544,7 @@ if(USE_X11)
 		add_definitions(-DHAVE_XRANDR=0)
 	endif(XRANDR_FOUND)
 
-	pkg_check_modules(XINPUT2 xi>=1.5.0)
-	if(XINPUT2_FOUND)
-		add_definitions(-DHAVE_X11_XINPUT2=1)
-	else()
-		add_definitions(-DHAVE_X11_XINPUT2=0)
-	endif(XINPUT2_FOUND)
+	pkg_check_modules(XINPUT2 REQUIRED xi>=1.5.0)
 endif()
 if(ENCODE_FRAMEDUMPS)
 	check_libav()
@@ -556,22 +554,28 @@ if(ENCODE_FRAMEDUMPS)
 
 endif()
 
-set(CMAKE_REQUIRED_LIBRARIES portaudio)
-CHECK_CXX_SOURCE_RUNS(
-	"#include <portaudio.h>
-	int main(int argc, char **argv)
-	{ if(Pa_GetVersion() >= 1890) return 0; else return 1; }"
-	PORTAUDIO)
-unset(CMAKE_REQUIRED_LIBRARIES)
-if(PORTAUDIO)
-	message("PortAudio found, enabling mic support")
-	add_definitions(-DHAVE_PORTAUDIO=1)
+if(NOT ANDROID)
 	set(PORTAUDIO_FOUND TRUE)
-else()
-	message("PortAudio not found, disabling mic support")
-	add_definitions(-DHAVE_PORTAUDIO=0)
-	set(PORTAUDIO_FOUND FALSE)
-endif(PORTAUDIO)
+	add_definitions(-DHAVE_PORTAUDIO=1)
+
+	if(NOT APPLE)
+	    set(CMAKE_REQUIRED_LIBRARIES portaudio)
+	    CHECK_CXX_SOURCE_RUNS(
+		    "#include <portaudio.h>
+			int main(int argc, char **argv)
+			{ if(Pa_GetVersion() >= 1890) return 0; else return 1; }"
+			SYSTEM_PORTAUDIO)
+		unset(CMAKE_REQUIRED_LIBRARIES)
+	endif()
+	if(SYSTEM_PORTAUDIO AND NOT APPLE)
+		message("Using shared PortAudio for mic support")
+		set(PORTAUDIO_LIBRARIES portaudio)
+	else()
+		message("Using static PortAudio from Externals for mic support")
+		add_subdirectory(Externals/portaudio)
+		set(PORTAUDIO_LIBRARIES portaudio_static)
+	endif()
+endif()
 
 if(OPROFILING)
 	include(FindOProfile)
@@ -634,6 +638,8 @@ endif()
 #
 add_subdirectory(Externals/Bochs_disasm)
 include_directories(Externals/Bochs_disasm)
+
+add_subdirectory(Externals/glslang)
 
 if(USE_SHARED_ENET)
 	check_lib(ENET libenet enet enet/enet.h QUIET)
@@ -750,12 +756,21 @@ if(ENABLE_SDL)
 	endif(SDL2_FOUND)
 endif()
 
-include(FindLibUSB OPTIONAL)
-if(LIBUSB_FOUND)
-	message("Using shared LibUSB")
-	add_definitions(-D__LIBUSB__)
-	include_directories(${LIBUSB_INCLUDE_DIR})
-endif(LIBUSB_FOUND)
+if(NOT ANDROID)
+        add_definitions(-D__LIBUSB__)
+        if(NOT APPLE)
+	        find_package(LibUSB)
+        endif()
+        if(LIBUSB_FOUND AND NOT APPLE)
+	        message("Using shared LibUSB")
+        	include_directories(${LIBUSB_INCLUDE_DIR})
+        else()
+	        message("Using static LibUSB from Externals")
+        	add_subdirectory(Externals/libusb)
+	        set(LIBUSB_LIBRARIES usb)
+        endif()
+        set(LIBUSB_FOUND true)
+endif()
 
 set(SFML_REQD_VERSION 2.1)
 if(NOT APPLE)
@@ -835,6 +850,33 @@ else()
 endif()
 list(APPEND LIBS ${ICONV_LIBRARIES})
 
+if(NOT ANDROID)
+	include(FindHIDAPI OPTIONAL)
+	find_package(HIDAPI)
+	if(HIDAPI_FOUND)
+		message("Using shared ${HIDAPI_LIBRARIES} ${HIDAPI_VERSION}")
+		include_directories(${HIDAPI_INCLUDE_DIRS})
+		list(APPEND LIBS ${HIDAPI_LIBRARIES})
+	else()
+		include_directories(Externals/hidapi/hidapi)
+		if(APPLE)
+			message("Using static hidapi from Externals")
+			add_subdirectory(Externals/hidapi/mac)
+			list(APPEND LIBS hidapi)
+		elseif(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
+			message("Using static hidapi-hidraw from Externals")
+			add_subdirectory(Externals/hidapi/linux)
+			list(APPEND LIBS hidapi-hidraw udev)
+		else()
+			message("Using static hidapi-libusb from Externals")
+			add_subdirectory(Externals/hidapi/libusb)
+			list(APPEND LIBS hidapi-libusb)
+		endif()
+	endif()
+	set(HIDAPI_FOUND 1)
+	add_definitions(-DHAVE_HIDAPI=1)
+endif()
+
 find_library(OPENSLES_LIBRARIES NAMES OpenSLES)
 find_path(OPENSLES_INCLUDE_DIR NAMES SLES/OpenSLES.h)
 
@@ -853,6 +895,10 @@ endif()
 if(NOT DISABLE_WX)
 	include(FindwxWidgets OPTIONAL)
 	FIND_PACKAGE(wxWidgets COMPONENTS core aui adv)
+
+	if(_ARCH_32)
+		add_definitions(-DwxSIZE_T_IS_UINT)
+	endif()
 
 	if(wxWidgets_FOUND)
 		EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
@@ -991,15 +1037,6 @@ add_definitions(-std=c++1y)
 # but some dependencies require them (LLVM, libav).
 add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
 
-# Do this at the last minute because try_compile ignores linker flags.  Yay...
-if(APPLE)
-	# Some of our code contains Objective C constructs.
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -x objective-c -stdlib=libc++")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -x objective-c++ -stdlib=libc++")
-	# Avoid mistaking an object file for a source file on the link command line.
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -x none")
-endif()
-
 add_subdirectory(Source)
 
 
@@ -1034,7 +1071,7 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${DOLPHIN_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${DOLPHIN_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${DOLPHIN_VERSION_PATCH})
 set(CPACK_PACKAGE_DESCRIPTION_FILE ${PROJECT_SOURCE_DIR}/Data/cpack_package_description.txt)
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A GameCube, Wii and Triforce emulator")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "A GameCube and Wii emulator")
 
 set(CPACK_RPM_PACKAGE_GROUP System/Emulators/Other)
 set(CPACK_RPM_PACKAGE_LICENSE GPL-2.0)

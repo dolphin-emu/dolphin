@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <array>
 #include <cstring>
 #include <vector>
 
@@ -200,10 +201,10 @@ bool IsImmLogical(uint64_t value, unsigned int width, unsigned int* n, unsigned 
   // To repeat a value every d bits, we multiply it by a number of the form
   // (1 + 2^d + 2^(2d) + ...), i.e. 0x0001000100010001 or similar. These can
   // be derived using a table lookup on CLZ(d).
-  static const std::array<uint64_t, 6> multipliers = {
-      0x0000000000000001UL, 0x0000000100000001UL, 0x0001000100010001UL,
-      0x0101010101010101UL, 0x1111111111111111UL, 0x5555555555555555UL,
-  };
+  static const std::array<uint64_t, 6> multipliers = {{
+      0x0000000000000001UL, 0x0000000100000001UL, 0x0001000100010001UL, 0x0101010101010101UL,
+      0x1111111111111111UL, 0x5555555555555555UL,
+  }};
 
   int multiplier_idx = CountLeadingZeros(d, kXRegSizeInBits) - 57;
 
@@ -329,11 +330,34 @@ void ARM64XEmitter::FlushIcacheSection(u8* start, u8* end)
   // Header file says this is equivalent to: sys_icache_invalidate(start, end - start);
   sys_cache_control(kCacheFunctionPrepareForExecution, start, end - start);
 #else
-#ifdef __clang__
-  __clear_cache(start, end);
-#else
-  __builtin___clear_cache(start, end);
-#endif
+  // Don't rely on GCC's __clear_cache implementation, as it caches
+  // icache/dcache cache line sizes, that can vary between cores on
+  // big.LITTLE architectures.
+  u64 addr, ctr_el0;
+  static size_t icache_line_size = 0xffff, dcache_line_size = 0xffff;
+  size_t isize, dsize;
+
+  __asm__ volatile("mrs %0, ctr_el0" : "=r"(ctr_el0));
+  isize = 4 << ((ctr_el0 >> 0) & 0xf);
+  dsize = 4 << ((ctr_el0 >> 16) & 0xf);
+
+  // use the global minimum cache line size
+  icache_line_size = isize = icache_line_size < isize ? icache_line_size : isize;
+  dcache_line_size = dsize = dcache_line_size < dsize ? dcache_line_size : dsize;
+
+  addr = (u64)start & ~(u64)(dsize - 1);
+  for (; addr < (u64)end; addr += dsize)
+    // use "civac" instead of "cvau", as this is the suggested workaround for
+    // Cortex-A53 errata 819472, 826319, 827319 and 824069.
+    __asm__ volatile("dc civac, %0" : : "r"(addr) : "memory");
+  __asm__ volatile("dsb ish" : : : "memory");
+
+  addr = (u64)start & ~(u64)(isize - 1);
+  for (; addr < (u64)end; addr += isize)
+    __asm__ volatile("ic ivau, %0" : : "r"(addr) : "memory");
+
+  __asm__ volatile("dsb ish" : : : "memory");
+  __asm__ volatile("isb" : : : "memory");
 #endif
 }
 
@@ -2029,6 +2053,28 @@ void ARM64XEmitter::MOVI2R(ARM64Reg Rd, u64 imm, bool optimize)
         MOVK(Rd, (imm >> (i * 16)) & 0xFFFF, (ShiftAmount)i);
     }
   }
+}
+
+bool ARM64XEmitter::MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2)
+{
+  // TODO: Also optimize for performance, not just for code size.
+  u8* start_pointer = GetWritableCodePtr();
+
+  MOVI2R(Rd, imm1);
+  int size1 = GetCodePtr() - start_pointer;
+
+  SetCodePtrUnsafe(start_pointer);
+
+  MOVI2R(Rd, imm2);
+  int size2 = GetCodePtr() - start_pointer;
+
+  SetCodePtrUnsafe(start_pointer);
+
+  bool element = size1 > size2;
+
+  MOVI2R(Rd, element ? imm2 : imm1);
+
+  return element;
 }
 
 void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
@@ -4103,58 +4149,115 @@ void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   }
 }
 
+void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
+                                    ARM64Reg scratch)
+{
+  auto addi = [this](ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative, bool flags) {
+    switch ((negative << 1) | flags)
+    {
+    case 0:
+      ADD(Rd, Rn, imm, shift);
+      break;
+    case 1:
+      ADDS(Rd, Rn, imm, shift);
+      break;
+    case 2:
+      SUB(Rd, Rn, imm, shift);
+      break;
+    case 3:
+      SUBS(Rd, Rn, imm, shift);
+      break;
+    }
+  };
+
+  bool has_scratch = scratch != INVALID_REG;
+  u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
+  bool neg_neg = negative ? false : true;
+
+  // Fast paths, aarch64 immediate instructions
+  // Try them all first
+  if (imm <= 0xFFF)
+  {
+    addi(Rd, Rn, imm, false, negative, flags);
+    return;
+  }
+  if (imm <= 0xFFFFFF && (imm & 0xFFF) == 0)
+  {
+    addi(Rd, Rn, imm >> 12, true, negative, flags);
+    return;
+  }
+  if (imm_neg <= 0xFFF)
+  {
+    addi(Rd, Rn, imm_neg, false, neg_neg, flags);
+    return;
+  }
+  if (imm_neg <= 0xFFFFFF && (imm_neg & 0xFFF) == 0)
+  {
+    addi(Rd, Rn, imm_neg >> 12, true, neg_neg, flags);
+    return;
+  }
+
+  // ADD+ADD is slower than MOVK+ADD, but inplace.
+  // But it supports a few more bits, so use it to avoid MOVK+MOVK+ADD.
+  // As this splits the addition in two parts, this must not be done on setting flags.
+  if (!flags && (imm >= 0x10000u || !has_scratch) && imm < 0x1000000u)
+  {
+    addi(Rd, Rn, imm & 0xFFF, false, negative, false);
+    addi(Rd, Rd, imm >> 12, true, negative, false);
+    return;
+  }
+  if (!flags && (imm_neg >= 0x10000u || !has_scratch) && imm_neg < 0x1000000u)
+  {
+    addi(Rd, Rn, imm_neg & 0xFFF, false, neg_neg, false);
+    addi(Rd, Rd, imm_neg >> 12, true, neg_neg, false);
+    return;
+  }
+
+  _assert_msg_(DYNA_REC, has_scratch,
+               "ADDI2R - failed to construct arithmetic immediate value from %08x, need scratch",
+               (u32)imm);
+
+  negative ^= MOVI2R2(scratch, imm, imm_neg);
+  switch ((negative << 1) | flags)
+  {
+  case 0:
+    ADD(Rd, Rn, scratch);
+    break;
+  case 1:
+    ADDS(Rd, Rn, scratch);
+    break;
+  case 2:
+    SUB(Rd, Rn, scratch);
+    break;
+  case 3:
+    SUBS(Rd, Rn, scratch);
+    break;
+  }
+}
+
 void ARM64XEmitter::ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-  {
-    ADD(Rd, Rn, val, shift);
-  }
-  else
-  {
-    _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "ADDI2R - failed to construct arithmetic immediate value from %08x, need scratch",
-                 (u32)imm);
-    MOVI2R(scratch, imm);
-    ADD(Rd, Rn, scratch);
-  }
+  ADDI2R_internal(Rd, Rn, imm, false, false, scratch);
+}
+
+void ARM64XEmitter::ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
+{
+  ADDI2R_internal(Rd, Rn, imm, false, true, scratch);
 }
 
 void ARM64XEmitter::SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-  {
-    SUB(Rd, Rn, val, shift);
-  }
-  else
-  {
-    _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "SUBI2R - failed to construct arithmetic immediate value from %08x, need scratch",
-                 (u32)imm);
-    MOVI2R(scratch, imm);
-    SUB(Rd, Rn, scratch);
-  }
+  ADDI2R_internal(Rd, Rn, imm, true, false, scratch);
+}
+
+void ARM64XEmitter::SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
+{
+  ADDI2R_internal(Rd, Rn, imm, true, true, scratch);
 }
 
 void ARM64XEmitter::CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch)
 {
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-  {
-    CMP(Rn, val, shift);
-  }
-  else
-  {
-    _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "CMPI2R - failed to construct arithmetic immediate value from %08x, need scratch",
-                 (u32)imm);
-    MOVI2R(scratch, imm);
-    CMP(Rn, scratch);
-  }
+  ADDI2R_internal(Is64Bit(Rn) ? ZR : WZR, Rn, imm, true, true, scratch);
 }
 
 bool ARM64XEmitter::TryADDI2R(ARM64Reg Rd, ARM64Reg Rn, u32 imm)
@@ -4294,23 +4397,6 @@ void ARM64FloatEmitter::MOVI2FDUP(ARM64Reg Rd, float value, ARM64Reg scratch)
   ARM64Reg s = (ARM64Reg)(S0 + DecodeReg(Rd));
   MOVI2F(s, value, scratch);
   DUP(32, Rd, Rd, 0);
-}
-
-void ARM64XEmitter::SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
-{
-  u32 val;
-  bool shift;
-  if (IsImmArithmetic(imm, &val, &shift))
-  {
-    SUBS(Rd, Rn, val, shift);
-  }
-  else
-  {
-    _assert_msg_(DYNA_REC, scratch != INVALID_REG,
-                 "ANDSI2R - failed to construct immediate value from %08x, need scratch", (u32)imm);
-    MOVI2R(scratch, imm);
-    SUBS(Rd, Rn, scratch);
-  }
 }
 
 }  // namespace

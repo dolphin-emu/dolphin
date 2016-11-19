@@ -137,9 +137,6 @@ struct ARAMInfo
 static ARAMInfo g_ARAM;
 static AudioDMA g_audioDMA;
 static ARAM_DMA g_arDMA;
-static u32 last_mmaddr;
-static u32 last_aram_dma_count;
-static bool instant_dma;
 UDSPControl g_dspState;
 
 union ARAM_Info {
@@ -177,9 +174,6 @@ void DoState(PointerWrap& p)
   p.Do(g_AR_MODE);
   p.Do(g_AR_REFRESH);
   p.Do(dsp_slice);
-  p.Do(last_mmaddr);
-  p.Do(last_aram_dma_count);
-  p.Do(instant_dma);
 
   dsp_emulator->DoState(p);
 }
@@ -188,37 +182,13 @@ static void UpdateInterrupts();
 static void Do_ARAM_DMA();
 static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate = 0);
 
-static int et_GenerateDSPInterrupt;
-static int et_CompleteARAM;
+static CoreTiming::EventType* et_GenerateDSPInterrupt;
+static CoreTiming::EventType* et_CompleteARAM;
 
 static void CompleteARAM(u64 userdata, s64 cyclesLate)
 {
   g_dspState.DMAState = 0;
   GenerateDSPInterrupt(INT_ARAM);
-}
-
-void EnableInstantDMA()
-{
-  CoreTiming::RemoveEvent(et_CompleteARAM);
-  CompleteARAM(0, 0);
-  instant_dma = true;
-  ERROR_LOG(DSPINTERFACE, "Enabling Instant ARAM DMA hack");
-}
-
-void FlushInstantDMA(u32 address)
-{
-  u64 dma_in_progress = DSP::DMAInProgress();
-  if (dma_in_progress != 0)
-  {
-    u32 start_addr = (dma_in_progress >> 32) & Memory::RAM_MASK;
-    u32 end_addr = (dma_in_progress & Memory::RAM_MASK) & 0xffffffff;
-    u32 invalidated_addr = (address & Memory::RAM_MASK) & ~0x1f;
-
-    if (invalidated_addr >= start_addr && invalidated_addr <= end_addr)
-    {
-      DSP::EnableInstantDMA();
-    }
-  }
 }
 
 DSPEmulator* GetDSPEmulator()
@@ -244,7 +214,7 @@ void Init(bool hle)
     g_ARAM.wii_mode = false;
     g_ARAM.size = ARAM_SIZE;
     g_ARAM.mask = ARAM_MASK;
-    g_ARAM.ptr = (u8*)AllocateMemoryPages(g_ARAM.size);
+    g_ARAM.ptr = static_cast<u8*>(Common::AllocateMemoryPages(g_ARAM.size));
   }
 
   memset(&g_audioDMA, 0, sizeof(g_audioDMA));
@@ -257,11 +227,6 @@ void Init(bool hle)
   g_AR_MODE = 1;       // ARAM Controller has init'd
   g_AR_REFRESH = 156;  // 156MHz
 
-  instant_dma = false;
-
-  last_aram_dma_count = 0;
-  last_mmaddr = 0;
-
   et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
   et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
 }
@@ -270,7 +235,7 @@ void Shutdown()
 {
   if (!g_ARAM.wii_mode)
   {
-    FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
+    Common::FreeMemoryPages(g_ARAM.ptr, g_ARAM.size);
     g_ARAM.ptr = nullptr;
   }
 
@@ -464,8 +429,8 @@ static void GenerateDSPInterrupt(u64 DSPIntType, s64 cyclesLate)
 // CALLED FROM DSP EMULATOR, POSSIBLY THREADED
 void GenerateDSPInterruptFromDSPEmu(DSPInterruptType type)
 {
-  // TODO: Maybe rethink this? ScheduleEvent_Threadsafe_Immediate has unpredictable timing.
-  CoreTiming::ScheduleEvent_Threadsafe_Immediate(et_GenerateDSPInterrupt, type);
+  // TODO: Maybe rethink this? The timing is unpredictable.
+  CoreTiming::ScheduleEvent(0, et_GenerateDSPInterrupt, type, CoreTiming::FromThread::ANY);
 }
 
 // called whenever SystemTimers thinks the DSP deserves a few more cycles
@@ -527,22 +492,14 @@ static void Do_ARAM_DMA()
 
   // ARAM DMA transfer rate has been measured on real hw
   int ticksToTransfer = (g_arDMA.Cnt.count / 32) * 246;
-
-  // This is a huge hack that appears to be here only to fix Resident Evil 2/3
-  if (instant_dma)
-    ticksToTransfer = std::min(ticksToTransfer, 100);
-
   CoreTiming::ScheduleEvent(ticksToTransfer, et_CompleteARAM);
-
-  last_mmaddr = g_arDMA.MMAddr;
-  last_aram_dma_count = g_arDMA.Cnt.count;
 
   // Real hardware DMAs in 32byte chunks, but we can get by with 8byte chunks
   if (g_arDMA.Cnt.dir)
   {
     // ARAM -> MRAM
-    INFO_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x", g_arDMA.Cnt.count,
-             g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
+    DEBUG_LOG(DSPINTERFACE, "DMA %08x bytes from ARAM %08x to MRAM %08x PC: %08x",
+              g_arDMA.Cnt.count, g_arDMA.ARAddr, g_arDMA.MMAddr, PC);
 
     // Outgoing data from ARAM is mirrored every 64MB (verified on real HW)
     g_arDMA.ARAddr &= 0x3ffffff;
@@ -588,8 +545,8 @@ static void Do_ARAM_DMA()
   else
   {
     // MRAM -> ARAM
-    INFO_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x", g_arDMA.Cnt.count,
-             g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
+    DEBUG_LOG(DSPINTERFACE, "DMA %08x bytes from MRAM %08x to ARAM %08x PC: %08x",
+              g_arDMA.Cnt.count, g_arDMA.MMAddr, g_arDMA.ARAddr, PC);
 
     // Incoming data into ARAM is mirrored every 64MB (verified on real HW)
     g_arDMA.ARAddr &= 0x3ffffff;
@@ -665,15 +622,6 @@ void WriteARAM(u8 value, u32 _uAddress)
 u8* GetARAMPtr()
 {
   return g_ARAM.ptr;
-}
-
-u64 DMAInProgress()
-{
-  if (g_dspState.DMAState == 1)
-  {
-    return ((u64)last_mmaddr << 32 | (last_mmaddr + last_aram_dma_count));
-  }
-  return 0;
 }
 
 }  // end of namespace DSP

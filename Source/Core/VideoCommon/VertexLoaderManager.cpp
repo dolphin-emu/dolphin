@@ -32,7 +32,10 @@
 namespace VertexLoaderManager
 {
 float position_cache[3][4];
-u32 position_matrix_index[3];
+
+// The counter added to the address of the array is 1, 2, or 3, but never zero.
+// So only index 1 - 3 are used.
+u32 position_matrix_index[4];
 
 static NativeVertexFormatMap s_native_vertex_map;
 static NativeVertexFormat* s_current_vtx_fmt;
@@ -249,7 +252,7 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
   if (loader->m_native_vertex_format != s_current_vtx_fmt ||
       loader->m_native_components != g_current_components)
   {
-    VertexManagerBase::Flush();
+    g_vertex_manager->Flush();
   }
   s_current_vtx_fmt = loader->m_native_vertex_format;
   g_current_components = loader->m_native_components;
@@ -259,14 +262,14 @@ int RunVertices(int vtx_attr_group, int primitive, int count, DataReader src, bo
   // slope.
   bool cullall = (bpmem.genMode.cullmode == GenMode::CULL_ALL && primitive < 5);
 
-  DataReader dst = VertexManagerBase::PrepareForAdditionalData(
+  DataReader dst = g_vertex_manager->PrepareForAdditionalData(
       primitive, count, loader->m_native_vtx_decl.stride, cullall);
 
   count = loader->RunVertices(src, dst, count);
 
   IndexGenerator::AddIndices(primitive, count);
 
-  VertexManagerBase::FlushData(count, loader->m_native_vtx_decl.stride);
+  g_vertex_manager->FlushData(count, loader->m_native_vtx_decl.stride);
 
   ADDSTAT(stats.thisFrame.numPrims, count);
   INCSTAT(stats.thisFrame.numPrimitiveJoins);

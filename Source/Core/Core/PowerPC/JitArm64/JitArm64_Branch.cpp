@@ -54,17 +54,14 @@ void JitArm64::rfi(UGeckoInstruction inst)
   ARM64Reg WB = gpr.GetReg();
   ARM64Reg WC = gpr.GetReg();
 
-  MOVI2R(WA, (~mask) & clearMSR13);
-  MOVI2R(WB, mask & clearMSR13);
-
   LDR(INDEX_UNSIGNED, WC, PPC_REG, PPCSTATE_OFF(msr));
 
-  AND(WC, WC, WB, ArithOption(WC, ST_LSL, 0));  // rD = Masked MSR
+  ANDI2R(WC, WC, (~mask) & clearMSR13, WA);  // rD = Masked MSR
 
   LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_SRR1]));  // rB contains SRR1 here
 
-  AND(WA, WA, WB, ArithOption(WA, ST_LSL, 0));  // rB contains masked SRR1 here
-  ORR(WA, WA, WC, ArithOption(WA, ST_LSL, 0));  // rB = Masked MSR OR masked SRR1
+  ANDI2R(WA, WA, mask & clearMSR13, WB);  // rB contains masked SRR1 here
+  ORR(WA, WA, WC);                        // rB = Masked MSR OR masked SRR1
 
   STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(msr));  // STR rB in to rA
 
@@ -103,11 +100,12 @@ void JitArm64::bx(UGeckoInstruction inst)
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);
 
-    MOVI2R(XA, (u64)&CoreTiming::Idle);
+    MOVP2R(XA, &CoreTiming::Idle);
     BLR(XA);
     gpr.Unlock(WA);
 
     WriteExceptionExit(js.compilerPC);
+    return;
   }
 
   WriteExit(destination);

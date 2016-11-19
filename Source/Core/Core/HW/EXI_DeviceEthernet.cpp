@@ -9,6 +9,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Core/ConfigManager.h"
+#include "Core/CoreTiming.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/EXI_DeviceEthernet.h"
 #include "Core/HW/Memmap.h"
@@ -305,7 +306,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
   case BBA_NCRA:
     if (data & NCRA_RESET)
     {
-      DEBUG_LOG(SP1, "Software reset");
+      INFO_LOG(SP1, "Software reset");
       // MXSoftReset();
       Activate();
     }
@@ -327,7 +328,7 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
 
       if (data & NCRA_ST0)
       {
-        WARN_LOG(SP1, "start tx - local DMA");
+        INFO_LOG(SP1, "start tx - local DMA");
         SendFromPacketBuffer();
       }
       else if (data & NCRA_ST1)
@@ -344,6 +345,8 @@ void CEXIETHERNET::MXCommandHandler(u32 data, u32 size)
   case BBA_WRTXFIFOD:
     if (size == 2)
       data = Common::swap16(data & 0xffff);
+    else if (size == 3)
+      data = Common::swap32(data & 0xffffff) >> 8;
     else if (size == 4)
       data = Common::swap32(data);
     DirectFIFOWrite((u8*)&data, size);
@@ -406,7 +409,7 @@ void CEXIETHERNET::SendComplete()
     mBbaMem[BBA_IR] |= INT_T;
 
     exi_status.interrupt |= exi_status.TRANSFER;
-    ExpansionInterface::ScheduleUpdateInterrupts(0);
+    ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::CPU, 0);
   }
 
   mBbaMem[BBA_LTPS] = 0;
@@ -490,10 +493,10 @@ bool CEXIETHERNET::RecvHandlePacket()
     goto wait_for_next;
 
 #ifdef BBA_TRACK_PAGE_PTRS
-  WARN_LOG(SP1, "RecvHandlePacket %x\n%s", mRecvBufferLength,
+  INFO_LOG(SP1, "RecvHandlePacket %x\n%s", mRecvBufferLength,
            ArrayToString(mRecvBuffer, mRecvBufferLength, 0x100).c_str());
 
-  WARN_LOG(SP1, "%x %x %x %x", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
+  INFO_LOG(SP1, "%x %x %x %x", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
            page_ptr(BBA_RHBP));
 #endif
 
@@ -541,7 +544,7 @@ bool CEXIETHERNET::RecvHandlePacket()
     inc_rwp();
 
 #ifdef BBA_TRACK_PAGE_PTRS
-  WARN_LOG(SP1, "%x %x %x %x", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
+  INFO_LOG(SP1, "%x %x %x %x", page_ptr(BBA_BP), page_ptr(BBA_RRP), page_ptr(BBA_RWP),
            page_ptr(BBA_RHBP));
 #endif
 
@@ -571,7 +574,7 @@ bool CEXIETHERNET::RecvHandlePacket()
     mBbaMem[BBA_IR] |= INT_R;
 
     exi_status.interrupt |= exi_status.TRANSFER;
-    ExpansionInterface::ScheduleUpdateInterrupts_Threadsafe(0);
+    ExpansionInterface::ScheduleUpdateInterrupts(CoreTiming::FromThread::NON_CPU, 0);
   }
   else
   {

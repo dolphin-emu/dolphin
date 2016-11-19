@@ -1,6 +1,5 @@
 package org.dolphinemu.dolphinemu.dialogs;
 
-
 import android.app.AlertDialog;
 import android.app.Dialog;
 import android.app.DialogFragment;
@@ -63,7 +62,7 @@ public final class GameDetailsDialog extends DialogFragment
 		FloatingActionButton buttonLaunch = (FloatingActionButton) contents.findViewById(R.id.button_launch);
 
 		int countryIndex = getArguments().getInt(ARGUMENT_GAME_COUNTRY);
-		String country = getResources().getStringArray(R.array.country_names)[countryIndex];
+		String country = getResources().getStringArray(R.array.countryNames)[countryIndex];
 
 		textTitle.setText(getArguments().getString(ARGUMENT_GAME_TITLE));
 		textDescription.setText(getArguments().getString(ARGUMENT_GAME_DESCRIPTION));

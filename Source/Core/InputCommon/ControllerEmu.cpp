@@ -5,6 +5,7 @@
 #include "InputCommon/ControllerEmu.h"
 #include <memory>
 #include "Common/Common.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 // This should be called before calling GetState() or State() on a control reference
 // to prevent a race condition.
@@ -191,6 +192,57 @@ ControllerEmu::Buttons::Buttons(const std::string& _name) : ControlGroup(_name, 
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
 }
 
+ControllerEmu::ModifySettingsButton::ModifySettingsButton(std::string button_name)
+    : Buttons(std::move(button_name))
+{
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
+}
+
+void ControllerEmu::ModifySettingsButton::AddInput(std::string button_name, bool toggle)
+{
+  controls.emplace_back(new ControlGroup::Input(std::move(button_name)));
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+  threshold_exceeded.push_back(false);
+  associated_settings.push_back(false);
+  associated_settings_toggle.push_back(toggle);
+#else
+  threshold_exceeded.emplace_back(false);
+  associated_settings.emplace_back(false);
+  associated_settings_toggle.emplace_back(toggle);
+#endif
+}
+
+void ControllerEmu::ModifySettingsButton::GetState()
+{
+  for (size_t i = 0; i < controls.size(); ++i)
+  {
+    ControlState state = controls[i]->control_ref->State();
+
+    if (!associated_settings_toggle[i])
+    {
+      // not toggled
+      associated_settings[i] = state > numeric_settings[0]->GetValue();
+    }
+    else
+    {
+      // toggle (loading savestates does not en-/disable toggle)
+      // after we passed the threshold, we en-/disable. but after that, we don't change it
+      // anymore
+      if (!threshold_exceeded[i] && state > numeric_settings[0]->GetValue())
+      {
+        associated_settings[i] = !associated_settings[i];
+        if (associated_settings[i])
+          OSD::AddMessage(controls[i]->name + ": " + _trans("on"));
+        else
+          OSD::AddMessage(controls[i]->name + ": " + _trans("off"));
+        threshold_exceeded[i] = true;
+      }
+      if (state < numeric_settings[0]->GetValue())
+        threshold_exceeded[i] = false;
+    }
+  }
+}
+
 ControllerEmu::MixedTriggers::MixedTriggers(const std::string& _name)
     : ControlGroup(_name, GROUP_TYPE_MIXED_TRIGGERS)
 {
@@ -249,10 +301,13 @@ ControllerEmu::Cursor::Cursor(const std::string& _name)
   controls.emplace_back(std::make_unique<Input>("Forward"));
   controls.emplace_back(std::make_unique<Input>("Backward"));
   controls.emplace_back(std::make_unique<Input>(_trans("Hide")));
+  controls.emplace_back(std::make_unique<Input>("Recenter"));
 
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Center"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Width"), 0.5));
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Height"), 0.5));
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 20));
+  boolean_settings.emplace_back(std::make_unique<BooleanSetting>(_trans("Relative Input"), false));
 }
 
 void ControllerEmu::LoadDefaults(const ControllerInterface& ciface)

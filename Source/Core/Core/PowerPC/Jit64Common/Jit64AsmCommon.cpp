@@ -101,7 +101,7 @@ void CommonAsmRoutines::GenFrsqrte()
   SetJumpTarget(complex2);
   SetJumpTarget(complex3);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-  ABI_CallFunction((void*)&MathUtil::ApproximateReciprocalSquareRoot);
+  ABI_CallFunction(MathUtil::ApproximateReciprocalSquareRoot);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
@@ -163,7 +163,7 @@ void CommonAsmRoutines::GenFres()
 
   SetJumpTarget(complex);
   ABI_PushRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
-  ABI_CallFunction((void*)&MathUtil::ApproximateReciprocal);
+  ABI_CallFunction(MathUtil::ApproximateReciprocal);
   ABI_PopRegistersAndAdjustStack(QUANTIZED_REGS_TO_SAVE, 8);
   RET();
 
@@ -405,7 +405,8 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
     }
   }
 
-  int flags = isInline ? 0 : SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG;
+  int flags =
+      isInline ? 0 : SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_DR_ON;
   if (!single)
     flags |= SAFE_LOADSTORE_NO_SWAP;
 
@@ -463,7 +464,8 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
   if (jit->jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
-    int flags = isInline ? 0 : SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG;
+    int flags =
+        isInline ? 0 : SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_DR_ON;
     SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
     if (!single && (type == QUANTIZE_U8 || type == QUANTIZE_S8))
     {
@@ -586,7 +588,8 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
   if (jit->jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
-    int flags = isInline ? 0 : SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG;
+    int flags =
+        isInline ? 0 : SAFE_LOADSTORE_NO_FASTMEM | SAFE_LOADSTORE_NO_PROLOG | SAFE_LOADSTORE_DR_ON;
     SafeLoadToReg(RSCRATCH_EXTRA, R(RSCRATCH_EXTRA), size, 0, regsToSave, extend, flags);
   }
 

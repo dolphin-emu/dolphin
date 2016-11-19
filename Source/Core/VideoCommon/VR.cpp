@@ -15,6 +15,7 @@
 #include "Common/Common.h"
 #include "Common/MathUtil.h"
 #include "Common/Timer.h"
+#include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "VideoCommon/OpcodeDecoding.h"

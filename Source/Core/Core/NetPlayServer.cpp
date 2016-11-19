@@ -10,6 +10,8 @@
 #include "Common/ENetUtil.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI_DeviceIPL.h"
@@ -25,7 +27,7 @@
 #include <arpa/inet.h>
 #endif
 
-u64 g_netplay_initial_gctime = 1272737767;
+u64 g_netplay_initial_rtc = 1272737767;
 
 NetPlayServer::~NetPlayServer()
 {
@@ -787,9 +789,9 @@ bool NetPlayServer::StartGame()
   AdjustPadBufferSize(m_target_buffer_size);
 
   if (SConfig::GetInstance().bEnableCustomRTC)
-    g_netplay_initial_gctime = SConfig::GetInstance().m_customRTCValue;
+    g_netplay_initial_rtc = SConfig::GetInstance().m_customRTCValue;
   else
-    g_netplay_initial_gctime = Common::Timer::GetLocalTimeSinceJan1970();
+    g_netplay_initial_rtc = Common::Timer::GetLocalTimeSinceJan1970();
 
   // tell clients to start game
   auto spac = std::make_unique<sf::Packet>();
@@ -809,8 +811,8 @@ bool NetPlayServer::StartGame()
   *spac << m_settings.m_OCFactor;
   *spac << m_settings.m_EXIDevice[0];
   *spac << m_settings.m_EXIDevice[1];
-  *spac << (u32)g_netplay_initial_gctime;
-  *spac << (u32)(g_netplay_initial_gctime >> 32);
+  *spac << (u32)g_netplay_initial_rtc;
+  *spac << (u32)(g_netplay_initial_rtc >> 32);
 
   SendAsyncToClients(std::move(spac));
 

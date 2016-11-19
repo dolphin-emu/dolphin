@@ -297,7 +297,7 @@ static void ReadThreadHandler(CEXIETHERNET* self)
     }
 
     // Copy to BBA buffer, and fire interrupt if enabled.
-    DEBUG_LOG(SP1, "Received %u bytes\n: %s", transferred,
+    DEBUG_LOG(SP1, "Received %u bytes:\n %s", transferred,
               ArrayToString(self->mRecvBuffer.get(), transferred, 0x10).c_str());
     if (self->readEnabled.IsSet())
     {

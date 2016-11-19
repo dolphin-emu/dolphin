@@ -27,7 +27,7 @@ bool PulseAudio::Start()
 
   NOTICE_LOG(AUDIO, "PulseAudio backend using %d channels", m_channels);
 
-  m_run_thread = true;
+  m_run_thread.Set();
   m_thread = std::thread(&PulseAudio::SoundLoop, this);
 
   // Initialize DPL2 parameters
@@ -38,7 +38,7 @@ bool PulseAudio::Start()
 
 void PulseAudio::Stop()
 {
-  m_run_thread = false;
+  m_run_thread.Clear();
   m_thread.join();
 }
 
@@ -54,7 +54,7 @@ void PulseAudio::SoundLoop()
 
   if (PulseInit())
   {
-    while (m_run_thread.load() && m_pa_connected == 1 && m_pa_error >= 0)
+    while (m_run_thread.IsSet() && m_pa_connected == 1 && m_pa_error >= 0)
       m_pa_error = pa_mainloop_iterate(m_pa_ml, 1, nullptr);
 
     if (m_pa_error < 0)

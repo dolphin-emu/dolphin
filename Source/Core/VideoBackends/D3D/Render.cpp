@@ -38,7 +38,6 @@
 #endif
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/Fifo.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -647,14 +646,12 @@ void Renderer::SetViewport()
   Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
   g_rendered_viewport = EFBRectangle((int)X, (int)Y, (int)Wd, (int)Ht);
 
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(
-      X, Y, Wd, Ht,
-      1.0f - MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f,
-      1.0f -
-          MathUtil::Clamp<float>(xfmem.viewport.farZ - MathUtil::Clamp<float>(xfmem.viewport.zRange,
-                                                                              0.0f, 16777216.0f),
-                                 0.0f, 16777215.0f) /
-              16777216.0f);
+  // We do depth clipping and depth range in the vertex shader instead of relying
+  // on the graphics API. However we still need to ensure depth values don't exceed
+  // the maximum value supported by the console GPU. We also need to account for the
+  // fact that the entire depth buffer is inverted on D3D, so we set GX_MAX_DEPTH as
+  // an inverted near value.
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - GX_MAX_DEPTH, D3D11_MAX_DEPTH);
   D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -732,8 +729,7 @@ void Renderer::SkipClearScreen(bool colorEnable, bool alphaEnable, bool zEnable)
 void Renderer::ReinterpretPixelData(unsigned int convtype)
 {
   // TODO: MSAA support..
-  D3D11_RECT source =
-      CD3D11_RECT(0, 0, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
+  D3D11_RECT source = CD3D11_RECT(0, 0, GetTargetWidth(), GetTargetHeight());
 
   ID3D11PixelShader* pixel_shader;
   if (convtype == 0)
@@ -748,21 +744,21 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
   }
 
   // convert data and set the target texture as our new EFB
-  g_renderer->ResetAPIState();
+  ResetAPIState();
 
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, (float)g_renderer->GetTargetWidth(),
-                                      (float)g_renderer->GetTargetHeight());
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(0.f, 0.f, static_cast<float>(GetTargetWidth()),
+                                      static_cast<float>(GetTargetHeight()));
   D3D::context->RSSetViewports(1, &vp);
 
   D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTempTexture()->GetRTV(),
                                    nullptr);
   D3D::SetPointCopySampler();
   D3D::drawShadedTexQuad(
-      FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, g_renderer->GetTargetWidth(),
-      g_renderer->GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(),
+      FramebufferManager::GetEFBColorTexture()->GetSRV(), &source, GetTargetWidth(),
+      GetTargetHeight(), pixel_shader, VertexShaderCache::GetSimpleVertexShader(),
       VertexShaderCache::GetSimpleInputLayout(), GeometryShaderCache::GetCopyGeometryShader());
 
-  g_renderer->RestoreAPIState();
+  RestoreAPIState();
 
   FramebufferManager::SwapReinterpretTexture();
   D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
@@ -781,8 +777,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
       D3D11_BLEND_ONE,
       D3D11_BLEND_DEST_COLOR,
       D3D11_BLEND_INV_DEST_COLOR,
-      D3D11_BLEND_SRC_ALPHA,
-      D3D11_BLEND_INV_SRC_ALPHA,  // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
+      D3D11_BLEND_SRC1_ALPHA,
+      D3D11_BLEND_INV_SRC1_ALPHA,
       (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
       (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO};
   const D3D11_BLEND d3dDestFactors[8] = {
@@ -790,8 +786,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
       D3D11_BLEND_ONE,
       D3D11_BLEND_SRC_COLOR,
       D3D11_BLEND_INV_SRC_COLOR,
-      D3D11_BLEND_SRC_ALPHA,
-      D3D11_BLEND_INV_SRC_ALPHA,  // NOTE: Use SRC1_ALPHA if dst alpha is enabled!
+      D3D11_BLEND_SRC1_ALPHA,
+      D3D11_BLEND_INV_SRC1_ALPHA,
       (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
       (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO};
 
@@ -817,55 +813,6 @@ void Renderer::SetBlendMode(bool forceUpdate)
   }
 }
 
-bool Renderer::SaveScreenshot(const std::string& filename, const TargetRectangle& rc)
-{
-  if (!s_screenshot_texture)
-    CreateScreenshotTexture();
-
-  // copy back buffer to system memory
-  D3D11_BOX source_box = GetScreenshotSourceBox(rc);
-  D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
-                                      (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0,
-                                      &source_box);
-
-  D3D11_MAPPED_SUBRESOURCE map;
-  D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ_WRITE, 0, &map);
-
-  bool saved_png =
-      TextureToPng((u8*)map.pData, map.RowPitch, filename, source_box.right - source_box.left,
-                   source_box.bottom - source_box.top, false);
-
-  D3D::context->Unmap(s_screenshot_texture, 0);
-
-  if (saved_png)
-  {
-    OSD::AddMessage(
-        StringFromFormat("Saved %i x %i %s", rc.GetWidth(), rc.GetHeight(), filename.c_str()));
-  }
-  else
-  {
-    OSD::AddMessage(StringFromFormat("Error saving %s", filename.c_str()));
-  }
-
-  return saved_png;
-}
-
-void formatBufferDump(const u8* in, u8* out, int w, int h, int p)
-{
-  for (int y = 0; y < h; ++y)
-  {
-    auto line = (in + (h - y - 1) * p);
-    for (int x = 0; x < w; ++x)
-    {
-      out[0] = line[2];
-      out[1] = line[1];
-      out[2] = line[0];
-      out += 3;
-      line += 4;
-    }
-  }
-}
-
 void Renderer::AsyncTimewarpDraw()
 {
   // TODO: D3D11 Asynchronous Timewarp
@@ -873,7 +820,7 @@ void Renderer::AsyncTimewarpDraw()
 
 // This function has the final picture. We adjust the aspect ratio here.
 void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                        const EFBRectangle& rc, float Gamma)
+                        const EFBRectangle& rc, u64 ticks, float Gamma)
 {
   // rafa
   if (ARBruteForcer::ch_bruteforce)
@@ -901,11 +848,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   if (Fifo::WillSkipCurrentFrame() || (!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) ||
       !fbWidth || !fbHeight)
   {
-#if defined(HAVE_LIBAV)
-    if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
-      AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
-#endif
-
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -917,11 +859,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       FramebufferManager::GetXFBSource(xfbAddr, fbStride, fbHeight, &xfbCount);
   if ((!xfbSourceList || xfbCount == 0) && g_ActiveConfig.bUseXFB && !g_ActiveConfig.bUseRealXFB)
   {
-#if defined(HAVE_LIBAV)
-    if (SConfig::GetInstance().m_DumpFrames && !frame_data.empty())
-      AVIDump::AddFrame(&frame_data[0], fbWidth, fbHeight);
-#endif
-
     Core::Callback_VideoCopiedToXFB(false);
     return;
   }
@@ -1235,26 +1172,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // Enable screenshot and write csv if bruteforcing is on
   if (ARBruteForcer::ch_bruteforce && ARBruteForcer::ch_take_screenshot > 0)
-    ARBruteForcer::SetupScreenshotAndWriteCSV(&s_bScreenshot, &s_sScreenshotName);
+    ARBruteForcer::SetupScreenshotAndWriteCSV(this);
   else if (ARBruteForcer::ch_bruteforce)
     WARN_LOG(VR, "ch_take_screenshot = %d", ARBruteForcer::ch_take_screenshot);
 
-  // done with drawing the game stuff, good moment to save a screenshot
-  if (s_bScreenshot && !g_ActiveConfig.bAsynchronousTimewarp)
-  {
-    std::lock_guard<std::mutex> guard(s_criticalScreenshot);
-
-    SaveScreenshot(s_sScreenshotName, GetTargetRectangle());
-    if (ARBruteForcer::ch_bruteforce)
-      NOTICE_LOG(VR, "saved screenshot %s", s_sScreenshotName.c_str());
-    s_sScreenshotName.clear();
-    s_bScreenshot = false;
-    s_screenshotCompleted.Set();
-  }
-
-// Dump frames
+  // Dump frames
 #if defined(HAVE_LIBAV)
-  if (SConfig::GetInstance().m_DumpFrames && !g_ActiveConfig.bAsynchronousTimewarp)
+  if (IsFrameDumping())
   {
     if (!s_screenshot_texture)
       CreateScreenshotTexture();
@@ -1265,47 +1189,16 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
                                         (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0,
                                         &source_box);
-    if (!bLastFrameDumped)
-    {
-      bAVIDumping = AVIDump::Start(source_width, source_height, AVIDump::DumpFormat::FORMAT_BGR);
-      if (!bAVIDumping)
-      {
-        PanicAlert("Error dumping frames to AVI.");
-      }
-      else
-      {
-        std::string msg = StringFromFormat("Dumping Frames to \"%sframedump0.avi\" (%dx%d RGB24)",
-                                           File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
-                                           source_width, source_height);
 
-        OSD::AddMessage(msg, 2000);
-      }
-    }
-    if (bAVIDumping)
-    {
-      D3D11_MAPPED_SUBRESOURCE map;
-      D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
+    D3D11_MAPPED_SUBRESOURCE map;
+    D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
 
-      if (frame_data.capacity() != 3 * source_width * source_height)
-        frame_data.resize(3 * source_width * source_height);
+    AVIDump::Frame state = AVIDump::FetchState(ticks);
+    DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height, map.RowPitch,
+                  state);
+    FinishFrameData();
 
-      formatBufferDump((u8*)map.pData, &frame_data[0], source_width, source_height, map.RowPitch);
-      FlipImageData(&frame_data[0], source_width, source_height);
-      AVIDump::AddFrame(&frame_data[0], source_width, source_height);
-      D3D::context->Unmap(s_screenshot_texture, 0);
-    }
-    bLastFrameDumped = true;
-  }
-  else
-  {
-    if (bLastFrameDumped && bAVIDumping)
-    {
-      std::vector<u8>().swap(frame_data);
-      AVIDump::Stop();
-      bAVIDumping = false;
-      OSD::AddMessage("Stop dumping frames to AVI", 2000);
-    }
-    bLastFrameDumped = false;
+    D3D::context->Unmap(s_screenshot_texture, 0);
   }
 #endif
 
@@ -1374,8 +1267,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   SetWindowSize(fbStride, fbHeight);
 
   bool windowResized = CheckForResize();
-  bool fullscreen = g_ActiveConfig.bFullscreen && g_ActiveConfig.ExclusiveFullscreenEnabled() &&
-                    !SConfig::GetInstance().bRenderToMain;
 
   bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
@@ -1393,41 +1284,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   if (!g_has_hmd)
     D3D::Present();
 
-  // Check exclusive fullscreen state
-  bool exclusive_mode, fullscreen_changed = false;
-  if (g_is_direct_mode)
-  {
-    windowResized = false;
-    fullscreen = false;
-    fullscreen_changed = false;
-  }
-  else if (SUCCEEDED(D3D::GetFullscreenState(&exclusive_mode)))
-  {
-    if (fullscreen && !exclusive_mode)
-    {
-      if (g_Config.bExclusiveMode)
-        OSD::AddMessage("Lost exclusive fullscreen.");
-
-      // Exclusive fullscreen is enabled in the configuration, but we're
-      // not in exclusive mode. Either exclusive fullscreen was turned on
-      // or the render frame lost focus. When the render frame is in focus
-      // we can apply exclusive mode.
-      fullscreen_changed = Host_RendererHasFocus();
-
-      g_Config.bExclusiveMode = false;
-    }
-    else if (!fullscreen && exclusive_mode)
-    {
-      // Exclusive fullscreen is disabled, but we're still in exclusive mode.
-      fullscreen_changed = true;
-    }
-  }
-
   VR_NewVRFrame();
 
   // Resize the back buffers NOW to avoid flickering
   if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || xfbchanged || windowResized ||
-      fullscreen_changed || s_last_efb_scale != g_ActiveConfig.iEFBScale ||
+      s_last_efb_scale != g_ActiveConfig.iEFBScale ||
       s_last_multisamples != g_ActiveConfig.iMultisamples ||
       s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
   {
@@ -1435,23 +1296,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     s_last_multisamples = g_ActiveConfig.iMultisamples;
     PixelShaderCache::InvalidateMSAAShaders();
 
-    if (windowResized || fullscreen_changed)
+    if (windowResized)
     {
-      // Apply fullscreen state
-      if (fullscreen_changed)
-      {
-        g_Config.bExclusiveMode = fullscreen;
-
-        if (fullscreen)
-          OSD::AddMessage("Entered exclusive fullscreen.");
-
-        D3D::SetFullscreenState(fullscreen);
-
-        // If fullscreen is disabled we can safely notify the UI to exit fullscreen.
-        if (!g_ActiveConfig.bFullscreen)
-          Host_RequestFullscreen(false);
-      }
-
       // TODO: Aren't we still holding a reference to the back buffer right now?
       D3D::Reset();
       SAFE_RELEASE(s_screenshot_texture);
@@ -1731,7 +1577,7 @@ void Renderer::SetInterlacingMode()
   // TODO
 }
 
-int Renderer::GetMaxTextureSize()
+u32 Renderer::GetMaxTextureSize()
 {
   return DX11::D3D::GetMaxTextureSize();
 }
@@ -1851,6 +1697,16 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                            VertexShaderCache::GetSimpleVertexShader(),
                            VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma);
   }
+}
+
+void Renderer::SetFullscreen(bool enable_fullscreen)
+{
+  D3D::SetFullscreenState(enable_fullscreen);
+}
+
+bool Renderer::IsFullscreen() const
+{
+  return D3D::GetFullscreenState();
 }
 
 }  // namespace DX11

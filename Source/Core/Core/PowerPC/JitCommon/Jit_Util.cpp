@@ -212,7 +212,7 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 }
 
 FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
-                                             BitSet32 registers_in_use, u32 mem_mask)
+                                             BitSet32 registers_in_use)
 {
   registers_in_use[reg_addr] = true;
   if (reg_value.IsSimpleReg())
@@ -227,35 +227,25 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   else
     scratch = reg_addr;
 
-  // On Gamecube games with MMU, do a little bit of extra work to make sure we're not accessing the
-  // 0x81800000 to 0x83FFFFFF range.
-  // It's okay to take a shortcut and not check this range on non-MMU games, since we're already
-  // assuming they'll never do an invalid memory access.
-  // The slightly more complex check needed for Wii games using the space just above MEM1 isn't
-  // implemented here yet, since there are no known working Wii MMU games to test it with.
-  if (jit->jo.memcheck && !SConfig::GetInstance().bWii)
-  {
-    if (scratch == reg_addr)
-      PUSH(scratch);
-    else
-      MOV(32, R(scratch), R(reg_addr));
-    AND(32, R(scratch), Imm32(0x3FFFFFFF));
-    CMP(32, R(scratch), Imm32(0x01800000));
-    if (scratch == reg_addr)
-      POP(scratch);
-    return J_CC(CC_AE, farcode.Enabled());
-  }
+  if (scratch == reg_addr)
+    PUSH(scratch);
   else
-  {
-    TEST(32, R(reg_addr), Imm32(mem_mask));
-    return J_CC(CC_NZ, farcode.Enabled());
-  }
+    MOV(32, R(scratch), R(reg_addr));
+
+  // Perform lookup to see if we can use fast path.
+  SHR(32, R(scratch), Imm8(PowerPC::BAT_INDEX_SHIFT));
+  TEST(32, MScaled(scratch, SCALE_4, (u32)(u64)&PowerPC::dbat_table[0]), Imm32(2));
+
+  if (scratch == reg_addr)
+    POP(scratch);
+
+  return J_CC(CC_Z, farcode.Enabled());
 }
 
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
                                  s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
-  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
+  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0 || jit->jo.alwaysUseMemFuncs;
 
   registersInUse[reg_value] = false;
   if (jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
@@ -305,14 +295,11 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   }
 
   FixupBranch exit;
-  if (!jit->jo.alwaysUseMemFuncs && !slowmem)
+  bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR;
+  bool fast_check_address = !slowmem && dr_set;
+  if (fast_check_address)
   {
-    u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-    // The following masks the region used by the GC/Wii virtual memory lib
-    mem_mask |= Memory::ADDR_MASK_MEM1;
-
-    FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse, mem_mask);
+    FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
     UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
     if (farcode.Enabled())
       SwitchToFarCode();
@@ -325,16 +312,16 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionR((void*)&PowerPC::Read_U64, reg_addr);
+    ABI_CallFunctionR(PowerPC::Read_U64, reg_addr);
     break;
   case 32:
-    ABI_CallFunctionR((void*)&PowerPC::Read_U32, reg_addr);
+    ABI_CallFunctionR(PowerPC::Read_U32, reg_addr);
     break;
   case 16:
-    ABI_CallFunctionR((void*)&PowerPC::Read_U16_ZX, reg_addr);
+    ABI_CallFunctionR(PowerPC::Read_U16_ZX, reg_addr);
     break;
   case 8:
-    ABI_CallFunctionR((void*)&PowerPC::Read_U8_ZX, reg_addr);
+    ABI_CallFunctionR(PowerPC::Read_U8_ZX, reg_addr);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
@@ -350,7 +337,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     MOVZX(64, accessSize, reg_value, R(ABI_RETURN));
   }
 
-  if (!jit->jo.alwaysUseMemFuncs && !slowmem)
+  if (fast_check_address)
   {
     if (farcode.Enabled())
     {
@@ -385,16 +372,16 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionC(reinterpret_cast<void*>(&PowerPC::Read_U64), address);
+    ABI_CallFunctionC(PowerPC::Read_U64, address);
     break;
   case 32:
-    ABI_CallFunctionC(reinterpret_cast<void*>(&PowerPC::Read_U32), address);
+    ABI_CallFunctionC(PowerPC::Read_U32, address);
     break;
   case 16:
-    ABI_CallFunctionC(reinterpret_cast<void*>(&PowerPC::Read_U16_ZX), address);
+    ABI_CallFunctionC(PowerPC::Read_U16_ZX, address);
     break;
   case 8:
-    ABI_CallFunctionC(reinterpret_cast<void*>(&PowerPC::Read_U8_ZX), address);
+    ABI_CallFunctionC(PowerPC::Read_U8_ZX, address);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -475,7 +462,7 @@ void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
     CALL(jit->GetAsmRoutines()->fifoDirectWrite64);
     break;
   }
-  jit->js.fifoBytesThisBlock += accessSize >> 3;
+  jit->js.fifoBytesSinceCheck += accessSize >> 3;
 }
 
 bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
@@ -507,16 +494,16 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
     switch (accessSize)
     {
     case 64:
-      ABI_CallFunctionAC(64, (void*)&PowerPC::Write_U64, arg, address);
+      ABI_CallFunctionAC(64, PowerPC::Write_U64, arg, address);
       break;
     case 32:
-      ABI_CallFunctionAC(32, (void*)&PowerPC::Write_U32, arg, address);
+      ABI_CallFunctionAC(32, PowerPC::Write_U32, arg, address);
       break;
     case 16:
-      ABI_CallFunctionAC(16, (void*)&PowerPC::Write_U16, arg, address);
+      ABI_CallFunctionAC(16, PowerPC::Write_U16, arg, address);
       break;
     case 8:
-      ABI_CallFunctionAC(8, (void*)&PowerPC::Write_U8, arg, address);
+      ABI_CallFunctionAC(8, PowerPC::Write_U8, arg, address);
       break;
     }
     ABI_PopRegistersAndAdjustStack(registersInUse, 0);
@@ -528,7 +515,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
                                      BitSet32 registersInUse, int flags)
 {
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
-  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
+  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0 || jit->jo.alwaysUseMemFuncs;
 
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);
@@ -575,15 +562,12 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     }
   }
 
-  FixupBranch slow, exit;
-  if (!slowmem)
+  FixupBranch exit;
+  bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR;
+  bool fast_check_address = !slowmem && dr_set;
+  if (fast_check_address)
   {
-    u32 mem_mask = Memory::ADDR_MASK_HW_ACCESS;
-
-    // The following masks the region used by the GC/Wii virtual memory lib
-    mem_mask |= Memory::ADDR_MASK_MEM1;
-
-    slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse, mem_mask);
+    FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
     if (farcode.Enabled())
       SwitchToFarCode();
@@ -613,26 +597,23 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   switch (accessSize)
   {
   case 64:
-    ABI_CallFunctionRR(swap ? ((void*)&PowerPC::Write_U64) : ((void*)&PowerPC::Write_U64_Swap), reg,
-                       reg_addr);
+    ABI_CallFunctionRR(swap ? PowerPC::Write_U64 : PowerPC::Write_U64_Swap, reg, reg_addr);
     break;
   case 32:
-    ABI_CallFunctionRR(swap ? ((void*)&PowerPC::Write_U32) : ((void*)&PowerPC::Write_U32_Swap), reg,
-                       reg_addr);
+    ABI_CallFunctionRR(swap ? PowerPC::Write_U32 : PowerPC::Write_U32_Swap, reg, reg_addr);
     break;
   case 16:
-    ABI_CallFunctionRR(swap ? ((void*)&PowerPC::Write_U16) : ((void*)&PowerPC::Write_U16_Swap), reg,
-                       reg_addr);
+    ABI_CallFunctionRR(swap ? PowerPC::Write_U16 : PowerPC::Write_U16_Swap, reg, reg_addr);
     break;
   case 8:
-    ABI_CallFunctionRR((void*)&PowerPC::Write_U8, reg, reg_addr);
+    ABI_CallFunctionRR(PowerPC::Write_U8, reg, reg_addr);
     break;
   }
   ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
 
   MemoryExceptionCheck();
 
-  if (!slowmem)
+  if (fast_check_address)
   {
     if (farcode.Enabled())
     {

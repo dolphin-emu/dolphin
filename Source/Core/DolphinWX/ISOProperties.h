@@ -21,12 +21,11 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
 
-class GameListItem;
+class DolphinSlider;
 class wxButton;
 class wxCheckBox;
 class wxCheckListBox;
 class wxChoice;
-class wxSlider;
 class wxSpinCtrl;
 class wxSpinCtrlDouble;
 class wxStaticBitmap;
@@ -41,6 +40,9 @@ namespace Gecko
 {
 class CodeConfigPanel;
 }
+class ActionReplayCodesPanel;
+class CheatWarningMessage;
+class GameListItem;
 
 class WiiPartition final : public wxTreeItemData
 {
@@ -79,7 +81,6 @@ private:
   std::unique_ptr<DiscIO::IFileSystem> m_filesystem;
 
   std::vector<PatchEngine::Patch> onFrame;
-  std::vector<ActionReplay::ARCode> arCodes;
   PHackData m_PHack_Data;
 
   // Core
@@ -94,7 +95,7 @@ private:
   wxCheckBox* EnableWideScreen;
 
   // Stereoscopy
-  wxSlider* DepthPercentage;
+  DolphinSlider* DepthPercentage;
   wxSpinCtrl* Convergence;
   wxCheckBox* MonoDepth;
 
@@ -156,7 +157,11 @@ private:
   wxTreeCtrl* m_Treectrl;
   wxTreeItemId RootId;
 
+  ActionReplayCodesPanel* m_ar_code_panel;
   Gecko::CodeConfigPanel* m_geckocode_panel;
+
+  CheatWarningMessage* m_cheats_disabled_ar;
+  CheatWarningMessage* m_cheats_disabled_gecko;
 
   enum
   {
@@ -257,11 +262,10 @@ private:
   void OnComputeMD5Sum(wxCommandEvent& event);
   void OnShowDefaultConfig(wxCommandEvent& event);
   void HideObjectButtonClicked(wxCommandEvent& event);
-  void ListSelectionChanged(wxCommandEvent& event);
   void CheckboxSelectionChanged(wxCommandEvent& event);
   void OnActionReplayCodeChecked(wxCommandEvent& event);
+  void PatchListSelectionChanged(wxCommandEvent& event);
   void PatchButtonClicked(wxCommandEvent& event);
-  void ActionReplayButtonClicked(wxCommandEvent& event);
   void RightClickOnBanner(wxMouseEvent& event);
   void OnBannerImageSave(wxCommandEvent& event);
   void OnRightClickOnTree(wxTreeEvent& event);
@@ -271,6 +275,7 @@ private:
   void CheckPartitionIntegrity(wxCommandEvent& event);
   void OnEmustateChanged(wxCommandEvent& event);
   void OnChangeBannerLang(wxCommandEvent& event);
+  void OnCheatCodeToggled(wxCommandEvent& event);
 
   const GameListItem OpenGameListItem;
 
@@ -289,7 +294,6 @@ private:
 
   std::set<std::string> DefaultHideObjects;
   std::set<std::string> DefaultPatches;
-  std::set<std::string> DefaultCheats;
 
   void LoadGameConfig();
   bool SaveGameConfig();
@@ -299,8 +303,6 @@ private:
   void HideObjectList_Save();
   void PatchList_Load();
   void PatchList_Save();
-  void ActionReplayList_Load();
-  void ActionReplayList_Save();
   void ChangeBannerDetails(DiscIO::Language language);
 
   long GetElementStyle(const char* section, const char* key);

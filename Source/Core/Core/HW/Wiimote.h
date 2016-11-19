@@ -42,7 +42,7 @@ enum class InitializeMode
 };
 
 void Shutdown();
-void Initialize(void* const hwnd, InitializeMode init_mode);
+void Initialize(InitializeMode init_mode);
 void ResetAllWiimotes();
 void LoadConfig();
 void Resume();

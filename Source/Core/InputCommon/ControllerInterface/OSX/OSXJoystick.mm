@@ -144,8 +144,14 @@ Joystick::Axis::Axis(IOHIDElementRef element, IOHIDDeviceRef device, direction d
     break;
   default:
   {
+    IOHIDElementCookie elementCookie = IOHIDElementGetCookie(m_element);
+    // This axis isn't a 'well-known' one so cook a descriptive and uniquely
+    // identifiable name. macOS provides a 'cookie' for each element that
+    // will persist between sessions and identify the same physical controller
+    // element so we can use that as a component of the axis name
     std::ostringstream s;
-    s << usage;
+    s << "CK-";
+    s << elementCookie;
     description = StripSpaces(s.str());
     break;
   }

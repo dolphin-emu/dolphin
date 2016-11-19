@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <memory>
 
 #include "VideoBackends/D3D/D3DBase.h"
@@ -38,43 +39,41 @@ void TextureCache::TCacheEntry::Bind(unsigned int stage)
 
 bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int level)
 {
-  // TODO: Somehow implement this (D3DX11 doesn't support dumping individual LODs)
-  static bool warn_once = true;
-  if (level && warn_once)
+  // Create a staging/readback texture with the dimensions of the specified mip level.
+  u32 mip_width = std::max(config.width >> level, 1u);
+  u32 mip_height = std::max(config.height >> level, 1u);
+  CD3D11_TEXTURE2D_DESC staging_texture_desc(DXGI_FORMAT_R8G8B8A8_UNORM, mip_width, mip_height, 1,
+                                             1, 0, D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ);
+
+  ID3D11Texture2D* staging_texture;
+  HRESULT hr = D3D::device->CreateTexture2D(&staging_texture_desc, nullptr, &staging_texture);
+  if (FAILED(hr))
   {
-    WARN_LOG(VIDEO, "Dumping individual LOD not supported by D3D11 backend!");
-    warn_once = false;
+    WARN_LOG(VIDEO, "Failed to create texture dumping readback texture: %X", static_cast<u32>(hr));
     return false;
   }
 
-  ID3D11Texture2D* pNewTexture = nullptr;
-  ID3D11Texture2D* pSurface = texture->GetTex();
-  D3D11_TEXTURE2D_DESC desc;
-  pSurface->GetDesc(&desc);
+  // Copy the selected mip level to the staging texture.
+  CD3D11_BOX src_box(0, 0, 0, mip_width, mip_height, 1);
+  D3D::context->CopySubresourceRegion(staging_texture, 0, 0, 0, 0, texture->GetTex(),
+                                      D3D11CalcSubresource(level, 0, config.levels), &src_box);
 
-  desc.BindFlags = 0;
-  desc.CPUAccessFlags = D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE;
-  desc.Usage = D3D11_USAGE_STAGING;
-
-  HRESULT hr = D3D::device->CreateTexture2D(&desc, nullptr, &pNewTexture);
-
-  bool saved_png = false;
-
-  if (SUCCEEDED(hr) && pNewTexture)
+  // Map the staging texture to client memory, and encode it as a .png image.
+  D3D11_MAPPED_SUBRESOURCE map;
+  hr = D3D::context->Map(staging_texture, 0, D3D11_MAP_READ, 0, &map);
+  if (FAILED(hr))
   {
-    D3D::context->CopyResource(pNewTexture, pSurface);
-
-    D3D11_MAPPED_SUBRESOURCE map;
-    hr = D3D::context->Map(pNewTexture, 0, D3D11_MAP_READ_WRITE, 0, &map);
-    if (SUCCEEDED(hr))
-    {
-      saved_png = TextureToPng((u8*)map.pData, map.RowPitch, filename, desc.Width, desc.Height);
-      D3D::context->Unmap(pNewTexture, 0);
-    }
-    SAFE_RELEASE(pNewTexture);
+    WARN_LOG(VIDEO, "Failed to map texture dumping readback texture: %X", static_cast<u32>(hr));
+    staging_texture->Release();
+    return false;
   }
 
-  return saved_png;
+  bool encode_result =
+      TextureToPng(reinterpret_cast<u8*>(map.pData), map.RowPitch, filename, mip_width, mip_height);
+  D3D::context->Unmap(staging_texture, 0);
+  staging_texture->Release();
+
+  return encode_result;
 }
 
 void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* source,

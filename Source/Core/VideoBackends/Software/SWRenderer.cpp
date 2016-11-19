@@ -116,44 +116,24 @@ void SWRenderer::AsyncTimewarpDraw()
 
 // Called on the GPU thread
 void SWRenderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
-                          const EFBRectangle& rc, float Gamma)
+                          const EFBRectangle& rc, u64 ticks, float Gamma)
 {
-  if (!Fifo::WillSkipCurrentFrame())
+  if (g_ActiveConfig.bUseXFB)
   {
-    if (g_ActiveConfig.bUseXFB)
-    {
-      EfbInterface::yuv422_packed* xfb = (EfbInterface::yuv422_packed*)Memory::GetPointer(xfbAddr);
-      UpdateColorTexture(xfb, fbWidth, fbHeight);
-    }
-    else
-    {
-      EfbInterface::BypassXFB(GetCurrentColorTexture(), fbWidth, fbHeight, rc, Gamma);
-    }
+    EfbInterface::yuv422_packed* xfb = (EfbInterface::yuv422_packed*)Memory::GetPointer(xfbAddr);
+    UpdateColorTexture(xfb, fbWidth, fbHeight);
+  }
+  else
+  {
+    EfbInterface::BypassXFB(GetCurrentColorTexture(), fbWidth, fbHeight, rc, Gamma);
+  }
 
-    // Save screenshot
-    if (s_bScreenshot)
-    {
-      std::lock_guard<std::mutex> lk(s_criticalScreenshot);
-
-      if (TextureToPng(GetCurrentColorTexture(), fbWidth * 4, s_sScreenshotName, fbWidth, fbHeight,
-                       false))
-        OSD::AddMessage("Screenshot saved to " + s_sScreenshotName);
-
-      // Reset settings
-      s_sScreenshotName.clear();
-      s_bScreenshot = false;
-      s_screenshotCompleted.Set();
-    }
-
-    if (SConfig::GetInstance().m_DumpFrames)
-    {
-      static int frame_index = 0;
-      TextureToPng(GetCurrentColorTexture(), fbWidth * 4,
-                   StringFromFormat("%sframe%i_color.png",
-                                    File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), frame_index),
-                   fbWidth, fbHeight, true);
-      frame_index++;
-    }
+  // Save screenshot
+  if (IsFrameDumping())
+  {
+    AVIDump::Frame state = AVIDump::FetchState(ticks);
+    DumpFrameData(GetCurrentColorTexture(), fbWidth, fbHeight, fbWidth * 4, state);
+    FinishFrameData();
   }
 
   OSD::DoCallbacks(OSD::CallbackType::OnFrame);
@@ -186,8 +166,7 @@ u32 SWRenderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 InputData)
   }
   case PEEK_COLOR:
   {
-    u32 color = 0;
-    EfbInterface::GetColor(x, y, (u8*)&color);
+    const u32 color = EfbInterface::GetColor(x, y);
 
     // rgba to argb
     value = (color >> 8) | (color & 0xff) << 24;

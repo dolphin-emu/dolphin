@@ -4,8 +4,11 @@
 
 #pragma once
 
-#ifdef __APPLE__
+#if defined(__APPLE__) && defined(__OBJC__)
 #import <AppKit/AppKit.h>
+#else
+struct NSOpenGLContext;
+struct NSView;
 #endif
 
 #include "Common/GL/GLInterfaceBase.h"

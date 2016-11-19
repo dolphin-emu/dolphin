@@ -12,6 +12,7 @@ class CGameListCtrl;
 class wxCheckBox;
 class wxChoice;
 class wxListBox;
+class wxNotebook;
 class wxSpinCtrl;
 class wxStaticText;
 class wxTextCtrl;
@@ -39,6 +40,9 @@ private:
   static constexpr int TRAVERSAL_CHOICE = 1;
 #endif
 
+  void CreateGUI();
+  wxNotebook* CreateNotebookGUI(wxWindow* parent);
+
   void OnJoin(wxCommandEvent& event);
   void OnHost(wxCommandEvent& event);
   void DoJoin();
@@ -49,10 +53,7 @@ private:
   void OnTraversalListenPortChanged(wxCommandEvent& event);
   void OnKeyDown(wxKeyEvent& event);
   void OnTabChanged(wxCommandEvent& event);
-  void OnAfterTabChange(wxIdleEvent& event);
   void DispatchFocus();
-
-  void MakeNetPlayDiag(int port, const std::string& game, bool is_hosting);
 
   wxStaticText* m_ip_lbl;
   wxStaticText* m_client_port_lbl;
@@ -74,5 +75,6 @@ private:
   wxCheckBox* m_upnp_chk;
 #endif
 
+  wxString m_traversal_string;
   const CGameListCtrl* const m_game_list;
 };

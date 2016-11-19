@@ -19,9 +19,8 @@
             android:layout_marginLeft="16dp"
             android:layout_marginTop="24dp"
             tools:src="@drawable/placeholder_banner"
-            app:border_color="?android:colorAccent"
-            app:border_width="2dp"
-            />
+            app:civ_border_color="?android:colorAccent"
+            app:civ_border_width="2dp"/>
 
         <ImageView
             android:id="@+id/image_game_screen"
@@ -59,8 +58,7 @@
             android:layout_alignStart="@+id/text_game_title"
             android:layout_below="@+id/text_game_title"
             android:layout_marginTop="8dp"
-            tools:text="Zany rhythm action!"
-            />
+            tools:text="Zany rhythm action!"/>
 
         <View
             android:id="@+id/divider"
@@ -70,7 +68,6 @@
             android:layout_alignParentRight="true"
             android:layout_below="@+id/text_company"
             android:layout_marginTop="16dp"
-
             android:background="#1F000000"/>
 
         <ImageView
@@ -122,13 +119,12 @@
             android:layout_alignEnd="@+id/text_game_title"
             android:layout_marginBottom="-28dp"
             android:src="@drawable/ic_play"
-            android:stateListAnimator="@anim/button_elevation"
+            android:stateListAnimator="@animator/button_elevation"
             app:rippleColor="?android:colorPrimaryDark"
             app:borderWidth="0dp"
             app:elevation="6dp"
-            app:pressedTranslationZ="12dp"
-            />
-    </RelativeLayout>
+            app:pressedTranslationZ="12dp"/>
 
+    </RelativeLayout>
 
 </FrameLayout>

@@ -14,6 +14,7 @@
 #include <wx/app.h>
 #include <wx/buffer.h>
 #include <wx/cmdline.h>
+#include <wx/evtloop.h>
 #include <wx/image.h>
 #include <wx/imagpng.h>
 #include <wx/intl.h>
@@ -59,29 +60,6 @@
 #include <X11/Xlib.h>
 #endif
 
-#ifdef _WIN32
-
-#ifndef SM_XVIRTUALSCREEN
-#define SM_XVIRTUALSCREEN 76
-#endif
-#ifndef SM_YVIRTUALSCREEN
-#define SM_YVIRTUALSCREEN 77
-#endif
-#ifndef SM_CXVIRTUALSCREEN
-#define SM_CXVIRTUALSCREEN 78
-#endif
-#ifndef SM_CYVIRTUALSCREEN
-#define SM_CYVIRTUALSCREEN 79
-#endif
-
-#endif
-
-#ifdef __APPLE__
-#import <AppKit/AppKit.h>
-#endif
-
-class wxFrame;
-
 // ------------
 //  Main window
 
@@ -91,6 +69,8 @@ bool wxMsgAlert(const char*, const char*, bool, int);
 std::string wxStringTranslator(const char*);
 
 CFrame* main_frame = nullptr;
+
+static std::mutex s_init_mutex;
 
 bool DolphinApp::Initialize(int& c, wxChar** v)
 {
@@ -104,12 +84,14 @@ bool DolphinApp::Initialize(int& c, wxChar** v)
 
 bool DolphinApp::OnInit()
 {
+  std::lock_guard<std::mutex> lk(s_init_mutex);
   if (!wxApp::OnInit())
     return false;
 
   Bind(wxEVT_QUERY_END_SESSION, &DolphinApp::OnEndSession, this);
   Bind(wxEVT_END_SESSION, &DolphinApp::OnEndSession, this);
   Bind(wxEVT_IDLE, &DolphinApp::OnIdle, this);
+  Bind(wxEVT_ACTIVATE_APP, &DolphinApp::OnActivate, this);
 
   // Register message box and translation handlers
   RegisterMsgAlertHandler(&wxMsgAlert);
@@ -137,32 +119,15 @@ bool DolphinApp::OnInit()
   // Enable the PNG image handler for screenshots
   wxImage::AddHandler(new wxPNGHandler);
 
-  int x = SConfig::GetInstance().iPosX;
-  int y = SConfig::GetInstance().iPosY;
-  int w = SConfig::GetInstance().iWidth;
-  int h = SConfig::GetInstance().iHeight;
-
-// The following is not needed with X11, where window managers
-// do not allow windows to be created off the desktop.
-#ifdef _WIN32
-  // Out of desktop check
-  int leftPos = GetSystemMetrics(SM_XVIRTUALSCREEN);
-  int topPos = GetSystemMetrics(SM_YVIRTUALSCREEN);
-  int width = GetSystemMetrics(SM_CXVIRTUALSCREEN);
-  int height = GetSystemMetrics(SM_CYVIRTUALSCREEN);
-  if ((leftPos + width) < (x + w) || leftPos > x || (topPos + height) < (y + h) || topPos > y)
-    x = y = wxDefaultCoord;
-#elif defined __APPLE__
-  if (y < 1)
-    y = wxDefaultCoord;
-#endif
-
+  // We have to copy the size and position out of SConfig now because CFrame's OnMove
+  // handler will corrupt them during window creation (various APIs like SetMenuBar cause
+  // event dispatch including WM_MOVE/WM_SIZE)
+  wxRect window_geometry(SConfig::GetInstance().iPosX, SConfig::GetInstance().iPosY,
+                         SConfig::GetInstance().iWidth, SConfig::GetInstance().iHeight);
   std::string titleStr = StringFromFormat("%s%s", scm_rev_str.c_str(), scm_vr_sdk_str);
-  main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(titleStr), wxPoint(x, y), wxSize(w, h),
+  main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(titleStr), window_geometry,
                           m_use_debugger, m_batch_mode, m_use_logger);
-
   SetTopWindow(main_frame);
-  main_frame->SetMinSize(wxSize(400, 300));
 
   AfterInit();
 
@@ -376,13 +341,30 @@ void DolphinApp::AfterInit()
   }
 }
 
+void DolphinApp::OnActivate(wxActivateEvent& ev)
+{
+  m_is_active = ev.GetActive();
+}
+
 void DolphinApp::InitLanguageSupport()
 {
-  unsigned int language = 0;
-
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  ini.GetOrCreateSection("Interface")->Get("Language", &language, wxLANGUAGE_DEFAULT);
+  std::string language_code;
+  {
+    IniFile ini;
+    ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
+    ini.GetOrCreateSection("Interface")->Get("LanguageCode", &language_code, "");
+  }
+  int language = wxLANGUAGE_UNKNOWN;
+  if (language_code.empty())
+  {
+    language = wxLANGUAGE_DEFAULT;
+  }
+  else
+  {
+    const wxLanguageInfo* language_info = wxLocale::FindLanguageInfo(StrToWxStr(language_code));
+    if (language_info)
+      language = language_info->Language;
+  }
 
   // Load language if possible, fall back to system default otherwise
   if (wxLocale::IsAvailable(language))
@@ -390,11 +372,11 @@ void DolphinApp::InitLanguageSupport()
     m_locale.reset(new wxLocale(language));
 
 // Specify where dolphins *.gmo files are located on each operating system
-#ifdef _WIN32
+#ifdef __WXMSW__
     m_locale->AddCatalogLookupPathPrefix(StrToWxStr(File::GetExeDirectory() + DIR_SEP "Languages"));
-#elif defined(__LINUX__)
+#elif defined(__WXGTK__)
     m_locale->AddCatalogLookupPathPrefix(StrToWxStr(DATA_DIR "../locale"));
-#elif defined(__APPLE__)
+#elif defined(__WXOSX__)
     m_locale->AddCatalogLookupPathPrefix(
         StrToWxStr(File::GetBundleDirectory() + "Contents/Resources"));
 #endif
@@ -553,13 +535,6 @@ void Host_RequestRenderWindowSize(int width, int height)
   main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
-void Host_RequestFullscreen(bool enable_fullscreen)
-{
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FULLSCREEN_REQUEST);
-  event.SetInt(enable_fullscreen ? 1 : 0);
-  main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
 void Host_SetStartupDebuggingParameters()
 {
   SConfig& StartUp = SConfig::GetInstance();
@@ -595,7 +570,7 @@ void Host_SetWiiMoteConnectionState(int _State)
     event.SetString(_("Connecting..."));
     break;
   case 2:
-    event.SetString(_("Wiimote Connected"));
+    event.SetString(_("Wii Remote Connected"));
     break;
   }
   // Update field 1 or 2
@@ -608,7 +583,7 @@ void Host_SetWiiMoteConnectionState(int _State)
 
 bool Host_UIHasFocus()
 {
-  return main_frame->UIHasFocus();
+  return wxGetApp().IsActiveThreadsafe();
 }
 
 bool Host_RendererHasFocus()
@@ -623,6 +598,7 @@ bool Host_RendererIsFullscreen()
 
 void Host_ConnectWiimote(int wm_idx, bool connect)
 {
+  std::lock_guard<std::mutex> lk(s_init_mutex);
   if (connect)
   {
     wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FORCE_CONNECT_WIIMOTE1 + wm_idx);
@@ -647,4 +623,9 @@ void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
     VideoConfigDiag diag((wxWindow*)parent, backend_name);
     diag.ShowModal();
   }
+}
+
+void Host_YieldToUI()
+{
+  wxGetApp().GetMainLoop()->YieldFor(wxEVT_CATEGORY_UI);
 }

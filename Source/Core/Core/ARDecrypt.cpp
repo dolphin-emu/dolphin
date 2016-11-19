@@ -16,6 +16,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "Core/PatchEngine.h"
 #include "Core/ARDecrypt.h"
 
 namespace ActionReplay
@@ -454,7 +455,7 @@ static int alphatobin(u32* dst, const std::vector<std::string>& alpha, int size)
   return ret;
 }
 
-void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>& ops)
+void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>* ops)
 {
   // The almighty buildseeds() function!! without this, the crypto routines are useless
   buildseeds();
@@ -469,9 +470,9 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>& ops)
 
   if ((ret = alphatobin(uCodes, vCodes, (int)vCodes.size())))
   {
+    // Return value is index + 1, 0 being the success flag value.
     PanicAlertT("Action Replay Code Decryption Error:\nParity Check Failed\n\nCulprit Code:\n%s",
-                vCodes[ret].c_str());
-    batchdecrypt(uCodes, (u16)vCodes.size() << 1);
+                vCodes[ret - 1].c_str());
   }
   else if (!batchdecrypt(uCodes, (u16)vCodes.size() << 1))
   {
@@ -481,10 +482,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>& ops)
 
     for (size_t i = 0; i < (vCodes.size() << 1); i += 2)
     {
-      AREntry op;
-      op.cmd_addr = uCodes[i];
-      op.value = uCodes[i + 1];
-      ops.push_back(op);
+      ops->emplace_back(uCodes[i], uCodes[i + 1]);
       // PanicAlert("Decrypted AR Code without verification code:\n%08X %08X", uCodes[i],
       // uCodes[i+1]);
     }
@@ -494,10 +492,7 @@ void DecryptARCode(std::vector<std::string> vCodes, std::vector<AREntry>& ops)
     // Skip passing the verification code back
     for (size_t i = 2; i < (vCodes.size() << 1); i += 2)
     {
-      AREntry op;
-      op.cmd_addr = uCodes[i];
-      op.value = uCodes[i + 1];
-      ops.push_back(op);
+      ops->emplace_back(uCodes[i], uCodes[i + 1]);
       // PanicAlert("Decrypted AR Code:\n%08X %08X", uCodes[i], uCodes[i+1]);
     }
   }

@@ -651,6 +651,11 @@ public:
     ARM64Reg zr = Is64Bit(Rd) ? ZR : WZR;
     CSINC(Rd, zr, zr, (CCFlags)((u32)cond ^ 1));
   }
+  void CSETM(ARM64Reg Rd, CCFlags cond)
+  {
+    ARM64Reg zr = Is64Bit(Rd) ? ZR : WZR;
+    CSINV(Rd, zr, zr, (CCFlags)((u32)cond ^ 1));
+  }
   void NEG(ARM64Reg Rd, ARM64Reg Rs) { SUB(Rd, Is64Bit(Rd) ? ZR : WZR, Rs); }
   // Data-Processing 1 source
   void RBIT(ARM64Reg Rd, ARM64Reg Rn);
@@ -835,6 +840,7 @@ public:
 
   // Wrapper around MOVZ+MOVK
   void MOVI2R(ARM64Reg Rd, u64 imm, bool optimize = true);
+  bool MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2);
   template <class P>
   void MOVP2R(ARM64Reg Rd, P* ptr)
   {
@@ -854,7 +860,10 @@ public:
   void EORI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
   void CMPI2R(ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
 
+  void ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
+                       ARM64Reg scratch);
   void ADDI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
+  void ADDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
   void SUBI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
   void SUBSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch = INVALID_REG);
 

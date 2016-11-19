@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -220,6 +220,9 @@
     </ProjectReference>
     <ProjectReference Include="..\VideoBackends\D3D12\D3D12.vcxproj" Condition="'$(VisualStudioVersion)' != '12.0'">
       <Project>{570215b7-e32f-4438-95ae-c8d955f9fca3}</Project>
+    </ProjectReference>
+    <ProjectReference Include="..\VideoBackends\Vulkan\Vulkan.vcxproj">
+      <Project>{29f29a19-f141-45ad-9679-5a2923b49da3}</Project>
     </ProjectReference>
     <ProjectReference Include="..\VideoCommon\VR.vcxproj">
       <Project>{2e6f41ca-9ead-4a12-97da-1b428c7dea76}</Project>

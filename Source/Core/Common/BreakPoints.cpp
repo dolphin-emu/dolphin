@@ -115,13 +115,18 @@ void BreakPoints::Clear()
 
 void BreakPoints::ClearAllTemporary()
 {
-  for (const TBreakPoint& bp : m_BreakPoints)
+  auto bp = m_BreakPoints.begin();
+  while (bp != m_BreakPoints.end())
   {
-    if (bp.bTemporary)
+    if (bp->bTemporary)
     {
       if (jit)
-        jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
-      Remove(bp.iAddress);
+        jit->GetBlockCache()->InvalidateICache(bp->iAddress, 4, true);
+      bp = m_BreakPoints.erase(bp);
+    }
+    else
+    {
+      ++bp;
     }
   }
 }
@@ -171,7 +176,7 @@ void MemChecks::Add(const TMemCheck& _rMemoryCheck)
   // If this is the first one, clear the JIT cache so it can switch to
   // watchpoint-compatible code.
   if (!had_any && jit)
-    jit->ClearCache();
+    jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
 }
 
 void MemChecks::Remove(u32 _Address)
@@ -181,11 +186,11 @@ void MemChecks::Remove(u32 _Address)
     if (i->StartAddress == _Address)
     {
       m_MemChecks.erase(i);
+      if (!HasAny() && jit)
+        jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
       return;
     }
   }
-  if (!HasAny() && jit)
-    jit->ClearCache();
 }
 
 TMemCheck* MemChecks::GetMemCheck(u32 address)
@@ -214,12 +219,12 @@ bool TMemCheck::Action(DebugInterface* debug_interface, u32 iValue, u32 addr, bo
   {
     if (Log)
     {
-      INFO_LOG(MEMMAP, "CHK %08x (%s) %s%i %0*x at %08x (%s)", pc,
-               debug_interface->GetDescription(pc).c_str(), write ? "Write" : "Read", size * 8,
-               size * 2, iValue, addr, debug_interface->GetDescription(addr).c_str());
+      NOTICE_LOG(MEMMAP, "MBP %08x (%s) %s%i %0*x at %08x (%s)", pc,
+                 debug_interface->GetDescription(pc).c_str(), write ? "Write" : "Read", size * 8,
+                 size * 2, iValue, addr, debug_interface->GetDescription(addr).c_str());
     }
-
-    return true;
+    if (Break)
+      return true;
   }
   return false;
 }

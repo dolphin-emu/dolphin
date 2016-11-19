@@ -19,7 +19,7 @@ AsyncRequests::AsyncRequests() : m_enable(false), m_passthrough(true)
 void AsyncRequests::PullEventsInternal()
 {
   std::unique_lock<std::mutex> lock(m_mutex);
-  m_empty.store(true);
+  m_empty.Set();
 
   while (!m_queue.empty())
   {
@@ -76,7 +76,7 @@ void AsyncRequests::PushEvent(const AsyncRequests::Event& event, bool blocking)
     return;
   }
 
-  m_empty.store(false);
+  m_empty.Clear();
   m_wake_me_up_again |= blocking;
 
   if (!m_enable)
@@ -135,7 +135,7 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
 
   case Event::SWAP_EVENT:
     Renderer::Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
-                   e.swap_event.fbHeight, rc);
+                   e.swap_event.fbHeight, rc, e.time);
     break;
 
   case Event::BBOX_READ:

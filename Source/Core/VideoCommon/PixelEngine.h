@@ -61,7 +61,7 @@ void DoState(PointerWrap& p);
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
 // gfx backend support
-void SetToken(const u16 _token, const int _bSetTokenAcknowledge);
+void SetToken(const u16 token, const bool interrupt);
 void SetFinish();
 UPEAlphaReadReg GetAlphaReadMode();
 

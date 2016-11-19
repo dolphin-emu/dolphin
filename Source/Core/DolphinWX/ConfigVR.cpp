@@ -908,7 +908,7 @@ void CConfigVR::CreateGUIControls()
     wxButton* const btn_reset = new wxButton(page_vr, wxID_ANY, wxTRANSLATE("Reset to Defaults"));
     btn_reset->Bind(wxEVT_BUTTON, &CConfigVR::Event_ClickReset, this);
     szr_vr->Add(btn_reset, 1, wxALIGN_CENTER_VERTICAL, 0);
-    if (SConfig::GetInstance().m_strUniqueID == "")
+    if (SConfig::GetInstance().m_strGameID == "")
     {
       btn_save->Disable();
       btn_reset->Disable();
@@ -1419,13 +1419,13 @@ void CConfigVR::OnPullupCheckbox(wxCommandEvent& event)
 
 void CConfigVR::Event_ClickSave(wxCommandEvent&)
 {
-  if (SConfig::GetInstance().m_strUniqueID != "")
+  if (SConfig::GetInstance().m_strGameID != "")
     g_Config.GameIniSave();
 }
 
 void CConfigVR::Event_ClickReset(wxCommandEvent&)
 {
-  if (SConfig::GetInstance().m_strUniqueID != "")
+  if (SConfig::GetInstance().m_strGameID != "")
   {
     g_Config.GameIniReset();
     Close();

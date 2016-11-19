@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="14.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
     <ProjectConfiguration Include="Debug|x64">
@@ -70,7 +70,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="AboutDolphin.cpp" />
-    <ClCompile Include="ARCodeAddEdit.cpp" />
+    <ClCompile Include="Cheats\ActionReplayCodesPanel.cpp" />
+    <ClCompile Include="Cheats\ARCodeAddEdit.cpp" />
     <ClCompile Include="Cheats\CheatSearchTab.cpp" />
     <ClCompile Include="Cheats\CheatsWindow.cpp" />
     <ClCompile Include="Cheats\CreateCodeDialog.cpp" />
@@ -103,8 +104,10 @@
     <ClCompile Include="Debugger\RegisterWindow.cpp" />
     <ClCompile Include="Debugger\WatchView.cpp" />
     <ClCompile Include="Debugger\WatchWindow.cpp" />
+    <ClCompile Include="DolphinSlider.cpp" />
     <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
     <ClCompile Include="NetPlay\MD5Dialog.cpp" />
+    <ClCompile Include="NetPlay\NetPlayLauncher.cpp" />
     <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp" />
     <ClCompile Include="NetPlay\NetWindow.cpp" />
     <ClCompile Include="FifoPlayerDlg.cpp" />
@@ -119,9 +122,11 @@
     <ClCompile Include="LogConfigWindow.cpp" />
     <ClCompile Include="LogWindow.cpp" />
     <ClCompile Include="Main.cpp" />
+    <ClCompile Include="MainMenuBar.cpp" />
     <ClCompile Include="MainNoGUI.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
+    <ClCompile Include="MainToolBar.cpp" />
     <ClCompile Include="MemcardManager.cpp" />
     <ClCompile Include="NetPlay\PadMapDialog.cpp" />
     <ClCompile Include="PatchAddEdit.cpp" />
@@ -131,10 +136,13 @@
     <ClCompile Include="VideoConfigDiag.cpp" />
     <ClCompile Include="PostProcessingConfigDiag.cpp" />
     <ClCompile Include="ControllerConfigDiag.cpp" />
+    <ClCompile Include="WxEventUtils.cpp" />
     <ClCompile Include="WXInputBase.cpp" />
     <ClCompile Include="WxUtils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Cheats\ActionReplayCodesPanel.h" />
+    <ClInclude Include="Cheats\ARCodeAddEdit.h" />
     <ClInclude Include="Config\AdvancedConfigPane.h" />
     <ClInclude Include="Config\AudioConfigPane.h" />
     <ClInclude Include="Config\GameCubeConfigPane.h" />
@@ -144,13 +152,14 @@
     <ClInclude Include="Config\PathConfigPane.h" />
     <ClInclude Include="Config\WiiConfigPane.h" />
     <ClInclude Include="ConfigVR.h" />
+    <ClInclude Include="DolphinSlider.h" />
     <ClInclude Include="NetPlay\ChangeGameDialog.h" />
     <ClInclude Include="NetPlay\MD5Dialog.h" />
+    <ClInclude Include="NetPlay\NetPlayLauncher.h" />
     <ClInclude Include="NetPlay\NetPlaySetupFrame.h" />
     <ClInclude Include="NetPlay\PadMapDialog.h" />
     <ClInclude Include="resource.h" />
     <ClInclude Include="AboutDolphin.h" />
-    <ClInclude Include="ARCodeAddEdit.h" />
     <ClInclude Include="Cheats\CheatSearchTab.h" />
     <ClInclude Include="Cheats\CheatsWindow.h" />
     <ClInclude Include="Cheats\CreateCodeDialog.h" />
@@ -184,6 +193,8 @@
     <ClInclude Include="LogConfigWindow.h" />
     <ClInclude Include="LogWindow.h" />
     <ClInclude Include="Main.h" />
+    <ClInclude Include="MainMenuBar.h" />
+    <ClInclude Include="MainToolBar.h" />
     <ClInclude Include="MemcardManager.h" />
     <ClInclude Include="PatchAddEdit.h" />
     <ClInclude Include="HideObjectAddEdit.h" />
@@ -192,6 +203,7 @@
     <ClInclude Include="VideoConfigDiag.h" />
     <ClInclude Include="PostProcessingConfigDiag.h" />
     <ClInclude Include="ControllerConfigDiag.h" />
+    <ClInclude Include="WxEventUtils.h" />
     <ClInclude Include="WXInputBase.h" />
     <ClInclude Include="WxUtils.h" />
   </ItemGroup>
@@ -255,6 +267,9 @@
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoBackends\Null\Null.vcxproj">
       <Project>{53A5391B-737E-49A8-BC8F-312ADA00736F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="$(CoreDir)VideoBackends\Vulkan\Vulkan.vcxproj">
+      <Project>{29F29A19-F141-45AD-9679-5A2923B49DA3}</Project>
     </ProjectReference>
     <ProjectReference Include="$(CoreDir)VideoCommon\VideoCommon.vcxproj">
       <Project>{3de9ee35-3e91-4f27-a014-2866ad8c3fe3}</Project>

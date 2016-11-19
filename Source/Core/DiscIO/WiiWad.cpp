@@ -16,6 +16,34 @@
 
 namespace DiscIO
 {
+namespace
+{
+std::vector<u8> CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
+{
+  if (size == 0)
+    return {};
+
+  std::vector<u8> buffer(size);
+
+  if (!reader.Read(offset, size, buffer.data()))
+  {
+    ERROR_LOG(DISCIO, "WiiWAD: Could not read from file");
+    PanicAlertT("WiiWAD: Could not read from file");
+  }
+
+  return buffer;
+}
+
+bool IsWiiWAD(const CBlobBigEndianReader& reader)
+{
+  u32 header_size = 0;
+  u32 header_type = 0;
+  reader.ReadSwapped(0x0, &header_size);
+  reader.ReadSwapped(0x4, &header_type);
+  return header_size == 0x20 && (header_type == 0x49730000 || header_type == 0x69620000);
+}
+}  // Anonymous namespace
+
 WiiWAD::WiiWAD(const std::string& name)
 {
   std::unique_ptr<IBlobReader> reader(CreateBlobReader(name));
@@ -30,22 +58,6 @@ WiiWAD::WiiWAD(const std::string& name)
 
 WiiWAD::~WiiWAD()
 {
-}
-
-std::vector<u8> WiiWAD::CreateWADEntry(IBlobReader& reader, u32 size, u64 offset)
-{
-  if (size == 0)
-    return {};
-
-  std::vector<u8> buffer(size);
-
-  if (!reader.Read(offset, size, buffer.data()))
-  {
-    ERROR_LOG(DISCIO, "WiiWAD: Could not read from file");
-    PanicAlertT("WiiWAD: Could not read from file");
-  }
-
-  return buffer;
 }
 
 bool WiiWAD::ParseWAD(IBlobReader& reader)
@@ -88,13 +100,4 @@ bool WiiWAD::ParseWAD(IBlobReader& reader)
   return true;
 }
 
-bool WiiWAD::IsWiiWAD(const CBlobBigEndianReader& reader)
-{
-  u32 header_size = 0;
-  u32 header_type = 0;
-  reader.ReadSwapped(0x0, &header_size);
-  reader.ReadSwapped(0x4, &header_type);
-  return header_size == 0x20 && (header_type == 0x49730000 || header_type == 0x69620000);
-}
-
-}  // namespace end
+}  // namespace DiscIO
