@@ -42,16 +42,16 @@ TextureConverter::~TextureConverter()
       vkDestroyShaderModule(g_vulkan_context->GetDevice(), it, nullptr);
   }
 
-  if (m_palette_buffer_view != VK_NULL_HANDLE)
-    vkDestroyBufferView(g_vulkan_context->GetDevice(), m_palette_buffer_view, nullptr);
+  if (m_texel_buffer_view_r16_uint != VK_NULL_HANDLE)
+    vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_r16_uint, nullptr);
 
   if (m_encoding_render_pass != VK_NULL_HANDLE)
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_encoding_render_pass, nullptr);
 
-  if (m_encoding_texture_framebuffer != VK_NULL_HANDLE)
-    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_encoding_texture_framebuffer, nullptr);
+  if (m_encoding_render_framebuffer != VK_NULL_HANDLE)
+    vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_encoding_render_framebuffer, nullptr);
 
-  for (VkShaderModule shader : m_texture_encoding_shaders)
+  for (VkShaderModule shader : m_encoding_shaders)
   {
     if (shader != VK_NULL_HANDLE)
       vkDestroyShaderModule(g_vulkan_context->GetDevice(), shader, nullptr);
@@ -60,7 +60,7 @@ TextureConverter::~TextureConverter()
 
 bool TextureConverter::Initialize()
 {
-  if (!CreateUniformBuffer())
+  if (!CreateTexelBuffer())
   {
     PanicAlert("Failed to create uniform buffer");
     return false;
@@ -90,7 +90,7 @@ bool TextureConverter::Initialize()
     return false;
   }
 
-  if (!CreateDownloadTexture())
+  if (!CreateEncodingDownloadTexture())
   {
     PanicAlert("Failed to create download texture");
     return false;
@@ -99,10 +99,10 @@ bool TextureConverter::Initialize()
   return true;
 }
 
-void TextureConverter::ConvertTexture(VkCommandBuffer command_buffer, VkRenderPass render_pass,
-                                      VkFramebuffer dst_framebuffer, Texture2D* src_texture,
-                                      u32 width, u32 height, void* palette, TlutFormat format,
-                                      u32 src_format)
+void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
+                                      TextureCache::TCacheEntry* src_entry,
+                                      VkRenderPass render_pass, const void* palette,
+                                      TlutFormat palette_format)
 {
   struct PSUniformBlock
   {
@@ -111,80 +111,65 @@ void TextureConverter::ConvertTexture(VkCommandBuffer command_buffer, VkRenderPa
     int pad[2];
   };
 
-  _assert_(static_cast<size_t>(format) < NUM_PALETTE_CONVERSION_SHADERS);
+  _assert_(static_cast<size_t>(palette_format) < NUM_PALETTE_CONVERSION_SHADERS);
+  _assert_(dst_entry->config.rendertarget);
 
-  size_t palette_size = (src_format & 0xF) == GX_TF_I4 ? 32 : 512;
-  VkDescriptorSet texel_buffer_descriptor_set;
+  // We want to align to 2 bytes (R16) or the device's texel buffer alignment, whichever is greater.
+  VkDeviceSize texel_buffer_alignment =
+      std::min(g_vulkan_context->GetTexelBufferAlignment(), sizeof(u16));
+  size_t palette_size = (src_entry->format & 0xF) == GX_TF_I4 ? 32 : 512;
 
   // Allocate memory for the palette, and descriptor sets for the buffer.
   // If any of these fail, execute a command buffer, and try again.
-  if (!m_palette_stream_buffer->ReserveMemory(palette_size,
-                                              g_vulkan_context->GetTexelBufferAlignment()) ||
-      (texel_buffer_descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(
-           g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS))) ==
-          VK_NULL_HANDLE)
+  if (!m_texel_buffer->ReserveMemory(palette_size, texel_buffer_alignment))
   {
     WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
     Util::ExecuteCurrentCommandsAndRestoreState(false);
 
-    if (!m_palette_stream_buffer->ReserveMemory(palette_size,
-                                                g_vulkan_context->GetTexelBufferAlignment()) ||
-        (texel_buffer_descriptor_set = g_command_buffer_mgr->AllocateDescriptorSet(
-             g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS))) ==
-            VK_NULL_HANDLE)
+    if (!m_texel_buffer->ReserveMemory(palette_size, texel_buffer_alignment))
     {
       PanicAlert("Failed to allocate space for texture conversion");
       return;
     }
   }
 
-  // Fill descriptor set #2 (texel buffer)
-  u32 palette_offset = static_cast<u32>(m_palette_stream_buffer->GetCurrentOffset());
-  VkWriteDescriptorSet texel_set_write = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
-                                          nullptr,
-                                          texel_buffer_descriptor_set,
-                                          0,
-                                          0,
-                                          1,
-                                          VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
-                                          nullptr,
-                                          nullptr,
-                                          &m_palette_buffer_view};
-  vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), 1, &texel_set_write, 0, nullptr);
+  // Copy in palette to texel buffer.
+  u32 palette_offset = static_cast<u32>(m_texel_buffer->GetCurrentOffset());
+  memcpy(m_texel_buffer->GetCurrentHostPointer(), palette, palette_size);
+  m_texel_buffer->CommitMemory(palette_size);
 
-  Util::BufferMemoryBarrier(command_buffer, m_palette_stream_buffer->GetBuffer(),
-                            VK_ACCESS_HOST_WRITE_BIT, VK_ACCESS_SHADER_READ_BIT, palette_offset,
-                            palette_size, VK_PIPELINE_STAGE_HOST_BIT,
-                            VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT);
+  // EFB copies can be used as paletted textures as well. For these, we can't assume them to be
+  // contain the correct data before the frame begins (when the init command buffer is executed),
+  // so we must convert them at the appropriate time, during the drawing command buffer.
+  VkCommandBuffer command_buffer;
+  if (src_entry->IsEfbCopy())
+  {
+    command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
+    StateTracker::GetInstance()->EndRenderPass();
+    StateTracker::GetInstance()->SetPendingRebind();
+  }
+  else
+  {
+    // Use initialization command buffer and perform conversion before the drawing commands.
+    command_buffer = g_command_buffer_mgr->GetCurrentInitCommandBuffer();
+  }
 
-  // Set up draw
+  // Bind and draw to the destination.
   UtilityShaderDraw draw(command_buffer,
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
                          render_pass, g_object_cache->GetScreenQuadVertexShader(), VK_NULL_HANDLE,
-                         m_palette_conversion_shaders[format]);
+                         m_palette_conversion_shaders[palette_format]);
 
-  VkRect2D region = {{0, 0}, {width, height}};
-  draw.BeginRenderPass(dst_framebuffer, region);
+  VkRect2D region = {{0, 0}, {dst_entry->config.width, dst_entry->config.height}};
+  draw.BeginRenderPass(dst_entry->GetFramebuffer(), region);
 
-  // Copy in palette
-  memcpy(m_palette_stream_buffer->GetCurrentHostPointer(), palette, palette_size);
-  m_palette_stream_buffer->CommitMemory(palette_size);
-
-  // PS Uniforms/Samplers
   PSUniformBlock uniforms = {};
-  uniforms.multiplier = (src_format & 0xF) == GX_TF_I4 ? 15.0f : 255.0f;
+  uniforms.multiplier = (src_entry->format & 0xF) == GX_TF_I4 ? 15.0f : 255.0f;
   uniforms.texel_buffer_offset = static_cast<int>(palette_offset / sizeof(u16));
   draw.SetPushConstants(&uniforms, sizeof(uniforms));
-  draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
-
-  // We have to bind the texel buffer descriptor set separately.
-  vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
-                          DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER, 1,
-                          &texel_buffer_descriptor_set, 0, nullptr);
-
-  // Draw
-  draw.SetViewportAndScissor(0, 0, width, height);
+  draw.SetPSSampler(0, src_entry->GetTexture()->GetView(), g_object_cache->GetPointSampler());
+  draw.SetPSTexelBuffer(m_texel_buffer_view_r16_uint);
+  draw.SetViewportAndScissor(0, 0, dst_entry->config.width, dst_entry->config.height);
   draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
   draw.EndRenderPass();
 }
@@ -195,7 +180,7 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
                                              bool is_intensity, int scale_by_half,
                                              const EFBRectangle& src_rect)
 {
-  if (m_texture_encoding_shaders[format] == VK_NULL_HANDLE)
+  if (m_encoding_shaders[format] == VK_NULL_HANDLE)
   {
     ERROR_LOG(VIDEO, "Missing encoding fragment shader for format %u", format);
     return;
@@ -207,7 +192,7 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
                          m_encoding_render_pass, g_object_cache->GetScreenQuadVertexShader(),
-                         VK_NULL_HANDLE, m_texture_encoding_shaders[format]);
+                         VK_NULL_HANDLE, m_encoding_shaders[format]);
 
   // Uniform - int4 of left,top,native_width,scale
   s32 position_uniform[4] = {src_rect.left, src_rect.top, static_cast<s32>(native_width),
@@ -225,53 +210,65 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
                               render_height);
 
   VkRect2D render_region = {{0, 0}, {render_width, render_height}};
-  draw.BeginRenderPass(m_encoding_texture_framebuffer, render_region);
+  draw.BeginRenderPass(m_encoding_render_framebuffer, render_region);
   draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
   draw.EndRenderPass();
 
   // Transition the image before copying
-  m_encoding_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  m_download_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                                    m_encoding_texture->GetImage(), VK_IMAGE_ASPECT_COLOR_BIT, 0, 0,
-                                    render_width, render_height, 0, 0);
+  m_encoding_render_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_encoding_download_texture->CopyFromImage(
+      g_command_buffer_mgr->GetCurrentCommandBuffer(), m_encoding_render_texture->GetImage(),
+      VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, render_width, render_height, 0, 0);
 
   // Block until the GPU has finished copying to the staging texture.
   Util::ExecuteCurrentCommandsAndRestoreState(false, true);
 
   // Copy from staging texture to the final destination, adjusting pitch if necessary.
-  m_download_texture->ReadTexels(0, 0, render_width, render_height, dest_ptr, memory_stride);
+  m_encoding_download_texture->ReadTexels(0, 0, render_width, render_height, dest_ptr,
+                                          memory_stride);
 }
 
-bool TextureConverter::CreateUniformBuffer()
+bool TextureConverter::CreateTexelBuffer()
 {
-  // TODO: Check against maximum size
-  static const size_t BUFFER_SIZE = 1024 * 1024;
+  // Prefer an 8MB buffer if possible, but use less if the device doesn't support this.
+  // This buffer is potentially going to be addressed as R8s in the future, so we assume
+  // that one element is one byte.
+  m_texel_buffer_size =
+      std::min(TEXTURE_CONVERSION_TEXEL_BUFFER_SIZE,
+               static_cast<size_t>(g_vulkan_context->GetDeviceLimits().maxTexelBufferElements));
 
-  m_palette_stream_buffer =
-      StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT, BUFFER_SIZE, BUFFER_SIZE);
-  if (!m_palette_stream_buffer)
+  m_texel_buffer = StreamBuffer::Create(VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,
+                                        m_texel_buffer_size, m_texel_buffer_size);
+  if (!m_texel_buffer)
     return false;
 
+  // Create views of the formats that we will be using.
+  m_texel_buffer_view_r16_uint = CreateTexelBufferView(VK_FORMAT_R16_UINT);
+  return m_texel_buffer_view_r16_uint != VK_NULL_HANDLE;
+}
+
+VkBufferView TextureConverter::CreateTexelBufferView(VkFormat format) const
+{
   // Create a view of the whole buffer, we'll offset our texel load into it
   VkBufferViewCreateInfo view_info = {
       VK_STRUCTURE_TYPE_BUFFER_VIEW_CREATE_INFO,  // VkStructureType            sType
       nullptr,                                    // const void*                pNext
       0,                                          // VkBufferViewCreateFlags    flags
-      m_palette_stream_buffer->GetBuffer(),       // VkBuffer                   buffer
-      VK_FORMAT_R16_UINT,                         // VkFormat                   format
+      m_texel_buffer->GetBuffer(),                // VkBuffer                   buffer
+      format,                                     // VkFormat                   format
       0,                                          // VkDeviceSize               offset
-      BUFFER_SIZE                                 // VkDeviceSize               range
+      m_texel_buffer_size                         // VkDeviceSize               range
   };
 
-  VkResult res = vkCreateBufferView(g_vulkan_context->GetDevice(), &view_info, nullptr,
-                                    &m_palette_buffer_view);
+  VkBufferView view;
+  VkResult res = vkCreateBufferView(g_vulkan_context->GetDevice(), &view_info, nullptr, &view);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateBufferView failed: ");
-    return false;
+    return VK_NULL_HANDLE;
   }
 
-  return true;
+  return view;
 }
 
 bool TextureConverter::CompilePaletteConversionShaders()
@@ -283,8 +280,8 @@ bool TextureConverter::CompilePaletteConversionShaders()
       int texture_buffer_offset;
     } PC;
 
-    layout(set = 1, binding = 0) uniform sampler2DArray samp0;
-    layout(set = 0, binding = 0) uniform usamplerBuffer samp1;
+    SAMPLER_BINDING(0) uniform sampler2DArray samp0;
+    TEXEL_BUFFER_BINDING(0) uniform usamplerBuffer samp1;
 
     layout(location = 0) in vec3 f_uv0;
     layout(location = 0) out vec4 ocol0;
@@ -384,8 +381,8 @@ bool TextureConverter::CompileEncodingShaders()
   {
     const char* shader_source =
         TextureConversionShader::GenerateEncodingShader(format, APIType::Vulkan);
-    m_texture_encoding_shaders[format] = Util::CompileAndCreateFragmentShader(shader_source);
-    if (m_texture_encoding_shaders[format] == VK_NULL_HANDLE)
+    m_encoding_shaders[format] = Util::CompileAndCreateFragmentShader(shader_source);
+    if (m_encoding_shaders[format] == VK_NULL_HANDLE)
       return false;
   }
 
@@ -436,27 +433,27 @@ bool TextureConverter::CreateEncodingRenderPass()
 
 bool TextureConverter::CreateEncodingTexture()
 {
-  m_encoding_texture = Texture2D::Create(
+  m_encoding_render_texture = Texture2D::Create(
       ENCODING_TEXTURE_WIDTH, ENCODING_TEXTURE_HEIGHT, 1, 1, ENCODING_TEXTURE_FORMAT,
       VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
       VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT |
           VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT);
-  if (!m_encoding_texture)
+  if (!m_encoding_render_texture)
     return false;
 
-  VkImageView framebuffer_attachments[] = {m_encoding_texture->GetView()};
+  VkImageView framebuffer_attachments[] = {m_encoding_render_texture->GetView()};
   VkFramebufferCreateInfo framebuffer_info = {VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO,
                                               nullptr,
                                               0,
                                               m_encoding_render_pass,
                                               static_cast<u32>(ArraySize(framebuffer_attachments)),
                                               framebuffer_attachments,
-                                              m_encoding_texture->GetWidth(),
-                                              m_encoding_texture->GetHeight(),
-                                              m_encoding_texture->GetLayers()};
+                                              m_encoding_render_texture->GetWidth(),
+                                              m_encoding_render_texture->GetHeight(),
+                                              m_encoding_render_texture->GetLayers()};
 
   VkResult res = vkCreateFramebuffer(g_vulkan_context->GetDevice(), &framebuffer_info, nullptr,
-                                     &m_encoding_texture_framebuffer);
+                                     &m_encoding_render_framebuffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateFramebuffer failed: ");
@@ -466,16 +463,13 @@ bool TextureConverter::CreateEncodingTexture()
   return true;
 }
 
-bool TextureConverter::CreateDownloadTexture()
+bool TextureConverter::CreateEncodingDownloadTexture()
 {
-  m_download_texture =
+  m_encoding_download_texture =
       StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, ENCODING_TEXTURE_WIDTH,
                                ENCODING_TEXTURE_HEIGHT, ENCODING_TEXTURE_FORMAT);
 
-  if (!m_download_texture || !m_download_texture->Map())
-    return false;
-
-  return true;
+  return m_encoding_download_texture && m_encoding_download_texture->Map();
 }
 
 }  // namespace Vulkan
