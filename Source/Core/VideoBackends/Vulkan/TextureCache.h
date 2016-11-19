@@ -12,10 +12,9 @@
 
 namespace Vulkan
 {
-class PaletteTextureConverter;
+class TextureConverter;
 class StateTracker;
 class Texture2D;
-class TextureEncoder;
 
 class TextureCache : public TextureCacheBase
 {
@@ -91,9 +90,7 @@ private:
 
   std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 
-  std::unique_ptr<TextureEncoder> m_texture_encoder;
-
-  std::unique_ptr<PaletteTextureConverter> m_palette_texture_converter;
+  std::unique_ptr<TextureConverter> m_texture_converter;
 
   VkShaderModule m_copy_shader = VK_NULL_HANDLE;
   VkShaderModule m_efb_color_to_tex_shader = VK_NULL_HANDLE;
