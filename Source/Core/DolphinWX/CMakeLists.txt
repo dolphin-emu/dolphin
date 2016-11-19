@@ -51,6 +51,7 @@ set(GUI_SRCS
 	InputConfigDiag.cpp
 	InputConfigDiagBitmaps.cpp
 	HotkeyInputConfigDiag.cpp
+	GCPadInputConfigDiag.cpp
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
