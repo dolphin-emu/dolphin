@@ -19,6 +19,11 @@ InputConfig* GetConfig()
   return &s_config;
 }
 
+ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiiMoteGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetWiimoteGroup(group);
+}
+
 void Shutdown()
 {
   s_config.ClearControllers();

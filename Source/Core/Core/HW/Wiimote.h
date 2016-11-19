@@ -6,6 +6,8 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/ControllerEmu.h"
 
 class InputConfig;
 class PointerWrap;
@@ -52,6 +54,7 @@ unsigned int GetAttached();
 void DoState(PointerWrap& p);
 void EmuStateChange(EMUSTATE_CHANGE newState);
 InputConfig* GetConfig();
+ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiiMoteGroup group);
 
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);

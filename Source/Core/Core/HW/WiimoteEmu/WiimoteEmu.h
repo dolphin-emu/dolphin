@@ -18,6 +18,21 @@
 #define WIIMOTE_REG_EXT_SIZE 0x100
 #define WIIMOTE_REG_IR_SIZE 0x34
 
+enum WiiMoteGroup
+{
+  WIIMOTEGP_BUTTONS,
+  WIIMOTEGP_DPAD,
+  WIIMOTEGP_SHAKE,
+  WIIMOTEGP_IR,
+  WIIMOTEGP_TILT,
+  WIIMOTEGP_SWING,
+  WIIMOTEGP_RUMBLE,
+  WIIMOTEGP_EXTENSION,
+
+  WIIMOTEGP_OPTIONS,
+  WIIMOTEGP_HOTKEYS
+};
+
 class PointerWrap;
 
 namespace WiimoteReal
@@ -105,6 +120,7 @@ public:
 
   Wiimote(const unsigned int index);
   std::string GetName() const override;
+  ControlGroup* GetWiimoteGroup(WiiMoteGroup group);
 
   void Update();
   void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);
