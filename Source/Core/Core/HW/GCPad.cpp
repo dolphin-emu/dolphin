@@ -5,9 +5,7 @@
 #include <cstring>
 
 #include "Common/Common.h"
-#include "Common/CommonTypes.h"
 #include "Core/HW/GCPad.h"
-#include "Core/HW/GCPadEmu.h"
 #include "InputCommon/GCPadStatus.h"
 #include "InputCommon/InputConfig.h"
 
@@ -46,6 +44,11 @@ void LoadConfig()
 GCPadStatus GetStatus(int pad_num)
 {
   return static_cast<GCPad*>(s_config.GetController(pad_num))->GetInput();
+}
+
+ControllerEmu::ControlGroup* GetGroup(int pad_num, PadGroup group)
+{
+  return static_cast<GCPad*>(s_config.GetController(pad_num))->GetGroup(group);
 }
 
 void Rumble(const int pad_num, const ControlState strength)
