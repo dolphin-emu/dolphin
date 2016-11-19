@@ -5,6 +5,8 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Core/HW/GCKeyboardEmu.h"
+#include "InputCommon/ControllerEmu.h"
 
 class InputConfig;
 struct KeyboardStatus;
@@ -16,6 +18,7 @@ void Initialize();
 void LoadConfig();
 
 InputConfig* GetConfig();
+ControllerEmu::ControlGroup* GetGroup(int port, KeyboardGoup group);
 
 KeyboardStatus GetStatus(int port);
 }

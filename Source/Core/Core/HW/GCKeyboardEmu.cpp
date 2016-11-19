@@ -84,6 +84,29 @@ std::string GCKeyboard::GetName() const
   return std::string("GCKeyboard") + char('1' + m_index);
 }
 
+ControllerEmu::ControlGroup* GCKeyboard::GetGroup(KeyboardGoup group)
+{
+  switch (group)
+  {
+  case KBGP_0X:
+    return m_keys0x;
+  case KBGP_1X:
+    return m_keys1x;
+  case KBGP_2X:
+    return m_keys2x;
+  case KBGP_3X:
+    return m_keys3x;
+  case KBGP_4X:
+    return m_keys4x;
+  case KBGP_5X:
+    return m_keys5x;
+  case KBGP_OPTIONS:
+    return m_options;
+  default:
+    return nullptr;
+  }
+}
+
 KeyboardStatus GCKeyboard::GetInput() const
 {
   auto lock = ControllerEmu::GetStateLock();
