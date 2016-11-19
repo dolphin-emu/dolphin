@@ -42,6 +42,15 @@ set(GUI_SRCS
 	NetPlay/PadMapDialog.cpp
 	Input/InputConfigDiag.cpp
 	Input/InputConfigDiagBitmaps.cpp
+	Input/HotkeyInputConfigDiag.cpp
+	Input/GCPadInputConfigDiag.cpp
+	Input/GCKeyboardInputConfigDiag.cpp
+	Input/WiimoteInputConfigDiag.cpp
+	Input/NunchukInputConfigDiag.cpp
+	Input/ClassicInputConfigDiag.cpp
+	Input/GuitarInputConfigDiag.cpp
+	Input/DrumsInputConfigDiag.cpp
+	Input/TurntableInputConfigDiag.cpp
 	DolphinSlider.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
