@@ -102,6 +102,7 @@
     <ClCompile Include="GameListCtrl.cpp" />
     <ClCompile Include="InputConfigDiag.cpp" />
     <ClCompile Include="InputConfigDiagBitmaps.cpp" />
+    <ClCompile Include="HotkeyInputConfigDiag.cpp" />
     <ClCompile Include="ISOFile.cpp" />
     <ClCompile Include="ISOProperties.cpp" />
     <ClCompile Include="LogConfigWindow.cpp" />
@@ -171,6 +172,7 @@
     <ClInclude Include="GameListCtrl.h" />
     <ClInclude Include="Globals.h" />
     <ClInclude Include="InputConfigDiag.h" />
+    <ClInclude Include="HotkeyInputConfigDiag.h" />
     <ClInclude Include="ISOFile.h" />
     <ClInclude Include="ISOProperties.h" />
     <ClInclude Include="LogConfigWindow.h" />

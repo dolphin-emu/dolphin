@@ -110,6 +110,9 @@
     <ClCompile Include="InputConfigDiagBitmaps.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
+    <ClCompile Include="HotkeyInputConfigDiag.cpp">
+      <Filter>GUI\InputConfig</Filter>
+    </ClCompile>
     <ClCompile Include="Debugger\DebuggerPanel.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
@@ -291,6 +294,9 @@
       <Filter>GUI\NetPlay</Filter>
     </ClInclude>
     <ClInclude Include="InputConfigDiag.h">
+      <Filter>GUI\InputConfig</Filter>
+    </ClInclude>
+    <ClInclude Include="HotkeyInputConfigDiag.h">
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\DebuggerPanel.h">
