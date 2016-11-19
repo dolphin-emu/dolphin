@@ -33,7 +33,7 @@
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/DolphinSlider.h"
-#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/GCPadInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -462,7 +462,7 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
   }
   else
   {
-    InputConfigDialog config_diag(
+    GCPadInputConfigDialog config_diag(
         this, *pad_plugin,
         wxString::Format("GameCube Controller Configuration Port %i", port_num + 1), port_num);
     config_diag.ShowModal();
@@ -502,7 +502,8 @@ void ControllerConfigDiag::OnWiimoteConfigButton(wxCommandEvent& ev)
 
   InputConfigDialog m_ConfigFrame(
       this, *wiimote_plugin,
-      wxString::Format("Dolphin Emulated Wii Remote Configuration Port %i", port_num + 1), port_num);
+      wxString::Format("Dolphin Emulated Wii Remote Configuration Port %i", port_num + 1),
+      port_num);
   m_ConfigFrame.ShowModal();
 
   HotkeyManagerEmu::Enable(true);
