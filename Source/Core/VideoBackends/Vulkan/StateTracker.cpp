@@ -792,7 +792,12 @@ void StateTracker::OnEndFrame()
     u32 interval = static_cast<u32>(g_ActiveConfig.iCommandBufferExecuteInterval);
     for (u32 draw_counter : m_cpu_accesses_this_frame)
     {
+      // We don't want to waste executing command buffers for only a few draws, so set a minimum.
+      // Leave last_draw_counter as-is, so we get the correct number of draws between submissions.
       u32 draw_count = draw_counter - last_draw_counter;
+      if (draw_count < MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK)
+        continue;
+
       if (draw_count <= interval)
       {
         u32 mid_point = draw_count / 2;
@@ -807,6 +812,8 @@ void StateTracker::OnEndFrame()
           counter += interval;
         }
       }
+
+      last_draw_counter = draw_counter;
     }
   }
 
