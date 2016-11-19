@@ -104,6 +104,7 @@
     <ClCompile Include="InputConfigDiagBitmaps.cpp" />
     <ClCompile Include="HotkeyInputConfigDiag.cpp" />
     <ClCompile Include="GCPadInputConfigDiag.cpp" />
+    <ClCompile Include="GCKeyboardInputConfigDiag.cpp" />
     <ClCompile Include="ISOFile.cpp" />
     <ClCompile Include="ISOProperties.cpp" />
     <ClCompile Include="LogConfigWindow.cpp" />
@@ -175,6 +176,7 @@
     <ClInclude Include="InputConfigDiag.h" />
     <ClInclude Include="HotkeyInputConfigDiag.h" />
     <ClInclude Include="GCPadInputConfigDiag.h" />
+    <ClInclude Include="GCKeyboardInputConfigDiag.h" />
     <ClInclude Include="ISOFile.h" />
     <ClInclude Include="ISOProperties.h" />
     <ClInclude Include="LogConfigWindow.h" />

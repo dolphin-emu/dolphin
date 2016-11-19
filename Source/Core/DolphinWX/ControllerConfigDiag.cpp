@@ -34,6 +34,7 @@
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/GCPadInputConfigDiag.h"
+#include "DolphinWX/GCKeyboardInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -447,7 +448,7 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 
   if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_GC_KEYBOARD)
   {
-    InputConfigDialog config_diag(
+    GCKeyboardInputConfigDialog config_diag(
         this, *key_plugin,
         wxString::Format("GameCube Keyboard Configuration Port %i", port_num + 1), port_num);
     config_diag.ShowModal();
