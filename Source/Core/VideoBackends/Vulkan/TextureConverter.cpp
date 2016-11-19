@@ -44,6 +44,8 @@ TextureConverter::~TextureConverter()
 
   if (m_texel_buffer_view_r16_uint != VK_NULL_HANDLE)
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_r16_uint, nullptr);
+  if (m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE)
+    vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_rgba8_unorm, nullptr);
 
   if (m_encoding_render_pass != VK_NULL_HANDLE)
     vkDestroyRenderPass(g_vulkan_context->GetDevice(), m_encoding_render_pass, nullptr);
@@ -110,6 +112,48 @@ bool TextureConverter::Initialize()
   return true;
 }
 
+bool TextureConverter::ReserveTexelBufferStorage(size_t size, size_t alignment)
+{
+  // Enforce the minimum alignment for texture buffers on the device.
+  size_t actual_alignment =
+      std::max(static_cast<size_t>(g_vulkan_context->GetTexelBufferAlignment()), alignment);
+  if (m_texel_buffer->ReserveMemory(size, actual_alignment))
+    return true;
+
+  WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
+  Util::ExecuteCurrentCommandsAndRestoreState(false);
+
+  // This next call should never fail, since a command buffer is now in-flight and we can
+  // wait on the fence for the GPU to finish. If this returns false, it's probably because
+  // the device has been lost, which is fatal anyway.
+  if (!m_texel_buffer->ReserveMemory(size, actual_alignment))
+  {
+    PanicAlert("Failed to allocate space for texture conversion");
+    return false;
+  }
+
+  return true;
+}
+
+VkCommandBuffer
+TextureConverter::GetCommandBufferForTextureConversion(const TextureCache::TCacheEntry* src_entry)
+{
+  // EFB copies can be used as paletted textures as well. For these, we can't assume them to be
+  // contain the correct data before the frame begins (when the init command buffer is executed),
+  // so we must convert them at the appropriate time, during the drawing command buffer.
+  if (src_entry->IsEfbCopy())
+  {
+    StateTracker::GetInstance()->EndRenderPass();
+    StateTracker::GetInstance()->SetPendingRebind();
+    return g_command_buffer_mgr->GetCurrentCommandBuffer();
+  }
+  else
+  {
+    // Use initialization command buffer and perform conversion before the drawing commands.
+    return g_command_buffer_mgr->GetCurrentInitCommandBuffer();
+  }
+}
+
 void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
                                       TextureCache::TCacheEntry* src_entry,
                                       VkRenderPass render_pass, const void* palette,
@@ -126,44 +170,16 @@ void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
   _assert_(dst_entry->config.rendertarget);
 
   // We want to align to 2 bytes (R16) or the device's texel buffer alignment, whichever is greater.
-  VkDeviceSize texel_buffer_alignment =
-      std::min(g_vulkan_context->GetTexelBufferAlignment(), sizeof(u16));
   size_t palette_size = (src_entry->format & 0xF) == GX_TF_I4 ? 32 : 512;
-
-  // Allocate memory for the palette, and descriptor sets for the buffer.
-  // If any of these fail, execute a command buffer, and try again.
-  if (!m_texel_buffer->ReserveMemory(palette_size, texel_buffer_alignment))
-  {
-    WARN_LOG(VIDEO, "Executing command list while waiting for space in palette buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(false);
-
-    if (!m_texel_buffer->ReserveMemory(palette_size, texel_buffer_alignment))
-    {
-      PanicAlert("Failed to allocate space for texture conversion");
-      return;
-    }
-  }
+  if (!ReserveTexelBufferStorage(palette_size, sizeof(u16)))
+    return;
 
   // Copy in palette to texel buffer.
   u32 palette_offset = static_cast<u32>(m_texel_buffer->GetCurrentOffset());
   memcpy(m_texel_buffer->GetCurrentHostPointer(), palette, palette_size);
   m_texel_buffer->CommitMemory(palette_size);
 
-  // EFB copies can be used as paletted textures as well. For these, we can't assume them to be
-  // contain the correct data before the frame begins (when the init command buffer is executed),
-  // so we must convert them at the appropriate time, during the drawing command buffer.
-  VkCommandBuffer command_buffer;
-  if (src_entry->IsEfbCopy())
-  {
-    command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-    StateTracker::GetInstance()->EndRenderPass();
-    StateTracker::GetInstance()->SetPendingRebind();
-  }
-  else
-  {
-    // Use initialization command buffer and perform conversion before the drawing commands.
-    command_buffer = g_command_buffer_mgr->GetCurrentInitCommandBuffer();
-  }
+  VkCommandBuffer command_buffer = GetCommandBufferForTextureConversion(src_entry);
 
   // Bind and draw to the destination.
   UtilityShaderDraw draw(command_buffer,
@@ -290,57 +306,58 @@ void TextureConverter::DecodeYUYVTextureFromMemory(TextureCache::TCacheEntry* ds
   StateTracker::GetInstance()->EndRenderPass();
   StateTracker::GetInstance()->SetPendingRebind();
 
-  // We share the upload buffer with normal textures here, since the XFB buffers aren't very large.
-  u32 upload_size = src_stride * src_height;
-  StreamBuffer* texture_upload_buffer = TextureCache::GetInstance()->GetUploadBuffer();
-  if (!texture_upload_buffer->ReserveMemory(upload_size,
-                                            g_vulkan_context->GetBufferImageGranularity()))
+  // Pack each row without any padding in the texel buffer.
+  size_t upload_stride = src_width * sizeof(u16);
+  size_t upload_size = upload_stride * src_height;
+
+  // Reserve space in the texel buffer for storing the raw image.
+  if (!ReserveTexelBufferStorage(upload_size, sizeof(u16)))
+    return;
+
+  // Handle pitch differences here.
+  if (src_stride != upload_stride)
   {
-    // Execute the command buffer first.
-    WARN_LOG(VIDEO, "Executing command list while waiting for space in texture upload buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(false);
-    if (!texture_upload_buffer->ReserveMemory(upload_size,
-                                              g_vulkan_context->GetBufferImageGranularity()))
-      PanicAlert("Failed to allocate space in texture upload buffer");
+    const u8* src_row_ptr = reinterpret_cast<const u8*>(src_ptr);
+    u8* dst_row_ptr = m_texel_buffer->GetCurrentHostPointer();
+    size_t copy_size = std::min(upload_stride, static_cast<size_t>(src_stride));
+    for (u32 row = 0; row < src_height; row++)
+    {
+      std::memcpy(dst_row_ptr, src_row_ptr, copy_size);
+      src_row_ptr += src_stride;
+      dst_row_ptr += upload_stride;
+    }
+  }
+  else
+  {
+    std::memcpy(m_texel_buffer->GetCurrentHostPointer(), src_ptr, upload_size);
   }
 
-  // Assume that each source row is not padded.
-  _assert_(src_stride == (src_width * sizeof(u16)));
-  VkDeviceSize image_upload_buffer_offset = texture_upload_buffer->GetCurrentOffset();
-  std::memcpy(texture_upload_buffer->GetCurrentHostPointer(), src_ptr, upload_size);
-  texture_upload_buffer->CommitMemory(upload_size);
+  VkDeviceSize texel_buffer_offset = m_texel_buffer->GetCurrentOffset();
+  m_texel_buffer->CommitMemory(upload_size);
 
-  // Copy from the upload buffer to the intermediate texture. We borrow this from the encoder.
-  // The width is specified as half here because we have two pixels packed in each RGBA texel.
-  // In the future this could be skipped by reading the upload buffer as a uniform texel buffer.
-  VkBufferImageCopy image_copy = {
-      image_upload_buffer_offset,            // VkDeviceSize                bufferOffset
-      0,                                     // uint32_t                    bufferRowLength
-      0,                                     // uint32_t                    bufferImageHeight
-      {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},  // VkImageSubresourceLayers    imageSubresource
-      {0, 0, 0},                             // VkOffset3D                  imageOffset
-      {src_width / 2, src_height, 1}         // VkExtent3D                  imageExtent
-  };
-  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
-  m_encoding_render_texture->TransitionToLayout(command_buffer,
-                                                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
-  vkCmdCopyBufferToImage(command_buffer, texture_upload_buffer->GetBuffer(),
-                         m_encoding_render_texture->GetImage(),
-                         VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
-  m_encoding_render_texture->TransitionToLayout(command_buffer,
-                                                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-  dst_texture->GetTexture()->TransitionToLayout(command_buffer,
+  dst_texture->GetTexture()->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                                 VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
+  // We divide the offset by 4 here because we're fetching RGBA8 elements.
+  // The stride is in RGBA8 elements, so we divide by two because our data is two bytes per pixel.
+  struct PSUniformBlock
+  {
+    int buffer_offset;
+    int src_stride;
+  };
+  PSUniformBlock push_constants = {static_cast<int>(texel_buffer_offset / sizeof(u32)),
+                                   static_cast<int>(src_width / 2)};
+
   // Convert from the YUYV data now in the intermediate texture to RGBA in the destination.
-  UtilityShaderDraw draw(command_buffer,
-                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
+  UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION),
                          m_encoding_render_pass, g_object_cache->GetScreenQuadVertexShader(),
                          VK_NULL_HANDLE, m_yuyv_to_rgb_shader);
   VkRect2D region = {{0, 0}, {src_width, src_height}};
   draw.BeginRenderPass(dst_texture->GetFramebuffer(), region);
   draw.SetViewportAndScissor(0, 0, static_cast<int>(src_width), static_cast<int>(src_height));
-  draw.SetPSSampler(0, m_encoding_render_texture->GetView(), g_object_cache->GetPointSampler());
+  draw.SetPSTexelBuffer(m_texel_buffer_view_rgba8_unorm);
+  draw.SetPushConstants(&push_constants, sizeof(push_constants));
   draw.DrawWithoutVertexBuffer(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP, 4);
   draw.EndRenderPass();
 }
@@ -361,7 +378,9 @@ bool TextureConverter::CreateTexelBuffer()
 
   // Create views of the formats that we will be using.
   m_texel_buffer_view_r16_uint = CreateTexelBufferView(VK_FORMAT_R16_UINT);
-  return m_texel_buffer_view_r16_uint != VK_NULL_HANDLE;
+  m_texel_buffer_view_rgba8_unorm = CreateTexelBufferView(VK_FORMAT_R8G8B8A8_UNORM);
+  return m_texel_buffer_view_r16_uint != VK_NULL_HANDLE &&
+         m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE;
 }
 
 VkBufferView TextureConverter::CreateTexelBufferView(VkFormat format) const
@@ -614,17 +633,21 @@ bool TextureConverter::CompileYUYVConversionShaders()
   )";
 
   static const char YUYV_TO_RGB_SHADER_SOURCE[] = R"(
-    SAMPLER_BINDING(0) uniform sampler2D source;
+    layout(std140, push_constant) uniform PCBlock
+    {
+      int buffer_offset;
+      int src_stride;
+    } PC;
+
+    TEXEL_BUFFER_BINDING(0) uniform samplerBuffer source;
     layout(location = 0) in vec3 uv0;
     layout(location = 0) out vec4 ocol0;
 
     void main()
     {
       ivec2 uv = ivec2(gl_FragCoord.xy);
-      vec4 c0 = texelFetch(source, ivec2(uv.x / 2, uv.y), 0);
-
-      // The texture used to stage the upload is in BGRA order.
-      c0 = c0.zyxw;
+      int buffer_pos = PC.buffer_offset + uv.y * PC.src_stride + (uv.x / 2);
+      vec4 c0 = texelFetch(source, buffer_pos);
 
       float y = mix(c0.r, c0.b, (uv.x & 1) == 1);
       float yComp = 1.164 * (y - 0.0625);

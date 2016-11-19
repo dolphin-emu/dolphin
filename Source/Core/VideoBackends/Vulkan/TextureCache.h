@@ -48,7 +48,6 @@ public:
 
   static TextureCache* GetInstance();
 
-  StreamBuffer* GetUploadBuffer() const { return m_texture_upload_buffer.get(); }
   TextureConverter* GetTextureConverter() const { return m_texture_converter.get(); }
   bool Initialize();
 
