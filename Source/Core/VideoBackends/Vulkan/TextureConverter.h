@@ -68,6 +68,7 @@ private:
   // Shared between conversion types
   std::unique_ptr<StreamBuffer> m_texel_buffer;
   VkBufferView m_texel_buffer_view_r16_uint = VK_NULL_HANDLE;
+  VkBufferView m_texel_buffer_view_rgba8_unorm = VK_NULL_HANDLE;
   size_t m_texel_buffer_size = 0;
 
   // Palette conversion - taking an indexed texture and applying palette
