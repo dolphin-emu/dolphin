@@ -25,10 +25,6 @@ public:
   TextureConverter();
   ~TextureConverter();
 
-  VkRenderPass GetEncodingRenderPass() const { return m_encoding_render_pass; }
-  Texture2D* GetEncodingTexture() const { return m_encoding_render_texture.get(); }
-  VkFramebuffer GetEncodingTextureFramebuffer() const { return m_encoding_render_framebuffer; }
-  StagingTexture2D* GetDownloadTexture() const { return m_encoding_download_texture.get(); }
   bool Initialize();
 
   // Applies palette to dst_entry, using indices from src_entry.
@@ -41,6 +37,14 @@ public:
                              u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
                              PEControl::PixelFormat src_format, bool is_intensity,
                              int scale_by_half, const EFBRectangle& source);
+
+  // Encodes texture to guest memory in XFB (YUYV) format.
+  void EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u32 dst_stride, u32 dst_height,
+                                 Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
+
+  // Decodes data from guest memory in XFB (YUYV) format to a RGBA format texture on the GPU.
+  void DecodeYUYVTextureFromMemory(TextureCache::TCacheEntry* dst_texture, const void* src_ptr,
+                                   u32 src_width, u32 src_stride, u32 src_height);
 
 private:
   static const u32 NUM_TEXTURE_ENCODING_SHADERS = 64;
@@ -59,6 +63,8 @@ private:
   bool CreateEncodingTexture();
   bool CreateEncodingDownloadTexture();
 
+  bool CompileYUYVConversionShaders();
+
   // Shared between conversion types
   std::unique_ptr<StreamBuffer> m_texel_buffer;
   VkBufferView m_texel_buffer_view_r16_uint = VK_NULL_HANDLE;
@@ -73,6 +79,10 @@ private:
   std::unique_ptr<Texture2D> m_encoding_render_texture;
   VkFramebuffer m_encoding_render_framebuffer = VK_NULL_HANDLE;
   std::unique_ptr<StagingTexture2D> m_encoding_download_texture;
+
+  // XFB encoding/decoding shaders
+  VkShaderModule m_rgb_to_yuyv_shader = VK_NULL_HANDLE;
+  VkShaderModule m_yuyv_to_rgb_shader = VK_NULL_HANDLE;
 };
 
 }  // namespace Vulkan
