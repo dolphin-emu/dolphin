@@ -113,6 +113,9 @@ constexpr size_t TEXTURE_CONVERSION_TEXEL_BUFFER_SIZE = 8 * 1024 * 1024;
 // Push constant buffer size for utility shaders
 constexpr u32 PUSH_CONSTANT_BUFFER_SIZE = 128;
 
+// Minimum number of draw calls per command buffer when attempting to preempt a readback operation.
+constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
+
 // Rasterization state info
 union RasterizationState {
   BitField<0, 2, VkCullModeFlags> cull_mode;
