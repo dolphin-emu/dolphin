@@ -18,6 +18,7 @@
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/Texture2D.h"
+#include "VideoBackends/Vulkan/TextureConverter.h"
 #include "VideoBackends/Vulkan/Util.h"
 #include "VideoBackends/Vulkan/VertexFormat.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
@@ -1411,7 +1412,7 @@ void FramebufferManager::CopyToRealXFB(u32 xfb_addr, u32 fb_stride, u32 fb_heigh
 
   // The destination stride can differ from the copy region width, in which case the pixels
   // outside the copy region should not be written to.
-  TextureCache::GetInstance()->EncodeYUYVTextureToMemory(
+  TextureCache::GetInstance()->GetTextureConverter()->EncodeTextureToMemoryYUYV(
       xfb_ptr, static_cast<u32>(source_rc.GetWidth()), fb_stride, fb_height, src_texture,
       scaled_rc);
 
@@ -1437,8 +1438,8 @@ void XFBSource::DecodeToTexture(u32 xfb_addr, u32 fb_width, u32 fb_height)
   // Guest memory -> GPU EFB Textures
   const u8* src_ptr = Memory::GetPointer(xfb_addr);
   _assert_(src_ptr);
-  TextureCache::GetInstance()->DecodeYUYVTextureFromMemory(m_texture.get(), src_ptr, fb_width,
-                                                           fb_width * 2, fb_height);
+  TextureCache::GetInstance()->GetTextureConverter()->DecodeYUYVTextureFromMemory(
+      m_texture.get(), src_ptr, fb_width, fb_width * 2, fb_height);
 }
 
 void XFBSource::CopyEFB(float gamma)

@@ -48,6 +48,8 @@ public:
 
   static TextureCache* GetInstance();
 
+  StreamBuffer* GetUploadBuffer() const { return m_texture_upload_buffer.get(); }
+  TextureConverter* GetTextureConverter() const { return m_texture_converter.get(); }
   bool Initialize();
 
   bool CompileShaders() override;
@@ -64,14 +66,6 @@ public:
 
   void CopyRectangleFromTexture(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
                                 Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
-
-  // Encodes texture to guest memory in XFB (YUYV) format.
-  void EncodeYUYVTextureToMemory(void* dst_ptr, u32 dst_width, u32 dst_stride, u32 dst_height,
-                                 Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
-
-  // Decodes data from guest memory in XFB (YUYV) format to a RGBA format texture on the GPU.
-  void DecodeYUYVTextureFromMemory(TCacheEntry* dst_texture, const void* src_ptr, u32 src_width,
-                                   u32 src_stride, u32 src_height);
 
 private:
   bool CreateRenderPasses();
@@ -95,8 +89,6 @@ private:
   VkShaderModule m_copy_shader = VK_NULL_HANDLE;
   VkShaderModule m_efb_color_to_tex_shader = VK_NULL_HANDLE;
   VkShaderModule m_efb_depth_to_tex_shader = VK_NULL_HANDLE;
-  VkShaderModule m_rgb_to_yuyv_shader = VK_NULL_HANDLE;
-  VkShaderModule m_yuyv_to_rgb_shader = VK_NULL_HANDLE;
 };
 
 }  // namespace Vulkan
