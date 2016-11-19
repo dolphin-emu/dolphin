@@ -315,6 +315,35 @@ std::string Wiimote::GetName() const
   return std::string("Wiimote") + char('1' + m_index);
 }
 
+ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiiMoteGroup group)
+{
+  switch (group)
+  {
+  case WIIMOTEGP_BUTTONS:
+    return m_buttons;
+  case WIIMOTEGP_DPAD:
+    return m_dpad;
+  case WIIMOTEGP_SHAKE:
+    return m_shake;
+  case WIIMOTEGP_IR:
+    return m_ir;
+  case WIIMOTEGP_TILT:
+    return m_tilt;
+  case WIIMOTEGP_SWING:
+    return m_swing;
+  case WIIMOTEGP_RUMBLE:
+    return m_rumble;
+  case WIIMOTEGP_EXTENSION:
+    return m_extension;
+  case WIIMOTEGP_OPTIONS:
+    return m_options;
+  case WIIMOTEGP_HOTKEYS:
+    return m_hotkeys;
+  default:
+    return nullptr;
+  }
+}
+
 bool Wiimote::Step()
 {
   // TODO: change this a bit
