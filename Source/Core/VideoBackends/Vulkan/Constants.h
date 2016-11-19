@@ -107,6 +107,9 @@ constexpr size_t STAGING_TEXTURE_UPLOAD_THRESHOLD = 1024 * 1024 * 4;
 constexpr size_t INITIAL_UNIFORM_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;
 constexpr size_t MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE = 32 * 1024 * 1024;
 
+// Texel buffer size for palette and texture decoding.
+constexpr size_t TEXTURE_CONVERSION_TEXEL_BUFFER_SIZE = 8 * 1024 * 1024;
+
 // Push constant buffer size for utility shaders
 constexpr u32 PUSH_CONSTANT_BUFFER_SIZE = 128;
 
