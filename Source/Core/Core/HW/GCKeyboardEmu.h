@@ -10,12 +10,25 @@
 
 struct KeyboardStatus;
 
+enum KeyboardGoup
+{
+  KBGP_0X,
+  KBGP_1X,
+  KBGP_2X,
+  KBGP_3X,
+  KBGP_4X,
+  KBGP_5X,
+
+  KBGP_OPTIONS
+};
+
 class GCKeyboard : public ControllerEmu
 {
 public:
   GCKeyboard(const unsigned int index);
   KeyboardStatus GetInput() const;
   std::string GetName() const override;
+  ControlGroup* GetGroup(KeyboardGoup group);
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
