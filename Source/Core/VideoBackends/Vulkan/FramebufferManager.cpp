@@ -1007,10 +1007,8 @@ bool FramebufferManager::CreateReadbackTextures()
                         VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT |
                             VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT);
 
-  // We can't copy to/from color<->depth formats, so using a linear texture is not an option here.
-  // TODO: Investigate if vkCmdBlitImage can be used. The documentation isn't that clear.
-  m_depth_readback_texture = StagingTexture2DBuffer::Create(STAGING_BUFFER_TYPE_READBACK, EFB_WIDTH,
-                                                            EFB_HEIGHT, EFB_DEPTH_TEXTURE_FORMAT);
+  m_depth_readback_texture = StagingTexture2D::Create(STAGING_BUFFER_TYPE_READBACK, EFB_WIDTH,
+                                                      EFB_HEIGHT, EFB_DEPTH_TEXTURE_FORMAT);
   if (!m_depth_copy_texture || !m_depth_readback_texture)
   {
     ERROR_LOG(VIDEO, "Failed to create EFB depth readback texture");
