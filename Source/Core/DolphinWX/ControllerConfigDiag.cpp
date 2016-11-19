@@ -33,7 +33,10 @@
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/DolphinSlider.h"
+#include "DolphinWX/Input/GCKeyboardInputConfigDiag.h"
+#include "DolphinWX/Input/GCPadInputConfigDiag.h"
 #include "DolphinWX/Input/InputConfigDiag.h"
+#include "DolphinWX/Input/WiimoteInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -447,7 +450,7 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 
   if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_GC_KEYBOARD)
   {
-    InputConfigDialog config_diag(
+    GCKeyboardInputConfigDialog config_diag(
         this, *key_plugin,
         wxString::Format("GameCube Keyboard Configuration Port %i", port_num + 1), port_num);
     config_diag.ShowModal();
@@ -462,7 +465,7 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
   }
   else
   {
-    InputConfigDialog config_diag(
+    GCPadInputConfigDialog config_diag(
         this, *pad_plugin,
         wxString::Format("GameCube Controller Configuration Port %i", port_num + 1), port_num);
     config_diag.ShowModal();
@@ -498,9 +501,9 @@ void ControllerConfigDiag::OnWiimoteConfigButton(wxCommandEvent& ev)
 
   HotkeyManagerEmu::Enable(false);
 
-  int port_num = m_wiimote_index_from_config_id[ev.GetId()];
+  const int port_num = m_wiimote_index_from_config_id[ev.GetId()];
 
-  InputConfigDialog m_ConfigFrame(
+  WiimoteInputConfigDialog m_ConfigFrame(
       this, *wiimote_plugin,
       wxString::Format("Dolphin Emulated Wii Remote Configuration Port %i", port_num + 1),
       port_num);

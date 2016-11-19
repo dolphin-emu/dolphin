@@ -44,7 +44,12 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/DolphinSlider.h"
+#include "DolphinWX/Input/ClassicInputConfigDiag.h"
+#include "DolphinWX/Input/DrumsInputConfigDiag.h"
+#include "DolphinWX/Input/GuitarInputConfigDiag.h"
 #include "DolphinWX/Input/InputConfigDiag.h"
+#include "DolphinWX/Input/NunchukInputConfigDiag.h"
+#include "DolphinWX/Input/TurntableInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -63,18 +68,28 @@ void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
   // show config diag, if "none" isn't selected
   if (extension_type == EXT_NUNCHUK)
   {
+    NunchukInputConfigDialog dlg(this, m_config, "Nunchuk Configuration", m_port_num);
+    dlg.ShowModal();
   }
   else if (extension_type == EXT_CLASSIC)
   {
+    ClassicInputConfigDialog dlg(this, m_config, "Classic Controller Configuration", m_port_num);
+    dlg.ShowModal();
   }
   else if (extension_type == EXT_GUITAR)
   {
+    GuitarInputConfigDialog dlg(this, m_config, "Guitar Configuration", m_port_num);
+    dlg.ShowModal();
   }
   else if (extension_type == EXT_DRUMS)
   {
+    DrumsInputConfigDialog dlg(this, m_config, "Drums Configuration", m_port_num);
+    dlg.ShowModal();
   }
   else if (extension_type == EXT_TURNTABLE)
   {
+    TurntableInputConfigDialog dlg(this, m_config, "Turntable Configuration", m_port_num);
+    dlg.ShowModal();
   }
 }
 
