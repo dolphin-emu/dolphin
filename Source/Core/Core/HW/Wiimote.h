@@ -55,6 +55,11 @@ void DoState(PointerWrap& p);
 void EmuStateChange(EMUSTATE_CHANGE newState);
 InputConfig* GetConfig();
 ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiiMoteGroup group);
+ControllerEmu::ControlGroup* GetNunchukGroup(int number, NunchukGroup group);
+ControllerEmu::ControlGroup* GetClassicGroup(int number, ClassicGroup group);
+ControllerEmu::ControlGroup* GetGuitarGroup(int number, GuitarGroup group);
+ControllerEmu::ControlGroup* GetDrumsGroup(int number, DrumsGroup group);
+ControllerEmu::ControlGroup* GetTurntableGroup(int number, TurntableGroup group);
 
 void ControlChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 void InterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);

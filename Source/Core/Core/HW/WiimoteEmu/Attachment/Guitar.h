@@ -6,6 +6,15 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
+enum GuitarGroup
+{
+  GUITARGP_BUTTONS,
+  GUITARGP_FRETS,
+  GUITARGP_STRUM,
+  GUITARGP_WHAMMY,
+  GUITARGP_STICK
+};
+
 namespace WiimoteEmu
 {
 struct ExtensionReg;
@@ -16,6 +25,8 @@ public:
   Guitar(WiimoteEmu::ExtensionReg& _reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControlGroup* GetGroup(GuitarGroup group);
 
   enum
   {

@@ -6,6 +6,13 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
+enum DrumsGroup
+{
+  DRUMSGP_BUTTONS,
+  DRUMSGP_PADS,
+  DRUMSGP_STICK
+};
+
 namespace WiimoteEmu
 {
 struct ExtensionReg;
@@ -16,6 +23,8 @@ public:
   Drums(WiimoteEmu::ExtensionReg& _reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControlGroup* GetGroup(DrumsGroup group);
 
   enum
   {

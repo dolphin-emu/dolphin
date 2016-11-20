@@ -7,6 +7,11 @@
 #include <queue>
 #include <string>
 
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
+#include "Core/HW/WiimoteEmu/Attachment/Drums.h"
+#include "Core/HW/WiimoteEmu/Attachment/Guitar.h"
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "InputCommon/ControllerEmu.h"
@@ -121,6 +126,11 @@ public:
   Wiimote(const unsigned int index);
   std::string GetName() const override;
   ControlGroup* GetWiimoteGroup(WiiMoteGroup group);
+  ControlGroup* GetNunchukGroup(NunchukGroup group);
+  ControllerEmu::ControlGroup* GetClassicGroup(ClassicGroup group);
+  ControllerEmu::ControlGroup* GetGuitarGroup(GuitarGroup group);
+  ControllerEmu::ControlGroup* GetDrumsGroup(DrumsGroup group);
+  ControllerEmu::ControlGroup* GetTurntableGroup(TurntableGroup group);
 
   void Update();
   void InterruptChannel(const u16 _channelID, const void* _pData, u32 _Size);

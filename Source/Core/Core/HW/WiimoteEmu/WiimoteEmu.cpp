@@ -344,6 +344,36 @@ ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiiMoteGroup group)
   }
 }
 
+ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(NunchukGroup group)
+{
+  return static_cast<WiimoteEmu::Nunchuk*>(m_extension->attachments[EXT_NUNCHUK].get())
+      ->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(ClassicGroup group)
+{
+  return static_cast<WiimoteEmu::Classic*>(m_extension->attachments[EXT_ClASSIC].get())
+      ->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(GuitarGroup group)
+{
+  return static_cast<WiimoteEmu::Guitar*>(m_extension->attachments[EXT_GUITAR].get())
+      ->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group)
+{
+  return static_cast<WiimoteEmu::Drums*>(m_extension->attachments[EXT_DRUMS].get())
+      ->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group)
+{
+  return static_cast<WiimoteEmu::Turntable*>(m_extension->attachments[EXT_TURNTABLE].get())
+      ->GetGroup(group);
+}
+
 bool Wiimote::Step()
 {
   // TODO: change this a bit
