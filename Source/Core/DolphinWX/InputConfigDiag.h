@@ -192,13 +192,6 @@ public:
   double m_scale;
 };
 
-class ControlGroupsSizer : public wxBoxSizer
-{
-public:
-  ControlGroupsSizer(ControllerEmu* const controller, InputConfigDialog* const parent,
-                     std::vector<ControlGroupBox*>* const groups = nullptr);
-};
-
 class InputConfigDialog : public wxDialog
 {
 public:
