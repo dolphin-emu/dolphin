@@ -4528,7 +4528,7 @@ msgstr "Charger le Menu Système Wii %u%c"
 msgid ""
 "Load any .map file containing the function names and addresses for this game."
 msgstr ""
-"Charger d'importe quel fichier .map contenant les noms des fonctions et "
+"Charger n'importe quel fichier .map contenant les noms des fonctions et "
 "adresses pour ce jeu."
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:235
