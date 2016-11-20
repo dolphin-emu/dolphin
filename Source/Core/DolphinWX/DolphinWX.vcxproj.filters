@@ -134,6 +134,9 @@
     <ClCompile Include="DrumsInputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
+    <ClCompile Include="TurntableInputConfigDiag.cpp">
+      <Filter>GUI\InputConfig</Filter>
+    </ClCompile>
     <ClCompile Include="Debugger\DebuggerPanel.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
@@ -339,6 +342,9 @@
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="DrumsInputConfigDiag.h">
+      <Filter>GUI\InputConfig</Filter>
+    </ClInclude>
+    <ClInclude Include="TurntableInputConfigDiag.h">
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\DebuggerPanel.h">

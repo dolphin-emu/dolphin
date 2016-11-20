@@ -49,6 +49,7 @@
 #include "DolphinWX/GuitarInputConfigDiag.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/NunchukInputConfigDiag.h"
+#include "DolphinWX/TurntableInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -87,6 +88,8 @@ void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
   }
   else if (extension_type == EXT_TURNTABLE)
   {
+    TurntableInputConfigDialog dlg(this, m_config, "Turntable Configuration", m_port_num);
+    dlg.ShowModal();
   }
 }
 
