@@ -54,7 +54,7 @@
 #define poll_dbg usbi_dbg
 #else
 // MSVC++ < 2005 cannot use a variadic argument and non MSVC
-// compilers produce warnings if parenthesis are ommitted.
+// compilers produce warnings if parenthesis are omitted.
 #if defined(_MSC_VER) && (_MSC_VER < 1400)
 #define poll_dbg
 #else
@@ -590,9 +590,9 @@ int usbi_poll(struct pollfd *fds, unsigned int nfds, int timeout)
 	// If nothing was triggered, wait on all fds that require it
 	if ((timeout != 0) && (triggered == 0) && (nb_handles_to_wait_on != 0)) {
 		if (timeout < 0) {
-			poll_dbg("starting infinite wait for %d handles...", (int)nb_handles_to_wait_on);
+			poll_dbg("starting infinite wait for %u handles...", (unsigned int)nb_handles_to_wait_on);
 		} else {
-			poll_dbg("starting %d ms wait for %d handles...", timeout, (int)nb_handles_to_wait_on);
+			poll_dbg("starting %d ms wait for %u handles...", timeout, (unsigned int)nb_handles_to_wait_on);
 		}
 		ret = WaitForMultipleObjects(nb_handles_to_wait_on, handles_to_wait_on,
 			FALSE, (timeout<0)?INFINITE:(DWORD)timeout);
@@ -672,7 +672,7 @@ ssize_t usbi_write(int fd, const void *buf, size_t count)
 		return -1;
 	}
 
-	poll_dbg("set pipe event (fd = %d, thread = %08X)", _index, GetCurrentThreadId());
+	poll_dbg("set pipe event (fd = %d, thread = %08X)", _index, (unsigned int)GetCurrentThreadId());
 	SetEvent(poll_fd[_index].overlapped->hEvent);
 	poll_fd[_index].overlapped->Internal = STATUS_WAIT_0;
 	// If two threads write on the pipe at the same time, we need to
@@ -707,12 +707,12 @@ ssize_t usbi_read(int fd, void *buf, size_t count)
 	}
 
 	if (WaitForSingleObject(poll_fd[_index].overlapped->hEvent, INFINITE) != WAIT_OBJECT_0) {
-		usbi_warn(NULL, "waiting for event failed: %d", (int)GetLastError());
+		usbi_warn(NULL, "waiting for event failed: %u", (unsigned int)GetLastError());
 		errno = EIO;
 		goto out;
 	}
 
-	poll_dbg("clr pipe event (fd = %d, thread = %08X)", _index, GetCurrentThreadId());
+	poll_dbg("clr pipe event (fd = %d, thread = %08X)", _index, (unsigned int)GetCurrentThreadId());
 	poll_fd[_index].overlapped->InternalHigh--;
 	// Don't reset unless we don't have any more events to process
 	if (poll_fd[_index].overlapped->InternalHigh <= 0) {

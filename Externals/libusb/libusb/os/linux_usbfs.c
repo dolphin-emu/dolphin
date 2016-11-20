@@ -33,10 +33,11 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 #include <sys/utsname.h>
-#include <unistd.h>
+#include <time.h>
 
 #include "libusbi.h"
 #include "linux_usbfs.h"
@@ -121,7 +122,7 @@ static int sysfs_has_descriptors = -1;
 static int init_count = 0;
 
 /* Serialize hotplug start/stop */
-usbi_mutex_static_t linux_hotplug_startstop_lock = USBI_MUTEX_INITIALIZER;
+static usbi_mutex_static_t linux_hotplug_startstop_lock = USBI_MUTEX_INITIALIZER;
 /* Serialize scan-devices, event-thread, and poll */
 usbi_mutex_static_t linux_hotplug_lock = USBI_MUTEX_INITIALIZER;
 
@@ -144,6 +145,7 @@ struct linux_device_priv {
 
 struct linux_device_handle_priv {
 	int fd;
+	int fd_removed;
 	uint32_t caps;
 };
 
@@ -201,7 +203,7 @@ static int _get_usbfs_fd(struct libusb_device *dev, mode_t mode, int silent)
 			usbi_err(ctx, "File doesn't exist, wait %d ms and try again", delay/1000);
    
 		/* Wait 10ms for USB device path creation.*/
-		usleep(delay);
+		nanosleep(&(struct timespec){delay / 1000000, (delay * 1000) % 1000000000UL}, NULL);
 
 		fd = open(path, mode);
 		if (fd != -1)
@@ -842,6 +844,7 @@ static int op_get_config_descriptor(struct libusb_device *dev,
 /* send a control message to retrieve active configuration */
 static int usbfs_get_active_config(struct libusb_device *dev, int fd)
 {
+	struct linux_device_priv *priv = _device_priv(dev);
 	unsigned char active_config = 0;
 	int r;
 
@@ -863,10 +866,23 @@ static int usbfs_get_active_config(struct libusb_device *dev, int fd)
 		/* we hit this error path frequently with buggy devices :( */
 		usbi_warn(DEVICE_CTX(dev),
 			"get_configuration failed ret=%d errno=%d", r, errno);
-		return LIBUSB_ERROR_IO;
+		priv->active_config = -1;
+	} else {
+		if (active_config > 0) {
+			priv->active_config = active_config;
+		} else {
+			/* some buggy devices have a configuration 0, but we're
+			 * reaching into the corner of a corner case here, so let's
+			 * not support buggy devices in these circumstances.
+			 * stick to the specs: a configuration value of 0 means
+			 * unconfigured. */
+			usbi_warn(DEVICE_CTX(dev),
+				"active cfg 0? assuming unconfigured device");
+			priv->active_config = -1;
+		}
 	}
 
-	return active_config;
+	return LIBUSB_SUCCESS;
 }
 
 static int initialize_device(struct libusb_device *dev, uint8_t busnum,
@@ -882,10 +898,9 @@ static int initialize_device(struct libusb_device *dev, uint8_t busnum,
 	dev->device_address = devaddr;
 
 	if (sysfs_dir) {
-		priv->sysfs_dir = malloc(strlen(sysfs_dir) + 1);
+		priv->sysfs_dir = strdup(sysfs_dir);
 		if (!priv->sysfs_dir)
 			return LIBUSB_ERROR_NO_MEM;
-		strcpy(priv->sysfs_dir, sysfs_dir);
 
 		/* Note speed can contain 1.5, in this case __read_sysfs_attr
 		   will stop parsing at the '.' and return 1 */
@@ -966,28 +981,8 @@ static int initialize_device(struct libusb_device *dev, uint8_t busnum,
 	}
 
 	r = usbfs_get_active_config(dev, fd);
-	if (r > 0) {
-		priv->active_config = r;
-		r = LIBUSB_SUCCESS;
-	} else if (r == 0) {
-		/* some buggy devices have a configuration 0, but we're
-		 * reaching into the corner of a corner case here, so let's
-		 * not support buggy devices in these circumstances.
-		 * stick to the specs: a configuration value of 0 means
-		 * unconfigured. */
-		usbi_dbg("active cfg 0? assuming unconfigured device");
-		priv->active_config = -1;
-		r = LIBUSB_SUCCESS;
-	} else if (r == LIBUSB_ERROR_IO) {
-		/* buggy devices sometimes fail to report their active config.
-		 * assume unconfigured and continue the probing */
-		usbi_warn(ctx, "couldn't query active configuration, assuming"
-			       " unconfigured");
-		priv->active_config = -1;
-		r = LIBUSB_SUCCESS;
-	} /* else r < 0, just return the error code */
-
 	close(fd);
+
 	return r;
 }
 
@@ -1115,7 +1110,7 @@ void linux_hotplug_enumerate(uint8_t busnum, uint8_t devaddr, const char *sys_na
 	usbi_mutex_static_unlock(&active_contexts_lock);
 }
 
-void linux_device_disconnected(uint8_t busnum, uint8_t devaddr, const char *sys_name)
+void linux_device_disconnected(uint8_t busnum, uint8_t devaddr)
 {
 	struct libusb_context *ctx;
 	struct libusb_device *dev;
@@ -1299,7 +1294,7 @@ static int op_open(struct libusb_device_handle *handle)
 			if (handle->dev->attached) {
 				usbi_dbg("open failed with no device, but device still attached");
 				linux_device_disconnected(handle->dev->bus_number,
-						handle->dev->device_address, NULL);
+						handle->dev->device_address);
 			}
 			usbi_mutex_static_unlock(&linux_hotplug_lock);
 		}
@@ -1319,14 +1314,20 @@ static int op_open(struct libusb_device_handle *handle)
 			hpriv->caps |= USBFS_CAP_BULK_CONTINUATION;
 	}
 
-	return usbi_add_pollfd(HANDLE_CTX(handle), hpriv->fd, POLLOUT);
+	r = usbi_add_pollfd(HANDLE_CTX(handle), hpriv->fd, POLLOUT);
+	if (r < 0)
+		close(hpriv->fd);
+
+	return r;
 }
 
 static void op_close(struct libusb_device_handle *dev_handle)
 {
-	int fd = _device_handle_priv(dev_handle)->fd;
-	usbi_remove_pollfd(HANDLE_CTX(dev_handle), fd);
-	close(fd);
+	struct linux_device_handle_priv *hpriv = _device_handle_priv(dev_handle);
+	/* fd may have already been removed by POLLERR condition in op_handle_events() */
+	if (!hpriv->fd_removed)
+		usbi_remove_pollfd(HANDLE_CTX(dev_handle), hpriv->fd);
+	close(hpriv->fd);
 }
 
 static int op_get_configuration(struct libusb_device_handle *handle,
@@ -1339,6 +1340,8 @@ static int op_get_configuration(struct libusb_device_handle *handle,
 	} else {
 		r = usbfs_get_active_config(handle->dev,
 					    _device_handle_priv(handle)->fd);
+		if (r == LIBUSB_SUCCESS)
+			*config = _device_priv(handle->dev)->active_config;
 	}
 	if (r < 0)
 		return r;
@@ -1553,6 +1556,32 @@ static int op_free_streams(struct libusb_device_handle *handle,
 {
 	return do_streams_ioctl(handle, IOCTL_USBFS_FREE_STREAMS, 0,
 				endpoints, num_endpoints);
+}
+
+static unsigned char *op_dev_mem_alloc(struct libusb_device_handle *handle,
+	size_t len)
+{
+	struct linux_device_handle_priv *hpriv = _device_handle_priv(handle);
+	unsigned char *buffer = (unsigned char *)mmap(NULL, len,
+		PROT_READ | PROT_WRITE, MAP_SHARED, hpriv->fd, 0);
+	if (buffer == MAP_FAILED) {
+		usbi_err(HANDLE_CTX(handle), "alloc dev mem failed errno %d",
+			errno);
+		return NULL;
+	}
+	return buffer;
+}
+
+static int op_dev_mem_free(struct libusb_device_handle *handle,
+	unsigned char *buffer, size_t len)
+{
+	if (munmap(buffer, len) != 0) {
+		usbi_err(HANDLE_CTX(handle), "free dev mem failed errno %d",
+			errno);
+		return LIBUSB_ERROR_OTHER;
+	} else {
+		return LIBUSB_SUCCESS;
+	}
 }
 
 static int op_kernel_driver_active(struct libusb_device_handle *handle,
@@ -2595,15 +2624,27 @@ static int op_handle_events(struct libusb_context *ctx,
 		}
 
 		if (pollfd->revents & POLLERR) {
+			/* remove the fd from the pollfd set so that it doesn't continuously
+			 * trigger an event, and flag that it has been removed so op_close()
+			 * doesn't try to remove it a second time */
 			usbi_remove_pollfd(HANDLE_CTX(handle), hpriv->fd);
-			usbi_handle_disconnect(handle);
+			hpriv->fd_removed = 1;
+
 			/* device will still be marked as attached if hotplug monitor thread
 			 * hasn't processed remove event yet */
 			usbi_mutex_static_lock(&linux_hotplug_lock);
 			if (handle->dev->attached)
 				linux_device_disconnected(handle->dev->bus_number,
-						handle->dev->device_address, NULL);
+						handle->dev->device_address);
 			usbi_mutex_static_unlock(&linux_hotplug_lock);
+
+			if (hpriv->caps & USBFS_CAP_REAP_AFTER_DISCONNECT) {
+				do {
+					r = reap_for_handle(handle);
+				} while (r == 0);
+			}
+
+			usbi_handle_disconnect(handle);
 			continue;
 		}
 
@@ -2667,6 +2708,9 @@ const struct usbi_os_backend linux_usbfs_backend = {
 
 	.alloc_streams = op_alloc_streams,
 	.free_streams = op_free_streams,
+
+	.dev_mem_alloc = op_dev_mem_alloc,
+	.dev_mem_free = op_dev_mem_free,
 
 	.kernel_driver_active = op_kernel_driver_active,
 	.detach_kernel_driver = op_detach_kernel_driver,

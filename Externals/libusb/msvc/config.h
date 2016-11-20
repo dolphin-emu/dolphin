@@ -5,10 +5,18 @@
 #error "Please make sure the msvc/ directory is removed from your build path."
 #endif
 
+/* Visual Studio 2015 and later defines timespec */
+#if defined(_MSC_VER) && (_MSC_VER >= 1900)
+#define _TIMESPEC_DEFINED 1
+#endif
+
 /* Disable: warning C4200: nonstandard extension used : zero-sized array in struct/union */
 #pragma warning(disable:4200)
 /* Disable: warning C6258: Using TerminateThread does not allow proper thread clean up */
 #pragma warning(disable: 6258)
+/* Disable: warning C4996: 'GetVersionA': was declared deprecated */
+#pragma warning(disable: 4996)
+
 #if defined(_PREFAST_)
 /* Disable "Banned API" errors when using the MS's WDK OACR/Prefast */
 #pragma warning(disable:28719)
