@@ -43,6 +43,7 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
+#include "DolphinWX/ClassicInputConfigDiag.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/NunchukInputConfigDiag.h"
@@ -69,6 +70,8 @@ void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
   }
   else if (extension_type == EXT_ClASSIC)
   {
+    ClassicInputConfigDialog dlg(this, m_config, "Classic Controller Configuration", m_port_num);
+    dlg.ShowModal();
   }
   else if (extension_type == EXT_GUITAR)
   {
