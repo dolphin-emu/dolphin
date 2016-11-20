@@ -68,7 +68,6 @@ public:
 
 private:
   bool CreateRenderPasses();
-  VkRenderPass GetRenderPassForTextureUpdate(const Texture2D* texture) const;
 
   // Copies the contents of a texture using vkCmdCopyImage
   void CopyTextureRectangle(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
@@ -78,8 +77,7 @@ private:
   void ScaleTextureRectangle(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
                              Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
 
-  VkRenderPass m_initialize_render_pass = VK_NULL_HANDLE;
-  VkRenderPass m_update_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_render_pass = VK_NULL_HANDLE;
 
   std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 

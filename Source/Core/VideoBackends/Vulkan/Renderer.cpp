@@ -607,6 +607,9 @@ void Renderer::DrawVirtualXFB(VkRenderPass render_pass, u32 xfb_addr,
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
+    xfb_source->GetTexture()->GetTexture()->TransitionToLayout(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     TargetRectangle source_rect = xfb_source->sourceRc;
     TargetRectangle draw_rect;
 
@@ -640,6 +643,9 @@ void Renderer::DrawRealXFB(VkRenderPass render_pass, const XFBSourceBase* const*
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
+    xfb_source->GetTexture()->GetTexture()->TransitionToLayout(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     TargetRectangle source_rect = xfb_source->sourceRc;
     TargetRectangle draw_rect = target_rect;
     source_rect.right -= fb_stride - fb_width;
