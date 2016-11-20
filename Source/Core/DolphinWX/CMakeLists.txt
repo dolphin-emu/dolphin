@@ -58,6 +58,7 @@ set(GUI_SRCS
 	ClassicInputConfigDiag
 	GuitarInputConfigDiag
 	DrumsInputConfigDiag
+	TurntableInputConfigDiag
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
