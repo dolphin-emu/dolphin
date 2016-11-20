@@ -53,6 +53,7 @@ set(GUI_SRCS
 	HotkeyInputConfigDiag.cpp
 	GCPadInputConfigDiag.cpp
 	GCKeyboardInputConfigDiag
+	WiimoteInputConfigDiag
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
