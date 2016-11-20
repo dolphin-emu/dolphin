@@ -42,6 +42,7 @@
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/Input/InputConfigDiag.h"
@@ -58,28 +59,33 @@ void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
 {
   ControllerEmu::Extension* const ex = ((ExtensionButton*)event.GetEventObject())->extension;
 
+  int extension_type = ex->switch_extension;
+
   // show config diag, if "none" isn't selected
-  if (ex->switch_extension)
+  switch (extension_type)
   {
-    wxDialog dlg(this, wxID_ANY,
-                 wxGetTranslation(StrToWxStr(ex->attachments[ex->switch_extension]->GetName())));
-
-    wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);
-    const std::size_t orig_size = control_groups.size();
-
-    ControlGroupsSizer* const szr =
-        new ControlGroupsSizer(ex->attachments[ex->switch_extension].get(), this, &control_groups);
-    const int space5 = FromDIP(5);
-    main_szr->Add(szr, 0, wxLEFT, space5);
-    main_szr->Add(dlg.CreateButtonSizer(wxOK), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-    main_szr->AddSpacer(space5);
-    dlg.SetSizerAndFit(main_szr);
-    dlg.Center();
-
-    dlg.ShowModal();
-
-    // remove the new groups that were just added, now that the window closed
-    control_groups.resize(orig_size);
+  case WiimoteEmu::EXT_NUNCHUK:
+  {
+  }
+  break;
+  case WiimoteEmu::EXT_CLASSIC:
+  {
+  }
+  break;
+  case WiimoteEmu::EXT_GUITAR:
+  {
+  }
+  break;
+  case WiimoteEmu::EXT_DRUMS:
+  {
+  }
+  break;
+  case WiimoteEmu::EXT_TURNTABLE:
+  {
+  }
+  break;
+  default:
+    break;
   }
 }
 
@@ -1125,48 +1131,6 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
   }
   AddSpacer(space3);
   eventsink->control_groups.push_back(this);
-}
-
-ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller,
-                                       InputConfigDialog* const parent,
-                                       std::vector<ControlGroupBox*>* groups)
-    : wxBoxSizer(wxHORIZONTAL)
-{
-  const int space5 = parent->FromDIP(5);
-  size_t col_size = 0;
-
-  wxBoxSizer* stacked_groups = nullptr;
-  for (auto& group : controller->groups)
-  {
-    ControlGroupBox* control_group_box = new ControlGroupBox(group.get(), parent, parent);
-
-    const size_t grp_size =
-        group->controls.size() + group->numeric_settings.size() + group->boolean_settings.size();
-    col_size += grp_size;
-    if (col_size > 8 || nullptr == stacked_groups)
-    {
-      if (stacked_groups)
-      {
-        Add(stacked_groups, 0, wxBOTTOM, space5);
-        AddSpacer(space5);
-      }
-
-      stacked_groups = new wxBoxSizer(wxVERTICAL);
-      stacked_groups->Add(control_group_box, 0, wxEXPAND);
-
-      col_size = grp_size;
-    }
-    else
-    {
-      stacked_groups->Add(control_group_box, 0, wxEXPAND);
-    }
-
-    if (groups)
-      groups->push_back(control_group_box);
-  }
-
-  if (stacked_groups)
-    Add(stacked_groups, 0, wxBOTTOM, space5);
 }
 
 wxBoxSizer* InputConfigDialog::CreateDeviceChooserGroupBox()
