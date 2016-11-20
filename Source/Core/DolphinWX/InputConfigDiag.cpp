@@ -45,6 +45,7 @@
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/ClassicInputConfigDiag.h"
 #include "DolphinWX/DolphinSlider.h"
+#include "DolphinWX/GuitarInputConfigDiag.h"
 #include "DolphinWX/InputConfigDiag.h"
 #include "DolphinWX/NunchukInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
@@ -75,6 +76,8 @@ void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
   }
   else if (extension_type == EXT_GUITAR)
   {
+    GuitarInputConfigDialog dlg(this, m_config, "Guitar Configuration", m_port_num);
+    dlg.ShowModal();
   }
   else if (extension_type == EXT_DRUMS)
   {
