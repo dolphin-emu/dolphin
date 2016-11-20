@@ -888,7 +888,7 @@ void TextureCache::EncodeYUYVTextureToMemory(void* dst_ptr, u32 dst_width, u32 d
                          m_rgb_to_yuyv_shader);
   VkRect2D region = {{0, 0}, {output_width, dst_height}};
   draw.BeginRenderPass(m_texture_encoder->GetEncodingTextureFramebuffer(), region);
-  draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetPointSampler());
+  draw.SetPSSampler(0, src_texture->GetView(), g_object_cache->GetLinearSampler());
   draw.DrawQuad(0, 0, static_cast<int>(output_width), static_cast<int>(dst_height), src_rect.left,
                 src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
                 static_cast<int>(src_texture->GetWidth()),
