@@ -33,8 +33,9 @@
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/DolphinSlider.h"
-#include "DolphinWX/GCPadInputConfigDiag.h"
 #include "DolphinWX/GCKeyboardInputConfigDiag.h"
+#include "DolphinWX/GCPadInputConfigDiag.h"
+#include "DolphinWX/WiimoteInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -501,7 +502,7 @@ void ControllerConfigDiag::OnWiimoteConfigButton(wxCommandEvent& ev)
 
   int port_num = m_wiimote_index_from_config_id[ev.GetId()];
 
-  InputConfigDialog m_ConfigFrame(
+  WiimoteInputConfigDialog m_ConfigFrame(
       this, *wiimote_plugin,
       wxString::Format("Dolphin Emulated Wii Remote Configuration Port %i", port_num + 1),
       port_num);
