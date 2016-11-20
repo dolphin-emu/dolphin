@@ -576,7 +576,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
                 "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", fd,
                 it->is_ssl ? (int)it->ssl_type : (int)it->net_type, ReturnValue, nonBlock,
                 forceNonBlock);
-      WiiSockMan::EnqueueReply(it->_CommandAddress, ReturnValue, ct);
+      Memory::Write_U32(ReturnValue, it->_CommandAddress + 4);
+      WII_IPC_HLE_Interface::EnqueueReply(it->_CommandAddress);
       it = pending_sockops.erase(it);
     }
     else
@@ -672,19 +673,6 @@ void WiiSockMan::Update()
       elem.second.Update(false, false, false);
     }
   }
-}
-
-void WiiSockMan::EnqueueReply(u32 CommandAddress, s32 ReturnValue, IPCCommandType CommandType)
-{
-  // The original hardware overwrites the command type with the async reply type.
-  Memory::Write_U32(IPC_REP_ASYNC, CommandAddress);
-  // IOS also seems to write back the command that was responded to in the FD field.
-  Memory::Write_U32(CommandType, CommandAddress + 8);
-
-  // Return value
-  Memory::Write_U32(ReturnValue, CommandAddress + 4);
-
-  WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
 }
 
 void WiiSockMan::Convert(WiiSockAddrIn const& from, sockaddr_in& to)

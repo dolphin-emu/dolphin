@@ -20,27 +20,30 @@ in case of success they are
 They will also generate a true or false return for UpdateInterrupts() in WII_IPC.cpp.
 */
 
-#include <list>
+#include <deque>
 #include <map>
+#include <memory>
 #include <mutex>
 #include <string>
+#include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/Thread.h"
-
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
 #include "Core/HW/WII_IPC.h"
-
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_emu.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_real.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_hid_v4.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_kbd.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_oh0.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_ven.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
@@ -51,16 +54,12 @@ They will also generate a true or false return for UpdateInterrupts() in WII_IPC
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_ven.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_stub.h"
 
-#if defined(__LIBUSB__)
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
-#endif
-
-#include "Core/PowerPC/PowerPC.h"
+namespace CoreTiming
+{
+struct EventType;
+}  // namespace CoreTiming
 
 namespace WII_IPC_HLE_Interface
 {
@@ -114,7 +113,7 @@ static void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
 static u32 num_devices;
 
 template <typename T>
-std::shared_ptr<T> AddDevice(const char* device_name)
+std::shared_ptr<T> AddDevice(const std::string& device_name)
 {
   auto device = std::make_shared<T>(num_devices, device_name);
   s_device_map[num_devices] = device;
@@ -131,10 +130,6 @@ void Reinit()
   num_devices = 0;
 
   // Build hardware devices
-  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_emu>("/dev/usb/oh1/57e/305");
-  else
-    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_real>("/dev/usb/oh1/57e/305");
 
   AddDevice<CWII_IPC_HLE_Device_stm_immediate>("/dev/stm/immediate");
   AddDevice<CWII_IPC_HLE_Device_stm_eventhook>("/dev/stm/eventhook");
@@ -155,15 +150,22 @@ void Reinit()
   AddDevice<CWII_IPC_HLE_Device_net_ip_top>("/dev/net/ip/top");
   AddDevice<CWII_IPC_HLE_Device_net_ssl>("/dev/net/ssl");
   AddDevice<CWII_IPC_HLE_Device_usb_kbd>("/dev/usb/kbd");
-  AddDevice<CWII_IPC_HLE_Device_usb_ven>("/dev/usb/ven");
   AddDevice<CWII_IPC_HLE_Device_sdio_slot0>("/dev/sdio/slot0");
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/sdio/slot1");
-#if defined(__LIBUSB__)
-  AddDevice<CWII_IPC_HLE_Device_hid>("/dev/usb/hid");
-#else
-  AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/hid");
-#endif
+
+  AddDevice<CWII_IPC_HLE_Device_usb_hid_v4>("/dev/usb/hid");
+  AddDevice<CWII_IPC_HLE_Device_usb_oh0>("/dev/usb/oh0");
+  for (const auto& device : SConfig::GetInstance().m_usb_passthrough_devices)
+  {
+    AddDevice<CWII_IPC_HLE_Device_usb_oh0_device>(
+        StringFromFormat("/dev/usb/oh0/%x/%x", device.first, device.second));
+  }
+  AddDevice<CWII_IPC_HLE_Device_usb_ven>("/dev/usb/ven");
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
+  if (SConfig::GetInstance().m_bt_passthrough_enabled)
+    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_real>("/dev/usb/oh1/57e/305");
+  else
+    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_emu>("/dev/usb/oh1/57e/305");
 }
 
 void Init()
@@ -428,11 +430,14 @@ void ExecuteCommand(u32 address)
         device = GetDeviceByName(device_name);
         if (device)
         {
-          s_fdmap[DeviceID] = device;
           result = device->Open(address, Mode);
           DEBUG_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
                     device->GetDeviceName().c_str(), DeviceID, Mode);
-          Memory::Write_U32(DeviceID, address + 4);
+          if (static_cast<s32>(Memory::Read_U32(address + 4)) > -1)
+          {
+            s_fdmap[DeviceID] = device;
+            Memory::Write_U32(DeviceID, address + 4);
+          }
         }
         else
         {
@@ -553,14 +558,7 @@ void ExecuteCommand(u32 address)
   s_last_reply_time = CoreTiming::GetTicks() + result.reply_delay_ticks;
 
   if (result.send_reply)
-  {
-    // The original hardware overwrites the command type with the async reply type.
-    Memory::Write_U32(IPC_REP_ASYNC, address);
-    // IOS also seems to write back the command that was responded to in the FD field.
-    Memory::Write_U32(Command, address + 8);
-    // Generate a reply to the IPC command
-    EnqueueReply(address, (int)result.reply_delay_ticks);
-  }
+    EnqueueReply(address, static_cast<int>(result.reply_delay_ticks));
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
@@ -569,12 +567,13 @@ void EnqueueRequest(u32 address)
   CoreTiming::ScheduleEvent(1000, s_event_enqueue, address | ENQUEUE_REQUEST_FLAG);
 }
 
-// Called when IOS module has some reply
-// NOTE: Only call this if you have correctly handled
-//       CommandAddress+0 and CommandAddress+8.
-//       Please search for examples of this being called elsewhere.
+// Called to send a reply to an IOS async syscall
 void EnqueueReply(u32 address, int cycles_in_future, CoreTiming::FromThread from)
 {
+  // IOS writes back the command that was responded to in the FD field.
+  Memory::Write_U32(Memory::Read_U32(address), address + 8);
+  // IOS also overwrites the command type with the async reply type.
+  Memory::Write_U32(IPC_REP_ASYNC, address);
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, address, from);
 }
 
@@ -631,12 +630,3 @@ void UpdateDevices()
 }
 
 }  // end of namespace WII_IPC_HLE_Interface
-
-// TODO: create WII_IPC_HLE_Device.cpp ?
-void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
-{
-  p.Do(m_Name);
-  p.Do(m_DeviceID);
-  p.Do(m_Hardware);
-  p.Do(m_Active);
-}

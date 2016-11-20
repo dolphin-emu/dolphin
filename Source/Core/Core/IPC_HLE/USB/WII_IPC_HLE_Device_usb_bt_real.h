@@ -7,15 +7,20 @@
 #if defined(__LIBUSB__)
 #include <array>
 #include <atomic>
+#include <string>
 #include <thread>
 
+#include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Timer.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+#include "Core/IPC_HLE/USB/USBV0.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_base.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 
+class PointerWrap;
+struct libusb_context;
 struct libusb_device;
 struct libusb_device_handle;
-struct libusb_context;
 struct libusb_transfer;
 
 enum class SyncButtonState
@@ -77,11 +82,11 @@ private:
   void SendHCIResetCommand();
   void SendHCIDeleteLinkKeyCommand();
   bool SendHCIStoreLinkKeyCommand();
-  void FakeVendorCommandReply(const CtrlBuffer& ctrl);
-  void FakeReadBufferSizeReply(const CtrlBuffer& ctrl);
-  void FakeSyncButtonEvent(const CtrlBuffer& ctrl, const u8* payload, u8 size);
-  void FakeSyncButtonPressedEvent(const CtrlBuffer& ctrl);
-  void FakeSyncButtonHeldEvent(const CtrlBuffer& ctrl);
+  void FakeVendorCommandReply(const USBV0IntrMessage& ctrl);
+  void FakeReadBufferSizeReply(const USBV0IntrMessage& ctrl);
+  void FakeSyncButtonEvent(const USBV0IntrMessage& ctrl, const u8* payload, u8 size);
+  void FakeSyncButtonPressedEvent(const USBV0IntrMessage& ctrl);
+  void FakeSyncButtonHeldEvent(const USBV0IntrMessage& ctrl);
 
   void LoadLinkKeys();
   void SaveLinkKeys();
@@ -95,6 +100,7 @@ private:
 };
 
 #else
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.h"
-using CWII_IPC_HLE_Device_usb_oh1_57e_305_real = CWII_IPC_HLE_Device_usb_oh1_57e_305_stub;
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_stub.h"
+
+using CWII_IPC_HLE_Device_usb_oh1_57e_305_real = CWII_IPC_HLE_Device_stub;
 #endif

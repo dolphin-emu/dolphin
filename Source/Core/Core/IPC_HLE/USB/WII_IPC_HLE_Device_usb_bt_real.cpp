@@ -3,20 +3,33 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstdint>
+#include <cstring>
 #include <iomanip>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <libusb.h>
 
+#include "Common/Assert.h"
+#include "Common/ChunkFile.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/Network.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreTiming.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/USB/Common.h"
+#include "Core/IPC_HLE/USB/USBV0.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_real.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/hci.h"
 
 // This stores the address of paired devices and associated link keys.
@@ -28,13 +41,6 @@ static Common::Flag s_need_reset_keys;
 // This flag is set when a libusb transfer failed (for reasons other than timing out)
 // and we showed an OSD message about it.
 static Common::Flag s_showed_failed_transfer;
-
-static void EnqueueReply(const u32 command_address)
-{
-  Memory::Write_U32(Memory::Read_U32(command_address), command_address + 8);
-  Memory::Write_U32(IPC_REP_ASYNC, command_address);
-  WII_IPC_HLE_Interface::EnqueueReply(command_address, 0, CoreTiming::FromThread::ANY);
-}
 
 static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
 {
@@ -174,8 +180,8 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
   // HCI commands to the Bluetooth adapter
   case USBV0_IOCTL_CTRLMSG:
   {
-    auto cmd = std::make_unique<CtrlMessage>(cmd_buffer);
-    const u16 opcode = *reinterpret_cast<u16*>(Memory::GetPointer(cmd->payload_addr));
+    auto cmd = std::make_unique<USBV0CtrlMessage>(cmd_buffer);
+    const u16 opcode = *reinterpret_cast<u16*>(Memory::GetPointer(cmd->data_addr));
     if (opcode == HCI_CMD_READ_BUFFER_SIZE)
     {
       m_fake_read_buffer_size_reply.Set();
@@ -191,7 +197,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
     {
       // Delete link key(s) from our own link key storage when the game tells the adapter to
       const auto* delete_cmd =
-          reinterpret_cast<hci_delete_stored_link_key_cp*>(Memory::GetPointer(cmd->payload_addr));
+          reinterpret_cast<hci_delete_stored_link_key_cp*>(Memory::GetPointer(cmd->data_addr));
       if (delete_cmd->delete_all)
       {
         s_link_keys.clear();
@@ -203,10 +209,10 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
         s_link_keys.erase(addr);
       }
     }
-    auto buffer = std::vector<u8>(cmd->length + LIBUSB_CONTROL_SETUP_SIZE);
-    libusb_fill_control_setup(buffer.data(), cmd->request_type, cmd->request, cmd->value,
-                              cmd->index, cmd->length);
-    Memory::CopyFromEmu(buffer.data() + LIBUSB_CONTROL_SETUP_SIZE, cmd->payload_addr, cmd->length);
+    auto buffer = std::vector<u8>(cmd->wLength + LIBUSB_CONTROL_SETUP_SIZE);
+    libusb_fill_control_setup(buffer.data(), cmd->bmRequestType, cmd->bmRequest, cmd->wValue,
+                              cmd->wIndex, cmd->wLength);
+    Memory::CopyFromEmu(buffer.data() + LIBUSB_CONTROL_SETUP_SIZE, cmd->data_addr, cmd->wLength);
     libusb_transfer* transfer = libusb_alloc_transfer(0);
     transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
     libusb_fill_control_transfer(transfer, m_handle, buffer.data(), CommandCallback, cmd.release(),
@@ -218,7 +224,8 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
   case USBV0_IOCTL_BLKMSG:
   case USBV0_IOCTL_INTRMSG:
   {
-    auto buffer = std::make_unique<CtrlBuffer>(cmd_buffer, command_address);
+    // For oh1, IntrMessage and BulkMessage are the same.
+    auto buffer = std::make_unique<USBV0IntrMessage>(cmd_buffer);
     if (cmd_buffer.Parameter == USBV0_IOCTL_INTRMSG && m_fake_read_buffer_size_reply.TestAndClear())
     {
       FakeReadBufferSizeReply(*buffer);
@@ -244,12 +251,12 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(u32 command_ad
       return GetNoReply();
     }
     libusb_transfer* transfer = libusb_alloc_transfer(0);
-    transfer->buffer = Memory::GetPointer(buffer->m_payload_addr);
+    transfer->buffer = Memory::GetPointer(buffer->data_addr);
     transfer->callback = TransferCallback;
     transfer->dev_handle = m_handle;
-    transfer->endpoint = buffer->m_endpoint;
+    transfer->endpoint = buffer->endpoint;
     transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
-    transfer->length = buffer->m_length;
+    transfer->length = buffer->length;
     transfer->timeout = TIMEOUT;
     transfer->type = cmd_buffer.Parameter == USBV0_IOCTL_BLKMSG ? LIBUSB_TRANSFER_TYPE_BULK :
                                                                   LIBUSB_TRANSFER_TYPE_INTERRUPT;
@@ -385,16 +392,16 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIStoreLinkKeyCommand()
   return true;
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeVendorCommandReply(const CtrlBuffer& ctrl)
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeVendorCommandReply(const USBV0IntrMessage& ctrl)
 {
-  u8* packet = Memory::GetPointer(ctrl.m_payload_addr);
+  u8* packet = Memory::GetPointer(ctrl.data_addr);
   auto* hci_event = reinterpret_cast<SHCIEventCommand*>(packet);
   hci_event->EventType = HCI_EVENT_COMMAND_COMPL;
   hci_event->PayloadLength = sizeof(SHCIEventCommand) - 2;
   hci_event->PacketIndicator = 0x01;
   hci_event->Opcode = m_fake_vendor_command_reply_opcode;
   ctrl.SetRetVal(sizeof(SHCIEventCommand));
-  EnqueueReply(ctrl.m_cmd_address);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl.cmd_address);
 }
 
 // Due to how the widcomm stack which Nintendo uses is coded, we must never
@@ -402,9 +409,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeVendorCommandReply(const Ctrl
 // - it will cause a u8 underflow and royally screw things up.
 // Therefore, the reply to this command has to be faked to avoid random, weird issues
 // (including Wiimote disconnects and "event mismatch" warning messages).
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeReadBufferSizeReply(const CtrlBuffer& ctrl)
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeReadBufferSizeReply(const USBV0IntrMessage& ctrl)
 {
-  u8* packet = Memory::GetPointer(ctrl.m_payload_addr);
+  u8* packet = Memory::GetPointer(ctrl.data_addr);
   auto* hci_event = reinterpret_cast<SHCIEventCommand*>(packet);
   hci_event->EventType = HCI_EVENT_COMMAND_COMPL;
   hci_event->PayloadLength = sizeof(SHCIEventCommand) - 2 + sizeof(hci_read_buffer_size_rp);
@@ -420,26 +427,27 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeReadBufferSizeReply(const Ctr
 
   memcpy(packet + sizeof(SHCIEventCommand), &reply, sizeof(hci_read_buffer_size_rp));
   ctrl.SetRetVal(sizeof(SHCIEventCommand) + sizeof(hci_read_buffer_size_rp));
-  EnqueueReply(ctrl.m_cmd_address);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl.cmd_address);
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonEvent(const CtrlBuffer& ctrl,
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonEvent(const USBV0IntrMessage& ctrl,
                                                                    const u8* payload, const u8 size)
 {
-  u8* packet = Memory::GetPointer(ctrl.m_payload_addr);
+  u8* packet = Memory::GetPointer(ctrl.data_addr);
   auto* hci_event = reinterpret_cast<hci_event_hdr_t*>(packet);
   hci_event->event = HCI_EVENT_VENDOR;
   hci_event->length = size;
   memcpy(packet + sizeof(hci_event_hdr_t), payload, size);
   ctrl.SetRetVal(sizeof(hci_event_hdr_t) + size);
-  EnqueueReply(ctrl.m_cmd_address);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl.cmd_address);
 }
 
 // When the red sync button is pressed, a HCI event is generated:
 //   > HCI Event: Vendor (0xff) plen 1
 //   08
 // This causes the emulated software to perform a BT inquiry and connect to found Wiimotes.
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonPressedEvent(const CtrlBuffer& ctrl)
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonPressedEvent(
+    const USBV0IntrMessage& ctrl)
 {
   NOTICE_LOG(WII_IPC_WIIMOTE, "Faking 'sync button pressed' (0x08) event packet");
   const u8 payload[1] = {0x08};
@@ -448,7 +456,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonPressedEvent(const 
 }
 
 // When the red sync button is held for 10 seconds, a HCI event with payload 09 is sent.
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonHeldEvent(const CtrlBuffer& ctrl)
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonHeldEvent(const USBV0IntrMessage& ctrl)
 {
   NOTICE_LOG(WII_IPC_WIIMOTE, "Faking 'sync button held' (0x09) event packet");
   const u8 payload[1] = {0x09};
@@ -578,12 +586,12 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CommandCallback(libusb_transfer* 
     s_showed_failed_transfer.Clear();
   }
 
-  EnqueueReply(cmd->address);
+  WII_IPC_HLE_Interface::EnqueueReply(cmd->cmd_address, 0, CoreTiming::FromThread::NON_CPU);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer* tr)
 {
-  const std::unique_ptr<CtrlBuffer> ctrl(static_cast<CtrlBuffer*>(tr->user_data));
+  const std::unique_ptr<USBV0IntrMessage> ctrl(static_cast<USBV0IntrMessage*>(tr->user_data));
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_TIMED_OUT &&
       tr->status != LIBUSB_TRANSFER_NO_DEVICE)
   {
@@ -623,5 +631,5 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer*
   }
 
   ctrl->SetRetVal(tr->actual_length);
-  EnqueueReply(ctrl->m_cmd_address);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl->cmd_address, 0, CoreTiming::FromThread::NON_CPU);
 }

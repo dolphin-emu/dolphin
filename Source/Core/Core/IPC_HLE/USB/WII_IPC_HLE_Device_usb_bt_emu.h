@@ -4,35 +4,30 @@
 
 #pragma once
 
-#include <algorithm>
 #include <deque>
-#include <queue>
+#include <string>
 #include <vector>
 
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/USB/Common.h"
+#include "Core/IPC_HLE/USB/USBV0.h"
+#include "Core/IPC_HLE/USB/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/hci.h"
 
 class CWII_IPC_HLE_WiiMote;
+class PointerWrap;
 
 struct SQueuedEvent
 {
-  u8 m_buffer[1024];
+  u8 m_buffer[1024] = {0};
   u32 m_size = 0;
   u16 m_connectionHandle = 0;
 
-  SQueuedEvent(u32 size, u16 connectionHandle) : m_size(size), m_connectionHandle(connectionHandle)
-  {
-    if (m_size > 1024)
-    {
-      // i know this code sux...
-      PanicAlert("SQueuedEvent: allocate too big buffer!!");
-    }
-    memset(m_buffer, 0, 1024);
-  }
-
+  SQueuedEvent(u32 size, u16 handle);
   SQueuedEvent() = default;
 };
 
@@ -55,8 +50,6 @@ public:
   IPCCommandResult IOCtl(u32 _CommandAddress) override;
 
   u32 Update() override;
-
-  static void EnqueueReply(u32 CommandAddress);
 
   // Send ACL data back to Bluetooth stack
   void SendACLPacket(u16 connection_handle, const u8* data, u32 size);
@@ -89,11 +82,11 @@ private:
   u8 m_ScanEnable = 0;
 
   SHCICommandMessage m_CtrlSetup;
-  CtrlBuffer m_HCIEndpoint;
+  USBV0IntrMessage m_HCIEndpoint;
   std::deque<SQueuedEvent> m_EventQueue;
 
   u32 m_ACLSetup;
-  CtrlBuffer m_ACLEndpoint;
+  USBV0BulkMessage m_ACLEndpoint;
 
   class ACLPool
   {
@@ -110,7 +103,7 @@ private:
     ACLPool() : m_queue() {}
     void Store(const u8* data, const u16 size, const u16 conn_handle);
 
-    void WriteToEndpoint(CtrlBuffer& endpoint);
+    void WriteToEndpoint(USBV0BulkMessage& endpoint);
 
     bool IsEmpty() const { return m_queue.empty(); }
     // For SaveStates
@@ -194,9 +187,6 @@ private:
   void CommandVendorSpecific_FC4F(const u8* input, u32 size);
 
   static void DisplayDisconnectMessage(const int wiimoteNumber, const int reason);
-
-  // Debugging
-  void LOG_LinkKey(const u8* _pLinkKey);
 
 #pragma pack(push, 1)
 #define CONF_PAD_MAX_REGISTERED 10

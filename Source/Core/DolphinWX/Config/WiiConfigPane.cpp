@@ -4,13 +4,20 @@
 
 #include "DolphinWX/Config/WiiConfigPane.h"
 
+#include <algorithm>
+
+#include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
 #include <wx/gbsizer.h>
+#include <wx/listbox.h>
+#include <wx/msgdlg.h>
 #include <wx/sizer.h>
 #include <wx/slider.h>
 #include <wx/stattext.h>
+#include <wx/textctrl.h>
 
+#include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
@@ -52,6 +59,11 @@ void WiiConfigPane::InitializeGUI()
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_system_language_strings);
   m_sd_card_checkbox = new wxCheckBox(this, wxID_ANY, _("Insert SD Card"));
   m_connect_keyboard_checkbox = new wxCheckBox(this, wxID_ANY, _("Connect USB Keyboard"));
+  m_usb_passthrough_devices_listbox = new wxListBox(this, wxID_ANY);
+  m_usb_passthrough_add_device_btn = new wxButton(this, wxID_ANY, _("Add"));
+  m_usb_passthrough_rem_device_btn = new wxButton(this, wxID_ANY, _("Remove"));
+  m_usb_passthrough_new_device_vid = new wxTextCtrl(this, wxID_ANY);
+  m_usb_passthrough_new_device_pid = new wxTextCtrl(this, wxID_ANY);
   m_bt_sensor_bar_pos =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_bt_sensor_bar_pos_strings);
   m_bt_sensor_bar_sens = new DolphinSlider(this, wxID_ANY, 0, 0, 4);
@@ -78,6 +90,15 @@ void WiiConfigPane::InitializeGUI()
                                 wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   misc_settings_grid_sizer->Add(m_system_language_choice, wxGBPosition(3, 1), wxDefaultSpan,
                                 wxALIGN_CENTER_VERTICAL);
+
+  auto* const usb_passthrough_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
+  usb_passthrough_btn_sizer->Add(m_usb_passthrough_new_device_vid, 0, wxALIGN_CENTER_VERTICAL);
+  usb_passthrough_btn_sizer->AddSpacer(FromDIP(2));
+  usb_passthrough_btn_sizer->Add(m_usb_passthrough_new_device_pid, 0, wxALIGN_CENTER_VERTICAL);
+  usb_passthrough_btn_sizer->AddSpacer(FromDIP(2));
+  usb_passthrough_btn_sizer->Add(m_usb_passthrough_add_device_btn, 0, wxALIGN_CENTER_VERTICAL);
+  usb_passthrough_btn_sizer->AddStretchSpacer();
+  usb_passthrough_btn_sizer->Add(m_usb_passthrough_rem_device_btn, 0, wxALIGN_CENTER_VERTICAL);
 
   auto* const bt_sensor_bar_pos_sizer = new wxBoxSizer(wxHORIZONTAL);
   bt_sensor_bar_pos_sizer->Add(new wxStaticText(this, wxID_ANY, _("Min")), 0,
@@ -123,6 +144,15 @@ void WiiConfigPane::InitializeGUI()
   device_settings_sizer->Add(m_connect_keyboard_checkbox, 0, wxLEFT | wxRIGHT, space5);
   device_settings_sizer->AddSpacer(space5);
 
+  auto* const usb_passthrough_sizer =
+      new wxStaticBoxSizer(wxVERTICAL, this, _("USB Passthrough Devices"));
+  usb_passthrough_sizer->AddSpacer(space5);
+  usb_passthrough_sizer->Add(m_usb_passthrough_devices_listbox, 0, wxEXPAND | wxLEFT | wxRIGHT,
+                             space5);
+  usb_passthrough_sizer->AddSpacer(space5);
+  usb_passthrough_sizer->Add(usb_passthrough_btn_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  usb_passthrough_sizer->AddSpacer(space5);
+
   auto* const bt_settings_static_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Wii Remote Settings"));
   bt_settings_static_sizer->AddSpacer(space5);
@@ -135,10 +165,25 @@ void WiiConfigPane::InitializeGUI()
   main_sizer->AddSpacer(space5);
   main_sizer->Add(device_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
+  main_sizer->Add(usb_passthrough_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
   main_sizer->Add(bt_settings_static_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
 
   SetSizer(main_sizer);
+}
+
+void WiiConfigPane::AddUSBPassthroughDeviceToList(const std::pair<u16, u16>& device)
+{
+  std::string label = StringFromFormat("%04x:%04x", device.first, device.second);
+  // Have a more detailed label for devices which are passed through by default.
+  if (device.first == 0x057e && device.second == 0x0308)
+    // i18n: Wii Speak is the name of a Nintendo product.
+    label += " (Wii Speak)";
+  if (device.first == 0x046d && device.second == 0x0a03)
+    label += " (Logitech microphone)";
+  m_usb_passthrough_devices_listbox->Append(
+      label, new USBPassthroughDeviceEntry(device.first, device.second));
 }
 
 void WiiConfigPane::LoadGUIValues()
@@ -150,6 +195,15 @@ void WiiConfigPane::LoadGUIValues()
 
   m_sd_card_checkbox->SetValue(SConfig::GetInstance().m_WiiSDCard);
   m_connect_keyboard_checkbox->SetValue(SConfig::GetInstance().m_WiiKeyboard);
+
+  for (const auto& device : SConfig::GetInstance().m_usb_passthrough_devices)
+    AddUSBPassthroughDeviceToList(device);
+
+  m_usb_passthrough_rem_device_btn->Disable();
+  // i18n: VID means Vendor ID (in the context of a USB device)
+  m_usb_passthrough_new_device_vid->SetHint("VID");
+  // i18n: PID means Product ID (in the context of a USB device), not Process ID
+  m_usb_passthrough_new_device_pid->SetHint("PID");
 
   m_bt_sensor_bar_pos->SetSelection(SConfig::GetInstance().m_sensor_bar_position);
   m_bt_sensor_bar_sens->SetValue(SConfig::GetInstance().m_sensor_bar_sensitivity);
@@ -186,6 +240,20 @@ void WiiConfigPane::BindEvents()
 
   m_bt_wiimote_motor->Bind(wxEVT_CHECKBOX, &WiiConfigPane::OnWiimoteMotorChanged, this);
   m_bt_wiimote_motor->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_usb_passthrough_devices_listbox->Bind(wxEVT_LISTBOX,
+                                          &WiiConfigPane::OnUSBPassthroughDevicesChanged, this);
+  m_usb_passthrough_devices_listbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_usb_passthrough_add_device_btn->Bind(wxEVT_BUTTON, &WiiConfigPane::OnUSBPassthroughDeviceAdd,
+                                         this);
+  m_usb_passthrough_add_device_btn->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_usb_passthrough_rem_device_btn->Bind(wxEVT_BUTTON, &WiiConfigPane::OnUSBPassthroughDeviceRemove,
+                                         this);
+
+  m_usb_passthrough_new_device_vid->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+  m_usb_passthrough_new_device_pid->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 }
 
 void WiiConfigPane::OnScreenSaverCheckBoxChanged(wxCommandEvent& event)
@@ -217,6 +285,60 @@ void WiiConfigPane::OnSystemLanguageChoiceChanged(wxCommandEvent& event)
 void WiiConfigPane::OnAspectRatioChoiceChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().m_wii_aspect_ratio = m_aspect_ratio_choice->GetSelection();
+}
+
+void WiiConfigPane::OnUSBPassthroughDevicesChanged(wxCommandEvent&)
+{
+  m_usb_passthrough_rem_device_btn->Enable(m_usb_passthrough_devices_listbox->GetSelection() !=
+                                           wxNOT_FOUND);
+}
+
+static bool IsValidHexString(const std::string& string)
+{
+  if (string.length() == 0 || string.length() > 4)
+    return false;
+  return std::all_of(string.begin(), string.end(),
+                     [](const auto& character) { return std::isxdigit(character) != 0; });
+}
+
+void WiiConfigPane::OnUSBPassthroughDeviceAdd(wxCommandEvent&)
+{
+  std::string vid_string = StripSpaces(WxStrToStr(m_usb_passthrough_new_device_vid->GetValue()));
+  std::string pid_string = StripSpaces(WxStrToStr(m_usb_passthrough_new_device_pid->GetValue()));
+  if (!IsValidHexString(vid_string) || !IsValidHexString(pid_string))
+  {
+    wxMessageBox(_("The entered VID or PID is invalid."), _("USB Passthrough"), wxICON_ERROR);
+    return;
+  }
+
+  const u16 vid = static_cast<u16>(strtol(vid_string.c_str(), nullptr, 16));
+  const u16 pid = static_cast<u16>(strtol(pid_string.c_str(), nullptr, 16));
+
+  if (SConfig::GetInstance().m_usb_passthrough_devices.count({vid, pid}))
+  {
+    wxMessageBox(_("This device is already being passed through."), _("USB Passthrough"));
+    return;
+  }
+
+  SConfig::GetInstance().m_usb_passthrough_devices.emplace(vid, pid);
+  AddUSBPassthroughDeviceToList({vid, pid});
+  m_usb_passthrough_new_device_vid->Clear();
+  m_usb_passthrough_new_device_pid->Clear();
+}
+
+void WiiConfigPane::OnUSBPassthroughDeviceRemove(wxCommandEvent&)
+{
+  const int index = m_usb_passthrough_devices_listbox->GetSelection();
+  if (index == wxNOT_FOUND)
+    return;
+  const auto* entry = static_cast<USBPassthroughDeviceEntry*>(
+      m_usb_passthrough_devices_listbox->GetClientObject(index));
+  SConfig::GetInstance().m_usb_passthrough_devices.erase({entry->m_vid, entry->m_pid});
+  m_usb_passthrough_devices_listbox->Delete(index);
+
+  // wx does not seem to disable the device remove button, unless this is done.
+  wxCommandEvent dummy_event;
+  OnUSBPassthroughDevicesChanged(dummy_event);
 }
 
 void WiiConfigPane::OnSensorBarPosChanged(wxCommandEvent& event)
