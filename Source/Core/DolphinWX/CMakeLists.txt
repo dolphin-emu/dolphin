@@ -57,6 +57,7 @@ set(GUI_SRCS
 	NunchukInputConfigDiag
 	ClassicInputConfigDiag
 	GuitarInputConfigDiag
+	DrumsInputConfigDiag
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
