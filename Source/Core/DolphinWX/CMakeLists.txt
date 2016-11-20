@@ -56,6 +56,7 @@ set(GUI_SRCS
 	WiimoteInputConfigDiag
 	NunchukInputConfigDiag
 	ClassicInputConfigDiag
+	GuitarInputConfigDiag
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
