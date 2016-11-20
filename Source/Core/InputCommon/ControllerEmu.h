@@ -39,6 +39,17 @@ enum
   SETTING_DEADZONE,
 };
 
+enum
+{
+  EXT_NONE,
+
+  EXT_NUNCHUK,
+  EXT_CLASSIC,
+  EXT_GUITAR,
+  EXT_DRUMS,
+  EXT_TURNTABLE
+};
+
 const char* const named_directions[] = {"Up", "Down", "Left", "Right"};
 
 class ControllerEmu
