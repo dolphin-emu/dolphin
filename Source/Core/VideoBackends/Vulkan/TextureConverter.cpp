@@ -180,6 +180,10 @@ void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
   m_texel_buffer->CommitMemory(palette_size);
 
   VkCommandBuffer command_buffer = GetCommandBufferForTextureConversion(src_entry);
+  src_entry->GetTexture()->TransitionToLayout(command_buffer,
+                                              VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+  dst_entry->GetTexture()->TransitionToLayout(command_buffer,
+                                              VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
 
   // Bind and draw to the destination.
   UtilityShaderDraw draw(command_buffer,
@@ -216,6 +220,9 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   // Can't do our own draw within a render pass.
   StateTracker::GetInstance()->EndRenderPass();
 
+  m_encoding_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
                          m_encoding_render_pass, g_object_cache->GetScreenQuadVertexShader(),
@@ -242,7 +249,8 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   draw.EndRenderPass();
 
   // Transition the image before copying
-  m_encoding_render_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_encoding_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   m_encoding_download_texture->CopyFromImage(
       g_command_buffer_mgr->GetCurrentCommandBuffer(), m_encoding_render_texture->GetImage(),
       VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, render_width, render_height, 0, 0);
@@ -286,7 +294,8 @@ void TextureConverter::EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u
   draw.EndRenderPass();
 
   // Render pass transitions to TRANSFER_SRC.
-  m_encoding_render_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  m_encoding_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   // Copy from encoding texture to download buffer.
   m_encoding_download_texture->CopyFromImage(command_buffer, m_encoding_render_texture->GetImage(),
@@ -530,8 +539,8 @@ bool TextureConverter::CreateEncodingRenderPass()
   VkAttachmentDescription attachments[] = {
       {0, ENCODING_TEXTURE_FORMAT, VK_SAMPLE_COUNT_1_BIT, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
        VK_ATTACHMENT_STORE_OP_STORE, VK_ATTACHMENT_LOAD_OP_DONT_CARE,
-       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_UNDEFINED,
-       VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL}};
+       VK_ATTACHMENT_STORE_OP_DONT_CARE, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+       VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
 
   VkAttachmentReference color_attachment_references[] = {
       {0, VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL}};
@@ -540,12 +549,6 @@ bool TextureConverter::CreateEncodingRenderPass()
                                                   color_attachment_references, nullptr, nullptr, 0,
                                                   nullptr}};
 
-  VkSubpassDependency dependancies[] = {
-      {0, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-       VK_PIPELINE_STAGE_TRANSFER_BIT,
-       VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-       VK_ACCESS_TRANSFER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT}};
-
   VkRenderPassCreateInfo pass_info = {VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,
                                       nullptr,
                                       0,
@@ -553,8 +556,8 @@ bool TextureConverter::CreateEncodingRenderPass()
                                       attachments,
                                       static_cast<u32>(ArraySize(subpass_descriptions)),
                                       subpass_descriptions,
-                                      static_cast<u32>(ArraySize(dependancies)),
-                                      dependancies};
+                                      0,
+                                      nullptr};
 
   VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr,
                                     &m_encoding_render_pass);

@@ -183,24 +183,12 @@ bool FramebufferManager::CreateEFBRenderPass()
                                                   VK_ATTACHMENT_STORE_OP_STORE,
                                                   VK_ATTACHMENT_LOAD_OP_DONT_CARE,
                                                   VK_ATTACHMENT_STORE_OP_DONT_CARE,
-                                                  VK_IMAGE_LAYOUT_UNDEFINED,
-                                                  VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL};
+                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL};
 
-    // Ensure all reads have finished from the resolved texture before overwriting it.
-    VkSubpassDependency dependencies[] = {
-        {VK_SUBPASS_EXTERNAL, 0, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-         VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_ACCESS_SHADER_READ_BIT,
-         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-         VK_DEPENDENCY_BY_REGION_BIT},
-        {0, VK_SUBPASS_EXTERNAL, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-         VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-         VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-         VK_ACCESS_SHADER_READ_BIT, VK_DEPENDENCY_BY_REGION_BIT}};
     subpass_description.pDepthStencilAttachment = nullptr;
     pass_info.pAttachments = &resolve_attachment;
     pass_info.attachmentCount = 1;
-    pass_info.dependencyCount = static_cast<u32>(ArraySize(dependencies));
-    pass_info.pDependencies = dependencies;
     res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &pass_info, nullptr,
                              &m_depth_resolve_render_pass);
 
@@ -696,6 +684,9 @@ bool FramebufferManager::PopulateColorReadbackTexture()
 
   if (m_efb_width != EFB_WIDTH || m_efb_height != EFB_HEIGHT)
   {
+    m_color_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
                            m_copy_color_render_pass, g_object_cache->GetScreenQuadVertexShader(),
@@ -720,7 +711,6 @@ bool FramebufferManager::PopulateColorReadbackTexture()
     }
 
     // Use this as a source texture now.
-    m_color_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     src_texture = m_color_copy_texture.get();
   }
 
@@ -777,6 +767,9 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
   }
   if (m_efb_width != EFB_WIDTH || m_efb_height != EFB_HEIGHT)
   {
+    m_depth_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                             VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
     UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                            g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
                            m_copy_depth_render_pass, g_object_cache->GetScreenQuadVertexShader(),
@@ -801,7 +794,6 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
     }
 
     // Use this as a source texture now.
-    m_depth_copy_texture->OverrideImageLayout(VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
     src_texture = m_depth_copy_texture.get();
     src_aspect = VK_IMAGE_ASPECT_COLOR_BIT;
   }
@@ -840,15 +832,15 @@ void FramebufferManager::InvalidatePeekCache()
 bool FramebufferManager::CreateReadbackRenderPasses()
 {
   VkAttachmentDescription copy_attachment = {
-      0,                                     // VkAttachmentDescriptionFlags    flags
-      EFB_COLOR_TEXTURE_FORMAT,              // VkFormat                        format
-      VK_SAMPLE_COUNT_1_BIT,                 // VkSampleCountFlagBits           samples
-      VK_ATTACHMENT_LOAD_OP_DONT_CARE,       // VkAttachmentLoadOp              loadOp
-      VK_ATTACHMENT_STORE_OP_STORE,          // VkAttachmentStoreOp             storeOp
-      VK_ATTACHMENT_LOAD_OP_DONT_CARE,       // VkAttachmentLoadOp              stencilLoadOp
-      VK_ATTACHMENT_STORE_OP_DONT_CARE,      // VkAttachmentStoreOp             stencilStoreOp
-      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,  // VkImageLayout                   initialLayout
-      VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL   // VkImageLayout                   finalLayout
+      0,                                         // VkAttachmentDescriptionFlags    flags
+      EFB_COLOR_TEXTURE_FORMAT,                  // VkFormat                        format
+      VK_SAMPLE_COUNT_1_BIT,                     // VkSampleCountFlagBits           samples
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,           // VkAttachmentLoadOp              loadOp
+      VK_ATTACHMENT_STORE_OP_STORE,              // VkAttachmentStoreOp             storeOp
+      VK_ATTACHMENT_LOAD_OP_DONT_CARE,           // VkAttachmentLoadOp              stencilLoadOp
+      VK_ATTACHMENT_STORE_OP_DONT_CARE,          // VkAttachmentStoreOp             stencilStoreOp
+      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,  // VkImageLayout                   initialLayout
+      VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL   // VkImageLayout                   finalLayout
   };
   VkAttachmentReference copy_attachment_ref = {
       0,                                        // uint32_t         attachment
@@ -866,14 +858,6 @@ bool FramebufferManager::CreateReadbackRenderPasses()
       0,                                // uint32_t                        preserveAttachmentCount
       nullptr                           // const uint32_t*                 pPreserveAttachments
   };
-  VkSubpassDependency copy_dependency = {
-      0,
-      VK_SUBPASS_EXTERNAL,
-      VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-      VK_PIPELINE_STAGE_TRANSFER_BIT,
-      VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
-      VK_ACCESS_TRANSFER_READ_BIT,
-      VK_DEPENDENCY_BY_REGION_BIT};
   VkRenderPassCreateInfo copy_pass = {
       VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO,  // VkStructureType                   sType
       nullptr,                                    // const void*                       pNext
@@ -882,8 +866,8 @@ bool FramebufferManager::CreateReadbackRenderPasses()
       &copy_attachment,  // const VkAttachmentDescription*    pAttachments
       1,                 // uint32_t                          subpassCount
       &copy_subpass,     // const VkSubpassDescription*       pSubpasses
-      1,                 // uint32_t                          dependencyCount
-      &copy_dependency   // const VkSubpassDependency*        pDependencies
+      0,                 // uint32_t                          dependencyCount
+      nullptr            // const VkSubpassDependency*        pDependencies
   };
 
   VkResult res = vkCreateRenderPass(g_vulkan_context->GetDevice(), &copy_pass, nullptr,
@@ -1022,12 +1006,6 @@ bool FramebufferManager::CreateReadbackTextures()
     ERROR_LOG(VIDEO, "Failed to map EFB readback textures");
     return false;
   }
-
-  // Transition to TRANSFER_SRC, as this is expected by the render pass.
-  m_color_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
-  m_depth_copy_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
-                                           VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
 
   return true;
 }
