@@ -6,6 +6,15 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
+enum ClassicGroup
+{
+  CLASSICGP_BUTTONS,
+  CLASSICGP_TRIGGERS,
+  CLASSICGP_DPAD,
+  CLASSICGP_LEFT_STICK,
+  CLASSICGP_RIGHT_STICK
+};
+
 namespace WiimoteEmu
 {
 struct ExtensionReg;
@@ -16,6 +25,8 @@ public:
   Classic(WiimoteEmu::ExtensionReg& _reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControlGroup* GetGroup(ClassicGroup group);
 
   enum
   {

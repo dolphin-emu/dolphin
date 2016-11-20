@@ -6,6 +6,16 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
+enum TurntableGroup
+{
+  TURNTABLEGP_BUTTONS,
+  TURNTABLEGP_STICK,
+  TURNTABLEGP_EFFECT_DIAL,
+  TURNTABLEGP_LEFT_TABLE,
+  TURNTABLEGP_RIGHT_TABLE,
+  TURNTABLEGP_CROSSFADE
+};
+
 namespace WiimoteEmu
 {
 struct ExtensionReg;
@@ -16,6 +26,8 @@ public:
   Turntable(WiimoteEmu::ExtensionReg& _reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControlGroup* GetGroup(TurntableGroup group);
 
   enum
   {

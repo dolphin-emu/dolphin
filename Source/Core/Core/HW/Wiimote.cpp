@@ -24,6 +24,32 @@ ControllerEmu::ControlGroup* GetWiimoteGroup(int number, WiiMoteGroup group)
   return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetWiimoteGroup(group);
 }
 
+ControllerEmu::ControlGroup* GetNunchukGroup(int number, NunchukGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetNunchukGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetClassicGroup(int number, ClassicGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetClassicGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetGuitarGroup(int number, GuitarGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetGuitarGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetDrumsGroup(int number, DrumsGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))->GetDrumsGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetTurntableGroup(int number, TurntableGroup group)
+{
+  return static_cast<WiimoteEmu::Wiimote*>(s_config.GetController(number))
+      ->GetTurntableGroup(group);
+}
+
 void Shutdown()
 {
   s_config.ClearControllers();

@@ -131,4 +131,26 @@ bool Turntable::IsButtonPressed() const
   m_buttons->GetState(&buttons, turntable_button_bitmasks);
   return buttons != 0;
 }
+
+ControllerEmu::ControlGroup* Turntable::GetGroup(TurntableGroup group)
+{
+  switch (group)
+  {
+  case TURNTABLEGP_BUTTONS:
+    return m_buttons;
+  case TURNTABLEGP_STICK:
+    return m_stick;
+  case TURNTABLEGP_EFFECT_DIAL:
+    return m_effect_dial;
+  case TURNTABLEGP_LEFT_TABLE:
+    return m_left_table;
+  case TURNTABLEGP_RIGHT_TABLE:
+    return m_right_table;
+  case TURNTABLEGP_CROSSFADE:
+    return m_crossfade;
+  default:
+    return nullptr;
+    break;
+  }
+}
 }

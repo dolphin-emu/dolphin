@@ -102,4 +102,24 @@ bool Guitar::IsButtonPressed() const
   m_strum->GetState(&buttons, guitar_strum_bitmasks);
   return buttons != 0;
 }
+
+ControllerEmu::ControlGroup* Guitar::GetGroup(GuitarGroup group)
+{
+  switch (group)
+  {
+  case GUITARGP_BUTTONS:
+    return m_buttons;
+  case GUITARGP_FRETS:
+    return m_frets;
+  case GUITARGP_STRUM:
+    return m_strum;
+  case GUITARGP_WHAMMY:
+    return m_whammy;
+  case GUITARGP_STICK:
+    return m_stick;
+  default:
+    return nullptr;
+    break;
+  }
+}
 }

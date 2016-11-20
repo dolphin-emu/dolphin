@@ -6,6 +6,15 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
+enum NunchukGroup
+{
+  NUNCHUKGP_BUTTONS,
+  NUNCHUKGP_STICK,
+  NUNCHUKGP_TILT,
+  NUNCHUKGP_SWING,
+  NUNCHUKGP_SHAKE
+};
+
 namespace WiimoteEmu
 {
 struct ExtensionReg;
@@ -17,6 +26,8 @@ public:
 
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControlGroup* GetGroup(NunchukGroup group);
 
   enum
   {

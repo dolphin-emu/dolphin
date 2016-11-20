@@ -134,4 +134,24 @@ bool Classic::IsButtonPressed() const
   m_triggers->GetState(&buttons, classic_trigger_bitmasks, trigs);
   return buttons != 0;
 }
+
+ControllerEmu::ControlGroup* Classic::GetGroup(ClassicGroup group)
+{
+  switch (group)
+  {
+  case CLASSICGP_BUTTONS:
+    return m_buttons;
+  case CLASSICGP_TRIGGERS:
+    return m_triggers;
+  case CLASSICGP_DPAD:
+    return m_dpad;
+  case CLASSICGP_LEFT_STICK:
+    return m_left_stick;
+  case CLASSICGP_RIGHT_STICK:
+    return m_right_stick;
+  default:
+    return nullptr;
+    break;
+  }
+}
 }
