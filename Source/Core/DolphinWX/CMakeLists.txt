@@ -54,6 +54,7 @@ set(GUI_SRCS
 	GCPadInputConfigDiag.cpp
 	GCKeyboardInputConfigDiag
 	WiimoteInputConfigDiag
+	NunchukInputConfigDiag
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp
