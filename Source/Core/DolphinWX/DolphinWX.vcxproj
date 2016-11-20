@@ -106,6 +106,7 @@
     <ClCompile Include="GCPadInputConfigDiag.cpp" />
     <ClCompile Include="GCKeyboardInputConfigDiag.cpp" />
     <ClCompile Include="WiimoteInputConfigDiag.cpp" />
+    <ClCompile Include="NunchukInputConfigDiag.cpp" />
     <ClCompile Include="ISOFile.cpp" />
     <ClCompile Include="ISOProperties.cpp" />
     <ClCompile Include="LogConfigWindow.cpp" />
@@ -179,6 +180,7 @@
     <ClInclude Include="GCPadInputConfigDiag.h" />
     <ClInclude Include="GCKeyboardInputConfigDiag.h" />
     <ClInclude Include="WiimoteInputConfigDiag.h" />
+    <ClInclude Include="NunchukInputConfigDiag.h" />
     <ClInclude Include="ISOFile.h" />
     <ClInclude Include="ISOProperties.h" />
     <ClInclude Include="LogConfigWindow.h" />

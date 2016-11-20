@@ -45,6 +45,7 @@
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/NunchukInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -63,6 +64,8 @@ void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
   // show config diag, if "none" isn't selected
   if (extension_type == EXT_NUNCHUK)
   {
+    NunchukInputConfigDialog dlg(this, m_config, "Nunchuk Configuration", m_port_num);
+    dlg.ShowModal();
   }
   else if (extension_type == EXT_ClASSIC)
   {

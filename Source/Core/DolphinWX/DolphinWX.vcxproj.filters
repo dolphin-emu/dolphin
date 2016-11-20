@@ -122,6 +122,9 @@
     <ClCompile Include="WiimoteInputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
+    <ClCompile Include="NunchukInputConfigDiag.cpp">
+      <Filter>GUI\InputConfig</Filter>
+    </ClCompile>
     <ClCompile Include="Debugger\DebuggerPanel.cpp">
       <Filter>GUI\Video</Filter>
     </ClCompile>
@@ -315,6 +318,9 @@
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="WiimoteInputConfigDiag.h">
+      <Filter>GUI\InputConfig</Filter>
+    </ClInclude>
+    <ClInclude Include="NunchukInputConfigDiag.h">
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\DebuggerPanel.h">
