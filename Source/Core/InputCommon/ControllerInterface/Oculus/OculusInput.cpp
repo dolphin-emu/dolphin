@@ -20,6 +20,7 @@ static const struct
                      {"Oculus", OCULUS_BUTTON_HOME}},
   touch_buttons[] = {{"A", OCULUS_BUTTON_A},           {"B", OCULUS_BUTTON_B},
                      {"X", OCULUS_BUTTON_X},           {"Y", OCULUS_BUTTON_Y},
+                     {"Enter", OCULUS_BUTTON_ENTER},
                      {"LThumb", OCULUS_BUTTON_LTHUMB}, {"RThumb", OCULUS_BUTTON_RTHUMB},
                      {"Oculus", OCULUS_BUTTON_HOME}},
   touch_touches[] = {{"TouchA", OCULUS_BUTTON_A},
