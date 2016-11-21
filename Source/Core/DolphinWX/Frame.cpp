@@ -68,6 +68,8 @@
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
+
+
 #if defined(HAVE_X11) && HAVE_X11
 // X11Utils nastiness that's only used here
 namespace X11Utils
@@ -1220,6 +1222,11 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 
 void CFrame::ParseHotkeys()
 {
+  static bool lockGripWorld;
+  static bool lockResizeWorld;
+  static float lastRightPos[3];
+  static double distanceBtwControllers;
+
   for (int i = 0; i < NUM_HOTKEYS; i++)
   {
     switch (i)
@@ -1503,6 +1510,8 @@ void CFrame::ParseHotkeys()
   }
   else if (g_has_hmd)
   {
+	  
+	
     if (IsHotkey(VR_LARGER_SCALE))
     {
       // Make everything 10% bigger (and further)
@@ -1525,15 +1534,70 @@ void CFrame::ParseHotkeys()
       g_Config.fScale *= 1.10f;
       SConfig::GetInstance().SaveSingleSetting("VR", "Scale", g_Config.fScale);
       VertexShaderManager::ScaleView(1.10f);
-    }
-    else if (IsHotkey(VR_GLOBAL_SMALLER_SCALE))
-    {
-      // Make everything 10% smaller (and closer)
-      g_Config.fScale /= 1.10f;
-      SConfig::GetInstance().SaveSingleSetting("VR", "Scale", g_Config.fScale);
-      VertexShaderManager::ScaleView(1.0f / 1.10f);
-    }
-    else if (IsHotkey(VR_PERMANENT_CAMERA_FORWARD))
+	}else if (IsHotkey(VR_GLOBAL_SMALLER_SCALE))
+	{
+		// Make everything 10% smaller (and closer)
+		g_Config.fScale /= 1.10f;
+		SConfig::GetInstance().SaveSingleSetting("VR", "Scale", g_Config.fScale);
+		VertexShaderManager::ScaleView(1.0f / 1.10f);
+	}
+		
+	if (IsHotkey(VR_CONTROLLER_GRAB_WORLD, true))
+	{
+
+		float rightpos[3] = { 0, 0, 0 };
+		float rightthumbpos[3] = { 0, 0, 0 };
+		Matrix33 rightrot;
+
+		bool has_right_controller = VR_GetRightControllerPos(rightpos, rightthumbpos, &rightrot);
+		if (!lockGripWorld){
+			lockGripWorld = true;						
+		}else{			
+			VertexShaderManager::TranslateView(rightpos[0] - lastRightPos[0], rightpos[2] - lastRightPos[2], rightpos[1] - lastRightPos[1]);
+		}
+		lastRightPos[0] = rightpos[0];
+		lastRightPos[1] = rightpos[1];
+		lastRightPos[2] = rightpos[2];
+	}
+	else{
+		lockGripWorld = false;
+	}
+
+	if (IsHotkey(VR_CONTROLLER_SCALE_WORLD, true))
+	{
+
+		float rightpos[3] = { 0, 0, 0 };
+		float rightthumbpos[3] = { 0, 0, 0 };
+		Matrix33 rightrot;
+		float leftpos[3] = { 0, 0, 0 };
+		float leftthumbpos[3] = { 0, 0, 0 };
+		Matrix33 leftrot;
+		bool has_right_controller = VR_GetRightControllerPos(rightpos, rightthumbpos, &rightrot);
+		bool has_left_controller = VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
+
+		if (!lockResizeWorld){
+			lockResizeWorld = true;			
+			distanceBtwControllers = hypot(hypot(rightpos[0] - leftpos[0], rightpos[1] - leftpos[1])
+				, rightpos[2] - leftpos[2]);
+		}
+		else{		
+			float lDistanceBtwControllers = hypot(hypot(rightpos[0] - leftpos[0], rightpos[1] - leftpos[1])
+				, rightpos[2] - leftpos[2]);
+
+			float relacionDeCambio = (lDistanceBtwControllers / distanceBtwControllers);
+
+			g_Config.fUnitsPerMetre /= relacionDeCambio;
+			VertexShaderManager::ScaleView(relacionDeCambio);
+			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre,
+				100.0f / g_Config.fUnitsPerMetre);
+			distanceBtwControllers = lDistanceBtwControllers;			
+		}		
+	}
+	else{
+		lockResizeWorld = false;
+	}
+
+	if (IsHotkey(VR_PERMANENT_CAMERA_FORWARD))
     {
       // Move camera forward 10cm
       g_Config.fCameraForward += freeLookSpeed;
