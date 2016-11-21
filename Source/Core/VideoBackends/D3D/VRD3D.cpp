@@ -10,10 +10,10 @@
 #include "VideoBackends/D3D/PixelShaderCache.h"
 #include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VROculus.h"
 #include "VideoCommon/VROpenVR.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace DX11
 {
@@ -191,58 +191,60 @@ void VR_ConfigureHMD()
   }
 #endif
 #ifdef OVR_MAJOR_VERSION
-#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
-  ovrD3D11Config cfg;
-  cfg.D3D11.Header.API = ovrRenderAPI_D3D11;
-#ifdef OCULUSSDK044ORABOVE
-  cfg.D3D11.Header.BackBufferSize.w = hmdDesc.Resolution.w;
-  cfg.D3D11.Header.BackBufferSize.h = hmdDesc.Resolution.h;
-#else
-  cfg.D3D11.Header.RTSize.w = hmdDesc.Resolution.w;
-  cfg.D3D11.Header.RTSize.h = hmdDesc.Resolution.h;
-#endif
-  cfg.D3D11.Header.Multisample = 0;
-  cfg.D3D11.pDevice = D3D::device;
-  cfg.D3D11.pDeviceContext = D3D::context;
-  cfg.D3D11.pSwapChain = D3D::swapchain;
-  cfg.D3D11.pBackBufferRT = D3D::GetBackBuffer()->GetRTV();
-  if (g_is_direct_mode)  // If Rift is in Direct Mode
+  if (g_has_rift)
   {
-    // To do: This is a bit of a hack, but I haven't found any problems with this.
-    // If we don't want to do this, large changes will be needed to init sequence.
-    D3D::UnloadDXGI();  // Unload CreateDXGIFactory() before ovrHmd_AttachToWindow, or else direct
-                        // mode won't work.
-    ovrHmd_AttachToWindow(hmd, D3D::hWnd, nullptr, nullptr);  // Attach to Direct Mode.
-    D3D::LoadDXGI();
-  }
-  int caps = 0;
-#if OVR_MAJOR_VERSION <= 4
-  if (g_Config.bChromatic)
-    caps |= ovrDistortionCap_Chromatic;
-#endif
-  if (g_Config.bTimewarp)
-    caps |= ovrDistortionCap_TimeWarp;
-  if (g_Config.bVignette)
-    caps |= ovrDistortionCap_Vignette;
-  if (g_Config.bNoRestore)
-    caps |= ovrDistortionCap_NoRestore;
-  if (g_Config.bFlipVertical)
-    caps |= ovrDistortionCap_FlipInput;
-  if (g_Config.bSRGB)
-    caps |= ovrDistortionCap_SRGB;
-  if (g_Config.bOverdrive)
-    caps |= ovrDistortionCap_Overdrive;
-  if (g_Config.bHqDistortion)
-    caps |= ovrDistortionCap_HqDistortion;
-  ovrHmd_ConfigureRendering(hmd, &cfg.Config, caps, g_eye_fov, g_eye_render_desc);
-#if OVR_MAJOR_VERSION <= 4
-  ovrhmd_EnableHSWDisplaySDKRender(hmd, false);  // Disable Health and Safety Warning.
-#endif
-
+#if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
+    ovrD3D11Config cfg;
+    cfg.D3D11.Header.API = ovrRenderAPI_D3D11;
+#ifdef OCULUSSDK044ORABOVE
+    cfg.D3D11.Header.BackBufferSize.w = hmdDesc.Resolution.w;
+    cfg.D3D11.Header.BackBufferSize.h = hmdDesc.Resolution.h;
 #else
-  for (int i = 0; i < ovrEye_Count; ++i)
-    g_eye_render_desc[i] = ovrHmd_GetRenderDesc(hmd, (ovrEyeType)i, g_eye_fov[i]);
+    cfg.D3D11.Header.RTSize.w = hmdDesc.Resolution.w;
+    cfg.D3D11.Header.RTSize.h = hmdDesc.Resolution.h;
 #endif
+    cfg.D3D11.Header.Multisample = 0;
+    cfg.D3D11.pDevice = D3D::device;
+    cfg.D3D11.pDeviceContext = D3D::context;
+    cfg.D3D11.pSwapChain = D3D::swapchain;
+    cfg.D3D11.pBackBufferRT = D3D::GetBackBuffer()->GetRTV();
+    if (g_is_direct_mode)  // If Rift is in Direct Mode
+    {
+      // To do: This is a bit of a hack, but I haven't found any problems with this.
+      // If we don't want to do this, large changes will be needed to init sequence.
+      D3D::UnloadDXGI();  // Unload CreateDXGIFactory() before ovrHmd_AttachToWindow, or else direct
+                          // mode won't work.
+      ovrHmd_AttachToWindow(hmd, D3D::hWnd, nullptr, nullptr);  // Attach to Direct Mode.
+      D3D::LoadDXGI();
+    }
+    int caps = 0;
+#if OVR_MAJOR_VERSION <= 4
+    if (g_Config.bChromatic)
+      caps |= ovrDistortionCap_Chromatic;
+#endif
+    if (g_Config.bTimewarp)
+      caps |= ovrDistortionCap_TimeWarp;
+    if (g_Config.bVignette)
+      caps |= ovrDistortionCap_Vignette;
+    if (g_Config.bNoRestore)
+      caps |= ovrDistortionCap_NoRestore;
+    if (g_Config.bFlipVertical)
+      caps |= ovrDistortionCap_FlipInput;
+    if (g_Config.bSRGB)
+      caps |= ovrDistortionCap_SRGB;
+    if (g_Config.bOverdrive)
+      caps |= ovrDistortionCap_Overdrive;
+    if (g_Config.bHqDistortion)
+      caps |= ovrDistortionCap_HqDistortion;
+    ovrHmd_ConfigureRendering(hmd, &cfg.Config, caps, g_eye_fov, g_eye_render_desc);
+#if OVR_MAJOR_VERSION <= 4
+    ovrhmd_EnableHSWDisplaySDKRender(hmd, false);  // Disable Health and Safety Warning.
+#endif
+#else
+    for (int i = 0; i < ovrEye_Count; ++i)
+      g_eye_render_desc[i] = ovrHmd_GetRenderDesc(hmd, (ovrEyeType)i, g_eye_fov[i]);
+#endif
+  }
 #endif
 }
 
