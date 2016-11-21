@@ -16,7 +16,7 @@ class VideoBackend : public VideoBackendBase
   void ShutdownOtherThread() override;
 
   std::string GetName() const override { return "Vulkan"; }
-  std::string GetDisplayName() const override { return "Vulkan (experimental)"; }
+  std::string GetDisplayName() const override { return "Vulkan (experimental, no VR)"; }
   void Video_Prepare() override;
   void Video_PrepareOtherThread() override;
   void Video_Cleanup() override;
