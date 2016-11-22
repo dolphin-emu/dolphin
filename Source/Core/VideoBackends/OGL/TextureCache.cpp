@@ -31,6 +31,7 @@
 #include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/Statistics.h"
+#include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -56,6 +57,25 @@ static GLuint s_palette_resolv_texture;
 static GLuint s_palette_buffer_offset_uniform[3];
 static GLuint s_palette_multiplier_uniform[3];
 static GLuint s_palette_copy_position_uniform[3];
+
+struct TextureDecodingProgramInfo
+{
+  const TextureConversionShader::TextureDecodingShaderInfo* base_info = nullptr;
+  SHADER program;
+  GLint uniform_dst_size = -1;
+  GLint uniform_src_size = -1;
+  GLint uniform_src_row_stride = -1;
+  GLint uniform_src_offset = -1;
+  bool valid = false;
+};
+
+static std::map<u32, TextureDecodingProgramInfo> s_texture_decoding_program_info;
+static std::array<GLuint, TextureConversionShader::BUFFER_FORMAT_COUNT>
+    s_texture_decoding_buffer_views;
+static GLuint s_texture_decoding_framebuffer = 0;
+static bool s_texture_decoding_use_compute_shader = true;
+static void CreateTextureDecodingResources();
+static void DestroyTextureDecodingResources();
 
 bool SaveTexture(const std::string& filename, u32 textarget, u32 tex, int virtual_width,
                  int virtual_height, unsigned int level)
@@ -290,7 +310,7 @@ TextureCache::TextureCache()
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
-    s32 buffer_size = 1024 * 1024;
+    s32 buffer_size = 32 * 1024 * 1024;
     s32 max_buffer_size = 0;
 
     // The minimum MAX_TEXTURE_BUFFER_SIZE that the spec mandates
@@ -304,12 +324,15 @@ TextureCache::TextureCache()
     glGenTextures(1, &s_palette_resolv_texture);
     glBindTexture(GL_TEXTURE_BUFFER, s_palette_resolv_texture);
     glTexBuffer(GL_TEXTURE_BUFFER, GL_R16UI, s_palette_stream_buffer->m_buffer);
+
+    CreateTextureDecodingResources();
   }
 }
 
 TextureCache::~TextureCache()
 {
   DeleteShaders();
+  DestroyTextureDecodingResources();
 
   if (g_ActiveConfig.backend_info.bSupportsPaletteConversion)
   {
@@ -610,5 +633,178 @@ void TextureCache::ConvertTexture(TCacheEntryBase* _entry, TCacheEntryBase* _unc
 
   FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();
+}
+
+static const std::string decoding_vertex_shader = R"(
+void main()
+{
+  vec2 rawpos = vec2(gl_VertexID&1, gl_VertexID&2);
+  gl_Position = vec4(rawpos*2.0-1.0, 0.0, 1.0);
+}
+)";
+
+void CreateTextureDecodingResources()
+{
+  static const GLenum gl_view_types[TextureConversionShader::BUFFER_FORMAT_COUNT] = {
+      GL_R8UI,    // BUFFER_FORMAT_R8_UINT
+      GL_R16UI,   // BUFFER_FORMAT_R16_UINT
+      GL_RG32UI,  // BUFFER_FORMAT_R32G32_UINT
+  };
+
+  glGenTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,
+                s_texture_decoding_buffer_views.data());
+  for (size_t i = 0; i < TextureConversionShader::BUFFER_FORMAT_COUNT; i++)
+  {
+    glBindTexture(GL_TEXTURE_BUFFER, s_texture_decoding_buffer_views[i]);
+    glTexBuffer(GL_TEXTURE_BUFFER, gl_view_types[i], s_palette_stream_buffer->m_buffer);
+  }
+
+  s_texture_decoding_use_compute_shader = g_Config.backend_info.bSupportsComputeShaders;
+}
+
+void DestroyTextureDecodingResources()
+{
+  glDeleteTextures(TextureConversionShader::BUFFER_FORMAT_COUNT,
+                   s_texture_decoding_buffer_views.data());
+  s_texture_decoding_buffer_views.fill(0);
+  s_texture_decoding_program_info.clear();
+
+  if (s_texture_decoding_framebuffer != 0)
+  {
+    glDeleteFramebuffers(1, &s_texture_decoding_framebuffer);
+    s_texture_decoding_framebuffer = 0;
+  }
+}
+
+bool TextureCache::SupportsGPUTextureDecode(TextureFormat format)
+{
+  const auto iter = s_texture_decoding_program_info.find(format);
+  if (iter != s_texture_decoding_program_info.end())
+    return iter->second.valid;
+
+  TextureDecodingProgramInfo info;
+  info.base_info = TextureConversionShader::GetTextureDecodingShaderInfo(format);
+  if (!info.base_info)
+  {
+    s_texture_decoding_program_info.emplace(format, info);
+    return false;
+  }
+
+  std::string shader_source = TextureConversionShader::GenerateTextureDecodingShader(
+      format, APIType::OpenGL, s_texture_decoding_use_compute_shader);
+  if (shader_source.empty())
+  {
+    s_texture_decoding_program_info.emplace(format, info);
+    return false;
+  }
+
+  // Try compiling the shader
+  if (s_texture_decoding_use_compute_shader)
+  {
+    if (!ProgramShaderCache::CompileComputeShader(info.program, shader_source))
+    {
+      s_texture_decoding_program_info.emplace(format, info);
+      return false;
+    }
+  }
+  else
+  {
+    if (!ProgramShaderCache::CompileShader(info.program, decoding_vertex_shader, shader_source))
+    {
+      s_texture_decoding_program_info.emplace(format, info);
+      return false;
+    }
+  }
+
+  // Get uniforms
+  info.uniform_dst_size = glGetUniformLocation(info.program.glprogid, "u_dst_size");
+  info.uniform_src_size = glGetUniformLocation(info.program.glprogid, "u_src_size");
+  info.uniform_src_offset = glGetUniformLocation(info.program.glprogid, "u_src_offset");
+  info.uniform_src_row_stride = glGetUniformLocation(info.program.glprogid, "u_src_row_stride");
+  info.valid = true;
+  s_texture_decoding_program_info.emplace(format, info);
+  return true;
+}
+
+void TextureCache::DecodeTexture(TCacheEntryBase* entry, u32 dst_level, const u8* data,
+                                 size_t data_size, TextureFormat format, u32 width, u32 height,
+                                 u32 aligned_width, u32 aligned_height, const u8* lut,
+                                 TlutFormat lut_format)
+{
+  const auto iter = s_texture_decoding_program_info.find(format);
+  if (iter == s_texture_decoding_program_info.end())
+    return;
+
+  g_renderer->ResetAPIState();
+
+  if (!s_texture_decoding_use_compute_shader)
+  {
+    if (s_texture_decoding_framebuffer == 0)
+      glGenFramebuffers(1, &s_texture_decoding_framebuffer);
+
+    // Not the most optimal solution, but if we're using fragment shaders it's less
+    // than optimal in the first place. We use one framebuffer, but swap out its
+    // attachments for each texture that is decoded. Luckily most of the time it's
+    // only going to be done once, at least until the texture is re-used.
+    FramebufferManager::SetFramebuffer(s_texture_decoding_framebuffer);
+    FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
+                                           GL_TEXTURE_2D_ARRAY,
+                                           static_cast<TCacheEntry*>(entry)->texture, dst_level);
+
+    glViewport(0, 0, width, height);
+  }
+
+  // These should already be aligned to block size
+  // TODO: We could probably get these from Load()
+  u32 block_width = static_cast<u32>(TexDecoder_GetBlockWidthInTexels(format));
+  u32 block_height = static_cast<u32>(TexDecoder_GetBlockHeightInTexels(format));
+  u32 texel_nibbles = static_cast<u32>(TexDecoder_GetTexelSizeInNibbles(format));
+  u32 block_size_in_bytes = (block_width * block_height * texel_nibbles) / 2;
+  _assert_((aligned_width % block_width) == 0 && (aligned_height % block_height) == 0);
+
+  // Copy to GPU-visible buffer, aligned to the data type
+  auto info = iter->second;
+  u32 bytes_per_buffer_elem =
+      TextureConversionShader::GetBytesPerBufferElement(info.base_info->buffer_format);
+  auto buffer = s_palette_stream_buffer->Map(static_cast<u32>(data_size), bytes_per_buffer_elem);
+  memcpy(buffer.first, data, data_size);
+  s_palette_stream_buffer->Unmap(static_cast<u32>(data_size));
+
+  info.program.Bind();
+
+  // Calculate stride in buffer elements
+  u32 row_stride = block_size_in_bytes * (aligned_width / block_width);
+  u32 row_stride_in_buffer_elements = row_stride / bytes_per_buffer_elem;
+  u32 offset_in_buffer_elements = buffer.second / bytes_per_buffer_elem;
+  if (info.uniform_dst_size >= 0)
+    glUniform2ui(info.uniform_dst_size, width, height);
+  if (info.uniform_src_size >= 0)
+    glUniform2ui(info.uniform_src_size, aligned_width, aligned_height);
+  if (info.uniform_src_offset >= 0)
+    glUniform1ui(info.uniform_src_offset, offset_in_buffer_elements);
+  if (info.uniform_src_row_stride >= 0)
+    glUniform1ui(info.uniform_src_row_stride, row_stride_in_buffer_elements);
+
+  glActiveTexture(GL_TEXTURE9);
+  glBindTexture(GL_TEXTURE_BUFFER, s_texture_decoding_buffer_views[info.base_info->buffer_format]);
+  g_sampler_cache->BindNearestSampler(9);
+
+  if (!s_texture_decoding_use_compute_shader)
+  {
+    OpenGL_BindAttributelessVAO();
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    FramebufferManager::SetFramebuffer(0);
+  }
+  else
+  {
+    auto dispatch_groups = TextureConversionShader::GetDispatchCount(info.base_info, width, height);
+    glBindImageTexture(0, static_cast<TCacheEntry*>(entry)->texture, dst_level, GL_TRUE, 0,
+                       GL_WRITE_ONLY, GL_RGBA8);
+    glDispatchCompute(dispatch_groups.first, dispatch_groups.second, 1);
+    glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
+  }
+
+  g_renderer->RestoreAPIState();
+  TextureCache::SetStage();
 }
 }

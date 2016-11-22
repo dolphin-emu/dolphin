@@ -635,6 +635,12 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsEarlyZ =
       g_ogl_config.bSupportsEarlyFragmentTests || g_ogl_config.bSupportsConservativeDepth;
 
+  // We support GPU texture decoding using fragment shaders if texel buffers are supported,
+  // or (preferably) compute shaders. It's likely using fragment shaders will be slower than
+  // decoding on the CPU, unless the CPU is the bottleneck in the system.
+  g_Config.backend_info.bSupportsGPUTextureDecoding =
+      g_Config.backend_info.bSupportsPaletteConversion;
+
   if (g_ogl_config.bSupportsDebug)
   {
     if (GLExtensions::Supports("GL_KHR_debug"))

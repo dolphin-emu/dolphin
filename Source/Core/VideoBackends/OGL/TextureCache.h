@@ -23,6 +23,11 @@ public:
   static void DisableStage(unsigned int stage);
   static void SetStage();
 
+  bool SupportsGPUTextureDecode(TextureFormat format) override;
+  void DecodeTexture(TCacheEntryBase* entry, u32 dst_level, const u8* data, size_t data_size,
+                     TextureFormat format, u32 width, u32 height, u32 aligned_width,
+                     u32 aligned_height, const u8* lut, TlutFormat lut_format) override;
+
 private:
   struct TCacheEntry : TCacheEntryBase
   {
