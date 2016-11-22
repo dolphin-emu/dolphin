@@ -534,6 +534,7 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsBindingLayout = true;
       g_ogl_config.bSupportsEarlyFragmentTests = true;
       g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
+      g_Config.backend_info.bSupportsComputeShaders = true;
       g_Config.backend_info.bSupportsGSInstancing =
           g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
       g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
@@ -556,6 +557,7 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsBindingLayout = true;
       g_ogl_config.bSupportsEarlyFragmentTests = true;
       g_Config.backend_info.bSupportsGeometryShaders = true;
+      g_Config.backend_info.bSupportsComputeShaders = true;
       g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
       g_Config.backend_info.bSupportsPaletteConversion = true;
       g_Config.backend_info.bSupportsSSAA = true;
@@ -606,6 +608,18 @@ Renderer::Renderer()
     else if (GLExtensions::Version() == 330)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_330;
+    }
+    else if (GLExtensions::Version() >= 430)
+    {
+      // TODO: We should really parse the GL_SHADING_LANGUAGE_VERSION token.
+      g_ogl_config.eSupportedGLSLVersion = GLSL_430;
+      g_Config.backend_info.bSupportsSSAA = true;
+
+      // glTexStorage is core in GL4.2, but we don't test for that explicitly, so put it here.
+      g_ogl_config.bSupportsTextureStorage = true;
+
+      // Compute shaders are core in GL4.3.
+      g_Config.backend_info.bSupportsComputeShaders = true;
     }
     else
     {

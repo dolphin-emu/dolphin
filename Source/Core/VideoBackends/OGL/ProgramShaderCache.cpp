@@ -61,6 +61,8 @@ static std::string GetGLSLVersionString()
     return "#version 330";
   case GLSL_400:
     return "#version 400";
+  case GLSL_430:
+    return "#version 430";
   default:
     // Shouldn't ever hit this
     return "#version ERROR";
@@ -99,27 +101,30 @@ void SHADER::SetProgramVariables()
   }
 }
 
-void SHADER::SetProgramBindings()
+void SHADER::SetProgramBindings(bool is_compute)
 {
-  if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  if (!is_compute)
   {
-    // So we do support extended blending
-    // So we need to set a few more things here.
-    // Bind our out locations
-    glBindFragDataLocationIndexed(glprogid, 0, 0, "ocol0");
-    glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
+    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+    {
+      // So we do support extended blending
+      // So we need to set a few more things here.
+      // Bind our out locations
+      glBindFragDataLocationIndexed(glprogid, 0, 0, "ocol0");
+      glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
+    }
+    // Need to set some attribute locations
+    glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
+
+    glBindAttribLocation(glprogid, SHADER_POSMTX_ATTRIB, "posmtx");
+
+    glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "color0");
+    glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "color1");
+
+    glBindAttribLocation(glprogid, SHADER_NORM0_ATTRIB, "rawnorm0");
+    glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
+    glBindAttribLocation(glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
   }
-  // Need to set some attribute locations
-  glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
-
-  glBindAttribLocation(glprogid, SHADER_POSMTX_ATTRIB, "posmtx");
-
-  glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "color0");
-  glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "color1");
-
-  glBindAttribLocation(glprogid, SHADER_NORM0_ATTRIB, "rawnorm0");
-  glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
-  glBindAttribLocation(glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
 
   for (int i = 0; i < 8; i++)
   {
@@ -277,7 +282,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
   if (g_ogl_config.bSupportsGLSLCache)
     glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 
-  shader.SetProgramBindings();
+  shader.SetProgramBindings(false);
 
   glLinkProgram(pid);
 
@@ -332,6 +337,66 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
   return true;
 }
 
+bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string& code)
+{
+  GLuint shader_id = CompileSingleShader(GL_COMPUTE_SHADER, code);
+  if (!shader_id)
+    return false;
+
+  GLuint pid = shader.glprogid = glCreateProgram();
+  glAttachShader(pid, shader_id);
+  if (g_ogl_config.bSupportsGLSLCache)
+    glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+
+  shader.SetProgramBindings(true);
+
+  glLinkProgram(pid);
+
+  // original shaders aren't needed any more
+  glDeleteShader(shader_id);
+
+  GLint linkStatus;
+  glGetProgramiv(pid, GL_LINK_STATUS, &linkStatus);
+  GLsizei length = 0;
+  glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &length);
+  if (linkStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
+  {
+    GLsizei charsWritten;
+    GLchar* infoLog = new GLchar[length];
+    glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
+    ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
+
+    std::string filename =
+        StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+    std::ofstream file;
+    OpenFStream(file, filename, std::ios_base::out);
+    file << s_glsl_header << code;
+    file << infoLog;
+    file.close();
+
+    if (linkStatus != GL_TRUE)
+    {
+      PanicAlert("Failed to link shaders: %s\n"
+                 "Debug info (%s, %s, %s):\n%s",
+                 filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                 g_ogl_config.gl_version, infoLog);
+    }
+
+    delete[] infoLog;
+  }
+  if (linkStatus != GL_TRUE)
+  {
+    // Compile failed
+    ERROR_LOG(VIDEO, "Program linking failed; see info log");
+
+    // Don't try to use this shader
+    glDeleteProgram(pid);
+    return false;
+  }
+
+  return true;
+}
+
 GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& code)
 {
   GLuint result = glCreateShader(type);
@@ -350,12 +415,28 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
     GLsizei charsWritten;
     GLchar* infoLog = new GLchar[length];
     glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-    ERROR_LOG(VIDEO, "%s Shader info log:\n%s",
-              type == GL_VERTEX_SHADER ? "VS" : type == GL_FRAGMENT_SHADER ? "PS" : "GS", infoLog);
+
+    const char* prefix = "";
+    switch (type)
+    {
+    case GL_VERTEX_SHADER:
+      prefix = "vs";
+      break;
+    case GL_GEOMETRY_SHADER:
+      prefix = "gs";
+      break;
+    case GL_FRAGMENT_SHADER:
+      prefix = "ps";
+      break;
+    case GL_COMPUTE_SHADER:
+      prefix = "cs";
+      break;
+    }
+
+    ERROR_LOG(VIDEO, "%s Shader info log:\n%s", prefix, infoLog);
 
     std::string filename = StringFromFormat(
-        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-        type == GL_VERTEX_SHADER ? "vs" : type == GL_FRAGMENT_SHADER ? "ps" : "gs", num_failures++);
+        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), prefix, num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
     file << s_glsl_header << code << infoLog;
