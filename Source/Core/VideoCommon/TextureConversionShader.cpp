@@ -5,6 +5,7 @@
 #include <cmath>
 #include <cstdio>
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
@@ -718,6 +719,580 @@ const char* GenerateEncodingShader(u32 format, APIType ApiType)
     PanicAlert("TextureConversionShader generator - buffer too small, canary has been eaten!");
 
   return text;
+}
+
+// NOTE: In these uniforms, a row refers to a row of blocks, not texels.
+static const char decoding_shader_header[] = R"(
+#ifdef VULKAN
+
+layout(std140, push_constant) uniform PushConstants {
+  uvec2 dst_size;
+  uvec2 src_size;
+  uint src_offset;
+  uint src_row_stride;
+} push_constants;
+#define u_dst_size (push_constants.dst_size)
+#define u_src_size (push_constants.src_size)
+#define u_src_offset (push_constants.src_offset)
+#define u_src_row_stride (push_constants.src_row_stride)
+
+layout(set = 0, binding = 3) uniform usamplerBuffer s_input_buffer;
+
+#else
+
+uniform uvec2 u_dst_size;
+uniform uvec2 u_src_size;
+uniform uint u_src_offset;
+uniform uint u_src_row_stride;
+
+SAMPLER_BINDING(9) uniform usamplerBuffer s_input_buffer;
+
+#endif
+
+uint Convert3To8(uint v)
+{
+  // Swizzle bits: 00000123 -> 12312312
+  return (v << 5) | (v << 2) | (v >> 1);
+}
+uint Convert4To8(uint v)
+{
+  // Swizzle bits: 00001234 -> 12341234
+  return (v << 4) | v;
+}
+uint Convert5To8(uint v)
+{
+  // Swizzle bits: 00012345 -> 12345123
+  return (v << 3) | (v >> 2);
+}
+uint Convert6To8(uint v)
+{
+  // Swizzle bits: 00123456 -> 12345612
+  return (v << 2) | (v >> 4);
+}
+
+uint GetTiledTexelOffset(uvec2 block_size, uvec2 coords)
+{
+  uvec2 block = coords / block_size;
+  uvec2 offset = coords % block_size;
+  uint buffer_pos = u_src_offset;
+  buffer_pos += block.y * u_src_row_stride;
+  buffer_pos += block.x * (block_size.x * block_size.y);
+  buffer_pos += offset.y * block_size.x;
+  buffer_pos += offset.x;
+  return buffer_pos;
+}
+
+)";
+
+static const char decoding_shader_header_fragment[] = R"(
+
+FRAGMENT_OUTPUT_LOCATION(0) out vec4 ocol0;
+
+)";
+
+static const char decoding_shader_header_compute[] = R"(
+
+layout(rgba8, binding = 0) uniform writeonly image2DArray output_image;
+
+)";
+
+static const TextureDecodingShaderInfo decoding_shader_info[] = {
+    {GX_TF_I4, BUFFER_FORMAT_R8_UINT, 8, 8, false,
+     R"(
+      #if COMPUTE
+      layout(local_size_x = 8, local_size_y = 8) in;
+      #endif
+
+      void main()
+      {
+      #if COMPUTE
+        uvec2 coords = gl_GlobalInvocationID.xy;
+      #else
+        uvec2 coords = uvec2(gl_FragCoord.xy);
+      #endif
+
+        // Tiled in 8x8 blocks, 4 bits per pixel
+        // We need to do the tiling manually here because the texel size is smaller than
+        // the size of the buffer elements.
+        uint2 block = coords.xy / 8;
+        uint2 offset = coords.xy % 8;
+        uint buffer_pos = u_src_offset;
+        buffer_pos += block.y * u_src_row_stride;
+        buffer_pos += block.x * 32;
+        buffer_pos += offset.y * 4;
+        buffer_pos += offset.x / 2;
+
+        // Select high nibble for odd texels, low for even.
+        uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uint i;
+        if ((coords.x & 1u) == 0)
+          i = Convert4To8((val >> 4));
+        else
+          i = Convert4To8((val & 0x0Fu));
+
+        uvec4 color = uvec4(i, i, i, i);
+        vec4 norm_color = vec4(color) / vec4(255.0, 255.0, 255.0, 255.0);
+
+      #if COMPUTE
+        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+      #else
+        ocol0 = norm_color;
+      #endif
+      }
+
+      )"},
+    {GX_TF_IA4, BUFFER_FORMAT_R8_UINT, 8, 8, false,
+     R"(
+      #if COMPUTE
+      layout(local_size_x = 8, local_size_y = 8) in;
+      #endif
+
+      void main()
+      {
+      #if COMPUTE
+        uvec2 coords = gl_GlobalInvocationID.xy;
+      #else
+        uvec2 coords = uvec2(gl_FragCoord.xy);
+      #endif
+
+        // Tiled in 8x4 blocks, 8 bits per pixel
+        uint buffer_pos = GetTiledTexelOffset(uvec2(8, 4), coords);
+        uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uint i = Convert4To8((val & 0x0Fu));
+        uint a = Convert4To8((val >> 4));
+        uvec4 color = uvec4(i, i, i, a);
+        vec4 norm_color = vec4(color) / vec4(255.0, 255.0, 255.0, 255.0);
+
+      #if COMPUTE
+        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+      #else
+        ocol0 = norm_color;
+      #endif
+      }
+    )"},
+    {GX_TF_I8, BUFFER_FORMAT_R8_UINT, 8, 8, false,
+     R"(
+      #if COMPUTE
+      layout(local_size_x = 8, local_size_y = 8) in;
+      #endif
+
+      void main()
+      {
+      #if COMPUTE
+        uvec2 coords = gl_GlobalInvocationID.xy;
+      #else
+        uvec2 coords = uvec2(gl_FragCoord.xy);
+      #endif
+
+        // Tiled in 8x4 blocks, 8 bits per pixel
+        uint buffer_pos = GetTiledTexelOffset(uvec2(8, 4), coords);
+        uint i = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uvec4 color = uvec4(i, i, i, i);
+        vec4 norm_color = vec4(color) / vec4(255.0, 255.0, 255.0, 255.0);
+
+      #if COMPUTE
+        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+      #else
+        ocol0 = norm_color;
+      #endif
+      }
+    )"},
+    {GX_TF_IA8, BUFFER_FORMAT_R16_UINT, 8, 8, false,
+     R"(
+      #if COMPUTE
+      layout(local_size_x = 8, local_size_y = 8) in;
+      #endif
+
+      void main()
+      {
+      #if COMPUTE
+        uvec2 coords = gl_GlobalInvocationID.xy;
+      #else
+        uvec2 coords = uvec2(gl_FragCoord.xy);
+      #endif
+
+        // Tiled in 4x4 blocks, 16 bits per pixel
+        uint buffer_pos = GetTiledTexelOffset(uvec2(4, 4), coords);
+        uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
+        uint a = (val & 0xFFu);
+        uint i = (val >> 8);
+        uvec4 color = uvec4(i, i, i, a);
+        vec4 norm_color = vec4(color) / vec4(255.0, 255.0, 255.0, 255.0);
+
+      #if COMPUTE
+        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+      #else
+        ocol0 = norm_color;
+      #endif
+      }
+    )"},
+    {GX_TF_RGB565, BUFFER_FORMAT_R16_UINT, 8, 8, false,
+     R"(
+      #if COMPUTE
+      layout(local_size_x = 8, local_size_y = 8) in;
+      #endif
+
+      void main()
+      {
+      #if COMPUTE
+        uvec2 coords = gl_GlobalInvocationID.xy;
+      #else
+        uvec2 coords = uvec2(gl_FragCoord.xy);
+      #endif
+
+        // Tiled in 4x4 blocks
+        uint buffer_pos = GetTiledTexelOffset(uvec2(4, 4), coords);
+        uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
+
+        // Swap BE to LE
+        val = ((val >> 8) | (val << 8)) & 0xFFFFu;
+
+        uvec4 color;
+        color.x = Convert5To8((val >> 11) & 0x1Fu);
+        color.y = Convert6To8((val >> 5) & 0x3Fu);
+        color.z = Convert5To8(val & 0x1Fu);
+        color.a = 255;
+
+        vec4 norm_color = vec4(color) / vec4(255.0, 255.0, 255.0, 255.0);
+
+      #if COMPUTE
+        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+      #else
+        ocol0 = norm_color;
+      #endif
+      }
+
+    )"},
+    {GX_TF_RGB5A3, BUFFER_FORMAT_R16_UINT, 8, 8, false,
+     R"(
+      #if COMPUTE
+      layout(local_size_x = 8, local_size_y = 8) in;
+      #endif
+
+      void main()
+      {
+      #if COMPUTE
+        uvec2 coords = gl_GlobalInvocationID.xy;
+      #else
+        uvec2 coords = uvec2(gl_FragCoord.xy);
+      #endif
+
+        // Tiled in 4x4 blocks
+        uint buffer_pos = GetTiledTexelOffset(uvec2(4, 4), coords);
+        uint val = texelFetch(s_input_buffer, int(buffer_pos)).x;
+
+        // Swap BE to LE
+        val = ((val >> 8) | (val << 8)) & 0xFFFFu;
+
+        uvec4 color;
+        if ((val & 0x8000u) != 0)
+        {
+          color.x = Convert5To8((val >> 10) & 0x1Fu);
+          color.y = Convert5To8((val >> 5) & 0x1Fu);
+          color.z = Convert5To8(val & 0x1Fu);
+          color.a = 255;
+        }
+        else
+        {
+          color.a = Convert3To8((val >> 12) & 0x7u);
+          color.r = Convert4To8((val >> 8) & 0xFu);
+          color.g = Convert4To8((val >> 4) & 0xFu);
+          color.b = Convert4To8(val & 0xFu);
+        }
+        vec4 norm_color = vec4(color) / vec4(255.0, 255.0, 255.0, 255.0);
+
+      #if COMPUTE
+        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+      #else
+        ocol0 = norm_color;
+      #endif
+      }
+
+    )"},
+    {GX_TF_RGBA8, BUFFER_FORMAT_R16_UINT, 8, 8, false,
+     R"(
+      #if COMPUTE
+      layout(local_size_x = 8, local_size_y = 8) in;
+      #endif
+
+      void main()
+      {
+      #if COMPUTE
+        uvec2 coords = gl_GlobalInvocationID.xy;
+      #else
+        uvec2 coords = uvec2(gl_FragCoord.xy);
+      #endif
+
+        // Tiled in 4x4 blocks
+        // We can't use the normal calculation function, as these are packed as the AR channels
+        // for the entire block, then the GB channels afterwards.
+        uint2 block = coords.xy / 4;
+        uint2 offset = coords.xy % 4;
+        uint buffer_pos = u_src_offset;
+
+        // Our buffer has 16-bit elements, so the offsets here are half what they would be in bytes.
+        buffer_pos += block.y * u_src_row_stride;
+        buffer_pos += block.x * 32;
+        buffer_pos += offset.y * 4;
+        buffer_pos += offset.x;
+
+        // The two GB channels follow after the block's AR channels.
+        uint val1 = texelFetch(s_input_buffer, int(buffer_pos + 0)).x;
+        uint val2 = texelFetch(s_input_buffer, int(buffer_pos + 16)).x;
+
+        uvec4 color;
+        color.a = (val1 & 0xFFu);
+        color.r = (val1 >> 8);
+        color.g = (val2 & 0xFFu);
+        color.b = (val2 >> 8);
+
+        vec4 norm_color = vec4(color) / vec4(255.0, 255.0, 255.0, 255.0);
+
+      #if COMPUTE
+        imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
+      #else
+        ocol0 = norm_color;
+      #endif
+      }
+    )"},
+    {GX_TF_CMPR, BUFFER_FORMAT_R32G32_UINT, 64, 1, true,
+     R"(
+      #if COMPUTE
+
+      // In the compute version of this decoder, we flatten the blocks to a one-dimension array.
+      // Each group is subdivided into 16, and the first thread in each group fetches the DXT data.
+      // All threads then calculate the possible colors for the block and write to the output image.
+
+      #define GROUP_SIZE 64
+      #define BLOCK_SIZE_X 4
+      #define BLOCK_SIZE_Y 4
+      #define BLOCK_SIZE (BLOCK_SIZE_X * BLOCK_SIZE_Y)
+      #define BLOCKS_PER_GROUP (GROUP_SIZE / BLOCK_SIZE)
+
+      layout(local_size_x = GROUP_SIZE, local_size_y = 1) in;
+
+      shared uvec2 shared_temp[BLOCKS_PER_GROUP];
+
+      void main()
+      {
+        uint local_thread_id = gl_LocalInvocationID.x;
+        uint block_in_group = local_thread_id / BLOCK_SIZE;
+        uint thread_in_block = local_thread_id % BLOCK_SIZE;
+        uint block_index = gl_WorkGroupID.x * BLOCKS_PER_GROUP + block_in_group;
+
+        uint blocks_wide = u_src_size.x / BLOCK_SIZE_X;
+        uvec2 block_coords = uvec2(block_index % blocks_wide, block_index / blocks_wide);
+
+        // Only the first thread for each block reads from the texel buffer.
+        if (thread_in_block == 0)
+        {
+          // Calculate tiled block coordinates.
+          uvec2 tile_block_coords = block_coords / 2;
+          uvec2 subtile_block_coords = block_coords % 2;
+          uint buffer_pos = u_src_offset;
+          buffer_pos += tile_block_coords.y * u_src_row_stride;
+          buffer_pos += tile_block_coords.x * 4;
+          buffer_pos += subtile_block_coords.y * 2;
+          buffer_pos += subtile_block_coords.x;
+
+          // Read the entire DXT block
+          uvec2 raw_data = texelFetch(s_input_buffer, int(buffer_pos)).xy;
+          shared_temp[block_in_group] = raw_data;
+        }
+
+        // Ensure store is completed before the remaining threads in the block continue.
+        groupMemoryBarrier();
+        barrier();
+
+        // Read the contents of the DXT block.
+        uvec2 raw_data = shared_temp[block_in_group];
+        uvec2 raw_color = uvec2((raw_data.x & 0xFFFFu), (raw_data.x >> 16));
+
+        // Unpack colors and swap BE to LE.
+        uint c1 = ((raw_color.x << 8) & 0xFF00u) | (raw_color.x >> 8);
+        uint c2 = ((raw_color.y << 8) & 0xFF00u) | (raw_color.y >> 8);
+
+        // Expand 5/6 bit channels to 8-bits per channel.
+        uint blue1 = Convert5To8(c1 & 0x1Fu);
+        uint blue2 = Convert5To8(c2 & 0x1Fu);
+        uint green1 = Convert6To8((c1 >> 5) & 0x3Fu);
+        uint green2 = Convert6To8((c2 >> 5) & 0x3Fu);
+        uint red1 = Convert5To8((c1 >> 11) & 0x1Fu);
+        uint red2 = Convert5To8((c2 >> 11) & 0x1Fu);
+
+        // Determine the four colors the block can use.
+        // It's quicker to just precalculate all four colors rather than branching on the index.
+        // NOTE: These must be masked with 0xFF. This is done at the normalization stage below.
+        uvec4 colors[4];
+        colors[0] = uvec4(red1, green1, blue1, 255);
+        colors[1] = uvec4(red2, green2, blue2, 255);
+        if (c1 > c2)
+        {
+          uint blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
+          uint green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
+          uint red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
+          colors[2] = uvec4(red1 + red3, green1 + green3, blue1 + blue3, 255);
+          colors[3] = uvec4(red2 - red3, green2 - green3, blue2 - blue3, 255);
+        }
+        else
+        {
+          colors[2] = uvec4((red1 + red2 + 1) / 2,  // Average
+                              (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 255);
+          colors[3] = uvec4(red2, green2, blue2, 0);  // Color2 but transparent
+        }
+
+        // Calculate the texel coordinates that we will write to.
+        uint local_y = thread_in_block / BLOCK_SIZE_X;
+        uint local_x = thread_in_block % BLOCK_SIZE_X;
+        uint global_x = block_coords.x * BLOCK_SIZE_X + local_x;
+        uint global_y = block_coords.y * BLOCK_SIZE_Y + local_y;
+
+        // Use the coordinates within the block to shift the 32-bit value containing
+        // all 16 indices to a single 2-bit index.
+        uint line_shift = (local_y * 8);
+        uint val = ((raw_data.y >> line_shift) & 0xFFu);
+        val <<= (local_x * 2);
+        uint color_index = ((val >> 6) & 3u);
+
+        // Read from the precalculated color array and write to the output image.
+        vec4 norm_color = vec4(colors[color_index] & 0xFF) / 255.0;
+        imageStore(output_image, ivec3(ivec2(uvec2(global_x, global_y)), 0), norm_color);
+      }
+
+      #else     // COMPUTE
+
+      uint PackRGBA(uint r, uint g, uint b, uint a)
+      {
+        return (a << 24) | (b << 16) | (g << 8) | r;
+      }
+
+      uvec4 UnpackRGBA(uint rgba)
+      {
+        return uvec4((rgba & 0xFFu), ((rgba >> 8) & 0xFFu),
+                     ((rgba >> 16) & 0xFFu), (rgba >> 24));
+      }
+
+      vec4 UnpackAndNormalizeRGBA(uint rgba)
+      {
+        return vec4(float(rgba & 0xFFu) / 255.0,
+                    float(((rgba >> 8) & 0xFFu)) / 255.0,
+                    float(((rgba >> 16) & 0xFFu)) / 255.0,
+                    float((rgba >> 24)) / 255.0);
+      }
+
+      void main()
+      {
+        uvec2 coords = uvec2(gl_FragCoord.xy);
+
+        // Tiled in 8x8 blocks, with 2x2 sub-blocks representing 4x4 pixels each
+        uvec2 block_coords = coords.xy / 8;
+        uvec2 block_offset = coords.xy % 8;
+        uvec2 sub_block_coords = block_offset / 4;
+        uvec2 sub_block_offset = block_offset % 4;
+        uint buffer_pos = u_src_offset;
+        buffer_pos += block_coords.y * u_src_row_stride;
+        buffer_pos += block_coords.x * 4;
+        buffer_pos += sub_block_coords.y * 2;
+        buffer_pos += sub_block_coords.x;
+
+        // Read the entire DXT block
+        uvec2 raw_data = texelFetch(s_input_buffer, int(buffer_pos)).xy;
+        uvec2 raw_color = uvec2((raw_data.x & 0xFFFFu), (raw_data.x >> 16));
+
+        // Unpack colors and swap BE to LE
+        uint c1 = ((raw_color.x << 8) & 0xFF00u) | (raw_color.x >> 8);
+        uint c2 = ((raw_color.y << 8) & 0xFF00u) | (raw_color.y >> 8);
+
+        // Expand 5/6 bit channels to 8-bits per channel
+        uint blue1 = Convert5To8(c1 & 0x1Fu);
+        uint blue2 = Convert5To8(c2 & 0x1Fu);
+        uint green1 = Convert6To8((c1 >> 5) & 0x3Fu);
+        uint green2 = Convert6To8((c2 >> 5) & 0x3Fu);
+        uint red1 = Convert5To8((c1 >> 11) & 0x1Fu);
+        uint red2 = Convert5To8((c2 >> 11) & 0x1Fu);
+
+        // Determine 4 colors for block
+        uint colors[4];
+        colors[0] = PackRGBA(red1, green1, blue1, 255);
+        colors[1] = PackRGBA(red2, green2, blue2, 255);
+        if (c1 > c2)
+        {
+          uint blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
+          uint green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
+          uint red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
+          colors[2] = PackRGBA(red1 + red3, green1 + green3, blue1 + blue3, 255);
+          colors[3] = PackRGBA(red2 - red3, green2 - green3, blue2 - blue3, 255);
+        }
+        else
+        {
+          colors[2] = PackRGBA((red1 + red2 + 1) / 2,  // Average
+                              (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 255);
+          colors[3] = PackRGBA(red2, green2, blue2, 0);  // Color2 but transparent
+        }
+
+        // Select line/color index
+        uint line_shift = (sub_block_offset.y * 8);
+        uint val = ((raw_data.y >> line_shift) & 0xFFu);
+        val <<= (sub_block_offset.x * 2);
+        uint color_index = ((val >> 6) & 3u);
+        vec4 norm_color = UnpackAndNormalizeRGBA(colors[color_index]);
+
+        ocol0 = norm_color;
+      }
+
+      #endif    // COMPUTE
+    )"}};
+
+static const u32 buffer_bytes_per_texel[BUFFER_FORMAT_COUNT] = {
+    1,  // BUFFER_FORMAT_R8_UINT
+    2,  // BUFFER_FORMAT_R16_UINT
+    8,  // BUFFER_FORMAT_R32G32_UINT
+};
+
+const TextureDecodingShaderInfo* GetTextureDecodingShaderInfo(u32 format)
+{
+  for (size_t i = 0; i < ArraySize(decoding_shader_info); i++)
+  {
+    if (decoding_shader_info[i].input_format == format)
+      return &decoding_shader_info[i];
+  }
+  return nullptr;
+}
+
+u32 GetBytesPerBufferElement(BufferFormat buffer_format)
+{
+  return buffer_bytes_per_texel[buffer_format];
+}
+
+std::pair<u32, u32> GetDispatchCount(const TextureDecodingShaderInfo* info, u32 width, u32 height)
+{
+  // Flatten to a single dimension?
+  if (info->group_flatten)
+    return {(width * height + (info->group_size_x - 1)) / info->group_size_x, 1};
+
+  return {(width + (info->group_size_x - 1)) / info->group_size_x,
+          (height + (info->group_size_y - 1)) / info->group_size_y};
+}
+
+std::string GenerateTextureDecodingShader(u32 format, APIType api_type, bool compute)
+{
+  const TextureDecodingShaderInfo* info = GetTextureDecodingShaderInfo(format);
+  if (!info)
+    return "";
+
+  std::string str;
+  if (compute)
+    str += "#define COMPUTE 1\n";
+
+  str += decoding_shader_header;
+  if (compute)
+    str += decoding_shader_header_compute;
+  else
+    str += decoding_shader_header_fragment;
+
+  str += info->shader_body;
+
+  return str;
 }
 
 }  // namespace
