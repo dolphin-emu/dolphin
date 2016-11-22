@@ -174,6 +174,14 @@ public:
   virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
                               TlutFormat format) = 0;
 
+  virtual bool SupportsGPUTextureDecode(TextureFormat format) { return false; }
+  virtual void DecodeTexture(TCacheEntryBase* entry, u32 dst_level, const u8* data,
+                             size_t data_size, TextureFormat format, u32 width, u32 height,
+                             u32 aligned_width, u32 aligned_height, const u8* lut,
+                             TlutFormat lut_format)
+  {
+  }
+
 protected:
   TextureCacheBase();
 

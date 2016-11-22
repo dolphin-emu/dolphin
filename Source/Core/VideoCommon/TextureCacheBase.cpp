@@ -764,6 +764,10 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
   // how many levels the allocated texture shall have
   const u32 texLevels = hires_tex ? (u32)hires_tex->m_levels.size() : tex_levels;
+  bool decode_on_gpu =
+      !hires_tex && g_ActiveConfig.backend_info.bSupportsGPUTextureDecoding &&
+      g_ActiveConfig.bEnableGPUTextureDecoding &&
+      g_texture_cache->SupportsGPUTextureDecode(static_cast<TextureFormat>(texformat));
 
   // create the entry/texture
   TCacheEntryConfig config;
@@ -777,7 +781,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   if (!entry)
     return nullptr;
 
-  if (!hires_tex)
+  if (!hires_tex && !decode_on_gpu)
   {
     if (!(texformat == GX_TF_RGBA8 && from_tmem))
     {
@@ -808,7 +812,17 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   entry->is_custom_tex = hires_tex != nullptr;
 
   // load texture
-  entry->Load(width, height, expandedWidth, 0);
+  if (decode_on_gpu)
+  {
+    const u8* tlut = &texMem[tlutaddr];
+    g_texture_cache->DecodeTexture(
+        entry, 0, src_data, texture_size, static_cast<TextureFormat>(texformat), width, height,
+        expandedWidth, expandedHeight, tlut, static_cast<TlutFormat>(tlutfmt));
+  }
+  else
+  {
+    entry->Load(width, height, expandedWidth, 0);
+  }
 
   std::string basename = "";
   if (g_ActiveConfig.bDumpTextures && !hires_tex)
@@ -850,13 +864,25 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       const u32 expanded_mip_height = ROUND_UP(mip_height, bsh);
 
       const u8*& mip_src_data = from_tmem ? ((level % 2) ? ptr_odd : ptr_even) : src_data;
-      const u8* tlut = &texMem[tlutaddr];
-      TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
-                        tlut, (TlutFormat)tlutfmt);
-      mip_src_data +=
+      size_t mip_size =
           TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
+      const u8* tlut = &texMem[tlutaddr];
 
-      entry->Load(mip_width, mip_height, expanded_mip_width, level);
+      if (decode_on_gpu)
+      {
+        g_texture_cache->DecodeTexture(entry, level, mip_src_data, mip_size,
+                                       static_cast<TextureFormat>(texformat), mip_width, mip_height,
+                                       expanded_mip_width, expanded_mip_height, tlut,
+                                       static_cast<TlutFormat>(tlutfmt));
+      }
+      else
+      {
+        TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
+                          tlut, (TlutFormat)tlutfmt);
+        entry->Load(mip_width, mip_height, expanded_mip_width, level);
+      }
+
+      mip_src_data += mip_size;
 
       if (g_ActiveConfig.bDumpTextures)
         DumpTexture(entry, basename, level);
