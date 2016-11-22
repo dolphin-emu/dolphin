@@ -35,12 +35,12 @@ bool CBoot::IsElfWii(const std::string& filename)
   u32 HID4_mask = Common::swap32(0xfc1fffff);
   ElfReader reader(elf.get());
 
-  for (int i = 0; i < reader.GetNumSections(); ++i)
+  for (int i = 0; i < reader.GetNumSegments(); ++i)
   {
-    if (reader.IsCodeSection(i))
+    if (reader.IsCodeSegment(i))
     {
-      u32* code = (u32*)reader.GetSectionDataPtr(i);
-      for (u32 j = 0; j < reader.GetSectionSize(i) / sizeof(u32); ++j)
+      u32* code = (u32*)reader.GetSegmentPtr(i);
+      for (u32 j = 0; j < reader.GetSegmentSize(i) / sizeof(u32); ++j)
       {
         if ((code[j] & HID4_mask) == HID4_pattern)
           return true;
