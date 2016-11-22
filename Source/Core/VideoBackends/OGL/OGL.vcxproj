@@ -53,6 +53,7 @@
   <ItemGroup>
     <ClInclude Include="BoundingBox.h" />
     <ClInclude Include="FramebufferManager.h" />
+    <ClInclude Include="GPUTimer.h" />
     <ClInclude Include="PerfQuery.h" />
     <ClInclude Include="PostProcessing.h" />
     <ClInclude Include="ProgramShaderCache.h" />
