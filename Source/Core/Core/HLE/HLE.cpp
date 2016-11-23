@@ -183,10 +183,19 @@ void Execute(u32 _CurrentPC, u32 _Instruction)
   // OSPatches[pos].m_szPatchName);
 }
 
-u32 GetFunctionIndex(u32 addr)
+u32 GetFunctionIndex(u32 address)
 {
-  auto iter = s_original_instructions.find(addr);
+  auto iter = s_original_instructions.find(address);
   return (iter != s_original_instructions.end()) ? iter->second : 0;
+}
+
+u32 GetFirstFunctionIndex(u32 address)
+{
+  u32 index = GetFunctionIndex(address);
+  auto first = std::find_if(
+      s_original_instructions.begin(), s_original_instructions.end(),
+      [=](const auto& entry) { return entry.second == index && entry.first < address; });
+  return first == std::end(s_original_instructions) ? index : 0;
 }
 
 int GetFunctionTypeByIndex(u32 index)
