@@ -1970,18 +1970,21 @@ void VertexShaderManager::SetProjectionConstants()
 	  position[2] += (g_ActiveConfig.fHudDespPosition2 * g_ActiveConfig.fUnitsPerMetre);
 	  
 
-	/*  float pos[3];	  
-	  pos[0] = g_ActiveConfig.fHudDespRot0 * UnitsPerMetre;
-	  pos[1] = g_ActiveConfig.fHudDespRot1 * UnitsPerMetre;
-	  pos[2] = g_ActiveConfig.fHudDespRot2 * UnitsPerMetre;
-	  Matrix44::Translate(rotation_matrix, pos);*/
+	  Matrix44 walk_matrix;
+	  float pos[3];
+	  pos[0] = g_ActiveConfig.fHudRotation0;
+	  pos[1] = g_ActiveConfig.fHudRotation1;
+	  pos[2] = g_ActiveConfig.fHudRotation2;
+	  Matrix44::Translate(walk_matrix, pos);
+	  
+
 
       Matrix44 scale_matrix, position_matrix;
       Matrix44::Scale(scale_matrix, scale);
       Matrix44::Translate(position_matrix, position);
 
       look_matrix = scale_matrix * position_matrix * camera_position_matrix * camera_pitch_matrix *
-                    free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix;
+		  free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix *walk_matrix;
     }
 
     // N64 games give us coordinates that were already transformed into clip space
