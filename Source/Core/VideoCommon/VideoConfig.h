@@ -251,9 +251,8 @@ struct VideoConfig final
   float fHudDespPosition0;
   float fHudDespPosition1;
   float fHudDespPosition2;
-  float fHudRotation0;
-  float fHudRotation1;
-  float fHudRotation2;
+  Matrix33 matrixHudrot;
+  
 
   u32 iCameraMinPoly;
   bool bDisable3D;

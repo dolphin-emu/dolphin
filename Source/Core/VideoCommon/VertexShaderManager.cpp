@@ -1965,26 +1965,22 @@ void VertexShaderManager::SetProjectionConstants()
       }
 	  
 	  
-	  position[0] += (g_ActiveConfig.fHudDespPosition0 * g_ActiveConfig.fUnitsPerMetre);
-	  position[1] += (g_ActiveConfig.fHudDespPosition1 * g_ActiveConfig.fUnitsPerMetre);
-	  position[2] += (g_ActiveConfig.fHudDespPosition2 * g_ActiveConfig.fUnitsPerMetre);
+	  position[0] += (g_ActiveConfig.fHudDespPosition0 );
+	  position[1] += (g_ActiveConfig.fHudDespPosition1 );
+	  position[2] += (g_ActiveConfig.fHudDespPosition2 );
 	  
-
-	  Matrix44 walk_matrix;
-	  float pos[3];
-	  pos[0] = g_ActiveConfig.fHudRotation0;
-	  pos[1] = g_ActiveConfig.fHudRotation1;
-	  pos[2] = g_ActiveConfig.fHudRotation2;
-	  Matrix44::Translate(walk_matrix, pos);
-	  
-
+	  Matrix44 hud_matrix;
+	  Matrix44::LoadMatrix33(hud_matrix, g_ActiveConfig.matrixHudrot);
 
       Matrix44 scale_matrix, position_matrix;
       Matrix44::Scale(scale_matrix, scale);
       Matrix44::Translate(position_matrix, position);
 
-      look_matrix = scale_matrix * position_matrix * camera_position_matrix * camera_pitch_matrix *
-		  free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix *walk_matrix;
+	  /*look_matrix = scale_matrix * position_matrix * camera_position_matrix * camera_pitch_matrix *
+		  free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix;*/
+
+	  look_matrix = scale_matrix * position_matrix * hud_matrix * camera_position_matrix * camera_pitch_matrix *
+		  free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix;
     }
 
     // N64 games give us coordinates that were already transformed into clip space

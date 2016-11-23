@@ -890,7 +890,7 @@ void CConfigVR::CreateGUIControls()
 	// Hud Desp Position 0
 	{
 		SettingNumber* const spin =
-			CreateNumber(page_vr, vconfig.fHudDespPosition0, wxGetTranslation(temp_desc), -9999999999, 9999999999, 1);
+			CreateNumber(page_vr, vconfig.fHudDespPosition0, wxGetTranslation(temp_desc), std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0f);
 		wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Desp Position 0"));
 		label->SetToolTip(wxGetTranslation(temp_desc));
 		szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -899,7 +899,7 @@ void CConfigVR::CreateGUIControls()
 	// Hud Desp Position 1
 	{
 		SettingNumber* const spin =
-			CreateNumber(page_vr, vconfig.fHudDespPosition1, wxGetTranslation(temp_desc), -9999999999, 9999999999, 1);
+			CreateNumber(page_vr, vconfig.fHudDespPosition1, wxGetTranslation(temp_desc), std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0f);
 		wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Desp Position 1"));
 		label->SetToolTip(wxGetTranslation(temp_desc));
 		szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
@@ -908,39 +908,12 @@ void CConfigVR::CreateGUIControls()
 	// Hud Desp Position 2
 	{
 		SettingNumber* const spin =
-			CreateNumber(page_vr, vconfig.fHudDespPosition2, wxGetTranslation(temp_desc), -9999999999, 9999999999, 1);
+			CreateNumber(page_vr, vconfig.fHudDespPosition2, wxGetTranslation(temp_desc), std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0f);
 		wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Desp Position 2"));
 		label->SetToolTip(wxGetTranslation(temp_desc));
 		szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
 		szr_vr->Add(spin);
-	}
-	// Hud Rotation 0
-	{
-		SettingNumber* const spin =
-			CreateNumber(page_vr, vconfig.fHudRotation0, wxGetTranslation(temp_desc), -9999999999, 9999999999, 1);
-		wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Rotation 0"));
-		label->SetToolTip(wxGetTranslation(temp_desc));
-		szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_vr->Add(spin);
-	}
-	// Hud Rotation 1
-	{
-		SettingNumber* const spin =
-			CreateNumber(page_vr, vconfig.fHudRotation1, wxGetTranslation(temp_desc), -9999999999, 9999999999, 1);
-		wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Rotation 1"));
-		label->SetToolTip(wxGetTranslation(temp_desc));
-		szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_vr->Add(spin);
-	}
-	// Hud Rotation 2
-	{
-		SettingNumber* const spin =
-			CreateNumber(page_vr, vconfig.fHudRotation2, wxGetTranslation(temp_desc), -9999999999, 9999999999, 1);
-		wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Rotation 2"));
-		label->SetToolTip(wxGetTranslation(temp_desc));
-		szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_vr->Add(spin);
-	}
+	}	
 
     szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Read Camera Angles"),
                                wxGetTranslation(canreadcamera_desc), vconfig.bCanReadCameraAngles));

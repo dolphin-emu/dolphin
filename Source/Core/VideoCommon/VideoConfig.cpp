@@ -141,9 +141,8 @@ VideoConfig::VideoConfig()
   fHudDespPosition0 = 0;
   fHudDespPosition1 = 0;
   fHudDespPosition2 = 0;
-  fHudRotation0 = 0;
-  fHudRotation1 = 0;
-  fHudRotation2 = 0;
+  Matrix33::LoadIdentity(matrixHudrot);
+  
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -458,9 +457,7 @@ void VideoConfig::GameIniLoad()
   fHudDespPosition0 = 0;
   fHudDespPosition1 = 0;
   fHudDespPosition2 = 0;
-  fHudRotation0 = 0;
-  fHudRotation1 = 0;
-  fHudRotation2 = 0;
+  
   fReadPitch = 0;
   iCameraMinPoly = 0;
   bDisable3D = false;
@@ -501,9 +498,7 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("VR", "HudDespPosition0", fHudDespPosition0);
   CHECK_SETTING("VR", "HudDespPosition1", fHudDespPosition1);
   CHECK_SETTING("VR", "HudDespPosition2", fHudDespPosition2);
-  CHECK_SETTING("VR", "HudRotation0", fHudRotation0);
-  CHECK_SETTING("VR", "HudRotation1", fHudRotation1);
-  CHECK_SETTING("VR", "HudRotation2", fHudRotation2);
+  
 
   NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick",
              fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
@@ -565,10 +560,7 @@ void VideoConfig::GameIniSave()
   SAVE_IF_NOT_DEFAULT("VR", "ReadPitch", (float)fReadPitch, 0.0f);
   SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition0", (float)fHudDespPosition0, 0.0f);
   SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition1", (float)fHudDespPosition1, 0.0f);
-  SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition2", (float)fHudDespPosition2, 0.0f);
-  SAVE_IF_NOT_DEFAULT("VR", "HudRotation0", (float)fHudRotation0, 0.0f);
-  SAVE_IF_NOT_DEFAULT("VR", "HudRotation1", (float)fHudRotation1, 0.0f);
-  SAVE_IF_NOT_DEFAULT("VR", "HudRotation2", (float)fHudRotation2, 0.0f);
+  SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition2", (float)fHudDespPosition2, 0.0f);  
   SAVE_IF_NOT_DEFAULT("VR", "CameraMinPoly", (int)iCameraMinPoly, 0);
 
   GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() +
@@ -615,10 +607,7 @@ void VideoConfig::GameIniReset()
   LOAD_DEFAULT("VR", "ReadPitch", fReadPitch, 0.0f);
   LOAD_DEFAULT("VR", "HudDespPosition0", fHudDespPosition0, 0.0f);
   LOAD_DEFAULT("VR", "HudDespPosition1", fHudDespPosition1, 0.0f);
-  LOAD_DEFAULT("VR", "HudDespPosition2", fHudDespPosition2, 0.0f);
-  LOAD_DEFAULT("VR", "HudRotation0", fHudRotation0, 0.0f);
-  LOAD_DEFAULT("VR", "HudRotation1", fHudRotation1, 0.0f);
-  LOAD_DEFAULT("VR", "HudRotation2", fHudRotation2, 0.0f);
+  LOAD_DEFAULT("VR", "HudDespPosition2", fHudDespPosition2, 0.0f);  
   LOAD_DEFAULT("VR", "CameraMinPoly", iCameraMinPoly, 0);
 }
 
@@ -846,10 +835,7 @@ bool VideoConfig::VRSettingsModified()
          bHudOnTop != g_SavedConfig.bHudOnTop ||
 		 fHudDespPosition0 != g_SavedConfig.fHudDespPosition0 ||
 		 fHudDespPosition1 != g_SavedConfig.fHudDespPosition1 ||
-		 fHudDespPosition2 != g_SavedConfig.fHudDespPosition2 ||
-		 fHudRotation0 != g_SavedConfig.fHudRotation0 ||
-		 fHudRotation1 != g_SavedConfig.fHudRotation1 ||
-		 fHudRotation2 != g_SavedConfig.fHudRotation2 ||
+		 fHudDespPosition2 != g_SavedConfig.fHudDespPosition2 ||		 
          bDontClearScreen != g_SavedConfig.bDontClearScreen ||
          bCanReadCameraAngles != g_SavedConfig.bCanReadCameraAngles ||
          bDetectSkybox != g_SavedConfig.bDetectSkybox ||
