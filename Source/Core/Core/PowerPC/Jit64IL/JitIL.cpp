@@ -310,9 +310,9 @@ void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
 
 void JitIL::HLEFunction(UGeckoInstruction _inst)
 {
+  ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunctionCC(HLE::Execute, js.compilerPC, _inst.hex);
-  MOV(32, R(RSCRATCH), PPCSTATE(npc));
-  WriteExitDestInOpArg(R(RSCRATCH));
+  ABI_PushRegistersAndAdjustStack({}, 0);
 }
 
 void JitIL::DoNothing(UGeckoInstruction _inst)
@@ -596,7 +596,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
     if (i == (code_block.m_num_instructions - 1))
       js.isLastInstruction = true;
 
-    u32 function = HLE::GetFunctionIndex(ops[i].address);
+    u32 function = HLE::GetFirstFunctionIndex(ops[i].address);
     if (function != 0)
     {
       int type = HLE::GetFunctionTypeByIndex(function);
@@ -608,9 +608,9 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
           HLEFunction(function);
           if (type == HLE::HLE_HOOK_REPLACE)
           {
-            MOV(32, R(EAX), PPCSTATE(npc));
+            MOV(32, R(RSCRATCH), PPCSTATE(npc));
             jit->js.downcountAmount += jit->js.st.numCycles;
-            WriteExitDestInOpArg(R(EAX));
+            WriteExitDestInOpArg(R(RSCRATCH));
             break;
           }
         }
