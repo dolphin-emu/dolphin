@@ -102,7 +102,7 @@ void Jit64AsmRoutineManager::Generate()
   MOV(64, R(RMEM), Imm64((u64)Memory::logical_base));
   SetJumpTarget(membaseend);
 
-  // The following is an translation of JitBaseBlockCache::Dispatch into assembly.
+  // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
 
   // Fast block number lookup.
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
