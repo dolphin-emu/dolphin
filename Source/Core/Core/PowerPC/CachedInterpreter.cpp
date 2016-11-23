@@ -158,7 +158,7 @@ void CachedInterpreter::Jit(u32 address)
   {
     js.downcountAmount += ops[i].opinfo->numCycles;
 
-    u32 function = HLE::GetFunctionIndex(ops[i].address);
+    u32 function = HLE::GetFirstFunctionIndex(ops[i].address);
     if (function != 0)
     {
       int type = HLE::GetFunctionTypeByIndex(function);
@@ -168,7 +168,7 @@ void CachedInterpreter::Jit(u32 address)
         if (HLE::IsEnabled(flags))
         {
           m_code.emplace_back(WritePC, ops[i].address);
-          m_code.emplace_back(Interpreter::HLEFunction, ops[i].inst);
+          m_code.emplace_back(Interpreter::HLEFunction, function);
           if (type == HLE::HLE_HOOK_REPLACE)
           {
             m_code.emplace_back(EndBlock, js.downcountAmount);
