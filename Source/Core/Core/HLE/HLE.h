@@ -32,7 +32,8 @@ u32 UnPatch(const std::string& patchName);
 bool UnPatch(u32 addr, const std::string& name = {});
 void Execute(u32 _CurrentPC, u32 _Instruction);
 
-u32 GetFunctionIndex(u32 em_address);
+u32 GetFunctionIndex(u32 address);
+u32 GetFirstFunctionIndex(u32 address);
 int GetFunctionTypeByIndex(u32 index);
 int GetFunctionFlagsByIndex(u32 index);
 

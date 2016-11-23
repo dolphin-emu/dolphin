@@ -164,6 +164,14 @@ u32 GetFunctionIndex(u32 addr)
   return (iter != s_original_instructions.end()) ? iter->second : 0;
 }
 
+u32 GetFirstFunctionIndex(u32 addr)
+{
+  u32 index = GetFunctionIndex(addr);
+  auto first = std::find_if(s_original_instructions.begin(), s_original_instructions.end(),
+                            [=](const auto& i) { return i.second == index && i.first < addr; });
+  return first == std::end(s_original_instructions) ? index : 0;
+}
+
 int GetFunctionTypeByIndex(u32 index)
 {
   return OSPatches[index].type;
