@@ -1227,6 +1227,7 @@ void CFrame::ParseHotkeys()
   static bool lockResizeWorld;
   static float lastRightPos[3];
   static float lastLeftPos[3];
+  static float lastLeftThumbPos[3];
   static double distanceBtwControllers;
 
   for (int i = 0; i < NUM_HOTKEYS; i++)
@@ -1573,19 +1574,24 @@ void CFrame::ParseHotkeys()
 		Matrix33 leftrot;
 
 		bool has_right_controller = VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
+
 		if (!lockGrabHud){
 			lockGrabHud = true;
 		}
 		else{			
 			g_Config.fHudDespPosition0 += leftpos[0] - lastLeftPos[0];
 			g_Config.fHudDespPosition1 += leftpos[1] - lastLeftPos[1];
-			g_Config.fHudDespPosition2 += leftpos[2] - lastLeftPos[2];
-
-			
+			g_Config.fHudDespPosition2 += leftpos[2] - lastLeftPos[2];			
+			g_Config.fHudDistance += leftthumbpos[1] - lastLeftThumbPos[1];
 		}
 		lastLeftPos[0] = leftpos[0];
 		lastLeftPos[1] = leftpos[1];
 		lastLeftPos[2] = leftpos[2];
+
+		lastLeftThumbPos[0] = leftthumbpos[0];
+		lastLeftThumbPos[1] = leftthumbpos[1];
+		lastLeftThumbPos[2] = leftthumbpos[2];
+
 	}
 	else{
 		lockGrabHud = false;
