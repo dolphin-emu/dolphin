@@ -559,6 +559,10 @@ void Renderer::SetViewport()
   float Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
   float Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777216.0f);
+  float min_depth =
+      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
+  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (Wd < 0.0f)
   {
     X += Wd;
@@ -568,6 +572,11 @@ void Renderer::SetViewport()
   {
     Y += Ht;
     Ht = -Ht;
+  }
+  if (xfmem.viewport.zRange < 0.0f)
+  {
+    min_depth = 1.0f - min_depth;
+    max_depth = 1.0f - max_depth;
   }
 
   // In D3D, the viewport rectangle must fit within the render target.
@@ -581,7 +590,7 @@ void Renderer::SetViewport()
   // the maximum value supported by the console GPU. We also need to account for the
   // fact that the entire depth buffer is inverted on D3D, so we set GX_MAX_DEPTH as
   // an inverted near value.
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - GX_MAX_DEPTH, D3D11_MAX_DEPTH);
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - max_depth, 1.0f - min_depth);
   D3D::context->RSSetViewports(1, &vp);
 }
 

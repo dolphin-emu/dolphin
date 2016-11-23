@@ -1635,6 +1635,10 @@ void Renderer::SetViewport()
   float y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_offset);
   float width = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float height = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777216.0f, 16777216.0f);
+  float min_depth =
+      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
+  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (width < 0.0f)
   {
     x += width;
@@ -1645,29 +1649,16 @@ void Renderer::SetViewport()
     y += height;
     height = -height;
   }
+  if (xfmem.viewport.zRange < 0.0f)
+  {
+    min_depth = 1.0f - min_depth;
+    max_depth = 1.0f - max_depth;
+  }
 
   // If we do depth clipping and depth range in the vertex shader we only need to ensure
   // depth values don't exceed the maximum value supported by the console GPU. If not,
   // we simply clamp the near/far values themselves to the maximum value as done above.
-  float min_depth, max_depth;
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    min_depth = 1.0f - GX_MAX_DEPTH;
-    max_depth = 1.0f;
-  }
-  else
-  {
-    float near_val = MathUtil::Clamp<float>(xfmem.viewport.farZ -
-                                                MathUtil::Clamp<float>(xfmem.viewport.zRange,
-                                                                       -16777216.0f, 16777216.0f),
-                                            0.0f, 16777215.0f) /
-                     16777216.0f;
-    float far_val = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
-    min_depth = near_val;
-    max_depth = far_val;
-  }
-
-  VkViewport viewport = {x, y, width, height, min_depth, max_depth};
+  VkViewport viewport = {x, y, width, height, 1.0f - max_depth, 1.0f - min_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
 }
 
