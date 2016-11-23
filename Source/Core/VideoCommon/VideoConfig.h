@@ -215,9 +215,7 @@ struct VideoConfig final
   int iMotionSicknessMethod;
   int iMotionSicknessSkybox;
   float fMotionSicknessFOV;
-  float fHudDespPosition0;
-  float fHudDespPosition1;
-  float fHudDespPosition2;
+  
 
   int iVRPlayer;
   float fTimeWarpTweak;
@@ -249,6 +247,14 @@ struct VideoConfig final
   float fScreenPitch;
   float fTelescopeMaxFOV;
   float fReadPitch;
+
+  float fHudDespPosition0;
+  float fHudDespPosition1;
+  float fHudDespPosition2;
+  float fHudRotation0;
+  float fHudRotation1;
+  float fHudRotation2;
+
   u32 iCameraMinPoly;
   bool bDisable3D;
   bool bHudFullscreen;

@@ -1965,9 +1965,9 @@ void VertexShaderManager::SetProjectionConstants()
       }
 	  
 	  
-	  position[0] += (g_Config.fHudDespPosition0 * g_ActiveConfig.fUnitsPerMetre) ;
-	  position[1] += (g_Config.fHudDespPosition1 * g_ActiveConfig.fUnitsPerMetre) ;
-	  position[2] += (g_Config.fHudDespPosition2 * g_ActiveConfig.fUnitsPerMetre) ;
+	  position[0] += (g_ActiveConfig.fHudDespPosition0 * g_ActiveConfig.fUnitsPerMetre);
+	  position[1] += (g_ActiveConfig.fHudDespPosition1 * g_ActiveConfig.fUnitsPerMetre);
+	  position[2] += (g_ActiveConfig.fHudDespPosition2 * g_ActiveConfig.fUnitsPerMetre);
 	  
 
 	/*  float pos[3];	  

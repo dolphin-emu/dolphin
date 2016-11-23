@@ -1229,6 +1229,7 @@ void CFrame::ParseHotkeys()
   static float lastLeftPos[3];
   static float lastLeftThumbPos[3];
   static double distanceBtwControllers;
+  static float lastLeftRot[3];
 
   for (int i = 0; i < NUM_HOTKEYS; i++)
   {
@@ -1578,12 +1579,21 @@ void CFrame::ParseHotkeys()
 		if (!lockGrabHud){
 			lockGrabHud = true;
 		}
-		else{			
-			g_Config.fHudDespPosition0 += leftpos[0] - lastLeftPos[0];
-			g_Config.fHudDespPosition1 += leftpos[1] - lastLeftPos[1];
-			g_Config.fHudDespPosition2 += leftpos[2] - lastLeftPos[2];			
-			g_Config.fHudDistance += leftthumbpos[1] - lastLeftThumbPos[1];
+		else{						
+			g_ActiveConfig.fHudDespPosition0 += leftpos[0] - lastLeftPos[0];
+			g_ActiveConfig.fHudDespPosition1 += leftpos[1] - lastLeftPos[1];
+			g_ActiveConfig.fHudDespPosition2 += leftpos[2] - lastLeftPos[2];
+
+			g_ActiveConfig.fHudRotation0 += leftrot[0] - lastLeftRot[0];
+			g_ActiveConfig.fHudRotation1 += leftrot[1] - lastLeftRot[1];
+			g_ActiveConfig.fHudRotation2 += leftrot[2] - lastLeftRot[2];
+
+			g_ActiveConfig.fHudDistance += leftthumbpos[1] - lastLeftThumbPos[1];
 		}
+		lastLeftRot[0] = leftrot[0];
+		lastLeftRot[1] = leftrot[1];
+		lastLeftRot[2] = leftrot[2];
+
 		lastLeftPos[0] = leftpos[0];
 		lastLeftPos[1] = leftpos[1];
 		lastLeftPos[2] = leftpos[2];
