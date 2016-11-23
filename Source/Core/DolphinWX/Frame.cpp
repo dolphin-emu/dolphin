@@ -1223,8 +1223,10 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 void CFrame::ParseHotkeys()
 {
   static bool lockGripWorld;
+  static bool lockGrabHud;
   static bool lockResizeWorld;
   static float lastRightPos[3];
+  static float lastLeftPos[3];
   static double distanceBtwControllers;
 
   for (int i = 0; i < NUM_HOTKEYS; i++)
@@ -1561,6 +1563,32 @@ void CFrame::ParseHotkeys()
 	}
 	else{
 		lockGripWorld = false;
+	}
+
+	if (IsHotkey(VR_CONTROLLER_GRAB_HUD, true))
+	{
+
+		float leftpos[3] = { 0, 0, 0 };
+		float leftthumbpos[3] = { 0, 0, 0 };
+		Matrix33 leftrot;
+
+		bool has_right_controller = VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
+		if (!lockGrabHud){
+			lockGrabHud = true;
+		}
+		else{			
+			g_Config.fHudDespPosition0 += leftpos[0] - lastLeftPos[0];
+			g_Config.fHudDespPosition1 += leftpos[1] - lastLeftPos[1];
+			g_Config.fHudDespPosition2 += leftpos[2] - lastLeftPos[2];
+
+			
+		}
+		lastLeftPos[0] = leftpos[0];
+		lastLeftPos[1] = leftpos[1];
+		lastLeftPos[2] = leftpos[2];
+	}
+	else{
+		lockGrabHud = false;
 	}
 
 	if (IsHotkey(VR_CONTROLLER_SCALE_WORLD, true))

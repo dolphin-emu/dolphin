@@ -1863,7 +1863,7 @@ void VertexShaderManager::SetProjectionConstants()
         float zFar2D = rawProjection[5] / rawProjection[4];
         float zNear2D = zFar2D * rawProjection[4] / (rawProjection[4] - 1);
         float zObj = zNear2D + (zFar2D - zNear2D) * g_ActiveConfig.fHud3DCloser;
-
+		
         left2D *= zObj;
         right2D *= zObj;
         bottom2D *= zObj;
@@ -1963,6 +1963,18 @@ void VertexShaderManager::SetProjectionConstants()
         else
           position[2] = -HudDistance;  // - CameraForward;
       }
+	  
+	  
+	  position[0] += (g_Config.fHudDespPosition0 * g_ActiveConfig.fUnitsPerMetre) ;
+	  position[1] += (g_Config.fHudDespPosition1 * g_ActiveConfig.fUnitsPerMetre) ;
+	  position[2] += (g_Config.fHudDespPosition2 * g_ActiveConfig.fUnitsPerMetre) ;
+	  
+
+	/*  float pos[3];	  
+	  pos[0] = g_ActiveConfig.fHudDespRot0 * UnitsPerMetre;
+	  pos[1] = g_ActiveConfig.fHudDespRot1 * UnitsPerMetre;
+	  pos[2] = g_ActiveConfig.fHudDespRot2 * UnitsPerMetre;
+	  Matrix44::Translate(rotation_matrix, pos);*/
 
       Matrix44 scale_matrix, position_matrix;
       Matrix44::Scale(scale_matrix, scale);
