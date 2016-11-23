@@ -205,7 +205,7 @@ void CachedInterpreter::Jit(u32 address)
   {
     js.downcountAmount += ops[i].opinfo->numCycles;
 
-    u32 function = HLE::GetFunctionIndex(ops[i].address);
+    u32 function = HLE::GetFirstFunctionIndex(ops[i].address);
     if (function != 0)
     {
       int type = HLE::GetFunctionTypeByIndex(function);
