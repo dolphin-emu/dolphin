@@ -10,8 +10,6 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
-#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
@@ -25,6 +23,8 @@ static std::map<std::string, std::weak_ptr<File::IOFile>> openFiles;
 // This is used by several of the FileIO and /dev/fs functions
 std::string HLE_IPC_BuildFilename(std::string path_wii)
 {
+  std::string path_full = File::GetUserPath(D_SESSION_WIIROOT_IDX);
+
   // Replaces chars that FAT32 can't support with strings defined in /sys/replace
   for (auto& replacement : replacements)
   {
@@ -32,30 +32,9 @@ std::string HLE_IPC_BuildFilename(std::string path_wii)
       path_wii.replace(j, 1, replacement.second);
   }
 
-  const std::string root_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
-  const std::string full_path = root_path + path_wii;
+  path_full += path_wii;
 
-  const std::string absolute_root_path = File::GetAbsolutePath(root_path);
-  const std::string absolute_full_path = File::GetAbsolutePath(full_path);
-  if (absolute_root_path.empty() || absolute_full_path.empty())
-  {
-    PanicAlert("IOS HLE: Couldn't get an absolute path; the root directory will be returned. "
-               "This will most likely lead to failures.");
-    return root_path;
-  }
-
-  if (path_wii.empty() || path_wii[0] != '/' ||
-      absolute_full_path.compare(0, absolute_root_path.size(), absolute_root_path) != 0)
-  {
-    // Prevent the emulated system from accessing files that aren't in the NAND directory.
-    // (Emulated software that tries to exploit Dolphin might access a path like "/../..".)
-    WARN_LOG(WII_IPC_FILEIO,
-             "The emulated software tried to access a file outside of the NAND directory: %s",
-             absolute_full_path.c_str());
-    return root_path;
-  }
-
-  return full_path;
+  return path_full;
 }
 
 void HLE_IPC_CreateVirtualFATFilesystem()
