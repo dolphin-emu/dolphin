@@ -1228,7 +1228,8 @@ void CFrame::ParseHotkeys()
   static bool lockGrabHud;
   static bool lockResizeWorld;
   static float lastRightPos[3];
-  static float lastLeftPos[3];  
+  static float lastLeftPos[3]; 
+  static Matrix33 lastLeftRot;
   static double distanceBtwControllers;
   
 
@@ -1582,14 +1583,18 @@ void CFrame::ParseHotkeys()
 		}else{						
 			g_Config.fHudDespPosition0 += leftpos[0] - lastLeftPos[0];
 			g_Config.fHudDespPosition1 += leftpos[1] - lastLeftPos[1];
-			g_Config.fHudDespPosition2 += leftpos[2] - lastLeftPos[2];
+			g_Config.fHudDespPosition2 += leftpos[2] - lastLeftPos[2];			
+			for (int i = 0; i < 9; i++){
+				g_Config.matrixHudrot.data[i] += (leftrot.data[i] - lastLeftRot.data[i]);
+			}
+			
+
 		}
 		
-		g_Config.matrixHudrot = leftrot;
-
-		lastLeftPos[0] = leftpos[0];
-		lastLeftPos[1] = leftpos[1];
-		lastLeftPos[2] = leftpos[2];
+		lastLeftRot = leftrot;
+		for (int i = 0; i < 3; i++)
+			lastLeftPos[i] = leftpos[i];
+		
 	}
 	else{
 		lockGrabHud = false;
