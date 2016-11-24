@@ -87,8 +87,14 @@ std::string GetStringVA(u32 strReg)
         result += '%';
         continue;
       }
-      while (string[i] < 'A' || string[i] > 'z' || string[i] == 'l' || string[i] == '-')
+
+      while (i < string.size() &&
+             (string[i] < 'A' || string[i] > 'z' || string[i] == 'l' || string[i] == '-'))
+      {
         ArgumentBuffer += string[i++];
+      }
+      if (i >= string.size())
+        break;
 
       ArgumentBuffer += string[i];
 
@@ -135,6 +141,11 @@ std::string GetStringVA(u32 strReg)
       case 'p':
         // Override, so 64bit Dolphin prints 32bit pointers, since the ppc is 32bit :)
         result += StringFromFormat("%x", (u32)Parameter);
+        break;
+
+      case 'n':
+        PowerPC::HostWrite_U32(static_cast<u32>(result.size()), static_cast<u32>(Parameter));
+        // %n doesn't output anything, so the result variable is untouched
         break;
 
       default:

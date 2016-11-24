@@ -2,7 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cinttypes>
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <string>
@@ -14,6 +16,7 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/Network.h"
 #include "Common/SettingsHandler.h"
@@ -848,9 +851,16 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
     sa_len = sizeof(sa);
     int ret = getsockname(fd, &sa, &sa_len);
 
-    Memory::Write_U8(BufferOutSize, BufferOut);
-    Memory::Write_U8(sa.sa_family & 0xFF, BufferOut + 1);
-    Memory::CopyToEmu(BufferOut + 2, &sa.sa_data, BufferOutSize - 2);
+    if (BufferOutSize < 2 + sizeof(sa.sa_data))
+      WARN_LOG(WII_IPC_NET, "IOCTL_SO_GETSOCKNAME output buffer is too small. Truncating");
+
+    if (BufferOutSize > 0)
+      Memory::Write_U8(BufferOutSize, BufferOut);
+    if (BufferOutSize > 1)
+      Memory::Write_U8(sa.sa_family & 0xFF, BufferOut + 1);
+    if (BufferOutSize > 2)
+      Memory::CopyToEmu(BufferOut + 2, &sa.sa_data,
+                        std::min<size_t>(sizeof(sa.sa_data), BufferOutSize - 2));
     ReturnValue = ret;
     break;
   }
@@ -864,9 +874,16 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(u32 _CommandAddress)
 
     int ret = getpeername(fd, &sa, &sa_len);
 
-    Memory::Write_U8(BufferOutSize, BufferOut);
-    Memory::Write_U8(AF_INET, BufferOut + 1);
-    Memory::CopyToEmu(BufferOut + 2, &sa.sa_data, BufferOutSize - 2);
+    if (BufferOutSize < 2 + sizeof(sa.sa_data))
+      WARN_LOG(WII_IPC_NET, "IOCTL_SO_GETPEERNAME output buffer is too small. Truncating");
+
+    if (BufferOutSize > 0)
+      Memory::Write_U8(BufferOutSize, BufferOut);
+    if (BufferOutSize > 1)
+      Memory::Write_U8(AF_INET, BufferOut + 1);
+    if (BufferOutSize > 2)
+      Memory::CopyToEmu(BufferOut + 2, &sa.sa_data,
+                        std::min<size_t>(sizeof(sa.sa_data), BufferOutSize - 2));
 
     INFO_LOG(WII_IPC_NET, "IOCTL_SO_GETPEERNAME(%x)", fd);
 
