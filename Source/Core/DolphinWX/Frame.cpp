@@ -1230,7 +1230,7 @@ void CFrame::ParseHotkeys()
   static float lastRightPos[3];
   static float lastLeftPos[3];  
   static double distanceBtwControllers;
-  static Matrix33  lastLeftRot;
+  
 
   for (int i = 0; i < NUM_HOTKEYS; i++)
   {
@@ -1584,7 +1584,7 @@ void CFrame::ParseHotkeys()
 			g_Config.fHudDespPosition1 += leftpos[1] - lastLeftPos[1];
 			g_Config.fHudDespPosition2 += leftpos[2] - lastLeftPos[2];
 		}
-		//lastLeftRot = leftrot; todo borrar declaracion lastLeftRot
+		
 		g_Config.matrixHudrot = leftrot;
 
 		lastLeftPos[0] = leftpos[0];
