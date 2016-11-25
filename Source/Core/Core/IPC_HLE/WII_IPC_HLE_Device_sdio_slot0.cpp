@@ -44,7 +44,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::DoState(PointerWrap& p)
   p.Do(m_Status);
   p.Do(m_BlockLength);
   p.Do(m_BusWidth);
-  p.Do(m_Registers);
+  p.Do(m_registers);
 }
 
 void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
@@ -87,7 +87,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _
   OpenInternal();
 
   Memory::Write_U32(GetDeviceID(), _CommandAddress + 0x4);
-  memset(m_Registers, 0, sizeof(m_Registers));
+  m_registers.fill(0);
   m_Active = true;
   return GetDefaultReply();
 }
@@ -130,7 +130,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
     INFO_LOG(WII_IPC_SD, "IOCTL_WRITEHCR 0x%08x - 0x%08x", reg, val);
 
-    if (reg >= 0x200)
+    if (reg >= m_registers.size())
     {
       WARN_LOG(WII_IPC_SD, "IOCTL_WRITEHCR out of range");
       break;
@@ -139,17 +139,17 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     if ((reg == HCR_CLOCKCONTROL) && (val & 1))
     {
       // Clock is set to oscillate, enable bit 1 to say it's stable
-      m_Registers[reg] = val | 2;
+      m_registers[reg] = val | 2;
     }
     else if ((reg == HCR_SOFTWARERESET) && val)
     {
       // When a reset is specified, the register gets cleared
-      m_Registers[reg] = 0;
+      m_registers[reg] = 0;
     }
     else
     {
       // Default to just storing the new value
-      m_Registers[reg] = val;
+      m_registers[reg] = val;
     }
   }
   break;
@@ -158,13 +158,13 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
   {
     u32 reg = Memory::Read_U32(BufferIn);
 
-    if (reg >= 0x200)
+    if (reg >= m_registers.size())
     {
       WARN_LOG(WII_IPC_SD, "IOCTL_READHCR out of range");
       break;
     }
 
-    u32 val = m_Registers[reg];
+    u32 val = m_registers[reg];
     INFO_LOG(WII_IPC_SD, "IOCTL_READHCR 0x%08x - 0x%08x", reg, val);
 
     // Just reading the register

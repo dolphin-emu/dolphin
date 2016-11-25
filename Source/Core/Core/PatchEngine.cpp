@@ -239,7 +239,7 @@ bool ApplyFramePatches()
   UReg_MSR msr = MSR;
   if (!msr.DR || !msr.IR || !IsStackSane())
   {
-    INFO_LOG(
+    DEBUG_LOG(
         ACTIONREPLAY,
         "Need to retry later. CPU configuration is currently incorrect. PC = 0x%08X, MSR = 0x%08X",
         PC, MSR);

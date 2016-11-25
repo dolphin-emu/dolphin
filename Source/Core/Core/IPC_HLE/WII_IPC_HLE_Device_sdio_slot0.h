@@ -6,6 +6,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
@@ -119,7 +120,7 @@ private:
   u32 m_BlockLength;
   u32 m_BusWidth;
 
-  u32 m_Registers[0x200 / 4];
+  std::array<u32, 0x200 / sizeof(u32)> m_registers;
 
   File::IOFile m_Card;
 
