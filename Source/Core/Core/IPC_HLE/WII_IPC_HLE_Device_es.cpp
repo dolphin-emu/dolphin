@@ -31,21 +31,27 @@
 */
 // =============
 
-// need to include this before mbedtls/aes.h,
-// otherwise we may not get __STDC_FORMAT_MACROS
 #include <cinttypes>
-#include <mbedtls/aes.h>
+#include <cstdio>
+#include <cstring>
 #include <memory>
+#include <utility>
 #include <vector>
 
+#include <mbedtls/aes.h>
+
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
+#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/DVDInterface.h"
+#include "Core/HW/Memmap.h"
+#include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"

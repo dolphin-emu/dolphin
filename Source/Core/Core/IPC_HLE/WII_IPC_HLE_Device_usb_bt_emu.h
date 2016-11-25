@@ -7,32 +7,27 @@
 #include <algorithm>
 #include <deque>
 #include <queue>
+#include <string>
 #include <vector>
 
+#include "Common/CommonTypes.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/hci.h"
 
 class CWII_IPC_HLE_WiiMote;
+class PointerWrap;
 
 struct SQueuedEvent
 {
-  u8 m_buffer[1024];
+  u8 m_buffer[1024] = {0};
   u32 m_size = 0;
   u16 m_connectionHandle = 0;
 
-  SQueuedEvent(u32 size, u16 connectionHandle) : m_size(size), m_connectionHandle(connectionHandle)
-  {
-    if (m_size > 1024)
-    {
-      // i know this code sux...
-      PanicAlert("SQueuedEvent: allocate too big buffer!!");
-    }
-    memset(m_buffer, 0, 1024);
-  }
-
+  SQueuedEvent(u32 size, u16 handle);
   SQueuedEvent() = default;
 };
 
@@ -55,8 +50,6 @@ public:
   IPCCommandResult IOCtl(u32 _CommandAddress) override;
 
   u32 Update() override;
-
-  static void EnqueueReply(u32 CommandAddress);
 
   // Send ACL data back to Bluetooth stack
   void SendACLPacket(u16 connection_handle, const u8* data, u32 size);
@@ -194,9 +187,6 @@ private:
   void CommandVendorSpecific_FC4F(const u8* input, u32 size);
 
   static void DisplayDisconnectMessage(const int wiimoteNumber, const int reason);
-
-  // Debugging
-  void LOG_LinkKey(const u8* _pLinkKey);
 
 #pragma pack(push, 1)
 #define CONF_PAD_MAX_REGISTERED 10

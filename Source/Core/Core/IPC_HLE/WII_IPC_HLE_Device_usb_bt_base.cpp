@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -12,8 +13,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/SysConf.h"
-#include "Core/ConfigManager.h"
-#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 
@@ -85,4 +84,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::FillBuffer(const u8* 
   _assert_msg_(WII_IPC_WIIMOTE, size <= m_length, "FillBuffer: size %li > payload length %i", size,
                m_length);
   Memory::CopyToEmu(m_payload_addr, src, size);
+}
+
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::SetRetVal(const u32 retval) const
+{
+  Memory::Write_U32(retval, m_cmd_address + 4);
 }

@@ -4,6 +4,12 @@
 
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
 
+#include <functional>
+
+#include "Common/Assert.h"
+#include "Common/Logging/Log.h"
+#include "Core/HW/Memmap.h"
+
 namespace Core
 {
 void QueueHostJob(std::function<void()> job, bool run_during_stop);
@@ -58,8 +64,6 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(u32 command_address)
     }
     Memory::Write_U32(0, Memory::Read_U32(s_event_hook_address + 0x18));
     Memory::Write_U32(FS_SUCCESS, s_event_hook_address + 4);
-    Memory::Write_U32(IPC_REP_ASYNC, s_event_hook_address);
-    Memory::Write_U32(IPC_CMD_IOCTL, s_event_hook_address + 8);
     WII_IPC_HLE_Interface::EnqueueReply(s_event_hook_address);
     s_event_hook_address = 0;
     break;
@@ -152,12 +156,7 @@ void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
   u32 buffer_out = Memory::Read_U32(s_event_hook_address + 0x18);
   Memory::Write_U32(event, buffer_out);
 
-  // Fill in command buffer.
   Memory::Write_U32(FS_SUCCESS, s_event_hook_address + 4);
-  Memory::Write_U32(IPC_REP_ASYNC, s_event_hook_address);
-  Memory::Write_U32(IPC_CMD_IOCTL, s_event_hook_address + 8);
-
-  // Generate a reply to the IPC command.
   WII_IPC_HLE_Interface::EnqueueReply(s_event_hook_address);
   s_event_hook_address = 0;
 }

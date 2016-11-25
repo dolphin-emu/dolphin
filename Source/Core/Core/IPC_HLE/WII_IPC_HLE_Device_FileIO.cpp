@@ -2,18 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <algorithm>
+#include <cstdio>
+#include <map>
+#include <memory>
+#include <utility>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
-#include "Common/StringUtil.h"
-
-#include "Core/Core.h"
+#include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
@@ -93,11 +93,9 @@ void HLE_IPC_CreateVirtualFATFilesystem()
   }
 }
 
-CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 _DeviceID,
-                                                       const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName, false)  // not a real hardware
-      ,
-      m_Mode(0), m_SeekPos(0), m_file()
+CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 device_id,
+                                                       const std::string& device_name)
+    : IWII_IPC_HLE_Device(device_id, device_name, false)  // not a real hardware
 {
   Common::ReadReplacements(replacements);
 }

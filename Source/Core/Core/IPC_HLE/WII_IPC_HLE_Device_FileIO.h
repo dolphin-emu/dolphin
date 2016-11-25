@@ -5,9 +5,14 @@
 #pragma once
 
 #include <string>
+
+#include "Common/ChunkFile.h"
+#include "Common/CommonTypes.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 class PointerWrap;
+
 namespace File
 {
 class IOFile;
@@ -75,8 +80,8 @@ private:
     ISFS_IOCTL_SHUTDOWN = 13
   };
 
-  u32 m_Mode;
-  u32 m_SeekPos;
+  u32 m_Mode = 0;
+  u32 m_SeekPos = 0;
 
   std::string m_filepath;
   std::shared_ptr<File::IOFile> m_file;

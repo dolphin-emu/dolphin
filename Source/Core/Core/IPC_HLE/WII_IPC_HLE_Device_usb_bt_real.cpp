@@ -3,19 +3,30 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstdint>
+#include <cstring>
 #include <iomanip>
+#include <iterator>
 #include <map>
 #include <memory>
 #include <sstream>
 #include <string>
+#include <utility>
+#include <vector>
 
 #include <libusb.h>
 
+#include "Common/Assert.h"
+#include "Common/ChunkFile.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/Network.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/CoreTiming.h"
+#include "Core/HW/Memmap.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
 #include "Core/IPC_HLE/hci.h"
 
@@ -28,13 +39,6 @@ static Common::Flag s_need_reset_keys;
 // This flag is set when a libusb transfer failed (for reasons other than timing out)
 // and we showed an OSD message about it.
 static Common::Flag s_showed_failed_transfer;
-
-static void EnqueueReply(const u32 command_address)
-{
-  Memory::Write_U32(Memory::Read_U32(command_address), command_address + 8);
-  Memory::Write_U32(IPC_REP_ASYNC, command_address);
-  WII_IPC_HLE_Interface::EnqueueReply(command_address, 0, CoreTiming::FromThread::ANY);
-}
 
 static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
 {
@@ -394,7 +398,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeVendorCommandReply(const Ctrl
   hci_event->PacketIndicator = 0x01;
   hci_event->Opcode = m_fake_vendor_command_reply_opcode;
   ctrl.SetRetVal(sizeof(SHCIEventCommand));
-  EnqueueReply(ctrl.m_cmd_address);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl.m_cmd_address);
 }
 
 // Due to how the widcomm stack which Nintendo uses is coded, we must never
@@ -420,7 +424,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeReadBufferSizeReply(const Ctr
 
   memcpy(packet + sizeof(SHCIEventCommand), &reply, sizeof(hci_read_buffer_size_rp));
   ctrl.SetRetVal(sizeof(SHCIEventCommand) + sizeof(hci_read_buffer_size_rp));
-  EnqueueReply(ctrl.m_cmd_address);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl.m_cmd_address);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonEvent(const CtrlBuffer& ctrl,
@@ -432,7 +436,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonEvent(const CtrlBuf
   hci_event->length = size;
   memcpy(packet + sizeof(hci_event_hdr_t), payload, size);
   ctrl.SetRetVal(sizeof(hci_event_hdr_t) + size);
-  EnqueueReply(ctrl.m_cmd_address);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl.m_cmd_address);
 }
 
 // When the red sync button is pressed, a HCI event is generated:
@@ -578,7 +582,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CommandCallback(libusb_transfer* 
     s_showed_failed_transfer.Clear();
   }
 
-  EnqueueReply(cmd->address);
+  WII_IPC_HLE_Interface::EnqueueReply(cmd->address, 0, CoreTiming::FromThread::NON_CPU);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer* tr)
@@ -623,5 +627,5 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer*
   }
 
   ctrl->SetRetVal(tr->actual_length);
-  EnqueueReply(ctrl->m_cmd_address);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl->m_cmd_address, 0, CoreTiming::FromThread::NON_CPU);
 }
