@@ -364,6 +364,7 @@ bool InitOpenVR()
     }
     if (g_has_openvr)
     {
+      g_vr_needs_DXGIFactory1 = true;
       g_vr_cant_motion_blur = true;
       g_vr_has_dynamic_predict = false;
       g_vr_has_configure_rendering = false;
@@ -411,7 +412,9 @@ bool InitOculusHMD()
 #endif
 #if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
     g_vr_should_swap_buffers = false;
+    g_vr_needs_DXGIFactory1 = false;
 #else
+    g_vr_needs_DXGIFactory1 = true;
     g_vr_should_swap_buffers = true;
 #endif
 
@@ -550,6 +553,8 @@ bool InitOculusVR()
   if (!hmd)
     WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
   return (hmd != nullptr);
+#else
+  return false;
 #endif
 }
 
