@@ -328,6 +328,25 @@ void SplitString(const std::string& str, const char delim, std::vector<std::stri
   output.pop_back();
 }
 
+std::string JoinString(const std::vector<std::string>& strings, char delim)
+{
+  size_t size = strings.size();
+  for (const std::string& str : strings)
+    size += str.size();
+
+  std::string result;
+  result.reserve(size);
+
+  for (const std::string& str : strings)
+  {
+    result.append(str);
+    result.push_back(delim);
+  }
+
+  result.pop_back();
+  return result;
+}
+
 std::string TabsToSpaces(int tab_size, const std::string& in)
 {
   const std::string spaces(tab_size, ' ');

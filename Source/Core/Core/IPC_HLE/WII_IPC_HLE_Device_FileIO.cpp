@@ -16,25 +16,16 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
-static Common::replace_v replacements;
-
 static std::map<std::string, std::weak_ptr<File::IOFile>> openFiles;
 
 // This is used by several of the FileIO and /dev/fs functions
-std::string HLE_IPC_BuildFilename(std::string path_wii)
+std::string HLE_IPC_BuildFilename(const std::string& wii_path)
 {
-  std::string path_full = File::GetUserPath(D_SESSION_WIIROOT_IDX);
+  std::string nand_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
+  if (wii_path.empty() || wii_path[0] != '/')
+    return nand_path;
 
-  // Replaces chars that FAT32 can't support with strings defined in /sys/replace
-  for (auto& replacement : replacements)
-  {
-    for (size_t j = 0; (j = path_wii.find(replacement.first, j)) != path_wii.npos; ++j)
-      path_wii.replace(j, 1, replacement.second);
-  }
-
-  path_full += path_wii;
-
-  return path_full;
+  return nand_path + Common::EscapePath(wii_path);
 }
 
 void HLE_IPC_CreateVirtualFATFilesystem()
@@ -76,7 +67,6 @@ CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 device_id,
                                                        const std::string& device_name)
     : IWII_IPC_HLE_Device(device_id, device_name, false)  // not a real hardware
 {
-  Common::ReadReplacements(replacements);
 }
 
 CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
