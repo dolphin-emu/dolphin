@@ -7,6 +7,7 @@
 #include <memory>
 #include <utility>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -22,10 +23,11 @@ static std::map<std::string, std::weak_ptr<File::IOFile>> openFiles;
 std::string HLE_IPC_BuildFilename(const std::string& wii_path)
 {
   std::string nand_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
-  if (wii_path.empty() || wii_path[0] != '/')
-    return nand_path;
+  if (wii_path.compare(0, 1, "/") == 0)
+    return nand_path + Common::EscapePath(wii_path);
 
-  return nand_path + Common::EscapePath(wii_path);
+  _assert_(false);
+  return nand_path;
 }
 
 void HLE_IPC_CreateVirtualFATFilesystem()

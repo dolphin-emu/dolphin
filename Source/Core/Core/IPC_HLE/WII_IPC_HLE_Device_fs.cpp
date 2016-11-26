@@ -22,6 +22,11 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
+static bool IsValidWiiPath(const std::string& path)
+{
+  return path.compare(0, 1, "/") == 0;
+}
+
 CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
@@ -93,9 +98,18 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
   {
   case IOCTLV_READ_DIR:
   {
+    const std::string relative_path =
+        Memory::GetString(CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size);
+
+    if (!IsValidWiiPath(relative_path))
+    {
+      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", relative_path.c_str());
+      ReturnValue = FS_RESULT_FATAL;
+      break;
+    }
+
     // the Wii uses this function to define the type (dir or file)
-    std::string DirName(HLE_IPC_BuildFilename(
-        Memory::GetString(CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size)));
+    std::string DirName(HLE_IPC_BuildFilename(relative_path));
 
     INFO_LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", DirName.c_str());
 
@@ -177,6 +191,14 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
     // It should be correct, but don't count on it...
     std::string relativepath =
         Memory::GetString(CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size);
+
+    if (!IsValidWiiPath(relativepath))
+    {
+      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", relativepath.c_str());
+      ReturnValue = FS_RESULT_FATAL;
+      break;
+    }
+
     std::string path(HLE_IPC_BuildFilename(relativepath));
     u32 fsBlocks = 0;
     u32 iNodes = 0;
@@ -291,7 +313,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     Addr += 4;
     u16 GroupID = Memory::Read_U16(Addr);
     Addr += 2;
-    std::string DirName(HLE_IPC_BuildFilename(Memory::GetString(Addr, 64)));
+    const std::string wii_path = Memory::GetString(Addr, 64);
+    if (!IsValidWiiPath(wii_path))
+    {
+      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      return FS_RESULT_FATAL;
+    }
+    std::string DirName(HLE_IPC_BuildFilename(wii_path));
     Addr += 64;
     Addr += 9;  // owner attribs, permission
     u8 Attribs = Memory::Read_U8(Addr);
@@ -316,7 +344,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     Addr += 4;
     u16 GroupID = Memory::Read_U16(Addr);
     Addr += 2;
-    std::string Filename = HLE_IPC_BuildFilename(Memory::GetString(_BufferIn, 64));
+    const std::string wii_path = Memory::GetString(_BufferIn, 64);
+    if (!IsValidWiiPath(wii_path))
+    {
+      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      return FS_RESULT_FATAL;
+    }
+    std::string Filename = HLE_IPC_BuildFilename(wii_path);
     Addr += 64;
     u8 OwnerPerm = Memory::Read_U8(Addr);
     Addr += 1;
@@ -348,7 +382,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     u32 OwnerID = 0;
     u16 GroupID = 0x3031;  // this is also known as makercd, 01 (0x3031) for nintendo and 08
                            // (0x3038) for MH3 etc
-    std::string Filename = HLE_IPC_BuildFilename(Memory::GetString(_BufferIn, 64));
+    const std::string wii_path = Memory::GetString(_BufferIn, 64);
+    if (!IsValidWiiPath(wii_path))
+    {
+      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      return FS_RESULT_FATAL;
+    }
+    std::string Filename = HLE_IPC_BuildFilename(wii_path);
     u8 OwnerPerm = 0x3;    // read/write
     u8 GroupPerm = 0x3;    // read/write
     u8 OtherPerm = 0x3;    // read/write
@@ -401,7 +441,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     _dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
     int Offset = 0;
 
-    std::string Filename = HLE_IPC_BuildFilename(Memory::GetString(_BufferIn + Offset, 64));
+    const std::string wii_path = Memory::GetString(_BufferIn + Offset, 64);
+    if (!IsValidWiiPath(wii_path))
+    {
+      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      return FS_RESULT_FATAL;
+    }
+    std::string Filename = HLE_IPC_BuildFilename(wii_path);
     Offset += 64;
     if (File::Delete(Filename))
     {
@@ -425,10 +471,22 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     _dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
     int Offset = 0;
 
-    std::string Filename = HLE_IPC_BuildFilename(Memory::GetString(_BufferIn + Offset, 64));
+    const std::string wii_path = Memory::GetString(_BufferIn + Offset, 64);
+    if (!IsValidWiiPath(wii_path))
+    {
+      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      return FS_RESULT_FATAL;
+    }
+    std::string Filename = HLE_IPC_BuildFilename(wii_path);
     Offset += 64;
 
-    std::string FilenameRename = HLE_IPC_BuildFilename(Memory::GetString(_BufferIn + Offset, 64));
+    const std::string wii_path_rename = Memory::GetString(_BufferIn + Offset, 64);
+    if (!IsValidWiiPath(wii_path_rename))
+    {
+      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path_rename.c_str());
+      return FS_RESULT_FATAL;
+    }
+    std::string FilenameRename = HLE_IPC_BuildFilename(wii_path_rename);
     Offset += 64;
 
     // try to make the basis directory
@@ -465,7 +523,13 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     Addr += 4;
     u16 GroupID = Memory::Read_U16(Addr);
     Addr += 2;
-    std::string Filename(HLE_IPC_BuildFilename(Memory::GetString(Addr, 64)));
+    const std::string wii_path = Memory::GetString(Addr, 64);
+    if (!IsValidWiiPath(wii_path))
+    {
+      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      return FS_RESULT_FATAL;
+    }
+    std::string Filename(HLE_IPC_BuildFilename(wii_path));
     Addr += 64;
     u8 OwnerPerm = Memory::Read_U8(Addr);
     Addr++;
