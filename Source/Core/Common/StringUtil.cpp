@@ -10,7 +10,9 @@
 #include <cstring>
 #include <iomanip>
 #include <istream>
+#include <iterator>
 #include <limits.h>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -326,6 +328,21 @@ void SplitString(const std::string& str, const char delim, std::vector<std::stri
     output.push_back("");
 
   output.pop_back();
+}
+
+std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter)
+{
+  // Check if we can return early, just for speed
+  if (strings.empty())
+    return "";
+
+  std::stringstream res;
+  std::copy(strings.begin(), strings.end(),
+            std::ostream_iterator<std::string>(res, delimiter.c_str()));
+
+  // Drop the trailing delimiter.
+  std::string joined = res.str();
+  return joined.substr(0, joined.length() - delimiter.length());
 }
 
 std::string TabsToSpaces(int tab_size, const std::string& in)

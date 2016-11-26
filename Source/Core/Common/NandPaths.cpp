@@ -2,10 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstdio>
 #include <fstream>
 #include <stdlib.h>
 #include <string>
+#include <unordered_set>
 #include <utility>
 
 #include "Common/CommonFuncs.h"
@@ -117,36 +119,61 @@ bool CheckTitleTIK(u64 _titleID, FromWhichRoot from)
   return false;
 }
 
-static void CreateReplacementFile(std::string& filename)
+std::string EscapeFileName(const std::string& filename)
 {
-  std::ofstream replace;
-  OpenFStream(replace, filename, std::ios_base::out);
-  replace << "\" __22__\n";
-  replace << "* __2a__\n";
-  // replace << "/ __2f__\n";
-  replace << ": __3a__\n";
-  replace << "< __3c__\n";
-  replace << "> __3e__\n";
-  replace << "? __3f__\n";
-  // replace <<"\\ __5c__\n";
-  replace << "| __7c__\n";
+  // Prevent paths from containing special names like ., .., ..., ...., and so on
+  if (std::all_of(filename.begin(), filename.end(), [](char c) { return c == '.'; }))
+    return ReplaceAll(filename, ".", "__2e__");
+
+  // Escape all double underscores since we will use double underscores for our escape sequences
+  std::string filename_with_escaped_double_underscores = ReplaceAll(filename, "__", "__5f____5f__");
+
+  // Escape all other characters that need to be escaped
+  static const std::unordered_set<char> chars_to_replace = {'\"', '*', '/',  ':', '<',
+                                                            '>',  '?', '\\', '|', '\x7f'};
+  std::string result;
+  result.reserve(filename_with_escaped_double_underscores.size());
+  for (char c : filename_with_escaped_double_underscores)
+  {
+    if ((c >= 0 && c <= 0x1F) || chars_to_replace.find(c) != chars_to_replace.end())
+      result.append(StringFromFormat("__%02x__", c));
+    else
+      result.push_back(c);
+  }
+
+  return result;
 }
 
-void ReadReplacements(replace_v& replacements)
+std::string EscapePath(const std::string& path)
 {
-  replacements.clear();
-  const std::string replace_fname = "/sys/replace";
-  std::string filename = File::GetUserPath(D_SESSION_WIIROOT_IDX) + replace_fname;
+  std::vector<std::string> split_strings;
+  SplitString(path, '/', split_strings);
 
-  if (!File::Exists(filename))
-    CreateReplacementFile(filename);
+  std::vector<std::string> escaped_split_strings;
+  escaped_split_strings.reserve(split_strings.size());
+  for (const std::string& split_string : split_strings)
+    escaped_split_strings.push_back(EscapeFileName(split_string));
 
-  std::ifstream f;
-  OpenFStream(f, filename, std::ios_base::in);
-  char letter;
-  std::string replacement;
+  return JoinStrings(escaped_split_strings, "/");
+}
 
-  while (f >> letter >> replacement && replacement.size())
-    replacements.emplace_back(letter, replacement);
+std::string UnescapeFileName(const std::string& filename)
+{
+  std::string result = filename;
+  size_t pos = 0;
+
+  // Replace escape sequences of the format "__3f__" with the ASCII
+  // character defined by the escape sequence's two hex digits.
+  while ((pos = result.find("__", pos)) != std::string::npos)
+  {
+    u32 character;
+    if (pos + 6 <= result.size() && result[pos + 4] == '_' && result[pos + 5] == '_')
+      if (AsciiToHex(result.substr(pos + 2, 2), character))
+        result.replace(pos, 6, {static_cast<char>(character)});
+
+    ++pos;
+  }
+
+  return result;
 }
 }
