@@ -52,6 +52,7 @@ void HLE_GeneralDebugPrint()
     report_message = GetStringVA();
   }
 
+  rGPR[3] = static_cast<u32>(report_message.length());
   NPC = LR;
 
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
