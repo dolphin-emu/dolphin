@@ -22,12 +22,9 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
-static Common::replace_v replacements;
-
 CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
-  Common::ReadReplacements(replacements);
 }
 
 CWII_IPC_HLE_Device_fs::~CWII_IPC_HLE_Device_fs()
@@ -132,10 +129,9 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
     {
       for (File::FSTEntry& child : entry.children)
       {
-        // Decode entities of invalid file system characters so that
-        // games (such as HP:HBP) will be able to find what they expect.
-        for (const Common::replace_t& r : replacements)
-          child.virtualName = ReplaceAll(child.virtualName, r.second, {r.first});
+        // Decode escaped invalid file system characters so that games (such as
+        // Harry Potter and the Half-Blood Prince) can find what they expect.
+        child.virtualName = Common::UnescapeFileName(child.virtualName);
       }
 
       std::sort(entry.children.begin(), entry.children.end(),

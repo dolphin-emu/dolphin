@@ -15,9 +15,6 @@ static const std::string TITLEID_SYSMENU_STRING = "0000000100000002";
 
 namespace Common
 {
-typedef std::pair<char, std::string> replace_t;
-typedef std::vector<replace_t> replace_v;
-
 void InitializeWiiRoot(bool use_temporary);
 void ShutdownWiiRoot();
 
@@ -33,5 +30,11 @@ std::string GetTitleDataPath(u64 _titleID, FromWhichRoot from);
 std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from);
 bool CheckTitleTMD(u64 _titleID, FromWhichRoot from);
 bool CheckTitleTIK(u64 _titleID, FromWhichRoot from);
-void ReadReplacements(replace_v& replacements);
+
+// Escapes characters that are invalid or have special meanings in the host file system
+std::string EscapeFileName(const std::string& filename);
+// Escapes characters that are invalid or have special meanings in the host file system
+std::string EscapePath(const std::string& path);
+// Reverses escaping done by EscapeFileName
+std::string UnescapeFileName(const std::string& filename);
 }
