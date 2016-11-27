@@ -14,11 +14,11 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -264,7 +264,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd,
 
     if (m_IsWAD)
     {
-      u32 rounded_size = ROUND_UP(content.m_Size, 0x40);
+      u32 rounded_size = Common::AlignUp(content.m_Size, 0x40);
 
       iv.fill(0);
       std::copy(&tmd[entry_offset + 0x01E8], &tmd[entry_offset + 0x01E8 + 2], iv.begin());

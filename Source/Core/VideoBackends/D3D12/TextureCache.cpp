@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/TextureCache.h"
+#include "Common/Align.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
@@ -44,7 +45,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
   u32 level_width = std::max(config.width >> level, 1u);
   u32 level_height = std::max(config.height >> level, 1u);
   size_t level_pitch =
-      D3D::AlignValue(level_width * sizeof(u32), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+      Common::AlignUp(level_width * sizeof(u32), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
   size_t required_readback_buffer_size = level_pitch * level_height;
 
   // Check if the current readback buffer is large enough
