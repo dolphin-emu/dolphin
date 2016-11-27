@@ -18,6 +18,7 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Align.h" />
     <ClInclude Include="Atomic.h" />
     <ClInclude Include="Atomic_GCC.h" />
     <ClInclude Include="Atomic_Win32.h" />

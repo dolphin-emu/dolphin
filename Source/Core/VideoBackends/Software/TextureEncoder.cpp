@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/Align.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
@@ -215,7 +216,7 @@ static void SetSpans(int sBlkSize, int tBlkSize, s32* tSpan, s32* sBlkSpan, s32*
 {
   // width is 1 less than the number of pixels of width
   u32 width = bpmem.copyTexSrcWH.x >> bpmem.triggerEFBCopy.half_scale;
-  u32 alignedWidth = (width + sBlkSize) & (~(sBlkSize - 1));
+  u32 alignedWidth = Common::AlignUp(width, sBlkSize);
 
   u32 readStride = 3 << bpmem.triggerEFBCopy.half_scale;
 

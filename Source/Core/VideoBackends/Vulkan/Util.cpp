@@ -4,6 +4,7 @@
 
 #include "VideoBackends/Vulkan/Util.h"
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/MathUtil.h"
@@ -20,22 +21,13 @@ namespace Vulkan
 {
 namespace Util
 {
-size_t AlignValue(size_t value, size_t alignment)
-{
-  // Have to use mod rather than masking bits in case alignment is not a power of two.
-  size_t offset = value % alignment;
-  if (offset != 0)
-    value += (alignment - offset);
-  return value;
-}
-
 size_t AlignBufferOffset(size_t offset, size_t alignment)
 {
   // Assume an offset of zero is already aligned to a value larger than alignment.
   if (offset == 0)
     return 0;
 
-  return AlignValue(offset, alignment);
+  return Common::AlignUp(offset, alignment);
 }
 
 u32 MakeRGBA8Color(float r, float g, float b, float a)

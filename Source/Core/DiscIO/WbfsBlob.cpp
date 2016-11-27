@@ -9,6 +9,7 @@
 #include <string>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -21,11 +22,6 @@ namespace DiscIO
 static const u64 WII_SECTOR_SIZE = 0x8000;
 static const u64 WII_SECTOR_COUNT = 143432 * 2;
 static const u64 WII_DISC_HEADER_SIZE = 256;
-
-static inline u64 align(u64 value, u64 bounds)
-{
-  return (value + (bounds - 1)) & (~(bounds - 1));
-}
 
 WbfsFileReader::WbfsFileReader(const std::string& filename)
     : m_total_files(0), m_size(0), m_good(true)
@@ -104,7 +100,7 @@ bool WbfsFileReader::ReadHeader()
   m_blocks_per_disc =
       (WII_SECTOR_COUNT * WII_SECTOR_SIZE + m_wbfs_sector_size - 1) / m_wbfs_sector_size;
   m_disc_info_size =
-      align(WII_DISC_HEADER_SIZE + m_blocks_per_disc * sizeof(u16), m_hd_sector_size);
+      Common::AlignUp(WII_DISC_HEADER_SIZE + m_blocks_per_disc * sizeof(u16), m_hd_sector_size);
 
   return m_header.disc_table[0] != 0;
 }

@@ -5,8 +5,8 @@
 #include <memory>
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/Common.h"
-#include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
@@ -148,22 +148,22 @@ void ProgramShaderCache::UploadConstants()
 
     memcpy(buffer.first, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
 
-    memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
+    memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align),
            &VertexShaderManager::constants, sizeof(VertexShaderConstants));
 
-    memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
-               ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
+    memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
+               Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
            &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size);
     glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
                       sizeof(PixelShaderConstants));
     glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer,
-                      buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
+                      buffer.second + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align),
                       sizeof(VertexShaderConstants));
     glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer,
-                      buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
-                          ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
+                      buffer.second + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
+                          Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
                       sizeof(GeometryShaderConstants));
 
     PixelShaderManager::dirty = false;
@@ -407,9 +407,10 @@ void ProgramShaderCache::Init()
   // then the UBO will fail.
   glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &s_ubo_align);
 
-  s_ubo_buffer_size = ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
-                      ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align) +
-                      ROUND_UP(sizeof(GeometryShaderConstants), s_ubo_align);
+  s_ubo_buffer_size =
+      static_cast<u32>(Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
+                       Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align) +
+                       Common::AlignUp(sizeof(GeometryShaderConstants), s_ubo_align));
 
   // We multiply by *4*4 because we need to get down to basic machine units.
   // So multiply by four to get how many floats we have from vec4s
