@@ -655,9 +655,6 @@ PFNDOLGETINTERNALFORMATIVPROC dolGetInternalformativ;
 PFNDOLGETACTIVEATOMICCOUNTERBUFFERIVPROC dolGetActiveAtomicCounterBufferiv;
 PFNDOLBINDIMAGETEXTUREPROC dolBindImageTexture;
 PFNDOLMEMORYBARRIERPROC dolMemoryBarrier;
-PFNDOLTEXSTORAGE1DPROC dolTexStorage1D;
-PFNDOLTEXSTORAGE2DPROC dolTexStorage2D;
-PFNDOLTEXSTORAGE3DPROC dolTexStorage3D;
 PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC dolDrawTransformFeedbackInstanced;
 PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackStreamInstanced;
 
@@ -904,6 +901,11 @@ PFNDOLTEXIMAGE2DMULTISAMPLEPROC dolTexImage2DMultisample;
 PFNDOLTEXIMAGE3DMULTISAMPLEPROC dolTexImage3DMultisample;
 PFNDOLGETMULTISAMPLEFVPROC dolGetMultisamplefv;
 PFNDOLSAMPLEMASKIPROC dolSampleMaski;
+
+// ARB_texture_storage
+PFNDOLTEXSTORAGE1DPROC dolTexStorage1D;
+PFNDOLTEXSTORAGE2DPROC dolTexStorage2D;
+PFNDOLTEXSTORAGE3DPROC dolTexStorage3D;
 
 // ARB_texture_storage_multisample
 PFNDOLTEXSTORAGE2DMULTISAMPLEPROC dolTexStorage2DMultisample;
@@ -1680,6 +1682,11 @@ const GLFunc gl_function_array[] = {
     GLFUNC_REQUIRES(glTexImage3DMultisample, "GL_ARB_texture_multisample"),
     GLFUNC_REQUIRES(glGetMultisamplefv, "GL_ARB_texture_multisample"),
     GLFUNC_REQUIRES(glSampleMaski, "GL_ARB_texture_multisample"),
+
+    // ARB_texture_storage
+    GLFUNC_REQUIRES(glTexStorage1D, "GL_ARB_texture_storage !VERSION_4_2"),
+    GLFUNC_REQUIRES(glTexStorage2D, "GL_ARB_texture_storage !VERSION_4_2 |VERSION_GLES_3"),
+    GLFUNC_REQUIRES(glTexStorage3D, "GL_ARB_texture_storage !VERSION_4_2 |VERSION_GLES_3"),
 
     // ARB_texture_storage_multisample
     GLFUNC_REQUIRES(glTexStorage2DMultisample,

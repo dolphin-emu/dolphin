@@ -134,7 +134,6 @@
 #define GL_COMPRESSED_SRGB_ALPHA_BPTC_UNORM 0x8E8D
 #define GL_COMPRESSED_RGB_BPTC_SIGNED_FLOAT 0x8E8E
 #define GL_COMPRESSED_RGB_BPTC_UNSIGNED_FLOAT 0x8E8F
-#define GL_TEXTURE_IMMUTABLE_FORMAT 0x912F
 
 typedef void(APIENTRYP PFNDOLDRAWARRAYSINSTANCEDBASEINSTANCEPROC)(GLenum mode, GLint first,
                                                                   GLsizei count,
@@ -156,12 +155,6 @@ typedef void(APIENTRYP PFNDOLBINDIMAGETEXTUREPROC)(GLuint unit, GLuint texture, 
                                                    GLboolean layered, GLint layer, GLenum access,
                                                    GLenum format);
 typedef void(APIENTRYP PFNDOLMEMORYBARRIERPROC)(GLbitfield barriers);
-typedef void(APIENTRYP PFNDOLTEXSTORAGE1DPROC)(GLenum target, GLsizei levels, GLenum internalformat,
-                                               GLsizei width);
-typedef void(APIENTRYP PFNDOLTEXSTORAGE2DPROC)(GLenum target, GLsizei levels, GLenum internalformat,
-                                               GLsizei width, GLsizei height);
-typedef void(APIENTRYP PFNDOLTEXSTORAGE3DPROC)(GLenum target, GLsizei levels, GLenum internalformat,
-                                               GLsizei width, GLsizei height, GLsizei depth);
 typedef void(APIENTRYP PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC)(GLenum mode, GLuint id,
                                                                  GLsizei instancecount);
 typedef void(APIENTRYP PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC)(GLenum mode, GLuint id,
@@ -176,9 +169,6 @@ extern PFNDOLGETINTERNALFORMATIVPROC dolGetInternalformativ;
 extern PFNDOLGETACTIVEATOMICCOUNTERBUFFERIVPROC dolGetActiveAtomicCounterBufferiv;
 extern PFNDOLBINDIMAGETEXTUREPROC dolBindImageTexture;
 extern PFNDOLMEMORYBARRIERPROC dolMemoryBarrier;
-extern PFNDOLTEXSTORAGE1DPROC dolTexStorage1D;
-extern PFNDOLTEXSTORAGE2DPROC dolTexStorage2D;
-extern PFNDOLTEXSTORAGE3DPROC dolTexStorage3D;
 extern PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC dolDrawTransformFeedbackInstanced;
 extern PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackStreamInstanced;
 
@@ -189,8 +179,5 @@ extern PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackSt
 #define glGetActiveAtomicCounterBufferiv dolGetActiveAtomicCounterBufferiv
 #define glBindImageTexture dolBindImageTexture
 #define glMemoryBarrier dolMemoryBarrier
-#define glTexStorage1D dolTexStorage1D
-#define glTexStorage2D dolTexStorage2D
-#define glTexStorage3D dolTexStorage3D
 #define glDrawTransformFeedbackInstanced dolDrawTransformFeedbackInstanced
 #define glDrawTransformFeedbackStreamInstanced dolDrawTransformFeedbackStreamInstanced

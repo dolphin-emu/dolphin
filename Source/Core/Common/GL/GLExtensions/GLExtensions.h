@@ -24,6 +24,7 @@
 #include "Common/GL/GLExtensions/ARB_shader_storage_buffer_object.h"
 #include "Common/GL/GLExtensions/ARB_sync.h"
 #include "Common/GL/GLExtensions/ARB_texture_multisample.h"
+#include "Common/GL/GLExtensions/ARB_texture_storage.h"
 #include "Common/GL/GLExtensions/ARB_texture_storage_multisample.h"
 #include "Common/GL/GLExtensions/ARB_uniform_buffer_object.h"
 #include "Common/GL/GLExtensions/ARB_vertex_array_object.h"
