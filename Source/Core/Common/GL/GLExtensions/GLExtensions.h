@@ -12,6 +12,7 @@
 #include "Common/GL/GLExtensions/ARB_blend_func_extended.h"
 #include "Common/GL/GLExtensions/ARB_buffer_storage.h"
 #include "Common/GL/GLExtensions/ARB_clip_control.h"
+#include "Common/GL/GLExtensions/ARB_compute_shader.h"
 #include "Common/GL/GLExtensions/ARB_copy_image.h"
 #include "Common/GL/GLExtensions/ARB_debug_output.h"
 #include "Common/GL/GLExtensions/ARB_draw_elements_base_vertex.h"

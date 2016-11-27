@@ -659,8 +659,6 @@ PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackStreamIns
 // gl_4_3
 PFNDOLCLEARBUFFERDATAPROC dolClearBufferData;
 PFNDOLCLEARBUFFERSUBDATAPROC dolClearBufferSubData;
-PFNDOLDISPATCHCOMPUTEPROC dolDispatchCompute;
-PFNDOLDISPATCHCOMPUTEINDIRECTPROC dolDispatchComputeIndirect;
 PFNDOLFRAMEBUFFERPARAMETERIPROC dolFramebufferParameteri;
 PFNDOLGETFRAMEBUFFERPARAMETERIVPROC dolGetFramebufferParameteriv;
 PFNDOLGETINTERNALFORMATI64VPROC dolGetInternalformati64v;
@@ -987,6 +985,10 @@ PFNDOLSHADERSTORAGEBLOCKBINDINGPROC dolShaderStorageBlockBinding;
 // ARB_shader_image_load_store
 PFNDOLBINDIMAGETEXTUREPROC dolBindImageTexture;
 PFNDOLMEMORYBARRIERPROC dolMemoryBarrier;
+
+// ARB_compute_shader
+PFNDOLDISPATCHCOMPUTEPROC dolDispatchCompute;
+PFNDOLDISPATCHCOMPUTEINDIRECTPROC dolDispatchComputeIndirect;
 
 // Creates a GLFunc object that requires a feature
 #define GLFUNC_REQUIRES(x, y)                                                                      \
@@ -1853,6 +1855,11 @@ const GLFunc gl_function_array[] = {
                     "GL_ARB_shader_image_load_store !VERSION_4_2 |VERSION_GLES_3_1"),
     GLFUNC_REQUIRES(glMemoryBarrier,
                     "GL_ARB_shader_image_load_store !VERSION_4_2 |VERSION_GLES_3_1"),
+
+    // ARB_compute_shader
+    GLFUNC_REQUIRES(glDispatchCompute, "GL_ARB_compute_shader !VERSION_4_3 |VERSION_GLES_3_1"),
+    GLFUNC_REQUIRES(glDispatchComputeIndirect,
+                    "GL_ARB_compute_shader !VERSION_4_3 |VERSION_GLES_3_1"),
 };
 
 namespace GLExtensions
