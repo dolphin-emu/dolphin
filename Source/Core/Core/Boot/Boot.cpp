@@ -6,10 +6,10 @@
 
 #include <zlib.h>
 
+#include "Common/Align.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
@@ -72,7 +72,7 @@ void CBoot::Load_FST(bool _bIsWii)
   volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
   volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
 
-  u32 arena_high = ROUND_DOWN(0x817FFFFF - (max_fst_size << shift), 0x20);
+  u32 arena_high = Common::AlignDown(0x817FFFFF - (max_fst_size << shift), 0x20);
   Memory::Write_U32(arena_high, 0x00000034);
 
   // load FST

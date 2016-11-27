@@ -7,6 +7,8 @@
 #include <memory>
 #include <string>
 
+#include "Common/Align.h"
+
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
@@ -254,8 +256,9 @@ int CD3DFont::Init()
   ID3D12Resource* temporaryFontTextureUploadBuffer;
   CheckHR(D3D::device12->CreateCommittedResource(
       &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), D3D12_HEAP_FLAG_NONE,
-      &CD3DX12_RESOURCE_DESC::Buffer(
-          AlignValue(m_tex_width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * m_tex_height),
+      &CD3DX12_RESOURCE_DESC::Buffer(Common::AlignUp(static_cast<unsigned int>(m_tex_width) * 4,
+                                                     D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) *
+                                     m_tex_height),
       D3D12_RESOURCE_STATE_GENERIC_READ, nullptr, IID_PPV_ARGS(&temporaryFontTextureUploadBuffer)));
 
   D3D12_SUBRESOURCE_DATA subresource_data_dest = {

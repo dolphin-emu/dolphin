@@ -10,17 +10,15 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
-
-#define ALIGN_40(x) ROUND_UP(Common::swap32(x), 0x40)
 
 namespace DiscIO
 {
@@ -35,9 +33,13 @@ CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader)
   Read(0x14, 4, (u8*)&m_tmd_size);
   Read(0x18, 4, (u8*)&m_data_size);
 
-  m_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size);
-  m_tmd_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
-  m_opening_bnr_offset = m_tmd_offset + ALIGN_40(m_tmd_size) + ALIGN_40(m_data_size);
+  m_offset = Common::AlignUp(Common::swap32(m_hdr_size), 0x40) +
+             Common::AlignUp(Common::swap32(m_cert_size), 0x40);
+  m_tmd_offset = Common::AlignUp(Common::swap32(m_hdr_size), 0x40) +
+                 Common::AlignUp(Common::swap32(m_cert_size), 0x40) +
+                 Common::AlignUp(Common::swap32(m_tick_size), 0x40);
+  m_opening_bnr_offset = m_tmd_offset + Common::AlignUp(Common::swap32(m_tmd_size), 0x40) +
+                         Common::AlignUp(Common::swap32(m_data_size), 0x40);
 }
 
 CVolumeWAD::~CVolumeWAD()

@@ -9,6 +9,7 @@
 #include <strsafe.h>
 #include <unordered_map>
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
@@ -180,7 +181,7 @@ void CreateScreenshotTexture()
   // This texture is released to be recreated when the window is resized in Renderer::SwapImpl.
 
   const unsigned int screenshot_buffer_size =
-      D3D::AlignValue(D3D::GetBackBufferWidth() * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) *
+      Common::AlignUp(D3D::GetBackBufferWidth() * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) *
       D3D::GetBackBufferHeight();
 
   CheckHR(D3D::device12->CreateCommittedResource(
@@ -757,7 +758,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
     dst_location.PlacedFootprint.Footprint.Width = GetTargetRectangle().GetWidth();
     dst_location.PlacedFootprint.Footprint.Height = GetTargetRectangle().GetHeight();
     dst_location.PlacedFootprint.Footprint.Depth = 1;
-    dst_location.PlacedFootprint.Footprint.RowPitch = D3D::AlignValue(
+    dst_location.PlacedFootprint.Footprint.RowPitch = Common::AlignUp(
         dst_location.PlacedFootprint.Footprint.Width * 4, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
 
     D3D12_TEXTURE_COPY_LOCATION src_location = {};

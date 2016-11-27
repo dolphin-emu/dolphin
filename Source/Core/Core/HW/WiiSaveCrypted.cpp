@@ -18,12 +18,12 @@
 #include <string>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
@@ -345,7 +345,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
       if (file_hdr_tmp.type == 1)
       {
         file_size = Common::swap32(file_hdr_tmp.size);
-        u32 file_size_rounded = ROUND_UP(file_size, BLOCK_SZ);
+        u32 file_size_rounded = Common::AlignUp(file_size, BLOCK_SZ);
         std::vector<u8> file_data(file_size_rounded);
         std::vector<u8> file_data_enc(file_size_rounded);
 
@@ -394,7 +394,7 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
       file_hdr_tmp.type = 1;
     }
 
-    u32 file_size_rounded = ROUND_UP(file_size, BLOCK_SZ);
+    u32 file_size_rounded = Common::AlignUp(file_size, BLOCK_SZ);
     file_hdr_tmp.magic = Common::swap32(FILE_HDR_MAGIC);
     file_hdr_tmp.size = Common::swap32(file_size);
     file_hdr_tmp.Permissions = 0x3c;
@@ -630,7 +630,7 @@ void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory,
         else
         {
           file_list.push_back(elem.physicalName);
-          size += ROUND_UP(elem.size, BLOCK_SZ);
+          size += static_cast<u32>(Common::AlignUp(elem.size, BLOCK_SZ));
         }
       }
     }

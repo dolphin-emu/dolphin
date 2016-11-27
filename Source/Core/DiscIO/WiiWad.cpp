@@ -6,11 +6,11 @@
 #include <memory>
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/WiiWad.h"
 
@@ -87,15 +87,15 @@ bool WiiWAD::ParseWAD(IBlobReader& reader)
 
   u32 offset = 0x40;
   m_certificate_chain = CreateWADEntry(reader, certificate_chain_size, offset);
-  offset += ROUND_UP(certificate_chain_size, 0x40);
+  offset += Common::AlignUp(certificate_chain_size, 0x40);
   m_ticket = CreateWADEntry(reader, ticket_size, offset);
-  offset += ROUND_UP(ticket_size, 0x40);
+  offset += Common::AlignUp(ticket_size, 0x40);
   m_tmd = CreateWADEntry(reader, tmd_size, offset);
-  offset += ROUND_UP(tmd_size, 0x40);
+  offset += Common::AlignUp(tmd_size, 0x40);
   m_data_app = CreateWADEntry(reader, data_app_size, offset);
-  offset += ROUND_UP(data_app_size, 0x40);
+  offset += Common::AlignUp(data_app_size, 0x40);
   m_footer = CreateWADEntry(reader, footer_size, offset);
-  offset += ROUND_UP(footer_size, 0x40);
+  offset += Common::AlignUp(footer_size, 0x40);
 
   return true;
 }

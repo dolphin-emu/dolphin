@@ -180,9 +180,6 @@ struct Rectangle
 
 float MathFloatVectorSum(const std::vector<float>&);
 
-#define ROUND_UP(x, a) (((x) + (a)-1) & ~((a)-1))
-#define ROUND_DOWN(x, a) ((x) & ~((a)-1))
-
 // Rounds down. 0 -> undefined
 inline int IntLog2(u64 val)
 {

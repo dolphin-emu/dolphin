@@ -7,10 +7,10 @@
 #include <cstring>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/Arm64Emitter.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
-#include "Common/MathUtil.h"
 
 namespace Arm64Gen
 {
@@ -2079,14 +2079,14 @@ bool ARM64XEmitter::MOVI2R2(ARM64Reg Rd, u64 imm1, u64 imm2)
 
 void ARM64XEmitter::ABI_PushRegisters(BitSet32 registers)
 {
-  int num_regs = registers.Count();
+  unsigned int num_regs = registers.Count();
 
   if (num_regs % 2)
   {
     bool first = true;
 
     // Stack is required to be quad-word aligned.
-    u32 stack_size = ROUND_UP(num_regs * 8, 16);
+    u32 stack_size = Common::AlignUp(num_regs * 8, 16);
     u32 current_offset = 0;
     std::vector<ARM64Reg> reg_pair;
 
