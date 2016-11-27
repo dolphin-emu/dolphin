@@ -174,6 +174,23 @@ public:
   virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
                               TlutFormat format) = 0;
 
+  // Returns true if the texture data and palette formats are supported by the GPU decoder.
+  virtual bool SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format)
+  {
+    return false;
+  }
+
+  // Decodes the specified data to the GPU texture specified by entry.
+  // width, height are the size of the image in pixels.
+  // aligned_width, aligned_height are the size of the image in pixels, aligned to the block size.
+  // row_stride is the number of bytes for a row of blocks, not pixels.
+  virtual void DecodeTextureOnGPU(TCacheEntryBase* entry, u32 dst_level, const u8* data,
+                                  size_t data_size, TextureFormat format, u32 width, u32 height,
+                                  u32 aligned_width, u32 aligned_height, u32 row_stride,
+                                  const u8* palette, TlutFormat palette_format)
+  {
+  }
+
 protected:
   TextureCacheBase();
 
@@ -216,6 +233,7 @@ private:
     bool s_copy_cache_enable;
     bool s_stereo_3d;
     bool s_efb_mono_depth;
+    bool s_gpu_texture_decoding;
   } backup_config;
 };
 
