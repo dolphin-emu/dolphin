@@ -113,7 +113,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
     {
       m_textureType = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
 
-      if (g_ogl_config.bSupports3DTextureStorage)
+      if (g_ogl_config.bSupports3DTextureStorageMultisample)
       {
         glBindTexture(m_textureType, m_efbColor);
         glTexStorage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth,
@@ -148,7 +148,7 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
     {
       m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
 
-      if (g_ogl_config.bSupports2DTextureStorage)
+      if (g_ogl_config.bSupports2DTextureStorageMultisample)
       {
         glBindTexture(m_textureType, m_efbColor);
         glTexStorage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth,
