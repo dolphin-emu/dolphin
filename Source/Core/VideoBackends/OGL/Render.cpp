@@ -606,6 +606,13 @@ Renderer::Renderer()
   if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
     g_ogl_config.max_samples = 1;
 
+  // We require texel buffers, image load store, and compute shaders to enable GPU texture decoding.
+  // If the driver doesn't expose the extensions, but supports GL4.3/GLES3.1, it will still be
+  // enabled in the version check below.
+  g_Config.backend_info.bSupportsGPUTextureDecoding =
+      g_Config.backend_info.bSupportsPaletteConversion &&
+      g_Config.backend_info.bSupportsComputeShaders && g_ogl_config.bSupportsImageLoadStore;
+
   if (g_ogl_config.bSupportsDebug)
   {
     if (GLExtensions::Supports("GL_KHR_debug"))
