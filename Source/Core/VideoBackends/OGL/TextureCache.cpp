@@ -121,10 +121,11 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
 
   if (config.rendertarget)
   {
-    for (u32 level = 0; level <= config.levels; level++)
+    for (u32 level = 0; level < config.levels; level++)
     {
-      glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, config.width, config.height, config.layers,
-                   0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+      glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, std::max(config.width >> level, 1u),
+                   std::max(config.height >> level, 1u), config.layers, 0, GL_RGBA,
+                   GL_UNSIGNED_BYTE, nullptr);
     }
     glGenFramebuffers(1, &entry->framebuffer);
     FramebufferManager::SetFramebuffer(entry->framebuffer);
