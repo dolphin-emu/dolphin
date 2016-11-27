@@ -102,6 +102,7 @@ struct VideoConfig final
   bool bUseFFV1;
   bool bFreeLook;
   bool bBorderlessFullscreen;
+  bool bEnableGPUTextureDecoding;
 
   // Hacks
   bool bEFBAccessEnable;
@@ -184,6 +185,7 @@ struct VideoConfig final
     bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsReversedDepthRange;
     bool bSupportsMultithreading;
+    bool bSupportsGPUTextureDecoding;
   } backend_info;
 
   // Utility
@@ -192,6 +194,10 @@ struct VideoConfig final
   bool ExclusiveFullscreenEnabled() const
   {
     return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
+  }
+  bool UseGPUTextureDecoding() const
+  {
+    return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
 };
 
