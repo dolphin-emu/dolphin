@@ -101,6 +101,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsExclusiveFullscreen = false;
   g_Config.backend_info.bSupportsOversizedViewports = true;
   g_Config.backend_info.bSupportsGeometryShaders = true;
+  g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsPostProcessing = true;
   g_Config.backend_info.bSupportsSSAA = true;

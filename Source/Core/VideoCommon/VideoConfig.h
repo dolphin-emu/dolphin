@@ -181,6 +181,7 @@ struct VideoConfig final
     bool bSupportsPrimitiveRestart;
     bool bSupportsOversizedViewports;
     bool bSupportsGeometryShaders;
+    bool bSupportsComputeShaders;
     bool bSupports3DVision;
     bool bSupportsEarlyZ;         // needed by PixelShaderGen, so must stay in VideoCommon
     bool bSupportsBindingLayout;  // Needed by ShaderGen, so must stay in VideoCommon
