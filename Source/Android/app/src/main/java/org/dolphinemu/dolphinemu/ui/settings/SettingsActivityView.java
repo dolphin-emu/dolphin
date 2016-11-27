@@ -90,4 +90,13 @@ public interface SettingsActivityView
 	 * @param value   New setting for the Wiimote.
 	 */
 	void onWiimoteSettingChanged(String section, int value);
+
+	/**
+	 * Called by a containing Fragment to tell the containing Activity that an extension setting
+	 * was modified.
+	 *
+	 * @param key   Identifier for the extension that was modified.
+	 * @param value New setting for the extension.
+	 */
+	void onExtensionSettingChanged(String key, int value);
 }
