@@ -90,6 +90,9 @@
     </ClInclude>
     <ClInclude Include="SamplerCache.h" />
     <ClInclude Include="VideoBackend.h" />
+    <ClInclude Include="GPUTimer.h">
+      <Filter>GLUtil</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
