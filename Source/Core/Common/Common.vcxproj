@@ -83,6 +83,7 @@
     <ClInclude Include="GL\GLExtensions\ARB_occlusion_query2.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sampler_objects.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sample_shading.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_shader_image_load_store.h" />
     <ClInclude Include="GL\GLExtensions\ARB_shader_storage_buffer_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sync.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_multisample.h" />
