@@ -635,6 +635,13 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsEarlyZ =
       g_ogl_config.bSupportsEarlyFragmentTests || g_ogl_config.bSupportsConservativeDepth;
 
+  // We require both texel buffers and compute shaders to enable GPU texture decoding.
+  // Strictly speaking we need image load store as well, but since we test for GL4.3 to
+  // determine whether we can use compute shaders, this check alone is sufficient.
+  g_Config.backend_info.bSupportsGPUTextureDecoding =
+      g_Config.backend_info.bSupportsPaletteConversion &&
+      g_Config.backend_info.bSupportsComputeShaders;
+
   if (g_ogl_config.bSupportsDebug)
   {
     if (GLExtensions::Supports("GL_KHR_debug"))
