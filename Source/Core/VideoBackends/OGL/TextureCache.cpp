@@ -119,13 +119,22 @@ TextureCache::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConf
 
   glTexParameteri(GL_TEXTURE_2D_ARRAY, GL_TEXTURE_MAX_LEVEL, config.levels - 1);
 
+  if (g_ogl_config.bSupportsTextureStorage)
+  {
+    glTexStorage3D(GL_TEXTURE_2D_ARRAY, config.levels, GL_RGBA8, config.width, config.height,
+                   config.layers);
+  }
+
   if (config.rendertarget)
   {
-    for (u32 level = 0; level < config.levels; level++)
+    if (!g_ogl_config.bSupportsTextureStorage)
     {
-      glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, std::max(config.width >> level, 1u),
-                   std::max(config.height >> level, 1u), config.layers, 0, GL_RGBA,
-                   GL_UNSIGNED_BYTE, nullptr);
+      for (u32 level = 0; level < config.levels; level++)
+      {
+        glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, std::max(config.width >> level, 1u),
+                     std::max(config.height >> level, 1u), config.layers, 0, GL_RGBA,
+                     GL_UNSIGNED_BYTE, nullptr);
+      }
     }
     glGenFramebuffers(1, &entry->framebuffer);
     FramebufferManager::SetFramebuffer(entry->framebuffer);
@@ -188,8 +197,16 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u3
   if (expanded_width != width)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
-  glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, width, height, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               buffer);
+  if (g_ogl_config.bSupportsTextureStorage)
+  {
+    glTexSubImage3D(GL_TEXTURE_2D_ARRAY, level, 0, 0, 0, width, height, 1, GL_RGBA,
+                    GL_UNSIGNED_BYTE, buffer);
+  }
+  else
+  {
+    glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, width, height, 1, 0, GL_RGBA,
+                 GL_UNSIGNED_BYTE, buffer);
+  }
 
   if (expanded_width != width)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);

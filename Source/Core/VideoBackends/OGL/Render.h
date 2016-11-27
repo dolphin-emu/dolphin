@@ -51,8 +51,9 @@ struct VideoConfig
   bool bSupportsCopySubImage;
   u8 SupportedESPointSize;
   ES_TEXBUF_TYPE SupportedESTextureBuffer;
-  bool bSupports2DTextureStorage;
-  bool bSupports3DTextureStorage;
+  bool bSupportsTextureStorage;
+  bool bSupports2DTextureStorageMultisample;
+  bool bSupports3DTextureStorageMultisample;
   bool bSupportsEarlyFragmentTests;
   bool bSupportsConservativeDepth;
   bool bSupportsAniso;

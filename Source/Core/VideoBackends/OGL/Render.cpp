@@ -451,10 +451,11 @@ Renderer::Renderer()
   g_ogl_config.bSupportViewportFloat = GLExtensions::Supports("GL_ARB_viewport_array");
   g_ogl_config.bSupportsDebug =
       GLExtensions::Supports("GL_KHR_debug") || GLExtensions::Supports("GL_ARB_debug_output");
-  g_ogl_config.bSupports3DTextureStorage =
+  g_ogl_config.bSupportsTextureStorage = GLExtensions::Supports("GL_ARB_texture_storage");
+  g_ogl_config.bSupports3DTextureStorageMultisample =
       GLExtensions::Supports("GL_ARB_texture_storage_multisample") ||
       GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array");
-  g_ogl_config.bSupports2DTextureStorage =
+  g_ogl_config.bSupports2DTextureStorageMultisample =
       GLExtensions::Supports("GL_ARB_texture_storage_multisample");
   g_ogl_config.bSupportsEarlyFragmentTests =
       GLExtensions::Supports("GL_ARB_shader_image_load_store");
@@ -486,6 +487,7 @@ Renderer::Renderer()
     {
       g_ogl_config.eSupportedGLSLVersion = GLSLES_300;
       g_ogl_config.bSupportsAEP = false;
+      g_ogl_config.bSupportsTextureStorage = true;
       g_Config.backend_info.bSupportsGeometryShaders = false;
     }
     else if (GLExtensions::Version() == 310)
@@ -500,9 +502,10 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
       g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
       g_ogl_config.bSupportsMSAA = true;
-      g_ogl_config.bSupports2DTextureStorage = true;
+      g_ogl_config.bSupportsTextureStorage = true;
+      g_ogl_config.bSupports2DTextureStorageMultisample = true;
       if (g_ActiveConfig.iStereoMode > 0 && g_ActiveConfig.iMultisamples > 1 &&
-          !g_ogl_config.bSupports3DTextureStorage)
+          !g_ogl_config.bSupports3DTextureStorageMultisample)
       {
         // GLES 3.1 can't support stereo rendering and MSAA
         OSD::AddMessage("MSAA Stereo rendering isn't supported by your GPU.", 10000);
@@ -524,8 +527,9 @@ Renderer::Renderer()
       g_ogl_config.bSupportsGLBaseVertex = true;
       g_ogl_config.bSupportsDebug = true;
       g_ogl_config.bSupportsMSAA = true;
-      g_ogl_config.bSupports2DTextureStorage = true;
-      g_ogl_config.bSupports3DTextureStorage = true;
+      g_ogl_config.bSupportsTextureStorage = true;
+      g_ogl_config.bSupports2DTextureStorageMultisample = true;
+      g_ogl_config.bSupports3DTextureStorageMultisample = true;
     }
   }
   else

@@ -65,7 +65,7 @@ GLuint FramebufferManager::CreateTexture(GLenum texture_type, GLenum internal_fo
   }
   else if (texture_type == GL_TEXTURE_2D_MULTISAMPLE_ARRAY)
   {
-    if (g_ogl_config.bSupports3DTextureStorage)
+    if (g_ogl_config.bSupports3DTextureStorageMultisample)
       glTexStorage3DMultisample(texture_type, m_msaaSamples, internal_format, m_targetWidth,
                                 m_targetHeight, m_EFBLayers, false);
     else
@@ -74,7 +74,7 @@ GLuint FramebufferManager::CreateTexture(GLenum texture_type, GLenum internal_fo
   }
   else if (texture_type == GL_TEXTURE_2D_MULTISAMPLE)
   {
-    if (g_ogl_config.bSupports2DTextureStorage)
+    if (g_ogl_config.bSupports2DTextureStorageMultisample)
       glTexStorage2DMultisample(texture_type, m_msaaSamples, internal_format, m_targetWidth,
                                 m_targetHeight, false);
     else
