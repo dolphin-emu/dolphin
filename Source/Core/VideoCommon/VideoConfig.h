@@ -108,6 +108,7 @@ struct VideoConfig final
   bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   bool bBorderlessFullscreen;
+  bool bEnableGPUTextureDecoding;
   int iBitrateKbps;
 
   // Hacks
@@ -196,6 +197,7 @@ struct VideoConfig final
     bool bSupportsReversedDepthRange;
     bool bSupportsMultithreading;
     bool bSupportsInternalResolutionFrameDumps;
+    bool bSupportsGPUTextureDecoding;
   } backend_info;
 
   // Utility
@@ -210,6 +212,10 @@ struct VideoConfig final
     if (backend_info.api_type == APIType::OpenGL && bBBoxPreferStencilImplementation)
       return false;
     return backend_info.bSupportsBBox && backend_info.bSupportsFragmentStoresAndAtomics;
+  }
+  bool UseGPUTextureDecoding() const
+  {
+    return backend_info.bSupportsGPUTextureDecoding && bEnableGPUTextureDecoding;
   }
 };
 

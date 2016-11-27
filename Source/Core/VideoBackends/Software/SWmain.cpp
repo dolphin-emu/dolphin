@@ -133,6 +133,7 @@ void VideoSoftware::InitBackendInfo()
   g_Config.backend_info.bSupportsMultithreading = false;
   g_Config.backend_info.bSupportsComputeShaders = false;
   g_Config.backend_info.bSupportsInternalResolutionFrameDumps = false;
+  g_Config.backend_info.bSupportsGPUTextureDecoding = false;
 
   // aamodes
   g_Config.backend_info.AAModes = {1};
