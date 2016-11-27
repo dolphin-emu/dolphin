@@ -16,6 +16,7 @@
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
+#include "VideoBackends/OGL/GPUTimer.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
@@ -61,6 +62,8 @@ struct TextureDecodingProgramInfo
   GLint uniform_palette_offset = -1;
   bool valid = false;
 };
+
+//#define TIME_TEXTURE_DECODING 1
 
 static std::map<std::pair<u32, u32>, TextureDecodingProgramInfo> s_texture_decoding_program_info;
 static std::array<GLuint, TextureConversionShader::BUFFER_FORMAT_COUNT>
@@ -713,6 +716,10 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntryBase* entry, u32 dst_level, con
   if (iter == s_texture_decoding_program_info.end())
     return;
 
+#ifdef TIME_TEXTURE_DECODING
+  GPUTimer timer;
+#endif
+
   // Copy to GPU-visible buffer, aligned to the data type.
   auto info = iter->second;
   u32 bytes_per_buffer_elem =
@@ -775,5 +782,10 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntryBase* entry, u32 dst_level, con
   glMemoryBarrier(GL_TEXTURE_UPDATE_BARRIER_BIT);
 
   TextureCache::SetStage();
+
+#ifdef TIME_TEXTURE_DECODING
+  WARN_LOG(VIDEO, "Decode texture format %u size %ux%u took %.4fms", static_cast<u32>(format),
+           width, height, timer.GetTimeMilliseconds());
+#endif
 }
 }
