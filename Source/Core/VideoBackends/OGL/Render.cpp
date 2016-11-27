@@ -457,10 +457,10 @@ Renderer::Renderer()
       GLExtensions::Supports("GL_OES_texture_storage_multisample_2d_array");
   g_ogl_config.bSupports2DTextureStorageMultisample =
       GLExtensions::Supports("GL_ARB_texture_storage_multisample");
-  g_ogl_config.bSupportsEarlyFragmentTests =
-      GLExtensions::Supports("GL_ARB_shader_image_load_store");
+  g_ogl_config.bSupportsImageLoadStore = GLExtensions::Supports("GL_ARB_shader_image_load_store");
   g_ogl_config.bSupportsConservativeDepth = GLExtensions::Supports("GL_ARB_conservative_depth");
   g_ogl_config.bSupportsAniso = GLExtensions::Supports("GL_EXT_texture_filter_anisotropic");
+  g_Config.backend_info.bSupportsComputeShaders = GLExtensions::Supports("GL_ARB_compute_shader");
 
   if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGLES3)
   {
@@ -495,8 +495,9 @@ Renderer::Renderer()
       g_ogl_config.eSupportedGLSLVersion = GLSLES_310;
       g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
       g_Config.backend_info.bSupportsBindingLayout = true;
-      g_ogl_config.bSupportsEarlyFragmentTests = true;
+      g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsGeometryShaders = g_ogl_config.bSupportsAEP;
+      g_Config.backend_info.bSupportsComputeShaders = true;
       g_Config.backend_info.bSupportsGSInstancing =
           g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
       g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
@@ -517,8 +518,9 @@ Renderer::Renderer()
       g_ogl_config.eSupportedGLSLVersion = GLSLES_320;
       g_ogl_config.bSupportsAEP = GLExtensions::Supports("GL_ANDROID_extension_pack_es31a");
       g_Config.backend_info.bSupportsBindingLayout = true;
-      g_ogl_config.bSupportsEarlyFragmentTests = true;
+      g_ogl_config.bSupportsImageLoadStore = true;
       g_Config.backend_info.bSupportsGeometryShaders = true;
+      g_Config.backend_info.bSupportsComputeShaders = true;
       g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
       g_Config.backend_info.bSupportsPaletteConversion = true;
       g_Config.backend_info.bSupportsSSAA = true;
@@ -545,8 +547,7 @@ Renderer::Renderer()
     else if (GLExtensions::Version() == 300)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_130;
-      g_ogl_config.bSupportsEarlyFragmentTests =
-          false;  // layout keyword is only supported on glsl150+
+      g_ogl_config.bSupportsImageLoadStore = false;  // layout keyword is only supported on glsl150+
       g_ogl_config.bSupportsConservativeDepth =
           false;  // layout keyword is only supported on glsl150+
       g_Config.backend_info.bSupportsGeometryShaders =
@@ -555,8 +556,7 @@ Renderer::Renderer()
     else if (GLExtensions::Version() == 310)
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_140;
-      g_ogl_config.bSupportsEarlyFragmentTests =
-          false;  // layout keyword is only supported on glsl150+
+      g_ogl_config.bSupportsImageLoadStore = false;  // layout keyword is only supported on glsl150+
       g_ogl_config.bSupportsConservativeDepth =
           false;  // layout keyword is only supported on glsl150+
       g_Config.backend_info.bSupportsGeometryShaders =
@@ -570,10 +570,28 @@ Renderer::Renderer()
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_330;
     }
+    else if (GLExtensions::Version() >= 430)
+    {
+      // TODO: We should really parse the GL_SHADING_LANGUAGE_VERSION token.
+      g_ogl_config.eSupportedGLSLVersion = GLSL_430;
+      g_ogl_config.bSupportsTextureStorage = true;
+      g_ogl_config.bSupportsImageLoadStore = true;
+      g_Config.backend_info.bSupportsSSAA = true;
+
+      // Compute shaders are core in GL4.3.
+      g_Config.backend_info.bSupportsComputeShaders = true;
+    }
     else
     {
       g_ogl_config.eSupportedGLSLVersion = GLSL_400;
       g_Config.backend_info.bSupportsSSAA = true;
+
+      if (GLExtensions::Version() == 420)
+      {
+        // Texture storage and shader image load/store are core in GL4.2.
+        g_ogl_config.bSupportsTextureStorage = true;
+        g_ogl_config.bSupportsImageLoadStore = true;
+      }
     }
 
     // Desktop OpenGL can't have the Android Extension Pack
@@ -582,7 +600,7 @@ Renderer::Renderer()
 
   // Either method can do early-z tests. See PixelShaderGen for details.
   g_Config.backend_info.bSupportsEarlyZ =
-      g_ogl_config.bSupportsEarlyFragmentTests || g_ogl_config.bSupportsConservativeDepth;
+      g_ogl_config.bSupportsImageLoadStore || g_ogl_config.bSupportsConservativeDepth;
 
   glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
   if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
