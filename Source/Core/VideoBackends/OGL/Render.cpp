@@ -19,7 +19,6 @@
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
 #include "VideoBackends/OGL/BoundingBox.h"

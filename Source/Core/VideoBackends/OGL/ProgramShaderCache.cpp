@@ -9,6 +9,8 @@
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
 
+#include "Core/ConfigManager.h"
+
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"

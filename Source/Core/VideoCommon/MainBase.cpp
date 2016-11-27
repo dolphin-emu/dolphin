@@ -9,7 +9,6 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
-#include "Core/ConfigManager.h"
 #include "Core/Host.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"

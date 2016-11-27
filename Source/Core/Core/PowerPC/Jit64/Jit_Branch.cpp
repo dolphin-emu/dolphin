@@ -6,7 +6,6 @@
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-#include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"

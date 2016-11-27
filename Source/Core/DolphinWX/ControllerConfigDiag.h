@@ -9,7 +9,6 @@
 
 #include <wx/dialog.h>
 
-#include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
 #include "InputCommon/GCAdapter.h"
 

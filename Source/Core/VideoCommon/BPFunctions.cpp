@@ -5,8 +5,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
-#include "Core/ConfigManager.h"
-
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/RenderBase.h"

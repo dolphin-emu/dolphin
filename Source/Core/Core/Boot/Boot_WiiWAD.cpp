@@ -11,7 +11,6 @@
 
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
-#include "Core/ConfigManager.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"

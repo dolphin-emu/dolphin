@@ -7,8 +7,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 
-#include "Core/ConfigManager.h"
-
 #include "VideoBackends/D3D12/BoundingBox.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"

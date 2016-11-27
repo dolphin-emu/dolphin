@@ -12,7 +12,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
 #include "VideoBackends/Vulkan/BoundingBox.h"

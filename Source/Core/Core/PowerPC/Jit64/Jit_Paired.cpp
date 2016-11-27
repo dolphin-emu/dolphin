@@ -7,7 +7,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
-#include "Core/ConfigManager.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
 using namespace Gen;
