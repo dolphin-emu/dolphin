@@ -21,6 +21,7 @@
 #include "Common/GL/GLExtensions/ARB_occlusion_query2.h"
 #include "Common/GL/GLExtensions/ARB_sample_shading.h"
 #include "Common/GL/GLExtensions/ARB_sampler_objects.h"
+#include "Common/GL/GLExtensions/ARB_shader_image_load_store.h"
 #include "Common/GL/GLExtensions/ARB_shader_storage_buffer_object.h"
 #include "Common/GL/GLExtensions/ARB_sync.h"
 #include "Common/GL/GLExtensions/ARB_texture_multisample.h"

@@ -653,8 +653,6 @@ PFNDOLDRAWELEMENTSINSTANCEDBASEVERTEXBASEINSTANCEPROC
 dolDrawElementsInstancedBaseVertexBaseInstance;
 PFNDOLGETINTERNALFORMATIVPROC dolGetInternalformativ;
 PFNDOLGETACTIVEATOMICCOUNTERBUFFERIVPROC dolGetActiveAtomicCounterBufferiv;
-PFNDOLBINDIMAGETEXTUREPROC dolBindImageTexture;
-PFNDOLMEMORYBARRIERPROC dolMemoryBarrier;
 PFNDOLDRAWTRANSFORMFEEDBACKINSTANCEDPROC dolDrawTransformFeedbackInstanced;
 PFNDOLDRAWTRANSFORMFEEDBACKSTREAMINSTANCEDPROC dolDrawTransformFeedbackStreamInstanced;
 
@@ -985,6 +983,10 @@ PFNDOLCOPYIMAGESUBDATAPROC dolCopyImageSubData;
 
 // ARB_shader_storage_buffer_object
 PFNDOLSHADERSTORAGEBLOCKBINDINGPROC dolShaderStorageBlockBinding;
+
+// ARB_shader_image_load_store
+PFNDOLBINDIMAGETEXTUREPROC dolBindImageTexture;
+PFNDOLMEMORYBARRIERPROC dolMemoryBarrier;
 
 // Creates a GLFunc object that requires a feature
 #define GLFUNC_REQUIRES(x, y)                                                                      \
@@ -1845,6 +1847,12 @@ const GLFunc gl_function_array[] = {
 
     // ARB_shader_storage_buffer_object
     GLFUNC_REQUIRES(glShaderStorageBlockBinding, "ARB_shader_storage_buffer_object !VERSION_4_3"),
+
+    // ARB_shader_image_load_store
+    GLFUNC_REQUIRES(glBindImageTexture,
+                    "GL_ARB_shader_image_load_store !VERSION_4_2 |VERSION_GLES_3_1"),
+    GLFUNC_REQUIRES(glMemoryBarrier,
+                    "GL_ARB_shader_image_load_store !VERSION_4_2 |VERSION_GLES_3_1"),
 };
 
 namespace GLExtensions
