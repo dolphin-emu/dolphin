@@ -169,6 +169,11 @@ void ControllerEmu::ControlGroup::SetControlExpression(int index, const std::str
   controls.at(index)->control_ref->expression = expression;
 }
 
+size_t ControllerEmu::ControlGroup::GetSize()
+{
+  return controls.size() + numeric_settings.size() + boolean_settings.size();
+}
+
 ControllerEmu::AnalogStick::AnalogStick(const char* const _name, ControlState default_radius)
     : AnalogStick(_name, _name, GROUP_TYPE_STICK)
 {

@@ -149,6 +149,8 @@ public:
 
     void SetControlExpression(int index, const std::string& expression);
 
+    size_t GetSize();
+
     const std::string name;
     const std::string ui_name;
     const unsigned int type;

@@ -1128,8 +1128,12 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
     : wxBoxSizer(wxHORIZONTAL)
 {
   const int space5 = parent->FromDIP(5);
-  size_t col_size = 0;
 
+  size_t max_column_size = 8;
+  for (auto& group : controller->groups)
+    max_column_size = std::max(max_column_size, group->GetSize());
+
+  size_t col_size = 0;
   wxBoxSizer* stacked_groups = nullptr;
   for (auto& group : controller->groups)
   {
@@ -1139,10 +1143,9 @@ ControlGroupsSizer::ControlGroupsSizer(ControllerEmu* const controller, wxWindow
         new ControlGroupBox(group.get(), control_group->GetStaticBox(), eventsink);
     control_group->Add(control_group_box, 0, wxEXPAND);
 
-    const size_t grp_size =
-        group->controls.size() + group->numeric_settings.size() + group->boolean_settings.size();
+    const size_t grp_size = group->GetSize();
     col_size += grp_size;
-    if (col_size > 8 || nullptr == stacked_groups)
+    if (col_size > max_column_size || nullptr == stacked_groups)
     {
       if (stacked_groups)
       {

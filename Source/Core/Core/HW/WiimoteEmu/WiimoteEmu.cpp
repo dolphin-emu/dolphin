@@ -242,20 +242,25 @@ Wiimote::Wiimote(const unsigned int index)
   for (auto& named_button : named_buttons)
     m_buttons->controls.emplace_back(new ControlGroup::Input(named_button));
 
+  // dpad
+  groups.emplace_back(m_dpad = new Buttons("D-Pad"));
+  for (auto& named_direction : named_directions)
+    m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
+
   // ir
   groups.emplace_back(m_ir = new Cursor(_trans("IR")));
-
-  // swing
-  groups.emplace_back(m_swing = new Force(_trans("Swing")));
-
-  // tilt
-  groups.emplace_back(m_tilt = new Tilt(_trans("Tilt")));
 
   // shake
   groups.emplace_back(m_shake = new Buttons(_trans("Shake")));
   m_shake->controls.emplace_back(new ControlGroup::Input("X"));
   m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
   m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
+
+  // swing
+  groups.emplace_back(m_swing = new Force(_trans("Swing")));
+
+  // tilt
+  groups.emplace_back(m_tilt = new Tilt(_trans("Tilt")));
 
   // extension
   groups.emplace_back(m_extension = new Extension(_trans("Extension")));
@@ -273,10 +278,15 @@ Wiimote::Wiimote(const unsigned int index)
   groups.emplace_back(m_rumble = new ControlGroup(_trans("Rumble")));
   m_rumble->controls.emplace_back(new ControlGroup::Output(_trans("Motor")));
 
-  // dpad
-  groups.emplace_back(m_dpad = new Buttons("D-Pad"));
-  for (auto& named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
+  // hotkeys
+  groups.emplace_back(m_hotkeys = new ModifySettingsButton(_trans("Hotkeys")));
+  // hotkeys to temporarily modify the Wii Remote orientation (sideways, upright)
+  // this setting modifier is toggled
+  m_hotkeys->AddInput(_trans("Sideways Toggle"), true);
+  m_hotkeys->AddInput(_trans("Upright Toggle"), true);
+  // this setting modifier is not toggled
+  m_hotkeys->AddInput(_trans("Sideways Hold"), false);
+  m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   // options
   groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
@@ -292,16 +302,6 @@ Wiimote::Wiimote(const unsigned int index)
       std::make_unique<ControlGroup::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
   m_options->numeric_settings.emplace_back(
       std::make_unique<ControlGroup::NumericSetting>(_trans("Battery"), 95.0 / 100, 0, 255));
-
-  // hotkeys
-  groups.emplace_back(m_hotkeys = new ModifySettingsButton(_trans("Hotkeys")));
-  // hotkeys to temporarily modify the Wii Remote orientation (sideways, upright)
-  // this setting modifier is toggled
-  m_hotkeys->AddInput(_trans("Sideways Toggle"), true);
-  m_hotkeys->AddInput(_trans("Upright Toggle"), true);
-  // this setting modifier is not toggled
-  m_hotkeys->AddInput(_trans("Sideways Hold"), false);
-  m_hotkeys->AddInput(_trans("Upright Hold"), false);
 
   // TODO: This value should probably be re-read if SYSCONF gets changed
   m_sensor_bar_on_top = SConfig::GetInstance().m_sensor_bar_position != 0;
