@@ -12,7 +12,6 @@
 #include "Common/PerformanceCounter.h"
 #endif
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/CachedInterpreter.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
