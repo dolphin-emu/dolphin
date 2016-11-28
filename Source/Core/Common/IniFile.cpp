@@ -37,8 +37,6 @@ void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::strin
   }
 }
 
-const std::string& IniFile::NULL_STRING = "";
-
 void IniFile::Section::Set(const std::string& key, const std::string& newValue)
 {
   auto it = values.find(key);
@@ -51,28 +49,6 @@ void IniFile::Section::Set(const std::string& key, const std::string& newValue)
   }
 }
 
-void IniFile::Section::Set(const std::string& key, const std::string& newValue,
-                           const std::string& defaultValue)
-{
-  if (newValue != defaultValue)
-    Set(key, newValue);
-  else
-    Delete(key);
-}
-
-void IniFile::Section::Set(const std::string& key, const std::vector<std::string>& newValues)
-{
-  std::string temp;
-  // Join the strings with ,
-  for (const std::string& value : newValues)
-  {
-    temp = value + ",";
-  }
-  // remove last ,
-  temp.resize(temp.length() - 1);
-  Set(key, temp);
-}
-
 bool IniFile::Section::Get(const std::string& key, std::string* value,
                            const std::string& defaultValue) const
 {
@@ -82,101 +58,6 @@ bool IniFile::Section::Get(const std::string& key, std::string* value,
     *value = it->second;
     return true;
   }
-  else if (&defaultValue != &NULL_STRING)
-  {
-    *value = defaultValue;
-    return true;
-  }
-
-  return false;
-}
-
-bool IniFile::Section::Get(const std::string& key, std::vector<std::string>* out) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-  if (!retval || temp.empty())
-  {
-    return false;
-  }
-
-  // ignore starting comma, if any
-  size_t subStart = temp.find_first_not_of(",");
-
-  // split by comma
-  while (subStart != std::string::npos)
-  {
-    // Find next comma
-    size_t subEnd = temp.find(',', subStart);
-    if (subStart != subEnd)
-    {
-      // take from first char until next comma
-      out->push_back(StripSpaces(temp.substr(subStart, subEnd - subStart)));
-    }
-
-    // Find the next non-comma char
-    subStart = temp.find_first_not_of(",", subEnd);
-  }
-
-  return true;
-}
-
-bool IniFile::Section::Get(const std::string& key, int* value, int defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
-  *value = defaultValue;
-  return false;
-}
-
-bool IniFile::Section::Get(const std::string& key, u32* value, u32 defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
-  *value = defaultValue;
-  return false;
-}
-
-bool IniFile::Section::Get(const std::string& key, bool* value, bool defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
-  *value = defaultValue;
-  return false;
-}
-
-bool IniFile::Section::Get(const std::string& key, float* value, float defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
-  *value = defaultValue;
-  return false;
-}
-
-bool IniFile::Section::Get(const std::string& key, double* value, double defaultValue) const
-{
-  std::string temp;
-  bool retval = Get(key, &temp);
-
-  if (retval && TryParse(temp, value))
-    return true;
-
   *value = defaultValue;
   return false;
 }

@@ -11,6 +11,7 @@
 #include <iomanip>
 #include <istream>
 #include <limits.h>
+#include <locale>
 #include <string>
 #include <vector>
 
@@ -221,7 +222,27 @@ std::string StripQuotes(const std::string& s)
     return s;
 }
 
-bool TryParse(const std::string& str, u32* const output)
+bool TryParse(const std::string& str, bool* output)
+{
+  float value;
+  const bool is_valid_float = TryParse(str, &value);
+  if ((is_valid_float && value == 1) || !strcasecmp("true", str.c_str()))
+    *output = true;
+  else if ((is_valid_float && value == 0) || !strcasecmp("false", str.c_str()))
+    *output = false;
+  else
+    return false;
+
+  return true;
+}
+
+bool TryParse(const std::string& str, int* output)
+{
+  std::istringstream iss(str);
+  return bool(iss >> *output);
+}
+
+bool TryParse(const std::string& str, unsigned int* output)
 {
   char* endptr = nullptr;
 
@@ -241,35 +262,61 @@ bool TryParse(const std::string& str, u32* const output)
     return false;
 #endif
 
-  *output = static_cast<u32>(value);
+  *output = static_cast<unsigned int>(value);
   return true;
 }
 
-bool TryParse(const std::string& str, bool* const output)
+bool TryParse(const std::string& str, float* output)
 {
-  float value;
-  const bool is_valid_float = TryParse(str, &value);
-  if ((is_valid_float && value == 1) || !strcasecmp("true", str.c_str()))
-    *output = true;
-  else if ((is_valid_float && value == 0) || !strcasecmp("false", str.c_str()))
-    *output = false;
-  else
-    return false;
+  std::istringstream iss(str);
+  iss.imbue(std::locale("C"));
 
+  return bool(iss >> *output);
+}
+
+bool TryParse(const std::string& str, double* output)
+{
+  std::istringstream iss(str);
+  iss.imbue(std::locale("C"));
+
+  return bool(iss >> *output);
+}
+
+bool TryParse(const std::string& str, std::string* output)
+{
+  *output = str;
   return true;
 }
 
-std::string StringFromInt(int value)
-{
-  char temp[16];
-  sprintf(temp, "%i", value);
-  return temp;
-}
-
-std::string StringFromBool(bool value)
+std::string ToString(bool value)
 {
   return value ? "True" : "False";
 }
+
+std::string ToString(int value)
+{
+  return StringFromFormat("%i", value);
+}
+
+std::string ToString(unsigned int value)
+{
+  return StringFromFormat("0x%08x", value);
+}
+
+std::string ToString(float value)
+{
+  return StringFromFormat("%f", value);
+}
+
+std::string ToString(double value)
+{
+  return StringFromFormat("%f", value);
+}
+
+std::string ToString(std::string value)
+{
+  return value;
+};
 
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
                std::string* _pExtension)
