@@ -31,6 +31,7 @@
 
 #include "UICommon/UICommon.h"
 
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 static bool rendererHasFocus = true;
@@ -188,7 +189,7 @@ class PlatformX11 : public Platform
                               SConfig::GetInstance().iRenderWindowYPos,
                               SConfig::GetInstance().iRenderWindowWidth,
                               SConfig::GetInstance().iRenderWindowHeight, 0, 0, BlackPixel(dpy, 0));
-    XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
+    XSelectInput(dpy, win, StructureNotifyMask | KeyPressMask | FocusChangeMask);
     Atom wmProtocols[1];
     wmProtocols[0] = XInternAtom(dpy, "WM_DELETE_WINDOW", True);
     XSetWMProtocols(dpy, win, wmProtocols, 1);
@@ -220,6 +221,8 @@ class PlatformX11 : public Platform
   void MainLoop() override
   {
     bool fullscreen = SConfig::GetInstance().bFullscreen;
+    int last_window_width = SConfig::GetInstance().iRenderWindowWidth;
+    int last_window_height = SConfig::GetInstance().iRenderWindowHeight;
 
     if (fullscreen)
     {
@@ -313,6 +316,22 @@ class PlatformX11 : public Platform
           if ((unsigned long)event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
             s_shutdown_requested.Set();
           break;
+        case ConfigureNotify:
+        {
+          if (last_window_width != event.xconfigure.width ||
+              last_window_height != event.xconfigure.height)
+          {
+            last_window_width = event.xconfigure.width;
+            last_window_height = event.xconfigure.height;
+
+            // We call Renderer::ChangeSurface here to indicate the size has changed,
+            // but pass the same window handle. This is needed for the Vulkan backend,
+            // otherwise it cannot tell that the window has been resized on some drivers.
+            if (g_renderer)
+              g_renderer->ChangeSurface(s_window_handle);
+          }
+        }
+        break;
         }
       }
       if (!fullscreen)
