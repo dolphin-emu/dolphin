@@ -938,7 +938,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     }
 
     control_button->Bind(wxEVT_MIDDLE_DOWN, &GamepadPage::ClearControl, eventsink);
-    control_button->Bind(wxEVT_RIGHT_UP, &GamepadPage::ConfigControl, eventsink);
+    control_button->Bind(wxEVT_RIGHT_DOWN, &GamepadPage::ConfigControl, eventsink);
 
     control_grid->Add(label, 0, wxALIGN_CENTER_VERTICAL | wxALIGN_RIGHT);
     control_grid->Add(control_button, 0, wxALIGN_CENTER_VERTICAL);
