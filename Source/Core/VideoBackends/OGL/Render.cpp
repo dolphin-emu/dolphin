@@ -700,10 +700,10 @@ Renderer::Renderer()
   FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
   FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+  UpdateDrawRectangle();
 
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
-  CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+  CalculateTargetSize();
 
   PixelShaderManager::SetEfbScaleChanged();
 
@@ -768,8 +768,7 @@ Renderer::~Renderer()
 {
   FlushFrameDump();
   FinishFrameData();
-  if (m_frame_dumping_pbo[0])
-    glDeleteBuffers(2, m_frame_dumping_pbo.data());
+  DestroyFrameDumpResources();
 }
 
 void Renderer::Shutdown()
@@ -1373,84 +1372,37 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   ResetAPIState();
 
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+  UpdateDrawRectangle();
   TargetRectangle flipped_trc = GetTargetRectangle();
 
   // Flip top and bottom for some reason; TODO: Fix the code to suck less?
   std::swap(flipped_trc.top, flipped_trc.bottom);
 
   // Copy the framebuffer to screen.
-  const XFBSource* xfbSource = nullptr;
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  DrawFrame(flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
 
-  if (g_ActiveConfig.bUseXFB)
+  // The FlushFrameDump call here is necessary even after frame dumping is stopped.
+  // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
+  FlushFrameDump();
+  if (IsFrameDumping())
   {
-    // draw each xfb source
-    for (u32 i = 0; i < xfbCount; ++i)
+    // Currently, we only use the off-screen buffer as a frame dump source if full-resolution
+    // frame dumping is enabled, saving the need for an extra copy. In the future, this could
+    // be extended to be used for surfaceless contexts as well.
+    bool use_offscreen_buffer = g_ActiveConfig.bInternalResolutionFrameDumps;
+    if (use_offscreen_buffer)
     {
-      xfbSource = (const XFBSource*)xfbSourceList[i];
-
-      TargetRectangle drawRc;
-      TargetRectangle sourceRc;
-      sourceRc.left = xfbSource->sourceRc.left;
-      sourceRc.right = xfbSource->sourceRc.right;
-      sourceRc.top = xfbSource->sourceRc.top;
-      sourceRc.bottom = xfbSource->sourceRc.bottom;
-
-      if (g_ActiveConfig.bUseRealXFB)
-      {
-        drawRc = flipped_trc;
-        sourceRc.right -= fbStride - fbWidth;
-
-        // RealXFB doesn't call ConvertEFBRectangle for sourceRc, therefore it is still assuming a
-        // top-left origin.
-        // The top offset is always zero (see FramebufferManagerBase::GetRealXFBSource).
-        sourceRc.top = sourceRc.bottom;
-        sourceRc.bottom = 0;
-      }
-      else
-      {
-        // use virtual xfb with offset
-        int xfbHeight = xfbSource->srcHeight;
-        int xfbWidth = xfbSource->srcWidth;
-        int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
-
-        drawRc.top = flipped_trc.top - hOffset * flipped_trc.GetHeight() / (s32)fbHeight;
-        drawRc.bottom =
-            flipped_trc.top - (hOffset + xfbHeight) * flipped_trc.GetHeight() / (s32)fbHeight;
-        drawRc.left =
-            flipped_trc.left +
-            (flipped_trc.GetWidth() - xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-        drawRc.right =
-            flipped_trc.left +
-            (flipped_trc.GetWidth() + xfbWidth * flipped_trc.GetWidth() / (s32)fbStride) / 2;
-
-        // The following code disables auto stretch.  Kept for reference.
-        // scale draw area for a 1 to 1 pixel mapping with the draw target
-        // float vScale = (float)fbHeight / (float)flipped_trc.GetHeight();
-        // float hScale = (float)fbWidth / (float)flipped_trc.GetWidth();
-        // drawRc.top *= vScale;
-        // drawRc.bottom *= vScale;
-        // drawRc.left *= hScale;
-        // drawRc.right *= hScale;
-
-        sourceRc.right -= Renderer::EFBToScaledX(fbStride - fbWidth);
-      }
-
-      BlitScreen(sourceRc, drawRc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+      // DumpFrameUsingFBO resets GL_FRAMEBUFFER, so change back to the window for drawing OSD.
+      DumpFrameUsingFBO(rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight, ticks);
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+    }
+    else
+    {
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+      DumpFrame(flipped_trc, ticks);
     }
   }
-  else
-  {
-    TargetRectangle targetRc = ConvertEFBRectangle(rc);
-
-    // for msaa mode, we must resolve the efb content to non-msaa
-    GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(rc);
-    BlitScreen(targetRc, flipped_trc, tex, s_target_width, s_target_height);
-  }
-
-  glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-
-  DumpFrame(flipped_trc, ticks);
 
   // Finish up the current frame, print some stats
 
@@ -1484,7 +1436,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     s_last_efb_scale = g_ActiveConfig.iEFBScale;
   }
   bool TargetSizeChanged = false;
-  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+  if (CalculateTargetSize())
   {
     TargetSizeChanged = true;
   }
@@ -1494,7 +1446,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
-    UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+    UpdateDrawRectangle();
 
     if (TargetSizeChanged || s_last_multisamples != g_ActiveConfig.iMultisamples ||
         s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
@@ -1580,6 +1532,104 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   ClearEFBCache();
 }
 
+void Renderer::DrawFrame(const TargetRectangle& target_rc, const EFBRectangle& source_rc,
+                         u32 xfb_addr, const XFBSourceBase* const* xfb_sources, u32 xfb_count,
+                         u32 fb_width, u32 fb_stride, u32 fb_height)
+{
+  if (g_ActiveConfig.bUseXFB)
+  {
+    if (g_ActiveConfig.bUseRealXFB)
+      DrawRealXFB(target_rc, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+    else
+      DrawVirtualXFB(target_rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+  }
+  else
+  {
+    DrawEFB(target_rc, source_rc);
+  }
+}
+
+void Renderer::DrawEFB(const TargetRectangle& target_rc, const EFBRectangle& source_rc)
+{
+  TargetRectangle scaled_source_rc = ConvertEFBRectangle(source_rc);
+
+  // for msaa mode, we must resolve the efb content to non-msaa
+  GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(source_rc);
+  BlitScreen(scaled_source_rc, target_rc, tex, s_target_width, s_target_height);
+}
+
+void Renderer::DrawVirtualXFB(const TargetRectangle& target_rc, u32 xfb_addr,
+                              const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                              u32 fb_stride, u32 fb_height)
+{
+  for (u32 i = 0; i < xfb_count; ++i)
+  {
+    const XFBSource* xfbSource = static_cast<const XFBSource*>(xfb_sources[i]);
+
+    TargetRectangle draw_rc;
+    TargetRectangle source_rc;
+    source_rc.left = xfbSource->sourceRc.left;
+    source_rc.right = xfbSource->sourceRc.right;
+    source_rc.top = xfbSource->sourceRc.top;
+    source_rc.bottom = xfbSource->sourceRc.bottom;
+
+    // use virtual xfb with offset
+    int xfbHeight = xfbSource->srcHeight;
+    int xfbWidth = xfbSource->srcWidth;
+    int hOffset = (static_cast<s32>(xfbSource->srcAddr) - static_cast<s32>(xfb_addr)) /
+                  (static_cast<s32>(fb_stride) * 2);
+
+    draw_rc.top = target_rc.top - hOffset * target_rc.GetHeight() / static_cast<s32>(fb_height);
+    draw_rc.bottom =
+        target_rc.top - (hOffset + xfbHeight) * target_rc.GetHeight() / static_cast<s32>(fb_height);
+    draw_rc.left =
+        target_rc.left +
+        (target_rc.GetWidth() - xfbWidth * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
+    draw_rc.right =
+        target_rc.left +
+        (target_rc.GetWidth() + xfbWidth * target_rc.GetWidth() / static_cast<s32>(fb_stride)) / 2;
+
+    // The following code disables auto stretch.  Kept for reference.
+    // scale draw area for a 1 to 1 pixel mapping with the draw target
+    // float h_scale = static_cast<float>(fb_width) / static_cast<float>(target_rc.GetWidth());
+    // float v_scale = static_cast<float>(fb_height) / static_cast<float>(target_rc.GetHeight());
+    // draw_rc.top *= v_scale;
+    // draw_rc.bottom *= v_scale;
+    // draw_rc.left *= h_scale;
+    // draw_rc.right *= h_scale;
+
+    source_rc.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
+
+    BlitScreen(source_rc, draw_rc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+  }
+}
+
+void Renderer::DrawRealXFB(const TargetRectangle& target_rc,
+                           const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                           u32 fb_stride, u32 fb_height)
+{
+  for (u32 i = 0; i < xfb_count; ++i)
+  {
+    const XFBSource* xfbSource = static_cast<const XFBSource*>(xfb_sources[i]);
+
+    TargetRectangle source_rc;
+    source_rc.left = xfbSource->sourceRc.left;
+    source_rc.right = xfbSource->sourceRc.right;
+    source_rc.top = xfbSource->sourceRc.top;
+    source_rc.bottom = xfbSource->sourceRc.bottom;
+
+    source_rc.right -= fb_stride - fb_width;
+
+    // RealXFB doesn't call ConvertEFBRectangle for sourceRc, therefore it is still assuming a top-
+    // left origin. The top offset is always zero (see FramebufferManagerBase::GetRealXFBSource).
+    source_rc.top = source_rc.bottom;
+    source_rc.bottom = 0;
+
+    TargetRectangle draw_rc = target_rc;
+    BlitScreen(source_rc, draw_rc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+  }
+}
+
 void Renderer::FlushFrameDump()
 {
   if (!m_last_frame_exported)
@@ -1598,9 +1648,6 @@ void Renderer::FlushFrameDump()
 
 void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
 {
-  if (!IsFrameDumping())
-    return;
-
   if (!m_frame_dumping_pbo[0])
   {
     glGenBuffers(2, m_frame_dumping_pbo.data());
@@ -1635,6 +1682,82 @@ void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
   glReadPixels(flipped_trc.left, flipped_trc.bottom, m_last_frame_width[0], m_last_frame_height[0],
                GL_RGBA, GL_UNSIGNED_BYTE, 0);
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+}
+
+void Renderer::DumpFrameUsingFBO(const EFBRectangle& source_rc, u32 xfb_addr,
+                                 const XFBSourceBase* const* xfb_sources, u32 xfb_count,
+                                 u32 fb_width, u32 fb_stride, u32 fb_height, u64 ticks)
+{
+  // This needs to be converted to the GL bottom-up window coordinate system.
+  TargetRectangle render_rc = CalculateFrameDumpDrawRectangle();
+  std::swap(render_rc.top, render_rc.bottom);
+
+  // Ensure the render texture meets the size requirements of the draw area.
+  u32 render_width = static_cast<u32>(render_rc.GetWidth());
+  u32 render_height = static_cast<u32>(render_rc.GetHeight());
+  PrepareFrameDumpRenderTexture(render_width, render_height);
+
+  // Ensure the alpha channel of the render texture is blank. The frame dump backend expects
+  // that the alpha is set to 1.0 for all pixels.
+  FramebufferManager::SetFramebuffer(m_frame_dump_render_framebuffer);
+  glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+  glClear(GL_COLOR_BUFFER_BIT);
+
+  // Render the frame into the frame dump render texture. Disable alpha writes in case the
+  // post-processing shader writes a non-1.0 value.
+  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
+  DrawFrame(render_rc, source_rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+
+  // Copy frame to output buffer. This assumes that GL_FRAMEBUFFER has been set.
+  DumpFrame(render_rc, ticks);
+
+  // Restore state after drawing. This isn't the game state, it's the state set by ResetAPIState.
+  glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
+  FramebufferManager::SetFramebuffer(0);
+}
+
+void Renderer::PrepareFrameDumpRenderTexture(u32 width, u32 height)
+{
+  // Ensure framebuffer exists (we lazily allocate it in case frame dumping isn't used).
+  // Or, resize texture if it isn't large enough to accommodate the current frame.
+  if (m_frame_dump_render_texture != 0 && m_frame_dump_render_framebuffer != 0 &&
+      m_frame_dump_render_texture_width >= width && m_frame_dump_render_texture_height >= height)
+  {
+    return;
+  }
+
+  // Recreate texture objects.
+  if (m_frame_dump_render_texture != 0)
+    glDeleteTextures(1, &m_frame_dump_render_texture);
+  if (m_frame_dump_render_framebuffer != 0)
+    glDeleteFramebuffers(1, &m_frame_dump_render_framebuffer);
+
+  glGenTextures(1, &m_frame_dump_render_texture);
+  glActiveTexture(GL_TEXTURE9);
+  glBindTexture(GL_TEXTURE_2D, m_frame_dump_render_texture);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+  glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+  glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
+
+  glGenFramebuffers(1, &m_frame_dump_render_framebuffer);
+  FramebufferManager::SetFramebuffer(m_frame_dump_render_framebuffer);
+  FramebufferManager::FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D,
+                                         m_frame_dump_render_texture, 0);
+
+  m_frame_dump_render_texture_width = width;
+  m_frame_dump_render_texture_height = height;
+  TextureCache::SetStage();
+}
+
+void Renderer::DestroyFrameDumpResources()
+{
+  if (m_frame_dump_render_framebuffer)
+    glDeleteFramebuffers(1, &m_frame_dump_render_framebuffer);
+  if (m_frame_dump_render_texture)
+    glDeleteTextures(1, &m_frame_dump_render_texture);
+  if (m_frame_dumping_pbo[0])
+    glDeleteBuffers(2, m_frame_dumping_pbo.data());
 }
 
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing

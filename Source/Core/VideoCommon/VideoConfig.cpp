@@ -39,6 +39,7 @@ VideoConfig::VideoConfig()
   backend_info.api_type = APIType::Nothing;
   backend_info.bSupportsExclusiveFullscreen = false;
   backend_info.bSupportsMultithreading = false;
+  backend_info.bSupportsInternalResolutionFrameDumps = false;
 
   bEnableValidationLayer = false;
   bBackendMultithreading = true;
@@ -74,6 +75,7 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("DumpFramesAsImages", &bDumpFramesAsImages, 0);
   settings->Get("FreeLook", &bFreeLook, 0);
   settings->Get("UseFFV1", &bUseFFV1, 0);
+  settings->Get("InternalResolutionFrameDumps", &bInternalResolutionFrameDumps, 0);
   settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
   settings->Get("FastDepthCalc", &bFastDepthCalc, true);
   settings->Get("MSAA", &iMultisamples, 1);
@@ -291,6 +293,7 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("DumpFramesAsImages", bDumpFramesAsImages);
   settings->Set("FreeLook", bFreeLook);
   settings->Set("UseFFV1", bUseFFV1);
+  settings->Set("InternalResolutionFrameDumps", bInternalResolutionFrameDumps);
   settings->Set("EnablePixelLighting", bEnablePixelLighting);
   settings->Set("FastDepthCalc", bFastDepthCalc);
   settings->Set("MSAA", iMultisamples);
