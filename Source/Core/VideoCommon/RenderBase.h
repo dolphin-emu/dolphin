@@ -197,6 +197,7 @@ private:
   Common::Event m_frame_dump_start;
   Common::Event m_frame_dump_done;
   Common::Flag m_frame_dump_thread_running;
+  u32 m_frame_dump_image_counter = 0;
   bool m_frame_dump_frame_running = false;
   struct FrameDumpConfig
   {
@@ -207,6 +208,14 @@ private:
     bool upside_down;
     AVIDump::Frame state;
   } m_frame_dump_config;
+
+  // NOTE: The methods below are called on the framedumping thread.
+  bool StartFrameDumpToAVI(const FrameDumpConfig& config);
+  void DumpFrameToAVI(const FrameDumpConfig& config);
+  void StopFrameDumpToAVI();
+  std::string GetFrameDumpNextImageFileName() const;
+  bool StartFrameDumpToImage(const FrameDumpConfig& config);
+  void DumpFrameToImage(const FrameDumpConfig& config);
 };
 
 extern std::unique_ptr<Renderer> g_renderer;
