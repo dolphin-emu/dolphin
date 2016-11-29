@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cassert>
 #include <cstring>
 
 #include "Common/Common.h"
@@ -112,6 +113,26 @@ bool Nunchuk::IsButtonPressed() const
   u8 buttons = 0;
   m_buttons->GetState(&buttons, nunchuk_button_bitmasks);
   return buttons != 0;
+}
+
+ControllerEmu::ControlGroup* Nunchuk::GetGroup(NunchukGroup group)
+{
+  switch (group)
+  {
+  case NunchukGroup::Buttons:
+    return m_buttons;
+  case NunchukGroup::Stick:
+    return m_stick;
+  case NunchukGroup::Tilt:
+    return m_tilt;
+  case NunchukGroup::Swing:
+    return m_swing;
+  case NunchukGroup::Shake:
+    return m_shake;
+  default:
+    assert(false);
+    return nullptr;
+  }
 }
 
 void Nunchuk::LoadDefaults(const ControllerInterface& ciface)

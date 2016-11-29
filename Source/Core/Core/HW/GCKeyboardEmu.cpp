@@ -4,6 +4,7 @@
 
 #include "Core/HW/GCKeyboardEmu.h"
 #include "Common/Common.h"
+#include "InputCommon/ControllerEmu.h"
 #include "InputCommon/KeyboardStatus.h"
 
 static const u16 keys0_bitmasks[] = {KEYMASK_HOME,       KEYMASK_END, KEYMASK_PGUP, KEYMASK_PGDN,
@@ -82,6 +83,29 @@ GCKeyboard::GCKeyboard(const unsigned int index) : m_index(index)
 std::string GCKeyboard::GetName() const
 {
   return std::string("GCKeyboard") + char('1' + m_index);
+}
+
+ControllerEmu::ControlGroup* GCKeyboard::GetGroup(KeyboardGroup group)
+{
+  switch (group)
+  {
+  case KeyboardGroup::Kb0x:
+    return m_keys0x;
+  case KeyboardGroup::Kb1x:
+    return m_keys1x;
+  case KeyboardGroup::Kb2x:
+    return m_keys2x;
+  case KeyboardGroup::Kb3x:
+    return m_keys3x;
+  case KeyboardGroup::Kb4x:
+    return m_keys4x;
+  case KeyboardGroup::Kb5x:
+    return m_keys5x;
+  case KeyboardGroup::Options:
+    return m_options;
+  default:
+    return nullptr;
+  }
 }
 
 KeyboardStatus GCKeyboard::GetInput() const

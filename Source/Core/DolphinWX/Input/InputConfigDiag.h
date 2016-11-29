@@ -31,7 +31,6 @@ class DolphinSlider;
 class InputConfig;
 class wxComboBox;
 class wxListBox;
-class wxNotebook;
 class wxStaticBitmap;
 class wxStaticText;
 class wxTextCtrl;
@@ -100,12 +99,12 @@ private:
   bool m_block = false;
 };
 
-class GamepadPage;
+class InputConfigDialog;
 
 class ControlDialog : public wxDialog
 {
 public:
-  ControlDialog(GamepadPage* const parent, InputConfig& config,
+  ControlDialog(InputConfigDialog* const parent, InputConfig& config,
                 ControllerInterface::ControlReference* const ref);
 
   bool Validate() override;
@@ -116,7 +115,7 @@ public:
   InputConfig& m_config;
 
 private:
-  wxStaticBoxSizer* CreateControlChooser(GamepadPage* const parent);
+  wxStaticBoxSizer* CreateControlChooser(InputConfigDialog* parent);
 
   void UpdateGUI();
   void UpdateListContents();
@@ -134,7 +133,7 @@ private:
 
   bool GetExpressionForSelectedControl(wxString& expr);
 
-  GamepadPage* const m_parent;
+  InputConfigDialog* m_parent;
   wxComboBox* device_cbox;
   wxTextCtrl* textctrl;
   wxListBox* control_lbox;
@@ -172,11 +171,11 @@ protected:
   int m_configured_width = wxDefaultCoord;
 };
 
-class ControlGroupBox : public wxBoxSizer
+class ControlGroupBox : public wxStaticBoxSizer
 {
 public:
   ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent,
-                  GamepadPage* const eventsink);
+                  InputConfigDialog* eventsink);
   ~ControlGroupBox();
 
   bool HasBitmapHeading() const
@@ -193,24 +192,21 @@ public:
   double m_scale;
 };
 
-class ControlGroupsSizer : public wxBoxSizer
+class InputConfigDialog : public wxDialog
 {
 public:
-  ControlGroupsSizer(ControllerEmu* const controller, wxWindow* const parent,
-                     GamepadPage* const eventsink,
-                     std::vector<ControlGroupBox*>* const groups = nullptr);
-};
+  InputConfigDialog(wxWindow* const parent, InputConfig& config, const wxString& name,
+                    const int port_num = 0);
+  virtual ~InputConfigDialog() = default;
 
-class InputConfigDialog;
+  void OnClose(wxCloseEvent& event);
+  void OnCloseButton(wxCommandEvent& event);
 
-class GamepadPage : public wxPanel
-{
-  friend class InputConfigDialog;
-  friend class ControlDialog;
+  void UpdateDeviceComboBox();
+  void UpdateProfileComboBox();
 
-public:
-  GamepadPage(wxWindow* parent, InputConfig& config, const int pad_num,
-              InputConfigDialog* const config_dialog);
+  void UpdateControlReferences();
+  void UpdateBitmaps(wxTimerEvent&);
 
   void UpdateGUI();
 
@@ -238,44 +234,29 @@ public:
   void AdjustBooleanSetting(wxCommandEvent& event);
 
   void GetProfilePath(std::string& path);
+  ControllerEmu* GetController() const;
 
-  wxComboBox* profile_cbox;
-  wxComboBox* device_cbox;
+  wxComboBox* profile_cbox = nullptr;
+  wxComboBox* device_cbox = nullptr;
 
   std::vector<ControlGroupBox*> control_groups;
   std::vector<ControlButton*> control_buttons;
 
 protected:
+  wxBoxSizer* CreateDeviceChooserGroupBox();
+  wxBoxSizer* CreaterResetGroupBox(wxOrientation orientation);
+  wxBoxSizer* CreateProfileChooserGroupBox();
+
   ControllerEmu* const controller;
 
+  wxTimer m_update_timer;
+
 private:
-  ControlDialog* m_control_dialog;
-  InputConfigDialog* const m_config_dialog;
   InputConfig& m_config;
+  int m_port_num;
+  ControlDialog* m_control_dialog;
   InputEventFilter m_event_filter;
 
   bool DetectButton(ControlButton* button);
   bool m_iterate = false;
-};
-
-class InputConfigDialog : public wxDialog
-{
-public:
-  InputConfigDialog(wxWindow* const parent, InputConfig& config, const wxString& name,
-                    const int tab_num = 0);
-
-  void OnClose(wxCloseEvent& event);
-  void OnCloseButton(wxCommandEvent& event);
-
-  void UpdateDeviceComboBox();
-  void UpdateProfileComboBox();
-
-  void UpdateControlReferences();
-  void UpdateBitmaps(wxTimerEvent&);
-
-private:
-  wxNotebook* m_pad_notebook;
-  std::vector<GamepadPage*> m_padpages;
-  InputConfig& m_config;
-  wxTimer m_update_timer;
 };

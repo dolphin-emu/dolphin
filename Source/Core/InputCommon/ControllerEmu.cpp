@@ -187,7 +187,14 @@ ControllerEmu::AnalogStick::AnalogStick(const char* const _name, const char* con
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
 
-ControllerEmu::Buttons::Buttons(const std::string& _name) : ControlGroup(_name, GROUP_TYPE_BUTTONS)
+ControllerEmu::Buttons::Buttons(const std::string& _name)
+    : ControlGroup(_name, _name, GROUP_TYPE_BUTTONS)
+{
+  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
+}
+
+ControllerEmu::Buttons::Buttons(const std::string& ini_name, const std::string& group_name)
+    : ControlGroup(ini_name, group_name, GROUP_TYPE_BUTTONS)
 {
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
 }
