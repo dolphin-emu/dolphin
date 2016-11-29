@@ -84,6 +84,7 @@ const std::string hotkey_labels[] = {
     _trans("Load State Slot 8"),
     _trans("Load State Slot 9"),
     _trans("Load State Slot 10"),
+    _trans("Load from selected slot"),
 
     _trans("Save State Slot 1"),
     _trans("Save State Slot 2"),
@@ -95,6 +96,7 @@ const std::string hotkey_labels[] = {
     _trans("Save State Slot 8"),
     _trans("Save State Slot 9"),
     _trans("Save State Slot 10"),
+    _trans("Save to selected slot"),
 
     _trans("Select State Slot 1"),
     _trans("Select State Slot 2"),
@@ -106,8 +108,6 @@ const std::string hotkey_labels[] = {
     _trans("Select State Slot 8"),
     _trans("Select State Slot 9"),
     _trans("Select State Slot 10"),
-    _trans("Save to selected slot"),
-    _trans("Load from selected slot"),
 
     _trans("Load State Last 1"),
     _trans("Load State Last 2"),
