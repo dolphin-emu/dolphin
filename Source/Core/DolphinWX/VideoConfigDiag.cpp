@@ -1030,7 +1030,6 @@ void VideoConfigDiag::Evt_EnterControl(wxMouseEvent& ev)
   // look up the description of the selected control and assign it to the current description text
   // object's label
   descr_text->SetLabel(ctrl_descs[ctrl]);
-  descr_text->Wrap(descr_text->GetSize().GetWidth());
 
   ev.Skip();
 }
@@ -1046,7 +1045,6 @@ void VideoConfigDiag::Evt_LeaveControl(wxMouseEvent& ev)
     return;
 
   descr_text->SetLabel(wxGetTranslation(default_desc));
-  descr_text->Wrap(descr_text->GetSize().GetWidth());
 
   ev.Skip();
 }
