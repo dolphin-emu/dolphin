@@ -357,19 +357,8 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
 
 void StateTracker::UpdateVertexShaderConstants()
 {
-  if (!VertexShaderManager::dirty)
+  if (!VertexShaderManager::dirty || !ReserveConstantStorage())
     return;
-
-  // Since the other stages uniform buffers' may be still be using the earlier data,
-  // we can't reuse the earlier part of the buffer without re-uploading everything.
-  if (!m_uniform_stream_buffer->ReserveMemory(m_uniform_buffer_reserve_size,
-                                              g_vulkan_context->GetUniformBufferAlignment(), false,
-                                              false, false))
-  {
-    // Re-upload all constants to a new portion of the buffer.
-    UploadAllConstants();
-    return;
-  }
 
   // Buffer allocation changed?
   if (m_uniform_stream_buffer->GetBuffer() !=
@@ -394,17 +383,9 @@ void StateTracker::UpdateVertexShaderConstants()
 void StateTracker::UpdateGeometryShaderConstants()
 {
   // Skip updating geometry shader constants if it's not in use.
-  if (m_pipeline_state.gs == VK_NULL_HANDLE || !GeometryShaderManager::dirty)
-    return;
-
-  // Since the other stages uniform buffers' may be still be using the earlier data,
-  // we can't reuse the earlier part of the buffer without re-uploading everything.
-  if (!m_uniform_stream_buffer->ReserveMemory(m_uniform_buffer_reserve_size,
-                                              g_vulkan_context->GetUniformBufferAlignment(), false,
-                                              false, false))
+  if (m_pipeline_state.gs == VK_NULL_HANDLE || !GeometryShaderManager::dirty ||
+      !ReserveConstantStorage())
   {
-    // Re-upload all constants to a new portion of the buffer.
-    UploadAllConstants();
     return;
   }
 
@@ -430,19 +411,8 @@ void StateTracker::UpdateGeometryShaderConstants()
 
 void StateTracker::UpdatePixelShaderConstants()
 {
-  if (!PixelShaderManager::dirty)
+  if (!PixelShaderManager::dirty || !ReserveConstantStorage())
     return;
-
-  // Since the other stages uniform buffers' may be still be using the earlier data,
-  // we can't reuse the earlier part of the buffer without re-uploading everything.
-  if (!m_uniform_stream_buffer->ReserveMemory(m_uniform_buffer_reserve_size,
-                                              g_vulkan_context->GetUniformBufferAlignment(), false,
-                                              false, false))
-  {
-    // Re-upload all constants to a new portion of the buffer.
-    UploadAllConstants();
-    return;
-  }
 
   // Buffer allocation changed?
   if (m_uniform_stream_buffer->GetBuffer() !=
@@ -464,6 +434,27 @@ void StateTracker::UpdatePixelShaderConstants()
   PixelShaderManager::dirty = false;
 }
 
+bool StateTracker::ReserveConstantStorage()
+{
+  // Since we invalidate all constants on command buffer execution, it doesn't matter if this
+  // causes the stream buffer to be resized.
+  if (m_uniform_stream_buffer->ReserveMemory(m_uniform_buffer_reserve_size,
+                                             g_vulkan_context->GetUniformBufferAlignment(), true,
+                                             true, false))
+  {
+    return true;
+  }
+
+  // The only places that call constant updates are safe to have state restored.
+  WARN_LOG(VIDEO, "Executing command buffer while waiting for space in uniform buffer");
+  Util::ExecuteCurrentCommandsAndRestoreState(false);
+
+  // Since we are on a new command buffer, all constants have been invalidated, and we need
+  // to reupload them. We may as well do this now, since we're issuing a draw anyway.
+  UploadAllConstants();
+  return false;
+}
+
 void StateTracker::UploadAllConstants()
 {
   // We are free to re-use parts of the buffer now since we're uploading all constants.
@@ -476,16 +467,11 @@ void StateTracker::UploadAllConstants()
   size_t allocation_size = geometry_constants_offset + sizeof(GeometryShaderConstants);
 
   // Allocate everything at once.
+  // We should only be here if the buffer was full and a command buffer was submitted anyway.
   if (!m_uniform_stream_buffer->ReserveMemory(allocation_size, ub_alignment, true, true, false))
   {
-    // The only places that call constant updates are safe to have state restored.
-    WARN_LOG(VIDEO, "Executing command buffer while waiting for space in uniform buffer");
-    Util::ExecuteCurrentCommandsAndRestoreState(false);
-    if (!m_uniform_stream_buffer->ReserveMemory(allocation_size, ub_alignment, true, true, false))
-    {
-      PanicAlert("Failed to allocate space for constants in streaming buffer");
-      return;
-    }
+    PanicAlert("Failed to allocate space for constants in streaming buffer");
+    return;
   }
 
   // Update bindings
