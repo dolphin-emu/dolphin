@@ -937,6 +937,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
   {
     _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
     bool bSuccess = false;
+    bool bReset = false;
     u16 IOSv = 0xffff;
 
     u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
@@ -968,13 +969,14 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
           if (pDolLoader->IsValid())
           {
             pDolLoader->Load();  // TODO: Check why sysmenu does not load the DOL correctly
-            // WADs start with address translation off at the given entry point.
+            // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
             //
             // The state of other CPU registers (like the BAT registers) doesn't matter much
-            // because the WAD initializes everything itself anyway.
+            // because the realmode code at 0x3400 initializes everything itself anyway.
             MSR = 0;
-            PC = pDolLoader->GetEntryPoint();
+            PC = 0x3400;
             bSuccess = true;
+            bReset = true;
           }
           else
           {
@@ -1045,7 +1047,12 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     Memory::Write_U32(Memory::Read_U32(0x00003140), 0x00003188);
 
     // TODO: provide correct return code when bSuccess= false
-    Memory::Write_U32(0, _CommandAddress + 0x4);
+    // Note: If we just reset the PPC, don't write anything to the command buffer. This
+    // could clobber the DOL we just loaded.
+    if (!bReset)
+    {
+      Memory::Write_U32(0, _CommandAddress + 0x4);
+    }
 
     ERROR_LOG(WII_IPC_ES,
               "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
@@ -1055,10 +1062,13 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
     // This is necessary because Reset(true) above deleted this object.  Ew.
 
-    // The original hardware overwrites the command type with the async reply type.
-    Memory::Write_U32(IPC_REP_ASYNC, _CommandAddress);
-    // IOS also seems to write back the command that was responded to in the FD field.
-    Memory::Write_U32(IPC_CMD_IOCTLV, _CommandAddress + 8);
+    if (!bReset)
+    {
+      // The original hardware overwrites the command type with the async reply type.
+      Memory::Write_U32(IPC_REP_ASYNC, _CommandAddress);
+      // IOS also seems to write back the command that was responded to in the FD field.
+      Memory::Write_U32(IPC_CMD_IOCTLV, _CommandAddress + 8);
+    }
 
     // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
     // involves restarting IOS; IOS generates two acknowledgements in a row.

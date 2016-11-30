@@ -109,7 +109,11 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
     return false;
 
   pDolLoader->Load();
-  PC = pDolLoader->GetEntryPoint();
+  // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
+  // The state of other CPU registers (like the BAT registers) doesn't matter much
+  // because the realmode code at 0x3400 initializes everything itself anyway.
+  MSR = 0;
+  PC = 0x3400;
 
   // Pass the "#002 check"
   // Apploader should write the IOS version and revision to 0x3140, and compare it

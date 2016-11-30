@@ -50,7 +50,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtlV(u32 command_address)
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(u32 command_address)
 {
-  IPCCommandResult reply = GetNoReply();
+  IPCCommandResult reply = GetDefaultReply();
   u32 command = Memory::Read_U32(command_address + 0x0c);
   u32 buffer_in = Memory::Read_U32(command_address + 0x10);
   u32 buffer_in_size = Memory::Read_U32(command_address + 0x14);
