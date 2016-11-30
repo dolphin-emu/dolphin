@@ -76,6 +76,9 @@ public:
   // now be in a different pool for the new command buffer.
   void InvalidateDescriptorSets();
 
+  // Same with the uniforms, as the current storage will belong to the previous command buffer.
+  void InvalidateConstants();
+
   // Set dirty flags on everything to force re-bind at next draw time.
   void SetPendingRebind();
 

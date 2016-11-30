@@ -467,26 +467,21 @@ void StateTracker::UpdatePixelShaderConstants()
 void StateTracker::UploadAllConstants()
 {
   // We are free to re-use parts of the buffer now since we're uploading all constants.
+  size_t ub_alignment = g_vulkan_context->GetUniformBufferAlignment();
   size_t pixel_constants_offset = 0;
   size_t vertex_constants_offset =
-      Util::AlignValue(pixel_constants_offset + sizeof(PixelShaderConstants),
-                       g_vulkan_context->GetUniformBufferAlignment());
+      Util::AlignValue(pixel_constants_offset + sizeof(PixelShaderConstants), ub_alignment);
   size_t geometry_constants_offset =
-      Util::AlignValue(vertex_constants_offset + sizeof(VertexShaderConstants),
-                       g_vulkan_context->GetUniformBufferAlignment());
-  size_t total_allocation_size = geometry_constants_offset + sizeof(GeometryShaderConstants);
+      Util::AlignValue(vertex_constants_offset + sizeof(VertexShaderConstants), ub_alignment);
+  size_t allocation_size = geometry_constants_offset + sizeof(GeometryShaderConstants);
 
   // Allocate everything at once.
-  if (!m_uniform_stream_buffer->ReserveMemory(
-          total_allocation_size, g_vulkan_context->GetUniformBufferAlignment(), true, true, false))
+  if (!m_uniform_stream_buffer->ReserveMemory(allocation_size, ub_alignment, true, true, false))
   {
-    // If this fails, wait until the GPU has caught up.
     // The only places that call constant updates are safe to have state restored.
-    WARN_LOG(VIDEO, "Executing command list while waiting for space in uniform buffer");
+    WARN_LOG(VIDEO, "Executing command buffer while waiting for space in uniform buffer");
     Util::ExecuteCurrentCommandsAndRestoreState(false);
-    if (!m_uniform_stream_buffer->ReserveMemory(total_allocation_size,
-                                                g_vulkan_context->GetUniformBufferAlignment(), true,
-                                                true, false))
+    if (!m_uniform_stream_buffer->ReserveMemory(allocation_size, ub_alignment, true, true, false))
     {
       PanicAlert("Failed to allocate space for constants in streaming buffer");
       return;
@@ -528,7 +523,7 @@ void StateTracker::UploadAllConstants()
          &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
 
   // Finally, flush buffer memory after copying
-  m_uniform_stream_buffer->CommitMemory(total_allocation_size);
+  m_uniform_stream_buffer->CommitMemory(allocation_size);
 
   // Clear dirty flags
   VertexShaderManager::dirty = false;
@@ -614,6 +609,13 @@ void StateTracker::InvalidateDescriptorSets()
   // Defer SSBO descriptor update until bbox is actually enabled.
   if (!m_bbox_enabled)
     m_dirty_flags &= ~DIRTY_FLAG_PS_SSBO;
+}
+
+void StateTracker::InvalidateConstants()
+{
+  VertexShaderManager::dirty = true;
+  GeometryShaderManager::dirty = true;
+  PixelShaderManager::dirty = true;
 }
 
 void StateTracker::SetPendingRebind()

@@ -200,6 +200,7 @@ void ExecuteCurrentCommandsAndRestoreState(bool execute_off_thread, bool wait_fo
   StateTracker::GetInstance()->EndRenderPass();
   g_command_buffer_mgr->ExecuteCommandBuffer(execute_off_thread, wait_for_completion);
   StateTracker::GetInstance()->InvalidateDescriptorSets();
+  StateTracker::GetInstance()->InvalidateConstants();
   StateTracker::GetInstance()->SetPendingRebind();
 }
 
