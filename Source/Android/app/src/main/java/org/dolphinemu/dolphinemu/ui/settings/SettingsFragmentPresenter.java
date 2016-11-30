@@ -403,8 +403,6 @@ public final class SettingsFragmentPresenter
 
 	private void addWiimoteSubSettings(ArrayList<SettingsItem> sl, int wiimoteNumber)
 	{
-		mSettings.get(SettingsFile.SETTINGS_DOLPHIN).put(SettingsFile.SECTION_BINDINGS, new SettingSection(SettingsFile.SECTION_BINDINGS));
-
 		IntSetting extension = null;
 		Setting bindA = null;
 		Setting bindB = null;
