@@ -533,6 +533,11 @@ void ExecuteCommand(u32 address)
     {
       result = device->IOCtl(address);
     }
+    else
+    {
+      Memory::Write_U32(FS_EINVAL, address + 4);
+      result = IWII_IPC_HLE_Device::GetDefaultReply();
+    }
     break;
   }
   case IPC_CMD_IOCTLV:
@@ -540,6 +545,11 @@ void ExecuteCommand(u32 address)
     if (device)
     {
       result = device->IOCtlV(address);
+    }
+    else
+    {
+      Memory::Write_U32(FS_EINVAL, address + 4);
+      result = IWII_IPC_HLE_Device::GetDefaultReply();
     }
     break;
   }
