@@ -710,11 +710,7 @@ bool StateTracker::Bind(bool rebind_all /*= false*/)
   {
     // We can fail to allocate descriptors if we exhaust the pool for this command buffer.
     WARN_LOG(VIDEO, "Failed to get a descriptor set, executing buffer");
-
-    // Try again after executing the current buffer.
-    g_command_buffer_mgr->ExecuteCommandBuffer(false, false);
-    InvalidateDescriptorSets();
-    SetPendingRebind();
+    Util::ExecuteCurrentCommandsAndRestoreState(false, false);
     if (!UpdateDescriptorSet())
     {
       // Something strange going on.
@@ -777,10 +773,7 @@ void StateTracker::OnDraw()
                          m_scheduled_command_buffer_kicks.end(), m_draw_counter))
   {
     // Kick a command buffer on the background thread.
-    EndRenderPass();
-    g_command_buffer_mgr->ExecuteCommandBuffer(true, false);
-    InvalidateDescriptorSets();
-    SetPendingRebind();
+    Util::ExecuteCurrentCommandsAndRestoreState(true);
   }
 }
 

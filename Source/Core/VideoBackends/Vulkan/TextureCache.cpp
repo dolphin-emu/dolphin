@@ -145,10 +145,10 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
   else
     src_texture = FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
 
-  // End render pass before barrier (since we have no self-dependencies)
+  // End render pass before barrier (since we have no self-dependencies).
+  // The barrier has to happen after the render pass, not inside it, as we are going to be
+  // reading from the texture immediately afterwards.
   StateTracker::GetInstance()->EndRenderPass();
-  StateTracker::GetInstance()->SetPendingRebind();
-  StateTracker::GetInstance()->InvalidateDescriptorSets();
   StateTracker::GetInstance()->OnReadback();
 
   // Transition to shader resource before reading.
@@ -666,9 +666,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
                                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Block until the GPU has finished copying to the staging texture.
-  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
-  StateTracker::GetInstance()->InvalidateDescriptorSets();
-  StateTracker::GetInstance()->SetPendingRebind();
+  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
 
   // Map the staging texture so we can copy the contents out.
   if (staging_texture->Map())

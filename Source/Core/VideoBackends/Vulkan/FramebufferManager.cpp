@@ -738,9 +738,7 @@ bool FramebufferManager::PopulateColorReadbackTexture()
   }
 
   // Wait until the copy is complete.
-  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
-  StateTracker::GetInstance()->InvalidateDescriptorSets();
-  StateTracker::GetInstance()->SetPendingRebind();
+  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
 
   // Map to host memory.
   if (!m_color_readback_texture->IsMapped() && !m_color_readback_texture->Map())
@@ -822,9 +820,7 @@ bool FramebufferManager::PopulateDepthReadbackTexture()
   }
 
   // Wait until the copy is complete.
-  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
-  StateTracker::GetInstance()->InvalidateDescriptorSets();
-  StateTracker::GetInstance()->SetPendingRebind();
+  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
 
   // Map to host memory.
   if (!m_depth_readback_texture->IsMapped() && !m_depth_readback_texture->Map())
@@ -1212,7 +1208,7 @@ void FramebufferManager::DrawPokeVertices(const EFBPokeVertex* vertices, size_t 
   {
     // Kick a command buffer first.
     WARN_LOG(VIDEO, "Kicking command buffer due to no EFB poke space.");
-    Util::ExecuteCurrentCommandsAndRestoreState(true);
+    Util::ExecuteCurrentCommandsAndRestoreState(false);
     command_buffer = g_command_buffer_mgr->GetCurrentCommandBuffer();
 
     if (!m_poke_vertex_stream_buffer->ReserveMemory(vertices_size, sizeof(EfbPokeData), true, true,
