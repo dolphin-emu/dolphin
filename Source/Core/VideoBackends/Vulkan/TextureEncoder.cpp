@@ -121,9 +121,7 @@ void TextureEncoder::EncodeTextureToRam(VkImageView src_texture, u8* dest_ptr, u
                                     render_width, render_height, 0, 0);
 
   // Block until the GPU has finished copying to the staging texture.
-  g_command_buffer_mgr->ExecuteCommandBuffer(false, true);
-  StateTracker::GetInstance()->InvalidateDescriptorSets();
-  StateTracker::GetInstance()->SetPendingRebind();
+  Util::ExecuteCurrentCommandsAndRestoreState(false, true);
 
   // Copy from staging texture to the final destination, adjusting pitch if necessary.
   m_download_texture->ReadTexels(0, 0, render_width, render_height, dest_ptr, memory_stride);

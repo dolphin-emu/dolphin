@@ -130,9 +130,6 @@ void VertexManager::vFlush(bool use_dst_alpha)
       static_cast<VertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
   u32 vertex_stride = vertex_format->GetVertexStride();
 
-  // Commit memory to device
-  PrepareDrawBuffers(vertex_stride);
-
   // Figure out the number of indices to draw
   u32 index_count = IndexGenerator::GetIndexLen();
 
@@ -168,6 +165,12 @@ void VertexManager::vFlush(bool use_dst_alpha)
   StateTracker::GetInstance()->UpdateVertexShaderConstants();
   StateTracker::GetInstance()->UpdateGeometryShaderConstants();
   StateTracker::GetInstance()->UpdatePixelShaderConstants();
+
+  // Commit memory to device.
+  // NOTE: This must be done after constant upload, as a constant buffer overrun can cause
+  // the current command buffer to be executed, and we want the buffer space to be associated
+  // with the command buffer that has the corresponding draw.
+  PrepareDrawBuffers(vertex_stride);
 
   // Flush all EFB pokes and invalidate the peek cache.
   FramebufferManager::GetInstance()->InvalidatePeekCache();

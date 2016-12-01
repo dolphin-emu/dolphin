@@ -76,6 +76,9 @@ public:
   // now be in a different pool for the new command buffer.
   void InvalidateDescriptorSets();
 
+  // Same with the uniforms, as the current storage will belong to the previous command buffer.
+  void InvalidateConstants();
+
   // Set dirty flags on everything to force re-bind at next draw time.
   void SetPendingRebind();
 
@@ -171,6 +174,11 @@ private:
 
   bool UpdatePipeline();
   bool UpdateDescriptorSet();
+
+  // Allocates storage in the uniform buffer of the specified size. If this storage cannot be
+  // allocated immediately, the current command buffer will be submitted and all stage's
+  // constants will be re-uploaded. false will be returned in this case, otherwise true.
+  bool ReserveConstantStorage();
   void UploadAllConstants();
 
   // Which bindings/state has to be updated before the next draw.
