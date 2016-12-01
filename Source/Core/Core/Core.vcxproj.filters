@@ -955,6 +955,9 @@
     <ClInclude Include="HLE\HLE_OS.h">
       <Filter>HLE</Filter>
     </ClInclude>
+    <ClInclude Include="HLE\HLE_VarArgs.h">
+      <Filter>HLE</Filter>
+    </ClInclude>
     <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h">
       <Filter>PowerPC\Cached Interpreter</Filter>
     </ClInclude>

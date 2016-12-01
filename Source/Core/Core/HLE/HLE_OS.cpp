@@ -9,6 +9,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/HLE/HLE_OS.h"
+#include "Core/HLE/HLE_VarArgs.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -89,14 +90,12 @@ void HLE_write_console()
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
 }
 
-std::string GetStringVA(u32 strReg)
+std::string GetStringVA(u32 str_reg)
 {
   std::string ArgumentBuffer;
-  u32 ParameterCounter = strReg + 1;
-  u32 FloatingParameterCounter = 1;
-
   std::string result;
-  std::string string = PowerPC::HostGetString(GPR(strReg));
+  std::string string = PowerPC::HostGetString(GPR(str_reg));
+  HLE::VAList ap(GPR(1) + 0x8, str_reg + 1);
 
   for (size_t i = 0; i < string.size(); i++)
   {
@@ -120,37 +119,12 @@ std::string GetStringVA(u32 strReg)
 
       ArgumentBuffer += string[i];
 
-      u64 Parameter;
-      if (ParameterCounter > 10)
-      {
-        Parameter = PowerPC::HostRead_U32(GPR(1) + 0x8 + ((ParameterCounter - 11) * 4));
-      }
-      else
-      {
-        if (string[i - 1] == 'l' &&
-            string[i - 2] == 'l')  // hax, just seen this on sysmenu osreport
-        {
-          Parameter = GPR(++ParameterCounter);
-          Parameter = (Parameter << 32) | GPR(++ParameterCounter);
-        }
-        else  // normal, 32bit
-          Parameter = GPR(ParameterCounter);
-      }
-      ParameterCounter++;
-
       switch (string[i])
       {
       case 's':
         result += StringFromFormat(ArgumentBuffer.c_str(),
-                                   PowerPC::HostGetString((u32)Parameter).c_str());
+                                   PowerPC::HostGetString(ap.GetArgT<u32>()).c_str());
         break;
-
-      case 'd':
-      case 'i':
-      {
-        result += StringFromFormat(ArgumentBuffer.c_str(), Parameter);
-        break;
-      }
 
       case 'a':
       case 'A':
@@ -160,25 +134,24 @@ std::string GetStringVA(u32 strReg)
       case 'F':
       case 'g':
       case 'G':
-      {
-        result += StringFromFormat(ArgumentBuffer.c_str(), rPS0(FloatingParameterCounter));
-        FloatingParameterCounter++;
-        ParameterCounter--;
+        result += StringFromFormat(ArgumentBuffer.c_str(), ap.GetArgT<double>());
         break;
-      }
 
       case 'p':
         // Override, so 64bit Dolphin prints 32bit pointers, since the ppc is 32bit :)
-        result += StringFromFormat("%x", (u32)Parameter);
+        result += StringFromFormat("%x", ap.GetArgT<u32>());
         break;
 
       case 'n':
-        PowerPC::HostWrite_U32(static_cast<u32>(result.size()), static_cast<u32>(Parameter));
+        PowerPC::HostWrite_U32(static_cast<u32>(result.size()), ap.GetArgT<u32>());
         // %n doesn't output anything, so the result variable is untouched
         break;
 
       default:
-        result += StringFromFormat(ArgumentBuffer.c_str(), Parameter);
+        if (string[i - 1] == 'l' && string[i - 2] == 'l')
+          result += StringFromFormat(ArgumentBuffer.c_str(), ap.GetArgT<u64>());
+        else
+          result += StringFromFormat(ArgumentBuffer.c_str(), ap.GetArgT<u32>());
         break;
       }
     }

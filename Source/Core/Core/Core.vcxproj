@@ -343,6 +343,7 @@
     <ClInclude Include="HLE\HLE.h" />
     <ClInclude Include="HLE\HLE_Misc.h" />
     <ClInclude Include="HLE\HLE_OS.h" />
+    <ClInclude Include="HLE\HLE_VarArgs.h" />
     <ClInclude Include="Host.h" />
     <ClInclude Include="HotkeyManager.h" />
     <ClInclude Include="HW\AudioInterface.h" />
