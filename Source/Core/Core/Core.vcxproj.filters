@@ -851,6 +851,9 @@
     <ClInclude Include="HLE\HLE_OS.h">
       <Filter>HLE</Filter>
     </ClInclude>
+    <ClInclude Include="HLE\HLE_varargs.h">
+      <Filter>HLE</Filter>
+    </ClInclude>
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h">
       <Filter>PowerPC\Interpreter</Filter>
     </ClInclude>
