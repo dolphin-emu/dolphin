@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <array>
+#include <chrono>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -302,6 +303,7 @@ void CCodeWindow::SingleStep()
     CPU::StepOpcode(&sync_event);
     sync_event.WaitFor(std::chrono::milliseconds(20));
     PowerPC::SetMode(old_mode);
+    Core::DisplayMessage(_("Step successful!").ToStdString(), 2000);
     // Will get a IDM_UPDATE_DISASM_DIALOG. Don't update the GUI here.
   }
 }
@@ -316,6 +318,7 @@ void CCodeWindow::StepOver()
       PowerPC::breakpoints.ClearAllTemporary();
       PowerPC::breakpoints.Add(PC + 4, true);
       CPU::EnableStepping(false);
+      Core::DisplayMessage(_("Step over in progress...").ToStdString(), 2000);
     }
     else
     {
@@ -324,9 +327,12 @@ void CCodeWindow::StepOver()
   }
 }
 
-// Returns true on a blr or on a bclr that evaluates to true.
+// Returns true on a rfi, blr or on a bclr that evaluates to true.
 static bool WillInstructionReturn(UGeckoInstruction inst)
 {
+  // Is a rfi instruction
+  if (inst.hex == 0x4C000064u)
+    return true;
   bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR != 0) != ((inst.BO_2 >> 1 & 1) != 0);
   bool condition = inst.BO_2 >> 4 != 0 || GetCRBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
   bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
@@ -340,43 +346,54 @@ void CCodeWindow::StepOut()
     CPU::PauseAndLock(true, false);
     PowerPC::breakpoints.ClearAllTemporary();
 
-    // Keep stepping until the next return instruction or timeout after one second
-    u64 timeout = SystemTimers::GetTicksPerSecond();
-    u64 steps = 0;
+    // Keep stepping until the next return instruction or timeout after five seconds
+    using clock = std::chrono::steady_clock;
+    clock::time_point timeout = clock::now() + std::chrono::seconds(5);
     PowerPC::CoreMode old_mode = PowerPC::GetMode();
     PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
-    UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
+
     // Loop until either the current instruction is a return instruction with no Link flag
-    // or a breakpoint is detected so it can step at the breakpoint.
-    while (!(WillInstructionReturn(inst)) && steps < timeout &&
-           !PowerPC::breakpoints.IsAddressBreakPoint(PC))
+    // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
+    // on a breakpoint, skip it.
+    UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
+    do
     {
+      if (WillInstructionReturn(inst))
+      {
+        PowerPC::SingleStep();
+        break;
+      }
+
       if (inst.LK)
       {
         // Step over branches
         u32 next_pc = PC + 4;
-        while (PC != next_pc && steps < timeout)
+        do
         {
           PowerPC::SingleStep();
-          ++steps;
-        }
+        } while (PC != next_pc && clock::now() < timeout &&
+                 !PowerPC::breakpoints.IsAddressBreakPoint(PC));
       }
       else
       {
         PowerPC::SingleStep();
-        ++steps;
       }
+
       inst = PowerPC::HostRead_Instruction(PC);
-    }
-    // If the loop stopped because of a breakpoint, we do not want to step to
-    // an instruction after it.
-    if (!PowerPC::breakpoints.IsAddressBreakPoint(PC))
-      PowerPC::SingleStep();
+    } while (clock::now() < timeout && !PowerPC::breakpoints.IsAddressBreakPoint(PC));
+
     PowerPC::SetMode(old_mode);
     CPU::PauseAndLock(false, false);
 
     wxCommandEvent ev(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
     GetEventHandler()->ProcessEvent(ev);
+
+    if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+      Core::DisplayMessage(_("Breakpoint encountered! Step out aborted.").ToStdString(), 2000);
+    else if (clock::now() >= timeout)
+      Core::DisplayMessage(_("Step out timed out!").ToStdString(), 2000);
+    else
+      Core::DisplayMessage(_("Step out successful!").ToStdString(), 2000);
 
     // Update all toolbars in the aui manager
     Parent->UpdateGUI();
