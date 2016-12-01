@@ -8,7 +8,7 @@ namespace ciface
 {
 namespace Quartz
 {
-void Init(void* window);
+void PopulateDevices(void* window);
 void DeInit();
 }
 }

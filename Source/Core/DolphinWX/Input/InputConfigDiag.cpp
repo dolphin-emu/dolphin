@@ -894,7 +894,7 @@ void InputConfigDialog::RefreshDevices(wxCommandEvent&)
   bool was_unpaused = Core::PauseAndLock(true);
 
   // refresh devices
-  g_controller_interface.Reinitialize();
+  g_controller_interface.RefreshDevices();
 
   // update all control references
   UpdateControlReferences();

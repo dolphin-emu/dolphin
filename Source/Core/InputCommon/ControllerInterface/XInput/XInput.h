@@ -23,6 +23,7 @@ namespace ciface
 namespace XInput
 {
 void Init();
+void PopulateDevices();
 void DeInit();
 
 class Device : public Core::Device
