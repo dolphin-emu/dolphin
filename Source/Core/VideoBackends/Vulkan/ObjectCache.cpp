@@ -159,12 +159,8 @@ GetVulkanColorBlendState(const BlendState& state,
   return vk_state;
 }
 
-VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
+VkPipeline ObjectCache::CreatePipeline(const PipelineInfo& info)
 {
-  auto iter = m_pipeline_objects.find(info);
-  if (iter != m_pipeline_objects.end())
-    return iter->second;
-
   // Declare descriptors for empty vertex buffers/attributes
   static const VkPipelineVertexInputStateCreateInfo empty_vertex_input_state = {
       VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO,  // VkStructureType sType
@@ -278,14 +274,32 @@ VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
       -1                     // int32_t                                          basePipelineIndex
   };
 
-  VkPipeline pipeline = VK_NULL_HANDLE;
+  VkPipeline pipeline;
   VkResult res = vkCreateGraphicsPipelines(g_vulkan_context->GetDevice(), m_pipeline_cache, 1,
                                            &pipeline_info, nullptr, &pipeline);
   if (res != VK_SUCCESS)
+  {
     LOG_VULKAN_ERROR(res, "vkCreateGraphicsPipelines failed: ");
+    return VK_NULL_HANDLE;
+  }
 
-  m_pipeline_objects.emplace(info, pipeline);
   return pipeline;
+}
+
+VkPipeline ObjectCache::GetPipeline(const PipelineInfo& info)
+{
+  return GetPipelineWithCacheResult(info).first;
+}
+
+std::pair<VkPipeline, bool> ObjectCache::GetPipelineWithCacheResult(const PipelineInfo& info)
+{
+  auto iter = m_pipeline_objects.find(info);
+  if (iter != m_pipeline_objects.end())
+    return {iter->second, true};
+
+  VkPipeline pipeline = CreatePipeline(info);
+  m_pipeline_objects.emplace(info, pipeline);
+  return {pipeline, false};
 }
 
 std::string ObjectCache::GetDiskCacheFileName(const char* type)
@@ -330,6 +344,13 @@ bool ObjectCache::CreatePipelineCache(bool load_from_disk)
       disk_data.clear();
   }
 
+  if (!disk_data.empty() && !ValidatePipelineCache(disk_data.data(), disk_data.size()))
+  {
+    // Don't use this data. In fact, we should delete it to prevent it from being used next time.
+    File::Delete(m_pipeline_cache_filename);
+    disk_data.clear();
+  }
+
   VkPipelineCacheCreateInfo info = {
       VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO,  // VkStructureType            sType
       nullptr,                                       // const void*                pNext
@@ -355,6 +376,76 @@ bool ObjectCache::CreatePipelineCache(bool load_from_disk)
   return false;
 }
 
+// Based on Vulkan 1.0 specification,
+// Table 9.1. Layout for pipeline cache header version VK_PIPELINE_CACHE_HEADER_VERSION_ONE
+// NOTE: This data is assumed to be in little-endian format.
+#pragma pack(push, 4)
+struct VK_PIPELINE_CACHE_HEADER
+{
+  u32 header_length;
+  u32 header_version;
+  u32 vendor_id;
+  u32 device_id;
+  u8 uuid[VK_UUID_SIZE];
+};
+#pragma pack(pop)
+// TODO: Remove the #if here when GCC 5 is a minimum build requirement.
+#if defined(__GNUC__) && !defined(__clang__) && __GNUC__ < 5
+static_assert(std::has_trivial_copy_constructor<VK_PIPELINE_CACHE_HEADER>::value,
+              "VK_PIPELINE_CACHE_HEADER must be trivially copyable");
+#else
+static_assert(std::is_trivially_copyable<VK_PIPELINE_CACHE_HEADER>::value,
+              "VK_PIPELINE_CACHE_HEADER must be trivially copyable");
+#endif
+
+bool ObjectCache::ValidatePipelineCache(const u8* data, size_t data_length)
+{
+  if (data_length < sizeof(VK_PIPELINE_CACHE_HEADER))
+  {
+    ERROR_LOG(VIDEO, "Pipeline cache failed validation: Invalid header");
+    return false;
+  }
+
+  VK_PIPELINE_CACHE_HEADER header;
+  std::memcpy(&header, data, sizeof(header));
+  if (header.header_length < sizeof(VK_PIPELINE_CACHE_HEADER))
+  {
+    ERROR_LOG(VIDEO, "Pipeline cache failed validation: Invalid header length");
+    return false;
+  }
+
+  if (header.header_version != VK_PIPELINE_CACHE_HEADER_VERSION_ONE)
+  {
+    ERROR_LOG(VIDEO, "Pipeline cache failed validation: Invalid header version");
+    return false;
+  }
+
+  if (header.vendor_id != g_vulkan_context->GetDeviceProperties().vendorID)
+  {
+    ERROR_LOG(VIDEO,
+              "Pipeline cache failed validation: Incorrect vendor ID (file: 0x%X, device: 0x%X)",
+              header.vendor_id, g_vulkan_context->GetDeviceProperties().vendorID);
+    return false;
+  }
+
+  if (header.device_id != g_vulkan_context->GetDeviceProperties().deviceID)
+  {
+    ERROR_LOG(VIDEO,
+              "Pipeline cache failed validation: Incorrect device ID (file: 0x%X, device: 0x%X)",
+              header.device_id, g_vulkan_context->GetDeviceProperties().deviceID);
+    return false;
+  }
+
+  if (std::memcmp(header.uuid, g_vulkan_context->GetDeviceProperties().pipelineCacheUUID,
+                  VK_UUID_SIZE) != 0)
+  {
+    ERROR_LOG(VIDEO, "Pipeline cache failed validation: Incorrect UUID");
+    return false;
+  }
+
+  return true;
+}
+
 void ObjectCache::DestroyPipelineCache()
 {
   for (const auto& it : m_pipeline_objects)
@@ -366,15 +457,6 @@ void ObjectCache::DestroyPipelineCache()
 
   vkDestroyPipelineCache(g_vulkan_context->GetDevice(), m_pipeline_cache, nullptr);
   m_pipeline_cache = VK_NULL_HANDLE;
-}
-
-void ObjectCache::ClearPipelineCache()
-{
-  // Reallocate the pipeline cache object, so it starts fresh and we don't
-  // save old pipelines to disk. This is for major changes, e.g. MSAA mode change.
-  DestroyPipelineCache();
-  if (!CreatePipelineCache(false))
-    PanicAlert("Failed to re-create pipeline cache");
 }
 
 void ObjectCache::SavePipelineCache()

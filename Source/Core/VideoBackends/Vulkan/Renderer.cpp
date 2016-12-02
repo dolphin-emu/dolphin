@@ -12,7 +12,6 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 
 #include "VideoBackends/Vulkan/BoundingBox.h"
@@ -55,8 +54,8 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::mo
   s_backbuffer_width = m_swap_chain ? m_swap_chain->GetWidth() : MAX_XFB_WIDTH;
   s_backbuffer_height = m_swap_chain ? m_swap_chain->GetHeight() : MAX_XFB_HEIGHT;
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-  CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+  UpdateDrawRectangle();
+  CalculateTargetSize();
   PixelShaderManager::SetEfbScaleChanged();
 }
 
@@ -116,6 +115,9 @@ bool Renderer::Initialize()
                                                m_bounding_box->GetGPUBufferOffset(),
                                                m_bounding_box->GetGPUBufferSize());
   }
+
+  // Ensure all pipelines previously used by the game have been created.
+  StateTracker::GetInstance()->LoadPipelineUIDCache();
 
   // Various initialization routines will have executed commands on the command buffer.
   // Execute what we have done before beginning the first frame.
@@ -569,37 +571,41 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   TextureCacheBase::Cleanup(frameCount);
 }
 
-void Renderer::DrawFrame(VkRenderPass render_pass, const EFBRectangle& rc, u32 xfb_addr,
+void Renderer::DrawFrame(VkRenderPass render_pass, const TargetRectangle& target_rect,
+                         const EFBRectangle& source_rect, u32 xfb_addr,
                          const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                          u32 fb_stride, u32 fb_height)
 {
   if (!g_ActiveConfig.bUseXFB)
-    DrawEFB(render_pass, rc);
+    DrawEFB(render_pass, target_rect, source_rect);
   else if (!g_ActiveConfig.bUseRealXFB)
-    DrawVirtualXFB(render_pass, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+    DrawVirtualXFB(render_pass, target_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride,
+                   fb_height);
   else
-    DrawRealXFB(render_pass, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+    DrawRealXFB(render_pass, target_rect, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
 }
 
-void Renderer::DrawEFB(VkRenderPass render_pass, const EFBRectangle& rc)
+void Renderer::DrawEFB(VkRenderPass render_pass, const TargetRectangle& target_rect,
+                       const EFBRectangle& source_rect)
 {
   // Scale the source rectangle to the selected internal resolution.
-  TargetRectangle scaled_rc = Renderer::ConvertEFBRectangle(rc);
-  scaled_rc.left = std::max(scaled_rc.left, 0);
-  scaled_rc.right = std::max(scaled_rc.right, 0);
-  scaled_rc.top = std::max(scaled_rc.top, 0);
-  scaled_rc.bottom = std::max(scaled_rc.bottom, 0);
+  TargetRectangle scaled_source_rect = Renderer::ConvertEFBRectangle(source_rect);
+  scaled_source_rect.left = std::max(scaled_source_rect.left, 0);
+  scaled_source_rect.right = std::max(scaled_source_rect.right, 0);
+  scaled_source_rect.top = std::max(scaled_source_rect.top, 0);
+  scaled_source_rect.bottom = std::max(scaled_source_rect.bottom, 0);
 
   // Transition the EFB render target to a shader resource.
-  VkRect2D src_region = {
-      {0, 0}, {static_cast<u32>(scaled_rc.GetWidth()), static_cast<u32>(scaled_rc.GetHeight())}};
+  VkRect2D src_region = {{0, 0},
+                         {static_cast<u32>(scaled_source_rect.GetWidth()),
+                          static_cast<u32>(scaled_source_rect.GetHeight())}};
   Texture2D* efb_color_texture =
       FramebufferManager::GetInstance()->ResolveEFBColorTexture(src_region);
   efb_color_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                         VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   // Copy EFB -> backbuffer
-  BlitScreen(render_pass, GetTargetRectangle(), scaled_rc, efb_color_texture, true);
+  BlitScreen(render_pass, target_rect, scaled_source_rect, efb_color_texture, true);
 
   // Restore the EFB color texture to color attachment ready for rendering the next frame.
   if (efb_color_texture == FramebufferManager::GetInstance()->GetEFBColorTexture())
@@ -609,11 +615,10 @@ void Renderer::DrawEFB(VkRenderPass render_pass, const EFBRectangle& rc)
   }
 }
 
-void Renderer::DrawVirtualXFB(VkRenderPass render_pass, u32 xfb_addr,
-                              const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                              u32 fb_stride, u32 fb_height)
+void Renderer::DrawVirtualXFB(VkRenderPass render_pass, const TargetRectangle& target_rect,
+                              u32 xfb_addr, const XFBSourceBase* const* xfb_sources, u32 xfb_count,
+                              u32 fb_width, u32 fb_stride, u32 fb_height)
 {
-  const TargetRectangle& target_rect = GetTargetRectangle();
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
@@ -643,10 +648,10 @@ void Renderer::DrawVirtualXFB(VkRenderPass render_pass, u32 xfb_addr,
   }
 }
 
-void Renderer::DrawRealXFB(VkRenderPass render_pass, const XFBSourceBase* const* xfb_sources,
-                           u32 xfb_count, u32 fb_width, u32 fb_stride, u32 fb_height)
+void Renderer::DrawRealXFB(VkRenderPass render_pass, const TargetRectangle& target_rect,
+                           const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                           u32 fb_stride, u32 fb_height)
 {
-  const TargetRectangle& target_rect = GetTargetRectangle();
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
@@ -657,7 +662,7 @@ void Renderer::DrawRealXFB(VkRenderPass render_pass, const XFBSourceBase* const*
   }
 }
 
-void Renderer::DrawScreen(const EFBRectangle& rc, u32 xfb_addr,
+void Renderer::DrawScreen(const EFBRectangle& source_rect, u32 xfb_addr,
                           const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                           u32 fb_stride, u32 fb_height)
 {
@@ -693,8 +698,8 @@ void Renderer::DrawScreen(const EFBRectangle& rc, u32 xfb_addr,
                        VK_SUBPASS_CONTENTS_INLINE);
 
   // Draw guest buffers (EFB or XFB)
-  DrawFrame(m_swap_chain->GetRenderPass(), rc, xfb_addr, xfb_sources, xfb_count, fb_width,
-            fb_stride, fb_height);
+  DrawFrame(m_swap_chain->GetRenderPass(), GetTargetRectangle(), source_rect, xfb_addr, xfb_sources,
+            xfb_count, fb_width, fb_stride, fb_height);
 
   // Draw OSD
   Util::SetViewportAndScissor(g_command_buffer_mgr->GetCurrentCommandBuffer(), 0, 0,
@@ -712,17 +717,11 @@ void Renderer::DrawScreen(const EFBRectangle& rc, u32 xfb_addr,
                                  VK_IMAGE_LAYOUT_PRESENT_SRC_KHR);
 }
 
-bool Renderer::DrawFrameDump(const EFBRectangle& rc, u32 xfb_addr,
+bool Renderer::DrawFrameDump(const EFBRectangle& source_rect, u32 xfb_addr,
                              const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                              u32 fb_stride, u32 fb_height, u64 ticks)
 {
-  // Draw the screenshot to an image containing only the active screen area, removing any
-  // borders as a result of the game rendering in a different aspect ratio.
-  TargetRectangle target_rect = GetTargetRectangle();
-  target_rect.right = target_rect.GetWidth();
-  target_rect.bottom = target_rect.GetHeight();
-  target_rect.left = 0;
-  target_rect.top = 0;
+  TargetRectangle target_rect = CalculateFrameDumpDrawRectangle();
   u32 width = std::max(1u, static_cast<u32>(target_rect.GetWidth()));
   u32 height = std::max(1u, static_cast<u32>(target_rect.GetHeight()));
   if (!ResizeFrameDumpBuffer(width, height))
@@ -743,8 +742,8 @@ bool Renderer::DrawFrameDump(const EFBRectangle& rc, u32 xfb_addr,
                        VK_SUBPASS_CONTENTS_INLINE);
   vkCmdClearAttachments(g_command_buffer_mgr->GetCurrentCommandBuffer(), 1, &clear_attachment, 1,
                         &clear_rect);
-  DrawFrame(FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass(), rc, xfb_addr,
-            xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+  DrawFrame(FramebufferManager::GetInstance()->GetColorCopyForReadbackRenderPass(), target_rect,
+            source_rect, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
   vkCmdEndRenderPass(g_command_buffer_mgr->GetCurrentCommandBuffer());
 
   // Prepare the readback texture for copying.
@@ -1003,8 +1002,8 @@ void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
   FramebufferManagerBase::SetLastXfbHeight(new_height);
 
   // Changing the XFB source area will likely change the final drawing rectangle.
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+  UpdateDrawRectangle();
+  if (CalculateTargetSize())
   {
     PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();
@@ -1117,11 +1116,11 @@ void Renderer::CheckForConfigChanges()
 
   // If the aspect ratio is changed, this changes the area that the game is drawn to.
   if (aspect_changed)
-    UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+    UpdateDrawRectangle();
 
   if (efb_scale_changed || aspect_changed)
   {
-    if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+    if (CalculateTargetSize())
       ResizeEFBTextures();
   }
 
@@ -1142,8 +1141,8 @@ void Renderer::CheckForConfigChanges()
     g_command_buffer_mgr->WaitForGPUIdle();
     RecompileShaders();
     FramebufferManager::GetInstance()->RecompileShaders();
-    g_object_cache->ClearPipelineCache();
     g_object_cache->RecompileSharedShaders();
+    StateTracker::GetInstance()->LoadPipelineUIDCache();
   }
 
   // For vsync, we need to change the present mode, which means recreating the swap chain.
@@ -1162,8 +1161,8 @@ void Renderer::OnSwapChainResized()
 {
   s_backbuffer_width = m_swap_chain->GetWidth();
   s_backbuffer_height = m_swap_chain->GetHeight();
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
-  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height))
+  UpdateDrawRectangle();
+  if (CalculateTargetSize())
   {
     PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();

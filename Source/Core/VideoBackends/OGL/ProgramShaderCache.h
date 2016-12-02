@@ -9,8 +9,6 @@
 #include "Common/GL/GLUtil.h"
 #include "Common/LinearDiskCache.h"
 
-#include "Core/ConfigManager.h"
-
 #include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/VertexShaderGen.h"

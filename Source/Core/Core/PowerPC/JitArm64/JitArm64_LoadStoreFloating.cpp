@@ -8,7 +8,6 @@
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/GPFifo.h"

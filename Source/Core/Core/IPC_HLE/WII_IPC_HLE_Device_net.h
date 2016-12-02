@@ -4,13 +4,14 @@
 
 #pragma once
 
+#include <string>
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/Timer.h"
-
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/NWC24Config.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "Core/IPC_HLE/WiiNetConfig.h"
 

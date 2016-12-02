@@ -12,12 +12,10 @@
     <string name="controller_3">GameCube Controller 4</string>
     <!-- END WARNING -->
 
-    <string name="enable_controller">Enable controller</string>
-    <string name="controller_buttons">Buttons</string>
-    <string name="controller_dpad">Directional Keys</string>
-    <string name="controller_main">Main Stick Navigation</string>
-    <string name="controller_c">C-Stick Navigation</string>
-    <string name="controller_trig">Analog Triggers</string>
+    <string name="controller_control">Control Stick</string>
+    <string name="controller_c">C Stick</string>
+    <string name="controller_trig">Triggers</string>
+    <string name="controller_dpad">D-Pad</string>
     <string name="modifier_range">Modifier Range</string>
     <string name="analog_radius">Analog Radius (High value = High sensitivity)</string>
     <string name="analog_threshold">Analog Threshold (Low value = High sensitivity)</string>
@@ -30,113 +28,71 @@
     <string name="wiimote_3">Wii Remote 4</string>
     <!-- END WARNING -->
 
-    <string name="enable_wiimote">Enable Wii Remote</string>
-    <string name="wiimote_ir">IR Motion Controls</string>
-    <string name="wiimote_swing">Swing Navigation</string>
-    <string name="wiimote_tilt">Tilt Navigation</string>
-    <string name="wiimote_shake">Shake Controls</string>
-    <string name="wiimote_stick">Analog Stick Navigation</string>
-    <string name="wiimote_extensions">Wii Remote Extension</string>
-    <string name="wiimote_extensions_descrip">Choose which Extension you want to use with the Wiimote</string>
-    <string name="show_nunchuk">Nunchuk</string>
-    <string name="show_classic">Classic Controller</string>
-    <string name="show_guitar">Guitar</string>
-    <string name="show_drums">Drums</string>
-    <string name="show_turntable">Turntable</string>
+    <string name="wiimote_extensions">Extension</string>
+    <string name="wiimote_extensions_descrip">Choose and bind the Wii Remote extension.</string>
+    <string name="wiimote_ir">IR</string>
+    <string name="wiimote_swing">Swing</string>
+    <string name="wiimote_tilt">Tilt</string>
+    <string name="wiimote_shake">Shake</string>
+
     <string name="input_binding">Input Binding</string>
     <string name="input_binding_descrip">Press or move an input to bind it to %1$s.</string>
 
-    <!-- GameCube buttons (May be shared with Wii Remote stuff too) -->
-    <string name="button_a">Button A</string>
-    <string name="button_b">Button B</string>
-    <string name="button_start">Button Start</string>
-    <string name="button_x">Button X</string>
-    <string name="button_y">Button Y</string>
-    <string name="button_z">Button Z</string>
-    <string name="dpad_up">D-Pad Up</string>
-    <string name="dpad_down">D-Pad Down</string>
-    <string name="dpad_left">D-Pad Left</string>
-    <string name="dpad_right">D-Pad Right</string>
-    <string name="main_stick_up">Control Stick Up</string>
-    <string name="main_stick_down">Control Stick Down</string>
-    <string name="main_stick_left">Control Stick Left</string>
-    <string name="main_stick_right">Control Stick Right</string>
-    <string name="c_stick_up">C Stick Up</string>
-    <string name="c_stick_down">C Stick Down</string>
-    <string name="c_stick_left">C Stick Left</string>
-    <string name="c_stick_right">C Stick Right</string>
-    <string name="trigger_left">Trigger L</string>
-    <string name="trigger_right">Trigger R</string>
+    <!-- Generic buttons (Shared with lots of stuff) -->
+    <string name="generic_buttons">Buttons</string>
+    <string name="generic_up">Up</string>
+    <string name="generic_down">Down</string>
+    <string name="generic_left">Left</string>
+    <string name="generic_right">Right</string>
+    <string name="generic_forward">Forward</string>
+    <string name="generic_backward">Backward</string>
+    <string name="generic_stick">Stick</string>
+    <string name="generic_green">Green</string>
+    <string name="generic_red">Red</string>
+    <string name="generic_yellow">Yellow</string>
+    <string name="generic_blue">Blue</string>
+    <string name="generic_orange">Orange</string>
 
-    <!-- Wii Remote (+ extension) only buttons -->
-    <string name="button_one">Button 1</string>
-    <string name="button_two">Button 2</string>
-    <string name="button_plus">Button +</string>
-    <string name="button_minus">Button -</string>
-    <string name="button_home">Button Home</string>
-    <string name="stick_up">Stick Up</string>
-    <string name="stick_down">Stick Down</string>
-    <string name="stick_left">Stick Left</string>
-    <string name="stick_right">Stick Right</string>
-    <string name="ir_up">IR Up</string>
-    <string name="ir_down">IR Down</string>
-    <string name="ir_left">IR Left</string>
-    <string name="ir_right">IR Right</string>
-    <string name="ir_forward">IR Forward</string>
-    <string name="ir_backward">IR Backward</string>
-    <string name="ir_hide">IR Hide</string>
-    <string name="swing_up">Swing Up</string>
-    <string name="swing_down">Swing Down</string>
-    <string name="swing_left">Swing Left</string>
-    <string name="swing_right">Swing Right</string>
-    <string name="swing_forward">Swing Forward</string>
-    <string name="swing_backward">Swing Backward</string>
-    <string name="tilt_forward">Tilt Forward</string>
-    <string name="tilt_backward">Tilt Backward</string>
-    <string name="tilt_left">Tilt Left</string>
-    <string name="tilt_right">Tilt Right</string>
-    <string name="tilt_modifier">Tilt Modifier</string>
-    <string name="shake_x">Shake X</string>
-    <string name="shake_y">Shake Y</string>
-    <string name="shake_z">Shake Z</string>
+    <!-- GameCube buttons (May be shared with other stuff too) -->
+    <string name="button_a">A</string>
+    <string name="button_b">B</string>
+    <string name="button_start">Start</string>
+    <string name="button_x">X</string>
+    <string name="button_y">Y</string>
+    <string name="button_z">Z</string>
+    <string name="trigger_left">L</string>
+    <string name="trigger_right">R</string>
+
+    <!-- Wii Remote buttons (May be shared with other stuff too) -->
+    <string name="button_one">1</string>
+    <string name="button_two">2</string>
+    <string name="button_minus">-</string>
+    <string name="button_plus">+</string>
+    <string name="button_home">Home</string>
+    <string name="ir_hide">Hide</string>
+    <string name="tilt_modifier">Modifier</string>
+    <string name="shake_x">X</string>
+    <string name="shake_y">Y</string>
+    <string name="shake_z">Z</string>
 
     <!-- Nunchuk only buttons -->
-    <string name="nunchuk_button_c">Button C</string>
+    <string name="nunchuk_button_c">C</string>
 
     <!-- Classic only buttons -->
-    <string name="classic_button_zl">Button ZL</string>
-    <string name="classic_button_zr">Button ZR</string>
-    <string name="classic_leftstick">Left Analog Stick Navigation</string>
-    <string name="classic_stick_left_up">Left Stick Up</string>
-    <string name="classic_stick_left_down">Left Stick Down</string>
-    <string name="classic_stick_left_left">Left Stick Left</string>
-    <string name="classic_stick_left_right">Left Stick Right</string>
-    <string name="classic_rightstick">Right Analog Stick Navigation</string>
-    <string name="classic_stick_right_up">Right Stick Up</string>
-    <string name="classic_stick_right_down">Right Stick Down</string>
-    <string name="classic_stick_right_left">Right Stick Left</string>
-    <string name="classic_stick_right_right">Right Stick Right</string>
+    <string name="classic_button_zl">ZL</string>
+    <string name="classic_button_zr">ZR</string>
+    <string name="classic_leftstick">Left Stick</string>
+    <string name="classic_rightstick">Right Stick</string>
 
     <!-- Guitar only buttons -->
-    <string name="guitar_frets">Guitar Frets</string>
-    <string name="guitar_fret_green">Red Fret</string>
-    <string name="guitar_fret_red">Red Fret</string>
-    <string name="guitar_fret_yellow">Yellow Fret</string>
-    <string name="guitar_fret_blue">Blue Fret</string>
-    <string name="guitar_fret_orange">Orange Fret</string>
-    <string name="guitar_strum_up">Strum Up</string>
-    <string name="guitar_strum_down">Strum Down</string>
-    <string name="guitar_whammy">Guitar Whammy</string>
-    <string name="guitar_whammy_bar">Whammy Bar</string>
+    <string name="guitar_frets">Frets</string>
+    <string name="guitar_strum">Strum</string>
+    <string name="guitar_whammy">Whammy</string>
+    <string name="guitar_whammy_bar">Bar</string>
 
     <!-- Drums only buttons -->
-    <string name="drums_pads">Drum Pads</string>
-    <string name="drums_pad_red">Red Pad</string>
-    <string name="drums_pad_yellow">Yellow Pad</string>
-    <string name="drums_pad_blue">Blue Pad</string>
-    <string name="drums_pad_green">Green Pad</string>
-    <string name="drums_pad_orange">Orange Pad</string>
-    <string name="drums_pad_bass">Bass Pad</string>
+    <string name="drums_pads">Pads</string>
+    <string name="drums_pad_bass">Bass</string>
 
     <!-- Turntable only buttons -->
     <string name="turntable_button_green_left">Green Left</string>
@@ -146,17 +102,11 @@
     <string name="turntable_button_red_right">Red Right</string>
     <string name="turntable_button_blue_right">Blue Right</string>
     <string name="turntable_button_euphoria">Euphoria</string>
-    <string name="turntable_table_left">Left Turntable</string>
-    <string name="turntable_table_left_left">Left Table Left</string>
-    <string name="turntable_table_left_right">Left Table Right</string>
-    <string name="turntable_table_right">Right Turntable</string>
-    <string name="turntable_table_right_left">Right Table Left</string>
-    <string name="turntable_table_right_right">Right Table Right</string>
-    <string name="turntable_effect"> Effects</string>
-    <string name="turntable_effect_dial">Effect Dial</string>
+    <string name="turntable_table_left">Table Left</string>
+    <string name="turntable_table_right">Table Right</string>
+    <string name="turntable_effect">Effect</string>
+    <string name="turntable_effect_dial">Dial</string>
     <string name="turntable_crossfade">Crossfade</string>
-    <string name="turntable_crossfade_left">Crossfade Left</string>
-    <string name="turntable_crossfade_right">Crossfade Right</string>
 
     <!-- CPU Preference Fragment -->
     <string name="cpu_core">CPU Core</string>
@@ -232,6 +182,7 @@
     <string name="no">No</string>
     <string name="ok">OK</string>
     <string name="cancel">Cancel</string>
+    <string name="clear">Clear</string>
     <string name="disabled">Disabled</string>
     <string name="other">Other</string>
 

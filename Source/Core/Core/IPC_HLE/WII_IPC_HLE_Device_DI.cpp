@@ -4,15 +4,15 @@
 
 #include <cinttypes>
 #include <memory>
+#include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/LogManager.h"
-#include "Core/ConfigManager.h"
-#include "Core/CoreTiming.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 #include "DiscIO/Volume.h"
@@ -107,12 +107,6 @@ void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt
 
   // The DI interrupt type is used as a return value
   Memory::Write_U32(interrupt_type, command_address + 4);
-
-  // The original hardware overwrites the command type with the async reply type.
-  Memory::Write_U32(IPC_REP_ASYNC, command_address);
-  // IOS also seems to write back the command that was responded to in the FD field.
-  Memory::Write_U32(Memory::Read_U32(command_address), command_address + 8);
-  // Generate a reply to the IPC command
   WII_IPC_HLE_Interface::EnqueueReply(command_address);
 
   // DVDInterface is now ready to execute another command,

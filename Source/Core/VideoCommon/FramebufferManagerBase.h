@@ -60,6 +60,8 @@ public:
   static int ScaleToVirtualXfbHeight(int y);
 
   static unsigned int GetEFBLayers() { return m_EFBLayers; }
+  virtual void GetTargetSize(unsigned int* width, unsigned int* height) = 0;
+
 protected:
   struct VirtualXFB
   {
@@ -79,8 +81,6 @@ protected:
 private:
   virtual std::unique_ptr<XFBSourceBase>
   CreateXFBSource(unsigned int target_width, unsigned int target_height, unsigned int layers) = 0;
-  // TODO: figure out why OGL is different for this guy
-  virtual void GetTargetSize(unsigned int* width, unsigned int* height) = 0;
 
   static VirtualXFBListType::iterator FindVirtualXFB(u32 xfbAddr, u32 width, u32 height);
 

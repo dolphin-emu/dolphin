@@ -7,8 +7,10 @@
 #include <list>
 #include <map>
 #include <mutex>
+#include <string>
 #include <thread>
 
+#include "Common/CommonTypes.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
@@ -19,11 +21,11 @@
 #else
 #define LIBUSB_CALL
 #endif
-struct libusb_device_handle;
-struct libusb_device_descriptor;
 struct libusb_config_descriptor;
-struct libusb_interface_descriptor;
+struct libusb_device_descriptor;
+struct libusb_device_handle;
 struct libusb_endpoint_descriptor;
+struct libusb_interface_descriptor;
 struct libusb_transfer;
 
 #define HID_ID_MASK 0x0000FFFFFFFFFFFF

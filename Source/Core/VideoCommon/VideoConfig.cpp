@@ -48,6 +48,7 @@ VideoConfig::VideoConfig()
   backend_info.api_type = APIType::Nothing;
   backend_info.bSupportsExclusiveFullscreen = false;
   backend_info.bSupportsMultithreading = false;
+  backend_info.bSupportsInternalResolutionFrameDumps = false;
 
   bEnableValidationLayer = false;
   bBackendMultithreading = true;
@@ -170,8 +171,10 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("ConvertHiresTextures", &bConvertHiresTextures, 0);
   settings->Get("CacheHiresTextures", &bCacheHiresTextures, 0);
   settings->Get("DumpEFBTarget", &bDumpEFBTarget, 0);
+  settings->Get("DumpFramesAsImages", &bDumpFramesAsImages, 0);
   settings->Get("FreeLook", &bFreeLook, 0);
   settings->Get("UseFFV1", &bUseFFV1, 0);
+  settings->Get("InternalResolutionFrameDumps", &bInternalResolutionFrameDumps, 0);
   settings->Get("EnablePixelLighting", &bEnablePixelLighting, 0);
   settings->Get("FastDepthCalc", &bFastDepthCalc, true);
   if (ARBruteForcer::ch_bruteforce)
@@ -655,8 +658,10 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("ConvertHiresTextures", bConvertHiresTextures);
   settings->Set("CacheHiresTextures", bCacheHiresTextures);
   settings->Set("DumpEFBTarget", bDumpEFBTarget);
+  settings->Set("DumpFramesAsImages", bDumpFramesAsImages);
   settings->Set("FreeLook", bFreeLook);
   settings->Set("UseFFV1", bUseFFV1);
+  settings->Set("InternalResolutionFrameDumps", bInternalResolutionFrameDumps);
   settings->Set("EnablePixelLighting", bEnablePixelLighting);
   settings->Set("FastDepthCalc", bFastDepthCalc);
   if (!ARBruteForcer::ch_dont_save_settings)

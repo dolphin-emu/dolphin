@@ -9,7 +9,6 @@
 #include <wx/textctrl.h>
 
 #include "Core/ActionReplay.h"
-#include "Core/ConfigManager.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
 #include "DolphinWX/Cheats/CreateCodeDialog.h"
 #include "DolphinWX/ISOProperties.h"

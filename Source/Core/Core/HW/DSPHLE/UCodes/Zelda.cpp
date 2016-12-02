@@ -9,7 +9,6 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/ARBruteForcer.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/GBA.h"

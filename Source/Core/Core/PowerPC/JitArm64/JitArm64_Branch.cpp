@@ -5,7 +5,6 @@
 #include "Common/Arm64Emitter.h"
 #include "Common/CommonTypes.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/PowerPC/JitArm64/Jit.h"

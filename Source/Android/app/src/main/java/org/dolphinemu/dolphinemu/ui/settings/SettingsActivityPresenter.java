@@ -3,6 +3,8 @@ package org.dolphinemu.dolphinemu.ui.settings;
 import android.os.Bundle;
 
 import org.dolphinemu.dolphinemu.BuildConfig;
+import org.dolphinemu.dolphinemu.DolphinApplication;
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.model.settings.SettingSection;
 import org.dolphinemu.dolphinemu.utils.Log;
@@ -110,15 +112,9 @@ public final class SettingsActivityPresenter
 
 	public void onGcPadSettingChanged(String key, int value)
 	{
-		switch (value)
+		if (value != 0) // Not disabled
 		{
-			case 6:
-				mView.showToastMessage("Configuration coming soon. Settings from old versions will still work.");
-				break;
-
-			case 12:
-				mView.showSettingsFragment(key, true);
-				break;
+			mView.showSettingsFragment(key + (value / 6), true);
 		}
 	}
 
@@ -127,12 +123,20 @@ public final class SettingsActivityPresenter
 		switch (value)
 		{
 			case 1:
-				mView.showToastMessage("Configuration coming soon. Settings from old versions will still work.");
+				mView.showSettingsFragment(section, true);
 				break;
 
 			case 2:
 				mView.showToastMessage("Please make sure Continuous Scanning is enabled in Core Settings.");
 				break;
+		}
+	}
+
+	public void onExtensionSettingChanged(String key, int value)
+	{
+		if (value != 0) // None
+		{
+			mView.showSettingsFragment(key + value, true);
 		}
 	}
 }

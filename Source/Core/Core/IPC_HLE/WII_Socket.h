@@ -46,9 +46,12 @@ typedef struct pollfd pollfd_t;
 #include <list>
 #include <string>
 #include <unordered_map>
+#include <utility>
 
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/NonCopyable.h"
+#include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
@@ -209,7 +212,6 @@ public:
     return instance;             // Instantiated on first use.
   }
   void Update();
-  static void EnqueueReply(u32 CommandAddress, s32 ReturnValue, IPCCommandType CommandType);
   static void Convert(WiiSockAddrIn const& from, sockaddr_in& to);
   static void Convert(sockaddr_in const& from, WiiSockAddrIn& to, s32 addrlen = -1);
   // NON-BLOCKING FUNCTIONS
@@ -225,10 +227,10 @@ public:
     auto socket_entry = WiiSockets.find(sock);
     if (socket_entry == WiiSockets.end())
     {
-      IPCCommandType ct = static_cast<IPCCommandType>(Memory::Read_U32(CommandAddress));
       ERROR_LOG(WII_IPC_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock, CommandAddress,
                 type);
-      EnqueueReply(CommandAddress, -SO_EBADF, ct);
+      Memory::Write_U32(-SO_EBADF, CommandAddress + 4);
+      WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
     }
     else
     {

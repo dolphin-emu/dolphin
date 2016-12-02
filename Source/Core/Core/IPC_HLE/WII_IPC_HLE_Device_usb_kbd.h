@@ -7,6 +7,8 @@
 #include <queue>
 #include <string>
 
+#include "Common/CommonTypes.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
 class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device
@@ -38,18 +40,7 @@ private:
     u8 Unk2;
     u8 PressedKeys[6];
 
-    SMessageData(u32 _MsgType, u8 _Modifiers, u8* _PressedKeys)
-    {
-      MsgType = Common::swap32(_MsgType);
-      Unk1 = 0;  // swapped
-      Modifiers = _Modifiers;
-      Unk2 = 0;
-
-      if (_PressedKeys)  // Doesn't need to be in a specific order
-        memcpy(PressedKeys, _PressedKeys, sizeof(PressedKeys));
-      else
-        memset(PressedKeys, 0, sizeof(PressedKeys));
-    }
+    SMessageData(u32 msg_type, u8 modifiers, u8* pressed_keys);
   };
 #pragma pack(pop)
   std::queue<SMessageData> m_MessageQueue;

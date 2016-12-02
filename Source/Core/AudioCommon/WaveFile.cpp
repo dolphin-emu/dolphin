@@ -5,10 +5,11 @@
 #include <string>
 
 #include "AudioCommon/WaveFile.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Core/ConfigManager.h"
+#include "Common/StringUtil.h"
 
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 #undef BUFFER_SIZE
