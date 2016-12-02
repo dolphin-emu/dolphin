@@ -206,8 +206,7 @@ struct VideoConfig final
   bool bShowGameFrustum;
   bool bShowTrackingCamera;
   bool bShowTrackingVolume;
-  bool bShowBaseStation;
-
+  bool bShowBaseStation;  
   bool bMotionSicknessAlways;
   bool bMotionSicknessFreelook;
   bool bMotionSickness2D;
@@ -218,6 +217,7 @@ struct VideoConfig final
   int iMotionSicknessMethod;
   int iMotionSicknessSkybox;
   float fMotionSicknessFOV;
+  
 
   int iVRPlayer;
   float fTimeWarpTweak;
@@ -249,6 +249,13 @@ struct VideoConfig final
   float fScreenPitch;
   float fTelescopeMaxFOV;
   float fReadPitch;
+
+  float fHudDespPosition0;
+  float fHudDespPosition1;
+  float fHudDespPosition2;
+  Matrix33 matrixHudrot;
+  
+
   u32 iCameraMinPoly;
   bool bDisable3D;
   bool bHudFullscreen;
