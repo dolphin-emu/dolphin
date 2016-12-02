@@ -162,7 +162,7 @@ void FifoPlayerDlg::CreateGUIControls()
     m_Save = new wxButton(m_RecordPage, wxID_ANY, _("Save"));
 
     // Recording Options
-    m_FramesToRecordLabel = new wxStaticText(m_RecordPage, wxID_ANY, _("Frames To Record"));
+    m_FramesToRecordLabel = new wxStaticText(m_RecordPage, wxID_ANY, _("Frames to Record"));
     m_FramesToRecordCtrl =
         new wxSpinCtrl(m_RecordPage, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
                        wxSP_ARROW_KEYS, 0, 10000, m_FramesToRecord);
@@ -221,7 +221,7 @@ void FifoPlayerDlg::CreateGUIControls()
 
     // Search box
     wxStaticText* search_label =
-        new wxStaticText(m_AnalyzePage, wxID_ANY, _("Search for hex Value:"));
+        new wxStaticText(m_AnalyzePage, wxID_ANY, _("Search for Hex Value:"));
     // TODO: ugh, wxValidator sucks - but we should use it anyway.
     m_searchField = new wxTextCtrl(m_AnalyzePage, wxID_ANY, wxEmptyString, wxDefaultPosition,
                                    wxDefaultSize, wxTE_PROCESS_ENTER);
@@ -229,8 +229,8 @@ void FifoPlayerDlg::CreateGUIControls()
 
     // Search buttons
     m_beginSearch = new wxButton(m_AnalyzePage, wxID_ANY, _("Search"));
-    m_findNext = new wxButton(m_AnalyzePage, wxID_ANY, _("Find next"));
-    m_findPrevious = new wxButton(m_AnalyzePage, wxID_ANY, _("Find previous"));
+    m_findNext = new wxButton(m_AnalyzePage, wxID_ANY, _("Find Next"));
+    m_findPrevious = new wxButton(m_AnalyzePage, wxID_ANY, _("Find Previous"));
 
     ResetSearch();
 
@@ -258,7 +258,7 @@ void FifoPlayerDlg::CreateGUIControls()
     sSearchButtons->Add(m_findPrevious, 0, wxLEFT, space5);
 
     wxStaticBoxSizer* sSearchSizer =
-        new wxStaticBoxSizer(wxVERTICAL, m_AnalyzePage, _("Search current Object"));
+        new wxStaticBoxSizer(wxVERTICAL, m_AnalyzePage, _("Search Current Object"));
     sSearchSizer->Add(sSearchField, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
     sSearchSizer->AddSpacer(space5);
     sSearchSizer->Add(sSearchButtons, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
