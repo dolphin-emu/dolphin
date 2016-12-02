@@ -172,7 +172,7 @@ bool StateTracker::PrecachePipelineUID(const SerializedPipelineUID& uid)
     WARN_LOG(VIDEO, "Failed to get vertex shader from cached UID.");
     return false;
   }
-  if (!uid.gs_uid.GetUidData()->IsPassthrough())
+  if (g_vulkan_context->SupportsGeometryShaders() && !uid.gs_uid.GetUidData()->IsPassthrough())
   {
     pinfo.gs = g_object_cache->GetGeometryShaderForUid(uid.gs_uid);
     if (pinfo.gs == VK_NULL_HANDLE)
