@@ -70,8 +70,8 @@ public:
   virtual void DoState(PointerWrap& p);
   void DoStateShared(PointerWrap& p);
 
-  const std::string& GetDeviceName() const { return m_Name; }
-  u32 GetDeviceID() const { return m_DeviceID; }
+  const std::string& GetDeviceName() const { return m_name; }
+  u32 GetDeviceID() const { return m_device_id; }
   virtual IPCCommandResult Open(u32 command_address, u32 mode);
   virtual IPCCommandResult Close(u32 command_address, bool force = false);
   virtual IPCCommandResult Seek(u32 command_address);
@@ -81,18 +81,18 @@ public:
   virtual IPCCommandResult IOCtlV(u32 command_address);
 
   virtual u32 Update() { return 0; }
-  virtual bool IsHardware() const { return m_Hardware; }
-  virtual bool IsOpened() const { return m_Active; }
+  virtual bool IsHardware() const { return m_is_hardware; }
+  virtual bool IsOpened() const { return m_is_active; }
   static IPCCommandResult GetDefaultReply();
   static IPCCommandResult GetNoReply();
 
-  std::string m_Name;
+  std::string m_name;
 
 protected:
   // STATE_TO_SAVE
-  u32 m_DeviceID;
-  bool m_Hardware;
-  bool m_Active = false;
+  u32 m_device_id;
+  bool m_is_hardware;
+  bool m_is_active = false;
 
   // Write out the IPC struct from command_address to number_of_commands numbers
   // of 4 byte commands.

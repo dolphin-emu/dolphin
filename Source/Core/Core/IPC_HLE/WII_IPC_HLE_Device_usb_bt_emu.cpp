@@ -123,7 +123,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::DoState(PointerWrap& p)
     return;
   }
 
-  p.Do(m_Active);
+  p.Do(m_is_active);
   p.Do(m_ControllerBD);
   p.Do(m_CtrlSetup);
   p.Do(m_ACLSetup);
@@ -154,7 +154,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Open(u32 _CommandAddre
   m_HCIEndpoint.m_cmd_address = 0;
   m_ACLEndpoint.m_cmd_address = 0;
 
-  m_Active = true;
+  m_is_active = true;
   return GetDefaultReply();
 }
 
@@ -168,7 +168,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Close(u32 _CommandAddr
   m_HCIEndpoint.m_cmd_address = 0;
   m_ACLEndpoint.m_cmd_address = 0;
 
-  m_Active = false;
+  m_is_active = false;
   return GetDefaultReply();
 }
 

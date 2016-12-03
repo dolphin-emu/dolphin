@@ -470,8 +470,8 @@ void EnqueueReply(u32 address, int cycles_in_future, CoreTiming::FromThread from
 {
   // IOS writes back the command that was responded to in the FD field.
   Memory::Write_U32(Memory::Read_U32(address), address + 8);
-  // IOS also overwrites the command type with the async reply type.
-  Memory::Write_U32(IPC_REP_ASYNC, address);
+  // IOS also overwrites the command type with the reply type.
+  Memory::Write_U32(IPC_REPLY, address);
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, address, from);
 }
 

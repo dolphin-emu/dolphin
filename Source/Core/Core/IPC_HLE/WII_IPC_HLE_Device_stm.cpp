@@ -92,7 +92,7 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::Close(u32 command_address, b
 {
   s_event_hook_address = 0;
 
-  m_Active = false;
+  m_is_active = false;
   return GetDefaultReply();
 }
 
@@ -119,7 +119,7 @@ bool CWII_IPC_HLE_Device_stm_eventhook::HasHookInstalled() const
 
 void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
 {
-  if (!m_Active || s_event_hook_address == 0)
+  if (!m_is_active || s_event_hook_address == 0)
   {
     // If the device isn't open, ignore the button press.
     return;

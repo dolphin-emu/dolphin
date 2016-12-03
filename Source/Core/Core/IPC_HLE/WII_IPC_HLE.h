@@ -30,17 +30,12 @@ enum IPCCommandType : u32
   IPC_CMD_SEEK = 5,
   IPC_CMD_IOCTL = 6,
   IPC_CMD_IOCTLV = 7,
-  // IPC_REP_ASYNC is used for messages that are automatically
-  // sent to an IOS queue when an asynchronous syscall completes.
-  // Reference: http://wiibrew.org/wiki/IOS
-  IPC_REP_ASYNC = 8
+  // This is used for replies to commands.
+  IPC_REPLY = 8,
 };
 
 namespace WII_IPC_HLE_Interface
 {
-#define IPC_FIRST_ID 0x00   // First IPC device ID
-#define IPC_MAX_FILES 0x10  // First IPC file ID
-
 // Init
 void Init();
 
@@ -51,19 +46,19 @@ void Reinit();
 void Shutdown();
 
 // Reset
-void Reset(bool _bHard = false);
+void Reset(bool hard = false);
 
 // Do State
 void DoState(PointerWrap& p);
 
 // Set default content file
-void SetDefaultContentFile(const std::string& _rFilename);
+void SetDefaultContentFile(const std::string& file_name);
 void ES_DIVerify(const std::vector<u8>& tmd);
 
 void SDIO_EventNotify();
 
-std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& _rDeviceName);
-std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 _ID);
+std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& device_name);
+std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 id);
 
 // Update
 void Update();
@@ -71,11 +66,11 @@ void Update();
 // Update Devices
 void UpdateDevices();
 
-void ExecuteCommand(u32 _Address);
+void ExecuteCommand(u32 address);
 
 void EnqueueRequest(u32 address);
 void EnqueueReply(u32 address, int cycles_in_future = 0,
                   CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
-void EnqueueCommandAcknowledgement(u32 _Address, int cycles_in_future = 0);
+void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future = 0);
 
 }  // end of namespace WII_IPC_HLE_Interface
