@@ -239,7 +239,11 @@ const std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> groups_info = {
      {"Save state", HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
      {"Select state", HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
      {"Load last state", HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
-     {"Other state hotkeys", HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE}}};
+     {"Other state hotkeys", HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE},
+     {"VR Camera", VR_PERMANENT_CAMERA_FORWARD, VR_CAMERA_TILT_DOWN },
+     {"VR HUD", VR_HUD_FORWARD, VR_HUD_3D_FURTHER },
+     {"VR 2D Screen", VR_2D_SCREEN_LARGER, VR_2D_SCREEN_THINNER },
+     {"VR Other", VR_DEBUG_PREVIOUS_LAYER, VR_CONTROLLER_GRAB_HUD }}};
 
 HotkeyManager::HotkeyManager()
 {

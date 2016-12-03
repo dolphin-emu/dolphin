@@ -94,19 +94,51 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputCo
   szr_toggle_ir->AddSpacer(space5);
   szr_toggle_ir->Add(group_box_ir, 0, wxEXPAND);
 
-  auto* const group_box_freelook =
-      new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_FREELOOK), tab_graphics, this);
-
   auto* const szr_graphics_toggles = new wxBoxSizer(wxHORIZONTAL);
   szr_graphics_toggles->AddSpacer(space5);
   szr_graphics_toggles->Add(szr_toggle_ir, 0, wxEXPAND | wxTOP, space5);
-  szr_graphics_toggles->AddSpacer(space5);
-  szr_graphics_toggles->Add(group_box_freelook, 0, wxEXPAND | wxTOP, space5);
   szr_graphics_toggles->AddSpacer(space5);
 
   tab_graphics->SetSizerAndFit(szr_graphics_toggles);
 
   notebook->AddPage(tab_graphics, "Graphics");
+
+  // VR
+  auto* const tab_vr = new wxPanel(notebook);
+
+  auto* const group_box_freelook =
+    new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_FREELOOK), tab_vr, this);
+  auto* const group_box_vr_camera = new ControlGroupBox(
+    HotkeyManagerEmu::GetHotkeyGroup(HKGP_VR_CONFIG_CAMERA), tab_vr, this);
+  auto* const group_box_vr_hud =
+    new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_VR_CONFIG_HUD), tab_vr, this);
+  auto* const group_box_vr_2d =
+    new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_VR_CONFIG_2D), tab_vr, this);
+  auto* const group_box_vr_grab =
+    new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_VR_GRAB), tab_vr, this);
+
+  auto* const szr_camera_vr = new wxBoxSizer(wxVERTICAL);
+  szr_camera_vr->Add(group_box_vr_camera, 0, wxEXPAND);
+  szr_camera_vr->AddSpacer(space5);
+  szr_camera_vr->Add(group_box_vr_grab, 0, wxEXPAND);
+
+  auto* const szr_hud_vr = new wxBoxSizer(wxVERTICAL);
+  szr_hud_vr->Add(group_box_vr_hud, 0, wxEXPAND);
+  szr_hud_vr->AddSpacer(space5);
+  szr_hud_vr->Add(group_box_vr_2d, 0, wxEXPAND);
+
+  auto* const szr_vr_columns = new wxBoxSizer(wxHORIZONTAL);
+  szr_vr_columns->AddSpacer(space5);
+  szr_vr_columns->Add(group_box_freelook, 0, wxEXPAND | wxTOP, space5);
+  szr_vr_columns->AddSpacer(space5);
+  szr_vr_columns->Add(szr_camera_vr, 0, wxEXPAND | wxTOP, space5);
+  szr_vr_columns->AddSpacer(space5);
+  szr_vr_columns->Add(szr_hud_vr, 0, wxEXPAND | wxTOP, space5);
+  szr_vr_columns->AddSpacer(space5);
+
+  tab_vr->SetSizerAndFit(szr_vr_columns);
+
+  notebook->AddPage(tab_vr, "VR");
 
   // 3D
   auto* const tab_3D = new wxPanel(notebook);
