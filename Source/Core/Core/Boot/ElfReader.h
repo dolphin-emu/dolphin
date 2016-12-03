@@ -55,8 +55,9 @@ public:
     else
       return nullptr;
   }
-  bool IsCodeSection(int section) const { return sections[section].sh_type == SHT_PROGBITS; }
+  bool IsCodeSegment(int segment) const { return segments[segment].p_flags & PF_X; }
   const u8* GetSegmentPtr(int segment) { return GetPtr(segments[segment].p_offset); }
+  int GetSegmentSize(int segment) const { return segments[segment].p_filesz; }
   u32 GetSectionAddr(SectionID section) const { return sectionAddrs[section]; }
   int GetSectionSize(SectionID section) const { return sections[section].sh_size; }
   SectionID GetSectionByName(const char* name, int firstSection = 0) const;  //-1 for not found

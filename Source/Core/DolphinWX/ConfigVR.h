@@ -5,7 +5,7 @@
 
 #pragma once
 
-#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/VideoConfigDiag.h"
 
 class InputConfig;

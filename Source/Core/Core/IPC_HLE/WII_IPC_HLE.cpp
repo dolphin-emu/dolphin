@@ -447,7 +447,7 @@ void ExecuteCommand(u32 address)
           result = IWII_IPC_HLE_Device::GetDefaultReply();
         }
       }
-      else
+      else if (device_name.find('/') == 0)
       {
         device = CreateFileIO(DeviceID, device_name);
         result = device->Open(address, Mode);
@@ -455,9 +455,13 @@ void ExecuteCommand(u32 address)
         DEBUG_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
                   device->GetDeviceName().c_str(), DeviceID, Mode);
         if (Memory::Read_U32(address + 4) == (u32)DeviceID)
-        {
           s_fdmap[DeviceID] = device;
-        }
+      }
+      else
+      {
+        WARN_LOG(WII_IPC_HLE, "Invalid device: %s", device_name.c_str());
+        Memory::Write_U32(FS_ENOENT, address + 4);
+        result = IWII_IPC_HLE_Device::GetDefaultReply();
       }
     }
     else
@@ -535,6 +539,11 @@ void ExecuteCommand(u32 address)
     {
       result = device->IOCtl(address);
     }
+    else
+    {
+      Memory::Write_U32(FS_EINVAL, address + 4);
+      result = IWII_IPC_HLE_Device::GetDefaultReply();
+    }
     break;
   }
   case IPC_CMD_IOCTLV:
@@ -542,6 +551,11 @@ void ExecuteCommand(u32 address)
     if (device)
     {
       result = device->IOCtlV(address);
+    }
+    else
+    {
+      Memory::Write_U32(FS_EINVAL, address + 4);
+      result = IWII_IPC_HLE_Device::GetDefaultReply();
     }
     break;
   }

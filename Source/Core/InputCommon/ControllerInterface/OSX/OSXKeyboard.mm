@@ -263,5 +263,10 @@ std::string Keyboard::Key::GetName() const
 {
   return m_name;
 }
+
+bool Keyboard::IsSameDevice(const IOHIDDeviceRef other_device) const
+{
+  return m_device == other_device;
+}
 }
 }

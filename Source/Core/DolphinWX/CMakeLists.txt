@@ -41,6 +41,17 @@ set(GUI_SRCS
 	NetPlay/NetPlaySetupFrame.cpp
 	NetPlay/NetWindow.cpp
 	NetPlay/PadMapDialog.cpp
+	Input/InputConfigDiag.cpp
+	Input/InputConfigDiagBitmaps.cpp
+	Input/HotkeyInputConfigDiag.cpp
+	Input/GCPadInputConfigDiag.cpp
+	Input/GCKeyboardInputConfigDiag.cpp
+	Input/WiimoteInputConfigDiag.cpp
+	Input/NunchukInputConfigDiag.cpp
+	Input/ClassicInputConfigDiag.cpp
+	Input/GuitarInputConfigDiag.cpp
+	Input/DrumsInputConfigDiag.cpp
+	Input/TurntableInputConfigDiag.cpp
 	DolphinSlider.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
@@ -49,8 +60,6 @@ set(GUI_SRCS
 	GameListCtrl.cpp
 	ISOFile.cpp
 	ISOProperties.cpp
-	InputConfigDiag.cpp
-	InputConfigDiagBitmaps.cpp
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp

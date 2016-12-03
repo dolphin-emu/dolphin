@@ -1,4 +1,4 @@
-Dolphin-specific changes (as of 2016-08-25)
+Dolphin-specific changes (as of 2016-11-20)
 -------------------------------------------
 
 - removed all toplevel directories save msvc/ & libusb/

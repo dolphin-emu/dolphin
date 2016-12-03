@@ -33,7 +33,10 @@
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/DolphinSlider.h"
-#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/Input/GCKeyboardInputConfigDiag.h"
+#include "DolphinWX/Input/GCPadInputConfigDiag.h"
+#include "DolphinWX/Input/InputConfigDiag.h"
+#include "DolphinWX/Input/WiimoteInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -447,20 +450,24 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 
   if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_GC_KEYBOARD)
   {
-    InputConfigDialog config_diag(this, *key_plugin, _("GameCube Keyboard Configuration"),
-                                  port_num);
+    GCKeyboardInputConfigDialog config_diag(
+        this, *key_plugin,
+        wxString::Format("GameCube Keyboard Configuration Port %i", port_num + 1), port_num);
     config_diag.ShowModal();
   }
   else if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_WIIU_ADAPTER)
   {
-    GCAdapterConfigDiag config_diag(this, _("Wii U GameCube Controller Adapter Configuration"),
-                                    port_num);
+    GCAdapterConfigDiag config_diag(
+        this,
+        wxString::Format("Wii U GameCube Controller Adapter Configuration Port %i", port_num + 1),
+        port_num);
     config_diag.ShowModal();
   }
   else
   {
-    InputConfigDialog config_diag(this, *pad_plugin, _("GameCube Controller Configuration"),
-                                  port_num);
+    GCPadInputConfigDialog config_diag(
+        this, *pad_plugin,
+        wxString::Format("GameCube Controller Configuration Port %i", port_num + 1), port_num);
     config_diag.ShowModal();
   }
 
@@ -494,9 +501,12 @@ void ControllerConfigDiag::OnWiimoteConfigButton(wxCommandEvent& ev)
 
   HotkeyManagerEmu::Enable(false);
 
-  InputConfigDialog m_ConfigFrame(this, *wiimote_plugin,
-                                  _("Dolphin Emulated Wii Remote Configuration"),
-                                  m_wiimote_index_from_config_id[ev.GetId()]);
+  const int port_num = m_wiimote_index_from_config_id[ev.GetId()];
+
+  WiimoteInputConfigDialog m_ConfigFrame(
+      this, *wiimote_plugin,
+      wxString::Format("Dolphin Emulated Wii Remote Configuration Port %i", port_num + 1),
+      port_num);
   m_ConfigFrame.ShowModal();
 
   HotkeyManagerEmu::Enable(true);

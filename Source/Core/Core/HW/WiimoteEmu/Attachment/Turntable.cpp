@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cassert>
 #include <cstring>
 
 #include "Common/Common.h"
@@ -130,5 +131,27 @@ bool Turntable::IsButtonPressed() const
   u16 buttons = 0;
   m_buttons->GetState(&buttons, turntable_button_bitmasks);
   return buttons != 0;
+}
+
+ControllerEmu::ControlGroup* Turntable::GetGroup(TurntableGroup group)
+{
+  switch (group)
+  {
+  case TurntableGroup::Buttons:
+    return m_buttons;
+  case TurntableGroup::Stick:
+    return m_stick;
+  case TurntableGroup::EffectDial:
+    return m_effect_dial;
+  case TurntableGroup::LeftTable:
+    return m_left_table;
+  case TurntableGroup::RightTable:
+    return m_right_table;
+  case TurntableGroup::Crossfade:
+    return m_crossfade;
+  default:
+    assert(false);
+    return nullptr;
+  }
 }
 }

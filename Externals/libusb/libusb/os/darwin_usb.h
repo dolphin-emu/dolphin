@@ -1,6 +1,6 @@
 /*
  * darwin backend for libusb 1.0
- * Copyright © 2008-2013 Nathan Hjelm <hjelmn@users.sourceforge.net>
+ * Copyright © 2008-2015 Nathan Hjelm <hjelmn@users.sourceforge.net>
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -28,7 +28,13 @@
 #include <IOKit/IOCFPlugIn.h>
 
 /* IOUSBInterfaceInferface */
-#if defined (kIOUSBInterfaceInterfaceID550) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+#if defined (kIOUSBInterfaceInterfaceID700) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
+
+#define usb_interface_t IOUSBInterfaceInterface700
+#define InterfaceInterfaceID kIOUSBInterfaceInterfaceID700
+#define InterfaceVersion 700
+
+#elif defined (kIOUSBInterfaceInterfaceID550) && MAC_OS_X_VERSION_MIN_REQUIRED >= MAC_OS_X_VERSION_10_9
 
 #define usb_interface_t IOUSBInterfaceInterface550
 #define InterfaceInterfaceID kIOUSBInterfaceInterfaceID550
