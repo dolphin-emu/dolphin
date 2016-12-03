@@ -184,9 +184,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 {
   OpenInternal();
 
-  if (m_Active)
+  if (m_is_active)
     INFO_LOG(WII_IPC_ES, "Device was re-opened.");
-  m_Active = true;
+  m_is_active = true;
   return GetDefaultReply();
 }
 
@@ -198,7 +198,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce
   m_AccessIdentID = 0x6000000;
 
   INFO_LOG(WII_IPC_ES, "ES: Close");
-  m_Active = false;
+  m_is_active = false;
   // clear the NAND content cache to make sure nothing remains open.
   DiscIO::CNANDContentManager::Access().ClearCache();
   return GetDefaultReply();
@@ -1061,9 +1061,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
     if (!bReset)
     {
-      // The original hardware overwrites the command type with the async reply type.
-      Memory::Write_U32(IPC_REP_ASYNC, _CommandAddress);
-      // IOS also seems to write back the command that was responded to in the FD field.
+      // The command type is overwritten with the reply type.
+      Memory::Write_U32(IPC_REPLY, _CommandAddress);
+      // IOS also writes back the command that was responded to in the FD field.
       Memory::Write_U32(IPC_CMD_IOCTLV, _CommandAddress + 8);
     }
 
