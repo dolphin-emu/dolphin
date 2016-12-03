@@ -62,8 +62,6 @@ void ES_DIVerify(const std::vector<u8>& tmd);
 
 void SDIO_EventNotify();
 
-std::shared_ptr<IWII_IPC_HLE_Device> CreateFileIO(u32 _DeviceID, const std::string& _rDeviceName);
-
 std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& _rDeviceName);
 std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 _ID);
 
