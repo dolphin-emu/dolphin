@@ -84,17 +84,13 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bF
   // accessing it.
   m_file.reset();
 
-  // Close always return 0 for success
-  if (_CommandAddress && !_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
   m_Active = false;
   return GetDefaultReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
+IPCCommandResult CWII_IPC_HLE_Device_FileIO::Open(u32 command_address, u32 mode)
 {
-  m_Mode = _Mode;
-  u32 ReturnValue = 0;
+  m_Mode = mode;
 
   static const char* const Modes[] = {"Unk Mode", "Read only", "Write only", "Read and Write"};
 
@@ -104,19 +100,17 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode
   // It should be created by ISFS_CreateFile, not here
   if (File::Exists(m_filepath) && !File::IsDirectory(m_filepath))
   {
-    INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s == %08X)", m_Name.c_str(), Modes[_Mode], _Mode);
+    INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s == %08X)", m_Name.c_str(), Modes[mode], mode);
     OpenFile();
-    ReturnValue = m_DeviceID;
   }
   else
   {
-    WARN_LOG(WII_IPC_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[_Mode],
+    WARN_LOG(WII_IPC_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[mode],
              m_filepath.c_str());
-    ReturnValue = FS_FILE_NOT_EXIST;
+    if (command_address)
+      Memory::Write_U32(FS_FILE_NOT_EXIST, command_address + 4);
   }
 
-  if (_CommandAddress)
-    Memory::Write_U32(ReturnValue, _CommandAddress + 4);
   m_Active = true;
   return GetDefaultReply();
 }

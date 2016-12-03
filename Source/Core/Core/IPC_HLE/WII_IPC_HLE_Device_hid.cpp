@@ -104,22 +104,6 @@ CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
     libusb_exit(nullptr);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
-{
-  INFO_LOG(WII_IPC_HID, "HID::Open");
-  m_Active = true;
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForce)
-{
-  INFO_LOG(WII_IPC_HID, "HID::Close");
-  m_Active = false;
-  if (!_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
-  return GetDefaultReply();
-}
-
 IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 {
   if (Core::g_want_determinism)
