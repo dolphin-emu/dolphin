@@ -184,7 +184,6 @@ public:
 
 private:
   std::unique_ptr<TextureCache::TCacheEntry> m_texture;
-  VkFramebuffer m_framebuffer;
 };
 
 }  // namespace Vulkan
