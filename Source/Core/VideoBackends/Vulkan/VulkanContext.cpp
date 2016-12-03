@@ -294,7 +294,7 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
   VkSampleCountFlags supported_sample_counts = properties.limits.framebufferColorSampleCounts &
                                                properties.limits.framebufferDepthSampleCounts &
                                                efb_color_properties.sampleCounts &
-                                               efb_color_properties.sampleCounts;
+                                               efb_depth_properties.sampleCounts;
 
   // No AA
   config->backend_info.AAModes.clear();
