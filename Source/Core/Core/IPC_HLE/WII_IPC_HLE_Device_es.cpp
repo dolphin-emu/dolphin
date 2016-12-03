@@ -1064,9 +1064,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
     if (!bReset)
     {
-      // The original hardware overwrites the command type with the async reply type.
-      Memory::Write_U32(IPC_REP_ASYNC, _CommandAddress);
-      // IOS also seems to write back the command that was responded to in the FD field.
+      // The command type is overwritten with the reply type.
+      Memory::Write_U32(IPC_REPLY, _CommandAddress);
+      // IOS also writes back the command that was responded to in the FD field.
       Memory::Write_U32(IPC_CMD_IOCTLV, _CommandAddress + 8);
     }
 
