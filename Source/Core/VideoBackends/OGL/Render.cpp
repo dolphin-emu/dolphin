@@ -688,8 +688,8 @@ Renderer::Renderer()
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
   // Decide framebuffer size
-  s_backbuffer_width = (int)GLInterface->GetBackBufferWidth();
-  s_backbuffer_height = (int)GLInterface->GetBackBufferHeight();
+  s_backbuffer_width = static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u));
+  s_backbuffer_height = static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u));
 
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
@@ -798,12 +798,12 @@ void Renderer::Init()
 
 void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 {
-  const int nBackbufferWidth = (int)GLInterface->GetBackBufferWidth();
-  const int nBackbufferHeight = (int)GLInterface->GetBackBufferHeight();
+  u32 backbuffer_width = std::max(GLInterface->GetBackBufferWidth(), 1u);
+  u32 backbuffer_height = std::max(GLInterface->GetBackBufferHeight(), 1u);
 
-  s_raster_font->printMultilineText(text, left * 2.0f / (float)nBackbufferWidth - 1,
-                                    1 - top * 2.0f / (float)nBackbufferHeight, 0, nBackbufferWidth,
-                                    nBackbufferHeight, color);
+  s_raster_font->printMultilineText(text, left * 2.0f / static_cast<float>(backbuffer_width) - 1.0f,
+                                    1.0f - top * 2.0f / static_cast<float>(backbuffer_height), 0,
+                                    backbuffer_width, backbuffer_height, color);
 }
 
 TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
@@ -1424,23 +1424,20 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     FramebufferManagerBase::SetLastXfbHeight(last_h);
   }
 
-  bool WindowResized = false;
-  int W = (int)GLInterface->GetBackBufferWidth();
-  int H = (int)GLInterface->GetBackBufferHeight();
-  if (W != s_backbuffer_width || H != s_backbuffer_height ||
+  bool window_resized = false;
+  int window_width = static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u));
+  int window_height = static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u));
+  if (window_width != s_backbuffer_width || window_height != s_backbuffer_height ||
       s_last_efb_scale != g_ActiveConfig.iEFBScale)
   {
-    WindowResized = true;
-    s_backbuffer_width = W;
-    s_backbuffer_height = H;
+    window_resized = true;
+    s_backbuffer_width = window_width;
+    s_backbuffer_height = window_height;
     s_last_efb_scale = g_ActiveConfig.iEFBScale;
   }
-  bool TargetSizeChanged = false;
-  if (CalculateTargetSize())
-  {
-    TargetSizeChanged = true;
-  }
-  if (TargetSizeChanged || xfbchanged || WindowResized ||
+
+  bool target_size_changed = CalculateTargetSize();
+  if (target_size_changed || xfbchanged || window_resized ||
       (s_last_multisamples != g_ActiveConfig.iMultisamples) ||
       (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
   {
@@ -1448,7 +1445,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
     UpdateDrawRectangle();
 
-    if (TargetSizeChanged || s_last_multisamples != g_ActiveConfig.iMultisamples ||
+    if (target_size_changed || s_last_multisamples != g_ActiveConfig.iMultisamples ||
         s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
     {
       s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
