@@ -75,7 +75,6 @@ CWII_IPC_HLE_Device_net_kd_request::~CWII_IPC_HLE_Device_net_kd_request()
 IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::Open(u32 _CommandAddress, u32 _Mode)
 {
   INFO_LOG(WII_IPC_WC24, "NET_KD_REQ: Open");
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
   m_Active = true;
   return GetDefaultReply();
 }
@@ -357,7 +356,6 @@ CWII_IPC_HLE_Device_net_ncd_manage::~CWII_IPC_HLE_Device_net_ncd_manage()
 IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::Open(u32 _CommandAddress, u32 _Mode)
 {
   INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: Open");
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
   m_Active = true;
   return GetDefaultReply();
 }
@@ -456,7 +454,6 @@ CWII_IPC_HLE_Device_net_wd_command::~CWII_IPC_HLE_Device_net_wd_command()
 IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::Open(u32 CommandAddress, u32 Mode)
 {
   INFO_LOG(WII_IPC_NET, "NET_WD_COMMAND: Open");
-  Memory::Write_U32(GetDeviceID(), CommandAddress + 4);
   m_Active = true;
   return GetDefaultReply();
 }
@@ -585,7 +582,6 @@ CWII_IPC_HLE_Device_net_ip_top::~CWII_IPC_HLE_Device_net_ip_top()
 IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::Open(u32 _CommandAddress, u32 _Mode)
 {
   INFO_LOG(WII_IPC_NET, "NET_IP_TOP: Open");
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
   m_Active = true;
   return GetDefaultReply();
 }

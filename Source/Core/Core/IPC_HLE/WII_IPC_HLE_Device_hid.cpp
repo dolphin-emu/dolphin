@@ -108,7 +108,6 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
 {
   INFO_LOG(WII_IPC_HID, "HID::Open");
   m_Active = true;
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
   return GetDefaultReply();
 }
 
