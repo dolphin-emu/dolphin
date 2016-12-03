@@ -283,14 +283,6 @@ std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 id)
   return nullptr;
 }
 
-// This is called from ExecuteCommand() COMMAND_OPEN_DEVICE
-std::shared_ptr<IWII_IPC_HLE_Device> CreateFileIO(u32 device_id, const std::string& device_name)
-{
-  // scan device name and create the right one
-  INFO_LOG(WII_IPC_FILEIO, "IOP: Create FileIO %s", device_name.c_str());
-  return std::make_shared<CWII_IPC_HLE_Device_FileIO>(device_id, device_name);
-}
-
 void DoState(PointerWrap& p)
 {
   p.Do(s_request_queue);
@@ -377,188 +369,109 @@ void DoState(PointerWrap& p)
   }
 }
 
-void ExecuteCommand(u32 address)
+static std::shared_ptr<IWII_IPC_HLE_Device> GetUnusedESDevice()
 {
-  IPCCommandResult result = IWII_IPC_HLE_Device::GetNoReply();
-
-  IPCCommandType Command = static_cast<IPCCommandType>(Memory::Read_U32(address));
-  s32 DeviceID = Memory::Read_U32(address + 8);
-
-  std::shared_ptr<IWII_IPC_HLE_Device> device =
-      (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? s_fdmap[DeviceID] : nullptr;
-
-  DEBUG_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) %p", address,
-            Command, DeviceID, device.get());
-
-  switch (Command)
+  for (u32 es_number = 0; es_number < ES_MAX_COUNT; ++es_number)
   {
-  case IPC_CMD_OPEN:
-  {
-    u32 Mode = Memory::Read_U32(address + 0x10);
-    DeviceID = GetFreeDeviceID();
-
-    std::string device_name = Memory::GetString(Memory::Read_U32(address + 0xC));
-
-    INFO_LOG(WII_IPC_HLE, "Trying to open %s as %d", device_name.c_str(), DeviceID);
-    if (DeviceID >= 0)
-    {
-      if (device_name.find("/dev/es") == 0)
-      {
-        u32 j;
-        for (j = 0; j < ES_MAX_COUNT; j++)
-        {
-          if (!s_es_inuse[j])
-          {
-            s_es_inuse[j] = true;
-            s_fdmap[DeviceID] = s_es_handles[j];
-            result = s_es_handles[j]->Open(address, Mode);
-            Memory::Write_U32(DeviceID, address + 4);
-            break;
-          }
-        }
-
-        if (j == ES_MAX_COUNT)
-        {
-          Memory::Write_U32(FS_EESEXHAUSTED, address + 4);
-          result = IWII_IPC_HLE_Device::GetDefaultReply();
-        }
-      }
-      else if (device_name.find("/dev/") == 0)
-      {
-        device = GetDeviceByName(device_name);
-        if (device)
-        {
-          s_fdmap[DeviceID] = device;
-          result = device->Open(address, Mode);
-          DEBUG_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
-                    device->GetDeviceName().c_str(), DeviceID, Mode);
-          Memory::Write_U32(DeviceID, address + 4);
-        }
-        else
-        {
-          WARN_LOG(WII_IPC_HLE, "Unimplemented device: %s", device_name.c_str());
-          Memory::Write_U32(FS_ENOENT, address + 4);
-          result = IWII_IPC_HLE_Device::GetDefaultReply();
-        }
-      }
-      else if (device_name.find('/') == 0)
-      {
-        device = CreateFileIO(DeviceID, device_name);
-        result = device->Open(address, Mode);
-
-        DEBUG_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
-                  device->GetDeviceName().c_str(), DeviceID, Mode);
-        if (Memory::Read_U32(address + 4) == (u32)DeviceID)
-          s_fdmap[DeviceID] = device;
-      }
-      else
-      {
-        WARN_LOG(WII_IPC_HLE, "Invalid device: %s", device_name.c_str());
-        Memory::Write_U32(FS_ENOENT, address + 4);
-        result = IWII_IPC_HLE_Device::GetDefaultReply();
-      }
-    }
-    else
-    {
-      Memory::Write_U32(FS_EFDEXHAUSTED, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
+    if (s_es_inuse[es_number])
+      continue;
+    s_es_inuse[es_number] = true;
+    return s_es_handles[es_number];
   }
+  return nullptr;
+}
+
+// Returns the FD for the newly opened device (on success) or an error code.
+static s32 OpenDevice(const u32 address)
+{
+  const std::string device_name = Memory::GetString(Memory::Read_U32(address + 0xC));
+  const u32 open_mode = Memory::Read_U32(address + 0x10);
+  const s32 new_fd = GetFreeDeviceID();
+  INFO_LOG(WII_IPC_HLE, "Opening %s (mode %d, fd %d)", device_name.c_str(), open_mode, new_fd);
+  if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
+  {
+    ERROR_LOG(WII_IPC_HLE, "Couldn't get a free fd, too many open files");
+    return FS_EFDEXHAUSTED;
+  }
+
+  std::shared_ptr<IWII_IPC_HLE_Device> device;
+  if (device_name.find("/dev/es") == 0)
+  {
+    device = GetUnusedESDevice();
+    if (!device)
+      return FS_EESEXHAUSTED;
+  }
+  else if (device_name.find("/dev/") == 0)
+  {
+    device = GetDeviceByName(device_name);
+  }
+  else if (device_name.find('/') == 0)
+  {
+    device = std::make_shared<CWII_IPC_HLE_Device_FileIO>(new_fd, device_name);
+  }
+
+  if (!device)
+  {
+    ERROR_LOG(WII_IPC_HLE, "Unknown device: %s", device_name.c_str());
+    return FS_ENOENT;
+  }
+
+  Memory::Write_U32(new_fd, address + 4);
+  device->Open(address, open_mode);
+  const s32 open_return_code = Memory::Read_U32(address + 4);
+  if (open_return_code < 0)
+    return open_return_code;
+  s_fdmap[new_fd] = device;
+  return new_fd;
+}
+
+static IPCCommandResult HandleCommand(const u32 address)
+{
+  const auto command = static_cast<IPCCommandType>(Memory::Read_U32(address));
+  if (command == IPC_CMD_OPEN)
+  {
+    const s32 new_fd = OpenDevice(address);
+    Memory::Write_U32(new_fd, address + 4);
+    return IWII_IPC_HLE_Device::GetDefaultReply();
+  }
+
+  const s32 fd = Memory::Read_U32(address + 8);
+  const auto device = (fd >= 0 && fd < IPC_MAX_FDS) ? s_fdmap[fd] : nullptr;
+  if (!device)
+  {
+    Memory::Write_U32(FS_EINVAL, address + 4);
+    return IWII_IPC_HLE_Device::GetDefaultReply();
+  }
+
+  switch (command)
+  {
   case IPC_CMD_CLOSE:
-  {
-    if (device)
+    for (u32 j = 0; j < ES_MAX_COUNT; j++)
     {
-      result = device->Close(address);
-
-      for (u32 j = 0; j < ES_MAX_COUNT; j++)
-      {
-        if (s_es_handles[j] == s_fdmap[DeviceID])
-        {
-          s_es_inuse[j] = false;
-        }
-      }
-
-      s_fdmap[DeviceID].reset();
+      if (s_es_handles[j] == s_fdmap[fd])
+        s_es_inuse[j] = false;
     }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
-  }
+    s_fdmap[fd].reset();
+    return device->Close(address);
   case IPC_CMD_READ:
-  {
-    if (device)
-    {
-      result = device->Read(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
-  }
+    return device->Read(address);
   case IPC_CMD_WRITE:
-  {
-    if (device)
-    {
-      result = device->Write(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
-  }
+    return device->Write(address);
   case IPC_CMD_SEEK:
-  {
-    if (device)
-    {
-      result = device->Seek(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
-  }
+    return device->Seek(address);
   case IPC_CMD_IOCTL:
-  {
-    if (device)
-    {
-      result = device->IOCtl(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
-  }
+    return device->IOCtl(address);
   case IPC_CMD_IOCTLV:
-  {
-    if (device)
-    {
-      result = device->IOCtlV(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
-  }
+    return device->IOCtlV(address);
   default:
-  {
-    _dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown IPC Command %i (0x%08x)", Command, address);
-    break;
+    _assert_msg_(WII_IPC_HLE, false, "Unexpected command: %x", command);
+    return IWII_IPC_HLE_Device::GetDefaultReply();
   }
-  }
+}
+
+void ExecuteCommand(const u32 address)
+{
+  IPCCommandResult result = HandleCommand(address);
 
   // Ensure replies happen in order
   const s64 ticks_until_last_reply = s_last_reply_time - CoreTiming::GetTicks();
