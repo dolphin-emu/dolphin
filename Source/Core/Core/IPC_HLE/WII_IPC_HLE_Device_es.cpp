@@ -198,8 +198,6 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce
   m_AccessIdentID = 0x6000000;
 
   INFO_LOG(WII_IPC_ES, "ES: Close");
-  if (!_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
   m_Active = false;
   // clear the NAND content cache to make sure nothing remains open.
   DiscIO::CNANDContentManager::Access().ClearCache();

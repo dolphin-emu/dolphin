@@ -44,8 +44,6 @@ public:
   }
 
   ~CWII_IPC_HLE_Device_stm_immediate() override = default;
-  IPCCommandResult Open(u32 command_address, u32 mode) override;
-  IPCCommandResult Close(u32 command_address, bool force) override;
   IPCCommandResult IOCtl(u32 command_address) override;
 };
 
@@ -59,7 +57,6 @@ public:
   }
 
   ~CWII_IPC_HLE_Device_stm_eventhook() override = default;
-  IPCCommandResult Open(u32 command_address, u32 mode) override;
   IPCCommandResult Close(u32 command_address, bool force) override;
   IPCCommandResult IOCtl(u32 command_address) override;
 

@@ -89,8 +89,6 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool
   m_BlockLength = 0;
   m_BusWidth = 0;
 
-  if (!_bForce)
-    Memory::Write_U32(0, _CommandAddress + 0x4);
   m_Active = false;
   return GetDefaultReply();
 }

@@ -18,22 +18,6 @@ void Stop();
 
 static u32 s_event_hook_address = 0;
 
-IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::Open(u32 command_address, u32 mode)
-{
-  INFO_LOG(WII_IPC_STM, "STM immediate: Open");
-  m_Active = true;
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::Close(u32 command_address, bool force)
-{
-  INFO_LOG(WII_IPC_STM, "STM immediate: Close");
-  if (!force)
-    Memory::Write_U32(0, command_address + 4);
-  m_Active = false;
-  return GetDefaultReply();
-}
-
 IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(u32 command_address)
 {
   u32 parameter = Memory::Read_U32(command_address + 0x0C);
@@ -104,19 +88,10 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(u32 command_address)
   return GetDefaultReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::Open(u32 command_address, u32 mode)
-{
-  m_Active = true;
-  return GetDefaultReply();
-}
-
 IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::Close(u32 command_address, bool force)
 {
   s_event_hook_address = 0;
 
-  INFO_LOG(WII_IPC_STM, "STM eventhook: Close");
-  if (!force)
-    Memory::Write_U32(0, command_address + 4);
   m_Active = false;
   return GetDefaultReply();
 }

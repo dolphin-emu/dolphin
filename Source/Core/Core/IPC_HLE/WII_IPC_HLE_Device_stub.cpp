@@ -21,8 +21,6 @@ IPCCommandResult CWII_IPC_HLE_Device_stub::Open(u32 command_address, u32 mode)
 IPCCommandResult CWII_IPC_HLE_Device_stub::Close(u32 command_address, bool force)
 {
   WARN_LOG(WII_IPC_HLE, "%s faking Close()", m_Name.c_str());
-  if (!force)
-    Memory::Write_U32(FS_SUCCESS, command_address + 4);
   m_Active = false;
   return GetDefaultReply();
 }
