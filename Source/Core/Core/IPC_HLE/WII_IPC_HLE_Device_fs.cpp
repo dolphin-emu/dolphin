@@ -52,7 +52,6 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
     File::CreateDir(Path);
   }
 
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
   m_Active = true;
   return GetFSReply();
 }

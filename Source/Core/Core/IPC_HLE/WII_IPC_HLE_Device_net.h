@@ -91,7 +91,6 @@ public:
   IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
   {
     INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
-    Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
     return GetDefaultReply();
   }
 
