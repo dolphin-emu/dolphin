@@ -1222,10 +1222,16 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
 
 void CFrame::ParseHotkeys()
 {
+  enum VR_SCALE_MODE { world, hud};	
+  static VR_SCALE_MODE vr_scale_mode;
   static bool lockGripWorld;
+  static bool lockGrabHud;
   static bool lockResizeWorld;
   static float lastRightPos[3];
+  static float lastLeftPos[3]; 
+  static Matrix33 lastLeftRot;
   static double distanceBtwControllers;
+  
 
   for (int i = 0; i < NUM_HOTKEYS; i++)
   {
@@ -1544,7 +1550,7 @@ void CFrame::ParseHotkeys()
 		
 	if (IsHotkey(VR_CONTROLLER_GRAB_WORLD, true))
 	{
-
+		vr_scale_mode = world;
 		float rightpos[3] = { 0, 0, 0 };
 		float rightthumbpos[3] = { 0, 0, 0 };
 		Matrix33 rightrot;
@@ -1563,9 +1569,40 @@ void CFrame::ParseHotkeys()
 		lockGripWorld = false;
 	}
 
+	if (IsHotkey(VR_CONTROLLER_GRAB_HUD, true))
+	{
+		vr_scale_mode = hud;
+		float leftpos[3] = { 0, 0, 0 };
+		float leftthumbpos[3] = { 0, 0, 0 };
+		Matrix33 leftrot;
+
+		bool has_right_controller = VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
+		
+		if (!lockGrabHud){
+			lockGrabHud = true;
+		}else{						
+			g_Config.fHudDespPosition0 += leftpos[0] - lastLeftPos[0];
+			g_Config.fHudDespPosition1 += leftpos[1] - lastLeftPos[1];
+			g_Config.fHudDespPosition2 += leftpos[2] - lastLeftPos[2];			
+			for (int i = 0; i < 9; i++){
+				g_Config.matrixHudrot.data[i] += (leftrot.data[i] - lastLeftRot.data[i]);
+			}
+			
+
+		}
+		
+		lastLeftRot = leftrot;
+		for (int i = 0; i < 3; i++)
+			lastLeftPos[i] = leftpos[i];
+		
+	}
+	else{
+		lockGrabHud = false;
+	}
+
 	if (IsHotkey(VR_CONTROLLER_SCALE_WORLD, true))
 	{
-
+		
 		float rightpos[3] = { 0, 0, 0 };
 		float rightthumbpos[3] = { 0, 0, 0 };
 		Matrix33 rightrot;
@@ -1576,22 +1613,28 @@ void CFrame::ParseHotkeys()
 		bool has_left_controller = VR_GetLeftControllerPos(leftpos, leftthumbpos, &leftrot);
 
 		if (!lockResizeWorld){
-			lockResizeWorld = true;			
+			lockResizeWorld = true;
 			distanceBtwControllers = hypot(hypot(rightpos[0] - leftpos[0], rightpos[1] - leftpos[1])
 				, rightpos[2] - leftpos[2]);
 		}
-		else{		
+		else{
 			float lDistanceBtwControllers = hypot(hypot(rightpos[0] - leftpos[0], rightpos[1] - leftpos[1])
 				, rightpos[2] - leftpos[2]);
-
-			float relacionDeCambio = (lDistanceBtwControllers / distanceBtwControllers);
-
-			g_Config.fUnitsPerMetre /= relacionDeCambio;
-			VertexShaderManager::ScaleView(relacionDeCambio);
-			NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre,
-				100.0f / g_Config.fUnitsPerMetre);
-			distanceBtwControllers = lDistanceBtwControllers;			
-		}		
+			
+				
+			if (vr_scale_mode == world){
+				float relacionDeCambio = (lDistanceBtwControllers / distanceBtwControllers);
+				g_Config.fUnitsPerMetre /= relacionDeCambio;
+				VertexShaderManager::ScaleView(relacionDeCambio);
+				NOTICE_LOG(VR, "%f units per metre (each unit is %f cm)", g_Config.fUnitsPerMetre,
+					100.0f / g_Config.fUnitsPerMetre);
+			}else{//vr_scale_mode == hud
+				float relacionDeCambio = (lDistanceBtwControllers / distanceBtwControllers);
+				g_Config.fHudDistance *= relacionDeCambio;
+			}
+			distanceBtwControllers = lDistanceBtwControllers;
+		}
+		
 	}
 	else{
 		lockResizeWorld = false;

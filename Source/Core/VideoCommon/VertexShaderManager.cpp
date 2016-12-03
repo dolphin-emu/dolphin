@@ -1863,7 +1863,7 @@ void VertexShaderManager::SetProjectionConstants()
         float zFar2D = rawProjection[5] / rawProjection[4];
         float zNear2D = zFar2D * rawProjection[4] / (rawProjection[4] - 1);
         float zObj = zNear2D + (zFar2D - zNear2D) * g_ActiveConfig.fHud3DCloser;
-
+		
         left2D *= zObj;
         right2D *= zObj;
         bottom2D *= zObj;
@@ -1963,13 +1963,21 @@ void VertexShaderManager::SetProjectionConstants()
         else
           position[2] = -HudDistance;  // - CameraForward;
       }
+	  
+	  
+	  position[0] += (g_ActiveConfig.fHudDespPosition0 * g_ActiveConfig.fUnitsPerMetre);
+	  position[1] += (g_ActiveConfig.fHudDespPosition1 * g_ActiveConfig.fUnitsPerMetre);
+	  position[2] += (g_ActiveConfig.fHudDespPosition2 * g_ActiveConfig.fUnitsPerMetre);
+	  
+	  Matrix44 hud_matrix;
+	  Matrix44::LoadMatrix33(hud_matrix, g_ActiveConfig.matrixHudrot);
 
       Matrix44 scale_matrix, position_matrix;
       Matrix44::Scale(scale_matrix, scale);
       Matrix44::Translate(position_matrix, position);
-
-      look_matrix = scale_matrix * position_matrix * camera_position_matrix * camera_pitch_matrix *
-                    free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix;
+	  
+	  look_matrix = scale_matrix * hud_matrix * position_matrix * camera_position_matrix * camera_pitch_matrix *
+		  free_look_matrix * lean_back_matrix * head_position_matrix * rotation_matrix;
     }
 
     // N64 games give us coordinates that were already transformed into clip space

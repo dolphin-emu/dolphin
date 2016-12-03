@@ -130,8 +130,7 @@ const std::string hotkey_labels[] = {
 
     _trans("Debug Previous Layer"), _trans("Debug Next Layer"), _trans("Debug Scene"),
 
-    _trans("Grab World"),
-    _trans("Scale world")
+    _trans("Grab World"), _trans("Scale world"), _trans("Grab hud")
 };
 static_assert(NUM_HOTKEYS == sizeof(hotkey_labels) / sizeof(hotkey_labels[0]),
               "Wrong count of hotkey_labels");
@@ -400,6 +399,7 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 
   set_key_expression(VR_CONTROLLER_GRAB_WORLD, SHIFT + " & Z");
   set_key_expression(VR_CONTROLLER_SCALE_WORLD, SHIFT + " & Z");
+  set_key_expression(VR_CONTROLLER_GRAB_HUD, SHIFT + " & Z");
 
   // Savestates
   for (int i = 0; i < 8; i++)
