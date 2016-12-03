@@ -19,6 +19,7 @@ option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_AO "Enables libao sound backend" ON)
 option(ENABLE_PULSEAUDIO "Enables PulseAudio sound backend" ON)
 option(ENABLE_OPENAL "Enables OpenAL sound backend" ON)
+option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 
 # Maintainers: if you consider blanket disabling this for your users, please
 # consider the following points:
@@ -511,15 +512,17 @@ else()
 	message("OpenAL explicitly disabled, disabling OpenAL sound backend")
 endif()
 
-include(FindLLVM OPTIONAL)
-if (LLVM_FOUND)
-	add_definitions(-DHAS_LLVM=1)
-	set(HAS_LLVM 1)
+if(ENABLE_LLVM)
+	include(FindLLVM OPTIONAL)
+	if (LLVM_FOUND)
+		add_definitions(-DHAS_LLVM=1)
+		set(HAS_LLVM 1)
 
-	include_directories(${LLVM_INCLUDE_DIRS})
-	list(APPEND LIBS ${LLVM_LIBRARIES})
+		include_directories(${LLVM_INCLUDE_DIRS})
+		list(APPEND LIBS ${LLVM_LIBRARIES})
 
-	message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
+	endif()
 endif()
 
 set(USE_X11 0)
