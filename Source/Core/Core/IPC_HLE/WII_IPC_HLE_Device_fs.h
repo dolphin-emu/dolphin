@@ -44,7 +44,6 @@ public:
   void DoState(PointerWrap& p) override;
 
   IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
   IPCCommandResult IOCtl(u32 _CommandAddress) override;
   IPCCommandResult IOCtlV(u32 _CommandAddress) override;

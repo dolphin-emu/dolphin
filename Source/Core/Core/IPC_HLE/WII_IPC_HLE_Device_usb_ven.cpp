@@ -16,21 +16,6 @@ CWII_IPC_HLE_Device_usb_ven::~CWII_IPC_HLE_Device_usb_ven()
 {
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_ven::Open(u32 command_address, u32 mode)
-{
-  m_Active = true;
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_usb_ven::Close(u32 command_address, bool force)
-{
-  if (!force)
-    Memory::Write_U32(0, command_address + 4);
-
-  m_Active = false;
-  return GetDefaultReply();
-}
-
 IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtlV(u32 command_address)
 {
   SIOCtlVBuffer command_buffer(command_address);

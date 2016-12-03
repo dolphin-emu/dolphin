@@ -67,8 +67,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _b
   INFO_LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_usb_kbd: Close");
   while (!m_MessageQueue.empty())
     m_MessageQueue.pop();
-  if (!_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
   m_Active = false;
   return GetDefaultReply();
 }

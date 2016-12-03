@@ -452,6 +452,8 @@ static IPCCommandResult HandleCommand(const u32 address)
         s_es_inuse[j] = false;
     }
     s_fdmap[fd].reset();
+    // A close on a valid device returns FS_SUCCESS.
+    Memory::Write_U32(FS_SUCCESS, address + 4);
     return device->Close(address);
   case IPC_CMD_READ:
     return device->Read(address);
