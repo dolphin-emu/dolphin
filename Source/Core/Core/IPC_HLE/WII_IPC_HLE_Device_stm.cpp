@@ -21,7 +21,6 @@ static u32 s_event_hook_address = 0;
 IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::Open(u32 command_address, u32 mode)
 {
   INFO_LOG(WII_IPC_STM, "STM immediate: Open");
-  Memory::Write_U32(GetDeviceID(), command_address + 4);
   m_Active = true;
   return GetDefaultReply();
 }
@@ -107,7 +106,6 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(u32 command_address)
 
 IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::Open(u32 command_address, u32 mode)
 {
-  Memory::Write_U32(GetDeviceID(), command_address + 4);
   m_Active = true;
   return GetDefaultReply();
 }

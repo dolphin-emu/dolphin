@@ -154,7 +154,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Open(u32 _CommandAddre
   m_HCIEndpoint.m_cmd_address = 0;
   m_ACLEndpoint.m_cmd_address = 0;
 
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
   m_Active = true;
   return GetDefaultReply();
 }

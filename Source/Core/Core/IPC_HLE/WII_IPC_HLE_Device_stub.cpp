@@ -14,7 +14,6 @@ CWII_IPC_HLE_Device_stub::CWII_IPC_HLE_Device_stub(u32 device_id, const std::str
 IPCCommandResult CWII_IPC_HLE_Device_stub::Open(u32 command_address, u32 mode)
 {
   WARN_LOG(WII_IPC_HLE, "%s faking Open()", m_Name.c_str());
-  Memory::Write_U32(GetDeviceID(), command_address + 4);
   m_Active = true;
   return GetDefaultReply();
 }

@@ -184,7 +184,6 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
 {
   OpenInternal();
 
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
   if (m_Active)
     INFO_LOG(WII_IPC_ES, "Device was re-opened.");
   m_Active = true;
