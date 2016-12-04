@@ -268,10 +268,10 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
   // Seems this is needed for gl_Layer.
   if (!features.shaderTessellationAndGeometryPointSize)
+  {
     config->backend_info.bSupportsGeometryShaders = VK_FALSE;
-
-  // TODO: Investigate if there's a feature we can enable for GS instancing.
-  config->backend_info.bSupportsGSInstancing = VK_FALSE;
+    config->backend_info.bSupportsGSInstancing = VK_FALSE;
+  }
 
   // Depth clamping implies shaderClipDistance and depthClamp
   config->backend_info.bSupportsDepthClamp =
