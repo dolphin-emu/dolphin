@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="GUI">
@@ -30,6 +30,9 @@
     </Filter>
     <Filter Include="GUI\Widgets">
       <UniqueIdentifier>{a894e2e3-e577-4b65-8572-055699f23a49}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="GUI\ISOProperties">
+      <UniqueIdentifier>{d72aa7f0-ed24-4fed-9d3a-38b82d1b753c}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -167,9 +170,6 @@
     <ClCompile Include="GameListCtrl.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
-    <ClCompile Include="ISOProperties.cpp">
-      <Filter>GUI</Filter>
-    </ClCompile>
     <ClCompile Include="LogConfigWindow.cpp">
       <Filter>GUI</Filter>
     </ClCompile>
@@ -223,6 +223,12 @@
     </ClCompile>
     <ClCompile Include="Config\AdvancedConfigPane.cpp">
       <Filter>GUI\Config</Filter>
+    </ClCompile>
+    <ClCompile Include="ISOProperties\InfoPanel.cpp">
+      <Filter>GUI\ISOProperties</Filter>
+    </ClCompile>
+    <ClCompile Include="ISOProperties\ISOProperties.cpp">
+      <Filter>GUI\ISOProperties</Filter>
     </ClCompile>
     <ClCompile Include="NetPlay\NetPlaySetupFrame.cpp">
       <Filter>GUI\NetPlay</Filter>
@@ -377,9 +383,6 @@
     <ClInclude Include="Globals.h">
       <Filter>GUI</Filter>
     </ClInclude>
-    <ClInclude Include="ISOProperties.h">
-      <Filter>GUI</Filter>
-    </ClInclude>
     <ClInclude Include="LogConfigWindow.h">
       <Filter>GUI</Filter>
     </ClInclude>
@@ -433,6 +436,12 @@
     </ClInclude>
     <ClInclude Include="Config\AdvancedConfigPane.h">
       <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ISOProperties\InfoPanel.h">
+      <Filter>GUI\ISOProperties</Filter>
+    </ClInclude>
+    <ClInclude Include="ISOProperties\ISOProperties.h">
+      <Filter>GUI\ISOProperties</Filter>
     </ClInclude>
     <ClInclude Include="NetPlay\NetPlaySetupFrame.h">
       <Filter>GUI\NetPlay</Filter>

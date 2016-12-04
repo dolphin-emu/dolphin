@@ -90,6 +90,8 @@
     <ClCompile Include="Debugger\WatchView.cpp" />
     <ClCompile Include="Debugger\WatchWindow.cpp" />
     <ClCompile Include="DolphinSlider.cpp" />
+    <ClCompile Include="ISOProperties\InfoPanel.cpp" />
+    <ClCompile Include="ISOProperties\ISOProperties.cpp" />
     <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
     <ClCompile Include="NetPlay\MD5Dialog.cpp" />
     <ClCompile Include="NetPlay\NetPlayLauncher.cpp" />
@@ -112,7 +114,6 @@
     <ClCompile Include="Input\DrumsInputConfigDiag.cpp" />
     <ClCompile Include="Input\TurntableInputConfigDiag.cpp" />
     <ClCompile Include="ISOFile.cpp" />
-    <ClCompile Include="ISOProperties.cpp" />
     <ClCompile Include="LogConfigWindow.cpp" />
     <ClCompile Include="LogWindow.cpp" />
     <ClCompile Include="Main.cpp" />
@@ -145,6 +146,8 @@
     <ClInclude Include="Config\PathConfigPane.h" />
     <ClInclude Include="Config\WiiConfigPane.h" />
     <ClInclude Include="DolphinSlider.h" />
+    <ClInclude Include="ISOProperties\InfoPanel.h" />
+    <ClInclude Include="ISOProperties\ISOProperties.h" />
     <ClInclude Include="NetPlay\ChangeGameDialog.h" />
     <ClInclude Include="NetPlay\MD5Dialog.h" />
     <ClInclude Include="NetPlay\NetPlayLauncher.h" />
@@ -190,7 +193,6 @@
     <ClInclude Include="Input\DrumsInputConfigDiag.h" />
     <ClInclude Include="Input\TurntableInputConfigDiag.h" />
     <ClInclude Include="ISOFile.h" />
-    <ClInclude Include="ISOProperties.h" />
     <ClInclude Include="LogConfigWindow.h" />
     <ClInclude Include="LogWindow.h" />
     <ClInclude Include="Main.h" />
