@@ -4,6 +4,7 @@
 
 #include "DolphinWX/Config/GameCubeConfigPane.h"
 
+#include <cassert>
 #include <string>
 
 #include <wx/button.h>
@@ -22,8 +23,10 @@
 #include "Core/Core.h"
 #include "Core/HW/EXI.h"
 #include "Core/HW/GCMemcard.h"
+#include "Core/HW/GCPad.h"
 #include "Core/NetPlayProto.h"
 #include "DolphinWX/Config/ConfigMain.h"
+#include "DolphinWX/Input/MicButtonConfigDiag.h"
 #include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
@@ -167,6 +170,7 @@ void GameCubeConfigPane::LoadGUIValues()
   for (int i = 0; i < 3; ++i)
   {
     bool isMemcard = false;
+    bool isMic = false;
 
     // Add strings to the wxChoice list, the third wxChoice is the SP1 slot
     if (i == 2)
@@ -192,7 +196,7 @@ void GameCubeConfigPane::LoadGUIValues()
       isMemcard = m_exi_devices[i]->SetStringSelection(slot_devices[5]);
       break;
     case EXIDEVICE_MIC:
-      m_exi_devices[i]->SetStringSelection(slot_devices[6]);
+      isMic = m_exi_devices[i]->SetStringSelection(slot_devices[6]);
       break;
     case EXIDEVICE_ETH:
       m_exi_devices[i]->SetStringSelection(sp1_devices[2]);
@@ -203,7 +207,7 @@ void GameCubeConfigPane::LoadGUIValues()
       break;
     }
 
-    if (!isMemcard && i < 2)
+    if (!isMemcard && !isMic && i < 2)
       m_memcard_path[i]->Disable();
   }
 }
@@ -265,14 +269,30 @@ void GameCubeConfigPane::OnSP1Changed(wxCommandEvent& event)
   ChooseEXIDevice(event.GetString(), 2);
 }
 
+void GameCubeConfigPane::HandleEXISlotChange(int slot, const wxString& title)
+{
+  assert(slot >= 0 && slot <= 1);
+
+  if (!m_exi_devices[slot]->GetStringSelection().compare(_(EXIDEV_MIC_STR)))
+  {
+    InputConfig* const pad_plugin = Pad::GetConfig();
+    MicButtonConfigDialog dialog(this, *pad_plugin, title, slot);
+    dialog.ShowModal();
+  }
+  else
+  {
+    ChooseSlotPath(false, SConfig::GetInstance().m_EXIDevice[slot]);
+  }
+}
+
 void GameCubeConfigPane::OnSlotAButtonClick(wxCommandEvent& event)
 {
-  ChooseSlotPath(true, SConfig::GetInstance().m_EXIDevice[0]);
+  HandleEXISlotChange(0, wxString(_("GameCube Microphone Slot A")));
 }
 
 void GameCubeConfigPane::OnSlotBButtonClick(wxCommandEvent& event)
 {
-  ChooseSlotPath(false, SConfig::GetInstance().m_EXIDevice[1]);
+  HandleEXISlotChange(1, wxString(_("GameCube Microphone Slot B")));
 }
 
 void GameCubeConfigPane::ChooseEXIDevice(const wxString& deviceName, int deviceNum)
@@ -297,7 +317,7 @@ void GameCubeConfigPane::ChooseEXIDevice(const wxString& deviceName, int deviceN
     tempType = EXIDEVICE_DUMMY;
 
   // Gray out the memcard path button if we're not on a memcard or AGP
-  if (tempType == EXIDEVICE_MEMORYCARD || tempType == EXIDEVICE_AGP)
+  if (tempType == EXIDEVICE_MEMORYCARD || tempType == EXIDEVICE_AGP || tempType == EXIDEVICE_MIC)
     m_memcard_path[deviceNum]->Enable();
   else if (deviceNum == 0 || deviceNum == 1)
     m_memcard_path[deviceNum]->Disable();

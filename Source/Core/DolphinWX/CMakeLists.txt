@@ -46,6 +46,7 @@ set(GUI_SRCS
 	Input/InputConfigDiagBitmaps.cpp
 	Input/HotkeyInputConfigDiag.cpp
 	Input/GCPadInputConfigDiag.cpp
+	Input/MicButtonConfigDiag.cpp
 	Input/GCKeyboardInputConfigDiag.cpp
 	Input/WiimoteInputConfigDiag.cpp
 	Input/NunchukInputConfigDiag.cpp

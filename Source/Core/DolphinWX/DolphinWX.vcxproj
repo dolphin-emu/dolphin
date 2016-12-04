@@ -106,6 +106,7 @@
     <ClCompile Include="Input\InputConfigDiagBitmaps.cpp" />
     <ClCompile Include="Input\HotkeyInputConfigDiag.cpp" />
     <ClCompile Include="Input\GCPadInputConfigDiag.cpp" />
+    <ClCompile Include="Input\MicButtonConfigDiag.cpp" />
     <ClCompile Include="Input\GCKeyboardInputConfigDiag.cpp" />
     <ClCompile Include="Input\WiimoteInputConfigDiag.cpp" />
     <ClCompile Include="Input\NunchukInputConfigDiag.cpp" />
@@ -185,6 +186,7 @@
     <ClInclude Include="Input\InputConfigDiag.h" />
     <ClInclude Include="Input\HotkeyInputConfigDiag.h" />
     <ClInclude Include="Input\GCPadInputConfigDiag.h" />
+    <ClInclude Include="Input\MicButtonConfigDiag.h" />
     <ClInclude Include="Input\GCKeyboardInputConfigDiag.h" />
     <ClInclude Include="Input\WiimoteInputConfigDiag.h" />
     <ClInclude Include="Input\NunchukInputConfigDiag.h" />
