@@ -34,6 +34,7 @@ set(GUI_SRCS
 	Debugger/RegisterWindow.cpp
 	Debugger/WatchView.cpp
 	Debugger/WatchWindow.cpp
+	ISOProperties/FilesystemPanel.cpp
 	ISOProperties/InfoPanel.cpp
 	ISOProperties/ISOProperties.cpp
 	NetPlay/ChangeGameDialog.cpp
