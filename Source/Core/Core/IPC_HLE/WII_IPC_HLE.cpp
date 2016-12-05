@@ -71,7 +71,6 @@ static std::mutex s_device_map_mutex;
 #define IPC_MAX_FDS 0x18
 #define ES_MAX_COUNT 2
 static std::shared_ptr<IWII_IPC_HLE_Device> s_fdmap[IPC_MAX_FDS];
-static bool s_es_inuse[ES_MAX_COUNT];
 static std::shared_ptr<IWII_IPC_HLE_Device> s_es_handles[ES_MAX_COUNT];
 
 using IPCMsgQueue = std::deque<u32>;
@@ -141,11 +140,8 @@ void Reinit()
   AddDevice<CWII_IPC_HLE_Device_fs>("/dev/fs");
 
   // IOS allows two ES devices at a time
-  for (u32 j = 0; j < ES_MAX_COUNT; j++)
-  {
-    s_es_handles[j] = AddDevice<CWII_IPC_HLE_Device_es>("/dev/es");
-    s_es_inuse[j] = false;
-  }
+  for (auto& es_device : s_es_handles)
+    es_device = AddDevice<CWII_IPC_HLE_Device_es>("/dev/es");
 
   AddDevice<CWII_IPC_HLE_Device_di>("/dev/di");
   AddDevice<CWII_IPC_HLE_Device_net_kd_request>("/dev/net/kd/request");
@@ -187,11 +183,6 @@ void Reset(bool hard)
     }
 
     dev.reset();
-  }
-
-  for (bool& in_use : s_es_inuse)
-  {
-    in_use = false;
   }
 
   {
@@ -329,13 +320,11 @@ void DoState(PointerWrap& p)
       }
     }
 
-    for (u32 i = 0; i < ES_MAX_COUNT; i++)
+    for (auto& es_device : s_es_handles)
     {
-      p.Do(s_es_inuse[i]);
-      u32 handleID = s_es_handles[i]->GetDeviceID();
-      p.Do(handleID);
-
-      s_es_handles[i] = AccessDeviceByID(handleID);
+      const u32 handle_id = es_device->GetDeviceID();
+      p.Do(handle_id);
+      es_device = AccessDeviceByID(handle_id);
     }
   }
   else
@@ -360,25 +349,19 @@ void DoState(PointerWrap& p)
       }
     }
 
-    for (u32 i = 0; i < ES_MAX_COUNT; i++)
+    for (const auto& es_device : s_es_handles)
     {
-      p.Do(s_es_inuse[i]);
-      u32 handleID = s_es_handles[i]->GetDeviceID();
-      p.Do(handleID);
+      const u32 handle_id = es_device->GetDeviceID();
+      p.Do(handle_id);
     }
   }
 }
 
 static std::shared_ptr<IWII_IPC_HLE_Device> GetUnusedESDevice()
 {
-  for (u32 es_number = 0; es_number < ES_MAX_COUNT; ++es_number)
-  {
-    if (s_es_inuse[es_number])
-      continue;
-    s_es_inuse[es_number] = true;
-    return s_es_handles[es_number];
-  }
-  return nullptr;
+  const auto iterator = std::find_if(std::begin(s_es_handles), std::end(s_es_handles),
+                                     [](const auto& es_device) { return !es_device->IsOpened(); });
+  return (iterator != std::end(s_es_handles)) ? *iterator : nullptr;
 }
 
 // Returns the FD for the newly opened device (on success) or an error code.
@@ -446,11 +429,6 @@ static IPCCommandResult HandleCommand(const u32 address)
   switch (command)
   {
   case IPC_CMD_CLOSE:
-    for (u32 j = 0; j < ES_MAX_COUNT; j++)
-    {
-      if (s_es_handles[j] == s_fdmap[fd])
-        s_es_inuse[j] = false;
-    }
     s_fdmap[fd].reset();
     return device->Close(address);
   case IPC_CMD_READ:
