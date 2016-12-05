@@ -667,8 +667,15 @@ void Renderer::DrawScreen(const EFBRectangle& source_rect, u32 xfb_addr,
   VkResult res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
   if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
   {
-    // Window has been resized. Update the swap chain and try again.
+    // There's an issue here. We can't resize the swap chain while the GPU is still busy with it,
+    // but calling WaitForGPUIdle would create a deadlock as PrepareToSubmitCommandBuffer has been
+    // called by SwapImpl. WaitForGPUIdle waits on the semaphore, which PrepareToSubmitCommandBuffer
+    // has already done, so it blocks indefinitely. To work around this, we submit the current
+    // command buffer, resize the swap chain (which calls WaitForGPUIdle), and then finally call
+    // PrepareToSubmitCommandBuffer to return to the state that the caller expects.
+    g_command_buffer_mgr->SubmitCommandBuffer(false);
     ResizeSwapChain();
+    g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
     res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
   }
   if (res != VK_SUCCESS)

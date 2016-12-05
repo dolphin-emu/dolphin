@@ -556,7 +556,7 @@ bool TextureCache::TCacheEntry::Save(const std::string& filename, unsigned int l
   Util::ExecuteCurrentCommandsAndRestoreState(false, true);
 
   // Map the staging texture so we can copy the contents out.
-  if (staging_texture->Map())
+  if (!staging_texture->Map())
   {
     PanicAlert("Failed to map staging texture");
     return false;
