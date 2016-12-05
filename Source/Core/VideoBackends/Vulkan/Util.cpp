@@ -364,6 +364,15 @@ void UtilityShaderDraw::SetPSSampler(size_t index, VkImageView view, VkSampler s
   m_ps_samplers[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 }
 
+void UtilityShaderDraw::SetPSTexelBuffer(VkBufferView view)
+{
+  // Should only be used with the texture conversion pipeline layout.
+  _assert_(m_pipeline_info.pipeline_layout ==
+           g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_TEXTURE_CONVERSION));
+
+  m_ps_texel_buffer = view;
+}
+
 void UtilityShaderDraw::SetRasterizationState(const RasterizationState& state)
 {
   m_pipeline_info.rasterization_state.bits = state.bits;
@@ -511,7 +520,7 @@ void UtilityShaderDraw::BindVertexBuffer()
 void UtilityShaderDraw::BindDescriptors()
 {
   // TODO: This method is a mess, clean it up
-  std::array<VkDescriptorSet, NUM_DESCRIPTOR_SETS> bind_descriptor_sets = {};
+  std::array<VkDescriptorSet, NUM_DESCRIPTOR_SET_BIND_POINTS> bind_descriptor_sets = {};
   std::array<VkWriteDescriptorSet, NUM_UBO_DESCRIPTOR_SET_BINDINGS + NUM_PIXEL_SHADER_SAMPLERS>
       set_writes = {};
   uint32_t num_set_writes = 0;
@@ -523,7 +532,7 @@ void UtilityShaderDraw::BindDescriptors()
   if (m_vs_uniform_buffer.buffer != VK_NULL_HANDLE || m_ps_uniform_buffer.buffer != VK_NULL_HANDLE)
   {
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_UNIFORM_BUFFERS));
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS));
     if (set == VK_NULL_HANDLE)
       PanicAlert("Failed to allocate descriptor set for utility draw");
 
@@ -552,7 +561,7 @@ void UtilityShaderDraw::BindDescriptors()
                                                          &dummy_uniform_buffer,
         nullptr};
 
-    bind_descriptor_sets[DESCRIPTOR_SET_UNIFORM_BUFFERS] = set;
+    bind_descriptor_sets[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS] = set;
   }
 
   // PS samplers
@@ -572,7 +581,7 @@ void UtilityShaderDraw::BindDescriptors()
   {
     // Allocate a new descriptor set
     VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
-        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS));
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS));
     if (set == VK_NULL_HANDLE)
       PanicAlert("Failed to allocate descriptor set for utility draw");
 
@@ -594,35 +603,65 @@ void UtilityShaderDraw::BindDescriptors()
       }
     }
 
-    bind_descriptor_sets[DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS] = set;
+    bind_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS] = set;
   }
 
   vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), num_set_writes, set_writes.data(), 0,
                          nullptr);
 
-  // Bind only the sets we updated
-  if (bind_descriptor_sets[0] != VK_NULL_HANDLE && bind_descriptor_sets[1] == VK_NULL_HANDLE)
+  if (m_ps_texel_buffer != VK_NULL_HANDLE)
   {
-    // UBO only
+    // TODO: Handle case where this fails.
+    // This'll only be when we do over say, 1024 allocations per frame, which shouldn't happen.
+    // TODO: Execute the command buffer, reset render passes and then try again.
+    VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
+        g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS));
+    if (set == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to allocate texel buffer descriptor set for utility draw");
+      return;
+    }
+
+    VkWriteDescriptorSet set_write = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                      nullptr,
+                                      set,
+                                      0,
+                                      0,
+                                      1,
+                                      VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,
+                                      nullptr,
+                                      nullptr,
+                                      &m_ps_texel_buffer};
+    vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), 1, &set_write, 0, nullptr);
+    bind_descriptor_sets[DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER] = set;
+  }
+
+  // Fast path when there are no gaps in the set bindings
+  u32 bind_point_index;
+  for (bind_point_index = 0; bind_point_index < NUM_DESCRIPTOR_SET_BIND_POINTS; bind_point_index++)
+  {
+    if (bind_descriptor_sets[bind_point_index] == VK_NULL_HANDLE)
+      break;
+  }
+  if (bind_point_index > 0)
+  {
+    // Bind the contiguous sets, any others after any gaps will be handled below
     vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_UNIFORM_BUFFERS, 1,
+                            m_pipeline_info.pipeline_layout, 0, bind_point_index,
                             &bind_descriptor_sets[0], NUM_UBO_DESCRIPTOR_SET_BINDINGS,
                             m_ubo_offsets.data());
   }
-  else if (bind_descriptor_sets[0] == VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
+
+  // Handle any remaining sets
+  for (u32 i = bind_point_index; i < NUM_DESCRIPTOR_SET_BIND_POINTS; i++)
   {
-    // Samplers only
+    if (bind_descriptor_sets[i] == VK_NULL_HANDLE)
+      continue;
+
+    // No need to worry about dynamic offsets here, since #0 will always be bound above.
     vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS,
-                            1, &bind_descriptor_sets[1], 0, nullptr);
-  }
-  else if (bind_descriptor_sets[0] != VK_NULL_HANDLE && bind_descriptor_sets[1] != VK_NULL_HANDLE)
-  {
-    // Both
-    vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS,
-                            m_pipeline_info.pipeline_layout, DESCRIPTOR_SET_UNIFORM_BUFFERS, 2,
-                            bind_descriptor_sets.data(), NUM_UBO_DESCRIPTOR_SET_BINDINGS,
-                            m_ubo_offsets.data());
+                            m_pipeline_info.pipeline_layout, i, 1, &bind_descriptor_sets[i], 0,
+                            nullptr);
   }
 }
 

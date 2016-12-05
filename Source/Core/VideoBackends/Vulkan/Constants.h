@@ -23,13 +23,46 @@ enum STAGING_BUFFER_TYPE
   STAGING_BUFFER_TYPE_READBACK
 };
 
-// Descriptor sets
-enum DESCRIPTOR_SET
+// Descriptor set layouts
+enum DESCRIPTOR_SET_LAYOUT
 {
-  DESCRIPTOR_SET_UNIFORM_BUFFERS,
-  DESCRIPTOR_SET_PIXEL_SHADER_SAMPLERS,
-  DESCRIPTOR_SET_SHADER_STORAGE_BUFFERS,
-  NUM_DESCRIPTOR_SETS
+  DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS,
+  DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS,
+  DESCRIPTOR_SET_LAYOUT_SHADER_STORAGE_BUFFERS,
+  DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS,
+  NUM_DESCRIPTOR_SET_LAYOUTS
+};
+
+// Descriptor set bind points
+enum DESCRIPTOR_SET_BIND_POINT
+{
+  DESCRIPTOR_SET_BIND_POINT_UNIFORM_BUFFERS,
+  DESCRIPTOR_SET_BIND_POINT_PIXEL_SHADER_SAMPLERS,
+  DESCRIPTOR_SET_BIND_POINT_STORAGE_OR_TEXEL_BUFFER,
+  NUM_DESCRIPTOR_SET_BIND_POINTS
+};
+
+// We use four pipeline layouts:
+//   - Standard
+//       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS)
+//       - 8 combined image samplers (accessible from PS)
+//   - BBox Enabled
+//       - Same as standard, plus a single SSBO accessible from PS
+//   - Push Constant
+//       - Same as standard, plus 128 bytes of push constants, accessible from all stages.
+//   - Texture Decoding
+//       - Same as push constant, plus a single texel buffer accessible from PS.
+//
+// All four pipeline layout share the first two descriptor sets (uniform buffers, PS samplers).
+// The third descriptor set (see bind points above) is used for storage or texel buffers.
+//
+enum PIPELINE_LAYOUT
+{
+  PIPELINE_LAYOUT_STANDARD,
+  PIPELINE_LAYOUT_BBOX,
+  PIPELINE_LAYOUT_PUSH_CONSTANT,
+  PIPELINE_LAYOUT_TEXTURE_CONVERSION,
+  NUM_PIPELINE_LAYOUTS
 };
 
 // Uniform buffer bindings within the first descriptor set
@@ -74,8 +107,14 @@ constexpr size_t STAGING_TEXTURE_UPLOAD_THRESHOLD = 1024 * 1024 * 4;
 constexpr size_t INITIAL_UNIFORM_STREAM_BUFFER_SIZE = 16 * 1024 * 1024;
 constexpr size_t MAXIMUM_UNIFORM_STREAM_BUFFER_SIZE = 32 * 1024 * 1024;
 
+// Texel buffer size for palette and texture decoding.
+constexpr size_t TEXTURE_CONVERSION_TEXEL_BUFFER_SIZE = 8 * 1024 * 1024;
+
 // Push constant buffer size for utility shaders
 constexpr u32 PUSH_CONSTANT_BUFFER_SIZE = 128;
+
+// Minimum number of draw calls per command buffer when attempting to preempt a readback operation.
+constexpr u32 MINIMUM_DRAW_CALLS_PER_COMMAND_BUFFER_FOR_READBACK = 10;
 
 // Rasterization state info
 union RasterizationState {
