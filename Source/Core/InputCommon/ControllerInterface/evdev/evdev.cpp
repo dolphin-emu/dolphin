@@ -116,26 +116,28 @@ static void HotplugThreadFunc()
 
 static void StartHotplugThread()
 {
-  if (s_hotplug_thread_running.IsSet())
+  // Mark the thread as running.
+  if (!s_hotplug_thread_running.TestAndSet())
+    // It was already running.
     return;
 
   s_wakeup_eventfd = eventfd(0, 0);
   _assert_msg_(PAD, s_wakeup_eventfd != -1, "Couldn't create eventfd.");
-  s_hotplug_thread_running.Set(true);
   s_hotplug_thread = std::thread(HotplugThreadFunc);
 }
 
 static void StopHotplugThread()
 {
-  if (s_hotplug_thread_running.TestAndClear())
+  // Tell the hotplug thread to stop.
+  if (!s_hotplug_thread_running.TestAndClear())
+    // It wasn't running, we're done.
+    return;
+  // Write something to efd so that select() stops blocking.
+  uint64_t value = 1;
+  if (write(s_wakeup_eventfd, &value, sizeof(uint64_t)) < 0)
   {
-    // Write something to efd so that select() stops blocking.
-    uint64_t value = 1;
-    if (write(s_wakeup_eventfd, &value, sizeof(uint64_t)) < 0)
-    {
-    }
-    s_hotplug_thread.join();
   }
+  s_hotplug_thread.join();
 }
 
 void Init()
