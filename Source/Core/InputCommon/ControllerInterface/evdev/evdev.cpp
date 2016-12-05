@@ -141,7 +141,6 @@ static void StopHotplugThread()
 void Init()
 {
   s_devnode_name_map.clear();
-  PopulateDevices();
   StartHotplugThread();
 }
 
