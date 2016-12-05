@@ -139,7 +139,7 @@ SectionEnd
 
 Section "DirectX Runtime" SEC02
    DetailPrint "Running DirectX runtime setup..."
-   ExecWait '"$TEMP\dxredist\DXSETUP.exe" /silent'
+   ExecWait '"$TEMP\dxredist\dxwebsetup.exe" /Q'
    DetailPrint "Finished DirectX runtime setup"
 SectionEnd
 
