@@ -292,6 +292,8 @@ struct SConfig : NonCopyable
 
   bool m_PauseOnFocusLost;
 
+  bool m_DisableTooltips;
+
   // DSP settings
   bool m_DSPEnableJIT;
   bool m_DSPCaptureLog;

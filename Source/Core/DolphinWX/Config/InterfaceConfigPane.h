@@ -26,6 +26,7 @@ private:
   void OnOSDMessagesCheckBoxChanged(wxCommandEvent&);
   void OnInterfaceLanguageChoiceChanged(wxCommandEvent&);
   void OnPauseOnFocusLostCheckBoxChanged(wxCommandEvent&);
+  void OnDisableTooltipsCheckBoxChanged(wxCommandEvent&);
   void OnThemeSelected(wxCommandEvent&);
 
   wxArrayString m_interface_lang_strings;
@@ -34,6 +35,7 @@ private:
   wxCheckBox* m_panic_handlers_checkbox;
   wxCheckBox* m_osd_messages_checkbox;
   wxCheckBox* m_pause_focus_lost_checkbox;
+  wxCheckBox* m_disable_tooltips_checkbox;
   wxChoice* m_interface_lang_choice;
   wxChoice* m_theme_choice;
 };

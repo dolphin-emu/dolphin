@@ -14,6 +14,7 @@
 #include <wx/msgdlg.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/tooltip.h>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
@@ -87,6 +88,7 @@ void InterfaceConfigPane::InitializeGUI()
   m_panic_handlers_checkbox = new wxCheckBox(this, wxID_ANY, _("Use Panic Handlers"));
   m_osd_messages_checkbox = new wxCheckBox(this, wxID_ANY, _("On-Screen Display Messages"));
   m_pause_focus_lost_checkbox = new wxCheckBox(this, wxID_ANY, _("Pause on Focus Lost"));
+  m_disable_tooltips_checkbox = new wxCheckBox(this, wxID_ANY, _("Disable Tooltips"));
   m_interface_lang_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_interface_lang_strings);
   m_theme_choice = new wxChoice(this, wxID_ANY);
@@ -99,6 +101,8 @@ void InterfaceConfigPane::InitializeGUI()
                                 this);
   m_pause_focus_lost_checkbox->Bind(wxEVT_CHECKBOX,
                                     &InterfaceConfigPane::OnPauseOnFocusLostCheckBoxChanged, this);
+  m_disable_tooltips_checkbox->Bind(wxEVT_CHECKBOX,
+                                    &InterfaceConfigPane::OnDisableTooltipsCheckBoxChanged, this);
   m_interface_lang_choice->Bind(wxEVT_CHOICE,
                                 &InterfaceConfigPane::OnInterfaceLanguageChoiceChanged, this);
   m_theme_choice->Bind(wxEVT_CHOICE, &InterfaceConfigPane::OnThemeSelected, this);
@@ -113,6 +117,8 @@ void InterfaceConfigPane::InitializeGUI()
         "writes, video backend and CPU information, and JIT cache clearing."));
   m_pause_focus_lost_checkbox->SetToolTip(
       _("Pauses the emulator when focus is taken away from the emulation window."));
+  m_disable_tooltips_checkbox->SetToolTip(
+      _("Disables tooltip pop-ups when hovering over GUI elements."));
   m_interface_lang_choice->SetToolTip(
       _("Change the language of the user interface.\nRequires restart."));
 
@@ -139,6 +145,8 @@ void InterfaceConfigPane::InitializeGUI()
   main_static_box_sizer->AddSpacer(space5);
   main_static_box_sizer->Add(m_pause_focus_lost_checkbox, 0, wxLEFT | wxRIGHT, space5);
   main_static_box_sizer->AddSpacer(space5);
+  main_static_box_sizer->Add(m_disable_tooltips_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  main_static_box_sizer->AddSpacer(space5);
   main_static_box_sizer->Add(language_and_theme_grid_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_static_box_sizer->AddSpacer(space5);
 
@@ -158,6 +166,7 @@ void InterfaceConfigPane::LoadGUIValues()
   m_panic_handlers_checkbox->SetValue(startup_params.bUsePanicHandlers);
   m_osd_messages_checkbox->SetValue(startup_params.bOnScreenDisplayMessages);
   m_pause_focus_lost_checkbox->SetValue(SConfig::GetInstance().m_PauseOnFocusLost);
+  m_disable_tooltips_checkbox->SetValue(SConfig::GetInstance().m_DisableTooltips);
 
   const std::string exact_language = SConfig::GetInstance().m_InterfaceLanguage;
   const std::string loose_language = exact_language.substr(0, exact_language.find('_'));
@@ -234,6 +243,13 @@ void InterfaceConfigPane::OnInterfaceLanguageChoiceChanged(wxCommandEvent& event
 void InterfaceConfigPane::OnPauseOnFocusLostCheckBoxChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().m_PauseOnFocusLost = m_pause_focus_lost_checkbox->IsChecked();
+}
+
+void InterfaceConfigPane::OnDisableTooltipsCheckBoxChanged(wxCommandEvent& event)
+{
+  const bool disable = m_disable_tooltips_checkbox->IsChecked();
+  SConfig::GetInstance().m_DisableTooltips = disable;
+  wxToolTip::Enable(!disable);
 }
 
 void InterfaceConfigPane::OnThemeSelected(wxCommandEvent& event)
