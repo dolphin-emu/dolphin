@@ -701,7 +701,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
       m_RenderParent->SetCursor(wxCURSOR_BLANK);
     break;
 
-#ifdef __WXGTK__
   case IDM_PANIC:
   {
     wxString caption = event.GetString().BeforeFirst(':');
@@ -711,7 +710,6 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
     panic_event.Set();
   }
   break;
-#endif
 
   case WM_USER_STOP:
     DoStop();

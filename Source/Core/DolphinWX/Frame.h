@@ -116,9 +116,10 @@ public:
   const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
 
-#ifdef __WXGTK__
   Common::Event panic_event;
   bool bPanicResult;
+
+#ifdef __WXGTK__
   std::recursive_mutex keystate_lock;
 #endif
 
