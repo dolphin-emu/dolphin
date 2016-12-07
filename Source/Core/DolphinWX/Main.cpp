@@ -18,6 +18,7 @@
 #include <wx/msgdlg.h>
 #include <wx/thread.h>
 #include <wx/timer.h>
+#include <wx/tooltip.h>
 #include <wx/utils.h>
 #include <wx/window.h>
 
@@ -109,6 +110,8 @@ bool DolphinApp::OnInit()
   VideoBackendBase::ActivateBackend(SConfig::GetInstance().m_strVideoBackend);
 
   DolphinAnalytics::Instance()->ReportDolphinStart("wx");
+
+  wxToolTip::Enable(!SConfig::GetInstance().m_DisableTooltips);
 
   // Enable the PNG image handler for screenshots
   wxImage::AddHandler(new wxPNGHandler);
