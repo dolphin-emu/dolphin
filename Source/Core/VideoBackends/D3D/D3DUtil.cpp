@@ -6,6 +6,7 @@
 #include <list>
 #include <string>
 
+#include "Common/Align.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/D3DState.h"
@@ -22,7 +23,7 @@ namespace D3D
 class UtilVertexBuffer
 {
 public:
-  UtilVertexBuffer(int size) : buf(nullptr), offset(0), max_size(size)
+  UtilVertexBuffer(unsigned int size) : max_size(size)
   {
     D3D11_BUFFER_DESC desc = CD3D11_BUFFER_DESC(max_size, D3D11_BIND_VERTEX_BUFFER,
                                                 D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
@@ -31,7 +32,7 @@ public:
   ~UtilVertexBuffer() { buf->Release(); }
   int GetSize() const { return max_size; }
   // returns vertex offset to the new data
-  int AppendData(void* data, int size, int vertex_size)
+  int AppendData(void* data, unsigned int size, unsigned int vertex_size)
   {
     D3D11_MAPPED_SUBRESOURCE map;
     if (offset + size >= max_size)
@@ -47,8 +48,7 @@ public:
     {
       context->Map(buf, 0, D3D11_MAP_WRITE_NO_OVERWRITE, 0, &map);
     }
-    offset = ((offset + vertex_size - 1) / vertex_size) *
-             vertex_size;  // align offset to vertex_size bytes
+    offset = Common::AlignUp(offset, vertex_size);
     memcpy((u8*)map.pData + offset, data, size);
     context->Unmap(buf, 0);
 
@@ -56,13 +56,12 @@ public:
     return (offset - size) / vertex_size;
   }
 
-  int BeginAppendData(void** write_ptr, int size, int vertex_size)
+  int BeginAppendData(void** write_ptr, unsigned int size, unsigned int vertex_size)
   {
     _dbg_assert_(VIDEO, size < max_size);
 
     D3D11_MAPPED_SUBRESOURCE map;
-    int aligned_offset = ((offset + vertex_size - 1) / vertex_size) *
-                         vertex_size;  // align offset to vertex_size bytes
+    unsigned int aligned_offset = Common::AlignUp(offset, vertex_size);
     if (aligned_offset + size > max_size)
     {
       // wrap buffer around and notify observers
@@ -87,9 +86,9 @@ public:
   void AddWrapObserver(bool* observer) { observers.push_back(observer); }
   inline ID3D11Buffer*& GetBuffer() { return buf; }
 private:
-  ID3D11Buffer* buf;
-  int offset;
-  int max_size;
+  ID3D11Buffer* buf = nullptr;
+  unsigned int offset = 0;
+  unsigned int max_size;
 
   std::list<bool*> observers;
 };

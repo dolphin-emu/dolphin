@@ -10,12 +10,12 @@
 #include <string>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/FileMonitor.h"
@@ -308,7 +308,7 @@ bool CVolumeDirectory::SetApploader(const std::string& _rApploader)
     std::copy(data.begin(), data.end(), m_apploader.begin());
 
     // 32byte aligned (plus 0x20 padding)
-    m_dol_address = ROUND_UP(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
+    m_dol_address = Common::AlignUp(APPLOADER_ADDRESS + m_apploader.size() + 0x20, 0x20ull);
     return true;
   }
   else
@@ -332,7 +332,7 @@ void CVolumeDirectory::SetDOL(const std::string& rDOL)
     Write32((u32)(m_dol_address >> m_addressShift), 0x0420, &m_diskHeader);
 
     // 32byte aligned (plus 0x20 padding)
-    m_fst_address = ROUND_UP(m_dol_address + m_DOL.size() + 0x20, 0x20ull);
+    m_fst_address = Common::AlignUp(m_dol_address + m_DOL.size() + 0x20, 0x20ull);
   }
 }
 
@@ -353,7 +353,7 @@ void CVolumeDirectory::BuildFST()
     m_fst_address = APPLOADER_ADDRESS + 0x2000;
 
   // 4 byte aligned start of data on disk
-  m_dataStartAddress = ROUND_UP(m_fst_address + m_FSTData.size(), 0x8000ull);
+  m_dataStartAddress = Common::AlignUp(m_fst_address + m_FSTData.size(), 0x8000ull);
   u64 curDataAddress = m_dataStartAddress;
 
   u32 fstOffset = 0;   // Offset within FST data
@@ -470,7 +470,7 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
     m_virtualDisk.emplace(dataOffset, entry.physicalName);
 
     // 4 byte aligned
-    dataOffset = ROUND_UP(dataOffset + std::max<u64>(entry.size, 1ull), 0x8000ull);
+    dataOffset = Common::AlignUp(dataOffset + std::max<u64>(entry.size, 1ull), 0x8000ull);
   }
 }
 

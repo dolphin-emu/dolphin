@@ -19,7 +19,6 @@ class StateTracker;
 
 namespace Util
 {
-size_t AlignValue(size_t value, size_t alignment);
 size_t AlignBufferOffset(size_t offset, size_t alignment);
 
 u32 MakeRGBA8Color(float r, float g, float b, float a);

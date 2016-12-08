@@ -8,11 +8,13 @@
 #include <string>
 #include <utility>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Hash.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 
@@ -511,8 +513,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat);
   const unsigned int bsh = TexDecoder_GetBlockHeightInTexels(texformat);
 
-  unsigned int expandedWidth = ROUND_UP(width, bsw);
-  unsigned int expandedHeight = ROUND_UP(height, bsh);
+  unsigned int expandedWidth = Common::AlignUp(width, bsw);
+  unsigned int expandedHeight = Common::AlignUp(height, bsh);
   const unsigned int nativeW = width;
   const unsigned int nativeH = height;
 
@@ -546,8 +548,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   for (u32 level = 1; level != tex_levels; ++level)
   {
     // We still need to calculate the original size of the mips
-    const u32 expanded_mip_width = ROUND_UP(CalculateLevelSize(width, level), bsw);
-    const u32 expanded_mip_height = ROUND_UP(CalculateLevelSize(height, level), bsh);
+    const u32 expanded_mip_width = Common::AlignUp(CalculateLevelSize(width, level), bsw);
+    const u32 expanded_mip_height = Common::AlignUp(CalculateLevelSize(height, level), bsh);
 
     additional_mips_size +=
         TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
@@ -846,8 +848,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
     {
       const u32 mip_width = CalculateLevelSize(width, level);
       const u32 mip_height = CalculateLevelSize(height, level);
-      const u32 expanded_mip_width = ROUND_UP(mip_width, bsw);
-      const u32 expanded_mip_height = ROUND_UP(mip_height, bsh);
+      const u32 expanded_mip_width = Common::AlignUp(mip_width, bsw);
+      const u32 expanded_mip_height = Common::AlignUp(mip_height, bsh);
 
       const u8*& mip_src_data = from_tmem ? ((level % 2) ? ptr_odd : ptr_even) : src_data;
       const u8* tlut = &texMem[tlutaddr];
@@ -1235,8 +1237,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(baseFormat);
 
   // Round up source height to multiple of block size
-  u32 actualHeight = ROUND_UP(tex_h, blockH);
-  const u32 actualWidth = ROUND_UP(tex_w, blockW);
+  u32 actualHeight = Common::AlignUp(tex_h, blockH);
+  const u32 actualWidth = Common::AlignUp(tex_w, blockW);
 
   u32 num_blocks_y = actualHeight / blockH;
   const u32 num_blocks_x = actualWidth / blockW;
@@ -1429,7 +1431,7 @@ u32 TextureCacheBase::TCacheEntryBase::BytesPerRow() const
   const u32 blockW = TexDecoder_GetBlockWidthInTexels(format);
 
   // Round up source height to multiple of block size
-  const u32 actualWidth = ROUND_UP(native_width, blockW);
+  const u32 actualWidth = Common::AlignUp(native_width, blockW);
 
   const u32 numBlocksX = actualWidth / blockW;
 
@@ -1443,7 +1445,7 @@ u32 TextureCacheBase::TCacheEntryBase::NumBlocksY() const
 {
   u32 blockH = TexDecoder_GetBlockHeightInTexels(format);
   // Round up source height to multiple of block size
-  u32 actualHeight = ROUND_UP(native_height, blockH);
+  u32 actualHeight = Common::AlignUp(native_height, blockH);
 
   return actualHeight / blockH;
 }
