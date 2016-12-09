@@ -36,6 +36,31 @@ void ControlReference::UpdateReference(ciface::Core::DeviceContainer& devices,
   parse_error = ParseExpression(expression, finder, &parsed_expression);
 }
 
+ControlReference::~ControlReference()
+{
+  delete parsed_expression;
+}
+int ControlReference::BoundCount() const
+{
+  if (parsed_expression)
+    return parsed_expression->num_controls;
+  else
+    return 0;
+}
+
+ControlReference::ControlReference(const bool _is_input)
+    : range(1), is_input(_is_input), parsed_expression(nullptr)
+{
+}
+
+InputReference::InputReference() : ControlReference(true)
+{
+}
+
+OutputReference::OutputReference() : ControlReference(false)
+{
+}
+
 //
 // InputReference :: State
 //

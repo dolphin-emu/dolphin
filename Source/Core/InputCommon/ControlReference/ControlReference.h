@@ -22,10 +22,12 @@ class ControlReference
 public:
   static bool InputGateOn();
 
+  virtual ~ControlReference();
   virtual ControlState State(const ControlState state = 0) = 0;
   virtual ciface::Core::Device::Control* Detect(const unsigned int ms,
                                                 ciface::Core::Device* const device) = 0;
 
+  int BoundCount() const;
   void UpdateReference(ciface::Core::DeviceContainer& devices,
                        const ciface::Core::DeviceQualifier& default_device);
 
@@ -34,19 +36,8 @@ public:
   const bool is_input;
   ciface::ExpressionParser::ExpressionParseStatus parse_error;
 
-  virtual ~ControlReference() { delete parsed_expression; }
-  int BoundCount()
-  {
-    if (parsed_expression)
-      return parsed_expression->num_controls;
-    else
-      return 0;
-  }
-
 protected:
-  ControlReference(const bool _is_input) : range(1), is_input(_is_input), parsed_expression(nullptr)
-  {
-  }
+  ControlReference(const bool _is_input);
   ciface::ExpressionParser::Expression* parsed_expression;
 };
 
@@ -58,7 +49,7 @@ protected:
 class InputReference : public ControlReference
 {
 public:
-  InputReference() : ControlReference(true) {}
+  InputReference();
   ControlState State(const ControlState state) override;
   ciface::Core::Device::Control* Detect(const unsigned int ms,
                                         ciface::Core::Device* const device) override;
@@ -72,7 +63,7 @@ public:
 class OutputReference : public ControlReference
 {
 public:
-  OutputReference() : ControlReference(false) {}
+  OutputReference();
   ControlState State(const ControlState state) override;
   ciface::Core::Device::Control* Detect(const unsigned int ms,
                                         ciface::Core::Device* const device) override;
