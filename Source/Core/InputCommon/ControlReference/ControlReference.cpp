@@ -29,22 +29,16 @@ bool ControlReference::InputGateOn()
 void ControlReference::UpdateReference(ciface::Core::DeviceContainer& devices,
                                        const ciface::Core::DeviceQualifier& default_device)
 {
-  delete parsed_expression;
-  parsed_expression = nullptr;
-
+  Expression* expr;
   ControlFinder finder(devices, default_device, IsInput());
-  m_parse_status = ParseExpression(expression, finder, &parsed_expression);
-}
-
-ControlReference::~ControlReference()
-{
-  delete parsed_expression;
+  m_parse_status = ParseExpression(expression, finder, &expr);
+  m_parsed_expression.reset(expr);
 }
 
 int ControlReference::BoundCount() const
 {
-  if (parsed_expression)
-    return parsed_expression->num_controls;
+  if (m_parsed_expression)
+    return m_parsed_expression->num_controls;
   else
     return 0;
 }
@@ -54,7 +48,7 @@ ExpressionParseStatus ControlReference::GetParseStatus() const
   return m_parse_status;
 }
 
-ControlReference::ControlReference() : range(1), parsed_expression(nullptr)
+ControlReference::ControlReference() : range(1), m_parsed_expression(nullptr)
 {
 }
 
@@ -83,8 +77,8 @@ bool OutputReference::IsInput() const
 //
 ControlState InputReference::State(const ControlState ignore)
 {
-  if (parsed_expression && InputGateOn())
-    return parsed_expression->GetValue() * range;
+  if (m_parsed_expression && InputGateOn())
+    return m_parsed_expression->GetValue() * range;
   return 0.0;
 }
 
@@ -98,8 +92,8 @@ ControlState InputReference::State(const ControlState ignore)
 //
 ControlState OutputReference::State(const ControlState state)
 {
-  if (parsed_expression && InputGateOn())
-    parsed_expression->SetValue(state);
+  if (m_parsed_expression && InputGateOn())
+    m_parsed_expression->SetValue(state);
   return 0.0;
 }
 

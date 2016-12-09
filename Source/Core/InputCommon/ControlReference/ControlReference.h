@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <memory>
+
 #include "InputCommon/ControlReference/ExpressionParser.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -22,7 +24,6 @@ class ControlReference
 public:
   static bool InputGateOn();
 
-  virtual ~ControlReference();
   virtual ControlState State(const ControlState state = 0) = 0;
   virtual ciface::Core::Device::Control* Detect(const unsigned int ms,
                                                 ciface::Core::Device* const device) = 0;
@@ -38,7 +39,7 @@ public:
 
 protected:
   ControlReference();
-  ciface::ExpressionParser::Expression* parsed_expression;
+  std::unique_ptr<ciface::ExpressionParser::Expression> m_parsed_expression;
   ciface::ExpressionParser::ExpressionParseStatus m_parse_status;
 };
 
