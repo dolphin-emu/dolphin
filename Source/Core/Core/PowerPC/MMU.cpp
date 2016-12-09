@@ -4,6 +4,10 @@
 
 #include <cstring>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "Common/Atomic.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"

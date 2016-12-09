@@ -35,6 +35,7 @@ if(WIN32)
 	set(SRCS ${SRCS} XAudio2Stream.cpp)
 elseif(APPLE)
 	set(SRCS ${SRCS} CoreAudioSoundStream.cpp)
+	set(LIBS ${LIBS} ${ATB_LIBRARY})
 endif()
 
 add_dolphin_library(audiocommon "${SRCS}" "${LIBS}")

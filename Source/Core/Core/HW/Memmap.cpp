@@ -10,6 +10,10 @@
 #include <cstring>
 #include <memory>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -167,10 +171,11 @@ void Init()
   bool wii = SConfig::GetInstance().bWii;
   bool bMMU = SConfig::GetInstance().bMMU;
   bool bFakeVMEM = false;
-#ifndef _ARCH_32
+#if _ARCH_64 && !(TARGET_OS_IPHONE && defined(__arm64__))
   // If MMU is turned off in GameCube mode, turn on fake VMEM hack.
   // The fake VMEM hack's address space is above the memory space that we
   // allocate on 32bit targets, so disable it there.
+  // iOS is 64-bit, but has a tiny address space so needs the same.
   bFakeVMEM = !wii && !bMMU;
 #endif
 
@@ -195,7 +200,15 @@ void Init()
     if ((flags & region.flags) != region.flags)
       continue;
 
+#if _ARCH_64 && !(TARGET_OS_IPHONE && defined(__arm64__))
     u8* base = physical_base + region.physical_address;
+#else
+    // On 32-bit, we don't have the actual address space to store all
+    // the mirrors, so we just map the fallbacks somewhere in our address
+    // space and use the software fallbacks for mirroring.
+    // iOS is 64-bit, but has a tiny address space so needs the same.
+    u8* base = physical_base + (region.physical_address & 0x3FFFFFFF);
+#endif
     *region.out_pointer = (u8*)g_arena.CreateView(region.shm_position, region.size, base);
 
     if (!*region.out_pointer)
@@ -205,7 +218,7 @@ void Init()
     }
   }
 
-#ifndef _ARCH_32
+#if _ARCH_64 && !(TARGET_OS_IPHONE && defined(__arm64__))
   logical_base = physical_base + 0x200000000;
 #endif
 

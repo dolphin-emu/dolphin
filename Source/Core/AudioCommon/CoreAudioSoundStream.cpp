@@ -27,7 +27,11 @@ bool CoreAudioSound::Start()
   AudioComponent component;
 
   desc.componentType = kAudioUnitType_Output;
+#if TARGET_OS_IPHONE
+  desc.componentSubType = kAudioUnitSubType_RemoteIO;
+#else
   desc.componentSubType = kAudioUnitSubType_DefaultOutput;
+#endif
   desc.componentFlags = 0;
   desc.componentFlagsMask = 0;
   desc.componentManufacturer = kAudioUnitManufacturer_Apple;
@@ -64,10 +68,12 @@ bool CoreAudioSound::Start()
     return false;
   }
 
+#if !TARGET_OS_IPHONE
   err = AudioUnitSetParameter(audioUnit, kHALOutputParam_Volume, kAudioUnitScope_Output, 0,
                               m_volume / 100., 0);
   if (err != noErr)
     ERROR_LOG(AUDIO, "error setting volume");
+#endif
 
   err = AudioUnitInitialize(audioUnit);
   if (err != noErr)
@@ -91,10 +97,12 @@ void CoreAudioSound::SetVolume(int volume)
   OSStatus err;
   m_volume = volume;
 
+#if !TARGET_OS_IPHONE
   err = AudioUnitSetParameter(audioUnit, kHALOutputParam_Volume, kAudioUnitScope_Output, 0,
                               volume / 100., 0);
   if (err != noErr)
     ERROR_LOG(AUDIO, "error setting volume");
+#endif
 }
 
 void CoreAudioSound::SoundLoop()

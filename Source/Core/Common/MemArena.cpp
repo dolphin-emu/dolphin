@@ -25,6 +25,7 @@
 #include <linux/ashmem.h>
 #include <sys/ioctl.h>
 #elif defined(__APPLE__)
+#include <TargetConditionals.h>
 #include <mach/mach_init.h>
 #include <mach/vm_map.h>
 #endif
@@ -159,14 +160,18 @@ void MemArena::ReleaseView(void* view, size_t size)
 
 u8* MemArena::FindMemoryBase()
 {
-#if _ARCH_64
 #ifdef _WIN32
   // 64 bit
   u8* base = (u8*)VirtualAlloc(0, 0x400000000, MEM_RESERVE, PAGE_READWRITE);
   VirtualFree(base, 0, MEM_RELEASE);
   return base;
 #elif defined(__APPLE__)
+#if _ARCH_64 && !(TARGET_OS_IPHONE && defined(__arm64__))
   vm_size_t size = 0x400000000;
+#else
+  // iOS is 64-bit, but has a tiny address space, so match 32-bit.
+  vm_size_t size = 0x31000000;
+#endif
   vm_address_t address;
 
   kern_return_t err = vm_allocate(mach_task_self(), &address, size, VM_FLAGS_ANYWHERE);
@@ -182,12 +187,10 @@ u8* MemArena::FindMemoryBase()
   }
 
   return (u8*)address;
-#else
+#elif _ARCH_64
   // Very precarious - mmap cannot return an error when trying to map already used pages.
   // This makes the Windows approach above unusable on Linux, so we will simply pray...
   return reinterpret_cast<u8*>(0x2300000000ULL);
-#endif
-
 #else  // 32 bit
 #ifdef ANDROID
   // Android 4.3 changed how mmap works.
