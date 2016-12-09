@@ -8,7 +8,10 @@
 #if defined(_WIN32)
 #include <windows.h>
 #elif defined(__APPLE__)
+#include <TargetConditionals.h>
+#if !TARGET_OS_IPHONE
 #include <CoreServices/CoreServices.h>
+#endif
 #endif
 
 #include "Common/Analytics.h"
@@ -151,6 +154,9 @@ void DolphinAnalytics::MakeBaseBuilder()
 #elif defined(ANDROID)
   builder.AddData("os-type", "android");
 #elif defined(__APPLE__)
+#if TARGET_OS_IPHONE
+  builder.AddData("os-type", "ios");
+#else
   builder.AddData("os-type", "osx");
 
   SInt32 osxmajor, osxminor, osxbugfix;
@@ -167,6 +173,7 @@ void DolphinAnalytics::MakeBaseBuilder()
   builder.AddData("osx-ver-major", osxmajor);
   builder.AddData("osx-ver-minor", osxminor);
   builder.AddData("osx-ver-bugfix", osxbugfix);
+#endif
 #elif defined(__linux__)
   builder.AddData("os-type", "linux");
 #elif defined(__FreeBSD__)

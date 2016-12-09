@@ -7,7 +7,12 @@
 #include "Common/GL/GLInterfaceBase.h"
 
 #if defined(__APPLE__)
+#include <TargetConditionals.h>
+#if TARGET_OS_IPHONE
+#include "Common/GL/GLInterface/EAGL.h"
+#else
 #include "Common/GL/GLInterface/AGL.h"
+#endif
 #elif defined(_WIN32)
 #include "Common/GL/GLInterface/WGL.h"
 #elif HAVE_X11
@@ -27,7 +32,11 @@
 std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()
 {
 #if defined(__APPLE__)
+#if TARGET_OS_IPHONE
+  return std::make_unique<cInterfaceEAGL>();
+#else
   return std::make_unique<cInterfaceAGL>();
+#endif
 #elif defined(_WIN32)
   return std::make_unique<cInterfaceWGL>();
 #elif defined(USE_EGL) && defined(USE_HEADLESS)

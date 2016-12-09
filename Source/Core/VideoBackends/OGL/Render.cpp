@@ -1379,7 +1379,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   std::swap(flipped_trc.top, flipped_trc.bottom);
 
   // Copy the framebuffer to screen.
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GLInterface->DisplayFramebuffer());
   DrawFrame(flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
 
   // The FlushFrameDump call here is necessary even after frame dumping is stopped.
@@ -1395,11 +1395,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     {
       // DumpFrameUsingFBO resets GL_FRAMEBUFFER, so change back to the window for drawing OSD.
       DumpFrameUsingFBO(rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight, ticks);
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, GLInterface->DisplayFramebuffer());
     }
     else
     {
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, GLInterface->DisplayFramebuffer());
       DumpFrame(flipped_trc, ticks);
     }
   }

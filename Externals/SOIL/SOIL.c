@@ -27,7 +27,7 @@
 	#if 0
 		#include <OpenGL/gl.h>
 	#endif
-	#include <Carbon/Carbon.h>
+	#include <CoreFoundation/CoreFoundation.h>
 	#define APIENTRY
 #else
 	#if 0
