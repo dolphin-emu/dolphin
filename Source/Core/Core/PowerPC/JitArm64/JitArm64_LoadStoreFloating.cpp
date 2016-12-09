@@ -169,7 +169,7 @@ void JitArm64::lfXX(UGeckoInstruction inst)
 
   if (is_immediate && PowerPC::IsOptimizableRAMAddress(imm_addr))
   {
-    EmitBackpatchRoutine(flags, true, false, VD, XA, BitSet32(0), BitSet32(0));
+    EmitBackpatchRoutine(flags, jo.fastmem, false, VD, XA, BitSet32(0), BitSet32(0));
   }
   else
   {
@@ -404,7 +404,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
     }
     else if (PowerPC::IsOptimizableRAMAddress(imm_addr))
     {
-      EmitBackpatchRoutine(flags, true, false, V0, XA, BitSet32(0), BitSet32(0));
+      EmitBackpatchRoutine(flags, jo.fastmem, false, V0, XA, BitSet32(0), BitSet32(0));
     }
     else
     {
