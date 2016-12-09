@@ -14,11 +14,11 @@
 #include <wx/treebase.h>
 
 #include "Common/IniFile.h"
-#include "DiscIO/Filesystem.h"
-#include "DiscIO/Volume.h"
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/PatchAddEdit.h"
 
+class ActionReplayCodesPanel;
+class CheatWarningMessage;
 class DolphinSlider;
 class wxButton;
 class wxCheckBox;
@@ -27,32 +27,16 @@ class wxChoice;
 class wxSpinCtrl;
 class wxStaticBitmap;
 class wxTextCtrl;
-class wxTreeCtrl;
 
 namespace DiscIO
 {
-enum class Language;
+class IVolume;
 }
+
 namespace Gecko
 {
 class CodeConfigPanel;
 }
-class ActionReplayCodesPanel;
-class CheatWarningMessage;
-class GameListItem;
-
-class WiiPartition final : public wxTreeItemData
-{
-public:
-  WiiPartition(std::unique_ptr<DiscIO::IVolume> partition,
-               std::unique_ptr<DiscIO::IFileSystem> file_system)
-      : Partition(std::move(partition)), FileSystem(std::move(file_system))
-  {
-  }
-
-  std::unique_ptr<DiscIO::IVolume> Partition;
-  std::unique_ptr<DiscIO::IFileSystem> FileSystem;
-};
 
 struct PHackData
 {
@@ -77,7 +61,6 @@ private:
   DECLARE_EVENT_TABLE();
 
   std::unique_ptr<DiscIO::IVolume> m_open_iso;
-  std::unique_ptr<DiscIO::IFileSystem> m_filesystem;
 
   std::vector<PatchEngine::Patch> onFrame;
   PHackData m_PHack_Data;
@@ -104,9 +87,6 @@ private:
   wxButton* EditPatch;
   wxButton* RemovePatch;
 
-  wxTreeCtrl* m_Treectrl;
-  wxTreeItemId RootId;
-
   ActionReplayCodesPanel* m_ar_code_panel;
   Gecko::CodeConfigPanel* m_geckocode_panel;
 
@@ -115,9 +95,7 @@ private:
 
   enum
   {
-    ID_TREECTRL = 1000,
-
-    ID_NOTEBOOK,
+    ID_NOTEBOOK = 1000,
     ID_GAMECONFIG,
     ID_PATCH_PAGE,
     ID_ARCODE_PAGE,
@@ -147,13 +125,6 @@ private:
     ID_DEPTHPERCENTAGE,
     ID_CONVERGENCE,
     ID_MONODEPTH,
-
-    IDM_EXTRACTDIR,
-    IDM_EXTRACTALL,
-    IDM_EXTRACTFILE,
-    IDM_EXTRACTAPPLOADER,
-    IDM_EXTRACTDOL,
-    IDM_CHECKINTEGRITY,
   };
 
   void LaunchExternalEditor(const std::string& filename, bool wait_until_closed);
@@ -165,22 +136,11 @@ private:
   void OnShowDefaultConfig(wxCommandEvent& event);
   void PatchListSelectionChanged(wxCommandEvent& event);
   void PatchButtonClicked(wxCommandEvent& event);
-  void OnRightClickOnTree(wxTreeEvent& event);
-  void OnExtractFile(wxCommandEvent& event);
-  void OnExtractDir(wxCommandEvent& event);
-  void OnExtractDataFromHeader(wxCommandEvent& event);
-  void CheckPartitionIntegrity(wxCommandEvent& event);
   void OnEmustateChanged(wxCommandEvent& event);
   void OnCheatCodeToggled(wxCommandEvent& event);
   void OnChangeTitle(wxCommandEvent& event);
 
   const GameListItem OpenGameListItem;
-
-  size_t CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos);
-  size_t CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos,
-                             const size_t _FirstIndex, const size_t _LastIndex);
-  void ExportDir(const std::string& _rFullPath, const std::string& _rExportFilename,
-                 const WiiPartition* partition = nullptr);
 
   IniFile GameIniDefault;
   IniFile GameIniLocal;

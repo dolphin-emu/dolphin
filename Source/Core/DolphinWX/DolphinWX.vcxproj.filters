@@ -224,6 +224,9 @@
     <ClCompile Include="Config\AdvancedConfigPane.cpp">
       <Filter>GUI\Config</Filter>
     </ClCompile>
+    <ClCompile Include="ISOProperties\FilesystemPanel.cpp">
+      <Filter>GUI\ISOProperties</Filter>
+    </ClCompile>
     <ClCompile Include="ISOProperties\InfoPanel.cpp">
       <Filter>GUI\ISOProperties</Filter>
     </ClCompile>
@@ -436,6 +439,9 @@
     </ClInclude>
     <ClInclude Include="Config\AdvancedConfigPane.h">
       <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ISOProperties\FilesystemPanel.h">
+      <Filter>GUI\ISOProperties</Filter>
     </ClInclude>
     <ClInclude Include="ISOProperties\InfoPanel.h">
       <Filter>GUI\ISOProperties</Filter>
