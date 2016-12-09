@@ -138,6 +138,21 @@ void TextureCache::CopyRectangleFromTexture(TCacheEntry* dst_texture,
     ScaleTextureRectangle(dst_texture, dst_rect, src_texture, src_rect);
 }
 
+bool TextureCache::SupportsGPUTextureDecode(TextureFormat format, TlutFormat palette_format)
+{
+  return m_texture_converter->SupportsTextureDecoding(format, palette_format);
+}
+
+void TextureCache::DecodeTextureOnGPU(TCacheEntryBase* entry, u32 dst_level, const u8* data,
+                                      size_t data_size, TextureFormat format, u32 width, u32 height,
+                                      u32 aligned_width, u32 aligned_height, u32 row_stride,
+                                      const u8* palette, TlutFormat palette_format)
+{
+  m_texture_converter->DecodeTexture(static_cast<TCacheEntry*>(entry), dst_level, data, data_size,
+                                     format, width, height, aligned_width, aligned_height,
+                                     row_stride, palette, palette_format);
+}
+
 void TextureCache::CopyTextureRectangle(TCacheEntry* dst_texture,
                                         const MathUtil::Rectangle<int>& dst_rect,
                                         Texture2D* src_texture,

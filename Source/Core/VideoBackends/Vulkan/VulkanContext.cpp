@@ -235,6 +235,7 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsClipControl = true;           // Assumed support.
   config->backend_info.bSupportsMultithreading = true;        // Assumed support.
   config->backend_info.bSupportsComputeShaders = true;        // Assumed support.
+  config->backend_info.bSupportsGPUTextureDecoding = true;    // Assumed support.
   config->backend_info.bSupportsInternalResolutionFrameDumps = true;  // Assumed support.
   config->backend_info.bSupportsPostProcessing = false;               // No support yet.
   config->backend_info.bSupportsDualSourceBlend = false;              // Dependent on features.
@@ -245,7 +246,6 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsSSAA = false;                         // Dependent on features.
   config->backend_info.bSupportsDepthClamp = false;                   // Dependent on features.
   config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
-  config->backend_info.bSupportsGPUTextureDecoding = false;  // No support yet.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)

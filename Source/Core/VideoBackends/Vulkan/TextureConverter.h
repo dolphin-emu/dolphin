@@ -5,11 +5,14 @@
 #pragma once
 
 #include <array>
+#include <map>
 #include <memory>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/TextureCache.h"
+#include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 
@@ -45,12 +48,22 @@ public:
   void DecodeYUYVTextureFromMemory(TextureCache::TCacheEntry* dst_texture, const void* src_ptr,
                                    u32 src_width, u32 src_stride, u32 src_height);
 
+  bool SupportsTextureDecoding(TextureFormat format, TlutFormat palette_format);
+  void DecodeTexture(TextureCache::TCacheEntry* entry, u32 dst_level, const u8* data,
+                     size_t data_size, TextureFormat format, u32 width, u32 height,
+                     u32 aligned_width, u32 aligned_height, u32 row_stride, const u8* palette,
+                     TlutFormat palette_format);
+
 private:
   static const u32 NUM_TEXTURE_ENCODING_SHADERS = 64;
   static const u32 ENCODING_TEXTURE_WIDTH = EFB_WIDTH * 4;
   static const u32 ENCODING_TEXTURE_HEIGHT = 1024;
   static const VkFormat ENCODING_TEXTURE_FORMAT = VK_FORMAT_B8G8R8A8_UNORM;
   static const size_t NUM_PALETTE_CONVERSION_SHADERS = 3;
+
+  // Maximum size of a texture based on BP registers.
+  static const u32 DECODING_TEXTURE_WIDTH = 1024;
+  static const u32 DECODING_TEXTURE_HEIGHT = 1024;
 
   bool CreateTexelBuffer();
   VkBufferView CreateTexelBufferView(VkFormat format) const;
@@ -61,6 +74,8 @@ private:
   bool CreateEncodingRenderPass();
   bool CreateEncodingTexture();
   bool CreateEncodingDownloadTexture();
+
+  bool CreateDecodingTexture();
 
   bool CompileYUYVConversionShaders();
 
@@ -77,7 +92,9 @@ private:
 
   // Shared between conversion types
   std::unique_ptr<StreamBuffer> m_texel_buffer;
+  VkBufferView m_texel_buffer_view_r8_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_r16_uint = VK_NULL_HANDLE;
+  VkBufferView m_texel_buffer_view_r32g32_uint = VK_NULL_HANDLE;
   VkBufferView m_texel_buffer_view_rgba8_unorm = VK_NULL_HANDLE;
   size_t m_texel_buffer_size = 0;
 
@@ -90,6 +107,16 @@ private:
   std::unique_ptr<Texture2D> m_encoding_render_texture;
   VkFramebuffer m_encoding_render_framebuffer = VK_NULL_HANDLE;
   std::unique_ptr<StagingTexture2D> m_encoding_download_texture;
+
+  // Texture decoding - GX format in memory->RGBA8
+  struct TextureDecodingPipeline
+  {
+    const TextureConversionShader::DecodingShaderInfo* base_info;
+    VkShaderModule compute_shader;
+    bool valid;
+  };
+  std::map<std::pair<TextureFormat, TlutFormat>, TextureDecodingPipeline> m_decoding_pipelines;
+  std::unique_ptr<Texture2D> m_decoding_texture;
 
   // XFB encoding/decoding shaders
   VkShaderModule m_rgb_to_yuyv_shader = VK_NULL_HANDLE;
