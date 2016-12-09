@@ -34,6 +34,7 @@ private:
   void OnSlotBButtonClick(wxCommandEvent&);
 
   void ChooseEXIDevice(const wxString& device_name, int device_id);
+  void HandleEXISlotChange(int slot, const wxString& title);
   void ChooseSlotPath(bool is_slot_a, TEXIDevices device_type);
 
   wxArrayString m_ipl_language_strings;

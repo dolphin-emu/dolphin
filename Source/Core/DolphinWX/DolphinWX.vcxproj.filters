@@ -119,6 +119,9 @@
     <ClCompile Include="Input\GCPadInputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
+    <ClCompile Include="Input\MicButtonConfigDiag.cpp">
+      <Filter>GUI\InputConfig</Filter>
+    </ClCompile>
     <ClCompile Include="Input\GCKeyboardInputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
@@ -333,6 +336,9 @@
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="Input\GCPadInputConfigDiag.h">
+      <Filter>GUI\InputConfig</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\MicButtonConfigDiag.h">
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="Input\GCKeyboardInputConfigDiag.h">
