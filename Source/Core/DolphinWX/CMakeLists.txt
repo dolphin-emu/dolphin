@@ -35,6 +35,8 @@ set(GUI_SRCS
 	Debugger/RegisterWindow.cpp
 	Debugger/WatchView.cpp
 	Debugger/WatchWindow.cpp
+	ISOProperties/InfoPanel.cpp
+	ISOProperties/ISOProperties.cpp
 	NetPlay/ChangeGameDialog.cpp
 	NetPlay/MD5Dialog.cpp
 	NetPlay/NetPlayLauncher.cpp
@@ -59,7 +61,6 @@ set(GUI_SRCS
 	FrameTools.cpp
 	GameListCtrl.cpp
 	ISOFile.cpp
-	ISOProperties.cpp
 	LogConfigWindow.cpp
 	LogWindow.cpp
 	Main.cpp

@@ -65,6 +65,8 @@ struct PHackData
   std::string PHZFar;
 };
 
+wxDECLARE_EVENT(DOLPHIN_EVT_CHANGE_ISO_PROPERTIES_TITLE, wxCommandEvent);
+
 class CISOProperties : public wxDialog
 {
 public:
@@ -115,8 +117,6 @@ private:
   wxButton* EditCheat;
   wxButton* RemoveCheat;
 
-  wxTextCtrl* m_InternalName;
-
   // VR
   wxCheckBox* Disable3D;
   wxCheckBox* HudFullscreen;
@@ -137,22 +137,6 @@ private:
   wxSpinCtrlDouble* MinFOV;
   wxChoice* VRState;
   wxTextCtrl* VRIssues;
-
-  wxTextCtrl* m_Name;
-  wxTextCtrl* m_GameID;
-  wxTextCtrl* m_Country;
-  wxTextCtrl* m_MakerID;
-  wxTextCtrl* m_Revision;
-  wxTextCtrl* m_Date;
-  wxTextCtrl* m_FST;
-  wxTextCtrl* m_MD5Sum;
-  wxButton* m_MD5SumCompute;
-  wxArrayString arrayStringFor_Lang;
-  wxChoice* m_Lang;
-  // wxTextCtrl* m_Name;
-  wxTextCtrl* m_Maker;
-  wxTextCtrl* m_Comment;
-  wxStaticBitmap* m_Banner;
 
   wxTreeCtrl* m_Treectrl;
   wxTreeItemId RootId;
@@ -228,29 +212,12 @@ private:
     ID_CONVERGENCE,
     ID_MONODEPTH,
 
-    ID_NAME,
-    ID_GAMEID,
-    ID_COUNTRY,
-    ID_MAKERID,
-    ID_REVISION,
-    ID_DATE,
-    ID_FST,
-    ID_MD5SUM,
-    ID_MD5SUMCOMPUTE,
-    ID_VERSION,
-    ID_LANG,
-    ID_SHORTNAME,
-    ID_LONGNAME,
-    ID_MAKER,
-    ID_COMMENT,
-    ID_BANNER,
     IDM_EXTRACTDIR,
     IDM_EXTRACTALL,
     IDM_EXTRACTFILE,
     IDM_EXTRACTAPPLOADER,
     IDM_EXTRACTDOL,
     IDM_CHECKINTEGRITY,
-    IDM_BNRSAVEAS
   };
 
   void LaunchExternalEditor(const std::string& filename, bool wait_until_closed);
@@ -259,27 +226,22 @@ private:
   void OnClose(wxCloseEvent& event);
   void OnCloseClick(wxCommandEvent& event);
   void OnEditConfig(wxCommandEvent& event);
-  void OnComputeMD5Sum(wxCommandEvent& event);
   void OnShowDefaultConfig(wxCommandEvent& event);
   void HideObjectButtonClicked(wxCommandEvent& event);
   void CheckboxSelectionChanged(wxCommandEvent& event);
   void OnActionReplayCodeChecked(wxCommandEvent& event);
   void PatchListSelectionChanged(wxCommandEvent& event);
   void PatchButtonClicked(wxCommandEvent& event);
-  void RightClickOnBanner(wxMouseEvent& event);
-  void OnBannerImageSave(wxCommandEvent& event);
   void OnRightClickOnTree(wxTreeEvent& event);
   void OnExtractFile(wxCommandEvent& event);
   void OnExtractDir(wxCommandEvent& event);
   void OnExtractDataFromHeader(wxCommandEvent& event);
   void CheckPartitionIntegrity(wxCommandEvent& event);
   void OnEmustateChanged(wxCommandEvent& event);
-  void OnChangeBannerLang(wxCommandEvent& event);
   void OnCheatCodeToggled(wxCommandEvent& event);
+  void OnChangeTitle(wxCommandEvent& event);
 
   const GameListItem OpenGameListItem;
-
-  typedef std::vector<const DiscIO::SFileInfo*>::iterator fileIter;
 
   size_t CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos);
   size_t CreateDirectoryTree(wxTreeItemId& parent, const std::vector<DiscIO::SFileInfo>& fileInfos,
@@ -303,7 +265,6 @@ private:
   void HideObjectList_Save();
   void PatchList_Load();
   void PatchList_Save();
-  void ChangeBannerDetails(DiscIO::Language language);
 
   long GetElementStyle(const char* section, const char* key);
   void SetCheckboxValueFromGameini(const char* section, const char* key, wxCheckBox* checkbox);
