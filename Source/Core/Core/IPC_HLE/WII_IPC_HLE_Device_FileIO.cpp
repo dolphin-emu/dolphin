@@ -15,7 +15,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
 static std::map<std::string, std::weak_ptr<File::IOFile>> openFiles;
 
@@ -108,7 +107,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Open(u32 command_address, u32 mode)
     WARN_LOG(WII_IPC_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[mode],
              m_filepath.c_str());
     if (command_address)
-      Memory::Write_U32(FS_FILE_NOT_EXIST, command_address + 4);
+      Memory::Write_U32(FS_ENOENT, command_address + 4);
   }
 
   m_Active = true;
@@ -161,13 +160,13 @@ void CWII_IPC_HLE_Device_FileIO::OpenFile()
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
 {
-  u32 ReturnValue = FS_RESULT_FATAL;
+  u32 ReturnValue = FS_EINVAL;
   const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
   const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
 
   if (m_file->IsOpen())
   {
-    ReturnValue = FS_RESULT_FATAL;
+    ReturnValue = FS_EINVAL;
 
     const s32 fileSize = (s32)m_file->GetSize();
     DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)",
@@ -210,14 +209,14 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
     default:
     {
       PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
-      ReturnValue = FS_RESULT_FATAL;
+      ReturnValue = FS_EINVAL;
       break;
     }
     }
   }
   else
   {
-    ReturnValue = FS_FILE_NOT_EXIST;
+    ReturnValue = FS_ENOENT;
   }
   Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
@@ -259,7 +258,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
     ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
                               "not be opened or does not exist",
               m_Name.c_str(), Address, Size);
-    ReturnValue = FS_FILE_NOT_EXIST;
+    ReturnValue = FS_ENOENT;
   }
 
   Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -299,7 +298,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
     ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
                               "not be opened or does not exist",
               m_Name.c_str(), Address, Size);
-    ReturnValue = FS_FILE_NOT_EXIST;
+    ReturnValue = FS_ENOENT;
   }
 
   Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
@@ -332,7 +331,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
     }
     else
     {
-      ReturnValue = FS_FILE_NOT_EXIST;
+      ReturnValue = FS_ENOENT;
     }
   }
   break;

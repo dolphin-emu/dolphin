@@ -23,18 +23,6 @@ struct NANDStat
   u32 Used_Inodes;
 };
 
-enum
-{
-  FS_RESULT_OK = 0,
-  FS_INVALID = -4,
-  FS_DIRFILE_NOT_FOUND = -6,
-  FS_RESULT_FATAL = -101,
-  FS_NO_ACCESS = -102,
-  FS_FILE_EXIST = -105,
-  FS_FILE_NOT_EXIST = -106,
-  FS_NO_HANDLE = -106,
-};
-
 class CWII_IPC_HLE_Device_fs : public IWII_IPC_HLE_Device
 {
 public:
