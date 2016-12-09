@@ -324,6 +324,41 @@ std::pair<VkPipeline, bool> ObjectCache::GetPipelineWithCacheResult(const Pipeli
   return {pipeline, false};
 }
 
+VkPipeline ObjectCache::CreateComputePipeline(const ComputePipelineInfo& info)
+{
+  VkComputePipelineCreateInfo pipeline_info = {VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO,
+                                               nullptr,
+                                               0,
+                                               {VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO,
+                                                nullptr, 0, VK_SHADER_STAGE_COMPUTE_BIT, info.cs,
+                                                "main", nullptr},
+                                               info.pipeline_layout,
+                                               VK_NULL_HANDLE,
+                                               -1};
+
+  VkPipeline pipeline;
+  VkResult res = vkCreateComputePipelines(g_vulkan_context->GetDevice(), VK_NULL_HANDLE, 1,
+                                          &pipeline_info, nullptr, &pipeline);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "vkCreateComputePipelines failed: ");
+    return VK_NULL_HANDLE;
+  }
+
+  return pipeline;
+}
+
+VkPipeline ObjectCache::GetComputePipeline(const ComputePipelineInfo& info)
+{
+  auto iter = m_compute_pipeline_objects.find(info);
+  if (iter != m_compute_pipeline_objects.end())
+    return iter->second;
+
+  VkPipeline pipeline = CreateComputePipeline(info);
+  m_compute_pipeline_objects.emplace(info, pipeline);
+  return pipeline;
+}
+
 std::string ObjectCache::GetDiskCacheFileName(const char* type)
 {
   return StringFromFormat("%svulkan-%s-%s.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
@@ -476,6 +511,13 @@ void ObjectCache::DestroyPipelineCache()
       vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
   }
   m_pipeline_objects.clear();
+
+  for (const auto& it : m_compute_pipeline_objects)
+  {
+    if (it.second != VK_NULL_HANDLE)
+      vkDestroyPipeline(g_vulkan_context->GetDevice(), it.second, nullptr);
+  }
+  m_compute_pipeline_objects.clear();
 
   vkDestroyPipelineCache(g_vulkan_context->GetDevice(), m_pipeline_cache, nullptr);
   m_pipeline_cache = VK_NULL_HANDLE;
@@ -725,6 +767,17 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {0, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_FRAGMENT_BIT},
   };
 
+  static const VkDescriptorSetLayoutBinding compute_set_bindings[] = {
+      {0, VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {1, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {2, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {3, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {4, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {5, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {6, VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+      {7, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT},
+  };
+
   static const VkDescriptorSetLayoutCreateInfo create_infos[NUM_DESCRIPTOR_SET_LAYOUTS] = {
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(ubo_set_bindings)), ubo_set_bindings},
@@ -733,7 +786,9 @@ bool ObjectCache::CreateDescriptorSetLayouts()
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(ssbo_set_bindings)), ssbo_set_bindings},
       {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
-       static_cast<u32>(ArraySize(texel_buffer_set_bindings)), texel_buffer_set_bindings}};
+       static_cast<u32>(ArraySize(texel_buffer_set_bindings)), texel_buffer_set_bindings},
+      {VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(compute_set_bindings)), compute_set_bindings}};
 
   for (size_t i = 0; i < NUM_DESCRIPTOR_SET_LAYOUTS; i++)
   {
@@ -774,8 +829,11 @@ bool ObjectCache::CreatePipelineLayouts()
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_UNIFORM_BUFFERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS],
       m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS]};
+  VkDescriptorSetLayout compute_sets[] = {m_descriptor_set_layouts[DESCRIPTOR_SET_LAYOUT_COMPUTE]};
   VkPushConstantRange push_constant_range = {
       VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, PUSH_CONSTANT_BUFFER_SIZE};
+  VkPushConstantRange compute_push_constant_range = {VK_SHADER_STAGE_COMPUTE_BIT, 0,
+                                                     PUSH_CONSTANT_BUFFER_SIZE};
 
   // Info for each pipeline layout
   VkPipelineLayoutCreateInfo pipeline_layout_info[NUM_PIPELINE_LAYOUTS] = {
@@ -794,7 +852,11 @@ bool ObjectCache::CreatePipelineLayouts()
       // Texture Conversion
       {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
        static_cast<u32>(ArraySize(texture_conversion_sets)), texture_conversion_sets, 1,
-       &push_constant_range}};
+       &push_constant_range},
+
+      // Compute
+      {VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO, nullptr, 0,
+       static_cast<u32>(ArraySize(compute_sets)), compute_sets, 1, &compute_push_constant_range}};
 
   for (size_t i = 0; i < NUM_PIPELINE_LAYOUTS; i++)
   {
@@ -1005,6 +1067,31 @@ bool operator>(const SamplerState& lhs, const SamplerState& rhs)
 bool operator<(const SamplerState& lhs, const SamplerState& rhs)
 {
   return lhs.bits < rhs.bits;
+}
+
+std::size_t ComputePipelineInfoHash::operator()(const ComputePipelineInfo& key) const
+{
+  return static_cast<std::size_t>(XXH64(&key, sizeof(key), 0));
+}
+
+bool operator==(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs)
+{
+  return std::memcmp(&lhs, &rhs, sizeof(lhs)) == 0;
+}
+
+bool operator!=(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs)
+{
+  return !operator==(lhs, rhs);
+}
+
+bool operator<(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs)
+{
+  return std::memcmp(&lhs, &rhs, sizeof(lhs)) < 0;
+}
+
+bool operator>(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs)
+{
+  return std::memcmp(&lhs, &rhs, sizeof(lhs)) > 0;
 }
 
 bool ObjectCache::CompileSharedShaders()

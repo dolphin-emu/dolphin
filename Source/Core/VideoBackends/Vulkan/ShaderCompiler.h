@@ -29,5 +29,9 @@ bool CompileGeometryShader(SPIRVCodeVector* out_code, const char* source_code,
 bool CompileFragmentShader(SPIRVCodeVector* out_code, const char* source_code,
                            size_t source_code_length, bool prepend_header = true);
 
+// Compile a compute shader to SPIR-V.
+bool CompileComputeShader(SPIRVCodeVector* out_code, const char* source_code,
+                          size_t source_code_length, bool prepend_header = true);
+
 }  // namespace ShaderCompiler
 }  // namespace Vulkan

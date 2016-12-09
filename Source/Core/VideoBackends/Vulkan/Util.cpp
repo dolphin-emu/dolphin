@@ -250,6 +250,18 @@ VkShaderModule CompileAndCreateFragmentShader(const std::string& source_code, bo
   return CreateShaderModule(code.data(), code.size());
 }
 
+VkShaderModule CompileAndCreateComputeShader(const std::string& source_code, bool prepend_header)
+{
+  ShaderCompiler::SPIRVCodeVector code;
+  if (!ShaderCompiler::CompileComputeShader(&code, source_code.c_str(), source_code.length(),
+                                            prepend_header))
+  {
+    return VK_NULL_HANDLE;
+  }
+
+  return CreateShaderModule(code.data(), code.size());
+}
+
 }  // namespace Util
 
 UtilityShaderDraw::UtilityShaderDraw(VkCommandBuffer command_buffer,
@@ -667,6 +679,159 @@ bool UtilityShaderDraw::BindPipeline()
   }
 
   vkCmdBindPipeline(m_command_buffer, VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+  return true;
+}
+
+ComputeShaderDispatcher::ComputeShaderDispatcher(VkCommandBuffer command_buffer,
+                                                 VkPipelineLayout pipeline_layout,
+                                                 VkShaderModule compute_shader)
+    : m_command_buffer(command_buffer)
+{
+  // Populate minimal pipeline state
+  m_pipeline_info.pipeline_layout = pipeline_layout;
+  m_pipeline_info.cs = compute_shader;
+}
+
+u8* ComputeShaderDispatcher::AllocateUniformBuffer(size_t size)
+{
+  if (!g_object_cache->GetUtilityShaderUniformBuffer()->ReserveMemory(
+          size, g_vulkan_context->GetUniformBufferAlignment(), true, true, true))
+    PanicAlert("Failed to allocate util uniforms");
+
+  return g_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentHostPointer();
+}
+
+void ComputeShaderDispatcher::CommitUniformBuffer(size_t size)
+{
+  m_uniform_buffer.buffer = g_object_cache->GetUtilityShaderUniformBuffer()->GetBuffer();
+  m_uniform_buffer.offset = 0;
+  m_uniform_buffer.range = size;
+  m_uniform_buffer_offset =
+      static_cast<u32>(g_object_cache->GetUtilityShaderUniformBuffer()->GetCurrentOffset());
+
+  g_object_cache->GetUtilityShaderUniformBuffer()->CommitMemory(size);
+}
+
+void ComputeShaderDispatcher::SetPushConstants(const void* data, size_t data_size)
+{
+  _assert_(static_cast<u32>(data_size) < PUSH_CONSTANT_BUFFER_SIZE);
+
+  vkCmdPushConstants(m_command_buffer, m_pipeline_info.pipeline_layout, VK_SHADER_STAGE_COMPUTE_BIT,
+                     0, static_cast<u32>(data_size), data);
+}
+
+void ComputeShaderDispatcher::SetSampler(size_t index, VkImageView view, VkSampler sampler)
+{
+  m_samplers[index].sampler = sampler;
+  m_samplers[index].imageView = view;
+  m_samplers[index].imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+}
+
+void ComputeShaderDispatcher::SetStorageImage(VkImageView view, VkImageLayout image_layout)
+{
+  m_storage_image.sampler = VK_NULL_HANDLE;
+  m_storage_image.imageView = view;
+  m_storage_image.imageLayout = image_layout;
+}
+
+void ComputeShaderDispatcher::SetTexelBuffer(size_t index, VkBufferView view)
+{
+  m_texel_buffers[index] = view;
+}
+
+void ComputeShaderDispatcher::Dispatch(u32 groups_x, u32 groups_y, u32 groups_z)
+{
+  BindDescriptors();
+  if (!BindPipeline())
+    return;
+
+  vkCmdDispatch(m_command_buffer, groups_x, groups_y, groups_z);
+}
+
+void ComputeShaderDispatcher::BindDescriptors()
+{
+  VkDescriptorSet set = g_command_buffer_mgr->AllocateDescriptorSet(
+      g_object_cache->GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT_COMPUTE));
+  if (set == VK_NULL_HANDLE)
+  {
+    PanicAlert("Failed to allocate descriptor set for compute dispatch");
+    return;
+  }
+
+  // Reserve enough descriptors to write every binding.
+  std::array<VkWriteDescriptorSet, 7> set_writes = {};
+  u32 num_set_writes = 0;
+
+  if (m_uniform_buffer.buffer != VK_NULL_HANDLE)
+  {
+    set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                    nullptr,
+                                    set,
+                                    0,
+                                    0,
+                                    1,
+                                    VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,
+                                    nullptr,
+                                    &m_uniform_buffer,
+                                    nullptr};
+  }
+
+  // Samplers
+  for (size_t i = 0; i < m_samplers.size(); i++)
+  {
+    const VkDescriptorImageInfo& info = m_samplers[i];
+    if (info.imageView != VK_NULL_HANDLE && info.sampler != VK_NULL_HANDLE)
+    {
+      set_writes[num_set_writes++] = {VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,
+                                      nullptr,
+                                      set,
+                                      static_cast<u32>(1 + i),
+                                      0,
+                                      1,
+                                      VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,
+                                      &info,
+                                      nullptr,
+                                      nullptr};
+    }
+  }
+
+  for (size_t i = 0; i < m_texel_buffers.size(); i++)
+  {
+    if (m_texel_buffers[i] != VK_NULL_HANDLE)
+    {
+      set_writes[num_set_writes++] = {
+          VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET,  nullptr, set,     5 + static_cast<u32>(i), 0, 1,
+          VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, nullptr, nullptr, &m_texel_buffers[i]};
+    }
+  }
+
+  if (m_storage_image.imageView != VK_NULL_HANDLE)
+  {
+    set_writes[num_set_writes++] = {
+        VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET, nullptr,          set,     7,      0, 1,
+        VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,       &m_storage_image, nullptr, nullptr};
+  }
+
+  if (num_set_writes > 0)
+  {
+    vkUpdateDescriptorSets(g_vulkan_context->GetDevice(), num_set_writes, set_writes.data(), 0,
+                           nullptr);
+  }
+
+  vkCmdBindDescriptorSets(m_command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE,
+                          m_pipeline_info.pipeline_layout, 0, 1, &set, 1, &m_uniform_buffer_offset);
+}
+
+bool ComputeShaderDispatcher::BindPipeline()
+{
+  VkPipeline pipeline = g_object_cache->GetComputePipeline(m_pipeline_info);
+  if (pipeline == VK_NULL_HANDLE)
+  {
+    PanicAlert("Failed to get pipeline for backend compute dispatch");
+    return false;
+  }
+
+  vkCmdBindPipeline(m_command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline);
   return true;
 }
 

@@ -35,7 +35,7 @@ static const TBuiltInResource* GetCompilerResourceLimits();
 // Compile a shader to SPIR-V via glslang
 static bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage,
                                const char* stage_filename, const char* source_code,
-                               size_t source_code_length, bool prepend_header);
+                               size_t source_code_length, const char* header, size_t header_length);
 
 // Regarding the UBO bind points, we subtract one from the binding index because
 // the OpenGL backend requires UBO #0 for non-block uniforms (at least on NV).
@@ -73,9 +73,32 @@ static const char SHADER_HEADER[] = R"(
   #define gl_VertexID gl_VertexIndex
   #define gl_InstanceID gl_InstanceIndex
 )";
+static const char COMPUTE_SHADER_HEADER[] = R"(
+  // Target GLSL 4.5.
+  #version 450 core
+  // All resources are packed into one descriptor set for compute.
+  #define UBO_BINDING(packing, x) layout(packing, set = 0, binding = (0 + x))
+  #define SAMPLER_BINDING(x) layout(set = 0, binding = (1 + x))
+  #define TEXEL_BUFFER_BINDING(x) layout(set = 0, binding = (5 + x))
+  #define IMAGE_BINDING(format, x) layout(format, set = 0, binding = (7 + x))
+
+  // hlsl to glsl function translation
+  #define float2 vec2
+  #define float3 vec3
+  #define float4 vec4
+  #define uint2 uvec2
+  #define uint3 uvec3
+  #define uint4 uvec4
+  #define int2 ivec2
+  #define int3 ivec3
+  #define int4 ivec4
+  #define frac fract
+  #define lerp mix
+)";
 
 bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char* stage_filename,
-                        const char* source_code, size_t source_code_length, bool prepend_header)
+                        const char* source_code, size_t source_code_length, const char* header,
+                        size_t header_length)
 {
   if (!InitializeGlslang())
     return false;
@@ -91,10 +114,10 @@ bool CompileShaderToSPV(SPIRVCodeVector* out_code, EShLanguage stage, const char
   std::string full_source_code;
   const char* pass_source_code = source_code;
   int pass_source_code_length = static_cast<int>(source_code_length);
-  if (prepend_header)
+  if (header_length > 0)
   {
-    full_source_code.reserve(sizeof(SHADER_HEADER) + source_code_length);
-    full_source_code.append(SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
+    full_source_code.reserve(header_length + source_code_length);
+    full_source_code.append(header, header_length);
     full_source_code.append(source_code, source_code_length);
     pass_source_code = full_source_code.c_str();
     pass_source_code_length = static_cast<int>(full_source_code.length());
@@ -318,21 +341,28 @@ bool CompileVertexShader(SPIRVCodeVector* out_code, const char* source_code,
                          size_t source_code_length, bool prepend_header)
 {
   return CompileShaderToSPV(out_code, EShLangVertex, "vs", source_code, source_code_length,
-                            prepend_header);
+                            SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
 }
 
 bool CompileGeometryShader(SPIRVCodeVector* out_code, const char* source_code,
                            size_t source_code_length, bool prepend_header)
 {
   return CompileShaderToSPV(out_code, EShLangGeometry, "gs", source_code, source_code_length,
-                            prepend_header);
+                            SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
 }
 
 bool CompileFragmentShader(SPIRVCodeVector* out_code, const char* source_code,
                            size_t source_code_length, bool prepend_header)
 {
   return CompileShaderToSPV(out_code, EShLangFragment, "ps", source_code, source_code_length,
-                            prepend_header);
+                            SHADER_HEADER, sizeof(SHADER_HEADER) - 1);
+}
+
+bool CompileComputeShader(SPIRVCodeVector* out_code, const char* source_code,
+                          size_t source_code_length, bool prepend_header)
+{
+  return CompileShaderToSPV(out_code, EShLangCompute, "cs", source_code, source_code_length,
+                            COMPUTE_SHADER_HEADER, sizeof(COMPUTE_SHADER_HEADER) - 1);
 }
 
 }  // namespace ShaderCompiler

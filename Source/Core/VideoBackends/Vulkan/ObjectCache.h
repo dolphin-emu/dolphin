@@ -56,6 +56,22 @@ bool operator!=(const SamplerState& lhs, const SamplerState& rhs);
 bool operator>(const SamplerState& lhs, const SamplerState& rhs);
 bool operator<(const SamplerState& lhs, const SamplerState& rhs);
 
+struct ComputePipelineInfo
+{
+  VkPipelineLayout pipeline_layout;
+  VkShaderModule cs;
+};
+
+struct ComputePipelineInfoHash
+{
+  std::size_t operator()(const ComputePipelineInfo& key) const;
+};
+
+bool operator==(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs);
+bool operator!=(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs);
+bool operator<(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs);
+bool operator>(const ComputePipelineInfo& lhs, const ComputePipelineInfo& rhs);
+
 class ObjectCache
 {
 public:
@@ -114,6 +130,12 @@ public:
   // otherwise for a cache hit it will be true.
   std::pair<VkPipeline, bool> GetPipelineWithCacheResult(const PipelineInfo& info);
 
+  // Creates a compute pipeline, and does not track the handle.
+  VkPipeline CreateComputePipeline(const ComputePipelineInfo& info);
+
+  // Find a pipeline by the specified description, if not found, attempts to create it
+  VkPipeline GetComputePipeline(const ComputePipelineInfo& info);
+
   // Saves the pipeline cache to disk. Call when shutting down.
   void SavePipelineCache();
 
@@ -166,6 +188,8 @@ private:
   ShaderCache<PixelShaderUid> m_ps_cache;
 
   std::unordered_map<PipelineInfo, VkPipeline, PipelineInfoHash> m_pipeline_objects;
+  std::unordered_map<ComputePipelineInfo, VkPipeline, ComputePipelineInfoHash>
+      m_compute_pipeline_objects;
   VkPipelineCache m_pipeline_cache = VK_NULL_HANDLE;
   std::string m_pipeline_cache_filename;
 
