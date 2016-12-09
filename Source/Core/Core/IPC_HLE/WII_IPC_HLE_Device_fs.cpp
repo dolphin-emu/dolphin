@@ -43,7 +43,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::GetFSReply() const
   return {true, SystemTimers::GetTicksPerSecond() / 500};
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
+IOSReturnCode CWII_IPC_HLE_Device_fs::Open(IOSResourceOpenRequest& request)
 {
   // clear tmp folder
   {
@@ -53,7 +53,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::Open(u32 _CommandAddress, u32 _Mode)
   }
 
   m_is_active = true;
-  return GetFSReply();
+  return IPC_SUCCESS;
 }
 
 // Get total filesize of contents of a directory (recursive)
@@ -71,30 +71,20 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
   return sizeOfFiles;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(IOSResourceIOCtlVRequest& request)
 {
-  u32 ReturnValue = IPC_SUCCESS;
-  SIOCtlVBuffer CommandBuffer(_CommandAddress);
-
-  // Prepare the out buffer(s) with zeros as a safety precaution
-  // to avoid returning bad values
-  for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
-  {
-    Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
-                   CommandBuffer.PayloadBuffer[i].m_Size);
-  }
-
-  switch (CommandBuffer.Parameter)
+  s32 return_value = IPC_SUCCESS;
+  switch (request.request)
   {
   case IOCTLV_READ_DIR:
   {
     const std::string relative_path =
-        Memory::GetString(CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size);
+        Memory::GetString(request.in_vectors[0].addr, request.in_vectors[0].size);
 
     if (!IsValidWiiPath(relative_path))
     {
       WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", relative_path.c_str());
-      ReturnValue = FS_EINVAL;
+      return_value = FS_EINVAL;
       break;
     }
 
@@ -106,7 +96,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
     if (!File::Exists(DirName))
     {
       WARN_LOG(WII_IPC_FILEIO, "FS: Search not found: %s", DirName.c_str());
-      ReturnValue = FS_ENOENT;
+      return_value = FS_ENOENT;
       break;
     }
     else if (!File::IsDirectory(DirName))
@@ -115,19 +105,19 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
       // Games don't usually seem to care WHICH error they get, as long as it's <
       // Well the system menu CARES!
       WARN_LOG(WII_IPC_FILEIO, "\tNot a directory - return FS_EINVAL");
-      ReturnValue = FS_EINVAL;
+      return_value = FS_EINVAL;
       break;
     }
 
     File::FSTEntry entry = File::ScanDirectoryTree(DirName, false);
 
     // it is one
-    if ((CommandBuffer.InBuffer.size() == 1) && (CommandBuffer.PayloadBuffer.size() == 1))
+    if ((request.in_vectors.size() == 1) && (request.io_vectors.size() == 1))
     {
       size_t numFile = entry.children.size();
       INFO_LOG(WII_IPC_FILEIO, "\t%zu files found", numFile);
 
-      Memory::Write_U32((u32)numFile, CommandBuffer.PayloadBuffer[0].m_Address);
+      Memory::Write_U32((u32)numFile, request.io_vectors[0].addr);
     }
     else
     {
@@ -143,13 +133,12 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
                   return one.virtualName < two.virtualName;
                 });
 
-      u32 MaxEntries = Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address);
+      u32 MaxEntries = Memory::Read_U32(request.in_vectors[0].addr);
 
-      memset(Memory::GetPointer(CommandBuffer.PayloadBuffer[0].m_Address), 0,
-             CommandBuffer.PayloadBuffer[0].m_Size);
+      memset(Memory::GetPointer(request.io_vectors[0].addr), 0, request.io_vectors[0].size);
 
       size_t numFiles = 0;
-      char* pFilename = (char*)Memory::GetPointer((u32)(CommandBuffer.PayloadBuffer[0].m_Address));
+      char* pFilename = (char*)Memory::GetPointer((u32)(request.io_vectors[0].addr));
 
       for (size_t i = 0; i < entry.children.size() && i < MaxEntries; i++)
       {
@@ -163,29 +152,29 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
         INFO_LOG(WII_IPC_FILEIO, "\tFound: %s", FileName.c_str());
       }
 
-      Memory::Write_U32((u32)numFiles, CommandBuffer.PayloadBuffer[1].m_Address);
+      Memory::Write_U32((u32)numFiles, request.io_vectors[1].addr);
     }
 
-    ReturnValue = IPC_SUCCESS;
+    return_value = IPC_SUCCESS;
   }
   break;
 
   case IOCTLV_GETUSAGE:
   {
-    _dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer.size() == 2);
-    _dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer[0].m_Size == 4);
-    _dbg_assert_(WII_IPC_FILEIO, CommandBuffer.PayloadBuffer[1].m_Size == 4);
+    _dbg_assert_(WII_IPC_FILEIO, request.io_vectors.size() == 2);
+    _dbg_assert_(WII_IPC_FILEIO, request.io_vectors[0].size == 4);
+    _dbg_assert_(WII_IPC_FILEIO, request.io_vectors[1].size == 4);
 
     // this command sucks because it asks of the number of used
     // fsBlocks and inodes
     // It should be correct, but don't count on it...
     std::string relativepath =
-        Memory::GetString(CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size);
+        Memory::GetString(request.in_vectors[0].addr, request.in_vectors[0].size);
 
     if (!IsValidWiiPath(relativepath))
     {
       WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", relativepath.c_str());
-      ReturnValue = FS_EINVAL;
+      return_value = FS_EINVAL;
       break;
     }
 
@@ -217,7 +206,7 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
 
         fsBlocks = (u32)(totalSize / (16 * 1024));  // one bock is 16kb
       }
-      ReturnValue = IPC_SUCCESS;
+      return_value = IPC_SUCCESS;
 
       INFO_LOG(WII_IPC_FILEIO, "FS: fsBlock: %i, iNodes: %i", fsBlocks, iNodes);
     }
@@ -225,54 +214,38 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(u32 _CommandAddress)
     {
       fsBlocks = 0;
       iNodes = 0;
-      ReturnValue = IPC_SUCCESS;
+      return_value = IPC_SUCCESS;
       WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directory: %s", path.c_str());
     }
 
-    Memory::Write_U32(fsBlocks, CommandBuffer.PayloadBuffer[0].m_Address);
-    Memory::Write_U32(iNodes, CommandBuffer.PayloadBuffer[1].m_Address);
+    Memory::Write_U32(fsBlocks, request.io_vectors[0].addr);
+    Memory::Write_U32(iNodes, request.io_vectors[1].addr);
   }
   break;
 
   default:
-    PanicAlert("CWII_IPC_HLE_Device_fs::IOCtlV: %i", CommandBuffer.Parameter);
+    PanicAlert("CWII_IPC_HLE_Device_fs::IOCtlV: %u", request.request);
     break;
   }
 
-  Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-
+  request.SetReturnValue(return_value);
   return GetFSReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtl(IOSResourceIOCtlRequest& request)
 {
-  // u32 DeviceID = Memory::Read_U32(_CommandAddress + 8);
-
-  u32 Parameter = Memory::Read_U32(_CommandAddress + 0xC);
-  u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
-  u32 BufferInSize = Memory::Read_U32(_CommandAddress + 0x14);
-  u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-  u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
-
-  /* Prepare the out buffer(s) with zeroes as a safety precaution
-     to avoid returning bad values. */
-  // LOG(WII_IPC_FILEIO, "Cleared %u bytes of the out buffer", _BufferOutSize);
-  Memory::Memset(BufferOut, 0, BufferOutSize);
-
-  u32 ReturnValue = ExecuteCommand(Parameter, BufferIn, BufferInSize, BufferOut, BufferOutSize);
-  Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-
+  const s32 return_value = ExecuteCommand(request);
+  request.SetReturnValue(return_value);
   return GetFSReply();
 }
 
-s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _BufferInSize,
-                                           u32 _BufferOut, u32 _BufferOutSize)
+s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(IOSResourceIOCtlRequest& request)
 {
-  switch (_Parameter)
+  switch (request.request)
   {
   case IOCTL_GET_STATS:
   {
-    if (_BufferOutSize < 0x1c)
+    if (request.out_size < 0x1c)
       return -1017;
 
     WARN_LOG(WII_IPC_FILEIO, "FS: GET STATS - returning static values for now");
@@ -288,7 +261,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     fs.Free_INodes = 0x146B;
     fs.Used_Inodes = 0x0394;
 
-    std::memcpy(Memory::GetPointer(_BufferOut), &fs, sizeof(NANDStat));
+    std::memcpy(Memory::GetPointer(request.out_addr), &fs, sizeof(NANDStat));
 
     return IPC_SUCCESS;
   }
@@ -296,8 +269,8 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
   case IOCTL_CREATE_DIR:
   {
-    _dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
-    u32 Addr = _BufferIn;
+    _dbg_assert_(WII_IPC_FILEIO, request.out_size == 0);
+    u32 Addr = request.in_addr;
 
     u32 OwnerID = Memory::Read_U32(Addr);
     Addr += 4;
@@ -328,7 +301,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
   case IOCTL_SET_ATTR:
   {
-    u32 Addr = _BufferIn;
+    u32 Addr = request.in_addr;
 
     u32 OwnerID = Memory::Read_U32(Addr);
     Addr += 4;
@@ -365,14 +338,14 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
   case IOCTL_GET_ATTR:
   {
-    _dbg_assert_msg_(WII_IPC_FILEIO, _BufferOutSize == 76,
+    _dbg_assert_msg_(WII_IPC_FILEIO, request.out_size == 76,
                      "    GET_ATTR needs an 76 bytes large output buffer but it is %i bytes large",
-                     _BufferOutSize);
+                     request.out_size);
 
     u32 OwnerID = 0;
     u16 GroupID = 0x3031;  // this is also known as makercd, 01 (0x3031) for nintendo and 08
                            // (0x3038) for MH3 etc
-    const std::string wii_path = Memory::GetString(_BufferIn, 64);
+    const std::string wii_path = Memory::GetString(request.in_addr, 64);
     if (!IsValidWiiPath(wii_path))
     {
       WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
@@ -403,14 +376,14 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     }
 
     // write answer to buffer
-    if (_BufferOutSize == 76)
+    if (request.out_size == 76)
     {
-      u32 Addr = _BufferOut;
+      u32 Addr = request.out_addr;
       Memory::Write_U32(OwnerID, Addr);
       Addr += 4;
       Memory::Write_U16(GroupID, Addr);
       Addr += 2;
-      memcpy(Memory::GetPointer(Addr), Memory::GetPointer(_BufferIn), 64);
+      memcpy(Memory::GetPointer(Addr), Memory::GetPointer(request.in_addr), 64);
       Addr += 64;
       Memory::Write_U8(OwnerPerm, Addr);
       Addr += 1;
@@ -428,10 +401,10 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
   case IOCTL_DELETE_FILE:
   {
-    _dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
+    _dbg_assert_(WII_IPC_FILEIO, request.out_size == 0);
     int Offset = 0;
 
-    const std::string wii_path = Memory::GetString(_BufferIn + Offset, 64);
+    const std::string wii_path = Memory::GetString(request.in_addr + Offset, 64);
     if (!IsValidWiiPath(wii_path))
     {
       WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
@@ -458,10 +431,10 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
   case IOCTL_RENAME_FILE:
   {
-    _dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
+    _dbg_assert_(WII_IPC_FILEIO, request.out_size == 0);
     int Offset = 0;
 
-    const std::string wii_path = Memory::GetString(_BufferIn + Offset, 64);
+    const std::string wii_path = Memory::GetString(request.in_addr + Offset, 64);
     if (!IsValidWiiPath(wii_path))
     {
       WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
@@ -470,7 +443,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     std::string Filename = HLE_IPC_BuildFilename(wii_path);
     Offset += 64;
 
-    const std::string wii_path_rename = Memory::GetString(_BufferIn + Offset, 64);
+    const std::string wii_path_rename = Memory::GetString(request.in_addr + Offset, 64);
     if (!IsValidWiiPath(wii_path_rename))
     {
       WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path_rename.c_str());
@@ -506,9 +479,9 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
 
   case IOCTL_CREATE_FILE:
   {
-    _dbg_assert_(WII_IPC_FILEIO, _BufferOutSize == 0);
+    _dbg_assert_(WII_IPC_FILEIO, request.out_size == 0);
 
-    u32 Addr = _BufferIn;
+    u32 Addr = request.in_addr;
     u32 OwnerID = Memory::Read_U32(Addr);
     Addr += 4;
     u16 GroupID = Memory::Read_U16(Addr);
@@ -566,8 +539,8 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
   }
   break;
   default:
-    ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
-    PanicAlert("CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", _Parameter);
+    ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", request.request);
+    PanicAlert("CWII_IPC_HLE_Device_fs::IOCtl: ni  0x%x", request.request);
     break;
   }
 

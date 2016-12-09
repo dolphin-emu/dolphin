@@ -50,32 +50,31 @@ void RestoreBTInfoSection(SysConf* sysconf)
   File::Delete(filename);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_base::IOCtl(u32 command_address)
+IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_base::IOCtl(IOSResourceIOCtlRequest& request)
 {
   // NeoGamma (homebrew) is known to use this path.
   ERROR_LOG(WII_IPC_WIIMOTE, "Bad IOCtl to /dev/usb/oh1/57e/305");
-  Memory::Write_U32(IPC_EINVAL, command_address + 4);
+  request.SetReturnValue(IPC_EINVAL);
   return GetDefaultReply();
 }
 
-CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlMessage::CtrlMessage(const SIOCtlVBuffer& cmd_buffer)
+CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlMessage::CtrlMessage(IOSResourceIOCtlVRequest& ioctlv)
+    : ios_request(ioctlv)
 {
-  request_type = Memory::Read_U8(cmd_buffer.InBuffer[0].m_Address);
-  request = Memory::Read_U8(cmd_buffer.InBuffer[1].m_Address);
-  value = Common::swap16(Memory::Read_U16(cmd_buffer.InBuffer[2].m_Address));
-  index = Common::swap16(Memory::Read_U16(cmd_buffer.InBuffer[3].m_Address));
-  length = Common::swap16(Memory::Read_U16(cmd_buffer.InBuffer[4].m_Address));
-  payload_addr = cmd_buffer.PayloadBuffer[0].m_Address;
-  address = cmd_buffer.m_Address;
+  request_type = Memory::Read_U8(ioctlv.in_vectors[0].addr);
+  request = Memory::Read_U8(ioctlv.in_vectors[1].addr);
+  value = Common::swap16(Memory::Read_U16(ioctlv.in_vectors[2].addr));
+  index = Common::swap16(Memory::Read_U16(ioctlv.in_vectors[3].addr));
+  length = Common::swap16(Memory::Read_U16(ioctlv.in_vectors[4].addr));
+  payload_addr = ioctlv.io_vectors[0].addr;
 }
 
-CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::CtrlBuffer(const SIOCtlVBuffer& cmd_buffer,
-                                                                 const u32 command_address)
+CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::CtrlBuffer(IOSResourceIOCtlVRequest& ioctlv)
+    : ios_request(ioctlv)
 {
-  m_endpoint = Memory::Read_U8(cmd_buffer.InBuffer[0].m_Address);
-  m_length = Memory::Read_U16(cmd_buffer.InBuffer[1].m_Address);
-  m_payload_addr = cmd_buffer.PayloadBuffer[0].m_Address;
-  m_cmd_address = command_address;
+  m_endpoint = Memory::Read_U8(ioctlv.in_vectors[0].addr);
+  m_length = Memory::Read_U16(ioctlv.in_vectors[1].addr);
+  m_payload_addr = ioctlv.io_vectors[0].addr;
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::FillBuffer(const u8* src,
@@ -84,9 +83,4 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::FillBuffer(const u8* 
   _assert_msg_(WII_IPC_WIIMOTE, size <= m_length, "FillBuffer: size %li > payload length %i", size,
                m_length);
   Memory::CopyToEmu(m_payload_addr, src, size);
-}
-
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::SetRetVal(const u32 retval) const
-{
-  Memory::Write_U32(retval, m_cmd_address + 4);
 }

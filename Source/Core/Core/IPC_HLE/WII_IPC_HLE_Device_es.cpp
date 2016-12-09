@@ -180,17 +180,17 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
   }
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_es::Open(u32 _CommandAddress, u32 _Mode)
+IOSReturnCode CWII_IPC_HLE_Device_es::Open(IOSResourceOpenRequest& request)
 {
   OpenInternal();
 
   if (m_is_active)
     INFO_LOG(WII_IPC_ES, "Device was re-opened.");
   m_is_active = true;
-  return GetDefaultReply();
+  return IPC_SUCCESS;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce)
+void CWII_IPC_HLE_Device_es::Close()
 {
   m_ContentAccessMap.clear();
   m_TitleIDs.clear();
@@ -201,7 +201,6 @@ IPCCommandResult CWII_IPC_HLE_Device_es::Close(u32 _CommandAddress, bool _bForce
   m_is_active = false;
   // clear the NAND content cache to make sure nothing remains open.
   DiscIO::CNANDContentManager::Access().ClearCache();
-  return GetDefaultReply();
 }
 
 u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
@@ -233,53 +232,35 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
   return CFD;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(IOSResourceIOCtlVRequest& request)
 {
-  SIOCtlVBuffer Buffer(_CommandAddress);
-
-  DEBUG_LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), Buffer.Parameter);
-
-  // Prepare the out buffer(s) with zeroes as a safety precaution
-  // to avoid returning bad values
-  // XXX: is this still necessary?
-  for (u32 i = 0; i < Buffer.NumberPayloadBuffer; i++)
+  DEBUG_LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), request.request);
+  // Clear the IO buffers. Note that this is unsafe for other ioctlvs.
+  for (const auto& io_vector : request.io_vectors)
   {
-    u32 j;
-    for (j = 0; j < Buffer.NumberInBuffer; j++)
-    {
-      if (Buffer.InBuffer[j].m_Address == Buffer.PayloadBuffer[i].m_Address)
-      {
-        // The out buffer is the same as one of the in buffers.  Don't zero it.
-        break;
-      }
-    }
-    if (j == Buffer.NumberInBuffer)
-    {
-      Memory::Memset(Buffer.PayloadBuffer[i].m_Address, 0, Buffer.PayloadBuffer[i].m_Size);
-    }
+    if (!request.HasInVectorWithAddress(io_vector.addr))
+      Memory::Memset(io_vector.addr, 0, io_vector.size);
   }
-
-  switch (Buffer.Parameter)
+  switch (request.request)
   {
   case IOCTL_ES_GETDEVICEID:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
-                     "IOCTL_ES_GETDEVICEID no out buffer");
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
+                     "IOCTL_ES_GETDEVICEID no io vectors");
 
     EcWii& ec = EcWii::GetInstance();
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID %08X", ec.getNgId());
-    Memory::Write_U32(ec.getNgId(), Buffer.PayloadBuffer[0].m_Address);
-    Memory::Write_U32(0, _CommandAddress + 0x4);
+    Memory::Write_U32(ec.getNgId(), request.io_vectors[0].addr);
+    request.SetReturnValue(IPC_SUCCESS);
     return GetDefaultReply();
   }
-  break;
 
   case IOCTL_ES_GETTITLECONTENTSCNT:
   {
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
+    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
 
     const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
     u16 NumberOfPrivateContent = 0;
@@ -288,14 +269,16 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
       NumberOfPrivateContent = rNANDContent.GetNumEntries();
 
       if ((u32)(TitleID >> 32) == 0x00010000)
-        Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
+        Memory::Write_U32(0, request.io_vectors[0].addr);
       else
-        Memory::Write_U32(NumberOfPrivateContent, Buffer.PayloadBuffer[0].m_Address);
+        Memory::Write_U32(NumberOfPrivateContent, request.io_vectors[0].addr);
 
-      Memory::Write_U32(0, _CommandAddress + 0x4);
+      request.SetReturnValue(IPC_SUCCESS);
     }
     else
-      Memory::Write_U32((u32)rNANDContent.GetContentSize(), _CommandAddress + 0x4);
+    {
+      request.SetReturnValue(static_cast<s32>(rNANDContent.GetContentSize()));
+    }
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i",
              (u32)(TitleID >> 32), (u32)TitleID,
@@ -307,12 +290,12 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_GETTITLECONTENTS:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 2,
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 2,
                      "IOCTL_ES_GETTITLECONTENTS bad in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTITLECONTENTS bad out buffer");
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
 
     const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
     if (rNANDContent.IsValid())  // Not sure if dolphin will ever fail this check
@@ -320,15 +303,15 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
       for (u16 i = 0; i < rNANDContent.GetNumEntries(); i++)
       {
         Memory::Write_U32(rNANDContent.GetContentByIndex(i)->m_ContentID,
-                          Buffer.PayloadBuffer[0].m_Address + i * 4);
+                          request.io_vectors[0].addr + i * 4);
         INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i,
                  rNANDContent.GetContentByIndex(i)->m_ContentID);
       }
-      Memory::Write_U32(0, _CommandAddress + 0x4);
+      request.SetReturnValue(IPC_SUCCESS);
     }
     else
     {
-      Memory::Write_U32((u32)rNANDContent.GetContentSize(), _CommandAddress + 0x4);
+      request.SetReturnValue(static_cast<s32>(rNANDContent.GetContentSize()));
       ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
                 rNANDContent.GetContentSize());
     }
@@ -339,14 +322,14 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_OPENTITLECONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 3);
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
+    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 3);
+    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 0);
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-    u32 Index = Memory::Read_U32(Buffer.InBuffer[2].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
+    u32 Index = Memory::Read_U32(request.in_vectors[2].addr);
 
-    u32 CFD = OpenTitleContent(m_AccessIdentID++, TitleID, Index);
-    Memory::Write_U32(CFD, _CommandAddress + 0x4);
+    s32 CFD = OpenTitleContent(m_AccessIdentID++, TitleID, Index);
+    request.SetReturnValue(CFD);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x",
              (u32)(TitleID >> 32), (u32)TitleID, Index, CFD);
@@ -357,12 +340,12 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_OPENCONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
-    u32 Index = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 0);
+    u32 Index = Memory::Read_U32(request.in_vectors[0].addr);
 
-    u32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
-    Memory::Write_U32(CFD, _CommandAddress + 0x4);
+    s32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
+    request.SetReturnValue(CFD);
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
 
     return GetDefaultReply();
@@ -371,17 +354,17 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_READCONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
+    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
 
-    u32 CFD = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
-    u32 Size = Buffer.PayloadBuffer[0].m_Size;
-    u32 Addr = Buffer.PayloadBuffer[0].m_Address;
+    u32 CFD = Memory::Read_U32(request.in_vectors[0].addr);
+    u32 Size = request.io_vectors[0].size;
+    u32 Addr = request.io_vectors[0].addr;
 
     auto itr = m_ContentAccessMap.find(CFD);
     if (itr == m_ContentAccessMap.end())
     {
-      Memory::Write_U32(-1, _CommandAddress + 0x4);
+      request.SetReturnValue(-1);
       return GetDefaultReply();
     }
     SContentAccess& rContent = itr->second;
@@ -419,24 +402,24 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
               "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)",
               CFD, Addr, Size, rContent.m_Position, rContent.m_Index);
 
-    Memory::Write_U32(Size, _CommandAddress + 0x4);
+    request.SetReturnValue(Size);
     return GetDefaultReply();
   }
   break;
 
   case IOCTL_ES_CLOSECONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
+    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 0);
 
-    u32 CFD = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+    u32 CFD = Memory::Read_U32(request.in_vectors[0].addr);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
 
     auto itr = m_ContentAccessMap.find(CFD);
     if (itr == m_ContentAccessMap.end())
     {
-      Memory::Write_U32(-1, _CommandAddress + 0x4);
+      request.SetReturnValue(-1);
       return GetDefaultReply();
     }
 
@@ -450,24 +433,24 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
     m_ContentAccessMap.erase(itr);
 
-    Memory::Write_U32(0, _CommandAddress + 0x4);
+    request.SetReturnValue(IPC_SUCCESS);
     return GetDefaultReply();
   }
   break;
 
   case IOCTL_ES_SEEKCONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 3);
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0);
+    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 3);
+    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 0);
 
-    u32 CFD = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
-    u32 Addr = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
-    u32 Mode = Memory::Read_U32(Buffer.InBuffer[2].m_Address);
+    u32 CFD = Memory::Read_U32(request.in_vectors[0].addr);
+    u32 Addr = Memory::Read_U32(request.in_vectors[1].addr);
+    u32 Mode = Memory::Read_U32(request.in_vectors[2].addr);
 
     auto itr = m_ContentAccessMap.find(CFD);
     if (itr == m_ContentAccessMap.end())
     {
-      Memory::Write_U32(-1, _CommandAddress + 0x4);
+      request.SetReturnValue(-1);
       return GetDefaultReply();
     }
     SContentAccess& rContent = itr->second;
@@ -490,19 +473,19 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     DEBUG_LOG(WII_IPC_ES, "IOCTL_ES_SEEKCONTENT: CFD %x, Address 0x%x, Mode %i -> Pos %i", CFD,
               Addr, Mode, rContent.m_Position);
 
-    Memory::Write_U32(rContent.m_Position, _CommandAddress + 0x4);
+    request.SetReturnValue(rContent.m_Position);
     return GetDefaultReply();
   }
   break;
 
   case IOCTL_ES_GETTITLEDIR:
   {
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 1);
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
+    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
 
-    char* Path = (char*)Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+    char* Path = (char*)Memory::GetPointer(request.io_vectors[0].addr);
     sprintf(Path, "/title/%08x/%08x/data", (u32)(TitleID >> 32), (u32)TitleID);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEDIR: %s", Path);
@@ -511,56 +494,56 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_GETTITLEID:
   {
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 0);
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
+    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 0);
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTITLEID no out buffer");
 
-    Memory::Write_U64(m_TitleID, Buffer.PayloadBuffer[0].m_Address);
+    Memory::Write_U64(m_TitleID, request.io_vectors[0].addr);
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
   }
   break;
 
   case IOCTL_ES_SETUID:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_SETUID no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 0,
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1, "IOCTL_ES_SETUID no in buffer");
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 0,
                      "IOCTL_ES_SETUID has a payload, it shouldn't");
     // TODO: fs permissions based on this
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
   }
   break;
 
   case IOCTL_ES_GETTITLECNT:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 0,
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 0,
                      "IOCTL_ES_GETTITLECNT has an in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTITLECNT has no out buffer");
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.PayloadBuffer[0].m_Size == 4,
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors[0].size == 4,
                      "IOCTL_ES_GETTITLECNT payload[0].size != 4");
 
-    Memory::Write_U32((u32)m_TitleIDs.size(), Buffer.PayloadBuffer[0].m_Address);
+    Memory::Write_U32((u32)m_TitleIDs.size(), request.io_vectors[0].addr);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", m_TitleIDs.size());
 
-    Memory::Write_U32(0, _CommandAddress + 0x4);
-
+    request.SetReturnValue(IPC_SUCCESS);
     return GetDefaultReply();
   }
   break;
 
   case IOCTL_ES_GETTITLES:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_GETTITLES has an in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
+                     "IOCTL_ES_GETTITLES has an in buffer");
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTITLES has no out buffer");
 
-    u32 MaxCount = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+    u32 MaxCount = Memory::Read_U32(request.in_vectors[0].addr);
     u32 Count = 0;
     for (int i = 0; i < (int)m_TitleIDs.size(); i++)
     {
-      Memory::Write_U64(m_TitleIDs[i], Buffer.PayloadBuffer[0].m_Address + i * 8);
+      Memory::Write_U64(m_TitleIDs[i], request.io_vectors[0].addr + i * 8);
       INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(m_TitleIDs[i] >> 32),
                (u32)m_TitleIDs[i]);
       Count++;
@@ -569,18 +552,19 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     }
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLES: Number of titles returned %i", Count);
-    Memory::Write_U32(0, _CommandAddress + 0x4);
+    request.SetReturnValue(IPC_SUCCESS);
     return GetDefaultReply();
   }
   break;
 
   case IOCTL_ES_GETVIEWCNT:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_GETVIEWCNT no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
+                     "IOCTL_ES_GETVIEWCNT no in buffer");
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETVIEWCNT no out buffer");
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
 
     u32 retVal = 0;
     const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
@@ -620,20 +604,19 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %i)",
              (u32)(TitleID >> 32), (u32)TitleID, ViewCount);
 
-    Memory::Write_U32(ViewCount, Buffer.PayloadBuffer[0].m_Address);
-    Memory::Write_U32(retVal, _CommandAddress + 0x4);
+    Memory::Write_U32(ViewCount, request.io_vectors[0].addr);
+    request.SetReturnValue(retVal);
     return GetDefaultReply();
   }
   break;
 
   case IOCTL_ES_GETVIEWS:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 2, "IOCTL_ES_GETVIEWS no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
-                     "IOCTL_ES_GETVIEWS no out buffer");
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 2, "IOCTL_ES_GETVIEWS no in buffer");
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETVIEWS no out buffer");
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-    u32 maxViews = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
+    u32 maxViews = Memory::Read_U32(request.in_vectors[1].addr);
     u32 retVal = 0;
 
     const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
@@ -654,9 +637,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
                pFile.ReadBytes(FileTicket, DiscIO::CNANDContentLoader::TICKET_SIZE);
                ++View)
           {
-            Memory::Write_U32(View, Buffer.PayloadBuffer[0].m_Address + View * 0xD8);
-            Memory::CopyToEmu(Buffer.PayloadBuffer[0].m_Address + 4 + View * 0xD8,
-                              FileTicket + 0x1D0, 212);
+            Memory::Write_U32(View, request.io_vectors[0].addr + View * 0xD8);
+            Memory::CopyToEmu(request.io_vectors[0].addr + 4 + View * 0xD8, FileTicket + 0x1D0,
+                              212);
           }
         }
       }
@@ -666,7 +649,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
         // SDK or libogc, just passed to LaunchTitle, so this
         // shouldn't matter at all.  Just fill out some fields just
         // to be on the safe side.
-        u32 Address = Buffer.PayloadBuffer[0].m_Address;
+        u32 Address = request.io_vectors[0].addr;
         Memory::Memset(Address, 0, 0xD8);
         Memory::Write_U64(TitleID, Address + 4 + (0x1dc - 0x1d0));  // title ID
         Memory::Write_U16(0xffff, Address + 4 + (0x1e4 - 0x1d0));   // unnnown
@@ -686,8 +669,8 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
           static_cast<u32>(Loader.GetTicket().size()) / DiscIO::CNANDContentLoader::TICKET_SIZE;
       for (unsigned int view = 0; view != maxViews && view < view_count; ++view)
       {
-        Memory::Write_U32(view, Buffer.PayloadBuffer[0].m_Address + view * 0xD8);
-        Memory::CopyToEmu(Buffer.PayloadBuffer[0].m_Address + 4 + view * 0xD8,
+        Memory::Write_U32(view, request.io_vectors[0].addr + view * 0xD8);
+        Memory::CopyToEmu(request.io_vectors[0].addr + 4 + view * 0xD8,
                           &ticket[0x1D0 + (view * DiscIO::CNANDContentLoader::TICKET_SIZE)], 212);
       }
     }
@@ -695,18 +678,19 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)",
              (u32)(TitleID >> 32), (u32)TitleID, maxViews);
 
-    Memory::Write_U32(retVal, _CommandAddress + 0x4);
+    request.SetReturnValue(retVal);
     return GetDefaultReply();
   }
   break;
 
   case IOCTL_ES_GETTMDVIEWCNT:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1, "IOCTL_ES_GETTMDVIEWCNT no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
+                     "IOCTL_ES_GETTMDVIEWCNT no in buffer");
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTMDVIEWCNT no out buffer");
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
 
     const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
@@ -719,9 +703,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
       TMDViewCnt +=
           (u32)Loader.GetContentSize() * (4 + 2 + 2 + 8);  // content id, index, type, size
     }
-    Memory::Write_U32(TMDViewCnt, Buffer.PayloadBuffer[0].m_Address);
+    Memory::Write_U32(TMDViewCnt, request.io_vectors[0].addr);
 
-    Memory::Write_U32(0, _CommandAddress + 0x4);
+    request.SetReturnValue(IPC_SUCCESS);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)",
              (u32)(TitleID >> 32), (u32)TitleID, TMDViewCnt);
@@ -731,12 +715,13 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_GETTMDVIEWS:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 2, "IOCTL_ES_GETTMDVIEWCNT no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 2,
+                     "IOCTL_ES_GETTMDVIEWCNT no in buffer");
+    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTMDVIEWCNT no out buffer");
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-    u32 MaxCount = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
+    u32 MaxCount = Memory::Read_U32(request.in_vectors[1].addr);
 
     const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
@@ -745,7 +730,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
     if (Loader.IsValid())
     {
-      u32 Address = Buffer.PayloadBuffer[0].m_Address;
+      u32 Address = request.io_vectors[0].addr;
 
       Memory::CopyToEmu(Address, Loader.GetTMDView(), DiscIO::CNANDContentLoader::TMD_VIEW_SIZE);
       Address += DiscIO::CNANDContentLoader::TMD_VIEW_SIZE;
@@ -769,9 +754,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
       }
 
       _dbg_assert_(WII_IPC_ES,
-                   (Address - Buffer.PayloadBuffer[0].m_Address) == Buffer.PayloadBuffer[0].m_Size);
+                   (Address - request.io_vectors[0].addr) == request.io_vectors[0].size);
     }
-    Memory::Write_U32(0, _CommandAddress + 0x4);
+    request.SetReturnValue(IPC_SUCCESS);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)",
              (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
@@ -780,51 +765,51 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
   break;
 
   case IOCTL_ES_GETCONSUMPTION:  // This is at least what crediar's ES module does
-    Memory::Write_U32(0, Buffer.PayloadBuffer[1].m_Address);
-    Memory::Write_U32(0, _CommandAddress + 0x4);
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETCONSUMPTION:%d", Memory::Read_U32(_CommandAddress + 4));
+    Memory::Write_U32(0, request.io_vectors[1].addr);
+    request.SetReturnValue(IPC_SUCCESS);
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETCONSUMPTION:%d", request.return_value);
     return GetDefaultReply();
 
   case IOCTL_ES_DELETETICKET:
   {
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32),
              (u32)TitleID);
     if (File::Delete(Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT)))
     {
-      Memory::Write_U32(0, _CommandAddress + 0x4);
+      request.SetReturnValue(IPC_SUCCESS);
     }
     else
     {
       // Presumably return -1017 when delete fails
-      Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT, _CommandAddress + 0x4);
+      request.SetReturnValue(ES_PARAMETER_SIZE_OR_ALIGNMENT);
     }
   }
   break;
   case IOCTL_ES_DELETETITLECONTENT:
   {
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_DELETETITLECONTENT: title: %08x/%08x", (u32)(TitleID >> 32),
              (u32)TitleID);
     if (DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID, Common::FROM_SESSION_ROOT))
     {
-      Memory::Write_U32(0, _CommandAddress + 0x4);
+      request.SetReturnValue(IPC_SUCCESS);
     }
     else
     {
       // Presumably return -1017 when title not installed TODO verify
-      Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT, _CommandAddress + 0x4);
+      request.SetReturnValue(ES_PARAMETER_SIZE_OR_ALIGNMENT);
     }
   }
   break;
   case IOCTL_ES_GETSTOREDTMDSIZE:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1,
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
                      "IOCTL_ES_GETSTOREDTMDSIZE no in buffer");
-    // _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_ES_GETSTOREDTMDSIZE
+    // _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1, "IOCTL_ES_ES_GETSTOREDTMDSIZE
     // no out buffer");
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
     const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
     _dbg_assert_(WII_IPC_ES, Loader.IsValid());
@@ -834,10 +819,10 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
       TMDCnt += DiscIO::CNANDContentLoader::TMD_HEADER_SIZE;
       TMDCnt += (u32)Loader.GetContentSize() * DiscIO::CNANDContentLoader::CONTENT_HEADER_SIZE;
     }
-    if (Buffer.NumberPayloadBuffer)
-      Memory::Write_U32(TMDCnt, Buffer.PayloadBuffer[0].m_Address);
+    if (request.io_vectors.size())
+      Memory::Write_U32(TMDCnt, request.io_vectors[0].addr);
 
-    Memory::Write_U32(0, _CommandAddress + 0x4);
+    request.SetReturnValue(IPC_SUCCESS);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)",
              (u32)(TitleID >> 32), (u32)TitleID, TMDCnt);
@@ -846,28 +831,29 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
   break;
   case IOCTL_ES_GETSTOREDTMD:
   {
-    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer > 0, "IOCTL_ES_GETSTOREDTMD no in buffer");
+    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() > 0,
+                     "IOCTL_ES_GETSTOREDTMD no in buffer");
     // requires 1 inbuffer and no outbuffer, presumably outbuffer required when second inbuffer is
     // used for maxcount (allocated mem?)
     // called with 1 inbuffer after deleting a titleid
-    //_dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1, "IOCTL_ES_GETSTOREDTMD no out
+    //_dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETSTOREDTMD no out
     // buffer");
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
     u32 MaxCount = 0;
-    if (Buffer.NumberInBuffer > 1)
+    if (request.in_vectors.size() > 1)
     {
       // TODO: actually use this param in when writing to the outbuffer :/
-      MaxCount = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+      MaxCount = Memory::Read_U32(request.in_vectors[1].addr);
     }
     const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffer size: %i",
              (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
-    if (Loader.IsValid() && Buffer.NumberPayloadBuffer)
+    if (Loader.IsValid() && request.io_vectors.size())
     {
-      u32 Address = Buffer.PayloadBuffer[0].m_Address;
+      u32 Address = request.io_vectors[0].addr;
 
       Memory::CopyToEmu(Address, Loader.GetTMDHeader(),
                         DiscIO::CNANDContentLoader::TMD_HEADER_SIZE);
@@ -882,9 +868,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
       }
 
       _dbg_assert_(WII_IPC_ES,
-                   (Address - Buffer.PayloadBuffer[0].m_Address) == Buffer.PayloadBuffer[0].m_Size);
+                   (Address - request.io_vectors[0].addr) == request.io_vectors[0].size);
     }
-    Memory::Write_U32(0, _CommandAddress + 0x4);
+    request.SetReturnValue(IPC_SUCCESS);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)",
              (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
@@ -894,12 +880,12 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_ENCRYPT:
   {
-    u32 keyIndex = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
-    u8* IV = Memory::GetPointer(Buffer.InBuffer[1].m_Address);
-    u8* source = Memory::GetPointer(Buffer.InBuffer[2].m_Address);
-    u32 size = Buffer.InBuffer[2].m_Size;
-    u8* newIV = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-    u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+    u32 keyIndex = Memory::Read_U32(request.in_vectors[0].addr);
+    u8* IV = Memory::GetPointer(request.in_vectors[1].addr);
+    u8* source = Memory::GetPointer(request.in_vectors[2].addr);
+    u32 size = request.in_vectors[2].size;
+    u8* newIV = Memory::GetPointer(request.io_vectors[0].addr);
+    u8* destination = Memory::GetPointer(request.io_vectors[1].addr);
 
     mbedtls_aes_context AES_ctx;
     mbedtls_aes_setkey_enc(&AES_ctx, keyTable[keyIndex], 128);
@@ -913,12 +899,12 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_DECRYPT:
   {
-    u32 keyIndex = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
-    u8* IV = Memory::GetPointer(Buffer.InBuffer[1].m_Address);
-    u8* source = Memory::GetPointer(Buffer.InBuffer[2].m_Address);
-    u32 size = Buffer.InBuffer[2].m_Size;
-    u8* newIV = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
-    u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
+    u32 keyIndex = Memory::Read_U32(request.in_vectors[0].addr);
+    u8* IV = Memory::GetPointer(request.in_vectors[1].addr);
+    u8* source = Memory::GetPointer(request.in_vectors[2].addr);
+    u32 size = request.in_vectors[2].size;
+    u8* newIV = Memory::GetPointer(request.io_vectors[0].addr);
+    u8* destination = Memory::GetPointer(request.io_vectors[1].addr);
 
     mbedtls_aes_context AES_ctx;
     mbedtls_aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
@@ -932,17 +918,17 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_LAUNCH:
   {
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberInBuffer == 2);
+    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 2);
     bool bSuccess = false;
     bool bReset = false;
     u16 IOSv = 0xffff;
 
-    u64 TitleID = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
-    u32 view = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
-    u64 ticketid = Memory::Read_U64(Buffer.InBuffer[1].m_Address + 4);
-    u32 devicetype = Memory::Read_U32(Buffer.InBuffer[1].m_Address + 12);
-    u64 titleid = Memory::Read_U64(Buffer.InBuffer[1].m_Address + 16);
-    u16 access = Memory::Read_U16(Buffer.InBuffer[1].m_Address + 24);
+    u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
+    u32 view = Memory::Read_U32(request.in_vectors[1].addr);
+    u64 ticketid = Memory::Read_U64(request.in_vectors[1].addr + 4);
+    u32 devicetype = Memory::Read_U32(request.in_vectors[1].addr + 12);
+    u64 titleid = Memory::Read_U64(request.in_vectors[1].addr + 16);
+    u16 access = Memory::Read_U16(request.in_vectors[1].addr + 24);
 
     // ES_LAUNCH should probably reset thw whole state, which at least means closing all open files.
     // leaving them open through ES_LAUNCH may cause hangs and other funky behavior
@@ -1048,7 +1034,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     // could clobber the DOL we just loaded.
     if (!bReset)
     {
-      Memory::Write_U32(0, _CommandAddress + 0x4);
+      request.SetReturnValue(IPC_SUCCESS);
     }
 
     ERROR_LOG(WII_IPC_ES,
@@ -1062,14 +1048,14 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     if (!bReset)
     {
       // The command type is overwritten with the reply type.
-      Memory::Write_U32(IPC_REPLY, _CommandAddress);
+      Memory::Write_U32(IPC_REPLY, request.address);
       // IOS also writes back the command that was responded to in the FD field.
-      Memory::Write_U32(IPC_CMD_IOCTLV, _CommandAddress + 8);
+      Memory::Write_U32(IPC_CMD_IOCTLV, request.address + 8);
     }
 
     // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
     // involves restarting IOS; IOS generates two acknowledgements in a row.
-    WII_IPC_HLE_Interface::EnqueueCommandAcknowledgement(_CommandAddress, 0);
+    WII_IPC_HLE_Interface::EnqueueCommandAcknowledgement(request.address, 0);
     return GetNoReply();
   }
   break;
@@ -1080,14 +1066,14 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     // -1017
     // if the IOS didn't find the Korean keys and 0 if it does. 0 leads to a error 003
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
-    Memory::Write_U32(ES_PARAMTER_SIZE_OR_ALIGNMENT, _CommandAddress + 0x4);
+    request.SetReturnValue(ES_PARAMETER_SIZE_OR_ALIGNMENT);
     return GetDefaultReply();
 
   case IOCTL_ES_GETDEVICECERT:  // (Input: none, Output: 384 bytes)
   {
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
-    _dbg_assert_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1);
-    u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
+    u8* destination = Memory::GetPointer(request.io_vectors[0].addr);
 
     EcWii& ec = EcWii::GetInstance();
     get_ng_cert(destination, ec.getNgId(), ec.getNgKeyId(), ec.getNgPriv(), ec.getNgSig());
@@ -1097,10 +1083,10 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
   case IOCTL_ES_SIGN:
   {
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
-    u8* ap_cert_out = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
-    u8* data = Memory::GetPointer(Buffer.InBuffer[0].m_Address);
-    u32 data_size = Buffer.InBuffer[0].m_Size;
-    u8* sig_out = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
+    u8* ap_cert_out = Memory::GetPointer(request.io_vectors[1].addr);
+    u8* data = Memory::GetPointer(request.in_vectors[0].addr);
+    u32 data_size = request.in_vectors[0].size;
+    u8* sig_out = Memory::GetPointer(request.io_vectors[0].addr);
 
     EcWii& ec = EcWii::GetInstance();
     get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.getNgPriv(),
@@ -1113,7 +1099,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETBOOT2VERSION");
 
     Memory::Write_U32(
-        4, Buffer.PayloadBuffer[0].m_Address);  // as of 26/02/2012, this was latest bootmii version
+        4, request.io_vectors[0].addr);  // as of 26/02/2012, this was latest bootmii version
   }
   break;
 
@@ -1126,18 +1112,18 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   case IOCTL_ES_GETOWNEDTITLECNT:
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETOWNEDTITLECNT");
-    Memory::Write_U32(0, Buffer.PayloadBuffer[0].m_Address);
+    Memory::Write_U32(0, request.io_vectors[0].addr);
     break;
 
   default:
-    INFO_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", Buffer.Parameter);
-    DumpCommands(_CommandAddress, 8, LogTypes::WII_IPC_ES);
-    INFO_LOG(WII_IPC_ES, "command.Parameter: 0x%08x", Buffer.Parameter);
+    INFO_LOG(WII_IPC_ES, "CWII_IPC_HLE_Device_es: 0x%x", request.request);
+    request.DumpCommands(8, LogTypes::WII_IPC_ES);
+    INFO_LOG(WII_IPC_ES, "command.Parameter: 0x%08x", request.request);
     break;
   }
 
   // Write return value (0 means OK)
-  Memory::Write_U32(0, _CommandAddress + 0x4);
+  request.SetReturnValue(IPC_SUCCESS);
 
   return GetDefaultReply();
 }

@@ -42,12 +42,11 @@ public:
   CWII_IPC_HLE_Device_usb_oh1_57e_305_real(u32 device_id, const std::string& device_name);
   ~CWII_IPC_HLE_Device_usb_oh1_57e_305_real() override;
 
-  IPCCommandResult Open(u32 command_address, u32 mode) override;
-  IPCCommandResult Close(u32 command_address, bool force) override;
-  IPCCommandResult IOCtlV(u32 command_address) override;
+  IOSReturnCode Open(IOSResourceOpenRequest& request) override;
+  void Close() override;
+  IPCCommandResult IOCtlV(IOSResourceIOCtlVRequest& request) override;
 
   void DoState(PointerWrap& p) override;
-  u32 Update() override { return 0; }
   void UpdateSyncButtonState(bool is_held) override;
   void TriggerSyncButtonPressedEvent() override;
   void TriggerSyncButtonHeldEvent() override;
@@ -81,11 +80,11 @@ private:
   void SendHCIResetCommand();
   void SendHCIDeleteLinkKeyCommand();
   bool SendHCIStoreLinkKeyCommand();
-  void FakeVendorCommandReply(const CtrlBuffer& ctrl);
-  void FakeReadBufferSizeReply(const CtrlBuffer& ctrl);
-  void FakeSyncButtonEvent(const CtrlBuffer& ctrl, const u8* payload, u8 size);
-  void FakeSyncButtonPressedEvent(const CtrlBuffer& ctrl);
-  void FakeSyncButtonHeldEvent(const CtrlBuffer& ctrl);
+  void FakeVendorCommandReply(CtrlBuffer& ctrl);
+  void FakeReadBufferSizeReply(CtrlBuffer& ctrl);
+  void FakeSyncButtonEvent(CtrlBuffer& ctrl, const u8* payload, u8 size);
+  void FakeSyncButtonPressedEvent(CtrlBuffer& ctrl);
+  void FakeSyncButtonHeldEvent(CtrlBuffer& ctrl);
 
   void LoadLinkKeys();
   void SaveLinkKeys();

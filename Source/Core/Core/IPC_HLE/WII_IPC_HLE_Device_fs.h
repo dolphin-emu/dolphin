@@ -31,10 +31,9 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IOSReturnCode Open(IOSResourceOpenRequest& request) override;
+  IPCCommandResult IOCtl(IOSResourceIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(IOSResourceIOCtlVRequest& request) override;
 
 private:
   enum
@@ -52,6 +51,5 @@ private:
   };
 
   IPCCommandResult GetFSReply() const;
-  s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut,
-                     u32 _BufferOutSize);
+  s32 ExecuteCommand(IOSResourceIOCtlRequest& request);
 };

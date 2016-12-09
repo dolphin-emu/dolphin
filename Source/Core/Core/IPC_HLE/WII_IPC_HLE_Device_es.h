@@ -34,10 +34,9 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IOSReturnCode Open(IOSResourceOpenRequest& request) override;
+  void Close() override;
+  IPCCommandResult IOCtlV(IOSResourceIOCtlVRequest& request) override;
 
   static u32 ES_DIVerify(const std::vector<u8>& tmd);
 
@@ -112,7 +111,7 @@ private:
     ES_INVALID_TMD = -106,  // or access denied
     ES_READ_LESS_DATA_THAN_EXPECTED = -1009,
     ES_WRITE_FAILURE = -1010,
-    ES_PARAMTER_SIZE_OR_ALIGNMENT = -1017,
+    ES_PARAMETER_SIZE_OR_ALIGNMENT = -1017,
     ES_HASH_DOESNT_MATCH = -1022,
     ES_MEM_ALLOC_FAILED = -1024,
     ES_INCORRECT_ACCESS_RIGHT = -1026,
