@@ -55,7 +55,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
 
 void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer* transfer)
 {
-  int ret = HIDERR_NO_DEVICE_FOUND;
+  int ret = IPC_EINVAL;
   u32 replyAddress = (u32)(size_t)transfer->user_data;
   if (transfer->status == LIBUSB_TRANSFER_COMPLETED)
   {
@@ -168,7 +168,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
     u16 wLength = Memory::Read_U16(BufferIn + 0x1A);
     u32 data = Memory::Read_U32(BufferIn + 0x1C);
 
-    ReturnValue = HIDERR_NO_DEVICE_FOUND;
+    ReturnValue = IPC_EINVAL;
 
     libusb_device_handle* dev_handle = GetDeviceByDevNum(dev_num);
 
@@ -203,7 +203,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
 
     u32 data = Memory::Read_U32(BufferIn + 0x1C);
 
-    ReturnValue = HIDERR_NO_DEVICE_FOUND;
+    ReturnValue = IPC_EINVAL;
 
     libusb_device_handle* dev_handle = GetDeviceByDevNum(dev_num);
 

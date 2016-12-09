@@ -31,8 +31,6 @@ struct libusb_transfer;
 #define HID_ID_MASK 0x0000FFFFFFFFFFFF
 #define MAX_HID_INTERFACES 1
 
-#define HIDERR_NO_DEVICE_FOUND -4
-
 class CWII_IPC_HLE_Device_hid : public IWII_IPC_HLE_Device
 {
 public:
