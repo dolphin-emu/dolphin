@@ -614,12 +614,19 @@ bool IsOptimizableRAMAddress(const u32 address)
   if (!UReg_MSR(MSR).DR)
     return false;
 
-  // TODO: This API needs to take an access size
-  //
-  // We store whether an access can be optimized to an unchecked access
-  // in dbat_table.
-  u32 bat_result = dbat_table[address >> BAT_INDEX_SHIFT];
-  return (bat_result & 2) != 0;
+#if _ARCH_64
+  if (SConfig::GetInstance().bFastmem)
+  {
+    // TODO: This API needs to take an access size
+    //
+    // We store whether an access can be optimized to an unchecked access
+    // in dbat_table.
+    u32 bat_result = dbat_table[address >> BAT_INDEX_SHIFT];
+    return (bat_result & 2) != 0;
+  }
+#endif
+
+  return false;
 }
 
 bool HostIsRAMAddress(u32 address)
@@ -1207,8 +1214,11 @@ void DBATUpdated()
     UpdateFakeMMUBat(dbat_table, 0x70000000);
   }
 
-#ifndef _ARCH_32
-  Memory::UpdateLogicalMemory(dbat_table);
+#if _ARCH_64
+  if (SConfig::GetInstance().bFastmem)
+  {
+    Memory::UpdateLogicalMemory(dbat_table);
+  }
 #endif
 
   // IsOptimizable*Address and dcbz depends on the BAT mapping, so we need a flush here.
