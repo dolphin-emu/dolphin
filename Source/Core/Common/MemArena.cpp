@@ -24,6 +24,9 @@
 #ifdef ANDROID
 #include <linux/ashmem.h>
 #include <sys/ioctl.h>
+#elif defined(__APPLE__)
+#include <mach/mach_init.h>
+#include <mach/vm_map.h>
 #endif
 #endif
 
@@ -63,6 +66,15 @@ void MemArena::GrabSHMSegment(size_t size)
     NOTICE_LOG(MEMMAP, "Ashmem allocation failed");
     return;
   }
+#elif defined(__APPLE__)
+  machSize = size;
+
+  kern_return_t err = vm_allocate(mach_task_self(), &machAddress, machSize, VM_FLAGS_ANYWHERE);
+  if (err != KERN_SUCCESS)
+  {
+    NOTICE_LOG(MEMMAP, "Mach allocation failed");
+    return;
+  }
 #else
   for (int i = 0; i < 10000; i++)
   {
@@ -89,6 +101,13 @@ void MemArena::ReleaseSHMSegment()
 #ifdef _WIN32
   CloseHandle(hMemoryMapping);
   hMemoryMapping = 0;
+#elif defined(__APPLE__)
+  kern_return_t err = vm_deallocate(mach_task_self(), machAddress, machSize);
+  if (err != KERN_SUCCESS)
+  {
+    NOTICE_LOG(MEMMAP, "Mach deallocation failed");
+    return;
+  }
 #else
   close(fd);
 #endif
@@ -98,6 +117,19 @@ void* MemArena::CreateView(s64 offset, size_t size, void* base)
 {
 #ifdef _WIN32
   return MapViewOfFileEx(hMemoryMapping, FILE_MAP_ALL_ACCESS, 0, (DWORD)((u64)offset), size, base);
+#elif defined(__APPLE__)
+  vm_prot_t curProtection;
+  vm_prot_t maxProtection;
+  kern_return_t err = vm_remap(mach_task_self(), (vm_address_t*)&base, (vm_size_t)size, 0,
+                               VM_FLAGS_FIXED, mach_task_self(), machAddress + (vm_address_t)offset,
+                               0, &curProtection, &maxProtection, VM_INHERIT_COPY);
+  if (err != KERN_SUCCESS)
+  {
+    NOTICE_LOG(MEMMAP, "vm_remap failed");
+    return nullptr;
+  }
+
+  return base;
 #else
   void* retval = mmap(base, size, PROT_READ | PROT_WRITE,
                       MAP_SHARED | ((base == nullptr) ? 0 : MAP_FIXED), fd, offset);
@@ -118,6 +150,8 @@ void MemArena::ReleaseView(void* view, size_t size)
 {
 #ifdef _WIN32
   UnmapViewOfFile(view);
+#elif defined(__APPLE__)
+  vm_deallocate(mach_task_self(), (vm_address_t)view, (vm_size_t)size);
 #else
   munmap(view, size);
 #endif
@@ -131,6 +165,23 @@ u8* MemArena::FindMemoryBase()
   u8* base = (u8*)VirtualAlloc(0, 0x400000000, MEM_RESERVE, PAGE_READWRITE);
   VirtualFree(base, 0, MEM_RELEASE);
   return base;
+#elif defined(__APPLE__)
+  vm_size_t size = 0x400000000;
+  vm_address_t address;
+
+  kern_return_t err = vm_allocate(mach_task_self(), &address, size, VM_FLAGS_ANYWHERE);
+  if (err != KERN_SUCCESS)
+  {
+    return nullptr;
+  }
+
+  err = vm_deallocate(mach_task_self(), address, size);
+  if (err != KERN_SUCCESS)
+  {
+    return nullptr;
+  }
+
+  return (u8*)address;
 #else
   // Very precarious - mmap cannot return an error when trying to map already used pages.
   // This makes the Windows approach above unusable on Linux, so we will simply pray...

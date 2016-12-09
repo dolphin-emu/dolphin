@@ -8,6 +8,8 @@
 
 #ifdef _WIN32
 #include <windows.h>
+#elif defined(__APPLE__)
+#include <mach/vm_types.h>
 #endif
 
 #include "Common/CommonTypes.h"
@@ -31,6 +33,9 @@ public:
 private:
 #ifdef _WIN32
   HANDLE hMemoryMapping;
+#elif defined(__APPLE__)
+  vm_address_t machAddress;
+  vm_size_t machSize;
 #else
   int fd;
 #endif
