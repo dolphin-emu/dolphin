@@ -32,7 +32,7 @@ void ControlReference::UpdateReference(ciface::Core::DeviceContainer& devices,
   delete parsed_expression;
   parsed_expression = nullptr;
 
-  ControlFinder finder(devices, default_device, is_input);
+  ControlFinder finder(devices, default_device, IsInput());
   parse_error = ParseExpression(expression, finder, &parsed_expression);
 }
 
@@ -48,17 +48,25 @@ int ControlReference::BoundCount() const
     return 0;
 }
 
-ControlReference::ControlReference(const bool _is_input)
-    : range(1), is_input(_is_input), parsed_expression(nullptr)
+ControlReference::ControlReference() : range(1), parsed_expression(nullptr)
 {
 }
 
-InputReference::InputReference() : ControlReference(true)
+InputReference::InputReference() : ControlReference()
 {
 }
 
-OutputReference::OutputReference() : ControlReference(false)
+OutputReference::OutputReference() : ControlReference()
 {
+}
+
+bool InputReference::IsInput() const
+{
+  return true;
+}
+bool OutputReference::IsInput() const
+{
+  return false;
 }
 
 //

@@ -26,6 +26,7 @@ public:
   virtual ControlState State(const ControlState state = 0) = 0;
   virtual ciface::Core::Device::Control* Detect(const unsigned int ms,
                                                 ciface::Core::Device* const device) = 0;
+  virtual bool IsInput() const = 0;
 
   int BoundCount() const;
   void UpdateReference(ciface::Core::DeviceContainer& devices,
@@ -33,11 +34,10 @@ public:
 
   ControlState range;
   std::string expression;
-  const bool is_input;
   ciface::ExpressionParser::ExpressionParseStatus parse_error;
 
 protected:
-  ControlReference(const bool _is_input);
+  ControlReference();
   ciface::ExpressionParser::Expression* parsed_expression;
 };
 
@@ -50,6 +50,7 @@ class InputReference : public ControlReference
 {
 public:
   InputReference();
+  bool IsInput() const override;
   ControlState State(const ControlState state) override;
   ciface::Core::Device::Control* Detect(const unsigned int ms,
                                         ciface::Core::Device* const device) override;
@@ -64,6 +65,7 @@ class OutputReference : public ControlReference
 {
 public:
   OutputReference();
+  bool IsInput() const override;
   ControlState State(const ControlState state) override;
   ciface::Core::Device::Control* Detect(const unsigned int ms,
                                         ciface::Core::Device* const device) override;

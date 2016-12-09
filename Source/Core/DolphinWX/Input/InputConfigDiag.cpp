@@ -291,7 +291,7 @@ void ControlDialog::UpdateListContents()
   const auto dev = g_controller_interface.FindDevice(m_devq);
   if (dev != nullptr)
   {
-    if (control_reference->is_input)
+    if (control_reference->IsInput())
     {
       for (ciface::Core::Device::Input* input : dev->Inputs())
       {
@@ -720,7 +720,7 @@ bool InputConfigDialog::DetectButton(ControlButton* button)
 wxStaticBoxSizer* ControlDialog::CreateControlChooser(InputConfigDialog* const parent)
 {
   wxStaticBoxSizer* const main_szr = new wxStaticBoxSizer(
-      wxVERTICAL, this, control_reference->is_input ? _("Input") : _("Output"));
+      wxVERTICAL, this, control_reference->IsInput() ? _("Input") : _("Output"));
   const int space5 = FromDIP(5);
 
   textctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
@@ -730,7 +730,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(InputConfigDialog* const p
   textctrl->SetFont(font);
 
   wxButton* const detect_button =
-      new wxButton(this, wxID_ANY, control_reference->is_input ? _("Detect") : _("Test"));
+      new wxButton(this, wxID_ANY, control_reference->IsInput() ? _("Detect") : _("Test"));
 
   wxButton* const clear_button = new wxButton(this, wxID_ANY, _("Clear"));
 
@@ -747,7 +747,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(InputConfigDialog* const p
   button_sizer->Add(select_button, 1);
   button_sizer->Add(or_button, 1);
 
-  if (control_reference->is_input)
+  if (control_reference->IsInput())
   {
     // TODO: check if && is good on other OS
     wxButton* const and_button = new wxButton(this, wxID_ANY, _("&& AND"));
@@ -964,7 +964,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
             exclude_buttons.end())
       eventsink->control_buttons.push_back(control_button);
 
-    if (control->control_ref->is_input)
+    if (control->control_ref->IsInput())
     {
       control_button->SetToolTip(
           _("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
