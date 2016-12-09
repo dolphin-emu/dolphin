@@ -29,16 +29,17 @@ public:
   virtual bool IsInput() const = 0;
 
   int BoundCount() const;
+  ciface::ExpressionParser::ExpressionParseStatus GetParseStatus() const;
   void UpdateReference(ciface::Core::DeviceContainer& devices,
                        const ciface::Core::DeviceQualifier& default_device);
 
   ControlState range;
   std::string expression;
-  ciface::ExpressionParser::ExpressionParseStatus parse_error;
 
 protected:
   ControlReference();
   ciface::ExpressionParser::Expression* parsed_expression;
+  ciface::ExpressionParser::ExpressionParseStatus m_parse_status;
 };
 
 //

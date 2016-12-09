@@ -33,19 +33,25 @@ void ControlReference::UpdateReference(ciface::Core::DeviceContainer& devices,
   parsed_expression = nullptr;
 
   ControlFinder finder(devices, default_device, IsInput());
-  parse_error = ParseExpression(expression, finder, &parsed_expression);
+  m_parse_status = ParseExpression(expression, finder, &parsed_expression);
 }
 
 ControlReference::~ControlReference()
 {
   delete parsed_expression;
 }
+
 int ControlReference::BoundCount() const
 {
   if (parsed_expression)
     return parsed_expression->num_controls;
   else
     return 0;
+}
+
+ExpressionParseStatus ControlReference::GetParseStatus() const
+{
+  return m_parse_status;
 }
 
 ControlReference::ControlReference() : range(1), parsed_expression(nullptr)

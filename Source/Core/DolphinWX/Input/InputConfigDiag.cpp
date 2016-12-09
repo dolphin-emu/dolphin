@@ -326,7 +326,7 @@ void ControlDialog::UpdateGUI()
   m_bound_label->SetLabel(
       wxString::Format(_("Bound Controls: %lu"), (unsigned long)control_reference->BoundCount()));
 
-  switch (control_reference->parse_error)
+  switch (control_reference->GetParseStatus())
   {
   case EXPRESSION_PARSE_SYNTAX_ERROR:
     m_error_label->SetLabel(_("Syntax error"));
@@ -391,8 +391,8 @@ bool ControlDialog::Validate()
 
   UpdateGUI();
 
-  return (control_reference->parse_error == EXPRESSION_PARSE_SUCCESS ||
-          control_reference->parse_error == EXPRESSION_PARSE_NO_DEVICE);
+  return (control_reference->GetParseStatus() == EXPRESSION_PARSE_SUCCESS ||
+          control_reference->GetParseStatus() == EXPRESSION_PARSE_NO_DEVICE);
 }
 
 void InputConfigDialog::SetDevice(wxCommandEvent&)
