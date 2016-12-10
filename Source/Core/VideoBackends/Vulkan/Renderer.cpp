@@ -1663,8 +1663,8 @@ void Renderer::SetViewport()
                                             0.0f, 16777215.0f) /
                      16777216.0f;
     float far_val = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
-    min_depth = 1.0f - near_val;
-    max_depth = 1.0f - far_val;
+    min_depth = near_val;
+    max_depth = far_val;
   }
 
   VkViewport viewport = {x, y, width, height, min_depth, max_depth};
