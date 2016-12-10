@@ -342,7 +342,8 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
   // without basevertex support, only streaming methods whith uploads everything to zero works fine:
   if (!g_ogl_config.bSupportsGLBaseVertex)
   {
-    if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BUFFER_STREAM))
+    if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_BUFFER_STREAM) &&
+        !DriverDetails::HasBug(DriverDetails::BUG_SLOW_BUFFER_STREAM))
       return std::make_unique<BufferSubData>(type, size);
 
     // BufferData is by far the worst way, only use it if needed

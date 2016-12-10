@@ -4,6 +4,10 @@
 
 #include <map>
 
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "Common/Logging/LogManager.h"
 #include "VideoCommon/DriverDetails.h"
 
@@ -27,6 +31,8 @@ struct BugInfo
 const u32 m_os = OS_ALL | OS_WINDOWS;
 #elif ANDROID
 const u32 m_os = OS_ALL | OS_ANDROID;
+#elif __APPLE__ && TARGET_OS_IPHONE
+const u32 m_os = OS_ALL | OS_IOS;
 #elif __APPLE__
 const u32 m_os = OS_ALL | OS_OSX;
 #elif __linux__
@@ -48,6 +54,8 @@ static double m_version = 0.0;
 static BugInfo m_known_bugs[] = {
     {API_OPENGL, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
      BUG_BROKEN_BUFFER_STREAM, -1.0, -1.0, true},
+    {API_OPENGL, OS_IOS, VENDOR_APPLE, DRIVER_APPLE, Family::UNKNOWN, BUG_SLOW_BUFFER_STREAM, -1.0,
+     -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,
      BUG_BROKEN_NEGATED_BOOLEAN, -1.0, -1.0, true},
     {API_OPENGL, OS_ALL, VENDOR_QUALCOMM, DRIVER_QUALCOMM, Family::UNKNOWN,

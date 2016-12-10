@@ -24,9 +24,10 @@ enum OS
   OS_WINDOWS = (1 << 1),
   OS_LINUX = (1 << 2),
   OS_OSX = (1 << 3),
-  OS_ANDROID = (1 << 4),
-  OS_FREEBSD = (1 << 5),
-  OS_OPENBSD = (1 << 6),
+  OS_IOS = (1 << 4),
+  OS_ANDROID = (1 << 5),
+  OS_FREEBSD = (1 << 6),
+  OS_OPENBSD = (1 << 7),
 };
 // Enum of known vendors
 // Tegra and Nvidia are separated out due to such substantial differences
@@ -41,6 +42,7 @@ enum Vendor
   VENDOR_IMGTEC,
   VENDOR_TEGRA,
   VENDOR_VIVANTE,
+  VENDOR_APPLE,
   VENDOR_MESA,
   VENDOR_UNKNOWN
 };
@@ -49,19 +51,21 @@ enum Vendor
 enum Driver
 {
   DRIVER_ALL = 0,
-  DRIVER_NVIDIA,     // Official Nvidia, including mobile GPU
-  DRIVER_NOUVEAU,    // OSS nouveau
-  DRIVER_ATI,        // Official ATI
-  DRIVER_R600,       // OSS Radeon
-  DRIVER_INTEL,      // Official Intel
-  DRIVER_I965,       // OSS Intel
-  DRIVER_ARM,        // Official Mali driver
-  DRIVER_LIMA,       // OSS Mali driver
-  DRIVER_QUALCOMM,   // Official Adreno driver
-  DRIVER_FREEDRENO,  // OSS Adreno driver
-  DRIVER_IMGTEC,     // Official PowerVR driver
-  DRIVER_VIVANTE,    // Official Vivante driver
-  DRIVER_UNKNOWN     // Unknown driver, default to official hardware driver
+  DRIVER_NVIDIA,          // Official Nvidia, including mobile GPU
+  DRIVER_NOUVEAU,         // OSS nouveau
+  DRIVER_ATI,             // Official ATI
+  DRIVER_R600,            // OSS Radeon
+  DRIVER_INTEL,           // Official Intel
+  DRIVER_I965,            // OSS Intel
+  DRIVER_ARM,             // Official Mali driver
+  DRIVER_LIMA,            // OSS Mali driver
+  DRIVER_QUALCOMM,        // Official Adreno driver
+  DRIVER_FREEDRENO,       // OSS Adreno driver
+  DRIVER_IMGTEC,          // Official PowerVR driver
+  DRIVER_VIVANTE,         // Official Vivante driver
+  DRIVER_APPLE,           // Official Apple A-series driver
+  DRIVER_APPLE_SOFTWARE,  // Official Apple simulator software driver
+  DRIVER_UNKNOWN          // Unknown driver, default to official hardware driver
 };
 
 enum class Family
@@ -107,6 +111,15 @@ enum Bug
   // Apparently Mali and Adreno share code in this regard since they were written by the same
   // person.
   BUG_BROKEN_BUFFER_STREAM,
+  // Bug: glBufferSubData stalls on iOS
+  // Affected devices: Apple A-series GPU
+  // Started Version: -1
+  // Ended Version: -1
+  // iOS stalls when you call glBufferSubData no matter what you do. From the documentation:
+  // "You can use the glBufferSubData function to update buffer contents, but doing so incurs a
+  // performance penalty because it flushes the command buffer and waits for all commands to
+  // complete."
+  BUG_SLOW_BUFFER_STREAM,
   // Bug: ARB_buffer_storage doesn't work with ARRAY_BUFFER type streams
   // Affected devices: GeForce 4xx+
   // Started Version: -1

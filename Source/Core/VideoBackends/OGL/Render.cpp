@@ -213,6 +213,18 @@ static void InitDriverInfo()
   {
     vendor = DriverDetails::VENDOR_VIVANTE;
   }
+  else if (svendor == "Apple Inc." || svendor == "Apple Computer, Inc.")
+  {
+    vendor = DriverDetails::VENDOR_APPLE;
+    if (srenderer == "Apple Software Renderer")
+    {
+      driver = DriverDetails::DRIVER_APPLE_SOFTWARE;
+    }
+    else
+    {
+      driver = DriverDetails::DRIVER_APPLE;
+    }
+  }
 
   // Get device family and driver version...if we care about it
   switch (vendor)
