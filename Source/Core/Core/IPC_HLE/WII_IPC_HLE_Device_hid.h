@@ -127,7 +127,6 @@ private:
                              const libusb_interface_descriptor* src);
   void ConvertEndpointToWii(WiiHIDEndpointDescriptor* dest, const libusb_endpoint_descriptor* src);
 
-  int Align(int num, int alignment);
   static void checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid);
   static void LIBUSB_CALL handleUsbUpdates(libusb_transfer* transfer);
 
