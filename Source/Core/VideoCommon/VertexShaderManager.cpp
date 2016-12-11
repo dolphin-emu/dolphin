@@ -203,8 +203,8 @@ void VertexShaderManager::Init()
   bProjectionChanged = true;
   bViewportChanged = false;
 
-  memset(&xfmem, 0, sizeof(xfmem));
-  memset(&constants, 0, sizeof(constants));
+  xfmem = {};
+  constants = {};
   ResetView();
 
   // TODO: should these go inside ResetView()?
