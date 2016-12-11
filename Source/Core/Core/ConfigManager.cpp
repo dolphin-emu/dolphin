@@ -287,6 +287,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
     core->Set(StringFromFormat("AdapterRumble%i", i), m_AdapterRumble[i]);
     core->Set(StringFromFormat("SimulateKonga%i", i), m_AdapterKonga[i]);
   }
+  core->Set("UseMODBXW201Fix", &m_UseMODBXW201Fix);
   core->Set("WiiSDCard", m_WiiSDCard);
   core->Set("WiiKeyboard", m_WiiKeyboard);
   core->Set("WiimoteContinuousScanning", m_WiimoteContinuousScanning);
@@ -597,6 +598,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
     core->Get(StringFromFormat("AdapterRumble%i", i), &m_AdapterRumble[i], true);
     core->Get(StringFromFormat("SimulateKonga%i", i), &m_AdapterKonga[i], false);
   }
+  core->Get("UseMODBXW201Fix", &m_UseMODBXW201Fix, false);
   core->Get("WiiSDCard", &m_WiiSDCard, false);
   core->Get("WiiKeyboard", &m_WiiKeyboard, false);
   core->Get("WiimoteContinuousScanning", &m_WiimoteContinuousScanning, false);

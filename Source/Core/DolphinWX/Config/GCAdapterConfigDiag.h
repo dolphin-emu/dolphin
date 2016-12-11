@@ -20,6 +20,7 @@ private:
   void OnUpdateAdapter(wxCommandEvent& event);
   void OnAdapterRumble(wxCommandEvent& event);
   void OnAdapterKonga(wxCommandEvent& event);
+  void OnUseMODBXW201Fix(wxCommandEvent& event);
 
   wxStaticText* m_adapter_status;
   int m_pad_id;
