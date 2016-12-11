@@ -5,6 +5,11 @@
 #include "Common/Hash.h"
 #include <algorithm>
 #include <cstring>
+
+#if defined(__APPLE__)
+#include <TargetConditionals.h>
+#endif
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Intrinsics.h"
@@ -240,7 +245,7 @@ u64 GetMurmurHash3(const u8* src, u32 len, u32 samples)
 // CRC32 hash using the SSE4.2 instruction
 u64 GetCRC32(const u8* src, u32 len, u32 samples)
 {
-#if _M_SSE >= 0x402 || defined(_M_ARM_64)
+#if _M_SSE >= 0x402 || (defined(_M_ARM_64) && !TARGET_OS_IPHONE)
   u64 h[4] = {len, 0, 0, 0};
   u32 Step = (len / 8);
   const u64* data = (const u64*)src;
@@ -274,7 +279,7 @@ u64 GetCRC32(const u8* src, u32 len, u32 samples)
     memcpy(&temp, end, len & 7);
     h[0] = _mm_crc32_u64(h[0], temp);
   }
-#elif defined(_M_ARM_64)
+#elif defined(_M_ARM_64) && !TARGET_OS_IPHONE
   // We should be able to use intrinsics for this
   // Too bad the intrinsics for this instruction was added in GCC 4.9.1
   // The Android NDK (as of r10e) only has GCC 4.9
@@ -319,7 +324,7 @@ u64 GetCRC32(const u8* src, u32 len, u32 samples)
   }
 #endif
 
-#if _M_SSE >= 0x402 || defined(_M_ARM_64)
+#if _M_SSE >= 0x402 || defined(_M_ARM_64) && !TARGET_OS_IPHONE
   // FIXME: is there a better way to combine these partial hashes?
   return h[0] + (h[1] << 10) + (h[2] << 21) + (h[3] << 32);
 #else
@@ -612,7 +617,7 @@ void SetHash64Function()
     ptrHashFunction = &GetCRC32;
   }
   else
-#elif defined(_M_ARM_64)
+#elif defined(_M_ARM_64) && !TARGET_OS_IPHONE
   if (cpu_info.bCRC32)
   {
     ptrHashFunction = &GetCRC32;
