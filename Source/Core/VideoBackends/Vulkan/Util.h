@@ -19,7 +19,6 @@ class StateTracker;
 
 namespace Util
 {
-size_t AlignValue(size_t value, size_t alignment);
 size_t AlignBufferOffset(size_t offset, size_t alignment);
 
 u32 MakeRGBA8Color(float r, float g, float b, float a);
@@ -137,6 +136,8 @@ public:
 
   void SetPSSampler(size_t index, VkImageView view, VkSampler sampler);
 
+  void SetPSTexelBuffer(VkBufferView view);
+
   void SetRasterizationState(const RasterizationState& state);
   void SetDepthStencilState(const DepthStencilState& state);
   void SetBlendState(const BlendState& state);
@@ -181,6 +182,8 @@ private:
   std::array<uint32_t, NUM_UBO_DESCRIPTOR_SET_BINDINGS> m_ubo_offsets = {};
 
   std::array<VkDescriptorImageInfo, NUM_PIXEL_SHADER_SAMPLERS> m_ps_samplers = {};
+
+  VkBufferView m_ps_texel_buffer = VK_NULL_HANDLE;
 
   PipelineInfo m_pipeline_info = {};
 };

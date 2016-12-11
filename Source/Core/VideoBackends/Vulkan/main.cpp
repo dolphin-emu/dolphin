@@ -4,6 +4,7 @@
 
 #include <vector>
 
+#include "Common/Logging/LogManager.h"
 #include "Core/Host.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
@@ -32,7 +33,7 @@ void VideoBackend::InitBackendInfo()
 
   if (LoadVulkanLibrary())
   {
-    VkInstance temp_instance = VulkanContext::CreateVulkanInstance(false, false);
+    VkInstance temp_instance = VulkanContext::CreateVulkanInstance(false, false, false);
     if (temp_instance)
     {
       if (LoadVulkanInstanceFunctions(temp_instance))
@@ -72,6 +73,23 @@ void VideoBackend::InitBackendInfo()
   }
 }
 
+// Helper method to check whether the Host GPU logging category is enabled.
+static bool IsHostGPULoggingEnabled()
+{
+  return LogManager::GetInstance()->IsEnabled(LogTypes::HOST_GPU, LogTypes::LERROR);
+}
+
+// Helper method to determine whether to enable the debug report extension.
+static bool ShouldEnableDebugReports(bool enable_validation_layers)
+{
+  // Enable debug reports if the Host GPU log option is checked, or validation layers are enabled.
+  // The only issue here is that if Host GPU is not checked when the instance is created, the debug
+  // report extension will not be enabled, requiring the game to be restarted before any reports
+  // will be logged. Otherwise, we'd have to enable debug reports on every instance, when most
+  // users will never check the Host GPU logging category.
+  return enable_validation_layers || IsHostGPULoggingEnabled();
+}
+
 bool VideoBackend::Initialize(void* window_handle)
 {
   if (!LoadVulkanLibrary())
@@ -87,7 +105,7 @@ bool VideoBackend::Initialize(void* window_handle)
   InitBackendInfo();
   InitializeShared();
 
-  // Check for presence of the debug layer before trying to enable it
+  // Check for presence of the validation layers before trying to enable it
   bool enable_validation_layer = g_Config.bEnableValidationLayer;
   if (enable_validation_layer && !VulkanContext::CheckValidationLayerAvailablility())
   {
@@ -96,9 +114,10 @@ bool VideoBackend::Initialize(void* window_handle)
   }
 
   // Create Vulkan instance, needed before we can create a surface.
-  bool enable_surface = (window_handle != nullptr);
-  VkInstance instance =
-      VulkanContext::CreateVulkanInstance(enable_surface, enable_validation_layer);
+  bool enable_surface = window_handle != nullptr;
+  bool enable_debug_reports = ShouldEnableDebugReports(enable_validation_layer);
+  VkInstance instance = VulkanContext::CreateVulkanInstance(enable_surface, enable_debug_reports,
+                                                            enable_validation_layer);
   if (instance == VK_NULL_HANDLE)
   {
     PanicAlert("Failed to create Vulkan instance.");
@@ -155,8 +174,9 @@ bool VideoBackend::Initialize(void* window_handle)
   }
 
   // Pass ownership over to VulkanContext, and let it take care of everything.
-  g_vulkan_context = VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface,
-                                           &g_Config, enable_validation_layer);
+  g_vulkan_context =
+      VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface, &g_Config,
+                            enable_debug_reports, enable_validation_layer);
   if (!g_vulkan_context)
   {
     PanicAlert("Failed to create Vulkan device");

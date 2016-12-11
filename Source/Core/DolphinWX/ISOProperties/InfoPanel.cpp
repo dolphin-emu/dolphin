@@ -121,9 +121,9 @@ wxString GetCountryName(DiscIO::Country country)
 int FindPreferredLanguageIndex(DiscIO::Language preferred_language,
                                const std::vector<DiscIO::Language>& languages)
 {
-  const auto iter =
-      std::find_if(languages.begin(), languages.end(),
-                   [preferred_language](auto language) { return language == preferred_language; });
+  const auto iter = std::find_if(
+      languages.begin(), languages.end(),
+      [preferred_language](DiscIO::Language language) { return language == preferred_language; });
 
   if (iter == languages.end())
     return 0;

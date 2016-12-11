@@ -62,25 +62,16 @@ public:
   ObjectCache();
   ~ObjectCache();
 
-  // We have four shared pipeline layouts:
-  //   - Standard
-  //       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS)
-  //       - 8 combined image samplers (accessible from PS)
-  //   - BBox Enabled
-  //       - Same as standard, plus a single SSBO accessible from PS
-  //   - Push Constant
-  //       - Same as standard, plus 128 bytes of push constants, accessible from all stages.
-  //
-  // All three pipeline layouts use the same descriptor set layouts, but the final descriptor set
-  // (SSBO) is only required when using the BBox Enabled pipeline layout.
-  //
-  VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const
+  // Descriptor set layout accessor. Used for allocating descriptor sets.
+  VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT layout) const
   {
-    return m_descriptor_set_layouts[set];
+    return m_descriptor_set_layouts[layout];
   }
-  VkPipelineLayout GetStandardPipelineLayout() const { return m_standard_pipeline_layout; }
-  VkPipelineLayout GetBBoxPipelineLayout() const { return m_bbox_pipeline_layout; }
-  VkPipelineLayout GetPushConstantPipelineLayout() const { return m_push_constant_pipeline_layout; }
+  // Pipeline layout accessor. Used to fill in required field in PipelineInfo.
+  VkPipelineLayout GetPipelineLayout(PIPELINE_LAYOUT layout) const
+  {
+    return m_pipeline_layouts[layout];
+  }
   // Shared utility shader resources
   VertexFormat* GetUtilityShaderVertexFormat() const
   {
@@ -157,11 +148,8 @@ private:
   void DestroySharedShaders();
   void DestroySamplers();
 
-  std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SETS> m_descriptor_set_layouts = {};
-
-  VkPipelineLayout m_standard_pipeline_layout = VK_NULL_HANDLE;
-  VkPipelineLayout m_bbox_pipeline_layout = VK_NULL_HANDLE;
-  VkPipelineLayout m_push_constant_pipeline_layout = VK_NULL_HANDLE;
+  std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SET_LAYOUTS> m_descriptor_set_layouts = {};
+  std::array<VkPipelineLayout, NUM_PIPELINE_LAYOUTS> m_pipeline_layouts = {};
 
   std::unique_ptr<VertexFormat> m_utility_shader_vertex_format;
   std::unique_ptr<StreamBuffer> m_utility_shader_vertex_buffer;

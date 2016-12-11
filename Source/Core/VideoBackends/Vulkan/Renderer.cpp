@@ -448,7 +448,7 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 
   // No need to start a new render pass, but we do need to restore viewport state
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(),
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD),
                          FramebufferManager::GetInstance()->GetEFBLoadRenderPass(),
                          g_object_cache->GetPassthroughVertexShader(),
                          g_object_cache->GetPassthroughGeometryShader(), m_clear_fragment_shader);
@@ -623,6 +623,9 @@ void Renderer::DrawVirtualXFB(VkRenderPass render_pass, const TargetRectangle& t
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
+    xfb_source->GetTexture()->GetTexture()->TransitionToLayout(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     TargetRectangle source_rect = xfb_source->sourceRc;
     TargetRectangle draw_rect;
 
@@ -656,6 +659,9 @@ void Renderer::DrawRealXFB(VkRenderPass render_pass, const TargetRectangle& targ
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfb_source = static_cast<const XFBSource*>(xfb_sources[i]);
+    xfb_source->GetTexture()->GetTexture()->TransitionToLayout(
+        g_command_buffer_mgr->GetCurrentCommandBuffer(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
     TargetRectangle source_rect = xfb_source->sourceRc;
     TargetRectangle draw_rect = target_rect;
     source_rect.right -= fb_stride - fb_width;
@@ -671,8 +677,15 @@ void Renderer::DrawScreen(const EFBRectangle& source_rect, u32 xfb_addr,
   VkResult res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
   if (res == VK_SUBOPTIMAL_KHR || res == VK_ERROR_OUT_OF_DATE_KHR)
   {
-    // Window has been resized. Update the swap chain and try again.
+    // There's an issue here. We can't resize the swap chain while the GPU is still busy with it,
+    // but calling WaitForGPUIdle would create a deadlock as PrepareToSubmitCommandBuffer has been
+    // called by SwapImpl. WaitForGPUIdle waits on the semaphore, which PrepareToSubmitCommandBuffer
+    // has already done, so it blocks indefinitely. To work around this, we submit the current
+    // command buffer, resize the swap chain (which calls WaitForGPUIdle), and then finally call
+    // PrepareToSubmitCommandBuffer to return to the state that the caller expects.
+    g_command_buffer_mgr->SubmitCommandBuffer(false);
     ResizeSwapChain();
+    g_command_buffer_mgr->PrepareToSubmitCommandBuffer();
     res = m_swap_chain->AcquireNextImage(m_image_available_semaphore);
   }
   if (res != VK_SUCCESS)
@@ -889,7 +902,7 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
 
   // Set up common data
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
-                         g_object_cache->GetStandardPipelineLayout(), render_pass,
+                         g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_STANDARD), render_pass,
                          g_object_cache->GetPassthroughVertexShader(), VK_NULL_HANDLE,
                          m_blit_fragment_shader);
 

@@ -301,7 +301,7 @@ ControllerEmu::ControlGroup* HotkeyManager::GetOptionsGroup() const
 int HotkeyManager::FindGroupByID(int id) const
 {
   const auto i = std::find_if(groups_info.begin(), groups_info.end(),
-                              [id](const auto& entry) { return entry.last >= id; });
+                              [id](const HotkeyGroupInfo& entry) { return entry.last >= id; });
 
   return static_cast<int>(std::distance(groups_info.begin(), i));
 }

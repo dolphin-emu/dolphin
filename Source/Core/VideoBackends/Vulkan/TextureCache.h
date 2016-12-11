@@ -12,10 +12,9 @@
 
 namespace Vulkan
 {
-class PaletteTextureConverter;
+class TextureConverter;
 class StateTracker;
 class Texture2D;
-class TextureEncoder;
 
 class TextureCache : public TextureCacheBase
 {
@@ -49,6 +48,7 @@ public:
 
   static TextureCache* GetInstance();
 
+  TextureConverter* GetTextureConverter() const { return m_texture_converter.get(); }
   bool Initialize();
 
   bool CompileShaders() override;
@@ -66,17 +66,8 @@ public:
   void CopyRectangleFromTexture(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
                                 Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
 
-  // Encodes texture to guest memory in XFB (YUYV) format.
-  void EncodeYUYVTextureToMemory(void* dst_ptr, u32 dst_width, u32 dst_stride, u32 dst_height,
-                                 Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
-
-  // Decodes data from guest memory in XFB (YUYV) format to a RGBA format texture on the GPU.
-  void DecodeYUYVTextureFromMemory(TCacheEntry* dst_texture, const void* src_ptr, u32 src_width,
-                                   u32 src_stride, u32 src_height);
-
 private:
   bool CreateRenderPasses();
-  VkRenderPass GetRenderPassForTextureUpdate(const Texture2D* texture) const;
 
   // Copies the contents of a texture using vkCmdCopyImage
   void CopyTextureRectangle(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
@@ -86,20 +77,15 @@ private:
   void ScaleTextureRectangle(TCacheEntry* dst_texture, const MathUtil::Rectangle<int>& dst_rect,
                              Texture2D* src_texture, const MathUtil::Rectangle<int>& src_rect);
 
-  VkRenderPass m_initialize_render_pass = VK_NULL_HANDLE;
-  VkRenderPass m_update_render_pass = VK_NULL_HANDLE;
+  VkRenderPass m_render_pass = VK_NULL_HANDLE;
 
   std::unique_ptr<StreamBuffer> m_texture_upload_buffer;
 
-  std::unique_ptr<TextureEncoder> m_texture_encoder;
-
-  std::unique_ptr<PaletteTextureConverter> m_palette_texture_converter;
+  std::unique_ptr<TextureConverter> m_texture_converter;
 
   VkShaderModule m_copy_shader = VK_NULL_HANDLE;
   VkShaderModule m_efb_color_to_tex_shader = VK_NULL_HANDLE;
   VkShaderModule m_efb_depth_to_tex_shader = VK_NULL_HANDLE;
-  VkShaderModule m_rgb_to_yuyv_shader = VK_NULL_HANDLE;
-  VkShaderModule m_yuyv_to_rgb_shader = VK_NULL_HANDLE;
 };
 
 }  // namespace Vulkan

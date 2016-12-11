@@ -80,6 +80,9 @@ void StagingBuffer::InvalidateGPUCache(VkCommandBuffer command_buffer,
                                        VkPipelineStageFlagBits dest_pipeline_stage,
                                        VkDeviceSize offset, VkDeviceSize size)
 {
+  if (m_coherent)
+    return;
+
   _assert_((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   Util::BufferMemoryBarrier(command_buffer, m_buffer, VK_ACCESS_HOST_WRITE_BIT, dest_access_flags,
                             offset, size, VK_PIPELINE_STAGE_HOST_BIT, dest_pipeline_stage);
@@ -90,6 +93,9 @@ void StagingBuffer::PrepareForGPUWrite(VkCommandBuffer command_buffer,
                                        VkPipelineStageFlagBits dst_pipeline_stage,
                                        VkDeviceSize offset, VkDeviceSize size)
 {
+  if (m_coherent)
+    return;
+
   _assert_((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   Util::BufferMemoryBarrier(command_buffer, m_buffer, 0, dst_access_flags, offset, size,
                             VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, dst_pipeline_stage);
@@ -99,6 +105,9 @@ void StagingBuffer::FlushGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBi
                                   VkPipelineStageFlagBits src_pipeline_stage, VkDeviceSize offset,
                                   VkDeviceSize size)
 {
+  if (m_coherent)
+    return;
+
   _assert_((offset + size) <= m_size || (offset < m_size && size == VK_WHOLE_SIZE));
   Util::BufferMemoryBarrier(command_buffer, m_buffer, src_access_flags, VK_ACCESS_HOST_READ_BIT,
                             offset, size, src_pipeline_stage, VK_PIPELINE_STAGE_HOST_BIT);
@@ -136,8 +145,9 @@ void StagingBuffer::Write(VkDeviceSize offset, const void* data, size_t size,
     FlushCPUCache(offset, size);
 }
 
-std::unique_ptr<Vulkan::StagingBuffer>
-StagingBuffer::Create(STAGING_BUFFER_TYPE type, VkDeviceSize size, VkBufferUsageFlags usage)
+bool StagingBuffer::AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size,
+                                   VkBufferUsageFlags usage, VkBuffer* out_buffer,
+                                   VkDeviceMemory* out_memory, bool* out_coherent)
 {
   VkBufferCreateInfo buffer_create_info = {
       VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO,  // VkStructureType        sType
@@ -149,24 +159,22 @@ StagingBuffer::Create(STAGING_BUFFER_TYPE type, VkDeviceSize size, VkBufferUsage
       0,                                     // uint32_t               queueFamilyIndexCount
       nullptr                                // const uint32_t*        pQueueFamilyIndices
   };
-  VkBuffer buffer;
   VkResult res =
-      vkCreateBuffer(g_vulkan_context->GetDevice(), &buffer_create_info, nullptr, &buffer);
+      vkCreateBuffer(g_vulkan_context->GetDevice(), &buffer_create_info, nullptr, out_buffer);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkCreateBuffer failed: ");
-    return nullptr;
+    return false;
   }
 
   VkMemoryRequirements requirements;
-  vkGetBufferMemoryRequirements(g_vulkan_context->GetDevice(), buffer, &requirements);
+  vkGetBufferMemoryRequirements(g_vulkan_context->GetDevice(), *out_buffer, &requirements);
 
-  bool is_coherent;
   u32 type_index;
   if (type == STAGING_BUFFER_TYPE_UPLOAD)
-    type_index = g_vulkan_context->GetUploadMemoryType(requirements.memoryTypeBits, &is_coherent);
+    type_index = g_vulkan_context->GetUploadMemoryType(requirements.memoryTypeBits, out_coherent);
   else
-    type_index = g_vulkan_context->GetReadbackMemoryType(requirements.memoryTypeBits, &is_coherent);
+    type_index = g_vulkan_context->GetReadbackMemoryType(requirements.memoryTypeBits, out_coherent);
 
   VkMemoryAllocateInfo memory_allocate_info = {
       VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO,  // VkStructureType    sType
@@ -174,25 +182,36 @@ StagingBuffer::Create(STAGING_BUFFER_TYPE type, VkDeviceSize size, VkBufferUsage
       requirements.size,                       // VkDeviceSize       allocationSize
       type_index                               // uint32_t           memoryTypeIndex
   };
-  VkDeviceMemory memory;
-  res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_allocate_info, nullptr, &memory);
+  res = vkAllocateMemory(g_vulkan_context->GetDevice(), &memory_allocate_info, nullptr, out_memory);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkAllocateMemory failed: ");
-    vkDestroyBuffer(g_vulkan_context->GetDevice(), buffer, nullptr);
-    return nullptr;
+    vkDestroyBuffer(g_vulkan_context->GetDevice(), *out_buffer, nullptr);
+    return false;
   }
 
-  res = vkBindBufferMemory(g_vulkan_context->GetDevice(), buffer, memory, 0);
+  res = vkBindBufferMemory(g_vulkan_context->GetDevice(), *out_buffer, *out_memory, 0);
   if (res != VK_SUCCESS)
   {
     LOG_VULKAN_ERROR(res, "vkBindBufferMemory failed: ");
-    vkDestroyBuffer(g_vulkan_context->GetDevice(), buffer, nullptr);
-    vkFreeMemory(g_vulkan_context->GetDevice(), memory, nullptr);
-    return nullptr;
+    vkDestroyBuffer(g_vulkan_context->GetDevice(), *out_buffer, nullptr);
+    vkFreeMemory(g_vulkan_context->GetDevice(), *out_memory, nullptr);
+    return false;
   }
 
-  return std::make_unique<Vulkan::StagingBuffer>(type, buffer, memory, size, is_coherent);
+  return true;
+}
+
+std::unique_ptr<StagingBuffer> StagingBuffer::Create(STAGING_BUFFER_TYPE type, VkDeviceSize size,
+                                                     VkBufferUsageFlags usage)
+{
+  VkBuffer buffer;
+  VkDeviceMemory memory;
+  bool coherent;
+  if (!AllocateBuffer(type, size, usage, &buffer, &memory, &coherent))
+    return nullptr;
+
+  return std::make_unique<StagingBuffer>(type, buffer, memory, size, coherent);
 }
 
 }  // namespace Vulkan

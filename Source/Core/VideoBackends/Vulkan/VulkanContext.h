@@ -23,7 +23,8 @@ public:
   static bool CheckValidationLayerAvailablility();
 
   // Helper method to create a Vulkan instance.
-  static VkInstance CreateVulkanInstance(bool enable_surface, bool enable_validation_layer);
+  static VkInstance CreateVulkanInstance(bool enable_surface, bool enable_debug_report,
+                                         bool enable_validation_layer);
 
   // Returns a list of Vulkan-compatible GPUs.
   using GPUList = std::vector<VkPhysicalDevice>;
@@ -43,10 +44,10 @@ public:
   // been called for the specified VideoConfig.
   static std::unique_ptr<VulkanContext> Create(VkInstance instance, VkPhysicalDevice gpu,
                                                VkSurfaceKHR surface, VideoConfig* config,
+                                               bool enable_debug_reports,
                                                bool enable_validation_layer);
 
   // Enable/disable debug message runtime.
-  // In the future this could be hooked up to the Host GPU logging option.
   bool EnableDebugReports();
   void DisableDebugReports();
 
@@ -106,9 +107,8 @@ public:
 private:
   using ExtensionList = std::vector<const char*>;
   static bool SelectInstanceExtensions(ExtensionList* extension_list, bool enable_surface,
-                                       bool enable_validation_layer);
-  bool SelectDeviceExtensions(ExtensionList* extension_list, bool enable_surface,
-                              bool enable_validation_layer);
+                                       bool enable_debug_report);
+  bool SelectDeviceExtensions(ExtensionList* extension_list, bool enable_surface);
   bool SelectDeviceFeatures();
   bool CreateDevice(VkSurfaceKHR surface, bool enable_validation_layer);
 

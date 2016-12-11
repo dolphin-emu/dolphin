@@ -224,6 +224,9 @@ bool cInterfaceWGL::Create(void* window_handle, bool core)
   s_backbuffer_width = twidth;
   s_backbuffer_height = theight;
 
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+#define constexpr const
+#endif
   static constexpr PIXELFORMATDESCRIPTOR pfd = {
       sizeof(PIXELFORMATDESCRIPTOR),  // Size Of This Pixel Format Descriptor
       1,                              // Version Number

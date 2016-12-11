@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/FramebufferManager.h"
+#include "Common/Align.h"
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
@@ -324,8 +325,8 @@ void FramebufferManager::InitializeEFBAccessCopies()
   buf12->Release();
 
   // EFB access - color staging/readback buffer
-  m_efb.color_access_readback_pitch =
-      D3D::AlignValue(EFB_WIDTH * sizeof(u32), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+  m_efb.color_access_readback_pitch = Common::AlignUp(static_cast<u32>(EFB_WIDTH * sizeof(u32)),
+                                                      D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
   texdesc12 = CD3DX12_RESOURCE_DESC::Buffer(m_efb.color_access_readback_pitch * EFB_HEIGHT);
   hr = D3D::device12->CreateCommittedResource(
       &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK), D3D12_HEAP_FLAG_NONE, &texdesc12,
@@ -347,8 +348,8 @@ void FramebufferManager::InitializeEFBAccessCopies()
   buf12->Release();
 
   // EFB access - depth staging/readback buffer
-  m_efb.depth_access_readback_pitch =
-      D3D::AlignValue(EFB_WIDTH * sizeof(float), D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
+  m_efb.depth_access_readback_pitch = Common::AlignUp(static_cast<u32>(EFB_WIDTH * sizeof(float)),
+                                                      D3D12_TEXTURE_DATA_PITCH_ALIGNMENT);
   texdesc12 = CD3DX12_RESOURCE_DESC::Buffer(m_efb.depth_access_readback_pitch * EFB_HEIGHT);
   hr = D3D::device12->CreateCommittedResource(
       &CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_READBACK), D3D12_HEAP_FLAG_NONE, &texdesc12,
