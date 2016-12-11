@@ -5,9 +5,10 @@
 #pragma once
 
 #include <memory>
+#include <string>
+#include <vector>
 
 #include "AudioCommon/SoundStream.h"
-#include "Common/CommonTypes.h"
 
 class CMixer;
 
