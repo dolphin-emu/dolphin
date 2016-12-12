@@ -1379,8 +1379,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   std::swap(flipped_trc.top, flipped_trc.bottom);
 
   // Copy the framebuffer to screen.
-  glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-  DrawFrame(flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
+  DrawFrame(0, flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
 
   // The FlushFrameDump call here is necessary even after frame dumping is stopped.
   // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
@@ -1395,11 +1394,10 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     {
       // DumpFrameUsingFBO resets GL_FRAMEBUFFER, so change back to the window for drawing OSD.
       DumpFrameUsingFBO(rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight, ticks);
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
     }
     else
     {
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+      // GL_READ_FRAMEBUFFER is set by GL_FRAMEBUFFER in DrawFrame -> Draw{EFB,VirtualXFB,RealXFB}.
       DumpFrame(flipped_trc, ticks);
     }
   }
@@ -1529,36 +1527,42 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   ClearEFBCache();
 }
 
-void Renderer::DrawFrame(const TargetRectangle& target_rc, const EFBRectangle& source_rc,
-                         u32 xfb_addr, const XFBSourceBase* const* xfb_sources, u32 xfb_count,
-                         u32 fb_width, u32 fb_stride, u32 fb_height)
+void Renderer::DrawFrame(GLuint framebuffer, const TargetRectangle& target_rc,
+                         const EFBRectangle& source_rc, u32 xfb_addr,
+                         const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
+                         u32 fb_stride, u32 fb_height)
 {
   if (g_ActiveConfig.bUseXFB)
   {
     if (g_ActiveConfig.bUseRealXFB)
-      DrawRealXFB(target_rc, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+      DrawRealXFB(framebuffer, target_rc, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
     else
-      DrawVirtualXFB(target_rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+      DrawVirtualXFB(framebuffer, target_rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride,
+                     fb_height);
   }
   else
   {
-    DrawEFB(target_rc, source_rc);
+    DrawEFB(framebuffer, target_rc, source_rc);
   }
 }
 
-void Renderer::DrawEFB(const TargetRectangle& target_rc, const EFBRectangle& source_rc)
+void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
+                       const EFBRectangle& source_rc)
 {
   TargetRectangle scaled_source_rc = ConvertEFBRectangle(source_rc);
 
   // for msaa mode, we must resolve the efb content to non-msaa
   GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(source_rc);
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
   BlitScreen(scaled_source_rc, target_rc, tex, s_target_width, s_target_height);
 }
 
-void Renderer::DrawVirtualXFB(const TargetRectangle& target_rc, u32 xfb_addr,
+void Renderer::DrawVirtualXFB(GLuint framebuffer, const TargetRectangle& target_rc, u32 xfb_addr,
                               const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                               u32 fb_stride, u32 fb_height)
 {
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfbSource = static_cast<const XFBSource*>(xfb_sources[i]);
@@ -1601,10 +1605,12 @@ void Renderer::DrawVirtualXFB(const TargetRectangle& target_rc, u32 xfb_addr,
   }
 }
 
-void Renderer::DrawRealXFB(const TargetRectangle& target_rc,
+void Renderer::DrawRealXFB(GLuint framebuffer, const TargetRectangle& target_rc,
                            const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                            u32 fb_stride, u32 fb_height)
 {
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
+
   for (u32 i = 0; i < xfb_count; ++i)
   {
     const XFBSource* xfbSource = static_cast<const XFBSource*>(xfb_sources[i]);
@@ -1696,21 +1702,22 @@ void Renderer::DumpFrameUsingFBO(const EFBRectangle& source_rc, u32 xfb_addr,
 
   // Ensure the alpha channel of the render texture is blank. The frame dump backend expects
   // that the alpha is set to 1.0 for all pixels.
-  FramebufferManager::SetFramebuffer(m_frame_dump_render_framebuffer);
+  glBindFramebuffer(GL_FRAMEBUFFER, m_frame_dump_render_framebuffer);
   glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
   glClear(GL_COLOR_BUFFER_BIT);
 
   // Render the frame into the frame dump render texture. Disable alpha writes in case the
   // post-processing shader writes a non-1.0 value.
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
-  DrawFrame(render_rc, source_rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+  DrawFrame(m_frame_dump_render_framebuffer, render_rc, source_rc, xfb_addr, xfb_sources, xfb_count,
+            fb_width, fb_stride, fb_height);
 
   // Copy frame to output buffer. This assumes that GL_FRAMEBUFFER has been set.
   DumpFrame(render_rc, ticks);
 
   // Restore state after drawing. This isn't the game state, it's the state set by ResetAPIState.
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
-  FramebufferManager::SetFramebuffer(0);
+  glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void Renderer::PrepareFrameDumpRenderTexture(u32 width, u32 height)
