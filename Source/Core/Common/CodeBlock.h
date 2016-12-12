@@ -46,11 +46,9 @@ public:
       FreeCodeSpace();
   }
 
-  // Call this before you generate any code.
-  void AllocCodeSpace(size_t size, bool need_low = true)
+  void AllocCodeSpace(size_t size)
   {
-    region_size = size;
-    region = static_cast<u8*>(Common::AllocateExecutableMemory(region_size, need_low));
+    region = static_cast<u8*>(Common::AllocateMemoryPages(size));
     SetCodeSpace(region, size);
   }
 

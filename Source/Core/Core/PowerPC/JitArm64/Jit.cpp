@@ -37,7 +37,7 @@ static bool HasCycleCounters()
 
 void JitArm64::Init()
 {
-  AllocCodeSpace(AARCH64_CODE_SIZE + AARCH64_FARCODE_SIZE, false);
+  AllocCodeSpace(AARCH64_CODE_SIZE + AARCH64_FARCODE_SIZE);
   AddChildCodeSpace(&farcode, AARCH64_FARCODE_SIZE);
   jo.enableBlocklink = true;
   jo.optimizeGatherPipe = true;
