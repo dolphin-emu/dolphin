@@ -27,6 +27,8 @@
 using namespace Gen;
 using namespace PowerPC;
 
+alignas(JIT_MEM_ALIGNMENT) std::array<u8, CODE_SIZE> JitIL::code_area;
+
 // Dolphin's PowerPC->x86 JIT dynamic recompiler
 // (Nearly) all code by ector (hrydgard)
 // Features:
@@ -261,12 +263,12 @@ void JitIL::Init()
   jo.accurateSinglePrecision = false;
   UpdateMemoryOptions();
 
-  trampolines.Init(TRAMPOLINE_CODE_SIZE);
-  AllocCodeSpace(CODE_SIZE);
+  trampolines.Init();
+  SetCodeSpace(code_area.data(), code_area.size());
   blocks.Init();
   asm_routines.Init(nullptr);
 
-  m_far_code.Init(FARCODE_SIZE);
+  m_far_code.Init();
   Clear();
 
   code_block.m_stats = &js.st;
@@ -295,7 +297,7 @@ void JitIL::Shutdown()
     JitILProfiler::Shutdown();
   }
 
-  FreeCodeSpace();
+  ReleaseCodeSpace();
 
   blocks.Shutdown();
   trampolines.Shutdown();

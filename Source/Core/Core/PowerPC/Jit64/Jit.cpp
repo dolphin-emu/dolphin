@@ -39,6 +39,8 @@
 using namespace Gen;
 using namespace PowerPC;
 
+alignas(JIT_MEM_ALIGNMENT) std::array<u8, CODE_SIZE> Jit64::code_area;
+
 // Dolphin's PowerPC->x86_64 JIT dynamic recompiler
 // Written mostly by ector (hrydgard)
 // Features:
@@ -227,8 +229,8 @@ void Jit64::Init()
   gpr.SetEmitter(this);
   fpr.SetEmitter(this);
 
-  trampolines.Init(TRAMPOLINE_CODE_SIZE);
-  AllocCodeSpace(CODE_SIZE);
+  trampolines.Init();
+  SetCodeSpace(code_area.data(), code_area.size());
 
   // BLR optimization has the same consequences as block linking, as well as
   // depending on the fault handler to be safe in the event of excessive BL.
@@ -246,7 +248,7 @@ void Jit64::Init()
   // important: do this *after* generating the global asm routines, because we can't use farcode in
   // them.
   // it'll crash because the farcode functions get cleared on JIT clears.
-  m_far_code.Init(FARCODE_SIZE);
+  m_far_code.Init();
   Clear();
 
   code_block.m_stats = &js.st;
@@ -268,7 +270,7 @@ void Jit64::ClearCache()
 void Jit64::Shutdown()
 {
   FreeStack();
-  FreeCodeSpace();
+  ReleaseCodeSpace();
 
   blocks.Shutdown();
   trampolines.Shutdown();

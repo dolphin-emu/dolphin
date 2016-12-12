@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
@@ -21,6 +23,8 @@
 // To add a new asm routine, just add another const here, and add the code to Generate.
 // Also, possibly increase the size of the code buffer.
 
+constexpr size_t ASM_CODE_SIZE = 1024 * 16;
+
 class Jit64AsmRoutineManager : public CommonAsmRoutines
 {
 private:
@@ -28,17 +32,17 @@ private:
   void GenerateCommon();
   u8* m_stack_top;
 
+  static std::array<u8, ASM_CODE_SIZE> code_area;
+
 public:
   void Init(u8* stack_top)
   {
     m_stack_top = stack_top;
-    // NOTE: When making large additions to the AsmCommon code, you might
-    // want to ensure this number is big enough.
-    AllocCodeSpace(16384);
+    SetCodeSpace(code_area.data(), code_area.size());
     Generate();
     WriteProtect();
   }
 
-  void Shutdown() { FreeCodeSpace(); }
+  void Shutdown() { ReleaseCodeSpace(); }
   void ResetStack(X64CodeBlock& emitter);
 };

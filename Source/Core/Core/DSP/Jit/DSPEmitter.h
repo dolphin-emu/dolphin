@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <list>
 #include <vector>
@@ -21,6 +22,8 @@ namespace JIT
 {
 namespace x86
 {
+constexpr size_t COMPILED_CODE_SIZE = 2097152;
+
 class DSPEmitter : public Gen::X64CodeBlock
 {
 public:
@@ -268,6 +271,8 @@ private:
 
   // Counts down.
   // int cycles;
+
+  static std::array<u8, COMPILED_CODE_SIZE> code_area;
 
   void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 

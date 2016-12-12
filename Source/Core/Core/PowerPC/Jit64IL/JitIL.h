@@ -16,6 +16,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
@@ -77,4 +79,7 @@ public:
   void DynaRunTable31(UGeckoInstruction _inst) override;
   void DynaRunTable59(UGeckoInstruction _inst) override;
   void DynaRunTable63(UGeckoInstruction _inst) override;
+
+private:
+  static std::array<u8, CODE_SIZE> code_area;
 };

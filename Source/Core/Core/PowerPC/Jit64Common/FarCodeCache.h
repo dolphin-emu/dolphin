@@ -16,11 +16,12 @@ constexpr size_t FARCODE_SIZE = 1024 * 1024 * 48;
 class FarCodeCache : public Gen::X64CodeBlock
 {
 public:
-  void Init(size_t size);
+  void Init();
   void Shutdown();
 
   bool Enabled() const;
 
 private:
+  static std::array<u8, FARCODE_SIZE> code_area;
   bool m_enabled = false;
 };

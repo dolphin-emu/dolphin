@@ -26,15 +26,16 @@ namespace JIT
 {
 namespace x86
 {
-constexpr size_t COMPILED_CODE_SIZE = 2097152;
 constexpr size_t MAX_BLOCK_SIZE = 250;
 constexpr u16 DSP_IDLE_SKIP_CYCLES = 0x1000;
+
+alignas(JIT_MEM_ALIGNMENT) std::array<u8, COMPILED_CODE_SIZE> DSPEmitter::code_area;
 
 DSPEmitter::DSPEmitter()
     : blockLinks(MAX_BLOCKS), blockSize(MAX_BLOCKS), blocks(MAX_BLOCKS),
       compileSR{SR_INT_ENABLE | SR_EXT_INT_ENABLE}
 {
-  AllocCodeSpace(COMPILED_CODE_SIZE);
+  SetCodeSpace(code_area.data(), code_area.size());
 
   CompileDispatcher();
   stubEntryPoint = CompileStub();
@@ -45,7 +46,7 @@ DSPEmitter::DSPEmitter()
 
 DSPEmitter::~DSPEmitter()
 {
-  FreeCodeSpace();
+  ReleaseCodeSpace();
 }
 
 void DSPEmitter::ClearIRAM()
