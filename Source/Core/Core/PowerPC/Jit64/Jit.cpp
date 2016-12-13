@@ -227,7 +227,7 @@ void Jit64::Init()
   gpr.SetEmitter(this);
   fpr.SetEmitter(this);
 
-  trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
+  trampolines.Init(TRAMPOLINE_CODE_SIZE);
   AllocCodeSpace(CODE_SIZE);
 
   // BLR optimization has the same consequences as block linking, as well as
@@ -246,7 +246,7 @@ void Jit64::Init()
   // important: do this *after* generating the global asm routines, because we can't use farcode in
   // them.
   // it'll crash because the farcode functions get cleared on JIT clears.
-  m_far_code.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+  m_far_code.Init(FARCODE_SIZE);
   Clear();
 
   code_block.m_stats = &js.st;

@@ -26,7 +26,6 @@
 
 using namespace Arm64Gen;
 
-static const int AARCH64_FARCODE_SIZE = 1024 * 1024 * 16;
 static bool HasCycleCounters()
 {
   // Bit needs to be set to support cycle counters
@@ -38,9 +37,8 @@ static bool HasCycleCounters()
 
 void JitArm64::Init()
 {
-  size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : AARCH64_FARCODE_SIZE;
-  AllocCodeSpace(CODE_SIZE + child_code_size);
-  AddChildCodeSpace(&farcode, child_code_size);
+  AllocCodeSpace(AARCH64_CODE_SIZE + AARCH64_FARCODE_SIZE, false);
+  AddChildCodeSpace(&farcode, AARCH64_FARCODE_SIZE);
   jo.enableBlocklink = true;
   jo.optimizeGatherPipe = true;
   UpdateMemoryOptions();
