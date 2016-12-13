@@ -4,12 +4,8 @@
 
 #pragma once
 
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-#include "Common/x64Emitter.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
-
-struct InstructionInfo;
+#include "Core/PowerPC/Jit64Common/Jit64Util.h"
 
 // We need at least this many bytes for backpatching.
 const int BACKPATCH_SIZE = 5;

@@ -2,17 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
+
 #include <cinttypes>
 #include <string>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
-#include "Common/x64ABI.h"
+#include "Common/MsgHandler.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64Common/Jit64Util.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
-#include "Core/PowerPC/JitCommon/TrampolineCache.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #ifdef _WIN32

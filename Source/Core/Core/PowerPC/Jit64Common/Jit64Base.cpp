@@ -1,22 +1,24 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cinttypes>
+#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+
+#include <disasm.h>
+#include <sstream>
 #include <string>
 
-#include "disasm.h"
-
 #include "Common/Assert.h"
-#include "Common/BitSet.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/GekkoDisassembler.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "Common/x64Emitter.h"
+#include "Common/StringUtil.h"
+#include "Common/x64Reg.h"
 #include "Core/HW/Memmap.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
-
-using namespace Gen;
+#include "Core/MachineContext.h"
+#include "Core/PowerPC/PPCAnalyst.h"
 
 // This generates some fairly heavy trampolines, but it doesn't really hurt.
 // Only instructions that access I/O will get these, and there won't be that
@@ -25,10 +27,10 @@ bool Jitx86Base::HandleFault(uintptr_t access_address, SContext* ctx)
 {
   // TODO: do we properly handle off-the-end?
   if (access_address >= (uintptr_t)Memory::physical_base &&
-      access_address < (uintptr_t)Memory::physical_base + 0x100010000)
+    access_address < (uintptr_t)Memory::physical_base + 0x100010000)
     return BackPatch((u32)(access_address - (uintptr_t)Memory::physical_base), ctx);
   if (access_address >= (uintptr_t)Memory::logical_base &&
-      access_address < (uintptr_t)Memory::logical_base + 0x100010000)
+    access_address < (uintptr_t)Memory::logical_base + 0x100010000)
     return BackPatch((u32)(access_address - (uintptr_t)Memory::logical_base), ctx);
 
   return false;
@@ -87,7 +89,7 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   // before faulting (eg: the store+swap was not an atomic op like MOVBE), let's
   // swap it back so that the swap can happen again (this double swap isn't ideal but
   // only happens the first time we fault).
-  if (info.nonAtomicSwapStoreSrc != INVALID_REG)
+  if (info.nonAtomicSwapStoreSrc != Gen::INVALID_REG)
   {
     u64* ptr = ContextRN(ctx, info.nonAtomicSwapStoreSrc);
     switch (info.accessSize << 3)
@@ -121,4 +123,42 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   ctx->CTX_PC = reinterpret_cast<u64>(trampoline);
 
   return true;
+}
+
+void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
+                     JitBlock* b)
+{
+  for (int i = 0; i < size; i++)
+  {
+    const PPCAnalyst::CodeOp& op = code_buffer->codebuffer[i];
+    std::string temp = StringFromFormat(
+        "%08x %s", op.address, GekkoDisassembler::Disassemble(op.inst.hex, op.address).c_str());
+    DEBUG_LOG(DYNA_REC, "IR_X86 PPC: %s\n", temp.c_str());
+  }
+
+  disassembler x64disasm;
+  x64disasm.set_syntax_intel();
+
+  u64 disasmPtr = (u64)normalEntry;
+  const u8* end = normalEntry + b->codeSize;
+
+  while ((u8*)disasmPtr < end)
+  {
+    char sptr[1000] = "";
+    disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
+    DEBUG_LOG(DYNA_REC, "IR_X86 x86: %s", sptr);
+  }
+
+  if (b->codeSize <= 250)
+  {
+    std::stringstream ss;
+    ss << std::hex;
+    for (u8 i = 0; i <= b->codeSize; i++)
+    {
+      ss.width(2);
+      ss.fill('0');
+      ss << (u32) * (normalEntry + i);
+    }
+    DEBUG_LOG(DYNA_REC, "IR_X86 bin: %s\n\n\n", ss.str().c_str());
+  }
 }

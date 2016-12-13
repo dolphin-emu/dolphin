@@ -8,6 +8,7 @@
 
 #include "Common/BitSet.h"
 #include "Common/CPUDetect.h"
+#include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/PowerPC.h"
 
