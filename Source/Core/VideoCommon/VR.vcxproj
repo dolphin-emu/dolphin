@@ -61,7 +61,7 @@
     <ClCompile Include="..\DolphinWX\HideObjectAddEdit.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
-    <ClCompile Include="..\DolphinWX\ISOProperties.cpp">
+    <ClCompile Include="..\DolphinWX\ISOProperties\ISOProperties.cpp">
       <ExcludedFromBuild>true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="VRGameMatrices.cpp" />
@@ -79,7 +79,7 @@
     <ClInclude Include="..\VideoBackends\OGL\VROGL.h" />
     <ClInclude Include="..\DolphinWX\ConfigVR.h" />
     <ClInclude Include="..\DolphinWX\HideObjectAddEdit.h" />
-    <ClInclude Include="..\DolphinWX\ISOProperties.h" />
+    <ClInclude Include="..\DolphinWX\ISOProperties\ISOProperties.h" />
     <ClInclude Include="VRGameMatrices.h" />
     <ClInclude Include="VROculus.h" />
     <ClInclude Include="VROpenVR.h" />
