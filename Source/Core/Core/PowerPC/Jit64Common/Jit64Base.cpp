@@ -26,19 +26,20 @@
 bool Jitx86Base::HandleFault(uintptr_t access_address, SContext* ctx)
 {
   // TODO: do we properly handle off-the-end?
-  if (access_address >= (uintptr_t)Memory::physical_base &&
-    access_address < (uintptr_t)Memory::physical_base + 0x100010000)
-    return BackPatch((u32)(access_address - (uintptr_t)Memory::physical_base), ctx);
-  if (access_address >= (uintptr_t)Memory::logical_base &&
-    access_address < (uintptr_t)Memory::logical_base + 0x100010000)
-    return BackPatch((u32)(access_address - (uintptr_t)Memory::logical_base), ctx);
+  const auto base_ptr = reinterpret_cast<uintptr_t>(Memory::physical_base);
+  if (access_address >= base_ptr && access_address < base_ptr + 0x100010000)
+    return BackPatch(static_cast<u32>(access_address - base_ptr), ctx);
+
+  const auto logical_base_ptr = reinterpret_cast<uintptr_t>(Memory::logical_base);
+  if (access_address >= logical_base_ptr && access_address < logical_base_ptr + 0x100010000)
+    return BackPatch(static_cast<u32>(access_address - logical_base_ptr), ctx);
 
   return false;
 }
 
 bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
 {
-  u8* codePtr = (u8*)ctx->CTX_PC;
+  u8* codePtr = reinterpret_cast<u8*>(ctx->CTX_PC);
 
   if (!IsInSpace(codePtr))
     return false;  // this will become a regular crash real soon after this
@@ -139,13 +140,13 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer* code_buffer, const u8* no
   disassembler x64disasm;
   x64disasm.set_syntax_intel();
 
-  u64 disasmPtr = (u64)normalEntry;
+  u64 disasmPtr = reinterpret_cast<u64>(normalEntry);
   const u8* end = normalEntry + b->codeSize;
 
-  while ((u8*)disasmPtr < end)
+  while (reinterpret_cast<u8*>(disasmPtr) < end)
   {
     char sptr[1000] = "";
-    disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, (u8*)disasmPtr, sptr);
+    disasmPtr += x64disasm.disasm64(disasmPtr, disasmPtr, reinterpret_cast<u8*>(disasmPtr), sptr);
     DEBUG_LOG(DYNA_REC, "IR_X86 x86: %s", sptr);
   }
 
@@ -157,7 +158,7 @@ void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer* code_buffer, const u8* no
     {
       ss.width(2);
       ss.fill('0');
-      ss << (u32) * (normalEntry + i);
+      ss << static_cast<u32>(*(normalEntry + i));
     }
     DEBUG_LOG(DYNA_REC, "IR_X86 bin: %s\n\n\n", ss.str().c_str());
   }
