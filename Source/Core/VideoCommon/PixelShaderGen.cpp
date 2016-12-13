@@ -341,7 +341,7 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
                        APIType ApiType);
 static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp,
-                            int shift);
+                            int shift, bool alpha);
 static void SampleTexture(ShaderCode& out, const char* texcoords, const char* texswap, int texmap,
                           bool stereo, APIType ApiType);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
@@ -1038,7 +1038,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
   if (cc.bias != TEVBIAS_COMPARE)
   {
-    WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift);
+    WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift, false);
   }
   else
   {
@@ -1071,7 +1071,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
   if (ac.bias != TEVBIAS_COMPARE)
   {
-    WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift);
+    WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift, true);
   }
   else
   {
@@ -1099,7 +1099,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 }
 
 static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp,
-                            int shift)
+                            int shift, bool alpha)
 {
   const char* tevScaleTableLeft[] = {
       "",       // SCALE_1
@@ -1141,7 +1141,7 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
   out.Write(" %s ", tevOpTable[op]);
   out.Write("(((((tevin_a.%s<<8) + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
             components, components, components, components, components, tevScaleTableLeft[shift],
-            tevLerpBias[2 * op + (shift != 3)]);
+            tevLerpBias[2 * op + ((shift == 3) == alpha)]);
   out.Write(")%s", tevScaleTableRight[shift]);
 }
 
