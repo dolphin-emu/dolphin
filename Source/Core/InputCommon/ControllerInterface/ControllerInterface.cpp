@@ -139,6 +139,8 @@ void ControllerInterface::RefreshDevices()
 #ifdef CIFACE_USE_PIPES
   ciface::Pipes::PopulateDevices();
 #endif
+  ciface::ViveInput::PopulateDevices();
+  ciface::OculusInput::PopulateDevices();
 }
 
 //

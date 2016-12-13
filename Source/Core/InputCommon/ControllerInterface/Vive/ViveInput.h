@@ -14,6 +14,7 @@ namespace ciface
 namespace ViveInput
 {
 void Init();
+void PopulateDevices();
 void DeInit();
 
 class ViveController : public Core::Device

@@ -105,6 +105,10 @@ static const char* const named_motors[] = {
 
 void Init()
 {
+}
+
+void PopulateDevices()
+{
   g_controller_interface.AddDevice(std::make_shared<ViveController>());
 }
 

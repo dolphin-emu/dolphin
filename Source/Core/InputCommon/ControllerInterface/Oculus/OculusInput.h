@@ -14,6 +14,7 @@ namespace ciface
 namespace OculusInput
 {
 void Init();
+void PopulateDevices();
 void DeInit();
 
 class SIDRemote : public Core::Device
