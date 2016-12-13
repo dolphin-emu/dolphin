@@ -780,8 +780,8 @@ void VertexShaderManager::Init()
 
   m_layer_on_top = false;
 
-  memset(&xfmem, 0, sizeof(xfmem));
-  memset(&constants, 0, sizeof(constants));
+  xfmem = {};
+  constants = {};
   ResetView();
 
   // TODO: should these go inside ResetView()?

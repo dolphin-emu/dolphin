@@ -18,6 +18,7 @@ enum class PadGroup
   DPad,
   Triggers,
   Rumble,
+  Mic,
   Options
 };
 
@@ -43,6 +44,7 @@ private:
   Buttons* m_dpad;
   MixedTriggers* m_triggers;
   ControlGroup* m_rumble;
+  Buttons* m_mic;
   ControlGroup* m_options;
 
   const unsigned int m_index;

@@ -105,6 +105,7 @@
     <ClCompile Include="Debugger\WatchView.cpp" />
     <ClCompile Include="Debugger\WatchWindow.cpp" />
     <ClCompile Include="DolphinSlider.cpp" />
+    <ClCompile Include="ISOProperties\FilesystemPanel.cpp" />
     <ClCompile Include="ISOProperties\InfoPanel.cpp" />
     <ClCompile Include="ISOProperties\ISOProperties.cpp" />
     <ClCompile Include="NetPlay\ChangeGameDialog.cpp" />
@@ -121,6 +122,7 @@
     <ClCompile Include="Input\InputConfigDiagBitmaps.cpp" />
     <ClCompile Include="Input\HotkeyInputConfigDiag.cpp" />
     <ClCompile Include="Input\GCPadInputConfigDiag.cpp" />
+    <ClCompile Include="Input\MicButtonConfigDiag.cpp" />
     <ClCompile Include="Input\GCKeyboardInputConfigDiag.cpp" />
     <ClCompile Include="Input\WiimoteInputConfigDiag.cpp" />
     <ClCompile Include="Input\NunchukInputConfigDiag.cpp" />
@@ -163,6 +165,7 @@
     <ClInclude Include="Config\WiiConfigPane.h" />
     <ClInclude Include="ConfigVR.h" />
     <ClInclude Include="DolphinSlider.h" />
+    <ClInclude Include="ISOProperties\FilesystemPanel.h" />
     <ClInclude Include="ISOProperties\InfoPanel.h" />
     <ClInclude Include="ISOProperties\ISOProperties.h" />
     <ClInclude Include="NetPlay\ChangeGameDialog.h" />
@@ -202,6 +205,7 @@
     <ClInclude Include="Input\InputConfigDiag.h" />
     <ClInclude Include="Input\HotkeyInputConfigDiag.h" />
     <ClInclude Include="Input\GCPadInputConfigDiag.h" />
+    <ClInclude Include="Input\MicButtonConfigDiag.h" />
     <ClInclude Include="Input\GCKeyboardInputConfigDiag.h" />
     <ClInclude Include="Input\WiimoteInputConfigDiag.h" />
     <ClInclude Include="Input\NunchukInputConfigDiag.h" />

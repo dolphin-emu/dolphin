@@ -35,6 +35,7 @@ set(GUI_SRCS
 	Debugger/RegisterWindow.cpp
 	Debugger/WatchView.cpp
 	Debugger/WatchWindow.cpp
+	ISOProperties/FilesystemPanel.cpp
 	ISOProperties/InfoPanel.cpp
 	ISOProperties/ISOProperties.cpp
 	NetPlay/ChangeGameDialog.cpp
@@ -47,6 +48,7 @@ set(GUI_SRCS
 	Input/InputConfigDiagBitmaps.cpp
 	Input/HotkeyInputConfigDiag.cpp
 	Input/GCPadInputConfigDiag.cpp
+	Input/MicButtonConfigDiag.cpp
 	Input/GCKeyboardInputConfigDiag.cpp
 	Input/WiimoteInputConfigDiag.cpp
 	Input/NunchukInputConfigDiag.cpp

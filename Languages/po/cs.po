@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-01 08:35+0100\n"
-"PO-Revision-Date: 2016-12-01 07:35+0000\n"
+"POT-Creation-Date: 2016-12-10 13:05+0100\n"
+"PO-Revision-Date: 2016-12-10 12:05+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Czech (http://www.transifex.com/delroth/dolphin-emu/language/"
 "cs/)\n"
@@ -663,7 +663,7 @@ msgstr "<Zde vložte jméno>"
 msgid "<No resolutions found>"
 msgstr "<Žádné rozlišení nenalezeno>"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:30
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:33
 msgid "<Nothing>"
 msgstr "<Nic>"
 
@@ -689,7 +689,7 @@ msgstr ""
 msgid "A game is not currently running."
 msgstr "Hra v současnosti neběží!"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:798
+#: Source/Core/DolphinWX/FrameTools.cpp:807
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -721,7 +721,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:136
-#: Source/Core/DolphinWX/ISOProperties.cpp:445
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:248
 msgid "AR Codes"
 msgstr "Kódy AR"
 
@@ -861,7 +861,7 @@ msgstr ""
 msgid "Add New Pane To"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1551
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:845
 msgid "Add Patch"
 msgstr "Přidat Záplatu"
 
@@ -887,7 +887,7 @@ msgid "Add to &watch"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:38
-#: Source/Core/DolphinWX/ISOProperties.cpp:592
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:395
 msgid "Add..."
 msgstr "Přidat..."
 
@@ -907,7 +907,7 @@ msgstr ""
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Upravte tlak analogového ovládání potřebný k aktivaci tlačítek."
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:37
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:40
 msgid "Advance Game Port"
 msgstr "Port Advance Game"
 
@@ -929,8 +929,8 @@ msgstr "Všechny soubory GC/Wii (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
 msgid "All GameCube GCM files (gcm)"
 msgstr "Všechny soubory GameCube GCM )gcm)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1269
-#: Source/Core/DolphinWX/FrameTools.cpp:1281
+#: Source/Core/DolphinWX/FrameTools.cpp:1278
+#: Source/Core/DolphinWX/FrameTools.cpp:1290
 msgid "All Save States (sav, s##)"
 msgstr "Všechny Uložené Stavy (sav, s##)"
 
@@ -991,7 +991,7 @@ msgstr ""
 msgid "Append to &Existing Signature File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:649
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:226
 msgid "Apploader Date:"
 msgstr "Datum zavaděče aplikace:"
 
@@ -1039,7 +1039,7 @@ msgstr "Jste si jisti, že chcete tyto soubory smazat? Budou navždy ztraceny!"
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr "Opravdu chcete smazat tento soubor? Bude navždy ztracen!"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:399
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:419
 msgid "Are you trying to use the same file in both slots?"
 msgstr "Snažíte se použít stejný soubor v obou pozicích?"
 
@@ -1072,7 +1072,7 @@ msgstr "Podpůrná vrstva zvuku:"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: Chyba při otevírání zařízení zvukového výstupu.\n"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:241
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:90
 msgid "Australia"
 msgstr "Austrálie"
 
@@ -1150,7 +1150,7 @@ msgid "Backend:"
 msgstr "Podpůrná vrstva:"
 
 #: Source/Core/Core/HotkeyManager.cpp:252
-#: Source/Core/Core/HW/GCKeyboardEmu.cpp:78 Source/Core/Core/HW/GCPadEmu.cpp:72
+#: Source/Core/Core/HW/GCKeyboardEmu.cpp:78 Source/Core/Core/HW/GCPadEmu.cpp:73
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:285
 msgid "Background Input"
 msgstr "Zadní Vstup"
@@ -1165,11 +1165,11 @@ msgstr "Dozadu"
 msgid "Banner"
 msgstr "Plakát"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:772
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:304
 msgid "Banner Details"
 msgstr "Detaily Plakátu"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:725
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:280
 msgid "Banner:"
 msgstr "Plakát:"
 
@@ -1256,15 +1256,19 @@ msgstr ""
 msgid "Break and log"
 msgstr ""
 
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:392
+msgid "Breakpoint encountered! Step out aborted."
+msgstr ""
+
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.h:18
 msgid "Breakpoints"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:39
 msgid "Broadband Adapter"
 msgstr "Adaptér širokopásmového připojení"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:529
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:332
 msgid "Broken"
 msgstr "Rozbité"
 
@@ -1280,7 +1284,11 @@ msgstr "Procházet pro výstupní adresář"
 msgid "Buffer:"
 msgstr "Vyrovnávací paměť:"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:45
+#: Source/Core/Core/HW/GCPadEmu.cpp:63
+msgid "Button"
+msgstr ""
+
+#: Source/Core/Core/HW/GCPadEmu.cpp:42
 #: Source/Core/DolphinWX/TASInputDlg.cpp:218
 #: Source/Core/DolphinWX/TASInputDlg.cpp:305
 #: Source/Core/DolphinWX/TASInputDlg.cpp:414
@@ -1291,7 +1299,7 @@ msgstr "Tlačítka"
 msgid "Bypass XFB"
 msgstr "Potlačit XFB"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:465
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:268
 msgid ""
 "Bypass the clearing of the data cache by the DCBZ instruction. Usually leave "
 "this option disabled."
@@ -1303,7 +1311,7 @@ msgstr ""
 msgid "C"
 msgstr ""
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:53
+#: Source/Core/Core/HW/GCPadEmu.cpp:50
 #: Source/Core/DolphinWX/TASInputDlg.cpp:376
 msgid "C Stick"
 msgstr "Kruhová páčka"
@@ -1351,7 +1359,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:92
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:93
 msgid "Callstack"
 msgstr ""
 
@@ -1372,7 +1380,7 @@ msgstr ""
 msgid "Cannot set uninitialized memory."
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:345
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:365
 #, c-format
 msgid ""
 "Cannot use that file as a memory card.\n"
@@ -1417,7 +1425,7 @@ msgstr ""
 "Změní jazyk uživatelského rozhraní.\n"
 "Vyžaduje restart."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:172
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:158
 msgid "Changing cheats will only take effect when the game is restarted."
 msgstr ""
 
@@ -1441,7 +1449,7 @@ msgstr "Správce cheatů"
 msgid "Cheat Search"
 msgstr "Hledání Cheatů"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:917
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:297
 msgid "Check Partition Integrity"
 msgstr "Zkontrolovat celistvost oddílu"
 
@@ -1449,7 +1457,7 @@ msgstr "Zkontrolovat celistvost oddílu"
 msgid "Check for updates: "
 msgstr "Zkontrolovat aktualizace:"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1159
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
 msgid "Checking integrity..."
 msgstr "Kontrolování celistvosti..."
 
@@ -1473,7 +1481,7 @@ msgstr "Zvolte adresář k přidání"
 msgid "Choose a dump directory:"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:332
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:352
 msgid "Choose a file to open"
 msgstr "Zvolte soubor k otevření"
 
@@ -1501,8 +1509,8 @@ msgstr ""
 msgid "Choose secondary input file"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1051
-#: Source/Core/DolphinWX/ISOProperties.cpp:1107
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:321
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:340
 msgid "Choose the folder to extract to"
 msgstr "Zvolte adresář pro umístění extrakce"
 
@@ -1550,7 +1558,7 @@ msgid "Clone and &Edit Code..."
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:276
-#: Source/Core/DolphinWX/ISOProperties.cpp:815
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:445
 #: Source/Core/DolphinWX/MemcardManager.cpp:241
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:135
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:153
@@ -1574,7 +1582,7 @@ msgstr "Informace o kódu"
 msgid "Code:"
 msgstr "Kód:"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:24
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:23
 msgid "Code: "
 msgstr "Kód:"
 
@@ -1612,7 +1620,7 @@ msgstr ""
 "odstraněna vyplňující data. Váš obraz disku bude stále fungovat. Chcete "
 "pokračovat?"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:658
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:237
 msgid "Compute"
 msgstr "Spočítat"
 
@@ -1623,7 +1631,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1453
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
 msgid "Computing MD5 checksum"
 msgstr "Vypočítávání kontrolního součtu MD5"
 
@@ -1650,7 +1658,7 @@ msgstr "Nastavit"
 msgid "Configure Control"
 msgstr "Nastavit Ovládání"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:123
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:109
 msgid "Configure Dolphin"
 msgstr ""
 
@@ -1728,7 +1736,7 @@ msgstr "Průběžné skenování"
 msgid "Control"
 msgstr "Ctrl"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:50
+#: Source/Core/Core/HW/GCPadEmu.cpp:47
 msgid "Control Stick"
 msgstr "Ovládací páčka"
 
@@ -1770,7 +1778,7 @@ msgstr ""
 msgid "Convergence:"
 msgstr "Sblížení:"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:512
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:315
 msgid "Convergence: "
 msgstr "Sblížení:"
 
@@ -1812,7 +1820,7 @@ msgstr "Kopírování selhalo"
 msgid "Copy to Memcard %c"
 msgstr "Kopírovat na Paměťovou kartu %c"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:542
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:345
 msgid "Core"
 msgstr "Jádro"
 
@@ -1834,7 +1842,7 @@ msgstr ""
 msgid "Could not recognize ISO file %s"
 msgstr "Nelze rozpoznat ISO soubor %s"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:850
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:480
 #, c-format
 msgid "Could not save %s."
 msgstr "Nelze uložit %s"
@@ -1867,7 +1875,7 @@ msgstr "Nelze vytvořit klienta"
 msgid "Couldn't create peer."
 msgstr "Nelze vytvořit vrstevníka."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1395
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:695
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Nelze najít příkaz pro otevření přípony 'ini'!"
 
@@ -1896,12 +1904,12 @@ msgstr "Počet:"
 msgid "Count: %lu"
 msgstr "Počet: %lu"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:640
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:216
 msgid "Country:"
 msgstr "Země:"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:54
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:18
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:17
 msgid "Create AR Code"
 msgstr "Vytvořit AR kód"
 
@@ -1972,7 +1980,7 @@ msgstr "Vlastní"
 msgid "Custom RTC Options"
 msgstr ""
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:65
+#: Source/Core/Core/HW/GCPadEmu.cpp:66
 msgid "D-Pad"
 msgstr "D-Pad"
 
@@ -1985,7 +1993,7 @@ msgid "DSP Emulator Engine"
 msgstr "Jádro Emulátoru DSP"
 
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:34
-#: Source/Core/DolphinWX/ISOProperties.cpp:480
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:283
 msgid "DSP HLE emulation (fast)"
 msgstr "DSP HLE emulace (rychlé)"
 
@@ -2105,7 +2113,7 @@ msgstr "Smazat Uloženou Hru"
 msgid "Delete the existing file '%s'?"
 msgstr "Vymazat existující soubor '%s'?"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:503
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:306
 msgid "Depth Percentage: "
 msgstr "Procento hloubky: "
 
@@ -2117,7 +2125,7 @@ msgstr "Hloubka:"
 msgid "Description"
 msgstr "Popis"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:722
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:277
 msgid "Description:"
 msgstr "Popis:"
 
@@ -2125,7 +2133,7 @@ msgstr "Popis:"
 msgid "Detect"
 msgstr "Zjistit"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:485
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:288
 msgid "Deterministic dual core: "
 msgstr "Deterministické dvojité jádro: "
 
@@ -2134,7 +2142,7 @@ msgstr "Deterministické dvojité jádro: "
 msgid "Device"
 msgstr "Zařízení"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:115
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:118
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:119
 msgid "Device Settings"
 msgstr "Nastavení Zařízení"
@@ -2214,7 +2222,7 @@ msgstr ""
 msgid "Disassembly"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:803
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:188
 msgid "Disc"
 msgstr "Disk"
 
@@ -2244,7 +2252,7 @@ msgstr "Rozdělit"
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:797
+#: Source/Core/DolphinWX/FrameTools.cpp:806
 msgid "Do you want to stop the current emulation?"
 msgstr "Chcete současnou emulaci zastavit?"
 
@@ -2275,7 +2283,7 @@ msgstr "Nastavení ovladače Dolphin"
 msgid "Dolphin FIFO"
 msgstr "Dolphin FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1001
+#: Source/Core/DolphinWX/FrameTools.cpp:1010
 msgid "Dolphin Hotkeys"
 msgstr "Klávesové zkratky Dolphin"
 
@@ -2307,7 +2315,7 @@ msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:480
-#: Source/Core/DolphinWX/FrameTools.cpp:936
+#: Source/Core/DolphinWX/FrameTools.cpp:945
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "Doplhin Filmy TAS (*.dtm)"
 
@@ -2336,7 +2344,7 @@ msgstr ""
 msgid "Dolphin was unable to complete the requested action."
 msgstr "Dolphin nemohl dokončit požadovanou činnost."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:166
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:152
 msgid "Dolphin's cheat system is currently disabled."
 msgstr ""
 
@@ -2376,7 +2384,7 @@ msgstr "Bubny"
 msgid "Drums Configuration"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:31
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
 msgid "Dummy"
 msgstr "Atrapa"
 
@@ -2458,9 +2466,9 @@ msgstr ""
 msgid "Duplicate Bundled ActionReplay Code"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:54
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
-#: Source/Core/DolphinWX/ISOProperties.cpp:693
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:64
 msgid "Dutch"
 msgstr "Nizozemština"
 
@@ -2492,7 +2500,7 @@ msgstr "Předčasné Aktualizace Paměti"
 msgid "Edit ActionReplay Code"
 msgstr "Upravit kód ActionReplay"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:431
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:234
 msgid "Edit Config"
 msgstr "Upravit nastavení"
 
@@ -2505,7 +2513,7 @@ msgstr "Upravit záplatu"
 msgid "Edit Perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:591
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:394
 msgid "Edit..."
 msgstr "Upravit"
 
@@ -2569,7 +2577,7 @@ msgstr ""
 msgid "Emulated Wii Remote"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:527
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:330
 msgid "Emulation State: "
 msgstr "Stav Emulace:"
 
@@ -2593,7 +2601,7 @@ msgstr "Povolit Cheaty"
 msgid "Enable Custom RTC"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:457
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:260
 msgid "Enable Dual Core"
 msgstr "Povolit dvojité jádro"
 
@@ -2601,11 +2609,11 @@ msgstr "Povolit dvojité jádro"
 msgid "Enable Dual Core (speedup)"
 msgstr "Zapnout dvojité jádro (zrychlení)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:467
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:270
 msgid "Enable FPRF"
 msgstr "Povolit FPRF"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:459
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:262
 msgid "Enable MMU"
 msgstr "Zapnout MMU"
 
@@ -2629,7 +2637,7 @@ msgstr "Povolit data reproduktorů"
 msgid "Enable Usage Statistics Reporting"
 msgstr "Povolit hlášení statistik o užívání"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:497
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:300
 msgid "Enable WideScreen"
 msgstr "Povolit Širokoúhlou obrazovku"
 
@@ -2651,7 +2659,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, zvolte 1x."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:478
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:281
 msgid ""
 "Enable fast disc access. This can cause crashes and other problems in some "
 "games. (ON = Fast, OFF = Compatible)"
@@ -2694,7 +2702,7 @@ msgid ""
 "only."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:469
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:272
 msgid ""
 "Enables Floating Point Result Flag calculation, needed for a few games. (ON "
 "= Compatible, OFF = Fast)"
@@ -2722,7 +2730,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:462
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:265
 msgid ""
 "Enables the Memory Management Unit, needed for some games. (ON = Compatible, "
 "OFF = Fast)"
@@ -2774,9 +2782,9 @@ msgstr "End"
 msgid "Enet Didn't Initialize"
 msgstr "Enet nebyl uaveden"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:49
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:52
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:34
-#: Source/Core/DolphinWX/ISOProperties.cpp:678
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:49
 msgid "English"
 msgstr "Angličtina"
 
@@ -2847,7 +2855,7 @@ msgstr "Escape"
 msgid "Euphoria"
 msgstr "Euforie"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:244
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:92
 msgid "Europe"
 msgstr "Evropa"
 
@@ -2862,10 +2870,6 @@ msgstr "Ukončit"
 #: Source/Core/DolphinWX/MainMenuBar.cpp:217
 msgid "Export All Wii Saves"
 msgstr "Exportovat všechny uložené hry Wii"
-
-#: Source/Core/DolphinWX/ISOProperties.cpp:929
-msgid "Export File"
-msgstr "Exportovat Soubor"
 
 #: Source/Core/Core/HotkeyManager.cpp:38
 msgid "Export Recording"
@@ -2904,44 +2908,48 @@ msgstr "Rozšíření"
 msgid "External Frame Buffer (XFB)"
 msgstr "Externí vyrovnávací paměť snímků (XFB)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:902
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:284
 msgid "Extract All Files..."
 msgstr "Extrahovat Všechny Soubory..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:909
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:290
 msgid "Extract Apploader..."
 msgstr "Extrahovat Zavaděč Aplikace..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:910
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:291
 msgid "Extract DOL..."
 msgstr "Extrahovat DOL..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:895
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:277
 msgid "Extract Directory..."
 msgstr "Extrahovat Adresář..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:899
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:309
+msgid "Extract File"
+msgstr ""
+
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:281
 msgid "Extract File..."
 msgstr "Extrahovat Soubor..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:891
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:273
 msgid "Extract Partition..."
 msgstr "Extrahovat Oddíl..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1007
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:579
 #, c-format
 msgid "Extracting %s"
 msgstr "Extrahuji %s"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:996
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:566
 msgid "Extracting All Files"
 msgstr "Extrahuji Všechny Soubory"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:996
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:566
 msgid "Extracting Directory"
 msgstr "Extrahuji Adresář"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:997
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:567
 msgid "Extracting..."
 msgstr "Extrahuji..."
 
@@ -2954,7 +2962,7 @@ msgstr "Přehrávač FIFO"
 msgid "FP value"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:652
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:230
 msgid "FST Size:"
 msgstr "Velikost FST:"
 
@@ -2979,7 +2987,7 @@ msgstr ""
 msgid "Failed to download codes."
 msgstr "Stahování kódů selhalo."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1135
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:370
 #, c-format
 msgid "Failed to extract to %s!"
 msgstr "Nelze extrahovat do %s!"
@@ -3176,11 +3184,11 @@ msgstr "Zápis soubor uselhal"
 msgid "Files opened, ready to compress."
 msgstr "Soubory otevřeny, připraveno ke komprimaci."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:788
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:439
 msgid "Filesystem"
 msgstr "Souborový systém"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1387
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:687
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "Typ souboru 'ini' je neznámý! Nelze otevřít!"
 
@@ -3201,12 +3209,12 @@ msgstr ""
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:232
-msgid "Find next"
-msgstr "Najít další"
+msgid "Find Next"
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
-msgid "Find previous"
-msgstr "Najít předchozí"
+msgid "Find Previous"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:646
 msgid "First Block"
@@ -3380,10 +3388,10 @@ msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:165
-msgid "Frames To Record"
-msgstr "Snímky k Nahrání"
+msgid "Frames to Record"
+msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:247
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "France"
 msgstr "Francie"
 
@@ -3431,9 +3439,9 @@ msgstr "Přiblížení volného pohledu"
 msgid "Freelook Zoom Out"
 msgstr "Oddálení volného pohledu"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:51
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:54
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:36
-#: Source/Core/DolphinWX/ISOProperties.cpp:684
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:55
 msgid "French"
 msgstr "Francouzština"
 
@@ -3462,11 +3470,11 @@ msgstr "Rozlišení celé obrazovky:"
 msgid "Function"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:110
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:111
 msgid "Function callers"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:104
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:105
 msgid "Function calls"
 msgstr ""
 
@@ -3482,7 +3490,7 @@ msgstr ""
 msgid "GCI File(*.gci)"
 msgstr "Soubor GCI(*.gci)"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:37
 msgid "GCI Folder"
 msgstr "Složka GCI"
 
@@ -3528,7 +3536,7 @@ msgstr ""
 "Další chyby budou vypsány v záznamu podpůrné vrstvy videa a\n"
 "Dolphin nyní pravděpodobně spadne nebo se zasekne. Přejeme hezký den."
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:334
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:354
 msgid "Game Boy Advance Carts (*.gba)"
 msgstr "Kartridže Game Boy Advance (*.gba)"
 
@@ -3536,7 +3544,7 @@ msgstr "Kartridže Game Boy Advance (*.gba)"
 msgid "Game ID"
 msgstr "ID hry"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:637
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:213
 msgid "Game ID:"
 msgstr "ID Hry:"
 
@@ -3551,11 +3559,11 @@ msgid ""
 msgstr ""
 "Hra přepsala uloženou pozici jiné hry. Následuje poškození dat 0x%x, 0x%x"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:570
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:373
 msgid "Game-Specific Settings"
 msgstr "Nastavení Konkrétní Hry"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:441
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:244
 msgid "GameConfig"
 msgstr "Nastavení Hry"
 
@@ -3571,17 +3579,25 @@ msgstr "Adaptér GameCube pro Wii U"
 msgid "GameCube Controllers"
 msgstr "Ovladače GameCube"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:333
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:353
 #: Source/Core/DolphinWX/MemcardManager.cpp:203
 msgid "GameCube Memory Cards (*.raw,*.gcp)"
 msgstr "Paměťové karty GameCube (*.raw,*.gcp)"
+
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:290
+msgid "GameCube Microphone Slot A"
+msgstr ""
+
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:295
+msgid "GameCube Microphone Slot B"
+msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:534
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
 msgstr "Soubory uložených her GameCube (*.gci;*.gcs;*.sav)"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:137
-#: Source/Core/DolphinWX/ISOProperties.cpp:447
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:250
 msgid "Gecko Codes"
 msgstr "Kódy Gecko"
 
@@ -3601,13 +3617,13 @@ msgstr "Vytvořit novou identitu pro statistiky"
 msgid "Geometry data"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:50
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:53
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:35
-#: Source/Core/DolphinWX/ISOProperties.cpp:681
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:52
 msgid "German"
 msgstr "Němčina"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:253
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:98
 msgid "Germany"
 msgstr "Německo"
 
@@ -3805,7 +3821,7 @@ msgstr ""
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_SPUŠTĚNÍ: Soubor DOL je neplatný!"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:109
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:112
 msgid "IPL Settings"
 msgstr "Nastavení IPL"
 
@@ -3823,7 +3839,7 @@ msgstr "Infrč."
 msgid "IR Sensitivity:"
 msgstr "Citlivost Infračer.:"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:751
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:261
 msgid "ISO Details"
 msgstr "Detaily ISO"
 
@@ -3939,7 +3955,7 @@ msgstr ""
 "Importovaný soubor má příponu sav,\n"
 "ale nemá správnou hlavičku."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:531
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:334
 msgid "In Game"
 msgstr "Ve Hře"
 
@@ -3959,7 +3975,7 @@ msgstr "Zvýšit rychlost emulace"
 msgid "Increase IR"
 msgstr "Zvýšit vnitřní rozlišení"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:449
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:252
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:45
 msgid "Info"
 msgstr "Info"
@@ -3996,23 +4012,23 @@ msgstr ""
 msgid "Install to Wii Menu"
 msgstr "Instalovat do Wii Menu"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1180
+#: Source/Core/DolphinWX/FrameTools.cpp:1189
 msgid "Installing WAD..."
 msgstr "Instaluji WAD..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1180
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:407
 msgid "Integrity Check Error"
 msgstr "Chyba v kontrole celistvosti"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1185
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:400
 msgid "Integrity check completed"
 msgstr "Kontrola celistvosti dokončena"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1184
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:399
 msgid "Integrity check completed. No errors have been found."
 msgstr "Kontrola celistvosti dokončena. Nebyly nalezeny žádné chyby."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1177
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:404
 #, c-format
 msgid ""
 "Integrity check for %s failed. The disc image is most likely corrupted or "
@@ -4046,7 +4062,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Vnitřní chyba LZO - lzo_init() selhalo"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:634
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:209
 msgid "Internal Name:"
 msgstr "Vnitřní název:"
 
@@ -4058,7 +4074,7 @@ msgstr "Vnitřní Rozlišení:"
 msgid "Interpreter (slowest)"
 msgstr "Převaděč (nejpomalejší)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:530
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:333
 msgid "Intro"
 msgstr "Intro"
 
@@ -4099,7 +4115,7 @@ msgstr "Neplatný řetězec hledání (nelze převést na číslo)"
 msgid "Invalid search string (only even string lengths supported)"
 msgstr "Neplatný řetězec hledání (jsou podporovány pouze sudé délky řetězce)"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:78
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:77
 msgid "Invalid value."
 msgstr "Neplatná hodnota."
 
@@ -4108,18 +4124,18 @@ msgstr "Neplatná hodnota."
 msgid "Invalid value: %s"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:53
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:56
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:38
-#: Source/Core/DolphinWX/ISOProperties.cpp:690
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:61
 msgid "Italian"
 msgstr "Italština"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:250
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:96
 msgid "Italy"
 msgstr "Itálie"
 
 #: Source/Core/Core/HotkeyManager.cpp:254
-#: Source/Core/Core/HW/GCKeyboardEmu.cpp:80 Source/Core/Core/HW/GCPadEmu.cpp:74
+#: Source/Core/Core/HW/GCKeyboardEmu.cpp:80 Source/Core/Core/HW/GCPadEmu.cpp:75
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
 msgid "Iterative Input"
 msgstr "iterativní vstup"
@@ -4140,12 +4156,12 @@ msgstr "JIT Rekompilátor (doporučeno)"
 msgid "JITIL Recompiler (slow, experimental)"
 msgstr "Rekompilátor JITIL (pomalý, experimentální)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:268
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:108
 msgid "Japan"
 msgstr "Japonsko"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
-#: Source/Core/DolphinWX/ISOProperties.cpp:675
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:46
 msgid "Japanese"
 msgstr "Japonština"
 
@@ -4181,17 +4197,17 @@ msgstr "Klávesy"
 msgid "Kick Player"
 msgstr "Vykopnout hráče"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:271
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:110
 msgid "Korea"
 msgstr "Korea"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:42
-#: Source/Core/DolphinWX/ISOProperties.cpp:702
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:73
 msgid "Korean"
 msgstr "Korejština"
 
 #. i18n: The left trigger button (labeled L on real controllers)
-#: Source/Core/Core/HW/GCPadEmu.cpp:32
+#: Source/Core/Core/HW/GCPadEmu.cpp:31
 #: Source/Core/DolphinWX/TASInputDlg.cpp:252
 #: Source/Core/DolphinWX/TASInputDlg.cpp:397
 msgid "L"
@@ -4202,7 +4218,7 @@ msgid "L Button"
 msgstr "Tlačítko L"
 
 #. i18n: The left trigger button (labeled L on real controllers) used as an analog input
-#: Source/Core/Core/HW/GCPadEmu.cpp:36
+#: Source/Core/Core/HW/GCPadEmu.cpp:35
 msgid "L-Analog"
 msgstr "Levý Analog"
 
@@ -4261,7 +4277,7 @@ msgstr ""
 msgid "Less Than"
 msgstr "Menší než"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:62
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:65
 msgid ""
 "Lets the system language be set to values that games were not designed for. "
 "This can allow the use of extra translations for a few games, but can also "
@@ -4399,12 +4415,12 @@ msgstr ""
 msgid "Load State..."
 msgstr "Nahrát Stav..."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1208
+#: Source/Core/DolphinWX/FrameTools.cpp:1217
 #: Source/Core/DolphinWX/MainMenuBar.cpp:557
 msgid "Load Wii System Menu"
 msgstr "Nahrát Systémové Menu Wii"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1203
+#: Source/Core/DolphinWX/FrameTools.cpp:1212
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Nahrát Systémové Menu Wii %d%c"
@@ -4497,7 +4513,7 @@ msgstr "Tlačítko M"
 msgid "MD5 Checksum"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:655
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:234
 msgid "MD5 Checksum:"
 msgstr "Kontrolní součet MD5:"
 
@@ -4525,11 +4541,11 @@ msgstr ""
 msgid "Maker"
 msgstr "Tvůrce"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:643
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:219
 msgid "Maker ID:"
 msgstr "ID Výrobce:"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:719
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:274
 msgid "Maker:"
 msgstr "Výrobce:"
 
@@ -4577,7 +4593,7 @@ msgstr "Pam. karta již otevřena"
 msgid "Memory"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:33
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:36
 #: Source/Core/DolphinWX/MemcardManager.cpp:215
 msgid "Memory Card"
 msgstr "Paměťová karta"
@@ -4630,11 +4646,8 @@ msgstr "Paměťová karta: Volán zápis pomocí neplatné cílové adresy (0x%x
 msgid "Menu"
 msgstr "Menu"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:28
-msgid "Mic"
-msgstr "Mikrofon"
-
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:35
+#: Source/Core/Core/HW/GCPadEmu.cpp:62
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:38
 msgid "Microphone"
 msgstr "Mikrofon"
 
@@ -4668,7 +4681,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto odškrtnuté."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:521
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:324
 msgid "Monoscopic Shadows"
 msgstr "Monoskopické stíny"
 
@@ -4680,7 +4693,7 @@ msgstr "Písmo se stejnou roztečí"
 msgid "Motion Plus"
 msgstr "Motion Plus"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:62
+#: Source/Core/Core/HW/GCPadEmu.cpp:59
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:275
 msgid "Motor"
 msgstr "Motor"
@@ -4791,14 +4804,14 @@ msgid "NP Up"
 msgstr "NK Nahoru"
 
 #: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:42
-#: Source/Core/DolphinWX/ISOProperties.cpp:716
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:271
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:58
 msgid "Name:"
 msgstr "Jméno:"
 
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:78
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:186
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:20
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:19
 #: Source/Core/DolphinWX/Cheats/GeckoCodeDiag.cpp:30
 msgid "Name: "
 msgstr "Jméno: "
@@ -4812,7 +4825,7 @@ msgstr "Původní (640x528)"
 msgid "Native GCI files(*.gci)"
 msgstr "Původní soubory CGI(*.gci)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:256
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:100
 msgid "Netherlands"
 msgstr "Nizozemí"
 
@@ -4901,8 +4914,8 @@ msgid "Not Equal"
 msgstr "Nerovná se"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:916
-#: Source/Core/DolphinWX/ISOProperties.cpp:486
-#: Source/Core/DolphinWX/ISOProperties.cpp:528
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:289
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:331
 msgid "Not Set"
 msgstr "Nenastaven"
 
@@ -5016,7 +5029,7 @@ msgid ""
 "(Blank for all symbols)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:518
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:535
 msgid "Op?"
 msgstr ""
 
@@ -5051,7 +5064,7 @@ msgstr "OpenAL: nelze nalézt zvuková zařízení"
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: nelze otevřít zařízení %s"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:436
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:239
 msgid ""
 "Opens the default (read-only) configuration for this game in an external "
 "text editor."
@@ -5060,7 +5073,7 @@ msgstr ""
 "editoru."
 
 #: Source/Core/Core/HotkeyManager.cpp:250
-#: Source/Core/Core/HW/GCKeyboardEmu.cpp:76 Source/Core/Core/HW/GCPadEmu.cpp:70
+#: Source/Core/Core/HW/GCKeyboardEmu.cpp:76 Source/Core/Core/HW/GCPadEmu.cpp:71
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:283
 msgid "Options"
 msgstr "Volby"
@@ -5100,7 +5113,7 @@ msgstr "Výstup"
 msgid "Overlay Information"
 msgstr "Překryvné informace"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:60
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:63
 msgid "Override Language on NTSC Games"
 msgstr "Potlačit jazyk her NTSC"
 
@@ -5140,16 +5153,16 @@ msgstr "Odstavec"
 msgid "Parsing Error"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:331
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:246
 #, c-format
-msgid "Partition %i"
-msgstr "Oddíl %i"
+msgid "Partition %u"
+msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:230
 msgid "Passthrough a Bluetooth adapter"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:443
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:246
 msgid "Patches"
 msgstr "Záplaty"
 
@@ -5194,7 +5207,7 @@ msgstr "Pozastaví emulátor, pokud jeho okno není aktivní."
 msgid "Per-Pixel Lighting"
 msgstr "Osvětlení Podle Pixelu"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:533
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:336
 msgid "Perfect"
 msgstr "Dokonalá"
 
@@ -5236,7 +5249,7 @@ msgstr "Spustit"
 msgid "Play Recording"
 msgstr "Přehrát nahrávku"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:532
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:335
 msgid "Playable"
 msgstr "Hratelné"
 
@@ -5248,7 +5261,7 @@ msgstr "Možnosti Přehrávání"
 msgid "Players"
 msgstr "Hráči"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:801
+#: Source/Core/DolphinWX/FrameTools.cpp:810
 msgid "Please confirm..."
 msgstr "Prosím potvrďte..."
 
@@ -5317,7 +5330,7 @@ msgstr "Vytisknout"
 msgid "Profile"
 msgstr "Profil"
 
-#: Source/Core/DolphinWX/ISOProperties.h:69
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.h:55
 msgid "Properties"
 msgstr "Vlastnosti"
 
@@ -5329,7 +5342,7 @@ msgstr ""
 msgid "Purge Game List Cache"
 msgstr "Vyčistit mezipaměť seznamu her"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:75
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:78
 msgid "Put BIOS roms in User/GC/{region}."
 msgstr "Umístěte romy BIOS do User/GC/{oblast}."
 
@@ -5346,7 +5359,7 @@ msgid "Quit Netplay"
 msgstr "Ukončit Netplay"
 
 #. i18n: The right trigger button (labeled R on real controllers)
-#: Source/Core/Core/HW/GCPadEmu.cpp:34
+#: Source/Core/Core/HW/GCPadEmu.cpp:33
 #: Source/Core/DolphinWX/TASInputDlg.cpp:253
 #: Source/Core/DolphinWX/TASInputDlg.cpp:399
 msgid "R"
@@ -5357,7 +5370,7 @@ msgid "R Button"
 msgstr "Tlačítko R"
 
 #. i18n: The right trigger button (labeled R on real controllers) used as an analog input
-#: Source/Core/Core/HW/GCPadEmu.cpp:38
+#: Source/Core/Core/HW/GCPadEmu.cpp:37
 msgid "R-Analog"
 msgstr "Pravý Analog"
 
@@ -5478,7 +5491,7 @@ msgid "Relative Input"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:39
-#: Source/Core/DolphinWX/ISOProperties.cpp:593
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:396
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:87
 msgid "Remove"
 msgstr "Odstranit"
@@ -5552,7 +5565,7 @@ msgstr "Zkusit znovu"
 msgid "Return"
 msgstr "Enter"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:646
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:222
 msgid "Revision:"
 msgstr "Revize:"
 
@@ -5581,7 +5594,7 @@ msgstr "Pravá páčka"
 msgid "Room ID:"
 msgstr "ID místnosti:"
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:61
+#: Source/Core/Core/HW/GCPadEmu.cpp:58
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:274
 #: Source/Core/DolphinWX/Config/GCAdapterConfigDiag.cpp:22
 msgid "Rumble"
@@ -5591,7 +5604,7 @@ msgstr "Vibrace"
 msgid "Run"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:259
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:102
 msgid "Russia"
 msgstr "Rusko"
 
@@ -5691,8 +5704,8 @@ msgstr "Uložit Stav..."
 msgid "Save Symbol Map &As..."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:862
-#: Source/Core/DolphinWX/ISOProperties.cpp:872
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:354
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:360
 msgid "Save as..."
 msgstr "Uložit jako"
 
@@ -5803,22 +5816,22 @@ msgstr "Hledat"
 msgid "Search (clear to use previous value)"
 msgstr "Hledat (Vyčistěte pro použití předchozí hodnoty)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:79
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:80
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:79
 msgid "Search Address"
+msgstr ""
+
+#: Source/Core/DolphinWX/FifoPlayerDlg.cpp:261
+msgid "Search Current Object"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 msgid "Search Subfolders"
 msgstr "Hledat Podadresáře"
 
-#: Source/Core/DolphinWX/FifoPlayerDlg.cpp:261
-msgid "Search current Object"
-msgstr "Hledat v současném objektu"
-
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:224
-msgid "Search for hex Value:"
-msgstr "Hledat hexadecimální hodnotu:"
+msgid "Search for Hex Value:"
+msgstr ""
 
 #: Source/Core/Common/SysConf.h:98 Source/Core/Common/SysConf.h:121
 #: Source/Core/Common/SysConf.h:141 Source/Core/Common/SysConf.h:162
@@ -5890,11 +5903,11 @@ msgid "Select State Slot 9"
 msgstr "Vybrat stav na pozici 9"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:479
-#: Source/Core/DolphinWX/FrameTools.cpp:935
+#: Source/Core/DolphinWX/FrameTools.cpp:944
 msgid "Select The Recording File"
 msgstr "Vyberte Soubor s Nahrávkou"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1170
+#: Source/Core/DolphinWX/FrameTools.cpp:1179
 msgid "Select a Wii WAD file to install"
 msgstr "Vyberte soubor Wii WAD k instalování"
 
@@ -5910,15 +5923,15 @@ msgstr "Vybrat plovoucí okna"
 msgid "Select the file to load"
 msgstr "Vyberte soubor k nahrání"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1132
+#: Source/Core/DolphinWX/FrameTools.cpp:1141
 msgid "Select the save file"
 msgstr "Vyberte soubor s uloženou hrou"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1268
+#: Source/Core/DolphinWX/FrameTools.cpp:1277
 msgid "Select the state to load"
 msgstr "Vyberte stav k nahrání"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1280
+#: Source/Core/DolphinWX/FrameTools.cpp:1289
 msgid "Select the state to save"
 msgstr "Vyberte stav k uložení"
 
@@ -6035,7 +6048,7 @@ msgstr "Umístění Senzorové Tyče:"
 msgid "Separator"
 msgstr "Oddělovač"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:89
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:92
 msgid ""
 "Serial Port 1 - This is the port which devices such as the net adapter use."
 msgstr ""
@@ -6068,7 +6081,7 @@ msgstr "Nastavit jako výchozí paměťovou kartu %c"
 msgid "Set the current instruction"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:58
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:61
 msgid "Sets the GameCube system language."
 msgstr "Nastaví systémový jazyk GameCube"
 
@@ -6120,7 +6133,7 @@ msgstr "Zobrazit Panel Nás&trojů"
 msgid "Show Australia"
 msgstr "Zobrazit Autrálii"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:434
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:237
 msgid "Show Defaults"
 msgstr "Zobrazit výchozí"
 
@@ -6172,7 +6185,7 @@ msgstr "Zobrazit Koreu"
 msgid "Show Lag Counter"
 msgstr "Zobrazit počítadlo zpoždění"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:660
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:284
 msgid "Show Language:"
 msgstr "Jazyk Zobrazení:"
 
@@ -6330,7 +6343,7 @@ msgid "Sideways Wii Remote"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:40
-#: Source/Core/DolphinWX/ISOProperties.cpp:696
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:67
 msgid "Simplified Chinese"
 msgstr "Zjednodušená čínština"
 
@@ -6346,11 +6359,11 @@ msgstr "Velikost"
 msgid "Skip"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:65
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:68
 msgid "Skip BIOS"
 msgstr "Přeskočit BIOS"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:463
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:266
 msgid "Skip DCBZ clearing"
 msgstr "Přeskočit čištění DCBZ"
 
@@ -6382,11 +6395,11 @@ msgstr ""
 msgid "Slot %u - %s"
 msgstr ""
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:81
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:84
 msgid "Slot A"
 msgstr "Pozice A"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:81
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:84
 msgid "Slot B"
 msgstr "Pozice B"
 
@@ -6415,13 +6428,13 @@ msgstr "Nastavení Zvuku"
 msgid "Space"
 msgstr "Mezerník"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:262
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:104
 msgid "Spain"
 msgstr "Španělsko"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:52
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:55
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:37
-#: Source/Core/DolphinWX/ISOProperties.cpp:687
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:58
 msgid "Spanish"
 msgstr "Španělština"
 
@@ -6459,7 +6472,7 @@ msgstr ""
 msgid "Speed Limit:"
 msgstr "Omezení rychlosti:"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:476
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:279
 msgid "Speed up Disc Transfer Rate"
 msgstr "Zvýšit rychlost přenosu Disku"
 
@@ -6554,15 +6567,31 @@ msgstr ""
 msgid "Step out of the current function"
 msgstr ""
 
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:396
+msgid "Step out successful!"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:394
+msgid "Step out timed out!"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:321
+msgid "Step over in progress..."
+msgstr ""
+
 #: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Step over the next instruction"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:306
+msgid "Step successful!"
 msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"
 msgstr "Režim 3D stereoskopie:"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:564
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:367
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:687
 msgid "Stereoscopy"
 msgstr "Stereoskopie"
@@ -6659,7 +6688,7 @@ msgstr "Švihnutí"
 msgid "Symbol"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:98
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:99
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:95
 msgid "Symbols"
 msgstr ""
@@ -6676,11 +6705,11 @@ msgstr ""
 msgid "Sync real Wii Remotes and pair them"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:471
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:274
 msgid "Synchronize GPU thread"
 msgstr "Synchronizovat vlákno GPU"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:473
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:276
 msgid ""
 "Synchronizes the GPU and CPU threads to help prevent random freezes in Dual "
 "Core mode. (ON = Compatible, OFF = Fast)"
@@ -6692,7 +6721,7 @@ msgstr ""
 msgid "Syntax error"
 msgstr "Syntaktická chyba"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:102
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:105
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:77
 msgid "System Language:"
 msgstr "Jazyk Systému:"
@@ -6732,7 +6761,7 @@ msgstr "Deska vlevo"
 msgid "Table Right"
 msgstr "Deska vpravo"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:274
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:112
 msgid "Taiwan"
 msgstr "Tchaj-wan"
 
@@ -6942,7 +6971,7 @@ msgstr ""
 "Musí existovat lístek pro 00000001/00000002. Vaše NAND vypsání je "
 "pravděpodobně neúplné"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:453
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:256
 msgid ""
 "These settings override core Dolphin settings.\n"
 "Undetermined means the game uses Dolphin's setting."
@@ -7028,19 +7057,19 @@ msgstr ""
 "\n"
 "Neznámý ukód (CRC = %08x) - vynucuje AXWii."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:516
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:319
 msgid ""
 "This value is added to the convergence value set in the graphics "
 "configuration."
 msgstr ""
 "Tato hodnota je přidána do hodnoty sblížení zadané v grafickém nastavení"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:506
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:309
 msgid ""
 "This value is multiplied with the depth set in the graphics configuration."
 msgstr "Tato hodnota je vynásobena hloubkou zadanou v grafickém nastavení."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:432
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:235
 msgid "This will let you manually edit the INI config file."
 msgstr "Toto umožní ruční úpravu souborů INI s nastavením."
 
@@ -7139,7 +7168,7 @@ msgid "Top-and-Bottom"
 msgstr "Nad sebou"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:41
-#: Source/Core/DolphinWX/ISOProperties.cpp:699
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:70
 msgid "Traditional Chinese"
 msgstr "Tradiční Čínština"
 
@@ -7157,7 +7186,7 @@ msgid "Traversal server timed out connecting to the host"
 msgstr "Při připojování průchozího serveru k hostiteli vršek časový limit."
 
 #: Source/Core/DiscIO/VolumeDirectory.cpp:75 Source/Core/DiscIO/VolumeGC.cpp:37
-#: Source/Core/DiscIO/VolumeWad.cpp:50
+#: Source/Core/DiscIO/VolumeWad.cpp:52
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Pokus o rozšifrování dat pocházející ze svazku nepatřící Wii"
 
@@ -7165,7 +7194,7 @@ msgstr "Pokus o rozšifrování dat pocházející ze svazku nepatřící Wii"
 msgid "Tried to load an unknown file type."
 msgstr "Pokus o načtení souboru neznámého typu."
 
-#: Source/Core/Core/HW/GCPadEmu.cpp:56
+#: Source/Core/Core/HW/GCPadEmu.cpp:53
 msgid "Triggers"
 msgstr "Spínače"
 
@@ -7212,11 +7241,11 @@ msgstr "Typ"
 msgid "UNKNOWN_%02X"
 msgstr "NEZNÁMÉ_%02X"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:265
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:106
 msgid "USA"
 msgstr "USA"
 
-#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:38
+#: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:41
 msgid "USB Gecko"
 msgstr "USB Gecko"
 
@@ -7253,8 +7282,8 @@ msgstr "Neočekávané volání 0x80? Ukončování..."
 
 #: Source/Core/Core/State.cpp:454
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:105
-#: Source/Core/DolphinWX/ISOProperties.cpp:281
-#: Source/Core/DolphinWX/ISOProperties.cpp:706
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:77
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:117
 msgid "Unknown"
 msgstr "Neznámé"
 
@@ -7343,7 +7372,7 @@ msgstr ""
 msgid "Use Fullscreen"
 msgstr "Použít Celou Obrazovku"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:31
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:30
 msgid "Use Hex"
 msgstr "Použít Šestnáctkovou soustavu"
 
@@ -7369,7 +7398,7 @@ msgstr ""
 "\n"
 "Pokud si nejste jisti, nechejte toto zaškrtnuté."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:523
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:326
 msgid "Use a single depth buffer for both eyes. Needed for a few games."
 msgstr "Použít jednu mezipaměť hloubky pro obě oči. Potřebné pro pár her."
 
@@ -7410,7 +7439,7 @@ msgstr ""
 msgid "Value:"
 msgstr "Hodnota:"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:28
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:27
 msgid "Value: "
 msgstr "Hodnota:"
 
@@ -7652,7 +7681,7 @@ msgstr "Šířka"
 msgid "Wii"
 msgstr "Wii"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:555
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:358
 msgid "Wii Console"
 msgstr "Konzole Wii"
 
@@ -7686,11 +7715,11 @@ msgstr ""
 msgid "Wii Remotes"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1171
+#: Source/Core/DolphinWX/FrameTools.cpp:1180
 msgid "Wii WAD files (*.wad)"
 msgstr "Soubory Wii WAD (*.wad)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1133
+#: Source/Core/DolphinWX/FrameTools.cpp:1142
 msgid "Wii save files (*.bin)"
 msgstr "Wii soubory s uložením (*.bin)"
 
@@ -7725,15 +7754,15 @@ msgstr ""
 msgid "Word Wrap"
 msgstr "Zalamování textu"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1180
+#: Source/Core/DolphinWX/FrameTools.cpp:1189
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1252
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1371
-#: Source/Core/DolphinWX/ISOProperties.cpp:1159
-#: Source/Core/DolphinWX/ISOProperties.cpp:1453
+#: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
 msgid "Working..."
 msgstr "Pracuji..."
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:277
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:114
 msgid "World"
 msgstr "Světové"
 
@@ -7789,7 +7818,7 @@ msgstr "Nemůžete zavřít panely, které mají uvnitř stránky."
 msgid "You must choose a game!"
 msgstr "Musíte si zvolit hru!"
 
-#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:70
+#: Source/Core/DolphinWX/Cheats/CreateCodeDialog.cpp:69
 msgid "You must enter a name."
 msgstr "Musíte zadat jméno."
 
@@ -7868,15 +7897,15 @@ msgstr "[ čekám ]"
 msgid "apploader (.img)"
 msgstr "zavaděč aplikace (.img)"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:487
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:290
 msgid "auto"
 msgstr "automaticky"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:489
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:292
 msgid "fake-completion"
 msgstr "předstírat dokončení"
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:488
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:291
 msgid "none"
 msgstr "žádné"
 
@@ -7888,7 +7917,7 @@ msgstr ""
 msgid "on"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties.cpp:1409
+#: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:709
 msgid "wxExecute returned -1 on application run!"
 msgstr "wxExecute při běhu aplikace vrátil -1!"
 

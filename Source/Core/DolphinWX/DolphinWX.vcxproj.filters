@@ -119,6 +119,9 @@
     <ClCompile Include="Input\GCPadInputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
+    <ClCompile Include="Input\MicButtonConfigDiag.cpp">
+      <Filter>GUI\InputConfig</Filter>
+    </ClCompile>
     <ClCompile Include="Input\GCKeyboardInputConfigDiag.cpp">
       <Filter>GUI\InputConfig</Filter>
     </ClCompile>
@@ -230,6 +233,9 @@
     <ClCompile Include="Config\AdvancedConfigPane.cpp">
       <Filter>GUI\Config</Filter>
     </ClCompile>
+    <ClCompile Include="ISOProperties\FilesystemPanel.cpp">
+      <Filter>GUI\ISOProperties</Filter>
+    </ClCompile>
     <ClCompile Include="ISOProperties\InfoPanel.cpp">
       <Filter>GUI\ISOProperties</Filter>
     </ClCompile>
@@ -336,6 +342,9 @@
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="Input\GCPadInputConfigDiag.h">
+      <Filter>GUI\InputConfig</Filter>
+    </ClInclude>
+    <ClInclude Include="Input\MicButtonConfigDiag.h">
       <Filter>GUI\InputConfig</Filter>
     </ClInclude>
     <ClInclude Include="Input\GCKeyboardInputConfigDiag.h">
@@ -448,6 +457,9 @@
     </ClInclude>
     <ClInclude Include="Config\AdvancedConfigPane.h">
       <Filter>GUI\Config</Filter>
+    </ClInclude>
+    <ClInclude Include="ISOProperties\FilesystemPanel.h">
+      <Filter>GUI\ISOProperties</Filter>
     </ClInclude>
     <ClInclude Include="ISOProperties\InfoPanel.h">
       <Filter>GUI\ISOProperties</Filter>

@@ -22,7 +22,7 @@ static bool s_viewport_changed;
 
 void GeometryShaderManager::Init()
 {
-  memset(&constants, 0, sizeof(constants));
+  constants = {};
 
   // Init any intial constants which aren't zero when bpmem is zero.
   SetViewportChanged();

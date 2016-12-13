@@ -344,7 +344,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(u32 _Parameter, u32 _BufferIn, u32 _B
     Addr += 4;
     u16 GroupID = Memory::Read_U16(Addr);
     Addr += 2;
-    const std::string wii_path = Memory::GetString(_BufferIn, 64);
+    const std::string wii_path = Memory::GetString(Addr, 64);
     if (!IsValidWiiPath(wii_path))
     {
       WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
