@@ -21,16 +21,16 @@ class CodeBuffer;
 // The following register assignments are common to Jit64 and Jit64IL:
 // RSCRATCH and RSCRATCH2 are always scratch registers and can be used without
 // limitation.
-#define RSCRATCH RAX
-#define RSCRATCH2 RDX
+constexpr Gen::X64Reg RSCRATCH = Gen::RAX;
+constexpr Gen::X64Reg RSCRATCH2 = Gen::RDX;
 // RSCRATCH_EXTRA may be in the allocation order, so it has to be flushed
 // before use.
-#define RSCRATCH_EXTRA RCX
+constexpr Gen::X64Reg RSCRATCH_EXTRA = Gen::RCX;
 // RMEM points to the start of emulated memory.
-#define RMEM RBX
+constexpr Gen::X64Reg RMEM = Gen::RBX;
 // RPPCSTATE points to ppcState + 0x80.  It's offset because we want to be able
 // to address as much as possible in a one-byte offset form.
-#define RPPCSTATE RBP
+constexpr Gen::X64Reg RPPCSTATE = Gen::RBP;
 
 class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
 {
