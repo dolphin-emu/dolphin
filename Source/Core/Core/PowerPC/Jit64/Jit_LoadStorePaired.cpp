@@ -6,13 +6,12 @@
 // Should give a very noticeable speed boost to paired single heavy code.
 
 #include "Core/PowerPC/Jit64/Jit.h"
-#include "Common/BitSet.h"
-#include "Common/CPUDetect.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64Util.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;

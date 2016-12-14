@@ -651,9 +651,6 @@
     <ClCompile Include="PowerPC\SignatureDB.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\JitCommon\Jit_Util.cpp">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -661,9 +658,6 @@
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\JitCommon\TrampolineCache.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\Jit64IL\IR_X86.cpp">
@@ -741,10 +735,19 @@
     <ClCompile Include="PowerPC\MMU.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\JitCommon\JitBackpatch.cpp">
-      <Filter>PowerPC\JitCommon</Filter>
+    <ClCompile Include="PowerPC\Jit64Common\BlockCache.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\Jit64Base.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\Jit64Util.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="Analytics.cpp" />
@@ -1238,9 +1241,6 @@
     <ClInclude Include="PowerPC\SignatureDB.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\JitCommon\Jit_Util.h">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\JitAsmCommon.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
@@ -1248,9 +1248,6 @@
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\JitCache.h">
-      <Filter>PowerPC\JitCommon</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\JitCommon\TrampolineCache.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64IL\JitIL.h">
@@ -1278,7 +1275,19 @@
     <ClInclude Include="HW\GCKeyboard.h">
       <Filter>HW %28Flipper/Hollywood%29\GCKeyboard</Filter>
     </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\BlockCache.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\Jit64Base.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\Jit64Util.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\TrampolineCache.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="Analytics.h" />

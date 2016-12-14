@@ -206,10 +206,11 @@ if(_M_X86)
 			PowerPC/Jit64/Jit_Paired.cpp
 			PowerPC/Jit64/JitRegCache.cpp
 			PowerPC/Jit64/Jit_SystemRegisters.cpp
+			PowerPC/Jit64Common/BlockCache.cpp
 			PowerPC/Jit64Common/Jit64AsmCommon.cpp
-			PowerPC/JitCommon/JitBackpatch.cpp
-			PowerPC/JitCommon/Jit_Util.cpp
-			PowerPC/JitCommon/TrampolineCache.cpp)
+			PowerPC/Jit64Common/Jit64Base.cpp
+			PowerPC/Jit64Common/Jit64Util.cpp
+			PowerPC/Jit64Common/TrampolineCache.cpp)
 elseif(_M_ARM_64)
 	set(SRCS ${SRCS}
 	         PowerPC/JitArm64/Jit.cpp
