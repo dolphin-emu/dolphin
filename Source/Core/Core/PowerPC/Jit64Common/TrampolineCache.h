@@ -8,7 +8,7 @@
 #include "Core/PowerPC/Jit64Common/Jit64Util.h"
 
 // We need at least this many bytes for backpatching.
-const int BACKPATCH_SIZE = 5;
+constexpr int BACKPATCH_SIZE = 5;
 
 class TrampolineCache : public EmuCodeBlock
 {
