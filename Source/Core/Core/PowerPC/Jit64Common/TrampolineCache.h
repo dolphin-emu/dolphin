@@ -4,15 +4,17 @@
 
 #pragma once
 
-#include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
-#include "Common/x64Emitter.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/Jit64Util.h"
 
-struct InstructionInfo;
-
+#if defined(_MSC_VER) && _MSC_VER <= 1800
+#define CONSTEXPR(datatype, name, value)                                                           \
+  enum name##_enum : datatype { name = value }
+#else
+#define CONSTEXPR(datatype, name, value) constexpr datatype name = value
+#endif
 // We need at least this many bytes for backpatching.
-const int BACKPATCH_SIZE = 5;
+CONSTEXPR(int, BACKPATCH_SIZE, 5);
 
 class TrampolineCache : public EmuCodeBlock
 {

@@ -21,7 +21,6 @@
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"

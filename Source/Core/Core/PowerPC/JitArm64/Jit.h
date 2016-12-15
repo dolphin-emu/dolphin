@@ -17,6 +17,9 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
+constexpr int CODE_SIZE = 1024 * 1024 * 32;
+constexpr int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
+
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
