@@ -337,10 +337,11 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
     }
     else
     {
-      std::string filename =
-          Common::EscapeFileName(reinterpret_cast<const char*>(file_hdr_tmp.name));
+      // Allows files in subfolders to be escaped properly (ex: "nocopy/data00")
+      // Special characters in path components will be escaped such as /../
+      std::string file_path = Common::EscapePath(reinterpret_cast<const char*>(file_hdr_tmp.name));
 
-      std::string file_path_full = m_wii_title_path + filename;
+      std::string file_path_full = m_wii_title_path + file_path;
       File::CreateFullPath(file_path_full);
       if (file_hdr_tmp.type == 1)
       {
@@ -367,6 +368,20 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 
           File::IOFile raw_save_file(file_path_full, "wb");
           raw_save_file.WriteBytes(&file_data[0], file_size);
+        }
+      }
+      else if (file_hdr_tmp.type == 2)
+      {
+        if (!File::Exists(file_path_full))
+        {
+          if (!File::CreateDir(file_path_full))
+            ERROR_LOG(CONSOLE, "Failed to create directory %s", file_path_full.c_str());
+        }
+        else if (!File::IsDirectory(file_path_full))
+        {
+          ERROR_LOG(CONSOLE,
+                    "Failed to create directory %s because a file with the same name exists",
+                    file_path_full.c_str());
         }
       }
     }
