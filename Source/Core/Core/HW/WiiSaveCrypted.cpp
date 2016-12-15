@@ -350,7 +350,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
         std::vector<u8> file_data(file_size_rounded);
         std::vector<u8> file_data_enc(file_size_rounded);
 
-        if (!data_file.ReadBytes(&file_data_enc[0], file_size_rounded))
+        if (!data_file.ReadBytes(file_data_enc.data(), file_size_rounded))
         {
           ERROR_LOG(CONSOLE, "Failed to read data from file %d", i);
           m_valid = false;
@@ -359,7 +359,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 
         memcpy(m_iv, file_hdr_tmp.IV, 0x10);
         mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, file_size_rounded, m_iv,
-                              (const u8*)&file_data_enc[0], &file_data[0]);
+                              static_cast<const u8*>(file_data_enc.data()), file_data.data());
 
         if (!File::Exists(file_path_full) ||
             AskYesNoT("%s already exists, overwrite?", file_path_full.c_str()))
@@ -367,7 +367,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
           INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
 
           File::IOFile raw_save_file(file_path_full, "wb");
-          raw_save_file.WriteBytes(&file_data[0], file_size);
+          raw_save_file.WriteBytes(file_data.data(), file_size);
         }
       }
       else if (file_hdr_tmp.type == 2)
@@ -449,17 +449,17 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
       std::vector<u8> file_data(file_size_rounded);
       std::vector<u8> file_data_enc(file_size_rounded);
 
-      if (!raw_save_file.ReadBytes(&file_data[0], file_size))
+      if (!raw_save_file.ReadBytes(file_data.data(), file_size))
       {
         ERROR_LOG(CONSOLE, "Failed to read data from file: %s", m_files_list[i].c_str());
         m_valid = false;
       }
 
       mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, file_size_rounded, file_hdr_tmp.IV,
-                            (const u8*)&file_data[0], &file_data_enc[0]);
+                            static_cast<const u8*>(file_data.data()), file_data_enc.data());
 
       File::IOFile fpData_bin(m_encrypted_save_path, "ab");
-      if (!fpData_bin.WriteBytes(&file_data_enc[0], file_size_rounded))
+      if (!fpData_bin.WriteBytes(file_data_enc.data(), file_size_rounded))
       {
         ERROR_LOG(CONSOLE, "Failed to write data to file: %s", m_encrypted_save_path.c_str());
       }
