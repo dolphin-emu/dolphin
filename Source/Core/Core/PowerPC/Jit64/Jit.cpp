@@ -706,9 +706,9 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
     const GekkoOPInfo* opinfo = ops[i].opinfo;
     js.downcountAmount += opinfo->numCycles;
     js.fastmemLoadStore = nullptr;
-    js.fixupExceptionHandler = false;
     js.revertGprLoad = -1;
     js.revertFprLoad = -1;
+    m_jit64_state.fixup_exception_handler = false;
 
     if (i == (code_block.m_num_instructions - 1))
     {
@@ -863,10 +863,10 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         // If we have a fastmem loadstore, we can omit the exception check and let fastmem handle
         // it.
         FixupBranch memException;
-        _assert_msg_(DYNA_REC, !(js.fastmemLoadStore && js.fixupExceptionHandler),
+        _assert_msg_(DYNA_REC, !(js.fastmemLoadStore && m_jit64_state.fixup_exception_handler),
                      "Fastmem loadstores shouldn't have exception handler fixups (PC=%x)!",
                      ops[i].address);
-        if (!js.fastmemLoadStore && !js.fixupExceptionHandler)
+        if (!js.fastmemLoadStore && !m_jit64_state.fixup_exception_handler)
         {
           TEST(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_DSI));
           memException = J_CC(CC_NZ, true);
@@ -876,7 +876,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         if (!js.fastmemLoadStore)
         {
           exceptionHandlerAtLoc[js.fastmemLoadStore] = nullptr;
-          SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
+          SetJumpTarget(m_jit64_state.fixup_exception_handler ? m_jit64_state.exception_handler :
+                                                                memException);
         }
         else
         {

@@ -39,11 +39,13 @@ void EmuCodeBlock::MemoryExceptionCheck()
   // If memcheck (ie: MMU) mode is enabled and we haven't generated an
   // exception handler for this instruction yet, we will generate an
   // exception check.
-  if (jit->jo.memcheck && !jit->js.fastmemLoadStore && !jit->js.fixupExceptionHandler)
+  auto* const jit64_base = static_cast<Jitx86Base*>(jit);
+  if (jit64_base->jo.memcheck && !jit64_base->js.fastmemLoadStore &&
+      !jit64_base->JIT64State().fixup_exception_handler)
   {
     TEST(32, PPCSTATE(Exceptions), Gen::Imm32(EXCEPTION_DSI));
-    jit->js.exceptionHandler = J_CC(Gen::CC_NZ, true);
-    jit->js.fixupExceptionHandler = true;
+    jit64_base->JIT64State().exception_handler = J_CC(Gen::CC_NZ, true);
+    jit64_base->JIT64State().fixup_exception_handler = true;
   }
 }
 
