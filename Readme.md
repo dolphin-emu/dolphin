@@ -151,6 +151,27 @@ to fix those issues.
 
 Wii network certificates must be extracted from a Wii IOS. A guide for that can be found [here](https://wiki.dolphin-emu.org/index.php?title=Wii_Network_Guide).
 
+## Debugging
+
+To use a debugger with Dolphin, it must be built with `CMAKE_BUILD_TYPE=Debug`. To set this:
+
+1. Build once to generate a cmake cache file
+2. Run `make edit_cache` in your build directory, or edit `CMakeCache.txt` manually
+3. Change `CMAKE_BUILD_TYPE` from Release to Debug
+4. Build again
+
+Dolphin is non-deterministic in dual core mode. Therefore, it's typically recommended to disable this in Dolphin's configuration menu when debugging.
+
+### Linux
+
+`sudo gdb dolphin`
+
+### macOS
+
+gdb is also available for MacOS but might cause problems. Therefore, it's recommended to use lldb.
+
+`sudo lldb Binaries/Dolphin.app/Contents/MacOS/Dolphin`
+
 ## Folder Structure
 These folders are installed read-only and should not be changed:
 
