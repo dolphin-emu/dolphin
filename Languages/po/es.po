@@ -19,9 +19,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-10 13:05+0100\n"
-"PO-Revision-Date: 2016-12-10 12:05+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2016-12-17 15:58+0100\n"
+"PO-Revision-Date: 2016-12-10 17:00+0000\n"
+"Last-Translator: Swyter <Swyterzone@gmail.com>\n"
 "Language-Team: Spanish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/es/)\n"
 "Language: es\n"
@@ -1312,6 +1312,7 @@ msgstr "Pausa y registro"
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:392
 msgid "Breakpoint encountered! Step out aborted."
 msgstr ""
+"Se ha encontrado un punto de interrupción. Salto de instrucciones cancelado."
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.h:18
 msgid "Breakpoints"
@@ -1339,7 +1340,7 @@ msgstr "Búfer:"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:63
 msgid "Button"
-msgstr ""
+msgstr "Botón"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:42
 #: Source/Core/DolphinWX/TASInputDlg.cpp:218
@@ -2001,6 +2002,13 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Crea volcados de imagen y capturas de juego en la resolución interna del "
+"dispositivo (que pueden ser mucho más grandes), en vez de limitarse al "
+"tamaño de la ventana en la que se muestra. Si la imagen está en formato "
+"panorámico se estirará de forma horizontal para preservar la resolución "
+"vertical.\n"
+"\n"
+"Si no estás seguro, déjala sin marcar."
 
 #: Source/Core/DolphinWX/FrameAui.cpp:539
 msgid "Create new perspective"
@@ -3017,7 +3025,7 @@ msgstr "Extraer carpeta..."
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:309
 msgid "Extract File"
-msgstr ""
+msgstr "Extraer archivo"
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:281
 msgid "Extract File..."
@@ -3305,11 +3313,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:232
 msgid "Find Next"
-msgstr ""
+msgstr "Buscar siguiente"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
 msgid "Find Previous"
-msgstr ""
+msgstr "Buscar anterior"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:646
 msgid "First Block"
@@ -3487,11 +3495,11 @@ msgstr "Información de la grabación"
 #: Source/Core/VideoCommon/RenderBase.cpp:889
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
-msgstr ""
+msgstr "Ya existe un volcado de imagen(es) llamado «%s». ¿Quieres sustituirlo?"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:165
 msgid "Frames to Record"
-msgstr ""
+msgstr "Fotogramas a grabar"
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "France"
@@ -3558,7 +3566,7 @@ msgstr "Desde"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:869
 msgid "Full Resolution Frame Dumps"
-msgstr ""
+msgstr "Volcados de pantalla en resolución original"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:182
 msgid "FullScr"
@@ -3691,11 +3699,11 @@ msgstr "Tarjetas de memoria GameCube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:290
 msgid "GameCube Microphone Slot A"
-msgstr ""
+msgstr "Ranura de micrófono de GameCube A"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:295
 msgid "GameCube Microphone Slot B"
-msgstr ""
+msgstr "Ranura de micrófono de GameCube B"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:534
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
@@ -3787,7 +3795,7 @@ msgstr "Guitarra"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:86
 msgid "Guitar Configuration"
-msgstr ""
+msgstr "Configuración de la guitarra"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:704
 msgid "Hacks"
@@ -5123,7 +5131,7 @@ msgstr "Nunchuk"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:74
 msgid "Nunchuk Configuration"
-msgstr ""
+msgstr "Configuración del Nunchuk"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:194
 msgid "Nunchuk orientation"
@@ -5303,7 +5311,7 @@ msgstr "No se entiende el formato"
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:246
 #, c-format
 msgid "Partition %u"
-msgstr ""
+msgstr "Partición %u"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:230
 msgid "Passthrough a Bluetooth adapter"
@@ -5991,7 +5999,7 @@ msgstr "Buscar dirección"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:261
 msgid "Search Current Object"
-msgstr ""
+msgstr "Buscar objeto actual"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 msgid "Search Subfolders"
@@ -5999,7 +6007,7 @@ msgstr "Buscar en subcarpetas"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:224
 msgid "Search for Hex Value:"
-msgstr ""
+msgstr "Buscar valor hexadecimal:"
 
 #: Source/Core/Common/SysConf.h:98 Source/Core/Common/SysConf.h:121
 #: Source/Core/Common/SysConf.h:141 Source/Core/Common/SysConf.h:162
@@ -6755,15 +6763,15 @@ msgstr "Sale de la función actual"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:396
 msgid "Step out successful!"
-msgstr ""
+msgstr "Se ha saltado la instrucción."
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:394
 msgid "Step out timed out!"
-msgstr ""
+msgstr "Se ha cancelado el salto de instrucciones por tardar demasiado tiempo."
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:321
 msgid "Step over in progress..."
-msgstr ""
+msgstr "Saltando instrucciones..."
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Step over the next instruction"
@@ -6771,7 +6779,7 @@ msgstr "Salta y evita la siguiente instrucción"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:306
 msgid "Step successful!"
-msgstr ""
+msgstr "Se han saltado las instrucciones."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"
@@ -7448,7 +7456,7 @@ msgstr "Mesa de DJ"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:98
 msgid "Turntable Configuration"
-msgstr ""
+msgstr "Configuración de la Mesa de DJ"
 
 #: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:33
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:74

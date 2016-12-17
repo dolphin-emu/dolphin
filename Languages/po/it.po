@@ -9,9 +9,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-10 13:05+0100\n"
-"PO-Revision-Date: 2016-12-10 12:05+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2016-12-17 15:58+0100\n"
+"PO-Revision-Date: 2016-12-11 16:57+0000\n"
+"Last-Translator: Mewster <mewster@libero.it>\n"
 "Language-Team: Italian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/it/)\n"
 "Language: it\n"
@@ -1306,6 +1306,7 @@ msgstr "Interrompi e logga"
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:392
 msgid "Breakpoint encountered! Step out aborted."
 msgstr ""
+"Raggiunto punto di interruzione! Comando di uscita dall'istruzione annullato."
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.h:18
 msgid "Breakpoints"
@@ -1333,7 +1334,7 @@ msgstr "Buffer:"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:63
 msgid "Button"
-msgstr ""
+msgstr "Pulsante"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:42
 #: Source/Core/DolphinWX/TASInputDlg.cpp:218
@@ -3009,7 +3010,7 @@ msgstr "Estrai Directory..."
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:309
 msgid "Extract File"
-msgstr ""
+msgstr "Estrai File"
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:281
 msgid "Extract File..."
@@ -3294,11 +3295,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:232
 msgid "Find Next"
-msgstr ""
+msgstr "Trova Successivo"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
 msgid "Find Previous"
-msgstr ""
+msgstr "Trova Precedente"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:646
 msgid "First Block"
@@ -3480,7 +3481,7 @@ msgstr "L'immagine del(dei) frame '%s' esiste già. Vuoi Sovrascrivere?"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:165
 msgid "Frames to Record"
-msgstr ""
+msgstr "Fotogrammi da Registrare"
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "France"
@@ -3678,11 +3679,11 @@ msgstr "Memory Card GameCube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:290
 msgid "GameCube Microphone Slot A"
-msgstr ""
+msgstr "Microfono GameCube Slot A"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:295
 msgid "GameCube Microphone Slot B"
-msgstr ""
+msgstr "Microfono GameCube Slot B"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:534
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
@@ -5290,7 +5291,7 @@ msgstr "Analisi dell'Errore"
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:246
 #, c-format
 msgid "Partition %u"
-msgstr ""
+msgstr "Partizione %u"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:230
 msgid "Passthrough a Bluetooth adapter"
@@ -5975,7 +5976,7 @@ msgstr "Cerca Indirizzo"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:261
 msgid "Search Current Object"
-msgstr ""
+msgstr "Cerca Oggetto Corrente"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 msgid "Search Subfolders"
@@ -5983,7 +5984,7 @@ msgstr "Cerca nelle Sottocartelle"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:224
 msgid "Search for Hex Value:"
-msgstr ""
+msgstr "Cerca Valore Esadecimale:"
 
 #: Source/Core/Common/SysConf.h:98 Source/Core/Common/SysConf.h:121
 #: Source/Core/Common/SysConf.h:141 Source/Core/Common/SysConf.h:162
@@ -6735,15 +6736,15 @@ msgstr "Esci dalla funzione corrente"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:396
 msgid "Step out successful!"
-msgstr ""
+msgstr "Uscito con successo dall'istruzione!"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:394
 msgid "Step out timed out!"
-msgstr ""
+msgstr "Scaduto tempo di uscita dall'istruzione!"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:321
 msgid "Step over in progress..."
-msgstr ""
+msgstr "Esecuzione dell'istruzione in corso..."
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Step over the next instruction"
@@ -6751,7 +6752,7 @@ msgstr "Passa all'istruzione successiva"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:306
 msgid "Step successful!"
-msgstr ""
+msgstr "Istruzione eseguita con successo!"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"

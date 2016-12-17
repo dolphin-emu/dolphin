@@ -15,9 +15,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-10 13:05+0100\n"
-"PO-Revision-Date: 2016-12-10 12:05+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2016-12-17 15:58+0100\n"
+"PO-Revision-Date: 2016-12-11 18:41+0000\n"
+"Last-Translator: Sukharev Andrey <lazy.fremis@gmail.com>\n"
 "Language-Team: Russian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ru/)\n"
 "Language: ru\n"
@@ -1297,7 +1297,7 @@ msgstr "Останов и запись в лог"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:392
 msgid "Breakpoint encountered! Step out aborted."
-msgstr ""
+msgstr "Попадание в точку останова! Шаг с выходом отменён."
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.h:18
 msgid "Breakpoints"
@@ -1325,7 +1325,7 @@ msgstr "Буфер:"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:63
 msgid "Button"
-msgstr ""
+msgstr "Кнопка"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:42
 #: Source/Core/DolphinWX/TASInputDlg.cpp:218
@@ -2090,7 +2090,7 @@ msgstr "Файлы Datel MaxDrive/Pro (*.sav)"
 #: Source/Core/InputCommon/ControllerEmu.cpp:292
 #: Source/Core/InputCommon/ControllerEmu.cpp:310
 msgid "Dead Zone"
-msgstr "Мёртв. зона"
+msgstr "Мёртвая зона"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:46
 msgid "Debug"
@@ -2991,7 +2991,7 @@ msgstr "Извлечь папку..."
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:309
 msgid "Extract File"
-msgstr ""
+msgstr "Извлечь файл"
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:281
 msgid "Extract File..."
@@ -3276,11 +3276,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:232
 msgid "Find Next"
-msgstr ""
+msgstr "Искать далее"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
 msgid "Find Previous"
-msgstr ""
+msgstr "Искать ранее"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:646
 msgid "First Block"
@@ -3461,7 +3461,7 @@ msgstr "Изображения с дампами кадра(ов) '%s' уже с
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:165
 msgid "Frames to Record"
-msgstr ""
+msgstr "Кадры на запись"
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "France"
@@ -3660,11 +3660,11 @@ msgstr "Файлы карт памяти GameCube (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:290
 msgid "GameCube Microphone Slot A"
-msgstr ""
+msgstr "Микрофон GameCube − Слот A"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:295
 msgid "GameCube Microphone Slot B"
-msgstr ""
+msgstr "Микрофон GameCube − Слот B"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:534
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
@@ -5256,7 +5256,7 @@ msgstr "Ошибка разбора"
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:246
 #, c-format
 msgid "Partition %u"
-msgstr ""
+msgstr "Раздел %u"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:230
 msgid "Passthrough a Bluetooth adapter"
@@ -5938,7 +5938,7 @@ msgstr "Найти адрес"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:261
 msgid "Search Current Object"
-msgstr ""
+msgstr "Искать текущий объект"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 msgid "Search Subfolders"
@@ -5946,7 +5946,7 @@ msgstr "Искать в подпапках"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:224
 msgid "Search for Hex Value:"
-msgstr ""
+msgstr "Искать Hex-значение:"
 
 #: Source/Core/Common/SysConf.h:98 Source/Core/Common/SysConf.h:121
 #: Source/Core/Common/SysConf.h:141 Source/Core/Common/SysConf.h:162
@@ -6455,15 +6455,15 @@ msgstr "Горизонтальная стереопара"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:304
 msgid "Sideways Hold"
-msgstr "Удерж. гориз."
+msgstr "Удерживать на боку"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:301
 msgid "Sideways Toggle"
-msgstr "Горизонтально"
+msgstr "Положить на бок"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:287
 msgid "Sideways Wii Remote"
-msgstr "Горизонт. Wii Remote"
+msgstr "Wii Remote на боку"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:40
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:67
@@ -6691,15 +6691,15 @@ msgstr "Шаг с выходом из текущей функции"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:396
 msgid "Step out successful!"
-msgstr ""
+msgstr "Шаг с выходом выполнен успешно!"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:394
 msgid "Step out timed out!"
-msgstr ""
+msgstr "Истекло время ожидания шага с выходом!"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:321
 msgid "Step over in progress..."
-msgstr ""
+msgstr "Выполняется шаг с обходом..."
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Step over the next instruction"
@@ -6707,7 +6707,7 @@ msgstr "Шаг с обходом следующей инструкции"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:306
 msgid "Step successful!"
-msgstr ""
+msgstr "Шаг выполнен успешно!"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"
@@ -7484,15 +7484,15 @@ msgstr "Обновить экран"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:305
 msgid "Upright Hold"
-msgstr "Удерж. вертик."
+msgstr "Удерживать вертикально"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:302
 msgid "Upright Toggle"
-msgstr "Вертикально"
+msgstr "Поставить вертикально"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:289
 msgid "Upright Wii Remote"
-msgstr "Вертик. Wii Remote"
+msgstr "Wii Remote вертикально"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:110
 msgid "Usage Statistics Reporting Settings"

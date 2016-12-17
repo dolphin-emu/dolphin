@@ -11,9 +11,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-10 13:05+0100\n"
-"PO-Revision-Date: 2016-12-10 12:05+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2016-12-17 15:58+0100\n"
+"PO-Revision-Date: 2016-12-10 20:06+0000\n"
+"Last-Translator: Siegfried <iori3000@hanafos.com>\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
 "Language: ko\n"
@@ -1284,7 +1284,7 @@ msgstr "중단하고 로그"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:392
 msgid "Breakpoint encountered! Step out aborted."
-msgstr ""
+msgstr "중단점을 만났습니다! 스텝 나가기가 중단되었습니다."
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.h:18
 msgid "Breakpoints"
@@ -1312,7 +1312,7 @@ msgstr "버퍼:"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:63
 msgid "Button"
-msgstr ""
+msgstr "버튼"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:42
 #: Source/Core/DolphinWX/TASInputDlg.cpp:218
@@ -2969,7 +2969,7 @@ msgstr "디렉토리 압축 풀기..."
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:309
 msgid "Extract File"
-msgstr ""
+msgstr "파일 압축 풀기"
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:281
 msgid "Extract File..."
@@ -3252,11 +3252,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:232
 msgid "Find Next"
-msgstr ""
+msgstr "다음 찾기"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
 msgid "Find Previous"
-msgstr ""
+msgstr "이전 찾기"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:646
 msgid "First Block"
@@ -3436,7 +3436,7 @@ msgstr "프레임 덤프 이미지(들) '%s' 가 이미 존재합니다. 덮어�
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:165
 msgid "Frames to Record"
-msgstr ""
+msgstr "녹화할 프레임"
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "France"
@@ -3631,11 +3631,11 @@ msgstr "게임큐브 메모리 카드 (*.raw,*.gcp)"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:290
 msgid "GameCube Microphone Slot A"
-msgstr ""
+msgstr "게임큐브 마이크 슬롯 A"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:295
 msgid "GameCube Microphone Slot B"
-msgstr ""
+msgstr "게임큐브 마이크 슬롯 B"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:534
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
@@ -5216,7 +5216,7 @@ msgstr "분석 에러"
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:246
 #, c-format
 msgid "Partition %u"
-msgstr ""
+msgstr "파티션 %u"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:230
 msgid "Passthrough a Bluetooth adapter"
@@ -5892,7 +5892,7 @@ msgstr "주소 검색"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:261
 msgid "Search Current Object"
-msgstr ""
+msgstr "최근 오브젝트 찾기"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 msgid "Search Subfolders"
@@ -5900,7 +5900,7 @@ msgstr "하위폴더 찾기"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:224
 msgid "Search for Hex Value:"
-msgstr ""
+msgstr "헥스 값 찾기:"
 
 #: Source/Core/Common/SysConf.h:98 Source/Core/Common/SysConf.h:121
 #: Source/Core/Common/SysConf.h:141 Source/Core/Common/SysConf.h:162
@@ -6639,15 +6639,15 @@ msgstr "현재 함수에서 스텝 나가기"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:396
 msgid "Step out successful!"
-msgstr ""
+msgstr "스텝 나가기 성공!"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:394
 msgid "Step out timed out!"
-msgstr ""
+msgstr "스텝 나가기 시간 초과!"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:321
 msgid "Step over in progress..."
-msgstr ""
+msgstr "스텝 넘어가기 중..."
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Step over the next instruction"
@@ -6655,7 +6655,7 @@ msgstr "다음 명령으로 스텝 넘어가기"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:306
 msgid "Step successful!"
-msgstr ""
+msgstr "스텝 성공!"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"
