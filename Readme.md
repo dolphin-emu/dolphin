@@ -163,7 +163,7 @@ Dolphin is non-deterministic in dual core mode. Therefore, it's typically recomm
 
 ### macOS
 
-gdb is also available for MacOS but might cause problems. Therefore, it's recommended to use lldb.
+gdb is also available for macOS but might cause problems. Therefore, it's recommended to use lldb.
 
 `sudo lldb Binaries/Dolphin.app/Contents/MacOS/Dolphin`
 
