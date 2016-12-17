@@ -14,6 +14,7 @@
 #include <wx/listbox.h>
 #include <wx/menu.h>
 #include <wx/mimetype.h>
+#include <wx/srchctrl.h>
 #include <wx/textdlg.h>
 
 #include "Common/CommonPaths.h"
@@ -398,20 +399,28 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   }
 }
 
+void CCodeWindow::ReloadSymbolListBox()
+{
+  symbols->Freeze();  // HyperIris: wx style fast filling
+  symbols->Clear();
+  const wxString filtering_string = m_symbol_filter_ctrl->GetValue().Trim().Trim(false);
+  for (const auto& symbol : g_symbolDB.Symbols())
+  {
+    if (symbol.second.name.find(filtering_string) == std::string::npos)
+      continue;
+    int idx = symbols->Append(StrToWxStr(symbol.second.name));
+    symbols->SetClientData(idx, (void*)&symbol.second);
+  }
+  symbols->Thaw();
+}
+
 void CCodeWindow::NotifyMapLoaded()
 {
   if (!codeview)
     return;
 
   g_symbolDB.FillInCallers();
-  symbols->Freeze();  // HyperIris: wx style fast filling
-  symbols->Clear();
-  for (const auto& symbol : g_symbolDB.Symbols())
-  {
-    int idx = symbols->Append(StrToWxStr(symbol.second.name));
-    symbols->SetClientData(idx, (void*)&symbol.second);
-  }
-  symbols->Thaw();
+  ReloadSymbolListBox();
   Repopulate();
 }
 

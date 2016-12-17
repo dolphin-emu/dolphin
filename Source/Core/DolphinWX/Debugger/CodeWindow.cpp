@@ -78,8 +78,13 @@ CCodeWindow::CCodeWindow(CFrame* parent, wxWindowID id, const wxPoint& position,
   wxSearchCtrl* const address_searchctrl = new wxSearchCtrl(m_aui_toolbar, IDM_ADDRBOX);
   address_searchctrl->Bind(wxEVT_TEXT, &CCodeWindow::OnAddrBoxChange, this);
   address_searchctrl->SetDescriptiveText(_("Search Address"));
+  m_symbol_filter_ctrl = new wxSearchCtrl(m_aui_toolbar, wxID_ANY);
+  m_symbol_filter_ctrl->Bind(wxEVT_TEXT, &CCodeWindow::OnSymbolFilterText, this);
+  m_symbol_filter_ctrl->SetDescriptiveText(_("Filter Symbols"));
+  m_symbol_filter_ctrl->SetToolTip(_("Filter the symbol list by name. This is case-sensitive."));
 
   m_aui_toolbar->AddControl(address_searchctrl);
+  m_aui_toolbar->AddControl(m_symbol_filter_ctrl);
   m_aui_toolbar->Realize();
 
   m_aui_manager.SetManagedWindow(this);
@@ -258,6 +263,11 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
   pAddrCtrl->Refresh();
 
   event.Skip();
+}
+
+void CCodeWindow::OnSymbolFilterText(wxCommandEvent&)
+{
+  ReloadSymbolListBox();
 }
 
 void CCodeWindow::OnCallstackListChange(wxCommandEvent& event)
