@@ -101,6 +101,14 @@ Android apps are compiled using a build system called Gradle. Dolphin's native c
 however, is compiled using CMake. The Gradle script will attempt to run a CMake build
 automatically while building the Java code.
 
+## Build types
+
+Set build types using the CMAKE_BUILD_TYPE flag. For example usage, see [Debugging](#debugging).
+
+- `Release`: default fast build without debugging facilities
+- `RelWithDebInfo`: much faster than `Debug`, while still providing debug symbols
+- `Debug`: unoptimized (slow) build with debug symbols
+
 ## Uninstalling
 When Dolphin has been installed with the NSIS installer, you can uninstall
 Dolphin like any other Windows application.
@@ -153,7 +161,7 @@ Wii network certificates must be extracted from a Wii IOS. A guide for that can 
 
 ## Debugging
 
-To use a debugger with Dolphin (generate backtraces, set breakpoint etc.), it must be built in debug mode `CMAKE_BUILD_TYPE=Debug`. Instead of `cmake`, run `cmake -D CMAKE_BUILD_TYPE=Debug` when following the above build steps.
+To use a debugger with Dolphin (generate backtraces, set breakpoint etc.), it must be built in debug mode `CMAKE_BUILD_TYPE=RelWithDebInfo`. Instead of `cmake`, run `cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo` when following the above build steps.
 
 Dolphin is non-deterministic in dual core mode. Therefore, it's typically recommended to disable this in Dolphin's configuration menu when debugging.
 
