@@ -150,7 +150,8 @@ public final class GameDatabase extends SQLiteOpenHelper
 				null,
 				null);    // Order of folders is irrelevant.
 
-		Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
+		Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(
+				".ciso", ".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".tgc", ".wad", ".wbfs"));
 
 		// Possibly overly defensive, but ensures that moveToNext() does not skip a row.
 		folderCursor.moveToPosition(-1);

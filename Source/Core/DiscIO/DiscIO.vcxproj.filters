@@ -75,6 +75,9 @@
     <ClCompile Include="Volume.cpp">
       <Filter>Volume</Filter>
     </ClCompile>
+    <ClCompile Include="TGCBlob.cpp">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="DiscScrubber.h">
@@ -134,6 +137,9 @@
     <ClInclude Include="Enums.h">
       <Filter>Volume</Filter>
     </ClInclude>
+    <ClCompile Include="TGCBlob.h">
+      <Filter>Volume\Blob</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
