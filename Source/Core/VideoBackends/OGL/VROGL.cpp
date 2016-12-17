@@ -436,146 +436,6 @@ bool CreateAllShaders()
 //-----------------------------------------------------------------------------
 // Purpose:
 //-----------------------------------------------------------------------------
-void SetupDistortion()
-{
-  if (!m_pHMD)
-    return;
-
-  GLushort m_iLensGridSegmentCountH = 43;
-  GLushort m_iLensGridSegmentCountV = 43;
-
-  float w = (float)(1.0 / float(m_iLensGridSegmentCountH - 1));
-  float h = (float)(1.0 / float(m_iLensGridSegmentCountV - 1));
-
-  float u, v = 0;
-
-  std::vector<VertexDataLens> vVerts(0);
-  VertexDataLens vert;
-
-  // left eye distortion verts
-  float Xoffset = -1;
-  for (int y = 0; y < m_iLensGridSegmentCountV; y++)
-  {
-    for (int x = 0; x < m_iLensGridSegmentCountH; x++)
-    {
-      u = x * w;
-      v = 1 - y * h;
-      vert.position = Vector2(Xoffset + u, -1 + 2 * y * h);
-
-      vr::DistortionCoordinates_t dc0 = m_pHMD->ComputeDistortion(vr::Eye_Left, u, v);
-
-      vert.texCoordRed = Vector2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
-      vert.texCoordGreen = Vector2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
-      vert.texCoordBlue = Vector2(dc0.rfBlue[0], 1 - dc0.rfBlue[1]);
-
-      vVerts.push_back(vert);
-    }
-  }
-
-  // right eye distortion verts
-  Xoffset = 0;
-  for (int y = 0; y < m_iLensGridSegmentCountV; y++)
-  {
-    for (int x = 0; x < m_iLensGridSegmentCountH; x++)
-    {
-      u = x * w;
-      v = 1 - y * h;
-      vert.position = Vector2(Xoffset + u, -1 + 2 * y * h);
-
-      vr::DistortionCoordinates_t dc0 = m_pHMD->ComputeDistortion(vr::Eye_Right, u, v);
-
-      vert.texCoordRed = Vector2(dc0.rfRed[0], 1 - dc0.rfRed[1]);
-      vert.texCoordGreen = Vector2(dc0.rfGreen[0], 1 - dc0.rfGreen[1]);
-      vert.texCoordBlue = Vector2(dc0.rfBlue[0], 1 - dc0.rfBlue[1]);
-
-      vVerts.push_back(vert);
-    }
-  }
-
-  std::vector<GLushort> vIndices;
-  GLushort a, b, c, d;
-
-  GLushort offset = 0;
-  for (GLushort y = 0; y < m_iLensGridSegmentCountV - 1; y++)
-  {
-    for (GLushort x = 0; x < m_iLensGridSegmentCountH - 1; x++)
-    {
-      a = m_iLensGridSegmentCountH * y + x + offset;
-      b = m_iLensGridSegmentCountH * y + x + 1 + offset;
-      c = (y + 1) * m_iLensGridSegmentCountH + x + 1 + offset;
-      d = (y + 1) * m_iLensGridSegmentCountH + x + offset;
-      vIndices.push_back(a);
-      vIndices.push_back(b);
-      vIndices.push_back(c);
-
-      vIndices.push_back(a);
-      vIndices.push_back(c);
-      vIndices.push_back(d);
-    }
-  }
-
-  offset = (m_iLensGridSegmentCountH) * (m_iLensGridSegmentCountV);
-  for (GLushort y = 0; y < m_iLensGridSegmentCountV - 1; y++)
-  {
-    for (GLushort x = 0; x < m_iLensGridSegmentCountH - 1; x++)
-    {
-      a = m_iLensGridSegmentCountH * y + x + offset;
-      b = m_iLensGridSegmentCountH * y + x + 1 + offset;
-      c = (y + 1) * m_iLensGridSegmentCountH + x + 1 + offset;
-      d = (y + 1) * m_iLensGridSegmentCountH + x + offset;
-      vIndices.push_back(a);
-      vIndices.push_back(b);
-      vIndices.push_back(c);
-
-      vIndices.push_back(a);
-      vIndices.push_back(c);
-      vIndices.push_back(d);
-    }
-  }
-  m_uiIndexSize = (unsigned int)vIndices.size();
-
-  glGenVertexArrays(1, &m_unLensVAO);
-  glBindVertexArray(m_unLensVAO);
-
-  glGenBuffers(1, &m_glIDVertBuffer);
-  glBindBuffer(GL_ARRAY_BUFFER, m_glIDVertBuffer);
-  glBufferData(GL_ARRAY_BUFFER, vVerts.size() * sizeof(VertexDataLens), &vVerts[0], GL_STATIC_DRAW);
-
-  glGenBuffers(1, &m_glIDIndexBuffer);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, m_glIDIndexBuffer);
-  glBufferData(GL_ELEMENT_ARRAY_BUFFER, vIndices.size() * sizeof(GLushort), &vIndices[0],
-               GL_STATIC_DRAW);
-
-  glEnableVertexAttribArray(0);
-  glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataLens),
-                        (void*)offsetof(VertexDataLens, position));
-
-  glEnableVertexAttribArray(1);
-  glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataLens),
-                        (void*)offsetof(VertexDataLens, texCoordRed));
-
-  glEnableVertexAttribArray(2);
-  glVertexAttribPointer(2, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataLens),
-                        (void*)offsetof(VertexDataLens, texCoordGreen));
-
-  glEnableVertexAttribArray(3);
-  glVertexAttribPointer(3, 2, GL_FLOAT, GL_FALSE, sizeof(VertexDataLens),
-                        (void*)offsetof(VertexDataLens, texCoordBlue));
-
-  glBindVertexArray(0);
-
-  glDisableVertexAttribArray(0);
-  glDisableVertexAttribArray(1);
-  glDisableVertexAttribArray(2);
-  glDisableVertexAttribArray(3);
-
-  glBindBuffer(GL_ARRAY_BUFFER, 0);
-  glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-}
-
-//-----------------------------------------------------------------------------
-// Purpose:
-//-----------------------------------------------------------------------------
 bool BInitGL()
 {
   if (!CreateAllShaders())
@@ -585,7 +445,7 @@ bool BInitGL()
   // SetupScene();
   // SetupCameras();
   // SetupStereoRenderTargets();
-  SetupDistortion();
+  // SetupDistortion();
 
   // SetupRenderModels();
   return true;
@@ -956,10 +816,10 @@ void VR_PresentHMDFrame()
 #ifdef HAVE_OPENVR
   if (m_pCompositor)
   {
-    vr::Texture_t leftEyeTexture = {(void*)(size_t)m_left_texture, vr::API_OpenGL,
+    vr::Texture_t leftEyeTexture = {(void*)(size_t)m_left_texture, OPENVR_OpenGL,
                                     vr::ColorSpace_Gamma};
     vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
-    vr::Texture_t rightEyeTexture = {(void*)(size_t)m_right_texture, vr::API_OpenGL,
+    vr::Texture_t rightEyeTexture = {(void*)(size_t)m_right_texture, OPENVR_OpenGL,
                                      vr::ColorSpace_Gamma};
     vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
 
@@ -1041,8 +901,8 @@ void VR_DrawTimewarpFrame()
 #if 0 && defined(HAVE_OPENVR)
 	if (g_has_openvr && m_pCompositor)
 	{
-		m_pCompositor->Submit(vr::Eye_Left, vr::API_OpenGL, (void*)m_left_texture, nullptr);
-		m_pCompositor->Submit(vr::Eye_Right, vr::API_OpenGL, (void*)m_right_texture, nullptr);
+		m_pCompositor->Submit(vr::Eye_Left, OPENVR_OpenGL, (void*)m_left_texture, nullptr);
+		m_pCompositor->Submit(vr::Eye_Right, OPENVR_OpenGL, (void*)m_right_texture, nullptr);
 		m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
 		uint32_t unSize = m_pCompositor->GetLastError(NULL, 0);
 		if (unSize > 1)

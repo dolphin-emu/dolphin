@@ -255,8 +255,12 @@ void AvatarDrawer::Init()
 
     if (error != vr::VRRenderModelError_None)
     {
+#ifdef OPENVR_0921_OR_ABOVE
       NOTICE_LOG(VR, "Unable to load render model %s - %s\n", path,
                  vr::VRRenderModels()->GetRenderModelErrorNameFromEnum(error));
+#else
+      NOTICE_LOG(VR, "Unable to load render model %s - %d\n", path, error);
+#endif
       m_vertex_count = 0;
       m_index_count = 0;
       m_scale = 1;
