@@ -161,7 +161,7 @@ Wii network certificates must be extracted from a Wii IOS. A guide for that can 
 
 ## Debugging
 
-To use a debugger with Dolphin (generate backtraces, set breakpoint etc.), it must be built in debug mode `CMAKE_BUILD_TYPE=RelWithDebInfo`. Instead of `cmake`, run `cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo` when following the above build steps.
+To use a debugger with Dolphin (generate backtraces, set breakpoint etc.), it must be built using `CMAKE_BUILD_TYPE=RelWithDebInfo`. Instead of `cmake`, run `cmake -D CMAKE_BUILD_TYPE=RelWithDebInfo` when following the above build steps.
 
 Dolphin is non-deterministic in dual core mode. Therefore, it's typically recommended to disable this in Dolphin's configuration menu when debugging.
 
