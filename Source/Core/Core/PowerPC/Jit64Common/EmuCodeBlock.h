@@ -1,105 +1,22 @@
-// Copyright 2010 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
-// Refer to the license.txt file included./
+// Refer to the license.txt file included.
 
 #pragma once
 
 #include <unordered_map>
 
 #include "Common/BitSet.h"
-#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/x64Emitter.h"
-#include "Core/PowerPC/PowerPC.h"
+
+#include "Core/PowerPC/Jit64Common/FarCodeCache.h"
+#include "Core/PowerPC/Jit64Common/TrampolineInfo.h"
 
 namespace MMIO
 {
 class Mapping;
 }
-
-// We offset by 0x80 because the range of one byte memory offsets is
-// -0x80..0x7f.
-#define PPCSTATE(x)                                                                                \
-  MDisp(RPPCSTATE, (int)((char*)&PowerPC::ppcState.x - (char*)&PowerPC::ppcState) - 0x80)
-// In case you want to disable the ppcstate register:
-// #define PPCSTATE(x) M(&PowerPC::ppcState.x)
-#define PPCSTATE_LR PPCSTATE(spr[SPR_LR])
-#define PPCSTATE_CTR PPCSTATE(spr[SPR_CTR])
-#define PPCSTATE_SRR0 PPCSTATE(spr[SPR_SRR0])
-#define PPCSTATE_SRR1 PPCSTATE(spr[SPR_SRR1])
-
-// A place to throw blocks of code we don't want polluting the cache, e.g. rarely taken
-// exception branches.
-class FarCodeCache : public Gen::X64CodeBlock
-{
-private:
-  bool m_enabled = false;
-
-public:
-  bool Enabled() const { return m_enabled; }
-  void Init(int size)
-  {
-    AllocCodeSpace(size);
-    m_enabled = true;
-  }
-  void Shutdown()
-  {
-    FreeCodeSpace();
-    m_enabled = false;
-  }
-};
-
-constexpr int CODE_SIZE = 1024 * 1024 * 32;
-
-// a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
-// mostly exception handling, so give it a whole bunch more space if the MMU is on.
-constexpr int FARCODE_SIZE = 1024 * 1024 * 8;
-constexpr int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
-
-// same for the trampoline code cache, because fastmem results in far more backpatches in MMU mode
-constexpr int TRAMPOLINE_CODE_SIZE = 1024 * 1024 * 8;
-constexpr int TRAMPOLINE_CODE_SIZE_MMU = 1024 * 1024 * 32;
-
-// Stores information we need to batch-patch a MOV with a call to the slow read/write path after
-// it faults. There will be 10s of thousands of these structs live, so be wary of making this too
-// big.
-struct TrampolineInfo final
-{
-  // The start of the store operation that failed -- we will patch a JMP here
-  u8* start;
-
-  // The start + len = end of the store operation (points to the next instruction)
-  u32 len;
-
-  // The PPC PC for the current load/store block
-  u32 pc;
-
-  // Saved because we need these to make the ABI call in the trampoline
-  BitSet32 registersInUse;
-
-  // The MOV operation
-  Gen::X64Reg nonAtomicSwapStoreSrc;
-
-  // src/dest for load/store
-  s32 offset;
-  Gen::X64Reg op_reg;
-  Gen::OpArg op_arg;
-
-  // Original SafeLoadXXX/SafeStoreXXX flags
-  u8 flags;
-
-  // Memory access size (in bytes)
-  u8 accessSize : 4;
-
-  // true if this is a read op vs a write
-  bool read : 1;
-
-  // for read operations, true if needs sign-extension after load
-  bool signExtend : 1;
-
-  // Set to true if we added the offset to the address and need to undo it
-  bool offsetAddedToAddress : 1;
-};
 
 // Like XCodeBlock but has some utilities for memory access.
 class EmuCodeBlock : public Gen::X64CodeBlock
@@ -111,17 +28,8 @@ public:
   void MemoryExceptionCheck();
 
   // Simple functions to switch between near and far code emitting
-  void SwitchToFarCode()
-  {
-    nearcode = GetWritableCodePtr();
-    SetCodePtr(farcode.GetWritableCodePtr());
-  }
-
-  void SwitchToNearCode()
-  {
-    farcode.SetCodePtr(GetWritableCodePtr());
-    SetCodePtr(nearcode);
-  }
+  void SwitchToFarCode();
+  void SwitchToNearCode();
 
   Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,
                                       BitSet32 registers_in_use);
@@ -133,10 +41,8 @@ public:
   void UnsafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize,
                            s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
   void UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
-                           s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr)
-  {
-    UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap, info);
-  }
+                           s32 offset = 0, bool swap = true, Gen::MovInfo* info = nullptr);
+
   bool UnsafeLoadToReg(Gen::X64Reg reg_value, Gen::OpArg opAddress, int accessSize, s32 offset,
                        bool signExtend, Gen::MovInfo* info = nullptr);
   void UnsafeWriteGatherPipe(int accessSize);
@@ -169,20 +75,15 @@ public:
   void SafeWriteRegToReg(Gen::OpArg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset,
                          BitSet32 registersInUse, int flags = 0);
   void SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize, s32 offset,
-                         BitSet32 registersInUse, int flags = 0)
-  {
-    SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, registersInUse, flags);
-  }
+                         BitSet32 registersInUse, int flags = 0);
 
   // applies to safe and unsafe WriteRegToReg
-  bool WriteClobbersRegValue(int accessSize, bool swap)
-  {
-    return swap && !cpu_info.bMOVBE && accessSize > 8;
-  }
+  bool WriteClobbersRegValue(int accessSize, bool swap);
 
-  void WriteToConstRamAddress(int accessSize, Gen::OpArg arg, u32 address, bool swap = true);
   // returns true if an exception could have been caused
   bool WriteToConstAddress(int accessSize, Gen::OpArg arg, u32 address, BitSet32 registersInUse);
+  void WriteToConstRamAddress(int accessSize, Gen::OpArg arg, u32 address, bool swap = true);
+
   void JitGetAndClearCAOV(bool oe);
   void JitSetCA();
   void JitSetCAIf(Gen::CCFlags conditionCode);

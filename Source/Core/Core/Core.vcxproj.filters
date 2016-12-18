@@ -738,13 +738,16 @@
     <ClCompile Include="PowerPC\Jit64Common\BlockCache.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\EmuCodeBlock.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\FarCodeCache.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\Jit64Common\Jit64AsmCommon.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\Jit64Common\Jit64Base.cpp">
-      <Filter>PowerPC\Jit64Common</Filter>
-    </ClCompile>
-    <ClCompile Include="PowerPC\Jit64Common\Jit64Util.cpp">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\Jit64Common\TrampolineCache.cpp">
@@ -1278,16 +1281,25 @@
     <ClInclude Include="PowerPC\Jit64Common\BlockCache.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\EmuCodeBlock.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\FarCodeCache.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\Jit64AsmCommon.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\Jit64Base.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Jit64Common\Jit64Util.h">
+    <ClInclude Include="PowerPC\Jit64Common\Jit64PowerPCState.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64Common\TrampolineCache.h">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\TrampolineInfo.h">
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="Analytics.h" />

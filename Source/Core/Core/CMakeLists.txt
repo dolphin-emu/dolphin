@@ -207,9 +207,10 @@ if(_M_X86)
 			PowerPC/Jit64/JitRegCache.cpp
 			PowerPC/Jit64/Jit_SystemRegisters.cpp
 			PowerPC/Jit64Common/BlockCache.cpp
+			PowerPC/Jit64Common/EmuCodeBlock.cpp
+			PowerPC/Jit64Common/FarCodeCache.cpp
 			PowerPC/Jit64Common/Jit64AsmCommon.cpp
 			PowerPC/Jit64Common/Jit64Base.cpp
-			PowerPC/Jit64Common/Jit64Util.cpp
 			PowerPC/Jit64Common/TrampolineCache.cpp)
 elseif(_M_ARM_64)
 	set(SRCS ${SRCS}
