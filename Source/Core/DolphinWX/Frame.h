@@ -24,6 +24,10 @@
 #include "DolphinWX/X11Utils.h"
 #endif
 
+#if defined(__APPLE__)
+#import <IOKit/pwr_mgt/IOPMLib.h>
+#endif
+
 // Class declarations
 class CGameListCtrl;
 class CCodeWindow;
@@ -171,6 +175,11 @@ private:
     ADD_PANE_RIGHT,
     ADD_PANE_CENTER
   };
+
+#ifdef __APPLE__
+  IOPMAssertionID m_disable_screensaver_assertion_id;
+  IOReturn m_disable_screensaver_assertion_creation_success;
+#endif
 
   wxTimer m_poll_hotkey_timer;
   wxTimer m_handle_signal_timer;
