@@ -28,6 +28,7 @@ class DolphinAuiToolBar;
 class wxListBox;
 class wxMenu;
 class wxMenuBar;
+class wxSearchCtrl;
 class wxToolBar;
 
 #if defined(_MSC_VER) && _MSC_VER <= 1800
@@ -136,6 +137,7 @@ private:
 
   void OnCodeStep(wxCommandEvent& event);
   void OnAddrBoxChange(wxCommandEvent& event);
+  void OnSymbolFilterText(wxCommandEvent& event);
   void OnSymbolsMenu(wxCommandEvent& event);
   void OnJitMenu(wxCommandEvent& event);
   void OnProfilerMenu(wxCommandEvent& event);
@@ -157,6 +159,8 @@ private:
   void UpdateLists();
   void UpdateCallstack();
 
+  void ReloadSymbolListBox();
+
   wxPanel* CreateSiblingPanel(int id);
 
   // Sibling debugger panels
@@ -165,6 +169,7 @@ private:
 
   CFrame* Parent;
   CCodeView* codeview;
+  wxSearchCtrl* m_symbol_filter_ctrl;
   wxListBox* callstack;
   wxListBox* symbols;
   wxListBox* callers;

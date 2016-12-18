@@ -12,6 +12,7 @@
 # Gonçalo Matos , 2015
 # Runo <i.am.runo@gmail.com>, 2013
 # igorruckert <igorruckert@yahoo.com.br>, 2015-2016
+# Laete Meireles <laetemn@hotmail.com>, 2016
 # Charles Fernando da Silva <eu.charles@hotmail.com>, 2013
 # Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013-2016
 # Mateus B. Cassiano <jhonn.copperfield@gmail.com>, 2013
@@ -20,9 +21,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-10 13:05+0100\n"
-"PO-Revision-Date: 2016-12-10 12:05+0000\n"
-"Last-Translator: JosJuice\n"
+"POT-Creation-Date: 2016-12-17 15:58+0100\n"
+"PO-Revision-Date: 2016-12-12 12:13+0000\n"
+"Last-Translator: Laete Meireles <laetemn@hotmail.com>\n"
 "Language-Team: Portuguese (Brazil) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/pt_BR/)\n"
 "Language: pt_BR\n"
@@ -335,7 +336,7 @@ msgstr "&Excluir as ISOs selecionadas"
 #. It's not related to timekeeping devices.
 #: Source/Core/DolphinWX/Debugger/WatchView.cpp:265
 msgid "&Delete watch"
-msgstr ""
+msgstr "&Excluir relógio"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:350
 msgid "&Disable JIT Cache"
@@ -356,7 +357,7 @@ msgstr "&Arquivo"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:358
 msgid "&Follow branch"
-msgstr ""
+msgstr "&Seguir ramo"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:197
 msgid "&Font..."
@@ -534,7 +535,7 @@ msgstr "&Reiniciar"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:370
 msgid "&Run To Here"
-msgstr ""
+msgstr "&Executar até aqui"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:426
 msgid "&Save Symbol Map"
@@ -906,6 +907,8 @@ msgid ""
 "Add any named functions missing from a .dsy file, so that these additional "
 "functions can also be recognized in other games."
 msgstr ""
+"Adicione quaisquer funções nomeadas faltando de um arquivo .dsy, para que "
+"essas funções adicionais também podem ser reconhecidas em outros jogos."
 
 #: Source/Core/DolphinWX/Debugger/WatchView.cpp:270
 msgid "Add memory &breakpoint"
@@ -916,7 +919,7 @@ msgstr "Adicionar &ponto interrupção de memória"
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:255
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:488
 msgid "Add to &watch"
-msgstr ""
+msgstr "Adicionar para &assistir"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:38
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:395
@@ -933,7 +936,7 @@ msgstr "Endereço"
 
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:369
 msgid "Address Out of Range"
-msgstr ""
+msgstr "Endereço Fora da Faixa"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1040
 msgid "Adjust the analog control pressure required to activate buttons."
@@ -1280,7 +1283,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:184
 msgid "Boot to Pause"
-msgstr ""
+msgstr "Inicializar para Pausar"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:913
 msgid "Borderless Fullscreen"
@@ -1303,15 +1306,15 @@ msgstr "Branch: %s"
 
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
 msgid "Break"
-msgstr ""
+msgstr "Pausa"
 
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
 msgid "Break and log"
-msgstr ""
+msgstr "Pausar e registrar"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:392
 msgid "Breakpoint encountered! Step out aborted."
-msgstr ""
+msgstr "Ponto de interrupção encontrado! Saída abortada."
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.h:18
 msgid "Breakpoints"
@@ -1339,7 +1342,7 @@ msgstr "Buffer:"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:63
 msgid "Button"
-msgstr ""
+msgstr "Botão"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:42
 #: Source/Core/DolphinWX/TASInputDlg.cpp:218
@@ -1416,7 +1419,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:93
 msgid "Callstack"
-msgstr ""
+msgstr "Pilha de Chamadas"
 
 #: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1876
 #, c-format
@@ -1435,7 +1438,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:168
 msgid "Cannot set uninitialized memory."
-msgstr ""
+msgstr "Não foi possível definir a memória não inicializada."
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:365
 #, c-format
@@ -1558,7 +1561,7 @@ msgstr "Abrir"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:369
 msgid "Choose priority input file"
-msgstr ""
+msgstr "Escolha o arquivo de entrada prioritário"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:376
 msgid "Choose secondary input file"
@@ -1884,7 +1887,7 @@ msgstr "Core"
 #. i18n: Performance cost, not monetary cost
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:184
 msgid "Cost"
-msgstr ""
+msgstr "Custo"
 
 #: Source/Core/Core/ConfigManager.cpp:853
 #, c-format
@@ -1995,6 +1998,12 @@ msgid ""
 "\n"
 "If unsure, leave this unchecked."
 msgstr ""
+"Criar dumps de quadros e screenshots na resolução interna do renderizador, "
+"em vez do tamanho da janela. Se a relação de aspecto for widescreen, a "
+"imagem de saída será dimensionada horizontalmente para preservar a resolução "
+"vertical.\n"
+"\n"
+"Se não tiver certeza, deixe isso desmarcado."
 
 #: Source/Core/DolphinWX/FrameAui.cpp:539
 msgid "Create new perspective"
@@ -2285,7 +2294,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:79
 msgid "Disassembly"
-msgstr ""
+msgstr "Desmontagem"
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:188
 msgid "Disc"
@@ -2447,7 +2456,7 @@ msgstr "Bateria"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:92
 msgid "Drums Configuration"
-msgstr ""
+msgstr "Configuração de Bateria"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:34
 msgid "Dummy"
@@ -3003,7 +3012,7 @@ msgstr "Extrair Pasta..."
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:309
 msgid "Extract File"
-msgstr ""
+msgstr "Extrair Arquivo"
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:281
 msgid "Extract File..."
@@ -3287,11 +3296,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:232
 msgid "Find Next"
-msgstr ""
+msgstr "Localizar Próximo"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:233
 msgid "Find Previous"
-msgstr ""
+msgstr "Localizar Anterior"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:646
 msgid "First Block"
@@ -3470,11 +3479,11 @@ msgstr "Intervalo de Quadros"
 #: Source/Core/VideoCommon/RenderBase.cpp:889
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
-msgstr ""
+msgstr "Imagem(s) de despejo de quadro '%s' já existe. Substituir?"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:165
 msgid "Frames to Record"
-msgstr ""
+msgstr "Quadros para Gravar"
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "France"
@@ -3541,7 +3550,7 @@ msgstr "De"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:869
 msgid "Full Resolution Frame Dumps"
-msgstr ""
+msgstr "Despejo de Quadro de Resolução Completa"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:182
 msgid "FullScr"
@@ -3673,11 +3682,11 @@ msgstr "Memory Cards do GameCube (*.raw;*.gcp)"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:290
 msgid "GameCube Microphone Slot A"
-msgstr ""
+msgstr "Slot A de Microfone - GameCube"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:295
 msgid "GameCube Microphone Slot B"
-msgstr ""
+msgstr "Slot B de Microfone - GameCube"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:534
 msgid "GameCube Savegame files(*.gci;*.gcs;*.sav)"
@@ -3769,7 +3778,7 @@ msgstr "Guitarra"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:86
 msgid "Guitar Configuration"
-msgstr ""
+msgstr "Configuração de Guitarra"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:704
 msgid "Hacks"
@@ -4423,11 +4432,11 @@ msgstr "Carregar"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:434
 msgid "Load &Bad Map File..."
-msgstr ""
+msgstr "Carregar Arquivo de Mapa Incorreto..."
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:431
 msgid "Load &Other Map File..."
-msgstr ""
+msgstr "Carregar &Outro Arquivo de Mapa..."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:859
 msgid "Load Custom Textures"
@@ -4549,7 +4558,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:235
 msgid "Load bad map file"
-msgstr ""
+msgstr "Carregar arquivo de mapa incorreto..."
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:233
 msgid ""
@@ -4832,6 +4841,9 @@ msgid ""
 "Must use Generate Symbol Map first! Recognise names of any standard library "
 "functions used in multiple games, by loading them from a .dsy file."
 msgstr ""
+"Use Gerar Mapa de Símbolos primeiro! Isso permitirá reconhecer nomes de "
+"quaisquer funções da biblioteca padrão usadas em vários jogos, carregando-os "
+"de um arquivo .dsy."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:633
 msgid "NOTE: Stream size doesn't match actual data length\n"
@@ -5095,7 +5107,7 @@ msgstr "Nunchuk"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:74
 msgid "Nunchuk Configuration"
-msgstr ""
+msgstr "Configuração do Nunchuk"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:194
 msgid "Nunchuk orientation"
@@ -5276,7 +5288,7 @@ msgstr "Erro de Análise"
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:246
 #, c-format
 msgid "Partition %u"
-msgstr ""
+msgstr "Partição %u"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:230
 msgid "Passthrough a Bluetooth adapter"
@@ -5865,18 +5877,28 @@ msgid ""
 "rel files with code to memory, you may want to increase the limit to perhaps "
 "8 MB. That can be done in SymbolDB::SaveMap()."
 msgstr ""
+"Salva todo o código desmontado. Isso pode levar alguns segundos e pode "
+"exigir entre 50 e 100 MB de espaço no disco rígido. Será salvo somente o "
+"código que está nos primeiros 4 MB de memória. Se você estiver depurando um "
+"jogo que carrega arquivos .rel com código para memória, você pode querer "
+"aumentar o limite para talvez 8 MB. Isso pode ser feito em SymbolDB::"
+"SaveMap()."
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:437
 msgid ""
 "Save the function names and addresses for this game as a .map file. If you "
 "want to open the .map file in IDA Pro, use the .idc script."
 msgstr ""
+"Salva os nomes e endereços das funções para este jogo como um arquivo .map. "
+"Se você deseja abrir o arquivo .map no IDA Pro, use o script .idc."
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:427
 msgid ""
 "Save the function names for each address to a .map file in your user "
 "settings map folder, named after the title ID."
 msgstr ""
+"Salve os nomes das funções para cada endereço em um arquivo .map na sua "
+"pasta de configurações de usuário, com o nome da ID do título."
 
 #: Source/Core/Core/HotkeyManager.cpp:99
 msgid "Save to selected slot"
@@ -5950,7 +5972,7 @@ msgstr "Pesquisar Endereço"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:261
 msgid "Search Current Object"
-msgstr ""
+msgstr "Procurar Objeto Atual"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:37
 msgid "Search Subfolders"
@@ -5958,7 +5980,7 @@ msgstr "Procurar nas Subpastas"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:224
 msgid "Search for Hex Value:"
-msgstr ""
+msgstr "Procurar por Valor Hex:"
 
 #: Source/Core/Common/SysConf.h:98 Source/Core/Common/SysConf.h:121
 #: Source/Core/Common/SysConf.h:141 Source/Core/Common/SysConf.h:162
@@ -6676,55 +6698,55 @@ msgstr "Passo"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:404
 msgid "Step &Into\tF11"
-msgstr ""
+msgstr "Passo Em⇥F11"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:405
 msgid "Step &Over\tF10"
-msgstr ""
+msgstr "Passo Acima⇥F10"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:406
 msgid "Step O&ut\tSHIFT+F11"
-msgstr ""
+msgstr "Sair⇥SHIFT+F11"
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
 #: Source/Core/DolphinWX/MainToolBar.cpp:203
 msgid "Step Out"
-msgstr ""
+msgstr "Sair"
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
 #: Source/Core/DolphinWX/MainToolBar.cpp:199
 msgid "Step Over"
-msgstr ""
+msgstr "Passo Acima"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:196
 msgid "Step into the next instruction"
-msgstr ""
+msgstr "Entrar na próxima instrução"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:204
 msgid "Step out of the current function"
-msgstr ""
+msgstr "Saída da função atual"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:396
 msgid "Step out successful!"
-msgstr ""
+msgstr "Saída com sucesso!"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:394
 msgid "Step out timed out!"
-msgstr ""
+msgstr "Saída no tempo limite!"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:321
 msgid "Step over in progress..."
-msgstr ""
+msgstr "Passo em curso..."
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Step over the next instruction"
-msgstr ""
+msgstr "Passe a próxima instrução"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:306
 msgid "Step successful!"
-msgstr ""
+msgstr "Passo bem sucedido!"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"
@@ -7167,6 +7189,9 @@ msgid ""
 "the Developer Documentation. But it can be very slow, perhaps slower than 1 "
 "fps."
 msgstr ""
+"Isso é necessário para obter pontos de interrupção e controle para trabalhar "
+"como explicado na documentação do desenvolvedor. Mas pode ser muito lento, "
+"talvez mais lento do que 1 fps."
 
 #: Source/Core/DolphinWX/Config/AdvancedConfigPane.cpp:52
 msgid ""
@@ -7355,12 +7380,16 @@ msgstr "Gatilhos"
 msgid ""
 "Try to load a .map file that might be from a slightly different version."
 msgstr ""
+"Tenta carregar um arquivo .map que possa ser de uma versão ligeiramente "
+"diferente."
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:424
 msgid ""
 "Try to load this game's function names automatically - but doesn't check ."
 "map files stored on the disc image yet."
 msgstr ""
+"Tenta carregar os nomes das funções deste jogo automaticamente - mas não "
+"verifica os arquivos .map armazenados na imagem do disco."
 
 #: Source/Core/Common/SysConf.h:86 Source/Core/Common/SysConf.h:109
 msgid "Trying to read from invalid SYSCONF"
@@ -7371,10 +7400,12 @@ msgid ""
 "Trying to read from invalid SYSCONF\n"
 "Wii Remote Bluetooth IDs are not available"
 msgstr ""
+"Tentando ler de SYSCONF inválido\n"
+"Wii Remote Bluetooth IDs não estão disponíveis"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:362
 msgid "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
-msgstr ""
+msgstr "Desativar todas as funções JIT, mas ainda usar o JIT core do Jit.cpp"
 
 #: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:35
 msgid "Turntable"
@@ -7382,7 +7413,7 @@ msgstr "Mesa de DJ"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:98
 msgid "Turntable Configuration"
-msgstr ""
+msgstr "Configuração da Mesa Giratória"
 
 #: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:33
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:74
@@ -7628,7 +7659,7 @@ msgstr "Descrição do Vertex"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:143
 msgid "Vertex Matrices"
-msgstr ""
+msgstr "Matrizes de Vértice"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:52
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:136
@@ -7669,11 +7700,11 @@ msgstr "Ver como hexadecimal"
 
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:498
 msgid "View as signed integer"
-msgstr ""
+msgstr "Exibir como um inteiro assinado"
 
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:499
 msgid "View as unsigned integer"
-msgstr ""
+msgstr "Exibir como um inteiro não assinado"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:781
 msgid "Virtual"
