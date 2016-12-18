@@ -23,6 +23,10 @@
 #include "UICommon/X11Utils.h"
 #endif
 
+#ifdef __APPLE__
+#import <IOKit/pwr_mgt/IOPMLib.h>
+#endif
+
 // Class declarations
 class CGameListCtrl;
 class CCodeWindow;
@@ -159,6 +163,10 @@ private:
     ADD_PANE_RIGHT,
     ADD_PANE_CENTER
   };
+
+#ifdef __APPLE__
+  IOPMAssertionID m_power_assertion = kIOPMNullAssertionID;
+#endif
 
   wxTimer m_poll_hotkey_timer;
   wxTimer m_handle_signal_timer;
