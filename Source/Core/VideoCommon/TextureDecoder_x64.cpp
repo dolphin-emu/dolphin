@@ -167,7 +167,7 @@ static inline void DecodeBytes_IA4(u32* dst, const u8* src)
 }
 
 #ifdef CHECK
-static inline u32 makeRGBA(int r, int g, int b, int a)
+static inline u32 MakeRGBA(int r, int g, int b, int a)
 {
   return (a << 24) | (b << 16) | (g << 8) | r;
 }
@@ -189,6 +189,7 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
   colors[1] = MakeRGBA(red2, green2, blue2, 255);
   if (c1 > c2)
   {
+    // Approximation of x/3: 3/8 (1/2 - 1/8)
     int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
     int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
     int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
@@ -197,9 +198,12 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
   }
   else
   {
-    colors[2] = MakeRGBA((red1 + red2 + 1) / 2,  // Average
-                         (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 255);
-    colors[3] = MakeRGBA(red2, green2, blue2, 0);  // Color2 but transparent
+    // color[3] is the same as color[2] (average of both colors), but transparent.
+    // This differs from DXT1 where color[3] is transparent black.
+    colors[2] =
+        MakeRGBA((red1 + red2 + 1) / 2, (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 255);
+    colors[3] =
+        MakeRGBA((red1 + red2 + 1) / 2, (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 0);
   }
 
   for (int y = 0; y < 4; y++)
@@ -1225,9 +1229,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
               const __m128i rrggbb21 = _mm_avg_epu16(rrggbb0, rrggbb1);
               const __m128i rgb210 = _mm_srli_si128(_mm_packus_epi16(rrggbb21, rrggbb21), 8);
               rgb2 = rgb210;
-              rgb3 = _mm_and_si128(
-                  _mm_srli_si128(_mm_shuffle_epi32(argb888x4, _MM_SHUFFLE(1, 1, 1, 1)), 8),
-                  _mm_srli_epi32(allFFs128, 8));
+              rgb3 = _mm_and_si128(rgb210, _mm_srli_epi32(allFFs128, 8));
             }
 
             // if (rgb0 > rgb1):
@@ -1262,7 +1264,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
               // 0x00FFFFFF)
               // Make this color fully transparent:
               rgb3 = _mm_or_si128(rgb3,
-                                  _mm_and_si128(_mm_and_si128(rgb1, _mm_srli_epi32(allFFs128, 8)),
+                                  _mm_and_si128(_mm_and_si128(rgb2, _mm_srli_epi32(allFFs128, 8)),
                                                 _mm_slli_si128(allFFs128, 8)));
             }
 
@@ -1284,8 +1286,12 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
             // REFERENCE:
             u32 tmp0[4][4], tmp1[4][4];
 
-            DecodeDXTBlock(&(tmp0[0][0]), (const DXTBlock*)src, 4);
-            DecodeDXTBlock(&(tmp1[0][0]), (const DXTBlock*)(src + 8), 4);
+            DecodeDXTBlock(&(tmp0[0][0]),
+                           reinterpret_cast<const DXTBlock*>(src + sizeof(DXTBlock) * 2 * xStep),
+                           4);
+            DecodeDXTBlock(
+                &(tmp1[0][0]),
+                reinterpret_cast<const DXTBlock*>((src + sizeof(DXTBlock) * 2 * xStep) + 8), 4);
 #endif
 
             u32* dst32 = (dst + (y + z * 4) * width + x);
