@@ -648,9 +648,6 @@
     <ClCompile Include="PowerPC\Profiler.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\SignatureDB.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp">
       <Filter>PowerPC\JitCommon</Filter>
     </ClCompile>
@@ -753,6 +750,15 @@
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp">
+      <Filter>PowerPC\SignatureDB</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1238,9 +1244,6 @@
     <ClInclude Include="PowerPC\Profiler.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\SignatureDB.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
     <ClInclude Include="PowerPC\JitCommon\JitAsmCommon.h">
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
@@ -1293,6 +1296,15 @@
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h">
+      <Filter>PowerPC\SignatureDB</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

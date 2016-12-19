@@ -163,7 +163,9 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/PPCSymbolDB.cpp
 			PowerPC/PPCTables.cpp
 			PowerPC/Profiler.cpp
-			PowerPC/SignatureDB.cpp
+			PowerPC/SignatureDB/CSVSignatureDB.cpp
+			PowerPC/SignatureDB/DSYSignatureDB.cpp
+			PowerPC/SignatureDB/SignatureDB.cpp
 			PowerPC/JitInterface.cpp
 			PowerPC/Interpreter/Interpreter_Branch.cpp
 			PowerPC/Interpreter/Interpreter.cpp

@@ -245,6 +245,9 @@
     <ClCompile Include="PowerPC\JitCommon\JitAsmCommon.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitBase.cpp" />
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
     <ClCompile Include="PowerPC\CachedInterpreter.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
     <ClCompile Include="PowerPC\MMU.cpp" />
@@ -254,7 +257,6 @@
     <ClCompile Include="PowerPC\PPCSymbolDB.cpp" />
     <ClCompile Include="PowerPC\PPCTables.cpp" />
     <ClCompile Include="PowerPC\Profiler.cpp" />
-    <ClCompile Include="PowerPC\SignatureDB.cpp" />
     <ClCompile Include="State.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -438,6 +440,9 @@
     <ClInclude Include="PowerPC\JitCommon\JitAsmCommon.h" />
     <ClInclude Include="PowerPC\JitCommon\JitBase.h" />
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />
+    <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
+    <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
+    <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
     <ClInclude Include="PowerPC\CachedInterpreter.h" />
     <ClInclude Include="PowerPC\JitInterface.h" />
     <ClInclude Include="PowerPC\PowerPC.h" />
@@ -446,7 +451,6 @@
     <ClInclude Include="PowerPC\PPCSymbolDB.h" />
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
-    <ClInclude Include="PowerPC\SignatureDB.h" />
     <ClInclude Include="State.h" />
   </ItemGroup>
   <ItemGroup>
