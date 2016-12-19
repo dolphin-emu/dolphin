@@ -15,6 +15,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
+#include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"

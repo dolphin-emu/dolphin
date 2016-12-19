@@ -12,7 +12,6 @@
 #include <unordered_set>
 
 #include "Common/CommonTypes.h"
-#include "Common/x64Emitter.h"
 #include "Core/ConfigManager.h"
 #include "Core/MachineContext.h"
 #include "Core/PowerPC/CPUCoreBase.h"
@@ -65,10 +64,6 @@ protected:
     u32 numFloatingPointInst;
     // If this is set, we need to generate an exception handler for the fastmem load.
     u8* fastmemLoadStore;
-    // If this is set, a load or store already prepared a jump to the exception handler for us,
-    // so just fixup that branch instead of testing for a DSI again.
-    bool fixupExceptionHandler;
-    Gen::FixupBranch exceptionHandler;
     // If these are set, we've stored the old value of a register which will be loaded in
     // revertLoad,
     // which lets us revert it on the exception path.

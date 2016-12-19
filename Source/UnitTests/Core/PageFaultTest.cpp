@@ -3,9 +3,10 @@
 // Refer to the license.txt file included.
 
 #include <chrono>
+#include <cstdio>
 
 #include "Common/CommonTypes.h"
-#include "Common/Timer.h"
+#include "Common/MemoryUtil.h"
 #include "Core/MemTools.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 

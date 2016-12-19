@@ -7,6 +7,7 @@
 #include <cstdint>
 
 #include "Common/CommonTypes.h"
+#include "Common/x64Emitter.h"
 #include "Common/x64Reg.h"
 #include "Core/PowerPC/Jit64Common/BlockCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
@@ -35,13 +36,26 @@ constexpr Gen::X64Reg RPPCSTATE = Gen::RBP;
 class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
 {
 protected:
+  struct Jit64State final
+  {
+    // If this is set, a load or store already prepared a jump to the exception handler for us,
+    // so just fixup that branch instead of testing for a DSI again.
+    bool fixup_exception_handler = false;
+    Gen::FixupBranch exception_handler{};
+  };
+
   bool BackPatch(u32 emAddress, SContext* ctx);
+
   JitBlockCache blocks;
   TrampolineCache trampolines;
+  Jit64State m_jit64_state;
 
 public:
   JitBlockCache* GetBlockCache() override { return &blocks; }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+
+  Jit64State& JIT64State() { return m_jit64_state; }
+  const Jit64State& JIT64State() const { return m_jit64_state; }
 };
 
 void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
