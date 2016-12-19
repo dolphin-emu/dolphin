@@ -39,6 +39,7 @@ The register allocation is linear scan allocation.
 #include "Core/HW/CPU.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/PowerPC.h"
 

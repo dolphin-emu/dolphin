@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Core/PowerPC/Jit64Common/Jit64Util.h"
+#include "Core/PowerPC/Jit64Common/EmuCodeBlock.h"
 #include "Core/PowerPC/JitCommon/JitAsmCommon.h"
 
 enum EQuantizeType : u32;
