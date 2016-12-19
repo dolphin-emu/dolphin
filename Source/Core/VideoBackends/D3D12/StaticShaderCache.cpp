@@ -131,6 +131,12 @@ static constexpr const char s_color_matrix_program_hlsl[] = {
     "in float4 pos : SV_Position,\n"
     "in float3 uv0 : TEXCOORD0){\n"
     "float4 texcol = Tex0.Sample(samp0,uv0);\n"
+    "int alpha = int(texcol.a * 63.0);\n"
+
+    // Truncate alpha to 6-bit
+    "alpha = (alpha << 2) | (alpha >> 4);\n"
+    "texcol.a = alpha / 255.0;\n"
+
     "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
     "ocol0 = "
     "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
@@ -152,6 +158,12 @@ static constexpr const char s_color_matrix_program_msaa_hlsl[] = {
     "for(int i = 0; i < SAMPLES; ++i)\n"
     "	texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
     "texcol /= SAMPLES;\n"
+    "int alpha = int(texcol.a * 63.0);\n"
+
+    // Truncate alpha to 6-bit
+    "alpha = (alpha << 2) | (alpha >> 4);\n"
+    "texcol.a = alpha / 255.0;\n"
+
     "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
     "ocol0 = "
     "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
