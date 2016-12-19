@@ -465,6 +465,7 @@ bool IsUsingMemcard(int memcard)
 {
   return (s_memcards & (1 << memcard)) != 0;
 }
+
 bool IsSyncGPU()
 {
   return s_bSyncGPU;
@@ -1486,8 +1487,12 @@ void GetSettings()
     s_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
     s_language = SConfig::GetInstance().SelectedLanguage;
   }
-  s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD) << 0;
-  s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD) << 1;
+  s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD ||
+                 SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARDFOLDER)
+                << 0;
+  s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD ||
+                 SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARDFOLDER)
+                << 1;
 
   std::array<u8, 20> revision = ConvertGitRevisionToBytes(scm_rev_git_str);
   std::copy(std::begin(revision), std::end(revision), std::begin(s_revision));

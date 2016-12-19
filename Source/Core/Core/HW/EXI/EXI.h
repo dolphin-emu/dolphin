@@ -21,6 +21,7 @@ class Mapping;
 
 enum
 {
+  MAX_MEMORYCARD_SLOTS = 2,
   MAX_EXI_CHANNELS = 3
 };
 

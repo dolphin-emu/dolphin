@@ -344,6 +344,8 @@ bool BootCore(const std::string& _rFilename)
                          StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B")))
           File::Delete(File::GetUserPath(D_GCUSER_IDX) +
                        StringFromFormat("Movie%s.raw", (i == 0) ? "A" : "B"));
+        if (File::Exists(File::GetUserPath(D_GCUSER_IDX) + "Movie"))
+          File::DeleteDirRecursively(File::GetUserPath(D_GCUSER_IDX) + "Movie");
       }
     }
   }
