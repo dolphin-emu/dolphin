@@ -733,7 +733,8 @@ void CFrame::StartGame(const std::string& filename)
 
 void CFrame::OnBootDrive(wxCommandEvent& event)
 {
-  BootGame(drives[event.GetId() - IDM_DRIVE1]);
+  const auto* menu = static_cast<wxMenu*>(event.GetEventObject());
+  BootGame(WxStrToStr(menu->GetLabelText(event.GetId())));
 }
 
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED(event))
