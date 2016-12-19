@@ -602,7 +602,7 @@ bool TextureCache::CompileShaders()
     void main()
     {
       float4 texcol = texture(samp0, uv0);
-      texcol = round(texcol * C.colmat[5]) * C.colmat[6];
+      texcol = floor(texcol * C.colmat[5]) * C.colmat[6];
       ocol0 = texcol * mat4(C.colmat[0], C.colmat[1], C.colmat[2], C.colmat[3]) + C.colmat[4];
     }
   )";

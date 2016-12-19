@@ -1039,7 +1039,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
         fConstAdd[3] = 16.0f / 255.0f;
         if (dstFormat == 0)
         {
-          ColorMask[0] = ColorMask[1] = ColorMask[2] = 15.0f;
+          ColorMask[0] = ColorMask[1] = ColorMask[2] = 255.0f / 16.0f;
           ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 15.0f;
           cbufid = 9;
         }
@@ -1053,7 +1053,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
         colmat[15] = 1;
         if (dstFormat == 2)
         {
-          ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 15.0f;
+          ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f / 16.0f;
           ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 15.0f;
           cbufid = 11;
         }
@@ -1077,7 +1077,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
     {
     case 0:  // R4
       colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-      ColorMask[0] = 15.0f;
+      ColorMask[0] = 255.0f / 16.0f;
       ColorMask[4] = 1.0f / 15.0f;
       cbufid = 14;
       dstFormat |= _GX_TF_CTF;
@@ -1091,7 +1091,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
     case 2:  // RA4
       colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
-      ColorMask[0] = ColorMask[3] = 15.0f;
+      ColorMask[0] = ColorMask[3] = 255.0f / 16.0f;
       ColorMask[4] = ColorMask[7] = 1.0f / 15.0f;
 
       cbufid = 16;
@@ -1157,9 +1157,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
     case 4:  // RGB565
       colmat[0] = colmat[5] = colmat[10] = 1.0f;
-      ColorMask[0] = ColorMask[2] = 31.0f;
+      ColorMask[0] = ColorMask[2] = 255.0f / 8.0f;
       ColorMask[4] = ColorMask[6] = 1.0f / 31.0f;
-      ColorMask[1] = 63.0f;
+      ColorMask[1] = 255.0f / 4.0f;
       ColorMask[5] = 1.0f / 63.0f;
       fConstAdd[3] = 1.0f;  // set alpha to 1
       cbufid = 26;
@@ -1167,9 +1167,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
     case 5:  // RGB5A3
       colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-      ColorMask[0] = ColorMask[1] = ColorMask[2] = 31.0f;
+      ColorMask[0] = ColorMask[1] = ColorMask[2] = 255.0f / 8.0f;
       ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 31.0f;
-      ColorMask[3] = 7.0f;
+      ColorMask[3] = 255.0f / 32.0f;
       ColorMask[7] = 1.0f / 7.0f;
 
       cbufid = 27;

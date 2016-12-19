@@ -333,7 +333,7 @@ bool TextureCache::CompileShaders()
       "\n"
       "void main(){\n"
       "	vec4 texcol = texture(samp9, f_uv0);\n"
-      "	texcol = round(texcol * colmat[5]) * colmat[6];\n"
+      "	texcol = floor(texcol * colmat[5]) * colmat[6];\n"
       "	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
       "}\n";
 
