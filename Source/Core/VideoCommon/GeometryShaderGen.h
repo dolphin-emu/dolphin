@@ -16,7 +16,7 @@ struct geometry_shader_uid_data
   u32 NumValues() const { return sizeof(geometry_shader_uid_data); }
   bool IsPassthrough() const
   {
-    return primitive_type == PRIMITIVE_TRIANGLES && !stereo && !wireframe;
+    return primitive_type == PRIMITIVE_TRIANGLES && !stereo && !wireframe && !more_layers;
   }
 
   u32 stereo : 1;
@@ -27,6 +27,7 @@ struct geometry_shader_uid_data
   u32 msaa : 1;
   u32 ssaa : 1;
   u32 vr : 1;
+  u32 more_layers : 1;
 };
 
 #pragma pack()
