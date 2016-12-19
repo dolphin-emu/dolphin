@@ -162,8 +162,6 @@ private:
   bool m_tried_graceful_shutdown = false;
   int m_saveSlot = 1;
 
-  std::vector<std::string> drives;
-
   enum
   {
     ADD_PANE_TOP,
