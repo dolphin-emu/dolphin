@@ -90,6 +90,8 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 5. `cp -r ../Data/Sys/ Binaries/`
 6. `touch Binaries/portable.txt`
 
+On Arch Linux, there is an AUR package availble [here](https://aur.archlinux.org/packages/dolphin-emu-git/)
+
 ## Building for Android
 
 These instructions assume familiarity with Android development. If you do not have an
