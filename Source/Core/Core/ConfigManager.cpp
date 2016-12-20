@@ -188,6 +188,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
+  interface->Set("DisableTooltips", m_DisableTooltips);
 }
 
 void SConfig::SaveDisplaySettings(IniFile& ini)
@@ -491,6 +492,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
+  interface->Get("DisableTooltips", &m_DisableTooltips, false);
 }
 
 void SConfig::LoadDisplaySettings(IniFile& ini)
