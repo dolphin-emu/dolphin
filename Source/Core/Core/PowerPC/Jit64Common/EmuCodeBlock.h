@@ -22,9 +22,6 @@ class Mapping;
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
-  FarCodeCache farcode;
-  u8* nearcode;  // Backed up when we switch to far code.
-
   void MemoryExceptionCheck();
 
   // Simple functions to switch between near and far code emitting
@@ -108,6 +105,9 @@ public:
   void Clear();
 
 protected:
-  std::unordered_map<u8*, TrampolineInfo> backPatchInfo;
-  std::unordered_map<u8*, u8*> exceptionHandlerAtLoc;
+  FarCodeCache m_far_code;
+  u8* m_near_code;  // Backed up when we switch to far code.
+
+  std::unordered_map<u8*, TrampolineInfo> m_back_patch_info;
+  std::unordered_map<u8*, u8*> m_exception_handler_at_loc;
 };

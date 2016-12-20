@@ -44,8 +44,8 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   if (!IsInSpace(codePtr))
     return false;  // this will become a regular crash real soon after this
 
-  auto it = backPatchInfo.find(codePtr);
-  if (it == backPatchInfo.end())
+  auto it = m_back_patch_info.find(codePtr);
+  if (it == m_back_patch_info.end())
   {
     PanicAlert("BackPatch: no register use entry for address %p", codePtr);
     return false;
@@ -56,8 +56,8 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   u8* exceptionHandler = nullptr;
   if (jit->jo.memcheck)
   {
-    auto it2 = exceptionHandlerAtLoc.find(codePtr);
-    if (it2 != exceptionHandlerAtLoc.end())
+    auto it2 = m_exception_handler_at_loc.find(codePtr);
+    if (it2 != m_exception_handler_at_loc.end())
       exceptionHandler = it2->second;
   }
 

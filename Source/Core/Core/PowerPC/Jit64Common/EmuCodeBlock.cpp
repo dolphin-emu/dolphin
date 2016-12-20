@@ -72,14 +72,14 @@ void EmuCodeBlock::MemoryExceptionCheck()
 
 void EmuCodeBlock::SwitchToFarCode()
 {
-  nearcode = GetWritableCodePtr();
-  SetCodePtr(farcode.GetWritableCodePtr());
+  m_near_code = GetWritableCodePtr();
+  SetCodePtr(m_far_code.GetWritableCodePtr());
 }
 
 void EmuCodeBlock::SwitchToNearCode()
 {
-  farcode.SetCodePtr(GetWritableCodePtr());
-  SetCodePtr(nearcode);
+  m_far_code.SetCodePtr(GetWritableCodePtr());
+  SetCodePtr(m_near_code);
 }
 
 FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
@@ -110,7 +110,7 @@ FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_
   if (scratch == reg_addr)
     POP(scratch);
 
-  return J_CC(CC_Z, farcode.Enabled());
+  return J_CC(CC_Z, m_far_code.Enabled());
 }
 
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset,
@@ -344,7 +344,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     MovInfo mov;
     bool offsetAddedToAddress =
         UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
-    TrampolineInfo& info = backPatchInfo[mov.address];
+    TrampolineInfo& info = m_back_patch_info[mov.address];
     info.pc = jit->js.compilerPC;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
@@ -391,7 +391,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   {
     FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
     UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
-    if (farcode.Enabled())
+    if (m_far_code.Enabled())
       SwitchToFarCode();
     else
       exit = J(true);
@@ -429,7 +429,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
 
   if (fast_check_address)
   {
-    if (farcode.Enabled())
+    if (m_far_code.Enabled())
     {
       exit = J(true);
       SwitchToNearCode();
@@ -502,7 +502,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
     u8* backpatchStart = GetWritableCodePtr();
     MovInfo mov;
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
-    TrampolineInfo& info = backPatchInfo[mov.address];
+    TrampolineInfo& info = m_back_patch_info[mov.address];
     info.pc = jit->js.compilerPC;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
@@ -546,7 +546,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
   {
     FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
     UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
-    if (farcode.Enabled())
+    if (m_far_code.Enabled())
       SwitchToFarCode();
     else
       exit = J(true);
@@ -592,7 +592,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
 
   if (fast_check_address)
   {
-    if (farcode.Enabled())
+    if (m_far_code.Enabled())
     {
       exit = J(true);
       SwitchToNearCode();
@@ -1142,6 +1142,6 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
 
 void EmuCodeBlock::Clear()
 {
-  backPatchInfo.clear();
-  exceptionHandlerAtLoc.clear();
+  m_back_patch_info.clear();
+  m_exception_handler_at_loc.clear();
 }
