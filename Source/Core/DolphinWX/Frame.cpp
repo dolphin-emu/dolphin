@@ -152,18 +152,6 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 {
   switch (nMsg)
   {
-  case WM_SYSCOMMAND:
-    switch (wParam)
-    {
-    case SC_SCREENSAVE:
-    case SC_MONITORPOWER:
-      if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().bDisableScreenSaver)
-        break;
-    default:
-      return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
-    }
-    break;
-
   case WM_USER:
     switch (wParam)
     {
@@ -580,7 +568,8 @@ void CFrame::OnClose(wxCloseEvent& event)
 
 // Post events
 
-// Warning: This may cause an endless loop if the event is propagated back to its parent
+// Warning: This may cause an endless loop if the event is propagated back to
+// its parent
 void CFrame::PostEvent(wxCommandEvent& event)
 {
   if (g_pCodeWindow && event.GetId() >= IDM_INTERPRETER && event.GetId() <= IDM_ADDRBOX)
@@ -630,11 +619,7 @@ void CFrame::OnResize(wxSizeEvent& event)
 #ifdef _WIN32
 WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 {
-  if (WM_SYSCOMMAND == nMsg && (SC_SCREENSAVE == wParam || SC_MONITORPOWER == wParam))
-  {
-    return 0;
-  }
-  else if (nMsg == WM_QUERYENDSESSION)
+  if (nMsg == WM_QUERYENDSESSION)
   {
     // Indicate that the application will be able to close
     return 1;
@@ -1003,7 +988,8 @@ static int GetMenuIDFromHotkey(unsigned int key)
 
 void OnAfterLoadCallback()
 {
-  // warning: this gets called from the CPU thread, so we should only queue things to do on the
+  // warning: this gets called from the CPU thread, so we should only queue
+  // things to do on the
   // proper thread
   if (main_frame)
   {
@@ -1014,7 +1000,8 @@ void OnAfterLoadCallback()
 
 void OnStoppedCallback()
 {
-  // warning: this gets called from the EmuThread, so we should only queue things to do on the
+  // warning: this gets called from the EmuThread, so we should only queue
+  // things to do on the
   // proper thread
   if (main_frame)
   {
@@ -1054,7 +1041,8 @@ void CFrame::OnKeyDown(wxKeyEvent& event)
 
 void CFrame::OnMouse(wxMouseEvent& event)
 {
-  // next handlers are all for FreeLook, so we don't need to check them if disabled
+  // next handlers are all for FreeLook, so we don't need to check them if
+  // disabled
   if (!g_Config.bFreeLook)
   {
     event.Skip();
