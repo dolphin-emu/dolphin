@@ -384,11 +384,21 @@ void StateTracker::UpdateVertexShaderConstants()
 void StateTracker::UpdateGeometryShaderConstants()
 {
   // Skip updating geometry shader constants if it's not in use.
-  if (m_pipeline_state.gs == VK_NULL_HANDLE || !GeometryShaderManager::dirty ||
-      !ReserveConstantStorage())
+  if (m_pipeline_state.gs == VK_NULL_HANDLE)
   {
-    return;
+    // However, if the buffer has changed, we can't skip the update, because then we'll
+    // try to include the now non-existant buffer in the descriptor set.
+    if (m_uniform_stream_buffer->GetBuffer() ==
+        m_bindings.uniform_buffer_bindings[UBO_DESCRIPTOR_SET_BINDING_GS].buffer)
+    {
+      return;
+    }
+
+    GeometryShaderManager::dirty = true;
   }
+
+  if (!GeometryShaderManager::dirty || !ReserveConstantStorage())
+    return;
 
   // Buffer allocation changed?
   if (m_uniform_stream_buffer->GetBuffer() !=
