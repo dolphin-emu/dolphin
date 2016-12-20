@@ -105,7 +105,7 @@ void Jit64::stfXXX(UGeckoInstruction inst)
 
   if (single)
   {
-    if (jit->js.op->fprIsStoreSafe[s])
+    if (js.op->fprIsStoreSafe[s])
     {
       CVTSD2SS(XMM0, fpr.R(s));
     }

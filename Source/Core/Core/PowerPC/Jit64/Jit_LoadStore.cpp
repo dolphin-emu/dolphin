@@ -279,7 +279,7 @@ void Jit64::dcbx(UGeckoInstruction inst)
   // Check whether a JIT cache line needs to be invalidated.
   LEA(32, value, MScaled(addr, SCALE_8, 0));  // addr << 3 (masks the first 3 bits)
   SHR(32, R(value), Imm8(3 + 5 + 5));         // >> 5 for cache line size, >> 5 for width of bitset
-  MOV(64, R(tmp), ImmPtr(jit->GetBlockCache()->GetBlockBitSet()));
+  MOV(64, R(tmp), ImmPtr(GetBlockCache()->GetBlockBitSet()));
   MOV(32, R(value), MComplex(tmp, value, SCALE_4, 0));
   SHR(32, R(addr), Imm8(5));
   BT(32, R(value), R(addr));
@@ -355,7 +355,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     SwitchToFarCode();
     SetJumpTarget(slow);
   }
-  MOV(32, M(&PC), Imm32(jit->js.compilerPC));
+  MOV(32, M(&PC), Imm32(js.compilerPC));
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   ABI_CallFunctionR(PowerPC::ClearCacheLine, RSCRATCH);

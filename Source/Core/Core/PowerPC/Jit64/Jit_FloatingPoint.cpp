@@ -189,15 +189,15 @@ void Jit64::fp_arith(UGeckoInstruction inst)
   // If both the inputs are known to have identical top and bottom halves, we can skip the MOVDDUP
   // at the end by
   // using packed arithmetic instead.
-  bool packed = inst.OPCD == 4 || (inst.OPCD == 59 && jit->js.op->fprIsDuplicated[a] &&
-                                   jit->js.op->fprIsDuplicated[arg2]);
+  bool packed = inst.OPCD == 4 ||
+                (inst.OPCD == 59 && js.op->fprIsDuplicated[a] && js.op->fprIsDuplicated[arg2]);
   // Packed divides are slower than scalar divides on basically all x86, so this optimization isn't
   // worth it in that case.
   // Atoms (and a few really old CPUs) are also slower on packed operations than scalar ones.
   if (inst.OPCD == 59 && (inst.SUBOP5 == 18 || cpu_info.bAtom))
     packed = false;
 
-  bool round_input = single && !jit->js.op->fprIsSingle[inst.FC];
+  bool round_input = single && !js.op->fprIsSingle[inst.FC];
   bool preserve_inputs = SConfig::GetInstance().bAccurateNaNs;
 
   X64Reg dest = INVALID_REG;
@@ -241,10 +241,9 @@ void Jit64::fmaddXX(UGeckoInstruction inst)
   int c = inst.FC;
   int d = inst.FD;
   bool single = inst.OPCD == 4 || inst.OPCD == 59;
-  bool round_input = single && !jit->js.op->fprIsSingle[c];
-  bool packed =
-      inst.OPCD == 4 || (!cpu_info.bAtom && single && jit->js.op->fprIsDuplicated[a] &&
-                         jit->js.op->fprIsDuplicated[b] && jit->js.op->fprIsDuplicated[c]);
+  bool round_input = single && !js.op->fprIsSingle[c];
+  bool packed = inst.OPCD == 4 || (!cpu_info.bAtom && single && js.op->fprIsDuplicated[a] &&
+                                   js.op->fprIsDuplicated[b] && js.op->fprIsDuplicated[c]);
 
   fpr.Lock(a, b, c, d);
 
@@ -635,7 +634,7 @@ void Jit64::frspx(UGeckoInstruction inst)
   FALLBACK_IF(inst.Rc);
   int b = inst.FB;
   int d = inst.FD;
-  bool packed = jit->js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
+  bool packed = js.op->fprIsDuplicated[b] && !cpu_info.bAtom;
 
   fpr.Lock(b, d);
   OpArg src = fpr.R(b);
