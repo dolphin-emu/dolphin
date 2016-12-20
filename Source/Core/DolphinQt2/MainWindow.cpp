@@ -137,7 +137,7 @@ void MainWindow::Open()
 {
   QString file = QFileDialog::getOpenFileName(
       this, tr("Select a File"), QDir::currentPath(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.wbfs *.ciso *.gcz *.wad);;"
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
          "All Files (*)"));
   if (!file.isEmpty())
     StartGame(file);

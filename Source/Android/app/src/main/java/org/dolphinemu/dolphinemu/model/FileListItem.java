@@ -41,7 +41,8 @@ public class FileListItem implements Comparable<FileListItem>
 				String fileExtension = mPath.substring(extensionStart);
 
 				// The extensions we care about.
-				Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(".ciso", ".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".wad", ".wbfs"));
+				Set<String> allowedExtensions = new HashSet<String>(Arrays.asList(
+						".ciso", ".dff", ".dol", ".elf", ".gcm", ".gcz", ".iso", ".tgc", ".wad", ".wbfs"));
 
 				// Check that the file has an extension we care about before trying to read out of it.
 				if (allowedExtensions.contains(fileExtension.toLowerCase()))

@@ -41,8 +41,8 @@ void PathConfigPane::InitializeGUI()
 
   m_default_iso_filepicker = new wxFilePickerCtrl(
       this, wxID_ANY, wxEmptyString, _("Choose a default ISO:"),
-      _("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") +
-          wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad|%s",
+      _("All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)") +
+          wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.tgc;*.wbfs;*.ciso;*.gcz;*.wad|%s",
                            wxGetTranslation(wxALL_FILES)),
       wxDefaultPosition, wxDefaultSize, wxFLP_USE_TEXTCTRL | wxFLP_OPEN | wxFLP_SMALL);
   m_dvd_root_dirpicker =

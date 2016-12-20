@@ -17,6 +17,7 @@
 #include "DiscIO/CompressedBlob.h"
 #include "DiscIO/DriveBlob.h"
 #include "DiscIO/FileBlob.h"
+#include "DiscIO/TGCBlob.h"
 #include "DiscIO/WbfsBlob.h"
 
 namespace DiscIO
@@ -187,6 +188,9 @@ std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename)
 
   if (IsCISOBlob(filename))
     return CISOFileReader::Create(filename);
+
+  if (IsTGCBlob(filename))
+    return TGCFileReader::Create(filename);
 
   // Still here? Assume plain file - since we know it exists due to the File::Exists check above.
   return PlainFileReader::Create(filename);

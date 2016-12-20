@@ -844,8 +844,9 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
     std::string Extension;
     SplitPath(m_strFilename, nullptr, nullptr, &Extension);
     if (!strcasecmp(Extension.c_str(), ".gcm") || !strcasecmp(Extension.c_str(), ".iso") ||
-        !strcasecmp(Extension.c_str(), ".wbfs") || !strcasecmp(Extension.c_str(), ".ciso") ||
-        !strcasecmp(Extension.c_str(), ".gcz") || bootDrive)
+        !strcasecmp(Extension.c_str(), ".tgc") || !strcasecmp(Extension.c_str(), ".wbfs") ||
+        !strcasecmp(Extension.c_str(), ".ciso") || !strcasecmp(Extension.c_str(), ".gcz") ||
+        bootDrive)
     {
       m_BootType = BOOT_ISO;
       std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));
