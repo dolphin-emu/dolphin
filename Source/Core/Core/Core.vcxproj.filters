@@ -666,6 +666,12 @@
     <ClCompile Include="PowerPC\Jit64IL\JitIL_Tables.cpp">
       <Filter>PowerPC\JitIL</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\FPURegCache.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\Jit64\GPRRegCache.cpp">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\Jit64\Jit_Branch.cpp">
       <Filter>PowerPC\Jit64</Filter>
     </ClCompile>
@@ -1261,6 +1267,12 @@
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64IL\JitIL_Tables.h">
       <Filter>PowerPC\JitIL</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\FPURegCache.h">
+      <Filter>PowerPC\Jit64</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64\GPRRegCache.h">
+      <Filter>PowerPC\Jit64</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64\JitRegCache.h">
       <Filter>PowerPC\Jit64</Filter>

@@ -21,6 +21,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64/FPURegCache.h"
+#include "Core/PowerPC/Jit64/GPRRegCache.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
