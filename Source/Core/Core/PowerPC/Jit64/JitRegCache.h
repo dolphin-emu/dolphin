@@ -38,19 +38,6 @@ typedef int PReg;
 
 class RegCache
 {
-protected:
-  std::array<PPCCachedReg, 32> regs;
-  std::array<X64CachedReg, NUMXREGS> xregs;
-
-  virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) = 0;
-
-  virtual BitSet32 GetRegUtilization() = 0;
-  virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) = 0;
-
-  Gen::XEmitter* emit;
-
-  float ScoreRegister(Gen::X64Reg xreg);
-
 public:
   RegCache();
   virtual ~RegCache() {}
@@ -152,4 +139,16 @@ public:
   bool IsBound(size_t preg) const { return regs[preg].away && regs[preg].location.IsSimpleReg(); }
   Gen::X64Reg GetFreeXReg();
   int NumFreeRegisters();
+
+protected:
+  virtual const Gen::X64Reg* GetAllocationOrder(size_t* count) = 0;
+
+  virtual BitSet32 GetRegUtilization() = 0;
+  virtual BitSet32 CountRegsIn(size_t preg, u32 lookahead) = 0;
+
+  float ScoreRegister(Gen::X64Reg xreg);
+
+  std::array<PPCCachedReg, 32> regs;
+  std::array<X64CachedReg, NUMXREGS> xregs;
+  Gen::XEmitter* emit;
 };
