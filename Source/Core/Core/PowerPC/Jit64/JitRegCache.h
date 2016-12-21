@@ -31,9 +31,6 @@ struct X64CachedReg
   bool locked;
 };
 
-typedef int XReg;
-typedef int PReg;
-
 #define NUMXREGS 16
 
 class RegCache
