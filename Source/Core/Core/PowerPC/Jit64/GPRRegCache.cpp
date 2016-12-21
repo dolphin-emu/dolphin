@@ -11,12 +11,12 @@ using namespace Gen;
 
 void GPRRegCache::StoreRegister(size_t preg, const OpArg& new_loc)
 {
-  emit->MOV(32, new_loc, regs[preg].location);
+  m_emitter->MOV(32, new_loc, m_regs[preg].location);
 }
 
 void GPRRegCache::LoadRegister(size_t preg, X64Reg new_loc)
 {
-  emit->MOV(32, ::Gen::R(new_loc), regs[preg].location);
+  m_emitter->MOV(32, ::Gen::R(new_loc), m_regs[preg].location);
 }
 
 OpArg GPRRegCache::GetDefaultLocation(size_t reg) const
@@ -46,8 +46,8 @@ void GPRRegCache::SetImmediate32(size_t preg, u32 imm_value, bool dirty)
   // "dirty" can be false to avoid redundantly flushing an immediate when
   // processing speculative constants.
   DiscardRegContentsIfCached(preg);
-  regs[preg].away |= dirty;
-  regs[preg].location = Imm32(imm_value);
+  m_regs[preg].away |= dirty;
+  m_regs[preg].location = Imm32(imm_value);
 }
 
 BitSet32 GPRRegCache::GetRegUtilization()

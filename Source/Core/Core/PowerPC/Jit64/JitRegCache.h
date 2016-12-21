@@ -73,7 +73,7 @@ public:
   template <typename T>
   void Lock(T p)
   {
-    regs[p].locked = true;
+    m_regs[p].locked = true;
   }
   template <typename T, typename... Args>
   void Lock(T first, Args... args)
@@ -86,9 +86,9 @@ public:
   template <typename T>
   void LockX(T x)
   {
-    if (xregs[x].locked)
+    if (m_xregs[x].locked)
       PanicAlert("RegCache: x %i already locked!", x);
-    xregs[x].locked = true;
+    m_xregs[x].locked = true;
   }
   template <typename T, typename... Args>
   void LockX(T first, Args... args)
@@ -100,9 +100,9 @@ public:
   template <typename T>
   void UnlockX(T x)
   {
-    if (!xregs[x].locked)
+    if (!m_xregs[x].locked)
       PanicAlert("RegCache: x %i already unlocked!", x);
-    xregs[x].locked = false;
+    m_xregs[x].locked = false;
   }
   template <typename T, typename... Args>
   void UnlockX(T first, Args... args)
@@ -128,7 +128,7 @@ protected:
 
   float ScoreRegister(Gen::X64Reg xreg);
 
-  std::array<PPCCachedReg, 32> regs;
-  std::array<X64CachedReg, NUM_XREGS> xregs;
-  Gen::XEmitter* emit;
+  std::array<PPCCachedReg, 32> m_regs;
+  std::array<X64CachedReg, NUM_XREGS> m_xregs;
+  Gen::XEmitter* m_emitter = nullptr;
 };
