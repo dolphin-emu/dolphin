@@ -21,7 +21,7 @@ class WbfsFileReader : public IBlobReader
 public:
   ~WbfsFileReader();
 
-  static std::unique_ptr<WbfsFileReader> Create(const std::string& filename);
+  static std::unique_ptr<WbfsFileReader> Create(File::IOFile file, const std::string& path);
 
   BlobType GetBlobType() const override { return BlobType::WBFS; }
   // The WBFS format does not save the original file size.
@@ -33,15 +33,21 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  WbfsFileReader(const std::string& filename);
+  WbfsFileReader(File::IOFile file, const std::string& path);
 
-  bool OpenFiles(const std::string& filename);
+  void OpenAdditionalFiles(const std::string& path);
+  bool AddFileToList(File::IOFile file);
   bool ReadHeader();
 
   File::IOFile& SeekToCluster(u64 offset, u64* available);
   bool IsGood() { return m_good; }
   struct file_entry
   {
+    file_entry(File::IOFile file_, u64 base_address_, u64 size_)
+        : file(std::move(file_)), base_address(base_address_), size(size_)
+    {
+    }
+
     File::IOFile file;
     u64 base_address;
     u64 size;

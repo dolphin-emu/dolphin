@@ -199,7 +199,7 @@ std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename)
   case TGC_MAGIC:
     return TGCFileReader::Create(std::move(file));
   case WBFS_MAGIC:
-    return WbfsFileReader::Create(filename);
+    return WbfsFileReader::Create(std::move(file), filename);
   default:
     return PlainFileReader::Create(std::move(file));
   }
