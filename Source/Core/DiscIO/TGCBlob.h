@@ -40,7 +40,7 @@ struct TGCHeader
 class TGCFileReader final : public IBlobReader
 {
 public:
-  static std::unique_ptr<TGCFileReader> Create(const std::string& filename);
+  static std::unique_ptr<TGCFileReader> Create(File::IOFile file);
 
   BlobType GetBlobType() const override { return BlobType::TGC; }
   u64 GetDataSize() const override;
@@ -48,7 +48,7 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  TGCFileReader(File::IOFile&& file);
+  TGCFileReader(File::IOFile file);
 
   bool InternalRead(u64 offset, u64 nbytes, u8* out_ptr);
 

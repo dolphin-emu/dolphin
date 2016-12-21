@@ -7,6 +7,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "Common/CDUtils.h"
 #include "Common/CommonTypes.h"
@@ -192,15 +193,15 @@ std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename)
   switch (magic)
   {
   case CISO_MAGIC:
-    return CISOFileReader::Create(filename);
+    return CISOFileReader::Create(std::move(file));
   case GCZ_MAGIC:
-    return CompressedBlobReader::Create(filename);
+    return CompressedBlobReader::Create(std::move(file), filename);
   case TGC_MAGIC:
-    return TGCFileReader::Create(filename);
+    return TGCFileReader::Create(std::move(file));
   case WBFS_MAGIC:
     return WbfsFileReader::Create(filename);
   default:
-    return PlainFileReader::Create(filename);
+    return PlainFileReader::Create(std::move(file));
   }
 }
 

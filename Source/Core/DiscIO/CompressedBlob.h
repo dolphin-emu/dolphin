@@ -44,7 +44,8 @@ struct CompressedBlobHeader  // 32 bytes
 class CompressedBlobReader : public SectorReader
 {
 public:
-  static std::unique_ptr<CompressedBlobReader> Create(const std::string& filename);
+  static std::unique_ptr<CompressedBlobReader> Create(File::IOFile file,
+                                                      const std::string& filename);
   ~CompressedBlobReader();
   const CompressedBlobHeader& GetHeader() const { return m_header; }
   BlobType GetBlobType() const override { return BlobType::GCZ; }
@@ -54,7 +55,7 @@ public:
   bool GetBlock(u64 block_num, u8* out_ptr) override;
 
 private:
-  CompressedBlobReader(const std::string& filename);
+  CompressedBlobReader(File::IOFile file, const std::string& filename);
 
   CompressedBlobHeader m_header;
   std::vector<u64> m_block_pointers;

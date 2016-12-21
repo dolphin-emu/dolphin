@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <memory>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -12,11 +13,12 @@
 
 namespace DiscIO
 {
-CISOFileReader::CISOFileReader(std::FILE* file) : m_file(file)
+CISOFileReader::CISOFileReader(File::IOFile file) : m_file(std::move(file))
 {
   m_size = m_file.GetSize();
 
   CISOHeader header;
+  m_file.Seek(0, SEEK_SET);
   m_file.ReadArray(&header, 1);
 
   m_block_size = header.block_size;
@@ -26,12 +28,11 @@ CISOFileReader::CISOFileReader(std::FILE* file) : m_file(file)
     m_ciso_map[idx] = (1 == header.map[idx]) ? count++ : UNUSED_BLOCK_ID;
 }
 
-std::unique_ptr<CISOFileReader> CISOFileReader::Create(const std::string& filename)
+std::unique_ptr<CISOFileReader> CISOFileReader::Create(File::IOFile file)
 {
-  File::IOFile f(filename, "rb");
   CISOHeader header;
-  if (f.ReadArray(&header, 1) && header.magic == CISO_MAGIC)
-    return std::unique_ptr<CISOFileReader>(new CISOFileReader(f.ReleaseHandle()));
+  if (file.Seek(0, SEEK_SET) && file.ReadArray(&header, 1) && header.magic == CISO_MAGIC)
+    return std::unique_ptr<CISOFileReader>(new CISOFileReader(std::move(file)));
 
   return nullptr;
 }

@@ -34,7 +34,7 @@ struct CISOHeader
 class CISOFileReader : public IBlobReader
 {
 public:
-  static std::unique_ptr<CISOFileReader> Create(const std::string& filename);
+  static std::unique_ptr<CISOFileReader> Create(File::IOFile file);
 
   BlobType GetBlobType() const override { return BlobType::CISO; }
   // The CISO format does not save the original file size.
@@ -45,7 +45,7 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  CISOFileReader(std::FILE* file);
+  CISOFileReader(File::IOFile file);
 
   typedef u16 MapType;
   static const MapType UNUSED_BLOCK_ID = -1;
