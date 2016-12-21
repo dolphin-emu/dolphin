@@ -30,7 +30,8 @@ enum class BlobType
   DIRECTORY,
   GCZ,
   CISO,
-  WBFS
+  WBFS,
+  TGC
 };
 
 class IBlobReader

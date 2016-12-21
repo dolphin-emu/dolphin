@@ -32,7 +32,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
-#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
@@ -161,6 +161,9 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
 void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 {
+  static const wxString signature_selector = _("Dolphin Signature File (*.dsy)") + "|*.dsy|" +
+                                             _("Dolphin Signature CSV File (*.csv)") + "|*.csv|" +
+                                             wxGetTranslation(wxALL_FILES);
   Parent->ClearStatusBar();
 
   if (!Core::IsRunning())
@@ -309,8 +312,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
       wxString path = wxFileSelector(_("Save signature as"), File::GetSysDirectory(), wxEmptyString,
-                                     wxEmptyString, _("Dolphin Signature File (*.dsy)") +
-                                                        "|*.dsy|" + wxGetTranslation(wxALL_FILES),
+                                     wxEmptyString, signature_selector,
                                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
       if (!path.IsEmpty())
       {
@@ -332,10 +334,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     {
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
-      wxString path = wxFileSelector(
-          _("Append signature to"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
-          _("Dolphin Signature File (*.dsy)") + "|*.dsy|" + wxGetTranslation(wxALL_FILES),
-          wxFD_SAVE, this);
+      wxString path =
+          wxFileSelector(_("Append signature to"), File::GetSysDirectory(), wxEmptyString,
+                         wxEmptyString, signature_selector, wxFD_SAVE, this);
       if (!path.IsEmpty())
       {
         SignatureDB db;
@@ -350,10 +351,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   break;
   case IDM_USE_SIGNATURE_FILE:
   {
-    wxString path = wxFileSelector(
-        _("Apply signature file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
-        _("Dolphin Signature File (*.dsy)") + "|*.dsy|" + wxGetTranslation(wxALL_FILES),
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+    wxString path =
+        wxFileSelector(_("Apply signature file"), File::GetSysDirectory(), wxEmptyString,
+                       wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path.IsEmpty())
     {
       SignatureDB db;
@@ -366,25 +366,22 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   break;
   case IDM_COMBINE_SIGNATURE_FILES:
   {
-    wxString path1 = wxFileSelector(
-        _("Choose priority input file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
-        _("Dolphin Signature File (*.dsy)") + "|*.dsy|" + wxGetTranslation(wxALL_FILES),
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+    wxString path1 =
+        wxFileSelector(_("Choose priority input file"), File::GetSysDirectory(), wxEmptyString,
+                       wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path1.IsEmpty())
     {
       SignatureDB db;
-      wxString path2 = wxFileSelector(
-          _("Choose secondary input file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
-          _("Dolphin Signature File (*.dsy)") + "|*.dsy|" + wxGetTranslation(wxALL_FILES),
-          wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+      wxString path2 =
+          wxFileSelector(_("Choose secondary input file"), File::GetSysDirectory(), wxEmptyString,
+                         wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
       if (!path2.IsEmpty())
       {
         db.Load(WxStrToStr(path2));
         db.Load(WxStrToStr(path1));
 
         path2 = wxFileSelector(_("Save combined output file as"), File::GetSysDirectory(),
-                               wxEmptyString, ".dsy", _("Dolphin Signature File (*.dsy)") +
-                                                          "|*.dsy|" + wxGetTranslation(wxALL_FILES),
+                               wxEmptyString, ".dsy", signature_selector,
                                wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
         db.Save(WxStrToStr(path2));
         db.List();

@@ -84,7 +84,7 @@ void Jit64::ps_muls(UGeckoInstruction inst)
   int d = inst.FD;
   int a = inst.FA;
   int c = inst.FC;
-  bool round_input = !jit->js.op->fprIsSingle[c];
+  bool round_input = !js.op->fprIsSingle[c];
   fpr.Lock(a, c, d);
   switch (inst.SUBOP5)
   {

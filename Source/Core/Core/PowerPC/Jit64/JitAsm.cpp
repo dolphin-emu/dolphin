@@ -12,6 +12,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;

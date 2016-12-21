@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "Core/PowerPC/JitILCommon/JitILBase.h"
+
 #include "Common/CommonTypes.h"
+#include "Core/PowerPC/PowerPC.h"
 
 void JitILBase::psq_st(UGeckoInstruction inst)
 {

@@ -18,6 +18,7 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/CPU.h"
 #include "Core/PatchEngine.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -265,7 +266,7 @@ void JitIL::Init()
   blocks.Init();
   asm_routines.Init(nullptr);
 
-  farcode.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+  m_far_code.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
   Clear();
 
   code_block.m_stats = &js.st;
@@ -282,7 +283,7 @@ void JitIL::ClearCache()
 {
   blocks.Clear();
   trampolines.ClearCodeSpace();
-  farcode.ClearCodeSpace();
+  m_far_code.ClearCodeSpace();
   ClearCodeSpace();
   Clear();
 }
@@ -299,7 +300,7 @@ void JitIL::Shutdown()
   blocks.Shutdown();
   trampolines.Shutdown();
   asm_routines.Shutdown();
-  farcode.Shutdown();
+  m_far_code.Shutdown();
 }
 
 void JitIL::FallBackToInterpreter(UGeckoInstruction _inst)
@@ -353,8 +354,8 @@ void JitIL::Cleanup()
 {
   // SPEED HACK: MMCR0/MMCR1 should be checked at run-time, not at compile time.
   if (MMCR0.Hex || MMCR1.Hex)
-    ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount,
-                        jit->js.numLoadStoreInst, jit->js.numFloatingPointInst);
+    ABI_CallFunctionCCC(PowerPC::UpdatePerformanceMonitor, js.downcountAmount, js.numLoadStoreInst,
+                        js.numFloatingPointInst);
 }
 
 void JitIL::WriteExit(u32 destination)
@@ -464,8 +465,8 @@ void JitIL::Trace()
 
 void JitIL::Jit(u32 em_address)
 {
-  if (IsAlmostFull() || farcode.IsAlmostFull() || trampolines.IsAlmostFull() || blocks.IsFull() ||
-      SConfig::GetInstance().bJITNoBlockCache)
+  if (IsAlmostFull() || m_far_code.IsAlmostFull() || trampolines.IsAlmostFull() ||
+      blocks.IsFull() || SConfig::GetInstance().bJITNoBlockCache)
   {
     ClearCache();
   }
@@ -517,8 +518,8 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
   js.blockStart = em_address;
   js.fifoBytesSinceCheck = 0;
   js.curBlock = b;
-  jit->js.numLoadStoreInst = 0;
-  jit->js.numFloatingPointInst = 0;
+  js.numLoadStoreInst = 0;
+  js.numFloatingPointInst = 0;
 
   PPCAnalyst::CodeOp* ops = code_buf->codebuffer;
 
@@ -609,7 +610,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
           if (type == HLE::HLE_HOOK_REPLACE)
           {
             MOV(32, R(EAX), PPCSTATE(npc));
-            jit->js.downcountAmount += jit->js.st.numCycles;
+            js.downcountAmount += js.st.numCycles;
             WriteExitDestInOpArg(R(EAX));
             break;
           }
@@ -624,7 +625,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         ibuild.EmitFPExceptionCheck(ibuild.EmitIntConst(ops[i].address));
       }
 
-      if (jit->js.fifoWriteAddresses.find(js.compilerPC) != jit->js.fifoWriteAddresses.end())
+      if (js.fifoWriteAddresses.find(js.compilerPC) != js.fifoWriteAddresses.end())
       {
         ibuild.EmitExtExceptionCheck(ibuild.EmitIntConst(ops[i].address));
       }
@@ -647,10 +648,10 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
       }
 
       if (opinfo->flags & FL_LOADSTORE)
-        ++jit->js.numLoadStoreInst;
+        ++js.numLoadStoreInst;
 
       if (opinfo->flags & FL_USE_FPU)
-        ++jit->js.numFloatingPointInst;
+        ++js.numFloatingPointInst;
     }
   }
 

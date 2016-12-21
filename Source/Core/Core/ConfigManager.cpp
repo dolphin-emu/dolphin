@@ -410,6 +410,7 @@ void SConfig::SaveInterfaceSettings(IniFile& ini)
   interface->Set("ExtendedFPSInfo", m_InterfaceExtendedFPSInfo);
   interface->Set("ThemeName", theme_name);
   interface->Set("PauseOnFocusLost", m_PauseOnFocusLost);
+  interface->Set("DisableTooltips", m_DisableTooltips);
 }
 
 void SConfig::SaveHotkeySettings(IniFile& ini)
@@ -782,6 +783,7 @@ void SConfig::LoadInterfaceSettings(IniFile& ini)
   interface->Get("ExtendedFPSInfo", &m_InterfaceExtendedFPSInfo, false);
   interface->Get("ThemeName", &theme_name, DEFAULT_THEME_DIR);
   interface->Get("PauseOnFocusLost", &m_PauseOnFocusLost, false);
+  interface->Get("DisableTooltips", &m_DisableTooltips, false);
 }
 
 void SConfig::LoadHotkeySettings(IniFile& ini)
@@ -1200,8 +1202,9 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
     std::string Extension;
     SplitPath(m_strFilename, nullptr, nullptr, &Extension);
     if (!strcasecmp(Extension.c_str(), ".gcm") || !strcasecmp(Extension.c_str(), ".iso") ||
-        !strcasecmp(Extension.c_str(), ".wbfs") || !strcasecmp(Extension.c_str(), ".ciso") ||
-        !strcasecmp(Extension.c_str(), ".gcz") || bootDrive)
+        !strcasecmp(Extension.c_str(), ".tgc") || !strcasecmp(Extension.c_str(), ".wbfs") ||
+        !strcasecmp(Extension.c_str(), ".ciso") || !strcasecmp(Extension.c_str(), ".gcz") ||
+        bootDrive)
     {
       m_BootType = BOOT_ISO;
       std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(m_strFilename));

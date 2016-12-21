@@ -26,7 +26,9 @@
 #include "Core/PowerPC/Jit64/Jit64_Tables.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
-#include "Core/PowerPC/Jit64Common/Jit64Util.h"
+#include "Core/PowerPC/Jit64Common/FarCodeCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
+#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
@@ -244,7 +246,7 @@ void Jit64::Init()
   // important: do this *after* generating the global asm routines, because we can't use farcode in
   // them.
   // it'll crash because the farcode functions get cleared on JIT clears.
-  farcode.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
+  m_far_code.Init(jo.memcheck ? FARCODE_SIZE_MMU : FARCODE_SIZE);
   Clear();
 
   code_block.m_stats = &js.st;
@@ -257,7 +259,7 @@ void Jit64::ClearCache()
 {
   blocks.Clear();
   trampolines.ClearCodeSpace();
-  farcode.ClearCodeSpace();
+  m_far_code.ClearCodeSpace();
   ClearCodeSpace();
   Clear();
   UpdateMemoryOptions();
@@ -271,7 +273,7 @@ void Jit64::Shutdown()
   blocks.Shutdown();
   trampolines.Shutdown();
   asm_routines.Shutdown();
-  farcode.Shutdown();
+  m_far_code.Shutdown();
 }
 
 void Jit64::FallBackToInterpreter(UGeckoInstruction inst)
@@ -540,8 +542,8 @@ void Jit64::Jit(u32 em_address)
 #endif
   }
 
-  if (IsAlmostFull() || farcode.IsAlmostFull() || trampolines.IsAlmostFull() || blocks.IsFull() ||
-      SConfig::GetInstance().bJITNoBlockCache)
+  if (IsAlmostFull() || m_far_code.IsAlmostFull() || trampolines.IsAlmostFull() ||
+      blocks.IsFull() || SConfig::GetInstance().bJITNoBlockCache)
   {
     ClearCache();
   }
@@ -875,12 +877,12 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         SwitchToFarCode();
         if (!js.fastmemLoadStore)
         {
-          exceptionHandlerAtLoc[js.fastmemLoadStore] = nullptr;
+          m_exception_handler_at_loc[js.fastmemLoadStore] = nullptr;
           SetJumpTarget(js.fixupExceptionHandler ? js.exceptionHandler : memException);
         }
         else
         {
-          exceptionHandlerAtLoc[js.fastmemLoadStore] = GetWritableCodePtr();
+          m_exception_handler_at_loc[js.fastmemLoadStore] = GetWritableCodePtr();
         }
 
         BitSet32 gprToFlush = BitSet32::AllTrue(32);

@@ -10,6 +10,7 @@ set(SRCS	Blob.cpp
 			FileSystemGCWii.cpp
 			Filesystem.cpp
 			NANDContentLoader.cpp
+			TGCBlob.cpp
 			Volume.cpp
 			VolumeCreator.cpp
 			VolumeDirectory.cpp

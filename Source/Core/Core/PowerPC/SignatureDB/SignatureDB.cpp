@@ -7,69 +7,34 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
-namespace
+// Format Handlers
+#include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
+#include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
+
+std::unique_ptr<SignatureDBFormatHandler>
+SignatureDB::CreateFormatHandler(const std::string& file_path)
 {
-// On-disk format for SignatureDB entries.
-struct FuncDesc
-{
-  u32 checkSum;
-  u32 size;
-  char name[128];
-};
-
-}  // namespace
-
-bool SignatureDB::Load(const std::string& filename)
-{
-  File::IOFile f(filename, "rb");
-  if (!f)
-    return false;
-  u32 fcount = 0;
-  f.ReadArray(&fcount, 1);
-  for (size_t i = 0; i < fcount; i++)
-  {
-    FuncDesc temp;
-    memset(&temp, 0, sizeof(temp));
-
-    f.ReadArray(&temp, 1);
-    temp.name[sizeof(temp.name) - 1] = 0;
-
-    DBFunc dbf;
-    dbf.name = temp.name;
-    dbf.size = temp.size;
-    database[temp.checkSum] = dbf;
-  }
-
-  return true;
+  if (StringEndsWith(file_path, ".csv"))
+    return std::make_unique<CSVSignatureDB>();
+  return std::make_unique<DSYSignatureDB>();
 }
 
-bool SignatureDB::Save(const std::string& filename)
+bool SignatureDB::Load(const std::string& file_path)
 {
-  File::IOFile f(filename, "wb");
-  if (!f)
-  {
-    ERROR_LOG(OSHLE, "Database save failed");
-    return false;
-  }
-  u32 fcount = (u32)database.size();
-  f.WriteArray(&fcount, 1);
-  for (const auto& entry : database)
-  {
-    FuncDesc temp;
-    memset(&temp, 0, sizeof(temp));
-    temp.checkSum = entry.first;
-    temp.size = entry.second.size;
-    strncpy(temp.name, entry.second.name.c_str(), 127);
-    f.WriteArray(&temp, 1);
-  }
+  auto handler = CreateFormatHandler(file_path);
+  return handler->Load(file_path, m_database);
+}
 
-  INFO_LOG(OSHLE, "Database save successful");
-  return true;
+bool SignatureDB::Save(const std::string& file_path)
+{
+  auto handler = CreateFormatHandler(file_path);
+  return handler->Save(file_path, m_database);
 }
 
 // Adds a known function to the hash database
@@ -81,31 +46,31 @@ u32 SignatureDB::Add(u32 startAddr, u32 size, const std::string& name)
   temp_dbfunc.size = size;
   temp_dbfunc.name = name;
 
-  FuncDB::iterator iter = database.find(hash);
-  if (iter == database.end())
-    database[hash] = temp_dbfunc;
+  FuncDB::iterator iter = m_database.find(hash);
+  if (iter == m_database.end())
+    m_database[hash] = temp_dbfunc;
 
   return hash;
 }
 
 void SignatureDB::List()
 {
-  for (const auto& entry : database)
+  for (const auto& entry : m_database)
   {
     DEBUG_LOG(OSHLE, "%s : %i bytes, hash = %08x", entry.second.name.c_str(), entry.second.size,
               entry.first);
   }
-  INFO_LOG(OSHLE, "%zu functions known in current database.", database.size());
+  INFO_LOG(OSHLE, "%zu functions known in current database.", m_database.size());
 }
 
 void SignatureDB::Clear()
 {
-  database.clear();
+  m_database.clear();
 }
 
 void SignatureDB::Apply(PPCSymbolDB* symbol_db)
 {
-  for (const auto& entry : database)
+  for (const auto& entry : m_database)
   {
     u32 hash = entry.first;
     Symbol* function = symbol_db->GetSymbolFromHash(hash);
@@ -140,7 +105,7 @@ void SignatureDB::Initialize(PPCSymbolDB* symbol_db, const std::string& prefix)
       DBFunc temp_dbfunc;
       temp_dbfunc.name = symbol.second.name;
       temp_dbfunc.size = symbol.second.size;
-      database[symbol.second.hash] = temp_dbfunc;
+      m_database[symbol.second.hash] = temp_dbfunc;
     }
   }
 }
@@ -202,4 +167,8 @@ void SignatureDB::Initialize(PPCSymbolDB* symbol_db, const std::string& prefix)
     sum = sum ^ (op | op2 | op3);
   }
   return sum;
+}
+
+SignatureDBFormatHandler::~SignatureDBFormatHandler()
+{
 }

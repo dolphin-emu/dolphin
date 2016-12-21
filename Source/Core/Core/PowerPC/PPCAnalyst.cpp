@@ -15,7 +15,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
 // Analyzes PowerPC code in memory to find functions
 // After running, for each function we will know what functions it calls

@@ -480,8 +480,6 @@ CFrame::~CFrame()
   HotkeyManagerEmu::Shutdown();
   g_controller_interface.Shutdown();
 
-  drives.clear();
-
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   delete m_XRRConfig;
 #endif

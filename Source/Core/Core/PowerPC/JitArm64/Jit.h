@@ -25,22 +25,22 @@ class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonA
 public:
   JitArm64() : code_buffer(32000), m_float_emit(this) {}
   ~JitArm64() {}
-  void Init();
-  void Shutdown();
+  void Init() override;
+  void Shutdown() override;
 
-  JitBaseBlockCache* GetBlockCache() { return &blocks; }
+  JitBaseBlockCache* GetBlockCache() override { return &blocks; }
   bool IsInCodeSpace(u8* ptr) const { return IsInSpace(ptr); }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
-  void ClearCache();
+  void ClearCache() override;
 
   CommonAsmRoutinesBase* GetAsmRoutines() override { return this; }
-  void Run();
-  void SingleStep();
+  void Run() override;
+  void SingleStep() override;
 
-  void Jit(u32);
+  void Jit(u32) override;
 
-  const char* GetName() { return "JITARM64"; }
+  const char* GetName() override { return "JITARM64"; }
   // OPCODES
   void FallBackToInterpreter(UGeckoInstruction inst);
   void DoNothing(UGeckoInstruction inst);

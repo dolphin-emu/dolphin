@@ -53,7 +53,7 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/SignatureDB/SignatureDB.h"
 #include "Core/State.h"
 
 #include "DiscIO/NANDContentLoader.h"
@@ -340,9 +340,10 @@ void CFrame::DoOpen(bool Boot)
 
   wxString path = wxFileSelector(
       _("Select the file to load"), wxEmptyString, wxEmptyString, wxEmptyString,
-      _("All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)") +
-          wxString::Format("|*.elf;*.dol;*.gcm;*.iso;*.wbfs;*.ciso;*.gcz;*.wad;*.dff;*.tmd|%s",
-                           wxGetTranslation(wxALL_FILES)),
+      _("All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)") +
+          wxString::Format(
+              "|*.elf;*.dol;*.gcm;*.iso;*.tgc;*.wbfs;*.ciso;*.gcz;*.wad;*.dff;*.tmd|%s",
+              wxGetTranslation(wxALL_FILES)),
       wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
 
   if (path.IsEmpty())
@@ -801,7 +802,8 @@ void CFrame::StartGame(const std::string& filename)
 
 void CFrame::OnBootDrive(wxCommandEvent& event)
 {
-  BootGame(drives[event.GetId() - IDM_DRIVE1]);
+  const auto* menu = static_cast<wxMenu*>(event.GetEventObject());
+  BootGame(WxStrToStr(menu->GetLabelText(event.GetId())));
 }
 
 void CFrame::OnRefresh(wxCommandEvent& WXUNUSED(event))
