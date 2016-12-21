@@ -1526,7 +1526,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // Copy the framebuffer to screen.
   const XFBSource* xfbSource = nullptr;
-  DrawFrame(0, flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
+  //DrawFrame(0, flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
 
   // The FlushFrameDump call here is necessary even after frame dumping is stopped.
   // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
@@ -2033,7 +2033,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
         g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction ||
-        g_Config.bNoMirrorToWindow != g_ActiveConfig.bNoMirrorToWindow)
+        (g_Config.iMirrorPlayer == VR_PLAYER_NONE) != (g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE) ||
+        (g_Config.iMirrorStyle == VR_MIRROR_DISABLED) != (g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED))
     {
       VR_ConfigureHMDPrediction();
     }

@@ -15,10 +15,10 @@
 #include "VideoBackends/OGL/TextureConverter.h"
 #include "VideoBackends/OGL/VROGL.h"
 #include "VideoCommon/RenderBase.h"
-#include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VROculus.h"
 #include "VideoCommon/VROpenVR.h"
+#include "VideoCommon/VideoConfig.h"
 
 // Oculus Rift
 #if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0
@@ -564,8 +564,9 @@ void RecreateMirrorTextureIfNeeded()
 {
   int w = Renderer::GetBackbufferWidth();
   int h = Renderer::GetBackbufferHeight();
-  if (w != mirror_width || h != mirror_height ||
-      ((mirrorTexture == nullptr) != g_ActiveConfig.bNoMirrorToWindow))
+  bool bNoMirrorToWindow = g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE ||
+                           g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED;
+  if (w != mirror_width || h != mirror_height || ((mirrorTexture == nullptr) != bNoMirrorToWindow))
   {
     if (mirrorTexture)
     {
@@ -577,7 +578,7 @@ void RecreateMirrorTextureIfNeeded()
 #endif
       mirrorTexture = nullptr;
     }
-    if (!g_ActiveConfig.bNoMirrorToWindow)
+    if (!bNoMirrorToWindow)
     {
       // Create mirror texture and an FBO used to copy mirror texture to back buffer
       mirror_width = w;
@@ -828,16 +829,29 @@ void VR_PresentHMDFrame()
     g_old_tracking_time = g_last_tracking_time;
     g_last_tracking_time = Common::Timer::GetTimeMs() / 1000.0;
 
-    if (!g_ActiveConfig.bNoMirrorToWindow)
+    if (g_ActiveConfig.iMirrorPlayer != VR_PLAYER_NONE &&
+        g_ActiveConfig.iMirrorStyle != VR_MIRROR_DISABLED)
     {
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-      // Blit mirror texture to back buffer
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[0]);
       glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
       GLint w = Renderer::GetTargetWidth();
       GLint h = Renderer::GetTargetHeight();
-      glBlitFramebuffer(0, 0, w, h, 0, 0, Renderer::GetBackbufferWidth(),
-                        Renderer::GetBackbufferHeight(), GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      GLint bbw = Renderer::GetBackbufferWidth();
+      GLint bbh = Renderer::GetBackbufferHeight();
+      // warped or both eyes
+      int eye = 0;
+      if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
+        bbw /= 2;
+      else
+        eye = g_ActiveConfig.iMirrorStyle - VR_MIRROR_LEFT;
+      // Blit mirror texture to back buffer
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+      glBlitFramebuffer(0, 0, w, h, 0, 0, bbw, bbh, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
+      {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
+        glBlitFramebuffer(0, 0, w, h, bbw, 0, bbw, bbh, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      }
       glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
       GLInterface->Swap();
     }
@@ -874,19 +888,46 @@ void VR_PresentHMDFrame()
     ovrLayerHeader* layers = &ld.Header;
     ovrResult result = ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
 
-    if (!g_ActiveConfig.bNoMirrorToWindow)
+    if (g_ActiveConfig.iMirrorPlayer != VR_PLAYER_NONE &&
+      g_ActiveConfig.iMirrorStyle != VR_MIRROR_DISABLED)
     {
-      // Blit mirror texture to back buffer
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+      if (g_ActiveConfig.iMirrorStyle != VR_MIRROR_WARPED)
+      {
+        GLint w = Renderer::GetTargetWidth();
+        GLint h = Renderer::GetTargetHeight();
+        GLint bbw = Renderer::GetBackbufferWidth();
+        GLint bbh = Renderer::GetBackbufferHeight();
+        // warped or both eyes
+        int eye = 0;
+        if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_BOTH)
+          bbw /= 2;
+        else
+          eye = g_ActiveConfig.iMirrorStyle - VR_MIRROR_LEFT;
+
+        // Blit mirror texture to back buffer
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer(eye));
+        glBlitFramebuffer(0, 0, w, h, 0, 0, bbw, bbh, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_BOTH)
+        {
+          glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::GetEFBFramebuffer(1));
+          glBlitFramebuffer(0, 0, w, h, bbw, 0, bbw * 2, bbh, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        }
+      }
+      else
+      {
+        // Blit mirror texture to back buffer
+        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, mirrorFBO);
 #if OVR_PRODUCT_VERSION >= 1
-      GLint w = mirror_width;
-      GLint h = mirror_height;
+        GLint w = mirror_width;
+        GLint h = mirror_height;
 #else
-      GLint w = mirrorTexture->OGL.Header.TextureSize.w;
-      GLint h = mirrorTexture->OGL.Header.TextureSize.h;
+        GLint w = mirrorTexture->OGL.Header.TextureSize.w;
+        GLint h = mirrorTexture->OGL.Header.TextureSize.h;
 #endif
-      glBlitFramebuffer(0, h, w, 0, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+        glBlitFramebuffer(0, h, w, 0, 0, 0, w, h, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      }
       glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
       GLInterface->Swap();
     }

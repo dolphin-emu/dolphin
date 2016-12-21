@@ -112,7 +112,7 @@ bool g_vr_needs_endframe = false;
 bool g_vr_should_swap_buffers = true, g_vr_dont_vsync = false;
 
 bool g_force_vr = false, g_prefer_openvr = false;
-bool g_has_hmd = false, g_has_rift = false, g_has_vr920 = false, g_has_openvr = false;
+bool g_has_hmd = false, g_has_two_hmds = false, g_has_rift = false, g_has_vr920 = false, g_has_openvr = false;
 bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
@@ -349,7 +349,7 @@ bool InitOpenVR()
               m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
                                                     vr::Prop_DisplayFrequency_Float, &error));
     g_openvr_ipd = m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
-                                                          vr::Prop_UserIpdMeters_Float, &error);
+                                                         vr::Prop_UserIpdMeters_Float, &error);
 
     NOTICE_LOG(VR, "OpenVR strDriver = '%s'", m_strDriver.c_str());
     NOTICE_LOG(VR, "OpenVR strDisplay = '%s'", m_strDisplay.c_str());
@@ -750,7 +750,7 @@ void VR_ConfigureHMDPrediction()
     if (g_Config.bDynamicPrediction)
       caps |= ovrHmdCap_DynamicPrediction;
 #if OVR_MAJOR_VERSION <= 5
-    if (g_Config.bNoMirrorToWindow)
+    if (g_Config.iMirrorPlayer == VR_PLAYER_NONE || g_Config.iMirrorStyle == VR_MIRROR_DISABLED)
       caps |= ovrHmdCap_NoMirrorToWindow;
 #endif
 #endif
@@ -1029,7 +1029,9 @@ void VR_GetProjectionMatrices(Matrix44& left_eye, Matrix44& right_eye, float zne
       if (g_has_openvr)
   {
 #ifdef OPENVR_105_OR_ABOVE
-    vr::HmdMatrix44_t mat = m_pHMD->GetProjectionMatrix(vr::Eye_Left, znear, zfar); // if error here, use OpenVR 1.05 or above instead of 1.03/1.04 OR use line below
+    vr::HmdMatrix44_t mat = m_pHMD->GetProjectionMatrix(
+        vr::Eye_Left, znear,
+        zfar);  // if error here, use OpenVR 1.05 or above instead of 1.03/1.04 OR use line below
 #else
     vr::HmdMatrix44_t mat = m_pHMD->GetProjectionMatrix(vr::Eye_Left, znear, zfar, OPENVR_DirectX);
 #endif
@@ -1037,7 +1039,9 @@ void VR_GetProjectionMatrices(Matrix44& left_eye, Matrix44& right_eye, float zne
       for (int c = 0; c < 4; ++c)
         left_eye.data[r * 4 + c] = mat.m[r][c];
 #ifdef OPENVR_105_OR_ABOVE
-    mat = m_pHMD->GetProjectionMatrix(vr::Eye_Right, znear, zfar); // if error here, use OpenVR 1.05 or above instead of 1.03/1.04 OR use line below
+    mat = m_pHMD->GetProjectionMatrix(
+        vr::Eye_Right, znear,
+        zfar);  // if error here, use OpenVR 1.05 or above instead of 1.03/1.04 OR use line below
 #else
     mat = m_pHMD->GetProjectionMatrix(vr::Eye_Right, znear, zfar, OPENVR_DirectX);
 #endif
@@ -1468,17 +1472,24 @@ bool VR_GetViveButtons(u32* buttons, u32* touches, u64* specials, float triggers
     vr::VRControllerState_t states[2];
     ZeroMemory(&states, 2 * sizeof(*states));
 #ifdef OPENVR_104_OR_ABOVE
-    if (m_pHMD->GetControllerState(left_hand, &states[0], sizeof(*states))) // if error here, use OpenVR 1.05 or above instead of 1.03 OR use line below
+    if (m_pHMD->GetControllerState(left_hand, &states[0], sizeof(*states)))  // if error here, use
+                                                                             // OpenVR 1.05 or above
+                                                                             // instead of 1.03 OR
+                                                                             // use line below
 #else
     if (m_pHMD->GetControllerState(left_hand, &states[0]))
 #endif
       result = true;
 #ifdef OPENVR_104_OR_ABOVE
-    if (m_pHMD->GetControllerState(right_hand, &states[1], sizeof(*states))) // if error here, use OpenVR 1.05 or above instead of 1.03 OR use line below
+    if (m_pHMD->GetControllerState(right_hand, &states[1], sizeof(*states)))  // if error here, use
+                                                                              // OpenVR 1.05 or
+                                                                              // above instead of
+                                                                              // 1.03 OR use line
+                                                                              // below
 #else
     if (m_pHMD->GetControllerState(right_hand, &states[1]))
 #endif
-    result = true;
+      result = true;
     // save the results in our own format
     *buttons =
         (states[0].ulButtonPressed & 0xFF) | ((states[0].ulButtonPressed >> 24) & 0xFF00) |
@@ -1879,7 +1890,10 @@ bool VR_GetLeftControllerPos(float* pos, float* thumbpos, Matrix33* m)
         m->data[r * 3 + c] = m_rTrackedDevicePose[left_hand].mDeviceToAbsoluteTracking.m[r][c];
     vr::VRControllerState_t cs;
 #ifdef OPENVR_104_OR_ABOVE
-    if (m_pHMD->GetControllerState(left_hand, &cs, sizeof(cs))) // if error here, use OpenVR 1.05 or above instead of 1.03 OR use line below
+    if (m_pHMD->GetControllerState(
+            left_hand, &cs,
+            sizeof(
+                cs)))  // if error here, use OpenVR 1.05 or above instead of 1.03 OR use line below
 #else
     if (m_pHMD->GetControllerState(left_hand, &cs))
 #endif
@@ -1962,7 +1976,10 @@ bool VR_GetRightControllerPos(float* pos, float* thumbpos, Matrix33* m)
         m->data[r * 3 + c] = m_rTrackedDevicePose[right_hand].mDeviceToAbsoluteTracking.m[r][c];
     vr::VRControllerState_t cs;
 #ifdef OPENVR_104_OR_ABOVE
-    if (m_pHMD->GetControllerState(left_hand, &cs, sizeof(cs))) // if error here, use OpenVR 1.05 or above instead of 1.03 OR use line below
+    if (m_pHMD->GetControllerState(
+            left_hand, &cs,
+            sizeof(
+                cs)))  // if error here, use OpenVR 1.05 or above instead of 1.03 OR use line below
 #else
     if (m_pHMD->GetControllerState(right_hand, &cs))
 #endif

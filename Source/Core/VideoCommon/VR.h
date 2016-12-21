@@ -18,6 +18,20 @@ const int DEFAULT_VR_EXTRA_FRAMES = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS = 0;
 const int DEFAULT_VR_EXTRA_VIDEO_LOOPS_DIVIDER = 0;
 
+#define VR_PLAYER1 0
+#define VR_PLAYER2 1
+#define VR_PLAYER3 2
+#define VR_PLAYER4 3
+#define VR_PLAYER_NONE 4
+#define VR_PLAYER_DEFAULT 5
+#define VR_PLAYER_OTHERS 6
+#define VR_PLAYER_ALL 7
+#define VR_MIRROR_LEFT 0
+#define VR_MIRROR_RIGHT 1
+#define VR_MIRROR_DISABLED 2
+#define VR_MIRROR_WARPED 3
+#define VR_MIRROR_BOTH 4
+
 #define OCULUS_BUTTON_A 1
 #define OCULUS_BUTTON_B 2
 #define OCULUS_BUTTON_RTHUMB 4
@@ -182,9 +196,10 @@ void OpcodeReplayBufferInline();
 
 // HMD description and capabilities
 extern bool g_force_vr, g_prefer_openvr;
-extern bool g_has_hmd, g_has_rift, g_has_vr920, g_has_openvr, g_is_direct_mode, g_is_nes;
+extern bool g_has_hmd, g_has_two_hmds, g_has_rift, g_has_vr920, g_has_openvr, g_is_direct_mode, g_is_nes;
 extern bool g_vr_cant_motion_blur, g_vr_must_motion_blur;
-extern bool g_vr_needs_endframe, g_vr_needs_DXGIFactory1, g_vr_can_disable_hsw, g_vr_supports_extended;
+extern bool g_vr_needs_endframe, g_vr_needs_DXGIFactory1, g_vr_can_disable_hsw,
+    g_vr_supports_extended;
 extern bool g_vr_has_dynamic_predict, g_vr_has_configure_rendering, g_vr_has_hq_distortion;
 extern bool g_vr_has_configure_tracking, g_vr_has_timewarp_tweak, g_vr_has_asynchronous_timewarp;
 extern bool g_vr_should_swap_buffers, g_vr_dont_vsync;

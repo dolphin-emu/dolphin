@@ -8,9 +8,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Common/Logging/Log.h"
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -76,7 +76,6 @@ VideoConfig::VideoConfig()
   bAsynchronousTimewarp = false;
   bLowPersistence = true;
   bDynamicPrediction = true;
-  bNoMirrorToWindow = false;
   bOrientationTracking = true;
   bMagYawCorrection = true;
   bPositionTracking = true;
@@ -114,7 +113,10 @@ VideoConfig::VideoConfig()
   iMotionSicknessSkybox = 0;
   fMotionSicknessFOV = 45.0f;
 
-  iVRPlayer = 0;
+  iVRPlayer = VR_PLAYER1;
+  iVRPlayer2 = VR_PLAYER2;
+  iMirrorPlayer = VR_PLAYER_DEFAULT;
+  iMirrorStyle = VR_MIRROR_LEFT;
   fTimeWarpTweak = DEFAULT_VR_TIMEWARP_TWEAK;
   iExtraTimewarpedFrames = DEFAULT_VR_EXTRA_FRAMES;
   iExtraVideoLoops = DEFAULT_VR_EXTRA_VIDEO_LOOPS;
@@ -143,7 +145,6 @@ VideoConfig::VideoConfig()
   fHudDespPosition1 = 0;
   fHudDespPosition2 = 0;
   Matrix33::LoadIdentity(matrixHudrot);
-  
 }
 
 void VideoConfig::Load(const std::string& ini_file)
@@ -255,6 +256,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
 {
   IniFile iniFile;
   iniFile.Load(ini_file);
+  bool bNoMirrorToWindow;
 
   IniFile::Section* vr = iniFile.GetOrCreateSection("VR");
   vr->Get("Scale", &fScale, 1.0f);
@@ -263,7 +265,7 @@ void VideoConfig::LoadVR(const std::string& ini_file)
   vr->Get("EnableVR", &bEnableVR, true);
   vr->Get("LowPersistence", &bLowPersistence, true);
   vr->Get("DynamicPrediction", &bDynamicPrediction, true);
-  vr->Get("NoMirrorToWindow", &bNoMirrorToWindow, true);
+  vr->Get("NoMirrorToWindow", &bNoMirrorToWindow, false);
   vr->Get("OrientationTracking", &bOrientationTracking, true);
   vr->Get("MagYawCorrection", &bMagYawCorrection, true);
   vr->Get("PositionTracking", &bPositionTracking, true);
@@ -301,6 +303,10 @@ void VideoConfig::LoadVR(const std::string& ini_file)
   vr->Get("MotionSicknessSkybox", &iMotionSicknessSkybox, 0);
   vr->Get("MotionSicknessFOV", &fMotionSicknessFOV, DEFAULT_VR_MOTION_SICKNESS_FOV);
   vr->Get("Player", &iVRPlayer, 0);
+  vr->Get("Player2", &iVRPlayer2, 1);
+  vr->Get("MirrorPlayer", &iMirrorPlayer, VR_PLAYER_DEFAULT);
+  iMirrorStyle = bNoMirrorToWindow ? VR_MIRROR_DISABLED : VR_MIRROR_LEFT;
+  vr->Get("MirrorStyle", &iMirrorStyle, iMirrorStyle);
   vr->Get("TimewarpTweak", &fTimeWarpTweak, DEFAULT_VR_TIMEWARP_TWEAK);
   vr->Get("NumExtraFrames", &iExtraTimewarpedFrames, DEFAULT_VR_EXTRA_FRAMES);
   vr->Get("NumExtraVideoLoops", &iExtraVideoLoops, DEFAULT_VR_EXTRA_VIDEO_LOOPS);
@@ -460,7 +466,7 @@ void VideoConfig::GameIniLoad()
   fHudDespPosition0 = 0;
   fHudDespPosition1 = 0;
   fHudDespPosition2 = 0;
-  
+
   fReadPitch = 0;
   iCameraMinPoly = 0;
   bDisable3D = false;
@@ -501,7 +507,6 @@ void VideoConfig::GameIniLoad()
   CHECK_SETTING("VR", "HudDespPosition0", fHudDespPosition0);
   CHECK_SETTING("VR", "HudDespPosition1", fHudDespPosition1);
   CHECK_SETTING("VR", "HudDespPosition2", fHudDespPosition2);
-  
 
   NOTICE_LOG(VR, "%f units per metre (each unit is %f cm), HUD is %fm away and %fm thick",
              fUnitsPerMetre, 100.0f / fUnitsPerMetre, fHudDistance, fHudThickness);
@@ -563,7 +568,7 @@ void VideoConfig::GameIniSave()
   SAVE_IF_NOT_DEFAULT("VR", "ReadPitch", (float)fReadPitch, 0.0f);
   SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition0", (float)fHudDespPosition0, 0.0f);
   SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition1", (float)fHudDespPosition1, 0.0f);
-  SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition2", (float)fHudDespPosition2, 0.0f);  
+  SAVE_IF_NOT_DEFAULT("VR", "HudDespPosition2", (float)fHudDespPosition2, 0.0f);
   SAVE_IF_NOT_DEFAULT("VR", "CameraMinPoly", (int)iCameraMinPoly, 0);
 
   GameIniLocal.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() +
@@ -610,7 +615,7 @@ void VideoConfig::GameIniReset()
   LOAD_DEFAULT("VR", "ReadPitch", fReadPitch, 0.0f);
   LOAD_DEFAULT("VR", "HudDespPosition0", fHudDespPosition0, 0.0f);
   LOAD_DEFAULT("VR", "HudDespPosition1", fHudDespPosition1, 0.0f);
-  LOAD_DEFAULT("VR", "HudDespPosition2", fHudDespPosition2, 0.0f);  
+  LOAD_DEFAULT("VR", "HudDespPosition2", fHudDespPosition2, 0.0f);
   LOAD_DEFAULT("VR", "CameraMinPoly", iCameraMinPoly, 0);
 }
 
@@ -744,7 +749,8 @@ void VideoConfig::SaveVR(const std::string& ini_file)
   vr->Set("EnableVR", bEnableVR);
   vr->Set("LowPersistence", bLowPersistence);
   vr->Set("DynamicPrediction", bDynamicPrediction);
-  vr->Set("NoMirrorToWindow", bNoMirrorToWindow);
+  vr->Set("NoMirrorToWindow",
+          iMirrorPlayer == VR_PLAYER_NONE || iMirrorStyle == VR_MIRROR_DISABLED);
   vr->Set("OrientationTracking", bOrientationTracking);
   vr->Set("MagYawCorrection", bMagYawCorrection);
   vr->Set("PositionTracking", bPositionTracking);
@@ -782,6 +788,9 @@ void VideoConfig::SaveVR(const std::string& ini_file)
   vr->Set("MotionSicknessSkybox", iMotionSicknessSkybox);
   vr->Set("MotionSicknessFOV", fMotionSicknessFOV);
   vr->Set("Player", iVRPlayer);
+  vr->Set("Player2", iVRPlayer2);
+  vr->Set("MirrorPlayer", iMirrorPlayer);
+  vr->Set("MirrorStyle", iMirrorStyle);
   vr->Set("TimewarpTweak", fTimeWarpTweak);
   vr->Set("NumExtraFrames", iExtraTimewarpedFrames);
   vr->Set("NumExtraVideoLoops", iExtraVideoLoops);
@@ -838,9 +847,9 @@ bool VideoConfig::VRSettingsModified()
          fReadPitch != g_SavedConfig.fReadPitch || iCameraMinPoly != g_SavedConfig.iCameraMinPoly ||
          bDisable3D != g_SavedConfig.bDisable3D || bHudFullscreen != g_SavedConfig.bHudFullscreen ||
          bHudOnTop != g_SavedConfig.bHudOnTop ||
-		 fHudDespPosition0 != g_SavedConfig.fHudDespPosition0 ||
-		 fHudDespPosition1 != g_SavedConfig.fHudDespPosition1 ||
-		 fHudDespPosition2 != g_SavedConfig.fHudDespPosition2 ||		 
+         fHudDespPosition0 != g_SavedConfig.fHudDespPosition0 ||
+         fHudDespPosition1 != g_SavedConfig.fHudDespPosition1 ||
+         fHudDespPosition2 != g_SavedConfig.fHudDespPosition2 ||
          bDontClearScreen != g_SavedConfig.bDontClearScreen ||
          bCanReadCameraAngles != g_SavedConfig.bCanReadCameraAngles ||
          bDetectSkybox != g_SavedConfig.bDetectSkybox ||

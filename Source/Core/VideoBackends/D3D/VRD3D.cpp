@@ -253,21 +253,23 @@ void RecreateMirrorTextureIfNeeded()
 {
   int w = Renderer::GetBackbufferWidth();
   int h = Renderer::GetBackbufferHeight();
-  if (w != mirror_width || h != mirror_height ||
-      ((mirrorTexture == nullptr) != g_ActiveConfig.bNoMirrorToWindow))
+  bool bNoMirrorToWindow = g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE ||
+                           g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED;
+  if (w != mirror_width || h != mirror_height || ((mirrorTexture == nullptr) != bNoMirrorToWindow))
   {
     if (mirrorTexture)
     {
       ovrHmd_DestroyMirrorTexture(hmd, mirrorTexture);
       mirrorTexture = nullptr;
     }
-    if (!g_ActiveConfig.bNoMirrorToWindow)
+    if (!bNoMirrorToWindow)
     {
 #if OVR_PRODUCT_VERSION >= 1
       // Create a mirror, to see Rift output on a monitor
       mirrorTexture = nullptr;
       ovrMirrorTextureDesc desc = {};
-      desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+      //desc.Format = OVR_FORMAT_R8G8B8A8_UNORM_SRGB;
+      desc.Format = OVR_FORMAT_R8G8B8A8_UNORM;
       desc.Width = w;
       desc.Height = h;
       mirror_width = w;
@@ -518,7 +520,8 @@ void VR_PresentHMDFrame()
     g_older_tracking_time = g_old_tracking_time;
     g_old_tracking_time = g_last_tracking_time;
     g_last_tracking_time = Common::Timer::GetTimeMs() / 1000.0;
-    if (!g_ActiveConfig.bNoMirrorToWindow)
+    if (g_ActiveConfig.iMirrorStyle != VR_MIRROR_DISABLED &&
+        g_ActiveConfig.iMirrorPlayer != VR_PLAYER_NONE)
     {
       TargetRectangle sourceRc;
       sourceRc.left = 0;
@@ -529,12 +532,30 @@ void VR_PresentHMDFrame()
       D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
       D3D11_VIEWPORT vp = CD3D11_VIEWPORT((float)0, (float)0, (float)Renderer::GetBackbufferWidth(),
                                           (float)Renderer::GetBackbufferHeight());
+      // warped or both eyes
+      int eye = 0;
+      if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
+        vp.Width *= 0.5f;
+      else
+        eye = g_ActiveConfig.iMirrorStyle - VR_MIRROR_LEFT;
+
       D3D::context->RSSetViewports(1, &vp);
-      D3D::drawShadedTexQuad(FramebufferManager::m_efb.m_frontBuffer[0]->GetSRV(),
+      D3D::drawShadedTexQuad(FramebufferManager::m_efb.m_frontBuffer[eye]->GetSRV(),
                              sourceRc.AsRECT(), sourceRc.GetWidth(), sourceRc.GetHeight(),
                              PixelShaderCache::GetColorCopyProgram(false),
                              VertexShaderCache::GetSimpleVertexShader(),
                              VertexShaderCache::GetSimpleInputLayout(), nullptr);
+
+      if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
+      {
+        vp.TopLeftX += vp.Width;
+        D3D::context->RSSetViewports(1, &vp);
+        D3D::drawShadedTexQuad(FramebufferManager::m_efb.m_frontBuffer[1]->GetSRV(),
+                               sourceRc.AsRECT(), sourceRc.GetWidth(), sourceRc.GetHeight(),
+                               PixelShaderCache::GetColorCopyProgram(false),
+                               VertexShaderCache::GetSimpleVertexShader(),
+                               VertexShaderCache::GetSimpleInputLayout(), nullptr);
+      }
 
       // D3D::context->CopyResource(D3D::GetBackBuffer()->GetTex(), tex->D3D11.pTexture);
       D3D::swapchain->Present(0, 0);
@@ -599,31 +620,74 @@ void VR_PresentHMDFrame()
     ovrResult result = ovrHmd_SubmitFrame(hmd, 0, nullptr, &layers, 1);
 
     // Render mirror
-    if (mirrorTexture && !g_ActiveConfig.bNoMirrorToWindow)
+    if (mirrorTexture && g_ActiveConfig.iMirrorPlayer != VR_PLAYER_NONE &&
+        g_ActiveConfig.iMirrorStyle != VR_MIRROR_DISABLED)
     {
+      if (g_ActiveConfig.iMirrorStyle == VR_MIRROR_WARPED)
+      {
 #if OVR_PRODUCT_VERSION >= 1
-      ID3D11Texture2D* tex = nullptr;
-      ovr_GetMirrorTextureBufferDX(hmd, mirrorTexture, IID_PPV_ARGS(&tex));
-      D3D::context->CopyResource(D3D::GetBackBuffer()->GetTex(), tex);
-      tex->Release();
+        ID3D11Texture2D* tex = nullptr;
+        ovr_GetMirrorTextureBufferDX(hmd, mirrorTexture, IID_PPV_ARGS(&tex));
+        D3D::context->CopyResource(D3D::GetBackBuffer()->GetTex(), tex);
+        tex->Release();
 #else
-      ovrD3D11Texture* tex = (ovrD3D11Texture*)mirrorTexture;
-      TargetRectangle sourceRc;
-      sourceRc.left = 0;
-      sourceRc.top = 0;
-      sourceRc.right = mirror_width;
-      sourceRc.bottom = mirror_height;
+        ovrD3D11Texture* tex = (ovrD3D11Texture*)mirrorTexture;
+        TargetRectangle sourceRc;
+        sourceRc.left = 0;
+        sourceRc.top = 0;
+        sourceRc.right = mirror_width;
+        sourceRc.bottom = mirror_height;
 
-      D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
-      D3D11_VIEWPORT vp =
+        D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
+        D3D11_VIEWPORT vp =
           CD3D11_VIEWPORT((float)0, (float)0, (float)mirror_width, (float)mirror_height);
-      D3D::context->RSSetViewports(1, &vp);
-      D3D::drawShadedTexQuad(tex->D3D11.pSRView, sourceRc.AsRECT(), mirror_width, mirror_height,
-                             PixelShaderCache::GetColorCopyProgram(false),
-                             VertexShaderCache::GetSimpleVertexShader(),
-                             VertexShaderCache::GetSimpleInputLayout(), nullptr);
+        D3D::context->RSSetViewports(1, &vp);
+        D3D::drawShadedTexQuad(tex->D3D11.pSRView, sourceRc.AsRECT(), mirror_width, mirror_height,
+          PixelShaderCache::GetColorCopyProgram(false),
+          VertexShaderCache::GetSimpleVertexShader(),
+          VertexShaderCache::GetSimpleInputLayout(), nullptr);
 #endif
+      }
+      else
+      {
+        int w = Renderer::GetTargetWidth();
+        int h = Renderer::GetTargetHeight();
+        int bbw = Renderer::GetBackbufferWidth();
+        int bbh = Renderer::GetBackbufferHeight();
+        // warped or both eyes
+        int eye = 0;
+        if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
+          bbw /= 2;
+        else
+          eye = g_ActiveConfig.iMirrorStyle - VR_MIRROR_LEFT;
 
+        TargetRectangle sourceRc;
+        sourceRc.left = 0;
+        sourceRc.top = 0;
+        sourceRc.right = w;
+        sourceRc.bottom = h;
+
+        D3DTexture2D* tex = FramebufferManager::GetResolvedEFBColorTexture();
+
+        D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
+        D3D11_VIEWPORT vp =
+          CD3D11_VIEWPORT((float)0, (float)0, (float)bbw, (float)bbh);
+        D3D::context->RSSetViewports(1, &vp);
+        D3D::drawShadedTexQuad(tex->GetSRV(), sourceRc.AsRECT(), w, h,
+          PixelShaderCache::GetColorCopyProgram(false),
+          VertexShaderCache::GetSimpleVertexShader(),
+          VertexShaderCache::GetSimpleInputLayout(), nullptr, 1.0f, eye);
+
+        if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
+        {
+          vp.TopLeftX += vp.Width;
+          D3D::context->RSSetViewports(1, &vp);
+          D3D::drawShadedTexQuad(tex->GetSRV(), sourceRc.AsRECT(), w, h,
+            PixelShaderCache::GetColorCopyProgram(false),
+            VertexShaderCache::GetSimpleVertexShader(),
+            VertexShaderCache::GetSimpleInputLayout(), nullptr, 1.0f, 1);
+        }
+      }
       // D3D::context->CopyResource(D3D::GetBackBuffer()->GetTex(), tex->D3D11.pTexture);
       D3D::swapchain->Present(0, 0);
     }

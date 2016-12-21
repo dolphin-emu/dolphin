@@ -448,20 +448,53 @@ void CConfigVR::CreateGUIControls()
     }
     // VR Player
     {
-      const wxString vr_choices[] = {wxTRANSLATE("Player 1"), wxTRANSLATE("Player 2"),
-                                     wxTRANSLATE("Player 3"), wxTRANSLATE("Player 4")};
+      const wxString vr_choices[] = {wxTRANSLATE("Player 1"),      wxTRANSLATE("Player 2"),
+                                     wxTRANSLATE("Player 3"),      wxTRANSLATE("Player 4"),
+                                     wxTRANSLATE("None"),          wxTRANSLATE("Default"),
+                                     wxTRANSLATE("Other Players"), wxTRANSLATE("All Players")};
 
       szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Player wearing HMD:")), 1,
                   wxALIGN_CENTER_VERTICAL, 0);
       wxChoice* const choice_vr =
-          CreateChoice(page_vr, vconfig.iVRPlayer, wxGetTranslation(player_desc),
-                       sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
+          CreateChoice(page_vr, vconfig.iVRPlayer, wxGetTranslation(player_desc), 4, vr_choices);
       szr_vr->Add(choice_vr, 1, 0, 0);
       choice_vr->Select(vconfig.iVRPlayer);
-      wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, "");
-      wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, "");
-      szr_vr->Add(spacer1, 1, 0, 0);
-      szr_vr->Add(spacer2, 1, 0, 0);
+
+      if (g_has_two_hmds)
+      {
+        szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Player wearing Rift:")), 1,
+                    wxALIGN_CENTER_VERTICAL, 0);
+        wxChoice* const choice_vr2 =
+            CreateChoice(page_vr, vconfig.iVRPlayer2, wxGetTranslation(player_desc), 5, vr_choices);
+        szr_vr->Add(choice_vr2, 1, 0, 0);
+        choice_vr2->Select(vconfig.iVRPlayer2);
+      }
+      else
+      {
+        wxStaticText* spacer1 = new wxStaticText(page_vr, wxID_ANY, "");
+        wxStaticText* spacer2 = new wxStaticText(page_vr, wxID_ANY, "");
+        szr_vr->Add(spacer1, 1, 0, 0);
+        szr_vr->Add(spacer2, 1, 0, 0);
+      }
+
+      szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Mirror Window:")), 1,
+                  wxALIGN_CENTER_VERTICAL, 0);
+      wxChoice* const choice_mirror =
+          CreateChoice(page_vr, vconfig.iMirrorPlayer, wxGetTranslation(player_desc),
+                       sizeof(vr_choices) / sizeof(*vr_choices), vr_choices);
+      szr_vr->Add(choice_mirror, 1, 0, 0);
+      choice_mirror->Select(vconfig.iMirrorPlayer);
+
+      const wxString mirror_choices[] = {wxTRANSLATE("Left Eye"), wxTRANSLATE("Right Eye"),
+                                         wxTRANSLATE("Disabled"), wxTRANSLATE("Warped HMD View"),
+                                         wxTRANSLATE("Both Eyes")};
+      szr_vr->Add(new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Mirror Style:")), 1,
+                  wxALIGN_CENTER_VERTICAL, 0);
+      wxChoice* const choice_style =
+          CreateChoice(page_vr, vconfig.iMirrorStyle, wxGetTranslation(player_desc),
+                       sizeof(mirror_choices) / sizeof(*mirror_choices), mirror_choices);
+      szr_vr->Add(choice_style, 1, 0, 0);
+      choice_style->Select(vconfig.iMirrorStyle);
     }
     {
       // szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Enable VR"),
@@ -505,14 +538,14 @@ void CConfigVR::CreateGUIControls()
       }
       szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("HQ Distortion"),
                                  wxGetTranslation(hqdistortion_desc), vconfig.bHqDistortion));
-      if (g_vr_supports_extended)
-        szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Direct Mode - Disable Mirroring"),
-                                   wxGetTranslation(nomirrortowindow_desc),
-                                   vconfig.bNoMirrorToWindow));
-      else
-        szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Disable Mirroring"),
-                                   wxGetTranslation(nomirrortowindow_desc),
-                                   vconfig.bNoMirrorToWindow));
+// if (g_vr_supports_extended)
+//  szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Direct Mode - Disable Mirroring"),
+//                             wxGetTranslation(nomirrortowindow_desc),
+//                             vconfig.bNoMirrorToWindow));
+// else
+//  szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Disable Mirroring"),
+//                             wxGetTranslation(nomirrortowindow_desc),
+//                             vconfig.bNoMirrorToWindow));
 
 #ifdef OCULUSSDK042
       szr_vr->Add(async_timewarp_checkbox = CreateCheckBox(
@@ -887,33 +920,36 @@ void CConfigVR::CreateGUIControls()
       szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
       szr_vr->Add(spin);
     }
-	// Hud Desp Position 0
-	{
-		SettingNumber* const spin =
-			CreateNumber(page_vr, vconfig.fHudDespPosition0, wxGetTranslation(temp_desc), std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0f);
-		wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Desp Position 0"));
-		label->SetToolTip(wxGetTranslation(temp_desc));
-		szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_vr->Add(spin);
-	}
-	// Hud Desp Position 1
-	{
-		SettingNumber* const spin =
-			CreateNumber(page_vr, vconfig.fHudDespPosition1, wxGetTranslation(temp_desc), std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0f);
-		wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Desp Position 1"));
-		label->SetToolTip(wxGetTranslation(temp_desc));
-		szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_vr->Add(spin);
-	}
-	// Hud Desp Position 2
-	{
-		SettingNumber* const spin =
-			CreateNumber(page_vr, vconfig.fHudDespPosition2, wxGetTranslation(temp_desc), std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0f);
-		wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Desp Position 2"));
-		label->SetToolTip(wxGetTranslation(temp_desc));
-		szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
-		szr_vr->Add(spin);
-	}	
+    // Hud Desp Position 0
+    {
+      SettingNumber* const spin =
+          CreateNumber(page_vr, vconfig.fHudDespPosition0, wxGetTranslation(temp_desc),
+                       std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0f);
+      wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Desp Position 0"));
+      label->SetToolTip(wxGetTranslation(temp_desc));
+      szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+      szr_vr->Add(spin);
+    }
+    // Hud Desp Position 1
+    {
+      SettingNumber* const spin =
+          CreateNumber(page_vr, vconfig.fHudDespPosition1, wxGetTranslation(temp_desc),
+                       std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0f);
+      wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Desp Position 1"));
+      label->SetToolTip(wxGetTranslation(temp_desc));
+      szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+      szr_vr->Add(spin);
+    }
+    // Hud Desp Position 2
+    {
+      SettingNumber* const spin =
+          CreateNumber(page_vr, vconfig.fHudDespPosition2, wxGetTranslation(temp_desc),
+                       std::numeric_limits<float>::min(), std::numeric_limits<float>::max(), 1.0f);
+      wxStaticText* label = new wxStaticText(page_vr, wxID_ANY, wxTRANSLATE("Hud Desp Position 2"));
+      label->SetToolTip(wxGetTranslation(temp_desc));
+      szr_vr->Add(label, 1, wxALIGN_CENTER_VERTICAL, 0);
+      szr_vr->Add(spin);
+    }
 
     szr_vr->Add(CreateCheckBox(page_vr, wxTRANSLATE("Read Camera Angles"),
                                wxGetTranslation(canreadcamera_desc), vconfig.bCanReadCameraAngles));

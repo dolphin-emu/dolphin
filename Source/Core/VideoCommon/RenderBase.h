@@ -179,8 +179,10 @@ protected:
 
   FPSCounter m_fps_counter;
 
+public:
   static std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
 
+protected:
   static const float GX_MAX_DEPTH;
 
   static Common::Flag s_surface_needs_change;

@@ -180,7 +180,6 @@ struct VideoConfig final
   bool bEnableVR;
   bool bLowPersistence;
   bool bDynamicPrediction;
-  bool bNoMirrorToWindow;
   bool bOrientationTracking;
   bool bMagYawCorrection;
   bool bPositionTracking;
@@ -206,7 +205,7 @@ struct VideoConfig final
   bool bShowGameFrustum;
   bool bShowTrackingCamera;
   bool bShowTrackingVolume;
-  bool bShowBaseStation;  
+  bool bShowBaseStation;
   bool bMotionSicknessAlways;
   bool bMotionSicknessFreelook;
   bool bMotionSickness2D;
@@ -217,9 +216,9 @@ struct VideoConfig final
   int iMotionSicknessMethod;
   int iMotionSicknessSkybox;
   float fMotionSicknessFOV;
-  
 
-  int iVRPlayer;
+  int iVRPlayer, iVRPlayer2, iMirrorPlayer;
+  int iMirrorStyle;
   float fTimeWarpTweak;
   u32 iExtraTimewarpedFrames;
   u32 iExtraVideoLoops;
@@ -254,7 +253,6 @@ struct VideoConfig final
   float fHudDespPosition1;
   float fHudDespPosition2;
   Matrix33 matrixHudrot;
-  
 
   u32 iCameraMinPoly;
   bool bDisable3D;

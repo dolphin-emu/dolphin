@@ -1221,7 +1221,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   {
     if (g_Config.bLowPersistence != g_ActiveConfig.bLowPersistence ||
         g_Config.bDynamicPrediction != g_ActiveConfig.bDynamicPrediction ||
-        g_Config.bNoMirrorToWindow != g_ActiveConfig.bNoMirrorToWindow)
+        (g_Config.iMirrorPlayer == VR_PLAYER_NONE) != (g_ActiveConfig.iMirrorPlayer == VR_PLAYER_NONE) ||
+        (g_Config.iMirrorStyle == VR_MIRROR_DISABLED) != (g_ActiveConfig.iMirrorStyle == VR_MIRROR_DISABLED))
     {
       VR_ConfigureHMDPrediction();
     }
