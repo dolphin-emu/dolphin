@@ -6,9 +6,13 @@
 
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
+class Jit64;
+
 class GPRRegCache final : public RegCache
 {
 public:
+  explicit GPRRegCache(Jit64& jit);
+
   void StoreRegister(size_t preg, const Gen::OpArg& new_loc) override;
   void LoadRegister(size_t preg, Gen::X64Reg new_loc) override;
   Gen::OpArg GetDefaultLocation(size_t reg) const override;

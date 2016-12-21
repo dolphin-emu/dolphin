@@ -19,7 +19,7 @@
 using namespace Gen;
 using namespace PowerPC;
 
-RegCache::RegCache()
+RegCache::RegCache(Jit64& jit) : m_jit{jit}
 {
 }
 
@@ -348,7 +348,7 @@ float RegCache::ScoreRegister(X64Reg xr)
     // Don't look too far ahead; we don't want to have quadratic compilation times for
     // enormous block sizes!
     // This actually improves register allocation a tiny bit; I'm not sure why.
-    u32 lookahead = std::min(jit->js.instructionsLeft, 64);
+    u32 lookahead = std::min(m_jit.js.instructionsLeft, 64);
     // Count how many other registers are going to be used before we need this one again.
     u32 regs_in_count = CountRegsIn(preg, lookahead).Count();
     // Totally ad-hoc heuristic to bias based on how many other registers we'll need

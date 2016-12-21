@@ -35,8 +35,8 @@ private:
   void AllocStack();
   void FreeStack();
 
-  GPRRegCache gpr;
-  FPURegCache fpr;
+  GPRRegCache gpr{*this};
+  FPURegCache fpr{*this};
 
   // The default code buffer. We keep it around to not have to alloc/dealloc a
   // large chunk of memory for each recompiled block.

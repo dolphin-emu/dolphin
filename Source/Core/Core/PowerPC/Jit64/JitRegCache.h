@@ -10,6 +10,8 @@
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
+class Jit64;
+
 enum FlushMode
 {
   FLUSH_ALL,
@@ -36,7 +38,7 @@ class RegCache
 public:
   static constexpr size_t NUM_XREGS = 16;
 
-  RegCache();
+  explicit RegCache(Jit64& jit);
   virtual ~RegCache() = default;
 
   virtual void StoreRegister(size_t preg, const Gen::OpArg& new_loc) = 0;
@@ -128,6 +130,7 @@ protected:
 
   float ScoreRegister(Gen::X64Reg xreg);
 
+  Jit64& m_jit;
   std::array<PPCCachedReg, 32> m_regs;
   std::array<X64CachedReg, NUM_XREGS> m_xregs;
   Gen::XEmitter* m_emitter = nullptr;

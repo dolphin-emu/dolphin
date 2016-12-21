@@ -4,10 +4,15 @@
 
 #include "Core/PowerPC/Jit64/GPRRegCache.h"
 
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 
 using namespace Gen;
+
+GPRRegCache::GPRRegCache(Jit64& jit) : RegCache{jit}
+{
+}
 
 void GPRRegCache::StoreRegister(size_t preg, const OpArg& new_loc)
 {
@@ -52,7 +57,7 @@ void GPRRegCache::SetImmediate32(size_t preg, u32 imm_value, bool dirty)
 
 BitSet32 GPRRegCache::GetRegUtilization()
 {
-  return jit->js.op->gprInReg;
+  return m_jit.js.op->gprInReg;
 }
 
 BitSet32 GPRRegCache::CountRegsIn(size_t preg, u32 lookahead)
@@ -61,7 +66,7 @@ BitSet32 GPRRegCache::CountRegsIn(size_t preg, u32 lookahead)
 
   for (u32 i = 1; i < lookahead; i++)
   {
-    BitSet32 regs_in = jit->js.op[i].regsIn;
+    BitSet32 regs_in = m_jit.js.op[i].regsIn;
     regs_used |= regs_in;
     if (regs_in[preg])
       return regs_used;

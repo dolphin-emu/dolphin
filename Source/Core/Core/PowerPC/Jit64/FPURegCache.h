@@ -6,9 +6,13 @@
 
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 
+class Jit64;
+
 class FPURegCache final : public RegCache
 {
 public:
+  explicit FPURegCache(Jit64& jit);
+
   void StoreRegister(size_t preg, const Gen::OpArg& newLoc) override;
   void LoadRegister(size_t preg, Gen::X64Reg newLoc) override;
   const Gen::X64Reg* GetAllocationOrder(size_t* count) override;
