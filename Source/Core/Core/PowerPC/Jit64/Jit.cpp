@@ -950,7 +950,7 @@ BitSet8 Jit64::ComputeStaticGQRs(const PPCAnalyst::CodeBlock& cb) const
 BitSet32 Jit64::CallerSavedRegistersInUse() const
 {
   BitSet32 result;
-  for (int i = 0; i < NUMXREGS; i++)
+  for (size_t i = 0; i < RegCache::NUM_XREGS; i++)
   {
     if (!gpr.IsFreeX(i))
       result[i] = true;

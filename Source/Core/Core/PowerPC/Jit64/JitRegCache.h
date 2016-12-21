@@ -31,11 +31,11 @@ struct X64CachedReg
   bool locked;
 };
 
-#define NUMXREGS 16
-
 class RegCache
 {
 public:
+  static constexpr size_t NUM_XREGS = 16;
+
   RegCache();
   virtual ~RegCache() = default;
 
@@ -129,6 +129,6 @@ protected:
   float ScoreRegister(Gen::X64Reg xreg);
 
   std::array<PPCCachedReg, 32> regs;
-  std::array<X64CachedReg, NUMXREGS> xregs;
+  std::array<X64CachedReg, NUM_XREGS> xregs;
   Gen::XEmitter* emit;
 };
