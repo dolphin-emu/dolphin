@@ -40,33 +40,26 @@ class RegCache
 {
 public:
   RegCache();
-  virtual ~RegCache() {}
+  virtual ~RegCache() = default;
+
+  virtual void StoreRegister(size_t preg, const Gen::OpArg& new_loc) = 0;
+  virtual void LoadRegister(size_t preg, Gen::X64Reg new_loc) = 0;
+  virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;
+
   void Start();
 
   void DiscardRegContentsIfCached(size_t preg);
-  void SetEmitter(Gen::XEmitter* emitter) { emit = emitter; }
-  void FlushR(Gen::X64Reg reg);
-  void FlushR(Gen::X64Reg reg, Gen::X64Reg reg2)
-  {
-    FlushR(reg);
-    FlushR(reg2);
-  }
-
-  void FlushLockX(Gen::X64Reg reg)
-  {
-    FlushR(reg);
-    LockX(reg);
-  }
-  void FlushLockX(Gen::X64Reg reg1, Gen::X64Reg reg2)
-  {
-    FlushR(reg1);
-    FlushR(reg2);
-    LockX(reg1);
-    LockX(reg2);
-  }
+  void SetEmitter(Gen::XEmitter* emitter);
 
   void Flush(FlushMode mode = FLUSH_ALL, BitSet32 regsToFlush = BitSet32::AllTrue(32));
   void Flush(PPCAnalyst::CodeOp* op) { Flush(); }
+
+  void FlushR(Gen::X64Reg reg);
+  void FlushR(Gen::X64Reg reg, Gen::X64Reg reg2);
+
+  void FlushLockX(Gen::X64Reg reg);
+  void FlushLockX(Gen::X64Reg reg1, Gen::X64Reg reg2);
+
   int SanityCheck() const;
   void KillImmediate(size_t preg, bool doLoad, bool makeDirty);
 
@@ -74,19 +67,9 @@ public:
   // read only will not set dirty flag
   void BindToRegister(size_t preg, bool doLoad = true, bool makeDirty = true);
   void StoreFromRegister(size_t preg, FlushMode mode = FLUSH_ALL);
-  virtual void StoreRegister(size_t preg, const Gen::OpArg& newLoc) = 0;
-  virtual void LoadRegister(size_t preg, Gen::X64Reg newLoc) = 0;
 
-  const Gen::OpArg& R(size_t preg) const { return regs[preg].location; }
-  Gen::X64Reg RX(size_t preg) const
-  {
-    if (IsBound(preg))
-      return regs[preg].location.GetSimpleReg();
-
-    PanicAlert("Unbound register - %zu", preg);
-    return Gen::INVALID_REG;
-  }
-  virtual Gen::OpArg GetDefaultLocation(size_t reg) const = 0;
+  const Gen::OpArg& R(size_t preg) const;
+  Gen::X64Reg RX(size_t preg) const;
 
   // Register locking.
 
@@ -135,8 +118,9 @@ public:
   void UnlockAll();
   void UnlockAllX();
 
-  bool IsFreeX(size_t xreg) const { return xregs[xreg].free && !xregs[xreg].locked; }
-  bool IsBound(size_t preg) const { return regs[preg].away && regs[preg].location.IsSimpleReg(); }
+  bool IsFreeX(size_t xreg) const;
+  bool IsBound(size_t preg) const;
+
   Gen::X64Reg GetFreeXReg();
   int NumFreeRegisters();
 

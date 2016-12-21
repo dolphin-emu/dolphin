@@ -69,14 +69,9 @@ void RegCache::DiscardRegContentsIfCached(size_t preg)
   }
 }
 
-void RegCache::FlushR(X64Reg reg)
+void RegCache::SetEmitter(XEmitter* emitter)
 {
-  if (reg >= xregs.size())
-    PanicAlert("Flushing non existent reg");
-  if (!xregs[reg].free)
-  {
-    StoreFromRegister(xregs[reg].ppcReg);
-  }
+  emit = emitter;
 }
 
 void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
@@ -106,6 +101,36 @@ void RegCache::Flush(FlushMode mode, BitSet32 regsToFlush)
       }
     }
   }
+}
+
+void RegCache::FlushR(X64Reg reg)
+{
+  if (reg >= xregs.size())
+    PanicAlert("Flushing non existent reg");
+  if (!xregs[reg].free)
+  {
+    StoreFromRegister(xregs[reg].ppcReg);
+  }
+}
+
+void RegCache::FlushR(X64Reg reg, X64Reg reg2)
+{
+  FlushR(reg);
+  FlushR(reg2);
+}
+
+void RegCache::FlushLockX(X64Reg reg)
+{
+  FlushR(reg);
+  LockX(reg);
+}
+
+void RegCache::FlushLockX(X64Reg reg1, X64Reg reg2)
+{
+  FlushR(reg1);
+  FlushR(reg2);
+  LockX(reg1);
+  LockX(reg2);
 }
 
 int RegCache::SanityCheck() const
@@ -211,6 +236,20 @@ void RegCache::StoreFromRegister(size_t i, FlushMode mode)
   }
 }
 
+const OpArg& RegCache::R(size_t preg) const
+{
+  return regs[preg].location;
+}
+
+X64Reg RegCache::RX(size_t preg) const
+{
+  if (IsBound(preg))
+    return regs[preg].location.GetSimpleReg();
+
+  PanicAlert("Unbound register - %zu", preg);
+  return Gen::INVALID_REG;
+}
+
 void RegCache::UnlockAll()
 {
   for (auto& reg : regs)
@@ -221,6 +260,16 @@ void RegCache::UnlockAllX()
 {
   for (auto& xreg : xregs)
     xreg.locked = false;
+}
+
+bool RegCache::IsFreeX(size_t xreg) const
+{
+  return xregs[xreg].free && !xregs[xreg].locked;
+}
+
+bool RegCache::IsBound(size_t preg) const
+{
+  return regs[preg].away && regs[preg].location.IsSimpleReg();
 }
 
 X64Reg RegCache::GetFreeXReg()
