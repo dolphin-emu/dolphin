@@ -56,21 +56,12 @@ void Replace32(u64 offset, u64 nbytes, u8* out_ptr, u64 replace_offset, u32 repl
 
 namespace DiscIO
 {
-bool IsTGCBlob(const std::string& path)
-{
-  File::IOFile file(path, "rb");
-
-  TGCHeader header;
-  return (file.ReadArray(&header, 1) && header.magic == Common::swap32(0xAE0F38A2));
-}
-
 std::unique_ptr<TGCFileReader> TGCFileReader::Create(const std::string& path)
 {
-  if (IsTGCBlob(path))
-  {
-    File::IOFile file(path, "rb");
+  File::IOFile file(path, "rb");
+  TGCHeader header;
+  if (file.ReadArray(&header, 1) && header.magic == TGC_MAGIC)
     return std::unique_ptr<TGCFileReader>(new TGCFileReader(std::move(file)));
-  }
 
   return nullptr;
 }

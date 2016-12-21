@@ -14,7 +14,7 @@
 
 namespace DiscIO
 {
-bool IsTGCBlob(const std::string& path);
+static constexpr u32 TGC_MAGIC = 0xA2380FAE;
 
 struct TGCHeader
 {

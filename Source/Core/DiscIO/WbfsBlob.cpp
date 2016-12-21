@@ -83,8 +83,10 @@ bool WbfsFileReader::ReadHeader()
 {
   // Read hd size info
   m_files[0]->file.ReadBytes(&m_header, sizeof(WbfsHeader));
-  m_header.hd_sector_count = Common::swap32(m_header.hd_sector_count);
+  if (m_header.magic != WBFS_MAGIC)
+    return false;
 
+  m_header.hd_sector_count = Common::swap32(m_header.hd_sector_count);
   m_hd_sector_size = 1ull << m_header.hd_sector_shift;
 
   if (m_size != (m_header.hd_sector_count * m_hd_sector_size))
@@ -170,16 +172,6 @@ std::unique_ptr<WbfsFileReader> WbfsFileReader::Create(const std::string& filena
     reader.reset();
 
   return reader;
-}
-
-bool IsWbfsBlob(const std::string& filename)
-{
-  File::IOFile f(filename, "rb");
-
-  u8 magic[4] = {0, 0, 0, 0};
-  f.ReadBytes(&magic, 4);
-
-  return (magic[0] == 'W') && (magic[1] == 'B') && (magic[2] == 'F') && (magic[3] == 'S');
 }
 
 }  // namespace

@@ -28,6 +28,8 @@
 
 namespace DiscIO
 {
+bool IsGCZBlob(const std::string& filename);
+
 CompressedBlobReader::CompressedBlobReader(const std::string& filename) : m_file_name(filename)
 {
   m_file.Open(filename, "rb");
@@ -192,7 +194,7 @@ bool CompressFileToBlob(const std::string& infile, const std::string& outfile, u
   callback(GetStringT("Files opened, ready to compress."), 0, arg);
 
   CompressedBlobHeader header;
-  header.magic_cookie = kBlobCookie;
+  header.magic_cookie = GCZ_MAGIC;
   header.sub_type = sub_type;
   header.block_size = block_size;
   header.data_size = File::GetSize(infile);
@@ -401,7 +403,7 @@ bool IsGCZBlob(const std::string& filename)
   File::IOFile f(filename, "rb");
 
   CompressedBlobHeader header;
-  return f.ReadArray(&header, 1) && (header.magic_cookie == kBlobCookie);
+  return f.ReadArray(&header, 1) && (header.magic_cookie == GCZ_MAGIC);
 }
 
 }  // namespace

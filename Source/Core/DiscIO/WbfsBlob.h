@@ -14,6 +14,8 @@
 
 namespace DiscIO
 {
+static constexpr u32 WBFS_MAGIC = 0x53464257;  // "WBFS" (byteswapped to little endian)
+
 class WbfsFileReader : public IBlobReader
 {
 public:
@@ -58,7 +60,7 @@ private:
 #pragma pack(1)
   struct WbfsHeader
   {
-    char magic[4];
+    u32 magic;
     u32 hd_sector_count;
     u8 hd_sector_shift;
     u8 wbfs_sector_shift;
@@ -72,7 +74,5 @@ private:
 
   bool m_good;
 };
-
-bool IsWbfsBlob(const std::string& filename);
 
 }  // namespace

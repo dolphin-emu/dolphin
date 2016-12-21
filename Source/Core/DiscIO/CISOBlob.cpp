@@ -12,8 +12,6 @@
 
 namespace DiscIO
 {
-static const char CISO_MAGIC[] = "CISO";
-
 CISOFileReader::CISOFileReader(std::FILE* file) : m_file(file)
 {
   m_size = m_file.GetSize();
@@ -30,11 +28,10 @@ CISOFileReader::CISOFileReader(std::FILE* file) : m_file(file)
 
 std::unique_ptr<CISOFileReader> CISOFileReader::Create(const std::string& filename)
 {
-  if (IsCISOBlob(filename))
-  {
-    File::IOFile f(filename, "rb");
+  File::IOFile f(filename, "rb");
+  CISOHeader header;
+  if (f.ReadArray(&header, 1) && header.magic == CISO_MAGIC)
     return std::unique_ptr<CISOFileReader>(new CISOFileReader(f.ReleaseHandle()));
-  }
 
   return nullptr;
 }
@@ -79,15 +76,6 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
   }
 
   return true;
-}
-
-bool IsCISOBlob(const std::string& filename)
-{
-  File::IOFile f(filename, "rb");
-
-  CISOHeader header;
-  return (f.ReadArray(&header, 1) &&
-          std::equal(header.magic, header.magic + sizeof(header.magic), CISO_MAGIC));
 }
 
 }  // namespace

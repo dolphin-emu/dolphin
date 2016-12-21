@@ -23,9 +23,7 @@
 
 namespace DiscIO
 {
-bool IsGCZBlob(const std::string& filename);
-
-const u32 kBlobCookie = 0xB10BC001;
+static constexpr u32 GCZ_MAGIC = 0xB10BC001;
 
 // GCZ file structure:
 // BlobHeader

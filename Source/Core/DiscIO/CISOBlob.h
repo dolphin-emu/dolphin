@@ -14,7 +14,7 @@
 
 namespace DiscIO
 {
-bool IsCISOBlob(const std::string& filename);
+static constexpr u32 CISO_MAGIC = 0x4F534943;  // "CISO" (byteswapped to little endian)
 
 static const u32 CISO_HEADER_SIZE = 0x8000;
 static const u32 CISO_MAP_SIZE = CISO_HEADER_SIZE - sizeof(u32) - sizeof(char) * 4;
@@ -22,7 +22,7 @@ static const u32 CISO_MAP_SIZE = CISO_HEADER_SIZE - sizeof(u32) - sizeof(char) *
 struct CISOHeader
 {
   // "CISO"
-  char magic[4];
+  u32 magic;
 
   // little endian
   u32 block_size;
