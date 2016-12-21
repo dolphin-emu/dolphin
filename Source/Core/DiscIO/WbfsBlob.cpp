@@ -26,7 +26,7 @@ static const u64 WII_SECTOR_COUNT = 143432 * 2;
 static const u64 WII_DISC_HEADER_SIZE = 256;
 
 WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
-    : m_total_files(0), m_size(0), m_good(false)
+    : m_size(0), m_good(false)
 {
   if (!AddFileToList(std::move(file)))
     return;
@@ -58,13 +58,15 @@ void WbfsFileReader::OpenAdditionalFiles(const std::string& path)
   if (path.length() < 4)
     return;
 
-  _assert_(m_total_files > 0);  // The code below gives .wbf0 for index 0, but it should be .wbfs
+  _assert_(m_files.size() > 0);  // The code below gives .wbf0 for index 0, but it should be .wbfs
 
   while (true)
   {
     // Replace last character with index (e.g. wbfs = wbf1)
+    if (m_files.size() >= 10)
+      return;
     std::string current_path = path;
-    current_path.back() = '0' + m_total_files;
+    current_path.back() = static_cast<char>('0' + m_files.size());
     if (!AddFileToList(File::IOFile(current_path, "rb")))
       return;
   }
@@ -78,7 +80,6 @@ bool WbfsFileReader::AddFileToList(File::IOFile file)
   const u64 file_size = file.GetSize();
   m_files.emplace_back(std::make_unique<file_entry>(std::move(file), m_size, file_size));
   m_size += file_size;
-  m_total_files++;
 
   return true;
 }
@@ -145,19 +146,19 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
     u64 cluster_offset = offset & (m_wbfs_sector_size - 1);
     u64 final_address = cluster_address + cluster_offset;
 
-    for (u32 i = 0; i != m_total_files; i++)
+    for (const std::unique_ptr<file_entry>& file_entry : m_files)
     {
-      if (final_address < (m_files[i]->base_address + m_files[i]->size))
+      if (final_address < (file_entry->base_address + file_entry->size))
       {
-        m_files[i]->file.Seek(final_address - m_files[i]->base_address, SEEK_SET);
+        file_entry->file.Seek(final_address - file_entry->base_address, SEEK_SET);
         if (available)
         {
-          u64 till_end_of_file = m_files[i]->size - (final_address - m_files[i]->base_address);
+          u64 till_end_of_file = file_entry->size - (final_address - file_entry->base_address);
           u64 till_end_of_sector = m_wbfs_sector_size - cluster_offset;
           *available = std::min(till_end_of_file, till_end_of_sector);
         }
 
-        return m_files[i]->file;
+        return file_entry->file;
       }
     }
   }

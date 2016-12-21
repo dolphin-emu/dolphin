@@ -55,7 +55,6 @@ private:
 
   std::vector<std::unique_ptr<file_entry>> m_files;
 
-  u32 m_total_files;
   u64 m_size;
 
   u64 m_hd_sector_size;
