@@ -52,7 +52,6 @@ public:
   void SetEmitter(Gen::XEmitter* emitter);
 
   void Flush(FlushMode mode = FLUSH_ALL, BitSet32 regsToFlush = BitSet32::AllTrue(32));
-  void Flush(PPCAnalyst::CodeOp* op) { Flush(); }
 
   void FlushR(Gen::X64Reg reg);
   void FlushR(Gen::X64Reg reg, Gen::X64Reg reg2);
