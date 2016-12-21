@@ -116,6 +116,7 @@ void mulxac(const UDSPInstruction opc);
 void mulxmv(const UDSPInstruction opc);
 void mulxmvz(const UDSPInstruction opc);
 void neg(const UDSPInstruction opc);
+void nop(const UDSPInstruction opc);
 void notc(const UDSPInstruction opc);
 void nx(const UDSPInstruction opc);
 void orc(const UDSPInstruction opc);
