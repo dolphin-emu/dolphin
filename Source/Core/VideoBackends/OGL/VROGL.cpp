@@ -795,10 +795,10 @@ void VR_BeginFrame()
 #endif
 }
 
-void VR_RenderToEyebuffer(int eye)
+void VR_RenderToEyebuffer(int eye, int hmd_number)
 {
 #if defined(OVR_MAJOR_VERSION) && (OVR_PRODUCT_VERSION >= 1 || OVR_MAJOR_VERSION >= 6)
-  if (g_has_rift)
+  if (g_has_rift && (hmd_number == 1 || !g_has_openvr))
   {
     eyeRenderTexture[eye]->UnsetRenderSurface();
     // Switch to eye render target
@@ -810,63 +810,20 @@ void VR_RenderToEyebuffer(int eye)
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
 #endif
 #if defined(HAVE_OPENVR)
-  if (g_has_openvr)
+  if (g_has_openvr && (hmd_number == 0 || !g_has_rift))
     glBindFramebuffer(GL_DRAW_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
 #endif
 }
 
 void VR_PresentHMDFrame()
 {
-#ifdef HAVE_OPENVR
-  if (m_pCompositor)
-  {
-    vr::Texture_t leftEyeTexture = {(void*)(size_t)m_left_texture, OPENVR_OpenGL,
-                                    vr::ColorSpace_Gamma};
-    vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
-    vr::Texture_t rightEyeTexture = {(void*)(size_t)m_right_texture, OPENVR_OpenGL,
-                                     vr::ColorSpace_Gamma};
-    vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
-
-    m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
-    g_older_tracking_time = g_old_tracking_time;
-    g_old_tracking_time = g_last_tracking_time;
-    g_last_tracking_time = Common::Timer::GetTimeMs() / 1000.0;
-
-    if (g_ActiveConfig.iMirrorPlayer != VR_PLAYER_NONE &&
-        g_ActiveConfig.iMirrorStyle != VR_MIRROR_DISABLED)
-    {
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-      GLint w = Renderer::GetTargetWidth();
-      GLint h = Renderer::GetTargetHeight();
-      GLint bbw = Renderer::GetBackbufferWidth();
-      GLint bbh = Renderer::GetBackbufferHeight();
-      // warped or both eyes
-      int eye = 0;
-      if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
-        bbw /= 2;
-      else
-        eye = g_ActiveConfig.iMirrorStyle - VR_MIRROR_LEFT;
-      // Blit mirror texture to back buffer
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
-      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-      glBlitFramebuffer(0, 0, w, h, 0, 0, bbw, bbh, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-      if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
-      {
-        glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
-        glBlitFramebuffer(0, 0, w, h, bbw, 0, bbw, bbh, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-      }
-      glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-      GLInterface->Swap();
-    }
-  }
-#endif
 #ifdef OVR_MAJOR_VERSION
   if (g_has_rift)
   {
-// ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose,
-// &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
-// ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose,
-// &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
+    // ovrHmd_EndEyeRender(hmd, ovrEye_Left, g_left_eye_pose,
+    // &FramebufferManager::m_eye_texture[ovrEye_Left].Texture);
+    // ovrHmd_EndEyeRender(hmd, ovrEye_Right, g_right_eye_pose,
+    // &FramebufferManager::m_eye_texture[ovrEye_Right].Texture);
 #if OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
     // Let OVR do distortion rendering, Present and flush/sync.
     ovrHmd_EndFrame(hmd, g_eye_poses, &g_eye_texture[0].Texture);
@@ -935,6 +892,50 @@ void VR_PresentHMDFrame()
       GLInterface->Swap();
     }
 #endif
+  }
+#endif
+#ifdef HAVE_OPENVR
+  if (m_pCompositor)
+  {
+    vr::Texture_t leftEyeTexture = {(void*)(size_t)m_left_texture, OPENVR_OpenGL,
+                                    vr::ColorSpace_Gamma};
+    vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
+    vr::Texture_t rightEyeTexture = {(void*)(size_t)m_right_texture, OPENVR_OpenGL,
+                                     vr::ColorSpace_Gamma};
+    vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
+
+    m_pCompositor->WaitGetPoses(m_rTrackedDevicePose, vr::k_unMaxTrackedDeviceCount, nullptr, 0);
+    g_older_tracking_time = g_old_tracking_time;
+    g_old_tracking_time = g_last_tracking_time;
+    g_last_tracking_time = Common::Timer::GetTimeMs() / 1000.0;
+
+    if (g_ActiveConfig.iMirrorPlayer != VR_PLAYER_NONE &&
+        g_ActiveConfig.iMirrorStyle != VR_MIRROR_DISABLED)
+    {
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+      GLint w = Renderer::GetTargetWidth();
+      GLint h = Renderer::GetTargetHeight();
+      GLint bbw = Renderer::GetBackbufferWidth();
+      GLint bbh = Renderer::GetBackbufferHeight();
+      // warped or both eyes
+      int eye = 0;
+      if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
+        bbw /= 2;
+      else
+        eye = g_ActiveConfig.iMirrorStyle - VR_MIRROR_LEFT;
+      // Blit mirror texture to back buffer
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[eye]);
+      glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
+      glBlitFramebuffer(0, 0, w, h, 0, 0, bbw, bbh, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      if (g_ActiveConfig.iMirrorStyle >= VR_MIRROR_WARPED)
+      {
+        glBindFramebuffer(GL_READ_FRAMEBUFFER, FramebufferManager::m_eyeFramebuffer[1]);
+        glBlitFramebuffer(0, 0, w, h, bbw, 0, bbw, bbh, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+      }
+      glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
+      if (!g_has_rift)
+        GLInterface->Swap();
+    }
   }
 #endif
 }

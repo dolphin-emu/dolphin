@@ -484,10 +484,10 @@ void VR_BeginFrame()
 #endif
 }
 
-void VR_RenderToEyebuffer(int eye)
+void VR_RenderToEyebuffer(int eye, int hmd_number)
 {
 #ifdef OVR_MAJOR_VERSION
-  if (g_has_rift)
+  if (g_has_rift && (hmd_number == 1 || !g_has_openvr))
   {
 #if OVR_PRODUCT_VERSION >= 1
     ID3D11RenderTargetView* rtv = pEyeRenderTexture[eye]->GetRTV();
@@ -504,7 +504,7 @@ void VR_RenderToEyebuffer(int eye)
   }
 #endif
 #if defined(HAVE_OPENVR)
-  if (g_has_openvr && !g_has_rift)
+  if (g_has_openvr && (hmd_number == 0 || !g_has_rift))
     D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[eye]->GetRTV(),
                                      nullptr);
 #endif

@@ -21,7 +21,7 @@ namespace OGL
 void VR_ConfigureHMD();
 void VR_StartFramebuffer(int target_width, int target_height);
 void VR_StopFramebuffer();
-void VR_RenderToEyebuffer(int eye);
+void VR_RenderToEyebuffer(int eye, int hmd_number = 0);
 void VR_BeginFrame();
 void VR_PresentHMDFrame();
 void VR_DrawTimewarpFrame();

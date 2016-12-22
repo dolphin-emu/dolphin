@@ -1608,10 +1608,22 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
         {
           m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
                                             xfbSource->texWidth, xfbSource->texHeight, 0);
+          if (g_has_two_hmds)
+          {
+            VR_RenderToEyebuffer(0, 1);
+            m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
+              xfbSource->texWidth, xfbSource->texHeight, 0);
+          }
 
           VR_RenderToEyebuffer(1);
           m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
                                             xfbSource->texWidth, xfbSource->texHeight, 1);
+          if (g_has_two_hmds)
+          {
+            VR_RenderToEyebuffer(1, 1);
+            m_post_processor->BlitFromTexture(sourceRc, drawRc, xfbSource->texture,
+              xfbSource->texWidth, xfbSource->texHeight, 1);
+          }
         }
         else
         {
@@ -1630,10 +1642,22 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       {
         m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height,
                                           0);
+        if (g_has_two_hmds)
+        {
+          VR_RenderToEyebuffer(0, 1);
+          m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height,
+            0);
+        }
 
         VR_RenderToEyebuffer(1);
         m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height,
                                           1);
+        if (g_has_two_hmds)
+        {
+          VR_RenderToEyebuffer(1, 1);
+          m_post_processor->BlitFromTexture(targetRc, targetRc, tex, s_target_width, s_target_height,
+            1);
+        }
       }
       else
       {

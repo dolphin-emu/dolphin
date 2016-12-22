@@ -214,7 +214,7 @@ void VR_NewVRFrame()
     g_vr_black_screen = (g_vr_speed > 0.15f);
   }
 #ifdef OVR_MAJOR_VERSION
-  else if (g_has_rift && g_ActiveConfig.iMotionSicknessMethod == 1)
+  else if (g_has_rift && g_ActiveConfig.iMotionSicknessMethod == 1 && !g_has_openvr)
   {
     g_vr_black_screen = false;
     // reduce the FOV if we are moving fast
@@ -293,6 +293,31 @@ bool BInitCompositor()
   return true;
 }
 #endif
+
+void SetTwoHmdFOV()
+{
+#if defined(HAVE_OPENVR) && defined(OVR_MAJOR_VERSION)
+  float left, right, top, bottom;
+  for (int eye = 0; eye < 2; ++eye)
+  {
+    m_pHMD->GetProjectionRaw((vr::EVREye)eye, &left, &right, &top, &bottom);
+    g_eye_fov[eye].LeftTan = fabs(left);
+    g_eye_fov[eye].RightTan = fabs(right);
+    g_eye_fov[eye].UpTan = fabs(top);
+    g_eye_fov[eye].DownTan = fabs(bottom);
+  }
+  memcpy(g_best_eye_fov, g_eye_fov, 2 * sizeof(g_eye_fov[0]));
+  memcpy(g_last_eye_fov, g_eye_fov, 2 * sizeof(g_eye_fov[0]));
+//NOTICE_LOG(VR, "********** %f to %f, %f to %f", left, right, top, bottom);
+  //ERROR_LOG(VR, "********** %f° to %f°, %f° to %f°", RADIANS_TO_DEGREES(atan(left)), RADIANS_TO_DEGREES(atan(right)), RADIANS_TO_DEGREES(atan(top)), RADIANS_TO_DEGREES(atan(bottom)));
+//#else
+  //int eye = 0;
+  //NOTICE_LOG(VR, "********** %f to %f, %f to %f", g_eye_fov[eye].LeftTan, g_eye_fov[eye].RightTan, g_eye_fov[eye].UpTan, g_eye_fov[eye].DownTan);
+  //ERROR_LOG(VR, "********** %f° to %f°, %f° to %f°", RADIANS_TO_DEGREES(atan(g_eye_fov[eye].LeftTan)), RADIANS_TO_DEGREES(atan(g_eye_fov[eye].RightTan)), RADIANS_TO_DEGREES(atan(g_eye_fov[eye].UpTan)), RADIANS_TO_DEGREES(atan(g_eye_fov[eye].DownTan)));
+//CV1: 0.964926 to 0.715264, 0.889498 to 1.110925
+//CV1: 43.977375° to 35.574768°, 41.653034° to 48.008022°
+#endif
+}
 
 bool InitOpenVR()
 {
@@ -635,6 +660,8 @@ void VR_Init()
   if (g_has_two_hmds)
     NOTICE_LOG(VR, "Two HMDs detected!");
   InitOculusHMD();
+  if (g_has_openvr && g_has_rift)
+    SetTwoHmdFOV();
 
   if (g_has_hmd && g_hmd_window_width > 0 && g_hmd_window_height > 0)
   {
@@ -1004,8 +1031,10 @@ void VR_UpdateHeadTrackingIfNeeded()
       UpdateOpenVRHeadTracking();
 #endif
 #ifdef OVR_MAJOR_VERSION
-    if (g_has_rift)
+    static bool once = true;
+    if (g_has_rift && (once || !g_has_openvr))
       UpdateOculusHeadTracking();
+    once = false;
 #endif
   }
 }
@@ -1039,7 +1068,7 @@ void VR_GetProjectionHalfTan(float& hmd_halftan)
 void VR_GetProjectionMatrices(Matrix44& left_eye, Matrix44& right_eye, float znear, float zfar)
 {
 #ifdef OVR_MAJOR_VERSION
-  if (g_has_rift)
+  if (g_has_rift && !g_has_two_hmds)
   {
 #if OVR_PRODUCT_VERSION >= 1
     ovrMatrix4f rift_left = ovrMatrix4f_Projection(g_eye_fov[0], znear, zfar, 0);

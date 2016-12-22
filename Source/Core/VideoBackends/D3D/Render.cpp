@@ -947,6 +947,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                                xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false),
                                VertexShaderCache::GetSimpleVertexShader(),
                                VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+        if (g_has_two_hmds)
+        {
+          VR_RenderToEyebuffer(0, 1);
+          D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth,
+                                 xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false),
+                                 VertexShaderCache::GetSimpleVertexShader(),
+                                 VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+        }
 
         // Render to right eye
         VR_RenderToEyebuffer(1);
@@ -954,6 +962,14 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                                xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false),
                                VertexShaderCache::GetSimpleVertexShader(),
                                VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+        if (g_has_two_hmds)
+        {
+          VR_RenderToEyebuffer(1, 1);
+          D3D::drawShadedTexQuad(read_texture->GetSRV(), sourceRc.AsRECT(), xfbSource->texWidth,
+                                 xfbSource->texHeight, PixelShaderCache::GetColorCopyProgram(false),
+                                 VertexShaderCache::GetSimpleVertexShader(),
+                                 VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+        }
       }
     }
     else
@@ -973,6 +989,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                              PixelShaderCache::GetColorCopyProgram(false),
                              VertexShaderCache::GetSimpleVertexShader(),
                              VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+      if (g_has_two_hmds)
+      {
+        VR_RenderToEyebuffer(0, 1);
+        D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(),
+                               Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
+                               PixelShaderCache::GetColorCopyProgram(false),
+                               VertexShaderCache::GetSimpleVertexShader(),
+                               VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 0);
+      }
 
       // Render to right eye
       VR_RenderToEyebuffer(1);
@@ -981,6 +1006,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                              PixelShaderCache::GetColorCopyProgram(false),
                              VertexShaderCache::GetSimpleVertexShader(),
                              VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+      if (g_has_two_hmds)
+      {
+        VR_RenderToEyebuffer(1, 1);
+        D3D::drawShadedTexQuad(read_texture->GetSRV(), targetRc.AsRECT(),
+                               Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
+                               PixelShaderCache::GetColorCopyProgram(false),
+                               VertexShaderCache::GetSimpleVertexShader(),
+                               VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma, 1);
+      }
     }
     // Reset viewport for drawing text
     D3D11_VIEWPORT vp = CD3D11_VIEWPORT(400.0f, 400.0f, Renderer::GetTargetWidth() - 400.0f,
