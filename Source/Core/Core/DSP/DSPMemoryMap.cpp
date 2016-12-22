@@ -4,9 +4,12 @@
 // Refer to the license.txt file included.
 
 #include "Core/DSP/DSPMemoryMap.h"
+
+#include "Common/Logging/Log.h"
+
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHWInterface.h"
-#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPTables.h"
 
 u16 dsp_imem_read(u16 addr)
 {

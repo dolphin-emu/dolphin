@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CommonTypes.h"
+
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPMemoryMap.h"

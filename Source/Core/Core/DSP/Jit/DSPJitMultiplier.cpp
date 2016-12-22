@@ -6,9 +6,10 @@
 
 // Multiplier and product register control
 
-#include "Core/DSP/DSPAnalyzer.h"
+#include "Common/CommonTypes.h"
+
+#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPEmitter.h"
-#include "Core/DSP/DSPIntUtil.h"
 
 using namespace Gen;
 
