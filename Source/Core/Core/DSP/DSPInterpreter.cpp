@@ -4,17 +4,41 @@
 // Refer to the license.txt file included.
 
 #include "Core/DSP/DSPInterpreter.h"
+
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPHWInterface.h"
-#include "Core/DSP/DSPIntUtil.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
 
 namespace DSPInterpreter
 {
-// NOTE: These have nothing to do with g_dsp.r.cr !
+namespace
+{
+void ExecuteInstruction(const UDSPInstruction inst)
+{
+  const DSPOPCTemplate* opcode_template = GetOpTemplate(inst);
 
+  if (opcode_template->extended)
+  {
+    if ((inst >> 12) == 0x3)
+      extOpTable[inst & 0x7F]->intFunc(inst);
+    else
+      extOpTable[inst & 0xFF]->intFunc(inst);
+  }
+
+  opcode_template->intFunc(inst);
+
+  if (opcode_template->extended)
+  {
+    applyWriteBackLog();
+  }
+}
+}  // Anonymous namespace
+
+// NOTE: These have nothing to do with g_dsp.r.cr !
 void WriteCR(u16 val)
 {
   // reset
@@ -203,6 +227,15 @@ int RunCycles(int cycles)
       // it just won't call this function anymore.
     }
   }
+}
+
+void nop(const UDSPInstruction opc)
+{
+  // The real nop is 0. Anything else is bad.
+  if (opc == 0)
+    return;
+
+  ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x", opc);
 }
 
 }  // namespace

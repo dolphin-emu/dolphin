@@ -11,21 +11,12 @@
 #include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
 
-void nop(const UDSPInstruction opc)
-{
-  // The real nop is 0. Anything else is bad.
-  if (opc)
-  {
-    ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x", opc);
-  }
-}
-
 // clang-format off
 const DSPOPCTemplate opcodes[] =
 {
   //                                                         # of parameters----+   {type, size, loc, lshift, mask}                                                               branch        reads PC       // instruction approximation
   // name      opcode  mask    interpreter function     JIT function    size-V  V   param 1                       param 2                       param 3                    extendable    uncond.       updates SR
-  {"NOP",      0x0000, 0xfffc, nop,                     &DSPEmitter::nop,    1, 0, {},                                                                                     false, false, false, false, false}, // no operation
+  {"NOP",      0x0000, 0xfffc, DSPInterpreter::nop,     &DSPEmitter::nop,    1, 0, {},                                                                                     false, false, false, false, false}, // no operation
 
   {"DAR",      0x0004, 0xfffc, DSPInterpreter::dar,     &DSPEmitter::dar,    1, 1, {{P_REG, 1, 0, 0, 0x0003}},                                                             false, false, false, false, false}, // $arD--
   {"IAR",      0x0008, 0xfffc, DSPInterpreter::iar,     &DSPEmitter::iar,    1, 1, {{P_REG, 1, 0, 0, 0x0003}},                                                             false, false, false, false, false}, // $arD++
@@ -293,7 +284,7 @@ const DSPOPCTemplate opcodes[] =
 };
 
 const DSPOPCTemplate cw =
-  {"CW",     0x0000, 0x0000, nop, nullptr, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
+  {"CW",     0x0000, 0x0000, DSPInterpreter::nop, nullptr, 1, 1, {{P_VAL, 2, 0, 0, 0xffff}}, false, false, false, false, false};
 
 // extended opcodes
 

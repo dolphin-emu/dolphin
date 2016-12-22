@@ -54,8 +54,6 @@ enum partype_t
 #define OPTABLE_SIZE 0xffff + 1
 #define EXT_OPTABLE_SIZE 0xff + 1
 
-void nop(const UDSPInstruction opc);
-
 typedef void (*dspIntFunc)(const UDSPInstruction);
 typedef void (DSPEmitter::*dspJitFunc)(const UDSPInstruction);
 
@@ -125,23 +123,3 @@ void zeroWriteBackLog();
 void zeroWriteBackLogPreserveAcc(u8 acc);
 
 const DSPOPCTemplate* GetOpTemplate(const UDSPInstruction& inst);
-
-inline void ExecuteInstruction(const UDSPInstruction inst)
-{
-  const DSPOPCTemplate* tinst = GetOpTemplate(inst);
-
-  if (tinst->extended)
-  {
-    if ((inst >> 12) == 0x3)
-      extOpTable[inst & 0x7F]->intFunc(inst);
-    else
-      extOpTable[inst & 0xFF]->intFunc(inst);
-  }
-
-  tinst->intFunc(inst);
-
-  if (tinst->extended)
-  {
-    applyWriteBackLog();
-  }
-}
