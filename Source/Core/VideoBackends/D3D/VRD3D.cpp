@@ -326,9 +326,8 @@ void VR_StartFramebuffer()
     }
     RecreateMirrorTextureIfNeeded();
   }
-  else
 #endif
-      if (g_has_vr920)
+  if (g_has_vr920)
   {
 #ifdef _WIN32
     VR920_StartStereo3D();
@@ -336,7 +335,11 @@ void VR_StartFramebuffer()
   }
 #if (defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5) ||          \
     defined(HAVE_OPENVR)
-  else if (g_has_rift || g_has_openvr)
+  if (
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
+    g_has_rift || 
+#endif
+    g_has_openvr)
   {
     for (int eye = 0; eye < 2; ++eye)
     {
@@ -501,7 +504,7 @@ void VR_RenderToEyebuffer(int eye)
   }
 #endif
 #if defined(HAVE_OPENVR)
-  if (g_has_openvr)
+  if (g_has_openvr && !g_has_rift)
     D3D::context->OMSetRenderTargets(1, &FramebufferManager::m_efb.m_frontBuffer[eye]->GetRTV(),
                                      nullptr);
 #endif

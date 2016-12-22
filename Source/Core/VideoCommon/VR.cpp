@@ -112,7 +112,7 @@ bool g_vr_needs_endframe = false;
 bool g_vr_should_swap_buffers = true, g_vr_dont_vsync = false;
 
 bool g_force_vr = false, g_prefer_openvr = false;
-bool g_has_hmd = false, g_has_two_hmds = false, g_has_rift = false, g_has_vr920 = false, g_has_openvr = false;
+bool g_has_hmd = false, g_has_two_hmds = false, g_has_rift = false, g_has_vr920 = false, g_has_openvr = false, g_openvr_is_vive = true, g_openvr_is_rift = false;
 bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
 bool g_new_frame_tracker_for_efb_skip = true;
@@ -297,6 +297,8 @@ bool BInitCompositor()
 bool InitOpenVR()
 {
 #ifdef HAVE_OPENVR
+  g_has_two_hmds = false;
+
   // Loading the OpenVR Runtime
   vr::EVRInitError eError = vr::VRInitError_None;
   m_pHMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
@@ -310,71 +312,82 @@ bool InitOpenVR()
   }
   else
   {
-    m_pRenderModels =
-        (vr::IVRRenderModels*)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError);
-    if (!m_pRenderModels)
+    std::string m_strDriver;
+    std::string m_strDisplay;
+    m_strDriver = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd,
+      vr::Prop_TrackingSystemName_String);
+    g_openvr_is_vive = (m_strDriver == "lighthouse");
+    g_openvr_is_rift = (m_strDriver == "oculus");
+    NOTICE_LOG(VR, "OpenVR strDriver = '%s'", m_strDriver.c_str());
+    m_strDisplay = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd,
+      vr::Prop_SerialNumber_String);
+    NOTICE_LOG(VR, "OpenVR strDisplay = '%s'", m_strDisplay.c_str());
+
+    if (g_has_rift && g_openvr_is_rift)
     {
       m_pHMD = nullptr;
-      vr::VR_Shutdown();
-
-      ERROR_LOG(VR, "Unable to get render model interface: %s: %s",
-                vr::VR_GetVRInitErrorAsSymbol(eError),
-                vr::VR_GetVRInitErrorAsEnglishDescription(eError));
       g_has_openvr = false;
     }
     else
     {
-      NOTICE_LOG(VR, "VR_Init Succeeded");
-      g_has_openvr = true;
-      g_has_hmd = true;
-    }
-
-    u32 m_nWindowWidth = 512;
-    u32 m_nWindowHeight = 512;
-    // m_pHMD->GetWindowBounds(&g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight);
-    g_hmd_window_width = m_nWindowWidth;
-    g_hmd_window_height = m_nWindowHeight;
-    // NOTICE_LOG(VR, "OpenVR WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y,
-    // g_hmd_window_width, g_hmd_window_height);
-
-    std::string m_strDriver = "No Driver";
-    std::string m_strDisplay = "No Display";
-    m_strDriver = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd,
-                                         vr::Prop_TrackingSystemName_String);
-    m_strDisplay = GetTrackedDeviceString(m_pHMD, vr::k_unTrackedDeviceIndex_Hmd,
-                                          vr::Prop_SerialNumber_String);
-    vr::TrackedPropertyError error;
-    g_hmd_refresh_rate =
-        (int)(0.5f +
-              m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
-                                                    vr::Prop_DisplayFrequency_Float, &error));
-    g_openvr_ipd = m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
-                                                         vr::Prop_UserIpdMeters_Float, &error);
-
-    NOTICE_LOG(VR, "OpenVR strDriver = '%s'", m_strDriver.c_str());
-    NOTICE_LOG(VR, "OpenVR strDisplay = '%s'", m_strDisplay.c_str());
-
-    if (m_bUseCompositor)
-    {
-      if (!BInitCompositor())
+      m_pRenderModels =
+        (vr::IVRRenderModels*)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError);
+      if (!m_pRenderModels)
       {
-        ERROR_LOG(VR, "%s - Failed to initialize OpenVR Compositor!\n", __FUNCTION__);
+        m_pHMD = nullptr;
+        vr::VR_Shutdown();
+
+        ERROR_LOG(VR, "Unable to get render model interface: %s: %s",
+          vr::VR_GetVRInitErrorAsSymbol(eError),
+          vr::VR_GetVRInitErrorAsEnglishDescription(eError));
         g_has_openvr = false;
       }
+      else
+      {
+        NOTICE_LOG(VR, "VR_Init Succeeded");
+        g_has_openvr = true;
+        g_has_hmd = true;
+        g_has_two_hmds = g_has_rift;
+      }
+
+      u32 m_nWindowWidth = 512;
+      u32 m_nWindowHeight = 512;
+      // m_pHMD->GetWindowBounds(&g_hmd_window_x, &g_hmd_window_y, &m_nWindowWidth, &m_nWindowHeight);
+      g_hmd_window_width = m_nWindowWidth;
+      g_hmd_window_height = m_nWindowHeight;
+      // NOTICE_LOG(VR, "OpenVR WindowBounds (%d,%d) %dx%d", g_hmd_window_x, g_hmd_window_y,
+      // g_hmd_window_width, g_hmd_window_height);
+
+      vr::TrackedPropertyError error;
+      g_hmd_refresh_rate =
+        (int)(0.5f +
+          m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
+            vr::Prop_DisplayFrequency_Float, &error));
+      g_openvr_ipd = m_pHMD->GetFloatTrackedDeviceProperty(vr::k_unTrackedDeviceIndex_Hmd,
+        vr::Prop_UserIpdMeters_Float, &error);
+
+      if (m_bUseCompositor)
+      {
+        if (!BInitCompositor())
+        {
+          ERROR_LOG(VR, "%s - Failed to initialize OpenVR Compositor!\n", __FUNCTION__);
+          g_has_openvr = false;
+        }
+      }
+      if (g_has_openvr)
+      {
+        g_vr_needs_DXGIFactory1 = true;
+        g_vr_cant_motion_blur = true;
+        g_vr_has_dynamic_predict = false;
+        g_vr_has_configure_rendering = false;
+        g_vr_has_configure_tracking = false;
+        g_vr_has_hq_distortion = false;
+        g_vr_should_swap_buffers = true;  // todo: check if this is right
+        g_vr_has_timewarp_tweak = false;
+        g_vr_has_asynchronous_timewarp = false;
+      }
+      return g_has_openvr;
     }
-    if (g_has_openvr)
-    {
-      g_vr_needs_DXGIFactory1 = true;
-      g_vr_cant_motion_blur = true;
-      g_vr_has_dynamic_predict = false;
-      g_vr_has_configure_rendering = false;
-      g_vr_has_configure_tracking = false;
-      g_vr_has_hq_distortion = false;
-      g_vr_should_swap_buffers = true;  // todo: check if this is right
-      g_vr_has_timewarp_tweak = false;
-      g_vr_has_asynchronous_timewarp = false;
-    }
-    return g_has_openvr;
   }
 #endif
   return false;
@@ -549,8 +562,10 @@ bool InitOculusVR()
   hmd = ovrHmd_Create(0);
 #endif
 #endif
-
-  if (!hmd)
+  g_has_rift = (hmd != nullptr);
+  g_has_hmd = g_has_hmd || g_has_rift;
+  g_has_two_hmds = g_has_rift && g_has_openvr;
+  if (!g_has_rift)
     WARN_LOG(VR, "Oculus Rift not detected. Oculus Rift support will not be available.");
   return (hmd != nullptr);
 #else
@@ -592,20 +607,33 @@ void VR_Init()
   g_is_direct_mode = false;
   g_hmd_device_name = nullptr;
   g_has_openvr = false;
+  g_has_rift = false;
 #ifdef _WIN32
   g_hmd_luid = nullptr;
 #endif
 
   if (g_prefer_openvr)
   {
-    if (!InitOpenVR() && !InitOculusVR() && !InitVR920VR() && !InitOculusDebugVR())
-      g_has_hmd = g_force_vr;
+    InitOpenVR();
+    if (g_openvr_is_rift || !InitOculusVR())
+      InitVR920VR();
+    if (!g_has_hmd)
+      InitOculusDebugVR();
+    if (g_force_vr)
+      g_has_hmd = true;
   }
   else
   {
-    if (!InitOculusVR() && !InitOpenVR() && !InitVR920VR() && !InitOculusDebugVR())
-      g_has_hmd = g_force_vr;
+    InitOculusVR();
+    if (!InitOpenVR())
+      InitVR920VR();
+    if (!g_has_hmd)
+      InitOculusDebugVR();
+    if (g_force_vr)
+      g_has_hmd = true;
   }
+  if (g_has_two_hmds)
+    NOTICE_LOG(VR, "Two HMDs detected!");
   InitOculusHMD();
 
   if (g_has_hmd && g_hmd_window_width > 0 && g_hmd_window_height > 0)

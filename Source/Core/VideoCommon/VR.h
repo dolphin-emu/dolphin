@@ -196,7 +196,8 @@ void OpcodeReplayBufferInline();
 
 // HMD description and capabilities
 extern bool g_force_vr, g_prefer_openvr;
-extern bool g_has_hmd, g_has_two_hmds, g_has_rift, g_has_vr920, g_has_openvr, g_is_direct_mode, g_is_nes;
+extern bool g_has_hmd, g_has_two_hmds, g_has_rift, g_has_vr920, g_has_openvr, g_openvr_is_vive, g_openvr_is_rift;
+extern bool g_is_direct_mode, g_is_nes;
 extern bool g_vr_cant_motion_blur, g_vr_must_motion_blur;
 extern bool g_vr_needs_endframe, g_vr_needs_DXGIFactory1, g_vr_can_disable_hsw,
     g_vr_supports_extended;

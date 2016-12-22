@@ -643,9 +643,8 @@ void VR_StartFramebuffer(int target_width, int target_height)
 
     RecreateMirrorTextureIfNeeded();
   }
-  else
 #endif
-      if (g_has_vr920)
+  if (g_has_vr920)
   {
 #ifdef _WIN32
     VR920_StartStereo3D();
@@ -653,7 +652,11 @@ void VR_StartFramebuffer(int target_width, int target_height)
   }
 #if (defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5) ||          \
     defined(HAVE_OPENVR)
-  else if (g_has_rift || g_has_openvr)
+  if (
+#if defined(OVR_MAJOR_VERSION) && OVR_PRODUCT_VERSION == 0 && OVR_MAJOR_VERSION <= 5
+    g_has_rift ||
+#endif
+    g_has_openvr)
   {
     // create the eye textures
     glGenTextures(2, FramebufferManager::m_frontBuffer);
