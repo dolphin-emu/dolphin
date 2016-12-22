@@ -883,6 +883,22 @@ void ProcessVREvent(const vr::VREvent_t& event)
 }
 #endif
 
+void ConvertOpenVRToOculusPose()
+{
+#if defined(OVR_MAJOR_VERSION) && defined(HAVE_OPENVR)
+  OVR::Posef pose;
+  ovrMatrix4f m;
+  for (int r = 0; r < 4; ++r)
+    for (int c = 0; c < 4; ++c)
+      m.M[r][c] = g_head_tracking_matrix.data[c * 4 + r];
+  pose.Rotation = OVR::Quatf(m);
+  pose.Translation = OVR::Vector3f(-g_head_tracking_position[0], -g_head_tracking_position[1], -g_head_tracking_position[2]);
+
+  g_eye_poses[0] = pose;
+  g_eye_poses[1] = pose;
+#endif
+}
+
 #ifdef OVR_MAJOR_VERSION
 void UpdateOculusHeadTracking()
 {
@@ -1031,10 +1047,10 @@ void VR_UpdateHeadTrackingIfNeeded()
       UpdateOpenVRHeadTracking();
 #endif
 #ifdef OVR_MAJOR_VERSION
-    static bool once = true;
-    if (g_has_rift && (once || !g_has_openvr))
+    if (g_has_rift && g_has_openvr)
+      ConvertOpenVRToOculusPose();
+    else
       UpdateOculusHeadTracking();
-    once = false;
 #endif
   }
 }
