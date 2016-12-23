@@ -181,28 +181,22 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   return true;
 }
 
-bool CBoot::SetupWiiMemory(DiscIO::Country country)
+bool CBoot::SetupWiiMemory(DiscIO::Region region)
 {
-  static const CountrySetting SETTING_EUROPE = {"EUR", "PAL", "EU", "LE"};
-  static const CountrySetting SETTING_USA = {"USA", "NTSC", "US", "LU"};
-  static const CountrySetting SETTING_JAPAN = {"JPN", "NTSC", "JP", "LJ"};
-  static const CountrySetting SETTING_KOREA = {"KOR", "NTSC", "KR", "LKH"};
-  static const std::map<DiscIO::Country, const CountrySetting> country_settings = {
-      {DiscIO::Country::COUNTRY_EUROPE, SETTING_EUROPE},
-      {DiscIO::Country::COUNTRY_USA, SETTING_USA},
-      {DiscIO::Country::COUNTRY_JAPAN, SETTING_JAPAN},
-      {DiscIO::Country::COUNTRY_KOREA, SETTING_KOREA},
-      // TODO: Determine if Taiwan have their own specific settings.
-      //      Also determine if there are other specific settings
-      //      for other countries.
-      {DiscIO::Country::COUNTRY_TAIWAN, SETTING_JAPAN}};
-  auto entryPos = country_settings.find(country);
-  const CountrySetting& country_setting =
-      (entryPos != country_settings.end()) ?
+  static const RegionSetting SETTING_NTSC_J = {"JPN", "NTSC", "JP", "LJ"};
+  static const RegionSetting SETTING_NTSC_U = {"USA", "NTSC", "US", "LU"};
+  static const RegionSetting SETTING_PAL = {"EUR", "PAL", "EU", "LE"};
+  static const RegionSetting SETTING_NTSC_K = {"KOR", "NTSC", "KR", "LKH"};
+  static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
+      {DiscIO::Region::NTSC_J, SETTING_NTSC_J},
+      {DiscIO::Region::NTSC_U, SETTING_NTSC_U},
+      {DiscIO::Region::PAL, SETTING_PAL},
+      {DiscIO::Region::NTSC_K, SETTING_NTSC_K}};
+  auto entryPos = region_settings.find(region);
+  const RegionSetting& region_setting =
+      (entryPos != region_settings.end()) ?
           entryPos->second :
-          (SConfig::GetInstance().bNTSC ?
-               SETTING_USA :
-               SETTING_EUROPE);  // default to USA or EUR depending on game's video mode
+          (SConfig::GetInstance().bNTSC ? SETTING_NTSC_U : SETTING_PAL);
 
   SettingsHandler gen;
   std::string serno;
@@ -233,15 +227,15 @@ bool CBoot::SetupWiiMemory(DiscIO::Country country)
     INFO_LOG(BOOT, "Using serial number: %s", serno.c_str());
   }
 
-  std::string model = "RVL-001(" + country_setting.area + ")";
-  gen.AddSetting("AREA", country_setting.area);
+  std::string model = "RVL-001(" + region_setting.area + ")";
+  gen.AddSetting("AREA", region_setting.area);
   gen.AddSetting("MODEL", model);
   gen.AddSetting("DVD", "0");
   gen.AddSetting("MPCH", "0x7FFE");
-  gen.AddSetting("CODE", country_setting.code);
+  gen.AddSetting("CODE", region_setting.code);
   gen.AddSetting("SERNO", serno);
-  gen.AddSetting("VIDEO", country_setting.video);
-  gen.AddSetting("GAME", country_setting.game);
+  gen.AddSetting("VIDEO", region_setting.video);
+  gen.AddSetting("GAME", region_setting.game);
 
   File::CreateFullPath(settings_Filename);
   {
@@ -336,10 +330,10 @@ bool CBoot::EmulatedBS2_Wii()
   INFO_LOG(BOOT, "Faking Wii BS2...");
 
   // Setup Wii memory
-  DiscIO::Country country_code = DiscIO::Country::COUNTRY_UNKNOWN;
+  DiscIO::Region region_code = DiscIO::Region::UNKNOWN_REGION;
   if (DVDInterface::VolumeIsValid())
-    country_code = DVDInterface::GetVolume().GetCountry();
-  if (SetupWiiMemory(country_code) == false)
+    region_code = DVDInterface::GetVolume().GetRegion();
+  if (SetupWiiMemory(region_code) == false)
     return false;
 
   // Execute the apploader

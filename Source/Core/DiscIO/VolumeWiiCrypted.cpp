@@ -153,51 +153,38 @@ std::string CVolumeWiiCrypted::GetGameID() const
   return DecodeString(ID);
 }
 
+Region CVolumeWiiCrypted::GetRegion() const
+{
+  u32 region_code;
+  if (!ReadSwapped(0x4E000, &region_code, false))
+    return Region::UNKNOWN_REGION;
+
+  return static_cast<Region>(region_code);
+}
+
 Country CVolumeWiiCrypted::GetCountry() const
 {
-  if (!m_pReader)
-    return Country::COUNTRY_UNKNOWN;
-
   u8 country_byte;
   if (!m_pReader->Read(3, 1, &country_byte))
     return Country::COUNTRY_UNKNOWN;
 
-  Country country_value = CountrySwitch(country_byte);
+  const Region region = GetRegion();
 
-  u32 region_code;
-  if (!ReadSwapped(0x4E000, &region_code, false))
-    return country_value;
+  if (RegionSwitchWii(country_byte) == region)
+    return CountrySwitch(country_byte);
 
-  switch (region_code)
+  switch (region)
   {
-  case 0:
-    switch (country_value)
-    {
-    case Country::COUNTRY_TAIWAN:
-      return Country::COUNTRY_TAIWAN;
-    default:
-      return Country::COUNTRY_JAPAN;
-    }
-  case 1:
+  case Region::NTSC_J:
+    return Country::COUNTRY_JAPAN;
+  case Region::NTSC_U:
     return Country::COUNTRY_USA;
-  case 2:
-    switch (country_value)
-    {
-    case Country::COUNTRY_FRANCE:
-    case Country::COUNTRY_GERMANY:
-    case Country::COUNTRY_ITALY:
-    case Country::COUNTRY_NETHERLANDS:
-    case Country::COUNTRY_RUSSIA:
-    case Country::COUNTRY_SPAIN:
-    case Country::COUNTRY_AUSTRALIA:
-      return country_value;
-    default:
-      return Country::COUNTRY_EUROPE;
-    }
-  case 4:
+  case Region::PAL:
+    return Country::COUNTRY_EUROPE;
+  case Region::NTSC_K:
     return Country::COUNTRY_KOREA;
   default:
-    return country_value;
+    return Country::COUNTRY_UNKNOWN;
   }
 }
 

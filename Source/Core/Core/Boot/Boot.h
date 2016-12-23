@@ -9,10 +9,10 @@
 
 namespace DiscIO
 {
-enum class Country;
+enum class Region;
 }
 
-struct CountrySetting
+struct RegionSetting
 {
   const std::string area;
   const std::string video;
@@ -57,5 +57,5 @@ private:
   static bool Load_BS2(const std::string& _rBootROMFilename);
   static void Load_FST(bool _bIsWii);
 
-  static bool SetupWiiMemory(DiscIO::Country country);
+  static bool SetupWiiMemory(DiscIO::Region region);
 };

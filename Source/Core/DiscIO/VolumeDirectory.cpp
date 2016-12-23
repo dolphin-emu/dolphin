@@ -166,6 +166,14 @@ void CVolumeDirectory::SetGameID(const std::string& id)
   memcpy(m_disk_header.data(), id.c_str(), std::min(id.length(), MAX_ID_LENGTH));
 }
 
+Region CVolumeDirectory::GetRegion() const
+{
+  if (m_is_wii)
+    return RegionSwitchWii(m_disk_header[3]);
+
+  return RegionSwitchGC(m_disk_header[3]);
+}
+
 Country CVolumeDirectory::GetCountry() const
 {
   return CountrySwitch(m_disk_header[3]);

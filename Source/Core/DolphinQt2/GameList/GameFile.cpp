@@ -155,6 +155,7 @@ bool GameFile::TryLoadVolume()
   m_descriptions = ConvertLanguageMap(volume->GetDescriptions());
   m_disc_number = volume->GetDiscNumber();
   m_platform = volume->GetVolumeType();
+  m_region = volume->GetRegion();
   m_country = volume->GetCountry();
   m_blob_type = volume->GetBlobType();
   m_raw_size = volume->GetRawSize();
@@ -174,6 +175,7 @@ bool GameFile::TryLoadElfDol()
   m_revision = 0;
   m_long_names[DiscIO::Language::LANGUAGE_ENGLISH] = m_file_name;
   m_platform = DiscIO::Platform::ELF_DOL;
+  m_region = DiscIO::Region::UNKNOWN_REGION;
   m_country = DiscIO::Country::COUNTRY_UNKNOWN;
   m_blob_type = DiscIO::BlobType::DIRECTORY;
   m_raw_size = m_size;

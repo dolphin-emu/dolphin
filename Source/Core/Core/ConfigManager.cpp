@@ -794,31 +794,28 @@ void SConfig::LoadDefaults()
   m_revision = 0;
 }
 
-static const char* GetRegionOfCountry(DiscIO::Country country)
+static const char* GetDirectoryForRegion(DiscIO::Region region)
 {
-  switch (country)
+  switch (region)
   {
-  case DiscIO::Country::COUNTRY_USA:
-    return USA_DIR;
-
-  case DiscIO::Country::COUNTRY_TAIWAN:
-  case DiscIO::Country::COUNTRY_KOREA:
-  // TODO: Should these have their own Region Dir?
-  case DiscIO::Country::COUNTRY_JAPAN:
+  case DiscIO::Region::NTSC_J:
     return JAP_DIR;
 
-  case DiscIO::Country::COUNTRY_AUSTRALIA:
-  case DiscIO::Country::COUNTRY_EUROPE:
-  case DiscIO::Country::COUNTRY_FRANCE:
-  case DiscIO::Country::COUNTRY_GERMANY:
-  case DiscIO::Country::COUNTRY_ITALY:
-  case DiscIO::Country::COUNTRY_NETHERLANDS:
-  case DiscIO::Country::COUNTRY_RUSSIA:
-  case DiscIO::Country::COUNTRY_SPAIN:
-  case DiscIO::Country::COUNTRY_WORLD:
+  case DiscIO::Region::NTSC_U:
+    return USA_DIR;
+
+  case DiscIO::Region::PAL:
     return EUR_DIR;
 
-  case DiscIO::Country::COUNTRY_UNKNOWN:
+  case DiscIO::Region::NTSC_K:
+    // This function can't return a Korean directory name, because this
+    // function is only used for GameCube things (memory cards, IPL), and
+    // GameCube has no NTSC-K region. Since NTSC-K doesn't correspond to any
+    // GameCube region, let's return an arbitrary pick. Returning nullptr like
+    // with unknown regions would be inappropriate, because Dolphin expects
+    // to get valid memory card paths even when running an NTSC-K Wii game.
+    return JAP_DIR;
+
   default:
     return nullptr;
   }
@@ -870,17 +867,19 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       // Check if we have a Wii disc
       bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;
 
-      const char* retrieved_region_dir = GetRegionOfCountry(pVolume->GetCountry());
+      DiscIO::Region region = pVolume->GetRegion();
+      const char* retrieved_region_dir = GetDirectoryForRegion(region);
       if (!retrieved_region_dir)
       {
         if (!PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
                          "\nContinue with PAL region?"))
           return false;
+        region = DiscIO::Region::PAL;
         retrieved_region_dir = EUR_DIR;
       }
 
       set_region_dir = retrieved_region_dir;
-      bNTSC = set_region_dir == USA_DIR || set_region_dir == JAP_DIR;
+      bNTSC = region != DiscIO::Region::PAL;
     }
     else if (!strcasecmp(Extension.c_str(), ".elf"))
     {
@@ -932,7 +931,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
         return false;  // do not boot
       }
 
-      const char* retrieved_region_dir = GetRegionOfCountry(ContentLoader.GetCountry());
+      const char* retrieved_region_dir = GetDirectoryForRegion(ContentLoader.GetRegion());
       set_region_dir = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
       bNTSC = set_region_dir == USA_DIR || set_region_dir == JAP_DIR;
 

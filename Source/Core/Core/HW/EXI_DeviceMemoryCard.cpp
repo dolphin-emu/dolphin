@@ -152,7 +152,7 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
 
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
-  DiscIO::Country country_code = DiscIO::Country::COUNTRY_UNKNOWN;
+  DiscIO::Region region = DiscIO::Region::UNKNOWN_REGION;
   std::string game_id = SConfig::GetInstance().m_strGameID;
 
   u32 CurrentGameId = 0;
@@ -163,26 +163,28 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
                                                             Common::FROM_SESSION_ROOT);
     if (SysMenu_Loader.IsValid())
     {
-      country_code = DiscIO::CountrySwitch(SysMenu_Loader.GetCountryChar());
+      region = DiscIO::RegionSwitchGC(SysMenu_Loader.GetCountryChar());
     }
   }
   else if (game_id.length() >= 4)
   {
-    country_code = DiscIO::CountrySwitch(game_id.at(3));
+    region = DiscIO::RegionSwitchGC(game_id.at(3));
     CurrentGameId = BE32((u8*)game_id.c_str());
   }
   bool shift_jis = false;
   std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
-  switch (country_code)
+  switch (region)
   {
-  case DiscIO::Country::COUNTRY_JAPAN:
+  case DiscIO::Region::NTSC_J:
     shift_jis = true;
     strDirectoryName += JAP_DIR DIR_SEP;
     break;
-  case DiscIO::Country::COUNTRY_USA:
+  case DiscIO::Region::NTSC_U:
     strDirectoryName += USA_DIR DIR_SEP;
     break;
-  case DiscIO::Country::COUNTRY_UNKNOWN:
+  case DiscIO::Region::PAL:
+    strDirectoryName += EUR_DIR DIR_SEP;
+  default:
   {
     // The current game's region is not passed down to the EXI device level.
     // Usually, we can retrieve the region from SConfig::GetInstance().m_strUniqueId.
@@ -199,24 +201,25 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 
     std::string memcardFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA :
                                                       SConfig::GetInstance().m_strMemoryCardB;
-    std::string region = memcardFilename.substr(memcardFilename.size() - 7, 3);
-    if (region == JAP_DIR)
+    std::string region_string = memcardFilename.substr(memcardFilename.size() - 7, 3);
+    if (region_string == JAP_DIR)
     {
-      country_code = DiscIO::Country::COUNTRY_JAPAN;
+      region = DiscIO::Region::NTSC_J;
       shift_jis = true;
       strDirectoryName += JAP_DIR DIR_SEP;
-      break;
     }
-    else if (region == USA_DIR)
+    else if (region_string == USA_DIR)
     {
-      country_code = DiscIO::Country::COUNTRY_USA;
+      region = DiscIO::Region::NTSC_U;
       strDirectoryName += USA_DIR DIR_SEP;
-      break;
     }
+    else
+    {
+      region = DiscIO::Region::PAL;
+      strDirectoryName += EUR_DIR DIR_SEP;
+    }
+    break;
   }
-  default:
-    country_code = DiscIO::Country::COUNTRY_EUROPE;
-    strDirectoryName += EUR_DIR DIR_SEP;
   }
   strDirectoryName += StringFromFormat("Card %c", 'A' + card_index);
 
@@ -243,7 +246,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
   }
 
   memorycard = std::make_unique<GCMemcardDirectory>(strDirectoryName + DIR_SEP, card_index, sizeMb,
-                                                    shift_jis, country_code, CurrentGameId);
+                                                    shift_jis, region, CurrentGameId);
 }
 
 void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)

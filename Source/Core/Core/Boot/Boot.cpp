@@ -419,7 +419,7 @@ bool CBoot::BootUp()
 
     // Poor man's bootup
     if (_StartupPara.bWii)
-      SetupWiiMemory(DiscIO::Country::COUNTRY_UNKNOWN);
+      SetupWiiMemory(DiscIO::Region::UNKNOWN_REGION);
     else
       EmulatedBS2_GC(true);
 

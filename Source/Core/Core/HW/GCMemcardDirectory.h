@@ -22,9 +22,8 @@ void MigrateFromMemcardFile(const std::string& strDirectoryName, int card_index)
 class GCMemcardDirectory : public MemoryCardBase, NonCopyable
 {
 public:
-  GCMemcardDirectory(const std::string& directory, int slot = 0, u16 sizeMb = MemCard2043Mb,
-                     bool shift_jis = false,
-                     DiscIO::Country card_region = DiscIO::Country::COUNTRY_EUROPE, int gameId = 0);
+  GCMemcardDirectory(const std::string& directory, int slot, u16 sizeMb, bool shift_jis,
+                     DiscIO::Region card_region, int gameId);
   ~GCMemcardDirectory();
   void FlushToFile();
   void FlushThread();
@@ -35,7 +34,7 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  int LoadGCI(const std::string& fileName, DiscIO::Country card_region, bool currentGameOnly);
+  int LoadGCI(const std::string& fileName, DiscIO::Region card_region, bool currentGameOnly);
   inline s32 SaveAreaRW(u32 block, bool writing = false);
   // s32 DirectoryRead(u32 offset, u32 length, u8* destaddress);
   s32 DirectoryWrite(u32 destaddress, u32 length, u8* srcaddress);

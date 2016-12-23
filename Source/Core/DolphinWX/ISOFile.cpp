@@ -36,7 +36,7 @@
 #include "DolphinWX/ISOFile.h"
 #include "DolphinWX/WxUtils.h"
 
-static const u32 CACHE_REVISION = 0x127;  // Last changed in PR 3309
+static const u32 CACHE_REVISION = 0x128;  // Last changed in PR 4542
 
 static std::string GetLanguageString(DiscIO::Language language,
                                      std::map<DiscIO::Language, std::string> strings)
@@ -64,8 +64,9 @@ static std::string GetLanguageString(DiscIO::Language language,
 GameListItem::GameListItem(const std::string& _rFileName,
                            const std::unordered_map<std::string, std::string>& custom_titles)
     : m_FileName(_rFileName), m_title_id(0), m_emu_state(0), m_FileSize(0),
-      m_Country(DiscIO::Country::COUNTRY_UNKNOWN), m_Revision(0), m_Valid(false), m_ImageWidth(0),
-      m_ImageHeight(0), m_disc_number(0), m_has_custom_name(false)
+      m_region(DiscIO::Region::UNKNOWN_REGION), m_Country(DiscIO::Country::COUNTRY_UNKNOWN),
+      m_Revision(0), m_Valid(false), m_ImageWidth(0), m_ImageHeight(0), m_disc_number(0),
+      m_has_custom_name(false)
 {
   if (LoadFromCache())
   {
@@ -99,6 +100,7 @@ GameListItem::GameListItem(const std::string& _rFileName,
       if (m_company.empty())
         m_company = GetLanguageString(DiscIO::Language::LANGUAGE_ENGLISH, volume->GetShortMakers());
 
+      m_region = volume->GetRegion();
       m_Country = volume->GetCountry();
       m_blob_type = volume->GetBlobType();
       m_FileSize = volume->GetRawSize();
@@ -214,6 +216,7 @@ void GameListItem::DoState(PointerWrap& p)
   p.Do(m_title_id);
   p.Do(m_FileSize);
   p.Do(m_VolumeSize);
+  p.Do(m_region);
   p.Do(m_Country);
   p.Do(m_blob_type);
   p.Do(m_pImage);

@@ -21,6 +21,7 @@ namespace DiscIO
 enum class BlobType;
 enum class Country;
 enum class Language;
+enum class Region;
 enum class Platform;
 
 class CVolumeWAD : public IVolume
@@ -39,6 +40,7 @@ public:
   u64 GetFSTSize() const override { return 0; }
   std::string GetApploaderDate() const override { return ""; }
   Platform GetVolumeType() const override;
+  Region GetRegion() const override;
   Country GetCountry() const override;
 
   BlobType GetBlobType() const override;
