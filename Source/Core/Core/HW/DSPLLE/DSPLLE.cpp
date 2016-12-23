@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
 #include "Common/Logging/Log.h"
+#include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

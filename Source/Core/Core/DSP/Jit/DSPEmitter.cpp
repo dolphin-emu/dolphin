@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/DSP/DSPEmitter.h"
+#include "Core/DSP/Jit/DSPEmitter.h"
 
 #include <cstring>
 
@@ -15,7 +15,7 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPMemoryMap.h"
-#include "Core/DSP/Interpreter/DSPInterpreter.h"
+#include "Core/DSP/DSPTables.h"
 
 #define MAX_BLOCK_SIZE 250
 #define DSP_IDLE_SKIP_CYCLES 0x1000
