@@ -52,9 +52,6 @@ private:
     REGION_EUART = 0x300001
   };
 
-  // Region
-  bool m_bNTSC;
-
   //! IPL
   u8* m_pIPL;
 

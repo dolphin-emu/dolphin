@@ -91,17 +91,16 @@ void CEXIIPL::Descrambler(u8* data, u32 size)
 
 CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoaded(false)
 {
-  // Determine region
-  m_bNTSC = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
-
   // Create the IPL
   m_pIPL = static_cast<u8*>(Common::AllocateMemoryPages(ROM_SIZE));
 
   if (SConfig::GetInstance().bHLE_BS2)
   {
     // Copy header
-    memcpy(m_pIPL, m_bNTSC ? iplverNTSC : iplverPAL,
-           m_bNTSC ? sizeof(iplverNTSC) : sizeof(iplverPAL));
+    if (DiscIO::IsNTSC(SConfig::GetInstance().m_region))
+      memcpy(m_pIPL, iplverNTSC, sizeof(iplverNTSC));
+    else
+      memcpy(m_pIPL, iplverPAL, sizeof(iplverPAL));
 
     // Load fonts
     LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);
