@@ -229,7 +229,6 @@ long CISOProperties::GetElementStyle(const char* section, const char* key)
 void CISOProperties::CreateGUIControls()
 {
   const int space5 = FromDIP(5);
-  const int space10 = FromDIP(10);
 
   wxButton* const EditConfig = new wxButton(this, ID_EDITCONFIG, _("Edit Config"));
   EditConfig->SetToolTip(_("This will let you manually edit the INI config file."));
