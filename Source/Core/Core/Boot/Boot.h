@@ -7,11 +7,6 @@
 #include <cstdlib>
 #include <string>
 
-namespace DiscIO
-{
-enum class Region;
-}
-
 struct RegionSetting
 {
   const std::string area;
@@ -57,5 +52,5 @@ private:
   static bool Load_BS2(const std::string& _rBootROMFilename);
   static void Load_FST(bool _bIsWii);
 
-  static bool SetupWiiMemory(DiscIO::Region region);
+  static bool SetupWiiMemory();
 };

@@ -13,6 +13,7 @@
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -21,6 +22,8 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+
+#include "DiscIO/Enums.h"
 
 // We should provide an option to choose from the above, or figure out the checksum (the algo in
 // yagcd seems wrong)
@@ -89,7 +92,7 @@ void CEXIIPL::Descrambler(u8* data, u32 size)
 CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoaded(false)
 {
   // Determine region
-  m_bNTSC = SConfig::GetInstance().bNTSC;
+  m_bNTSC = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
 
   // Create the IPL
   m_pIPL = static_cast<u8*>(Common::AllocateMemoryPages(ROM_SIZE));

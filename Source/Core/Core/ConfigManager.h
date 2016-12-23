@@ -16,6 +16,7 @@
 namespace DiscIO
 {
 enum class Language;
+enum class Region;
 }
 
 // DSP Backend Types
@@ -92,7 +93,6 @@ struct SConfig : NonCopyable
   bool bDSPThread = false;
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
-  bool bNTSC = false;
   bool bForceNTSCJ = false;
   bool bHLE_BS2 = true;
   bool bEnableCheats = false;
@@ -183,7 +183,9 @@ struct SConfig : NonCopyable
     BOOT_BS2,
     BOOT_DFF
   };
+
   EBootType m_BootType;
+  DiscIO::Region m_region;
 
   std::string m_strVideoBackend;
   std::string m_strGPUDeterminismMode;
@@ -206,6 +208,7 @@ struct SConfig : NonCopyable
   std::string m_perfDir;
 
   void LoadDefaults();
+  static const char* GetDirectoryForRegion(DiscIO::Region region);
   bool AutoSetup(EBootBS2 _BootBS2);
   const std::string& GetGameID() const { return m_strGameID; }
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);

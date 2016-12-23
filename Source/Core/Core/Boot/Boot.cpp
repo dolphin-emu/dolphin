@@ -188,32 +188,34 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
   // Use zlibs crc32 implementation to compute the hash
   u32 ipl_hash = crc32(0L, Z_NULL, 0);
   ipl_hash = crc32(ipl_hash, (const Bytef*)data.data(), (u32)data.size());
-  std::string ipl_region;
+  DiscIO::Region ipl_region;
   switch (ipl_hash)
   {
   case USA_v1_0:
   case USA_v1_1:
   case USA_v1_2:
   case BRA_v1_0:
-    ipl_region = USA_DIR;
+    ipl_region = DiscIO::Region::NTSC_U;
     break;
   case JAP_v1_0:
   case JAP_v1_1:
-    ipl_region = JAP_DIR;
+    ipl_region = DiscIO::Region::NTSC_J;
     break;
   case PAL_v1_0:
   case PAL_v1_2:
-    ipl_region = EUR_DIR;
+    ipl_region = DiscIO::Region::PAL;
     break;
   default:
     PanicAlertT("IPL with unknown hash %x", ipl_hash);
+    ipl_region = DiscIO::Region::UNKNOWN_REGION;
     break;
   }
 
-  std::string BootRegion = _rBootROMFilename.substr(_rBootROMFilename.find_last_of(DIR_SEP) - 3, 3);
-  if (BootRegion != ipl_region)
+  const DiscIO::Region boot_region = SConfig::GetInstance().m_region;
+  if (ipl_region != DiscIO::Region::UNKNOWN_REGION && boot_region != ipl_region)
     PanicAlertT("%s IPL found in %s directory. The disc might not be recognized",
-                ipl_region.c_str(), BootRegion.c_str());
+                SConfig::GetDirectoryForRegion(ipl_region),
+                SConfig::GetDirectoryForRegion(boot_region));
 
   // Run the descrambler over the encrypted section containing BS1/BS2
   CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
@@ -255,7 +257,8 @@ bool CBoot::BootUp()
   g_symbolDB.Clear();
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
-  VideoInterface::Preset(_StartupPara.bNTSC || (_StartupPara.bWii && _StartupPara.bPAL60));
+  VideoInterface::Preset(DiscIO::IsNTSC(_StartupPara.m_region) ||
+                         (_StartupPara.bWii && _StartupPara.bPAL60));
 
   switch (_StartupPara.m_BootType)
   {
@@ -275,8 +278,6 @@ bool CBoot::BootUp()
     }
 
     std::string game_id = DVDInterface::GetVolume().GetGameID();
-    if (game_id.size() >= 4)
-      VideoInterface::SetRegionReg(game_id.at(3));
 
     std::vector<u8> tmd_buffer = pVolume.GetTMD();
     if (!tmd_buffer.empty())
@@ -419,7 +420,7 @@ bool CBoot::BootUp()
 
     // Poor man's bootup
     if (_StartupPara.bWii)
-      SetupWiiMemory(DiscIO::Region::UNKNOWN_REGION);
+      SetupWiiMemory();
     else
       EmulatedBS2_GC(true);
 

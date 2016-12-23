@@ -152,76 +152,18 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
 
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
-  DiscIO::Region region = DiscIO::Region::UNKNOWN_REGION;
+  DiscIO::Region region = SConfig::GetInstance().m_region;
+
   std::string game_id = SConfig::GetInstance().m_strGameID;
-
   u32 CurrentGameId = 0;
-  if (game_id == TITLEID_SYSMENU_STRING)
-  {
-    const DiscIO::CNANDContentLoader& SysMenu_Loader =
-        DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU,
-                                                            Common::FROM_SESSION_ROOT);
-    if (SysMenu_Loader.IsValid())
-    {
-      region = DiscIO::RegionSwitchGC(SysMenu_Loader.GetCountryChar());
-    }
-  }
-  else if (game_id.length() >= 4)
-  {
-    region = DiscIO::RegionSwitchGC(game_id.at(3));
+  if (game_id.length() >= 4 && game_id != "00000000" && game_id != TITLEID_SYSMENU_STRING)
     CurrentGameId = BE32((u8*)game_id.c_str());
-  }
-  bool shift_jis = false;
-  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
-  switch (region)
-  {
-  case DiscIO::Region::NTSC_J:
-    shift_jis = true;
-    strDirectoryName += JAP_DIR DIR_SEP;
-    break;
-  case DiscIO::Region::NTSC_U:
-    strDirectoryName += USA_DIR DIR_SEP;
-    break;
-  case DiscIO::Region::PAL:
-    strDirectoryName += EUR_DIR DIR_SEP;
-  default:
-  {
-    // The current game's region is not passed down to the EXI device level.
-    // Usually, we can retrieve the region from SConfig::GetInstance().m_strUniqueId.
-    // The Wii System Menu requires a lookup based on the version number.
-    // This is not possible in some cases ( e.g. FIFO logs, homebrew elf/dol files).
-    // Instead, we then lookup the region from the memory card name
-    // Earlier in the boot process the region is added to the memory card name (This is done by the
-    // function checkMemcardPath)
-    // For now take advantage of this.
-    // Future options:
-    // 			Set memory card directory path in the checkMemcardPath function.
-    // 	or		Add region to SConfig::GetInstance().
-    // 	or		Pass region down to the EXI device creation.
 
-    std::string memcardFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA :
-                                                      SConfig::GetInstance().m_strMemoryCardB;
-    std::string region_string = memcardFilename.substr(memcardFilename.size() - 7, 3);
-    if (region_string == JAP_DIR)
-    {
-      region = DiscIO::Region::NTSC_J;
-      shift_jis = true;
-      strDirectoryName += JAP_DIR DIR_SEP;
-    }
-    else if (region_string == USA_DIR)
-    {
-      region = DiscIO::Region::NTSC_U;
-      strDirectoryName += USA_DIR DIR_SEP;
-    }
-    else
-    {
-      region = DiscIO::Region::PAL;
-      strDirectoryName += EUR_DIR DIR_SEP;
-    }
-    break;
-  }
-  }
-  strDirectoryName += StringFromFormat("Card %c", 'A' + card_index);
+  const bool shift_jis = region == DiscIO::Region::NTSC_J;
+
+  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX) +
+                                 SConfig::GetDirectoryForRegion(region) + DIR_SEP +
+                                 StringFromFormat("Card %c", 'A' + card_index);
 
   if (!File::Exists(strDirectoryName))  // first use of memcard folder, migrate automatically
   {
@@ -237,9 +179,8 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
     else  // we tried but the user wants to crash
     {
       // TODO more user friendly abort
-      PanicAlertT("%s is not a directory, failed to move to *.original.\n Verify your write "
-                  "permissions or move "
-                  "the file outside of Dolphin",
+      PanicAlertT("%s is not a directory, failed to move to *.original.\n Verify your "
+                  "write permissions or move the file outside of Dolphin",
                   strDirectoryName.c_str());
       exit(0);
     }

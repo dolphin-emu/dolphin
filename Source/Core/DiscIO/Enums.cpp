@@ -11,6 +11,11 @@
 
 namespace DiscIO
 {
+bool IsNTSC(Region region)
+{
+  return region == Region::NTSC_J || region == Region::NTSC_U || region == Region::NTSC_K;
+}
+
 // Increment CACHE_REVISION (ISOFile.cpp & GameFile.cpp) if the code below is modified
 
 Region RegionSwitchGC(u8 country_code)

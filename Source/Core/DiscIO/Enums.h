@@ -66,6 +66,7 @@ enum class Language
   LANGUAGE_UNKNOWN
 };
 
+bool IsNTSC(Region region);
 Region RegionSwitchGC(u8 country_code);
 Region RegionSwitchWii(u8 country_code);
 Country CountrySwitch(u8 country_code);

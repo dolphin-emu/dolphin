@@ -8,6 +8,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
@@ -16,6 +17,9 @@
 #include "Core/HW/SI.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
+
+#include "DiscIO/Enums.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -167,12 +171,14 @@ void Preset(bool _bNTSC)
   m_FilterCoefTables = {};
   m_UnkAARegister = 0;
 
+  DiscIO::Region region = SConfig::GetInstance().m_region;
+
   // 54MHz, capable of progressive scan
-  m_Clock = SConfig::GetInstance().bNTSC;
+  m_Clock = DiscIO::IsNTSC(region);
 
   // Say component cable is plugged
   m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
-  m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ;
+  m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ || region == DiscIO::Region::NTSC_J;
 
   m_FBWidth.Hex = 0;
   m_BorderHBlank.Hex = 0;
@@ -406,12 +412,6 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
     mmio->Register(base | i, MMIO::ReadToSmaller<u32>(mmio, base | i, base | (i + 2)),
                    MMIO::WriteToSmaller<u32>(mmio, base | i, base | (i + 2)));
   }
-}
-
-void SetRegionReg(char region)
-{
-  if (!SConfig::GetInstance().bForceNTSCJ)
-    m_DTVStatus.ntsc_j = region == 'J';
 }
 
 void UpdateInterrupts()

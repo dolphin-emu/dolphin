@@ -794,7 +794,7 @@ void SConfig::LoadDefaults()
   m_revision = 0;
 }
 
-static const char* GetDirectoryForRegion(DiscIO::Region region)
+const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
 {
   switch (region)
   {
@@ -867,19 +867,18 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       // Check if we have a Wii disc
       bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;
 
-      DiscIO::Region region = pVolume->GetRegion();
-      const char* retrieved_region_dir = GetDirectoryForRegion(region);
+      m_region = pVolume->GetRegion();
+      const char* retrieved_region_dir = GetDirectoryForRegion(m_region);
       if (!retrieved_region_dir)
       {
         if (!PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
                          "\nContinue with PAL region?"))
           return false;
-        region = DiscIO::Region::PAL;
+        m_region = DiscIO::Region::PAL;
         retrieved_region_dir = EUR_DIR;
       }
 
       set_region_dir = retrieved_region_dir;
-      bNTSC = region != DiscIO::Region::PAL;
     }
     else if (!strcasecmp(Extension.c_str(), ".elf"))
     {
@@ -889,8 +888,8 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       // all GC homebrew to 50Hz.
       // In the future, it probably makes sense to add a Region setting for homebrew somewhere in
       // the emulator config.
-      bNTSC = bWii ? false : true;
-      set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
+      m_region = bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U;
+      set_region_dir = bWii ? EUR_DIR : USA_DIR;
       m_BootType = BOOT_ELF;
     }
     else if (!strcasecmp(Extension.c_str(), ".dol"))
@@ -898,15 +897,15 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       CDolLoader dolfile(m_strFilename);
       bWii = dolfile.IsWii();
       // TODO: See the ELF code above.
-      bNTSC = bWii ? false : true;
-      set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
+      m_region = bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U;
+      set_region_dir = bWii ? EUR_DIR : USA_DIR;
       m_BootType = BOOT_DOL;
     }
     else if (!strcasecmp(Extension.c_str(), ".dff"))
     {
       bWii = true;
+      m_region = DiscIO::Region::NTSC_U;
       set_region_dir = USA_DIR;
-      bNTSC = true;
       m_BootType = BOOT_DFF;
 
       std::unique_ptr<FifoDataFile> ddfFile(FifoDataFile::Load(m_strFilename, true));
@@ -931,9 +930,9 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
         return false;  // do not boot
       }
 
-      const char* retrieved_region_dir = GetDirectoryForRegion(ContentLoader.GetRegion());
+      m_region = ContentLoader.GetRegion();
+      const char* retrieved_region_dir = GetDirectoryForRegion(m_region);
       set_region_dir = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
-      bNTSC = set_region_dir == USA_DIR || set_region_dir == JAP_DIR;
 
       bWii = true;
       m_BootType = BOOT_WII_NAND;
@@ -974,21 +973,21 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   break;
 
   case BOOT_BS2_USA:
+    m_region = DiscIO::Region::NTSC_U;
     set_region_dir = USA_DIR;
     m_strFilename.clear();
-    bNTSC = true;
     break;
 
   case BOOT_BS2_JAP:
+    m_region = DiscIO::Region::NTSC_J;
     set_region_dir = JAP_DIR;
     m_strFilename.clear();
-    bNTSC = true;
     break;
 
   case BOOT_BS2_EUR:
+    m_region = DiscIO::Region::PAL;
     set_region_dir = EUR_DIR;
     m_strFilename.clear();
-    bNTSC = false;
     break;
   }
 
