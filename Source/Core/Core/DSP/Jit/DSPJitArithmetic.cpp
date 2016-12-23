@@ -4,10 +4,9 @@
 
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
-#include "Core/DSP/DSPAnalyzer.h"
+#include "Common/CommonTypes.h"
+
 #include "Core/DSP/DSPEmitter.h"
-#include "Core/DSP/DSPIntCCUtil.h"
-#include "Core/DSP/DSPIntUtil.h"
 #include "Core/DSP/DSPMemoryMap.h"
 
 using namespace Gen;

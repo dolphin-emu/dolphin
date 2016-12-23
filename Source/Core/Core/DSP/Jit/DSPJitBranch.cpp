@@ -2,10 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/CommonTypes.h"
+
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPMemoryMap.h"
-#include "Core/DSP/DSPStacks.h"
 
 using namespace Gen;
 

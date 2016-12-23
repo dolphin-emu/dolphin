@@ -3,6 +3,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/DSP/DSPCore.h"
+
 #include <algorithm>
 #include <array>
 #include <memory>
@@ -10,17 +12,17 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Common/FileUtil.h"
 #include "Common/Hash.h"
+#include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/DSP/DSPAnalyzer.h"
-#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPHost.h"
-#include "Core/DSP/DSPIntUtil.h"
-#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/Interpreter/DSPIntUtil.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 SDSP g_dsp;
 DSPBreakpoints g_dsp_breakpoints;
