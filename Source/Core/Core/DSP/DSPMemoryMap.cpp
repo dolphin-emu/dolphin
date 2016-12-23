@@ -64,3 +64,21 @@ void dsp_dmem_write(u16 addr, u16 val)
     break;
   }
 }
+
+u16 dsp_fetch_code()
+{
+  u16 opc = dsp_imem_read(g_dsp.pc);
+
+  g_dsp.pc++;
+  return opc;
+}
+
+u16 dsp_peek_code()
+{
+  return dsp_imem_read(g_dsp.pc);
+}
+
+void dsp_skip_inst()
+{
+  g_dsp.pc += opTable[dsp_peek_code()]->size;
+}

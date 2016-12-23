@@ -9,6 +9,7 @@
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 
+#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/Jit/DSPEmitter.h"
 

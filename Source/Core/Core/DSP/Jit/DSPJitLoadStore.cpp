@@ -6,6 +6,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/DSPEmitter.h"
