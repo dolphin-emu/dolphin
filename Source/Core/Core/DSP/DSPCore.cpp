@@ -18,11 +18,11 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/DSP/DSPAnalyzer.h"
-#include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
+#include "Core/DSP/Jit/DSPEmitter.h"
 
 SDSP g_dsp;
 DSPBreakpoints g_dsp_breakpoints;

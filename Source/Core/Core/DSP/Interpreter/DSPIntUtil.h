@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPCore.h"

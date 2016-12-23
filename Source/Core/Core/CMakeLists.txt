@@ -33,7 +33,6 @@ set(SRCS	ActionReplay.cpp
 			DSP/DSPMemoryMap.cpp
 			DSP/DSPStacks.cpp
 			DSP/DSPAnalyzer.cpp
-			DSP/DSPEmitter.cpp
 			DSP/DSPCodeUtil.cpp
 			DSP/LabelMap.cpp
 			DSP/DSPCore.cpp
@@ -46,6 +45,7 @@ set(SRCS	ActionReplay.cpp
 			DSP/Interpreter/DSPIntLoadStore.cpp
 			DSP/Interpreter/DSPIntMisc.cpp
 			DSP/Interpreter/DSPIntMultiplier.cpp
+			DSP/Jit/DSPEmitter.cpp
 			DSP/Jit/DSPJitRegCache.cpp
 			DSP/Jit/DSPJitExtOps.cpp
 			DSP/Jit/DSPJitBranch.cpp

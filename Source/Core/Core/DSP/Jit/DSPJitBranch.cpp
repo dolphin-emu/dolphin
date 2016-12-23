@@ -5,8 +5,8 @@
 #include "Common/CommonTypes.h"
 
 #include "Core/DSP/DSPAnalyzer.h"
-#include "Core/DSP/DSPEmitter.h"
 #include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/Jit/DSPEmitter.h"
 
 using namespace Gen;
 

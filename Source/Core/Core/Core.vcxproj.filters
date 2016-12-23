@@ -210,6 +210,9 @@
     <ClCompile Include="DSP\Interpreter\DSPIntMultiplier.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="DSP\Jit\DSPEmitter.cpp">
+      <Filter>DSPCore\Jit</Filter>
+    </ClCompile>
     <ClCompile Include="DSP\Jit\DSPJitArithmetic.cpp">
       <Filter>DSPCore\Jit</Filter>
     </ClCompile>
@@ -235,9 +238,6 @@
       <Filter>DSPCore\Jit</Filter>
     </ClCompile>
     <ClCompile Include="DSP\Jit\DSPJitUtil.cpp">
-      <Filter>DSPCore\Jit</Filter>
-    </ClCompile>
-    <ClCompile Include="DSP\DSPEmitter.cpp">
       <Filter>DSPCore\Jit</Filter>
     </ClCompile>
     <ClCompile Include="FifoPlayer\FifoAnalyzer.cpp">
@@ -821,10 +821,10 @@
     <ClInclude Include="DSP\Interpreter\DSPIntUtil.h">
       <Filter>DSPCore\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\Jit\DSPJitRegCache.h">
+    <ClInclude Include="DSP\Jit\DSPEmitter.h">
       <Filter>DSPCore\Jit</Filter>
     </ClInclude>
-    <ClInclude Include="DSP\DSPEmitter.h">
+    <ClInclude Include="DSP\Jit\DSPJitRegCache.h">
       <Filter>DSPCore\Jit</Filter>
     </ClInclude>
     <ClInclude Include="FifoPlayer\FifoAnalyzer.h">
