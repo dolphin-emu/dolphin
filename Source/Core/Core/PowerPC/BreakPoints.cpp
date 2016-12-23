@@ -2,11 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/BreakPoints.h"
+
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"

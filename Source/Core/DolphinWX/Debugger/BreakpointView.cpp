@@ -2,17 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Debugger/BreakpointView.h"
+
 #include <cstddef>
 #include <cstdio>
 
 #include <wx/listctrl.h>
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "DolphinWX/Debugger/BreakpointView.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/WxUtils.h"
 
