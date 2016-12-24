@@ -11,9 +11,9 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-17 15:58+0100\n"
-"PO-Revision-Date: 2016-12-10 20:06+0000\n"
-"Last-Translator: Siegfried <iori3000@hanafos.com>\n"
+"POT-Creation-Date: 2016-12-24 15:59+0100\n"
+"PO-Revision-Date: 2016-12-24 14:59+0000\n"
+"Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
 "Language: ko\n"
@@ -72,7 +72,7 @@ msgstr "\"%s\" 가 실패해 취소되었습니다. 이미지 파일이 손상�
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" 는 이미 압축되어 있습니다! 더 이상 압축할 수 없습니다."
 
-#: Source/Core/Core/ConfigManager.cpp:859
+#: Source/Core/Core/ConfigManager.cpp:862
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\"는 부적합한 GCM/ISO 파일이거나, GC/Wii ISO 파일이 아닙니다."
@@ -310,11 +310,11 @@ msgstr "서명 파일 생성 (&C)"
 msgid "&Debug"
 msgstr "디버그 (&D)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1003
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1006
 msgid "&Delete File..."
 msgstr "파일 삭제...(&D)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1027
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1030
 msgid "&Delete selected ISOs..."
 msgstr "선택된 ISO를 삭제...(&D)"
 
@@ -487,7 +487,7 @@ msgstr "블록 프로파일 (&P)"
 msgid "&Profiler"
 msgstr "프로파일러 (&P)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:984
+#: Source/Core/DolphinWX/GameListCtrl.cpp:987
 msgid "&Properties"
 msgstr "속성(&P)"
 
@@ -565,7 +565,7 @@ msgstr "관찰(&W)"
 msgid "&Website"
 msgstr "웹사이트(&W)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:985
+#: Source/Core/DolphinWX/GameListCtrl.cpp:988
 msgid "&Wiki"
 msgstr "위키(&W)"
 
@@ -689,7 +689,7 @@ msgstr "디스크가 이미 삽입되려는 중입니다."
 msgid "A game is not currently running."
 msgstr "현재 게임이 구동되고 있지 않습니다."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:807
+#: Source/Core/DolphinWX/FrameTools.cpp:809
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -936,23 +936,23 @@ msgstr "고급 설정"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:44
 #: Source/Core/DolphinWX/FrameTools.cpp:335
-msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
-msgstr "모든 GC/Wii 파일들 (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
+msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
+msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1342
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1345
 msgid "All GameCube GCM files (gcm)"
 msgstr "모든 게임큐브 GCM 파일 (gcm)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1278
-#: Source/Core/DolphinWX/FrameTools.cpp:1290
+#: Source/Core/DolphinWX/FrameTools.cpp:1280
+#: Source/Core/DolphinWX/FrameTools.cpp:1292
 msgid "All Save States (sav, s##)"
 msgstr "모든 저장 상태 (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1340
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1343
 msgid "All Wii ISO files (iso)"
 msgstr "모든 Wii ISO 파일 (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1355
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1358
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "모든 압축된 GC/Wii ISO 파일 (gcz)"
 
@@ -997,7 +997,7 @@ msgstr "비등방성 필터링:"
 msgid "Anti-Aliasing:"
 msgstr "안티-앨리어싱:"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:335
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:338
 msgid "Append signature to"
 msgstr "서명 덧붙이기"
 
@@ -1035,8 +1035,8 @@ msgstr ""
 "\n"
 "잘 모르겠으면, (끄기)를 선택하세요."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:269
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:353
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:273
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:355
 msgid "Apply signature file"
 msgstr "서명 파일 적용"
 
@@ -1045,11 +1045,11 @@ msgstr "서명 파일 적용"
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "\"%s\" 를 정말로 지우고 싶습니까?"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1137
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1140
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr "이 파일들을 정말로 삭제하시겠습니까? 영원히 사라지게 됩니다!"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1136
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1139
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr "이 파일을 정말로 삭제하시겠습니까? 영원히 사라지게 됩니다!"
 
@@ -1282,7 +1282,7 @@ msgstr "중단"
 msgid "Break and log"
 msgstr "중단하고 로그"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:392
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:402
 msgid "Breakpoint encountered! Step out aborted."
 msgstr "중단점을 만났습니다! 스텝 나가기가 중단되었습니다."
 
@@ -1302,7 +1302,7 @@ msgstr "작동하지 않음"
 msgid "Browse for a directory to add"
 msgstr "추가할 디렉토리 찾아보기"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1243
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1246
 msgid "Browse for output directory"
 msgstr "출력 디렉토리 찾아보기"
 
@@ -1384,7 +1384,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:93
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:98
 msgid "Callstack"
 msgstr "콜스텍"
 
@@ -1425,7 +1425,7 @@ msgstr "Caps Lock"
 msgid "Center"
 msgstr "중앙"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1012
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1015
 msgid "Change &Disc"
 msgstr "디스크 변경(&D)"
 
@@ -1525,7 +1525,7 @@ msgid ""
 msgstr ""
 "앱로더로 사용할 파일을 선택: (디렉토리들로만 구성된 디스크에게만 적용됨)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:369
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:370
 msgid "Choose priority input file"
 msgstr "우선 입력 파일 선택"
 
@@ -1594,7 +1594,7 @@ msgstr "닫기"
 msgid "Co&nfigure..."
 msgstr "환경설정...(&n)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.h:81
+#: Source/Core/DolphinWX/Debugger/CodeWindow.h:82
 msgid "Code"
 msgstr "코드"
 
@@ -1622,20 +1622,20 @@ msgstr "명령"
 msgid "Comment"
 msgstr "주석"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1010
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1013
 msgid "Compress ISO..."
 msgstr "ISO 압축..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1029
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1032
 msgid "Compress selected ISOs..."
 msgstr "선택된 ISO를 압축..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1252
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1370
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1255
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1373
 msgid "Compressing ISO"
 msgstr "ISO 압축하기"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1457
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1460
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1692,9 +1692,9 @@ msgstr "돌핀 환경설정"
 msgid "Configure..."
 msgstr "환경설정..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1275
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1300
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1365
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1278
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1303
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1368
 msgid "Confirm File Overwrite"
 msgstr "파일 덮어쓰기 확인"
 
@@ -1741,7 +1741,7 @@ msgstr "Wii 리모트 4 연결"
 msgid "Connect Wii Remotes"
 msgstr "Wii 리모트 연결"
 
-#: Source/Core/DolphinWX/Main.cpp:487
+#: Source/Core/DolphinWX/Main.cpp:490
 msgid "Connecting..."
 msgstr "연결 중..."
 
@@ -1836,7 +1836,7 @@ msgstr "함수 복사 (&f)"
 msgid "Copy &hex"
 msgstr "헥스 복사 (&h)"
 
-#: Source/Core/Core/ConfigManager.cpp:1056
+#: Source/Core/Core/ConfigManager.cpp:1059
 msgid "Copy failed"
 msgstr "복사에 실패했습니다."
 
@@ -1854,7 +1854,7 @@ msgstr "코어"
 msgid "Cost"
 msgstr "비용"
 
-#: Source/Core/Core/ConfigManager.cpp:853
+#: Source/Core/Core/ConfigManager.cpp:856
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1865,7 +1865,7 @@ msgstr ""
 "닙니다. 돌핀은 오리지널 게임큐브와 Wii 디스크로 직접 게임을 플레이할 수 없다"
 "는 것을 알아두세요."
 
-#: Source/Core/Core/ConfigManager.cpp:968
+#: Source/Core/Core/ConfigManager.cpp:971
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "%s ISO 파일을 인식할 수 없습니다."
@@ -1997,7 +1997,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "크로스페이드"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:347
+#: Source/Core/DolphinWX/FrameTools.cpp:348
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "wxFileSelector 후에 현재 디렉토리가 %s에서 %s로 변경되었습니다!"
@@ -2091,16 +2091,16 @@ msgstr "디버깅"
 msgid "Decimal"
 msgstr "10 진수"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1008
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1011
 msgid "Decompress ISO..."
 msgstr "ISO를 압축 해제 하기..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1030
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1033
 msgid "Decompress selected ISOs..."
 msgstr "선택된 ISO를 압축 해제 하기..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1252
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1370
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1255
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1373
 msgid "Decompressing ISO"
 msgstr "ISO 압축 해제 하기"
 
@@ -2282,11 +2282,11 @@ msgstr ""
 msgid "Divide"
 msgstr "나누기"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:173
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:177
 msgid "Do you want to clear the list of symbol names?"
 msgstr "부호 이름 목록을 청소할까요?"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:806
+#: Source/Core/DolphinWX/FrameTools.cpp:808
 msgid "Do you want to stop the current emulation?"
 msgstr "에뮬레이션을 중단하고 싶습니까?"
 
@@ -2295,7 +2295,7 @@ msgid "Dolby Pro Logic II decoder"
 msgstr "돌비 프로 로직 II 디코더"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:648
+#: Source/Core/DolphinWX/FrameTools.cpp:649
 msgid "Dolphin"
 msgstr "돌핀"
 
@@ -2317,13 +2317,13 @@ msgstr "돌핀 컨트롤러 환경설정"
 msgid "Dolphin FIFO"
 msgstr "돌핀 FIFO"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1010
+#: Source/Core/DolphinWX/FrameTools.cpp:1012
 msgid "Dolphin Hotkeys"
 msgstr "돌핀 단축키"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:220
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:236
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:255
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:224
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:240
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:259
 msgid "Dolphin Map File (*.map)"
 msgstr "돌핀 맵 파일 (*.map)"
 
@@ -2335,21 +2335,20 @@ msgstr "돌핀 넷플레이"
 msgid "Dolphin NetPlay Setup"
 msgstr "돌핀 넷플레이 설정"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:311
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:336
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:354
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:370
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:377
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:385
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:165
+msgid "Dolphin Signature CSV File (*.csv)"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:164
 msgid "Dolphin Signature File (*.dsy)"
 msgstr "돌핀 서명 파일 (*.dsy)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:270
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:274
 msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr "돌핀 부호 리네임 파일 (*.sym)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:480
-#: Source/Core/DolphinWX/FrameTools.cpp:945
+#: Source/Core/DolphinWX/FrameTools.cpp:481
+#: Source/Core/DolphinWX/FrameTools.cpp:947
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr "돌핀 TAS 무비 (*.dtm)"
 
@@ -2373,8 +2372,8 @@ msgstr ""
 msgid "Dolphin is too old for traversal server"
 msgstr "횡단 서버에 비해 돌핀이 너무 구 버전입니다."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1312
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1385
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1315
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1388
 msgid "Dolphin was unable to complete the requested action."
 msgstr "돌핀이 요청된 액션을 완수할 수 없었습니다."
 
@@ -2856,14 +2855,14 @@ msgstr "같음"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
-#: Source/Core/DolphinWX/Main.cpp:306 Source/Core/DolphinWX/Main.cpp:314
+#: Source/Core/DolphinWX/Main.cpp:309 Source/Core/DolphinWX/Main.cpp:317
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:242
 #: Source/Core/DolphinWX/WxUtils.cpp:70
 msgid "Error"
 msgstr "오류"
 
-#: Source/Core/DolphinWX/Main.cpp:305
+#: Source/Core/DolphinWX/Main.cpp:308
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "선택된 언어 가져오는 데 오류가 발생했습니다. 기본 시스템 언어로 돌아갑니다."
@@ -2926,7 +2925,7 @@ msgstr "입력 기록 내보내기..."
 msgid "Export Save"
 msgstr "저장 내보내기"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:991
+#: Source/Core/DolphinWX/GameListCtrl.cpp:994
 msgid "Export Wii save (Experimental)"
 msgstr "Wii 저장 내보내기 (실험적 기능)"
 
@@ -3235,6 +3234,10 @@ msgstr "파일 시스템"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "'ini' 파일 종류는 알려지지 않았습니다! 파일은 열리지 않을 것입니다!"
 
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:83
+msgid "Filter Symbols"
+msgstr ""
+
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:162
 msgid ""
 "Filter all textures, including any that the game explicitly set as "
@@ -3249,6 +3252,10 @@ msgstr ""
 "이슈를 일으킬 것입니다.\n"
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:84
+msgid "Filter the symbol list by name. This is case-sensitive."
+msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:232
 msgid "Find Next"
@@ -3517,11 +3524,11 @@ msgstr "전체화면 해상도:"
 msgid "Function"
 msgstr "함수"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:111
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:116
 msgid "Function callers"
 msgstr "함수 호출자"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:105
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:110
 msgid "Function calls"
 msgstr "함수 호출"
 
@@ -3828,7 +3835,7 @@ msgstr ""
 "호스트 코드 크기가 너무 큽니다.\n"
 "올바른 코드인지 다시 확인해 주세요."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1019
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1022
 msgid "Host with Netplay"
 msgstr "넷플레이로 호스트"
 
@@ -3903,7 +3910,7 @@ msgstr "아이콘"
 msgid "Identity generation"
 msgstr "식별자 생성"
 
-#: Source/Core/DolphinWX/Main.cpp:203
+#: Source/Core/DolphinWX/Main.cpp:206
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -4065,11 +4072,11 @@ msgstr "SD 카드 삽입"
 msgid "Install WAD..."
 msgstr "WAD 설치..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1017
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1020
 msgid "Install to Wii Menu"
 msgstr "Wii 메뉴에 설치"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1189
+#: Source/Core/DolphinWX/FrameTools.cpp:1191
 msgid "Installing WAD..."
 msgstr "WAD 설치하기..."
 
@@ -4472,12 +4479,12 @@ msgstr "선택된 슬롯에서 상태를 로드합니다"
 msgid "Load State..."
 msgstr "상태 로드..."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1217
+#: Source/Core/DolphinWX/FrameTools.cpp:1219
 #: Source/Core/DolphinWX/MainMenuBar.cpp:557
 msgid "Load Wii System Menu"
 msgstr "Wii 시스템 메뉴 로드"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1212
+#: Source/Core/DolphinWX/FrameTools.cpp:1214
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Wii 시스템 메뉴 %d %c 로드"
@@ -4492,7 +4499,7 @@ msgid ""
 "Load any .map file containing the function names and addresses for this game."
 msgstr "이 게임을 위한 함수 이름과 주소를 담고 있는 .map 파일을 로드합니다."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:235
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:239
 msgid "Load bad map file"
 msgstr "배드 맵 파일 로드"
 
@@ -4510,7 +4517,7 @@ msgstr ""
 msgid "Load from selected slot"
 msgstr "선택된 슬롯에서 로드"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:219
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:223
 msgid "Load map file"
 msgstr "맵 파일 로드"
 
@@ -4662,7 +4669,7 @@ msgstr "메모리 카드"
 msgid "Memory Card Manager"
 msgstr "메모리 카드 매니저"
 
-#: Source/Core/Core/ConfigManager.cpp:1048
+#: Source/Core/Core/ConfigManager.cpp:1051
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4971,7 +4978,7 @@ msgstr "없음"
 msgid "Not Equal"
 msgstr "같지 않음"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:916
+#: Source/Core/DolphinWX/GameListCtrl.cpp:919
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:289
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:331
 msgid "Not Set"
@@ -4986,7 +4993,7 @@ msgid "Not all players have the game. Do you really want to start?"
 msgstr ""
 "모든 플레이어가 그 게임을 가지고 있지는 않습니다. 정말 시작하고 싶습니까?"
 
-#: Source/Core/DolphinWX/Main.cpp:484
+#: Source/Core/DolphinWX/Main.cpp:487
 msgid "Not connected"
 msgstr "연결되지 않음"
 
@@ -5081,8 +5088,8 @@ msgstr "온라인 문서(&D)"
 msgid "Only %d blocks available"
 msgstr "%d 블록 사용 가능"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:303
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:327
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:307
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:330
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
@@ -5090,7 +5097,7 @@ msgstr ""
 "접두사를 가진 부호들을 내보냅니다:\n"
 "(모든 부호들은 빈칸)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:535
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:545
 msgid "Op?"
 msgstr "Op?"
 
@@ -5099,11 +5106,11 @@ msgstr "Op?"
 msgid "Open"
 msgstr "열기"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:993
+#: Source/Core/DolphinWX/GameListCtrl.cpp:996
 msgid "Open &containing folder"
 msgstr "담고 있는 폴더 열기(&c)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:990
+#: Source/Core/DolphinWX/GameListCtrl.cpp:993
 msgid "Open Wii &save folder"
 msgstr "Wii 저장 폴더 열기(&s)"
 
@@ -5321,7 +5328,7 @@ msgstr "재생 옵션"
 msgid "Players"
 msgstr "플레이어"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:810
+#: Source/Core/DolphinWX/FrameTools.cpp:812
 msgid "Please confirm..."
 msgstr "확인해주세요..."
 
@@ -5770,11 +5777,11 @@ msgstr "심볼 맵 다른 이름으로 저장... (&A)"
 msgid "Save as..."
 msgstr "다른 이름으로 저장..."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:384
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:383
 msgid "Save combined output file as"
 msgstr "합쳐진 출력 파일 다른 이름으로 저장"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1353
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1356
 msgid "Save compressed GCM/ISO"
 msgstr "압축된 GCM/ISO를 저장"
 
@@ -5782,15 +5789,15 @@ msgstr "압축된 GCM/ISO를 저장"
 msgid "Save currently-toggled perspectives"
 msgstr "최근-토글된 관점 저장"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1344
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1347
 msgid "Save decompressed GCM/ISO"
 msgstr "압축풀린 GCM/ISO를 저장"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:254
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:258
 msgid "Save map file as"
 msgstr "맵 파일 다른 이름으로 저장"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:310
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:314
 msgid "Save signature as"
 msgstr "서명 다른 이름으로 저장"
 
@@ -5849,16 +5856,16 @@ msgstr "상태저장 무비 %s 가 손상되었습니다, 무비 기록 중지 �
 msgid "Scaled EFB Copy"
 msgstr "스케일된 EFB 복사"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:602
+#: Source/Core/DolphinWX/GameListCtrl.cpp:605
 #, c-format
 msgid "Scanning %s"
 msgstr "스캐닝 %s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:591
+#: Source/Core/DolphinWX/GameListCtrl.cpp:594
 msgid "Scanning for ISOs"
 msgstr "ISO들을 검사하기"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:591
+#: Source/Core/DolphinWX/GameListCtrl.cpp:594
 msgid "Scanning..."
 msgstr "스캐닝..."
 
@@ -5971,12 +5978,12 @@ msgstr "상태 슬롯 8 선택"
 msgid "Select State Slot 9"
 msgstr "상태 슬롯 9 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:479
-#: Source/Core/DolphinWX/FrameTools.cpp:944
+#: Source/Core/DolphinWX/FrameTools.cpp:480
+#: Source/Core/DolphinWX/FrameTools.cpp:946
 msgid "Select The Recording File"
 msgstr "기록 파일 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1179
+#: Source/Core/DolphinWX/FrameTools.cpp:1181
 msgid "Select a Wii WAD file to install"
 msgstr "설치할 Wii WAD 파일 선택"
 
@@ -5992,15 +5999,15 @@ msgstr "떠있는 창들 선택"
 msgid "Select the file to load"
 msgstr "로드할 파일 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1141
+#: Source/Core/DolphinWX/FrameTools.cpp:1143
 msgid "Select the save file"
 msgstr "저장 파일을 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1277
+#: Source/Core/DolphinWX/FrameTools.cpp:1279
 msgid "Select the state to load"
 msgstr "로드할 상태 선택"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1289
+#: Source/Core/DolphinWX/FrameTools.cpp:1291
 msgid "Select the state to save"
 msgstr "저장할 상태 선택"
 
@@ -6135,7 +6142,7 @@ msgstr "PC 설정"
 msgid "Set Value"
 msgstr "값 설정"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:996
+#: Source/Core/DolphinWX/GameListCtrl.cpp:999
 msgid "Set as &default ISO"
 msgstr "기본 ISO로 설정(&d)"
 
@@ -6637,15 +6644,15 @@ msgstr "다음 명령으로 스텝"
 msgid "Step out of the current function"
 msgstr "현재 함수에서 스텝 나가기"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:396
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:406
 msgid "Step out successful!"
 msgstr "스텝 나가기 성공!"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:394
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:404
 msgid "Step out timed out!"
 msgstr "스텝 나가기 시간 초과!"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:321
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:331
 msgid "Step over in progress..."
 msgstr "스텝 넘어가기 중..."
 
@@ -6653,7 +6660,7 @@ msgstr "스텝 넘어가기 중..."
 msgid "Step over the next instruction"
 msgstr "다음 명령으로 스텝 넘어가기"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:306
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:316
 msgid "Step successful!"
 msgstr "스텝 성공!"
 
@@ -6758,7 +6765,7 @@ msgstr "스윙"
 msgid "Symbol"
 msgstr "부호"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:99
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:104
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:95
 msgid "Symbols"
 msgstr "부호들"
@@ -6801,12 +6808,12 @@ msgstr "시스템 언어:"
 msgid "TAS Input"
 msgstr "TAS 입력"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:377
+#: Source/Core/DolphinWX/FrameTools.cpp:378
 #, c-format
 msgid "TAS Input - Controller %d"
 msgstr "TAS 입력 - 컨트롤러 %d"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:385
+#: Source/Core/DolphinWX/FrameTools.cpp:386
 #, c-format
 msgid "TAS Input - Wii Remote %d"
 msgstr "TAS 입력 - Wii 리모트 %d"
@@ -6881,7 +6888,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 가장 오른쪽 값을 사용하세요."
 
-#: Source/Core/Core/ConfigManager.cpp:928
+#: Source/Core/Core/ConfigManager.cpp:931
 msgid "The WAD has been installed successfully"
 msgstr "WAD가 성공적으로 설치되었습니다"
 
@@ -6934,9 +6941,9 @@ msgstr "디스크 이미지 \"%s\" 가 짤렸습니다, 일부 데이터는 잃�
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr "삽입되려 했던 디스크를 찾을 수 없습니다."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1273
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1298
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1363
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1276
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1301
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1366
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -6980,7 +6987,7 @@ msgstr "해독된 AR 코드 결과가 없습니다."
 msgid "The save you are trying to copy has an invalid file size."
 msgstr "당신이 복사하려는 저장은 부적합한 파일 크기입니다."
 
-#: Source/Core/DolphinWX/Main.cpp:313
+#: Source/Core/DolphinWX/Main.cpp:316
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -7004,7 +7011,7 @@ msgstr "서버의 응답: 그 게임은 현재 구동중입니다!"
 msgid "The server sent an unknown error message!"
 msgstr "서버가 알려지지 않은 오류 메시지를 보냈음!"
 
-#: Source/Core/Core/ConfigManager.cpp:838
+#: Source/Core/Core/ConfigManager.cpp:840
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "기술된 \"%s\" 파일은 존재하지 않습니다"
@@ -7444,7 +7451,7 @@ msgstr "Wii 리모트 똑바로"
 msgid "Usage Statistics Reporting Settings"
 msgstr "사용 통계 보고 설정"
 
-#: Source/Core/DolphinWX/Main.cpp:214
+#: Source/Core/DolphinWX/Main.cpp:217
 msgid "Usage statistics reporting"
 msgstr "사용 통계 보고"
 
@@ -7644,8 +7651,8 @@ msgstr ""
 "잘 모르겠으면, 이것을 체크 해제해 두세요."
 
 #: Source/Core/Common/MsgHandler.cpp:63
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1139
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1459
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1142
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1462
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/DolphinWX/MemcardManager.cpp:599
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:358
@@ -7814,7 +7821,7 @@ msgstr "Wii 리모트"
 msgid "Wii Remote %i"
 msgstr "Wii 리모트 %i"
 
-#: Source/Core/DolphinWX/Main.cpp:490
+#: Source/Core/DolphinWX/Main.cpp:493
 msgid "Wii Remote Connected"
 msgstr "Wii 리모트가 연결되었습니다"
 
@@ -7830,11 +7837,11 @@ msgstr "Wii 리모트 설정"
 msgid "Wii Remotes"
 msgstr "Wii 리모트"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1180
+#: Source/Core/DolphinWX/FrameTools.cpp:1182
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WAD 파일 (*.wad)"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1142
+#: Source/Core/DolphinWX/FrameTools.cpp:1144
 msgid "Wii save files (*.bin)"
 msgstr "Wii 저장 파일 (*.bin)"
 
@@ -7869,9 +7876,9 @@ msgstr "범위 안에서"
 msgid "Word Wrap"
 msgstr "자동 줄바꿈"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1189
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1252
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1371
+#: Source/Core/DolphinWX/FrameTools.cpp:1191
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1255
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1374
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
 msgid "Working..."
@@ -7959,7 +7966,7 @@ msgstr ""
 "문제를 고치기위해 지금 중단하시겠습니까?\n"
 "\"아니오\"를 선택하면, 오디오가 왜곡될 지도 모릅니다."
 
-#: Source/Core/Core/ConfigManager.cpp:873
+#: Source/Core/Core/ConfigManager.cpp:876
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
