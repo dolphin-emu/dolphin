@@ -90,6 +90,7 @@ public:
 
   void DoPause();
   void DoStop();
+  bool TriggerSTMPowerEvent();
   void OnStopped();
   void DoRecordingSave();
   void UpdateGUI();

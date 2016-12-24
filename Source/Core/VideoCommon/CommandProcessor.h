@@ -130,8 +130,6 @@ void UpdateInterrupts(u64 userdata);
 void UpdateInterruptsFromVideoBackend(u64 userdata);
 
 bool IsInterruptWaiting();
-void SetInterruptTokenWaiting(bool waiting);
-void SetInterruptFinishWaiting(bool waiting);
 
 void SetCpClearRegister();
 void SetCpControlRegister();
