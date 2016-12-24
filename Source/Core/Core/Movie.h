@@ -129,6 +129,7 @@ u64 GetTotalInputCount();
 u64 GetCurrentLagCount();
 u64 GetTotalLagCount();
 
+void SetClearSave(bool enabled);
 void SignalDiscChange(const std::string& new_path);
 void SetReset(bool reset);
 

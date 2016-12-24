@@ -97,6 +97,7 @@ struct SConfig : NonCopyable
   bool bHLE_BS2 = true;
   bool bEnableCheats = false;
   bool bEnableMemcardSdWriting = true;
+  bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
   int iLatency = 14;

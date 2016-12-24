@@ -11,6 +11,7 @@
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
 #include "Core/Movie.h"
+#include "Core/NetPlayClient.h"
 #include "Core/WiiRoot.h"
 
 #ifdef _WIN32
@@ -25,40 +26,29 @@ static void InitializeDeterministicWiiSaves()
 {
   std::string save_path =
       Common::GetTitleDataPath(SConfig::GetInstance().m_title_id, Common::FROM_SESSION_ROOT);
-
-  // TODO: Force the game to save to another location, instead of moving the user's save.
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsStartingFromClearSave())
+  std::string user_save_path =
+      Common::GetTitleDataPath(SConfig::GetInstance().m_title_id, Common::FROM_CONFIGURED_ROOT);
+  if (Movie::IsRecordingInput())
   {
-    if (File::Exists(save_path + "banner.bin"))
+    if (NetPlay::IsNetPlayRunning() && !SConfig::GetInstance().bCopyWiiSaveNetplay)
     {
-      if (File::Exists(save_path + "../backup/"))
-      {
-        // The last run of this game must have been to play back a movie, so their save is already
-        // backed up.
-        File::DeleteDirRecursively(save_path);
-      }
-      else
-      {
-#ifdef _WIN32
-        MoveFile(UTF8ToTStr(save_path).c_str(), UTF8ToTStr(save_path + "../backup/").c_str());
-#else
-        File::CopyDir(save_path, save_path + "../backup/");
-        File::DeleteDirRecursively(save_path);
-#endif
-      }
+      Movie::SetClearSave(true);
+    }
+    else
+    {
+      // TODO: Check for the actual save data
+      Movie::SetClearSave(!File::Exists(user_save_path + "banner.bin"));
     }
   }
-  else if (File::Exists(save_path + "../backup/"))
+
+  if ((NetPlay::IsNetPlayRunning() && SConfig::GetInstance().bCopyWiiSaveNetplay) ||
+      (Movie::IsMovieActive() && !Movie::IsStartingFromClearSave()))
   {
-    // Delete the save made by a previous movie, and copy back the user's save.
-    if (File::Exists(save_path + "banner.bin"))
-      File::DeleteDirRecursively(save_path);
-#ifdef _WIN32
-    MoveFile(UTF8ToTStr(save_path + "../backup/").c_str(), UTF8ToTStr(save_path).c_str());
-#else
-    File::CopyDir(save_path + "../backup/", save_path);
-    File::DeleteDirRecursively(save_path + "../backup/");
-#endif
+    // Copy the current user's save to the Blank NAND
+    if (File::Exists(user_save_path + "banner.bin"))
+    {
+      File::CopyDir(user_save_path, save_path);
+    }
   }
 }
 
@@ -100,6 +90,27 @@ void ShutdownWiiRoot()
 {
   if (!s_temp_wii_root.empty())
   {
+    std::string save_path =
+        Common::GetTitleDataPath(SConfig::GetInstance().m_title_id, Common::FROM_SESSION_ROOT);
+    std::string user_save_path =
+        Common::GetTitleDataPath(SConfig::GetInstance().m_title_id, Common::FROM_CONFIGURED_ROOT);
+    std::string user_backup_path =
+        File::GetUserPath(D_BACKUP_IDX) +
+        StringFromFormat("%08x/%08x/", static_cast<u32>(SConfig::GetInstance().m_title_id >> 32),
+                         static_cast<u32>(SConfig::GetInstance().m_title_id));
+    if (File::Exists(save_path + "banner.bin") && SConfig::GetInstance().bEnableMemcardSdWriting)
+    {
+      // Backup the existing save just in case it's still needed.
+      if (File::Exists(user_save_path + "banner.bin"))
+      {
+        if (File::Exists(user_backup_path))
+          File::DeleteDirRecursively(user_backup_path);
+        File::CopyDir(user_save_path, user_backup_path);
+        File::DeleteDirRecursively(user_save_path);
+      }
+      File::CopyDir(save_path, user_save_path);
+      File::DeleteDirRecursively(save_path);
+    }
     File::DeleteDirRecursively(s_temp_wii_root);
     s_temp_wii_root.clear();
   }

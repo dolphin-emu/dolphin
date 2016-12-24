@@ -131,6 +131,7 @@ private:
   wxTextCtrl* m_chat_text;
   wxTextCtrl* m_chat_msg_text;
   wxCheckBox* m_memcard_write;
+  wxCheckBox* m_copy_wii_save;
   wxCheckBox* m_record_chkbox;
 
   std::string m_selected_game;
