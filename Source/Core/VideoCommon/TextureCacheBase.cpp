@@ -45,16 +45,6 @@ static const u64 MAX_TEXTURE_BINARY_SIZE =
 
 std::unique_ptr<TextureCacheBase> g_texture_cache;
 
-alignas(16) u8* TextureCacheBase::temp = nullptr;
-size_t TextureCacheBase::temp_size;
-
-TextureCacheBase::TexCache TextureCacheBase::textures_by_address;
-TextureCacheBase::TexCache TextureCacheBase::textures_by_hash;
-TextureCacheBase::TexPool TextureCacheBase::texture_pool;
-TextureCacheBase::TCacheEntryBase* TextureCacheBase::bound_textures[8];
-
-TextureCacheBase::BackupConfig TextureCacheBase::backup_config;
-
 TextureCacheBase::TCacheEntryBase::~TCacheEntryBase()
 {
 }
@@ -71,12 +61,13 @@ void TextureCacheBase::CheckTempSize(size_t required_size)
 
 TextureCacheBase::TextureCacheBase()
 {
-  temp_size = 2048 * 2048 * 4;
-  if (!temp)
-    temp = static_cast<u8*>(Common::AllocateAlignedMemory(temp_size, 16));
+  SetBackupConfig(g_ActiveConfig);
 
-  TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable,
-                                     g_ActiveConfig.bTexFmtOverlayCenter);
+  temp_size = 2048 * 2048 * 4;
+  temp = static_cast<u8*>(Common::AllocateAlignedMemory(temp_size, 16));
+
+  TexDecoder_SetTexFmtOverlayOptions(backup_config.texfmt_overlay,
+                                     backup_config.texfmt_overlay_center);
 
   HiresTexture::Init();
 
@@ -111,42 +102,33 @@ TextureCacheBase::~TextureCacheBase()
 
 void TextureCacheBase::OnConfigChanged(VideoConfig& config)
 {
-  if (g_texture_cache)
+  if (config.bHiresTextures != backup_config.hires_textures ||
+      config.bCacheHiresTextures != backup_config.cache_hires_textures)
   {
-    if (config.bHiresTextures != backup_config.s_hires_textures ||
-        config.bCacheHiresTextures != backup_config.s_cache_hires_textures)
-    {
-      HiresTexture::Update();
-    }
-
-    // TODO: Invalidating texcache is really stupid in some of these cases
-    if (config.iSafeTextureCache_ColorSamples != backup_config.s_colorsamples ||
-        config.bTexFmtOverlayEnable != backup_config.s_texfmt_overlay ||
-        config.bTexFmtOverlayCenter != backup_config.s_texfmt_overlay_center ||
-        config.bHiresTextures != backup_config.s_hires_textures)
-    {
-      g_texture_cache->Invalidate();
-
-      TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable,
-                                         g_ActiveConfig.bTexFmtOverlayCenter);
-    }
-
-    if ((config.iStereoMode > 0) != backup_config.s_stereo_3d ||
-        config.bStereoEFBMonoDepth != backup_config.s_efb_mono_depth)
-    {
-      g_texture_cache->DeleteShaders();
-      if (!g_texture_cache->CompileShaders())
-        PanicAlert("Failed to recompile one or more texture conversion shaders.");
-    }
+    HiresTexture::Update();
   }
 
-  backup_config.s_colorsamples = config.iSafeTextureCache_ColorSamples;
-  backup_config.s_texfmt_overlay = config.bTexFmtOverlayEnable;
-  backup_config.s_texfmt_overlay_center = config.bTexFmtOverlayCenter;
-  backup_config.s_hires_textures = config.bHiresTextures;
-  backup_config.s_cache_hires_textures = config.bCacheHiresTextures;
-  backup_config.s_stereo_3d = config.iStereoMode > 0;
-  backup_config.s_efb_mono_depth = config.bStereoEFBMonoDepth;
+  // TODO: Invalidating texcache is really stupid in some of these cases
+  if (config.iSafeTextureCache_ColorSamples != backup_config.color_samples ||
+      config.bTexFmtOverlayEnable != backup_config.texfmt_overlay ||
+      config.bTexFmtOverlayCenter != backup_config.texfmt_overlay_center ||
+      config.bHiresTextures != backup_config.hires_textures)
+  {
+    Invalidate();
+
+    TexDecoder_SetTexFmtOverlayOptions(g_ActiveConfig.bTexFmtOverlayEnable,
+                                       g_ActiveConfig.bTexFmtOverlayCenter);
+  }
+
+  if ((config.iStereoMode > 0) != backup_config.stereo_3d ||
+      config.bStereoEFBMonoDepth != backup_config.efb_mono_depth)
+  {
+    g_texture_cache->DeleteShaders();
+    if (!g_texture_cache->CompileShaders())
+      PanicAlert("Failed to recompile one or more texture conversion shaders.");
+  }
+
+  SetBackupConfig(config);
 }
 
 void TextureCacheBase::Cleanup(int _frameCount)
@@ -220,31 +202,38 @@ bool TextureCacheBase::TCacheEntryBase::OverlapsMemoryRange(u32 range_address, u
   return true;
 }
 
-TextureCacheBase::TCacheEntryBase* TextureCacheBase::TCacheEntryBase::ApplyPalette(u8* palette,
-                                                                                   u32 tlutfmt)
+void TextureCacheBase::SetBackupConfig(const VideoConfig& config)
 {
-  TCacheEntryConfig newconfig;
-  newconfig.rendertarget = true;
-  newconfig.width = config.width;
-  newconfig.height = config.height;
-  newconfig.layers = config.layers;
-  TCacheEntryBase* decoded_entry = AllocateTexture(newconfig);
+  backup_config.color_samples = config.iSafeTextureCache_ColorSamples;
+  backup_config.texfmt_overlay = config.bTexFmtOverlayEnable;
+  backup_config.texfmt_overlay_center = config.bTexFmtOverlayCenter;
+  backup_config.hires_textures = config.bHiresTextures;
+  backup_config.cache_hires_textures = config.bCacheHiresTextures;
+  backup_config.stereo_3d = config.iStereoMode > 0;
+  backup_config.efb_mono_depth = config.bStereoEFBMonoDepth;
+}
 
-  if (decoded_entry)
-  {
-    decoded_entry->SetGeneralParameters(addr, size_in_bytes, format);
-    decoded_entry->SetDimensions(native_width, native_height, 1);
-    decoded_entry->SetHashes(base_hash, hash);
-    decoded_entry->frameCount = FRAMECOUNT_INVALID;
-    decoded_entry->is_efb_copy = false;
+TextureCacheBase::TCacheEntryBase* TextureCacheBase::ApplyPaletteToEntry(TCacheEntryBase* entry,
+                                                                         u8* palette, u32 tlutfmt)
+{
+  TCacheEntryConfig new_config = entry->config;
+  new_config.levels = 1;
+  new_config.rendertarget = true;
 
-    g_texture_cache->ConvertTexture(decoded_entry, this, palette, static_cast<TlutFormat>(tlutfmt));
-    textures_by_address.emplace(addr, decoded_entry);
+  TCacheEntryBase* decoded_entry = AllocateTexture(new_config);
+  if (!decoded_entry)
+    return nullptr;
 
-    return decoded_entry;
-  }
+  decoded_entry->SetGeneralParameters(entry->addr, entry->size_in_bytes, entry->format);
+  decoded_entry->SetDimensions(entry->native_width, entry->native_height, 1);
+  decoded_entry->SetHashes(entry->base_hash, entry->hash);
+  decoded_entry->frameCount = FRAMECOUNT_INVALID;
+  decoded_entry->is_efb_copy = false;
 
-  return nullptr;
+  ConvertTexture(decoded_entry, entry, palette, static_cast<TlutFormat>(tlutfmt));
+  textures_by_address.emplace(entry->addr, decoded_entry);
+
+  return decoded_entry;
 }
 
 void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBase** entry,
@@ -342,7 +331,7 @@ TextureCacheBase::DoPartialTextureUpdates(TexCache::iterator iter_t, u8* palette
       {
         if (isPaletteTexture)
         {
-          TCacheEntryBase* decoded_entry = entry->ApplyPalette(palette, tlutfmt);
+          TCacheEntryBase* decoded_entry = ApplyPaletteToEntry(entry, palette, tlutfmt);
           if (decoded_entry)
           {
             // Link the efb copy with the partially updated texture, so we won't apply this partial
@@ -701,7 +690,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   if (unconverted_copy != textures_by_address.end())
   {
     TCacheEntryBase* decoded_entry =
-        unconverted_copy->second->ApplyPalette(&texMem[tlutaddr], tlutfmt);
+        ApplyPaletteToEntry(unconverted_copy->second, &texMem[tlutaddr], tlutfmt);
 
     if (decoded_entry)
     {
@@ -810,7 +799,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   entry->is_custom_tex = hires_tex != nullptr;
 
   // load texture
-  entry->Load(width, height, expandedWidth, 0);
+  entry->Load(temp, width, height, expandedWidth, 0);
 
   std::string basename = "";
   if (g_ActiveConfig.bDumpTextures && !hires_tex)
@@ -827,7 +816,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       const auto& level = hires_tex->m_levels[level_index];
       CheckTempSize(level.data_size);
       memcpy(temp, level.data.get(), level.data_size);
-      entry->Load(level.width, level.height, level.width, level_index);
+      entry->Load(temp, level.width, level.height, level.width, level_index);
     }
   }
   else
@@ -858,7 +847,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       mip_src_data +=
           TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
 
-      entry->Load(mip_width, mip_height, expanded_mip_width, level);
+      entry->Load(temp, mip_width, mip_height, expanded_mip_width, level);
 
       if (g_ActiveConfig.bDumpTextures)
         DumpTexture(entry, basename, level);
@@ -1039,7 +1028,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
         fConstAdd[3] = 16.0f / 255.0f;
         if (dstFormat == 0)
         {
-          ColorMask[0] = ColorMask[1] = ColorMask[2] = 15.0f;
+          ColorMask[0] = ColorMask[1] = ColorMask[2] = 255.0f / 16.0f;
           ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 15.0f;
           cbufid = 9;
         }
@@ -1053,7 +1042,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
         colmat[15] = 1;
         if (dstFormat == 2)
         {
-          ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 15.0f;
+          ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f / 16.0f;
           ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 15.0f;
           cbufid = 11;
         }
@@ -1077,7 +1066,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
     {
     case 0:  // R4
       colmat[0] = colmat[4] = colmat[8] = colmat[12] = 1;
-      ColorMask[0] = 15.0f;
+      ColorMask[0] = 255.0f / 16.0f;
       ColorMask[4] = 1.0f / 15.0f;
       cbufid = 14;
       dstFormat |= _GX_TF_CTF;
@@ -1091,7 +1080,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
     case 2:  // RA4
       colmat[0] = colmat[4] = colmat[8] = colmat[15] = 1.0f;
-      ColorMask[0] = ColorMask[3] = 15.0f;
+      ColorMask[0] = ColorMask[3] = 255.0f / 16.0f;
       ColorMask[4] = ColorMask[7] = 1.0f / 15.0f;
 
       cbufid = 16;
@@ -1157,9 +1146,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
     case 4:  // RGB565
       colmat[0] = colmat[5] = colmat[10] = 1.0f;
-      ColorMask[0] = ColorMask[2] = 31.0f;
+      ColorMask[0] = ColorMask[2] = 255.0f / 8.0f;
       ColorMask[4] = ColorMask[6] = 1.0f / 31.0f;
-      ColorMask[1] = 63.0f;
+      ColorMask[1] = 255.0f / 4.0f;
       ColorMask[5] = 1.0f / 63.0f;
       fConstAdd[3] = 1.0f;  // set alpha to 1
       cbufid = 26;
@@ -1167,9 +1156,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
     case 5:  // RGB5A3
       colmat[0] = colmat[5] = colmat[10] = colmat[15] = 1.0f;
-      ColorMask[0] = ColorMask[1] = ColorMask[2] = 31.0f;
+      ColorMask[0] = ColorMask[1] = ColorMask[2] = 255.0f / 8.0f;
       ColorMask[4] = ColorMask[5] = ColorMask[6] = 1.0f / 31.0f;
-      ColorMask[3] = 7.0f;
+      ColorMask[3] = 255.0f / 32.0f;
       ColorMask[7] = 1.0f / 7.0f;
 
       cbufid = 27;
@@ -1253,8 +1242,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
   if (copy_to_ram)
   {
-    g_texture_cache->CopyEFB(dst, dstFormat, tex_w, bytes_per_row, num_blocks_y, dstStride,
-                             srcFormat, srcRect, isIntensity, scaleByHalf);
+    CopyEFB(dst, dstFormat, tex_w, bytes_per_row, num_blocks_y, dstStride, srcFormat, srcRect,
+            isIntensity, scaleByHalf);
   }
   else
   {
@@ -1364,7 +1353,7 @@ TextureCacheBase::AllocateTexture(const TCacheEntryConfig& config)
   }
   else
   {
-    entry = g_texture_cache->CreateTexture(config);
+    entry = CreateTexture(config);
     if (!entry)
       return nullptr;
 

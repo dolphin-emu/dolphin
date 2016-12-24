@@ -304,7 +304,7 @@ void GFXDebuggerPanel::OnClearScreenButton(wxCommandEvent& event)
 
 void GFXDebuggerPanel::OnClearTextureCacheButton(wxCommandEvent& event)
 {
-  TextureCacheBase::Invalidate();
+  g_texture_cache->Invalidate();
 }
 
 void GFXDebuggerPanel::OnClearVertexShaderCacheButton(wxCommandEvent& event)

@@ -373,6 +373,16 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
   return result;
 }
 
+bool StringBeginsWith(const std::string& str, const std::string& begin)
+{
+  return str.size() >= begin.size() && std::equal(begin.begin(), begin.end(), str.begin());
+}
+
+bool StringEndsWith(const std::string& str, const std::string& end)
+{
+  return str.size() >= end.size() && std::equal(end.rbegin(), end.rend(), str.rbegin());
+}
+
 #ifdef _WIN32
 
 std::string UTF16ToUTF8(const std::wstring& input)

@@ -29,23 +29,23 @@ set(SRCS	ActionReplay.cpp
 			DSP/DSPDisassembler.cpp
 			DSP/DSPAccelerator.cpp
 			DSP/DSPCaptureLogger.cpp
-			DSP/DSPIntCCUtil.cpp
-			DSP/DSPIntExtOps.cpp
 			DSP/DSPHWInterface.cpp
 			DSP/DSPMemoryMap.cpp
 			DSP/DSPStacks.cpp
 			DSP/DSPAnalyzer.cpp
-			DSP/DSPIntArithmetic.cpp
-			DSP/DSPIntBranch.cpp
-			DSP/DSPIntLoadStore.cpp
-			DSP/DSPIntMisc.cpp
-			DSP/DSPIntMultiplier.cpp
-			DSP/DSPEmitter.cpp
 			DSP/DSPCodeUtil.cpp
 			DSP/LabelMap.cpp
-			DSP/DSPInterpreter.cpp
 			DSP/DSPCore.cpp
 			DSP/DSPTables.cpp
+			DSP/Interpreter/DSPIntArithmetic.cpp
+			DSP/Interpreter/DSPIntBranch.cpp
+			DSP/Interpreter/DSPIntCCUtil.cpp
+			DSP/Interpreter/DSPInterpreter.cpp
+			DSP/Interpreter/DSPIntExtOps.cpp
+			DSP/Interpreter/DSPIntLoadStore.cpp
+			DSP/Interpreter/DSPIntMisc.cpp
+			DSP/Interpreter/DSPIntMultiplier.cpp
+			DSP/Jit/DSPEmitter.cpp
 			DSP/Jit/DSPJitRegCache.cpp
 			DSP/Jit/DSPJitExtOps.cpp
 			DSP/Jit/DSPJitBranch.cpp
@@ -163,7 +163,9 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/PPCSymbolDB.cpp
 			PowerPC/PPCTables.cpp
 			PowerPC/Profiler.cpp
-			PowerPC/SignatureDB.cpp
+			PowerPC/SignatureDB/CSVSignatureDB.cpp
+			PowerPC/SignatureDB/DSYSignatureDB.cpp
+			PowerPC/SignatureDB/SignatureDB.cpp
 			PowerPC/JitInterface.cpp
 			PowerPC/Interpreter/Interpreter_Branch.cpp
 			PowerPC/Interpreter/Interpreter.cpp
@@ -207,9 +209,10 @@ if(_M_X86)
 			PowerPC/Jit64/JitRegCache.cpp
 			PowerPC/Jit64/Jit_SystemRegisters.cpp
 			PowerPC/Jit64Common/BlockCache.cpp
+			PowerPC/Jit64Common/EmuCodeBlock.cpp
+			PowerPC/Jit64Common/FarCodeCache.cpp
 			PowerPC/Jit64Common/Jit64AsmCommon.cpp
 			PowerPC/Jit64Common/Jit64Base.cpp
-			PowerPC/Jit64Common/Jit64Util.cpp
 			PowerPC/Jit64Common/TrampolineCache.cpp)
 elseif(_M_ARM_64)
 	set(SRCS ${SRCS}

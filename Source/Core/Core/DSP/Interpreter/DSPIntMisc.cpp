@@ -5,10 +5,10 @@
 // Additional copyrights go to Duddie and Tratax (c) 2004
 
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPIntUtil.h"
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPIntUtil.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 namespace DSPInterpreter
 {

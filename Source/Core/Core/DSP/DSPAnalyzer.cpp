@@ -2,10 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/DSP/DSPAnalyzer.h"
+
 #include <array>
 
-#include "Core/DSP/DSPAnalyzer.h"
-#include "Core/DSP/DSPInterpreter.h"
+#include "Common/Logging/Log.h"
+
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
 

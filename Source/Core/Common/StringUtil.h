@@ -116,6 +116,9 @@ void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _P
                            const std::string& _Filename);
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest);
 
+bool StringBeginsWith(const std::string& str, const std::string& begin);
+bool StringEndsWith(const std::string& str, const std::string& end);
+
 std::string CP1252ToUTF8(const std::string& str);
 std::string SHIFTJISToUTF8(const std::string& str);
 std::string UTF16ToUTF8(const std::wstring& str);

@@ -169,6 +169,7 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
   colors[1] = MakeRGBA(red2, green2, blue2, 255);
   if (c1 > c2)
   {
+    // Approximation of x/3: 3/8 (1/2 - 1/8)
     int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
     int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
     int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
@@ -177,9 +178,12 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
   }
   else
   {
-    colors[2] = MakeRGBA((red1 + red2 + 1) / 2,  // Average
-                         (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 255);
-    colors[3] = MakeRGBA(red2, green2, blue2, 0);  // Color2 but transparent
+    // color[3] is the same as color[2] (average of both colors), but transparent.
+    // This differs from DXT1 where color[3] is transparent black.
+    colors[2] =
+        MakeRGBA((red1 + red2 + 1) / 2, (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 255);
+    colors[3] =
+        MakeRGBA((red1 + red2 + 1) / 2, (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 0);
   }
 
   for (int y = 0; y < 4; y++)

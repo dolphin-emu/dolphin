@@ -178,8 +178,8 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
   g_renderer->RestoreAPIState();
 }
 
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-                                     unsigned int expanded_width, unsigned int level)
+void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u32 expanded_width,
+                                     u32 level)
 {
   if (level >= config.levels)
     PanicAlert("Texture only has %d levels, can't update level %d", config.levels, level);
@@ -196,7 +196,7 @@ void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
     glPixelStorei(GL_UNPACK_ROW_LENGTH, expanded_width);
 
   glTexImage3D(GL_TEXTURE_2D_ARRAY, level, GL_RGBA, width, height, 1, 0, GL_RGBA, GL_UNSIGNED_BYTE,
-               temp);
+               buffer);
 
   if (expanded_width != width)
     glPixelStorei(GL_UNPACK_ROW_LENGTH, 0);
@@ -333,7 +333,7 @@ bool TextureCache::CompileShaders()
       "\n"
       "void main(){\n"
       "	vec4 texcol = texture(samp9, f_uv0);\n"
-      "	texcol = round(texcol * colmat[5]) * colmat[6];\n"
+      "	texcol = floor(texcol * colmat[5]) * colmat[6];\n"
       "	ocol0 = texcol * mat4(colmat[0], colmat[1], colmat[2], colmat[3]) + colmat[4];\n"
       "}\n";
 

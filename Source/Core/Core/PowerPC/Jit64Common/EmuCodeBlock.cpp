@@ -1,21 +1,44 @@
-// Copyright 2008 Dolphin Emulator Project
+// Copyright 2016 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64Common/Jit64Util.h"
-#include "Common/BitSet.h"
-#include "Common/CommonTypes.h"
+#include "Core/PowerPC/Jit64Common/EmuCodeBlock.h"
+
+#include "Common/Assert.h"
+#include "Common/CPUDetect.h"
 #include "Common/Intrinsics.h"
 #include "Common/MathUtil.h"
-#include "Common/x64ABI.h"
-#include "Common/x64Emitter.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
-#include "Core/PowerPC/Jit64Common/TrampolineCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 
 using namespace Gen;
+
+namespace
+{
+OpArg SwapImmediate(int access_size, const OpArg& reg_value)
+{
+  if (access_size == 32)
+    return Imm32(Common::swap32(reg_value.Imm32()));
+
+  if (access_size == 16)
+    return Imm16(Common::swap16(reg_value.Imm16()));
+
+  return Imm8(reg_value.Imm8());
+}
+
+OpArg FixImmediate(int access_size, OpArg arg)
+{
+  if (arg.IsImm())
+  {
+    arg = access_size == 8 ? arg.AsImm8() : access_size == 16 ? arg.AsImm16() : arg.AsImm32();
+  }
+  return arg;
+}
+}  // Anonymous namespace
 
 void EmuCodeBlock::MemoryExceptionCheck()
 {
@@ -47,6 +70,49 @@ void EmuCodeBlock::MemoryExceptionCheck()
   }
 }
 
+void EmuCodeBlock::SwitchToFarCode()
+{
+  m_near_code = GetWritableCodePtr();
+  SetCodePtr(m_far_code.GetWritableCodePtr());
+}
+
+void EmuCodeBlock::SwitchToNearCode()
+{
+  m_far_code.SetCodePtr(GetWritableCodePtr());
+  SetCodePtr(m_near_code);
+}
+
+FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
+                                             BitSet32 registers_in_use)
+{
+  registers_in_use[reg_addr] = true;
+  if (reg_value.IsSimpleReg())
+    registers_in_use[reg_value.GetSimpleReg()] = true;
+
+  // Get ourselves a free register; try to pick one that doesn't involve pushing, if we can.
+  X64Reg scratch = RSCRATCH;
+  if (!registers_in_use[RSCRATCH])
+    scratch = RSCRATCH;
+  else if (!registers_in_use[RSCRATCH_EXTRA])
+    scratch = RSCRATCH_EXTRA;
+  else
+    scratch = reg_addr;
+
+  if (scratch == reg_addr)
+    PUSH(scratch);
+  else
+    MOV(32, R(scratch), R(reg_addr));
+
+  // Perform lookup to see if we can use fast path.
+  SHR(32, R(scratch), Imm8(PowerPC::BAT_INDEX_SHIFT));
+  TEST(32, MScaled(scratch, SCALE_4, PtrOffset(&PowerPC::dbat_table[0])), Imm32(2));
+
+  if (scratch == reg_addr)
+    POP(scratch);
+
+  return J_CC(CC_Z, m_far_code.Enabled());
+}
+
 void EmuCodeBlock::UnsafeLoadRegToReg(X64Reg reg_addr, X64Reg reg_value, int accessSize, s32 offset,
                                       bool signExtend)
 {
@@ -61,6 +127,38 @@ void EmuCodeBlock::UnsafeLoadRegToRegNoSwap(X64Reg reg_addr, X64Reg reg_value, i
     MOVSX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
   else
     MOVZX(32, accessSize, reg_value, MComplex(RMEM, reg_addr, SCALE_1, offset));
+}
+
+void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
+                                       bool swap, MovInfo* info)
+{
+  if (info)
+  {
+    info->address = GetWritableCodePtr();
+    info->nonAtomicSwapStore = false;
+  }
+
+  OpArg dest = MComplex(RMEM, reg_addr, SCALE_1, offset);
+  if (reg_value.IsImm())
+  {
+    if (swap)
+      reg_value = SwapImmediate(accessSize, reg_value);
+    MOV(accessSize, dest, reg_value);
+  }
+  else if (swap)
+  {
+    SwapAndStore(accessSize, dest, reg_value.GetSimpleReg(), info);
+  }
+  else
+  {
+    MOV(accessSize, dest, reg_value);
+  }
+}
+
+void EmuCodeBlock::UnsafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
+                                       s32 offset, bool swap, Gen::MovInfo* info)
+{
+  UnsafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, swap, info);
 }
 
 bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int accessSize, s32 offset,
@@ -102,6 +200,28 @@ bool EmuCodeBlock::UnsafeLoadToReg(X64Reg reg_value, OpArg opAddress, int access
 
   LoadAndSwap(accessSize, reg_value, memOperand, signExtend, info);
   return offsetAddedToAddress;
+}
+
+void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
+{
+  // No need to protect these, they don't touch any state
+  // question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
+  switch (accessSize)
+  {
+  case 8:
+    CALL(jit->GetAsmRoutines()->fifoDirectWrite8);
+    break;
+  case 16:
+    CALL(jit->GetAsmRoutines()->fifoDirectWrite16);
+    break;
+  case 32:
+    CALL(jit->GetAsmRoutines()->fifoDirectWrite32);
+    break;
+  case 64:
+    CALL(jit->GetAsmRoutines()->fifoDirectWrite64);
+    break;
+  }
+  jit->js.fifoBytesSinceCheck += accessSize >> 3;
 }
 
 // Visitor that generates code to read a MMIO value.
@@ -212,37 +332,6 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
   }
 }
 
-FixupBranch EmuCodeBlock::CheckIfSafeAddress(const OpArg& reg_value, X64Reg reg_addr,
-                                             BitSet32 registers_in_use)
-{
-  registers_in_use[reg_addr] = true;
-  if (reg_value.IsSimpleReg())
-    registers_in_use[reg_value.GetSimpleReg()] = true;
-
-  // Get ourselves a free register; try to pick one that doesn't involve pushing, if we can.
-  X64Reg scratch = RSCRATCH;
-  if (!registers_in_use[RSCRATCH])
-    scratch = RSCRATCH;
-  else if (!registers_in_use[RSCRATCH_EXTRA])
-    scratch = RSCRATCH_EXTRA;
-  else
-    scratch = reg_addr;
-
-  if (scratch == reg_addr)
-    PUSH(scratch);
-  else
-    MOV(32, R(scratch), R(reg_addr));
-
-  // Perform lookup to see if we can use fast path.
-  SHR(32, R(scratch), Imm8(PowerPC::BAT_INDEX_SHIFT));
-  TEST(32, MScaled(scratch, SCALE_4, PtrOffset(&PowerPC::dbat_table[0])), Imm32(2));
-
-  if (scratch == reg_addr)
-    POP(scratch);
-
-  return J_CC(CC_Z, farcode.Enabled());
-}
-
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
                                  s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
@@ -255,7 +344,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
     MovInfo mov;
     bool offsetAddedToAddress =
         UnsafeLoadToReg(reg_value, opAddress, accessSize, offset, signExtend, &mov);
-    TrampolineInfo& info = backPatchInfo[mov.address];
+    TrampolineInfo& info = m_back_patch_info[mov.address];
     info.pc = jit->js.compilerPC;
     info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
     info.start = backpatchStart;
@@ -302,7 +391,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
   {
     FixupBranch slow = CheckIfSafeAddress(R(reg_value), reg_addr, registersInUse);
     UnsafeLoadToReg(reg_value, R(reg_addr), accessSize, 0, signExtend);
-    if (farcode.Enabled())
+    if (m_far_code.Enabled())
       SwitchToFarCode();
     else
       exit = J(true);
@@ -340,7 +429,7 @@ void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, 
 
   if (fast_check_address)
   {
-    if (farcode.Enabled())
+    if (m_far_code.Enabled())
     {
       exit = J(true);
       SwitchToNearCode();
@@ -399,71 +488,128 @@ void EmuCodeBlock::SafeLoadToRegImmediate(X64Reg reg_value, u32 address, int acc
   }
 }
 
-static OpArg SwapImmediate(int accessSize, const OpArg& reg_value)
+void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
+                                     BitSet32 registersInUse, int flags)
 {
-  if (accessSize == 32)
-    return Imm32(Common::swap32(reg_value.Imm32()));
-  else if (accessSize == 16)
-    return Imm16(Common::swap16(reg_value.Imm16()));
-  else
-    return Imm8(reg_value.Imm8());
-}
+  bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
+  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0 || jit->jo.alwaysUseMemFuncs;
 
-void EmuCodeBlock::UnsafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
-                                       bool swap, MovInfo* info)
-{
-  if (info)
+  // set the correct immediate format
+  reg_value = FixImmediate(accessSize, reg_value);
+
+  if (jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
   {
-    info->address = GetWritableCodePtr();
-    info->nonAtomicSwapStore = false;
+    u8* backpatchStart = GetWritableCodePtr();
+    MovInfo mov;
+    UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
+    TrampolineInfo& info = m_back_patch_info[mov.address];
+    info.pc = jit->js.compilerPC;
+    info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
+    info.start = backpatchStart;
+    info.read = false;
+    info.op_arg = reg_value;
+    info.op_reg = reg_addr;
+    info.offsetAddedToAddress = false;
+    info.accessSize = accessSize >> 3;
+    info.offset = offset;
+    info.registersInUse = registersInUse;
+    info.flags = flags;
+    ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
+    if (padding > 0)
+    {
+      NOP(padding);
+    }
+    info.len = static_cast<u32>(GetCodePtr() - info.start);
+
+    jit->js.fastmemLoadStore = mov.address;
+
+    return;
   }
 
-  OpArg dest = MComplex(RMEM, reg_addr, SCALE_1, offset);
+  if (offset)
+  {
+    if (flags & SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR)
+    {
+      LEA(32, RSCRATCH, MDisp(reg_addr, (u32)offset));
+      reg_addr = RSCRATCH;
+    }
+    else
+    {
+      ADD(32, R(reg_addr), Imm32((u32)offset));
+    }
+  }
+
+  FixupBranch exit;
+  bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR;
+  bool fast_check_address = !slowmem && dr_set;
+  if (fast_check_address)
+  {
+    FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
+    UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
+    if (m_far_code.Enabled())
+      SwitchToFarCode();
+    else
+      exit = J(true);
+    SetJumpTarget(slow);
+  }
+
+  // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
+  MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
+
+  size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
+  ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
+
+  // If the input is an immediate, we need to put it in a register.
+  X64Reg reg;
   if (reg_value.IsImm())
   {
-    if (swap)
-      reg_value = SwapImmediate(accessSize, reg_value);
-    MOV(accessSize, dest, reg_value);
-  }
-  else if (swap)
-  {
-    SwapAndStore(accessSize, dest, reg_value.GetSimpleReg(), info);
+    reg = reg_addr == ABI_PARAM1 ? RSCRATCH : ABI_PARAM1;
+    MOV(accessSize, R(reg), reg_value);
   }
   else
   {
-    MOV(accessSize, dest, reg_value);
+    reg = reg_value.GetSimpleReg();
   }
-}
 
-static OpArg FixImmediate(int accessSize, OpArg arg)
-{
-  if (arg.IsImm())
-  {
-    arg = accessSize == 8 ? arg.AsImm8() : accessSize == 16 ? arg.AsImm16() : arg.AsImm32();
-  }
-  return arg;
-}
-
-void EmuCodeBlock::UnsafeWriteGatherPipe(int accessSize)
-{
-  // No need to protect these, they don't touch any state
-  // question - should we inline them instead? Pro: Lose a CALL   Con: Code bloat
   switch (accessSize)
   {
-  case 8:
-    CALL(jit->GetAsmRoutines()->fifoDirectWrite8);
-    break;
-  case 16:
-    CALL(jit->GetAsmRoutines()->fifoDirectWrite16);
+  case 64:
+    ABI_CallFunctionRR(swap ? PowerPC::Write_U64 : PowerPC::Write_U64_Swap, reg, reg_addr);
     break;
   case 32:
-    CALL(jit->GetAsmRoutines()->fifoDirectWrite32);
+    ABI_CallFunctionRR(swap ? PowerPC::Write_U32 : PowerPC::Write_U32_Swap, reg, reg_addr);
     break;
-  case 64:
-    CALL(jit->GetAsmRoutines()->fifoDirectWrite64);
+  case 16:
+    ABI_CallFunctionRR(swap ? PowerPC::Write_U16 : PowerPC::Write_U16_Swap, reg, reg_addr);
+    break;
+  case 8:
+    ABI_CallFunctionRR(PowerPC::Write_U8, reg, reg_addr);
     break;
   }
-  jit->js.fifoBytesSinceCheck += accessSize >> 3;
+  ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
+
+  MemoryExceptionCheck();
+
+  if (fast_check_address)
+  {
+    if (m_far_code.Enabled())
+    {
+      exit = J(true);
+      SwitchToNearCode();
+    }
+    SetJumpTarget(exit);
+  }
+}
+
+void EmuCodeBlock::SafeWriteRegToReg(Gen::X64Reg reg_value, Gen::X64Reg reg_addr, int accessSize,
+                                     s32 offset, BitSet32 registersInUse, int flags)
+{
+  SafeWriteRegToReg(R(reg_value), reg_addr, accessSize, offset, registersInUse, flags);
+}
+
+bool EmuCodeBlock::WriteClobbersRegValue(int accessSize, bool swap)
+{
+  return swap && !cpu_info.bMOVBE && accessSize > 8;
 }
 
 bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
@@ -512,119 +658,6 @@ bool EmuCodeBlock::WriteToConstAddress(int accessSize, OpArg arg, u32 address,
   }
 }
 
-void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int accessSize, s32 offset,
-                                     BitSet32 registersInUse, int flags)
-{
-  bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
-  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0 || jit->jo.alwaysUseMemFuncs;
-
-  // set the correct immediate format
-  reg_value = FixImmediate(accessSize, reg_value);
-
-  if (jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
-  {
-    u8* backpatchStart = GetWritableCodePtr();
-    MovInfo mov;
-    UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, offset, swap, &mov);
-    TrampolineInfo& info = backPatchInfo[mov.address];
-    info.pc = jit->js.compilerPC;
-    info.nonAtomicSwapStoreSrc = mov.nonAtomicSwapStore ? mov.nonAtomicSwapStoreSrc : INVALID_REG;
-    info.start = backpatchStart;
-    info.read = false;
-    info.op_arg = reg_value;
-    info.op_reg = reg_addr;
-    info.offsetAddedToAddress = false;
-    info.accessSize = accessSize >> 3;
-    info.offset = offset;
-    info.registersInUse = registersInUse;
-    info.flags = flags;
-    ptrdiff_t padding = BACKPATCH_SIZE - (GetCodePtr() - backpatchStart);
-    if (padding > 0)
-    {
-      NOP(padding);
-    }
-    info.len = static_cast<u32>(GetCodePtr() - info.start);
-
-    jit->js.fastmemLoadStore = mov.address;
-
-    return;
-  }
-
-  if (offset)
-  {
-    if (flags & SAFE_LOADSTORE_CLOBBER_RSCRATCH_INSTEAD_OF_ADDR)
-    {
-      LEA(32, RSCRATCH, MDisp(reg_addr, (u32)offset));
-      reg_addr = RSCRATCH;
-    }
-    else
-    {
-      ADD(32, R(reg_addr), Imm32((u32)offset));
-    }
-  }
-
-  FixupBranch exit;
-  bool dr_set = (flags & SAFE_LOADSTORE_DR_ON) || UReg_MSR(MSR).DR;
-  bool fast_check_address = !slowmem && dr_set;
-  if (fast_check_address)
-  {
-    FixupBranch slow = CheckIfSafeAddress(reg_value, reg_addr, registersInUse);
-    UnsafeWriteRegToReg(reg_value, reg_addr, accessSize, 0, swap);
-    if (farcode.Enabled())
-      SwitchToFarCode();
-    else
-      exit = J(true);
-    SetJumpTarget(slow);
-  }
-
-  // PC is used by memory watchpoints (if enabled) or to print accurate PC locations in debug logs
-  MOV(32, PPCSTATE(pc), Imm32(jit->js.compilerPC));
-
-  size_t rsp_alignment = (flags & SAFE_LOADSTORE_NO_PROLOG) ? 8 : 0;
-  ABI_PushRegistersAndAdjustStack(registersInUse, rsp_alignment);
-
-  // If the input is an immediate, we need to put it in a register.
-  X64Reg reg;
-  if (reg_value.IsImm())
-  {
-    reg = reg_addr == ABI_PARAM1 ? RSCRATCH : ABI_PARAM1;
-    MOV(accessSize, R(reg), reg_value);
-  }
-  else
-  {
-    reg = reg_value.GetSimpleReg();
-  }
-
-  switch (accessSize)
-  {
-  case 64:
-    ABI_CallFunctionRR(swap ? PowerPC::Write_U64 : PowerPC::Write_U64_Swap, reg, reg_addr);
-    break;
-  case 32:
-    ABI_CallFunctionRR(swap ? PowerPC::Write_U32 : PowerPC::Write_U32_Swap, reg, reg_addr);
-    break;
-  case 16:
-    ABI_CallFunctionRR(swap ? PowerPC::Write_U16 : PowerPC::Write_U16_Swap, reg, reg_addr);
-    break;
-  case 8:
-    ABI_CallFunctionRR(PowerPC::Write_U8, reg, reg_addr);
-    break;
-  }
-  ABI_PopRegistersAndAdjustStack(registersInUse, rsp_alignment);
-
-  MemoryExceptionCheck();
-
-  if (fast_check_address)
-  {
-    if (farcode.Enabled())
-    {
-      exit = J(true);
-      SwitchToNearCode();
-    }
-    SetJumpTarget(exit);
-  }
-}
-
 void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address, bool swap)
 {
   X64Reg reg;
@@ -651,6 +684,30 @@ void EmuCodeBlock::WriteToConstRamAddress(int accessSize, OpArg arg, u32 address
     SwapAndStore(accessSize, MRegSum(RMEM, RSCRATCH2), reg);
   else
     MOV(accessSize, MRegSum(RMEM, RSCRATCH2), R(reg));
+}
+
+void EmuCodeBlock::JitGetAndClearCAOV(bool oe)
+{
+  if (oe)
+    AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));  // XER.OV = 0
+  SHR(8, PPCSTATE(xer_ca), Imm8(1));                  // carry = XER.CA, XER.CA = 0
+}
+
+void EmuCodeBlock::JitSetCA()
+{
+  MOV(8, PPCSTATE(xer_ca), Imm8(1));  // XER.CA = 1
+}
+
+// Some testing shows CA is set roughly ~1/3 of the time (relative to clears), so
+// branchless calculation of CA is probably faster in general.
+void EmuCodeBlock::JitSetCAIf(CCFlags conditionCode)
+{
+  SETcc(conditionCode, PPCSTATE(xer_ca));
+}
+
+void EmuCodeBlock::JitClearCA()
+{
+  MOV(8, PPCSTATE(xer_ca), Imm8(0));
 }
 
 void EmuCodeBlock::ForceSinglePrecision(X64Reg output, const OpArg& input, bool packed,
@@ -1083,32 +1140,8 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
   OR(32, PPCSTATE(fpscr), R(RSCRATCH));
 }
 
-void EmuCodeBlock::JitGetAndClearCAOV(bool oe)
-{
-  if (oe)
-    AND(8, PPCSTATE(xer_so_ov), Imm8(~XER_OV_MASK));  // XER.OV = 0
-  SHR(8, PPCSTATE(xer_ca), Imm8(1));                  // carry = XER.CA, XER.CA = 0
-}
-
-void EmuCodeBlock::JitSetCA()
-{
-  MOV(8, PPCSTATE(xer_ca), Imm8(1));  // XER.CA = 1
-}
-
-// Some testing shows CA is set roughly ~1/3 of the time (relative to clears), so
-// branchless calculation of CA is probably faster in general.
-void EmuCodeBlock::JitSetCAIf(CCFlags conditionCode)
-{
-  SETcc(conditionCode, PPCSTATE(xer_ca));
-}
-
-void EmuCodeBlock::JitClearCA()
-{
-  MOV(8, PPCSTATE(xer_ca), Imm8(0));
-}
-
 void EmuCodeBlock::Clear()
 {
-  backPatchInfo.clear();
-  exceptionHandlerAtLoc.clear();
+  m_back_patch_info.clear();
+  m_exception_handler_at_loc.clear();
 }

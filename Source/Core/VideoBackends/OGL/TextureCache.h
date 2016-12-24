@@ -39,8 +39,7 @@ private:
                                   const MathUtil::Rectangle<int>& srcrect,
                                   const MathUtil::Rectangle<int>& dstrect) override;
 
-    void Load(unsigned int width, unsigned int height, unsigned int expanded_width,
-              unsigned int level) override;
+    void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) override;
 
     void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
                           bool scaleByHalf, unsigned int cbufid, const float* colmat) override;

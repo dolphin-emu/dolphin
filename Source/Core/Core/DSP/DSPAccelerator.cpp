@@ -2,14 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/DSP/DSPAccelerator.h"
+
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
-#include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPHost.h"
-#include "Core/DSP/DSPInterpreter.h"
+
 // The hardware adpcm decoder :)
 static s16 ADPCM_Step(u32& _rSamplePos)
 {

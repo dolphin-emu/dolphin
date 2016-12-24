@@ -335,7 +335,7 @@ static void EncodeRGBA6(u8* dst, const u8* src, u32 format)
       src += readStride;
 
       u16 val =
-          ((srcColor >> 8) & 0xf800) | ((srcColor >> 7) & 0x07e0) | ((srcColor >> 7) & 0x001e);
+          ((srcColor >> 8) & 0xf800) | ((srcColor >> 7) & 0x07e0) | ((srcColor >> 7) & 0x001f);
       *(u16*)dst = Common::swap16(val);
       dst += 2;
     }
@@ -354,7 +354,7 @@ static void EncodeRGBA6(u8* dst, const u8* src, u32 format)
       u16 val;
       if (alpha == 0x7000)  // 555
         val = 0x8000 | ((srcColor >> 9) & 0x7c00) | ((srcColor >> 8) & 0x03e0) |
-              ((srcColor >> 7) & 0x001e);
+              ((srcColor >> 7) & 0x001f);
       else  // 4443
         val = alpha | ((srcColor >> 12) & 0x0f00) | ((srcColor >> 10) & 0x00f0) |
               ((srcColor >> 8) & 0x000f);
@@ -573,7 +573,7 @@ static void EncodeRGBA6halfscale(u8* dst, const u8* src, u32 format)
       BoxfilterRGBA_to_RGB8(src, &r, &g, &b);
       src += readStride;
 
-      u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001e);
+      u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001f);
       *(u16*)dst = Common::swap16(val);
       dst += 2;
     }
@@ -590,7 +590,7 @@ static void EncodeRGBA6halfscale(u8* dst, const u8* src, u32 format)
 
       u16 val;
       if (a >= 224)  // 5551
-        val = 0x8000 | ((r << 7) & 0x7c00) | ((g << 2) & 0x03e0) | ((b >> 3) & 0x001e);
+        val = 0x8000 | ((r << 7) & 0x7c00) | ((g << 2) & 0x03e0) | ((b >> 3) & 0x001f);
       else  // 4443
         val = ((a << 7) & 0x7000) | ((r << 4) & 0x0f00) | (g & 0x00f0) | ((b >> 4) & 0x000f);
 
@@ -800,7 +800,7 @@ static void EncodeRGB8(u8* dst, const u8* src, u32 format)
     SetSpans(sBlkSize, tBlkSize, &tSpan, &sBlkSpan, &tBlkSpan, &writeStride);
     ENCODE_LOOP_BLOCKS
     {
-      u16 val = ((src[2] << 8) & 0xf800) | ((src[1] << 3) & 0x07e0) | ((src[0] >> 3) & 0x001e);
+      u16 val = ((src[2] << 8) & 0xf800) | ((src[1] << 3) & 0x07e0) | ((src[0] >> 3) & 0x001f);
       *(u16*)dst = Common::swap16(val);
       src += readStride;
       dst += 2;
@@ -814,7 +814,7 @@ static void EncodeRGB8(u8* dst, const u8* src, u32 format)
     ENCODE_LOOP_BLOCKS
     {
       u16 val =
-          0x8000 | ((src[2] << 7) & 0x7c00) | ((src[1] << 2) & 0x03e0) | ((src[0] >> 3) & 0x001e);
+          0x8000 | ((src[2] << 7) & 0x7c00) | ((src[1] << 2) & 0x03e0) | ((src[0] >> 3) & 0x001f);
       *(u16*)dst = Common::swap16(val);
       src += readStride;
       dst += 2;
@@ -1018,7 +1018,7 @@ static void EncodeRGB8halfscale(u8* dst, const u8* src, u32 format)
     ENCODE_LOOP_BLOCKS
     {
       BoxfilterRGB_to_RGB8(src, &r, &g, &b);
-      u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001e);
+      u16 val = ((r << 8) & 0xf800) | ((g << 3) & 0x07e0) | ((b >> 3) & 0x001f);
       *(u16*)dst = Common::swap16(val);
       src += readStride;
       dst += 2;
@@ -1032,7 +1032,7 @@ static void EncodeRGB8halfscale(u8* dst, const u8* src, u32 format)
     ENCODE_LOOP_BLOCKS
     {
       BoxfilterRGB_to_RGB8(src, &r, &g, &b);
-      u16 val = 0x8000 | ((r << 7) & 0x7c00) | ((g << 2) & 0x03e0) | ((b >> 3) & 0x001e);
+      u16 val = 0x8000 | ((r << 7) & 0x7c00) | ((g << 2) & 0x03e0) | ((b >> 3) & 0x001f);
       *(u16*)dst = Common::swap16(val);
       src += readStride;
       dst += 2;

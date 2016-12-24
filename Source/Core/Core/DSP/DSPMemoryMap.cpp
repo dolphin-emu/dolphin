@@ -4,9 +4,12 @@
 // Refer to the license.txt file included.
 
 #include "Core/DSP/DSPMemoryMap.h"
+
+#include "Common/Logging/Log.h"
+
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPHWInterface.h"
-#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/DSPTables.h"
 
 u16 dsp_imem_read(u16 addr)
 {
@@ -60,4 +63,22 @@ void dsp_dmem_write(u16 addr, u16 val)
     ERROR_LOG(DSPLLE, "%04x DSP ERROR: Write to UNKNOWN (%04x) memory", g_dsp.pc, addr);
     break;
   }
+}
+
+u16 dsp_fetch_code()
+{
+  u16 opc = dsp_imem_read(g_dsp.pc);
+
+  g_dsp.pc++;
+  return opc;
+}
+
+u16 dsp_peek_code()
+{
+  return dsp_imem_read(g_dsp.pc);
+}
+
+void dsp_skip_inst()
+{
+  g_dsp.pc += opTable[dsp_peek_code()]->size;
 }

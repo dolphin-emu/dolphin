@@ -137,7 +137,6 @@ bool IsConfigSaved();
 bool IsDualCore();
 bool IsProgressive();
 bool IsPAL60();
-bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
 int GetCPUMode();

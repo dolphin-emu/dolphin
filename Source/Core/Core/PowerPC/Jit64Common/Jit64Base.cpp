@@ -44,8 +44,8 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   if (!IsInSpace(codePtr))
     return false;  // this will become a regular crash real soon after this
 
-  auto it = backPatchInfo.find(codePtr);
-  if (it == backPatchInfo.end())
+  auto it = m_back_patch_info.find(codePtr);
+  if (it == m_back_patch_info.end())
   {
     PanicAlert("BackPatch: no register use entry for address %p", codePtr);
     return false;
@@ -54,10 +54,10 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   TrampolineInfo& info = it->second;
 
   u8* exceptionHandler = nullptr;
-  if (jit->jo.memcheck)
+  if (jo.memcheck)
   {
-    auto it2 = exceptionHandlerAtLoc.find(codePtr);
-    if (it2 != exceptionHandlerAtLoc.end())
+    auto it2 = m_exception_handler_at_loc.find(codePtr);
+    if (it2 != m_exception_handler_at_loc.end())
       exceptionHandler = it2->second;
   }
 
@@ -68,13 +68,13 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   // into the original code if necessary to ensure there is enough space
   // to insert the backpatch jump.)
 
-  jit->js.generatingTrampoline = true;
-  jit->js.trampolineExceptionHandler = exceptionHandler;
+  js.generatingTrampoline = true;
+  js.trampolineExceptionHandler = exceptionHandler;
 
   // Generate the trampoline.
   const u8* trampoline = trampolines.GenerateTrampoline(info);
-  jit->js.generatingTrampoline = false;
-  jit->js.trampolineExceptionHandler = nullptr;
+  js.generatingTrampoline = false;
+  js.trampolineExceptionHandler = nullptr;
 
   u8* start = info.start;
 

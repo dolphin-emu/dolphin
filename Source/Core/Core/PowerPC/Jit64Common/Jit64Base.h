@@ -32,6 +32,8 @@ constexpr Gen::X64Reg RMEM = Gen::RBX;
 // to address as much as possible in a one-byte offset form.
 constexpr Gen::X64Reg RPPCSTATE = Gen::RBP;
 
+constexpr int CODE_SIZE = 1024 * 1024 * 32;
+
 class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
 {
 protected:

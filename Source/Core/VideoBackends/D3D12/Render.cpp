@@ -794,11 +794,11 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   OSD::DrawMessages();
   D3D::EndFrame();
 
-  TextureCacheBase::Cleanup(frameCount);
+  g_texture_cache->Cleanup(frameCount);
 
   // Enable configuration changes
   UpdateActiveConfig();
-  TextureCacheBase::OnConfigChanged(g_ActiveConfig);
+  g_texture_cache->OnConfigChanged(g_ActiveConfig);
 
   SetWindowSize(fb_stride, fb_height);
 

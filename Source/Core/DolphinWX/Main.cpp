@@ -18,6 +18,7 @@
 #include <wx/msgdlg.h>
 #include <wx/thread.h>
 #include <wx/timer.h>
+#include <wx/tooltip.h>
 #include <wx/utils.h>
 #include <wx/window.h>
 
@@ -110,6 +111,8 @@ bool DolphinApp::OnInit()
 
   DolphinAnalytics::Instance()->ReportDolphinStart("wx");
 
+  wxToolTip::Enable(!SConfig::GetInstance().m_DisableTooltips);
+
   // Enable the PNG image handler for screenshots
   wxImage::AddHandler(new wxPNGHandler);
 
@@ -137,8 +140,8 @@ void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
       {wxCMD_LINE_SWITCH, "l", "logger", "Opens the logger", wxCMD_LINE_VAL_NONE,
        wxCMD_LINE_PARAM_OPTIONAL},
       {wxCMD_LINE_OPTION, "e", "exec",
-       "Loads the specified file (ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD)", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
+       "Loads the specified file (ELF, DOL, GCM, ISO, TGC, WBFS, CISO, GCZ, WAD)",
+       wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
       {wxCMD_LINE_SWITCH, "b", "batch", "Exit Dolphin with emulator", wxCMD_LINE_VAL_NONE,
        wxCMD_LINE_PARAM_OPTIONAL},
       {wxCMD_LINE_OPTION, "c", "confirm", "Set Confirm on Stop", wxCMD_LINE_VAL_STRING,
