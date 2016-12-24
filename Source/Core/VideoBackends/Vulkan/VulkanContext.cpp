@@ -4,6 +4,10 @@
 
 #include <algorithm>
 
+#if HAVE_GLFW
+#include <GLFW/glfw3.h>
+#endif
+
 #include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
@@ -172,6 +176,21 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool
     return true;
   };
 
+#if HAVE_GLFW
+
+  u32 required_extension_count = 0;
+  const char** required_extensions = glfwGetRequiredInstanceExtensions(&required_extension_count);
+  if (enable_surface && !required_extensions)
+    return false;
+
+  // These extensions will generally be VK_KHR_SURFACE and VK_KHR_<platform>_SURFACE.
+  for (unsigned i = 0; i < required_extension_count; ++i)
+  {
+    if (enable_surface && !CheckForExtension(required_extensions[i], true))
+      return false;
+  }
+
+#else
   // Common extensions
   if (enable_surface && !CheckForExtension(VK_KHR_SURFACE_EXTENSION_NAME, true))
   {
@@ -190,6 +209,7 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool
 #elif defined(VK_USE_PLATFORM_ANDROID_KHR)
   if (enable_surface && !CheckForExtension(VK_KHR_ANDROID_SURFACE_EXTENSION_NAME, true))
     return false;
+#endif
 #endif
 
   // VK_EXT_debug_report

@@ -11,7 +11,9 @@
 
 #include "VideoBackends/Vulkan/VulkanLoader.h"
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
+#if HAVE_GLFW
+#include <GLFW/glfw3.h>
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
 #include <Windows.h>
 #elif defined(VK_USE_PLATFORM_XLIB_KHR) || defined(VK_USE_PLATFORM_XCB_KHR) ||                     \
     defined(VK_USE_PLATFORM_ANDROID_KHR)
@@ -39,7 +41,57 @@ static void ResetVulkanLibraryFunctionPointers()
 #undef VULKAN_MODULE_ENTRY_POINT
 }
 
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
+#if HAVE_GLFW
+
+static std::atomic_int vulkan_module_ref_count = {0};
+
+bool LoadVulkanLibrary()
+{
+  // XXX: is this a good test?
+  if (vkCreateInstance)
+  {
+    vulkan_module_ref_count++;
+    return true;
+  }
+
+  if (!glfwVulkanSupported())
+    return false;
+
+  bool required_functions_missing = false;
+  auto LoadFunction = [&](void** func_ptr, const char* name, bool is_required) {
+    *func_ptr = reinterpret_cast<void*>(glfwGetInstanceProcAddress(nullptr, name));
+    WARN_LOG(VIDEO, "VulkanGLFW: Loading function %s, got %p", name, *func_ptr);
+    if (!(*func_ptr) && is_required)
+    {
+      ERROR_LOG(VIDEO, "Vulkan: Failed to load required module function %s", name);
+      required_functions_missing = true;
+    }
+  };
+
+#define VULKAN_MODULE_ENTRY_POINT(name, required)                                                  \
+  LoadFunction(reinterpret_cast<void**>(&name), #name, required);
+#include "VideoBackends/Vulkan/VulkanEntryPoints.inl"
+#undef VULKAN_MODULE_ENTRY_POINT
+
+  if (required_functions_missing)
+  {
+    ResetVulkanLibraryFunctionPointers();
+    return false;
+  }
+
+  vulkan_module_ref_count++;
+  return true;
+}
+
+void UnloadVulkanLibrary()
+{
+  if ((--vulkan_module_ref_count) > 0)
+    return;
+
+  ResetVulkanLibraryFunctionPointers();
+}
+
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
 
 static HMODULE vulkan_module;
 static std::atomic_int vulkan_module_ref_count = {0};
