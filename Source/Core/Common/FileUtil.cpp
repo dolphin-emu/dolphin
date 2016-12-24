@@ -464,14 +464,12 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   {
     const std::string virtual_name(TStrToUTF8(ffd.cFileName));
 #else
-  struct dirent dirent, *result = nullptr;
-
   DIR* dirp = opendir(directory.c_str());
   if (!dirp)
     return parent_entry;
 
   // non Windows loop
-  while (!readdir_r(dirp, &dirent, &result) && result)
+  while (dirent* result = readdir(dirp))
   {
     const std::string virtual_name(result->d_name);
 #endif
@@ -531,13 +529,12 @@ bool DeleteDirRecursively(const std::string& directory)
   {
     const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
-  struct dirent dirent, *result = nullptr;
   DIR* dirp = opendir(directory.c_str());
   if (!dirp)
     return false;
 
   // non Windows loop
-  while (!readdir_r(dirp, &dirent, &result) && result)
+  while (dirent* result = readdir(dirp))
   {
     const std::string virtualName = result->d_name;
 #endif
@@ -602,12 +599,11 @@ void CopyDir(const std::string& source_path, const std::string& dest_path)
   {
     const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
-  struct dirent dirent, *result = nullptr;
   DIR* dirp = opendir(source_path.c_str());
   if (!dirp)
     return;
 
-  while (!readdir_r(dirp, &dirent, &result) && result)
+  while (dirent* result = readdir(dirp))
   {
     const std::string virtualName(result->d_name);
 #endif
