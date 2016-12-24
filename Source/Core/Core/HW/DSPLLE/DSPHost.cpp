@@ -9,6 +9,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
+#include "Core/DSP/Jit/DSPEmitter.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPLLE/DSPLLETools.h"
 #include "Core/HW/DSPLLE/DSPSymbols.h"

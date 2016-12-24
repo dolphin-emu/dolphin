@@ -6,9 +6,8 @@
 
 // HELPER FUNCTIONS
 
-#include "Core/DSP/DSPIntCCUtil.h"
+#include "Core/DSP/Interpreter/DSPIntCCUtil.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPInterpreter.h"
 
 namespace DSPInterpreter
 {

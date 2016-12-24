@@ -264,10 +264,11 @@ static void BPWritten(const BPCmd& bp)
       // (Zbuffer uses 24-bit Format)
       if (g_ActiveConfig.bEFBCopyEnable)
       {
-        TextureCacheBase::CopyRenderTargetToTexture(
+        g_texture_cache->CopyRenderTargetToTexture(
             destAddr, PE_copy.tp_realFormat(), destStride, bpmem.zcontrol.pixel_format, gameSrcRect,
             ourSrcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale);
       }
+
     }
     else
     {

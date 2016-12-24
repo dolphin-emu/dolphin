@@ -14,8 +14,8 @@
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
 
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(settings)
 {

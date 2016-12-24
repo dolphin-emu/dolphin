@@ -3,7 +3,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/DSP/DSPInterpreter.h"
+#include "Core/DSP/Interpreter/DSPInterpreter.h"
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"

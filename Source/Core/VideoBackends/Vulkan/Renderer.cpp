@@ -569,7 +569,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   CheckForTargetResize(fb_width, fb_stride, fb_height);
 
   // Clean up stale textures.
-  TextureCacheBase::Cleanup(frameCount);
+  TextureCache::GetInstance()->Cleanup(frameCount);
 }
 
 void Renderer::DrawFrame(VkRenderPass render_pass, const TargetRectangle& target_rect,
@@ -1122,7 +1122,7 @@ void Renderer::CheckForConfigChanges()
   bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
 
   // Update texture cache settings with any changed options.
-  TextureCache::OnConfigChanged(g_ActiveConfig);
+  TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);
 
   // Handle internal resolution changes.
   if (efb_scale_changed)

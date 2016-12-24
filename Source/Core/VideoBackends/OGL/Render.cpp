@@ -2051,7 +2051,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   }
 
   // Clean out old stuff from caches. It's not worth it to clean out the shader caches.
-  TextureCache::Cleanup(frameCount);
+  g_texture_cache->Cleanup(frameCount);
 
   if (g_has_hmd)
   {
@@ -2110,7 +2110,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     // always stretch to fit
     g_ActiveConfig.iAspectRatio = 3;
   }
-  TextureCache::OnConfigChanged(g_ActiveConfig);
+  g_texture_cache->OnConfigChanged(g_ActiveConfig);
   if (g_has_hmd && g_ActiveConfig.bEnableVR && !g_ActiveConfig.bAsynchronousTimewarp)
   {
     VR_BeginFrame();

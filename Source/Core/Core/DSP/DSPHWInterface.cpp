@@ -3,18 +3,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/DSP/DSPHWInterface.h"
+
 #include "Common/CPUDetect.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Intrinsics.h"
+#include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
-#include "Common/Thread.h"
 
 #include "Core/DSP/DSPAccelerator.h"
-#include "Core/DSP/DSPAnalyzer.h"
 #include "Core/DSP/DSPCore.h"
-#include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPHost.h"
-#include "Core/DSP/DSPInterpreter.h"
 #include "Core/DSP/DSPTables.h"
 
 static void gdsp_do_dma();
