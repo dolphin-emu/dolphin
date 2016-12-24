@@ -48,7 +48,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ControllerEmu.h" />
-    <ClCompile Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />
     <ClInclude Include="InputConfig.h" />
     <ClInclude Include="ControllerInterface\DInput\DInput.h">
@@ -81,6 +80,7 @@
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h">
       <Filter>ControllerInterface\DInput</Filter>
     </ClInclude>
+    <ClInclude Include="GCAdapter.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

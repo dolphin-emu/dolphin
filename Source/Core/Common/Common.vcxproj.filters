@@ -227,6 +227,7 @@
     <ClInclude Include="NonCopyable.h" />
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="Semaphore.h" />
+    <ClInclude Include="MD5.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="BreakPoints.cpp" />
@@ -287,6 +288,7 @@
     </ClCompile>
     <ClCompile Include="ucrtFreadWorkaround.cpp" />
     <ClCompile Include="Analytics.cpp" />
+    <ClCompile Include="MD5.cpp" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />
