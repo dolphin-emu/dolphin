@@ -12,7 +12,7 @@ else()
 	set(DOLPHIN_EXE dolphin-emu-nogui)
 endif()
 
-if(USE_X11 OR ENABLE_HEADLESS)
+if(USE_GLFW OR USE_X11 OR ENABLE_HEADLESS)
 	add_executable(${DOLPHIN_EXE} ${SRCS} ${NOGUI_SRCS})
 	target_link_libraries(${DOLPHIN_EXE} ${LIBS})
 	set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})

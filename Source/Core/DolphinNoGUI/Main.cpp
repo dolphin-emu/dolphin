@@ -149,6 +149,8 @@ void Host_YieldToUI()
 
 #if defined(USE_EGL) && defined(USE_HEADLESS)
 #include "DolphinNoGUI/Headless.h"
+#elif HAVE_GLFW
+#include "DolphinNoGUI/GLFW.h"
 #elif HAVE_X11
 #include "DolphinNoGUI/X11.h"
 #endif
@@ -157,6 +159,8 @@ static Platform* GetPlatform()
 {
 #if defined(USE_EGL) && defined(USE_HEADLESS)
   return new PlatformHeadless();
+#elif HAVE_GLFW
+  return new PlatformGLFW();
 #elif HAVE_X11
   return new PlatformX11();
 #endif
