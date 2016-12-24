@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-17 15:58+0100\n"
-"PO-Revision-Date: 2016-12-10 12:05+0000\n"
+"POT-Creation-Date: 2016-12-24 15:59+0100\n"
+"PO-Revision-Date: 2016-12-24 14:59+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Romanian (Romania) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/ro_RO/)\n"
@@ -65,7 +65,7 @@ msgstr ""
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:859
+#: Source/Core/Core/ConfigManager.cpp:862
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" este un fișier invalid GCM/ISO, sau nu este un ISO GC/Wii."
@@ -279,11 +279,11 @@ msgstr ""
 msgid "&Debug"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1003
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1006
 msgid "&Delete File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1027
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1030
 msgid "&Delete selected ISOs..."
 msgstr "&Șterge ISO selectate..."
 
@@ -456,7 +456,7 @@ msgstr ""
 msgid "&Profiler"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:984
+#: Source/Core/DolphinWX/GameListCtrl.cpp:987
 msgid "&Properties"
 msgstr "&Proprietăți"
 
@@ -534,7 +534,7 @@ msgstr ""
 msgid "&Website"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:985
+#: Source/Core/DolphinWX/GameListCtrl.cpp:988
 msgid "&Wiki"
 msgstr "&Wiki"
 
@@ -656,7 +656,7 @@ msgstr ""
 msgid "A game is not currently running."
 msgstr "Un joc nu rulează momentan."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:807
+#: Source/Core/DolphinWX/FrameTools.cpp:809
 msgid ""
 "A shutdown is already in progress. Unsaved data may be lost if you stop the "
 "current emulation before it completes. Force stop?"
@@ -892,23 +892,23 @@ msgstr "Configurări Avansate"
 
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:44
 #: Source/Core/DolphinWX/FrameTools.cpp:335
-msgid "All GC/Wii files (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
-msgstr "Toate fișierele GC/Wii (elf, dol, gcm, iso, wbfs, ciso, gcz, wad)"
+msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
+msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1342
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1345
 msgid "All GameCube GCM files (gcm)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1278
-#: Source/Core/DolphinWX/FrameTools.cpp:1290
+#: Source/Core/DolphinWX/FrameTools.cpp:1280
+#: Source/Core/DolphinWX/FrameTools.cpp:1292
 msgid "All Save States (sav, s##)"
 msgstr "Toate Statusurile Salvate (sav, s##)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1340
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1343
 msgid "All Wii ISO files (iso)"
 msgstr "Toate fișierele Wii ISO (iso)"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1355
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1358
 msgid "All compressed GC/Wii ISO files (gcz)"
 msgstr "Toate fișierele comprimate GC/Wii ISO (gcz)"
 
@@ -947,7 +947,7 @@ msgstr "Filtrare Anizotropă:"
 msgid "Anti-Aliasing:"
 msgstr "Antialias:"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:335
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:338
 msgid "Append signature to"
 msgstr ""
 
@@ -987,8 +987,8 @@ msgstr ""
 "\n"
 "Dacă nu ești sigur, selectează (oprit)."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:269
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:353
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:273
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:355
 msgid "Apply signature file"
 msgstr ""
 
@@ -997,11 +997,11 @@ msgstr ""
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Ești sigur ca vrei sa ștergi \"%s\"?"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1137
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1140
 msgid "Are you sure you want to delete these files? They will be gone forever!"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1136
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1139
 msgid "Are you sure you want to delete this file? It will be gone forever!"
 msgstr ""
 
@@ -1222,7 +1222,7 @@ msgstr ""
 msgid "Break and log"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:392
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:402
 msgid "Breakpoint encountered! Step out aborted."
 msgstr ""
 
@@ -1242,7 +1242,7 @@ msgstr "Defect"
 msgid "Browse for a directory to add"
 msgstr "Răsfoiește pentru a adăuga un director"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1243
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1246
 msgid "Browse for output directory"
 msgstr "Răsfoiește pentru un director de ieșire"
 
@@ -1316,7 +1316,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:93
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:98
 msgid "Callstack"
 msgstr ""
 
@@ -1354,7 +1354,7 @@ msgstr "Caps Lock"
 msgid "Center"
 msgstr "Centru"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1012
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1015
 msgid "Change &Disc"
 msgstr ""
 
@@ -1455,7 +1455,7 @@ msgstr ""
 "Alege un fișier pentru a-l folosi ca apploader: (se aplică la discurile "
 "construite numai din directoare)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:369
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:370
 msgid "Choose priority input file"
 msgstr ""
 
@@ -1524,7 +1524,7 @@ msgstr "Închide"
 msgid "Co&nfigure..."
 msgstr "Co&nfigurează..."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.h:81
+#: Source/Core/DolphinWX/Debugger/CodeWindow.h:82
 msgid "Code"
 msgstr ""
 
@@ -1552,20 +1552,20 @@ msgstr "Comandă"
 msgid "Comment"
 msgstr "Notă"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1010
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1013
 msgid "Compress ISO..."
 msgstr "Comprimare ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1029
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1032
 msgid "Compress selected ISOs..."
 msgstr "Comprimare ISO selectate..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1252
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1370
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1255
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1373
 msgid "Compressing ISO"
 msgstr "Se comprimă ISO"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1457
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1460
 msgid ""
 "Compressing a Wii disc image will irreversibly change the compressed copy by "
 "removing padding data. Your disc image will still work. Continue?"
@@ -1617,9 +1617,9 @@ msgstr ""
 msgid "Configure..."
 msgstr "Configurare..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1275
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1300
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1365
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1278
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1303
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1368
 msgid "Confirm File Overwrite"
 msgstr "Confirmă Înlocuirea Fișierului"
 
@@ -1666,7 +1666,7 @@ msgstr ""
 msgid "Connect Wii Remotes"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:487
+#: Source/Core/DolphinWX/Main.cpp:490
 msgid "Connecting..."
 msgstr "Se conectează..."
 
@@ -1755,7 +1755,7 @@ msgstr ""
 msgid "Copy &hex"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1056
+#: Source/Core/Core/ConfigManager.cpp:1059
 msgid "Copy failed"
 msgstr "Copiere eșuată"
 
@@ -1773,7 +1773,7 @@ msgstr "Nucleu"
 msgid "Cost"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:853
+#: Source/Core/Core/ConfigManager.cpp:856
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1781,7 +1781,7 @@ msgid ""
 "original GameCube and Wii discs."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:968
+#: Source/Core/Core/ConfigManager.cpp:971
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Nu s-a putut recunoaște fișierul ISO %s"
@@ -1905,7 +1905,7 @@ msgstr ""
 msgid "Crossfade"
 msgstr "Estompare Intercalată"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:347
+#: Source/Core/DolphinWX/FrameTools.cpp:348
 #, c-format
 msgid "Current directory changed from %s to %s after wxFileSelector!"
 msgstr "Director curent s-a modificat, din %s în %s după wxSelectorFișier!"
@@ -1999,16 +1999,16 @@ msgstr "Depanare"
 msgid "Decimal"
 msgstr "Zecimal"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1008
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1011
 msgid "Decompress ISO..."
 msgstr "Decomprimare ISO..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1030
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1033
 msgid "Decompress selected ISOs..."
 msgstr "Decomprimare ISO selectate..."
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1252
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1370
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1255
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1373
 msgid "Decompressing ISO"
 msgstr "Se decomprimă ISO"
 
@@ -2182,11 +2182,11 @@ msgstr ""
 msgid "Divide"
 msgstr "Divizează"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:173
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:177
 msgid "Do you want to clear the list of symbol names?"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:806
+#: Source/Core/DolphinWX/FrameTools.cpp:808
 msgid "Do you want to stop the current emulation?"
 msgstr "Vrei să oprești emularea curentă?"
 
@@ -2195,7 +2195,7 @@ msgid "Dolby Pro Logic II decoder"
 msgstr "Decodor Dolby Pro Logic II"
 
 #: Source/Core/DolphinWX/AboutDolphin.cpp:26
-#: Source/Core/DolphinWX/FrameTools.cpp:648
+#: Source/Core/DolphinWX/FrameTools.cpp:649
 msgid "Dolphin"
 msgstr "Dolphin"
 
@@ -2217,13 +2217,13 @@ msgstr ""
 msgid "Dolphin FIFO"
 msgstr "FIFO Dolphin"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1010
+#: Source/Core/DolphinWX/FrameTools.cpp:1012
 msgid "Dolphin Hotkeys"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:220
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:236
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:255
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:224
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:240
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:259
 msgid "Dolphin Map File (*.map)"
 msgstr ""
 
@@ -2235,21 +2235,20 @@ msgstr ""
 msgid "Dolphin NetPlay Setup"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:311
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:336
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:354
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:370
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:377
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:385
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:165
+msgid "Dolphin Signature CSV File (*.csv)"
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:164
 msgid "Dolphin Signature File (*.dsy)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:270
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:274
 msgid "Dolphin Symbol Rename File (*.sym)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:480
-#: Source/Core/DolphinWX/FrameTools.cpp:945
+#: Source/Core/DolphinWX/FrameTools.cpp:481
+#: Source/Core/DolphinWX/FrameTools.cpp:947
 msgid "Dolphin TAS Movies (*.dtm)"
 msgstr " Filme TAS Dolphin (*.dtm)"
 
@@ -2269,8 +2268,8 @@ msgstr ""
 msgid "Dolphin is too old for traversal server"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1312
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1385
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1315
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1388
 msgid "Dolphin was unable to complete the requested action."
 msgstr "Dolphin nu a putut să finalizeze acțiunea solicitată."
 
@@ -2724,14 +2723,14 @@ msgstr "Egal"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:67
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:43
-#: Source/Core/DolphinWX/Main.cpp:306 Source/Core/DolphinWX/Main.cpp:314
+#: Source/Core/DolphinWX/Main.cpp:309 Source/Core/DolphinWX/Main.cpp:317
 #: Source/Core/DolphinWX/MemcardManager.cpp:566
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:242
 #: Source/Core/DolphinWX/WxUtils.cpp:70
 msgid "Error"
 msgstr "Eroare"
 
-#: Source/Core/DolphinWX/Main.cpp:305
+#: Source/Core/DolphinWX/Main.cpp:308
 msgid "Error loading selected language. Falling back to system default."
 msgstr ""
 "Eroare la încărcarea limbii selectate. Se revine la configurările implicite "
@@ -2795,7 +2794,7 @@ msgstr "Export Înregistrare..."
 msgid "Export Save"
 msgstr "Export Salvare"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:991
+#: Source/Core/DolphinWX/GameListCtrl.cpp:994
 msgid "Export Wii save (Experimental)"
 msgstr "Export salvări Wii (Experimental)"
 
@@ -3091,6 +3090,10 @@ msgstr "Sistem de fișiere"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "Tipul de fişier 'ini' este necunoscut! Nu se va deschide!"
 
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:83
+msgid "Filter Symbols"
+msgstr ""
+
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:162
 msgid ""
 "Filter all textures, including any that the game explicitly set as "
@@ -3099,6 +3102,10 @@ msgid ""
 "in others.\n"
 "\n"
 "If unsure, leave this unchecked."
+msgstr ""
+
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:84
+msgid "Filter the symbol list by name. This is case-sensitive."
 msgstr ""
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:232
@@ -3349,11 +3356,11 @@ msgstr ""
 msgid "Function"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:111
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:116
 msgid "Function callers"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:105
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:110
 msgid "Function calls"
 msgstr ""
 
@@ -3630,7 +3637,7 @@ msgid ""
 "Please recheck that you have the correct code"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1019
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1022
 msgid "Host with Netplay"
 msgstr ""
 
@@ -3705,7 +3712,7 @@ msgstr "Pictogramă"
 msgid "Identity generation"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:203
+#: Source/Core/DolphinWX/Main.cpp:206
 msgid ""
 "If authorized, Dolphin can collect data on its performance, feature usage, "
 "and configuration, as well as data on your system's hardware and operating "
@@ -3836,11 +3843,11 @@ msgstr "Introdu Card SD"
 msgid "Install WAD..."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1017
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1020
 msgid "Install to Wii Menu"
 msgstr "Instalează în Meniul Wii"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1189
+#: Source/Core/DolphinWX/FrameTools.cpp:1191
 msgid "Installing WAD..."
 msgstr "Se instalează WAD..."
 
@@ -4237,12 +4244,12 @@ msgstr ""
 msgid "Load State..."
 msgstr "Se încarcă Statusul..."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1217
+#: Source/Core/DolphinWX/FrameTools.cpp:1219
 #: Source/Core/DolphinWX/MainMenuBar.cpp:557
 msgid "Load Wii System Menu"
 msgstr "Încărcare Meniu Sistem Wii"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1212
+#: Source/Core/DolphinWX/FrameTools.cpp:1214
 #, c-format
 msgid "Load Wii System Menu %d%c"
 msgstr "Încărcare Meniu Sistem Wii %d%c"
@@ -4257,7 +4264,7 @@ msgid ""
 "Load any .map file containing the function names and addresses for this game."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:235
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:239
 msgid "Load bad map file"
 msgstr ""
 
@@ -4272,7 +4279,7 @@ msgstr ""
 msgid "Load from selected slot"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:219
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:223
 msgid "Load map file"
 msgstr ""
 
@@ -4418,7 +4425,7 @@ msgstr "Card de memorie"
 msgid "Memory Card Manager"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1048
+#: Source/Core/Core/ConfigManager.cpp:1051
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4725,7 +4732,7 @@ msgstr "Nimic"
 msgid "Not Equal"
 msgstr "Diferit"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:916
+#: Source/Core/DolphinWX/GameListCtrl.cpp:919
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:289
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:331
 msgid "Not Set"
@@ -4739,7 +4746,7 @@ msgstr ""
 msgid "Not all players have the game. Do you really want to start?"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:484
+#: Source/Core/DolphinWX/Main.cpp:487
 msgid "Not connected"
 msgstr "Neconectat"
 
@@ -4834,14 +4841,14 @@ msgstr "&Documentație Online"
 msgid "Only %d blocks available"
 msgstr "Doar %d blocuri disponibile"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:303
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:327
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:307
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:330
 msgid ""
 "Only export symbols with prefix:\n"
 "(Blank for all symbols)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:535
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:545
 msgid "Op?"
 msgstr ""
 
@@ -4850,11 +4857,11 @@ msgstr ""
 msgid "Open"
 msgstr "Deschide"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:993
+#: Source/Core/DolphinWX/GameListCtrl.cpp:996
 msgid "Open &containing folder"
 msgstr "Deschide &conținutul dosarului"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:990
+#: Source/Core/DolphinWX/GameListCtrl.cpp:993
 msgid "Open Wii &save folder"
 msgstr "Deschide dosarul Wii &salvat "
 
@@ -5074,7 +5081,7 @@ msgstr "Opțiuni de Rulare"
 msgid "Players"
 msgstr "Playere"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:810
+#: Source/Core/DolphinWX/FrameTools.cpp:812
 msgid "Please confirm..."
 msgstr "Te rugăm să confirmi..."
 
@@ -5514,11 +5521,11 @@ msgstr ""
 msgid "Save as..."
 msgstr "Salvează ca..."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:384
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:383
 msgid "Save combined output file as"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1353
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1356
 msgid "Save compressed GCM/ISO"
 msgstr "Salvare GCM/ISO comprimat"
 
@@ -5526,15 +5533,15 @@ msgstr "Salvare GCM/ISO comprimat"
 msgid "Save currently-toggled perspectives"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1344
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1347
 msgid "Save decompressed GCM/ISO"
 msgstr "Salvare GCM/ISO decomprimat"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:254
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:258
 msgid "Save map file as"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:310
+#: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:314
 msgid "Save signature as"
 msgstr ""
 
@@ -5585,16 +5592,16 @@ msgstr ""
 msgid "Scaled EFB Copy"
 msgstr "Copie EFB Scalată"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:602
+#: Source/Core/DolphinWX/GameListCtrl.cpp:605
 #, c-format
 msgid "Scanning %s"
 msgstr "Se scanează %s"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:591
+#: Source/Core/DolphinWX/GameListCtrl.cpp:594
 msgid "Scanning for ISOs"
 msgstr "Se scanează pentru ISO"
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:591
+#: Source/Core/DolphinWX/GameListCtrl.cpp:594
 msgid "Scanning..."
 msgstr "Scanez..."
 
@@ -5707,12 +5714,12 @@ msgstr ""
 msgid "Select State Slot 9"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:479
-#: Source/Core/DolphinWX/FrameTools.cpp:944
+#: Source/Core/DolphinWX/FrameTools.cpp:480
+#: Source/Core/DolphinWX/FrameTools.cpp:946
 msgid "Select The Recording File"
 msgstr "Selectează Fișierul de Înregistrare"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1179
+#: Source/Core/DolphinWX/FrameTools.cpp:1181
 msgid "Select a Wii WAD file to install"
 msgstr "Selectează un fişier WAD Wii pentru instalare"
 
@@ -5728,15 +5735,15 @@ msgstr "Selectează ferestre flotante"
 msgid "Select the file to load"
 msgstr "Selectează fișierul de încărcat."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1141
+#: Source/Core/DolphinWX/FrameTools.cpp:1143
 msgid "Select the save file"
 msgstr "Selectează fișierul salvat"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1277
+#: Source/Core/DolphinWX/FrameTools.cpp:1279
 msgid "Select the state to load"
 msgstr "Selectează statusul de încărcat."
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1289
+#: Source/Core/DolphinWX/FrameTools.cpp:1291
 msgid "Select the state to save"
 msgstr "Selectează statusul de salvat."
 
@@ -5837,7 +5844,7 @@ msgstr ""
 msgid "Set Value"
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:996
+#: Source/Core/DolphinWX/GameListCtrl.cpp:999
 msgid "Set as &default ISO"
 msgstr "Stabilește ca șablon ISO &implicit"
 
@@ -6311,15 +6318,15 @@ msgstr ""
 msgid "Step out of the current function"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:396
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:406
 msgid "Step out successful!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:394
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:404
 msgid "Step out timed out!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:321
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:331
 msgid "Step over in progress..."
 msgstr ""
 
@@ -6327,7 +6334,7 @@ msgstr ""
 msgid "Step over the next instruction"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:306
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:316
 msgid "Step successful!"
 msgstr ""
 
@@ -6421,7 +6428,7 @@ msgstr "Balans"
 msgid "Symbol"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:99
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:104
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:95
 msgid "Symbols"
 msgstr ""
@@ -6465,12 +6472,12 @@ msgstr "Limbă Sistem"
 msgid "TAS Input"
 msgstr "Intrare TAS"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:377
+#: Source/Core/DolphinWX/FrameTools.cpp:378
 #, c-format
 msgid "TAS Input - Controller %d"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:385
+#: Source/Core/DolphinWX/FrameTools.cpp:386
 #, c-format
 msgid "TAS Input - Wii Remote %d"
 msgstr ""
@@ -6541,7 +6548,7 @@ msgid ""
 "If unsure, use the rightmost value."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:928
+#: Source/Core/Core/ConfigManager.cpp:931
 msgid "The WAD has been installed successfully"
 msgstr "WAD a fost instalat cu succes"
 
@@ -6590,9 +6597,9 @@ msgstr ""
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr ""
 
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1273
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1298
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1363
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1276
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1301
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1366
 #, c-format
 msgid ""
 "The file %s already exists.\n"
@@ -6636,7 +6643,7 @@ msgstr "Rezultatul codului AR decriptat nu conține nici o linie."
 msgid "The save you are trying to copy has an invalid file size."
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:313
+#: Source/Core/DolphinWX/Main.cpp:316
 msgid ""
 "The selected language is not supported by your system. Falling back to "
 "system default."
@@ -6660,7 +6667,7 @@ msgstr "Serverul a răspuns: jocul rulează în prezent!"
 msgid "The server sent an unknown error message!"
 msgstr "Serverul a trimis un mesaj de eroare necunoscut!"
 
-#: Source/Core/Core/ConfigManager.cpp:838
+#: Source/Core/Core/ConfigManager.cpp:840
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Fișierul specificat \"%s\" nu există."
@@ -7063,7 +7070,7 @@ msgstr ""
 msgid "Usage Statistics Reporting Settings"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:214
+#: Source/Core/DolphinWX/Main.cpp:217
 msgid "Usage statistics reporting"
 msgstr ""
 
@@ -7252,8 +7259,8 @@ msgstr ""
 "Dacă nu ești sigur, lasă debifat."
 
 #: Source/Core/Common/MsgHandler.cpp:63
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1139
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1459
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1142
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1462
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
 #: Source/Core/DolphinWX/MemcardManager.cpp:599
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:358
@@ -7396,7 +7403,7 @@ msgstr ""
 msgid "Wii Remote %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:490
+#: Source/Core/DolphinWX/Main.cpp:493
 msgid "Wii Remote Connected"
 msgstr ""
 
@@ -7412,11 +7419,11 @@ msgstr ""
 msgid "Wii Remotes"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1180
+#: Source/Core/DolphinWX/FrameTools.cpp:1182
 msgid "Wii WAD files (*.wad)"
 msgstr ""
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1142
+#: Source/Core/DolphinWX/FrameTools.cpp:1144
 msgid "Wii save files (*.bin)"
 msgstr ""
 
@@ -7451,9 +7458,9 @@ msgstr ""
 msgid "Word Wrap"
 msgstr "Încadrare Cuvânt"
 
-#: Source/Core/DolphinWX/FrameTools.cpp:1189
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1252
-#: Source/Core/DolphinWX/GameListCtrl.cpp:1371
+#: Source/Core/DolphinWX/FrameTools.cpp:1191
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1255
+#: Source/Core/DolphinWX/GameListCtrl.cpp:1374
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
 msgid "Working..."
@@ -7542,7 +7549,7 @@ msgstr ""
 "Dorești să oprești acum pentru a rezolva problema?\n"
 "Dacă selectezi \"Nu\", semnalul audio ar putea fi distorsionat."
 
-#: Source/Core/Core/ConfigManager.cpp:873
+#: Source/Core/Core/ConfigManager.cpp:876
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
