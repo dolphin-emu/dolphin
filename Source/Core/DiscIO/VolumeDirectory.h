@@ -85,8 +85,8 @@ private:
   // FST creation
   void WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u64 length);
   void WriteEntryName(u32& nameOffset, const std::string& name);
-  void WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset,
-                  u32 parentEntryNum);
+  void WriteDirectory(const File::FSTEntry& parent_entry, u32& fstOffset, u32& nameOffset,
+                      u64& dataOffset, u32 parentEntryNum);
 
   std::string m_rootDirectory;
 
