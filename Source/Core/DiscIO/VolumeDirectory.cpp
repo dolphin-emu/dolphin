@@ -363,10 +363,7 @@ void CVolumeDirectory::BuildFST()
   // write root entry
   WriteEntryData(fstOffset, DIRECTORY_ENTRY, 0, 0, totalEntries);
 
-  for (auto& entry : rootEntry.children)
-  {
-    WriteEntry(entry, fstOffset, nameOffset, curDataAddress, rootOffset);
-  }
+  WriteDirectory(rootEntry, fstOffset, nameOffset, curDataAddress, rootOffset);
 
   // overflow check
   _dbg_assert_(DVDINTERFACE, nameOffset == m_totalNameSize);
@@ -443,34 +440,41 @@ void CVolumeDirectory::WriteEntryName(u32& nameOffset, const std::string& name)
   nameOffset += (u32)(name.length() + 1);
 }
 
-void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset,
-                                  u64& dataOffset, u32 parentEntryNum)
+void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32& fstOffset,
+                                      u32& nameOffset, u64& dataOffset, u32 parentEntryNum)
 {
-  if (entry.isDirectory)
-  {
-    u32 myOffset = fstOffset;
-    u32 myEntryNum = myOffset / ENTRY_SIZE;
-    WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum,
-                   myEntryNum + entry.size + 1);
-    WriteEntryName(nameOffset, entry.virtualName);
+  std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
 
-    for (const auto& child : entry.children)
+  std::sort(sorted_entries.begin(), sorted_entries.end(),
+            [](const File::FSTEntry& one, const File::FSTEntry& two) {
+              return one.virtualName < two.virtualName;
+            });
+
+  for (const File::FSTEntry& entry : sorted_entries)
+  {
+    if (entry.isDirectory)
     {
-      WriteEntry(child, fstOffset, nameOffset, dataOffset, myEntryNum);
+      u32 myOffset = fstOffset;
+      u32 myEntryNum = myOffset / ENTRY_SIZE;
+      WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum,
+                     myEntryNum + entry.size + 1);
+      WriteEntryName(nameOffset, entry.virtualName);
+
+      WriteDirectory(entry, fstOffset, nameOffset, dataOffset, myEntryNum);
     }
-  }
-  else
-  {
-    // put entry in FST
-    WriteEntryData(fstOffset, FILE_ENTRY, nameOffset, dataOffset, entry.size);
-    WriteEntryName(nameOffset, entry.virtualName);
+    else
+    {
+      // put entry in FST
+      WriteEntryData(fstOffset, FILE_ENTRY, nameOffset, dataOffset, entry.size);
+      WriteEntryName(nameOffset, entry.virtualName);
 
-    // write entry to virtual disk
-    _dbg_assert_(DVDINTERFACE, m_virtualDisk.find(dataOffset) == m_virtualDisk.end());
-    m_virtualDisk.emplace(dataOffset, entry.physicalName);
+      // write entry to virtual disk
+      _dbg_assert_(DVDINTERFACE, m_virtualDisk.find(dataOffset) == m_virtualDisk.end());
+      m_virtualDisk.emplace(dataOffset, entry.physicalName);
 
-    // 4 byte aligned
-    dataOffset = Common::AlignUp(dataOffset + std::max<u64>(entry.size, 1ull), 0x8000ull);
+      // 4 byte aligned
+      dataOffset = Common::AlignUp(dataOffset + std::max<u64>(entry.size, 1ull), 0x8000ull);
+    }
   }
 }
 
