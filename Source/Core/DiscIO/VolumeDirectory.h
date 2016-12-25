@@ -88,14 +88,9 @@ private:
   void WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u32& nameOffset, u64& dataOffset,
                   u32 parentEntryNum);
 
-  // returns number of entries found in _Directory
-  u64 AddDirectoryEntries(const std::string& _Directory, File::FSTEntry& parentEntry);
-
   std::string m_rootDirectory;
 
   std::map<u64, std::string> m_virtualDisk;
-
-  u32 m_totalNameSize;
 
   bool m_is_wii;
 

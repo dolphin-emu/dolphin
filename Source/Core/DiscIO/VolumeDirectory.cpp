@@ -24,12 +24,14 @@
 
 namespace DiscIO
 {
+static u32 ComputeNameSize(const File::FSTEntry& parentEntry);
+
 const size_t CVolumeDirectory::MAX_NAME_LENGTH;
 const size_t CVolumeDirectory::MAX_ID_LENGTH;
 
 CVolumeDirectory::CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
                                    const std::string& _rApploader, const std::string& _rDOL)
-    : m_totalNameSize(0), m_dataStartAddress(-1), m_diskHeader(DISKHEADERINFO_ADDRESS),
+    : m_dataStartAddress(-1), m_diskHeader(DISKHEADERINFO_ADDRESS),
       m_diskHeaderInfo(std::make_unique<SDiskHeaderInfo>()), m_fst_address(0), m_dol_address(0)
 {
   m_rootDirectory = ExtractDirectoryName(_rDirectory);
@@ -340,13 +342,11 @@ void CVolumeDirectory::BuildFST()
 {
   m_FSTData.clear();
 
-  File::FSTEntry rootEntry;
+  File::FSTEntry rootEntry = File::ScanDirectoryTree(m_rootDirectory, true);
+  u32 name_table_size = ComputeNameSize(rootEntry);
 
-  // read data from physical disk to rootEntry
-  u64 totalEntries = AddDirectoryEntries(m_rootDirectory, rootEntry) + 1;
-
-  m_fstNameOffset = totalEntries * ENTRY_SIZE;  // offset in FST nameTable
-  m_FSTData.resize(m_fstNameOffset + m_totalNameSize);
+  m_fstNameOffset = rootEntry.size * ENTRY_SIZE;  // offset of name table in FST
+  m_FSTData.resize(m_fstNameOffset + name_table_size);
 
   // if FST hasn't been assigned (ie no apploader/dol setup), set to default
   if (m_fst_address == 0)
@@ -361,7 +361,7 @@ void CVolumeDirectory::BuildFST()
   u32 rootOffset = 0;  // Offset of root of FST
 
   // write root entry
-  WriteEntryData(fstOffset, DIRECTORY_ENTRY, 0, 0, totalEntries);
+  WriteEntryData(fstOffset, DIRECTORY_ENTRY, 0, 0, rootEntry.size);
 
   for (auto& entry : rootEntry.children)
   {
@@ -369,7 +369,7 @@ void CVolumeDirectory::BuildFST()
   }
 
   // overflow check
-  _dbg_assert_(DVDINTERFACE, nameOffset == m_totalNameSize);
+  _dbg_assert_(DVDINTERFACE, nameOffset == name_table_size);
 
   // write FST size and location
   Write32((u32)(m_fst_address >> m_addressShift), 0x0424, &m_diskHeader);
@@ -477,25 +477,14 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 {
   u32 nameSize = 0;
-  const std::vector<File::FSTEntry>& children = parentEntry.children;
-  for (auto it = children.cbegin(); it != children.cend(); ++it)
+  for (const File::FSTEntry& entry : parentEntry.children)
   {
-    const File::FSTEntry& entry = *it;
     if (entry.isDirectory)
-    {
       nameSize += ComputeNameSize(entry);
-    }
+
     nameSize += (u32)entry.virtualName.length() + 1;
   }
   return nameSize;
-}
-
-u64 CVolumeDirectory::AddDirectoryEntries(const std::string& _Directory,
-                                          File::FSTEntry& parentEntry)
-{
-  parentEntry = File::ScanDirectoryTree(_Directory, true);
-  m_totalNameSize += ComputeNameSize(parentEntry);
-  return parentEntry.size;
 }
 
 }  // namespace
