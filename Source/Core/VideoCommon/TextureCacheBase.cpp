@@ -133,8 +133,8 @@ void TextureCacheBase::OnConfigChanged(VideoConfig& config)
 
 void TextureCacheBase::Cleanup(int _frameCount)
 {
-  TexCache::iterator iter = textures_by_address.begin();
-  TexCache::iterator tcend = textures_by_address.end();
+  TexAddrCache::iterator iter = textures_by_address.begin();
+  TexAddrCache::iterator tcend = textures_by_address.end();
   while (iter != tcend)
   {
     if (iter->second->frameCount == FRAMECOUNT_INVALID)
@@ -294,9 +294,9 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBas
 }
 
 TextureCacheBase::TCacheEntryBase*
-TextureCacheBase::DoPartialTextureUpdates(TexCache::iterator iter_t, u8* palette, u32 tlutfmt)
+TextureCacheBase::DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* palette,
+                                          u32 tlutfmt)
 {
-  TCacheEntryBase* entry_to_update = iter_t->second;
   const bool isPaletteTexture =
       (entry_to_update->format == GX_TF_C4 || entry_to_update->format == GX_TF_C8 ||
        entry_to_update->format == GX_TF_C14X2 || entry_to_update->format >= 0x10000);
@@ -313,11 +313,11 @@ TextureCacheBase::DoPartialTextureUpdates(TexCache::iterator iter_t, u8* palette
 
   u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
-  TexCache::iterator iter =
+  TexAddrCache::iterator iter =
       textures_by_address.lower_bound(entry_to_update->addr > MAX_TEXTURE_BINARY_SIZE ?
                                           entry_to_update->addr - MAX_TEXTURE_BINARY_SIZE :
                                           0);
-  TexCache::iterator iterend =
+  TexAddrCache::iterator iterend =
       textures_by_address.upper_bound(entry_to_update->addr + entry_to_update->size_in_bytes);
   while (iter != iterend)
   {
@@ -617,12 +617,11 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   // For efb copies, the entry created in CopyRenderTargetToTexture always has to be used, or else
   // it was
   // done in vain.
-  std::pair<TexCache::iterator, TexCache::iterator> iter_range =
-      textures_by_address.equal_range((u64)address);
-  TexCache::iterator iter = iter_range.first;
-  TexCache::iterator oldest_entry = iter;
+  auto iter_range = textures_by_address.equal_range(address);
+  TexAddrCache::iterator iter = iter_range.first;
+  TexAddrCache::iterator oldest_entry = iter;
   int temp_frameCount = 0x7fffffff;
-  TexCache::iterator unconverted_copy = textures_by_address.end();
+  TexAddrCache::iterator unconverted_copy = textures_by_address.end();
 
   while (iter != iter_range.second)
   {
@@ -667,7 +666,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
           entry->native_levels >= tex_levels && entry->native_width == nativeW &&
           entry->native_height == nativeH)
       {
-        entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
+        entry = DoPartialTextureUpdates(iter->second, &texMem[tlutaddr], tlutfmt);
 
         return ReturnEntry(stage, entry);
       }
@@ -708,20 +707,20 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       std::max(texture_size, palette_size) <=
           (u32)g_ActiveConfig.iSafeTextureCache_ColorSamples * 8)
   {
-    iter_range = textures_by_hash.equal_range(full_hash);
-    iter = iter_range.first;
-    while (iter != iter_range.second)
+    auto hash_range = textures_by_hash.equal_range(full_hash);
+    TexHashCache::iterator hash_iter = hash_range.first;
+    while (hash_iter != hash_range.second)
     {
-      TCacheEntryBase* entry = iter->second;
+      TCacheEntryBase* entry = hash_iter->second;
       // All parameters, except the address, need to match here
       if (entry->format == full_format && entry->native_levels >= tex_levels &&
           entry->native_width == nativeW && entry->native_height == nativeH)
       {
-        entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
+        entry = DoPartialTextureUpdates(hash_iter->second, &texMem[tlutaddr], tlutfmt);
 
         return ReturnEntry(stage, entry);
       }
-      ++iter;
+      ++hash_iter;
     }
   }
 
@@ -784,7 +783,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
     }
   }
 
-  iter = textures_by_address.emplace((u64)address, entry);
+  iter = textures_by_address.emplace(address, entry);
   if (g_ActiveConfig.iSafeTextureCache_ColorSamples == 0 ||
       std::max(texture_size, palette_size) <=
           (u32)g_ActiveConfig.iSafeTextureCache_ColorSamples * 8)
@@ -857,7 +856,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   INCSTAT(stats.numTexturesUploaded);
   SETSTAT(stats.numTexturesAlive, textures_by_address.size());
 
-  entry = DoPartialTextureUpdates(iter, &texMem[tlutaddr], tlutfmt);
+  entry = DoPartialTextureUpdates(iter->second, &texMem[tlutaddr], tlutfmt);
 
   return ReturnEntry(stage, entry);
 }
@@ -1210,9 +1209,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   //   updated textures, which forces that partially updated texture to be updated.
   // TODO: This also wipes out non-efb copies, which is counterproductive.
   {
-    std::pair<TexCache::iterator, TexCache::iterator> iter_range =
-        textures_by_address.equal_range((u64)dstAddr);
-    TexCache::iterator iter = iter_range.first;
+    auto iter_range = textures_by_address.equal_range(dstAddr);
+    TexAddrCache::iterator iter = iter_range.first;
     while (iter != iter_range.second)
     {
       iter = InvalidateTexture(iter);
@@ -1292,7 +1290,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   //       of dealing with.
   if (dstStride == bytes_per_row || !copy_to_vram)
   {
-    TexCache::iterator iter = textures_by_address.begin();
+    TexAddrCache::iterator iter = textures_by_address.begin();
     while (iter != textures_by_address.end())
     {
       if (iter->second->addr + iter->second->size_in_bytes <= dstAddr ||
@@ -1336,7 +1334,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
                     0);
       }
 
-      textures_by_address.emplace((u64)dstAddr, entry);
+      textures_by_address.emplace(dstAddr, entry);
     }
   }
 }
@@ -1377,12 +1375,11 @@ TextureCacheBase::FindMatchingTextureFromPool(const TCacheEntryConfig& config)
   return matching_iter != range.second ? matching_iter : texture_pool.end();
 }
 
-TextureCacheBase::TexCache::iterator
+TextureCacheBase::TexAddrCache::iterator
 TextureCacheBase::GetTexCacheIter(TextureCacheBase::TCacheEntryBase* entry)
 {
-  std::pair<TexCache::iterator, TexCache::iterator> iter_range =
-      textures_by_address.equal_range(entry->addr);
-  TexCache::iterator iter = iter_range.first;
+  auto iter_range = textures_by_address.equal_range(entry->addr);
+  TexAddrCache::iterator iter = iter_range.first;
   while (iter != iter_range.second)
   {
     if (iter->second == entry)
@@ -1394,7 +1391,8 @@ TextureCacheBase::GetTexCacheIter(TextureCacheBase::TCacheEntryBase* entry)
   return textures_by_address.end();
 }
 
-TextureCacheBase::TexCache::iterator TextureCacheBase::InvalidateTexture(TexCache::iterator iter)
+TextureCacheBase::TexAddrCache::iterator
+TextureCacheBase::InvalidateTexture(TexAddrCache::iterator iter)
 {
   if (iter == textures_by_address.end())
     return textures_by_address.end();
