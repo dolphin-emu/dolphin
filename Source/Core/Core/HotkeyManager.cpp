@@ -218,28 +218,28 @@ void Shutdown()
 }
 
 const std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> groups_info = {
-    {{"General", HK_OPEN, HK_EXIT},
-     {"Volume", HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
-     {"Emulation speed", HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},
-     {"Frame advance", HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
-     {"Movie", HK_START_RECORDING, HK_READ_ONLY_MODE},
-     {"Wii", HK_TRIGGER_SYNC_BUTTON, HK_BALANCEBOARD_CONNECT},
-     {"Graphics toggles", HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
-     {"Internal Resolution", HK_INCREASE_IR, HK_DECREASE_IR},
-     {"Freelook", HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_RESET},
-     {"3D", HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_3DVISION},
-     {"3D depth", HK_DECREASE_DEPTH, HK_INCREASE_CONVERGENCE},
-     {"Load state", HK_LOAD_STATE_SLOT_1, HK_LOAD_STATE_SLOT_SELECTED},
-     {"Save state", HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
-     {"Select state", HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
-     {"Load last state", HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
-     {"Other state hotkeys", HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE}}};
+    {{_trans("General"), HK_OPEN, HK_EXIT},
+     {_trans("Volume"), HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
+     {_trans("Emulation speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},
+     {_trans("Frame advance"), HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
+     {_trans("Movie"), HK_START_RECORDING, HK_READ_ONLY_MODE},
+     {_trans("Wii"), HK_TRIGGER_SYNC_BUTTON, HK_BALANCEBOARD_CONNECT},
+     {_trans("Graphics toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
+     {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
+     {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_RESET},
+     {_trans("3D"), HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_3DVISION},
+     {_trans("3D depth"), HK_DECREASE_DEPTH, HK_INCREASE_CONVERGENCE},
+     {_trans("Load state"), HK_LOAD_STATE_SLOT_1, HK_LOAD_STATE_SLOT_SELECTED},
+     {_trans("Save state"), HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
+     {_trans("Select state"), HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
+     {_trans("Load last state"), HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
+     {_trans("Other state hotkeys"), HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE}}};
 
 HotkeyManager::HotkeyManager()
 {
   for (int group = 0; group < NUM_HOTKEY_GROUPS; group++)
   {
-    m_hotkey_groups[group] = (m_keys[group] = new Buttons("Keys", _trans(groups_info[group].name)));
+    m_hotkey_groups[group] = (m_keys[group] = new Buttons("Keys", groups_info[group].name));
     groups.emplace_back(m_hotkey_groups[group]);
     for (int key = groups_info[group].first; key <= groups_info[group].last; key++)
     {

@@ -452,14 +452,14 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
   {
     GCKeyboardInputConfigDialog config_diag(
         this, *key_plugin,
-        wxString::Format("GameCube Keyboard Configuration Port %i", port_num + 1), port_num);
+        wxString::Format(_("GameCube Keyboard Configuration Port %i"), port_num + 1), port_num);
     config_diag.ShowModal();
   }
   else if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_WIIU_ADAPTER)
   {
     GCAdapterConfigDiag config_diag(
-        this,
-        wxString::Format("Wii U GameCube Controller Adapter Configuration Port %i", port_num + 1),
+        this, wxString::Format(_("Wii U GameCube Controller Adapter Configuration Port %i"),
+                               port_num + 1),
         port_num);
     config_diag.ShowModal();
   }
@@ -467,7 +467,7 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
   {
     GCPadInputConfigDialog config_diag(
         this, *pad_plugin,
-        wxString::Format("GameCube Controller Configuration Port %i", port_num + 1), port_num);
+        wxString::Format(_("GameCube Controller Configuration Port %i"), port_num + 1), port_num);
     config_diag.ShowModal();
   }
 
@@ -505,7 +505,7 @@ void ControllerConfigDiag::OnWiimoteConfigButton(wxCommandEvent& ev)
 
   WiimoteInputConfigDialog m_ConfigFrame(
       this, *wiimote_plugin,
-      wxString::Format("Dolphin Emulated Wii Remote Configuration Port %i", port_num + 1),
+      wxString::Format(_("Dolphin Emulated Wii Remote Configuration Port %i"), port_num + 1),
       port_num);
   m_ConfigFrame.ShowModal();
 

@@ -46,13 +46,13 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputCo
 
   tab_general->SetSizerAndFit(szr_general);
 
-  notebook->AddPage(tab_general, "General");
+  notebook->AddPage(tab_general, _("General"));
 
   // TAS Tools
   auto* const tab_tas = new wxPanel(notebook);
 
   auto* const group_box_frame_advance =
-      new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_FRANE_ADVANCE), tab_tas, this);
+      new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_FRAME_ADVANCE), tab_tas, this);
   auto* const group_box_movie =
       new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_MOVIE), tab_tas, this);
 
@@ -64,7 +64,9 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputCo
 
   tab_tas->SetSizerAndFit(szr_tas);
 
-  notebook->AddPage(tab_tas, "TAS Tools");
+  // i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
+  // Frame advance is an example of a typical TAS tool.
+  notebook->AddPage(tab_tas, _("TAS Tools"));
 
   // WII and Wii Remote
   auto* const tab_wii = new wxPanel(notebook);
@@ -79,7 +81,7 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputCo
 
   tab_wii->SetSizerAndFit(szr_wii);
 
-  notebook->AddPage(tab_wii, "Wii and Wii Remote");
+  notebook->AddPage(tab_wii, _("Wii and Wii Remote"));
 
   // Graphics
   auto* const tab_graphics = new wxPanel(notebook);
@@ -106,7 +108,7 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputCo
 
   tab_graphics->SetSizerAndFit(szr_graphics_toggles);
 
-  notebook->AddPage(tab_graphics, "Graphics");
+  notebook->AddPage(tab_graphics, _("Graphics"));
 
   // 3D
   auto* const tab_3D = new wxPanel(notebook);
@@ -125,7 +127,8 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputCo
 
   tab_3D->SetSizerAndFit(szr_3D);
 
-  notebook->AddPage(tab_3D, "3D");
+  // i18n: Stereoscopic 3D
+  notebook->AddPage(tab_3D, _("3D"));
 
   // Save and Load State
   auto* const tab_save_load_state = new wxPanel(notebook);
@@ -144,7 +147,7 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputCo
 
   tab_save_load_state->SetSizerAndFit(szr_save_load_state);
 
-  notebook->AddPage(tab_save_load_state, "Save and Load State");
+  notebook->AddPage(tab_save_load_state, _("Save and Load State"));
 
   // Other State Managament
   auto* const tab_other_state = new wxPanel(notebook);
@@ -167,7 +170,7 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputCo
 
   tab_other_state->SetSizerAndFit(szr_other_state);
 
-  notebook->AddPage(tab_other_state, "Other State Management");
+  notebook->AddPage(tab_other_state, _("Other State Management"));
 
   notebook->SetSelection(0);
 

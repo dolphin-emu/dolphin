@@ -112,7 +112,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename);
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string& filename);
 
-// Recursive or non-recursive list of files under directory.
+// Recursive or non-recursive list of files and directories under directory.
 FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive);
 
 // deletes the given directory and anything under it. Returns true on success.

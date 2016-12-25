@@ -61,7 +61,7 @@ WiimoteInputConfigDialog::WiimoteInputConfigDialog(wxWindow* const parent, Input
 
   tab_general->SetSizerAndFit(general_options_sizer);
 
-  notebook->AddPage(tab_general, "General and Options");
+  notebook->AddPage(tab_general, _("General and Options"));
 
   // Motion Controls and IR
   auto* const tab_motion_controls_ir = new wxPanel(notebook);
@@ -95,7 +95,7 @@ WiimoteInputConfigDialog::WiimoteInputConfigDialog(wxWindow* const parent, Input
 
   tab_motion_controls_ir->SetSizerAndFit(motion_controls_ir_sizer);
 
-  notebook->AddPage(tab_motion_controls_ir, "Motion Controls and IR");
+  notebook->AddPage(tab_motion_controls_ir, _("Motion Controls and IR"));
 
   notebook->SetSelection(0);
 

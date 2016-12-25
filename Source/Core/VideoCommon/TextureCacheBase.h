@@ -179,7 +179,8 @@ protected:
   TCacheEntryBase* bound_textures[8] = {};
 
 private:
-  typedef std::multimap<u64, TCacheEntryBase*> TexCache;
+  typedef std::multimap<u32, TCacheEntryBase*> TexAddrCache;
+  typedef std::multimap<u64, TCacheEntryBase*> TexHashCache;
   typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher>
       TexPool;
 
@@ -188,22 +189,23 @@ private:
   TCacheEntryBase* ApplyPaletteToEntry(TCacheEntryBase* entry, u8* palette, u32 tlutfmt);
 
   void ScaleTextureCacheEntryTo(TCacheEntryBase** entry, u32 new_width, u32 new_height);
-  TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter, u8* palette, u32 tlutfmt);
+  TCacheEntryBase* DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* palette,
+                                           u32 tlutfmt);
 
   void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
   void CheckTempSize(size_t required_size);
 
   TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
   TexPool::iterator FindMatchingTextureFromPool(const TCacheEntryConfig& config);
-  TexCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
+  TexAddrCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
 
   // Removes and unlinks texture from texture cache and returns it to the pool
-  TexCache::iterator InvalidateTexture(TexCache::iterator t_iter);
+  TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
 
   TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 
-  TexCache textures_by_address;
-  TexCache textures_by_hash;
+  TexAddrCache textures_by_address;
+  TexHashCache textures_by_hash;
   TexPool texture_pool;
 
   // Backup configuration values

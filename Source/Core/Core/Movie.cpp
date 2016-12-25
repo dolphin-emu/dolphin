@@ -54,7 +54,7 @@ static bool s_bReadOnly = true;
 static u32 s_rerecords = 0;
 static PlayMode s_playMode = MODE_NONE;
 
-static u8 s_numPads = 0;
+static u8 s_controllers = 0;
 static ControllerState s_padState;
 static DTMHeader tmpHeader;
 static u8* tmpInput = nullptr;
@@ -156,13 +156,13 @@ std::string GetInputDisplay()
 {
   if (!IsMovieActive())
   {
-    s_numPads = 0;
+    s_controllers = 0;
     for (int i = 0; i < 4; ++i)
     {
       if (SerialInterface::GetDeviceType(i) != SIDEVICE_NONE)
-        s_numPads |= (1 << i);
+        s_controllers |= (1 << i);
       if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)
-        s_numPads |= (1 << (i + 4));
+        s_controllers |= (1 << (i + 4));
     }
   }
 
@@ -171,7 +171,7 @@ std::string GetInputDisplay()
     std::lock_guard<std::mutex> guard(s_input_display_lock);
     for (int i = 0; i < 8; ++i)
     {
-      if ((s_numPads & (1 << i)) != 0)
+      if ((s_controllers & (1 << i)) != 0)
         input_display += s_InputDisplay[i];
     }
   }
@@ -410,7 +410,7 @@ void SetTitleId(u64 title_id)
 
 bool IsUsingPad(int controller)
 {
-  return ((s_numPads & (1 << controller)) != 0);
+  return ((s_controllers & (1 << controller)) != 0);
 }
 
 bool IsUsingBongo(int controller)
@@ -420,7 +420,7 @@ bool IsUsingBongo(int controller)
 
 bool IsUsingWiimote(int wiimote)
 {
-  return ((s_numPads & (1 << (wiimote + 4))) != 0);
+  return ((s_controllers & (1 << (wiimote + 4))) != 0);
 }
 
 bool IsConfigSaved()
@@ -493,7 +493,7 @@ void ChangePads(bool instantly)
     if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
       controllers |= (1 << i);
 
-  if (instantly && (s_numPads & 0x0F) == controllers)
+  if (instantly && (s_controllers & 0x0F) == controllers)
     return;
 
   for (int i = 0; i < MAX_SI_CHANNELS; ++i)
@@ -524,7 +524,7 @@ void ChangeWiiPads(bool instantly)
       controllers |= (1 << i);
 
   // This is important for Wiimotes, because they can desync easily if they get re-activated
-  if (instantly && (s_numPads >> 4) == controllers)
+  if (instantly && (s_controllers >> 4) == controllers)
     return;
 
   for (int i = 0; i < MAX_WIIMOTES; ++i)
@@ -543,7 +543,7 @@ bool BeginRecordingInput(int controllers)
 
   bool was_unpaused = Core::PauseAndLock(true);
 
-  s_numPads = controllers;
+  s_controllers = controllers;
   s_currentFrame = s_totalFrames = 0;
   s_currentLagCount = s_totalLagCount = 0;
   s_currentInputCount = s_totalInputCount = 0;
@@ -901,7 +901,7 @@ void RecordWiimote(int wiimote, u8* data, u8 size)
 // NOTE: EmuThread / Host Thread
 void ReadHeader()
 {
-  s_numPads = tmpHeader.numControllers;
+  s_controllers = tmpHeader.controllers;
   s_recordingStartTime = tmpHeader.recordingStartTime;
   if (s_rerecords < tmpHeader.numRerecords)
     s_rerecords = tmpHeader.numRerecords;
@@ -1307,9 +1307,10 @@ bool PlayWiimote(int wiimote, u8* data, const WiimoteEmu::ReportFeatures& rptf, 
   {
     PanicAlertT("Fatal desync. Aborting playback. (Error in PlayWiimote: %u != %u, byte %u.)%s",
                 (u32)sizeInMovie, (u32)size, (u32)s_currentByte,
-                (s_numPads & 0xF) ? " Try re-creating the recording with all GameCube controllers "
-                                    "disabled (in Configure > GameCube > Device Settings)." :
-                                    "");
+                (s_controllers & 0xF) ?
+                    " Try re-creating the recording with all GameCube controllers "
+                    "disabled (in Configure > GameCube > Device Settings)." :
+                    "");
     EndPlayInput(!s_bReadOnly);
     return false;
   }
@@ -1383,7 +1384,7 @@ void SaveRecording(const std::string& filename)
   header.filetype[3] = 0x1A;
   strncpy(header.gameID, SConfig::GetInstance().GetGameID().c_str(), 6);
   header.bWii = SConfig::GetInstance().bWii;
-  header.numControllers = s_numPads & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
+  header.controllers = s_controllers & (SConfig::GetInstance().bWii ? 0xFF : 0x0F);
 
   header.bFromSaveState = s_bRecordingFromSaveState;
   header.frameCount = s_totalFrames;

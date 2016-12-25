@@ -439,12 +439,10 @@ bool CreateEmptyFile(const std::string& filename)
   return true;
 }
 
-// Scans the directory tree gets, starting from _Directory and adds the
-// results into parentEntry. Returns the number of files+directories found
+// Recursive or non-recursive list of files and directories under directory.
 FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
 {
   INFO_LOG(COMMON, "ScanDirectoryTree: directory %s", directory.c_str());
-  // How many files + directories we found
   FSTEntry parent_entry;
   parent_entry.physicalName = directory;
   parent_entry.isDirectory = true;
@@ -464,14 +462,12 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   {
     const std::string virtual_name(TStrToUTF8(ffd.cFileName));
 #else
-  struct dirent dirent, *result = nullptr;
-
   DIR* dirp = opendir(directory.c_str());
   if (!dirp)
     return parent_entry;
 
   // non Windows loop
-  while (!readdir_r(dirp, &dirent, &result) && result)
+  while (dirent* result = readdir(dirp))
   {
     const std::string virtual_name(result->d_name);
 #endif
@@ -505,7 +501,7 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   }
   closedir(dirp);
 #endif
-  // Return number of entries found.
+
   return parent_entry;
 }
 
@@ -531,13 +527,12 @@ bool DeleteDirRecursively(const std::string& directory)
   {
     const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
-  struct dirent dirent, *result = nullptr;
   DIR* dirp = opendir(directory.c_str());
   if (!dirp)
     return false;
 
   // non Windows loop
-  while (!readdir_r(dirp, &dirent, &result) && result)
+  while (dirent* result = readdir(dirp))
   {
     const std::string virtualName = result->d_name;
 #endif
@@ -602,12 +597,11 @@ void CopyDir(const std::string& source_path, const std::string& dest_path)
   {
     const std::string virtualName(TStrToUTF8(ffd.cFileName));
 #else
-  struct dirent dirent, *result = nullptr;
   DIR* dirp = opendir(source_path.c_str());
   if (!dirp)
     return;
 
-  while (!readdir_r(dirp, &dirent, &result) && result)
+  while (dirent* result = readdir(dirp))
   {
     const std::string virtualName(result->d_name);
 #endif
