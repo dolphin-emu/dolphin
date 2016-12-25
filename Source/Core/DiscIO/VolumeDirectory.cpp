@@ -477,14 +477,11 @@ void CVolumeDirectory::WriteEntry(const File::FSTEntry& entry, u32& fstOffset, u
 static u32 ComputeNameSize(const File::FSTEntry& parentEntry)
 {
   u32 nameSize = 0;
-  const std::vector<File::FSTEntry>& children = parentEntry.children;
-  for (auto it = children.cbegin(); it != children.cend(); ++it)
+  for (const File::FSTEntry& entry : parentEntry.children)
   {
-    const File::FSTEntry& entry = *it;
     if (entry.isDirectory)
-    {
       nameSize += ComputeNameSize(entry);
-    }
+
     nameSize += (u32)entry.virtualName.length() + 1;
   }
   return nameSize;
