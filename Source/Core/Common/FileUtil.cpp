@@ -439,12 +439,10 @@ bool CreateEmptyFile(const std::string& filename)
   return true;
 }
 
-// Scans the directory tree gets, starting from _Directory and adds the
-// results into parentEntry. Returns the number of files+directories found
+// Recursive or non-recursive list of files and directories under directory.
 FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
 {
   INFO_LOG(COMMON, "ScanDirectoryTree: directory %s", directory.c_str());
-  // How many files + directories we found
   FSTEntry parent_entry;
   parent_entry.physicalName = directory;
   parent_entry.isDirectory = true;
@@ -505,7 +503,7 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
   }
   closedir(dirp);
 #endif
-  // Return number of entries found.
+
   return parent_entry;
 }
 
