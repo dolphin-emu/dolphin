@@ -9,7 +9,9 @@ of the GNU General Public License, version 2 or later (GPLv2+).
 Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 
 ## System Requirements
+
 ### Desktop
+
 * OS
     * Windows (7 SP1 or higher is officially supported, but Vista SP2 might also work).
     * Linux.
@@ -23,6 +25,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
     * A graphics card that supports Direct3D 11 / OpenGL 4.4 is recommended.
 
 ### Android
+
 * OS
     * Android (5.0 Lollipop or higher).
 * Processor
@@ -34,6 +37,7 @@ Please read the [FAQ](https://dolphin-emu.org/docs/faq/) before using Dolphin.
 Dolphin can only be installed on devices that satisfy the above requirements. Attempting to install on an unsupported device will fail and display an error message.
 
 ## Building for Windows
+
 Use the solution file `Source/dolphin-emu.sln` to build Dolphin on Windows.
 Visual Studio 2015 Update 2 is a hard requirement. Other compilers might be
 able to build Dolphin on Windows but have not been tested and are not
@@ -45,12 +49,14 @@ Installer directory. This will require the Nullsoft Scriptable Install System
 since the Binary directory contains a working Dolphin distribution.
 
 ## Building for Linux and macOS
+
 Dolphin requires [CMake](http://www.cmake.org/) for systems other than Windows. Many libraries are
 bundled with Dolphin and used if they're not installed on your system. CMake
 will inform you if a bundled library is used or if you need to install any
 missing packages yourself.
 
 ### macOS Build Steps:
+
 1. `mkdir build`
 2. `cd build`
 3. `cmake ..`
@@ -95,13 +101,14 @@ Or useful for having multiple distinct Dolphin setups for testing/development/TA
 These instructions assume familiarity with Android development. If you do not have an
 Android dev environment set up, see [AndroidSetup.md](AndroidSetup.md).
 
-If using Android Studio, import the Gradle project located in `./Source/Android`. 
+If using Android Studio, import the Gradle project located in `./Source/Android`.
 
 Android apps are compiled using a build system called Gradle. Dolphin's native component,
 however, is compiled using CMake. The Gradle script will attempt to run a CMake build
 automatically while building the Java code.
 
 ## Uninstalling
+
 When Dolphin has been installed with the NSIS installer, you can uninstall
 Dolphin like any other Windows application.
 
@@ -114,15 +121,16 @@ Additionally, you'll want to remove the global user directory (see below to
 see where it's stored) if you don't plan to reinstall Dolphin.
 
 ## Command Line Usage
-`Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]`  
 
-* -h, --help Show this help message  
-* -d, --debugger Opens the debugger  
-* -l, --logger Opens the logger  
-* -e, --exec=<str> Loads the specified file (DOL,ELF,WAD,GCM,ISO)  
-* -b, --batch Exit Dolphin with emulator  
-* -V, --video_backend=<str> Specify a video backend  
-* -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio  
+`Usage: Dolphin [-h] [-d] [-l] [-e <str>] [-b] [-V <str>] [-A <str>]`
+
+* -h, --help Show this help message
+* -d, --debugger Opens the debugger
+* -l, --logger Opens the logger
+* -e, --exec=<str> Loads the specified file (DOL,ELF,WAD,GCM,ISO)
+* -b, --batch Exit Dolphin with emulator
+* -V, --video_backend=<str> Specify a video backend
+* -A, --audio_emulation=<str> Low level (LLE) or high level (HLE) audio
 
 Available DSP emulation engines are HLE (High Level Emulation) and
 LLE (Low Level Emulation). HLE is fast but often less accurate while LLE is
@@ -134,6 +142,7 @@ Available video backends are "D3D" (only available on Windows) and
 is intended for debugging purposes only.
 
 ## Sys Files
+
 * `totaldb.dsy`: Database of symbols (for devs only)
 * `GC/font_ansi.bin`: font dumps
 * `GC/font_sjis.bin`: font dumps
@@ -152,6 +161,7 @@ to fix those issues.
 Wii network certificates must be extracted from a Wii IOS. A guide for that can be found [here](https://wiki.dolphin-emu.org/index.php?title=Wii_Network_Guide).
 
 ## Folder Structure
+
 These folders are installed read-only and should not be changed:
 
 * `GameSettings`: per-game default settings database
@@ -163,12 +173,14 @@ These folders are installed read-only and should not be changed:
 * `Wii`: default Wii NAND contents
 
 ## Packaging and udev
+
 The Data folder contains a udev rule file for the official GameCube controller
 adapter and the Mayflash DolphinBar. Package maintainers can use that file in their packages for Dolphin.
-Users compiling Dolphin on Linux can also just copy the file to their udev 
+Users compiling Dolphin on Linux can also just copy the file to their udev
 rules folder.
 
 ## User Folder Structure
+
 A number of user writeable directories are created for caching purposes or for
 allowing the user to edit their contents. On macOS and Linux these folders are
 stored in `~/Library/Application Support/Dolphin/` and `~/.dolphin-emu`
@@ -186,7 +198,6 @@ folder by default, but there are various way to override this behavior:
   stored in the directory given by that string. The other two methods will be
   prioritized over this setting.
 
-
 List of user folders:
 
 * `Cache`: used to cache the ISO list
@@ -201,6 +212,7 @@ List of user folders:
 * `Wii`: Wii NAND contents
 
 ## Custom Textures
+
 Custom textures have to be placed in the user directory under
 `Load/Textures/[GameID]/`. You can find the Game ID by right-clicking a game
 in the ISO list and selecting "ISO Properties".
