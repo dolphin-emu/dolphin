@@ -247,7 +247,7 @@ public:
   u16* blockSize;
   std::list<u16> unresolvedJumps[MAX_BLOCKS];
 
-  DSPJitRegCache gpr;
+  DSPJitRegCache gpr{*this};
 
 private:
   DSPCompiledCode* blocks;
@@ -255,8 +255,8 @@ private:
   u16 compileSR;
 
   // The index of the last stored ext value (compile time).
-  int storeIndex;
-  int storeIndex2;
+  int storeIndex = -1;
+  int storeIndex2 = -1;
 
   // Counts down.
   // int cycles;
