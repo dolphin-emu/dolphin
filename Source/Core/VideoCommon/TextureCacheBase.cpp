@@ -40,8 +40,6 @@ static const int TEXTURE_KILL_THRESHOLD =
     64;  // Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const int FRAMECOUNT_INVALID = 0;
-static const u64 MAX_TEXTURE_BINARY_SIZE =
-    1024 * 1024 * 4;  // 1024 x 1024 texel times 8 nibbles per texel
 
 std::unique_ptr<TextureCacheBase> g_texture_cache;
 
@@ -297,6 +295,13 @@ TextureCacheBase::TCacheEntryBase*
 TextureCacheBase::DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* palette,
                                           u32 tlutfmt)
 {
+  // If the flag may_have_overlapping_textures is cleared, there are no overlapping EFB copies,
+  // which aren't applied already. It is set for new textures, and for the affected range
+  // on each EFB copy.
+  if (!entry_to_update->may_have_overlapping_textures)
+    return entry_to_update;
+  entry_to_update->may_have_overlapping_textures = false;
+
   const bool isPaletteTexture =
       (entry_to_update->format == GX_TF_C4 || entry_to_update->format == GX_TF_C8 ||
        entry_to_update->format == GX_TF_C14X2 || entry_to_update->format >= 0x10000);
@@ -313,15 +318,10 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* 
 
   u32 numBlocksX = (entry_to_update->native_width + block_width - 1) / block_width;
 
-  TexAddrCache::iterator iter =
-      textures_by_address.lower_bound(entry_to_update->addr > MAX_TEXTURE_BINARY_SIZE ?
-                                          entry_to_update->addr - MAX_TEXTURE_BINARY_SIZE :
-                                          0);
-  TexAddrCache::iterator iterend =
-      textures_by_address.upper_bound(entry_to_update->addr + entry_to_update->size_in_bytes);
-  while (iter != iterend)
+  auto iter = FindOverlappingTextures(entry_to_update->addr, entry_to_update->size_in_bytes);
+  while (iter.first != iter.second)
   {
-    TCacheEntryBase* entry = iter->second;
+    TCacheEntryBase* entry = iter.first->second;
     if (entry != entry_to_update && entry->IsEfbCopy() &&
         entry->references.count(entry_to_update) == 0 &&
         entry->OverlapsMemoryRange(entry_to_update->addr, entry_to_update->size_in_bytes) &&
@@ -343,7 +343,7 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* 
           }
           else
           {
-            ++iter;
+            ++iter.first;
             continue;
           }
         }
@@ -426,11 +426,11 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* 
       else
       {
         // If the hash does not match, this EFB copy will not be used for anything, so remove it
-        iter = InvalidateTexture(iter);
+        iter.first = InvalidateTexture(iter.first);
         continue;
       }
     }
-    ++iter;
+    ++iter.first;
   }
   return entry_to_update;
 }
@@ -1232,7 +1232,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   // RGBA takes two cache lines per block; all others take one
   const u32 bytes_per_block = baseFormat == GX_TF_RGBA8 ? 64 : 32;
 
-  u32 bytes_per_row = num_blocks_x * bytes_per_block;
+  const u32 bytes_per_row = num_blocks_x * bytes_per_block;
+  const u32 covered_range = num_blocks_y * dstStride;
 
   bool copy_to_ram = !g_ActiveConfig.bSkipEFBCopyToRam;
   bool copy_to_vram = true;
@@ -1283,21 +1284,24 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   }
 
   // Invalidate all textures that overlap the range of our efb copy.
-  // Unless our efb copy has a weird stride, then we want avoid invalidating textures which
-  // we might be able to do a partial texture update on.
+  // Unless our efb copy has a weird stride, then we mark them to check for partial texture updates.
   // TODO: This also invalidates partial overlaps, which we currently don't have a better way
   //       of dealing with.
-  if (dstStride == bytes_per_row || !copy_to_vram)
+  bool invalidate_textures = dstStride == bytes_per_row || !copy_to_vram;
+  auto iter = FindOverlappingTextures(dstAddr, covered_range);
+  while (iter.first != iter.second)
   {
-    TexAddrCache::iterator iter = textures_by_address.begin();
-    while (iter != textures_by_address.end())
+    TCacheEntryBase* entry = iter.first->second;
+    if (entry->OverlapsMemoryRange(dstAddr, covered_range))
     {
-      if (iter->second->addr + iter->second->size_in_bytes <= dstAddr ||
-          iter->second->addr >= dstAddr + num_blocks_y * dstStride)
-        ++iter;
-      else
-        iter = InvalidateTexture(iter);
+      if (invalidate_textures)
+      {
+        iter.first = InvalidateTexture(iter.first);
+        continue;
+      }
+      entry->may_have_overlapping_textures = true;
     }
+    ++iter.first;
   }
 
   if (copy_to_vram)
@@ -1358,6 +1362,7 @@ TextureCacheBase::AllocateTexture(const TCacheEntryConfig& config)
   }
 
   entry->textures_by_hash_iter = textures_by_hash.end();
+  entry->may_have_overlapping_textures = true;
   return entry;
 }
 
@@ -1388,6 +1393,23 @@ TextureCacheBase::GetTexCacheIter(TextureCacheBase::TCacheEntryBase* entry)
     ++iter;
   }
   return textures_by_address.end();
+}
+
+std::pair<TextureCacheBase::TexAddrCache::iterator, TextureCacheBase::TexAddrCache::iterator>
+TextureCacheBase::FindOverlappingTextures(u32 addr, u32 size_in_bytes)
+{
+  // We index by the starting address only, so there is no way to query all textures
+  // which end after the given addr. But the GC textures have a limited size, so we
+  // look for all textures which have a start address bigger than addr minus the maximal
+  // texture size. But this yields false-positives which must be checked later on.
+
+  // 1024 x 1024 texel times 8 nibbles per texel
+  constexpr u32 max_texture_size = 1024 * 1024 * 4;
+  u32 lower_addr = addr > max_texture_size ? addr - max_texture_size : 0;
+  auto begin = textures_by_address.lower_bound(lower_addr);
+  auto end = textures_by_address.upper_bound(addr + size_in_bytes);
+
+  return std::make_pair(begin, end);
 }
 
 TextureCacheBase::TexAddrCache::iterator
