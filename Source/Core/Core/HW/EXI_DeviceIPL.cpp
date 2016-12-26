@@ -101,8 +101,8 @@ CEXIIPL::CEXIIPL() : m_uPosition(0), m_uAddress(0), m_uRWOffset(0), m_FontsLoade
            m_bNTSC ? sizeof(iplverNTSC) : sizeof(iplverPAL));
 
     // Load fonts
-    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SJIS), 0x1aff00);
-    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_ANSI), 0x1fcf00);
+    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_SHIFT_JIS), 0x1aff00);
+    LoadFontFile((File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + FONT_WINDOWS_1252), 0x1fcf00);
   }
   else
   {
@@ -199,12 +199,12 @@ void CEXIIPL::LoadFontFile(const std::string& filename, u32 offset)
     if (!stream)
       return;
 
-    // Official Windows-1252 and SJIS fonts present on the IPL dumps are 0x2575 and 0x4a24d bytes
-    // long respectively, so, determine the size of the font being loaded based on the offset
+    // Official Windows-1252 and Shift JIS fonts present on the IPL dumps are 0x2575 and 0x4a24d
+    // bytes long respectively, so, determine the size of the font being loaded based on the offset
     u64 fontsize = (offset == 0x1aff00) ? 0x4a24d : 0x2575;
 
     INFO_LOG(BOOT, "Found IPL dump, loading %s font from %s",
-             ((offset == 0x1aff00) ? "SJIS" : "Windows-1252"), (ipl_rom_path).c_str());
+             ((offset == 0x1aff00) ? "Shift JIS" : "Windows-1252"), (ipl_rom_path).c_str());
 
     stream.Seek(offset, 0);
     stream.ReadBytes(m_pIPL + offset, fontsize);
@@ -374,9 +374,16 @@ void CEXIIPL::TransferByte(u8& _uByte)
 
           if ((position >= 0x001AFF00) && (position <= 0x001FF474) && !m_FontsLoaded)
           {
-            PanicAlertT("Error: Trying to access %s fonts but they are not loaded. "
-                        "Games may not show fonts correctly, or crash.",
-                        (position >= 0x001FCF00) ? "ANSI" : "SJIS");
+            if (position >= 0x001FCF00)
+            {
+              PanicAlertT("Error: Trying to access Windows-1252 fonts but they are not loaded. "
+                          "Games may not show fonts correctly, or crash.");
+            }
+            else
+            {
+              PanicAlertT("Error: Trying to access Shift JIS fonts but they are not loaded. "
+                          "Games may not show fonts correctly, or crash.");
+            }
             m_FontsLoaded = true;  // Don't be a nag :p
           }
         }

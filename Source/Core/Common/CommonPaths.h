@@ -106,8 +106,8 @@
 // Sys files
 #define TOTALDB "totaldb.dsy"
 
-#define FONT_ANSI "font_ansi.bin"
-#define FONT_SJIS "font_sjis.bin"
+#define FONT_WINDOWS_1252 "font_western.bin"
+#define FONT_SHIFT_JIS "font_japanese.bin"
 
 #define DSP_IROM "dsp_rom.bin"
 #define DSP_COEF "dsp_coef.bin"

@@ -22,7 +22,7 @@ static void ByteSwap(u8* valueA, u8* valueB)
   *valueB = tmp;
 }
 
-GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool ascii)
+GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift_jis)
     : m_valid(false), m_fileName(filename)
 {
   // Currently there is a string freeze. instead of adding a new message about needing r/w
@@ -34,9 +34,10 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool ascii
     {
       if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename.c_str()))
         return;
-      ascii = AskYesNoT("Format as ASCII (NTSC\\PAL)?\nChoose no for Shift JIS (NTSC-J)");
+      shift_jis =
+          AskYesNoT("Format as Shift JIS (Japanese)?\nChoose no for Windows-1252 (Western)");
     }
-    Format(ascii);
+    Format(shift_jis);
     return;
   }
   else
@@ -226,9 +227,9 @@ void GCMemcard::InitDirBatPointers()
   }
 }
 
-bool GCMemcard::IsAsciiEncoding() const
+bool GCMemcard::IsShiftJIS() const
 {
-  return hdr.Encoding == 0;
+  return hdr.Encoding == 1;
 }
 
 bool GCMemcard::Save()
@@ -1223,14 +1224,14 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
   return frames;
 }
 
-bool GCMemcard::Format(u8* card_data, bool ascii, u16 SizeMb)
+bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
 {
   if (!card_data)
     return false;
   memset(card_data, 0xFF, BLOCK_SIZE * 3);
   memset(card_data + BLOCK_SIZE * 3, 0, BLOCK_SIZE * 2);
 
-  *((Header*)card_data) = Header(SLOT_A, SizeMb, ascii);
+  *((Header*)card_data) = Header(SLOT_A, SizeMb, shift_jis);
 
   *((Directory*)(card_data + BLOCK_SIZE)) = Directory();
   *((Directory*)(card_data + BLOCK_SIZE * 2)) = Directory();
@@ -1239,7 +1240,7 @@ bool GCMemcard::Format(u8* card_data, bool ascii, u16 SizeMb)
   return true;
 }
 
-bool GCMemcard::Format(bool ascii, u16 SizeMb)
+bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 {
   memset(&hdr, 0xFF, BLOCK_SIZE);
   memset(&dir, 0xFF, BLOCK_SIZE);
@@ -1247,7 +1248,7 @@ bool GCMemcard::Format(bool ascii, u16 SizeMb)
   memset(&bat, 0, BLOCK_SIZE);
   memset(&bat_backup, 0, BLOCK_SIZE);
 
-  hdr = Header(SLOT_A, SizeMb, ascii);
+  hdr = Header(SLOT_A, SizeMb, shift_jis);
   dir = dir_backup = Directory();
   bat = bat_backup = BlockAlloc(SizeMb);
 

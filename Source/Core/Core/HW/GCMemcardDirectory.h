@@ -23,7 +23,7 @@ class GCMemcardDirectory : public MemoryCardBase, NonCopyable
 {
 public:
   GCMemcardDirectory(const std::string& directory, int slot = 0, u16 sizeMb = MemCard2043Mb,
-                     bool ascii = true,
+                     bool shift_jis = false,
                      DiscIO::Country card_region = DiscIO::Country::COUNTRY_EUROPE, int gameId = 0);
   ~GCMemcardDirectory();
   void FlushToFile();

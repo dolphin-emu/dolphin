@@ -144,8 +144,8 @@ is intended for debugging purposes only.
 ## Sys Files
 
 * `totaldb.dsy`: Database of symbols (for devs only)
-* `GC/font_ansi.bin`: font dumps
-* `GC/font_sjis.bin`: font dumps
+* `GC/font_western.bin`: font dumps
+* `GC/font_japanese.bin`: font dumps
 * `GC/dsp_coef.bin`: DSP dumps
 * `GC/dsp_rom.bin`: DSP dumps
 * `Wii/clientca.pem`: Wii network certificate
