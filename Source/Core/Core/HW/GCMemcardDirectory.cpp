@@ -146,9 +146,10 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::Country car
 }
 
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 sizeMb,
-                                       bool ascii, DiscIO::Country card_region, int gameId)
-    : MemoryCardBase(slot, sizeMb), m_GameId(gameId), m_LastBlock(-1), m_hdr(slot, sizeMb, ascii),
-      m_bat1(sizeMb), m_saves(0), m_SaveDirectory(directory), m_exiting(false)
+                                       bool shift_jis, DiscIO::Country card_region, int gameId)
+    : MemoryCardBase(slot, sizeMb), m_GameId(gameId), m_LastBlock(-1),
+      m_hdr(slot, sizeMb, shift_jis), m_bat1(sizeMb), m_saves(0), m_SaveDirectory(directory),
+      m_exiting(false)
 {
   // Use existing header data if available
   if (File::Exists(m_SaveDirectory + MC_HDR))

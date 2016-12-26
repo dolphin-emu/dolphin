@@ -1,4 +1,4 @@
-The two fonts in this directory (font_ansi.bin and font_sjis.bin) were
+The two fonts in this directory (font_western.bin and font_japanese.bin) were
 generated using gc-font-tool which can be found in the docs/ directory in the
 dolphin source code.
 
