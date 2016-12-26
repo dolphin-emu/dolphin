@@ -140,6 +140,8 @@ void NetPlayLaunchConfig::SetDialogInfo(const IniFile::Section& section, wxWindo
 
 void NetPlayHostConfig::FromIniConfig(IniFile::Section& netplay_section)
 {
+  netplay_section.Get("Nickname", &player_name, "Player");
+
   std::string traversal_choice_setting;
   netplay_section.Get("TraversalChoice", &traversal_choice_setting, "direct");
   use_traversal = traversal_choice_setting == "traversal";
