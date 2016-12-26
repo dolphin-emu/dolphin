@@ -31,17 +31,17 @@ enum class Platform;
 class CVolumeDirectory : public IVolume
 {
 public:
-  CVolumeDirectory(const std::string& _rDirectory, bool _bIsWii,
-                   const std::string& _rApploader = "", const std::string& _rDOL = "");
+  CVolumeDirectory(const std::string& directory, bool is_wii, const std::string& apploader = "",
+                   const std::string& dol = "");
 
   ~CVolumeDirectory();
 
-  static bool IsValidDirectory(const std::string& _rDirectory);
+  static bool IsValidDirectory(const std::string& directory);
 
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
+  bool Read(u64 offset, u64 length, u8* buffer, bool decrypt) const override;
 
   std::string GetGameID() const override;
-  void SetGameID(const std::string& _ID);
+  void SetGameID(const std::string& id);
 
   std::string GetMakerID() const override;
 
@@ -65,50 +65,50 @@ public:
   void BuildFST();
 
 private:
-  static std::string ExtractDirectoryName(const std::string& _rDirectory);
+  static std::string ExtractDirectoryName(const std::string& directory);
 
   void SetDiskTypeWii();
   void SetDiskTypeGC();
 
-  bool SetApploader(const std::string& _rApploader);
+  bool SetApploader(const std::string& apploader);
 
-  void SetDOL(const std::string& _rDOL);
+  void SetDOL(const std::string& dol);
 
   // writing to read buffer
-  void WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, const u8* _Src, u64* _Address,
-                     u64* _Length, u8** _pBuffer) const;
+  void WriteToBuffer(u64 source_start_address, u64 source_length, const u8* source, u64* address,
+                     u64* length, u8** buffer) const;
 
-  void PadToAddress(u64 _StartAddress, u64* _Address, u64* _Length, u8** _pBuffer) const;
+  void PadToAddress(u64 start_address, u64* address, u64* length, u8** buffer) const;
 
   void Write32(u32 data, u32 offset, std::vector<u8>* const buffer);
 
   // FST creation
-  void WriteEntryData(u32* entryOffset, u8 type, u32 nameOffset, u64 dataOffset, u64 length);
-  void WriteEntryName(u32* nameOffset, const std::string& name);
-  void WriteDirectory(const File::FSTEntry& parent_entry, u32* fstOffset, u32* nameOffset,
-                      u64* dataOffset, u32 parentEntryNum);
+  void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length);
+  void WriteEntryName(u32* name_offset, const std::string& name);
+  void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
+                      u64* data_offset, u32 parent_entry_index);
 
-  std::string m_rootDirectory;
+  std::string m_root_directory;
 
-  std::map<u64, std::string> m_virtualDisk;
+  std::map<u64, std::string> m_virtual_disk;
 
   bool m_is_wii;
 
   // GameCube has no shift, Wii has 2 bit shift
-  u32 m_addressShift;
+  u32 m_address_shift;
 
   // first address on disk containing file data
-  u64 m_dataStartAddress;
+  u64 m_data_start_address;
 
-  u64 m_fstNameOffset;
-  std::vector<u8> m_FSTData;
+  u64 m_fst_name_offset;
+  std::vector<u8> m_fst_data;
 
-  std::vector<u8> m_diskHeader;
+  std::vector<u8> m_disk_header;
 
 #pragma pack(push, 1)
   struct SDiskHeaderInfo
   {
-    u32 debug_mntr_size;
+    u32 debug_monitor_size;
     u32 simulated_mem_size;
     u32 arg_offset;
     u32 debug_flag;
@@ -121,7 +121,7 @@ private:
     // All the data is byteswapped
     SDiskHeaderInfo()
     {
-      debug_mntr_size = 0;
+      debug_monitor_size = 0;
       simulated_mem_size = 0;
       arg_offset = 0;
       debug_flag = 0;
@@ -133,10 +133,10 @@ private:
     }
   };
 #pragma pack(pop)
-  std::unique_ptr<SDiskHeaderInfo> m_diskHeaderInfo;
+  std::unique_ptr<SDiskHeaderInfo> m_disk_header_info;
 
   std::vector<u8> m_apploader;
-  std::vector<u8> m_DOL;
+  std::vector<u8> m_dol;
 
   u64 m_fst_address;
   u64 m_dol_address;
