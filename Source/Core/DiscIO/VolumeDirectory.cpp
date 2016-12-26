@@ -79,30 +79,30 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
   // header
   if (_Offset < DISKHEADERINFO_ADDRESS)
   {
-    WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_diskHeader.data(), _Offset, _Length,
-                  _pBuffer);
+    WriteToBuffer(DISKHEADER_ADDRESS, DISKHEADERINFO_ADDRESS, m_diskHeader.data(), &_Offset,
+                  &_Length, &_pBuffer);
   }
   // header info
   if (_Offset >= DISKHEADERINFO_ADDRESS && _Offset < APPLOADER_ADDRESS)
   {
     WriteToBuffer(DISKHEADERINFO_ADDRESS, sizeof(m_diskHeaderInfo), (u8*)m_diskHeaderInfo.get(),
-                  _Offset, _Length, _pBuffer);
+                  &_Offset, &_Length, &_pBuffer);
   }
   // apploader
   if (_Offset >= APPLOADER_ADDRESS && _Offset < APPLOADER_ADDRESS + m_apploader.size())
   {
-    WriteToBuffer(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data(), _Offset, _Length,
-                  _pBuffer);
+    WriteToBuffer(APPLOADER_ADDRESS, m_apploader.size(), m_apploader.data(), &_Offset, &_Length,
+                  &_pBuffer);
   }
   // dol
   if (_Offset >= m_dol_address && _Offset < m_dol_address + m_DOL.size())
   {
-    WriteToBuffer(m_dol_address, m_DOL.size(), m_DOL.data(), _Offset, _Length, _pBuffer);
+    WriteToBuffer(m_dol_address, m_DOL.size(), m_DOL.data(), &_Offset, &_Length, &_pBuffer);
   }
   // fst
   if (_Offset >= m_fst_address && _Offset < m_dataStartAddress)
   {
-    WriteToBuffer(m_fst_address, m_FSTData.size(), m_FSTData.data(), _Offset, _Length, _pBuffer);
+    WriteToBuffer(m_fst_address, m_FSTData.size(), m_FSTData.data(), &_Offset, &_Length, &_pBuffer);
   }
 
   if (m_virtualDisk.empty())
@@ -114,7 +114,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
     --fileIter;
 
   // zero fill to start of file data
-  PadToAddress(fileIter->first, _Offset, _Length, _pBuffer);
+  PadToAddress(fileIter->first, &_Offset, &_Length, &_pBuffer);
 
   while (fileIter != m_virtualDisk.end() && _Length > 0)
   {
@@ -149,7 +149,7 @@ bool CVolumeDirectory::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt
     if (fileIter != m_virtualDisk.end())
     {
       _dbg_assert_(DVDINTERFACE, fileIter->first >= _Offset);
-      PadToAddress(fileIter->first, _Offset, _Length, _pBuffer);
+      PadToAddress(fileIter->first, &_Offset, &_Length, &_pBuffer);
     }
   }
 
@@ -361,9 +361,9 @@ void CVolumeDirectory::BuildFST()
   u32 rootOffset = 0;  // Offset of root of FST
 
   // write root entry
-  WriteEntryData(fstOffset, DIRECTORY_ENTRY, 0, 0, rootEntry.size);
+  WriteEntryData(&fstOffset, DIRECTORY_ENTRY, 0, 0, rootEntry.size);
 
-  WriteDirectory(rootEntry, fstOffset, nameOffset, curDataAddress, rootOffset);
+  WriteDirectory(rootEntry, &fstOffset, &nameOffset, &curDataAddress, rootOffset);
 
   // overflow check
   _dbg_assert_(DVDINTERFACE, nameOffset == name_table_size);
@@ -375,37 +375,37 @@ void CVolumeDirectory::BuildFST()
 }
 
 void CVolumeDirectory::WriteToBuffer(u64 _SrcStartAddress, u64 _SrcLength, const u8* _Src,
-                                     u64& _Address, u64& _Length, u8*& _pBuffer) const
+                                     u64* _Address, u64* _Length, u8** _pBuffer) const
 {
-  if (_Length == 0)
+  if (*_Length == 0)
     return;
 
-  _dbg_assert_(DVDINTERFACE, _Address >= _SrcStartAddress);
+  _dbg_assert_(DVDINTERFACE, *_Address >= _SrcStartAddress);
 
-  u64 srcOffset = _Address - _SrcStartAddress;
+  u64 srcOffset = *_Address - _SrcStartAddress;
 
   if (srcOffset < _SrcLength)
   {
-    u64 srcBytes = std::min(_SrcLength - srcOffset, _Length);
+    u64 srcBytes = std::min(_SrcLength - srcOffset, *_Length);
 
-    memcpy(_pBuffer, _Src + srcOffset, (size_t)srcBytes);
+    memcpy(*_pBuffer, _Src + srcOffset, (size_t)srcBytes);
 
-    _Length -= srcBytes;
-    _pBuffer += srcBytes;
-    _Address += srcBytes;
+    *_Length -= srcBytes;
+    *_pBuffer += srcBytes;
+    *_Address += srcBytes;
   }
 }
 
-void CVolumeDirectory::PadToAddress(u64 _StartAddress, u64& _Address, u64& _Length,
-                                    u8*& _pBuffer) const
+void CVolumeDirectory::PadToAddress(u64 _StartAddress, u64* _Address, u64* _Length,
+                                    u8** _pBuffer) const
 {
-  if (_StartAddress > _Address && _Length > 0)
+  if (_StartAddress > *_Address && *_Length > 0)
   {
-    u64 padBytes = std::min(_StartAddress - _Address, _Length);
-    memset(_pBuffer, 0, (size_t)padBytes);
-    _Length -= padBytes;
-    _pBuffer += padBytes;
-    _Address += padBytes;
+    u64 padBytes = std::min(_StartAddress - *_Address, *_Length);
+    memset(*_pBuffer, 0, (size_t)padBytes);
+    *_Length -= padBytes;
+    *_pBuffer += padBytes;
+    *_Address += padBytes;
   }
 }
 
@@ -417,31 +417,31 @@ void CVolumeDirectory::Write32(u32 data, u32 offset, std::vector<u8>* const buff
   (*buffer)[offset] = (data)&0xff;
 }
 
-void CVolumeDirectory::WriteEntryData(u32& entryOffset, u8 type, u32 nameOffset, u64 dataOffset,
+void CVolumeDirectory::WriteEntryData(u32* entryOffset, u8 type, u32 nameOffset, u64 dataOffset,
                                       u64 length)
 {
-  m_FSTData[entryOffset++] = type;
+  m_FSTData[(*entryOffset)++] = type;
 
-  m_FSTData[entryOffset++] = (nameOffset >> 16) & 0xff;
-  m_FSTData[entryOffset++] = (nameOffset >> 8) & 0xff;
-  m_FSTData[entryOffset++] = (nameOffset)&0xff;
+  m_FSTData[(*entryOffset)++] = (nameOffset >> 16) & 0xff;
+  m_FSTData[(*entryOffset)++] = (nameOffset >> 8) & 0xff;
+  m_FSTData[(*entryOffset)++] = (nameOffset)&0xff;
 
-  Write32((u32)(dataOffset >> m_addressShift), entryOffset, &m_FSTData);
-  entryOffset += 4;
+  Write32((u32)(dataOffset >> m_addressShift), *entryOffset, &m_FSTData);
+  *entryOffset += 4;
 
-  Write32((u32)length, entryOffset, &m_FSTData);
-  entryOffset += 4;
+  Write32((u32)length, *entryOffset, &m_FSTData);
+  *entryOffset += 4;
 }
 
-void CVolumeDirectory::WriteEntryName(u32& nameOffset, const std::string& name)
+void CVolumeDirectory::WriteEntryName(u32* nameOffset, const std::string& name)
 {
-  strncpy((char*)&m_FSTData[nameOffset + m_fstNameOffset], name.c_str(), name.length() + 1);
+  strncpy((char*)&m_FSTData[*nameOffset + m_fstNameOffset], name.c_str(), name.length() + 1);
 
-  nameOffset += (u32)(name.length() + 1);
+  *nameOffset += (u32)(name.length() + 1);
 }
 
-void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32& fstOffset,
-                                      u32& nameOffset, u64& dataOffset, u32 parentEntryNum)
+void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* fstOffset,
+                                      u32* nameOffset, u64* dataOffset, u32 parentEntryNum)
 {
   std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
 
@@ -454,9 +454,8 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32& f
   {
     if (entry.isDirectory)
     {
-      u32 myOffset = fstOffset;
-      u32 myEntryNum = myOffset / ENTRY_SIZE;
-      WriteEntryData(fstOffset, DIRECTORY_ENTRY, nameOffset, parentEntryNum,
+      u32 myEntryNum = *fstOffset / ENTRY_SIZE;
+      WriteEntryData(fstOffset, DIRECTORY_ENTRY, *nameOffset, parentEntryNum,
                      myEntryNum + entry.size + 1);
       WriteEntryName(nameOffset, entry.virtualName);
 
@@ -465,15 +464,15 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32& f
     else
     {
       // put entry in FST
-      WriteEntryData(fstOffset, FILE_ENTRY, nameOffset, dataOffset, entry.size);
+      WriteEntryData(fstOffset, FILE_ENTRY, *nameOffset, *dataOffset, entry.size);
       WriteEntryName(nameOffset, entry.virtualName);
 
       // write entry to virtual disk
-      _dbg_assert_(DVDINTERFACE, m_virtualDisk.find(dataOffset) == m_virtualDisk.end());
-      m_virtualDisk.emplace(dataOffset, entry.physicalName);
+      _dbg_assert_(DVDINTERFACE, m_virtualDisk.find(*dataOffset) == m_virtualDisk.end());
+      m_virtualDisk.emplace(*dataOffset, entry.physicalName);
 
       // 4 byte aligned
-      dataOffset = Common::AlignUp(dataOffset + std::max<u64>(entry.size, 1ull), 0x8000ull);
+      *dataOffset = Common::AlignUp(*dataOffset + std::max<u64>(entry.size, 1ull), 0x8000ull);
     }
   }
 }
