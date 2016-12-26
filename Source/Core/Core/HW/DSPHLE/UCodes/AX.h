@@ -55,6 +55,7 @@ public:
   AXUCode(DSPHLE* dsphle, u32 crc);
   virtual ~AXUCode();
 
+  void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
   void DoState(PointerWrap& p) override;

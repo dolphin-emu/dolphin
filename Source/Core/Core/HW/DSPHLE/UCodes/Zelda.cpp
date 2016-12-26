@@ -118,7 +118,15 @@ ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
   m_renderer.SetFlags(m_flags);
 
   INFO_LOG(DSPHLE, "Zelda UCode loaded, crc=%08x, flags=%08x", crc, m_flags);
+}
 
+ZeldaUCode::~ZeldaUCode()
+{
+  m_mail_handler.Clear();
+}
+
+void ZeldaUCode::Initialize()
+{
   if (m_flags & LIGHT_PROTOCOL)
   {
     m_mail_handler.PushMail(0x88881111);
@@ -128,11 +136,6 @@ ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
     m_mail_handler.PushMail(DSP_INIT, true);
     m_mail_handler.PushMail(0xF3551111);  // handshake
   }
-}
-
-ZeldaUCode::~ZeldaUCode()
-{
-  m_mail_handler.Clear();
 }
 
 void ZeldaUCode::Update()

@@ -188,6 +188,7 @@ public:
   ZeldaUCode(DSPHLE* dsphle, u32 crc);
   virtual ~ZeldaUCode();
 
+  void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
 
