@@ -175,12 +175,12 @@ void PopulateDevices()
     {
       // Unfortunately udev gives us no way to filter out the non event device interfaces.
       // So we open it and see if it works with evdev ioctls or not.
-      std::string name = GetName(devnode);
       auto input = std::make_shared<evdevDevice>(devnode);
 
       if (input->IsInteresting())
       {
         g_controller_interface.AddDevice(std::move(input));
+        std::string name = GetName(devnode);
         s_devnode_name_map.insert(std::pair<std::string, std::string>(devnode, name));
       }
     }
