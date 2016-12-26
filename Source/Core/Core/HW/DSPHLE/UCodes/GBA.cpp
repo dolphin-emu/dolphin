@@ -84,12 +84,16 @@ void ProcessGBACrypto(u32 address)
 
 GBAUCode::GBAUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
-  m_mail_handler.PushMail(DSP_INIT);
 }
 
 GBAUCode::~GBAUCode()
 {
   m_mail_handler.Clear();
+}
+
+void GBAUCode::Initialize()
+{
+  m_mail_handler.PushMail(DSP_INIT);
 }
 
 void GBAUCode::Update()

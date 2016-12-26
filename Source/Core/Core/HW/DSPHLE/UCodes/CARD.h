@@ -12,6 +12,7 @@ public:
   CARDUCode(DSPHLE* dsphle, u32 crc);
   virtual ~CARDUCode();
 
+  void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
 };

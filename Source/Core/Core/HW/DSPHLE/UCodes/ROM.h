@@ -12,6 +12,7 @@ public:
   ROMUCode(DSPHLE* dsphle, u32 crc);
   virtual ~ROMUCode();
 
+  void Initialize() override;
   void HandleMail(u32 mail) override;
   void Update() override;
 

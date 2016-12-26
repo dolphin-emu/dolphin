@@ -73,6 +73,7 @@ public:
   }
 
   virtual ~UCodeInterface() {}
+  virtual void Initialize() = 0;
   virtual void HandleMail(u32 mail) = 0;
   virtual void Update() = 0;
 

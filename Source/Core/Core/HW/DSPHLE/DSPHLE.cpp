@@ -77,6 +77,7 @@ void DSPHLE::SetUCode(u32 _crc)
   m_pUCode = nullptr;
   m_MailHandler.Clear();
   m_pUCode = UCodeFactory(_crc, this, m_wii);
+  m_pUCode->Initialize();
 }
 
 // TODO do it better?
@@ -90,6 +91,7 @@ void DSPHLE::SwapUCode(u32 _crc)
   {
     m_lastUCode = m_pUCode;
     m_pUCode = UCodeFactory(_crc, this, m_wii);
+    m_pUCode->Initialize();
   }
   else
   {
