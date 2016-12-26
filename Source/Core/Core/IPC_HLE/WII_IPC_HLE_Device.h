@@ -75,6 +75,8 @@ struct IOSResourceReadWriteRequest final : IOSResourceRequest
 {
   u32 data_addr;
   u32 length;
+  std::vector<u8> MakeBuffer() const;
+  void FillBuffer(const void* data, size_t source_size) const;
   explicit IOSResourceReadWriteRequest(u32 command_address);
 };
 
@@ -99,6 +101,9 @@ struct IOSResourceIOCtlRequest final : IOSResourceRequest
   u32 out_addr;
   u32 out_size;
   explicit IOSResourceIOCtlRequest(u32 command_address);
+  std::vector<u8> MakeInBuffer() const;
+  std::vector<u8> MakeOutBuffer() const;
+  void FillOutBuffer(const void* data, size_t source_size) const;
   void Dump(const std::string& device_name, LogTypes::LOG_TYPE log_type = LogTypes::WII_IPC_HLE,
             LogTypes::LOG_LEVELS verbosity = LogTypes::LINFO) const;
   void Log(const std::string& device_name, LogTypes::LOG_TYPE log_type = LogTypes::WII_IPC_HLE,
@@ -111,6 +116,8 @@ struct IOSResourceIOCtlVRequest final : IOSResourceRequest
   {
     u32 addr;
     u32 size;
+    std::vector<u8> MakeBuffer() const;
+    void FillBuffer(const void* data, size_t source_size) const;
   };
   u32 request;
   std::vector<IOVector> in_vectors;

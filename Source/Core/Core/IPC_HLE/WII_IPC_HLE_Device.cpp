@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
@@ -101,11 +102,9 @@ void IOSResourceIOCtlRequest::Dump(const std::string& device_name, LogTypes::LOG
 {
   Log(device_name, type, verbosity);
   GENERIC_LOG(type, verbosity, "  in (size 0x%x):", in_size);
-  GENERIC_LOG(type, verbosity, "    %s",
-              ArrayToString(Memory::GetPointer(in_addr), in_size).c_str());
+  GENERIC_LOG(type, verbosity, "    %s", ArrayToString(MakeInBuffer().data(), in_size).c_str());
   GENERIC_LOG(type, verbosity, "  out (size 0x%x):", out_size);
-  GENERIC_LOG(type, verbosity, "    %s",
-              ArrayToString(Memory::GetPointer(out_addr), out_size).c_str());
+  GENERIC_LOG(type, verbosity, "    %s", ArrayToString(MakeOutBuffer().data(), out_size).c_str());
 }
 
 void IOSResourceIOCtlRequest::Log(const std::string& device_name, LogTypes::LOG_TYPE type,
@@ -127,7 +126,7 @@ void IOSResourceIOCtlVRequest::Dump(const std::string& device_name, LogTypes::LO
   {
     GENERIC_LOG(type, verbosity, "  in[%zu] (0x%08x, size 0x%x):", i, vector.addr, vector.size);
     GENERIC_LOG(type, verbosity, "    %s",
-                ArrayToString(Memory::GetPointer(vector.addr), vector.size).c_str());
+                ArrayToString(vector.MakeBuffer().data(), vector.size).c_str());
     ++i;
   }
   for (const auto& vector : io_vectors)
@@ -135,6 +134,53 @@ void IOSResourceIOCtlVRequest::Dump(const std::string& device_name, LogTypes::LO
     GENERIC_LOG(type, verbosity, "  io[%zu] (0x%08x, size 0x%x)", i, vector.addr, vector.size);
     ++i;
   }
+}
+
+std::vector<u8> IOSResourceReadWriteRequest::MakeBuffer() const
+{
+  std::vector<u8> buffer(length);
+  Memory::CopyFromEmu(buffer.data(), data_addr, buffer.size());
+  return buffer;
+}
+
+void IOSResourceReadWriteRequest::FillBuffer(const void* data, const size_t source_size) const
+{
+  _assert_(source_size <= length);
+  Memory::CopyToEmu(data_addr, data, source_size);
+}
+
+std::vector<u8> IOSResourceIOCtlRequest::MakeInBuffer() const
+{
+  std::vector<u8> buffer(in_size);
+  Memory::CopyFromEmu(buffer.data(), in_addr, buffer.size());
+  return buffer;
+}
+
+std::vector<u8> IOSResourceIOCtlRequest::MakeOutBuffer() const
+{
+  std::vector<u8> buffer(out_size);
+  Memory::CopyFromEmu(buffer.data(), out_addr, buffer.size());
+  return buffer;
+}
+
+void IOSResourceIOCtlRequest::FillOutBuffer(const void* data, const size_t source_size) const
+{
+  _assert_(source_size <= out_size);
+  Memory::CopyToEmu(out_addr, data, source_size);
+}
+
+std::vector<u8> IOSResourceIOCtlVRequest::IOVector::MakeBuffer() const
+{
+  std::vector<u8> buffer(size);
+  Memory::CopyFromEmu(buffer.data(), addr, buffer.size());
+  return buffer;
+}
+
+void IOSResourceIOCtlVRequest::IOVector::FillBuffer(const void* data,
+                                                    const size_t source_size) const
+{
+  _assert_(source_size <= size);
+  Memory::CopyToEmu(addr, data, source_size);
 }
 
 IWII_IPC_HLE_Device::IWII_IPC_HLE_Device(const u32 device_id, const std::string& device_name,

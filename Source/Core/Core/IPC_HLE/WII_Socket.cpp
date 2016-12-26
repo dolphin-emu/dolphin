@@ -203,8 +203,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
       case IOCTL_SO_BIND:
       {
         sockaddr_in local_name;
-        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.in_addr + 8);
-        WiiSockMan::Convert(*wii_name, local_name);
+        WiiSockAddrIn wii_name;
+        Memory::CopyFromEmu(&wii_name, ioctl.in_addr + 8, sizeof(wii_name));
+        WiiSockMan::Convert(wii_name, local_name);
 
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_BIND", false);
@@ -216,8 +217,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
       case IOCTL_SO_CONNECT:
       {
         sockaddr_in local_name;
-        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.in_addr + 8);
-        WiiSockMan::Convert(*wii_name, local_name);
+        WiiSockAddrIn wii_name;
+        Memory::CopyFromEmu(&wii_name, ioctl.in_addr + 8, sizeof(wii_name));
+        WiiSockMan::Convert(wii_name, local_name);
 
         int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_CONNECT", false);
@@ -231,14 +233,16 @@ void WiiSocket::Update(bool read, bool write, bool except)
         if (ioctl.out_size > 0)
         {
           sockaddr_in local_name;
-          WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.out_addr);
-          WiiSockMan::Convert(*wii_name, local_name);
+          WiiSockAddrIn wii_name;
+          Memory::CopyFromEmu(&wii_name, ioctl.out_addr, sizeof(wii_name));
+          WiiSockMan::Convert(wii_name, local_name);
 
           socklen_t addrlen = sizeof(sockaddr_in);
           int ret = (s32)accept(fd, (sockaddr*)&local_name, &addrlen);
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_ACCEPT", true);
 
-          WiiSockMan::Convert(local_name, *wii_name, addrlen);
+          WiiSockMan::Convert(local_name, wii_name, addrlen);
+          ioctl.FillOutBuffer(&wii_name, sizeof(wii_name));
         }
         else
         {
@@ -382,14 +386,17 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_WRITE:
           {
+            std::vector<u8> temp_buffer(BufferOutSize2);
+            Memory::CopyFromEmu(temp_buffer.data(), BufferOut2, temp_buffer.size());
             int ret = mbedtls_ssl_write(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx,
-                                        Memory::GetPointer(BufferOut2), BufferOutSize2);
+                                        temp_buffer.data(), temp_buffer.size());
+            Memory::CopyToEmu(BufferOut2, temp_buffer.data(), temp_buffer.size());
 
             if (SConfig::GetInstance().m_SSLDumpWrite && ret > 0)
             {
               std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
                                      SConfig::GetInstance().GetGameID() + "_write.bin";
-              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferOut2), ret);
+              File::IOFile(filename, "ab").WriteBytes(temp_buffer.data(), ret);
             }
 
             if (ret >= 0)
@@ -420,14 +427,17 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_READ:
           {
+            std::vector<u8> temp_buffer(BufferInSize2);
+            Memory::CopyFromEmu(temp_buffer.data(), BufferIn2, temp_buffer.size());
             int ret = mbedtls_ssl_read(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx,
-                                       Memory::GetPointer(BufferIn2), BufferInSize2);
+                                       temp_buffer.data(), temp_buffer.size());
+            Memory::CopyToEmu(BufferIn2, temp_buffer.data(), temp_buffer.size());
 
             if (SConfig::GetInstance().m_SSLDumpRead && ret > 0)
             {
               std::string filename = File::GetUserPath(D_DUMPSSL_IDX) +
                                      SConfig::GetInstance().GetGameID() + "_read.bin";
-              File::IOFile(filename, "ab").WriteBytes(Memory::GetPointer(BufferIn2), ret);
+              File::IOFile(filename, "ab").WriteBytes(temp_buffer.data(), ret);
             }
 
             if (ret >= 0)
@@ -475,7 +485,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           u32 has_destaddr = Memory::Read_U32(BufferIn2 + 0x08);
 
           // Not a string, Windows requires a const char* for sendto
-          const char* data = (const char*)Memory::GetPointer(BufferIn);
+          const std::string data = Memory::GetString(BufferIn, BufferInSize);
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
           forceNonBlock = ((flags & SO_MSG_NONBLOCK) == SO_MSG_NONBLOCK);
@@ -485,11 +495,12 @@ void WiiSocket::Update(bool read, bool write, bool except)
           sockaddr_in local_name = {0};
           if (has_destaddr)
           {
-            WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn2 + 0x0C);
-            WiiSockMan::Convert(*wii_name, local_name);
+            WiiSockAddrIn wii_name;
+            Memory::CopyFromEmu(&wii_name, BufferIn2 + 0x0C, sizeof(wii_name));
+            WiiSockMan::Convert(wii_name, local_name);
           }
 
-          int ret = sendto(fd, data, BufferInSize, flags,
+          int ret = sendto(fd, data.data(), BufferInSize, flags,
                            has_destaddr ? (struct sockaddr*)&local_name : nullptr,
                            has_destaddr ? sizeof(sockaddr) : 0);
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
@@ -507,16 +518,17 @@ void WiiSocket::Update(bool read, bool write, bool except)
         {
           u32 flags = Memory::Read_U32(BufferIn + 0x04);
           // Not a string, Windows requires a char* for recvfrom
-          char* data = (char*)Memory::GetPointer(BufferOut);
-          int data_len = BufferOutSize;
+          std::vector<char> data(BufferOutSize);
+          Memory::CopyFromEmu(data.data(), BufferOut, data.size());
 
           sockaddr_in local_name;
           memset(&local_name, 0, sizeof(sockaddr_in));
 
           if (BufferOutSize2 != 0)
           {
-            WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut2);
-            WiiSockMan::Convert(*wii_name, local_name);
+            WiiSockAddrIn wii_name;
+            Memory::CopyFromEmu(&wii_name, BufferOut2, sizeof(wii_name));
+            WiiSockMan::Convert(wii_name, local_name);
           }
 
           // Act as non blocking when SO_MSG_NONBLOCK is specified
@@ -534,23 +546,25 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
 #endif
           socklen_t addrlen = sizeof(sockaddr_in);
-          int ret = recvfrom(fd, data, data_len, flags,
+          int ret = recvfrom(fd, data.data(), static_cast<int>(data.size()), flags,
                              BufferOutSize2 ? (struct sockaddr*)&local_name : nullptr,
                              BufferOutSize2 ? &addrlen : nullptr);
+          Memory::CopyToEmu(BufferOut, data.data(), data.size());
           ReturnValue =
               WiiSockMan::GetNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
 
-          INFO_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
+          INFO_LOG(WII_IPC_NET, "%s(%d) Socket: %08X, Flags: %08X, "
                                 "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
                                 "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
-                   BufferOutSize2 ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ", ReturnValue, data,
-                   fd, flags, BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferOut,
+                   BufferOutSize2 ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ", ReturnValue, fd,
+                   flags, BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferOut,
                    BufferOutSize, BufferOut2, BufferOutSize2);
 
           if (BufferOutSize2 != 0)
           {
-            WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut2);
-            WiiSockMan::Convert(local_name, *wii_name, addrlen);
+            WiiSockAddrIn wii_name;
+            WiiSockMan::Convert(local_name, wii_name, addrlen);
+            Memory::CopyToEmu(BufferOut2, &wii_name, sizeof(wii_name));
           }
           break;
         }

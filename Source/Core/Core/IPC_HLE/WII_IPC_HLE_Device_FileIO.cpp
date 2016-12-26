@@ -231,8 +231,9 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(IOSResourceReadWriteRequest& r
       DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", request.length,
                 request.data_addr, m_name.c_str());
       m_file->Seek(m_SeekPos, SEEK_SET);  // File might be opened twice, need to seek before we read
-      return_value = static_cast<u32>(
-          fread(Memory::GetPointer(request.data_addr), 1, request.length, m_file->GetHandle()));
+      std::vector<u8> buffer = request.MakeBuffer();
+      return_value = static_cast<u32>(fread(buffer.data(), 1, buffer.size(), m_file->GetHandle()));
+      request.FillBuffer(buffer.data(), buffer.size());
       if (static_cast<u32>(return_value) != request.length && ferror(m_file->GetHandle()))
       {
         return_value = FS_EACCESS;
@@ -272,7 +273,8 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(IOSResourceReadWriteRequest& 
                 request.data_addr, m_name.c_str());
       m_file->Seek(m_SeekPos,
                    SEEK_SET);  // File might be opened twice, need to seek before we write
-      if (m_file->WriteBytes(Memory::GetPointer(request.data_addr), request.length))
+      std::vector<u8> buffer = request.MakeBuffer();
+      if (m_file->WriteBytes(buffer.data(), buffer.size()))
       {
         return_value = request.length;
         m_SeekPos += request.length;

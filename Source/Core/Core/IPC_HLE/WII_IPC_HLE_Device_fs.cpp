@@ -135,22 +135,20 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(IOSResourceIOCtlVRequest& reques
 
       u32 MaxEntries = Memory::Read_U32(request.in_vectors[0].addr);
 
-      memset(Memory::GetPointer(request.io_vectors[0].addr), 0, request.io_vectors[0].size);
+      Memory::Memset(request.io_vectors[0].addr, 0, request.io_vectors[0].size);
 
       size_t numFiles = 0;
-      char* pFilename = (char*)Memory::GetPointer((u32)(request.io_vectors[0].addr));
-
+      std::vector<u8> buffer = request.io_vectors[0].MakeBuffer();
+      size_t offset = 0;
       for (size_t i = 0; i < entry.children.size() && i < MaxEntries; i++)
       {
-        const std::string& FileName = entry.children[i].virtualName;
-
-        strcpy(pFilename, FileName.c_str());
-        pFilename += FileName.length();
-        *pFilename++ = 0x00;  // termination
+        const std::string& file_name = entry.children[i].virtualName;
+        std::memcpy(buffer.data() + offset, file_name.c_str(), file_name.size());
+        offset += file_name.length() + 1;
         numFiles++;
-
-        INFO_LOG(WII_IPC_FILEIO, "\tFound: %s", FileName.c_str());
+        INFO_LOG(WII_IPC_FILEIO, "\tFound: %s", file_name.c_str());
       }
+      request.io_vectors[0].FillBuffer(buffer.data(), buffer.size());
 
       Memory::Write_U32((u32)numFiles, request.io_vectors[1].addr);
     }
@@ -261,8 +259,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(IOSResourceIOCtlRequest& request)
     fs.Free_INodes = 0x146B;
     fs.Used_Inodes = 0x0394;
 
-    std::memcpy(Memory::GetPointer(request.out_addr), &fs, sizeof(NANDStat));
-
+    request.FillOutBuffer(&fs, sizeof(fs));
     return IPC_SUCCESS;
   }
   break;
@@ -383,7 +380,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(IOSResourceIOCtlRequest& request)
       Addr += 4;
       Memory::Write_U16(GroupID, Addr);
       Addr += 2;
-      memcpy(Memory::GetPointer(Addr), Memory::GetPointer(request.in_addr), 64);
+      Memory::CopyToEmu(Addr, request.MakeInBuffer().data(), 64);
       Addr += 64;
       Memory::Write_U8(OwnerPerm, Addr);
       Addr += 1;

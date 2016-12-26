@@ -420,40 +420,38 @@ IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::IOCtlV(IOSResourceIOCtlVReq
   {
     // Gives parameters detailing type of scan and what to match
     // XXX - unused
-    // ScanInfo *scan = (ScanInfo *)Memory::GetPointer(request.in_vectors.at(0).m_Address);
+    // in_vectors[0] is a ScanInfo
 
-    u16* results = (u16*)Memory::GetPointer(request.io_vectors.at(0).addr);
     // first u16 indicates number of BSSInfo following
-    results[0] = Common::swap16(1);
+    Memory::Write_U16(1, request.io_vectors.at(0).addr);
 
-    BSSInfo* bss = (BSSInfo*)&results[1];
-    memset(bss, 0, sizeof(BSSInfo));
-
-    bss->length = Common::swap16(sizeof(BSSInfo));
-    bss->rssi = Common::swap16(0xffff);
-
+    BSSInfo bss = {};
+    bss.length = Common::swap16(sizeof(BSSInfo));
+    bss.rssi = Common::swap16(0xffff);
     for (int i = 0; i < BSSID_SIZE; ++i)
-      bss->bssid[i] = i;
+      bss.bssid[i] = i;
 
     const char* ssid = "dolphin-emu";
-    strcpy((char*)bss->ssid, ssid);
-    bss->ssid_length = Common::swap16((u16)strlen(ssid));
+    strcpy((char*)bss.ssid, ssid);
+    bss.ssid_length = Common::swap16((u16)strlen(ssid));
+    bss.channel = Common::swap16(2);
 
-    bss->channel = Common::swap16(2);
+    Memory::CopyToEmu(request.io_vectors.at(0).addr + 2, &bss, sizeof(bss));
   }
   break;
 
   case IOCTLV_WD_GET_INFO:
   {
-    Info* info = (Info*)Memory::GetPointer(request.io_vectors.at(0).addr);
-    memset(info, 0, sizeof(Info));
+    Info info = {};
     // Probably used to disallow certain channels?
-    memcpy(info->country, "US", 2);
-    info->ntr_allowed_channels = Common::swap16(0xfffe);
+    memcpy(info.country, "US", 2);
+    info.ntr_allowed_channels = Common::swap16(0xfffe);
 
     u8 address[MAC_ADDRESS_SIZE];
     GetMacAddress(address);
-    memcpy(info->mac, address, sizeof(info->mac));
+    memcpy(info.mac, address, sizeof(info.mac));
+
+    request.io_vectors.at(0).FillBuffer(&info, sizeof(info));
   }
   break;
 
@@ -863,10 +861,10 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(IOSResourceIOCtlRequest& 
   case IOCTL_SO_INETPTON:
   {
     std::string address = Memory::GetString(request.in_addr);
-    INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETPTON "
-                          "(Translating: %s)",
-             address.c_str());
-    return_value = inet_pton(address.c_str(), Memory::GetPointer(request.out_addr + 4));
+    INFO_LOG(WII_IPC_NET, "IOCTL_SO_INETPTON (Translating: %s)", address.c_str());
+    u8 destination[4] = {};
+    return_value = inet_pton(address.c_str(), destination);
+    Memory::CopyToEmu(request.out_addr + 4, destination, sizeof(destination));
     break;
   }
 

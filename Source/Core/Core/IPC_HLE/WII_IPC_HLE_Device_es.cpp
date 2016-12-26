@@ -47,6 +47,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/DVDInterface.h"
@@ -369,7 +370,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(IOSResourceIOCtlVRequest& reques
     }
     SContentAccess& rContent = itr->second;
 
-    u8* pDest = Memory::GetPointer(Addr);
+    std::vector<u8> buffer = request.io_vectors[0].MakeBuffer();
 
     if (rContent.m_Position + Size > rContent.m_Size)
     {
@@ -378,24 +379,17 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(IOSResourceIOCtlVRequest& reques
 
     if (Size > 0)
     {
-      if (pDest)
+      const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_TitleID);
+      // ContentLoader should never be invalid; rContent has been created by it.
+      if (ContentLoader.IsValid())
       {
-        const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_TitleID);
-        // ContentLoader should never be invalid; rContent has been created by it.
-        if (ContentLoader.IsValid())
-        {
-          const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(rContent.m_Index);
-          if (!pContent->m_Data->GetRange(rContent.m_Position, Size, pDest))
-            ERROR_LOG(WII_IPC_ES, "ES: failed to read %u bytes from %u!", Size,
-                      rContent.m_Position);
-        }
+        const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(rContent.m_Index);
+        if (!pContent->m_Data->GetRange(rContent.m_Position, Size, buffer.data()))
+          ERROR_LOG(WII_IPC_ES, "ES: failed to read %u bytes from %u!", Size, rContent.m_Position);
+        request.io_vectors[0].FillBuffer(buffer.data(), buffer.size());
+      }
 
-        rContent.m_Position += Size;
-      }
-      else
-      {
-        PanicAlert("IOCTL_ES_READCONTENT - bad destination");
-      }
+      rContent.m_Position += Size;
     }
 
     DEBUG_LOG(WII_IPC_ES,
@@ -484,11 +478,10 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(IOSResourceIOCtlVRequest& reques
     _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].addr);
-
-    char* Path = (char*)Memory::GetPointer(request.io_vectors[0].addr);
-    sprintf(Path, "/title/%08x/%08x/data", (u32)(TitleID >> 32), (u32)TitleID);
-
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEDIR: %s", Path);
+    const std::string path = StringFromFormat(
+        "/title/%08x/%08x/data", static_cast<u32>(TitleID >> 32), static_cast<u32>(TitleID));
+    request.io_vectors[0].FillBuffer(path.data(), path.size());
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEDIR: %s", path.c_str());
   }
   break;
 
@@ -879,40 +872,29 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(IOSResourceIOCtlVRequest& reques
   break;
 
   case IOCTL_ES_ENCRYPT:
+  case IOCTL_ES_DECRYPT:
   {
-    u32 keyIndex = Memory::Read_U32(request.in_vectors[0].addr);
-    u8* IV = Memory::GetPointer(request.in_vectors[1].addr);
-    u8* source = Memory::GetPointer(request.in_vectors[2].addr);
-    u32 size = request.in_vectors[2].size;
-    u8* newIV = Memory::GetPointer(request.io_vectors[0].addr);
-    u8* destination = Memory::GetPointer(request.io_vectors[1].addr);
+    const u32 keyIndex = Memory::Read_U32(request.in_vectors[0].addr);
+    std::vector<u8> IV = request.in_vectors[1].MakeBuffer();
+    std::vector<u8> source = request.in_vectors[2].MakeBuffer();
+    const u32 size = request.in_vectors[2].size;
+    std::vector<u8> newIV = request.io_vectors[0].MakeBuffer();
+    std::vector<u8> destination = request.io_vectors[1].MakeBuffer();
 
     mbedtls_aes_context AES_ctx;
     mbedtls_aes_setkey_enc(&AES_ctx, keyTable[keyIndex], 128);
-    memcpy(newIV, IV, 16);
-    mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_ENCRYPT, size, newIV, source, destination);
+    memcpy(newIV.data(), IV.data(), 16);
+    mbedtls_aes_crypt_cbc(&AES_ctx, request.request == IOCTL_ES_ENCRYPT ? MBEDTLS_AES_ENCRYPT :
+                                                                          MBEDTLS_AES_DECRYPT,
+                          size, newIV.data(), source.data(), destination.data());
+
+    request.in_vectors[1].FillBuffer(IV.data(), IV.size());
+    request.in_vectors[2].FillBuffer(source.data(), source.size());
+    request.io_vectors[0].FillBuffer(newIV.data(), newIV.size());
+    request.io_vectors[1].FillBuffer(destination.data(), destination.size());
 
     _dbg_assert_msg_(WII_IPC_ES, keyIndex == 6,
-                     "IOCTL_ES_ENCRYPT: Key type is not SD, data will be crap");
-  }
-  break;
-
-  case IOCTL_ES_DECRYPT:
-  {
-    u32 keyIndex = Memory::Read_U32(request.in_vectors[0].addr);
-    u8* IV = Memory::GetPointer(request.in_vectors[1].addr);
-    u8* source = Memory::GetPointer(request.in_vectors[2].addr);
-    u32 size = request.in_vectors[2].size;
-    u8* newIV = Memory::GetPointer(request.io_vectors[0].addr);
-    u8* destination = Memory::GetPointer(request.io_vectors[1].addr);
-
-    mbedtls_aes_context AES_ctx;
-    mbedtls_aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
-    memcpy(newIV, IV, 16);
-    mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, newIV, source, destination);
-
-    _dbg_assert_msg_(WII_IPC_ES, keyIndex == 6,
-                     "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");
+                     "IOCTL_ES_ENCRYPT/DECRYPT: Key type is not SD, data will be crap");
   }
   break;
 
@@ -1073,24 +1055,28 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(IOSResourceIOCtlVRequest& reques
   {
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
     _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
-    u8* destination = Memory::GetPointer(request.io_vectors[0].addr);
+    std::vector<u8> destination = request.io_vectors[0].MakeBuffer();
 
     EcWii& ec = EcWii::GetInstance();
-    get_ng_cert(destination, ec.getNgId(), ec.getNgKeyId(), ec.getNgPriv(), ec.getNgSig());
+    get_ng_cert(destination.data(), ec.getNgId(), ec.getNgKeyId(), ec.getNgPriv(), ec.getNgSig());
+    request.io_vectors[0].FillBuffer(destination.data(), destination.size());
   }
   break;
 
   case IOCTL_ES_SIGN:
   {
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
-    u8* ap_cert_out = Memory::GetPointer(request.io_vectors[1].addr);
-    u8* data = Memory::GetPointer(request.in_vectors[0].addr);
-    u32 data_size = request.in_vectors[0].size;
-    u8* sig_out = Memory::GetPointer(request.io_vectors[0].addr);
+    std::vector<u8> ap_cert_out = request.io_vectors[1].MakeBuffer();
+    std::vector<u8> data = request.in_vectors[0].MakeBuffer();
+    const u32 data_size = request.in_vectors[0].size;
+    std::vector<u8> sig_out = request.io_vectors[0].MakeBuffer();
 
     EcWii& ec = EcWii::GetInstance();
-    get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.getNgPriv(),
-                        ec.getNgId());
+    get_ap_sig_and_cert(sig_out.data(), ap_cert_out.data(), m_TitleID, data.data(), data_size,
+                        ec.getNgPriv(), ec.getNgId());
+    request.io_vectors[1].FillBuffer(ap_cert_out.data(), ap_cert_out.size());
+    request.in_vectors[0].FillBuffer(data.data(), data.size());
+    request.io_vectors[0].FillBuffer(sig_out.data(), sig_out.size());
   }
   break;
 

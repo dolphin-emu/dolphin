@@ -243,13 +243,15 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(IOSResourceIOCtlVRequest& r
     if (SSLID_VALID(sslID))
     {
       WII_SSL* ssl = &_SSL[sslID];
-      int ret =
-          mbedtls_x509_crt_parse_der(&ssl->cacert, Memory::GetPointer(BufferOut2), BufferOutSize2);
+      std::vector<u8> temp_buffer(BufferOutSize2);
+      Memory::CopyFromEmu(temp_buffer.data(), BufferOut2, temp_buffer.size());
+      int ret = mbedtls_x509_crt_parse_der(&ssl->cacert, temp_buffer.data(), temp_buffer.size());
+      Memory::CopyToEmu(BufferOut2, temp_buffer.data(), temp_buffer.size());
 
       if (SConfig::GetInstance().m_SSLDumpRootCA)
       {
         std::string filename = File::GetUserPath(D_DUMPSSL_IDX) + ssl->hostname + "_rootca.der";
-        File::IOFile(filename, "wb").WriteBytes(Memory::GetPointer(BufferOut2), BufferOutSize2);
+        File::IOFile(filename, "wb").WriteBytes(temp_buffer.data(), temp_buffer.size());
       }
 
       if (ret)

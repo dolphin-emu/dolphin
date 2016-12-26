@@ -349,7 +349,9 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
       if (!m_Card.Seek(req.arg, SEEK_SET))
         ERROR_LOG(WII_IPC_SD, "Seek failed WTF");
 
-      if (m_Card.ReadBytes(Memory::GetPointer(req.addr), size))
+      std::vector<u8> buffer(size);
+      Memory::CopyFromEmu(buffer.data(), req.addr, size);
+      if (m_Card.ReadBytes(buffer.data(), buffer.size()))
       {
         DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", _rwBufferSize, size);
       }
@@ -359,6 +361,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
                   feof(m_Card.GetHandle()));
         ret = RET_FAIL;
       }
+      Memory::CopyToEmu(req.addr, buffer.data(), buffer.size());
     }
   }
     Memory::Write_U32(0x900, _BufferOut);
@@ -378,7 +381,9 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
       if (!m_Card.Seek(req.arg, SEEK_SET))
         ERROR_LOG(WII_IPC_SD, "fseeko failed WTF");
 
-      if (!m_Card.WriteBytes(Memory::GetPointer(req.addr), size))
+      std::vector<u8> buffer(size);
+      Memory::CopyFromEmu(buffer.data(), req.addr, size);
+      if (!m_Card.WriteBytes(buffer.data(), buffer.size()))
       {
         ERROR_LOG(WII_IPC_SD, "Write Failed - error: %i, eof: %i", ferror(m_Card.GetHandle()),
                   feof(m_Card.GetHandle()));
