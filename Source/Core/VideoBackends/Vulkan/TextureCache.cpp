@@ -88,13 +88,8 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   m_texture_converter->ConvertTexture(entry, unconverted, m_render_pass, palette, format);
 }
 
-static bool IsDepthCopyFormat(PEControl::PixelFormat format)
-{
-  return format == PEControl::Z24;
-}
-
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                           u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat src_format,
+                           u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
                            const EFBRectangle& src_rect, bool is_intensity, bool scale_by_half)
 {
   // Flush EFB pokes first, as they're expected to be included.
@@ -107,7 +102,7 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
                      {static_cast<u32>(scaled_src_rect.GetWidth()),
                       static_cast<u32>(scaled_src_rect.GetHeight())}};
   Texture2D* src_texture;
-  if (IsDepthCopyFormat(src_format))
+  if (is_depth_copy)
     src_texture = FramebufferManager::GetInstance()->ResolveEFBDepthTexture(region);
   else
     src_texture = FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
@@ -124,8 +119,8 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
                                   VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
   m_texture_converter->EncodeTextureToMemory(src_texture->GetView(), dst, format, native_width,
-                                             bytes_per_row, num_blocks_y, memory_stride, src_format,
-                                             is_intensity, scale_by_half, src_rect);
+                                             bytes_per_row, num_blocks_y, memory_stride,
+                                             is_depth_copy, is_intensity, scale_by_half, src_rect);
 
   // Transition back to original state
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
@@ -436,7 +431,7 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, unsigned int width, unsig
   }
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat src_format,
+void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, bool is_depth_copy,
                                                  const EFBRectangle& src_rect, bool scale_by_half,
                                                  unsigned int cbufid, const float* colmat)
 {
@@ -444,7 +439,6 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   FramebufferManager* framebuffer_mgr =
       static_cast<FramebufferManager*>(g_framebuffer_manager.get());
   TargetRectangle scaled_src_rect = g_renderer->ConvertEFBRectangle(src_rect);
-  bool is_depth_copy = IsDepthCopyFormat(src_format);
 
   // Flush EFB pokes first, as they're expected to be included.
   framebuffer_mgr->FlushEFBPokes();

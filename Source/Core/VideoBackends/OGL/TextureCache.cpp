@@ -204,14 +204,14 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u3
   TextureCache::SetStage();
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, PEControl::PixelFormat srcFormat,
+void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, bool is_depth_copy,
                                                  const EFBRectangle& srcRect, bool scaleByHalf,
                                                  unsigned int cbufid, const float* colmat)
 {
   g_renderer->ResetAPIState();  // reset any game specific settings
 
   // Make sure to resolve anything we need to read from.
-  const GLuint read_texture = (srcFormat == PEControl::Z24) ?
+  const GLuint read_texture = is_depth_copy ?
                                   FramebufferManager::ResolveAndGetDepthTarget(srcRect) :
                                   FramebufferManager::ResolveAndGetRenderTarget(srcRect);
 
@@ -229,7 +229,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, PEControl::Pixe
   glViewport(0, 0, config.width, config.height);
 
   GLuint uniform_location;
-  if (srcFormat == PEControl::Z24)
+  if (is_depth_copy)
   {
     s_DepthMatrixProgram.Bind();
     if (s_DepthCbufid != cbufid)
@@ -257,11 +257,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, PEControl::Pixe
 }
 
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                           u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat srcFormat,
+                           u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
                            const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
   TextureConverter::EncodeToRamFromTexture(dst, format, native_width, bytes_per_row, num_blocks_y,
-                                           memory_stride, srcFormat, isIntensity, scaleByHalf,
+                                           memory_stride, is_depth_copy, isIntensity, scaleByHalf,
                                            srcRect);
 }
 

@@ -106,9 +106,8 @@ void PSTextureEncoder::Shutdown()
 }
 
 void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                              u32 num_blocks_y, u32 memory_stride,
-                              PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
-                              bool is_intensity, bool scale_by_half)
+                              u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
+                              const EFBRectangle& src_rect, bool is_intensity, bool scale_by_half)
 {
   if (!m_ready)  // Make sure we initialized OK
     return;
@@ -117,7 +116,7 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
   // Resolve MSAA targets before copying.
   D3DTexture2D* efb_source =
-      (src_format == PEControl::Z24) ?
+      is_depth_copy ?
           FramebufferManager::GetResolvedEFBDepthTexture() :
           // EXISTINGD3D11TODO: Instead of resolving EFB, it would be better to pick out a
           // single sample from each pixel. The game may break if it isn't
@@ -163,7 +162,7 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
   D3D::DrawShadedTexQuad(
       efb_source, target_rect.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-      SetStaticShader(format, src_format, is_intensity, scale_by_half),
+      SetStaticShader(format, is_depth_copy, is_intensity, scale_by_half),
       StaticShaderCache::GetSimpleVertexShader(),
       StaticShaderCache::GetSimpleVertexShaderInputLayout(), D3D12_SHADER_BYTECODE(), 1.0f, 0,
       DXGI_FORMAT_B8G8R8A8_UNORM, false, false /* Render target is not multisampled */
@@ -219,27 +218,21 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
   m_out_readback_buffer->Unmap(0, &write_range);
 }
 
-D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format,
-                                                        PEControl::PixelFormat src_format,
+D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format, bool is_depth_copy,
                                                         bool is_intensity, bool scale_by_half)
 {
-  size_t fetch_num = static_cast<size_t>(src_format);
-  size_t scaled_fetch_num = scale_by_half ? 1 : 0;
-  size_t intensity_num = is_intensity ? 1 : 0;
-  size_t generator_num = dst_format;
-
-  ComboKey key = MakeComboKey(dst_format, src_format, is_intensity, scale_by_half);
+  ComboKey key = MakeComboKey(dst_format, is_depth_copy, is_intensity, scale_by_half);
 
   ComboMap::iterator it = m_static_shaders_map.find(key);
   if (it == m_static_shaders_map.end())
   {
-    INFO_LOG(VIDEO, "Compiling efb encoding shader for dst_format 0x%X, src_format %d, "
+    INFO_LOG(VIDEO, "Compiling efb encoding shader for dst_format 0x%X, is_depth_copy %d, "
                     "is_intensity %d, scale_by_half %d",
-             dst_format, static_cast<int>(src_format), is_intensity ? 1 : 0, scale_by_half ? 1 : 0);
+             dst_format, is_depth_copy, is_intensity ? 1 : 0, scale_by_half ? 1 : 0);
 
     u32 format = dst_format;
 
-    if (src_format == PEControl::Z24)
+    if (is_depth_copy)
     {
       format |= _GX_TF_ZTF;
       if (dst_format == 11)
@@ -257,10 +250,9 @@ D3D12_SHADER_BYTECODE PSTextureEncoder::SetStaticShader(unsigned int dst_format,
     const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::D3D);
     if (!D3D::CompilePixelShader(shader, &bytecode))
     {
-      WARN_LOG(VIDEO, "EFB encoder shader for dst_format 0x%X, src_format %d, is_intensity %d, "
+      WARN_LOG(VIDEO, "EFB encoder shader for dst_format 0x%X, is_depth_copy %d, is_intensity %d, "
                       "scale_by_half %d failed to compile",
-               dst_format, static_cast<int>(src_format), is_intensity ? 1 : 0,
-               scale_by_half ? 1 : 0);
+               dst_format, is_depth_copy, is_intensity ? 1 : 0, scale_by_half ? 1 : 0);
       m_static_shaders_blobs[key] = {};
       return {};
     }

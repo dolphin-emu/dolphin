@@ -24,7 +24,7 @@ public:
   virtual void Shutdown() = 0;
   // Returns size in bytes of encoded block of memory
   virtual void Encode(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                      u32 memory_stride, PEControl::PixelFormat src_format,
-                      const EFBRectangle& src_rect, bool is_intensity, bool scale_by_half) = 0;
+                      u32 memory_stride, bool is_depth_copy, const EFBRectangle& src_rect,
+                      bool is_intensity, bool scale_by_half) = 0;
 };
 }

@@ -41,7 +41,7 @@ private:
 
     void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 levels) override;
 
-    void FromRenderTarget(u8* dst, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
+    void FromRenderTarget(u8* dst, bool is_depth_copy, const EFBRectangle& src_rect,
                           bool scale_by_half, unsigned int cbuf_id, const float* colmat) override;
 
     void Bind(unsigned int stage) override;
@@ -61,7 +61,7 @@ private:
                       TlutFormat format) override;
 
   void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, PEControl::PixelFormat src_format, const EFBRectangle& src_rect,
+               u32 memory_stride, bool is_depth_copy, const EFBRectangle& src_rect,
                bool is_intensity, bool scale_by_half) override;
 
   bool CompileShaders() override { return true; }

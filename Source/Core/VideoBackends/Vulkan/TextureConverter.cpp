@@ -207,7 +207,7 @@ void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
 
 void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, u32 format,
                                              u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                                             u32 memory_stride, PEControl::PixelFormat src_format,
+                                             u32 memory_stride, bool is_depth_copy,
                                              bool is_intensity, int scale_by_half,
                                              const EFBRectangle& src_rect)
 {
@@ -234,7 +234,7 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   draw.SetPushConstants(position_uniform, sizeof(position_uniform));
 
   // Doesn't make sense to linear filter depth values
-  draw.SetPSSampler(0, src_texture, (scale_by_half && src_format != PEControl::Z24) ?
+  draw.SetPSSampler(0, src_texture, (scale_by_half && !is_depth_copy) ?
                                         g_object_cache->GetLinearSampler() :
                                         g_object_cache->GetPointSampler());
 

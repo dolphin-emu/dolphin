@@ -86,7 +86,7 @@ void PSTextureEncoder::Shutdown()
 }
 
 void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                              u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat srcFormat,
+                              u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
                               const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
   if (!m_ready)  // Make sure we initialized OK
@@ -95,13 +95,12 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
   HRESULT hr;
 
   // Resolve MSAA targets before copying.
-  ID3D11ShaderResourceView* pEFB =
-      (srcFormat == PEControl::Z24) ?
-          FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
-          // FIXME: Instead of resolving EFB, it would be better to pick out a
-          // single sample from each pixel. The game may break if it isn't
-          // expecting the blurred edges around multisampled shapes.
-          FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+  // FIXME: Instead of resolving EFB, it would be better to pick out a
+  // single sample from each pixel. The game may break if it isn't
+  // expecting the blurred edges around multisampled shapes.
+  ID3D11ShaderResourceView* pEFB = is_depth_copy ?
+                                       FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
+                                       FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
 
   // Reset API
   g_renderer->ResetAPIState();
@@ -137,7 +136,7 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
 
     D3D::drawShadedTexQuad(
         pEFB, targetRect.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-        SetStaticShader(format, srcFormat, isIntensity, scaleByHalf),
+        SetStaticShader(format, is_depth_copy, isIntensity, scaleByHalf),
         VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout());
 
     // Copy to staging buffer
@@ -167,27 +166,22 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
                                    FramebufferManager::GetEFBDepthTexture()->GetDSV());
 }
 
-ID3D11PixelShader* PSTextureEncoder::SetStaticShader(unsigned int dstFormat,
-                                                     PEControl::PixelFormat srcFormat,
+ID3D11PixelShader* PSTextureEncoder::SetStaticShader(unsigned int dstFormat, bool is_depth_copy,
                                                      bool isIntensity, bool scaleByHalf)
 {
-  size_t fetchNum = static_cast<size_t>(srcFormat);
-  size_t scaledFetchNum = scaleByHalf ? 1 : 0;
-  size_t intensityNum = isIntensity ? 1 : 0;
-  size_t generatorNum = dstFormat;
-
-  ComboKey key = MakeComboKey(dstFormat, srcFormat, isIntensity, scaleByHalf);
+  ComboKey key = MakeComboKey(dstFormat, is_depth_copy, isIntensity, scaleByHalf);
 
   ComboMap::iterator it = m_staticShaders.find(key);
   if (it == m_staticShaders.end())
   {
-    INFO_LOG(VIDEO, "Compiling efb encoding shader for dstFormat 0x%X, srcFormat %d, isIntensity "
-                    "%d, scaleByHalf %d",
-             dstFormat, static_cast<int>(srcFormat), isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
+    INFO_LOG(VIDEO,
+             "Compiling efb encoding shader for dstFormat 0x%X, is_depth_copy %d, isIntensity "
+             "%d, scaleByHalf %d",
+             dstFormat, is_depth_copy, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
 
     u32 format = dstFormat;
 
-    if (srcFormat == PEControl::Z24)
+    if (is_depth_copy)
     {
       format |= _GX_TF_ZTF;
       if (dstFormat == 11)
@@ -205,9 +199,9 @@ ID3D11PixelShader* PSTextureEncoder::SetStaticShader(unsigned int dstFormat,
     const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::D3D);
     if (!D3D::CompilePixelShader(shader, &bytecode))
     {
-      WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, srcFormat %d, isIntensity %d, "
+      WARN_LOG(VIDEO, "EFB encoder shader for dstFormat 0x%X, is_depth_copy %d, isIntensity %d, "
                       "scaleByHalf %d failed to compile",
-               dstFormat, static_cast<int>(srcFormat), isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
+               dstFormat, is_depth_copy, isIntensity ? 1 : 0, scaleByHalf ? 1 : 0);
       m_staticShaders[key] = nullptr;
       return nullptr;
     }
@@ -218,8 +212,9 @@ ID3D11PixelShader* PSTextureEncoder::SetStaticShader(unsigned int dstFormat,
     CHECK(SUCCEEDED(hr), "create efb encoder pixel shader");
 
     char debugName[255] = {};
-    sprintf_s(debugName, "efb encoder pixel shader (dst:%d, src:%d, intensity:%d, scale:%d)",
-              dstFormat, srcFormat, isIntensity, scaleByHalf);
+    sprintf_s(debugName,
+              "efb encoder pixel shader (dst:%d, is_depth_copy:%d, intensity:%d, scale:%d)",
+              dstFormat, is_depth_copy, isIntensity, scaleByHalf);
     D3D::SetDebugObjectName(newShader, debugName);
 
     it = m_staticShaders.emplace(key, newShader).first;

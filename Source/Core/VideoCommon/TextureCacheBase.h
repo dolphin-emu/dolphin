@@ -128,9 +128,8 @@ public:
                                           const MathUtil::Rectangle<int>& dstrect) = 0;
 
     virtual void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) = 0;
-    virtual void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat,
-                                  const EFBRectangle& srcRect, bool scaleByHalf,
-                                  unsigned int cbufid, const float* colmat) = 0;
+    virtual void FromRenderTarget(u8* dst, bool is_depth_copy, const EFBRectangle& srcRect,
+                                  bool scaleByHalf, unsigned int cbufid, const float* colmat) = 0;
 
     bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 
@@ -154,8 +153,8 @@ public:
   virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 
   virtual void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                       u32 memory_stride, PEControl::PixelFormat srcFormat,
-                       const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf) = 0;
+                       u32 memory_stride, bool is_depth_copy, const EFBRectangle& srcRect,
+                       bool isIntensity, bool scaleByHalf) = 0;
 
   virtual bool CompileShaders() = 0;
   virtual void DeleteShaders() = 0;
@@ -164,8 +163,8 @@ public:
   void UnbindTextures();
   virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
-                                 PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-                                 bool isIntensity, bool scaleByHalf);
+                                 bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
+                                 bool scaleByHalf);
 
   virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
                               TlutFormat format) = 0;
