@@ -128,8 +128,8 @@ public:
                                           const MathUtil::Rectangle<int>& dstrect) = 0;
 
     virtual void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) = 0;
-    virtual void FromRenderTarget(u8* dst, bool is_depth_copy, const EFBRectangle& srcRect,
-                                  bool scaleByHalf, unsigned int cbufid, const float* colmat) = 0;
+    virtual void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
+                                  unsigned int cbufid, const float* colmat) = 0;
 
     bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
 

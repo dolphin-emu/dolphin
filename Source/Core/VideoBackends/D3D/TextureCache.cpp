@@ -179,9 +179,9 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
   }
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, bool is_depth_copy,
-                                                 const EFBRectangle& srcRect, bool scaleByHalf,
-                                                 unsigned int cbufid, const float* colmat)
+void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect,
+                                                 bool scaleByHalf, unsigned int cbufid,
+                                                 const float* colmat)
 {
   // When copying at half size, in multisampled mode, resolve the color/depth buffer first.
   // This is because multisampled texture reads go through Load, not Sample, and the linear

@@ -1320,7 +1320,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       entry->SetEfbCopy(dstStride);
       entry->is_custom_tex = false;
 
-      entry->FromRenderTarget(dst, is_depth_copy, srcRect, scaleByHalf, cbufid, colmat);
+      entry->FromRenderTarget(is_depth_copy, srcRect, scaleByHalf, cbufid, colmat);
 
       u64 hash = entry->CalculateHash();
       entry->SetHashes(hash, hash);

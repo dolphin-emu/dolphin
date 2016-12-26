@@ -29,8 +29,8 @@ public:
     VkFramebuffer GetFramebuffer() const { return m_framebuffer; }
     void Load(const u8* buffer, unsigned int width, unsigned int height,
               unsigned int expanded_width, unsigned int level) override;
-    void FromRenderTarget(u8* dst, bool is_depth_copy, const EFBRectangle& src_rect,
-                          bool scale_by_half, unsigned int cbufid, const float* colmat) override;
+    void FromRenderTarget(bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half,
+                          unsigned int cbufid, const float* colmat) override;
     void CopyRectangleFromTexture(const TCacheEntryBase* source,
                                   const MathUtil::Rectangle<int>& src_rect,
                                   const MathUtil::Rectangle<int>& dst_rect) override;

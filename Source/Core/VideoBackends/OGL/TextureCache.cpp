@@ -204,9 +204,9 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u3
   TextureCache::SetStage();
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dstPointer, bool is_depth_copy,
-                                                 const EFBRectangle& srcRect, bool scaleByHalf,
-                                                 unsigned int cbufid, const float* colmat)
+void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect,
+                                                 bool scaleByHalf, unsigned int cbufid,
+                                                 const float* colmat)
 {
   g_renderer->ResetAPIState();  // reset any game specific settings
 

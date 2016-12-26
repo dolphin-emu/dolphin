@@ -431,9 +431,9 @@ void TextureCache::TCacheEntry::Load(const u8* buffer, unsigned int width, unsig
   }
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, bool is_depth_copy,
-                                                 const EFBRectangle& src_rect, bool scale_by_half,
-                                                 unsigned int cbufid, const float* colmat)
+void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRectangle& src_rect,
+                                                 bool scale_by_half, unsigned int cbufid,
+                                                 const float* colmat)
 {
   // A better way of doing this would be nice.
   FramebufferManager* framebuffer_mgr =

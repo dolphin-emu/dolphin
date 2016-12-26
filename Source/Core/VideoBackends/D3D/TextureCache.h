@@ -34,8 +34,8 @@ private:
 
     void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 levels) override;
 
-    void FromRenderTarget(u8* dst, bool is_depth_copy, const EFBRectangle& srcRect,
-                          bool scaleByHalf, unsigned int cbufid, const float* colmat) override;
+    void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
+                          unsigned int cbufid, const float* colmat) override;
 
     void Bind(unsigned int stage) override;
     bool Save(const std::string& filename, unsigned int level) override;
