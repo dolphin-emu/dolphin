@@ -51,7 +51,11 @@ static std::function<void(void)> s_detect_callback;
 
 static bool s_libusb_driver_not_supported = false;
 static libusb_context* s_libusb_context = nullptr;
+#if defined(__FreeBSD__) && __FreeBSD__ >= 11
+static bool s_libusb_hotplug_enabled = true;
+#else
 static bool s_libusb_hotplug_enabled = false;
+#endif
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
 static libusb_hotplug_callback_handle s_hotplug_handle;
 #endif
@@ -106,7 +110,9 @@ static void ScanThreadFunc()
   NOTICE_LOG(SERIALINTERFACE, "GC Adapter scanning thread started");
 
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
+#ifndef __FreeBSD__
   s_libusb_hotplug_enabled = libusb_has_capability(LIBUSB_CAP_HAS_HOTPLUG) != 0;
+#endif
   if (s_libusb_hotplug_enabled)
   {
     if (libusb_hotplug_register_callback(
