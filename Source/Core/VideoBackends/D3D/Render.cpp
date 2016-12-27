@@ -573,10 +573,13 @@ void Renderer::SetViewport()
     Y += Ht;
     Ht = -Ht;
   }
+
+  // If an inverted depth range is used, which D3D doesn't support,
+  // we need to calculate the depth range in the vertex shader.
   if (xfmem.viewport.zRange < 0.0f)
   {
-    min_depth = 1.0f - min_depth;
-    max_depth = 1.0f - max_depth;
+    min_depth = 0.0f;
+    max_depth = GX_MAX_DEPTH;
   }
 
   // In D3D, the viewport rectangle must fit within the render target.
@@ -585,11 +588,9 @@ void Renderer::SetViewport()
   Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
   Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
-  // We do depth clipping and depth range in the vertex shader instead of relying
-  // on the graphics API. However we still need to ensure depth values don't exceed
-  // the maximum value supported by the console GPU. We also need to account for the
-  // fact that the entire depth buffer is inverted on D3D, so we set GX_MAX_DEPTH as
-  // an inverted near value.
+  // We use an inverted depth range here to apply the Reverse Z trick.
+  // This trick makes sure we match the precision provided by the 1:0
+  // clipping depth range on the hardware.
   D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - max_depth, 1.0f - min_depth);
   D3D::context->RSSetViewports(1, &vp);
 }

@@ -1649,15 +1649,18 @@ void Renderer::SetViewport()
     y += height;
     height = -height;
   }
+
+  // If an inverted depth range is used, which D3D doesn't support,
+  // we need to calculate the depth range in the vertex shader.
   if (xfmem.viewport.zRange < 0.0f)
   {
-    min_depth = 1.0f - min_depth;
-    max_depth = 1.0f - max_depth;
+    min_depth = 0.0f;
+    max_depth = GX_MAX_DEPTH;
   }
 
-  // If we do depth clipping and depth range in the vertex shader we only need to ensure
-  // depth values don't exceed the maximum value supported by the console GPU. If not,
-  // we simply clamp the near/far values themselves to the maximum value as done above.
+  // We use an inverted depth range here to apply the Reverse Z trick.
+  // This trick makes sure we match the precision provided by the 1:0
+  // clipping depth range on the hardware.
   VkViewport viewport = {x, y, width, height, 1.0f - max_depth, 1.0f - min_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
 }
