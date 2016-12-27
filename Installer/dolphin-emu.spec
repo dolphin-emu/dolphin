@@ -60,14 +60,12 @@ BuildRequires:  openal-soft-devel
 BuildRequires:  mbedtls-devel
 BuildRequires:  SDL2-devel
 BuildRequires:  SFML-devel
-BuildRequires:  SOIL-devel
 BuildRequires:  soundtouch-devel
 %endif
 
 %if 0%{?suse_version}
 BuildRequires:  libminiupnpc-devel
 BuildRequires:  libSDL2-devel
-BuildRequires:  libSOIL-devel
 BuildRequires:  lzo-devel
 BuildRequires:  openal-devel
 BuildRequires:  sfml-devel
