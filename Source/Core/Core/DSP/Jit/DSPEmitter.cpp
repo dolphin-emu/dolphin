@@ -18,8 +18,9 @@
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
 
-#define MAX_BLOCK_SIZE 250
-#define DSP_IDLE_SKIP_CYCLES 0x1000
+constexpr size_t COMPILED_CODE_SIZE = 2097152;
+constexpr size_t MAX_BLOCK_SIZE = 250;
+constexpr u16 DSP_IDLE_SKIP_CYCLES = 0x1000;
 
 using namespace Gen;
 
