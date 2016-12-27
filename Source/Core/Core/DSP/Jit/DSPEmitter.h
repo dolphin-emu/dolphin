@@ -34,7 +34,7 @@ public:
   Block CompileStub();
   void Compile(u16 start_addr);
 
-  bool FlagsNeeded();
+  bool FlagsNeeded() const;
 
   void FallBackToInterpreter(UDSPInstruction inst);
 

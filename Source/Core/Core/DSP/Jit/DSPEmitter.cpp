@@ -90,7 +90,7 @@ void DSPEmitter::checkExceptions(u32 retval)
   SetJumpTarget(skipCheck);
 }
 
-bool DSPEmitter::FlagsNeeded()
+bool DSPEmitter::FlagsNeeded() const
 {
   const u8 flags = DSPAnalyzer::GetCodeFlags(compilePC);
 
