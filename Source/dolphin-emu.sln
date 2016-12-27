@@ -32,8 +32,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "miniupnpc", "..\Externals\m
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "png", "..\Externals\libpng\png\png.vcxproj", "{4C9F135B-A85E-430C-BAD4-4C67EF5FC12C}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SOIL", "..\Externals\SOIL\SOIL.vcxproj", "{B441CC62-877E-4B3F-93E0-0DE80544F705}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "xxhash", "..\Externals\xxhash\xxhash.vcxproj", "{677EA016-1182-440C-9345-DC88D1E98C0C}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "zlib", "..\Externals\zlib\zlib.vcxproj", "{FF213B23-2C26-4214-9F88-85271E557E87}"

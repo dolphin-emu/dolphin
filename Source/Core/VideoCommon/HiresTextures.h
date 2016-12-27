@@ -14,8 +14,6 @@
 class HiresTexture
 {
 public:
-  using SOILPointer = std::unique_ptr<u8, void (*)(unsigned char*)>;
-
   static void Init();
   static void Update();
   static void Shutdown();

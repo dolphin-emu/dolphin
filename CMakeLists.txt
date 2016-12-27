@@ -835,17 +835,6 @@ else()
 	include_directories(BEFORE Externals/curl/include)
 endif()
 
-if(NOT APPLE)
-	check_lib(SOIL "(no .pc for SOIL)" SOIL SOIL/SOIL.h QUIET)
-endif()
-if(SOIL_FOUND)
-	message("Using shared SOIL")
-else()
-	message("Using static SOIL from Externals")
-	add_subdirectory(Externals/SOIL)
-	include_directories(Externals/SOIL)
-endif()
-
 find_library(ICONV_LIBRARIES NAMES iconv libiconv libiconv-2 c)
 find_path(ICONV_INCLUDE_DIR NAMES iconv.h)
 
