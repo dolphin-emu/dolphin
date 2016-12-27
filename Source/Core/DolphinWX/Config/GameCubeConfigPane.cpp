@@ -281,7 +281,7 @@ void GameCubeConfigPane::HandleEXISlotChange(int slot, const wxString& title)
   }
   else
   {
-    ChooseSlotPath(false, SConfig::GetInstance().m_EXIDevice[slot]);
+    ChooseSlotPath(slot == 0, SConfig::GetInstance().m_EXIDevice[slot]);
   }
 }
 
