@@ -862,9 +862,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 }
 
 void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
-                                                 PEControl::PixelFormat srcFormat,
-                                                 const EFBRectangle& srcRect, bool isIntensity,
-                                                 bool scaleByHalf)
+                                                 bool is_depth_copy, const EFBRectangle& srcRect,
+                                                 bool isIntensity, bool scaleByHalf)
 {
   // Emulation methods:
   //
@@ -936,7 +935,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   unsigned int cbufid = -1;
   bool efbHasAlpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
-  if (srcFormat == PEControl::Z24)
+  if (is_depth_copy)
   {
     switch (dstFormat)
     {
@@ -1240,7 +1239,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
   if (copy_to_ram)
   {
-    CopyEFB(dst, dstFormat, tex_w, bytes_per_row, num_blocks_y, dstStride, srcFormat, srcRect,
+    CopyEFB(dst, dstFormat, tex_w, bytes_per_row, num_blocks_y, dstStride, is_depth_copy, srcRect,
             isIntensity, scaleByHalf);
   }
   else
@@ -1321,7 +1320,7 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
       entry->SetEfbCopy(dstStride);
       entry->is_custom_tex = false;
 
-      entry->FromRenderTarget(dst, srcFormat, srcRect, scaleByHalf, cbufid, colmat);
+      entry->FromRenderTarget(is_depth_copy, srcRect, scaleByHalf, cbufid, colmat);
 
       u64 hash = entry->CalculateHash();
       entry->SetHashes(hash, hash);
