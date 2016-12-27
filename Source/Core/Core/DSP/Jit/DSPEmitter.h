@@ -5,6 +5,7 @@
 #pragma once
 
 #include <list>
+#include <vector>
 
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
@@ -243,14 +244,14 @@ public:
   const u8* returnDispatcher;
   u16 compilePC;
   u16 startAddr;
-  Block* blockLinks;
-  u16* blockSize;
+  std::vector<Block> blockLinks;
+  std::vector<u16> blockSize;
   std::list<u16> unresolvedJumps[MAX_BLOCKS];
 
   DSPJitRegCache gpr{*this};
 
 private:
-  DSPCompiledCode* blocks;
+  std::vector<DSPCompiledCode> blocks;
   Block blockLinkEntry;
   u16 compileSR;
 

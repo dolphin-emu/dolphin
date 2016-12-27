@@ -4,6 +4,7 @@
 
 #include "Core/DSP/Jit/DSPEmitter.h"
 
+#include <algorithm>
 #include <cstring>
 
 #include "Common/Assert.h"
@@ -22,13 +23,9 @@
 
 using namespace Gen;
 
-DSPEmitter::DSPEmitter()
+DSPEmitter::DSPEmitter() : blockLinks(MAX_BLOCKS), blockSize(MAX_BLOCKS), blocks(MAX_BLOCKS)
 {
   AllocCodeSpace(COMPILED_CODE_SIZE);
-
-  blocks = new DSPCompiledCode[MAX_BLOCKS];
-  blockLinks = new Block[MAX_BLOCKS];
-  blockSize = new u16[MAX_BLOCKS];
 
   compileSR = 0;
   compileSR |= SR_INT_ENABLE;
@@ -37,20 +34,12 @@ DSPEmitter::DSPEmitter()
   CompileDispatcher();
   stubEntryPoint = CompileStub();
 
-  // clear all of the block references
-  for (int i = 0x0000; i < MAX_BLOCKS; i++)
-  {
-    blocks[i] = (DSPCompiledCode)stubEntryPoint;
-    blockLinks[i] = nullptr;
-    blockSize[i] = 0;
-  }
+  // Clear all of the block references
+  std::fill(blocks.begin(), blocks.end(), (DSPCompiledCode)stubEntryPoint);
 }
 
 DSPEmitter::~DSPEmitter()
 {
-  delete[] blocks;
-  delete[] blockLinks;
-  delete[] blockSize;
   FreeCodeSpace();
 }
 
@@ -408,7 +397,7 @@ void DSPEmitter::CompileDispatcher()
 
   // Execute block. Cycles executed returned in EAX.
   MOVZX(64, 16, ECX, M(&g_dsp.pc));
-  MOV(64, R(RBX), ImmPtr(blocks));
+  MOV(64, R(RBX), ImmPtr(blocks.data()));
   JMPptr(MComplex(RBX, RCX, SCALE_8, 0));
 
   returnDispatcher = GetCodePtr();
