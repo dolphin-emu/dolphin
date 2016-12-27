@@ -5,6 +5,7 @@
 #include "Core/DSP/DSPAnalyzer.h"
 
 #include <array>
+#include <cstddef>
 
 #include "Common/Logging/Log.h"
 
@@ -13,6 +14,10 @@
 
 namespace DSPAnalyzer
 {
+namespace
+{
+constexpr size_t ISPACE = 65536;
+
 // Holds data about all instructions in RAM.
 std::array<u8, ISPACE> code_flags;
 
@@ -21,11 +26,11 @@ std::array<u8, ISPACE> code_flags;
 // as well give up its time slice immediately, after executing once.
 
 // Max signature length is 6. A 0 in a signature is ignored.
-#define NUM_IDLE_SIGS 8
-#define MAX_IDLE_SIG_SIZE 6
+constexpr size_t NUM_IDLE_SIGS = 8;
+constexpr size_t MAX_IDLE_SIG_SIZE = 6;
 
 // 0xFFFF means ignore.
-const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] = {
+constexpr u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] = {
     // From AX:
     {0x26fc,          // LRS   $30, @DMBH
      0x02c0, 0x8000,  // ANDCF $30, #0x8000
@@ -62,12 +67,12 @@ const u16 idle_skip_sigs[NUM_IDLE_SIGS][MAX_IDLE_SIG_SIZE + 1] = {
      0x0295, 0xFFFF,  // JZ    0x????
      0, 0}};
 
-static void Reset()
+void Reset()
 {
   code_flags.fill(0);
 }
 
-static void AnalyzeRange(u16 start_addr, u16 end_addr)
+void AnalyzeRange(u16 start_addr, u16 end_addr)
 {
   // First we run an extremely simplified version of a disassembler to find
   // where all instructions start.
@@ -146,6 +151,7 @@ static void AnalyzeRange(u16 start_addr, u16 end_addr)
   }
   INFO_LOG(DSPLLE, "Finished analysis.");
 }
+}  // Anonymous namespace
 
 void Analyze()
 {
@@ -154,4 +160,9 @@ void Analyze()
   AnalyzeRange(0x8000, 0x9000);  // IROM
 }
 
-}  // namespace
+u8 GetCodeFlags(u16 address)
+{
+  return code_flags[address];
+}
+
+}  // namespace DSPAnalyzer

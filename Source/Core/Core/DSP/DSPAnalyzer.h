@@ -4,14 +4,11 @@
 
 #pragma once
 
-#include <array>
 #include "Common/CommonTypes.h"
 
 // Basic code analysis.
 namespace DSPAnalyzer
 {
-#define ISPACE 65536
-
 // Useful things to detect:
 // * Loop endpoints - so that we can avoid checking for loops every cycle.
 
@@ -25,11 +22,6 @@ enum
   CODE_CHECK_INT = 32,
 };
 
-// Easy to query array covering the whole of instruction memory.
-// Just index by address.
-// This one will be helpful for debuggers and jits.
-extern std::array<u8, ISPACE> code_flags;
-
 // This one should be called every time IRAM changes - which is basically
 // every time that a new ucode gets uploaded, and never else. At that point,
 // we can do as much static analysis as we want - but we should always throw
@@ -38,4 +30,7 @@ extern std::array<u8, ISPACE> code_flags;
 // some pretty expensive analysis if necessary.
 void Analyze();
 
-}  // namespace
+// Retrieves the flags set during analysis for code in memory.
+u8 GetCodeFlags(u16 address);
+
+}  // namespace DSPAnalyzer
