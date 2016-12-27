@@ -15,12 +15,12 @@
 #include "Core/DSP/DSPCommon.h"
 #include "Core/DSP/Jit/DSPJitRegCache.h"
 
-typedef u32 (*DSPCompiledCode)();
-typedef const u8* Block;
-
 class DSPEmitter : public Gen::X64CodeBlock
 {
 public:
+  using DSPCompiledCode = u32 (*)();
+  using Block = const u8*;
+
   static constexpr size_t MAX_BLOCKS = 0x10000;
 
   DSPEmitter();
