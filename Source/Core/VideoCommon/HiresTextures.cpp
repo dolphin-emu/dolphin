@@ -4,7 +4,6 @@
 
 #include "VideoCommon/HiresTextures.h"
 
-#include <SOIL/SOIL.h>
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
@@ -22,6 +21,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Hash.h"
+#include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
@@ -48,10 +48,6 @@ static Common::Flag s_textureCacheAbortLoading;
 static std::thread s_prefetcher;
 
 static const std::string s_format_prefix = "tex1_";
-
-HiresTexture::Level::Level() : data(nullptr, SOIL_free_image_data)
-{
-}
 
 void HiresTexture::Init()
 {
@@ -92,10 +88,7 @@ void HiresTexture::Update()
 
   const std::string& game_id = SConfig::GetInstance().GetGameID();
   const std::string texture_directory = GetTextureDirectory(game_id);
-  std::vector<std::string> extensions{
-      ".png", ".bmp", ".tga", ".dds",
-      ".jpg"  // Why not? Could be useful for large photo-like textures
-  };
+  const std::vector<std::string> extensions{".png", ".dds"};
 
   const std::vector<std::string> texture_paths =
       Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
@@ -183,9 +176,7 @@ void HiresTexture::Prefetch()
       if (iter != s_textureCache.end())
       {
         for (const Level& l : iter->second->m_levels)
-        {
-          size_sum += l.data_size;
-        }
+          size_sum += l.data.size();
       }
     }
 
@@ -361,6 +352,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
       file.Open(filename_iter->second.path, "rb");
       std::vector<u8> buffer(file.GetSize());
       file.ReadBytes(buffer.data(), file.GetSize());
+
       if (!LoadTexture(level, buffer))
       {
         ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
@@ -440,22 +432,15 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
 bool HiresTexture::LoadTexture(Level& level, const std::vector<u8>& buffer)
 {
-  int channels;
-  int width;
-  int height;
-
-  u8* data = SOIL_load_image_from_memory(buffer.data(), static_cast<int>(buffer.size()), &width,
-                                         &height, &channels, SOIL_LOAD_RGBA);
-  if (!data)
+  if (!Common::LoadPNG(buffer, &level.data, &level.width, &level.height))
     return false;
 
-  // Images loaded by SOIL are converted to RGBA.
-  level.width = static_cast<u32>(width);
-  level.height = static_cast<u32>(height);
+  if (level.data.empty())
+    return false;
+
+  // Loaded PNG images are converted to RGBA.
   level.format = AbstractTextureFormat::RGBA8;
-  level.data = ImageDataPointer(data, SOIL_free_image_data);
   level.row_length = level.width;
-  level.data_size = static_cast<size_t>(level.row_length) * 4 * level.height;
   return true;
 }
 

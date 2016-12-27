@@ -16,8 +16,6 @@ enum class TextureFormat;
 class HiresTexture
 {
 public:
-  using ImageDataPointer = std::unique_ptr<u8, void (*)(unsigned char*)>;
-
   static void Init();
   static void Update();
   static void Shutdown();
@@ -39,14 +37,11 @@ public:
 
   struct Level
   {
-    Level();
-
-    ImageDataPointer data;
+    std::vector<u8> data;
     AbstractTextureFormat format = AbstractTextureFormat::RGBA8;
     u32 width = 0;
     u32 height = 0;
     u32 row_length = 0;
-    size_t data_size = 0;
   };
   std::vector<Level> m_levels;
 
