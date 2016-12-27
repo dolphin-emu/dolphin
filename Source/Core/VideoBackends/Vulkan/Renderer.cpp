@@ -1650,8 +1650,9 @@ void Renderer::SetViewport()
     height = -height;
   }
 
-  // If an inverted depth range is used, which D3D doesn't support,
-  // we need to calculate the depth range in the vertex shader.
+  // If an inverted depth range is used, which the Vulkan drivers don't
+  // support, we need to calculate the depth range in the vertex shader.
+  // TODO: Make this into a DriverDetails bug and write a test for CTS.
   if (xfmem.viewport.zRange < 0.0f)
   {
     min_depth = 0.0f;

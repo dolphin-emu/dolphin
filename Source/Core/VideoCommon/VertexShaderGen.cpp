@@ -421,7 +421,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
-  // our own depth clipping and calculate the depth range before the perspective divide.
+  // our own depth clipping and calculate the depth range before the perspective divide if
+  // necessary.
   if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
     // Since we're adjusting z for the depth range before the perspective divide, we have to do our
@@ -435,6 +436,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
 
   // Write the true depth value. If the game uses depth textures, then the pixel shader will
   // override it with the correct values if not then early z culling will improve speed.
+  // There are two different ways to do this, when the depth range is oversized, we process
+  // the depth range in the vertex shader, if not we let the host driver handle it.
   if (uid_data->vertex_depth)
   {
     // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
@@ -448,11 +451,8 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   }
   else
   {
-    // If we can't disable the incorrect depth clipping planes, then we need to rely on the
-    // graphics API to handle the depth range after the perspective divide. This can result in
-    // inaccurate depth values due to the missing depth bias, but that can be least corrected by
-    // overriding depth values in the pixel shader. We still need to take care of the reversed depth
-    // though, so we do that here.
+    // Here we rely on the host driver to process the depth range, however we still need to invert
+    // the console -1..0 range to the 0..1 range used in the depth buffer.
     out.Write("o.pos.z = -o.pos.z;\n");
   }
 
