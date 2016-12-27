@@ -18,6 +18,7 @@ set(SRCS Analytics.cpp
          Network.cpp
          PcapFile.cpp
          PerformanceCounter.cpp
+         Image.cpp
          Profiler.cpp
          SettingsHandler.cpp
          SDCardUtil.cpp
@@ -93,6 +94,8 @@ elseif(USE_X11)
     set(SRCS ${SRCS} GL/GLInterface/X11_Util.cpp)
     set(LIBS ${LIBS} ${XRANDR_LIBRARIES})
 endif()
+
+list(APPEND LIBS png ${PNG_LIBRARIES})
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	set(LIBS ${LIBS} dl)

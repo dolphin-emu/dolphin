@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <SOIL/SOIL.h>
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
@@ -19,6 +18,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Hash.h"
+#include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
@@ -40,10 +40,6 @@ static bool s_check_new_format;
 static std::thread s_prefetcher;
 
 static const std::string s_format_prefix = "tex1_";
-
-HiresTexture::Level::Level() : data(nullptr, SOIL_free_image_data)
-{
-}
 
 void HiresTexture::Init()
 {
@@ -180,9 +176,9 @@ void HiresTexture::Prefetch()
       }
       if (iter != s_textureCache.end())
       {
-        for (const Level& l : iter->second->m_levels)
+        for (const Image& l : iter->second->m_levels)
         {
-          size_sum += l.data_size;
+          size_sum += l.data.size();
         }
       }
     }
@@ -404,21 +400,20 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
     if (s_textureMap.find(filename) != s_textureMap.end())
     {
-      Level l;
+      Image l;
 
       File::IOFile file;
       file.Open(s_textureMap[filename], "rb");
       std::vector<u8> buffer(file.GetSize());
       file.ReadBytes(buffer.data(), file.GetSize());
 
-      int channels;
-      l.data =
-          SOILPointer(SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width,
-                                                  (int*)&l.height, &channels, SOIL_LOAD_RGBA),
-                      SOIL_free_image_data);
-      l.data_size = (size_t)l.width * l.height * 4;
+      if (!load_png(buffer, l))
+      {
+        ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
+        break;
+      }
 
-      if (l.data == nullptr)
+      if (l.data.empty())
       {
         ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
         break;
@@ -443,7 +438,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
             VIDEO,
             "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.",
             l.width, l.height, filename.c_str(), width, height);
-        l.data.reset();
+        l.data.clear();
         break;
       }
 
