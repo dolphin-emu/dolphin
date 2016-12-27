@@ -24,13 +24,11 @@ constexpr u16 DSP_IDLE_SKIP_CYCLES = 0x1000;
 
 using namespace Gen;
 
-DSPEmitter::DSPEmitter() : blockLinks(MAX_BLOCKS), blockSize(MAX_BLOCKS), blocks(MAX_BLOCKS)
+DSPEmitter::DSPEmitter()
+    : blockLinks(MAX_BLOCKS), blockSize(MAX_BLOCKS), blocks(MAX_BLOCKS),
+      compileSR{SR_INT_ENABLE | SR_EXT_INT_ENABLE}
 {
   AllocCodeSpace(COMPILED_CODE_SIZE);
-
-  compileSR = 0;
-  compileSR |= SR_INT_ENABLE;
-  compileSR |= SR_EXT_INT_ENABLE;
 
   CompileDispatcher();
   stubEntryPoint = CompileStub();
