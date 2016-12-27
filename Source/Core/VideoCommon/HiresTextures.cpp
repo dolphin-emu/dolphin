@@ -42,7 +42,6 @@ struct DiskTexture
 static std::unordered_map<std::string, DiskTexture> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
-static std::mutex s_textureCacheAquireMutex;  // for high priority access
 static Common::Flag s_textureCacheAbortLoading;
 
 static std::thread s_prefetcher;
@@ -148,25 +147,16 @@ void HiresTexture::Prefetch()
 
     if (base_filename.find("_mip") == std::string::npos)
     {
-      {
-        // try to get this mutex first, so the video thread is allow to get the real mutex faster
-        std::unique_lock<std::mutex> lk(s_textureCacheAquireMutex);
-      }
       std::unique_lock<std::mutex> lk(s_textureCacheMutex);
 
       auto iter = s_textureCache.find(base_filename);
       if (iter == s_textureCache.end())
       {
-        // unlock while loading a texture. This may result in a race condition where we'll load a
-        // texture twice,
-        // but it reduces the stuttering a lot. Notice: The loading library _must_ be thread safe
-        // now.
-        // But bad luck, SOIL isn't, so TODO: remove SOIL usage here and use libpng directly
-        // Also TODO: remove s_textureCacheAquireMutex afterwards. It won't be needed as the main
-        // mutex will be locked rarely
-        // lk.unlock();
+        // unlock while loading a texture. This may result in a race condition where
+        // we'll load a texture twice, but it reduces the stuttering a lot.
+        lk.unlock();
         std::unique_ptr<HiresTexture> texture = Load(base_filename, 0, 0);
-        // lk.lock();
+        lk.lock();
         if (texture)
         {
           std::shared_ptr<HiresTexture> ptr(std::move(texture));
@@ -297,7 +287,6 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t tex
   std::string base_filename =
       GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format, has_mipmaps);
 
-  std::lock_guard<std::mutex> lk2(s_textureCacheAquireMutex);
   std::lock_guard<std::mutex> lk(s_textureCacheMutex);
 
   auto iter = s_textureCache.find(base_filename);
