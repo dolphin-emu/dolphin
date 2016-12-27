@@ -81,7 +81,7 @@ static void WriteBranchExit(DSPEmitter& emitter)
 {
   DSPJitRegCache c(emitter.gpr);
   emitter.gpr.SaveRegs();
-  if (DSPAnalyzer::code_flags[emitter.startAddr] & DSPAnalyzer::CODE_IDLE_SKIP)
+  if (DSPAnalyzer::GetCodeFlags(emitter.startAddr) & DSPAnalyzer::CODE_IDLE_SKIP)
   {
     emitter.MOV(16, R(EAX), Imm16(0x1000));
   }

@@ -92,11 +92,9 @@ void DSPEmitter::checkExceptions(u32 retval)
 
 bool DSPEmitter::FlagsNeeded()
 {
-  if (!(DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_START_OF_INST) ||
-      (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_UPDATE_SR))
-    return true;
-  else
-    return false;
+  const u8 flags = DSPAnalyzer::GetCodeFlags(compilePC);
+
+  return !(flags & DSPAnalyzer::CODE_START_OF_INST) || (flags & DSPAnalyzer::CODE_UPDATE_SR);
 }
 
 void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
@@ -217,7 +215,7 @@ void DSPEmitter::Compile(u16 start_addr)
 
   while (compilePC < start_addr + MAX_BLOCK_SIZE)
   {
-    if (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_CHECK_INT)
+    if (DSPAnalyzer::GetCodeFlags(compilePC) & DSPAnalyzer::CODE_CHECK_INT)
       checkExceptions(blockSize[start_addr]);
 
     UDSPInstruction inst = dsp_imem_read(compilePC);
@@ -235,7 +233,7 @@ void DSPEmitter::Compile(u16 start_addr)
 
     // Handle loop condition, only if current instruction was flagged as a loop destination
     // by the analyzer.
-    if (DSPAnalyzer::code_flags[static_cast<u16>(compilePC - 1u)] & DSPAnalyzer::CODE_LOOP_END)
+    if (DSPAnalyzer::GetCodeFlags(static_cast<u16>(compilePC - 1u)) & DSPAnalyzer::CODE_LOOP_END)
     {
       MOVZX(32, 16, EAX, M(&(g_dsp.r.st[2])));
       TEST(32, R(EAX), R(EAX));
@@ -256,7 +254,8 @@ void DSPEmitter::Compile(u16 start_addr)
       DSPJitRegCache c(gpr);
       HandleLoop();
       gpr.SaveRegs();
-      if (!DSPHost::OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+      if (!DSPHost::OnThread() &&
+          DSPAnalyzer::GetCodeFlags(start_addr) & DSPAnalyzer::CODE_IDLE_SKIP)
       {
         MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
       }
@@ -291,7 +290,7 @@ void DSPEmitter::Compile(u16 start_addr)
         // don't update g_dsp.pc -- the branch insn already did
         gpr.SaveRegs();
         if (!DSPHost::OnThread() &&
-            DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+            DSPAnalyzer::GetCodeFlags(start_addr) & DSPAnalyzer::CODE_IDLE_SKIP)
         {
           MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
         }
@@ -308,7 +307,7 @@ void DSPEmitter::Compile(u16 start_addr)
     }
 
     // End the block if we're before an idle skip address
-    if (DSPAnalyzer::code_flags[compilePC] & DSPAnalyzer::CODE_IDLE_SKIP)
+    if (DSPAnalyzer::GetCodeFlags(compilePC) & DSPAnalyzer::CODE_IDLE_SKIP)
     {
       break;
     }
@@ -354,7 +353,7 @@ void DSPEmitter::Compile(u16 start_addr)
   }
 
   gpr.SaveRegs();
-  if (!DSPHost::OnThread() && DSPAnalyzer::code_flags[start_addr] & DSPAnalyzer::CODE_IDLE_SKIP)
+  if (!DSPHost::OnThread() && DSPAnalyzer::GetCodeFlags(start_addr) & DSPAnalyzer::CODE_IDLE_SKIP)
   {
     MOV(16, R(EAX), Imm16(DSP_IDLE_SKIP_CYCLES));
   }

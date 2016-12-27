@@ -100,7 +100,7 @@ void Step()
   u16 opc = dsp_fetch_code();
   ExecuteInstruction(UDSPInstruction(opc));
 
-  if (DSPAnalyzer::code_flags[static_cast<u16>(g_dsp.pc - 1u)] & DSPAnalyzer::CODE_LOOP_END)
+  if (DSPAnalyzer::GetCodeFlags(static_cast<u16>(g_dsp.pc - 1u)) & DSPAnalyzer::CODE_LOOP_END)
     HandleLoop();
 }
 
@@ -158,7 +158,7 @@ int RunCyclesDebug(int cycles)
         return cycles;
       }
       // Idle skipping.
-      if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+      if (DSPAnalyzer::GetCodeFlags(g_dsp.pc) & DSPAnalyzer::CODE_IDLE_SKIP)
         return 0;
       Step();
       cycles--;
@@ -208,7 +208,7 @@ int RunCycles(int cycles)
       if (g_dsp.cr & CR_HALT)
         return 0;
       // Idle skipping.
-      if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+      if (DSPAnalyzer::GetCodeFlags(g_dsp.pc) & DSPAnalyzer::CODE_IDLE_SKIP)
         return 0;
       Step();
       cycles--;
