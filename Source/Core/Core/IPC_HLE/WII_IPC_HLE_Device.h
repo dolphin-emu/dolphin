@@ -62,7 +62,14 @@ struct SIOCtlVBuffer
 class IWII_IPC_HLE_Device
 {
 public:
-  IWII_IPC_HLE_Device(u32 device_id, const std::string& device_name, bool hardware = true);
+  enum class DeviceType : u32
+  {
+    Static,  // Devices which appear in s_device_map.
+    FileIO,  // FileIO devices which are created dynamically.
+  };
+
+  IWII_IPC_HLE_Device(u32 device_id, const std::string& device_name,
+                      DeviceType type = DeviceType::Static);
 
   virtual ~IWII_IPC_HLE_Device() = default;
   // Release any resources which might interfere with savestating.
@@ -81,17 +88,16 @@ public:
   virtual IPCCommandResult IOCtlV(u32 command_address);
 
   virtual u32 Update() { return 0; }
-  virtual bool IsHardware() const { return m_is_hardware; }
+  virtual DeviceType GetDeviceType() const { return m_device_type; }
   virtual bool IsOpened() const { return m_is_active; }
   static IPCCommandResult GetDefaultReply();
   static IPCCommandResult GetNoReply();
 
-  std::string m_name;
-
 protected:
+  std::string m_name;
   // STATE_TO_SAVE
   u32 m_device_id;
-  bool m_is_hardware;
+  DeviceType m_device_type;
   bool m_is_active = false;
 
   // Write out the IPC struct from command_address to number_of_commands numbers

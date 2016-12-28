@@ -66,7 +66,7 @@ void HLE_IPC_CreateVirtualFATFilesystem()
 
 CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 device_id,
                                                        const std::string& device_name)
-    : IWII_IPC_HLE_Device(device_id, device_name, false)  // not a real hardware
+    : IWII_IPC_HLE_Device(device_id, device_name, DeviceType::FileIO)
 {
 }
 

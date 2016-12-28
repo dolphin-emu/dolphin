@@ -112,6 +112,7 @@ template <typename T>
 std::shared_ptr<T> AddDevice(const char* device_name)
 {
   auto device = std::make_shared<T>(num_devices, device_name);
+  _assert_(device->GetDeviceType() == IWII_IPC_HLE_Device::DeviceType::Static);
   s_device_map[num_devices] = device;
   num_devices++;
   return device;
@@ -172,7 +173,7 @@ void Reset(bool hard)
 
   for (auto& dev : s_fdmap)
   {
-    if (dev && !dev->IsHardware())
+    if (dev && dev->GetDeviceType() != IWII_IPC_HLE_Device::DeviceType::Static)
     {
       // close all files and delete their resources
       dev->Close(0, true);
@@ -285,12 +286,7 @@ void DoState(PointerWrap& p)
   }
 
   for (const auto& entry : s_device_map)
-  {
-    if (entry.second->IsHardware())
-    {
-      entry.second->DoState(p);
-    }
-  }
+    entry.second->DoState(p);
 
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
@@ -300,18 +296,21 @@ void DoState(PointerWrap& p)
       p.Do(exists);
       if (exists)
       {
-        u32 isHw = 0;
-        p.Do(isHw);
-        if (isHw)
+        auto device_type = IWII_IPC_HLE_Device::DeviceType::Static;
+        p.Do(device_type);
+        switch (device_type)
         {
-          u32 hwId = 0;
-          p.Do(hwId);
-          s_fdmap[i] = AccessDeviceByID(hwId);
+        case IWII_IPC_HLE_Device::DeviceType::Static:
+        {
+          u32 device_id = 0;
+          p.Do(device_id);
+          s_fdmap[i] = AccessDeviceByID(device_id);
+          break;
         }
-        else
-        {
+        case IWII_IPC_HLE_Device::DeviceType::FileIO:
           s_fdmap[i] = std::make_shared<CWII_IPC_HLE_Device_FileIO>(i, "");
           s_fdmap[i]->DoState(p);
+          break;
         }
       }
     }
@@ -331,9 +330,9 @@ void DoState(PointerWrap& p)
       p.Do(exists);
       if (exists)
       {
-        u32 isHw = descriptor->IsHardware() ? 1 : 0;
-        p.Do(isHw);
-        if (isHw)
+        auto device_type = descriptor->GetDeviceType();
+        p.Do(device_type);
+        if (device_type == IWII_IPC_HLE_Device::DeviceType::Static)
         {
           u32 hwId = descriptor->GetDeviceID();
           p.Do(hwId);
