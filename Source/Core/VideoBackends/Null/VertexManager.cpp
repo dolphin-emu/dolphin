@@ -40,14 +40,11 @@ void VertexManager::ResetBuffer(u32 stride)
   IndexGenerator::Start(&m_local_i_buffer[0]);
 }
 
-void VertexManager::vFlush(bool use_dst_alpha)
+void VertexManager::vFlush()
 {
-  VertexShaderCache::s_instance->SetShader(
-      use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE, m_current_primitive_type);
-  GeometryShaderCache::s_instance->SetShader(
-      use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE, m_current_primitive_type);
-  PixelShaderCache::s_instance->SetShader(
-      use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE, m_current_primitive_type);
+  VertexShaderCache::s_instance->SetShader(m_current_primitive_type);
+  GeometryShaderCache::s_instance->SetShader(m_current_primitive_type);
+  PixelShaderCache::s_instance->SetShader(m_current_primitive_type);
 }
 
 }  // namespace

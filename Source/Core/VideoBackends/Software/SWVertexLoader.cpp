@@ -54,7 +54,7 @@ void SWVertexLoader::ResetBuffer(u32 stride)
   IndexGenerator::Start(GetIndexBuffer());
 }
 
-void SWVertexLoader::vFlush(bool useDstAlpha)
+void SWVertexLoader::vFlush()
 {
   DebugUtil::OnObjectBegin();
 

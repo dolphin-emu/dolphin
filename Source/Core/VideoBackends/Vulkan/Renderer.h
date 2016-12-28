@@ -52,7 +52,7 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  void ApplyState(bool bUseDstAlpha) override;
+  void ApplyState() override;
 
   void ResetAPIState() override;
   void RestoreAPIState() override;

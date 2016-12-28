@@ -940,8 +940,12 @@ void Renderer::RestoreAPIState()
   BPFunctions::SetScissor();
 }
 
-void Renderer::ApplyState(bool bUseDstAlpha)
+void Renderer::ApplyState()
 {
+  // TODO: Refactor this logic here.
+  bool bUseDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+                      bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
   gx_state.blend.use_dst_alpha = bUseDstAlpha;
   D3D::stateman->PushBlendState(gx_state_cache.Get(gx_state.blend));
   D3D::stateman->PushDepthState(gx_state_cache.Get(gx_state.zmode));

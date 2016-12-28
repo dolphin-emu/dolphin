@@ -62,8 +62,8 @@ public:
   };
 
   static PCacheEntry GetShaderProgram();
-  static SHADER* SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
-  static void GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type);
+  static SHADER* SetShader(u32 primitive_type);
+  static void GetShaderId(SHADERUID* uid, u32 primitive_type);
 
   static bool CompileShader(SHADER& shader, const std::string& vcode, const std::string& pcode,
                             const std::string& gcode = "");

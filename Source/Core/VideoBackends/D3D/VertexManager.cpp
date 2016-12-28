@@ -147,9 +147,9 @@ void VertexManager::Draw(u32 stride)
     static_cast<Renderer*>(g_renderer.get())->RestoreCull();
 }
 
-void VertexManager::vFlush(bool useDstAlpha)
+void VertexManager::vFlush()
 {
-  if (!PixelShaderCache::SetShader(useDstAlpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE))
+  if (!PixelShaderCache::SetShader())
   {
     GFX_DEBUGGER_PAUSE_LOG_AT(NEXT_ERROR, true, { printf("Fail to set pixel shader\n"); });
     return;
@@ -179,7 +179,7 @@ void VertexManager::vFlush(bool useDstAlpha)
   PrepareDrawBuffers(stride);
 
   VertexLoaderManager::GetCurrentVertexFormat()->SetupVertexPointers();
-  g_renderer->ApplyState(useDstAlpha);
+  g_renderer->ApplyState();
 
   Draw(stride);
 

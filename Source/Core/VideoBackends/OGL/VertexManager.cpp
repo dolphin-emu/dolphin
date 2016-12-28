@@ -136,7 +136,7 @@ void VertexManager::Draw(u32 stride)
     static_cast<Renderer*>(g_renderer.get())->SetGenerationMode();
 }
 
-void VertexManager::vFlush(bool useDstAlpha)
+void VertexManager::vFlush()
 {
   GLVertexFormat* nativeVertexFmt = (GLVertexFormat*)VertexLoaderManager::GetCurrentVertexFormat();
   u32 stride = nativeVertexFmt->GetVertexStride();
@@ -149,19 +149,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 
   PrepareDrawBuffers(stride);
 
-  // Makes sure we can actually do Dual source blending
-  bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
-
-  // If host supports GL_ARB_blend_func_extended, we can do dst alpha in
-  // the same pass as regular rendering.
-  if (useDstAlpha && dualSourcePossible)
-  {
-    ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, m_current_primitive_type);
-  }
-  else
-  {
-    ProgramShaderCache::SetShader(DSTALPHA_NONE, m_current_primitive_type);
-  }
+  ProgramShaderCache::SetShader(m_current_primitive_type);
 
   // upload global constants
   ProgramShaderCache::UploadConstants();

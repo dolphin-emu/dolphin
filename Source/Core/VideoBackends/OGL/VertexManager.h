@@ -41,7 +41,7 @@ protected:
 
 private:
   void Draw(u32 stride);
-  void vFlush(bool useDstAlpha) override;
+  void vFlush() override;
   void PrepareDrawBuffers(u32 stride);
 
   // Alternative buffers in CPU memory for primatives we are going to discard.

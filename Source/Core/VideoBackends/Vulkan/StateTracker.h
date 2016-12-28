@@ -58,7 +58,7 @@ public:
   void SetDepthStencilState(const DepthStencilState& state);
   void SetBlendState(const BlendState& state);
 
-  bool CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode);
+  bool CheckForShaderChanges(u32 gx_primitive_type);
 
   void UpdateVertexShaderConstants();
   void UpdateGeometryShaderConstants();
@@ -172,9 +172,6 @@ private:
   // If not, ends the render pass if it is a clear render pass.
   bool IsViewportWithinRenderArea() const;
 
-  // Gets a pipeline state that can be used to draw the alpha pass with constant alpha enabled.
-  PipelineInfo GetAlphaPassPipelineConfig(const PipelineInfo& info) const;
-
   // Obtains a Vulkan pipeline object for the specified pipeline configuration.
   // Also adds this pipeline configuration to the UID cache if it is not present already.
   VkPipeline GetPipelineAndCacheUID(const PipelineInfo& info);
@@ -205,7 +202,6 @@ private:
 
   // pipeline state
   PipelineInfo m_pipeline_state = {};
-  DSTALPHA_MODE m_dstalpha_mode = DSTALPHA_NONE;
   VkPipeline m_pipeline_object = VK_NULL_HANDLE;
 
   // shader bindings

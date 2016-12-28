@@ -124,7 +124,7 @@ void VertexManager::ResetBuffer(u32 stride)
       static_cast<u32>(m_index_stream_buffer->GetCurrentOffset() / sizeof(u16));
 }
 
-void VertexManager::vFlush(bool use_dst_alpha)
+void VertexManager::vFlush()
 {
   const VertexFormat* vertex_format =
       static_cast<VertexFormat*>(VertexLoaderManager::GetCurrentVertexFormat());
@@ -153,13 +153,8 @@ void VertexManager::vFlush(bool use_dst_alpha)
     break;
   }
 
-  // Can we do single-pass dst alpha?
-  DSTALPHA_MODE dstalpha_mode = DSTALPHA_NONE;
-  if (use_dst_alpha && g_vulkan_context->SupportsDualSourceBlend())
-    dstalpha_mode = DSTALPHA_DUAL_SOURCE_BLEND;
-
   // Check for any shader stage changes
-  StateTracker::GetInstance()->CheckForShaderChanges(m_current_primitive_type, dstalpha_mode);
+  StateTracker::GetInstance()->CheckForShaderChanges(m_current_primitive_type);
 
   // Update any changed constants
   StateTracker::GetInstance()->UpdateVertexShaderConstants();

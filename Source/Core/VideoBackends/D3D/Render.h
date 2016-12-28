@@ -29,7 +29,7 @@ public:
   bool IsFullscreen() const override;
 
   // TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
-  void ApplyState(bool bUseDstAlpha) override;
+  void ApplyState() override;
   void RestoreState() override;
 
   void ApplyCullDisable();

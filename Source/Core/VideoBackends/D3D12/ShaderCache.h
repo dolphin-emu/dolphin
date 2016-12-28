@@ -19,7 +19,7 @@ public:
   static void Clear();
   static void Shutdown();
 
-  static void LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 gs_primitive_type);
+  static void LoadAndSetActiveShaders(u32 gs_primitive_type);
 
   template <class UidType, class ShaderCacheType>
   static D3D12_SHADER_BYTECODE InsertByteCode(const UidType& uid, ShaderCacheType* shader_cache,
@@ -43,7 +43,7 @@ private:
   static void SetCurrentPrimitiveTopology(u32 gs_primitive_type);
 
   static void HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_type);
-  static void HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_alpha_mode);
+  static void HandlePSUIDChange(PixelShaderUid ps_uid);
   static void HandleVSUIDChange(VertexShaderUid vs_uid);
 };
 }

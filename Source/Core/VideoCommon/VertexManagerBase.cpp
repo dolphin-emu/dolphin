@@ -253,12 +253,9 @@ void VertexManagerBase::Flush()
     GeometryShaderManager::SetConstants();
     PixelShaderManager::SetConstants();
 
-    bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-                       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-
     if (PerfQueryBase::ShouldEmulate())
       g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-    g_vertex_manager->vFlush(useDstAlpha);
+    g_vertex_manager->vFlush();
     if (PerfQueryBase::ShouldEmulate())
       g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
   }

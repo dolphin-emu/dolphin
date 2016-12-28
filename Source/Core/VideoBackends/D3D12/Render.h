@@ -27,7 +27,7 @@ public:
   void SetViewport() override;
 
   // TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
-  void ApplyState(bool use_dst_alpha) override;
+  void ApplyState() override;
   void RestoreState() override;
 
   void ApplyCullDisable();
