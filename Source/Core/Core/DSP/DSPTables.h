@@ -54,9 +54,6 @@ enum partype_t
 #define OPTABLE_SIZE 0xffff + 1
 #define EXT_OPTABLE_SIZE 0xff + 1
 
-typedef void (*dspIntFunc)(const UDSPInstruction);
-typedef void (DSPEmitter::*dspJitFunc)(const UDSPInstruction);
-
 struct param2_t
 {
   partype_t type;
@@ -68,12 +65,15 @@ struct param2_t
 
 struct DSPOPCTemplate
 {
+  using InterpreterFunction = void (*)(UDSPInstruction);
+  using JITFunction = void (DSPEmitter::*)(UDSPInstruction);
+
   const char* name;
   u16 opcode;
   u16 opcode_mask;
 
-  dspIntFunc intFunc;
-  dspJitFunc jitFunc;
+  InterpreterFunction intFunc;
+  JITFunction jitFunc;
 
   u8 size;
   u8 param_count;
