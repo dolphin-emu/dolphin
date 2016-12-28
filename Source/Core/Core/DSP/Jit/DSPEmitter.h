@@ -15,6 +15,12 @@
 #include "Core/DSP/DSPCommon.h"
 #include "Core/DSP/Jit/DSPJitRegCache.h"
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 class DSPEmitter : public Gen::X64CodeBlock
 {
 public:
@@ -281,3 +287,7 @@ private:
   void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
   void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 };
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP

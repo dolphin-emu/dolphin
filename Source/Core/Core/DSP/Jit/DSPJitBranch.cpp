@@ -12,6 +12,12 @@
 
 using namespace Gen;
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 template <void (*jitCode)(const UDSPInstruction, DSPEmitter&)>
 static void ReJitConditional(const UDSPInstruction opc, DSPEmitter& emitter)
 {
@@ -452,3 +458,7 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
     WriteBranchExit(*this);
   }
 }
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP

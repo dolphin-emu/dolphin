@@ -13,6 +13,12 @@
 
 using namespace Gen;
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 // SRS @M, $(0x18+S)
 // 0010 1sss mmmm mmmm
 // Move value from register $(0x18+D) to data memory pointed by address
@@ -349,3 +355,7 @@ void DSPEmitter::ilrrn(const UDSPInstruction opc)
   dsp_conditional_extend_accum(dreg + DSP_REG_ACM0);
   increase_addr_reg(reg, reg);
 }
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP

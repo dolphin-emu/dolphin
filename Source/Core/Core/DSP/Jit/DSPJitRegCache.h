@@ -7,6 +7,12 @@
 #include <array>
 #include "Common/x64Emitter.h"
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 class DSPEmitter;
 
 enum DSPJitRegSpecial
@@ -179,3 +185,7 @@ private:
 
   int use_ctr;
 };
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP

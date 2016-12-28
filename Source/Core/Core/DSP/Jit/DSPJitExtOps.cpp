@@ -25,6 +25,12 @@ using namespace Gen;
    sign extension.
  */
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 // DR $arR
 // xxxx xxxx 0000 01rr
 // Decrement addressing register $arR.
@@ -691,3 +697,7 @@ void DSPEmitter::popExtValueToReg()
 
   storeIndex2 = -1;
 }
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP

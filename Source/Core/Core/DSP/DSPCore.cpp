@@ -29,7 +29,7 @@ DSPBreakpoints g_dsp_breakpoints;
 static DSPCoreState core_state = DSPCORE_STOP;
 u16 g_cycles_left = 0;
 bool g_init_hax = false;
-std::unique_ptr<DSPEmitter> g_dsp_jit;
+std::unique_ptr<DSP::JIT::x86::DSPEmitter> g_dsp_jit;
 std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 static Common::Event step_event;
 
@@ -148,7 +148,7 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
   // Initialize JIT, if necessary
   if (opts.core_type == DSPInitOptions::CORE_JIT)
-    g_dsp_jit = std::make_unique<DSPEmitter>();
+    g_dsp_jit = std::make_unique<DSP::JIT::x86::DSPEmitter>();
 
   g_dsp_cap.reset(opts.capture_logger);
 
@@ -251,7 +251,7 @@ int DSPCore_RunCycles(int cycles)
     }
 
     g_cycles_left = cycles;
-    auto exec_addr = (DSPEmitter::DSPCompiledCode)g_dsp_jit->enterDispatcher;
+    auto exec_addr = (DSP::JIT::x86::DSPEmitter::DSPCompiledCode)g_dsp_jit->enterDispatcher;
     exec_addr();
 
     if (g_dsp.reset_dspjit_codespace)

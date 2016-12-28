@@ -14,7 +14,16 @@
 #include "Core/DSP/DSPBreakpoints.h"
 #include "Core/DSP/DSPCaptureLogger.h"
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 class DSPEmitter;
+}
+}
+}
 
 enum : u32
 {
@@ -302,7 +311,7 @@ extern SDSP g_dsp;
 extern DSPBreakpoints g_dsp_breakpoints;
 extern u16 g_cycles_left;
 extern bool g_init_hax;
-extern std::unique_ptr<DSPEmitter> g_dsp_jit;
+extern std::unique_ptr<DSP::JIT::x86::DSPEmitter> g_dsp_jit;
 extern std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 
 struct DSPInitOptions

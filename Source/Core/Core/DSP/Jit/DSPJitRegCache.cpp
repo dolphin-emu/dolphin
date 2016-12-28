@@ -15,6 +15,12 @@
 
 using namespace Gen;
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 // Ordered in order of prefered use.
 // Not all of these are actually available
 const std::array<X64Reg, 15> DSPJitRegCache::m_allocation_order = {
@@ -1008,3 +1014,7 @@ void DSPJitRegCache::PutXReg(X64Reg reg)
 
   xregs[reg].guest_reg = DSP_REG_NONE;
 }
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP
