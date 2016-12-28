@@ -57,9 +57,10 @@ public:
     u64 base_hash;
     u64 hash;    // for paletted textures, hash = base_hash ^ palette_hash
     u32 format;  // bits 0-3 will contain the in-memory format.
+    u32 memory_stride;
     bool is_efb_copy;
     bool is_custom_tex;
-    u32 memory_stride;
+    bool may_have_overlapping_textures;
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -197,6 +198,11 @@ private:
   TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
   TexPool::iterator FindMatchingTextureFromPool(const TCacheEntryConfig& config);
   TexAddrCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
+
+  // Return all possible overlapping textures. As addr+size of the textures is not
+  // indexed, this may return false positives.
+  std::pair<TexAddrCache::iterator, TexAddrCache::iterator>
+  FindOverlappingTextures(u32 addr, u32 size_in_bytes);
 
   // Removes and unlinks texture from texture cache and returns it to the pool
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
