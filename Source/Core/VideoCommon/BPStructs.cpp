@@ -142,6 +142,10 @@ static void BPWritten(const BPCmd& bp)
                (int)bpmem.blendmode.dstfactor, (int)bpmem.blendmode.srcfactor,
                (int)bpmem.blendmode.subtract, (int)bpmem.blendmode.logicmode);
 
+      // Set Blending Mode
+      if (bp.changes)
+        SetBlendMode();
+
       // Set LogicOp Blending Mode
       if (bp.changes & 0xF002)  // logicopenable | logicmode
         SetLogicOpMode();
@@ -149,10 +153,6 @@ static void BPWritten(const BPCmd& bp)
       // Set Dithering Mode
       if (bp.changes & 4)  // dither
         SetDitherMode();
-
-      // Set Blending Mode
-      if (bp.changes & 0xFF1)  // blendenable | alphaupdate | dstfactor | srcfactor | subtract
-        SetBlendMode();
 
       // Set Color Mask
       if (bp.changes & 0x18)  // colorupdate | alphaupdate
@@ -316,7 +316,10 @@ static void BPWritten(const BPCmd& bp)
     if (bp.changes & 0xFFFF)
       PixelShaderManager::SetAlpha();
     if (bp.changes)
+    {
       g_renderer->SetColorMask();
+      SetBlendMode();
+    }
     return;
   case BPMEM_BIAS:  // BIAS
     PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);
