@@ -108,12 +108,21 @@ void BlendingState::Generate(const BPMemory& bp)
   // The logicop bit has the lowest priority
   else if (bp.blendmode.logicopenable)
   {
-    logicopenable = true;
-    logicmode = bp.blendmode.logicmode;
-
-    if (dstalpha)
+    if (bp.blendmode.logicmode == BlendMode::NOOP)
     {
-      // TODO: Not supported by backends.
+      // Fast path for Kirby's Return to Dreamland, they use it with dstAlpha.
+      colorupdate = false;
+      alphaupdate = alphaupdate && dstalpha;
+    }
+    else
+    {
+      logicopenable = true;
+      logicmode = bp.blendmode.logicmode;
+
+      if (dstalpha)
+      {
+        // TODO: Not supported by backends.
+      }
     }
   }
 }
