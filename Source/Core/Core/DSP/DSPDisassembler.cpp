@@ -194,7 +194,7 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pa
       break;
     }
   }
-  const DSPOPCTemplate fake_op = {"CW",    0x0000, 0x0000, DSPInterpreter::nop,
+  const DSPOPCTemplate fake_op = {"CW",    0x0000, 0x0000, DSP::Interpreter::nop,
                                   nullptr, 1,      1,      {{P_VAL, 2, 0, 0, 0xffff}},
                                   false,   false,  false,  false,
                                   false};

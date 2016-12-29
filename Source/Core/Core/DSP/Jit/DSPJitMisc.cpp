@@ -11,6 +11,12 @@
 
 using namespace Gen;
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 // MRR $D, $S
 // 0001 11dd ddds ssss
 // Move value from register $S to register $D.
@@ -191,3 +197,7 @@ void DSPEmitter::srbith(const UDSPInstruction opc)
     break;
   }
 }
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP

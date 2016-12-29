@@ -13,7 +13,9 @@
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
 
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 namespace
 {
@@ -238,4 +240,5 @@ void nop(const UDSPInstruction opc)
   ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x", opc);
 }
 
-}  // namespace
+}  // namespace Interpreter
+}  // namespace DSP

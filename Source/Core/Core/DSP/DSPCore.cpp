@@ -29,7 +29,7 @@ DSPBreakpoints g_dsp_breakpoints;
 static DSPCoreState core_state = DSPCORE_STOP;
 u16 g_cycles_left = 0;
 bool g_init_hax = false;
-std::unique_ptr<DSPEmitter> g_dsp_jit;
+std::unique_ptr<DSP::JIT::x86::DSPEmitter> g_dsp_jit;
 std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
 static Common::Event step_event;
 
@@ -148,7 +148,7 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
   // Initialize JIT, if necessary
   if (opts.core_type == DSPInitOptions::CORE_JIT)
-    g_dsp_jit = std::make_unique<DSPEmitter>();
+    g_dsp_jit = std::make_unique<DSP::JIT::x86::DSPEmitter>();
 
   g_dsp_cap.reset(opts.capture_logger);
 
@@ -193,7 +193,7 @@ void DSPCore_SetExternalInterrupt(bool val)
 // Coming from the CPU
 void DSPCore_CheckExternalInterrupt()
 {
-  if (!dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
+  if (!DSP::Interpreter::dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
     return;
 
   // Signal the SPU about new mail
@@ -213,7 +213,7 @@ void DSPCore_CheckExceptions()
     // Seems exp int are not masked by sr_int_enable
     if (g_dsp.exceptions & (1 << i))
     {
-      if (dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT))
+      if (DSP::Interpreter::dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT))
       {
         // store pc and sr until RTI
         dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
@@ -251,7 +251,7 @@ int DSPCore_RunCycles(int cycles)
     }
 
     g_cycles_left = cycles;
-    auto exec_addr = (DSPEmitter::DSPCompiledCode)g_dsp_jit->enterDispatcher;
+    auto exec_addr = (DSP::JIT::x86::DSPEmitter::DSPCompiledCode)g_dsp_jit->enterDispatcher;
     exec_addr();
 
     if (g_dsp.reset_dspjit_codespace)
@@ -267,9 +267,9 @@ int DSPCore_RunCycles(int cycles)
     case DSPCORE_RUNNING:
 // Seems to slow things down
 #if defined(_DEBUG) || defined(DEBUGFAST)
-      cycles = DSPInterpreter::RunCyclesDebug(cycles);
+      cycles = DSP::Interpreter::RunCyclesDebug(cycles);
 #else
-      cycles = DSPInterpreter::RunCycles(cycles);
+      cycles = DSP::Interpreter::RunCycles(cycles);
 #endif
       break;
 
@@ -278,7 +278,7 @@ int DSPCore_RunCycles(int cycles)
       if (core_state != DSPCORE_STEPPING)
         continue;
 
-      DSPInterpreter::Step();
+      DSP::Interpreter::Step();
       cycles--;
 
       DSPHost::UpdateDebugger();

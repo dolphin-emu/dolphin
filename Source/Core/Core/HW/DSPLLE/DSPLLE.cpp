@@ -91,7 +91,7 @@ void DSPLLE::DSPThread(DSPLLE* dsp_lle)
       }
       else
       {
-        DSPInterpreter::RunCyclesThread(cycles);
+        DSP::Interpreter::RunCyclesThread(cycles);
       }
       dsp_lle->m_cycle_count.store(0);
     }
@@ -203,7 +203,7 @@ void DSPLLE::Shutdown()
 
 u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
 {
-  DSPInterpreter::WriteCR(_uFlag);
+  DSP::Interpreter::WriteCR(_uFlag);
 
   if (_uFlag & 2)
   {
@@ -222,12 +222,12 @@ u16 DSPLLE::DSP_WriteControlRegister(u16 _uFlag)
     }
   }
 
-  return DSPInterpreter::ReadCR();
+  return DSP::Interpreter::ReadCR();
 }
 
 u16 DSPLLE::DSP_ReadControlRegister()
 {
-  return DSPInterpreter::ReadCR();
+  return DSP::Interpreter::ReadCR();
 }
 
 u16 DSPLLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)

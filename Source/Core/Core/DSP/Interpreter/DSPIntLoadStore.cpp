@@ -8,7 +8,9 @@
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 // SRS @M, $(0x18+S)
 // 0010 1sss mmmm mmmm
@@ -260,4 +262,5 @@ void ilrrn(const UDSPInstruction opc)
   g_dsp.r.ar[reg] = dsp_increase_addr_reg(reg, (s16)g_dsp.r.ix[reg]);
 }
 
-}  // namespace
+}  // namespace Interpreter
+}  // namespace DSP

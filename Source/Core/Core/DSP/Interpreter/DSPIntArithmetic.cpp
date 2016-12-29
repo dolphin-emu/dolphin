@@ -12,7 +12,9 @@
 
 // Arithmetic and accumulator control.
 
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 // CLR $acR
 // 1000 r001 xxxx xxxx
@@ -1158,4 +1160,5 @@ void asrnr(const UDSPInstruction opc)
   Update_SR_Register64(dsp_get_long_acc(dreg));
 }
 
-}  // namespace
+}  // namespace Interpreter
+}  // namespace DSP

@@ -12,6 +12,12 @@
 
 using namespace Gen;
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 // CLR $acR
 // 1000 r001 xxxx xxxx
 // Clears accumulator $acR
@@ -1672,6 +1678,6 @@ void DSPEmitter::asrnr(const UDSPInstruction opc)
   }
 }
 
-//}  // namespace
-
-//
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP
