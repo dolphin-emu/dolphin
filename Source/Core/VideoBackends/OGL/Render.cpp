@@ -1122,12 +1122,10 @@ void Renderer::SetViewport()
                           (float)scissorYOff);
   float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float GLNear = MathUtil::Clamp<float>(
-                     xfmem.viewport.farZ -
-                         MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777216.0f, 16777216.0f),
-                     0.0f, 16777215.0f) /
-                 16777216.0f;
-  float GLFar = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
+  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777215.0f, 16777215.0f);
+  float min_depth =
+      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
+  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (Width < 0)
   {
     X += Width;
@@ -1154,17 +1152,7 @@ void Renderer::SetViewport()
   // vertex shader we only need to ensure depth values don't exceed the maximum
   // value supported by the console GPU. If not, we simply clamp the near/far values
   // themselves to the maximum value as done above.
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    if (xfmem.viewport.zRange < 0.0f)
-      glDepthRangef(0.0f, GX_MAX_DEPTH);
-    else
-      glDepthRangef(GX_MAX_DEPTH, 0.0f);
-  }
-  else
-  {
-    glDepthRangef(GLFar, GLNear);
-  }
+  glDepthRangef(max_depth, min_depth);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
