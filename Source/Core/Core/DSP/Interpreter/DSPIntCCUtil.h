@@ -10,7 +10,9 @@
 
 #include "Common/CommonTypes.h"
 
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 bool CheckCondition(u8 _Condition);
 
@@ -39,4 +41,5 @@ inline bool isOverS32(s64 acc)
   return (acc != (s32)acc) ? true : false;
 }
 
-}  // namespace
+}  // namespace Interpreter
+}  // namespace DSP

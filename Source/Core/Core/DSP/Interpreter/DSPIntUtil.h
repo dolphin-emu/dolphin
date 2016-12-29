@@ -11,6 +11,10 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPStacks.h"
 
+namespace DSP
+{
+namespace Interpreter
+{
 // ---------------------------------------------------------------------------------------
 // --- SR
 // ---------------------------------------------------------------------------------------
@@ -375,3 +379,6 @@ inline s16 dsp_get_ax_h(int _reg)
 {
   return (s16)g_dsp.r.ax[_reg].h;
 }
+
+}  // namespace Interpreter
+}  // namespace DSP

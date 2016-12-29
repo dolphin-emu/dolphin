@@ -10,7 +10,9 @@
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 // MRR $D, $S
 // 0001 11dd ddds ssss
@@ -158,4 +160,5 @@ void srbith(const UDSPInstruction opc)
   }
 }
 
-}  // namespace
+}  // namespace Interpreter
+}  // namespace DSP

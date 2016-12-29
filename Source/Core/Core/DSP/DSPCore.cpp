@@ -193,7 +193,7 @@ void DSPCore_SetExternalInterrupt(bool val)
 // Coming from the CPU
 void DSPCore_CheckExternalInterrupt()
 {
-  if (!dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
+  if (!DSP::Interpreter::dsp_SR_is_flag_set(SR_EXT_INT_ENABLE))
     return;
 
   // Signal the SPU about new mail
@@ -213,7 +213,7 @@ void DSPCore_CheckExceptions()
     // Seems exp int are not masked by sr_int_enable
     if (g_dsp.exceptions & (1 << i))
     {
-      if (dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT))
+      if (DSP::Interpreter::dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT))
       {
         // store pc and sr until RTI
         dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
@@ -267,9 +267,9 @@ int DSPCore_RunCycles(int cycles)
     case DSPCORE_RUNNING:
 // Seems to slow things down
 #if defined(_DEBUG) || defined(DEBUGFAST)
-      cycles = DSPInterpreter::RunCyclesDebug(cycles);
+      cycles = DSP::Interpreter::RunCyclesDebug(cycles);
 #else
-      cycles = DSPInterpreter::RunCycles(cycles);
+      cycles = DSP::Interpreter::RunCycles(cycles);
 #endif
       break;
 
@@ -278,7 +278,7 @@ int DSPCore_RunCycles(int cycles)
       if (core_state != DSPCORE_STEPPING)
         continue;
 
-      DSPInterpreter::Step();
+      DSP::Interpreter::Step();
       cycles--;
 
       DSPHost::UpdateDebugger();

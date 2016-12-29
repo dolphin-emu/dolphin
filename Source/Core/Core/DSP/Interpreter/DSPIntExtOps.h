@@ -11,7 +11,9 @@
 // Many opcode have the lower 0xFF (some only 0x7f) free - there, an opcode extension
 // can be stored.
 
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 namespace Ext
 {
@@ -41,5 +43,6 @@ void ir(const UDSPInstruction opc);
 void nr(const UDSPInstruction opc);
 void nop(const UDSPInstruction opc);
 
-}  // end namespace Ext
-}  // end namespace DSPinterpeter
+}  // namespace Ext
+}  // namespace Interpeter
+}  // namespace DSP
