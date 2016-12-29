@@ -83,6 +83,7 @@ private:
   int iSelectedLanguage;
   int iCPUCore;
   int Volume;
+  int m_wii_language;
   float m_EmulationSpeed;
   std::string strBackend;
   std::string sBackend;
@@ -117,6 +118,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   strBackend = config.m_strVideoBackend;
   sBackend = config.sBackend;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
+  m_wii_language = config.m_wii_language;
 
   std::copy(std::begin(g_wiimote_sources), std::end(g_wiimote_sources), std::begin(iWiimoteSource));
   std::copy(std::begin(config.m_SIDevice), std::end(config.m_SIDevice), std::begin(Pads));
@@ -168,6 +170,8 @@ void ConfigCache::RestoreConfig(SConfig* config)
         WiimoteReal::ChangeWiimoteSource(i, iWiimoteSource[i]);
       }
     }
+
+    config->m_wii_language = m_wii_language;
   }
 
   for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
@@ -252,6 +256,7 @@ bool BootCore(const std::string& _rFilename)
     core_section->Get("HLE_BS2", &StartUp.bHLE_BS2, StartUp.bHLE_BS2);
     core_section->Get("ProgressiveScan", &StartUp.bProgressive, StartUp.bProgressive);
     core_section->Get("PAL60", &StartUp.bPAL60, StartUp.bPAL60);
+    core_section->Get("GameCubeLanguage", &StartUp.SelectedLanguage, StartUp.SelectedLanguage);
     if (core_section->Get("EmulationSpeed", &SConfig::GetInstance().m_EmulationSpeed,
                           SConfig::GetInstance().m_EmulationSpeed))
       config_cache.bSetEmulationSpeed = true;
@@ -300,6 +305,9 @@ bool BootCore(const std::string& _rFilename)
         g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = source;
         WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD, source);
       }
+
+      IniFile::Section* wii_section = game_ini.GetOrCreateSection("Wii");
+      wii_section->Get("Language", &StartUp.m_wii_language, StartUp.m_wii_language);
     }
   }
 
