@@ -25,6 +25,7 @@ set(SRCS	AsyncRequests.cpp
 			PixelShaderManager.cpp
 			PostProcessing.cpp
 			RenderBase.cpp
+			RenderState.cpp
 			Statistics.cpp
 			TextureCacheBase.cpp
 			TextureConversionShader.cpp
