@@ -401,10 +401,10 @@ wxMenu* MainMenuBar::CreateDebugMenu()
                                     _("Disable docking of perspective panes to main window"));
 
   auto* const debug_menu = new wxMenu;
-  debug_menu->Append(IDM_STEP, _("Step &Into\tF11"));
-  debug_menu->Append(IDM_STEPOVER, _("Step &Over\tF10"));
-  debug_menu->Append(IDM_STEPOUT, _("Step O&ut\tSHIFT+F11"));
-  debug_menu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint\tF9"));
+  debug_menu->Append(IDM_STEP, _("Step &Into"));
+  debug_menu->Append(IDM_STEPOVER, _("Step &Over"));
+  debug_menu->Append(IDM_STEPOUT, _("Step O&ut"));
+  debug_menu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint"));
   debug_menu->AppendSeparator();
   debug_menu->AppendSubMenu(perspective_menu, _("Perspectives"), _("Edit Perspectives"));
 
