@@ -10,6 +10,11 @@
 #include "Core/HW/DSPHLE/MailHandler.h"
 
 class PointerWrap;
+
+namespace DSP
+{
+namespace HLE
+{
 class UCodeInterface;
 
 class DSPHLE : public DSPEmulator
@@ -67,3 +72,5 @@ private:
   bool m_bHalt;
   bool m_bAssertInt;
 };
+}  // namespace HLE
+}  // namespace DSP

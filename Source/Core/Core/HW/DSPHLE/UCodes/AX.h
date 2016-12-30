@@ -15,6 +15,10 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 // We can't directly use the mixer_control field from the PB because it does
 // not mean the same in all AX versions. The AX UCode converts the
 // mixer_control value to an AXMixControl bitfield.
@@ -149,3 +153,5 @@ private:
     CMD_SEND_AUX_AND_MIX = 0x13,
   };
 };
+}  // namespace HLE
+}  // namespace DSP

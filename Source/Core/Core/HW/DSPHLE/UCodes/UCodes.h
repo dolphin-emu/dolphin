@@ -10,12 +10,17 @@
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/Memmap.h"
 
+class PointerWrap;
+
+namespace DSP
+{
+namespace HLE
+{
+class CMailHandler;
+
 #define UCODE_ROM 0x00000000
 #define UCODE_INIT_AUDIO_SYSTEM 0x00000001
 #define UCODE_NULL 0xFFFFFFFF
-
-class CMailHandler;
-class PointerWrap;
 
 constexpr bool ExramRead(u32 address)
 {
@@ -133,3 +138,5 @@ private:
 };
 
 UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii);
+}  // namespace HLE
+}  // namespace DSP

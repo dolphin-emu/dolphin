@@ -6,6 +6,10 @@
 
 #include "Common/CommonTypes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 struct PBMixer
 {
   u16 left;
@@ -331,3 +335,5 @@ enum
   FILTER_LOWPASS = 1,
   FILTER_BIQUAD = 2,
 };
+}  // namespace HLE
+}  // namespace DSP

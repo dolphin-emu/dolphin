@@ -14,6 +14,8 @@
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/LabelMap.h"
 
+namespace DSP
+{
 enum err_t
 {
   ERR_OK = 0,
@@ -116,3 +118,4 @@ private:
   int m_current_param;
   const AssemblerSettings settings_;
 };
+}  // namespace DSP

@@ -17,6 +17,8 @@
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 
+namespace DSP
+{
 DSPDisassembler::DSPDisassembler(const AssemblerSettings& settings) : settings_(settings)
 {
 }
@@ -335,3 +337,4 @@ bool DSPDisassembler::DisassembleFile(const std::string& name, int base_addr, in
 
   return true;
 }
+}  // namespace DSP

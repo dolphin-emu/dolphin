@@ -6,6 +6,10 @@
 
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
+namespace DSP
+{
+namespace HLE
+{
 struct AXPBWii;
 
 class AXWiiUCode : public AXUCode
@@ -109,3 +113,5 @@ private:
     CMD_END_OLD = 0x0F
   };
 };
+}  // namespace HLE
+}  // namespace DSP

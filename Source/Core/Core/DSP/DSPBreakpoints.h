@@ -7,6 +7,8 @@
 #include <cstring>
 #include "Common/CommonTypes.h"
 
+namespace DSP
+{
 // super fast breakpoints for a limited range.
 // To be used interchangeably with the BreakPoints class.
 class DSPBreakpoints
@@ -44,3 +46,4 @@ public:
 private:
   u8 b[65536];
 };
+}  // namespace DSP

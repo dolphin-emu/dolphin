@@ -16,6 +16,8 @@
 #include "Core/DSP/DSPHost.h"
 #include "Core/DSP/DSPTables.h"
 
+namespace DSP
+{
 static void gdsp_do_dma();
 
 void gdsp_ifx_init()
@@ -98,7 +100,7 @@ void gdsp_ifx_write(u32 addr, u32 val)
   {
   case DSP_DIRQ:
     if (val & 0x1)
-      DSPHost::InterruptRequest();
+      Host::InterruptRequest();
     else
       WARN_LOG(DSPLLE, "Unknown Interrupt Request pc=%04x (%04x)", g_dsp.pc, val);
     break;
@@ -234,7 +236,7 @@ static const u8* gdsp_idma_in(u16 dsp_addr, u32 addr, u32 size)
   }
   Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
 
-  DSPHost::CodeLoaded((const u8*)g_dsp.iram + dsp_addr, size);
+  Host::CodeLoaded((const u8*)g_dsp.iram + dsp_addr, size);
 
   NOTICE_LOG(DSPLLE, "*** Copy new UCode from 0x%08x to 0x%04x (crc: %8x)", addr, dsp_addr,
              g_dsp.iram_crc);
@@ -356,3 +358,4 @@ static void gdsp_do_dma()
   if (copied_data_ptr)
     g_dsp_cap->LogDMA(ctl, addr, dsp_addr, len, copied_data_ptr);
 }
+}  // namespace DSP

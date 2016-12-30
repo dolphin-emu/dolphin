@@ -12,6 +12,8 @@
 
 class PCAP;
 
+namespace DSP
+{
 // An interface used to capture and log structured data about internal DSP
 // data transfers.
 //
@@ -70,3 +72,4 @@ private:
 
   std::unique_ptr<PCAP> m_pcap;
 };
+}  // namespace DSP

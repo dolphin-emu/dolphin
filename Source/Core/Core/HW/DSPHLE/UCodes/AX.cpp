@@ -15,6 +15,10 @@
 #define AX_GC
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 
+namespace DSP
+{
+namespace HLE
+{
 AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc), m_cmdlist_size(0)
 {
   INFO_LOG(DSPHLE, "Instantiating AXUCode: crc=%08x", crc);
@@ -690,3 +694,5 @@ void AXUCode::DoState(PointerWrap& p)
   DoStateShared(p);
   DoAXState(p);
 }
+}  // namespace HLE
+}  // namespace DSP

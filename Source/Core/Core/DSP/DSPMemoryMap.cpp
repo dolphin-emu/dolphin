@@ -11,6 +11,8 @@
 #include "Core/DSP/DSPHWInterface.h"
 #include "Core/DSP/DSPTables.h"
 
+namespace DSP
+{
 u16 dsp_imem_read(u16 addr)
 {
   switch (addr >> 12)
@@ -82,3 +84,4 @@ void dsp_skip_inst()
 {
   g_dsp.pc += opTable[dsp_peek_code()]->size;
 }
+}  // namespace DSP

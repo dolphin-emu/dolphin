@@ -12,7 +12,9 @@
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
 
-namespace DSPAnalyzer
+namespace DSP
+{
+namespace Analyzer
 {
 namespace
 {
@@ -165,4 +167,5 @@ u8 GetCodeFlags(u16 address)
   return code_flags[address];
 }
 
-}  // namespace DSPAnalyzer
+}  // namespace Analyzer
+}  // namespace DSP

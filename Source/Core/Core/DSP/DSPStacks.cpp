@@ -9,7 +9,8 @@
 #include "Core/DSP/DSPStacks.h"
 
 // Stacks. The stacks are outside the DSP RAM, in dedicated hardware.
-
+namespace DSP
+{
 static void dsp_reg_stack_push(int stack_reg)
 {
   g_dsp.reg_stack_ptr[stack_reg]++;
@@ -36,3 +37,4 @@ u16 dsp_reg_load_stack(int stack_reg)
   dsp_reg_stack_pop(stack_reg);
   return val;
 }
+}  // namespace DSP

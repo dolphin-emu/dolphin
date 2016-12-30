@@ -13,6 +13,10 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
+namespace DSP
+{
+namespace HLE
+{
 // Uncomment this to have a strict version of the HLE implementation, which
 // PanicAlerts on recoverable unknown behaviors instead of silently ignoring
 // them.  Recommended for development.
@@ -1806,3 +1810,5 @@ void ZeldaAudioRenderer::DoState(PointerWrap& p)
   p.Do(m_buf_front_left_reverb_last8);
   p.Do(m_buf_front_right_reverb_last8);
 }
+}  // namespace HLE
+}  // namespace DSP

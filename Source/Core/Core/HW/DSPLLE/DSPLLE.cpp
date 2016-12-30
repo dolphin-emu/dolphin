@@ -27,6 +27,10 @@
 #include "Core/HW/Memmap.h"
 #include "Core/Host.h"
 
+namespace DSP
+{
+namespace LLE
+{
 static Common::Event dspEvent;
 static Common::Event ppcEvent;
 static bool requestDisableThread;
@@ -67,7 +71,7 @@ void DSPLLE::DoState(PointerWrap& p)
   p.DoArray(g_dsp.iram, DSP_IRAM_SIZE);
   Common::WriteProtectMemory(g_dsp.iram, DSP_IRAM_BYTE_SIZE, false);
   if (p.GetMode() == PointerWrap::MODE_READ)
-    DSPHost::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
+    Host::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
   p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
   p.Do(g_cycles_left);
   p.Do(g_init_hax);
@@ -339,3 +343,5 @@ void DSPLLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
   else
     m_csDSPThreadActive.unlock();
 }
+}  // namespace LLE
+}  // namespace DSP

@@ -18,6 +18,10 @@
 #include "Core/HW/DSPHLE/UCodes/ROM.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 ROMUCode::ROMUCode(DSPHLE* dsphle, u32 crc)
     : UCodeInterface(dsphle, crc), m_current_ucode(), m_boot_task_num_steps(0), m_next_parameter(0)
 {
@@ -130,3 +134,5 @@ void ROMUCode::DoState(PointerWrap& p)
 
   DoStateShared(p);
 }
+}  // namespace HLE
+}  // namespace DSP
