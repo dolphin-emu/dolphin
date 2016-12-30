@@ -11,8 +11,9 @@
 
 enum HotkeyGroup : int;
 
-HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputConfig& config,
-                                                 const wxString& name, const int port_num)
+HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* parent, InputConfig& config,
+                                                 const wxString& name, bool using_debugger,
+                                                 int port_num)
     : InputConfigDialog(parent, config, name, port_num)
 {
   const int space5 = FromDIP(5);
@@ -68,6 +69,31 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* const parent, InputCo
   // Frame advance is an example of a typical TAS tool.
   notebook->AddPage(tab_tas, _("TAS Tools"));
 
+  if (using_debugger)
+  {
+    // Debugging
+    auto* const tab_debugging = new wxPanel(notebook);
+
+    auto* const group_box_steping =
+        new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_STEPPING), tab_debugging, this);
+    auto* const group_box_pc =
+        new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_PC), tab_debugging, this);
+    auto* const group_box_breakpoint =
+        new ControlGroupBox(HotkeyManagerEmu::GetHotkeyGroup(HKGP_BREAKPOINT), tab_debugging, this);
+
+    auto* const szr_debugging = new wxBoxSizer(wxHORIZONTAL);
+    szr_debugging->AddSpacer(space5);
+    szr_debugging->Add(group_box_steping, 0, wxEXPAND | wxTOP, space5);
+    szr_debugging->AddSpacer(space5);
+    szr_debugging->Add(group_box_pc, 0, wxEXPAND | wxTOP, space5);
+    szr_debugging->AddSpacer(space5);
+    szr_debugging->Add(group_box_breakpoint, 0, wxEXPAND | wxTOP, space5);
+    szr_debugging->AddSpacer(space5);
+
+    tab_debugging->SetSizerAndFit(szr_debugging);
+
+    notebook->AddPage(tab_debugging, _("Debugging"));
+  }
   // WII and Wii Remote
   auto* const tab_wii = new wxPanel(notebook);
 
