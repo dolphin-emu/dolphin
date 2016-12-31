@@ -12,6 +12,7 @@ MicButtonConfigDialog::MicButtonConfigDialog(wxWindow* const parent, InputConfig
     : InputConfigDialog(parent, config, name, port_num)
 {
   const int space5 = FromDIP(5);
+  const int space150 = FromDIP(150);
 
   auto* const device_chooser = CreateDeviceChooserGroupBox();
 
@@ -20,6 +21,8 @@ MicButtonConfigDialog::MicButtonConfigDialog(wxWindow* const parent, InputConfig
 
   auto* const controls_sizer = new wxBoxSizer(wxHORIZONTAL);
   controls_sizer->Add(group_box_button, 0, wxEXPAND);
+  // Avoid having the device combo box to be too small.
+  controls_sizer->AddSpacer(space150);
 
   auto* const szr_main = new wxBoxSizer(wxVERTICAL);
   szr_main->AddSpacer(space5);
@@ -30,7 +33,7 @@ MicButtonConfigDialog::MicButtonConfigDialog(wxWindow* const parent, InputConfig
   szr_main->Add(CreateButtonSizer(wxCLOSE | wxNO_DEFAULT), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   szr_main->AddSpacer(space5);
 
-  SetSizer(szr_main);
+  SetSizerAndFit(szr_main);
   Center();
   UpdateGUI();
 }
