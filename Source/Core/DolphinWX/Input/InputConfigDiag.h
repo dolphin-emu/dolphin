@@ -38,7 +38,8 @@ class wxTextCtrl;
 class PadSetting
 {
 protected:
-  PadSetting(wxControl* const _control) : wxcontrol(_control) { wxcontrol->SetClientData(this); }
+  PadSetting(wxControl* const _control);
+
 public:
   virtual void UpdateGUI() = 0;
   virtual void UpdateValue() = 0;
@@ -82,19 +83,14 @@ public:
 class InputEventFilter : public wxEventFilter
 {
 public:
-  InputEventFilter() { wxEvtHandler::AddFilter(this); }
-  ~InputEventFilter() { wxEvtHandler::RemoveFilter(this); }
+  InputEventFilter();
+  ~InputEventFilter();
   int FilterEvent(wxEvent& event) override;
 
-  void BlockEvents(bool block) { m_block = block; }
+  void BlockEvents(bool block);
+
 private:
-  static bool ShouldCatchEventType(wxEventType type)
-  {
-    return type == wxEVT_KEY_DOWN || type == wxEVT_KEY_UP || type == wxEVT_CHAR ||
-           type == wxEVT_CHAR_HOOK || type == wxEVT_LEFT_DOWN || type == wxEVT_LEFT_UP ||
-           type == wxEVT_MIDDLE_DOWN || type == wxEVT_MIDDLE_UP || type == wxEVT_RIGHT_DOWN ||
-           type == wxEVT_RIGHT_UP;
-  }
+  static bool ShouldCatchEventType(wxEventType type);
 
   bool m_block = false;
 };
@@ -148,11 +144,7 @@ private:
 class ExtensionButton : public wxButton
 {
 public:
-  ExtensionButton(wxWindow* const parent, ControllerEmu::Extension* const ext)
-      : wxButton(parent, wxID_ANY, _("Configure"), wxDefaultPosition), extension(ext)
-  {
-  }
-
+  ExtensionButton(wxWindow* const parent, ControllerEmu::Extension* const ext);
   ControllerEmu::Extension* const extension;
 };
 
@@ -178,11 +170,7 @@ public:
                   InputConfigDialog* eventsink);
   ~ControlGroupBox();
 
-  bool HasBitmapHeading() const
-  {
-    return control_group->type == GROUP_TYPE_STICK || control_group->type == GROUP_TYPE_TILT ||
-           control_group->type == GROUP_TYPE_CURSOR || control_group->type == GROUP_TYPE_FORCE;
-  }
+  bool HasBitmapHeading() const;
 
   std::vector<PadSetting*> options;
 
