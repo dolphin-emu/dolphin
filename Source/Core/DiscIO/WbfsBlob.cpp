@@ -37,9 +37,9 @@ WbfsFileReader::WbfsFileReader(File::IOFile file, const std::string& path)
 
   // Grab disc info (assume slot 0, checked in ReadHeader())
   m_wlba_table.resize(m_blocks_per_disc);
-  m_files[0]->file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/,
-                        SEEK_SET);
-  m_files[0]->file.ReadBytes(m_wlba_table.data(), m_blocks_per_disc * sizeof(u16));
+  m_files[0].file.Seek(m_hd_sector_size + WII_DISC_HEADER_SIZE /*+ i * m_disc_info_size*/,
+                       SEEK_SET);
+  m_files[0].file.ReadBytes(m_wlba_table.data(), m_blocks_per_disc * sizeof(u16));
   for (size_t i = 0; i < m_blocks_per_disc; i++)
     m_wlba_table[i] = Common::swap16(m_wlba_table[i]);
 }
@@ -78,7 +78,7 @@ bool WbfsFileReader::AddFileToList(File::IOFile file)
     return false;
 
   const u64 file_size = file.GetSize();
-  m_files.emplace_back(std::make_unique<file_entry>(std::move(file), m_size, file_size));
+  m_files.emplace_back(std::move(file), m_size, file_size);
   m_size += file_size;
 
   return true;
@@ -87,8 +87,8 @@ bool WbfsFileReader::AddFileToList(File::IOFile file)
 bool WbfsFileReader::ReadHeader()
 {
   // Read hd size info
-  m_files[0]->file.Seek(0, SEEK_SET);
-  m_files[0]->file.ReadBytes(&m_header, sizeof(WbfsHeader));
+  m_files[0].file.Seek(0, SEEK_SET);
+  m_files[0].file.ReadBytes(&m_header, sizeof(WbfsHeader));
   if (m_header.magic != WBFS_MAGIC)
     return false;
 
@@ -146,19 +146,19 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
     u64 cluster_offset = offset & (m_wbfs_sector_size - 1);
     u64 final_address = cluster_address + cluster_offset;
 
-    for (const std::unique_ptr<file_entry>& file_entry : m_files)
+    for (file_entry& file_entry : m_files)
     {
-      if (final_address < (file_entry->base_address + file_entry->size))
+      if (final_address < (file_entry.base_address + file_entry.size))
       {
-        file_entry->file.Seek(final_address - file_entry->base_address, SEEK_SET);
+        file_entry.file.Seek(final_address - file_entry.base_address, SEEK_SET);
         if (available)
         {
-          u64 till_end_of_file = file_entry->size - (final_address - file_entry->base_address);
+          u64 till_end_of_file = file_entry.size - (final_address - file_entry.base_address);
           u64 till_end_of_sector = m_wbfs_sector_size - cluster_offset;
           *available = std::min(till_end_of_file, till_end_of_sector);
         }
 
-        return file_entry->file;
+        return file_entry.file;
       }
     }
   }
@@ -166,8 +166,8 @@ File::IOFile& WbfsFileReader::SeekToCluster(u64 offset, u64* available)
   PanicAlert("Read beyond end of disc");
   if (available)
     *available = 0;
-  m_files[0]->file.Seek(0, SEEK_SET);
-  return m_files[0]->file;
+  m_files[0].file.Seek(0, SEEK_SET);
+  return m_files[0].file;
 }
 
 std::unique_ptr<WbfsFileReader> WbfsFileReader::Create(File::IOFile file, const std::string& path)

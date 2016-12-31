@@ -53,7 +53,7 @@ private:
     u64 size;
   };
 
-  std::vector<std::unique_ptr<file_entry>> m_files;
+  std::vector<file_entry> m_files;
 
   u64 m_size;
 
