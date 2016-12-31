@@ -111,6 +111,7 @@
     <ClInclude Include="GL\GLInterface\WGL.h" />
     <ClInclude Include="GL\GLUtil.h" />
     <ClInclude Include="Hash.h" />
+    <ClInclude Include="Hooks.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
     <ClInclude Include="LinearDiskCache.h" />
