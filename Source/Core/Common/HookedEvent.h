@@ -4,7 +4,10 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <functional>
+#include <mutex>
+#include <string>
 #include <type_traits>
 #include <vector>
 

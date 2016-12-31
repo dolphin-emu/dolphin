@@ -2,9 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Hooks.h"
 
 #include <tuple>
+
+#include "Common/Hooks.h"
 
 // Generate the lists of argument names
 #define NAMES_STRING(TYPE, NAME) #NAME
