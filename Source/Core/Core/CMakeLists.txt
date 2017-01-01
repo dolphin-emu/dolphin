@@ -196,6 +196,8 @@ if(_M_X86)
 			PowerPC/Jit64IL/IR_X86.cpp
 			PowerPC/Jit64IL/JitIL.cpp
 			PowerPC/Jit64IL/JitIL_Tables.cpp
+			PowerPC/Jit64/FPURegCache.cpp
+			PowerPC/Jit64/GPRRegCache.cpp
 			PowerPC/Jit64/Jit64_Tables.cpp
 			PowerPC/Jit64/JitAsm.cpp
 			PowerPC/Jit64/Jit_Branch.cpp
