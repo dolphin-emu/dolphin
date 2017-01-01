@@ -29,6 +29,39 @@
 
 namespace DiscIO
 {
+namespace
+{
+// Strips the signature part of a ticket, which has variable size based on
+// signature type. Returns a new vector which has only the ticket structure
+// itself.
+std::vector<u8> SignedTicketToTicket(const std::vector<u8>& signed_ticket)
+{
+  u32 signature_type = Common::swap32(signed_ticket.data());
+  u32 entry_offset;
+  if (signature_type == 0x10000)  // RSA4096
+  {
+    entry_offset = 576;
+  }
+  else if (signature_type == 0x10001)  // RSA2048
+  {
+    entry_offset = 320;
+  }
+  else if (signature_type == 0x10002)  // ECDSA
+  {
+    entry_offset = 128;
+  }
+  else
+  {
+    ERROR_LOG(DISCIO, "Invalid ticket signature type: %08x", signature_type);
+    return std::vector<u8>();
+  }
+
+  std::vector<u8> ticket(signed_ticket.size() - entry_offset);
+  std::copy(signed_ticket.begin() + entry_offset, signed_ticket.end(), ticket.begin());
+  return ticket;
+}
+}
+
 CNANDContentData::~CNANDContentData() = default;
 
 CSharedContent::CSharedContent()
@@ -525,34 +558,14 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   return title_id;
 }
 
-bool AddTicket(const std::vector<u8>& ticket)
+bool AddTicket(const std::vector<u8>& signed_ticket)
 {
-  // Find the "entry point" of the ticket by skipping the appropriate number of
-  // bytes, depending on the signature type. We need to parse some of the
-  // ticket because in some cases (ES_AddTicket) it is the only thing that
-  // indicated to us what title id the ticket is for.
-  u32 signature_type = Common::FromBigEndian(*reinterpret_cast<const u32*>(ticket.data()));
-  u32 entry_offset;
-  if (signature_type == 0x10000)  // RSA4096
+  std::vector<u8> ticket = SignedTicketToTicket(signed_ticket);
+  if (ticket.empty())
   {
-    entry_offset = 576;
-  }
-  else if (signature_type == 0x10001)  // RSA2048
-  {
-    entry_offset = 320;
-  }
-  else if (signature_type == 0x10002)  // ECDSA
-  {
-    entry_offset = 128;
-  }
-  else
-  {
-    ERROR_LOG(DISCIO, "Invalid ticket signature type: %08x", signature_type);
     return false;
   }
-
-  const u8* ticket_data = ticket.data() + entry_offset;
-  u64 title_id = Common::FromBigEndian(*reinterpret_cast<const u64*>(ticket_data + 0x9c));
+  u64 title_id = Common::swap64(ticket.data() + 0x9c);
 
   std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
   File::CreateFullPath(ticket_filename);
@@ -561,7 +574,36 @@ bool AddTicket(const std::vector<u8>& ticket)
   if (!ticket_file)
     return false;
 
-  return ticket_file.WriteBytes(ticket.data(), ticket.size());
+  return ticket_file.WriteBytes(signed_ticket.data(), signed_ticket.size());
+}
+
+std::vector<u8> FindSignedTicket(u64 title_id)
+{
+  std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
+  File::IOFile ticket_file(ticket_filename, "rb");
+  if (!ticket_file)
+  {
+    return std::vector<u8>();
+  }
+
+  std::vector<u8> signed_ticket(ticket_file.GetSize());
+  if (!ticket_file.ReadBytes(signed_ticket.data(), signed_ticket.size()))
+  {
+    return std::vector<u8>();
+  }
+
+  return signed_ticket;
+}
+
+std::vector<u8> FindTicket(u64 title_id)
+{
+  std::vector<u8> signed_ticket = FindSignedTicket(title_id);
+  if (signed_ticket.empty())
+  {
+    return std::vector<u8>();
+  }
+
+  return SignedTicketToTicket(signed_ticket);
 }
 
 }  // namespace end
