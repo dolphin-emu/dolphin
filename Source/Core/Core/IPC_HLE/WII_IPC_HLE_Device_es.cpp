@@ -105,6 +105,15 @@ void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile)
   m_ContentFile = _rContentFile;
 }
 
+void CWII_IPC_HLE_Device_es::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv,
+                                            u8* output)
+{
+  mbedtls_aes_context AES_ctx;
+  mbedtls_aes_setkey_dec(&AES_ctx, keyTable[key_index], 128);
+  memcpy(new_iv, iv, 16);
+  mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, new_iv, input, output);
+}
+
 void CWII_IPC_HLE_Device_es::OpenInternal()
 {
   auto& contentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
@@ -914,10 +923,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     u8* newIV = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
     u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
-    mbedtls_aes_context AES_ctx;
-    mbedtls_aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
-    memcpy(newIV, IV, 16);
-    mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, newIV, source, destination);
+    DecryptContent(keyIndex, IV, source, size, newIV, destination);
 
     _dbg_assert_msg_(WII_IPC_ES, keyIndex == 6,
                      "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");

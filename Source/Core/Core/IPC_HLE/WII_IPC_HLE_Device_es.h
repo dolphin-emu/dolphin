@@ -30,6 +30,9 @@ public:
 
   void LoadWAD(const std::string& _rContentFile);
 
+  // Internal implementation of the ES_DECRYPT ioctlv.
+  void DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output);
+
   void OpenInternal();
 
   void DoState(PointerWrap& p) override;
