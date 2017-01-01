@@ -512,7 +512,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   }
 
   // Extract and copy WAD's ticket to ticket directory
-  if (!AddTicket(title_id, content_loader.GetTicket()))
+  if (!AddTicket(content_loader.GetTicket()))
   {
     PanicAlertT("WAD installation failed: error creating ticket");
     return 0;
@@ -525,8 +525,35 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   return title_id;
 }
 
-bool AddTicket(u64 title_id, const std::vector<u8>& ticket)
+bool AddTicket(const std::vector<u8>& ticket)
 {
+  // Find the "entry point" of the ticket by skipping the appropriate number of
+  // bytes, depending on the signature type. We need to parse some of the
+  // ticket because in some cases (ES_AddTicket) it is the only thing that
+  // indicated to us what title id the ticket is for.
+  u32 signature_type = Common::FromBigEndian(*reinterpret_cast<const u32*>(ticket.data()));
+  u32 entry_offset;
+  if (signature_type == 0x10000)  // RSA4096
+  {
+    entry_offset = 576;
+  }
+  else if (signature_type == 0x10001)  // RSA2048
+  {
+    entry_offset = 320;
+  }
+  else if (signature_type == 0x10002)  // ECDSA
+  {
+    entry_offset = 128;
+  }
+  else
+  {
+    ERROR_LOG(DISCIO, "Invalid ticket signature type: %08x", signature_type);
+    return false;
+  }
+
+  const u8* ticket_data = ticket.data() + entry_offset;
+  u64 title_id = Common::FromBigEndian(*reinterpret_cast<const u64*>(ticket_data + 0x9c));
+
   std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
   File::CreateFullPath(ticket_filename);
 

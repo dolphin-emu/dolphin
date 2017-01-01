@@ -264,6 +264,18 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   switch (Buffer.Parameter)
   {
+  case IOCTL_ES_ADDTICKET:
+  {
+    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 3,
+                     "IOCTL_ES_ADDTICKET wrong number of inputs");
+
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDTICKET");
+    std::vector<u8> ticket(Buffer.InBuffer[0].m_Size);
+    Memory::CopyFromEmu(ticket.data(), Buffer.InBuffer[0].m_Address, Buffer.InBuffer[0].m_Size);
+    DiscIO::AddTicket(ticket);
+    break;
+  }
+
   case IOCTL_ES_GETDEVICEID:
   {
     _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,

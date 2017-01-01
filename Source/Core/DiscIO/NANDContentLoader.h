@@ -22,7 +22,7 @@ namespace DiscIO
 {
 enum class Region;
 
-bool AddTicket(u64 title_id, const std::vector<u8>& ticket);
+bool AddTicket(const std::vector<u8>& ticket);
 
 class CNANDContentData
 {
