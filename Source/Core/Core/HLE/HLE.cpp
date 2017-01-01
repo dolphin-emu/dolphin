@@ -52,6 +52,9 @@ static const SPatch OSPatches[] = {
     // Debug/OS Support
     {"OSPanic", HLE_OS::HLE_OSPanic, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
 
+    // This needs to be put before vprintf (because vprintf is called indirectly by this)
+    {"JUTWarningConsole_f", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+
     {"OSReport", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
     {"DEBUGPrint", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
     {"WUD_DEBUGPrint", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
