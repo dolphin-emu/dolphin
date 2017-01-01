@@ -9,16 +9,8 @@
 class Platform
 {
 public:
-  virtual void Init() {}
-  virtual void SetTitle(const std::string& title) {}
-  virtual void MainLoop()
-  {
-    while (s_running.IsSet())
-    {
-      Core::HostDispatchJobs();
-      std::this_thread::sleep_for(std::chrono::milliseconds(100));
-    }
-  }
-  virtual void Shutdown() {}
-  virtual ~Platform() {}
+  virtual void Init() = 0;
+  virtual void SetTitle(const std::string& title) = 0;
+  virtual void MainLoop() = 0;
+  virtual void Shutdown() = 0;
 };

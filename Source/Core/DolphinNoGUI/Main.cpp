@@ -147,14 +147,16 @@ void Host_YieldToUI()
 {
 }
 
-#if HAVE_X11
+#if defined(USE_EGL) && defined(USE_HEADLESS)
+#include "DolphinNoGUI/Headless.h"
+#elif HAVE_X11
 #include "DolphinNoGUI/X11.h"
 #endif
 
 static Platform* GetPlatform()
 {
 #if defined(USE_EGL) && defined(USE_HEADLESS)
-  return new Platform();
+  return new PlatformHeadless();
 #elif HAVE_X11
   return new PlatformX11();
 #endif
@@ -238,8 +240,6 @@ int main(int argc, char* argv[])
   Core::Shutdown();
   platform->Shutdown();
   UICommon::Shutdown();
-
-  delete platform;
 
   return 0;
 }
