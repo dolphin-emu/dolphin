@@ -6,6 +6,10 @@
 
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 class ROMUCode : public UCodeInterface
 {
 public:
@@ -34,3 +38,5 @@ private:
 
   void BootUCode();
 };
+}  // namespace HLE
+}  // namespace DSP

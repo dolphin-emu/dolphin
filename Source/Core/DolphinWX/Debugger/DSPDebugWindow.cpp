@@ -72,7 +72,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 
   wxPanel* code_panel = new wxPanel(m_MainNotebook, wxID_ANY);
   wxBoxSizer* code_sizer = new wxBoxSizer(wxVERTICAL);
-  m_CodeView = new CCodeView(&debug_interface, &DSPSymbols::g_dsp_symbol_db, code_panel);
+  m_CodeView = new CCodeView(&debug_interface, &DSP::Symbols::g_dsp_symbol_db, code_panel);
   m_CodeView->SetPlain();
   code_sizer->Add(m_CodeView, 1, wxEXPAND);
   code_panel->SetSizer(code_sizer);
@@ -115,22 +115,24 @@ DSPDebuggerLLE::~DSPDebuggerLLE()
 
 void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 {
-  if (DSPCore_GetState() == DSPCORE_STOP)
+  const DSP::DSPCoreState dsp_state = DSP::DSPCore_GetState();
+
+  if (dsp_state == DSP::DSPCORE_STOP)
     return;
 
   switch (event.GetId())
   {
   case ID_RUNTOOL:
-    if (DSPCore_GetState() == DSPCORE_RUNNING)
-      DSPCore_SetState(DSPCORE_STEPPING);
+    if (dsp_state == DSP::DSPCORE_RUNNING)
+      DSP::DSPCore_SetState(DSP::DSPCORE_STEPPING);
     else
-      DSPCore_SetState(DSPCORE_RUNNING);
+      DSP::DSPCore_SetState(DSP::DSPCORE_RUNNING);
     break;
 
   case ID_STEPTOOL:
-    if (DSPCore_GetState() == DSPCORE_STEPPING)
+    if (dsp_state == DSP::DSPCORE_STEPPING)
     {
-      DSPCore_Step();
+      DSP::DSPCore_Step();
       Repopulate();
     }
     break;
@@ -168,12 +170,12 @@ void DSPDebuggerLLE::Repopulate()
 
 void DSPDebuggerLLE::FocusOnPC()
 {
-  JumpToAddress(g_dsp.pc);
+  JumpToAddress(DSP::g_dsp.pc);
 }
 
 void DSPDebuggerLLE::UpdateState()
 {
-  if (DSPCore_GetState() == DSPCORE_RUNNING)
+  if (DSP::DSPCore_GetState() == DSP::DSPCORE_RUNNING)
   {
     m_Toolbar->SetToolLabel(ID_RUNTOOL, _("Pause"));
     m_Toolbar->SetToolBitmap(
@@ -192,23 +194,23 @@ void DSPDebuggerLLE::UpdateState()
 
 void DSPDebuggerLLE::UpdateDisAsmListView()
 {
-  if (m_CachedStepCounter == g_dsp.step_counter)
+  if (m_CachedStepCounter == DSP::g_dsp.step_counter)
     return;
 
   // show PC
   FocusOnPC();
-  m_CachedStepCounter = g_dsp.step_counter;
+  m_CachedStepCounter = DSP::g_dsp.step_counter;
   m_Regs->Repopulate();
 }
 
 void DSPDebuggerLLE::UpdateSymbolMap()
 {
-  if (g_dsp.dram == nullptr)
+  if (DSP::g_dsp.dram == nullptr)
     return;
 
   m_SymbolList->Freeze();  // HyperIris: wx style fast filling
   m_SymbolList->Clear();
-  for (const auto& symbol : DSPSymbols::g_dsp_symbol_db.Symbols())
+  for (const auto& symbol : DSP::Symbols::g_dsp_symbol_db.Symbols())
   {
     int idx = m_SymbolList->Append(StrToWxStr(symbol.second.name));
     m_SymbolList->SetClientData(idx, (void*)&symbol.second);
@@ -259,7 +261,7 @@ bool DSPDebuggerLLE::JumpToAddress(u16 addr)
   if (page == 0)
   {
     // Center on valid instruction in IRAM/IROM
-    int new_line = DSPSymbols::Addr2Line(addr);
+    int new_line = DSP::Symbols::Addr2Line(addr);
     if (new_line >= 0)
     {
       m_CodeView->Center(new_line);

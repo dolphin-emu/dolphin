@@ -11,6 +11,8 @@
 
 #include "Core/DSP/DSPCaptureLogger.h"
 
+namespace DSP
+{
 // Definition of the packet structures stored in PCAP capture files.
 
 const u8 IFX_ACCESS_PACKET_MAGIC = 0;
@@ -77,3 +79,4 @@ void PCAPDSPCaptureLogger::LogDMA(u16 control, u32 gc_address, u16 dsp_address, 
 
   m_pcap->AddPacket(buffer, sizeof(DMAPacket) + length);
 }
+}  // namespace DSP

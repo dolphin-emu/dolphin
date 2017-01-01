@@ -6,6 +6,10 @@
 
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 class CARDUCode : public UCodeInterface
 {
 public:
@@ -16,3 +20,5 @@ public:
   void HandleMail(u32 mail) override;
   void Update() override;
 };
+}  // namespace HLE
+}  // namespace DSP

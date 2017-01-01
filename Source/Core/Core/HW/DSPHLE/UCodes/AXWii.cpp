@@ -15,6 +15,10 @@
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 AXWiiUCode::AXWiiUCode(DSPHLE* dsphle, u32 crc) : AXUCode(dsphle, crc), m_last_main_volume(0x8000)
 {
   for (u16& volume : m_last_aux_volumes)
@@ -651,3 +655,5 @@ void AXWiiUCode::DoState(PointerWrap& p)
   p.Do(m_last_main_volume);
   p.Do(m_last_aux_volumes);
 }
+}  // namespace HLE
+}  // namespace DSP

@@ -9,6 +9,10 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 void ProcessGBACrypto(u32 address)
 {
   struct sec_params_t
@@ -147,3 +151,5 @@ void GBAUCode::HandleMail(u32 mail)
     WARN_LOG(DSPHLE, "GBAUCode - unknown command: %08x", mail);
   }
 }
+}  // namespace HLE
+}  // namespace DSP

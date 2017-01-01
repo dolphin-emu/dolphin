@@ -6,6 +6,10 @@
 
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 class INITUCode : public UCodeInterface
 {
 public:
@@ -17,3 +21,5 @@ public:
   void Update() override;
   void Init();
 };
+}  // namespace HLE
+}  // namespace DSP

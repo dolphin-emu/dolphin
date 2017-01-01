@@ -24,6 +24,10 @@
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 #include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
+namespace DSP
+{
+namespace HLE
+{
 UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii)
 {
   switch (crc)
@@ -206,3 +210,5 @@ void UCodeInterface::DoStateShared(PointerWrap& p)
   p.Do(m_next_ucode_steps);
   p.Do(m_needs_resume_mail);
 }
+}  // namespace HLE
+}  // namespace DSP

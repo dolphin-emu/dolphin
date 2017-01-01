@@ -19,6 +19,8 @@
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
 
+namespace DSP
+{
 static const char* err_string[] = {"",
                                    "Unknown Error",
                                    "Unknown opcode",
@@ -1031,3 +1033,4 @@ bool DSPAssembler::AssembleFile(const char* fname, int pass)
 
   return !failed;
 }
+}  // namespace DSP

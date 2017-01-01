@@ -14,6 +14,8 @@
 #include "Core/DSP/DSPTables.h"
 #include "Core/DSP/LabelMap.h"
 
+namespace DSP
+{
 struct AssemblerSettings
 {
   AssemblerSettings()
@@ -57,3 +59,4 @@ private:
 
   LabelMap labels;
 };
+}  // namespace DSP

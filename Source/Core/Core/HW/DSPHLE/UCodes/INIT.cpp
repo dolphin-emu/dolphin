@@ -7,6 +7,10 @@
 #include "Common/Logging/Log.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
+namespace DSP
+{
+namespace HLE
+{
 INITUCode::INITUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
 {
   INFO_LOG(DSPHLE, "INITUCode - initialized");
@@ -32,3 +36,5 @@ void INITUCode::Update()
 void INITUCode::HandleMail(u32 mail)
 {
 }
+}  // namespace HLE
+}  // namespace DSP

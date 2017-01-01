@@ -22,15 +22,14 @@
 // registers will wrap in odd ways, dictated by the corresponding wrapping
 // register, WR0-3.
 
-// Needs comments.
+namespace DSP
+{
 inline static void writeToBackLog(int i, int idx, u16 value)
 {
   writeBackLog[i] = value;
   writeBackLogIdx[i] = idx;
 }
 
-namespace DSP
-{
 namespace Interpreter
 {
 namespace Ext
@@ -500,7 +499,6 @@ void nop(const UDSPInstruction opc)
 
 }  // namespace Ext
 }  // namespace Interpeter
-}  // namespace DSP
 
 // The ext ops are calculated in parallel with the actual op. That means that
 // both the main op and the ext op see the same register state as input. The
@@ -518,9 +516,9 @@ void applyWriteBackLog()
   {
     u16 value = writeBackLog[i];
 #ifdef PRECISE_BACKLOG
-    value |= DSP::Interpreter::dsp_op_read_reg(writeBackLogIdx[i]);
+    value |= Interpreter::dsp_op_read_reg(writeBackLogIdx[i]);
 #endif
-    DSP::Interpreter::dsp_op_write_reg(writeBackLogIdx[i], value);
+    Interpreter::dsp_op_write_reg(writeBackLogIdx[i], value);
 
     // Clear back log
     writeBackLogIdx[i] = -1;
@@ -541,7 +539,7 @@ void zeroWriteBackLog()
   // infinitive loops
   for (int i = 0; writeBackLogIdx[i] != -1; i++)
   {
-    DSP::Interpreter::dsp_op_write_reg(writeBackLogIdx[i], 0);
+    Interpreter::dsp_op_write_reg(writeBackLogIdx[i], 0);
   }
 #endif
 }
@@ -563,7 +561,8 @@ void zeroWriteBackLogPreserveAcc(u8 acc)
          (writeBackLogIdx[i] == DSP_REG_ACH1)))
       continue;
 
-    DSP::Interpreter::dsp_op_write_reg(writeBackLogIdx[i], 0);
+    Interpreter::dsp_op_write_reg(writeBackLogIdx[i], 0);
   }
 #endif
 }
+}  // namespace DSP

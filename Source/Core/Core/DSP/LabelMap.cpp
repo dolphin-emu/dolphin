@@ -5,6 +5,8 @@
 #include "Core/DSP/LabelMap.h"
 #include "Core/DSP/DSPTables.h"
 
+namespace DSP
+{
 LabelMap::LabelMap()
 {
 }
@@ -71,3 +73,4 @@ void LabelMap::Clear()
 {
   labels.clear();
 }
+}  // namespace DSP

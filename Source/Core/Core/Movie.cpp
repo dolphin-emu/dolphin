@@ -1513,23 +1513,23 @@ void GetSettings()
       irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
     if (!File::Exists(coef_file))
       coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
-    std::vector<u16> irom(DSP_IROM_SIZE);
+    std::vector<u16> irom(DSP::DSP_IROM_SIZE);
     File::IOFile file_irom(irom_file, "rb");
 
-    file_irom.ReadArray(irom.data(), DSP_IROM_SIZE);
+    file_irom.ReadArray(irom.data(), irom.size());
     file_irom.Close();
-    for (u32 i = 0; i < DSP_IROM_SIZE; ++i)
-      irom[i] = Common::swap16(irom[i]);
+    for (u16& entry : irom)
+      entry = Common::swap16(entry);
 
-    std::vector<u16> coef(DSP_COEF_SIZE);
+    std::vector<u16> coef(DSP::DSP_COEF_SIZE);
     File::IOFile file_coef(coef_file, "rb");
 
-    file_coef.ReadArray(coef.data(), DSP_COEF_SIZE);
+    file_coef.ReadArray(coef.data(), coef.size());
     file_coef.Close();
-    for (u32 i = 0; i < DSP_COEF_SIZE; ++i)
-      coef[i] = Common::swap16(coef[i]);
-    s_DSPiromHash = HashAdler32((u8*)irom.data(), DSP_IROM_BYTE_SIZE);
-    s_DSPcoefHash = HashAdler32((u8*)coef.data(), DSP_COEF_BYTE_SIZE);
+    for (u16& entry : coef)
+      entry = Common::swap16(entry);
+    s_DSPiromHash = HashAdler32(reinterpret_cast<u8*>(irom.data()), DSP::DSP_IROM_BYTE_SIZE);
+    s_DSPcoefHash = HashAdler32(reinterpret_cast<u8*>(coef.data()), DSP::DSP_COEF_BYTE_SIZE);
   }
   else
   {
