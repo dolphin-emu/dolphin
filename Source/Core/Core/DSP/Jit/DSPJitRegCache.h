@@ -39,7 +39,7 @@ enum DSPJitSignExtend
 class DSPJitRegCache
 {
 public:
-  DSPJitRegCache(DSPEmitter& emitter);
+  explicit DSPJitRegCache(DSPEmitter& emitter);
 
   // For branching into multiple control flows
   DSPJitRegCache(const DSPJitRegCache& cache);
