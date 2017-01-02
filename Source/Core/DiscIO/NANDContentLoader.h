@@ -25,6 +25,7 @@ enum class Region;
 bool AddTicket(const std::vector<u8>& signed_ticket);
 std::vector<u8> FindSignedTicket(u64 title_id);
 std::vector<u8> FindTicket(u64 title_id);
+std::vector<u8> GetKeyFromTicket(const std::vector<u8>& ticket);
 
 class CNANDContentData
 {
@@ -111,9 +112,6 @@ private:
   void InitializeContentEntries(const std::vector<u8>& tmd,
                                 const std::vector<u8>& decrypted_title_key,
                                 const std::vector<u8>& data_app);
-
-  static std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size);
-  static std::vector<u8> GetKeyFromTicket(const std::vector<u8>& ticket);
 
   bool m_Valid;
   bool m_IsWAD;

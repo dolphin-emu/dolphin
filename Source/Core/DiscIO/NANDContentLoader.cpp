@@ -60,6 +60,17 @@ std::vector<u8> SignedTicketToTicket(const std::vector<u8>& signed_ticket)
   std::copy(signed_ticket.begin() + entry_offset, signed_ticket.end(), ticket.begin());
   return ticket;
 }
+
+std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
+{
+  mbedtls_aes_context aes_ctx;
+  std::vector<u8> buffer(size);
+
+  mbedtls_aes_setkey_dec(&aes_ctx, key, 128);
+  mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, size, iv, src, buffer.data());
+
+  return buffer;
+}
 }
 
 CNANDContentData::~CNANDContentData() = default;
@@ -323,27 +334,6 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd,
   }
 }
 
-std::vector<u8> CNANDContentLoader::AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
-{
-  mbedtls_aes_context aes_ctx;
-  std::vector<u8> buffer(size);
-
-  mbedtls_aes_setkey_dec(&aes_ctx, key, 128);
-  mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, size, iv, src, buffer.data());
-
-  return buffer;
-}
-
-std::vector<u8> CNANDContentLoader::GetKeyFromTicket(const std::vector<u8>& ticket)
-{
-  const u8 common_key[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4,
-                             0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
-  u8 iv[16] = {};
-
-  std::copy(&ticket[0x01DC], &ticket[0x01DC + 8], iv);
-  return AESDecode(common_key, iv, &ticket[0x01BF], 16);
-}
-
 DiscIO::Region CNANDContentLoader::GetRegion() const
 {
   if (!IsValid())
@@ -604,6 +594,16 @@ std::vector<u8> FindTicket(u64 title_id)
   }
 
   return SignedTicketToTicket(signed_ticket);
+}
+
+std::vector<u8> GetKeyFromTicket(const std::vector<u8>& signed_ticket)
+{
+  const u8 common_key[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4,
+                             0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
+  u8 iv[16] = {};
+
+  std::copy(&signed_ticket[0x01DC], &signed_ticket[0x01DC + 8], iv);
+  return AESDecode(common_key, iv, &signed_ticket[0x01BF], 16);
 }
 
 }  // namespace end
