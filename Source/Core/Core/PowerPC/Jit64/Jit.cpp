@@ -760,8 +760,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
                  ProcessorInterface::INT_CAUSE_PE_FINISH));
       FixupBranch noCPInt = J_CC(CC_Z, true);
 
-      gpr.Flush(FLUSH_MAINTAIN_STATE);
-      fpr.Flush(FLUSH_MAINTAIN_STATE);
+      gpr.Flush(RegCache::FlushMode::MaintainState);
+      fpr.Flush(RegCache::FlushMode::MaintainState);
 
       MOV(32, PPCSTATE(pc), Imm32(ops[i].address));
       WriteExternalExceptionExit();
@@ -802,8 +802,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
 
         SwitchToFarCode();
         SetJumpTarget(b1);
-        gpr.Flush(FLUSH_MAINTAIN_STATE);
-        fpr.Flush(FLUSH_MAINTAIN_STATE);
+        gpr.Flush(RegCache::FlushMode::MaintainState);
+        fpr.Flush(RegCache::FlushMode::MaintainState);
 
         // If a FPU exception occurs, the exception handler will read
         // from PC.  Update PC with the latest value in case that happens.
@@ -891,8 +891,8 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
           gprToFlush[js.revertGprLoad] = false;
         if (js.revertFprLoad >= 0)
           fprToFlush[js.revertFprLoad] = false;
-        gpr.Flush(FLUSH_MAINTAIN_STATE, gprToFlush);
-        fpr.Flush(FLUSH_MAINTAIN_STATE, fprToFlush);
+        gpr.Flush(RegCache::FlushMode::MaintainState, gprToFlush);
+        fpr.Flush(RegCache::FlushMode::MaintainState, fprToFlush);
 
         // If a memory exception occurs, the exception handler will read
         // from PC.  Update PC with the latest value in case that happens.

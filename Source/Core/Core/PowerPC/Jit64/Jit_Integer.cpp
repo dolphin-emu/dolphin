@@ -187,7 +187,7 @@ OpArg Jit64::ExtractFromReg(int reg, int offset)
   // store to load forwarding should handle this case efficiently
   if (offset)
   {
-    gpr.StoreFromRegister(reg, FLUSH_MAINTAIN_STATE);
+    gpr.StoreFromRegister(reg, RegCache::FlushMode::MaintainState);
     src = gpr.GetDefaultLocation(reg);
     src.AddMemOffset(offset);
   }
@@ -415,8 +415,8 @@ void Jit64::DoMergedBranchCondition()
   else  // SO bit, do not branch (we don't emulate SO for cmp).
     pDontBranch = J(true);
 
-  gpr.Flush(FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FLUSH_MAINTAIN_STATE);
+  gpr.Flush(RegCache::FlushMode::MaintainState);
+  fpr.Flush(RegCache::FlushMode::MaintainState);
 
   DoMergedBranch();
 
@@ -1907,8 +1907,8 @@ void Jit64::twX(UGeckoInstruction inst)
   LOCK();
   OR(32, PPCSTATE(Exceptions), Imm32(EXCEPTION_PROGRAM));
 
-  gpr.Flush(FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FLUSH_MAINTAIN_STATE);
+  gpr.Flush(RegCache::FlushMode::MaintainState);
+  fpr.Flush(RegCache::FlushMode::MaintainState);
 
   WriteExceptionExit();
 
