@@ -345,9 +345,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
       bpmem.zcontrol.pixel_format == PEControl::RGB8_Z24 ||
       bpmem.zcontrol.pixel_format == PEControl::Z24)
   {
-    // Force alpha writes, and set the color to 0xFF.
+    // Force alpha writes, and clear the alpha channel. This is different to the other backends,
+    // where the existing values of the alpha channel are preserved.
     alpha_enable = true;
-    color |= 0xFF000000;
+    color &= 0x00FFFFFF;
   }
 
   // Convert RGBA8 -> floating-point values.

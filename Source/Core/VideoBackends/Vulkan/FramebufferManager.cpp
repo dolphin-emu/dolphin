@@ -333,7 +333,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
                                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   // Clear the contents of the buffers.
-  static const VkClearColorValue clear_color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+  static const VkClearColorValue clear_color = {{0.0f, 0.0f, 0.0f, 0.0f}};
   static const VkClearDepthStencilValue clear_depth = {0.0f, 0};
   VkImageSubresourceRange clear_color_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, m_efb_layers};
   VkImageSubresourceRange clear_depth_range = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, m_efb_layers};

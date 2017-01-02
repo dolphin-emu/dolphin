@@ -233,10 +233,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
     glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_efbDepth, 0, i);
   }
 
-  // EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
+  // EFB framebuffer is currently bound, make sure to clear it before use.
   glViewport(0, 0, m_targetWidth, m_targetHeight);
   glScissor(0, 0, m_targetWidth, m_targetHeight);
-  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glClearColor(0.f, 0.f, 0.f, 0.f);
   glClearDepthf(1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
