@@ -358,8 +358,8 @@ void InfoPanel::OnRightClickBanner(wxMouseEvent& WXUNUSED(event))
 void InfoPanel::OnSaveBannerImage(wxCommandEvent& WXUNUSED(event))
 {
   wxFileDialog dialog(this, _("Save as..."), wxGetHomeDir(),
-                      wxString::Format("%s.png", m_game_id->GetValue().c_str()),
-                      wxALL_FILES_PATTERN, wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
+                      wxString::Format("%s.png", m_game_id->GetValue()), wxALL_FILES_PATTERN,
+                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT);
 
   if (dialog.ShowModal() == wxID_OK)
   {
@@ -387,8 +387,8 @@ void InfoPanel::ChangeBannerDetails(DiscIO::Language language)
     filename = path + ' ';
 
   const auto game_id = m_game_list_item.GetGameID();
-  const auto new_title = wxString::Format("%s%s: %s - %s", filename.c_str(), extension.c_str(),
-                                          game_id.c_str(), name.c_str());
+  const auto new_title = wxString::Format("%s%s: %s - %s", StrToWxStr(filename),
+                                          StrToWxStr(extension), StrToWxStr(game_id), name);
 
   EmitTitleChangeEvent(new_title);
 }
