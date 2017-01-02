@@ -16,8 +16,8 @@
 #include "DolphinWX/Debugger/MemoryCheckDlg.h"
 #include "DolphinWX/WxUtils.h"
 
-MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
-    : wxDialog(parent, wxID_ANY, _("Add a Memory Breakpoint")), m_parent(parent)
+MemoryCheckDlg::MemoryCheckDlg(wxWindow* parent)
+    : wxDialog(parent, wxID_ANY, _("Add a Memory Breakpoint"))
 {
   Bind(wxEVT_BUTTON, &MemoryCheckDlg::OnOK, this, wxID_OK);
   Bind(wxEVT_RADIOBUTTON, &MemoryCheckDlg::OnRadioButtonClick, this);
@@ -165,8 +165,7 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
     MemCheck.Break = Break;
 
     PowerPC::memchecks.Add(MemCheck);
-    m_parent->NotifyUpdate();
-    Close();
+    EndModal(wxID_OK);
   }
 
   event.Skip();

@@ -16,8 +16,7 @@
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/WxUtils.h"
 
-BreakPointDlg::BreakPointDlg(CBreakPointWindow* _Parent)
-    : wxDialog(_Parent, wxID_ANY, _("Add Breakpoint")), Parent(_Parent)
+BreakPointDlg::BreakPointDlg(wxWindow* _Parent) : wxDialog(_Parent, wxID_ANY, _("Add Breakpoint"))
 {
   Bind(wxEVT_BUTTON, &BreakPointDlg::OnOK, this, wxID_OK);
 
@@ -42,8 +41,7 @@ void BreakPointDlg::OnOK(wxCommandEvent& event)
   if (AsciiToHex(WxStrToStr(AddressString), Address))
   {
     PowerPC::breakpoints.Add(Address);
-    Parent->NotifyUpdate();
-    Close();
+    EndModal(wxID_OK);
   }
   else
   {
