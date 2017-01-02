@@ -4,6 +4,7 @@
 
 #include "Core/HW/Wiimote.h"
 #include "Common/ChunkFile.h"
+#include "Common/Hooks.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Movie.h"
@@ -55,6 +56,8 @@ void Shutdown()
   s_config.ClearControllers();
 
   WiimoteReal::Stop();
+
+  Hook::ControllerHotplugEvent.DeleteCallback("Wiimote");
 }
 
 void Initialize(InitializeMode init_mode)
@@ -65,7 +68,7 @@ void Initialize(InitializeMode init_mode)
       s_config.CreateController<WiimoteEmu::Wiimote>(i);
   }
 
-  g_controller_interface.RegisterHotplugCallback(LoadConfig);
+  Hook::ControllerHotplugEvent.RegisterCallback("Wiimote", LoadConfig);
 
   s_config.LoadConfig(false);
 
