@@ -1335,6 +1335,10 @@ void CFrame::ParseHotkeys()
     OSDChoice = 4;
     g_Config.bDisableFog = !g_Config.bDisableFog;
   }
+  if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
+  {
+    g_Config.bDumpTextures = !g_Config.bDumpTextures;
+  }
   if (IsHotkey(HK_TOGGLE_TEXTURES))
     g_Config.bHiresTextures = !g_Config.bHiresTextures;
   Core::SetIsThrottlerTempDisabled(IsHotkey(HK_TOGGLE_THROTTLE, true));
