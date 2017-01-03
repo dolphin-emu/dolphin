@@ -25,6 +25,10 @@
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/CommandProcessor.h"
 
+// We need to include TextureDecoder.h for the texMem array.
+// TODO: Move texMem somewhere else so this isn't an issue.
+#include "VideoCommon/TextureDecoder.h"
+
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
 
 FifoPlayer::~FifoPlayer()
@@ -127,6 +131,7 @@ int FifoPlayer::AdvanceFrame()
     // GPU is the same for each playback loop.
     m_CurrentFrame = m_FrameRangeStart;
     LoadRegisters();
+    LoadTextureMemory();
     FlushWGP();
   }
 
@@ -420,6 +425,7 @@ void FifoPlayer::LoadMemory()
 
   SetupFifo();
   LoadRegisters();
+  LoadTextureMemory();
   FlushWGP();
 }
 
@@ -458,6 +464,13 @@ void FifoPlayer::LoadRegisters()
   regs = m_File->GetXFRegs();
   for (int i = 0; i < FifoDataFile::XF_REGS_SIZE; ++i)
     LoadXFReg(i, regs[i]);
+}
+
+void FifoPlayer::LoadTextureMemory()
+{
+  static_assert(static_cast<size_t>(TMEM_SIZE) == static_cast<size_t>(FifoDataFile::TEX_MEM_SIZE),
+                "TMEM_SIZE matches the size of texture memory in FifoDataFile");
+  std::memcpy(texMem, m_File->GetTexMem(), FifoDataFile::TEX_MEM_SIZE);
 }
 
 void FifoPlayer::WriteCP(u32 address, u16 value)
