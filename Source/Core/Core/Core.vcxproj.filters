@@ -200,6 +200,9 @@
     <ClCompile Include="Boot\ElfReader.cpp">
       <Filter>Boot</Filter>
     </ClCompile>
+    <ClInclude Include="Debugger\CodePatch.cpp">
+      <Filter>Debugger</Filter>
+    </ClInclude>
     <ClCompile Include="Debugger\Debugger_SymbolMap.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
@@ -915,6 +918,9 @@
     </ClInclude>
     <ClInclude Include="Boot\ElfTypes.h">
       <Filter>Boot</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\CodePatch.h">
+      <Filter>Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\Debugger_SymbolMap.h">
       <Filter>Debugger</Filter>

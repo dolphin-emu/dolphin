@@ -28,6 +28,7 @@ set(SRCS
   ConfigLoaders/GameConfigLoader.cpp
   ConfigLoaders/MovieConfigLoader.cpp
   ConfigLoaders/NetPlayConfigLoader.cpp
+  Debugger/CodePatch.cpp
   Debugger/Debugger_SymbolMap.cpp
   Debugger/Dump.cpp
   Debugger/PPCDebugInterface.cpp
