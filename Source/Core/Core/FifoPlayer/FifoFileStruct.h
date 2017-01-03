@@ -11,7 +11,7 @@ namespace FifoFileStruct
 enum
 {
   FILE_ID = 0x0d01f1f0,
-  VERSION_NUMBER = 3,
+  VERSION_NUMBER = 4,
   MIN_LOADER_VERSION = 1,
 };
 
@@ -34,6 +34,8 @@ union FileHeader {
     u64 frameListOffset;
     u32 frameCount;
     u32 flags;
+    u64 texMemOffset;
+    u32 texMemSize;
   };
   u32 rawData[32];
 };
