@@ -296,27 +296,10 @@ void AVIDump::Stop()
 
 void AVIDump::CloseVideoFile()
 {
-  if (s_stream)
-  {
-    if (s_stream->codec)
-    {
-#if LIBAVCODEC_VERSION_MAJOR < 55
-      avcodec_default_release_buffer(s_stream->codec, s_src_frame);
-#endif
-      avcodec_close(s_stream->codec);
-    }
-    av_freep(&s_stream);
-  }
-
   av_frame_free(&s_src_frame);
   av_frame_free(&s_scaled_frame);
 
-  if (s_format_context)
-  {
-    if (s_format_context->pb)
-      avio_close(s_format_context->pb);
-    av_freep(&s_format_context);
-  }
+  avformat_free_context(s_format_context);
 
   if (s_sws_context)
   {
