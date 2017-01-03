@@ -535,6 +535,7 @@ bool FifoPlayer::ShouldLoadBP(u8 address)
   case BPMEM_PE_TOKEN_INT_ID:
   case BPMEM_TRIGGER_EFB_COPY:
   case BPMEM_LOADTLUT1:
+  case BPMEM_PRELOAD_MODE:
   case BPMEM_PERF1:
     return false;
   default:
