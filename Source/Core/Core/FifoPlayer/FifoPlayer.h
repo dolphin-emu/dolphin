@@ -110,6 +110,7 @@ private:
   void SetupFifo();
 
   void LoadMemory();
+  void LoadRegisters();
 
   void WriteCP(u32 address, u16 value);
   void WritePI(u32 address, u32 value);

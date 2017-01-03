@@ -122,7 +122,12 @@ int FifoPlayer::AdvanceFrame()
     if (m_FrameRangeStart >= m_FrameRangeEnd)
       return CPU::CPU_STEPPING;
 
+    // When looping, reload the contents of all the BP/CP/CF registers.
+    // This ensures that each time the first frame is played back, the state of the
+    // GPU is the same for each playback loop.
     m_CurrentFrame = m_FrameRangeStart;
+    LoadRegisters();
+    FlushWGP();
   }
 
   if (m_FrameWrittenCb)
@@ -414,7 +419,12 @@ void FifoPlayer::LoadMemory()
   PowerPC::IBATUpdated();
 
   SetupFifo();
+  LoadRegisters();
+  FlushWGP();
+}
 
+void FifoPlayer::LoadRegisters()
+{
   const u32* regs = m_File->GetBPMem();
   for (int i = 0; i < FifoDataFile::BP_MEM_SIZE; ++i)
   {
@@ -448,8 +458,6 @@ void FifoPlayer::LoadMemory()
   regs = m_File->GetXFRegs();
   for (int i = 0; i < FifoDataFile::XF_REGS_SIZE; ++i)
     LoadXFReg(i, regs[i]);
-
-  FlushWGP();
 }
 
 void FifoPlayer::WriteCP(u32 address, u16 value)
