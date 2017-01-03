@@ -106,14 +106,19 @@ bool AVIDump::CreateVideoFile()
     }
   }
 
-  if (!(s_format_context->oformat = av_guess_format("avi", nullptr, nullptr)) ||
+  if (!(s_format_context->oformat = av_guess_format("avi", nullptr, nullptr)))
+  {
+    return false;
+  }
+
+  AVCodecID codec_id =
+      g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1 : s_format_context->oformat->video_codec;
+  if (!(codec = avcodec_find_encoder(codec_id)) ||
       !(s_stream = avformat_new_stream(s_format_context, codec)))
   {
     return false;
   }
 
-  s_stream->codec->codec_id =
-      g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1 : s_format_context->oformat->video_codec;
   if (!g_Config.bUseFFV1)
     s_stream->codec->codec_tag =
         MKTAG('X', 'V', 'I', 'D');  // Force XVID FourCC for better compatibility
@@ -126,8 +131,7 @@ bool AVIDump::CreateVideoFile()
   s_stream->codec->gop_size = 12;
   s_stream->codec->pix_fmt = g_Config.bUseFFV1 ? AV_PIX_FMT_BGRA : AV_PIX_FMT_YUV420P;
 
-  if (!(codec = avcodec_find_encoder(s_stream->codec->codec_id)) ||
-      (avcodec_open2(s_stream->codec, codec, nullptr) < 0))
+  if (avcodec_open2(s_stream->codec, codec, nullptr) < 0)
   {
     return false;
   }
