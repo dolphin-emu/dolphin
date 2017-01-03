@@ -484,19 +484,139 @@ void TextureCacheBase::UnbindTextures()
   std::fill(std::begin(bound_textures), std::end(bound_textures), nullptr);
 }
 
+
+struct TextureRequest {
+  struct RequestedTextureLevel {
+    u32 width;
+    u32 height;
+    u32 padded_width;
+    u32 padded_height;
+    const u8 *data;
+    const u8 *data_gb; // red/green data for rgba8_from_tmem textures
+    size_t total_size;
+  };
+
+  static TextureRequest FromBPMem(const u32 stage) {
+    const FourTexUnits &tex = bpmem.tex[stage >> 2];
+    const u32 id = stage & 3;
+
+    return TextureRequest(tex.texMode0[id], tex.texMode1[id], tex.texImage0[id],
+                          tex.texImage1[id], tex.texImage2[id],
+                          tex.texImage3[id], tex.texTlut[id]);
+  }
+
+  TextureRequest(TexMode0 mode0, TexMode1 mode1, TexImage0 image0, TexImage1 image1,
+                 TexImage2 image2, TexImage3 image3, TexTLUT tlut)
+  {
+    m_from_tmem = image1.image_type != 0;
+    m_format = image0.format;
+    m_has_tlut = m_format == GX_TF_C4 || m_format == GX_TF_C8 || m_format == GX_TF_C14X2;
+    m_tlut = m_has_tlut ? &texMem[tlut.tmem_offset << 9] : nullptr;
+    m_tlut_size = TexDecoder_GetPaletteSize(image0.format);
+    m_tlut_format = static_cast<TlutFormat>(tlut.tlut_format);
+    m_address = m_from_tmem ? 0 : image3.image_base << 5;
+    m_rbga8_from_tmem = m_from_tmem && m_format == GX_TF_RGBA8;
+    m_use_mipmaps = SamplerCommon::AreBpTexMode0MipmapsEnabled(mode0);
+
+    const u32 width = image0.width + 1;
+    const u32 height = image0.height + 1;
+
+    if (m_use_mipmaps)
+    {
+      u32 levels = ((mode1.max_lod + 0xF) / 0x10 + 1);
+      // GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in
+      // the mipmap chain
+      // e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,0x0, so we
+      // limit the mipmap count to 6 there
+      m_num_levels = std::min<u32>(IntLog2(std::max(width, height)) + 1, levels);
+    }
+    else
+    {
+      m_num_levels = 1;
+    }
+
+
+    const u8 *src_data = m_from_tmem ? nullptr : Memory::GetPointer(m_address);
+    const u8 *ptr_even = m_from_tmem ? &texMem[image1.tmem_even * TMEM_LINE_SIZE] : nullptr;
+    const u8 *ptr_odd = m_from_tmem ? &texMem[image2.tmem_odd * TMEM_LINE_SIZE] : nullptr;
+
+    const u32 block_width = TexDecoder_GetBlockWidthInTexels(m_format);
+    const u32 block_height = TexDecoder_GetBlockHeightInTexels(m_format);
+
+    m_size_in_memory = 0;
+    for (u32 i = 0; i < m_num_levels; ++i)
+    {
+      RequestedTextureLevel *level = &m_levels[i];
+      level->width = CalculateLevelSize(width, i);
+      level->height = CalculateLevelSize(height, i);
+      level->padded_width = Common::AlignUp(width, block_width);
+      level->padded_height = Common::AlignUp(height, block_height);
+      level->total_size = TexDecoder_GetTextureSizeInBytes(level->padded_width,
+                                                           level->padded_height, m_format);
+
+      if (!m_from_tmem)
+      {
+        m_size_in_memory += level->total_size;
+      }
+
+      if (m_rbga8_from_tmem)
+      {
+        level->data = ((i % 2) ? ptr_odd : ptr_even);
+        level->data_gb = ((i % 2) ? ptr_even : ptr_odd);
+        ptr_odd += level->total_size / 2;
+        ptr_even += level->total_size / 2;
+      }
+      else
+      {
+        const u8 *&mip_src_data = m_from_tmem ? ((i % 2) ? ptr_odd : ptr_even) : src_data;
+        level->data = mip_src_data;
+        level->data_gb = nullptr;
+        mip_src_data += level->total_size;
+      }
+    }
+  }
+
+  void DecodeLevel(u32 n, u8 *buffer)
+  {
+    RequestedTextureLevel *level = &m_levels[n];
+    if (m_rbga8_from_tmem)
+    {
+      TexDecoder_DecodeRGBA8FromTmem(buffer, level->data, level->data_gb,
+                                     level->padded_width, level->padded_height);
+    }
+    else
+    {
+      TexDecoder_Decode(buffer, level->data, level->padded_width, level->padded_height,
+                        m_format, m_tlut, m_tlut_format);
+    }
+  }
+
+  bool m_from_tmem;
+  bool m_has_tlut;
+  bool m_rbga8_from_tmem;
+  bool m_use_mipmaps;
+  u32 m_format;
+  u32 m_address;
+  u32 m_size_in_memory;
+  TlutFormat m_tlut_format;
+  u8 *m_tlut;
+  size_t m_tlut_size;
+  u32 m_num_levels;
+  RequestedTextureLevel m_levels[11];
+};
+
 TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 {
-  const FourTexUnits& tex = bpmem.tex[stage >> 2];
-  const u32 id = stage & 3;
-  const u32 address = (tex.texImage3[id].image_base /* & 0x1FFFFF*/) << 5;
-  u32 width = tex.texImage0[id].width + 1;
-  u32 height = tex.texImage0[id].height + 1;
-  const int texformat = tex.texImage0[id].format;
-  const u32 tlutaddr = tex.texTlut[id].tmem_offset << 9;
-  const u32 tlutfmt = tex.texTlut[id].tlut_format;
-  const bool use_mipmaps = SamplerCommon::AreBpTexMode0MipmapsEnabled(tex.texMode0[id]);
-  u32 tex_levels = use_mipmaps ? ((tex.texMode1[id].max_lod + 0xf) / 0x10 + 1) : 1;
-  const bool from_tmem = tex.texImage1[id].image_type != 0;
+  TextureRequest request = TextureRequest::FromBPMem(stage);
+  const u32 address = request.m_address;
+  u32 width = request.m_levels[0].width;
+  u32 height = request.m_levels[0].height;
+  const int texformat = request.m_format;
+  u8 *tlutaddr = request.m_tlut;
+  const u32 tlutfmt = request.m_tlut_format;
+  const bool use_mipmaps = request.m_use_mipmaps;
+  u32 tex_levels = request.m_num_levels;
+  const bool from_tmem = request.m_from_tmem;
 
   // TexelSizeInNibbles(format) * width * height / 16;
   const unsigned int bsw = TexDecoder_GetBlockWidthInTexels(texformat);
@@ -527,12 +647,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   const u32 texture_size =
       TexDecoder_GetTextureSizeInBytes(expandedWidth, expandedHeight, texformat);
   u32 additional_mips_size = 0;  // not including level 0, which is texture_size
-
-  // GPUs don't like when the specified mipmap count would require more than one 1x1-sized LOD in
-  // the mipmap chain
-  // e.g. 64x64 with 7 LODs would have the mipmap chain 64x64,32x32,16x16,8x8,4x4,2x2,1x1,0x0, so we
-  // limit the mipmap count to 6 there
-  tex_levels = std::min<u32>(IntLog2(std::max(width, height)) + 1, tex_levels);
 
   for (u32 level = 1; level != tex_levels; ++level)
   {
@@ -570,7 +684,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   if (isPaletteTexture)
   {
     palette_size = TexDecoder_GetPaletteSize(texformat);
-    full_hash = base_hash ^ GetHash64(&texMem[tlutaddr], palette_size,
+    full_hash = base_hash ^ GetHash64(tlutaddr, palette_size,
                                       g_ActiveConfig.iSafeTextureCache_ColorSamples);
   }
   else
@@ -666,7 +780,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
           entry->native_levels >= tex_levels && entry->native_width == nativeW &&
           entry->native_height == nativeH)
       {
-        entry = DoPartialTextureUpdates(iter->second, &texMem[tlutaddr], tlutfmt);
+        entry = DoPartialTextureUpdates(iter->second, tlutaddr, tlutfmt);
 
         return ReturnEntry(stage, entry);
       }
@@ -689,7 +803,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   if (unconverted_copy != textures_by_address.end())
   {
     TCacheEntryBase* decoded_entry =
-        ApplyPaletteToEntry(unconverted_copy->second, &texMem[tlutaddr], tlutfmt);
+        ApplyPaletteToEntry(unconverted_copy->second, tlutaddr, tlutfmt);
 
     if (decoded_entry)
     {
@@ -716,7 +830,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       if (entry->format == full_format && entry->native_levels >= tex_levels &&
           entry->native_width == nativeW && entry->native_height == nativeH)
       {
-        entry = DoPartialTextureUpdates(hash_iter->second, &texMem[tlutaddr], tlutfmt);
+        entry = DoPartialTextureUpdates(hash_iter->second, tlutaddr, tlutfmt);
 
         return ReturnEntry(stage, entry);
       }
@@ -734,7 +848,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   std::shared_ptr<HiresTexture> hires_tex;
   if (g_ActiveConfig.bHiresTextures)
   {
-    hires_tex = HiresTexture::Search(src_data, texture_size, &texMem[tlutaddr], palette_size, width,
+    hires_tex = HiresTexture::Search(src_data, texture_size, tlutaddr, palette_size, width,
                                      height, texformat, use_mipmaps);
 
     if (hires_tex)
@@ -771,8 +885,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   {
     if (!(texformat == GX_TF_RGBA8 && from_tmem))
     {
-      const u8* tlut = &texMem[tlutaddr];
-      TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut,
+      TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlutaddr,
                         (TlutFormat)tlutfmt);
     }
     else
@@ -803,7 +916,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   std::string basename = "";
   if (g_ActiveConfig.bDumpTextures && !hires_tex)
   {
-    basename = HiresTexture::GenBaseName(src_data, texture_size, &texMem[tlutaddr], palette_size,
+    basename = HiresTexture::GenBaseName(src_data, texture_size, tlutaddr, palette_size,
                                          width, height, texformat, use_mipmaps, true);
     DumpTexture(entry, basename, 0);
   }
@@ -840,9 +953,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       const u32 expanded_mip_height = Common::AlignUp(mip_height, bsh);
 
       const u8*& mip_src_data = from_tmem ? ((level % 2) ? ptr_odd : ptr_even) : src_data;
-      const u8* tlut = &texMem[tlutaddr];
       TexDecoder_Decode(temp, mip_src_data, expanded_mip_width, expanded_mip_height, texformat,
-                        tlut, (TlutFormat)tlutfmt);
+                        tlutaddr, (TlutFormat)tlutfmt);
       mip_src_data +=
           TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
 
@@ -856,7 +968,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   INCSTAT(stats.numTexturesUploaded);
   SETSTAT(stats.numTexturesAlive, textures_by_address.size());
 
-  entry = DoPartialTextureUpdates(iter->second, &texMem[tlutaddr], tlutfmt);
+  entry = DoPartialTextureUpdates(iter->second, tlutaddr, tlutfmt);
 
   return ReturnEntry(stage, entry);
 }
