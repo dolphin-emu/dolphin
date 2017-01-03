@@ -289,7 +289,8 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const 
 
     // Handle delayed frames.
     PreparePacket(&pkt);
-    error = receive_packet(s_stream->codec, &pkt, &got_packet);
+    got_packet = 0;
+    // error = receive_packet(s_stream->codec, &pkt, &got_packet);
   }
   if (error)
     ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
