@@ -20,63 +20,12 @@
 
 namespace DiscIO
 {
-namespace DiscScrubber
-{
 #define CLUSTER_SIZE 0x8000
 
-static u8* m_FreeTable = nullptr;
-static u64 m_FileSize;
-static u64 m_BlockCount;
-static u32 m_BlockSize;
-static int m_BlocksPerCluster;
-static bool m_isScrubbing = false;
+DiscScrubber::DiscScrubber() = default;
+DiscScrubber::~DiscScrubber() = default;
 
-static std::string m_Filename;
-static std::unique_ptr<IVolume> s_disc;
-
-struct SPartitionHeader
-{
-  u8* Ticket[0x2a4];
-  u32 TMDSize;
-  u64 TMDOffset;
-  u32 CertChainSize;
-  u64 CertChainOffset;
-  // H3Size is always 0x18000
-  u64 H3Offset;
-  u64 DataOffset;
-  u64 DataSize;
-  // TMD would be here
-  u64 DOLOffset;
-  u64 DOLSize;
-  u64 FSTOffset;
-  u64 FSTSize;
-  u32 ApploaderSize;
-  u32 ApploaderTrailerSize;
-};
-struct SPartition
-{
-  u32 GroupNumber;
-  u32 Number;
-  u64 Offset;
-  u32 Type;
-  SPartitionHeader Header;
-};
-struct SPartitionGroup
-{
-  u32 numPartitions;
-  u64 PartitionsOffset;
-  std::vector<SPartition> PartitionsVec;
-};
-static SPartitionGroup PartitionGroup[4];
-
-void MarkAsUsed(u64 _Offset, u64 _Size);
-void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size);
-bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt);
-bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt);
-bool ParseDisc();
-bool ParsePartitionData(SPartition& _rPartition);
-
-bool SetupScrub(const std::string& filename, int block_size)
+bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
 {
   bool success = true;
   m_Filename = filename;
@@ -89,41 +38,36 @@ bool SetupScrub(const std::string& filename, int block_size)
     return false;
   }
 
-  m_BlocksPerCluster = CLUSTER_SIZE / m_BlockSize;
-
-  s_disc = CreateVolumeFromFilename(filename);
-  if (!s_disc)
+  m_disc = CreateVolumeFromFilename(filename);
+  if (!m_disc)
     return false;
 
-  m_FileSize = s_disc->GetSize();
+  m_FileSize = m_disc->GetSize();
 
   u32 numClusters = (u32)(m_FileSize / CLUSTER_SIZE);
 
   // Warn if not DVD5 or DVD9 size
   if (numClusters != 0x23048 && numClusters != 0x46090)
+  {
     WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename.c_str(),
              numClusters);
+  }
 
   // Table of free blocks
-  m_FreeTable = new u8[numClusters];
-  std::fill(m_FreeTable, m_FreeTable + numClusters, 1);
+  m_FreeTable.resize(numClusters, 1);
 
   // Fill out table of free blocks
   success = ParseDisc();
 
   // Done with it; need it closed for the next part
-  s_disc.reset();
+  m_disc.reset();
   m_BlockCount = 0;
-
-  // Let's not touch the file if we've failed up to here :p
-  if (!success)
-    Cleanup();
 
   m_isScrubbing = success;
   return success;
 }
 
-size_t GetNextBlock(File::IOFile& in, u8* buffer)
+size_t DiscScrubber::GetNextBlock(File::IOFile& in, u8* buffer)
 {
   u64 CurrentOffset = m_BlockCount * m_BlockSize;
   u64 i = CurrentOffset / CLUSTER_SIZE;
@@ -146,19 +90,7 @@ size_t GetNextBlock(File::IOFile& in, u8* buffer)
   return ReadBytes;
 }
 
-void Cleanup()
-{
-  if (m_FreeTable)
-    delete[] m_FreeTable;
-  m_FreeTable = nullptr;
-  m_FileSize = 0;
-  m_BlockCount = 0;
-  m_BlockSize = 0;
-  m_BlocksPerCluster = 0;
-  m_isScrubbing = false;
-}
-
-void MarkAsUsed(u64 _Offset, u64 _Size)
+void DiscScrubber::MarkAsUsed(u64 _Offset, u64 _Size)
 {
   u64 CurrentOffset = _Offset;
   u64 EndOffset = CurrentOffset + _Size;
@@ -173,7 +105,7 @@ void MarkAsUsed(u64 _Offset, u64 _Size)
 }
 
 // Compensate for 0x400 (SHA-1) per 0x8000 (cluster), and round to whole clusters
-void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
+void DiscScrubber::MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
 {
   u64 first_cluster_start = offset / 0x7c00 * CLUSTER_SIZE + partition_data_offset;
 
@@ -192,21 +124,21 @@ void MarkAsUsedE(u64 partition_data_offset, u64 offset, u64 size)
 }
 
 // Helper functions for reading the BE volume
-bool ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt)
+bool DiscScrubber::ReadFromVolume(u64 _Offset, u32& _Buffer, bool _Decrypt)
 {
-  return s_disc->ReadSwapped(_Offset, &_Buffer, _Decrypt);
+  return m_disc->ReadSwapped(_Offset, &_Buffer, _Decrypt);
 }
 
-bool ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt)
+bool DiscScrubber::ReadFromVolume(u64 _Offset, u64& _Buffer, bool _Decrypt)
 {
   u32 temp_buffer;
-  if (!s_disc->ReadSwapped(_Offset, &temp_buffer, _Decrypt))
+  if (!m_disc->ReadSwapped(_Offset, &temp_buffer, _Decrypt))
     return false;
   _Buffer = static_cast<u64>(temp_buffer) << 2;
   return true;
 }
 
-bool ParseDisc()
+bool DiscScrubber::ParseDisc()
 {
   // Mark the header as used - it's mostly 0s anyways
   MarkAsUsed(0, 0x50000);
@@ -264,24 +196,24 @@ bool ParseDisc()
 }
 
 // Operations dealing with encrypted space are done here - the volume is swapped to allow this
-bool ParsePartitionData(SPartition& partition)
+bool DiscScrubber::ParsePartitionData(SPartition& partition)
 {
   bool parsed_ok = true;
 
   // Switch out the main volume temporarily
   std::unique_ptr<IVolume> old_volume;
-  s_disc.swap(old_volume);
+  m_disc.swap(old_volume);
 
   // Ready some stuff
-  s_disc = CreateVolumeFromFilename(m_Filename, partition.GroupNumber, partition.Number);
-  if (s_disc == nullptr)
+  m_disc = CreateVolumeFromFilename(m_Filename, partition.GroupNumber, partition.Number);
+  if (m_disc == nullptr)
   {
     ERROR_LOG(DISCIO, "Failed to create volume from file %s", m_Filename.c_str());
-    s_disc.swap(old_volume);
+    m_disc.swap(old_volume);
     return false;
   }
 
-  std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(s_disc.get()));
+  std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_disc.get()));
   if (!filesystem)
   {
     ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u",
@@ -321,11 +253,9 @@ bool ParsePartitionData(SPartition& partition)
   }
 
   // Swap back
-  s_disc.swap(old_volume);
+  m_disc.swap(old_volume);
 
   return parsed_ok;
 }
-
-}  // namespace DiscScrubber
 
 }  // namespace DiscIO
