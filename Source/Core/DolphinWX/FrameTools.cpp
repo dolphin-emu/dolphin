@@ -375,7 +375,7 @@ void CFrame::OnTASInput(wxCommandEvent& event)
     {
       g_TASInputDlg[i]->CreateGCLayout();
       g_TASInputDlg[i]->Show();
-      g_TASInputDlg[i]->SetTitle(wxString::Format(_("TAS Input - Controller %d"), i + 1));
+      g_TASInputDlg[i]->SetTitle(wxString::Format(_("TAS Input - GameCube Controller %d"), i + 1));
     }
 
     if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
