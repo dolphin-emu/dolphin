@@ -137,8 +137,8 @@ void Jit64::bcx(UGeckoInstruction inst)
   else
     destination = js.compilerPC + SignExt16(inst.BD << 2);
 
-  gpr.Flush(FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FLUSH_MAINTAIN_STATE);
+  gpr.Flush(RegCache::FlushMode::MaintainState);
+  fpr.Flush(RegCache::FlushMode::MaintainState);
   WriteExit(destination, inst.LK, js.compilerPC + 4);
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)
@@ -192,8 +192,8 @@ void Jit64::bcctrx(UGeckoInstruction inst)
     if (inst.LK_3)
       MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));  // LR = PC + 4;
 
-    gpr.Flush(FLUSH_MAINTAIN_STATE);
-    fpr.Flush(FLUSH_MAINTAIN_STATE);
+    gpr.Flush(RegCache::FlushMode::MaintainState);
+    fpr.Flush(RegCache::FlushMode::MaintainState);
     WriteExitDestInRSCRATCH(inst.LK_3, js.compilerPC + 4);
     // Would really like to continue the block here, but it ends. TODO.
     SetJumpTarget(b);
@@ -246,8 +246,8 @@ void Jit64::bclrx(UGeckoInstruction inst)
   if (inst.LK)
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
 
-  gpr.Flush(FLUSH_MAINTAIN_STATE);
-  fpr.Flush(FLUSH_MAINTAIN_STATE);
+  gpr.Flush(RegCache::FlushMode::MaintainState);
+  fpr.Flush(RegCache::FlushMode::MaintainState);
   WriteBLRExit();
 
   if ((inst.BO & BO_DONT_CHECK_CONDITION) == 0)

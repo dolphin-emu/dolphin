@@ -213,7 +213,7 @@ void RegCache::StoreFromRegister(size_t i, FlushMode mode)
     {
       X64Reg xr = RX(i);
       doStore = m_xregs[xr].dirty;
-      if (mode == FLUSH_ALL)
+      if (mode == FlushMode::All)
       {
         m_xregs[xr].free = true;
         m_xregs[xr].ppcReg = INVALID_REG;
@@ -228,7 +228,7 @@ void RegCache::StoreFromRegister(size_t i, FlushMode mode)
     OpArg newLoc = GetDefaultLocation(i);
     if (doStore)
       StoreRegister(i, newLoc);
-    if (mode == FLUSH_ALL)
+    if (mode == FlushMode::All)
     {
       m_regs[i].location = newLoc;
       m_regs[i].away = false;

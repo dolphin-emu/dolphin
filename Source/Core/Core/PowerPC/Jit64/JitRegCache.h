@@ -12,12 +12,6 @@
 
 class Jit64;
 
-enum FlushMode
-{
-  FLUSH_ALL,
-  FLUSH_MAINTAIN_STATE,
-};
-
 struct PPCCachedReg
 {
   Gen::OpArg location;
@@ -36,6 +30,12 @@ struct X64CachedReg
 class RegCache
 {
 public:
+  enum class FlushMode
+  {
+    All,
+    MaintainState,
+  };
+
   static constexpr size_t NUM_XREGS = 16;
 
   explicit RegCache(Jit64& jit);
@@ -50,7 +50,7 @@ public:
   void DiscardRegContentsIfCached(size_t preg);
   void SetEmitter(Gen::XEmitter* emitter);
 
-  void Flush(FlushMode mode = FLUSH_ALL, BitSet32 regsToFlush = BitSet32::AllTrue(32));
+  void Flush(FlushMode mode = FlushMode::All, BitSet32 regsToFlush = BitSet32::AllTrue(32));
 
   void FlushR(Gen::X64Reg reg);
   void FlushR(Gen::X64Reg reg, Gen::X64Reg reg2);
@@ -64,7 +64,7 @@ public:
   // TODO - instead of doload, use "read", "write"
   // read only will not set dirty flag
   void BindToRegister(size_t preg, bool doLoad = true, bool makeDirty = true);
-  void StoreFromRegister(size_t preg, FlushMode mode = FLUSH_ALL);
+  void StoreFromRegister(size_t preg, FlushMode mode = FlushMode::All);
 
   const Gen::OpArg& R(size_t preg) const;
   Gen::X64Reg RX(size_t preg) const;
