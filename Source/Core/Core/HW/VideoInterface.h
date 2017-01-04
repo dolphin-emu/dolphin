@@ -79,7 +79,8 @@ enum
   // VI_INTERLACE                      = 0x850, // ??? MYSTERY OLD CODE
 };
 
-union UVIVerticalTimingRegister {
+union UVIVerticalTimingRegister
+{
   u16 Hex;
   struct
   {
@@ -91,7 +92,8 @@ union UVIVerticalTimingRegister {
   UVIVerticalTimingRegister() { Hex = 0; }
 };
 
-union UVIDisplayControlRegister {
+union UVIDisplayControlRegister
+{
   u16 Hex;
   struct
   {
@@ -109,7 +111,8 @@ union UVIDisplayControlRegister {
   UVIDisplayControlRegister() { Hex = 0; }
 };
 
-union UVIHorizontalTiming0 {
+union UVIHorizontalTiming0
+{
   u32 Hex;
   struct
   {
@@ -126,7 +129,8 @@ union UVIHorizontalTiming0 {
   };
 };
 
-union UVIHorizontalTiming1 {
+union UVIHorizontalTiming1
+{
   u32 Hex;
   struct
   {
@@ -142,7 +146,8 @@ union UVIHorizontalTiming1 {
 };
 
 // Exists for both odd and even fields
-union UVIVBlankTimingRegister {
+union UVIVBlankTimingRegister
+{
   u32 Hex;
   struct
   {
@@ -158,7 +163,8 @@ union UVIVBlankTimingRegister {
 };
 
 // Exists for both odd and even fields
-union UVIBurstBlankingRegister {
+union UVIBurstBlankingRegister
+{
   u32 Hex;
   struct
   {
@@ -173,7 +179,8 @@ union UVIBurstBlankingRegister {
   };
 };
 
-union UVIFBInfoRegister {
+union UVIFBInfoRegister
+{
   u32 Hex;
   struct
   {
@@ -192,7 +199,8 @@ union UVIFBInfoRegister {
 };
 
 // VI Interrupt Register
-union UVIInterruptRegister {
+union UVIInterruptRegister
+{
   u32 Hex;
   struct
   {
@@ -210,7 +218,8 @@ union UVIInterruptRegister {
   };
 };
 
-union UVILatchRegister {
+union UVILatchRegister
+{
   u32 Hex;
   struct
   {
@@ -226,7 +235,8 @@ union UVILatchRegister {
   };
 };
 
-union PictureConfigurationRegister {
+union PictureConfigurationRegister
+{
   u16 Hex;
   struct
   {
@@ -236,7 +246,8 @@ union PictureConfigurationRegister {
   };
 };
 
-union UVIHorizontalScaling {
+union UVIHorizontalScaling
+{
   u16 Hex;
   struct
   {
@@ -250,7 +261,8 @@ union UVIHorizontalScaling {
 };
 
 // Used for tables 0-2
-union UVIFilterCoefTable3 {
+union UVIFilterCoefTable3
+{
   u32 Hex;
   struct
   {
@@ -266,7 +278,8 @@ union UVIFilterCoefTable3 {
 };
 
 // Used for tables 3-6
-union UVIFilterCoefTable4 {
+union UVIFilterCoefTable4
+{
   u32 Hex;
   struct
   {
@@ -288,7 +301,8 @@ struct SVIFilterCoefTables
 };
 
 // Debug video mode only, probably never used in Dolphin...
-union UVIBorderBlankRegister {
+union UVIBorderBlankRegister
+{
   u32 Hex;
   struct
   {
@@ -304,7 +318,8 @@ union UVIBorderBlankRegister {
 };
 
 // ntsc-j and component cable bits
-union UVIDTVStatus {
+union UVIDTVStatus
+{
   u16 Hex;
   struct
   {
@@ -314,7 +329,8 @@ union UVIDTVStatus {
   };
 };
 
-union UVIHorizontalStepping {
+union UVIHorizontalStepping
+{
   u16 Hex;
   struct
   {

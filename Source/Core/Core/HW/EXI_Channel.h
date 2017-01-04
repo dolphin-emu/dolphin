@@ -29,7 +29,8 @@ private:
   };
 
   // EXI Status Register - "Channel Parameter Register"
-  union UEXI_STATUS {
+  union UEXI_STATUS
+  {
     u32 Hex;
     // DO NOT obey the warning and give this struct a name. Things will fail.
     struct
@@ -55,7 +56,8 @@ private:
   };
 
   // EXI Control Register
-  union UEXI_CONTROL {
+  union UEXI_CONTROL
+  {
     u32 Hex;
     struct
     {

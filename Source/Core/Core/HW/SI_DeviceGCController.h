@@ -41,7 +41,8 @@ protected:
     CMD_WRITE = 0x40
   };
 
-  union UCommand {
+  union UCommand
+  {
     u32 Hex;
     struct
     {

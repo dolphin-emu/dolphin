@@ -59,7 +59,8 @@ enum
 };
 
 // SI Channel Output
-union USIChannelOut {
+union USIChannelOut
+{
   u32 Hex;
   struct
   {
@@ -71,7 +72,8 @@ union USIChannelOut {
 };
 
 // SI Channel Input High u32
-union USIChannelIn_Hi {
+union USIChannelIn_Hi
+{
   u32 Hex;
   struct
   {
@@ -85,7 +87,8 @@ union USIChannelIn_Hi {
 };
 
 // SI Channel Input Low u32
-union USIChannelIn_Lo {
+union USIChannelIn_Lo
+{
   u32 Hex;
   struct
   {
@@ -106,7 +109,8 @@ struct SSIChannel
 };
 
 // SI Poll: Controls how often a device is polled
-union USIPoll {
+union USIPoll
+{
   u32 Hex;
   struct
   {
@@ -125,7 +129,8 @@ union USIPoll {
 };
 
 // SI Communication Control Status Register
-union USIComCSR {
+union USIComCSR
+{
   u32 Hex;
   struct
   {
@@ -151,7 +156,8 @@ union USIComCSR {
 };
 
 // SI Status Register
-union USIStatusReg {
+union USIStatusReg
+{
   u32 Hex;
   struct
   {
@@ -190,7 +196,8 @@ union USIStatusReg {
 };
 
 // SI EXI Clock Count
-union USIEXIClockCount {
+union USIEXIClockCount
+{
   u32 Hex;
   struct
   {

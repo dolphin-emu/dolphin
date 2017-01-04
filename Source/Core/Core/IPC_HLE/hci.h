@@ -2575,7 +2575,8 @@ struct btreq
 {
   char btr_name[HCI_DEVNAME_SIZE]; /* device name */
 
-  union {
+  union
+  {
     struct
     {
       bdaddr_t btri_bdaddr;      /* device bdaddr */

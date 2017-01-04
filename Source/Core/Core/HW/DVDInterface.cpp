@@ -108,7 +108,8 @@ enum
 };
 
 // DI Status Register
-union UDISR {
+union UDISR
+{
   u32 Hex;
   struct
   {
@@ -126,7 +127,8 @@ union UDISR {
 };
 
 // DI Cover Register
-union UDICVR {
+union UDICVR
+{
   u32 Hex;
   struct
   {
@@ -139,7 +141,8 @@ union UDICVR {
   UDICVR(u32 _hex) { Hex = _hex; }
 };
 
-union UDICMDBUF {
+union UDICMDBUF
+{
   u32 Hex;
   struct
   {
@@ -151,7 +154,8 @@ union UDICMDBUF {
 };
 
 // DI DMA Address Register
-union UDIMAR {
+union UDIMAR
+{
   u32 Hex;
   struct
   {
@@ -166,7 +170,8 @@ union UDIMAR {
 };
 
 // DI DMA Address Length Register
-union UDILENGTH {
+union UDILENGTH
+{
   u32 Hex;
   struct
   {
@@ -181,7 +186,8 @@ union UDILENGTH {
 };
 
 // DI DMA Control Register
-union UDICR {
+union UDICR
+{
   u32 Hex;
   struct
   {
@@ -192,7 +198,8 @@ union UDICR {
   };
 };
 
-union UDIIMMBUF {
+union UDIIMMBUF
+{
   u32 Hex;
   struct
   {
@@ -204,7 +211,8 @@ union UDIIMMBUF {
 };
 
 // DI Config Register
-union UDICFG {
+union UDICFG
+{
   u32 Hex;
   struct
   {

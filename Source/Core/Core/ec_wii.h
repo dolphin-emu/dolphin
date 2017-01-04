@@ -68,7 +68,8 @@ private:
     u8 boot1_hash[0x14];  // 0x100
     u8 common_key[0x10];  // 0x114
     u32 ng_id;            // 0x124
-    union {
+    union
+    {
       struct
       {
         u8 ng_priv[0x1e];  // 0x128

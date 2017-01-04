@@ -42,7 +42,8 @@ private:
     Instruction(const ConditionalCallback c, u32 d)
         : conditional_callback(c), data(d), type(INSTRUCTION_TYPE_CONDITIONAL){};
 
-    union {
+    union
+    {
       const CommonCallback common_callback;
       const ConditionalCallback conditional_callback;
     };

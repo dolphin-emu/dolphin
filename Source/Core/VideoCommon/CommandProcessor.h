@@ -71,7 +71,8 @@ enum
 };
 
 // Fifo Status Register
-union UCPStatusReg {
+union UCPStatusReg
+{
   struct
   {
     u16 OverflowHiWatermark : 1;
@@ -87,7 +88,8 @@ union UCPStatusReg {
 };
 
 // Fifo Control Register
-union UCPCtrlReg {
+union UCPCtrlReg
+{
   struct
   {
     u16 GPReadEnable : 1;
@@ -104,7 +106,8 @@ union UCPCtrlReg {
 };
 
 // Fifo Clear Register
-union UCPClearReg {
+union UCPClearReg
+{
   struct
   {
     u16 ClearFifoOverflow : 1;

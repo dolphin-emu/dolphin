@@ -244,7 +244,8 @@ struct D3DQueueItem
 {
   D3DQueueItemType Type;
 
-  union {
+  union
+  {
     SetPipelineStateArguments SetPipelineState;
     SetRenderTargetsArguments SetRenderTargets;
     SetVertexBuffersArguments SetVertexBuffers;

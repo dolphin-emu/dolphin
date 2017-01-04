@@ -70,7 +70,8 @@ enum
 };
 
 // AI Control Register
-union AICR {
+union AICR
+{
   AICR() { hex = 0; }
   AICR(u32 _hex) { hex = _hex; }
   struct
@@ -90,7 +91,8 @@ union AICR {
 };
 
 // AI Volume Register
-union AIVR {
+union AIVR
+{
   AIVR() { hex = 0; }
   struct
   {
