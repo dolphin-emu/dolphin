@@ -551,9 +551,9 @@ void PixelShaderCache::Shutdown()
   g_ps_disk_cache.Close();
 }
 
-bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
+bool PixelShaderCache::SetShader()
 {
-  PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode);
+  PixelShaderUid uid = GetPixelShaderUid();
 
   // Check if the shader is already set
   if (last_entry)

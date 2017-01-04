@@ -1218,7 +1218,7 @@ void Renderer::ResizeSwapChain()
   OnSwapChainResized();
 }
 
-void Renderer::ApplyState(bool bUseDstAlpha)
+void Renderer::ApplyState()
 {
 }
 

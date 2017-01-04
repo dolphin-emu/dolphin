@@ -920,8 +920,12 @@ void Renderer::RestoreAPIState()
 static bool s_previous_use_dst_alpha = false;
 static D3DVertexFormat* s_previous_vertex_format = nullptr;
 
-void Renderer::ApplyState(bool use_dst_alpha)
+void Renderer::ApplyState()
 {
+  // TODO: Refactor this logic here.
+  bool use_dst_alpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+                       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
   if (use_dst_alpha != s_previous_use_dst_alpha)
   {
     s_previous_use_dst_alpha = use_dst_alpha;

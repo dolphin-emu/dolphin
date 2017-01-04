@@ -304,10 +304,10 @@ void StateTracker::SetBlendState(const BlendState& state)
   m_dirty_flags |= DIRTY_FLAG_PIPELINE;
 }
 
-bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE dstalpha_mode)
+bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type)
 {
   VertexShaderUid vs_uid = GetVertexShaderUid();
-  PixelShaderUid ps_uid = GetPixelShaderUid(dstalpha_mode);
+  PixelShaderUid ps_uid = GetPixelShaderUid();
 
   bool changed = false;
 
@@ -338,16 +338,6 @@ bool StateTracker::CheckForShaderChanges(u32 gx_primitive_type, DSTALPHA_MODE ds
     m_pipeline_state.ps = g_object_cache->GetPixelShaderForUid(ps_uid);
     m_ps_uid = ps_uid;
     changed = true;
-  }
-
-  if (m_dstalpha_mode != dstalpha_mode)
-  {
-    // Switching to/from alpha pass requires a pipeline change, since the blend state
-    // is overridden in the destination alpha pass.
-    if (m_dstalpha_mode == DSTALPHA_ALPHA_PASS || dstalpha_mode == DSTALPHA_ALPHA_PASS)
-      changed = true;
-
-    m_dstalpha_mode = dstalpha_mode;
   }
 
   if (changed)
@@ -881,22 +871,6 @@ void StateTracker::EndClearRenderPass()
   EndRenderPass();
 }
 
-PipelineInfo StateTracker::GetAlphaPassPipelineConfig(const PipelineInfo& info) const
-{
-  PipelineInfo temp_info = info;
-
-  // Skip depth writes for this pass. The results will be the same, so no
-  // point in overwriting depth values with the same value.
-  temp_info.depth_stencil_state.write_enable = VK_FALSE;
-
-  // Only allow alpha writes, and disable blending.
-  temp_info.blend_state.blend_enable = VK_FALSE;
-  temp_info.blend_state.logic_op_enable = VK_FALSE;
-  temp_info.blend_state.write_mask = VK_COLOR_COMPONENT_A_BIT;
-
-  return temp_info;
-}
-
 VkPipeline StateTracker::GetPipelineAndCacheUID(const PipelineInfo& info)
 {
   auto result = g_object_cache->GetPipelineWithCacheResult(info);
@@ -915,17 +889,7 @@ bool StateTracker::UpdatePipeline()
     return false;
 
   // Grab a new pipeline object, this can fail.
-  // We have to use a different blend state for the alpha pass of the dstalpha fallback.
-  if (m_dstalpha_mode == DSTALPHA_ALPHA_PASS)
-  {
-    // We need to retain the existing state, since we don't want to break the next draw.
-    PipelineInfo temp_info = GetAlphaPassPipelineConfig(m_pipeline_state);
-    m_pipeline_object = GetPipelineAndCacheUID(temp_info);
-  }
-  else
-  {
-    m_pipeline_object = GetPipelineAndCacheUID(m_pipeline_state);
-  }
+  m_pipeline_object = GetPipelineAndCacheUID(m_pipeline_state);
 
   m_dirty_flags |= DIRTY_FLAG_PIPELINE_BINDING;
   return m_pipeline_object != VK_NULL_HANDLE;

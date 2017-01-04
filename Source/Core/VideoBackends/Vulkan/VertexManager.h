@@ -31,7 +31,7 @@ protected:
   void ResetBuffer(u32 stride) override;
 
 private:
-  void vFlush(bool use_dst_alpha) override;
+  void vFlush() override;
 
   std::vector<u8> m_cpu_vertex_buffer;
   std::vector<u16> m_cpu_index_buffer;

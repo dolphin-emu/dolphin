@@ -132,12 +132,12 @@ void ShaderCache::Shutdown()
   s_vs_disk_cache.Close();
 }
 
-void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 gs_primitive_type)
+void ShaderCache::LoadAndSetActiveShaders(u32 gs_primitive_type)
 {
   SetCurrentPrimitiveTopology(gs_primitive_type);
 
   GeometryShaderUid gs_uid = GetGeometryShaderUid(gs_primitive_type);
-  PixelShaderUid ps_uid = GetPixelShaderUid(ps_dst_alpha_mode);
+  PixelShaderUid ps_uid = GetPixelShaderUid();
   VertexShaderUid vs_uid = GetVertexShaderUid();
 
   bool gs_changed = gs_uid != s_last_geometry_shader_uid;
@@ -156,7 +156,7 @@ void ShaderCache::LoadAndSetActiveShaders(DSTALPHA_MODE ps_dst_alpha_mode, u32 g
 
   if (ps_changed)
   {
-    HandlePSUIDChange(ps_uid, ps_dst_alpha_mode);
+    HandlePSUIDChange(ps_uid);
   }
 
   if (vs_changed)
@@ -219,7 +219,7 @@ void ShaderCache::HandleGSUIDChange(GeometryShaderUid gs_uid, u32 gs_primitive_t
   }
 }
 
-void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid, DSTALPHA_MODE ps_dst_alpha_mode)
+void ShaderCache::HandlePSUIDChange(PixelShaderUid ps_uid)
 {
   s_last_pixel_shader_uid = ps_uid;
 
