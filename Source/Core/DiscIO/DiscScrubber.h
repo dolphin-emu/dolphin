@@ -37,40 +37,40 @@ public:
   size_t GetNextBlock(File::IOFile& in, u8* buffer);
 
 private:
-  struct SPartitionHeader final
+  struct PartitionHeader final
   {
-    u8* Ticket[0x2a4];
-    u32 TMDSize;
-    u64 TMDOffset;
-    u32 CertChainSize;
-    u64 CertChainOffset;
+    u8* ticket[0x2a4];
+    u32 tmd_size;
+    u64 tmd_offset;
+    u32 cert_chain_size;
+    u64 cert_chain_offset;
     // H3Size is always 0x18000
-    u64 H3Offset;
-    u64 DataOffset;
-    u64 DataSize;
+    u64 h3_offset;
+    u64 data_offset;
+    u64 data_size;
     // TMD would be here
-    u64 DOLOffset;
-    u64 DOLSize;
-    u64 FSTOffset;
-    u64 FSTSize;
-    u32 ApploaderSize;
-    u32 ApploaderTrailerSize;
+    u64 dol_offset;
+    u64 dol_size;
+    u64 fst_offset;
+    u64 fst_size;
+    u32 apploader_size;
+    u32 apploader_trailer_size;
   };
 
-  struct SPartition final
+  struct Partition final
   {
-    u32 GroupNumber;
-    u32 Number;
-    u64 Offset;
-    u32 Type;
-    SPartitionHeader Header;
+    u32 group_number;
+    u32 number;
+    u64 offset;
+    u32 type;
+    PartitionHeader header;
   };
 
-  struct SPartitionGroup final
+  struct PartitionGroup final
   {
-    u32 numPartitions;
-    u64 PartitionsOffset;
-    std::vector<SPartition> PartitionsVec;
+    u32 num_partitions;
+    u64 partitions_offset;
+    std::vector<Partition> partitions;
   };
 
   void MarkAsUsed(u64 offset, u64 size);
@@ -78,18 +78,18 @@ private:
   bool ReadFromVolume(u64 offset, u32& buffer, bool decrypt);
   bool ReadFromVolume(u64 offset, u64& buffer, bool decrypt);
   bool ParseDisc();
-  bool ParsePartitionData(SPartition& partition);
+  bool ParsePartitionData(Partition& partition);
 
-  std::string m_Filename;
+  std::string m_filename;
   std::unique_ptr<IVolume> m_disc;
 
-  std::array<SPartitionGroup, 4> PartitionGroup{};
+  std::array<PartitionGroup, 4> m_partition_group{};
 
-  std::vector<u8> m_FreeTable;
-  u64 m_FileSize = 0;
-  u64 m_BlockCount = 0;
-  u32 m_BlockSize = 0;
-  bool m_isScrubbing = false;
+  std::vector<u8> m_free_table;
+  u64 m_file_size = 0;
+  u64 m_block_count = 0;
+  u32 m_block_size = 0;
+  bool m_is_scrubbing = false;
 };
 
 }  // namespace DiscIO
