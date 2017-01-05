@@ -40,42 +40,40 @@ struct SPatch
   HookFlag flags;
 };
 
+// clang-format off
 static const SPatch OSPatches[] = {
     // Placeholder, OSPatches[0] is the "non-existent function" index
-    {"FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC},
+    {"FAKE_TO_SKIP_0",               HLE_Misc::UnimplementedFunction,       HLE_HOOK_REPLACE, HLE_TYPE_GENERIC},
 
-    {"PanicAlert", HLE_Misc::HLEPanicAlert, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"PanicAlert",                   HLE_Misc::HLEPanicAlert,               HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
 
     // Name doesn't matter, installed in CBoot::BootUp()
-    {"HBReload", HLE_Misc::HBReload, HLE_HOOK_REPLACE, HLE_TYPE_GENERIC},
+    {"HBReload",                     HLE_Misc::HBReload,                    HLE_HOOK_REPLACE, HLE_TYPE_GENERIC},
 
     // Debug/OS Support
-    {"OSPanic", HLE_OS::HLE_OSPanic, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"OSPanic",                      HLE_OS::HLE_OSPanic,                   HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
 
     // This needs to be put before vprintf (because vprintf is called indirectly by this)
-    {"JUTWarningConsole_f", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"JUTWarningConsole_f",          HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
 
-    {"OSReport", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"DEBUGPrint", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"WUD_DEBUGPrint", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"vprintf", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"printf", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"nlPrintf", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
-    {"puts", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE,
-     HLE_TYPE_DEBUG},  // gcc-optimized printf?
-    {"___blank", HLE_OS::HLE_GeneralDebugPrint, HLE_HOOK_REPLACE,
-     HLE_TYPE_DEBUG},  // used for early init things (normally)
-    {"__write_console", HLE_OS::HLE_write_console, HLE_HOOK_REPLACE,
-     HLE_TYPE_DEBUG},  // used by sysmenu (+more?)
+    {"OSReport",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"DEBUGPrint",                   HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"WUD_DEBUGPrint",               HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"vprintf",                      HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"printf",                       HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"nlPrintf",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG},
+    {"puts",                         HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG}, // gcc-optimized printf?
+    {"___blank",                     HLE_OS::HLE_GeneralDebugPrint,         HLE_HOOK_REPLACE, HLE_TYPE_DEBUG}, // used for early init things (normally)
+    {"__write_console",              HLE_OS::HLE_write_console,             HLE_HOOK_REPLACE, HLE_TYPE_DEBUG}, // used by sysmenu (+more?)
 
-    {"GeckoCodehandler", HLE_Misc::GeckoCodeHandlerICacheFlush, HLE_HOOK_START, HLE_TYPE_FIXED},
-    {"GeckoHandlerReturnTrampoline", HLE_Misc::GeckoReturnTrampoline, HLE_HOOK_REPLACE,
-     HLE_TYPE_FIXED},
+    {"GeckoCodehandler",             HLE_Misc::GeckoCodeHandlerICacheFlush, HLE_HOOK_START,   HLE_TYPE_FIXED},
+    {"GeckoHandlerReturnTrampoline", HLE_Misc::GeckoReturnTrampoline,       HLE_HOOK_REPLACE, HLE_TYPE_FIXED},
 };
 
 static const SPatch OSBreakPoints[] = {
     {"FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction},
 };
+// clang-format on
 
 void Patch(u32 addr, const char* hle_func_name)
 {
