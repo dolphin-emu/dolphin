@@ -908,18 +908,18 @@ IOFile::~IOFile()
   Close();
 }
 
-IOFile::IOFile(IOFile&& other) : m_file(nullptr), m_good(true)
+IOFile::IOFile(IOFile&& other) noexcept : m_file(nullptr), m_good(true)
 {
   Swap(other);
 }
 
-IOFile& IOFile::operator=(IOFile&& other)
+IOFile& IOFile::operator=(IOFile&& other) noexcept
 {
   Swap(other);
   return *this;
 }
 
-void IOFile::Swap(IOFile& other)
+void IOFile::Swap(IOFile& other) noexcept
 {
   std::swap(m_file, other.m_file);
   std::swap(m_good, other.m_good);
