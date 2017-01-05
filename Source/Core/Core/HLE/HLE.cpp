@@ -71,7 +71,7 @@ static const SPatch OSPatches[] = {
 };
 
 static const SPatch OSBreakPoints[] = {
-    {"FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction},
+    {"FAKE_TO_SKIP_0", HLE_Misc::UnimplementedFunction, HLE_HOOK_START, HLE_TYPE_GENERIC},
 };
 // clang-format on
 
