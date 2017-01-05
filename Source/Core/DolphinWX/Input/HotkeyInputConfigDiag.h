@@ -10,5 +10,5 @@ class HotkeyInputConfigDialog final : public InputConfigDialog
 {
 public:
   HotkeyInputConfigDialog(wxWindow* parent, InputConfig& config, const wxString& name,
-                          int port_num = 0);
+                          bool using_debugger, int port_num = 0);
 };

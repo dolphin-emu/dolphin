@@ -1015,7 +1015,7 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED(event))
 
   HotkeyManagerEmu::Enable(false);
 
-  HotkeyInputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"));
+  HotkeyInputConfigDialog m_ConfigFrame(this, *hotkey_plugin, _("Dolphin Hotkeys"), UseDebugger);
   m_ConfigFrame.ShowModal();
 
   // Update references in case controllers were refreshed

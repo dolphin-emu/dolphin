@@ -52,7 +52,9 @@
 #include "Core/State.h"
 
 #include "DolphinWX/Config/ConfigMain.h"
+#include "DolphinWX/Debugger/BreakpointDlg.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/MemoryCheckDlg.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/LogWindow.h"
@@ -1280,6 +1282,63 @@ void CFrame::ParseHotkeys()
     if (device != nullptr)
       std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
           ->UpdateSyncButtonState(IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
+  }
+
+  if (UseDebugger)
+  {
+    if (IsHotkey(HK_STEP))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_STEP);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_STEP_OVER))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_STEPOVER);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_STEP_OUT))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_STEPOUT);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_SKIP))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_SKIP);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_SHOW_PC))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_GOTOPC);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_SET_PC))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_SETPC);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_BP_TOGGLE))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_TOGGLE_BREAKPOINT);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_BP_ADD))
+    {
+      BreakPointDlg bpDlg(this);
+      if (bpDlg.ShowModal() == wxID_OK)
+      {
+        wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_BREAKPOINTS);
+        g_pCodeWindow->GetEventHandler()->AddPendingEvent(evt);
+      }
+    }
+    if (IsHotkey(HK_MBP_ADD))
+    {
+      MemoryCheckDlg memDlg(this);
+      if (memDlg.ShowModal() == wxID_OK)
+      {
+        wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_BREAKPOINTS);
+        g_pCodeWindow->GetEventHandler()->AddPendingEvent(evt);
+      }
+    }
   }
 
   // Wiimote connect and disconnect hotkeys
