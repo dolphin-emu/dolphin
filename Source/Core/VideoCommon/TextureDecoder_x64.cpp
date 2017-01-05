@@ -28,12 +28,13 @@ static inline u32 DecodePixel_IA8(u16 val)
 
 static inline u32 DecodePixel_RGB565(u16 val)
 {
-  int r, g, b, a;
-  r = Convert5To8((val >> 11) & 0x1f);
-  g = Convert6To8((val >> 5) & 0x3f);
+  int r, g, b;
+
+  r = (val >> 8) & 0xf8;
+  g = (val << 5) & 0xfc00;
   b = Convert5To8((val)&0x1f);
-  a = 0xFF;
-  return r | (g << 8) | (b << 16) | (a << 24);
+
+  return r | g | (b << 16) | 0xFF000000;
 }
 
 static inline u32 DecodePixel_RGB5A3(u16 val)
@@ -41,19 +42,19 @@ static inline u32 DecodePixel_RGB5A3(u16 val)
   int r, g, b, a;
   if ((val & 0x8000))
   {
-    r = Convert5To8((val >> 10) & 0x1f);
-    g = Convert5To8((val >> 5) & 0x1f);
+    r = (val >> 7) & 0xf8;
+    g = (val << 6) & 0xf800;
     b = Convert5To8((val)&0x1f);
-    a = 0xFF;
+    a = 0xFF000000;
   }
   else
   {
-    a = Convert3To8((val >> 12) & 0x7);
-    r = Convert4To8((val >> 8) & 0xf);
-    g = Convert4To8((val >> 4) & 0xf);
+    a = (val << 17) & 0xE0000000;
+    r = (val >> 4) & 0xf0;
+    g = (val << 8) & 0xf000;
     b = Convert4To8((val)&0xf);
   }
-  return r | (g << 8) | (b << 16) | (a << 24);
+  return r | g | (b << 16) | a;
 }
 
 struct DXTBlock
