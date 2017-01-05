@@ -236,6 +236,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
 {
   const int Wsteps4 = (width + 3) / 4;
   const int Wsteps8 = (width + 7) / 8;
+  const __m128i kMask_xff000000 = _mm_set1_epi32(0xFF000000L);
 
   switch (texformat)
   {
@@ -264,8 +265,6 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
     break;
   case GX_TF_I4:
   {
-    const __m128i kMask_xff000000 = _mm_set1_epi32(0xFF000000L);
-
     const __m128i kMask_x0f00 = _mm_set1_epi32(0x0f000f00L);
     const __m128i kMask_x00f0 = _mm_set1_epi32(0x00f000f0L);
 
@@ -456,11 +455,15 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           // eeee)
           const __m128i rgba1 = _mm_unpackhi_epi8(r1, r1);
 
+		  // Set Alpha to 0xFF
+          const __m128i orgba0 = _mm_or_si128(rgba0, kMask_xff000000);
+          const __m128i orgba1 = _mm_or_si128(rgba1, kMask_xff000000);
+
           // Store (dddd cccc bbbb aaaa) out:
           quaddst = (__m128i*)(dst + (y + 0) * width + x);
-          _mm_storeu_si128(quaddst, rgba0);
+          _mm_storeu_si128(quaddst, orgba0);
           // Store (hhhh gggg ffff eeee) out:
-          _mm_storeu_si128(quaddst + 1, rgba1);
+          _mm_storeu_si128(quaddst + 1, orgba1);
 
           // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe
           // dcba)
@@ -477,11 +480,15 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           // eeee)
           const __m128i rgba3 = _mm_unpackhi_epi8(r3, r3);
 
+		  // Set Alpha to 0xFF
+          const __m128i orgba2 = _mm_or_si128(rgba2, kMask_xff000000);
+          const __m128i orgba3 = _mm_or_si128(rgba3, kMask_xff000000);
+
           // Store (dddd cccc bbbb aaaa) out:
           quaddst = (__m128i*)(dst + (y + 1) * width + x);
-          _mm_storeu_si128(quaddst, rgba2);
+          _mm_storeu_si128(quaddst, orgba2);
           // Store (hhhh gggg ffff eeee) out:
-          _mm_storeu_si128(quaddst + 1, rgba3);
+          _mm_storeu_si128(quaddst + 1, orgba3);
 
           // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe
           // dcba)
@@ -498,11 +505,15 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           // eeee)
           const __m128i rgba5 = _mm_unpackhi_epi8(r5, r5);
 
+		  // Set Alpha to 0xFF
+          const __m128i orgba4 = _mm_or_si128(rgba4, kMask_xff000000);
+          const __m128i orgba5 = _mm_or_si128(rgba5, kMask_xff000000);
+
           // Store (dddd cccc bbbb aaaa) out:
           quaddst = (__m128i*)(dst + (y + 2) * width + x);
-          _mm_storeu_si128(quaddst, rgba4);
+          _mm_storeu_si128(quaddst, orgba4);
           // Store (hhhh gggg ffff eeee) out:
-          _mm_storeu_si128(quaddst + 1, rgba5);
+          _mm_storeu_si128(quaddst + 1, orgba5);
 
           // Load 64 bits from `src` into an __m128i with upper 64 bits zeroed: (0000 0000 hgfe
           // dcba)
@@ -519,11 +530,15 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           // eeee)
           const __m128i rgba7 = _mm_unpackhi_epi8(r7, r7);
 
+		  // Set Alpha to 0xFF
+          const __m128i orgba6 = _mm_or_si128(rgba6, kMask_xff000000);
+          const __m128i orgba7 = _mm_or_si128(rgba7, kMask_xff000000);
+
           // Store (dddd cccc bbbb aaaa) out:
           quaddst = (__m128i*)(dst + (y + 3) * width + x);
-          _mm_storeu_si128(quaddst, rgba6);
+          _mm_storeu_si128(quaddst, orgba6);
           // Store (hhhh gggg ffff eeee) out:
-          _mm_storeu_si128(quaddst + 1, rgba7);
+          _mm_storeu_si128(quaddst + 1, orgba7);
         }
     }
   }
