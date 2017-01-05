@@ -247,7 +247,7 @@ bool DiscScrubber::ParsePartitionData(Partition& partition)
                 partition.header.fst_size);
 
     // Go through the filesystem and mark entries as used
-    for (SFileInfo file : filesystem->GetFileList())
+    for (const SFileInfo& file : filesystem->GetFileList())
     {
       DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
       if ((file.m_NameOffset & 0x1000000) == 0)
