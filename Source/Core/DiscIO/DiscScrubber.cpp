@@ -32,7 +32,7 @@ bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
 
   if (CLUSTER_SIZE % m_block_size != 0)
   {
-    ERROR_LOG(DISCIO, "Block size %i is not a factor of 0x8000, scrubbing not possible",
+    ERROR_LOG(DISCIO, "Block size %u is not a factor of 0x8000, scrubbing not possible",
               m_block_size);
     return false;
   }
@@ -219,7 +219,7 @@ bool DiscScrubber::ParsePartitionData(Partition& partition)
   std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_disc.get()));
   if (!filesystem)
   {
-    ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u",
+    ERROR_LOG(DISCIO, "Failed to create filesystem for group %u partition %u",
               partition.group_number, partition.number);
     parsed_ok = false;
   }
