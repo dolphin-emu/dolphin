@@ -2,23 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-/*
-This is the main Wii IPC file that handles all incoming IPC calls and directs them
-to the right function.
-
-IPC basics (IOS' usage):
-
-Return values for file handles: All IPC calls will generate a return value to 0x04,
-in case of success they are
-  Open: DeviceID
-  Close: 0
-  Read: Bytes read
-  Write: Bytes written
-  Seek: Seek position
-  Ioctl: 0 (in addition to that there may be messages to the out buffers)
-  Ioctlv: 0 (in addition to that there may be messages to the out buffers)
-They will also generate a true or false return for UpdateInterrupts() in WII_IPC.cpp.
-*/
+// This is the main Wii IPC file that handles all incoming IPC requests and directs them
+// to the right function.
+//
+// IPC basics (IOS' usage):
+// All IPC request handlers will write a return value to 0x04.
+//   Open: Device file descriptor or error code
+//   Close: IPC_SUCCESS
+//   Read: Bytes read
+//   Write: Bytes written
+//   Seek: Seek position
+//   Ioctl: Depends on the handler
+//   Ioctlv: Depends on the handler
+// Replies may be sent immediately or asynchronously for ioctls and ioctlvs.
 
 #include <deque>
 #include <map>
