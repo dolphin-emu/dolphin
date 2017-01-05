@@ -30,10 +30,6 @@ VertexShaderUid GetVertexShaderUid()
   uid_data->msaa = g_ActiveConfig.iMultisamples > 1;
   uid_data->ssaa = g_ActiveConfig.iMultisamples > 1 && g_ActiveConfig.bSSAA;
   uid_data->numColorChans = xfmem.numChan.numColorChans;
-  uid_data->vertex_depth =
-      g_ActiveConfig.backend_info.bSupportsDepthClamp &&
-      ((fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f) ||
-       (xfmem.viewport.zRange < 0.0f && !g_ActiveConfig.backend_info.bSupportsReversedDepthRange));
 
   GetLightingShaderUid(uid_data->lighting);
 
@@ -438,23 +434,15 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
   // override it with the correct values if not then early z culling will improve speed.
   // There are two different ways to do this, when the depth range is oversized, we process
   // the depth range in the vertex shader, if not we let the host driver handle it.
-  if (uid_data->vertex_depth)
-  {
-    // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
-    // so we can map the console -1..0 range to the 0..1 range used in the depth buffer.
-    // We have to handle the depth range in the vertex shader instead of after the perspective
-    // divide, because some games will use a depth range larger than what is allowed by the
-    // graphics API. These large depth ranges will still be clipped to the 0..1 range, so these
-    // games effectively add a depth bias to the values written to the depth buffer.
-    out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
-              "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
-  }
-  else
-  {
-    // Here we rely on the host driver to process the depth range, however we still need to invert
-    // the console -1..0 range to the 0..1 range used in the depth buffer.
-    out.Write("o.pos.z = -o.pos.z;\n");
-  }
+  //
+  // Adjust z for the depth range. We're using an equation which incorperates a depth inversion,
+  // so we can map the console -1..0 range to the 0..1 range used in the depth buffer.
+  // We have to handle the depth range in the vertex shader instead of after the perspective
+  // divide, because some games will use a depth range larger than what is allowed by the
+  // graphics API. These large depth ranges will still be clipped to the 0..1 range, so these
+  // games effectively add a depth bias to the values written to the depth buffer.
+  out.Write("o.pos.z = o.pos.w * " I_PIXELCENTERCORRECTION ".w - "
+            "o.pos.z * " I_PIXELCENTERCORRECTION ".z;\n");
 
   if (!g_ActiveConfig.backend_info.bSupportsClipControl)
   {
