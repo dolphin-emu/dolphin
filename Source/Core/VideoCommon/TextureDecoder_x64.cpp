@@ -161,8 +161,8 @@ static inline void DecodeBytes_IA4(u32* dst, const u8* src)
   for (int x = 0; x < 8; x++)
   {
     const u8 val = src[x];
-    u8 a = Convert4To8(val >> 4);
-    u8 l = Convert4To8(val & 0xF);
+    u8 a = (val & 0xF0) | ((val >> 4) & 0x0F);
+    u8 l = (val & 0x0F) | (val << 4);
     dst[x] = (a << 24) | l << 16 | l << 8 | l;
   }
 }

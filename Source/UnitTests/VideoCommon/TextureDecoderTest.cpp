@@ -79,7 +79,7 @@ int testDecoder_DecodeC8(u32 *example, u32 *dst, u8 *src, int width, int height,
 	int comp = 0;
 	int i, j, ti, tj, val, index;
 
-	// Initialize texture (8x8 tiles)
+	// Initialize texture (8x4 tiles)
 	index = 0;
 	for (j=0; j<TEST_HEIGHT; j+=4) {
 		for (i=0; i<TEST_WIDTH; i+=8) {
@@ -362,7 +362,7 @@ TEST (TextureDecoderTest, DecodeBytes_I4) {
 
 
 
-/* C8 (8 bit color index, 8x8 tiles) in IA8 format */
+/* C8 (8 bit color index, 8x4 tiles) in IA8 format */
 TEST (TextureDecoderTest, DecodeBytes_C8_IA8) { 
 	int comp = 0;
 	int width = TEST_WIDTH;
@@ -424,7 +424,7 @@ TEST (TextureDecoderTest, DecodeBytes_C8_IA8) {
 }
 
 
-/* C8 (8 bit color index, 8x8 tiles) in RGB565 format */
+/* C8 (8 bit color index, 8x4 tiles) in RGB565 format */
 TEST (TextureDecoderTest, DecodeBytes_C8_RGB565) { 
 	int r,g,b;
 	int comp = 0;
@@ -503,7 +503,7 @@ TEST (TextureDecoderTest, DecodeBytes_C8_RGB565) {
 
 
 
-/* CI8 (8 bit color index, 8x8 tiles) in RGB5A3 format */
+/* CI8 (8 bit color index, 8x4 tiles) in RGB5A3 format */
 TEST (TextureDecoderTest, DecodeBytes_C8_RGB5A3) { 
 	int r,g,b, a;
 	int comp = 0;
@@ -593,7 +593,7 @@ TEST (TextureDecoderTest, DecodeBytes_C8_RGB5A3) {
 }
 
 
-/* I8 (8 bit gray scale color, 8x8 tiles) */
+/* I8 (8 bit gray scale color, 8x4 tiles) */
 TEST (TextureDecoderTest, DecodeBytes_I8) { 
 	int comp = 0;
 	int width = TEST_WIDTH;
@@ -631,4 +631,72 @@ TEST (TextureDecoderTest, DecodeBytes_I8) {
     EXPECT_EQ (0, comp);
 
 }
+
+
+
+/* IA4 (4 bit gray scale color + 4 bits alpha, 8x8 tiles) */
+TEST (TextureDecoderTest, DecodeBytes_IA4) { 
+	int comp = 0;
+	int width = TEST_WIDTH;
+    int height = TEST_HEIGHT;
+	u32 dst[TEST_WIDTH*TEST_HEIGHT];
+	u32 example[TEST_WIDTH*TEST_HEIGHT];
+	u8 src[TEST_HEIGHT*TEST_WIDTH];
+    int texformat = GX_TF_IA4;
+
+    u16* tlut = NULL;
+    TlutFormat tlutfmt = (TlutFormat) 0;
+
+	int i, j, val, alpha;
+
+	// Initizatize the example
+	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
+		for (j=0; j<16; j++) {
+		  val = (j<<4 | j);
+		  alpha = ((15-j) << 4) | (15-j);
+		  example[i+j] = ( val | (val << 8) | (val << 16) | (alpha << 24) );
+		}
+	}
+
+
+	int ti, tj, index;
+
+	// Initialize texture (8x8 tiles)
+	index = 0;
+	for (j=0; j<TEST_HEIGHT; j+=4) {
+		for (i=0; i<TEST_WIDTH; i+=8) {
+			for (tj=0; tj < 4; tj++) {
+				val = 0;
+				if ((i/8)%2 == 1) {
+					val = 8;
+				}
+				for (ti=0; ti < 8; ti++) {
+					alpha = (15-val) & 0xf;
+					src[index++] = (val | ((alpha) << 4));
+					val++;
+				}
+			}
+		}
+	}
+
+	// Run test
+	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+	// Compare the results
+	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
+
+	if (comp != 0) {
+		printf("Decoding error=\n");
+		printf("EXAMPLE=\n");
+		printTestImage(example);
+
+		printf("DECODED=\n");
+		printTestImage(dst);
+	}
+
+
+    EXPECT_EQ (0, comp);
+
+}
+
 
