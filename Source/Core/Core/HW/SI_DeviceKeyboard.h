@@ -26,7 +26,8 @@ protected:
     CMD_POLL = 0x54
   };
 
-  union UCommand {
+  union UCommand
+  {
     u32 Hex;
     struct
     {

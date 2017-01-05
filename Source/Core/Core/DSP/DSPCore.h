@@ -225,7 +225,8 @@ struct DSP_Regs
   u16 cr;
   u16 sr;
 
-  union {
+  union
+  {
     u64 val;
     struct
     {
@@ -236,7 +237,8 @@ struct DSP_Regs
     };
   } prod;
 
-  union {
+  union
+  {
     u32 val;
     struct
     {
@@ -245,7 +247,8 @@ struct DSP_Regs
     };
   } ax[2];
 
-  union {
+  union
+  {
     u64 val;
     struct
     {

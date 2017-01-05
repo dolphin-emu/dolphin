@@ -295,7 +295,8 @@ typedef struct
 } l2cap_cfg_opt_t;
 
 /* L2CAP configuration option value */
-typedef union {
+typedef union
+{
   uint16_t mtu;        /* L2CAP_OPT_MTU */
   uint16_t flush_timo; /* L2CAP_OPT_FLUSH_TIMO */
   l2cap_qos_t qos;     /* L2CAP_OPT_QOS */
@@ -342,7 +343,8 @@ typedef struct
                    */
 } l2cap_info_rsp_cp;
 
-typedef union {
+typedef union
+{
   /* L2CAP_CONNLESS_MTU */
   struct
   {

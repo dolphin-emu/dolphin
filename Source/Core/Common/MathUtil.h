@@ -57,14 +57,16 @@ static const u64 DOUBLE_SIGN = 0x8000000000000000ULL, DOUBLE_EXP = 0x7FF00000000
 static const u32 FLOAT_SIGN = 0x80000000, FLOAT_EXP = 0x7F800000, FLOAT_FRAC = 0x007FFFFF,
                  FLOAT_ZERO = 0x00000000;
 
-union IntDouble {
+union IntDouble
+{
   double d;
   u64 i;
 
   explicit IntDouble(u64 _i) : i(_i) {}
   explicit IntDouble(double _d) : d(_d) {}
 };
-union IntFloat {
+union IntFloat
+{
   float f;
   u32 i;
 

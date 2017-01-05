@@ -37,7 +37,8 @@ distribution.
 #include "Common/CommonTypes.h"
 
 #pragma pack(push, 1)
-union SRAMFlags {
+union SRAMFlags
+{
   u8 Hex;
   struct
   {
@@ -53,7 +54,8 @@ union SRAMFlags {
   };
 };
 
-union SRAM {
+union SRAM
+{
   u8 p_SRAM[64];
   struct  // Stored configuration value from the system SRAM area
   {

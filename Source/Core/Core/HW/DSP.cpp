@@ -65,7 +65,8 @@ enum
 };
 
 // UARAMCount
-union UARAMCount {
+union UARAMCount
+{
   u32 Hex;
   struct
   {
@@ -75,7 +76,8 @@ union UARAMCount {
 };
 
 // Blocks are 32 bytes.
-union UAudioDMAControl {
+union UAudioDMAControl
+{
   u16 Hex;
   struct
   {
@@ -139,7 +141,8 @@ static AudioDMA g_audioDMA;
 static ARAM_DMA g_arDMA;
 UDSPControl g_dspState;
 
-union ARAM_Info {
+union ARAM_Info
+{
   u16 Hex;
   struct
   {

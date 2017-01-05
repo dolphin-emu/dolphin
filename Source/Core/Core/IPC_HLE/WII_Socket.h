@@ -174,7 +174,8 @@ class WiiSocket
   {
     u32 _CommandAddress;
     bool is_ssl;
-    union {
+    union
+    {
       NET_IOCTL net_type;
       SSL_IOCTL ssl_type;
     };

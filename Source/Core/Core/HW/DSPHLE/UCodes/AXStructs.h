@@ -271,7 +271,8 @@ struct PBBiquadFilter
   u16 a2;
 };
 
-union PBInfImpulseResponseWM {
+union PBInfImpulseResponseWM
+{
   PBLowPassFilter lpf;
   PBBiquadFilter biquad;
 };
