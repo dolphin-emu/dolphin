@@ -32,7 +32,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
   {
     if (!forceCreation)
     {
-      if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename.c_str()))
+      if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memory Card?", filename.c_str()))
         return;
       shift_jis =
           AskYesNoT("Format as Shift JIS (Japanese)?\nChoose no for Windows-1252 (Western)");
@@ -190,7 +190,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift
     }
     else
     {
-      PanicAlertT("Failed to read block %u of the save data\nMemcard may be truncated\nFile "
+      PanicAlertT("Failed to read block %u of the save data\nMemory card may be truncated\nFile "
                   "position: 0x%" PRIx64,
                   i, mcdFile.Tell());
       m_valid = false;

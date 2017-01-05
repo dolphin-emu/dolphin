@@ -165,7 +165,7 @@ bool CMemcardManager::SaveSettings()
 
 void CMemcardManager::CreateGUIControls()
 {
-  // Create the controls for both memcards
+  // Create the controls for both memory cards
   const int space5 = FromDIP(5);
 
   const char* ARROW[2] = {"<-", "->"};
@@ -286,7 +286,7 @@ void CMemcardManager::ChangePath(int slot)
   if (!m_MemcardPath[SLOT_A]->GetPath().CmpNoCase(m_MemcardPath[SLOT_B]->GetPath()))
   {
     if (m_MemcardPath[slot]->GetPath().length())
-      wxMessageBox(_("Memcard already opened"));
+      wxMessageBox(_("Memory card already opened"));
   }
   else
   {
@@ -423,7 +423,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
     }
     break;
   case NOMEMCARD:
-    WxUtils::ShowErrorDialog(_("File is not recognized as a memcard"));
+    WxUtils::ShowErrorDialog(_("File is not recognized as a memory card"));
     break;
   case OPENFAIL:
     WxUtils::ShowErrorDialog(_("File could not be opened\nor does not have a valid extension"));
@@ -447,7 +447,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
     WxUtils::ShowErrorDialog(_("The save you are trying to copy has an invalid file size."));
     break;
   case TITLEPRESENT:
-    WxUtils::ShowErrorDialog(_("Memcard already has a save for this title."));
+    WxUtils::ShowErrorDialog(_("Memory card already has a save for this title."));
     break;
   case SAVFAIL:
     WxUtils::ShowErrorDialog(
@@ -471,7 +471,7 @@ bool CMemcardManager::CopyDeleteSwitch(u32 error, int slot)
   case DELETE_FAIL:
     WxUtils::ShowErrorDialog(
         _("Order of files in the File Directory do not match the block order\n"
-          "Right click and export all of the saves,\nand import the saves to a new memcard\n"));
+          "Right click and export all of the saves,\nand import the saves to a new memory card\n"));
     break;
   default:
     WxUtils::ShowErrorDialog(_("Unknown memory card error"));
@@ -594,7 +594,7 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
     int answer = wxMessageBox(
         wxString::Format(
             _("Warning: This will overwrite any existing saves that are in the folder:\n"
-              "%s\nand have the same name as a file on your memcard\nContinue?"),
+              "%s\nand have the same name as a file on your memory card\nContinue?"),
             path1.c_str()),
         _("Warning"), wxYES_NO);
     if (answer == wxYES)
@@ -817,7 +817,8 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
     SetItemState(item, wxLIST_STATE_FOCUSED, wxLIST_STATE_FOCUSED);
 
     int slot = GetId() - ID_MEMCARDLIST_A;
-    popupMenu.Append(ID_COPYFROM_A + slot, wxString::Format(_("Copy to Memcard %c"), 'B' - slot));
+    popupMenu.Append(ID_COPYFROM_A + slot,
+                     wxString::Format(_("Copy to Memory Card %c"), 'B' - slot));
     popupMenu.Append(ID_DELETE_A + slot, _("Delete Save"));
     popupMenu.Append(ID_SAVEIMPORT_A + slot, _("Import Save"));
     popupMenu.Append(ID_SAVEEXPORT_A + slot, _("Export Save"));
@@ -831,7 +832,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
     popupMenu.Append(ID_PREVPAGE_A + slot, _("Previous Page"));
     popupMenu.Append(ID_NEXTPAGE_A + slot, _("Next Page"));
     popupMenu.Append(ID_MEMCARDPATH_A + slot,
-                     wxString::Format(_("Set as default Memcard %c"), 'A' + slot));
+                     wxString::Format(_("Set as default Memory Card %c"), 'A' + slot));
     popupMenu.AppendCheckItem(ID_USEPAGES, _("Enable pages"));
 
     popupMenu.FindItem(ID_PREVPAGE_A + slot)->Enable(prevPage && __mcmSettings.usePages);
