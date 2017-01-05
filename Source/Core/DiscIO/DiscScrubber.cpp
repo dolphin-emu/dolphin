@@ -142,7 +142,7 @@ bool DiscScrubber::ParseDisc()
   // Mark the header as used - it's mostly 0s anyways
   MarkAsUsed(0, 0x50000);
 
-  for (int x = 0; x < 4; x++)
+  for (u32 x = 0; x < 4; x++)
   {
     if (!ReadFromVolume(0x40000 + (x * 8) + 0, m_partition_group[x].num_partitions, false) ||
         !ReadFromVolume(0x40000 + (x * 8) + 4, m_partition_group[x].partitions_offset, false))
