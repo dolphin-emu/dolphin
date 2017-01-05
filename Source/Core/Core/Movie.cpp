@@ -172,7 +172,7 @@ std::string GetInputDisplay()
     for (int i = 0; i < 8; ++i)
     {
       if ((s_controllers & (1 << i)) != 0)
-        input_display += s_InputDisplay[i];
+        input_display += s_InputDisplay[i] + '\n';
     }
   }
   return input_display;
@@ -184,7 +184,7 @@ std::string GetRTCDisplay()
   time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
   tm* gm_time = gmtime(&current_time);
   char buffer[256];
-  strftime(buffer, sizeof(buffer), "Date/Time: %c", gm_time);
+  strftime(buffer, sizeof(buffer), "Date/Time: %c\n", gm_time);
   std::stringstream format_time;
   format_time << buffer;
   return format_time.str();
