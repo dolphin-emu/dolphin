@@ -20,7 +20,7 @@
 
 namespace DiscIO
 {
-#define CLUSTER_SIZE 0x8000
+constexpr size_t CLUSTER_SIZE = 0x8000;
 
 DiscScrubber::DiscScrubber() = default;
 DiscScrubber::~DiscScrubber() = default;
@@ -43,17 +43,17 @@ bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
 
   m_file_size = m_disc->GetSize();
 
-  u32 numClusters = (u32)(m_file_size / CLUSTER_SIZE);
+  const size_t num_clusters = static_cast<size_t>(m_file_size / CLUSTER_SIZE);
 
   // Warn if not DVD5 or DVD9 size
-  if (numClusters != 0x23048 && numClusters != 0x46090)
+  if (num_clusters != 0x23048 && num_clusters != 0x46090)
   {
-    WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename.c_str(),
-             numClusters);
+    WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%zx blocks)", filename.c_str(),
+             num_clusters);
   }
 
   // Table of free blocks
-  m_free_table.resize(numClusters, 1);
+  m_free_table.resize(num_clusters, 1);
 
   // Fill out table of free blocks
   const bool success = ParseDisc();
