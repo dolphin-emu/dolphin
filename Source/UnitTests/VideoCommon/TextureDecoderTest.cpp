@@ -287,3 +287,45 @@ TEST (TextureDecoderTest, DecodeBytes_C4_RGB5A3) {
 
 }
 
+
+
+/* I4 (4 bit gray scale color, 8x8 tiles) */
+TEST (TextureDecoderTest, DecodeBytes_I4) { 
+	int comp = 0;
+	int width = TEST_WIDTH;
+    int height = TEST_HEIGHT;
+	u32 dst[TEST_WIDTH*TEST_HEIGHT];
+	u32 example[TEST_WIDTH*TEST_HEIGHT];
+	u8 src[TEST_HEIGHT*(TEST_WIDTH/2)];
+    int texformat = GX_TF_I4;
+
+    u16* tlut = NULL;
+    TlutFormat tlutfmt = (TlutFormat) 0;
+
+	int i, j, val;
+
+	// Initizatize the example
+	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
+		for (j=0; j<16; j++) {
+		  val = (j << 4) | j;
+		  example[i+j] = ( val | (val << 8) | (val << 16) | (0xFF << 24) );
+		}
+	}
+
+	comp = testDecoder_DecodeC4(example, dst, src, width, height, texformat, tlut, tlutfmt);
+
+	if (comp != 0) {
+		printf("Decoding error=\n");
+		printf("EXAMPLE=\n");
+		printTestImage(example);
+
+		printf("DECODED=\n");
+		printTestImage(dst);
+	}
+
+
+    EXPECT_EQ (0, comp);
+
+}
+
+

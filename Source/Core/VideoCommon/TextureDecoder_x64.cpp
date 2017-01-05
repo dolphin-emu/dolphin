@@ -266,6 +266,8 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
   {
     const __m128i kMask_x0f = _mm_set1_epi32(0x0f0f0f0fL);
     const __m128i kMask_xf0 = _mm_set1_epi32(0xf0f0f0f0L);
+    const __m128i kMask_xff000000 = _mm_set1_epi32(0xFF000000L);
+
 #if _M_SSE >= 0x301
     // xsacha optimized with SSSE3 intrinsics
     // Produces a ~40% speed improvement over SSE2 implementation
@@ -275,6 +277,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
       const __m128i maskB3A2 = _mm_set_epi8(11, 11, 11, 11, 3, 3, 3, 3, 10, 10, 10, 10, 2, 2, 2, 2);
       const __m128i maskD5C4 = _mm_set_epi8(13, 13, 13, 13, 5, 5, 5, 5, 12, 12, 12, 12, 4, 4, 4, 4);
       const __m128i maskF7E6 = _mm_set_epi8(15, 15, 15, 15, 7, 7, 7, 7, 14, 14, 14, 14, 6, 6, 6, 6);
+
       for (int y = 0; y < height; y += 8)
         for (int x = 0, yStep = (y / 8) * Wsteps8; x < width; x += 8, yStep++)
           for (int iy = 0, xStep = 4 * yStep; iy < 8; iy += 2, xStep++)
@@ -286,23 +289,38 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
             const __m128i i11 = _mm_or_si128(i1, _mm_srli_epi16(i1, 4));
 
             // Now we do same as above for the second half of the byte
+            // (00000000 00000000 HhGgFfEe DdCcBbAa) -> (00000000 00000000 hhggffee ddccbbaa)
             const __m128i i2 = _mm_and_si128(r0, kMask_x0f);
             const __m128i i22 = _mm_or_si128(i2, _mm_slli_epi16(i2, 4));
 
             // Combine both sides
+            // (00000000 00000000 HHGGFFEE DDCCBBAA) (00000000 00000000 hhggffee ddccbbaa) -> (hhggffee ddccbbaa HHGGFFEE DDCCBBAA)
             const __m128i base = _mm_unpacklo_epi64(i11, i22);
+
             // Achieve the pattern visible in the masks.
+			// (hhggffee ddccbbaa HHGGFFEE DDCCBBAA) -> (bbbbbbbb BBBBBBBB aaaaaaaa AAAAAAAA)
             const __m128i o1 = _mm_shuffle_epi8(base, mask9180);
+			// (hhggffee ddccbbaa HHGGFFEE DDCCBBAA) -> (dddddddd DDDDDDDD cccccccc CCCCCCCC)
             const __m128i o2 = _mm_shuffle_epi8(base, maskB3A2);
+			// (hhggffee ddccbbaa HHGGFFEE DDCCBBAA) -> (ffffffff FFFFFFFF eeeeeeee EEEEEEEE)
             const __m128i o3 = _mm_shuffle_epi8(base, maskD5C4);
+			// (hhggffee ddccbbaa HHGGFFEE DDCCBBAA) -> (hhhhhhhh HHHHHHHH gggggggg GGGGGGGG)
             const __m128i o4 = _mm_shuffle_epi8(base, maskF7E6);
 
+			// Set Alpha to 0xFF
+			// (bbbbbbbb BBBBBBBB aaaaaaaa AAAAAAAA) -> (#FF#bbbbbb #FF#BBBBBB #FF#aaaaaa #FF#AAAAAA)
+			// TODO! Test this!
+            const __m128i oo1 = _mm_or_si128(o1, kMask_xff000000);
+            const __m128i oo2 = _mm_or_si128(o2, kMask_xff000000);
+            const __m128i oo3 = _mm_or_si128(o3, kMask_xff000000);
+            const __m128i oo4 = _mm_or_si128(o4, kMask_xff000000);
+
             // Write row 0:
-            _mm_storeu_si128((__m128i*)(dst + (y + iy) * width + x), o1);
-            _mm_storeu_si128((__m128i*)(dst + (y + iy) * width + x + 4), o2);
+            _mm_storeu_si128((__m128i*)(dst + (y + iy) * width + x), oo1);
+            _mm_storeu_si128((__m128i*)(dst + (y + iy) * width + x + 4), oo2);
             // Write row 1:
-            _mm_storeu_si128((__m128i*)(dst + (y + iy + 1) * width + x), o3);
-            _mm_storeu_si128((__m128i*)(dst + (y + iy + 1) * width + x + 4), o4);
+            _mm_storeu_si128((__m128i*)(dst + (y + iy + 1) * width + x), oo3);
+            _mm_storeu_si128((__m128i*)(dst + (y + iy + 1) * width + x + 4), oo4);
           }
     }
     else
@@ -379,12 +397,20 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
                                             _mm_and_si128(i261, kMask_xffffffff00000000));
             const __m128i o4 = _mm_or_si128(_mm_and_si128(i162, kMask_x00000000ffffffff),
                                             _mm_and_si128(i262, kMask_xffffffff00000000));
+
+
+			// Set Alpha to 0xFF
+            const __m128i oo1 = _mm_or_si128(o1, kMask_xff000000);
+            const __m128i oo2 = _mm_or_si128(o2, kMask_xff000000);
+            const __m128i oo3 = _mm_or_si128(o3, kMask_xff000000);
+            const __m128i oo4 = _mm_or_si128(o4, kMask_xff000000);
+
             // Write row 0:
-            _mm_storeu_si128((__m128i*)(dst + (y + iy) * width + x), o1);
-            _mm_storeu_si128((__m128i*)(dst + (y + iy) * width + x + 4), o2);
+            _mm_storeu_si128((__m128i*)(dst + (y + iy) * width + x), oo1);
+            _mm_storeu_si128((__m128i*)(dst + (y + iy) * width + x + 4), oo2);
             // Write row 1:
-            _mm_storeu_si128((__m128i*)(dst + (y + iy + 1) * width + x), o3);
-            _mm_storeu_si128((__m128i*)(dst + (y + iy + 1) * width + x + 4), o4);
+            _mm_storeu_si128((__m128i*)(dst + (y + iy + 1) * width + x), oo3);
+            _mm_storeu_si128((__m128i*)(dst + (y + iy + 1) * width + x + 4), oo4);
           }
     }
   }
