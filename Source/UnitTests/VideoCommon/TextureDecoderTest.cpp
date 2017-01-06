@@ -340,7 +340,7 @@ TEST (TextureDecoderTest, DecodeBytes_I4) {
 	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
 		for (j=0; j<16; j++) {
 		  val = (j << 4) | j;
-		  example[i+j] = ( val | (val << 8) | (val << 16) | (0xFF << 24) );
+		  example[i+j] = ( val | (val << 8) | (val << 16) | (val << 24) );
 		}
 	}
 
@@ -612,7 +612,7 @@ TEST (TextureDecoderTest, DecodeBytes_I8) {
 	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
 		for (j=0; j<16; j++) {
 		  val = j;
-		  example[i+j] = ( val | (val << 8) | (val << 16) | (0xFF << 24) );
+		  example[i+j] = ( val | (val << 8) | (val << 16) | (val << 24) );
 		}
 	}
 
