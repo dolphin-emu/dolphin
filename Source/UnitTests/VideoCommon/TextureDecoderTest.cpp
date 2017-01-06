@@ -923,6 +923,11 @@ TEST (TextureDecoderTest, DecodeBytes_C14X2_RGB565) {
 	tlut[14] = 0x7777;
     tlut[15] = 0xFFFF; // White
 
+	// Swap the color bytes to make them BIG ENDIAN
+	for (i=0; i<16; i++) {
+		tlut[i] = Common::swap16(tlut[i]);
+	}
+
 	// Initizatize the example
 	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
 		for (j=0; j<16; j++) {
@@ -994,6 +999,11 @@ TEST (TextureDecoderTest, DecodeBytes_C14X2_RGB5A3) {
 	tlut[14] = 0x7777;
     tlut[15] = 0xFFFF; // White
 
+	// Swap the color bytes to make them BIG ENDIAN
+	for (i=0; i<16; i++) {
+		tlut[i] = Common::swap16(tlut[i]);
+	}
+
 	// Initizatize the example
 	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
 		for (j=0; j<16; j++) {
@@ -1031,6 +1041,111 @@ TEST (TextureDecoderTest, DecodeBytes_C14X2_RGB5A3) {
 
 
     EXPECT_EQ (0, comp);
+}
+
+
+/* ===============================================================================================*/
+/* RGB565 (RGB565 color, no alpha, 4x4 tiles) */
+TEST (TextureDecoderTest, DecodeBytes_RGB565) { 
+	int comp = 0;
+	int width = TEST_WIDTH;
+    int height = TEST_HEIGHT;
+	u32 dst[TEST_WIDTH*TEST_HEIGHT];
+	u32 example[TEST_WIDTH*TEST_HEIGHT];
+	u16 src[TEST_HEIGHT*TEST_WIDTH];
+    int texformat = GX_TF_RGB565;
+
+    u16* tlut = NULL;
+    TlutFormat tlutfmt = (TlutFormat) 0;
+
+	int i, j, val;
+	int r, g, b;
+
+
+	// 16 test colors
+    u16 test[16] = {
+		0x0000, // Black
+		0xF800, // Red
+		0x07E0, // Green
+		0x001F, // Blue
+
+		0x000F,
+		0x00F0,
+		0x0F00,
+		0xF000,
+
+		0x1111,
+		0x2222,
+		0x3333,
+		0x4444,
+
+		0x5555,
+		0x6666,
+		0x7777,
+		0xFFFF // White
+	};
+
+	// Swap the color bytes to make them BIG ENDIAN
+	for (i=0; i<16; i++) {
+		test[i] = Common::swap16(test[i]);
+	}
+
+	// Initizatize the example
+	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
+		for (j=0; j<16; j++) {
+			val = Common::swap16(test[j]) & 0xFFFF;
+
+			r = ((val >> 11) & 0x1f) << 3;
+			g = ((val >> 5) & 0x3f) << 2;
+			b = ((val)&0x1f) << 3;
+			example[i+j] = (0xFF << 24) | (b << 16) | (g << 8) | r;
+		}
+	}
+
+
+	int ti, tj, index;
+
+	// Initialize texture (4x4 tiles)
+	index = 0;
+	for (j=0; j<TEST_HEIGHT; j+=4) {
+		for (i=0; i<TEST_WIDTH; i+=4) {
+			for (tj=0; tj < 4; tj++) {
+				val = 0;
+				if ((i/4)%4 == 1) {
+					val = 4;
+				}
+				if ((i/4)%4 == 2) {
+					val = 8;
+				}
+				if ((i/4)%4 == 3) {
+					val = 12;
+				}
+				for (ti=0; ti < 4; ti++) {
+					src[index++] = test[val];
+					val++;
+				}
+			}
+		}
+	}
+
+	// Run test
+	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+	// Compare the results
+	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
+
+	if (comp != 0) {
+		printf("Decoding error=\n");
+		printf("EXAMPLE=\n");
+		printTestImage(example);
+
+		printf("DECODED=\n");
+		printTestImage(dst);
+	}
+
+
+    EXPECT_EQ (0, comp);
+
 }
 
 

@@ -651,7 +651,6 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
     // Produces an ~78% speed improvement over reference C implementation.
     const __m128i kMaskR0 = _mm_set1_epi32(0x000000F8);
     const __m128i kMaskG0 = _mm_set1_epi32(0x0000FC00);
-    const __m128i kMaskG1 = _mm_set1_epi32(0x00000300);
     const __m128i kMaskB0 = _mm_set1_epi32(0x00F80000);
     const __m128i kAlpha = _mm_set1_epi32(0xFF000000);
     for (int y = 0; y < height; y += 4)
@@ -669,16 +668,11 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           // 0b_gggBBBbb_RRRrrGGg_gggBBBbb_RRRrrGGg
           const __m128i c0 = _mm_unpacklo_epi16(rgb565x4, rgb565x4);
 
-          // swizzle 0b_gggBBBbb_RRRrrGGg_gggBBBbb_RRRrrGGg
-          //      to 0b_11111111_BBBbbBBB_GGggggGG_RRRrrRRR
 
           // 0b_gggBBBbb_RRRrrGGg_gggBBBbb_RRRrrGGg &
           // 0b_00000000_00000000_00000000_11111000 =
           // 0b_00000000_00000000_00000000_RRRrr000
           const __m128i r0 = _mm_and_si128(c0, kMaskR0);
-          // 0b_00000000_00000000_00000000_RRRrr000 >> 5 [32] =
-          // 0b_00000000_00000000_00000000_00000RRR
-          const __m128i r1 = _mm_srli_epi32(r0, 5);
 
           // 0b_gggBBBbb_RRRrrGGg_gggBBBbb_RRRrrGGg >> 3 [32] =
           // 0b_000gggBB_BbbRRRrr_GGggggBB_BbbRRRrr &
@@ -686,25 +680,16 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           // 0b_00000000_00000000_GGgggg00_00000000
           const __m128i gtmp = _mm_srli_epi32(c0, 3);
           const __m128i g0 = _mm_and_si128(gtmp, kMaskG0);
-          // 0b_GGggggBB_BbbRRRrr_GGggggBB_Bbb00000 >> 6 [32] =
-          // 0b_000000GG_ggggBBBb_bRRRrrGG_ggggBBBb &
-          // 0b_00000000_00000000_00000011_00000000 =
-          // 0b_00000000_00000000_000000GG_00000000 =
-          const __m128i g1 = _mm_and_si128(_mm_srli_epi32(gtmp, 6), kMaskG1);
 
           // 0b_gggBBBbb_RRRrrGGg_gggBBBbb_RRRrrGGg >> 5 [32] =
           // 0b_00000ggg_BBBbbRRR_rrGGgggg_BBBbbRRR &
           // 0b_00000000_11111000_00000000_00000000 =
           // 0b_00000000_BBBbb000_00000000_00000000
           const __m128i b0 = _mm_and_si128(_mm_srli_epi32(c0, 5), kMaskB0);
-          // 0b_00000000_BBBbb000_00000000_00000000 >> 5 [16] =
-          // 0b_00000000_00000BBB_00000000_00000000
-          const __m128i b1 = _mm_srli_epi16(b0, 5);
-
+          
           // OR together the final RGB bits and the alpha component:
           const __m128i abgr888x4 =
-              _mm_or_si128(_mm_or_si128(_mm_or_si128(r0, r1), _mm_or_si128(g0, g1)),
-                           _mm_or_si128(_mm_or_si128(b0, b1), kAlpha));
+              _mm_or_si128(_mm_or_si128(r0, g0), _mm_or_si128(b0, kAlpha));
 
           __m128i* ptr = (__m128i*)(dst + (y + iy) * width + x);
           _mm_storeu_si128(ptr, abgr888x4);
