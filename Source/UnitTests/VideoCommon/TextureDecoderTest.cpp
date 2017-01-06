@@ -1263,3 +1263,175 @@ TEST (TextureDecoderTest, DecodeBytes_RGB5A3) {
 
 }
 
+
+
+/* ===============================================================================================*/
+/* RGBA8 (RGBA8 colors, 4x4 tiles) */
+TEST (TextureDecoderTest, DecodeBytes_RGBA8) { 
+	int comp = 0;
+	int width = TEST_WIDTH;
+    int height = TEST_HEIGHT;
+	u32 dst[TEST_WIDTH*TEST_HEIGHT];
+	u32 example[TEST_WIDTH*TEST_HEIGHT];
+	u8 src[TEST_HEIGHT*TEST_WIDTH*4];
+    int texformat = GX_TF_RGBA8;
+
+    u16* tlut = NULL;
+    TlutFormat tlutfmt = (TlutFormat) 0;
+
+	int i, j, val;
+
+	// 16 test colors
+    u32 test[16] = {
+		0xff000000, // Black
+		0xff0000ff, // Red
+		0xff00ff00, // Green
+		0xffff0000, // Blue
+
+		0x00000000, // Transparent
+		0x11110000, 
+		0x00222200, 
+		0x00003333,
+
+		0x04444000, 
+		0x00055550, 
+		0x00666600,
+		0x77000077,
+
+		0x00000008,
+		0x00000990,
+		0x00AAAAA0,
+		0xFFFFFFFF // White
+	};
+
+	// Initizatize the example
+	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
+		for (j=0; j<16; j++) {
+		  example[i+j] = test[j];
+		}
+	}
+
+
+	int index;
+
+	// Initialize texture (8x8 tiles)
+	index = 0;
+	val = 0;
+	for (j=0; j<TEST_HEIGHT; j+=4) {
+		for (i=0; i<TEST_WIDTH; i+=4) {
+			val = 0;
+			if ((i/4)%4 == 1) {
+				val = 4;
+			}
+			if ((i/4)%4 == 2) {
+				val = 8;
+			}
+			if ((i/4)%4 == 3) {
+				val = 12;
+			}
+
+
+			// First row
+			src[index++] = (test[val] >> 24) & 0xFF;
+			src[index++] = (test[val]) & 0xFF;
+			src[index++] = (test[val+1] >> 24) & 0xFF;
+			src[index++] = (test[val+1]) & 0xFF;
+			src[index++] = (test[val+2] >> 24) & 0xFF;
+			src[index++] = (test[val+2]) & 0xFF;
+			src[index++] = (test[val+3] >> 24) & 0xFF;
+			src[index++] = (test[val+3]) & 0xFF;
+
+			src[index++] = (test[val] >> 24) & 0xFF;
+			src[index++] = (test[val]) & 0xFF;
+			src[index++] = (test[val+1] >> 24) & 0xFF;
+			src[index++] = (test[val+1]) & 0xFF;
+			src[index++] = (test[val+2] >> 24) & 0xFF;
+			src[index++] = (test[val+2]) & 0xFF;
+			src[index++] = (test[val+3] >> 24) & 0xFF;
+			src[index++] = (test[val+3]) & 0xFF;
+
+
+			// Second row
+			src[index++] = (test[val] >> 24) & 0xFF;
+			src[index++] = (test[val]) & 0xFF;
+			src[index++] = (test[val+1] >> 24) & 0xFF;
+			src[index++] = (test[val+1]) & 0xFF;
+			src[index++] = (test[val+2] >> 24) & 0xFF;
+			src[index++] = (test[val+2]) & 0xFF;
+			src[index++] = (test[val+3] >> 24) & 0xFF;
+			src[index++] = (test[val+3]) & 0xFF;
+
+			src[index++] = (test[val] >> 24) & 0xFF;
+			src[index++] = (test[val]) & 0xFF;
+			src[index++] = (test[val+1] >> 24) & 0xFF;
+			src[index++] = (test[val+1]) & 0xFF;
+			src[index++] = (test[val+2] >> 24) & 0xFF;
+			src[index++] = (test[val+2]) & 0xFF;
+			src[index++] = (test[val+3] >> 24) & 0xFF;
+			src[index++] = (test[val+3]) & 0xFF;
+
+			// Thrid row
+			src[index++] = (test[val] >> 8) & 0xFF;
+			src[index++] = (test[val] >> 16) & 0xFF;
+			src[index++] = (test[val+1] >> 8) & 0xFF;
+			src[index++] = (test[val+1] >> 16) & 0xFF;
+			src[index++] = (test[val+2] >> 8) & 0xFF;
+			src[index++] = (test[val+2] >> 16) & 0xFF;
+			src[index++] = (test[val+3] >> 8) & 0xFF;
+			src[index++] = (test[val+3] >> 16) & 0xFF;
+
+			src[index++] = (test[val] >> 8) & 0xFF;
+			src[index++] = (test[val] >> 16) & 0xFF;
+			src[index++] = (test[val+1] >> 8) & 0xFF;
+			src[index++] = (test[val+1] >> 16) & 0xFF;
+			src[index++] = (test[val+2] >> 8) & 0xFF;
+			src[index++] = (test[val+2] >> 16) & 0xFF;
+			src[index++] = (test[val+3] >> 8) & 0xFF;
+			src[index++] = (test[val+3] >> 16) & 0xFF;
+
+
+			// Forth row
+			src[index++] = (test[val] >> 8) & 0xFF;
+			src[index++] = (test[val] >> 16) & 0xFF;
+			src[index++] = (test[val+1] >> 8) & 0xFF;
+			src[index++] = (test[val+1] >> 16) & 0xFF;
+			src[index++] = (test[val+2] >> 8) & 0xFF;
+			src[index++] = (test[val+2] >> 16) & 0xFF;
+			src[index++] = (test[val+3] >> 8) & 0xFF;
+			src[index++] = (test[val+3] >> 16) & 0xFF;
+
+			src[index++] = (test[val] >> 8) & 0xFF;
+			src[index++] = (test[val] >> 16) & 0xFF;
+			src[index++] = (test[val+1] >> 8) & 0xFF;
+			src[index++] = (test[val+1] >> 16) & 0xFF;
+			src[index++] = (test[val+2] >> 8) & 0xFF;
+			src[index++] = (test[val+2] >> 16) & 0xFF;
+			src[index++] = (test[val+3] >> 8) & 0xFF;
+			src[index++] = (test[val+3] >> 16) & 0xFF;
+
+
+			
+		}
+	}
+
+	// Run test
+	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+	// Compare the results
+	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
+
+	if (comp != 0) {
+		printf("Decoding error=\n");
+		printf("EXAMPLE=\n");
+		printTestImage(example);
+
+		printf("DECODED=\n");
+		printTestImage(dst);
+	}
+
+
+    EXPECT_EQ (0, comp);
+
+}
+
+
