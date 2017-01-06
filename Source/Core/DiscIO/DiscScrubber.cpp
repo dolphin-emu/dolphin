@@ -20,7 +20,7 @@
 
 namespace DiscIO
 {
-#define CLUSTER_SIZE 0x8000
+constexpr size_t CLUSTER_SIZE = 0x8000;
 
 DiscScrubber::DiscScrubber() = default;
 DiscScrubber::~DiscScrubber() = default;
@@ -32,7 +32,7 @@ bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
 
   if (CLUSTER_SIZE % m_block_size != 0)
   {
-    ERROR_LOG(DISCIO, "Block size %i is not a factor of 0x8000, scrubbing not possible",
+    ERROR_LOG(DISCIO, "Block size %u is not a factor of 0x8000, scrubbing not possible",
               m_block_size);
     return false;
   }
@@ -43,17 +43,17 @@ bool DiscScrubber::SetupScrub(const std::string& filename, int block_size)
 
   m_file_size = m_disc->GetSize();
 
-  u32 numClusters = (u32)(m_file_size / CLUSTER_SIZE);
+  const size_t num_clusters = static_cast<size_t>(m_file_size / CLUSTER_SIZE);
 
   // Warn if not DVD5 or DVD9 size
-  if (numClusters != 0x23048 && numClusters != 0x46090)
+  if (num_clusters != 0x23048 && num_clusters != 0x46090)
   {
-    WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%x blocks)", filename.c_str(),
-             numClusters);
+    WARN_LOG(DISCIO, "%s is not a standard sized Wii disc! (%zx blocks)", filename.c_str(),
+             num_clusters);
   }
 
   // Table of free blocks
-  m_free_table.resize(numClusters, 1);
+  m_free_table.resize(num_clusters, 1);
 
   // Fill out table of free blocks
   const bool success = ParseDisc();
@@ -142,7 +142,7 @@ bool DiscScrubber::ParseDisc()
   // Mark the header as used - it's mostly 0s anyways
   MarkAsUsed(0, 0x50000);
 
-  for (int x = 0; x < 4; x++)
+  for (u32 x = 0; x < 4; x++)
   {
     if (!ReadFromVolume(0x40000 + (x * 8) + 0, m_partition_group[x].num_partitions, false) ||
         !ReadFromVolume(0x40000 + (x * 8) + 4, m_partition_group[x].partitions_offset, false))
@@ -219,7 +219,7 @@ bool DiscScrubber::ParsePartitionData(Partition& partition)
   std::unique_ptr<IFileSystem> filesystem(CreateFileSystem(m_disc.get()));
   if (!filesystem)
   {
-    ERROR_LOG(DISCIO, "Failed to create filesystem for group %d partition %u",
+    ERROR_LOG(DISCIO, "Failed to create filesystem for group %u partition %u",
               partition.group_number, partition.number);
     parsed_ok = false;
   }
@@ -247,7 +247,7 @@ bool DiscScrubber::ParsePartitionData(Partition& partition)
                 partition.header.fst_size);
 
     // Go through the filesystem and mark entries as used
-    for (SFileInfo file : filesystem->GetFileList())
+    for (const SFileInfo& file : filesystem->GetFileList())
     {
       DEBUG_LOG(DISCIO, "%s", file.m_FullPath.empty() ? "/" : file.m_FullPath.c_str());
       if ((file.m_NameOffset & 0x1000000) == 0)
