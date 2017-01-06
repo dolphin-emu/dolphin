@@ -698,6 +698,20 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
   break;
   case GX_TF_RGB5A3:
   {
+    const __m128i kMask_x80 = _mm_set1_epi32(0x00000080L);
+    const __m128i kMaskR0 = _mm_set1_epi32(0x000000F8);
+    const __m128i kMaskG0 = _mm_set1_epi32(0x0000F800);
+    const __m128i kMaskB0 = _mm_set1_epi32(0x00F80000);
+    const __m128i kAlpha =  _mm_set1_epi32(0xFF000000);
+    const __m128i kZero =   _mm_set1_epi32(0x00000000);
+
+    const __m128i kMaskR1 = _mm_set1_epi32(0x000000F0);
+    const __m128i kMaskG1 = _mm_set1_epi32(0x0000F000);
+    const __m128i kMaskB1 = _mm_set1_epi32(0x00F00000);
+    const __m128i kMaskA1 = _mm_set1_epi32(0xE0000000);
+
+
+#if _M_SSE >= 0x301
     const __m128i kMask_x1f = _mm_set1_epi32(0x0000001fL);
     const __m128i kMask_x0f = _mm_set1_epi32(0x0000000fL);
     const __m128i kMask_x07 = _mm_set1_epi32(0x00000007L);
@@ -705,7 +719,8 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
     // for the RGB555 case when (s[x] & 0x8000) is true for all pixels.
     const __m128i aVxff00 = _mm_set1_epi32(0xFF000000L);
 
-#if _M_SSE >= 0x301
+
+
     // xsacha optimized with SSSE3 intrinsics (2 in 4 cases)
     // Produces a ~10% speed improvement over SSE2 implementation
     if (cpu_info.bSSSE3)
@@ -810,103 +825,103 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
           for (int iy = 0, xStep = 4 * yStep; iy < 4; iy++, xStep++)
           {
             u32* newdst = dst + (y + iy) * width + x;
-            const u16* newsrc = (const u16*)(src + 8 * xStep);
+            __m128i* dxtsrc = (__m128i*)(src + 8 * xStep);
+            // Load 4x 16-bit colors: (0000 0000 hgfe dcba)
+            // where hg, fe, ba, and dc are 16-bit colors in big-endian order
+            const __m128i rgb5A3x4 = _mm_loadl_epi64(dxtsrc);
 
-            // TODO: weak point
-            const u16 val0 = Common::swap16(newsrc[0]);
-            const u16 val1 = Common::swap16(newsrc[1]);
-            const u16 val2 = Common::swap16(newsrc[2]);
-            const u16 val3 = Common::swap16(newsrc[3]);
+			// RGB5A3 format can be either:
+			//  0AAARRRR GGGGBBBB --> Little endian: GGGGBBBB 0AAARRRR
+			//  1RRRRRGG GGGBBBBB --> Little endian: GGGBBBBB 1RRRRRGG
 
-            const __m128i valV = _mm_set_epi16(0, val3, 0, val2, 0, val1, 0, val0);
+            // Unpack the 16 bits RGB5A3 into 32 bits
+            const __m128i base = _mm_unpacklo_epi16(rgb5A3x4, rgb5A3x4);
 
-            // Need to check all 4 pixels' MSBs to ensure we can do data-parallelism:
-            if (((val0 & 0x8000) & (val1 & 0x8000) & (val2 & 0x8000) & (val3 & 0x8000)) == 0x8000)
-            {
-              // SSE2 case #1: all 4 pixels are in RGB555 and alpha = 0xFF.
+            // Calculate the (value & 0x80) to know in what format is every number
+			const __m128i hasAlpha = _mm_and_si128(base, kMask_x80);
+			const __m128i nonzero = _mm_cmpeq_epi32(hasAlpha, kMask_x80);
+			const __m128i zero = _mm_cmpeq_epi32(hasAlpha, kZero);
 
-              // Swizzle bits: 00012345 -> 12345123
 
-              // r0 = (((val0>>10) & 0x1f) << 3) | (((val0>>10) & 0x1f) >> 2);
-              const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 10), kMask_x1f);
-              const __m128i rV = _mm_or_si128(_mm_slli_epi16(tmprV, 3), _mm_srli_epi16(tmprV, 2));
+			// First, suppose that all the colors are in GGGBBBBB 1RRRRRGG format
+			// Unpacked that means GGGBBBBB 1RRRRRGG GGGBBBBB 1RRRRRGG
 
-              // g0 = (((val0>>5 ) & 0x1f) << 3) | (((val0>>5 ) & 0x1f) >> 2);
-              const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 5), kMask_x1f);
-              const __m128i gV = _mm_or_si128(_mm_slli_epi16(tmpgV, 3), _mm_srli_epi16(tmpgV, 2));
+            // 0b_GGGBBBBB 1RRRRRGG GGGBBBBB 1RRRRRGG << 1 [32] =
+            // 0b_GGBBBBB1 RRRRRGGG GGBBBBB1 RRRRRGG0 &
+            // 0b_00000000_00000000_00000000_11111000 =
+            // 0b_00000000_00000000_00000000_RRRRR000
+            const __m128i rtmp = _mm_slli_epi32(base, 1);
+            const __m128i r0 = _mm_and_si128(rtmp, kMaskR0);
 
-              // b0 = (((val0    ) & 0x1f) << 3) | (((val0    ) & 0x1f) >> 2);
-              const __m128i tmpbV = _mm_and_si128(valV, kMask_x1f);
-              const __m128i bV = _mm_or_si128(_mm_slli_epi16(tmpbV, 3), _mm_srli_epi16(tmpbV, 2));
+            // 0b_GGGBBBBB 1RRRRRGG GGGBBBBB 1RRRRRGG >> 2 [32] =
+            // 0b_00GGGBBB BB1RRRRR GGGGGBBB BB1RRRRR &
+            // 0b_00000000_00000000_11111000_00000000 =
+            // 0b_00000000_00000000_GGGGG000_00000000
+            const __m128i gtmp = _mm_srli_epi32(base, 2);
+            const __m128i g0 = _mm_and_si128(gtmp, kMaskG0);
 
-              // newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-              const __m128i final = _mm_or_si128(_mm_or_si128(rV, _mm_slli_epi32(gV, 8)),
-                                                 _mm_or_si128(_mm_slli_epi32(bV, 16), aVxff00));
+            // 0b_GGGBBBBB 1RRRRRGG GGGBBBBB 1RRRRRGG >> 5 [32] =
+            // 0b_00000GGG BBBBB1RR RRRGGGGG BBBBB1RR &
+            // 0b_00000000_11111000_00000000_00000000 =
+            // 0b_00000000_BBBBB000_00000000_00000000
+            const __m128i btmp = _mm_srli_epi32(base, 5);
+            const __m128i b0 = _mm_and_si128(btmp, kMaskB0);
 
-              // write the final result:
-              _mm_storeu_si128((__m128i*)newdst, final);
-            }
-            else if (((val0 & 0x8000) | (val1 & 0x8000) | (val2 & 0x8000) | (val3 & 0x8000)) ==
-                     0x0000)
-            {
-              // SSE2 case #2: all 4 pixels are in RGBA4443.
 
-              // Swizzle bits: 00001234 -> 12341234
+            // OR together the final RGB bits and the alpha component:
+            const __m128i xGGGBBBBB1RRRRRGG =
+                _mm_or_si128(_mm_or_si128(r0, g0), _mm_or_si128(b0, kAlpha));
 
-              // r0 = (((val0>>8 ) & 0xf) << 4) | ((val0>>8 ) & 0xf);
-              const __m128i tmprV = _mm_and_si128(_mm_srli_epi16(valV, 8), kMask_x0f);
-              const __m128i rV = _mm_or_si128(_mm_slli_epi16(tmprV, 4), tmprV);
+            // AND with the mask:
+            const __m128i tmp0 = _mm_and_si128(xGGGBBBBB1RRRRRGG, nonzero);
 
-              // g0 = (((val0>>4 ) & 0xf) << 4) | ((val0>>4 ) & 0xf);
-              const __m128i tmpgV = _mm_and_si128(_mm_srli_epi16(valV, 4), kMask_x0f);
-              const __m128i gV = _mm_or_si128(_mm_slli_epi16(tmpgV, 4), tmpgV);
 
-              // b0 = (((val0    ) & 0xf) << 4) | ((val0    ) & 0xf);
-              const __m128i tmpbV = _mm_and_si128(valV, kMask_x0f);
-              const __m128i bV = _mm_or_si128(_mm_slli_epi16(tmpbV, 4), tmpbV);
 
-              // a0 = (((val0>>12) & 0x7) << 5) | (((val0>>12) & 0x7) << 2) | (((val0>>12) & 0x7) >>
-              // 1);
-              const __m128i tmpaV = _mm_and_si128(_mm_srli_epi16(valV, 12), kMask_x07);
-              const __m128i aV =
-                  _mm_or_si128(_mm_slli_epi16(tmpaV, 5),
-                               _mm_or_si128(_mm_slli_epi16(tmpaV, 2), _mm_srli_epi16(tmpaV, 1)));
+			// After that, suppose that all the colors are in GGGGBBBB 0AAARRRR format
+			// Unpacked that means GGGGBBBB 0AAARRRR GGGGBBBB 0AAARRRR
 
-              // newdst[0] = r0 | (g0 << 8) | (b0 << 16) | (a0 << 24);
-              const __m128i final =
-                  _mm_or_si128(_mm_or_si128(rV, _mm_slli_epi32(gV, 8)),
-                               _mm_or_si128(_mm_slli_epi32(bV, 16), _mm_slli_epi32(aV, 24)));
+            // 0b_GGGGBBBB 0AAARRRR GGGGBBBB 0AAARRRR << 4 [32] =
+            // 0b_BBBB0AAA RRRRGGGG BBBB0AAA RRRR0000 &
+            // 0b_00000000_00000000_00000000_11110000 =
+            // 0b_00000000_00000000_00000000_RRRR0000
+            const __m128i rtmp1 = _mm_slli_epi32(base, 4);
+            const __m128i r1 = _mm_and_si128(rtmp1, kMaskR1);
 
-              // write the final result:
-              _mm_storeu_si128((__m128i*)newdst, final);
-            }
-            else
-            {
-              // TODO: Vectorise (Either 4-way branch or do both and select is better than this)
-              u32* vals = (u32*)&valV;
-              int r, g, b, a;
-              for (int i = 0; i < 4; ++i)
-              {
-                if (vals[i] & 0x8000)
-                {
-                  // Swizzle bits: 00012345 -> 12345123
-                  r = (((vals[i] >> 10) & 0x1f) << 3) | (((vals[i] >> 10) & 0x1f) >> 2);
-                  g = (((vals[i] >> 5) & 0x1f) << 3) | (((vals[i] >> 5) & 0x1f) >> 2);
-                  b = (((vals[i]) & 0x1f) << 3) | (((vals[i]) & 0x1f) >> 2);
-                  a = 0xFF;
-                }
-                else
-                {
-                  a = (((vals[i] >> 12) & 0x7) << 5) | (((vals[i] >> 12) & 0x7) << 2) |
-                      (((vals[i] >> 12) & 0x7) >> 1);
-                  // Swizzle bits: 00001234 -> 12341234
-                  r = (((vals[i] >> 8) & 0xf) << 4) | ((vals[i] >> 8) & 0xf);
-                  g = (((vals[i] >> 4) & 0xf) << 4) | ((vals[i] >> 4) & 0xf);
-                  b = (((vals[i]) & 0xf) << 4) | ((vals[i]) & 0xf);
-                }
-                newdst[i] = r | (g << 8) | (b << 16) | (a << 24);
-              }
-            }
+            // 0b_GGGGBBBB 0AAARRRR GGGGBBBB 0AAARRRR & =
+            // 0b_00000000_00000000_11110000_00000000 =
+            // 0b_00000000_00000000_GGGG0000_00000000
+            const __m128i g1 = _mm_and_si128(base, kMaskG1);
+
+            // 0b_GGGGBBBB 0AAARRRR GGGGBBBB 0AAARRRR >> 4 [32] =
+            // 0b_0000GGGG BBBB0AAA RRRRGGGG BBBB0AAA &
+            // 0b_00000000_11110000_00000000_00000000 =
+            // 0b_00000000_BBBB0000_00000000_00000000
+            const __m128i btmp1 = _mm_srli_epi32(base, 4);
+            const __m128i b1 = _mm_and_si128(btmp1, kMaskB1);
+
+
+            // 0b_GGGGBBBB 0AAARRRR GGGGBBBB 0AAARRRR << 9 [32] =
+            // 0b_AAARRRRG GGGBBBB0 AAARRRR0 00000000 &
+            // 0b_11100000_00000000_00000000_00000000 =
+            // 0b_AAA00000_00000000_00000000_00000000
+            const __m128i atmp1 = _mm_slli_epi32(base, 9);
+            const __m128i a1 = _mm_and_si128(atmp1, kMaskA1);
+
+
+            // OR together the final RGB bits and the alpha component:
+            const __m128i xGGGGBBBB0AAARRRR =
+                _mm_or_si128(_mm_or_si128(r1, g1), _mm_or_si128(b1, a1));
+
+            // AND with the mask:
+            const __m128i tmp1 = _mm_and_si128(xGGGGBBBB0AAARRRR, zero);
+
+            // OR together the two cases
+            const __m128i out = _mm_or_si128(tmp0, tmp1);
+
+            // write the final result:
+            _mm_storeu_si128((__m128i*)newdst, out);
+           
+
           }
     }
   }
