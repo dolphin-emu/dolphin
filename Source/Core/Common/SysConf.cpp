@@ -17,9 +17,9 @@
 
 #include "Core/Movie.h"
 
-SysConf::SysConf()
+SysConf::SysConf(const Common::FromWhichRoot root_type)
 {
-  UpdateLocation();
+  UpdateLocation(root_type);
 }
 
 SysConf::~SysConf()
@@ -50,6 +50,7 @@ bool SysConf::LoadFromFile(const std::string& filename)
   {
     File::CreateFullPath(filename);
     GenerateSysConf();
+    ApplySettingsFromMovie();
     return true;
   }
 
@@ -61,12 +62,10 @@ bool SysConf::LoadFromFile(const std::string& filename)
                   SYSCONF_SIZE, size))
     {
       GenerateSysConf();
+      ApplySettingsFromMovie();
       return true;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 
   File::IOFile f(filename, "rb");
@@ -76,18 +75,23 @@ bool SysConf::LoadFromFile(const std::string& filename)
     {
       m_Filename = filename;
       m_IsValid = true;
-      // Apply Wii settings from normal SYSCONF on Movie recording/playback
-      if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-      {
-        SetData("IPL.LNG", Movie::GetLanguage());
-        SetData("IPL.E60", Movie::IsPAL60());
-        SetData("IPL.PGS", Movie::IsProgressive());
-      }
+      ApplySettingsFromMovie();
       return true;
     }
   }
 
   return false;
+}
+
+// Apply Wii settings from normal SYSCONF on Movie recording/playback
+void SysConf::ApplySettingsFromMovie()
+{
+  if (!Movie::IsMovieActive())
+    return;
+
+  SetData("IPL.LNG", Movie::GetLanguage());
+  SetData("IPL.E60", Movie::IsPAL60());
+  SetData("IPL.PGS", Movie::IsProgressive());
 }
 
 bool SysConf::LoadFromFileInternal(File::IOFile&& file)
@@ -420,7 +424,7 @@ bool SysConf::Save()
   return SaveToFile(m_Filename);
 }
 
-void SysConf::UpdateLocation()
+void SysConf::UpdateLocation(const Common::FromWhichRoot root_type)
 {
   // if the old Wii User dir had a sysconf file save any settings that have been changed to it
   if (m_IsValid)
@@ -429,11 +433,8 @@ void SysConf::UpdateLocation()
   // Clear the old filename and set the default filename to the new user path
   // So that it can be generated if the file does not exist in the new location
   m_Filename.clear();
-  // Note: We don't use the dummy Wii root here (if in use) because this is
-  // all tied up with the configuration code.  In the future this should
-  // probably just be synced with the other settings.
-  m_FilenameDefault =
-      File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF;
+  // In the future the SYSCONF should probably just be synced with the other settings.
+  m_FilenameDefault = Common::RootUserPath(root_type) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF;
   Reload();
 }
 
