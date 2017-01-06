@@ -167,7 +167,7 @@ wxMenu* MainMenuBar::CreateMovieMenu() const
 wxMenu* MainMenuBar::CreateOptionsMenu() const
 {
   auto* const options_menu = new wxMenu;
-  options_menu->Append(wxID_PREFERENCES, _("Co&nfigure..."));
+  options_menu->Append(wxID_PREFERENCES, _("Co&nfiguration"));
   options_menu->AppendSeparator();
   options_menu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
   options_menu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
