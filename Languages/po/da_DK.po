@@ -12,8 +12,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-31 10:51+0100\n"
-"PO-Revision-Date: 2016-12-31 09:51+0000\n"
+"POT-Creation-Date: 2017-01-07 12:00+0100\n"
+"PO-Revision-Date: 2017-01-07 11:01+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Danish (Denmark) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/da_DK/)\n"
@@ -49,7 +49,7 @@ msgstr "(for mange til at vise)"
 msgid " Game : "
 msgstr "Spil:"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:744
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:754
 msgid "! NOT"
 msgstr "! IKKE"
 
@@ -57,12 +57,10 @@ msgstr "! IKKE"
 #, c-format
 msgid ""
 "\"%s\" does not exist.\n"
-" Create a new 16MB Memcard?"
+" Create a new 16MB Memory Card?"
 msgstr ""
-"\"%s\" eksistere ikke.\n"
-"Opret et nyt 16MB Memcard?"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:180
+#: Source/Core/DiscIO/CompressedBlob.cpp:181
 #, c-format
 msgid "\"%s\" failed to be scrubbed. Probably the image is corrupt."
 msgstr ""
@@ -83,7 +81,7 @@ msgstr "\"%s\" er en ugyldig GCM/ISO fil, eller er ikke en GC/Wii ISO."
 msgid "%1$sCopy%1$s"
 msgstr "%1$sKopiér%1$s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:232
+#: Source/Core/DiscIO/CompressedBlob.cpp:230
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i af %i blokke. Komprimeringsforhold %i%%"
@@ -169,7 +167,7 @@ msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr "%s IPL fundet i %s mappen. Disken genkendes muligvis ikke"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:186
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:364
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:365
 #, c-format
 msgid "%s already exists, overwrite?"
 msgstr "%s eksisterer allerede, ønsker du at overskrive?"
@@ -256,7 +254,7 @@ msgstr "%zu FIFO-bytes"
 msgid "%zu memory bytes"
 msgstr "%zu hukommelses-bytes"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:743
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:753
 msgid "&& AND"
 msgstr "&& OG"
 
@@ -448,13 +446,13 @@ msgstr ""
 msgid "&Log JIT Instruction Coverage"
 msgstr ""
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:215
-msgid "&Memcard Manager (GC)"
-msgstr "&Memcard Manager (GC)"
-
 #: Source/Core/DolphinWX/MainMenuBar.cpp:309
 msgid "&Memory"
 msgstr "&Hukommelse"
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:215
+msgid "&Memory Card Manager (GC)"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:46
 msgid "&Movie"
@@ -592,7 +590,7 @@ msgstr "(fra)"
 msgid "+"
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:745
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:755
 msgid "+ ADD"
 msgstr "+ TILFØJ"
 
@@ -630,12 +628,12 @@ msgid "32-bit"
 msgstr "32-bit"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:230
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:131
+#: Source/Core/Core/HotkeyManager.cpp:246
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:157
 msgid "3D"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:231
+#: Source/Core/Core/HotkeyManager.cpp:247
 msgid "3D depth"
 msgstr ""
 
@@ -692,7 +690,7 @@ msgstr ""
 msgid "A NetPlay window is already open!"
 msgstr "Et NetPlay vindue er allerede åbent!"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:540
+#: Source/Core/Core/HW/DVDInterface.cpp:548
 msgid "A disc is already about to be inserted."
 msgstr ""
 
@@ -764,7 +762,7 @@ msgstr ""
 "Slyngelkode:\n"
 "%s"
 
-#: Source/Core/Core/ActionReplay.cpp:492
+#: Source/Core/Core/ActionReplay.cpp:493
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
@@ -772,7 +770,7 @@ msgstr ""
 "Action Replay Fejl: Ugyldig størrelse (%08x : adresse = %08x) i Tilføj Kode "
 "(%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:582
+#: Source/Core/Core/ActionReplay.cpp:583
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
@@ -781,7 +779,7 @@ msgstr ""
 "Action Replay Fejl: Ugyldig størrelse (%08x : adresse = %08x) i Fyld og Glid "
 "(%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:369
+#: Source/Core/Core/ActionReplay.cpp:370
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
@@ -790,7 +788,7 @@ msgstr ""
 "Action Replay Fejl: Ugyldig størrelse (%08x : adresse = %08x) i RAM Skriv og "
 "Fyld (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:429
+#: Source/Core/Core/ActionReplay.cpp:430
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
@@ -799,12 +797,12 @@ msgstr ""
 "Action Replay Fejl: Ugyldig størrelse (%08x : adresse = %08x) i Skriv til "
 "Pointer (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:630
+#: Source/Core/Core/ActionReplay.cpp:631
 #, c-format
 msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Action Replay Fejl: Ugyldig værdi (%08x) i Hukommelseskopi (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:507
+#: Source/Core/Core/ActionReplay.cpp:508
 #, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
@@ -814,27 +812,27 @@ msgstr ""
 "(%s)\n"
 "Mesterkoder er ikke påkrævede. Anvend ikke mesterkoder."
 
-#: Source/Core/Core/ActionReplay.cpp:215
+#: Source/Core/Core/ActionReplay.cpp:216
 #, c-format
 msgid "Action Replay Error: invalid AR code line: %s"
 msgstr "Action Replay Fejl: Ugyldig AR kodelinje: %s"
 
-#: Source/Core/Core/ActionReplay.cpp:741
+#: Source/Core/Core/ActionReplay.cpp:742
 #, c-format
 msgid "Action Replay: Conditional Code: Invalid Size %08x (%s)"
 msgstr "Action Replay: Forbeholdskode: Ugyldig Størrelse %08x (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:709
+#: Source/Core/Core/ActionReplay.cpp:710
 #, c-format
 msgid "Action Replay: Invalid Normal Code Type %08x (%s)"
 msgstr "Action Replay: Ugyldig Normal Kodetype %08x (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:765
+#: Source/Core/Core/ActionReplay.cpp:766
 #, c-format
 msgid "Action Replay: Normal Code %i: Invalid subtype %08x (%s)"
 msgstr "Action Replay: Normal Kode %i: Ugyldig undertype %08x (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:667
+#: Source/Core/Core/ActionReplay.cpp:668
 #, c-format
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "Action Replay: Normal Kode 0: Ugyldig Undertype %08x (%s)"
@@ -866,7 +864,7 @@ msgstr "Tilføj"
 msgid "Add ActionReplay Code"
 msgstr "Tilføj ActionReplay Kode"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:20
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:19
 msgid "Add Breakpoint"
 msgstr ""
 
@@ -878,6 +876,11 @@ msgstr ""
 msgid "Add Patch"
 msgstr "Tilføj patch"
 
+#: Source/Core/Core/HotkeyManager.cpp:50
+msgid "Add a Breakpoint"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:51
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:20
 msgid "Add a Memory Breakpoint"
 msgstr ""
@@ -916,7 +919,7 @@ msgstr "Adresse"
 msgid "Address Out of Range"
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1040
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1056
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "Justér det analoge kontrolpres påkrævet for at aktivere knapper."
 
@@ -972,7 +975,7 @@ msgstr ""
 "\n"
 "Ignorer og fortsæt?"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:314
+#: Source/Core/Core/HW/DVDInterface.cpp:322
 msgid "An inserted disc was expected but not found."
 msgstr ""
 
@@ -1039,7 +1042,7 @@ msgstr ""
 msgid "Apply signature file"
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:873
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:883
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "Er du sikker på at du ønsker at slette \"%s\"?"
@@ -1166,7 +1169,7 @@ msgstr "Backend Indstillinger"
 msgid "Backend:"
 msgstr "Backend:"
 
-#: Source/Core/Core/HotkeyManager.cpp:252
+#: Source/Core/Core/HotkeyManager.cpp:268
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:78 Source/Core/Core/HW/GCPadEmu.cpp:73
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:285
 msgid "Background Input"
@@ -1255,7 +1258,7 @@ msgstr "Kantløs Fuldskærm"
 msgid "Bottom"
 msgstr "Bund"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:318
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:328
 #, c-format
 msgid "Bound Controls: %lu"
 msgstr "Bunden Styring: %lu"
@@ -1271,6 +1274,10 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
 msgid "Break and log"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:241
+msgid "Breakpoint"
 msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:402
@@ -1390,7 +1397,7 @@ msgstr ""
 msgid "Cancel"
 msgstr "Annuller"
 
-#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:88
+#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:92
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr ""
 
@@ -1547,8 +1554,8 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:107
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:50
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:725
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1182
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:735
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1198
 #: Source/Core/DolphinWX/LogWindow.cpp:132
 #: Source/Core/DolphinWX/WXInputBase.cpp:48
 msgid "Clear"
@@ -1586,8 +1593,8 @@ msgid "Close"
 msgstr "Luk"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:170
-msgid "Co&nfigure..."
-msgstr "Indstil..."
+msgid "Co&nfiguration"
+msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.h:82
 msgid "Code"
@@ -1669,11 +1676,11 @@ msgstr "Konfig"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:164
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:317
-#: Source/Core/DolphinWX/Input/InputConfigDiag.h:152
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:219
 msgid "Configure"
 msgstr "Konfigurér"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:176
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:181
 msgid "Configure Control"
 msgstr "Konfigurér Styring"
 
@@ -1700,7 +1707,7 @@ msgstr "Bekræft ved Stop"
 msgid "Connect"
 msgstr "Tilslut"
 
-#: Source/Core/Core/HotkeyManager.cpp:46
+#: Source/Core/Core/HotkeyManager.cpp:58
 #: Source/Core/DolphinWX/MainMenuBar.cpp:212
 msgid "Connect Balance Board"
 msgstr "Forbind Balanceboard"
@@ -1714,19 +1721,19 @@ msgstr "Forbind USB Tastatur"
 msgid "Connect Wii Remote %i"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:42
+#: Source/Core/Core/HotkeyManager.cpp:54
 msgid "Connect Wii Remote 1"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:43
+#: Source/Core/Core/HotkeyManager.cpp:55
 msgid "Connect Wii Remote 2"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:44
+#: Source/Core/Core/HotkeyManager.cpp:56
 msgid "Connect Wii Remote 3"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:45
+#: Source/Core/Core/HotkeyManager.cpp:57
 msgid "Connect Wii Remote 4"
 msgstr ""
 
@@ -1834,10 +1841,10 @@ msgstr ""
 msgid "Copy failed"
 msgstr "Kopiéring mislykkedes"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:820
+#: Source/Core/DolphinWX/MemcardManager.cpp:821
 #, c-format
-msgid "Copy to Memcard %c"
-msgstr "Kopiér til Memcard %c"
+msgid "Copy to Memory Card %c"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:344
 msgid "Core"
@@ -2069,6 +2076,7 @@ msgid "Debug Only"
 msgstr "Debug Kun"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:177
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:95
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:845
 msgid "Debugging"
 msgstr "Debugging"
@@ -2091,11 +2099,11 @@ msgstr "Dekomprimér valgte ISOer..."
 msgid "Decompressing ISO"
 msgstr "Dekomprimerer ISO"
 
-#: Source/Core/Core/HotkeyManager.cpp:74
+#: Source/Core/Core/HotkeyManager.cpp:87
 msgid "Decrease Convergence"
 msgstr "Formindsk Konvergens"
 
-#: Source/Core/Core/HotkeyManager.cpp:72
+#: Source/Core/Core/HotkeyManager.cpp:85
 msgid "Decrease Depth"
 msgstr "Formindsk Dybde"
 
@@ -2103,11 +2111,11 @@ msgstr "Formindsk Dybde"
 msgid "Decrease Emulation Speed"
 msgstr "Sænk emulationshastighed"
 
-#: Source/Core/Core/HotkeyManager.cpp:55
+#: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Decrease IR"
 msgstr "Formindst IR"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1180
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1196
 msgid "Default"
 msgstr "Standard"
 
@@ -2120,15 +2128,16 @@ msgid "Default font"
 msgstr "Standard skrifttype"
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:47
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1205
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1221
 #: Source/Core/DolphinWX/WXInputBase.cpp:29
 msgid "Delete"
 msgstr "Slet"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:821
+#: Source/Core/DolphinWX/MemcardManager.cpp:822
 msgid "Delete Save"
 msgstr "Slet Save"
 
+#: Source/Core/AudioCommon/WaveFile.cpp:30
 #: Source/Core/VideoCommon/AVIDump.cpp:98
 #, c-format
 msgid "Delete the existing file '%s'?"
@@ -2150,7 +2159,7 @@ msgstr "Beskrivelse"
 msgid "Description:"
 msgstr "Beskrivelse:"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:723
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:733
 msgid "Detect"
 msgstr "Opfang"
 
@@ -2158,8 +2167,8 @@ msgstr "Opfang"
 msgid "Deterministic dual core: "
 msgstr "Deterministisk dual core:"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:193
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1154
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:198
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1170
 msgid "Device"
 msgstr "Enhed"
 
@@ -2168,7 +2177,7 @@ msgstr "Enhed"
 msgid "Device Settings"
 msgstr "Enhedsindstillinger"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:326
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:336
 msgid "Device not found"
 msgstr "Enhed ikke fundet"
 
@@ -2370,7 +2379,7 @@ msgstr "Dolphin kunne ikke fuldføre den anmodet handling."
 msgid "Dolphin's cheat system is currently disabled."
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:325
+#: Source/Core/DiscIO/CompressedBlob.cpp:322
 msgid "Done compressing disc image."
 msgstr "Komprimering af diskbillede fuldført."
 
@@ -2592,7 +2601,7 @@ msgstr ""
 msgid "Emulation State: "
 msgstr "Emulationsstatus:"
 
-#: Source/Core/Core/HotkeyManager.cpp:223
+#: Source/Core/Core/HotkeyManager.cpp:236
 msgid "Emulation speed"
 msgstr ""
 
@@ -2677,7 +2686,7 @@ msgstr ""
 "Aktiver hurtig discadgang. Dette kan forsage crashes og andre problemer i "
 "nogle spil (TIL = Hurtig, FRA = Kompatibel)"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:835
+#: Source/Core/DolphinWX/MemcardManager.cpp:836
 msgid "Enable pages"
 msgstr ""
 
@@ -2887,7 +2896,7 @@ msgstr "Eksporter optagelse"
 msgid "Export Recording..."
 msgstr "Eksporter optagelse..."
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:823
+#: Source/Core/DolphinWX/MemcardManager.cpp:824
 msgid "Export Save"
 msgstr "Eksporter save"
 
@@ -2895,7 +2904,7 @@ msgstr "Eksporter save"
 msgid "Export Wii save (Experimental)"
 msgstr "Eksporter Wii-save (Eksperimentel)"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:824
+#: Source/Core/DolphinWX/MemcardManager.cpp:825
 msgid "Export all saves"
 msgstr "Eksporter alle saves"
 
@@ -3021,13 +3030,13 @@ msgid "Failed to open Bluetooth device: %s"
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:162
-#: Source/Core/DiscIO/CompressedBlob.cpp:342
+#: Source/Core/DiscIO/CompressedBlob.cpp:339
 #, c-format
 msgid "Failed to open the input file \"%s\"."
 msgstr "Kunne ikke åbne input fil \"%s\""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:169
-#: Source/Core/DiscIO/CompressedBlob.cpp:349
+#: Source/Core/DiscIO/CompressedBlob.cpp:346
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3047,7 +3056,7 @@ msgstr "Kunne ikke læse %s"
 #, c-format
 msgid ""
 "Failed to read block %u of the save data\n"
-"Memcard may be truncated\n"
+"Memory card may be truncated\n"
 "File position: 0x%<PRIx64>"
 msgstr ""
 
@@ -3094,8 +3103,8 @@ msgstr "Kunne ikke læse unikt ID fra diskbillde"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Kunne ikke skrive BT.DINF til SYSCONF"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:290
-#: Source/Core/DiscIO/CompressedBlob.cpp:380
+#: Source/Core/DiscIO/CompressedBlob.cpp:288
+#: Source/Core/DiscIO/CompressedBlob.cpp:377
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -3160,10 +3169,10 @@ msgstr ""
 "Tilladte typer er (.raw/.gcp)"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:426
-msgid "File is not recognized as a memcard"
-msgstr "Filen blev ikke genkendt som et hukommelseskort"
+msgid "File is not recognized as a memory card"
+msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:335
+#: Source/Core/DiscIO/CompressedBlob.cpp:332
 msgid "File not compressed"
 msgstr "Fil ikke komprimeret"
 
@@ -3173,7 +3182,7 @@ msgstr "Fil ikke komprimeret"
 msgid "File write failed"
 msgstr "Filskrivning mislykkedes"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:194
+#: Source/Core/DiscIO/CompressedBlob.cpp:192
 msgid "Files opened, ready to compress."
 msgstr "Filen er åbnet, klar til komprimering."
 
@@ -3215,7 +3224,7 @@ msgstr ""
 msgid "First Block"
 msgstr "Første Blok"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:830
+#: Source/Core/DolphinWX/MemcardManager.cpp:831
 msgid "Fix Checksums"
 msgstr "Orden Checksumme"
 
@@ -3375,11 +3384,11 @@ msgstr "Billedinfo"
 msgid "Frame Range"
 msgstr "Billedvidde"
 
-#: Source/Core/Core/HotkeyManager.cpp:224
+#: Source/Core/Core/HotkeyManager.cpp:237
 msgid "Frame advance"
 msgstr ""
 
-#: Source/Core/VideoCommon/RenderBase.cpp:888
+#: Source/Core/VideoCommon/RenderBase.cpp:890
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr ""
@@ -3396,47 +3405,47 @@ msgstr "Frankrig"
 msgid "Free Look"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:229
+#: Source/Core/Core/HotkeyManager.cpp:245
 msgid "Freelook"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:57
+#: Source/Core/Core/HotkeyManager.cpp:70
 msgid "Freelook Decrease Speed"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:58
+#: Source/Core/Core/HotkeyManager.cpp:71
 msgid "Freelook Increase Speed"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:61
+#: Source/Core/Core/HotkeyManager.cpp:74
 msgid "Freelook Move Down"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:62
+#: Source/Core/Core/HotkeyManager.cpp:75
 msgid "Freelook Move Left"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:63
+#: Source/Core/Core/HotkeyManager.cpp:76
 msgid "Freelook Move Right"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:60
+#: Source/Core/Core/HotkeyManager.cpp:73
 msgid "Freelook Move Up"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:66
+#: Source/Core/Core/HotkeyManager.cpp:79
 msgid "Freelook Reset"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:59
+#: Source/Core/Core/HotkeyManager.cpp:72
 msgid "Freelook Reset Speed"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:64
+#: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Freelook Zoom In"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:65
+#: Source/Core/Core/HotkeyManager.cpp:78
 msgid "Freelook Zoom Out"
 msgstr ""
 
@@ -3602,9 +3611,9 @@ msgstr "GameCube-savefiler (*.gci, *.gcs, *.sav)"
 msgid "Gecko Codes"
 msgstr "Gecko-koder"
 
-#: Source/Core/Core/HotkeyManager.cpp:221
+#: Source/Core/Core/HotkeyManager.cpp:234
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:84
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:49
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:50
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:48
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:366
@@ -3642,7 +3651,7 @@ msgstr ""
 msgid "Go to the current instruction"
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:111
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:137
 #: Source/Core/DolphinWX/MainToolBar.cpp:186
 msgid "Graphics"
 msgstr "Grafik"
@@ -3651,7 +3660,7 @@ msgstr "Grafik"
 msgid "Graphics settings"
 msgstr "Grafikindstillinger"
 
-#: Source/Core/Core/HotkeyManager.cpp:227
+#: Source/Core/Core/HotkeyManager.cpp:243
 msgid "Graphics toggles"
 msgstr ""
 
@@ -3783,7 +3792,7 @@ msgstr ""
 msgid "Host with Netplay"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:138
+#: Source/Core/Core/HotkeyManager.cpp:151
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:298
 msgid "Hotkeys"
 msgstr "Hotkeys"
@@ -3925,7 +3934,7 @@ msgstr ""
 "\n"
 "Hvis usikker, lad dette være umarkeret."
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:822
+#: Source/Core/DolphinWX/MemcardManager.cpp:823
 msgid "Import Save"
 msgstr "Importer save"
 
@@ -3961,11 +3970,11 @@ msgstr ""
 msgid "In Game"
 msgstr "I spil"
 
-#: Source/Core/Core/HotkeyManager.cpp:75
+#: Source/Core/Core/HotkeyManager.cpp:88
 msgid "Increase Convergence"
 msgstr "Forøg konvergens"
 
-#: Source/Core/Core/HotkeyManager.cpp:73
+#: Source/Core/Core/HotkeyManager.cpp:86
 msgid "Increase Depth"
 msgstr "Forøg dybte"
 
@@ -3973,7 +3982,7 @@ msgstr "Forøg dybte"
 msgid "Increase Emulation Speed"
 msgstr "Forøg emulationshastighed"
 
-#: Source/Core/Core/HotkeyManager.cpp:54
+#: Source/Core/Core/HotkeyManager.cpp:67
 msgid "Increase IR"
 msgstr "Forøg IR"
 
@@ -3986,7 +3995,7 @@ msgstr "Info"
 msgid "Information"
 msgstr "Information"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:713
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:723
 msgid "Input"
 msgstr "Input"
 
@@ -4066,7 +4075,7 @@ msgstr "Intern LZO-fejl - lzo_init() mislykkedes"
 msgid "Internal Name:"
 msgstr "Internt Navn:"
 
-#: Source/Core/Core/HotkeyManager.cpp:228
+#: Source/Core/Core/HotkeyManager.cpp:244
 msgid "Internal Resolution"
 msgstr ""
 
@@ -4138,7 +4147,7 @@ msgstr "Italiensk"
 msgid "Italy"
 msgstr "Italien"
 
-#: Source/Core/Core/HotkeyManager.cpp:254
+#: Source/Core/Core/HotkeyManager.cpp:270
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:80 Source/Core/Core/HW/GCPadEmu.cpp:75
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
 msgid "Iterative Input"
@@ -4259,7 +4268,7 @@ msgstr "Venstre stik"
 msgid "Left stick"
 msgstr "Venstre stik"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:954
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:970
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -4269,7 +4278,7 @@ msgstr ""
 "Midterklik for at ryde.\n"
 "Højreklik for flere muligheder."
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:959
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:975
 msgid ""
 "Left/Right-click for more options.\n"
 "Middle-click to clear."
@@ -4311,7 +4320,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:59
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:35
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1201
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1217
 msgid "Load"
 msgstr "Indlæs"
 
@@ -4327,87 +4336,87 @@ msgstr ""
 msgid "Load Custom Textures"
 msgstr "Indlæs brugerdefinerede teksturer"
 
-#: Source/Core/Core/HotkeyManager.cpp:127
+#: Source/Core/Core/HotkeyManager.cpp:140
 msgid "Load State"
 msgstr "Indlæs tilstand"
 
-#: Source/Core/Core/HotkeyManager.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:125
 msgid "Load State Last 1"
 msgstr "Indlæs sidste tilstand 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:121
+#: Source/Core/Core/HotkeyManager.cpp:134
 msgid "Load State Last 10"
 msgstr "Indlæs sidste tilstand 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:113
+#: Source/Core/Core/HotkeyManager.cpp:126
 msgid "Load State Last 2"
 msgstr "Indlæs sidste tilstand 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:127
 msgid "Load State Last 3"
 msgstr "Indlæs sidste tilstand 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:115
+#: Source/Core/Core/HotkeyManager.cpp:128
 msgid "Load State Last 4"
 msgstr "Indlæs sidste tilstand 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:116
+#: Source/Core/Core/HotkeyManager.cpp:129
 msgid "Load State Last 5"
 msgstr "Indlæs sidste tilstand 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:117
+#: Source/Core/Core/HotkeyManager.cpp:130
 msgid "Load State Last 6"
 msgstr "Indlæs sidste tilstand 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:118
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Load State Last 7"
 msgstr "Indlæs sidste tilstand 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:119
+#: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Load State Last 8"
 msgstr "Indlæs sidste tilstand 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:120
+#: Source/Core/Core/HotkeyManager.cpp:133
 msgid "Load State Last 9"
 msgstr "Indlæs sidste tilstand 9"
 
-#: Source/Core/Core/HotkeyManager.cpp:77
+#: Source/Core/Core/HotkeyManager.cpp:90
 msgid "Load State Slot 1"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:86
+#: Source/Core/Core/HotkeyManager.cpp:99
 msgid "Load State Slot 10"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:78
+#: Source/Core/Core/HotkeyManager.cpp:91
 msgid "Load State Slot 2"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:79
+#: Source/Core/Core/HotkeyManager.cpp:92
 msgid "Load State Slot 3"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:80
+#: Source/Core/Core/HotkeyManager.cpp:93
 msgid "Load State Slot 4"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:81
+#: Source/Core/Core/HotkeyManager.cpp:94
 msgid "Load State Slot 5"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:82
+#: Source/Core/Core/HotkeyManager.cpp:95
 msgid "Load State Slot 6"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:83
+#: Source/Core/Core/HotkeyManager.cpp:96
 msgid "Load State Slot 7"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:84
+#: Source/Core/Core/HotkeyManager.cpp:97
 msgid "Load State Slot 8"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:85
+#: Source/Core/Core/HotkeyManager.cpp:98
 msgid "Load State Slot 9"
 msgstr ""
 
@@ -4453,11 +4462,11 @@ msgstr ""
 "\n"
 "Hvis usikker, lad dette være umarkeret."
 
-#: Source/Core/Core/HotkeyManager.cpp:87
+#: Source/Core/Core/HotkeyManager.cpp:100
 msgid "Load from selected slot"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:235
+#: Source/Core/Core/HotkeyManager.cpp:251
 msgid "Load last state"
 msgstr ""
 
@@ -4465,7 +4474,7 @@ msgstr ""
 msgid "Load map file"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:232
+#: Source/Core/Core/HotkeyManager.cpp:248
 msgid "Load state"
 msgstr ""
 
@@ -4513,7 +4522,7 @@ msgid "Logger Outputs"
 msgstr "Logger-outputs"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:139
-#: Source/Core/DolphinWX/Frame.cpp:367
+#: Source/Core/DolphinWX/Frame.cpp:369
 msgid "Logging"
 msgstr "Logging"
 
@@ -4593,14 +4602,6 @@ msgstr "Maks"
 msgid "May cause slow down in Wii Menu and some games."
 msgstr "Kan sænke hastigheden i Wii-menuen og nogle spil."
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:450
-msgid "Memcard already has a save for this title."
-msgstr "Hukommelseskort har allerede en save til denne titel."
-
-#: Source/Core/DolphinWX/MemcardManager.cpp:289
-msgid "Memcard already opened"
-msgstr "Hukommelseskort er allerede åbnet"
-
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:86
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.h:28
 msgid "Memory"
@@ -4628,6 +4629,14 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:299
 msgid "Memory Not Ready"
+msgstr ""
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:450
+msgid "Memory card already has a save for this title."
+msgstr ""
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:289
+msgid "Memory card already opened"
 msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:94
@@ -4714,7 +4723,7 @@ msgid ""
 "Move the mouse pointer over an option to display a detailed description."
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:225
+#: Source/Core/Core/HotkeyManager.cpp:238
 msgid "Movie"
 msgstr ""
 
@@ -4863,7 +4872,7 @@ msgid "Next Frame"
 msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:189
-#: Source/Core/DolphinWX/MemcardManager.cpp:832
+#: Source/Core/DolphinWX/MemcardManager.cpp:833
 msgid "Next Page"
 msgstr "Næste side"
 
@@ -5082,7 +5091,7 @@ msgstr ""
 "Åbner standardkonfigurationen (kun med læseadgang) i et eksternt "
 "tekstredigeringsprogram. "
 
-#: Source/Core/Core/HotkeyManager.cpp:250
+#: Source/Core/Core/HotkeyManager.cpp:266
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:76 Source/Core/Core/HW/GCPadEmu.cpp:71
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:283
 msgid "Options"
@@ -5096,7 +5105,7 @@ msgstr "Orange"
 msgid ""
 "Order of files in the File Directory do not match the block order\n"
 "Right click and export all of the saves,\n"
-"and import the saves to a new memcard\n"
+"and import the saves to a new memory card\n"
 msgstr ""
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:146
@@ -5108,7 +5117,7 @@ msgstr "Retning"
 msgid "Other"
 msgstr "Andre"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:173
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:199
 msgid "Other State Management"
 msgstr ""
 
@@ -5116,11 +5125,11 @@ msgstr ""
 msgid "Other game"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:236
+#: Source/Core/Core/HotkeyManager.cpp:252
 msgid "Other state hotkeys"
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:713
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:723
 msgid "Output"
 msgstr "Output"
 
@@ -5188,7 +5197,7 @@ msgstr "Stier"
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:73
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:74
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:47
-#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:178
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:180
 #: Source/Core/DolphinWX/MainToolBar.cpp:229
 #: Source/Core/DolphinWX/WXInputBase.cpp:62
 msgid "Pause"
@@ -5325,7 +5334,7 @@ msgstr ""
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:41
+#: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Press Sync Button"
 msgstr ""
 
@@ -5333,7 +5342,7 @@ msgstr ""
 msgid "Prev Page"
 msgstr "Forrige side"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:831
+#: Source/Core/DolphinWX/MemcardManager.cpp:832
 msgid "Previous Page"
 msgstr "Forrige side"
 
@@ -5341,9 +5350,13 @@ msgstr "Forrige side"
 msgid "Print"
 msgstr "Print"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1198
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1214
 msgid "Profile"
 msgstr "Profil"
+
+#: Source/Core/Core/HotkeyManager.cpp:240
+msgid "Program Counter"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.h:55
 msgid "Properties"
@@ -5393,7 +5406,7 @@ msgstr "R-analog"
 msgid "Radius"
 msgstr "Radius"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:775
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:785
 msgid "Range"
 msgstr "Rækkevidde"
 
@@ -5471,7 +5484,7 @@ msgid ""
 msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:331
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1159
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1175
 #: Source/Core/DolphinWX/MainToolBar.cpp:178
 msgid "Refresh"
 msgstr "Genindlæs"
@@ -5540,7 +5553,7 @@ msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:18
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:268
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1178
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1194
 msgid "Reset"
 msgstr "Nulstil"
 
@@ -5607,7 +5620,7 @@ msgstr "Rum-id:"
 msgid "Rumble"
 msgstr "Vibration"
 
-#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:185
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:187
 msgid "Run"
 msgstr ""
 
@@ -5634,7 +5647,7 @@ msgstr "Sikker"
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:62
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:38
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:162
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1203
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1219
 msgid "Save"
 msgstr "Gem"
 
@@ -5646,7 +5659,7 @@ msgstr ""
 msgid "Save GCI as..."
 msgstr "Gem GCI som..."
 
-#: Source/Core/Core/HotkeyManager.cpp:123
+#: Source/Core/Core/HotkeyManager.cpp:136
 #: Source/Core/DolphinWX/MainMenuBar.cpp:102
 msgid "Save Oldest State"
 msgstr "Gem ældste tilstand"
@@ -5655,47 +5668,47 @@ msgstr "Gem ældste tilstand"
 msgid "Save Perspectives"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:126
+#: Source/Core/Core/HotkeyManager.cpp:139
 msgid "Save State"
 msgstr "Gem tilstand"
 
-#: Source/Core/Core/HotkeyManager.cpp:89
+#: Source/Core/Core/HotkeyManager.cpp:102
 msgid "Save State Slot 1"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:98
+#: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Save State Slot 10"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:90
+#: Source/Core/Core/HotkeyManager.cpp:103
 msgid "Save State Slot 2"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:91
+#: Source/Core/Core/HotkeyManager.cpp:104
 msgid "Save State Slot 3"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:92
+#: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Save State Slot 4"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:93
+#: Source/Core/Core/HotkeyManager.cpp:106
 msgid "Save State Slot 5"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:94
+#: Source/Core/Core/HotkeyManager.cpp:107
 msgid "Save State Slot 6"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:95
+#: Source/Core/Core/HotkeyManager.cpp:108
 msgid "Save State Slot 7"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:96
+#: Source/Core/Core/HotkeyManager.cpp:109
 msgid "Save State Slot 8"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:97
+#: Source/Core/Core/HotkeyManager.cpp:110
 msgid "Save State Slot 9"
 msgstr ""
 
@@ -5711,7 +5724,7 @@ msgstr "Gem tilstand..."
 msgid "Save Symbol Map &As..."
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:150
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:176
 msgid "Save and Load State"
 msgstr ""
 
@@ -5744,7 +5757,7 @@ msgstr ""
 msgid "Save signature as"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:233
+#: Source/Core/Core/HotkeyManager.cpp:249
 msgid "Save state"
 msgstr ""
 
@@ -5769,7 +5782,7 @@ msgid ""
 "settings map folder, named after the title ID."
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:99
+#: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Save to selected slot"
 msgstr ""
 
@@ -5853,7 +5866,7 @@ msgstr ""
 msgid "Section %s not found in SYSCONF"
 msgstr "Sektion %s blev ikke fundet i SYSCONF"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:727
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:737
 #: Source/Core/DolphinWX/NetPlay/ChangeGameDialog.cpp:23
 #: Source/Core/DolphinWX/WXInputBase.cpp:78
 msgid "Select"
@@ -5876,43 +5889,43 @@ msgstr ""
 msgid "Select State Slot"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:101
+#: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Select State Slot 1"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:123
 msgid "Select State Slot 10"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:102
+#: Source/Core/Core/HotkeyManager.cpp:115
 msgid "Select State Slot 2"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:103
+#: Source/Core/Core/HotkeyManager.cpp:116
 msgid "Select State Slot 3"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:104
+#: Source/Core/Core/HotkeyManager.cpp:117
 msgid "Select State Slot 4"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:105
+#: Source/Core/Core/HotkeyManager.cpp:118
 msgid "Select State Slot 5"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:119
 msgid "Select State Slot 6"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:107
+#: Source/Core/Core/HotkeyManager.cpp:120
 msgid "Select State Slot 7"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:108
+#: Source/Core/Core/HotkeyManager.cpp:121
 msgid "Select State Slot 8"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:122
 msgid "Select State Slot 9"
 msgstr ""
 
@@ -5933,7 +5946,7 @@ msgstr "Vælg en savefil der skal importeres"
 msgid "Select floating windows"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:234
+#: Source/Core/Core/HotkeyManager.cpp:250
 msgid "Select state"
 msgstr ""
 
@@ -6053,6 +6066,7 @@ msgid "Server rejected traversal attempt"
 msgstr "Serveren nægtede forsøget på traversal"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
+#: Source/Core/Core/HotkeyManager.cpp:47
 #: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Set PC"
 msgstr ""
@@ -6065,10 +6079,10 @@ msgstr ""
 msgid "Set as &default ISO"
 msgstr "Sæt som &standard ISO"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:834
+#: Source/Core/DolphinWX/MemcardManager.cpp:835
 #, c-format
-msgid "Set as default Memcard %c"
-msgstr "Sæt som standard hukommelseskort %c"
+msgid "Set as default Memory Card %c"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Set the current instruction"
@@ -6204,6 +6218,7 @@ msgid "Show PAL"
 msgstr "Vis PAL"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
+#: Source/Core/Core/HotkeyManager.cpp:46
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:55
 #: Source/Core/DolphinWX/MainToolBar.cpp:209
 msgid "Show PC"
@@ -6271,23 +6286,23 @@ msgstr ""
 "Deaktivering af dette kan undgå irriterende og ikke-alvorlige beskeder, men "
 "det kan resultere i crashes uden nogen som helst forklaring."
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:848
+#: Source/Core/DolphinWX/MemcardManager.cpp:849
 msgid "Show first block"
 msgstr "Vis første blok"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:847
+#: Source/Core/DolphinWX/MemcardManager.cpp:848
 msgid "Show save blocks"
 msgstr "Vis save-blokke"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:845
+#: Source/Core/DolphinWX/MemcardManager.cpp:846
 msgid "Show save comment"
 msgstr "Vis save-kommentar"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:846
+#: Source/Core/DolphinWX/MemcardManager.cpp:847
 msgid "Show save icon"
 msgstr "Vis save-ikon"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:844
+#: Source/Core/DolphinWX/MemcardManager.cpp:845
 msgid "Show save title"
 msgstr "Vis save-titel"
 
@@ -6348,6 +6363,7 @@ msgstr "Simuler DK-Bongotrommer"
 msgid "Size"
 msgstr "Størrelse"
 
+#: Source/Core/Core/HotkeyManager.cpp:44
 #: Source/Core/DolphinWX/MainToolBar.cpp:205
 msgid "Skip"
 msgstr ""
@@ -6515,25 +6531,31 @@ msgid "Step"
 msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:404
-msgid "Step &Into\tF11"
+msgid "Step &Into"
 msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:405
-msgid "Step &Over\tF10"
+msgid "Step &Over"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:41
+msgid "Step Into"
 msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:406
-msgid "Step O&ut\tSHIFT+F11"
+msgid "Step O&ut"
 msgstr ""
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
+#: Source/Core/Core/HotkeyManager.cpp:43
 #: Source/Core/DolphinWX/MainToolBar.cpp:203
 msgid "Step Out"
 msgstr ""
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
+#: Source/Core/Core/HotkeyManager.cpp:42
 #: Source/Core/DolphinWX/MainToolBar.cpp:199
 msgid "Step Over"
 msgstr ""
@@ -6564,6 +6586,10 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:316
 msgid "Step successful!"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:239
+msgid "Stepping"
 msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
@@ -6696,7 +6722,7 @@ msgstr ""
 "Synkroniserer GPU- og CPU-trådene for at undgå tilfældig frysning i dual "
 "core mode (TIL = Kompatibel, FRA = Hurtig)"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:323
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:333
 msgid "Syntax error"
 msgstr "Syntaksfejl"
 
@@ -6712,8 +6738,8 @@ msgstr "TAS-input"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:378
 #, c-format
-msgid "TAS Input - Controller %d"
-msgstr "TAS Input - Kontroller %d"
+msgid "TAS Input - GameCube Controller %d"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:386
 #, c-format
@@ -6722,7 +6748,7 @@ msgstr ""
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:69
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:70
 msgid "TAS Tools"
 msgstr ""
 
@@ -6759,7 +6785,7 @@ msgstr "Tag skærmbillede"
 msgid "Take screenshot"
 msgstr "Tag skærmbillede"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:723
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:733
 msgid "Test"
 msgstr "Test"
 
@@ -6796,12 +6822,12 @@ msgstr ""
 msgid "The WAD has been installed successfully"
 msgstr "Installation af WAD-filen lykkedes."
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:51
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:49
 #, c-format
 msgid "The address %s is invalid."
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:218
+#: Source/Core/Core/ActionReplay.cpp:219
 msgid "The address is invalid"
 msgstr "Adressen er ugyldig."
 
@@ -6839,7 +6865,7 @@ msgstr ""
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr "Discaftrykket \"%s\" er beskåret, noget data mangler."
 
-#: Source/Core/Core/HW/DVDInterface.cpp:517
+#: Source/Core/Core/HW/DVDInterface.cpp:525
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr ""
 
@@ -6854,7 +6880,7 @@ msgstr ""
 "Filen %s findes allerede\n"
 "Vil du overskrive den?"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:38
+#: Source/Core/AudioCommon/WaveFile.cpp:52
 #, c-format
 msgid ""
 "The file %s could not be opened for writing. Please check if it's already "
@@ -6863,7 +6889,7 @@ msgstr ""
 "Filen %s kunne ikke åbnes til skrivning. Kontroller om den er åbnet af et "
 "andet program."
 
-#: Source/Core/AudioCommon/WaveFile.cpp:30
+#: Source/Core/AudioCommon/WaveFile.cpp:44
 #, c-format
 msgid "The file %s was already open, the file header will not be written."
 msgstr "Filen %s var allerede open, så filens header vil ikke blive skrevet."
@@ -6918,7 +6944,7 @@ msgstr "Serveren sendte en ukendt fejlmeddelelse!"
 msgid "The specified file \"%s\" does not exist"
 msgstr "Den specificerede fil \"%s\" findes ikke"
 
-#: Source/Core/Core/ActionReplay.cpp:221
+#: Source/Core/Core/ActionReplay.cpp:222
 msgid "The value is invalid"
 msgstr "Værdien er ugyldig"
 
@@ -6965,7 +6991,7 @@ msgid ""
 "Do you want to discard all unencrypted lines?"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:851
+#: Source/Core/Core/ActionReplay.cpp:852
 msgid ""
 "This action replay simulator does not support codes that modify Action "
 "Replay itself."
@@ -7000,7 +7026,7 @@ msgid ""
 "If you're unsure, leave this disabled."
 msgstr ""
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:98
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:102
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -7013,7 +7039,7 @@ msgstr ""
 "\n"
 "DSPHLE: Ukendt ucode (CRC = %08x) - tvinger AX."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:90
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:94
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -7063,26 +7089,26 @@ msgid "To"
 msgstr "Til"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:407
-msgid "Toggle &Breakpoint\tF9"
+msgid "Toggle &Breakpoint"
 msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:256
 msgid "Toggle &memory"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:70
+#: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Toggle 3D Anaglyph"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:68
+#: Source/Core/Core/HotkeyManager.cpp:81
 msgid "Toggle 3D Side-by-side"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:69
+#: Source/Core/Core/HotkeyManager.cpp:82
 msgid "Toggle 3D Top-bottom"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:71
+#: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Toggle 3D Vision"
 msgstr ""
 
@@ -7090,23 +7116,27 @@ msgstr ""
 msgid "Toggle All Log Types"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:49
+#: Source/Core/Core/HotkeyManager.cpp:61
 msgid "Toggle Aspect Ratio"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:48
+#: Source/Core/Core/HotkeyManager.cpp:49
+msgid "Toggle Breakpoint"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Toggle Crop"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:52
+#: Source/Core/Core/HotkeyManager.cpp:65
 msgid "Toggle Custom Textures"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:50
+#: Source/Core/Core/HotkeyManager.cpp:62
 msgid "Toggle EFB Copies"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:51
+#: Source/Core/Core/HotkeyManager.cpp:63
 msgid "Toggle Fog"
 msgstr ""
 
@@ -7116,6 +7146,10 @@ msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:16
 msgid "Toggle Pause"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:64
+msgid "Toggle Texture Dumping"
 msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:393
@@ -7232,12 +7266,12 @@ msgid ""
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:124
+#: Source/Core/Core/HotkeyManager.cpp:137
 #: Source/Core/DolphinWX/MainMenuBar.cpp:96
 msgid "Undo Load State"
 msgstr "Fortryd indlæsning af tilstand"
 
-#: Source/Core/Core/HotkeyManager.cpp:125
+#: Source/Core/Core/HotkeyManager.cpp:138
 #: Source/Core/DolphinWX/MainMenuBar.cpp:103
 msgid "Undo Save State"
 msgstr "Fortræd lagring af tilstand"
@@ -7253,7 +7287,7 @@ msgstr ""
 msgid "Unknown"
 msgstr "Ukendt"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:1107
+#: Source/Core/Core/HW/DVDInterface.cpp:1115
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr ""
@@ -7288,7 +7322,7 @@ msgstr ""
 msgid "Unlimited"
 msgstr "Ubegrænset"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:369
+#: Source/Core/DiscIO/CompressedBlob.cpp:366
 msgid "Unpacking"
 msgstr "Udpakker"
 
@@ -7483,7 +7517,7 @@ msgstr ""
 msgid "Virtual"
 msgstr "Virtuel"
 
-#: Source/Core/Core/HotkeyManager.cpp:222
+#: Source/Core/Core/HotkeyManager.cpp:235
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:66
 msgid "Volume"
 msgstr "Lydstyrke"
@@ -7540,7 +7574,7 @@ msgstr "Advarsel - starter DOL i den forkerte konsoltilstand!"
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Advarsel - starter ISO i den forkerte konsoltilstand!"
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:586
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:601
 #, c-format
 msgid ""
 "Warning! it is advised to backup all files in the folder:\n"
@@ -7565,13 +7599,9 @@ msgstr ""
 msgid ""
 "Warning: This will overwrite any existing saves that are in the folder:\n"
 "%s\n"
-"and have the same name as a file on your memcard\n"
+"and have the same name as a file on your memory card\n"
 "Continue?"
 msgstr ""
-"Advarsel: Dette vil overskrive alle eksisterende saves, der er i mappen:\n"
-"%s\n"
-"og som har samme navn som en fil på dit hukommelseskort\n"
-"Fortsæt?"
 
 #: Source/Core/Core/Movie.cpp:1074
 #, c-format
@@ -7622,7 +7652,7 @@ msgstr ""
 msgid "Watch"
 msgstr ""
 
-#: Source/Core/AudioCommon/WaveFile.cpp:102
+#: Source/Core/AudioCommon/WaveFile.cpp:116
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - fil ikke åben."
 
@@ -7646,7 +7676,7 @@ msgstr "Widescreen-hack"
 msgid "Width"
 msgstr "Bredde"
 
-#: Source/Core/Core/HotkeyManager.cpp:226
+#: Source/Core/Core/HotkeyManager.cpp:242
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:88
 msgid "Wii"
 msgstr "Wii"
@@ -7694,7 +7724,7 @@ msgstr ""
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WAD-filer (*.wad)"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:84
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:110
 msgid "Wii and Wii Remote"
 msgstr ""
 
@@ -7762,8 +7792,8 @@ msgid "Write to Window"
 msgstr "Skriv til vindue"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:259
-msgid "Write to memcards/SD"
-msgstr "Skriv til hukommelseskort/SD"
+msgid "Write to memory cards/SD"
+msgstr ""
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:252
 #: Source/Core/DolphinWX/TASInputDlg.cpp:393
@@ -7805,7 +7835,7 @@ msgstr "Du skal indtaste et navn."
 msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "Du skal indtaste en gyldig decimal, hexadecimal eller octalværdi."
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:862
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:872
 msgid "You must enter a valid profile name."
 msgstr "Du skal indtaste et gyldigt profilnavn."
 
@@ -7814,7 +7844,7 @@ msgid "You must restart Dolphin in order for the change to take effect."
 msgstr ""
 "Du bliver nødt til at genstarte Dolhin før end at ændringen træder i kraft."
 
-#: Source/Core/Core/DSP/DSPCore.cpp:72
+#: Source/Core/Core/DSP/DSPCore.cpp:74
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
@@ -7858,17 +7888,17 @@ msgstr ""
 msgid "ZR"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:884
+#: Source/Core/Core/ActionReplay.cpp:885
 msgid "Zero 3 code not supported"
 msgstr "Nul 3 kode ikke understøttet"
 
-#: Source/Core/Core/ActionReplay.cpp:904
+#: Source/Core/Core/ActionReplay.cpp:905
 #, c-format
 msgid "Zero code unknown to Dolphin: %08x"
 msgstr "Nul kode ukendt for Dolphin: %08x"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:633
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:680
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:643
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:690
 msgid "[ waiting ]"
 msgstr "[ venter ]"
 
@@ -7904,6 +7934,6 @@ msgstr "wxExecute returnerede -1 ved applikationskørsel!"
 msgid "x86 Size"
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:730
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:740
 msgid "| OR"
 msgstr "| ELLER"

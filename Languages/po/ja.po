@@ -4,7 +4,7 @@
 #
 # Translators:
 # Danbsky, 2011
-# DanbSky <danbsky@live.jp>, 2015-2016
+# DanbSky <danbsky@live.jp>, 2015-2017
 # Denton Poss <dentonposs@gmail.com>, 2016
 # Katabi, 2015
 # Lioncash <mathew1800@gmail.com>, 2014
@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-12-31 10:51+0100\n"
-"PO-Revision-Date: 2016-12-31 09:51+0000\n"
+"POT-Creation-Date: 2017-01-07 12:00+0100\n"
+"PO-Revision-Date: 2017-01-07 11:01+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
@@ -51,7 +51,7 @@ msgstr "(該当数が多すぎます)"
 msgid " Game : "
 msgstr "タイトル："
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:744
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:754
 msgid "! NOT"
 msgstr "! (...で無い)"
 
@@ -59,12 +59,10 @@ msgstr "! (...で無い)"
 #, c-format
 msgid ""
 "\"%s\" does not exist.\n"
-" Create a new 16MB Memcard?"
+" Create a new 16MB Memory Card?"
 msgstr ""
-"メモリーカードファイル \"%s\" は存在しません。\n"
-" 容量16MBで新たに作成しますか ?"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:180
+#: Source/Core/DiscIO/CompressedBlob.cpp:181
 #, c-format
 msgid "\"%s\" failed to be scrubbed. Probably the image is corrupt."
 msgstr "\"%s\" のスクラビングに失敗しました。おそらく壊れています。"
@@ -84,7 +82,7 @@ msgstr "\"%s\" は無効なファイル、またはゲームキューブ／Wii �
 msgid "%1$sCopy%1$s"
 msgstr "%1$s コピー %1$s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:232
+#: Source/Core/DiscIO/CompressedBlob.cpp:230
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "処理中... %i (全%iブロック中) 圧縮比：%i%%"
@@ -166,7 +164,7 @@ msgstr ""
 "す。"
 
 #: Source/Core/Core/HW/WiiSaveCrypted.cpp:186
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:364
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:365
 #, c-format
 msgid "%s already exists, overwrite?"
 msgstr "%s はすでに存在します。上書きしますか？"
@@ -252,7 +250,7 @@ msgstr "%zu FIFO バイト"
 msgid "%zu memory bytes"
 msgstr "%zu メモリ バイト"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:743
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:753
 msgid "&& AND"
 msgstr "&& (...と...)"
 
@@ -444,13 +442,13 @@ msgstr "&Load Symbol Map"
 msgid "&Log JIT Instruction Coverage"
 msgstr "&Log JIT Instruction Coverage"
 
-#: Source/Core/DolphinWX/MainMenuBar.cpp:215
-msgid "&Memcard Manager (GC)"
-msgstr "GCメモリーカードマネージャ(&M)"
-
 #: Source/Core/DolphinWX/MainMenuBar.cpp:309
 msgid "&Memory"
 msgstr "&Memory"
+
+#: Source/Core/DolphinWX/MainMenuBar.cpp:215
+msgid "&Memory Card Manager (GC)"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:46
 msgid "&Movie"
@@ -588,7 +586,7 @@ msgstr "オフ"
 msgid "+"
 msgstr "+"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:745
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:755
 msgid "+ ADD"
 msgstr "+ (...に加えて)"
 
@@ -626,14 +624,14 @@ msgid "32-bit"
 msgstr "32 ビット"
 
 #. i18n: Stereoscopic 3D
-#: Source/Core/Core/HotkeyManager.cpp:230
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:131
+#: Source/Core/Core/HotkeyManager.cpp:246
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:157
 msgid "3D"
-msgstr ""
+msgstr "3D"
 
-#: Source/Core/Core/HotkeyManager.cpp:231
+#: Source/Core/Core/HotkeyManager.cpp:247
 msgid "3D depth"
-msgstr ""
+msgstr "3D深度"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:547
 msgid "3x Native (1920x1584) for 1080p"
@@ -688,7 +686,7 @@ msgstr "A"
 msgid "A NetPlay window is already open!"
 msgstr "ネットプレイウィンドウは既に開かれています！"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:540
+#: Source/Core/Core/HW/DVDInterface.cpp:548
 msgid "A disc is already about to be inserted."
 msgstr ""
 
@@ -774,14 +772,14 @@ msgstr ""
 "問題のあるコード：\n"
 "%s"
 
-#: Source/Core/Core/ActionReplay.cpp:492
+#: Source/Core/Core/ActionReplay.cpp:493
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Add Code (%s)"
 msgstr ""
 "Action Replay エラー: 不正なサイズ (%08x : address = %08x) in Add Code (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:582
+#: Source/Core/Core/ActionReplay.cpp:583
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Fill and Slide "
@@ -790,7 +788,7 @@ msgstr ""
 "Action Replay エラー: 不正なサイズ (%08x : address = %08x) in Fill and Slide "
 "(%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:369
+#: Source/Core/Core/ActionReplay.cpp:370
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Ram Write And "
@@ -799,7 +797,7 @@ msgstr ""
 "Action Replay エラー: 不正なサイズ (%08x : address = %08x) in Ram Write And "
 "Fill (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:429
+#: Source/Core/Core/ActionReplay.cpp:430
 #, c-format
 msgid ""
 "Action Replay Error: Invalid size (%08x : address = %08x) in Write To "
@@ -808,12 +806,12 @@ msgstr ""
 "Action Replay エラー: 不正なサイズ (%08x : address = %08x) in Write To "
 "Pointer (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:630
+#: Source/Core/Core/ActionReplay.cpp:631
 #, c-format
 msgid "Action Replay Error: Invalid value (%08x) in Memory Copy (%s)"
 msgstr "Action Replay エラー: 不正な値 (%08x) in Memory Copy (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:507
+#: Source/Core/Core/ActionReplay.cpp:508
 #, c-format
 msgid ""
 "Action Replay Error: Master Code and Write To CCXXXXXX not implemented (%s)\n"
@@ -823,27 +821,27 @@ msgstr ""
 "(%s)\n"
 "マスターコードは必要ありません。使用しないでください。"
 
-#: Source/Core/Core/ActionReplay.cpp:215
+#: Source/Core/Core/ActionReplay.cpp:216
 #, c-format
 msgid "Action Replay Error: invalid AR code line: %s"
 msgstr "エラー: 無効なコード ライン： %s"
 
-#: Source/Core/Core/ActionReplay.cpp:741
+#: Source/Core/Core/ActionReplay.cpp:742
 #, c-format
 msgid "Action Replay: Conditional Code: Invalid Size %08x (%s)"
 msgstr "Action Replay: 条件付きコード: 不正なサイズ %08x (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:709
+#: Source/Core/Core/ActionReplay.cpp:710
 #, c-format
 msgid "Action Replay: Invalid Normal Code Type %08x (%s)"
 msgstr "Action Replay: 不正な種類の通常コード %08x (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:765
+#: Source/Core/Core/ActionReplay.cpp:766
 #, c-format
 msgid "Action Replay: Normal Code %i: Invalid subtype %08x (%s)"
 msgstr "Action Replay: 通常コード %i: 不正なサブタイプ %08x (%s)"
 
-#: Source/Core/Core/ActionReplay.cpp:667
+#: Source/Core/Core/ActionReplay.cpp:668
 #, c-format
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "Action Replay: 通常コード 0: 不正なサブタイプ %08x (%s)"
@@ -875,7 +873,7 @@ msgstr "追加"
 msgid "Add ActionReplay Code"
 msgstr "コードを追加"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:20
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:19
 msgid "Add Breakpoint"
 msgstr "Add Breakpoint"
 
@@ -887,6 +885,11 @@ msgstr "Add New Pane To"
 msgid "Add Patch"
 msgstr "パッチを追加"
 
+#: Source/Core/Core/HotkeyManager.cpp:50
+msgid "Add a Breakpoint"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:51
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:20
 msgid "Add a Memory Breakpoint"
 msgstr "Add a Memory Breakpoint"
@@ -927,7 +930,7 @@ msgstr "アドレス"
 msgid "Address Out of Range"
 msgstr "Address Out of Range"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1040
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1056
 msgid "Adjust the analog control pressure required to activate buttons."
 msgstr "ボタンが反応する感度を調整します"
 
@@ -947,7 +950,7 @@ msgstr "高度な設定"
 #: Source/Core/DolphinWX/Config/PathConfigPane.cpp:44
 #: Source/Core/DolphinWX/FrameTools.cpp:335
 msgid "All GC/Wii files (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
-msgstr ""
+msgstr "全ての GC/Wii ファイル (elf, dol, gcm, iso, tgc, wbfs, ciso, gcz, wad)"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1345
 msgid "All GameCube GCM files (gcm)"
@@ -983,7 +986,7 @@ msgstr ""
 "\n"
 "無視して続行しますか？"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:314
+#: Source/Core/Core/HW/DVDInterface.cpp:322
 msgid "An inserted disc was expected but not found."
 msgstr ""
 
@@ -1051,7 +1054,7 @@ msgstr ""
 msgid "Apply signature file"
 msgstr "Apply signature file"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:873
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:883
 #, c-format
 msgid "Are you sure you want to delete \"%s\"?"
 msgstr "\"%s\" このプロファイルを削除しますか？"
@@ -1183,7 +1186,7 @@ msgstr "出力設定"
 msgid "Backend:"
 msgstr "描画API："
 
-#: Source/Core/Core/HotkeyManager.cpp:252
+#: Source/Core/Core/HotkeyManager.cpp:268
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:78 Source/Core/Core/HW/GCPadEmu.cpp:73
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:285
 msgid "Background Input"
@@ -1272,7 +1275,7 @@ msgstr "ボーダレス フルスクリーン"
 msgid "Bottom"
 msgstr "下"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:318
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:328
 #, c-format
 msgid "Bound Controls: %lu"
 msgstr "コマンド数: %lu"
@@ -1289,6 +1292,10 @@ msgstr "Break"
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
 msgid "Break and log"
 msgstr "Break and log"
+
+#: Source/Core/Core/HotkeyManager.cpp:241
+msgid "Breakpoint"
+msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:402
 msgid "Breakpoint encountered! Step out aborted."
@@ -1407,7 +1414,7 @@ msgstr "Can't find Wii Remote by connection handle %02x"
 msgid "Cancel"
 msgstr "キャンセル"
 
-#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:88
+#: Source/Core/Core/FifoPlayer/FifoPlayer.cpp:92
 msgid "Cannot SingleStep the FIFO. Use Frame Advance instead."
 msgstr "Cannot SingleStep the FIFO. Use Frame Advance instead."
 
@@ -1563,8 +1570,8 @@ msgstr "クラシックコントローラの設定"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:107
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:50
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:725
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1182
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:735
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1198
 #: Source/Core/DolphinWX/LogWindow.cpp:132
 #: Source/Core/DolphinWX/WXInputBase.cpp:48
 msgid "Clear"
@@ -1602,8 +1609,8 @@ msgid "Close"
 msgstr "閉じる"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:170
-msgid "Co&nfigure..."
-msgstr "Dolphinの設定(&N)"
+msgid "Co&nfiguration"
+msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.h:82
 msgid "Code"
@@ -1686,11 +1693,11 @@ msgstr "設定"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:164
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:317
-#: Source/Core/DolphinWX/Input/InputConfigDiag.h:152
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:219
 msgid "Configure"
 msgstr "設定"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:176
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:181
 msgid "Configure Control"
 msgstr "コントロールの設定"
 
@@ -1717,7 +1724,7 @@ msgstr "動作停止時に確認"
 msgid "Connect"
 msgstr "ホストに接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:46
+#: Source/Core/Core/HotkeyManager.cpp:58
 #: Source/Core/DolphinWX/MainMenuBar.cpp:212
 msgid "Connect Balance Board"
 msgstr "バランスWii ボードを接続"
@@ -1731,19 +1738,19 @@ msgstr "USBキーボードの接続をエミュレート"
 msgid "Connect Wii Remote %i"
 msgstr "%iPのWiiリモコンを接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:42
+#: Source/Core/Core/HotkeyManager.cpp:54
 msgid "Connect Wii Remote 1"
 msgstr "1PのWiiリモコンを接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:43
+#: Source/Core/Core/HotkeyManager.cpp:55
 msgid "Connect Wii Remote 2"
 msgstr "2PのWiiリモコンを接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:44
+#: Source/Core/Core/HotkeyManager.cpp:56
 msgid "Connect Wii Remote 3"
 msgstr "3PのWiiリモコンを接続"
 
-#: Source/Core/Core/HotkeyManager.cpp:45
+#: Source/Core/Core/HotkeyManager.cpp:57
 msgid "Connect Wii Remote 4"
 msgstr "4PのWiiリモコンを接続"
 
@@ -1849,10 +1856,10 @@ msgstr "Copy &hex"
 msgid "Copy failed"
 msgstr "コピーに失敗"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:820
+#: Source/Core/DolphinWX/MemcardManager.cpp:821
 #, c-format
-msgid "Copy to Memcard %c"
-msgstr "メモリーカード%cにコピー"
+msgid "Copy to Memory Card %c"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:344
 msgid "Core"
@@ -2087,6 +2094,7 @@ msgid "Debug Only"
 msgstr "デバッグ用"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:177
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:95
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:845
 msgid "Debugging"
 msgstr "デバッグ用項目"
@@ -2109,11 +2117,11 @@ msgstr "選択したファイルを全てISOファイルへ復元"
 msgid "Decompressing ISO"
 msgstr "復元中..."
 
-#: Source/Core/Core/HotkeyManager.cpp:74
+#: Source/Core/Core/HotkeyManager.cpp:87
 msgid "Decrease Convergence"
 msgstr "収束距離 減少"
 
-#: Source/Core/Core/HotkeyManager.cpp:72
+#: Source/Core/Core/HotkeyManager.cpp:85
 msgid "Decrease Depth"
 msgstr "深度 減少"
 
@@ -2121,11 +2129,11 @@ msgstr "深度 減少"
 msgid "Decrease Emulation Speed"
 msgstr "エミュレーション速度 減少"
 
-#: Source/Core/Core/HotkeyManager.cpp:55
+#: Source/Core/Core/HotkeyManager.cpp:68
 msgid "Decrease IR"
 msgstr "内部解像度 縮小"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1180
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1196
 msgid "Default"
 msgstr "既定"
 
@@ -2138,15 +2146,16 @@ msgid "Default font"
 msgstr "既定のフォント"
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:47
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1205
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1221
 #: Source/Core/DolphinWX/WXInputBase.cpp:29
 msgid "Delete"
 msgstr "削除"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:821
+#: Source/Core/DolphinWX/MemcardManager.cpp:822
 msgid "Delete Save"
 msgstr "このセーブデータを削除"
 
+#: Source/Core/AudioCommon/WaveFile.cpp:30
 #: Source/Core/VideoCommon/AVIDump.cpp:98
 #, c-format
 msgid "Delete the existing file '%s'?"
@@ -2168,7 +2177,7 @@ msgstr "説明"
 msgid "Description:"
 msgstr "説明"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:723
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:733
 msgid "Detect"
 msgstr "検出"
 
@@ -2176,8 +2185,8 @@ msgstr "検出"
 msgid "Deterministic dual core: "
 msgstr "Deterministic dual core: "
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:193
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1154
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:198
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1170
 msgid "Device"
 msgstr "デバイス"
 
@@ -2186,7 +2195,7 @@ msgstr "デバイス"
 msgid "Device Settings"
 msgstr "デバイス設定"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:326
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:336
 msgid "Device not found"
 msgstr "デバイスが見つかりません"
 
@@ -2322,7 +2331,7 @@ msgstr "Dolphin コントローラ設定"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:508
 #, c-format
 msgid "Dolphin Emulated Wii Remote Configuration Port %i"
-msgstr ""
+msgstr "Wiiリモコンのエミュレーション設定 - ポート%i"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:376
 msgid "Dolphin FIFO"
@@ -2348,7 +2357,7 @@ msgstr "Dolphin ネットプレイ《セットアップ》"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:165
 msgid "Dolphin Signature CSV File (*.csv)"
-msgstr ""
+msgstr "Dolphin Signature CSV File (*.csv)"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:164
 msgid "Dolphin Signature File (*.dsy)"
@@ -2392,7 +2401,7 @@ msgstr "要求された操作を完了することができませんでした。
 msgid "Dolphin's cheat system is currently disabled."
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:325
+#: Source/Core/DiscIO/CompressedBlob.cpp:322
 msgid "Done compressing disc image."
 msgstr "ディスクイメージの圧縮に成功しました"
 
@@ -2627,9 +2636,9 @@ msgstr "Wiiリモコンをエミュレート"
 msgid "Emulation State: "
 msgstr "動作状況："
 
-#: Source/Core/Core/HotkeyManager.cpp:223
+#: Source/Core/Core/HotkeyManager.cpp:236
 msgid "Emulation speed"
-msgstr ""
+msgstr "エミュレーション速度"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:840
 msgid "Enable API Validation Layers"
@@ -2718,7 +2727,7 @@ msgstr ""
 "タイトルによってはクラッシュその他の問題を引き起こす可能性があります\n"
 " [有効＝ロード時間短縮／無効＝互換性重視]"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:835
+#: Source/Core/DolphinWX/MemcardManager.cpp:836
 msgid "Enable pages"
 msgstr "ページ分けして表示"
 
@@ -2893,12 +2902,16 @@ msgid ""
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may "
 "not show fonts correctly, or crash."
 msgstr ""
+"エラー： Shift-JISフォントにアクセスを試みましたが読み込めませんでした。ゲー"
+"ムはフォントを正しく表示できないか、クラッシュするでしょう"
 
 #: Source/Core/Core/HW/EXI_DeviceIPL.cpp:379
 msgid ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
 msgstr ""
+"エラー： Windows-1252フォントにアクセスを試みましたが読み込めませんでした。"
+"ゲームはフォントを正しく表示できないか、クラッシュするでしょう"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:25
 msgid "Escape"
@@ -2932,7 +2945,7 @@ msgstr "録画ファイルのエクスポート"
 msgid "Export Recording..."
 msgstr "録画ファイルのエクスポート"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:823
+#: Source/Core/DolphinWX/MemcardManager.cpp:824
 msgid "Export Save"
 msgstr "セーブデータをエクスポート"
 
@@ -2940,7 +2953,7 @@ msgstr "セーブデータをエクスポート"
 msgid "Export Wii save (Experimental)"
 msgstr "セーブデータをエクスポート (実験的)"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:824
+#: Source/Core/DolphinWX/MemcardManager.cpp:825
 msgid "Export all saves"
 msgstr "全てのセーブデータをエクスポート"
 
@@ -2979,7 +2992,7 @@ msgstr "このフォルダを抽出"
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:309
 msgid "Extract File"
-msgstr ""
+msgstr "ファイルの抽出先を選択"
 
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:281
 msgid "Extract File..."
@@ -3063,13 +3076,13 @@ msgid "Failed to open Bluetooth device: %s"
 msgstr "Failed to open Bluetooth device: %s"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:162
-#: Source/Core/DiscIO/CompressedBlob.cpp:342
+#: Source/Core/DiscIO/CompressedBlob.cpp:339
 #, c-format
 msgid "Failed to open the input file \"%s\"."
 msgstr "次のファイルの読み込みに失敗 \"%s\"。"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:169
-#: Source/Core/DiscIO/CompressedBlob.cpp:349
+#: Source/Core/DiscIO/CompressedBlob.cpp:346
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3089,12 +3102,9 @@ msgstr "Failed to read %s"
 #, c-format
 msgid ""
 "Failed to read block %u of the save data\n"
-"Memcard may be truncated\n"
+"Memory card may be truncated\n"
 "File position: 0x%<PRIx64>"
 msgstr ""
-"Failed to read block %u of the save data\n"
-"Memcard may be truncated\n"
-"File position: 0x%<PRIx64>"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:118
 msgid ""
@@ -3149,8 +3159,8 @@ msgstr "Failed to read unique ID from disc image"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Failed to write BT.DINF to SYSCONF"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:290
-#: Source/Core/DiscIO/CompressedBlob.cpp:380
+#: Source/Core/DiscIO/CompressedBlob.cpp:288
+#: Source/Core/DiscIO/CompressedBlob.cpp:377
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -3217,10 +3227,10 @@ msgstr ""
 "有効な拡張子は .raw/.gcp です"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:426
-msgid "File is not recognized as a memcard"
-msgstr "このファイルはメモリーカードとして認識されませんでした"
+msgid "File is not recognized as a memory card"
+msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:335
+#: Source/Core/DiscIO/CompressedBlob.cpp:332
 msgid "File not compressed"
 msgstr "圧縮されていないファイル"
 
@@ -3230,7 +3240,7 @@ msgstr "圧縮されていないファイル"
 msgid "File write failed"
 msgstr "ファイルの書込に失敗"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:194
+#: Source/Core/DiscIO/CompressedBlob.cpp:192
 msgid "Files opened, ready to compress."
 msgstr "圧縮処理の待機中です..."
 
@@ -3244,7 +3254,7 @@ msgstr " 'ini' は不明な拡張子です。開くことができません！"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:83
 msgid "Filter Symbols"
-msgstr ""
+msgstr "Filter Symbols"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:162
 msgid ""
@@ -3263,7 +3273,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:84
 msgid "Filter the symbol list by name. This is case-sensitive."
-msgstr ""
+msgstr "Filter the symbol list by name. This is case-sensitive."
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:232
 msgid "Find Next"
@@ -3277,7 +3287,7 @@ msgstr "前へ"
 msgid "First Block"
 msgstr "ブロック開始位置"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:830
+#: Source/Core/DolphinWX/MemcardManager.cpp:831
 msgid "Fix Checksums"
 msgstr "チェックサムを修正"
 
@@ -3442,11 +3452,11 @@ msgstr "フレームの情報"
 msgid "Frame Range"
 msgstr "フレームの範囲"
 
-#: Source/Core/Core/HotkeyManager.cpp:224
+#: Source/Core/Core/HotkeyManager.cpp:237
 msgid "Frame advance"
-msgstr ""
+msgstr "Frame advance"
 
-#: Source/Core/VideoCommon/RenderBase.cpp:888
+#: Source/Core/VideoCommon/RenderBase.cpp:890
 #, c-format
 msgid "Frame dump image(s) '%s' already exists. Overwrite?"
 msgstr ""
@@ -3463,47 +3473,47 @@ msgstr "フランス"
 msgid "Free Look"
 msgstr "フリールック"
 
-#: Source/Core/Core/HotkeyManager.cpp:229
+#: Source/Core/Core/HotkeyManager.cpp:245
 msgid "Freelook"
-msgstr ""
+msgstr "フリールック"
 
-#: Source/Core/Core/HotkeyManager.cpp:57
+#: Source/Core/Core/HotkeyManager.cpp:70
 msgid "Freelook Decrease Speed"
 msgstr "フリールック速度 増加"
 
-#: Source/Core/Core/HotkeyManager.cpp:58
+#: Source/Core/Core/HotkeyManager.cpp:71
 msgid "Freelook Increase Speed"
 msgstr "フリールック速度 減少"
 
-#: Source/Core/Core/HotkeyManager.cpp:61
+#: Source/Core/Core/HotkeyManager.cpp:74
 msgid "Freelook Move Down"
 msgstr "フリールック 下へ"
 
-#: Source/Core/Core/HotkeyManager.cpp:62
+#: Source/Core/Core/HotkeyManager.cpp:75
 msgid "Freelook Move Left"
 msgstr "フリールック 左へ"
 
-#: Source/Core/Core/HotkeyManager.cpp:63
+#: Source/Core/Core/HotkeyManager.cpp:76
 msgid "Freelook Move Right"
 msgstr "フリールック 右へ"
 
-#: Source/Core/Core/HotkeyManager.cpp:60
+#: Source/Core/Core/HotkeyManager.cpp:73
 msgid "Freelook Move Up"
 msgstr "フリールック 上へ"
 
-#: Source/Core/Core/HotkeyManager.cpp:66
+#: Source/Core/Core/HotkeyManager.cpp:79
 msgid "Freelook Reset"
 msgstr "フリールック リセット"
 
-#: Source/Core/Core/HotkeyManager.cpp:59
+#: Source/Core/Core/HotkeyManager.cpp:72
 msgid "Freelook Reset Speed"
 msgstr "フリールック速度 リセット"
 
-#: Source/Core/Core/HotkeyManager.cpp:64
+#: Source/Core/Core/HotkeyManager.cpp:77
 msgid "Freelook Zoom In"
 msgstr "フリールック  ズームイン"
 
-#: Source/Core/Core/HotkeyManager.cpp:65
+#: Source/Core/Core/HotkeyManager.cpp:78
 msgid "Freelook Zoom Out"
 msgstr "フリールック ズームアウト"
 
@@ -3646,7 +3656,7 @@ msgstr "Wii U GCコントローラ接続タップ"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:470
 #, c-format
 msgid "GameCube Controller Configuration Port %i"
-msgstr ""
+msgstr "ゲームキューブ コントローラ設定 - ポート%i"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:145
 msgid "GameCube Controllers"
@@ -3655,7 +3665,7 @@ msgstr "ゲームキューブ デバイス設定"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:455
 #, c-format
 msgid "GameCube Keyboard Configuration Port %i"
-msgstr ""
+msgstr "ゲームキューブ キーボード設定 - ポート%i"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:353
 #: Source/Core/DolphinWX/MemcardManager.cpp:203
@@ -3679,9 +3689,9 @@ msgstr "GCセーブファイル(*.gci;*.gcs;*.sav)"
 msgid "Gecko Codes"
 msgstr "Geckoコード"
 
-#: Source/Core/Core/HotkeyManager.cpp:221
+#: Source/Core/Core/HotkeyManager.cpp:234
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:84
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:49
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:50
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:48
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:366
@@ -3690,7 +3700,7 @@ msgstr "一般"
 
 #: Source/Core/DolphinWX/Input/WiimoteInputConfigDiag.cpp:64
 msgid "General and Options"
-msgstr ""
+msgstr "一般設定"
 
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:60
 #: Source/Core/DolphinWX/Config/GeneralConfigPane.cpp:63
@@ -3719,7 +3729,7 @@ msgstr "Go to Next Frame"
 msgid "Go to the current instruction"
 msgstr "Go to the current instruction"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:111
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:137
 #: Source/Core/DolphinWX/MainToolBar.cpp:186
 msgid "Graphics"
 msgstr "ビデオ"
@@ -3728,9 +3738,9 @@ msgstr "ビデオ"
 msgid "Graphics settings"
 msgstr "グラフィックの設定を行います"
 
-#: Source/Core/Core/HotkeyManager.cpp:227
+#: Source/Core/Core/HotkeyManager.cpp:243
 msgid "Graphics toggles"
-msgstr ""
+msgstr "グラフィック設定 切替"
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:108
 msgid "Greater Than"
@@ -3881,7 +3891,7 @@ msgstr ""
 msgid "Host with Netplay"
 msgstr "ネットプレイを開始（ホスト）"
 
-#: Source/Core/Core/HotkeyManager.cpp:138
+#: Source/Core/Core/HotkeyManager.cpp:151
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:298
 msgid "Hotkeys"
 msgstr "ホットキー"
@@ -4029,7 +4039,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:822
+#: Source/Core/DolphinWX/MemcardManager.cpp:823
 msgid "Import Save"
 msgstr "セーブデータをインポート"
 
@@ -4065,11 +4075,11 @@ msgstr ""
 msgid "In Game"
 msgstr "ソコソコ"
 
-#: Source/Core/Core/HotkeyManager.cpp:75
+#: Source/Core/Core/HotkeyManager.cpp:88
 msgid "Increase Convergence"
 msgstr "収束距離 増加"
 
-#: Source/Core/Core/HotkeyManager.cpp:73
+#: Source/Core/Core/HotkeyManager.cpp:86
 msgid "Increase Depth"
 msgstr "深度 増加"
 
@@ -4077,7 +4087,7 @@ msgstr "深度 増加"
 msgid "Increase Emulation Speed"
 msgstr "エミュレーション速度 増加"
 
-#: Source/Core/Core/HotkeyManager.cpp:54
+#: Source/Core/Core/HotkeyManager.cpp:67
 msgid "Increase IR"
 msgstr "内部解像度 拡大"
 
@@ -4090,7 +4100,7 @@ msgstr "情報"
 msgid "Information"
 msgstr "情報"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:713
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:723
 msgid "Input"
 msgstr "入力"
 
@@ -4172,9 +4182,9 @@ msgstr "Internal LZO Error - lzo_init() failed"
 msgid "Internal Name:"
 msgstr "内部名称"
 
-#: Source/Core/Core/HotkeyManager.cpp:228
+#: Source/Core/Core/HotkeyManager.cpp:244
 msgid "Internal Resolution"
-msgstr ""
+msgstr "内部解像度"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:563
 msgid "Internal Resolution:"
@@ -4244,7 +4254,7 @@ msgstr "イタリア語"
 msgid "Italy"
 msgstr "イタリア"
 
-#: Source/Core/Core/HotkeyManager.cpp:254
+#: Source/Core/Core/HotkeyManager.cpp:270
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:80 Source/Core/Core/HW/GCPadEmu.cpp:75
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:291
 msgid "Iterative Input"
@@ -4366,7 +4376,7 @@ msgstr "Lスティック"
 msgid "Left stick"
 msgstr "Lスティック"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:954
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:970
 msgid ""
 "Left-click to detect input.\n"
 "Middle-click to clear.\n"
@@ -4376,7 +4386,7 @@ msgstr ""
 "中クリックで消去\n"
 "右クリックで詳細設定に入ります"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:959
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:975
 msgid ""
 "Left/Right-click for more options.\n"
 "Middle-click to clear."
@@ -4417,7 +4427,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:59
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:35
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1201
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1217
 msgid "Load"
 msgstr "読込"
 
@@ -4433,87 +4443,87 @@ msgstr "Load &Other Map File..."
 msgid "Load Custom Textures"
 msgstr "カスタムテクスチャを読み込む"
 
-#: Source/Core/Core/HotkeyManager.cpp:127
+#: Source/Core/Core/HotkeyManager.cpp:140
 msgid "Load State"
 msgstr "ステートロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:112
+#: Source/Core/Core/HotkeyManager.cpp:125
 msgid "Load State Last 1"
 msgstr "1個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:121
+#: Source/Core/Core/HotkeyManager.cpp:134
 msgid "Load State Last 10"
 msgstr "10個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:113
+#: Source/Core/Core/HotkeyManager.cpp:126
 msgid "Load State Last 2"
 msgstr "2個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:114
+#: Source/Core/Core/HotkeyManager.cpp:127
 msgid "Load State Last 3"
 msgstr "3個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:115
+#: Source/Core/Core/HotkeyManager.cpp:128
 msgid "Load State Last 4"
 msgstr "4個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:116
+#: Source/Core/Core/HotkeyManager.cpp:129
 msgid "Load State Last 5"
 msgstr "5個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:117
+#: Source/Core/Core/HotkeyManager.cpp:130
 msgid "Load State Last 6"
 msgstr "6個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:118
+#: Source/Core/Core/HotkeyManager.cpp:131
 msgid "Load State Last 7"
 msgstr "7個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:119
+#: Source/Core/Core/HotkeyManager.cpp:132
 msgid "Load State Last 8"
 msgstr "8個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:120
+#: Source/Core/Core/HotkeyManager.cpp:133
 msgid "Load State Last 9"
 msgstr "9個前のステートをロード"
 
-#: Source/Core/Core/HotkeyManager.cpp:77
+#: Source/Core/Core/HotkeyManager.cpp:90
 msgid "Load State Slot 1"
 msgstr "ステートロード - スロット 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:86
+#: Source/Core/Core/HotkeyManager.cpp:99
 msgid "Load State Slot 10"
 msgstr "ステートロード - スロット 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:78
+#: Source/Core/Core/HotkeyManager.cpp:91
 msgid "Load State Slot 2"
 msgstr "ステートロード - スロット 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:79
+#: Source/Core/Core/HotkeyManager.cpp:92
 msgid "Load State Slot 3"
 msgstr "ステートロード - スロット 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:80
+#: Source/Core/Core/HotkeyManager.cpp:93
 msgid "Load State Slot 4"
 msgstr "ステートロード - スロット 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:81
+#: Source/Core/Core/HotkeyManager.cpp:94
 msgid "Load State Slot 5"
 msgstr "ステートロード - スロット 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:82
+#: Source/Core/Core/HotkeyManager.cpp:95
 msgid "Load State Slot 6"
 msgstr "ステートロード - スロット 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:83
+#: Source/Core/Core/HotkeyManager.cpp:96
 msgid "Load State Slot 7"
 msgstr "ステートロード - スロット 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:84
+#: Source/Core/Core/HotkeyManager.cpp:97
 msgid "Load State Slot 8"
 msgstr "ステートロード - スロット 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:85
+#: Source/Core/Core/HotkeyManager.cpp:98
 msgid "Load State Slot 9"
 msgstr "ステートロード - スロット 9"
 
@@ -4561,21 +4571,21 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/Core/HotkeyManager.cpp:87
+#: Source/Core/Core/HotkeyManager.cpp:100
 msgid "Load from selected slot"
 msgstr "選択したスロットから読込"
 
-#: Source/Core/Core/HotkeyManager.cpp:235
+#: Source/Core/Core/HotkeyManager.cpp:251
 msgid "Load last state"
-msgstr ""
+msgstr "前回のステートをロード"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:223
 msgid "Load map file"
 msgstr "Load map file"
 
-#: Source/Core/Core/HotkeyManager.cpp:232
+#: Source/Core/Core/HotkeyManager.cpp:248
 msgid "Load state"
-msgstr ""
+msgstr "ステートロード"
 
 #: Source/Core/Core/PowerPC/PPCSymbolDB.cpp:391
 #, c-format
@@ -4622,7 +4632,7 @@ msgid "Logger Outputs"
 msgstr "ログ出力先"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:139
-#: Source/Core/DolphinWX/Frame.cpp:367
+#: Source/Core/DolphinWX/Frame.cpp:369
 msgid "Logging"
 msgstr "ログ"
 
@@ -4705,14 +4715,6 @@ msgstr ""
 "有効にしているとWiiメニューやいくつかのタイトルで動作速度が低下する場合があり"
 "ます"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:450
-msgid "Memcard already has a save for this title."
-msgstr "このタイトルのセーブデータはすでに存在します"
-
-#: Source/Core/DolphinWX/MemcardManager.cpp:289
-msgid "Memcard already opened"
-msgstr "すでに開いています"
-
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:86
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.h:28
 msgid "Memory"
@@ -4747,6 +4749,14 @@ msgstr ""
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:299
 msgid "Memory Not Ready"
 msgstr "Memory Not Ready"
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:450
+msgid "Memory card already has a save for this title."
+msgstr ""
+
+#: Source/Core/DolphinWX/MemcardManager.cpp:289
+msgid "Memory card already opened"
+msgstr ""
 
 #: Source/Core/Core/HW/GCMemcard.cpp:94
 msgid "Memory card file size does not match the header size"
@@ -4816,7 +4826,7 @@ msgstr "等幅フォント"
 
 #: Source/Core/DolphinWX/Input/WiimoteInputConfigDiag.cpp:98
 msgid "Motion Controls and IR"
-msgstr ""
+msgstr "モーションとポインタ動作"
 
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:271
 msgid "Motion Plus"
@@ -4832,9 +4842,9 @@ msgid ""
 "Move the mouse pointer over an option to display a detailed description."
 msgstr "設定項目にマウスカーソルを合わせると、ここに説明が表示されます。"
 
-#: Source/Core/Core/HotkeyManager.cpp:225
+#: Source/Core/Core/HotkeyManager.cpp:238
 msgid "Movie"
-msgstr ""
+msgstr "記録"
 
 #: Source/Core/DolphinWX/WXInputBase.cpp:110
 msgid "Multiply"
@@ -4985,7 +4995,7 @@ msgid "Next Frame"
 msgstr "Next Frame"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:189
-#: Source/Core/DolphinWX/MemcardManager.cpp:832
+#: Source/Core/DolphinWX/MemcardManager.cpp:833
 msgid "Next Page"
 msgstr "次のページ"
 
@@ -5206,7 +5216,7 @@ msgid ""
 "text editor."
 msgstr "テキストエディタでこのタイトルのデフォルト設定を確認できます"
 
-#: Source/Core/Core/HotkeyManager.cpp:250
+#: Source/Core/Core/HotkeyManager.cpp:266
 #: Source/Core/Core/HW/GCKeyboardEmu.cpp:76 Source/Core/Core/HW/GCPadEmu.cpp:71
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:283
 msgid "Options"
@@ -5220,11 +5230,8 @@ msgstr "オレンジ"
 msgid ""
 "Order of files in the File Directory do not match the block order\n"
 "Right click and export all of the saves,\n"
-"and import the saves to a new memcard\n"
+"and import the saves to a new memory card\n"
 msgstr ""
-"ファイルディレクトリ内のファイル順序が、ブロック順序と一致しません\n"
-"右クリックメニューから全てのセーブデータをエクスポートし、\n"
-"新しくメモリーカードを作成して、そこへインポートを行ってください\n"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:146
 msgid "Orientation"
@@ -5235,19 +5242,19 @@ msgstr "モーションセンサー"
 msgid "Other"
 msgstr "その他"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:173
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:199
 msgid "Other State Management"
-msgstr ""
+msgstr "その他ステート関係"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:135
 msgid "Other game"
 msgstr "他のタイトル"
 
-#: Source/Core/Core/HotkeyManager.cpp:236
+#: Source/Core/Core/HotkeyManager.cpp:252
 msgid "Other state hotkeys"
-msgstr ""
+msgstr "その他"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:713
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:723
 msgid "Output"
 msgstr "出力"
 
@@ -5298,7 +5305,7 @@ msgstr ""
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:246
 #, c-format
 msgid "Partition %u"
-msgstr ""
+msgstr "パーティション %u"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:230
 msgid "Passthrough a Bluetooth adapter"
@@ -5315,7 +5322,7 @@ msgstr "フォルダ"
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:73
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:74
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:47
-#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:178
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:180
 #: Source/Core/DolphinWX/MainToolBar.cpp:229
 #: Source/Core/DolphinWX/WXInputBase.cpp:62
 msgid "Pause"
@@ -5453,7 +5460,7 @@ msgstr "Premature movie end in PlayWiimote. %u + %d > %u"
 msgid "Premature movie end in PlayWiimote. %u > %u"
 msgstr "Premature movie end in PlayWiimote. %u > %u"
 
-#: Source/Core/Core/HotkeyManager.cpp:41
+#: Source/Core/Core/HotkeyManager.cpp:53
 msgid "Press Sync Button"
 msgstr "Syncボタン 押下"
 
@@ -5461,7 +5468,7 @@ msgstr "Syncボタン 押下"
 msgid "Prev Page"
 msgstr "前のページ"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:831
+#: Source/Core/DolphinWX/MemcardManager.cpp:832
 msgid "Previous Page"
 msgstr "前のページ"
 
@@ -5469,9 +5476,13 @@ msgstr "前のページ"
 msgid "Print"
 msgstr "Print"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1198
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1214
 msgid "Profile"
 msgstr "プロファイル"
+
+#: Source/Core/Core/HotkeyManager.cpp:240
+msgid "Program Counter"
+msgstr ""
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.h:55
 msgid "Properties"
@@ -5521,7 +5532,7 @@ msgstr "R (アナログ)"
 msgid "Radius"
 msgstr "範囲"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:775
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:785
 msgid "Range"
 msgstr "範囲／強さ"
 
@@ -5609,7 +5620,7 @@ msgstr ""
 "よく分からなければ、【なし】のままにしておいてください。"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:331
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1159
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1175
 #: Source/Core/DolphinWX/MainToolBar.cpp:178
 msgid "Refresh"
 msgstr "再更新"
@@ -5678,7 +5689,7 @@ msgstr "Report: GCIFolder Writing to unallocated block 0x%x"
 
 #: Source/Core/Core/HotkeyManager.cpp:18
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:268
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1178
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1194
 msgid "Reset"
 msgstr "初期化"
 
@@ -5745,7 +5756,7 @@ msgstr "ルームID："
 msgid "Rumble"
 msgstr "振動"
 
-#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:185
+#: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:187
 msgid "Run"
 msgstr "Run"
 
@@ -5772,7 +5783,7 @@ msgstr "Safe"
 #: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:62
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:38
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:162
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1203
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1219
 msgid "Save"
 msgstr "保存"
 
@@ -5784,7 +5795,7 @@ msgstr "Save Code"
 msgid "Save GCI as..."
 msgstr "セーブデータの保存先を選択"
 
-#: Source/Core/Core/HotkeyManager.cpp:123
+#: Source/Core/Core/HotkeyManager.cpp:136
 #: Source/Core/DolphinWX/MainMenuBar.cpp:102
 msgid "Save Oldest State"
 msgstr "最古のステートに上書き保存"
@@ -5793,47 +5804,47 @@ msgstr "最古のステートに上書き保存"
 msgid "Save Perspectives"
 msgstr "Save Perspectives"
 
-#: Source/Core/Core/HotkeyManager.cpp:126
+#: Source/Core/Core/HotkeyManager.cpp:139
 msgid "Save State"
 msgstr "ステートセーブ"
 
-#: Source/Core/Core/HotkeyManager.cpp:89
+#: Source/Core/Core/HotkeyManager.cpp:102
 msgid "Save State Slot 1"
 msgstr "ステートセーブ - スロット 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:98
+#: Source/Core/Core/HotkeyManager.cpp:111
 msgid "Save State Slot 10"
 msgstr "ステートセーブ - スロット 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:90
+#: Source/Core/Core/HotkeyManager.cpp:103
 msgid "Save State Slot 2"
 msgstr "ステートセーブ - スロット 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:91
+#: Source/Core/Core/HotkeyManager.cpp:104
 msgid "Save State Slot 3"
 msgstr "ステートセーブ - スロット 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:92
+#: Source/Core/Core/HotkeyManager.cpp:105
 msgid "Save State Slot 4"
 msgstr "ステートセーブ - スロット 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:93
+#: Source/Core/Core/HotkeyManager.cpp:106
 msgid "Save State Slot 5"
 msgstr "ステートセーブ - スロット 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:94
+#: Source/Core/Core/HotkeyManager.cpp:107
 msgid "Save State Slot 6"
 msgstr "ステートセーブ - スロット 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:95
+#: Source/Core/Core/HotkeyManager.cpp:108
 msgid "Save State Slot 7"
 msgstr "ステートセーブ - スロット 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:96
+#: Source/Core/Core/HotkeyManager.cpp:109
 msgid "Save State Slot 8"
 msgstr "ステートセーブ - スロット 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:97
+#: Source/Core/Core/HotkeyManager.cpp:110
 msgid "Save State Slot 9"
 msgstr "ステートセーブ - スロット 9"
 
@@ -5849,9 +5860,9 @@ msgstr "ファイルとして保存"
 msgid "Save Symbol Map &As..."
 msgstr "Save Symbol Map &As..."
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:150
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:176
 msgid "Save and Load State"
-msgstr ""
+msgstr "ステートセーブ／ロード"
 
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:354
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:360
@@ -5882,9 +5893,9 @@ msgstr "Save map file as"
 msgid "Save signature as"
 msgstr "Save signature as"
 
-#: Source/Core/Core/HotkeyManager.cpp:233
+#: Source/Core/Core/HotkeyManager.cpp:249
 msgid "Save state"
-msgstr ""
+msgstr "ステートセーブ"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:442
 msgid ""
@@ -5916,7 +5927,7 @@ msgstr ""
 "Save the function names for each address to a .map file in your user "
 "settings map folder, named after the title ID."
 
-#: Source/Core/Core/HotkeyManager.cpp:99
+#: Source/Core/Core/HotkeyManager.cpp:112
 msgid "Save to selected slot"
 msgstr "選択したスロットに保存"
 
@@ -6003,7 +6014,7 @@ msgstr ""
 msgid "Section %s not found in SYSCONF"
 msgstr "Section %s not found in SYSCONF"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:727
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:737
 #: Source/Core/DolphinWX/NetPlay/ChangeGameDialog.cpp:23
 #: Source/Core/DolphinWX/WXInputBase.cpp:78
 msgid "Select"
@@ -6026,43 +6037,43 @@ msgstr "スロット %u - %s"
 msgid "Select State Slot"
 msgstr "スロットの選択"
 
-#: Source/Core/Core/HotkeyManager.cpp:101
+#: Source/Core/Core/HotkeyManager.cpp:114
 msgid "Select State Slot 1"
 msgstr "ステートスロット 1"
 
-#: Source/Core/Core/HotkeyManager.cpp:110
+#: Source/Core/Core/HotkeyManager.cpp:123
 msgid "Select State Slot 10"
 msgstr "ステートスロット 10"
 
-#: Source/Core/Core/HotkeyManager.cpp:102
+#: Source/Core/Core/HotkeyManager.cpp:115
 msgid "Select State Slot 2"
 msgstr "ステートスロット 2"
 
-#: Source/Core/Core/HotkeyManager.cpp:103
+#: Source/Core/Core/HotkeyManager.cpp:116
 msgid "Select State Slot 3"
 msgstr "ステートスロット 3"
 
-#: Source/Core/Core/HotkeyManager.cpp:104
+#: Source/Core/Core/HotkeyManager.cpp:117
 msgid "Select State Slot 4"
 msgstr "ステートスロット 4"
 
-#: Source/Core/Core/HotkeyManager.cpp:105
+#: Source/Core/Core/HotkeyManager.cpp:118
 msgid "Select State Slot 5"
 msgstr "ステートスロット 5"
 
-#: Source/Core/Core/HotkeyManager.cpp:106
+#: Source/Core/Core/HotkeyManager.cpp:119
 msgid "Select State Slot 6"
 msgstr "ステートスロット 6"
 
-#: Source/Core/Core/HotkeyManager.cpp:107
+#: Source/Core/Core/HotkeyManager.cpp:120
 msgid "Select State Slot 7"
 msgstr "ステートスロット 7"
 
-#: Source/Core/Core/HotkeyManager.cpp:108
+#: Source/Core/Core/HotkeyManager.cpp:121
 msgid "Select State Slot 8"
 msgstr "ステートスロット 8"
 
-#: Source/Core/Core/HotkeyManager.cpp:109
+#: Source/Core/Core/HotkeyManager.cpp:122
 msgid "Select State Slot 9"
 msgstr "ステートスロット 9"
 
@@ -6083,9 +6094,9 @@ msgstr "インポートするセーブファイルを選択"
 msgid "Select floating windows"
 msgstr "Select floating windows"
 
-#: Source/Core/Core/HotkeyManager.cpp:234
+#: Source/Core/Core/HotkeyManager.cpp:250
 msgid "Select state"
-msgstr ""
+msgstr "ステートスロットの選択"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:334
 msgid "Select the file to load"
@@ -6227,6 +6238,7 @@ msgid "Server rejected traversal attempt"
 msgstr "サーバーが中継処理を拒否しました"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
+#: Source/Core/Core/HotkeyManager.cpp:47
 #: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Set PC"
 msgstr "Set PC"
@@ -6239,10 +6251,10 @@ msgstr "Set Value"
 msgid "Set as &default ISO"
 msgstr "Wiiメニュー(ディスクチャンネル)に表示(&D)"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:834
+#: Source/Core/DolphinWX/MemcardManager.cpp:835
 #, c-format
-msgid "Set as default Memcard %c"
-msgstr "メモリーカード%cを既定として設定"
+msgid "Set as default Memory Card %c"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Set the current instruction"
@@ -6380,6 +6392,7 @@ msgid "Show PAL"
 msgstr "PAL規格"
 
 #. i18n: Here, PC is an acronym for program counter, not personal computer.
+#: Source/Core/Core/HotkeyManager.cpp:46
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:55
 #: Source/Core/DolphinWX/MainToolBar.cpp:209
 msgid "Show PC"
@@ -6447,23 +6460,23 @@ msgstr ""
 "無効にすると致命的でないエラー表示には悩まされなくなりますが、クラッシュ時に"
 "エラー表示なしに突然強制終了されるようになります"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:848
+#: Source/Core/DolphinWX/MemcardManager.cpp:849
 msgid "Show first block"
 msgstr "ブロック開始位置を表示"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:847
+#: Source/Core/DolphinWX/MemcardManager.cpp:848
 msgid "Show save blocks"
 msgstr "ブロック数を表示"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:845
+#: Source/Core/DolphinWX/MemcardManager.cpp:846
 msgid "Show save comment"
 msgstr "コメントを表示"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:846
+#: Source/Core/DolphinWX/MemcardManager.cpp:847
 msgid "Show save icon"
 msgstr "アイコンを表示"
 
-#: Source/Core/DolphinWX/MemcardManager.cpp:844
+#: Source/Core/DolphinWX/MemcardManager.cpp:845
 msgid "Show save title"
 msgstr "タイトルを表示"
 
@@ -6528,6 +6541,7 @@ msgstr "タルコンガのシミュレート"
 msgid "Size"
 msgstr "サイズ"
 
+#: Source/Core/Core/HotkeyManager.cpp:44
 #: Source/Core/DolphinWX/MainToolBar.cpp:205
 msgid "Skip"
 msgstr "Skip"
@@ -6706,25 +6720,31 @@ msgid "Step"
 msgstr "Step"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:404
-msgid "Step &Into\tF11"
-msgstr "Step &Into\tF11"
+msgid "Step &Into"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:405
-msgid "Step &Over\tF10"
-msgstr "Step &Over\tF10"
+msgid "Step &Over"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:41
+msgid "Step Into"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:406
-msgid "Step O&ut\tSHIFT+F11"
-msgstr "Step O&ut\tSHIFT+F11"
+msgid "Step O&ut"
+msgstr ""
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
+#: Source/Core/Core/HotkeyManager.cpp:43
 #: Source/Core/DolphinWX/MainToolBar.cpp:203
 msgid "Step Out"
 msgstr "Step Out"
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
+#: Source/Core/Core/HotkeyManager.cpp:42
 #: Source/Core/DolphinWX/MainToolBar.cpp:199
 msgid "Step Over"
 msgstr "Step Over"
@@ -6756,6 +6776,10 @@ msgstr "Step over the next instruction"
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:316
 msgid "Step successful!"
 msgstr "Step successful!"
+
+#: Source/Core/Core/HotkeyManager.cpp:239
+msgid "Stepping"
+msgstr ""
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"
@@ -6886,7 +6910,7 @@ msgstr ""
 "CPU／GPUスレッドを同期させることでデュアルコア動作時のフリーズを抑制します "
 "[有効＝互換性重視／無効＝速度向上]"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:323
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:333
 msgid "Syntax error"
 msgstr "構文エラー"
 
@@ -6902,8 +6926,8 @@ msgstr "TAS Input"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:378
 #, c-format
-msgid "TAS Input - Controller %d"
-msgstr "TAS Input - ゲームキューブコントローラ %d"
+msgid "TAS Input - GameCube Controller %d"
+msgstr ""
 
 #: Source/Core/DolphinWX/FrameTools.cpp:386
 #, c-format
@@ -6912,9 +6936,9 @@ msgstr "TAS Input - Wiiリモコン %d"
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:69
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:70
 msgid "TAS Tools"
-msgstr ""
+msgstr "TAS関係"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:65
 msgid "TLUT Cmd"
@@ -6949,7 +6973,7 @@ msgstr "画面撮影"
 msgid "Take screenshot"
 msgstr "現在の画面を撮影します"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:723
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:733
 msgid "Test"
 msgstr "テスト"
 
@@ -6990,12 +7014,12 @@ msgstr ""
 msgid "The WAD has been installed successfully"
 msgstr "WADファイルの追加に成功"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:51
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:49
 #, c-format
 msgid "The address %s is invalid."
 msgstr "The address %s is invalid."
 
-#: Source/Core/Core/ActionReplay.cpp:218
+#: Source/Core/Core/ActionReplay.cpp:219
 msgid "The address is invalid"
 msgstr "無効なアドレスです"
 
@@ -7033,7 +7057,7 @@ msgstr ""
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr ""
 
-#: Source/Core/Core/HW/DVDInterface.cpp:517
+#: Source/Core/Core/HW/DVDInterface.cpp:525
 msgid "The disc that was about to be inserted couldn't be found."
 msgstr ""
 
@@ -7048,7 +7072,7 @@ msgstr ""
 "%s はすでに存在します\n"
 "上書きしますか？"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:38
+#: Source/Core/AudioCommon/WaveFile.cpp:52
 #, c-format
 msgid ""
 "The file %s could not be opened for writing. Please check if it's already "
@@ -7057,7 +7081,7 @@ msgstr ""
 "ファイル %s に書き込むことができませんでした。他のプログラムによって使用され"
 "ていないか確認してください。"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:30
+#: Source/Core/AudioCommon/WaveFile.cpp:44
 #, c-format
 msgid "The file %s was already open, the file header will not be written."
 msgstr ""
@@ -7114,7 +7138,7 @@ msgstr "サーバーは、不明なエラーメッセージを送信しました
 msgid "The specified file \"%s\" does not exist"
 msgstr "指定されたファイル \"%s\" は存在しません"
 
-#: Source/Core/Core/ActionReplay.cpp:221
+#: Source/Core/Core/ActionReplay.cpp:222
 msgid "The value is invalid"
 msgstr "無効な値です"
 
@@ -7161,7 +7185,7 @@ msgid ""
 "Do you want to discard all unencrypted lines?"
 msgstr ""
 
-#: Source/Core/Core/ActionReplay.cpp:851
+#: Source/Core/Core/ActionReplay.cpp:852
 msgid ""
 "This action replay simulator does not support codes that modify Action "
 "Replay itself."
@@ -7211,7 +7235,7 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:98
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:102
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -7224,7 +7248,7 @@ msgstr ""
 "\n"
 "DSPHLE: Unknown ucode (CRC = %08x) - forcing AX."
 
-#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:90
+#: Source/Core/Core/HW/DSPHLE/UCodes/UCodes.cpp:94
 #, c-format
 msgid ""
 "This title might be incompatible with DSP HLE emulation. Try using LLE if "
@@ -7274,26 +7298,26 @@ msgid "To"
 msgstr "終了"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:407
-msgid "Toggle &Breakpoint\tF9"
-msgstr "Toggle &Breakpoint\tF9"
+msgid "Toggle &Breakpoint"
+msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:256
 msgid "Toggle &memory"
 msgstr "Toggle &memory"
 
-#: Source/Core/Core/HotkeyManager.cpp:70
+#: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Toggle 3D Anaglyph"
 msgstr "立体視 Anaglyph 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:68
+#: Source/Core/Core/HotkeyManager.cpp:81
 msgid "Toggle 3D Side-by-side"
 msgstr "立体視 Side-by-side 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:69
+#: Source/Core/Core/HotkeyManager.cpp:82
 msgid "Toggle 3D Top-bottom"
 msgstr "立体視 Top-bottom 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:71
+#: Source/Core/Core/HotkeyManager.cpp:84
 msgid "Toggle 3D Vision"
 msgstr "立体視 3D Vision 切替"
 
@@ -7301,23 +7325,27 @@ msgstr "立体視 3D Vision 切替"
 msgid "Toggle All Log Types"
 msgstr "全てのログ情報を選択／解除"
 
-#: Source/Core/Core/HotkeyManager.cpp:49
+#: Source/Core/Core/HotkeyManager.cpp:61
 msgid "Toggle Aspect Ratio"
 msgstr "アスペクト比 設定切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:48
+#: Source/Core/Core/HotkeyManager.cpp:49
+msgid "Toggle Breakpoint"
+msgstr ""
+
+#: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Toggle Crop"
 msgstr "クロッピング 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:52
+#: Source/Core/Core/HotkeyManager.cpp:65
 msgid "Toggle Custom Textures"
 msgstr "カスタムテクスチャ 切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:50
+#: Source/Core/Core/HotkeyManager.cpp:62
 msgid "Toggle EFB Copies"
 msgstr "EFB Copies 設定切替"
 
-#: Source/Core/Core/HotkeyManager.cpp:51
+#: Source/Core/Core/HotkeyManager.cpp:63
 msgid "Toggle Fog"
 msgstr "フォグ処理 設定切替"
 
@@ -7328,6 +7356,10 @@ msgstr "フルスクリーン表示 切替"
 #: Source/Core/Core/HotkeyManager.cpp:16
 msgid "Toggle Pause"
 msgstr "一時停止 切替"
+
+#: Source/Core/Core/HotkeyManager.cpp:64
+msgid "Toggle Texture Dumping"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:393
 msgid "Toggle editing of perspectives"
@@ -7450,12 +7482,12 @@ msgid ""
 "Would you like to ignore this line and continue parsing?"
 msgstr ""
 
-#: Source/Core/Core/HotkeyManager.cpp:124
+#: Source/Core/Core/HotkeyManager.cpp:137
 #: Source/Core/DolphinWX/MainMenuBar.cpp:96
 msgid "Undo Load State"
 msgstr "直前のステートロードを取消"
 
-#: Source/Core/Core/HotkeyManager.cpp:125
+#: Source/Core/Core/HotkeyManager.cpp:138
 #: Source/Core/DolphinWX/MainMenuBar.cpp:103
 msgid "Undo Save State"
 msgstr "直前のステートセーブの取消"
@@ -7471,7 +7503,7 @@ msgstr "Unexpected 0x80 call? Aborting..."
 msgid "Unknown"
 msgstr "フィルタ無し"
 
-#: Source/Core/Core/HW/DVDInterface.cpp:1107
+#: Source/Core/Core/HW/DVDInterface.cpp:1115
 #, c-format
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Unknown DVD command %08x - fatal error"
@@ -7505,7 +7537,7 @@ msgstr ""
 msgid "Unlimited"
 msgstr "制限なし"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:369
+#: Source/Core/DiscIO/CompressedBlob.cpp:366
 msgid "Unpacking"
 msgstr "復元処理を行っています..."
 
@@ -7700,7 +7732,7 @@ msgstr "View as unsigned integer"
 msgid "Virtual"
 msgstr "Virtual"
 
-#: Source/Core/Core/HotkeyManager.cpp:222
+#: Source/Core/Core/HotkeyManager.cpp:235
 #: Source/Core/DolphinWX/Config/AudioConfigPane.cpp:66
 msgid "Volume"
 msgstr "音量"
@@ -7757,7 +7789,7 @@ msgstr "Warning - starting DOL in wrong console mode!"
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Warning - starting ISO in wrong console mode!"
 
-#: Source/Core/Core/HW/WiiSaveCrypted.cpp:586
+#: Source/Core/Core/HW/WiiSaveCrypted.cpp:601
 #, c-format
 msgid ""
 "Warning! it is advised to backup all files in the folder:\n"
@@ -7782,14 +7814,9 @@ msgstr ""
 msgid ""
 "Warning: This will overwrite any existing saves that are in the folder:\n"
 "%s\n"
-"and have the same name as a file on your memcard\n"
+"and have the same name as a file on your memory card\n"
 "Continue?"
 msgstr ""
-"このメモリーカードのすべてのファイルを次のフォルダに保管します。\n"
-"%s\n"
-"注意：すでにフォルダがある場合、中のセーブファイルは上書きされます。\n"
-"\n"
-"続けますか？"
 
 #: Source/Core/Core/Movie.cpp:1074
 #, c-format
@@ -7840,7 +7867,7 @@ msgstr ""
 msgid "Watch"
 msgstr "Watch"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:102
+#: Source/Core/AudioCommon/WaveFile.cpp:116
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - file not open."
 
@@ -7868,7 +7895,7 @@ msgstr "疑似ワイドスクリーン化"
 msgid "Width"
 msgstr "範囲(横)"
 
-#: Source/Core/Core/HotkeyManager.cpp:226
+#: Source/Core/Core/HotkeyManager.cpp:242
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:88
 msgid "Wii"
 msgstr "Wii"
@@ -7910,15 +7937,15 @@ msgstr "Wiiリモコン"
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:461
 #, c-format
 msgid "Wii U GameCube Controller Adapter Configuration Port %i"
-msgstr ""
+msgstr "Wii U GCコントローラー接続タップの設定 - ポート%i"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1188
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WADファイル (*.wad)"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:84
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:110
 msgid "Wii and Wii Remote"
-msgstr ""
+msgstr "WiiとWiiリモコン"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1150
 msgid "Wii save files (*.bin)"
@@ -7984,8 +8011,8 @@ msgid "Write to Window"
 msgstr "ウィンドウに出力"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:259
-msgid "Write to memcards/SD"
-msgstr "メモリーカード/SDへの書込を許可"
+msgid "Write to memory cards/SD"
+msgstr ""
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:252
 #: Source/Core/DolphinWX/TASInputDlg.cpp:393
@@ -8027,7 +8054,7 @@ msgstr "名前が入力されていません！"
 msgid "You must enter a valid decimal, hexadecimal or octal value."
 msgstr "10進数・16進数・8進数いずれかの有効な値を入力してください。"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:862
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:872
 msgid "You must enter a valid profile name."
 msgstr "有効なプロファイル名を入力してください"
 
@@ -8035,7 +8062,7 @@ msgstr "有効なプロファイル名を入力してください"
 msgid "You must restart Dolphin in order for the change to take effect."
 msgstr "この変更を適用するにはDolphinを再起動してください"
 
-#: Source/Core/Core/DSP/DSPCore.cpp:72
+#: Source/Core/Core/DSP/DSPCore.cpp:74
 msgid ""
 "Your DSP ROMs have incorrect hashes.\n"
 "Would you like to stop now to fix the problem?\n"
@@ -8078,17 +8105,17 @@ msgstr "ZL"
 msgid "ZR"
 msgstr "ZR"
 
-#: Source/Core/Core/ActionReplay.cpp:884
+#: Source/Core/Core/ActionReplay.cpp:885
 msgid "Zero 3 code not supported"
 msgstr "03コードはサポートされていません"
 
-#: Source/Core/Core/ActionReplay.cpp:904
+#: Source/Core/Core/ActionReplay.cpp:905
 #, c-format
 msgid "Zero code unknown to Dolphin: %08x"
 msgstr "Zero code unknown to Dolphin: %08x"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:633
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:680
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:643
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:690
 msgid "[ waiting ]"
 msgstr "[ 入力を待機... ]"
 
@@ -8124,6 +8151,6 @@ msgstr "wxExecute returned -1 on application run!"
 msgid "x86 Size"
 msgstr "x86 Size"
 
-#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:730
+#: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:740
 msgid "| OR"
 msgstr "| (...もしくは)"
