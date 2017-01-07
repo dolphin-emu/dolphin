@@ -14,6 +14,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/MathUtil.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/LookUpTables.h"
 
 #define TEST_WIDTH 16
 #define TEST_HEIGHT 16
@@ -1433,5 +1434,172 @@ TEST (TextureDecoderTest, DecodeBytes_RGBA8) {
     EXPECT_EQ (0, comp);
 
 }
+
+
+
+
+/* ===============================================================================================*/
+/* CMPR (CMPR lossy compression format, 8x8 tiles) */
+TEST (TextureDecoderTest, DecodeBytes_CMPR) { 
+	int comp = 0;
+	int width = TEST_WIDTH;
+    int height = TEST_HEIGHT;
+	u32 dst[TEST_WIDTH*TEST_HEIGHT];
+	u32 example[TEST_WIDTH*TEST_HEIGHT];
+	u8 src[TEST_HEIGHT*TEST_WIDTH];
+    int texformat = GX_TF_CMPR;
+
+    u16* tlut = NULL;
+    TlutFormat tlutfmt = (TlutFormat) 0;
+
+	int i, j, val;
+	int r, g, b, k;
+
+	// 8 test colors
+    u32 test[8] = {
+		0xFFFF, // White
+		0x0000, // Black
+		0x5555, // (1/3) of the difference
+		0xAAAA, // (2/3) of the difference
+
+		0x1313, 
+		0xDDDD, 
+		0x7878, 
+		0x1234 // 1234 will be transparent
+
+	};
+
+	// Swap the color bytes to make them BIG ENDIAN
+	for (i=0; i<8; i++) {
+		test[i] = Common::swap16(test[i]);
+	}
+
+	// Initizatize the example
+	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
+		for (k = 0; k < 2; k++) {
+			for (j=0; j<8; j++) {
+				val = Common::swap16(test[j]) & 0xFFFF;
+
+				if (val == 0x1234) {
+					// transparent
+					example[i+j+8*k] = 0;
+					continue;
+				}
+
+				if ((j%8) == 2) {
+					// Two thirds of interpolation (more or less)
+					  u16 c1 = Common::swap16(test[j-2]);
+					  u16 c2 = Common::swap16(test[j-1]);
+					  int blue1 = Convert5To8(c1 & 0x1F);
+					  int blue2 = Convert5To8(c2 & 0x1F);
+					  int green1 = Convert6To8((c1 >> 5) & 0x3F);
+					  int green2 = Convert6To8((c2 >> 5) & 0x3F);
+					  int red1 = Convert5To8((c1 >> 11) & 0x1F);
+					  int red2 = Convert5To8((c2 >> 11) & 0x1F);
+				  	  int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
+					  int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
+					  int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
+
+					example[i+j+8*k] = (red1 + red3) | ((green1 + green3) <<8) | ((blue1 + blue3) <<16) | (0xFF << 24) ;
+				}
+				else if ((j%8) == 3) {
+					// One third of interpolation (more or less)
+					  u16 c1 = Common::swap16(test[j-3]);
+					  u16 c2 = Common::swap16(test[j-2]);
+					  int blue1 = Convert5To8(c1 & 0x1F);
+					  int blue2 = Convert5To8(c2 & 0x1F);
+					  int green1 = Convert6To8((c1 >> 5) & 0x3F);
+					  int green2 = Convert6To8((c2 >> 5) & 0x3F);
+					  int red1 = Convert5To8((c1 >> 11) & 0x1F);
+					  int red2 = Convert5To8((c2 >> 11) & 0x1F);
+				  	  int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
+					  int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
+					  int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
+
+					example[i+j+8*k] = (red2 - red3) | ((green2 - green3) <<8) | ((blue2 - blue3) <<16) | (0xFF << 24) ;
+				}
+				else if ((j%8) == 6) {
+					// Half of interpolation (more or less)
+					  u16 c1 = Common::swap16(test[j-2]);
+					  u16 c2 = Common::swap16(test[j-1]);
+					  int blue1 = Convert5To8(c1 & 0x1F);
+					  int blue2 = Convert5To8(c2 & 0x1F);
+					  int green1 = Convert6To8((c1 >> 5) & 0x3F);
+					  int green2 = Convert6To8((c2 >> 5) & 0x3F);
+					  int red1 = Convert5To8((c1 >> 11) & 0x1F);
+					  int red2 = Convert5To8((c2 >> 11) & 0x1F);
+
+					example[i+j+8*k] = ((red1 + red2 + 1) / 2) | 
+										(((green1 + green2 + 1) / 2) << 8) |
+										(((blue1 + blue2 + 1) / 2) <<16) | (0xFF << 24) ;
+				}
+				else {
+					// Palete
+
+					r = ((val >> 11) & 0x1f);
+					r = (r << 3) | (r >> 2);
+
+					g = ((val >> 5) & 0x3f);
+					g = (g << 2) | (g >> 4);
+
+					b = ((val)&0x1f);
+					b = (b << 3) | (b >> 2);
+
+					example[i+j+8*k] = (0xFF << 24) | (b << 16) | (g << 8) | r;
+				}
+			}
+		}
+	}
+
+
+	int index, tj;
+
+	// Initialize texture (8x8 tiles)
+	index = 0;
+	val = 0;
+	for (j=0; j<TEST_HEIGHT; j+=8) {
+		for (i=0; i<TEST_WIDTH; i+=8) {
+			for (tj = 0; tj < 8; tj++) {
+				val = 0;
+				if (tj%2 == 1) {
+					val = 4;
+				}
+
+
+				// - color palete
+				src[index++] = (test[val] >> 8) & 0xFF;
+				src[index++] = (test[val]) & 0xFF;
+				src[index++] = (test[val+1] >> 8) & 0xFF;
+				src[index++] = (test[val+1]) & 0xFF;
+				// - color indexes
+				src[index++] = (0 << 6) | (1 << 4) | (2 << 2) | (3 << 0);
+				src[index++] = (0 << 6) | (1 << 4) | (2 << 2) | (3 << 0);
+				src[index++] = (0 << 6) | (1 << 4) | (2 << 2) | (3 << 0);
+				src[index++] = (0 << 6) | (1 << 4) | (2 << 2) | (3 << 0);
+			}
+
+		}
+	}
+
+	// Run test
+	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+	// Compare the results
+	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
+
+	if (comp != 0) {
+		printf("Decoding error=\n");
+		printf("EXAMPLE=\n");
+		printTestImage(example);
+
+		printf("DECODED=\n");
+		printTestImage(dst);
+	}
+
+
+    EXPECT_EQ (0, comp);
+
+}
+
 
 

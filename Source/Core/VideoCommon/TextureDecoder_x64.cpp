@@ -1194,7 +1194,7 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
             const __m128i rrggbb11 =
                 _mm_and_si128(_mm_unpackhi_epi8(rgb1, rgb1), _mm_srli_epi16(allFFs128, 8));
 
-            __m128i rgb2, rgb3;
+            __m128i rgb02, rgb03,rgb12, rgb13;
 
             // if (rgb0 > rgb1):
             if (cmp0 != 0)
@@ -1212,16 +1212,18 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
               const __m128i rgbdeltadup = _mm_packus_epi16(rrggbbdelta, rrggbbdelta);
               const __m128i rgbdelta = _mm_srli_si128(_mm_slli_si128(rgbdeltadup, 8), 8);
 
-              rgb2 = _mm_and_si128(_mm_add_epi8(rgb0, rgbdelta), _mm_srli_si128(allFFs128, 8));
-              rgb3 = _mm_and_si128(_mm_sub_epi8(rgb1, rgbdelta), _mm_srli_si128(allFFs128, 8));
+              rgb02 = _mm_and_si128(_mm_add_epi8(rgb0, rgbdelta), _mm_srli_si128(allFFs128, 8));
+              rgb03 = _mm_and_si128(_mm_sub_epi8(rgb1, rgbdelta), _mm_srli_si128(allFFs128, 8));
             }
             else
             {
               // RGB2b = avg(RGB0, RGB1)
               const __m128i rrggbb21 = _mm_avg_epu16(rrggbb0, rrggbb1);
               const __m128i rgb210 = _mm_srli_si128(_mm_packus_epi16(rrggbb21, rrggbb21), 8);
-              rgb2 = rgb210;
-              rgb3 = _mm_and_si128(rgb210, _mm_srli_epi32(allFFs128, 8));
+              rgb02 = rgb210;
+
+              // Make this color fully transparent:
+              rgb03 = _mm_setzero_si128();
             }
 
             // if (rgb0 > rgb1):
@@ -1240,37 +1242,31 @@ void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int 
               __m128i rgbdelta1 = _mm_packus_epi16(rrggbbdelta1, rrggbbdelta1);
               rgbdelta1 = _mm_slli_si128(rgbdelta1, 8);
 
-              rgb2 = _mm_or_si128(
-                  rgb2, _mm_and_si128(_mm_add_epi8(rgb0, rgbdelta1), _mm_slli_si128(allFFs128, 8)));
-              rgb3 = _mm_or_si128(
-                  rgb3, _mm_and_si128(_mm_sub_epi8(rgb1, rgbdelta1), _mm_slli_si128(allFFs128, 8)));
+              rgb12 = _mm_and_si128(_mm_add_epi8(rgb0, rgbdelta1), _mm_slli_si128(allFFs128, 8));
+              rgb13 = _mm_and_si128(_mm_sub_epi8(rgb1, rgbdelta1), _mm_slli_si128(allFFs128, 8));
             }
             else
             {
               // RGB2b = avg(RGB0, RGB1)
               const __m128i rrggbb211 = _mm_avg_epu16(rrggbb01, rrggbb11);
               const __m128i rgb211 = _mm_slli_si128(_mm_packus_epi16(rrggbb211, rrggbb211), 8);
-              rgb2 = _mm_or_si128(rgb2, rgb211);
+              rgb12 = rgb211;
 
-              // _mm_srli_epi32( allFFs128, 8 ) == _mm_set_epi32(0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF,
-              // 0x00FFFFFF)
               // Make this color fully transparent:
-              rgb3 = _mm_or_si128(rgb3,
-                                  _mm_and_si128(_mm_and_si128(rgb2, _mm_srli_epi32(allFFs128, 8)),
-                                                _mm_slli_si128(allFFs128, 8)));
+              rgb13 = _mm_setzero_si128();
             }
 
             // Create an array for color lookups for DXT0 so we can use the 2-bit indices:
             const __m128i mmcolors0 = _mm_or_si128(
                 _mm_or_si128(_mm_srli_si128(_mm_slli_si128(argb888x4, 8), 8),
-                             _mm_slli_si128(_mm_srli_si128(_mm_slli_si128(rgb2, 8), 8 + 4), 8)),
-                _mm_slli_si128(_mm_srli_si128(rgb3, 4), 8 + 4));
+                             _mm_slli_si128(_mm_srli_si128(_mm_slli_si128(rgb02, 8), 8 + 4), 8)),
+                _mm_slli_si128(_mm_srli_si128(rgb03, 4), 8 + 4));
 
             // Create an array for color lookups for DXT1 so we can use the 2-bit indices:
             const __m128i mmcolors1 =
                 _mm_or_si128(_mm_or_si128(_mm_srli_si128(argb888x4, 8),
-                                          _mm_slli_si128(_mm_srli_si128(rgb2, 8 + 4), 8)),
-                             _mm_slli_si128(_mm_srli_si128(rgb3, 8 + 4), 8 + 4));
+                                          _mm_slli_si128(_mm_srli_si128(rgb12, 8 + 4), 8)),
+                             _mm_slli_si128(_mm_srli_si128(rgb13, 8 + 4), 8 + 4));
 
 // The #ifdef CHECKs here and below are to compare correctness of output against the reference code.
 // Don't use them in a normal build.

@@ -178,12 +178,11 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
   }
   else
   {
-    // color[3] is the same as color[2] (average of both colors), but transparent.
-    // This differs from DXT1 where color[3] is transparent black.
+    // color[2] it the average of both colors
+	// color[3] is transparent black.
     colors[2] =
         MakeRGBA((red1 + red2 + 1) / 2, (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 255);
-    colors[3] =
-        MakeRGBA((red1 + red2 + 1) / 2, (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 0);
+    colors[3] = 0;
   }
 
   for (int y = 0; y < 4; y++)
