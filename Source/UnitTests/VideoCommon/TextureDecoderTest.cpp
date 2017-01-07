@@ -8,6 +8,8 @@
 #include <type_traits>
 #include <unordered_set>
 
+#include <time.h>
+
 #include <gtest/gtest.h>  // NOLINT
 
 #include "Common/Common.h"
@@ -18,6 +20,9 @@
 
 #define TEST_WIDTH 16
 #define TEST_HEIGHT 16
+
+//#define SPEED_TEST_LOOP 1000000
+
 
 // Texture formats explanation:
 //  http://hitmen.c02.at/files/yagcd/yagcd/chap15.html
@@ -49,6 +54,9 @@ void printTestImage(u32* img) {
 int testDecoder_DecodeC4(u32 *example, u32 *dst, u8 *src, int width, int height, int texformat, u16 *tlut, TlutFormat tlutfmt) {
 	int comp = 0;
 	int i, j, ti, tj, val, index;
+#ifdef SPEED_TEST_LOOP
+	int l;
+#endif
 
 	// Initialize texture (8x8 tiles)
 	index = 0;
@@ -68,8 +76,19 @@ int testDecoder_DecodeC4(u32 *example, u32 *dst, u8 *src, int width, int height,
 		}
 	}
 
+	
+#ifdef SPEED_TEST_LOOP
+	for (l=0; l<SPEED_TEST_LOOP; l++) {
+#endif
+
 	// Run test
 	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+#ifdef SPEED_TEST_LOOP
+	}
+	return 0;
+#endif
+
 
 	// Compare the results
 	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
@@ -82,6 +101,9 @@ int testDecoder_DecodeC4(u32 *example, u32 *dst, u8 *src, int width, int height,
 int testDecoder_DecodeC8(u32 *example, u32 *dst, u8 *src, int width, int height, int texformat, u16 *tlut, TlutFormat tlutfmt) {
 	int comp = 0;
 	int i, j, ti, tj, val, index;
+#ifdef SPEED_TEST_LOOP
+	int l;
+#endif
 
 	// Initialize texture (8x4 tiles)
 	index = 0;
@@ -99,8 +121,17 @@ int testDecoder_DecodeC8(u32 *example, u32 *dst, u8 *src, int width, int height,
 		}
 	}
 
+#ifdef SPEED_TEST_LOOP
+	for (l=0; l<SPEED_TEST_LOOP; l++) {
+#endif
+
 	// Run test
 	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+#ifdef SPEED_TEST_LOOP
+	}
+	return 0;
+#endif
 
 	// Compare the results
 	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
@@ -114,6 +145,9 @@ int testDecoder_DecodeC8(u32 *example, u32 *dst, u8 *src, int width, int height,
 int testDecoder_DecodeC14X2(u32 *example, u32 *dst, u16 *src, int width, int height, int texformat, u16 *tlut, TlutFormat tlutfmt) {
 	int comp = 0;
 	int i, j, ti, tj, val, index;
+#ifdef SPEED_TEST_LOOP
+	int l;
+#endif
 
 	// Initialize texture (4x4 tiles)
 	index = 0;
@@ -137,8 +171,17 @@ int testDecoder_DecodeC14X2(u32 *example, u32 *dst, u16 *src, int width, int hei
 		}
 	}
 
+#ifdef SPEED_TEST_LOOP
+	for (l=0; l<SPEED_TEST_LOOP; l++) {
+#endif
+
 	// Run test
 	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+#ifdef SPEED_TEST_LOOP
+	}
+	return 0;
+#endif
 
 	// Compare the results
 	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
@@ -687,6 +730,9 @@ TEST (TextureDecoderTest, DecodeBytes_IA4) {
 	u32 example[TEST_WIDTH*TEST_HEIGHT];
 	u8 src[TEST_HEIGHT*TEST_WIDTH];
     int texformat = GX_TF_IA4;
+#ifdef SPEED_TEST_LOOP
+	int l;
+#endif
 
     u16* tlut = NULL;
     TlutFormat tlutfmt = (TlutFormat) 0;
@@ -723,8 +769,16 @@ TEST (TextureDecoderTest, DecodeBytes_IA4) {
 		}
 	}
 
+#ifdef SPEED_TEST_LOOP
+	for (l=0; l<SPEED_TEST_LOOP; l++) {
+#endif
 	// Run test
 	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+#ifdef SPEED_TEST_LOOP
+	}
+	return;
+#endif
+
 
 	// Compare the results
 	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
@@ -759,6 +813,9 @@ TEST (TextureDecoderTest, DecodeBytes_IA8) {
     TlutFormat tlutfmt = (TlutFormat) 0;
 
 	int i, j, val, alpha;
+#ifdef SPEED_TEST_LOOP
+	int l;
+#endif
 
 	// Initizatize the example
 	for (i=0; i < TEST_WIDTH*TEST_HEIGHT; i+=16) {
@@ -797,8 +854,15 @@ TEST (TextureDecoderTest, DecodeBytes_IA8) {
 		}
 	}
 
+#ifdef SPEED_TEST_LOOP
+	for (l=0; l<SPEED_TEST_LOOP; l++) {
+#endif
 	// Run test
 	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+#ifdef SPEED_TEST_LOOP
+	}
+	return;
+#endif
 
 	// Compare the results
 	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
@@ -1061,6 +1125,9 @@ TEST (TextureDecoderTest, DecodeBytes_RGB565) {
 
 	int i, j, val;
 	int r, g, b;
+#ifdef SPEED_TEST_LOOP
+	int l;
+#endif
 
 
 	// 16 test colors
@@ -1129,8 +1196,18 @@ TEST (TextureDecoderTest, DecodeBytes_RGB565) {
 		}
 	}
 
+#ifdef SPEED_TEST_LOOP
+	for (l=0; l<SPEED_TEST_LOOP; l++) {
+#endif
+
 	// Run test
 	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+#ifdef SPEED_TEST_LOOP
+	}
+    return;
+#endif
+
 
 	// Compare the results
 	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
@@ -1165,6 +1242,9 @@ TEST (TextureDecoderTest, DecodeBytes_RGB5A3) {
 
 	int i, j, val;
 	int r, g, b, a;
+#ifdef SPEED_TEST_LOOP
+	int l;
+#endif
 
 
 	// 16 test colors
@@ -1244,8 +1324,17 @@ TEST (TextureDecoderTest, DecodeBytes_RGB5A3) {
 		}
 	}
 
+#ifdef SPEED_TEST_LOOP
+	for (l=0; l<SPEED_TEST_LOOP; l++) {
+#endif
+
 	// Run test
 	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+#ifdef SPEED_TEST_LOOP
+	}
+    return;
+#endif
 
 	// Compare the results
 	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
@@ -1281,6 +1370,10 @@ TEST (TextureDecoderTest, DecodeBytes_RGBA8) {
     TlutFormat tlutfmt = (TlutFormat) 0;
 
 	int i, j, val;
+#ifdef SPEED_TEST_LOOP
+	int l;
+#endif
+
 
 	// 16 test colors
     u32 test[16] = {
@@ -1415,8 +1508,17 @@ TEST (TextureDecoderTest, DecodeBytes_RGBA8) {
 		}
 	}
 
+#ifdef SPEED_TEST_LOOP
+	for (l=0; l<SPEED_TEST_LOOP; l++) {
+#endif
+
 	// Run test
 	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+#ifdef SPEED_TEST_LOOP
+	}
+	return;
+#endif
 
 	// Compare the results
 	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
@@ -1454,6 +1556,10 @@ TEST (TextureDecoderTest, DecodeBytes_CMPR) {
 
 	int i, j, val;
 	int r, g, b, k;
+#ifdef SPEED_TEST_LOOP
+	int l;
+#endif
+
 
 	// 8 test colors
     u32 test[8] = {
@@ -1581,8 +1687,17 @@ TEST (TextureDecoderTest, DecodeBytes_CMPR) {
 		}
 	}
 
+#ifdef SPEED_TEST_LOOP
+	for (l=0; l<SPEED_TEST_LOOP; l++) {
+#endif
+
 	// Run test
 	TexDecoder_Decode((u8*) dst, (u8*) src, width, height, texformat, (u8*) tlut, tlutfmt);
+
+#ifdef SPEED_TEST_LOOP
+	}
+	return;
+#endif
 
 	// Compare the results
 	comp = memcmp ( &example[0], &dst[0], TEST_WIDTH*TEST_HEIGHT*4);
