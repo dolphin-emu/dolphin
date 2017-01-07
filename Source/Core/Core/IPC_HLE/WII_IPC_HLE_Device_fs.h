@@ -23,18 +23,6 @@ struct NANDStat
   u32 Used_Inodes;
 };
 
-enum
-{
-  FS_RESULT_OK = 0,
-  FS_INVALID = -4,
-  FS_DIRFILE_NOT_FOUND = -6,
-  FS_RESULT_FATAL = -101,
-  FS_NO_ACCESS = -102,
-  FS_FILE_EXIST = -105,
-  FS_FILE_NOT_EXIST = -106,
-  FS_NO_HANDLE = -106,
-};
-
 class CWII_IPC_HLE_Device_fs : public IWII_IPC_HLE_Device
 {
 public:
@@ -43,11 +31,9 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IOSReturnCode Open(IOSResourceOpenRequest& request) override;
+  IPCCommandResult IOCtl(IOSResourceIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(IOSResourceIOCtlVRequest& request) override;
 
 private:
   enum
@@ -65,6 +51,5 @@ private:
   };
 
   IPCCommandResult GetFSReply() const;
-  s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut,
-                     u32 _BufferOutSize);
+  s32 ExecuteCommand(IOSResourceIOCtlRequest& request);
 };

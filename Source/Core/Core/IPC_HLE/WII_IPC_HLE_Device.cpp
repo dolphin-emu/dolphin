@@ -2,114 +2,245 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include <algorithm>
+#include <cstring>
+
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
-SIOCtlVBuffer::SIOCtlVBuffer(const u32 address) : m_Address(address)
+IOSResourceRequest::IOSResourceRequest(const u32 command_address) : address(command_address)
 {
-  // These are the Ioctlv parameters in the IOS communication. The BufferVector
-  // is a memory address offset at where the in and out buffer addresses are
-  // stored.
-  Parameter = Memory::Read_U32(m_Address + 0x0C);            // command 3, arg0
-  NumberInBuffer = Memory::Read_U32(m_Address + 0x10);       // 4, arg1
-  NumberPayloadBuffer = Memory::Read_U32(m_Address + 0x14);  // 5, arg2
-  BufferVector = Memory::Read_U32(m_Address + 0x18);         // 6, arg3
+  command = static_cast<IPCCommandType>(Memory::Read_U32(command_address));  // 0x00
+  return_value = Memory::Read_U32(command_address + 4);                      // 0x04
+  fd = Memory::Read_U32(command_address + 8);                                // 0x08
+}
 
-  // The start of the out buffer
-  u32 BufferVectorOffset = BufferVector;
+void IOSResourceRequest::SetReturnValue(const s32 new_return_value)
+{
+  return_value = new_return_value;
+  Memory::Write_U32(static_cast<u32>(return_value), address + 4);
+}
 
-  // Write the address and size for all in messages
-  for (u32 i = 0; i < NumberInBuffer; i++)
+// Write out the IPC struct from command_address to num_commands numbers of 4 byte commands.
+void IOSResourceRequest::DumpCommands(size_t num_commands, LogTypes::LOG_TYPE log_type,
+                                      LogTypes::LOG_LEVELS verbosity) const
+{
+  GENERIC_LOG(log_type, verbosity, "Dump of request 0x%08x (fd %u)", address, fd);
+  for (size_t i = 0; i < num_commands; i++)
   {
-    SBuffer Buffer;
-    Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-    BufferVectorOffset += 4;
-    Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
-    BufferVectorOffset += 4;
-    InBuffer.push_back(Buffer);
-    DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer in%i: 0x%08x, 0x%x", i, Buffer.m_Address, Buffer.m_Size);
+    GENERIC_LOG(log_type, verbosity, "    %02zu: 0x%08x", i,
+                Memory::Read_U32(static_cast<u32>(address + i * 4)));
   }
+}
 
-  // Write the address and size for all out or in-out messages
-  for (u32 i = 0; i < NumberPayloadBuffer; i++)
+IOSResourceOpenRequest::IOSResourceOpenRequest(const u32 command_address)
+    : IOSResourceRequest(command_address)
+{
+  path = Memory::GetString(Memory::Read_U32(address + 0xc));           // arg0
+  flags = static_cast<IOSOpenMode>(Memory::Read_U32(address + 0x10));  // arg1
+}
+
+IOSResourceReadWriteRequest::IOSResourceReadWriteRequest(const u32 command_address)
+    : IOSResourceRequest(command_address)
+{
+  data_addr = Memory::Read_U32(address + 0xc);  // arg0
+  length = Memory::Read_U32(address + 0x10);    // arg1
+}
+
+IOSResourceSeekRequest::IOSResourceSeekRequest(const u32 command_address)
+    : IOSResourceRequest(command_address)
+{
+  offset = Memory::Read_U32(address + 0xc);                        // arg0
+  mode = static_cast<SeekMode>(Memory::Read_U32(address + 0x10));  // arg1
+}
+
+IOSResourceIOCtlRequest::IOSResourceIOCtlRequest(const u32 command_address)
+    : IOSResourceRequest(command_address)
+{
+  request = Memory::Read_U32(address + 0x0c);   // arg0
+  in_addr = Memory::Read_U32(address + 0x10);   // arg1
+  in_size = Memory::Read_U32(address + 0x14);   // arg2
+  out_addr = Memory::Read_U32(address + 0x18);  // arg3
+  out_size = Memory::Read_U32(address + 0x1c);  // arg4
+}
+
+IOSResourceIOCtlVRequest::IOSResourceIOCtlVRequest(const u32 command_address)
+    : IOSResourceRequest(command_address)
+{
+  request = Memory::Read_U32(address + 0x0c);               // arg0
+  const u32 in_number = Memory::Read_U32(address + 0x10);   // arg1
+  const u32 out_number = Memory::Read_U32(address + 0x14);  // arg2
+  const u32 pairs_addr = Memory::Read_U32(address + 0x18);  // arg3 (address to io vectors)
+
+  u32 offset = 0;
+  for (size_t i = 0; i < (in_number + out_number); ++i)
   {
-    SBuffer Buffer;
-    Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-    BufferVectorOffset += 4;
-    Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
-    BufferVectorOffset += 4;
-    PayloadBuffer.push_back(Buffer);
-    DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer io%i: 0x%08x, 0x%x", i, Buffer.m_Address, Buffer.m_Size);
+    IOVector vector;
+    vector.addr = Memory::Read_U32(pairs_addr + offset);
+    offset += 4;
+    vector.size = Memory::Read_U32(pairs_addr + offset);
+    offset += 4;
+    if (i < in_number)
+      in_vectors.emplace_back(vector);
+    else
+      io_vectors.emplace_back(vector);
   }
+}
+
+bool IOSResourceIOCtlVRequest::HasInVectorWithAddress(const u32 vector_address) const
+{
+  return std::find_if(in_vectors.begin(), in_vectors.end(), [&](const auto& in_vector) {
+           return in_vector.addr == vector_address;
+         }) != in_vectors.end();
+}
+
+void IOSResourceIOCtlRequest::Dump(const std::string& device_name, LogTypes::LOG_TYPE type,
+                                   LogTypes::LOG_LEVELS verbosity) const
+{
+  Log(device_name, type, verbosity);
+  GENERIC_LOG(type, verbosity, "  in (size 0x%x):", in_size);
+  GENERIC_LOG(type, verbosity, "    %s", ArrayToString(MakeInBuffer().data(), in_size).c_str());
+  GENERIC_LOG(type, verbosity, "  out (size 0x%x):", out_size);
+  GENERIC_LOG(type, verbosity, "    %s", ArrayToString(MakeOutBuffer().data(), out_size).c_str());
+}
+
+void IOSResourceIOCtlRequest::Log(const std::string& device_name, LogTypes::LOG_TYPE type,
+                                  LogTypes::LOG_LEVELS verbosity) const
+{
+  GENERIC_LOG(type, verbosity, "%s (fd %u) - IOCtl %d (in 0x%08x %u, out 0x%08x %u)",
+              device_name.c_str(), fd, request, in_addr, in_size, out_addr, out_size);
+}
+
+void IOSResourceIOCtlVRequest::Dump(const std::string& device_name, LogTypes::LOG_TYPE type,
+                                    LogTypes::LOG_LEVELS verbosity) const
+{
+  GENERIC_LOG(type, verbosity, "======= Dump ======");
+  GENERIC_LOG(type, verbosity, "%s (fd %u) - IOCtlV %d (%zu in, %zu io)", device_name.c_str(), fd,
+              request, in_vectors.size(), io_vectors.size());
+
+  size_t i = 0;
+  for (const auto& vector : in_vectors)
+  {
+    GENERIC_LOG(type, verbosity, "  in[%zu] (0x%08x, size 0x%x):", i, vector.addr, vector.size);
+    GENERIC_LOG(type, verbosity, "    %s",
+                ArrayToString(vector.MakeBuffer().data(), vector.size).c_str());
+    ++i;
+  }
+  for (const auto& vector : io_vectors)
+  {
+    GENERIC_LOG(type, verbosity, "  io[%zu] (0x%08x, size 0x%x)", i, vector.addr, vector.size);
+    ++i;
+  }
+}
+
+std::vector<u8> IOSResourceReadWriteRequest::MakeBuffer() const
+{
+  std::vector<u8> buffer(length);
+  Memory::CopyFromEmu(buffer.data(), data_addr, buffer.size());
+  return buffer;
+}
+
+void IOSResourceReadWriteRequest::FillBuffer(const void* data, const size_t source_size) const
+{
+  _assert_(source_size <= length);
+  Memory::CopyToEmu(data_addr, data, source_size);
+}
+
+std::vector<u8> IOSResourceIOCtlRequest::MakeInBuffer() const
+{
+  std::vector<u8> buffer(in_size);
+  Memory::CopyFromEmu(buffer.data(), in_addr, buffer.size());
+  return buffer;
+}
+
+std::vector<u8> IOSResourceIOCtlRequest::MakeOutBuffer() const
+{
+  std::vector<u8> buffer(out_size);
+  Memory::CopyFromEmu(buffer.data(), out_addr, buffer.size());
+  return buffer;
+}
+
+void IOSResourceIOCtlRequest::FillOutBuffer(const void* data, const size_t source_size) const
+{
+  _assert_(source_size <= out_size);
+  Memory::CopyToEmu(out_addr, data, source_size);
+}
+
+std::vector<u8> IOSResourceIOCtlVRequest::IOVector::MakeBuffer() const
+{
+  std::vector<u8> buffer(size);
+  Memory::CopyFromEmu(buffer.data(), addr, buffer.size());
+  return buffer;
+}
+
+void IOSResourceIOCtlVRequest::IOVector::FillBuffer(const void* data,
+                                                    const size_t source_size) const
+{
+  _assert_(source_size <= size);
+  Memory::CopyToEmu(addr, data, source_size);
 }
 
 IWII_IPC_HLE_Device::IWII_IPC_HLE_Device(const u32 device_id, const std::string& device_name,
                                          const bool hardware)
-    : m_Name(device_name), m_DeviceID(device_id), m_Hardware(hardware)
+    : m_name(device_name), m_device_id(device_id), m_is_hardware(hardware)
 {
 }
 
 void IWII_IPC_HLE_Device::DoState(PointerWrap& p)
 {
   DoStateShared(p);
-  p.Do(m_Active);
+  p.Do(m_is_active);
 }
 
 void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
 {
-  p.Do(m_Name);
-  p.Do(m_DeviceID);
-  p.Do(m_Hardware);
-  p.Do(m_Active);
+  p.Do(m_name);
+  p.Do(m_device_id);
+  p.Do(m_is_hardware);
+  p.Do(m_is_active);
 }
 
-IPCCommandResult IWII_IPC_HLE_Device::Open(u32 command_address, u32 mode)
+IOSReturnCode IWII_IPC_HLE_Device::Open(IOSResourceOpenRequest& request)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Open()", m_Name.c_str());
-  Memory::Write_U32(FS_ENOENT, command_address + 4);
-  m_Active = true;
+  m_is_active = true;
+  return IPC_SUCCESS;
+}
+
+void IWII_IPC_HLE_Device::Close()
+{
+  m_is_active = false;
+}
+
+IPCCommandResult IWII_IPC_HLE_Device::Seek(IOSResourceSeekRequest& request)
+{
+  WARN_LOG(WII_IPC_HLE, "%s does not support Seek()", m_name.c_str());
   return GetDefaultReply();
 }
 
-IPCCommandResult IWII_IPC_HLE_Device::Close(u32 command_address, bool force)
+IPCCommandResult IWII_IPC_HLE_Device::Read(IOSResourceReadWriteRequest& request)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Close()", m_Name.c_str());
-  if (!force)
-    Memory::Write_U32(FS_EINVAL, command_address + 4);
-  m_Active = false;
+  WARN_LOG(WII_IPC_HLE, "%s does not support Read()", m_name.c_str());
   return GetDefaultReply();
 }
 
-IPCCommandResult IWII_IPC_HLE_Device::Seek(u32 command_address)
+IPCCommandResult IWII_IPC_HLE_Device::Write(IOSResourceReadWriteRequest& request)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Seek()", m_Name.c_str());
+  WARN_LOG(WII_IPC_HLE, "%s does not support Write()", m_name.c_str());
   return GetDefaultReply();
 }
 
-IPCCommandResult IWII_IPC_HLE_Device::Read(u32 command_address)
+IPCCommandResult IWII_IPC_HLE_Device::IOCtl(IOSResourceIOCtlRequest& request)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Read()", m_Name.c_str());
+  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtl()", m_name.c_str());
   return GetDefaultReply();
 }
 
-IPCCommandResult IWII_IPC_HLE_Device::Write(u32 command_address)
+IPCCommandResult IWII_IPC_HLE_Device::IOCtlV(IOSResourceIOCtlVRequest& request)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Write()", m_Name.c_str());
-  return GetDefaultReply();
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::IOCtl(u32 command_address)
-{
-  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtl()", m_Name.c_str());
-  return GetDefaultReply();
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::IOCtlV(u32 command_address)
-{
-  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtlV()", m_Name.c_str());
+  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtlV()", m_name.c_str());
   return GetDefaultReply();
 }
 
@@ -124,58 +255,4 @@ IPCCommandResult IWII_IPC_HLE_Device::GetDefaultReply()
 IPCCommandResult IWII_IPC_HLE_Device::GetNoReply()
 {
   return {false, 0};
-}
-
-// Write out the IPC struct from command_address to num_commands numbers
-// of 4 byte commands.
-void IWII_IPC_HLE_Device::DumpCommands(u32 command_address, size_t num_commands,
-                                       LogTypes::LOG_TYPE log_type, LogTypes::LOG_LEVELS verbosity)
-{
-  GENERIC_LOG(log_type, verbosity, "CommandDump of %s", GetDeviceName().c_str());
-  for (u32 i = 0; i < num_commands; i++)
-  {
-    GENERIC_LOG(log_type, verbosity, "    Command%02i: 0x%08x", i,
-                Memory::Read_U32(command_address + i * 4));
-  }
-}
-
-void IWII_IPC_HLE_Device::DumpAsync(u32 buffer_vector, u32 number_in_buffer, u32 number_io_buffer,
-                                    LogTypes::LOG_TYPE log_type, LogTypes::LOG_LEVELS verbosity)
-{
-  GENERIC_LOG(log_type, verbosity, "======= DumpAsync ======");
-
-  u32 BufferOffset = buffer_vector;
-  for (u32 i = 0; i < number_in_buffer; i++)
-  {
-    u32 InBuffer = Memory::Read_U32(BufferOffset);
-    BufferOffset += 4;
-    u32 InBufferSize = Memory::Read_U32(BufferOffset);
-    BufferOffset += 4;
-
-    GENERIC_LOG(log_type, LogTypes::LINFO, "%s - IOCtlV InBuffer[%i]:", GetDeviceName().c_str(), i);
-
-    std::string Temp;
-    for (u32 j = 0; j < InBufferSize; j++)
-    {
-      Temp += StringFromFormat("%02x ", Memory::Read_U8(InBuffer + j));
-    }
-
-    GENERIC_LOG(log_type, LogTypes::LDEBUG, "    Buffer: %s", Temp.c_str());
-  }
-
-  for (u32 i = 0; i < number_io_buffer; i++)
-  {
-    u32 OutBuffer = Memory::Read_U32(BufferOffset);
-    BufferOffset += 4;
-    u32 OutBufferSize = Memory::Read_U32(BufferOffset);
-    BufferOffset += 4;
-
-    GENERIC_LOG(log_type, LogTypes::LINFO, "%s - IOCtlV OutBuffer[%i]:", GetDeviceName().c_str(),
-                i);
-    GENERIC_LOG(log_type, LogTypes::LINFO, "    OutBuffer: 0x%08x (0x%x):", OutBuffer,
-                OutBufferSize);
-
-    if (verbosity >= LogTypes::LOG_LEVELS::LINFO)
-      DumpCommands(OutBuffer, OutBufferSize, log_type, verbosity);
-  }
 }

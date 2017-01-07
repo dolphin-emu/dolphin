@@ -71,7 +71,6 @@ static std::mutex s_device_map_mutex;
 #define IPC_MAX_FDS 0x18
 #define ES_MAX_COUNT 2
 static std::shared_ptr<IWII_IPC_HLE_Device> s_fdmap[IPC_MAX_FDS];
-static bool s_es_inuse[ES_MAX_COUNT];
 static std::shared_ptr<IWII_IPC_HLE_Device> s_es_handles[ES_MAX_COUNT];
 
 using IPCMsgQueue = std::deque<u32>;
@@ -141,11 +140,8 @@ void Reinit()
   AddDevice<CWII_IPC_HLE_Device_fs>("/dev/fs");
 
   // IOS allows two ES devices at a time
-  for (u32 j = 0; j < ES_MAX_COUNT; j++)
-  {
-    s_es_handles[j] = AddDevice<CWII_IPC_HLE_Device_es>("/dev/es");
-    s_es_inuse[j] = false;
-  }
+  for (auto& es_device : s_es_handles)
+    es_device = AddDevice<CWII_IPC_HLE_Device_es>("/dev/es");
 
   AddDevice<CWII_IPC_HLE_Device_di>("/dev/di");
   AddDevice<CWII_IPC_HLE_Device_net_kd_request>("/dev/net/kd/request");
@@ -183,15 +179,10 @@ void Reset(bool hard)
     if (dev && !dev->IsHardware())
     {
       // close all files and delete their resources
-      dev->Close(0, true);
+      dev->Close();
     }
 
     dev.reset();
-  }
-
-  for (bool& in_use : s_es_inuse)
-  {
-    in_use = false;
   }
 
   {
@@ -201,7 +192,7 @@ void Reset(bool hard)
       if (entry.second)
       {
         // Force close
-        entry.second->Close(0, true);
+        entry.second->Close();
       }
     }
 
@@ -283,14 +274,6 @@ std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 id)
   return nullptr;
 }
 
-// This is called from ExecuteCommand() COMMAND_OPEN_DEVICE
-std::shared_ptr<IWII_IPC_HLE_Device> CreateFileIO(u32 device_id, const std::string& device_name)
-{
-  // scan device name and create the right one
-  INFO_LOG(WII_IPC_FILEIO, "IOP: Create FileIO %s", device_name.c_str());
-  return std::make_shared<CWII_IPC_HLE_Device_FileIO>(device_id, device_name);
-}
-
 void DoState(PointerWrap& p)
 {
   p.Do(s_request_queue);
@@ -337,13 +320,11 @@ void DoState(PointerWrap& p)
       }
     }
 
-    for (u32 i = 0; i < ES_MAX_COUNT; i++)
+    for (auto& es_device : s_es_handles)
     {
-      p.Do(s_es_inuse[i]);
-      u32 handleID = s_es_handles[i]->GetDeviceID();
-      p.Do(handleID);
-
-      s_es_handles[i] = AccessDeviceByID(handleID);
+      const u32 handle_id = es_device->GetDeviceID();
+      p.Do(handle_id);
+      es_device = AccessDeviceByID(handle_id);
     }
   }
   else
@@ -368,197 +349,122 @@ void DoState(PointerWrap& p)
       }
     }
 
-    for (u32 i = 0; i < ES_MAX_COUNT; i++)
+    for (const auto& es_device : s_es_handles)
     {
-      p.Do(s_es_inuse[i]);
-      u32 handleID = s_es_handles[i]->GetDeviceID();
-      p.Do(handleID);
+      const u32 handle_id = es_device->GetDeviceID();
+      p.Do(handle_id);
     }
   }
 }
 
-void ExecuteCommand(u32 address)
+static std::shared_ptr<IWII_IPC_HLE_Device> GetUnusedESDevice()
 {
-  IPCCommandResult result = IWII_IPC_HLE_Device::GetNoReply();
+  const auto iterator = std::find_if(std::begin(s_es_handles), std::end(s_es_handles),
+                                     [](const auto& es_device) { return !es_device->IsOpened(); });
+  return (iterator != std::end(s_es_handles)) ? *iterator : nullptr;
+}
 
-  IPCCommandType Command = static_cast<IPCCommandType>(Memory::Read_U32(address));
-  s32 DeviceID = Memory::Read_U32(address + 8);
-
-  std::shared_ptr<IWII_IPC_HLE_Device> device =
-      (DeviceID >= 0 && DeviceID < IPC_MAX_FDS) ? s_fdmap[DeviceID] : nullptr;
-
-  DEBUG_LOG(WII_IPC_HLE, "-->> Execute Command Address: 0x%08x (code: %x, device: %x) %p", address,
-            Command, DeviceID, device.get());
-
-  switch (Command)
+// Returns the FD for the newly opened device (on success) or an error code.
+static s32 OpenDevice(IOSResourceOpenRequest& request)
+{
+  const s32 new_fd = GetFreeDeviceID();
+  INFO_LOG(WII_IPC_HLE, "Opening %s (mode %d, fd %d)", request.path.c_str(), request.flags, new_fd);
+  if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
-  case IPC_CMD_OPEN:
-  {
-    u32 Mode = Memory::Read_U32(address + 0x10);
-    DeviceID = GetFreeDeviceID();
-
-    std::string device_name = Memory::GetString(Memory::Read_U32(address + 0xC));
-
-    INFO_LOG(WII_IPC_HLE, "Trying to open %s as %d", device_name.c_str(), DeviceID);
-    if (DeviceID >= 0)
-    {
-      if (device_name.find("/dev/es") == 0)
-      {
-        u32 j;
-        for (j = 0; j < ES_MAX_COUNT; j++)
-        {
-          if (!s_es_inuse[j])
-          {
-            s_es_inuse[j] = true;
-            s_fdmap[DeviceID] = s_es_handles[j];
-            result = s_es_handles[j]->Open(address, Mode);
-            Memory::Write_U32(DeviceID, address + 4);
-            break;
-          }
-        }
-
-        if (j == ES_MAX_COUNT)
-        {
-          Memory::Write_U32(FS_EESEXHAUSTED, address + 4);
-          result = IWII_IPC_HLE_Device::GetDefaultReply();
-        }
-      }
-      else if (device_name.find("/dev/") == 0)
-      {
-        device = GetDeviceByName(device_name);
-        if (device)
-        {
-          s_fdmap[DeviceID] = device;
-          result = device->Open(address, Mode);
-          DEBUG_LOG(WII_IPC_FILEIO, "IOP: ReOpen (Device=%s, DeviceID=%08x, Mode=%i)",
-                    device->GetDeviceName().c_str(), DeviceID, Mode);
-          Memory::Write_U32(DeviceID, address + 4);
-        }
-        else
-        {
-          WARN_LOG(WII_IPC_HLE, "Unimplemented device: %s", device_name.c_str());
-          Memory::Write_U32(FS_ENOENT, address + 4);
-          result = IWII_IPC_HLE_Device::GetDefaultReply();
-        }
-      }
-      else if (device_name.find('/') == 0)
-      {
-        device = CreateFileIO(DeviceID, device_name);
-        result = device->Open(address, Mode);
-
-        DEBUG_LOG(WII_IPC_FILEIO, "IOP: Open File (Device=%s, ID=%08x, Mode=%i)",
-                  device->GetDeviceName().c_str(), DeviceID, Mode);
-        if (Memory::Read_U32(address + 4) == (u32)DeviceID)
-          s_fdmap[DeviceID] = device;
-      }
-      else
-      {
-        WARN_LOG(WII_IPC_HLE, "Invalid device: %s", device_name.c_str());
-        Memory::Write_U32(FS_ENOENT, address + 4);
-        result = IWII_IPC_HLE_Device::GetDefaultReply();
-      }
-    }
-    else
-    {
-      Memory::Write_U32(FS_EFDEXHAUSTED, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
+    ERROR_LOG(WII_IPC_HLE, "Couldn't get a free fd, too many open files");
+    return FS_EFDEXHAUSTED;
   }
+
+  std::shared_ptr<IWII_IPC_HLE_Device> device;
+  if (request.path == "/dev/es")
+  {
+    device = GetUnusedESDevice();
+    if (!device)
+      return IPC_EESEXHAUSTED;
+  }
+  else if (request.path.find("/dev/") == 0)
+  {
+    device = GetDeviceByName(request.path);
+  }
+  else if (request.path.find('/') == 0)
+  {
+    device = std::make_shared<CWII_IPC_HLE_Device_FileIO>(new_fd, request.path);
+  }
+
+  if (!device)
+  {
+    ERROR_LOG(WII_IPC_HLE, "Unknown device: %s", request.path.c_str());
+    return IPC_ENOENT;
+  }
+
+  const IOSReturnCode code = device->Open(request);
+  if (code < IPC_SUCCESS)
+    return code;
+  s_fdmap[new_fd] = device;
+  return new_fd;
+}
+
+static IPCCommandResult HandleCommand(IOSResourceRequest& request)
+{
+  if (request.command == IPC_CMD_OPEN)
+  {
+    IOSResourceOpenRequest open_request{request.address};
+    const s32 new_fd = OpenDevice(open_request);
+    open_request.SetReturnValue(new_fd);
+    return IWII_IPC_HLE_Device::GetDefaultReply();
+  }
+
+  const auto device = (request.fd < IPC_MAX_FDS) ? s_fdmap[request.fd] : nullptr;
+  if (!device)
+  {
+    request.SetReturnValue(IPC_EINVAL);
+    return IWII_IPC_HLE_Device::GetDefaultReply();
+  }
+
+  switch (request.command)
+  {
   case IPC_CMD_CLOSE:
   {
-    if (device)
-    {
-      result = device->Close(address);
-
-      for (u32 j = 0; j < ES_MAX_COUNT; j++)
-      {
-        if (s_es_handles[j] == s_fdmap[DeviceID])
-        {
-          s_es_inuse[j] = false;
-        }
-      }
-
-      s_fdmap[DeviceID].reset();
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
+    s_fdmap[request.fd].reset();
+    device->Close();
+    request.SetReturnValue(IPC_SUCCESS);
+    return IWII_IPC_HLE_Device::GetDefaultReply();
   }
   case IPC_CMD_READ:
   {
-    if (device)
-    {
-      result = device->Read(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
+    IOSResourceReadWriteRequest read_request{request.address};
+    return device->Read(read_request);
   }
   case IPC_CMD_WRITE:
   {
-    if (device)
-    {
-      result = device->Write(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
+    IOSResourceReadWriteRequest write_request{request.address};
+    return device->Write(write_request);
   }
   case IPC_CMD_SEEK:
   {
-    if (device)
-    {
-      result = device->Seek(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
+    IOSResourceSeekRequest seek_request{request.address};
+    return device->Seek(seek_request);
   }
   case IPC_CMD_IOCTL:
   {
-    if (device)
-    {
-      result = device->IOCtl(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
+    IOSResourceIOCtlRequest ioctl_request{request.address};
+    return device->IOCtl(ioctl_request);
   }
   case IPC_CMD_IOCTLV:
   {
-    if (device)
-    {
-      result = device->IOCtlV(address);
-    }
-    else
-    {
-      Memory::Write_U32(FS_EINVAL, address + 4);
-      result = IWII_IPC_HLE_Device::GetDefaultReply();
-    }
-    break;
+    IOSResourceIOCtlVRequest ioctlv_request{request.address};
+    return device->IOCtlV(ioctlv_request);
   }
   default:
-  {
-    _dbg_assert_msg_(WII_IPC_HLE, 0, "Unknown IPC Command %i (0x%08x)", Command, address);
-    break;
+    _assert_msg_(WII_IPC_HLE, false, "Unexpected command: %x", request.command);
+    return IWII_IPC_HLE_Device::GetDefaultReply();
   }
-  }
+}
+
+void ExecuteCommand(const u32 address)
+{
+  IOSResourceRequest request{address};
+  IPCCommandResult result = HandleCommand(request);
 
   // Ensure replies happen in order
   const s64 ticks_until_last_reply = s_last_reply_time - CoreTiming::GetTicks();
@@ -567,7 +473,7 @@ void ExecuteCommand(u32 address)
   s_last_reply_time = CoreTiming::GetTicks() + result.reply_delay_ticks;
 
   if (result.send_reply)
-    EnqueueReply(address, static_cast<int>(result.reply_delay_ticks));
+    EnqueueReply(request, static_cast<int>(result.reply_delay_ticks));
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
@@ -577,13 +483,14 @@ void EnqueueRequest(u32 address)
 }
 
 // Called to send a reply to an IOS syscall
-void EnqueueReply(u32 address, int cycles_in_future, CoreTiming::FromThread from)
+void EnqueueReply(const IOSResourceRequest& request, int cycles_in_future,
+                  CoreTiming::FromThread from)
 {
   // IOS writes back the command that was responded to in the FD field.
-  Memory::Write_U32(Memory::Read_U32(address), address + 8);
-  // IOS also overwrites the command type with the async reply type.
-  Memory::Write_U32(IPC_REP_ASYNC, address);
-  CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, address, from);
+  Memory::Write_U32(request.command, request.address + 8);
+  // IOS also overwrites the command type with the reply type.
+  Memory::Write_U32(IPC_REPLY, request.address);
+  CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, request.address, from);
 }
 
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)

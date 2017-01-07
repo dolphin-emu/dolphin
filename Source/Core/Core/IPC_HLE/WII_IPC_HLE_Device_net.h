@@ -30,9 +30,7 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
+  IPCCommandResult IOCtl(IOSResourceIOCtlRequest& request) override;
 
 private:
   enum
@@ -88,50 +86,31 @@ public:
   }
 
   virtual ~CWII_IPC_HLE_Device_net_kd_time() {}
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
+  IPCCommandResult IOCtl(IOSResourceIOCtlRequest& request) override
   {
-    INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
-    Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-    return GetDefaultReply();
-  }
-
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
-  {
-    INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
-    if (!_bForce)
-      Memory::Write_U32(0, _CommandAddress + 4);
-    return GetDefaultReply();
-  }
-
-  IPCCommandResult IOCtl(u32 _CommandAddress) override
-  {
-    u32 Parameter = Memory::Read_U32(_CommandAddress + 0x0C);
-    u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
-    u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-
-    u32 result = 0;
+    s32 result = 0;
     u32 common_result = 0;
     // TODO Writes stuff to /shared2/nwc24/misc.bin
     // u32 update_misc = 0;
 
-    switch (Parameter)
+    switch (request.request)
     {
     case IOCTL_NW24_GET_UNIVERSAL_TIME:
-      Memory::Write_U64(GetAdjustedUTC(), BufferOut + 4);
+      Memory::Write_U64(GetAdjustedUTC(), request.out_addr + 4);
       break;
 
     case IOCTL_NW24_SET_UNIVERSAL_TIME:
-      SetAdjustedUTC(Memory::Read_U64(BufferIn));
-      // update_misc = Memory::Read_U32(BufferIn + 8);
+      SetAdjustedUTC(Memory::Read_U64(request.in_addr));
+      // update_misc = Memory::Read_U32(request.in_addr + 8);
       break;
 
     case IOCTL_NW24_SET_RTC_COUNTER:
-      rtc = Memory::Read_U32(BufferIn);
-      // update_misc = Memory::Read_U32(BufferIn + 4);
+      rtc = Memory::Read_U32(request.in_addr);
+      // update_misc = Memory::Read_U32(request.in_addr + 4);
       break;
 
     case IOCTL_NW24_GET_TIME_DIFF:
-      Memory::Write_U64(GetAdjustedUTC() - rtc, BufferOut + 4);
+      Memory::Write_U64(GetAdjustedUTC() - rtc, request.out_addr + 4);
       break;
 
     case IOCTL_NW24_UNIMPLEMENTED:
@@ -139,13 +118,13 @@ public:
       break;
 
     default:
-      ERROR_LOG(WII_IPC_NET, "%s - unknown IOCtl: %x", GetDeviceName().c_str(), Parameter);
+      ERROR_LOG(WII_IPC_NET, "%s - unknown IOCtl: %x", GetDeviceName().c_str(), request.request);
       break;
     }
 
     // write return values
-    Memory::Write_U32(common_result, BufferOut);
-    Memory::Write_U32(result, _CommandAddress + 4);
+    Memory::Write_U32(common_result, request.out_addr);
+    request.SetReturnValue(result);
     return GetDefaultReply();
   }
 
@@ -224,10 +203,8 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_net_ip_top();
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IPCCommandResult IOCtl(IOSResourceIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(IOSResourceIOCtlVRequest& request) override;
 
   u32 Update() override;
 
@@ -246,9 +223,7 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IPCCommandResult IOCtlV(IOSResourceIOCtlVRequest& request) override;
 
 private:
   enum
@@ -274,9 +249,7 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_net_wd_command();
 
-  IPCCommandResult Open(u32 CommandAddress, u32 Mode) override;
-  IPCCommandResult Close(u32 CommandAddress, bool Force) override;
-  IPCCommandResult IOCtlV(u32 CommandAddress) override;
+  IPCCommandResult IOCtlV(IOSResourceIOCtlVRequest& request) override;
 
 private:
   enum

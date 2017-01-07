@@ -28,32 +28,18 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_FileIO();
 
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Seek(u32 _CommandAddress) override;
-  IPCCommandResult Read(u32 _CommandAddress) override;
-  IPCCommandResult Write(u32 _CommandAddress) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
+  void Close() override;
+  IOSReturnCode Open(IOSResourceOpenRequest& request) override;
+  IPCCommandResult Seek(IOSResourceSeekRequest& request) override;
+  IPCCommandResult Read(IOSResourceReadWriteRequest& request) override;
+  IPCCommandResult Write(IOSResourceReadWriteRequest& request) override;
+  IPCCommandResult IOCtl(IOSResourceIOCtlRequest& request) override;
   void PrepareForState(PointerWrap::Mode mode) override;
   void DoState(PointerWrap& p) override;
 
   void OpenFile();
 
 private:
-  enum
-  {
-    ISFS_OPEN_READ = 1,
-    ISFS_OPEN_WRITE = 2,
-    ISFS_OPEN_RW = (ISFS_OPEN_READ | ISFS_OPEN_WRITE)
-  };
-
-  enum
-  {
-    WII_SEEK_SET = 0,
-    WII_SEEK_CUR = 1,
-    WII_SEEK_END = 2,
-  };
-
   enum
   {
     ISFS_FUNCNULL = 0,

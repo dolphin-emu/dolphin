@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cinttypes>
 #include <cstdio>
 #include <map>
 #include <memory>
@@ -15,7 +16,6 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
 static std::map<std::string, std::weak_ptr<File::IOFile>> openFiles;
 
@@ -75,50 +75,40 @@ CWII_IPC_HLE_Device_FileIO::~CWII_IPC_HLE_Device_FileIO()
 {
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::Close(u32 _CommandAddress, bool _bForce)
+void CWII_IPC_HLE_Device_FileIO::Close()
 {
-  INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_Name.c_str(), m_DeviceID);
+  INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_name.c_str(), m_device_id);
   m_Mode = 0;
 
   // Let go of our pointer to the file, it will automatically close if we are the last handle
   // accessing it.
   m_file.reset();
 
-  // Close always return 0 for success
-  if (_CommandAddress && !_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
-  m_Active = false;
-  return GetDefaultReply();
+  m_is_active = false;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::Open(u32 _CommandAddress, u32 _Mode)
+IOSReturnCode CWII_IPC_HLE_Device_FileIO::Open(IOSResourceOpenRequest& request)
 {
-  m_Mode = _Mode;
-  u32 ReturnValue = 0;
+  m_Mode = request.flags;
 
   static const char* const Modes[] = {"Unk Mode", "Read only", "Write only", "Read and Write"};
 
-  m_filepath = HLE_IPC_BuildFilename(m_Name);
+  m_filepath = HLE_IPC_BuildFilename(m_name);
 
   // The file must exist before we can open it
   // It should be created by ISFS_CreateFile, not here
-  if (File::Exists(m_filepath) && !File::IsDirectory(m_filepath))
+  if (!File::Exists(m_filepath) || File::IsDirectory(m_filepath))
   {
-    INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s == %08X)", m_Name.c_str(), Modes[_Mode], _Mode);
-    OpenFile();
-    ReturnValue = m_DeviceID;
-  }
-  else
-  {
-    WARN_LOG(WII_IPC_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[_Mode],
+    WARN_LOG(WII_IPC_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[m_Mode],
              m_filepath.c_str());
-    ReturnValue = FS_FILE_NOT_EXIST;
+    return FS_ENOENT;
   }
 
-  if (_CommandAddress)
-    Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-  m_Active = true;
-  return GetDefaultReply();
+  INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s == %08X)", m_name.c_str(), Modes[m_Mode], m_Mode);
+  OpenFile();
+
+  m_is_active = true;
+  return IPC_SUCCESS;
 }
 
 // This isn't theadsafe, but it's only called from the CPU thread.
@@ -141,14 +131,14 @@ void CWII_IPC_HLE_Device_FileIO::OpenFile()
   //    - The Beatles: Rock Band (saving doesn't work)
 
   // Check if the file has already been opened.
-  auto search = openFiles.find(m_Name);
+  auto search = openFiles.find(m_name);
   if (search != openFiles.end())
   {
     m_file = search->second.lock();  // Lock a shared pointer to use.
   }
   else
   {
-    std::string path = m_Name;
+    std::string path = m_name;
     // This code will be called when all references to the shared pointer below have been removed.
     auto deleter = [path](File::IOFile* ptr) {
       delete ptr;             // IOFile's deconstructor closes the file.
@@ -165,98 +155,92 @@ void CWII_IPC_HLE_Device_FileIO::OpenFile()
   }
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(IOSResourceSeekRequest& request)
 {
-  u32 ReturnValue = FS_RESULT_FATAL;
-  const s32 SeekPosition = Memory::Read_U32(_CommandAddress + 0xC);
-  const s32 Mode = Memory::Read_U32(_CommandAddress + 0x10);
+  u32 return_value = FS_EINVAL;
 
   if (m_file->IsOpen())
   {
-    ReturnValue = FS_RESULT_FATAL;
-
-    const s32 fileSize = (s32)m_file->GetSize();
+    const u32 file_size = static_cast<u32>(m_file->GetSize());
     DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)",
-              SeekPosition, Mode, m_Name.c_str(), fileSize);
+              request.offset, request.mode, m_name.c_str(), file_size);
 
-    switch (Mode)
+    switch (request.mode)
     {
-    case WII_SEEK_SET:
+    case IOSResourceSeekRequest::IOS_SEEK_SET:
     {
-      if ((SeekPosition >= 0) && (SeekPosition <= fileSize))
+      if (request.offset <= file_size)
       {
-        m_SeekPos = SeekPosition;
-        ReturnValue = m_SeekPos;
+        m_SeekPos = request.offset;
+        return_value = m_SeekPos;
       }
       break;
     }
 
-    case WII_SEEK_CUR:
+    case IOSResourceSeekRequest::IOS_SEEK_CUR:
     {
-      s32 wantedPos = SeekPosition + m_SeekPos;
-      if (wantedPos >= 0 && wantedPos <= fileSize)
+      const u32 wanted_pos = request.offset + m_SeekPos;
+      if (wanted_pos <= file_size)
       {
-        m_SeekPos = wantedPos;
-        ReturnValue = m_SeekPos;
+        m_SeekPos = wanted_pos;
+        return_value = m_SeekPos;
       }
       break;
     }
 
-    case WII_SEEK_END:
+    case IOSResourceSeekRequest::IOS_SEEK_END:
     {
-      s32 wantedPos = SeekPosition + fileSize;
-      if (wantedPos >= 0 && wantedPos <= fileSize)
+      const u32 wanted_pos = request.offset + file_size;
+      if (wanted_pos <= file_size)
       {
-        m_SeekPos = wantedPos;
-        ReturnValue = m_SeekPos;
+        m_SeekPos = wanted_pos;
+        return_value = m_SeekPos;
       }
       break;
     }
 
     default:
     {
-      PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", Mode);
-      ReturnValue = FS_RESULT_FATAL;
+      PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", request.mode);
+      return_value = FS_EINVAL;
       break;
     }
     }
   }
   else
   {
-    ReturnValue = FS_FILE_NOT_EXIST;
+    return_value = FS_ENOENT;
   }
-  Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-
+  request.SetReturnValue(return_value);
   return GetDefaultReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(IOSResourceReadWriteRequest& request)
 {
-  u32 ReturnValue = FS_EACCESS;
-  const u32 Address = Memory::Read_U32(_CommandAddress + 0xC);  // Read to this memory address
-  const u32 Size = Memory::Read_U32(_CommandAddress + 0x10);
-
+  s32 return_value = FS_EACCESS;
   if (m_file->IsOpen())
   {
-    if (m_Mode == ISFS_OPEN_WRITE)
+    if (m_Mode == IOS_OPEN_WRITE)
     {
       WARN_LOG(WII_IPC_FILEIO,
-               "FileIO: Attempted to read 0x%x bytes to 0x%08x on a write-only file %s", Size,
-               Address, m_Name.c_str());
+               "FileIO: Attempted to read 0x%x bytes to 0x%08x on a write-only file %s",
+               request.length, request.data_addr, m_name.c_str());
     }
     else
     {
-      DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", Size, Address,
-                m_Name.c_str());
+      DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", request.length,
+                request.data_addr, m_name.c_str());
       m_file->Seek(m_SeekPos, SEEK_SET);  // File might be opened twice, need to seek before we read
-      ReturnValue = (u32)fread(Memory::GetPointer(Address), 1, Size, m_file->GetHandle());
-      if (ReturnValue != Size && ferror(m_file->GetHandle()))
+      std::vector<u8> buffer = request.MakeBuffer();
+      return_value = static_cast<u32>(fread(buffer.data(), 1, buffer.size(), m_file->GetHandle()));
+      request.FillBuffer(buffer.data(), buffer.size());
+      if (static_cast<u32>(return_value) != request.length && ferror(m_file->GetHandle()))
       {
-        ReturnValue = FS_EACCESS;
+        return_value = FS_EACCESS;
       }
       else
       {
-        m_SeekPos += Size;
+        m_SeekPos += request.length;
       }
     }
   }
@@ -264,39 +248,36 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(u32 _CommandAddress)
   {
     ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
                               "not be opened or does not exist",
-              m_Name.c_str(), Address, Size);
-    ReturnValue = FS_FILE_NOT_EXIST;
+              m_name.c_str(), request.data_addr, request.length);
+    return_value = FS_ENOENT;
   }
 
-  Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+  request.SetReturnValue(return_value);
   return GetDefaultReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(IOSResourceReadWriteRequest& request)
 {
-  u32 ReturnValue = FS_EACCESS;
-  const u32 Address =
-      Memory::Read_U32(_CommandAddress + 0xC);  // Write data from this memory address
-  const u32 Size = Memory::Read_U32(_CommandAddress + 0x10);
-
+  s32 return_value = FS_EACCESS;
   if (m_file->IsOpen())
   {
-    if (m_Mode == ISFS_OPEN_READ)
+    if (m_Mode == IOS_OPEN_READ)
     {
       WARN_LOG(WII_IPC_FILEIO,
-               "FileIO: Attempted to write 0x%x bytes from 0x%08x to a read-only file %s", Size,
-               Address, m_Name.c_str());
+               "FileIO: Attempted to write 0x%x bytes from 0x%08x to a read-only file %s",
+               request.length, request.data_addr, m_name.c_str());
     }
     else
     {
-      DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", Size, Address,
-                m_Name.c_str());
+      DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", request.length,
+                request.data_addr, m_name.c_str());
       m_file->Seek(m_SeekPos,
                    SEEK_SET);  // File might be opened twice, need to seek before we write
-      if (m_file->WriteBytes(Memory::GetPointer(Address), Size))
+      std::vector<u8> buffer = request.MakeBuffer();
+      if (m_file->WriteBytes(buffer.data(), buffer.size()))
       {
-        ReturnValue = Size;
-        m_SeekPos += Size;
+        return_value = request.length;
+        m_SeekPos += request.length;
       }
     }
   }
@@ -304,54 +285,45 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
   {
     ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
                               "not be opened or does not exist",
-              m_Name.c_str(), Address, Size);
-    ReturnValue = FS_FILE_NOT_EXIST;
+              m_name.c_str(), request.data_addr, request.length);
+    return_value = FS_ENOENT;
   }
 
-  Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
+  request.SetReturnValue(return_value);
   return GetDefaultReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(IOSResourceIOCtlRequest& request)
 {
-  DEBUG_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", m_Name.c_str());
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  DumpCommands(_CommandAddress);
-#endif
-  const u32 Parameter = Memory::Read_U32(_CommandAddress + 0xC);
-  u32 ReturnValue = 0;
+  DEBUG_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", m_name.c_str());
+  s32 return_value = 0;
 
-  switch (Parameter)
+  switch (request.request)
   {
   case ISFS_IOCTL_GETFILESTATS:
   {
     if (m_file->IsOpen())
     {
-      u32 m_FileLength = (u32)m_file->GetSize();
-
-      const u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-      DEBUG_LOG(WII_IPC_FILEIO, "  File: %s, Length: %i, Pos: %i", m_Name.c_str(), m_FileLength,
-                m_SeekPos);
-
-      Memory::Write_U32(m_FileLength, BufferOut);
-      Memory::Write_U32(m_SeekPos, BufferOut + 4);
+      DEBUG_LOG(WII_IPC_FILEIO, "File: %s, Length: %" PRIu64 ", Pos: %i", m_name.c_str(),
+                m_file->GetSize(), m_SeekPos);
+      Memory::Write_U32(static_cast<u32>(m_file->GetSize()), request.out_addr);
+      Memory::Write_U32(m_SeekPos, request.out_addr + 4);
     }
     else
     {
-      ReturnValue = FS_FILE_NOT_EXIST;
+      return_value = FS_ENOENT;
     }
   }
   break;
 
   default:
   {
-    PanicAlert("CWII_IPC_HLE_Device_FileIO: Parameter %i", Parameter);
+    PanicAlert("CWII_IPC_HLE_Device_FileIO: Parameter %u", request.request);
   }
   break;
   }
 
-  Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-
+  request.SetReturnValue(return_value);
   return GetDefaultReply();
 }
 
@@ -369,7 +341,7 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap& p)
   p.Do(m_Mode);
   p.Do(m_SeekPos);
 
-  m_filepath = HLE_IPC_BuildFilename(m_Name);
+  m_filepath = HLE_IPC_BuildFilename(m_name);
 
   // The file was closed during state (and might now be pointing at another file)
   // Open it again

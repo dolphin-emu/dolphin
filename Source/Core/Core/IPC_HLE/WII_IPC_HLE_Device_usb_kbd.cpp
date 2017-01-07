@@ -42,13 +42,14 @@ CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
 {
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
+IOSReturnCode CWII_IPC_HLE_Device_usb_kbd::Open(IOSResourceOpenRequest& request)
 {
   INFO_LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_usb_kbd: Open");
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
+  m_MessageQueue = std::queue<SMessageData>();
   for (bool& pressed : m_OldKeyBuffer)
   {
     pressed = false;
@@ -57,42 +58,18 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mod
   m_OldModifiers = 0x00;
 
   // m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, nullptr));
-  Memory::Write_U32(m_DeviceID, _CommandAddress + 4);
-  m_Active = true;
-  return GetDefaultReply();
+  m_is_active = true;
+  return IPC_SUCCESS;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
+IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(IOSResourceIOCtlRequest& request)
 {
-  INFO_LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_usb_kbd: Close");
-  while (!m_MessageQueue.empty())
-    m_MessageQueue.pop();
-  if (!_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
-  m_Active = false;
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
-{
-  DEBUG_LOG(WII_IPC_HLE, "Ignoring write to CWII_IPC_HLE_Device_usb_kbd");
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  DumpCommands(_CommandAddress, 10, LogTypes::WII_IPC_HLE, LogTypes::LDEBUG);
-#endif
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
-{
-  u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-
   if (SConfig::GetInstance().m_WiiKeyboard && !Core::g_want_determinism && !m_MessageQueue.empty())
   {
-    Memory::CopyToEmu(BufferOut, &m_MessageQueue.front(), sizeof(SMessageData));
+    Memory::CopyToEmu(request.out_addr, &m_MessageQueue.front(), sizeof(SMessageData));
     m_MessageQueue.pop();
   }
-
-  Memory::Write_U32(0, _CommandAddress + 0x4);
+  request.SetReturnValue(IPC_SUCCESS);
   return GetDefaultReply();
 }
 
@@ -111,7 +88,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
 
 u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 {
-  if (!SConfig::GetInstance().m_WiiKeyboard || Core::g_want_determinism || !m_Active)
+  if (!SConfig::GetInstance().m_WiiKeyboard || Core::g_want_determinism || !m_is_active)
     return 0;
 
   u8 Modifiers = 0x00;

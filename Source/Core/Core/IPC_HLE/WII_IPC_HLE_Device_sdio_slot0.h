@@ -23,11 +23,10 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IOSReturnCode Open(IOSResourceOpenRequest& request) override;
+  void Close() override;
+  IPCCommandResult IOCtl(IOSResourceIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(IOSResourceIOCtlVRequest& request) override;
 
   void EventNotify();
 
@@ -111,7 +110,7 @@ private:
   struct Event
   {
     EventType type = EVENT_NONE;
-    u32 addr = 0;
+    IOSResourceRequest request;
   } m_event;
 
   u32 m_Status = CARD_NOT_EXIST;
