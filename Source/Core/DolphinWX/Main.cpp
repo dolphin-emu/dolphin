@@ -360,7 +360,8 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
       npd->AppendChat("/!\\ " + std::string{text});
       return true;
     }
-    return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption), (yes_no) ? wxYES_NO : wxOK,
+    return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
+                                 wxSTAY_ON_TOP | ((yes_no) ? wxYES_NO : wxOK),
                                  wxWindow::FindFocus());
   }
   else
