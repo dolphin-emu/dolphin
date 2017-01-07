@@ -66,8 +66,8 @@ void JitBaseBlockCache::Clear()
   else
     Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
-  jit->js.fifoWriteAddresses.clear();
-  jit->js.pairedQuantizeAddresses.clear();
+  g_jit->js.fifoWriteAddresses.clear();
+  g_jit->js.pairedQuantizeAddresses.clear();
   for (int i = 1; i < num_blocks; i++)
   {
     DestroyBlock(i, false);
@@ -346,8 +346,8 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
     {
       for (u32 i = address; i < address + length; i += 4)
       {
-        jit->js.fifoWriteAddresses.erase(i);
-        jit->js.pairedQuantizeAddresses.erase(i);
+        g_jit->js.fifoWriteAddresses.erase(i);
+        g_jit->js.pairedQuantizeAddresses.erase(i);
       }
     }
   }
