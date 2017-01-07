@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <cstddef>
+
 #include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 #include "Common/NonCopyable.h"
 
@@ -39,7 +42,7 @@ public:
   }
 
   // Call this before you generate any code.
-  void AllocCodeSpace(int size, bool need_low = true)
+  void AllocCodeSpace(size_t size, bool need_low = true)
   {
     region_size = size;
     region = static_cast<u8*>(Common::AllocateExecutableMemory(region_size, need_low));
