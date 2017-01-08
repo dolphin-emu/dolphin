@@ -47,5 +47,5 @@ public:
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 };
 
-void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
-                     JitBlock* b);
+void LogGeneratedX86(int size, const PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
+                     const JitBlock* b);
