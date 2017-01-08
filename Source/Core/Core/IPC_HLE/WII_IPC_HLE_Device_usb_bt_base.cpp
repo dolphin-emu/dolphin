@@ -50,14 +50,6 @@ void RestoreBTInfoSection(SysConf* sysconf)
   File::Delete(filename);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_base::IOCtl(u32 command_address)
-{
-  // NeoGamma (homebrew) is known to use this path.
-  ERROR_LOG(WII_IPC_WIIMOTE, "Bad IOCtl to /dev/usb/oh1/57e/305");
-  Memory::Write_U32(IPC_EINVAL, command_address + 4);
-  return GetDefaultReply();
-}
-
 CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlMessage::CtrlMessage(const SIOCtlVBuffer& cmd_buffer)
 {
   request_type = Memory::Read_U8(cmd_buffer.InBuffer[0].m_Address);
