@@ -1317,15 +1317,8 @@ u32 ES::ES_DIVerify(const std::vector<u8>& tmd)
   File::CreateFullPath(Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT));
 
   std::string save_path = Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT);
-  if (Movie::IsRecordingInput())
-  {
-    // TODO: Check for the actual save data
-    if (File::Exists(save_path + "banner.bin"))
-      Movie::SetClearSave(false);
-    else
-      Movie::SetClearSave(true);
-  }
 
+  // TODO: There's not supposed to be a whole load of Movie code in IOS HLE.
   // TODO: Force the game to save to another location, instead of moving the user's save.
   if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsStartingFromClearSave())
   {

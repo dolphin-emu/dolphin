@@ -374,11 +374,6 @@ u64 GetTotalLagCount()
   return s_totalLagCount;
 }
 
-void SetClearSave(bool enabled)
-{
-  s_bClearSave = enabled;
-}
-
 void SignalDiscChange(const std::string& new_path)
 {
   if (Movie::IsRecordingInput())
@@ -573,19 +568,6 @@ bool BeginRecordingInput(int controllers)
     State::SaveAs(save_path);
     s_bRecordingFromSaveState = true;
 
-    // This is only done here if starting from save state because otherwise we won't have the
-    // titleid. Otherwise it's set in IOS::HLE::Device::ES.
-    // TODO: find a way to GetTitleDataPath() from Movie::Init()
-    // TODO: This comment is out of date. The title ID is no longer set in IOS::HLE::Device::ES
-    if (SConfig::GetInstance().bWii)
-    {
-      if (File::Exists(Common::GetTitleDataPath(SConfig::GetInstance().m_title_id,
-                                                Common::FROM_SESSION_ROOT) +
-                       "banner.bin"))
-        Movie::s_bClearSave = false;
-      else
-        Movie::s_bClearSave = true;
-    }
     std::thread md5thread(GetMD5);
     md5thread.detach();
     GetSettings();
@@ -1487,6 +1469,9 @@ void GetSettings()
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
   {
+    u64 title_id = SConfig::GetInstance().m_title_id;
+    s_bClearSave =
+        !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
     s_language = SConfig::GetInstance().m_wii_language;
   }
   else
