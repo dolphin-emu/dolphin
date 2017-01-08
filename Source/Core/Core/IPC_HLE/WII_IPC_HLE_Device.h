@@ -14,30 +14,32 @@
 #include "Common/StringUtil.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 
-#define FS_SUCCESS (u32)0            // Success
-#define FS_EACCES (u32) - 1          // Permission denied
-#define FS_EEXIST (u32) - 2          // File exists
-#define FS_EINVAL (u32) - 4          // Invalid argument Invalid FD
-#define FS_ENOENT (u32) - 6          // File not found
-#define FS_EBUSY (u32) - 8           // Resource busy
-#define FS_EIO (u32) - 12            // Returned on ECC error
-#define FS_ENOMEM (u32) - 22         // Alloc failed during request
-#define FS_EFATAL (u32) - 101        // Fatal error
-#define FS_EACCESS (u32) - 102       // Permission denied
-#define FS_ECORRUPT (u32) - 103      // returned for "corrupted" NAND
-#define FS_EEXIST2 (u32) - 105       // File exists
-#define FS_ENOENT2 (u32) - 106       // File not found
-#define FS_ENFILE (u32) - 107        // Too many fds open
-#define FS_EFBIG (u32) - 108         // Max block count reached?
-#define FS_EFDEXHAUSTED (u32) - 109  // Too many fds open
-#define FS_ENAMELEN (u32) - 110      // Pathname is too long
-#define FS_EFDOPEN (u32) - 111       // FD is already open
-#define FS_EIO2 (u32) - 114          // Returned on ECC error
-#define FS_ENOTEMPTY (u32) - 115     // Directory not empty
-#define FS_EDIRDEPTH (u32) - 116     // Max directory depth exceeded
-#define FS_EBUSY2 (u32) - 118        // Resource busy
-//#define FS_EFATAL       (u32)-119   // Fatal error not used by IOS as fatal ERROR
-#define FS_EESEXHAUSTED (u32) - 1016  // Max of 2 ES handles at a time
+enum IOSReturnCode : s32
+{
+  IPC_SUCCESS = 0,           // Success
+  IPC_EACCES = -1,           // Permission denied
+  IPC_EEXIST = -2,           // File exists
+  IPC_EINVAL = -4,           // Invalid argument or fd
+  IPC_ENOENT = -6,           // File not found
+  IPC_EQUEUEFULL = -8,       // Queue full
+  IPC_EIO = -12,             // ECC error
+  IPC_ENOMEM = -22,          // Alloc failed during request
+  FS_EINVAL = -101,          // Invalid path
+  FS_EACCESS = -102,         // Permission denied
+  FS_ECORRUPT = -103,        // Corrupted NAND
+  FS_EEXIST = -105,          // File exists
+  FS_ENOENT = -106,          // No such file or directory
+  FS_ENFILE = -107,          // Too many fds open
+  FS_EFBIG = -108,           // Max block count reached?
+  FS_EFDEXHAUSTED = -109,    // Too many fds open
+  FS_ENAMELEN = -110,        // Pathname is too long
+  FS_EFDOPEN = -111,         // FD is already open
+  FS_EIO = -114,             // ECC error
+  FS_ENOTEMPTY = -115,       // Directory not empty
+  FS_EDIRDEPTH = -116,       // Max directory depth exceeded
+  FS_EBUSY = -118,           // Resource busy
+  IPC_EESEXHAUSTED = -1016,  // Max of 2 ES handles exceeded
+};
 
 // A struct for IOS ioctlv calls
 struct SIOCtlVBuffer
@@ -68,8 +70,8 @@ public:
   virtual void DoState(PointerWrap& p);
   void DoStateShared(PointerWrap& p);
 
-  const std::string& GetDeviceName() const { return m_Name; }
-  u32 GetDeviceID() const { return m_DeviceID; }
+  const std::string& GetDeviceName() const { return m_name; }
+  u32 GetDeviceID() const { return m_device_id; }
   virtual IPCCommandResult Open(u32 command_address, u32 mode);
   virtual IPCCommandResult Close(u32 command_address, bool force = false);
   virtual IPCCommandResult Seek(u32 command_address);
@@ -79,18 +81,18 @@ public:
   virtual IPCCommandResult IOCtlV(u32 command_address);
 
   virtual u32 Update() { return 0; }
-  virtual bool IsHardware() const { return m_Hardware; }
-  virtual bool IsOpened() const { return m_Active; }
+  virtual bool IsHardware() const { return m_is_hardware; }
+  virtual bool IsOpened() const { return m_is_active; }
   static IPCCommandResult GetDefaultReply();
   static IPCCommandResult GetNoReply();
 
-  std::string m_Name;
+  std::string m_name;
 
 protected:
   // STATE_TO_SAVE
-  u32 m_DeviceID;
-  bool m_Hardware;
-  bool m_Active = false;
+  u32 m_device_id;
+  bool m_is_hardware;
+  bool m_is_active = false;
 
   // Write out the IPC struct from command_address to number_of_commands numbers
   // of 4 byte commands.

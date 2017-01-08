@@ -42,11 +42,11 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(u32 command_address)
   case IOCTL_STM_RELEASE_EH:
     if (s_event_hook_address == 0)
     {
-      return_value = FS_ENOENT;
+      return_value = IPC_ENOENT;
       break;
     }
     Memory::Write_U32(0, Memory::Read_U32(s_event_hook_address + 0x18));
-    Memory::Write_U32(FS_SUCCESS, s_event_hook_address + 4);
+    Memory::Write_U32(IPC_SUCCESS, s_event_hook_address + 4);
     WII_IPC_HLE_Interface::EnqueueReply(s_event_hook_address);
     s_event_hook_address = 0;
     break;
@@ -92,7 +92,7 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::Close(u32 command_address, b
 {
   s_event_hook_address = 0;
 
-  m_Active = false;
+  m_is_active = false;
   return GetDefaultReply();
 }
 
@@ -102,7 +102,7 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::IOCtl(u32 command_address)
   if (parameter != IOCTL_STM_EVENTHOOK)
   {
     ERROR_LOG(WII_IPC_STM, "Bad IOCtl in CWII_IPC_HLE_Device_stm_eventhook");
-    Memory::Write_U32(FS_EINVAL, command_address + 4);
+    Memory::Write_U32(IPC_EINVAL, command_address + 4);
     return GetDefaultReply();
   }
 
@@ -119,7 +119,7 @@ bool CWII_IPC_HLE_Device_stm_eventhook::HasHookInstalled() const
 
 void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
 {
-  if (!m_Active || s_event_hook_address == 0)
+  if (!m_is_active || s_event_hook_address == 0)
   {
     // If the device isn't open, ignore the button press.
     return;
@@ -129,7 +129,7 @@ void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
   u32 buffer_out = Memory::Read_U32(s_event_hook_address + 0x18);
   Memory::Write_U32(event, buffer_out);
 
-  Memory::Write_U32(FS_SUCCESS, s_event_hook_address + 4);
+  Memory::Write_U32(IPC_SUCCESS, s_event_hook_address + 4);
   WII_IPC_HLE_Interface::EnqueueReply(s_event_hook_address);
   s_event_hook_address = 0;
 }

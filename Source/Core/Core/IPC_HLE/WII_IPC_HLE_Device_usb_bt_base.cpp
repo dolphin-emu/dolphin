@@ -54,7 +54,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_base::IOCtl(u32 command_add
 {
   // NeoGamma (homebrew) is known to use this path.
   ERROR_LOG(WII_IPC_WIIMOTE, "Bad IOCtl to /dev/usb/oh1/57e/305");
-  Memory::Write_U32(FS_EINVAL, command_address + 4);
+  Memory::Write_U32(IPC_EINVAL, command_address + 4);
   return GetDefaultReply();
 }
 

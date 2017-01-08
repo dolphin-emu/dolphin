@@ -378,7 +378,7 @@ static s32 OpenDevice(const u32 address)
   {
     device = GetUnusedESDevice();
     if (!device)
-      return FS_EESEXHAUSTED;
+      return IPC_EESEXHAUSTED;
   }
   else if (device_name.find("/dev/") == 0)
   {
@@ -392,7 +392,7 @@ static s32 OpenDevice(const u32 address)
   if (!device)
   {
     ERROR_LOG(WII_IPC_HLE, "Unknown device: %s", device_name.c_str());
-    return FS_ENOENT;
+    return IPC_ENOENT;
   }
 
   Memory::Write_U32(new_fd, address + 4);
@@ -418,7 +418,7 @@ static IPCCommandResult HandleCommand(const u32 address)
   const auto device = (fd >= 0 && fd < IPC_MAX_FDS) ? s_fdmap[fd] : nullptr;
   if (!device)
   {
-    Memory::Write_U32(FS_EINVAL, address + 4);
+    Memory::Write_U32(IPC_EINVAL, address + 4);
     return IWII_IPC_HLE_Device::GetDefaultReply();
   }
 
@@ -426,8 +426,8 @@ static IPCCommandResult HandleCommand(const u32 address)
   {
   case IPC_CMD_CLOSE:
     s_fdmap[fd].reset();
-    // A close on a valid device returns FS_SUCCESS.
-    Memory::Write_U32(FS_SUCCESS, address + 4);
+    // A close on a valid device returns IPC_SUCCESS.
+    Memory::Write_U32(IPC_SUCCESS, address + 4);
     return device->Close(address);
   case IPC_CMD_READ:
     return device->Read(address);
@@ -470,8 +470,8 @@ void EnqueueReply(u32 address, int cycles_in_future, CoreTiming::FromThread from
 {
   // IOS writes back the command that was responded to in the FD field.
   Memory::Write_U32(Memory::Read_U32(address), address + 8);
-  // IOS also overwrites the command type with the async reply type.
-  Memory::Write_U32(IPC_REP_ASYNC, address);
+  // IOS also overwrites the command type with the reply type.
+  Memory::Write_U32(IPC_REPLY, address);
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, address, from);
 }
 
