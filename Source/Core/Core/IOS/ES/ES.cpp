@@ -1316,7 +1316,6 @@ u32 ES::ES_DIVerify(const std::vector<u8>& tmd)
   File::CreateFullPath(tmd_path);
   File::CreateFullPath(Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT));
 
-  Movie::SetTitleId(tmd_title_id);
   std::string save_path = Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT);
   if (Movie::IsRecordingInput())
   {

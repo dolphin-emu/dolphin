@@ -77,7 +77,6 @@ static bool s_bDiscChange = false;
 static bool s_bReset = false;
 static std::string s_author = "";
 static std::string s_discChange = "";
-static u64 s_titleID = 0;
 static u8 s_MD5[16];
 static u8 s_bongos, s_memcards;
 static u8 s_revision[20];
@@ -403,11 +402,6 @@ void SetReset(bool reset)
   s_bReset = reset;
 }
 
-void SetTitleId(u64 title_id)
-{
-  s_titleID = title_id;
-}
-
 bool IsUsingPad(int controller)
 {
   return ((s_controllers & (1 << controller)) != 0);
@@ -582,9 +576,11 @@ bool BeginRecordingInput(int controllers)
     // This is only done here if starting from save state because otherwise we won't have the
     // titleid. Otherwise it's set in IOS::HLE::Device::ES.
     // TODO: find a way to GetTitleDataPath() from Movie::Init()
+    // TODO: This comment is out of date. The title ID is no longer set in IOS::HLE::Device::ES
     if (SConfig::GetInstance().bWii)
     {
-      if (File::Exists(Common::GetTitleDataPath(s_titleID, Common::FROM_SESSION_ROOT) +
+      if (File::Exists(Common::GetTitleDataPath(SConfig::GetInstance().m_title_id,
+                                                Common::FROM_SESSION_ROOT) +
                        "banner.bin"))
         Movie::s_bClearSave = false;
       else
