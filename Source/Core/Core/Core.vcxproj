@@ -197,6 +197,8 @@
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_stub.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.cpp" />
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_wfssrv.cpp" />
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_wfsi.cpp" />
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp" />
     <ClCompile Include="IPC_HLE\WII_Socket.cpp" />
     <ClCompile Include="IPC_HLE\WiiNetConfig.cpp" />
@@ -417,6 +419,8 @@
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_stub.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.h" />
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_wfssrv.h" />
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_wfsi.h" />
     <ClInclude Include="IPC_HLE\WII_IPC_HLE_WiiMote.h" />
     <ClInclude Include="IPC_HLE\WII_Socket.h" />
     <ClInclude Include="IPC_HLE\WiiNetConfig.h" />
