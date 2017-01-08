@@ -126,10 +126,10 @@ bool Jitx86Base::BackPatch(u32 emAddress, SContext* ctx)
   return true;
 }
 
-void LogGeneratedX86(int size, const PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
+void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
                      const JitBlock* b)
 {
-  for (int i = 0; i < size; i++)
+  for (size_t i = 0; i < size; i++)
   {
     const PPCAnalyst::CodeOp& op = code_buffer->codebuffer[i];
     std::string temp = StringFromFormat(
