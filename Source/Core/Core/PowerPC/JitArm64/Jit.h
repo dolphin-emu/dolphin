@@ -30,7 +30,7 @@ public:
   void Shutdown() override;
 
   JitBaseBlockCache* GetBlockCache() override { return &blocks; }
-  bool IsInCodeSpace(u8* ptr) const { return IsInSpace(ptr); }
+  bool IsInCodeSpace(const u8* ptr) const { return IsInSpace(ptr); }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
   void ClearCache() override;
