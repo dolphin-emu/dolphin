@@ -141,7 +141,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::Open(u32 command_addr
 
   StartTransferThread();
 
-  Memory::Write_U32(GetDeviceID(), command_address + 4);
   m_Active = true;
   return GetDefaultReply();
 }
@@ -154,7 +153,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::Close(u32 command_add
     StopTransferThread();
     libusb_unref_device(m_device);
     m_handle = nullptr;
-    Memory::Write_U32(0, command_address + 4);
   }
 
   m_Active = false;

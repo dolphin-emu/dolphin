@@ -68,17 +68,12 @@ void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
 
 IPCCommandResult IWII_IPC_HLE_Device::Open(u32 command_address, u32 mode)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Open()", m_Name.c_str());
-  Memory::Write_U32(FS_ENOENT, command_address + 4);
   m_Active = true;
   return GetDefaultReply();
 }
 
 IPCCommandResult IWII_IPC_HLE_Device::Close(u32 command_address, bool force)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Close()", m_Name.c_str());
-  if (!force)
-    Memory::Write_U32(FS_EINVAL, command_address + 4);
   m_Active = false;
   return GetDefaultReply();
 }

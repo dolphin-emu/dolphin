@@ -10,6 +10,7 @@
 
 #include <libusb.h>
 
+#include "Common/Align.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
 #include "Core/Core.h"
@@ -102,23 +103,6 @@ CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
 
   if (deinit_libusb)
     libusb_exit(nullptr);
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_hid::Open(u32 _CommandAddress, u32 _Mode)
-{
-  INFO_LOG(WII_IPC_HID, "HID::Open");
-  m_Active = true;
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_hid::Close(u32 _CommandAddress, bool _bForce)
-{
-  INFO_LOG(WII_IPC_HID, "HID::Close");
-  m_Active = false;
-  if (!_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
-  return GetDefaultReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(u32 _CommandAddress)
@@ -390,8 +374,8 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
     WiiHIDDeviceDescriptor wii_device;
     ConvertDeviceToWii(&wii_device, &desc);
-    Memory::CopyToEmu(OffsetBuffer, &wii_device, Align(wii_device.bLength, 4));
-    OffsetBuffer += Align(wii_device.bLength, 4);
+    Memory::CopyToEmu(OffsetBuffer, &wii_device, wii_device.bLength);
+    OffsetBuffer += Common::AlignUp(wii_device.bLength, 4);
     bool deviceValid = true;
     bool isHID = false;
 
@@ -404,8 +388,8 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
       {
         WiiHIDConfigDescriptor wii_config;
         ConvertConfigToWii(&wii_config, config);
-        Memory::CopyToEmu(OffsetBuffer, &wii_config, Align(wii_config.bLength, 4));
-        OffsetBuffer += Align(wii_config.bLength, 4);
+        Memory::CopyToEmu(OffsetBuffer, &wii_config, wii_config.bLength);
+        OffsetBuffer += Common::AlignUp(wii_config.bLength, 4);
 
         for (ic = 0; ic < config->bNumInterfaces; ic++)
         {
@@ -421,8 +405,8 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
             WiiHIDInterfaceDescriptor wii_interface;
             ConvertInterfaceToWii(&wii_interface, interface);
-            Memory::CopyToEmu(OffsetBuffer, &wii_interface, Align(wii_interface.bLength, 4));
-            OffsetBuffer += Align(wii_interface.bLength, 4);
+            Memory::CopyToEmu(OffsetBuffer, &wii_interface, wii_interface.bLength);
+            OffsetBuffer += Common::AlignUp(wii_interface.bLength, 4);
 
             for (e = 0; e < interface->bNumEndpoints; e++)
             {
@@ -430,8 +414,8 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
 
               WiiHIDEndpointDescriptor wii_endpoint;
               ConvertEndpointToWii(&wii_endpoint, endpoint);
-              Memory::CopyToEmu(OffsetBuffer, &wii_endpoint, Align(wii_endpoint.bLength, 4));
-              OffsetBuffer += Align(wii_endpoint.bLength, 4);
+              Memory::CopyToEmu(OffsetBuffer, &wii_endpoint, wii_endpoint.bLength);
+              OffsetBuffer += Common::AlignUp(wii_endpoint.bLength, 4);
 
             }  // endpoints
           }    // interfaces
@@ -498,11 +482,6 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(u32 BufferOut, u32 BufferOutSize)
   libusb_free_device_list(list, 1);
 
   Memory::Write_U32(0xFFFFFFFF, OffsetBuffer);  // no more devices
-}
-
-int CWII_IPC_HLE_Device_hid::Align(int num, int alignment)
-{
-  return (num + (alignment - 1)) & ~(alignment - 1);
 }
 
 libusb_device_handle* CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)

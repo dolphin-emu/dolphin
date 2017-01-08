@@ -32,21 +32,6 @@ void CWII_IPC_HLE_Device_di::DoState(PointerWrap& p)
   p.Do(m_commands_to_execute);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_di::Open(u32 _CommandAddress, u32 _Mode)
-{
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-  m_Active = true;
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_di::Close(u32 _CommandAddress, bool _bForce)
-{
-  if (!_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
-  m_Active = false;
-  return GetDefaultReply();
-}
-
 IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
 {
   // DI IOCtls are handled in a special way by Dolphin

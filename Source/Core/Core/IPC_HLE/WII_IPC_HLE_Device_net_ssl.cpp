@@ -75,23 +75,6 @@ int CWII_IPC_HLE_Device_net_ssl::GetSSLFreeID() const
   return 0;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_net_ssl::Open(u32 _CommandAddress, u32 _Mode)
-{
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-  m_Active = true;
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_net_ssl::Close(u32 _CommandAddress, bool _bForce)
-{
-  if (!_bForce)
-  {
-    Memory::Write_U32(0, _CommandAddress + 4);
-  }
-  m_Active = false;
-  return GetDefaultReply();
-}
-
 IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtl(u32 _CommandAddress)
 {
   u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);

@@ -19,9 +19,6 @@ public:
 
   ~CWII_IPC_HLE_Device_usb_ven() override;
 
-  IPCCommandResult Open(u32 command_address, u32 mode) override;
-  IPCCommandResult Close(u32 command_address, bool force) override;
-
   IPCCommandResult IOCtlV(u32 command_address) override;
   IPCCommandResult IOCtl(u32 command_address) override;
 
