@@ -65,7 +65,7 @@ static std::mutex s_device_map_mutex;
 
 // STATE_TO_SAVE
 constexpr u8 IPC_MAX_FDS = 0x18;
-constexpr u8 ES_MAX_COUNT = 2;
+constexpr u8 ES_MAX_COUNT = 3;
 static std::shared_ptr<IWII_IPC_HLE_Device> s_fdmap[IPC_MAX_FDS];
 static std::shared_ptr<IWII_IPC_HLE_Device> s_es_handles[ES_MAX_COUNT];
 
