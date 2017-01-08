@@ -28,7 +28,7 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
   else
   {
     emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
-    emit.B(jit->GetAsmRoutines()->dispatcher);
+    emit.B(g_jit->GetAsmRoutines()->dispatcher);
   }
   emit.FlushIcache();
 }

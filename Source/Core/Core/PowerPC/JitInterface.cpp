@@ -36,8 +36,8 @@ namespace JitInterface
 {
 void DoState(PointerWrap& p)
 {
-  if (jit && p.GetMode() == PointerWrap::MODE_READ)
-    jit->ClearCache();
+  if (g_jit && p.GetMode() == PointerWrap::MODE_READ)
+    g_jit->ClearCache();
 }
 CPUCoreBase* InitJitCore(int core)
 {
@@ -63,11 +63,11 @@ CPUCoreBase* InitJitCore(int core)
 
   default:
     PanicAlert("Unrecognizable cpu_core: %d", core);
-    jit = nullptr;
+    g_jit = nullptr;
     return nullptr;
   }
-  jit = static_cast<JitBase*>(ptr);
-  jit->Init();
+  g_jit = static_cast<JitBase*>(ptr);
+  g_jit->Init();
   return ptr;
 }
 void InitTables(int core)
@@ -97,7 +97,7 @@ void InitTables(int core)
 }
 CPUCoreBase* GetCore()
 {
-  return jit;
+  return g_jit;
 }
 
 void WriteProfileResults(const std::string& filename)
@@ -127,23 +127,23 @@ void WriteProfileResults(const std::string& filename)
 
 void GetProfileResults(ProfileStats* prof_stats)
 {
-  // Can't really do this with no jit core available
-  if (!jit)
+  // Can't really do this with no g_jit core available
+  if (!g_jit)
     return;
 
   prof_stats->cost_sum = 0;
   prof_stats->timecost_sum = 0;
   prof_stats->block_stats.clear();
-  prof_stats->block_stats.reserve(jit->GetBlockCache()->GetNumBlocks());
+  prof_stats->block_stats.reserve(g_jit->GetBlockCache()->GetNumBlocks());
 
   Core::EState old_state = Core::GetState();
   if (old_state == Core::CORE_RUN)
     Core::SetState(Core::CORE_PAUSE);
 
   QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
-  for (int i = 0; i < jit->GetBlockCache()->GetNumBlocks(); i++)
+  for (int i = 0; i < g_jit->GetBlockCache()->GetNumBlocks(); i++)
   {
-    const JitBlock* block = jit->GetBlockCache()->GetBlock(i);
+    const JitBlock* block = g_jit->GetBlockCache()->GetBlock(i);
     // Rough heuristic.  Mem instructions should cost more.
     u64 cost = block->originalSize * (block->runCount / 4);
     u64 timecost = block->ticCounter;
@@ -162,25 +162,25 @@ void GetProfileResults(ProfileStats* prof_stats)
 
 int GetHostCode(u32* address, const u8** code, u32* code_size)
 {
-  if (!jit)
+  if (!g_jit)
   {
     *code_size = 0;
     return 1;
   }
 
-  int block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address, MSR);
+  int block_num = g_jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address, MSR);
   if (block_num < 0)
   {
     for (int i = 0; i < 500; i++)
     {
-      block_num = jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address - 4 * i, MSR);
+      block_num = g_jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address - 4 * i, MSR);
       if (block_num >= 0)
         break;
     }
 
     if (block_num >= 0)
     {
-      JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
+      JitBlock* block = g_jit->GetBlockCache()->GetBlock(block_num);
       if (!(block->effectiveAddress <= *address &&
             block->originalSize + block->effectiveAddress >= *address))
         block_num = -1;
@@ -194,7 +194,7 @@ int GetHostCode(u32* address, const u8** code, u32* code_size)
     }
   }
 
-  JitBlock* block = jit->GetBlockCache()->GetBlock(block_num);
+  JitBlock* block = g_jit->GetBlockCache()->GetBlock(block_num);
 
   *code = block->checkedEntry;
   *code_size = block->codeSize;
@@ -205,28 +205,28 @@ int GetHostCode(u32* address, const u8** code, u32* code_size)
 bool HandleFault(uintptr_t access_address, SContext* ctx)
 {
   // Prevent nullptr dereference on a crash with no JIT present
-  if (!jit)
+  if (!g_jit)
   {
     return false;
   }
 
-  return jit->HandleFault(access_address, ctx);
+  return g_jit->HandleFault(access_address, ctx);
 }
 
 bool HandleStackFault()
 {
-  if (!jit)
+  if (!g_jit)
   {
     return false;
   }
 
-  return jit->HandleStackFault();
+  return g_jit->HandleStackFault();
 }
 
 void ClearCache()
 {
-  if (jit)
-    jit->ClearCache();
+  if (g_jit)
+    g_jit->ClearCache();
 }
 void ClearSafe()
 {
@@ -234,19 +234,19 @@ void ClearSafe()
   // inside a JIT'ed block: it clears the instruction cache, but not
   // the JIT'ed code.
   // TODO: There's probably a better way to handle this situation.
-  if (jit)
-    jit->GetBlockCache()->Clear();
+  if (g_jit)
+    g_jit->GetBlockCache()->Clear();
 }
 
 void InvalidateICache(u32 address, u32 size, bool forced)
 {
-  if (jit)
-    jit->GetBlockCache()->InvalidateICache(address, size, forced);
+  if (g_jit)
+    g_jit->GetBlockCache()->InvalidateICache(address, size, forced);
 }
 
 void CompileExceptionCheck(ExceptionType type)
 {
-  if (!jit)
+  if (!g_jit)
     return;
 
   std::unordered_set<u32>* exception_addresses = nullptr;
@@ -254,13 +254,13 @@ void CompileExceptionCheck(ExceptionType type)
   switch (type)
   {
   case ExceptionType::EXCEPTIONS_FIFO_WRITE:
-    exception_addresses = &jit->js.fifoWriteAddresses;
+    exception_addresses = &g_jit->js.fifoWriteAddresses;
     break;
   case ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE:
-    exception_addresses = &jit->js.pairedQuantizeAddresses;
+    exception_addresses = &g_jit->js.pairedQuantizeAddresses;
     break;
   case ExceptionType::EXCEPTIONS_SPECULATIVE_CONSTANTS:
-    exception_addresses = &jit->js.noSpeculativeConstantsAddresses;
+    exception_addresses = &g_jit->js.noSpeculativeConstantsAddresses;
     break;
   }
 
@@ -277,17 +277,17 @@ void CompileExceptionCheck(ExceptionType type)
 
     // Invalidate the JIT block so that it gets recompiled with the external exception check
     // included.
-    jit->GetBlockCache()->InvalidateICache(PC, 4, true);
+    g_jit->GetBlockCache()->InvalidateICache(PC, 4, true);
   }
 }
 
 void Shutdown()
 {
-  if (jit)
+  if (g_jit)
   {
-    jit->Shutdown();
-    delete jit;
-    jit = nullptr;
+    g_jit->Shutdown();
+    delete g_jit;
+    g_jit = nullptr;
   }
 }
 }

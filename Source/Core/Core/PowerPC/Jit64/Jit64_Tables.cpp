@@ -362,7 +362,7 @@ namespace Jit64Tables
 {
 void CompileInstruction(PPCAnalyst::CodeOp& op)
 {
-  Jit64* jit64 = (Jit64*)jit;
+  Jit64* jit64 = (Jit64*)g_jit;
   (jit64->*dynaOpTable[op.inst.OPCD])(op.inst);
   GekkoOPInfo* info = op.opinfo;
   if (info)
@@ -370,11 +370,11 @@ void CompileInstruction(PPCAnalyst::CodeOp& op)
 #ifdef OPLOG
     if (!strcmp(info->opname, OP_TO_LOG))  // "mcrfs"
     {
-      rsplocations.push_back(jit.js.compilerPC);
+      rsplocations.push_back(g_jit.js.compilerPC);
     }
 #endif
     info->compileCount++;
-    info->lastUse = jit->js.compilerPC;
+    info->lastUse = g_jit->js.compilerPC;
   }
 }
 

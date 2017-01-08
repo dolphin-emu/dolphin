@@ -11,7 +11,7 @@
 void JitBlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
   u8* location = source.exitPtrs;
-  const u8* address = dest ? dest->checkedEntry : jit->GetAsmRoutines()->dispatcher;
+  const u8* address = dest ? dest->checkedEntry : g_jit->GetAsmRoutines()->dispatcher;
   Gen::XEmitter emit(location);
   if (*location == 0xE8)
   {

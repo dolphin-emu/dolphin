@@ -107,7 +107,7 @@ void Jit64AsmRoutineManager::Generate()
 
   // Fast block number lookup.
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
-  u64 icache = reinterpret_cast<u64>(jit->GetBlockCache()->GetICache());
+  u64 icache = reinterpret_cast<u64>(g_jit->GetBlockCache()->GetICache());
   AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::iCache_Mask << 2));
   if (icache <= INT_MAX)
   {
@@ -120,7 +120,7 @@ void Jit64AsmRoutineManager::Generate()
   }
 
   // Check whether the block we found matches the current state.
-  u64 blocks = reinterpret_cast<u64>(jit->GetBlockCache()->GetBlocks());
+  u64 blocks = reinterpret_cast<u64>(g_jit->GetBlockCache()->GetBlocks());
   IMUL(32, RSCRATCH, R(RSCRATCH), Imm32(sizeof(JitBlock)));
   if (blocks <= INT_MAX)
   {

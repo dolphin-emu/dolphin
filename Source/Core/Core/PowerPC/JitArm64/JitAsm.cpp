@@ -75,7 +75,7 @@ void JitArm64::GenerateAsm()
     ARM64Reg cache_base = X27;
     ARM64Reg block_num = W27;
     ANDI2R(pc_masked, DISPATCHER_PC, JitBaseBlockCache::iCache_Mask << 2);
-    MOVP2R(cache_base, jit->GetBlockCache()->GetICache());
+    MOVP2R(cache_base, g_jit->GetBlockCache()->GetICache());
     LDR(block_num, cache_base, EncodeRegTo64(pc_masked));
 
     // blocks[block_num]
@@ -83,7 +83,7 @@ void JitArm64::GenerateAsm()
     ARM64Reg jit_block_size = W24;
     MOVI2R(jit_block_size, sizeof(JitBlock));
     MUL(block_num, block_num, jit_block_size);
-    MOVP2R(block, jit->GetBlockCache()->GetBlocks());
+    MOVP2R(block, g_jit->GetBlockCache()->GetBlocks());
     ADD(block, block, EncodeRegTo64(block_num));
 
     // b.effectiveAddress != addr || b.msrBits != msr
