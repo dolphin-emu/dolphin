@@ -112,7 +112,53 @@ public:
   static constexpr u32 iCache_Num_Elements = 0x10000;
   static constexpr u32 iCache_Mask = iCache_Num_Elements - 1;
 
+  JitBaseBlockCache() : num_blocks(1) {}
+  virtual ~JitBaseBlockCache() {}
+  void Init();
+  void Shutdown();
+  void Clear();
+  void Reset();
+  void SchedulateClearCacheThreadSafe();
+
+  bool IsFull() const;
+
+  // Code Cache
+  JitBlock* GetBlock(int block_num);
+  JitBlock* GetBlocks() { return blocks.data(); }
+  int GetNumBlocks() const;
+  int* GetICache() { return iCache.data(); }
+
+  int AllocateBlock(u32 em_address);
+  void FinalizeBlock(int block_num, bool block_link, const u8* code_ptr);
+
+  // Look for the block in the slow but accurate way.
+  // This function shall be used if FastLookupEntryForAddress() failed.
+  int GetBlockNumberFromStartAddress(u32 em_address, u32 msr);
+
+  // Get the normal entry for the block associated with the current program
+  // counter. This will JIT code if necessary. (This is the reference
+  // implementation; high-performance JITs will want to use a custom
+  // assembly version.)
+  const u8* Dispatch();
+
+  void InvalidateICache(u32 address, const u32 length, bool forced);
+
+  u32* GetBlockBitSet() const { return valid_block.m_valid_block.get(); }
+
 private:
+  virtual void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) = 0;
+  virtual void WriteDestroyBlock(const JitBlock& block);
+
+  void LinkBlockExits(int i);
+  void LinkBlock(int i);
+  void UnlinkBlock(int i);
+  void DestroyBlock(int block_num, bool invalidate);
+
+  void MoveBlockIntoFastCache(u32 em_address, u32 msr);
+
+  // Fast but risky block lookup based on iCache.
+  int& FastLookupEntryForAddress(u32 address) { return iCache[(address >> 2) & iCache_Mask]; }
+
   // We store the metadata of all blocks in a linear way within this array.
   // Note: blocks[0] must not be used as it is referenced as invalid block in iCache.
   std::array<JitBlock, MAX_NUM_BLOCKS> blocks;  // number -> JitBlock
@@ -138,51 +184,4 @@ private:
   // This array is indexed with the masked PC and likely holds the correct block id.
   // This is used as a fast cache of start_block_map used in the assembly dispatcher.
   std::array<int, iCache_Num_Elements> iCache;  // start_addr & mask -> number
-
-  void LinkBlockExits(int i);
-  void LinkBlock(int i);
-  void UnlinkBlock(int i);
-
-  void DestroyBlock(int block_num, bool invalidate);
-
-  void MoveBlockIntoFastCache(u32 em_address, u32 msr);
-
-  // Fast but risky block lookup based on iCache.
-  int& FastLookupEntryForAddress(u32 address) { return iCache[(address >> 2) & iCache_Mask]; }
-  // Virtual for overloaded
-  virtual void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) = 0;
-  virtual void WriteDestroyBlock(const JitBlock& block) {}
-public:
-  JitBaseBlockCache() : num_blocks(1) {}
-  virtual ~JitBaseBlockCache() {}
-  int AllocateBlock(u32 em_address);
-  void FinalizeBlock(int block_num, bool block_link, const u8* code_ptr);
-
-  void Clear();
-  void SchedulateClearCacheThreadSafe();
-  void Init();
-  void Shutdown();
-  void Reset();
-
-  bool IsFull() const;
-
-  // Code Cache
-  JitBlock* GetBlock(int block_num);
-  JitBlock* GetBlocks() { return blocks.data(); }
-  int* GetICache() { return iCache.data(); }
-  int GetNumBlocks() const;
-
-  // Look for the block in the slow but accurate way.
-  // This function shall be used if FastLookupEntryForAddress() failed.
-  int GetBlockNumberFromStartAddress(u32 em_address, u32 msr);
-
-  // Get the normal entry for the block associated with the current program
-  // counter. This will JIT code if necessary. (This is the reference
-  // implementation; high-performance JITs will want to use a custom
-  // assembly version.)
-  const u8* Dispatch();
-
-  void InvalidateICache(u32 address, const u32 length, bool forced);
-
-  u32* GetBlockBitSet() const { return valid_block.m_valid_block.get(); }
 };

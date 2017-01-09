@@ -35,11 +35,6 @@ static void ClearCacheThreadSafe(u64 userdata, s64 cyclesdata)
   JitInterface::ClearCache();
 }
 
-bool JitBaseBlockCache::IsFull() const
-{
-  return GetNumBlocks() >= MAX_NUM_BLOCKS - 1;
-}
-
 void JitBaseBlockCache::Init()
 {
   s_clear_jit_cache_thread_safe = CoreTiming::RegisterEvent("clearJitCache", ClearCacheThreadSafe);
@@ -82,15 +77,20 @@ void JitBaseBlockCache::Clear()
   blocks[0].invalid = true;
 }
 
+void JitBaseBlockCache::Reset()
+{
+  Shutdown();
+  Init();
+}
+
 void JitBaseBlockCache::SchedulateClearCacheThreadSafe()
 {
   CoreTiming::ScheduleEvent(0, s_clear_jit_cache_thread_safe, 0, CoreTiming::FromThread::NON_CPU);
 }
 
-void JitBaseBlockCache::Reset()
+bool JitBaseBlockCache::IsFull() const
 {
-  Shutdown();
-  Init();
+  return GetNumBlocks() >= MAX_NUM_BLOCKS - 1;
 }
 
 JitBlock* JitBaseBlockCache::GetBlock(int no)
@@ -180,20 +180,6 @@ int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr, u32 msr)
   return block_num;
 }
 
-void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
-{
-  int block_num = GetBlockNumberFromStartAddress(addr, msr);
-  if (block_num < 0)
-  {
-    Jit(addr);
-  }
-  else
-  {
-    FastLookupEntryForAddress(addr) = block_num;
-    LinkBlock(block_num);
-  }
-}
-
 const u8* JitBaseBlockCache::Dispatch()
 {
   int block_num = FastLookupEntryForAddress(PC);
@@ -206,6 +192,54 @@ const u8* JitBaseBlockCache::Dispatch()
   }
 
   return blocks[block_num].normalEntry;
+}
+
+void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool forced)
+{
+  auto translated = PowerPC::JitCache_TranslateAddress(address);
+  if (!translated.valid)
+    return;
+  u32 pAddr = translated.address;
+
+  // Optimize the common case of length == 32 which is used by Interpreter::dcb*
+  bool destroy_block = true;
+  if (length == 32)
+  {
+    if (!valid_block.Test(pAddr / 32))
+      destroy_block = false;
+    else
+      valid_block.Clear(pAddr / 32);
+  }
+
+  // destroy JIT blocks
+  // !! this works correctly under assumption that any two overlapping blocks end at the same
+  // address
+  if (destroy_block)
+  {
+    auto it = block_map.lower_bound(std::make_pair(pAddr, 0));
+    while (it != block_map.end() && it->first.second < pAddr + length)
+    {
+      DestroyBlock(it->second, true);
+      it = block_map.erase(it);
+    }
+
+    // If the code was actually modified, we need to clear the relevant entries from the
+    // FIFO write address cache, so we don't end up with FIFO checks in places they shouldn't
+    // be (this can clobber flags, and thus break any optimization that relies on flags
+    // being in the right place between instructions).
+    if (!forced)
+    {
+      for (u32 i = address; i < address + length; i += 4)
+      {
+        g_jit->js.fifoWriteAddresses.erase(i);
+        g_jit->js.pairedQuantizeAddresses.erase(i);
+      }
+    }
+  }
+}
+
+void JitBaseBlockCache::WriteDestroyBlock(const JitBlock& block)
+{
 }
 
 // Block linker
@@ -309,46 +343,16 @@ void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
   WriteDestroyBlock(b);
 }
 
-void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool forced)
+void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
 {
-  auto translated = PowerPC::JitCache_TranslateAddress(address);
-  if (!translated.valid)
-    return;
-  u32 pAddr = translated.address;
-
-  // Optimize the common case of length == 32 which is used by Interpreter::dcb*
-  bool destroy_block = true;
-  if (length == 32)
+  int block_num = GetBlockNumberFromStartAddress(addr, msr);
+  if (block_num < 0)
   {
-    if (!valid_block.Test(pAddr / 32))
-      destroy_block = false;
-    else
-      valid_block.Clear(pAddr / 32);
+    Jit(addr);
   }
-
-  // destroy JIT blocks
-  // !! this works correctly under assumption that any two overlapping blocks end at the same
-  // address
-  if (destroy_block)
+  else
   {
-    auto it = block_map.lower_bound(std::make_pair(pAddr, 0));
-    while (it != block_map.end() && it->first.second < pAddr + length)
-    {
-      DestroyBlock(it->second, true);
-      it = block_map.erase(it);
-    }
-
-    // If the code was actually modified, we need to clear the relevant entries from the
-    // FIFO write address cache, so we don't end up with FIFO checks in places they shouldn't
-    // be (this can clobber flags, and thus break any optimization that relies on flags
-    // being in the right place between instructions).
-    if (!forced)
-    {
-      for (u32 i = address; i < address + length; i += 4)
-      {
-        g_jit->js.fifoWriteAddresses.erase(i);
-        g_jit->js.pairedQuantizeAddresses.erase(i);
-      }
-    }
+    FastLookupEntryForAddress(addr) = block_num;
+    LinkBlock(block_num);
   }
 }
