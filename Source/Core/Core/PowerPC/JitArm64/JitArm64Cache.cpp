@@ -5,7 +5,12 @@
 #include "Core/PowerPC/JitArm64/Jit.h"
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/JitArm64/JitArm64Cache.h"
+#include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitInterface.h"
+
+JitArm64BlockCache::JitArm64BlockCache(JitBase& jit) : JitBaseBlockCache{jit}
+{
+}
 
 void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest)
 {
@@ -28,7 +33,7 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
   else
   {
     emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
-    emit.B(g_jit->GetAsmRoutines()->dispatcher);
+    emit.B(m_jit.GetAsmRoutines()->dispatcher);
   }
   emit.FlushIcache();
 }

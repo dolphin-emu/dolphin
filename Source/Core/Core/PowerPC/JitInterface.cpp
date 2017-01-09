@@ -13,7 +13,7 @@
 #endif
 
 #include "Core/Core.h"
-#include "Core/PowerPC/CachedInterpreter.h"
+#include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCSymbolDB.h"

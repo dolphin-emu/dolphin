@@ -39,7 +39,7 @@ class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
 {
 protected:
   bool BackPatch(u32 emAddress, SContext* ctx);
-  JitBlockCache blocks;
+  JitBlockCache blocks{*this};
   TrampolineCache trampolines;
 
 public:
