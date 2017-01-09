@@ -47,8 +47,8 @@ SIOCtlVBuffer::SIOCtlVBuffer(const u32 address) : m_Address(address)
 }
 
 IWII_IPC_HLE_Device::IWII_IPC_HLE_Device(const u32 device_id, const std::string& device_name,
-                                         const bool hardware)
-    : m_name(device_name), m_device_id(device_id), m_is_hardware(hardware)
+                                         const DeviceType type)
+    : m_name(device_name), m_device_id(device_id), m_device_type(type)
 {
 }
 
@@ -62,7 +62,7 @@ void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
 {
   p.Do(m_name);
   p.Do(m_device_id);
-  p.Do(m_is_hardware);
+  p.Do(m_device_type);
   p.Do(m_is_active);
 }
 
