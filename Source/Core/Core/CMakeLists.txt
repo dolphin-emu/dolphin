@@ -167,6 +167,7 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/SignatureDB/DSYSignatureDB.cpp
 			PowerPC/SignatureDB/SignatureDB.cpp
 			PowerPC/JitInterface.cpp
+			PowerPC/CachedInterpreter/CachedInterpreter.cpp
 			PowerPC/Interpreter/Interpreter_Branch.cpp
 			PowerPC/Interpreter/Interpreter.cpp
 			PowerPC/Interpreter/Interpreter_FloatingPoint.cpp
@@ -179,7 +180,6 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/JitCommon/JitAsmCommon.cpp
 			PowerPC/JitCommon/JitBase.cpp
 			PowerPC/JitCommon/JitCache.cpp
-			PowerPC/CachedInterpreter.cpp
 			PowerPC/JitILCommon/IR.cpp
 			PowerPC/JitILCommon/JitILBase_Branch.cpp
 			PowerPC/JitILCommon/JitILBase_LoadStore.cpp
