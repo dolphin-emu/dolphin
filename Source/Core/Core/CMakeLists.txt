@@ -168,6 +168,7 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/SignatureDB/SignatureDB.cpp
 			PowerPC/JitInterface.cpp
 			PowerPC/CachedInterpreter/CachedInterpreter.cpp
+			PowerPC/CachedInterpreter/InterpreterBlockCache.cpp
 			PowerPC/Interpreter/Interpreter_Branch.cpp
 			PowerPC/Interpreter/Interpreter.cpp
 			PowerPC/Interpreter/Interpreter_FloatingPoint.cpp

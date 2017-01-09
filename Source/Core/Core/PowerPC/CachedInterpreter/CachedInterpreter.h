@@ -7,10 +7,11 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/PowerPC/CachedInterpreter/InterpreterBlockCache.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-class CachedInterpreter : public JitBase, JitBaseBlockCache
+class CachedInterpreter : public JitBase
 {
 public:
   CachedInterpreter() : code_buffer(32000) {}
@@ -26,9 +27,8 @@ public:
 
   void Jit(u32 address) override;
 
-  JitBaseBlockCache* GetBlockCache() override { return this; }
+  JitBaseBlockCache* GetBlockCache() override { return &m_block_cache; }
   const char* GetName() override { return "Cached Interpreter"; }
-  void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) override {}
   const CommonAsmRoutinesBase* GetAsmRoutines() override { return nullptr; }
 private:
   struct Instruction
@@ -59,6 +59,7 @@ private:
   const u8* GetCodePtr() { return (u8*)(m_code.data() + m_code.size()); }
   void ExecuteOneBlock();
 
+  BlockCache m_block_cache;
   std::vector<Instruction> m_code;
   PPCAnalyst::CodeBuffer code_buffer;
 };

@@ -279,6 +279,9 @@
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp">
       <Filter>PowerPC\Cached Interpreter</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\CachedInterpreter\InterpreterBlockCache.cpp">
+      <Filter>PowerPC\Cached Interpreter</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\Interpreter\Interpreter.cpp">
       <Filter>PowerPC\Interpreter</Filter>
     </ClCompile>
@@ -873,6 +876,9 @@
       <Filter>HLE</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h">
+      <Filter>PowerPC\Cached Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h">
       <Filter>PowerPC\Cached Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h">
