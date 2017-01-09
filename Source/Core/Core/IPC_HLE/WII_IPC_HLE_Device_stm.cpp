@@ -106,6 +106,12 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::IOCtl(u32 command_address)
     return GetDefaultReply();
   }
 
+  if (s_event_hook_address != 0)
+  {
+    Memory::Write_U32(FS_EEXIST, command_address + 4);
+    return GetDefaultReply();
+  }
+
   // IOCTL_STM_EVENTHOOK waits until the reset button or power button
   // is pressed.
   s_event_hook_address = command_address;

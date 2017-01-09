@@ -28,7 +28,6 @@ public:
 
   virtual IPCCommandResult Open(u32 command_address, u32 mode) override = 0;
   virtual IPCCommandResult Close(u32 command_address, bool force) override = 0;
-  IPCCommandResult IOCtl(u32 command_address) override;
   virtual IPCCommandResult IOCtlV(u32 command_address) override = 0;
 
   virtual void DoState(PointerWrap& p) override = 0;

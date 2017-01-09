@@ -47,7 +47,6 @@ public:
   IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
   IPCCommandResult IOCtlV(u32 _CommandAddress) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
 
   u32 Update() override;
 
