@@ -211,7 +211,7 @@ public:
   bool IsOpen() const { return nullptr != m_file; }
   // m_good is set to false when a read, write or other function fails
   bool IsGood() const { return m_good; }
-  explicit operator bool() const { return IsGood(); }
+  explicit operator bool() const { return IsGood() && IsOpen(); }
   std::FILE* ReleaseHandle();
 
   std::FILE* GetHandle() { return m_file; }
