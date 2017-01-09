@@ -35,7 +35,10 @@ static void ClearCacheThreadSafe(u64 userdata, s64 cyclesdata)
   JitInterface::ClearCache();
 }
 
-JitBaseBlockCache::JitBaseBlockCache() = default;
+JitBaseBlockCache::JitBaseBlockCache(JitBase& jit) : m_jit{jit}
+{
+}
+
 JitBaseBlockCache::~JitBaseBlockCache() = default;
 
 void JitBaseBlockCache::Init()
@@ -64,8 +67,8 @@ void JitBaseBlockCache::Clear()
   else
     Core::DisplayMessage("Clearing code cache.", 3000);
 #endif
-  g_jit->js.fifoWriteAddresses.clear();
-  g_jit->js.pairedQuantizeAddresses.clear();
+  m_jit.js.fifoWriteAddresses.clear();
+  m_jit.js.pairedQuantizeAddresses.clear();
   for (int i = 1; i < num_blocks; i++)
   {
     DestroyBlock(i, false);
@@ -244,8 +247,8 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
     {
       for (u32 i = address; i < address + length; i += 4)
       {
-        g_jit->js.fifoWriteAddresses.erase(i);
-        g_jit->js.pairedQuantizeAddresses.erase(i);
+        m_jit.js.fifoWriteAddresses.erase(i);
+        m_jit.js.pairedQuantizeAddresses.erase(i);
       }
     }
   }

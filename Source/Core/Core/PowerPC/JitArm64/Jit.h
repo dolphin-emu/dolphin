@@ -178,7 +178,7 @@ private:
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
 
-  JitArm64BlockCache blocks;
+  JitArm64BlockCache blocks{*this};
 
   PPCAnalyst::CodeBuffer code_buffer;
 

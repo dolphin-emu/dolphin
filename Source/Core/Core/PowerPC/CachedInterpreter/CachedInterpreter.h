@@ -59,7 +59,7 @@ private:
   const u8* GetCodePtr() { return (u8*)(m_code.data() + m_code.size()); }
   void ExecuteOneBlock();
 
-  BlockCache m_block_cache;
+  BlockCache m_block_cache{*this};
   std::vector<Instruction> m_code;
   PPCAnalyst::CodeBuffer code_buffer;
 };

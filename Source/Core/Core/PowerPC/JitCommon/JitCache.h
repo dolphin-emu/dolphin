@@ -12,6 +12,8 @@
 
 #include "Common/CommonTypes.h"
 
+class JitBase;
+
 // A JitBlock is block of compiled code which corresponds to the PowerPC
 // code at a given address.
 //
@@ -112,7 +114,7 @@ public:
   static constexpr u32 iCache_Num_Elements = 0x10000;
   static constexpr u32 iCache_Mask = iCache_Num_Elements - 1;
 
-  JitBaseBlockCache();
+  explicit JitBaseBlockCache(JitBase& jit);
   virtual ~JitBaseBlockCache();
 
   void Init();
@@ -145,6 +147,9 @@ public:
   void InvalidateICache(u32 address, const u32 length, bool forced);
 
   u32* GetBlockBitSet() const;
+
+protected:
+  JitBase& m_jit;
 
 private:
   virtual void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) = 0;
