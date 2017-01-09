@@ -35,6 +35,9 @@ static void ClearCacheThreadSafe(u64 userdata, s64 cyclesdata)
   JitInterface::ClearCache();
 }
 
+JitBaseBlockCache::JitBaseBlockCache() = default;
+JitBaseBlockCache::~JitBaseBlockCache() = default;
+
 void JitBaseBlockCache::Init()
 {
   s_clear_jit_cache_thread_safe = CoreTiming::RegisterEvent("clearJitCache", ClearCacheThreadSafe);
@@ -98,9 +101,19 @@ JitBlock* JitBaseBlockCache::GetBlock(int no)
   return &blocks[no];
 }
 
+JitBlock* JitBaseBlockCache::GetBlocks()
+{
+  return blocks.data();
+}
+
 int JitBaseBlockCache::GetNumBlocks() const
 {
   return num_blocks;
+}
+
+int* JitBaseBlockCache::GetICache()
+{
+  return iCache.data();
 }
 
 int JitBaseBlockCache::AllocateBlock(u32 em_address)
@@ -238,6 +251,11 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
   }
 }
 
+u32* JitBaseBlockCache::GetBlockBitSet() const
+{
+  return valid_block.m_valid_block.get();
+}
+
 void JitBaseBlockCache::WriteDestroyBlock(const JitBlock& block)
 {
 }
@@ -355,4 +373,9 @@ void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
     FastLookupEntryForAddress(addr) = block_num;
     LinkBlock(block_num);
   }
+}
+
+int& JitBaseBlockCache::FastLookupEntryForAddress(u32 address)
+{
+  return iCache[(address >> 2) & iCache_Mask];
 }

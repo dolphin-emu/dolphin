@@ -112,8 +112,9 @@ public:
   static constexpr u32 iCache_Num_Elements = 0x10000;
   static constexpr u32 iCache_Mask = iCache_Num_Elements - 1;
 
-  JitBaseBlockCache() : num_blocks(1) {}
-  virtual ~JitBaseBlockCache() {}
+  JitBaseBlockCache();
+  virtual ~JitBaseBlockCache();
+
   void Init();
   void Shutdown();
   void Clear();
@@ -124,9 +125,9 @@ public:
 
   // Code Cache
   JitBlock* GetBlock(int block_num);
-  JitBlock* GetBlocks() { return blocks.data(); }
+  JitBlock* GetBlocks();
   int GetNumBlocks() const;
-  int* GetICache() { return iCache.data(); }
+  int* GetICache();
 
   int AllocateBlock(u32 em_address);
   void FinalizeBlock(int block_num, bool block_link, const u8* code_ptr);
@@ -143,7 +144,7 @@ public:
 
   void InvalidateICache(u32 address, const u32 length, bool forced);
 
-  u32* GetBlockBitSet() const { return valid_block.m_valid_block.get(); }
+  u32* GetBlockBitSet() const;
 
 private:
   virtual void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) = 0;
@@ -157,12 +158,12 @@ private:
   void MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
   // Fast but risky block lookup based on iCache.
-  int& FastLookupEntryForAddress(u32 address) { return iCache[(address >> 2) & iCache_Mask]; }
+  int& FastLookupEntryForAddress(u32 address);
 
   // We store the metadata of all blocks in a linear way within this array.
   // Note: blocks[0] must not be used as it is referenced as invalid block in iCache.
   std::array<JitBlock, MAX_NUM_BLOCKS> blocks;  // number -> JitBlock
-  int num_blocks;
+  int num_blocks = 1;
 
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which links to an address.
