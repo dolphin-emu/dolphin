@@ -2,18 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Debugger/MemoryCheckDlg.h"
+
 #include <string>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
-#include "DolphinWX/Debugger/MemoryCheckDlg.h"
 #include "DolphinWX/WxUtils.h"
 
 MemoryCheckDlg::MemoryCheckDlg(wxWindow* parent)

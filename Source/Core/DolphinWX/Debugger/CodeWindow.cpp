@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Debugger/CodeWindow.h"
+
 #include <array>
 #include <chrono>
 #include <cstdio>
@@ -23,7 +25,6 @@
 #include <wx/aui/dockart.h>
 // clang-format on
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
@@ -34,6 +35,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Host.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -41,7 +43,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeView.h"
-#include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/JitWindow.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"

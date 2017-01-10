@@ -276,6 +276,9 @@
     <ClCompile Include="HLE\HLE_OS.cpp">
       <Filter>HLE</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\BreakPoints.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp">
       <Filter>PowerPC\Cached Interpreter</Filter>
     </ClCompile>
@@ -1234,6 +1237,9 @@
     </ClInclude>
     <ClInclude Include="HW\Wiimote.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\BreakPoints.h">
+      <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\CPUCoreBase.h">
       <Filter>PowerPC</Filter>

@@ -8,10 +8,10 @@
 #include <cstddef>
 #include <tuple>
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 
 #include "Core/Debugger/PPCDebugInterface.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCCache.h"
 

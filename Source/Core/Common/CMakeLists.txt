@@ -1,5 +1,4 @@
 set(SRCS Analytics.cpp
-         BreakPoints.cpp
          CDUtils.cpp
          ColorUtil.cpp
          ENetUtil.cpp

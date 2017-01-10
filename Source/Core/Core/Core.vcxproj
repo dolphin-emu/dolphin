@@ -204,6 +204,7 @@
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
+    <ClCompile Include="PowerPC\BreakPoints.cpp" />
     <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp" />
     <ClCompile Include="PowerPC\CachedInterpreter\InterpreterBlockCache.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter.cpp" />
@@ -423,6 +424,7 @@
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
+    <ClInclude Include="PowerPC\BreakPoints.h" />
     <ClInclude Include="PowerPC\CPUCoreBase.h" />
     <ClInclude Include="PowerPC\Gekko.h" />
     <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h" />
