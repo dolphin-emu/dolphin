@@ -306,9 +306,8 @@ void JitBaseBlockCache::LinkBlock(JitBlock& b)
   }
 }
 
-void JitBaseBlockCache::UnlinkBlock(int i)
+void JitBaseBlockCache::UnlinkBlock(const JitBlock& b)
 {
-  JitBlock& b = blocks[i];
   auto ppp = links_to.equal_range(b.effectiveAddress);
 
   for (auto iter = ppp.first; iter != ppp.second; ++iter)
@@ -346,7 +345,7 @@ void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
   start_block_map.erase(b.physicalAddress);
   FastLookupEntryForAddress(b.effectiveAddress) = 0;
 
-  UnlinkBlock(block_num);
+  UnlinkBlock(b);
 
   // Delete linking addresses
   auto it = links_to.equal_range(b.effectiveAddress);
