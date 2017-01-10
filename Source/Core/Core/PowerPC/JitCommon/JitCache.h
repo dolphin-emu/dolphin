@@ -136,7 +136,8 @@ public:
 
   // Look for the block in the slow but accurate way.
   // This function shall be used if FastLookupEntryForAddress() failed.
-  int GetBlockNumberFromStartAddress(u32 em_address, u32 msr);
+  // This might return nullptr if there is no such block.
+  JitBlock* GetBlockFromStartAddress(u32 em_address, u32 msr);
 
   // Get the normal entry for the block associated with the current program
   // counter. This will JIT code if necessary. (This is the reference

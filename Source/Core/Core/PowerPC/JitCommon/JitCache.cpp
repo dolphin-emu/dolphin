@@ -169,7 +169,7 @@ void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8* 
   JitRegister::Register(b.checkedEntry, b.codeSize, "JIT_PPC_%08x", b.physicalAddress);
 }
 
-int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr, u32 msr)
+JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
 {
   u32 translated_addr = addr;
   if (UReg_MSR(msr).IR)
@@ -177,23 +177,23 @@ int JitBaseBlockCache::GetBlockNumberFromStartAddress(u32 addr, u32 msr)
     auto translated = PowerPC::JitCache_TranslateAddress(addr);
     if (!translated.valid)
     {
-      return -1;
+      return nullptr;
     }
     translated_addr = translated.address;
   }
 
   auto map_result = start_block_map.find(translated_addr);
   if (map_result == start_block_map.end())
-    return -1;
+    return nullptr;
   int block_num = map_result->second;
-  const JitBlock& b = blocks[block_num];
+  JitBlock& b = blocks[block_num];
   if (b.invalid)
-    return -1;
+    return nullptr;
   if (b.effectiveAddress != addr)
-    return -1;
+    return nullptr;
   if (b.msrBits != (msr & JitBlock::JIT_CACHE_MSR_MASK))
-    return -1;
-  return block_num;
+    return nullptr;
+  return &b;
 }
 
 const u8* JitBaseBlockCache::Dispatch()
@@ -280,14 +280,11 @@ void JitBaseBlockCache::LinkBlockExits(JitBlock& b)
   {
     if (!e.linkStatus)
     {
-      int destinationBlock = GetBlockNumberFromStartAddress(e.exitAddress, b.msrBits);
-      if (destinationBlock != -1)
+      JitBlock* destinationBlock = GetBlockFromStartAddress(e.exitAddress, b.msrBits);
+      if (destinationBlock && !destinationBlock->invalid)
       {
-        if (!blocks[destinationBlock].invalid)
-        {
-          WriteLinkBlock(e, &blocks[destinationBlock]);
-          e.linkStatus = true;
-        }
+        WriteLinkBlock(e, destinationBlock);
+        e.linkStatus = true;
       }
     }
   }
@@ -357,15 +354,15 @@ void JitBaseBlockCache::DestroyBlock(JitBlock& b, bool invalidate)
 
 void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
 {
-  int block_num = GetBlockNumberFromStartAddress(addr, msr);
-  if (block_num < 0)
+  JitBlock* block = GetBlockFromStartAddress(addr, msr);
+  if (!block)
   {
     Jit(addr);
   }
   else
   {
-    FastLookupEntryForAddress(addr) = block_num;
-    LinkBlock(blocks[block_num]);
+    FastLookupEntryForAddress(addr) = static_cast<int>(block - &blocks[0]);
+    LinkBlock(*block);
   }
 }
 
