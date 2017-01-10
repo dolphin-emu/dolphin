@@ -119,7 +119,7 @@ int* JitBaseBlockCache::GetICache()
   return iCache.data();
 }
 
-int JitBaseBlockCache::AllocateBlock(u32 em_address)
+JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
   JitBlock& b = blocks[num_blocks];
   b.invalid = false;
@@ -128,7 +128,7 @@ int JitBaseBlockCache::AllocateBlock(u32 em_address)
   b.msrBits = MSR & JitBlock::JIT_CACHE_MSR_MASK;
   b.linkData.clear();
   num_blocks++;  // commit the current block
-  return num_blocks - 1;
+  return &b;
 }
 
 void JitBaseBlockCache::FinalizeBlock(JitBlock& b, bool block_link, const u8* code_ptr)

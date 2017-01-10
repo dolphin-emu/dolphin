@@ -140,8 +140,7 @@ void CachedInterpreter::Jit(u32 address)
     return;
   }
 
-  int block_num = m_block_cache.AllocateBlock(PC);
-  JitBlock* b = m_block_cache.GetBlock(block_num);
+  JitBlock* b = m_block_cache.AllocateBlock(PC);
 
   js.blockStart = PC;
   js.firstFPInstructionFound = false;
