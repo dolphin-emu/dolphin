@@ -591,7 +591,7 @@ void Jit64::Jit(u32 em_address)
 
   int block_num = blocks.AllocateBlock(em_address);
   JitBlock* b = blocks.GetBlock(block_num);
-  blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
+  blocks.FinalizeBlock(*b, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
 }
 
 const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)

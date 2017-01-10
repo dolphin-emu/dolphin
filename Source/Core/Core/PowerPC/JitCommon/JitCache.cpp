@@ -131,9 +131,8 @@ int JitBaseBlockCache::AllocateBlock(u32 em_address)
   return num_blocks - 1;
 }
 
-void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8* code_ptr)
+void JitBaseBlockCache::FinalizeBlock(JitBlock& b, bool block_link, const u8* code_ptr)
 {
-  JitBlock& b = blocks[block_num];
   if (start_block_map.count(b.physicalAddress))
   {
     // We already have a block at this address; invalidate the old block.
@@ -146,6 +145,7 @@ void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8* 
         std::make_pair(old_b.physicalAddress + 4 * old_b.originalSize - 1, old_b.physicalAddress));
     DestroyBlock(old_b, true);
   }
+  const int block_num = static_cast<int>(&b - &blocks[0]);
   start_block_map[b.physicalAddress] = block_num;
   FastLookupEntryForAddress(b.effectiveAddress) = block_num;
 

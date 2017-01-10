@@ -132,7 +132,7 @@ public:
   int* GetICache();
 
   int AllocateBlock(u32 em_address);
-  void FinalizeBlock(int block_num, bool block_link, const u8* code_ptr);
+  void FinalizeBlock(JitBlock& b, bool block_link, const u8* code_ptr);
 
   // Look for the block in the slow but accurate way.
   // This function shall be used if FastLookupEntryForAddress() failed.

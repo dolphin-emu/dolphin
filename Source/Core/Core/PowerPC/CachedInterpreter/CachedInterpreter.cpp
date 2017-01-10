@@ -212,7 +212,7 @@ void CachedInterpreter::Jit(u32 address)
   b->codeSize = (u32)(GetCodePtr() - b->checkedEntry);
   b->originalSize = code_block.m_num_instructions;
 
-  m_block_cache.FinalizeBlock(block_num, jo.enableBlocklink, b->checkedEntry);
+  m_block_cache.FinalizeBlock(*b, jo.enableBlocklink, b->checkedEntry);
 }
 
 void CachedInterpreter::ClearCache()
