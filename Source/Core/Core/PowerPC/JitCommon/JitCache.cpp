@@ -269,9 +269,8 @@ void JitBaseBlockCache::WriteDestroyBlock(const JitBlock& block)
 // Can be faster by doing a queue for blocks to link up, and only process those
 // Should probably be done
 
-void JitBaseBlockCache::LinkBlockExits(int i)
+void JitBaseBlockCache::LinkBlockExits(JitBlock& b)
 {
-  JitBlock& b = blocks[i];
   if (b.invalid)
   {
     // This block is dead. Don't relink it.
@@ -296,15 +295,15 @@ void JitBaseBlockCache::LinkBlockExits(int i)
 
 void JitBaseBlockCache::LinkBlock(int i)
 {
-  LinkBlockExits(i);
-  const JitBlock& b = blocks[i];
+  JitBlock& b = blocks[i];
+  LinkBlockExits(b);
   auto ppp = links_to.equal_range(b.effectiveAddress);
 
   for (auto iter = ppp.first; iter != ppp.second; ++iter)
   {
-    const JitBlock& b2 = blocks[iter->second];
+    JitBlock& b2 = blocks[iter->second];
     if (b.msrBits == b2.msrBits)
-      LinkBlockExits(iter->second);
+      LinkBlockExits(b2);
   }
 }
 

@@ -155,7 +155,7 @@ private:
   virtual void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) = 0;
   virtual void WriteDestroyBlock(const JitBlock& block);
 
-  void LinkBlockExits(int i);
+  void LinkBlockExits(JitBlock& b);
   void LinkBlock(int i);
   void UnlinkBlock(int i);
   void DestroyBlock(int block_num, bool invalidate);
