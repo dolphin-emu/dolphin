@@ -199,7 +199,7 @@
     <string name="add_directory_empty_folder">That folder is empty.</string>
 
     <!-- Preferences Screen -->
-    <string name="preferences_exit_no_save">Exit Without Saving</string>
+    <string name="preferences_save_exit">Save and Exit</string>
     <string name="preferences_settings">Settings</string>
     <string name="preferences_extensions">Extension Bindings</string>
 
