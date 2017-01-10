@@ -163,7 +163,7 @@ void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8* 
       links_to.emplace(e.exitAddress, block_num);
     }
 
-    LinkBlock(block_num);
+    LinkBlock(b);
   }
 
   JitRegister::Register(b.checkedEntry, b.codeSize, "JIT_PPC_%08x", b.physicalAddress);
@@ -293,9 +293,8 @@ void JitBaseBlockCache::LinkBlockExits(JitBlock& b)
   }
 }
 
-void JitBaseBlockCache::LinkBlock(int i)
+void JitBaseBlockCache::LinkBlock(JitBlock& b)
 {
-  JitBlock& b = blocks[i];
   LinkBlockExits(b);
   auto ppp = links_to.equal_range(b.effectiveAddress);
 
@@ -373,7 +372,7 @@ void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
   else
   {
     FastLookupEntryForAddress(addr) = block_num;
-    LinkBlock(block_num);
+    LinkBlock(blocks[block_num]);
   }
 }
 
