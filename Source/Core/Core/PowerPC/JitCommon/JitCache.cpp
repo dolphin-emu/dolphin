@@ -71,7 +71,7 @@ void JitBaseBlockCache::Clear()
   m_jit.js.pairedQuantizeAddresses.clear();
   for (int i = 1; i < num_blocks; i++)
   {
-    DestroyBlock(i, false);
+    DestroyBlock(blocks[i], false);
   }
   links_to.clear();
   block_map.clear();
@@ -141,10 +141,10 @@ void JitBaseBlockCache::FinalizeBlock(int block_num, bool block_link, const u8* 
     // is called both with DR/IR enabled or disabled.
     WARN_LOG(DYNA_REC, "Invalidating compiled block at same address %08x", b.physicalAddress);
     int old_block_num = start_block_map[b.physicalAddress];
-    const JitBlock& old_b = blocks[old_block_num];
+    JitBlock& old_b = blocks[old_block_num];
     block_map.erase(
         std::make_pair(old_b.physicalAddress + 4 * old_b.originalSize - 1, old_b.physicalAddress));
-    DestroyBlock(old_block_num, true);
+    DestroyBlock(old_b, true);
   }
   start_block_map[b.physicalAddress] = block_num;
   FastLookupEntryForAddress(b.effectiveAddress) = block_num;
@@ -235,7 +235,7 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
     auto it = block_map.lower_bound(std::make_pair(pAddr, 0));
     while (it != block_map.end() && it->first.second < pAddr + length)
     {
-      DestroyBlock(it->second, true);
+      DestroyBlock(blocks[it->second], true);
       it = block_map.erase(it);
     }
 
@@ -327,18 +327,12 @@ void JitBaseBlockCache::UnlinkBlock(const JitBlock& b)
   }
 }
 
-void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
+void JitBaseBlockCache::DestroyBlock(JitBlock& b, bool invalidate)
 {
-  if (block_num < 0 || block_num >= num_blocks)
-  {
-    PanicAlert("DestroyBlock: Invalid block number %d", block_num);
-    return;
-  }
-  JitBlock& b = blocks[block_num];
   if (b.invalid)
   {
     if (invalidate)
-      PanicAlert("Invalidating invalid block %d", block_num);
+      PanicAlert("Invalidating invalid block %p", &b);
     return;
   }
   b.invalid = true;
@@ -351,7 +345,7 @@ void JitBaseBlockCache::DestroyBlock(int block_num, bool invalidate)
   auto it = links_to.equal_range(b.effectiveAddress);
   while (it.first != it.second)
   {
-    if (it.first->second == block_num)
+    if (it.first->second == &b - &blocks[0])
       it.first = links_to.erase(it.first);
     else
       it.first++;

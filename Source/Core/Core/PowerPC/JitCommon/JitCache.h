@@ -158,7 +158,7 @@ private:
   void LinkBlockExits(JitBlock& b);
   void LinkBlock(JitBlock& b);
   void UnlinkBlock(const JitBlock& b);
-  void DestroyBlock(int block_num, bool invalidate);
+  void DestroyBlock(JitBlock& b, bool invalidate);
 
   void MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
