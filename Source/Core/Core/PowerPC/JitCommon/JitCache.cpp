@@ -139,14 +139,13 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& b, bool block_link, const u8* co
     // This should be very rare. This will only happen if the same block
     // is called both with DR/IR enabled or disabled.
     WARN_LOG(DYNA_REC, "Invalidating compiled block at same address %08x", b.physicalAddress);
-    int old_block_num = start_block_map[b.physicalAddress];
-    JitBlock& old_b = blocks[old_block_num];
+    JitBlock& old_b = *start_block_map[b.physicalAddress];
     block_map.erase(
         std::make_pair(old_b.physicalAddress + 4 * old_b.originalSize - 1, old_b.physicalAddress));
     DestroyBlock(old_b, true);
   }
   const int block_num = static_cast<int>(&b - &blocks[0]);
-  start_block_map[b.physicalAddress] = block_num;
+  start_block_map[b.physicalAddress] = &b;
   FastLookupEntryForAddress(b.effectiveAddress) = block_num;
 
   u32 pAddr = b.physicalAddress;
@@ -185,8 +184,7 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
   auto map_result = start_block_map.find(translated_addr);
   if (map_result == start_block_map.end())
     return nullptr;
-  int block_num = map_result->second;
-  JitBlock& b = blocks[block_num];
+  JitBlock& b = *map_result->second;
   if (b.invalid)
     return nullptr;
   if (b.effectiveAddress != addr)
