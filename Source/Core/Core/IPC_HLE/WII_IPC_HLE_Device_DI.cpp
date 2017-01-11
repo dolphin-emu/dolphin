@@ -106,11 +106,8 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
 
   // Prepare the out buffer(s) with zeros as a safety precaution
   // to avoid returning bad values
-  for (u32 i = 0; i < CommandBuffer.NumberPayloadBuffer; i++)
-  {
-    Memory::Memset(CommandBuffer.PayloadBuffer[i].m_Address, 0,
-                   CommandBuffer.PayloadBuffer[i].m_Size);
-  }
+  for (const auto& buffer : CommandBuffer.PayloadBuffer)
+    Memory::Memset(buffer.m_Address, 0, buffer.m_Size);
 
   u32 ReturnValue = 0;
   switch (CommandBuffer.Parameter)
