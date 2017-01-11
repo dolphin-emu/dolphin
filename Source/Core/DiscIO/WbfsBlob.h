@@ -14,12 +14,14 @@
 
 namespace DiscIO
 {
+static constexpr u32 WBFS_MAGIC = 0x53464257;  // "WBFS" (byteswapped to little endian)
+
 class WbfsFileReader : public IBlobReader
 {
 public:
   ~WbfsFileReader();
 
-  static std::unique_ptr<WbfsFileReader> Create(const std::string& filename);
+  static std::unique_ptr<WbfsFileReader> Create(File::IOFile file, const std::string& path);
 
   BlobType GetBlobType() const override { return BlobType::WBFS; }
   // The WBFS format does not save the original file size.
@@ -31,23 +33,28 @@ public:
   bool Read(u64 offset, u64 nbytes, u8* out_ptr) override;
 
 private:
-  WbfsFileReader(const std::string& filename);
+  WbfsFileReader(File::IOFile file, const std::string& path);
 
-  bool OpenFiles(const std::string& filename);
+  void OpenAdditionalFiles(const std::string& path);
+  bool AddFileToList(File::IOFile file);
   bool ReadHeader();
 
   File::IOFile& SeekToCluster(u64 offset, u64* available);
   bool IsGood() { return m_good; }
   struct file_entry
   {
+    file_entry(File::IOFile file_, u64 base_address_, u64 size_)
+        : file(std::move(file_)), base_address(base_address_), size(size_)
+    {
+    }
+
     File::IOFile file;
     u64 base_address;
     u64 size;
   };
 
-  std::vector<std::unique_ptr<file_entry>> m_files;
+  std::vector<file_entry> m_files;
 
-  u32 m_total_files;
   u64 m_size;
 
   u64 m_hd_sector_size;
@@ -58,7 +65,7 @@ private:
 #pragma pack(1)
   struct WbfsHeader
   {
-    char magic[4];
+    u32 magic;
     u32 hd_sector_count;
     u8 hd_sector_shift;
     u8 wbfs_sector_shift;
@@ -72,7 +79,5 @@ private:
 
   bool m_good;
 };
-
-bool IsWbfsBlob(const std::string& filename);
 
 }  // namespace

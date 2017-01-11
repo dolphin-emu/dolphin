@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
@@ -56,27 +57,18 @@ void Replace32(u64 offset, u64 nbytes, u8* out_ptr, u64 replace_offset, u32 repl
 
 namespace DiscIO
 {
-bool IsTGCBlob(const std::string& path)
+std::unique_ptr<TGCFileReader> TGCFileReader::Create(File::IOFile file)
 {
-  File::IOFile file(path, "rb");
-
   TGCHeader header;
-  return (file.ReadArray(&header, 1) && header.magic == Common::swap32(0xAE0F38A2));
-}
-
-std::unique_ptr<TGCFileReader> TGCFileReader::Create(const std::string& path)
-{
-  if (IsTGCBlob(path))
-  {
-    File::IOFile file(path, "rb");
+  if (file.Seek(0, SEEK_SET) && file.ReadArray(&header, 1) && header.magic == TGC_MAGIC)
     return std::unique_ptr<TGCFileReader>(new TGCFileReader(std::move(file)));
-  }
 
   return nullptr;
 }
 
-TGCFileReader::TGCFileReader(File::IOFile&& file) : m_file(std::move(file))
+TGCFileReader::TGCFileReader(File::IOFile file) : m_file(std::move(file))
 {
+  m_file.Seek(0, SEEK_SET);
   m_file.ReadArray(&m_header, 1);
   u32 header_size = Common::swap32(m_header.header_size);
   m_size = m_file.GetSize();
