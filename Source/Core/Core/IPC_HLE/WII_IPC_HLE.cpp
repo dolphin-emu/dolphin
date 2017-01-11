@@ -67,7 +67,7 @@ static std::mutex s_device_map_mutex;
 constexpr u8 IPC_MAX_FDS = 0x18;
 constexpr u8 ES_MAX_COUNT = 3;
 static std::shared_ptr<IWII_IPC_HLE_Device> s_fdmap[IPC_MAX_FDS];
-static std::shared_ptr<IWII_IPC_HLE_Device> s_es_handles[ES_MAX_COUNT];
+static std::shared_ptr<CWII_IPC_HLE_Device_es> s_es_handles[ES_MAX_COUNT];
 
 using IPCMsgQueue = std::deque<u32>;
 static IPCMsgQueue s_request_queue;  // ppc -> arm
@@ -171,30 +171,19 @@ void Reset(bool hard)
 {
   CoreTiming::RemoveAllEvents(s_event_enqueue);
 
-  for (auto& dev : s_fdmap)
+  // Close all devices that were opened and delete their resources
+  for (auto& device : s_fdmap)
   {
-    if (dev && dev->GetDeviceType() != IWII_IPC_HLE_Device::DeviceType::Static)
-    {
-      // close all files and delete their resources
-      dev->Close(0, true);
-    }
-
-    dev.reset();
+    if (!device)
+      continue;
+    device->Close(0, true);
+    device.reset();
   }
 
+  if (hard)
   {
     std::lock_guard<std::mutex> lock(s_device_map_mutex);
-    for (const auto& entry : s_device_map)
-    {
-      if (entry.second)
-      {
-        // Force close
-        entry.second->Close(0, true);
-      }
-    }
-
-    if (hard)
-      s_device_map.clear();
+    s_device_map.clear();
   }
 
   s_request_queue.clear();
@@ -211,13 +200,8 @@ void Shutdown()
 void SetDefaultContentFile(const std::string& file_name)
 {
   std::lock_guard<std::mutex> lock(s_device_map_mutex);
-  for (const auto& entry : s_device_map)
-  {
-    if (entry.second && entry.second->GetDeviceName().find("/dev/es") == 0)
-    {
-      static_cast<CWII_IPC_HLE_Device_es*>(entry.second.get())->LoadWAD(file_name);
-    }
-  }
+  for (const auto& es : s_es_handles)
+    es->LoadWAD(file_name);
 }
 
 void ES_DIVerify(const std::vector<u8>& tmd)
@@ -319,7 +303,7 @@ void DoState(PointerWrap& p)
     {
       const u32 handle_id = es_device->GetDeviceID();
       p.Do(handle_id);
-      es_device = AccessDeviceByID(handle_id);
+      es_device = std::static_pointer_cast<CWII_IPC_HLE_Device_es>(AccessDeviceByID(handle_id));
     }
   }
   else
