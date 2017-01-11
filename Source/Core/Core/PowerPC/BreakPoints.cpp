@@ -55,7 +55,7 @@ void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
     std::stringstream ss;
     ss << std::hex << bp_string;
     ss >> bp.address;
-    bp.is_enabled = bp_string.find("n") != bp_string.npos;
+    bp.is_enabled = bp_string.find('n') != bp_string.npos;
     bp.is_temporary = false;
     Add(bp);
   }
@@ -157,11 +157,11 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
     std::stringstream ss;
     ss << std::hex << mc_string;
     ss >> mc.start_address;
-    mc.is_ranged = mc_string.find("n") != mc_string.npos;
-    mc.is_break_on_read = mc_string.find("r") != mc_string.npos;
-    mc.is_break_on_write = mc_string.find("w") != mc_string.npos;
-    mc.log_on_hit = mc_string.find("l") != mc_string.npos;
-    mc.break_on_hit = mc_string.find("p") != mc_string.npos;
+    mc.is_ranged = mc_string.find('n') != mc_string.npos;
+    mc.is_break_on_read = mc_string.find('r') != mc_string.npos;
+    mc.is_break_on_write = mc_string.find('w') != mc_string.npos;
+    mc.log_on_hit = mc_string.find('l') != mc_string.npos;
+    mc.break_on_hit = mc_string.find('p') != mc_string.npos;
     if (mc.is_ranged)
       ss >> mc.end_address;
     else
