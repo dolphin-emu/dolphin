@@ -20,25 +20,18 @@ struct TBreakPoint
 
 struct TMemCheck
 {
-  TMemCheck()
-  {
-    numHits = 0;
-    StartAddress = EndAddress = 0;
-    bRange = OnRead = OnWrite = Log = Break = false;
-  }
+  u32 StartAddress = 0;
+  u32 EndAddress = 0;
 
-  u32 StartAddress;
-  u32 EndAddress;
+  bool bRange = false;
 
-  bool bRange;
+  bool OnRead = false;
+  bool OnWrite = false;
 
-  bool OnRead;
-  bool OnWrite;
+  bool Log = false;
+  bool Break = false;
 
-  bool Log;
-  bool Break;
-
-  u32 numHits;
+  u32 numHits = 0;
 
   // returns whether to break
   bool Action(DebugInterface* dbg_interface, u32 _iValue, u32 addr, bool write, int size, u32 pc);
