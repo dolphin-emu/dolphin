@@ -31,6 +31,7 @@
 */
 // =============
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
@@ -241,22 +242,15 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   // Prepare the out buffer(s) with zeroes as a safety precaution
   // to avoid returning bad values
-  // XXX: is this still necessary?
-  for (u32 i = 0; i < Buffer.NumberPayloadBuffer; i++)
+  for (const auto& buffer : Buffer.PayloadBuffer)
   {
-    u32 j;
-    for (j = 0; j < Buffer.NumberInBuffer; j++)
+    // Don't zero an out buffer which is also one of the in buffers.
+    if (std::any_of(Buffer.InBuffer.begin(), Buffer.InBuffer.end(),
+                    [&](const auto& in_buffer) { return in_buffer.m_Address == buffer.m_Address; }))
     {
-      if (Buffer.InBuffer[j].m_Address == Buffer.PayloadBuffer[i].m_Address)
-      {
-        // The out buffer is the same as one of the in buffers.  Don't zero it.
-        break;
-      }
+      continue;
     }
-    if (j == Buffer.NumberInBuffer)
-    {
-      Memory::Memset(Buffer.PayloadBuffer[i].m_Address, 0, Buffer.PayloadBuffer[i].m_Size);
-    }
+    Memory::Memset(buffer.m_Address, 0, buffer.m_Size);
   }
 
   switch (Buffer.Parameter)
