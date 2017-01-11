@@ -384,10 +384,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
   }
 }
 
-u32 CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
 {
-  bool packet_transferred = false;
-
   // check HCI queue
   if (!m_EventQueue.empty() && m_HCIEndpoint.IsValid())
   {
@@ -402,15 +400,11 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
     WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint.m_cmd_address);
     m_HCIEndpoint.Invalidate();
     m_EventQueue.pop_front();
-    packet_transferred = true;
   }
 
   // check ACL queue
   if (!m_acl_pool.IsEmpty() && m_ACLEndpoint.IsValid() && m_EventQueue.empty())
-  {
     m_acl_pool.WriteToEndpoint(m_ACLEndpoint);
-    packet_transferred = true;
-  }
 
   // We wait for ScanEnable to be sent from the Bluetooth stack through HCI_CMD_WRITE_SCAN_ENABLE
   // before we initiate the connection.
@@ -453,8 +447,6 @@ u32 CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
   }
 
   SendEventNumberOfCompletedPackets();
-
-  return packet_transferred;
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ACLPool::Store(const u8* data, const u16 size,

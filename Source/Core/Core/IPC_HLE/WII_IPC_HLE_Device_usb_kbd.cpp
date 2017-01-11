@@ -106,10 +106,10 @@ bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
 #endif
 }
 
-u32 CWII_IPC_HLE_Device_usb_kbd::Update()
+void CWII_IPC_HLE_Device_usb_kbd::Update()
 {
   if (!SConfig::GetInstance().m_WiiKeyboard || Core::g_want_determinism || !m_is_active)
-    return 0;
+    return;
 
   u8 Modifiers = 0x00;
   u8 PressedKeys[6] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
@@ -182,8 +182,6 @@ u32 CWII_IPC_HLE_Device_usb_kbd::Update()
 
   if (GotEvent)
     m_MessageQueue.push(SMessageData(MSG_EVENT, Modifiers, PressedKeys));
-
-  return 0;
 }
 
 // Crazy ugly

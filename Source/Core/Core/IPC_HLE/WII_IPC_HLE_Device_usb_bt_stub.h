@@ -26,5 +26,4 @@ public:
   IPCCommandResult IOCtl(u32 command_address) override { return GetDefaultReply(); }
   IPCCommandResult IOCtlV(u32 command_address) override { return GetNoReply(); }
   void DoState(PointerWrap& p) override;
-  u32 Update() override { return 0; }
 };

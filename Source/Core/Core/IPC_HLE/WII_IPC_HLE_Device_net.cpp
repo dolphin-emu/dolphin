@@ -1489,8 +1489,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(u32 CommandAddress)
   return GetDefaultReply();
 }
 
-u32 CWII_IPC_HLE_Device_net_ip_top::Update()
+void CWII_IPC_HLE_Device_net_ip_top::Update()
 {
   WiiSockMan::GetInstance().Update();
-  return 0;
 }
