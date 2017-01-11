@@ -79,8 +79,6 @@ public:
   using TMemChecks = std::vector<TMemCheck>;
   using TMemChecksStr = std::vector<std::string>;
 
-  TMemChecks m_MemChecks;
-
   const TMemChecks& GetMemChecks() { return m_MemChecks; }
   TMemChecksStr GetStrings() const;
   void AddFromStrings(const TMemChecksStr& mcs);
@@ -93,6 +91,8 @@ public:
 
   void Clear() { m_MemChecks.clear(); }
   bool HasAny() const { return !m_MemChecks.empty(); }
+private:
+  TMemChecks m_MemChecks;
 };
 
 class Watches
