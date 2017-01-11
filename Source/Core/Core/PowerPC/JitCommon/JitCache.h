@@ -47,11 +47,6 @@ struct JitBlock
   u32 originalSize;
   int runCount;  // for profiling.
 
-  // Whether this struct refers to a valid block. This is mostly useful as
-  // a debugging aid.
-  // FIXME: Change current users of invalid bit to assertions?
-  bool invalid;
-
   // Information about exits to a known address from this block.
   // This is used to implement block linking.
   struct LinkData
@@ -112,7 +107,6 @@ public:
   // is valid (MSR.IR and MSR.DR, the address translation bits).
   static constexpr u32 JIT_CACHE_MSR_MASK = 0x30;
 
-  static constexpr int MAX_NUM_BLOCKS = 65536 * 2;
   static constexpr u32 iCache_Num_Elements = 0x10000;
   static constexpr u32 iCache_Mask = iCache_Num_Elements - 1;
 
@@ -125,13 +119,12 @@ public:
   void Reset();
   void SchedulateClearCacheThreadSafe();
 
-  bool IsFull() const;
-
   // Code Cache
   JitBlock** GetICache();
   void RunOnBlocks(std::function<void(const JitBlock&)> f);
 
   JitBlock* AllocateBlock(u32 em_address);
+  void FreeBlock(JitBlock* block);
   void FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr);
 
   // Look for the block in the slow but accurate way.
@@ -166,11 +159,6 @@ private:
   // Fast but risky block lookup based on iCache.
   size_t FastLookupEntryForAddress(u32 address);
 
-  // We store the metadata of all blocks in a linear way within this array.
-  // Note: blocks[0] must not be used as it is referenced as invalid block in iCache.
-  std::array<JitBlock, MAX_NUM_BLOCKS> blocks;  // number -> JitBlock
-  int num_blocks = 1;
-
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which links to an address.
   std::multimap<u32, JitBlock*> links_to;  // destination_PC -> number
@@ -182,7 +170,7 @@ private:
   // Map indexed by the physical address of the entry point.
   // This is used to query the block based on the current PC in a slow way.
   // TODO: This is redundant with block_map.
-  std::multimap<u32, JitBlock*> start_block_map;  // start_addr -> block
+  std::multimap<u32, JitBlock> start_block_map;  // start_addr -> block
 
   // This bitsets shows which cachelines overlap with any blocks.
   // It is used to provide a fast way to query if no icache invalidation is needed.

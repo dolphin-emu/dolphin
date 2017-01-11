@@ -543,7 +543,7 @@ void Jit64::Jit(u32 em_address)
   }
 
   if (IsAlmostFull() || m_far_code.IsAlmostFull() || trampolines.IsAlmostFull() ||
-      blocks.IsFull() || SConfig::GetInstance().bJITNoBlockCache)
+      SConfig::GetInstance().bJITNoBlockCache)
   {
     ClearCache();
   }
