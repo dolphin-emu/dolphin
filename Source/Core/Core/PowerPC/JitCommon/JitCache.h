@@ -127,9 +127,7 @@ public:
   bool IsFull() const;
 
   // Code Cache
-  JitBlock* GetBlock(int block_num);
   JitBlock* GetBlocks();
-  int GetNumBlocks() const;
   int* GetICache();
   void RunOnBlocks(std::function<void(const JitBlock&)> f);
 

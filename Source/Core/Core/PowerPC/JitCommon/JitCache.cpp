@@ -96,22 +96,12 @@ void JitBaseBlockCache::SchedulateClearCacheThreadSafe()
 
 bool JitBaseBlockCache::IsFull() const
 {
-  return GetNumBlocks() >= MAX_NUM_BLOCKS - 1;
-}
-
-JitBlock* JitBaseBlockCache::GetBlock(int no)
-{
-  return &blocks[no];
+  return num_blocks >= MAX_NUM_BLOCKS - 1;
 }
 
 JitBlock* JitBaseBlockCache::GetBlocks()
 {
   return blocks.data();
-}
-
-int JitBaseBlockCache::GetNumBlocks() const
-{
-  return num_blocks;
 }
 
 int* JitBaseBlockCache::GetICache()
