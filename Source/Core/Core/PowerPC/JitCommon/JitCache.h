@@ -132,7 +132,7 @@ public:
   void RunOnBlocks(std::function<void(const JitBlock&)> f);
 
   JitBlock* AllocateBlock(u32 em_address);
-  void FinalizeBlock(JitBlock& b, bool block_link, const u8* code_ptr);
+  void FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr);
 
   // Look for the block in the slow but accurate way.
   // This function shall be used if FastLookupEntryForAddress() failed.
@@ -156,10 +156,10 @@ private:
   virtual void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) = 0;
   virtual void WriteDestroyBlock(const JitBlock& block);
 
-  void LinkBlockExits(JitBlock& b);
-  void LinkBlock(JitBlock& b);
-  void UnlinkBlock(const JitBlock& b);
-  void DestroyBlock(JitBlock& b, bool invalidate);
+  void LinkBlockExits(JitBlock& block);
+  void LinkBlock(JitBlock& block);
+  void UnlinkBlock(const JitBlock& block);
+  void DestroyBlock(JitBlock& block, bool invalidate);
 
   void MoveBlockIntoFastCache(u32 em_address, u32 msr);
 

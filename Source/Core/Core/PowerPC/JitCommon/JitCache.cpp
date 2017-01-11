@@ -127,41 +127,41 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
   return &b;
 }
 
-void JitBaseBlockCache::FinalizeBlock(JitBlock& b, bool block_link, const u8* code_ptr)
+void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr)
 {
-  if (start_block_map.count(b.physicalAddress))
+  if (start_block_map.count(block.physicalAddress))
   {
     // We already have a block at this address; invalidate the old block.
     // This should be very rare. This will only happen if the same block
     // is called both with DR/IR enabled or disabled.
-    WARN_LOG(DYNA_REC, "Invalidating compiled block at same address %08x", b.physicalAddress);
-    JitBlock& old_b = *start_block_map[b.physicalAddress];
+    WARN_LOG(DYNA_REC, "Invalidating compiled block at same address %08x", block.physicalAddress);
+    JitBlock& old_b = *start_block_map[block.physicalAddress];
     block_map.erase(
         std::make_pair(old_b.physicalAddress + 4 * old_b.originalSize - 1, old_b.physicalAddress));
     DestroyBlock(old_b, true);
   }
-  const int block_num = static_cast<int>(&b - &blocks[0]);
-  start_block_map[b.physicalAddress] = &b;
-  FastLookupEntryForAddress(b.effectiveAddress) = block_num;
+  const int block_num = static_cast<int>(&block - &blocks[0]);
+  start_block_map[block.physicalAddress] = &block;
+  FastLookupEntryForAddress(block.effectiveAddress) = block_num;
 
-  u32 pAddr = b.physicalAddress;
+  u32 pAddr = block.physicalAddress;
 
-  for (u32 block = pAddr / 32; block <= (pAddr + (b.originalSize - 1) * 4) / 32; ++block)
-    valid_block.Set(block);
+  for (u32 addr = pAddr / 32; addr <= (pAddr + (block.originalSize - 1) * 4) / 32; ++addr)
+    valid_block.Set(addr);
 
-  block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = &b;
+  block_map[std::make_pair(pAddr + 4 * block.originalSize - 1, pAddr)] = &block;
 
   if (block_link)
   {
-    for (const auto& e : b.linkData)
+    for (const auto& e : block.linkData)
     {
-      links_to.emplace(e.exitAddress, &b);
+      links_to.emplace(e.exitAddress, &block);
     }
 
-    LinkBlock(b);
+    LinkBlock(block);
   }
 
-  JitRegister::Register(b.checkedEntry, b.codeSize, "JIT_PPC_%08x", b.physicalAddress);
+  JitRegister::Register(block.checkedEntry, block.codeSize, "JIT_PPC_%08x", block.physicalAddress);
 }
 
 JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
@@ -263,18 +263,18 @@ void JitBaseBlockCache::WriteDestroyBlock(const JitBlock& block)
 // Can be faster by doing a queue for blocks to link up, and only process those
 // Should probably be done
 
-void JitBaseBlockCache::LinkBlockExits(JitBlock& b)
+void JitBaseBlockCache::LinkBlockExits(JitBlock& block)
 {
-  if (b.invalid)
+  if (block.invalid)
   {
     // This block is dead. Don't relink it.
     return;
   }
-  for (auto& e : b.linkData)
+  for (auto& e : block.linkData)
   {
     if (!e.linkStatus)
     {
-      JitBlock* destinationBlock = GetBlockFromStartAddress(e.exitAddress, b.msrBits);
+      JitBlock* destinationBlock = GetBlockFromStartAddress(e.exitAddress, block.msrBits);
       if (destinationBlock && !destinationBlock->invalid)
       {
         WriteLinkBlock(e, destinationBlock);
@@ -284,32 +284,32 @@ void JitBaseBlockCache::LinkBlockExits(JitBlock& b)
   }
 }
 
-void JitBaseBlockCache::LinkBlock(JitBlock& b)
+void JitBaseBlockCache::LinkBlock(JitBlock& block)
 {
-  LinkBlockExits(b);
-  auto ppp = links_to.equal_range(b.effectiveAddress);
+  LinkBlockExits(block);
+  auto ppp = links_to.equal_range(block.effectiveAddress);
 
   for (auto iter = ppp.first; iter != ppp.second; ++iter)
   {
     JitBlock& b2 = *iter->second;
-    if (b.msrBits == b2.msrBits)
+    if (block.msrBits == b2.msrBits)
       LinkBlockExits(b2);
   }
 }
 
-void JitBaseBlockCache::UnlinkBlock(const JitBlock& b)
+void JitBaseBlockCache::UnlinkBlock(const JitBlock& block)
 {
-  auto ppp = links_to.equal_range(b.effectiveAddress);
+  auto ppp = links_to.equal_range(block.effectiveAddress);
 
   for (auto iter = ppp.first; iter != ppp.second; ++iter)
   {
     JitBlock& sourceBlock = *iter->second;
-    if (sourceBlock.msrBits != b.msrBits)
+    if (sourceBlock.msrBits != block.msrBits)
       continue;
 
     for (auto& e : sourceBlock.linkData)
     {
-      if (e.exitAddress == b.effectiveAddress)
+      if (e.exitAddress == block.effectiveAddress)
       {
         WriteLinkBlock(e, nullptr);
         e.linkStatus = false;
@@ -318,32 +318,32 @@ void JitBaseBlockCache::UnlinkBlock(const JitBlock& b)
   }
 }
 
-void JitBaseBlockCache::DestroyBlock(JitBlock& b, bool invalidate)
+void JitBaseBlockCache::DestroyBlock(JitBlock& block, bool invalidate)
 {
-  if (b.invalid)
+  if (block.invalid)
   {
     if (invalidate)
-      PanicAlert("Invalidating invalid block %p", &b);
+      PanicAlert("Invalidating invalid block %p", &block);
     return;
   }
-  b.invalid = true;
-  start_block_map.erase(b.physicalAddress);
-  FastLookupEntryForAddress(b.effectiveAddress) = 0;
+  block.invalid = true;
+  start_block_map.erase(block.physicalAddress);
+  FastLookupEntryForAddress(block.effectiveAddress) = 0;
 
-  UnlinkBlock(b);
+  UnlinkBlock(block);
 
   // Delete linking addresses
-  auto it = links_to.equal_range(b.effectiveAddress);
+  auto it = links_to.equal_range(block.effectiveAddress);
   while (it.first != it.second)
   {
-    if (it.first->second == &b)
+    if (it.first->second == &block)
       it.first = links_to.erase(it.first);
     else
       it.first++;
   }
 
   // Raise an signal if we are going to call this block again
-  WriteDestroyBlock(b);
+  WriteDestroyBlock(block);
 }
 
 void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
