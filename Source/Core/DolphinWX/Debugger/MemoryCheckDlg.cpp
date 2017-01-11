@@ -157,13 +157,13 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
     if (!EndAddressOK)
       EndAddress = StartAddress;
 
-    MemCheck.StartAddress = StartAddress;
-    MemCheck.EndAddress = EndAddress;
-    MemCheck.bRange = StartAddress != EndAddress;
-    MemCheck.OnRead = OnRead;
-    MemCheck.OnWrite = OnWrite;
-    MemCheck.Log = Log;
-    MemCheck.Break = Break;
+    MemCheck.start_address = StartAddress;
+    MemCheck.end_address = EndAddress;
+    MemCheck.is_ranged = StartAddress != EndAddress;
+    MemCheck.is_break_on_read = OnRead;
+    MemCheck.is_break_on_write = OnWrite;
+    MemCheck.log_on_hit = Log;
+    MemCheck.break_on_hit = Break;
 
     PowerPC::memchecks.Add(MemCheck);
     EndModal(wxID_OK);

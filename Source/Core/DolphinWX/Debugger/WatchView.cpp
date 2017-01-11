@@ -35,7 +35,7 @@ static std::string GetWatchName(int count)
 
 static u32 GetWatchAddr(int count)
 {
-  return PowerPC::watches.GetWatches().at(count - 1).iAddress;
+  return PowerPC::watches.GetWatches().at(count - 1).address;
 }
 
 static u32 GetWatchValue(int count)
@@ -282,13 +282,11 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
   CMemoryWindow* memory_window = code_window->GetPanel<CMemoryWindow>();
   CBreakPointWindow* breakpoint_window = code_window->GetPanel<CBreakPointWindow>();
 
-  wxString strNewVal;
-  TMemCheck MemCheck;
-
   switch (event.GetId())
   {
   case IDM_DELETEWATCH:
-    strNewVal = GetValueByRowCol(m_selectedRow, 1);
+  {
+    wxString strNewVal = GetValueByRowCol(m_selectedRow, 1);
     if (TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress))
     {
       PowerPC::watches.Remove(m_selectedAddress);
@@ -297,20 +295,24 @@ void CWatchView::OnPopupMenu(wxCommandEvent& event)
       Refresh();
     }
     break;
+  }
   case IDM_ADDMEMCHECK:
-    MemCheck.StartAddress = m_selectedAddress;
-    MemCheck.EndAddress = m_selectedAddress;
-    MemCheck.bRange = false;
-    MemCheck.OnRead = true;
-    MemCheck.OnWrite = true;
-    MemCheck.Log = true;
-    MemCheck.Break = true;
+  {
+    TMemCheck MemCheck;
+    MemCheck.start_address = m_selectedAddress;
+    MemCheck.end_address = m_selectedAddress;
+    MemCheck.is_ranged = false;
+    MemCheck.is_break_on_read = true;
+    MemCheck.is_break_on_write = true;
+    MemCheck.log_on_hit = true;
+    MemCheck.break_on_hit = true;
     PowerPC::memchecks.Add(MemCheck);
 
     if (breakpoint_window)
       breakpoint_window->NotifyUpdate();
     Refresh();
     break;
+  }
   case IDM_VIEWMEMORY:
     if (memory_window)
       memory_window->JumpToAddress(m_selectedAddress);

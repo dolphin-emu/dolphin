@@ -140,13 +140,13 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
   {
     // Add Memory Check
     TMemCheck MemCheck;
-    MemCheck.StartAddress = address;
-    MemCheck.EndAddress = address;
-    MemCheck.OnRead = read;
-    MemCheck.OnWrite = write;
+    MemCheck.start_address = address;
+    MemCheck.end_address = address;
+    MemCheck.is_break_on_read = read;
+    MemCheck.is_break_on_write = write;
 
-    MemCheck.Log = log;
-    MemCheck.Break = true;
+    MemCheck.log_on_hit = log;
+    MemCheck.break_on_hit = true;
 
     PowerPC::memchecks.Add(MemCheck);
   }

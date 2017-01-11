@@ -424,7 +424,7 @@ static void Memcheck(u32 address, u32 var, bool write, int size)
         // Disable when stepping so that resume works.
         return;
       }
-      mc->numHits++;
+      mc->num_hits++;
       bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
       if (pause)
       {
