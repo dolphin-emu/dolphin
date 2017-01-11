@@ -15,8 +15,8 @@
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
-  for (const TBreakPoint& bp : m_BreakPoints)
-    if (bp.iAddress == address)
+  for (const TBreakPoint& bp : m_breakpoints)
+    if (bp.address == address)
       return true;
 
   return false;
@@ -24,8 +24,8 @@ bool BreakPoints::IsAddressBreakPoint(u32 address) const
 
 bool BreakPoints::IsTempBreakPoint(u32 address) const
 {
-  for (const TBreakPoint& bp : m_BreakPoints)
-    if (bp.iAddress == address && bp.bTemporary)
+  for (const TBreakPoint& bp : m_breakpoints)
+    if (bp.address == address && bp.is_temporary)
       return true;
 
   return false;
@@ -33,69 +33,69 @@ bool BreakPoints::IsTempBreakPoint(u32 address) const
 
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
 {
-  TBreakPointsStr bps;
-  for (const TBreakPoint& bp : m_BreakPoints)
+  TBreakPointsStr bp_strings;
+  for (const TBreakPoint& bp : m_breakpoints)
   {
-    if (!bp.bTemporary)
+    if (!bp.is_temporary)
     {
       std::stringstream ss;
-      ss << std::hex << bp.iAddress << " " << (bp.bOn ? "n" : "");
-      bps.push_back(ss.str());
+      ss << std::hex << bp.address << " " << (bp.is_enabled ? "n" : "");
+      bp_strings.push_back(ss.str());
     }
   }
 
-  return bps;
+  return bp_strings;
 }
 
-void BreakPoints::AddFromStrings(const TBreakPointsStr& bpstrs)
+void BreakPoints::AddFromStrings(const TBreakPointsStr& bp_strings)
 {
-  for (const std::string& bpstr : bpstrs)
+  for (const std::string& bp_string : bp_strings)
   {
     TBreakPoint bp;
     std::stringstream ss;
-    ss << std::hex << bpstr;
-    ss >> bp.iAddress;
-    bp.bOn = bpstr.find("n") != bpstr.npos;
-    bp.bTemporary = false;
+    ss << std::hex << bp_string;
+    ss >> bp.address;
+    bp.is_enabled = bp_string.find("n") != bp_string.npos;
+    bp.is_temporary = false;
     Add(bp);
   }
 }
 
 void BreakPoints::Add(const TBreakPoint& bp)
 {
-  if (!IsAddressBreakPoint(bp.iAddress))
+  if (!IsAddressBreakPoint(bp.address))
   {
-    m_BreakPoints.push_back(bp);
+    m_breakpoints.push_back(bp);
     if (g_jit)
-      g_jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
+      g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
   }
 }
 
-void BreakPoints::Add(u32 em_address, bool temp)
+void BreakPoints::Add(u32 address, bool temp)
 {
-  if (!IsAddressBreakPoint(em_address))  // only add new addresses
+  if (!IsAddressBreakPoint(address))  // only add new addresses
   {
-    TBreakPoint pt;  // breakpoint settings
-    pt.bOn = true;
-    pt.bTemporary = temp;
-    pt.iAddress = em_address;
+    TBreakPoint bp;  // breakpoint settings
+    bp.is_enabled = true;
+    bp.is_temporary = temp;
+    bp.address = address;
 
-    m_BreakPoints.push_back(pt);
+    m_breakpoints.push_back(bp);
 
     if (g_jit)
-      g_jit->GetBlockCache()->InvalidateICache(em_address, 4, true);
+      g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
   }
 }
 
-void BreakPoints::Remove(u32 em_address)
+void BreakPoints::Remove(u32 address)
 {
-  for (auto i = m_BreakPoints.begin(); i != m_BreakPoints.end(); ++i)
+  for (auto i = m_breakpoints.begin(); i != m_breakpoints.end(); ++i)
   {
-    if (i->iAddress == em_address)
+    if (i->address == address)
     {
-      m_BreakPoints.erase(i);
+      m_breakpoints.erase(i);
       if (g_jit)
-        g_jit->GetBlockCache()->InvalidateICache(em_address, 4, true);
+        g_jit->GetBlockCache()->InvalidateICache(address, 4, true);
       return;
     }
   }
@@ -105,25 +105,25 @@ void BreakPoints::Clear()
 {
   if (g_jit)
   {
-    for (const TBreakPoint& bp : m_BreakPoints)
+    for (const TBreakPoint& bp : m_breakpoints)
     {
-      g_jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
+      g_jit->GetBlockCache()->InvalidateICache(bp.address, 4, true);
     }
   }
 
-  m_BreakPoints.clear();
+  m_breakpoints.clear();
 }
 
 void BreakPoints::ClearAllTemporary()
 {
-  auto bp = m_BreakPoints.begin();
-  while (bp != m_BreakPoints.end())
+  auto bp = m_breakpoints.begin();
+  while (bp != m_breakpoints.end())
   {
-    if (bp->bTemporary)
+    if (bp->is_temporary)
     {
       if (g_jit)
-        g_jit->GetBlockCache()->InvalidateICache(bp->iAddress, 4, true);
-      bp = m_BreakPoints.erase(bp);
+        g_jit->GetBlockCache()->InvalidateICache(bp->address, 4, true);
+      bp = m_breakpoints.erase(bp);
     }
     else
     {
@@ -134,59 +134,60 @@ void BreakPoints::ClearAllTemporary()
 
 MemChecks::TMemChecksStr MemChecks::GetStrings() const
 {
-  TMemChecksStr mcs;
-  for (const TMemCheck& bp : m_MemChecks)
+  TMemChecksStr mc_strings;
+  for (const TMemCheck& mc : m_mem_checks)
   {
-    std::stringstream mc;
-    mc << std::hex << bp.StartAddress;
-    mc << " " << (bp.bRange ? bp.EndAddress : bp.StartAddress) << " " << (bp.bRange ? "n" : "")
-       << (bp.OnRead ? "r" : "") << (bp.OnWrite ? "w" : "") << (bp.Log ? "l" : "")
-       << (bp.Break ? "p" : "");
-    mcs.push_back(mc.str());
+    std::stringstream ss;
+    ss << std::hex << mc.start_address;
+    ss << " " << (mc.is_ranged ? mc.end_address : mc.start_address) << " "
+       << (mc.is_ranged ? "n" : "") << (mc.is_break_on_read ? "r" : "")
+       << (mc.is_break_on_write ? "w" : "") << (mc.log_on_hit ? "l" : "")
+       << (mc.break_on_hit ? "p" : "");
+    mc_strings.push_back(ss.str());
   }
 
-  return mcs;
+  return mc_strings;
 }
 
-void MemChecks::AddFromStrings(const TMemChecksStr& mcstrs)
+void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 {
-  for (const std::string& mcstr : mcstrs)
+  for (const std::string& mc_string : mc_strings)
   {
     TMemCheck mc;
     std::stringstream ss;
-    ss << std::hex << mcstr;
-    ss >> mc.StartAddress;
-    mc.bRange = mcstr.find("n") != mcstr.npos;
-    mc.OnRead = mcstr.find("r") != mcstr.npos;
-    mc.OnWrite = mcstr.find("w") != mcstr.npos;
-    mc.Log = mcstr.find("l") != mcstr.npos;
-    mc.Break = mcstr.find("p") != mcstr.npos;
-    if (mc.bRange)
-      ss >> mc.EndAddress;
+    ss << std::hex << mc_string;
+    ss >> mc.start_address;
+    mc.is_ranged = mc_string.find("n") != mc_string.npos;
+    mc.is_break_on_read = mc_string.find("r") != mc_string.npos;
+    mc.is_break_on_write = mc_string.find("w") != mc_string.npos;
+    mc.log_on_hit = mc_string.find("l") != mc_string.npos;
+    mc.break_on_hit = mc_string.find("p") != mc_string.npos;
+    if (mc.is_ranged)
+      ss >> mc.end_address;
     else
-      mc.EndAddress = mc.StartAddress;
+      mc.end_address = mc.start_address;
     Add(mc);
   }
 }
 
-void MemChecks::Add(const TMemCheck& _rMemoryCheck)
+void MemChecks::Add(const TMemCheck& memory_check)
 {
   bool had_any = HasAny();
-  if (GetMemCheck(_rMemoryCheck.StartAddress) == nullptr)
-    m_MemChecks.push_back(_rMemoryCheck);
+  if (GetMemCheck(memory_check.start_address) == nullptr)
+    m_mem_checks.push_back(memory_check);
   // If this is the first one, clear the JIT cache so it can switch to
   // watchpoint-compatible code.
   if (!had_any && g_jit)
     g_jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
 }
 
-void MemChecks::Remove(u32 _Address)
+void MemChecks::Remove(u32 address)
 {
-  for (auto i = m_MemChecks.begin(); i != m_MemChecks.end(); ++i)
+  for (auto i = m_mem_checks.begin(); i != m_mem_checks.end(); ++i)
   {
-    if (i->StartAddress == _Address)
+    if (i->start_address == address)
     {
-      m_MemChecks.erase(i);
+      m_mem_checks.erase(i);
       if (!HasAny() && g_jit)
         g_jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
       return;
@@ -196,16 +197,16 @@ void MemChecks::Remove(u32 _Address)
 
 TMemCheck* MemChecks::GetMemCheck(u32 address)
 {
-  for (TMemCheck& bp : m_MemChecks)
+  for (TMemCheck& mc : m_mem_checks)
   {
-    if (bp.bRange)
+    if (mc.is_ranged)
     {
-      if (address >= bp.StartAddress && address <= bp.EndAddress)
-        return &(bp);
+      if (address >= mc.start_address && address <= mc.end_address)
+        return &mc;
     }
-    else if (bp.StartAddress == address)
+    else if (mc.start_address == address)
     {
-      return &(bp);
+      return &mc;
     }
   }
 
@@ -213,27 +214,27 @@ TMemCheck* MemChecks::GetMemCheck(u32 address)
   return nullptr;
 }
 
-bool TMemCheck::Action(DebugInterface* debug_interface, u32 iValue, u32 addr, bool write, int size,
+bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, bool write, int size,
                        u32 pc)
 {
-  if ((write && OnWrite) || (!write && OnRead))
+  if ((write && is_break_on_write) || (!write && is_break_on_read))
   {
-    if (Log)
+    if (log_on_hit)
     {
       NOTICE_LOG(MEMMAP, "MBP %08x (%s) %s%i %0*x at %08x (%s)", pc,
                  debug_interface->GetDescription(pc).c_str(), write ? "Write" : "Read", size * 8,
-                 size * 2, iValue, addr, debug_interface->GetDescription(addr).c_str());
+                 size * 2, value, addr, debug_interface->GetDescription(addr).c_str());
     }
-    if (Break)
+    if (break_on_hit)
       return true;
   }
   return false;
 }
 
-bool Watches::IsAddressWatch(u32 _iAddress) const
+bool Watches::IsAddressWatch(u32 address) const
 {
-  for (const TWatch& bp : m_Watches)
-    if (bp.iAddress == _iAddress)
+  for (const TWatch& watch : m_watches)
+    if (watch.address == address)
       return true;
 
   return false;
@@ -241,68 +242,68 @@ bool Watches::IsAddressWatch(u32 _iAddress) const
 
 Watches::TWatchesStr Watches::GetStrings() const
 {
-  TWatchesStr bps;
-  for (const TWatch& bp : m_Watches)
+  TWatchesStr watch_strings;
+  for (const TWatch& watch : m_watches)
   {
     std::stringstream ss;
-    ss << std::hex << bp.iAddress << " " << bp.name;
-    bps.push_back(ss.str());
+    ss << std::hex << watch.address << " " << watch.name;
+    watch_strings.push_back(ss.str());
   }
 
-  return bps;
+  return watch_strings;
 }
 
-void Watches::AddFromStrings(const TWatchesStr& bpstrs)
+void Watches::AddFromStrings(const TWatchesStr& watch_strings)
 {
-  for (const std::string& bpstr : bpstrs)
+  for (const std::string& watch_string : watch_strings)
   {
-    TWatch bp;
+    TWatch watch;
     std::stringstream ss;
-    ss << std::hex << bpstr;
-    ss >> bp.iAddress;
+    ss << std::hex << watch_string;
+    ss >> watch.address;
     ss >> std::ws;
-    getline(ss, bp.name);
-    Add(bp);
+    std::getline(ss, watch.name);
+    Add(watch);
   }
 }
 
-void Watches::Add(const TWatch& bp)
+void Watches::Add(const TWatch& watch)
 {
-  if (!IsAddressWatch(bp.iAddress))
+  if (!IsAddressWatch(watch.address))
   {
-    m_Watches.push_back(bp);
+    m_watches.push_back(watch);
   }
 }
 
-void Watches::Add(u32 em_address)
+void Watches::Add(u32 address)
 {
-  if (!IsAddressWatch(em_address))  // only add new addresses
+  if (!IsAddressWatch(address))  // only add new addresses
   {
-    TWatch pt;  // breakpoint settings
-    pt.bOn = true;
-    pt.iAddress = em_address;
+    TWatch watch;  // watch settings
+    watch.is_enabled = true;
+    watch.address = address;
 
-    m_Watches.push_back(pt);
+    m_watches.push_back(watch);
   }
 }
 
-void Watches::Update(int count, u32 em_address)
+void Watches::Update(int count, u32 address)
 {
-  m_Watches.at(count).iAddress = em_address;
+  m_watches.at(count).address = address;
 }
 
 void Watches::UpdateName(int count, const std::string name)
 {
-  m_Watches.at(count).name = name;
+  m_watches.at(count).name = name;
 }
 
-void Watches::Remove(u32 em_address)
+void Watches::Remove(u32 address)
 {
-  for (auto i = m_Watches.begin(); i != m_Watches.end(); ++i)
+  for (auto i = m_watches.begin(); i != m_watches.end(); ++i)
   {
-    if (i->iAddress == em_address)
+    if (i->address == address)
     {
-      m_Watches.erase(i);
+      m_watches.erase(i);
       return;
     }
   }
@@ -310,5 +311,5 @@ void Watches::Remove(u32 em_address)
 
 void Watches::Clear()
 {
-  m_Watches.clear();
+  m_watches.clear();
 }
