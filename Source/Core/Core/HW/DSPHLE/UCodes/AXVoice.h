@@ -41,7 +41,8 @@ namespace
 #define HILO_TO_32(name) ((name##_hi << 16) | name##_lo)
 
 // Used to pass a large amount of buffers to the mixing function.
-union AXBuffers {
+union AXBuffers
+{
   struct
   {
     int* left;

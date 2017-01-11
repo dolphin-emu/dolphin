@@ -380,7 +380,7 @@ namespace JitILTables
 {
 void CompileInstruction(PPCAnalyst::CodeOp& op)
 {
-  JitIL* jitil = (JitIL*)jit;
+  JitIL* jitil = (JitIL*)g_jit;
   (jitil->*dynaOpTable[op.inst.OPCD])(op.inst);
   GekkoOPInfo* info = op.opinfo;
   if (info)
@@ -388,16 +388,16 @@ void CompileInstruction(PPCAnalyst::CodeOp& op)
 #ifdef OPLOG
     if (!strcmp(info->opname, OP_TO_LOG))  // "mcrfs"
     {
-      rsplocations.push_back(jit.js.compilerPC);
+      rsplocations.push_back(g_jit.js.compilerPC);
     }
 #endif
     info->compileCount++;
-    info->lastUse = jit->js.compilerPC;
+    info->lastUse = g_jit->js.compilerPC;
   }
   else
   {
     PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", op.inst.hex,
-               jit->js.compilerPC);
+               g_jit->js.compilerPC);
   }
 }
 

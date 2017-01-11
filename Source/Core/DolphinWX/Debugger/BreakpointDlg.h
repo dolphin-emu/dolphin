@@ -6,16 +6,14 @@
 
 #include <wx/dialog.h>
 
-class CBreakPointWindow;
 class wxTextCtrl;
 
 class BreakPointDlg : public wxDialog
 {
 public:
-  BreakPointDlg(CBreakPointWindow* _Parent);
+  BreakPointDlg(wxWindow* _Parent);
 
 private:
-  CBreakPointWindow* Parent;
   wxTextCtrl* m_pEditAddress;
 
   void OnOK(wxCommandEvent& event);

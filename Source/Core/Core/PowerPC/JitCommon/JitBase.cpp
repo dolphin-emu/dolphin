@@ -10,11 +10,11 @@
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
 
-JitBase* jit;
+JitBase* g_jit;
 
 void Jit(u32 em_address)
 {
-  jit->Jit(em_address);
+  g_jit->Jit(em_address);
 }
 
 u32 Helper_Mask(u8 mb, u8 me)

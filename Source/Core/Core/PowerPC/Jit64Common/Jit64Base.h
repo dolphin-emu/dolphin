@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <cstdint>
 
 #include "Common/CommonTypes.h"
@@ -32,13 +33,13 @@ constexpr Gen::X64Reg RMEM = Gen::RBX;
 // to address as much as possible in a one-byte offset form.
 constexpr Gen::X64Reg RPPCSTATE = Gen::RBP;
 
-constexpr int CODE_SIZE = 1024 * 1024 * 32;
+constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
 
 class Jitx86Base : public JitBase, public QuantizedMemoryRoutines
 {
 protected:
   bool BackPatch(u32 emAddress, SContext* ctx);
-  JitBlockCache blocks;
+  JitBlockCache blocks{*this};
   TrampolineCache trampolines;
 
 public:
@@ -46,5 +47,5 @@ public:
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 };
 
-void LogGeneratedX86(int size, PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
-                     JitBlock* b);
+void LogGeneratedX86(size_t size, const PPCAnalyst::CodeBuffer* code_buffer, const u8* normalEntry,
+                     const JitBlock* b);

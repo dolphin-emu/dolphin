@@ -2,11 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/BreakPoints.h"
+
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -65,8 +66,8 @@ void BreakPoints::Add(const TBreakPoint& bp)
   if (!IsAddressBreakPoint(bp.iAddress))
   {
     m_BreakPoints.push_back(bp);
-    if (jit)
-      jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
+    if (g_jit)
+      g_jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
   }
 }
 
@@ -81,8 +82,8 @@ void BreakPoints::Add(u32 em_address, bool temp)
 
     m_BreakPoints.push_back(pt);
 
-    if (jit)
-      jit->GetBlockCache()->InvalidateICache(em_address, 4, true);
+    if (g_jit)
+      g_jit->GetBlockCache()->InvalidateICache(em_address, 4, true);
   }
 }
 
@@ -93,8 +94,8 @@ void BreakPoints::Remove(u32 em_address)
     if (i->iAddress == em_address)
     {
       m_BreakPoints.erase(i);
-      if (jit)
-        jit->GetBlockCache()->InvalidateICache(em_address, 4, true);
+      if (g_jit)
+        g_jit->GetBlockCache()->InvalidateICache(em_address, 4, true);
       return;
     }
   }
@@ -102,11 +103,11 @@ void BreakPoints::Remove(u32 em_address)
 
 void BreakPoints::Clear()
 {
-  if (jit)
+  if (g_jit)
   {
     for (const TBreakPoint& bp : m_BreakPoints)
     {
-      jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
+      g_jit->GetBlockCache()->InvalidateICache(bp.iAddress, 4, true);
     }
   }
 
@@ -120,8 +121,8 @@ void BreakPoints::ClearAllTemporary()
   {
     if (bp->bTemporary)
     {
-      if (jit)
-        jit->GetBlockCache()->InvalidateICache(bp->iAddress, 4, true);
+      if (g_jit)
+        g_jit->GetBlockCache()->InvalidateICache(bp->iAddress, 4, true);
       bp = m_BreakPoints.erase(bp);
     }
     else
@@ -175,8 +176,8 @@ void MemChecks::Add(const TMemCheck& _rMemoryCheck)
     m_MemChecks.push_back(_rMemoryCheck);
   // If this is the first one, clear the JIT cache so it can switch to
   // watchpoint-compatible code.
-  if (!had_any && jit)
-    jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
+  if (!had_any && g_jit)
+    g_jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
 }
 
 void MemChecks::Remove(u32 _Address)
@@ -186,8 +187,8 @@ void MemChecks::Remove(u32 _Address)
     if (i->StartAddress == _Address)
     {
       m_MemChecks.erase(i);
-      if (!HasAny() && jit)
-        jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
+      if (!HasAny() && g_jit)
+        g_jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
       return;
     }
   }

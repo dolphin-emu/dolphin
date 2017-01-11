@@ -80,6 +80,7 @@
     <ClCompile Include="PixelShaderManager.cpp" />
     <ClCompile Include="PostProcessing.cpp" />
     <ClCompile Include="RenderBase.cpp" />
+    <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="LightingShaderGen.cpp" />
     <ClCompile Include="Statistics.cpp" />
     <ClCompile Include="GeometryShaderGen.cpp" />
@@ -134,6 +135,7 @@
     <ClInclude Include="PixelShaderManager.h" />
     <ClInclude Include="PostProcessing.h" />
     <ClInclude Include="RenderBase.h" />
+    <ClInclude Include="RenderState.h" />
     <ClInclude Include="SamplerCommon.h" />
     <ClInclude Include="ShaderGenCommon.h" />
     <ClInclude Include="Statistics.h" />

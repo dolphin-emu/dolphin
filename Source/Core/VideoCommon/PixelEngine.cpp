@@ -21,7 +21,8 @@
 
 namespace PixelEngine
 {
-union UPEZConfReg {
+union UPEZConfReg
+{
   u16 Hex;
   struct
   {
@@ -32,7 +33,8 @@ union UPEZConfReg {
   };
 };
 
-union UPEAlphaConfReg {
+union UPEAlphaConfReg
+{
   u16 Hex;
   struct
   {
@@ -48,7 +50,8 @@ union UPEAlphaConfReg {
   };
 };
 
-union UPEDstAlphaConfReg {
+union UPEDstAlphaConfReg
+{
   u16 Hex;
   struct
   {
@@ -58,7 +61,8 @@ union UPEDstAlphaConfReg {
   };
 };
 
-union UPEAlphaModeConfReg {
+union UPEAlphaModeConfReg
+{
   u16 Hex;
   struct
   {
@@ -68,7 +72,8 @@ union UPEAlphaModeConfReg {
 };
 
 // fifo Control Register
-union UPECtrlReg {
+union UPECtrlReg
+{
   struct
   {
     u16 PETokenEnable : 1;

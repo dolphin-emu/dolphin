@@ -399,7 +399,7 @@ public final class SettingsAdapter extends RecyclerView.Adapter<SettingViewHolde
 				break;
 
 			case 2:
-				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "SW");
+				gfxBackend = new StringSetting(SettingsFile.KEY_VIDEO_BACKEND, SettingsFile.SECTION_CORE, SettingsFile.SETTINGS_DOLPHIN, "Software Renderer");
 				break;
 
 			case 3:

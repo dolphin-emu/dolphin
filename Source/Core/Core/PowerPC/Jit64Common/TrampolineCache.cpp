@@ -23,7 +23,7 @@
 
 using namespace Gen;
 
-void TrampolineCache::Init(int size)
+void TrampolineCache::Init(size_t size)
 {
   AllocCodeSpace(size);
 }

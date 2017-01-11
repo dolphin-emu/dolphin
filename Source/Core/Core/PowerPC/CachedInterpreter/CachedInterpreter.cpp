@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/CachedInterpreter.h"
+#include "Core/PowerPC/CachedInterpreter/CachedInterpreter.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
@@ -20,7 +20,7 @@ void CachedInterpreter::Init()
 
   jo.enableBlocklink = false;
 
-  JitBaseBlockCache::Init();
+  m_block_cache.Init();
   UpdateMemoryOptions();
 
   code_block.m_stats = &js.st;
@@ -30,12 +30,12 @@ void CachedInterpreter::Init()
 
 void CachedInterpreter::Shutdown()
 {
-  JitBaseBlockCache::Shutdown();
+  m_block_cache.Shutdown();
 }
 
 void CachedInterpreter::ExecuteOneBlock()
 {
-  const u8* normal_entry = JitBaseBlockCache::Dispatch();
+  const u8* normal_entry = m_block_cache.Dispatch();
   const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
 
   for (; code->type != Instruction::INSTRUCTION_ABORT; ++code)
@@ -123,7 +123,7 @@ static bool CheckDSI(u32 data)
 
 void CachedInterpreter::Jit(u32 address)
 {
-  if (m_code.size() >= CODE_SIZE / sizeof(Instruction) - 0x1000 || IsFull() ||
+  if (m_code.size() >= CODE_SIZE / sizeof(Instruction) - 0x1000 || m_block_cache.IsFull() ||
       SConfig::GetInstance().bJITNoBlockCache)
   {
     ClearCache();
@@ -140,8 +140,8 @@ void CachedInterpreter::Jit(u32 address)
     return;
   }
 
-  int block_num = AllocateBlock(PC);
-  JitBlock* b = GetBlock(block_num);
+  int block_num = m_block_cache.AllocateBlock(PC);
+  JitBlock* b = m_block_cache.GetBlock(block_num);
 
   js.blockStart = PC;
   js.firstFPInstructionFound = false;
@@ -212,12 +212,12 @@ void CachedInterpreter::Jit(u32 address)
   b->codeSize = (u32)(GetCodePtr() - b->checkedEntry);
   b->originalSize = code_block.m_num_instructions;
 
-  FinalizeBlock(block_num, jo.enableBlocklink, b->checkedEntry);
+  m_block_cache.FinalizeBlock(block_num, jo.enableBlocklink, b->checkedEntry);
 }
 
 void CachedInterpreter::ClearCache()
 {
   m_code.clear();
-  JitBaseBlockCache::Clear();
+  m_block_cache.Clear();
   UpdateMemoryOptions();
 }

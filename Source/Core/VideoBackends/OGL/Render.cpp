@@ -39,6 +39,7 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -62,8 +63,6 @@ static int s_MSAASamples = 1;
 static int s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
-
-static u32 s_blendMode;
 
 static bool s_vsync;
 
@@ -328,8 +327,6 @@ static void InitDriverInfo()
 // Init functions
 Renderer::Renderer()
 {
-  s_blendMode = 0;
-
   bool bSuccess = true;
 
   // Init extension support.
@@ -832,20 +829,6 @@ void Renderer::SetScissorRect(const EFBRectangle& rc)
   glScissor(trc.left, trc.bottom, trc.GetWidth(), trc.GetHeight());
 }
 
-void Renderer::SetColorMask()
-{
-  // Only enable alpha channel if it's supported by the current EFB format
-  GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
-  if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
-  {
-    if (bpmem.blendmode.colorupdate)
-      ColorMask = GL_TRUE;
-    if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24))
-      AlphaMask = GL_TRUE;
-  }
-  glColorMask(ColorMask, ColorMask, ColorMask, AlphaMask);
-}
-
 void ClearEFBCache()
 {
   if (!s_efbCacheIsCleared)
@@ -1224,111 +1207,72 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
-  // Our render target always uses an alpha channel, so we need to override the blend functions to
-  // assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
-  // Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel
-  // is assumed to always be 1.
-  bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+  BlendingState state;
+  state.Generate(bpmem);
 
-  bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
-  bool useDualSource = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+  bool useDualSource =
+      g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
 
-  // Only use dual-source blending when required on drivers that don't support it very well.
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) && !useDstAlpha)
-    useDualSource = false;
-
-  const GLenum glSrcFactors[8] = {
+  const GLenum src_factors[8] = {
       GL_ZERO,
       GL_ONE,
       GL_DST_COLOR,
       GL_ONE_MINUS_DST_COLOR,
-      (useDualSource) ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-      (useDualSource) ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-      (target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
-      (target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO};
-  const GLenum glDestFactors[8] = {
+      useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+      useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+      GL_DST_ALPHA,
+      GL_ONE_MINUS_DST_ALPHA};
+  const GLenum dst_factors[8] = {
       GL_ZERO,
       GL_ONE,
       GL_SRC_COLOR,
       GL_ONE_MINUS_SRC_COLOR,
-      (useDualSource) ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-      (useDualSource) ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-      (target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
-      (target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO};
+      useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+      useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+      GL_DST_ALPHA,
+      GL_ONE_MINUS_DST_ALPHA};
 
-  // blend mode bit mask
-  // 0 - blend enable
-  // 1 - dst alpha enabled
-  // 2 - reverse subtract enable (else add)
-  // 3-5 - srcRGB function
-  // 6-8 - dstRGB function
-
-  u32 newval = useDstAlpha << 1;
-  newval |= bpmem.blendmode.subtract << 2;
-
-  if (bpmem.blendmode.subtract)
+  if (state.blendenable)
   {
-    newval |= 0x0049;  // enable blending src 1 dst 1
-  }
-  else if (bpmem.blendmode.blendenable)
-  {
-    newval |= 1;  // enable blending
-    newval |= bpmem.blendmode.srcfactor << 3;
-    newval |= bpmem.blendmode.dstfactor << 6;
-  }
+    GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+    GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
 
-  u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
-
-  if (changes & 1)
-  {
-    // blend enable change
-    (newval & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-  }
-
-  if (changes & 4)
-  {
-    // subtract enable change
-    GLenum equation = newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-    GLenum equationAlpha = useDstAlpha ? GL_FUNC_ADD : equation;
-
+    glEnable(GL_BLEND);
     glBlendEquationSeparate(equation, equationAlpha);
+    glBlendFuncSeparate(src_factors[state.srcfactor], dst_factors[state.dstfactor],
+                        src_factors[state.srcfactoralpha], dst_factors[state.dstfactoralpha]);
   }
-
-  if (changes & 0x1FA)
+  else
   {
-    u32 srcidx = (newval >> 3) & 7;
-    u32 dstidx = (newval >> 6) & 7;
-    GLenum srcFactor = glSrcFactors[srcidx];
-    GLenum dstFactor = glDestFactors[dstidx];
-
-    // adjust alpha factors
-    if (useDstAlpha)
-    {
-      srcidx = BlendMode::ONE;
-      dstidx = BlendMode::ZERO;
-    }
-    else
-    {
-      // we can't use GL_DST_COLOR or GL_ONE_MINUS_DST_COLOR for source in alpha channel so use
-      // their alpha equivalent instead
-      if (srcidx == BlendMode::DSTCLR)
-        srcidx = BlendMode::DSTALPHA;
-      else if (srcidx == BlendMode::INVDSTCLR)
-        srcidx = BlendMode::INVDSTALPHA;
-
-      // we can't use GL_SRC_COLOR or GL_ONE_MINUS_SRC_COLOR for destination in alpha channel so use
-      // their alpha equivalent instead
-      if (dstidx == BlendMode::SRCCLR)
-        dstidx = BlendMode::SRCALPHA;
-      else if (dstidx == BlendMode::INVSRCCLR)
-        dstidx = BlendMode::INVSRCALPHA;
-    }
-    GLenum srcFactorAlpha = glSrcFactors[srcidx];
-    GLenum dstFactorAlpha = glDestFactors[dstidx];
-    // blend RGB change
-    glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
+    glDisable(GL_BLEND);
   }
-  s_blendMode = newval;
+
+  const GLenum logic_op_codes[16] = {
+      GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,
+      GL_XOR,           GL_OR,          GL_NOR,         GL_EQUIV, GL_INVERT,       GL_OR_REVERSE,
+      GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND,        GL_SET};
+
+  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+  {
+    // Logic ops aren't available in GLES3
+  }
+  else if (state.logicopenable)
+  {
+    glEnable(GL_COLOR_LOGIC_OP);
+    glLogicOp(logic_op_codes[state.logicmode]);
+  }
+  else
+  {
+    glDisable(GL_COLOR_LOGIC_OP);
+  }
+
+  if (state.dither)
+    glEnable(GL_DITHER);
+  else
+    glDisable(GL_DITHER);
+
+  glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
 }
 
 // This function has the final picture. We adjust the aspect ratio here.
@@ -1783,10 +1727,8 @@ void Renderer::RestoreAPIState()
   }
   SetGenerationMode();
   BPFunctions::SetScissor();
-  SetColorMask();
   SetDepthMode();
   SetBlendMode(true);
-  SetLogicOpMode();
   SetViewport();
 
   const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
@@ -1831,35 +1773,6 @@ void Renderer::SetDepthMode()
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
   }
-}
-
-void Renderer::SetLogicOpMode()
-{
-  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
-    return;
-  // Logic ops aren't available in GLES3/GLES2
-  const GLenum glLogicOpCodes[16] = {
-      GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,
-      GL_XOR,           GL_OR,          GL_NOR,         GL_EQUIV, GL_INVERT,       GL_OR_REVERSE,
-      GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND,        GL_SET};
-
-  if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable)
-  {
-    glEnable(GL_COLOR_LOGIC_OP);
-    glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
-  }
-  else
-  {
-    glDisable(GL_COLOR_LOGIC_OP);
-  }
-}
-
-void Renderer::SetDitherMode()
-{
-  if (bpmem.blendmode.dither)
-    glEnable(GL_DITHER);
-  else
-    glDisable(GL_DITHER);
 }
 
 void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)

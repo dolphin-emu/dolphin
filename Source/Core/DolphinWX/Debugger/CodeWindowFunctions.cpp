@@ -124,8 +124,8 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
   {
   case IDM_PROFILE_BLOCKS:
     Core::SetState(Core::CORE_PAUSE);
-    if (jit != nullptr)
-      jit->ClearCache();
+    if (g_jit != nullptr)
+      g_jit->ClearCache();
     Profiler::g_ProfileBlocks = GetParentMenuBar()->IsChecked(IDM_PROFILE_BLOCKS);
     Core::SetState(Core::CORE_RUN);
     break;
@@ -135,7 +135,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
     if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::MODE_JIT)
     {
-      if (jit != nullptr)
+      if (g_jit != nullptr)
       {
         std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
         File::CreateFullPath(filename);

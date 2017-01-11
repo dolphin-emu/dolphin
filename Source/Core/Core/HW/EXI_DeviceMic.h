@@ -38,7 +38,8 @@ private:
 
   u32 m_position;
   int command;
-  union UStatus {
+  union UStatus
+  {
     u16 U16;
     u8 U8[2];
     struct

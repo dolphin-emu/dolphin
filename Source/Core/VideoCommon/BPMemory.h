@@ -244,7 +244,8 @@ enum : u32
   ITW_0 = 6
 };
 
-union IND_MTXA {
+union IND_MTXA
+{
   struct
   {
     s32 ma : 11;
@@ -255,7 +256,8 @@ union IND_MTXA {
   u32 hex;
 };
 
-union IND_MTXB {
+union IND_MTXB
+{
   struct
   {
     s32 mc : 11;
@@ -266,7 +268,8 @@ union IND_MTXB {
   u32 hex;
 };
 
-union IND_MTXC {
+union IND_MTXC
+{
   struct
   {
     s32 me : 11;
@@ -284,7 +287,8 @@ struct IND_MTX
   IND_MTXC col2;
 };
 
-union IND_IMASK {
+union IND_IMASK
+{
   struct
   {
     u32 mask : 24;
@@ -295,7 +299,8 @@ union IND_IMASK {
 
 struct TevStageCombiner
 {
-  union ColorCombiner {
+  union ColorCombiner
+  {
     struct  // abc=8bit,d=10bit
     {
       u32 d : 4;  // TEVSELCC_X
@@ -312,7 +317,8 @@ struct TevStageCombiner
     };
     u32 hex;
   };
-  union AlphaCombiner {
+  union AlphaCombiner
+  {
     struct
     {
       u32 rswap : 2;
@@ -345,7 +351,8 @@ struct TevStageCombiner
 //  GXSetTevIndirect(tevstage+1, indstage, 0, 3, realmat+4, 6, 6, 1, 0, 0)
 //  GXSetTevIndirect(tevstage+2, indstage, 0, 0, 0, 0, 0, 1, 0, 0)
 
-union TevStageIndirect {
+union TevStageIndirect
+{
   struct
   {
     u32 bt : 2;          // Indirect tex stage ID
@@ -372,7 +379,8 @@ union TevStageIndirect {
   bool IsActive() { return bs != ITBA_OFF || mid != 0; }
 };
 
-union TwoTevStageOrders {
+union TwoTevStageOrders
+{
   struct
   {
     u32 texmap0 : 3;  // Indirect tex stage texmap
@@ -397,7 +405,8 @@ union TwoTevStageOrders {
   int getColorChan(int i) const { return i ? colorchan1 : colorchan0; }
 };
 
-union TEXSCALE {
+union TEXSCALE
+{
   struct
   {
     u32 ss0 : 4;  // Indirect tex stage 0, 2^(-ss0)
@@ -410,7 +419,8 @@ union TEXSCALE {
   u32 hex;
 };
 
-union RAS1_IREF {
+union RAS1_IREF
+{
   struct
   {
     u32 bi0 : 3;  // Indirect tex stage 0 ntexmap
@@ -431,7 +441,8 @@ union RAS1_IREF {
 
 // Texture structs
 
-union TexMode0 {
+union TexMode0
+{
   enum TextureFilter : u32
   {
     TEXF_NONE = 0,
@@ -453,7 +464,8 @@ union TexMode0 {
   };
   u32 hex;
 };
-union TexMode1 {
+union TexMode1
+{
   struct
   {
     u32 min_lod : 8;
@@ -461,7 +473,8 @@ union TexMode1 {
   };
   u32 hex;
 };
-union TexImage0 {
+union TexImage0
+{
   struct
   {
     u32 width : 10;   // Actually w-1
@@ -470,7 +483,8 @@ union TexImage0 {
   };
   u32 hex;
 };
-union TexImage1 {
+union TexImage1
+{
   struct
   {
     u32 tmem_even : 15;  // TMEM line index for even LODs
@@ -482,7 +496,8 @@ union TexImage1 {
   u32 hex;
 };
 
-union TexImage2 {
+union TexImage2
+{
   struct
   {
     u32 tmem_odd : 15;  // tmem line index for odd LODs
@@ -492,14 +507,16 @@ union TexImage2 {
   u32 hex;
 };
 
-union TexImage3 {
+union TexImage3
+{
   struct
   {
     u32 image_base : 24;  // address in memory >> 5 (was 20 for GC)
   };
   u32 hex;
 };
-union TexTLUT {
+union TexTLUT
+{
   struct
   {
     u32 tmem_offset : 10;
@@ -508,7 +525,8 @@ union TexTLUT {
   u32 hex;
 };
 
-union ZTex1 {
+union ZTex1
+{
   struct
   {
     u32 bias : 24;
@@ -516,7 +534,8 @@ union ZTex1 {
   u32 hex;
 };
 
-union ZTex2 {
+union ZTex2
+{
   struct
   {
     u32 type : 2;  // TEV_Z_TYPE_X
@@ -539,7 +558,8 @@ struct FourTexUnits
 
 // Geometry/other structs
 
-union GenMode {
+union GenMode
+{
   enum CullMode : u32
   {
     CULL_NONE = 0,
@@ -561,7 +581,8 @@ union GenMode {
   u32 hex;
 };
 
-union LPSize {
+union LPSize
+{
   struct
   {
     u32 linesize : 8;   // in 1/6th pixels
@@ -574,7 +595,8 @@ union LPSize {
   u32 hex;
 };
 
-union X12Y12 {
+union X12Y12
+{
   struct
   {
     u32 y : 12;
@@ -582,7 +604,8 @@ union X12Y12 {
   };
   u32 hex;
 };
-union X10Y10 {
+union X10Y10
+{
   struct
   {
     u32 x : 10;
@@ -593,7 +616,8 @@ union X10Y10 {
 
 // Framebuffer/pixel stuff (incl fog)
 
-union BlendMode {
+union BlendMode
+{
   enum BlendFactor : u32
   {
     ZERO = 0,
@@ -641,7 +665,8 @@ union BlendMode {
   u32 hex;
 };
 
-union FogParam0 {
+union FogParam0
+{
   struct
   {
     u32 mantissa : 11;
@@ -651,7 +676,8 @@ union FogParam0 {
 
   float GetA()
   {
-    union {
+    union
+    {
       u32 i;
       float f;
     } dummy;
@@ -663,7 +689,8 @@ union FogParam0 {
   u32 hex;
 };
 
-union FogParam3 {
+union FogParam3
+{
   struct
   {
     u32 c_mant : 11;
@@ -676,7 +703,8 @@ union FogParam3 {
   // amount to subtract from eyespacez after range adjustment
   float GetC()
   {
-    union {
+    union
+    {
       u32 i;
       float f;
     } dummy;
@@ -688,7 +716,8 @@ union FogParam3 {
   u32 hex;
 };
 
-union FogRangeKElement {
+union FogRangeKElement
+{
   struct
   {
     u32 HI : 12;
@@ -703,7 +732,8 @@ union FogRangeKElement {
 
 struct FogRangeParams
 {
-  union RangeBase {
+  union RangeBase
+  {
     struct
     {
       u32 Center : 10;  // viewport center + 342
@@ -724,7 +754,8 @@ struct FogParams
   u32 b_shift;  // b's exp + 1?
   FogParam3 c_proj_fsel;
 
-  union FogColor {
+  union FogColor
+  {
     struct
     {
       u32 b : 8;
@@ -737,7 +768,8 @@ struct FogParams
   FogColor color;  // 0:b 8:g 16:r - nice!
 };
 
-union ZMode {
+union ZMode
+{
   enum CompareMode : u32
   {
     NEVER = 0,
@@ -757,7 +789,8 @@ union ZMode {
   u32 hex;
 };
 
-union ConstantAlpha {
+union ConstantAlpha
+{
   struct
   {
     u32 alpha : 8;
@@ -766,7 +799,8 @@ union ConstantAlpha {
   u32 hex;
 };
 
-union FieldMode {
+union FieldMode
+{
   struct
   {
     u32 texLOD : 1;  // adjust vert tex LOD computation to account for interlacing
@@ -774,7 +808,8 @@ union FieldMode {
   u32 hex;
 };
 
-union FieldMask {
+union FieldMask
+{
   struct
   {
     // If bit is not set, do not write field to EFB
@@ -784,7 +819,8 @@ union FieldMask {
   u32 hex;
 };
 
-union PEControl {
+union PEControl
+{
   enum PixelFormat : u32
   {
     RGB8_Z24 = 0,
@@ -821,7 +857,8 @@ union PEControl {
 
 // Texture coordinate stuff
 
-union TCInfo {
+union TCInfo
+{
   struct
   {
     u32 scale_minus_1 : 16;
@@ -839,7 +876,8 @@ struct TCoordInfo
   TCInfo t;
 };
 
-union TevReg {
+union TevReg
+{
   u64 hex;
 
   // Access to individual registers
@@ -861,7 +899,8 @@ union TevReg {
   BitField<55, 1, u64> type_bg;
 };
 
-union TevKSel {
+union TevKSel
+{
   struct
   {
     u32 swap1 : 2;
@@ -877,7 +916,8 @@ union TevKSel {
   int getKA(int i) { return i ? kasel1 : kasel0; }
 };
 
-union AlphaTest {
+union AlphaTest
+{
   enum CompareMode : u32
   {
     NEVER = 0,
@@ -952,7 +992,8 @@ union AlphaTest {
   }
 };
 
-union UPE_Copy {
+union UPE_Copy
+{
   u32 Hex;
 
   BitField<0, 1, u32> clamp0;               // if set clamp top
@@ -975,7 +1016,8 @@ union UPE_Copy {
   u32 tp_realFormat() { return target_pixel_format / 2 + (target_pixel_format & 1) * 8; }
 };
 
-union BPU_PreloadTileInfo {
+union BPU_PreloadTileInfo
+{
   u32 hex;
   struct
   {

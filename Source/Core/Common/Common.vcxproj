@@ -44,7 +44,6 @@
     <ClInclude Include="BitField.h" />
     <ClInclude Include="BitSet.h" />
     <ClInclude Include="BlockingLoop.h" />
-    <ClInclude Include="BreakPoints.h" />
     <ClInclude Include="CDUtils.h" />
     <ClInclude Include="ChunkFile.h" />
     <ClInclude Include="CodeBlock.h" />
@@ -146,7 +145,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Analytics.cpp" />
-    <ClCompile Include="BreakPoints.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
     <ClCompile Include="ENetUtil.cpp" />

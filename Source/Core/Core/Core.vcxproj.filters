@@ -31,6 +31,9 @@
     <Filter Include="PowerPC">
       <UniqueIdentifier>{ebd24590-dfdc-433e-a411-21723e4b7cb5}</UniqueIdentifier>
     </Filter>
+    <Filter Include="PowerPC\Cached Interpreter">
+      <UniqueIdentifier>{d6410c05-51f9-422a-83d5-f0723e34b607}</UniqueIdentifier>
+    </Filter>
     <Filter Include="PowerPC\Interpreter">
       <UniqueIdentifier>{523f8d77-4aa6-4762-8f27-96f02b5070b4}</UniqueIdentifier>
     </Filter>
@@ -272,6 +275,15 @@
     </ClCompile>
     <ClCompile Include="HLE\HLE_OS.cpp">
       <Filter>HLE</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\BreakPoints.cpp">
+      <Filter>PowerPC</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp">
+      <Filter>PowerPC\Cached Interpreter</Filter>
+    </ClCompile>
+    <ClCompile Include="PowerPC\CachedInterpreter\InterpreterBlockCache.cpp">
+      <Filter>PowerPC\Cached Interpreter</Filter>
     </ClCompile>
     <ClCompile Include="PowerPC\Interpreter\Interpreter.cpp">
       <Filter>PowerPC\Interpreter</Filter>
@@ -624,9 +636,6 @@
     <ClCompile Include="HW\Wiimote.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\CachedInterpreter.cpp">
-      <Filter>PowerPC</Filter>
-    </ClCompile>
     <ClCompile Include="PowerPC\JitInterface.cpp">
       <Filter>PowerPC</Filter>
     </ClCompile>
@@ -868,6 +877,12 @@
     </ClInclude>
     <ClInclude Include="HLE\HLE_OS.h">
       <Filter>HLE</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h">
+      <Filter>PowerPC\Cached Interpreter</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h">
+      <Filter>PowerPC\Cached Interpreter</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h">
       <Filter>PowerPC\Interpreter</Filter>
@@ -1223,13 +1238,13 @@
     <ClInclude Include="HW\Wiimote.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
     </ClInclude>
+    <ClInclude Include="PowerPC\BreakPoints.h">
+      <Filter>PowerPC</Filter>
+    </ClInclude>
     <ClInclude Include="PowerPC\CPUCoreBase.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Gekko.h">
-      <Filter>PowerPC</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\CachedInterpreter.h">
       <Filter>PowerPC</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\JitInterface.h">

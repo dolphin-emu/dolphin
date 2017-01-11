@@ -256,7 +256,7 @@ wxSizer* NetPlayDialog::CreateBottomGUI(wxWindow* parent)
     padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
     padbuf_spin->SetMinSize(WxUtils::GetTextWidgetMinSize(padbuf_spin));
 
-    m_memcard_write = new wxCheckBox(parent, wxID_ANY, _("Write to memcards/SD"));
+    m_memcard_write = new wxCheckBox(parent, wxID_ANY, _("Write to memory cards/SD"));
 
     bottom_szr->Add(m_start_btn, 0, wxALIGN_CENTER_VERTICAL);
     bottom_szr->Add(buffer_lbl, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);

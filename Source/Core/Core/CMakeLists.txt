@@ -156,6 +156,7 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
 			IPC_HLE/WiiMote_HID_Attr.cpp
 			IPC_HLE/WiiNetConfig.cpp
+			PowerPC/BreakPoints.cpp
 			PowerPC/MMU.cpp
 			PowerPC/PowerPC.cpp
 			PowerPC/PPCAnalyst.cpp
@@ -167,6 +168,8 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/SignatureDB/DSYSignatureDB.cpp
 			PowerPC/SignatureDB/SignatureDB.cpp
 			PowerPC/JitInterface.cpp
+			PowerPC/CachedInterpreter/CachedInterpreter.cpp
+			PowerPC/CachedInterpreter/InterpreterBlockCache.cpp
 			PowerPC/Interpreter/Interpreter_Branch.cpp
 			PowerPC/Interpreter/Interpreter.cpp
 			PowerPC/Interpreter/Interpreter_FloatingPoint.cpp
@@ -179,7 +182,6 @@ set(SRCS	ActionReplay.cpp
 			PowerPC/JitCommon/JitAsmCommon.cpp
 			PowerPC/JitCommon/JitBase.cpp
 			PowerPC/JitCommon/JitCache.cpp
-			PowerPC/CachedInterpreter.cpp
 			PowerPC/JitILCommon/IR.cpp
 			PowerPC/JitILCommon/JitILBase_Branch.cpp
 			PowerPC/JitILCommon/JitILBase_LoadStore.cpp

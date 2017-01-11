@@ -31,17 +31,12 @@ struct libusb_transfer;
 #define HID_ID_MASK 0x0000FFFFFFFFFFFF
 #define MAX_HID_INTERFACES 1
 
-#define HIDERR_NO_DEVICE_FOUND -4
-
 class CWII_IPC_HLE_Device_hid : public IWII_IPC_HLE_Device
 {
 public:
   CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName);
 
   virtual ~CWII_IPC_HLE_Device_hid();
-
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
 
   IPCCommandResult IOCtlV(u32 _CommandAddress) override;
   IPCCommandResult IOCtl(u32 _CommandAddress) override;
@@ -130,7 +125,6 @@ private:
                              const libusb_interface_descriptor* src);
   void ConvertEndpointToWii(WiiHIDEndpointDescriptor* dest, const libusb_endpoint_descriptor* src);
 
-  int Align(int num, int alignment);
   static void checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid);
   static void LIBUSB_CALL handleUsbUpdates(libusb_transfer* transfer);
 

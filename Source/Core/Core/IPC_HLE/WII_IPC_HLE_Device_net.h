@@ -30,8 +30,6 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_net_kd_request();
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
   IPCCommandResult IOCtl(u32 _CommandAddress) override;
 
 private:
@@ -88,21 +86,6 @@ public:
   }
 
   virtual ~CWII_IPC_HLE_Device_net_kd_time() {}
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override
-  {
-    INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Open");
-    Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-    return GetDefaultReply();
-  }
-
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override
-  {
-    INFO_LOG(WII_IPC_NET, "NET_KD_TIME: Close");
-    if (!_bForce)
-      Memory::Write_U32(0, _CommandAddress + 4);
-    return GetDefaultReply();
-  }
-
   IPCCommandResult IOCtl(u32 _CommandAddress) override
   {
     u32 Parameter = Memory::Read_U32(_CommandAddress + 0x0C);
@@ -224,8 +207,6 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_net_ip_top();
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
   IPCCommandResult IOCtl(u32 _CommandAddress) override;
   IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
@@ -246,8 +227,6 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
   IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
 private:
@@ -274,8 +253,6 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_net_wd_command();
 
-  IPCCommandResult Open(u32 CommandAddress, u32 Mode) override;
-  IPCCommandResult Close(u32 CommandAddress, bool Force) override;
   IPCCommandResult IOCtlV(u32 CommandAddress) override;
 
 private:

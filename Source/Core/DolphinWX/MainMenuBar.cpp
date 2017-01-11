@@ -81,7 +81,7 @@ wxMenu* MainMenuBar::CreateFileMenu() const
   file_menu->Append(IDM_CHANGE_DISC, _("Change &Disc..."));
   file_menu->Append(IDM_DRIVES, _("&Boot from DVD Backup"), external_drive_menu);
   file_menu->AppendSeparator();
-  file_menu->Append(wxID_REFRESH, _("&Refresh List"));
+  file_menu->Append(wxID_REFRESH, _("&Refresh Game List"));
   file_menu->AppendSeparator();
   file_menu->Append(wxID_EXIT, _("E&xit") + "\tAlt+F4");
 
@@ -167,7 +167,7 @@ wxMenu* MainMenuBar::CreateMovieMenu() const
 wxMenu* MainMenuBar::CreateOptionsMenu() const
 {
   auto* const options_menu = new wxMenu;
-  options_menu->Append(wxID_PREFERENCES, _("Co&nfigure..."));
+  options_menu->Append(wxID_PREFERENCES, _("Co&nfiguration"));
   options_menu->AppendSeparator();
   options_menu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
   options_menu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
@@ -212,7 +212,7 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   wiimote_menu->AppendCheckItem(IDM_CONNECT_BALANCEBOARD, _("Connect Balance Board"));
 
   auto* const tools_menu = new wxMenu;
-  tools_menu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
+  tools_menu->Append(IDM_MEMCARD, _("&Memory Card Manager (GC)"));
   tools_menu->Append(IDM_IMPORT_SAVE, _("Import Wii Save..."));
   tools_menu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
   tools_menu->Append(IDM_CHEATS, _("&Cheat Manager"));
@@ -401,10 +401,10 @@ wxMenu* MainMenuBar::CreateDebugMenu()
                                     _("Disable docking of perspective panes to main window"));
 
   auto* const debug_menu = new wxMenu;
-  debug_menu->Append(IDM_STEP, _("Step &Into\tF11"));
-  debug_menu->Append(IDM_STEPOVER, _("Step &Over\tF10"));
-  debug_menu->Append(IDM_STEPOUT, _("Step O&ut\tSHIFT+F11"));
-  debug_menu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint\tF9"));
+  debug_menu->Append(IDM_STEP, _("Step &Into"));
+  debug_menu->Append(IDM_STEPOVER, _("Step &Over"));
+  debug_menu->Append(IDM_STEPOUT, _("Step O&ut"));
+  debug_menu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint"));
   debug_menu->AppendSeparator();
   debug_menu->AppendSubMenu(perspective_menu, _("Perspectives"), _("Edit Perspectives"));
 

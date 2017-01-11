@@ -597,7 +597,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   AND(value, addr, 32 - 10, 28 - 10);  // upper three bits and last 10 bit are masked for the bitset
                                        // of cachelines, 0x1ffffc00
   LSR(value, value, 5 + 5);            // >> 5 for cache line size, >> 5 for width of bitset
-  MOVP2R(EncodeRegTo64(WA), jit->GetBlockCache()->GetBlockBitSet());
+  MOVP2R(EncodeRegTo64(WA), g_jit->GetBlockCache()->GetBlockBitSet());
   LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
 
   LSR(addr, addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset

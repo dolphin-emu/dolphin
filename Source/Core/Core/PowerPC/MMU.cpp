@@ -867,7 +867,8 @@ TranslateResult JitCache_TranslateAddress(u32 address)
 #define PTE2_PP(v) ((v)&3)
 
 // Hey! these duplicate a structure in Gekko.h
-union UPTE1 {
+union UPTE1
+{
   struct
   {
     u32 API : 6;
@@ -878,7 +879,8 @@ union UPTE1 {
   u32 Hex;
 };
 
-union UPTE2 {
+union UPTE2
+{
   struct
   {
     u32 PP : 2;

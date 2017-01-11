@@ -31,7 +31,8 @@ enum
 
 // UDSPControl
 constexpr u16 DSP_CONTROL_MASK = 0x0C07;
-union UDSPControl {
+union UDSPControl
+{
   u16 Hex;
   struct
   {

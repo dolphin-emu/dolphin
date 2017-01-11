@@ -204,6 +204,9 @@
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
+    <ClCompile Include="PowerPC\BreakPoints.cpp" />
+    <ClCompile Include="PowerPC\CachedInterpreter\CachedInterpreter.cpp" />
+    <ClCompile Include="PowerPC\CachedInterpreter\InterpreterBlockCache.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Branch.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_FloatingPoint.cpp" />
@@ -251,7 +254,6 @@
     <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
-    <ClCompile Include="PowerPC\CachedInterpreter.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
     <ClCompile Include="PowerPC\MMU.cpp" />
     <ClCompile Include="PowerPC\PowerPC.cpp" />
@@ -422,8 +424,11 @@
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
+    <ClInclude Include="PowerPC\BreakPoints.h" />
     <ClInclude Include="PowerPC\CPUCoreBase.h" />
     <ClInclude Include="PowerPC\Gekko.h" />
+    <ClInclude Include="PowerPC\CachedInterpreter\CachedInterpreter.h" />
+    <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter_Tables.h" />
@@ -451,7 +456,6 @@
     <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
-    <ClInclude Include="PowerPC\CachedInterpreter.h" />
     <ClInclude Include="PowerPC\JitInterface.h" />
     <ClInclude Include="PowerPC\PowerPC.h" />
     <ClInclude Include="PowerPC\PPCAnalyst.h" />

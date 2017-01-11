@@ -47,69 +47,69 @@ SIOCtlVBuffer::SIOCtlVBuffer(const u32 address) : m_Address(address)
 }
 
 IWII_IPC_HLE_Device::IWII_IPC_HLE_Device(const u32 device_id, const std::string& device_name,
-                                         const bool hardware)
-    : m_Name(device_name), m_DeviceID(device_id), m_Hardware(hardware)
+                                         const DeviceType type)
+    : m_name(device_name), m_device_id(device_id), m_device_type(type)
 {
 }
 
 void IWII_IPC_HLE_Device::DoState(PointerWrap& p)
 {
   DoStateShared(p);
-  p.Do(m_Active);
+  p.Do(m_is_active);
 }
 
 void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
 {
-  p.Do(m_Name);
-  p.Do(m_DeviceID);
-  p.Do(m_Hardware);
-  p.Do(m_Active);
+  p.Do(m_name);
+  p.Do(m_device_id);
+  p.Do(m_device_type);
+  p.Do(m_is_active);
 }
 
 IPCCommandResult IWII_IPC_HLE_Device::Open(u32 command_address, u32 mode)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Open()", m_Name.c_str());
-  Memory::Write_U32(FS_ENOENT, command_address + 4);
-  m_Active = true;
+  m_is_active = true;
   return GetDefaultReply();
 }
 
 IPCCommandResult IWII_IPC_HLE_Device::Close(u32 command_address, bool force)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Close()", m_Name.c_str());
-  if (!force)
-    Memory::Write_U32(FS_EINVAL, command_address + 4);
-  m_Active = false;
+  m_is_active = false;
   return GetDefaultReply();
 }
 
 IPCCommandResult IWII_IPC_HLE_Device::Seek(u32 command_address)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Seek()", m_Name.c_str());
+  WARN_LOG(WII_IPC_HLE, "%s does not support Seek()", m_name.c_str());
+  Memory::Write_U32(IPC_EINVAL, command_address);
   return GetDefaultReply();
 }
 
 IPCCommandResult IWII_IPC_HLE_Device::Read(u32 command_address)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Read()", m_Name.c_str());
+  WARN_LOG(WII_IPC_HLE, "%s does not support Read()", m_name.c_str());
+  Memory::Write_U32(IPC_EINVAL, command_address);
   return GetDefaultReply();
 }
 
 IPCCommandResult IWII_IPC_HLE_Device::Write(u32 command_address)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support Write()", m_Name.c_str());
+  WARN_LOG(WII_IPC_HLE, "%s does not support Write()", m_name.c_str());
+  Memory::Write_U32(IPC_EINVAL, command_address);
   return GetDefaultReply();
 }
 
 IPCCommandResult IWII_IPC_HLE_Device::IOCtl(u32 command_address)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtl()", m_Name.c_str());
+  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtl()", m_name.c_str());
+  Memory::Write_U32(IPC_EINVAL, command_address);
   return GetDefaultReply();
 }
 
 IPCCommandResult IWII_IPC_HLE_Device::IOCtlV(u32 command_address)
 {
-  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtlV()", m_Name.c_str());
+  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtlV()", m_name.c_str());
+  Memory::Write_U32(IPC_EINVAL, command_address);
   return GetDefaultReply();
 }
 

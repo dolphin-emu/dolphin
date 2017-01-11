@@ -123,7 +123,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::DoState(PointerWrap& p)
     return;
   }
 
-  p.Do(m_Active);
+  p.Do(m_is_active);
   p.Do(m_ControllerBD);
   p.Do(m_CtrlSetup);
   p.Do(m_ACLSetup);
@@ -154,8 +154,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Open(u32 _CommandAddre
   m_HCIEndpoint.m_cmd_address = 0;
   m_ACLEndpoint.m_cmd_address = 0;
 
-  Memory::Write_U32(GetDeviceID(), _CommandAddress + 4);
-  m_Active = true;
+  m_is_active = true;
   return GetDefaultReply();
 }
 
@@ -169,17 +168,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Close(u32 _CommandAddr
   m_HCIEndpoint.m_cmd_address = 0;
   m_ACLEndpoint.m_cmd_address = 0;
 
-  if (!_bForce)
-    Memory::Write_U32(0, _CommandAddress + 4);
-  m_Active = false;
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtl(u32 _CommandAddress)
-{
-  // NeoGamma (homebrew) is known to use this path.
-  ERROR_LOG(WII_IPC_WIIMOTE, "Bad IOCtl in CWII_IPC_HLE_Device_usb_oh1_57e_305");
-  Memory::Write_U32(FS_EINVAL, _CommandAddress + 4);
+  m_is_active = false;
   return GetDefaultReply();
 }
 

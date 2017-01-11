@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <tuple>
 
@@ -17,8 +18,8 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-constexpr int CODE_SIZE = 1024 * 1024 * 32;
-constexpr int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
+constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
+constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 48;
 
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
@@ -29,7 +30,7 @@ public:
   void Shutdown() override;
 
   JitBaseBlockCache* GetBlockCache() override { return &blocks; }
-  bool IsInCodeSpace(u8* ptr) const { return IsInSpace(ptr); }
+  bool IsInCodeSpace(const u8* ptr) const { return IsInSpace(ptr); }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
 
   void ClearCache() override;
@@ -177,7 +178,7 @@ private:
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
 
-  JitArm64BlockCache blocks;
+  JitArm64BlockCache blocks{*this};
 
   PPCAnalyst::CodeBuffer code_buffer;
 
