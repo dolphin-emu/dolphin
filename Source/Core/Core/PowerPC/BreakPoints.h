@@ -51,7 +51,7 @@ public:
   using TBreakPoints = std::vector<TBreakPoint>;
   using TBreakPointsStr = std::vector<std::string>;
 
-  const TBreakPoints& GetBreakPoints() { return m_breakpoints; }
+  const TBreakPoints& GetBreakPoints() const { return m_breakpoints; }
   TBreakPointsStr GetStrings() const;
   void AddFromStrings(const TBreakPointsStr& bp_strings);
 
@@ -79,7 +79,7 @@ public:
   using TMemChecks = std::vector<TMemCheck>;
   using TMemChecksStr = std::vector<std::string>;
 
-  const TMemChecks& GetMemChecks() { return m_mem_checks; }
+  const TMemChecks& GetMemChecks() const { return m_mem_checks; }
   TMemChecksStr GetStrings() const;
   void AddFromStrings(const TMemChecksStr& mc_strings);
 
@@ -101,7 +101,7 @@ public:
   using TWatches = std::vector<TWatch>;
   using TWatchesStr = std::vector<std::string>;
 
-  const TWatches& GetWatches() { return m_watches; }
+  const TWatches& GetWatches() const { return m_watches; }
   TWatchesStr GetStrings() const;
   void AddFromStrings(const TWatchesStr& watch_strings);
 
