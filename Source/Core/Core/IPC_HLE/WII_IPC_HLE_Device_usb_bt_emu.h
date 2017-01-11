@@ -48,7 +48,7 @@ public:
 
   IPCCommandResult IOCtlV(u32 _CommandAddress) override;
 
-  u32 Update() override;
+  void Update() override;
 
   // Send ACL data back to Bluetooth stack
   void SendACLPacket(u16 connection_handle, const u8* data, u32 size);

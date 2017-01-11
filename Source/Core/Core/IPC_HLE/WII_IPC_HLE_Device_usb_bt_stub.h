@@ -22,9 +22,5 @@ public:
   }
   ~CWII_IPC_HLE_Device_usb_oh1_57e_305_stub() override {}
   IPCCommandResult Open(u32 command_address, u32 mode) override;
-  IPCCommandResult Close(u32 command_address, bool force) override { return GetNoReply(); }
-  IPCCommandResult IOCtl(u32 command_address) override { return GetDefaultReply(); }
-  IPCCommandResult IOCtlV(u32 command_address) override { return GetNoReply(); }
   void DoState(PointerWrap& p) override;
-  u32 Update() override { return 0; }
 };

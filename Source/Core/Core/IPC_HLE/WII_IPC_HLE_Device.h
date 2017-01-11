@@ -87,7 +87,7 @@ public:
   virtual IPCCommandResult IOCtl(u32 command_address);
   virtual IPCCommandResult IOCtlV(u32 command_address);
 
-  virtual u32 Update() { return 0; }
+  virtual void Update() {}
   virtual DeviceType GetDeviceType() const { return m_device_type; }
   virtual bool IsOpened() const { return m_is_active; }
   static IPCCommandResult GetDefaultReply();

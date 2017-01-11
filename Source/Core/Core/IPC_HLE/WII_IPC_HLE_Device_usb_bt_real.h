@@ -47,7 +47,6 @@ public:
   IPCCommandResult IOCtlV(u32 command_address) override;
 
   void DoState(PointerWrap& p) override;
-  u32 Update() override { return 0; }
   void UpdateSyncButtonState(bool is_held) override;
   void TriggerSyncButtonPressedEvent() override;
   void TriggerSyncButtonHeldEvent() override;

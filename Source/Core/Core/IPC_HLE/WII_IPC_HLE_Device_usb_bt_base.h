@@ -27,11 +27,8 @@ public:
   virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305_base() override = default;
 
   virtual IPCCommandResult Open(u32 command_address, u32 mode) override = 0;
-  virtual IPCCommandResult Close(u32 command_address, bool force) override = 0;
-  virtual IPCCommandResult IOCtlV(u32 command_address) override = 0;
 
   virtual void DoState(PointerWrap& p) override = 0;
-  virtual u32 Update() override = 0;
 
   virtual void UpdateSyncButtonState(bool is_held) {}
   virtual void TriggerSyncButtonPressedEvent() {}
