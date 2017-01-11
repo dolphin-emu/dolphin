@@ -177,7 +177,7 @@ private:
 
   // Map indexed by the physical memory location.
   // It is used to invalidate blocks based on memory location.
-  std::map<std::pair<u32, u32>, u32> block_map;  // (end_addr, start_addr) -> number
+  std::map<std::pair<u32, u32>, JitBlock*> block_map;  // (end_addr, start_addr) -> block
 
   // Map indexed by the physical address of the entry point.
   // This is used to query the block based on the current PC in a slow way.

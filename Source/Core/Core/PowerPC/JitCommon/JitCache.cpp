@@ -153,7 +153,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& b, bool block_link, const u8* co
   for (u32 block = pAddr / 32; block <= (pAddr + (b.originalSize - 1) * 4) / 32; ++block)
     valid_block.Set(block);
 
-  block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = block_num;
+  block_map[std::make_pair(pAddr + 4 * b.originalSize - 1, pAddr)] = &b;
 
   if (block_link)
   {
@@ -233,7 +233,7 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
     auto it = block_map.lower_bound(std::make_pair(pAddr, 0));
     while (it != block_map.end() && it->first.second < pAddr + length)
     {
-      DestroyBlock(blocks[it->second], true);
+      DestroyBlock(*it->second, true);
       it = block_map.erase(it);
     }
 
