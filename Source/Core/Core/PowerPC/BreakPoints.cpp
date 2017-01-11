@@ -4,6 +4,7 @@
 
 #include "Core/PowerPC/BreakPoints.h"
 
+#include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -15,20 +16,15 @@
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
-  for (const TBreakPoint& bp : m_breakpoints)
-    if (bp.address == address)
-      return true;
-
-  return false;
+  return std::any_of(m_breakpoints.begin(), m_breakpoints.end(),
+                     [address](const auto& bp) { return bp.address == address; });
 }
 
 bool BreakPoints::IsTempBreakPoint(u32 address) const
 {
-  for (const TBreakPoint& bp : m_breakpoints)
-    if (bp.address == address && bp.is_temporary)
-      return true;
-
-  return false;
+  return std::any_of(m_breakpoints.begin(), m_breakpoints.end(), [address](const auto& bp) {
+    return bp.address == address && bp.is_temporary;
+  });
 }
 
 BreakPoints::TBreakPointsStr BreakPoints::GetStrings() const
@@ -233,11 +229,8 @@ bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, boo
 
 bool Watches::IsAddressWatch(u32 address) const
 {
-  for (const TWatch& watch : m_watches)
-    if (watch.address == address)
-      return true;
-
-  return false;
+  return std::any_of(m_watches.begin(), m_watches.end(),
+                     [address](const auto& watch) { return watch.address == address; });
 }
 
 Watches::TWatchesStr Watches::GetStrings() const
