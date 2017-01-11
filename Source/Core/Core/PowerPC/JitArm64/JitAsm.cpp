@@ -73,18 +73,12 @@ void JitArm64::GenerateAsm()
     // iCache[(address >> 2) & iCache_Mask];
     ARM64Reg pc_masked = W25;
     ARM64Reg cache_base = X27;
-    ARM64Reg block_num = W27;
-    ANDI2R(pc_masked, DISPATCHER_PC, JitBaseBlockCache::iCache_Mask << 2);
-    MOVP2R(cache_base, g_jit->GetBlockCache()->GetICache());
-    LDR(block_num, cache_base, EncodeRegTo64(pc_masked));
-
-    // blocks[block_num]
     ARM64Reg block = X30;
-    ARM64Reg jit_block_size = W24;
-    MOVI2R(jit_block_size, sizeof(JitBlock));
-    MUL(block_num, block_num, jit_block_size);
-    MOVP2R(block, g_jit->GetBlockCache()->GetBlocks());
-    ADD(block, block, EncodeRegTo64(block_num));
+    ORRI2R(pc_masked, WZR, JitBaseBlockCache::iCache_Mask << 3);
+    AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ST_LSL, 1));
+    MOVP2R(cache_base, g_jit->GetBlockCache()->GetICache());
+    LDR(block, cache_base, EncodeRegTo64(pc_masked));
+    FixupBranch not_found = CBZ(block);
 
     // b.effectiveAddress != addr || b.msrBits != msr
     ARM64Reg pc_and_msr = W25;
@@ -102,6 +96,7 @@ void JitArm64::GenerateAsm()
     // return blocks[block_num].normalEntry;
     LDR(INDEX_UNSIGNED, block, block, offsetof(JitBlock, normalEntry));
     BR(block);
+    SetJumpTarget(not_found);
     SetJumpTarget(pc_missmatch);
     SetJumpTarget(msr_missmatch);
   }

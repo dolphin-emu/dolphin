@@ -46,7 +46,7 @@ void JitBaseBlockCache::Init()
   s_clear_jit_cache_thread_safe = CoreTiming::RegisterEvent("clearJitCache", ClearCacheThreadSafe);
   JitRegister::Init(SConfig::GetInstance().m_perfDir);
 
-  iCache.fill(0);
+  iCache.fill(nullptr);
   Clear();
 }
 
@@ -99,12 +99,7 @@ bool JitBaseBlockCache::IsFull() const
   return num_blocks >= MAX_NUM_BLOCKS - 1;
 }
 
-JitBlock* JitBaseBlockCache::GetBlocks()
-{
-  return blocks.data();
-}
-
-int* JitBaseBlockCache::GetICache()
+JitBlock** JitBaseBlockCache::GetICache()
 {
   return iCache.data();
 }
@@ -140,9 +135,8 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link, const u8
         std::make_pair(old_b.physicalAddress + 4 * old_b.originalSize - 1, old_b.physicalAddress));
     DestroyBlock(old_b, true);
   }
-  const int block_num = static_cast<int>(&block - &blocks[0]);
   start_block_map[block.physicalAddress] = &block;
-  FastLookupEntryForAddress(block.effectiveAddress) = block_num;
+  FastLookupEntryForAddress(block.effectiveAddress) = &block;
 
   u32 pAddr = block.physicalAddress;
 
@@ -190,16 +184,16 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
 
 const u8* JitBaseBlockCache::Dispatch()
 {
-  int block_num = FastLookupEntryForAddress(PC);
+  JitBlock* block = FastLookupEntryForAddress(PC);
 
-  while (blocks[block_num].effectiveAddress != PC ||
-         blocks[block_num].msrBits != (MSR & JitBlock::JIT_CACHE_MSR_MASK))
+  while (!block || block->effectiveAddress != PC ||
+         block->msrBits != (MSR & JitBlock::JIT_CACHE_MSR_MASK))
   {
     MoveBlockIntoFastCache(PC, MSR & JitBlock::JIT_CACHE_MSR_MASK);
-    block_num = FastLookupEntryForAddress(PC);
+    block = FastLookupEntryForAddress(PC);
   }
 
-  return blocks[block_num].normalEntry;
+  return block->normalEntry;
 }
 
 void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool forced)
@@ -326,7 +320,7 @@ void JitBaseBlockCache::DestroyBlock(JitBlock& block, bool invalidate)
   }
   block.invalid = true;
   start_block_map.erase(block.physicalAddress);
-  FastLookupEntryForAddress(block.effectiveAddress) = 0;
+  FastLookupEntryForAddress(block.effectiveAddress) = nullptr;
 
   UnlinkBlock(block);
 
@@ -353,12 +347,12 @@ void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
   }
   else
   {
-    FastLookupEntryForAddress(addr) = static_cast<int>(block - &blocks[0]);
+    FastLookupEntryForAddress(addr) = block;
     LinkBlock(*block);
   }
 }
 
-int& JitBaseBlockCache::FastLookupEntryForAddress(u32 address)
+JitBlock*& JitBaseBlockCache::FastLookupEntryForAddress(u32 address)
 {
   return iCache[(address >> 2) & iCache_Mask];
 }
