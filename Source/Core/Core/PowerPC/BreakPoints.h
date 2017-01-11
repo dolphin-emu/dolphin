@@ -13,9 +13,9 @@ class DebugInterface;
 
 struct TBreakPoint
 {
-  u32 iAddress;
-  bool bOn;
-  bool bTemporary;
+  u32 iAddress = 0;
+  bool bOn = false;
+  bool bTemporary = false;
 };
 
 struct TMemCheck
@@ -39,9 +39,9 @@ struct TMemCheck
 
 struct TWatch
 {
-  std::string name = "";
-  u32 iAddress;
-  bool bOn;
+  std::string name;
+  u32 iAddress = 0;
+  bool bOn = false;
 };
 
 // Code breakpoints.
