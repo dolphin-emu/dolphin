@@ -6,6 +6,7 @@
 
 #include <array>
 #include <bitset>
+#include <functional>
 #include <map>
 #include <memory>
 #include <vector>
@@ -130,6 +131,7 @@ public:
   JitBlock* GetBlocks();
   int GetNumBlocks() const;
   int* GetICache();
+  void RunOnBlocks(std::function<void(const JitBlock&)> f);
 
   JitBlock* AllocateBlock(u32 em_address);
   void FinalizeBlock(JitBlock& b, bool block_link, const u8* code_ptr);

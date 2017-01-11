@@ -119,6 +119,12 @@ int* JitBaseBlockCache::GetICache()
   return iCache.data();
 }
 
+void JitBaseBlockCache::RunOnBlocks(std::function<void(const JitBlock&)> f)
+{
+  for (int i = 0; i < num_blocks; i++)
+    f(blocks[i]);
+}
+
 JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
   JitBlock& b = blocks[num_blocks];

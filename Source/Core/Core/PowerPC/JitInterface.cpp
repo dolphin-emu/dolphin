@@ -134,26 +134,23 @@ void GetProfileResults(ProfileStats* prof_stats)
   prof_stats->cost_sum = 0;
   prof_stats->timecost_sum = 0;
   prof_stats->block_stats.clear();
-  prof_stats->block_stats.reserve(g_jit->GetBlockCache()->GetNumBlocks());
 
   Core::EState old_state = Core::GetState();
   if (old_state == Core::CORE_RUN)
     Core::SetState(Core::CORE_PAUSE);
 
   QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
-  for (int i = 0; i < g_jit->GetBlockCache()->GetNumBlocks(); i++)
-  {
-    const JitBlock* block = g_jit->GetBlockCache()->GetBlock(i);
+  g_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
     // Rough heuristic.  Mem instructions should cost more.
-    u64 cost = block->originalSize * (block->runCount / 4);
-    u64 timecost = block->ticCounter;
+    u64 cost = block.originalSize * (block.runCount / 4);
+    u64 timecost = block.ticCounter;
     // Todo: tweak.
-    if (block->runCount >= 1)
-      prof_stats->block_stats.emplace_back(i, block->effectiveAddress, cost, timecost,
-                                           block->runCount, block->codeSize);
+    if (block.runCount >= 1)
+      prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, block.runCount,
+                                           block.codeSize);
     prof_stats->cost_sum += cost;
     prof_stats->timecost_sum += timecost;
-  }
+  });
 
   sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
   if (old_state == Core::CORE_RUN)
