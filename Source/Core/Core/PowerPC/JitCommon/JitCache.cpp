@@ -159,7 +159,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& b, bool block_link, const u8* co
   {
     for (const auto& e : b.linkData)
     {
-      links_to.emplace(e.exitAddress, block_num);
+      links_to.emplace(e.exitAddress, &b);
     }
 
     LinkBlock(b);
@@ -295,7 +295,7 @@ void JitBaseBlockCache::LinkBlock(JitBlock& b)
 
   for (auto iter = ppp.first; iter != ppp.second; ++iter)
   {
-    JitBlock& b2 = blocks[iter->second];
+    JitBlock& b2 = *iter->second;
     if (b.msrBits == b2.msrBits)
       LinkBlockExits(b2);
   }
@@ -307,7 +307,7 @@ void JitBaseBlockCache::UnlinkBlock(const JitBlock& b)
 
   for (auto iter = ppp.first; iter != ppp.second; ++iter)
   {
-    JitBlock& sourceBlock = blocks[iter->second];
+    JitBlock& sourceBlock = *iter->second;
     if (sourceBlock.msrBits != b.msrBits)
       continue;
 
@@ -340,7 +340,7 @@ void JitBaseBlockCache::DestroyBlock(JitBlock& b, bool invalidate)
   auto it = links_to.equal_range(b.effectiveAddress);
   while (it.first != it.second)
   {
-    if (it.first->second == &b - &blocks[0])
+    if (it.first->second == &b)
       it.first = links_to.erase(it.first);
     else
       it.first++;

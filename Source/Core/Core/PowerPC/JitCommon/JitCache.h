@@ -173,7 +173,7 @@ private:
 
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which links to an address.
-  std::multimap<u32, int> links_to;  // destination_PC -> number
+  std::multimap<u32, JitBlock*> links_to;  // destination_PC -> number
 
   // Map indexed by the physical memory location.
   // It is used to invalidate blocks based on memory location.
