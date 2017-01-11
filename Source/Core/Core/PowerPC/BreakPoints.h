@@ -48,8 +48,8 @@ struct TWatch
 class BreakPoints
 {
 public:
-  typedef std::vector<TBreakPoint> TBreakPoints;
-  typedef std::vector<std::string> TBreakPointsStr;
+  using TBreakPoints = std::vector<TBreakPoint>;
+  using TBreakPointsStr = std::vector<std::string>;
 
   const TBreakPoints& GetBreakPoints() { return m_BreakPoints; }
   TBreakPointsStr GetStrings() const;
@@ -76,8 +76,8 @@ private:
 class MemChecks
 {
 public:
-  typedef std::vector<TMemCheck> TMemChecks;
-  typedef std::vector<std::string> TMemChecksStr;
+  using TMemChecks = std::vector<TMemCheck>;
+  using TMemChecksStr = std::vector<std::string>;
 
   TMemChecks m_MemChecks;
 
@@ -98,8 +98,8 @@ public:
 class Watches
 {
 public:
-  typedef std::vector<TWatch> TWatches;
-  typedef std::vector<std::string> TWatchesStr;
+  using TWatches = std::vector<TWatch>;
+  using TWatchesStr = std::vector<std::string>;
 
   const TWatches& GetWatches() { return m_Watches; }
   TWatchesStr GetStrings() const;
