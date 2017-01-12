@@ -98,6 +98,16 @@ private:
   Common::Flag m_fake_vendor_command_reply;
   u16 m_fake_vendor_command_reply_opcode;
 
+  // This stores the address of paired devices and associated link keys.
+  // It is needed because some adapters forget all stored link keys when they are reset,
+  // which breaks pairings because the Wii relies on the Bluetooth module to remember them.
+  std::map<btaddr_t, linkkey_t> m_link_keys;
+  Common::Flag m_need_reset_keys;
+
+  // This flag is set when a libusb transfer failed (for reasons other than timing out)
+  // and we showed an OSD message about it.
+  Common::Flag m_showed_failed_transfer;
+
   bool m_is_wii_bt_module = false;
 
   void WaitForHCICommandComplete(u16 opcode);
