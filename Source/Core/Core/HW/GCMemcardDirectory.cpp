@@ -49,6 +49,8 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::Country car
     case 'E':
       gci_region = DiscIO::Country::COUNTRY_USA;
       break;
+    case '\0':
+      // Used by Homeland Network Config File
     case 'C':
       // Used by Datel Action Replay Save
       // can be on any regions card
