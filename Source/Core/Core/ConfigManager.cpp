@@ -29,39 +29,6 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
-// Change from IPL.LNG value to IPL.SADR country code.
-// http://wiibrew.org/wiki/Country_Codes
-static u8 GetSADRCountryCode(DiscIO::Language language)
-{
-  switch (language)
-  {
-  case DiscIO::Language::LANGUAGE_JAPANESE:
-    return 1;  // Japan
-  case DiscIO::Language::LANGUAGE_ENGLISH:
-    return 49;  // USA
-  case DiscIO::Language::LANGUAGE_GERMAN:
-    return 78;  // Germany
-  case DiscIO::Language::LANGUAGE_FRENCH:
-    return 77;  // France
-  case DiscIO::Language::LANGUAGE_SPANISH:
-    return 105;  // Spain
-  case DiscIO::Language::LANGUAGE_ITALIAN:
-    return 83;  // Italy
-  case DiscIO::Language::LANGUAGE_DUTCH:
-    return 94;  // Netherlands
-  case DiscIO::Language::LANGUAGE_SIMPLIFIED_CHINESE:
-  case DiscIO::Language::LANGUAGE_TRADITIONAL_CHINESE:
-    return 157;  // China
-  case DiscIO::Language::LANGUAGE_KOREAN:
-    return 136;  // Korea
-  case DiscIO::Language::LANGUAGE_UNKNOWN:
-    break;
-  }
-
-  PanicAlert("Invalid language. Defaulting to Japanese.");
-  return 1;
-}
-
 SConfig* SConfig::m_Instance;
 
 SConfig::SConfig()
@@ -392,8 +359,6 @@ void SConfig::SaveSettingsToSysconf()
 
   sysconf.SetData<u8>("IPL.SSV", m_wii_screensaver);
   sysconf.SetData<u8>("IPL.LNG", m_wii_language);
-  u8 country_code = GetSADRCountryCode(static_cast<DiscIO::Language>(m_wii_language));
-  sysconf.SetArrayData("IPL.SADR", &country_code, 1);
 
   sysconf.SetData<u8>("IPL.AR", m_wii_aspect_ratio);
   sysconf.SetData<u8>("BT.BAR", m_sensor_bar_position);
