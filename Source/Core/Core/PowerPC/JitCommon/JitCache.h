@@ -74,6 +74,10 @@ struct JitBlock
   u64 ticStart;    // for profiling - time.
   u64 ticStop;     // for profiling - time.
   u64 ticCounter;  // for profiling - time.
+
+  // This tracks the position if this block within the icache.
+  // We allow each block to have one icache entry.
+  size_t in_icache;
 };
 
 typedef void (*CompiledCode)();
@@ -163,7 +167,7 @@ private:
   void MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
   // Fast but risky block lookup based on iCache.
-  JitBlock*& FastLookupEntryForAddress(u32 address);
+  size_t FastLookupEntryForAddress(u32 address);
 
   // We store the metadata of all blocks in a linear way within this array.
   // Note: blocks[0] must not be used as it is referenced as invalid block in iCache.
