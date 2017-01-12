@@ -7,6 +7,9 @@
 #if defined(__LIBUSB__)
 #include <array>
 #include <atomic>
+#include <map>
+#include <memory>
+#include <mutex>
 #include <string>
 #include <thread>
 
@@ -57,6 +60,9 @@ public:
   void TriggerSyncButtonPressedEvent() override;
   void TriggerSyncButtonHeldEvent() override;
 
+  void HandleCtrlTransfer(libusb_transfer* finished_transfer);
+  void HandleBulkOrIntrTransfer(libusb_transfer* finished_transfer);
+
 private:
   static constexpr u8 INTERFACE = 0x00;
   // Arbitrarily chosen value that allows emulated software to send commands often enough
@@ -74,6 +80,18 @@ private:
 
   Common::Flag m_thread_running;
   std::thread m_thread;
+
+  std::mutex m_transfers_mutex;
+  struct PendingTransfer
+  {
+    PendingTransfer(std::unique_ptr<USB::TransferCommand> command_, std::unique_ptr<u8[]> buffer_)
+        : command(std::move(command_)), buffer(std::move(buffer_))
+    {
+    }
+    std::unique_ptr<USB::TransferCommand> command;
+    std::unique_ptr<u8[]> buffer;
+  };
+  std::map<libusb_transfer*, PendingTransfer> m_current_transfers;
 
   // Set when we received a command to which we need to fake a reply
   Common::Flag m_fake_read_buffer_size_reply;
@@ -99,8 +117,6 @@ private:
   void StartTransferThread();
   void StopTransferThread();
   void TransferThread();
-  static void CommandCallback(libusb_transfer* transfer);
-  static void TransferCallback(libusb_transfer* transfer);
 };
 }  // namespace Device
 }  // namespace HLE
