@@ -707,8 +707,9 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   {
     wxString caption = event.GetString().BeforeFirst(':');
     wxString text = event.GetString().AfterFirst(':');
-    bPanicResult = (wxYES == wxMessageBox(text, caption, event.GetInt() ? wxYES_NO : wxOK,
-                                          wxWindow::FindFocus()));
+    bPanicResult =
+        (wxYES == wxMessageBox(text, caption, wxSTAY_ON_TOP | (event.GetInt() ? wxYES_NO : wxOK),
+                               wxWindow::FindFocus()));
     panic_event.Set();
   }
   break;
