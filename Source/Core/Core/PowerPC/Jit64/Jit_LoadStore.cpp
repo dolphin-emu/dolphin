@@ -17,6 +17,7 @@
 #include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -355,7 +356,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     SwitchToFarCode();
     SetJumpTarget(slow);
   }
-  MOV(32, M(&PC), Imm32(js.compilerPC));
+  MOV(32, PPCSTATE(pc), Imm32(js.compilerPC));
   BitSet32 registersInUse = CallerSavedRegistersInUse();
   ABI_PushRegistersAndAdjustStack(registersInUse, 0);
   ABI_CallFunctionR(PowerPC::ClearCacheLine, RSCRATCH);

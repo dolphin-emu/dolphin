@@ -362,7 +362,7 @@ void Jit64::DoMergedBranch()
   if (next.OPCD == 16)  // bcx
   {
     if (next.LK)
-      MOV(32, M(&LR), Imm32(nextPC + 4));
+      MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
 
     u32 destination;
     if (next.AA)
@@ -374,18 +374,18 @@ void Jit64::DoMergedBranch()
   else if ((next.OPCD == 19) && (next.SUBOP10 == 528))  // bcctrx
   {
     if (next.LK)
-      MOV(32, M(&LR), Imm32(nextPC + 4));
-    MOV(32, R(RSCRATCH), M(&CTR));
+      MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
+    MOV(32, R(RSCRATCH), PPCSTATE(spr[SPR_CTR]));
     AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     WriteExitDestInRSCRATCH(next.LK, nextPC + 4);
   }
   else if ((next.OPCD == 19) && (next.SUBOP10 == 16))  // bclrx
   {
-    MOV(32, R(RSCRATCH), M(&LR));
+    MOV(32, R(RSCRATCH), PPCSTATE(spr[SPR_LR]));
     if (!m_enable_blr_optimization)
       AND(32, R(RSCRATCH), Imm32(0xFFFFFFFC));
     if (next.LK)
-      MOV(32, M(&LR), Imm32(nextPC + 4));
+      MOV(32, PPCSTATE(spr[SPR_LR]), Imm32(nextPC + 4));
     WriteBLRExit();
   }
   else
