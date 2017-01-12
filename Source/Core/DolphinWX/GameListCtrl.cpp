@@ -923,7 +923,7 @@ void CGameListCtrl::OnMouseMotion(wxMouseEvent& event)
       GetItemRect(item, Rect);
       int mx = Rect.GetWidth();
       int my = Rect.GetY();
-#ifndef __WXMSW__
+#if !defined(__WXMSW__) && !defined(__WXOSX__)
       // For some reason the y position does not account for the header
       // row, so subtract the y position of the first visible item.
       GetItemRect(GetTopItem(), Rect);
