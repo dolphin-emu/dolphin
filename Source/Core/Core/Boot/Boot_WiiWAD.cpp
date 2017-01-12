@@ -89,13 +89,8 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   if (titleID == TITLEID_SYSMENU)
     HLE_IPC_CreateVirtualFATFilesystem();
   // setup Wii memory
-  if (!SetupWiiMemory(ContentLoader.GetCountry()))
+  if (!SetupWiiMemory())
     return false;
-  // this sets a bit that is used to detect NTSC-J
-  if (ContentLoader.GetCountry() == DiscIO::Country::COUNTRY_JAPAN)
-  {
-    VideoInterface::SetRegionReg('J');
-  }
   // DOL
   const DiscIO::SNANDContent* pContent =
       ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());

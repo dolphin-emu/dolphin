@@ -38,6 +38,16 @@ enum class Country
   NUMBER_OF_COUNTRIES
 };
 
+// Regions 0 - 2 and 4 match Nintendo's Wii region numbering.
+enum class Region
+{
+  NTSC_J = 0,          // Japan and Taiwan
+  NTSC_U = 1,          // Mainly North America
+  PAL = 2,             // Mainly Europe and Oceania
+  UNKNOWN_REGION = 3,  // 3 seems to be unused? Anyway, we need an UNKNOWN_REGION. Let's put it here
+  NTSC_K = 4           // South Korea (Wii only)
+};
+
 // Languages 0 - 9 match Nintendo's Wii language numbering.
 // Languages 1 - 6 match Nintendo's PAL GameCube languages 0 - 5.
 // NTSC GameCubes only support one language and thus don't number languages.
@@ -56,6 +66,9 @@ enum class Language
   LANGUAGE_UNKNOWN
 };
 
+bool IsNTSC(Region region);
+Region RegionSwitchGC(u8 country_code);
+Region RegionSwitchWii(u8 country_code);
 Country CountrySwitch(u8 country_code);
 u8 GetSysMenuRegion(u16 title_version);
 std::string GetCompanyFromID(const std::string& company_id);

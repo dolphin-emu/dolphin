@@ -74,8 +74,8 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
       0x10000006,
       0x8000002C);  // Console type - DevKit  (retail ID == 0x00000003) see YAGCD 4.2.1.1.2
 
-  PowerPC::HostWrite_U32(SConfig::GetInstance().bNTSC ? 0 : 1,
-                         0x800000CC);  // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
+  const bool ntsc = DiscIO::IsNTSC(SConfig::GetInstance().m_region);
+  PowerPC::HostWrite_U32(ntsc ? 0 : 1, 0x800000CC);  // Fake the VI Init of the IPL (YAGCD 4.2.1.4)
 
   PowerPC::HostWrite_U32(0x01000000, 0x800000d0);  // ARAM Size. 16MB main + 4/16/32MB external
                                                    // (retail consoles have no external ARAM)
@@ -113,13 +113,14 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   DVDRead(apploader_offset + 0x20, 0x01200000, apploader_size + apploader_trailer, false);
 
   // Setup pointers like real BS2 does
-  if (SConfig::GetInstance().bNTSC)
+  if (ntsc)
   {
-    PowerPC::ppcState.gpr[1] = 0x81566550;  // StackPointer, used to be set to 0x816ffff0
-    PowerPC::ppcState.gpr[2] = 0x81465cc0;  // Global pointer to Small Data Area 2 Base (haven't
-                                            // seen anything use it...meh)
-    PowerPC::ppcState.gpr[13] =
-        0x81465320;  // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
+    // StackPointer, used to be set to 0x816ffff0
+    PowerPC::ppcState.gpr[1] = 0x81566550;
+    // Global pointer to Small Data Area 2 Base (haven't seen anything use it...meh)
+    PowerPC::ppcState.gpr[2] = 0x81465cc0;
+    // Global pointer to Small Data Area Base (Luigi's Mansion's apploader uses it)
+    PowerPC::ppcState.gpr[13] = 0x81465320;
   }
   else
   {
@@ -181,28 +182,15 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   return true;
 }
 
-bool CBoot::SetupWiiMemory(DiscIO::Country country)
+bool CBoot::SetupWiiMemory()
 {
-  static const CountrySetting SETTING_EUROPE = {"EUR", "PAL", "EU", "LE"};
-  static const CountrySetting SETTING_USA = {"USA", "NTSC", "US", "LU"};
-  static const CountrySetting SETTING_JAPAN = {"JPN", "NTSC", "JP", "LJ"};
-  static const CountrySetting SETTING_KOREA = {"KOR", "NTSC", "KR", "LKH"};
-  static const std::map<DiscIO::Country, const CountrySetting> country_settings = {
-      {DiscIO::Country::COUNTRY_EUROPE, SETTING_EUROPE},
-      {DiscIO::Country::COUNTRY_USA, SETTING_USA},
-      {DiscIO::Country::COUNTRY_JAPAN, SETTING_JAPAN},
-      {DiscIO::Country::COUNTRY_KOREA, SETTING_KOREA},
-      // TODO: Determine if Taiwan have their own specific settings.
-      //      Also determine if there are other specific settings
-      //      for other countries.
-      {DiscIO::Country::COUNTRY_TAIWAN, SETTING_JAPAN}};
-  auto entryPos = country_settings.find(country);
-  const CountrySetting& country_setting =
-      (entryPos != country_settings.end()) ?
-          entryPos->second :
-          (SConfig::GetInstance().bNTSC ?
-               SETTING_USA :
-               SETTING_EUROPE);  // default to USA or EUR depending on game's video mode
+  static const std::map<DiscIO::Region, const RegionSetting> region_settings = {
+      {DiscIO::Region::NTSC_J, {"JPN", "NTSC", "JP", "LJ"}},
+      {DiscIO::Region::NTSC_U, {"USA", "NTSC", "US", "LU"}},
+      {DiscIO::Region::PAL, {"EUR", "PAL", "EU", "LE"}},
+      {DiscIO::Region::NTSC_K, {"KOR", "NTSC", "KR", "LKH"}}};
+  auto entryPos = region_settings.find(SConfig::GetInstance().m_region);
+  const RegionSetting& region_setting = entryPos->second;
 
   SettingsHandler gen;
   std::string serno;
@@ -233,15 +221,15 @@ bool CBoot::SetupWiiMemory(DiscIO::Country country)
     INFO_LOG(BOOT, "Using serial number: %s", serno.c_str());
   }
 
-  std::string model = "RVL-001(" + country_setting.area + ")";
-  gen.AddSetting("AREA", country_setting.area);
+  std::string model = "RVL-001(" + region_setting.area + ")";
+  gen.AddSetting("AREA", region_setting.area);
   gen.AddSetting("MODEL", model);
   gen.AddSetting("DVD", "0");
   gen.AddSetting("MPCH", "0x7FFE");
-  gen.AddSetting("CODE", country_setting.code);
+  gen.AddSetting("CODE", region_setting.code);
   gen.AddSetting("SERNO", serno);
-  gen.AddSetting("VIDEO", country_setting.video);
-  gen.AddSetting("GAME", country_setting.game);
+  gen.AddSetting("VIDEO", region_setting.video);
+  gen.AddSetting("GAME", region_setting.game);
 
   File::CreateFullPath(settings_Filename);
   {
@@ -317,7 +305,7 @@ bool CBoot::SetupWiiMemory(DiscIO::Country country)
   Memory::Write_U32(0x80000000, 0x00003184);  // GameID Address
 
   // Fake the VI Init of the IPL
-  Memory::Write_U32(SConfig::GetInstance().bNTSC ? 0 : 1, 0x000000CC);
+  Memory::Write_U32(DiscIO::IsNTSC(SConfig::GetInstance().m_region) ? 0 : 1, 0x000000CC);
 
   // Clear exception handler. Why? Don't we begin with only zeros?
   for (int i = 0x3000; i <= 0x3038; i += 4)
@@ -336,10 +324,7 @@ bool CBoot::EmulatedBS2_Wii()
   INFO_LOG(BOOT, "Faking Wii BS2...");
 
   // Setup Wii memory
-  DiscIO::Country country_code = DiscIO::Country::COUNTRY_UNKNOWN;
-  if (DVDInterface::VolumeIsValid())
-    country_code = DVDInterface::GetVolume().GetCountry();
-  if (SetupWiiMemory(country_code) == false)
+  if (!SetupWiiMemory())
     return false;
 
   // Execute the apploader

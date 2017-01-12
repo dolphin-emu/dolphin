@@ -20,7 +20,7 @@ class IOFile;
 
 namespace DiscIO
 {
-enum class Country;
+enum class Region;
 
 bool AddTicket(u64 title_id, const std::vector<u8>& ticket);
 
@@ -94,7 +94,7 @@ public:
   const std::vector<SNANDContent>& GetContent() const { return m_Content; }
   u16 GetTitleVersion() const { return m_TitleVersion; }
   u16 GetNumEntries() const { return m_NumEntries; }
-  DiscIO::Country GetCountry() const;
+  DiscIO::Region GetRegion() const;
   u8 GetCountryChar() const { return m_Country; }
   enum
   {

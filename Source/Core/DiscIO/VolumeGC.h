@@ -19,6 +19,7 @@ namespace DiscIO
 enum class BlobType;
 enum class Country;
 enum class Language;
+enum class Region;
 enum class Platform;
 
 class CVolumeGC : public IVolume
@@ -42,6 +43,7 @@ public:
   u8 GetDiscNumber() const override;
 
   Platform GetVolumeType() const override;
+  Region GetRegion() const override;
   Country GetCountry() const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;

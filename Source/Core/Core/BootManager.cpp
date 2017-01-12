@@ -28,6 +28,7 @@
 #include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+
 #include "Core/BootManager.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -38,6 +39,9 @@
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
+
+#include "DiscIO/Enums.h"
+
 #include "VideoCommon/VideoBackendBase.h"
 
 namespace BootManager
@@ -349,17 +353,19 @@ bool BootCore(const std::string& _rFilename)
     g_SRAM_netplay_initialized = false;
   }
 
+  const bool ntsc = DiscIO::IsNTSC(StartUp.m_region);
+
   // Apply overrides
-  // Some NTSC GameCube games such as Baten Kaitos react strangely to language settings that would
-  // be invalid on an NTSC system
-  if (!StartUp.bOverrideGCLanguage && StartUp.bNTSC)
+  // Some NTSC GameCube games such as Baten Kaitos react strangely to
+  // language settings that would be invalid on an NTSC system
+  if (!StartUp.bOverrideGCLanguage && ntsc)
   {
     StartUp.SelectedLanguage = 0;
   }
 
-  // Some NTSC Wii games such as Doc Louis's Punch-Out!! and 1942 (Virtual Console) crash if the
-  // PAL60 option is enabled
-  if (StartUp.bWii && StartUp.bNTSC)
+  // Some NTSC Wii games such as Doc Louis's Punch-Out!! and
+  // 1942 (Virtual Console) crash if the PAL60 option is enabled
+  if (StartUp.bWii && ntsc)
   {
     StartUp.bPAL60 = false;
   }

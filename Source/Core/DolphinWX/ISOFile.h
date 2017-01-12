@@ -21,6 +21,7 @@ namespace DiscIO
 enum class BlobType;
 enum class Country;
 enum class Language;
+enum class Region;
 enum class Platform;
 }
 
@@ -48,6 +49,7 @@ public:
   u16 GetRevision() const { return m_Revision; }
   const std::string& GetGameID() const { return m_game_id; }
   const std::string GetWiiFSPath() const;
+  DiscIO::Region GetRegion() const { return m_region; }
   DiscIO::Country GetCountry() const { return m_Country; }
   DiscIO::Platform GetPlatform() const { return m_Platform; }
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
@@ -82,6 +84,7 @@ private:
   u64 m_FileSize;
   u64 m_VolumeSize;
 
+  DiscIO::Region m_region;
   DiscIO::Country m_Country;
   DiscIO::Platform m_Platform;
   DiscIO::BlobType m_blob_type;

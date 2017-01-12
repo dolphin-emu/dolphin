@@ -311,12 +311,12 @@ std::vector<u8> CNANDContentLoader::GetKeyFromTicket(const std::vector<u8>& tick
   return AESDecode(common_key, iv, &ticket[0x01BF], 16);
 }
 
-DiscIO::Country CNANDContentLoader::GetCountry() const
+DiscIO::Region CNANDContentLoader::GetRegion() const
 {
   if (!IsValid())
-    return DiscIO::Country::COUNTRY_UNKNOWN;
+    return DiscIO::Region::UNKNOWN_REGION;
 
-  return CountrySwitch(m_Country);
+  return RegionSwitchWii(m_Country);
 }
 
 CNANDContentManager::~CNANDContentManager()

@@ -152,73 +152,18 @@ CEXIMemoryCard::CEXIMemoryCard(const int index, bool gciFolder) : card_index(ind
 
 void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
-  DiscIO::Country country_code = DiscIO::Country::COUNTRY_UNKNOWN;
+  DiscIO::Region region = SConfig::GetInstance().m_region;
+
   std::string game_id = SConfig::GetInstance().m_strGameID;
-
   u32 CurrentGameId = 0;
-  if (game_id == TITLEID_SYSMENU_STRING)
-  {
-    const DiscIO::CNANDContentLoader& SysMenu_Loader =
-        DiscIO::CNANDContentManager::Access().GetNANDLoader(TITLEID_SYSMENU,
-                                                            Common::FROM_SESSION_ROOT);
-    if (SysMenu_Loader.IsValid())
-    {
-      country_code = DiscIO::CountrySwitch(SysMenu_Loader.GetCountryChar());
-    }
-  }
-  else if (game_id.length() >= 4)
-  {
-    country_code = DiscIO::CountrySwitch(game_id.at(3));
+  if (game_id.length() >= 4 && game_id != "00000000" && game_id != TITLEID_SYSMENU_STRING)
     CurrentGameId = BE32((u8*)game_id.c_str());
-  }
-  bool shift_jis = false;
-  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
-  switch (country_code)
-  {
-  case DiscIO::Country::COUNTRY_JAPAN:
-    shift_jis = true;
-    strDirectoryName += JAP_DIR DIR_SEP;
-    break;
-  case DiscIO::Country::COUNTRY_USA:
-    strDirectoryName += USA_DIR DIR_SEP;
-    break;
-  case DiscIO::Country::COUNTRY_UNKNOWN:
-  {
-    // The current game's region is not passed down to the EXI device level.
-    // Usually, we can retrieve the region from SConfig::GetInstance().m_strUniqueId.
-    // The Wii System Menu requires a lookup based on the version number.
-    // This is not possible in some cases ( e.g. FIFO logs, homebrew elf/dol files).
-    // Instead, we then lookup the region from the memory card name
-    // Earlier in the boot process the region is added to the memory card name (This is done by the
-    // function checkMemcardPath)
-    // For now take advantage of this.
-    // Future options:
-    // 			Set memory card directory path in the checkMemcardPath function.
-    // 	or		Add region to SConfig::GetInstance().
-    // 	or		Pass region down to the EXI device creation.
 
-    std::string memcardFilename = (card_index == 0) ? SConfig::GetInstance().m_strMemoryCardA :
-                                                      SConfig::GetInstance().m_strMemoryCardB;
-    std::string region = memcardFilename.substr(memcardFilename.size() - 7, 3);
-    if (region == JAP_DIR)
-    {
-      country_code = DiscIO::Country::COUNTRY_JAPAN;
-      shift_jis = true;
-      strDirectoryName += JAP_DIR DIR_SEP;
-      break;
-    }
-    else if (region == USA_DIR)
-    {
-      country_code = DiscIO::Country::COUNTRY_USA;
-      strDirectoryName += USA_DIR DIR_SEP;
-      break;
-    }
-  }
-  default:
-    country_code = DiscIO::Country::COUNTRY_EUROPE;
-    strDirectoryName += EUR_DIR DIR_SEP;
-  }
-  strDirectoryName += StringFromFormat("Card %c", 'A' + card_index);
+  const bool shift_jis = region == DiscIO::Region::NTSC_J;
+
+  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX) +
+                                 SConfig::GetDirectoryForRegion(region) + DIR_SEP +
+                                 StringFromFormat("Card %c", 'A' + card_index);
 
   if (!File::Exists(strDirectoryName))  // first use of memcard folder, migrate automatically
   {
@@ -234,16 +179,15 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
     else  // we tried but the user wants to crash
     {
       // TODO more user friendly abort
-      PanicAlertT("%s is not a directory, failed to move to *.original.\n Verify your write "
-                  "permissions or move "
-                  "the file outside of Dolphin",
+      PanicAlertT("%s is not a directory, failed to move to *.original.\n Verify your "
+                  "write permissions or move the file outside of Dolphin",
                   strDirectoryName.c_str());
       exit(0);
     }
   }
 
   memorycard = std::make_unique<GCMemcardDirectory>(strDirectoryName + DIR_SEP, card_index, sizeMb,
-                                                    shift_jis, country_code, CurrentGameId);
+                                                    shift_jis, region, CurrentGameId);
 }
 
 void CEXIMemoryCard::SetupRawMemcard(u16 sizeMb)

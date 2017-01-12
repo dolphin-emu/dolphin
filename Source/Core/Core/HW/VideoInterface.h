@@ -343,7 +343,6 @@ union UVIHorizontalStepping
 void Preset(bool _bNTSC);
 
 void Init();
-void SetRegionReg(char region);
 void DoState(PointerWrap& p);
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);

@@ -761,31 +761,28 @@ void SConfig::LoadDefaults()
   m_revision = 0;
 }
 
-static const char* GetRegionOfCountry(DiscIO::Country country)
+const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
 {
-  switch (country)
+  switch (region)
   {
-  case DiscIO::Country::COUNTRY_USA:
-    return USA_DIR;
-
-  case DiscIO::Country::COUNTRY_TAIWAN:
-  case DiscIO::Country::COUNTRY_KOREA:
-  // TODO: Should these have their own Region Dir?
-  case DiscIO::Country::COUNTRY_JAPAN:
+  case DiscIO::Region::NTSC_J:
     return JAP_DIR;
 
-  case DiscIO::Country::COUNTRY_AUSTRALIA:
-  case DiscIO::Country::COUNTRY_EUROPE:
-  case DiscIO::Country::COUNTRY_FRANCE:
-  case DiscIO::Country::COUNTRY_GERMANY:
-  case DiscIO::Country::COUNTRY_ITALY:
-  case DiscIO::Country::COUNTRY_NETHERLANDS:
-  case DiscIO::Country::COUNTRY_RUSSIA:
-  case DiscIO::Country::COUNTRY_SPAIN:
-  case DiscIO::Country::COUNTRY_WORLD:
+  case DiscIO::Region::NTSC_U:
+    return USA_DIR;
+
+  case DiscIO::Region::PAL:
     return EUR_DIR;
 
-  case DiscIO::Country::COUNTRY_UNKNOWN:
+  case DiscIO::Region::NTSC_K:
+    // This function can't return a Korean directory name, because this
+    // function is only used for GameCube things (memory cards, IPL), and
+    // GameCube has no NTSC-K region. Since NTSC-K doesn't correspond to any
+    // GameCube region, let's return an arbitrary pick. Returning nullptr like
+    // with unknown regions would be inappropriate, because Dolphin expects
+    // to get valid memory card paths even when running an NTSC-K Wii game.
+    return JAP_DIR;
+
   default:
     return nullptr;
   }
@@ -837,17 +834,18 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       // Check if we have a Wii disc
       bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;
 
-      const char* retrieved_region_dir = GetRegionOfCountry(pVolume->GetCountry());
+      m_region = pVolume->GetRegion();
+      const char* retrieved_region_dir = GetDirectoryForRegion(m_region);
       if (!retrieved_region_dir)
       {
         if (!PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
                          "\nContinue with PAL region?"))
           return false;
+        m_region = DiscIO::Region::PAL;
         retrieved_region_dir = EUR_DIR;
       }
 
       set_region_dir = retrieved_region_dir;
-      bNTSC = set_region_dir == USA_DIR || set_region_dir == JAP_DIR;
     }
     else if (!strcasecmp(Extension.c_str(), ".elf"))
     {
@@ -857,8 +855,8 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       // all GC homebrew to 50Hz.
       // In the future, it probably makes sense to add a Region setting for homebrew somewhere in
       // the emulator config.
-      bNTSC = bWii ? false : true;
-      set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
+      m_region = bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U;
+      set_region_dir = bWii ? EUR_DIR : USA_DIR;
       m_BootType = BOOT_ELF;
     }
     else if (!strcasecmp(Extension.c_str(), ".dol"))
@@ -866,15 +864,15 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       CDolLoader dolfile(m_strFilename);
       bWii = dolfile.IsWii();
       // TODO: See the ELF code above.
-      bNTSC = bWii ? false : true;
-      set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
+      m_region = bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U;
+      set_region_dir = bWii ? EUR_DIR : USA_DIR;
       m_BootType = BOOT_DOL;
     }
     else if (!strcasecmp(Extension.c_str(), ".dff"))
     {
       bWii = true;
+      m_region = DiscIO::Region::NTSC_U;
       set_region_dir = USA_DIR;
-      bNTSC = true;
       m_BootType = BOOT_DFF;
 
       std::unique_ptr<FifoDataFile> ddfFile(FifoDataFile::Load(m_strFilename, true));
@@ -899,9 +897,9 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
         return false;  // do not boot
       }
 
-      const char* retrieved_region_dir = GetRegionOfCountry(ContentLoader.GetCountry());
+      m_region = ContentLoader.GetRegion();
+      const char* retrieved_region_dir = GetDirectoryForRegion(m_region);
       set_region_dir = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
-      bNTSC = set_region_dir == USA_DIR || set_region_dir == JAP_DIR;
 
       bWii = true;
       m_BootType = BOOT_WII_NAND;
@@ -942,21 +940,21 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   break;
 
   case BOOT_BS2_USA:
+    m_region = DiscIO::Region::NTSC_U;
     set_region_dir = USA_DIR;
     m_strFilename.clear();
-    bNTSC = true;
     break;
 
   case BOOT_BS2_JAP:
+    m_region = DiscIO::Region::NTSC_J;
     set_region_dir = JAP_DIR;
     m_strFilename.clear();
-    bNTSC = true;
     break;
 
   case BOOT_BS2_EUR:
+    m_region = DiscIO::Region::PAL;
     set_region_dir = EUR_DIR;
     m_strFilename.clear();
-    bNTSC = false;
     break;
   }
 

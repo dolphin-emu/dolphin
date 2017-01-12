@@ -16,6 +16,7 @@ namespace DiscIO
 enum class BlobType;
 enum class Country;
 enum class Language;
+enum class Region;
 enum class Platform;
 class IVolume;
 }
@@ -47,6 +48,7 @@ public:
   QString GetApploaderDate() const { return m_apploader_date; }
   DiscIO::Platform GetPlatformID() const { return m_platform; }
   QString GetPlatform() const;
+  DiscIO::Region GetRegion() const { return m_region; }
   DiscIO::Country GetCountryID() const { return m_country; }
   QString GetCountry() const;
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
@@ -96,6 +98,7 @@ private:
   QMap<DiscIO::Language, QString> m_descriptions;
   QString m_company;
   u8 m_disc_number = 0;
+  DiscIO::Region m_region;
   DiscIO::Platform m_platform;
   DiscIO::Country m_country;
   DiscIO::BlobType m_blob_type;

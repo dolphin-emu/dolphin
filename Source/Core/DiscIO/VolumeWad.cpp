@@ -57,14 +57,21 @@ bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) cons
   return m_pReader->Read(_Offset, _Length, _pBuffer);
 }
 
+Region CVolumeWAD::GetRegion() const
+{
+  u8 country_code;
+  if (!Read(m_tmd_offset + 0x0193, 1, &country_code))
+    return Region::UNKNOWN_REGION;
+
+  return RegionSwitchWii(country_code);
+}
+
 Country CVolumeWAD::GetCountry() const
 {
-  if (!m_pReader)
-    return Country::COUNTRY_UNKNOWN;
-
   // read the last digit of the titleID in the ticket
   u8 country_code;
-  Read(m_tmd_offset + 0x0193, 1, &country_code);
+  if (!Read(m_tmd_offset + 0x0193, 1, &country_code))
+    return Country::COUNTRY_UNKNOWN;
 
   if (country_code == 2)  // SYSMENU
   {

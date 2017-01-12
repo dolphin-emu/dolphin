@@ -24,7 +24,7 @@
 const int NO_INDEX = -1;
 static const char* MC_HDR = "MC_SYSTEM_AREA";
 
-int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::Country card_region,
+int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::Region card_region,
                                 bool currentGameOnly)
 {
   File::IOFile gcifile(fileName, "rb");
@@ -39,27 +39,12 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::Country car
       return NO_INDEX;
     }
 
-    DiscIO::Country gci_region;
-    // check region
-    switch (gci.m_gci_header.Gamecode[3])
-    {
-    case 'J':
-      gci_region = DiscIO::Country::COUNTRY_JAPAN;
-      break;
-    case 'E':
-      gci_region = DiscIO::Country::COUNTRY_USA;
-      break;
-    case 'C':
-      // Used by Datel Action Replay Save
-      // can be on any regions card
-      gci_region = card_region;
-      break;
-    default:
-      gci_region = DiscIO::Country::COUNTRY_EUROPE;
-      break;
-    }
-
-    if (gci_region != card_region)
+    DiscIO::Region gci_region = DiscIO::RegionSwitchGC(gci.m_gci_header.Gamecode[3]);
+    // Some special save files have game IDs that we parse as UNKNOWN_REGION. For instance:
+    // - Datel Action Replay uses C as the fourth character. (Can be on any region's card.)
+    // - Homeland's network config file only uses null bytes. (Homeland is exclusive to Japan,
+    //   but maybe the network config file ID was intended to be used in other regions too.)
+    if (card_region != gci_region && gci_region != DiscIO::Region::UNKNOWN_REGION)
     {
       PanicAlertT(
           "GCI save file was not loaded because it is the wrong region for this memory card:\n%s",
@@ -146,7 +131,7 @@ int GCMemcardDirectory::LoadGCI(const std::string& fileName, DiscIO::Country car
 }
 
 GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u16 sizeMb,
-                                       bool shift_jis, DiscIO::Country card_region, int gameId)
+                                       bool shift_jis, DiscIO::Region card_region, int gameId)
     : MemoryCardBase(slot, sizeMb), m_GameId(gameId), m_LastBlock(-1),
       m_hdr(slot, sizeMb, shift_jis), m_bat1(sizeMb), m_saves(0), m_SaveDirectory(directory),
       m_exiting(false)
