@@ -180,14 +180,12 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
   auto map_result = start_block_map.find(translated_addr);
   if (map_result == start_block_map.end())
     return nullptr;
-  JitBlock& b = *map_result->second;
-  if (b.invalid)
+
+  JitBlock* b = map_result->second;
+  if (b->invalid || b->effectiveAddress != addr ||
+      b->msrBits != (msr & JitBlock::JIT_CACHE_MSR_MASK))
     return nullptr;
-  if (b.effectiveAddress != addr)
-    return nullptr;
-  if (b.msrBits != (msr & JitBlock::JIT_CACHE_MSR_MASK))
-    return nullptr;
-  return &b;
+  return b;
 }
 
 const u8* JitBaseBlockCache::Dispatch()
