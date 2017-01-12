@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 #include "Common/NonCopyable.h"
+#include "Common/Timer.h"
 
 #include "Core/HW/EXI_DeviceIPL.h"
 #include "Core/HW/Sram.h"
@@ -136,7 +137,7 @@ struct Header  // Offset    Size    Description
     memset(this, 0xFF, BLOCK_SIZE);
     *(u16*)SizeMb = BE16(sizeMb);
     Encoding = BE16(shift_jis ? 1 : 0);
-    u64 rand = CEXIIPL::GetEmulatedTime(CEXIIPL::GC_EPOCH);
+    u64 rand = Common::Timer::GetLocalTimeSinceJan1970() - CEXIIPL::GC_EPOCH;
     formatTime = Common::swap64(rand);
     for (int i = 0; i < 12; i++)
     {
