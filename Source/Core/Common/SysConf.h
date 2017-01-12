@@ -14,6 +14,11 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
+namespace File
+{
+class IOFile;
+}
+
 // This class is meant to edit the values in a given Wii SYSCONF file
 // It currently does not add/remove/rearrange sections,
 // instead only modifies exiting sections' data
@@ -175,7 +180,7 @@ public:
   void UpdateLocation();
 
 private:
-  bool LoadFromFileInternal(FILE* fh);
+  bool LoadFromFileInternal(File::IOFile&& file);
   void GenerateSysConf();
   void Clear();
 

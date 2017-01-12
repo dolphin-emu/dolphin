@@ -947,13 +947,6 @@ bool IOFile::Close()
   return m_good;
 }
 
-std::FILE* IOFile::ReleaseHandle()
-{
-  std::FILE* const ret = m_file;
-  m_file = nullptr;
-  return ret;
-}
-
 void IOFile::SetHandle(std::FILE* file)
 {
   Close();

@@ -212,8 +212,6 @@ public:
   // m_good is set to false when a read, write or other function fails
   bool IsGood() const { return m_good; }
   explicit operator bool() const { return IsGood() && IsOpen(); }
-  std::FILE* ReleaseHandle();
-
   std::FILE* GetHandle() { return m_file; }
   void SetHandle(std::FILE* file);
 
