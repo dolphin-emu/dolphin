@@ -6,6 +6,7 @@
 
 #include <array>
 #include <bitset>
+#include <functional>
 #include <map>
 #include <memory>
 #include <vector>
@@ -126,17 +127,17 @@ public:
   bool IsFull() const;
 
   // Code Cache
-  JitBlock* GetBlock(int block_num);
   JitBlock* GetBlocks();
-  int GetNumBlocks() const;
   int* GetICache();
+  void RunOnBlocks(std::function<void(const JitBlock&)> f);
 
-  int AllocateBlock(u32 em_address);
-  void FinalizeBlock(int block_num, bool block_link, const u8* code_ptr);
+  JitBlock* AllocateBlock(u32 em_address);
+  void FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr);
 
   // Look for the block in the slow but accurate way.
   // This function shall be used if FastLookupEntryForAddress() failed.
-  int GetBlockNumberFromStartAddress(u32 em_address, u32 msr);
+  // This might return nullptr if there is no such block.
+  JitBlock* GetBlockFromStartAddress(u32 em_address, u32 msr);
 
   // Get the normal entry for the block associated with the current program
   // counter. This will JIT code if necessary. (This is the reference
@@ -155,10 +156,10 @@ private:
   virtual void WriteLinkBlock(const JitBlock::LinkData& source, const JitBlock* dest) = 0;
   virtual void WriteDestroyBlock(const JitBlock& block);
 
-  void LinkBlockExits(int i);
-  void LinkBlock(int i);
-  void UnlinkBlock(int i);
-  void DestroyBlock(int block_num, bool invalidate);
+  void LinkBlockExits(JitBlock& block);
+  void LinkBlock(JitBlock& block);
+  void UnlinkBlock(const JitBlock& block);
+  void DestroyBlock(JitBlock& block, bool invalidate);
 
   void MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
@@ -172,16 +173,16 @@ private:
 
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which links to an address.
-  std::multimap<u32, int> links_to;  // destination_PC -> number
+  std::multimap<u32, JitBlock*> links_to;  // destination_PC -> number
 
   // Map indexed by the physical memory location.
   // It is used to invalidate blocks based on memory location.
-  std::map<std::pair<u32, u32>, u32> block_map;  // (end_addr, start_addr) -> number
+  std::map<std::pair<u32, u32>, JitBlock*> block_map;  // (end_addr, start_addr) -> block
 
   // Map indexed by the physical address of the entry point.
   // This is used to query the block based on the current PC in a slow way.
   // TODO: This is redundant with block_map, and both should be a multimap.
-  std::map<u32, u32> start_block_map;  // start_addr -> number
+  std::map<u32, JitBlock*> start_block_map;  // start_addr -> block
 
   // This bitsets shows which cachelines overlap with any blocks.
   // It is used to provide a fast way to query if no icache invalidation is needed.

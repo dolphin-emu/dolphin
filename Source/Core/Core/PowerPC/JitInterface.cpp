@@ -134,26 +134,23 @@ void GetProfileResults(ProfileStats* prof_stats)
   prof_stats->cost_sum = 0;
   prof_stats->timecost_sum = 0;
   prof_stats->block_stats.clear();
-  prof_stats->block_stats.reserve(g_jit->GetBlockCache()->GetNumBlocks());
 
   Core::EState old_state = Core::GetState();
   if (old_state == Core::CORE_RUN)
     Core::SetState(Core::CORE_PAUSE);
 
   QueryPerformanceFrequency((LARGE_INTEGER*)&prof_stats->countsPerSec);
-  for (int i = 0; i < g_jit->GetBlockCache()->GetNumBlocks(); i++)
-  {
-    const JitBlock* block = g_jit->GetBlockCache()->GetBlock(i);
+  g_jit->GetBlockCache()->RunOnBlocks([&prof_stats](const JitBlock& block) {
     // Rough heuristic.  Mem instructions should cost more.
-    u64 cost = block->originalSize * (block->runCount / 4);
-    u64 timecost = block->ticCounter;
+    u64 cost = block.originalSize * (block.runCount / 4);
+    u64 timecost = block.ticCounter;
     // Todo: tweak.
-    if (block->runCount >= 1)
-      prof_stats->block_stats.emplace_back(i, block->effectiveAddress, cost, timecost,
-                                           block->runCount, block->codeSize);
+    if (block.runCount >= 1)
+      prof_stats->block_stats.emplace_back(block.effectiveAddress, cost, timecost, block.runCount,
+                                           block.codeSize);
     prof_stats->cost_sum += cost;
     prof_stats->timecost_sum += timecost;
-  }
+  });
 
   sort(prof_stats->block_stats.begin(), prof_stats->block_stats.end());
   if (old_state == Core::CORE_RUN)
@@ -168,33 +165,30 @@ int GetHostCode(u32* address, const u8** code, u32* code_size)
     return 1;
   }
 
-  int block_num = g_jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address, MSR);
-  if (block_num < 0)
+  JitBlock* block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address, MSR);
+  if (!block)
   {
     for (int i = 0; i < 500; i++)
     {
-      block_num = g_jit->GetBlockCache()->GetBlockNumberFromStartAddress(*address - 4 * i, MSR);
-      if (block_num >= 0)
+      block = g_jit->GetBlockCache()->GetBlockFromStartAddress(*address - 4 * i, MSR);
+      if (block)
         break;
     }
 
-    if (block_num >= 0)
+    if (block)
     {
-      JitBlock* block = g_jit->GetBlockCache()->GetBlock(block_num);
       if (!(block->effectiveAddress <= *address &&
             block->originalSize + block->effectiveAddress >= *address))
-        block_num = -1;
+        block = nullptr;
     }
 
     // Do not merge this "if" with the above - block_num changes inside it.
-    if (block_num < 0)
+    if (!block)
     {
       *code_size = 0;
       return 2;
     }
   }
-
-  JitBlock* block = g_jit->GetBlockCache()->GetBlock(block_num);
 
   *code = block->checkedEntry;
   *code_size = block->codeSize;

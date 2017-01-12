@@ -507,9 +507,8 @@ void JitIL::Jit(u32 em_address)
     return;
   }
 
-  int block_num = blocks.AllocateBlock(em_address);
-  JitBlock* b = blocks.GetBlock(block_num);
-  blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
+  JitBlock* b = blocks.AllocateBlock(em_address);
+  blocks.FinalizeBlock(*b, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
 }
 
 const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)
