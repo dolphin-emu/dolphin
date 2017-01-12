@@ -263,6 +263,7 @@
     <ClCompile Include="PowerPC\PPCTables.cpp" />
     <ClCompile Include="PowerPC\Profiler.cpp" />
     <ClCompile Include="State.cpp" />
+    <ClCompile Include="WiiRoot.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="ActionReplay.h" />
@@ -464,6 +465,7 @@
     <ClInclude Include="PowerPC\PPCTables.h" />
     <ClInclude Include="PowerPC\Profiler.h" />
     <ClInclude Include="State.h" />
+    <ClInclude Include="WiiRoot.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

@@ -20,46 +20,7 @@
 
 namespace Common
 {
-static std::string s_temp_wii_root;
-
-void InitializeWiiRoot(bool use_dummy)
-{
-  ShutdownWiiRoot();
-  if (use_dummy)
-  {
-    s_temp_wii_root = File::CreateTempDir();
-    if (s_temp_wii_root.empty())
-    {
-      ERROR_LOG(WII_IPC_FILEIO, "Could not create temporary directory");
-      return;
-    }
-    File::CopyDir(File::GetSysDirectory() + WII_USER_DIR, s_temp_wii_root);
-    WARN_LOG(WII_IPC_FILEIO, "Using temporary directory %s for minimal Wii FS",
-             s_temp_wii_root.c_str());
-    static bool s_registered;
-    if (!s_registered)
-    {
-      s_registered = true;
-      atexit(ShutdownWiiRoot);
-    }
-    File::SetUserPath(D_SESSION_WIIROOT_IDX, s_temp_wii_root);
-  }
-  else
-  {
-    File::SetUserPath(D_SESSION_WIIROOT_IDX, File::GetUserPath(D_WIIROOT_IDX));
-  }
-}
-
-void ShutdownWiiRoot()
-{
-  if (!s_temp_wii_root.empty())
-  {
-    File::DeleteDirRecursively(s_temp_wii_root);
-    s_temp_wii_root.clear();
-  }
-}
-
-static std::string RootUserPath(FromWhichRoot from)
+std::string RootUserPath(FromWhichRoot from)
 {
   int idx = from == FROM_CONFIGURED_ROOT ? D_WIIROOT_IDX : D_SESSION_WIIROOT_IDX;
   return File::GetUserPath(idx);

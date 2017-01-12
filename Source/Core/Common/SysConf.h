@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/NandPaths.h"
 
 namespace File
 {
@@ -79,7 +80,7 @@ struct SSysConfEntry
 class SysConf
 {
 public:
-  SysConf();
+  SysConf(Common::FromWhichRoot root_type);
   ~SysConf();
 
   bool IsValid() { return m_IsValid; }
@@ -176,13 +177,13 @@ public:
   bool SaveToFile(const std::string& filename);
   bool LoadFromFile(const std::string& filename);
   bool Reload();
-  // This function is used when the NAND root is changed
-  void UpdateLocation();
+  void UpdateLocation(Common::FromWhichRoot root_type);
 
 private:
   bool LoadFromFileInternal(File::IOFile&& file);
   void GenerateSysConf();
   void Clear();
+  void ApplySettingsFromMovie();
 
   std::string m_Filename;
   std::string m_FilenameDefault;

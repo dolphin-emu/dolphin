@@ -16,6 +16,7 @@ set(SRCS	ActionReplay.cpp
 			NetPlayServer.cpp
 			PatchEngine.cpp
 			State.cpp
+			WiiRoot.cpp
 			Boot/Boot_BS2Emu.cpp
 			Boot/Boot.cpp
 			Boot/Boot_DOL.cpp

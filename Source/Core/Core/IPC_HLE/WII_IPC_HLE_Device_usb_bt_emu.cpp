@@ -12,6 +12,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
 #include "Core/Core.h"
@@ -38,17 +39,10 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu
     u32 _DeviceID, const std::string& _rDeviceName)
     : CWII_IPC_HLE_Device_usb_oh1_57e_305_base(_DeviceID, _rDeviceName)
 {
-  SysConf sysconf;
-  if (Core::g_want_determinism)
-  {
-    // See SysConf::UpdateLocation for comment about the Future.
-    sysconf.LoadFromFile(File::GetUserPath(D_SESSION_WIIROOT_IDX) +
-                         DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF);
-  }
-  else
-  {
+  SysConf sysconf{Core::g_want_determinism ? Common::FromWhichRoot::FROM_SESSION_ROOT :
+                                             Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  if (!Core::g_want_determinism)
     BackUpBTInfoSection(&sysconf);
-  }
 
   // Activate only first Wii Remote by default
 
