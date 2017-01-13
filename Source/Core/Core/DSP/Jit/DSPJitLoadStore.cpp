@@ -8,7 +8,6 @@
 
 #include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
-#include "Core/DSP/Interpreter/DSPInterpreter.h"
 #include "Core/DSP/Jit/DSPEmitter.h"
 
 using namespace Gen;
@@ -70,7 +69,7 @@ void DSPEmitter::lrs(const UDSPInstruction opc)
 // Move value from data memory pointed by address M to register $D.
 void DSPEmitter::lr(const UDSPInstruction opc)
 {
-  int reg = opc & DSP_REG_MASK;
+  int reg = opc & 0x1F;
   u16 address = dsp_imem_read(compilePC + 1);
   dmem_read_imm(address);
   dsp_op_write_reg(reg, EAX);
@@ -83,7 +82,7 @@ void DSPEmitter::lr(const UDSPInstruction opc)
 // Store value from register $S to a memory pointed by address M.
 void DSPEmitter::sr(const UDSPInstruction opc)
 {
-  u8 reg = opc & DSP_REG_MASK;
+  u8 reg = opc & 0x1F;
   u16 address = dsp_imem_read(compilePC + 1);
 
   X64Reg tmp1 = gpr.GetFreeXReg();
