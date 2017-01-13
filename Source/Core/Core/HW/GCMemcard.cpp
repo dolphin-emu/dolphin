@@ -250,7 +250,7 @@ bool GCMemcard::Save()
   return mcdFile.Close();
 }
 
-void calc_checksumsBE(u16* buf, u32 length, u16* csum, u16* inv_csum)
+void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum)
 {
   *csum = *inv_csum = 0;
 
@@ -639,7 +639,7 @@ u32 GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
 }
 // End DEntry functions
 
-u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock>& saveBlocks)
+u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks)
 {
   if (!m_valid)
     return NOMEMCARD;
@@ -1271,7 +1271,7 @@ bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 /* Returns: Error code                                       */
 /*************************************************************/
 
-s32 GCMemcard::FZEROGX_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
+s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                          std::vector<GCMBlock>& FileBuffer)
 {
   u32 i, j;
@@ -1280,7 +1280,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
   int block = 0;
 
   // check for F-Zero GX system file
-  if (strcmp((char*)direntry.Filename, "f_zero.dat") != 0)
+  if (strcmp(reinterpret_cast<const char*>(direntry.Filename), "f_zero.dat") != 0)
     return 0;
 
   // get encrypted destination memory card serial numbers
@@ -1324,7 +1324,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
 /* Returns: Error code                                     */
 /***********************************************************/
 
-s32 GCMemcard::PSO_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
+s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                      std::vector<GCMBlock>& FileBuffer)
 {
   u32 i, j;
@@ -1334,10 +1334,10 @@ s32 GCMemcard::PSO_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
   u32 pso3offset = 0x00;
 
   // check for PSO1&2 system file
-  if (strcmp((char*)direntry.Filename, "PSO_SYSTEM") != 0)
+  if (strcmp(reinterpret_cast<const char*>(direntry.Filename), "PSO_SYSTEM") != 0)
   {
     // check for PSO3 system file
-    if (strcmp((char*)direntry.Filename, "PSO3_SYSTEM") == 0)
+    if (strcmp(reinterpret_cast<const char*>(direntry.Filename), "PSO3_SYSTEM") == 0)
     {
       // PSO3 data block size adjustment
       pso3offset = 0x10;
