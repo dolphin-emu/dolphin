@@ -58,7 +58,7 @@ void decode5A3image(u32* dst, const u16* src, int width, int height)
   }
 }
 
-void decodeCI8image(u32* dst, const u8* src, u16* pal, int width, int height)
+void decodeCI8image(u32* dst, const u8* src, const u16* pal, int width, int height)
 {
   for (int y = 0; y < height; y += 4)
   {

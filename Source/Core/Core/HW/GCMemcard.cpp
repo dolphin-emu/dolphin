@@ -1160,8 +1160,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
     }
   }
 
-  u16* sharedPal = (u16*)(animData);
-  int j = 0;
+  const u16* sharedPal = reinterpret_cast<u16*>(animData);
 
   for (int i = 0; i < 8; i++)
   {
@@ -1183,7 +1182,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
         buffer += 32 * 32;
         break;
       case CI8:  // CI8 with own palette
-        u16* paldata = (u16*)(data[i] + 32 * 32);
+        const u16* paldata = reinterpret_cast<u16*>(data[i] + 32 * 32);
         ColorUtil::decodeCI8image(buffer, data[i], paldata, 32, 32);
         buffer += 32 * 32;
         break;
@@ -1194,7 +1193,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
       // Speed is set but there's no actual icon
       // This is used to reduce animation speed in Pikmin and Luigi's Mansion for example
       // These "blank frames" show the next icon
-      for (j = i; j < 8; ++j)
+      for (int j = i; j < 8; ++j)
       {
         if (fmts[j] != 0)
         {
@@ -1208,7 +1207,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
             buffer += 32 * 32;
             break;
           case CI8:  // CI8 with own palette
-            u16* paldata = (u16*)(data[j] + 32 * 32);
+            const u16* paldata = reinterpret_cast<u16*>(data[j] + 32 * 32);
             ColorUtil::decodeCI8image(buffer, data[j], paldata, 32, 32);
             buffer += 32 * 32;
             break;
