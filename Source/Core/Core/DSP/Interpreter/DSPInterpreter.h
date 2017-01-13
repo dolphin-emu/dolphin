@@ -6,8 +6,6 @@
 
 #include "Core/DSP/DSPCommon.h"
 
-#define DSP_REG_MASK 0x1f
-
 namespace DSP
 {
 namespace Interpreter

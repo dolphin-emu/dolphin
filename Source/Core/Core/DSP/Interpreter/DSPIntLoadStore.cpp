@@ -48,7 +48,7 @@ void lrs(const UDSPInstruction opc)
 // Move value from data memory pointed by address M to register $D.
 void lr(const UDSPInstruction opc)
 {
-  u8 reg = opc & DSP_REG_MASK;
+  u8 reg = opc & 0x1F;
   u16 addr = dsp_fetch_code();
   u16 val = dsp_dmem_read(addr);
   dsp_op_write_reg(reg, val);
@@ -61,7 +61,7 @@ void lr(const UDSPInstruction opc)
 // Store value from register $S to a memory pointed by address M.
 void sr(const UDSPInstruction opc)
 {
-  u8 reg = opc & DSP_REG_MASK;
+  u8 reg = opc & 0x1F;
   u16 addr = dsp_fetch_code();
 
   if (reg >= DSP_REG_ACM0)
