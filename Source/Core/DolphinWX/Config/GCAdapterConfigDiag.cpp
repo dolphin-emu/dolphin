@@ -7,11 +7,12 @@
 #include <wx/checkbox.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
+#include <wx/statline.h>
 
-#include "Common/CommonTypes.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "InputCommon/GCAdapter.h"
+#include "Common/Logging/Log.h"
 
 wxDEFINE_EVENT(wxEVT_ADAPTER_UPDATE, wxCommandEvent);
 
@@ -28,6 +29,10 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
   gamecube_konga->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnAdapterKonga, this);
 
   m_adapter_status = new wxStaticText(this, wxID_ANY, _("Adapter Not Detected"));
+
+  wxCheckBox* const modbxw201fix = new wxCheckBox(this, wxID_ANY, _("Use MOD: BX-W201 adapter fix (Z button won't work)."));
+  modbxw201fix->SetValue(SConfig::GetInstance().m_UseMODBXW201Fix);
+  modbxw201fix->Bind(wxEVT_CHECKBOX, &GCAdapterConfigDiag::OnUseMODBXW201Fix, this);
 
   if (!GCAdapter::IsDetected())
   {
@@ -47,8 +52,11 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
 
   wxBoxSizer* const szr = new wxBoxSizer(wxVERTICAL);
   szr->Add(m_adapter_status, 0, wxEXPAND);
+  szr->Add(new wxStaticLine(this), 0, wxEXPAND);
   szr->Add(gamecube_rumble, 0, wxEXPAND);
   szr->Add(gamecube_konga, 0, wxEXPAND);
+  szr->Add(new wxStaticLine(this), 0, wxEXPAND);
+  szr->Add(modbxw201fix, 0, wxEXPAND);
   szr->AddSpacer(space5);
   szr->Add(CreateButtonSizer(wxCLOSE | wxNO_DEFAULT), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   szr->AddSpacer(space5);
@@ -87,4 +95,17 @@ void GCAdapterConfigDiag::OnAdapterRumble(wxCommandEvent& event)
 void GCAdapterConfigDiag::OnAdapterKonga(wxCommandEvent& event)
 {
   SConfig::GetInstance().m_AdapterKonga[m_pad_id] = event.IsChecked();
+}
+
+// Set if user wants to use the third-party chinese clone adapter marked as "Mod: BX-W201".
+// This will fix the always pressed L trigger.  The Z-button does not work on this adapter.
+void GCAdapterConfigDiag::OnUseMODBXW201Fix(wxCommandEvent& event)
+{
+  const auto checked = event.IsChecked();
+  SConfig::GetInstance().m_UseMODBXW201Fix = checked;
+  if (checked) {
+    NOTICE_LOG(SERIALINTERFACE, "MOD: BX-W201 fix has been enabled. The Z button won't work due to hardware bug.");
+  } else {
+    NOTICE_LOG(SERIALINTERFACE, "MOD: BX-W201 fix has been disabled. ");
+  }
 }

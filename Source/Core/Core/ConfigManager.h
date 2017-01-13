@@ -311,6 +311,7 @@ struct SConfig : NonCopyable
   bool m_BackgroundInput;
   bool m_AdapterRumble[4];
   bool m_AdapterKonga[4];
+  bool m_UseMODBXW201Fix;
 
   // Network settings
   bool m_SSLDumpRead;
