@@ -157,7 +157,7 @@ s32 MemoryCard::Read(u32 srcaddress, s32 length, u8* destaddress)
   return length;
 }
 
-s32 MemoryCard::Write(u32 destaddress, s32 length, u8* srcaddress)
+s32 MemoryCard::Write(u32 destaddress, s32 length, const u8* srcaddress)
 {
   if (!IsAddressInBounds(destaddress))
   {

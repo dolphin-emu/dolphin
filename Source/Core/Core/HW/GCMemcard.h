@@ -76,7 +76,7 @@ public:
   }
   virtual ~MemoryCardBase() {}
   virtual s32 Read(u32 address, s32 length, u8* destaddress) = 0;
-  virtual s32 Write(u32 destaddress, s32 length, u8* srcaddress) = 0;
+  virtual s32 Write(u32 destaddress, s32 length, const u8* srcaddress) = 0;
   virtual void ClearBlock(u32 address) = 0;
   virtual void ClearAll() = 0;
   virtual void DoState(PointerWrap& p) = 0;
@@ -95,7 +95,7 @@ struct GCMBlock
   u8 block[BLOCK_SIZE];
 };
 
-void calc_checksumsBE(u16* buf, u32 length, u16* csum, u16* inv_csum);
+void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum);
 
 #pragma pack(push, 1)
 struct Header  // Offset    Size    Description
@@ -321,9 +321,9 @@ public:
   bool Save();
   bool Format(bool shift_jis = false, u16 SizeMb = MemCard2043Mb);
   static bool Format(u8* card_data, bool shift_jis = false, u16 SizeMb = MemCard2043Mb);
-  static s32 FZEROGX_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
+  static s32 FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                        std::vector<GCMBlock>& FileBuffer);
-  static s32 PSO_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
+  static s32 PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                    std::vector<GCMBlock>& FileBuffer);
 
   u32 TestChecksums() const;
@@ -364,7 +364,7 @@ public:
   u32 GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
 
   // adds the file to the directory and copies its contents
-  u32 ImportFile(DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
+  u32 ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
 
   // delete a file from the directory
   u32 RemoveFile(u8 index);

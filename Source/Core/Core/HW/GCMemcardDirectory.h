@@ -28,7 +28,7 @@ public:
   void FlushToFile();
   void FlushThread();
   s32 Read(u32 address, s32 length, u8* destaddress) override;
-  s32 Write(u32 destaddress, s32 length, u8* srcaddress) override;
+  s32 Write(u32 destaddress, s32 length, const u8* srcaddress) override;
   void ClearBlock(u32 address) override;
   void ClearAll() override {}
   void DoState(PointerWrap& p) override;
@@ -37,7 +37,7 @@ private:
   int LoadGCI(const std::string& fileName, DiscIO::Region card_region, bool currentGameOnly);
   inline s32 SaveAreaRW(u32 block, bool writing = false);
   // s32 DirectoryRead(u32 offset, u32 length, u8* destaddress);
-  s32 DirectoryWrite(u32 destaddress, u32 length, u8* srcaddress);
+  s32 DirectoryWrite(u32 destaddress, u32 length, const u8* srcaddress);
   inline void SyncSaves();
   bool SetUsedBlocks(int saveIndex);
 
