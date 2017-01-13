@@ -191,20 +191,17 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
   if (c1 > c2)
   {
     // Approximation of x/3: 3/8 (1/2 - 1/8)
-    int blue3 = ((blue2 - blue1) >> 1) - ((blue2 - blue1) >> 3);
-    int green3 = ((green2 - green1) >> 1) - ((green2 - green1) >> 3);
-    int red3 = ((red2 - red1) >> 1) - ((red2 - red1) >> 3);
-    colors[2] = MakeRGBA(red1 + red3, green1 + green3, blue1 + blue3, 255);
-    colors[3] = MakeRGBA(red2 - red3, green2 - green3, blue2 - blue3, 255);
+    colors[2] =
+        MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255);
+    colors[3] =
+        MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255);
   }
   else
   {
     // color[3] is the same as color[2] (average of both colors), but transparent.
     // This differs from DXT1 where color[3] is transparent black.
-    colors[2] =
-        MakeRGBA((red1 + red2 + 1) / 2, (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 255);
-    colors[3] =
-        MakeRGBA((red1 + red2 + 1) / 2, (green1 + green2 + 1) / 2, (blue1 + blue2 + 1) / 2, 0);
+    colors[2] = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255);
+    colors[3] = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
   }
 
   for (int y = 0; y < 4; y++)
@@ -1265,26 +1262,31 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
         // if (rgb0 > rgb1):
         if (cmp0 != 0)
         {
-          // RGB2a = ((RGB1 - RGB0) >> 1) - ((RGB1 - RGB0) >> 3)  using arithmetic shifts to
-          // extend sign (not logical shifts)
-          const __m128i rrggbbsub = _mm_subs_epi16(rrggbb1, rrggbb0);
-          const __m128i rrggbbsubshr1 = _mm_srai_epi16(rrggbbsub, 1);
-          const __m128i rrggbbsubshr3 = _mm_srai_epi16(rrggbbsub, 3);
-          const __m128i shr1subshr3 = _mm_sub_epi16(rrggbbsubshr1, rrggbbsubshr3);
-          // low8mask16 == _mm_set_epi16(0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff,
-          // 0x00ff)
-          const __m128i low8mask16 = _mm_srli_epi16(allFFs128, 8);
-          const __m128i rrggbbdelta = _mm_and_si128(shr1subshr3, low8mask16);
-          const __m128i rgbdeltadup = _mm_packus_epi16(rrggbbdelta, rrggbbdelta);
-          const __m128i rgbdelta = _mm_srli_si128(_mm_slli_si128(rgbdeltadup, 8), 8);
+          // RGB2 = (RGB0 * 5 + RGB1 * 3) / 8 = (RGB0 << 2 + RGB1 << 1 + (RGB0 + RGB1)) >> 3
+          // RGB3 = (RGB0 * 3 + RGB1 * 5) / 8 = (RGB0 << 1 + RGB1 << 2 + (RGB0 + RGB1)) >> 3
+          const __m128i rrggbbsum = _mm_add_epi16(rrggbb0, rrggbb1);
 
-          rgb2 = _mm_and_si128(_mm_add_epi8(rgb0, rgbdelta), _mm_srli_si128(allFFs128, 8));
-          rgb3 = _mm_and_si128(_mm_sub_epi8(rgb1, rgbdelta), _mm_srli_si128(allFFs128, 8));
+          const __m128i rrggbb0shl1 = _mm_slli_epi16(rrggbb0, 1);
+          const __m128i rrggbb0shl2 = _mm_slli_epi16(rrggbb0, 2);
+
+          const __m128i rrggbb1shl1 = _mm_slli_epi16(rrggbb1, 1);
+          const __m128i rrggbb1shl2 = _mm_slli_epi16(rrggbb1, 2);
+
+          const __m128i rrggbb2 =
+              _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(rrggbb0shl2, rrggbb1shl1), rrggbbsum), 3);
+          const __m128i rrggbb3 =
+              _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(rrggbb0shl1, rrggbb1shl2), rrggbbsum), 3);
+
+          const __m128i rgb2dup = _mm_packus_epi16(rrggbb2, rrggbb2);
+          const __m128i rgb3dup = _mm_packus_epi16(rrggbb3, rrggbb3);
+
+          rgb2 = _mm_and_si128(rgb2dup, _mm_srli_si128(allFFs128, 8));
+          rgb3 = _mm_and_si128(rgb3dup, _mm_srli_si128(allFFs128, 8));
         }
         else
         {
           // RGB2b = avg(RGB0, RGB1)
-          const __m128i rrggbb21 = _mm_avg_epu16(rrggbb0, rrggbb1);
+          const __m128i rrggbb21 = _mm_srai_epi16(_mm_add_epi16(rrggbb0, rrggbb1), 1);
           const __m128i rgb210 = _mm_srli_si128(_mm_packus_epi16(rrggbb21, rrggbb21), 8);
           rgb2 = rgb210;
           rgb3 = _mm_and_si128(rgb210, _mm_srli_epi32(allFFs128, 8));
@@ -1293,28 +1295,31 @@ static void TexDecoder_DecodeImpl_CMPR(u32* dst, const u8* src, int width, int h
         // if (rgb0 > rgb1):
         if (cmp1 != 0)
         {
-          // RGB2a = ((RGB1 - RGB0) >> 1) - ((RGB1 - RGB0) >> 3)  using arithmetic shifts to
-          // extend sign (not logical shifts)
-          const __m128i rrggbbsub1 = _mm_subs_epi16(rrggbb11, rrggbb01);
-          const __m128i rrggbbsubshr11 = _mm_srai_epi16(rrggbbsub1, 1);
-          const __m128i rrggbbsubshr31 = _mm_srai_epi16(rrggbbsub1, 3);
-          const __m128i shr1subshr31 = _mm_sub_epi16(rrggbbsubshr11, rrggbbsubshr31);
-          // low8mask16 == _mm_set_epi16(0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff, 0x00ff,
-          // 0x00ff)
-          const __m128i low8mask16 = _mm_srli_epi16(allFFs128, 8);
-          const __m128i rrggbbdelta1 = _mm_and_si128(shr1subshr31, low8mask16);
-          __m128i rgbdelta1 = _mm_packus_epi16(rrggbbdelta1, rrggbbdelta1);
-          rgbdelta1 = _mm_slli_si128(rgbdelta1, 8);
+          // RGB2 = (RGB0 * 5 + RGB1 * 3) / 8 = (RGB0 << 2 + RGB1 << 1 + (RGB0 + RGB1)) >> 3
+          // RGB3 = (RGB0 * 3 + RGB1 * 5) / 8 = (RGB0 << 1 + RGB1 << 2 + (RGB0 + RGB1)) >> 3
+          const __m128i rrggbbsum = _mm_add_epi16(rrggbb01, rrggbb11);
 
-          rgb2 = _mm_or_si128(
-              rgb2, _mm_and_si128(_mm_add_epi8(rgb0, rgbdelta1), _mm_slli_si128(allFFs128, 8)));
-          rgb3 = _mm_or_si128(
-              rgb3, _mm_and_si128(_mm_sub_epi8(rgb1, rgbdelta1), _mm_slli_si128(allFFs128, 8)));
+          const __m128i rrggbb0shl1 = _mm_slli_epi16(rrggbb01, 1);
+          const __m128i rrggbb0shl2 = _mm_slli_epi16(rrggbb01, 2);
+
+          const __m128i rrggbb1shl1 = _mm_slli_epi16(rrggbb11, 1);
+          const __m128i rrggbb1shl2 = _mm_slli_epi16(rrggbb11, 2);
+
+          const __m128i rrggbb2 =
+              _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(rrggbb0shl2, rrggbb1shl1), rrggbbsum), 3);
+          const __m128i rrggbb3 =
+              _mm_srli_epi16(_mm_add_epi16(_mm_add_epi16(rrggbb0shl1, rrggbb1shl2), rrggbbsum), 3);
+
+          const __m128i rgb2dup = _mm_packus_epi16(rrggbb2, rrggbb2);
+          const __m128i rgb3dup = _mm_packus_epi16(rrggbb3, rrggbb3);
+
+          rgb2 = _mm_or_si128(rgb2, _mm_and_si128(rgb2dup, _mm_slli_si128(allFFs128, 8)));
+          rgb3 = _mm_or_si128(rgb3, _mm_and_si128(rgb3dup, _mm_slli_si128(allFFs128, 8)));
         }
         else
         {
           // RGB2b = avg(RGB0, RGB1)
-          const __m128i rrggbb211 = _mm_avg_epu16(rrggbb01, rrggbb11);
+          const __m128i rrggbb211 = _mm_srai_epi16(_mm_add_epi16(rrggbb01, rrggbb11), 1);
           const __m128i rgb211 = _mm_slli_si128(_mm_packus_epi16(rrggbb211, rrggbb211), 8);
           rgb2 = _mm_or_si128(rgb2, rgb211);
 
