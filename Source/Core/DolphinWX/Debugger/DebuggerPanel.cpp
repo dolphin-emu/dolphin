@@ -90,8 +90,7 @@ void GFXDebuggerPanel::CreateGUIControls()
                             wxDefaultValidator, _("Count"));
   m_pCount->SetMinSize(WxUtils::GetTextWidgetMinSize(m_pCount, 10000));
 
-  m_pPauseAtList = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, 0,
-                                wxDefaultValidator, _("PauseAtList"));
+  m_pPauseAtList = new wxChoice(this, wxID_ANY);
   for (int i = 0; i < numPauseEventMap; i++)
   {
     m_pPauseAtList->Append(pauseEventMap[i].ListStr);
@@ -130,8 +129,7 @@ void GFXDebuggerPanel::CreateGUIControls()
   m_pButtonClearPixelShaderCache->Bind(wxEVT_BUTTON,
                                        &GFXDebuggerPanel::OnClearPixelShaderCacheButton, this);
 
-  m_pDumpList = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, 0,
-                             wxDefaultValidator, _("DumpList"));
+  m_pDumpList = new wxChoice(this, wxID_ANY);
   m_pDumpList->Insert(_("Pixel Shader"), 0);
   m_pDumpList->Append(_("Vertex Shader"));
   m_pDumpList->Append(_("Pixel Shader Constants"));
