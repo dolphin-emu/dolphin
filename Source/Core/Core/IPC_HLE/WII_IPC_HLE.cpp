@@ -48,6 +48,8 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_kbd.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_ven.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_wfssrv.h"
+#include "Core/IPC_HLE/WII_IPC_HLE_Device_wfsi.h"
 
 namespace CoreTiming
 {
@@ -157,6 +159,8 @@ void Reinit()
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/hid");
 #endif
   AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
+  AddDevice<CWII_IPC_HLE_Device_usb_wfssrv>("/dev/usb/wfssrv");
+  AddDevice<CWII_IPC_HLE_Device_wfsi>("/dev/wfsi");
 }
 
 void Init()

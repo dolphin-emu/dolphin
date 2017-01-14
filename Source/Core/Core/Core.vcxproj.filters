@@ -133,6 +133,9 @@
     <Filter Include="IPC HLE %28IOS/Starlet%29\USB">
       <UniqueIdentifier>{4a090016-76d5-43dd-95a4-abedfc11ef31}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IPC HLE %28IOS/Starlet%29\WFS">
+      <UniqueIdentifier>{f11746cf-277a-4d58-bcf1-578a45348b07}</UniqueIdentifier>
+    </Filter>
     <Filter Include="IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote">
       <UniqueIdentifier>{8352be4d-d37d-4f55-adec-b940a9712802}</UniqueIdentifier>
     </Filter>
@@ -565,6 +568,9 @@
     <ClCompile Include="DSP\LabelMap.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
+    <ClCompile Include="IPC_HLE\ESFormats.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClCompile>
@@ -627,6 +633,12 @@
     </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_stub.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_wfssrv.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\WFS</Filter>
+    </ClCompile>
+    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_wfsi.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\WFS</Filter>
     </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
@@ -1162,6 +1174,9 @@
     <ClInclude Include="DSP\LabelMap.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
+    <ClInclude Include="IPC_HLE\ESFormats.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
+    </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE.h">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClInclude>
@@ -1236,6 +1251,12 @@
     </ClInclude>
     <ClInclude Include="IPC_HLE\WiiMote_HID_Attr.h">
       <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_wfssrv.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\WFS</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_wfsi.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\WFS</Filter>
     </ClInclude>
     <ClInclude Include="HW\Wiimote.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>

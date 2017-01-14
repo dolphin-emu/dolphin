@@ -135,6 +135,7 @@ set(SRCS	ActionReplay.cpp
 			HW/WiimoteEmu/Speaker.cpp
 			HW/WiimoteReal/WiimoteReal.cpp
 			HW/WiiSaveCrypted.cpp
+			IPC_HLE/ESFormats.cpp
 			IPC_HLE/ICMPLin.cpp
 			IPC_HLE/NWC24Config.cpp
 			IPC_HLE/WII_IPC_HLE.cpp
@@ -154,6 +155,8 @@ set(SRCS	ActionReplay.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
 			IPC_HLE/WII_IPC_HLE_Device_usb_ven.cpp
+			IPC_HLE/WII_IPC_HLE_Device_usb_wfssrv.cpp
+			IPC_HLE/WII_IPC_HLE_Device_wfsi.cpp
 			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
 			IPC_HLE/WiiMote_HID_Attr.cpp
 			IPC_HLE/WiiNetConfig.cpp

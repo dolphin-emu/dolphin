@@ -53,6 +53,7 @@
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/IPC_HLE/ESFormats.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
@@ -105,6 +106,15 @@ void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile)
   m_ContentFile = _rContentFile;
 }
 
+void CWII_IPC_HLE_Device_es::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv,
+                                            u8* output)
+{
+  mbedtls_aes_context AES_ctx;
+  mbedtls_aes_setkey_dec(&AES_ctx, keyTable[key_index], 128);
+  memcpy(new_iv, iv, 16);
+  mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, new_iv, input, output);
+}
+
 void CWII_IPC_HLE_Device_es::OpenInternal()
 {
   auto& contentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
@@ -141,6 +151,10 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
   OpenInternal();
   p.Do(m_AccessIdentID);
   p.Do(m_TitleIDs);
+
+  m_addtitle_tmd.DoState(p);
+  p.Do(m_addtitle_content_id);
+  p.Do(m_addtitle_content_buffer);
 
   u32 Count = (u32)(m_ContentAccessMap.size());
   p.Do(Count);
@@ -255,6 +269,152 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
 
   switch (Buffer.Parameter)
   {
+  case IOCTL_ES_ADDTICKET:
+  {
+    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 3,
+                     "IOCTL_ES_ADDTICKET wrong number of inputs");
+
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDTICKET");
+    std::vector<u8> ticket(Buffer.InBuffer[0].m_Size);
+    Memory::CopyFromEmu(ticket.data(), Buffer.InBuffer[0].m_Address, Buffer.InBuffer[0].m_Size);
+    DiscIO::AddTicket(ticket);
+    break;
+  }
+
+  case IOCTL_ES_ADDTITLESTART:
+  {
+    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 4,
+                     "IOCTL_ES_ADDTITLESTART wrong number of inputs");
+
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDTITLESTART");
+    std::vector<u8> tmd(Buffer.InBuffer[0].m_Size);
+    Memory::CopyFromEmu(tmd.data(), Buffer.InBuffer[0].m_Address, Buffer.InBuffer[0].m_Size);
+
+    m_addtitle_tmd.SetBytes(tmd);
+    if (!m_addtitle_tmd.IsValid())
+    {
+      ERROR_LOG(WII_IPC_ES, "Invalid TMD while adding title (size = %zd)", tmd.size());
+      Memory::Write_U32(ES_INVALID_TMD, _CommandAddress + 0x4);
+      return GetDefaultReply();
+    }
+
+    // Write the TMD to title storage.
+    std::string tmd_path =
+        Common::GetTMDFileName(m_addtitle_tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
+    File::CreateFullPath(tmd_path);
+
+    File::IOFile fp(tmd_path, "wb");
+    fp.WriteBytes(tmd.data(), tmd.size());
+    break;
+  }
+
+  case IOCTL_ES_ADDCONTENTSTART:
+  {
+    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 2,
+                     "IOCTL_ES_ADDCONTENTSTART wrong number of inputs");
+
+    u64 title_id = Memory::Read_U64(Buffer.InBuffer[0].m_Address);
+    u32 content_id = Memory::Read_U32(Buffer.InBuffer[1].m_Address);
+
+    if (m_addtitle_content_id != 0xFFFFFFFF)
+    {
+      ERROR_LOG(WII_IPC_ES, "Trying to add content when we haven't finished adding "
+                            "another content. Unsupported.");
+      Memory::Write_U32(ES_WRITE_FAILURE, _CommandAddress + 0x4);
+      return GetDefaultReply();
+    }
+    m_addtitle_content_id = content_id;
+
+    m_addtitle_content_buffer.clear();
+
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 ", "
+                         "content id %08x",
+             title_id, m_addtitle_content_id);
+
+    if (title_id != m_addtitle_tmd.GetTitleId())
+    {
+      ERROR_LOG(WII_IPC_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 " != "
+                            "TMD title id %016lx, ignoring",
+                title_id, m_addtitle_tmd.GetTitleId());
+    }
+
+    // We're supposed to return a "content file descriptor" here, which is
+    // passed to further AddContentData / AddContentFinish. But so far there is
+    // no known content installer which performs content addition concurrently.
+    // Instead we just log an error (see above) if this condition is detected.
+    s32 content_fd = 0;
+    Memory::Write_U32(content_fd, _CommandAddress + 0x4);
+    return GetDefaultReply();
+  }
+
+  case IOCTL_ES_ADDCONTENTDATA:
+  {
+    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 2,
+                     "IOCTL_ES_ADDCONTENTDATA wrong number of inputs");
+
+    u32 content_fd = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDCONTENTDATA: content fd %08x, "
+                         "size %d",
+             content_fd, Buffer.InBuffer[1].m_Size);
+
+    u8* data_start = Memory::GetPointer(Buffer.InBuffer[1].m_Address);
+    u8* data_end = data_start + Buffer.InBuffer[1].m_Size;
+    m_addtitle_content_buffer.insert(m_addtitle_content_buffer.end(), data_start, data_end);
+    break;
+  }
+
+  case IOCTL_ES_ADDCONTENTFINISH:
+  {
+    _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberInBuffer == 1,
+                     "IOCTL_ES_ADDCONTENTFINISH wrong number of inputs");
+
+    u32 content_fd = Memory::Read_U32(Buffer.InBuffer[0].m_Address);
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
+
+    // Try to find the title key from a pre-installed ticket.
+    std::vector<u8> ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
+    if (ticket.size() == 0)
+    {
+      Memory::Write_U32(ES_NO_TICKET_INSTALLED, _CommandAddress + 0x4);
+      return GetDefaultReply();
+    }
+
+    mbedtls_aes_context aes_ctx;
+    mbedtls_aes_setkey_dec(&aes_ctx, DiscIO::GetKeyFromTicket(ticket).data(), 128);
+
+    // The IV for title content decryption is the lower two bytes of the
+    // content index, zero extended.
+    TMDReader::Content content_info;
+    if (!m_addtitle_tmd.FindContentById(m_addtitle_content_id, &content_info))
+    {
+      Memory::Write_U32(ES_INVALID_TMD, _CommandAddress + 0x4);
+      return GetDefaultReply();
+    }
+    u8 iv[16] = {0};
+    iv[0] = (content_info.index >> 8) & 0xFF;
+    iv[1] = content_info.index & 0xFF;
+    std::vector<u8> decrypted_data(m_addtitle_content_buffer.size());
+    mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, m_addtitle_content_buffer.size(), iv,
+                          m_addtitle_content_buffer.data(), decrypted_data.data());
+
+    std::string path = StringFromFormat(
+        "%s%08x.app",
+        Common::GetTitleContentPath(m_addtitle_tmd.GetTitleId(), Common::FROM_SESSION_ROOT).c_str(),
+        m_addtitle_content_id);
+
+    File::IOFile fp(path, "wb");
+    fp.WriteBytes(decrypted_data.data(), decrypted_data.size());
+
+    m_addtitle_content_id = 0xFFFFFFFF;
+    break;
+  }
+
+  case IOCTL_ES_ADDTITLEFINISH:
+  {
+    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDTITLEFINISH");
+    break;
+  }
+
   case IOCTL_ES_GETDEVICEID:
   {
     _dbg_assert_msg_(WII_IPC_ES, Buffer.NumberPayloadBuffer == 1,
@@ -914,10 +1074,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(u32 _CommandAddress)
     u8* newIV = Memory::GetPointer(Buffer.PayloadBuffer[0].m_Address);
     u8* destination = Memory::GetPointer(Buffer.PayloadBuffer[1].m_Address);
 
-    mbedtls_aes_context AES_ctx;
-    mbedtls_aes_setkey_dec(&AES_ctx, keyTable[keyIndex], 128);
-    memcpy(newIV, IV, 16);
-    mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, newIV, source, destination);
+    DecryptContent(keyIndex, IV, source, size, newIV, destination);
 
     _dbg_assert_msg_(WII_IPC_ES, keyIndex == 6,
                      "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");

@@ -29,6 +29,50 @@
 
 namespace DiscIO
 {
+namespace
+{
+// Strips the signature part of a ticket, which has variable size based on
+// signature type. Returns a new vector which has only the ticket structure
+// itself.
+std::vector<u8> SignedTicketToTicket(const std::vector<u8>& signed_ticket)
+{
+  u32 signature_type = Common::swap32(signed_ticket.data());
+  u32 entry_offset;
+  if (signature_type == 0x10000)  // RSA4096
+  {
+    entry_offset = 576;
+  }
+  else if (signature_type == 0x10001)  // RSA2048
+  {
+    entry_offset = 320;
+  }
+  else if (signature_type == 0x10002)  // ECDSA
+  {
+    entry_offset = 128;
+  }
+  else
+  {
+    ERROR_LOG(DISCIO, "Invalid ticket signature type: %08x", signature_type);
+    return std::vector<u8>();
+  }
+
+  std::vector<u8> ticket(signed_ticket.size() - entry_offset);
+  std::copy(signed_ticket.begin() + entry_offset, signed_ticket.end(), ticket.begin());
+  return ticket;
+}
+
+std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
+{
+  mbedtls_aes_context aes_ctx;
+  std::vector<u8> buffer(size);
+
+  mbedtls_aes_setkey_dec(&aes_ctx, key, 128);
+  mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, size, iv, src, buffer.data());
+
+  return buffer;
+}
+}
+
 CNANDContentData::~CNANDContentData() = default;
 
 CSharedContent::CSharedContent()
@@ -290,27 +334,6 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd,
   }
 }
 
-std::vector<u8> CNANDContentLoader::AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
-{
-  mbedtls_aes_context aes_ctx;
-  std::vector<u8> buffer(size);
-
-  mbedtls_aes_setkey_dec(&aes_ctx, key, 128);
-  mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, size, iv, src, buffer.data());
-
-  return buffer;
-}
-
-std::vector<u8> CNANDContentLoader::GetKeyFromTicket(const std::vector<u8>& ticket)
-{
-  const u8 common_key[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4,
-                             0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
-  u8 iv[16] = {};
-
-  std::copy(&ticket[0x01DC], &ticket[0x01DC + 8], iv);
-  return AESDecode(common_key, iv, &ticket[0x01BF], 16);
-}
-
 DiscIO::Region CNANDContentLoader::GetRegion() const
 {
   if (!IsValid())
@@ -512,7 +535,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   }
 
   // Extract and copy WAD's ticket to ticket directory
-  if (!AddTicket(title_id, content_loader.GetTicket()))
+  if (!AddTicket(content_loader.GetTicket()))
   {
     PanicAlertT("WAD installation failed: error creating ticket");
     return 0;
@@ -525,8 +548,15 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   return title_id;
 }
 
-bool AddTicket(u64 title_id, const std::vector<u8>& ticket)
+bool AddTicket(const std::vector<u8>& signed_ticket)
 {
+  std::vector<u8> ticket = SignedTicketToTicket(signed_ticket);
+  if (ticket.empty())
+  {
+    return false;
+  }
+  u64 title_id = Common::swap64(ticket.data() + 0x9c);
+
   std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
   File::CreateFullPath(ticket_filename);
 
@@ -534,7 +564,46 @@ bool AddTicket(u64 title_id, const std::vector<u8>& ticket)
   if (!ticket_file)
     return false;
 
-  return ticket_file.WriteBytes(ticket.data(), ticket.size());
+  return ticket_file.WriteBytes(signed_ticket.data(), signed_ticket.size());
+}
+
+std::vector<u8> FindSignedTicket(u64 title_id)
+{
+  std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
+  File::IOFile ticket_file(ticket_filename, "rb");
+  if (!ticket_file)
+  {
+    return std::vector<u8>();
+  }
+
+  std::vector<u8> signed_ticket(ticket_file.GetSize());
+  if (!ticket_file.ReadBytes(signed_ticket.data(), signed_ticket.size()))
+  {
+    return std::vector<u8>();
+  }
+
+  return signed_ticket;
+}
+
+std::vector<u8> FindTicket(u64 title_id)
+{
+  std::vector<u8> signed_ticket = FindSignedTicket(title_id);
+  if (signed_ticket.empty())
+  {
+    return std::vector<u8>();
+  }
+
+  return SignedTicketToTicket(signed_ticket);
+}
+
+std::vector<u8> GetKeyFromTicket(const std::vector<u8>& signed_ticket)
+{
+  const u8 common_key[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4,
+                             0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
+  u8 iv[16] = {};
+
+  std::copy(&signed_ticket[0x01DC], &signed_ticket[0x01DC + 8], iv);
+  return AESDecode(common_key, iv, &signed_ticket[0x01BF], 16);
 }
 
 }  // namespace end

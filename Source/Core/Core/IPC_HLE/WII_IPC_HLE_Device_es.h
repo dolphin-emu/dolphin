@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Core/IPC_HLE/ESFormats.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
@@ -29,6 +30,9 @@ public:
   virtual ~CWII_IPC_HLE_Device_es();
 
   void LoadWAD(const std::string& _rContentFile);
+
+  // Internal implementation of the ES_DECRYPT ioctlv.
+  void DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output);
 
   void OpenInternal();
 
@@ -139,6 +143,11 @@ private:
   u32 m_AccessIdentID = 0x6000000;
 
   static u8* keyTable[11];
+
+  // For title installation (ioctls IOCTL_ES_ADDTITLE*).
+  TMDReader m_addtitle_tmd;
+  u32 m_addtitle_content_id = 0xFFFFFFFF;
+  std::vector<u8> m_addtitle_content_buffer;
 
   const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
   u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
