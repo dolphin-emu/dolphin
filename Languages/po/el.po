@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-07 12:00+0100\n"
-"PO-Revision-Date: 2017-01-07 11:01+0000\n"
+"POT-Creation-Date: 2017-01-14 18:42+0100\n"
+"PO-Revision-Date: 2017-01-14 17:42+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Greek (http://www.transifex.com/delroth/dolphin-emu/language/"
 "el/)\n"
@@ -61,19 +61,19 @@ msgid ""
 " Create a new 16MB Memory Card?"
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:181
+#: Source/Core/DiscIO/CompressedBlob.cpp:187
 #, c-format
 msgid "\"%s\" failed to be scrubbed. Probably the image is corrupt."
 msgstr ""
 "Το \"%s\" απέτυχε να γίνει scrubbed. Πιθανότατα το αρχείο εικόνας είναι "
 "φθαρμένο."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:155
+#: Source/Core/DiscIO/CompressedBlob.cpp:162
 #, c-format
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "Το \"%s\" είναι ήδη συμπιεσμένο! Δε γίνεται να συμπιεστεί περαιτέρω."
 
-#: Source/Core/Core/ConfigManager.cpp:862
+#: Source/Core/Core/ConfigManager.cpp:827
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr ""
@@ -84,7 +84,7 @@ msgstr ""
 msgid "%1$sCopy%1$s"
 msgstr "%1$sΑντιγραφή%1$s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:230
+#: Source/Core/DiscIO/CompressedBlob.cpp:237
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i από %i μπλοκ. Αναλογία συμπίεσης %i%%"
@@ -99,7 +99,7 @@ msgstr ""
 msgid "%i%% (Normal Speed)"
 msgstr "%i%% (Κανονική Ταχύτητα)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:75
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:60
 #, c-format
 msgid ""
 "%s\n"
@@ -112,7 +112,7 @@ msgstr ""
 "που φορτώθηκε προηγουμένως.\n"
 "%s"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:97
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:82
 #, c-format
 msgid ""
 "%s\n"
@@ -125,7 +125,7 @@ msgstr ""
 " Το μέγεθος το αρχείου (0x%<PRIx64>) δεν ταιριάζει με το μέγεθος που έχει "
 "καταχωρηθεί στην κεφαλίδα (0x%x)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:88
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:73
 #, c-format
 msgid ""
 "%s\n"
@@ -136,7 +136,7 @@ msgstr ""
 "δεν φορτώθηκε επειδή είναι ένα μη έγκυρο αρχείο GCI.\n"
 " Ο αριθμός των μπλοκ φέρεται να είναι %u"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:128
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:113
 #, c-format
 msgid ""
 "%s\n"
@@ -147,7 +147,7 @@ msgstr ""
 "δεν φορτώθηκε επειδή δεν υπάρχουν αρκετά ελεύθερα μπλοκ στην εικονική κάρτα "
 "μνήμης"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:117
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:102
 #, c-format
 msgid ""
 "%s\n"
@@ -165,7 +165,7 @@ msgstr ""
 msgid "%s (Disc %i)"
 msgstr "%s (Δίσκος %i)"
 
-#: Source/Core/Core/Boot/Boot.cpp:215
+#: Source/Core/Core/Boot/Boot.cpp:216
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
@@ -204,14 +204,14 @@ msgstr ""
 "Το αρχείο δεν είναι αρκετά μεγάλο ώστε να αποτελεί έγκυρο αρχείο κάρτας "
 "μνήμης (0x%x bytes)"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:237
+#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:182
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
 " Verify your write permissions or move the file outside of Dolphin"
 msgstr ""
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:231
+#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:176
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr ""
@@ -503,8 +503,8 @@ msgid "&Refresh"
 msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:84
-msgid "&Refresh List"
-msgstr "&Ανανέωση Λίστας"
+msgid "&Refresh Game List"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:304
 msgid "&Registers"
@@ -633,7 +633,7 @@ msgstr "32-bit"
 
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:246
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:157
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:91
 msgid "3D"
 msgstr ""
 
@@ -747,7 +747,7 @@ msgstr "Σχετικά με το Dolphin"
 msgid "Accuracy:"
 msgstr "Ακρίβεια:"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:68
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:69
 msgid "Action"
 msgstr ""
 
@@ -841,7 +841,7 @@ msgstr "Action Replay: Normal Code %i: Μη έγκυρο subtype %08x (%s)"
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "Action Replay: Normal Code 0: Μη έγκυρο Subtype %08x (%s)"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:32
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:33
 msgid "Active"
 msgstr ""
 
@@ -868,7 +868,7 @@ msgstr "Προσθήκη"
 msgid "Add ActionReplay Code"
 msgstr "Προσθήκη Κωδικού ActionReplay"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:19
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:20
 msgid "Add Breakpoint"
 msgstr ""
 
@@ -885,7 +885,7 @@ msgid "Add a Breakpoint"
 msgstr ""
 
 #: Source/Core/Core/HotkeyManager.cpp:51
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:20
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:21
 msgid "Add a Memory Breakpoint"
 msgstr ""
 
@@ -912,9 +912,9 @@ msgid "Add..."
 msgstr "Προσθήκη..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:66
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:35
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:36
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:173
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:27
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:28
 #: Source/Core/DolphinWX/Debugger/WatchView.cpp:84
 msgid "Address"
 msgstr "Διεύθυνση"
@@ -1017,11 +1017,11 @@ msgstr ""
 msgid "Apploader Date:"
 msgstr "Apploader Ημερομηνία:"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:306
+#: Source/Core/DiscIO/VolumeDirectory.cpp:314
 msgid "Apploader is the wrong size...is it really an apploader?"
 msgstr "Ο Apploader έχει λάθος μέγεθος... είναι πράγματι apploader;"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:299
+#: Source/Core/DiscIO/VolumeDirectory.cpp:307
 msgid "Apploader unable to load from file"
 msgstr "Ο Apploader απέτυχε να φορτωθεί από αρχείο"
 
@@ -1080,7 +1080,7 @@ msgstr "Ορισμός Θυρών Χειριστηρίων"
 msgid "At least one pane must remain open."
 msgstr "Τουλάχιστον ένα pane πρέπει να μένει ανοιχτό."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:274
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:272
 msgid "Attempted to load a state. Bluetooth will likely be broken now."
 msgstr ""
 
@@ -1153,7 +1153,7 @@ msgstr ""
 msgid "B"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:529
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:514
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT εσφαλμένο. Το Dolphin τώρα θα τερματιστεί"
 
@@ -1273,11 +1273,11 @@ msgstr "Δεσμευμένοι Χειρισμοί: %lu"
 msgid "Branch: %s"
 msgstr "Διακλάδωση: %s"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
 msgid "Break"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:48
 msgid "Break and log"
 msgstr ""
 
@@ -1285,7 +1285,7 @@ msgstr ""
 msgid "Breakpoint"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:402
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:403
 msgid "Breakpoint encountered! Step out aborted."
 msgstr ""
 
@@ -1392,11 +1392,11 @@ msgstr ""
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:98
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:99
 msgid "Callstack"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1876
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1851
 #, c-format
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr ""
@@ -1560,7 +1560,7 @@ msgid "Classic Controller Configuration"
 msgstr ""
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:107
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:50
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:51
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:735
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1198
 #: Source/Core/DolphinWX/LogWindow.cpp:132
@@ -1745,7 +1745,7 @@ msgstr ""
 msgid "Connect Wii Remotes"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:490
+#: Source/Core/DolphinWX/Main.cpp:487
 msgid "Connecting..."
 msgstr "Γίνεται Σύνδεση..."
 
@@ -1834,7 +1834,7 @@ msgstr ""
 msgid "Copy &hex"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1059
+#: Source/Core/Core/ConfigManager.cpp:1025
 msgid "Copy failed"
 msgstr "Η αντιγραφή απέτυχε"
 
@@ -1852,7 +1852,7 @@ msgstr "Πυρήνας"
 msgid "Cost"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:856
+#: Source/Core/Core/ConfigManager.cpp:821
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1860,7 +1860,7 @@ msgid ""
 "original GameCube and Wii discs."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:971
+#: Source/Core/Core/ConfigManager.cpp:937
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Αποτυχία αναγνώρισης του αρχείου ISO %s"
@@ -1903,7 +1903,7 @@ msgstr ""
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Αδυναμία εύρεσης εντολής ανοίγματος για την επέκταση 'ini'!"
 
-#: Source/Core/Core/BootManager.cpp:374
+#: Source/Core/Core/BootManager.cpp:380
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -2069,7 +2069,7 @@ msgid "Debug Only"
 msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:177
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:95
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:84
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:845
 msgid "Debugging"
 msgstr "Debugging"
@@ -2120,7 +2120,7 @@ msgstr "Προεπιλεγμένο ISO:"
 msgid "Default font"
 msgstr "Προεπιλεγμένη γραμματοσειρά"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:47
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:48
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1221
 #: Source/Core/DolphinWX/WXInputBase.cpp:29
 msgid "Delete"
@@ -2130,7 +2130,7 @@ msgstr "Διαγραφή"
 msgid "Delete Save"
 msgstr "Διαγραφή Αποθήκευσης"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:30
+#: Source/Core/AudioCommon/WaveFile.cpp:33
 #: Source/Core/VideoCommon/AVIDump.cpp:98
 #, c-format
 msgid "Delete the existing file '%s'?"
@@ -2375,7 +2375,7 @@ msgstr "Το Dolphin δεν μπόρεσε να ολοκληρώσει την ζ
 msgid "Dolphin's cheat system is currently disabled."
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:322
+#: Source/Core/DiscIO/CompressedBlob.cpp:329
 msgid "Done compressing disc image."
 msgstr "Συμπιέστηκε η εικόνα του δίσκου."
 
@@ -2798,7 +2798,7 @@ msgstr ""
 "\n"
 "Αν δεν είστε σίγουροι, αφήστε το αποεπιλεγμένο."
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:30
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:31
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:145
 #: Source/Core/DolphinWX/WXInputBase.cpp:66
 msgid "End"
@@ -2865,13 +2865,13 @@ msgstr ""
 "Σφάλμα: Μετά από \"%s\", βρέθηκε %d (0x%X) αντί του σημείου αποθήκευσης %d "
 "(0x%X). Ματαίωση φόρτωσης σημείου αποθήκευσης..."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:384
+#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:386
 msgid ""
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may "
 "not show fonts correctly, or crash."
 msgstr ""
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:379
+#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:381
 msgid ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
@@ -3004,11 +3004,11 @@ msgstr "Αποτυχία Σύνδεσης!"
 msgid "Failed to Connect!"
 msgstr "Αποτυχία σύνδεσης!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:533
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:531
 msgid "Failed to claim interface for BT passthrough"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:528
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:526
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr ""
@@ -3022,7 +3022,7 @@ msgstr "Αποτυχία μεταφόρτωσης κωδικών."
 msgid "Failed to extract to %s!"
 msgstr "Αποτυχία εξαγωγής στο %s!"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:580
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:565
 #, c-format
 msgid ""
 "Failed to find new filename.\n"
@@ -3034,19 +3034,19 @@ msgstr ""
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr "Αποτυχία ακρόασης. Τρέχει κάποια άλλη παρουσία του διακομιστή NetPlay;"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:521
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:519
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:162
-#: Source/Core/DiscIO/CompressedBlob.cpp:339
+#: Source/Core/DiscIO/CompressedBlob.cpp:168
+#: Source/Core/DiscIO/CompressedBlob.cpp:351
 #, c-format
 msgid "Failed to open the input file \"%s\"."
 msgstr "Αποτυχία ανοίγματος του αρχείου εισόδου \"%s\"."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:169
-#: Source/Core/DiscIO/CompressedBlob.cpp:346
+#: Source/Core/DiscIO/CompressedBlob.cpp:175
+#: Source/Core/DiscIO/CompressedBlob.cpp:358
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3083,7 +3083,7 @@ msgstr ""
 "Αποτυχία σωστής ανάγνωσης του BAT\n"
 "(0x6000-0x7FFF)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:678
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:663
 #, c-format
 msgid "Failed to read data from GCI file %s"
 msgstr "Αποτυχία ανάγνωσης δεδομένων από το GCI αρχείο %s"
@@ -3116,12 +3116,12 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "Αποτυχία ανάγνωσης μοναδικού ID από την εικόνα δίσκου"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:93
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:87
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Αποτυχία εγγραφής του BT.DINF στο SYSCONF"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:288
-#: Source/Core/DiscIO/CompressedBlob.cpp:377
+#: Source/Core/DiscIO/CompressedBlob.cpp:295
+#: Source/Core/DiscIO/CompressedBlob.cpp:389
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -3187,7 +3187,7 @@ msgstr ""
 msgid "File is not recognized as a memory card"
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:332
+#: Source/Core/DiscIO/CompressedBlob.cpp:342
 msgid "File not compressed"
 msgstr "Το αρχείο δεν είναι συμπιεσμένο"
 
@@ -3197,7 +3197,7 @@ msgstr "Το αρχείο δεν είναι συμπιεσμένο"
 msgid "File write failed"
 msgstr "Αποτυχία εγγραφής αρχείου"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:192
+#: Source/Core/DiscIO/CompressedBlob.cpp:199
 msgid "Files opened, ready to compress."
 msgstr ""
 
@@ -3209,7 +3209,7 @@ msgstr "Αρχεία δίσκου"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "Ο τύπος αρχείου 'ini' είναι άγνωστος! Δε θα γίνει άνοιγμα!"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:83
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:84
 msgid "Filter Symbols"
 msgstr ""
 
@@ -3223,7 +3223,7 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:84
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:85
 msgid "Filter the symbol list by name. This is case-sensitive."
 msgstr ""
 
@@ -3245,9 +3245,9 @@ msgstr "Επιδιόρθωση Checksum"
 
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:36
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:37
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:180
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:74
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:75
 msgid "Flags"
 msgstr ""
 
@@ -3483,15 +3483,15 @@ msgstr "Πλήρης Οθόνη"
 msgid "Fullscreen Resolution:"
 msgstr "Ανάλυση Πλήρους Οθόνης:"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:34
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:35
 msgid "Function"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:116
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:117
 msgid "Function callers"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:110
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:111
 msgid "Function calls"
 msgstr ""
 
@@ -3511,7 +3511,7 @@ msgstr "Αρχεία GCI(*.gci)"
 msgid "GCI Folder"
 msgstr "GCI Φάκελος"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:65
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:50
 #, c-format
 msgid ""
 "GCI save file was not loaded because it is the wrong region for this memory "
@@ -3522,7 +3522,7 @@ msgstr ""
 "αυτή την κάρτα μνήμης:\n"
 "%s"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:360
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:345
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr ""
 
@@ -3560,7 +3560,7 @@ msgstr "ID Παιχνιδιού:"
 msgid "Game is already running!"
 msgstr "Το παιχνίδι εκτελείται ήδη!"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:428
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:413
 #, c-format
 msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
@@ -3620,7 +3620,7 @@ msgstr "Κωδικοί Gecko"
 
 #: Source/Core/Core/HotkeyManager.cpp:234
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:84
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:50
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:76
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:48
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:366
@@ -3658,7 +3658,7 @@ msgstr ""
 msgid "Go to the current instruction"
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:137
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:88
 #: Source/Core/DolphinWX/MainToolBar.cpp:186
 msgid "Graphics"
 msgstr "Γραφικά"
@@ -3821,14 +3821,14 @@ msgstr ""
 msgid "ID"
 msgstr "ID"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:682
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:673
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: Απόπειρα ανάγνωσης δεδομένων από ένα άγνωστο εισιτήριο: "
 "%08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:1003
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:994
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3841,7 +3841,7 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 "Το Dolphin πιθανότατα θα κολλήσει τώρα."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:983
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:974
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: Το αρχείο DOL δεν είναι έγκυρο!"
 
@@ -4320,7 +4320,7 @@ msgid ""
 "the audio pitch to prevent audio from stuttering."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:59
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:60
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:35
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1217
 msgid "Load"
@@ -4490,7 +4490,7 @@ msgstr ""
 msgid "Localhost"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:45
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
 #: Source/Core/DolphinWX/LogWindow.h:30
 msgid "Log"
 msgstr "Καταγραφή"
@@ -4621,7 +4621,7 @@ msgstr "Κάρτα Μνήμης"
 msgid "Memory Card Manager"
 msgstr "Διαχειριστής Καρτών Μνήμης"
 
-#: Source/Core/Core/ConfigManager.cpp:1051
+#: Source/Core/Core/ConfigManager.cpp:1017
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4908,7 +4908,7 @@ msgstr ""
 msgid "No Value Given"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.h:22
+#: Source/Core/Core/ConfigManager.h:23
 msgid "No audio output"
 msgstr "Καμία έξοδος ήχου"
 
@@ -4962,7 +4962,7 @@ msgstr ""
 msgid "Not all players have the game. Do you really want to start?"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:487
+#: Source/Core/DolphinWX/Main.cpp:484
 msgid "Not connected"
 msgstr "Μη Συνδεδεμένο"
 
@@ -5064,7 +5064,7 @@ msgid ""
 "(Blank for all symbols)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:545
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:546
 msgid "Op?"
 msgstr ""
 
@@ -5133,7 +5133,7 @@ msgstr "Προσανατολισμός"
 msgid "Other"
 msgstr "Άλλα"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:199
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:93
 msgid "Other State Management"
 msgstr ""
 
@@ -5428,11 +5428,11 @@ msgstr "Ακτίνα"
 msgid "Range"
 msgstr "Εύρος"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:41
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
 msgid "Read"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
 msgid "Read and write"
 msgstr ""
 
@@ -5564,7 +5564,7 @@ msgstr "Αναπαραγωγή στο Κεντρικό Παράθυρο"
 msgid "Rendering"
 msgstr ""
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:340
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:325
 #, c-format
 msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr ""
@@ -5662,7 +5662,7 @@ msgstr "Απ&οθήκευση Σημείου Αποθήκευσης"
 msgid "Safe"
 msgstr "Ασφαλής"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:62
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:63
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:38
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:162
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1219
@@ -5742,7 +5742,7 @@ msgstr "Αποθήκευση Σημείου..."
 msgid "Save Symbol Map &As..."
 msgstr ""
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:176
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:92
 msgid "Save and Load State"
 msgstr ""
 
@@ -5863,7 +5863,7 @@ msgstr "Αναζήτηση"
 msgid "Search (clear to use previous value)"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:80
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:81
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:79
 msgid "Search Address"
 msgstr ""
@@ -5880,8 +5880,8 @@ msgstr "Αναζήτηση σε Υποφακέλους"
 msgid "Search for Hex Value:"
 msgstr ""
 
-#: Source/Core/Common/SysConf.h:98 Source/Core/Common/SysConf.h:121
-#: Source/Core/Common/SysConf.h:141 Source/Core/Common/SysConf.h:162
+#: Source/Core/Common/SysConf.h:104 Source/Core/Common/SysConf.h:127
+#: Source/Core/Common/SysConf.h:147 Source/Core/Common/SysConf.h:168
 #, c-format
 msgid "Section %s not found in SYSCONF"
 msgstr "Η ενότητα %s δε βρέθηκε στο SYSCONF"
@@ -6124,7 +6124,7 @@ msgid ""
 "backends only."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:252
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:240
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Αδυναμία δημιουργίας αρχείου setting.txt"
 
@@ -6494,7 +6494,7 @@ msgid "Standard Controller"
 msgstr "Τυπικός Controller"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:27
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:28
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:29
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:249
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:144
 #: Source/Core/DolphinWX/TASInputDlg.cpp:403
@@ -6576,15 +6576,15 @@ msgstr ""
 msgid "Step out of the current function"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:406
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:407
 msgid "Step out successful!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:404
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:405
 msgid "Step out timed out!"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:331
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:332
 msgid "Step over in progress..."
 msgstr ""
 
@@ -6592,7 +6592,7 @@ msgstr ""
 msgid "Step over the next instruction"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:316
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:317
 msgid "Step successful!"
 msgstr ""
 
@@ -6690,7 +6690,7 @@ msgstr "Swing"
 msgid "Symbol"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:104
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:105
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:95
 msgid "Symbols"
 msgstr ""
@@ -6746,7 +6746,7 @@ msgstr ""
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:70
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:80
 msgid "TAS Tools"
 msgstr ""
 
@@ -6816,11 +6816,11 @@ msgid ""
 "If unsure, use the rightmost value."
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:931
+#: Source/Core/Core/ConfigManager.cpp:897
 msgid "The WAD has been installed successfully"
 msgstr "Το WAD εγκαταστάθηκε με επιτυχία"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:49
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:50
 #, c-format
 msgid "The address %s is invalid."
 msgstr ""
@@ -6849,14 +6849,14 @@ msgstr ""
 msgid "The disc could not be read (at 0x%<PRIx64> - 0x%<PRIx64>)."
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:110
+#: Source/Core/DiscIO/CompressedBlob.cpp:116
 #, c-format
 msgid ""
 "The disc image \"%s\" is corrupt.\n"
 "Hash of block %<PRIu64> is %08x instead of %08x."
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:101
+#: Source/Core/DiscIO/CompressedBlob.cpp:107
 #, c-format
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr ""
@@ -6876,7 +6876,7 @@ msgstr ""
 "Το αρχείο %s υπάρχει ήδη.\n"
 "Θέλετε να το αντικαταστήσετε;"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:52
+#: Source/Core/AudioCommon/WaveFile.cpp:55
 #, c-format
 msgid ""
 "The file %s could not be opened for writing. Please check if it's already "
@@ -6885,7 +6885,7 @@ msgstr ""
 "Αδυναμία ανοίγματος του αρχείου %s για εγγραφή. Παρακαλώ ελέγξτε αν είναι "
 "ήδη ανοιχτό από άλλο πρόγραμμα."
 
-#: Source/Core/AudioCommon/WaveFile.cpp:44
+#: Source/Core/AudioCommon/WaveFile.cpp:47
 #, c-format
 msgid "The file %s was already open, the file header will not be written."
 msgstr "Το αρχείο %s ήταν ήδη ανοιχτό, η κεφαλίδα του αρχείου δε θα γραφεί."
@@ -6936,7 +6936,7 @@ msgstr "Ο διακομιστής απάντησε: το παιχνίδι τρέ
 msgid "The server sent an unknown error message!"
 msgstr "Ο διακομιστής επέστρεψε ένα άγνωστο μήνυμα σφάλματος!"
 
-#: Source/Core/Core/ConfigManager.cpp:840
+#: Source/Core/Core/ConfigManager.cpp:805
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Το επιλεγμένο αρχείο \"%s\" δεν υπάρχει"
@@ -6949,7 +6949,7 @@ msgstr "Η τιμή είναι άκυρη"
 msgid "Theme:"
 msgstr "Θέμα:"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:176
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:161
 #, c-format
 msgid ""
 "There are too many GCI files in the folder\n"
@@ -6961,7 +6961,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "Δεν υπάρχει τίποτα προς αναίρεση!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:616
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:607
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -7180,7 +7180,7 @@ msgstr ""
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot.cpp:473
+#: Source/Core/Core/Boot/Boot.cpp:474
 msgid "Tried to load an unknown file type."
 msgstr "Προσπάθεια φόρτωσης ενός άγνωστου τύπου αρχείο."
 
@@ -7199,11 +7199,11 @@ msgid ""
 "map files stored on the disc image yet."
 msgstr ""
 
-#: Source/Core/Common/SysConf.h:86 Source/Core/Common/SysConf.h:109
+#: Source/Core/Common/SysConf.h:92 Source/Core/Common/SysConf.h:115
 msgid "Trying to read from invalid SYSCONF"
 msgstr "Προσπάθεια ανάγνωσης από ένα μη έγκυρο SYSCONF"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:59
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:53
 msgid ""
 "Trying to read from invalid SYSCONF\n"
 "Wii Remote Bluetooth IDs are not available"
@@ -7221,7 +7221,7 @@ msgstr "Πικάπ"
 msgid "Turntable Configuration"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:33
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:34
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:74
 msgid "Type"
 msgstr "Τύπος"
@@ -7282,7 +7282,7 @@ msgstr "Άγνωστο"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Άγνωστη εντολή DVD %08x - κρίσιμο σφάλμα"
 
-#: Source/Core/Common/SysConf.cpp:161
+#: Source/Core/Common/SysConf.cpp:164
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Άγνωστος τύπος καταχώρησης %i στο SYSCONF (%s@%x)!"
@@ -7311,7 +7311,7 @@ msgstr "Ελήφθη άγνωστο μήνυμα με:%d από τον παίκ�
 msgid "Unlimited"
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:366
+#: Source/Core/DiscIO/CompressedBlob.cpp:378
 msgid "Unpacking"
 msgstr ""
 
@@ -7547,11 +7547,11 @@ msgstr ""
 msgid "Warning"
 msgstr "Προειδοποίηση"
 
-#: Source/Core/Core/Boot/Boot.cpp:337
+#: Source/Core/Core/Boot/Boot.cpp:338
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Προειδοποίηση - εκκίνηση DOL σε λάθος λειτουργία κονσόλας!"
 
-#: Source/Core/Core/Boot/Boot.cpp:274
+#: Source/Core/Core/Boot/Boot.cpp:277
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Προειδοποίηση - εκκίνηση ISO σε λάθος λειτουργία κονσόλας!"
 
@@ -7567,7 +7567,7 @@ msgstr ""
 "%s\n"
 "Θέλετε να συνεχίσετε;"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:538
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:523
 #, c-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of "
@@ -7632,7 +7632,7 @@ msgstr ""
 msgid "Watch"
 msgstr ""
 
-#: Source/Core/AudioCommon/WaveFile.cpp:116
+#: Source/Core/AudioCommon/WaveFile.cpp:119
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - το αρχείο δεν είναι ανοιχτό."
 
@@ -7679,7 +7679,7 @@ msgstr ""
 msgid "Wii Remote %i"
 msgstr ""
 
-#: Source/Core/DolphinWX/Main.cpp:493
+#: Source/Core/DolphinWX/Main.cpp:490
 msgid "Wii Remote Connected"
 msgstr ""
 
@@ -7704,7 +7704,7 @@ msgstr ""
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WAD αρχεία (*.wad)"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:110
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:87
 msgid "Wii and Wii Remote"
 msgstr ""
 
@@ -7731,11 +7731,11 @@ msgstr "Windows Menu"
 msgid "Windows Right"
 msgstr "Windows Right"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:37
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:38
 msgid "With an address"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:39
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:40
 msgid "Within a range"
 msgstr ""
 
@@ -7755,7 +7755,7 @@ msgstr "Σε εργασία..."
 msgid "World"
 msgstr "Κόσμος"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
 msgid "Write"
 msgstr ""
 
@@ -7834,7 +7834,7 @@ msgstr ""
 "Θέλετε να γίνει διακοπή τώρα για να διορθώσετε το πρόβλημα;\n"
 "Εάν επιλέξετε \"Όχι\", ο ήχος μπορεί να είναι χαλασμένος."
 
-#: Source/Core/Core/ConfigManager.cpp:876
+#: Source/Core/Core/ConfigManager.cpp:842
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -7842,7 +7842,7 @@ msgstr ""
 "Το αρχείο GCM/ISO φαίνεται να είναι μη έγκυρο (μη έγκυρη χώρα).\n"
 "Συνέχεια με περιοχή PAL;"
 
-#: Source/Core/Common/SysConf.cpp:59
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"

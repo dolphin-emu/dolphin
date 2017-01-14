@@ -11,8 +11,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-07 12:00+0100\n"
-"PO-Revision-Date: 2017-01-07 11:01+0000\n"
+"POT-Creation-Date: 2017-01-14 18:42+0100\n"
+"PO-Revision-Date: 2017-01-14 17:42+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Korean (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ko/)\n"
@@ -58,19 +58,19 @@ msgstr "! NOT"
 msgid ""
 "\"%s\" does not exist.\n"
 " Create a new 16MB Memory Card?"
-msgstr ""
+msgstr "\"%s\" 가 존재하지 않습니다. 16MB 메모리카드를 생성하시겠습니까?"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:181
+#: Source/Core/DiscIO/CompressedBlob.cpp:187
 #, c-format
 msgid "\"%s\" failed to be scrubbed. Probably the image is corrupt."
 msgstr "\"%s\" 가 실패해 취소되었습니다. 이미지 파일이 손상된 것 같습니다."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:155
+#: Source/Core/DiscIO/CompressedBlob.cpp:162
 #, c-format
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" 는 이미 압축되어 있습니다! 더 이상 압축할 수 없습니다."
 
-#: Source/Core/Core/ConfigManager.cpp:862
+#: Source/Core/Core/ConfigManager.cpp:827
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\"는 부적합한 GCM/ISO 파일이거나, GC/Wii ISO 파일이 아닙니다."
@@ -80,7 +80,7 @@ msgstr "\"%s\"는 부적합한 GCM/ISO 파일이거나, GC/Wii ISO 파일이 아
 msgid "%1$sCopy%1$s"
 msgstr "%1$s복사%1$s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:230
+#: Source/Core/DiscIO/CompressedBlob.cpp:237
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i  / %i 블록. 압축 비율 %i%%"
@@ -95,7 +95,7 @@ msgstr "%i%%"
 msgid "%i%% (Normal Speed)"
 msgstr "%i%% (보통 속도)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:75
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:60
 #, c-format
 msgid ""
 "%s\n"
@@ -108,7 +108,7 @@ msgstr ""
 "%s\n"
 "와 같은 내부 파일 명을 가지고 있기 때문입니다."
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:97
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:82
 #, c-format
 msgid ""
 "%s\n"
@@ -120,7 +120,7 @@ msgstr ""
 "는 부적합한 GCI 이기 때문에 로드되지 않았습니다.\n"
 "파일 크기 (0x%<PRIx64>) 가 헤더 (0x%x)에 기록된 크기와 일치하지 않습니다."
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:88
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:73
 #, c-format
 msgid ""
 "%s\n"
@@ -131,7 +131,7 @@ msgstr ""
 "는 부적합한 GCI 이기 때문에 로드되지 않았습니다.\n"
 "블록수가 %u 라고 주장했습니다."
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:128
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:113
 #, c-format
 msgid ""
 "%s\n"
@@ -141,7 +141,7 @@ msgstr ""
 "%s\n"
 "는 가상 메모리 카드에 충분한 빈 블록이 없기 때문에 로드되지 않았습니다."
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:117
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:102
 #, c-format
 msgid ""
 "%s\n"
@@ -158,7 +158,7 @@ msgstr ""
 msgid "%s (Disc %i)"
 msgstr "%s (디스크 %i)"
 
-#: Source/Core/Core/Boot/Boot.cpp:215
+#: Source/Core/Core/Boot/Boot.cpp:216
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
@@ -197,7 +197,7 @@ msgstr ""
 "%s 를 메모리 카드로 불러올 수 없습니다.\n"
 "파일이 유효한 메모리 카드 파일이 될 만큼 충분히 크지 않습니다. (0x%x bytes)"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:237
+#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:182
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -206,7 +206,7 @@ msgstr ""
 "%s 는 디렉토리가 아닙니다, *.original 로 옮길 수 없습니다.\n"
 "쓰기 권한을 검사하거나 파일을 돌핀 밖으로 옮기세요."
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:231
+#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:176
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s 는 디렉토리가 아닙니다, *.original 로 이동되었습니다."
@@ -450,7 +450,7 @@ msgstr "메모리(&M)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:215
 msgid "&Memory Card Manager (GC)"
-msgstr ""
+msgstr "메모리 카드 매니저 (GC)(&M)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:46
 msgid "&Movie"
@@ -498,8 +498,8 @@ msgid "&Refresh"
 msgstr "새로고침 (&R)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:84
-msgid "&Refresh List"
-msgstr "게임 목록 새로고침(&R)"
+msgid "&Refresh Game List"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:304
 msgid "&Registers"
@@ -627,7 +627,7 @@ msgstr "32-비트"
 
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:246
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:157
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:91
 msgid "3D"
 msgstr "3D"
 
@@ -754,7 +754,7 @@ msgstr "돌핀에 대해"
 msgid "Accuracy:"
 msgstr "정확성:"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:68
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:69
 msgid "Action"
 msgstr "액션"
 
@@ -846,7 +846,7 @@ msgstr "액션 리플레이: 일반 코드 %i: 올바르지 않은 하위 분류
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "액션 리플레이: 일반 코드 0: 올바르지 않은 하위 분류 %08x (%s)"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:32
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:33
 msgid "Active"
 msgstr "액티브"
 
@@ -873,7 +873,7 @@ msgstr "추가"
 msgid "Add ActionReplay Code"
 msgstr "액션 리플레이 코드 추가"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:19
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:20
 msgid "Add Breakpoint"
 msgstr "중단점 추가"
 
@@ -887,10 +887,10 @@ msgstr "패치 추가"
 
 #: Source/Core/Core/HotkeyManager.cpp:50
 msgid "Add a Breakpoint"
-msgstr ""
+msgstr "중단점 추가"
 
 #: Source/Core/Core/HotkeyManager.cpp:51
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:20
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:21
 msgid "Add a Memory Breakpoint"
 msgstr "메모리 중단점 추가"
 
@@ -919,9 +919,9 @@ msgid "Add..."
 msgstr "추가..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:66
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:35
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:36
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:173
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:27
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:28
 #: Source/Core/DolphinWX/Debugger/WatchView.cpp:84
 msgid "Address"
 msgstr "주소"
@@ -1022,11 +1022,11 @@ msgstr "존재하는 서명 파일에 덧붙이기... (&E)"
 msgid "Apploader Date:"
 msgstr "앱로더 날짜:"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:306
+#: Source/Core/DiscIO/VolumeDirectory.cpp:314
 msgid "Apploader is the wrong size...is it really an apploader?"
 msgstr "앱로더의 크기가 잘못되었습니다... 정말로 앱로더가 맞습니까?"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:299
+#: Source/Core/DiscIO/VolumeDirectory.cpp:307
 msgid "Apploader unable to load from file"
 msgstr "앱로더가 파일으로 부터 로드할 수 없음"
 
@@ -1083,7 +1083,7 @@ msgstr "컨트롤러 포트 할당"
 msgid "At least one pane must remain open."
 msgstr "적어도 하나의 창이 열려 있어야 합니다."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:274
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:272
 msgid "Attempted to load a state. Bluetooth will likely be broken now."
 msgstr ""
 "상태를 로드하려 시도했습니다. 블루투스가 이제 아마도 작동하지 않을 것입니다."
@@ -1163,7 +1163,7 @@ msgstr ""
 msgid "B"
 msgstr "B"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:529
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:514
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT가 올바르지 않습니다. 돌핀이 종료됩니다."
 
@@ -1287,19 +1287,19 @@ msgstr "연결된 컨트롤: %lu"
 msgid "Branch: %s"
 msgstr "분기: %s"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
 msgid "Break"
 msgstr "중단"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:48
 msgid "Break and log"
 msgstr "중단하고 로그"
 
 #: Source/Core/Core/HotkeyManager.cpp:241
 msgid "Breakpoint"
-msgstr ""
+msgstr "중단점"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:402
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:403
 msgid "Breakpoint encountered! Step out aborted."
 msgstr "중단점을 만났습니다! 스텝 나가기가 중단되었습니다."
 
@@ -1401,11 +1401,11 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:98
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:99
 msgid "Callstack"
 msgstr "콜스텍"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1876
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1851
 #, c-format
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr "%02x 연결 핸들로 Wii 리모트를 찾을 수 없음"
@@ -1568,7 +1568,7 @@ msgid "Classic Controller Configuration"
 msgstr "클래식 컨트롤러 환경설정"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:107
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:50
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:51
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:735
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1198
 #: Source/Core/DolphinWX/LogWindow.cpp:132
@@ -1609,7 +1609,7 @@ msgstr "닫기"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:170
 msgid "Co&nfiguration"
-msgstr ""
+msgstr "환경설정(&n)"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.h:82
 msgid "Code"
@@ -1758,7 +1758,7 @@ msgstr "Wii 리모트 4 연결"
 msgid "Connect Wii Remotes"
 msgstr "Wii 리모트 연결"
 
-#: Source/Core/DolphinWX/Main.cpp:490
+#: Source/Core/DolphinWX/Main.cpp:487
 msgid "Connecting..."
 msgstr "연결 중..."
 
@@ -1853,14 +1853,14 @@ msgstr "함수 복사 (&f)"
 msgid "Copy &hex"
 msgstr "헥스 복사 (&h)"
 
-#: Source/Core/Core/ConfigManager.cpp:1059
+#: Source/Core/Core/ConfigManager.cpp:1025
 msgid "Copy failed"
 msgstr "복사에 실패했습니다."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:821
 #, c-format
 msgid "Copy to Memory Card %c"
-msgstr ""
+msgstr "메모리카드 %c 에 복사"
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:344
 msgid "Core"
@@ -1871,7 +1871,7 @@ msgstr "코어"
 msgid "Cost"
 msgstr "비용"
 
-#: Source/Core/Core/ConfigManager.cpp:856
+#: Source/Core/Core/ConfigManager.cpp:821
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1882,7 +1882,7 @@ msgstr ""
 "닙니다. 돌핀은 오리지널 게임큐브와 Wii 디스크로 직접 게임을 플레이할 수 없다"
 "는 것을 알아두세요."
 
-#: Source/Core/Core/ConfigManager.cpp:971
+#: Source/Core/Core/ConfigManager.cpp:937
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "%s ISO 파일을 인식할 수 없습니다."
@@ -1923,7 +1923,7 @@ msgstr "피어를 생성할 수 없습니다."
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "확장자 'ini'에 대한 열기 명령을 발견할 수 없습니다!"
 
-#: Source/Core/Core/BootManager.cpp:374
+#: Source/Core/Core/BootManager.cpp:380
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -2099,7 +2099,7 @@ msgid "Debug Only"
 msgstr "디버그 전용"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:177
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:95
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:84
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:845
 msgid "Debugging"
 msgstr "디버깅"
@@ -2150,7 +2150,7 @@ msgstr "기본 ISO:"
 msgid "Default font"
 msgstr "기본 폰트"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:47
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:48
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1221
 #: Source/Core/DolphinWX/WXInputBase.cpp:29
 msgid "Delete"
@@ -2160,7 +2160,7 @@ msgstr "삭제"
 msgid "Delete Save"
 msgstr "저장 파일 지우기"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:30
+#: Source/Core/AudioCommon/WaveFile.cpp:33
 #: Source/Core/VideoCommon/AVIDump.cpp:98
 #, c-format
 msgid "Delete the existing file '%s'?"
@@ -2405,7 +2405,7 @@ msgstr "돌핀이 요청된 액션을 완수할 수 없었습니다."
 msgid "Dolphin's cheat system is currently disabled."
 msgstr "돌핀의 치트 시스템이 현재 꺼졌습니다."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:322
+#: Source/Core/DiscIO/CompressedBlob.cpp:329
 msgid "Done compressing disc image."
 msgstr "디스크 이미지 압축이 완료되었습니다."
 
@@ -2842,7 +2842,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 이것을 체크 해제해 두세요."
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:30
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:31
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:145
 #: Source/Core/DolphinWX/WXInputBase.cpp:66
 msgid "End"
@@ -2908,7 +2908,7 @@ msgstr ""
 "오류: \"%s\" 뒤에, %d (0x%X)를 발견하였습니다, 저장 표식 %d (0x%X) 대신에. 상"
 "태 저장 로드를 취소합니다..."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:384
+#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:386
 msgid ""
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may "
 "not show fonts correctly, or crash."
@@ -2916,7 +2916,7 @@ msgstr ""
 "오류: Shift JIS 폰트들 접근을 시도하였으나 로드되지 않았습니다. 게임들이 제대"
 "로 폰트들을 보여주지 않거나 깨짐이 발생할 수 있습니다."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:379
+#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:381
 msgid ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
@@ -3051,11 +3051,11 @@ msgstr "연결에 실패했습니다!"
 msgid "Failed to Connect!"
 msgstr "연결에 실패했습니다!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:533
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:531
 msgid "Failed to claim interface for BT passthrough"
 msgstr "블투 패스쓰루용 인터페이스 요청에 실패했습니다"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:528
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:526
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr "블투 패스쓰루용 커널 드라이버 제거 실패: %s"
@@ -3069,7 +3069,7 @@ msgstr "코드 다운로드에 실패했습니다."
 msgid "Failed to extract to %s!"
 msgstr "%s 로 압축을 풀지 못했습니다!"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:580
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:565
 #, c-format
 msgid ""
 "Failed to find new filename.\n"
@@ -3084,19 +3084,19 @@ msgstr ""
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr "연결에 실패했습니다. 구동중인 다른 넷플레이 서버 인스턴스가 있습니까?"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:521
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:519
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr "블루투스 장치 열기에 실패했습니다: %s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:162
-#: Source/Core/DiscIO/CompressedBlob.cpp:339
+#: Source/Core/DiscIO/CompressedBlob.cpp:168
+#: Source/Core/DiscIO/CompressedBlob.cpp:351
 #, c-format
 msgid "Failed to open the input file \"%s\"."
 msgstr "입력 파일 \"%s\" 을 열 수 없습니다."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:169
-#: Source/Core/DiscIO/CompressedBlob.cpp:346
+#: Source/Core/DiscIO/CompressedBlob.cpp:175
+#: Source/Core/DiscIO/CompressedBlob.cpp:358
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3119,6 +3119,9 @@ msgid ""
 "Memory card may be truncated\n"
 "File position: 0x%<PRIx64>"
 msgstr ""
+"저장 데이터의 %u 블록 읽기를 실패했습니다.\n"
+"메모리카드가 잘렸을지도 모릅니다.\n"
+"파일 위치: 0x%<PRIx64>"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:118
 msgid ""
@@ -3136,7 +3139,7 @@ msgstr ""
 "블록 할당 테이블을 올바르게 읽을 수 없습니다.\n"
 "(0x6000-0x7FFF)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:678
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:663
 #, c-format
 msgid "Failed to read data from GCI file %s"
 msgstr "GCI 파일 %s 로부터 데이터 읽기에 실패했습니다"
@@ -3169,12 +3172,12 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "디스크 이미지의 ID를 읽기에 실패했습니다"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:93
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:87
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "BT.DINF를 SYSCONF로 쓰지 못했습니다."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:288
-#: Source/Core/DiscIO/CompressedBlob.cpp:377
+#: Source/Core/DiscIO/CompressedBlob.cpp:295
+#: Source/Core/DiscIO/CompressedBlob.cpp:389
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -3242,9 +3245,9 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:426
 msgid "File is not recognized as a memory card"
-msgstr ""
+msgstr "파일이 메모리카드로 인식되지 않습니다."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:332
+#: Source/Core/DiscIO/CompressedBlob.cpp:342
 msgid "File not compressed"
 msgstr "파일이 압축되지 않었습니다."
 
@@ -3254,7 +3257,7 @@ msgstr "파일이 압축되지 않었습니다."
 msgid "File write failed"
 msgstr "파일을 쓰지 못했습니다."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:192
+#: Source/Core/DiscIO/CompressedBlob.cpp:199
 msgid "Files opened, ready to compress."
 msgstr "파일이 열렸습니다, 압축할 준비가 되었습니다."
 
@@ -3266,7 +3269,7 @@ msgstr "파일 시스템"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "'ini' 파일 종류는 알려지지 않았습니다! 파일은 열리지 않을 것입니다!"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:83
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:84
 msgid "Filter Symbols"
 msgstr "부호들 필터"
 
@@ -3285,7 +3288,7 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 체크 해제해 두세요."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:84
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:85
 msgid "Filter the symbol list by name. This is case-sensitive."
 msgstr "부호 목록을 이름으로 걸러냅니다. 대소문자를 구분합니다."
 
@@ -3307,9 +3310,9 @@ msgstr "체크섬을 고치기"
 
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:36
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:37
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:180
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:74
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:75
 msgid "Flags"
 msgstr "플래그"
 
@@ -3560,15 +3563,15 @@ msgstr "전체화면"
 msgid "Fullscreen Resolution:"
 msgstr "전체화면 해상도:"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:34
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:35
 msgid "Function"
 msgstr "함수"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:116
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:117
 msgid "Function callers"
 msgstr "함수 호출자"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:110
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:111
 msgid "Function calls"
 msgstr "함수 호출"
 
@@ -3588,7 +3591,7 @@ msgstr "GCI 파일(*.gci)"
 msgid "GCI Folder"
 msgstr "GCI 폴더"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:65
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:50
 #, c-format
 msgid ""
 "GCI save file was not loaded because it is the wrong region for this memory "
@@ -3598,7 +3601,7 @@ msgstr ""
 "GCI 저장 파일이 로드되지 않았습니다 이 메모리 카드와 맞지 않은 지역입니다:\n"
 "%s"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:360
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:345
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: 부적합한 블록 주소로 호출된 클리어블록"
 
@@ -3645,7 +3648,7 @@ msgstr "게임 ID:"
 msgid "Game is already running!"
 msgstr "게임이 이미 구동중입니다!"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:428
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:413
 #, c-format
 msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
@@ -3705,7 +3708,7 @@ msgstr "Gecko 코드"
 
 #: Source/Core/Core/HotkeyManager.cpp:234
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:84
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:50
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:76
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:48
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:366
@@ -3743,7 +3746,7 @@ msgstr "다음 프레임으로 가기"
 msgid "Go to the current instruction"
 msgstr "현재 명령으로 가기"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:137
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:88
 #: Source/Core/DolphinWX/MainToolBar.cpp:186
 msgid "Graphics"
 msgstr "그래픽"
@@ -3913,14 +3916,14 @@ msgstr "하이브리드 Wii 리모트"
 msgid "ID"
 msgstr "아이디"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:682
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:673
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: 알려지지 않은 티켓: %08x/%08x 에서 데이터를 얻으려 시도했"
 "습니다."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:1003
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:994
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3933,7 +3936,7 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 "돌핀은 이제 멈추게 될 것입니다."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:983
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:974
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: DOL 파일이 올바르지 않습니다!"
 
@@ -4434,7 +4437,7 @@ msgstr ""
 "에뮬 속도를 올리거나 낮추면 소리 끊김 방지를 위해 소리의 높낮이 또한 오르거"
 "나 낮아지게 된다는 것을 알아두세요."
 
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:59
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:60
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:35
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1217
 msgid "Load"
@@ -4604,7 +4607,7 @@ msgstr "%d 훌륭한 함수들이 로드되었습니다, %d 나쁜 함수들이 
 msgid "Localhost"
 msgstr "로컬호스트"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:45
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
 #: Source/Core/DolphinWX/LogWindow.h:30
 msgid "Log"
 msgstr "로그"
@@ -4734,7 +4737,7 @@ msgstr "메모리 카드"
 msgid "Memory Card Manager"
 msgstr "메모리 카드 매니저"
 
-#: Source/Core/Core/ConfigManager.cpp:1051
+#: Source/Core/Core/ConfigManager.cpp:1017
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4757,11 +4760,11 @@ msgstr "메모리가 준비 안됨"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:450
 msgid "Memory card already has a save for this title."
-msgstr ""
+msgstr "메모리카드에 이 타이틀에 대한 저장이 이미 있습니다."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:289
 msgid "Memory card already opened"
-msgstr ""
+msgstr "메모리카드가 이미 열려 있음"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:94
 msgid "Memory card file size does not match the header size"
@@ -5018,7 +5021,7 @@ msgstr "매치 없음"
 msgid "No Value Given"
 msgstr "주어진 값 없음"
 
-#: Source/Core/Core/ConfigManager.h:22
+#: Source/Core/Core/ConfigManager.h:23
 msgid "No audio output"
 msgstr "오디오 출력 없음"
 
@@ -5074,7 +5077,7 @@ msgid "Not all players have the game. Do you really want to start?"
 msgstr ""
 "모든 플레이어가 그 게임을 가지고 있지는 않습니다. 정말 시작하고 싶습니까?"
 
-#: Source/Core/DolphinWX/Main.cpp:487
+#: Source/Core/DolphinWX/Main.cpp:484
 msgid "Not connected"
 msgstr "연결되지 않음"
 
@@ -5178,7 +5181,7 @@ msgstr ""
 "접두사를 가진 부호들을 내보냅니다:\n"
 "(모든 부호들은 빈칸)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:545
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:546
 msgid "Op?"
 msgstr "Op?"
 
@@ -5236,6 +5239,9 @@ msgid ""
 "Right click and export all of the saves,\n"
 "and import the saves to a new memory card\n"
 msgstr ""
+"파일 디렉토리 안에 파일들 순서가 블록 순서와 맞지 않습니다\n"
+"우클릭하시고 모든 저장들을 내보네세요,\n"
+"그리고 새로운 메모리카드로 저장들을 가져오세요\n"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:146
 msgid "Orientation"
@@ -5246,7 +5252,7 @@ msgstr "방향"
 msgid "Other"
 msgstr "다른 것들"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:199
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:93
 msgid "Other State Management"
 msgstr "다른 상태 관리"
 
@@ -5485,7 +5491,7 @@ msgstr "프로파일"
 
 #: Source/Core/Core/HotkeyManager.cpp:240
 msgid "Program Counter"
-msgstr ""
+msgstr "프로그램 카운터"
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.h:55
 msgid "Properties"
@@ -5539,11 +5545,11 @@ msgstr "반지름"
 msgid "Range"
 msgstr "범위"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:41
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
 msgid "Read"
 msgstr "읽기"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
 msgid "Read and write"
 msgstr "읽고 쓰기"
 
@@ -5684,7 +5690,7 @@ msgstr "메인 창에 렌더"
 msgid "Rendering"
 msgstr "렌더링"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:340
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:325
 #, c-format
 msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "알림: GCIFolder가 할당되지 않은 블록 0x%x 에 씀"
@@ -5782,7 +5788,7 @@ msgstr "상태 저장(&v) "
 msgid "Safe"
 msgstr "안전"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:62
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:63
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:38
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:162
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1219
@@ -5862,7 +5868,7 @@ msgstr "상태 저장..."
 msgid "Save Symbol Map &As..."
 msgstr "심볼 맵 다른 이름으로 저장... (&A)"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:176
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:92
 msgid "Save and Load State"
 msgstr "상태 저장과 로드"
 
@@ -5990,7 +5996,7 @@ msgstr "찾기"
 msgid "Search (clear to use previous value)"
 msgstr "찾기 (이전 값 사용에 쉬움)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:80
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:81
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:79
 msgid "Search Address"
 msgstr "주소 검색"
@@ -6007,8 +6013,8 @@ msgstr "하위폴더 찾기"
 msgid "Search for Hex Value:"
 msgstr "헥스 값 찾기:"
 
-#: Source/Core/Common/SysConf.h:98 Source/Core/Common/SysConf.h:121
-#: Source/Core/Common/SysConf.h:141 Source/Core/Common/SysConf.h:162
+#: Source/Core/Common/SysConf.h:104 Source/Core/Common/SysConf.h:127
+#: Source/Core/Common/SysConf.h:147 Source/Core/Common/SysConf.h:168
 #, c-format
 msgid "Section %s not found in SYSCONF"
 msgstr "섹션 %s를 SYSCONF에서 찾을 수 없음"
@@ -6252,7 +6258,7 @@ msgstr "기본 ISO로 설정(&d)"
 #: Source/Core/DolphinWX/MemcardManager.cpp:835
 #, c-format
 msgid "Set as default Memory Card %c"
-msgstr ""
+msgstr "기본 메모리카드 %c 로 설정"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Set the current instruction"
@@ -6284,7 +6290,7 @@ msgstr ""
 "지연을 (ms 로) 설정합니다. 값이 높을수록 오디오 튐을 줄일지도 모릅니다. 특정 "
 "백엔드 전용."
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:252
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:240
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "Wii메모리설정: setting.txt 파일을 생성할 수 없음"
 
@@ -6673,7 +6679,7 @@ msgid "Standard Controller"
 msgstr "표준 컨트롤러"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:27
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:28
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:29
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:249
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:144
 #: Source/Core/DolphinWX/TASInputDlg.cpp:403
@@ -6719,19 +6725,19 @@ msgstr "스텝"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:404
 msgid "Step &Into"
-msgstr ""
+msgstr "스텝 들어가기(&I)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:405
 msgid "Step &Over"
-msgstr ""
+msgstr "스텝 넘어가기(&O)"
 
 #: Source/Core/Core/HotkeyManager.cpp:41
 msgid "Step Into"
-msgstr ""
+msgstr "스텝 들어가기"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:406
 msgid "Step O&ut"
-msgstr ""
+msgstr "스텝 나가기(&u)"
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
@@ -6755,15 +6761,15 @@ msgstr "다음 명령으로 스텝"
 msgid "Step out of the current function"
 msgstr "현재 함수에서 스텝 나가기"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:406
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:407
 msgid "Step out successful!"
 msgstr "스텝 나가기 성공!"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:404
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:405
 msgid "Step out timed out!"
 msgstr "스텝 나가기 시간 초과!"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:331
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:332
 msgid "Step over in progress..."
 msgstr "스텝 넘어가기 중..."
 
@@ -6771,13 +6777,13 @@ msgstr "스텝 넘어가기 중..."
 msgid "Step over the next instruction"
 msgstr "다음 명령으로 스텝 넘어가기"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:316
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:317
 msgid "Step successful!"
 msgstr "스텝 성공!"
 
 #: Source/Core/Core/HotkeyManager.cpp:239
 msgid "Stepping"
-msgstr ""
+msgstr "스텝핑"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"
@@ -6880,7 +6886,7 @@ msgstr "스윙"
 msgid "Symbol"
 msgstr "부호"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:104
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:105
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:95
 msgid "Symbols"
 msgstr "부호들"
@@ -6926,7 +6932,7 @@ msgstr "TAS 입력"
 #: Source/Core/DolphinWX/FrameTools.cpp:378
 #, c-format
 msgid "TAS Input - GameCube Controller %d"
-msgstr ""
+msgstr "TAS 입력 - 게임큐브 컨트롤러 %d"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:386
 #, c-format
@@ -6935,7 +6941,7 @@ msgstr "TAS 입력 - Wii 리모트 %d"
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:70
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:80
 msgid "TAS Tools"
 msgstr "TAS 도구"
 
@@ -7009,11 +7015,11 @@ msgstr ""
 "\n"
 "잘 모르겠으면, 가장 오른쪽 값을 사용하세요."
 
-#: Source/Core/Core/ConfigManager.cpp:931
+#: Source/Core/Core/ConfigManager.cpp:897
 msgid "The WAD has been installed successfully"
 msgstr "WAD가 성공적으로 설치되었습니다"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:49
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:50
 #, c-format
 msgid "The address %s is invalid."
 msgstr "주소 %s 는 부적합합니다."
@@ -7044,7 +7050,7 @@ msgstr ""
 msgid "The disc could not be read (at 0x%<PRIx64> - 0x%<PRIx64>)."
 msgstr "디스크가 읽혀질 수 없었습니다 (위치 0x%<PRIx64> - 0x%<PRIx64>)."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:110
+#: Source/Core/DiscIO/CompressedBlob.cpp:116
 #, c-format
 msgid ""
 "The disc image \"%s\" is corrupt.\n"
@@ -7053,7 +7059,7 @@ msgstr ""
 "디스크 이미지 \"%s\" 가 오염되었습니다.\n"
 "해쉬 블록 %<PRIu64> 은 %08x 입니다 %08x 대신에."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:101
+#: Source/Core/DiscIO/CompressedBlob.cpp:107
 #, c-format
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr "디스크 이미지 \"%s\" 가 짤렸습니다, 일부 데이터는 잃었습니다."
@@ -7073,7 +7079,7 @@ msgstr ""
 "%s 파일이 이미 존재합니다.\n"
 "바꾸시겠습니까?"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:52
+#: Source/Core/AudioCommon/WaveFile.cpp:55
 #, c-format
 msgid ""
 "The file %s could not be opened for writing. Please check if it's already "
@@ -7082,7 +7088,7 @@ msgstr ""
 "%s 파일은 쓰기 위해 열릴 수 없었습니다. 다른 프로그램에 의해 이미 열려있는지 "
 "확인해주세요."
 
-#: Source/Core/AudioCommon/WaveFile.cpp:44
+#: Source/Core/AudioCommon/WaveFile.cpp:47
 #, c-format
 msgid "The file %s was already open, the file header will not be written."
 msgstr "%s 파일이 이미 열려 있습니다, 파일 헤더는 기록되지 않을 것입니다."
@@ -7132,7 +7138,7 @@ msgstr "서버의 응답: 그 게임은 현재 구동중입니다!"
 msgid "The server sent an unknown error message!"
 msgstr "서버가 알려지지 않은 오류 메시지를 보냈음!"
 
-#: Source/Core/Core/ConfigManager.cpp:840
+#: Source/Core/Core/ConfigManager.cpp:805
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "기술된 \"%s\" 파일은 존재하지 않습니다"
@@ -7145,7 +7151,7 @@ msgstr "값이 부적합합니다"
 msgid "Theme:"
 msgstr "테마:"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:176
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:161
 #, c-format
 msgid ""
 "There are too many GCI files in the folder\n"
@@ -7160,7 +7166,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "되돌릴 것이 없습니다!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:616
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:607
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -7301,7 +7307,7 @@ msgstr "To"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:407
 msgid "Toggle &Breakpoint"
-msgstr ""
+msgstr "중단점 토글(&B)"
 
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:256
 msgid "Toggle &memory"
@@ -7333,7 +7339,7 @@ msgstr "종횡비 토글"
 
 #: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Toggle Breakpoint"
-msgstr ""
+msgstr "중단점 토글"
 
 #: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Toggle Crop"
@@ -7361,7 +7367,7 @@ msgstr "일시정지 토글"
 
 #: Source/Core/Core/HotkeyManager.cpp:64
 msgid "Toggle Texture Dumping"
-msgstr ""
+msgstr "텍스처 덤핑 토글"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:393
 msgid "Toggle editing of perspectives"
@@ -7403,7 +7409,7 @@ msgstr "횡단 서버가 호스트에 연결중 시간이 초과되었습니다.
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Wii 볼륨이 아닌 것으로부터 데이터를 풀려고 시도했습니다"
 
-#: Source/Core/Core/Boot/Boot.cpp:473
+#: Source/Core/Core/Boot/Boot.cpp:474
 msgid "Tried to load an unknown file type."
 msgstr "알려지지 않은 파일 타입을 로드 시도했습니다."
 
@@ -7424,11 +7430,11 @@ msgstr ""
 "게임의 함수 이름들을 자동으로 로드 시도합니다 - 하지만 디스크 이미지에 담긴 ."
 "map 파일은 아직 확인하지 않습니다."
 
-#: Source/Core/Common/SysConf.h:86 Source/Core/Common/SysConf.h:109
+#: Source/Core/Common/SysConf.h:92 Source/Core/Common/SysConf.h:115
 msgid "Trying to read from invalid SYSCONF"
 msgstr "부적합한 SYSCONF로 부터 읽기 시도"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:59
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:53
 msgid ""
 "Trying to read from invalid SYSCONF\n"
 "Wii Remote Bluetooth IDs are not available"
@@ -7449,7 +7455,7 @@ msgstr "턴테이블"
 msgid "Turntable Configuration"
 msgstr "턴테이블 환경설정"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:33
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:34
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:74
 msgid "Type"
 msgstr "타입"
@@ -7514,7 +7520,7 @@ msgstr "알려지지 않음"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "알려지지 않은 DVD 명령 %08x - 치명적 오류"
 
-#: Source/Core/Common/SysConf.cpp:161
+#: Source/Core/Common/SysConf.cpp:164
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "알려지지 않은 엔트리 타입 %i SYSCONF (%s@%x)안에!"
@@ -7544,7 +7550,7 @@ msgstr ""
 msgid "Unlimited"
 msgstr "무제한"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:366
+#: Source/Core/DiscIO/CompressedBlob.cpp:378
 msgid "Unpacking"
 msgstr "풀기"
 
@@ -7790,11 +7796,11 @@ msgstr ""
 msgid "Warning"
 msgstr "경고"
 
-#: Source/Core/Core/Boot/Boot.cpp:337
+#: Source/Core/Core/Boot/Boot.cpp:338
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 DOL을 시작!"
 
-#: Source/Core/Core/Boot/Boot.cpp:274
+#: Source/Core/Core/Boot/Boot.cpp:277
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "경고 - 잘못된 콘솔 모드에서 ISO 시작!"
 
@@ -7809,7 +7815,7 @@ msgstr ""
 "%s\n"
 "계속하고 싶습니까?"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:538
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:523
 #, c-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of "
@@ -7826,6 +7832,10 @@ msgid ""
 "and have the same name as a file on your memory card\n"
 "Continue?"
 msgstr ""
+"경고: 이것은 '다음 폴더' 안에 있는 어느 기존 저장들도 덮어쓸 겁니다\n"
+"%s\n"
+"그리고 당신의 메모리카드에 파일로 같은 이름을 가집니다\n"
+"계속합니까?"
 
 #: Source/Core/Core/Movie.cpp:1074
 #, c-format
@@ -7898,7 +7908,7 @@ msgstr ""
 msgid "Watch"
 msgstr "관찰"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:116
+#: Source/Core/AudioCommon/WaveFile.cpp:119
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - 파일이 열리지 않습니다."
 
@@ -7948,7 +7958,7 @@ msgstr "Wii 리모트"
 msgid "Wii Remote %i"
 msgstr "Wii 리모트 %i"
 
-#: Source/Core/DolphinWX/Main.cpp:493
+#: Source/Core/DolphinWX/Main.cpp:490
 msgid "Wii Remote Connected"
 msgstr "Wii 리모트가 연결되었습니다"
 
@@ -7973,7 +7983,7 @@ msgstr "Wii U 게임큐브 컨트롤러 어댑터 환경설정 포트 %i"
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii WAD 파일 (*.wad)"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:110
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:87
 msgid "Wii and Wii Remote"
 msgstr "Wii 와 Wii 리모트"
 
@@ -8000,11 +8010,11 @@ msgstr "창 메뉴"
 msgid "Windows Right"
 msgstr "창 오른쪽"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:37
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:38
 msgid "With an address"
 msgstr "주소를 가지고"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:39
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:40
 msgid "Within a range"
 msgstr "범위 안에서"
 
@@ -8024,7 +8034,7 @@ msgstr "작동 중..."
 msgid "World"
 msgstr "세계"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
 msgid "Write"
 msgstr "쓰기"
 
@@ -8042,7 +8052,7 @@ msgstr "창에 쓰기"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:259
 msgid "Write to memory cards/SD"
-msgstr ""
+msgstr "메모리 카드/SD에 기록합니다"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:252
 #: Source/Core/DolphinWX/TASInputDlg.cpp:393
@@ -8102,7 +8112,7 @@ msgstr ""
 "문제를 고치기위해 지금 중단하시겠습니까?\n"
 "\"아니오\"를 선택하면, 오디오가 왜곡될 지도 모릅니다."
 
-#: Source/Core/Core/ConfigManager.cpp:876
+#: Source/Core/Core/ConfigManager.cpp:842
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -8110,7 +8120,7 @@ msgstr ""
 "당신의 GCM/ISO 파일이 부적합(부적합 국가)인 것 같습니다.\n"
 "PAL 지역으로 계속합니까?"
 
-#: Source/Core/Common/SysConf.cpp:59
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"

@@ -7,13 +7,14 @@
 # A. Regnander <anton_r_3@hotmail.com>, 2014-2015
 # A. Regnander <anton_r_3@hotmail.com>, 2013,2015
 # A. Regnander <anton_r_3@hotmail.com>, 2015-2016
-# JosJuice, 2015-2016
+# Arve Eriksson <031299870@telia.com>, 2017
+# JosJuice, 2015-2017
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-07 12:00+0100\n"
-"PO-Revision-Date: 2017-01-07 11:01+0000\n"
+"POT-Creation-Date: 2017-01-14 18:42+0100\n"
+"PO-Revision-Date: 2017-01-14 17:42+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Swedish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/sv/)\n"
@@ -60,18 +61,20 @@ msgid ""
 "\"%s\" does not exist.\n"
 " Create a new 16MB Memory Card?"
 msgstr ""
+"\"%s\" finns inte.\n"
+" Vill du skapa ett nytt 16MB minneskort?"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:181
+#: Source/Core/DiscIO/CompressedBlob.cpp:187
 #, c-format
 msgid "\"%s\" failed to be scrubbed. Probably the image is corrupt."
 msgstr "\"%s\" kunde inte rensas på onödig data. Den är antagligen korrupt."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:155
+#: Source/Core/DiscIO/CompressedBlob.cpp:162
 #, c-format
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" är redan komprimerad! Den kan inte komprimeras ytterligare."
 
-#: Source/Core/Core/ConfigManager.cpp:862
+#: Source/Core/Core/ConfigManager.cpp:827
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" är en ogiltig GCM/ISO-fil, eller inte en GC/Wii-ISO."
@@ -81,7 +84,7 @@ msgstr "\"%s\" är en ogiltig GCM/ISO-fil, eller inte en GC/Wii-ISO."
 msgid "%1$sCopy%1$s"
 msgstr "%1$sKopiera%1$s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:230
+#: Source/Core/DiscIO/CompressedBlob.cpp:237
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i av %i block. Komprimeringsgrad %i%%"
@@ -96,7 +99,7 @@ msgstr "%i%%"
 msgid "%i%% (Normal Speed)"
 msgstr "%i%% (normal hastighet)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:75
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:60
 #, c-format
 msgid ""
 "%s\n"
@@ -108,7 +111,7 @@ msgstr ""
 "laddades inte eftersom det har samma samn som det tidigare laddade\n"
 "%s"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:97
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:82
 #, c-format
 msgid ""
 "%s\n"
@@ -120,7 +123,7 @@ msgstr ""
 "laddades inte eftersom det är en ogiltig GCI.\n"
 "Filstorleken (0x%<PRIx64>) matchar inte storleken som står i headern (0x%x)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:88
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:73
 #, c-format
 msgid ""
 "%s\n"
@@ -131,7 +134,7 @@ msgstr ""
 "laddades inte, eftersom det är en ogiltig GCI-fil.\n"
 "Antalet block påstods vara %u"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:128
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:113
 #, c-format
 msgid ""
 "%s\n"
@@ -142,7 +145,7 @@ msgstr ""
 "laddades inte eftersom det inte finns tillräckligt med lediga block på det "
 "virtuella minneskortet"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:117
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:102
 #, c-format
 msgid ""
 "%s\n"
@@ -159,7 +162,7 @@ msgstr ""
 msgid "%s (Disc %i)"
 msgstr "%s (skiva %i)"
 
-#: Source/Core/Core/Boot/Boot.cpp:215
+#: Source/Core/Core/Boot/Boot.cpp:216
 #, c-format
 msgid "%s IPL found in %s directory. The disc might not be recognized"
 msgstr ""
@@ -199,7 +202,7 @@ msgstr ""
 "Filen är inte tillräckligt stor för att vara en giltig minneskortsfil (0x%x "
 "byte)"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:237
+#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:182
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -208,7 +211,7 @@ msgstr ""
 "%s är inte en mapp och kunde inte flyttas till *.original.\n"
 "Kontrollera rättigheterna för att skriva eller flytta ut filen ur Dolphin."
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:231
+#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:176
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s var inte en mapp. Den har flyttats till *.original"
@@ -343,7 +346,7 @@ msgstr "&Arkiv"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:358
 msgid "&Follow branch"
-msgstr ""
+msgstr "%Följ gren"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:197
 msgid "&Font..."
@@ -452,7 +455,7 @@ msgstr "&Minne"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:215
 msgid "&Memory Card Manager (GC)"
-msgstr ""
+msgstr "&Minneskorthanterare (GC)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:46
 msgid "&Movie"
@@ -500,8 +503,8 @@ msgid "&Refresh"
 msgstr "&Uppdatera"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:84
-msgid "&Refresh List"
-msgstr "&Uppdatera lista"
+msgid "&Refresh Game List"
+msgstr ""
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:304
 msgid "&Registers"
@@ -629,7 +632,7 @@ msgstr "32 bitar"
 
 #. i18n: Stereoscopic 3D
 #: Source/Core/Core/HotkeyManager.cpp:246
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:157
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:91
 msgid "3D"
 msgstr "3D"
 
@@ -759,9 +762,9 @@ msgstr "Om Dolphin"
 msgid "Accuracy:"
 msgstr "Precision:"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:68
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:69
 msgid "Action"
-msgstr ""
+msgstr "Åtgärd"
 
 #: Source/Core/Core/ARDecrypt.cpp:473
 #, c-format
@@ -853,7 +856,7 @@ msgstr "Action Replay: Normalkod %i: Ogiltig undertyp %08x (%s)"
 msgid "Action Replay: Normal Code 0: Invalid Subtype %08x (%s)"
 msgstr "Action Replay: Normalkod 0: Ogiltig undertyp %08x (%s)"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:32
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:33
 msgid "Active"
 msgstr "Aktiv"
 
@@ -880,7 +883,7 @@ msgstr "Lägg till"
 msgid "Add ActionReplay Code"
 msgstr "Lägg till ActionReplay-kod"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:19
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:20
 msgid "Add Breakpoint"
 msgstr "Lägg till brytpunkt"
 
@@ -894,10 +897,10 @@ msgstr "Lägg till patch"
 
 #: Source/Core/Core/HotkeyManager.cpp:50
 msgid "Add a Breakpoint"
-msgstr ""
+msgstr "Lägg till brytpunkt"
 
 #: Source/Core/Core/HotkeyManager.cpp:51
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:20
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:21
 msgid "Add a Memory Breakpoint"
 msgstr "Lägg till en minnesbrytpunkt"
 
@@ -926,16 +929,16 @@ msgid "Add..."
 msgstr "Lägg till..."
 
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:66
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:35
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:36
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:173
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:27
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:28
 #: Source/Core/DolphinWX/Debugger/WatchView.cpp:84
 msgid "Address"
 msgstr "Adress"
 
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:369
 msgid "Address Out of Range"
-msgstr ""
+msgstr "Adress utanför intervall"
 
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1056
 msgid "Adjust the analog control pressure required to activate buttons."
@@ -1020,7 +1023,7 @@ msgstr "Kantutjämning:"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindowFunctions.cpp:338
 msgid "Append signature to"
-msgstr ""
+msgstr "Bifoga signatur till"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:452
 msgid "Append to &Existing Signature File..."
@@ -1030,11 +1033,11 @@ msgstr "Lägg till i &existerande signaturfil..."
 msgid "Apploader Date:"
 msgstr "Apploader-datum:"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:306
+#: Source/Core/DiscIO/VolumeDirectory.cpp:314
 msgid "Apploader is the wrong size...is it really an apploader?"
 msgstr "Apploader är i fel storlek...är det verkligen en apploader?"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:299
+#: Source/Core/DiscIO/VolumeDirectory.cpp:307
 msgid "Apploader unable to load from file"
 msgstr "Det gick inte att läsa in apploader från fil"
 
@@ -1093,7 +1096,7 @@ msgstr "Tilldela kontrolluttag"
 msgid "At least one pane must remain open."
 msgstr "Åtminstone en panel måste vara öppen."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:274
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:272
 msgid "Attempted to load a state. Bluetooth will likely be broken now."
 msgstr ""
 "Försökte ladda en snabbsparning. Bluetooth kommer antagligen sluta fungera "
@@ -1175,7 +1178,7 @@ msgstr ""
 msgid "B"
 msgstr "B"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:529
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:514
 msgid "BAT incorrect. Dolphin will now exit"
 msgstr "BAT är inkorrekt. Dolphin kommer nu avslutas"
 
@@ -1299,19 +1302,19 @@ msgstr "Bundna kontroller: %lu"
 msgid "Branch: %s"
 msgstr "Gren: %s"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
 msgid "Break"
 msgstr "Bryt"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:47
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:48
 msgid "Break and log"
 msgstr "Bryt och logga"
 
 #: Source/Core/Core/HotkeyManager.cpp:241
 msgid "Breakpoint"
-msgstr ""
+msgstr "Brytpunkt"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:402
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:403
 msgid "Breakpoint encountered! Step out aborted."
 msgstr ""
 
@@ -1415,11 +1418,11 @@ msgstr ""
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:98
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:99
 msgid "Callstack"
 msgstr "Anropsstack"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1876
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1851
 #, c-format
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr "Kan inte hitta Wii-fjärrkontrollen med anslutnings-handle %02x"
@@ -1436,7 +1439,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:168
 msgid "Cannot set uninitialized memory."
-msgstr ""
+msgstr "Kan inte ange oinitierat minne."
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:365
 #, c-format
@@ -1584,7 +1587,7 @@ msgid "Classic Controller Configuration"
 msgstr "Classic Controller-konfiguration"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:107
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:50
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:51
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:735
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1198
 #: Source/Core/DolphinWX/LogWindow.cpp:132
@@ -1625,7 +1628,7 @@ msgstr "Stäng"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:170
 msgid "Co&nfiguration"
-msgstr ""
+msgstr "Ko&nfiguration"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.h:82
 msgid "Code"
@@ -1774,7 +1777,7 @@ msgstr "Anslut Wii-fjärrkontroll 4"
 msgid "Connect Wii Remotes"
 msgstr "Anslut Wii-fjärrkontroller"
 
-#: Source/Core/DolphinWX/Main.cpp:490
+#: Source/Core/DolphinWX/Main.cpp:487
 msgid "Connecting..."
 msgstr "Ansluter..."
 
@@ -1870,14 +1873,14 @@ msgstr "Kopiera &funktion"
 msgid "Copy &hex"
 msgstr "Kopiera &hex"
 
-#: Source/Core/Core/ConfigManager.cpp:1059
+#: Source/Core/Core/ConfigManager.cpp:1025
 msgid "Copy failed"
 msgstr "Kopiering misslyckades"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:821
 #, c-format
 msgid "Copy to Memory Card %c"
-msgstr ""
+msgstr "Kopiera till minneskort %c"
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:344
 msgid "Core"
@@ -1888,7 +1891,7 @@ msgstr "Kärna"
 msgid "Cost"
 msgstr "Kostnad"
 
-#: Source/Core/Core/ConfigManager.cpp:856
+#: Source/Core/Core/ConfigManager.cpp:821
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1899,7 +1902,7 @@ msgstr ""
 "ingen GC/Wii-backup. Observera att Dolphin inte kan köra spel direkt från "
 "GameCube/Wii-originalskivor."
 
-#: Source/Core/Core/ConfigManager.cpp:971
+#: Source/Core/Core/ConfigManager.cpp:937
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Kunde inte känna igen ISO-fil %s"
@@ -1942,7 +1945,7 @@ msgstr "Kunde inte skapa peer."
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Kunde inte öppna kommandot för tillägget 'ini'!"
 
-#: Source/Core/Core/BootManager.cpp:374
+#: Source/Core/Core/BootManager.cpp:380
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -2120,7 +2123,7 @@ msgid "Debug Only"
 msgstr "Endast felsökning"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:177
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:95
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:84
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:845
 msgid "Debugging"
 msgstr "Felsökning"
@@ -2171,7 +2174,7 @@ msgstr "Standard-ISO:"
 msgid "Default font"
 msgstr "Standardtypsnitt"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:47
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:48
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1221
 #: Source/Core/DolphinWX/WXInputBase.cpp:29
 msgid "Delete"
@@ -2181,7 +2184,7 @@ msgstr "Radera"
 msgid "Delete Save"
 msgstr "Radera sparning"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:30
+#: Source/Core/AudioCommon/WaveFile.cpp:33
 #: Source/Core/VideoCommon/AVIDump.cpp:98
 #, c-format
 msgid "Delete the existing file '%s'?"
@@ -2426,7 +2429,7 @@ msgstr "Dolphin kunde inte slutföra den begärda handlingen."
 msgid "Dolphin's cheat system is currently disabled."
 msgstr "Dolphins fusksystem är avstängt just nu."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:322
+#: Source/Core/DiscIO/CompressedBlob.cpp:329
 msgid "Done compressing disc image."
 msgstr "Skivavbilden har komprimerats."
 
@@ -2469,7 +2472,7 @@ msgstr "Dummy"
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:101
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:102
 msgid "Dump"
-msgstr ""
+msgstr "Dump"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:161
 msgid "Dump Audio"
@@ -2538,7 +2541,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
 msgid "DumpList"
-msgstr ""
+msgstr "Dumplista"
 
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:262
 msgid "Duplicate Bundled ActionReplay Code"
@@ -2865,7 +2868,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:30
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:31
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:145
 #: Source/Core/DolphinWX/WXInputBase.cpp:66
 msgid "End"
@@ -2932,7 +2935,7 @@ msgstr ""
 "Fel: Efter \"%s\", hittades %d (0x%X) istället för sparningsmarkören %d (0x"
 "%X). Avbryter inläsning av snabbsparning..."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:384
+#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:386
 msgid ""
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may "
 "not show fonts correctly, or crash."
@@ -2940,7 +2943,7 @@ msgstr ""
 "Fel: Försöker att komma åt Shift-JIS-typsnitt men de är inte inlästa. Spel "
 "kanske inte visar typsnitt korrekt, eller kraschar."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:379
+#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:381
 msgid ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
@@ -3075,11 +3078,11 @@ msgstr "Misslyckades att ansluta!"
 msgid "Failed to Connect!"
 msgstr "Misslyckades att ansluta!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:533
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:531
 msgid "Failed to claim interface for BT passthrough"
 msgstr "Kunde inte ta gränssnitt för BT-genomsläpp"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:528
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:526
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr "Kunde inte koppla loss kärnans drivrutin för BT-genomsläpp: %s"
@@ -3093,7 +3096,7 @@ msgstr "Misslyckades att ladda ned koder."
 msgid "Failed to extract to %s!"
 msgstr "Misslyckades att extrahera till %s!"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:580
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:565
 #, c-format
 msgid ""
 "Failed to find new filename.\n"
@@ -3108,19 +3111,19 @@ msgstr ""
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr "Misslyckades att lyssna. Körs nätspelsservern redan?"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:521
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:519
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr "Kunde inte öppna Bluetooth-enhet: %s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:162
-#: Source/Core/DiscIO/CompressedBlob.cpp:339
+#: Source/Core/DiscIO/CompressedBlob.cpp:168
+#: Source/Core/DiscIO/CompressedBlob.cpp:351
 #, c-format
 msgid "Failed to open the input file \"%s\"."
 msgstr "Kunde inte öppna inmatningsfilen \"%s\"."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:169
-#: Source/Core/DiscIO/CompressedBlob.cpp:346
+#: Source/Core/DiscIO/CompressedBlob.cpp:175
+#: Source/Core/DiscIO/CompressedBlob.cpp:358
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3143,6 +3146,9 @@ msgid ""
 "Memory card may be truncated\n"
 "File position: 0x%<PRIx64>"
 msgstr ""
+"Misslyckades att läsa block %u i den sparade datan\n"
+"Minneskortet kanske har trunkerats\n"
+"Filposition: 0x%<PRIx64>"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:118
 msgid ""
@@ -3161,7 +3167,7 @@ msgstr ""
 "Misslyckades att läsa blockallokeringstabellen korrekt\n"
 "(0x8000-0x9FFF)"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:678
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:663
 #, c-format
 msgid "Failed to read data from GCI file %s"
 msgstr "Kunde inte läsa data från GCI-filen %s"
@@ -3194,12 +3200,12 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "Misslyckades att läsa unikt ID från diskavbilden"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:93
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:87
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Misslyckades att skriva BT.DINF till SYSCONF"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:288
-#: Source/Core/DiscIO/CompressedBlob.cpp:377
+#: Source/Core/DiscIO/CompressedBlob.cpp:295
+#: Source/Core/DiscIO/CompressedBlob.cpp:389
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -3267,9 +3273,9 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:426
 msgid "File is not recognized as a memory card"
-msgstr ""
+msgstr "Filen känns inte igen som ett minneskort"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:332
+#: Source/Core/DiscIO/CompressedBlob.cpp:342
 msgid "File not compressed"
 msgstr "Filen är inte komprimerad"
 
@@ -3279,7 +3285,7 @@ msgstr "Filen är inte komprimerad"
 msgid "File write failed"
 msgstr "Misslyckades att skriva till fil"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:192
+#: Source/Core/DiscIO/CompressedBlob.cpp:199
 msgid "Files opened, ready to compress."
 msgstr "Filerna har öppnats. Redo att komprimera."
 
@@ -3291,7 +3297,7 @@ msgstr "Filsystem"
 msgid "Filetype 'ini' is unknown! Will not open!"
 msgstr "Filtypen 'ini' är okänd! Kommer inte att öppnas!"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:83
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:84
 msgid "Filter Symbols"
 msgstr "Filtrera symboler"
 
@@ -3311,7 +3317,7 @@ msgstr ""
 "\n"
 "Om du är osäker kan du lämna detta omarkerat."
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:84
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:85
 msgid "Filter the symbol list by name. This is case-sensitive."
 msgstr "Filtrerar symbollistan baserat på namn. Detta är skriftlägeskänsligt."
 
@@ -3333,9 +3339,9 @@ msgstr "Fixa kontrollsummor"
 
 #. i18n: These are the kinds of flags that a CPU uses (e.g. carry),
 #. not the kinds of flags that represent e.g. countries
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:36
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:37
 #: Source/Core/DolphinWX/Debugger/JitWindow.cpp:180
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:74
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:75
 msgid "Flags"
 msgstr "Flaggor"
 
@@ -3586,15 +3592,15 @@ msgstr "Helskärm"
 msgid "Fullscreen Resolution:"
 msgstr "Helskärmsupplösning:"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:34
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:35
 msgid "Function"
 msgstr "Funktion"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:116
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:117
 msgid "Function callers"
 msgstr "Funktionsanropare"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:110
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:111
 msgid "Function calls"
 msgstr "Funktionsanrop"
 
@@ -3614,7 +3620,7 @@ msgstr "GCI-fil (*.gci)"
 msgid "GCI Folder"
 msgstr "GCI-mapp"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:65
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:50
 #, c-format
 msgid ""
 "GCI save file was not loaded because it is the wrong region for this memory "
@@ -3625,7 +3631,7 @@ msgstr ""
 "minneskortets region:\n"
 "%s"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:360
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:345
 msgid "GCMemcardDirectory: ClearBlock called with invalid block address"
 msgstr "GCMemcardDirectory: ClearBlock anropades med ogiltig blockadress"
 
@@ -3673,7 +3679,7 @@ msgstr "Spelets ID:"
 msgid "Game is already running!"
 msgstr "Spelet körs redan!"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:428
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:413
 #, c-format
 msgid ""
 "Game overwrote with another games save. Data corruption ahead 0x%x, 0x%x"
@@ -3735,7 +3741,7 @@ msgstr "Gecko-koder"
 
 #: Source/Core/Core/HotkeyManager.cpp:234
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:84
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:50
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:76
 #: Source/Core/DolphinWX/PostProcessingConfigDiag.cpp:130
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:48
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:366
@@ -3773,7 +3779,7 @@ msgstr "Gå till nästa bildruta"
 msgid "Go to the current instruction"
 msgstr "Gå till aktuell instruktion"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:137
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:88
 #: Source/Core/DolphinWX/MainToolBar.cpp:186
 msgid "Graphics"
 msgstr "Grafik"
@@ -3863,11 +3869,11 @@ msgstr "Hjälp"
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:263
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:104
 msgid "Hex"
-msgstr ""
+msgstr "Hex"
 
 #: Source/Core/DolphinWX/Debugger/WatchView.cpp:86
 msgid "Hexadecimal"
-msgstr ""
+msgstr "Hexadecimal"
 
 #: Source/Core/InputCommon/ControllerEmu.cpp:304
 msgid "Hide"
@@ -3944,13 +3950,13 @@ msgstr "Hybrid-Wii-fjärrkontroll"
 msgid "ID"
 msgstr "ID"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:682
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:673
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: Försökte att hämta data från en okänd biljett: %08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:1003
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:994
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3963,7 +3969,7 @@ msgstr ""
 "Titel-ID %016<PRIx64>.\n"
 "Dolphin kommer troligtvis frysa sig nu."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:983
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:974
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: DOL-filen är ogiltig!"
 
@@ -4470,7 +4476,7 @@ msgstr ""
 "Om emuleringshastigheten höjs eller sänks kommer även ljudets tonhöjd höjas "
 "eller sänkas för att hålla ljuduppspelningen jämn."
 
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:59
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:60
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:35
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1217
 msgid "Load"
@@ -4642,7 +4648,7 @@ msgstr "Laddade %d giltiga funktioner, ignorerade %d ogiltiga funktioner."
 msgid "Localhost"
 msgstr "Localhost"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:45
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:46
 #: Source/Core/DolphinWX/LogWindow.h:30
 msgid "Log"
 msgstr "Logg"
@@ -4772,7 +4778,7 @@ msgstr "Minneskort"
 msgid "Memory Card Manager"
 msgstr "Minneskorthanterare"
 
-#: Source/Core/Core/ConfigManager.cpp:1051
+#: Source/Core/Core/ConfigManager.cpp:1017
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4795,11 +4801,11 @@ msgstr "Minnet är inte redo"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:450
 msgid "Memory card already has a save for this title."
-msgstr ""
+msgstr "Minneskortet har redan en sparning för denna titel."
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:289
 msgid "Memory card already opened"
-msgstr ""
+msgstr "Minneskortet har redan öppnats"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:94
 msgid "Memory card file size does not match the header size"
@@ -5059,7 +5065,7 @@ msgstr "Inget matchar"
 msgid "No Value Given"
 msgstr "Inget värde angivet"
 
-#: Source/Core/Core/ConfigManager.h:22
+#: Source/Core/Core/ConfigManager.h:23
 msgid "No audio output"
 msgstr "Inget utdata för ljud"
 
@@ -5115,7 +5121,7 @@ msgstr "Inte ett giltigt hexadecimalt tal"
 msgid "Not all players have the game. Do you really want to start?"
 msgstr "Vissa spelare har inte detta spel. Vill du verkligen starta?"
 
-#: Source/Core/DolphinWX/Main.cpp:487
+#: Source/Core/DolphinWX/Main.cpp:484
 msgid "Not connected"
 msgstr "Inte ansluten"
 
@@ -5219,7 +5225,7 @@ msgstr ""
 "Exportera endast symboler med prefix:\n"
 "(Lämna tomt för att exportera alla symboler)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:545
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:546
 msgid "Op?"
 msgstr "Op?"
 
@@ -5278,6 +5284,9 @@ msgid ""
 "Right click and export all of the saves,\n"
 "and import the saves to a new memory card\n"
 msgstr ""
+"Filsorteringen i filkatalogen stämmer inte överens med blocksorteringen\n"
+"Högerklicka och exportera alla sparningar,\n"
+"och importera alla sparningar till ett nytt minneskort\n"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:146
 msgid "Orientation"
@@ -5288,7 +5297,7 @@ msgstr "Orientering"
 msgid "Other"
 msgstr "Övrigt"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:199
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:93
 msgid "Other State Management"
 msgstr "Annan snabbsparningshantering"
 
@@ -5322,7 +5331,7 @@ msgstr "PPC-storlek"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:372
 msgid "PPC vs x86"
-msgstr ""
+msgstr "PPC mot x86"
 
 #: Source/Core/Core/HW/GCPad.cpp:15
 msgid "Pad"
@@ -5529,7 +5538,7 @@ msgstr "Profil"
 
 #: Source/Core/Core/HotkeyManager.cpp:240
 msgid "Program Counter"
-msgstr ""
+msgstr "Program Counter"
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.h:55
 msgid "Properties"
@@ -5583,11 +5592,11 @@ msgstr "Radie"
 msgid "Range"
 msgstr "Räckvidd"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:41
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
 msgid "Read"
 msgstr "Läs"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:44
 msgid "Read and write"
 msgstr "Läs och skriv"
 
@@ -5728,7 +5737,7 @@ msgstr "Rendera till huvudfönstret"
 msgid "Rendering"
 msgstr "Rendering"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:340
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:325
 #, c-format
 msgid "Report: GCIFolder Writing to unallocated block 0x%x"
 msgstr "Rapport: GCIFolder skriver till oallokerat block 0x%x"
@@ -5826,7 +5835,7 @@ msgstr "Spa&ra snabbsparning"
 msgid "Safe"
 msgstr "Säker"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:62
+#: Source/Core/DolphinWX/Debugger/BreakpointWindow.cpp:63
 #: Source/Core/DolphinWX/Debugger/WatchWindow.cpp:38
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:162
 #: Source/Core/DolphinWX/Input/InputConfigDiag.cpp:1219
@@ -5906,7 +5915,7 @@ msgstr "Spara snabbsparning..."
 msgid "Save Symbol Map &As..."
 msgstr "Spara symbol-map so&m..."
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:176
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:92
 msgid "Save and Load State"
 msgstr "Spara och läs in snabbsparning"
 
@@ -6036,10 +6045,10 @@ msgstr "Sök"
 msgid "Search (clear to use previous value)"
 msgstr "Sök (lämna tomt för att använda föregående värde)"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:80
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:81
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:79
 msgid "Search Address"
-msgstr ""
+msgstr "Sök adress"
 
 #: Source/Core/DolphinWX/FifoPlayerDlg.cpp:261
 msgid "Search Current Object"
@@ -6053,8 +6062,8 @@ msgstr "Sök undermappar"
 msgid "Search for Hex Value:"
 msgstr "Sök efter hex-värde:"
 
-#: Source/Core/Common/SysConf.h:98 Source/Core/Common/SysConf.h:121
-#: Source/Core/Common/SysConf.h:141 Source/Core/Common/SysConf.h:162
+#: Source/Core/Common/SysConf.h:104 Source/Core/Common/SysConf.h:127
+#: Source/Core/Common/SysConf.h:147 Source/Core/Common/SysConf.h:168
 #, c-format
 msgid "Section %s not found in SYSCONF"
 msgstr "Sektion %s hittades inte i SYSCONF"
@@ -6300,7 +6309,7 @@ msgstr "Ange som &standard-ISO"
 #: Source/Core/DolphinWX/MemcardManager.cpp:835
 #, c-format
 msgid "Set as default Memory Card %c"
-msgstr ""
+msgstr "Ange som standardminneskort %c"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Set the current instruction"
@@ -6331,7 +6340,7 @@ msgstr ""
 "Anger latensen (i millisekunder). Högre värden kan minska ljudknaster. "
 "Endast för vissa backends."
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:252
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:240
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Kan inte skapa filen setting.txt"
 
@@ -6726,7 +6735,7 @@ msgid "Standard Controller"
 msgstr "Standardkontroll"
 
 #: Source/Core/Core/HW/GCPadEmu.cpp:27
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:28
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:29
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:249
 #: Source/Core/DolphinWX/SoftwareVideoConfigDialog.cpp:144
 #: Source/Core/DolphinWX/TASInputDlg.cpp:403
@@ -6772,19 +6781,19 @@ msgstr "Stega"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:404
 msgid "Step &Into"
-msgstr ""
+msgstr "Stega &in"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:405
 msgid "Step &Over"
-msgstr ""
+msgstr "Stega &över"
 
 #: Source/Core/Core/HotkeyManager.cpp:41
 msgid "Step Into"
-msgstr ""
+msgstr "Stega in"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:406
 msgid "Step O&ut"
-msgstr ""
+msgstr "Stega &ut"
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
@@ -6808,29 +6817,29 @@ msgstr "Stega in i nästa instruktion"
 msgid "Step out of the current function"
 msgstr "Stega ut ur den aktuella funktionen"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:406
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:407
 msgid "Step out successful!"
-msgstr ""
+msgstr "Utstegningen lyckades!"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:404
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:405
 msgid "Step out timed out!"
-msgstr ""
+msgstr "Utstegningen gjorde timeout!"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:331
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:332
 msgid "Step over in progress..."
-msgstr ""
+msgstr "Överstegning pågår..."
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:200
 msgid "Step over the next instruction"
 msgstr "Stega över nästa instruktion"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:316
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:317
 msgid "Step successful!"
-msgstr ""
+msgstr "Stegning lyckades!"
 
 #: Source/Core/Core/HotkeyManager.cpp:239
 msgid "Stepping"
-msgstr ""
+msgstr "Stega"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"
@@ -6933,7 +6942,7 @@ msgstr "Svängning "
 msgid "Symbol"
 msgstr "Symbol"
 
-#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:104
+#: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:105
 #: Source/Core/DolphinWX/Debugger/DSPDebugWindow.cpp:95
 msgid "Symbols"
 msgstr "Symboler"
@@ -6980,7 +6989,7 @@ msgstr "TAS-inmatning"
 #: Source/Core/DolphinWX/FrameTools.cpp:378
 #, c-format
 msgid "TAS Input - GameCube Controller %d"
-msgstr ""
+msgstr "TAS-inmatning - GameCube-kontroll %d"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:386
 #, c-format
@@ -6989,7 +6998,7 @@ msgstr "TAS-inmatning - Wii-fjärrkontroll %d"
 
 #. i18n: TAS is short for tool-assisted speedrun. Read http://tasvideos.org/ for details.
 #. Frame advance is an example of a typical TAS tool.
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:70
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:80
 msgid "TAS Tools"
 msgstr "TAS-verktyg"
 
@@ -7064,11 +7073,11 @@ msgstr ""
 "\n"
 "Om du är osäker kan du välja värdet längst till höger."
 
-#: Source/Core/Core/ConfigManager.cpp:931
+#: Source/Core/Core/ConfigManager.cpp:897
 msgid "The WAD has been installed successfully"
 msgstr "WAD har installerats utan problem."
 
-#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:49
+#: Source/Core/DolphinWX/Debugger/BreakpointDlg.cpp:50
 #, c-format
 msgid "The address %s is invalid."
 msgstr "Adressen %s är ogiltig."
@@ -7099,7 +7108,7 @@ msgstr ""
 msgid "The disc could not be read (at 0x%<PRIx64> - 0x%<PRIx64>)."
 msgstr "Skivan kunde inte läsas (vid 0x%<PRIx64> - 0x%<PRIx64>)."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:110
+#: Source/Core/DiscIO/CompressedBlob.cpp:116
 #, c-format
 msgid ""
 "The disc image \"%s\" is corrupt.\n"
@@ -7108,7 +7117,7 @@ msgstr ""
 "Skivavbilden \"%s\" är korrupt.\n"
 "Kontrollsumman av blocket %<%PRIu64> är %08x istället för %08x."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:101
+#: Source/Core/DiscIO/CompressedBlob.cpp:107
 #, c-format
 msgid "The disc image \"%s\" is truncated, some of the data is missing."
 msgstr "Skivavbilden \"%s\" är avklippt. Viss data saknas."
@@ -7128,7 +7137,7 @@ msgstr ""
 "Filen %s finns redan.\n"
 "Vill du ersätta den?"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:52
+#: Source/Core/AudioCommon/WaveFile.cpp:55
 #, c-format
 msgid ""
 "The file %s could not be opened for writing. Please check if it's already "
@@ -7137,7 +7146,7 @@ msgstr ""
 "Filen %s kunde inte öppnas för skrivning. Var god kontrollera om den redan "
 "är öppnad i ett annat program."
 
-#: Source/Core/AudioCommon/WaveFile.cpp:44
+#: Source/Core/AudioCommon/WaveFile.cpp:47
 #, c-format
 msgid "The file %s was already open, the file header will not be written."
 msgstr "Filen %s var redan öppen, headerfilen kommer inte att skrivas."
@@ -7187,7 +7196,7 @@ msgstr "Servern svarade: Spelet körs för tillfället!"
 msgid "The server sent an unknown error message!"
 msgstr "Servern skickade ett okänt felmeddelande!"
 
-#: Source/Core/Core/ConfigManager.cpp:840
+#: Source/Core/Core/ConfigManager.cpp:805
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Den valda filen \"%s\" finns inte"
@@ -7200,7 +7209,7 @@ msgstr "Värdet är ogiltigt"
 msgid "Theme:"
 msgstr "Tema:"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:176
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:161
 #, c-format
 msgid ""
 "There are too many GCI files in the folder\n"
@@ -7215,7 +7224,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "Det finns inget att ångra!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:616
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:607
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -7362,11 +7371,11 @@ msgstr "till"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:407
 msgid "Toggle &Breakpoint"
-msgstr ""
+msgstr "Växla &brytpunkt"
 
 #: Source/Core/DolphinWX/Debugger/MemoryView.cpp:256
 msgid "Toggle &memory"
-msgstr ""
+msgstr "Växla &minne"
 
 #: Source/Core/Core/HotkeyManager.cpp:83
 msgid "Toggle 3D Anaglyph"
@@ -7394,7 +7403,7 @@ msgstr "Slå på/av bildförhållande"
 
 #: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Toggle Breakpoint"
-msgstr ""
+msgstr "Växla brytpunkt"
 
 #: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Toggle Crop"
@@ -7422,7 +7431,7 @@ msgstr "Slå på/av paus"
 
 #: Source/Core/Core/HotkeyManager.cpp:64
 msgid "Toggle Texture Dumping"
-msgstr ""
+msgstr "Växla texturdumpning"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:393
 msgid "Toggle editing of perspectives"
@@ -7464,7 +7473,7 @@ msgstr "Traverseringsserver gjorde en timeout vid anslutning till värden"
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Försökte dekryptera data från en annan volymtyp än Wii-skiva"
 
-#: Source/Core/Core/Boot/Boot.cpp:473
+#: Source/Core/Core/Boot/Boot.cpp:474
 msgid "Tried to load an unknown file type."
 msgstr "Försökte läsa in en okänd filtyp."
 
@@ -7486,11 +7495,11 @@ msgstr ""
 "Försöker ladda det här spelets funktionsnamn automatiskt - men kollar inte "
 "i .map-filer lagrade i skivavbildningen än."
 
-#: Source/Core/Common/SysConf.h:86 Source/Core/Common/SysConf.h:109
+#: Source/Core/Common/SysConf.h:92 Source/Core/Common/SysConf.h:115
 msgid "Trying to read from invalid SYSCONF"
 msgstr "Försöker att läsa från ogiltig SYSCONF"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:59
+#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:53
 msgid ""
 "Trying to read from invalid SYSCONF\n"
 "Wii Remote Bluetooth IDs are not available"
@@ -7512,7 +7521,7 @@ msgstr "Skivspelare"
 msgid "Turntable Configuration"
 msgstr "Skivspelarkonfiguration"
 
-#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:33
+#: Source/Core/DolphinWX/Debugger/BreakpointView.cpp:34
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:74
 msgid "Type"
 msgstr "Typ"
@@ -7577,7 +7586,7 @@ msgstr "Okänd"
 msgid "Unknown DVD command %08x - fatal error"
 msgstr "Okänt DVD-kommando %08x - katastrofalt fel"
 
-#: Source/Core/Common/SysConf.cpp:161
+#: Source/Core/Common/SysConf.cpp:164
 #, c-format
 msgid "Unknown entry type %i in SYSCONF (%s@%x)!"
 msgstr "Okänd tillträdestyp %i i SYSCONF (%s@%x)!"
@@ -7607,7 +7616,7 @@ msgstr ""
 msgid "Unlimited"
 msgstr "Obegränsad"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:366
+#: Source/Core/DiscIO/CompressedBlob.cpp:378
 msgid "Unpacking"
 msgstr "Packar upp"
 
@@ -7781,25 +7790,25 @@ msgstr "Visa som:"
 #. i18n: Double means double-precision floating point number
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:507
 msgid "View as double"
-msgstr ""
+msgstr "Visa som dubbel"
 
 #. i18n: Float means floating point number
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:501
 msgid "View as float"
-msgstr ""
+msgstr "Visa som flyttal"
 
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:497
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:505
 msgid "View as hexadecimal"
-msgstr ""
+msgstr "Visa som hexadecimal"
 
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:498
 msgid "View as signed integer"
-msgstr ""
+msgstr "Visa som heltal med tecken"
 
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:499
 msgid "View as unsigned integer"
-msgstr ""
+msgstr "Visa som heltal utan tecken"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:781
 msgid "Virtual"
@@ -7855,11 +7864,11 @@ msgstr ""
 msgid "Warning"
 msgstr "Varning"
 
-#: Source/Core/Core/Boot/Boot.cpp:337
+#: Source/Core/Core/Boot/Boot.cpp:338
 msgid "Warning - starting DOL in wrong console mode!"
 msgstr "Varning - startar DOL i fel konsolläge!"
 
-#: Source/Core/Core/Boot/Boot.cpp:274
+#: Source/Core/Core/Boot/Boot.cpp:277
 msgid "Warning - starting ISO in wrong console mode!"
 msgstr "Varning - startar ISO i fel konsolläge!"
 
@@ -7875,7 +7884,7 @@ msgstr ""
 "%s\n"
 "Vill du fortsätta?"
 
-#: Source/Core/Core/HW/GCMemcardDirectory.cpp:538
+#: Source/Core/Core/HW/GCMemcardDirectory.cpp:523
 #, c-format
 msgid ""
 "Warning: Number of blocks indicated by the BAT (%u) does not match that of "
@@ -7891,6 +7900,11 @@ msgid ""
 "and have the same name as a file on your memory card\n"
 "Continue?"
 msgstr ""
+"Varning: Detta kommer att skriva över alla existerande sparningar som är i "
+"mappen:\n"
+"%s\n"
+"och har samma namn som en fil på ditt minneskort\n"
+"Vill du fortsätta?"
 
 #: Source/Core/Core/Movie.cpp:1074
 #, c-format
@@ -7967,7 +7981,7 @@ msgstr ""
 msgid "Watch"
 msgstr "Bevakning"
 
-#: Source/Core/AudioCommon/WaveFile.cpp:116
+#: Source/Core/AudioCommon/WaveFile.cpp:119
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - fil är inte öppen."
 
@@ -8018,7 +8032,7 @@ msgstr "Wii-fjärrkontroll"
 msgid "Wii Remote %i"
 msgstr "Wii-fjärrkontroll %i"
 
-#: Source/Core/DolphinWX/Main.cpp:493
+#: Source/Core/DolphinWX/Main.cpp:490
 msgid "Wii Remote Connected"
 msgstr "Wii-fjärrkontroll ansluten"
 
@@ -8043,7 +8057,7 @@ msgstr "Konfiguration av GameCube-kontrolladapter för Wii U, plats %i"
 msgid "Wii WAD files (*.wad)"
 msgstr "Wii-WAD-filer (*.wad)"
 
-#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:110
+#: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:87
 msgid "Wii and Wii Remote"
 msgstr "Wii och Wii-fjärrkontroller"
 
@@ -8070,11 +8084,11 @@ msgstr "Fönstermeny"
 msgid "Windows Right"
 msgstr "Fönster höger"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:37
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:38
 msgid "With an address"
 msgstr "Med en adress"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:39
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:40
 msgid "Within a range"
 msgstr "Inom ett intervall"
 
@@ -8094,7 +8108,7 @@ msgstr "Arbetar..."
 msgid "World"
 msgstr "Världen"
 
-#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:42
+#: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:43
 msgid "Write"
 msgstr "Skriv"
 
@@ -8112,7 +8126,7 @@ msgstr "Skriv till fönster"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:259
 msgid "Write to memory cards/SD"
-msgstr ""
+msgstr "Skriv till SD-/minneskort"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:252
 #: Source/Core/DolphinWX/TASInputDlg.cpp:393
@@ -8172,7 +8186,7 @@ msgstr ""
 "Vill du stoppa nu för att fixa problemet?\n"
 "Om du väljer \"nej\" kan ljudet bli förvrängt."
 
-#: Source/Core/Core/ConfigManager.cpp:876
+#: Source/Core/Core/ConfigManager.cpp:842
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -8180,7 +8194,7 @@ msgstr ""
 "Din GCM/ISO-fil verkar vara ogiltig (ogiltigt land).\n"
 "Vill du fortsätta med PAL-regionen?"
 
-#: Source/Core/Common/SysConf.cpp:59
+#: Source/Core/Common/SysConf.cpp:60
 #, c-format
 msgid ""
 "Your SYSCONF file is the wrong size.\n"
