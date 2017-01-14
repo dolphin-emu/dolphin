@@ -120,7 +120,7 @@ public:
     case MODE_WRITE:
     case MODE_MEASURE:
     case MODE_VERIFY:
-      for (V& val : x)
+      for (const V& val : x)
       {
         Do(val);
       }
