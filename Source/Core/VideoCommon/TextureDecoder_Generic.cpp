@@ -10,6 +10,7 @@
 #include "Common/CommonTypes.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TextureDecoder_Util.h"
 //#include "VideoCommon/VideoCommon.h" // to get debug logs
 #include "VideoCommon/VideoConfig.h"
 
@@ -140,18 +141,6 @@ static inline void DecodeBytes_RGBA8(u32* dst, const u16* src, const u16* src2)
 #endif
 }
 
-struct DXTBlock
-{
-  u16 color1;
-  u16 color2;
-  u8 lines[4];
-};
-
-static inline u32 MakeRGBA(int r, int g, int b, int a)
-{
-  return (a << 24) | (b << 16) | (g << 8) | r;
-}
-
 static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
 {
   // S3TC Decoder (Note: GCN decodes differently from PC so we can't use native support)
@@ -169,7 +158,6 @@ static void DecodeDXTBlock(u32* dst, const DXTBlock* src, int pitch)
   colors[1] = MakeRGBA(red2, green2, blue2, 255);
   if (c1 > c2)
   {
-    // Approximation of x/3: 3/8 (1/2 - 1/8)
     colors[2] =
         MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255);
     colors[3] =

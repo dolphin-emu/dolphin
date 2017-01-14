@@ -88,8 +88,3 @@ void TexDecoder_SetTexFmtOverlayOptions(bool enable, bool center);
 /* Internal method, implemented by TextureDecoder_Generic and TextureDecoder_x64. */
 void _TexDecoder_DecodeImpl(u32* dst, const u8* src, int width, int height, int texformat,
                             const u8* tlut, TlutFormat tlutfmt);
-
-static constexpr int DXTBlend(int v1, int v2)
-{
-  return ((v1 * 3 + v2 * 5) >> 3);
-}

@@ -10,6 +10,7 @@
 #include "Common/MsgHandler.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TextureDecoder_Util.h"
 #include "VideoCommon/sfont.inc"
 
 static bool TexFmt_Overlay_Enable = false;
@@ -420,18 +421,6 @@ static inline u32 DecodePixel_Paletted(u16 pixel, TlutFormat tlutfmt)
   default:
     return 0;
   }
-}
-
-struct DXTBlock
-{
-  u16 color1;
-  u16 color2;
-  u8 lines[4];
-};
-
-static inline u32 MakeRGBA(int r, int g, int b, int a)
-{
-  return (a << 24) | (b << 16) | (g << 8) | r;
 }
 
 void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth, int texformat,

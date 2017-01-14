@@ -203,6 +203,9 @@
     <ClInclude Include="TextureDecoder.h">
       <Filter>Decoding</Filter>
     </ClInclude>
+    <ClInclude Include="TextureDecoder_Util.h">
+      <Filter>Decoding</Filter>
+    </ClInclude>
     <ClInclude Include="BPFunctions.h">
       <Filter>Register Sections</Filter>
     </ClInclude>
