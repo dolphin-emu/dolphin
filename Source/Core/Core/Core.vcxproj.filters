@@ -565,6 +565,9 @@
     <ClCompile Include="DSP\LabelMap.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
+    <ClCompile Include="IPC_HLE\ESFormats.cpp">
+      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
+    </ClCompile>
     <ClCompile Include="IPC_HLE\WII_IPC_HLE.cpp">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>
     </ClCompile>
@@ -1161,6 +1164,9 @@
     </ClInclude>
     <ClInclude Include="DSP\LabelMap.h">
       <Filter>DSPCore</Filter>
+    </ClInclude>
+    <ClInclude Include="IPC_HLE\ESFormats.h">
+      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
     </ClInclude>
     <ClInclude Include="IPC_HLE\WII_IPC_HLE.h">
       <Filter>IPC HLE %28IOS/Starlet%29</Filter>

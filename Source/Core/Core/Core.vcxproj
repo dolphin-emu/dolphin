@@ -167,6 +167,7 @@
     <ClCompile Include="HW\WiimoteReal\WiimoteReal.cpp" />
     <ClCompile Include="HW\WII_IPC.cpp" />
     <ClCompile Include="HW\WiiSaveCrypted.cpp" />
+    <ClCompile Include="IPC_HLE\ESFormats.cpp" />
     <ClCompile Include="IPC_HLE\ICMPWin.cpp" />
     <ClCompile Include="IPC_HLE\NWC24Config.cpp" />
     <ClCompile Include="IPC_HLE\WiiMote_HID_Attr.cpp" />
@@ -392,6 +393,7 @@
     <ClInclude Include="HW\WiimoteReal\WiimoteRealBase.h" />
     <ClInclude Include="HW\WiiSaveCrypted.h" />
     <ClInclude Include="HW\WII_IPC.h" />
+    <ClInclude Include="IPC_HLE\ESFormats.h" />
     <ClInclude Include="IPC_HLE\hci.h" />
     <ClInclude Include="IPC_HLE\ICMP.h" />
     <ClInclude Include="IPC_HLE\l2cap.h" />

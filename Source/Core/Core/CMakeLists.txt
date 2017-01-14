@@ -135,6 +135,7 @@ set(SRCS	ActionReplay.cpp
 			HW/WiimoteEmu/Speaker.cpp
 			HW/WiimoteReal/WiimoteReal.cpp
 			HW/WiiSaveCrypted.cpp
+			IPC_HLE/ESFormats.cpp
 			IPC_HLE/ICMPLin.cpp
 			IPC_HLE/NWC24Config.cpp
 			IPC_HLE/WII_IPC_HLE.cpp
