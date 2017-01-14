@@ -59,7 +59,6 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(u32 command_address)
   case IOCTL_STM_VIDIMMING:  // (Input: 20 bytes, Output: 20 bytes)
     INFO_LOG(WII_IPC_STM, "%s - IOCtl:", GetDeviceName().c_str());
     INFO_LOG(WII_IPC_STM, "    IOCTL_STM_VIDIMMING");
-    // DumpCommands(buffer_in, buffer_in_size / 4, LogTypes::WII_IPC_STM);
     // Memory::Write_U32(1, buffer_out);
     // return_value = 1;
     break;

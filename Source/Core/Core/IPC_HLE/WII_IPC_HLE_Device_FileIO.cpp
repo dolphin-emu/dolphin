@@ -308,9 +308,6 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(u32 _CommandAddress)
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(u32 _CommandAddress)
 {
   DEBUG_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", m_name.c_str());
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  DumpCommands(_CommandAddress);
-#endif
   const u32 Parameter = Memory::Read_U32(_CommandAddress + 0xC);
   u32 ReturnValue = 0;
 

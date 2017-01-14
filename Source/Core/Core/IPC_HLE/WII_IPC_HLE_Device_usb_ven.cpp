@@ -25,8 +25,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtlV(u32 command_address)
   INFO_LOG(OSHLE, "  NumberIn: 0x%08x", command_buffer.NumberInBuffer);
   INFO_LOG(OSHLE, "  NumberOut: 0x%08x", command_buffer.NumberPayloadBuffer);
   INFO_LOG(OSHLE, "  BufferVector: 0x%08x", command_buffer.BufferVector);
-  DumpAsync(command_buffer.BufferVector, command_buffer.NumberInBuffer,
-            command_buffer.NumberPayloadBuffer);
 
   Memory::Write_U32(0, command_address + 4);
   return GetNoReply();

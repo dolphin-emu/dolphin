@@ -268,10 +268,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtlV(u32 _CommandAdd
     INFO_LOG(WII_IPC_WIIMOTE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
     INFO_LOG(WII_IPC_WIIMOTE, "    PayloadAddr: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Address);
     INFO_LOG(WII_IPC_WIIMOTE, "    PayloadSize: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Size);
-#if defined(_DEBUG) || defined(DEBUGFAST)
-    DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer,
-              CommandBuffer.NumberPayloadBuffer);
-#endif
   }
   break;
   }

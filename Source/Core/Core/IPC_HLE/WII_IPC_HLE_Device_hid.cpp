@@ -296,10 +296,6 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtlV(u32 _CommandAddress)
   INFO_LOG(WII_IPC_HID, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
   INFO_LOG(WII_IPC_HID, "    PayloadAddr: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Address);
   INFO_LOG(WII_IPC_HID, "    PayloadSize: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Size);
-#if defined(_DEBUG) || defined(DEBUGFAST)
-  DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer,
-            CommandBuffer.NumberPayloadBuffer);
-#endif
 
   Memory::Write_U32(ReturnValue, _CommandAddress + 4);
   return GetDefaultReply();

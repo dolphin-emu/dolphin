@@ -204,11 +204,6 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     break;
   }
 
-  // INFO_LOG(WII_IPC_SD, "InBuffer");
-  // DumpCommands(BufferIn, BufferInSize / 4, LogTypes::WII_IPC_SD);
-  // INFO_LOG(WII_IPC_SD, "OutBuffer");
-  // DumpCommands(BufferOut, BufferOutSize/4, LogTypes::WII_IPC_SD);
-
   if (ReturnValue == RET_EVENT_REGISTER)
   {
     // async
@@ -264,9 +259,6 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
     ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtlV command 0x%08x", CommandBuffer.Parameter);
     break;
   }
-
-  // DumpAsync(CommandBuffer.BufferVector, CommandBuffer.NumberInBuffer,
-  // CommandBuffer.NumberPayloadBuffer, LogTypes::WII_IPC_SD);
 
   Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
 
