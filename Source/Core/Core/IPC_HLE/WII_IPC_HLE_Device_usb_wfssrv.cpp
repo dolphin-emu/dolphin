@@ -29,17 +29,11 @@ CWII_IPC_HLE_Device_usb_wfssrv::CWII_IPC_HLE_Device_usb_wfssrv(u32 device_id,
   m_device_name = "msc01";
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(u32 command_address)
+IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(const IOSIOCtlRequest& request)
 {
-  u32 command = Memory::Read_U32(command_address + 0xC);
-  u32 buffer_in = Memory::Read_U32(command_address + 0x10);
-  u32 buffer_in_size = Memory::Read_U32(command_address + 0x14);
-  u32 buffer_out = Memory::Read_U32(command_address + 0x18);
-  u32 buffer_out_size = Memory::Read_U32(command_address + 0x1C);
-
   int return_error_code = IPC_SUCCESS;
 
-  switch (command)
+  switch (request.request)
   {
   case IOCTL_WFS_INIT:
     // TODO(wfs): Implement.
@@ -48,56 +42,56 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(u32 command_address)
 
   case IOCTL_WFS_DEVICE_INFO:
     INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_DEVICE_INFO");
-    Memory::Write_U64(16ull << 30, buffer_out);  // 16GB storage.
-    Memory::Write_U8(4, buffer_out + 8);
+    Memory::Write_U64(16ull << 30, request.buffer_out);  // 16GB storage.
+    Memory::Write_U8(4, request.buffer_out + 8);
     break;
 
   case IOCTL_WFS_GET_DEVICE_NAME:
   {
     INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_GET_DEVICE_NAME");
-    Memory::Write_U8(static_cast<u8>(m_device_name.size()), buffer_out);
-    Memory::CopyToEmu(buffer_out + 1, m_device_name.data(), m_device_name.size());
+    Memory::Write_U8(static_cast<u8>(m_device_name.size()), request.buffer_out);
+    Memory::CopyToEmu(request.buffer_out + 1, m_device_name.data(), m_device_name.size());
     break;
   }
 
   case IOCTL_WFS_ATTACH_DETACH_2:
     // TODO(wfs): Implement.
-    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_ATTACH_DETACH_2(%d)", command);
-    Memory::Write_U32(1, buffer_out);
-    Memory::Write_U32(0, buffer_out + 4);  // device id?
-    Memory::Write_U32(0, buffer_out + 8);
+    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_ATTACH_DETACH_2(%u)", request.request);
+    Memory::Write_U32(1, request.buffer_out);
+    Memory::Write_U32(0, request.buffer_out + 4);  // device id?
+    Memory::Write_U32(0, request.buffer_out + 8);
     break;
 
   case IOCTL_WFS_ATTACH_DETACH:
-    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_ATTACH_DETACH(%d)", command);
-    Memory::Write_U32(1, buffer_out);
-    Memory::Write_U32(0, buffer_out + 4);
-    Memory::Write_U32(0, buffer_out + 8);
+    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_ATTACH_DETACH(%u)", request.request);
+    Memory::Write_U32(1, request.buffer_out);
+    Memory::Write_U32(0, request.buffer_out + 4);
+    Memory::Write_U32(0, request.buffer_out + 8);
     return GetNoReply();
 
   // TODO(wfs): Globbing is not really implemented, we just fake the one case
   // (listing /vol/*) which is required to get the installer to work.
   case IOCTL_WFS_GLOB_START:
-    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_GLOB_START(%d)", command);
-    Memory::Memset(buffer_out, 0, buffer_out_size);
-    memcpy(Memory::GetPointer(buffer_out + 0x14), m_device_name.data(), m_device_name.size());
+    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_GLOB_START(%u)", request.request);
+    Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
+    Memory::CopyToEmu(request.buffer_out + 0x14, m_device_name.data(), m_device_name.size());
     break;
 
   case IOCTL_WFS_GLOB_NEXT:
-    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_GLOB_NEXT(%d)", command);
+    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_GLOB_NEXT(%u)", request.request);
     return_error_code = WFS_EEMPTY;
     break;
 
   case IOCTL_WFS_GLOB_END:
-    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_GLOB_END(%d)", command);
-    Memory::Memset(buffer_out, 0, buffer_out_size);
+    INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_GLOB_END(%u)", request.request);
+    Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
 
   case IOCTL_WFS_OPEN:
   {
-    u32 mode = Memory::Read_U32(buffer_in);
-    u16 path_len = Memory::Read_U16(buffer_in + 0x20);
-    std::string path = Memory::GetString(buffer_in + 0x22, path_len);
+    u32 mode = Memory::Read_U32(request.buffer_in);
+    u16 path_len = Memory::Read_U16(request.buffer_in + 0x20);
+    std::string path = Memory::GetString(request.buffer_in + 0x22, path_len);
 
     u16 fd = GetNewFileDescriptor();
     FileDescriptor* fd_obj = &m_fds[fd];
@@ -115,13 +109,13 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(u32 command_address)
     }
 
     INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_OPEN(%s, %d) -> %d", path.c_str(), mode, fd);
-    Memory::Write_U16(fd, buffer_out + 0x14);
+    Memory::Write_U16(fd, request.buffer_out + 0x14);
     break;
   }
 
   case IOCTL_WFS_CLOSE:
   {
-    u16 fd = Memory::Read_U16(buffer_in + 0x4);
+    u16 fd = Memory::Read_U16(request.buffer_in + 0x4);
     INFO_LOG(WII_IPC_HLE, "IOCTL_WFS_CLOSE(%d)", fd);
     ReleaseFileDescriptor(fd);
     break;
@@ -129,9 +123,9 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(u32 command_address)
 
   case IOCTL_WFS_READ:
   {
-    u32 addr = Memory::Read_U32(buffer_in);
-    u16 fd = Memory::Read_U16(buffer_in + 0xC);
-    u32 size = Memory::Read_U32(buffer_in + 8);
+    u32 addr = Memory::Read_U32(request.buffer_in);
+    u16 fd = Memory::Read_U16(request.buffer_in + 0xC);
+    u32 size = Memory::Read_U32(request.buffer_in + 8);
 
     FileDescriptor* fd_obj = FindFileDescriptor(fd);
     if (fd_obj == nullptr)
@@ -158,15 +152,12 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(u32 command_address)
   default:
     // TODO(wfs): Should be returning -3. However until we have everything
     // properly stubbed it's easier to simulate the methods succeeding.
-    WARN_LOG(WII_IPC_HLE, "%s unimplemented IOCtl(0x%08x, size_in=%08x, size_out=%08x)\n%s\n%s",
-             m_name.c_str(), command, buffer_in_size, buffer_out_size,
-             HexDump(Memory::GetPointer(buffer_in), buffer_in_size).c_str(),
-             HexDump(Memory::GetPointer(buffer_out), buffer_out_size).c_str());
-    Memory::Memset(buffer_out, 0, buffer_out_size);
+    request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_HLE, LogTypes::LWARNING);
+    Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
   }
 
-  Memory::Write_U32(return_error_code, command_address + 4);
+  request.SetReturnValue(return_error_code);
   return GetDefaultReply();
 }
 
