@@ -24,13 +24,6 @@ class JitBase;
 // address.
 struct JitBlock
 {
-  enum
-  {
-    // Mask for the MSR bits which determine whether a compiled block
-    // is valid (MSR.IR and MSR.DR, the address translation bits).
-    JIT_CACHE_MSR_MASK = 0x30,
-  };
-
   // A special entry point for block linking; usually used to check the
   // downcount.
   const u8* checkedEntry;
@@ -115,6 +108,10 @@ public:
 class JitBaseBlockCache
 {
 public:
+  // Mask for the MSR bits which determine whether a compiled block
+  // is valid (MSR.IR and MSR.DR, the address translation bits).
+  static constexpr u32 JIT_CACHE_MSR_MASK = 0x30;
+
   static constexpr int MAX_NUM_BLOCKS = 65536 * 2;
   static constexpr u32 iCache_Num_Elements = 0x10000;
   static constexpr u32 iCache_Mask = iCache_Num_Elements - 1;

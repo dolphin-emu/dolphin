@@ -88,7 +88,7 @@ void JitArm64::GenerateAsm()
     FixupBranch pc_missmatch = B(CC_NEQ);
 
     LDR(INDEX_UNSIGNED, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
-    ANDI2R(pc_and_msr2, pc_and_msr2, JitBlock::JIT_CACHE_MSR_MASK);
+    ANDI2R(pc_and_msr2, pc_and_msr2, JitBaseBlockCache::JIT_CACHE_MSR_MASK);
     LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, msrBits));
     CMP(pc_and_msr, pc_and_msr2);
     FixupBranch msr_missmatch = B(CC_NEQ);
