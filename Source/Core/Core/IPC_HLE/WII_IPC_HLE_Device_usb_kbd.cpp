@@ -38,17 +38,14 @@ CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID,
 {
 }
 
-CWII_IPC_HLE_Device_usb_kbd::~CWII_IPC_HLE_Device_usb_kbd()
-{
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mode)
+IOSReturnCode CWII_IPC_HLE_Device_usb_kbd::Open(const IOSOpenRequest& request)
 {
   INFO_LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_usb_kbd: Open");
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
+  m_MessageQueue = std::queue<SMessageData>();
   for (bool& pressed : m_OldKeyBuffer)
   {
     pressed = false;
@@ -58,35 +55,17 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Open(u32 _CommandAddress, u32 _Mod
 
   // m_MessageQueue.push(SMessageData(MSG_KBD_CONNECT, 0, nullptr));
   m_is_active = true;
-  return GetDefaultReply();
+  return IPC_SUCCESS;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Close(u32 _CommandAddress, bool _bForce)
+IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(const IOSIOCtlRequest& request)
 {
-  INFO_LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_usb_kbd: Close");
-  while (!m_MessageQueue.empty())
-    m_MessageQueue.pop();
-  m_is_active = false;
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::Write(u32 _CommandAddress)
-{
-  DEBUG_LOG(WII_IPC_HLE, "Ignoring write to CWII_IPC_HLE_Device_usb_kbd");
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(u32 _CommandAddress)
-{
-  u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-
   if (SConfig::GetInstance().m_WiiKeyboard && !Core::g_want_determinism && !m_MessageQueue.empty())
   {
-    Memory::CopyToEmu(BufferOut, &m_MessageQueue.front(), sizeof(SMessageData));
+    Memory::CopyToEmu(request.buffer_out, &m_MessageQueue.front(), sizeof(SMessageData));
     m_MessageQueue.pop();
   }
-
-  Memory::Write_U32(0, _CommandAddress + 0x4);
+  request.SetReturnValue(IPC_SUCCESS);
   return GetDefaultReply();
 }
 

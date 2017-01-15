@@ -15,12 +15,9 @@ class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device
 {
 public:
   CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName);
-  virtual ~CWII_IPC_HLE_Device_usb_kbd();
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-  IPCCommandResult Write(u32 _CommandAddress) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
+  IOSReturnCode Open(const IOSOpenRequest& request) override;
+  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
   void Update() override;
 
 private:
