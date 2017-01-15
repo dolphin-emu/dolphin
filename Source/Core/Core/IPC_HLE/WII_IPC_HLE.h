@@ -12,6 +12,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
 
+struct IOSRequest;
 class IWII_IPC_HLE_Device;
 class PointerWrap;
 
@@ -69,7 +70,9 @@ void UpdateDevices();
 void ExecuteCommand(u32 address);
 
 void EnqueueRequest(u32 address);
-void EnqueueReply(u32 address, int cycles_in_future = 0,
+void EnqueueReply(const IOSRequest& request, int cycles_in_future = 0,
+                  CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
+void EnqueueReply(u32 command_address, int cycles_in_future = 0,
                   CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future = 0);
 
