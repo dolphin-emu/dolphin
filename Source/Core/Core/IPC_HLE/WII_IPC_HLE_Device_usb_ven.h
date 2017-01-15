@@ -10,19 +10,13 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
-class PointerWrap;
-
 class CWII_IPC_HLE_Device_usb_ven final : public IWII_IPC_HLE_Device
 {
 public:
   CWII_IPC_HLE_Device_usb_ven(u32 device_id, const std::string& device_name);
 
-  ~CWII_IPC_HLE_Device_usb_ven() override;
-
-  IPCCommandResult IOCtlV(u32 command_address) override;
-  IPCCommandResult IOCtl(u32 command_address) override;
-
-  void DoState(PointerWrap& p) override;
+  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
+  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
 
 private:
   enum USBIOCtl
