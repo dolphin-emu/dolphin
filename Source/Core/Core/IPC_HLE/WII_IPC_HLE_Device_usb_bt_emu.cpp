@@ -95,8 +95,6 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::CWII_IPC_HLE_Device_usb_oh1_57e_305_emu
   m_ControllerBD.b[4] = 0x00;
   m_ControllerBD.b[5] = 0xFF;
 
-  memset(m_PacketCount, 0, sizeof(m_PacketCount));
-
   Host_SetWiiMoteConnectionState(0);
 }
 
@@ -104,6 +102,18 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::~CWII_IPC_HLE_Device_usb_oh1_57e_305_em
 {
   m_WiiMotes.clear();
   SetUsbPointer(nullptr);
+}
+
+template <typename T>
+static void DoStateForMessage(PointerWrap& p, std::unique_ptr<T>& message)
+{
+  u32 request_address = (message != nullptr) ? message->ios_request.address : 0;
+  p.Do(request_address);
+  if (request_address != 0)
+  {
+    IOSIOCtlVRequest request{request_address};
+    message = std::make_unique<T>(request);
+  }
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::DoState(PointerWrap& p)
@@ -119,10 +129,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::DoState(PointerWrap& p)
 
   p.Do(m_is_active);
   p.Do(m_ControllerBD);
-  p.Do(m_CtrlSetup);
-  p.Do(m_ACLSetup);
-  p.DoPOD(m_HCIEndpoint);
-  p.DoPOD(m_ACLEndpoint);
+  DoStateForMessage(p, m_CtrlSetup);
+  DoStateForMessage(p, m_HCIEndpoint);
+  DoStateForMessage(p, m_ACLEndpoint);
   p.Do(m_last_ticks);
   p.DoArray(m_PacketCount);
   p.Do(m_ScanEnable);
@@ -138,75 +147,41 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::RemoteDisconnect(u16 _connectionHa
   return SendEventDisconnect(_connectionHandle, 0x13);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Open(u32 _CommandAddress, u32 _Mode)
+void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Close()
 {
+  // Clean up state
   m_ScanEnable = 0;
-
   m_last_ticks = 0;
   memset(m_PacketCount, 0, sizeof(m_PacketCount));
-
-  m_HCIEndpoint.m_cmd_address = 0;
-  m_ACLEndpoint.m_cmd_address = 0;
-
-  m_is_active = true;
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Close(u32 _CommandAddress, bool _bForce)
-{
-  m_ScanEnable = 0;
-
-  m_last_ticks = 0;
-  memset(m_PacketCount, 0, sizeof(m_PacketCount));
-
-  m_HCIEndpoint.m_cmd_address = 0;
-  m_ACLEndpoint.m_cmd_address = 0;
+  m_HCIEndpoint.reset();
+  m_ACLEndpoint.reset();
 
   m_is_active = false;
-  return GetDefaultReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtlV(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtlV(const IOSIOCtlVRequest& request)
 {
-  bool _SendReply = false;
-
-  SIOCtlVBuffer CommandBuffer(_CommandAddress);
-
-  switch (CommandBuffer.Parameter)
+  bool send_reply = true;
+  switch (request.request)
   {
   case USBV0_IOCTL_CTRLMSG:  // HCI command is received from the stack
   {
-    // This is the HCI datapath from CPU to Wii Remote, the USB stuff is little endian..
-    m_CtrlSetup.bRequestType = *(u8*)Memory::GetPointer(CommandBuffer.InBuffer[0].m_Address);
-    m_CtrlSetup.bRequest = *(u8*)Memory::GetPointer(CommandBuffer.InBuffer[1].m_Address);
-    m_CtrlSetup.wValue = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[2].m_Address);
-    m_CtrlSetup.wIndex = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[3].m_Address);
-    m_CtrlSetup.wLength = *(u16*)Memory::GetPointer(CommandBuffer.InBuffer[4].m_Address);
-    m_CtrlSetup.m_PayLoadAddr = CommandBuffer.PayloadBuffer[0].m_Address;
-    m_CtrlSetup.m_PayLoadSize = CommandBuffer.PayloadBuffer[0].m_Size;
-    m_CtrlSetup.m_Address = CommandBuffer.m_Address;
-
-    // check termination
-    _dbg_assert_msg_(WII_IPC_WIIMOTE,
-                     *(u8*)Memory::GetPointer(CommandBuffer.InBuffer[5].m_Address) == 0,
-                     "WIIMOTE: Termination != 0");
-
+    m_CtrlSetup = std::make_unique<CtrlMessage>(request);
     // Replies are generated inside
-    ExecuteHCICommandMessage(m_CtrlSetup);
+    ExecuteHCICommandMessage(*m_CtrlSetup);
+    m_CtrlSetup.reset();
+    send_reply = false;
+    break;
   }
-  break;
 
   case USBV0_IOCTL_BLKMSG:
   {
-    const CtrlBuffer ctrl(CommandBuffer, _CommandAddress);
+    const CtrlBuffer ctrl{request};
     switch (ctrl.m_endpoint)
     {
     case ACL_DATA_OUT:  // ACL data is received from the stack
     {
       // This is the ACL datapath from CPU to Wii Remote
-      // Here we only need to record the command address in case we need to delay the reply
-      m_ACLSetup = CommandBuffer.m_Address;
-
       const auto* acl_header =
           reinterpret_cast<hci_acldata_hdr_t*>(Memory::GetPointer(ctrl.m_payload_addr));
 
@@ -216,65 +191,43 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtlV(u32 _CommandAdd
       SendToDevice(HCI_CON_HANDLE(acl_header->con_handle),
                    Memory::GetPointer(ctrl.m_payload_addr + sizeof(hci_acldata_hdr_t)),
                    acl_header->length);
-
-      _SendReply = true;
+      break;
     }
-    break;
-
     case ACL_DATA_IN:  // We are given an ACL buffer to fill
     {
-      CtrlBuffer temp(CommandBuffer, _CommandAddress);
-      m_ACLEndpoint = temp;
-
-      DEBUG_LOG(WII_IPC_WIIMOTE, "ACL_DATA_IN: 0x%08x ", _CommandAddress);
+      m_ACLEndpoint = std::make_unique<CtrlBuffer>(request);
+      DEBUG_LOG(WII_IPC_WIIMOTE, "ACL_DATA_IN: 0x%08x ", request.address);
+      send_reply = false;
+      break;
     }
-    break;
-
     default:
-    {
       _dbg_assert_msg_(WII_IPC_WIIMOTE, 0, "Unknown USBV0_IOCTL_BLKMSG: %x", ctrl.m_endpoint);
     }
     break;
-    }
   }
-  break;
 
   case USBV0_IOCTL_INTRMSG:
   {
-    const CtrlBuffer ctrl(CommandBuffer, _CommandAddress);
+    const CtrlBuffer ctrl{request};
     if (ctrl.m_endpoint == HCI_EVENT)  // We are given a HCI buffer to fill
     {
-      CtrlBuffer temp(CommandBuffer, _CommandAddress);
-      m_HCIEndpoint = temp;
-
-      DEBUG_LOG(WII_IPC_WIIMOTE, "HCI_EVENT: 0x%08x ", _CommandAddress);
+      m_HCIEndpoint = std::make_unique<CtrlBuffer>(request);
+      DEBUG_LOG(WII_IPC_WIIMOTE, "HCI_EVENT: 0x%08x ", request.address);
+      send_reply = false;
     }
     else
     {
       _dbg_assert_msg_(WII_IPC_WIIMOTE, 0, "Unknown USBV0_IOCTL_INTRMSG: %x", ctrl.m_endpoint);
     }
+    break;
   }
-  break;
 
   default:
-  {
-    _dbg_assert_msg_(WII_IPC_WIIMOTE, 0, "Unknown CWII_IPC_HLE_Device_usb_oh1_57e_305: %x",
-                     CommandBuffer.Parameter);
-
-    INFO_LOG(WII_IPC_WIIMOTE, "%s - IOCtlV:", GetDeviceName().c_str());
-    INFO_LOG(WII_IPC_WIIMOTE, "    Parameter: 0x%x", CommandBuffer.Parameter);
-    INFO_LOG(WII_IPC_WIIMOTE, "    NumberIn: 0x%08x", CommandBuffer.NumberInBuffer);
-    INFO_LOG(WII_IPC_WIIMOTE, "    NumberOut: 0x%08x", CommandBuffer.NumberPayloadBuffer);
-    INFO_LOG(WII_IPC_WIIMOTE, "    BufferVector: 0x%08x", CommandBuffer.BufferVector);
-    INFO_LOG(WII_IPC_WIIMOTE, "    PayloadAddr: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Address);
-    INFO_LOG(WII_IPC_WIIMOTE, "    PayloadSize: 0x%08x", CommandBuffer.PayloadBuffer[0].m_Size);
-  }
-  break;
+    request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_WIIMOTE);
   }
 
-  // write return value
-  Memory::Write_U32(0, _CommandAddress + 4);
-  return _SendReply ? GetDefaultReply() : GetNoReply();
+  request.SetReturnValue(IPC_SUCCESS);
+  return send_reply ? GetDefaultReply() : GetNoReply();
 }
 
 // Here we handle the USBV0_IOCTL_BLKMSG Ioctlv
@@ -302,22 +255,22 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendACLPacket(u16 connection_handl
 {
   DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet from %x ready to send to stack...", connection_handle);
 
-  if (m_ACLEndpoint.IsValid() && !m_HCIEndpoint.IsValid() && m_EventQueue.empty())
+  if (m_ACLEndpoint && !m_HCIEndpoint && m_EventQueue.empty())
   {
     DEBUG_LOG(WII_IPC_WIIMOTE, "ACL endpoint valid, sending packet to %08x",
-              m_ACLEndpoint.m_cmd_address);
+              m_ACLEndpoint->ios_request.address);
 
     hci_acldata_hdr_t* header =
-        reinterpret_cast<hci_acldata_hdr_t*>(Memory::GetPointer(m_ACLEndpoint.m_payload_addr));
+        reinterpret_cast<hci_acldata_hdr_t*>(Memory::GetPointer(m_ACLEndpoint->m_payload_addr));
     header->con_handle = HCI_MK_CON_HANDLE(connection_handle, HCI_PACKET_START, HCI_POINT2POINT);
     header->length = size;
 
     // Write the packet to the buffer
     memcpy(reinterpret_cast<u8*>(header) + sizeof(hci_acldata_hdr_t), data, header->length);
 
-    m_ACLEndpoint.SetRetVal(sizeof(hci_acldata_hdr_t) + size);
-    WII_IPC_HLE_Interface::EnqueueReply(m_ACLEndpoint.m_cmd_address);
-    m_ACLEndpoint.Invalidate();
+    m_ACLEndpoint->ios_request.SetReturnValue(sizeof(hci_acldata_hdr_t) + size);
+    WII_IPC_HLE_Interface::EnqueueReply(m_ACLEndpoint->ios_request);
+    m_ACLEndpoint.reset();
   }
   else
   {
@@ -336,17 +289,17 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
   DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x completed...",
             ((hci_event_hdr_t*)_event.m_buffer)->event);
 
-  if (m_HCIEndpoint.IsValid())
+  if (m_HCIEndpoint)
   {
     if (m_EventQueue.empty())  // fast path :)
     {
       DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint valid, sending packet to %08x",
-                m_HCIEndpoint.m_cmd_address);
-      m_HCIEndpoint.FillBuffer(_event.m_buffer, _event.m_size);
-      m_HCIEndpoint.SetRetVal(_event.m_size);
+                m_HCIEndpoint->ios_request.address);
+      m_HCIEndpoint->FillBuffer(_event.m_buffer, _event.m_size);
+      m_HCIEndpoint->ios_request.SetReturnValue(_event.m_size);
       // Send a reply to indicate HCI buffer is filled
-      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint.m_cmd_address);
-      m_HCIEndpoint.Invalidate();
+      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request);
+      m_HCIEndpoint.reset();
     }
     else  // push new one, pop oldest
     {
@@ -357,12 +310,12 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
       DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x "
                                  "being written from queue (%zu) to %08x...",
                 ((hci_event_hdr_t*)event.m_buffer)->event, m_EventQueue.size() - 1,
-                m_HCIEndpoint.m_cmd_address);
-      m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
-      m_HCIEndpoint.SetRetVal(event.m_size);
+                m_HCIEndpoint->ios_request.address);
+      m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
+      m_HCIEndpoint->ios_request.SetReturnValue(event.m_size);
       // Send a reply to indicate HCI buffer is filled
-      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint.m_cmd_address);
-      m_HCIEndpoint.Invalidate();
+      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request);
+      m_HCIEndpoint.reset();
       m_EventQueue.pop_front();
     }
   }
@@ -377,24 +330,27 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
 {
   // check HCI queue
-  if (!m_EventQueue.empty() && m_HCIEndpoint.IsValid())
+  if (!m_EventQueue.empty() && m_HCIEndpoint)
   {
     // an endpoint has become available, and we have a stored response.
     const SQueuedEvent& event = m_EventQueue.front();
     DEBUG_LOG(WII_IPC_WIIMOTE, "HCI event %x being written from queue (%zu) to %08x...",
               ((hci_event_hdr_t*)event.m_buffer)->event, m_EventQueue.size() - 1,
-              m_HCIEndpoint.m_cmd_address);
-    m_HCIEndpoint.FillBuffer(event.m_buffer, event.m_size);
-    m_HCIEndpoint.SetRetVal(event.m_size);
+              m_HCIEndpoint->ios_request.address);
+    m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
+    m_HCIEndpoint->ios_request.SetReturnValue(event.m_size);
     // Send a reply to indicate HCI buffer is filled
-    WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint.m_cmd_address);
-    m_HCIEndpoint.Invalidate();
+    WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request);
+    m_HCIEndpoint.reset();
     m_EventQueue.pop_front();
   }
 
   // check ACL queue
-  if (!m_acl_pool.IsEmpty() && m_ACLEndpoint.IsValid() && m_EventQueue.empty())
-    m_acl_pool.WriteToEndpoint(m_ACLEndpoint);
+  if (!m_acl_pool.IsEmpty() && m_ACLEndpoint && m_EventQueue.empty())
+  {
+    m_acl_pool.WriteToEndpoint(*m_ACLEndpoint);
+    m_ACLEndpoint.reset();
+  }
 
   // We wait for ScanEnable to be sent from the Bluetooth stack through HCI_CMD_WRITE_SCAN_ENABLE
   // before we initiate the connection.
@@ -402,7 +358,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
   // FiRES: TODO find a better way to do this
 
   // Create ACL connection
-  if (m_HCIEndpoint.IsValid() && (m_ScanEnable & HCI_PAGE_SCAN_ENABLE))
+  if (m_HCIEndpoint && (m_ScanEnable & HCI_PAGE_SCAN_ENABLE))
   {
     for (auto& wiimote : m_WiiMotes)
     {
@@ -415,7 +371,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
   }
 
   // Link channels when connected
-  if (m_ACLEndpoint.IsValid())
+  if (m_ACLEndpoint)
   {
     for (auto& wiimote : m_WiiMotes)
     {
@@ -469,7 +425,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ACLPool::WriteToEndpoint(CtrlBuffe
 
   DEBUG_LOG(WII_IPC_WIIMOTE, "ACL packet being written from "
                              "queue to %08x",
-            endpoint.m_cmd_address);
+            endpoint.ios_request.address);
 
   hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(endpoint.m_payload_addr);
   pHeader->con_handle = HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
@@ -478,12 +434,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ACLPool::WriteToEndpoint(CtrlBuffe
   // Write the packet to the buffer
   std::copy(data, data + size, (u8*)pHeader + sizeof(hci_acldata_hdr_t));
 
-  endpoint.SetRetVal(sizeof(hci_acldata_hdr_t) + size);
+  endpoint.ios_request.SetReturnValue(sizeof(hci_acldata_hdr_t) + size);
 
   m_queue.pop_front();
 
-  WII_IPC_HLE_Interface::EnqueueReply(endpoint.m_cmd_address);
-  endpoint.Invalidate();
+  WII_IPC_HLE_Interface::EnqueueReply(endpoint.ios_request);
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendEventInquiryComplete()
@@ -1023,10 +978,10 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendEventConPacketTypeChange(u16 _
 // Command dispatcher
 // This is called from the USBV0_IOCTL_CTRLMSG Ioctlv
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ExecuteHCICommandMessage(
-    const SHCICommandMessage& _rHCICommandMessage)
+    const CtrlMessage& ctrl_message)
 {
-  u8* pInput = Memory::GetPointer(_rHCICommandMessage.m_PayLoadAddr + 3);
-  SCommandMessage* pMsg = (SCommandMessage*)Memory::GetPointer(_rHCICommandMessage.m_PayLoadAddr);
+  u8* pInput = Memory::GetPointer(ctrl_message.payload_addr + 3);
+  SCommandMessage* pMsg = (SCommandMessage*)Memory::GetPointer(ctrl_message.payload_addr);
 
   u16 ocf = HCI_OCF(pMsg->Opcode);
   u16 ogf = HCI_OGF(pMsg->Opcode);
@@ -1110,11 +1065,11 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ExecuteHCICommandMessage(
 
   // vendor specific...
   case 0xFC4C:
-    CommandVendorSpecific_FC4C(pInput, _rHCICommandMessage.m_PayLoadSize - 3);
+    CommandVendorSpecific_FC4C(pInput, ctrl_message.length - 3);
     break;
 
   case 0xFC4F:
-    CommandVendorSpecific_FC4F(pInput, _rHCICommandMessage.m_PayLoadSize - 3);
+    CommandVendorSpecific_FC4F(pInput, ctrl_message.length - 3);
     break;
 
   case HCI_CMD_INQUIRY_CANCEL:
@@ -1203,7 +1158,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ExecuteHCICommandMessage(
   }
 
   // HCI command is finished, send a reply to command
-  WII_IPC_HLE_Interface::EnqueueReply(_rHCICommandMessage.m_Address);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl_message.ios_request);
 }
 
 //

@@ -12,11 +12,11 @@ namespace Core
 void DisplayMessage(const std::string& message, int time_in_ms);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_stub::Open(u32 command_address, u32 mode)
+IOSReturnCode CWII_IPC_HLE_Device_usb_oh1_57e_305_stub::Open(const IOSOpenRequest& request)
 {
   PanicAlertT("Bluetooth passthrough mode is enabled, but Dolphin was built without libusb."
               " Passthrough mode cannot be used.");
-  return GetNoReply();
+  return IPC_ENOENT;
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_stub::DoState(PointerWrap& p)
