@@ -162,8 +162,6 @@ std::string& GetExeDirectory();
 bool WriteStringToFile(const std::string& str, const std::string& filename);
 bool ReadFileToString(const std::string& filename, std::string& str);
 
-}  // namespace
-
 // To deal with Windows being dumb at unicode:
 template <typename T>
 void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmode openmode)
@@ -174,3 +172,5 @@ void OpenFStream(T& fstream, const std::string& filename, std::ios_base::openmod
   fstream.open(filename.c_str(), openmode);
 #endif
 }
+
+}  // namespace

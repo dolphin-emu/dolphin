@@ -179,13 +179,13 @@ void VertexManager::vFlush()
     std::string filename = StringFromFormat(
         "%sps%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(), g_ActiveConfig.iSaveTargetId);
     std::ofstream fps;
-    OpenFStream(fps, filename, std::ios_base::out);
+    File::OpenFStream(fps, filename, std::ios_base::out);
     fps << prog.shader.strpprog;
 
     filename = StringFromFormat("%svs%.3d.txt", File::GetUserPath(D_DUMPFRAMES_IDX).c_str(),
                                 g_ActiveConfig.iSaveTargetId);
     std::ofstream fvs;
-    OpenFStream(fvs, filename, std::ios_base::out);
+    File::OpenFStream(fvs, filename, std::ios_base::out);
     fvs << prog.shader.strvprog;
   }
 #endif

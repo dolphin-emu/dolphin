@@ -401,7 +401,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 
   // Open file
   std::ifstream in;
-  OpenFStream(in, filename, std::ios::in);
+  File::OpenFStream(in, filename, std::ios::in);
 
   if (in.fail())
     return false;
@@ -474,7 +474,7 @@ bool IniFile::Save(const std::string& filename)
 {
   std::ofstream out;
   std::string temp = File::GetTempFilenameForAtomicWrite(filename);
-  OpenFStream(out, temp, std::ios::out);
+  File::OpenFStream(out, temp, std::ios::out);
 
   if (out.fail())
   {

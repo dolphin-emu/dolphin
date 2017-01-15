@@ -16,7 +16,7 @@
 bool SaveData(const std::string& filename, const std::string& data)
 {
   std::ofstream f;
-  OpenFStream(f, filename, std::ios::binary);
+  File::OpenFStream(f, filename, std::ios::binary);
   f << data;
 
   return true;
