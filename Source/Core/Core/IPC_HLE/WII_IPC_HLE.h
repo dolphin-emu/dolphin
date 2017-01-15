@@ -72,8 +72,6 @@ void ExecuteCommand(u32 address);
 void EnqueueRequest(u32 address);
 void EnqueueReply(const IOSRequest& request, int cycles_in_future = 0,
                   CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
-void EnqueueReply(u32 command_address, int cycles_in_future = 0,
-                  CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future = 0);
 
 }  // end of namespace WII_IPC_HLE_Interface

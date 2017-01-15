@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <map>
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -10,45 +11,6 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
-
-// TODO: remove this once all device classes have been migrated.
-SIOCtlVBuffer::SIOCtlVBuffer(const u32 address) : m_Address(address)
-{
-  // These are the Ioctlv parameters in the IOS communication. The BufferVector
-  // is a memory address offset at where the in and out buffer addresses are
-  // stored.
-  Parameter = Memory::Read_U32(m_Address + 0x0C);            // command 3, arg0
-  NumberInBuffer = Memory::Read_U32(m_Address + 0x10);       // 4, arg1
-  NumberPayloadBuffer = Memory::Read_U32(m_Address + 0x14);  // 5, arg2
-  BufferVector = Memory::Read_U32(m_Address + 0x18);         // 6, arg3
-
-  // The start of the out buffer
-  u32 BufferVectorOffset = BufferVector;
-
-  // Write the address and size for all in messages
-  for (u32 i = 0; i < NumberInBuffer; i++)
-  {
-    SBuffer Buffer;
-    Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-    BufferVectorOffset += 4;
-    Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
-    BufferVectorOffset += 4;
-    InBuffer.push_back(Buffer);
-    DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer in%i: 0x%08x, 0x%x", i, Buffer.m_Address, Buffer.m_Size);
-  }
-
-  // Write the address and size for all out or in-out messages
-  for (u32 i = 0; i < NumberPayloadBuffer; i++)
-  {
-    SBuffer Buffer;
-    Buffer.m_Address = Memory::Read_U32(BufferVectorOffset);
-    BufferVectorOffset += 4;
-    Buffer.m_Size = Memory::Read_U32(BufferVectorOffset);
-    BufferVectorOffset += 4;
-    PayloadBuffer.push_back(Buffer);
-    DEBUG_LOG(WII_IPC_HLE, "SIOCtlVBuffer io%i: 0x%08x, 0x%x", i, Buffer.m_Address, Buffer.m_Size);
-  }
-}
 
 IOSRequest::IOSRequest(const u32 address_) : address(address_)
 {
@@ -180,87 +142,26 @@ void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
   p.Do(m_is_active);
 }
 
-// TODO: remove the wrappers once all device classes have been migrated.
 IOSReturnCode IWII_IPC_HLE_Device::Open(const IOSOpenRequest& request)
 {
-  Open(request.address, request.flags);
-  return static_cast<IOSReturnCode>(Memory::Read_U32(request.address + 4));
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::Open(u32 command_address, u32 mode)
-{
   m_is_active = true;
-  return GetDefaultReply();
+  return IPC_SUCCESS;
 }
 
 void IWII_IPC_HLE_Device::Close()
 {
-  Close(0, true);
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::Close(u32 command_address, bool force)
-{
   m_is_active = false;
-  return GetDefaultReply();
 }
 
-IPCCommandResult IWII_IPC_HLE_Device::Seek(const IOSSeekRequest& request)
+IPCCommandResult IWII_IPC_HLE_Device::Unsupported(const IOSRequest& request)
 {
-  return Seek(request.address);
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::Seek(u32 command_address)
-{
-  WARN_LOG(WII_IPC_HLE, "%s does not support Seek()", m_name.c_str());
-  Memory::Write_U32(IPC_EINVAL, command_address);
-  return GetDefaultReply();
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::Read(const IOSReadWriteRequest& request)
-{
-  return Read(request.address);
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::Read(u32 command_address)
-{
-  WARN_LOG(WII_IPC_HLE, "%s does not support Read()", m_name.c_str());
-  Memory::Write_U32(IPC_EINVAL, command_address);
-  return GetDefaultReply();
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::Write(const IOSReadWriteRequest& request)
-{
-  return Write(request.address);
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::Write(u32 command_address)
-{
-  WARN_LOG(WII_IPC_HLE, "%s does not support Write()", m_name.c_str());
-  Memory::Write_U32(IPC_EINVAL, command_address);
-  return GetDefaultReply();
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::IOCtl(const IOSIOCtlRequest& request)
-{
-  return IOCtl(request.address);
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::IOCtl(u32 command_address)
-{
-  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtl()", m_name.c_str());
-  Memory::Write_U32(IPC_EINVAL, command_address);
-  return GetDefaultReply();
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::IOCtlV(const IOSIOCtlVRequest& request)
-{
-  return IOCtlV(request.address);
-}
-
-IPCCommandResult IWII_IPC_HLE_Device::IOCtlV(u32 command_address)
-{
-  WARN_LOG(WII_IPC_HLE, "%s does not support IOCtlV()", m_name.c_str());
-  Memory::Write_U32(IPC_EINVAL, command_address);
+  static std::map<IPCCommandType, std::string> names = {{{IPC_CMD_READ, "Read"},
+                                                         {IPC_CMD_WRITE, "Write"},
+                                                         {IPC_CMD_SEEK, "Seek"},
+                                                         {IPC_CMD_IOCTL, "IOCtl"},
+                                                         {IPC_CMD_IOCTLV, "IOCtlV"}}};
+  WARN_LOG(WII_IPC_HLE, "%s does not support %s()", m_name.c_str(), names[request.command].c_str());
+  request.SetReturnValue(IPC_EINVAL);
   return GetDefaultReply();
 }
 

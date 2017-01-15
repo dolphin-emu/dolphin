@@ -161,14 +161,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(const IOSIOCtlRequest& re
   return GetDefaultReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtlV(u32 command_address)
-{
-  SIOCtlVBuffer command_buffer(command_address);
-  ERROR_LOG(WII_IPC_HLE, "IOCtlV on /dev/usb/wfssrv -- unsupported");
-  Memory::Write_U32(IPC_EINVAL, command_address + 4);
-  return GetDefaultReply();
-}
-
 CWII_IPC_HLE_Device_usb_wfssrv::FileDescriptor*
 CWII_IPC_HLE_Device_usb_wfssrv::FindFileDescriptor(u16 fd)
 {

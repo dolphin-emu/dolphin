@@ -40,25 +40,6 @@ enum IOSReturnCode : s32
   IPC_EESEXHAUSTED = -1016,  // Max of 2 ES handles exceeded
 };
 
-// A struct for IOS ioctlv calls
-// TODO: remove this once nothing uses this anymore.
-struct SIOCtlVBuffer
-{
-  explicit SIOCtlVBuffer(u32 address);
-
-  const u32 m_Address;
-  u32 Parameter;
-  u32 NumberInBuffer;
-  u32 NumberPayloadBuffer;
-  u32 BufferVector;
-  struct SBuffer
-  {
-    u32 m_Address, m_Size;
-  };
-  std::vector<SBuffer> InBuffer;
-  std::vector<SBuffer> PayloadBuffer;
-};
-
 struct IOSRequest
 {
   u32 address = 0;
@@ -167,21 +148,11 @@ public:
   // Replies to Open and Close requests are sent by WII_IPC_HLE, not by the devices themselves.
   virtual IOSReturnCode Open(const IOSOpenRequest& request);
   virtual void Close();
-  virtual IPCCommandResult Seek(const IOSSeekRequest& request);
-  virtual IPCCommandResult Read(const IOSReadWriteRequest& request);
-  virtual IPCCommandResult Write(const IOSReadWriteRequest& request);
-  virtual IPCCommandResult IOCtl(const IOSIOCtlRequest& request);
-  virtual IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request);
-
-  // TODO: remove these once all device classes have been migrated.
-  virtual IPCCommandResult Open(u32 command_address, u32 mode);
-  virtual IPCCommandResult Close(u32 command_address, bool force = false);
-  virtual IPCCommandResult Seek(u32 command_address);
-  virtual IPCCommandResult Read(u32 command_address);
-  virtual IPCCommandResult Write(u32 command_address);
-  virtual IPCCommandResult IOCtl(u32 command_address);
-  virtual IPCCommandResult IOCtlV(u32 command_address);
-
+  virtual IPCCommandResult Seek(const IOSSeekRequest& seek) { return Unsupported(seek); }
+  virtual IPCCommandResult Read(const IOSReadWriteRequest& read) { return Unsupported(read); }
+  virtual IPCCommandResult Write(const IOSReadWriteRequest& write) { return Unsupported(write); }
+  virtual IPCCommandResult IOCtl(const IOSIOCtlRequest& ioctl) { return Unsupported(ioctl); }
+  virtual IPCCommandResult IOCtlV(const IOSIOCtlVRequest& ioctlv) { return Unsupported(ioctlv); }
   virtual void Update() {}
   virtual DeviceType GetDeviceType() const { return m_device_type; }
   virtual bool IsOpened() const { return m_is_active; }
@@ -194,4 +165,7 @@ protected:
   u32 m_device_id;
   DeviceType m_device_type;
   bool m_is_active = false;
+
+private:
+  IPCCommandResult Unsupported(const IOSRequest& request);
 };

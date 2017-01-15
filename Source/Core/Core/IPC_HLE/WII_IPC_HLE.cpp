@@ -458,11 +458,6 @@ void EnqueueReply(const IOSRequest& request, int cycles_in_future, CoreTiming::F
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, request.address, from);
 }
 
-void EnqueueReply(u32 command_address, int cycles_in_future, CoreTiming::FromThread from)
-{
-  EnqueueReply(IOSRequest{command_address}, cycles_in_future, from);
-}
-
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)
 {
   CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue,
