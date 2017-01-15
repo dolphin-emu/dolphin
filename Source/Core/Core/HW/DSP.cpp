@@ -67,7 +67,7 @@ enum
 // UARAMCount
 union UARAMCount
 {
-  u32 Hex;
+  u32 Hex = 0;
   struct
   {
     u32 count : 31;
@@ -78,61 +78,38 @@ union UARAMCount
 // Blocks are 32 bytes.
 union UAudioDMAControl
 {
-  u16 Hex;
+  u16 Hex = 0;
   struct
   {
     u16 NumBlocks : 15;
     u16 Enable : 1;
   };
-
-  UAudioDMAControl(u16 _Hex = 0) : Hex(_Hex) {}
 };
 
 // AudioDMA
 struct AudioDMA
 {
-  u32 current_source_address;
-  u16 remaining_blocks_count;
-  u32 SourceAddress;
+  u32 current_source_address = 0;
+  u16 remaining_blocks_count = 0;
+  u32 SourceAddress = 0;
   UAudioDMAControl AudioDMAControl;
-
-  AudioDMA()
-      : current_source_address(0), remaining_blocks_count(0), SourceAddress(0), AudioDMAControl(0)
-  {
-  }
 };
 
 // ARAM_DMA
 struct ARAM_DMA
 {
-  u32 MMAddr;
-  u32 ARAddr;
+  u32 MMAddr = 0;
+  u32 ARAddr = 0;
   UARAMCount Cnt;
-
-  ARAM_DMA()
-  {
-    MMAddr = 0;
-    ARAddr = 0;
-    Cnt.Hex = 0;
-  }
 };
 
 // So we may abstract GC/Wii differences a little
 struct ARAMInfo
 {
-  bool wii_mode;  // Wii EXRAM is managed in Memory:: so we need to skip statesaving, etc
-  u32 size;
-  u32 mask;
-  u8* ptr;  // aka audio ram, auxiliary ram, MEM2, EXRAM, etc...
-
-  // Default to GC mode
-  ARAMInfo()
-  {
-    wii_mode = false;
-    size = ARAM_SIZE;
-    mask = ARAM_MASK;
-    ptr = nullptr;
-  }
+  bool wii_mode = false;  // Wii EXRAM is managed in Memory:: so we need to skip statesaving, etc
+  u32 size = ARAM_SIZE;
+  u32 mask = ARAM_MASK;
+  u8* ptr = nullptr;  // aka audio ram, auxiliary ram, MEM2, EXRAM, etc...
 };
 
 // STATE_TO_SAVE
@@ -143,7 +120,7 @@ UDSPControl g_dspState;
 
 union ARAM_Info
 {
-  u16 Hex;
+  u16 Hex = 0;
   struct
   {
     u16 size : 6;
