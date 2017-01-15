@@ -127,8 +127,7 @@ public:
   bool IsFull() const;
 
   // Code Cache
-  JitBlock* GetBlocks();
-  int* GetICache();
+  JitBlock** GetICache();
   void RunOnBlocks(std::function<void(const JitBlock&)> f);
 
   JitBlock* AllocateBlock(u32 em_address);
@@ -164,7 +163,7 @@ private:
   void MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
   // Fast but risky block lookup based on iCache.
-  int& FastLookupEntryForAddress(u32 address);
+  JitBlock*& FastLookupEntryForAddress(u32 address);
 
   // We store the metadata of all blocks in a linear way within this array.
   // Note: blocks[0] must not be used as it is referenced as invalid block in iCache.
@@ -190,5 +189,5 @@ private:
 
   // This array is indexed with the masked PC and likely holds the correct block id.
   // This is used as a fast cache of start_block_map used in the assembly dispatcher.
-  std::array<int, iCache_Num_Elements> iCache;  // start_addr & mask -> number
+  std::array<JitBlock*, iCache_Num_Elements> iCache;  // start_addr & mask -> number
 };

@@ -106,31 +106,24 @@ void Jit64AsmRoutineManager::Generate()
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
 
   // Fast block number lookup.
+  // ((PC >> 2) & mask) * sizeof(JitBlock*) = (PC & (mask << 2)) * 2
   MOV(32, R(RSCRATCH), PPCSTATE(pc));
   u64 icache = reinterpret_cast<u64>(g_jit->GetBlockCache()->GetICache());
   AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::iCache_Mask << 2));
   if (icache <= INT_MAX)
   {
-    MOV(32, R(RSCRATCH), MDisp(RSCRATCH, static_cast<s32>(icache)));
+    MOV(64, R(RSCRATCH), MScaled(RSCRATCH, SCALE_2, static_cast<s32>(icache)));
   }
   else
   {
     MOV(64, R(RSCRATCH2), Imm64(icache));
-    MOV(32, R(RSCRATCH), MRegSum(RSCRATCH2, RSCRATCH));
+    MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_2, 0));
   }
 
-  // Check whether the block we found matches the current state.
-  u64 blocks = reinterpret_cast<u64>(g_jit->GetBlockCache()->GetBlocks());
-  IMUL(32, RSCRATCH, R(RSCRATCH), Imm32(sizeof(JitBlock)));
-  if (blocks <= INT_MAX)
-  {
-    ADD(64, R(RSCRATCH), Imm32(static_cast<s32>(blocks)));
-  }
-  else
-  {
-    MOV(64, R(RSCRATCH2), Imm64(blocks));
-    ADD(64, R(RSCRATCH), R(RSCRATCH2));
-  }
+  // Check if we found a block.
+  TEST(64, R(RSCRATCH), R(RSCRATCH));
+  FixupBranch not_found = J_CC(CC_Z);
+
   // Check both block.effectiveAddress and block.msrBits.
   MOV(32, R(RSCRATCH2), PPCSTATE(msr));
   AND(32, R(RSCRATCH2), Imm32(JitBlock::JIT_CACHE_MSR_MASK));
@@ -138,10 +131,11 @@ void Jit64AsmRoutineManager::Generate()
   MOV(32, R(RSCRATCH_EXTRA), PPCSTATE(pc));
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
   CMP(64, R(RSCRATCH2), MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlock, effectiveAddress))));
-  FixupBranch notfound = J_CC(CC_NE);
+  FixupBranch state_mismatch = J_CC(CC_NE);
   // Success; branch to the block we found.
   JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlock, normalEntry))));
-  SetJumpTarget(notfound);
+  SetJumpTarget(not_found);
+  SetJumpTarget(state_mismatch);
 
   // Failure; call into the block cache to update the state, then try again.
   // (We need to loop because Jit() might not actually generate a block
