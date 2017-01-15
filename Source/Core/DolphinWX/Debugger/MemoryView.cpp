@@ -2,9 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Debugger/MemoryView.h"
+
 #include <algorithm>
 #include <cctype>
 #include <cmath>
+#include <cstring>
 #include <string>
 #include <wx/brush.h>
 #include <wx/clipbrd.h>
@@ -24,7 +27,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
-#include "DolphinWX/Debugger/MemoryView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Globals.h"
@@ -112,8 +114,9 @@ wxString CMemoryView::ReadMemoryAsString(u32 address) const
 
   if (m_data_type == MemoryDataType::FloatingPoint)
   {
-    float& flt = reinterpret_cast<float&>(mem_data);
-    str = StringFromFormat("f: %f", flt);
+    float real;
+    std::memcpy(&real, &mem_data, sizeof(u32));
+    str = StringFromFormat("f: %f", real);
   }
   else if (m_data_type == MemoryDataType::ASCII)
   {
