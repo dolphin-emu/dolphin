@@ -15,8 +15,8 @@ class CWII_IPC_HLE_Device_stub : public IWII_IPC_HLE_Device
 public:
   CWII_IPC_HLE_Device_stub(u32 device_id, const std::string& device_name);
 
-  IPCCommandResult Open(u32 command_address, u32 mode) override;
-  IPCCommandResult Close(u32 command_address, bool force = false) override;
-  IPCCommandResult IOCtl(u32 command_address) override;
-  IPCCommandResult IOCtlV(u32 command_address) override;
+  IOSReturnCode Open(const IOSOpenRequest& request) override;
+  void Close() override;
+  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
 };
