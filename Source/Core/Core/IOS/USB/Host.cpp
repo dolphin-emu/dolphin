@@ -13,6 +13,7 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/LibusbContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
@@ -30,16 +31,8 @@ namespace Device
 USBHost::USBHost(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 #ifdef __LIBUSB__
-  const int ret = libusb_init(&m_libusb_context);
-  _assert_msg_(WII_IPC_USB, ret == 0, "Failed to init libusb.");
-  libusb_set_debug(m_libusb_context, LIBUSB_LOG_LEVEL_WARNING);
-#endif
-}
-
-USBHost::~USBHost()
-{
-#ifdef __LIBUSB__
-  libusb_exit(m_libusb_context);
+  m_libusb_context = LibusbContext::Get();
+  _assert_msg_(IOS_USB, m_libusb_context, "Failed to init libusb.");
 #endif
 }
 
@@ -125,7 +118,7 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
 {
 #ifdef __LIBUSB__
   libusb_device** list;
-  const ssize_t count = libusb_get_device_list(m_libusb_context, &list);
+  const ssize_t count = libusb_get_device_list(m_libusb_context.get(), &list);
   if (count < 0)
   {
     WARN_LOG(IOS_USB, "Failed to get device list: %s", libusb_error_name(static_cast<int>(count)));
@@ -210,7 +203,7 @@ void USBHost::StartThreads()
       while (m_event_thread_running.IsSet())
       {
         static timeval tv = {0, 50000};
-        libusb_handle_events_timeout_completed(m_libusb_context, &tv, nullptr);
+        libusb_handle_events_timeout_completed(m_libusb_context.get(), &tv, nullptr);
       }
     });
   }

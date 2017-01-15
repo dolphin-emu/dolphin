@@ -2,8 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
+
 #ifdef __LIBUSB__
 #include <libusb.h>
+#include "Common/LibusbContext.h"
 #endif
 
 #include "Common/CommonTypes.h"
@@ -11,7 +14,7 @@
 #include "UICommon/USBUtils.h"
 
 #ifdef __LIBUSB__
-static libusb_context* s_libusb_context;
+static std::shared_ptr<libusb_context> s_libusb_context;
 #endif
 
 // Because opening and getting the device name from devices is slow, especially on Windows
@@ -36,14 +39,14 @@ namespace USBUtils
 void Init()
 {
 #ifdef __LIBUSB__
-  libusb_init(&s_libusb_context);
+  s_libusb_context = LibusbContext::Get();
 #endif
 }
 
 void Shutdown()
 {
 #ifdef __LIBUSB__
-  libusb_exit(s_libusb_context);
+  s_libusb_context = nullptr;
 #endif
 }
 
@@ -56,7 +59,7 @@ std::map<std::pair<u16, u16>, std::string> GetInsertedDevices()
     return devices;
 
   libusb_device** list;
-  const ssize_t cnt = libusb_get_device_list(s_libusb_context, &list);
+  const ssize_t cnt = libusb_get_device_list(s_libusb_context.get(), &list);
   for (ssize_t i = 0; i < cnt; ++i)
   {
     libusb_device_descriptor descr;
