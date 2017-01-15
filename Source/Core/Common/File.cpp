@@ -21,6 +21,8 @@
 
 namespace File
 {
+ReadOnlyFile::~ReadOnlyFile() = default;
+
 IOFile::IOFile() : m_file(nullptr), m_good(true)
 {
 }
@@ -128,6 +130,26 @@ bool IOFile::Resize(u64 size)
     m_good = false;
 
   return m_good;
+}
+
+bool IOFile::Read(void* data, size_t element_size, size_t count, size_t* pReadElements)
+{
+  size_t read_elements = 0;
+  if (!IsOpen() || count != (read_elements = std::fread(data, element_size, count, m_file)))
+    m_good = false;
+
+  if (pReadElements)
+    *pReadElements = read_elements;
+
+  return m_good;
+}
+
+bool IOFile::Write(const void* data, size_t element_size, size_t count)
+{
+  if (!IsOpen() || count != std::fwrite(data, element_size, count, m_file))
+    m_good = false;
+
+  return IsGood();
 }
 
 }  // namespace File
