@@ -387,30 +387,44 @@ void VertexShaderManager::SetConstants()
     constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
     constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
 
-    // The depth range is handled in the vertex shader. We need to reverse
-    // the far value to get a reversed depth range mapping. This is necessary
-    // because the standard depth range equation pushes all depth values towards
-    // the back of the depth buffer where conventionally depth buffers have the
-    // least precision.
-    if (g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+    // By default we don't change the depth value at all in the vertex shader.
+    constants.pixelcentercorrection[2] = 1.0f;
+    constants.pixelcentercorrection[3] = 0.0f;
+
+    if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
     {
-      // For backends that support reversing the depth range we also support cases
-      // where the console also uses reversed depth with the same accuracy. We need
-      // to make sure the depth range is positive here and then reverse the depth in
-      // the backend viewport.
-      constants.pixelcentercorrection[2] = fabs(xfmem.viewport.zRange) / 16777215.0f;
-      if (xfmem.viewport.zRange < 0.0f)
-        constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
+      // Oversized depth ranges are handled in the vertex shader. We need to reverse
+      // the far value to get a reversed depth range mapping. This is necessary
+      // because the standard depth range equation pushes all depth values towards
+      // the back of the depth buffer where conventionally depth buffers have the
+      // least precision.
+      if (g_ActiveConfig.backend_info.bSupportsReversedDepthRange)
+      {
+        if (fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f)
+        {
+          // For backends that support reversing the depth range we also support cases
+          // where the console also uses reversed depth with the same accuracy. We need
+          // to make sure the depth range is positive here and then reverse the depth in
+          // the backend viewport.
+          constants.pixelcentercorrection[2] = fabs(xfmem.viewport.zRange) / 16777215.0f;
+          if (xfmem.viewport.zRange < 0.0f)
+            constants.pixelcentercorrection[3] = xfmem.viewport.farZ / 16777215.0f;
+          else
+            constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+        }
+      }
       else
-        constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
-    }
-    else
-    {
-      // For backends that don't support reversing the depth range we can still render
-      // cases where the console uses reversed depth correctly. But we simply can't
-      // provide the same accuracy as the console.
-      constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
-      constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+      {
+        if (xfmem.viewport.zRange < 0.0f || xfmem.viewport.zRange > 16777215.0f ||
+            fabs(xfmem.viewport.farZ) > 16777215.0f)
+        {
+          // For backends that don't support reversing the depth range we can still render
+          // cases where the console uses reversed depth correctly. But we simply can't
+          // provide the same accuracy as the console.
+          constants.pixelcentercorrection[2] = xfmem.viewport.zRange / 16777215.0f;
+          constants.pixelcentercorrection[3] = 1.0f - xfmem.viewport.farZ / 16777215.0f;
+        }
+      }
     }
 
     dirty = true;
