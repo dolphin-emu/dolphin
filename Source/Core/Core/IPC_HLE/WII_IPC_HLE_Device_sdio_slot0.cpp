@@ -38,15 +38,16 @@ void CWII_IPC_HLE_Device_sdio_slot0::DoState(PointerWrap& p)
 
 void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
 {
+  if (!m_event)
+    return;
   // Accessing SConfig variables like this isn't really threadsafe,
   // but this is how it's done all over the place...
-  if ((SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_INSERT) ||
-      (!SConfig::GetInstance().m_WiiSDCard && m_event.type == EVENT_REMOVE))
+  if ((SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_INSERT) ||
+      (!SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_REMOVE))
   {
-    Memory::Write_U32(m_event.type, m_event.addr + 4);
-    WII_IPC_HLE_Interface::EnqueueReply(m_event.addr);
-    m_event.addr = 0;
-    m_event.type = EVENT_NONE;
+    m_event->request.SetReturnValue(m_event->type);
+    WII_IPC_HLE_Interface::EnqueueReply(m_event->request);
+    m_event.reset();
   }
 }
 
@@ -70,50 +71,35 @@ void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
   }
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::Open(u32 _CommandAddress, u32 _Mode)
+IOSReturnCode CWII_IPC_HLE_Device_sdio_slot0::Open(const IOSOpenRequest& request)
 {
-  INFO_LOG(WII_IPC_SD, "Open");
-
   OpenInternal();
-
   m_registers.fill(0);
+
   m_is_active = true;
-  return GetDefaultReply();
+  return IPC_SUCCESS;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::Close(u32 _CommandAddress, bool _bForce)
+void CWII_IPC_HLE_Device_sdio_slot0::Close()
 {
-  INFO_LOG(WII_IPC_SD, "Close");
-
   m_Card.Close();
   m_BlockLength = 0;
   m_BusWidth = 0;
 
   m_is_active = false;
-  return GetDefaultReply();
 }
 
 // The front SD slot
-IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(const IOSIOCtlRequest& request)
 {
-  u32 Cmd = Memory::Read_U32(_CommandAddress + 0xC);
-
-  u32 BufferIn = Memory::Read_U32(_CommandAddress + 0x10);
-  u32 BufferInSize = Memory::Read_U32(_CommandAddress + 0x14);
-  u32 BufferOut = Memory::Read_U32(_CommandAddress + 0x18);
-  u32 BufferOutSize = Memory::Read_U32(_CommandAddress + 0x1C);
-
-  // As a safety precaution we fill the out buffer with zeros to avoid
-  // returning nonsense values
-  Memory::Memset(BufferOut, 0, BufferOutSize);
-
-  u32 ReturnValue = 0;
-  switch (Cmd)
+  Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
+  s32 return_value = IPC_SUCCESS;
+  switch (request.request)
   {
   case IOCTL_WRITEHCR:
   {
-    u32 reg = Memory::Read_U32(BufferIn);
-    u32 val = Memory::Read_U32(BufferIn + 16);
+    u32 reg = Memory::Read_U32(request.buffer_in);
+    u32 val = Memory::Read_U32(request.buffer_in + 16);
 
     INFO_LOG(WII_IPC_SD, "IOCTL_WRITEHCR 0x%08x - 0x%08x", reg, val);
 
@@ -143,7 +129,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
 
   case IOCTL_READHCR:
   {
-    u32 reg = Memory::Read_U32(BufferIn);
+    u32 reg = Memory::Read_U32(request.buffer_in);
 
     if (reg >= m_registers.size())
     {
@@ -155,7 +141,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     INFO_LOG(WII_IPC_SD, "IOCTL_READHCR 0x%08x - 0x%08x", reg, val);
 
     // Just reading the register
-    Memory::Write_U32(val, BufferOut);
+    Memory::Write_U32(val, request.buffer_out);
   }
   break;
 
@@ -164,7 +150,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     if (m_Card)
       m_Status |= CARD_INITIALIZED;
     // Returns 16bit RCA and 16bit 0s (meaning success)
-    Memory::Write_U32(0x9f620000, BufferOut);
+    Memory::Write_U32(0x9f620000, request.buffer_out);
     break;
 
   case IOCTL_SETCLK:
@@ -172,15 +158,17 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     INFO_LOG(WII_IPC_SD, "IOCTL_SETCLK");
     // libogc only sets it to 1 and makes sure the return isn't negative...
     // one half of the sdclk divisor: a power of two or zero.
-    u32 clock = Memory::Read_U32(BufferIn);
+    u32 clock = Memory::Read_U32(request.buffer_in);
     if (clock != 1)
       INFO_LOG(WII_IPC_SD, "Setting to %i, interesting", clock);
   }
   break;
 
   case IOCTL_SENDCMD:
-    INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD %x IPC:%08x", Memory::Read_U32(BufferIn), _CommandAddress);
-    ReturnValue = ExecuteCommand(BufferIn, BufferInSize, 0, 0, BufferOut, BufferOutSize);
+    INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD %x IPC:%08x", Memory::Read_U32(request.buffer_in),
+             request.address);
+    return_value = ExecuteCommand(request, request.buffer_in, request.buffer_in_size, 0, 0,
+                                  request.buffer_out, request.buffer_out_size);
     break;
 
   case IOCTL_GETSTATUS:
@@ -191,81 +179,53 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(u32 _CommandAddress)
     INFO_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
              (m_Status & CARD_INSERTED) ? "inserted" : "not present",
              (m_Status & CARD_INITIALIZED) ? " and initialized" : "");
-    Memory::Write_U32(m_Status, BufferOut);
+    Memory::Write_U32(m_Status, request.buffer_out);
     break;
 
   case IOCTL_GETOCR:
     INFO_LOG(WII_IPC_SD, "IOCTL_GETOCR");
-    Memory::Write_U32(0x80ff8000, BufferOut);
+    Memory::Write_U32(0x80ff8000, request.buffer_out);
     break;
 
   default:
-    ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtl command (0x%08x)", Cmd);
+    ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtl command (0x%08x)", request.request);
     break;
   }
 
-  if (ReturnValue == RET_EVENT_REGISTER)
+  if (return_value == RET_EVENT_REGISTER)
   {
-    // async
-    m_event.addr = _CommandAddress;
-    Memory::Write_U32(0, _CommandAddress + 0x4);
     // Check if the condition is already true
     EventNotify();
     return GetNoReply();
   }
-  else if (ReturnValue == RET_EVENT_UNREGISTER)
-  {
-    // release returns 0
-    // unknown sd int
-    // technically we do it out of order, oh well
-    Memory::Write_U32(EVENT_INVALID, m_event.addr + 4);
-    WII_IPC_HLE_Interface::EnqueueReply(m_event.addr);
-    m_event.addr = 0;
-    m_event.type = EVENT_NONE;
-    Memory::Write_U32(0, _CommandAddress + 0x4);
-    return GetDefaultReply();
-  }
-  else
-  {
-    Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-    return GetDefaultReply();
-  }
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(u32 _CommandAddress)
-{
-  // PPC sending commands
-
-  SIOCtlVBuffer CommandBuffer(_CommandAddress);
-
-  // Prepare the out buffer(s) with zeros as a safety precaution
-  // to avoid returning bad values
-  for (const auto& buffer : CommandBuffer.PayloadBuffer)
-    Memory::Memset(buffer.m_Address, 0, buffer.m_Size);
-
-  u32 ReturnValue = 0;
-  switch (CommandBuffer.Parameter)
-  {
-  case IOCTLV_SENDCMD:
-    DEBUG_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x",
-              Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address));
-    ReturnValue = ExecuteCommand(
-        CommandBuffer.InBuffer[0].m_Address, CommandBuffer.InBuffer[0].m_Size,
-        CommandBuffer.InBuffer[1].m_Address, CommandBuffer.InBuffer[1].m_Size,
-        CommandBuffer.PayloadBuffer[0].m_Address, CommandBuffer.PayloadBuffer[0].m_Size);
-    break;
-
-  default:
-    ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtlV command 0x%08x", CommandBuffer.Parameter);
-    break;
-  }
-
-  Memory::Write_U32(ReturnValue, _CommandAddress + 0x4);
-
+  request.SetReturnValue(return_value);
   return GetDefaultReply();
 }
 
-u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInSize, u32 _rwBuffer,
+IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(const IOSIOCtlVRequest& request)
+{
+  s32 return_value = IPC_SUCCESS;
+  switch (request.request)
+  {
+  case IOCTLV_SENDCMD:
+    DEBUG_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(request.in_vectors[0].address));
+    Memory::Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
+    return_value =
+        ExecuteCommand(request, request.in_vectors[0].address, request.in_vectors[0].size,
+                       request.in_vectors[1].address, request.in_vectors[1].size,
+                       request.io_vectors[0].address, request.io_vectors[0].size);
+    break;
+
+  default:
+    ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtlV command 0x%08x", request.request);
+  }
+
+  request.SetReturnValue(return_value);
+  return GetDefaultReply();
+}
+
+u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn,
+                                                   u32 _BufferInSize, u32 _rwBuffer,
                                                    u32 _rwBufferSize, u32 _BufferOut,
                                                    u32 _BufferOutSize)
 {
@@ -421,15 +381,24 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(u32 _BufferIn, u32 _BufferInS
 
   case EVENT_REGISTER:  // async
     INFO_LOG(WII_IPC_SD, "Register event %x", req.arg);
-    m_event.type = (EventType)req.arg;
+    m_event = std::make_unique<Event>(static_cast<EventType>(req.arg), request);
     ret = RET_EVENT_REGISTER;
     break;
 
-  case EVENT_UNREGISTER:  // synchronous
+  // Used to cancel an event that was already registered.
+  case EVENT_UNREGISTER:
+  {
     INFO_LOG(WII_IPC_SD, "Unregister event %x", req.arg);
-    m_event.type = (EventType)req.arg;
-    ret = RET_EVENT_UNREGISTER;
+    if (!m_event)
+      return IPC_EINVAL;
+    // release returns 0
+    // unknown sd int
+    // technically we do it out of order, oh well
+    m_event->request.SetReturnValue(EVENT_INVALID);
+    WII_IPC_HLE_Interface::EnqueueReply(m_event->request);
+    m_event.reset();
     break;
+  }
 
   default:
     ERROR_LOG(WII_IPC_SD, "Unknown SD command 0x%08x", req.command);
