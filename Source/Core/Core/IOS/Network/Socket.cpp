@@ -12,6 +12,7 @@
 #include <sys/select.h>
 #endif
 
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
