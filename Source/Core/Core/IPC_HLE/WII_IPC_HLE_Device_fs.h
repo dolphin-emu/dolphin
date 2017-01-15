@@ -27,14 +27,12 @@ class CWII_IPC_HLE_Device_fs : public IWII_IPC_HLE_Device
 {
 public:
   CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName);
-  virtual ~CWII_IPC_HLE_Device_fs();
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IOSReturnCode Open(const IOSOpenRequest& request) override;
+  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
 
 private:
   enum
@@ -52,6 +50,5 @@ private:
   };
 
   IPCCommandResult GetFSReply() const;
-  s32 ExecuteCommand(u32 Parameter, u32 _BufferIn, u32 _BufferInSize, u32 _BufferOut,
-                     u32 _BufferOutSize);
+  s32 ExecuteCommand(const IOSIOCtlRequest& request);
 };

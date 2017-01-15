@@ -26,34 +26,18 @@ class CWII_IPC_HLE_Device_FileIO : public IWII_IPC_HLE_Device
 public:
   CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName);
 
-  virtual ~CWII_IPC_HLE_Device_FileIO();
-
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Seek(u32 _CommandAddress) override;
-  IPCCommandResult Read(u32 _CommandAddress) override;
-  IPCCommandResult Write(u32 _CommandAddress) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
+  void Close() override;
+  IOSReturnCode Open(const IOSOpenRequest& request) override;
+  IPCCommandResult Seek(const IOSSeekRequest& request) override;
+  IPCCommandResult Read(const IOSReadWriteRequest& request) override;
+  IPCCommandResult Write(const IOSReadWriteRequest& request) override;
+  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
   void PrepareForState(PointerWrap::Mode mode) override;
   void DoState(PointerWrap& p) override;
 
   void OpenFile();
 
 private:
-  enum
-  {
-    ISFS_OPEN_READ = 1,
-    ISFS_OPEN_WRITE = 2,
-    ISFS_OPEN_RW = (ISFS_OPEN_READ | ISFS_OPEN_WRITE)
-  };
-
-  enum
-  {
-    WII_SEEK_SET = 0,
-    WII_SEEK_CUR = 1,
-    WII_SEEK_END = 2,
-  };
-
   enum
   {
     ISFS_FUNCNULL = 0,
