@@ -103,6 +103,64 @@ int CMemoryView::YToAddress(int y)
   return curAddress + ydiff * align;
 }
 
+wxString CMemoryView::ReadMemoryAsString(u32 address) const
+{
+  std::string str;
+
+  // FIXME: This doesn't work with the DSP Debugger
+  u32 mem_data = debugger->ReadExtraMemory(memory, address);
+
+  if (m_data_type == MemoryDataType::FloatingPoint)
+  {
+    float& flt = reinterpret_cast<float&>(mem_data);
+    str = StringFromFormat("f: %f", flt);
+  }
+  else if (m_data_type == MemoryDataType::ASCII)
+  {
+    str.reserve(4);
+    for (unsigned int i = 0; i < 4; ++i)
+    {
+      u8 byte = static_cast<u8>(mem_data >> (24 - i * 8));
+      if (std::isprint(byte))
+        str += static_cast<char>(byte);
+      else
+        str += ' ';
+    }
+
+    Symbol* sym = g_symbolDB.GetSymbolFromAddr(mem_data);
+    if (sym)
+    {
+      str += StringFromFormat(" # -> %s", sym->name.c_str());
+    }
+  }
+  else
+  {
+    str.reserve(48);
+    for (unsigned int i = 0; i < align; i += sizeof(u32))
+    {
+      if (!PowerPC::HostIsRAMAddress(address + i))
+        break;
+      u32 word = debugger->ReadExtraMemory(memory, address + i);
+      switch (m_data_type)
+      {
+      case MemoryDataType::U8:
+      default:
+        str += StringFromFormat(" %02X %02X %02X %02X", (word >> 24) & 0xFF, (word >> 16) & 0xFF,
+                                (word >> 8) & 0xFF, word & 0xFF);
+        break;
+      case MemoryDataType::U16:
+        str += StringFromFormat(" %04X %04X", (word >> 16) & 0xFFFF, word & 0xFFFF);
+        break;
+      case MemoryDataType::U32:
+        str += StringFromFormat(" %08X", word);
+        break;
+      }
+    }
+  }
+
+  return StrToWxStr(str);
+}
+
 void CMemoryView::OnMouseDownL(wxMouseEvent& event)
 {
   int x = event.GetX();
@@ -347,60 +405,8 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
     if (!debugger->IsAlive() || !Memory::IsInitialized() || !PowerPC::HostIsRAMAddress(address))
       continue;
 
-    std::string dis;
-    // FIXME: This doesn't work with the DSP Debugger
-    u32 mem_data = debugger->ReadExtraMemory(memory, address);
-
-    if (m_data_type == MemoryDataType::FloatingPoint)
-    {
-      float& flt = reinterpret_cast<float&>(mem_data);
-      dis = StringFromFormat("f: %f", flt);
-    }
-    else if (m_data_type == MemoryDataType::ASCII)
-    {
-      dis.reserve(4);
-      for (unsigned int i = 0; i < 4; ++i)
-      {
-        u8 byte = static_cast<u8>(mem_data >> (24 - i * 8));
-        if (std::isprint(byte))
-          dis += static_cast<char>(byte);
-        else
-          dis += ' ';
-      }
-
-      Symbol* sym = g_symbolDB.GetSymbolFromAddr(mem_data);
-      if (sym)
-      {
-        dis += StringFromFormat(" # -> %s", sym->name.c_str());
-      }
-    }
-    else
-    {
-      dis.reserve(48);
-      for (unsigned int i = 0; i < align; i += sizeof(u32))
-      {
-        if (!PowerPC::HostIsRAMAddress(address + i))
-          break;
-        u32 word = debugger->ReadExtraMemory(memory, address + i);
-        switch (m_data_type)
-        {
-        case MemoryDataType::U8:
-        default:
-          dis += StringFromFormat(" %02X %02X %02X %02X", (word >> 24) & 0xFF, (word >> 16) & 0xFF,
-                                  (word >> 8) & 0xFF, word & 0xFF);
-          break;
-        case MemoryDataType::U16:
-          dis += StringFromFormat(" %04X %04X", (word >> 16) & 0xFFFF, word & 0xFFFF);
-          break;
-        case MemoryDataType::U32:
-          dis += StringFromFormat(" %08X", word);
-          break;
-        }
-      }
-    }
-
     // Pad to a minimum of 48 characters for full fixed point float width
-    draw_text(StrToWxStr(dis), 2, 48);
+    draw_text(ReadMemoryAsString(address), 2, 48);
 
     dc.SetTextForeground(*wxBLUE);
 
