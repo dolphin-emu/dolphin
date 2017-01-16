@@ -116,7 +116,7 @@ struct ARAMInfo
 static ARAMInfo g_ARAM;
 static AudioDMA g_audioDMA;
 static ARAM_DMA g_arDMA;
-UDSPControl g_dspState;
+static UDSPControl g_dspState;
 
 union ARAM_Info
 {
