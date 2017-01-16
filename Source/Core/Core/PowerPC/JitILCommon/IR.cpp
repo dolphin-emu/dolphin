@@ -137,6 +137,39 @@ using namespace Gen;
 
 namespace IREmitter
 {
+IRBuilder::IRBuilder()
+{
+  Reset();
+}
+
+void IRBuilder::Reset()
+{
+  InstList.clear();
+  InstList.reserve(100000);
+  MarkUsed.clear();
+  MarkUsed.reserve(100000);
+
+  for (unsigned i = 0; i < 32; i++)
+  {
+    GRegCache[i] = nullptr;
+    GRegCacheStore[i] = nullptr;
+    FRegCache[i] = nullptr;
+    FRegCacheStore[i] = nullptr;
+  }
+
+  CarryCache = nullptr;
+  CarryCacheStore = nullptr;
+
+  for (unsigned i = 0; i < 8; i++)
+  {
+    CRCache[i] = nullptr;
+    CRCacheStore[i] = nullptr;
+  }
+
+  CTRCache = nullptr;
+  CTRCacheStore = nullptr;
+}
+
 InstLoc IRBuilder::EmitZeroOp(unsigned Opcode, unsigned extra = 0)
 {
   InstLoc curIndex = InstList.data() + InstList.size();

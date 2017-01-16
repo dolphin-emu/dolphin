@@ -229,7 +229,10 @@ InstLoc inline getOp2(InstLoc i)
 class IRBuilder
 {
 public:
-  IRBuilder() { Reset(); }
+  IRBuilder();
+
+  void Reset();
+
   InstLoc EmitIntConst(unsigned value) { return EmitIntConst64(value); }
   InstLoc EmitIntConst64(u64 value);
 
@@ -381,34 +384,6 @@ public:
   void SetMarkUsed(InstLoc I);
   bool IsMarkUsed(InstLoc I) const;
   void WriteToFile(u64 codeHash);
-
-  void Reset()
-  {
-    InstList.clear();
-    InstList.reserve(100000);
-    MarkUsed.clear();
-    MarkUsed.reserve(100000);
-
-    for (unsigned i = 0; i < 32; i++)
-    {
-      GRegCache[i] = nullptr;
-      GRegCacheStore[i] = nullptr;
-      FRegCache[i] = nullptr;
-      FRegCacheStore[i] = nullptr;
-    }
-
-    CarryCache = nullptr;
-    CarryCacheStore = nullptr;
-
-    for (unsigned i = 0; i < 8; i++)
-    {
-      CRCache[i] = nullptr;
-      CRCacheStore[i] = nullptr;
-    }
-
-    CTRCache = nullptr;
-    CTRCacheStore = nullptr;
-  }
 
 private:
   IRBuilder(IRBuilder&);  // DO NOT IMPLEMENT
