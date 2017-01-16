@@ -177,12 +177,12 @@ private:
 
   // Map indexed by the physical memory location.
   // It is used to invalidate blocks based on memory location.
-  std::map<std::pair<u32, u32>, JitBlock*> block_map;  // (end_addr, start_addr) -> block
+  std::multimap<std::pair<u32, u32>, JitBlock*> block_map;  // (end_addr, start_addr) -> block
 
   // Map indexed by the physical address of the entry point.
   // This is used to query the block based on the current PC in a slow way.
-  // TODO: This is redundant with block_map, and both should be a multimap.
-  std::map<u32, JitBlock*> start_block_map;  // start_addr -> block
+  // TODO: This is redundant with block_map.
+  std::multimap<u32, JitBlock*> start_block_map;  // start_addr -> block
 
   // This bitsets shows which cachelines overlap with any blocks.
   // It is used to provide a fast way to query if no icache invalidation is needed.

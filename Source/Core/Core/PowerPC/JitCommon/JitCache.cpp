@@ -9,6 +9,7 @@
 // performance hit, it's not enabled by default, but it's useful for
 // locating performance issues.
 
+#include <algorithm>
 #include <cstring>
 #include <map>
 #include <utility>
@@ -125,18 +126,7 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 
 void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr)
 {
-  if (start_block_map.count(block.physicalAddress))
-  {
-    // We already have a block at this address; invalidate the old block.
-    // This should be very rare. This will only happen if the same block
-    // is called both with DR/IR enabled or disabled.
-    WARN_LOG(DYNA_REC, "Invalidating compiled block at same address %08x", block.physicalAddress);
-    JitBlock& old_b = *start_block_map[block.physicalAddress];
-    block_map.erase(
-        std::make_pair(old_b.physicalAddress + 4 * old_b.originalSize - 1, old_b.physicalAddress));
-    DestroyBlock(old_b, true);
-  }
-  start_block_map[block.physicalAddress] = &block;
+  start_block_map.emplace(block.physicalAddress, &block);
   size_t icache = FastLookupEntryForAddress(block.effectiveAddress);
   iCache[icache] = &block;
   block.in_icache = icache;
@@ -146,7 +136,7 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link, const u8
   for (u32 addr = pAddr / 32; addr <= (pAddr + (block.originalSize - 1) * 4) / 32; ++addr)
     valid_block.Set(addr);
 
-  block_map[std::make_pair(pAddr + 4 * block.originalSize - 1, pAddr)] = &block;
+  block_map.emplace(std::make_pair(pAddr + 4 * block.originalSize - 1, pAddr), &block);
 
   if (block_link)
   {
@@ -174,15 +164,15 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
     translated_addr = translated.address;
   }
 
-  auto map_result = start_block_map.find(translated_addr);
-  if (map_result == start_block_map.end())
-    return nullptr;
+  auto iter = start_block_map.equal_range(translated_addr);
+  for (; iter.first != iter.second; iter.first++)
+  {
+    JitBlock& b = *iter.first->second;
+    if (!b.invalid && b.effectiveAddress == addr && b.msrBits == (msr & JIT_CACHE_MSR_MASK))
+      return &b;
+  }
 
-  JitBlock* b = map_result->second;
-  if (b->invalid || b->effectiveAddress != addr ||
-      b->msrBits != (msr & JIT_CACHE_MSR_MASK))
-    return nullptr;
-  return b;
+  return nullptr;
 }
 
 const u8* JitBaseBlockCache::Dispatch()
@@ -321,9 +311,17 @@ void JitBaseBlockCache::DestroyBlock(JitBlock& block, bool invalidate)
     return;
   }
   block.invalid = true;
-  start_block_map.erase(block.physicalAddress);
   if (iCache[block.in_icache] == &block)
     iCache[block.in_icache] = nullptr;
+
+  auto iter = start_block_map.equal_range(block.physicalAddress);
+  while (iter.first != iter.second)
+  {
+    if (iter.first->second == &block)
+      iter.first = start_block_map.erase(iter.first);
+    else
+      iter.first++;
+  }
 
   UnlinkBlock(block);
 
