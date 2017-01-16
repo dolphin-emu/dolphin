@@ -33,6 +33,7 @@ The register allocation is linear scan allocation.
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/NonCopyable.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/CoreTiming.h"
@@ -48,7 +49,7 @@ using namespace Gen;
 
 static const unsigned int MAX_NUMBER_OF_REGS = 16;
 
-struct RegInfo
+struct RegInfo final : private NonCopyable
 {
   JitIL* Jit;
   IRBuilder* Build;
@@ -79,9 +80,6 @@ struct RegInfo
         numSpills(0), numFSpills(0), exitNumber(0)
   {
   }
-
-private:
-  RegInfo(RegInfo&);  // DO NOT IMPLEMENT
 };
 
 static BitSet32 regsInUse(RegInfo& R)
