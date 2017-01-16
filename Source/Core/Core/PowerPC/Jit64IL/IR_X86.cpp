@@ -26,6 +26,8 @@ The register allocation is linear scan allocation.
 #endif
 
 #include <algorithm>
+#include <array>
+#include <cstddef>
 #include <vector>
 
 #include "Common/BitSet.h"
@@ -33,6 +35,7 @@ The register allocation is linear scan allocation.
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/NonCopyable.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 #include "Core/CoreTiming.h"
@@ -46,12 +49,12 @@ The register allocation is linear scan allocation.
 using namespace IREmitter;
 using namespace Gen;
 
-static const unsigned int MAX_NUMBER_OF_REGS = 16;
-
-struct RegInfo
+struct RegInfo final : private NonCopyable
 {
+  static constexpr size_t MAX_NUMBER_OF_REGS = 16;
+
   JitIL* Jit;
-  IRBuilder* Build;
+  IRBuilder* Build = nullptr;
   InstLoc FirstI;
 
   // IInfo contains (per instruction)
@@ -63,31 +66,24 @@ struct RegInfo
   //           and if we can clobber the operands registers.
   //           Warning, Memory instruction use these bits slightly differently.
   // Bits 15-31: Spill location
-  std::vector<unsigned> IInfo;
+  std::vector<u32> IInfo;
 
   // The last instruction which uses the result of this instruction. Used by the register allocator.
   std::vector<InstLoc> lastUsed;
 
-  InstLoc regs[MAX_NUMBER_OF_REGS];
-  InstLoc fregs[MAX_NUMBER_OF_REGS];
-  unsigned numSpills;
-  unsigned numFSpills;
-  unsigned exitNumber;
+  std::array<InstLoc, MAX_NUMBER_OF_REGS> regs{};
+  std::array<InstLoc, MAX_NUMBER_OF_REGS> fregs{};
+  u32 numSpills = 0;
+  u32 numFSpills = 0;
+  u32 exitNumber = 0;
 
-  RegInfo(JitIL* j, InstLoc f, unsigned insts)
-      : Jit(j), Build(nullptr), FirstI(f), IInfo(insts), lastUsed(insts), regs(), fregs(),
-        numSpills(0), numFSpills(0), exitNumber(0)
-  {
-  }
-
-private:
-  RegInfo(RegInfo&);  // DO NOT IMPLEMENT
+  RegInfo(JitIL* j, InstLoc f, u32 insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts) {}
 };
 
 static BitSet32 regsInUse(RegInfo& R)
 {
   BitSet32 result;
-  for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
+  for (size_t i = 0; i < RegInfo::MAX_NUMBER_OF_REGS; i++)
   {
     if (R.regs[i] != nullptr)
       result[i] = true;
@@ -2330,7 +2326,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
     }
   }
 
-  for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
+  for (size_t i = 0; i < RegInfo::MAX_NUMBER_OF_REGS; i++)
   {
     if (RI.regs[i])
     {
