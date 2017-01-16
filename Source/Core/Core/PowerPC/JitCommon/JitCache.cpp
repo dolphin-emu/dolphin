@@ -72,7 +72,8 @@ void JitBaseBlockCache::Clear()
   m_jit.js.pairedQuantizeAddresses.clear();
   for (int i = 1; i < num_blocks; i++)
   {
-    DestroyBlock(blocks[i], false);
+    if (!block.invalid)
+      DestroyBlock(blocks[i]);
   }
   links_to.clear();
   block_map.clear();
@@ -213,7 +214,7 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
     auto it = block_map.lower_bound(std::make_pair(pAddr, 0));
     while (it != block_map.end() && it->first.second < pAddr + length)
     {
-      DestroyBlock(*it->second, true);
+      DestroyBlock(*it->second);
       it = block_map.erase(it);
     }
 
@@ -302,12 +303,11 @@ void JitBaseBlockCache::UnlinkBlock(const JitBlock& block)
   }
 }
 
-void JitBaseBlockCache::DestroyBlock(JitBlock& block, bool invalidate)
+void JitBaseBlockCache::DestroyBlock(JitBlock& block)
 {
   if (block.invalid)
   {
-    if (invalidate)
-      PanicAlert("Invalidating invalid block %p", &block);
+    PanicAlert("Invalidating invalid block %p", &block);
     return;
   }
   block.invalid = true;
