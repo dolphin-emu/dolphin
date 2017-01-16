@@ -228,37 +228,8 @@ InstLoc inline getOp2(InstLoc i)
 
 class IRBuilder
 {
-private:
-  InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
-  InstLoc EmitUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
-  InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
-
-  InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldSub(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldMul(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldMulHighUnsigned(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldAnd(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldOr(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldRol(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldShl(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldShrl(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldXor(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldBranchCond(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldIdleBranch(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
-  InstLoc FoldICmpCRSigned(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldDoubleBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
-
-  InstLoc FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2);
-
-  InstLoc FoldZeroOp(unsigned Opcode, unsigned extra);
-  InstLoc FoldUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
-  InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
-
-  unsigned ComputeKnownZeroBits(InstLoc I) const;
-
 public:
+  IRBuilder() { Reset(); }
   InstLoc EmitIntConst(unsigned value) { return EmitIntConst64(value); }
   InstLoc EmitIntConst64(u64 value);
 
@@ -439,9 +410,38 @@ public:
     CTRCacheStore = nullptr;
   }
 
-  IRBuilder() { Reset(); }
 private:
   IRBuilder(IRBuilder&);  // DO NOT IMPLEMENT
+
+  InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
+  InstLoc EmitUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
+  InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
+
+  InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldSub(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldMul(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldMulHighUnsigned(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldAnd(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldOr(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldRol(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldShl(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldShrl(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldXor(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldBranchCond(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldIdleBranch(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
+  InstLoc FoldICmpCRSigned(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldDoubleBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
+
+  InstLoc FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2);
+
+  InstLoc FoldZeroOp(unsigned Opcode, unsigned extra);
+  InstLoc FoldUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
+  InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
+
+  unsigned ComputeKnownZeroBits(InstLoc I) const;
+
   bool isSameValue(InstLoc Op1, InstLoc Op2) const;
   unsigned getComplexity(InstLoc I) const;
   unsigned getNumberOfOperands(InstLoc I) const;
