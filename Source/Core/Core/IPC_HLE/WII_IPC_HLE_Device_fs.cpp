@@ -34,9 +34,9 @@ CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string&
 
 // ~1/1000th of a second is too short and causes hangs in Wii Party
 // Play it safe at 1/500th
-IPCCommandResult CWII_IPC_HLE_Device_fs::GetFSReply() const
+IPCCommandResult CWII_IPC_HLE_Device_fs::GetFSReply(const s32 return_value) const
 {
-  return {true, SystemTimers::GetTicksPerSecond() / 500};
+  return {return_value, true, SystemTimers::GetTicksPerSecond() / 500};
 }
 
 IOSReturnCode CWII_IPC_HLE_Device_fs::Open(const IOSOpenRequest& request)
@@ -224,16 +224,14 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(const IOSIOCtlVRequest& request)
     break;
   }
 
-  request.SetReturnValue(return_value);
-  return GetFSReply();
+  return GetFSReply(return_value);
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtl(const IOSIOCtlRequest& request)
 {
   Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
   const s32 return_value = ExecuteCommand(request);
-  request.SetReturnValue(return_value);
-  return GetFSReply();
+  return GetFSReply(return_value);
 }
 
 s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(const IOSIOCtlRequest& request)

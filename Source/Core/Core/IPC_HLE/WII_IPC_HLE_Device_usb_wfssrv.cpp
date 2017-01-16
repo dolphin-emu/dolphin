@@ -157,8 +157,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(const IOSIOCtlRequest& re
     break;
   }
 
-  request.SetReturnValue(return_error_code);
-  return GetDefaultReply();
+  return GetDefaultReply(return_error_code);
 }
 
 CWII_IPC_HLE_Device_usb_wfssrv::FileDescriptor*

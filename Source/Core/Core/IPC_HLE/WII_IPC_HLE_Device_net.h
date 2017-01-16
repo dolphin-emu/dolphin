@@ -124,8 +124,7 @@ public:
 
     // write return values
     Memory::Write_U32(common_result, request.buffer_out);
-    request.SetReturnValue(result);
-    return GetDefaultReply();
+    return GetDefaultReply(result);
   }
 
 private:

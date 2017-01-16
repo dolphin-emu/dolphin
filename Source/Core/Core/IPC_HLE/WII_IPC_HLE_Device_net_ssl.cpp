@@ -78,8 +78,7 @@ int CWII_IPC_HLE_Device_net_ssl::GetSSLFreeID() const
 IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtl(const IOSIOCtlRequest& request)
 {
   request.Log(GetDeviceName(), LogTypes::WII_IPC_SSL, LogTypes::LINFO);
-  request.SetReturnValue(IPC_SUCCESS);
-  return GetDefaultReply();
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(const IOSIOCtlVRequest& request)
@@ -125,10 +124,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(const IOSIOCtlVRequest& req
   // I don't trust SSL to be deterministic, and this is never going to sync
   // as such (as opposed to forwarding IPC results or whatever), so -
   if (Core::g_want_determinism)
-  {
-    request.SetReturnValue(-1);
-    return GetDefaultReply();
-  }
+    return GetDefaultReply(IPC_EACCES);
 
   switch (request.request)
   {
@@ -496,6 +492,5 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(const IOSIOCtlVRequest& req
   }
 
   // SSL return codes are written to BufferIn
-  request.SetReturnValue(IPC_SUCCESS);
-  return GetDefaultReply();
+  return GetDefaultReply(IPC_SUCCESS);
 }

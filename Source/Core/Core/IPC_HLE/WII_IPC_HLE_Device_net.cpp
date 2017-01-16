@@ -190,8 +190,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::IOCtl(const IOSIOCtlRequest
     request.Log(GetDeviceName(), LogTypes::WII_IPC_WC24);
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode(const std::string& area) const
@@ -390,8 +389,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(const IOSIOCtlVReque
   {
     Memory::Write_U32(common_result, request.io_vectors.at(common_vector).address + 4);
   }
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 // **********************************************************************************
@@ -476,8 +474,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::IOCtlV(const IOSIOCtlVReque
     request.Dump(GetDeviceName(), LogTypes::WII_IPC_NET, LogTypes::LINFO);
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 // **********************************************************************************
@@ -553,8 +550,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(const IOSIOCtlRequest& re
 {
   if (Core::g_want_determinism)
   {
-    request.SetReturnValue(-1);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_EACCES);
   }
 
   s32 return_value = 0;
@@ -1060,8 +1056,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(const IOSIOCtlRequest& re
     request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_NET);
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(const IOSIOCtlVRequest& request)
@@ -1371,8 +1366,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(const IOSIOCtlVRequest& 
     request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_NET);
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 void CWII_IPC_HLE_Device_net_ip_top::Update()

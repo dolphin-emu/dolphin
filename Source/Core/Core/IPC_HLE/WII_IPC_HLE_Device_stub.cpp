@@ -26,13 +26,11 @@ void CWII_IPC_HLE_Device_stub::Close()
 IPCCommandResult CWII_IPC_HLE_Device_stub::IOCtl(const IOSIOCtlRequest& request)
 {
   WARN_LOG(WII_IPC_HLE, "%s faking IOCtl()", m_name.c_str());
-  request.SetReturnValue(IPC_SUCCESS);
-  return GetDefaultReply();
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_stub::IOCtlV(const IOSIOCtlVRequest& request)
 {
   WARN_LOG(WII_IPC_HLE, "%s faking IOCtlV()", m_name.c_str());
-  request.SetReturnValue(IPC_SUCCESS);
-  return GetDefaultReply();
+  return GetDefaultReply(IPC_SUCCESS);
 }

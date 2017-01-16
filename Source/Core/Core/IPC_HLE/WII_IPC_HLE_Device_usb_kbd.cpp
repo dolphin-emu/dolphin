@@ -65,8 +65,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(const IOSIOCtlRequest& reque
     Memory::CopyToEmu(request.buffer_out, &m_MessageQueue.front(), sizeof(SMessageData));
     m_MessageQueue.pop();
   }
-  request.SetReturnValue(IPC_SUCCESS);
-  return GetDefaultReply();
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)

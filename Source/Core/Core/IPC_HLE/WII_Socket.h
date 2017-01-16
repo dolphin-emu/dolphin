@@ -230,8 +230,7 @@ public:
     {
       ERROR_LOG(WII_IPC_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock,
                 request.address, type);
-      request.SetReturnValue(-SO_EBADF);
-      WII_IPC_HLE_Interface::EnqueueReply(request);
+      WII_IPC_HLE_Interface::EnqueueReply(request, -SO_EBADF);
     }
     else
     {

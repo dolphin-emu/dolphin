@@ -47,7 +47,6 @@ struct IOSRequest
   u32 fd = 0;
   explicit IOSRequest(u32 address);
   virtual ~IOSRequest() = default;
-  void SetReturnValue(s32 new_return_value) const;
 };
 
 enum IOSOpenMode : s32
@@ -156,7 +155,7 @@ public:
   virtual void Update() {}
   virtual DeviceType GetDeviceType() const { return m_device_type; }
   virtual bool IsOpened() const { return m_is_active; }
-  static IPCCommandResult GetDefaultReply();
+  static IPCCommandResult GetDefaultReply(s32 return_value);
   static IPCCommandResult GetNoReply();
 
 protected:

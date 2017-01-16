@@ -39,8 +39,8 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
       {
         IOSIOCtlRequest request{hid->deviceCommandAddress};
         hid->FillOutDevices(request);
-        request.SetReturnValue(IPC_SUCCESS);
-        WII_IPC_HLE_Interface::EnqueueReply(request, 0, CoreTiming::FromThread::NON_CPU);
+        WII_IPC_HLE_Interface::EnqueueReply(request, IPC_SUCCESS, 0,
+                                            CoreTiming::FromThread::NON_CPU);
         hid->deviceCommandAddress = 0;
       }
     }
@@ -61,8 +61,7 @@ void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer* transfer)
   }
 
   IOSIOCtlRequest request{replyAddress};
-  request.SetReturnValue(ret);
-  WII_IPC_HLE_Interface::EnqueueReply(request, 0, CoreTiming::FromThread::NON_CPU);
+  WII_IPC_HLE_Interface::EnqueueReply(request, ret, 0, CoreTiming::FromThread::NON_CPU);
 }
 
 CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName)
@@ -106,8 +105,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(const IOSIOCtlRequest& request)
 {
   if (Core::g_want_determinism)
   {
-    request.SetReturnValue(-1);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_EACCES);
   }
 
   s32 return_value = IPC_SUCCESS;
@@ -213,8 +211,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(const IOSIOCtlRequest& request)
     {
       IOSIOCtlRequest pending_request{deviceCommandAddress};
       Memory::Write_U32(0xFFFFFFFF, pending_request.buffer_out);
-      pending_request.SetReturnValue(-1);
-      WII_IPC_HLE_Interface::EnqueueReply(pending_request);
+      WII_IPC_HLE_Interface::EnqueueReply(pending_request, -1);
       deviceCommandAddress = 0;
     }
     INFO_LOG(WII_IPC_HID, "HID::IOCtl(Shutdown) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
@@ -226,8 +223,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(const IOSIOCtlRequest& request)
     request.Log(GetDeviceName(), LogTypes::WII_IPC_HID);
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 bool CWII_IPC_HLE_Device_hid::ClaimDevice(libusb_device_handle* dev)
@@ -260,8 +256,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtlV(const IOSIOCtlVRequest& request
 {
   Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HID, LogTypes::LWARNING);
   request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_HID);
-  request.SetReturnValue(IPC_SUCCESS);
-  return GetDefaultReply();
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 void CWII_IPC_HLE_Device_hid::ConvertDeviceToWii(WiiHIDDeviceDescriptor* dest,

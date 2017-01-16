@@ -18,11 +18,6 @@ IOSRequest::IOSRequest(const u32 address_) : address(address_)
   fd = Memory::Read_U32(address + 8);
 }
 
-void IOSRequest::SetReturnValue(const s32 new_return_value) const
-{
-  Memory::Write_U32(static_cast<u32>(new_return_value), address + 4);
-}
-
 IOSOpenRequest::IOSOpenRequest(const u32 address_) : IOSRequest(address_)
 {
   path = Memory::GetString(Memory::Read_U32(address + 0xc));
@@ -161,19 +156,18 @@ IPCCommandResult IWII_IPC_HLE_Device::Unsupported(const IOSRequest& request)
                                                          {IPC_CMD_IOCTL, "IOCtl"},
                                                          {IPC_CMD_IOCTLV, "IOCtlV"}}};
   WARN_LOG(WII_IPC_HLE, "%s does not support %s()", m_name.c_str(), names[request.command].c_str());
-  request.SetReturnValue(IPC_EINVAL);
-  return GetDefaultReply();
+  return GetDefaultReply(IPC_EINVAL);
 }
 
 // Returns an IPCCommandResult for a reply that takes 250 us (arbitrarily chosen value)
-IPCCommandResult IWII_IPC_HLE_Device::GetDefaultReply()
+IPCCommandResult IWII_IPC_HLE_Device::GetDefaultReply(const s32 return_value)
 {
-  return {true, SystemTimers::GetTicksPerSecond() / 4000};
+  return {return_value, true, SystemTimers::GetTicksPerSecond() / 4000};
 }
 
 // Returns an IPCCommandResult with no reply. Useful for async commands that will generate a reply
-// later
+// later. This takes no return value because it won't be used.
 IPCCommandResult IWII_IPC_HLE_Device::GetNoReply()
 {
-  return {false, 0};
+  return {IPC_SUCCESS, false, 0};
 }

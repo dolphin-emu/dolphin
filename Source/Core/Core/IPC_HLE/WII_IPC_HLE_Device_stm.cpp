@@ -37,8 +37,7 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(const IOSIOCtlRequest&
       break;
     }
     Memory::Write_U32(0, s_event_hook_request->buffer_out);
-    s_event_hook_request->SetReturnValue(IPC_SUCCESS);
-    WII_IPC_HLE_Interface::EnqueueReply(*s_event_hook_request);
+    WII_IPC_HLE_Interface::EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
     s_event_hook_request.reset();
     break;
 
@@ -63,8 +62,7 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(const IOSIOCtlRequest&
     request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_STM);
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 void CWII_IPC_HLE_Device_stm_eventhook::Close()
@@ -78,15 +76,11 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::IOCtl(const IOSIOCtlRequest&
   if (request.request != IOCTL_STM_EVENTHOOK)
   {
     ERROR_LOG(WII_IPC_STM, "Bad IOCtl in CWII_IPC_HLE_Device_stm_eventhook");
-    request.SetReturnValue(IPC_EINVAL);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_EINVAL);
   }
 
   if (s_event_hook_request)
-  {
-    request.SetReturnValue(IPC_EEXIST);
-    return GetDefaultReply();
-  }
+    return GetDefaultReply(IPC_EEXIST);
 
   // IOCTL_STM_EVENTHOOK waits until the reset button or power button is pressed.
   s_event_hook_request = std::make_unique<IOSIOCtlRequest>(request.address);
@@ -105,8 +99,7 @@ void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
     return;
 
   Memory::Write_U32(event, s_event_hook_request->buffer_out);
-  s_event_hook_request->SetReturnValue(IPC_SUCCESS);
-  WII_IPC_HLE_Interface::EnqueueReply(*s_event_hook_request);
+  WII_IPC_HLE_Interface::EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
   s_event_hook_request.reset();
 }
 

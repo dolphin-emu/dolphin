@@ -45,8 +45,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
   if ((SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_INSERT) ||
       (!SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_REMOVE))
   {
-    m_event->request.SetReturnValue(m_event->type);
-    WII_IPC_HLE_Interface::EnqueueReply(m_event->request);
+    WII_IPC_HLE_Interface::EnqueueReply(m_event->request, m_event->type);
     m_event.reset();
   }
 }
@@ -198,8 +197,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(const IOSIOCtlRequest& re
     EventNotify();
     return GetNoReply();
   }
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(const IOSIOCtlVRequest& request)
@@ -220,8 +218,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(const IOSIOCtlVRequest& 
     ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtlV command 0x%08x", request.request);
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn,
@@ -394,8 +391,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(const IOSRequest& request, u3
     // release returns 0
     // unknown sd int
     // technically we do it out of order, oh well
-    m_event->request.SetReturnValue(EVENT_INVALID);
-    WII_IPC_HLE_Interface::EnqueueReply(m_event->request);
+    WII_IPC_HLE_Interface::EnqueueReply(m_event->request, EVENT_INVALID);
     m_event.reset();
     break;
   }

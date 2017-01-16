@@ -393,24 +393,19 @@ static IPCCommandResult HandleCommand(const IOSRequest& request)
   {
     IOSOpenRequest open_request{request.address};
     const s32 new_fd = OpenDevice(open_request);
-    open_request.SetReturnValue(new_fd);
-    return IWII_IPC_HLE_Device::GetDefaultReply();
+    return IWII_IPC_HLE_Device::GetDefaultReply(new_fd);
   }
 
   const auto device = (request.fd < IPC_MAX_FDS) ? s_fdmap[request.fd] : nullptr;
   if (!device)
-  {
-    request.SetReturnValue(IPC_EINVAL);
-    return IWII_IPC_HLE_Device::GetDefaultReply();
-  }
+    return IWII_IPC_HLE_Device::GetDefaultReply(IPC_EINVAL);
 
   switch (request.command)
   {
   case IPC_CMD_CLOSE:
     s_fdmap[request.fd].reset();
     device->Close();
-    request.SetReturnValue(IPC_SUCCESS);
-    return IWII_IPC_HLE_Device::GetDefaultReply();
+    return IWII_IPC_HLE_Device::GetDefaultReply(IPC_SUCCESS);
   case IPC_CMD_READ:
     return device->Read(IOSReadWriteRequest{request.address});
   case IPC_CMD_WRITE:
@@ -423,7 +418,7 @@ static IPCCommandResult HandleCommand(const IOSRequest& request)
     return device->IOCtlV(IOSIOCtlVRequest{request.address});
   default:
     _assert_msg_(WII_IPC_HLE, false, "Unexpected command: %x", request.command);
-    return IWII_IPC_HLE_Device::GetDefaultReply();
+    return IWII_IPC_HLE_Device::GetDefaultReply(IPC_EINVAL);
   }
 }
 
@@ -439,7 +434,7 @@ void ExecuteCommand(const u32 address)
   s_last_reply_time = CoreTiming::GetTicks() + result.reply_delay_ticks;
 
   if (result.send_reply)
-    EnqueueReply(request, static_cast<int>(result.reply_delay_ticks));
+    EnqueueReply(request, result.return_value, static_cast<int>(result.reply_delay_ticks));
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
@@ -449,8 +444,10 @@ void EnqueueRequest(u32 address)
 }
 
 // Called to send a reply to an IOS syscall
-void EnqueueReply(const IOSRequest& request, int cycles_in_future, CoreTiming::FromThread from)
+void EnqueueReply(const IOSRequest& request, const s32 return_value, int cycles_in_future,
+                  CoreTiming::FromThread from)
 {
+  Memory::Write_U32(static_cast<u32>(return_value), request.address + 4);
   // IOS writes back the command that was responded to in the FD field.
   Memory::Write_U32(request.command, request.address + 8);
   // IOS also overwrites the command type with the reply type.

@@ -207,8 +207,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(const IOSSeekRequest& request)
   {
     return_value = FS_ENOENT;
   }
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(const IOSReadWriteRequest& request)
@@ -247,8 +246,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(const IOSReadWriteRequest& req
     return_value = FS_ENOENT;
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(const IOSReadWriteRequest& request)
@@ -283,8 +281,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(const IOSReadWriteRequest& re
     return_value = FS_ENOENT;
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(const IOSIOCtlRequest& request)
@@ -314,8 +311,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(const IOSIOCtlRequest& reques
     request.Log(GetDeviceName(), LogTypes::WII_IPC_FILEIO, LogTypes::LERROR);
   }
 
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
 
 void CWII_IPC_HLE_Device_FileIO::PrepareForState(PointerWrap::Mode mode)

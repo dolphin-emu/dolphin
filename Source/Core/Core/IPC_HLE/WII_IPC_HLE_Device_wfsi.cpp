@@ -238,6 +238,5 @@ IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(const IOSIOCtlRequest& request)
     break;
   }
 
-  request.SetReturnValue(return_error_code);
-  return GetDefaultReply();
+  return GetDefaultReply(return_error_code);
 }

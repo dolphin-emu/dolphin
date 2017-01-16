@@ -15,21 +15,19 @@ CWII_IPC_HLE_Device_usb_ven::CWII_IPC_HLE_Device_usb_ven(const u32 device_id,
 IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtlV(const IOSIOCtlVRequest& request)
 {
   request.Dump(GetDeviceName());
-  request.SetReturnValue(IPC_SUCCESS);
   return GetNoReply();
 }
 
 IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(const IOSIOCtlRequest& request)
 {
   request.Log(GetDeviceName(), LogTypes::OSHLE);
-  request.SetReturnValue(IPC_SUCCESS);
 
-  IPCCommandResult reply = GetDefaultReply();
+  IPCCommandResult reply = GetDefaultReply(IPC_SUCCESS);
   switch (request.request)
   {
   case USBV5_IOCTL_GETVERSION:
     Memory::Write_U32(0x50001, request.buffer_out);
-    reply = GetDefaultReply();
+    reply = GetDefaultReply(IPC_SUCCESS);
     break;
 
   case USBV5_IOCTL_GETDEVICECHANGE:
@@ -38,24 +36,24 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(const IOSIOCtlRequest& reque
     static bool firstcall = true;
     if (firstcall)
     {
-      reply = GetDefaultReply();
+      reply = GetDefaultReply(IPC_SUCCESS);
       firstcall = false;
     }
 
     // num devices
-    request.SetReturnValue(0);
+    reply = GetDefaultReply(0);
     return reply;
   }
   break;
 
   case USBV5_IOCTL_ATTACHFINISH:
-    reply = GetDefaultReply();
+    reply = GetDefaultReply(IPC_SUCCESS);
     break;
 
   case USBV5_IOCTL_SUSPEND_RESUME:
     DEBUG_LOG(OSHLE, "Device: %i Resumed: %i", Memory::Read_U32(request.buffer_in),
               Memory::Read_U32(request.buffer_in + 4));
-    reply = GetDefaultReply();
+    reply = GetDefaultReply(IPC_SUCCESS);
     break;
 
   case USBV5_IOCTL_GETDEVPARAMS:
@@ -67,7 +65,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(const IOSIOCtlRequest& reque
 
     Memory::Write_U32(0, request.buffer_out);
 
-    reply = GetDefaultReply();
+    reply = GetDefaultReply(IPC_SUCCESS);
   }
   break;
 

@@ -18,6 +18,7 @@ class PointerWrap;
 
 struct IPCCommandResult
 {
+  s32 return_value;
   bool send_reply;
   u64 reply_delay_ticks;
 };
@@ -70,7 +71,7 @@ void UpdateDevices();
 void ExecuteCommand(u32 address);
 
 void EnqueueRequest(u32 address);
-void EnqueueReply(const IOSRequest& request, int cycles_in_future = 0,
+void EnqueueReply(const IOSRequest& request, s32 return_value, int cycles_in_future = 0,
                   CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future = 0);
 

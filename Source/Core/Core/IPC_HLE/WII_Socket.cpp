@@ -567,8 +567,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
                 "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", fd,
                 it->is_ssl ? (int)it->ssl_type : (int)it->net_type, ReturnValue, nonBlock,
                 forceNonBlock);
-      it->request.SetReturnValue(ReturnValue);
-      WII_IPC_HLE_Interface::EnqueueReply(it->request);
+      WII_IPC_HLE_Interface::EnqueueReply(it->request, ReturnValue);
       it = pending_sockops.erase(it);
     }
     else

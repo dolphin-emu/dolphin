@@ -393,8 +393,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeVendorCommandReply(CtrlBuffer
   hci_event->PayloadLength = sizeof(SHCIEventCommand) - 2;
   hci_event->PacketIndicator = 0x01;
   hci_event->Opcode = m_fake_vendor_command_reply_opcode;
-  ctrl.ios_request.SetReturnValue(sizeof(SHCIEventCommand));
-  WII_IPC_HLE_Interface::EnqueueReply(ctrl.ios_request);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl.ios_request, static_cast<s32>(sizeof(SHCIEventCommand)));
 }
 
 // Due to how the widcomm stack which Nintendo uses is coded, we must never
@@ -419,8 +418,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeReadBufferSizeReply(CtrlBuffe
   reply.num_sco_pkts = SCO_PKT_NUM;
 
   memcpy(packet + sizeof(SHCIEventCommand), &reply, sizeof(hci_read_buffer_size_rp));
-  ctrl.ios_request.SetReturnValue(sizeof(SHCIEventCommand) + sizeof(hci_read_buffer_size_rp));
-  WII_IPC_HLE_Interface::EnqueueReply(ctrl.ios_request);
+  WII_IPC_HLE_Interface::EnqueueReply(
+      ctrl.ios_request,
+      static_cast<s32>(sizeof(SHCIEventCommand) + sizeof(hci_read_buffer_size_rp)));
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonEvent(CtrlBuffer& ctrl,
@@ -431,8 +431,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonEvent(CtrlBuffer& c
   hci_event->event = HCI_EVENT_VENDOR;
   hci_event->length = size;
   memcpy(packet + sizeof(hci_event_hdr_t), payload, size);
-  ctrl.ios_request.SetReturnValue(sizeof(hci_event_hdr_t) + size);
-  WII_IPC_HLE_Interface::EnqueueReply(ctrl.ios_request);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl.ios_request,
+                                      static_cast<s32>(sizeof(hci_event_hdr_t) + size));
 }
 
 // When the red sync button is pressed, a HCI event is generated:
@@ -578,7 +578,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CommandCallback(libusb_transfer* 
     s_showed_failed_transfer.Clear();
   }
 
-  WII_IPC_HLE_Interface::EnqueueReply(cmd->ios_request, 0, CoreTiming::FromThread::NON_CPU);
+  WII_IPC_HLE_Interface::EnqueueReply(cmd->ios_request, tr->actual_length, 0,
+                                      CoreTiming::FromThread::NON_CPU);
 }
 
 void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer* tr)
@@ -622,6 +623,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer*
     }
   }
 
-  ctrl->ios_request.SetReturnValue(tr->actual_length);
-  WII_IPC_HLE_Interface::EnqueueReply(ctrl->ios_request, 0, CoreTiming::FromThread::NON_CPU);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl->ios_request, tr->actual_length, 0,
+                                      CoreTiming::FromThread::NON_CPU);
 }

@@ -49,6 +49,6 @@ private:
     IOCTL_SHUTDOWN = 0x0D
   };
 
-  IPCCommandResult GetFSReply() const;
+  IPCCommandResult GetFSReply(s32 return_value) const;
   s32 ExecuteCommand(const IOSIOCtlRequest& request);
 };

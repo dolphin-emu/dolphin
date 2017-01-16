@@ -226,8 +226,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::IOCtlV(const IOSIOCtlV
     request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_WIIMOTE);
   }
 
-  request.SetReturnValue(IPC_SUCCESS);
-  return send_reply ? GetDefaultReply() : GetNoReply();
+  return send_reply ? GetDefaultReply(IPC_SUCCESS) : GetNoReply();
 }
 
 // Here we handle the USBV0_IOCTL_BLKMSG Ioctlv
@@ -268,8 +267,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendACLPacket(u16 connection_handl
     // Write the packet to the buffer
     memcpy(reinterpret_cast<u8*>(header) + sizeof(hci_acldata_hdr_t), data, header->length);
 
-    m_ACLEndpoint->ios_request.SetReturnValue(sizeof(hci_acldata_hdr_t) + size);
-    WII_IPC_HLE_Interface::EnqueueReply(m_ACLEndpoint->ios_request);
+    WII_IPC_HLE_Interface::EnqueueReply(m_ACLEndpoint->ios_request,
+                                        sizeof(hci_acldata_hdr_t) + size);
     m_ACLEndpoint.reset();
   }
   else
@@ -296,9 +295,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
       DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint valid, sending packet to %08x",
                 m_HCIEndpoint->ios_request.address);
       m_HCIEndpoint->FillBuffer(_event.m_buffer, _event.m_size);
-      m_HCIEndpoint->ios_request.SetReturnValue(_event.m_size);
       // Send a reply to indicate HCI buffer is filled
-      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request);
+      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request, _event.m_size);
       m_HCIEndpoint.reset();
     }
     else  // push new one, pop oldest
@@ -312,9 +310,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
                 ((hci_event_hdr_t*)event.m_buffer)->event, m_EventQueue.size() - 1,
                 m_HCIEndpoint->ios_request.address);
       m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
-      m_HCIEndpoint->ios_request.SetReturnValue(event.m_size);
       // Send a reply to indicate HCI buffer is filled
-      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request);
+      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
       m_HCIEndpoint.reset();
       m_EventQueue.pop_front();
     }
@@ -338,9 +335,8 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
               ((hci_event_hdr_t*)event.m_buffer)->event, m_EventQueue.size() - 1,
               m_HCIEndpoint->ios_request.address);
     m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
-    m_HCIEndpoint->ios_request.SetReturnValue(event.m_size);
     // Send a reply to indicate HCI buffer is filled
-    WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request);
+    WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
     m_HCIEndpoint.reset();
     m_EventQueue.pop_front();
   }
@@ -434,11 +430,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ACLPool::WriteToEndpoint(CtrlBuffe
   // Write the packet to the buffer
   std::copy(data, data + size, (u8*)pHeader + sizeof(hci_acldata_hdr_t));
 
-  endpoint.ios_request.SetReturnValue(sizeof(hci_acldata_hdr_t) + size);
-
   m_queue.pop_front();
 
-  WII_IPC_HLE_Interface::EnqueueReply(endpoint.ios_request);
+  WII_IPC_HLE_Interface::EnqueueReply(endpoint.ios_request, sizeof(hci_acldata_hdr_t) + size);
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendEventInquiryComplete()
@@ -1158,7 +1152,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ExecuteHCICommandMessage(
   }
 
   // HCI command is finished, send a reply to command
-  WII_IPC_HLE_Interface::EnqueueReply(ctrl_message.ios_request);
+  WII_IPC_HLE_Interface::EnqueueReply(ctrl_message.ios_request, ctrl_message.length);
 }
 
 //

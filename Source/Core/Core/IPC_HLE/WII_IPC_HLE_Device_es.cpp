@@ -278,8 +278,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     if (!m_addtitle_tmd.IsValid())
     {
       ERROR_LOG(WII_IPC_ES, "Invalid TMD while adding title (size = %zd)", tmd.size());
-      request.SetReturnValue(ES_INVALID_TMD);
-      return GetDefaultReply();
+      return GetDefaultReply(ES_INVALID_TMD);
     }
 
     // Write the TMD to title storage.
@@ -304,8 +303,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     {
       ERROR_LOG(WII_IPC_ES, "Trying to add content when we haven't finished adding "
                             "another content. Unsupported.");
-      request.SetReturnValue(ES_WRITE_FAILURE);
-      return GetDefaultReply();
+      return GetDefaultReply(ES_WRITE_FAILURE);
     }
     m_addtitle_content_id = content_id;
 
@@ -327,8 +325,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     // no known content installer which performs content addition concurrently.
     // Instead we just log an error (see above) if this condition is detected.
     s32 content_fd = 0;
-    request.SetReturnValue(content_fd);
-    return GetDefaultReply();
+    return GetDefaultReply(content_fd);
   }
 
   case IOCTL_ES_ADDCONTENTDATA:
@@ -359,8 +356,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     std::vector<u8> ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
     if (ticket.size() == 0)
     {
-      request.SetReturnValue(ES_NO_TICKET_INSTALLED);
-      return GetDefaultReply();
+      return GetDefaultReply(ES_NO_TICKET_INSTALLED);
     }
 
     mbedtls_aes_context aes_ctx;
@@ -371,8 +367,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     TMDReader::Content content_info;
     if (!m_addtitle_tmd.FindContentById(m_addtitle_content_id, &content_info))
     {
-      request.SetReturnValue(ES_INVALID_TMD);
-      return GetDefaultReply();
+      return GetDefaultReply(ES_INVALID_TMD);
     }
     u8 iv[16] = {0};
     iv[0] = (content_info.index >> 8) & 0xFF;
@@ -407,8 +402,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     EcWii& ec = EcWii::GetInstance();
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID %08X", ec.getNgId());
     Memory::Write_U32(ec.getNgId(), request.io_vectors[0].address);
-    request.SetReturnValue(IPC_SUCCESS);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_SUCCESS);
   }
 
   case IOCTL_ES_GETTITLECONTENTSCNT:
@@ -420,6 +414,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
 
     const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
     u16 NumberOfPrivateContent = 0;
+    s32 return_value = IPC_SUCCESS;
     if (rNANDContent.IsValid())  // Not sure if dolphin will ever fail this check
     {
       NumberOfPrivateContent = rNANDContent.GetNumEntries();
@@ -428,19 +423,17 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
         Memory::Write_U32(0, request.io_vectors[0].address);
       else
         Memory::Write_U32(NumberOfPrivateContent, request.io_vectors[0].address);
-
-      request.SetReturnValue(IPC_SUCCESS);
     }
     else
     {
-      request.SetReturnValue(static_cast<s32>(rNANDContent.GetContentSize()));
+      return_value = static_cast<s32>(rNANDContent.GetContentSize());
     }
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i",
              (u32)(TitleID >> 32), (u32)TitleID,
              rNANDContent.IsValid() ? NumberOfPrivateContent : (u32)rNANDContent.GetContentSize());
 
-    return GetDefaultReply();
+    return GetDefaultReply(return_value);
   }
   break;
 
@@ -454,6 +447,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
     const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
+    s32 return_value = IPC_SUCCESS;
     if (rNANDContent.IsValid())  // Not sure if dolphin will ever fail this check
     {
       for (u16 i = 0; i < rNANDContent.GetNumEntries(); i++)
@@ -463,16 +457,15 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
         INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i,
                  rNANDContent.GetContentByIndex(i)->m_ContentID);
       }
-      request.SetReturnValue(IPC_SUCCESS);
     }
     else
     {
-      request.SetReturnValue(static_cast<s32>(rNANDContent.GetContentSize()));
+      return_value = static_cast<s32>(rNANDContent.GetContentSize());
       ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
                 rNANDContent.GetContentSize());
     }
 
-    return GetDefaultReply();
+    return GetDefaultReply(return_value);
   }
   break;
 
@@ -485,12 +478,11 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     u32 Index = Memory::Read_U32(request.in_vectors[2].address);
 
     s32 CFD = OpenTitleContent(m_AccessIdentID++, TitleID, Index);
-    request.SetReturnValue(CFD);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x",
              (u32)(TitleID >> 32), (u32)TitleID, Index, CFD);
 
-    return GetDefaultReply();
+    return GetDefaultReply(CFD);
   }
   break;
 
@@ -501,10 +493,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     u32 Index = Memory::Read_U32(request.in_vectors[0].address);
 
     s32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
-    request.SetReturnValue(CFD);
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
 
-    return GetDefaultReply();
+    return GetDefaultReply(CFD);
   }
   break;
 
@@ -520,8 +511,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     auto itr = m_ContentAccessMap.find(CFD);
     if (itr == m_ContentAccessMap.end())
     {
-      request.SetReturnValue(-1);
-      return GetDefaultReply();
+      return GetDefaultReply(-1);
     }
     SContentAccess& rContent = itr->second;
 
@@ -558,8 +548,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
               "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)",
               CFD, Addr, Size, rContent.m_Position, rContent.m_Index);
 
-    request.SetReturnValue(Size);
-    return GetDefaultReply();
+    return GetDefaultReply(Size);
   }
   break;
 
@@ -575,8 +564,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     auto itr = m_ContentAccessMap.find(CFD);
     if (itr == m_ContentAccessMap.end())
     {
-      request.SetReturnValue(-1);
-      return GetDefaultReply();
+      return GetDefaultReply(-1);
     }
 
     const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(itr->second.m_TitleID);
@@ -589,8 +577,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
 
     m_ContentAccessMap.erase(itr);
 
-    request.SetReturnValue(IPC_SUCCESS);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_SUCCESS);
   }
   break;
 
@@ -606,8 +593,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     auto itr = m_ContentAccessMap.find(CFD);
     if (itr == m_ContentAccessMap.end())
     {
-      request.SetReturnValue(-1);
-      return GetDefaultReply();
+      return GetDefaultReply(-1);
     }
     SContentAccess& rContent = itr->second;
 
@@ -629,8 +615,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     DEBUG_LOG(WII_IPC_ES, "IOCTL_ES_SEEKCONTENT: CFD %x, Address 0x%x, Mode %i -> Pos %i", CFD,
               Addr, Mode, rContent.m_Position);
 
-    request.SetReturnValue(rContent.m_Position);
-    return GetDefaultReply();
+    return GetDefaultReply(rContent.m_Position);
   }
   break;
 
@@ -683,8 +668,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", m_TitleIDs.size());
 
-    request.SetReturnValue(IPC_SUCCESS);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_SUCCESS);
   }
   break;
 
@@ -708,8 +692,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     }
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLES: Number of titles returned %i", Count);
-    request.SetReturnValue(IPC_SUCCESS);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_SUCCESS);
   }
   break;
 
@@ -761,8 +744,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
              (u32)(TitleID >> 32), (u32)TitleID, ViewCount);
 
     Memory::Write_U32(ViewCount, request.io_vectors[0].address);
-    request.SetReturnValue(retVal);
-    return GetDefaultReply();
+    return GetDefaultReply(retVal);
   }
   break;
 
@@ -834,8 +816,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)",
              (u32)(TitleID >> 32), (u32)TitleID, maxViews);
 
-    request.SetReturnValue(retVal);
-    return GetDefaultReply();
+    return GetDefaultReply(retVal);
   }
   break;
 
@@ -861,11 +842,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     }
     Memory::Write_U32(TMDViewCnt, request.io_vectors[0].address);
 
-    request.SetReturnValue(IPC_SUCCESS);
-
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)",
              (u32)(TitleID >> 32), (u32)TitleID, TMDViewCnt);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_SUCCESS);
   }
   break;
 
@@ -912,52 +891,40 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
       _dbg_assert_(WII_IPC_ES,
                    (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
     }
-    request.SetReturnValue(IPC_SUCCESS);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)",
              (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_SUCCESS);
   }
   break;
 
   case IOCTL_ES_GETCONSUMPTION:  // This is at least what crediar's ES module does
     Memory::Write_U32(0, request.io_vectors[1].address);
-    request.SetReturnValue(IPC_SUCCESS);
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETCONSUMPTION");
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_SUCCESS);
 
   case IOCTL_ES_DELETETICKET:
   {
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32),
              (u32)TitleID);
-    if (File::Delete(Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT)))
-    {
-      request.SetReturnValue(IPC_SUCCESS);
-    }
-    else
-    {
-      // Presumably return -1017 when delete fails
-      request.SetReturnValue(ES_PARAMETER_SIZE_OR_ALIGNMENT);
-    }
+    // Presumably return -1017 when delete fails
+    if (!File::Delete(Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT)))
+      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(IPC_SUCCESS);
   }
-  break;
+
   case IOCTL_ES_DELETETITLECONTENT:
   {
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_DELETETITLECONTENT: title: %08x/%08x", (u32)(TitleID >> 32),
              (u32)TitleID);
-    if (DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID, Common::FROM_SESSION_ROOT))
-    {
-      request.SetReturnValue(IPC_SUCCESS);
-    }
-    else
-    {
-      // Presumably return -1017 when title not installed TODO verify
-      request.SetReturnValue(ES_PARAMETER_SIZE_OR_ALIGNMENT);
-    }
+    // Presumably return -1017 when title not installed TODO verify
+    if (!DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID, Common::FROM_SESSION_ROOT))
+      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(IPC_SUCCESS);
   }
-  break;
+
   case IOCTL_ES_GETSTOREDTMDSIZE:
   {
     _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
@@ -978,11 +945,9 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     if (request.io_vectors.size())
       Memory::Write_U32(TMDCnt, request.io_vectors[0].address);
 
-    request.SetReturnValue(IPC_SUCCESS);
-
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)",
              (u32)(TitleID >> 32), (u32)TitleID, TMDCnt);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_SUCCESS);
   }
   break;
   case IOCTL_ES_GETSTOREDTMD:
@@ -1026,11 +991,10 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
       _dbg_assert_(WII_IPC_ES,
                    (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
     }
-    request.SetReturnValue(IPC_SUCCESS);
 
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)",
              (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
-    return GetDefaultReply();
+    return GetDefaultReply(IPC_SUCCESS);
   }
   break;
 
@@ -1182,13 +1146,8 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     Memory::Write_U16(0xFFFF, 0x00003142);
     Memory::Write_U32(Memory::Read_U32(0x00003140), 0x00003188);
 
-    // TODO: provide correct return code when bSuccess= false
     // Note: If we just reset the PPC, don't write anything to the command buffer. This
     // could clobber the DOL we just loaded.
-    if (!bReset)
-    {
-      request.SetReturnValue(IPC_SUCCESS);
-    }
 
     ERROR_LOG(WII_IPC_ES,
               "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
@@ -1219,8 +1178,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     // -1017
     // if the IOS didn't find the Korean keys and 0 if it does. 0 leads to a error 003
     INFO_LOG(WII_IPC_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
-    request.SetReturnValue(ES_PARAMETER_SIZE_OR_ALIGNMENT);
-    return GetDefaultReply();
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   case IOCTL_ES_GETDEVICECERT:  // (Input: none, Output: 384 bytes)
   {
@@ -1272,8 +1230,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
     request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_HLE);
   }
 
-  request.SetReturnValue(IPC_SUCCESS);
-  return GetDefaultReply();
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 const DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 title_id)

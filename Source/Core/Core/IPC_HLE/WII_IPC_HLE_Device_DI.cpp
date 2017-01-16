@@ -74,10 +74,7 @@ void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt
   // This command has been executed, so it's removed from the queue
   u32 command_address = m_commands_to_execute.front();
   m_commands_to_execute.pop_front();
-  IOSIOCtlRequest request{command_address};
-
-  request.SetReturnValue(interrupt_type);
-  WII_IPC_HLE_Interface::EnqueueReply(request);
+  WII_IPC_HLE_Interface::EnqueueReply(IOSIOCtlRequest{command_address}, interrupt_type);
 
   // DVDInterface is now ready to execute another command,
   // so we start executing a command from the queue if there is one
@@ -118,6 +115,5 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(const IOSIOCtlVRequest& request)
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_DVD);
   }
-  request.SetReturnValue(return_value);
-  return GetDefaultReply();
+  return GetDefaultReply(return_value);
 }
