@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -427,15 +428,15 @@ private:
   std::vector<bool> MarkUsed;  // Used for IRWriter
   std::vector<u64> ConstList;
   InstLoc curReadPtr;
-  InstLoc GRegCache[32];
-  InstLoc GRegCacheStore[32];
-  InstLoc FRegCache[32];
-  InstLoc FRegCacheStore[32];
+  std::array<InstLoc, 32> GRegCache;
+  std::array<InstLoc, 32> GRegCacheStore;
+  std::array<InstLoc, 32> FRegCache;
+  std::array<InstLoc, 32> FRegCacheStore;
   InstLoc CarryCache;
   InstLoc CarryCacheStore;
   InstLoc CTRCache;
   InstLoc CTRCacheStore;
-  InstLoc CRCache[8];
-  InstLoc CRCacheStore[8];
+  std::array<InstLoc, 8> CRCache;
+  std::array<InstLoc, 8> CRCacheStore;
 };
 };

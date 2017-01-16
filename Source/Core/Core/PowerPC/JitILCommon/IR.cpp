@@ -149,22 +149,17 @@ void IRBuilder::Reset()
   MarkUsed.clear();
   MarkUsed.reserve(100000);
 
-  for (unsigned i = 0; i < 32; i++)
-  {
-    GRegCache[i] = nullptr;
-    GRegCacheStore[i] = nullptr;
-    FRegCache[i] = nullptr;
-    FRegCacheStore[i] = nullptr;
-  }
+  GRegCache = {};
+  GRegCacheStore = {};
+
+  FRegCache = {};
+  FRegCacheStore = {};
 
   CarryCache = nullptr;
   CarryCacheStore = nullptr;
 
-  for (unsigned i = 0; i < 8; i++)
-  {
-    CRCache[i] = nullptr;
-    CRCacheStore[i] = nullptr;
-  }
+  CRCache = {};
+  CRCacheStore = {};
 
   CTRCache = nullptr;
   CTRCacheStore = nullptr;
