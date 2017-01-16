@@ -54,7 +54,7 @@ struct RegInfo final : private NonCopyable
   static constexpr size_t MAX_NUMBER_OF_REGS = 16;
 
   JitIL* Jit;
-  IRBuilder* Build;
+  IRBuilder* Build = nullptr;
   InstLoc FirstI;
 
   // IInfo contains (per instruction)
@@ -66,22 +66,18 @@ struct RegInfo final : private NonCopyable
   //           and if we can clobber the operands registers.
   //           Warning, Memory instruction use these bits slightly differently.
   // Bits 15-31: Spill location
-  std::vector<unsigned> IInfo;
+  std::vector<u32> IInfo;
 
   // The last instruction which uses the result of this instruction. Used by the register allocator.
   std::vector<InstLoc> lastUsed;
 
-  std::array<InstLoc, MAX_NUMBER_OF_REGS> regs;
-  std::array<InstLoc, MAX_NUMBER_OF_REGS> fregs;
-  unsigned numSpills;
-  unsigned numFSpills;
-  unsigned exitNumber;
+  std::array<InstLoc, MAX_NUMBER_OF_REGS> regs{};
+  std::array<InstLoc, MAX_NUMBER_OF_REGS> fregs{};
+  u32 numSpills = 0;
+  u32 numFSpills = 0;
+  u32 exitNumber = 0;
 
-  RegInfo(JitIL* j, InstLoc f, unsigned insts)
-      : Jit(j), Build(nullptr), FirstI(f), IInfo(insts), lastUsed(insts), regs(), fregs(),
-        numSpills(0), numFSpills(0), exitNumber(0)
-  {
-  }
+  RegInfo(JitIL* j, InstLoc f, u32 insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts) {}
 };
 
 static BitSet32 regsInUse(RegInfo& R)
