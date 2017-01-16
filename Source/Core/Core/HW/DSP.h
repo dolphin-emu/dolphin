@@ -59,8 +59,6 @@ union UDSPControl
   UDSPControl(u16 _Hex = 0) : Hex(_Hex) {}
 };
 
-extern UDSPControl g_dspState;
-
 void Init(bool hle);
 void Shutdown();
 
