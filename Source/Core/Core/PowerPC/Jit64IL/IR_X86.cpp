@@ -26,6 +26,8 @@ The register allocation is linear scan allocation.
 #endif
 
 #include <algorithm>
+#include <array>
+#include <cstddef>
 #include <vector>
 
 #include "Common/BitSet.h"
@@ -47,10 +49,10 @@ The register allocation is linear scan allocation.
 using namespace IREmitter;
 using namespace Gen;
 
-static const unsigned int MAX_NUMBER_OF_REGS = 16;
-
 struct RegInfo final : private NonCopyable
 {
+  static constexpr size_t MAX_NUMBER_OF_REGS = 16;
+
   JitIL* Jit;
   IRBuilder* Build;
   InstLoc FirstI;
@@ -69,8 +71,8 @@ struct RegInfo final : private NonCopyable
   // The last instruction which uses the result of this instruction. Used by the register allocator.
   std::vector<InstLoc> lastUsed;
 
-  InstLoc regs[MAX_NUMBER_OF_REGS];
-  InstLoc fregs[MAX_NUMBER_OF_REGS];
+  std::array<InstLoc, MAX_NUMBER_OF_REGS> regs;
+  std::array<InstLoc, MAX_NUMBER_OF_REGS> fregs;
   unsigned numSpills;
   unsigned numFSpills;
   unsigned exitNumber;
@@ -85,7 +87,7 @@ struct RegInfo final : private NonCopyable
 static BitSet32 regsInUse(RegInfo& R)
 {
   BitSet32 result;
-  for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
+  for (size_t i = 0; i < RegInfo::MAX_NUMBER_OF_REGS; i++)
   {
     if (R.regs[i] != nullptr)
       result[i] = true;
@@ -2328,7 +2330,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
     }
   }
 
-  for (unsigned i = 0; i < MAX_NUMBER_OF_REGS; i++)
+  for (size_t i = 0; i < RegInfo::MAX_NUMBER_OF_REGS; i++)
   {
     if (RI.regs[i])
     {
