@@ -49,6 +49,8 @@ private:
     return m_data_type != MemoryDataType::ASCII && m_data_type != MemoryDataType::FloatingPoint;
   }
 
+  wxString ReadMemoryAsString(u32 address) const;
+
   void OnPaint(wxPaintEvent& event);
   void OnMouseDownL(wxMouseEvent& event);
   void OnMouseMove(wxMouseEvent& event);
