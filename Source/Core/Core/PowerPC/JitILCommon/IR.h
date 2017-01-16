@@ -8,6 +8,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 
 namespace IREmitter
 {
@@ -227,7 +228,7 @@ InstLoc inline getOp2(InstLoc i)
   return i;
 }
 
-class IRBuilder
+class IRBuilder final : private NonCopyable
 {
 public:
   IRBuilder();
@@ -387,8 +388,6 @@ public:
   void WriteToFile(u64 codeHash);
 
 private:
-  IRBuilder(IRBuilder&);  // DO NOT IMPLEMENT
-
   InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
   InstLoc EmitUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
   InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
