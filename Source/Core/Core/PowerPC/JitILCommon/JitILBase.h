@@ -15,8 +15,6 @@ class JitILBase : public Jitx86Base
 public:
   JitILBase() : code_buffer(32000) {}
   ~JitILBase() {}
-  IREmitter::IRBuilder ibuild;
-
   virtual void Jit(u32 em_address) = 0;
 
   virtual const CommonAsmRoutinesBase* GetAsmRoutines() = 0;
@@ -128,4 +126,5 @@ protected:
   // The default code buffer. We keep it around to not have to alloc/dealloc a
   // large chunk of memory for each recompiled block.
   PPCAnalyst::CodeBuffer code_buffer;
+  IREmitter::IRBuilder ibuild;
 };
