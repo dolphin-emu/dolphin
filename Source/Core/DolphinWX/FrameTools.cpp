@@ -845,6 +845,7 @@ void CFrame::DoStop()
       PowerPC::memchecks.Clear();
       if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
         g_pCodeWindow->GetPanel<CBreakPointWindow>()->NotifyUpdate();
+      PowerPC::code_patches.clear();
       g_symbolDB.Clear();
       Host_NotifyMapLoaded();
     }

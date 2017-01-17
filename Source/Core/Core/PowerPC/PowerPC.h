@@ -10,6 +10,7 @@
 
 #include "Common/CommonTypes.h"
 
+#include "Core/Debugger/CodePatch.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
@@ -133,6 +134,7 @@ extern PowerPCState ppcState;
 extern Watches watches;
 extern BreakPoints breakpoints;
 extern MemChecks memchecks;
+extern CodePatches code_patches;
 extern PPCDebugInterface debug_interface;
 
 void Init(int cpu_core);

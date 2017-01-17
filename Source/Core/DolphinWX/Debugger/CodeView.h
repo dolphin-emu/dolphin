@@ -46,20 +46,13 @@ private:
   void OnMouseUpL(wxMouseEvent& event);
   void OnMouseUpR(wxMouseEvent& event);
   void OnPopupMenu(wxCommandEvent& event);
-  void InsertBlrNop(int);
+  void InsertBlrNop(bool is_blr);
 
   void RaiseEvent();
   int YToAddress(int y);
 
   u32 AddrToBranch(u32 addr);
   void OnResize(wxSizeEvent& event);
-
-  struct BlrStruct  // for IDM_INSERTBLR
-  {
-    u32 address;
-    u32 oldValue;
-  };
-  std::vector<BlrStruct> m_blrList;
 
   static constexpr int LEFT_COL_WIDTH = 16;
 

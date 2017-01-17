@@ -15,6 +15,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
+#include "Core/Debugger/CodePatch.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
@@ -36,6 +37,7 @@ static CoreMode s_mode = CoreMode::Interpreter;
 Watches watches;
 BreakPoints breakpoints;
 MemChecks memchecks;
+CodePatches code_patches;
 PPCDebugInterface debug_interface;
 
 static CoreTiming::EventType* s_invalidate_cache_thread_safe;

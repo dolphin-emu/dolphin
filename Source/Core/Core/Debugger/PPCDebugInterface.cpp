@@ -6,6 +6,7 @@
 
 #include <cstddef>
 #include <string>
+#include <utility>
 
 #include "Common/GekkoDisassembler.h"
 #include "Common/StringUtil.h"
@@ -157,9 +158,13 @@ void PPCDebugInterface::ToggleMemCheck(unsigned int address, bool read, bool wri
   }
 }
 
-void PPCDebugInterface::InsertBLR(unsigned int address, unsigned int value)
+void PPCDebugInterface::Patch(unsigned int address, unsigned int value)
 {
-  PowerPC::HostWrite_U32(value, address);
+  std::vector<u8> powerpc_instruction = {
+      static_cast<u8>(value >> 0x18 & 0xFF), static_cast<u8>(value >> 0x10 & 0xFF),
+      static_cast<u8>(value >> 0x08 & 0xFF), static_cast<u8>(value & 0xFF)};
+  PowerPC::code_patches.emplace_back(address, std::move(powerpc_instruction));
+  PowerPC::code_patches.back().Apply();
   PowerPC::ScheduleInvalidateCacheThreadSafe(address);
 }
 
