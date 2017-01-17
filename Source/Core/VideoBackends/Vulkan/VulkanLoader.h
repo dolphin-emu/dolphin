@@ -6,7 +6,9 @@
 
 #define VK_NO_PROTOTYPES
 
-#if defined(WIN32)
+#if HAVE_GLFW
+// We don’t define any platform here, GLFW already handles that for us.
+#elif defined(WIN32)
 #define VK_USE_PLATFORM_WIN32_KHR
 #elif defined(HAVE_X11)
 // Currently we're getting xlib handles passed to the backend.

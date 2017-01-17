@@ -10,6 +10,8 @@
 #include "Common/GL/GLInterface/AGL.h"
 #elif defined(_WIN32)
 #include "Common/GL/GLInterface/WGL.h"
+#elif HAVE_GLFW
+#include "Common/GL/GLInterface/GLFW.h"
 #elif HAVE_X11
 #if defined(USE_EGL) && USE_EGL
 #include "Common/GL/GLInterface/EGLX11.h"
@@ -32,6 +34,8 @@ std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()
   return std::make_unique<cInterfaceWGL>();
 #elif defined(USE_EGL) && defined(USE_HEADLESS)
   return std::make_unique<cInterfaceEGL>();
+#elif defined(HAVE_GLFW) && HAVE_GLFW
+  return std::make_unique<cInterfaceGLFW>();
 #elif defined(HAVE_X11) && HAVE_X11
 #if defined(USE_EGL) && USE_EGL
   return std::make_unique<cInterfaceEGLX11>();

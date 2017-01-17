@@ -15,7 +15,9 @@
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/VulkanContext.h"
 
-#if defined(VK_USE_PLATFORM_XLIB_KHR)
+#if defined(HAVE_GLFW)
+#include <GLFW/glfw3.h>
+#elif defined(VK_USE_PLATFORM_XLIB_KHR)
 #include <X11/Xlib.h>
 #elif defined(VK_USE_PLATFORM_XCB_KHR)
 #include <X11/Xlib-xcb.h>
@@ -39,7 +41,20 @@ SwapChain::~SwapChain()
 
 VkSurfaceKHR SwapChain::CreateVulkanSurface(VkInstance instance, void* hwnd)
 {
-#if defined(VK_USE_PLATFORM_WIN32_KHR)
+#if defined(HAVE_GLFW)
+  GLFWwindow* window = static_cast<GLFWwindow*>(hwnd);
+  VkSurfaceKHR surface;
+
+  VkResult res = glfwCreateWindowSurface(instance, window, nullptr, &surface);
+  if (res != VK_SUCCESS)
+  {
+    LOG_VULKAN_ERROR(res, "glfwCreateWindowSurface failed: ");
+    return VK_NULL_HANDLE;
+  }
+
+  return surface;
+
+#elif defined(VK_USE_PLATFORM_WIN32_KHR)
   VkWin32SurfaceCreateInfoKHR surface_create_info = {
       VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR,  // VkStructureType               sType
       nullptr,                                          // const void*                   pNext
