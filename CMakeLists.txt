@@ -363,12 +363,6 @@ endif(UNIX)
 # changes, so just setting them in the project scope via
 # include_directories and link_directories is not sufficient
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
-	# CMake before 3.2 does not respect CMAKE_EXE_LINKER_FLAGS in
-	# try_compile, which can cause our compilation check functions
-	# to spuriously fail
-	if(POLICY CMP0056)
-		cmake_policy(SET CMP0056 NEW)
-	endif()
 	set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr/local")
 	set(CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
