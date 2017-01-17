@@ -26,10 +26,14 @@ macro(check_lib var pc lib)
 	endif()
 
 	if(${var}_FOUND)
-		include_directories(${${var}_INCLUDE_DIRS})
+		if(${var}_INCLUDE_DIRS)
+			include_directories(${${var}_INCLUDE_DIRS})
+		endif()
 		# Make sure include directories for headers found using find_path below
 		# are re-added when reconfiguring
-		include_directories(${${var}_INCLUDE})
+		if(${var}_INCLUDE)
+			include_directories(${${var}_INCLUDE})
+		endif()
 		_internal_message("${lib} found")
 	else()
 		find_library(${var} ${lib})
