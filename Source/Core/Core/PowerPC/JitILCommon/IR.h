@@ -380,7 +380,6 @@ public:
   InstLoc ReadBackward() { return --curReadPtr; }
   InstLoc getFirstInst() { return InstList.data(); }
   unsigned int getNumInsts() { return (unsigned int)InstList.size(); }
-  unsigned int ReadInst(InstLoc I) { return *I; }
   unsigned int GetImmValue(InstLoc I) const { return (u32)GetImmValue64(I); }
   u64 GetImmValue64(InstLoc I) const;
   void SetMarkUsed(InstLoc I);
