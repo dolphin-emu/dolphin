@@ -199,7 +199,7 @@ if (NOT SFML_FOUND)
         message(FATAL_ERROR ${FIND_SFML_ERROR})
     elseif(NOT SFML_FIND_QUIETLY)
         # error but continue
-        message("${FIND_SFML_ERROR}")
+        message(STATUS "${FIND_SFML_ERROR}")
     endif()
 endif()
 
