@@ -22,6 +22,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_fs.h"
 
+namespace IOS
+{
+namespace HLE
+{
 static bool IsValidWiiPath(const std::string& path)
 {
   return path.compare(0, 1, "/") == 0;
@@ -634,3 +638,5 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
     p.Do(type);
   }
 }
+}  // namespace HLE
+}  // namespace IOS

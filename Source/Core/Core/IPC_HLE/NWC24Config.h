@@ -7,6 +7,10 @@
 #include <string>
 #include "Common/CommonTypes.h"
 
+namespace IOS
+{
+namespace HLE
+{
 namespace NWC24
 {
 enum ErrorCode : int
@@ -94,3 +98,5 @@ private:
   ConfigData m_data;
 };
 }  // namespace NWC24
+}  // namespace HLE
+}  // namespace IOS

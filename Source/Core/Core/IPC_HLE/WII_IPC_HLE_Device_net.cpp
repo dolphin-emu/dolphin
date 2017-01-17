@@ -59,6 +59,10 @@ typedef struct pollfd pollfd_t;
 #define UNSUPPORTED_WSAPOLL 0
 #endif
 
+namespace IOS
+{
+namespace HLE
+{
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(
@@ -1373,3 +1377,5 @@ void CWII_IPC_HLE_Device_net_ip_top::Update()
 {
   WiiSockMan::GetInstance().Update();
 }
+}  // namespace HLE
+}  // namespace IOS

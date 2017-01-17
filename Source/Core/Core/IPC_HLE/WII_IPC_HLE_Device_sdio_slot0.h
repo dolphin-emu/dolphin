@@ -16,6 +16,10 @@
 
 class PointerWrap;
 
+namespace IOS
+{
+namespace HLE
+{
 class CWII_IPC_HLE_Device_sdio_slot0 : public IWII_IPC_HLE_Device
 {
 public:
@@ -125,3 +129,5 @@ private:
                      u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
   void OpenInternal();
 };
+}  // namespace HLE
+}  // namespace IOS

@@ -282,7 +282,7 @@ bool CBoot::BootUp()
     std::vector<u8> tmd_buffer = pVolume.GetTMD();
     if (!tmd_buffer.empty())
     {
-      WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
+      IOS::HLE::ES_DIVerify(tmd_buffer);
     }
 
     _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;

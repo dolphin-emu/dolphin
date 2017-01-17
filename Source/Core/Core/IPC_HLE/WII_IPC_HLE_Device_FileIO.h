@@ -18,6 +18,10 @@ namespace File
 class IOFile;
 }
 
+namespace IOS
+{
+namespace HLE
+{
 std::string HLE_IPC_BuildFilename(const std::string& wii_path);
 void HLE_IPC_CreateVirtualFATFilesystem();
 
@@ -70,3 +74,5 @@ private:
   std::string m_filepath;
   std::shared_ptr<File::IOFile> m_file;
 };
+}  // namespace HLE
+}  // namespace IOS

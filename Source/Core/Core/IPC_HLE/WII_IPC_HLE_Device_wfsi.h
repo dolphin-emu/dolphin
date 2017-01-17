@@ -14,6 +14,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
+namespace IOS
+{
+namespace HLE
+{
 class ARCUnpacker
 {
 public:
@@ -69,3 +73,5 @@ private:
     IOCTL_WFSI_APPLY_TITLE_PROFILE = 0x89,
   };
 };
+}  // namespace HLE
+}  // namespace IOS

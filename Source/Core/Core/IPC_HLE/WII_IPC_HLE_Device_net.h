@@ -19,6 +19,10 @@
 #include <ws2tcpip.h>
 #endif
 
+namespace IOS
+{
+namespace HLE
+{
 //////////////////////////////////////////////////////////////////////////
 // KD is the IOS module responsible for implementing WiiConnect24 functionality.
 // It can perform HTTPS downloads, send and receive mail via SMTP, and execute a
@@ -331,3 +335,5 @@ private:
   };
 #pragma pack(pop)
 };
+}  // namespace HLE
+}  // namespace IOS

@@ -17,6 +17,10 @@ void QueueHostJob(std::function<void()> job, bool run_during_stop);
 void Stop();
 }
 
+namespace IOS
+{
+namespace HLE
+{
 static std::unique_ptr<IOSIOCtlRequest> s_event_hook_request;
 
 IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(const IOSIOCtlRequest& request)
@@ -37,7 +41,7 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(const IOSIOCtlRequest&
       break;
     }
     Memory::Write_U32(0, s_event_hook_request->buffer_out);
-    WII_IPC_HLE_Interface::EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
+    EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
     s_event_hook_request.reset();
     break;
 
@@ -99,7 +103,7 @@ void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
     return;
 
   Memory::Write_U32(event, s_event_hook_request->buffer_out);
-  WII_IPC_HLE_Interface::EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
+  EnqueueReply(*s_event_hook_request, IPC_SUCCESS);
   s_event_hook_request.reset();
 }
 
@@ -113,3 +117,5 @@ void CWII_IPC_HLE_Device_stm_eventhook::PowerButton() const
 {
   TriggerEvent(STM_EVENT_POWER);
 }
+}  // namespace HLE
+}  // namespace IOS

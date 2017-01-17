@@ -12,6 +12,10 @@
 
 class PointerWrap;
 
+namespace IOS
+{
+namespace HLE
+{
 class CWII_IPC_HLE_Device_usb_oh1_57e_305_stub final
     : public CWII_IPC_HLE_Device_usb_oh1_57e_305_base
 {
@@ -23,3 +27,5 @@ public:
   IOSReturnCode Open(const IOSOpenRequest& request) override;
   void DoState(PointerWrap& p) override;
 };
+}  // namespace HLE
+}  // namespace IOS

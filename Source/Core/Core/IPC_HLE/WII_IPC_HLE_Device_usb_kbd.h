@@ -11,6 +11,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
+namespace IOS
+{
+namespace HLE
+{
 class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device
 {
 public:
@@ -57,3 +61,5 @@ private:
   static u8 m_KeyCodesQWERTY[256];
   static u8 m_KeyCodesAZERTY[256];
 };
+}  // namespace HLE
+}  // namespace IOS

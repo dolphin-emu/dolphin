@@ -60,7 +60,9 @@ struct EventType;
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
 #endif
 
-namespace WII_IPC_HLE_Interface
+namespace IOS
+{
+namespace HLE
 {
 static std::map<u32, std::shared_ptr<IWII_IPC_HLE_Device>> s_device_map;
 static std::mutex s_device_map_mutex;
@@ -465,12 +467,12 @@ void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)
 // Takes care of routing ipc <-> ipc HLE
 void Update()
 {
-  if (!WII_IPCInterface::IsReady())
+  if (!IsReady())
     return;
 
   if (s_request_queue.size())
   {
-    WII_IPCInterface::GenerateAck(s_request_queue.front());
+    GenerateAck(s_request_queue.front());
     DEBUG_LOG(WII_IPC_HLE, "||-- Acknowledge IPC Request @ 0x%08x", s_request_queue.front());
     u32 command = s_request_queue.front();
     s_request_queue.pop_front();
@@ -480,7 +482,7 @@ void Update()
 
   if (s_reply_queue.size())
   {
-    WII_IPCInterface::GenerateReply(s_reply_queue.front());
+    GenerateReply(s_reply_queue.front());
     DEBUG_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", s_reply_queue.front());
     s_reply_queue.pop_front();
     return;
@@ -488,7 +490,7 @@ void Update()
 
   if (s_ack_queue.size())
   {
-    WII_IPCInterface::GenerateAck(s_ack_queue.front());
+    GenerateAck(s_ack_queue.front());
     WARN_LOG(WII_IPC_HLE, "<<-- Double-ack to IPC Request @ 0x%08x", s_ack_queue.front());
     s_ack_queue.pop_front();
     return;
@@ -506,5 +508,5 @@ void UpdateDevices()
     }
   }
 }
-
-}  // end of namespace WII_IPC_HLE_Interface
+}  // namespace HLE
+}  // namespace IOS

@@ -17,6 +17,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
 
+namespace IOS
+{
+namespace HLE
+{
 static std::map<std::string, std::weak_ptr<File::IOFile>> openFiles;
 
 // This is used by several of the FileIO and /dev/fs functions
@@ -334,3 +338,5 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap& p)
   // Open it again
   OpenFile();
 }
+}  // namespace HLE
+}  // namespace IOS

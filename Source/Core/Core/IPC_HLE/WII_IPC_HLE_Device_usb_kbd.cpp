@@ -17,6 +17,10 @@
 #include <windows.h>
 #endif
 
+namespace IOS
+{
+namespace HLE
+{
 CWII_IPC_HLE_Device_usb_kbd::SMessageData::SMessageData(u32 type, u8 modifiers, u8* pressed_keys)
 {
   MsgType = Common::swap32(type);
@@ -313,3 +317,5 @@ u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {0};
 
 u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {0};
 #endif
+}  // namespace HLE
+}  // namespace IOS

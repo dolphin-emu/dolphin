@@ -53,8 +53,8 @@ void Init()
     Core::InitializeWiiRoot(Core::g_want_determinism);
     DiscIO::cUIDsys::AccessInstance().UpdateLocation();
     DiscIO::CSharedContent::AccessInstance().UpdateLocation();
-    WII_IPCInterface::Init();
-    WII_IPC_HLE_Interface::Init();  // Depends on Memory
+    IOS::Init();
+    IOS::HLE::Init();  // Depends on Memory
   }
 }
 
@@ -62,8 +62,8 @@ void Shutdown()
 {
   if (SConfig::GetInstance().bWii)
   {
-    WII_IPC_HLE_Interface::Shutdown();  // Depends on Memory
-    WII_IPCInterface::Shutdown();
+    IOS::HLE::Shutdown();  // Depends on Memory
+    IOS::Shutdown();
     Core::ShutdownWiiRoot();
   }
 
@@ -103,10 +103,10 @@ void DoState(PointerWrap& p)
 
   if (SConfig::GetInstance().bWii)
   {
-    WII_IPCInterface::DoState(p);
-    p.DoMarker("WII_IPCInterface");
-    WII_IPC_HLE_Interface::DoState(p);
-    p.DoMarker("WII_IPC_HLE_Interface");
+    IOS::DoState(p);
+    p.DoMarker("IOS");
+    IOS::HLE::DoState(p);
+    p.DoMarker("IOS::HLE");
   }
 
   p.DoMarker("WIIHW");

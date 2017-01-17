@@ -67,6 +67,10 @@
 #include <Windows.h>
 #endif
 
+namespace IOS
+{
+namespace HLE
+{
 std::string CWII_IPC_HLE_Device_es::m_ContentFile;
 
 CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 device_id, const std::string& device_name)
@@ -1114,8 +1118,8 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
           wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
       }
 
-      WII_IPC_HLE_Interface::Reset(true);
-      WII_IPC_HLE_Interface::Reinit();
+      Reset(true);
+      Reinit();
 
       if (!SConfig::GetInstance().m_bt_passthrough_enabled)
       {
@@ -1134,7 +1138,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
         }
       }
       delete[] wiiMoteConnected;
-      WII_IPC_HLE_Interface::SetDefaultContentFile(tContentFile);
+      SetDefaultContentFile(tContentFile);
     }
     // Pass the "#002 check"
     // Apploader should write the IOS version and revision to 0x3140, and compare it
@@ -1167,7 +1171,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
 
     // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
     // involves restarting IOS; IOS generates two acknowledgements in a row.
-    WII_IPC_HLE_Interface::EnqueueCommandAcknowledgement(request.address, 0);
+    EnqueueCommandAcknowledgement(request.address, 0);
     return GetNoReply();
   }
   break;
@@ -1319,3 +1323,5 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
   DiscIO::CNANDContentManager::Access().ClearCache();
   return 0;
 }
+}  // namespace HLE
+}  // namespace IOS

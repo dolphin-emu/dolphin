@@ -5,6 +5,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_stub.h"
 #include "Common/Logging/Log.h"
 
+namespace IOS
+{
+namespace HLE
+{
 CWII_IPC_HLE_Device_stub::CWII_IPC_HLE_Device_stub(u32 device_id, const std::string& device_name)
     : IWII_IPC_HLE_Device(device_id, device_name)
 {
@@ -34,3 +38,5 @@ IPCCommandResult CWII_IPC_HLE_Device_stub::IOCtlV(const IOSIOCtlVRequest& reques
   WARN_LOG(WII_IPC_HLE, "%s faking IOCtlV()", m_name.c_str());
   return GetDefaultReply(IPC_SUCCESS);
 }
+}  // namespace HLE
+}  // namespace IOS

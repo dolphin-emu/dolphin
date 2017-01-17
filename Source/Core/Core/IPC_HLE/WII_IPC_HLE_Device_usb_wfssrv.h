@@ -13,6 +13,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 #include "DiscIO/Volume.h"
 
+namespace IOS
+{
+namespace HLE
+{
 namespace WFS
 {
 std::string NativePath(const std::string& wfs_path);
@@ -73,3 +77,5 @@ private:
   u16 GetNewFileDescriptor();
   void ReleaseFileDescriptor(u16 fd);
 };
+}  // namespace HLE
+}  // namespace IOS

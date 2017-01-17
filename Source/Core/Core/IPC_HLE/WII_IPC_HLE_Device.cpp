@@ -12,6 +12,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
+namespace IOS
+{
+namespace HLE
+{
 IOSRequest::IOSRequest(const u32 address_) : address(address_)
 {
   command = static_cast<IPCCommandType>(Memory::Read_U32(address));
@@ -171,3 +175,5 @@ IPCCommandResult IWII_IPC_HLE_Device::GetNoReply()
 {
   return {IPC_SUCCESS, false, 0};
 }
+}  // namespace HLE
+}  // namespace IOS

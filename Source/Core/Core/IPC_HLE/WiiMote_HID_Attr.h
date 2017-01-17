@@ -6,4 +6,10 @@
 
 #include "Common/CommonTypes.h"
 
+namespace IOS
+{
+namespace HLE
+{
 const u8* GetAttribPacket(u32 serviceHandle, u32 cont, u32& _size);
+}  // namespace HLE
+}  // namespace IOS

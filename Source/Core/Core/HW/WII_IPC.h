@@ -12,7 +12,7 @@ namespace MMIO
 class Mapping;
 }
 
-namespace WII_IPCInterface
+namespace IOS
 {
 enum StarletInterruptCause
 {
@@ -46,4 +46,4 @@ void GenerateAck(u32 _Address);
 void GenerateReply(u32 _Address);
 
 bool IsReady();
-}
+}  // namespace IOS

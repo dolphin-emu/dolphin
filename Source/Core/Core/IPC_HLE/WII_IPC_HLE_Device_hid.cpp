@@ -20,6 +20,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_hid.h"
 
+namespace IOS
+{
+namespace HLE
+{
 #define MAX_DEVICE_DEVNUM 256
 static u64 hidDeviceAliases[MAX_DEVICE_DEVNUM];
 
@@ -39,8 +43,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
       {
         IOSIOCtlRequest request{hid->deviceCommandAddress};
         hid->FillOutDevices(request);
-        WII_IPC_HLE_Interface::EnqueueReply(request, IPC_SUCCESS, 0,
-                                            CoreTiming::FromThread::NON_CPU);
+        EnqueueReply(request, IPC_SUCCESS, 0, CoreTiming::FromThread::NON_CPU);
         hid->deviceCommandAddress = 0;
       }
     }
@@ -61,7 +64,7 @@ void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer* transfer)
   }
 
   IOSIOCtlRequest request{replyAddress};
-  WII_IPC_HLE_Interface::EnqueueReply(request, ret, 0, CoreTiming::FromThread::NON_CPU);
+  EnqueueReply(request, ret, 0, CoreTiming::FromThread::NON_CPU);
 }
 
 CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName)
@@ -211,7 +214,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(const IOSIOCtlRequest& request)
     {
       IOSIOCtlRequest pending_request{deviceCommandAddress};
       Memory::Write_U32(0xFFFFFFFF, pending_request.buffer_out);
-      WII_IPC_HLE_Interface::EnqueueReply(pending_request, -1);
+      EnqueueReply(pending_request, -1);
       deviceCommandAddress = 0;
     }
     INFO_LOG(WII_IPC_HID, "HID::IOCtl(Shutdown) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
@@ -570,3 +573,5 @@ int CWII_IPC_HLE_Device_hid::GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 
 
   return -1;
 }
+}  // namespace HLE
+}  // namespace IOS

@@ -6,6 +6,10 @@
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 
+namespace IOS
+{
+namespace HLE
+{
 CWII_IPC_HLE_Device_usb_ven::CWII_IPC_HLE_Device_usb_ven(const u32 device_id,
                                                          const std::string& device_name)
     : IWII_IPC_HLE_Device(device_id, device_name)
@@ -74,3 +78,5 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(const IOSIOCtlRequest& reque
   }
   return reply;
 }
+}  // namespace HLE
+}  // namespace IOS

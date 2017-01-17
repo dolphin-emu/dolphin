@@ -13,6 +13,10 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
+namespace IOS
+{
+namespace HLE
+{
 class TMDReader final
 {
 public:
@@ -44,3 +48,5 @@ public:
 private:
   std::vector<u8> m_bytes;
 };
+}  // namespace HLE
+}  // namespace IOS

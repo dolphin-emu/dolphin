@@ -29,7 +29,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
   IPC_HLE_UpdateCallback() // In this file
 
     // This function seems to call all devices' Update() function four times per frame
-    WII_IPC_HLE_Interface::Update()
+    IOS::HLE::Update()
 
       // If the AclFrameQue is empty this will call Wiimote_Update() and make it send
       the current input status to the game. I'm not sure if this occurs approximately
@@ -37,7 +37,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
       CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
       PluginWiimote::Wiimote_Update()
 
-      // This is also a device updated by WII_IPC_HLE_Interface::Update() but it doesn't
+      // This is also a device updated by IOS::HLE::Update() but it doesn't
       seem to ultimately call PluginWiimote::Wiimote_Update(). However it can be called
       by the /dev/usb/oh1 device if the AclFrameQue is empty.
       CWII_IPC_HLE_WiiMote::Update()
@@ -112,7 +112,7 @@ static void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
 {
   if (SConfig::GetInstance().bWii)
   {
-    WII_IPC_HLE_Interface::UpdateDevices();
+    IOS::HLE::UpdateDevices();
     CoreTiming::ScheduleEvent(s_ipc_hle_period - cyclesLate, et_IPC_HLE);
   }
 }
@@ -236,8 +236,6 @@ void Init()
     // AyuanX: TO BE TWEAKED
     // Now the 1500 is a pure assumption
     // We need to figure out the real frequency though
-
-    // FYI, WII_IPC_HLE_Interface::Update is also called in WII_IPCInterface::Write32
     const int freq = 1500;
     s_ipc_hle_period = GetTicksPerSecond() / freq;
   }

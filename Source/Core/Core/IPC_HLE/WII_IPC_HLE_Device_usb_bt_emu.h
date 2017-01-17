@@ -19,8 +19,13 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "Core/IPC_HLE/hci.h"
 
-class CWII_IPC_HLE_WiiMote;
 class PointerWrap;
+
+namespace IOS
+{
+namespace HLE
+{
+class CWII_IPC_HLE_WiiMote;
 
 struct SQueuedEvent
 {
@@ -189,3 +194,5 @@ private:
   };
 #pragma pack(pop)
 };
+}  // namespace HLE
+}  // namespace IOS

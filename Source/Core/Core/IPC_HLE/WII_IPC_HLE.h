@@ -12,9 +12,14 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/SystemTimers.h"
 
-struct IOSRequest;
-class IWII_IPC_HLE_Device;
 class PointerWrap;
+
+namespace IOS
+{
+namespace HLE
+{
+class IWII_IPC_HLE_Device;
+struct IOSRequest;
 
 struct IPCCommandResult
 {
@@ -36,8 +41,6 @@ enum IPCCommandType : u32
   IPC_REPLY = 8,
 };
 
-namespace WII_IPC_HLE_Interface
-{
 // Init
 void Init();
 
@@ -74,5 +77,5 @@ void EnqueueRequest(u32 address);
 void EnqueueReply(const IOSRequest& request, s32 return_value, int cycles_in_future = 0,
                   CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future = 0);
-
-}  // end of namespace WII_IPC_HLE_Interface
+}  // namespace HLE
+}  // namespace IOS

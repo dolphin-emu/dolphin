@@ -16,6 +16,10 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 
+namespace IOS
+{
+namespace HLE
+{
 constexpr u16 BT_INFO_SECTION_LENGTH = 0x460;
 
 void BackUpBTInfoSection(SysConf* sysconf)
@@ -76,3 +80,5 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::FillBuffer(const u8* 
                m_length);
   Memory::CopyToEmu(m_payload_addr, src, size);
 }
+}  // namespace HLE
+}  // namespace IOS

@@ -201,7 +201,7 @@ void WiiConfigPane::OnPAL60CheckBoxChanged(wxCommandEvent& event)
 void WiiConfigPane::OnSDCardCheckBoxChanged(wxCommandEvent& event)
 {
   SConfig::GetInstance().m_WiiSDCard = m_sd_card_checkbox->IsChecked();
-  WII_IPC_HLE_Interface::SDIO_EventNotify();
+  IOS::HLE::SDIO_EventNotify();
 }
 
 void WiiConfigPane::OnConnectKeyboardCheckBoxChanged(wxCommandEvent& event)

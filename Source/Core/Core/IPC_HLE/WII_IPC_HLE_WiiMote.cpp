@@ -21,6 +21,10 @@
 #include "Core/IPC_HLE/WiiMote_HID_Attr.h"
 #include "Core/IPC_HLE/l2cap.h"
 
+namespace IOS
+{
+namespace HLE
+{
 static CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* s_Usb = nullptr;
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* GetUsbPointer()
@@ -927,6 +931,8 @@ void CWII_IPC_HLE_WiiMote::ReceiveL2capData(u16 scid, const void* _pData, u32 _S
   // Send the report
   m_pHost->SendACLPacket(GetConnectionHandle(), DataFrame, Offset);
 }
+}  // namespace HLE
+}  // namespace IOS
 
 namespace Core
 {
@@ -941,6 +947,6 @@ void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _
   DEBUG_LOG(WIIMOTE, "   Data: %s", ArrayToString(pData, _Size, 50).c_str());
   DEBUG_LOG(WIIMOTE, "   Channel: %x", _channelID);
 
-  s_Usb->m_WiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
+  IOS::HLE::s_Usb->m_WiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
 }
 }
