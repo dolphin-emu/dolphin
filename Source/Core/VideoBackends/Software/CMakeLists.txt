@@ -14,7 +14,6 @@ set(SRCS Clipper.cpp
 	   TransformUnit.cpp)
 
 set(LIBS videocommon
-         SOIL
          common
          ${X11_LIBRARIES})
 

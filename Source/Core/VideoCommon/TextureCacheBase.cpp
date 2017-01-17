@@ -747,8 +747,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       }
       expandedWidth = level.width;
       expandedHeight = level.height;
-      CheckTempSize(level.data_size);
-      memcpy(temp, level.data.get(), level.data_size);
+      CheckTempSize(level.data.size());
+      memcpy(temp, level.data.data(), level.data.size());
     }
   }
 
@@ -813,8 +813,8 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
     for (u32 level_index = 1; level_index != texLevels; ++level_index)
     {
       const auto& level = hires_tex->m_levels[level_index];
-      CheckTempSize(level.data_size);
-      memcpy(temp, level.data.get(), level.data_size);
+      CheckTempSize(level.data.size());
+      memcpy(temp, level.data.data(), level.data.size());
       entry->Load(temp, level.width, level.height, level.width, level_index);
     }
   }

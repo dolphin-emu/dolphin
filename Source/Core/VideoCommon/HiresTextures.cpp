@@ -2,7 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <SOIL/SOIL.h>
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
@@ -19,6 +18,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Hash.h"
+#include "Common/Image.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/StringUtil.h"
@@ -32,7 +32,6 @@
 static std::unordered_map<std::string, std::string> s_textureMap;
 static std::unordered_map<std::string, std::shared_ptr<HiresTexture>> s_textureCache;
 static std::mutex s_textureCacheMutex;
-static std::mutex s_textureCacheAquireMutex;  // for high priority access
 static Common::Flag s_textureCacheAbortLoading;
 static bool s_check_native_format;
 static bool s_check_new_format;
@@ -40,10 +39,6 @@ static bool s_check_new_format;
 static std::thread s_prefetcher;
 
 static const std::string s_format_prefix = "tex1_";
-
-HiresTexture::Level::Level() : data(nullptr, SOIL_free_image_data)
-{
-}
 
 void HiresTexture::Init()
 {
@@ -153,10 +148,6 @@ void HiresTexture::Prefetch()
 
     if (base_filename.find("_mip") == std::string::npos)
     {
-      {
-        // try to get this mutex first, so the video thread is allow to get the real mutex faster
-        std::unique_lock<std::mutex> lk(s_textureCacheAquireMutex);
-      }
       std::unique_lock<std::mutex> lk(s_textureCacheMutex);
 
       auto iter = s_textureCache.find(base_filename);
@@ -165,13 +156,9 @@ void HiresTexture::Prefetch()
         // unlock while loading a texture. This may result in a race condition where we'll load a
         // texture twice,
         // but it reduces the stuttering a lot. Notice: The loading library _must_ be thread safe
-        // now.
-        // But bad luck, SOIL isn't, so TODO: remove SOIL usage here and use libpng directly
-        // Also TODO: remove s_textureCacheAquireMutex afterwards. It won't be needed as the main
-        // mutex will be locked rarely
-        // lk.unlock();
+        lk.unlock();
         std::unique_ptr<HiresTexture> texture = Load(base_filename, 0, 0);
-        // lk.lock();
+        lk.lock();
         if (texture)
         {
           std::shared_ptr<HiresTexture> ptr(std::move(texture));
@@ -180,9 +167,9 @@ void HiresTexture::Prefetch()
       }
       if (iter != s_textureCache.end())
       {
-        for (const Level& l : iter->second->m_levels)
+        for (const Image& l : iter->second->m_levels)
         {
-          size_sum += l.data_size;
+          size_sum += l.data.size();
         }
       }
     }
@@ -371,7 +358,6 @@ std::shared_ptr<HiresTexture> HiresTexture::Search(const u8* texture, size_t tex
   std::string base_filename =
       GenBaseName(texture, texture_size, tlut, tlut_size, width, height, format, has_mipmaps);
 
-  std::lock_guard<std::mutex> lk2(s_textureCacheAquireMutex);
   std::lock_guard<std::mutex> lk(s_textureCacheMutex);
 
   auto iter = s_textureCache.find(base_filename);
@@ -404,21 +390,20 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
 
     if (s_textureMap.find(filename) != s_textureMap.end())
     {
-      Level l;
+      Image l;
 
       File::IOFile file;
       file.Open(s_textureMap[filename], "rb");
       std::vector<u8> buffer(file.GetSize());
       file.ReadBytes(buffer.data(), file.GetSize());
 
-      int channels;
-      l.data =
-          SOILPointer(SOIL_load_image_from_memory(buffer.data(), (int)buffer.size(), (int*)&l.width,
-                                                  (int*)&l.height, &channels, SOIL_LOAD_RGBA),
-                      SOIL_free_image_data);
-      l.data_size = (size_t)l.width * l.height * 4;
+      if (!load_png(buffer, l))
+      {
+        ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
+        break;
+      }
 
-      if (l.data == nullptr)
+      if (l.data.empty())
       {
         ERROR_LOG(VIDEO, "Custom texture %s failed to load", filename.c_str());
         break;
@@ -443,7 +428,7 @@ std::unique_ptr<HiresTexture> HiresTexture::Load(const std::string& base_filenam
             VIDEO,
             "Invalid custom texture size %dx%d for texture %s. This mipmap layer _must_ be %dx%d.",
             l.width, l.height, filename.c_str(), width, height);
-        l.data.reset();
+        l.data.clear();
         break;
       }
 

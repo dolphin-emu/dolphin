@@ -9,12 +9,11 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/Image.h"
 
 class HiresTexture
 {
 public:
-  using SOILPointer = std::unique_ptr<u8, void (*)(unsigned char*)>;
-
   static void Init();
   static void Update();
   static void Shutdown();
@@ -29,16 +28,7 @@ public:
 
   ~HiresTexture();
 
-  struct Level
-  {
-    Level();
-
-    SOILPointer data;
-    size_t data_size = 0;
-    u32 width = 0;
-    u32 height = 0;
-  };
-  std::vector<Level> m_levels;
+  std::vector<Image> m_levels;
 
 private:
   static std::unique_ptr<HiresTexture> Load(const std::string& base_filename, u32 width,

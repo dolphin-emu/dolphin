@@ -16,7 +16,6 @@ set(SRCS
 
 set(LIBS	${LIBS}
 			videocommon
-			SOIL
 			common
 			${X11_LIBRARIES})
 
