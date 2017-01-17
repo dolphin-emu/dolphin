@@ -150,6 +150,9 @@ function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_FILE SOURCE_VARIAB
 	endif(MSVC)
 endfunction(enable_precompiled_headers)
 
+# setup CCache
+include(CCache)
+
 # for revision info
 find_package(Git)
 if(GIT_FOUND AND NOT DOLPHIN_WC_REVISION)
