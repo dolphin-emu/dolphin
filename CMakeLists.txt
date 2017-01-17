@@ -1,7 +1,7 @@
 ########################################
 # General setup
 #
-cmake_minimum_required(VERSION 2.8.8)
+cmake_minimum_required(VERSION 3.5.0)
 project(dolphin-emu)
 
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
