@@ -1,4 +1,4 @@
-include(FindPkgConfig OPTIONAL)
+find_package(PkgConfig)
 
 macro(_internal_message msg)
 	if(NOT ${_is_quiet})
