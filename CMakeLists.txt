@@ -111,6 +111,12 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	add_definitions(-D_FILE_OFFSET_BITS=64)
 endif()
 
+if(CMAKE_SYSROOT)
+	# If we should use a sysroot, tell pkg-config to search for packages in there, not on the host
+	set(ENV{PKG_CONFIG_LIBDIR} "${CMAKE_SYSROOT}/usr/lib/pkgconfig:${CMAKE_SYSROOT}/usr/share/pkgconfig")
+	set(ENV{PKG_CONFIG_SYSROOT_DIR} "${CMAKE_SYSROOT}")
+endif()
+
 # Set where the binary files will be built.  The program will not execute from
 # here.  You must run "make install" to install these to the proper location
 # as defined above.
@@ -439,7 +445,7 @@ if(ANDROID)
 	# We are cross compiling, search only the toolchain for libraries and includes
 	SET(CMAKE_FIND_ROOT_PATH_MODE_LIBRARY ONLY)
 	SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
-	SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM ONLY)
+	SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
 	SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
 elseif(NOT APPLE AND NOT CMAKE_SYSTEM_NAME MATCHES OpenBSD)
 	list(APPEND LIBS rt)
