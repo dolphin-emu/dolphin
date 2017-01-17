@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/NonCopyable.h"
 
 namespace IREmitter
 {
@@ -226,39 +229,13 @@ InstLoc inline getOp2(InstLoc i)
   return i;
 }
 
-class IRBuilder
+class IRBuilder final : private NonCopyable
 {
-private:
-  InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
-  InstLoc EmitUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
-  InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
-
-  InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldSub(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldMul(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldMulHighUnsigned(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldAnd(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldOr(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldRol(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldShl(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldShrl(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldXor(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldBranchCond(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldIdleBranch(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
-  InstLoc FoldICmpCRSigned(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2);
-  InstLoc FoldDoubleBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
-
-  InstLoc FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2);
-
-  InstLoc FoldZeroOp(unsigned Opcode, unsigned extra);
-  InstLoc FoldUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
-  InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
-
-  unsigned ComputeKnownZeroBits(InstLoc I) const;
-
 public:
+  IRBuilder();
+
+  void Reset();
+
   InstLoc EmitIntConst(unsigned value) { return EmitIntConst64(value); }
   InstLoc EmitIntConst64(u64 value);
 
@@ -403,45 +380,42 @@ public:
   InstLoc ReadForward() { return curReadPtr++; }
   InstLoc ReadBackward() { return --curReadPtr; }
   InstLoc getFirstInst() { return InstList.data(); }
-  unsigned int getNumInsts() { return (unsigned int)InstList.size(); }
-  unsigned int ReadInst(InstLoc I) { return *I; }
+  size_t getNumInsts() const { return InstList.size(); }
   unsigned int GetImmValue(InstLoc I) const { return (u32)GetImmValue64(I); }
   u64 GetImmValue64(InstLoc I) const;
   void SetMarkUsed(InstLoc I);
   bool IsMarkUsed(InstLoc I) const;
   void WriteToFile(u64 codeHash);
 
-  void Reset()
-  {
-    InstList.clear();
-    InstList.reserve(100000);
-    MarkUsed.clear();
-    MarkUsed.reserve(100000);
-
-    for (unsigned i = 0; i < 32; i++)
-    {
-      GRegCache[i] = nullptr;
-      GRegCacheStore[i] = nullptr;
-      FRegCache[i] = nullptr;
-      FRegCacheStore[i] = nullptr;
-    }
-
-    CarryCache = nullptr;
-    CarryCacheStore = nullptr;
-
-    for (unsigned i = 0; i < 8; i++)
-    {
-      CRCache[i] = nullptr;
-      CRCacheStore[i] = nullptr;
-    }
-
-    CTRCache = nullptr;
-    CTRCacheStore = nullptr;
-  }
-
-  IRBuilder() { Reset(); }
 private:
-  IRBuilder(IRBuilder&);  // DO NOT IMPLEMENT
+  InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
+  InstLoc EmitUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
+  InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
+
+  InstLoc FoldAdd(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldSub(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldMul(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldMulHighUnsigned(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldAnd(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldOr(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldRol(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldShl(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldShrl(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldXor(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldBranchCond(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldICmp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
+  InstLoc FoldICmpCRSigned(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2);
+  InstLoc FoldDoubleBiOp(unsigned Opcode, InstLoc Op1, InstLoc Op2);
+
+  InstLoc FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2);
+
+  InstLoc FoldZeroOp(unsigned Opcode, unsigned extra);
+  InstLoc FoldUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
+  InstLoc FoldBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
+
+  unsigned ComputeKnownZeroBits(InstLoc I) const;
+
   bool isSameValue(InstLoc Op1, InstLoc Op2) const;
   unsigned getComplexity(InstLoc I) const;
   unsigned getNumberOfOperands(InstLoc I) const;
@@ -453,15 +427,15 @@ private:
   std::vector<bool> MarkUsed;  // Used for IRWriter
   std::vector<u64> ConstList;
   InstLoc curReadPtr;
-  InstLoc GRegCache[32];
-  InstLoc GRegCacheStore[32];
-  InstLoc FRegCache[32];
-  InstLoc FRegCacheStore[32];
+  std::array<InstLoc, 32> GRegCache;
+  std::array<InstLoc, 32> GRegCacheStore;
+  std::array<InstLoc, 32> FRegCache;
+  std::array<InstLoc, 32> FRegCacheStore;
   InstLoc CarryCache;
   InstLoc CarryCacheStore;
   InstLoc CTRCache;
   InstLoc CTRCacheStore;
-  InstLoc CRCache[8];
-  InstLoc CRCacheStore[8];
+  std::array<InstLoc, 8> CRCache;
+  std::array<InstLoc, 8> CRCacheStore;
 };
-};
+}  // namespace IREmitter

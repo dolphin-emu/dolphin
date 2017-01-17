@@ -77,7 +77,7 @@ struct RegInfo final : private NonCopyable
   u32 numFSpills = 0;
   u32 exitNumber = 0;
 
-  RegInfo(JitIL* j, InstLoc f, u32 insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts) {}
+  RegInfo(JitIL* j, InstLoc f, size_t insts) : Jit(j), FirstI(f), IInfo(insts), lastUsed(insts) {}
 };
 
 static BitSet32 regsInUse(RegInfo& R)
