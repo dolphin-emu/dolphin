@@ -6,6 +6,7 @@
 
 #include <algorithm>
 #include <deque>
+#include <memory>
 #include <queue>
 #include <string>
 #include <vector>
@@ -43,10 +44,8 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305_emu();
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  void Close() override;
+  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
 
   void Update() override;
 
@@ -62,30 +61,15 @@ public:
   void DoState(PointerWrap& p) override;
 
 private:
-  struct SHCICommandMessage
-  {
-    u8 bRequestType;
-    u8 bRequest;
-    u16 wValue;
-    u16 wIndex;
-    u16 wLength;
-
-    u32 m_PayLoadAddr;
-    u32 m_PayLoadSize;
-    u32 m_Address;
-  };
-
   bdaddr_t m_ControllerBD;
 
   // this is used to trigger connecting via ACL
   u8 m_ScanEnable = 0;
 
-  SHCICommandMessage m_CtrlSetup;
-  CtrlBuffer m_HCIEndpoint;
+  std::unique_ptr<CtrlMessage> m_CtrlSetup;
+  std::unique_ptr<CtrlBuffer> m_HCIEndpoint;
+  std::unique_ptr<CtrlBuffer> m_ACLEndpoint;
   std::deque<SQueuedEvent> m_EventQueue;
-
-  u32 m_ACLSetup;
-  CtrlBuffer m_ACLEndpoint;
 
   class ACLPool
   {
@@ -109,7 +93,7 @@ private:
     void DoState(PointerWrap& p) { p.Do(m_queue); }
   } m_acl_pool;
 
-  u32 m_PacketCount[MAX_BBMOTES];
+  u32 m_PacketCount[MAX_BBMOTES] = {};
   u64 m_last_ticks = 0;
 
   // Send ACL data to a device (wiimote)
@@ -138,7 +122,7 @@ private:
   bool SendEventLinkKeyNotification(const u8 num_to_send);
 
   // Execute HCI Message
-  void ExecuteHCICommandMessage(const SHCICommandMessage& _rCtrlMessage);
+  void ExecuteHCICommandMessage(const CtrlMessage& ctrl_message);
 
   // OGF 0x01 - Link control commands and return parameters
   void CommandWriteInquiryMode(const u8* input);

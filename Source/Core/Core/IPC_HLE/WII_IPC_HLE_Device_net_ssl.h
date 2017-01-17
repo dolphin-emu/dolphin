@@ -87,8 +87,8 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_net_ssl();
 
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
 
   int GetSSLFreeID() const;
 

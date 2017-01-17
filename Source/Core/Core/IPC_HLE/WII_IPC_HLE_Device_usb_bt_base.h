@@ -24,11 +24,6 @@ public:
       : IWII_IPC_HLE_Device(device_id, device_name)
   {
   }
-  virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305_base() override = default;
-
-  virtual IPCCommandResult Open(u32 command_address, u32 mode) override = 0;
-
-  virtual void DoState(PointerWrap& p) override = 0;
 
   virtual void UpdateSyncButtonState(bool is_held) {}
   virtual void TriggerSyncButtonPressedEvent() {}
@@ -56,31 +51,23 @@ protected:
 
   struct CtrlMessage
   {
-    CtrlMessage() = default;
-    CtrlMessage(const SIOCtlVBuffer& cmd_buffer);
-
+    CtrlMessage(const IOSIOCtlVRequest& ioctlv);
+    IOSIOCtlVRequest ios_request;
     u8 request_type = 0;
     u8 request = 0;
     u16 value = 0;
     u16 index = 0;
     u16 length = 0;
     u32 payload_addr = 0;
-    u32 address = 0;
   };
 
-  class CtrlBuffer
+  struct CtrlBuffer
   {
-  public:
-    CtrlBuffer() = default;
-    CtrlBuffer(const SIOCtlVBuffer& cmd_buffer, u32 command_address);
-
+    CtrlBuffer(const IOSIOCtlVRequest& ioctlv);
+    IOSIOCtlVRequest ios_request;
     void FillBuffer(const u8* src, size_t size) const;
-    void SetRetVal(const u32 retval) const;
-    bool IsValid() const { return m_cmd_address != 0; }
-    void Invalidate() { m_cmd_address = m_payload_addr = 0; }
     u8 m_endpoint = 0;
     u16 m_length = 0;
     u32 m_payload_addr = 0;
-    u32 m_cmd_address = 0;
   };
 };

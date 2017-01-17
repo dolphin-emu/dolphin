@@ -38,8 +38,8 @@ public:
 
   virtual ~CWII_IPC_HLE_Device_hid();
 
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
+  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
+  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
 
 private:
   enum
@@ -115,7 +115,7 @@ private:
   };
 
   u32 deviceCommandAddress;
-  void FillOutDevices(u32 BufferOut, u32 BufferOutSize);
+  void FillOutDevices(const IOSIOCtlRequest& request);
   int GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check);
   bool ClaimDevice(libusb_device_handle* dev);
 

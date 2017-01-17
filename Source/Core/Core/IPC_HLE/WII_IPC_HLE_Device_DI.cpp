@@ -32,7 +32,7 @@ void CWII_IPC_HLE_Device_di::DoState(PointerWrap& p)
   p.Do(m_commands_to_execute);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(const IOSIOCtlRequest& request)
 {
   // DI IOCtls are handled in a special way by Dolphin
   // compared to other WII_IPC_HLE functions.
@@ -42,40 +42,25 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(u32 _CommandAddress)
   // are queued until DVDInterface is ready to handle them.
 
   bool ready_to_execute = m_commands_to_execute.empty();
-  m_commands_to_execute.push_back(_CommandAddress);
+  m_commands_to_execute.push_back(request.address);
   if (ready_to_execute)
-    StartIOCtl(_CommandAddress);
+    StartIOCtl(request);
 
   // DVDInterface handles the timing and we handle the reply,
   // so WII_IPC_HLE shouldn't handle anything.
   return GetNoReply();
 }
 
-void CWII_IPC_HLE_Device_di::StartIOCtl(u32 command_address)
+void CWII_IPC_HLE_Device_di::StartIOCtl(const IOSIOCtlRequest& request)
 {
-  u32 BufferIn = Memory::Read_U32(command_address + 0x10);
-  u32 BufferInSize = Memory::Read_U32(command_address + 0x14);
-  u32 BufferOut = Memory::Read_U32(command_address + 0x18);
-  u32 BufferOutSize = Memory::Read_U32(command_address + 0x1C);
-
-  u32 command_0 = Memory::Read_U32(BufferIn);
-  u32 command_1 = Memory::Read_U32(BufferIn + 4);
-  u32 command_2 = Memory::Read_U32(BufferIn + 8);
-
-  DEBUG_LOG(WII_IPC_DVD, "IOCtl Command(0x%08x) BufferIn(0x%08x, 0x%x) BufferOut(0x%08x, 0x%x)",
-            command_0, BufferIn, BufferInSize, BufferOut, BufferOutSize);
-
-  // TATSUNOKO VS CAPCOM: Gets here with BufferOut == 0!!!
-  if (BufferOut != 0)
-  {
-    // Set out buffer to zeroes as a safety precaution
-    // to avoid answering nonsense values
-    Memory::Memset(BufferOut, 0, BufferOutSize);
-  }
+  const u32 command_0 = Memory::Read_U32(request.buffer_in);
+  const u32 command_1 = Memory::Read_U32(request.buffer_in + 4);
+  const u32 command_2 = Memory::Read_U32(request.buffer_in + 8);
 
   // DVDInterface's ExecuteCommand handles most of the work.
   // The IOCtl callback is used to generate a reply afterwards.
-  DVDInterface::ExecuteCommand(command_0, command_1, command_2, BufferOut, BufferOutSize, true);
+  DVDInterface::ExecuteCommand(command_0, command_1, command_2, request.buffer_out,
+                               request.buffer_out_size, true);
 }
 
 void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt_type)
@@ -89,58 +74,46 @@ void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt
   // This command has been executed, so it's removed from the queue
   u32 command_address = m_commands_to_execute.front();
   m_commands_to_execute.pop_front();
-
-  // The DI interrupt type is used as a return value
-  Memory::Write_U32(interrupt_type, command_address + 4);
-  WII_IPC_HLE_Interface::EnqueueReply(command_address);
+  WII_IPC_HLE_Interface::EnqueueReply(IOSIOCtlRequest{command_address}, interrupt_type);
 
   // DVDInterface is now ready to execute another command,
   // so we start executing a command from the queue if there is one
   if (!m_commands_to_execute.empty())
-    StartIOCtl(m_commands_to_execute.front());
+  {
+    IOSIOCtlRequest next_request{m_commands_to_execute.front()};
+    StartIOCtl(next_request);
+  }
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(u32 _CommandAddress)
+IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(const IOSIOCtlVRequest& request)
 {
-  SIOCtlVBuffer CommandBuffer(_CommandAddress);
-
-  // Prepare the out buffer(s) with zeros as a safety precaution
-  // to avoid returning bad values
-  for (const auto& buffer : CommandBuffer.PayloadBuffer)
-    Memory::Memset(buffer.m_Address, 0, buffer.m_Size);
-
-  u32 ReturnValue = 0;
-  switch (CommandBuffer.Parameter)
+  for (const auto& vector : request.io_vectors)
+    Memory::Memset(vector.address, 0, vector.size);
+  s32 return_value = IPC_SUCCESS;
+  switch (request.request)
   {
   case DVDInterface::DVDLowOpenPartition:
   {
-    _dbg_assert_msg_(WII_IPC_DVD, CommandBuffer.InBuffer[1].m_Address == 0,
+    _dbg_assert_msg_(WII_IPC_DVD, request.in_vectors[1].address == 0,
                      "DVDLowOpenPartition with ticket");
-    _dbg_assert_msg_(WII_IPC_DVD, CommandBuffer.InBuffer[2].m_Address == 0,
+    _dbg_assert_msg_(WII_IPC_DVD, request.in_vectors[2].address == 0,
                      "DVDLowOpenPartition with cert chain");
 
-    u64 const partition_offset =
-        ((u64)Memory::Read_U32(CommandBuffer.InBuffer[0].m_Address + 4) << 2);
+    u64 const partition_offset = ((u64)Memory::Read_U32(request.in_vectors[0].address + 4) << 2);
     DVDInterface::ChangePartition(partition_offset);
 
     INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
     // Read TMD to the buffer
     std::vector<u8> tmd_buffer = DVDInterface::GetVolume().GetTMD();
-    Memory::CopyToEmu(CommandBuffer.PayloadBuffer[0].m_Address, tmd_buffer.data(),
-                      tmd_buffer.size());
+    Memory::CopyToEmu(request.io_vectors[0].address, tmd_buffer.data(), tmd_buffer.size());
     WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
 
-    ReturnValue = 1;
-  }
-  break;
-
-  default:
-    ERROR_LOG(WII_IPC_DVD, "IOCtlV: %i", CommandBuffer.Parameter);
-    _dbg_assert_msg_(WII_IPC_DVD, 0, "IOCtlV: %i", CommandBuffer.Parameter);
+    return_value = 1;
     break;
   }
-
-  Memory::Write_U32(ReturnValue, _CommandAddress + 4);
-  return GetDefaultReply();
+  default:
+    request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_DVD);
+  }
+  return GetDefaultReply(return_value);
 }

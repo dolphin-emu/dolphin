@@ -23,8 +23,7 @@ class CWII_IPC_HLE_Device_usb_wfssrv : public IWII_IPC_HLE_Device
 public:
   CWII_IPC_HLE_Device_usb_wfssrv(u32 device_id, const std::string& device_name);
 
-  IPCCommandResult IOCtl(u32 command_address) override;
-  IPCCommandResult IOCtlV(u32 command_address) override;
+  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
 
 private:
   // WFS device name, e.g. msc01/msc02.

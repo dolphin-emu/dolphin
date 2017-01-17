@@ -187,28 +187,23 @@ void WiiSocket::Update(bool read, bool write, bool except)
   {
     s32 ReturnValue = 0;
     bool forceNonBlock = false;
-    IPCCommandType ct = static_cast<IPCCommandType>(Memory::Read_U32(it->_CommandAddress));
+    IPCCommandType ct = it->request.command;
     if (!it->is_ssl && ct == IPC_CMD_IOCTL)
     {
-      u32 BufferIn = Memory::Read_U32(it->_CommandAddress + 0x10);
-      u32 BufferInSize = Memory::Read_U32(it->_CommandAddress + 0x14);
-      u32 BufferOut = Memory::Read_U32(it->_CommandAddress + 0x18);
-      u32 BufferOutSize = Memory::Read_U32(it->_CommandAddress + 0x1C);
-
+      IOSIOCtlRequest ioctl{it->request.address};
       switch (it->net_type)
       {
       case IOCTL_SO_FCNTL:
       {
-        u32 cmd = Memory::Read_U32(BufferIn + 4);
-        u32 arg = Memory::Read_U32(BufferIn + 8);
+        u32 cmd = Memory::Read_U32(ioctl.buffer_in + 4);
+        u32 arg = Memory::Read_U32(ioctl.buffer_in + 8);
         ReturnValue = FCntl(cmd, arg);
         break;
       }
       case IOCTL_SO_BIND:
       {
-        // u32 has_addr = Memory::Read_U32(BufferIn + 0x04);
         sockaddr_in local_name;
-        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn + 0x08);
+        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.buffer_in + 8);
         WiiSockMan::Convert(*wii_name, local_name);
 
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
@@ -220,9 +215,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
       }
       case IOCTL_SO_CONNECT:
       {
-        // u32 has_addr = Memory::Read_U32(BufferIn + 0x04);
         sockaddr_in local_name;
-        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferIn + 0x08);
+        WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.buffer_in + 8);
         WiiSockMan::Convert(*wii_name, local_name);
 
         int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
@@ -234,10 +228,10 @@ void WiiSocket::Update(bool read, bool write, bool except)
       }
       case IOCTL_SO_ACCEPT:
       {
-        if (BufferOutSize > 0)
+        if (ioctl.buffer_out_size > 0)
         {
           sockaddr_in local_name;
-          WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(BufferOut);
+          WiiSockAddrIn* wii_name = (WiiSockAddrIn*)Memory::GetPointer(ioctl.buffer_out);
           WiiSockMan::Convert(*wii_name, local_name);
 
           socklen_t addrlen = sizeof(sockaddr_in);
@@ -254,10 +248,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
         WiiSockMan::GetInstance().AddSocket(ReturnValue);
 
-        INFO_LOG(WII_IPC_NET, "IOCTL_SO_ACCEPT "
-                              "BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
-                 BufferIn, BufferInSize, BufferOut, BufferOutSize);
-
+        ioctl.Log("IOCTL_SO_ACCEPT", LogTypes::WII_IPC_NET);
         break;
       }
       default:
@@ -275,34 +266,34 @@ void WiiSocket::Update(bool read, bool write, bool except)
     }
     else if (ct == IPC_CMD_IOCTLV)
     {
-      SIOCtlVBuffer CommandBuffer(it->_CommandAddress);
+      IOSIOCtlVRequest ioctlv{it->request.address};
       u32 BufferIn = 0, BufferIn2 = 0;
       u32 BufferInSize = 0, BufferInSize2 = 0;
       u32 BufferOut = 0, BufferOut2 = 0;
       u32 BufferOutSize = 0, BufferOutSize2 = 0;
 
-      if (CommandBuffer.InBuffer.size() > 0)
+      if (ioctlv.in_vectors.size() > 0)
       {
-        BufferIn = CommandBuffer.InBuffer.at(0).m_Address;
-        BufferInSize = CommandBuffer.InBuffer.at(0).m_Size;
+        BufferIn = ioctlv.in_vectors.at(0).address;
+        BufferInSize = ioctlv.in_vectors.at(0).size;
       }
 
-      if (CommandBuffer.PayloadBuffer.size() > 0)
+      if (ioctlv.io_vectors.size() > 0)
       {
-        BufferOut = CommandBuffer.PayloadBuffer.at(0).m_Address;
-        BufferOutSize = CommandBuffer.PayloadBuffer.at(0).m_Size;
+        BufferOut = ioctlv.io_vectors.at(0).address;
+        BufferOutSize = ioctlv.io_vectors.at(0).size;
       }
 
-      if (CommandBuffer.PayloadBuffer.size() > 1)
+      if (ioctlv.io_vectors.size() > 1)
       {
-        BufferOut2 = CommandBuffer.PayloadBuffer.at(1).m_Address;
-        BufferOutSize2 = CommandBuffer.PayloadBuffer.at(1).m_Size;
+        BufferOut2 = ioctlv.io_vectors.at(1).address;
+        BufferOutSize2 = ioctlv.io_vectors.at(1).size;
       }
 
-      if (CommandBuffer.InBuffer.size() > 1)
+      if (ioctlv.in_vectors.size() > 1)
       {
-        BufferIn2 = CommandBuffer.InBuffer.at(1).m_Address;
-        BufferInSize2 = CommandBuffer.InBuffer.at(1).m_Size;
+        BufferIn2 = ioctlv.in_vectors.at(1).address;
+        BufferInSize2 = ioctlv.in_vectors.at(1).size;
       }
 
       if (it->is_ssl)
@@ -576,8 +567,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
                 "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", fd,
                 it->is_ssl ? (int)it->ssl_type : (int)it->net_type, ReturnValue, nonBlock,
                 forceNonBlock);
-      Memory::Write_U32(ReturnValue, it->_CommandAddress + 4);
-      WII_IPC_HLE_Interface::EnqueueReply(it->_CommandAddress);
+      WII_IPC_HLE_Interface::EnqueueReply(it->request, ReturnValue);
       it = pending_sockops.erase(it);
     }
     else
@@ -587,16 +577,16 @@ void WiiSocket::Update(bool read, bool write, bool except)
   }
 }
 
-void WiiSocket::DoSock(u32 _CommandAddress, NET_IOCTL type)
+void WiiSocket::DoSock(IOSRequest request, NET_IOCTL type)
 {
-  sockop so = {_CommandAddress, false};
+  sockop so = {request, false};
   so.net_type = type;
   pending_sockops.push_back(so);
 }
 
-void WiiSocket::DoSock(u32 _CommandAddress, SSL_IOCTL type)
+void WiiSocket::DoSock(IOSRequest request, SSL_IOCTL type)
 {
-  sockop so = {_CommandAddress, true};
+  sockop so = {request, true};
   so.ssl_type = type;
   pending_sockops.push_back(so);
 }

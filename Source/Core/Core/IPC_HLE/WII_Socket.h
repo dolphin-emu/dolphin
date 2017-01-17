@@ -172,7 +172,7 @@ class WiiSocket
 {
   struct sockop
   {
-    u32 _CommandAddress;
+    IOSRequest request;
     bool is_ssl;
     union
     {
@@ -191,8 +191,8 @@ private:
   s32 CloseFd();
   s32 FCntl(u32 cmd, u32 arg);
 
-  void DoSock(u32 _CommandAddress, NET_IOCTL type);
-  void DoSock(u32 _CommandAddress, SSL_IOCTL type);
+  void DoSock(IOSRequest request, NET_IOCTL type);
+  void DoSock(IOSRequest request, SSL_IOCTL type);
   void Update(bool read, bool write, bool except);
   bool IsValid() const { return fd >= 0; }
 public:
@@ -223,19 +223,18 @@ public:
   void SetLastNetError(s32 error) { errno_last = error; }
   void Clean() { WiiSockets.clear(); }
   template <typename T>
-  void DoSock(s32 sock, u32 CommandAddress, T type)
+  void DoSock(s32 sock, const IOSRequest& request, T type)
   {
     auto socket_entry = WiiSockets.find(sock);
     if (socket_entry == WiiSockets.end())
     {
-      ERROR_LOG(WII_IPC_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock, CommandAddress,
-                type);
-      Memory::Write_U32(-SO_EBADF, CommandAddress + 4);
-      WII_IPC_HLE_Interface::EnqueueReply(CommandAddress);
+      ERROR_LOG(WII_IPC_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock,
+                request.address, type);
+      WII_IPC_HLE_Interface::EnqueueReply(request, -SO_EBADF);
     }
     else
     {
-      socket_entry->second.DoSock(CommandAddress, type);
+      socket_entry->second.DoSock(request, type);
     }
   }
 

@@ -23,11 +23,10 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult Open(u32 _CommandAddress, u32 _Mode) override;
-  IPCCommandResult Close(u32 _CommandAddress, bool _bForce) override;
-
-  IPCCommandResult IOCtl(u32 _CommandAddress) override;
-  IPCCommandResult IOCtlV(u32 _CommandAddress) override;
+  IOSReturnCode Open(const IOSOpenRequest& request) override;
+  void Close() override;
+  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
 
   void EventNotify();
 
@@ -63,7 +62,6 @@ private:
     RET_OK,
     RET_FAIL,
     RET_EVENT_REGISTER,  // internal state only - not actually returned
-    RET_EVENT_UNREGISTER
   };
 
   // Status
@@ -100,9 +98,8 @@ private:
 
   enum EventType
   {
-    EVENT_NONE = 0,
-    EVENT_INSERT,
-    EVENT_REMOVE,
+    EVENT_INSERT = 1,
+    EVENT_REMOVE = 2,
     // from unregister, i think it is just meant to be invalid
     EVENT_INVALID = 0xc210000
   };
@@ -110,9 +107,11 @@ private:
   // TODO do we need more than one?
   struct Event
   {
-    EventType type = EVENT_NONE;
-    u32 addr = 0;
-  } m_event;
+    Event(EventType type_, IOSRequest request_) : type(type_), request(request_) {}
+    EventType type;
+    IOSRequest request;
+  };
+  std::unique_ptr<Event> m_event;
 
   u32 m_Status = CARD_NOT_EXIST;
   u32 m_BlockLength = 0;
@@ -122,7 +121,7 @@ private:
 
   File::IOFile m_Card;
 
-  u32 ExecuteCommand(u32 BufferIn, u32 BufferInSize, u32 BufferIn2, u32 BufferInSize2,
-                     u32 _BufferOut, u32 BufferOutSize);
+  u32 ExecuteCommand(const IOSRequest& request, u32 BufferIn, u32 BufferInSize, u32 BufferIn2,
+                     u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
   void OpenInternal();
 };

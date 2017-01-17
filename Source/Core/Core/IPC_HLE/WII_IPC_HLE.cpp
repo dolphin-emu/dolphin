@@ -180,7 +180,7 @@ void Reset(bool hard)
   {
     if (!device)
       continue;
-    device->Close(0, true);
+    device->Close();
     device.reset();
   }
 
@@ -348,12 +348,10 @@ static std::shared_ptr<IWII_IPC_HLE_Device> GetUnusedESDevice()
 }
 
 // Returns the FD for the newly opened device (on success) or an error code.
-static s32 OpenDevice(const u32 address)
+static s32 OpenDevice(const IOSOpenRequest& request)
 {
-  const std::string device_name = Memory::GetString(Memory::Read_U32(address + 0xC));
-  const u32 open_mode = Memory::Read_U32(address + 0x10);
   const s32 new_fd = GetFreeDeviceID();
-  INFO_LOG(WII_IPC_HLE, "Opening %s (mode %d, fd %d)", device_name.c_str(), open_mode, new_fd);
+  INFO_LOG(WII_IPC_HLE, "Opening %s (mode %d, fd %d)", request.path.c_str(), request.flags, new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
     ERROR_LOG(WII_IPC_HLE, "Couldn't get a free fd, too many open files");
@@ -361,80 +359,73 @@ static s32 OpenDevice(const u32 address)
   }
 
   std::shared_ptr<IWII_IPC_HLE_Device> device;
-  if (device_name.find("/dev/es") == 0)
+  if (request.path == "/dev/es")
   {
     device = GetUnusedESDevice();
     if (!device)
       return IPC_EESEXHAUSTED;
   }
-  else if (device_name.find("/dev/") == 0)
+  else if (request.path.find("/dev/") == 0)
   {
-    device = GetDeviceByName(device_name);
+    device = GetDeviceByName(request.path);
   }
-  else if (device_name.find('/') == 0)
+  else if (request.path.find('/') == 0)
   {
-    device = std::make_shared<CWII_IPC_HLE_Device_FileIO>(new_fd, device_name);
+    device = std::make_shared<CWII_IPC_HLE_Device_FileIO>(new_fd, request.path);
   }
 
   if (!device)
   {
-    ERROR_LOG(WII_IPC_HLE, "Unknown device: %s", device_name.c_str());
+    ERROR_LOG(WII_IPC_HLE, "Unknown device: %s", request.path.c_str());
     return IPC_ENOENT;
   }
 
-  Memory::Write_U32(new_fd, address + 4);
-  device->Open(address, open_mode);
-  const s32 open_return_code = Memory::Read_U32(address + 4);
-  if (open_return_code < 0)
-    return open_return_code;
+  const IOSReturnCode code = device->Open(request);
+  if (code < IPC_SUCCESS)
+    return code;
   s_fdmap[new_fd] = device;
   return new_fd;
 }
 
-static IPCCommandResult HandleCommand(const u32 address)
+static IPCCommandResult HandleCommand(const IOSRequest& request)
 {
-  const auto command = static_cast<IPCCommandType>(Memory::Read_U32(address));
-  if (command == IPC_CMD_OPEN)
+  if (request.command == IPC_CMD_OPEN)
   {
-    const s32 new_fd = OpenDevice(address);
-    Memory::Write_U32(new_fd, address + 4);
-    return IWII_IPC_HLE_Device::GetDefaultReply();
+    IOSOpenRequest open_request{request.address};
+    const s32 new_fd = OpenDevice(open_request);
+    return IWII_IPC_HLE_Device::GetDefaultReply(new_fd);
   }
 
-  const s32 fd = Memory::Read_U32(address + 8);
-  const auto device = (fd >= 0 && fd < IPC_MAX_FDS) ? s_fdmap[fd] : nullptr;
+  const auto device = (request.fd < IPC_MAX_FDS) ? s_fdmap[request.fd] : nullptr;
   if (!device)
-  {
-    Memory::Write_U32(IPC_EINVAL, address + 4);
-    return IWII_IPC_HLE_Device::GetDefaultReply();
-  }
+    return IWII_IPC_HLE_Device::GetDefaultReply(IPC_EINVAL);
 
-  switch (command)
+  switch (request.command)
   {
   case IPC_CMD_CLOSE:
-    s_fdmap[fd].reset();
-    // A close on a valid device returns IPC_SUCCESS.
-    Memory::Write_U32(IPC_SUCCESS, address + 4);
-    return device->Close(address);
+    s_fdmap[request.fd].reset();
+    device->Close();
+    return IWII_IPC_HLE_Device::GetDefaultReply(IPC_SUCCESS);
   case IPC_CMD_READ:
-    return device->Read(address);
+    return device->Read(IOSReadWriteRequest{request.address});
   case IPC_CMD_WRITE:
-    return device->Write(address);
+    return device->Write(IOSReadWriteRequest{request.address});
   case IPC_CMD_SEEK:
-    return device->Seek(address);
+    return device->Seek(IOSSeekRequest{request.address});
   case IPC_CMD_IOCTL:
-    return device->IOCtl(address);
+    return device->IOCtl(IOSIOCtlRequest{request.address});
   case IPC_CMD_IOCTLV:
-    return device->IOCtlV(address);
+    return device->IOCtlV(IOSIOCtlVRequest{request.address});
   default:
-    _assert_msg_(WII_IPC_HLE, false, "Unexpected command: %x", command);
-    return IWII_IPC_HLE_Device::GetDefaultReply();
+    _assert_msg_(WII_IPC_HLE, false, "Unexpected command: %x", request.command);
+    return IWII_IPC_HLE_Device::GetDefaultReply(IPC_EINVAL);
   }
 }
 
 void ExecuteCommand(const u32 address)
 {
-  IPCCommandResult result = HandleCommand(address);
+  IOSRequest request{address};
+  IPCCommandResult result = HandleCommand(request);
 
   // Ensure replies happen in order
   const s64 ticks_until_last_reply = s_last_reply_time - CoreTiming::GetTicks();
@@ -443,7 +434,7 @@ void ExecuteCommand(const u32 address)
   s_last_reply_time = CoreTiming::GetTicks() + result.reply_delay_ticks;
 
   if (result.send_reply)
-    EnqueueReply(address, static_cast<int>(result.reply_delay_ticks));
+    EnqueueReply(request, result.return_value, static_cast<int>(result.reply_delay_ticks));
 }
 
 // Happens AS SOON AS IPC gets a new pointer!
@@ -453,13 +444,15 @@ void EnqueueRequest(u32 address)
 }
 
 // Called to send a reply to an IOS syscall
-void EnqueueReply(u32 address, int cycles_in_future, CoreTiming::FromThread from)
+void EnqueueReply(const IOSRequest& request, const s32 return_value, int cycles_in_future,
+                  CoreTiming::FromThread from)
 {
+  Memory::Write_U32(static_cast<u32>(return_value), request.address + 4);
   // IOS writes back the command that was responded to in the FD field.
-  Memory::Write_U32(Memory::Read_U32(address), address + 8);
+  Memory::Write_U32(request.command, request.address + 8);
   // IOS also overwrites the command type with the reply type.
-  Memory::Write_U32(IPC_REPLY, address);
-  CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, address, from);
+  Memory::Write_U32(IPC_REPLY, request.address);
+  CoreTiming::ScheduleEvent(cycles_in_future, s_event_enqueue, request.address, from);
 }
 
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future)

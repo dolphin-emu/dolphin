@@ -79,28 +79,16 @@ CWII_IPC_HLE_Device_wfsi::CWII_IPC_HLE_Device_wfsi(u32 device_id, const std::str
 {
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_wfsi::Open(u32 command_address, u32 mode)
+IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(const IOSIOCtlRequest& request)
 {
-  INFO_LOG(WII_IPC_HLE, "/dev/wfsi: Open");
-  return IWII_IPC_HLE_Device::Open(command_address, mode);
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(u32 command_address)
-{
-  u32 command = Memory::Read_U32(command_address + 0xC);
-  u32 buffer_in = Memory::Read_U32(command_address + 0x10);
-  u32 buffer_in_size = Memory::Read_U32(command_address + 0x14);
-  u32 buffer_out = Memory::Read_U32(command_address + 0x18);
-  u32 buffer_out_size = Memory::Read_U32(command_address + 0x1C);
-
   u32 return_error_code = IPC_SUCCESS;
 
-  switch (command)
+  switch (request.request)
   {
   case IOCTL_WFSI_PREPARE_DEVICE:
   {
-    u32 tmd_addr = Memory::Read_U32(buffer_in);
-    u32 tmd_size = Memory::Read_U32(buffer_in + 4);
+    u32 tmd_addr = Memory::Read_U32(request.buffer_in);
+    u32 tmd_size = Memory::Read_U32(request.buffer_in + 4);
 
     INFO_LOG(WII_IPC_HLE, "IOCTL_WFSI_PREPARE_DEVICE");
 
@@ -135,11 +123,12 @@ IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(u32 command_address)
 
   case IOCTL_WFSI_PREPARE_CONTENT:
   {
-    const char* ioctl_name = command == IOCTL_WFSI_PREPARE_PROFILE ? "IOCTL_WFSI_PREPARE_PROFILE" :
-                                                                     "IOCTL_WFSI_PREPARE_CONTENT";
+    const char* ioctl_name = request.request == IOCTL_WFSI_PREPARE_PROFILE ?
+                                 "IOCTL_WFSI_PREPARE_PROFILE" :
+                                 "IOCTL_WFSI_PREPARE_CONTENT";
 
     // Initializes the IV from the index of the content in the TMD contents.
-    u32 content_id = Memory::Read_U32(buffer_in + 8);
+    u32 content_id = Memory::Read_U32(request.buffer_in + 8);
     TMDReader::Content content_info;
     if (!m_tmd.FindContentById(content_id, &content_info))
     {
@@ -161,12 +150,13 @@ IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(u32 command_address)
   case IOCTL_WFSI_IMPORT_PROFILE:
   case IOCTL_WFSI_IMPORT_CONTENT:
   {
-    const char* ioctl_name = command == IOCTL_WFSI_IMPORT_PROFILE ? "IOCTL_WFSI_IMPORT_PROFILE" :
-                                                                    "IOCTL_WFSI_IMPORT_CONTENT";
+    const char* ioctl_name = request.request == IOCTL_WFSI_IMPORT_PROFILE ?
+                                 "IOCTL_WFSI_IMPORT_PROFILE" :
+                                 "IOCTL_WFSI_IMPORT_CONTENT";
 
-    u32 content_id = Memory::Read_U32(buffer_in + 0xC);
-    u32 input_ptr = Memory::Read_U32(buffer_in + 0x10);
-    u32 input_size = Memory::Read_U32(buffer_in + 0x14);
+    u32 content_id = Memory::Read_U32(request.buffer_in + 0xC);
+    u32 input_ptr = Memory::Read_U32(request.buffer_in + 0x10);
+    u32 input_size = Memory::Read_U32(request.buffer_in + 0x14);
     INFO_LOG(WII_IPC_HLE, "%s: %08x bytes of data at %08x from content id %d", ioctl_name,
              content_id, input_ptr, input_size);
 
@@ -181,7 +171,7 @@ IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(u32 command_address)
   case IOCTL_WFSI_FINALIZE_PROFILE:
   case IOCTL_WFSI_FINALIZE_CONTENT:
   {
-    const char* ioctl_name = command == IOCTL_WFSI_FINALIZE_PROFILE ?
+    const char* ioctl_name = request.request == IOCTL_WFSI_FINALIZE_PROFILE ?
                                  "IOCTL_WFSI_FINALIZE_PROFILE" :
                                  "IOCTL_WFSI_FINALIZE_CONTENT";
     INFO_LOG(WII_IPC_HLE, "%s", ioctl_name);
@@ -225,7 +215,7 @@ IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(u32 command_address)
 
   case IOCTL_WFSI_SET_DEVICE_NAME:
     INFO_LOG(WII_IPC_HLE, "IOCTL_WFSI_SET_DEVICE_NAME");
-    m_device_name = Memory::GetString(buffer_in);
+    m_device_name = Memory::GetString(request.buffer_in);
     break;
 
   case IOCTL_WFSI_APPLY_TITLE_PROFILE:
@@ -243,21 +233,10 @@ IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(u32 command_address)
     // TODO(wfs): Should be returning an error. However until we have
     // everything properly stubbed it's easier to simulate the methods
     // succeeding.
-    WARN_LOG(WII_IPC_HLE, "%s unimplemented IOCtl(0x%08x, size_in=%08x, size_out=%08x)\n%s\n%s",
-             m_name.c_str(), command, buffer_in_size, buffer_out_size,
-             HexDump(Memory::GetPointer(buffer_in), buffer_in_size).c_str(),
-             HexDump(Memory::GetPointer(buffer_out), buffer_out_size).c_str());
-    Memory::Memset(buffer_out, 0, buffer_out_size);
+    request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_HLE, LogTypes::LWARNING);
+    Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
     break;
   }
 
-  Memory::Write_U32(return_error_code, command_address + 4);
-  return GetDefaultReply();
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtlV(u32 command_address)
-{
-  ERROR_LOG(WII_IPC_HLE, "IOCtlV on /dev/wfsi -- unsupported");
-  Memory::Write_U32(IPC_EINVAL, command_address + 4);
-  return GetDefaultReply();
+  return GetDefaultReply(return_error_code);
 }

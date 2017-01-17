@@ -11,7 +11,6 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 
 enum IOSReturnCode : s32
@@ -41,22 +40,88 @@ enum IOSReturnCode : s32
   IPC_EESEXHAUSTED = -1016,  // Max of 2 ES handles exceeded
 };
 
-// A struct for IOS ioctlv calls
-struct SIOCtlVBuffer
+struct IOSRequest
 {
-  explicit SIOCtlVBuffer(u32 address);
+  u32 address = 0;
+  IPCCommandType command = IPC_CMD_OPEN;
+  u32 fd = 0;
+  explicit IOSRequest(u32 address);
+  virtual ~IOSRequest() = default;
+};
 
-  const u32 m_Address;
-  u32 Parameter;
-  u32 NumberInBuffer;
-  u32 NumberPayloadBuffer;
-  u32 BufferVector;
-  struct SBuffer
+enum IOSOpenMode : s32
+{
+  IOS_OPEN_READ = 1,
+  IOS_OPEN_WRITE = 2,
+  IOS_OPEN_RW = (IOS_OPEN_READ | IOS_OPEN_WRITE)
+};
+
+struct IOSOpenRequest final : IOSRequest
+{
+  std::string path;
+  IOSOpenMode flags = IOS_OPEN_READ;
+  explicit IOSOpenRequest(u32 address);
+};
+
+struct IOSReadWriteRequest final : IOSRequest
+{
+  u32 buffer = 0;
+  u32 size = 0;
+  explicit IOSReadWriteRequest(u32 address);
+};
+
+struct IOSSeekRequest final : IOSRequest
+{
+  enum SeekMode
   {
-    u32 m_Address, m_Size;
+    IOS_SEEK_SET = 0,
+    IOS_SEEK_CUR = 1,
+    IOS_SEEK_END = 2,
   };
-  std::vector<SBuffer> InBuffer;
-  std::vector<SBuffer> PayloadBuffer;
+  u32 offset = 0;
+  SeekMode mode = IOS_SEEK_SET;
+  explicit IOSSeekRequest(u32 address);
+};
+
+struct IOSIOCtlRequest final : IOSRequest
+{
+  u32 request = 0;
+  u32 buffer_in = 0;
+  u32 buffer_in_size = 0;
+  // Contrary to the name, the output buffer can also be used for input.
+  u32 buffer_out = 0;
+  u32 buffer_out_size = 0;
+  explicit IOSIOCtlRequest(u32 address);
+  void Log(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+           LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;
+  void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+            LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;
+  void DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+                   LogTypes::LOG_LEVELS level = LogTypes::LERROR) const;
+};
+
+struct IOSIOCtlVRequest final : IOSRequest
+{
+  struct IOVector
+  {
+    u32 address = 0;
+    u32 size = 0;
+  };
+  u32 request = 0;
+  // In vectors are *mostly* used for input buffers. Sometimes they are also used as
+  // output buffers (notably in the network code).
+  // IO vectors are *mostly* used for output buffers. However, as indicated in the name,
+  // they're also used as input buffers.
+  // So both of them are technically IO vectors. But we're keeping them separated because
+  // merging them into a single std::vector would make using the first out vector more complicated.
+  std::vector<IOVector> in_vectors;
+  std::vector<IOVector> io_vectors;
+  explicit IOSIOCtlVRequest(u32 address);
+  bool HasInputVectorWithAddress(u32 vector_address) const;
+  void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+            LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;
+  void DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+                   LogTypes::LOG_LEVELS level = LogTypes::LERROR) const;
 };
 
 class IWII_IPC_HLE_Device
@@ -79,18 +144,18 @@ public:
 
   const std::string& GetDeviceName() const { return m_name; }
   u32 GetDeviceID() const { return m_device_id; }
-  virtual IPCCommandResult Open(u32 command_address, u32 mode);
-  virtual IPCCommandResult Close(u32 command_address, bool force = false);
-  virtual IPCCommandResult Seek(u32 command_address);
-  virtual IPCCommandResult Read(u32 command_address);
-  virtual IPCCommandResult Write(u32 command_address);
-  virtual IPCCommandResult IOCtl(u32 command_address);
-  virtual IPCCommandResult IOCtlV(u32 command_address);
-
+  // Replies to Open and Close requests are sent by WII_IPC_HLE, not by the devices themselves.
+  virtual IOSReturnCode Open(const IOSOpenRequest& request);
+  virtual void Close();
+  virtual IPCCommandResult Seek(const IOSSeekRequest& seek) { return Unsupported(seek); }
+  virtual IPCCommandResult Read(const IOSReadWriteRequest& read) { return Unsupported(read); }
+  virtual IPCCommandResult Write(const IOSReadWriteRequest& write) { return Unsupported(write); }
+  virtual IPCCommandResult IOCtl(const IOSIOCtlRequest& ioctl) { return Unsupported(ioctl); }
+  virtual IPCCommandResult IOCtlV(const IOSIOCtlVRequest& ioctlv) { return Unsupported(ioctlv); }
   virtual void Update() {}
   virtual DeviceType GetDeviceType() const { return m_device_type; }
   virtual bool IsOpened() const { return m_is_active; }
-  static IPCCommandResult GetDefaultReply();
+  static IPCCommandResult GetDefaultReply(s32 return_value);
   static IPCCommandResult GetNoReply();
 
 protected:
@@ -100,13 +165,6 @@ protected:
   DeviceType m_device_type;
   bool m_is_active = false;
 
-  // Write out the IPC struct from command_address to number_of_commands numbers
-  // of 4 byte commands.
-  void DumpCommands(u32 command_address, size_t number_of_commands = 8,
-                    LogTypes::LOG_TYPE log_type = LogTypes::WII_IPC_HLE,
-                    LogTypes::LOG_LEVELS verbosity = LogTypes::LDEBUG);
-
-  void DumpAsync(u32 buffer_vector, u32 number_in_buffer, u32 number_io_buffer,
-                 LogTypes::LOG_TYPE log_type = LogTypes::WII_IPC_HLE,
-                 LogTypes::LOG_LEVELS verbosity = LogTypes::LDEBUG);
+private:
+  IPCCommandResult Unsupported(const IOSRequest& request);
 };
