@@ -438,4 +438,4 @@ private:
   std::array<InstLoc, 8> CRCache;
   std::array<InstLoc, 8> CRCacheStore;
 };
-};
+}  // namespace IREmitter
