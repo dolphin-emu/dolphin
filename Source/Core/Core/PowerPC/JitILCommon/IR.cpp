@@ -1769,15 +1769,15 @@ void IRBuilder::WriteToFile(u64 codeHash)
 
   const InstLoc lastCurReadPtr = curReadPtr;
   StartForwardPass();
-  const unsigned numInsts = getNumInsts();
-  for (unsigned int i = 0; i < numInsts; ++i)
+  const size_t numInsts = getNumInsts();
+  for (size_t i = 0; i < numInsts; ++i)
   {
     const InstLoc I = ReadForward();
     const unsigned opcode = getOpcode(*I);
     const bool thisUsed = IsMarkUsed(I) || alwaysUseds.find(opcode) != alwaysUseds.end();
 
     // Line number
-    fprintf(file, "%4u", i);
+    fprintf(file, "%4zu", i);
 
     if (!thisUsed)
       fprintf(file, "%*c", 32, ' ');
@@ -1795,7 +1795,7 @@ void IRBuilder::WriteToFile(u64 codeHash)
       if (isImm(*inst))
         fprintf(file, " 0x%08x", GetImmValue(inst));
       else
-        fprintf(file, " %10u", i - (unsigned int)(I - inst));
+        fprintf(file, " %10zu", i - static_cast<size_t>(I - inst));
     }
 
     // Op2
@@ -1806,7 +1806,7 @@ void IRBuilder::WriteToFile(u64 codeHash)
       if (isImm(*inst))
         fprintf(file, " 0x%08x", GetImmValue(inst));
       else
-        fprintf(file, " %10u", i - (unsigned int)(I - inst));
+        fprintf(file, " %10zu", i - static_cast<size_t>(I - inst));
     }
 
     if (extra8Regs.count(opcode))
