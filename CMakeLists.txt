@@ -239,6 +239,11 @@ macro(check_and_add_flag var flag)
 	endif()
 endmacro()
 
+# Enforce minimum GCC version
+if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
+	message(FATAL_ERROR "Dolphin requires at least GCC 5.0 (found ${CMAKE_CXX_COMPILER_VERSION})")
+endif()
+
 # Enabling all warnings in MSVC spams too much
 if(NOT MSVC)
 	add_definitions(-Wall)
