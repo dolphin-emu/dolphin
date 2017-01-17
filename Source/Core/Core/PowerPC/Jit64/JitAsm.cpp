@@ -92,54 +92,53 @@ void Jit64AsmRoutineManager::Generate()
 
   dispatcherNoCheck = GetCodePtr();
 
-  // Switch to the correct memory base, in case MSR.DR has changed.
-  // TODO: Is there a more efficient place to put this?  We don't
-  // need to do this for indirect jumps, just exceptions etc.
-  TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
-  FixupBranch physmem = J_CC(CC_NZ);
-  MOV(64, R(RMEM), ImmPtr(Memory::physical_base));
-  FixupBranch membaseend = J();
-  SetJumpTarget(physmem);
-  MOV(64, R(RMEM), ImmPtr(Memory::logical_base));
-  SetJumpTarget(membaseend);
-
   // The following is a translation of JitBaseBlockCache::Dispatch into assembly.
-
-  // Fast block number lookup.
-  // ((PC >> 2) & mask) * sizeof(JitBlock*) = (PC & (mask << 2)) * 2
-  MOV(32, R(RSCRATCH), PPCSTATE(pc));
-  u64 icache = reinterpret_cast<u64>(g_jit->GetBlockCache()->GetICache());
-  AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::iCache_Mask << 2));
-  if (icache <= INT_MAX)
+  const bool assembly_dispatcher = true;
+  if (assembly_dispatcher)
   {
-    MOV(64, R(RSCRATCH), MScaled(RSCRATCH, SCALE_2, static_cast<s32>(icache)));
+    // Fast block number lookup.
+    // ((PC >> 2) & mask) * sizeof(JitBlock*) = (PC & (mask << 2)) * 2
+    MOV(32, R(RSCRATCH), PPCSTATE(pc));
+    u64 icache = reinterpret_cast<u64>(g_jit->GetBlockCache()->GetICache());
+    AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::iCache_Mask << 2));
+    if (icache <= INT_MAX)
+    {
+      MOV(64, R(RSCRATCH), MScaled(RSCRATCH, SCALE_2, static_cast<s32>(icache)));
+    }
+    else
+    {
+      MOV(64, R(RSCRATCH2), Imm64(icache));
+      MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_2, 0));
+    }
+
+    // Check if we found a block.
+    TEST(64, R(RSCRATCH), R(RSCRATCH));
+    FixupBranch not_found = J_CC(CC_Z);
+
+    // Check both block.effectiveAddress and block.msrBits.
+    MOV(32, R(RSCRATCH2), PPCSTATE(msr));
+    AND(32, R(RSCRATCH2), Imm32(JitBaseBlockCache::JIT_CACHE_MSR_MASK));
+    SHL(64, R(RSCRATCH2), Imm8(32));
+    MOV(32, R(RSCRATCH_EXTRA), PPCSTATE(pc));
+    OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
+    CMP(64, R(RSCRATCH2), MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlock, effectiveAddress))));
+    FixupBranch state_mismatch = J_CC(CC_NE);
+
+    // Success; branch to the block we found.
+    // Switch to the correct memory base, in case MSR.DR has changed.
+    TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
+    FixupBranch physmem = J_CC(CC_Z);
+    MOV(64, R(RMEM), ImmPtr(Memory::logical_base));
+    JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlock, normalEntry))));
+    SetJumpTarget(physmem);
+    MOV(64, R(RMEM), ImmPtr(Memory::physical_base));
+    JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlock, normalEntry))));
+
+    SetJumpTarget(not_found);
+    SetJumpTarget(state_mismatch);
+
+    // Failure, fallback to the C++ dispatcher for calling the JIT.
   }
-  else
-  {
-    MOV(64, R(RSCRATCH2), Imm64(icache));
-    MOV(64, R(RSCRATCH), MComplex(RSCRATCH2, RSCRATCH, SCALE_2, 0));
-  }
-
-  // Check if we found a block.
-  TEST(64, R(RSCRATCH), R(RSCRATCH));
-  FixupBranch not_found = J_CC(CC_Z);
-
-  // Check both block.effectiveAddress and block.msrBits.
-  MOV(32, R(RSCRATCH2), PPCSTATE(msr));
-  AND(32, R(RSCRATCH2), Imm32(JitBaseBlockCache::JIT_CACHE_MSR_MASK));
-  SHL(64, R(RSCRATCH2), Imm8(32));
-  MOV(32, R(RSCRATCH_EXTRA), PPCSTATE(pc));
-  OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));
-  CMP(64, R(RSCRATCH2), MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlock, effectiveAddress))));
-  FixupBranch state_mismatch = J_CC(CC_NE);
-  // Success; branch to the block we found.
-  JMPptr(MDisp(RSCRATCH, static_cast<s32>(offsetof(JitBlock, normalEntry))));
-  SetJumpTarget(not_found);
-  SetJumpTarget(state_mismatch);
-
-  // Failure; call into the block cache to update the state, then try again.
-  // (We need to loop because Jit() might not actually generate a block
-  // if we hit an ISI.)
 
   // We reset the stack because Jit might clear the code cache.
   // Also if we are in the middle of disabling BLR optimization on windows
@@ -151,8 +150,15 @@ void Jit64AsmRoutineManager::Generate()
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunction(JitBase::Dispatch);
   ABI_PopRegistersAndAdjustStack({}, 0);
-  //  JMPptr(R(ABI_RETURN));
-  JMP(dispatcherNoCheck, true);
+
+  // Switch to the correct memory base, in case MSR.DR has changed.
+  TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
+  FixupBranch physmem = J_CC(CC_Z);
+  MOV(64, R(RMEM), ImmPtr(Memory::logical_base));
+  JMPptr(R(ABI_RETURN));
+  SetJumpTarget(physmem);
+  MOV(64, R(RMEM), ImmPtr(Memory::physical_base));
+  JMPptr(R(ABI_RETURN));
 
   SetJumpTarget(bail);
   doTiming = GetCodePtr();
