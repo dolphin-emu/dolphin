@@ -325,13 +325,16 @@ void JitBaseBlockCache::DestroyBlock(JitBlock& block, bool invalidate)
   UnlinkBlock(block);
 
   // Delete linking addresses
-  auto it = links_to.equal_range(block.effectiveAddress);
-  while (it.first != it.second)
+  for (const auto& e : block.linkData)
   {
-    if (it.first->second == &block)
-      it.first = links_to.erase(it.first);
-    else
-      it.first++;
+    auto it = links_to.equal_range(e.exitAddress);
+    while (it.first != it.second)
+    {
+      if (it.first->second == &block)
+        it.first = links_to.erase(it.first);
+      else
+        it.first++;
+    }
   }
 
   // Raise an signal if we are going to call this block again
