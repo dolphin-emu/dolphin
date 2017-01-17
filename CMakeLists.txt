@@ -82,6 +82,9 @@ if (APPLE)
 			set(CMAKE_C_COMPILER "clang")
 		endif()
 	endif()
+
+	# This doesn't play with with the packaging script that doesn't understand @rpath
+	set(CMAKE_MACOSX_RPATH OFF)
 endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 # Libraries to link
