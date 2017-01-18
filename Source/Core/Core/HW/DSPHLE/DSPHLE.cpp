@@ -23,16 +23,16 @@ DSPHLE::DSPHLE()
 bool DSPHLE::Initialize(bool wii, bool dsp_thread)
 {
   m_wii = wii;
-  m_pUCode = nullptr;
-  m_lastUCode = nullptr;
-  m_bHalt = false;
-  m_bAssertInt = false;
+  m_ucode = nullptr;
+  m_last_ucode = nullptr;
+  m_halt = false;
+  m_assert_interrupt = false;
 
   SetUCode(UCODE_ROM);
-  m_DSPControl.DSPHalt = 1;
-  m_DSPControl.DSPInit = 1;
+  m_dsp_control.DSPHalt = 1;
+  m_dsp_control.DSPInit = 1;
 
-  m_dspState.Reset();
+  m_dsp_state.Reset();
 
   return true;
 }
@@ -43,14 +43,14 @@ void DSPHLE::DSP_StopSoundStream()
 
 void DSPHLE::Shutdown()
 {
-  delete m_pUCode;
-  m_pUCode = nullptr;
+  delete m_ucode;
+  m_ucode = nullptr;
 }
 
 void DSPHLE::DSP_Update(int cycles)
 {
-  if (m_pUCode != nullptr)
-    m_pUCode->Update();
+  if (m_ucode != nullptr)
+    m_ucode->Update();
 }
 
 u32 DSPHLE::DSP_UpdateRate()
@@ -60,56 +60,56 @@ u32 DSPHLE::DSP_UpdateRate()
   return SystemTimers::GetTicksPerSecond() / 1000;
 }
 
-void DSPHLE::SendMailToDSP(u32 _uMail)
+void DSPHLE::SendMailToDSP(u32 mail)
 {
-  if (m_pUCode != nullptr)
+  if (m_ucode != nullptr)
   {
-    DEBUG_LOG(DSP_MAIL, "CPU writes 0x%08x", _uMail);
-    m_pUCode->HandleMail(_uMail);
+    DEBUG_LOG(DSP_MAIL, "CPU writes 0x%08x", mail);
+    m_ucode->HandleMail(mail);
   }
 }
 
 UCodeInterface* DSPHLE::GetUCode()
 {
-  return m_pUCode;
+  return m_ucode;
 }
 
-void DSPHLE::SetUCode(u32 _crc)
+void DSPHLE::SetUCode(u32 crc)
 {
-  delete m_pUCode;
+  delete m_ucode;
 
-  m_pUCode = nullptr;
-  m_MailHandler.Clear();
-  m_pUCode = UCodeFactory(_crc, this, m_wii);
-  m_pUCode->Initialize();
+  m_ucode = nullptr;
+  m_mail_handler.Clear();
+  m_ucode = UCodeFactory(crc, this, m_wii);
+  m_ucode->Initialize();
 }
 
 // TODO do it better?
 // Assumes that every odd call to this func is by the persistent ucode.
 // Even callers are deleted.
-void DSPHLE::SwapUCode(u32 _crc)
+void DSPHLE::SwapUCode(u32 crc)
 {
-  m_MailHandler.Clear();
+  m_mail_handler.Clear();
 
-  if (m_lastUCode == nullptr)
+  if (m_last_ucode == nullptr)
   {
-    m_lastUCode = m_pUCode;
-    m_pUCode = UCodeFactory(_crc, this, m_wii);
-    m_pUCode->Initialize();
+    m_last_ucode = m_ucode;
+    m_ucode = UCodeFactory(crc, this, m_wii);
+    m_ucode->Initialize();
   }
   else
   {
-    delete m_pUCode;
-    m_pUCode = m_lastUCode;
-    m_lastUCode = nullptr;
+    delete m_ucode;
+    m_ucode = m_last_ucode;
+    m_last_ucode = nullptr;
   }
 }
 
 void DSPHLE::DoState(PointerWrap& p)
 {
-  bool isHLE = true;
-  p.Do(isHLE);
-  if (isHLE != true && p.GetMode() == PointerWrap::MODE_READ)
+  bool is_hle = true;
+  p.Do(is_hle);
+  if (!is_hle && p.GetMode() == PointerWrap::MODE_READ)
   {
     Core::DisplayMessage("State is incompatible with current DSP engine. Aborting load state.",
                          3000);
@@ -117,33 +117,33 @@ void DSPHLE::DoState(PointerWrap& p)
     return;
   }
 
-  p.DoPOD(m_DSPControl);
-  p.DoPOD(m_dspState);
+  p.DoPOD(m_dsp_control);
+  p.DoPOD(m_dsp_state);
 
-  int ucode_crc = UCodeInterface::GetCRC(m_pUCode);
+  int ucode_crc = UCodeInterface::GetCRC(m_ucode);
   int ucode_crc_beforeLoad = ucode_crc;
-  int lastucode_crc = UCodeInterface::GetCRC(m_lastUCode);
-  int lastucode_crc_beforeLoad = lastucode_crc;
+  int last_ucode_crc = UCodeInterface::GetCRC(m_last_ucode);
+  int last_ucode_crc_before_load = last_ucode_crc;
 
   p.Do(ucode_crc);
-  p.Do(lastucode_crc);
+  p.Do(last_ucode_crc);
 
   // if a different type of ucode was being used when the savestate was created,
   // we have to reconstruct the old type of ucode so that we have a valid thing to call DoState on.
   UCodeInterface* ucode =
-      (ucode_crc == ucode_crc_beforeLoad) ? m_pUCode : UCodeFactory(ucode_crc, this, m_wii);
-  UCodeInterface* lastucode = (lastucode_crc != lastucode_crc_beforeLoad) ?
-                                  m_lastUCode :
-                                  UCodeFactory(lastucode_crc, this, m_wii);
+      (ucode_crc == ucode_crc_beforeLoad) ? m_ucode : UCodeFactory(ucode_crc, this, m_wii);
+  UCodeInterface* last_ucode = (last_ucode_crc != last_ucode_crc_before_load) ?
+                                   m_last_ucode :
+                                   UCodeFactory(last_ucode_crc, this, m_wii);
 
   if (ucode)
     ucode->DoState(p);
-  if (lastucode)
-    lastucode->DoState(p);
+  if (last_ucode)
+    last_ucode->DoState(p);
 
   // if a different type of ucode was being used when the savestate was created,
   // discard it if we're not loading, otherwise discard the old one and keep the new one.
-  if (ucode != m_pUCode)
+  if (ucode != m_ucode)
   {
     if (p.GetMode() != PointerWrap::MODE_READ)
     {
@@ -151,32 +151,32 @@ void DSPHLE::DoState(PointerWrap& p)
     }
     else
     {
-      delete m_pUCode;
-      m_pUCode = ucode;
+      delete m_ucode;
+      m_ucode = ucode;
     }
   }
-  if (lastucode != m_lastUCode)
+  if (last_ucode != m_last_ucode)
   {
     if (p.GetMode() != PointerWrap::MODE_READ)
     {
-      delete lastucode;
+      delete last_ucode;
     }
     else
     {
-      delete m_lastUCode;
-      m_lastUCode = lastucode;
+      delete m_last_ucode;
+      m_last_ucode = last_ucode;
     }
   }
 
-  m_MailHandler.DoState(p);
+  m_mail_handler.DoState(p);
 }
 
 // Mailbox functions
-unsigned short DSPHLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)
+u16 DSPHLE::DSP_ReadMailBoxHigh(bool cpu_mailbox)
 {
-  if (_CPUMailbox)
+  if (cpu_mailbox)
   {
-    return (m_dspState.CPUMailbox >> 16) & 0xFFFF;
+    return (m_dsp_state.cpu_mailbox >> 16) & 0xFFFF;
   }
   else
   {
@@ -184,11 +184,11 @@ unsigned short DSPHLE::DSP_ReadMailBoxHigh(bool _CPUMailbox)
   }
 }
 
-unsigned short DSPHLE::DSP_ReadMailBoxLow(bool _CPUMailbox)
+u16 DSPHLE::DSP_ReadMailBoxLow(bool cpu_mailbox)
 {
-  if (_CPUMailbox)
+  if (cpu_mailbox)
   {
-    return m_dspState.CPUMailbox & 0xFFFF;
+    return m_dsp_state.cpu_mailbox & 0xFFFF;
   }
   else
   {
@@ -196,60 +196,60 @@ unsigned short DSPHLE::DSP_ReadMailBoxLow(bool _CPUMailbox)
   }
 }
 
-void DSPHLE::DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short _Value)
+void DSPHLE::DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value)
 {
-  if (_CPUMailbox)
+  if (cpu_mailbox)
   {
-    m_dspState.CPUMailbox = (m_dspState.CPUMailbox & 0xFFFF) | (_Value << 16);
+    m_dsp_state.cpu_mailbox = (m_dsp_state.cpu_mailbox & 0xFFFF) | (value << 16);
   }
   else
   {
-    PanicAlert("CPU can't write %08x to DSP mailbox", _Value);
+    PanicAlert("CPU can't write %08x to DSP mailbox", value);
   }
 }
 
-void DSPHLE::DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short _Value)
+void DSPHLE::DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value)
 {
-  if (_CPUMailbox)
+  if (cpu_mailbox)
   {
-    m_dspState.CPUMailbox = (m_dspState.CPUMailbox & 0xFFFF0000) | _Value;
-    SendMailToDSP(m_dspState.CPUMailbox);
+    m_dsp_state.cpu_mailbox = (m_dsp_state.cpu_mailbox & 0xFFFF0000) | value;
+    SendMailToDSP(m_dsp_state.cpu_mailbox);
     // Mail sent so clear MSB to show that it is progressed
-    m_dspState.CPUMailbox &= 0x7FFFFFFF;
+    m_dsp_state.cpu_mailbox &= 0x7FFFFFFF;
   }
   else
   {
-    PanicAlert("CPU can't write %08x to DSP mailbox", _Value);
+    PanicAlert("CPU can't write %08x to DSP mailbox", value);
   }
 }
 
 // Other DSP functions
-u16 DSPHLE::DSP_WriteControlRegister(unsigned short _Value)
+u16 DSPHLE::DSP_WriteControlRegister(u16 value)
 {
-  DSP::UDSPControl Temp(_Value);
+  DSP::UDSPControl temp(value);
 
-  if (Temp.DSPReset)
+  if (temp.DSPReset)
   {
     SetUCode(UCODE_ROM);
-    Temp.DSPReset = 0;
+    temp.DSPReset = 0;
   }
-  if (Temp.DSPInit == 0)
+  if (temp.DSPInit == 0)
   {
     // copy 128 byte from ARAM 0x000000 to IMEM
     SetUCode(UCODE_INIT_AUDIO_SYSTEM);
-    Temp.DSPInitCode = 0;
+    temp.DSPInitCode = 0;
   }
 
-  m_DSPControl.Hex = Temp.Hex;
-  return m_DSPControl.Hex;
+  m_dsp_control.Hex = temp.Hex;
+  return m_dsp_control.Hex;
 }
 
 u16 DSPHLE::DSP_ReadControlRegister()
 {
-  return m_DSPControl.Hex;
+  return m_dsp_control.Hex;
 }
 
-void DSPHLE::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+void DSPHLE::PauseAndLock(bool do_lock, bool unpause_on_unlock)
 {
 }
 }  // namespace HLE
