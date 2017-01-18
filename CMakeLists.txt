@@ -335,7 +335,6 @@ endif(NOT CMAKE_BUILD_TYPE)
 
 if(CMAKE_BUILD_TYPE STREQUAL Debug)
 	add_definitions(-D_DEBUG -ggdb)
-	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
 
 	option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 	if(ENABLE_GPROF)
