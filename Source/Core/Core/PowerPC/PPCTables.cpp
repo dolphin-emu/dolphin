@@ -2,8 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/PPCTables.h"
+
 #include <algorithm>
+#include <array>
 #include <cinttypes>
+#include <cstddef>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -13,25 +17,24 @@
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 
-GekkoOPInfo* m_infoTable[64];
-GekkoOPInfo* m_infoTable4[1024];
-GekkoOPInfo* m_infoTable19[1024];
-GekkoOPInfo* m_infoTable31[1024];
-GekkoOPInfo* m_infoTable59[32];
-GekkoOPInfo* m_infoTable63[1024];
+std::array<GekkoOPInfo*, 64> m_infoTable;
+std::array<GekkoOPInfo*, 1024> m_infoTable4;
+std::array<GekkoOPInfo*, 1024> m_infoTable19;
+std::array<GekkoOPInfo*, 1024> m_infoTable31;
+std::array<GekkoOPInfo*, 32> m_infoTable59;
+std::array<GekkoOPInfo*, 1024> m_infoTable63;
 
-GekkoOPInfo* m_allInstructions[512];
-int m_numInstructions;
+std::array<GekkoOPInfo*, 512> m_allInstructions;
+size_t m_numInstructions;
 
-const u64 m_crTable[16] = {
+const std::array<u64, 16> m_crTable = {{
     PPCCRToInternal(0x0), PPCCRToInternal(0x1), PPCCRToInternal(0x2), PPCCRToInternal(0x3),
     PPCCRToInternal(0x4), PPCCRToInternal(0x5), PPCCRToInternal(0x6), PPCCRToInternal(0x7),
     PPCCRToInternal(0x8), PPCCRToInternal(0x9), PPCCRToInternal(0xA), PPCCRToInternal(0xB),
     PPCCRToInternal(0xC), PPCCRToInternal(0xD), PPCCRToInternal(0xE), PPCCRToInternal(0xF),
-};
+}};
 
 GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst)
 {
@@ -152,7 +155,7 @@ void PrintInstructionRunCounts()
   typedef std::pair<const char*, u64> OpInfo;
   std::vector<OpInfo> temp;
   temp.reserve(m_numInstructions);
-  for (int i = 0; i < m_numInstructions; ++i)
+  for (size_t i = 0; i < m_numInstructions; ++i)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
     temp.emplace_back(pInst->opname, pInst->runCount);
@@ -175,7 +178,7 @@ void LogCompiledInstructions()
 
   File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
                  "w");
-  for (int i = 0; i < m_numInstructions; i++)
+  for (size_t i = 0; i < m_numInstructions; i++)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
     if (pInst->compileCount > 0)
@@ -186,7 +189,7 @@ void LogCompiledInstructions()
   }
 
   f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
-  for (int i = 0; i < m_numInstructions; i++)
+  for (size_t i = 0; i < m_numInstructions; i++)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
     if (pInst->compileCount == 0)

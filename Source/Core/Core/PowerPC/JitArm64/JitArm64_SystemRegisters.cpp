@@ -102,7 +102,7 @@ void JitArm64::mcrxr(UGeckoInstruction inst)
   // [SO OV CA 0] << 3
   LSL(WA, WA, 4);
 
-  MOVP2R(XB, m_crTable);
+  MOVP2R(XB, m_crTable.data());
   LDR(XB, XB, XA);
   STR(INDEX_UNSIGNED, XB, PPC_REG, PPCSTATE_OFF(cr_val[inst.CRFD]));
 
@@ -636,7 +636,7 @@ void JitArm64::mtcrf(UGeckoInstruction inst)
     ARM64Reg XA = EncodeRegTo64(WA);
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg XB = EncodeRegTo64(WB);
-    MOVP2R(XB, m_crTable);
+    MOVP2R(XB, m_crTable.data());
     for (int i = 0; i < 8; ++i)
     {
       if ((crm & (0x80 >> i)) != 0)
