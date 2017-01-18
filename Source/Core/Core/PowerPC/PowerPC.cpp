@@ -88,6 +88,7 @@ void DoState(PointerWrap& p)
 static void ResetRegisters()
 {
   memset(ppcState.ps, 0, sizeof(ppcState.ps));
+  memset(ppcState.sr, 0, sizeof(ppcState.sr));
   memset(ppcState.gpr, 0, sizeof(ppcState.gpr));
   memset(ppcState.spr, 0, sizeof(ppcState.spr));
   /*
@@ -135,7 +136,6 @@ void Init(int cpu_core)
   s_invalidate_cache_thread_safe =
       CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
 
-  memset(ppcState.sr, 0, sizeof(ppcState.sr));
   ppcState.pagetable_base = 0;
   ppcState.pagetable_hashmask = 0;
 
