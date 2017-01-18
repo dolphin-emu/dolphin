@@ -860,9 +860,13 @@ void CFrame::DoStop()
 
 bool CFrame::TriggerSTMPowerEvent()
 {
-  const auto stm = WII_IPC_HLE_Interface::GetDeviceByName("/dev/stm/eventhook");
-  if (!stm || !std::static_pointer_cast<CWII_IPC_HLE_Device_stm_eventhook>(stm)->HasHookInstalled())
+  const auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
+  if (!stm ||
+      !std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_stm_eventhook>(stm)
+           ->HasHookInstalled())
+  {
     return false;
+  }
 
   Core::DisplayMessage("Shutting down", 30000);
   // Unpause because gracefully shutting down needs the game to actually request a shutdown
@@ -1245,7 +1249,7 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
       !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     bool was_unpaused = Core::PauseAndLock(true);
-    GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+    IOS::HLE::GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
     const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
     Core::DisplayMessage(StringFromFormat(message, wm_idx + 1), 3000);
     Host_UpdateMainFrame();
@@ -1259,7 +1263,7 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
     return;
   bool was_unpaused = Core::PauseAndLock(true);
   ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1,
-                 !GetUsbPointer()
+                 !IOS::HLE::GetUsbPointer()
                       ->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)
                       ->IsConnected());
   Core::PauseAndLock(false, was_unpaused);
@@ -1428,19 +1432,19 @@ void CFrame::UpdateGUI()
     bool was_unpaused = Core::PauseAndLock(true);
     GetMenuBar()
         ->FindItem(IDM_CONNECT_WIIMOTE1)
-        ->Check(GetUsbPointer()->AccessWiiMote(0x0100)->IsConnected());
+        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0100)->IsConnected());
     GetMenuBar()
         ->FindItem(IDM_CONNECT_WIIMOTE2)
-        ->Check(GetUsbPointer()->AccessWiiMote(0x0101)->IsConnected());
+        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0101)->IsConnected());
     GetMenuBar()
         ->FindItem(IDM_CONNECT_WIIMOTE3)
-        ->Check(GetUsbPointer()->AccessWiiMote(0x0102)->IsConnected());
+        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0102)->IsConnected());
     GetMenuBar()
         ->FindItem(IDM_CONNECT_WIIMOTE4)
-        ->Check(GetUsbPointer()->AccessWiiMote(0x0103)->IsConnected());
+        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0103)->IsConnected());
     GetMenuBar()
         ->FindItem(IDM_CONNECT_BALANCEBOARD)
-        ->Check(GetUsbPointer()->AccessWiiMote(0x0104)->IsConnected());
+        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0104)->IsConnected());
     Core::PauseAndLock(false, was_unpaused);
   }
 

@@ -13,6 +13,10 @@
 #include "Common/Logging/Log.h"
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 
+namespace IOS
+{
+namespace HLE
+{
 enum IOSReturnCode : s32
 {
   IPC_SUCCESS = 0,           // Success
@@ -168,3 +172,5 @@ protected:
 private:
   IPCCommandResult Unsupported(const IOSRequest& request);
 };
+}  // namespace HLE
+}  // namespace IOS

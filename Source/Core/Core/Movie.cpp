@@ -531,7 +531,7 @@ void ChangeWiiPads(bool instantly)
   {
     g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
     if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-      GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
+      IOS::HLE::GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
   }
 }
 

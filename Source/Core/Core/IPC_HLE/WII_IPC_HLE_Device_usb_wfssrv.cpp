@@ -14,13 +14,17 @@
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 
+namespace IOS
+{
+namespace HLE
+{
 namespace WFS
 {
 std::string NativePath(const std::string& wfs_path)
 {
   return File::GetUserPath(D_WFSROOT_IDX) + Common::EscapePath(wfs_path);
 }
-}
+}  // namespace WFS
 
 CWII_IPC_HLE_Device_usb_wfssrv::CWII_IPC_HLE_Device_usb_wfssrv(u32 device_id,
                                                                const std::string& device_name)
@@ -223,3 +227,5 @@ bool CWII_IPC_HLE_Device_usb_wfssrv::FileDescriptor::Open()
 
   return file.Open(WFS::NativePath(path), mode_string);
 }
+}  // namespace HLE
+}  // namespace IOS

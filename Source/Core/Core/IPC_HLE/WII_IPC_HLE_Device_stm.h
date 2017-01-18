@@ -10,6 +10,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
+namespace IOS
+{
+namespace HLE
+{
 enum
 {
   IOCTL_STM_EVENTHOOK = 0x1000,
@@ -65,3 +69,5 @@ public:
 private:
   void TriggerEvent(u32 event) const;
 };
+}  // namespace HLE
+}  // namespace IOS

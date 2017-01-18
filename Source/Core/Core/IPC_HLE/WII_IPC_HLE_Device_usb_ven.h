@@ -10,6 +10,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
+namespace IOS
+{
+namespace HLE
+{
 class CWII_IPC_HLE_Device_usb_ven final : public IWII_IPC_HLE_Device
 {
 public:
@@ -35,3 +39,5 @@ private:
     USBV5_IOCTL_BULKMSG = 21
   };
 };
+}  // namespace HLE
+}  // namespace IOS

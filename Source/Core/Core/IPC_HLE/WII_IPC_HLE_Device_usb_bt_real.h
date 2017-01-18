@@ -22,6 +22,10 @@ struct libusb_device;
 struct libusb_device_handle;
 struct libusb_transfer;
 
+namespace IOS
+{
+namespace HLE
+{
 enum class SyncButtonState
 {
   Unpressed,
@@ -96,9 +100,17 @@ private:
   static void CommandCallback(libusb_transfer* transfer);
   static void TransferCallback(libusb_transfer* transfer);
 };
+}  // namespace HLE
+}  // namespace IOS
 
 #else
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.h"
 
+namespace IOS
+{
+namespace HLE
+{
 using CWII_IPC_HLE_Device_usb_oh1_57e_305_real = CWII_IPC_HLE_Device_usb_oh1_57e_305_stub;
+}  // namespace HLE
+}  // namespace IOS
 #endif

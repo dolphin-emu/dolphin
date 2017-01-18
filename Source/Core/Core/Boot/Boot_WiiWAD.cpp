@@ -87,7 +87,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   File::CreateFullPath(Common::GetTitleDataPath(titleID, Common::FROM_SESSION_ROOT));
 
   if (titleID == TITLEID_SYSMENU)
-    HLE_IPC_CreateVirtualFATFilesystem();
+    IOS::HLE::HLE_IPC_CreateVirtualFATFilesystem();
   // setup Wii memory
   if (!SetupWiiMemory())
     return false;
@@ -97,7 +97,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   if (pContent == nullptr)
     return false;
 
-  WII_IPC_HLE_Interface::SetDefaultContentFile(_pFilename);
+  IOS::HLE::SetDefaultContentFile(_pFilename);
 
   std::unique_ptr<CDolLoader> pDolLoader = std::make_unique<CDolLoader>(pContent->m_Data->Get());
   if (!pDolLoader->IsValid())

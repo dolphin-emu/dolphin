@@ -8,10 +8,12 @@
 
 #include "Common/CommonTypes.h"
 
-enum MACConsumer
+namespace Common
 {
-  BBA = 0,
-  IOS = 1
+enum class MACConsumer
+{
+  BBA,
+  IOS
 };
 
 enum
@@ -22,3 +24,4 @@ enum
 void GenerateMacAddress(const MACConsumer type, u8* mac);
 std::string MacAddressToString(const u8* mac);
 bool StringToMacAddress(const std::string& mac_string, u8* mac);
+}  // namespace Common

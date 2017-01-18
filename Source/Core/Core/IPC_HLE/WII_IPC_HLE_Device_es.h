@@ -22,6 +22,10 @@ class CNANDContentLoader;
 struct SNANDContent;
 }
 
+namespace IOS
+{
+namespace HLE
+{
 class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
 {
 public:
@@ -162,3 +166,5 @@ private:
     u8 padding[0x3c];
   };
 };
+}  // namespace HLE
+}  // namespace IOS

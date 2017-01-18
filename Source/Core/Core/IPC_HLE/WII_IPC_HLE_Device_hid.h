@@ -28,6 +28,10 @@ struct libusb_endpoint_descriptor;
 struct libusb_interface_descriptor;
 struct libusb_transfer;
 
+namespace IOS
+{
+namespace HLE
+{
 #define HID_ID_MASK 0x0000FFFFFFFFFFFF
 #define MAX_HID_INTERFACES 1
 
@@ -136,3 +140,5 @@ private:
   std::thread usb_thread;
   bool usb_thread_running;
 };
+}  // namespace HLE
+}  // namespace IOS

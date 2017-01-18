@@ -18,6 +18,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_wfssrv.h"
 #include "DiscIO/NANDContentLoader.h"
 
+namespace IOS
+{
+namespace HLE
+{
 void ARCUnpacker::Reset()
 {
   m_whole_file.clear();
@@ -240,3 +244,5 @@ IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(const IOSIOCtlRequest& request)
 
   return GetDefaultReply(return_error_code);
 }
+}  // namespace HLE
+}  // namespace IOS

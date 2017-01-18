@@ -22,6 +22,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
+namespace IOS
+{
+namespace HLE
+{
 #define NET_SSL_MAXINSTANCES 4
 
 #define SSLID_VALID(x)                                                                             \
@@ -94,3 +98,5 @@ public:
 
   static WII_SSL _SSL[NET_SSL_MAXINSTANCES];
 };
+}  // namespace HLE
+}  // namespace IOS

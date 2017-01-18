@@ -17,6 +17,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.h"
 
+namespace IOS
+{
+namespace HLE
+{
 CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(const u32 device_id,
                                                                const std::string& device_name)
     : IWII_IPC_HLE_Device(device_id, device_name)
@@ -45,7 +49,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
   if ((SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_INSERT) ||
       (!SConfig::GetInstance().m_WiiSDCard && m_event->type == EVENT_REMOVE))
   {
-    WII_IPC_HLE_Interface::EnqueueReply(m_event->request, m_event->type);
+    EnqueueReply(m_event->request, m_event->type);
     m_event.reset();
   }
 }
@@ -391,7 +395,7 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(const IOSRequest& request, u3
     // release returns 0
     // unknown sd int
     // technically we do it out of order, oh well
-    WII_IPC_HLE_Interface::EnqueueReply(m_event->request, EVENT_INVALID);
+    EnqueueReply(m_event->request, EVENT_INVALID);
     m_event.reset();
     break;
   }
@@ -403,3 +407,5 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(const IOSRequest& request, u3
 
   return ret;
 }
+}  // namespace HLE
+}  // namespace IOS

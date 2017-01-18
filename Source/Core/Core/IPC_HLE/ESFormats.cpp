@@ -12,6 +12,10 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
+namespace IOS
+{
+namespace HLE
+{
 TMDReader::TMDReader(const std::vector<u8>& bytes) : m_bytes(bytes)
 {
 }
@@ -94,3 +98,5 @@ void TMDReader::DoState(PointerWrap& p)
 {
   p.Do(m_bytes);
 }
+}  // namespace HLE
+}  // namespace IOS

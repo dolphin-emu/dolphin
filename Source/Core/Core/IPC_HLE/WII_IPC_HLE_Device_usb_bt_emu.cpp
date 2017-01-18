@@ -28,6 +28,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
+namespace IOS
+{
+namespace HLE
+{
 SQueuedEvent::SQueuedEvent(u32 size, u16 handle) : m_size(size), m_connectionHandle(handle)
 {
   if (m_size > 1024)
@@ -267,8 +271,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendACLPacket(u16 connection_handl
     // Write the packet to the buffer
     memcpy(reinterpret_cast<u8*>(header) + sizeof(hci_acldata_hdr_t), data, header->length);
 
-    WII_IPC_HLE_Interface::EnqueueReply(m_ACLEndpoint->ios_request,
-                                        sizeof(hci_acldata_hdr_t) + size);
+    EnqueueReply(m_ACLEndpoint->ios_request, sizeof(hci_acldata_hdr_t) + size);
     m_ACLEndpoint.reset();
   }
   else
@@ -295,8 +298,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
       DEBUG_LOG(WII_IPC_WIIMOTE, "HCI endpoint valid, sending packet to %08x",
                 m_HCIEndpoint->ios_request.address);
       m_HCIEndpoint->FillBuffer(_event.m_buffer, _event.m_size);
+
       // Send a reply to indicate HCI buffer is filled
-      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request, _event.m_size);
+      EnqueueReply(m_HCIEndpoint->ios_request, _event.m_size);
       m_HCIEndpoint.reset();
     }
     else  // push new one, pop oldest
@@ -310,8 +314,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::AddEventToQueue(const SQueuedEvent
                 ((hci_event_hdr_t*)event.m_buffer)->event, m_EventQueue.size() - 1,
                 m_HCIEndpoint->ios_request.address);
       m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
+
       // Send a reply to indicate HCI buffer is filled
-      WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
+      EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
       m_HCIEndpoint.reset();
       m_EventQueue.pop_front();
     }
@@ -335,8 +340,9 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::Update()
               ((hci_event_hdr_t*)event.m_buffer)->event, m_EventQueue.size() - 1,
               m_HCIEndpoint->ios_request.address);
     m_HCIEndpoint->FillBuffer(event.m_buffer, event.m_size);
+
     // Send a reply to indicate HCI buffer is filled
-    WII_IPC_HLE_Interface::EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
+    EnqueueReply(m_HCIEndpoint->ios_request, event.m_size);
     m_HCIEndpoint.reset();
     m_EventQueue.pop_front();
   }
@@ -432,7 +438,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ACLPool::WriteToEndpoint(CtrlBuffe
 
   m_queue.pop_front();
 
-  WII_IPC_HLE_Interface::EnqueueReply(endpoint.ios_request, sizeof(hci_acldata_hdr_t) + size);
+  EnqueueReply(endpoint.ios_request, sizeof(hci_acldata_hdr_t) + size);
 }
 
 bool CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::SendEventInquiryComplete()
@@ -1152,7 +1158,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::ExecuteHCICommandMessage(
   }
 
   // HCI command is finished, send a reply to command
-  WII_IPC_HLE_Interface::EnqueueReply(ctrl_message.ios_request, ctrl_message.length);
+  EnqueueReply(ctrl_message.ios_request, ctrl_message.length);
 }
 
 //
@@ -1806,3 +1812,5 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_emu::DisplayDisconnectMessage(const int
   Core::DisplayMessage(
       StringFromFormat("Wii Remote %i disconnected by emulated software", wiimoteNumber), 3000);
 }
+}  // namespace HLE
+}  // namespace IOS

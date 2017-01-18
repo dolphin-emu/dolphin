@@ -143,7 +143,7 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
   {
     Core::QueueHostJob([=] {
       bool was_unpaused = Core::PauseAndLock(true);
-      GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+      IOS::HLE::GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
       Host_UpdateMainFrame();
       Core::PauseAndLock(false, was_unpaused);
     });
@@ -237,9 +237,10 @@ class PlatformX11 : public Platform
     {
       if (s_shutdown_requested.TestAndClear())
       {
-        const auto& stm = WII_IPC_HLE_Interface::GetDeviceByName("/dev/stm/eventhook");
+        const auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
         if (!s_tried_graceful_shutdown.IsSet() && stm &&
-            std::static_pointer_cast<CWII_IPC_HLE_Device_stm_eventhook>(stm)->HasHookInstalled())
+            std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_stm_eventhook>(stm)
+                ->HasHookInstalled())
         {
           ProcessorInterface::PowerButton_Tap();
           s_tried_graceful_shutdown.Set();

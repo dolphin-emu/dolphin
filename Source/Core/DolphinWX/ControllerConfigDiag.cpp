@@ -527,9 +527,9 @@ void ControllerConfigDiag::OnPassthroughScanButton(wxCommandEvent& event)
                  _("Sync Wii Remotes"), wxICON_WARNING);
     return;
   }
-  auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
+  auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
   if (device != nullptr)
-    std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
+    std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
         ->TriggerSyncButtonPressedEvent();
 }
 
@@ -541,9 +541,9 @@ void ControllerConfigDiag::OnPassthroughResetButton(wxCommandEvent& event)
                  _("Reset Wii Remote pairings"), wxICON_WARNING);
     return;
   }
-  auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
+  auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
   if (device != nullptr)
-    std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
+    std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
         ->TriggerSyncButtonHeldEvent();
 }
 

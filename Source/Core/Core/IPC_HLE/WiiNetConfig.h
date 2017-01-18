@@ -7,6 +7,10 @@
 #include <string>
 #include "Common/CommonTypes.h"
 
+namespace IOS
+{
+namespace HLE
+{
 namespace Net
 {
 #pragma pack(push, 1)
@@ -135,3 +139,5 @@ private:
   ConfigData m_data;
 };
 }  // namespace Net
+}  // namespace HLE
+}  // namespace IOS

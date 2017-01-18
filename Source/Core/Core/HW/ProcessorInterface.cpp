@@ -212,10 +212,10 @@ static void IOSNotifyResetButtonCallback(u64 userdata, s64 cyclesLate)
 {
   if (SConfig::GetInstance().bWii)
   {
-    std::shared_ptr<IWII_IPC_HLE_Device> stm =
-        WII_IPC_HLE_Interface::GetDeviceByName("/dev/stm/eventhook");
+    std::shared_ptr<IOS::HLE::IWII_IPC_HLE_Device> stm =
+        IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
     if (stm)
-      std::static_pointer_cast<CWII_IPC_HLE_Device_stm_eventhook>(stm)->ResetButton();
+      std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_stm_eventhook>(stm)->ResetButton();
   }
 }
 
@@ -223,10 +223,10 @@ static void IOSNotifyPowerButtonCallback(u64 userdata, s64 cyclesLate)
 {
   if (SConfig::GetInstance().bWii)
   {
-    std::shared_ptr<IWII_IPC_HLE_Device> stm =
-        WII_IPC_HLE_Interface::GetDeviceByName("/dev/stm/eventhook");
+    std::shared_ptr<IOS::HLE::IWII_IPC_HLE_Device> stm =
+        IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
     if (stm)
-      std::static_pointer_cast<CWII_IPC_HLE_Device_stm_eventhook>(stm)->PowerButton();
+      std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_stm_eventhook>(stm)->PowerButton();
   }
 }
 

@@ -10,6 +10,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device.h"
 
+namespace IOS
+{
+namespace HLE
+{
 class CWII_IPC_HLE_Device_stub : public IWII_IPC_HLE_Device
 {
 public:
@@ -20,3 +24,5 @@ public:
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
 };
+}  // namespace HLE
+}  // namespace IOS

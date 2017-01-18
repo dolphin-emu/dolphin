@@ -12,6 +12,10 @@
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 
+namespace IOS
+{
+namespace HLE
+{
 namespace Net
 {
 WiiNetConfig::WiiNetConfig()
@@ -71,3 +75,5 @@ void WiiNetConfig::ReadFromMem(const u32 address)
   Memory::CopyFromEmu(&m_data, address, sizeof(m_data));
 }
 }  // namespace Net
+}  // namespace HLE
+}  // namespace IOS

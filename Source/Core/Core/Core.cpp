@@ -544,7 +544,7 @@ void EmuThread()
     // Activate Wiimotes which don't have source set to "None"
     for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
       if (g_wiimote_sources[i])
-        GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
+        IOS::HLE::GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
   }
 
   AudioCommon::InitSoundStream();
@@ -985,7 +985,7 @@ void UpdateWantDeterminism(bool initial)
     bool was_unpaused = Core::PauseAndLock(true);
 
     g_want_determinism = new_want_determinism;
-    WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
+    IOS::HLE::WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
     Fifo::UpdateWantDeterminism(new_want_determinism);
     // We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use
     // of FMA.

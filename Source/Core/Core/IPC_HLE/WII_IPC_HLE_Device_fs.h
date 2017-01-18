@@ -12,6 +12,10 @@
 
 class PointerWrap;
 
+namespace IOS
+{
+namespace HLE
+{
 struct NANDStat
 {
   u32 BlockSize;
@@ -52,3 +56,5 @@ private:
   IPCCommandResult GetFSReply(s32 return_value) const;
   s32 ExecuteCommand(const IOSIOCtlRequest& request);
 };
+}  // namespace HLE
+}  // namespace IOS

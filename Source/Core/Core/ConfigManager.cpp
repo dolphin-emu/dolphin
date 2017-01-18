@@ -375,7 +375,7 @@ void SConfig::SaveSettingsToSysconf()
   sysconf.SetData<u8>("IPL.IDL", 0x00);
   NOTICE_LOG(COMMON, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
 
-  RestoreBTInfoSection(&sysconf);
+  IOS::HLE::RestoreBTInfoSection(&sysconf);
 
   sysconf.Save();
 }

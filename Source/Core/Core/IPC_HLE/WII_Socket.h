@@ -56,6 +56,10 @@ typedef struct pollfd pollfd_t;
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net.h"
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 
+namespace IOS
+{
+namespace HLE
+{
 enum
 {
   SO_MSG_OOB = 0x01,
@@ -230,7 +234,7 @@ public:
     {
       ERROR_LOG(WII_IPC_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock,
                 request.address, type);
-      WII_IPC_HLE_Interface::EnqueueReply(request, -SO_EBADF);
+      EnqueueReply(request, -SO_EBADF);
     }
     else
     {
@@ -246,3 +250,5 @@ private:
   std::unordered_map<s32, WiiSocket> WiiSockets;
   s32 errno_last;
 };
+}  // namespace HLE
+}  // namespace IOS

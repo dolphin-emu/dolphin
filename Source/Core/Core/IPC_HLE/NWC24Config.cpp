@@ -12,6 +12,10 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 
+namespace IOS
+{
+namespace HLE
+{
 namespace NWC24
 {
 NWC24Config::NWC24Config()
@@ -215,3 +219,5 @@ void NWC24Config::SetEmail(const char* email)
   m_data.email[MAX_EMAIL_LENGTH - 1] = '\0';
 }
 }  // namespace NWC24
+}  // namespace HLE
+}  // namespace IOS

@@ -14,6 +14,10 @@
 class PointerWrap;
 class SysConf;
 
+namespace IOS
+{
+namespace HLE
+{
 void BackUpBTInfoSection(SysConf* sysconf);
 void RestoreBTInfoSection(SysConf* sysconf);
 
@@ -71,3 +75,5 @@ protected:
     u32 m_payload_addr = 0;
   };
 };
+}  // namespace HLE
+}  // namespace IOS

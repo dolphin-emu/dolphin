@@ -12,8 +12,13 @@
 #include "Common/CommonTypes.h"
 #include "Core/IPC_HLE/hci.h"
 
-class CWII_IPC_HLE_Device_usb_oh1_57e_305_emu;
 class PointerWrap;
+
+namespace IOS
+{
+namespace HLE
+{
+class CWII_IPC_HLE_Device_usb_oh1_57e_305_emu;
 
 CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* GetUsbPointer();
 void SetUsbPointer(CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* ptr);
@@ -134,3 +139,5 @@ private:
                                        u16 _StartAttrID, u16 _EndAttrID,
                                        u16 _MaximumAttributeByteCount, u8* _pContinuationState);
 };
+}  // namespace HLE
+}  // namespace IOS

@@ -59,6 +59,10 @@ typedef struct pollfd pollfd_t;
 #define UNSUPPORTED_WSAPOLL 0
 #endif
 
+namespace IOS
+{
+namespace HLE
+{
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
 CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(
@@ -287,7 +291,7 @@ s32 CWII_IPC_HLE_Device_net_kd_request::NWC24MakeUserID(u64* nwc24_id, u32 holly
 
 static void SaveMacAddress(u8* mac)
 {
-  SConfig::GetInstance().m_WirelessMac = MacAddressToString(mac);
+  SConfig::GetInstance().m_WirelessMac = Common::MacAddressToString(mac);
   SConfig::GetInstance().SaveSettings();
 }
 
@@ -300,18 +304,18 @@ static void GetMacAddress(u8* mac)
   if (Core::g_want_determinism)
     wireless_mac = "12:34:56:78:9a:bc";
 
-  if (!StringToMacAddress(wireless_mac, mac))
+  if (!Common::StringToMacAddress(wireless_mac, mac))
   {
-    GenerateMacAddress(IOS, mac);
+    Common::GenerateMacAddress(Common::MACConsumer::IOS, mac);
     SaveMacAddress(mac);
     if (!wireless_mac.empty())
     {
       ERROR_LOG(WII_IPC_NET, "The MAC provided (%s) is invalid. We have "
                              "generated another one for you.",
-                MacAddressToString(mac).c_str());
+                Common::MacAddressToString(mac).c_str());
     }
   }
-  INFO_LOG(WII_IPC_NET, "Using MAC address: %s", MacAddressToString(mac).c_str());
+  INFO_LOG(WII_IPC_NET, "Using MAC address: %s", Common::MacAddressToString(mac).c_str());
 }
 
 // **********************************************************************************
@@ -374,7 +378,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(const IOSIOCtlVReque
   case IOCTLV_NCD_GETWIRELESSMACADDRESS:
     INFO_LOG(WII_IPC_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
 
-    u8 address[MAC_ADDRESS_SIZE];
+    u8 address[Common::MAC_ADDRESS_SIZE];
     GetMacAddress(address);
     Memory::CopyToEmu(request.io_vectors.at(1).address, address, sizeof(address));
     break;
@@ -448,7 +452,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::IOCtlV(const IOSIOCtlVReque
     memcpy(info->country, "US", 2);
     info->ntr_allowed_channels = Common::swap16(0xfffe);
 
-    u8 address[MAC_ADDRESS_SIZE];
+    u8 address[Common::MAC_ADDRESS_SIZE];
     GetMacAddress(address);
     memcpy(info->mac, address, sizeof(info->mac));
   }
@@ -1165,7 +1169,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(const IOSIOCtlVRequest& 
       break;
 
     case 0x1004:  // mac address
-      u8 address[MAC_ADDRESS_SIZE];
+      u8 address[Common::MAC_ADDRESS_SIZE];
       GetMacAddress(address);
       Memory::CopyToEmu(request.io_vectors[0].address, address, sizeof(address));
       break;
@@ -1373,3 +1377,5 @@ void CWII_IPC_HLE_Device_net_ip_top::Update()
 {
   WiiSockMan::GetInstance().Update();
 }
+}  // namespace HLE
+}  // namespace IOS

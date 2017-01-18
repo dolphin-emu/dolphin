@@ -1155,9 +1155,9 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
 
   case ReplyType::IOS_HLE:
   {
-    std::shared_ptr<IWII_IPC_HLE_Device> di = WII_IPC_HLE_Interface::GetDeviceByName("/dev/di");
+    std::shared_ptr<IOS::HLE::IWII_IPC_HLE_Device> di = IOS::HLE::GetDeviceByName("/dev/di");
     if (di)
-      std::static_pointer_cast<CWII_IPC_HLE_Device_di>(di)->FinishIOCtl(interrupt_type);
+      std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_di>(di)->FinishIOCtl(interrupt_type);
     break;
   }
 

@@ -17,6 +17,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
 #include "DiscIO/Volume.h"
 
+namespace IOS
+{
+namespace HLE
+{
 CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName)
     : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
 {
@@ -74,7 +78,7 @@ void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt
   // This command has been executed, so it's removed from the queue
   u32 command_address = m_commands_to_execute.front();
   m_commands_to_execute.pop_front();
-  WII_IPC_HLE_Interface::EnqueueReply(IOSIOCtlRequest{command_address}, interrupt_type);
+  EnqueueReply(IOSIOCtlRequest{command_address}, interrupt_type);
 
   // DVDInterface is now ready to execute another command,
   // so we start executing a command from the queue if there is one
@@ -107,7 +111,7 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(const IOSIOCtlVRequest& request)
     // Read TMD to the buffer
     std::vector<u8> tmd_buffer = DVDInterface::GetVolume().GetTMD();
     Memory::CopyToEmu(request.io_vectors[0].address, tmd_buffer.data(), tmd_buffer.size());
-    WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
+    ES_DIVerify(tmd_buffer);
 
     return_value = 1;
     break;
@@ -117,3 +121,5 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(const IOSIOCtlVRequest& request)
   }
   return GetDefaultReply(return_value);
 }
+}  // namespace HLE
+}  // namespace IOS

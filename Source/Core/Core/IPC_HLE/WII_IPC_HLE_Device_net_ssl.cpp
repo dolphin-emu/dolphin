@@ -16,6 +16,10 @@
 #include "Core/IPC_HLE/WII_IPC_HLE_Device_net_ssl.h"
 #include "Core/IPC_HLE/WII_Socket.h"
 
+namespace IOS
+{
+namespace HLE
+{
 WII_SSL CWII_IPC_HLE_Device_net_ssl::_SSL[NET_SSL_MAXINSTANCES];
 
 static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
@@ -494,3 +498,5 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(const IOSIOCtlVRequest& req
   // SSL return codes are written to BufferIn
   return GetDefaultReply(IPC_SUCCESS);
 }
+}  // namespace HLE
+}  // namespace IOS
