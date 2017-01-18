@@ -4,7 +4,6 @@
 
 #include <array>
 
-#include "Common/MsgHandler.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
@@ -358,6 +357,15 @@ static std::array<GekkoOPTemplate, 10> table63_2 =
 
 namespace InterpreterTables
 {
+constexpr size_t TotalInstructionFunctionCount()
+{
+  return primarytable.size() + table4_2.size() + table4_3.size() + table4.size() + table31.size() +
+         table19.size() + table59.size() + table63.size() + table63_2.size();
+}
+
+static_assert(TotalInstructionFunctionCount() < m_allInstructions.size(),
+              "m_allInstructions is too small");
+
 void InitTables()
 {
   // once initialized, tables are read-only
@@ -483,11 +491,6 @@ void InitTables()
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
   for (auto& tpl : table63_2)
     m_allInstructions[m_numInstructions++] = &tpl.opinfo;
-
-  if (m_numInstructions >= 512)
-  {
-    PanicAlert("m_allInstructions underdimensioned");
-  }
 
   initialized = true;
 }
