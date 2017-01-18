@@ -150,6 +150,11 @@ void IRBuilder::Reset()
   MarkUsed.clear();
   MarkUsed.reserve(100000);
 
+  InvalidateCaches();
+}
+
+void IRBuilder::InvalidateCaches()
+{
   GRegCache = {};
   GRegCacheStore = {};
 
@@ -1209,25 +1214,7 @@ InstLoc IRBuilder::FoldICmpCRUnsigned(InstLoc Op1, InstLoc Op2)
 
 InstLoc IRBuilder::FoldFallBackToInterpreter(InstLoc Op1, InstLoc Op2)
 {
-  for (unsigned i = 0; i < 32; i++)
-  {
-    GRegCache[i] = nullptr;
-    GRegCacheStore[i] = nullptr;
-    FRegCache[i] = nullptr;
-    FRegCacheStore[i] = nullptr;
-  }
-
-  CarryCache = nullptr;
-  CarryCacheStore = nullptr;
-
-  for (unsigned i = 0; i < 8; i++)
-  {
-    CRCache[i] = nullptr;
-    CRCacheStore[i] = nullptr;
-  }
-
-  CTRCache = nullptr;
-  CTRCacheStore = nullptr;
+  InvalidateCaches();
   return EmitBiOp(FallBackToInterpreter, Op1, Op2);
 }
 

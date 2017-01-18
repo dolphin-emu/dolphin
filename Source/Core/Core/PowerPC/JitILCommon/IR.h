@@ -388,6 +388,8 @@ public:
   void WriteToFile(u64 codeHash);
 
 private:
+  void InvalidateCaches();
+
   InstLoc EmitZeroOp(unsigned Opcode, unsigned extra);
   InstLoc EmitUOp(unsigned OpCode, InstLoc Op1, unsigned extra = 0);
   InstLoc EmitBiOp(unsigned OpCode, InstLoc Op1, InstLoc Op2, unsigned extra = 0);
