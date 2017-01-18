@@ -470,7 +470,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::LoadLinkKeys()
       continue;
 
     btaddr_t address;
-    StringToMacAddress(pair.substr(0, index), address.data());
+    Common::StringToMacAddress(pair.substr(0, index), address.data());
     std::reverse(address.begin(), address.end());
 
     const std::string& key_string = pair.substr(index + 1);
@@ -495,7 +495,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SaveLinkKeys()
     btaddr_t address;
     // Reverse the address so that it is stored in the correct order in the config file
     std::reverse_copy(entry.first.begin(), entry.first.end(), address.begin());
-    oss << MacAddressToString(address.data());
+    oss << Common::MacAddressToString(address.data());
     oss << '=';
     oss << std::hex;
     for (const u16& data : entry.second)
