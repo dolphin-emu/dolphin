@@ -20,8 +20,6 @@ public:
   void ClearCache() override;
   const char* GetName() override;
 
-  static bool m_EndBlock;
-
   static void unknown_instruction(UGeckoInstruction _inst);
 
   // Branch Instructions
@@ -302,6 +300,8 @@ private:
 
   static void Helper_FloatCompareOrdered(UGeckoInstruction _inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction _inst, double a, double b);
+
+  static bool m_EndBlock;
 
   // TODO: These should really be in the save state, although it's unlikely to matter much.
   // They are for lwarx and its friend stwcxd.
