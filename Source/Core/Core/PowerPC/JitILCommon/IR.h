@@ -185,22 +185,22 @@ enum Opcode
 using Inst = u32;
 using InstLoc = Inst*;
 
-unsigned inline getOpcode(Inst i)
+constexpr u32 getOpcode(Inst i)
 {
   return i & 255;
 }
 
-unsigned inline isImm(Inst i)
+constexpr bool isImm(Inst i)
 {
   return getOpcode(i) >= CInt16 && getOpcode(i) <= CInt32;
 }
 
-unsigned inline isICmp(Inst i)
+constexpr bool isICmp(Inst i)
 {
   return getOpcode(i) >= ICmpEq && getOpcode(i) <= ICmpSle;
 }
 
-unsigned inline isFResult(Inst i)
+constexpr bool isFResult(Inst i)
 {
   return getOpcode(i) > FResult_Start && getOpcode(i) < FResult_End;
 }
