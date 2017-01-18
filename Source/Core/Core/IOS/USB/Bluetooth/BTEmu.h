@@ -18,6 +18,7 @@
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
+#include "Core/IOS/USB/USBV0.h"
 
 class PointerWrap;
 
@@ -70,9 +71,9 @@ private:
   // this is used to trigger connecting via ACL
   u8 m_ScanEnable = 0;
 
-  std::unique_ptr<CtrlMessage> m_CtrlSetup;
-  std::unique_ptr<CtrlBuffer> m_HCIEndpoint;
-  std::unique_ptr<CtrlBuffer> m_ACLEndpoint;
+  std::unique_ptr<USB::V0CtrlMessage> m_CtrlSetup;
+  std::unique_ptr<USB::V0IntrMessage> m_HCIEndpoint;
+  std::unique_ptr<USB::V0BulkMessage> m_ACLEndpoint;
   std::deque<SQueuedEvent> m_EventQueue;
 
   class ACLPool
@@ -90,7 +91,7 @@ private:
     ACLPool() : m_queue() {}
     void Store(const u8* data, const u16 size, const u16 conn_handle);
 
-    void WriteToEndpoint(CtrlBuffer& endpoint);
+    void WriteToEndpoint(USB::V0BulkMessage& endpoint);
 
     bool IsEmpty() const { return m_queue.empty(); }
     // For SaveStates
@@ -126,7 +127,7 @@ private:
   bool SendEventLinkKeyNotification(const u8 num_to_send);
 
   // Execute HCI Message
-  void ExecuteHCICommandMessage(const CtrlMessage& ctrl_message);
+  void ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl_message);
 
   // OGF 0x01 - Link control commands and return parameters
   void CommandWriteInquiryMode(const u8* input);

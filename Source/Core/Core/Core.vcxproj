@@ -183,6 +183,8 @@
     <ClCompile Include="IOS\Network\SSL.cpp" />
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp" />
     <ClCompile Include="IOS\STM\STM.cpp" />
+    <ClCompile Include="IOS\USB\Common.cpp" />
+    <ClCompile Include="IOS\USB\USBV0.cpp" />
     <ClCompile Include="IOS\USB\USB_HIDv4.cpp">
       <!--
       Disable "nonstandard extension used : zero-sized array in struct/union" warning,
@@ -412,6 +414,8 @@
     <ClInclude Include="IOS\Network\SSL.h" />
     <ClInclude Include="IOS\SDIO\SDIOSlot0.h" />
     <ClInclude Include="IOS\STM\STM.h" />
+    <ClInclude Include="IOS\USB\Common.h" />
+    <ClInclude Include="IOS\USB\USBV0.h" />
     <ClInclude Include="IOS\USB\USB_HIDv4.h" />
     <ClInclude Include="IOS\USB\USB_KBD.h" />
     <ClInclude Include="IOS\USB\USB_VEN.h" />

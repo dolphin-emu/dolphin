@@ -263,8 +263,7 @@ IPCCommandResult USB_HIDv4::IOCtlV(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-void USB_HIDv4::ConvertDeviceToWii(WiiHIDDeviceDescriptor* dest,
-                                   const struct libusb_device_descriptor* src)
+void USB_HIDv4::ConvertDeviceToWii(USB::DeviceDescriptor* dest, const libusb_device_descriptor* src)
 {
   dest->bLength = src->bLength;
   dest->bDescriptorType = src->bDescriptorType;
@@ -282,23 +281,22 @@ void USB_HIDv4::ConvertDeviceToWii(WiiHIDDeviceDescriptor* dest,
   dest->bNumConfigurations = src->bNumConfigurations;
 }
 
-void USB_HIDv4::ConvertConfigToWii(WiiHIDConfigDescriptor* dest,
-                                   const struct libusb_config_descriptor* src)
+void USB_HIDv4::ConvertConfigToWii(USB::ConfigDescriptor* dest, const libusb_config_descriptor* src)
 {
-  memcpy(dest, src, sizeof(WiiHIDConfigDescriptor));
+  memcpy(dest, src, sizeof(USB::ConfigDescriptor));
   dest->wTotalLength = Common::swap16(dest->wTotalLength);
 }
 
-void USB_HIDv4::ConvertInterfaceToWii(WiiHIDInterfaceDescriptor* dest,
-                                      const struct libusb_interface_descriptor* src)
+void USB_HIDv4::ConvertInterfaceToWii(USB::InterfaceDescriptor* dest,
+                                      const libusb_interface_descriptor* src)
 {
-  memcpy(dest, src, sizeof(WiiHIDInterfaceDescriptor));
+  memcpy(dest, src, sizeof(USB::InterfaceDescriptor));
 }
 
-void USB_HIDv4::ConvertEndpointToWii(WiiHIDEndpointDescriptor* dest,
-                                     const struct libusb_endpoint_descriptor* src)
+void USB_HIDv4::ConvertEndpointToWii(USB::EndpointDescriptor* dest,
+                                     const libusb_endpoint_descriptor* src)
 {
-  memcpy(dest, src, sizeof(WiiHIDEndpointDescriptor));
+  memcpy(dest, src, sizeof(USB::EndpointDescriptor));
   dest->wMaxPacketSize = Common::swap16(dest->wMaxPacketSize);
 }
 
@@ -330,7 +328,7 @@ void USB_HIDv4::FillOutDevices(const IOCtlRequest& request)
 
     OffsetBuffer += 4;  // skip devNum for now
 
-    WiiHIDDeviceDescriptor wii_device;
+    USB::DeviceDescriptor wii_device;
     ConvertDeviceToWii(&wii_device, &desc);
     Memory::CopyToEmu(OffsetBuffer, &wii_device, wii_device.bLength);
     OffsetBuffer += Common::AlignUp(wii_device.bLength, 4);
@@ -344,7 +342,7 @@ void USB_HIDv4::FillOutDevices(const IOCtlRequest& request)
       // do not try to use usb devices with more than one interface, games can crash
       if (cRet == 0 && config->bNumInterfaces <= MAX_HID_INTERFACES)
       {
-        WiiHIDConfigDescriptor wii_config;
+        USB::ConfigDescriptor wii_config;
         ConvertConfigToWii(&wii_config, config);
         Memory::CopyToEmu(OffsetBuffer, &wii_config, wii_config.bLength);
         OffsetBuffer += Common::AlignUp(wii_config.bLength, 4);
@@ -361,7 +359,7 @@ void USB_HIDv4::FillOutDevices(const IOCtlRequest& request)
             if (interface->bInterfaceClass == LIBUSB_CLASS_HID)
               isHID = true;
 
-            WiiHIDInterfaceDescriptor wii_interface;
+            USB::InterfaceDescriptor wii_interface;
             ConvertInterfaceToWii(&wii_interface, interface);
             Memory::CopyToEmu(OffsetBuffer, &wii_interface, wii_interface.bLength);
             OffsetBuffer += Common::AlignUp(wii_interface.bLength, 4);
@@ -370,7 +368,7 @@ void USB_HIDv4::FillOutDevices(const IOCtlRequest& request)
             {
               const struct libusb_endpoint_descriptor* endpoint = &interface->endpoint[e];
 
-              WiiHIDEndpointDescriptor wii_endpoint;
+              USB::EndpointDescriptor wii_endpoint;
               ConvertEndpointToWii(&wii_endpoint, endpoint);
               Memory::CopyToEmu(OffsetBuffer, &wii_endpoint, wii_endpoint.bLength);
               OffsetBuffer += Common::AlignUp(wii_endpoint.bLength, 4);

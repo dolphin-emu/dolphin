@@ -15,6 +15,7 @@
 #include "Common/Timer.h"
 #include "Core/IOS/IPC.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
+#include "Core/IOS/USB/USBV0.h"
 
 class PointerWrap;
 struct libusb_context;
@@ -85,11 +86,11 @@ private:
   void SendHCIResetCommand();
   void SendHCIDeleteLinkKeyCommand();
   bool SendHCIStoreLinkKeyCommand();
-  void FakeVendorCommandReply(CtrlBuffer& ctrl);
-  void FakeReadBufferSizeReply(CtrlBuffer& ctrl);
-  void FakeSyncButtonEvent(CtrlBuffer& ctrl, const u8* payload, u8 size);
-  void FakeSyncButtonPressedEvent(CtrlBuffer& ctrl);
-  void FakeSyncButtonHeldEvent(CtrlBuffer& ctrl);
+  void FakeVendorCommandReply(USB::V0IntrMessage& ctrl);
+  void FakeReadBufferSizeReply(USB::V0IntrMessage& ctrl);
+  void FakeSyncButtonEvent(USB::V0IntrMessage& ctrl, const u8* payload, u8 size);
+  void FakeSyncButtonPressedEvent(USB::V0IntrMessage& ctrl);
+  void FakeSyncButtonHeldEvent(USB::V0IntrMessage& ctrl);
 
   void LoadLinkKeys();
   void SaveLinkKeys();
