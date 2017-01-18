@@ -20,7 +20,7 @@ void Interpreter::bx(UGeckoInstruction _inst)
   else
     NPC = PC + SignExt26(_inst.LI << 2);
 
-  m_EndBlock = true;
+  m_end_block = true;
 
   if (NPC == PC)
   {
@@ -52,7 +52,7 @@ void Interpreter::bcx(UGeckoInstruction _inst)
       NPC = PC + SignExt16(_inst.BD << 2);
   }
 
-  m_EndBlock = true;
+  m_end_block = true;
 
   // this code trys to detect the most common idle loop:
   // lwz r0, XXXX(r13)
@@ -87,7 +87,7 @@ void Interpreter::bcctrx(UGeckoInstruction _inst)
       LR = PC + 4;
   }
 
-  m_EndBlock = true;
+  m_end_block = true;
 }
 
 void Interpreter::bclrx(UGeckoInstruction _inst)
@@ -105,12 +105,12 @@ void Interpreter::bclrx(UGeckoInstruction _inst)
       LR = PC + 4;
   }
 
-  m_EndBlock = true;
+  m_end_block = true;
 }
 
 void Interpreter::HLEFunction(UGeckoInstruction _inst)
 {
-  m_EndBlock = true;
+  m_end_block = true;
   HLE::Execute(PC, _inst.hex);
 }
 
@@ -129,7 +129,7 @@ void Interpreter::rfi(UGeckoInstruction _inst)
   // else
   // set NPC to saved offset and resume
   NPC = SRR0;
-  m_EndBlock = true;
+  m_end_block = true;
 }
 
 // sc isn't really used for anything important in GameCube games (just for a write barrier) so we
@@ -139,5 +139,5 @@ void Interpreter::sc(UGeckoInstruction _inst)
 {
   PowerPC::ppcState.Exceptions |= EXCEPTION_SYSCALL;
   PowerPC::CheckExceptions();
-  m_EndBlock = true;
+  m_end_block = true;
 }

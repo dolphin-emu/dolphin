@@ -12,8 +12,8 @@
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PowerPC.h"
 
-bool Interpreter::g_bReserve;
-u32 Interpreter::g_reserveAddr;
+bool Interpreter::m_reserve;
+u32 Interpreter::m_reserve_address;
 
 u32 Interpreter::Helper_Get_EA(const UGeckoInstruction _inst)
 {
@@ -743,8 +743,8 @@ void Interpreter::lwarx(UGeckoInstruction _inst)
   if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
   {
     rGPR[_inst.RD] = temp;
-    g_bReserve = true;
-    g_reserveAddr = uAddress;
+    m_reserve = true;
+    m_reserve_address = uAddress;
   }
 }
 
@@ -752,16 +752,16 @@ void Interpreter::stwcxd(UGeckoInstruction _inst)
 {
   // Stores Word Conditional indeXed
   u32 uAddress;
-  if (g_bReserve)
+  if (m_reserve)
   {
     uAddress = Helper_Get_EA_X(_inst);
 
-    if (uAddress == g_reserveAddr)
+    if (uAddress == m_reserve_address)
     {
       PowerPC::Write_U32(rGPR[_inst.RS], uAddress);
       if (!(PowerPC::ppcState.Exceptions & EXCEPTION_DSI))
       {
-        g_bReserve = false;
+        m_reserve = false;
         SetCRField(0, 2 | GetXER_SO());
         return;
       }

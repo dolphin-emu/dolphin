@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Gekko.h"
@@ -19,8 +21,6 @@ public:
   void Run() override;
   void ClearCache() override;
   const char* GetName() override;
-
-  static bool m_EndBlock;
 
   static void unknown_instruction(UGeckoInstruction _inst);
 
@@ -263,12 +263,12 @@ public:
   static void isync(UGeckoInstruction _inst);
 
   using Instruction = void (*)(UGeckoInstruction instCode);
-  static Instruction m_opTable[64];
-  static Instruction m_opTable4[1024];
-  static Instruction m_opTable19[1024];
-  static Instruction m_opTable31[1024];
-  static Instruction m_opTable59[32];
-  static Instruction m_opTable63[1024];
+  static std::array<Instruction, 64> m_op_table;
+  static std::array<Instruction, 1024> m_op_table4;
+  static std::array<Instruction, 1024> m_op_table19;
+  static std::array<Instruction, 1024> m_op_table31;
+  static std::array<Instruction, 32> m_op_table59;
+  static std::array<Instruction, 1024> m_op_table63;
 
   // singleton
   static Interpreter* getInstance();
@@ -303,8 +303,10 @@ private:
   static void Helper_FloatCompareOrdered(UGeckoInstruction _inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction _inst, double a, double b);
 
+  static bool m_end_block;
+
   // TODO: These should really be in the save state, although it's unlikely to matter much.
   // They are for lwarx and its friend stwcxd.
-  static bool g_bReserve;
-  static u32 g_reserveAddr;
+  static bool m_reserve;
+  static u32 m_reserve_address;
 };

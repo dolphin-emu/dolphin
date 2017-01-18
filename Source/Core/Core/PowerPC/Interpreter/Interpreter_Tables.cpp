@@ -367,22 +367,22 @@ void InitTables()
   // clear
   for (int i = 0; i < 64; i++)
   {
-    Interpreter::m_opTable[i] = Interpreter::unknown_instruction;
+    Interpreter::m_op_table[i] = Interpreter::unknown_instruction;
     m_infoTable[i] = &unknownopinfo;
   }
 
   for (int i = 0; i < 32; i++)
   {
-    Interpreter::m_opTable59[i] = Interpreter::unknown_instruction;
+    Interpreter::m_op_table59[i] = Interpreter::unknown_instruction;
     m_infoTable59[i] = &unknownopinfo;
   }
 
   for (int i = 0; i < 1024; i++)
   {
-    Interpreter::m_opTable4[i] = Interpreter::unknown_instruction;
-    Interpreter::m_opTable19[i] = Interpreter::unknown_instruction;
-    Interpreter::m_opTable31[i] = Interpreter::unknown_instruction;
-    Interpreter::m_opTable63[i] = Interpreter::unknown_instruction;
+    Interpreter::m_op_table4[i] = Interpreter::unknown_instruction;
+    Interpreter::m_op_table19[i] = Interpreter::unknown_instruction;
+    Interpreter::m_op_table31[i] = Interpreter::unknown_instruction;
+    Interpreter::m_op_table63[i] = Interpreter::unknown_instruction;
     m_infoTable4[i] = &unknownopinfo;
     m_infoTable19[i] = &unknownopinfo;
     m_infoTable31[i] = &unknownopinfo;
@@ -391,7 +391,7 @@ void InitTables()
 
   for (auto& tpl : primarytable)
   {
-    Interpreter::m_opTable[tpl.opcode] = tpl.Inst;
+    Interpreter::m_op_table[tpl.opcode] = tpl.Inst;
     m_infoTable[tpl.opcode] = &tpl.opinfo;
   }
 
@@ -401,7 +401,7 @@ void InitTables()
     for (auto& tpl : table4_2)
     {
       int op = fill + tpl.opcode;
-      Interpreter::m_opTable4[op] = tpl.Inst;
+      Interpreter::m_op_table4[op] = tpl.Inst;
       m_infoTable4[op] = &tpl.opinfo;
     }
   }
@@ -412,7 +412,7 @@ void InitTables()
     for (auto& tpl : table4_3)
     {
       int op = fill + tpl.opcode;
-      Interpreter::m_opTable4[op] = tpl.Inst;
+      Interpreter::m_op_table4[op] = tpl.Inst;
       m_infoTable4[op] = &tpl.opinfo;
     }
   }
@@ -420,35 +420,35 @@ void InitTables()
   for (auto& tpl : table4)
   {
     int op = tpl.opcode;
-    Interpreter::m_opTable4[op] = tpl.Inst;
+    Interpreter::m_op_table4[op] = tpl.Inst;
     m_infoTable4[op] = &tpl.opinfo;
   }
 
   for (auto& tpl : table31)
   {
     int op = tpl.opcode;
-    Interpreter::m_opTable31[op] = tpl.Inst;
+    Interpreter::m_op_table31[op] = tpl.Inst;
     m_infoTable31[op] = &tpl.opinfo;
   }
 
   for (auto& tpl : table19)
   {
     int op = tpl.opcode;
-    Interpreter::m_opTable19[op] = tpl.Inst;
+    Interpreter::m_op_table19[op] = tpl.Inst;
     m_infoTable19[op] = &tpl.opinfo;
   }
 
   for (auto& tpl : table59)
   {
     int op = tpl.opcode;
-    Interpreter::m_opTable59[op] = tpl.Inst;
+    Interpreter::m_op_table59[op] = tpl.Inst;
     m_infoTable59[op] = &tpl.opinfo;
   }
 
   for (auto& tpl : table63)
   {
     int op = tpl.opcode;
-    Interpreter::m_opTable63[op] = tpl.Inst;
+    Interpreter::m_op_table63[op] = tpl.Inst;
     m_infoTable63[op] = &tpl.opinfo;
   }
 
@@ -458,7 +458,7 @@ void InitTables()
     for (auto& tpl : table63_2)
     {
       int op = fill + tpl.opcode;
-      Interpreter::m_opTable63[op] = tpl.Inst;
+      Interpreter::m_op_table63[op] = tpl.Inst;
       m_infoTable63[op] = &tpl.opinfo;
     }
   }

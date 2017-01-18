@@ -74,15 +74,15 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
     switch (_inst.OPCD)
     {
     case 4:
-      return Interpreter::m_opTable4[_inst.SUBOP10];
+      return Interpreter::m_op_table4[_inst.SUBOP10];
     case 19:
-      return Interpreter::m_opTable19[_inst.SUBOP10];
+      return Interpreter::m_op_table19[_inst.SUBOP10];
     case 31:
-      return Interpreter::m_opTable31[_inst.SUBOP10];
+      return Interpreter::m_op_table31[_inst.SUBOP10];
     case 59:
-      return Interpreter::m_opTable59[_inst.SUBOP5];
+      return Interpreter::m_op_table59[_inst.SUBOP5];
     case 63:
-      return Interpreter::m_opTable63[_inst.SUBOP10];
+      return Interpreter::m_op_table63[_inst.SUBOP10];
     default:
       _assert_msg_(POWERPC, 0, "GetInterpreterOp - invalid subtable op %08x @ %08x", _inst.hex, PC);
       return nullptr;
@@ -95,7 +95,7 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
       _assert_msg_(POWERPC, 0, "GetInterpreterOp - invalid op %08x @ %08x", _inst.hex, PC);
       return nullptr;
     }
-    return Interpreter::m_opTable[_inst.OPCD];
+    return Interpreter::m_op_table[_inst.OPCD];
   }
 }
 namespace PPCTables
