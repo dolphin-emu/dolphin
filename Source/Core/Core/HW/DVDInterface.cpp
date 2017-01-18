@@ -24,8 +24,8 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/StreamADPCM.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
+#include "Core/IOS/DI/DI.h"
+#include "Core/IOS/IPC.h"
 #include "Core/Movie.h"
 
 #include "DiscIO/Enums.h"

@@ -11,8 +11,8 @@
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
+#include "Core/IOS/IPC.h"
+#include "Core/IOS/STM/STM.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace ProcessorInterface

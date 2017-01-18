@@ -25,9 +25,6 @@
     <Filter Include="HW %28Flipper/Hollywood%29">
       <UniqueIdentifier>{d060b137-c211-44eb-9cad-fc12dedbea73}</UniqueIdentifier>
     </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29">
-      <UniqueIdentifier>{becbad5b-2531-410c-b032-2da2f078b178}</UniqueIdentifier>
-    </Filter>
     <Filter Include="PowerPC">
       <UniqueIdentifier>{ebd24590-dfdc-433e-a411-21723e4b7cb5}</UniqueIdentifier>
     </Filter>
@@ -112,38 +109,41 @@
     <Filter Include="HW %28Flipper/Hollywood%29\Wii IPC">
       <UniqueIdentifier>{2b41ab45-ba8c-45dc-92cc-9107c1fa3e36}</UniqueIdentifier>
     </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\DI">
-      <UniqueIdentifier>{9370a21f-a7bf-4973-8258-290253617653}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\ES">
-      <UniqueIdentifier>{3f85582a-e612-4582-b0fa-ecc27ba3658c}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\FS">
-      <UniqueIdentifier>{1f5662c1-885f-4ed4-9f10-cc8e98eaa35d}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\Keyboard">
-      <UniqueIdentifier>{1fb00563-01ba-42c4-82de-2c66371e614a}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\Net">
-      <UniqueIdentifier>{4620ba8f-5638-4d56-941e-69fc4a4dfc07}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\SDIO - SD Card">
-      <UniqueIdentifier>{83c278e5-6b06-4cd0-96fb-2e3c88eb32d7}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\USB">
-      <UniqueIdentifier>{4a090016-76d5-43dd-95a4-abedfc11ef31}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\WFS">
-      <UniqueIdentifier>{f11746cf-277a-4d58-bcf1-578a45348b07}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote">
-      <UniqueIdentifier>{8352be4d-d37d-4f55-adec-b940a9712802}</UniqueIdentifier>
-    </Filter>
     <Filter Include="PowerPC\JitILCommon">
       <UniqueIdentifier>{827afa93-1a80-4835-93ae-b5516d95867f}</UniqueIdentifier>
     </Filter>
     <Filter Include="PowerPC\Jit64Common">
       <UniqueIdentifier>{81956f71-d9fe-454f-96a6-855195d611c4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS">
+      <UniqueIdentifier>{e14b3339-dc23-46d6-845d-7206dc4f88c3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\USB">
+      <UniqueIdentifier>{c1e2e0dc-30ac-44cd-9909-e5b594647a04}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\USB\Bluetooth">
+      <UniqueIdentifier>{5846b261-397e-4e2a-89e3-88d22ab927c5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\Network">
+      <UniqueIdentifier>{ab9cdd90-54d7-4f42-9248-d7903ce52cc8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\DI">
+      <UniqueIdentifier>{3db8c364-1d72-4660-9179-86d1c46904b9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\FS">
+      <UniqueIdentifier>{75be4669-90fe-4280-b0ea-df350f481357}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\ES">
+      <UniqueIdentifier>{7fae98ef-4b62-4701-8f08-c496bd1ce2a7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\SDIO">
+      <UniqueIdentifier>{b132ac6a-a02e-429e-858b-bfbc3fdc1851}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\STM">
+      <UniqueIdentifier>{2bfd4ecc-7225-48f0-91b9-efb42aaf71bf}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="IOS\WFS">
+      <UniqueIdentifier>{1fa9df3e-6741-4045-b2f6-457b4a0540a9}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -568,84 +568,6 @@
     <ClCompile Include="DSP\LabelMap.cpp">
       <Filter>DSPCore</Filter>
     </ClCompile>
-    <ClCompile Include="IPC_HLE\ESFormats.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stub.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_DI.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\DI</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_es.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_FileIO.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_fs.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Keyboard</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\ICMPWin.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\NWC24Config.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_Socket.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WiiNetConfig.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_stm.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_hid.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_base.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_emu.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_real.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_stub.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_wfssrv.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\WFS</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_wfsi.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\WFS</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_WiiMote.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClCompile>
-    <ClCompile Include="IPC_HLE\WiiMote_HID_Attr.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClCompile>
     <ClCompile Include="HW\Wiimote.cpp">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
     </ClCompile>
@@ -779,17 +701,89 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClCompile>
     <ClCompile Include="Analytics.cpp" />
-    <ClCompile Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.cpp">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
+    <ClCompile Include="IOS\USB\Bluetooth\BTBase.cpp">
+      <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp">
-      <Filter>PowerPC\SignatureDB</Filter>
+    <ClCompile Include="IOS\USB\Bluetooth\BTEmu.cpp">
+      <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp">
-      <Filter>PowerPC\SignatureDB</Filter>
+    <ClCompile Include="IOS\USB\Bluetooth\BTReal.cpp">
+      <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
-    <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp">
-      <Filter>PowerPC\SignatureDB</Filter>
+    <ClCompile Include="IOS\USB\Bluetooth\BTStub.cpp">
+      <Filter>IOS\USB\Bluetooth</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\Config.cpp">
+      <Filter>IOS\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Device.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\DeviceStub.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\DI\DI.cpp">
+      <Filter>IOS\DI</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\FileIO.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\ES.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\Formats.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\FS\FS.cpp">
+      <Filter>IOS\FS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\ICMPLin.cpp">
+      <Filter>IOS\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\IPC.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\Net.cpp">
+      <Filter>IOS\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\NWC24Config.cpp">
+      <Filter>IOS\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp">
+      <Filter>IOS\SDIO</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\Socket.cpp">
+      <Filter>IOS\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\SSL.cpp">
+      <Filter>IOS\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\STM\STM.cpp">
+      <Filter>IOS\STM</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\USB\USB_HIDv4.cpp">
+      <Filter>IOS\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\USB\USB_KBD.cpp">
+      <Filter>IOS\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\USB\USB_VEN.cpp">
+      <Filter>IOS\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\WFS\WFSI.cpp">
+      <Filter>IOS\WFS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\WFS\WFSSRV.cpp">
+      <Filter>IOS\WFS</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\USB\Bluetooth\WiimoteDevice.cpp">
+      <Filter>IOS\USB\Bluetooth</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\USB\Bluetooth\WiimoteHIDAttr.cpp">
+      <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
@@ -1174,90 +1168,6 @@
     <ClInclude Include="DSP\LabelMap.h">
       <Filter>DSPCore</Filter>
     </ClInclude>
-    <ClInclude Include="IPC_HLE\ESFormats.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE.h">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device.h">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stub.h">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_stm.h">
-      <Filter>IPC HLE %28IOS/Starlet%29</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_DI.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\DI</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_es.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\ES</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_FileIO.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_fs.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\FS</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_kbd.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Keyboard</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\ICMP.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\NWC24Config.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_net_ssl.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_Socket.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WiiNetConfig.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\Net</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_sdio_slot0.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\SDIO - SD Card</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_hid.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_base.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_emu.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_real.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_bt_stub.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_WiiMote.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\hci.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\l2cap.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WiiMote_HID_Attr.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB/BT/Wiimote</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_wfssrv.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\WFS</Filter>
-    </ClInclude>
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_wfsi.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\WFS</Filter>
-    </ClInclude>
     <ClInclude Include="HW\Wiimote.h">
       <Filter>HW %28Flipper/Hollywood%29\Wiimote</Filter>
     </ClInclude>
@@ -1356,17 +1266,98 @@
       <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
     <ClInclude Include="Analytics.h" />
-    <ClInclude Include="IPC_HLE\WII_IPC_HLE_Device_usb_ven.h">
-      <Filter>IPC HLE %28IOS/Starlet%29\USB</Filter>
+    <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
+    <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
+    <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
+    <ClInclude Include="IOS\USB\Bluetooth\BTBase.h">
+      <Filter>IOS\USB\Bluetooth</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h">
-      <Filter>PowerPC\SignatureDB</Filter>
+    <ClInclude Include="IOS\USB\Bluetooth\BTEmu.h">
+      <Filter>IOS\USB\Bluetooth</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h">
-      <Filter>PowerPC\SignatureDB</Filter>
+    <ClInclude Include="IOS\USB\Bluetooth\BTReal.h">
+      <Filter>IOS\USB\Bluetooth</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h">
-      <Filter>PowerPC\SignatureDB</Filter>
+    <ClInclude Include="IOS\USB\Bluetooth\BTStub.h">
+      <Filter>IOS\USB\Bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\Config.h">
+      <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\DeviceStub.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\DI\DI.h">
+      <Filter>IOS\DI</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\ES\ES.h">
+      <Filter>IOS\ES</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\FileIO.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\ES\Formats.h">
+      <Filter>IOS\ES</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\FS\FS.h">
+      <Filter>IOS\FS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\Bluetooth\hci.h">
+      <Filter>IOS\USB\Bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\ICMP.h">
+      <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\ICMPLin.h">
+      <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\Bluetooth\l2cap.h">
+      <Filter>IOS\USB\Bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\Net.h">
+      <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\NWC24Config.h">
+      <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\SDIO\SDIOSlot0.h">
+      <Filter>IOS\SDIO</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\Socket.h">
+      <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\SSL.h">
+      <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\STM\STM.h">
+      <Filter>IOS\STM</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\USB_HIDv4.h">
+      <Filter>IOS\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\USB_KBD.h">
+      <Filter>IOS\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\USB_VEN.h">
+      <Filter>IOS\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\WFS\WFSI.h">
+      <Filter>IOS\WFS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\WFS\WFSSRV.h">
+      <Filter>IOS\WFS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\Bluetooth\WiimoteDevice.h">
+      <Filter>IOS\USB\Bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\Bluetooth\WiimoteHIDAttr.h">
+      <Filter>IOS\USB\Bluetooth</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Device.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\IPC.h">
+      <Filter>IOS</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

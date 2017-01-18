@@ -13,7 +13,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IOS/IPC.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
