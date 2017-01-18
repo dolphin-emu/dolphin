@@ -325,7 +325,7 @@ inline u64 PPCCRToInternal(u8 value)
 }
 
 // convert flags into 64-bit CR values with a lookup table
-extern const u64 m_crTable[16];
+extern const std::array<u64, 16> m_crTable;
 
 // Warning: these CR operations are fairly slow since they need to convert from
 // PowerPC format (4 bit) to our internal 64 bit format. See the definition of

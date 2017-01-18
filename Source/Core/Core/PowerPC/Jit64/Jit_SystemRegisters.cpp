@@ -484,7 +484,7 @@ void Jit64::mtcrf(UGeckoInstruction inst)
     }
     else
     {
-      MOV(64, R(RSCRATCH2), ImmPtr(m_crTable));
+      MOV(64, R(RSCRATCH2), ImmPtr(m_crTable.data()));
       gpr.Lock(inst.RS);
       gpr.BindToRegister(inst.RS, true, false);
       for (int i = 0; i < 8; i++)
@@ -531,7 +531,7 @@ void Jit64::mcrxr(UGeckoInstruction inst)
   // [SO OV CA 0] << 3
   SHL(32, R(RSCRATCH), Imm8(4));
 
-  MOV(64, R(RSCRATCH2), ImmPtr(m_crTable));
+  MOV(64, R(RSCRATCH2), ImmPtr(m_crTable.data()));
   MOV(64, R(RSCRATCH), MRegSum(RSCRATCH, RSCRATCH2));
   MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
 
@@ -623,7 +623,7 @@ void Jit64::mcrfs(UGeckoInstruction inst)
   }
   AND(32, R(RSCRATCH), Imm32(mask));
   MOV(32, PPCSTATE(fpscr), R(RSCRATCH));
-  LEA(64, RSCRATCH, M(&m_crTable));
+  LEA(64, RSCRATCH, M(m_crTable.data()));
   MOV(64, R(RSCRATCH), MComplex(RSCRATCH, RSCRATCH2, SCALE_8, 0));
   MOV(64, PPCSTATE(cr_val[inst.CRFD]), R(RSCRATCH));
 }
