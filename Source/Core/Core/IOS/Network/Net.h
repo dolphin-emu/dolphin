@@ -164,7 +164,7 @@ public:
       break;
 
     default:
-      ERROR_LOG(WII_IPC_NET, "%s - unknown IOCtl: %x", GetDeviceName().c_str(), request.request);
+      ERROR_LOG(IOS_NET, "%s - unknown IOCtl: %x", GetDeviceName().c_str(), request.request);
       break;
     }
 

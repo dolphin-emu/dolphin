@@ -44,7 +44,7 @@ void WiiNetConfig::WriteConfig() const
     if (!File::CreateFullPath(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_SYSCONF_DIR
                                                                          "/net/02/"))
     {
-      ERROR_LOG(WII_IPC_NET, "Failed to create directory for network config file");
+      ERROR_LOG(IOS_NET, "Failed to create directory for network config file");
     }
   }
 

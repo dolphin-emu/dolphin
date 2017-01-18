@@ -160,7 +160,7 @@ IPCCommandResult Device::Unsupported(const IOSRequest& request)
                                                          {IPC_CMD_SEEK, "Seek"},
                                                          {IPC_CMD_IOCTL, "IOCtl"},
                                                          {IPC_CMD_IOCTLV, "IOCtlV"}}};
-  WARN_LOG(WII_IPC_HLE, "%s does not support %s()", m_name.c_str(), names[request.command].c_str());
+  WARN_LOG(IOS, "%s does not support %s()", m_name.c_str(), names[request.command].c_str());
   return GetDefaultReply(IPC_EINVAL);
 }
 

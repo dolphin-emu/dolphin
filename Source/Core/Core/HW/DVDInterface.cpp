@@ -729,7 +729,7 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address,
                     u32 output_length, bool reply_to_ios)
 {
-  ReplyType reply_type = reply_to_ios ? ReplyType::IOS_HLE : ReplyType::Interrupt;
+  ReplyType reply_type = reply_to_ios ? ReplyType::IOS : ReplyType::Interrupt;
   DIInterruptType interrupt_type = INT_TCINT;
   s64 ticks_until_completion = SystemTimers::GetTicksPerSecond() / 15000;
   bool command_handled_by_thread = false;
@@ -1153,7 +1153,7 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
     break;
   }
 
-  case ReplyType::IOS_HLE:
+  case ReplyType::IOS:
   {
     auto di = IOS::HLE::GetDeviceByName("/dev/di");
     if (di)

@@ -36,7 +36,7 @@ void NWC24Config::ReadConfig()
     {
       const s32 config_error = CheckNwc24Config();
       if (config_error)
-        ERROR_LOG(WII_IPC_WC24, "There is an error in the config for for WC24: %d", config_error);
+        ERROR_LOG(IOS_WC24, "There is an error in the config for for WC24: %d", config_error);
     }
   }
   else
@@ -51,7 +51,7 @@ void NWC24Config::WriteConfig() const
   {
     if (!File::CreateFullPath(File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/" WII_WC24CONF_DIR))
     {
-      ERROR_LOG(WII_IPC_WC24, "Failed to create directory for WC24");
+      ERROR_LOG(IOS_WC24, "Failed to create directory for WC24");
     }
   }
 
@@ -105,21 +105,21 @@ s32 NWC24Config::CheckNwc24Config() const
   // 'WcCf' magic
   if (Magic() != 0x57634366)
   {
-    ERROR_LOG(WII_IPC_WC24, "Magic mismatch");
+    ERROR_LOG(IOS_WC24, "Magic mismatch");
     return -14;
   }
 
   const u32 checksum = CalculateNwc24ConfigChecksum();
-  DEBUG_LOG(WII_IPC_WC24, "Checksum: %X", checksum);
+  DEBUG_LOG(IOS_WC24, "Checksum: %X", checksum);
   if (Checksum() != checksum)
   {
-    ERROR_LOG(WII_IPC_WC24, "Checksum mismatch expected %X and got %X", checksum, Checksum());
+    ERROR_LOG(IOS_WC24, "Checksum mismatch expected %X and got %X", checksum, Checksum());
     return -14;
   }
 
   if (IdGen() > 0x1F)
   {
-    ERROR_LOG(WII_IPC_WC24, "Id gen error");
+    ERROR_LOG(IOS_WC24, "Id gen error");
     return -14;
   }
 

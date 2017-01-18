@@ -50,7 +50,7 @@ static s32 TranslateErrorCode(s32 native_error, bool isRW)
   switch (native_error)
   {
   case ERRORCODE(EMSGSIZE):
-    ERROR_LOG(WII_IPC_NET, "Find out why this happened, looks like PEEK failure?");
+    ERROR_LOG(IOS_NET, "Find out why this happened, looks like PEEK failure?");
     return -1;  // Should be -SO_EMSGSIZE
   case EITHER(WSAENOTSOCK, EBADF):
     return -SO_EBADF;
@@ -103,7 +103,7 @@ s32 WiiSockMan::GetNetErrorCode(s32 ret, const char* caller, bool isRW)
     return ret;
   }
 
-  ERROR_LOG(WII_IPC_NET, "%s failed with error %d: %s, ret= %d", caller, errorCode,
+  ERROR_LOG(IOS_NET, "%s failed with error %d: %s, ret= %d", caller, errorCode,
             DecodeError(errorCode), ret);
 
   s32 ReturnValue = TranslateErrorCode(errorCode, isRW);
@@ -176,10 +176,10 @@ s32 WiiSocket::FCntl(u32 cmd, u32 arg)
   }
   else
   {
-    ERROR_LOG(WII_IPC_NET, "SO_FCNTL unknown command");
+    ERROR_LOG(IOS_NET, "SO_FCNTL unknown command");
   }
 
-  INFO_LOG(WII_IPC_NET, "IOCTL_SO_FCNTL(%08x, %08X, %08X)", fd, cmd, arg);
+  INFO_LOG(IOS_NET, "IOCTL_SO_FCNTL(%08x, %08X, %08X)", fd, cmd, arg);
 
   return ret;
 }
@@ -213,8 +213,8 @@ void WiiSocket::Update(bool read, bool write, bool except)
         int ret = bind(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_BIND", false);
 
-        INFO_LOG(WII_IPC_NET, "IOCTL_SO_BIND (%08X %s:%d) = %d ", fd,
-                 inet_ntoa(local_name.sin_addr), Common::swap16(local_name.sin_port), ret);
+        INFO_LOG(IOS_NET, "IOCTL_SO_BIND (%08X %s:%d) = %d ", fd, inet_ntoa(local_name.sin_addr),
+                 Common::swap16(local_name.sin_port), ret);
         break;
       }
       case IOCTL_SO_CONNECT:
@@ -226,7 +226,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
         int ret = connect(fd, (sockaddr*)&local_name, sizeof(local_name));
         ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_CONNECT", false);
 
-        INFO_LOG(WII_IPC_NET, "IOCTL_SO_CONNECT (%08x, %s:%d)", fd, inet_ntoa(local_name.sin_addr),
+        INFO_LOG(IOS_NET, "IOCTL_SO_CONNECT (%08x, %s:%d)", fd, inet_ntoa(local_name.sin_addr),
                  Common::swap16(local_name.sin_port));
         break;
       }
@@ -252,7 +252,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
 
         WiiSockMan::GetInstance().AddSocket(ReturnValue);
 
-        ioctl.Log("IOCTL_SO_ACCEPT", LogTypes::WII_IPC_NET);
+        ioctl.Log("IOCTL_SO_ACCEPT", LogTypes::IOS_NET);
         break;
       }
       default:
@@ -315,7 +315,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
             {
               char error_buffer[256] = "";
               mbedtls_strerror(ret, error_buffer, sizeof(error_buffer));
-              ERROR_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE: %s", error_buffer);
+              ERROR_LOG(IOS_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE: %s", error_buffer);
             }
             switch (ret)
             {
@@ -337,7 +337,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
               char error_buffer[256] = "";
               int res = mbedtls_ssl_get_verify_result(ctx);
               mbedtls_x509_crt_verify_info(error_buffer, sizeof(error_buffer), "", res);
-              ERROR_LOG(WII_IPC_SSL, "MBEDTLS_ERR_X509_CERT_VERIFY_FAILED (verify_result = %d): %s",
+              ERROR_LOG(IOS_SSL, "MBEDTLS_ERR_X509_CERT_VERIFY_FAILED (verify_result = %d): %s",
                         res, error_buffer);
 
               if (res & MBEDTLS_X509_BADCERT_CN_MISMATCH)
@@ -375,9 +375,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
               }
             }
 
-            INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE = (%d) "
-                                  "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                                  "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
+            INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_DOHANDSHAKE = (%d) "
+                              "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                              "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
                      ret, BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferOut,
                      BufferOutSize, BufferOut2, BufferOutSize2);
             break;
@@ -497,7 +497,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           ReturnValue = WiiSockMan::GetNetErrorCode(ret, "SO_SENDTO", true);
 
           DEBUG_LOG(
-              WII_IPC_NET,
+              IOS_NET,
               "%s = %d Socket: %08x, BufferIn: (%08x, %i), BufferIn2: (%08x, %i), %u.%u.%u.%u",
               has_destaddr ? "IOCTLV_SO_SENDTO " : "IOCTLV_SO_SEND ", ReturnValue, fd, BufferIn,
               BufferInSize, BufferIn2, BufferInSize2, local_name.sin_addr.s_addr & 0xFF,
@@ -542,9 +542,9 @@ void WiiSocket::Update(bool read, bool write, bool except)
           ReturnValue =
               WiiSockMan::GetNetErrorCode(ret, BufferOutSize2 ? "SO_RECVFROM" : "SO_RECV", true);
 
-          INFO_LOG(WII_IPC_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
-                                "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                                "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
+          INFO_LOG(IOS_NET, "%s(%d, %p) Socket: %08X, Flags: %08X, "
+                            "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                            "BufferOut: (%08x, %i), BufferOut2: (%08x, %i)",
                    BufferOutSize2 ? "IOCTLV_SO_RECVFROM " : "IOCTLV_SO_RECV ", ReturnValue, data,
                    fd, flags, BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferOut,
                    BufferOutSize, BufferOut2, BufferOutSize2);
@@ -567,7 +567,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
          ReturnValue != -SO_EALREADY) ||
         (it->is_ssl && ReturnValue != SSL_ERR_WAGAIN && ReturnValue != SSL_ERR_RAGAIN))
     {
-      DEBUG_LOG(WII_IPC_NET,
+      DEBUG_LOG(IOS_NET,
                 "IOCTL(V) Sock: %08x ioctl/v: %d returned: %d nonBlock: %d forceNonBlock: %d", fd,
                 it->is_ssl ? (int)it->ssl_type : (int)it->net_type, ReturnValue, nonBlock,
                 forceNonBlock);

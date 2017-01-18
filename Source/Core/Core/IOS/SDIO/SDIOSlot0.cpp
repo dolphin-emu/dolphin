@@ -60,16 +60,16 @@ void SDIOSlot0::OpenInternal()
   m_Card.Open(filename, "r+b");
   if (!m_Card)
   {
-    WARN_LOG(WII_IPC_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
+    WARN_LOG(IOS_SD, "Failed to open SD Card image, trying to create a new 128MB image...");
     if (SDCardCreate(128, filename))
     {
-      INFO_LOG(WII_IPC_SD, "Successfully created %s", filename.c_str());
+      INFO_LOG(IOS_SD, "Successfully created %s", filename.c_str());
       m_Card.Open(filename, "r+b");
     }
     if (!m_Card)
     {
-      ERROR_LOG(WII_IPC_SD, "Could not open SD Card image or create a new one, are you running "
-                            "from a read-only directory?");
+      ERROR_LOG(IOS_SD, "Could not open SD Card image or create a new one, are you running "
+                        "from a read-only directory?");
     }
   }
 }
@@ -104,11 +104,11 @@ IPCCommandResult SDIOSlot0::IOCtl(const IOSIOCtlRequest& request)
     u32 reg = Memory::Read_U32(request.buffer_in);
     u32 val = Memory::Read_U32(request.buffer_in + 16);
 
-    INFO_LOG(WII_IPC_SD, "IOCTL_WRITEHCR 0x%08x - 0x%08x", reg, val);
+    INFO_LOG(IOS_SD, "IOCTL_WRITEHCR 0x%08x - 0x%08x", reg, val);
 
     if (reg >= m_registers.size())
     {
-      WARN_LOG(WII_IPC_SD, "IOCTL_WRITEHCR out of range");
+      WARN_LOG(IOS_SD, "IOCTL_WRITEHCR out of range");
       break;
     }
 
@@ -136,12 +136,12 @@ IPCCommandResult SDIOSlot0::IOCtl(const IOSIOCtlRequest& request)
 
     if (reg >= m_registers.size())
     {
-      WARN_LOG(WII_IPC_SD, "IOCTL_READHCR out of range");
+      WARN_LOG(IOS_SD, "IOCTL_READHCR out of range");
       break;
     }
 
     u32 val = m_registers[reg];
-    INFO_LOG(WII_IPC_SD, "IOCTL_READHCR 0x%08x - 0x%08x", reg, val);
+    INFO_LOG(IOS_SD, "IOCTL_READHCR 0x%08x - 0x%08x", reg, val);
 
     // Just reading the register
     Memory::Write_U32(val, request.buffer_out);
@@ -149,7 +149,7 @@ IPCCommandResult SDIOSlot0::IOCtl(const IOSIOCtlRequest& request)
   break;
 
   case IOCTL_RESETCARD:
-    INFO_LOG(WII_IPC_SD, "IOCTL_RESETCARD");
+    INFO_LOG(IOS_SD, "IOCTL_RESETCARD");
     if (m_Card)
       m_Status |= CARD_INITIALIZED;
     // Returns 16bit RCA and 16bit 0s (meaning success)
@@ -158,17 +158,17 @@ IPCCommandResult SDIOSlot0::IOCtl(const IOSIOCtlRequest& request)
 
   case IOCTL_SETCLK:
   {
-    INFO_LOG(WII_IPC_SD, "IOCTL_SETCLK");
+    INFO_LOG(IOS_SD, "IOCTL_SETCLK");
     // libogc only sets it to 1 and makes sure the return isn't negative...
     // one half of the sdclk divisor: a power of two or zero.
     u32 clock = Memory::Read_U32(request.buffer_in);
     if (clock != 1)
-      INFO_LOG(WII_IPC_SD, "Setting to %i, interesting", clock);
+      INFO_LOG(IOS_SD, "Setting to %i, interesting", clock);
   }
   break;
 
   case IOCTL_SENDCMD:
-    INFO_LOG(WII_IPC_SD, "IOCTL_SENDCMD %x IPC:%08x", Memory::Read_U32(request.buffer_in),
+    INFO_LOG(IOS_SD, "IOCTL_SENDCMD %x IPC:%08x", Memory::Read_U32(request.buffer_in),
              request.address);
     return_value = ExecuteCommand(request, request.buffer_in, request.buffer_in_size, 0, 0,
                                   request.buffer_out, request.buffer_out_size);
@@ -179,19 +179,19 @@ IPCCommandResult SDIOSlot0::IOCtl(const IOSIOCtlRequest& request)
       m_Status |= CARD_INSERTED;
     else
       m_Status = CARD_NOT_EXIST;
-    INFO_LOG(WII_IPC_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
+    INFO_LOG(IOS_SD, "IOCTL_GETSTATUS. Replying that SD card is %s%s",
              (m_Status & CARD_INSERTED) ? "inserted" : "not present",
              (m_Status & CARD_INITIALIZED) ? " and initialized" : "");
     Memory::Write_U32(m_Status, request.buffer_out);
     break;
 
   case IOCTL_GETOCR:
-    INFO_LOG(WII_IPC_SD, "IOCTL_GETOCR");
+    INFO_LOG(IOS_SD, "IOCTL_GETOCR");
     Memory::Write_U32(0x80ff8000, request.buffer_out);
     break;
 
   default:
-    ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtl command (0x%08x)", request.request);
+    ERROR_LOG(IOS_SD, "Unknown SD IOCtl command (0x%08x)", request.request);
     break;
   }
 
@@ -210,7 +210,7 @@ IPCCommandResult SDIOSlot0::IOCtlV(const IOSIOCtlVRequest& request)
   switch (request.request)
   {
   case IOCTLV_SENDCMD:
-    DEBUG_LOG(WII_IPC_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(request.in_vectors[0].address));
+    DEBUG_LOG(IOS_SD, "IOCTLV_SENDCMD 0x%08x", Memory::Read_U32(request.in_vectors[0].address));
     Memory::Memset(request.io_vectors[0].address, 0, request.io_vectors[0].size);
     return_value =
         ExecuteCommand(request, request.in_vectors[0].address, request.in_vectors[0].size,
@@ -219,7 +219,7 @@ IPCCommandResult SDIOSlot0::IOCtlV(const IOSIOCtlVRequest& request)
     break;
 
   default:
-    ERROR_LOG(WII_IPC_SD, "Unknown SD IOCtlV command 0x%08x", request.request);
+    ERROR_LOG(IOS_SD, "Unknown SD IOCtlV command 0x%08x", request.request);
   }
 
   return GetDefaultReply(return_value);
@@ -282,7 +282,7 @@ u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _Buf
     break;
 
   case SEND_CSD:
-    INFO_LOG(WII_IPC_SD, "SEND_CSD");
+    INFO_LOG(IOS_SD, "SEND_CSD");
     // <WntrMute> shuffle2_, OCR: 0x80ff8000 CID: 0x38a00000 0x480032d5 0x3c608030 0x8803d420
     // CSD: 0xff928040 0xc93efbcf 0x325f5a83 0x00002600
 
@@ -295,7 +295,7 @@ u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _Buf
 
   case ALL_SEND_CID:
   case SEND_CID:
-    INFO_LOG(WII_IPC_SD, "(ALL_)SEND_CID");
+    INFO_LOG(IOS_SD, "(ALL_)SEND_CID");
     Memory::Write_U32(0x80114d1c, _BufferOut);
     Memory::Write_U32(0x80080000, _BufferOut + 4);
     Memory::Write_U32(0x8007b520, _BufferOut + 8);
@@ -328,7 +328,7 @@ u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _Buf
   {
     // Data address (req.arg) is in byte units in a Standard Capacity SD Memory Card
     // and in block (512 Byte) units in a High Capacity SD Memory Card.
-    INFO_LOG(WII_IPC_SD, "%sRead %i Block(s) from 0x%08x bsize %i into 0x%08x!",
+    INFO_LOG(IOS_SD, "%sRead %i Block(s) from 0x%08x bsize %i into 0x%08x!",
              req.isDMA ? "DMA " : "", req.blocks, req.arg, req.bsize, req.addr);
 
     if (m_Card)
@@ -336,15 +336,15 @@ u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _Buf
       u32 size = req.bsize * req.blocks;
 
       if (!m_Card.Seek(req.arg, SEEK_SET))
-        ERROR_LOG(WII_IPC_SD, "Seek failed WTF");
+        ERROR_LOG(IOS_SD, "Seek failed WTF");
 
       if (m_Card.ReadBytes(Memory::GetPointer(req.addr), size))
       {
-        DEBUG_LOG(WII_IPC_SD, "Outbuffer size %i got %i", _rwBufferSize, size);
+        DEBUG_LOG(IOS_SD, "Outbuffer size %i got %i", _rwBufferSize, size);
       }
       else
       {
-        ERROR_LOG(WII_IPC_SD, "Read Failed - error: %i, eof: %i", ferror(m_Card.GetHandle()),
+        ERROR_LOG(IOS_SD, "Read Failed - error: %i, eof: %i", ferror(m_Card.GetHandle()),
                   feof(m_Card.GetHandle()));
         ret = RET_FAIL;
       }
@@ -357,7 +357,7 @@ u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _Buf
   {
     // Data address (req.arg) is in byte units in a Standard Capacity SD Memory Card
     // and in block (512 Byte) units in a High Capacity SD Memory Card.
-    INFO_LOG(WII_IPC_SD, "%sWrite %i Block(s) from 0x%08x bsize %i to offset 0x%08x!",
+    INFO_LOG(IOS_SD, "%sWrite %i Block(s) from 0x%08x bsize %i to offset 0x%08x!",
              req.isDMA ? "DMA " : "", req.blocks, req.addr, req.bsize, req.arg);
 
     if (m_Card && SConfig::GetInstance().bEnableMemcardSdWriting)
@@ -365,11 +365,11 @@ u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _Buf
       u32 size = req.bsize * req.blocks;
 
       if (!m_Card.Seek(req.arg, SEEK_SET))
-        ERROR_LOG(WII_IPC_SD, "fseeko failed WTF");
+        ERROR_LOG(IOS_SD, "fseeko failed WTF");
 
       if (!m_Card.WriteBytes(Memory::GetPointer(req.addr), size))
       {
-        ERROR_LOG(WII_IPC_SD, "Write Failed - error: %i, eof: %i", ferror(m_Card.GetHandle()),
+        ERROR_LOG(IOS_SD, "Write Failed - error: %i, eof: %i", ferror(m_Card.GetHandle()),
                   feof(m_Card.GetHandle()));
         ret = RET_FAIL;
       }
@@ -379,7 +379,7 @@ u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _Buf
     break;
 
   case EVENT_REGISTER:  // async
-    INFO_LOG(WII_IPC_SD, "Register event %x", req.arg);
+    INFO_LOG(IOS_SD, "Register event %x", req.arg);
     m_event = std::make_unique<Event>(static_cast<EventType>(req.arg), request);
     ret = RET_EVENT_REGISTER;
     break;
@@ -387,7 +387,7 @@ u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _Buf
   // Used to cancel an event that was already registered.
   case EVENT_UNREGISTER:
   {
-    INFO_LOG(WII_IPC_SD, "Unregister event %x", req.arg);
+    INFO_LOG(IOS_SD, "Unregister event %x", req.arg);
     if (!m_event)
       return IPC_EINVAL;
     // release returns 0
@@ -399,7 +399,7 @@ u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _Buf
   }
 
   default:
-    ERROR_LOG(WII_IPC_SD, "Unknown SD command 0x%08x", req.command);
+    ERROR_LOG(IOS_SD, "Unknown SD command 0x%08x", req.command);
     break;
   }
 

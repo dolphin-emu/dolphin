@@ -141,7 +141,7 @@ void ES::OpenInternal()
     m_TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
   }
 
-  INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
+  INFO_LOG(IOS_ES, "Set default title to %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
 }
 
 void ES::DoState(PointerWrap& p)
@@ -200,7 +200,7 @@ IOSReturnCode ES::Open(const IOSOpenRequest& request)
   OpenInternal();
 
   if (m_is_active)
-    INFO_LOG(WII_IPC_ES, "Device was re-opened.");
+    INFO_LOG(IOS_ES, "Device was re-opened.");
   return Device::Open(request);
 }
 
@@ -211,7 +211,7 @@ void ES::Close()
   m_TitleID = -1;
   m_AccessIdentID = 0x6000000;
 
-  INFO_LOG(WII_IPC_ES, "ES: Close");
+  INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
   // clear the NAND content cache to make sure nothing remains open.
   DiscIO::CNANDContentManager::Access().ClearCache();
@@ -223,7 +223,7 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 
   if (!Loader.IsValid())
   {
-    WARN_LOG(WII_IPC_ES, "ES: loader not valid for %" PRIx64, TitleID);
+    WARN_LOG(IOS_ES, "ES: loader not valid for %" PRIx64, TitleID);
     return 0xffffffff;
   }
 
@@ -248,7 +248,7 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 
 IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 {
-  DEBUG_LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), request.request);
+  DEBUG_LOG(IOS_ES, "%s (0x%x)", GetDeviceName().c_str(), request.request);
   // Clear the IO buffers. Note that this is unsafe for other ioctlvs.
   for (const auto& io_vector : request.io_vectors)
   {
@@ -259,10 +259,10 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
   {
   case IOCTL_ES_ADDTICKET:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 3,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 3,
                      "IOCTL_ES_ADDTICKET wrong number of inputs");
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDTICKET");
+    INFO_LOG(IOS_ES, "IOCTL_ES_ADDTICKET");
     std::vector<u8> ticket(request.in_vectors[0].size);
     Memory::CopyFromEmu(ticket.data(), request.in_vectors[0].address, request.in_vectors[0].size);
     DiscIO::AddTicket(ticket);
@@ -271,17 +271,17 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_ADDTITLESTART:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 4,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 4,
                      "IOCTL_ES_ADDTITLESTART wrong number of inputs");
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDTITLESTART");
+    INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLESTART");
     std::vector<u8> tmd(request.in_vectors[0].size);
     Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
 
     m_addtitle_tmd.SetBytes(tmd);
     if (!m_addtitle_tmd.IsValid())
     {
-      ERROR_LOG(WII_IPC_ES, "Invalid TMD while adding title (size = %zd)", tmd.size());
+      ERROR_LOG(IOS_ES, "Invalid TMD while adding title (size = %zd)", tmd.size());
       return GetDefaultReply(ES_INVALID_TMD);
     }
 
@@ -297,7 +297,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_ADDCONTENTSTART:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 2,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2,
                      "IOCTL_ES_ADDCONTENTSTART wrong number of inputs");
 
     u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
@@ -305,22 +305,22 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
     if (m_addtitle_content_id != 0xFFFFFFFF)
     {
-      ERROR_LOG(WII_IPC_ES, "Trying to add content when we haven't finished adding "
-                            "another content. Unsupported.");
+      ERROR_LOG(IOS_ES, "Trying to add content when we haven't finished adding "
+                        "another content. Unsupported.");
       return GetDefaultReply(ES_WRITE_FAILURE);
     }
     m_addtitle_content_id = content_id;
 
     m_addtitle_content_buffer.clear();
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 ", "
-                         "content id %08x",
+    INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 ", "
+                     "content id %08x",
              title_id, m_addtitle_content_id);
 
     if (title_id != m_addtitle_tmd.GetTitleId())
     {
-      ERROR_LOG(WII_IPC_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 " != "
-                            "TMD title id %016lx, ignoring",
+      ERROR_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 " != "
+                        "TMD title id %016lx, ignoring",
                 title_id, m_addtitle_tmd.GetTitleId());
     }
 
@@ -334,12 +334,12 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_ADDCONTENTDATA:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 2,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2,
                      "IOCTL_ES_ADDCONTENTDATA wrong number of inputs");
 
     u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDCONTENTDATA: content fd %08x, "
-                         "size %d",
+    INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTDATA: content fd %08x, "
+                     "size %d",
              content_fd, request.in_vectors[1].size);
 
     u8* data_start = Memory::GetPointer(request.in_vectors[1].address);
@@ -350,11 +350,11 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_ADDCONTENTFINISH:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1,
                      "IOCTL_ES_ADDCONTENTFINISH wrong number of inputs");
 
     u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
+    INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
 
     // Try to find the title key from a pre-installed ticket.
     std::vector<u8> ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
@@ -394,25 +394,24 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_ADDTITLEFINISH:
   {
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_ADDTITLEFINISH");
+    INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLEFINISH");
     break;
   }
 
   case IOCTL_ES_GETDEVICEID:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
-                     "IOCTL_ES_GETDEVICEID no io vectors");
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETDEVICEID no io vectors");
 
     EcWii& ec = EcWii::GetInstance();
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICEID %08X", ec.getNgId());
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICEID %08X", ec.getNgId());
     Memory::Write_U32(ec.getNgId(), request.io_vectors[0].address);
     return GetDefaultReply(IPC_SUCCESS);
   }
 
   case IOCTL_ES_GETTITLECONTENTSCNT:
   {
-    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
-    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
+    _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -433,7 +432,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
       return_value = static_cast<s32>(rNANDContent.GetContentSize());
     }
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i",
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i",
              (u32)(TitleID >> 32), (u32)TitleID,
              rNANDContent.IsValid() ? NumberOfPrivateContent : (u32)rNANDContent.GetContentSize());
 
@@ -443,9 +442,9 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_GETTITLECONTENTS:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 2,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2,
                      "IOCTL_ES_GETTITLECONTENTS bad in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTITLECONTENTS bad out buffer");
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
@@ -458,14 +457,14 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
       {
         Memory::Write_U32(rNANDContent.GetContentByIndex(i)->m_ContentID,
                           request.io_vectors[0].address + i * 4);
-        INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i,
+        INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i,
                  rNANDContent.GetContentByIndex(i)->m_ContentID);
       }
     }
     else
     {
       return_value = static_cast<s32>(rNANDContent.GetContentSize());
-      ERROR_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
+      ERROR_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
                 rNANDContent.GetContentSize());
     }
 
@@ -475,15 +474,15 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_OPENTITLECONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 3);
-    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 0);
+    _dbg_assert_(IOS_ES, request.in_vectors.size() == 3);
+    _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
     u32 Index = Memory::Read_U32(request.in_vectors[2].address);
 
     s32 CFD = OpenTitleContent(m_AccessIdentID++, TitleID, Index);
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x",
+    INFO_LOG(IOS_ES, "IOCTL_ES_OPENTITLECONTENT: TitleID: %08x/%08x  Index %i -> got CFD %x",
              (u32)(TitleID >> 32), (u32)TitleID, Index, CFD);
 
     return GetDefaultReply(CFD);
@@ -492,12 +491,12 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_OPENCONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
-    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 0);
+    _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
     u32 Index = Memory::Read_U32(request.in_vectors[0].address);
 
     s32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
+    INFO_LOG(IOS_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
 
     return GetDefaultReply(CFD);
   }
@@ -505,8 +504,8 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_READCONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
-    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
+    _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
 
     u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
     u32 Size = request.io_vectors[0].size;
@@ -536,8 +535,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
         {
           const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(rContent.m_Index);
           if (!pContent->m_Data->GetRange(rContent.m_Position, Size, pDest))
-            ERROR_LOG(WII_IPC_ES, "ES: failed to read %u bytes from %u!", Size,
-                      rContent.m_Position);
+            ERROR_LOG(IOS_ES, "ES: failed to read %u bytes from %u!", Size, rContent.m_Position);
         }
 
         rContent.m_Position += Size;
@@ -548,7 +546,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
       }
     }
 
-    DEBUG_LOG(WII_IPC_ES,
+    DEBUG_LOG(IOS_ES,
               "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)",
               CFD, Addr, Size, rContent.m_Position, rContent.m_Index);
 
@@ -558,12 +556,12 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_CLOSECONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
-    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 0);
+    _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
 
     u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
+    INFO_LOG(IOS_ES, "IOCTL_ES_CLOSECONTENT: CFD %x", CFD);
 
     auto itr = m_ContentAccessMap.find(CFD);
     if (itr == m_ContentAccessMap.end())
@@ -587,8 +585,8 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_SEEKCONTENT:
   {
-    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 3);
-    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 0);
+    _dbg_assert_(IOS_ES, request.in_vectors.size() == 3);
+    _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
 
     u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
     u32 Addr = Memory::Read_U32(request.in_vectors[1].address);
@@ -616,8 +614,8 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
       break;
     }
 
-    DEBUG_LOG(WII_IPC_ES, "IOCTL_ES_SEEKCONTENT: CFD %x, Address 0x%x, Mode %i -> Pos %i", CFD,
-              Addr, Mode, rContent.m_Position);
+    DEBUG_LOG(IOS_ES, "IOCTL_ES_SEEKCONTENT: CFD %x, Address 0x%x, Mode %i -> Pos %i", CFD, Addr,
+              Mode, rContent.m_Position);
 
     return GetDefaultReply(rContent.m_Position);
   }
@@ -625,52 +623,51 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_GETTITLEDIR:
   {
-    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 1);
-    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
+    _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
+    _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
     char* Path = (char*)Memory::GetPointer(request.io_vectors[0].address);
     sprintf(Path, "/title/%08x/%08x/data", (u32)(TitleID >> 32), (u32)TitleID);
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEDIR: %s", Path);
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEDIR: %s", Path);
   }
   break;
 
   case IOCTL_ES_GETTITLEID:
   {
-    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 0);
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
-                     "IOCTL_ES_GETTITLEID no out buffer");
+    _dbg_assert_(IOS_ES, request.in_vectors.size() == 0);
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETTITLEID no out buffer");
 
     Memory::Write_U64(m_TitleID, request.io_vectors[0].address);
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
   }
   break;
 
   case IOCTL_ES_SETUID:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1, "IOCTL_ES_SETUID no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 0,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_SETUID no in buffer");
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 0,
                      "IOCTL_ES_SETUID has a payload, it shouldn't");
     // TODO: fs permissions based on this
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
+    INFO_LOG(IOS_ES, "IOCTL_ES_SETUID titleID: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
   }
   break;
 
   case IOCTL_ES_GETTITLECNT:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 0,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 0,
                      "IOCTL_ES_GETTITLECNT has an in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTITLECNT has no out buffer");
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors[0].size == 4,
+    _dbg_assert_msg_(IOS_ES, request.io_vectors[0].size == 4,
                      "IOCTL_ES_GETTITLECNT payload[0].size != 4");
 
     Memory::Write_U32((u32)m_TitleIDs.size(), request.io_vectors[0].address);
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", m_TitleIDs.size());
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", m_TitleIDs.size());
 
     return GetDefaultReply(IPC_SUCCESS);
   }
@@ -678,9 +675,8 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_GETTITLES:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
-                     "IOCTL_ES_GETTITLES has an in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETTITLES has an in buffer");
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTITLES has no out buffer");
 
     u32 MaxCount = Memory::Read_U32(request.in_vectors[0].address);
@@ -688,24 +684,22 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
     for (int i = 0; i < (int)m_TitleIDs.size(); i++)
     {
       Memory::Write_U64(m_TitleIDs[i], request.io_vectors[0].address + i * 8);
-      INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(m_TitleIDs[i] >> 32),
+      INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(m_TitleIDs[i] >> 32),
                (u32)m_TitleIDs[i]);
       Count++;
       if (Count >= MaxCount)
         break;
     }
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTITLES: Number of titles returned %i", Count);
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: Number of titles returned %i", Count);
     return GetDefaultReply(IPC_SUCCESS);
   }
   break;
 
   case IOCTL_ES_GETVIEWCNT:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
-                     "IOCTL_ES_GETVIEWCNT no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
-                     "IOCTL_ES_GETVIEWCNT no out buffer");
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETVIEWCNT no in buffer");
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETVIEWCNT no out buffer");
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -720,11 +714,11 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
       if (File::Exists(TicketFilename))
       {
         u32 FileSize = (u32)File::GetSize(TicketFilename);
-        _dbg_assert_msg_(WII_IPC_ES, (FileSize % DiscIO::CNANDContentLoader::TICKET_SIZE) == 0,
+        _dbg_assert_msg_(IOS_ES, (FileSize % DiscIO::CNANDContentLoader::TICKET_SIZE) == 0,
                          "IOCTL_ES_GETVIEWCNT ticket file size seems to be wrong");
 
         ViewCount = FileSize / DiscIO::CNANDContentLoader::TICKET_SIZE;
-        _dbg_assert_msg_(WII_IPC_ES, (ViewCount > 0) && (ViewCount <= 4),
+        _dbg_assert_msg_(IOS_ES, (ViewCount > 0) && (ViewCount <= 4),
                          "IOCTL_ES_GETVIEWCNT ticket count seems to be wrong");
       }
       else if (TitleID >> 32 == 0x00000001)
@@ -744,7 +738,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
       }
     }
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %i)",
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %i)",
              (u32)(TitleID >> 32), (u32)TitleID, ViewCount);
 
     Memory::Write_U32(ViewCount, request.io_vectors[0].address);
@@ -754,8 +748,8 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_GETVIEWS:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 2, "IOCTL_ES_GETVIEWS no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETVIEWS no out buffer");
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2, "IOCTL_ES_GETVIEWS no in buffer");
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETVIEWS no out buffer");
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
     u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
@@ -817,7 +811,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
       }
     }
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)",
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)",
              (u32)(TitleID >> 32), (u32)TitleID, maxViews);
 
     return GetDefaultReply(retVal);
@@ -826,9 +820,8 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_GETTMDVIEWCNT:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
-                     "IOCTL_ES_GETTMDVIEWCNT no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETTMDVIEWCNT no in buffer");
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTMDVIEWCNT no out buffer");
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
@@ -846,7 +839,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
     }
     Memory::Write_U32(TMDViewCnt, request.io_vectors[0].address);
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)",
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)",
              (u32)(TitleID >> 32), (u32)TitleID, TMDViewCnt);
     return GetDefaultReply(IPC_SUCCESS);
   }
@@ -854,9 +847,8 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_GETTMDVIEWS:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 2,
-                     "IOCTL_ES_GETTMDVIEWCNT no in buffer");
-    _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2, "IOCTL_ES_GETTMDVIEWCNT no in buffer");
+    _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
                      "IOCTL_ES_GETTMDVIEWCNT no out buffer");
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
@@ -864,7 +856,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
     const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffer size: %i",
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffer size: %i",
              (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
     if (Loader.IsValid())
@@ -892,11 +884,10 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
         Address += 8;
       }
 
-      _dbg_assert_(WII_IPC_ES,
-                   (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
+      _dbg_assert_(IOS_ES, (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
     }
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)",
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)",
              (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
     return GetDefaultReply(IPC_SUCCESS);
   }
@@ -904,14 +895,13 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_GETCONSUMPTION:  // This is at least what crediar's ES module does
     Memory::Write_U32(0, request.io_vectors[1].address);
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETCONSUMPTION");
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETCONSUMPTION");
     return GetDefaultReply(IPC_SUCCESS);
 
   case IOCTL_ES_DELETETICKET:
   {
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32),
-             (u32)TitleID);
+    INFO_LOG(IOS_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
     // Presumably return -1017 when delete fails
     if (!File::Delete(Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT)))
       return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
@@ -921,7 +911,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
   case IOCTL_ES_DELETETITLECONTENT:
   {
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_DELETETITLECONTENT: title: %08x/%08x", (u32)(TitleID >> 32),
+    INFO_LOG(IOS_ES, "IOCTL_ES_DELETETITLECONTENT: title: %08x/%08x", (u32)(TitleID >> 32),
              (u32)TitleID);
     // Presumably return -1017 when title not installed TODO verify
     if (!DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID, Common::FROM_SESSION_ROOT))
@@ -931,15 +921,15 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_GETSTOREDTMDSIZE:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() == 1,
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1,
                      "IOCTL_ES_GETSTOREDTMDSIZE no in buffer");
-    // _dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1, "IOCTL_ES_ES_GETSTOREDTMDSIZE
+    // _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_ES_GETSTOREDTMDSIZE
     // no out buffer");
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
     const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-    _dbg_assert_(WII_IPC_ES, Loader.IsValid());
+    _dbg_assert_(IOS_ES, Loader.IsValid());
     u32 TMDCnt = 0;
     if (Loader.IsValid())
     {
@@ -949,19 +939,18 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
     if (request.io_vectors.size())
       Memory::Write_U32(TMDCnt, request.io_vectors[0].address);
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)",
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)",
              (u32)(TitleID >> 32), (u32)TitleID, TMDCnt);
     return GetDefaultReply(IPC_SUCCESS);
   }
   break;
   case IOCTL_ES_GETSTOREDTMD:
   {
-    _dbg_assert_msg_(WII_IPC_ES, request.in_vectors.size() > 0,
-                     "IOCTL_ES_GETSTOREDTMD no in buffer");
+    _dbg_assert_msg_(IOS_ES, request.in_vectors.size() > 0, "IOCTL_ES_GETSTOREDTMD no in buffer");
     // requires 1 inbuffer and no outbuffer, presumably outbuffer required when second inbuffer is
     // used for maxcount (allocated mem?)
     // called with 1 inbuffer after deleting a titleid
-    //_dbg_assert_msg_(WII_IPC_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETSTOREDTMD no out
+    //_dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETSTOREDTMD no out
     // buffer");
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
@@ -973,7 +962,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
     }
     const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffer size: %i",
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffer size: %i",
              (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
     if (Loader.IsValid() && request.io_vectors.size())
@@ -992,11 +981,10 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
         Address += DiscIO::CNANDContentLoader::CONTENT_HEADER_SIZE;
       }
 
-      _dbg_assert_(WII_IPC_ES,
-                   (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
+      _dbg_assert_(IOS_ES, (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
     }
 
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)",
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)",
              (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
     return GetDefaultReply(IPC_SUCCESS);
   }
@@ -1016,7 +1004,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
     memcpy(newIV, IV, 16);
     mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_ENCRYPT, size, newIV, source, destination);
 
-    _dbg_assert_msg_(WII_IPC_ES, keyIndex == 6,
+    _dbg_assert_msg_(IOS_ES, keyIndex == 6,
                      "IOCTL_ES_ENCRYPT: Key type is not SD, data will be crap");
   }
   break;
@@ -1032,14 +1020,14 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
     DecryptContent(keyIndex, IV, source, size, newIV, destination);
 
-    _dbg_assert_msg_(WII_IPC_ES, keyIndex == 6,
+    _dbg_assert_msg_(IOS_ES, keyIndex == 6,
                      "IOCTL_ES_DECRYPT: Key type is not SD, data will be crap");
   }
   break;
 
   case IOCTL_ES_LAUNCH:
   {
-    _dbg_assert_(WII_IPC_ES, request.in_vectors.size() == 2);
+    _dbg_assert_(IOS_ES, request.in_vectors.size() == 2);
     bool bSuccess = false;
     bool bReset = false;
     u16 IOSv = 0xffff;
@@ -1153,8 +1141,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
     // Note: If we just reset the PPC, don't write anything to the command buffer. This
     // could clobber the DOL we just loaded.
 
-    ERROR_LOG(WII_IPC_ES,
-              "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
+    ERROR_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
               TitleID, view, ticketid, devicetype, titleid, access);
     //                     IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000
     //                     0001000248414341 ffff
@@ -1181,13 +1168,13 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
     // IOS70 has this to let system menu 4.2 check if the console is region changed. it returns
     // -1017
     // if the IOS didn't find the Korean keys and 0 if it does. 0 leads to a error 003
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
+    INFO_LOG(IOS_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   case IOCTL_ES_GETDEVICECERT:  // (Input: none, Output: 384 bytes)
   {
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETDEVICECERT");
-    _dbg_assert_(WII_IPC_ES, request.io_vectors.size() == 1);
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICECERT");
+    _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
     u8* destination = Memory::GetPointer(request.io_vectors[0].address);
 
     EcWii& ec = EcWii::GetInstance();
@@ -1197,7 +1184,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_SIGN:
   {
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_SIGN");
+    INFO_LOG(IOS_ES, "IOCTL_ES_SIGN");
     u8* ap_cert_out = Memory::GetPointer(request.io_vectors[1].address);
     u8* data = Memory::GetPointer(request.in_vectors[0].address);
     u32 data_size = request.in_vectors[0].size;
@@ -1211,7 +1198,7 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTL_ES_GETBOOT2VERSION:
   {
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETBOOT2VERSION");
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETBOOT2VERSION");
 
     Memory::Write_U32(
         4, request.io_vectors[0].address);  // as of 26/02/2012, this was latest bootmii version
@@ -1222,16 +1209,16 @@ IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
   // unsupported functions
   // ===============================================================================================
   case IOCTL_ES_DIGETTICKETVIEW:  // (Input: none, Output: 216 bytes) bug crediar :D
-    WARN_LOG(WII_IPC_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
+    WARN_LOG(IOS_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
     break;
 
   case IOCTL_ES_GETOWNEDTITLECNT:
-    INFO_LOG(WII_IPC_ES, "IOCTL_ES_GETOWNEDTITLECNT");
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETOWNEDTITLECNT");
     Memory::Write_U32(0, request.io_vectors[0].address);
     break;
 
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_HLE);
+    request.DumpUnknown(GetDeviceName(), LogTypes::IOS);
   }
 
   return GetDefaultReply(IPC_SUCCESS);
@@ -1315,7 +1302,7 @@ u32 ES::ES_DIVerify(const std::vector<u8>& tmd)
   {
     File::IOFile tmd_file(tmd_path, "wb");
     if (!tmd_file.WriteBytes(tmd.data(), tmd.size()))
-      ERROR_LOG(WII_IPC_ES, "DIVerify failed to write disc TMD to NAND.");
+      ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
   DiscIO::cUIDsys::AccessInstance().AddTitle(tmd_title_id);
   // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.

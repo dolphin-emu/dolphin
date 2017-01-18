@@ -129,24 +129,23 @@ EcWii::EcWii()
       {
         init = false;
 
-        INFO_LOG(WII_IPC_ES, "Successfully loaded keys.bin created by: %s", BootMiiKeysBin.creator);
+        INFO_LOG(IOS_ES, "Successfully loaded keys.bin created by: %s", BootMiiKeysBin.creator);
       }
       else
       {
-        ERROR_LOG(WII_IPC_ES,
-                  "Failed to read keys.bin, check it is the correct size of %08zX bytes.",
+        ERROR_LOG(IOS_ES, "Failed to read keys.bin, check it is the correct size of %08zX bytes.",
                   sizeof(BootMiiKeysBin));
       }
     }
     else
     {
-      ERROR_LOG(WII_IPC_ES, "Failed to open keys.bin, maybe a permissions error or it is in use?");
+      ERROR_LOG(IOS_ES, "Failed to open keys.bin, maybe a permissions error or it is in use?");
     }
   }
   else
   {
     ERROR_LOG(
-        WII_IPC_ES,
+        IOS_ES,
         "%s could not be found. Using default values. We recommend you grab keys.bin from BootMii.",
         keys_path.c_str());
   }

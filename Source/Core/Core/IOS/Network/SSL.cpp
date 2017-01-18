@@ -81,7 +81,7 @@ int NetSSL::GetSSLFreeID() const
 
 IPCCommandResult NetSSL::IOCtl(const IOSIOCtlRequest& request)
 {
-  request.Log(GetDeviceName(), LogTypes::WII_IPC_SSL, LogTypes::LINFO);
+  request.Log(GetDeviceName(), LogTypes::IOS_SSL, LogTypes::LINFO);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -185,10 +185,10 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
       Memory::Write_U32(SSL_ERR_FAILED, BufferIn);
     }
 
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_NEW (%d, %s) "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_NEW (%d, %s) "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              verifyOption, hostname.c_str(), BufferIn, BufferInSize, BufferIn2, BufferInSize2,
              BufferIn3, BufferInSize3, BufferOut, BufferOutSize, BufferOut2, BufferOutSize2,
              BufferOut3, BufferOutSize3);
@@ -222,20 +222,20 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
     {
       Memory::Write_U32(SSL_ERR_ID, BufferIn);
     }
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SHUTDOWN "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SHUTDOWN "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3, BufferOut,
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
     break;
   }
   case IOCTLV_NET_SSL_SETROOTCA:
   {
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCA "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETROOTCA "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3, BufferOut,
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
@@ -262,7 +262,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
         Memory::Write_U32(SSL_OK, BufferIn);
       }
 
-      INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCA = %d", ret);
+      INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETROOTCA = %d", ret);
     }
     else
     {
@@ -272,10 +272,10 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
   }
   case IOCTLV_NET_SSL_SETBUILTINCLIENTCERT:
   {
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3, BufferOut,
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
@@ -300,21 +300,21 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
         Memory::Write_U32(SSL_OK, BufferIn);
       }
 
-      INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, pk_ret);
+      INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT = (%d, %d)", ret, pk_ret);
     }
     else
     {
       Memory::Write_U32(SSL_ERR_ID, BufferIn);
-      INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
+      INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
     }
     break;
   }
   case IOCTLV_NET_SSL_REMOVECLIENTCERT:
   {
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_REMOVECLIENTCERT "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_REMOVECLIENTCERT "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3, BufferOut,
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
@@ -331,7 +331,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
     else
     {
       Memory::Write_U32(SSL_ERR_ID, BufferIn);
-      INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
+      INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINCLIENTCERT invalid sslID = %d", sslID);
     }
     break;
   }
@@ -354,16 +354,16 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
         mbedtls_ssl_conf_ca_chain(&ssl->config, &ssl->cacert, nullptr);
         Memory::Write_U32(SSL_OK, BufferIn);
       }
-      INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
+      INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA = %d", ret);
     }
     else
     {
       Memory::Write_U32(SSL_ERR_ID, BufferIn);
     }
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETBUILTINROOTCA "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3, BufferOut,
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
     break;
@@ -376,7 +376,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
       WII_SSL* ssl = &_SSL[sslID];
       mbedtls_ssl_setup(&ssl->ctx, &ssl->config);
       ssl->sockfd = Memory::Read_U32(BufferOut2);
-      INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", ssl->sockfd);
+      INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_CONNECT socket = %d", ssl->sockfd);
       mbedtls_ssl_set_bio(&ssl->ctx, &ssl->sockfd, mbedtls_net_send, mbedtls_net_recv, nullptr);
       Memory::Write_U32(SSL_OK, BufferIn);
     }
@@ -384,10 +384,10 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
     {
       Memory::Write_U32(SSL_ERR_ID, BufferIn);
     }
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_CONNECT "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_CONNECT "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3, BufferOut,
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
     break;
@@ -420,13 +420,13 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
     {
       Memory::Write_U32(SSL_ERR_ID, BufferIn);
     }
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_WRITE "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_WRITE "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3, BufferOut,
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
-    INFO_LOG(WII_IPC_SSL, "%s", Memory::GetString(BufferOut2).c_str());
+    INFO_LOG(IOS_SSL, "%s", Memory::GetString(BufferOut2).c_str());
     break;
   }
   case IOCTLV_NET_SSL_READ:
@@ -444,10 +444,10 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
       Memory::Write_U32(SSL_ERR_ID, BufferIn);
     }
 
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_READ(%d)"
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_READ(%d)"
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              ret, BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3,
              BufferOut, BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
     break;
@@ -463,20 +463,20 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
     {
       Memory::Write_U32(SSL_ERR_ID, BufferIn);
     }
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETROOTCADEFAULT "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETROOTCADEFAULT "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3, BufferOut,
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
     break;
   }
   case IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT:
   {
-    INFO_LOG(WII_IPC_SSL, "IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT "
-                          "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
-                          "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
-                          "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
+    INFO_LOG(IOS_SSL, "IOCTLV_NET_SSL_SETCLIENTCERTDEFAULT "
+                      "BufferIn: (%08x, %i), BufferIn2: (%08x, %i), "
+                      "BufferIn3: (%08x, %i), BufferOut: (%08x, %i), "
+                      "BufferOut2: (%08x, %i), BufferOut3: (%08x, %i)",
              BufferIn, BufferInSize, BufferIn2, BufferInSize2, BufferIn3, BufferInSize3, BufferOut,
              BufferOutSize, BufferOut2, BufferOutSize2, BufferOut3, BufferOutSize3);
 
@@ -492,7 +492,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
     break;
   }
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_SSL);
+    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_SSL);
   }
 
   // SSL return codes are written to BufferIn

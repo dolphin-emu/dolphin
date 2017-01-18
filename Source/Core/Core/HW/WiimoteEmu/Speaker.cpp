@@ -110,7 +110,7 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
   }
   else
   {
-    ERROR_LOG(WII_IPC_WIIMOTE, "Unknown speaker format %x", m_reg_speaker.format);
+    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", m_reg_speaker.format);
     return;
   }
 

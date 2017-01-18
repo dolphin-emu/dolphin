@@ -31,11 +31,11 @@ void BackUpBTInfoSection(SysConf* sysconf)
   std::vector<u8> section(BT_INFO_SECTION_LENGTH);
   if (!sysconf->GetArrayData("BT.DINF", section.data(), static_cast<u16>(section.size())))
   {
-    ERROR_LOG(WII_IPC_WIIMOTE, "Failed to read source BT.DINF section");
+    ERROR_LOG(IOS_WIIMOTE, "Failed to read source BT.DINF section");
     return;
   }
   if (!backup.WriteBytes(section.data(), section.size()))
-    ERROR_LOG(WII_IPC_WIIMOTE, "Failed to back up BT.DINF section");
+    ERROR_LOG(IOS_WIIMOTE, "Failed to back up BT.DINF section");
 }
 
 void RestoreBTInfoSection(SysConf* sysconf)
@@ -47,7 +47,7 @@ void RestoreBTInfoSection(SysConf* sysconf)
   std::vector<u8> section(BT_INFO_SECTION_LENGTH);
   if (!backup.ReadBytes(section.data(), section.size()))
   {
-    ERROR_LOG(WII_IPC_WIIMOTE, "Failed to read backed up BT.DINF section");
+    ERROR_LOG(IOS_WIIMOTE, "Failed to read backed up BT.DINF section");
     return;
   }
   sysconf->SetArrayData("BT.DINF", section.data(), static_cast<u16>(section.size()));
@@ -75,7 +75,7 @@ BluetoothBase::CtrlBuffer::CtrlBuffer(const IOSIOCtlVRequest& ioctlv) : ios_requ
 
 void BluetoothBase::CtrlBuffer::FillBuffer(const u8* src, const size_t size) const
 {
-  _assert_msg_(WII_IPC_WIIMOTE, size <= m_length, "FillBuffer: size %li > payload length %i", size,
+  _assert_msg_(IOS_WIIMOTE, size <= m_length, "FillBuffer: size %li > payload length %i", size,
                m_length);
   Memory::CopyToEmu(m_payload_addr, src, size);
 }

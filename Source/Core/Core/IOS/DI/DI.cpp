@@ -36,7 +36,7 @@ void DI::DoState(PointerWrap& p)
 IPCCommandResult DI::IOCtl(const IOSIOCtlRequest& request)
 {
   // DI IOCtls are handled in a special way by Dolphin
-  // compared to other WII_IPC_HLE functions.
+  // compared to other IOS functions.
   // This is a wrapper around DVDInterface's ExecuteCommand,
   // which will execute commands more or less asynchronously.
   // Only one command can be executed at a time, so commands
@@ -95,15 +95,14 @@ IPCCommandResult DI::IOCtlV(const IOSIOCtlVRequest& request)
   {
   case DVDInterface::DVDLowOpenPartition:
   {
-    _dbg_assert_msg_(WII_IPC_DVD, request.in_vectors[1].address == 0,
-                     "DVDLowOpenPartition with ticket");
-    _dbg_assert_msg_(WII_IPC_DVD, request.in_vectors[2].address == 0,
+    _dbg_assert_msg_(IOS_DI, request.in_vectors[1].address == 0, "DVDLowOpenPartition with ticket");
+    _dbg_assert_msg_(IOS_DI, request.in_vectors[2].address == 0,
                      "DVDLowOpenPartition with cert chain");
 
     u64 const partition_offset = ((u64)Memory::Read_U32(request.in_vectors[0].address + 4) << 2);
     DVDInterface::ChangePartition(partition_offset);
 
-    INFO_LOG(WII_IPC_DVD, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
+    INFO_LOG(IOS_DI, "DVDLowOpenPartition: partition_offset 0x%016" PRIx64, partition_offset);
 
     // Read TMD to the buffer
     std::vector<u8> tmd_buffer = DVDInterface::GetVolume().GetTMD();
@@ -114,7 +113,7 @@ IPCCommandResult DI::IOCtlV(const IOSIOCtlVRequest& request)
     break;
   }
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_DVD);
+    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_DI);
   }
   return GetDefaultReply(return_value);
 }

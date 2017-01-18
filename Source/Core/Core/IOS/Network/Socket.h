@@ -232,8 +232,8 @@ public:
     auto socket_entry = WiiSockets.find(sock);
     if (socket_entry == WiiSockets.end())
     {
-      ERROR_LOG(WII_IPC_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock,
-                request.address, type);
+      ERROR_LOG(IOS_NET, "DoSock: Error, fd not found (%08x, %08X, %08X)", sock, request.address,
+                type);
       EnqueueReply(request, -SO_EBADF);
     }
     else

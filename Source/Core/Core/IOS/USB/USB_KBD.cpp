@@ -44,7 +44,7 @@ USB_KBD::USB_KBD(u32 device_id, const std::string& device_name) : Device(device_
 
 IOSReturnCode USB_KBD::Open(const IOSOpenRequest& request)
 {
-  INFO_LOG(WII_IPC_HLE, "USB_KBD: Open");
+  INFO_LOG(IOS, "USB_KBD: Open");
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);

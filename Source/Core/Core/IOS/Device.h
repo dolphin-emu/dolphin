@@ -96,11 +96,11 @@ struct IOSIOCtlRequest final : IOSRequest
   u32 buffer_out = 0;
   u32 buffer_out_size = 0;
   explicit IOSIOCtlRequest(u32 address);
-  void Log(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+  void Log(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
            LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;
-  void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+  void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
             LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;
-  void DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+  void DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
                    LogTypes::LOG_LEVELS level = LogTypes::LERROR) const;
 };
 
@@ -122,9 +122,9 @@ struct IOSIOCtlVRequest final : IOSRequest
   std::vector<IOVector> io_vectors;
   explicit IOSIOCtlVRequest(u32 address);
   bool HasInputVectorWithAddress(u32 vector_address) const;
-  void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+  void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
             LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;
-  void DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::WII_IPC_HLE,
+  void DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
                    LogTypes::LOG_LEVELS level = LogTypes::LERROR) const;
 };
 

@@ -72,7 +72,7 @@ BluetoothReal::BluetoothReal(u32 device_id, const std::string& device_name)
     : BluetoothBase(device_id, device_name)
 {
   const int ret = libusb_init(&m_libusb_context);
-  _assert_msg_(WII_IPC_WIIMOTE, ret == 0, "Failed to init libusb.");
+  _assert_msg_(IOS_WIIMOTE, ret == 0, "Failed to init libusb.");
 
   LoadLinkKeys();
 }
@@ -99,7 +99,7 @@ IOSReturnCode BluetoothReal::Open(const IOSOpenRequest& request)
 {
   libusb_device** list;
   const ssize_t cnt = libusb_get_device_list(m_libusb_context, &list);
-  _dbg_assert_msg_(WII_IPC_HLE, cnt > 0, "Couldn't get device list");
+  _dbg_assert_msg_(IOS, cnt > 0, "Couldn't get device list");
   for (ssize_t i = 0; i < cnt; ++i)
   {
     libusb_device* device = list[i];
@@ -109,7 +109,7 @@ IOSReturnCode BluetoothReal::Open(const IOSOpenRequest& request)
     const int ret = libusb_get_active_config_descriptor(device, &config_descriptor);
     if (ret != 0)
     {
-      ERROR_LOG(WII_IPC_WIIMOTE, "Failed to get config descriptor for device %04x:%04x: %s",
+      ERROR_LOG(IOS_WIIMOTE, "Failed to get config descriptor for device %04x:%04x: %s",
                 device_descriptor.idVendor, device_descriptor.idProduct, libusb_error_name(ret));
       continue;
     }
@@ -125,7 +125,7 @@ IOSReturnCode BluetoothReal::Open(const IOSOpenRequest& request)
                                          sizeof(product));
       libusb_get_string_descriptor_ascii(m_handle, device_descriptor.iSerialNumber, serial_number,
                                          sizeof(serial_number));
-      NOTICE_LOG(WII_IPC_WIIMOTE, "Using device %04x:%04x (rev %x) for Bluetooth: %s %s %s",
+      NOTICE_LOG(IOS_WIIMOTE, "Using device %04x:%04x (rev %x) for Bluetooth: %s %s %s",
                  device_descriptor.idVendor, device_descriptor.idProduct,
                  device_descriptor.bcdDevice, manufacturer, product, serial_number);
       m_is_wii_bt_module =
@@ -331,7 +331,7 @@ void BluetoothReal::SendHCIResetCommand()
   const u16 payload[] = {HCI_CMD_RESET};
   memcpy(packet, payload, sizeof(payload));
   libusb_control_transfer(m_handle, type, 0, 0, 0, packet, sizeof(packet), TIMEOUT);
-  INFO_LOG(WII_IPC_WIIMOTE, "Sent a reset command to adapter");
+  INFO_LOG(IOS_WIIMOTE, "Sent a reset command to adapter");
 }
 
 void BluetoothReal::SendHCIDeleteLinkKeyCommand()
@@ -444,7 +444,7 @@ void BluetoothReal::FakeSyncButtonEvent(CtrlBuffer& ctrl, const u8* payload, con
 // This causes the emulated software to perform a BT inquiry and connect to found Wiimotes.
 void BluetoothReal::FakeSyncButtonPressedEvent(CtrlBuffer& ctrl)
 {
-  NOTICE_LOG(WII_IPC_WIIMOTE, "Faking 'sync button pressed' (0x08) event packet");
+  NOTICE_LOG(IOS_WIIMOTE, "Faking 'sync button pressed' (0x08) event packet");
   const u8 payload[1] = {0x08};
   FakeSyncButtonEvent(ctrl, payload, sizeof(payload));
   m_sync_button_state = SyncButtonState::Ignored;
@@ -453,7 +453,7 @@ void BluetoothReal::FakeSyncButtonPressedEvent(CtrlBuffer& ctrl)
 // When the red sync button is held for 10 seconds, a HCI event with payload 09 is sent.
 void BluetoothReal::FakeSyncButtonHeldEvent(CtrlBuffer& ctrl)
 {
-  NOTICE_LOG(WII_IPC_WIIMOTE, "Faking 'sync button held' (0x09) event packet");
+  NOTICE_LOG(IOS_WIIMOTE, "Faking 'sync button held' (0x09) event packet");
   const u8 payload[1] = {0x09};
   FakeSyncButtonEvent(ctrl, payload, sizeof(payload));
   m_sync_button_state = SyncButtonState::Ignored;
@@ -568,7 +568,7 @@ void BluetoothReal::CommandCallback(libusb_transfer* tr)
   const std::unique_ptr<CtrlMessage> cmd(static_cast<CtrlMessage*>(tr->user_data));
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_NO_DEVICE)
   {
-    ERROR_LOG(WII_IPC_WIIMOTE, "libusb command transfer failed, status: 0x%02x", tr->status);
+    ERROR_LOG(IOS_WIIMOTE, "libusb command transfer failed, status: 0x%02x", tr->status);
     if (!s_showed_failed_transfer.IsSet())
     {
       Core::DisplayMessage("Failed to send a command to the Bluetooth adapter.", 10000);
@@ -590,7 +590,7 @@ void BluetoothReal::TransferCallback(libusb_transfer* tr)
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_TIMED_OUT &&
       tr->status != LIBUSB_TRANSFER_NO_DEVICE)
   {
-    ERROR_LOG(WII_IPC_WIIMOTE, "libusb transfer failed, status: 0x%02x", tr->status);
+    ERROR_LOG(IOS_WIIMOTE, "libusb transfer failed, status: 0x%02x", tr->status);
     if (!s_showed_failed_transfer.IsSet())
     {
       Core::DisplayMessage("Failed to transfer to or from to the Bluetooth adapter.", 10000);

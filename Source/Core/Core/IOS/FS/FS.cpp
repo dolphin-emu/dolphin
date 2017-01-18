@@ -84,7 +84,7 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
 
     if (!IsValidWiiPath(relative_path))
     {
-      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", relative_path.c_str());
+      WARN_LOG(IOS_FILEIO, "Not a valid path: %s", relative_path.c_str());
       return_value = FS_EINVAL;
       break;
     }
@@ -92,11 +92,11 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
     // the Wii uses this function to define the type (dir or file)
     std::string DirName(HLE_IPC_BuildFilename(relative_path));
 
-    INFO_LOG(WII_IPC_FILEIO, "FS: IOCTL_READ_DIR %s", DirName.c_str());
+    INFO_LOG(IOS_FILEIO, "FS: IOCTL_READ_DIR %s", DirName.c_str());
 
     if (!File::Exists(DirName))
     {
-      WARN_LOG(WII_IPC_FILEIO, "FS: Search not found: %s", DirName.c_str());
+      WARN_LOG(IOS_FILEIO, "FS: Search not found: %s", DirName.c_str());
       return_value = FS_ENOENT;
       break;
     }
@@ -105,7 +105,7 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
       // It's not a directory, so error.
       // Games don't usually seem to care WHICH error they get, as long as it's <
       // Well the system menu CARES!
-      WARN_LOG(WII_IPC_FILEIO, "\tNot a directory - return FS_EINVAL");
+      WARN_LOG(IOS_FILEIO, "\tNot a directory - return FS_EINVAL");
       return_value = FS_EINVAL;
       break;
     }
@@ -116,7 +116,7 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
     if ((request.in_vectors.size() == 1) && (request.io_vectors.size() == 1))
     {
       size_t numFile = entry.children.size();
-      INFO_LOG(WII_IPC_FILEIO, "\t%zu files found", numFile);
+      INFO_LOG(IOS_FILEIO, "\t%zu files found", numFile);
 
       Memory::Write_U32((u32)numFile, request.io_vectors[0].address);
     }
@@ -150,7 +150,7 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
         *pFilename++ = 0x00;  // termination
         numFiles++;
 
-        INFO_LOG(WII_IPC_FILEIO, "\tFound: %s", FileName.c_str());
+        INFO_LOG(IOS_FILEIO, "\tFound: %s", FileName.c_str());
       }
 
       Memory::Write_U32((u32)numFiles, request.io_vectors[1].address);
@@ -162,9 +162,9 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
 
   case IOCTLV_GETUSAGE:
   {
-    _dbg_assert_(WII_IPC_FILEIO, request.io_vectors.size() == 2);
-    _dbg_assert_(WII_IPC_FILEIO, request.io_vectors[0].size == 4);
-    _dbg_assert_(WII_IPC_FILEIO, request.io_vectors[1].size == 4);
+    _dbg_assert_(IOS_FILEIO, request.io_vectors.size() == 2);
+    _dbg_assert_(IOS_FILEIO, request.io_vectors[0].size == 4);
+    _dbg_assert_(IOS_FILEIO, request.io_vectors[1].size == 4);
 
     // this command sucks because it asks of the number of used
     // fsBlocks and inodes
@@ -174,7 +174,7 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
 
     if (!IsValidWiiPath(relativepath))
     {
-      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", relativepath.c_str());
+      WARN_LOG(IOS_FILEIO, "Not a valid path: %s", relativepath.c_str());
       return_value = FS_EINVAL;
       break;
     }
@@ -183,7 +183,7 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
     u32 fsBlocks = 0;
     u32 iNodes = 0;
 
-    INFO_LOG(WII_IPC_FILEIO, "IOCTL_GETUSAGE %s", path.c_str());
+    INFO_LOG(IOS_FILEIO, "IOCTL_GETUSAGE %s", path.c_str());
     if (File::IsDirectory(path))
     {
       // LPFaint99: After I found that setting the number of inodes to the number of children + 1
@@ -209,14 +209,14 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
       }
       return_value = IPC_SUCCESS;
 
-      INFO_LOG(WII_IPC_FILEIO, "FS: fsBlock: %i, iNodes: %i", fsBlocks, iNodes);
+      INFO_LOG(IOS_FILEIO, "FS: fsBlock: %i, iNodes: %i", fsBlocks, iNodes);
     }
     else
     {
       fsBlocks = 0;
       iNodes = 0;
       return_value = IPC_SUCCESS;
-      WARN_LOG(WII_IPC_FILEIO, "FS: fsBlock failed, cannot find directory: %s", path.c_str());
+      WARN_LOG(IOS_FILEIO, "FS: fsBlock failed, cannot find directory: %s", path.c_str());
     }
 
     Memory::Write_U32(fsBlocks, request.io_vectors[0].address);
@@ -225,7 +225,7 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
   break;
 
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_FILEIO);
+    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_FILEIO);
     break;
   }
 
@@ -248,7 +248,7 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     if (request.buffer_out_size < 0x1c)
       return -1017;
 
-    WARN_LOG(WII_IPC_FILEIO, "FS: GET STATS - returning static values for now");
+    WARN_LOG(IOS_FILEIO, "FS: GET STATS - returning static values for now");
 
     NANDStat fs;
 
@@ -269,7 +269,7 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
 
   case IOCTL_CREATE_DIR:
   {
-    _dbg_assert_(WII_IPC_FILEIO, request.buffer_out_size == 0);
+    _dbg_assert_(IOS_FILEIO, request.buffer_out_size == 0);
     u32 Addr = request.buffer_in;
 
     u32 OwnerID = Memory::Read_U32(Addr);
@@ -279,7 +279,7 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     const std::string wii_path = Memory::GetString(Addr, 64);
     if (!IsValidWiiPath(wii_path))
     {
-      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      WARN_LOG(IOS_FILEIO, "Not a valid path: %s", wii_path.c_str());
       return FS_EINVAL;
     }
     std::string DirName(HLE_IPC_BuildFilename(wii_path));
@@ -287,12 +287,12 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     Addr += 9;  // owner attribs, permission
     u8 Attribs = Memory::Read_U8(Addr);
 
-    INFO_LOG(WII_IPC_FILEIO, "FS: CREATE_DIR %s, OwnerID %#x, GroupID %#x, Attributes %#x",
+    INFO_LOG(IOS_FILEIO, "FS: CREATE_DIR %s, OwnerID %#x, GroupID %#x, Attributes %#x",
              DirName.c_str(), OwnerID, GroupID, Attribs);
 
     DirName += DIR_SEP;
     File::CreateFullPath(DirName);
-    _dbg_assert_msg_(WII_IPC_FILEIO, File::IsDirectory(DirName), "FS: CREATE_DIR %s failed",
+    _dbg_assert_msg_(IOS_FILEIO, File::IsDirectory(DirName), "FS: CREATE_DIR %s failed",
                      DirName.c_str());
 
     return IPC_SUCCESS;
@@ -310,7 +310,7 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     const std::string wii_path = Memory::GetString(Addr, 64);
     if (!IsValidWiiPath(wii_path))
     {
-      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      WARN_LOG(IOS_FILEIO, "Not a valid path: %s", wii_path.c_str());
       return FS_EINVAL;
     }
     std::string Filename = HLE_IPC_BuildFilename(wii_path);
@@ -324,13 +324,13 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     u8 Attributes = Memory::Read_U8(Addr);
     Addr += 1;
 
-    INFO_LOG(WII_IPC_FILEIO, "FS: SetAttrib %s", Filename.c_str());
-    DEBUG_LOG(WII_IPC_FILEIO, "    OwnerID: 0x%08x", OwnerID);
-    DEBUG_LOG(WII_IPC_FILEIO, "    GroupID: 0x%04x", GroupID);
-    DEBUG_LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x%02x", OwnerPerm);
-    DEBUG_LOG(WII_IPC_FILEIO, "    GroupPerm: 0x%02x", GroupPerm);
-    DEBUG_LOG(WII_IPC_FILEIO, "    OtherPerm: 0x%02x", OtherPerm);
-    DEBUG_LOG(WII_IPC_FILEIO, "    Attributes: 0x%02x", Attributes);
+    INFO_LOG(IOS_FILEIO, "FS: SetAttrib %s", Filename.c_str());
+    DEBUG_LOG(IOS_FILEIO, "    OwnerID: 0x%08x", OwnerID);
+    DEBUG_LOG(IOS_FILEIO, "    GroupID: 0x%04x", GroupID);
+    DEBUG_LOG(IOS_FILEIO, "    OwnerPerm: 0x%02x", OwnerPerm);
+    DEBUG_LOG(IOS_FILEIO, "    GroupPerm: 0x%02x", GroupPerm);
+    DEBUG_LOG(IOS_FILEIO, "    OtherPerm: 0x%02x", OtherPerm);
+    DEBUG_LOG(IOS_FILEIO, "    Attributes: 0x%02x", Attributes);
 
     return IPC_SUCCESS;
   }
@@ -338,7 +338,7 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
 
   case IOCTL_GET_ATTR:
   {
-    _dbg_assert_msg_(WII_IPC_FILEIO, request.buffer_out_size == 76,
+    _dbg_assert_msg_(IOS_FILEIO, request.buffer_out_size == 76,
                      "    GET_ATTR needs an 76 bytes large output buffer but it is %i bytes large",
                      request.buffer_out_size);
 
@@ -348,7 +348,7 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     const std::string wii_path = Memory::GetString(request.buffer_in, 64);
     if (!IsValidWiiPath(wii_path))
     {
-      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      WARN_LOG(IOS_FILEIO, "Not a valid path: %s", wii_path.c_str());
       return FS_EINVAL;
     }
     std::string Filename = HLE_IPC_BuildFilename(wii_path);
@@ -358,19 +358,18 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     u8 Attributes = 0x00;  // no attributes
     if (File::IsDirectory(Filename))
     {
-      INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR Directory %s - all permission flags are set",
+      INFO_LOG(IOS_FILEIO, "FS: GET_ATTR Directory %s - all permission flags are set",
                Filename.c_str());
     }
     else
     {
       if (File::Exists(Filename))
       {
-        INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR %s - all permission flags are set",
-                 Filename.c_str());
+        INFO_LOG(IOS_FILEIO, "FS: GET_ATTR %s - all permission flags are set", Filename.c_str());
       }
       else
       {
-        INFO_LOG(WII_IPC_FILEIO, "FS: GET_ATTR unknown %s", Filename.c_str());
+        INFO_LOG(IOS_FILEIO, "FS: GET_ATTR unknown %s", Filename.c_str());
         return FS_ENOENT;
       }
     }
@@ -401,28 +400,28 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
 
   case IOCTL_DELETE_FILE:
   {
-    _dbg_assert_(WII_IPC_FILEIO, request.buffer_out_size == 0);
+    _dbg_assert_(IOS_FILEIO, request.buffer_out_size == 0);
     int Offset = 0;
 
     const std::string wii_path = Memory::GetString(request.buffer_in + Offset, 64);
     if (!IsValidWiiPath(wii_path))
     {
-      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      WARN_LOG(IOS_FILEIO, "Not a valid path: %s", wii_path.c_str());
       return FS_EINVAL;
     }
     std::string Filename = HLE_IPC_BuildFilename(wii_path);
     Offset += 64;
     if (File::Delete(Filename))
     {
-      INFO_LOG(WII_IPC_FILEIO, "FS: DeleteFile %s", Filename.c_str());
+      INFO_LOG(IOS_FILEIO, "FS: DeleteFile %s", Filename.c_str());
     }
     else if (File::DeleteDir(Filename))
     {
-      INFO_LOG(WII_IPC_FILEIO, "FS: DeleteDir %s", Filename.c_str());
+      INFO_LOG(IOS_FILEIO, "FS: DeleteDir %s", Filename.c_str());
     }
     else
     {
-      WARN_LOG(WII_IPC_FILEIO, "FS: DeleteFile %s - failed!!!", Filename.c_str());
+      WARN_LOG(IOS_FILEIO, "FS: DeleteFile %s - failed!!!", Filename.c_str());
     }
 
     return IPC_SUCCESS;
@@ -431,13 +430,13 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
 
   case IOCTL_RENAME_FILE:
   {
-    _dbg_assert_(WII_IPC_FILEIO, request.buffer_out_size == 0);
+    _dbg_assert_(IOS_FILEIO, request.buffer_out_size == 0);
     int Offset = 0;
 
     const std::string wii_path = Memory::GetString(request.buffer_in + Offset, 64);
     if (!IsValidWiiPath(wii_path))
     {
-      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      WARN_LOG(IOS_FILEIO, "Not a valid path: %s", wii_path.c_str());
       return FS_EINVAL;
     }
     std::string Filename = HLE_IPC_BuildFilename(wii_path);
@@ -446,7 +445,7 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     const std::string wii_path_rename = Memory::GetString(request.buffer_in + Offset, 64);
     if (!IsValidWiiPath(wii_path_rename))
     {
-      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path_rename.c_str());
+      WARN_LOG(IOS_FILEIO, "Not a valid path: %s", wii_path_rename.c_str());
       return FS_EINVAL;
     }
     std::string FilenameRename = HLE_IPC_BuildFilename(wii_path_rename);
@@ -464,11 +463,11 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     // finally try to rename the file
     if (File::Rename(Filename, FilenameRename))
     {
-      INFO_LOG(WII_IPC_FILEIO, "FS: Rename %s to %s", Filename.c_str(), FilenameRename.c_str());
+      INFO_LOG(IOS_FILEIO, "FS: Rename %s to %s", Filename.c_str(), FilenameRename.c_str());
     }
     else
     {
-      ERROR_LOG(WII_IPC_FILEIO, "FS: Rename %s to %s - failed", Filename.c_str(),
+      ERROR_LOG(IOS_FILEIO, "FS: Rename %s to %s - failed", Filename.c_str(),
                 FilenameRename.c_str());
       return FS_ENOENT;
     }
@@ -479,7 +478,7 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
 
   case IOCTL_CREATE_FILE:
   {
-    _dbg_assert_(WII_IPC_FILEIO, request.buffer_out_size == 0);
+    _dbg_assert_(IOS_FILEIO, request.buffer_out_size == 0);
 
     u32 Addr = request.buffer_in;
     u32 OwnerID = Memory::Read_U32(Addr);
@@ -489,7 +488,7 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     const std::string wii_path = Memory::GetString(Addr, 64);
     if (!IsValidWiiPath(wii_path))
     {
-      WARN_LOG(WII_IPC_FILEIO, "Not a valid path: %s", wii_path.c_str());
+      WARN_LOG(IOS_FILEIO, "Not a valid path: %s", wii_path.c_str());
       return FS_EINVAL;
     }
     std::string Filename(HLE_IPC_BuildFilename(wii_path));
@@ -503,18 +502,18 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     u8 Attributes = Memory::Read_U8(Addr);
     Addr++;
 
-    INFO_LOG(WII_IPC_FILEIO, "FS: CreateFile %s", Filename.c_str());
-    DEBUG_LOG(WII_IPC_FILEIO, "    OwnerID: 0x%08x", OwnerID);
-    DEBUG_LOG(WII_IPC_FILEIO, "    GroupID: 0x%04x", GroupID);
-    DEBUG_LOG(WII_IPC_FILEIO, "    OwnerPerm: 0x%02x", OwnerPerm);
-    DEBUG_LOG(WII_IPC_FILEIO, "    GroupPerm: 0x%02x", GroupPerm);
-    DEBUG_LOG(WII_IPC_FILEIO, "    OtherPerm: 0x%02x", OtherPerm);
-    DEBUG_LOG(WII_IPC_FILEIO, "    Attributes: 0x%02x", Attributes);
+    INFO_LOG(IOS_FILEIO, "FS: CreateFile %s", Filename.c_str());
+    DEBUG_LOG(IOS_FILEIO, "    OwnerID: 0x%08x", OwnerID);
+    DEBUG_LOG(IOS_FILEIO, "    GroupID: 0x%04x", GroupID);
+    DEBUG_LOG(IOS_FILEIO, "    OwnerPerm: 0x%02x", OwnerPerm);
+    DEBUG_LOG(IOS_FILEIO, "    GroupPerm: 0x%02x", GroupPerm);
+    DEBUG_LOG(IOS_FILEIO, "    OtherPerm: 0x%02x", OtherPerm);
+    DEBUG_LOG(IOS_FILEIO, "    Attributes: 0x%02x", Attributes);
 
     // check if the file already exist
     if (File::Exists(Filename))
     {
-      INFO_LOG(WII_IPC_FILEIO, "\tresult = FS_EEXIST");
+      INFO_LOG(IOS_FILEIO, "\tresult = FS_EEXIST");
       return FS_EEXIST;
     }
 
@@ -523,23 +522,23 @@ s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
     bool Result = File::CreateEmptyFile(Filename);
     if (!Result)
     {
-      ERROR_LOG(WII_IPC_FILEIO, "FS: couldn't create new file");
+      ERROR_LOG(IOS_FILEIO, "FS: couldn't create new file");
       PanicAlert("FS: couldn't create new file");
       return FS_EINVAL;
     }
 
-    INFO_LOG(WII_IPC_FILEIO, "\tresult = IPC_SUCCESS");
+    INFO_LOG(IOS_FILEIO, "\tresult = IPC_SUCCESS");
     return IPC_SUCCESS;
   }
   break;
   case IOCTL_SHUTDOWN:
   {
-    INFO_LOG(WII_IPC_FILEIO, "Wii called Shutdown()");
+    INFO_LOG(IOS_FILEIO, "Wii called Shutdown()");
     // TODO: stop emulation
   }
   break;
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_FILEIO);
+    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_FILEIO);
   }
 
   return FS_EINVAL;

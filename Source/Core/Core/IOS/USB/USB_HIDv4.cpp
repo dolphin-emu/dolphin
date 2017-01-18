@@ -76,7 +76,7 @@ USB_HIDv4::USB_HIDv4(u32 device_id, const std::string& device_name) : Device(dev
   int ret = libusb_init(nullptr);
   if (ret)
   {
-    ERROR_LOG(WII_IPC_HID, "libusb_init failed with error: %d", ret);
+    ERROR_LOG(IOS_HID, "libusb_init failed with error: %d", ret);
   }
   else
   {
@@ -158,7 +158,7 @@ IPCCommandResult USB_HIDv4::IOCtl(const IOSIOCtlRequest& request)
 
     if (dev_handle == nullptr)
     {
-      INFO_LOG(WII_IPC_HID, "Could not find handle: %X", dev_num);
+      INFO_LOG(IOS_HID, "Could not find handle: %X", dev_num);
       break;
     }
     struct libusb_transfer* transfer = libusb_alloc_transfer(0);
@@ -171,7 +171,7 @@ IPCCommandResult USB_HIDv4::IOCtl(const IOSIOCtlRequest& request)
                                  (void*)(size_t)request.address, /* no timeout */ 0);
     libusb_submit_transfer(transfer);
 
-    // DEBUG_LOG(WII_IPC_HID, "HID::IOCtl(Control)(%02X, %02X) (BufferIn: (%08x, %i),
+    // DEBUG_LOG(IOS_HID, "HID::IOCtl(Control)(%02X, %02X) (BufferIn: (%08x, %i),
     // request.buffer_out:
     // (%08x, %i)",
     //          bmRequestType, bRequest, BufferIn, request.buffer_in_size, request.buffer_out,
@@ -195,7 +195,7 @@ IPCCommandResult USB_HIDv4::IOCtl(const IOSIOCtlRequest& request)
 
     if (dev_handle == nullptr)
     {
-      INFO_LOG(WII_IPC_HID, "Could not find handle: %X", dev_num);
+      INFO_LOG(IOS_HID, "Could not find handle: %X", dev_num);
       break;
     }
 
@@ -218,13 +218,13 @@ IPCCommandResult USB_HIDv4::IOCtl(const IOSIOCtlRequest& request)
       EnqueueReply(pending_request, -1);
       deviceCommandAddress = 0;
     }
-    INFO_LOG(WII_IPC_HID, "HID::IOCtl(Shutdown) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
+    INFO_LOG(IOS_HID, "HID::IOCtl(Shutdown) (BufferIn: (%08x, %i), BufferOut: (%08x, %i)",
              request.buffer_in, request.buffer_in_size, request.buffer_out,
              request.buffer_out_size);
     break;
   }
   default:
-    request.Log(GetDeviceName(), LogTypes::WII_IPC_HID);
+    request.Log(GetDeviceName(), LogTypes::IOS_HID);
   }
 
   return GetDefaultReply(return_value);
@@ -237,19 +237,19 @@ bool USB_HIDv4::ClaimDevice(libusb_device_handle* dev)
   {
     if ((ret = libusb_detach_kernel_driver(dev, 0)) && ret != LIBUSB_ERROR_NOT_SUPPORTED)
     {
-      ERROR_LOG(WII_IPC_HID, "libusb_detach_kernel_driver failed with error: %d", ret);
+      ERROR_LOG(IOS_HID, "libusb_detach_kernel_driver failed with error: %d", ret);
       return false;
     }
   }
   else if (ret != 0 && ret != LIBUSB_ERROR_NOT_SUPPORTED)
   {
-    ERROR_LOG(WII_IPC_HID, "libusb_kernel_driver_active error ret = %d", ret);
+    ERROR_LOG(IOS_HID, "libusb_kernel_driver_active error ret = %d", ret);
     return false;
   }
 
   if ((ret = libusb_claim_interface(dev, 0)))
   {
-    ERROR_LOG(WII_IPC_HID, "libusb_claim_interface failed with error: %d", ret);
+    ERROR_LOG(IOS_HID, "libusb_claim_interface failed with error: %d", ret);
     return false;
   }
 
@@ -258,8 +258,8 @@ bool USB_HIDv4::ClaimDevice(libusb_device_handle* dev)
 
 IPCCommandResult USB_HIDv4::IOCtlV(const IOSIOCtlVRequest& request)
 {
-  Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HID, LogTypes::LWARNING);
-  request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_HID);
+  Dolphin_Debugger::PrintCallstack(LogTypes::IOS_HID, LogTypes::LWARNING);
+  request.DumpUnknown(GetDeviceName(), LogTypes::IOS_HID);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -313,7 +313,7 @@ void USB_HIDv4::FillOutDevices(const IOSIOCtlRequest& request)
   libusb_device** list;
   // libusb_device *found = nullptr;
   ssize_t cnt = libusb_get_device_list(nullptr, &list);
-  INFO_LOG(WII_IPC_HID, "Found %ld viable USB devices.", cnt);
+  INFO_LOG(IOS_HID, "Found %ld viable USB devices.", cnt);
   for (d = 0; d < cnt; d++)
   {
     libusb_device* device = list[d];
@@ -322,7 +322,7 @@ void USB_HIDv4::FillOutDevices(const IOSIOCtlRequest& request)
     if (dRet)
     {
       // could not aquire the descriptor, no point in trying to use it.
-      WARN_LOG(WII_IPC_HID, "libusb_get_device_descriptor failed with error: %d", dRet);
+      WARN_LOG(IOS_HID, "libusb_get_device_descriptor failed with error: %d", dRet);
       continue;
     }
     OffsetStart = OffsetBuffer;
@@ -384,7 +384,7 @@ void USB_HIDv4::FillOutDevices(const IOSIOCtlRequest& request)
       else
       {
         if (cRet)
-          WARN_LOG(WII_IPC_HID, "libusb_get_config_descriptor failed with: %d", cRet);
+          WARN_LOG(IOS_HID, "libusb_get_config_descriptor failed with: %d", cRet);
         deviceValid = false;
         OffsetBuffer = OffsetStart;
       }
@@ -405,13 +405,12 @@ void USB_HIDv4::FillOutDevices(const IOSIOCtlRequest& request)
       if (devNum < 0)
       {
         // too many devices to handle.
-        ERROR_LOG(WII_IPC_HID,
-                  "Exhausted device list, there are way too many usb devices plugged in.");
+        ERROR_LOG(IOS_HID, "Exhausted device list, there are way too many usb devices plugged in.");
         OffsetBuffer = OffsetStart;
         continue;
       }
 
-      INFO_LOG(WII_IPC_HID, "Found device with Vendor: %X Product: %X Devnum: %d", desc.idVendor,
+      INFO_LOG(IOS_HID, "Found device with Vendor: %X Product: %X Devnum: %d", desc.idVendor,
                desc.idProduct, devNum);
 
       Memory::Write_U32(devNum, OffsetStart + 4);  // write device num
@@ -424,7 +423,7 @@ void USB_HIDv4::FillOutDevices(const IOSIOCtlRequest& request)
     u16 check_cur = (u16)(hidDeviceAliases[i] >> 48);
     if (hidDeviceAliases[i] != 0 && check_cur != check)
     {
-      INFO_LOG(WII_IPC_HID, "Removing: device %d %hX %hX", i, check, check_cur);
+      INFO_LOG(IOS_HID, "Removing: device %d %hX %hX", i, check, check_cur);
       std::lock_guard<std::mutex> lk(m_open_devices_mutex);
       if (m_open_devices.find(i) != m_open_devices.end())
       {
@@ -494,14 +493,14 @@ libusb_device_handle* USB_HIDv4::GetDeviceByDevNum(u32 devNum)
         {
           if (dRet)
           {
-            ERROR_LOG(WII_IPC_HID, "Dolphin does not have access to this device: Bus %03d Device "
-                                   "%03d: ID ????:???? (couldn't get id).",
+            ERROR_LOG(IOS_HID, "Dolphin does not have access to this device: Bus %03d Device "
+                               "%03d: ID ????:???? (couldn't get id).",
                       bus, port);
           }
           else
           {
             ERROR_LOG(
-                WII_IPC_HID,
+                IOS_HID,
                 "Dolphin does not have access to this device: Bus %03d Device %03d: ID %04X:%04X.",
                 bus, port, desc.idVendor, desc.idProduct);
           }
@@ -513,21 +512,21 @@ libusb_device_handle* USB_HIDv4::GetDeviceByDevNum(u32 devNum)
           {
             // Max of one warning.
             has_warned_about_drivers = true;
-            WARN_LOG(WII_IPC_HID, "Please install the libusb drivers for the device %04X:%04X",
+            WARN_LOG(IOS_HID, "Please install the libusb drivers for the device %04X:%04X",
                      desc.idVendor, desc.idProduct);
           }
         }
 #endif
         else
         {
-          ERROR_LOG(WII_IPC_HID, "libusb_open failed to open device with error = %d", ret);
+          ERROR_LOG(IOS_HID, "libusb_open failed to open device with error = %d", ret);
         }
         continue;
       }
 
       if (!ClaimDevice(handle))
       {
-        ERROR_LOG(WII_IPC_HID, "Could not claim the device for handle: %X", devNum);
+        ERROR_LOG(IOS_HID, "Could not claim the device for handle: %X", devNum);
         libusb_close(handle);
         continue;
       }

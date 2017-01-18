@@ -124,7 +124,7 @@ std::shared_ptr<T> AddDevice(const char* device_name)
 void Reinit()
 {
   std::lock_guard<std::mutex> lock(s_device_map_mutex);
-  _assert_msg_(WII_IPC_HLE, s_device_map.empty(), "Reinit called while already initialized");
+  _assert_msg_(IOS, s_device_map.empty(), "Reinit called while already initialized");
   Device::ES::m_ContentFile = "";
 
   num_devices = 0;
@@ -352,10 +352,10 @@ static std::shared_ptr<Device::Device> GetUnusedESDevice()
 static s32 OpenDevice(const IOSOpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
-  INFO_LOG(WII_IPC_HLE, "Opening %s (mode %d, fd %d)", request.path.c_str(), request.flags, new_fd);
+  INFO_LOG(IOS, "Opening %s (mode %d, fd %d)", request.path.c_str(), request.flags, new_fd);
   if (new_fd < 0 || new_fd >= IPC_MAX_FDS)
   {
-    ERROR_LOG(WII_IPC_HLE, "Couldn't get a free fd, too many open files");
+    ERROR_LOG(IOS, "Couldn't get a free fd, too many open files");
     return FS_EFDEXHAUSTED;
   }
 
@@ -377,7 +377,7 @@ static s32 OpenDevice(const IOSOpenRequest& request)
 
   if (!device)
   {
-    ERROR_LOG(WII_IPC_HLE, "Unknown device: %s", request.path.c_str());
+    ERROR_LOG(IOS, "Unknown device: %s", request.path.c_str());
     return IPC_ENOENT;
   }
 
@@ -418,7 +418,7 @@ static IPCCommandResult HandleCommand(const IOSRequest& request)
   case IPC_CMD_IOCTLV:
     return device->IOCtlV(IOSIOCtlVRequest{request.address});
   default:
-    _assert_msg_(WII_IPC_HLE, false, "Unexpected command: %x", request.command);
+    _assert_msg_(IOS, false, "Unexpected command: %x", request.command);
     return Device::Device::GetDefaultReply(IPC_EINVAL);
   }
 }
@@ -472,7 +472,7 @@ void Update()
   if (s_request_queue.size())
   {
     GenerateAck(s_request_queue.front());
-    DEBUG_LOG(WII_IPC_HLE, "||-- Acknowledge IPC Request @ 0x%08x", s_request_queue.front());
+    DEBUG_LOG(IOS, "||-- Acknowledge IPC Request @ 0x%08x", s_request_queue.front());
     u32 command = s_request_queue.front();
     s_request_queue.pop_front();
     ExecuteCommand(command);
@@ -482,7 +482,7 @@ void Update()
   if (s_reply_queue.size())
   {
     GenerateReply(s_reply_queue.front());
-    DEBUG_LOG(WII_IPC_HLE, "<<-- Reply to IPC Request @ 0x%08x", s_reply_queue.front());
+    DEBUG_LOG(IOS, "<<-- Reply to IPC Request @ 0x%08x", s_reply_queue.front());
     s_reply_queue.pop_front();
     return;
   }
@@ -490,7 +490,7 @@ void Update()
   if (s_ack_queue.size())
   {
     GenerateAck(s_ack_queue.front());
-    WARN_LOG(WII_IPC_HLE, "<<-- Double-ack to IPC Request @ 0x%08x", s_ack_queue.front());
+    WARN_LOG(IOS, "<<-- Double-ack to IPC Request @ 0x%08x", s_ack_queue.front());
     s_ack_queue.pop_front();
     return;
   }

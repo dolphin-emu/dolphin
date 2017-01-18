@@ -78,7 +78,7 @@ FileIO::FileIO(u32 device_id, const std::string& device_name)
 
 void FileIO::Close()
 {
-  INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_name.c_str(), m_device_id);
+  INFO_LOG(IOS_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_name.c_str(), m_device_id);
   m_Mode = 0;
 
   // Let go of our pointer to the file, it will automatically close if we are the last handle
@@ -100,12 +100,12 @@ IOSReturnCode FileIO::Open(const IOSOpenRequest& request)
   // It should be created by ISFS_CreateFile, not here
   if (!File::Exists(m_filepath) || File::IsDirectory(m_filepath))
   {
-    WARN_LOG(WII_IPC_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[m_Mode],
+    WARN_LOG(IOS_FILEIO, "FileIO: Open (%s) failed - File doesn't exist %s", Modes[m_Mode],
              m_filepath.c_str());
     return FS_ENOENT;
   }
 
-  INFO_LOG(WII_IPC_FILEIO, "FileIO: Open %s (%s == %08X)", m_name.c_str(), Modes[m_Mode], m_Mode);
+  INFO_LOG(IOS_FILEIO, "FileIO: Open %s (%s == %08X)", m_name.c_str(), Modes[m_Mode], m_Mode);
   OpenFile();
 
   m_is_active = true;
@@ -163,8 +163,8 @@ IPCCommandResult FileIO::Seek(const IOSSeekRequest& request)
   if (m_file->IsOpen())
   {
     const u32 file_size = static_cast<u32>(m_file->GetSize());
-    DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)",
-              request.offset, request.mode, m_name.c_str(), file_size);
+    DEBUG_LOG(IOS_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", request.offset,
+              request.mode, m_name.c_str(), file_size);
 
     switch (request.mode)
     {
@@ -222,13 +222,12 @@ IPCCommandResult FileIO::Read(const IOSReadWriteRequest& request)
   {
     if (m_Mode == IOS_OPEN_WRITE)
     {
-      WARN_LOG(WII_IPC_FILEIO,
-               "FileIO: Attempted to read 0x%x bytes to 0x%08x on a write-only file %s",
+      WARN_LOG(IOS_FILEIO, "FileIO: Attempted to read 0x%x bytes to 0x%08x on a write-only file %s",
                request.size, request.buffer, m_name.c_str());
     }
     else
     {
-      DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", request.size,
+      DEBUG_LOG(IOS_FILEIO, "FileIO: Read 0x%x bytes to 0x%08x from %s", request.size,
                 request.buffer, m_name.c_str());
       m_file->Seek(m_SeekPos, SEEK_SET);  // File might be opened twice, need to seek before we read
       return_value = static_cast<u32>(
@@ -245,8 +244,8 @@ IPCCommandResult FileIO::Read(const IOSReadWriteRequest& request)
   }
   else
   {
-    ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
-                              "not be opened or does not exist",
+    ERROR_LOG(IOS_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
+                          "not be opened or does not exist",
               m_name.c_str(), request.buffer, request.size);
     return_value = FS_ENOENT;
   }
@@ -261,13 +260,13 @@ IPCCommandResult FileIO::Write(const IOSReadWriteRequest& request)
   {
     if (m_Mode == IOS_OPEN_READ)
     {
-      WARN_LOG(WII_IPC_FILEIO,
+      WARN_LOG(IOS_FILEIO,
                "FileIO: Attempted to write 0x%x bytes from 0x%08x to a read-only file %s",
                request.size, request.buffer, m_name.c_str());
     }
     else
     {
-      DEBUG_LOG(WII_IPC_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", request.size,
+      DEBUG_LOG(IOS_FILEIO, "FileIO: Write 0x%04x bytes from 0x%08x to %s", request.size,
                 request.buffer, m_name.c_str());
       m_file->Seek(m_SeekPos,
                    SEEK_SET);  // File might be opened twice, need to seek before we write
@@ -280,8 +279,8 @@ IPCCommandResult FileIO::Write(const IOSReadWriteRequest& request)
   }
   else
   {
-    ERROR_LOG(WII_IPC_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
-                              "not be opened or does not exist",
+    ERROR_LOG(IOS_FILEIO, "FileIO: Failed to read from %s (Addr=0x%08x Size=0x%x) - file could "
+                          "not be opened or does not exist",
               m_name.c_str(), request.buffer, request.size);
     return_value = FS_ENOENT;
   }
@@ -291,7 +290,7 @@ IPCCommandResult FileIO::Write(const IOSReadWriteRequest& request)
 
 IPCCommandResult FileIO::IOCtl(const IOSIOCtlRequest& request)
 {
-  DEBUG_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", m_name.c_str());
+  DEBUG_LOG(IOS_FILEIO, "FileIO: IOCtl (Device=%s)", m_name.c_str());
   s32 return_value = IPC_SUCCESS;
 
   switch (request.request)
@@ -300,7 +299,7 @@ IPCCommandResult FileIO::IOCtl(const IOSIOCtlRequest& request)
   {
     if (m_file->IsOpen())
     {
-      DEBUG_LOG(WII_IPC_FILEIO, "File: %s, Length: %" PRIu64 ", Pos: %i", m_name.c_str(),
+      DEBUG_LOG(IOS_FILEIO, "File: %s, Length: %" PRIu64 ", Pos: %i", m_name.c_str(),
                 m_file->GetSize(), m_SeekPos);
       Memory::Write_U32(static_cast<u32>(m_file->GetSize()), request.buffer_out);
       Memory::Write_U32(m_SeekPos, request.buffer_out + 4);
@@ -313,7 +312,7 @@ IPCCommandResult FileIO::IOCtl(const IOSIOCtlRequest& request)
   break;
 
   default:
-    request.Log(GetDeviceName(), LogTypes::WII_IPC_FILEIO, LogTypes::LERROR);
+    request.Log(GetDeviceName(), LogTypes::IOS_FILEIO, LogTypes::LERROR);
   }
 
   return GetDefaultReply(return_value);
