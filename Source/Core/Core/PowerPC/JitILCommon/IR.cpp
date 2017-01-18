@@ -121,6 +121,7 @@ TODO (in no particular order):
 #endif
 
 #include <algorithm>
+#include <array>
 #include <cinttypes>
 #include <ctime>
 #include <memory>
@@ -1371,22 +1372,22 @@ unsigned IRBuilder::getComplexity(InstLoc I) const
 
 unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
 {
-  static unsigned numberOfOperands[256];
+  static std::array<u32, 256> number_of_operands;
   static bool initialized = false;
   if (!initialized)
   {
     initialized = true;
-    std::fill_n(numberOfOperands, sizeof(numberOfOperands) / sizeof(numberOfOperands[0]), -1U);
 
-    numberOfOperands[Nop] = 0;
-    numberOfOperands[CInt16] = 0;
-    numberOfOperands[CInt32] = 0;
+    number_of_operands.fill(0xFFFFFFFF);
+    number_of_operands[Nop] = 0;
+    number_of_operands[CInt16] = 0;
+    number_of_operands[CInt32] = 0;
 
-    static unsigned ZeroOp[] = {
+    static constexpr std::array<u32, 12> zero_op = {
         LoadCR,    LoadLink, LoadMSR,  LoadGReg,          LoadCTR, InterpreterBranch,
         LoadCarry, RFIExit,  LoadFReg, LoadFRegDENToZero, LoadGQR, Int3,
     };
-    static unsigned UOp[] = {
+    static constexpr std::array<u32, 39> unary_op = {
         StoreLink,
         BranchUncond,
         StoreCR,
@@ -1427,7 +1428,7 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
         FastCRGTSet,
         FastCRLTSet,
     };
-    static unsigned BiOp[] = {
+    static constexpr std::array<u32, 44> binary_op = {
         BranchCond,
         IdleBranch,
         And,
@@ -1473,17 +1474,17 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
         FPMerge11,
         FDCmpCR,
     };
-    for (auto& op : ZeroOp)
-      numberOfOperands[op] = 0;
+    for (auto op : zero_op)
+      number_of_operands[op] = 0;
 
-    for (auto& op : UOp)
-      numberOfOperands[op] = 1;
+    for (auto op : unary_op)
+      number_of_operands[op] = 1;
 
-    for (auto& op : BiOp)
-      numberOfOperands[op] = 2;
+    for (auto op : binary_op)
+      number_of_operands[op] = 2;
   }
 
-  return numberOfOperands[getOpcode(*I)];
+  return number_of_operands[getOpcode(*I)];
 }
 
 // Performs a few simplifications for commutative operators
