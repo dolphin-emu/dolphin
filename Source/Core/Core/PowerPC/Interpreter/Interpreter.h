@@ -261,12 +261,12 @@ public:
   static void isync(UGeckoInstruction _inst);
 
   using Instruction = void (*)(UGeckoInstruction instCode);
-  static Instruction m_opTable[64];
-  static Instruction m_opTable4[1024];
-  static Instruction m_opTable19[1024];
-  static Instruction m_opTable31[1024];
-  static Instruction m_opTable59[32];
-  static Instruction m_opTable63[1024];
+  static Instruction m_op_table[64];
+  static Instruction m_op_table4[1024];
+  static Instruction m_op_table19[1024];
+  static Instruction m_op_table31[1024];
+  static Instruction m_op_table59[32];
+  static Instruction m_op_table63[1024];
 
   // singleton
   static Interpreter* getInstance();
@@ -301,10 +301,10 @@ private:
   static void Helper_FloatCompareOrdered(UGeckoInstruction _inst, double a, double b);
   static void Helper_FloatCompareUnordered(UGeckoInstruction _inst, double a, double b);
 
-  static bool m_EndBlock;
+  static bool m_end_block;
 
   // TODO: These should really be in the save state, although it's unlikely to matter much.
   // They are for lwarx and its friend stwcxd.
-  static bool g_bReserve;
-  static u32 g_reserveAddr;
+  static bool m_reserve;
+  static u32 m_reserve_address;
 };

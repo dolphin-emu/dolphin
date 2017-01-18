@@ -157,7 +157,7 @@ void Interpreter::twi(UGeckoInstruction _inst)
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
     PowerPC::CheckExceptions();
-    m_EndBlock = true;  // Dunno about this
+    m_end_block = true;  // Dunno about this
   }
 }
 
@@ -422,7 +422,7 @@ void Interpreter::tw(UGeckoInstruction _inst)
   {
     PowerPC::ppcState.Exceptions |= EXCEPTION_PROGRAM;
     PowerPC::CheckExceptions();
-    m_EndBlock = true;  // Dunno about this
+    m_end_block = true;  // Dunno about this
   }
 }
 

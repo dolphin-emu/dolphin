@@ -166,7 +166,7 @@ void Interpreter::mtmsr(UGeckoInstruction _inst)
   // Privileged?
   MSR = rGPR[_inst.RS];
   PowerPC::CheckExceptions();
-  m_EndBlock = true;
+  m_end_block = true;
 }
 
 // Segment registers. MMU control.

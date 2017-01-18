@@ -30,41 +30,41 @@ namespace
 u32 last_pc;
 }
 
-bool Interpreter::m_EndBlock;
+bool Interpreter::m_end_block;
 
 // function tables
-Interpreter::Instruction Interpreter::m_opTable[64];
-Interpreter::Instruction Interpreter::m_opTable4[1024];
-Interpreter::Instruction Interpreter::m_opTable19[1024];
-Interpreter::Instruction Interpreter::m_opTable31[1024];
-Interpreter::Instruction Interpreter::m_opTable59[32];
-Interpreter::Instruction Interpreter::m_opTable63[1024];
+Interpreter::Instruction Interpreter::m_op_table[64];
+Interpreter::Instruction Interpreter::m_op_table4[1024];
+Interpreter::Instruction Interpreter::m_op_table19[1024];
+Interpreter::Instruction Interpreter::m_op_table31[1024];
+Interpreter::Instruction Interpreter::m_op_table59[32];
+Interpreter::Instruction Interpreter::m_op_table63[1024];
 
 void Interpreter::RunTable4(UGeckoInstruction _inst)
 {
-  m_opTable4[_inst.SUBOP10](_inst);
+  m_op_table4[_inst.SUBOP10](_inst);
 }
 void Interpreter::RunTable19(UGeckoInstruction _inst)
 {
-  m_opTable19[_inst.SUBOP10](_inst);
+  m_op_table19[_inst.SUBOP10](_inst);
 }
 void Interpreter::RunTable31(UGeckoInstruction _inst)
 {
-  m_opTable31[_inst.SUBOP10](_inst);
+  m_op_table31[_inst.SUBOP10](_inst);
 }
 void Interpreter::RunTable59(UGeckoInstruction _inst)
 {
-  m_opTable59[_inst.SUBOP5](_inst);
+  m_op_table59[_inst.SUBOP5](_inst);
 }
 void Interpreter::RunTable63(UGeckoInstruction _inst)
 {
-  m_opTable63[_inst.SUBOP10](_inst);
+  m_op_table63[_inst.SUBOP10](_inst);
 }
 
 void Interpreter::Init()
 {
-  g_bReserve = false;
-  m_EndBlock = false;
+  m_reserve = false;
+  m_end_block = false;
 }
 
 void Interpreter::Shutdown()
@@ -153,11 +153,11 @@ int Interpreter::SingleStepInner()
       UReg_MSR& msr = (UReg_MSR&)MSR;
       if (msr.FP)  // If FPU is enabled, just execute
       {
-        m_opTable[instCode.OPCD](instCode);
+        m_op_table[instCode.OPCD](instCode);
         if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
         {
           PowerPC::CheckExceptions();
-          m_EndBlock = true;
+          m_end_block = true;
         }
       }
       else
@@ -165,18 +165,18 @@ int Interpreter::SingleStepInner()
         // check if we have to generate a FPU unavailable exception
         if (!PPCTables::UsesFPU(instCode))
         {
-          m_opTable[instCode.OPCD](instCode);
+          m_op_table[instCode.OPCD](instCode);
           if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
           {
             PowerPC::CheckExceptions();
-            m_EndBlock = true;
+            m_end_block = true;
           }
         }
         else
         {
           PowerPC::ppcState.Exceptions |= EXCEPTION_FPU_UNAVAILABLE;
           PowerPC::CheckExceptions();
-          m_EndBlock = true;
+          m_end_block = true;
         }
       }
     }
@@ -184,7 +184,7 @@ int Interpreter::SingleStepInner()
     {
       // Memory exception on instruction fetch
       PowerPC::CheckExceptions();
-      m_EndBlock = true;
+      m_end_block = true;
     }
   }
   last_pc = PC;
@@ -243,9 +243,9 @@ void Interpreter::Run()
       // JIT as possible. Does not take into account that some instructions take multiple cycles.
       while (PowerPC::ppcState.downcount > 0)
       {
-        m_EndBlock = false;
+        m_end_block = false;
         int i;
-        for (i = 0; !m_EndBlock; i++)
+        for (i = 0; !m_end_block; i++)
         {
 #ifdef SHOW_HISTORY
           PCVec.push_back(PC);
@@ -293,10 +293,10 @@ void Interpreter::Run()
       // "fast" version of inner loop. well, it's not so fast.
       while (PowerPC::ppcState.downcount > 0)
       {
-        m_EndBlock = false;
+        m_end_block = false;
 
         int cycles = 0;
-        while (!m_EndBlock)
+        while (!m_end_block)
         {
           cycles += SingleStepInner();
         }
