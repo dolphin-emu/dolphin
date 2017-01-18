@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Gekko.h"
@@ -261,12 +263,12 @@ public:
   static void isync(UGeckoInstruction _inst);
 
   using Instruction = void (*)(UGeckoInstruction instCode);
-  static Instruction m_op_table[64];
-  static Instruction m_op_table4[1024];
-  static Instruction m_op_table19[1024];
-  static Instruction m_op_table31[1024];
-  static Instruction m_op_table59[32];
-  static Instruction m_op_table63[1024];
+  static std::array<Instruction, 64> m_op_table;
+  static std::array<Instruction, 1024> m_op_table4;
+  static std::array<Instruction, 1024> m_op_table19;
+  static std::array<Instruction, 1024> m_op_table31;
+  static std::array<Instruction, 32> m_op_table59;
+  static std::array<Instruction, 1024> m_op_table63;
 
   // singleton
   static Interpreter* getInstance();

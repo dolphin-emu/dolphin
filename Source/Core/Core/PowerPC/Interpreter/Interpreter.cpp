@@ -33,12 +33,12 @@ u32 last_pc;
 bool Interpreter::m_end_block;
 
 // function tables
-Interpreter::Instruction Interpreter::m_op_table[64];
-Interpreter::Instruction Interpreter::m_op_table4[1024];
-Interpreter::Instruction Interpreter::m_op_table19[1024];
-Interpreter::Instruction Interpreter::m_op_table31[1024];
-Interpreter::Instruction Interpreter::m_op_table59[32];
-Interpreter::Instruction Interpreter::m_op_table63[1024];
+std::array<Interpreter::Instruction, 64> Interpreter::m_op_table;
+std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table4;
+std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table19;
+std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table31;
+std::array<Interpreter::Instruction, 32> Interpreter::m_op_table59;
+std::array<Interpreter::Instruction, 1024> Interpreter::m_op_table63;
 
 void Interpreter::RunTable4(UGeckoInstruction _inst)
 {
