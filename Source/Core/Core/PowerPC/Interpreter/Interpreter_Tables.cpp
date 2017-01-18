@@ -494,5 +494,4 @@ void InitTables()
 
   initialized = true;
 }
-}
-// remove
+}  // namespace InterpreterTables
