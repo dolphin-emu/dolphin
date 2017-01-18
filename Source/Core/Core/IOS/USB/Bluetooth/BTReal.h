@@ -39,12 +39,13 @@ enum class SyncButtonState
 using btaddr_t = std::array<u8, 6>;
 using linkkey_t = std::array<u8, 16>;
 
-class CWII_IPC_HLE_Device_usb_oh1_57e_305_real final
-    : public CWII_IPC_HLE_Device_usb_oh1_57e_305_base
+namespace Device
+{
+class BluetoothReal final : public BluetoothBase
 {
 public:
-  CWII_IPC_HLE_Device_usb_oh1_57e_305_real(u32 device_id, const std::string& device_name);
-  ~CWII_IPC_HLE_Device_usb_oh1_57e_305_real() override;
+  BluetoothReal(u32 device_id, const std::string& device_name);
+  ~BluetoothReal() override;
 
   IOSReturnCode Open(const IOSOpenRequest& request) override;
   void Close() override;
@@ -100,6 +101,7 @@ private:
   static void CommandCallback(libusb_transfer* transfer);
   static void TransferCallback(libusb_transfer* transfer);
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS
 
@@ -110,7 +112,10 @@ namespace IOS
 {
 namespace HLE
 {
-using CWII_IPC_HLE_Device_usb_oh1_57e_305_real = CWII_IPC_HLE_Device_usb_oh1_57e_305_stub;
+namespace Device
+{
+using BluetoothReal = BluetoothStub;
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS
 #endif

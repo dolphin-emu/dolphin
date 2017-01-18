@@ -15,10 +15,12 @@ namespace IOS
 {
 namespace HLE
 {
-class CWII_IPC_HLE_Device_usb_kbd : public IWII_IPC_HLE_Device
+namespace Device
+{
+class USB_KBD : public Device
 {
 public:
-  CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID, const std::string& _rDeviceName);
+  USB_KBD(u32 device_id, const std::string& device_name);
 
   IOSReturnCode Open(const IOSOpenRequest& request) override;
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
@@ -61,5 +63,6 @@ private:
   static u8 m_KeyCodesQWERTY[256];
   static u8 m_KeyCodesAZERTY[256];
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

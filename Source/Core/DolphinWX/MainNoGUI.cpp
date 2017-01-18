@@ -239,8 +239,7 @@ class PlatformX11 : public Platform
       {
         const auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
         if (!s_tried_graceful_shutdown.IsSet() && stm &&
-            std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_stm_eventhook>(stm)
-                ->HasHookInstalled())
+            std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
         {
           ProcessorInterface::PowerButton_Tap();
           s_tried_graceful_shutdown.Set();

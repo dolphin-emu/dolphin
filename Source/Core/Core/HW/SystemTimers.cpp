@@ -34,13 +34,13 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
       // If the AclFrameQue is empty this will call Wiimote_Update() and make it send
       the current input status to the game. I'm not sure if this occurs approximately
       once every frame or if the frequency is not exactly tied to rendered frames
-      CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
+      IOS::HLE::Device::BluetoothEmu::Update()
       PluginWiimote::Wiimote_Update()
 
       // This is also a device updated by IOS::HLE::Update() but it doesn't
       seem to ultimately call PluginWiimote::Wiimote_Update(). However it can be called
       by the /dev/usb/oh1 device if the AclFrameQue is empty.
-      CWII_IPC_HLE_WiiMote::Update()
+      IOS::HLE::WiimoteDevice::Update()
 */
 
 #include "Core/HW/SystemTimers.h"

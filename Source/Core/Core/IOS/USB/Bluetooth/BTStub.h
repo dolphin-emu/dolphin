@@ -16,16 +16,18 @@ namespace IOS
 {
 namespace HLE
 {
-class CWII_IPC_HLE_Device_usb_oh1_57e_305_stub final
-    : public CWII_IPC_HLE_Device_usb_oh1_57e_305_base
+namespace Device
+{
+class BluetoothStub final : public BluetoothBase
 {
 public:
-  CWII_IPC_HLE_Device_usb_oh1_57e_305_stub(const u32 device_id, const std::string& device_name)
-      : CWII_IPC_HLE_Device_usb_oh1_57e_305_base(device_id, device_name)
+  BluetoothStub(const u32 device_id, const std::string& device_name)
+      : BluetoothBase(device_id, device_name)
   {
   }
   IOSReturnCode Open(const IOSOpenRequest& request) override;
   void DoState(PointerWrap& p) override;
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

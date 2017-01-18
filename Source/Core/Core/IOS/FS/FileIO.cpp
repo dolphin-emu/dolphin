@@ -69,13 +69,14 @@ void HLE_IPC_CreateVirtualFATFilesystem()
   }
 }
 
-CWII_IPC_HLE_Device_FileIO::CWII_IPC_HLE_Device_FileIO(u32 device_id,
-                                                       const std::string& device_name)
-    : IWII_IPC_HLE_Device(device_id, device_name, DeviceType::FileIO)
+namespace Device
+{
+FileIO::FileIO(u32 device_id, const std::string& device_name)
+    : Device(device_id, device_name, DeviceType::FileIO)
 {
 }
 
-void CWII_IPC_HLE_Device_FileIO::Close()
+void FileIO::Close()
 {
   INFO_LOG(WII_IPC_FILEIO, "FileIO: Close %s (DeviceID=%08x)", m_name.c_str(), m_device_id);
   m_Mode = 0;
@@ -87,7 +88,7 @@ void CWII_IPC_HLE_Device_FileIO::Close()
   m_is_active = false;
 }
 
-IOSReturnCode CWII_IPC_HLE_Device_FileIO::Open(const IOSOpenRequest& request)
+IOSReturnCode FileIO::Open(const IOSOpenRequest& request)
 {
   m_Mode = request.flags;
 
@@ -112,7 +113,7 @@ IOSReturnCode CWII_IPC_HLE_Device_FileIO::Open(const IOSOpenRequest& request)
 }
 
 // This isn't theadsafe, but it's only called from the CPU thread.
-void CWII_IPC_HLE_Device_FileIO::OpenFile()
+void FileIO::OpenFile()
 {
   // On the wii, all file operations are strongly ordered.
   // If a game opens the same file twice (or 8 times, looking at you PokePark Wii)
@@ -155,7 +156,7 @@ void CWII_IPC_HLE_Device_FileIO::OpenFile()
   }
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(const IOSSeekRequest& request)
+IPCCommandResult FileIO::Seek(const IOSSeekRequest& request)
 {
   u32 return_value = FS_EINVAL;
 
@@ -201,7 +202,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(const IOSSeekRequest& request)
 
     default:
     {
-      PanicAlert("CWII_IPC_HLE_Device_FileIO Unsupported seek mode %i", request.mode);
+      PanicAlert("FileIO Unsupported seek mode %i", request.mode);
       return_value = FS_EINVAL;
       break;
     }
@@ -214,7 +215,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Seek(const IOSSeekRequest& request)
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(const IOSReadWriteRequest& request)
+IPCCommandResult FileIO::Read(const IOSReadWriteRequest& request)
 {
   s32 return_value = FS_EACCESS;
   if (m_file->IsOpen())
@@ -253,7 +254,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Read(const IOSReadWriteRequest& req
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(const IOSReadWriteRequest& request)
+IPCCommandResult FileIO::Write(const IOSReadWriteRequest& request)
 {
   s32 return_value = FS_EACCESS;
   if (m_file->IsOpen())
@@ -288,7 +289,7 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::Write(const IOSReadWriteRequest& re
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult FileIO::IOCtl(const IOSIOCtlRequest& request)
 {
   DEBUG_LOG(WII_IPC_FILEIO, "FileIO: IOCtl (Device=%s)", m_name.c_str());
   s32 return_value = IPC_SUCCESS;
@@ -318,14 +319,14 @@ IPCCommandResult CWII_IPC_HLE_Device_FileIO::IOCtl(const IOSIOCtlRequest& reques
   return GetDefaultReply(return_value);
 }
 
-void CWII_IPC_HLE_Device_FileIO::PrepareForState(PointerWrap::Mode mode)
+void FileIO::PrepareForState(PointerWrap::Mode mode)
 {
   // Temporally close the file, to prevent any issues with the savestating of /tmp
   // it can be opened again with another call to OpenFile()
   m_file.reset();
 }
 
-void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap& p)
+void FileIO::DoState(PointerWrap& p)
 {
   DoStateShared(p);
 
@@ -338,5 +339,6 @@ void CWII_IPC_HLE_Device_FileIO::DoState(PointerWrap& p)
   // Open it again
   OpenFile();
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

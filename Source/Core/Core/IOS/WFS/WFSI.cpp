@@ -78,12 +78,13 @@ void ARCUnpacker::Extract(const WriteCallback& callback)
   }
 }
 
-CWII_IPC_HLE_Device_wfsi::CWII_IPC_HLE_Device_wfsi(u32 device_id, const std::string& device_name)
-    : IWII_IPC_HLE_Device(device_id, device_name)
+namespace Device
+{
+WFSI::WFSI(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult WFSI::IOCtl(const IOSIOCtlRequest& request)
 {
   u32 return_error_code = IPC_SUCCESS;
 
@@ -244,5 +245,6 @@ IPCCommandResult CWII_IPC_HLE_Device_wfsi::IOCtl(const IOSIOCtlRequest& request)
 
   return GetDefaultReply(return_error_code);
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

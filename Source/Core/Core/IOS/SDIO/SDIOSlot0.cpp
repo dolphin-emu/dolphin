@@ -21,13 +21,13 @@ namespace IOS
 {
 namespace HLE
 {
-CWII_IPC_HLE_Device_sdio_slot0::CWII_IPC_HLE_Device_sdio_slot0(const u32 device_id,
-                                                               const std::string& device_name)
-    : IWII_IPC_HLE_Device(device_id, device_name)
+namespace Device
+{
+SDIOSlot0::SDIOSlot0(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
 
-void CWII_IPC_HLE_Device_sdio_slot0::DoState(PointerWrap& p)
+void SDIOSlot0::DoState(PointerWrap& p)
 {
   DoStateShared(p);
   if (p.GetMode() == PointerWrap::MODE_READ)
@@ -40,7 +40,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::DoState(PointerWrap& p)
   p.Do(m_registers);
 }
 
-void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
+void SDIOSlot0::EventNotify()
 {
   if (!m_event)
     return;
@@ -54,7 +54,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::EventNotify()
   }
 }
 
-void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
+void SDIOSlot0::OpenInternal()
 {
   const std::string filename = File::GetUserPath(F_WIISDCARD_IDX);
   m_Card.Open(filename, "r+b");
@@ -74,7 +74,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::OpenInternal()
   }
 }
 
-IOSReturnCode CWII_IPC_HLE_Device_sdio_slot0::Open(const IOSOpenRequest& request)
+IOSReturnCode SDIOSlot0::Open(const IOSOpenRequest& request)
 {
   OpenInternal();
   m_registers.fill(0);
@@ -83,7 +83,7 @@ IOSReturnCode CWII_IPC_HLE_Device_sdio_slot0::Open(const IOSOpenRequest& request
   return IPC_SUCCESS;
 }
 
-void CWII_IPC_HLE_Device_sdio_slot0::Close()
+void SDIOSlot0::Close()
 {
   m_Card.Close();
   m_BlockLength = 0;
@@ -93,7 +93,7 @@ void CWII_IPC_HLE_Device_sdio_slot0::Close()
 }
 
 // The front SD slot
-IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult SDIOSlot0::IOCtl(const IOSIOCtlRequest& request)
 {
   Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
   s32 return_value = IPC_SUCCESS;
@@ -204,7 +204,7 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtl(const IOSIOCtlRequest& re
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult SDIOSlot0::IOCtlV(const IOSIOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   switch (request.request)
@@ -225,10 +225,8 @@ IPCCommandResult CWII_IPC_HLE_Device_sdio_slot0::IOCtlV(const IOSIOCtlVRequest& 
   return GetDefaultReply(return_value);
 }
 
-u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn,
-                                                   u32 _BufferInSize, u32 _rwBuffer,
-                                                   u32 _rwBufferSize, u32 _BufferOut,
-                                                   u32 _BufferOutSize)
+u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _BufferInSize,
+                              u32 _rwBuffer, u32 _rwBufferSize, u32 _BufferOut, u32 _BufferOutSize)
 {
   // The game will send us a SendCMD with this information. To be able to read and write
   // to a file we need to prepare a 0x10 byte output buffer as response.
@@ -407,5 +405,6 @@ u32 CWII_IPC_HLE_Device_sdio_slot0::ExecuteCommand(const IOSRequest& request, u3
 
   return ret;
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

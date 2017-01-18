@@ -309,7 +309,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           {
           case IOCTLV_NET_SSL_DOHANDSHAKE:
           {
-            mbedtls_ssl_context* ctx = &CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx;
+            mbedtls_ssl_context* ctx = &Device::NetSSL::_SSL[sslID].ctx;
             int ret = mbedtls_ssl_handshake(ctx);
             if (ret)
             {
@@ -384,7 +384,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_WRITE:
           {
-            int ret = mbedtls_ssl_write(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx,
+            int ret = mbedtls_ssl_write(&Device::NetSSL::_SSL[sslID].ctx,
                                         Memory::GetPointer(BufferOut2), BufferOutSize2);
 
             if (SConfig::GetInstance().m_SSLDumpWrite && ret > 0)
@@ -422,7 +422,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
           }
           case IOCTLV_NET_SSL_READ:
           {
-            int ret = mbedtls_ssl_read(&CWII_IPC_HLE_Device_net_ssl::_SSL[sslID].ctx,
+            int ret = mbedtls_ssl_read(&Device::NetSSL::_SSL[sslID].ctx,
                                        Memory::GetPointer(BufferIn2), BufferInSize2);
 
             if (SConfig::GetInstance().m_SSLDumpRead && ret > 0)

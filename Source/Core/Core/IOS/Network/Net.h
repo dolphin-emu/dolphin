@@ -23,16 +23,58 @@ namespace IOS
 {
 namespace HLE
 {
+enum NET_IOCTL
+{
+  IOCTL_SO_ACCEPT = 1,
+  IOCTL_SO_BIND,
+  IOCTL_SO_CLOSE,
+  IOCTL_SO_CONNECT,
+  IOCTL_SO_FCNTL,
+  IOCTL_SO_GETPEERNAME,
+  IOCTL_SO_GETSOCKNAME,
+  IOCTL_SO_GETSOCKOPT,
+  IOCTL_SO_SETSOCKOPT,
+  IOCTL_SO_LISTEN,
+  IOCTL_SO_POLL,
+  IOCTLV_SO_RECVFROM,
+  IOCTLV_SO_SENDTO,
+  IOCTL_SO_SHUTDOWN,
+  IOCTL_SO_SOCKET,
+  IOCTL_SO_GETHOSTID,
+  IOCTL_SO_GETHOSTBYNAME,
+  IOCTL_SO_GETHOSTBYADDR,
+  IOCTLV_SO_GETNAMEINFO,
+  IOCTL_SO_UNK14,
+  IOCTL_SO_INETATON,
+  IOCTL_SO_INETPTON,
+  IOCTL_SO_INETNTOP,
+  IOCTLV_SO_GETADDRINFO,
+  IOCTL_SO_SOCKATMARK,
+  IOCTLV_SO_UNK1A,
+  IOCTLV_SO_UNK1B,
+  IOCTLV_SO_GETINTERFACEOPT,
+  IOCTLV_SO_SETINTERFACEOPT,
+  IOCTL_SO_SETINTERFACE,
+  IOCTL_SO_STARTUP,
+  IOCTL_SO_ICMPSOCKET = 0x30,
+  IOCTLV_SO_ICMPPING,
+  IOCTL_SO_ICMPCANCEL,
+  IOCTL_SO_ICMPCLOSE
+};
+
+// TODO: split this up.
+namespace Device
+{
 //////////////////////////////////////////////////////////////////////////
 // KD is the IOS module responsible for implementing WiiConnect24 functionality.
 // It can perform HTTPS downloads, send and receive mail via SMTP, and execute a
 // JavaScript-like language while the Wii is in standby mode.
-class CWII_IPC_HLE_Device_net_kd_request : public IWII_IPC_HLE_Device
+class NetKDRequest : public Device
 {
 public:
-  CWII_IPC_HLE_Device_net_kd_request(u32 _DeviceID, const std::string& _rDeviceName);
+  NetKDRequest(u32 device_id, const std::string& device_name);
 
-  virtual ~CWII_IPC_HLE_Device_net_kd_request();
+  virtual ~NetKDRequest();
 
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
 
@@ -81,15 +123,15 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class CWII_IPC_HLE_Device_net_kd_time : public IWII_IPC_HLE_Device
+class NetKDTime : public Device
 {
 public:
-  CWII_IPC_HLE_Device_net_kd_time(u32 _DeviceID, const std::string& _rDeviceName)
-      : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName), rtc(), utcdiff()
+  NetKDTime(u32 device_id, const std::string& device_name)
+      : Device(device_id, device_name), rtc(), utcdiff()
   {
   }
 
-  virtual ~CWII_IPC_HLE_Device_net_kd_time() {}
+  virtual ~NetKDTime() {}
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override
   {
     s32 result = 0;
@@ -159,52 +201,13 @@ private:
   }
 };
 
-enum NET_IOCTL
-{
-  IOCTL_SO_ACCEPT = 1,
-  IOCTL_SO_BIND,
-  IOCTL_SO_CLOSE,
-  IOCTL_SO_CONNECT,
-  IOCTL_SO_FCNTL,
-  IOCTL_SO_GETPEERNAME,
-  IOCTL_SO_GETSOCKNAME,
-  IOCTL_SO_GETSOCKOPT,
-  IOCTL_SO_SETSOCKOPT,
-  IOCTL_SO_LISTEN,
-  IOCTL_SO_POLL,
-  IOCTLV_SO_RECVFROM,
-  IOCTLV_SO_SENDTO,
-  IOCTL_SO_SHUTDOWN,
-  IOCTL_SO_SOCKET,
-  IOCTL_SO_GETHOSTID,
-  IOCTL_SO_GETHOSTBYNAME,
-  IOCTL_SO_GETHOSTBYADDR,
-  IOCTLV_SO_GETNAMEINFO,
-  IOCTL_SO_UNK14,
-  IOCTL_SO_INETATON,
-  IOCTL_SO_INETPTON,
-  IOCTL_SO_INETNTOP,
-  IOCTLV_SO_GETADDRINFO,
-  IOCTL_SO_SOCKATMARK,
-  IOCTLV_SO_UNK1A,
-  IOCTLV_SO_UNK1B,
-  IOCTLV_SO_GETINTERFACEOPT,
-  IOCTLV_SO_SETINTERFACEOPT,
-  IOCTL_SO_SETINTERFACE,
-  IOCTL_SO_STARTUP,
-  IOCTL_SO_ICMPSOCKET = 0x30,
-  IOCTLV_SO_ICMPPING,
-  IOCTL_SO_ICMPCANCEL,
-  IOCTL_SO_ICMPCLOSE
-};
-
 //////////////////////////////////////////////////////////////////////////
-class CWII_IPC_HLE_Device_net_ip_top : public IWII_IPC_HLE_Device
+class NetIPTop : public Device
 {
 public:
-  CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID, const std::string& _rDeviceName);
+  NetIPTop(u32 device_id, const std::string& device_name);
 
-  virtual ~CWII_IPC_HLE_Device_net_ip_top();
+  virtual ~NetIPTop();
 
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
@@ -219,12 +222,10 @@ private:
 
 // **********************************************************************************
 // Interface for reading and changing network configuration (probably some other stuff as well)
-class CWII_IPC_HLE_Device_net_ncd_manage : public IWII_IPC_HLE_Device
+class NetNCDManage : public Device
 {
 public:
-  CWII_IPC_HLE_Device_net_ncd_manage(u32 _DeviceID, const std::string& _rDeviceName);
-
-  virtual ~CWII_IPC_HLE_Device_net_ncd_manage();
+  NetNCDManage(u32 device_id, const std::string& device_name);
 
   IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
 
@@ -245,12 +246,10 @@ private:
 };
 
 //////////////////////////////////////////////////////////////////////////
-class CWII_IPC_HLE_Device_net_wd_command : public IWII_IPC_HLE_Device
+class NetWDCommand : public Device
 {
 public:
-  CWII_IPC_HLE_Device_net_wd_command(u32 DeviceID, const std::string& DeviceName);
-
-  virtual ~CWII_IPC_HLE_Device_net_wd_command();
+  NetWDCommand(u32 device_id, const std::string& device_name);
 
   IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
 
@@ -335,5 +334,6 @@ private:
   };
 #pragma pack(pop)
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

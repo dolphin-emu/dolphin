@@ -24,11 +24,13 @@ namespace IOS
 {
 namespace HLE
 {
-#define MAX_DEVICE_DEVNUM 256
+namespace Device
+{
+constexpr int MAX_DEVICE_DEVNUM = 256;
 static u64 hidDeviceAliases[MAX_DEVICE_DEVNUM];
 
 // Regular thread
-void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
+void USB_HIDv4::checkUsbUpdates(USB_HIDv4* hid)
 {
   timeval tv;
   tv.tv_sec = 0;
@@ -54,7 +56,7 @@ void CWII_IPC_HLE_Device_hid::checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid)
   return;
 }
 
-void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer* transfer)
+void USB_HIDv4::handleUsbUpdates(struct libusb_transfer* transfer)
 {
   s32 ret = IPC_EINVAL;
   u32 replyAddress = (u32)(size_t)transfer->user_data;
@@ -67,8 +69,7 @@ void CWII_IPC_HLE_Device_hid::handleUsbUpdates(struct libusb_transfer* transfer)
   EnqueueReply(request, ret, 0, CoreTiming::FromThread::NON_CPU);
 }
 
-CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+USB_HIDv4::USB_HIDv4(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
   deviceCommandAddress = 0;
   memset(hidDeviceAliases, 0, sizeof(hidDeviceAliases));
@@ -84,7 +85,7 @@ CWII_IPC_HLE_Device_hid::CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::strin
   }
 }
 
-CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
+USB_HIDv4::~USB_HIDv4()
 {
   bool deinit_libusb = false;
   if (usb_thread_running)
@@ -104,7 +105,7 @@ CWII_IPC_HLE_Device_hid::~CWII_IPC_HLE_Device_hid()
     libusb_exit(nullptr);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult USB_HIDv4::IOCtl(const IOSIOCtlRequest& request)
 {
   if (Core::g_want_determinism)
   {
@@ -229,7 +230,7 @@ IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtl(const IOSIOCtlRequest& request)
   return GetDefaultReply(return_value);
 }
 
-bool CWII_IPC_HLE_Device_hid::ClaimDevice(libusb_device_handle* dev)
+bool USB_HIDv4::ClaimDevice(libusb_device_handle* dev)
 {
   int ret = 0;
   if ((ret = libusb_kernel_driver_active(dev, 0)) == 1)
@@ -255,15 +256,15 @@ bool CWII_IPC_HLE_Device_hid::ClaimDevice(libusb_device_handle* dev)
   return true;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_hid::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult USB_HIDv4::IOCtlV(const IOSIOCtlVRequest& request)
 {
   Dolphin_Debugger::PrintCallstack(LogTypes::WII_IPC_HID, LogTypes::LWARNING);
   request.DumpUnknown(GetDeviceName(), LogTypes::WII_IPC_HID);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-void CWII_IPC_HLE_Device_hid::ConvertDeviceToWii(WiiHIDDeviceDescriptor* dest,
-                                                 const struct libusb_device_descriptor* src)
+void USB_HIDv4::ConvertDeviceToWii(WiiHIDDeviceDescriptor* dest,
+                                   const struct libusb_device_descriptor* src)
 {
   dest->bLength = src->bLength;
   dest->bDescriptorType = src->bDescriptorType;
@@ -281,27 +282,27 @@ void CWII_IPC_HLE_Device_hid::ConvertDeviceToWii(WiiHIDDeviceDescriptor* dest,
   dest->bNumConfigurations = src->bNumConfigurations;
 }
 
-void CWII_IPC_HLE_Device_hid::ConvertConfigToWii(WiiHIDConfigDescriptor* dest,
-                                                 const struct libusb_config_descriptor* src)
+void USB_HIDv4::ConvertConfigToWii(WiiHIDConfigDescriptor* dest,
+                                   const struct libusb_config_descriptor* src)
 {
   memcpy(dest, src, sizeof(WiiHIDConfigDescriptor));
   dest->wTotalLength = Common::swap16(dest->wTotalLength);
 }
 
-void CWII_IPC_HLE_Device_hid::ConvertInterfaceToWii(WiiHIDInterfaceDescriptor* dest,
-                                                    const struct libusb_interface_descriptor* src)
+void USB_HIDv4::ConvertInterfaceToWii(WiiHIDInterfaceDescriptor* dest,
+                                      const struct libusb_interface_descriptor* src)
 {
   memcpy(dest, src, sizeof(WiiHIDInterfaceDescriptor));
 }
 
-void CWII_IPC_HLE_Device_hid::ConvertEndpointToWii(WiiHIDEndpointDescriptor* dest,
-                                                   const struct libusb_endpoint_descriptor* src)
+void USB_HIDv4::ConvertEndpointToWii(WiiHIDEndpointDescriptor* dest,
+                                     const struct libusb_endpoint_descriptor* src)
 {
   memcpy(dest, src, sizeof(WiiHIDEndpointDescriptor));
   dest->wMaxPacketSize = Common::swap16(dest->wMaxPacketSize);
 }
 
-void CWII_IPC_HLE_Device_hid::FillOutDevices(const IOSIOCtlRequest& request)
+void USB_HIDv4::FillOutDevices(const IOSIOCtlRequest& request)
 {
   static u16 check = 1;
   int OffsetBuffer = request.buffer_out;
@@ -441,7 +442,7 @@ void CWII_IPC_HLE_Device_hid::FillOutDevices(const IOSIOCtlRequest& request)
   Memory::Write_U32(0xFFFFFFFF, OffsetBuffer);  // no more devices
 }
 
-libusb_device_handle* CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
+libusb_device_handle* USB_HIDv4::GetDeviceByDevNum(u32 devNum)
 {
   libusb_device** list;
   libusb_device_handle* handle = nullptr;
@@ -545,8 +546,7 @@ libusb_device_handle* CWII_IPC_HLE_Device_hid::GetDeviceByDevNum(u32 devNum)
   return handle;
 }
 
-int CWII_IPC_HLE_Device_hid::GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port,
-                                                u16 check)
+int USB_HIDv4::GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check)
 {
   int pos = -1;
   u64 unique_id = ((u64)idVendor << 32) | ((u64)idProduct << 16) | ((u64)bus << 8) | (u64)port;
@@ -573,5 +573,6 @@ int CWII_IPC_HLE_Device_hid::GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 
 
   return -1;
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

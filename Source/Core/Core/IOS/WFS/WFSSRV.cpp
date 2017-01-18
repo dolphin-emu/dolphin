@@ -26,14 +26,14 @@ std::string NativePath(const std::string& wfs_path)
 }
 }  // namespace WFS
 
-CWII_IPC_HLE_Device_usb_wfssrv::CWII_IPC_HLE_Device_usb_wfssrv(u32 device_id,
-                                                               const std::string& device_name)
-    : IWII_IPC_HLE_Device(device_id, device_name)
+namespace Device
+{
+WFSSRV::WFSSRV(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
   m_device_name = "msc01";
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult WFSSRV::IOCtl(const IOSIOCtlRequest& request)
 {
   int return_error_code = IPC_SUCCESS;
 
@@ -164,8 +164,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_wfssrv::IOCtl(const IOSIOCtlRequest& re
   return GetDefaultReply(return_error_code);
 }
 
-CWII_IPC_HLE_Device_usb_wfssrv::FileDescriptor*
-CWII_IPC_HLE_Device_usb_wfssrv::FindFileDescriptor(u16 fd)
+WFSSRV::FileDescriptor* WFSSRV::FindFileDescriptor(u16 fd)
 {
   if (fd >= m_fds.size() || !m_fds[fd].in_use)
   {
@@ -174,7 +173,7 @@ CWII_IPC_HLE_Device_usb_wfssrv::FindFileDescriptor(u16 fd)
   return &m_fds[fd];
 }
 
-u16 CWII_IPC_HLE_Device_usb_wfssrv::GetNewFileDescriptor()
+u16 WFSSRV::GetNewFileDescriptor()
 {
   for (u32 i = 0; i < m_fds.size(); ++i)
   {
@@ -187,7 +186,7 @@ u16 CWII_IPC_HLE_Device_usb_wfssrv::GetNewFileDescriptor()
   return static_cast<u16>(m_fds.size() - 1);
 }
 
-void CWII_IPC_HLE_Device_usb_wfssrv::ReleaseFileDescriptor(u16 fd)
+void WFSSRV::ReleaseFileDescriptor(u16 fd)
 {
   FileDescriptor* fd_obj = FindFileDescriptor(fd);
   if (!fd_obj)
@@ -203,7 +202,7 @@ void CWII_IPC_HLE_Device_usb_wfssrv::ReleaseFileDescriptor(u16 fd)
   }
 }
 
-bool CWII_IPC_HLE_Device_usb_wfssrv::FileDescriptor::Open()
+bool WFSSRV::FileDescriptor::Open()
 {
   const char* mode_string;
 
@@ -227,5 +226,6 @@ bool CWII_IPC_HLE_Device_usb_wfssrv::FileDescriptor::Open()
 
   return file.Open(WFS::NativePath(path), mode_string);
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

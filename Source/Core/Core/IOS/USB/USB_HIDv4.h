@@ -35,12 +35,14 @@ namespace HLE
 #define HID_ID_MASK 0x0000FFFFFFFFFFFF
 #define MAX_HID_INTERFACES 1
 
-class CWII_IPC_HLE_Device_hid : public IWII_IPC_HLE_Device
+namespace Device
+{
+class USB_HIDv4 : public Device
 {
 public:
-  CWII_IPC_HLE_Device_hid(u32 _DeviceID, const std::string& _rDeviceName);
+  USB_HIDv4(u32 _DeviceID, const std::string& _rDeviceName);
 
-  virtual ~CWII_IPC_HLE_Device_hid();
+  virtual ~USB_HIDv4();
 
   IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
@@ -129,7 +131,7 @@ private:
                              const libusb_interface_descriptor* src);
   void ConvertEndpointToWii(WiiHIDEndpointDescriptor* dest, const libusb_endpoint_descriptor* src);
 
-  static void checkUsbUpdates(CWII_IPC_HLE_Device_hid* hid);
+  static void checkUsbUpdates(USB_HIDv4* hid);
   static void LIBUSB_CALL handleUsbUpdates(libusb_transfer* transfer);
 
   libusb_device_handle* GetDeviceByDevNum(u32 devNum);
@@ -140,5 +142,6 @@ private:
   std::thread usb_thread;
   bool usb_thread_running;
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

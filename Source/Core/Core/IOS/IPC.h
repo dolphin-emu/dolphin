@@ -18,7 +18,11 @@ namespace IOS
 {
 namespace HLE
 {
-class IWII_IPC_HLE_Device;
+namespace Device
+{
+class Device;
+}
+
 struct IOSRequest;
 
 struct IPCCommandResult
@@ -62,8 +66,8 @@ void ES_DIVerify(const std::vector<u8>& tmd);
 
 void SDIO_EventNotify();
 
-std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& device_name);
-std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 id);
+std::shared_ptr<Device::Device> GetDeviceByName(const std::string& device_name);
+std::shared_ptr<Device::Device> AccessDeviceByID(u32 id);
 
 // Update
 void Update();

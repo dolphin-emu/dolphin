@@ -64,14 +64,14 @@ namespace IOS
 {
 namespace HLE
 {
-static std::map<u32, std::shared_ptr<IWII_IPC_HLE_Device>> s_device_map;
+static std::map<u32, std::shared_ptr<Device::Device>> s_device_map;
 static std::mutex s_device_map_mutex;
 
 // STATE_TO_SAVE
 constexpr u8 IPC_MAX_FDS = 0x18;
 constexpr u8 ES_MAX_COUNT = 3;
-static std::shared_ptr<IWII_IPC_HLE_Device> s_fdmap[IPC_MAX_FDS];
-static std::shared_ptr<CWII_IPC_HLE_Device_es> s_es_handles[ES_MAX_COUNT];
+static std::shared_ptr<Device::Device> s_fdmap[IPC_MAX_FDS];
+static std::shared_ptr<Device::ES> s_es_handles[ES_MAX_COUNT];
 
 using IPCMsgQueue = std::deque<u32>;
 static IPCMsgQueue s_request_queue;  // ppc -> arm
@@ -104,8 +104,7 @@ static void EnqueueEvent(u64 userdata, s64 cycles_late = 0)
 
 static void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
 {
-  auto device =
-      static_cast<CWII_IPC_HLE_Device_sdio_slot0*>(GetDeviceByName("/dev/sdio/slot0").get());
+  auto device = static_cast<Device::SDIOSlot0*>(GetDeviceByName("/dev/sdio/slot0").get());
   if (device)
     device->EventNotify();
 }
@@ -116,7 +115,7 @@ template <typename T>
 std::shared_ptr<T> AddDevice(const char* device_name)
 {
   auto device = std::make_shared<T>(num_devices, device_name);
-  _assert_(device->GetDeviceType() == IWII_IPC_HLE_Device::DeviceType::Static);
+  _assert_(device->GetDeviceType() == Device::Device::DeviceType::Static);
   s_device_map[num_devices] = device;
   num_devices++;
   return device;
@@ -126,43 +125,43 @@ void Reinit()
 {
   std::lock_guard<std::mutex> lock(s_device_map_mutex);
   _assert_msg_(WII_IPC_HLE, s_device_map.empty(), "Reinit called while already initialized");
-  CWII_IPC_HLE_Device_es::m_ContentFile = "";
+  Device::ES::m_ContentFile = "";
 
   num_devices = 0;
 
   // Build hardware devices
   if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_emu>("/dev/usb/oh1/57e/305");
+    AddDevice<Device::BluetoothEmu>("/dev/usb/oh1/57e/305");
   else
-    AddDevice<CWII_IPC_HLE_Device_usb_oh1_57e_305_real>("/dev/usb/oh1/57e/305");
+    AddDevice<Device::BluetoothReal>("/dev/usb/oh1/57e/305");
 
-  AddDevice<CWII_IPC_HLE_Device_stm_immediate>("/dev/stm/immediate");
-  AddDevice<CWII_IPC_HLE_Device_stm_eventhook>("/dev/stm/eventhook");
-  AddDevice<CWII_IPC_HLE_Device_fs>("/dev/fs");
+  AddDevice<Device::STMImmediate>("/dev/stm/immediate");
+  AddDevice<Device::STMEventHook>("/dev/stm/eventhook");
+  AddDevice<Device::FS>("/dev/fs");
 
   // IOS allows two ES devices at a time
   for (auto& es_device : s_es_handles)
-    es_device = AddDevice<CWII_IPC_HLE_Device_es>("/dev/es");
+    es_device = AddDevice<Device::ES>("/dev/es");
 
-  AddDevice<CWII_IPC_HLE_Device_di>("/dev/di");
-  AddDevice<CWII_IPC_HLE_Device_net_kd_request>("/dev/net/kd/request");
-  AddDevice<CWII_IPC_HLE_Device_net_kd_time>("/dev/net/kd/time");
-  AddDevice<CWII_IPC_HLE_Device_net_ncd_manage>("/dev/net/ncd/manage");
-  AddDevice<CWII_IPC_HLE_Device_net_wd_command>("/dev/net/wd/command");
-  AddDevice<CWII_IPC_HLE_Device_net_ip_top>("/dev/net/ip/top");
-  AddDevice<CWII_IPC_HLE_Device_net_ssl>("/dev/net/ssl");
-  AddDevice<CWII_IPC_HLE_Device_usb_kbd>("/dev/usb/kbd");
-  AddDevice<CWII_IPC_HLE_Device_usb_ven>("/dev/usb/ven");
-  AddDevice<CWII_IPC_HLE_Device_sdio_slot0>("/dev/sdio/slot0");
-  AddDevice<CWII_IPC_HLE_Device_stub>("/dev/sdio/slot1");
+  AddDevice<Device::DI>("/dev/di");
+  AddDevice<Device::NetKDRequest>("/dev/net/kd/request");
+  AddDevice<Device::NetKDTime>("/dev/net/kd/time");
+  AddDevice<Device::NetNCDManage>("/dev/net/ncd/manage");
+  AddDevice<Device::NetWDCommand>("/dev/net/wd/command");
+  AddDevice<Device::NetIPTop>("/dev/net/ip/top");
+  AddDevice<Device::NetSSL>("/dev/net/ssl");
+  AddDevice<Device::USB_KBD>("/dev/usb/kbd");
+  AddDevice<Device::USB_VEN>("/dev/usb/ven");
+  AddDevice<Device::SDIOSlot0>("/dev/sdio/slot0");
+  AddDevice<Device::Stub>("/dev/sdio/slot1");
 #if defined(__LIBUSB__)
-  AddDevice<CWII_IPC_HLE_Device_hid>("/dev/usb/hid");
+  AddDevice<Device::USB_HIDv4>("/dev/usb/hid");
 #else
-  AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/hid");
+  AddDevice<Device::Stub>("/dev/usb/hid");
 #endif
-  AddDevice<CWII_IPC_HLE_Device_stub>("/dev/usb/oh1");
-  AddDevice<CWII_IPC_HLE_Device_usb_wfssrv>("/dev/usb/wfssrv");
-  AddDevice<CWII_IPC_HLE_Device_wfsi>("/dev/wfsi");
+  AddDevice<Device::Stub>("/dev/usb/oh1");
+  AddDevice<Device::WFSSRV>("/dev/usb/wfssrv");
+  AddDevice<Device::WFSI>("/dev/wfsi");
 }
 
 void Init()
@@ -212,7 +211,7 @@ void SetDefaultContentFile(const std::string& file_name)
 
 void ES_DIVerify(const std::vector<u8>& tmd)
 {
-  CWII_IPC_HLE_Device_es::ES_DIVerify(tmd);
+  Device::ES::ES_DIVerify(tmd);
 }
 
 void SDIO_EventNotify()
@@ -236,7 +235,7 @@ static int GetFreeDeviceID()
   return -1;
 }
 
-std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& device_name)
+std::shared_ptr<Device::Device> GetDeviceByName(const std::string& device_name)
 {
   std::lock_guard<std::mutex> lock(s_device_map_mutex);
   for (const auto& entry : s_device_map)
@@ -250,7 +249,7 @@ std::shared_ptr<IWII_IPC_HLE_Device> GetDeviceByName(const std::string& device_n
   return nullptr;
 }
 
-std::shared_ptr<IWII_IPC_HLE_Device> AccessDeviceByID(u32 id)
+std::shared_ptr<Device::Device> AccessDeviceByID(u32 id)
 {
   std::lock_guard<std::mutex> lock(s_device_map_mutex);
   if (s_device_map.find(id) != s_device_map.end())
@@ -267,7 +266,7 @@ void DoState(PointerWrap& p)
   p.Do(s_reply_queue);
   p.Do(s_last_reply_time);
 
-  // We need to make sure all file handles are closed so WII_IPC_Devices_fs::DoState can
+  // We need to make sure all file handles are closed so IOS::HLE::Device::FS::DoState can
   // successfully save or re-create /tmp
   for (auto& descriptor : s_fdmap)
   {
@@ -286,19 +285,19 @@ void DoState(PointerWrap& p)
       p.Do(exists);
       if (exists)
       {
-        auto device_type = IWII_IPC_HLE_Device::DeviceType::Static;
+        auto device_type = Device::Device::DeviceType::Static;
         p.Do(device_type);
         switch (device_type)
         {
-        case IWII_IPC_HLE_Device::DeviceType::Static:
+        case Device::Device::DeviceType::Static:
         {
           u32 device_id = 0;
           p.Do(device_id);
           s_fdmap[i] = AccessDeviceByID(device_id);
           break;
         }
-        case IWII_IPC_HLE_Device::DeviceType::FileIO:
-          s_fdmap[i] = std::make_shared<CWII_IPC_HLE_Device_FileIO>(i, "");
+        case Device::Device::DeviceType::FileIO:
+          s_fdmap[i] = std::make_shared<Device::FileIO>(i, "");
           s_fdmap[i]->DoState(p);
           break;
         }
@@ -309,7 +308,7 @@ void DoState(PointerWrap& p)
     {
       const u32 handle_id = es_device->GetDeviceID();
       p.Do(handle_id);
-      es_device = std::static_pointer_cast<CWII_IPC_HLE_Device_es>(AccessDeviceByID(handle_id));
+      es_device = std::static_pointer_cast<Device::ES>(AccessDeviceByID(handle_id));
     }
   }
   else
@@ -322,7 +321,7 @@ void DoState(PointerWrap& p)
       {
         auto device_type = descriptor->GetDeviceType();
         p.Do(device_type);
-        if (device_type == IWII_IPC_HLE_Device::DeviceType::Static)
+        if (device_type == Device::Device::DeviceType::Static)
         {
           u32 hwId = descriptor->GetDeviceID();
           p.Do(hwId);
@@ -342,7 +341,7 @@ void DoState(PointerWrap& p)
   }
 }
 
-static std::shared_ptr<IWII_IPC_HLE_Device> GetUnusedESDevice()
+static std::shared_ptr<Device::Device> GetUnusedESDevice()
 {
   const auto iterator = std::find_if(std::begin(s_es_handles), std::end(s_es_handles),
                                      [](const auto& es_device) { return !es_device->IsOpened(); });
@@ -360,7 +359,7 @@ static s32 OpenDevice(const IOSOpenRequest& request)
     return FS_EFDEXHAUSTED;
   }
 
-  std::shared_ptr<IWII_IPC_HLE_Device> device;
+  std::shared_ptr<Device::Device> device;
   if (request.path == "/dev/es")
   {
     device = GetUnusedESDevice();
@@ -373,7 +372,7 @@ static s32 OpenDevice(const IOSOpenRequest& request)
   }
   else if (request.path.find('/') == 0)
   {
-    device = std::make_shared<CWII_IPC_HLE_Device_FileIO>(new_fd, request.path);
+    device = std::make_shared<Device::FileIO>(new_fd, request.path);
   }
 
   if (!device)
@@ -395,19 +394,19 @@ static IPCCommandResult HandleCommand(const IOSRequest& request)
   {
     IOSOpenRequest open_request{request.address};
     const s32 new_fd = OpenDevice(open_request);
-    return IWII_IPC_HLE_Device::GetDefaultReply(new_fd);
+    return Device::Device::GetDefaultReply(new_fd);
   }
 
   const auto device = (request.fd < IPC_MAX_FDS) ? s_fdmap[request.fd] : nullptr;
   if (!device)
-    return IWII_IPC_HLE_Device::GetDefaultReply(IPC_EINVAL);
+    return Device::Device::GetDefaultReply(IPC_EINVAL);
 
   switch (request.command)
   {
   case IPC_CMD_CLOSE:
     s_fdmap[request.fd].reset();
     device->Close();
-    return IWII_IPC_HLE_Device::GetDefaultReply(IPC_SUCCESS);
+    return Device::Device::GetDefaultReply(IPC_SUCCESS);
   case IPC_CMD_READ:
     return device->Read(IOSReadWriteRequest{request.address});
   case IPC_CMD_WRITE:
@@ -420,7 +419,7 @@ static IPCCommandResult HandleCommand(const IOSRequest& request)
     return device->IOCtlV(IOSIOCtlVRequest{request.address});
   default:
     _assert_msg_(WII_IPC_HLE, false, "Unexpected command: %x", request.command);
-    return IWII_IPC_HLE_Device::GetDefaultReply(IPC_EINVAL);
+    return Device::Device::GetDefaultReply(IPC_EINVAL);
   }
 }
 

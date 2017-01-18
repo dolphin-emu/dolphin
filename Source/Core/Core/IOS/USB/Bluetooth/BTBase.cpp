@@ -54,8 +54,9 @@ void RestoreBTInfoSection(SysConf* sysconf)
   File::Delete(filename);
 }
 
-CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlMessage::CtrlMessage(const IOSIOCtlVRequest& ioctlv)
-    : ios_request(ioctlv)
+namespace Device
+{
+BluetoothBase::CtrlMessage::CtrlMessage(const IOSIOCtlVRequest& ioctlv) : ios_request(ioctlv)
 {
   request_type = Memory::Read_U8(ioctlv.in_vectors[0].address);
   request = Memory::Read_U8(ioctlv.in_vectors[1].address);
@@ -65,20 +66,19 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlMessage::CtrlMessage(const IOSIOCt
   payload_addr = ioctlv.io_vectors[0].address;
 }
 
-CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::CtrlBuffer(const IOSIOCtlVRequest& ioctlv)
-    : ios_request(ioctlv)
+BluetoothBase::CtrlBuffer::CtrlBuffer(const IOSIOCtlVRequest& ioctlv) : ios_request(ioctlv)
 {
   m_endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address);
   m_length = Memory::Read_U16(ioctlv.in_vectors[1].address);
   m_payload_addr = ioctlv.io_vectors[0].address;
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_base::CtrlBuffer::FillBuffer(const u8* src,
-                                                                      const size_t size) const
+void BluetoothBase::CtrlBuffer::FillBuffer(const u8* src, const size_t size) const
 {
   _assert_msg_(WII_IPC_WIIMOTE, size <= m_length, "FillBuffer: size %li > payload length %i", size,
                m_length);
   Memory::CopyToEmu(m_payload_addr, src, size);
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

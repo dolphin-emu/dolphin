@@ -580,7 +580,7 @@ bool BeginRecordingInput(int controllers)
     s_bRecordingFromSaveState = true;
 
     // This is only done here if starting from save state because otherwise we won't have the
-    // titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
+    // titleid. Otherwise it's set in IOS::HLE::Device::ES.
     // TODO: find a way to GetTitleDataPath() from Movie::Init()
     if (SConfig::GetInstance().bWii)
     {

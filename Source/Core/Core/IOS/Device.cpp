@@ -121,19 +121,20 @@ void IOSIOCtlVRequest::DumpUnknown(const std::string& description, LogTypes::LOG
   Dump("Unknown IOCtlV - " + description, type, level);
 }
 
-IWII_IPC_HLE_Device::IWII_IPC_HLE_Device(const u32 device_id, const std::string& device_name,
-                                         const DeviceType type)
+namespace Device
+{
+Device::Device(const u32 device_id, const std::string& device_name, const DeviceType type)
     : m_name(device_name), m_device_id(device_id), m_device_type(type)
 {
 }
 
-void IWII_IPC_HLE_Device::DoState(PointerWrap& p)
+void Device::DoState(PointerWrap& p)
 {
   DoStateShared(p);
   p.Do(m_is_active);
 }
 
-void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
+void Device::DoStateShared(PointerWrap& p)
 {
   p.Do(m_name);
   p.Do(m_device_id);
@@ -141,18 +142,18 @@ void IWII_IPC_HLE_Device::DoStateShared(PointerWrap& p)
   p.Do(m_is_active);
 }
 
-IOSReturnCode IWII_IPC_HLE_Device::Open(const IOSOpenRequest& request)
+IOSReturnCode Device::Open(const IOSOpenRequest& request)
 {
   m_is_active = true;
   return IPC_SUCCESS;
 }
 
-void IWII_IPC_HLE_Device::Close()
+void Device::Close()
 {
   m_is_active = false;
 }
 
-IPCCommandResult IWII_IPC_HLE_Device::Unsupported(const IOSRequest& request)
+IPCCommandResult Device::Unsupported(const IOSRequest& request)
 {
   static std::map<IPCCommandType, std::string> names = {{{IPC_CMD_READ, "Read"},
                                                          {IPC_CMD_WRITE, "Write"},
@@ -164,16 +165,17 @@ IPCCommandResult IWII_IPC_HLE_Device::Unsupported(const IOSRequest& request)
 }
 
 // Returns an IPCCommandResult for a reply that takes 250 us (arbitrarily chosen value)
-IPCCommandResult IWII_IPC_HLE_Device::GetDefaultReply(const s32 return_value)
+IPCCommandResult Device::GetDefaultReply(const s32 return_value)
 {
   return {return_value, true, SystemTimers::GetTicksPerSecond() / 4000};
 }
 
 // Returns an IPCCommandResult with no reply. Useful for async commands that will generate a reply
 // later. This takes no return value because it won't be used.
-IPCCommandResult IWII_IPC_HLE_Device::GetNoReply()
+IPCCommandResult Device::GetNoReply()
 {
   return {IPC_SUCCESS, false, 0};
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

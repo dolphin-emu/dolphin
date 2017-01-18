@@ -28,8 +28,9 @@ namespace HLE
 {
 #define NET_SSL_MAXINSTANCES 4
 
+// TODO: remove this macro.
 #define SSLID_VALID(x)                                                                             \
-  (x >= 0 && x < NET_SSL_MAXINSTANCES && CWII_IPC_HLE_Device_net_ssl::_SSL[x].active)
+  (x >= 0 && x < NET_SSL_MAXINSTANCES && ::IOS::HLE::Device::NetSSL::_SSL[x].active)
 
 enum ssl_err_t
 {
@@ -84,12 +85,14 @@ struct WII_SSL
   bool active;
 };
 
-class CWII_IPC_HLE_Device_net_ssl : public IWII_IPC_HLE_Device
+namespace Device
+{
+class NetSSL : public Device
 {
 public:
-  CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID, const std::string& _rDeviceName);
+  NetSSL(u32 device_id, const std::string& device_name);
 
-  virtual ~CWII_IPC_HLE_Device_net_ssl();
+  virtual ~NetSSL();
 
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
@@ -98,5 +101,6 @@ public:
 
   static WII_SSL _SSL[NET_SSL_MAXINSTANCES];
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

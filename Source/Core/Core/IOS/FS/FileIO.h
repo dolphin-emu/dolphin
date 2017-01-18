@@ -25,10 +25,12 @@ namespace HLE
 std::string HLE_IPC_BuildFilename(const std::string& wii_path);
 void HLE_IPC_CreateVirtualFATFilesystem();
 
-class CWII_IPC_HLE_Device_FileIO : public IWII_IPC_HLE_Device
+namespace Device
+{
+class FileIO : public Device
 {
 public:
-  CWII_IPC_HLE_Device_FileIO(u32 _DeviceID, const std::string& _rDeviceName);
+  FileIO(u32 device_id, const std::string& device_name);
 
   void Close() override;
   IOSReturnCode Open(const IOSOpenRequest& request) override;
@@ -74,5 +76,6 @@ private:
   std::string m_filepath;
   std::shared_ptr<File::IOFile> m_file;
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

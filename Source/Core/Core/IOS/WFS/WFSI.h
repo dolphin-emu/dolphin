@@ -33,10 +33,12 @@ private:
   std::vector<u8> m_whole_file;
 };
 
-class CWII_IPC_HLE_Device_wfsi : public IWII_IPC_HLE_Device
+namespace Device
+{
+class WFSI : public Device
 {
 public:
-  CWII_IPC_HLE_Device_wfsi(u32 device_id, const std::string& device_name);
+  WFSI(u32 device_id, const std::string& device_name);
 
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
 
@@ -73,5 +75,6 @@ private:
     IOCTL_WFSI_APPLY_TITLE_PROFILE = 0x89,
   };
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

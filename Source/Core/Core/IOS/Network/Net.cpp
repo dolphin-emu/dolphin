@@ -63,20 +63,21 @@ namespace IOS
 {
 namespace HLE
 {
+namespace Device
+{
 // **********************************************************************************
 // Handle /dev/net/kd/request requests
-CWII_IPC_HLE_Device_net_kd_request::CWII_IPC_HLE_Device_net_kd_request(
-    u32 _DeviceID, const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+NetKDRequest::NetKDRequest(u32 device_id, const std::string& device_name)
+    : Device(device_id, device_name)
 {
 }
 
-CWII_IPC_HLE_Device_net_kd_request::~CWII_IPC_HLE_Device_net_kd_request()
+NetKDRequest::~NetKDRequest()
 {
   WiiSockMan::GetInstance().Clean();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult NetKDRequest::IOCtl(const IOSIOCtlRequest& request)
 {
   s32 return_value = 0;
   switch (request.request)
@@ -197,7 +198,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_kd_request::IOCtl(const IOSIOCtlRequest
   return GetDefaultReply(return_value);
 }
 
-u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode(const std::string& area) const
+u8 NetKDRequest::GetAreaCode(const std::string& area) const
 {
   static std::map<const std::string, u8> regions = {
       {"JPN", 0}, {"USA", 1}, {"EUR", 2}, {"AUS", 2}, {"BRA", 1}, {"TWN", 3}, {"ROC", 3},
@@ -211,7 +212,7 @@ u8 CWII_IPC_HLE_Device_net_kd_request::GetAreaCode(const std::string& area) cons
     return 7;  // Unknown
 }
 
-u8 CWII_IPC_HLE_Device_net_kd_request::GetHardwareModel(const std::string& model) const
+u8 NetKDRequest::GetHardwareModel(const std::string& model) const
 {
   static std::map<const std::string, u8> models = {
       {"RVL", MODEL_RVL}, {"RVT", MODEL_RVT}, {"RVV", MODEL_RVV}, {"RVD", MODEL_RVD},
@@ -236,8 +237,8 @@ static inline u64 u64_insert_byte(u64 value, u8 shift, u8 byte)
   return (value & ~mask) | inst;
 }
 
-s32 CWII_IPC_HLE_Device_net_kd_request::NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr,
-                                                        u8 hardware_model, u8 area_code)
+s32 NetKDRequest::NWC24MakeUserID(u64* nwc24_id, u32 hollywood_id, u16 id_ctr, u8 hardware_model,
+                                  u8 area_code)
 {
   const u8 table2[8] = {0x1, 0x5, 0x0, 0x4, 0x2, 0x3, 0x6, 0x7};
   const u8 table1[16] = {0x4, 0xB, 0x7, 0x9, 0xF, 0x1, 0xD, 0x3,
@@ -320,17 +321,12 @@ static void GetMacAddress(u8* mac)
 
 // **********************************************************************************
 // Handle /dev/net/ncd/manage requests
-CWII_IPC_HLE_Device_net_ncd_manage::CWII_IPC_HLE_Device_net_ncd_manage(
-    u32 _DeviceID, const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+NetNCDManage::NetNCDManage(u32 device_id, const std::string& device_name)
+    : Device(device_id, device_name)
 {
 }
 
-CWII_IPC_HLE_Device_net_ncd_manage::~CWII_IPC_HLE_Device_net_ncd_manage()
-{
-}
-
-IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult NetNCDManage::IOCtlV(const IOSIOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   u32 common_result = 0;
@@ -398,20 +394,15 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ncd_manage::IOCtlV(const IOSIOCtlVReque
 
 // **********************************************************************************
 // Handle /dev/net/wd/command requests
-CWII_IPC_HLE_Device_net_wd_command::CWII_IPC_HLE_Device_net_wd_command(
-    u32 DeviceID, const std::string& DeviceName)
-    : IWII_IPC_HLE_Device(DeviceID, DeviceName)
-{
-}
-
-CWII_IPC_HLE_Device_net_wd_command::~CWII_IPC_HLE_Device_net_wd_command()
+NetWDCommand::NetWDCommand(u32 device_id, const std::string& device_name)
+    : Device(device_id, device_name)
 {
 }
 
 // This is just for debugging / playing around.
 // There really is no reason to implement wd unless we can bend it such that
 // we can talk to the DS.
-IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult NetWDCommand::IOCtlV(const IOSIOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
 
@@ -483,9 +474,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_wd_command::IOCtlV(const IOSIOCtlVReque
 
 // **********************************************************************************
 // Handle /dev/net/ip/top requests
-CWII_IPC_HLE_Device_net_ip_top::CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID,
-                                                               const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+NetIPTop::NetIPTop(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 #ifdef _WIN32
   int ret = WSAStartup(MAKEWORD(2, 2), &InitData);
@@ -493,7 +482,7 @@ CWII_IPC_HLE_Device_net_ip_top::CWII_IPC_HLE_Device_net_ip_top(u32 _DeviceID,
 #endif
 }
 
-CWII_IPC_HLE_Device_net_ip_top::~CWII_IPC_HLE_Device_net_ip_top()
+NetIPTop::~NetIPTop()
 {
 #ifdef _WIN32
   WSACleanup();
@@ -550,7 +539,7 @@ static unsigned int opt_level_mapping[][2] = {{SOL_SOCKET, 0xFFFF}};
 static unsigned int opt_name_mapping[][2] = {
     {SO_REUSEADDR, 0x4}, {SO_SNDBUF, 0x1001}, {SO_RCVBUF, 0x1002}, {SO_ERROR, 0x1009}};
 
-IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult NetIPTop::IOCtl(const IOSIOCtlRequest& request)
 {
   if (Core::g_want_determinism)
   {
@@ -1063,7 +1052,7 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtl(const IOSIOCtlRequest& re
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult NetIPTop::IOCtlV(const IOSIOCtlVRequest& request)
 {
   s32 return_value = 0;
 
@@ -1373,9 +1362,10 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ip_top::IOCtlV(const IOSIOCtlVRequest& 
   return GetDefaultReply(return_value);
 }
 
-void CWII_IPC_HLE_Device_net_ip_top::Update()
+void NetIPTop::Update()
 {
   WiiSockMan::GetInstance().Update();
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

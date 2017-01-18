@@ -38,27 +38,21 @@ enum
   STM_EVENT_POWER = 0x00000800
 };
 
+namespace Device
+{
 // The /dev/stm/immediate
-class CWII_IPC_HLE_Device_stm_immediate final : public IWII_IPC_HLE_Device
+class STMImmediate final : public Device
 {
 public:
-  CWII_IPC_HLE_Device_stm_immediate(u32 device_id, const std::string& device_name)
-      : IWII_IPC_HLE_Device(device_id, device_name)
-  {
-  }
-
+  STMImmediate(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
 };
 
 // The /dev/stm/eventhook
-class CWII_IPC_HLE_Device_stm_eventhook final : public IWII_IPC_HLE_Device
+class STMEventHook final : public Device
 {
 public:
-  CWII_IPC_HLE_Device_stm_eventhook(u32 device_id, const std::string& device_name)
-      : IWII_IPC_HLE_Device(device_id, device_name)
-  {
-  }
-
+  STMEventHook(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
   void Close() override;
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
 
@@ -69,5 +63,6 @@ public:
 private:
   void TriggerEvent(u32 event) const;
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

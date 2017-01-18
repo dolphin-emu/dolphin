@@ -25,8 +25,6 @@ namespace IOS
 {
 namespace HLE
 {
-class CWII_IPC_HLE_WiiMote;
-
 struct SQueuedEvent
 {
   u8 m_buffer[1024] = {0};
@@ -37,17 +35,18 @@ struct SQueuedEvent
   SQueuedEvent() = default;
 };
 
+namespace Device
+{
 // Important to remember that this class is for /dev/usb/oh1/57e/305 ONLY
 // /dev/usb/oh1 -> internal usb bus
 // 57e/305 -> VendorID/ProductID of device on usb bus
 // This device is ONLY the internal Bluetooth module (based on BCM2045 chip)
-class CWII_IPC_HLE_Device_usb_oh1_57e_305_emu final
-    : public CWII_IPC_HLE_Device_usb_oh1_57e_305_base
+class BluetoothEmu final : public BluetoothBase
 {
 public:
-  CWII_IPC_HLE_Device_usb_oh1_57e_305_emu(u32 _DeviceID, const std::string& _rDeviceName);
+  BluetoothEmu(u32 device_id, const std::string& device_name);
 
-  virtual ~CWII_IPC_HLE_Device_usb_oh1_57e_305_emu();
+  virtual ~BluetoothEmu();
 
   void Close() override;
   IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
@@ -59,9 +58,9 @@ public:
 
   bool RemoteDisconnect(u16 _connectionHandle);
 
-  std::vector<CWII_IPC_HLE_WiiMote> m_WiiMotes;
-  CWII_IPC_HLE_WiiMote* AccessWiiMote(const bdaddr_t& _rAddr);
-  CWII_IPC_HLE_WiiMote* AccessWiiMote(u16 _ConnectionHandle);
+  std::vector<WiimoteDevice> m_WiiMotes;
+  WiimoteDevice* AccessWiiMote(const bdaddr_t& _rAddr);
+  WiimoteDevice* AccessWiiMote(u16 _ConnectionHandle);
 
   void DoState(PointerWrap& p) override;
 
@@ -112,7 +111,7 @@ private:
   bool SendEventInquiryResponse();
   bool SendEventInquiryComplete();
   bool SendEventRemoteNameReq(const bdaddr_t& _bd);
-  bool SendEventRequestConnection(CWII_IPC_HLE_WiiMote& _rWiiMote);
+  bool SendEventRequestConnection(WiimoteDevice& _rWiiMote);
   bool SendEventConnectionComplete(const bdaddr_t& _bd);
   bool SendEventReadClockOffsetComplete(u16 _connectionHandle);
   bool SendEventConPacketTypeChange(u16 _connectionHandle, u16 _packetType);
@@ -194,5 +193,6 @@ private:
   };
 #pragma pack(pop)
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

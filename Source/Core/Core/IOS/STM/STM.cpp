@@ -21,9 +21,11 @@ namespace IOS
 {
 namespace HLE
 {
+namespace Device
+{
 static std::unique_ptr<IOSIOCtlRequest> s_event_hook_request;
 
-IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult STMImmediate::IOCtl(const IOSIOCtlRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   switch (request.request)
@@ -69,19 +71,16 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_immediate::IOCtl(const IOSIOCtlRequest&
   return GetDefaultReply(return_value);
 }
 
-void CWII_IPC_HLE_Device_stm_eventhook::Close()
+void STMEventHook::Close()
 {
   s_event_hook_request.reset();
   m_is_active = false;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult STMEventHook::IOCtl(const IOSIOCtlRequest& request)
 {
   if (request.request != IOCTL_STM_EVENTHOOK)
-  {
-    ERROR_LOG(WII_IPC_STM, "Bad IOCtl in CWII_IPC_HLE_Device_stm_eventhook");
     return GetDefaultReply(IPC_EINVAL);
-  }
 
   if (s_event_hook_request)
     return GetDefaultReply(IPC_EEXIST);
@@ -91,12 +90,12 @@ IPCCommandResult CWII_IPC_HLE_Device_stm_eventhook::IOCtl(const IOSIOCtlRequest&
   return GetNoReply();
 }
 
-bool CWII_IPC_HLE_Device_stm_eventhook::HasHookInstalled() const
+bool STMEventHook::HasHookInstalled() const
 {
   return s_event_hook_request != nullptr;
 }
 
-void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
+void STMEventHook::TriggerEvent(const u32 event) const
 {
   // If the device isn't open, ignore the button press.
   if (!m_is_active || !s_event_hook_request)
@@ -107,15 +106,16 @@ void CWII_IPC_HLE_Device_stm_eventhook::TriggerEvent(const u32 event) const
   s_event_hook_request.reset();
 }
 
-void CWII_IPC_HLE_Device_stm_eventhook::ResetButton() const
+void STMEventHook::ResetButton() const
 {
   // The reset button triggers STM_EVENT_RESET.
   TriggerEvent(STM_EVENT_RESET);
 }
 
-void CWII_IPC_HLE_Device_stm_eventhook::PowerButton() const
+void STMEventHook::PowerButton() const
 {
   TriggerEvent(STM_EVENT_POWER);
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

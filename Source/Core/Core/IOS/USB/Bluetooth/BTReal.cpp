@@ -66,9 +66,10 @@ static bool IsBluetoothDevice(const libusb_interface_descriptor& descriptor)
          descriptor.bInterfaceProtocol == PROTOCOL_BLUETOOTH;
 }
 
-CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CWII_IPC_HLE_Device_usb_oh1_57e_305_real(
-    u32 device_id, const std::string& device_name)
-    : CWII_IPC_HLE_Device_usb_oh1_57e_305_base(device_id, device_name)
+namespace Device
+{
+BluetoothReal::BluetoothReal(u32 device_id, const std::string& device_name)
+    : BluetoothBase(device_id, device_name)
 {
   const int ret = libusb_init(&m_libusb_context);
   _assert_msg_(WII_IPC_WIIMOTE, ret == 0, "Failed to init libusb.");
@@ -76,7 +77,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CWII_IPC_HLE_Device_usb_oh1_57e_305_re
   LoadLinkKeys();
 }
 
-CWII_IPC_HLE_Device_usb_oh1_57e_305_real::~CWII_IPC_HLE_Device_usb_oh1_57e_305_real()
+BluetoothReal::~BluetoothReal()
 {
   if (m_handle != nullptr)
   {
@@ -94,7 +95,7 @@ CWII_IPC_HLE_Device_usb_oh1_57e_305_real::~CWII_IPC_HLE_Device_usb_oh1_57e_305_r
   SaveLinkKeys();
 }
 
-IOSReturnCode CWII_IPC_HLE_Device_usb_oh1_57e_305_real::Open(const IOSOpenRequest& request)
+IOSReturnCode BluetoothReal::Open(const IOSOpenRequest& request)
 {
   libusb_device** list;
   const ssize_t cnt = libusb_get_device_list(m_libusb_context, &list);
@@ -150,7 +151,7 @@ IOSReturnCode CWII_IPC_HLE_Device_usb_oh1_57e_305_real::Open(const IOSOpenReques
   return IPC_SUCCESS;
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::Close()
+void BluetoothReal::Close()
 {
   if (m_handle)
   {
@@ -163,7 +164,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::Close()
   m_is_active = false;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult BluetoothReal::IOCtlV(const IOSIOCtlVRequest& request)
 {
   if (!m_is_wii_bt_module && s_need_reset_keys.TestAndClear())
   {
@@ -266,7 +267,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_oh1_57e_305_real::IOCtlV(const IOSIOCtl
   return GetNoReply();
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::DoState(PointerWrap& p)
+void BluetoothReal::DoState(PointerWrap& p)
 {
   bool passthrough_bluetooth = true;
   p.Do(passthrough_bluetooth);
@@ -280,7 +281,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::DoState(PointerWrap& p)
   }
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::UpdateSyncButtonState(const bool is_held)
+void BluetoothReal::UpdateSyncButtonState(const bool is_held)
 {
   if (m_sync_button_state == SyncButtonState::Unpressed && is_held)
   {
@@ -298,17 +299,17 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::UpdateSyncButtonState(const bool 
     m_sync_button_state = SyncButtonState::Unpressed;
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TriggerSyncButtonPressedEvent()
+void BluetoothReal::TriggerSyncButtonPressedEvent()
 {
   m_sync_button_state = SyncButtonState::Pressed;
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TriggerSyncButtonHeldEvent()
+void BluetoothReal::TriggerSyncButtonHeldEvent()
 {
   m_sync_button_state = SyncButtonState::LongPressed;
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::WaitForHCICommandComplete(const u16 opcode)
+void BluetoothReal::WaitForHCICommandComplete(const u16 opcode)
 {
   int actual_length;
   std::vector<u8> buffer(1024);
@@ -323,7 +324,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::WaitForHCICommandComplete(const u
   }
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIResetCommand()
+void BluetoothReal::SendHCIResetCommand()
 {
   const u8 type = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE;
   u8 packet[3] = {};
@@ -333,7 +334,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIResetCommand()
   INFO_LOG(WII_IPC_WIIMOTE, "Sent a reset command to adapter");
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIDeleteLinkKeyCommand()
+void BluetoothReal::SendHCIDeleteLinkKeyCommand()
 {
   const u8 type = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE;
   std::vector<u8> packet(sizeof(hci_cmd_hdr_t) + sizeof(hci_delete_stored_link_key_cp));
@@ -350,7 +351,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIDeleteLinkKeyCommand()
                           TIMEOUT);
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIStoreLinkKeyCommand()
+bool BluetoothReal::SendHCIStoreLinkKeyCommand()
 {
   if (s_link_keys.empty())
     return false;
@@ -389,7 +390,7 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SendHCIStoreLinkKeyCommand()
   return true;
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeVendorCommandReply(CtrlBuffer& ctrl)
+void BluetoothReal::FakeVendorCommandReply(CtrlBuffer& ctrl)
 {
   u8* packet = Memory::GetPointer(ctrl.m_payload_addr);
   auto* hci_event = reinterpret_cast<SHCIEventCommand*>(packet);
@@ -406,7 +407,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeVendorCommandReply(CtrlBuffer
 // - it will cause a u8 underflow and royally screw things up.
 // Therefore, the reply to this command has to be faked to avoid random, weird issues
 // (including Wiimote disconnects and "event mismatch" warning messages).
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeReadBufferSizeReply(CtrlBuffer& ctrl)
+void BluetoothReal::FakeReadBufferSizeReply(CtrlBuffer& ctrl)
 {
   u8* packet = Memory::GetPointer(ctrl.m_payload_addr);
   auto* hci_event = reinterpret_cast<SHCIEventCommand*>(packet);
@@ -427,8 +428,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeReadBufferSizeReply(CtrlBuffe
                static_cast<s32>(sizeof(SHCIEventCommand) + sizeof(hci_read_buffer_size_rp)));
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonEvent(CtrlBuffer& ctrl,
-                                                                   const u8* payload, const u8 size)
+void BluetoothReal::FakeSyncButtonEvent(CtrlBuffer& ctrl, const u8* payload, const u8 size)
 {
   u8* packet = Memory::GetPointer(ctrl.m_payload_addr);
   auto* hci_event = reinterpret_cast<hci_event_hdr_t*>(packet);
@@ -442,7 +442,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonEvent(CtrlBuffer& c
 //   > HCI Event: Vendor (0xff) plen 1
 //   08
 // This causes the emulated software to perform a BT inquiry and connect to found Wiimotes.
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonPressedEvent(CtrlBuffer& ctrl)
+void BluetoothReal::FakeSyncButtonPressedEvent(CtrlBuffer& ctrl)
 {
   NOTICE_LOG(WII_IPC_WIIMOTE, "Faking 'sync button pressed' (0x08) event packet");
   const u8 payload[1] = {0x08};
@@ -451,7 +451,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonPressedEvent(CtrlBu
 }
 
 // When the red sync button is held for 10 seconds, a HCI event with payload 09 is sent.
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonHeldEvent(CtrlBuffer& ctrl)
+void BluetoothReal::FakeSyncButtonHeldEvent(CtrlBuffer& ctrl)
 {
   NOTICE_LOG(WII_IPC_WIIMOTE, "Faking 'sync button held' (0x09) event packet");
   const u8 payload[1] = {0x09};
@@ -459,7 +459,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::FakeSyncButtonHeldEvent(CtrlBuffe
   m_sync_button_state = SyncButtonState::Ignored;
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::LoadLinkKeys()
+void BluetoothReal::LoadLinkKeys()
 {
   const std::string& entries = SConfig::GetInstance().m_bt_passthrough_link_keys;
   if (entries.empty())
@@ -490,7 +490,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::LoadLinkKeys()
   }
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SaveLinkKeys()
+void BluetoothReal::SaveLinkKeys()
 {
   std::ostringstream oss;
   for (const auto& entry : s_link_keys)
@@ -511,7 +511,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::SaveLinkKeys()
   SConfig::GetInstance().m_bt_passthrough_link_keys = config_string;
 }
 
-bool CWII_IPC_HLE_Device_usb_oh1_57e_305_real::OpenDevice(libusb_device* device)
+bool BluetoothReal::OpenDevice(libusb_device* device)
 {
   m_device = libusb_ref_device(device);
   const int ret = libusb_open(m_device, &m_handle);
@@ -536,15 +536,15 @@ bool CWII_IPC_HLE_Device_usb_oh1_57e_305_real::OpenDevice(libusb_device* device)
   return true;
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::StartTransferThread()
+void BluetoothReal::StartTransferThread()
 {
   if (m_thread_running.IsSet())
     return;
   m_thread_running.Set();
-  m_thread = std::thread(&CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferThread, this);
+  m_thread = std::thread(&BluetoothReal::TransferThread, this);
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::StopTransferThread()
+void BluetoothReal::StopTransferThread()
 {
   if (m_thread_running.TestAndClear())
   {
@@ -553,7 +553,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::StopTransferThread()
   }
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferThread()
+void BluetoothReal::TransferThread()
 {
   Common::SetCurrentThreadName("BT USB Thread");
   while (m_thread_running.IsSet())
@@ -563,7 +563,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferThread()
 }
 
 // The callbacks are called from libusb code on a separate thread.
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CommandCallback(libusb_transfer* tr)
+void BluetoothReal::CommandCallback(libusb_transfer* tr)
 {
   const std::unique_ptr<CtrlMessage> cmd(static_cast<CtrlMessage*>(tr->user_data));
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_NO_DEVICE)
@@ -584,7 +584,7 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::CommandCallback(libusb_transfer* 
   EnqueueReply(cmd->ios_request, tr->actual_length, 0, CoreTiming::FromThread::NON_CPU);
 }
 
-void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer* tr)
+void BluetoothReal::TransferCallback(libusb_transfer* tr)
 {
   const std::unique_ptr<CtrlBuffer> ctrl(static_cast<CtrlBuffer*>(tr->user_data));
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_TIMED_OUT &&
@@ -627,5 +627,6 @@ void CWII_IPC_HLE_Device_usb_oh1_57e_305_real::TransferCallback(libusb_transfer*
 
   EnqueueReply(ctrl->ios_request, tr->actual_length, 0, CoreTiming::FromThread::NON_CPU);
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

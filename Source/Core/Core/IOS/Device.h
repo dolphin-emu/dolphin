@@ -128,7 +128,9 @@ struct IOSIOCtlVRequest final : IOSRequest
                    LogTypes::LOG_LEVELS level = LogTypes::LERROR) const;
 };
 
-class IWII_IPC_HLE_Device
+namespace Device
+{
+class Device
 {
 public:
   enum class DeviceType : u32
@@ -137,10 +139,9 @@ public:
     FileIO,  // FileIO devices which are created dynamically.
   };
 
-  IWII_IPC_HLE_Device(u32 device_id, const std::string& device_name,
-                      DeviceType type = DeviceType::Static);
+  Device(u32 device_id, const std::string& device_name, DeviceType type = DeviceType::Static);
 
-  virtual ~IWII_IPC_HLE_Device() = default;
+  virtual ~Device() = default;
   // Release any resources which might interfere with savestating.
   virtual void PrepareForState(PointerWrap::Mode mode) {}
   virtual void DoState(PointerWrap& p);
@@ -148,7 +149,8 @@ public:
 
   const std::string& GetDeviceName() const { return m_name; }
   u32 GetDeviceID() const { return m_device_id; }
-  // Replies to Open and Close requests are sent by WII_IPC_HLE, not by the devices themselves.
+  // Replies to Open and Close requests are sent by the IPC request handler (HandleCommand),
+  // not by the devices themselves.
   virtual IOSReturnCode Open(const IOSOpenRequest& request);
   virtual void Close();
   virtual IPCCommandResult Seek(const IOSSeekRequest& seek) { return Unsupported(seek); }
@@ -172,5 +174,6 @@ protected:
 private:
   IPCCommandResult Unsupported(const IOSRequest& request);
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

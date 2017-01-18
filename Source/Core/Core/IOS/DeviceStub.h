@@ -14,15 +14,18 @@ namespace IOS
 {
 namespace HLE
 {
-class CWII_IPC_HLE_Device_stub : public IWII_IPC_HLE_Device
+namespace Device
+{
+class Stub final : public Device
 {
 public:
-  CWII_IPC_HLE_Device_stub(u32 device_id, const std::string& device_name);
+  Stub(u32 device_id, const std::string& device_name);
 
   IOSReturnCode Open(const IOSOpenRequest& request) override;
   void Close() override;
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
   IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

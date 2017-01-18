@@ -31,19 +31,20 @@ static bool IsValidWiiPath(const std::string& path)
   return path.compare(0, 1, "/") == 0;
 }
 
-CWII_IPC_HLE_Device_fs::CWII_IPC_HLE_Device_fs(u32 _DeviceID, const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+namespace Device
+{
+FS::FS(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
 
 // ~1/1000th of a second is too short and causes hangs in Wii Party
 // Play it safe at 1/500th
-IPCCommandResult CWII_IPC_HLE_Device_fs::GetFSReply(const s32 return_value) const
+IPCCommandResult FS::GetFSReply(const s32 return_value) const
 {
   return {return_value, true, SystemTimers::GetTicksPerSecond() / 500};
 }
 
-IOSReturnCode CWII_IPC_HLE_Device_fs::Open(const IOSOpenRequest& request)
+IOSReturnCode FS::Open(const IOSOpenRequest& request)
 {
   // clear tmp folder
   {
@@ -71,7 +72,7 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
   return sizeOfFiles;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   switch (request.request)
@@ -231,14 +232,14 @@ IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtlV(const IOSIOCtlVRequest& request)
   return GetFSReply(return_value);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_fs::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult FS::IOCtl(const IOSIOCtlRequest& request)
 {
   Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
   const s32 return_value = ExecuteCommand(request);
   return GetFSReply(return_value);
 }
 
-s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(const IOSIOCtlRequest& request)
+s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
 {
   switch (request.request)
   {
@@ -522,8 +523,8 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(const IOSIOCtlRequest& request)
     bool Result = File::CreateEmptyFile(Filename);
     if (!Result)
     {
-      ERROR_LOG(WII_IPC_FILEIO, "CWII_IPC_HLE_Device_fs: couldn't create new file");
-      PanicAlert("CWII_IPC_HLE_Device_fs: couldn't create new file");
+      ERROR_LOG(WII_IPC_FILEIO, "FS: couldn't create new file");
+      PanicAlert("FS: couldn't create new file");
       return FS_EINVAL;
     }
 
@@ -544,7 +545,7 @@ s32 CWII_IPC_HLE_Device_fs::ExecuteCommand(const IOSIOCtlRequest& request)
   return FS_EINVAL;
 }
 
-void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
+void FS::DoState(PointerWrap& p)
 {
   DoStateShared(p);
 
@@ -638,5 +639,6 @@ void CWII_IPC_HLE_Device_fs::DoState(PointerWrap& p)
     p.Do(type);
   }
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

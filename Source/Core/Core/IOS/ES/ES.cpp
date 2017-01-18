@@ -71,10 +71,11 @@ namespace IOS
 {
 namespace HLE
 {
-std::string CWII_IPC_HLE_Device_es::m_ContentFile;
+namespace Device
+{
+std::string ES::m_ContentFile;
 
-CWII_IPC_HLE_Device_es::CWII_IPC_HLE_Device_es(u32 device_id, const std::string& device_name)
-    : IWII_IPC_HLE_Device(device_id, device_name)
+ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
 
@@ -87,7 +88,7 @@ static u8 key_empty[0x10] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
                              0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
 
 // default key table
-u8* CWII_IPC_HLE_Device_es::keyTable[11] = {
+u8* ES::keyTable[11] = {
     key_ecc,    // ECC Private Key
     key_empty,  // Console ID
     key_empty,  // NAND AES Key
@@ -101,13 +102,12 @@ u8* CWII_IPC_HLE_Device_es::keyTable[11] = {
     key_empty,  // Unknown
 };
 
-void CWII_IPC_HLE_Device_es::LoadWAD(const std::string& _rContentFile)
+void ES::LoadWAD(const std::string& _rContentFile)
 {
   m_ContentFile = _rContentFile;
 }
 
-void CWII_IPC_HLE_Device_es::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv,
-                                            u8* output)
+void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output)
 {
   mbedtls_aes_context AES_ctx;
   mbedtls_aes_setkey_dec(&AES_ctx, keyTable[key_index], 128);
@@ -115,7 +115,7 @@ void CWII_IPC_HLE_Device_es::DecryptContent(u32 key_index, u8* iv, u8* input, u3
   mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, new_iv, input, output);
 }
 
-void CWII_IPC_HLE_Device_es::OpenInternal()
+void ES::OpenInternal()
 {
   auto& contentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
 
@@ -144,9 +144,9 @@ void CWII_IPC_HLE_Device_es::OpenInternal()
   INFO_LOG(WII_IPC_ES, "Set default title to %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
 }
 
-void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
+void ES::DoState(PointerWrap& p)
 {
-  IWII_IPC_HLE_Device::DoState(p);
+  Device::DoState(p);
   p.Do(m_ContentFile);
   OpenInternal();
   p.Do(m_AccessIdentID);
@@ -195,16 +195,16 @@ void CWII_IPC_HLE_Device_es::DoState(PointerWrap& p)
   }
 }
 
-IOSReturnCode CWII_IPC_HLE_Device_es::Open(const IOSOpenRequest& request)
+IOSReturnCode ES::Open(const IOSOpenRequest& request)
 {
   OpenInternal();
 
   if (m_is_active)
     INFO_LOG(WII_IPC_ES, "Device was re-opened.");
-  return IWII_IPC_HLE_Device::Open(request);
+  return Device::Open(request);
 }
 
-void CWII_IPC_HLE_Device_es::Close()
+void ES::Close()
 {
   m_ContentAccessMap.clear();
   m_TitleIDs.clear();
@@ -217,7 +217,7 @@ void CWII_IPC_HLE_Device_es::Close()
   DiscIO::CNANDContentManager::Access().ClearCache();
 }
 
-u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
+u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 {
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
@@ -246,7 +246,7 @@ u32 CWII_IPC_HLE_Device_es::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
   return CFD;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
 {
   DEBUG_LOG(WII_IPC_ES, "%s (0x%x)", GetDeviceName().c_str(), request.request);
   // Clear the IO buffers. Note that this is unsafe for other ioctlvs.
@@ -1113,7 +1113,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
       bool* wiiMoteConnected = new bool[MAX_BBMOTES];
       if (!SConfig::GetInstance().m_bt_passthrough_enabled)
       {
-        CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* s_Usb = GetUsbPointer();
+        BluetoothEmu* s_Usb = GetUsbPointer();
         for (unsigned int i = 0; i < MAX_BBMOTES; i++)
           wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
       }
@@ -1123,7 +1123,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
 
       if (!SConfig::GetInstance().m_bt_passthrough_enabled)
       {
-        CWII_IPC_HLE_Device_usb_oh1_57e_305_emu* s_Usb = GetUsbPointer();
+        BluetoothEmu* s_Usb = GetUsbPointer();
         for (unsigned int i = 0; i < MAX_BBMOTES; i++)
         {
           if (wiiMoteConnected[i])
@@ -1237,7 +1237,7 @@ IPCCommandResult CWII_IPC_HLE_Device_es::IOCtlV(const IOSIOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-const DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u64 title_id)
+const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
 {
   // for WADs, the passed title id and the stored title id match; along with m_ContentFile being set
   // to the
@@ -1251,7 +1251,7 @@ const DiscIO::CNANDContentLoader& CWII_IPC_HLE_Device_es::AccessContentDevice(u6
   return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
-u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
+u32 ES::ES_DIVerify(const std::vector<u8>& tmd)
 {
   u64 title_id = 0xDEADBEEFDEADBEEFull;
   u64 tmd_title_id = Common::swap64(&tmd[0x18C]);
@@ -1323,5 +1323,6 @@ u32 CWII_IPC_HLE_Device_es::ES_DIVerify(const std::vector<u8>& tmd)
   DiscIO::CNANDContentManager::Access().ClearCache();
   return 0;
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

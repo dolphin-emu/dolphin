@@ -20,7 +20,9 @@ namespace IOS
 {
 namespace HLE
 {
-WII_SSL CWII_IPC_HLE_Device_net_ssl::_SSL[NET_SSL_MAXINSTANCES];
+namespace Device
+{
+WII_SSL NetSSL::_SSL[NET_SSL_MAXINSTANCES];
 
 static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
     /* Hashes from SHA-1 and above */
@@ -32,9 +34,7 @@ static constexpr mbedtls_x509_crt_profile mbedtls_x509_crt_profile_wii = {
     0,         /* No RSA min key size */
 };
 
-CWII_IPC_HLE_Device_net_ssl::CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID,
-                                                         const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+NetSSL::NetSSL(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
   for (WII_SSL& ssl : _SSL)
   {
@@ -42,7 +42,7 @@ CWII_IPC_HLE_Device_net_ssl::CWII_IPC_HLE_Device_net_ssl(u32 _DeviceID,
   }
 }
 
-CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
+NetSSL::~NetSSL()
 {
   // Cleanup sessions
   for (WII_SSL& ssl : _SSL)
@@ -67,7 +67,7 @@ CWII_IPC_HLE_Device_net_ssl::~CWII_IPC_HLE_Device_net_ssl()
   }
 }
 
-int CWII_IPC_HLE_Device_net_ssl::GetSSLFreeID() const
+int NetSSL::GetSSLFreeID() const
 {
   for (int i = 0; i < NET_SSL_MAXINSTANCES; i++)
   {
@@ -79,13 +79,13 @@ int CWII_IPC_HLE_Device_net_ssl::GetSSLFreeID() const
   return 0;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult NetSSL::IOCtl(const IOSIOCtlRequest& request)
 {
   request.Log(GetDeviceName(), LogTypes::WII_IPC_SSL, LogTypes::LINFO);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
 {
   u32 BufferIn = 0, BufferIn2 = 0, BufferIn3 = 0;
   u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;
@@ -498,5 +498,6 @@ IPCCommandResult CWII_IPC_HLE_Device_net_ssl::IOCtlV(const IOSIOCtlVRequest& req
   // SSL return codes are written to BufferIn
   return GetDefaultReply(IPC_SUCCESS);
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

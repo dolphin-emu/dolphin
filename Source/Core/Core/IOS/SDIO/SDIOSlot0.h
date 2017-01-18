@@ -20,10 +20,12 @@ namespace IOS
 {
 namespace HLE
 {
-class CWII_IPC_HLE_Device_sdio_slot0 : public IWII_IPC_HLE_Device
+namespace Device
+{
+class SDIOSlot0 : public Device
 {
 public:
-  CWII_IPC_HLE_Device_sdio_slot0(u32 device_id, const std::string& device_name);
+  SDIOSlot0(u32 device_id, const std::string& device_name);
 
   void DoState(PointerWrap& p) override;
 
@@ -129,5 +131,6 @@ private:
                      u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
   void OpenInternal();
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

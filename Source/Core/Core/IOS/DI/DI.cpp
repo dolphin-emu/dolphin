@@ -21,22 +21,19 @@ namespace IOS
 {
 namespace HLE
 {
-CWII_IPC_HLE_Device_di::CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+namespace Device
+{
+DI::DI(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
 
-CWII_IPC_HLE_Device_di::~CWII_IPC_HLE_Device_di()
-{
-}
-
-void CWII_IPC_HLE_Device_di::DoState(PointerWrap& p)
+void DI::DoState(PointerWrap& p)
 {
   DoStateShared(p);
   p.Do(m_commands_to_execute);
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult DI::IOCtl(const IOSIOCtlRequest& request)
 {
   // DI IOCtls are handled in a special way by Dolphin
   // compared to other WII_IPC_HLE functions.
@@ -50,12 +47,12 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtl(const IOSIOCtlRequest& request)
   if (ready_to_execute)
     StartIOCtl(request);
 
-  // DVDInterface handles the timing and we handle the reply,
-  // so WII_IPC_HLE shouldn't handle anything.
+  // DVDInterface handles the timing and will call FinishIOCtl after the command
+  // has been executed to reply to the request, so we shouldn't reply here.
   return GetNoReply();
 }
 
-void CWII_IPC_HLE_Device_di::StartIOCtl(const IOSIOCtlRequest& request)
+void DI::StartIOCtl(const IOSIOCtlRequest& request)
 {
   const u32 command_0 = Memory::Read_U32(request.buffer_in);
   const u32 command_1 = Memory::Read_U32(request.buffer_in + 4);
@@ -67,11 +64,11 @@ void CWII_IPC_HLE_Device_di::StartIOCtl(const IOSIOCtlRequest& request)
                                request.buffer_out_size, true);
 }
 
-void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt_type)
+void DI::FinishIOCtl(DVDInterface::DIInterruptType interrupt_type)
 {
   if (m_commands_to_execute.empty())
   {
-    PanicAlert("WII_IPC_HLE_Device_DI: There is no command to execute!");
+    PanicAlert("IOS::HLE::Device::DI: There is no command to execute!");
     return;
   }
 
@@ -89,7 +86,7 @@ void CWII_IPC_HLE_Device_di::FinishIOCtl(DVDInterface::DIInterruptType interrupt
   }
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult DI::IOCtlV(const IOSIOCtlVRequest& request)
 {
   for (const auto& vector : request.io_vectors)
     Memory::Memset(vector.address, 0, vector.size);
@@ -121,5 +118,6 @@ IPCCommandResult CWII_IPC_HLE_Device_di::IOCtlV(const IOSIOCtlVRequest& request)
   }
   return GetDefaultReply(return_value);
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

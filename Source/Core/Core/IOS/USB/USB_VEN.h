@@ -14,10 +14,12 @@ namespace IOS
 {
 namespace HLE
 {
-class CWII_IPC_HLE_Device_usb_ven final : public IWII_IPC_HLE_Device
+namespace Device
+{
+class USB_VEN final : public Device
 {
 public:
-  CWII_IPC_HLE_Device_usb_ven(u32 device_id, const std::string& device_name);
+  USB_VEN(u32 device_id, const std::string& device_name);
 
   IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
@@ -39,5 +41,6 @@ private:
     USBV5_IOCTL_BULKMSG = 21
   };
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

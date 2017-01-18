@@ -861,12 +861,8 @@ void CFrame::DoStop()
 bool CFrame::TriggerSTMPowerEvent()
 {
   const auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
-  if (!stm ||
-      !std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_stm_eventhook>(stm)
-           ->HasHookInstalled())
-  {
+  if (!stm || !std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
     return false;
-  }
 
   Core::DisplayMessage("Shutting down", 30000);
   // Unpause because gracefully shutting down needs the game to actually request a shutdown

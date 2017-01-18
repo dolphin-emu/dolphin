@@ -26,10 +26,12 @@ namespace IOS
 {
 namespace HLE
 {
-class CWII_IPC_HLE_Device_es : public IWII_IPC_HLE_Device
+namespace Device
+{
+class ES : public Device
 {
 public:
-  CWII_IPC_HLE_Device_es(u32 _DeviceID, const std::string& _rDeviceName);
+  ES(u32 device_id, const std::string& device_name);
 
   void LoadWAD(const std::string& _rContentFile);
 
@@ -166,5 +168,6 @@ private:
     u8 padding[0x3c];
   };
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

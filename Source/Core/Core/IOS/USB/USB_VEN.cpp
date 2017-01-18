@@ -10,19 +10,19 @@ namespace IOS
 {
 namespace HLE
 {
-CWII_IPC_HLE_Device_usb_ven::CWII_IPC_HLE_Device_usb_ven(const u32 device_id,
-                                                         const std::string& device_name)
-    : IWII_IPC_HLE_Device(device_id, device_name)
+namespace Device
+{
+USB_VEN::USB_VEN(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult USB_VEN::IOCtlV(const IOSIOCtlVRequest& request)
 {
   request.Dump(GetDeviceName());
   return GetNoReply();
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult USB_VEN::IOCtl(const IOSIOCtlRequest& request)
 {
   request.Log(GetDeviceName(), LogTypes::OSHLE);
 
@@ -78,5 +78,6 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_ven::IOCtl(const IOSIOCtlRequest& reque
   }
   return reply;
 }
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

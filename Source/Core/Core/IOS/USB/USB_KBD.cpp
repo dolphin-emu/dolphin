@@ -21,7 +21,9 @@ namespace IOS
 {
 namespace HLE
 {
-CWII_IPC_HLE_Device_usb_kbd::SMessageData::SMessageData(u32 type, u8 modifiers, u8* pressed_keys)
+namespace Device
+{
+USB_KBD::SMessageData::SMessageData(u32 type, u8 modifiers, u8* pressed_keys)
 {
   MsgType = Common::swap32(type);
   Unk1 = 0;  // swapped
@@ -36,15 +38,13 @@ CWII_IPC_HLE_Device_usb_kbd::SMessageData::SMessageData(u32 type, u8 modifiers, 
 
 // TODO: support in netplay/movies.
 
-CWII_IPC_HLE_Device_usb_kbd::CWII_IPC_HLE_Device_usb_kbd(u32 _DeviceID,
-                                                         const std::string& _rDeviceName)
-    : IWII_IPC_HLE_Device(_DeviceID, _rDeviceName)
+USB_KBD::USB_KBD(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
 
-IOSReturnCode CWII_IPC_HLE_Device_usb_kbd::Open(const IOSOpenRequest& request)
+IOSReturnCode USB_KBD::Open(const IOSOpenRequest& request)
 {
-  INFO_LOG(WII_IPC_HLE, "CWII_IPC_HLE_Device_usb_kbd: Open");
+  INFO_LOG(WII_IPC_HLE, "USB_KBD: Open");
   IniFile ini;
   ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
   ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
@@ -62,7 +62,7 @@ IOSReturnCode CWII_IPC_HLE_Device_usb_kbd::Open(const IOSOpenRequest& request)
   return IPC_SUCCESS;
 }
 
-IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult USB_KBD::IOCtl(const IOSIOCtlRequest& request)
 {
   if (SConfig::GetInstance().m_WiiKeyboard && !Core::g_want_determinism && !m_MessageQueue.empty())
   {
@@ -72,7 +72,7 @@ IPCCommandResult CWII_IPC_HLE_Device_usb_kbd::IOCtl(const IOSIOCtlRequest& reque
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
+bool USB_KBD::IsKeyPressed(int _Key)
 {
 #ifdef _WIN32
   if (GetAsyncKeyState(_Key) & 0x8000)
@@ -85,7 +85,7 @@ bool CWII_IPC_HLE_Device_usb_kbd::IsKeyPressed(int _Key)
 #endif
 }
 
-void CWII_IPC_HLE_Device_usb_kbd::Update()
+void USB_KBD::Update()
 {
   if (!SConfig::GetInstance().m_WiiKeyboard || Core::g_want_determinism || !m_is_active)
     return;
@@ -165,7 +165,7 @@ void CWII_IPC_HLE_Device_usb_kbd::Update()
 
 // Crazy ugly
 #ifdef _WIN32
-u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
+u8 USB_KBD::m_KeyCodesQWERTY[256] = {
 
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x2A,  // Backspace
@@ -239,7 +239,7 @@ u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {
 
 };
 
-u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {
+u8 USB_KBD::m_KeyCodesAZERTY[256] = {
 
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x2A,  // Backspace
@@ -313,9 +313,10 @@ u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {
 
 };
 #else
-u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesQWERTY[256] = {0};
+u8 USB_KBD::m_KeyCodesQWERTY[256] = {0};
 
-u8 CWII_IPC_HLE_Device_usb_kbd::m_KeyCodesAZERTY[256] = {0};
+u8 USB_KBD::m_KeyCodesAZERTY[256] = {0};
 #endif
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

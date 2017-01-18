@@ -22,10 +22,12 @@ namespace WFS
 std::string NativePath(const std::string& wfs_path);
 }
 
-class CWII_IPC_HLE_Device_usb_wfssrv : public IWII_IPC_HLE_Device
+namespace Device
+{
+class WFSSRV : public Device
 {
 public:
-  CWII_IPC_HLE_Device_usb_wfssrv(u32 device_id, const std::string& device_name);
+  WFSSRV(u32 device_id, const std::string& device_name);
 
   IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
 
@@ -77,5 +79,6 @@ private:
   u16 GetNewFileDescriptor();
   void ReleaseFileDescriptor(u16 fd);
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

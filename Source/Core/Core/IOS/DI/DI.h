@@ -22,12 +22,12 @@ namespace IOS
 {
 namespace HLE
 {
-class CWII_IPC_HLE_Device_di : public IWII_IPC_HLE_Device
+namespace Device
+{
+class DI : public Device
 {
 public:
-  CWII_IPC_HLE_Device_di(u32 _DeviceID, const std::string& _rDeviceName);
-
-  virtual ~CWII_IPC_HLE_Device_di();
+  DI(u32 device_id, const std::string& device_name);
 
   void DoState(PointerWrap& p) override;
 
@@ -41,5 +41,6 @@ private:
 
   std::deque<u32> m_commands_to_execute;
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS

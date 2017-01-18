@@ -21,14 +21,12 @@ namespace HLE
 void BackUpBTInfoSection(SysConf* sysconf);
 void RestoreBTInfoSection(SysConf* sysconf);
 
-class CWII_IPC_HLE_Device_usb_oh1_57e_305_base : public IWII_IPC_HLE_Device
+namespace Device
+{
+class BluetoothBase : public Device
 {
 public:
-  CWII_IPC_HLE_Device_usb_oh1_57e_305_base(u32 device_id, const std::string& device_name)
-      : IWII_IPC_HLE_Device(device_id, device_name)
-  {
-  }
-
+  BluetoothBase(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
   virtual void UpdateSyncButtonState(bool is_held) {}
   virtual void TriggerSyncButtonPressedEvent() {}
   virtual void TriggerSyncButtonHeldEvent() {}
@@ -75,5 +73,6 @@ protected:
     u32 m_payload_addr = 0;
   };
 };
+}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS
