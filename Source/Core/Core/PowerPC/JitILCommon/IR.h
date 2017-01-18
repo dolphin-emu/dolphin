@@ -182,8 +182,8 @@ enum Opcode
   Int3
 };
 
-typedef unsigned Inst;
-typedef Inst* InstLoc;
+using Inst = u32;
+using InstLoc = Inst*;
 
 unsigned inline getOpcode(Inst i)
 {
