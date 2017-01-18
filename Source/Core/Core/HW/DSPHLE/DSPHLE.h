@@ -26,51 +26,51 @@ public:
   void Shutdown() override;
   bool IsLLE() override { return false; }
   void DoState(PointerWrap& p) override;
-  void PauseAndLock(bool doLock, bool unpauseOnUnlock = true) override;
+  void PauseAndLock(bool do_lock, bool unpause_on_unlock = true) override;
 
-  void DSP_WriteMailBoxHigh(bool _CPUMailbox, unsigned short) override;
-  void DSP_WriteMailBoxLow(bool _CPUMailbox, unsigned short) override;
-  unsigned short DSP_ReadMailBoxHigh(bool _CPUMailbox) override;
-  unsigned short DSP_ReadMailBoxLow(bool _CPUMailbox) override;
-  unsigned short DSP_ReadControlRegister() override;
-  unsigned short DSP_WriteControlRegister(unsigned short) override;
+  void DSP_WriteMailBoxHigh(bool cpu_mailbox, u16 value) override;
+  void DSP_WriteMailBoxLow(bool cpu_mailbox, u16 value) override;
+  u16 DSP_ReadMailBoxHigh(bool cpu_mailbox) override;
+  u16 DSP_ReadMailBoxLow(bool cpu_mailbox) override;
+  u16 DSP_ReadControlRegister() override;
+  u16 DSP_WriteControlRegister(u16 value) override;
   void DSP_Update(int cycles) override;
   void DSP_StopSoundStream() override;
   u32 DSP_UpdateRate() override;
 
-  CMailHandler& AccessMailHandler() { return m_MailHandler; }
+  CMailHandler& AccessMailHandler() { return m_mail_handler; }
   // Formerly DSPHandler
   UCodeInterface* GetUCode();
-  void SetUCode(u32 _crc);
-  void SwapUCode(u32 _crc);
+  void SetUCode(u32 crc);
+  void SwapUCode(u32 crc);
 
 private:
-  void SendMailToDSP(u32 _uMail);
+  void SendMailToDSP(u32 mail);
 
   // Fake mailbox utility
   struct DSPState
   {
-    u32 CPUMailbox;
-    u32 DSPMailbox;
+    u32 cpu_mailbox;
+    u32 dsp_mailbox;
 
     void Reset()
     {
-      CPUMailbox = 0x00000000;
-      DSPMailbox = 0x00000000;
+      cpu_mailbox = 0x00000000;
+      dsp_mailbox = 0x00000000;
     }
 
     DSPState() { Reset(); }
   };
-  DSPState m_dspState;
+  DSPState m_dsp_state;
 
-  UCodeInterface* m_pUCode;
-  UCodeInterface* m_lastUCode;
+  UCodeInterface* m_ucode;
+  UCodeInterface* m_last_ucode;
 
-  DSP::UDSPControl m_DSPControl;
-  CMailHandler m_MailHandler;
+  DSP::UDSPControl m_dsp_control;
+  CMailHandler m_mail_handler;
 
-  bool m_bHalt;
-  bool m_bAssertInt;
+  bool m_halt;
+  bool m_assert_interrupt;
 };
 }  // namespace HLE
 }  // namespace DSP
