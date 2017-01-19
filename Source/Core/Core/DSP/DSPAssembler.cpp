@@ -442,29 +442,29 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
   return count;
 }
 
-const opc_t* DSPAssembler::FindOpcode(const char* opcode, u32 par_count, const opc_t* const opcod,
-                                      size_t opcod_size)
+const opc_t* DSPAssembler::FindOpcode(const char* name, u32 par_count, const opc_t* const opcodes,
+                                      size_t opcodes_size)
 {
-  if (opcode[0] == 'C' && opcode[1] == 'W')
+  if (name[0] == 'C' && name[1] == 'W')
     return &cw;
 
-  AliasMap::const_iterator alias_iter = aliases.find(opcode);
+  const auto alias_iter = aliases.find(name);
   if (alias_iter != aliases.end())
-    opcode = alias_iter->second.c_str();
-  for (size_t i = 0; i < opcod_size; i++)
+    name = alias_iter->second.c_str();
+  for (size_t i = 0; i < opcodes_size; i++)
   {
-    const opc_t* opc = &opcod[i];
-    if (strcmp(opc->name, opcode) == 0)
+    const opc_t* opcode = &opcodes[i];
+    if (strcmp(opcode->name, name) == 0)
     {
-      if (par_count < opc->param_count)
+      if (par_count < opcode->param_count)
       {
         ShowError(ERR_NOT_ENOUGH_PARAMETERS);
       }
-      if (par_count > opc->param_count)
+      else if (par_count > opcode->param_count)
       {
         ShowError(ERR_TOO_MANY_PARAMETERS);
       }
-      return opc;
+      return opcode;
     }
   }
   ShowError(ERR_UNKNOWN_OPCODE);
