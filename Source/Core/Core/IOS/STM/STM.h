@@ -45,7 +45,7 @@ class STMImmediate final : public Device
 {
 public:
   STMImmediate(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 };
 
 // The /dev/stm/eventhook
@@ -54,7 +54,7 @@ class STMEventHook final : public Device
 public:
   STMEventHook(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
   void Close() override;
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
   bool HasHookInstalled() const;
   void ResetButton() const;

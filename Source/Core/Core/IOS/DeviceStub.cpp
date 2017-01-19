@@ -15,7 +15,7 @@ Stub::Stub(u32 device_id, const std::string& device_name) : Device(device_id, de
 {
 }
 
-IOSReturnCode Stub::Open(const IOSOpenRequest& request)
+ReturnCode Stub::Open(const OpenRequest& request)
 {
   WARN_LOG(IOS, "%s faking Open()", m_name.c_str());
   m_is_active = true;
@@ -28,13 +28,13 @@ void Stub::Close()
   m_is_active = false;
 }
 
-IPCCommandResult Stub::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult Stub::IOCtl(const IOCtlRequest& request)
 {
   WARN_LOG(IOS, "%s faking IOCtl()", m_name.c_str());
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult Stub::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult Stub::IOCtlV(const IOCtlVRequest& request)
 {
   WARN_LOG(IOS, "%s faking IOCtlV()", m_name.c_str());
   return GetDefaultReply(IPC_SUCCESS);

@@ -74,7 +74,7 @@ void SDIOSlot0::OpenInternal()
   }
 }
 
-IOSReturnCode SDIOSlot0::Open(const IOSOpenRequest& request)
+ReturnCode SDIOSlot0::Open(const OpenRequest& request)
 {
   OpenInternal();
   m_registers.fill(0);
@@ -93,7 +93,7 @@ void SDIOSlot0::Close()
 }
 
 // The front SD slot
-IPCCommandResult SDIOSlot0::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult SDIOSlot0::IOCtl(const IOCtlRequest& request)
 {
   Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
   s32 return_value = IPC_SUCCESS;
@@ -204,7 +204,7 @@ IPCCommandResult SDIOSlot0::IOCtl(const IOSIOCtlRequest& request)
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult SDIOSlot0::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult SDIOSlot0::IOCtlV(const IOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   switch (request.request)
@@ -225,7 +225,7 @@ IPCCommandResult SDIOSlot0::IOCtlV(const IOSIOCtlVRequest& request)
   return GetDefaultReply(return_value);
 }
 
-u32 SDIOSlot0::ExecuteCommand(const IOSRequest& request, u32 _BufferIn, u32 _BufferInSize,
+u32 SDIOSlot0::ExecuteCommand(const Request& request, u32 _BufferIn, u32 _BufferInSize,
                               u32 _rwBuffer, u32 _rwBufferSize, u32 _BufferOut, u32 _BufferOutSize)
 {
   // The game will send us a SendCMD with this information. To be able to read and write

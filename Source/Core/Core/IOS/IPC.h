@@ -23,7 +23,7 @@ namespace Device
 class Device;
 }
 
-struct IOSRequest;
+struct Request;
 
 struct IPCCommandResult
 {
@@ -78,7 +78,7 @@ void UpdateDevices();
 void ExecuteCommand(u32 address);
 
 void EnqueueRequest(u32 address);
-void EnqueueReply(const IOSRequest& request, s32 return_value, int cycles_in_future = 0,
+void EnqueueReply(const Request& request, s32 return_value, int cycles_in_future = 0,
                   CoreTiming::FromThread from = CoreTiming::FromThread::CPU);
 void EnqueueCommandAcknowledgement(u32 address, int cycles_in_future = 0);
 }  // namespace HLE

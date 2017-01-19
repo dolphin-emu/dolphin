@@ -195,7 +195,7 @@ void ES::DoState(PointerWrap& p)
   }
 }
 
-IOSReturnCode ES::Open(const IOSOpenRequest& request)
+ReturnCode ES::Open(const OpenRequest& request)
 {
   OpenInternal();
 
@@ -246,7 +246,7 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
   return CFD;
 }
 
-IPCCommandResult ES::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 {
   DEBUG_LOG(IOS_ES, "%s (0x%x)", GetDeviceName().c_str(), request.request);
   // Clear the IO buffers. Note that this is unsafe for other ioctlvs.

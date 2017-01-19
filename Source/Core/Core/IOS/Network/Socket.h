@@ -176,7 +176,7 @@ class WiiSocket
 {
   struct sockop
   {
-    IOSRequest request;
+    Request request;
     bool is_ssl;
     union
     {
@@ -195,8 +195,8 @@ private:
   s32 CloseFd();
   s32 FCntl(u32 cmd, u32 arg);
 
-  void DoSock(IOSRequest request, NET_IOCTL type);
-  void DoSock(IOSRequest request, SSL_IOCTL type);
+  void DoSock(Request request, NET_IOCTL type);
+  void DoSock(Request request, SSL_IOCTL type);
   void Update(bool read, bool write, bool except);
   bool IsValid() const { return fd >= 0; }
 public:
@@ -227,7 +227,7 @@ public:
   void SetLastNetError(s32 error) { errno_last = error; }
   void Clean() { WiiSockets.clear(); }
   template <typename T>
-  void DoSock(s32 sock, const IOSRequest& request, T type)
+  void DoSock(s32 sock, const Request& request, T type)
   {
     auto socket_entry = WiiSockets.find(sock);
     if (socket_entry == WiiSockets.end())

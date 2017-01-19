@@ -84,7 +84,7 @@ WFSI::WFSI(u32 device_id, const std::string& device_name) : Device(device_id, de
 {
 }
 
-IPCCommandResult WFSI::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
 {
   u32 return_error_code = IPC_SUCCESS;
 

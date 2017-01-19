@@ -33,11 +33,11 @@ public:
   FileIO(u32 device_id, const std::string& device_name);
 
   void Close() override;
-  IOSReturnCode Open(const IOSOpenRequest& request) override;
-  IPCCommandResult Seek(const IOSSeekRequest& request) override;
-  IPCCommandResult Read(const IOSReadWriteRequest& request) override;
-  IPCCommandResult Write(const IOSReadWriteRequest& request) override;
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult Seek(const SeekRequest& request) override;
+  IPCCommandResult Read(const ReadWriteRequest& request) override;
+  IPCCommandResult Write(const ReadWriteRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   void PrepareForState(PointerWrap::Mode mode) override;
   void DoState(PointerWrap& p) override;
 

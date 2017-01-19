@@ -42,7 +42,7 @@ USB_KBD::USB_KBD(u32 device_id, const std::string& device_name) : Device(device_
 {
 }
 
-IOSReturnCode USB_KBD::Open(const IOSOpenRequest& request)
+ReturnCode USB_KBD::Open(const OpenRequest& request)
 {
   INFO_LOG(IOS, "USB_KBD: Open");
   IniFile ini;
@@ -62,7 +62,7 @@ IOSReturnCode USB_KBD::Open(const IOSOpenRequest& request)
   return IPC_SUCCESS;
 }
 
-IPCCommandResult USB_KBD::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
 {
   if (SConfig::GetInstance().m_WiiKeyboard && !Core::g_want_determinism && !m_MessageQueue.empty())
   {

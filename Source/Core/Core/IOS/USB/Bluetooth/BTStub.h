@@ -25,7 +25,7 @@ public:
       : BluetoothBase(device_id, device_name)
   {
   }
-  IOSReturnCode Open(const IOSOpenRequest& request) override;
+  ReturnCode Open(const OpenRequest& request) override;
   void DoState(PointerWrap& p) override;
 };
 }  // namespace Device

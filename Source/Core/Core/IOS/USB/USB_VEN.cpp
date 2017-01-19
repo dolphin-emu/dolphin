@@ -16,13 +16,13 @@ USB_VEN::USB_VEN(u32 device_id, const std::string& device_name) : Device(device_
 {
 }
 
-IPCCommandResult USB_VEN::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult USB_VEN::IOCtlV(const IOCtlVRequest& request)
 {
   request.Dump(GetDeviceName());
   return GetNoReply();
 }
 
-IPCCommandResult USB_VEN::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult USB_VEN::IOCtl(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), LogTypes::OSHLE);
 

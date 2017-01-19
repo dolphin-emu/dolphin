@@ -33,7 +33,7 @@ WFSSRV::WFSSRV(u32 device_id, const std::string& device_name) : Device(device_id
   m_device_name = "msc01";
 }
 
-IPCCommandResult WFSSRV::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
 {
   int return_error_code = IPC_SUCCESS;
 

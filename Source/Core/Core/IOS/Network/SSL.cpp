@@ -79,13 +79,13 @@ int NetSSL::GetSSLFreeID() const
   return 0;
 }
 
-IPCCommandResult NetSSL::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult NetSSL::IOCtl(const IOCtlRequest& request)
 {
   request.Log(GetDeviceName(), LogTypes::IOS_SSL, LogTypes::LINFO);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult NetSSL::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
 {
   u32 BufferIn = 0, BufferIn2 = 0, BufferIn3 = 0;
   u32 BufferInSize = 0, BufferInSize2 = 0, BufferInSize3 = 0;

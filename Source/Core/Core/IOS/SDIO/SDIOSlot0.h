@@ -29,10 +29,10 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IOSReturnCode Open(const IOSOpenRequest& request) override;
+  ReturnCode Open(const OpenRequest& request) override;
   void Close() override;
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   void EventNotify();
 
@@ -113,9 +113,9 @@ private:
   // TODO do we need more than one?
   struct Event
   {
-    Event(EventType type_, IOSRequest request_) : type(type_), request(request_) {}
+    Event(EventType type_, Request request_) : type(type_), request(request_) {}
     EventType type;
-    IOSRequest request;
+    Request request;
   };
   std::unique_ptr<Event> m_event;
 
@@ -127,7 +127,7 @@ private:
 
   File::IOFile m_Card;
 
-  u32 ExecuteCommand(const IOSRequest& request, u32 BufferIn, u32 BufferInSize, u32 BufferIn2,
+  u32 ExecuteCommand(const Request& request, u32 BufferIn, u32 BufferInSize, u32 BufferIn2,
                      u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
   void OpenInternal();
 };

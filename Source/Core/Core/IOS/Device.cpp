@@ -16,31 +16,31 @@ namespace IOS
 {
 namespace HLE
 {
-IOSRequest::IOSRequest(const u32 address_) : address(address_)
+Request::Request(const u32 address_) : address(address_)
 {
   command = static_cast<IPCCommandType>(Memory::Read_U32(address));
   fd = Memory::Read_U32(address + 8);
 }
 
-IOSOpenRequest::IOSOpenRequest(const u32 address_) : IOSRequest(address_)
+OpenRequest::OpenRequest(const u32 address_) : Request(address_)
 {
   path = Memory::GetString(Memory::Read_U32(address + 0xc));
-  flags = static_cast<IOSOpenMode>(Memory::Read_U32(address + 0x10));
+  flags = static_cast<OpenMode>(Memory::Read_U32(address + 0x10));
 }
 
-IOSReadWriteRequest::IOSReadWriteRequest(const u32 address_) : IOSRequest(address_)
+ReadWriteRequest::ReadWriteRequest(const u32 address_) : Request(address_)
 {
   buffer = Memory::Read_U32(address + 0xc);
   size = Memory::Read_U32(address + 0x10);
 }
 
-IOSSeekRequest::IOSSeekRequest(const u32 address_) : IOSRequest(address_)
+SeekRequest::SeekRequest(const u32 address_) : Request(address_)
 {
   offset = Memory::Read_U32(address + 0xc);
   mode = static_cast<SeekMode>(Memory::Read_U32(address + 0x10));
 }
 
-IOSIOCtlRequest::IOSIOCtlRequest(const u32 address_) : IOSRequest(address_)
+IOCtlRequest::IOCtlRequest(const u32 address_) : Request(address_)
 {
   request = Memory::Read_U32(address + 0x0c);
   buffer_in = Memory::Read_U32(address + 0x10);
@@ -49,7 +49,7 @@ IOSIOCtlRequest::IOSIOCtlRequest(const u32 address_) : IOSRequest(address_)
   buffer_out_size = Memory::Read_U32(address + 0x1c);
 }
 
-IOSIOCtlVRequest::IOSIOCtlVRequest(const u32 address_) : IOSRequest(address_)
+IOCtlVRequest::IOCtlVRequest(const u32 address_) : Request(address_)
 {
   request = Memory::Read_U32(address + 0x0c);
   const u32 in_number = Memory::Read_U32(address + 0x10);
@@ -70,21 +70,21 @@ IOSIOCtlVRequest::IOSIOCtlVRequest(const u32 address_) : IOSRequest(address_)
   }
 }
 
-bool IOSIOCtlVRequest::HasInputVectorWithAddress(const u32 vector_address) const
+bool IOCtlVRequest::HasInputVectorWithAddress(const u32 vector_address) const
 {
   return std::any_of(in_vectors.begin(), in_vectors.end(),
                      [&](const auto& in_vector) { return in_vector.address == vector_address; });
 }
 
-void IOSIOCtlRequest::Log(const std::string& device_name, LogTypes::LOG_TYPE type,
-                          LogTypes::LOG_LEVELS verbosity) const
+void IOCtlRequest::Log(const std::string& device_name, LogTypes::LOG_TYPE type,
+                       LogTypes::LOG_LEVELS verbosity) const
 {
   GENERIC_LOG(type, verbosity, "%s (fd %u) - IOCtl 0x%x (in_size=0x%x, out_size=0x%x)",
               device_name.c_str(), fd, request, buffer_in_size, buffer_out_size);
 }
 
-void IOSIOCtlRequest::Dump(const std::string& description, LogTypes::LOG_TYPE type,
-                           LogTypes::LOG_LEVELS level) const
+void IOCtlRequest::Dump(const std::string& description, LogTypes::LOG_TYPE type,
+                        LogTypes::LOG_LEVELS level) const
 {
   Log("===== " + description, type, level);
   GENERIC_LOG(type, level, "In buffer\n%s",
@@ -93,14 +93,14 @@ void IOSIOCtlRequest::Dump(const std::string& description, LogTypes::LOG_TYPE ty
               HexDump(Memory::GetPointer(buffer_out), buffer_out_size).c_str());
 }
 
-void IOSIOCtlRequest::DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type,
-                                  LogTypes::LOG_LEVELS level) const
+void IOCtlRequest::DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type,
+                               LogTypes::LOG_LEVELS level) const
 {
   Dump("Unknown IOCtl - " + description, type, level);
 }
 
-void IOSIOCtlVRequest::Dump(const std::string& description, LogTypes::LOG_TYPE type,
-                            LogTypes::LOG_LEVELS level) const
+void IOCtlVRequest::Dump(const std::string& description, LogTypes::LOG_TYPE type,
+                         LogTypes::LOG_LEVELS level) const
 {
   GENERIC_LOG(type, level, "===== %s (fd %u) - IOCtlV 0x%x (%zu in, %zu io)", description.c_str(),
               fd, request, in_vectors.size(), io_vectors.size());
@@ -115,8 +115,8 @@ void IOSIOCtlVRequest::Dump(const std::string& description, LogTypes::LOG_TYPE t
     GENERIC_LOG(type, level, "io[%zu] (size=0x%x)", i++, vector.size);
 }
 
-void IOSIOCtlVRequest::DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type,
-                                   LogTypes::LOG_LEVELS level) const
+void IOCtlVRequest::DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type,
+                                LogTypes::LOG_LEVELS level) const
 {
   Dump("Unknown IOCtlV - " + description, type, level);
 }
@@ -142,7 +142,7 @@ void Device::DoStateShared(PointerWrap& p)
   p.Do(m_is_active);
 }
 
-IOSReturnCode Device::Open(const IOSOpenRequest& request)
+ReturnCode Device::Open(const OpenRequest& request)
 {
   m_is_active = true;
   return IPC_SUCCESS;
@@ -153,7 +153,7 @@ void Device::Close()
   m_is_active = false;
 }
 
-IPCCommandResult Device::Unsupported(const IOSRequest& request)
+IPCCommandResult Device::Unsupported(const Request& request)
 {
   static std::map<IPCCommandType, std::string> names = {{{IPC_CMD_READ, "Read"},
                                                          {IPC_CMD_WRITE, "Write"},

@@ -17,7 +17,7 @@ namespace IOS
 {
 namespace HLE
 {
-enum IOSReturnCode : s32
+enum ReturnCode : s32
 {
   IPC_SUCCESS = 0,           // Success
   IPC_EACCES = -1,           // Permission denied
@@ -44,37 +44,37 @@ enum IOSReturnCode : s32
   IPC_EESEXHAUSTED = -1016,  // Max of 2 ES handles exceeded
 };
 
-struct IOSRequest
+struct Request
 {
   u32 address = 0;
   IPCCommandType command = IPC_CMD_OPEN;
   u32 fd = 0;
-  explicit IOSRequest(u32 address);
-  virtual ~IOSRequest() = default;
+  explicit Request(u32 address);
+  virtual ~Request() = default;
 };
 
-enum IOSOpenMode : s32
+enum OpenMode : s32
 {
   IOS_OPEN_READ = 1,
   IOS_OPEN_WRITE = 2,
   IOS_OPEN_RW = (IOS_OPEN_READ | IOS_OPEN_WRITE)
 };
 
-struct IOSOpenRequest final : IOSRequest
+struct OpenRequest final : Request
 {
   std::string path;
-  IOSOpenMode flags = IOS_OPEN_READ;
-  explicit IOSOpenRequest(u32 address);
+  OpenMode flags = IOS_OPEN_READ;
+  explicit OpenRequest(u32 address);
 };
 
-struct IOSReadWriteRequest final : IOSRequest
+struct ReadWriteRequest final : Request
 {
   u32 buffer = 0;
   u32 size = 0;
-  explicit IOSReadWriteRequest(u32 address);
+  explicit ReadWriteRequest(u32 address);
 };
 
-struct IOSSeekRequest final : IOSRequest
+struct SeekRequest final : Request
 {
   enum SeekMode
   {
@@ -84,10 +84,10 @@ struct IOSSeekRequest final : IOSRequest
   };
   u32 offset = 0;
   SeekMode mode = IOS_SEEK_SET;
-  explicit IOSSeekRequest(u32 address);
+  explicit SeekRequest(u32 address);
 };
 
-struct IOSIOCtlRequest final : IOSRequest
+struct IOCtlRequest final : Request
 {
   u32 request = 0;
   u32 buffer_in = 0;
@@ -95,7 +95,7 @@ struct IOSIOCtlRequest final : IOSRequest
   // Contrary to the name, the output buffer can also be used for input.
   u32 buffer_out = 0;
   u32 buffer_out_size = 0;
-  explicit IOSIOCtlRequest(u32 address);
+  explicit IOCtlRequest(u32 address);
   void Log(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
            LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;
   void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
@@ -104,7 +104,7 @@ struct IOSIOCtlRequest final : IOSRequest
                    LogTypes::LOG_LEVELS level = LogTypes::LERROR) const;
 };
 
-struct IOSIOCtlVRequest final : IOSRequest
+struct IOCtlVRequest final : Request
 {
   struct IOVector
   {
@@ -120,7 +120,7 @@ struct IOSIOCtlVRequest final : IOSRequest
   // merging them into a single std::vector would make using the first out vector more complicated.
   std::vector<IOVector> in_vectors;
   std::vector<IOVector> io_vectors;
-  explicit IOSIOCtlVRequest(u32 address);
+  explicit IOCtlVRequest(u32 address);
   bool HasInputVectorWithAddress(u32 vector_address) const;
   void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
             LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;
@@ -151,13 +151,13 @@ public:
   u32 GetDeviceID() const { return m_device_id; }
   // Replies to Open and Close requests are sent by the IPC request handler (HandleCommand),
   // not by the devices themselves.
-  virtual IOSReturnCode Open(const IOSOpenRequest& request);
+  virtual ReturnCode Open(const OpenRequest& request);
   virtual void Close();
-  virtual IPCCommandResult Seek(const IOSSeekRequest& seek) { return Unsupported(seek); }
-  virtual IPCCommandResult Read(const IOSReadWriteRequest& read) { return Unsupported(read); }
-  virtual IPCCommandResult Write(const IOSReadWriteRequest& write) { return Unsupported(write); }
-  virtual IPCCommandResult IOCtl(const IOSIOCtlRequest& ioctl) { return Unsupported(ioctl); }
-  virtual IPCCommandResult IOCtlV(const IOSIOCtlVRequest& ioctlv) { return Unsupported(ioctlv); }
+  virtual IPCCommandResult Seek(const SeekRequest& seek) { return Unsupported(seek); }
+  virtual IPCCommandResult Read(const ReadWriteRequest& read) { return Unsupported(read); }
+  virtual IPCCommandResult Write(const ReadWriteRequest& write) { return Unsupported(write); }
+  virtual IPCCommandResult IOCtl(const IOCtlRequest& ioctl) { return Unsupported(ioctl); }
+  virtual IPCCommandResult IOCtlV(const IOCtlVRequest& ioctlv) { return Unsupported(ioctlv); }
   virtual void Update() {}
   virtual DeviceType GetDeviceType() const { return m_device_type; }
   virtual bool IsOpened() const { return m_is_active; }
@@ -172,7 +172,7 @@ protected:
   bool m_is_active = false;
 
 private:
-  IPCCommandResult Unsupported(const IOSRequest& request);
+  IPCCommandResult Unsupported(const Request& request);
 };
 }  // namespace Device
 }  // namespace HLE

@@ -194,7 +194,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
     IPCCommandType ct = it->request.command;
     if (!it->is_ssl && ct == IPC_CMD_IOCTL)
     {
-      IOSIOCtlRequest ioctl{it->request.address};
+      IOCtlRequest ioctl{it->request.address};
       switch (it->net_type)
       {
       case IOCTL_SO_FCNTL:
@@ -270,7 +270,7 @@ void WiiSocket::Update(bool read, bool write, bool except)
     }
     else if (ct == IPC_CMD_IOCTLV)
     {
-      IOSIOCtlVRequest ioctlv{it->request.address};
+      IOCtlVRequest ioctlv{it->request.address};
       u32 BufferIn = 0, BufferIn2 = 0;
       u32 BufferInSize = 0, BufferInSize2 = 0;
       u32 BufferOut = 0, BufferOut2 = 0;
@@ -582,14 +582,14 @@ void WiiSocket::Update(bool read, bool write, bool except)
   }
 }
 
-void WiiSocket::DoSock(IOSRequest request, NET_IOCTL type)
+void WiiSocket::DoSock(Request request, NET_IOCTL type)
 {
   sockop so = {request, false};
   so.net_type = type;
   pending_sockops.push_back(so);
 }
 
-void WiiSocket::DoSock(IOSRequest request, SSL_IOCTL type)
+void WiiSocket::DoSock(Request request, SSL_IOCTL type)
 {
   sockop so = {request, true};
   so.ssl_type = type;

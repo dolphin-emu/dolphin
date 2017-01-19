@@ -114,7 +114,7 @@ static void DoStateForMessage(PointerWrap& p, std::unique_ptr<T>& message)
   p.Do(request_address);
   if (request_address != 0)
   {
-    IOSIOCtlVRequest request{request_address};
+    IOCtlVRequest request{request_address};
     message = std::make_unique<T>(request);
   }
 }
@@ -162,7 +162,7 @@ void BluetoothEmu::Close()
   m_is_active = false;
 }
 
-IPCCommandResult BluetoothEmu::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
 {
   bool send_reply = true;
   switch (request.request)

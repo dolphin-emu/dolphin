@@ -95,7 +95,7 @@ BluetoothReal::~BluetoothReal()
   SaveLinkKeys();
 }
 
-IOSReturnCode BluetoothReal::Open(const IOSOpenRequest& request)
+ReturnCode BluetoothReal::Open(const OpenRequest& request)
 {
   libusb_device** list;
   const ssize_t cnt = libusb_get_device_list(m_libusb_context, &list);
@@ -164,7 +164,7 @@ void BluetoothReal::Close()
   m_is_active = false;
 }
 
-IPCCommandResult BluetoothReal::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
 {
   if (!m_is_wii_bt_module && s_need_reset_keys.TestAndClear())
   {

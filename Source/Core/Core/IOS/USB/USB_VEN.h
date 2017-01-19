@@ -21,8 +21,8 @@ class USB_VEN final : public Device
 public:
   USB_VEN(u32 device_id, const std::string& device_name);
 
-  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
 private:
   enum USBIOCtl
