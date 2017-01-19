@@ -33,7 +33,7 @@ void DI::DoState(PointerWrap& p)
   p.Do(m_commands_to_execute);
 }
 
-IPCCommandResult DI::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult DI::IOCtl(const IOCtlRequest& request)
 {
   // DI IOCtls are handled in a special way by Dolphin
   // compared to other IOS functions.
@@ -52,7 +52,7 @@ IPCCommandResult DI::IOCtl(const IOSIOCtlRequest& request)
   return GetNoReply();
 }
 
-void DI::StartIOCtl(const IOSIOCtlRequest& request)
+void DI::StartIOCtl(const IOCtlRequest& request)
 {
   const u32 command_0 = Memory::Read_U32(request.buffer_in);
   const u32 command_1 = Memory::Read_U32(request.buffer_in + 4);
@@ -75,18 +75,18 @@ void DI::FinishIOCtl(DVDInterface::DIInterruptType interrupt_type)
   // This command has been executed, so it's removed from the queue
   u32 command_address = m_commands_to_execute.front();
   m_commands_to_execute.pop_front();
-  EnqueueReply(IOSIOCtlRequest{command_address}, interrupt_type);
+  EnqueueReply(IOCtlRequest{command_address}, interrupt_type);
 
   // DVDInterface is now ready to execute another command,
   // so we start executing a command from the queue if there is one
   if (!m_commands_to_execute.empty())
   {
-    IOSIOCtlRequest next_request{m_commands_to_execute.front()};
+    IOCtlRequest next_request{m_commands_to_execute.front()};
     StartIOCtl(next_request);
   }
 }
 
-IPCCommandResult DI::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult DI::IOCtlV(const IOCtlVRequest& request)
 {
   for (const auto& vector : request.io_vectors)
     Memory::Memset(vector.address, 0, vector.size);

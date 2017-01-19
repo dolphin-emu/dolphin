@@ -53,8 +53,8 @@ protected:
 
   struct CtrlMessage
   {
-    CtrlMessage(const IOSIOCtlVRequest& ioctlv);
-    IOSIOCtlVRequest ios_request;
+    CtrlMessage(const IOCtlVRequest& ioctlv);
+    IOCtlVRequest ios_request;
     u8 request_type = 0;
     u8 request = 0;
     u16 value = 0;
@@ -65,8 +65,8 @@ protected:
 
   struct CtrlBuffer
   {
-    CtrlBuffer(const IOSIOCtlVRequest& ioctlv);
-    IOSIOCtlVRequest ios_request;
+    CtrlBuffer(const IOCtlVRequest& ioctlv);
+    IOCtlVRequest ios_request;
     void FillBuffer(const u8* src, size_t size) const;
     u8 m_endpoint = 0;
     u16 m_length = 0;

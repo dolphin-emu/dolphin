@@ -29,7 +29,7 @@ class WFSSRV : public Device
 public:
   WFSSRV(u32 device_id, const std::string& device_name);
 
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
 private:
   // WFS device name, e.g. msc01/msc02.

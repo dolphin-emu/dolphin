@@ -349,7 +349,7 @@ static std::shared_ptr<Device::Device> GetUnusedESDevice()
 }
 
 // Returns the FD for the newly opened device (on success) or an error code.
-static s32 OpenDevice(const IOSOpenRequest& request)
+static s32 OpenDevice(const OpenRequest& request)
 {
   const s32 new_fd = GetFreeDeviceID();
   INFO_LOG(IOS, "Opening %s (mode %d, fd %d)", request.path.c_str(), request.flags, new_fd);
@@ -381,18 +381,18 @@ static s32 OpenDevice(const IOSOpenRequest& request)
     return IPC_ENOENT;
   }
 
-  const IOSReturnCode code = device->Open(request);
+  const ReturnCode code = device->Open(request);
   if (code < IPC_SUCCESS)
     return code;
   s_fdmap[new_fd] = device;
   return new_fd;
 }
 
-static IPCCommandResult HandleCommand(const IOSRequest& request)
+static IPCCommandResult HandleCommand(const Request& request)
 {
   if (request.command == IPC_CMD_OPEN)
   {
-    IOSOpenRequest open_request{request.address};
+    OpenRequest open_request{request.address};
     const s32 new_fd = OpenDevice(open_request);
     return Device::Device::GetDefaultReply(new_fd);
   }
@@ -408,15 +408,15 @@ static IPCCommandResult HandleCommand(const IOSRequest& request)
     device->Close();
     return Device::Device::GetDefaultReply(IPC_SUCCESS);
   case IPC_CMD_READ:
-    return device->Read(IOSReadWriteRequest{request.address});
+    return device->Read(ReadWriteRequest{request.address});
   case IPC_CMD_WRITE:
-    return device->Write(IOSReadWriteRequest{request.address});
+    return device->Write(ReadWriteRequest{request.address});
   case IPC_CMD_SEEK:
-    return device->Seek(IOSSeekRequest{request.address});
+    return device->Seek(SeekRequest{request.address});
   case IPC_CMD_IOCTL:
-    return device->IOCtl(IOSIOCtlRequest{request.address});
+    return device->IOCtl(IOCtlRequest{request.address});
   case IPC_CMD_IOCTLV:
-    return device->IOCtlV(IOSIOCtlVRequest{request.address});
+    return device->IOCtlV(IOCtlVRequest{request.address});
   default:
     _assert_msg_(IOS, false, "Unexpected command: %x", request.command);
     return Device::Device::GetDefaultReply(IPC_EINVAL);
@@ -425,7 +425,7 @@ static IPCCommandResult HandleCommand(const IOSRequest& request)
 
 void ExecuteCommand(const u32 address)
 {
-  IOSRequest request{address};
+  Request request{address};
   IPCCommandResult result = HandleCommand(request);
 
   // Ensure replies happen in order
@@ -445,7 +445,7 @@ void EnqueueRequest(u32 address)
 }
 
 // Called to send a reply to an IOS syscall
-void EnqueueReply(const IOSRequest& request, const s32 return_value, int cycles_in_future,
+void EnqueueReply(const Request& request, const s32 return_value, int cycles_in_future,
                   CoreTiming::FromThread from)
 {
   Memory::Write_U32(static_cast<u32>(return_value), request.address + 4);

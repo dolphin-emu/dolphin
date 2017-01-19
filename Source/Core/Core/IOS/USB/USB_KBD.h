@@ -22,8 +22,8 @@ class USB_KBD : public Device
 public:
   USB_KBD(u32 device_id, const std::string& device_name);
 
-  IOSReturnCode Open(const IOSOpenRequest& request) override;
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   void Update() override;
 
 private:

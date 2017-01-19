@@ -36,9 +36,9 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IOSReturnCode Open(const IOSOpenRequest& request) override;
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
+  ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
 private:
   enum
@@ -56,7 +56,7 @@ private:
   };
 
   IPCCommandResult GetFSReply(s32 return_value) const;
-  s32 ExecuteCommand(const IOSIOCtlRequest& request);
+  s32 ExecuteCommand(const IOCtlRequest& request);
 };
 }  // namespace Device
 }  // namespace HLE

@@ -77,7 +77,7 @@ NetKDRequest::~NetKDRequest()
   WiiSockMan::GetInstance().Clean();
 }
 
-IPCCommandResult NetKDRequest::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
 {
   s32 return_value = 0;
   switch (request.request)
@@ -326,7 +326,7 @@ NetNCDManage::NetNCDManage(u32 device_id, const std::string& device_name)
 {
 }
 
-IPCCommandResult NetNCDManage::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   u32 common_result = 0;
@@ -402,7 +402,7 @@ NetWDCommand::NetWDCommand(u32 device_id, const std::string& device_name)
 // This is just for debugging / playing around.
 // There really is no reason to implement wd unless we can bend it such that
 // we can talk to the DS.
-IPCCommandResult NetWDCommand::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
 
@@ -539,7 +539,7 @@ static unsigned int opt_level_mapping[][2] = {{SOL_SOCKET, 0xFFFF}};
 static unsigned int opt_name_mapping[][2] = {
     {SO_REUSEADDR, 0x4}, {SO_SNDBUF, 0x1001}, {SO_RCVBUF, 0x1002}, {SO_ERROR, 0x1009}};
 
-IPCCommandResult NetIPTop::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
 {
   if (Core::g_want_determinism)
   {
@@ -1052,7 +1052,7 @@ IPCCommandResult NetIPTop::IOCtl(const IOSIOCtlRequest& request)
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult NetIPTop::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
 {
   s32 return_value = 0;
 

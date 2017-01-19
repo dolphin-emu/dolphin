@@ -23,9 +23,9 @@ namespace HLE
 {
 namespace Device
 {
-static std::unique_ptr<IOSIOCtlRequest> s_event_hook_request;
+static std::unique_ptr<IOCtlRequest> s_event_hook_request;
 
-IPCCommandResult STMImmediate::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult STMImmediate::IOCtl(const IOCtlRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   switch (request.request)
@@ -77,7 +77,7 @@ void STMEventHook::Close()
   m_is_active = false;
 }
 
-IPCCommandResult STMEventHook::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult STMEventHook::IOCtl(const IOCtlRequest& request)
 {
   if (request.request != IOCTL_STM_EVENTHOOK)
     return GetDefaultReply(IPC_EINVAL);
@@ -86,7 +86,7 @@ IPCCommandResult STMEventHook::IOCtl(const IOSIOCtlRequest& request)
     return GetDefaultReply(IPC_EEXIST);
 
   // IOCTL_STM_EVENTHOOK waits until the reset button or power button is pressed.
-  s_event_hook_request = std::make_unique<IOSIOCtlRequest>(request.address);
+  s_event_hook_request = std::make_unique<IOCtlRequest>(request.address);
   return GetNoReply();
 }
 

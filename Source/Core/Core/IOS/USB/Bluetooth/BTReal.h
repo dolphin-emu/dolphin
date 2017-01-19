@@ -47,9 +47,9 @@ public:
   BluetoothReal(u32 device_id, const std::string& device_name);
   ~BluetoothReal() override;
 
-  IOSReturnCode Open(const IOSOpenRequest& request) override;
+  ReturnCode Open(const OpenRequest& request) override;
   void Close() override;
-  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
+  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   void DoState(PointerWrap& p) override;
   void UpdateSyncButtonState(bool is_held) override;

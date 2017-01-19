@@ -94,8 +94,8 @@ public:
 
   virtual ~NetSSL();
 
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   int GetSSLFreeID() const;
 

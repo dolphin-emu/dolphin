@@ -43,7 +43,7 @@ void USB_HIDv4::checkUsbUpdates(USB_HIDv4* hid)
       std::lock_guard<std::mutex> lk(hid->m_device_list_reply_mutex);
       if (hid->deviceCommandAddress != 0)
       {
-        IOSIOCtlRequest request{hid->deviceCommandAddress};
+        IOCtlRequest request{hid->deviceCommandAddress};
         hid->FillOutDevices(request);
         EnqueueReply(request, IPC_SUCCESS, 0, CoreTiming::FromThread::NON_CPU);
         hid->deviceCommandAddress = 0;
@@ -65,7 +65,7 @@ void USB_HIDv4::handleUsbUpdates(struct libusb_transfer* transfer)
     ret = transfer->length;
   }
 
-  IOSIOCtlRequest request{replyAddress};
+  IOCtlRequest request{replyAddress};
   EnqueueReply(request, ret, 0, CoreTiming::FromThread::NON_CPU);
 }
 
@@ -105,7 +105,7 @@ USB_HIDv4::~USB_HIDv4()
     libusb_exit(nullptr);
 }
 
-IPCCommandResult USB_HIDv4::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult USB_HIDv4::IOCtl(const IOCtlRequest& request)
 {
   if (Core::g_want_determinism)
   {
@@ -213,7 +213,7 @@ IPCCommandResult USB_HIDv4::IOCtl(const IOSIOCtlRequest& request)
     std::lock_guard<std::mutex> lk(m_device_list_reply_mutex);
     if (deviceCommandAddress != 0)
     {
-      IOSIOCtlRequest pending_request{deviceCommandAddress};
+      IOCtlRequest pending_request{deviceCommandAddress};
       Memory::Write_U32(0xFFFFFFFF, pending_request.buffer_out);
       EnqueueReply(pending_request, -1);
       deviceCommandAddress = 0;
@@ -256,7 +256,7 @@ bool USB_HIDv4::ClaimDevice(libusb_device_handle* dev)
   return true;
 }
 
-IPCCommandResult USB_HIDv4::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult USB_HIDv4::IOCtlV(const IOCtlVRequest& request)
 {
   Dolphin_Debugger::PrintCallstack(LogTypes::IOS_HID, LogTypes::LWARNING);
   request.DumpUnknown(GetDeviceName(), LogTypes::IOS_HID);
@@ -302,7 +302,7 @@ void USB_HIDv4::ConvertEndpointToWii(WiiHIDEndpointDescriptor* dest,
   dest->wMaxPacketSize = Common::swap16(dest->wMaxPacketSize);
 }
 
-void USB_HIDv4::FillOutDevices(const IOSIOCtlRequest& request)
+void USB_HIDv4::FillOutDevices(const IOCtlRequest& request)
 {
   static u16 check = 1;
   int OffsetBuffer = request.buffer_out;

@@ -88,7 +88,7 @@ void FileIO::Close()
   m_is_active = false;
 }
 
-IOSReturnCode FileIO::Open(const IOSOpenRequest& request)
+ReturnCode FileIO::Open(const OpenRequest& request)
 {
   m_Mode = request.flags;
 
@@ -156,7 +156,7 @@ void FileIO::OpenFile()
   }
 }
 
-IPCCommandResult FileIO::Seek(const IOSSeekRequest& request)
+IPCCommandResult FileIO::Seek(const SeekRequest& request)
 {
   u32 return_value = FS_EINVAL;
 
@@ -168,7 +168,7 @@ IPCCommandResult FileIO::Seek(const IOSSeekRequest& request)
 
     switch (request.mode)
     {
-    case IOSSeekRequest::IOS_SEEK_SET:
+    case SeekRequest::IOS_SEEK_SET:
     {
       if (request.offset <= file_size)
       {
@@ -178,7 +178,7 @@ IPCCommandResult FileIO::Seek(const IOSSeekRequest& request)
       break;
     }
 
-    case IOSSeekRequest::IOS_SEEK_CUR:
+    case SeekRequest::IOS_SEEK_CUR:
     {
       const u32 wanted_pos = request.offset + m_SeekPos;
       if (wanted_pos <= file_size)
@@ -189,7 +189,7 @@ IPCCommandResult FileIO::Seek(const IOSSeekRequest& request)
       break;
     }
 
-    case IOSSeekRequest::IOS_SEEK_END:
+    case SeekRequest::IOS_SEEK_END:
     {
       const u32 wanted_pos = request.offset + file_size;
       if (wanted_pos <= file_size)
@@ -215,7 +215,7 @@ IPCCommandResult FileIO::Seek(const IOSSeekRequest& request)
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult FileIO::Read(const IOSReadWriteRequest& request)
+IPCCommandResult FileIO::Read(const ReadWriteRequest& request)
 {
   s32 return_value = FS_EACCESS;
   if (m_file->IsOpen())
@@ -253,7 +253,7 @@ IPCCommandResult FileIO::Read(const IOSReadWriteRequest& request)
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult FileIO::Write(const IOSReadWriteRequest& request)
+IPCCommandResult FileIO::Write(const ReadWriteRequest& request)
 {
   s32 return_value = FS_EACCESS;
   if (m_file->IsOpen())
@@ -288,7 +288,7 @@ IPCCommandResult FileIO::Write(const IOSReadWriteRequest& request)
   return GetDefaultReply(return_value);
 }
 
-IPCCommandResult FileIO::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult FileIO::IOCtl(const IOCtlRequest& request)
 {
   DEBUG_LOG(IOS_FILEIO, "FileIO: IOCtl (Device=%s)", m_name.c_str());
   s32 return_value = IPC_SUCCESS;

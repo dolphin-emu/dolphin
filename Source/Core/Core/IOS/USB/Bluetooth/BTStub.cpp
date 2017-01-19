@@ -18,7 +18,7 @@ namespace HLE
 {
 namespace Device
 {
-IOSReturnCode BluetoothStub::Open(const IOSOpenRequest& request)
+ReturnCode BluetoothStub::Open(const OpenRequest& request)
 {
   PanicAlertT("Bluetooth passthrough mode is enabled, but Dolphin was built without libusb."
               " Passthrough mode cannot be used.");

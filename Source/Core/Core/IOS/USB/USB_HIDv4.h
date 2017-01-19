@@ -44,8 +44,8 @@ public:
 
   virtual ~USB_HIDv4();
 
-  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
 private:
   enum
@@ -121,7 +121,7 @@ private:
   };
 
   u32 deviceCommandAddress;
-  void FillOutDevices(const IOSIOCtlRequest& request);
+  void FillOutDevices(const IOCtlRequest& request);
   int GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check);
   bool ClaimDevice(libusb_device_handle* dev);
 

@@ -42,9 +42,9 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IOSReturnCode Open(const IOSOpenRequest& request) override;
+  ReturnCode Open(const OpenRequest& request) override;
   void Close() override;
-  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
+  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   static u32 ES_DIVerify(const std::vector<u8>& tmd);
 

@@ -40,7 +40,7 @@ class WFSI : public Device
 public:
   WFSI(u32 device_id, const std::string& device_name);
 
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
 
 private:
   std::string m_device_name;

@@ -31,13 +31,13 @@ public:
 
   void DoState(PointerWrap& p) override;
 
-  IPCCommandResult IOCtl(const IOSIOCtlRequest& request) override;
-  IPCCommandResult IOCtlV(const IOSIOCtlVRequest& request) override;
+  IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
   void FinishIOCtl(DVDInterface::DIInterruptType interrupt_type);
 
 private:
-  void StartIOCtl(const IOSIOCtlRequest& request);
+  void StartIOCtl(const IOCtlRequest& request);
 
   std::deque<u32> m_commands_to_execute;
 };

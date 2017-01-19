@@ -44,7 +44,7 @@ IPCCommandResult FS::GetFSReply(const s32 return_value) const
   return {return_value, true, SystemTimers::GetTicksPerSecond() / 500};
 }
 
-IOSReturnCode FS::Open(const IOSOpenRequest& request)
+ReturnCode FS::Open(const OpenRequest& request)
 {
   // clear tmp folder
   {
@@ -72,7 +72,7 @@ static u64 ComputeTotalFileSize(const File::FSTEntry& parentEntry)
   return sizeOfFiles;
 }
 
-IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
+IPCCommandResult FS::IOCtlV(const IOCtlVRequest& request)
 {
   s32 return_value = IPC_SUCCESS;
   switch (request.request)
@@ -232,14 +232,14 @@ IPCCommandResult FS::IOCtlV(const IOSIOCtlVRequest& request)
   return GetFSReply(return_value);
 }
 
-IPCCommandResult FS::IOCtl(const IOSIOCtlRequest& request)
+IPCCommandResult FS::IOCtl(const IOCtlRequest& request)
 {
   Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
   const s32 return_value = ExecuteCommand(request);
   return GetFSReply(return_value);
 }
 
-s32 FS::ExecuteCommand(const IOSIOCtlRequest& request)
+s32 FS::ExecuteCommand(const IOCtlRequest& request)
 {
   switch (request.request)
   {

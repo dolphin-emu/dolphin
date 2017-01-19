@@ -56,7 +56,7 @@ void RestoreBTInfoSection(SysConf* sysconf)
 
 namespace Device
 {
-BluetoothBase::CtrlMessage::CtrlMessage(const IOSIOCtlVRequest& ioctlv) : ios_request(ioctlv)
+BluetoothBase::CtrlMessage::CtrlMessage(const IOCtlVRequest& ioctlv) : ios_request(ioctlv)
 {
   request_type = Memory::Read_U8(ioctlv.in_vectors[0].address);
   request = Memory::Read_U8(ioctlv.in_vectors[1].address);
@@ -66,7 +66,7 @@ BluetoothBase::CtrlMessage::CtrlMessage(const IOSIOCtlVRequest& ioctlv) : ios_re
   payload_addr = ioctlv.io_vectors[0].address;
 }
 
-BluetoothBase::CtrlBuffer::CtrlBuffer(const IOSIOCtlVRequest& ioctlv) : ios_request(ioctlv)
+BluetoothBase::CtrlBuffer::CtrlBuffer(const IOCtlVRequest& ioctlv) : ios_request(ioctlv)
 {
   m_endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address);
   m_length = Memory::Read_U16(ioctlv.in_vectors[1].address);
