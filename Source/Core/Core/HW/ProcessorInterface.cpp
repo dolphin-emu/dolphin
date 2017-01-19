@@ -230,6 +230,8 @@ static void IOSNotifyPowerButtonCallback(u64 userdata, s64 cyclesLate)
 
 void ResetButton_Tap()
 {
+  if (!Core::IsRunning())
+    return;
   CoreTiming::ScheduleEvent(0, toggleResetButton, true, CoreTiming::FromThread::ANY);
   CoreTiming::ScheduleEvent(0, iosNotifyResetButton, 0, CoreTiming::FromThread::ANY);
   CoreTiming::ScheduleEvent(SystemTimers::GetTicksPerSecond() / 2, toggleResetButton, false,
@@ -238,6 +240,8 @@ void ResetButton_Tap()
 
 void PowerButton_Tap()
 {
+  if (!Core::IsRunning())
+    return;
   CoreTiming::ScheduleEvent(0, iosNotifyPowerButton, 0, CoreTiming::FromThread::ANY);
 }
 
