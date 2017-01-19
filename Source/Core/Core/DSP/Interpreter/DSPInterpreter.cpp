@@ -25,10 +25,7 @@ void ExecuteInstruction(const UDSPInstruction inst)
 
   if (opcode_template->extended)
   {
-    if ((inst >> 12) == 0x3)
-      extOpTable[inst & 0x7F]->intFunc(inst);
-    else
-      extOpTable[inst & 0xFF]->intFunc(inst);
+    GetExtOpTemplate(inst)->intFunc(inst);
   }
 
   opcode_template->intFunc(inst);

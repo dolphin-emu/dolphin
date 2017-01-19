@@ -479,8 +479,6 @@ const std::array<pdlabel_t, 36> regnames =
 }};
 // clang-format on
 
-std::array<const DSPOPCTemplate*, OPTABLE_SIZE> opTable;
-std::array<const DSPOPCTemplate*, EXT_OPTABLE_SIZE> extOpTable;
 std::array<u16, WRITEBACK_LOG_SIZE> writeBackLog;
 std::array<int, WRITEBACK_LOG_SIZE> writeBackLogIdx;
 
@@ -508,9 +506,27 @@ const char* pdregnamelong(int val)
   return regnames[val].description;
 }
 
-const DSPOPCTemplate* GetOpTemplate(const UDSPInstruction& inst)
+namespace
 {
-  return opTable[inst];
+constexpr size_t OPTABLE_SIZE = 0xffff + 1;
+constexpr size_t EXT_OPTABLE_SIZE = 0xff + 1;
+std::array<const DSPOPCTemplate*, OPTABLE_SIZE> s_op_table;
+std::array<const DSPOPCTemplate*, EXT_OPTABLE_SIZE> s_ext_op_table;
+}  // Anonymous namespace
+
+const DSPOPCTemplate* GetOpTemplate(UDSPInstruction inst)
+{
+  return s_op_table[inst];
+}
+
+const DSPOPCTemplate* GetExtOpTemplate(UDSPInstruction inst)
+{
+  const bool has_seven_bit_extension = (inst >> 12) == 0x3;
+
+  if (has_seven_bit_extension)
+    return s_ext_op_table[inst & 0x7F];
+
+  return s_ext_op_table[inst & 0xFF];
 }
 
 // This function could use the above GetOpTemplate, but then we'd lose the
@@ -518,27 +534,27 @@ const DSPOPCTemplate* GetOpTemplate(const UDSPInstruction& inst)
 void InitInstructionTable()
 {
   // ext op table
-  for (size_t i = 0; i < extOpTable.size(); i++)
+  for (size_t i = 0; i < s_ext_op_table.size(); i++)
   {
-    extOpTable[i] = &cw;
+    s_ext_op_table[i] = &cw;
 
     for (const DSPOPCTemplate& ext : opcodes_ext)
     {
       u16 mask = ext.opcode_mask;
       if ((mask & i) == ext.opcode)
       {
-        if (extOpTable[i] == &cw)
+        if (s_ext_op_table[i] == &cw)
         {
-          extOpTable[i] = &ext;
+          s_ext_op_table[i] = &ext;
         }
         else
         {
           // if the entry already in the table
           // is a strict subset, allow it
-          if ((extOpTable[i]->opcode_mask | ext.opcode_mask) != extOpTable[i]->opcode_mask)
+          if ((s_ext_op_table[i]->opcode_mask | ext.opcode_mask) != s_ext_op_table[i]->opcode_mask)
           {
             ERROR_LOG(DSPLLE, "opcode ext table place %zu already in use by %s when inserting %s",
-                      i, extOpTable[i]->name, ext.name);
+                      i, s_ext_op_table[i]->name, ext.name);
           }
         }
       }
@@ -546,17 +562,17 @@ void InitInstructionTable()
   }
 
   // op table
-  opTable.fill(&cw);
+  s_op_table.fill(&cw);
 
-  for (size_t i = 0; i < opTable.size(); i++)
+  for (size_t i = 0; i < s_op_table.size(); i++)
   {
     for (const DSPOPCTemplate& opcode : opcodes)
     {
       u16 mask = opcode.opcode_mask;
       if ((mask & i) == opcode.opcode)
       {
-        if (opTable[i] == &cw)
-          opTable[i] = &opcode;
+        if (s_op_table[i] == &cw)
+          s_op_table[i] = &opcode;
         else
           ERROR_LOG(DSPLLE, "opcode table place %zu already in use for %s", i, opcode.name);
       }

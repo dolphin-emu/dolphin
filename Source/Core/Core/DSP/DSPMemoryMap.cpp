@@ -82,6 +82,6 @@ u16 dsp_peek_code()
 
 void dsp_skip_inst()
 {
-  g_dsp.pc += opTable[dsp_peek_code()]->size;
+  g_dsp.pc += GetOpTemplate(dsp_peek_code())->size;
 }
 }  // namespace DSP

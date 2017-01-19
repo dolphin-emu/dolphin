@@ -94,12 +94,7 @@ extern const std::array<DSPOPCTemplate, 214> opcodes;
 extern const std::array<DSPOPCTemplate, 25> opcodes_ext;
 extern const DSPOPCTemplate cw;
 
-constexpr size_t OPTABLE_SIZE = 0xffff + 1;
-constexpr size_t EXT_OPTABLE_SIZE = 0xff + 1;
 constexpr size_t WRITEBACK_LOG_SIZE = 5;
-
-extern std::array<const DSPOPCTemplate*, OPTABLE_SIZE> opTable;
-extern std::array<const DSPOPCTemplate*, EXT_OPTABLE_SIZE> extOpTable;
 extern std::array<u16, WRITEBACK_LOG_SIZE> writeBackLog;
 extern std::array<int, WRITEBACK_LOG_SIZE> writeBackLogIdx;
 
@@ -123,5 +118,6 @@ void applyWriteBackLog();
 void zeroWriteBackLog();
 void zeroWriteBackLogPreserveAcc(u8 acc);
 
-const DSPOPCTemplate* GetOpTemplate(const UDSPInstruction& inst);
+const DSPOPCTemplate* GetOpTemplate(UDSPInstruction inst);
+const DSPOPCTemplate* GetExtOpTemplate(UDSPInstruction inst);
 }  // namespace DSP
