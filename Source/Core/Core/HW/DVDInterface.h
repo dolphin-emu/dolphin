@@ -96,7 +96,7 @@ enum DIInterruptType : int
 enum class ReplyType : u32
 {
   Interrupt,
-  IOS_HLE,
+  IOS,
   DTK
 };
 

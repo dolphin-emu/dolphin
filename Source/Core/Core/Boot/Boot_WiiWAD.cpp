@@ -14,8 +14,8 @@
 #include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/VideoInterface.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_FileIO.h"
+#include "Core/IOS/FS/FileIO.h"
+#include "Core/IOS/IPC.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 

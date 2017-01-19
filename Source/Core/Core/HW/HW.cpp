@@ -21,7 +21,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IOS/IPC.h"
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
 #include "DiscIO/NANDContentLoader.h"

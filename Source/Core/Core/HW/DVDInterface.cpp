@@ -24,8 +24,8 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/StreamADPCM.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_DI.h"
+#include "Core/IOS/DI/DI.h"
+#include "Core/IOS/IPC.h"
 #include "Core/Movie.h"
 
 #include "DiscIO/Enums.h"
@@ -729,7 +729,7 @@ bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 
 void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_address,
                     u32 output_length, bool reply_to_ios)
 {
-  ReplyType reply_type = reply_to_ios ? ReplyType::IOS_HLE : ReplyType::Interrupt;
+  ReplyType reply_type = reply_to_ios ? ReplyType::IOS : ReplyType::Interrupt;
   DIInterruptType interrupt_type = INT_TCINT;
   s64 ticks_until_completion = SystemTimers::GetTicksPerSecond() / 15000;
   bool command_handled_by_thread = false;
@@ -1153,11 +1153,11 @@ void FinishExecutingCommand(ReplyType reply_type, DIInterruptType interrupt_type
     break;
   }
 
-  case ReplyType::IOS_HLE:
+  case ReplyType::IOS:
   {
-    std::shared_ptr<IOS::HLE::IWII_IPC_HLE_Device> di = IOS::HLE::GetDeviceByName("/dev/di");
+    auto di = IOS::HLE::GetDeviceByName("/dev/di");
     if (di)
-      std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_di>(di)->FinishIOCtl(interrupt_type);
+      std::static_pointer_cast<IOS::HLE::Device::DI>(di)->FinishIOCtl(interrupt_type);
     break;
   }
 

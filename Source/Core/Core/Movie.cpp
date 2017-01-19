@@ -32,8 +32,8 @@
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -580,7 +580,7 @@ bool BeginRecordingInput(int controllers)
     s_bRecordingFromSaveState = true;
 
     // This is only done here if starting from save state because otherwise we won't have the
-    // titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
+    // titleid. Otherwise it's set in IOS::HLE::Device::ES.
     // TODO: find a way to GetTitleDataPath() from Movie::Init()
     if (SConfig::GetInstance().bWii)
     {

@@ -14,7 +14,7 @@
 #include "Core/HLE/HLE_Misc.h"
 #include "Core/HLE/HLE_OS.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_es.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 

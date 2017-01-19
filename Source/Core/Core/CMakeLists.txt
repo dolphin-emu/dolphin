@@ -135,31 +135,31 @@ set(SRCS	ActionReplay.cpp
 			HW/WiimoteEmu/Speaker.cpp
 			HW/WiimoteReal/WiimoteReal.cpp
 			HW/WiiSaveCrypted.cpp
-			IPC_HLE/ESFormats.cpp
-			IPC_HLE/ICMPLin.cpp
-			IPC_HLE/NWC24Config.cpp
-			IPC_HLE/WII_IPC_HLE.cpp
-			IPC_HLE/WII_IPC_HLE_Device.cpp
-			IPC_HLE/WII_IPC_HLE_Device_stub.cpp
-			IPC_HLE/WII_IPC_HLE_Device_DI.cpp
-			IPC_HLE/WII_IPC_HLE_Device_es.cpp
-			IPC_HLE/WII_IPC_HLE_Device_FileIO.cpp
-			IPC_HLE/WII_IPC_HLE_Device_fs.cpp
-			IPC_HLE/WII_Socket.cpp
-			IPC_HLE/WII_IPC_HLE_Device_net.cpp
-			IPC_HLE/WII_IPC_HLE_Device_net_ssl.cpp
-			IPC_HLE/WII_IPC_HLE_Device_stm.cpp
-			IPC_HLE/WII_IPC_HLE_Device_sdio_slot0.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_kbd.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_ven.cpp
-			IPC_HLE/WII_IPC_HLE_Device_usb_wfssrv.cpp
-			IPC_HLE/WII_IPC_HLE_Device_wfsi.cpp
-			IPC_HLE/WII_IPC_HLE_WiiMote.cpp
-			IPC_HLE/WiiMote_HID_Attr.cpp
-			IPC_HLE/WiiNetConfig.cpp
+			IOS/Device.cpp
+			IOS/DeviceStub.cpp
+			IOS/IPC.cpp
+			IOS/DI/DI.cpp
+			IOS/ES/ES.cpp
+			IOS/ES/Formats.cpp
+			IOS/FS/FileIO.cpp
+			IOS/FS/FS.cpp
+			IOS/Network/Config.cpp
+			IOS/Network/ICMPLin.cpp
+			IOS/Network/NWC24Config.cpp
+			IOS/Network/Socket.cpp
+			IOS/Network/Net.cpp
+			IOS/Network/SSL.cpp
+			IOS/SDIO/SDIOSlot0.cpp
+			IOS/STM/STM.cpp
+			IOS/USB/USB_KBD.cpp
+			IOS/USB/USB_VEN.cpp
+			IOS/USB/Bluetooth/BTBase.cpp
+			IOS/USB/Bluetooth/BTEmu.cpp
+			IOS/USB/Bluetooth/BTStub.cpp
+			IOS/USB/Bluetooth/WiimoteDevice.cpp
+			IOS/USB/Bluetooth/WiimoteHIDAttr.cpp
+			IOS/WFS/WFSSRV.cpp
+			IOS/WFS/WFSI.cpp
 			PowerPC/BreakPoints.cpp
 			PowerPC/MMU.cpp
 			PowerPC/PowerPC.cpp
@@ -260,8 +260,8 @@ set(LIBS
 if(LIBUSB_FOUND)
 	# Using shared LibUSB
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
-	set(SRCS	${SRCS}	IPC_HLE/WII_IPC_HLE_Device_hid.cpp
-	        	       	IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp)
+	set(SRCS	${SRCS}	IOS/USB/USB_HIDv4.cpp
+	        	       	IOS/USB/Bluetooth/BTReal.cpp)
 endif(LIBUSB_FOUND)
 
 if(NOT APPLE)

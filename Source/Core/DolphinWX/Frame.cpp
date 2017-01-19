@@ -46,8 +46,8 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+#include "Core/IOS/IPC.h"
+#include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
 
@@ -1279,8 +1279,8 @@ void CFrame::ParseHotkeys()
   {
     auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
     if (device != nullptr)
-      std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
-          ->UpdateSyncButtonState(IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
+      std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->UpdateSyncButtonState(
+          IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
   }
 
   if (UseDebugger)

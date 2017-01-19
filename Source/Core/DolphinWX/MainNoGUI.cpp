@@ -23,10 +23,10 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "Core/IOS/IPC.h"
+#include "Core/IOS/STM/STM.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/State.h"
 
 #include "UICommon/UICommon.h"
@@ -239,8 +239,7 @@ class PlatformX11 : public Platform
       {
         const auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
         if (!s_tried_graceful_shutdown.IsSet() && stm &&
-            std::static_pointer_cast<IOS::HLE::CWII_IPC_HLE_Device_stm_eventhook>(stm)
-                ->HasHookInstalled())
+            std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
         {
           ProcessorInterface::PowerButton_Tap();
           s_tried_graceful_shutdown.Set();
