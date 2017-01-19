@@ -6,6 +6,9 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
+
 #include "Core/DSP/DSPCommon.h"
 #include "Core/DSP/Jit/DSPEmitter.h"
 
@@ -53,9 +56,6 @@ enum partype_t
   // P_AX_D      = P_REG | 0x2280,
 };
 
-#define OPTABLE_SIZE 0xffff + 1
-#define EXT_OPTABLE_SIZE 0xff + 1
-
 struct param2_t
 {
   partype_t type;
@@ -90,18 +90,18 @@ struct DSPOPCTemplate
 typedef DSPOPCTemplate opc_t;
 
 // Opcodes
-extern const DSPOPCTemplate opcodes[];
-extern const int opcodes_size;
-extern const DSPOPCTemplate opcodes_ext[];
-extern const int opcodes_ext_size;
+extern const std::array<DSPOPCTemplate, 214> opcodes;
+extern const std::array<DSPOPCTemplate, 25> opcodes_ext;
 extern const DSPOPCTemplate cw;
 
-#define WRITEBACKLOGSIZE 5
+constexpr size_t OPTABLE_SIZE = 0xffff + 1;
+constexpr size_t EXT_OPTABLE_SIZE = 0xff + 1;
+constexpr size_t WRITEBACK_LOG_SIZE = 5;
 
-extern const DSPOPCTemplate* opTable[OPTABLE_SIZE];
-extern const DSPOPCTemplate* extOpTable[EXT_OPTABLE_SIZE];
-extern u16 writeBackLog[WRITEBACKLOGSIZE];
-extern int writeBackLogIdx[WRITEBACKLOGSIZE];
+extern std::array<const DSPOPCTemplate*, OPTABLE_SIZE> opTable;
+extern std::array<const DSPOPCTemplate*, EXT_OPTABLE_SIZE> extOpTable;
+extern std::array<u16, WRITEBACK_LOG_SIZE> writeBackLog;
+extern std::array<int, WRITEBACK_LOG_SIZE> writeBackLogIdx;
 
 // Predefined labels
 struct pdlabel_t
@@ -111,9 +111,8 @@ struct pdlabel_t
   const char* description;
 };
 
-extern const pdlabel_t regnames[];
-extern const pdlabel_t pdlabels[];
-extern const u32 pdlabels_size;
+extern const std::array<pdlabel_t, 36> regnames;
+extern const std::array<pdlabel_t, 96> pdlabels;
 
 const char* pdname(u16 val);
 const char* pdregname(int val);

@@ -186,13 +186,13 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pa
   const DSPOPCTemplate* opc_ext = nullptr;
 
   // find opcode
-  for (int j = 0; j < opcodes_size; j++)
+  for (const auto& opcode : opcodes)
   {
-    u16 mask = opcodes[j].opcode_mask;
+    u16 mask = opcode.opcode_mask;
 
-    if ((op1 & mask) == opcodes[j].opcode)
+    if ((op1 & mask) == opcode.opcode)
     {
-      opc = &opcodes[j];
+      opc = &opcode;
       break;
     }
   }
@@ -220,21 +220,21 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pa
   {
     // opcode has an extension
     // find opcode
-    for (int j = 0; j < opcodes_ext_size; j++)
+    for (const auto& opcode_ext : opcodes_ext)
     {
       if (only7bitext)
       {
-        if (((op1 & 0x7f) & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
+        if (((op1 & 0x7f) & opcode_ext.opcode_mask) == opcode_ext.opcode)
         {
-          opc_ext = &opcodes_ext[j];
+          opc_ext = &opcode_ext;
           break;
         }
       }
       else
       {
-        if ((op1 & opcodes_ext[j].opcode_mask) == opcodes_ext[j].opcode)
+        if ((op1 & opcode_ext.opcode_mask) == opcode_ext.opcode)
         {
-          opc_ext = &opcodes_ext[j];
+          opc_ext = &opcode_ext;
           break;
         }
       }
