@@ -172,20 +172,7 @@ void Init(int cpu_core)
 
   ppcState.pagetable_base = 0;
   ppcState.pagetable_hashmask = 0;
-
-  for (int tlb = 0; tlb < 2; tlb++)
-  {
-    for (int set = 0; set < 64; set++)
-    {
-      ppcState.tlb[tlb][set].recent = 0;
-      for (int way = 0; way < 2; way++)
-      {
-        ppcState.tlb[tlb][set].paddr[way] = 0;
-        ppcState.tlb[tlb][set].pte[way] = 0;
-        ppcState.tlb[tlb][set].tag[way] = TLB_TAG_INVALID;
-      }
-    }
-  }
+  ppcState.tlb = {};
 
   ResetRegisters();
 

@@ -49,10 +49,10 @@ enum CoreMode
 
 struct tlb_entry
 {
-  u32 tag[TLB_WAYS];
-  u32 paddr[TLB_WAYS];
-  u32 pte[TLB_WAYS];
-  u8 recent;
+  u32 tag[TLB_WAYS] = {TLB_TAG_INVALID, TLB_TAG_INVALID};
+  u32 paddr[TLB_WAYS] = {};
+  u32 pte[TLB_WAYS] = {};
+  u8 recent = 0;
 };
 
 // This contains the entire state of the emulated PowerPC "Gekko" CPU.
@@ -116,7 +116,7 @@ struct PowerPCState
   // also for power management, but we don't care about that.
   u32 spr[1024];
 
-  tlb_entry tlb[NUM_TLBS][TLB_SIZE / TLB_WAYS];
+  std::array<std::array<tlb_entry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
 
   u32 pagetable_base;
   u32 pagetable_hashmask;
