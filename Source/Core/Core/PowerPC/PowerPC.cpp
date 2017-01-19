@@ -127,33 +127,8 @@ static void ResetRegisters()
   SystemTimers::DecrementerSet();
 }
 
-void Init(int cpu_core)
+static void InitializeCPUCore(int cpu_core)
 {
-  // NOTE: This function runs on EmuThread, not the CPU Thread.
-  //   Changing the rounding mode has a limited effect.
-  FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
-
-  s_invalidate_cache_thread_safe =
-      CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
-
-  ppcState.pagetable_base = 0;
-  ppcState.pagetable_hashmask = 0;
-
-  for (int tlb = 0; tlb < 2; tlb++)
-  {
-    for (int set = 0; set < 64; set++)
-    {
-      ppcState.tlb[tlb][set].recent = 0;
-      for (int way = 0; way < 2; way++)
-      {
-        ppcState.tlb[tlb][set].paddr[way] = 0;
-        ppcState.tlb[tlb][set].pte[way] = 0;
-        ppcState.tlb[tlb][set].tag[way] = TLB_TAG_INVALID;
-      }
-    }
-  }
-
-  ResetRegisters();
   PPCTables::InitTables(cpu_core);
 
   // We initialize the interpreter because
@@ -184,7 +159,37 @@ void Init(int cpu_core)
   {
     s_mode = MODE_INTERPRETER;
   }
+}
 
+void Init(int cpu_core)
+{
+  // NOTE: This function runs on EmuThread, not the CPU Thread.
+  //   Changing the rounding mode has a limited effect.
+  FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
+
+  s_invalidate_cache_thread_safe =
+      CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
+
+  ppcState.pagetable_base = 0;
+  ppcState.pagetable_hashmask = 0;
+
+  for (int tlb = 0; tlb < 2; tlb++)
+  {
+    for (int set = 0; set < 64; set++)
+    {
+      ppcState.tlb[tlb][set].recent = 0;
+      for (int way = 0; way < 2; way++)
+      {
+        ppcState.tlb[tlb][set].paddr[way] = 0;
+        ppcState.tlb[tlb][set].pte[way] = 0;
+        ppcState.tlb[tlb][set].tag[way] = TLB_TAG_INVALID;
+      }
+    }
+  }
+
+  ResetRegisters();
+
+  InitializeCPUCore(cpu_core);
   ppcState.iCache.Init();
 
   if (SConfig::GetInstance().bEnableDebugging)
