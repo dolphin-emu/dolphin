@@ -72,7 +72,26 @@ void DoState(PointerWrap& p)
   // *((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL
   // comes first :)
 
-  p.DoPOD(ppcState);
+  p.DoArray(ppcState.gpr);
+  p.Do(ppcState.pc);
+  p.Do(ppcState.npc);
+  p.DoArray(ppcState.cr_val);
+  p.Do(ppcState.msr);
+  p.Do(ppcState.fpscr);
+  p.Do(ppcState.Exceptions);
+  p.Do(ppcState.downcount);
+  p.Do(ppcState.xer_ca);
+  p.Do(ppcState.xer_so_ov);
+  p.Do(ppcState.xer_stringctrl);
+  p.DoArray(ppcState.ps);
+  p.DoArray(ppcState.sr);
+  p.DoArray(ppcState.spr);
+  p.DoArray(ppcState.tlb);
+  p.Do(ppcState.pagetable_base);
+  p.Do(ppcState.pagetable_hashmask);
+
+  ppcState.iCache.DoState(p);
+
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
     IBATUpdated();
