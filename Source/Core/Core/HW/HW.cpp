@@ -12,7 +12,7 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVDInterface.h"
-#include "Core/HW/EXI.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/HW.h"
 #include "Core/HW/Memmap.h"

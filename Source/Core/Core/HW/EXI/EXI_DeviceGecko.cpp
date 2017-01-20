@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/EXI/EXI_DeviceGecko.h"
+
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -15,7 +17,6 @@
 #include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/Core.h"
-#include "Core/HW/EXI_DeviceGecko.h"
 
 u16 GeckoSockServer::server_port;
 int GeckoSockServer::client_count;

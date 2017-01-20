@@ -2,14 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/EXI/EXI_Channel.h"
+
 #include <memory>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/EXI.h"
-#include "Core/HW/EXI_Channel.h"
-#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI/EXI.h"
+#include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/MMIO.h"
 
 enum

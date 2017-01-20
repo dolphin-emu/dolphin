@@ -16,7 +16,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/SI.h"
 #include "Core/HW/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"

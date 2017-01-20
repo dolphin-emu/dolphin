@@ -13,7 +13,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
-#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI/EXI_Device.h"
 
 class GeckoSockServer
 {

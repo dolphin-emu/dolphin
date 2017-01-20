@@ -10,8 +10,8 @@
 
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/EXI_Device.h"
-#include "Core/HW/EXI_DeviceEthernet.h"
+#include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 #ifdef __linux__
 #include <fcntl.h>

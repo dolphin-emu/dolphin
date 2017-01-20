@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
+
 #include <array>
 #include <cstring>
 #include <memory>
@@ -17,10 +19,9 @@
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/EXI.h"
-#include "Core/HW/EXI_Channel.h"
-#include "Core/HW/EXI_Device.h"
-#include "Core/HW/EXI_DeviceMemoryCard.h"
+#include "Core/HW/EXI/EXI.h"
+#include "Core/HW/EXI/EXI_Channel.h"
+#include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/GCMemcard.h"
 #include "Core/HW/GCMemcardDirectory.h"
 #include "Core/HW/GCMemcardRaw.h"

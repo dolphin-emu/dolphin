@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/EXI/EXI.h"
+
 #include <array>
 #include <memory>
 
@@ -10,9 +12,8 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/EXI.h"
-#include "Core/HW/EXI_Channel.h"
-#include "Core/HW/EXI_DeviceMemoryCard.h"
+#include "Core/HW/EXI/EXI_Channel.h"
+#include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/Sram.h"

@@ -2,13 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/BBA-TAP/TAP_Win32.h"
+#include "Core/HW/EXI/BBA-TAP/TAP_Win32.h"
 #include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/EXI_Device.h"
-#include "Core/HW/EXI_DeviceEthernet.h"
+#include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
 namespace Win32TAPHelper
 {

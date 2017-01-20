@@ -6,7 +6,7 @@
 
 #include <mutex>
 #include "Common/Common.h"
-#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI/EXI_Device.h"
 
 #if HAVE_PORTAUDIO
 

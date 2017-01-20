@@ -13,7 +13,7 @@
 #include "Common/NonCopyable.h"
 #include "Common/Timer.h"
 
-#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Sram.h"
 
 namespace File

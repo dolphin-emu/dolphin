@@ -86,16 +86,16 @@ set(SRCS	ActionReplay.cpp
 			HW/DSPLLE/DSPLLETools.cpp
 			HW/DVDInterface.cpp
 			HW/DVDThread.cpp
-			HW/EXI_Channel.cpp
-			HW/EXI.cpp
-			HW/EXI_Device.cpp
-			HW/EXI_DeviceAD16.cpp
-			HW/EXI_DeviceAGP.cpp
-			HW/EXI_DeviceEthernet.cpp
-			HW/EXI_DeviceGecko.cpp
-			HW/EXI_DeviceIPL.cpp
-			HW/EXI_DeviceMemoryCard.cpp
-			HW/EXI_DeviceMic.cpp
+			HW/EXI/EXI_Channel.cpp
+			HW/EXI/EXI.cpp
+			HW/EXI/EXI_Device.cpp
+			HW/EXI/EXI_DeviceAD16.cpp
+			HW/EXI/EXI_DeviceAGP.cpp
+			HW/EXI/EXI_DeviceEthernet.cpp
+			HW/EXI/EXI_DeviceGecko.cpp
+			HW/EXI/EXI_DeviceIPL.cpp
+			HW/EXI/EXI_DeviceMemoryCard.cpp
+			HW/EXI/EXI_DeviceMic.cpp
 			HW/GCKeyboard.cpp
 			HW/GCKeyboardEmu.cpp
 			HW/GCMemcard.cpp
@@ -271,13 +271,13 @@ endif()
 set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 
 if(WIN32)
-	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
+	set(SRCS ${SRCS} HW/EXI/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
 elseif(APPLE)
-	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
+	set(SRCS ${SRCS} HW/EXI/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
 	set(LIBS ${LIBS}
 		${IOB_LIBRARY})
 elseif(UNIX)
-	set(SRCS ${SRCS} HW/BBA-TAP/TAP_Unix.cpp)
+	set(SRCS ${SRCS} HW/EXI/BBA-TAP/TAP_Unix.cpp)
 	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux" AND BLUEZ_FOUND)
 		set(SRCS ${SRCS} HW/WiimoteReal/IOLinux.cpp)
 		set(LIBS ${LIBS} bluetooth)

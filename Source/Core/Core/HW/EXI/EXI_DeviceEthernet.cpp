@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/EXI/EXI_DeviceEthernet.h"
+
 #include <string>
 
 #include "Common/ChunkFile.h"
@@ -10,8 +12,7 @@
 #include "Common/Network.h"
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/EXI.h"
-#include "Core/HW/EXI_DeviceEthernet.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/Memmap.h"
 
 // XXX: The BBA stores multi-byte elements as little endian.

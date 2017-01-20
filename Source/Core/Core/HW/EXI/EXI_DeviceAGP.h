@@ -7,7 +7,7 @@
 #include <string>
 #include <vector>
 
-#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI/EXI_Device.h"
 
 class PointerWrap;
 

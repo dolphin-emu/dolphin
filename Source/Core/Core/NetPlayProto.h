@@ -7,7 +7,7 @@
 #include <array>
 #include <vector>
 #include "Common/CommonTypes.h"
-#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI/EXI_Device.h"
 
 struct NetSettings
 {
