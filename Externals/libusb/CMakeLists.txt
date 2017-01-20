@@ -1,4 +1,4 @@
-add_library(usb SHARED EXCLUDE_FROM_ALL
+add_library(usb STATIC EXCLUDE_FROM_ALL
     libusb/core.c
     libusb/core.c
     libusb/descriptor.c
@@ -8,6 +8,9 @@ add_library(usb SHARED EXCLUDE_FROM_ALL
     libusb/sync.c
 )
 set_target_properties(usb PROPERTIES VERSION 1.0.19)
+if(WIN32)
+    target_include_directories(usb BEFORE PUBLIC libusb PRIVATE msvc)
+else()
 target_include_directories(usb
     # turns out other projects also have "config.h", so make sure the
     # LibUSB one comes first
@@ -16,9 +19,14 @@ target_include_directories(usb
     PUBLIC libusb
     PRIVATE "${CMAKE_CURRENT_BINARY_DIR}"
 )
+endif()
 
 if(WIN32 OR CYGWIN)
-    target_sources(usb PRIVATE libusb/os/windows_usb.c)
+    target_sources(usb PRIVATE
+      libusb/os/threads_windows.c
+      libusb/os/windows_winusb.c
+      libusb/os/windows_nt_common.c
+    )
     set(OS_WINDOWS TRUE)
 elseif(APPLE)
     target_sources(usb PRIVATE libusb/os/darwin_usb.c)
