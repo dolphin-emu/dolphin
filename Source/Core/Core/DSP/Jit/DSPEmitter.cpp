@@ -105,7 +105,9 @@ bool DSPEmitter::FlagsNeeded() const
 
 void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
 {
-  if (opTable[inst]->reads_pc)
+  const DSPOPCTemplate* const op_template = GetOpTemplate(inst);
+
+  if (op_template->reads_pc)
   {
     // Increment PC - we shouldn't need to do this for every instruction. only for branches and end
     // of block.
@@ -116,68 +118,50 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
 
   // Fall back to interpreter
   gpr.PushRegs();
-  _assert_msg_(DSPLLE, opTable[inst]->intFunc, "No function for %04x", inst);
-  ABI_CallFunctionC16(opTable[inst]->intFunc, inst);
+  _assert_msg_(DSPLLE, op_template->intFunc, "No function for %04x", inst);
+  ABI_CallFunctionC16(op_template->intFunc, inst);
   gpr.PopRegs();
 }
 
 void DSPEmitter::EmitInstruction(UDSPInstruction inst)
 {
-  const DSPOPCTemplate* tinst = GetOpTemplate(inst);
+  const DSPOPCTemplate* const op_template = GetOpTemplate(inst);
   bool ext_is_jit = false;
 
   // Call extended
-  if (tinst->extended)
+  if (op_template->extended)
   {
-    if ((inst >> 12) == 0x3)
+    const DSPOPCTemplate* const ext_op_template = GetExtOpTemplate(inst);
+
+    if (!ext_op_template->jitFunc)
     {
-      if (!extOpTable[inst & 0x7F]->jitFunc)
-      {
-        // Fall back to interpreter
-        gpr.PushRegs();
-        ABI_CallFunctionC16(extOpTable[inst & 0x7F]->intFunc, inst);
-        gpr.PopRegs();
-        INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x", inst);
-        ext_is_jit = false;
-      }
-      else
-      {
-        (this->*extOpTable[inst & 0x7F]->jitFunc)(inst);
-        ext_is_jit = true;
-      }
+      // Fall back to interpreter
+      gpr.PushRegs();
+      ABI_CallFunctionC16(ext_op_template->intFunc, inst);
+      gpr.PopRegs();
+      INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x", inst);
+      ext_is_jit = false;
     }
     else
     {
-      if (!extOpTable[inst & 0xFF]->jitFunc)
-      {
-        // Fall back to interpreter
-        gpr.PushRegs();
-        ABI_CallFunctionC16(extOpTable[inst & 0xFF]->intFunc, inst);
-        gpr.PopRegs();
-        INFO_LOG(DSPLLE, "Instruction not JITed(ext part): %04x", inst);
-        ext_is_jit = false;
-      }
-      else
-      {
-        (this->*extOpTable[inst & 0xFF]->jitFunc)(inst);
-        ext_is_jit = true;
-      }
+      (this->*ext_op_template->jitFunc)(inst);
+      ext_is_jit = true;
     }
   }
 
   // Main instruction
-  if (!opTable[inst]->jitFunc)
+  if (!op_template->jitFunc)
   {
     FallBackToInterpreter(inst);
     INFO_LOG(DSPLLE, "Instruction not JITed(main part): %04x", inst);
   }
   else
   {
-    (this->*opTable[inst]->jitFunc)(inst);
+    (this->*op_template->jitFunc)(inst);
   }
 
   // Backlog
-  if (tinst->extended)
+  if (op_template->extended)
   {
     if (!ext_is_jit)
     {

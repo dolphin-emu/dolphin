@@ -13,15 +13,16 @@ LabelMap::LabelMap()
 
 void LabelMap::RegisterDefaults()
 {
-  for (int i = 0; i < 0x24; i++)
+  for (const auto& reg_name_label : regnames)
   {
-    if (regnames[i].name)
-      RegisterLabel(regnames[i].name, regnames[i].addr);
+    if (reg_name_label.name != nullptr)
+      RegisterLabel(reg_name_label.name, reg_name_label.addr);
   }
-  for (int i = 0; i < (int)pdlabels_size; i++)
+
+  for (const auto& predefined_label : pdlabels)
   {
-    if (pdlabels[i].name)
-      RegisterLabel(pdlabels[i].name, pdlabels[i].addr);
+    if (predefined_label.name != nullptr)
+      RegisterLabel(predefined_label.name, predefined_label.addr);
   }
 }
 

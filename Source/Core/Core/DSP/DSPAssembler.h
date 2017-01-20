@@ -5,6 +5,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <string>
 
@@ -89,9 +90,9 @@ private:
   // void ShowWarning(err_t err_code, const char *extra_info = nullptr);
 
   char* FindBrackets(char* src, char* dst);
-  const opc_t* FindOpcode(const char* opcode, u32 par_count, const opc_t* const opcod,
-                          int opcod_size);
-  bool VerifyParams(const opc_t* opc, param_t* par, int count, bool ext = false);
+  const opc_t* FindOpcode(const char* name, u32 par_count, const opc_t* opcodes,
+                          size_t opcodes_size);
+  bool VerifyParams(const opc_t* opc, param_t* par, size_t count, bool ext = false);
   void BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf);
 
   char* gdg_buffer;

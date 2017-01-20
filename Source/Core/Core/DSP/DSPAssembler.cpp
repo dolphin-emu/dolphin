@@ -5,6 +5,7 @@
 
 #include "Core/DSP/DSPAssembler.h"
 
+#include <cstddef>
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -441,29 +442,29 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
   return count;
 }
 
-const opc_t* DSPAssembler::FindOpcode(const char* opcode, u32 par_count, const opc_t* const opcod,
-                                      int opcod_size)
+const opc_t* DSPAssembler::FindOpcode(const char* name, u32 par_count, const opc_t* const opcodes,
+                                      size_t opcodes_size)
 {
-  if (opcode[0] == 'C' && opcode[1] == 'W')
+  if (name[0] == 'C' && name[1] == 'W')
     return &cw;
 
-  AliasMap::const_iterator alias_iter = aliases.find(opcode);
+  const auto alias_iter = aliases.find(name);
   if (alias_iter != aliases.end())
-    opcode = alias_iter->second.c_str();
-  for (int i = 0; i < opcod_size; i++)
+    name = alias_iter->second.c_str();
+  for (size_t i = 0; i < opcodes_size; i++)
   {
-    const opc_t* opc = &opcod[i];
-    if (strcmp(opc->name, opcode) == 0)
+    const opc_t* opcode = &opcodes[i];
+    if (strcmp(opcode->name, name) == 0)
     {
-      if (par_count < opc->param_count)
+      if (par_count < opcode->param_count)
       {
         ShowError(ERR_NOT_ENOUGH_PARAMETERS);
       }
-      if (par_count > opc->param_count)
+      else if (par_count > opcode->param_count)
       {
         ShowError(ERR_TOO_MANY_PARAMETERS);
       }
-      return opc;
+      return opcode;
     }
   }
   ShowError(ERR_UNKNOWN_OPCODE);
@@ -478,11 +479,11 @@ static u16 get_mask_shifted_down(u16 mask)
   return mask;
 }
 
-bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, int count, bool ext)
+bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, bool ext)
 {
-  for (int i = 0; i < count; i++)
+  for (size_t i = 0; i < count; i++)
   {
-    const int current_param = i + 1;  // just for display.
+    const size_t current_param = i + 1;  // just for display.
     if (opc->params[i].type != par[i].type || (par[i].type & P_REG))
     {
       if (par[i].type == P_VAL &&
@@ -510,7 +511,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, int count, bool 
             if (ext)
               fprintf(stderr, "(ext) ");
 
-            fprintf(stderr, "%s   (param %i)", cur_line.c_str(), current_param);
+            fprintf(stderr, "%s   (param %zu)", cur_line.c_str(), current_param);
             ShowError(ERR_INVALID_REGISTER);
           }
           break;
@@ -520,7 +521,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, int count, bool 
             if (ext)
               fprintf(stderr, "(ext) ");
 
-            fprintf(stderr, "%s   (param %i)", cur_line.c_str(), current_param);
+            fprintf(stderr, "%s   (param %zu)", cur_line.c_str(), current_param);
             ShowError(ERR_INVALID_REGISTER);
           }
           break;
@@ -534,14 +535,14 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, int count, bool 
             {
               fprintf(stderr, "%i : %s ", code_line, cur_line.c_str());
               fprintf(stderr, "WARNING: $ACM%d register used instead of $ACC%d register Line: %d "
-                              "Param: %d Ext: %d\n",
+                              "Param: %zu Ext: %d\n",
                       (par[i].val & 1), (par[i].val & 1), code_line, current_param, ext);
             }
             else if (par[i].val >= 0x1c && par[i].val <= 0x1d)
             {
               fprintf(
                   stderr,
-                  "WARNING: $ACL%d register used instead of $ACC%d register Line: %d Param: %d\n",
+                  "WARNING: $ACL%d register used instead of $ACC%d register Line: %d Param: %zu\n",
                   (par[i].val & 1), (par[i].val & 1), code_line, current_param);
             }
             else
@@ -560,14 +561,14 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, int count, bool 
             {
               fprintf(
                   stderr,
-                  "WARNING: $ACL%d register used instead of $ACM%d register Line: %d Param: %d\n",
+                  "WARNING: $ACL%d register used instead of $ACM%d register Line: %d Param: %zu\n",
                   (par[i].val & 1), (par[i].val & 1), code_line, current_param);
             }
             else if (par[i].val >= 0x20 && par[i].val <= 0x21)
             {
               fprintf(
                   stderr,
-                  "WARNING: $ACC%d register used instead of $ACM%d register Line: %d Param: %d\n",
+                  "WARNING: $ACC%d register used instead of $ACM%d register Line: %d Param: %zu\n",
                   (par[i].val & 1), (par[i].val & 1), code_line, current_param);
             }
             else
@@ -588,7 +589,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, int count, bool 
               fprintf(stderr, "%s ", cur_line.c_str());
               fprintf(
                   stderr,
-                  "WARNING: $ACM%d register used instead of $ACL%d register Line: %d Param: %d\n",
+                  "WARNING: $ACM%d register used instead of $ACL%d register Line: %d Param: %zu\n",
                   (par[i].val & 1), (par[i].val & 1), code_line, current_param);
             }
             else if (par[i].val >= 0x20 && par[i].val <= 0x21)
@@ -596,7 +597,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, int count, bool 
               fprintf(stderr, "%s ", cur_line.c_str());
               fprintf(
                   stderr,
-                  "WARNING: $ACC%d register used instead of $ACL%d register Line: %d Param: %d\n",
+                  "WARNING: $ACC%d register used instead of $ACL%d register Line: %d Param: %zu\n",
                   (par[i].val & 1), (par[i].val & 1), code_line, current_param);
             }
             else
@@ -987,7 +988,7 @@ bool DSPAssembler::AssembleFile(const char* fname, int pass)
       continue;
     }
 
-    const opc_t* opc = FindOpcode(opcode, params_count, opcodes, opcodes_size);
+    const opc_t* opc = FindOpcode(opcode, params_count, opcodes.data(), opcodes.size());
     if (!opc)
       opc = &cw;
 
@@ -1001,7 +1002,7 @@ bool DSPAssembler::AssembleFile(const char* fname, int pass)
     {
       if (opcode_ext)
       {
-        opc_ext = FindOpcode(opcode_ext, params_count_ext, opcodes_ext, opcodes_ext_size);
+        opc_ext = FindOpcode(opcode_ext, params_count_ext, opcodes_ext.data(), opcodes_ext.size());
         VerifyParams(opc_ext, params_ext, params_count_ext, true);
       }
       else if (params_count_ext)
