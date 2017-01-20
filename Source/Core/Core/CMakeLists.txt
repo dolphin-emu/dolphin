@@ -151,6 +151,8 @@ set(SRCS	ActionReplay.cpp
 			IOS/Network/SSL.cpp
 			IOS/SDIO/SDIOSlot0.cpp
 			IOS/STM/STM.cpp
+			IOS/USB/Common.cpp
+			IOS/USB/USBV0.cpp
 			IOS/USB/USB_KBD.cpp
 			IOS/USB/USB_VEN.cpp
 			IOS/USB/Bluetooth/BTBase.cpp

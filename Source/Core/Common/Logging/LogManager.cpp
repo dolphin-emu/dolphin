@@ -70,6 +70,7 @@ LogManager::LogManager()
   m_Log[LogTypes::IOS_SSL] = new LogContainer("IOS_SSL", "IOS - SSL");
   m_Log[LogTypes::IOS_STM] = new LogContainer("IOS_STM", "IOS - State Transition Manager");
   m_Log[LogTypes::IOS_NET] = new LogContainer("IOS_NET", "IOS - Network");
+  m_Log[LogTypes::IOS_USB] = new LogContainer("IOS_USB", "IOS - USB");
   m_Log[LogTypes::IOS_WC24] = new LogContainer("IOS_WC24", "IOS - WiiConnect24");
   m_Log[LogTypes::IOS_WIIMOTE] = new LogContainer("IOS_WIIMOTE", "IOS - Wii Remote");
   m_Log[LogTypes::MASTER_LOG] = new LogContainer("*", "Master Log");

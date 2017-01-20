@@ -167,9 +167,9 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
   bool send_reply = true;
   switch (request.request)
   {
-  case USBV0_IOCTL_CTRLMSG:  // HCI command is received from the stack
+  case USB::IOCTLV_USBV0_CTRLMSG:  // HCI command is received from the stack
   {
-    m_CtrlSetup = std::make_unique<CtrlMessage>(request);
+    m_CtrlSetup = std::make_unique<USB::V0CtrlMessage>(request);
     // Replies are generated inside
     ExecuteHCICommandMessage(*m_CtrlSetup);
     m_CtrlSetup.reset();
@@ -177,50 +177,50 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
     break;
   }
 
-  case USBV0_IOCTL_BLKMSG:
+  case USB::IOCTLV_USBV0_BLKMSG:
   {
-    const CtrlBuffer ctrl{request};
-    switch (ctrl.m_endpoint)
+    const USB::V0BulkMessage ctrl{request};
+    switch (ctrl.endpoint)
     {
     case ACL_DATA_OUT:  // ACL data is received from the stack
     {
       // This is the ACL datapath from CPU to Wii Remote
       const auto* acl_header =
-          reinterpret_cast<hci_acldata_hdr_t*>(Memory::GetPointer(ctrl.m_payload_addr));
+          reinterpret_cast<hci_acldata_hdr_t*>(Memory::GetPointer(ctrl.data_address));
 
       _dbg_assert_(IOS_WIIMOTE, HCI_BC_FLAG(acl_header->con_handle) == HCI_POINT2POINT);
       _dbg_assert_(IOS_WIIMOTE, HCI_PB_FLAG(acl_header->con_handle) == HCI_PACKET_START);
 
       SendToDevice(HCI_CON_HANDLE(acl_header->con_handle),
-                   Memory::GetPointer(ctrl.m_payload_addr + sizeof(hci_acldata_hdr_t)),
+                   Memory::GetPointer(ctrl.data_address + sizeof(hci_acldata_hdr_t)),
                    acl_header->length);
       break;
     }
     case ACL_DATA_IN:  // We are given an ACL buffer to fill
     {
-      m_ACLEndpoint = std::make_unique<CtrlBuffer>(request);
+      m_ACLEndpoint = std::make_unique<USB::V0BulkMessage>(request);
       DEBUG_LOG(IOS_WIIMOTE, "ACL_DATA_IN: 0x%08x ", request.address);
       send_reply = false;
       break;
     }
     default:
-      _dbg_assert_msg_(IOS_WIIMOTE, 0, "Unknown USBV0_IOCTL_BLKMSG: %x", ctrl.m_endpoint);
+      _dbg_assert_msg_(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_BLKMSG: %x", ctrl.endpoint);
     }
     break;
   }
 
-  case USBV0_IOCTL_INTRMSG:
+  case USB::IOCTLV_USBV0_INTRMSG:
   {
-    const CtrlBuffer ctrl{request};
-    if (ctrl.m_endpoint == HCI_EVENT)  // We are given a HCI buffer to fill
+    const USB::V0IntrMessage ctrl{request};
+    if (ctrl.endpoint == HCI_EVENT)  // We are given a HCI buffer to fill
     {
-      m_HCIEndpoint = std::make_unique<CtrlBuffer>(request);
+      m_HCIEndpoint = std::make_unique<USB::V0IntrMessage>(request);
       DEBUG_LOG(IOS_WIIMOTE, "HCI_EVENT: 0x%08x ", request.address);
       send_reply = false;
     }
     else
     {
-      _dbg_assert_msg_(IOS_WIIMOTE, 0, "Unknown USBV0_IOCTL_INTRMSG: %x", ctrl.m_endpoint);
+      _dbg_assert_msg_(IOS_WIIMOTE, 0, "Unknown USB::IOCTLV_USBV0_INTRMSG: %x", ctrl.endpoint);
     }
     break;
   }
@@ -232,7 +232,7 @@ IPCCommandResult BluetoothEmu::IOCtlV(const IOCtlVRequest& request)
   return send_reply ? GetDefaultReply(IPC_SUCCESS) : GetNoReply();
 }
 
-// Here we handle the USBV0_IOCTL_BLKMSG Ioctlv
+// Here we handle the USB::IOCTLV_USBV0_BLKMSG Ioctlv
 void BluetoothEmu::SendToDevice(u16 _ConnectionHandle, u8* _pData, u32 _Size)
 {
   WiimoteDevice* pWiiMote = AccessWiiMote(_ConnectionHandle);
@@ -261,7 +261,7 @@ void BluetoothEmu::SendACLPacket(u16 connection_handle, const u8* data, u32 size
               m_ACLEndpoint->ios_request.address);
 
     hci_acldata_hdr_t* header =
-        reinterpret_cast<hci_acldata_hdr_t*>(Memory::GetPointer(m_ACLEndpoint->m_payload_addr));
+        reinterpret_cast<hci_acldata_hdr_t*>(Memory::GetPointer(m_ACLEndpoint->data_address));
     header->con_handle = HCI_MK_CON_HANDLE(connection_handle, HCI_PACKET_START, HCI_POINT2POINT);
     header->length = size;
 
@@ -412,7 +412,7 @@ void BluetoothEmu::ACLPool::Store(const u8* data, const u16 size, const u16 conn
   packet.conn_handle = conn_handle;
 }
 
-void BluetoothEmu::ACLPool::WriteToEndpoint(CtrlBuffer& endpoint)
+void BluetoothEmu::ACLPool::WriteToEndpoint(USB::V0BulkMessage& endpoint)
 {
   auto& packet = m_queue.front();
 
@@ -424,7 +424,7 @@ void BluetoothEmu::ACLPool::WriteToEndpoint(CtrlBuffer& endpoint)
                          "queue to %08x",
             endpoint.ios_request.address);
 
-  hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(endpoint.m_payload_addr);
+  hci_acldata_hdr_t* pHeader = (hci_acldata_hdr_t*)Memory::GetPointer(endpoint.data_address);
   pHeader->con_handle = HCI_MK_CON_HANDLE(conn_handle, HCI_PACKET_START, HCI_POINT2POINT);
   pHeader->length = size;
 
@@ -964,11 +964,11 @@ bool BluetoothEmu::SendEventConPacketTypeChange(u16 _connectionHandle, u16 _pack
 }
 
 // Command dispatcher
-// This is called from the USBV0_IOCTL_CTRLMSG Ioctlv
-void BluetoothEmu::ExecuteHCICommandMessage(const CtrlMessage& ctrl_message)
+// This is called from the USB::IOCTLV_USBV0_CTRLMSG Ioctlv
+void BluetoothEmu::ExecuteHCICommandMessage(const USB::V0CtrlMessage& ctrl_message)
 {
-  u8* pInput = Memory::GetPointer(ctrl_message.payload_addr + 3);
-  SCommandMessage* pMsg = (SCommandMessage*)Memory::GetPointer(ctrl_message.payload_addr);
+  u8* pInput = Memory::GetPointer(ctrl_message.data_address + 3);
+  SCommandMessage* pMsg = (SCommandMessage*)Memory::GetPointer(ctrl_message.data_address);
 
   u16 ocf = HCI_OCF(pMsg->Opcode);
   u16 ogf = HCI_OGF(pMsg->Opcode);

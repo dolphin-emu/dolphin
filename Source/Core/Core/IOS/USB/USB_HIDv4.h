@@ -13,6 +13,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IPC.h"
+#include "Core/IOS/USB/Common.h"
 
 // Forward declare things which we need from libusb header.
 // This prevents users of this file from indirectly pulling in libusb.
@@ -61,75 +62,16 @@ private:
     IOCTL_HID_CANCEL_INTERRUPT = 0x08,
   };
 
-  struct WiiHIDDeviceDescriptor
-  {
-    u8 bLength;
-    u8 bDescriptorType;
-    u16 bcdUSB;
-    u8 bDeviceClass;
-    u8 bDeviceSubClass;
-    u8 bDeviceProtocol;
-    u8 bMaxPacketSize0;
-    u16 idVendor;
-    u16 idProduct;
-    u16 bcdDevice;
-    u8 iManufacturer;
-    u8 iProduct;
-    u8 iSerialNumber;
-    u8 bNumConfigurations;
-    u8 pad[2];
-  };
-
-  struct WiiHIDConfigDescriptor
-  {
-    u8 bLength;
-    u8 bDescriptorType;
-    u16 wTotalLength;
-    u8 bNumInterfaces;
-    u8 bConfigurationValue;
-    u8 iConfiguration;
-    u8 bmAttributes;
-    u8 MaxPower;
-    u8 pad[3];
-  };
-
-  struct WiiHIDInterfaceDescriptor
-  {
-    u8 bLength;
-    u8 bDescriptorType;
-    u8 bInterfaceNumber;
-    u8 bAlternateSetting;
-    u8 bNumEndpoints;
-    u8 bInterfaceClass;
-    u8 bInterfaceSubClass;
-    u8 bInterfaceProtocol;
-    u8 iInterface;
-    u8 pad[3];
-  };
-
-  struct WiiHIDEndpointDescriptor
-  {
-    u8 bLength;
-    u8 bDescriptorType;
-    u8 bEndpointAddress;
-    u8 bmAttributes;
-    u16 wMaxPacketSize;
-    u8 bInterval;
-    u8 bRefresh;
-    u8 bSynchAddress;
-    u8 pad[1];
-  };
-
   u32 deviceCommandAddress;
   void FillOutDevices(const IOCtlRequest& request);
   int GetAvailableDevNum(u16 idVendor, u16 idProduct, u8 bus, u8 port, u16 check);
   bool ClaimDevice(libusb_device_handle* dev);
 
-  void ConvertDeviceToWii(WiiHIDDeviceDescriptor* dest, const libusb_device_descriptor* src);
-  void ConvertConfigToWii(WiiHIDConfigDescriptor* dest, const libusb_config_descriptor* src);
-  void ConvertInterfaceToWii(WiiHIDInterfaceDescriptor* dest,
+  void ConvertDeviceToWii(USB::DeviceDescriptor* dest, const libusb_device_descriptor* src);
+  void ConvertConfigToWii(USB::ConfigDescriptor* dest, const libusb_config_descriptor* src);
+  void ConvertInterfaceToWii(USB::InterfaceDescriptor* dest,
                              const libusb_interface_descriptor* src);
-  void ConvertEndpointToWii(WiiHIDEndpointDescriptor* dest, const libusb_endpoint_descriptor* src);
+  void ConvertEndpointToWii(USB::EndpointDescriptor* dest, const libusb_endpoint_descriptor* src);
 
   static void checkUsbUpdates(USB_HIDv4* hid);
   static void LIBUSB_CALL handleUsbUpdates(libusb_transfer* transfer);

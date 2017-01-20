@@ -764,6 +764,12 @@
     <ClCompile Include="IOS\STM\STM.cpp">
       <Filter>IOS\STM</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\USB\Common.cpp">
+      <Filter>IOS\USB</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\USB\USBV0.cpp">
+      <Filter>IOS\USB</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\USB\USB_HIDv4.cpp">
       <Filter>IOS\USB</Filter>
     </ClCompile>
@@ -1331,6 +1337,12 @@
     </ClInclude>
     <ClInclude Include="IOS\STM\STM.h">
       <Filter>IOS\STM</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\Common.h">
+      <Filter>IOS\USB</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\USB\USBV0.h">
+      <Filter>IOS\USB</Filter>
     </ClInclude>
     <ClInclude Include="IOS\USB\USB_HIDv4.h">
       <Filter>IOS\USB</Filter>

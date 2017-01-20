@@ -53,32 +53,5 @@ void RestoreBTInfoSection(SysConf* sysconf)
   sysconf->SetArrayData("BT.DINF", section.data(), static_cast<u16>(section.size()));
   File::Delete(filename);
 }
-
-namespace Device
-{
-BluetoothBase::CtrlMessage::CtrlMessage(const IOCtlVRequest& ioctlv) : ios_request(ioctlv)
-{
-  request_type = Memory::Read_U8(ioctlv.in_vectors[0].address);
-  request = Memory::Read_U8(ioctlv.in_vectors[1].address);
-  value = Common::swap16(Memory::Read_U16(ioctlv.in_vectors[2].address));
-  index = Common::swap16(Memory::Read_U16(ioctlv.in_vectors[3].address));
-  length = Common::swap16(Memory::Read_U16(ioctlv.in_vectors[4].address));
-  payload_addr = ioctlv.io_vectors[0].address;
-}
-
-BluetoothBase::CtrlBuffer::CtrlBuffer(const IOCtlVRequest& ioctlv) : ios_request(ioctlv)
-{
-  m_endpoint = Memory::Read_U8(ioctlv.in_vectors[0].address);
-  m_length = Memory::Read_U16(ioctlv.in_vectors[1].address);
-  m_payload_addr = ioctlv.io_vectors[0].address;
-}
-
-void BluetoothBase::CtrlBuffer::FillBuffer(const u8* src, const size_t size) const
-{
-  _assert_msg_(IOS_WIIMOTE, size <= m_length, "FillBuffer: size %li > payload length %i", size,
-               m_length);
-  Memory::CopyToEmu(m_payload_addr, src, size);
-}
-}  // namespace Device
 }  // namespace HLE
 }  // namespace IOS
