@@ -33,8 +33,17 @@ endif(PULSEAUDIO_FOUND)
 
 if(WIN32)
 	set(SRCS ${SRCS} XAudio2Stream.cpp)
+
+	add_dolphin_library(audiocommon_xaudio27 "XAudio2_7Stream.cpp" "${LIBS}")
+	target_include_directories(audiocommon_xaudio27 PRIVATE
+		${PROJECT_SOURCE_DIR}/Externals
+		${PROJECT_SOURCE_DIR}/Externals/XAudio2_7
+	)
+	list(APPEND LIBS audiocommon_xaudio27)
+
 elseif(APPLE)
 	set(SRCS ${SRCS} CoreAudioSoundStream.cpp)
 endif()
+
 
 add_dolphin_library(audiocommon "${SRCS}" "${LIBS}")
