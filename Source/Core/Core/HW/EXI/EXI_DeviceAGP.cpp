@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/EXI/EXI_DeviceAGP.h"
+
 #include <memory>
 #include <string>
 
@@ -10,7 +12,6 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/EXI_DeviceAGP.h"
 
 CEXIAgp::CEXIAgp(int index)
 {

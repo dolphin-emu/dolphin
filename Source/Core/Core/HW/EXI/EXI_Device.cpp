@@ -2,19 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/EXI/EXI_Device.h"
+
 #include <memory>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Core/HW/EXI_Device.h"
-#include "Core/HW/EXI_DeviceAD16.h"
-#include "Core/HW/EXI_DeviceAGP.h"
-#include "Core/HW/EXI_DeviceEthernet.h"
-#include "Core/HW/EXI_DeviceGecko.h"
-#include "Core/HW/EXI_DeviceIPL.h"
-#include "Core/HW/EXI_DeviceMemoryCard.h"
-#include "Core/HW/EXI_DeviceMic.h"
+#include "Core/HW/EXI/EXI_DeviceAD16.h"
+#include "Core/HW/EXI/EXI_DeviceAGP.h"
+#include "Core/HW/EXI/EXI_DeviceEthernet.h"
+#include "Core/HW/EXI/EXI_DeviceGecko.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceMemoryCard.h"
+#include "Core/HW/EXI/EXI_DeviceMic.h"
 #include "Core/HW/Memmap.h"
 
 // --- interface IEXIDevice ---

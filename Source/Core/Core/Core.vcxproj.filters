@@ -385,37 +385,37 @@
     <ClCompile Include="HW\DSP.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI.cpp">
+    <ClCompile Include="HW\EXI\EXI.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI_Channel.cpp">
+    <ClCompile Include="HW\EXI\EXI_Channel.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI_Device.cpp">
+    <ClCompile Include="HW\EXI\EXI_Device.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI_DeviceAD16.cpp">
+    <ClCompile Include="HW\EXI\EXI_DeviceAD16.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI_DeviceAGP.cpp">
+    <ClCompile Include="HW\EXI\EXI_DeviceAGP.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI_DeviceEthernet.cpp">
+    <ClCompile Include="HW\EXI\EXI_DeviceEthernet.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI_DeviceGecko.cpp">
+    <ClCompile Include="HW\EXI\EXI_DeviceGecko.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI_DeviceIPL.cpp">
+    <ClCompile Include="HW\EXI\EXI_DeviceIPL.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI_DeviceMemoryCard.cpp">
+    <ClCompile Include="HW\EXI\EXI_DeviceMemoryCard.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\EXI_DeviceMic.cpp">
+    <ClCompile Include="HW\EXI\EXI_DeviceMic.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\BBA-TAP\TAP_Win32.cpp">
+    <ClCompile Include="HW\EXI\BBA-TAP\TAP_Win32.cpp">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\Sram.cpp">
@@ -976,37 +976,37 @@
     <ClInclude Include="HW\DSP.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI.h">
+    <ClInclude Include="HW\EXI\EXI.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI_Channel.h">
+    <ClInclude Include="HW\EXI\EXI_Channel.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI_Device.h">
+    <ClInclude Include="HW\EXI\EXI_Device.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI_DeviceAD16.h">
+    <ClInclude Include="HW\EXI\EXI_DeviceAD16.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI_DeviceAGP.h">
+    <ClInclude Include="HW\EXI\EXI_DeviceAGP.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI_DeviceEthernet.h">
+    <ClInclude Include="HW\EXI\EXI_DeviceEthernet.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI_DeviceGecko.h">
+    <ClInclude Include="HW\EXI\EXI_DeviceGecko.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI_DeviceIPL.h">
+    <ClInclude Include="HW\EXI\EXI_DeviceIPL.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI_DeviceMemoryCard.h">
+    <ClInclude Include="HW\EXI\EXI_DeviceMemoryCard.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\EXI_DeviceMic.h">
+    <ClInclude Include="HW\EXI\EXI_DeviceMic.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\BBA-TAP\TAP_Win32.h">
+    <ClInclude Include="HW\EXI\BBA-TAP\TAP_Win32.h">
       <Filter>HW %28Flipper/Hollywood%29\EXI - Expansion Interface</Filter>
     </ClInclude>
     <ClInclude Include="HW\Sram.h">

@@ -35,7 +35,7 @@
 #include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI/EXI_Device.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"

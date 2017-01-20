@@ -11,9 +11,10 @@
 
 #if HAVE_PORTAUDIO
 
+#include "Core/HW/EXI/EXI_DeviceMic.h"
+
 #include "Core/CoreTiming.h"
-#include "Core/HW/EXI.h"
-#include "Core/HW/EXI_DeviceMic.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/SystemTimers.h"
 

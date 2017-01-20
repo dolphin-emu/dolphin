@@ -55,7 +55,7 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Core/DSPEmulator.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/IOS/IPC.h"
 #include "Core/PatchEngine.h"
