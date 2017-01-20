@@ -37,6 +37,9 @@ set(SRCS Analytics.cpp
 if(ANDROID)
 	set(SRCS ${SRCS}
 	         Logging/ConsoleListenerDroid.cpp)
+elseif(WIN32)
+	set(SRCS ${SRCS}
+	         Logging/ConsoleListenerWin.cpp)
 else()
 	set(SRCS ${SRCS}
 	         Logging/ConsoleListenerNix.cpp)
