@@ -49,10 +49,10 @@ inline void UpdateFPSCR()
   FPSCR.FEX = 0;  // we assume that "?E" bits are always 0
 }
 
-inline double ForceSingle(double _x)
+inline double ForceSingle(double value)
 {
   // convert to float...
-  float x = (float)_x;
+  float x = (float)value;
   if (!cpu_info.bFlushToZero && FPSCR.NI)
   {
     x = MathUtil::FlushToZero(x);
@@ -247,14 +247,14 @@ inline u32 ConvertToSingleFTZ(u64 x)
   }
 }
 
-inline u64 ConvertToDouble(u32 _x)
+inline u64 ConvertToDouble(u32 value)
 {
   // This is a little-endian re-implementation of the algorithm described in
   // the PowerPC Programming Environments Manual for loading single
   // precision floating point numbers.
   // See page 566 of http://www.freescale.com/files/product/doc/MPCFPE32B.pdf
 
-  u64 x = _x;
+  u64 x = value;
   u64 exp = (x >> 23) & 0xff;
   u64 frac = x & 0x007fffff;
 
