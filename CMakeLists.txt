@@ -1057,16 +1057,6 @@ enable_testing()
 add_custom_target(unittests)
 add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 
-
-########################################
-# Start compiling our code
-#
-add_definitions(-std=c++1y)
-
-# These aren't actually needed for C11/C++11
-# but some dependencies require them (LLVM, libav).
-add_definitions(-D__STDC_LIMIT_MACROS -D__STDC_CONSTANT_MACROS)
-
 add_subdirectory(Source)
 
 

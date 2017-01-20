@@ -1,3 +1,13 @@
+check_and_add_flag(CXX14 -std=c++14)
+if(NOT FLAG_CXX_CXX14)
+  check_and_add_flag(HAS_CXX1Y -std=c++1y)
+endif()
+
+# These aren't actually needed for C11/C++11
+# but some dependencies require them (LLVM, libav).
+add_definitions(-D__STDC_LIMIT_MACROS)
+add_definitions(-D__STDC_CONSTANT_MACROS)
+
 set(CMAKE_FAKELANG_CREATE_STATIC_LIBRARY "touch <TARGET>")
 if(ENABLE_PCH)
 	# This is actually a .h file, but trick cmake into compiling it as a source file
