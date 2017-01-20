@@ -212,6 +212,10 @@ if(wxWidgets_FOUND)
 		install(DIRECTORY ${BUNDLE_PATH} DESTINATION /Applications
 			USE_SOURCE_PERMISSIONS
 			)
+	elseif(WIN32)
+		set_target_properties(${DOLPHIN_EXE} PROPERTIES
+			WIN32_EXECUTABLE ON
+		)
 	else()
 		install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
 	endif()
