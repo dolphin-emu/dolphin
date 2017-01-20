@@ -205,17 +205,13 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 // function names and addresses that have a BLR before the start and at the end, but ignore any that
 // don't, and then tell you how many were good and how many it ignored. That way you either find out
 // it is all good and use it, find out it is partly good and use the good part, or find out that
-// only
-// a handful of functions lined up by coincidence and then you can clear the symbols. In the future
-// I
-// want to make it smarter, so it checks that there are no BLRs in the middle of the function
-// (by checking the code length), and also make it cope with added functions in the middle or work
-// based on the order of the functions and their approximate length. Currently that process has to
-// be
-// done manually and is very tedious.
-// The use case for separate handling of map files that aren't bad is that you usually want to also
-// load names that aren't functions(if included in the map file) without them being rejected as
-// invalid.
+// only a handful of functions lined up by coincidence and then you can clear the symbols. In the
+// future I want to make it smarter, so it checks that there are no BLRs in the middle of the
+// function (by checking the code length), and also make it cope with added functions in the middle
+// or work based on the order of the functions and their approximate length. Currently that process
+// has to be done manually and is very tedious. The use case for separate handling of map files that
+// aren't bad is that you usually want to also load names that aren't functions (if included in the
+// map file) without them being rejected as invalid.
 // You can see discussion about these kinds of issues here :
 // https://forums.oculus.com/viewtopic.php?f=42&t=11241&start=580
 // https://m2k2.taigaforum.com/post/metroid_prime_hacking_help_25.html#metroid_prime_hacking_help_25
@@ -223,10 +219,10 @@ void PPCSymbolDB::LogFunctionCall(u32 addr)
 // This one can load both leftover map files on game discs (like Zelda), and mapfiles
 // produced by SaveSymbolMap below.
 // bad=true means carefully load map files that might not be from exactly the right version
-bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
+bool PPCSymbolDB::LoadMap(const File::Path& path, bool bad)
 {
   std::string contents;
-  if (!File::ReadFileToString(filename, contents))
+  if (!File::ReadFileToString(path, contents))
     return false;
 
   // four columns are used in American Mensa Academy map files and perhaps other games

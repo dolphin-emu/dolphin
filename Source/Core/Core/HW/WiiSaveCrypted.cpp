@@ -65,9 +65,9 @@ void CWiiSaveCrypted::ExportAllSaves()
   for (int i = 0; i < 8; ++i)
   {
     std::string folder = StringFromFormat("%s/%08x/", title_folder.c_str(), path_mask | i);
-    File::FSTEntry fst_tmp = File::ScanDirectoryTree(folder, false);
+    File::FSTEntry<std::string> fst_tmp = File::ScanDirectoryTree(folder, false);
 
-    for (const File::FSTEntry& entry : fst_tmp.children)
+    for (const File::FSTEntry<std::string>& entry : fst_tmp.children)
     {
       if (entry.isDirectory)
       {
@@ -625,8 +625,8 @@ void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory,
       file_list.push_back(directories[i]);
     }
 
-    File::FSTEntry fst_tmp = File::ScanDirectoryTree(directories[i], false);
-    for (const File::FSTEntry& elem : fst_tmp.children)
+    File::FSTEntry<std::string> fst_tmp = File::ScanDirectoryTree(directories[i], false);
+    for (const File::FSTEntry<std::string>& elem : fst_tmp.children)
     {
       if (elem.virtualName != "banner.bin")
       {

@@ -176,36 +176,20 @@ void CBoot::UpdateDebugger_MapLoaded()
   Host_NotifyMapLoaded();
 }
 
-// Get map file paths for the active title.
-bool CBoot::FindMapFile(std::string* existing_map_file, std::string* writable_map_file)
+File::Path CBoot::FindMapFile(std::string* writable_map_file)
 {
   const std::string& game_id = SConfig::GetInstance().m_debugger_game_id;
 
   if (writable_map_file)
     *writable_map_file = File::GetUserPath(D_MAPS_IDX) + game_id + ".map";
 
-  bool found = false;
-  static const std::string maps_directories[] = {File::GetUserPath(D_MAPS_IDX),
-                                                 File::GetSysDirectory() + MAPS_DIR DIR_SEP};
-  for (size_t i = 0; !found && i < ArraySize(maps_directories); ++i)
-  {
-    std::string path = maps_directories[i] + game_id + ".map";
-    if (File::Exists(path))
-    {
-      found = true;
-      if (existing_map_file)
-        *existing_map_file = path;
-    }
-  }
-
-  return found;
+  return File::GetPathInUserOrSys(MAPS_DIR DIR_SEP + game_id + ".map");
 }
 
 bool CBoot::LoadMapFromFilename()
 {
-  std::string strMapFilename;
-  bool found = FindMapFile(&strMapFilename, nullptr);
-  if (found && g_symbolDB.LoadMap(strMapFilename))
+  const File::Path map_file_path = FindMapFile(nullptr);
+  if (g_symbolDB.LoadMap(map_file_path))
   {
     UpdateDebugger_MapLoaded();
     return true;
@@ -217,7 +201,7 @@ bool CBoot::LoadMapFromFilename()
 // If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
-bool CBoot::Load_BS2(const std::string& boot_rom_filename)
+bool CBoot::Load_BS2(const File::Path& boot_rom_path)
 {
   // CRC32 hashes of the IPL file; including source where known
   // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
@@ -242,7 +226,7 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
 
   // Load the whole ROM dump
   std::string data;
-  if (!File::ReadFileToString(boot_rom_filename, data))
+  if (!File::ReadFileToString(boot_rom_path, data))
     return false;
 
   // Use zlibs crc32 implementation to compute the hash
@@ -421,7 +405,7 @@ bool CBoot::BootUp(std::unique_ptr<BootParameters> boot)
 
     bool operator()(const BootParameters::IPL& ipl) const
     {
-      NOTICE_LOG(BOOT, "Booting GC IPL: %s", ipl.path.c_str());
+      NOTICE_LOG(BOOT, "Booting GC IPL");
       if (!File::Exists(ipl.path))
       {
         if (ipl.disc)

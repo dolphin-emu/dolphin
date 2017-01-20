@@ -365,7 +365,7 @@ QVector<QString> Settings::GetProfiles(const InputConfig* config) const
   const std::string path = GetProfilesDir().toStdString() + config->GetProfileName();
   QVector<QString> vec;
 
-  for (const auto& file : Common::DoFileSearch({path}, {".ini"}))
+  for (const auto& file : Common::DoFileSearch<std::string>({path}, {".ini"}))
   {
     std::string basename;
     SplitPath(file, nullptr, &basename, nullptr);

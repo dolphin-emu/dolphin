@@ -10,6 +10,11 @@
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
+namespace File
+{
+class Path;
+}
+
 class PPCSymbolDB;
 
 struct MEGASignatureReference
@@ -43,7 +48,7 @@ public:
   ~MEGASignatureDB() override;
 
   void Clear() override;
-  bool Load(const std::string& file_path) override;
+  bool Load(const File::Path& file_path) override;
   bool Save(const std::string& file_path) const override;
   void List() const override;
 

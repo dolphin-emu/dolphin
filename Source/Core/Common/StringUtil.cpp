@@ -298,6 +298,25 @@ std::string StringFromBool(bool value)
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
                std::string* _pExtension)
 {
+  std::string filename;
+  if (!SplitPath(full_path, _pPath, &filename))
+    return false;
+
+  size_t fname_end = filename.rfind('.');
+  if (std::string::npos == fname_end)
+    fname_end = filename.size();
+
+  if (_pFilename)
+    *_pFilename = filename.substr(0, fname_end);
+
+  if (_pExtension)
+    *_pExtension = filename.substr(fname_end);
+
+  return true;
+}
+
+bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename)
+{
   if (full_path.empty())
     return false;
 
@@ -312,20 +331,23 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
   else
     dir_end += 1;
 
-  size_t fname_end = full_path.rfind('.');
-  if (fname_end < dir_end || std::string::npos == fname_end)
-    fname_end = full_path.size();
-
   if (_pPath)
     *_pPath = full_path.substr(0, dir_end);
 
   if (_pFilename)
-    *_pFilename = full_path.substr(dir_end, fname_end - dir_end);
-
-  if (_pExtension)
-    *_pExtension = full_path.substr(fname_end);
+    *_pFilename = full_path.substr(dir_end);
 
   return true;
+}
+
+std::string StripTailDirSlashes(const std::string& path)
+{
+  size_t last_character = path.find_last_not_of(DIR_SEP_CHR);
+  if (last_character == std::string::npos)
+    last_character = 0;
+  else
+    ++last_character;
+  return path.substr(0, last_character);
 }
 
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path,

@@ -10,6 +10,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "Common/NonCopyable.h"
 
 #ifdef _WIN32
@@ -68,30 +69,25 @@ enum
 
 namespace File
 {
-// FileSystem tree node/
+// FileSystem tree node
+template <class T>
 struct FSTEntry
 {
   bool isDirectory;
-  u64 size;                  // File length, or for directories, recursive count of children
-  std::string physicalName;  // Name on disk
-  std::string virtualName;   // Name in FST names table
-  std::vector<FSTEntry> children;
+  u64 size;                 // File length, or for directories, recursive count of children
+  T physicalName;           // Name on disk
+  std::string virtualName;  // Name in FST names table
+  std::vector<FSTEntry<T>> children;
 };
 
-// Returns true if file filename exists
-bool Exists(const std::string& filename);
+// Returns true if the path refers to a file or directory that exists
+bool Exists(const Path& path);
 
-// Returns true if filename is a directory
-bool IsDirectory(const std::string& filename);
+// Returns true if the path refers to a directory
+bool IsDirectory(const Path& path);
 
-// Returns the size of filename (64bit)
-u64 GetSize(const std::string& filename);
-
-// Overloaded GetSize, accepts file descriptor
-u64 GetSize(const int fd);
-
-// Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE* f);
+// Returns the size of the file that the path refers to
+u64 GetSize(const Path& path);
 
 // Returns true if successful, or path already exists.
 bool CreateDir(const std::string& filename);
@@ -112,14 +108,16 @@ bool Rename(const std::string& srcFilename, const std::string& destFilename);
 // ditto, but syncs the source file and, on Unix, syncs the directories after rename
 bool RenameSync(const std::string& srcFilename, const std::string& destFilename);
 
-// copies file srcFilename to destFilename, returns true on success
-bool Copy(const std::string& srcFilename, const std::string& destFilename);
+// copies file srcPath to destPath, returns true on success
+bool Copy(const Path& src_path, const std::string& dest_path);
 
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string& filename);
 
 // Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive);
+// T must be std::string or File::Path.
+template <class T>
+FSTEntry<T> ScanDirectoryTree(const T& directory, bool recursive);
 
 // deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string& directory);
@@ -128,7 +126,7 @@ bool DeleteDirRecursively(const std::string& directory);
 std::string GetCurrentDir();
 
 // Create directory and copy contents (does not overwrite existing files)
-void CopyDir(const std::string& source_path, const std::string& dest_path);
+void CopyDir(const Path& source_path, const std::string& dest_path);
 
 // Set the current directory to given directory
 bool SetCurrentDir(const std::string& directory);
@@ -147,11 +145,25 @@ const std::string& GetUserPath(unsigned int dir_index);
 // Rebuilds internal directory structure to compensate for the new directory
 void SetUserPath(unsigned int dir_index, const std::string& path);
 
+#ifndef ANDROID
 // probably doesn't belong here
 std::string GetThemeDir(const std::string& theme_name);
 
-// Returns the path to where the sys file are
+// Returns the path of the sys directory.
+// This can't be used in Core and other code that needs to be Android compatible.
 std::string GetSysDirectory();
+#endif
+
+// Returns the path of a file or directory in the sys directory
+Path GetPathInSys(const std::string& relative_path);
+// Returns true if the file exists in the sys directory
+bool SysFileExists(const std::string& relative_path);
+
+// Returns the path of a file or directory in the user directory if it exists.
+// Otherwise, returns the path of the equivalent file or directory in the sys directory.
+Path GetPathInUserOrSys(const std::string& relative_path);
+// Returns true if the file exists in the user directory or sys directory
+bool UserOrSysFileExists(const std::string& relative_path);
 
 #ifdef __APPLE__
 std::string GetBundleDirectory();
@@ -159,8 +171,8 @@ std::string GetBundleDirectory();
 
 std::string& GetExeDirectory();
 
-bool WriteStringToFile(const std::string& str, const std::string& filename);
-bool ReadFileToString(const std::string& filename, std::string& str);
+bool WriteStringToFile(const std::string& str, const std::string& path);
+bool ReadFileToString(const Path& path, std::string& str);
 
 // To deal with Windows being dumb at unicode:
 template <typename T>

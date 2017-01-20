@@ -4,9 +4,22 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <cstdio>
+#include <ios>
+#include <istream>
+#include <iterator>
+#include <memory>
+#include <streambuf>
 #include <string>
+#include <vector>
+
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <dirent.h>
+#endif
 
 #include "Common/CommonTypes.h"
 #include "Common/NonCopyable.h"
@@ -104,6 +117,129 @@ private:
 
   std::FILE* m_file;
   bool m_good;
+};
+
+class ReadOnlyFileBuffer : public std::streambuf
+{
+public:
+  ReadOnlyFileBuffer(ReadOnlyFile* file, size_t buffer_size);
+  int underflow() override;
+
+private:
+  ReadOnlyFile* m_file;
+  std::vector<char> m_buffer;
+};
+
+struct ReadOnlyFileStreamBase
+{
+  ReadOnlyFileBuffer m_buffer;
+
+  ReadOnlyFileStreamBase(ReadOnlyFile* file, size_t buffer_size) : m_buffer(file, buffer_size) {}
+};
+
+class ReadOnlyFileStream final : private virtual ReadOnlyFileStreamBase, public std::istream
+{
+public:
+  // This object doesn't take ownership of the file object that's passed in.
+  // The file object must remain in memory while this object is being used.
+  ReadOnlyFileStream(ReadOnlyFile* file, size_t buffer_size = 65536)
+      : ReadOnlyFileStreamBase(file, buffer_size), std::ios(&m_buffer), std::istream(&m_buffer)
+  {
+    if (!*file)
+      setstate(std::ios::badbit);
+  }
+};
+
+class DirectoryIterator
+{
+public:
+  virtual ~DirectoryIterator();
+  // Advances this iterator to the next child and returns its path.
+  // An empty string is returned when the end is reached.
+  virtual std::string NextChild() = 0;
+};
+
+class StandardDirectoryIterator final : public DirectoryIterator, private NonCopyable
+{
+public:
+  StandardDirectoryIterator(const std::string& path);
+  ~StandardDirectoryIterator();
+
+  std::string NextChild() override;
+
+private:
+  std::string m_base_path;
+#ifdef _WIN32
+  HANDLE m_handle;
+  WIN32_FIND_DATA m_find_data;
+  bool m_first_child = true;
+#else
+  DIR* m_dir;
+#endif
+};
+
+class Path final
+{
+  friend class const_iterator;
+
+public:
+  class const_iterator final
+  {
+  public:
+    using iterator_category = std::input_iterator_tag;
+    using value_type = Path;
+    using difference_type = std::ptrdiff_t;
+    using pointer = value_type*;
+    using reference = value_type&;
+
+    const_iterator();
+    const_iterator(const Path& path);
+
+    const_iterator& operator++();
+    const_iterator operator++(int);
+
+    const Path& operator*() const { return *m_child_path; }
+    const Path* operator->() const { return m_child_path.get(); }
+    bool operator==(const const_iterator& other) const
+    {
+      return *m_child_path == *other.m_child_path;
+    }
+    bool operator!=(const const_iterator& other) const { return !operator==(other); }
+  private:
+    std::shared_ptr<Path> m_child_path;
+    std::shared_ptr<DirectoryIterator> m_iterator;
+  };
+
+  Path() {}
+  // These constuctors intentionally allow implicit conversion
+  Path(const char* path) : m_path(path) {}
+  Path(const std::string& path) : m_path(path) {}
+  friend bool operator==(const Path& lhs, const Path& rhs) { return lhs.m_path == rhs.m_path; }
+  friend bool operator!=(const Path& lhs, const Path& rhs) { return !operator==(lhs, rhs); }
+  friend bool operator<(const Path& lhs, const Path& rhs) { return lhs.m_path < rhs.m_path; }
+  friend bool operator>(const Path& lhs, const Path& rhs) { return operator<(rhs, lhs); }
+  friend bool operator<=(const Path& lhs, const Path& rhs) { return !operator<(rhs, lhs); }
+  friend bool operator>=(const Path& lhs, const Path& rhs) { return !operator<(lhs, rhs); }
+  Path operator+(const std::string& str) const;
+  Path& operator+=(const std::string& str);
+
+  // This returns the name of the file or directory that the
+  // path represents. It doesn't return the whole path.
+  std::string GetName() const;
+
+  bool Exists() const;
+  bool IsDirectory() const;
+  u64 GetFileSize() const;
+
+  std::unique_ptr<ReadOnlyFile> OpenFile(bool binary) const;
+
+  // For iterating through a directory
+  const_iterator begin() const { return cbegin(); }
+  const_iterator end() const { return cend(); }
+  const_iterator cbegin() const { return const_iterator(*this); }
+  const_iterator cend() const { return const_iterator(); }
+private:
+  std::string m_path;
 };
 
 }  // namespace File

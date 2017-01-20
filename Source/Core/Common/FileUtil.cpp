@@ -8,8 +8,8 @@
 #include <cstring>
 #include <fcntl.h>
 #include <limits.h>
+#include <memory>
 #include <string>
-#include <sys/stat.h>
 #include <vector>
 
 #include "Common/Common.h"
@@ -32,6 +32,7 @@
 #include <errno.h>
 #include <libgen.h>
 #include <stdlib.h>
+#include <sys/stat.h>
 #include <unistd.h>
 #endif
 
@@ -42,47 +43,21 @@
 #include <sys/param.h>
 #endif
 
-#ifndef S_ISDIR
-#define S_ISDIR(m) (((m)&S_IFMT) == S_IFDIR)
-#endif
-
 // This namespace has various generic functions related to files and paths.
 // The code still needs a ton of cleanup.
 // REMEMBER: strdup considered harmful!
 namespace File
 {
-// Returns true if file filename exists
-bool Exists(const std::string& filename)
+// Returns true if the path refers to a file or directory that exists
+bool Exists(const Path& path)
 {
-  struct stat file_info;
-
-#ifdef _WIN32
-  int result = _tstat64(UTF8ToTStr(filename).c_str(), &file_info);
-#else
-  int result = stat(filename.c_str(), &file_info);
-#endif
-
-  return (result == 0);
+  return path.Exists();
 }
 
-// Returns true if filename is a directory
-bool IsDirectory(const std::string& filename)
+// Returns true if the path refers to a directory
+bool IsDirectory(const Path& path)
 {
-  struct stat file_info;
-
-#ifdef _WIN32
-  int result = _tstat64(UTF8ToTStr(filename).c_str(), &file_info);
-#else
-  int result = stat(filename.c_str(), &file_info);
-#endif
-
-  if (result < 0)
-  {
-    WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", filename.c_str(), strerror(errno));
-    return false;
-  }
-
-  return S_ISDIR(file_info.st_mode);
+  return path.IsDirectory();
 }
 
 // Deletes a given filename, return true on success
@@ -281,41 +256,31 @@ bool RenameSync(const std::string& srcFilename, const std::string& destFilename)
   return true;
 }
 
-// copies file srcFilename to destFilename, returns true on success
-bool Copy(const std::string& srcFilename, const std::string& destFilename)
+// copies file srcPath to destPath, returns true on success
+bool Copy(const Path& src_path, const std::string& dest_path)
 {
-  INFO_LOG(COMMON, "Copy: %s --> %s", srcFilename.c_str(), destFilename.c_str());
-#ifdef _WIN32
-  if (CopyFile(UTF8ToTStr(srcFilename).c_str(), UTF8ToTStr(destFilename).c_str(), FALSE))
-    return true;
+  INFO_LOG(COMMON, "Copy: %s --> %s", src_path.GetName().c_str(), dest_path.c_str());
 
-  ERROR_LOG(COMMON, "Copy: failed %s --> %s: %s", srcFilename.c_str(), destFilename.c_str(),
-            GetLastErrorMsg().c_str());
-  return false;
-#else
-
-// buffer size
-#define BSIZE 1024
-
-  char buffer[BSIZE];
+  static constexpr size_t BUFFER_SIZE = 1024;
+  char buffer[BUFFER_SIZE];
 
   // Open input file
-  std::ifstream input;
-  OpenFStream(input, srcFilename, std::ifstream::in | std::ifstream::binary);
-  if (!input.is_open())
+  std::unique_ptr<ReadOnlyFile> input_file = src_path.OpenFile(true);
+  ReadOnlyFileStream input(input_file.get());
+  if (input.fail())
   {
-    ERROR_LOG(COMMON, "Copy: input failed %s --> %s: %s", srcFilename.c_str(), destFilename.c_str(),
-              GetLastErrorMsg().c_str());
+    ERROR_LOG(COMMON, "Copy: input failed %s --> %s: %s", src_path.GetName().c_str(),
+              dest_path.c_str(), GetLastErrorMsg().c_str());
     return false;
   }
 
   // open output file
-  File::IOFile output(destFilename, "wb");
+  File::IOFile output(dest_path, "wb");
 
   if (!output.IsOpen())
   {
-    ERROR_LOG(COMMON, "Copy: output failed %s --> %s: %s", srcFilename.c_str(),
-              destFilename.c_str(), GetLastErrorMsg().c_str());
+    ERROR_LOG(COMMON, "Copy: output failed %s --> %s: %s", src_path.GetName().c_str(),
+              dest_path.c_str(), GetLastErrorMsg().c_str());
     return false;
   }
 
@@ -323,88 +288,30 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename)
   while (!input.eof())
   {
     // read input
-    input.read(buffer, BSIZE);
+    input.read(buffer, BUFFER_SIZE);
     if (!input)
     {
-      ERROR_LOG(COMMON, "Copy: failed reading from source, %s --> %s: %s", srcFilename.c_str(),
-                destFilename.c_str(), GetLastErrorMsg().c_str());
+      ERROR_LOG(COMMON, "Copy: failed reading from source, %s --> %s: %s",
+                src_path.GetName().c_str(), dest_path.c_str(), GetLastErrorMsg().c_str());
       return false;
     }
 
     // write output
-    if (!output.WriteBytes(buffer, BSIZE))
+    if (!output.WriteBytes(buffer, BUFFER_SIZE))
     {
-      ERROR_LOG(COMMON, "Copy: failed writing to output, %s --> %s: %s", srcFilename.c_str(),
-                destFilename.c_str(), GetLastErrorMsg().c_str());
+      ERROR_LOG(COMMON, "Copy: failed writing to output, %s --> %s: %s", src_path.GetName().c_str(),
+                dest_path.c_str(), GetLastErrorMsg().c_str());
       return false;
     }
   }
 
   return true;
-#endif
 }
 
-// Returns the size of filename (64bit)
-u64 GetSize(const std::string& filename)
+// Returns the size of the file that the path refers to
+u64 GetSize(const Path& path)
 {
-  if (!Exists(filename))
-  {
-    WARN_LOG(COMMON, "GetSize: failed %s: No such file", filename.c_str());
-    return 0;
-  }
-
-  if (IsDirectory(filename))
-  {
-    WARN_LOG(COMMON, "GetSize: failed %s: is a directory", filename.c_str());
-    return 0;
-  }
-
-  struct stat buf;
-#ifdef _WIN32
-  if (_tstat64(UTF8ToTStr(filename).c_str(), &buf) == 0)
-#else
-  if (stat(filename.c_str(), &buf) == 0)
-#endif
-  {
-    DEBUG_LOG(COMMON, "GetSize: %s: %lld", filename.c_str(), (long long)buf.st_size);
-    return buf.st_size;
-  }
-
-  ERROR_LOG(COMMON, "GetSize: Stat failed %s: %s", filename.c_str(), GetLastErrorMsg().c_str());
-  return 0;
-}
-
-// Overloaded GetSize, accepts file descriptor
-u64 GetSize(const int fd)
-{
-  struct stat buf;
-  if (fstat(fd, &buf) != 0)
-  {
-    ERROR_LOG(COMMON, "GetSize: stat failed %i: %s", fd, GetLastErrorMsg().c_str());
-    return 0;
-  }
-  return buf.st_size;
-}
-
-// Overloaded GetSize, accepts FILE*
-u64 GetSize(FILE* f)
-{
-  // can't use off_t here because it can be 32-bit
-  u64 pos = ftello(f);
-  if (fseeko(f, 0, SEEK_END) != 0)
-  {
-    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", f, GetLastErrorMsg().c_str());
-    return 0;
-  }
-
-  u64 size = ftello(f);
-  if ((size != pos) && (fseeko(f, pos, SEEK_SET) != 0))
-  {
-    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", f, GetLastErrorMsg().c_str());
-    return 0;
-  }
-
-  return size;
+  return path.GetFileSize();
 }
 
 // creates an empty file filename, returns true on success
@@ -423,41 +330,18 @@ bool CreateEmptyFile(const std::string& filename)
 }
 
 // Recursive or non-recursive list of files and directories under directory.
-FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
+template <class T>
+FSTEntry<T> ScanDirectoryTree(const T& directory, bool recursive)
 {
-  INFO_LOG(COMMON, "ScanDirectoryTree: directory %s", directory.c_str());
-  FSTEntry parent_entry;
+  FSTEntry<T> parent_entry;
   parent_entry.physicalName = directory;
   parent_entry.isDirectory = true;
   parent_entry.size = 0;
-#ifdef _WIN32
-  // Find the first file in the directory.
-  WIN32_FIND_DATA ffd;
-
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
-  if (hFind == INVALID_HANDLE_VALUE)
+  for (const Path& child : Path(directory))
   {
-    FindClose(hFind);
-    return parent_entry;
-  }
-  // Windows loop
-  do
-  {
-    const std::string virtual_name(TStrToUTF8(ffd.cFileName));
-#else
-  DIR* dirp = opendir(directory.c_str());
-  if (!dirp)
-    return parent_entry;
-
-  // non Windows loop
-  while (dirent* result = readdir(dirp))
-  {
-    const std::string virtual_name(result->d_name);
-#endif
-    if (virtual_name == "." || virtual_name == "..")
-      continue;
-    auto physical_name = directory + DIR_SEP + virtual_name;
-    FSTEntry entry;
+    std::string virtual_name = child.GetName();
+    T physical_name = directory + DIR_SEP + virtual_name;
+    FSTEntry<T> entry;
     entry.isDirectory = IsDirectory(physical_name);
     if (entry.isDirectory)
     {
@@ -477,16 +361,13 @@ FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive)
     ++parent_entry.size;
     // Push into the tree
     parent_entry.children.push_back(entry);
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
   }
-  closedir(dirp);
-#endif
 
   return parent_entry;
 }
+
+template FSTEntry<std::string> ScanDirectoryTree(const std::string& directory, bool recursive);
+template FSTEntry<Path> ScanDirectoryTree(const Path& directory, bool recursive);
 
 // Deletes the given directory and anything under it. Returns true on success.
 bool DeleteDirRecursively(const std::string& directory)
@@ -494,38 +375,9 @@ bool DeleteDirRecursively(const std::string& directory)
   INFO_LOG(COMMON, "DeleteDirRecursively: %s", directory.c_str());
   bool success = true;
 
-#ifdef _WIN32
-  // Find the first file in the directory.
-  WIN32_FIND_DATA ffd;
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(directory + "\\*").c_str(), &ffd);
-
-  if (hFind == INVALID_HANDLE_VALUE)
+  for (const Path& child : Path(directory))
   {
-    FindClose(hFind);
-    return false;
-  }
-
-  // Windows loop
-  do
-  {
-    const std::string virtualName(TStrToUTF8(ffd.cFileName));
-#else
-  DIR* dirp = opendir(directory.c_str());
-  if (!dirp)
-    return false;
-
-  // non Windows loop
-  while (dirent* result = readdir(dirp))
-  {
-    const std::string virtualName = result->d_name;
-#endif
-
-    // check for "." and ".."
-    if (((virtualName[0] == '.') && (virtualName[1] == '\0')) ||
-        ((virtualName[0] == '.') && (virtualName[1] == '.') && (virtualName[2] == '\0')))
-      continue;
-
-    std::string newPath = directory + DIR_SEP_CHR + virtualName;
+    std::string newPath = directory + DIR_SEP_CHR + child.GetName();
     if (IsDirectory(newPath))
     {
       if (!DeleteDirRecursively(newPath))
@@ -542,14 +394,8 @@ bool DeleteDirRecursively(const std::string& directory)
         break;
       }
     }
-
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
   }
-  closedir(dirp);
-#endif
+
   if (success)
     File::DeleteDir(directory);
 
@@ -557,7 +403,7 @@ bool DeleteDirRecursively(const std::string& directory)
 }
 
 // Create directory and copy contents (does not overwrite existing files)
-void CopyDir(const std::string& source_path, const std::string& dest_path)
+void CopyDir(const Path& source_path, const std::string& dest_path)
 {
   if (source_path == dest_path)
     return;
@@ -566,34 +412,12 @@ void CopyDir(const std::string& source_path, const std::string& dest_path)
   if (!File::Exists(dest_path))
     File::CreateFullPath(dest_path);
 
-#ifdef _WIN32
-  WIN32_FIND_DATA ffd;
-  HANDLE hFind = FindFirstFile(UTF8ToTStr(source_path + "\\*").c_str(), &ffd);
-
-  if (hFind == INVALID_HANDLE_VALUE)
+  for (const Path& child : source_path)
   {
-    FindClose(hFind);
-    return;
-  }
+    std::string name = child.GetName();
 
-  do
-  {
-    const std::string virtualName(TStrToUTF8(ffd.cFileName));
-#else
-  DIR* dirp = opendir(source_path.c_str());
-  if (!dirp)
-    return;
-
-  while (dirent* result = readdir(dirp))
-  {
-    const std::string virtualName(result->d_name);
-#endif
-    // check for "." and ".."
-    if (virtualName == "." || virtualName == "..")
-      continue;
-
-    std::string source = source_path + DIR_SEP + virtualName;
-    std::string dest = dest_path + DIR_SEP + virtualName;
+    Path source = source_path + DIR_SEP + name;
+    std::string dest = dest_path + DIR_SEP + name;
     if (IsDirectory(source))
     {
       if (!File::Exists(dest))
@@ -602,13 +426,7 @@ void CopyDir(const std::string& source_path, const std::string& dest_path)
     }
     else if (!File::Exists(dest))
       File::Copy(source, dest);
-#ifdef _WIN32
-  } while (FindNextFile(hFind, &ffd) != 0);
-  FindClose(hFind);
-#else
   }
-  closedir(dirp);
-#endif
 }
 
 // Returns the current directory
@@ -718,7 +536,11 @@ std::string& GetExeDirectory()
   return DolphinPath;
 }
 
+#ifdef ANDROID
+static std::string GetSysDirectory()
+#else
 std::string GetSysDirectory()
+#endif
 {
   std::string sysDir;
 
@@ -733,6 +555,29 @@ std::string GetSysDirectory()
 
   INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
   return sysDir;
+}
+
+Path GetPathInSys(const std::string& relative_path)
+{
+  return Path(GetSysDirectory() + relative_path);
+}
+
+bool SysFileExists(const std::string& relative_path)
+{
+  return Exists(GetSysDirectory() + relative_path);
+}
+
+Path GetPathInUserOrSys(const std::string& relative_path)
+{
+  if (Exists(GetUserPath(D_USER_IDX) + relative_path))
+    return Path(GetUserPath(D_USER_IDX) + relative_path);
+
+  return GetPathInSys(relative_path);
+}
+
+bool UserOrSysFileExists(const std::string& relative_path)
+{
+  return Exists(GetUserPath(D_USER_IDX) + relative_path) || SysFileExists(relative_path);
 }
 
 static std::string s_user_paths[NUM_PATH_INDICES];
@@ -849,6 +694,7 @@ void SetUserPath(unsigned int dir_index, const std::string& path)
   RebuildUserDirectories(dir_index);
 }
 
+#ifndef ANDROID
 std::string GetThemeDir(const std::string& theme_name)
 {
   std::string dir = File::GetUserPath(D_THEMES_IDX) + theme_name + "/";
@@ -863,25 +709,18 @@ std::string GetThemeDir(const std::string& theme_name)
   // If the theme doesn't exist at all, load the default theme
   return GetSysDirectory() + THEMES_DIR "/" DEFAULT_THEME_DIR "/";
 }
+#endif
 
-bool WriteStringToFile(const std::string& str, const std::string& filename)
+bool WriteStringToFile(const std::string& str, const std::string& path)
 {
-  return File::IOFile(filename, "wb").WriteBytes(str.data(), str.size());
+  return File::IOFile(path, "wb").WriteBytes(str.data(), str.size());
 }
 
-bool ReadFileToString(const std::string& filename, std::string& str)
+bool ReadFileToString(const Path& path, std::string& str)
 {
-  File::IOFile file(filename, "rb");
-  auto const f = file.GetHandle();
-
-  if (!f)
-    return false;
-
-  size_t read_size;
-  str.resize(GetSize(f));
-  bool retval = file.ReadArray(&str[0], str.size(), &read_size);
-
-  return retval;
+  std::unique_ptr<ReadOnlyFile> file = path.OpenFile(true);
+  str.resize(file->GetSize());
+  return file->ReadArray(&str[0], str.size());
 }
 
 }  // namespace

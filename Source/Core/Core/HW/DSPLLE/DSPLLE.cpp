@@ -12,6 +12,8 @@
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
+#include "Common/File.h"
+#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
 #include "Common/Thread.h"
@@ -115,16 +117,15 @@ void DSPLLE::DSPThread(DSPLLE* dsp_lle)
   }
 }
 
-static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
+static bool LoadDSPRom(u16* rom, const File::Path& path, u32 size_in_bytes)
 {
   std::string bytes;
-  if (!File::ReadFileToString(filename, bytes))
+  if (!File::ReadFileToString(path, bytes))
     return false;
 
   if (bytes.size() != size_in_bytes)
   {
-    ERROR_LOG(DSPLLE, "%s has a wrong size (%zu, expected %u)", filename.c_str(), bytes.size(),
-              size_in_bytes);
+    ERROR_LOG(DSPLLE, "DSP ROM has a wrong size (%zu, expected %u)", bytes.size(), size_in_bytes);
     return false;
   }
 
@@ -137,13 +138,8 @@ static bool LoadDSPRom(u16* rom, const std::string& filename, u32 size_in_bytes)
 
 static bool FillDSPInitOptions(DSPInitOptions* opts)
 {
-  std::string irom_file = File::GetUserPath(D_GCUSER_IDX) + DSP_IROM;
-  std::string coef_file = File::GetUserPath(D_GCUSER_IDX) + DSP_COEF;
-
-  if (!File::Exists(irom_file))
-    irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
-  if (!File::Exists(coef_file))
-    coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
+  const File::Path irom_file = File::GetPathInUserOrSys(GC_SYS_DIR DIR_SEP DSP_IROM);
+  const File::Path coef_file = File::GetPathInUserOrSys(GC_SYS_DIR DIR_SEP DSP_COEF);
 
   if (!LoadDSPRom(opts->irom_contents.data(), irom_file, DSP_IROM_BYTE_SIZE))
     return false;

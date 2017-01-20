@@ -7,6 +7,7 @@
 #include <array>
 #include <limits>
 #include <string>
+#include <vector>
 
 #include <wx/button.h>
 #include <wx/checkbox.h>
@@ -18,6 +19,7 @@
 #include <wx/stattext.h>
 
 #include "Common/CommonPaths.h"
+#include "Common/File.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
@@ -196,15 +198,11 @@ void InterfaceConfigPane::LoadGUIValues()
 
 void InterfaceConfigPane::LoadThemes()
 {
-  auto sv =
-      Common::DoFileSearch({File::GetUserPath(D_THEMES_IDX), File::GetSysDirectory() + THEMES_DIR});
-  for (const std::string& filename : sv)
+  const std::vector<File::Path> sv = Common::DoFileSearch<File::Path>(
+      {File::GetUserPath(D_THEMES_IDX), File::GetPathInSys(THEMES_DIR)});
+  for (const File::Path& path : sv)
   {
-    std::string name, ext;
-    SplitPath(filename, nullptr, &name, &ext);
-
-    name += ext;
-    const wxString wxname = StrToWxStr(name);
+    const wxString wxname = StrToWxStr(path.GetName());
     if (-1 == m_theme_choice->FindString(wxname))
       m_theme_choice->Append(wxname);
   }

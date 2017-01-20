@@ -12,6 +12,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
+#include "Common/File.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
@@ -48,7 +49,7 @@ struct BootParameters
   {
     explicit IPL(DiscIO::Region region_);
     IPL(DiscIO::Region region_, Disc&& disc_);
-    std::string path;
+    File::Path path;
     DiscIO::Region region;
     // It is possible to boot the IPL with a disc inserted (with "skip IPL" disabled).
     std::optional<Disc> disc;
@@ -75,14 +76,12 @@ public:
   // Tries to find a map file for the current game by looking first in the
   // local user directory, then in the shared user directory.
   //
-  // If existing_map_file is not nullptr and a map file exists, it is set to the
-  // path to the existing map file.
-  //
   // If writable_map_file is not nullptr, it is set to the path to where a map
   // file should be saved.
   //
-  // Returns true if a map file exists, false if none could be found.
-  static bool FindMapFile(std::string* existing_map_file, std::string* writable_map_file);
+  // If a map file exists, its path is returned.
+  // Otherwise, a path that doesn't point to an existing file is returned.
+  static File::Path FindMapFile(std::string* writable_map_file);
   static bool LoadMapFromFilename();
 
 private:
@@ -100,7 +99,7 @@ private:
   static bool EmulatedBS2_GC(const DiscIO::Volume* volume, bool skip_app_loader = false);
   static bool EmulatedBS2_Wii(const DiscIO::Volume* volume);
   static bool EmulatedBS2(bool is_wii, const DiscIO::Volume* volume);
-  static bool Load_BS2(const std::string& boot_rom_filename);
+  static bool Load_BS2(const File::Path& boot_rom_path);
   static void Load_FST(bool is_wii, const DiscIO::Volume* volume);
 
   static bool SetupWiiMemory(const DiscIO::Volume* volume, u64 ios_title_id);

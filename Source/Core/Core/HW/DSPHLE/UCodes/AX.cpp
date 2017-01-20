@@ -4,13 +4,17 @@
 
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
+#include <memory>
+
 #include "Common/ChunkFile.h"
+#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/Swap.h"
+#include "Core/DSP/DSPCore.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
@@ -44,30 +48,14 @@ void AXUCode::LoadResamplingCoefficients()
 {
   m_coeffs_available = false;
 
-  std::string filenames[] = {File::GetUserPath(D_GCUSER_IDX) + "dsp_coef.bin",
-                             File::GetSysDirectory() + "/GC/dsp_coef.bin"};
-
-  size_t fidx;
-  std::string filename;
-  for (fidx = 0; fidx < ArraySize(filenames); ++fidx)
-  {
-    filename = filenames[fidx];
-    if (!File::Exists(filename))
-      continue;
-
-    if (File::GetSize(filename) != 0x1000)
-      continue;
-
-    break;
-  }
-
-  if (fidx >= ArraySize(filenames))
+  std::unique_ptr<File::ReadOnlyFile> file =
+      File::GetPathInUserOrSys(GC_SYS_DIR DIR_SEP DSP_COEF).OpenFile(true);
+  if (!file->IsOpen() || file->GetSize() != DSP_COEF_BYTE_SIZE)
     return;
 
-  INFO_LOG(DSPHLE, "Loading polyphase resampling coeffs from %s", filename.c_str());
+  INFO_LOG(DSPHLE, "Loading polyphase resampling coeffs");
 
-  File::IOFile fp(filename, "rb");
-  fp.ReadBytes(m_coeffs, 0x1000);
+  file->ReadBytes(m_coeffs, DSP_COEF_BYTE_SIZE);
 
   for (auto& coef : m_coeffs)
     coef = Common::swap16(coef);

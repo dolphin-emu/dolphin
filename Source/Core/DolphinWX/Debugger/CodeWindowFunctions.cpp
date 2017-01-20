@@ -175,8 +175,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     return;
 
   const std::string& title_id_str = SConfig::GetInstance().m_debugger_game_id;
-  std::string existing_map_file, writable_map_file;
-  bool map_exists = CBoot::FindMapFile(&existing_map_file, &writable_map_file);
+  std::string writable_map_file;
+  File::Path map_file_path = CBoot::FindMapFile(&writable_map_file);
   switch (event.GetId())
   {
   case IDM_CLEAR_SYMBOLS:
@@ -194,7 +194,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   {
     PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
     SignatureDB db(SignatureDB::HandlerType::DSY);
-    if (db.Load(File::GetSysDirectory() + TOTALDB))
+    if (db.Load(File::GetPathInSys(TOTALDB)))
     {
       db.Apply(&g_symbolDB);
       Parent->StatusBarMessage("Generated symbol names from '%s'", TOTALDB);
@@ -238,20 +238,19 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     break;
   }
   case IDM_LOAD_MAP_FILE:
-    if (!map_exists)
+    if (!g_symbolDB.LoadMap(map_file_path))
     {
       g_symbolDB.Clear();
       PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
       SignatureDB db(SignatureDB::HandlerType::DSY);
-      if (db.Load(File::GetSysDirectory() + TOTALDB))
+      if (db.Load(File::GetPathInSys(TOTALDB)))
         db.Apply(&g_symbolDB);
-      Parent->StatusBarMessage("'%s' not found, scanning for common functions instead",
-                               writable_map_file.c_str());
+      Parent->StatusBarMessage("'%s' map not found, scanning for common functions instead",
+                               title_id_str.c_str());
     }
     else
     {
-      g_symbolDB.LoadMap(existing_map_file);
-      Parent->StatusBarMessage("Loaded symbols from '%s'", existing_map_file.c_str());
+      Parent->StatusBarMessage("Loaded symbols from '%s' map", title_id_str.c_str());
     }
     HLE::PatchFunctions();
     NotifyMapLoaded();
@@ -355,8 +354,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     {
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
-      wxString path = wxFileSelector(_("Save signature as"), File::GetSysDirectory(), wxEmptyString,
-                                     wxEmptyString, signature_selector,
+      wxString path = wxFileSelector(_("Save signature as"), File::GetUserPath(D_USER_IDX),
+                                     wxEmptyString, wxEmptyString, signature_selector,
                                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
       if (!path.IsEmpty())
       {
@@ -380,7 +379,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
       wxString path =
-          wxFileSelector(_("Append signature to"), File::GetSysDirectory(), wxEmptyString,
+          wxFileSelector(_("Append signature to"), File::GetUserPath(D_USER_IDX), wxEmptyString,
                          wxEmptyString, signature_selector, wxFD_SAVE, this);
       if (!path.IsEmpty())
       {
@@ -428,7 +427,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
         db.Load(load_path1);
         db.Load(WxStrToStr(path2));
 
-        path2 = wxFileSelector(_("Save combined output file as"), File::GetSysDirectory(),
+        path2 = wxFileSelector(_("Save combined output file as"), File::GetUserPath(D_USER_IDX),
                                wxEmptyString, ".dsy", signature_selector,
                                wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
         db.Save(WxStrToStr(path2));

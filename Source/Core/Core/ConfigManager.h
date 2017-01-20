@@ -11,6 +11,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/File.h"
 #include "Common/IniFile.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/EXI/EXI_Device.h"
@@ -195,7 +196,7 @@ struct SConfig : NonCopyable
   GPUDeterminismMode m_GPUDeterminismMode;
 
   // files
-  std::string m_strBootROM;
+  File::Path m_strBootROM = File::Path("");
   std::string m_strSRAM;
   std::string m_strDefaultISO;
   std::string m_strDVDRoot;
@@ -218,7 +219,7 @@ struct SConfig : NonCopyable
 
   void LoadDefaults();
   static const char* GetDirectoryForRegion(DiscIO::Region region);
-  std::string GetBootROMPath(const std::string& region_directory) const;
+  File::Path GetBootROMPath(const std::string& region_directory) const;
   bool SetPathsAndGameMetadata(const BootParameters& boot);
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
   DiscIO::Language GetCurrentLanguage(bool wii) const;

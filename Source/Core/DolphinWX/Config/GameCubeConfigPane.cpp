@@ -68,12 +68,9 @@ void GameCubeConfigPane::InitializeGUI()
 
   m_skip_ipl_checkbox = new wxCheckBox(this, wxID_ANY, _("Skip Main Menu"));
 
-  if (!File::Exists(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
-      !File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + USA_DIR + DIR_SEP GC_IPL) &&
-      !File::Exists(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + JAP_DIR + DIR_SEP GC_IPL) &&
-      !File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + JAP_DIR + DIR_SEP GC_IPL) &&
-      !File::Exists(File::GetUserPath(D_GCUSER_IDX) + DIR_SEP + EUR_DIR + DIR_SEP GC_IPL) &&
-      !File::Exists(File::GetSysDirectory() + GC_SYS_DIR + DIR_SEP + EUR_DIR + DIR_SEP GC_IPL))
+  if (!File::UserOrSysFileExists(GC_SYS_DIR DIR_SEP USA_DIR DIR_SEP GC_IPL) &&
+      !File::UserOrSysFileExists(GC_SYS_DIR DIR_SEP JAP_DIR DIR_SEP GC_IPL) &&
+      !File::UserOrSysFileExists(GC_SYS_DIR DIR_SEP EUR_DIR DIR_SEP GC_IPL))
   {
     m_skip_ipl_checkbox->Disable();
     m_skip_ipl_checkbox->SetToolTip(_("Put Main Menu roms in User/GC/{region}."));

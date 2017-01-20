@@ -13,6 +13,11 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
+namespace File
+{
+class Path;
+}
+
 struct CaseInsensitiveStringCompare
 {
   bool operator()(const std::string& a, const std::string& b) const
@@ -87,7 +92,7 @@ public:
 
   /**
    * Loads sections and keys.
-   * @param filename filename of the ini file which should be loaded
+   * @param path path of the ini file which should be loaded
    * @param keep_current_data If true, "extends" the currently loaded list of sections and keys with
    * the loaded data (and replaces existing entries). If false, existing data will be erased.
    * @warning Using any other operations than "Get*" and "Exists" is untested and will behave
@@ -95,7 +100,7 @@ public:
    * @todo This really is just a hack to support having two levels of gameinis (defaults and
    * user-specified) and should eventually be replaced with a less stupid system.
    */
-  bool Load(const std::string& filename, bool keep_current_data = false);
+  bool Load(const File::Path& path, bool keep_current_data = false);
 
   bool Save(const std::string& filename);
 

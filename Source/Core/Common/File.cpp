@@ -4,20 +4,28 @@
 
 #include <cstddef>
 #include <cstdio>
+#include <memory>
+#include <streambuf>
 #include <string>
+#include <sys/stat.h>
+#include <vector>
 
 #ifdef _WIN32
+#include <windows.h>
 #include <io.h>
-
-#include "Common/CommonFuncs.h"
-#include "Common/StringUtil.h"
 #else
+#include <cstring>
+#include <dirent.h>
+#include <errno.h>
 #include <unistd.h>
 #endif
 
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 
 namespace File
 {
@@ -89,10 +97,28 @@ void IOFile::SetHandle(std::FILE* file)
 
 u64 IOFile::GetSize()
 {
-  if (IsOpen())
-    return File::GetSize(m_file);
-  else
+  if (!IsOpen())
+  {
+    ERROR_LOG(COMMON, "GetSize: file not open");
     return 0;
+  }
+
+  // can't use off_t here because it can be 32-bit
+  u64 pos = ftello(m_file);
+  if (fseeko(m_file, 0, SEEK_END) != 0)
+  {
+    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", m_file, GetLastErrorMsg().c_str());
+    return 0;
+  }
+
+  u64 size = ftello(m_file);
+  if ((size != pos) && (fseeko(m_file, pos, SEEK_SET) != 0))
+  {
+    ERROR_LOG(COMMON, "GetSize: seek failed %p: %s", m_file, GetLastErrorMsg().c_str());
+    return 0;
+  }
+
+  return size;
 }
 
 bool IOFile::Seek(s64 off, int origin)
@@ -150,6 +176,177 @@ bool IOFile::Write(const void* data, size_t element_size, size_t count)
     m_good = false;
 
   return IsGood();
+}
+
+ReadOnlyFileBuffer::ReadOnlyFileBuffer(ReadOnlyFile* file, size_t buffer_size)
+    : m_file(file), m_buffer(std::vector<char>(buffer_size))
+{
+}
+
+int ReadOnlyFileBuffer::underflow()
+{
+  if (gptr() == egptr())
+  {
+    size_t bytes_read;
+    m_file->ReadArray(m_buffer.data(), m_buffer.size(), &bytes_read);
+    setg(m_buffer.data(), m_buffer.data(), m_buffer.data() + bytes_read);
+  }
+
+  return gptr() == egptr() ? std::char_traits<char>::eof() :
+                             std::char_traits<char>::to_int_type(*gptr());
+}
+
+DirectoryIterator::~DirectoryIterator() = default;
+
+StandardDirectoryIterator::StandardDirectoryIterator(const std::string& path) : m_base_path(path)
+{
+#ifdef _WIN32
+  m_handle = FindFirstFile(UTF8ToTStr(path + "\\*").c_str(), &m_find_data);
+#else
+  m_dir = opendir(path.c_str());
+#endif
+}
+
+StandardDirectoryIterator::~StandardDirectoryIterator()
+{
+#ifdef _WIN32
+  FindClose(m_handle);
+#else
+  if (m_dir)
+    closedir(m_dir);
+#endif
+}
+
+std::string StandardDirectoryIterator::NextChild()
+{
+#ifdef _WIN32
+  if (m_handle == INVALID_HANDLE_VALUE)
+    return "";
+
+  std::string name;
+  if (m_first_child)
+    name = TStrToUTF8(m_find_data.cFileName);
+  else if (FindNextFile(m_handle, &m_find_data))
+    name = TStrToUTF8(m_find_data.cFileName);
+  else
+    return "";
+
+  m_first_child = false;
+#else
+  if (!m_dir)
+    return "";
+
+  dirent* result = readdir(m_dir);
+  if (!result)
+    return "";
+
+  std::string name = result->d_name;
+#endif
+
+  if (name == "." || name == "..")
+    return NextChild();
+
+  return m_base_path + '/' + name;
+}
+
+Path::const_iterator::const_iterator() : m_child_path(std::make_shared<Path>()), m_iterator(nullptr)
+{
+}
+
+Path::const_iterator::const_iterator(const Path& path) : m_child_path(std::make_shared<Path>(path))
+{
+  m_iterator = std::make_shared<StandardDirectoryIterator>(path.m_path);
+}
+
+Path::const_iterator& Path::const_iterator::operator++()
+{
+  m_child_path->m_path = m_iterator->NextChild();
+  return *this;
+}
+
+Path::const_iterator Path::const_iterator::operator++(int)
+{
+  const_iterator old = *this;
+  m_child_path->m_path = m_iterator->NextChild();
+  return old;
+}
+
+Path Path::operator+(const std::string& str) const
+{
+  return Path(m_path + str);
+}
+
+Path& Path::operator+=(const std::string& str)
+{
+  m_path += str;
+  return *this;
+}
+
+std::string Path::GetName() const
+{
+  std::string name;
+  SplitPath(m_path, nullptr, &name);
+  return name;
+}
+
+bool Path::Exists() const
+{
+  struct stat file_info;
+
+#ifdef _WIN32
+  int result = _tstat64(UTF8ToTStr(m_path).c_str(), &file_info);
+#else
+  int result = stat(m_path.c_str(), &file_info);
+#endif
+
+  return result == 0;
+}
+
+bool Path::IsDirectory() const
+{
+  struct stat file_info;
+
+#ifdef _WIN32
+  int result = _tstat64(UTF8ToTStr(m_path).c_str(), &file_info);
+#else
+  int result = stat(m_path.c_str(), &file_info);
+#endif
+
+  if (result < 0)
+  {
+    WARN_LOG(COMMON, "IsDirectory: stat failed on %s: %s", m_path.c_str(), strerror(errno));
+    return false;
+  }
+
+  return (file_info.st_mode & S_IFMT) == S_IFDIR;
+}
+
+u64 Path::GetFileSize() const
+{
+  struct stat file_info;
+#ifdef _WIN32
+  int result = _tstat64(UTF8ToTStr(m_path).c_str(), &file_info);
+#else
+  int result = stat(m_path.c_str(), &file_info);
+#endif
+
+  if (result != 0)
+  {
+    WARN_LOG(COMMON, "GetSize: failed: No such file");
+    return 0;
+  }
+  else if ((file_info.st_mode & S_IFMT) == S_IFDIR)
+  {
+    WARN_LOG(COMMON, "GetSize: failed: is a directory");
+    return 0;
+  }
+
+  return file_info.st_size;
+}
+
+std::unique_ptr<ReadOnlyFile> Path::OpenFile(bool binary) const
+{
+  return std::make_unique<IOFile>(m_path, binary ? "rb" : "r");
 }
 
 }  // namespace File

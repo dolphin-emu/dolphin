@@ -96,8 +96,8 @@ void HiresTexture::Update()
       ".jpg"  // Why not? Could be useful for large photo-like textures
   };
 
-  std::vector<std::string> filenames =
-      Common::DoFileSearch({texture_directory}, extensions, /*recursive*/ true);
+  const std::vector<std::string> filenames =
+      Common::DoFileSearch<std::string>({texture_directory}, extensions, /*recursive*/ true);
 
   const std::string code = game_id + "_";
 

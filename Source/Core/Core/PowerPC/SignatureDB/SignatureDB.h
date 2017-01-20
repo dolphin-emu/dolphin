@@ -10,6 +10,11 @@
 
 #include "Common/CommonTypes.h"
 
+namespace File
+{
+class Path;
+}
+
 // You're not meant to keep around SignatureDB objects persistently. Use 'em, throw them away.
 
 class PPCSymbolDB;
@@ -29,7 +34,7 @@ public:
 
   void Clear();
   // Does not clear. Remember to clear first if that's what you want.
-  bool Load(const std::string& file_path);
+  bool Load(const File::Path& file_path);
   bool Save(const std::string& file_path) const;
   void List() const;
 
@@ -48,7 +53,7 @@ public:
   virtual ~SignatureDBFormatHandler();
 
   virtual void Clear() = 0;
-  virtual bool Load(const std::string& file_path) = 0;
+  virtual bool Load(const File::Path& file_path) = 0;
   virtual bool Save(const std::string& file_path) const = 0;
   virtual void List() const = 0;
 

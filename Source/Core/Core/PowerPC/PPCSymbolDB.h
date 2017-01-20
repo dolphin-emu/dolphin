@@ -13,6 +13,11 @@
 
 #include "Core/Debugger/PPCDebugInterface.h"
 
+namespace File
+{
+class Path;
+}
+
 // This has functionality overlapping Debugger_Symbolmap. Should merge that stuff in here later.
 class PPCSymbolDB : public SymbolDB
 {
@@ -32,7 +37,7 @@ public:
 
   void FillInCallers();
 
-  bool LoadMap(const std::string& filename, bool bad = false);
+  bool LoadMap(const File::Path& path, bool bad = false);
   bool SaveSymbolMap(const std::string& filename) const;
   bool SaveCodeMap(const std::string& filename) const;
 

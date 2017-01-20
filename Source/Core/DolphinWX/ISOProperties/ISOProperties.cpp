@@ -446,7 +446,7 @@ void CISOProperties::CreateGUIControls()
   for (const std::string& ini_filename :
        SConfig::GetGameIniFilenames(game_id, m_open_iso->GetRevision()))
   {
-    if (File::Exists(File::GetSysDirectory() + GAMESETTINGS_DIR DIR_SEP + ini_filename))
+    if (File::SysFileExists(GAMESETTINGS_DIR DIR_SEP + ini_filename))
     {
       game_ini_exists = true;
       break;

@@ -15,6 +15,7 @@
 
 namespace File
 {
+template <class T>
 struct FSTEntry;
 }
 
@@ -92,8 +93,8 @@ private:
   void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length,
                       u32 address_shift);
   void WriteEntryName(u32* name_offset, const std::string& name);
-  void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
-                      u64* data_offset, u32 parent_entry_index);
+  void WriteDirectory(const File::FSTEntry<std::string>& parent_entry, u32* fst_offset,
+                      u32* name_offset, u64* data_offset, u32 parent_entry_index);
 
   std::string m_root_directory;
 

@@ -6,12 +6,13 @@
 
 #include <cstddef>
 #include <cstdlib>
-#include <fstream>
 #include <limits>
+#include <memory>
 #include <sstream>
 #include <string>
 #include <utility>
 
+#include "Common/File.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
@@ -125,16 +126,16 @@ void MEGASignatureDB::Clear()
   m_signatures.clear();
 }
 
-bool MEGASignatureDB::Load(const std::string& file_path)
+bool MEGASignatureDB::Load(const File::Path& file_path)
 {
-  std::ifstream ifs;
-  File::OpenFStream(ifs, file_path, std::ios_base::in);
+  std::unique_ptr<File::ReadOnlyFile> file = file_path.OpenFile(false);
+  File::ReadOnlyFileStream stream(file.get());
 
-  if (!ifs)
+  if (!stream)
     return false;
 
   std::string line;
-  for (size_t i = 1; std::getline(ifs, line); ++i)
+  for (size_t i = 1; std::getline(stream, line); ++i)
   {
     std::istringstream iss(line);
     MEGASignature sig;
