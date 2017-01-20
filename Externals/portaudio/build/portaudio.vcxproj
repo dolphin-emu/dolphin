@@ -37,7 +37,7 @@
   <ItemDefinitionGroup>
     <ClCompile>
       <AdditionalIncludeDirectories>..\src\common;..\include;.\;..\src\os\win;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>PA_WDMKS_NO_KSGUID_LIB;PA_USE_ASIO=0;PA_USE_DS=0;PA_USE_WMME=1;PA_USE_WASAPI=1;PA_USE_WDMKS=0;PA_ENABLE_DEBUG_OUTPUT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>PA_ENABLE_DEBUG_OUTPUT;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -52,13 +52,8 @@
     <ClCompile Include="..\src\common\pa_ringbuffer.c" />
     <ClCompile Include="..\src\common\pa_stream.c" />
     <ClCompile Include="..\src\common\pa_trace.c" />
-    <ClCompile Include="..\src\hostapi\dsound\pa_win_ds.c" />
-    <ClCompile Include="..\src\hostapi\dsound\pa_win_ds_dynlink.c" />
     <ClCompile Include="..\src\hostapi\wmme\pa_win_wmme.c" />
     <ClCompile Include="..\src\hostapi\wasapi\pa_win_wasapi.c" />
-    <ClCompile Include="..\src\hostapi\wdmks\pa_win_wdmks.c">
-      <ExcludedFromBuild>true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="..\src\os\win\pa_win_coinitialize.c" />
     <ClCompile Include="..\src\os\win\pa_win_hostapis.c" />
     <ClCompile Include="..\src\os\win\pa_win_util.c" />
@@ -67,8 +62,6 @@
     <ClCompile Include="..\src\os\win\pa_x86_plain_converters.c" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\include\pa_asio.h" />
-    <ClInclude Include="..\include\pa_win_ds.h" />
     <ClInclude Include="..\include\pa_win_wasapi.h" />
     <ClInclude Include="..\include\pa_win_waveformat.h" />
     <ClInclude Include="..\include\pa_win_wmme.h" />
