@@ -27,7 +27,7 @@ set(SRCS
 	glslang/MachineIndependent/ShaderLang.cpp
 	glslang/MachineIndependent/SymbolTable.cpp
 	glslang/MachineIndependent/Versions.cpp
-	glslang/OSDependent/Unix/ossource.cpp
+
 	hlsl/hlslGrammar.cpp
 	hlsl/hlslOpMap.cpp
 	hlsl/hlslParseables.cpp
@@ -44,6 +44,13 @@ set(SRCS
 	SPIRV/SPVRemapper.cpp
 )
 
+if(WIN32)
+	list(APPEND SRCS 	glslang/OSDependent/Windows/ossource.cpp)
+else()
+	list(APPEND SRCS 	glslang/OSDependent/Unix/ossource.cpp)
+endif()
+
+if(NOT MSVC)
 # glslang requires C++11 at a minimum to compile.
 add_definitions(-std=c++11)
 
@@ -53,6 +60,6 @@ add_definitions(-Wno-reorder)
 add_definitions(-Wno-sign-compare)
 add_definitions(-Wno-parentheses)
 add_definitions(-Wno-unused-variable)
+endif()
 
 add_library(glslang STATIC ${SRCS})
-
