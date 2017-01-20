@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "Core/HW/SI_Device.h"
-#include "Core/HW/SI_DeviceGCController.h"
+#include "Core/HW/SI/SI_Device.h"
+#include "Core/HW/SI/SI_DeviceGCController.h"
 #include "InputCommon/GCPadStatus.h"
 
 class CSIDevice_GCAdapter : public CSIDevice_GCController

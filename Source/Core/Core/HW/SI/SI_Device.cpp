@@ -2,19 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/SI/SI_Device.h"
+
 #include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/SI_Device.h"
-#include "Core/HW/SI_DeviceDanceMat.h"
-#include "Core/HW/SI_DeviceGBA.h"
-#include "Core/HW/SI_DeviceGCAdapter.h"
-#include "Core/HW/SI_DeviceGCController.h"
-#include "Core/HW/SI_DeviceGCSteeringWheel.h"
-#include "Core/HW/SI_DeviceKeyboard.h"
+#include "Core/HW/SI/SI_DeviceDanceMat.h"
+#include "Core/HW/SI/SI_DeviceGBA.h"
+#include "Core/HW/SI/SI_DeviceGCAdapter.h"
+#include "Core/HW/SI/SI_DeviceGCController.h"
+#include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
+#include "Core/HW/SI/SI_DeviceKeyboard.h"
 
 // --- interface ISIDevice ---
 int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI/SI_Device.h"
 
 class PointerWrap;
 struct KeyboardStatus;

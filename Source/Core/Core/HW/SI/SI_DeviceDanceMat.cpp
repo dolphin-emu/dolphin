@@ -2,7 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/SI_DeviceDanceMat.h"
+#include "Core/HW/SI/SI_DeviceDanceMat.h"
+
 #include "Common/CommonTypes.h"
 #include "InputCommon/GCPadStatus.h"
 

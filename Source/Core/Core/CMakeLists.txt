@@ -109,14 +109,14 @@ set(SRCS	ActionReplay.cpp
 			HW/MemoryInterface.cpp
 			HW/MMIO.cpp
 			HW/ProcessorInterface.cpp
-			HW/SI.cpp
-			HW/SI_Device.cpp
-			HW/SI_DeviceDanceMat.cpp
-			HW/SI_DeviceGBA.cpp
-			HW/SI_DeviceGCAdapter.cpp
-			HW/SI_DeviceGCController.cpp
-			HW/SI_DeviceGCSteeringWheel.cpp
-			HW/SI_DeviceKeyboard.cpp
+			HW/SI/SI.cpp
+			HW/SI/SI_Device.cpp
+			HW/SI/SI_DeviceDanceMat.cpp
+			HW/SI/SI_DeviceGBA.cpp
+			HW/SI/SI_DeviceGCAdapter.cpp
+			HW/SI/SI_DeviceGCController.cpp
+			HW/SI/SI_DeviceGCSteeringWheel.cpp
+			HW/SI/SI_DeviceKeyboard.cpp
 			HW/Sram.cpp
 			HW/StreamADPCM.cpp
 			HW/SystemTimers.cpp

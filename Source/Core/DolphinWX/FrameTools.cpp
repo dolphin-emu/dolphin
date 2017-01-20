@@ -37,7 +37,7 @@
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/WiiSaveCrypted.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
