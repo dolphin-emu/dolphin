@@ -295,74 +295,74 @@ void Interpreter::Helper_Dequantize(u32 addr, u32 instI, u32 instRD, u32 instW)
   rPS1(instRD) = ps1;
 }
 
-void Interpreter::psq_l(UGeckoInstruction _inst)
+void Interpreter::psq_l(UGeckoInstruction inst)
 {
-  const u32 EA = _inst.RA ? (rGPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
-  Helper_Dequantize(EA, _inst.I, _inst.RD, _inst.W);
+  const u32 EA = inst.RA ? (rGPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
+  Helper_Dequantize(EA, inst.I, inst.RD, inst.W);
 }
 
-void Interpreter::psq_lu(UGeckoInstruction _inst)
+void Interpreter::psq_lu(UGeckoInstruction inst)
 {
-  const u32 EA = rGPR[_inst.RA] + _inst.SIMM_12;
-  Helper_Dequantize(EA, _inst.I, _inst.RD, _inst.W);
+  const u32 EA = rGPR[inst.RA] + inst.SIMM_12;
+  Helper_Dequantize(EA, inst.I, inst.RD, inst.W);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
     return;
   }
-  rGPR[_inst.RA] = EA;
+  rGPR[inst.RA] = EA;
 }
 
-void Interpreter::psq_st(UGeckoInstruction _inst)
+void Interpreter::psq_st(UGeckoInstruction inst)
 {
-  const u32 EA = _inst.RA ? (rGPR[_inst.RA] + _inst.SIMM_12) : (u32)_inst.SIMM_12;
-  Helper_Quantize(EA, _inst.I, _inst.RS, _inst.W);
+  const u32 EA = inst.RA ? (rGPR[inst.RA] + inst.SIMM_12) : (u32)inst.SIMM_12;
+  Helper_Quantize(EA, inst.I, inst.RS, inst.W);
 }
 
-void Interpreter::psq_stu(UGeckoInstruction _inst)
+void Interpreter::psq_stu(UGeckoInstruction inst)
 {
-  const u32 EA = rGPR[_inst.RA] + _inst.SIMM_12;
-  Helper_Quantize(EA, _inst.I, _inst.RS, _inst.W);
+  const u32 EA = rGPR[inst.RA] + inst.SIMM_12;
+  Helper_Quantize(EA, inst.I, inst.RS, inst.W);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
     return;
   }
-  rGPR[_inst.RA] = EA;
+  rGPR[inst.RA] = EA;
 }
 
-void Interpreter::psq_lx(UGeckoInstruction _inst)
+void Interpreter::psq_lx(UGeckoInstruction inst)
 {
-  const u32 EA = _inst.RA ? (rGPR[_inst.RA] + rGPR[_inst.RB]) : rGPR[_inst.RB];
-  Helper_Dequantize(EA, _inst.Ix, _inst.RD, _inst.Wx);
+  const u32 EA = inst.RA ? (rGPR[inst.RA] + rGPR[inst.RB]) : rGPR[inst.RB];
+  Helper_Dequantize(EA, inst.Ix, inst.RD, inst.Wx);
 }
 
-void Interpreter::psq_stx(UGeckoInstruction _inst)
+void Interpreter::psq_stx(UGeckoInstruction inst)
 {
-  const u32 EA = _inst.RA ? (rGPR[_inst.RA] + rGPR[_inst.RB]) : rGPR[_inst.RB];
-  Helper_Quantize(EA, _inst.Ix, _inst.RS, _inst.Wx);
+  const u32 EA = inst.RA ? (rGPR[inst.RA] + rGPR[inst.RB]) : rGPR[inst.RB];
+  Helper_Quantize(EA, inst.Ix, inst.RS, inst.Wx);
 }
 
-void Interpreter::psq_lux(UGeckoInstruction _inst)
+void Interpreter::psq_lux(UGeckoInstruction inst)
 {
-  const u32 EA = rGPR[_inst.RA] + rGPR[_inst.RB];
-  Helper_Dequantize(EA, _inst.Ix, _inst.RD, _inst.Wx);
+  const u32 EA = rGPR[inst.RA] + rGPR[inst.RB];
+  Helper_Dequantize(EA, inst.Ix, inst.RD, inst.Wx);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
     return;
   }
-  rGPR[_inst.RA] = EA;
+  rGPR[inst.RA] = EA;
 }
 
-void Interpreter::psq_stux(UGeckoInstruction _inst)
+void Interpreter::psq_stux(UGeckoInstruction inst)
 {
-  const u32 EA = rGPR[_inst.RA] + rGPR[_inst.RB];
-  Helper_Quantize(EA, _inst.Ix, _inst.RS, _inst.Wx);
+  const u32 EA = rGPR[inst.RA] + rGPR[inst.RB];
+  Helper_Quantize(EA, inst.Ix, inst.RS, inst.Wx);
 
   if (PowerPC::ppcState.Exceptions & EXCEPTION_DSI)
   {
     return;
   }
-  rGPR[_inst.RA] = EA;
+  rGPR[inst.RA] = EA;
 }
