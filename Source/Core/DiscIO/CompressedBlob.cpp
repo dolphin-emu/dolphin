@@ -405,7 +405,7 @@ bool DecompressBlobToFile(const std::string& infile_path, const std::string& out
     outfile.Resize(header.data_size);
   }
 
-  return true;
+  return success;
 }
 
 bool IsGCZBlob(File::IOFile& file)
