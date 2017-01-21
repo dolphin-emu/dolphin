@@ -57,7 +57,7 @@ private:
   // EXI Status Register - "Channel Parameter Register"
   union UEXI_STATUS
   {
-    u32 Hex;
+    u32 Hex = 0;
     // DO NOT obey the warning and give this struct a name. Things will fail.
     struct
     {
@@ -77,14 +77,14 @@ private:
       u32 ROMDIS : 1;  // ROM Disable
       u32 : 18;
     };
-    UEXI_STATUS() { Hex = 0; }
-    UEXI_STATUS(u32 _hex) { Hex = _hex; }
+    UEXI_STATUS() = default;
+    explicit UEXI_STATUS(u32 hex) : Hex{hex} {}
   };
 
   // EXI Control Register
   union UEXI_CONTROL
   {
-    u32 Hex;
+    u32 Hex = 0;
     struct
     {
       u32 TSTART : 1;
@@ -97,10 +97,10 @@ private:
 
   // STATE_TO_SAVE
   UEXI_STATUS m_Status;
-  u32 m_DMAMemoryAddress;
-  u32 m_DMALength;
+  u32 m_DMAMemoryAddress = 0;
+  u32 m_DMALength = 0;
   UEXI_CONTROL m_Control;
-  u32 m_ImmData;
+  u32 m_ImmData = 0;
 
   // Devices
   enum

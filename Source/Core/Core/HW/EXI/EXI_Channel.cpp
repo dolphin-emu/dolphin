@@ -20,12 +20,8 @@ enum
   EXI_READWRITE
 };
 
-CEXIChannel::CEXIChannel(u32 ChannelId)
-    : m_DMAMemoryAddress(0), m_DMALength(0), m_ImmData(0), m_ChannelId(ChannelId)
+CEXIChannel::CEXIChannel(u32 ChannelId) : m_ChannelId(ChannelId)
 {
-  m_Control.Hex = 0;
-  m_Status.Hex = 0;
-
   if (m_ChannelId == 0 || m_ChannelId == 1)
     m_Status.EXTINT = 1;
   if (m_ChannelId == 1)
