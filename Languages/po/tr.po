@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-14 18:42+0100\n"
-"PO-Revision-Date: 2017-01-14 17:42+0000\n"
+"POT-Creation-Date: 2017-01-21 12:22+0100\n"
+"PO-Revision-Date: 2017-01-21 11:22+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Turkish (http://www.transifex.com/delroth/dolphin-emu/"
 "language/tr/)\n"
@@ -195,7 +195,7 @@ msgstr ""
 "%s hafıza kartı olarak yüklenemedi. \n"
 "Dosya geçerli bir hafıza kartı dosyası olabilmek için çok küçük (0x%x bayt)"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:182
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:183
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -204,7 +204,7 @@ msgstr ""
 "%s bir konum değil, *.original. taşıma başarısız\n"
 "Yazma haklarınızı doğrulayın yada dosyayı Dolphin'in dışına taşıyın"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:176
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:177
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr "%s bir konum değil, *.original konumuna taşındı"
@@ -891,7 +891,7 @@ msgstr ""
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:255
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:316
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:488
 msgid "Add to &watch"
 msgstr ""
@@ -1072,7 +1072,7 @@ msgstr "Denetleyici Noktalarını Ata"
 msgid "At least one pane must remain open."
 msgstr "En az bir bölme açık kalmalıdır."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:272
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:277
 msgid "Attempted to load a state. Bluetooth will likely be broken now."
 msgstr ""
 
@@ -1229,13 +1229,13 @@ msgstr "Mavi Sol"
 msgid "Blue Right"
 msgstr "Mavi Sağ"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.cpp:17
+#: Source/Core/Core/IOS/USB/Bluetooth/BTStub.cpp:23
 msgid ""
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. "
 "Passthrough mode cannot be used."
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:136
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:142
 msgid ""
 "Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device "
 "was found. Aborting."
@@ -1379,7 +1379,7 @@ msgstr ""
 msgid "Callstack"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1851
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1787
 #, c-format
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr ""
@@ -1552,21 +1552,21 @@ msgstr ""
 msgid "Clear"
 msgstr "Temizle"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:126
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:125
 msgid "Clear Pixel Shaders"
 msgstr ""
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:108
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:109
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:110
 msgid "Clear Screen"
 msgstr ""
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:113
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:114
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:115
 msgid "Clear Textures"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:119
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:118
 msgid "Clear Vertex Shaders"
 msgstr ""
 
@@ -1801,7 +1801,7 @@ msgid "Copy"
 msgstr "Kopyala"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:362
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:250
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:311
 msgid "Copy &address"
 msgstr ""
 
@@ -1814,7 +1814,7 @@ msgid "Copy &function"
 msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:365
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:251
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:312
 msgid "Copy &hex"
 msgstr ""
 
@@ -2051,7 +2051,7 @@ msgstr "Hata ayıklama"
 msgid "Debug Only"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:177
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:175
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:84
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:845
 msgid "Debugging"
@@ -2386,8 +2386,8 @@ msgstr ""
 msgid "Dummy"
 msgstr "Kukla"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:100
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:101
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:102
 msgid "Dump"
 msgstr ""
 
@@ -2450,10 +2450,6 @@ msgid ""
 "If unsure, leave this unchecked."
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
-msgid "DumpList"
-msgstr ""
-
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:262
 msgid "Duplicate Bundled ActionReplay Code"
 msgstr ""
@@ -2472,7 +2468,7 @@ msgstr "&Çıkış "
 msgid "EFB Cmd"
 msgstr ""
 
-#: Source/Core/Core/HW/BBA-TAP/TAP_Win32.cpp:206
+#: Source/Core/Core/HW/EXI/BBA-TAP/TAP_Win32.cpp:206
 #, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
@@ -2821,13 +2817,13 @@ msgstr ""
 "Hata: \"%s\" 'dan sonra, %d (0x%X) bulundu ( %d (0x%X) yerine). Durum kaydı "
 "yüklemesi iptal ediliyor..."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:386
+#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:387
 msgid ""
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may "
 "not show fonts correctly, or crash."
 msgstr ""
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:381
+#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:382
 msgid ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
@@ -2944,7 +2940,7 @@ msgstr "Genişletiliyor..."
 msgid "FIFO Player"
 msgstr "FIFO Oynatıcısı"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:259
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:320
 msgid "FP value"
 msgstr ""
 
@@ -2960,11 +2956,11 @@ msgstr "Bağlantı Başarısız!"
 msgid "Failed to Connect!"
 msgstr "Bağlantı başarısız!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:531
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:534
 msgid "Failed to claim interface for BT passthrough"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:526
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:529
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr ""
@@ -2990,7 +2986,7 @@ msgstr ""
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:519
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:522
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr ""
@@ -3072,7 +3068,7 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "Disk kalıbının özgün ID'si okunamadı."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:87
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:90
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "BT.DINF 'den SYSCONF 'a yazma başarısız."
 
@@ -3207,7 +3203,7 @@ msgstr "Sağlamayı Düzelt"
 msgid "Flags"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:163
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:161
 msgid "Flow Control"
 msgstr ""
 
@@ -3327,7 +3323,7 @@ msgstr ""
 msgid "Frame Advance Reset Speed"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:140
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:138
 msgid "Frame Buffer"
 msgstr ""
 
@@ -3585,7 +3581,7 @@ msgstr ""
 msgid "Generate a New Statistics Identity"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:141
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:139
 msgid "Geometry data"
 msgstr ""
 
@@ -3685,7 +3681,7 @@ msgstr "Yükseklik"
 msgid "Help"
 msgstr "Yardım"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:263
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:324
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:104
 msgid "Hex"
 msgstr ""
@@ -3758,12 +3754,12 @@ msgstr ""
 msgid "ID"
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:673
+#: Source/Core/Core/IOS/ES/ES.cpp:798
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr "IOCTL_ES_GETVIEWS: Bilinmeyen biletten veri alma denemesi: %08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:994
+#: Source/Core/Core/IOS/ES/ES.cpp:1095
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3776,7 +3772,7 @@ msgstr ""
 "Başlık ID %016<PRIx64>.\n"
 "Dolphin çakılacak gibi gözüküyor."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:974
+#: Source/Core/Core/IOS/ES/ES.cpp:1075
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr ""
 
@@ -4869,18 +4865,18 @@ msgstr ""
 msgid "Not connected"
 msgstr "Bağlı değil"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:253
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:258
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:263
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:268
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:273
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:278
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:283
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:288
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:302
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:313
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:319
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:324
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:251
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:256
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:261
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:266
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:271
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:276
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:281
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:286
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:300
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:311
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:317
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:322
 msgid "Not implemented"
 msgstr ""
 
@@ -5138,10 +5134,6 @@ msgstr ""
 msgid "Pause on Focus Lost"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:94
-msgid "PauseAtList"
-msgstr ""
-
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:115
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr ""
@@ -5170,11 +5162,11 @@ msgid "Perspectives"
 msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:51
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:135
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:133
 msgid "Pixel Shader"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:137
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:135
 msgid "Pixel Shader Constants"
 msgstr ""
 
@@ -6416,7 +6408,7 @@ msgstr ""
 msgid "State"
 msgstr "Durum"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:144
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:142
 msgid "Statistics"
 msgstr ""
 
@@ -6695,7 +6687,7 @@ msgstr ""
 msgid "Texture Format Overlay"
 msgstr "Doku Biçimi Kaplaması"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:139
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:137
 msgid "Textures"
 msgstr ""
 
@@ -6855,7 +6847,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "Geri alacak hiçbirşey yok!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:607
+#: Source/Core/Core/IOS/ES/ES.cpp:734
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -6979,7 +6971,7 @@ msgstr "Buraya"
 msgid "Toggle &Breakpoint"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:256
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:317
 msgid "Toggle &memory"
 msgstr ""
 
@@ -7102,7 +7094,7 @@ msgstr ""
 msgid "Trying to read from invalid SYSCONF"
 msgstr "Geçersiz SYSCONF'tan okumayı deniyor"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:53
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:56
 msgid ""
 "Trying to read from invalid SYSCONF\n"
 "Wii Remote Bluetooth IDs are not available"
@@ -7225,8 +7217,8 @@ msgstr "Yukarı"
 msgid "Update"
 msgstr "Güncelle"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:104
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:105
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:106
 msgid "Update Screen"
 msgstr ""
 
@@ -7344,20 +7336,20 @@ msgstr "Ayrıntı seviyesi"
 msgid "Vertex Cmd"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:142
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:140
 msgid "Vertex Description"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:143
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:141
 msgid "Vertex Matrices"
 msgstr ""
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:52
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:136
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
 msgid "Vertex Shader"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:138
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:136
 msgid "Vertex Shader Constants"
 msgstr ""
 
@@ -7370,7 +7362,7 @@ msgstr ""
 msgid "View &memory"
 msgstr ""
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:264
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:325
 msgid "View As:"
 msgstr ""
 
@@ -7418,13 +7410,13 @@ msgstr "Sesi Kapat/Aç"
 msgid "Volume Up"
 msgstr "Sesi Yükselt"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:478
-#: Source/Core/DiscIO/NANDContentLoader.cpp:502
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
+#: Source/Core/DiscIO/NANDContentLoader.cpp:525
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD kurulumu başarısız: %s oluşturmada hata"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:517
+#: Source/Core/DiscIO/NANDContentLoader.cpp:540
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD kurulumu başarısız: Ticket oluşturma hatası."
 

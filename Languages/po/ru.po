@@ -15,8 +15,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-14 18:42+0100\n"
-"PO-Revision-Date: 2017-01-14 17:42+0000\n"
+"POT-Creation-Date: 2017-01-21 12:22+0100\n"
+"PO-Revision-Date: 2017-01-21 11:22+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Russian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ru/)\n"
@@ -208,7 +208,7 @@ msgstr ""
 "Не удалось загрузить %s как карту памяти.\n"
 "Размер файла слишком мал (0x%x байт)"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:182
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:183
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
@@ -218,10 +218,10 @@ msgstr ""
 " Убедитесь, что у вас есть права на запись, или переместите файл во внешнюю "
 "папку"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:176
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:177
 #, c-format
 msgid "%s was not a directory, moved to *.original"
-msgstr "%s - не папка, перемещенно в *.original"
+msgstr "%s - не папка, перемещено в *.original"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:186
 #, c-format
@@ -511,7 +511,7 @@ msgstr "&Обновить"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:84
 msgid "&Refresh Game List"
-msgstr ""
+msgstr "&Обновить список игр"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:304
 msgid "&Registers"
@@ -921,7 +921,7 @@ msgstr "Добавить &точку останова в памяти"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:255
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:316
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:488
 msgid "Add to &watch"
 msgstr "Добавить в &наблюдение"
@@ -1096,7 +1096,7 @@ msgstr "Назначить порты контроллеров"
 msgid "At least one pane must remain open."
 msgstr "Хотя бы одна панель должна быть открыта."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:272
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:277
 msgid "Attempted to load a state. Bluetooth will likely be broken now."
 msgstr ""
 "Совершена попытка загрузки сохранения. Bluetooth, вероятно, перестанет "
@@ -1263,7 +1263,7 @@ msgstr "Синяя слева"
 msgid "Blue Right"
 msgstr "Синяя справа"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.cpp:17
+#: Source/Core/Core/IOS/USB/Bluetooth/BTStub.cpp:23
 msgid ""
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. "
 "Passthrough mode cannot be used."
@@ -1271,7 +1271,7 @@ msgstr ""
 "Включён режим проброса Bluetooth, но Dolphin собран без поддержки libusb. "
 "Невозможно использовать режим проброса."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:136
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:142
 msgid ""
 "Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device "
 "was found. Aborting."
@@ -1421,7 +1421,7 @@ msgstr ""
 msgid "Callstack"
 msgstr "Стэк вызова"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1851
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1787
 #, c-format
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr "Не удаётся найти Wii Remote по дескриптору %02x"
@@ -1594,21 +1594,21 @@ msgstr "Настройка Classic контроллера"
 msgid "Clear"
 msgstr "Очистить"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:126
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:125
 msgid "Clear Pixel Shaders"
 msgstr "Очистить пикс. шейдеры"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:108
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:109
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:110
 msgid "Clear Screen"
 msgstr "Очистить экран"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:113
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:114
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:115
 msgid "Clear Textures"
 msgstr "Очистить текстуры"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:119
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:118
 msgid "Clear Vertex Shaders"
 msgstr "Очистить верш. шейдеры"
 
@@ -1855,7 +1855,7 @@ msgid "Copy"
 msgstr "Копировать"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:362
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:250
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:311
 msgid "Copy &address"
 msgstr "Скопировать &адрес"
 
@@ -1868,7 +1868,7 @@ msgid "Copy &function"
 msgstr "Скопировать &функцию"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:365
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:251
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:312
 msgid "Copy &hex"
 msgstr "Скопировать &hex-значение"
 
@@ -2119,7 +2119,7 @@ msgstr "Отладка"
 msgid "Debug Only"
 msgstr "Только для отладки"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:177
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:175
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:84
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:845
 msgid "Debugging"
@@ -2466,8 +2466,8 @@ msgstr "Настройка барабанов"
 msgid "Dummy"
 msgstr "Заглушка"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:100
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:101
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:102
 msgid "Dump"
 msgstr "Дампить"
 
@@ -2536,10 +2536,6 @@ msgstr ""
 "\n"
 "Если не уверены – оставьте выключенным."
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
-msgid "DumpList"
-msgstr "DumpList"
-
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:262
 msgid "Duplicate Bundled ActionReplay Code"
 msgstr "Дублировать готовый код ActionReplay"
@@ -2558,7 +2554,7 @@ msgstr "&Закрыть"
 msgid "EFB Cmd"
 msgstr "Команда EFB"
 
-#: Source/Core/Core/HW/BBA-TAP/TAP_Win32.cpp:206
+#: Source/Core/Core/HW/EXI/BBA-TAP/TAP_Win32.cpp:206
 #, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
@@ -2932,7 +2928,7 @@ msgstr ""
 "Ошибка: после \"%s\" найдено %d (0x%X) вместо маркера сохранения %d (0x%X). "
 "Отмена загрузки быстрого сохранения..."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:386
+#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:387
 msgid ""
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may "
 "not show fonts correctly, or crash."
@@ -2940,7 +2936,7 @@ msgstr ""
 "Ошибка: попытка получить доступ к шрифтам Shift JIS, когда они не загружены. "
 "Игры могут показывать шрифты некорректно или падать."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:381
+#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:382
 msgid ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
@@ -3059,7 +3055,7 @@ msgstr "Извлечение..."
 msgid "FIFO Player"
 msgstr "Проигрыватель FIFO"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:259
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:320
 msgid "FP value"
 msgstr "Число с пл. запятой"
 
@@ -3075,11 +3071,11 @@ msgstr "Ошибка подключения!"
 msgid "Failed to Connect!"
 msgstr "Ошибка подключения!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:531
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:534
 msgid "Failed to claim interface for BT passthrough"
 msgstr "Не удалось запросить интерфейс для проброса BT"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:526
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:529
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr "Не удалось отсоединить драйвер ядра для проброса BT: %s"
@@ -3110,7 +3106,7 @@ msgstr ""
 "Не удалось инициализировать прослушивание порта. Возможно, запущено "
 "несколько копий сервера сетевой игры?"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:519
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:522
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr "Не удалось открыть устройство Bluetooth: %s"
@@ -3198,7 +3194,7 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "Не удалось прочитать уникальный ID с образа диска"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:87
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:90
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Не удалось записать BT.DINF в SYSCONF"
 
@@ -3342,7 +3338,7 @@ msgstr "Исправить контрольные суммы"
 msgid "Flags"
 msgstr "Флаги"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:163
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:161
 msgid "Flow Control"
 msgstr "Управление потоком"
 
@@ -3482,7 +3478,7 @@ msgstr "Перемотка кадров: увел. скорость"
 msgid "Frame Advance Reset Speed"
 msgstr "Перемотка кадров: сбросить скорость"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:140
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:138
 msgid "Frame Buffer"
 msgstr "Буфер кадров"
 
@@ -3755,7 +3751,7 @@ msgstr "Общее и настройки"
 msgid "Generate a New Statistics Identity"
 msgstr "Сгенерировать новый ID сбора статистики"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:141
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:139
 msgid "Geometry data"
 msgstr "Данные геометрии"
 
@@ -3864,7 +3860,7 @@ msgstr "Высота"
 msgid "Help"
 msgstr "Помощь"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:263
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:324
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:104
 msgid "Hex"
 msgstr "Hex"
@@ -3949,13 +3945,13 @@ msgstr "Гибридный Wii Remote"
 msgid "ID"
 msgstr "ID"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:673
+#: Source/Core/Core/IOS/ES/ES.cpp:798
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr ""
 "IOCTL_ES_GETVIEWS: попытка получения данных из неизвестного тикета: %08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:994
+#: Source/Core/Core/IOS/ES/ES.cpp:1095
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3968,7 +3964,7 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 " Dolphin, вероятнее всего, зависнет."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:974
+#: Source/Core/Core/IOS/ES/ES.cpp:1075
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: файл DOL некорректен!"
 
@@ -4079,9 +4075,9 @@ msgid ""
 msgstr ""
 "Реализует полноэкранный режим в виде окна без рамок, занимающего весь экран "
 "вместо использования исключительного режима.\n"
-"Позволяет более быстрое переключение между полноэкранным и оконным режимами, "
-"но слегка увеличивает задержку ввода, делает движения менее плавными и "
-"слегка ухудшает производительность.\n"
+"Позволяет быстрее переключаться между полноэкранным и оконным режимами, но "
+"слегка увеличивает задержку ввода, делает движения менее плавными и слегка "
+"ухудшает производительность.\n"
 "Исключительный режим необходим для работы Nvidia 3D Vision в бэкенде "
 "Direct3D.\n"
 "\n"
@@ -5122,18 +5118,18 @@ msgstr "Не у всех игроков есть игра. Вы действит
 msgid "Not connected"
 msgstr "Не подключено"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:253
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:258
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:263
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:268
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:273
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:278
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:283
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:288
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:302
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:313
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:319
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:324
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:251
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:256
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:261
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:266
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:271
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:276
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:281
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:286
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:300
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:311
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:317
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:322
 msgid "Not implemented"
 msgstr "Не реализовано"
 
@@ -5396,10 +5392,6 @@ msgstr "Пауза в конце ролика"
 msgid "Pause on Focus Lost"
 msgstr "Пауза при потере фокуса"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:94
-msgid "PauseAtList"
-msgstr "PauseAtList"
-
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:115
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr "Приостановить эмуляцию, если фокус убран с окна эмуляции."
@@ -5430,11 +5422,11 @@ msgid "Perspectives"
 msgstr "Точки обозрения"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:51
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:135
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:133
 msgid "Pixel Shader"
 msgstr "Пиксельный шейдер"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:137
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:135
 msgid "Pixel Shader Constants"
 msgstr "Константы пиксельного шейдера"
 
@@ -6762,7 +6754,7 @@ msgstr "Запускать непосредственно игру вместо 
 msgid "State"
 msgstr "Состояние"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:144
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:142
 msgid "Statistics"
 msgstr "Статистика"
 
@@ -7052,7 +7044,7 @@ msgstr "Текстурная команда"
 msgid "Texture Format Overlay"
 msgstr "Наложение форматов текстур"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:139
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:137
 msgid "Textures"
 msgstr "Текстуры"
 
@@ -7220,7 +7212,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "Нет действий для отмены!"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:607
+#: Source/Core/Core/IOS/ES/ES.cpp:734
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -7367,7 +7359,7 @@ msgstr "до"
 msgid "Toggle &Breakpoint"
 msgstr "Точка &останова"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:256
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:317
 msgid "Toggle &memory"
 msgstr "Вкл./выкл. &память"
 
@@ -7492,7 +7484,7 @@ msgstr ""
 msgid "Trying to read from invalid SYSCONF"
 msgstr "Попытка чтения из неверного SYSCONF"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:53
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:56
 msgid ""
 "Trying to read from invalid SYSCONF\n"
 "Wii Remote Bluetooth IDs are not available"
@@ -7621,8 +7613,8 @@ msgstr "Вверх"
 msgid "Update"
 msgstr "Обновить"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:104
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:105
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:106
 msgid "Update Screen"
 msgstr "Обновить экран"
 
@@ -7749,20 +7741,20 @@ msgstr "Уровень анализа"
 msgid "Vertex Cmd"
 msgstr "Вершинная команда"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:142
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:140
 msgid "Vertex Description"
 msgstr "Описание вершины"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:143
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:141
 msgid "Vertex Matrices"
 msgstr "Матрицы вершин"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:52
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:136
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
 msgid "Vertex Shader"
 msgstr "Вершинный шейдер"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:138
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:136
 msgid "Vertex Shader Constants"
 msgstr "Константы вершинного шейдера"
 
@@ -7775,7 +7767,7 @@ msgstr "Показать &код"
 msgid "View &memory"
 msgstr "Показать &память"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:264
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:325
 msgid "View As:"
 msgstr "Показывать как:"
 
@@ -7823,13 +7815,13 @@ msgstr "Выключить звук"
 msgid "Volume Up"
 msgstr "Увеличить громкость"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:478
-#: Source/Core/DiscIO/NANDContentLoader.cpp:502
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
+#: Source/Core/DiscIO/NANDContentLoader.cpp:525
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "Ошибка установки WAD: ошибка создания %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:517
+#: Source/Core/DiscIO/NANDContentLoader.cpp:540
 msgid "WAD installation failed: error creating ticket"
 msgstr "Невозможно установить WAD: ошибка создания билета"
 

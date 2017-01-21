@@ -14,8 +14,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-14 18:42+0100\n"
-"PO-Revision-Date: 2017-01-14 17:42+0000\n"
+"POT-Creation-Date: 2017-01-21 12:22+0100\n"
+"PO-Revision-Date: 2017-01-21 11:22+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Japanese (http://www.transifex.com/delroth/dolphin-emu/"
 "language/ja/)\n"
@@ -197,14 +197,14 @@ msgstr ""
 "このファイルのサイズは小さすぎます。正しいファイルではありません (0x%x バイ"
 "ト)"
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:182
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:183
 #, c-format
 msgid ""
 "%s is not a directory, failed to move to *.original.\n"
 " Verify your write permissions or move the file outside of Dolphin"
 msgstr ""
 
-#: Source/Core/Core/HW/EXI_DeviceMemoryCard.cpp:176
+#: Source/Core/Core/HW/EXI/EXI_DeviceMemoryCard.cpp:177
 #, c-format
 msgid "%s was not a directory, moved to *.original"
 msgstr ""
@@ -448,7 +448,7 @@ msgstr "&Memory"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:215
 msgid "&Memory Card Manager (GC)"
-msgstr ""
+msgstr "GCメモリーカードマネージャ(&M)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:46
 msgid "&Movie"
@@ -497,7 +497,7 @@ msgstr "&Refresh"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:84
 msgid "&Refresh Game List"
-msgstr ""
+msgstr "ゲームリストを再更新(&R)"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:304
 msgid "&Registers"
@@ -887,7 +887,7 @@ msgstr "パッチを追加"
 
 #: Source/Core/Core/HotkeyManager.cpp:50
 msgid "Add a Breakpoint"
-msgstr ""
+msgstr "Add a Breakpoint"
 
 #: Source/Core/Core/HotkeyManager.cpp:51
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:21
@@ -908,7 +908,7 @@ msgstr "Add memory &breakpoint"
 
 #. i18n: This kind of "watch" is used for watching emulated memory.
 #. It's not related to timekeeping devices.
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:255
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:316
 #: Source/Core/DolphinWX/Debugger/RegisterView.cpp:488
 msgid "Add to &watch"
 msgstr "Add to &watch"
@@ -1085,7 +1085,7 @@ msgstr "コントローラ割り当て設定"
 msgid "At least one pane must remain open."
 msgstr "At least one pane must remain open."
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:272
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:277
 msgid "Attempted to load a state. Bluetooth will likely be broken now."
 msgstr ""
 
@@ -1250,13 +1250,13 @@ msgstr "青 - 左"
 msgid "Blue Right"
 msgstr "青 - 右"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_stub.cpp:17
+#: Source/Core/Core/IOS/USB/Bluetooth/BTStub.cpp:23
 msgid ""
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. "
 "Passthrough mode cannot be used."
 msgstr ""
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:136
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:142
 msgid ""
 "Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device "
 "was found. Aborting."
@@ -1295,7 +1295,7 @@ msgstr "Break and log"
 
 #: Source/Core/Core/HotkeyManager.cpp:241
 msgid "Breakpoint"
-msgstr ""
+msgstr "Breakpoint"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.cpp:403
 msgid "Breakpoint encountered! Step out aborted."
@@ -1405,7 +1405,7 @@ msgstr ""
 msgid "Callstack"
 msgstr "Callstack"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:1851
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:1787
 #, c-format
 msgid "Can't find Wii Remote by connection handle %02x"
 msgstr "Can't find Wii Remote by connection handle %02x"
@@ -1577,21 +1577,21 @@ msgstr "クラシックコントローラの設定"
 msgid "Clear"
 msgstr "全消去"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:126
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:125
 msgid "Clear Pixel Shaders"
 msgstr "Clear Pixel Shaders"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:108
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:109
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:110
 msgid "Clear Screen"
 msgstr "Clear Screen"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:113
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:114
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:115
 msgid "Clear Textures"
 msgstr "Clear Textures"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:119
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:118
 msgid "Clear Vertex Shaders"
 msgstr "Clear Vertex Shaders"
 
@@ -1610,7 +1610,7 @@ msgstr "閉じる"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:170
 msgid "Co&nfiguration"
-msgstr ""
+msgstr "Dolphinの設定(&N)"
 
 #: Source/Core/DolphinWX/Debugger/CodeWindow.h:82
 msgid "Code"
@@ -1835,7 +1835,7 @@ msgid "Copy"
 msgstr "コピー"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:362
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:250
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:311
 msgid "Copy &address"
 msgstr "Copy &address"
 
@@ -1848,7 +1848,7 @@ msgid "Copy &function"
 msgstr "Copy &function"
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:365
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:251
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:312
 msgid "Copy &hex"
 msgstr "Copy &hex"
 
@@ -1859,7 +1859,7 @@ msgstr "コピーに失敗"
 #: Source/Core/DolphinWX/MemcardManager.cpp:821
 #, c-format
 msgid "Copy to Memory Card %c"
-msgstr ""
+msgstr "メモリーカード%cにコピー"
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:344
 msgid "Core"
@@ -2093,7 +2093,7 @@ msgstr "デバッグ"
 msgid "Debug Only"
 msgstr "デバッグ用"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:177
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:175
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:84
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:845
 msgid "Debugging"
@@ -2441,8 +2441,8 @@ msgstr "ドラムコントローラの設定"
 msgid "Dummy"
 msgstr "ダミーデバイス"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:100
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:101
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:102
 msgid "Dump"
 msgstr "Dump"
 
@@ -2512,10 +2512,6 @@ msgstr ""
 "\n"
 "よく分からなければ、チェックを入れないでください。"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
-msgid "DumpList"
-msgstr "DumpList"
-
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:262
 msgid "Duplicate Bundled ActionReplay Code"
 msgstr ""
@@ -2534,7 +2530,7 @@ msgstr "終了"
 msgid "EFB Cmd"
 msgstr "EFB Cmd"
 
-#: Source/Core/Core/HW/BBA-TAP/TAP_Win32.cpp:206
+#: Source/Core/Core/HW/EXI/BBA-TAP/TAP_Win32.cpp:206
 #, c-format
 msgid ""
 "ERROR: This version of Dolphin requires a TAP-Win32 driver that is at least "
@@ -2897,7 +2893,7 @@ msgstr ""
 "Error: After \"%s\", found %d (0x%X) instead of save marker %d (0x%X). "
 "Aborting savestate load..."
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:386
+#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:387
 msgid ""
 "Error: Trying to access Shift JIS fonts but they are not loaded. Games may "
 "not show fonts correctly, or crash."
@@ -2905,7 +2901,7 @@ msgstr ""
 "エラー： Shift-JISフォントにアクセスを試みましたが読み込めませんでした。ゲー"
 "ムはフォントを正しく表示できないか、クラッシュするでしょう"
 
-#: Source/Core/Core/HW/EXI_DeviceIPL.cpp:381
+#: Source/Core/Core/HW/EXI/EXI_DeviceIPL.cpp:382
 msgid ""
 "Error: Trying to access Windows-1252 fonts but they are not loaded. Games "
 "may not show fonts correctly, or crash."
@@ -3024,7 +3020,7 @@ msgstr "抽出しています..."
 msgid "FIFO Player"
 msgstr "FIFO プレーヤー"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:259
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:320
 msgid "FP value"
 msgstr "FP value"
 
@@ -3040,11 +3036,11 @@ msgstr "接続に失敗！"
 msgid "Failed to Connect!"
 msgstr "接続に失敗！"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:531
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:534
 msgid "Failed to claim interface for BT passthrough"
 msgstr "Failed to claim interface for BT passthrough"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:526
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:529
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr "Failed to detach kernel driver for BT passthrough: %s"
@@ -3070,7 +3066,7 @@ msgstr ""
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr "接続待ちに失敗。別のネットプレイサーバーが動いていませんか？"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.cpp:519
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:522
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr "Failed to open Bluetooth device: %s"
@@ -3105,6 +3101,9 @@ msgid ""
 "Memory card may be truncated\n"
 "File position: 0x%<PRIx64>"
 msgstr ""
+"Failed to read block %u of the save data\n"
+"Memory card may be truncated\n"
+"File position: 0x%<PRIx64>"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:118
 msgid ""
@@ -3155,7 +3154,7 @@ msgstr ""
 msgid "Failed to read unique ID from disc image"
 msgstr "Failed to read unique ID from disc image"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:87
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:90
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Failed to write BT.DINF to SYSCONF"
 
@@ -3228,7 +3227,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:426
 msgid "File is not recognized as a memory card"
-msgstr ""
+msgstr "このファイルはメモリーカードとして認識されませんでした"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:342
 msgid "File not compressed"
@@ -3299,7 +3298,7 @@ msgstr "チェックサムを修正"
 msgid "Flags"
 msgstr "Flags"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:163
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:161
 msgid "Flow Control"
 msgstr "Flow Control"
 
@@ -3436,7 +3435,7 @@ msgstr "Frame Advance速度 増加"
 msgid "Frame Advance Reset Speed"
 msgstr "Frame Advance速度 リセット"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:140
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:138
 msgid "Frame Buffer"
 msgstr "Frame Buffer"
 
@@ -3707,7 +3706,7 @@ msgstr "一般設定"
 msgid "Generate a New Statistics Identity"
 msgstr "新しい統計IDを作成する"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:141
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:139
 msgid "Geometry data"
 msgstr "Geometry data"
 
@@ -3813,7 +3812,7 @@ msgstr "範囲(縦)"
 msgid "Help"
 msgstr "ヘルプ"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:263
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:324
 #: Source/Core/DolphinWX/Debugger/MemoryWindow.cpp:104
 msgid "Hex"
 msgstr "Hex"
@@ -3904,12 +3903,12 @@ msgstr ""
 msgid "ID"
 msgstr "ID"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:673
+#: Source/Core/Core/IOS/ES/ES.cpp:798
 #, c-format
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:994
+#: Source/Core/Core/IOS/ES/ES.cpp:1095
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3922,7 +3921,7 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 "Dolphin を停止します"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:974
+#: Source/Core/Core/IOS/ES/ES.cpp:1075
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 
@@ -4752,11 +4751,11 @@ msgstr "Memory Not Ready"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:450
 msgid "Memory card already has a save for this title."
-msgstr ""
+msgstr "このタイトルのセーブデータはすでに存在します"
 
 #: Source/Core/DolphinWX/MemcardManager.cpp:289
 msgid "Memory card already opened"
-msgstr ""
+msgstr "すでに開かれています"
 
 #: Source/Core/Core/HW/GCMemcard.cpp:94
 msgid "Memory card file size does not match the header size"
@@ -5075,18 +5074,18 @@ msgstr "このタイトルを持っていないプレイヤーがいます。続
 msgid "Not connected"
 msgstr "未接続"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:253
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:258
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:263
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:268
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:273
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:278
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:283
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:288
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:302
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:313
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:319
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:324
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:251
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:256
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:261
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:266
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:271
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:276
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:281
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:286
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:300
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:311
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:317
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:322
 msgid "Not implemented"
 msgstr "Not implemented"
 
@@ -5232,6 +5231,9 @@ msgid ""
 "Right click and export all of the saves,\n"
 "and import the saves to a new memory card\n"
 msgstr ""
+"ファイルディレクトリ内のファイル順序が、ブロック順序と一致しません\n"
+"右クリックメニューから全てのセーブデータをエクスポートし、\n"
+"新しくメモリーカードを作成して、そこへインポートを行ってください\n"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:146
 msgid "Orientation"
@@ -5344,10 +5346,6 @@ msgstr "再生終了時に一時停止"
 msgid "Pause on Focus Lost"
 msgstr "フォーカスが外れたら一時停止"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:94
-msgid "PauseAtList"
-msgstr "PauseAtList"
-
 #: Source/Core/DolphinWX/Config/InterfaceConfigPane.cpp:115
 msgid "Pauses the emulator when focus is taken away from the emulation window."
 msgstr ""
@@ -5377,11 +5375,11 @@ msgid "Perspectives"
 msgstr "Perspectives"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:51
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:135
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:133
 msgid "Pixel Shader"
 msgstr "Pixel Shader"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:137
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:135
 msgid "Pixel Shader Constants"
 msgstr "Pixel Shader Constants"
 
@@ -5482,7 +5480,7 @@ msgstr "プロファイル"
 
 #: Source/Core/Core/HotkeyManager.cpp:240
 msgid "Program Counter"
-msgstr ""
+msgstr "Program Counter"
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.h:55
 msgid "Properties"
@@ -6254,7 +6252,7 @@ msgstr "Wiiメニュー(ディスクチャンネル)に表示(&D)"
 #: Source/Core/DolphinWX/MemcardManager.cpp:835
 #, c-format
 msgid "Set as default Memory Card %c"
-msgstr ""
+msgstr "メモリーカード%cを既定として設定"
 
 #: Source/Core/DolphinWX/MainToolBar.cpp:212
 msgid "Set the current instruction"
@@ -6704,7 +6702,7 @@ msgstr "Start the game directly instead of booting to pause"
 msgid "State"
 msgstr "動作率"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:144
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:142
 msgid "Statistics"
 msgstr "Statistics"
 
@@ -6721,19 +6719,19 @@ msgstr "Step"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:404
 msgid "Step &Into"
-msgstr ""
+msgstr "Step &Into"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:405
 msgid "Step &Over"
-msgstr ""
+msgstr "Step &Over"
 
 #: Source/Core/Core/HotkeyManager.cpp:41
 msgid "Step Into"
-msgstr ""
+msgstr "Step Into"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:406
 msgid "Step O&ut"
-msgstr ""
+msgstr "Step O&ut"
 
 #. i18n: Here, "Step" is a verb. This function is used for
 #. going through code step by step.
@@ -6779,7 +6777,7 @@ msgstr "Step successful!"
 
 #: Source/Core/Core/HotkeyManager.cpp:239
 msgid "Stepping"
-msgstr ""
+msgstr "Stepping"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:650
 msgid "Stereoscopic 3D Mode:"
@@ -6927,7 +6925,7 @@ msgstr "TAS Input"
 #: Source/Core/DolphinWX/FrameTools.cpp:378
 #, c-format
 msgid "TAS Input - GameCube Controller %d"
-msgstr ""
+msgstr "TAS Input - ゲームキューブコントローラ %d"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:386
 #, c-format
@@ -6993,7 +6991,7 @@ msgstr "Texture Cmd"
 msgid "Texture Format Overlay"
 msgstr "テクスチャフォーマット情報表示"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:139
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:137
 msgid "Textures"
 msgstr "Textures"
 
@@ -7161,7 +7159,7 @@ msgstr ""
 msgid "There is nothing to undo!"
 msgstr "取り消すものがありません！"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_es.cpp:607
+#: Source/Core/Core/IOS/ES/ES.cpp:734
 msgid ""
 "There must be a ticket for 00000001/00000002. Your NAND dump is probably "
 "incomplete."
@@ -7299,9 +7297,9 @@ msgstr "終了"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:407
 msgid "Toggle &Breakpoint"
-msgstr ""
+msgstr "Toggle &Breakpoint"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:256
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:317
 msgid "Toggle &memory"
 msgstr "Toggle &memory"
 
@@ -7331,7 +7329,7 @@ msgstr "アスペクト比 設定切替"
 
 #: Source/Core/Core/HotkeyManager.cpp:49
 msgid "Toggle Breakpoint"
-msgstr ""
+msgstr "Toggle Breakpoint"
 
 #: Source/Core/Core/HotkeyManager.cpp:60
 msgid "Toggle Crop"
@@ -7359,7 +7357,7 @@ msgstr "一時停止 切替"
 
 #: Source/Core/Core/HotkeyManager.cpp:64
 msgid "Toggle Texture Dumping"
-msgstr ""
+msgstr "Toggle Texture Dumping"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:393
 msgid "Toggle editing of perspectives"
@@ -7427,7 +7425,7 @@ msgstr ""
 msgid "Trying to read from invalid SYSCONF"
 msgstr "Trying to read from invalid SYSCONF"
 
-#: Source/Core/Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.cpp:53
+#: Source/Core/Core/IOS/USB/Bluetooth/BTEmu.cpp:56
 msgid ""
 "Trying to read from invalid SYSCONF\n"
 "Wii Remote Bluetooth IDs are not available"
@@ -7552,8 +7550,8 @@ msgstr "上"
 msgid "Update"
 msgstr "再取得"
 
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:104
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:105
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:106
 msgid "Update Screen"
 msgstr "Update Screen"
 
@@ -7675,20 +7673,20 @@ msgstr "出力するログのレベル設定"
 msgid "Vertex Cmd"
 msgstr "Vertex Cmd"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:142
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:140
 msgid "Vertex Description"
 msgstr "Vertex Description"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:143
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:141
 msgid "Vertex Matrices"
 msgstr "Vertex Matrices"
 
 #: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:52
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:136
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:134
 msgid "Vertex Shader"
 msgstr "Vertex Shader"
 
-#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:138
+#: Source/Core/DolphinWX/Debugger/DebuggerPanel.cpp:136
 msgid "Vertex Shader Constants"
 msgstr "Vertex Shader Constants"
 
@@ -7701,7 +7699,7 @@ msgstr "View &code"
 msgid "View &memory"
 msgstr "View &memory"
 
-#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:264
+#: Source/Core/DolphinWX/Debugger/MemoryView.cpp:325
 msgid "View As:"
 msgstr "View As:"
 
@@ -7749,13 +7747,13 @@ msgstr "無音 切替"
 msgid "Volume Up"
 msgstr "音量を上げる"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:478
-#: Source/Core/DiscIO/NANDContentLoader.cpp:502
+#: Source/Core/DiscIO/NANDContentLoader.cpp:501
+#: Source/Core/DiscIO/NANDContentLoader.cpp:525
 #, c-format
 msgid "WAD installation failed: error creating %s"
 msgstr "WAD installation failed: error creating %s"
 
-#: Source/Core/DiscIO/NANDContentLoader.cpp:517
+#: Source/Core/DiscIO/NANDContentLoader.cpp:540
 msgid "WAD installation failed: error creating ticket"
 msgstr "WAD installation failed: error creating ticket"
 
@@ -8012,7 +8010,7 @@ msgstr "ウィンドウに出力"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:259
 msgid "Write to memory cards/SD"
-msgstr ""
+msgstr "メモリーカード/SDへの書込を許可"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:252
 #: Source/Core/DolphinWX/TASInputDlg.cpp:393
