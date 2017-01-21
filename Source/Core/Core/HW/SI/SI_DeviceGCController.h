@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Core/HW/GCPad.h"
-#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "InputCommon/GCPadStatus.h"
 
 class CSIDevice_GCController : public ISIDevice

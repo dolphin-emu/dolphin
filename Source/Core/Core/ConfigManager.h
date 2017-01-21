@@ -11,7 +11,7 @@
 #include "Common/IniFile.h"
 #include "Common/NonCopyable.h"
 #include "Core/HW/EXI/EXI_Device.h"
-#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI/SI_Device.h"
 
 namespace DiscIO
 {

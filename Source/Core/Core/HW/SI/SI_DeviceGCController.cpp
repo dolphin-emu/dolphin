@@ -2,7 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI/SI_DeviceGCController.h"
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -10,7 +11,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SI_DeviceGCController.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"

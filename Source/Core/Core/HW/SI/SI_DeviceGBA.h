@@ -4,11 +4,12 @@
 
 #pragma once
 
-#include <SFML/Network.hpp>
 #include <memory>
 
+#include <SFML/Network.hpp>
+
 #include "Common/CommonTypes.h"
-#include "Core/HW/SI_Device.h"
+#include "Core/HW/SI/SI_Device.h"
 
 // GameBoy Advance "Link Cable"
 

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/SI/SI_DeviceGCAdapter.h"
+
 #include <cstring>
 
 #include "Common/CommonTypes.h"
@@ -10,7 +12,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCPad.h"
-#include "Core/HW/SI_DeviceGCAdapter.h"
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCAdapter.h"
 

@@ -2,21 +2,22 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/SI/SI_DeviceGBA.h"
+
 #include <memory>
 #include <mutex>
 #include <queue>
 #include <thread>
+
+#include <SFML/Network.hpp>
 
 #include "Common/CommonTypes.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/SI_Device.h"
-#include "Core/HW/SI_DeviceGBA.h"
+#include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
-
-#include "SFML/Network.hpp"
 
 static std::thread connectionThread;
 static std::queue<std::unique_ptr<sf::TcpSocket>> waiting_socks;

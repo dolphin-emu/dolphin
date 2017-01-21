@@ -21,7 +21,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // for bWii
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/PowerPC/PowerPC.h"
 

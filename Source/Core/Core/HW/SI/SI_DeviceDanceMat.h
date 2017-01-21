@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/SI_DeviceGCController.h"
+#include "Core/HW/SI/SI_DeviceGCController.h"
 
 struct GCPadStatus;
 

@@ -14,7 +14,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 

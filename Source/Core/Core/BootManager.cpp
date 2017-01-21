@@ -33,7 +33,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
