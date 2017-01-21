@@ -6,6 +6,7 @@
 
 package org.dolphinemu.dolphinemu;
 
+import android.content.res.AssetManager;
 import android.view.Surface;
 import android.widget.Toast;
 
@@ -308,7 +309,18 @@ public final class NativeLibrary
 	public static native void LoadState(int slot);
 
 	/**
-	 * Creates the initial folder structure in /sdcard/dolphin-emu/
+	 * Call this once before calling other native code,
+	 * otherwise native code might fail when trying to access assets.
+	 *
+	 * @param assetManager An AssetManager that will be valid
+	 *                     (won't get garbage collected) for the
+	 *                     whole lifetime of the application.
+	 */
+	public static native void SetAssetManager(AssetManager assetManager);
+
+	/**
+	 * Creates the initial folder structure in /sdcard/dolphin-emu/.
+	 * SetUserDirectory must have been called first.
 	 */
 	public static native void CreateUserFolders();
 

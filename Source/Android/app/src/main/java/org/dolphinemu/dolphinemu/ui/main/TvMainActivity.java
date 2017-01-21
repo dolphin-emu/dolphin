@@ -19,6 +19,7 @@ import android.support.v17.leanback.widget.Row;
 import android.support.v17.leanback.widget.RowPresenter;
 import android.widget.Toast;
 
+import org.dolphinemu.dolphinemu.NativeLibrary;
 import org.dolphinemu.dolphinemu.R;
 import org.dolphinemu.dolphinemu.activities.AddDirectoryActivity;
 import org.dolphinemu.dolphinemu.activities.EmulationActivity;
@@ -91,7 +92,7 @@ public final class TvMainActivity extends Activity implements MainView
 
 		// Stuff in this block only happens when this activity is newly created (i.e. not a rotation)
 		if (savedInstanceState == null)
-			StartupHandler.HandleInit(this);
+			StartupHandler.HandleInit(this, getApplicationContext().getAssets());
 	}
 
 	/**
@@ -158,7 +159,7 @@ public final class TvMainActivity extends Activity implements MainView
 		switch (requestCode) {
 			case PermissionsHandler.REQUEST_CODE_WRITE_PERMISSION:
 				if (grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-					StartupHandler.copyAssetsIfNeeded(this);
+					NativeLibrary.CreateUserFolders();
 					loadGames();
 				} else {
 					Toast.makeText(this, R.string.write_permission_needed, Toast.LENGTH_SHORT)

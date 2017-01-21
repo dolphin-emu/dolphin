@@ -536,11 +536,8 @@ std::string& GetExeDirectory()
   return DolphinPath;
 }
 
-#ifdef ANDROID
-static std::string GetSysDirectory()
-#else
+#ifndef ANDROID
 std::string GetSysDirectory()
-#endif
 {
   std::string sysDir;
 
@@ -556,15 +553,20 @@ std::string GetSysDirectory()
   INFO_LOG(COMMON, "GetSysDirectory: Setting to %s:", sysDir.c_str());
   return sysDir;
 }
+#endif
 
 Path GetPathInSys(const std::string& relative_path)
 {
+#ifdef ANDROID
+  return Path(relative_path, true);
+#else
   return Path(GetSysDirectory() + relative_path);
+#endif
 }
 
 bool SysFileExists(const std::string& relative_path)
 {
-  return Exists(GetSysDirectory() + relative_path);
+  return GetPathInSys(relative_path).Exists();
 }
 
 Path GetPathInUserOrSys(const std::string& relative_path)

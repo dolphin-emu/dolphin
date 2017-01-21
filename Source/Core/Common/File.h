@@ -24,6 +24,11 @@
 #include "Common/CommonTypes.h"
 #include "Common/NonCopyable.h"
 
+#ifdef ANDROID
+struct AAsset;
+struct AAssetDir;
+#endif
+
 namespace File
 {
 class ReadOnlyFile
@@ -119,6 +124,41 @@ private:
   bool m_good;
 };
 
+#ifdef ANDROID
+class AndroidAsset final : public ReadOnlyFile, public NonCopyable
+{
+public:
+  AndroidAsset();
+  AndroidAsset(const std::string& path);
+
+  ~AndroidAsset() override;
+
+  AndroidAsset(AndroidAsset&& other) noexcept;
+  AndroidAsset& operator=(AndroidAsset&& other) noexcept;
+
+  void Swap(AndroidAsset& other) noexcept;
+
+  bool Open(const std::string& path);
+  bool Close() override;
+
+  bool IsOpen() const override { return m_file != nullptr; }
+  // IsGood returns false after a read, write or other function fails
+  bool IsGood() const override { return m_good; }
+  // Reset IsGood to true
+  void Clear() override { m_good = true; }
+  bool Seek(s64 offset, int origin) override;
+  u64 Tell() const override;
+  u64 GetSize() override;
+
+protected:
+  bool Read(void* data, size_t element_size, size_t count, size_t* pReadElements) override;
+
+private:
+  AAsset* m_file;
+  bool m_good;
+};
+#endif
+
 class ReadOnlyFileBuffer : public std::streambuf
 {
 public:
@@ -178,6 +218,20 @@ private:
 #endif
 };
 
+#ifdef ANDROID
+class AndroidAssetDirectoryIterator final : public DirectoryIterator, private NonCopyable
+{
+public:
+  AndroidAssetDirectoryIterator(const std::string& path);
+  ~AndroidAssetDirectoryIterator();
+
+  std::string NextChild() override;
+
+private:
+  AAssetDir* m_dir;
+};
+#endif
+
 class Path final
 {
   friend class const_iterator;
@@ -210,13 +264,28 @@ public:
     std::shared_ptr<DirectoryIterator> m_iterator;
   };
 
+#ifdef ANDROID
+  Path() : m_is_asset(false) {}
+  // These constuctors intentionally allow implicit conversion
+  Path(const char* path, bool is_asset = false) : m_path(path), m_is_asset(is_asset) {}
+  Path(const std::string& path, bool is_asset = false) : m_path(path), m_is_asset(is_asset) {}
+  friend bool operator==(const Path& lhs, const Path& rhs)
+  {
+    return lhs.m_path == rhs.m_path && lhs.m_is_asset == rhs.m_is_asset;
+  }
+  friend bool operator<(const Path& lhs, const Path& rhs)
+  {
+    return lhs.m_is_asset == rhs.m_is_asset ? lhs.m_path < rhs.m_path : rhs.m_is_asset;
+  }
+#else
   Path() {}
   // These constuctors intentionally allow implicit conversion
   Path(const char* path) : m_path(path) {}
   Path(const std::string& path) : m_path(path) {}
   friend bool operator==(const Path& lhs, const Path& rhs) { return lhs.m_path == rhs.m_path; }
-  friend bool operator!=(const Path& lhs, const Path& rhs) { return !operator==(lhs, rhs); }
   friend bool operator<(const Path& lhs, const Path& rhs) { return lhs.m_path < rhs.m_path; }
+#endif
+  friend bool operator!=(const Path& lhs, const Path& rhs) { return !operator==(lhs, rhs); }
   friend bool operator>(const Path& lhs, const Path& rhs) { return operator<(rhs, lhs); }
   friend bool operator<=(const Path& lhs, const Path& rhs) { return !operator<(rhs, lhs); }
   friend bool operator>=(const Path& lhs, const Path& rhs) { return !operator<(lhs, rhs); }
@@ -240,6 +309,9 @@ public:
   const_iterator cend() const { return const_iterator(); }
 private:
   std::string m_path;
+#ifdef ANDROID
+  bool m_is_asset;
+#endif
 };
 
 }  // namespace File

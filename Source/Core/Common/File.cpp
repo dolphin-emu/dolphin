@@ -20,6 +20,12 @@
 #include <unistd.h>
 #endif
 
+#ifdef ANDROID
+#include <android/asset_manager.h>
+
+#include "jni/AndroidAssets.h"
+#endif
+
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/File.h"
@@ -178,6 +184,111 @@ bool IOFile::Write(const void* data, size_t element_size, size_t count)
   return IsGood();
 }
 
+#ifdef ANDROID
+AndroidAsset::AndroidAsset() : m_file(nullptr), m_good(true)
+{
+}
+
+AndroidAsset::AndroidAsset(const std::string& path) : m_file(nullptr), m_good(true)
+{
+  Open(path);
+}
+
+AndroidAsset::~AndroidAsset()
+{
+  Close();
+}
+
+AndroidAsset::AndroidAsset(AndroidAsset&& other) noexcept : m_file(nullptr), m_good(true)
+{
+  Swap(other);
+}
+
+AndroidAsset& AndroidAsset::operator=(AndroidAsset&& other) noexcept
+{
+  Swap(other);
+  return *this;
+}
+
+void AndroidAsset::Swap(AndroidAsset& other) noexcept
+{
+  std::swap(m_file, other.m_file);
+  std::swap(m_good, other.m_good);
+}
+
+bool AndroidAsset::Open(const std::string& path)
+{
+  Close();
+  m_file = AndroidAssets::OpenFile(path.c_str(), AASSET_MODE_UNKNOWN);
+
+  m_good = IsOpen();
+  return m_good;
+}
+
+bool AndroidAsset::Close()
+{
+  if (IsOpen())
+    AAsset_close(m_file);
+  else
+    m_good = false;
+
+  m_file = nullptr;
+  return m_good;
+}
+
+u64 AndroidAsset::GetSize()
+{
+  if (!IsOpen())
+    return 0;
+
+  return AAsset_getLength64(m_file);
+}
+
+bool AndroidAsset::Seek(s64 offset, int origin)
+{
+  if (!IsOpen() || 0 > AAsset_seek64(m_file, offset, origin))
+    m_good = false;
+
+  return m_good;
+}
+
+u64 AndroidAsset::Tell() const
+{
+  if (IsOpen())
+    return AAsset_getLength64(m_file) - AAsset_getRemainingLength64(m_file);
+  else
+    return -1;
+}
+
+bool AndroidAsset::Read(void* data, size_t element_size, size_t count, size_t* pReadElements)
+{
+  int bytes_read = 0;
+  if (!IsOpen())
+  {
+    m_good = false;
+  }
+  else
+  {
+    size_t bytes_to_read = element_size * count;
+    bytes_read = AAsset_read(m_file, data, bytes_to_read);
+    if (bytes_read < 0)
+    {
+      m_good = false;
+      bytes_read = 0;
+    }
+    else if (static_cast<size_t>(bytes_read) != bytes_to_read)
+    {
+      m_good = false;
+    }
+  }
+
+  if (pReadElements)
+    *pReadElements = bytes_read / element_size;
+
+  return m_good;
+}
+#endif
+
 ReadOnlyFileBuffer::ReadOnlyFileBuffer(ReadOnlyFile* file, size_t buffer_size)
     : m_file(file), m_buffer(std::vector<char>(buffer_size))
 {
@@ -249,18 +360,47 @@ std::string StandardDirectoryIterator::NextChild()
   return m_base_path + '/' + name;
 }
 
+#ifdef ANDROID
+AndroidAssetDirectoryIterator::AndroidAssetDirectoryIterator(const std::string& path)
+{
+  // Note: Even if the directory doesn't exist, AAssetManager_openDir won't return nullptr
+  m_dir = AndroidAssets::OpenDirectory(path.c_str());
+}
+
+AndroidAssetDirectoryIterator::~AndroidAssetDirectoryIterator()
+{
+  AAssetDir_close(m_dir);
+}
+
+std::string AndroidAssetDirectoryIterator::NextChild()
+{
+  const char* path = AAssetDir_getNextFileName(m_dir);
+  if (!path)
+    return "";  // End of directory
+  return path;
+}
+#endif
+
 Path::const_iterator::const_iterator() : m_child_path(std::make_shared<Path>()), m_iterator(nullptr)
 {
 }
 
 Path::const_iterator::const_iterator(const Path& path) : m_child_path(std::make_shared<Path>(path))
 {
+#ifdef ANDROID
+  if (path.m_is_asset)
+    m_iterator = std::make_shared<AndroidAssetDirectoryIterator>(path.m_path);
+#endif
   m_iterator = std::make_shared<StandardDirectoryIterator>(path.m_path);
 }
 
 Path::const_iterator& Path::const_iterator::operator++()
 {
   m_child_path->m_path = m_iterator->NextChild();
+#ifdef ANDROID
+  if (m_child_path->m_path.empty())    // If m_iterator has reached its end,
+    m_child_path->m_is_asset = false;  // make this object equal to Path::end()
+#endif
   return *this;
 }
 
@@ -291,6 +431,11 @@ std::string Path::GetName() const
 
 bool Path::Exists() const
 {
+#ifdef ANDROID
+  if (m_is_asset)
+    return AndroidAsset(m_path).IsOpen() || IsDirectory();
+#endif
+
   struct stat file_info;
 
 #ifdef _WIN32
@@ -304,6 +449,11 @@ bool Path::Exists() const
 
 bool Path::IsDirectory() const
 {
+#ifdef ANDROID
+  if (m_is_asset)
+    return !AndroidAssetDirectoryIterator(m_path).NextChild().empty();
+#endif
+
   struct stat file_info;
 
 #ifdef _WIN32
@@ -323,6 +473,11 @@ bool Path::IsDirectory() const
 
 u64 Path::GetFileSize() const
 {
+#ifdef ANDROID
+  if (m_is_asset)
+    return AndroidAsset(m_path).GetSize();
+#endif
+
   struct stat file_info;
 #ifdef _WIN32
   int result = _tstat64(UTF8ToTStr(m_path).c_str(), &file_info);
@@ -346,6 +501,10 @@ u64 Path::GetFileSize() const
 
 std::unique_ptr<ReadOnlyFile> Path::OpenFile(bool binary) const
 {
+#ifdef ANDROID
+  if (m_is_asset)
+    return std::make_unique<AndroidAsset>(m_path);
+#endif
   return std::make_unique<IOFile>(m_path, binary ? "rb" : "r");
 }
 

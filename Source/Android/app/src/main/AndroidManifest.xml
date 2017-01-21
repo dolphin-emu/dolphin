@@ -64,9 +64,6 @@
             android:name=".activities.EmulationActivity"
             android:theme="@style/DolphinEmulationGamecube"/>
 
-
-        <service android:name=".services.AssetCopyService"/>
-
         <provider
             android:name=".model.GameProvider"
             android:authorities="${applicationId}.provider"
