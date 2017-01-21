@@ -589,7 +589,7 @@ if(USE_X11)
 		add_definitions(-DHAVE_XRANDR=0)
 	endif(XRANDR_FOUND)
 
-	pkg_check_modules(XINPUT2 REQUIRED xi>=1.5.0)
+	pkg_check_modules(X11_INPUT REQUIRED xi>=1.5.0)
 endif()
 if(ENCODE_FRAMEDUMPS)
 	check_libav()
