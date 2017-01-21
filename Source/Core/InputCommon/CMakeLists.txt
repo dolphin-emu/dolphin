@@ -27,7 +27,7 @@ elseif(APPLE)
 elseif(X11_FOUND)
 	set(SRCS	${SRCS}
 				ControllerInterface/Xlib/XInput2.cpp)
-	set(LIBS ${LIBS} ${X11_LIBRARIES} ${XINPUT2_LIBRARIES})
+	set(LIBS ${LIBS} ${X11_LIBRARIES} ${X11_INPUT_LIBRARIES})
 elseif(ANDROID)
 	add_definitions(-DCIFACE_USE_ANDROID)
 	set(SRCS ${SRCS}
