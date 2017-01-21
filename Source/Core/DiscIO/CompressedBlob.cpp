@@ -410,8 +410,13 @@ bool DecompressBlobToFile(const std::string& infile_path, const std::string& out
 
 bool IsGCZBlob(File::IOFile& file)
 {
+  const u64 position = file.Tell();
+  if (!file.Seek(0, SEEK_SET))
+    return false;
   CompressedBlobHeader header;
-  return file.Seek(0, SEEK_SET) && file.ReadArray(&header, 1) && header.magic_cookie == GCZ_MAGIC;
+  bool is_gcz = file.ReadArray(&header, 1) && header.magic_cookie == GCZ_MAGIC;
+  file.Seek(position, SEEK_SET);
+  return is_gcz;
 }
 
 }  // namespace
