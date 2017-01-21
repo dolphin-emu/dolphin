@@ -216,6 +216,8 @@ bool CompressFileToBlob(const std::string& infile_path, const std::string& outfi
   outfile.Seek(sizeof(CompressedBlobHeader), SEEK_CUR);
   // seek past the offset and hash tables (we will write them at the end)
   outfile.Seek((sizeof(u64) + sizeof(u32)) * header.num_blocks, SEEK_CUR);
+  // seek to the start of the input file to make sure we get everything
+  infile.Seek(0, SEEK_SET);
 
   // Now we are ready to write compressed data!
   u64 position = 0;
@@ -405,13 +407,18 @@ bool DecompressBlobToFile(const std::string& infile_path, const std::string& out
     outfile.Resize(header.data_size);
   }
 
-  return true;
+  return success;
 }
 
 bool IsGCZBlob(File::IOFile& file)
 {
+  const u64 position = file.Tell();
+  if (!file.Seek(0, SEEK_SET))
+    return false;
   CompressedBlobHeader header;
-  return file.Seek(0, SEEK_SET) && file.ReadArray(&header, 1) && header.magic_cookie == GCZ_MAGIC;
+  bool is_gcz = file.ReadArray(&header, 1) && header.magic_cookie == GCZ_MAGIC;
+  file.Seek(position, SEEK_SET);
+  return is_gcz;
 }
 
 }  // namespace
