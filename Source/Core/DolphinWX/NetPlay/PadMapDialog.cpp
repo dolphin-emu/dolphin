@@ -40,7 +40,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
     {
       for (unsigned int j = 0; j < m_player_list.size(); j++)
       {
-        if (m_pad_mapping[idx] == m_player_list[j]->pid)
+        if (mapping[idx] == m_player_list[j]->pid)
         {
           m_map_cbox[base_idx + idx]->Select(j + 1);
           break;
