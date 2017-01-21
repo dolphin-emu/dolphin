@@ -18,6 +18,32 @@ class Mapping;
 
 class CEXIChannel
 {
+public:
+  CEXIChannel(u32 ChannelId);
+  ~CEXIChannel();
+
+  // get device
+  IEXIDevice* GetDevice(const u8 _CHIP_SELECT);
+  IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1);
+
+  void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
+
+  void SendTransferComplete();
+
+  void AddDevice(const TEXIDevices device_type, const int device_num);
+  void AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
+                 bool notify_presence_changed = true);
+
+  // Remove all devices
+  void RemoveDevices();
+
+  bool IsCausingInterrupt();
+  void DoState(PointerWrap& p);
+  void PauseAndLock(bool doLock, bool unpauseOnUnlock);
+
+  // This should only be used to transition interrupts from SP1 to Channel 2
+  void SetEXIINT(bool exiint) { m_Status.EXIINT = !!exiint; }
+
 private:
   enum
   {
@@ -86,30 +112,4 @@ private:
 
   // Since channels operate a bit differently from each other
   u32 m_ChannelId;
-
-public:
-  // get device
-  IEXIDevice* GetDevice(const u8 _CHIP_SELECT);
-  IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1);
-
-  CEXIChannel(u32 ChannelId);
-  ~CEXIChannel();
-
-  void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
-
-  void SendTransferComplete();
-
-  void AddDevice(const TEXIDevices device_type, const int device_num);
-  void AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
-                 bool notify_presence_changed = true);
-
-  // Remove all devices
-  void RemoveDevices();
-
-  bool IsCausingInterrupt();
-  void DoState(PointerWrap& p);
-  void PauseAndLock(bool doLock, bool unpauseOnUnlock);
-
-  // This should only be used to transition interrupts from SP1 to Channel 2
-  void SetEXIINT(bool exiint) { m_Status.EXIINT = !!exiint; }
 };
