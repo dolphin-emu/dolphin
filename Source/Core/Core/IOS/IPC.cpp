@@ -44,6 +44,7 @@
 #include "Core/IOS/IPC.h"
 #include "Core/IOS/Network/Net.h"
 #include "Core/IOS/Network/SSL.h"
+#include "Core/IOS/Network/Socket.h"
 #include "Core/IOS/SDIO/SDIOSlot0.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
@@ -850,6 +851,13 @@ void UpdateDevices()
       entry.second->Update();
     }
   }
+}
+
+void UpdateWantDeterminism(const bool new_want_determinism)
+{
+  WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
+  for (const auto& device : s_device_map)
+    device.second->UpdateWantDeterminism(new_want_determinism);
 }
 }  // namespace HLE
 }  // namespace IOS

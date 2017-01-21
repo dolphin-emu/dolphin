@@ -77,6 +77,8 @@ void Update();
 // Update Devices
 void UpdateDevices();
 
+void UpdateWantDeterminism(bool new_want_determinism);
+
 void ExecuteCommand(u32 address);
 
 void EnqueueRequest(u32 address);
