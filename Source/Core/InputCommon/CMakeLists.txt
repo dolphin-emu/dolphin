@@ -10,6 +10,7 @@ if(WIN32)
 				ControllerInterface/DInput/DInput.cpp
 				ControllerInterface/DInput/DInputJoystick.cpp
 				ControllerInterface/DInput/DInputKeyboardMouse.cpp
+				ControllerInterface/DInput/XInputFilter.cpp
 				ControllerInterface/XInput/XInput.cpp
 				ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp)
 elseif(APPLE)
