@@ -19,7 +19,7 @@ class Mapping;
 class CEXIChannel
 {
 public:
-  CEXIChannel(u32 channel_id);
+  explicit CEXIChannel(u32 channel_id);
   ~CEXIChannel();
 
   // get device
