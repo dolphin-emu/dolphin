@@ -274,6 +274,12 @@ set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
 
 if(WIN32)
 	set(SRCS ${SRCS} HW/EXI/BBA-TAP/TAP_Win32.cpp HW/WiimoteReal/IOWin.cpp)
+	list(APPEND LIBS
+		videod3d
+		videod3d12
+		setupapi.lib
+		iphlpapi.lib
+	)
 elseif(APPLE)
 	set(SRCS ${SRCS} HW/EXI/BBA-TAP/TAP_Apple.cpp HW/WiimoteReal/IOdarwin.mm)
 	set(LIBS ${LIBS}
