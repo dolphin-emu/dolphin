@@ -19,12 +19,12 @@ class Mapping;
 class CEXIChannel
 {
 public:
-  CEXIChannel(u32 ChannelId);
+  CEXIChannel(u32 channel_id);
   ~CEXIChannel();
 
   // get device
-  IEXIDevice* GetDevice(const u8 _CHIP_SELECT);
-  IEXIDevice* FindDevice(TEXIDevices device_type, int customIndex = -1);
+  IEXIDevice* GetDevice(const u8 chip_select);
+  IEXIDevice* FindDevice(TEXIDevices device_type, int custom_index = -1);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
@@ -39,19 +39,19 @@ public:
 
   bool IsCausingInterrupt();
   void DoState(PointerWrap& p);
-  void PauseAndLock(bool doLock, bool unpauseOnUnlock);
+  void PauseAndLock(bool do_lock, bool resume_on_unlock);
 
   // This should only be used to transition interrupts from SP1 to Channel 2
-  void SetEXIINT(bool exiint) { m_Status.EXIINT = !!exiint; }
+  void SetEXIINT(bool exiint) { m_status.EXIINT = !!exiint; }
 
 private:
   enum
   {
     EXI_STATUS = 0x00,
-    EXI_DMAADDR = 0x04,
-    EXI_DMALENGTH = 0x08,
-    EXI_DMACONTROL = 0x0C,
-    EXI_IMMDATA = 0x10
+    EXI_DMA_ADDRESS = 0x04,
+    EXI_DMA_LENGTH = 0x08,
+    EXI_DMA_CONTROL = 0x0C,
+    EXI_IMM_DATA = 0x10
   };
 
   // EXI Status Register - "Channel Parameter Register"
@@ -96,11 +96,11 @@ private:
   };
 
   // STATE_TO_SAVE
-  UEXI_STATUS m_Status;
-  u32 m_DMAMemoryAddress = 0;
-  u32 m_DMALength = 0;
-  UEXI_CONTROL m_Control;
-  u32 m_ImmData = 0;
+  UEXI_STATUS m_status;
+  u32 m_dma_memory_address = 0;
+  u32 m_dma_length = 0;
+  UEXI_CONTROL m_control;
+  u32 m_imm_data = 0;
 
   // Devices
   enum
@@ -111,5 +111,5 @@ private:
   std::array<std::unique_ptr<IEXIDevice>, NUM_DEVICES> m_devices;
 
   // Since channels operate a bit differently from each other
-  u32 m_ChannelId;
+  u32 m_channel_id;
 };

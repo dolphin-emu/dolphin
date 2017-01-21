@@ -20,15 +20,15 @@ enum
   EXI_READWRITE
 };
 
-CEXIChannel::CEXIChannel(u32 ChannelId) : m_ChannelId(ChannelId)
+CEXIChannel::CEXIChannel(u32 channel_id) : m_channel_id(channel_id)
 {
-  if (m_ChannelId == 0 || m_ChannelId == 1)
-    m_Status.EXTINT = 1;
-  if (m_ChannelId == 1)
-    m_Status.CHIP_SELECT = 1;
+  if (m_channel_id == 0 || m_channel_id == 1)
+    m_status.EXTINT = 1;
+  if (m_channel_id == 1)
+    m_status.CHIP_SELECT = 1;
 
   for (auto& device : m_devices)
-    device = EXIDevice_Create(EXIDEVICE_NONE, m_ChannelId);
+    device = EXIDevice_Create(EXIDEVICE_NONE, m_channel_id);
 }
 
 CEXIChannel::~CEXIChannel()
@@ -44,115 +44,115 @@ void CEXIChannel::RegisterMMIO(MMIO::Mapping* mmio, u32 base)
   mmio->Register(base + EXI_STATUS, MMIO::ComplexRead<u32>([this](u32) {
                    // check if external device is present
                    // pretty sure it is memcard only, not entirely sure
-                   if (m_ChannelId == 2)
+                   if (m_channel_id == 2)
                    {
-                     m_Status.EXT = 0;
+                     m_status.EXT = 0;
                    }
                    else
                    {
-                     m_Status.EXT = GetDevice(1)->IsPresent() ? 1 : 0;
+                     m_status.EXT = GetDevice(1)->IsPresent() ? 1 : 0;
                    }
 
-                   return m_Status.Hex;
+                   return m_status.Hex;
                  }),
                  MMIO::ComplexWrite<u32>([this](u32, u32 val) {
-                   UEXI_STATUS newStatus(val);
+                   UEXI_STATUS new_status(val);
 
-                   m_Status.EXIINTMASK = newStatus.EXIINTMASK;
-                   if (newStatus.EXIINT)
-                     m_Status.EXIINT = 0;
+                   m_status.EXIINTMASK = new_status.EXIINTMASK;
+                   if (new_status.EXIINT)
+                     m_status.EXIINT = 0;
 
-                   m_Status.TCINTMASK = newStatus.TCINTMASK;
-                   if (newStatus.TCINT)
-                     m_Status.TCINT = 0;
+                   m_status.TCINTMASK = new_status.TCINTMASK;
+                   if (new_status.TCINT)
+                     m_status.TCINT = 0;
 
-                   m_Status.CLK = newStatus.CLK;
+                   m_status.CLK = new_status.CLK;
 
-                   if (m_ChannelId == 0 || m_ChannelId == 1)
+                   if (m_channel_id == 0 || m_channel_id == 1)
                    {
-                     m_Status.EXTINTMASK = newStatus.EXTINTMASK;
+                     m_status.EXTINTMASK = new_status.EXTINTMASK;
 
-                     if (newStatus.EXTINT)
-                       m_Status.EXTINT = 0;
+                     if (new_status.EXTINT)
+                       m_status.EXTINT = 0;
                    }
 
-                   if (m_ChannelId == 0)
-                     m_Status.ROMDIS = newStatus.ROMDIS;
+                   if (m_channel_id == 0)
+                     m_status.ROMDIS = new_status.ROMDIS;
 
-                   IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT ^ newStatus.CHIP_SELECT);
-                   m_Status.CHIP_SELECT = newStatus.CHIP_SELECT;
-                   if (pDevice != nullptr)
-                     pDevice->SetCS(m_Status.CHIP_SELECT);
+                   IEXIDevice* device = GetDevice(m_status.CHIP_SELECT ^ new_status.CHIP_SELECT);
+                   m_status.CHIP_SELECT = new_status.CHIP_SELECT;
+                   if (device != nullptr)
+                     device->SetCS(m_status.CHIP_SELECT);
 
                    ExpansionInterface::UpdateInterrupts();
                  }));
 
-  mmio->Register(base + EXI_DMAADDR, MMIO::DirectRead<u32>(&m_DMAMemoryAddress),
-                 MMIO::DirectWrite<u32>(&m_DMAMemoryAddress));
-  mmio->Register(base + EXI_DMALENGTH, MMIO::DirectRead<u32>(&m_DMALength),
-                 MMIO::DirectWrite<u32>(&m_DMALength));
-  mmio->Register(base + EXI_DMACONTROL, MMIO::DirectRead<u32>(&m_Control.Hex),
+  mmio->Register(base + EXI_DMA_ADDRESS, MMIO::DirectRead<u32>(&m_dma_memory_address),
+                 MMIO::DirectWrite<u32>(&m_dma_memory_address));
+  mmio->Register(base + EXI_DMA_LENGTH, MMIO::DirectRead<u32>(&m_dma_length),
+                 MMIO::DirectWrite<u32>(&m_dma_length));
+  mmio->Register(base + EXI_DMA_CONTROL, MMIO::DirectRead<u32>(&m_control.Hex),
                  MMIO::ComplexWrite<u32>([this](u32, u32 val) {
-                   m_Control.Hex = val;
+                   m_control.Hex = val;
 
-                   if (m_Control.TSTART)
+                   if (m_control.TSTART)
                    {
-                     IEXIDevice* pDevice = GetDevice(m_Status.CHIP_SELECT);
-                     if (pDevice == nullptr)
+                     IEXIDevice* device = GetDevice(m_status.CHIP_SELECT);
+                     if (device == nullptr)
                        return;
 
-                     if (m_Control.DMA == 0)
+                     if (m_control.DMA == 0)
                      {
                        // immediate data
-                       switch (m_Control.RW)
+                       switch (m_control.RW)
                        {
                        case EXI_READ:
-                         m_ImmData = pDevice->ImmRead(m_Control.TLEN + 1);
+                         m_imm_data = device->ImmRead(m_control.TLEN + 1);
                          break;
                        case EXI_WRITE:
-                         pDevice->ImmWrite(m_ImmData, m_Control.TLEN + 1);
+                         device->ImmWrite(m_imm_data, m_control.TLEN + 1);
                          break;
                        case EXI_READWRITE:
-                         pDevice->ImmReadWrite(m_ImmData, m_Control.TLEN + 1);
+                         device->ImmReadWrite(m_imm_data, m_control.TLEN + 1);
                          break;
                        default:
                          _dbg_assert_msg_(EXPANSIONINTERFACE, 0,
-                                          "EXI Imm: Unknown transfer type %i", m_Control.RW);
+                                          "EXI Imm: Unknown transfer type %i", m_control.RW);
                        }
                      }
                      else
                      {
                        // DMA
-                       switch (m_Control.RW)
+                       switch (m_control.RW)
                        {
                        case EXI_READ:
-                         pDevice->DMARead(m_DMAMemoryAddress, m_DMALength);
+                         device->DMARead(m_dma_memory_address, m_dma_length);
                          break;
                        case EXI_WRITE:
-                         pDevice->DMAWrite(m_DMAMemoryAddress, m_DMALength);
+                         device->DMAWrite(m_dma_memory_address, m_dma_length);
                          break;
                        default:
                          _dbg_assert_msg_(EXPANSIONINTERFACE, 0,
-                                          "EXI DMA: Unknown transfer type %i", m_Control.RW);
+                                          "EXI DMA: Unknown transfer type %i", m_control.RW);
                        }
                      }
 
-                     m_Control.TSTART = 0;
+                     m_control.TSTART = 0;
 
                      // Check if device needs specific timing, otherwise just complete transfer
                      // immediately
-                     if (!pDevice->UseDelayedTransferCompletion())
+                     if (!device->UseDelayedTransferCompletion())
                        SendTransferComplete();
                    }
                  }));
 
-  mmio->Register(base + EXI_IMMDATA, MMIO::DirectRead<u32>(&m_ImmData),
-                 MMIO::DirectWrite<u32>(&m_ImmData));
+  mmio->Register(base + EXI_IMM_DATA, MMIO::DirectRead<u32>(&m_imm_data),
+                 MMIO::DirectWrite<u32>(&m_imm_data));
 }
 
 void CEXIChannel::SendTransferComplete()
 {
-  m_Status.TCINT = 1;
+  m_status.TCINT = 1;
   ExpansionInterface::UpdateInterrupts();
 }
 
@@ -164,7 +164,7 @@ void CEXIChannel::RemoveDevices()
 
 void CEXIChannel::AddDevice(const TEXIDevices device_type, const int device_num)
 {
-  AddDevice(EXIDevice_Create(device_type, m_ChannelId), device_num);
+  AddDevice(EXIDevice_Create(device_type, m_channel_id), device_num);
 }
 
 void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
@@ -178,10 +178,10 @@ void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device
   if (notify_presence_changed)
   {
     // This means "device presence changed", software has to check
-    // m_Status.EXT to see if it is now present or not
-    if (m_ChannelId != 2)
+    // m_status.EXT to see if it is now present or not
+    if (m_channel_id != 2)
     {
-      m_Status.EXTINT = 1;
+      m_status.EXTINT = 1;
       ExpansionInterface::UpdateInterrupts();
     }
   }
@@ -189,14 +189,14 @@ void CEXIChannel::AddDevice(std::unique_ptr<IEXIDevice> device, const int device
 
 bool CEXIChannel::IsCausingInterrupt()
 {
-  if (m_ChannelId != 2 && GetDevice(1)->IsInterruptSet())
-    m_Status.EXIINT = 1;  // Always check memcard slots
-  else if (GetDevice(m_Status.CHIP_SELECT))
-    if (GetDevice(m_Status.CHIP_SELECT)->IsInterruptSet())
-      m_Status.EXIINT = 1;
+  if (m_channel_id != 2 && GetDevice(1)->IsInterruptSet())
+    m_status.EXIINT = 1;  // Always check memcard slots
+  else if (GetDevice(m_status.CHIP_SELECT))
+    if (GetDevice(m_status.CHIP_SELECT)->IsInterruptSet())
+      m_status.EXIINT = 1;
 
-  if ((m_Status.EXIINT & m_Status.EXIINTMASK) || (m_Status.TCINT & m_Status.TCINTMASK) ||
-      (m_Status.EXTINT & m_Status.EXTINTMASK))
+  if ((m_status.EXIINT & m_status.EXIINTMASK) || (m_status.TCINT & m_status.TCINTMASK) ||
+      (m_status.EXTINT & m_status.EXTINTMASK))
   {
     return true;
   }
@@ -222,11 +222,11 @@ IEXIDevice* CEXIChannel::GetDevice(const u8 chip_select)
 
 void CEXIChannel::DoState(PointerWrap& p)
 {
-  p.DoPOD(m_Status);
-  p.Do(m_DMAMemoryAddress);
-  p.Do(m_DMALength);
-  p.Do(m_Control);
-  p.Do(m_ImmData);
+  p.DoPOD(m_status);
+  p.Do(m_dma_memory_address);
+  p.Do(m_dma_length);
+  p.Do(m_control);
+  p.Do(m_imm_data);
 
   for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
   {
@@ -240,24 +240,24 @@ void CEXIChannel::DoState(PointerWrap& p)
     }
     else
     {
-      std::unique_ptr<IEXIDevice> save_device = EXIDevice_Create(type, m_ChannelId);
+      std::unique_ptr<IEXIDevice> save_device = EXIDevice_Create(type, m_channel_id);
       save_device->DoState(p);
       AddDevice(std::move(save_device), device_index, false);
     }
   }
 }
 
-void CEXIChannel::PauseAndLock(bool doLock, bool unpauseOnUnlock)
+void CEXIChannel::PauseAndLock(bool do_lock, bool resume_on_unlock)
 {
   for (auto& device : m_devices)
-    device->PauseAndLock(doLock, unpauseOnUnlock);
+    device->PauseAndLock(do_lock, resume_on_unlock);
 }
 
-IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int customIndex)
+IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int custom_index)
 {
   for (auto& sup : m_devices)
   {
-    IEXIDevice* device = sup->FindDevice(device_type, customIndex);
+    IEXIDevice* device = sup->FindDevice(device_type, custom_index);
     if (device)
       return device;
   }
