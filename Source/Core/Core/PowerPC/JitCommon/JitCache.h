@@ -9,6 +9,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <set>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -167,6 +168,12 @@ private:
   // Map indexed by the physical address of the entry point.
   // This is used to query the block based on the current PC in a slow way.
   std::multimap<u32, JitBlock> block_map;  // start_addr -> block
+
+  // Range of overlapping code indexed by a masked physical address.
+  // This is used for invalidation of memory regions. The range is grouped
+  // in macro blocks of each 0x100 bytes.
+  static constexpr u32 BLOCK_RANGE_MAP_ELEMENTS = 0x100;
+  std::map<u32, std::set<JitBlock*>> block_range_map;
 
   // This bitsets shows which cachelines overlap with any blocks.
   // It is used to provide a fast way to query if no icache invalidation is needed.

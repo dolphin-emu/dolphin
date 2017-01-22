@@ -79,6 +79,7 @@ void JitBaseBlockCache::Clear()
   }
   block_map.clear();
   links_to.clear();
+  block_range_map.clear();
 
   valid_block.ClearAll();
 
@@ -125,10 +126,15 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link, const u8
   fast_block_map[index] = &block;
   block.fast_block_map_index = index;
 
-  u32 pAddr = block.physicalAddress;
+  u32 block_start = block.physicalAddress;
+  u32 block_end = block_start + (block.originalSize - 1) * 4;
 
-  for (u32 addr = pAddr / 32; addr <= (pAddr + (block.originalSize - 1) * 4) / 32; ++addr)
+  for (u32 addr = block_start / 32; addr <= block_end / 32; ++addr)
     valid_block.Set(addr);
+
+  u32 mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
+  for (u32 addr = block_start & mask; addr <= (block_end & mask); addr += BLOCK_RANGE_MAP_ELEMENTS)
+    block_range_map[addr].insert(&block);
 
   if (block_link)
   {
@@ -200,18 +206,43 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
   // destroy JIT blocks
   if (destroy_block)
   {
-    auto iter = block_map.begin();
-    while (iter != block_map.end())
+    // Iterate over all macro blocks which overlap the given range.
+    u32 mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
+    auto start = block_range_map.lower_bound(pAddr & mask);
+    auto end = block_range_map.lower_bound(pAddr + length);
+    while (start != end)
     {
-      if (iter->second.Overlap(pAddr, length))
+      // Iterate over all blocks in the macro block.
+      auto iter = start->second.begin();
+      while (iter != start->second.end())
       {
-        DestroyBlock(iter->second);
-        iter = block_map.erase(iter);
+        JitBlock* block = *iter;
+        if (block->Overlap(pAddr, length))
+        {
+          // If the block overlaps, also remove all other occupied slots in the other macro blocks.
+          // This will leak empty macro blocks, but they may be reused or cleared later on.
+          u32 block_start = block->physicalAddress;
+          u32 block_end = block_start + (block->originalSize - 1) * 4;
+          for (u32 addr = block_start & mask; addr <= (block_end & mask); addr += BLOCK_RANGE_MAP_ELEMENTS)
+            if (addr != start->first)
+              block_range_map[addr].erase(block);
+
+          // And remove the block.
+          DestroyBlock(*block);
+          block_map.erase(block->physicalAddress);
+          iter = start->second.erase(iter);
+        }
+        else
+        {
+          iter++;
+        }
       }
+
+      // If the macro block is empty, drop it.
+      if (start->second.empty())
+        start = block_range_map.erase(start);
       else
-      {
-        iter++;
-      }
+        start++;
     }
 
     // If the code was actually modified, we need to clear the relevant entries from the
