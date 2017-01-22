@@ -57,7 +57,7 @@ State GetState();
 
 // Direct State Access (Raw pointer for embedding into JIT Blocks)
 // Strictly read-only. A lock is required to change the value.
-const volatile State* GetStatePtr();
+const State* GetStatePtr();
 
 // Locks the CPU Thread (waiting for it to become idle).
 // While this lock is held, the CPU Thread will not perform any action so it is safe to access
