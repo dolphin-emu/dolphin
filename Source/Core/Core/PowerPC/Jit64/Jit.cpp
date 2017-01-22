@@ -857,7 +857,7 @@ const u8* Jit64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
           fpr.BindToRegister(reg, true, false);
       }
 
-      Jit64Tables::CompileInstruction(ops[i]);
+      Jit64Tables::CompileInstruction(*this, ops[i]);
 
       if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
       {

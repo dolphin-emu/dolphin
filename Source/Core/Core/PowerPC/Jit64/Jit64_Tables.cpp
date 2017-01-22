@@ -360,21 +360,20 @@ static GekkoOPTemplate table63_2[] = {
 
 namespace Jit64Tables
 {
-void CompileInstruction(PPCAnalyst::CodeOp& op)
+void CompileInstruction(Jit64& jit, PPCAnalyst::CodeOp& op)
 {
-  Jit64* jit64 = (Jit64*)g_jit;
-  (jit64->*dynaOpTable[op.inst.OPCD])(op.inst);
+  (jit.*dynaOpTable[op.inst.OPCD])(op.inst);
   GekkoOPInfo* info = op.opinfo;
   if (info)
   {
 #ifdef OPLOG
     if (!strcmp(info->opname, OP_TO_LOG))  // "mcrfs"
     {
-      rsplocations.push_back(g_jit.js.compilerPC);
+      rsplocations.push_back(jit.js.compilerPC);
     }
 #endif
     info->compileCount++;
-    info->lastUse = g_jit->js.compilerPC;
+    info->lastUse = jit.js.compilerPC;
   }
 }
 
