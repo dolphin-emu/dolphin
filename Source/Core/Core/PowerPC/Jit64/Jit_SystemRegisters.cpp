@@ -410,7 +410,8 @@ void Jit64::mtmsr(UGeckoInstruction inst)
   FixupBranch noExceptionsPending = J_CC(CC_Z);
 
   // Check if a CP interrupt is waiting and keep the GPU emulation in sync (issue 4336)
-  TEST(32, M(&ProcessorInterface::m_InterruptCause), Imm32(ProcessorInterface::INT_CAUSE_CP));
+  MOV(64, R(RSCRATCH), ImmPtr(&ProcessorInterface::m_InterruptCause));
+  TEST(32, MatR(RSCRATCH), Imm32(ProcessorInterface::INT_CAUSE_CP));
   FixupBranch cpInt = J_CC(CC_NZ);
 
   MOV(32, PPCSTATE(pc), Imm32(js.compilerPC + 4));
