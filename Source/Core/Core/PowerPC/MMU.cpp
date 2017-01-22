@@ -771,16 +771,16 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
 bool IsOptimizableGatherPipeWrite(u32 address)
 {
   if (PowerPC::memchecks.HasAny())
-    return 0;
+    return false;
 
   if (!UReg_MSR(MSR).DR)
-    return 0;
+    return false;
 
   // Translate address, only check BAT mapping.
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
   if (!TranslateBatAddess(dbat_table, &address))
-    return 0;
+    return false;
 
   // Check whether the translated address equals the address in WPAR.
   return address == 0x0C008000;
