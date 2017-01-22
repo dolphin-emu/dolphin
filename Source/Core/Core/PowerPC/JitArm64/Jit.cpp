@@ -604,7 +604,7 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
         js.firstFPInstructionFound = true;
       }
 
-      JitArm64Tables::CompileInstruction(ops[i]);
+      JitArm64Tables::CompileInstruction(*this, ops[i]);
       if (!MergeAllowedNextInstructions(1) || js.op[1].opinfo->type != OPTYPE_INTEGER)
         FlushCarry();
 

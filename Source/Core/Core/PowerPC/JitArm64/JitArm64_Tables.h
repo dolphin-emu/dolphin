@@ -4,11 +4,15 @@
 
 #pragma once
 
-#include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/PPCTables.h"
+class JitArm64;
+
+namespace PPCAnalyst
+{
+struct CodeOp;
+}
 
 namespace JitArm64Tables
 {
-void CompileInstruction(PPCAnalyst::CodeOp& op);
+void CompileInstruction(JitArm64& jit, PPCAnalyst::CodeOp& op);
 void InitTables();
 }
