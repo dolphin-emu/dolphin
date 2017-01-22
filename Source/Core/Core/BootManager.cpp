@@ -282,9 +282,15 @@ bool BootCore(const std::string& _rFilename)
       }
     }
 
+    Core::g_aspect_wide = StartUp.bWii;
+
     // Wii settings
     if (StartUp.bWii)
     {
+      IniFile::Section* wii_section = game_ini.GetOrCreateSection("Wii");
+      wii_section->Get("Widescreen", &Core::g_aspect_wide, !!StartUp.m_wii_aspect_ratio);
+      wii_section->Get("Language", &StartUp.m_wii_language, StartUp.m_wii_language);
+
       int source;
       for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
       {
@@ -305,9 +311,6 @@ bool BootCore(const std::string& _rFilename)
         g_wiimote_sources[WIIMOTE_BALANCE_BOARD] = source;
         WiimoteReal::ChangeWiimoteSource(WIIMOTE_BALANCE_BOARD, source);
       }
-
-      IniFile::Section* wii_section = game_ini.GetOrCreateSection("Wii");
-      wii_section->Get("Language", &StartUp.m_wii_language, StartUp.m_wii_language);
     }
   }
 
