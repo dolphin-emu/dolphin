@@ -122,6 +122,7 @@
     <ClCompile Include="HW\EXI\EXI_Device.cpp" />
     <ClCompile Include="HW\EXI\EXI_DeviceAD16.cpp" />
     <ClCompile Include="HW\EXI\EXI_DeviceAGP.cpp" />
+    <ClCompile Include="HW\EXI\EXI_DeviceDummy.cpp" />
     <ClCompile Include="HW\EXI\EXI_DeviceEthernet.cpp" />
     <ClCompile Include="HW\EXI\EXI_DeviceGecko.cpp" />
     <ClCompile Include="HW\EXI\EXI_DeviceIPL.cpp" />
@@ -351,6 +352,7 @@
     <ClInclude Include="HW\EXI\EXI_Device.h" />
     <ClInclude Include="HW\EXI\EXI_DeviceAD16.h" />
     <ClInclude Include="HW\EXI\EXI_DeviceAGP.h" />
+    <ClInclude Include="HW\EXI\EXI_DeviceDummy.h" />
     <ClInclude Include="HW\EXI\EXI_DeviceEthernet.h" />
     <ClInclude Include="HW\EXI\EXI_DeviceGecko.h" />
     <ClInclude Include="HW\EXI\EXI_DeviceIPL.h" />
