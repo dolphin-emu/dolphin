@@ -30,9 +30,6 @@ enum TEXIDevices : int
 
 class IEXIDevice
 {
-private:
-  // Byte transfer function for this device
-  virtual void TransferByte(u8&) {}
 public:
   // Immediate copy functions
   virtual void ImmWrite(u32 _uData, u32 _uSize);
@@ -59,6 +56,10 @@ public:
   // type.
   // I know this class is set up like an interface, but no code requires it to be strictly such.
   TEXIDevices m_deviceType;
+
+private:
+  // Byte transfer function for this device
+  virtual void TransferByte(u8&) {}
 };
 
 std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
