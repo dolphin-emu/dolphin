@@ -672,7 +672,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     {
       // full imm_addr
       u32 imm_addr = gpr.GetImm(b) + gpr.GetImm(a);
-      MOVI2R(addr_reg, imm_addr);
+      MOVI2R(addr_reg, imm_addr & ~31);
     }
     else if (is_imm_a || is_imm_b)
     {
@@ -680,11 +680,13 @@ void JitArm64::dcbz(UGeckoInstruction inst)
       ARM64Reg base = is_imm_a ? gpr.R(b) : gpr.R(a);
       u32 imm_offset = is_imm_a ? gpr.GetImm(a) : gpr.GetImm(b);
       ADDI2R(addr_reg, base, imm_offset, addr_reg);
+      ANDI2R(addr_reg, addr_reg, ~31);
     }
     else
     {
       // Both are registers
       ADD(addr_reg, gpr.R(a), gpr.R(b));
+      ANDI2R(addr_reg, addr_reg, ~31);
     }
   }
   else
@@ -693,11 +695,11 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     if (gpr.IsImm(b))
     {
       u32 imm_addr = gpr.GetImm(b);
-      MOVI2R(addr_reg, imm_addr);
+      MOVI2R(addr_reg, imm_addr & ~31);
     }
     else
     {
-      MOV(addr_reg, gpr.R(b));
+      ANDI2R(addr_reg, gpr.R(b), ~31);
     }
   }
 
