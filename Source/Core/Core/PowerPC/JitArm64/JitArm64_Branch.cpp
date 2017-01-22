@@ -76,9 +76,6 @@ void JitArm64::bx(UGeckoInstruction inst)
   INSTRUCTION_START
   JITDISABLE(bJITBranchOff);
 
-  gpr.Flush(FlushMode::FLUSH_ALL);
-  fpr.Flush(FlushMode::FLUSH_ALL);
-
   u32 destination;
   if (inst.AA)
     destination = SignExt26(inst.LI << 2);
@@ -92,6 +89,14 @@ void JitArm64::bx(UGeckoInstruction inst)
     STR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(spr[SPR_LR]));
     gpr.Unlock(WA);
   }
+
+  if (!js.isLastInstruction)
+  {
+    return;
+  }
+
+  gpr.Flush(FlushMode::FLUSH_ALL);
+  fpr.Flush(FlushMode::FLUSH_ALL);
 
   if (destination == js.compilerPC)
   {
