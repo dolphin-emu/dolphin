@@ -123,7 +123,7 @@ static bool CheckDSI(u32 data)
 
 void CachedInterpreter::Jit(u32 address)
 {
-  if (m_code.size() >= CODE_SIZE / sizeof(Instruction) - 0x1000 || m_block_cache.IsFull() ||
+  if (m_code.size() >= CODE_SIZE / sizeof(Instruction) - 0x1000 ||
       SConfig::GetInstance().bJITNoBlockCache)
   {
     ClearCache();
