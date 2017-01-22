@@ -41,9 +41,9 @@ private:
 
   File::IOFile& SeekToCluster(u64 offset, u64* available);
   bool IsGood() { return m_good; }
-  struct file_entry
+  struct FileEntry
   {
-    file_entry(File::IOFile file_, u64 base_address_, u64 size_)
+    FileEntry(File::IOFile file_, u64 base_address_, u64 size_)
         : file(std::move(file_)), base_address(base_address_), size(size_)
     {
     }
@@ -53,7 +53,7 @@ private:
     u64 size;
   };
 
-  std::vector<file_entry> m_files;
+  std::vector<FileEntry> m_files;
 
   u64 m_size;
 
