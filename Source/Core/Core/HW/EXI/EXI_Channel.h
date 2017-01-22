@@ -23,15 +23,15 @@ public:
   ~CEXIChannel();
 
   // get device
-  IEXIDevice* GetDevice(const u8 chip_select);
+  IEXIDevice* GetDevice(u8 chip_select);
   IEXIDevice* FindDevice(TEXIDevices device_type, int custom_index = -1);
 
   void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
 
   void SendTransferComplete();
 
-  void AddDevice(const TEXIDevices device_type, const int device_num);
-  void AddDevice(std::unique_ptr<IEXIDevice> device, const int device_num,
+  void AddDevice(TEXIDevices device_type, int device_num);
+  void AddDevice(std::unique_ptr<IEXIDevice> device, int device_num,
                  bool notify_presence_changed = true);
 
   // Remove all devices
