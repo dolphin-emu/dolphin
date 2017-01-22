@@ -646,6 +646,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
   block->m_memory_exception = false;
   block->m_num_instructions = 0;
   block->m_gqr_used = BitSet8(0);
+  block->m_physical_addresses.clear();
 
   CodeOp* code = buffer->codebuffer;
 
@@ -676,6 +677,7 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
     code[i].branchToIndex = -1;
     code[i].skip = false;
     block->m_stats->numCycles += opinfo->numCycles;
+    block->m_physical_addresses.insert(result.physical_address);
 
     SetInstructionStats(block, &code[i], opinfo, i);
 

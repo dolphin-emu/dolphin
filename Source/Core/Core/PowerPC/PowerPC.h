@@ -232,6 +232,7 @@ struct TryReadInstResult
   bool valid;
   bool from_bat;
   u32 hex;
+  u32 physical_address;
 };
 TryReadInstResult TryReadInstruction(const u32 address);
 

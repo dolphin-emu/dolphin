@@ -60,6 +60,9 @@ struct JitBlock
   };
   std::vector<LinkData> linkData;
 
+  // This set stores all physical addresses of all occupied instructions.
+  std::set<u32> physical_addresses;
+
   // we don't really need to save start and stop
   // TODO (mb2): ticStart and ticStop -> "local var" mean "in block" ... low priority ;)
   u64 ticStart;    // for profiling - time.
@@ -127,7 +130,7 @@ public:
   void RunOnBlocks(std::function<void(const JitBlock&)> f);
 
   JitBlock* AllocateBlock(u32 em_address);
-  void FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr);
+  void FinalizeBlock(JitBlock& block, bool block_link, const std::set<u32>& physical_addresses);
 
   // Look for the block in the slow but accurate way.
   // This function shall be used if FastLookupIndexForAddress() failed.

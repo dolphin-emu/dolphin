@@ -38,11 +38,7 @@ static void ClearCacheThreadSafe(u64 userdata, s64 cyclesdata)
 
 bool JitBlock::Overlap(u32 addr, u32 length)
 {
-  if (addr >= physicalAddress + originalSize)
-    return false;
-  if (physicalAddress >= addr + length)
-    return false;
-  return true;
+  return physical_addresses.lower_bound(addr) != physical_addresses.lower_bound(addr + length);
 }
 
 JitBaseBlockCache::JitBaseBlockCache(JitBase& jit) : m_jit{jit}
@@ -120,21 +116,21 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
   return &b;
 }
 
-void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr)
+void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link,
+                                      const std::set<u32>& physical_addresses)
 {
   size_t index = FastLookupIndexForAddress(block.effectiveAddress);
   fast_block_map[index] = &block;
   block.fast_block_map_index = index;
 
-  u32 block_start = block.physicalAddress;
-  u32 block_end = block_start + (block.originalSize - 1) * 4;
+  block.physical_addresses = physical_addresses;
 
-  for (u32 addr = block_start / 32; addr <= block_end / 32; ++addr)
-    valid_block.Set(addr);
-
-  u32 mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
-  for (u32 addr = block_start & mask; addr <= (block_end & mask); addr += BLOCK_RANGE_MAP_ELEMENTS)
-    block_range_map[addr].insert(&block);
+  u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
+  for (u32 addr : physical_addresses)
+  {
+    valid_block.Set(addr / 32);
+    block_range_map[addr & range_mask].insert(&block);
+  }
 
   if (block_link)
   {
@@ -207,8 +203,8 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
   if (destroy_block)
   {
     // Iterate over all macro blocks which overlap the given range.
-    u32 mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
-    auto start = block_range_map.lower_bound(pAddr & mask);
+    u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
+    auto start = block_range_map.lower_bound(pAddr & range_mask);
     auto end = block_range_map.lower_bound(pAddr + length);
     while (start != end)
     {
@@ -221,11 +217,9 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
         {
           // If the block overlaps, also remove all other occupied slots in the other macro blocks.
           // This will leak empty macro blocks, but they may be reused or cleared later on.
-          u32 block_start = block->physicalAddress;
-          u32 block_end = block_start + (block->originalSize - 1) * 4;
-          for (u32 addr = block_start & mask; addr <= (block_end & mask); addr += BLOCK_RANGE_MAP_ELEMENTS)
-            if (addr != start->first)
-              block_range_map[addr].erase(block);
+          for (u32 addr : block->physical_addresses)
+            if ((addr & range_mask) != start->first)
+              block_range_map[addr & range_mask].erase(block);
 
           // And remove the block.
           DestroyBlock(*block);
