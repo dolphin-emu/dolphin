@@ -488,7 +488,7 @@ void CEXIMemoryCard::DoState(PointerWrap& p)
 
 IEXIDevice* CEXIMemoryCard::FindDevice(TEXIDevices device_type, int customIndex)
 {
-  if (device_type != m_deviceType)
+  if (device_type != m_device_type)
     return nullptr;
   if (customIndex != card_index)
     return nullptr;

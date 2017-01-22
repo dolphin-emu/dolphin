@@ -231,10 +231,10 @@ void CEXIChannel::DoState(PointerWrap& p)
   for (int device_index = 0; device_index < NUM_DEVICES; ++device_index)
   {
     std::unique_ptr<IEXIDevice>& device = m_devices[device_index];
-    TEXIDevices type = device->m_deviceType;
+    TEXIDevices type = device->m_device_type;
     p.Do(type);
 
-    if (type == device->m_deviceType)
+    if (type == device->m_device_type)
     {
       device->DoState(p);
     }
