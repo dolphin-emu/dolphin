@@ -42,7 +42,7 @@ public:
   void PauseAndLock(bool do_lock, bool resume_on_unlock);
 
   // This should only be used to transition interrupts from SP1 to Channel 2
-  void SetEXIINT(bool exiint) { m_status.EXIINT = !!exiint; }
+  void SetEXIINT(bool exiint);
 
 private:
   enum

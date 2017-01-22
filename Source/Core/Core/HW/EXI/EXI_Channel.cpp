@@ -253,6 +253,11 @@ void CEXIChannel::PauseAndLock(bool do_lock, bool resume_on_unlock)
     device->PauseAndLock(do_lock, resume_on_unlock);
 }
 
+void CEXIChannel::SetEXIINT(bool exiint)
+{
+  m_status.EXIINT = !!exiint;
+}
+
 IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int custom_index)
 {
   for (auto& sup : m_devices)
