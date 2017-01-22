@@ -74,6 +74,13 @@ void Jit64::bx(UGeckoInstruction inst)
   // Because PPCAnalyst::Flatten() merged the blocks.
   if (!js.isLastInstruction)
   {
+    if (inst.LK && !js.op->skipLRStack)
+    {
+      // We have to fake the stack as the RET instruction was not
+      // found in the same block. This is a big overhead, but still
+      // better than calling the dispatcher.
+      FakeBLCall(js.compilerPC + 4);
+    }
     return;
   }
 
@@ -130,6 +137,22 @@ void Jit64::bcx(UGeckoInstruction inst)
 
   if (inst.LK)
     MOV(32, PPCSTATE_LR, Imm32(js.compilerPC + 4));
+
+  // If this is not the last instruction of a block
+  // and an unconditional branch, we will skip the rest process.
+  // Because PPCAnalyst::Flatten() merged the blocks.
+  if (!js.isLastInstruction && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
+      (inst.BO & BO_DONT_CHECK_CONDITION))
+  {
+    if (inst.LK && !js.op->skipLRStack)
+    {
+      // We have to fake the stack as the RET instruction was not
+      // found in the same block. This is a big overhead, but still
+      // better than calling the dispatcher.
+      FakeBLCall(js.compilerPC + 4);
+    }
+    return;
+  }
 
   u32 destination;
   if (inst.AA)

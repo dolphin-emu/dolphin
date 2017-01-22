@@ -372,6 +372,21 @@ bool Jit64::Cleanup()
   return did_something;
 }
 
+void Jit64::FakeBLCall(u32 after)
+{
+  if (!m_enable_blr_optimization)
+    return;
+
+  // We may need to fake the BLR stack on inlined CALL instructions.
+  // Else we can't return to this location any more.
+  MOV(32, R(RSCRATCH2), Imm32(after));
+  PUSH(RSCRATCH2);
+  FixupBranch skip_exit = CALL();
+  POP(RSCRATCH2);
+  JustWriteExit(after, false, 0);
+  SetJumpTarget(skip_exit);
+}
+
 void Jit64::WriteExit(u32 destination, bool bl, u32 after)
 {
   if (!m_enable_blr_optimization)
@@ -569,6 +584,7 @@ void Jit64::Jit(u32 em_address)
         analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
         analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
         analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+        analyzer.ClearOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
       }
       Trace();
     }
@@ -973,6 +989,7 @@ void Jit64::EnableOptimization()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CROR_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+  analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 }
 
 void Jit64::IntializeSpeculativeConstants()

@@ -42,6 +42,7 @@ struct CodeOp  // 16B
   bool outputFPRF;
   bool outputCA;
   bool canEndBlock;
+  bool skipLRStack;
   bool skip;  // followed BL-s for example
   // which registers are still needed after this instruction in this block
   BitSet32 fprInUse;
@@ -189,11 +190,10 @@ public:
     // Requires JIT support to be enabled.
     OPTION_CONDITIONAL_CONTINUE = (1 << 0),
 
-    // If there is a unconditional branch that jumps to a leaf function then inline it.
+    // Try to inline unconditional branches.
     // Might require JIT intervention to support it correctly.
-    // Requires JITBLock support for inlined code
-    // XXX: NOT COMPLETE
-    OPTION_LEAF_INLINE = (1 << 1),
+    // Especially if the BLR optimization is used.
+    OPTION_BRANCH_FOLLOW = (1 << 1),
 
     // Complex blocks support jumping backwards on to themselves.
     // Happens commonly in loops, pretty complex to support.
