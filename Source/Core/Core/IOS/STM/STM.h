@@ -10,6 +10,8 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/IPC.h"
 
+class PointerWrap;
+
 namespace IOS
 {
 namespace HLE
@@ -55,6 +57,7 @@ public:
   STMEventHook(u32 device_id, const std::string& device_name) : Device(device_id, device_name) {}
   void Close() override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
+  void DoState(PointerWrap& p) override;
 
   bool HasHookInstalled() const;
   void ResetButton() const;
