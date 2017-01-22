@@ -40,6 +40,10 @@ u32 IEXIDevice::ImmRead(u32 size)
   return result;
 }
 
+void IEXIDevice::ImmReadWrite(u32& data, u32 size)
+{
+}
+
 void IEXIDevice::DMAWrite(u32 address, u32 size)
 {
   while (size--)
@@ -57,6 +61,42 @@ void IEXIDevice::DMARead(u32 address, u32 size)
     TransferByte(byte);
     Memory::Write_U8(byte, address++);
   }
+}
+
+IEXIDevice* IEXIDevice::FindDevice(TEXIDevices device_type, int custom_index)
+{
+  return (device_type == m_device_type) ? this : nullptr;
+}
+
+bool IEXIDevice::UseDelayedTransferCompletion() const
+{
+  return false;
+}
+
+bool IEXIDevice::IsPresent() const
+{
+  return false;
+}
+
+void IEXIDevice::SetCS(int cs)
+{
+}
+
+void IEXIDevice::DoState(PointerWrap& p)
+{
+}
+
+void IEXIDevice::PauseAndLock(bool do_lock, bool resume_on_unlock)
+{
+}
+
+bool IEXIDevice::IsInterruptSet()
+{
+  return false;
+}
+
+void IEXIDevice::TransferByte(u8& byte)
+{
 }
 
 // F A C T O R Y
