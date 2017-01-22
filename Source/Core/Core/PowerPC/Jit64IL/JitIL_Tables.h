@@ -4,6 +4,8 @@
 
 #pragma once
 
+class JitIL;
+
 namespace PPCAnalyst
 {
 struct CodeOp;
@@ -11,6 +13,6 @@ struct CodeOp;
 
 namespace JitILTables
 {
-void CompileInstruction(PPCAnalyst::CodeOp& op);
+void CompileInstruction(JitIL& jit, PPCAnalyst::CodeOp& op);
 void InitTables();
 }
