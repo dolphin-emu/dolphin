@@ -74,7 +74,7 @@ void JitBaseBlockCache::Clear()
 
   valid_block.ClearAll();
 
-  iCache.fill(nullptr);
+  fast_block_map.fill(nullptr);
 }
 
 void JitBaseBlockCache::Reset()
@@ -88,9 +88,9 @@ void JitBaseBlockCache::SchedulateClearCacheThreadSafe()
   CoreTiming::ScheduleEvent(0, s_clear_jit_cache_thread_safe, 0, CoreTiming::FromThread::NON_CPU);
 }
 
-JitBlock** JitBaseBlockCache::GetICache()
+JitBlock** JitBaseBlockCache::GetFastBlockMap()
 {
-  return iCache.data();
+  return fast_block_map.data();
 }
 
 void JitBaseBlockCache::RunOnBlocks(std::function<void(const JitBlock&)> f)
@@ -107,7 +107,7 @@ JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
   b.physicalAddress = physicalAddress;
   b.msrBits = MSR & JIT_CACHE_MSR_MASK;
   b.linkData.clear();
-  b.in_icache = 0;
+  b.fast_block_map_index = 0;
   return &b;
 }
 
@@ -125,9 +125,9 @@ void JitBaseBlockCache::FreeBlock(JitBlock* block)
 
 void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr)
 {
-  size_t icache = FastLookupEntryForAddress(block.effectiveAddress);
-  iCache[icache] = &block;
-  block.in_icache = icache;
+  size_t index = FastLookupIndexForAddress(block.effectiveAddress);
+  fast_block_map[index] = &block;
+  block.fast_block_map_index = index;
 
   u32 pAddr = block.physicalAddress;
 
@@ -175,12 +175,12 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
 
 const u8* JitBaseBlockCache::Dispatch()
 {
-  JitBlock* block = iCache[FastLookupEntryForAddress(PC)];
+  JitBlock* block = fast_block_map[FastLookupIndexForAddress(PC)];
 
   while (!block || block->effectiveAddress != PC || block->msrBits != (MSR & JIT_CACHE_MSR_MASK))
   {
     MoveBlockIntoFastCache(PC, MSR & JIT_CACHE_MSR_MASK);
-    block = iCache[FastLookupEntryForAddress(PC)];
+    block = fast_block_map[FastLookupIndexForAddress(PC)];
   }
 
   return block->normalEntry;
@@ -299,8 +299,8 @@ void JitBaseBlockCache::UnlinkBlock(const JitBlock& block)
 
 void JitBaseBlockCache::DestroyBlock(JitBlock& block)
 {
-  if (iCache[block.in_icache] == &block)
-    iCache[block.in_icache] = nullptr;
+  if (fast_block_map[block.fast_block_map_index] == &block)
+    fast_block_map[block.fast_block_map_index] = nullptr;
 
   UnlinkBlock(block);
 
@@ -330,19 +330,19 @@ void JitBaseBlockCache::MoveBlockIntoFastCache(u32 addr, u32 msr)
   }
   else
   {
-    // Drop old icache entry
-    if (iCache[block->in_icache] == block)
-      iCache[block->in_icache] = nullptr;
+    // Drop old fast block map entry
+    if (fast_block_map[block->fast_block_map_index] == block)
+      fast_block_map[block->fast_block_map_index] = nullptr;
 
     // And create a new one
-    size_t icache = FastLookupEntryForAddress(addr);
-    iCache[icache] = block;
-    block->in_icache = icache;
+    size_t index = FastLookupIndexForAddress(addr);
+    fast_block_map[index] = block;
+    block->fast_block_map_index = index;
     LinkBlock(*block);
   }
 }
 
-size_t JitBaseBlockCache::FastLookupEntryForAddress(u32 address)
+size_t JitBaseBlockCache::FastLookupIndexForAddress(u32 address)
 {
-  return (address >> 2) & iCache_Mask;
+  return (address >> 2) & FAST_BLOCK_MAP_MASK;
 }

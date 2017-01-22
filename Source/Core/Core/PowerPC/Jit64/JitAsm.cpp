@@ -99,8 +99,8 @@ void Jit64AsmRoutineManager::Generate()
     // Fast block number lookup.
     // ((PC >> 2) & mask) * sizeof(JitBlock*) = (PC & (mask << 2)) * 2
     MOV(32, R(RSCRATCH), PPCSTATE(pc));
-    u64 icache = reinterpret_cast<u64>(g_jit->GetBlockCache()->GetICache());
-    AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::iCache_Mask << 2));
+    u64 icache = reinterpret_cast<u64>(g_jit->GetBlockCache()->GetFastBlockMap());
+    AND(32, R(RSCRATCH), Imm32(JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 2));
     if (icache <= INT_MAX)
     {
       MOV(64, R(RSCRATCH), MScaled(RSCRATCH, SCALE_2, static_cast<s32>(icache)));

@@ -63,9 +63,9 @@ struct JitBlock
   u64 ticStop;     // for profiling - time.
   u64 ticCounter;  // for profiling - time.
 
-  // This tracks the position if this block within the icache.
-  // We allow each block to have one icache entry.
-  size_t in_icache;
+  // This tracks the position if this block within the fast block cache.
+  // We allow each block to have only one map entry.
+  size_t fast_block_map_index;
 };
 
 typedef void (*CompiledCode)();
@@ -107,8 +107,8 @@ public:
   // is valid (MSR.IR and MSR.DR, the address translation bits).
   static constexpr u32 JIT_CACHE_MSR_MASK = 0x30;
 
-  static constexpr u32 iCache_Num_Elements = 0x10000;
-  static constexpr u32 iCache_Mask = iCache_Num_Elements - 1;
+  static constexpr u32 FAST_BLOCK_MAP_ELEMENTS = 0x10000;
+  static constexpr u32 FAST_BLOCK_MAP_MASK = FAST_BLOCK_MAP_ELEMENTS - 1;
 
   explicit JitBaseBlockCache(JitBase& jit);
   virtual ~JitBaseBlockCache();
@@ -120,7 +120,7 @@ public:
   void SchedulateClearCacheThreadSafe();
 
   // Code Cache
-  JitBlock** GetICache();
+  JitBlock** GetFastBlockMap();
   void RunOnBlocks(std::function<void(const JitBlock&)> f);
 
   JitBlock* AllocateBlock(u32 em_address);
@@ -128,7 +128,7 @@ public:
   void FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr);
 
   // Look for the block in the slow but accurate way.
-  // This function shall be used if FastLookupEntryForAddress() failed.
+  // This function shall be used if FastLookupIndexForAddress() failed.
   // This might return nullptr if there is no such block.
   JitBlock* GetBlockFromStartAddress(u32 em_address, u32 msr);
 
@@ -156,8 +156,8 @@ private:
 
   void MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
-  // Fast but risky block lookup based on iCache.
-  size_t FastLookupEntryForAddress(u32 address);
+  // Fast but risky block lookup based on fast_block_map.
+  size_t FastLookupIndexForAddress(u32 address);
 
   // links_to hold all exit points of all valid blocks in a reverse way.
   // It is used to query all blocks which links to an address.
@@ -178,5 +178,5 @@ private:
 
   // This array is indexed with the masked PC and likely holds the correct block id.
   // This is used as a fast cache of start_block_map used in the assembly dispatcher.
-  std::array<JitBlock*, iCache_Num_Elements> iCache;  // start_addr & mask -> number
+  std::array<JitBlock*, FAST_BLOCK_MAP_ELEMENTS> fast_block_map;  // start_addr & mask -> number
 };
