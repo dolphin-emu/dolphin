@@ -929,28 +929,26 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
     {
       if (params[0].type == P_STR)
       {
-        char* tmpstr;
-        u32 thisCodeline = code_line;
+        std::string include_file_path;
+        const u32 this_code_line = code_line;
 
-        if (include_dir.size())
+        if (include_dir.empty())
         {
-          tmpstr = (char*)malloc(include_dir.size() + strlen(params[0].str) + 2);
-          sprintf(tmpstr, "%s/%s", include_dir.c_str(), params[0].str);
+          include_file_path = params[0].str;
         }
         else
         {
-          tmpstr = (char*)malloc(strlen(params[0].str) + 1);
-          strcpy(tmpstr, params[0].str);
+          include_file_path = include_dir + '/' + params[0].str;
         }
 
-        AssembleFile(tmpstr, pass);
+        AssembleFile(include_file_path, pass);
 
-        code_line = thisCodeline;
-
-        free(tmpstr);
+        code_line = this_code_line;
       }
       else
+      {
         ShowError(ERR_EXPECTED_PARAM_STR);
+      }
       continue;
     }
 
