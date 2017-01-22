@@ -653,7 +653,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
   u32 return_address = 0;
   u32 numFollows = 0;
   u32 num_inst = 0;
-  bool prev_inst_from_bat = true;
 
   for (u32 i = 0; i < blockSize; ++i)
   {
@@ -665,16 +664,6 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
       break;
     }
     UGeckoInstruction inst = result.hex;
-
-    // Slight hack: the JIT block cache currently assumes all blocks end at the same place,
-    // but broken blocks due to page faults break this assumption. Avoid this by just ending
-    // all virtual memory instruction blocks at page boundaries.
-    // FIXME: improve the JIT block cache so we don't need to do this.
-    if ((!result.from_bat || !prev_inst_from_bat) && i > 0 && (address & 0xfff) == 0)
-    {
-      break;
-    }
-    prev_inst_from_bat = result.from_bat;
 
     num_inst++;
     memset(&code[i], 0, sizeof(CodeOp));
