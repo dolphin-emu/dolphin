@@ -36,6 +36,15 @@ static void ClearCacheThreadSafe(u64 userdata, s64 cyclesdata)
   JitInterface::ClearCache();
 }
 
+bool JitBlock::Overlap(u32 addr, u32 length)
+{
+  if (addr >= physicalAddress + originalSize)
+    return false;
+  if (physicalAddress >= addr + length)
+    return false;
+  return true;
+}
+
 JitBaseBlockCache::JitBaseBlockCache(JitBase& jit) : m_jit{jit}
 {
 }
@@ -64,13 +73,12 @@ void JitBaseBlockCache::Clear()
 #endif
   m_jit.js.fifoWriteAddresses.clear();
   m_jit.js.pairedQuantizeAddresses.clear();
-  for (auto& e : start_block_map)
+  for (auto& e : block_map)
   {
     DestroyBlock(e.second);
   }
-  start_block_map.clear();
-  links_to.clear();
   block_map.clear();
+  links_to.clear();
 
   valid_block.ClearAll();
 
@@ -95,32 +103,20 @@ JitBlock** JitBaseBlockCache::GetFastBlockMap()
 
 void JitBaseBlockCache::RunOnBlocks(std::function<void(const JitBlock&)> f)
 {
-  for (const auto& e : start_block_map)
+  for (const auto& e : block_map)
     f(e.second);
 }
 
 JitBlock* JitBaseBlockCache::AllocateBlock(u32 em_address)
 {
   u32 physicalAddress = PowerPC::JitCache_TranslateAddress(em_address).address;
-  JitBlock& b = start_block_map.emplace(physicalAddress, JitBlock())->second;
+  JitBlock& b = block_map.emplace(physicalAddress, JitBlock())->second;
   b.effectiveAddress = em_address;
   b.physicalAddress = physicalAddress;
   b.msrBits = MSR & JIT_CACHE_MSR_MASK;
   b.linkData.clear();
   b.fast_block_map_index = 0;
   return &b;
-}
-
-void JitBaseBlockCache::FreeBlock(JitBlock* block)
-{
-  auto iter = start_block_map.equal_range(block->physicalAddress);
-  while (iter.first != iter.second)
-  {
-    if (&iter.first->second == block)
-      iter.first = start_block_map.erase(iter.first);
-    else
-      iter.first++;
-  }
 }
 
 void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr)
@@ -133,8 +129,6 @@ void JitBaseBlockCache::FinalizeBlock(JitBlock& block, bool block_link, const u8
 
   for (u32 addr = pAddr / 32; addr <= (pAddr + (block.originalSize - 1) * 4) / 32; ++addr)
     valid_block.Set(addr);
-
-  block_map.emplace(std::make_pair(pAddr + 4 * block.originalSize - 1, pAddr), &block);
 
   if (block_link)
   {
@@ -162,7 +156,7 @@ JitBlock* JitBaseBlockCache::GetBlockFromStartAddress(u32 addr, u32 msr)
     translated_addr = translated.address;
   }
 
-  auto iter = start_block_map.equal_range(translated_addr);
+  auto iter = block_map.equal_range(translated_addr);
   for (; iter.first != iter.second; iter.first++)
   {
     JitBlock& b = iter.first->second;
@@ -204,17 +198,20 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
   }
 
   // destroy JIT blocks
-  // !! this works correctly under assumption that any two overlapping blocks end at the same
-  // address
   if (destroy_block)
   {
-    auto it = block_map.lower_bound(std::make_pair(pAddr, 0));
-    while (it != block_map.end() && it->first.second < pAddr + length)
+    auto iter = block_map.begin();
+    while (iter != block_map.end())
     {
-      JitBlock* block = it->second;
-      DestroyBlock(*block);
-      FreeBlock(block);
-      it = block_map.erase(it);
+      if (iter->second.Overlap(pAddr, length))
+      {
+        DestroyBlock(iter->second);
+        iter = block_map.erase(iter);
+      }
+      else
+      {
+        iter++;
+      }
     }
 
     // If the code was actually modified, we need to clear the relevant entries from the
