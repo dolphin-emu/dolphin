@@ -325,8 +325,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   ARM64Reg XA = EncodeRegTo64(addr_reg);
 
-  if (is_immediate &&
-      !(g_jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr)))
+  if (is_immediate && !(jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr)))
   {
     MOVI2R(XA, imm_addr);
 
@@ -350,7 +349,7 @@ void JitArm64::stfXX(UGeckoInstruction inst)
 
   if (is_immediate)
   {
-    if (g_jit->jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
+    if (jo.optimizeGatherPipe && PowerPC::IsOptimizableGatherPipeWrite(imm_addr))
     {
       int accessSize;
       if (flags & BackPatchInfo::FLAG_SIZE_F64)
