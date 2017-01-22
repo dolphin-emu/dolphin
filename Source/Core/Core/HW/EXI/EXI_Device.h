@@ -31,6 +31,8 @@ enum TEXIDevices : int
 class IEXIDevice
 {
 public:
+  virtual ~IEXIDevice() = default;
+
   // Immediate copy functions
   virtual void ImmWrite(u32 _uData, u32 _uSize);
   virtual u32 ImmRead(u32 _uSize);
@@ -51,7 +53,6 @@ public:
 
   // Is generating interrupt ?
   virtual bool IsInterruptSet() { return false; }
-  virtual ~IEXIDevice() {}
   // for savestates. storing it here seemed cleaner than requiring each implementation to report its
   // type.
   // I know this class is set up like an interface, but no code requires it to be strictly such.
