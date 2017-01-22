@@ -63,4 +63,4 @@ private:
   virtual void TransferByte(u8& byte);
 };
 
-std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, const int channel_num);
+std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, int channel_num);

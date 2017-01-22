@@ -100,7 +100,7 @@ void IEXIDevice::TransferByte(u8& byte)
 }
 
 // F A C T O R Y
-std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, const int channel_num)
+std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, const int channel_num)
 {
   std::unique_ptr<IEXIDevice> result;
 
