@@ -8,6 +8,7 @@
 #include <memory>
 
 #include "Common/Assert.h"
+#include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 
@@ -88,6 +89,17 @@ IPCCommandResult STMEventHook::IOCtl(const IOCtlRequest& request)
   // IOCTL_STM_EVENTHOOK waits until the reset button or power button is pressed.
   s_event_hook_request = std::make_unique<IOCtlRequest>(request.address);
   return GetNoReply();
+}
+
+void STMEventHook::DoState(PointerWrap& p)
+{
+  u32 address = s_event_hook_request ? s_event_hook_request->address : 0;
+  p.Do(address);
+  if (address != 0)
+    s_event_hook_request = std::make_unique<IOCtlRequest>(address);
+  else
+    s_event_hook_request.reset();
+  Device::DoState(p);
 }
 
 bool STMEventHook::HasHookInstalled() const
