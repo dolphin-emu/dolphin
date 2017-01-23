@@ -75,32 +75,32 @@ namespace Device
 {
 std::string ES::m_ContentFile;
 
+constexpr u8 s_key_sd[0x10] = {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08,
+                               0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
+constexpr u8 s_key_ecc[0x1e] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
+constexpr u8 s_key_empty[0x10] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+                                  0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+
+// default key table
+constexpr const u8* s_key_table[11] = {
+    s_key_ecc,    // ECC Private Key
+    s_key_empty,  // Console ID
+    s_key_empty,  // NAND AES Key
+    s_key_empty,  // NAND HMAC
+    s_key_empty,  // Common Key
+    s_key_empty,  // PRNG seed
+    s_key_sd,     // SD Key
+    s_key_empty,  // Unknown
+    s_key_empty,  // Unknown
+    s_key_empty,  // Unknown
+    s_key_empty,  // Unknown
+};
+
 ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
-
-static u8 key_sd[0x10] = {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08,
-                          0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
-static u8 key_ecc[0x1e] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                           0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01};
-static u8 key_empty[0x10] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
-                             0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-
-// default key table
-u8* ES::keyTable[11] = {
-    key_ecc,    // ECC Private Key
-    key_empty,  // Console ID
-    key_empty,  // NAND AES Key
-    key_empty,  // NAND HMAC
-    key_empty,  // Common Key
-    key_empty,  // PRNG seed
-    key_sd,     // SD Key
-    key_empty,  // Unknown
-    key_empty,  // Unknown
-    key_empty,  // Unknown
-    key_empty,  // Unknown
-};
 
 void ES::LoadWAD(const std::string& _rContentFile)
 {
@@ -110,7 +110,7 @@ void ES::LoadWAD(const std::string& _rContentFile)
 void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output)
 {
   mbedtls_aes_context AES_ctx;
-  mbedtls_aes_setkey_dec(&AES_ctx, keyTable[key_index], 128);
+  mbedtls_aes_setkey_dec(&AES_ctx, s_key_table[key_index], 128);
   memcpy(new_iv, iv, 16);
   mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, new_iv, input, output);
 }
@@ -1000,7 +1000,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     u8* destination = Memory::GetPointer(request.io_vectors[1].address);
 
     mbedtls_aes_context AES_ctx;
-    mbedtls_aes_setkey_enc(&AES_ctx, keyTable[keyIndex], 128);
+    mbedtls_aes_setkey_enc(&AES_ctx, s_key_table[keyIndex], 128);
     memcpy(newIV, IV, 16);
     mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_ENCRYPT, size, newIV, source, destination);
 
