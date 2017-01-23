@@ -72,11 +72,11 @@ u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 Inpu
     return 0;
   }
 
-  if (type == POKE_COLOR || type == POKE_Z)
+  if (type == EFBAccessType::PokeColor || type == EFBAccessType::PokeZ)
   {
     AsyncRequests::Event e;
-    e.type = type == POKE_COLOR ? AsyncRequests::Event::EFB_POKE_COLOR :
-                                  AsyncRequests::Event::EFB_POKE_Z;
+    e.type = type == EFBAccessType::PokeColor ? AsyncRequests::Event::EFB_POKE_COLOR :
+                                                AsyncRequests::Event::EFB_POKE_Z;
     e.time = 0;
     e.efb_poke.data = InputData;
     e.efb_poke.x = x;
@@ -88,8 +88,8 @@ u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 Inpu
   {
     AsyncRequests::Event e;
     u32 result;
-    e.type = type == PEEK_COLOR ? AsyncRequests::Event::EFB_PEEK_COLOR :
-                                  AsyncRequests::Event::EFB_PEEK_Z;
+    e.type = type == EFBAccessType::PeekColor ? AsyncRequests::Event::EFB_PEEK_COLOR :
+                                                AsyncRequests::Event::EFB_PEEK_Z;
     e.time = 0;
     e.efb_peek.x = x;
     e.efb_peek.y = y;

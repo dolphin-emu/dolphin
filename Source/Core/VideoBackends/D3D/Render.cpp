@@ -380,7 +380,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   // Take the mean of the resulting dimensions; TODO: Don't use the center pixel, compute the
   // average color instead
   D3D11_RECT RectToLock;
-  if (type == PEEK_COLOR || type == PEEK_Z)
+  if (type == EFBAccessType::PeekColor || type == EFBAccessType::PeekZ)
   {
     RectToLock.left = (targetPixelRc.left + targetPixelRc.right) / 2;
     RectToLock.top = (targetPixelRc.top + targetPixelRc.bottom) / 2;
@@ -406,7 +406,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   D3DTexture2D* source_tex;
   D3DTexture2D* read_tex;
   ID3D11Texture2D* staging_tex;
-  if (type == PEEK_COLOR)
+  if (type == EFBAccessType::PeekColor)
   {
     source_tex = FramebufferManager::GetEFBColorTexture();
     read_tex = FramebufferManager::GetEFBColorReadTexture();
@@ -421,7 +421,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
   // Select pixel shader (we don't want to average depth samples, instead select the minimum).
   ID3D11PixelShader* copy_pixel_shader;
-  if (type == PEEK_Z && g_ActiveConfig.iMultisamples > 1)
+  if (type == EFBAccessType::PeekZ && g_ActiveConfig.iMultisamples > 1)
     copy_pixel_shader = PixelShaderCache::GetDepthResolveProgram();
   else
     copy_pixel_shader = PixelShaderCache::GetColorCopyProgram(true);
@@ -447,7 +447,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
   // Convert the framebuffer data to the format the game is expecting to receive.
   u32 ret;
-  if (type == PEEK_COLOR)
+  if (type == EFBAccessType::PeekColor)
   {
     u32 val;
     memcpy(&val, map.pData, sizeof(val));
@@ -478,7 +478,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     else                         /*if(alpha_read_mode.ReadMode == 0)*/
       ret = (val & 0x00FFFFFF);  // GX_READ_00
   }
-  else  // type == PEEK_Z
+  else  // type == EFBAccessType::PeekZ
   {
     float val;
     memcpy(&val, map.pData, sizeof(val));
@@ -505,7 +505,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 {
   ResetAPIState();
 
-  if (type == POKE_COLOR)
+  if (type == EFBAccessType::PokeColor)
   {
     D3D11_VIEWPORT vp =
         CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
@@ -513,7 +513,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
     D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
                                      nullptr);
   }
-  else  // if (type == POKE_Z)
+  else  // if (type == EFBAccessType::PokeZ)
   {
     D3D::stateman->PushBlendState(clearblendstates[3]);
     D3D::stateman->PushDepthState(cleardepthstates[1]);
@@ -529,7 +529,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 
   D3D::DrawEFBPokeQuads(type, points, num_points);
 
-  if (type == POKE_Z)
+  if (type == EFBAccessType::PokeZ)
   {
     D3D::stateman->PopDepthState();
     D3D::stateman->PopBlendState();

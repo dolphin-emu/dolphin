@@ -17,18 +17,18 @@ class Mapping;
 }
 class PointerWrap;
 
-enum FieldType
+enum class FieldType
 {
-  FIELD_ODD = 0,
-  FIELD_EVEN = 1,
+  Odd,
+  Even,
 };
 
-enum EFBAccessType
+enum class EFBAccessType
 {
-  PEEK_Z = 0,
-  POKE_Z,
-  PEEK_COLOR,
-  POKE_COLOR
+  PeekZ,
+  PokeZ,
+  PeekColor,
+  PokeColor
 };
 
 struct SCPFifoStruct
