@@ -20,15 +20,16 @@ public:
   void Reset();
   std::string GetName() const override;
 
-  const char* const name;
-  WiimoteEmu::ExtensionReg& reg;
+protected:
+  // Default radius for attachment analog sticks.
+  static constexpr ControlState DEFAULT_ATTACHMENT_STICK_RADIUS = 1.0;
 
   u8 id[6];
   u8 calibration[0x10];
 
-protected:
-  // Default radius for attachment analog sticks.
-  static constexpr ControlState DEFAULT_ATTACHMENT_STICK_RADIUS = 1.0;
+private:
+  const char* const name;
+  WiimoteEmu::ExtensionReg& reg;
 };
 
 class None : public Attachment
