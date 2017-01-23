@@ -2,7 +2,11 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/VideoInterface.h"
+
+#include <array>
 #include <cmath>
+#include <cstddef>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -16,7 +20,6 @@
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
-#include "Core/HW/VideoInterface.h"
 
 #include "DiscIO/Enums.h"
 
@@ -186,7 +189,7 @@ void Preset(bool _bNTSC)
   s_ticks_last_line_start = 0;
   s_half_line_count = 1;
   s_half_line_of_next_si_poll = num_half_lines_for_si_poll;  // first sampling starts at vsync
-  s_current_field = FIELD_ODD;
+  s_current_field = FieldType::Odd;
 
   UpdateParameters();
 }
@@ -638,6 +641,27 @@ u32 GetTicksPerField()
   return GetTicksPerEvenField();
 }
 
+static void LogField(FieldType field, u32 xfb_address)
+{
+  static constexpr std::array<const char*, 2> field_type_names{{"Odd", "Even"}};
+
+  static const std::array<const UVIVBlankTimingRegister*, 2> vert_timing{{
+      &m_VBlankTimingOdd, &m_VBlankTimingEven,
+  }};
+
+  const auto field_index = static_cast<size_t>(field);
+
+  DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | "
+                            "ACV %u | PSB %u | Field %s",
+            xfb_address, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
+            m_VerticalTimingRegister.EQU, vert_timing[field_index]->PRB,
+            m_VerticalTimingRegister.ACV, vert_timing[field_index]->PSB,
+            field_type_names[field_index]);
+
+  DEBUG_LOG(VIDEOINTERFACE, "HorizScaling: %04x | fbwidth %d | %u | %u", m_HorizontalScaling.Hex,
+            m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
+}
+
 static void BeginField(FieldType field, u64 ticks)
 {
   // Could we fit a second line of data in the stride?
@@ -652,7 +676,7 @@ static void BeginField(FieldType field, u64 ticks)
 
   u32 xfbAddr;
 
-  if (field == FieldType::FIELD_EVEN)
+  if (field == FieldType::Even)
   {
     xfbAddr = GetXFBAddressBottom();
   }
@@ -678,29 +702,14 @@ static void BeginField(FieldType field, u64 ticks)
     // has the first line. For the field with the second line, we
     // offset the xfb by (-stride_of_one_line) to get the start
     // address of the full xfb.
-    if (field == FieldType::FIELD_ODD && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1 &&
-        xfbAddr)
+    if (field == FieldType::Odd && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB + 1 && xfbAddr)
       xfbAddr -= fbStride * 2;
 
-    if (field == FieldType::FIELD_EVEN && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1 &&
-        xfbAddr)
+    if (field == FieldType::Even && m_VBlankTimingOdd.PRB == m_VBlankTimingEven.PRB - 1 && xfbAddr)
       xfbAddr -= fbStride * 2;
   }
 
-  static const char* const fieldTypeNames[] = {"Odd", "Even"};
-
-  static const UVIVBlankTimingRegister* vert_timing[] = {
-      &m_VBlankTimingOdd, &m_VBlankTimingEven,
-  };
-
-  DEBUG_LOG(VIDEOINTERFACE, "(VI->BeginField): Address: %.08X | WPL %u | STD %u | EQ %u | PRB %u | "
-                            "ACV %u | PSB %u | Field %s",
-            xfbAddr, m_PictureConfiguration.WPL, m_PictureConfiguration.STD,
-            m_VerticalTimingRegister.EQU, vert_timing[field]->PRB, m_VerticalTimingRegister.ACV,
-            vert_timing[field]->PSB, fieldTypeNames[field]);
-
-  DEBUG_LOG(VIDEOINTERFACE, "HorizScaling: %04x | fbwidth %d | %u | %u", m_HorizontalScaling.Hex,
-            m_FBWidth.Hex, GetTicksPerEvenField(), GetTicksPerOddField());
+  LogField(field, xfbAddr);
 
   // This assumes the game isn't going to change the VI registers while a
   // frame is scanning out.
@@ -726,11 +735,11 @@ void Update(u64 ticks)
   }
   if (s_half_line_count == s_even_field_first_hl)
   {
-    BeginField(FIELD_EVEN, ticks);
+    BeginField(FieldType::Even, ticks);
   }
   else if (s_half_line_count == s_odd_field_first_hl)
   {
-    BeginField(FIELD_ODD, ticks);
+    BeginField(FieldType::Odd, ticks);
   }
   else if (s_half_line_count == s_even_field_last_hl)
   {

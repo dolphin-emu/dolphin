@@ -17,10 +17,10 @@ class Mapping;
 }
 class PointerWrap;
 
-enum FieldType
+enum class FieldType
 {
-  FIELD_ODD = 0,
-  FIELD_EVEN = 1,
+  Odd,
+  Even,
 };
 
 enum class EFBAccessType
