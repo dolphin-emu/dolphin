@@ -18,8 +18,9 @@ class Attachment : public ControllerEmu
 public:
   Attachment(const char* const name, ExtensionReg& reg);
 
-  virtual void GetState(u8* const data) {}
-  virtual bool IsButtonPressed() const { return false; }
+  virtual void GetState(u8* const data);
+  virtual bool IsButtonPressed() const;
+
   void Reset();
   std::string GetName() const override;
 
@@ -40,4 +41,4 @@ class None : public Attachment
 public:
   None(ExtensionReg& reg);
 };
-}
+}  // namespace WiimoteEmu

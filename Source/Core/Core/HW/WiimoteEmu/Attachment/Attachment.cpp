@@ -30,6 +30,15 @@ None::None(ExtensionReg& reg) : Attachment("None", reg)
   m_id = nothing_id;
 }
 
+void Attachment::GetState(u8* const data)
+{
+}
+
+bool Attachment::IsButtonPressed() const
+{
+  return false;
+}
+
 std::string Attachment::GetName() const
 {
   return m_name;
@@ -42,7 +51,7 @@ void Attachment::Reset()
   std::copy(m_id.cbegin(), m_id.cend(), m_reg.constant_id);
   std::copy(m_calibration.cbegin(), m_calibration.cend(), m_reg.calibration);
 }
-}
+}  // namespace WiimoteEmu
 
 void ControllerEmu::Extension::GetState(u8* const data)
 {
