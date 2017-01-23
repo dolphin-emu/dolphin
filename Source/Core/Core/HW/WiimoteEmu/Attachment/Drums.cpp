@@ -2,31 +2,34 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/Attachment/Drums.h"
+
+#include <array>
 #include <cassert>
-#include <cstring>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/Attachment/Drums.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 namespace WiimoteEmu
 {
-static const u8 drums_id[] = {0x01, 0x00, 0xa4, 0x20, 0x01, 0x03};
+constexpr std::array<u8, 6> drums_id{{0x01, 0x00, 0xa4, 0x20, 0x01, 0x03}};
 
-static const u16 drum_pad_bitmasks[] = {
-    Drums::PAD_RED,   Drums::PAD_YELLOW, Drums::PAD_BLUE,
-    Drums::PAD_GREEN, Drums::PAD_ORANGE, Drums::PAD_BASS,
-};
+constexpr std::array<u16, 6> drum_pad_bitmasks{{
+    Drums::PAD_RED, Drums::PAD_YELLOW, Drums::PAD_BLUE, Drums::PAD_GREEN, Drums::PAD_ORANGE,
+    Drums::PAD_BASS,
+}};
 
-static const char* const drum_pad_names[] = {_trans("Red"),   _trans("Yellow"), _trans("Blue"),
-                                             _trans("Green"), _trans("Orange"), _trans("Bass")};
+constexpr std::array<const char*, 6> drum_pad_names{{
+    _trans("Red"), _trans("Yellow"), _trans("Blue"), _trans("Green"), _trans("Orange"),
+    _trans("Bass"),
+}};
 
-static const u16 drum_button_bitmasks[] = {
+constexpr std::array<u16, 2> drum_button_bitmasks{{
     Drums::BUTTON_MINUS, Drums::BUTTON_PLUS,
-};
+}};
 
-Drums::Drums(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Drums"), _reg)
+Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
 {
   // pads
   groups.emplace_back(m_pads = new Buttons(_trans("Pads")));
@@ -42,8 +45,7 @@ Drums::Drums(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Drums"), _reg)
   m_buttons->controls.emplace_back(new ControlGroup::Input("+"));
 
   // set up register
-  // id
-  memcpy(&id, drums_id, sizeof(drums_id));
+  m_id = drums_id;
 }
 
 void Drums::GetState(u8* const data)
@@ -67,9 +69,9 @@ void Drums::GetState(u8* const data)
   data[3] = 0xFF;
 
   // buttons
-  m_buttons->GetState(&ddata->bt, drum_button_bitmasks);
+  m_buttons->GetState(&ddata->bt, drum_button_bitmasks.data());
   // pads
-  m_pads->GetState(&ddata->bt, drum_pad_bitmasks);
+  m_pads->GetState(&ddata->bt, drum_pad_bitmasks.data());
 
   // flip button bits
   ddata->bt ^= 0xFFFF;
@@ -78,8 +80,8 @@ void Drums::GetState(u8* const data)
 bool Drums::IsButtonPressed() const
 {
   u16 buttons = 0;
-  m_buttons->GetState(&buttons, drum_button_bitmasks);
-  m_pads->GetState(&buttons, drum_pad_bitmasks);
+  m_buttons->GetState(&buttons, drum_button_bitmasks.data());
+  m_pads->GetState(&buttons, drum_pad_bitmasks.data());
   return buttons != 0;
 }
 

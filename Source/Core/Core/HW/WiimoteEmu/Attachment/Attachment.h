@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <array>
+#include <string>
+#include "Common/CommonTypes.h"
 #include "InputCommon/ControllerEmu.h"
 
 namespace WiimoteEmu
@@ -13,7 +16,7 @@ struct ExtensionReg;
 class Attachment : public ControllerEmu
 {
 public:
-  Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg);
+  Attachment(const char* const name, ExtensionReg& reg);
 
   virtual void GetState(u8* const data) {}
   virtual bool IsButtonPressed() const { return false; }
@@ -24,17 +27,17 @@ protected:
   // Default radius for attachment analog sticks.
   static constexpr ControlState DEFAULT_ATTACHMENT_STICK_RADIUS = 1.0;
 
-  u8 id[6];
-  u8 calibration[0x10];
+  std::array<u8, 6> m_id{};
+  std::array<u8, 0x10> m_calibration{};
 
 private:
-  const char* const name;
-  WiimoteEmu::ExtensionReg& reg;
+  const char* const m_name;
+  ExtensionReg& m_reg;
 };
 
 class None : public Attachment
 {
 public:
-  None(WiimoteEmu::ExtensionReg& _reg);
+  None(ExtensionReg& reg);
 };
 }

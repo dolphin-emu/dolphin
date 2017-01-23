@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
 namespace WiimoteEmu
@@ -14,7 +15,7 @@ struct ExtensionReg;
 class Nunchuk : public Attachment
 {
 public:
-  Nunchuk(WiimoteEmu::ExtensionReg& _reg);
+  Nunchuk(ExtensionReg& reg);
 
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
@@ -51,6 +52,6 @@ private:
   Buttons* m_buttons;
   AnalogStick* m_stick;
 
-  u8 m_shake_step[3];
+  std::array<u8, 3> m_shake_step{};
 };
 }
