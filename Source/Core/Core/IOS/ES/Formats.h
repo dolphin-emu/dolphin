@@ -29,6 +29,7 @@ public:
 
   bool IsValid() const;
 
+  u64 GetIOSId() const;
   u64 GetTitleId() const;
 
   struct Content
