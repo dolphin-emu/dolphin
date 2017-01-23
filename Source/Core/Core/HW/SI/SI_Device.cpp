@@ -18,18 +18,34 @@
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
 #include "Core/HW/SI/SI_DeviceNull.h"
 
-int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
+ISIDevice::ISIDevice(SIDevices device_type, int device_number)
+    : m_device_number(device_number), m_device_type(device_type)
+{
+}
+
+ISIDevice::~ISIDevice() = default;
+
+int ISIDevice::GetDeviceNumber() const
+{
+  return m_device_number;
+}
+
+SIDevices ISIDevice::GetDeviceType() const
+{
+  return m_device_type;
+}
+
+int ISIDevice::RunBuffer(u8* buffer, int length)
 {
 #ifdef _DEBUG
-  DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", ISIDevice::m_iDeviceNumber,
-            _iLength);
+  DEBUG_LOG(SERIALINTERFACE, "Send Data Device(%i) - Length(%i)   ", m_device_number, length);
 
   std::string temp;
   int num = 0;
 
-  while (num < _iLength)
+  while (num < length)
   {
-    temp += StringFromFormat("0x%02x ", _pBuffer[num ^ 3]);
+    temp += StringFromFormat("0x%02x ", buffer[num ^ 3]);
     num++;
 
     if ((num % 8) == 0)
@@ -47,6 +63,10 @@ int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 int ISIDevice::TransferInterval()
 {
   return 0;
+}
+
+void ISIDevice::DoState(PointerWrap& p)
+{
 }
 
 // Check if a device class is inheriting from CSIDevice_GCController

@@ -57,7 +57,7 @@ int CSIDevice_Keyboard::RunBuffer(u8* _pBuffer, int _iLength)
 
 KeyboardStatus CSIDevice_Keyboard::GetKeyboardStatus() const
 {
-  return Keyboard::GetStatus(m_iDeviceNumber);
+  return Keyboard::GetStatus(m_device_number);
 }
 
 bool CSIDevice_Keyboard::GetData(u32& _Hi, u32& _Low)

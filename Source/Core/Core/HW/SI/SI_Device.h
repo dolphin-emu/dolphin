@@ -72,35 +72,31 @@ enum SIDevices : int
 
 class ISIDevice
 {
-protected:
-  int m_iDeviceNumber;
-  SIDevices m_deviceType;
-
 public:
-  // Constructor
-  ISIDevice(SIDevices deviceType, int _iDeviceNumber)
-      : m_iDeviceNumber(_iDeviceNumber), m_deviceType(deviceType)
-  {
-  }
+  ISIDevice(SIDevices device_type, int device_number);
+  virtual ~ISIDevice();
 
-  // Destructor
-  virtual ~ISIDevice() {}
+  int GetDeviceNumber() const;
+  SIDevices GetDeviceType() const;
+
   // Run the SI Buffer
-  virtual int RunBuffer(u8* _pBuffer, int _iLength);
+  virtual int RunBuffer(u8* buffer, int length);
   virtual int TransferInterval();
 
   // Return true on new data
-  virtual bool GetData(u32& _Hi, u32& _Low) = 0;
+  virtual bool GetData(u32& hi, u32& low) = 0;
 
   // Send a command directly (no detour per buffer)
-  virtual void SendCommand(u32 _Cmd, u8 _Poll) = 0;
+  virtual void SendCommand(u32 command, u8 poll) = 0;
 
   // Savestate support
-  virtual void DoState(PointerWrap& p) {}
-  int GetDeviceNumber() const { return m_iDeviceNumber; }
-  SIDevices GetDeviceType() const { return m_deviceType; }
+  virtual void DoState(PointerWrap& p);
+
+protected:
+  int m_device_number;
+  SIDevices m_device_type;
 };
 
 bool SIDevice_IsGCController(SIDevices type);
 
-std::unique_ptr<ISIDevice> SIDevice_Create(const SIDevices device, const int port_number);
+std::unique_ptr<ISIDevice> SIDevice_Create(SIDevices device, int port_number);
