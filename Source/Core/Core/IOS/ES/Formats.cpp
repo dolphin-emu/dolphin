@@ -51,6 +51,11 @@ bool TMDReader::IsValid() const
   return true;
 }
 
+u64 TMDReader::GetIOSId() const
+{
+  return Common::swap64(m_bytes.data() + 0x184);
+}
+
 u64 TMDReader::GetTitleId() const
 {
   return Common::swap64(m_bytes.data() + 0x18C);
