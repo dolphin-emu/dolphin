@@ -117,7 +117,7 @@ void JitBaseBlockCache::FreeBlock(JitBlock* block)
   while (iter.first != iter.second)
   {
     if (&iter.first->second == block)
-      start_block_map.erase(iter.first);
+      iter.first = start_block_map.erase(iter.first);
     else
       iter.first++;
   }
