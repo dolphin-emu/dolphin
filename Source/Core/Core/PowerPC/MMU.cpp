@@ -112,7 +112,7 @@ static u32 EFB_Read(const u32 addr)
 {
   u32 var = 0;
   // Convert address to coordinates. It's possible that this should be done
-  // differently depending on color depth, especially regarding PEEK_COLOR.
+  // differently depending on color depth, especially regarding PeekColor.
   int x = (addr & 0xfff) >> 2;
   int y = (addr >> 12) & 0x3ff;
 
@@ -122,12 +122,12 @@ static u32 EFB_Read(const u32 addr)
   }
   else if (addr & 0x00400000)
   {
-    var = g_video_backend->Video_AccessEFB(PEEK_Z, x, y, 0);
+    var = g_video_backend->Video_AccessEFB(EFBAccessType::PeekZ, x, y, 0);
     DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= 0x%08x", x, y, var);
   }
   else
   {
-    var = g_video_backend->Video_AccessEFB(PEEK_COLOR, x, y, 0);
+    var = g_video_backend->Video_AccessEFB(EFBAccessType::PeekColor, x, y, 0);
     DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i\t= 0x%08x", x, y, var);
   }
 
@@ -147,12 +147,12 @@ static void EFB_Write(u32 data, u32 addr)
   }
   else if (addr & 0x00400000)
   {
-    g_video_backend->Video_AccessEFB(POKE_Z, x, y, data);
+    g_video_backend->Video_AccessEFB(EFBAccessType::PokeZ, x, y, data);
     DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", data, x, y);
   }
   else
   {
-    g_video_backend->Video_AccessEFB(POKE_COLOR, x, y, data);
+    g_video_backend->Video_AccessEFB(EFBAccessType::PokeColor, x, y, data);
     DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", data, x, y);
   }
 }

@@ -23,12 +23,12 @@ enum FieldType
   FIELD_EVEN = 1,
 };
 
-enum EFBAccessType
+enum class EFBAccessType
 {
-  PEEK_Z = 0,
-  POKE_Z,
-  PEEK_COLOR,
-  POKE_COLOR
+  PeekZ,
+  PokeZ,
+  PeekColor,
+  PokeColor
 };
 
 struct SCPFifoStruct

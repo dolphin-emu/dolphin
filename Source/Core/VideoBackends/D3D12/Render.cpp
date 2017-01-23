@@ -363,7 +363,7 @@ void Renderer::SetColorMask()
 //  - GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
-  if (type == PEEK_COLOR)
+  if (type == EFBAccessType::PeekColor)
   {
     u32 color = FramebufferManager::ReadEFBColorAccessCopy(x, y);
 
@@ -399,7 +399,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
       return (color & 0x00FFFFFF);  // GX_READ_00
     }
   }
-  else  // if (type == PEEK_Z)
+  else  // if (type == EFBAccessType::PeekZ)
   {
     // depth buffer is inverted in the d3d backend
     float depth = 1.0f - FramebufferManager::ReadEFBDepthAccessCopy(x, y);
@@ -423,14 +423,14 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 {
   D3D::SetViewportAndScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 
-  if (type == POKE_COLOR)
+  if (type == EFBAccessType::PokeColor)
   {
     // In the D3D12 backend, the rt/db/viewport is passed into DrawEFBPokeQuads, and set there.
     D3D::DrawEFBPokeQuads(type, points, num_points, &g_reset_blend_desc, &g_reset_depth_desc,
                           &FramebufferManager::GetEFBColorTexture()->GetRTV12(), nullptr,
                           FramebufferManager::GetEFBColorTexture()->GetMultisampled());
   }
-  else  // if (type == POKE_Z)
+  else  // if (type == EFBAccessType::PokeZ)
   {
     D3D::DrawEFBPokeQuads(type, points, num_points,
                           &s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_DISABLED],
