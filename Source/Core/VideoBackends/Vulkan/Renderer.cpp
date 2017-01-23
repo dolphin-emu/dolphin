@@ -34,6 +34,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan

@@ -2,26 +2,24 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/SWRenderer.h"
+
 #include <algorithm>
 #include <atomic>
 #include <mutex>
 #include <string>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/StringUtil.h"
 
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/Software/EfbCopy.h"
 #include "VideoBackends/Software/SWOGLWindow.h"
-#include "VideoBackends/Software/SWRenderer.h"
 
 #include "VideoCommon/BoundingBox.h"
-#include "VideoCommon/Fifo.h"
-#include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 static u8* s_xfbColorTexture[2];

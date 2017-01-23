@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/BPStructs.h"
+
 #include <cmath>
 #include <cstring>
 #include <string>
@@ -15,7 +17,6 @@
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/BPStructs.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -26,6 +27,7 @@
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 

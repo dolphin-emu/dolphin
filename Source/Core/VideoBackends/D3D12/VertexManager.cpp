@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D12/VertexManager.h"
+
 #include "Common/CommonTypes.h"
 
 #include "VideoBackends/D3D12/BoundingBox.h"
@@ -12,11 +14,11 @@
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/Render.h"
 #include "VideoBackends/D3D12/ShaderCache.h"
-#include "VideoBackends/D3D12/VertexManager.h"
 
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"

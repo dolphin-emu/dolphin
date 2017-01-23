@@ -7,8 +7,12 @@
 #include <string>
 #include "VideoCommon/RenderBase.h"
 
+enum class EFBAccessType;
+
 namespace DX11
 {
+class D3DTexture2D;
+
 class Renderer : public ::Renderer
 {
 public:

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D12/Render.h"
+
 #include <cinttypes>
 #include <cmath>
 #include <memory>
@@ -25,7 +27,6 @@
 #include "VideoBackends/D3D12/D3DUtil.h"
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/NativeVertexFormat.h"
-#include "VideoBackends/D3D12/Render.h"
 #include "VideoBackends/D3D12/ShaderCache.h"
 #include "VideoBackends/D3D12/ShaderConstantsManager.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
@@ -39,6 +40,7 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX12
