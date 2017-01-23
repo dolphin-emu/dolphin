@@ -7,6 +7,7 @@
 #include <algorithm>
 #include <iterator>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include <wx/arrstr.h>
@@ -206,55 +207,39 @@ void InfoPanel::LoadBannerImage()
 
 wxStaticBoxSizer* InfoPanel::CreateISODetailsSizer()
 {
-  auto* const internal_name_text = new wxStaticText(this, wxID_ANY, _("Internal Name:"));
-  m_internal_name =
-      new wxTextCtrl(this, ID_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-
-  auto* const game_id_text = new wxStaticText(this, wxID_ANY, _("Game ID:"));
-  m_game_id = new wxTextCtrl(this, ID_GAME_ID, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                             wxTE_READONLY);
-  auto* const country_text = new wxStaticText(this, wxID_ANY, _("Country:"));
-  m_country = new wxTextCtrl(this, ID_COUNTRY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                             wxTE_READONLY);
-  auto* const maker_id_text = new wxStaticText(this, wxID_ANY, _("Maker ID:"));
-  m_maker_id = new wxTextCtrl(this, ID_MAKER_ID, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                              wxTE_READONLY);
-  auto* const revision_text = new wxStaticText(this, wxID_ANY, _("Revision:"));
-  m_revision = new wxTextCtrl(this, ID_REVISION, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                              wxTE_READONLY);
-
-  auto* const date_text = new wxStaticText(this, wxID_ANY, _("Apploader Date:"));
-  m_date =
-      new wxTextCtrl(this, ID_DATE, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-
-  auto* const fst_text = new wxStaticText(this, wxID_ANY, _("FST Size:"));
-  m_fst =
-      new wxTextCtrl(this, ID_FST, wxEmptyString, wxDefaultPosition, wxDefaultSize, wxTE_READONLY);
-
-  auto* const md5_sum_text = new wxStaticText(this, wxID_ANY, _("MD5 Checksum:"));
-  m_md5_sum = new wxTextCtrl(this, ID_MD5_SUM, wxEmptyString, wxDefaultPosition, wxDefaultSize,
-                             wxTE_READONLY);
-  m_md5_sum_compute = new wxButton(this, ID_MD5_SUM_COMPUTE, _("Compute"));
+  std::vector<std::pair<wxString, wxTextCtrl*&>> controls = {{
+      {_("Internal Name:"), m_internal_name},
+      {_("Game ID:"), m_game_id},
+      {_("Country:"), m_country},
+      {_("Maker ID:"), m_maker_id},
+      {_("Revision:"), m_revision},
+      {_("Apploader Date:"), m_date},
+      {_("FST Size:"), m_fst},
+  }};
 
   const int space_10 = FromDIP(10);
   auto* const iso_details = new wxGridBagSizer(space_10, space_10);
-  iso_details->Add(internal_name_text, wxGBPosition(0, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  iso_details->Add(m_internal_name, wxGBPosition(0, 1), wxGBSpan(1, 2), wxEXPAND);
-  iso_details->Add(game_id_text, wxGBPosition(1, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  iso_details->Add(m_game_id, wxGBPosition(1, 1), wxGBSpan(1, 2), wxEXPAND);
-  iso_details->Add(country_text, wxGBPosition(2, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  iso_details->Add(m_country, wxGBPosition(2, 1), wxGBSpan(1, 2), wxEXPAND);
-  iso_details->Add(maker_id_text, wxGBPosition(3, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  iso_details->Add(m_maker_id, wxGBPosition(3, 1), wxGBSpan(1, 2), wxEXPAND);
-  iso_details->Add(revision_text, wxGBPosition(4, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  iso_details->Add(m_revision, wxGBPosition(4, 1), wxGBSpan(1, 2), wxEXPAND);
-  iso_details->Add(date_text, wxGBPosition(5, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  iso_details->Add(m_date, wxGBPosition(5, 1), wxGBSpan(1, 2), wxEXPAND);
-  iso_details->Add(fst_text, wxGBPosition(6, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  iso_details->Add(m_fst, wxGBPosition(6, 1), wxGBSpan(1, 2), wxEXPAND);
-  iso_details->Add(md5_sum_text, wxGBPosition(7, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
-  iso_details->Add(m_md5_sum, wxGBPosition(7, 1), wxGBSpan(1, 1), wxEXPAND);
-  iso_details->Add(m_md5_sum_compute, wxGBPosition(7, 2), wxGBSpan(1, 1), wxEXPAND);
+  size_t row = 0;
+  for (auto& control : controls)
+  {
+    auto* const text = new wxStaticText(this, wxID_ANY, control.first);
+    iso_details->Add(text, wxGBPosition(row, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+    control.second = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                                    wxTE_READONLY);
+    iso_details->Add(control.second, wxGBPosition(row, 1), wxGBSpan(1, 2), wxEXPAND);
+    ++row;
+  }
+
+  auto* const md5_sum_text = new wxStaticText(this, wxID_ANY, _("MD5 Checksum:"));
+  m_md5_sum = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+                             wxTE_READONLY);
+  m_md5_sum_compute = new wxButton(this, wxID_ANY, _("Compute"));
+
+  iso_details->Add(md5_sum_text, wxGBPosition(row, 0), wxGBSpan(1, 1), wxALIGN_CENTER_VERTICAL);
+  iso_details->Add(m_md5_sum, wxGBPosition(row, 1), wxGBSpan(1, 1), wxEXPAND);
+  iso_details->Add(m_md5_sum_compute, wxGBPosition(row, 2), wxGBSpan(1, 1), wxEXPAND);
+  ++row;
+
   iso_details->AddGrowableCol(1);
 
   const int space_5 = FromDIP(5);
@@ -269,17 +254,17 @@ wxStaticBoxSizer* InfoPanel::CreateISODetailsSizer()
 wxStaticBoxSizer* InfoPanel::CreateBannerDetailsSizer()
 {
   auto* const name_text = new wxStaticText(this, wxID_ANY, _("Name:"));
-  m_name = new wxTextCtrl(this, ID_SHORT_NAME, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+  m_name = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
                           wxTE_READONLY);
   auto* const maker_text = new wxStaticText(this, wxID_ANY, _("Maker:"));
-  m_maker = new wxTextCtrl(this, ID_MAKER, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+  m_maker = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
                            wxTE_READONLY);
   auto* const comment_text = new wxStaticText(this, wxID_ANY, _("Description:"));
-  m_comment = new wxTextCtrl(this, ID_COMMENT, wxEmptyString, wxDefaultPosition, wxDefaultSize,
+  m_comment = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition, wxDefaultSize,
                              wxTE_MULTILINE | wxTE_READONLY);
   auto* const banner_text = new wxStaticText(this, wxID_ANY, _("Banner:"));
   m_banner =
-      new wxStaticBitmap(this, ID_BANNER, wxNullBitmap, wxDefaultPosition, FromDIP(wxSize(96, 32)));
+      new wxStaticBitmap(this, wxID_ANY, wxNullBitmap, wxDefaultPosition, FromDIP(wxSize(96, 32)));
 
   auto* const languages_text = new wxStaticText(this, wxID_ANY, _("Show Language:"));
   m_languages = CreateCommentLanguageChoice();
@@ -317,7 +302,7 @@ wxChoice* InfoPanel::CreateCommentLanguageChoice()
   const int preferred_language_index = FindPreferredLanguageIndex(preferred_language, languages);
   const auto choices = GetLanguageChoiceStrings(languages);
 
-  auto* const choice = new wxChoice(this, ID_LANGUAGE, wxDefaultPosition, wxDefaultSize, choices);
+  auto* const choice = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, choices);
   choice->SetSelection(preferred_language_index);
 
   if (choice->GetCount() <= 1)

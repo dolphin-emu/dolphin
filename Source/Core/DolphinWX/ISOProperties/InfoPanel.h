@@ -29,22 +29,6 @@ public:
 private:
   enum
   {
-    ID_NAME = 10000,
-    ID_GAME_ID,
-    ID_COUNTRY,
-    ID_MAKER_ID,
-    ID_REVISION,
-    ID_DATE,
-    ID_FST,
-    ID_MD5_SUM,
-    ID_MD5_SUM_COMPUTE,
-    ID_VERSION,
-    ID_LANGUAGE,
-    ID_SHORT_NAME,
-    ID_MAKER,
-    ID_COMMENT,
-    ID_BANNER,
-
     IDM_SAVE_BANNER
   };
 
