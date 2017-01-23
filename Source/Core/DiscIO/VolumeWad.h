@@ -49,14 +49,14 @@ public:
 
 private:
   std::unique_ptr<IBlobReader> m_pReader;
-  u32 m_offset;
-  u32 m_tmd_offset;
-  u32 m_opening_bnr_offset;
-  u32 m_hdr_size;
-  u32 m_cert_size;
-  u32 m_tick_size;
-  u32 m_tmd_size;
-  u32 m_data_size;
+  u32 m_offset = 0;
+  u32 m_tmd_offset = 0;
+  u32 m_opening_bnr_offset = 0;
+  u32 m_hdr_size = 0;
+  u32 m_cert_size = 0;
+  u32 m_tick_size = 0;
+  u32 m_tmd_size = 0;
+  u32 m_data_size = 0;
 };
 
 }  // namespace
