@@ -15,7 +15,7 @@ struct ExtensionReg;
 class Nunchuk : public Attachment
 {
 public:
-  Nunchuk(ExtensionReg& reg);
+  explicit Nunchuk(ExtensionReg& reg);
 
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;

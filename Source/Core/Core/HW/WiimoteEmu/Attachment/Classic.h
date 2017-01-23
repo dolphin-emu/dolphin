@@ -14,7 +14,7 @@ struct ExtensionReg;
 class Classic : public Attachment
 {
 public:
-  Classic(ExtensionReg& reg);
+  explicit Classic(ExtensionReg& reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
 

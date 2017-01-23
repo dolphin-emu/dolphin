@@ -39,6 +39,6 @@ private:
 class None : public Attachment
 {
 public:
-  None(ExtensionReg& reg);
+  explicit None(ExtensionReg& reg);
 };
 }  // namespace WiimoteEmu

@@ -14,7 +14,7 @@ struct ExtensionReg;
 class Turntable : public Attachment
 {
 public:
-  Turntable(ExtensionReg& reg);
+  explicit Turntable(ExtensionReg& reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
 

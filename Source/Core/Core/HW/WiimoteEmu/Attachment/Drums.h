@@ -14,7 +14,7 @@ struct ExtensionReg;
 class Drums : public Attachment
 {
 public:
-  Drums(ExtensionReg& reg);
+  explicit Drums(ExtensionReg& reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
 
