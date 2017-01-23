@@ -32,6 +32,7 @@ public:
   ~CVolumeWAD();
   bool Read(u64 offset, u64 length, u8* buffer, bool decrypt = false) const override;
   bool GetTitleID(u64* buffer) const override;
+  std::vector<u8> GetTMD() const override;
   std::string GetGameID() const override;
   std::string GetMakerID() const override;
   u16 GetRevision() const override;

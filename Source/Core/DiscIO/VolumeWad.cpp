@@ -25,19 +25,17 @@ namespace DiscIO
 CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_reader(std::move(reader))
 {
   // Source: http://wiibrew.org/wiki/WAD_files
-  Read(0x00, 4, (u8*)&m_hdr_size);
-  Read(0x08, 4, (u8*)&m_cert_size);
-  Read(0x10, 4, (u8*)&m_tick_size);
-  Read(0x14, 4, (u8*)&m_tmd_size);
-  Read(0x18, 4, (u8*)&m_data_size);
+  ReadSwapped(0x00, &m_hdr_size, false);
+  ReadSwapped(0x08, &m_cert_size, false);
+  ReadSwapped(0x10, &m_tick_size, false);
+  ReadSwapped(0x14, &m_tmd_size, false);
+  ReadSwapped(0x18, &m_data_size, false);
 
-  m_offset = Common::AlignUp(Common::swap32(m_hdr_size), 0x40) +
-             Common::AlignUp(Common::swap32(m_cert_size), 0x40);
-  m_tmd_offset = Common::AlignUp(Common::swap32(m_hdr_size), 0x40) +
-                 Common::AlignUp(Common::swap32(m_cert_size), 0x40) +
-                 Common::AlignUp(Common::swap32(m_tick_size), 0x40);
-  m_opening_bnr_offset = m_tmd_offset + Common::AlignUp(Common::swap32(m_tmd_size), 0x40) +
-                         Common::AlignUp(Common::swap32(m_data_size), 0x40);
+  m_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40);
+  m_tmd_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40) +
+                 Common::AlignUp(m_tick_size, 0x40);
+  m_opening_bnr_offset =
+      m_tmd_offset + Common::AlignUp(m_tmd_size, 0x40) + Common::AlignUp(m_data_size, 0x40);
 }
 
 CVolumeWAD::~CVolumeWAD()
@@ -79,6 +77,18 @@ Country CVolumeWAD::GetCountry() const
   }
 
   return CountrySwitch(country_code);
+}
+
+std::vector<u8> CVolumeWAD::GetTMD() const
+{
+  if (m_tmd_size > 1024 * 1024 * 4)
+  {
+    ERROR_LOG(DISCIO, "TMD is too large: %u bytes", m_tmd_size);
+    return {};
+  }
+  std::vector<u8> buffer(m_tmd_size);
+  Read(m_tmd_offset, m_tmd_size, buffer.data(), false);
+  return buffer;
 }
 
 std::string CVolumeWAD::GetGameID() const
