@@ -63,11 +63,11 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
 {
   if (line_numbers)
     line_numbers->clear();
-  const char* fname = "tmp.asm";
-  if (!File::WriteStringToFile(text, fname))
+  const std::string file_name = "tmp.asm";
+  if (!File::WriteStringToFile(text, file_name))
     return false;
   InitPass(1);
-  if (!AssembleFile(fname, 1))
+  if (!AssembleFile(file_name, 1))
     return false;
 
   // We now have the size of the output buffer
@@ -83,7 +83,7 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
     return false;
 
   InitPass(2);
-  if (!AssembleFile(fname, 2))
+  if (!AssembleFile(file_name, 2))
     return false;
 
   code.resize(m_totalSize);
@@ -764,16 +764,16 @@ void DSPAssembler::InitPass(int pass)
   segment_addr[SEGMENT_OVERLAY] = 0;
 }
 
-bool DSPAssembler::AssembleFile(const char* fname, int pass)
+bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
 {
   int disable_text = 0;  // modified by Hermes
 
   std::ifstream fsrc;
-  OpenFStream(fsrc, fname, std::ios_base::in);
+  OpenFStream(fsrc, file_path, std::ios_base::in);
 
   if (fsrc.fail())
   {
-    std::cerr << "Cannot open file " << fname << std::endl;
+    std::cerr << "Cannot open file " << file_path << std::endl;
     return false;
   }
 
@@ -929,28 +929,26 @@ bool DSPAssembler::AssembleFile(const char* fname, int pass)
     {
       if (params[0].type == P_STR)
       {
-        char* tmpstr;
-        u32 thisCodeline = code_line;
+        std::string include_file_path;
+        const u32 this_code_line = code_line;
 
-        if (include_dir.size())
+        if (include_dir.empty())
         {
-          tmpstr = (char*)malloc(include_dir.size() + strlen(params[0].str) + 2);
-          sprintf(tmpstr, "%s/%s", include_dir.c_str(), params[0].str);
+          include_file_path = params[0].str;
         }
         else
         {
-          tmpstr = (char*)malloc(strlen(params[0].str) + 1);
-          strcpy(tmpstr, params[0].str);
+          include_file_path = include_dir + '/' + params[0].str;
         }
 
-        AssembleFile(tmpstr, pass);
+        AssembleFile(include_file_path, pass);
 
-        code_line = thisCodeline;
-
-        free(tmpstr);
+        code_line = this_code_line;
       }
       else
+      {
         ShowError(ERR_EXPECTED_PARAM_STR);
+      }
       continue;
     }
 

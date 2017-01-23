@@ -84,7 +84,7 @@ private:
   u32 GetParams(char* parstr, param_t* par);
 
   void InitPass(int pass);
-  bool AssembleFile(const char* fname, int pass);
+  bool AssembleFile(const std::string& file_path, int pass);
 
   void ShowError(err_t err_code, const char* extra_info = nullptr);
   // void ShowWarning(err_t err_code, const char *extra_info = nullptr);
