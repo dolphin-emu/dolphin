@@ -296,7 +296,7 @@ set(SRCS_GENERIC
 	"src/generic/infobar.cpp"
 	"src/generic/laywin.cpp"
 	"src/generic/listbkg.cpp"
-	"src/generic/listctrl.cpp"
+
 	"src/generic/logg.cpp"
 	#"src/generic/markuptext.cpp"
 	#"src/generic/mask.cpp"
@@ -344,6 +344,7 @@ set(SRCS_GENERICGTK
 	"src/generic/activityindicator.cpp"
 	"src/generic/icon.cpp"
 	"src/generic/imaglist.cpp"
+	"src/generic/listctrl.cpp"
 	"src/generic/paletteg.cpp"
 	"src/generic/preferencesg.cpp")
 
@@ -358,7 +359,8 @@ set(SRCS_GENERICOSX
 	"src/generic/colrdlgg.cpp"
 	"src/generic/dirdlgg.cpp"
 	"src/generic/filedlgg.cpp"
-	"src/generic/fontpickerg.cpp")
+	"src/generic/fontpickerg.cpp"
+	"src/generic/listctrl.cpp")
 
 set(SRCS_GTK
 	"src/aui/tabartgtk.cpp"
