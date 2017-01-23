@@ -2,47 +2,56 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
+
+#include <algorithm>
+#include <array>
 #include <cstring>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 namespace WiimoteEmu
 {
 // Extension device IDs to be written to the last bytes of the extension reg
 // The id for nothing inserted
-static const u8 nothing_id[] = {0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e};
+constexpr std::array<u8, 6> nothing_id{{0x00, 0x00, 0x00, 0x00, 0x2e, 0x2e}};
 // The id for a partially inserted extension (currently unused)
-UNUSED static const u8 partially_id[] = {0x00, 0x00, 0x00, 0x00, 0xff, 0xff};
+UNUSED constexpr std::array<u8, 6> partially_id{{0x00, 0x00, 0x00, 0x00, 0xff, 0xff}};
 
-Attachment::Attachment(const char* const _name, WiimoteEmu::ExtensionReg& _reg)
-    : name(_name), reg(_reg)
+Attachment::Attachment(const char* const name, ExtensionReg& reg) : m_name(name), m_reg(reg)
 {
-  memset(id, 0, sizeof(id));
-  memset(calibration, 0, sizeof(calibration));
 }
 
-None::None(WiimoteEmu::ExtensionReg& _reg) : Attachment("None", _reg)
+None::None(ExtensionReg& reg) : Attachment("None", reg)
 {
   // set up register
-  memcpy(&id, nothing_id, sizeof(nothing_id));
+  m_id = nothing_id;
+}
+
+void Attachment::GetState(u8* const data)
+{
+}
+
+bool Attachment::IsButtonPressed() const
+{
+  return false;
 }
 
 std::string Attachment::GetName() const
 {
-  return name;
+  return m_name;
 }
 
 void Attachment::Reset()
 {
   // set up register
-  memset(&reg, 0, WIIMOTE_REG_EXT_SIZE);
-  memcpy(&reg.constant_id, id, sizeof(id));
-  memcpy(&reg.calibration, calibration, sizeof(calibration));
+  m_reg = {};
+  std::copy(m_id.cbegin(), m_id.cend(), m_reg.constant_id);
+  std::copy(m_calibration.cbegin(), m_calibration.cend(), m_reg.calibration);
 }
-}
+}  // namespace WiimoteEmu
 
 void ControllerEmu::Extension::GetState(u8* const data)
 {

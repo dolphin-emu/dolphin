@@ -2,24 +2,25 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+
+#include <array>
 #include <cassert>
-#include <cstring>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 namespace WiimoteEmu
 {
-static const u8 nunchuk_id[] = {0x00, 0x00, 0xa4, 0x20, 0x00, 0x00};
+constexpr std::array<u8, 6> nunchuk_id{{0x00, 0x00, 0xa4, 0x20, 0x00, 0x00}};
 
-static const u8 nunchuk_button_bitmasks[] = {
+constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
     Nunchuk::BUTTON_C, Nunchuk::BUTTON_Z,
-};
+}};
 
-Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"), _reg)
+Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
 {
   // buttons
   groups.emplace_back(m_buttons = new Buttons("Buttons"));
@@ -41,11 +42,7 @@ Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Nunchuk"),
   m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
   m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
 
-  // id
-  memcpy(&id, nunchuk_id, sizeof(nunchuk_id));
-
-  // this should get set to 0 on disconnect, but it isn't, o well
-  memset(m_shake_step, 0, sizeof(m_shake_step));
+  m_id = nunchuk_id;
 }
 
 void Nunchuk::GetState(u8* const data)
@@ -84,9 +81,9 @@ void Nunchuk::GetState(u8* const data)
   // swing
   EmulateSwing(&accel, m_swing);
   // shake
-  EmulateShake(&accel, m_shake, m_shake_step);
+  EmulateShake(&accel, m_shake, m_shake_step.data());
   // buttons
-  m_buttons->GetState(&ncdata->bt.hex, nunchuk_button_bitmasks);
+  m_buttons->GetState(&ncdata->bt.hex, nunchuk_button_bitmasks.data());
 
   // flip the button bits :/
   ncdata->bt.hex ^= 0x03;
@@ -111,7 +108,7 @@ void Nunchuk::GetState(u8* const data)
 bool Nunchuk::IsButtonPressed() const
 {
   u8 buttons = 0;
-  m_buttons->GetState(&buttons, nunchuk_button_bitmasks);
+  m_buttons->GetState(&buttons, nunchuk_button_bitmasks.data());
   return buttons != 0;
 }
 
