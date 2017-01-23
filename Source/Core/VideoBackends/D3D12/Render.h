@@ -4,11 +4,16 @@
 
 #pragma once
 
+#include <d3d12.h>
 #include <string>
 #include "VideoCommon/RenderBase.h"
 
+enum class EFBAccessType;
+
 namespace DX12
 {
+class D3DTexture2D;
+
 class Renderer final : public ::Renderer
 {
 public:

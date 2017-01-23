@@ -28,10 +28,10 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 class PostProcessingShaderImplementation;
+enum class EFBAccessType;
 
 struct EfbPokeData
 {

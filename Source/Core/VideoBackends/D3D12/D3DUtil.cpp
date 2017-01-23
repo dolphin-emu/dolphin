@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D12/D3DUtil.h"
+
 #include <cctype>
 #include <list>
 #include <memory>
@@ -16,11 +18,10 @@
 #include "VideoBackends/D3D12/D3DState.h"
 #include "VideoBackends/D3D12/D3DStreamBuffer.h"
 #include "VideoBackends/D3D12/D3DTexture.h"
-#include "VideoBackends/D3D12/D3DUtil.h"
-
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/Render.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace DX12
 {

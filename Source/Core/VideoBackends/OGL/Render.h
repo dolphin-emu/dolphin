@@ -6,6 +6,8 @@
 
 #include <array>
 #include <string>
+
+#include "Common/GL/GLUtil.h"
 #include "VideoCommon/RenderBase.h"
 
 struct XFBSourceBase;
