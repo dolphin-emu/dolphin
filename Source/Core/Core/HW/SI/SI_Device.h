@@ -72,10 +72,6 @@ enum SIDevices : int
 
 class ISIDevice
 {
-protected:
-  int m_iDeviceNumber;
-  SIDevices m_deviceType;
-
 public:
   // Constructor
   ISIDevice(SIDevices deviceType, int _iDeviceNumber)
@@ -99,6 +95,10 @@ public:
   virtual void DoState(PointerWrap& p) {}
   int GetDeviceNumber() const { return m_iDeviceNumber; }
   SIDevices GetDeviceType() const { return m_deviceType; }
+
+protected:
+  int m_iDeviceNumber;
+  SIDevices m_deviceType;
 };
 
 bool SIDevice_IsGCController(SIDevices type);
