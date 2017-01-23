@@ -154,18 +154,12 @@ BlobType CVolumeWAD::GetBlobType() const
 
 u64 CVolumeWAD::GetSize() const
 {
-  if (m_reader)
-    return m_reader->GetDataSize();
-  else
-    return 0;
+  return m_reader ? m_reader->GetDataSize() : 0;
 }
 
 u64 CVolumeWAD::GetRawSize() const
 {
-  if (m_reader)
-    return m_reader->GetRawSize();
-  else
-    return 0;
+  return m_reader ? m_reader->GetRawSize() : 0;
 }
 
 }  // namespace
