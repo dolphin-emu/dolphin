@@ -6,7 +6,9 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
-#ifndef _WIN32
+#ifdef _WIN32
+#include <windows.h>
+#else
 #include <unistd.h>
 #endif
 

@@ -13,8 +13,8 @@
 #include "Common/MsgHandler.h"
 
 #ifdef _WIN32
-#include <psapi.h>
 #include <windows.h>
+#include <psapi.h>
 #include "Common/StringUtil.h"
 #else
 #include <stdio.h>

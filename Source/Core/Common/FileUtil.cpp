@@ -20,12 +20,12 @@
 #include "Common/Logging/Log.h"
 
 #ifdef _WIN32
+#include <windows.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
 #include <io.h>
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
-#include <windows.h>
 #else
 #include <dirent.h>
 #include <errno.h>

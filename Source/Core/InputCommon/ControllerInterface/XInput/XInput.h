@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <XInput.h>
 #include <windows.h>
+#include <XInput.h>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 

@@ -6,7 +6,6 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <hidsdi.h>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -15,6 +14,7 @@
 // The following Windows headers must be included AFTER windows.h.
 #include <BluetoothAPIs.h>
 #include <Cfgmgr32.h>
+#include <hidsdi.h>
 #include <initguid.h>
 // initguid.h must be included before Devpkey.h
 #include <Devpkey.h>
