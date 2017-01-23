@@ -103,6 +103,8 @@ void ControllerEmu::ControlGroup::LoadConfig(IniFile::Section* sec, const std::s
   }
 }
 
+ControllerEmu::ControlGroup::BooleanSetting::~BooleanSetting() = default;
+
 void ControllerEmu::LoadConfig(IniFile::Section* sec, const std::string& base)
 {
   std::string defdev = default_device.ToString();

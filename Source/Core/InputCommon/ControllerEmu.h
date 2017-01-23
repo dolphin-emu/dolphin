@@ -107,6 +107,7 @@ public:
           : m_type(setting_type), m_name(setting_name), m_default_value(default_value)
       {
       }
+      virtual ~BooleanSetting();
 
       virtual bool GetValue() const { return m_value; }
       virtual void SetValue(bool value) { m_value = value; }
