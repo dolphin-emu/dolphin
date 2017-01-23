@@ -22,7 +22,7 @@
 
 namespace DiscIO
 {
-CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_pReader(std::move(reader))
+CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_reader(std::move(reader))
 {
   // Source: http://wiibrew.org/wiki/WAD_files
   Read(0x00, 4, (u8*)&m_hdr_size);
@@ -44,15 +44,15 @@ CVolumeWAD::~CVolumeWAD()
 {
 }
 
-bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
+bool CVolumeWAD::Read(u64 offset, u64 length, u8* buffer, bool decrypt) const
 {
   if (decrypt)
     PanicAlertT("Tried to decrypt data from a non-Wii volume");
 
-  if (m_pReader == nullptr)
+  if (m_reader == nullptr)
     return false;
 
-  return m_pReader->Read(_Offset, _Length, _pBuffer);
+  return m_reader->Read(offset, length, buffer);
 }
 
 Region CVolumeWAD::GetRegion() const
@@ -116,7 +116,7 @@ bool CVolumeWAD::GetTitleID(u64* buffer) const
 u16 CVolumeWAD::GetRevision() const
 {
   u16 revision;
-  if (!m_pReader->Read(m_tmd_offset + 0x1dc, 2, (u8*)&revision))
+  if (!m_reader->Read(m_tmd_offset + 0x1dc, 2, (u8*)&revision))
     return 0;
 
   return Common::swap16(revision);
@@ -149,21 +149,21 @@ std::vector<u32> CVolumeWAD::GetBanner(int* width, int* height) const
 
 BlobType CVolumeWAD::GetBlobType() const
 {
-  return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
+  return m_reader ? m_reader->GetBlobType() : BlobType::PLAIN;
 }
 
 u64 CVolumeWAD::GetSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetDataSize();
+  if (m_reader)
+    return m_reader->GetDataSize();
   else
     return 0;
 }
 
 u64 CVolumeWAD::GetRawSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetRawSize();
+  if (m_reader)
+    return m_reader->GetRawSize();
   else
     return 0;
 }

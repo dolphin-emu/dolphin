@@ -29,7 +29,7 @@ class CVolumeWAD : public IVolume
 public:
   CVolumeWAD(std::unique_ptr<IBlobReader> reader);
   ~CVolumeWAD();
-  bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt = false) const override;
+  bool Read(u64 offset, u64 length, u8* buffer, bool decrypt = false) const override;
   bool GetTitleID(u64* buffer) const override;
   std::string GetGameID() const override;
   std::string GetMakerID() const override;
@@ -48,7 +48,7 @@ public:
   u64 GetRawSize() const override;
 
 private:
-  std::unique_ptr<IBlobReader> m_pReader;
+  std::unique_ptr<IBlobReader> m_reader;
   u32 m_offset = 0;
   u32 m_tmd_offset = 0;
   u32 m_opening_bnr_offset = 0;
