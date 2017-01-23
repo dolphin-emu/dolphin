@@ -196,7 +196,7 @@ bool CNANDContentDataBuffer::GetRange(u32 start, u32 size, u8* buffer)
   if (start + size > m_buffer.size())
     return false;
 
-  std::copy(&m_buffer[start], &m_buffer[start + size], buffer);
+  std::copy_n(&m_buffer[start], size, buffer);
   return true;
 }
 
