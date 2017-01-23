@@ -145,8 +145,6 @@ private:
   u64 m_TitleID = -1;
   u32 m_AccessIdentID = 0x6000000;
 
-  static u8* keyTable[11];
-
   // For title installation (ioctls IOCTL_ES_ADDTITLE*).
   TMDReader m_addtitle_tmd;
   u32 m_addtitle_content_id = 0xFFFFFFFF;
