@@ -16,13 +16,15 @@
 //   Ioctlv: Depends on the handler
 // Replies may be sent immediately or asynchronously for ioctls and ioctlvs.
 
+#include <algorithm>
+#include <array>
+#include <cinttypes>
 #include <deque>
 #include <map>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <utility>
-#include <vector>
 
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
@@ -85,6 +87,306 @@ static u64 s_last_reply_time;
 
 static constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static constexpr u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
+
+struct IosMemoryValues
+{
+  u16 ios_number;
+  u32 ios_version;
+  u32 ios_date;
+  u32 mem1_physical_size;
+  u32 mem1_simulated_size;
+  u32 mem1_end;
+  u32 mem1_arena_begin;
+  u32 mem1_arena_end;
+  u32 mem2_physical_size;
+  u32 mem2_simulated_size;
+  u32 mem2_end;
+  u32 mem2_arena_begin;
+  u32 mem2_arena_end;
+  u32 ipc_buffer_begin;
+  u32 ipc_buffer_end;
+  u32 hollywood_revision;
+  u32 ram_vendor;
+  u32 unknown_begin;
+  u32 unknown_end;
+};
+
+constexpr u32 ADDR_MEM1_SIZE = 0x3100;
+constexpr u32 ADDR_MEM1_SIM_SIZE = 0x3104;
+constexpr u32 ADDR_MEM1_END = 0x3108;
+constexpr u32 ADDR_MEM1_ARENA_BEGIN = 0x310c;
+constexpr u32 ADDR_MEM1_ARENA_END = 0x3110;
+constexpr u32 ADDR_PH1 = 0x3114;
+constexpr u32 ADDR_MEM2_SIZE = 0x3118;
+constexpr u32 ADDR_MEM2_SIM_SIZE = 0x311c;
+constexpr u32 ADDR_MEM2_END = 0x3120;
+constexpr u32 ADDR_MEM2_ARENA_BEGIN = 0x3124;
+constexpr u32 ADDR_MEM2_ARENA_END = 0x3128;
+constexpr u32 ADDR_PH2 = 0x312c;
+constexpr u32 ADDR_IPC_BUFFER_BEGIN = 0x3130;
+constexpr u32 ADDR_IPC_BUFFER_END = 0x3134;
+constexpr u32 ADDR_HOLLYWOOD_REVISION = 0x3138;
+constexpr u32 ADDR_PH3 = 0x313c;
+constexpr u32 ADDR_IOS_VERSION = 0x3140;
+constexpr u32 ADDR_IOS_DATE = 0x3144;
+constexpr u32 ADDR_UNKNOWN_BEGIN = 0x3148;
+constexpr u32 ADDR_UNKNOWN_END = 0x314c;
+constexpr u32 ADDR_PH4 = 0x3150;
+constexpr u32 ADDR_PH5 = 0x3154;
+constexpr u32 ADDR_RAM_VENDOR = 0x3158;
+constexpr u32 ADDR_BOOT_FLAG = 0x315c;
+constexpr u32 ADDR_APPLOADER_FLAG = 0x315d;
+constexpr u32 ADDR_DEVKIT_BOOT_PROGRAM_VERSION = 0x315e;
+constexpr u32 ADDR_SYSMENU_SYNC = 0x3160;
+
+constexpr u32 MEM1_SIZE = 0x01800000;
+constexpr u32 MEM1_END = 0x81800000;
+constexpr u32 MEM1_ARENA_BEGIN = 0x00000000;
+constexpr u32 MEM1_ARENA_END = 0x81800000;
+constexpr u32 MEM2_SIZE = 0x4000000;
+constexpr u32 MEM2_ARENA_BEGIN = 0x90000800;
+constexpr u32 HOLLYWOOD_REVISION = 0x00000011;
+constexpr u32 PLACEHOLDER = 0xDEADBEEF;
+constexpr u32 RAM_VENDOR = 0x0000FF01;
+constexpr u32 RAM_VENDOR_MIOS = 0xCAFEBABE;
+
+// These values were manually extracted from the relevant IOS binaries.
+// The writes are usually contained in a single function that
+// mostly writes raw literals to the relevant locations.
+// e.g. IOS9, version 1034, content id 0x00000006, function at 0xffff6884
+constexpr std::array<IosMemoryValues, 31> ios_memory_values = {
+    {{
+         9,          0x9040a,     0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,
+     },
+     {
+         12,         0xc020e,     0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,
+     },
+     {
+         13,         0xd0408,     0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,
+     },
+     {
+         14,         0xe0408,     0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,
+     },
+     {
+         15,         0xf0408,     0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,
+     },
+     {
+         17,         0x110408,    0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,
+     },
+     {
+         21,         0x15040f,    0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,
+     },
+     {
+         22,         0x16050e,    0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,    MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,   0x93400000,       MEM2_ARENA_BEGIN,
+         0x933E0000, 0x933E0000,  0x93400000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, PLACEHOLDER, PLACEHOLDER,
+     },
+     {
+         28,         0x1c070f,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93800000,       MEM2_ARENA_BEGIN,
+         0x937E0000, 0x937E0000, 0x93800000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93800000, 0x93820000,
+     },
+     {
+         31,         0x1f0e18,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         33,         0x210e18,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         34,         0x220e18,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         35,         0x230e18,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         36,         0x240e18,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         37,         0x25161f,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         38,         0x26101c,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         41,         0x290e17,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         43,         0x2b0e17,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         45,         0x2d0e17,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         46,         0x2e0e17,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         48,         0x30101c,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         53,         0x35161f,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         55,         0x37161f,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         56,         0x38161e,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         57,         0x39171f,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         58,         0x311820,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         59,         0x3b1c21,   0x101811,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         61,         0x3d161e,   0x030110,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         62,         0x3e191e,   0x022712,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         80,         0x501b20,   0x030310,         MEM1_SIZE,
+         MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
+         MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
+         0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
+         RAM_VENDOR, 0x93600000, 0x93620000,
+     },
+     {
+         257,
+         0x707,
+         0x82209,
+         MEM1_SIZE,
+         MEM1_SIZE,
+         MEM1_END,
+         MEM1_ARENA_BEGIN,
+         MEM1_ARENA_END,
+         MEM2_SIZE,
+         MEM2_SIZE,
+         0x93600000,
+         MEM2_ARENA_BEGIN,
+         0x935E0000,
+         0x935E0000,
+         0x93600000,
+         HOLLYWOOD_REVISION,
+         RAM_VENDOR_MIOS,
+         PLACEHOLDER,
+         PLACEHOLDER,
+     }}};
+
 static void EnqueueEvent(u64 userdata, s64 cycles_late = 0)
 {
   if (userdata & ENQUEUE_ACKNOWLEDGEMENT_FLAG)
@@ -107,6 +409,48 @@ static void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
   auto device = static_cast<Device::SDIOSlot0*>(GetDeviceByName("/dev/sdio/slot0").get());
   if (device)
     device->EventNotify();
+}
+
+bool SetupMemory(u64 ios_title_id)
+{
+  auto target_imv = std::find_if(
+      ios_memory_values.begin(), ios_memory_values.end(),
+      [&](const IosMemoryValues& imv) { return imv.ios_number == (ios_title_id & 0xffff); });
+
+  if (target_imv == ios_memory_values.end())
+  {
+    ERROR_LOG(IOS, "Unknown IOS version: %016" PRIx64, ios_title_id);
+    return false;
+  }
+
+  Memory::Write_U32(target_imv->mem1_physical_size, ADDR_MEM1_SIZE);
+  Memory::Write_U32(target_imv->mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
+  Memory::Write_U32(target_imv->mem1_end, ADDR_MEM1_END);
+  Memory::Write_U32(target_imv->mem1_arena_begin, ADDR_MEM1_ARENA_BEGIN);
+  Memory::Write_U32(target_imv->mem1_arena_end, ADDR_MEM1_ARENA_END);
+  Memory::Write_U32(PLACEHOLDER, ADDR_PH1);
+  Memory::Write_U32(target_imv->mem2_physical_size, ADDR_MEM2_SIZE);
+  Memory::Write_U32(target_imv->mem2_simulated_size, ADDR_MEM2_SIM_SIZE);
+  Memory::Write_U32(target_imv->mem2_end, ADDR_MEM2_END);
+  Memory::Write_U32(target_imv->mem2_arena_begin, ADDR_MEM2_ARENA_BEGIN);
+  Memory::Write_U32(target_imv->mem2_arena_end, ADDR_MEM2_ARENA_END);
+  Memory::Write_U32(PLACEHOLDER, ADDR_PH2);
+  Memory::Write_U32(target_imv->ipc_buffer_begin, ADDR_IPC_BUFFER_BEGIN);
+  Memory::Write_U32(target_imv->ipc_buffer_end, ADDR_IPC_BUFFER_END);
+  Memory::Write_U32(target_imv->hollywood_revision, ADDR_HOLLYWOOD_REVISION);
+  Memory::Write_U32(PLACEHOLDER, ADDR_PH3);
+  Memory::Write_U32(target_imv->ios_version, ADDR_IOS_VERSION);
+  Memory::Write_U32(target_imv->ios_date, ADDR_IOS_DATE);
+  Memory::Write_U32(target_imv->unknown_begin, ADDR_UNKNOWN_BEGIN);
+  Memory::Write_U32(target_imv->unknown_end, ADDR_UNKNOWN_END);
+  Memory::Write_U32(PLACEHOLDER, ADDR_PH4);
+  Memory::Write_U32(PLACEHOLDER, ADDR_PH5);
+  Memory::Write_U32(target_imv->ram_vendor, ADDR_RAM_VENDOR);
+  Memory::Write_U8(0xDE, ADDR_BOOT_FLAG);
+  Memory::Write_U8(0xAD, ADDR_APPLOADER_FLAG);
+  Memory::Write_U16(0xBEEF, ADDR_DEVKIT_BOOT_PROGRAM_VERSION);
+  Memory::Write_U32(0x00000000, ADDR_SYSMENU_SYNC);
+  return true;
 }
 
 static u32 num_devices;

@@ -52,5 +52,5 @@ private:
   static bool Load_BS2(const std::string& _rBootROMFilename);
   static void Load_FST(bool _bIsWii);
 
-  static bool SetupWiiMemory();
+  static bool SetupWiiMemory(u64 ios_title_id);
 };

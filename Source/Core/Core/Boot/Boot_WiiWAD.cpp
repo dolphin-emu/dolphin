@@ -89,7 +89,9 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   if (titleID == TITLEID_SYSMENU)
     IOS::HLE::HLE_IPC_CreateVirtualFATFilesystem();
   // setup Wii memory
-  if (!SetupWiiMemory())
+
+  u64 ios_title_id = 0x0000000100000000ULL | ContentLoader.GetIosVersion();
+  if (!SetupWiiMemory(ios_title_id))
     return false;
   // DOL
   const DiscIO::SNANDContent* pContent =
