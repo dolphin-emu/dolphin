@@ -149,6 +149,7 @@
     <ClCompile Include="HW\SI\SI_DeviceGCController.cpp" />
     <ClCompile Include="HW\SI\SI_DeviceGCSteeringWheel.cpp" />
     <ClCompile Include="HW\SI\SI_DeviceKeyboard.cpp" />
+    <ClCompile Include="HW\SI\SI_DeviceNull.cpp" />
     <ClCompile Include="HW\Sram.cpp" />
     <ClCompile Include="HW\StreamADPCM.cpp" />
     <ClCompile Include="HW\SystemTimers.cpp" />
@@ -380,6 +381,7 @@
     <ClInclude Include="HW\SI\SI_DeviceGCController.h" />
     <ClInclude Include="HW\SI\SI_DeviceGCSteeringWheel.h" />
     <ClInclude Include="HW\SI\SI_DeviceKeyboard.h" />
+    <ClInclude Include="HW\SI\SI_DeviceNull.h" />
     <ClInclude Include="HW\Sram.h" />
     <ClInclude Include="HW\StreamADPCM.h" />
     <ClInclude Include="HW\SystemTimers.h" />

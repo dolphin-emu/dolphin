@@ -118,6 +118,7 @@ set(SRCS	ActionReplay.cpp
 			HW/SI/SI_DeviceGCController.cpp
 			HW/SI/SI_DeviceGCSteeringWheel.cpp
 			HW/SI/SI_DeviceKeyboard.cpp
+			HW/SI/SI_DeviceNull.cpp
 			HW/Sram.cpp
 			HW/StreamADPCM.cpp
 			HW/SystemTimers.cpp

@@ -16,8 +16,8 @@
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/SI/SI_DeviceGCSteeringWheel.h"
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
+#include "Core/HW/SI/SI_DeviceNull.h"
 
-// --- interface ISIDevice ---
 int ISIDevice::RunBuffer(u8* _pBuffer, int _iLength)
 {
 #ifdef _DEBUG
@@ -48,25 +48,6 @@ int ISIDevice::TransferInterval()
 {
   return 0;
 }
-
-// Stub class for saying nothing is attached, and not having to deal with null pointers :)
-class CSIDevice_Null : public ISIDevice
-{
-public:
-  CSIDevice_Null(SIDevices device, int _iDeviceNumber) : ISIDevice(device, _iDeviceNumber) {}
-  virtual ~CSIDevice_Null() {}
-  int RunBuffer(u8* _pBuffer, int _iLength) override
-  {
-    reinterpret_cast<u32*>(_pBuffer)[0] = SI_ERROR_NO_RESPONSE;
-    return 4;
-  }
-  bool GetData(u32& _Hi, u32& _Low) override
-  {
-    _Hi = 0x80000000;
-    return true;
-  }
-  void SendCommand(u32 _Cmd, u8 _Poll) override {}
-};
 
 // Check if a device class is inheriting from CSIDevice_GCController
 // The goal of this function is to avoid special casing a long list of
