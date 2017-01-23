@@ -674,17 +674,7 @@ union FogParam0
     u32 sign : 1;
   };
 
-  float GetA()
-  {
-    union
-    {
-      u32 i;
-      float f;
-    } dummy;
-    dummy.i = ((u32)sign << 31) | ((u32)exponent << 23) |
-              ((u32)mantissa << 12);  // scale mantissa from 11 to 23 bits
-    return dummy.f;
-  }
+  float GetA() const;
 
   u32 hex;
 };
@@ -701,17 +691,7 @@ union FogParam3
   };
 
   // amount to subtract from eyespacez after range adjustment
-  float GetC()
-  {
-    union
-    {
-      u32 i;
-      float f;
-    } dummy;
-    dummy.i = ((u32)c_sign << 31) | ((u32)c_exp << 23) |
-              ((u32)c_mant << 12);  // scale mantissa from 11 to 23 bits
-    return dummy.f;
-  }
+  float GetC() const;
 
   u32 hex;
 };
