@@ -9,6 +9,7 @@
 #include <functional>
 #include <map>
 #include <memory>
+#include <set>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -24,6 +25,8 @@ class JitBase;
 // address.
 struct JitBlock
 {
+  bool OverlapsPhysicalRange(u32 address, u32 length) const;
+
   // A special entry point for block linking; usually used to check the
   // downcount.
   const u8* checkedEntry;
@@ -35,8 +38,8 @@ struct JitBlock
   // The MSR bits expected for this block to be valid; see JIT_CACHE_MSR_MASK.
   u32 msrBits;
   // The physical address of the code represented by this block.
-  // Various maps in the cache are indexed by this (start_block_map,
-  // block_map, and valid_block in particular). This is useful because of
+  // Various maps in the cache are indexed by this (block_map
+  // and valid_block in particular). This is useful because of
   // of the way the instruction cache works on PowerPC.
   u32 physicalAddress;
   // The number of bytes of JIT'ed code contained in this block. Mostly
@@ -56,6 +59,9 @@ struct JitBlock
     bool linkStatus;  // is it already linked?
   };
   std::vector<LinkData> linkData;
+
+  // This set stores all physical addresses of all occupied instructions.
+  std::set<u32> physical_addresses;
 
   // we don't really need to save start and stop
   // TODO (mb2): ticStart and ticStop -> "local var" mean "in block" ... low priority ;)
@@ -124,8 +130,7 @@ public:
   void RunOnBlocks(std::function<void(const JitBlock&)> f);
 
   JitBlock* AllocateBlock(u32 em_address);
-  void FreeBlock(JitBlock* block);
-  void FinalizeBlock(JitBlock& block, bool block_link, const u8* code_ptr);
+  void FinalizeBlock(JitBlock& block, bool block_link, const std::set<u32>& physical_addresses);
 
   // Look for the block in the slow but accurate way.
   // This function shall be used if FastLookupIndexForAddress() failed.
@@ -138,7 +143,8 @@ public:
   // assembly version.)
   const u8* Dispatch();
 
-  void InvalidateICache(u32 address, const u32 length, bool forced);
+  void InvalidateICache(u32 address, u32 length, bool forced);
+  void ErasePhysicalRange(u32 address, u32 length);
 
   u32* GetBlockBitSet() const;
 
@@ -163,20 +169,21 @@ private:
   // It is used to query all blocks which links to an address.
   std::multimap<u32, JitBlock*> links_to;  // destination_PC -> number
 
-  // Map indexed by the physical memory location.
-  // It is used to invalidate blocks based on memory location.
-  std::multimap<std::pair<u32, u32>, JitBlock*> block_map;  // (end_addr, start_addr) -> block
-
   // Map indexed by the physical address of the entry point.
   // This is used to query the block based on the current PC in a slow way.
-  // TODO: This is redundant with block_map.
-  std::multimap<u32, JitBlock> start_block_map;  // start_addr -> block
+  std::multimap<u32, JitBlock> block_map;  // start_addr -> block
+
+  // Range of overlapping code indexed by a masked physical address.
+  // This is used for invalidation of memory regions. The range is grouped
+  // in macro blocks of each 0x100 bytes.
+  static constexpr u32 BLOCK_RANGE_MAP_ELEMENTS = 0x100;
+  std::map<u32, std::set<JitBlock*>> block_range_map;
 
   // This bitsets shows which cachelines overlap with any blocks.
   // It is used to provide a fast way to query if no icache invalidation is needed.
   ValidBlockBitSet valid_block;
 
   // This array is indexed with the masked PC and likely holds the correct block id.
-  // This is used as a fast cache of start_block_map used in the assembly dispatcher.
+  // This is used as a fast cache of block_map used in the assembly dispatcher.
   std::array<JitBlock*, FAST_BLOCK_MAP_ELEMENTS> fast_block_map;  // start_addr & mask -> number
 };

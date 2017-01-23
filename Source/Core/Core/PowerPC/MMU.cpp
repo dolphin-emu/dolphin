@@ -384,7 +384,7 @@ TryReadInstResult TryReadInstruction(u32 address)
     auto tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
     if (!tlb_addr.Success())
     {
-      return TryReadInstResult{false, false, 0};
+      return TryReadInstResult{false, false, 0, 0};
     }
     else
     {
@@ -403,7 +403,7 @@ TryReadInstResult TryReadInstruction(u32 address)
   {
     hex = PowerPC::ppcState.iCache.ReadInstruction(address);
   }
-  return TryReadInstResult{true, from_bat, hex};
+  return TryReadInstResult{true, from_bat, hex, address};
 }
 
 u32 HostRead_Instruction(const u32 address)
