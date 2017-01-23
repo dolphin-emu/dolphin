@@ -27,6 +27,7 @@
 #include "Common/MD5.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
+#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 #include "DolphinWX/ISOFile.h"
@@ -179,6 +180,12 @@ void InfoPanel::LoadISODetails()
   m_revision->SetValue(StrToWxStr(std::to_string(m_opened_iso->GetRevision())));
   m_date->SetValue(StrToWxStr(m_opened_iso->GetApploaderDate()));
   m_fst->SetValue(StrToWxStr(std::to_string(m_opened_iso->GetFSTSize())));
+  if (m_ios_version)
+  {
+    IOS::HLE::TMDReader tmd{m_opened_iso->GetTMD()};
+    if (tmd.IsValid())
+      m_ios_version->SetValue(StringFromFormat("IOS%u", static_cast<u32>(tmd.GetIOSId())));
+  }
 }
 
 void InfoPanel::LoadBannerDetails()
@@ -216,6 +223,8 @@ wxStaticBoxSizer* InfoPanel::CreateISODetailsSizer()
       {_("Apploader Date:"), m_date},
       {_("FST Size:"), m_fst},
   }};
+  if (!m_opened_iso->GetTMD().empty())
+    controls.emplace_back(_("IOS Version:"), m_ios_version);
 
   const int space_10 = FromDIP(10);
   auto* const iso_details = new wxGridBagSizer(space_10, space_10);
