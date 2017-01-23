@@ -376,7 +376,7 @@ union TevStageIndirect
 
   // If bs and mid are zero, the result of the stage is independent of
   // the texture sample data, so we can skip sampling the texture.
-  bool IsActive() { return bs != ITBA_OFF || mid != 0; }
+  bool IsActive() const { return bs != ITBA_OFF || mid != 0; }
 };
 
 union TwoTevStageOrders
@@ -435,8 +435,8 @@ union RAS1_IREF
   };
   u32 hex;
 
-  u32 getTexCoord(int i) { return (hex >> (6 * i + 3)) & 7; }
-  u32 getTexMap(int i) { return (hex >> (6 * i)) & 7; }
+  u32 getTexCoord(int i) const { return (hex >> (6 * i + 3)) & 7; }
+  u32 getTexMap(int i) const { return (hex >> (6 * i)) & 7; }
 };
 
 // Texture structs
@@ -706,7 +706,7 @@ union FogRangeKElement
   };
 
   // TODO: Which scaling coefficient should we use here? This is just a guess!
-  float GetValue(int i) { return (i ? HI : LO) / 256.f; }
+  float GetValue(int i) const { return (i ? HI : LO) / 256.f; }
   u32 HEX;
 };
 
@@ -892,8 +892,8 @@ union TevKSel
   };
   u32 hex;
 
-  int getKC(int i) { return i ? kcsel1 : kcsel0; }
-  int getKA(int i) { return i ? kasel1 : kasel0; }
+  int getKC(int i) const { return i ? kcsel1 : kcsel0; }
+  int getKA(int i) const { return i ? kasel1 : kasel0; }
 };
 
 union AlphaTest
@@ -993,7 +993,7 @@ union UPE_Copy
   BitField<16, 1, u32>
       auto_conv;  // if 0 automatic color conversion by texture format and pixel type
 
-  u32 tp_realFormat() { return target_pixel_format / 2 + (target_pixel_format & 1) * 8; }
+  u32 tp_realFormat() const { return target_pixel_format / 2 + (target_pixel_format & 1) * 8; }
 };
 
 union BPU_PreloadTileInfo
