@@ -117,25 +117,25 @@ int CSIDevice_GCController::RunBuffer(u8* _pBuffer, int _iLength)
 
 void CSIDevice_GCController::HandleMoviePadStatus(GCPadStatus* PadStatus)
 {
-  Movie::CallGCInputManip(PadStatus, ISIDevice::m_iDeviceNumber);
+  Movie::CallGCInputManip(PadStatus, m_device_number);
 
   Movie::SetPolledDevice();
-  if (NetPlay_GetInput(ISIDevice::m_iDeviceNumber, PadStatus))
+  if (NetPlay_GetInput(m_device_number, PadStatus))
   {
   }
   else if (Movie::IsPlayingInput())
   {
-    Movie::PlayController(PadStatus, ISIDevice::m_iDeviceNumber);
+    Movie::PlayController(PadStatus, m_device_number);
     Movie::InputUpdate();
   }
   else if (Movie::IsRecordingInput())
   {
-    Movie::RecordInput(PadStatus, ISIDevice::m_iDeviceNumber);
+    Movie::RecordInput(PadStatus, m_device_number);
     Movie::InputUpdate();
   }
   else
   {
-    Movie::CheckPadStatus(PadStatus, ISIDevice::m_iDeviceNumber);
+    Movie::CheckPadStatus(PadStatus, m_device_number);
   }
 }
 
@@ -147,7 +147,7 @@ GCPadStatus CSIDevice_GCController::GetPadStatus()
   // the remote controllers receive their status there as well
   if (!NetPlay::IsNetPlayRunning())
   {
-    pad_status = Pad::GetStatus(m_iDeviceNumber);
+    pad_status = Pad::GetStatus(m_device_number);
   }
 
   HandleMoviePadStatus(&pad_status);
@@ -290,7 +290,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
     unsigned int uStrength = command.Parameter2;
 
     // get the correct pad number that should rumble locally when using netplay
-    const int numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
+    const int numPAD = NetPlay_InGamePadToLocalPad(m_device_number);
 
     if (numPAD < 4)
     {
@@ -303,7 +303,7 @@ void CSIDevice_GCController::SendCommand(u32 _Cmd, u8 _Poll)
     if (!_Poll)
     {
       m_Mode = command.Parameter2;
-      INFO_LOG(SERIALINTERFACE, "PAD %i set to mode %i", ISIDevice::m_iDeviceNumber, m_Mode);
+      INFO_LOG(SERIALINTERFACE, "PAD %i set to mode %i", m_device_number, m_Mode);
     }
   }
   break;

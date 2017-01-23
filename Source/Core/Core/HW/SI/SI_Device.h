@@ -74,31 +74,31 @@ class ISIDevice
 {
 public:
   // Constructor
-  ISIDevice(SIDevices deviceType, int _iDeviceNumber)
-      : m_iDeviceNumber(_iDeviceNumber), m_deviceType(deviceType)
+  ISIDevice(SIDevices device_type, int device_number)
+      : m_device_number(device_number), m_device_type(device_type)
   {
   }
 
   // Destructor
   virtual ~ISIDevice() {}
   // Run the SI Buffer
-  virtual int RunBuffer(u8* _pBuffer, int _iLength);
+  virtual int RunBuffer(u8* buffer, int length);
   virtual int TransferInterval();
 
   // Return true on new data
-  virtual bool GetData(u32& _Hi, u32& _Low) = 0;
+  virtual bool GetData(u32& hi, u32& low) = 0;
 
   // Send a command directly (no detour per buffer)
-  virtual void SendCommand(u32 _Cmd, u8 _Poll) = 0;
+  virtual void SendCommand(u32 command, u8 poll) = 0;
 
   // Savestate support
   virtual void DoState(PointerWrap& p) {}
-  int GetDeviceNumber() const { return m_iDeviceNumber; }
-  SIDevices GetDeviceType() const { return m_deviceType; }
+  int GetDeviceNumber() const { return m_device_number; }
+  SIDevices GetDeviceType() const { return m_device_type; }
 
 protected:
-  int m_iDeviceNumber;
-  SIDevices m_deviceType;
+  int m_device_number;
+  SIDevices m_device_type;
 };
 
 bool SIDevice_IsGCController(SIDevices type);

@@ -19,7 +19,7 @@ CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber)
     : CSIDevice_GCController(device, _iDeviceNumber)
 {
   // get the correct pad number that should rumble locally when using netplay
-  const int numPAD = NetPlay_InGamePadToLocalPad(ISIDevice::m_iDeviceNumber);
+  const int numPAD = NetPlay_InGamePadToLocalPad(m_device_number);
   if (numPAD < 4)
     m_simulate_konga = SConfig::GetInstance().m_AdapterKonga[numPAD];
 }
@@ -32,7 +32,7 @@ GCPadStatus CSIDevice_GCAdapter::GetPadStatus()
   // the remote controllers receive their status there as well
   if (!NetPlay::IsNetPlayRunning())
   {
-    pad_status = GCAdapter::Input(m_iDeviceNumber);
+    pad_status = GCAdapter::Input(m_device_number);
   }
 
   HandleMoviePadStatus(&pad_status);
@@ -50,7 +50,7 @@ int CSIDevice_GCAdapter::RunBuffer(u8* buffer, int length)
 
     // This returns an error value if there is no controller plugged
     // into this port on the hardware gc adapter, exposing it to the game.
-    if (!GCAdapter::DeviceConnected(ISIDevice::m_iDeviceNumber))
+    if (!GCAdapter::DeviceConnected(m_device_number))
     {
       TSIDevices device = SI_NONE;
       memcpy(buffer, &device, sizeof(device));
