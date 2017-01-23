@@ -622,19 +622,18 @@ bool IsOptimizableRAMAddress(const u32 address)
   return (bat_result & 2) != 0;
 }
 
-bool HostIsRAMAddress(u32 address)
+template <XCheckTLBFlag flag>
+static bool IsRAMAddress(u32 address, bool translate)
 {
-  bool performTranslation = UReg_MSR(MSR).DR;
-  int segment = address >> 28;
-  if (performTranslation)
+  if (translate)
   {
-    auto translate_address = TranslateAddress<FLAG_NO_EXCEPTION>(address);
+    auto translate_address = TranslateAddress<flag>(address);
     if (!translate_address.Success())
       return false;
     address = translate_address.address;
-    segment = address >> 28;
   }
 
+  u32 segment = address >> 28;
   if (segment == 0x0 && (address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
     return true;
   else if (Memory::m_pEXRAM && segment == 0x1 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
@@ -644,6 +643,17 @@ bool HostIsRAMAddress(u32 address)
   else if (segment == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
     return true;
   return false;
+}
+
+bool HostIsRAMAddress(u32 address)
+{
+  return IsRAMAddress<FLAG_NO_EXCEPTION>(address, UReg_MSR(MSR).DR);
+}
+
+bool HostIsInstructionRAMAddress(u32 address)
+{
+  // Instructions are always 32bit aligned.
+  return !(address & 3) && IsRAMAddress<FLAG_OPCODE_NO_EXCEPTION>(address, UReg_MSR(MSR).IR);
 }
 
 void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks)
@@ -1240,7 +1250,7 @@ void IBATUpdated()
 template <const XCheckTLBFlag flag>
 static TranslateAddressResult TranslateAddress(const u32 address)
 {
-  u32 bat_result = (flag == FLAG_OPCODE ? ibat_table : dbat_table)[address >> BAT_INDEX_SHIFT];
+  u32 bat_result = (IsOpcodeFlag(flag) ? ibat_table : dbat_table)[address >> BAT_INDEX_SHIFT];
   if (bat_result & 1)
   {
     u32 result_addr = (bat_result & ~3) | (address & 0x0001FFFF);

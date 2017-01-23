@@ -220,6 +220,8 @@ void HostWrite_U64(const u64 var, const u32 address);
 // Returns whether a read or write to the given address will resolve to a RAM
 // access given the current CPU state.
 bool HostIsRAMAddress(const u32 address);
+// Same as HostIsRAMAddress, but uses IBAT instead of DBAT.
+bool HostIsInstructionRAMAddress(u32 address);
 
 std::string HostGetString(u32 em_address, size_t size = 0);
 

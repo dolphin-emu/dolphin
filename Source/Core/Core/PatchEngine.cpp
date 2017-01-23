@@ -223,11 +223,7 @@ static bool IsStackSane()
     return false;
 
   // Check the link register makes sense (that it points to a valid IBAT address)
-  auto insn = PowerPC::TryReadInstruction(PowerPC::HostRead_U32(next_SP + 4));
-  if (!insn.valid || !insn.hex)
-    return false;
-
-  return true;
+  return PowerPC::HostIsInstructionRAMAddress(PowerPC::HostRead_U32(next_SP + 4));
 }
 
 bool ApplyFramePatches()
