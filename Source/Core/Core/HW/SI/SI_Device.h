@@ -73,14 +73,12 @@ enum SIDevices : int
 class ISIDevice
 {
 public:
-  // Constructor
-  ISIDevice(SIDevices device_type, int device_number)
-      : m_device_number(device_number), m_device_type(device_type)
-  {
-  }
+  ISIDevice(SIDevices device_type, int device_number);
+  virtual ~ISIDevice();
 
-  // Destructor
-  virtual ~ISIDevice() {}
+  int GetDeviceNumber() const;
+  SIDevices GetDeviceType() const;
+
   // Run the SI Buffer
   virtual int RunBuffer(u8* buffer, int length);
   virtual int TransferInterval();
@@ -92,9 +90,7 @@ public:
   virtual void SendCommand(u32 command, u8 poll) = 0;
 
   // Savestate support
-  virtual void DoState(PointerWrap& p) {}
-  int GetDeviceNumber() const { return m_device_number; }
-  SIDevices GetDeviceType() const { return m_device_type; }
+  virtual void DoState(PointerWrap& p);
 
 protected:
   int m_device_number;
