@@ -36,9 +36,10 @@ static void ClearCacheThreadSafe(u64 userdata, s64 cyclesdata)
   JitInterface::ClearCache();
 }
 
-bool JitBlock::Overlap(u32 addr, u32 length)
+bool JitBlock::OverlapsPhysicalRange(u32 address, u32 length) const
 {
-  return physical_addresses.lower_bound(addr) != physical_addresses.lower_bound(addr + length);
+  return physical_addresses.lower_bound(address) !=
+         physical_addresses.lower_bound(address + length);
 }
 
 JitBaseBlockCache::JitBaseBlockCache(JitBase& jit) : m_jit{jit}
@@ -182,7 +183,7 @@ const u8* JitBaseBlockCache::Dispatch()
   return block->normalEntry;
 }
 
-void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool forced)
+void JitBaseBlockCache::InvalidateICache(u32 address, u32 length, bool forced)
 {
   auto translated = PowerPC::JitCache_TranslateAddress(address);
   if (!translated.valid)
@@ -199,45 +200,10 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
       valid_block.Clear(pAddr / 32);
   }
 
-  // destroy JIT blocks
   if (destroy_block)
   {
-    // Iterate over all macro blocks which overlap the given range.
-    u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
-    auto start = block_range_map.lower_bound(pAddr & range_mask);
-    auto end = block_range_map.lower_bound(pAddr + length);
-    while (start != end)
-    {
-      // Iterate over all blocks in the macro block.
-      auto iter = start->second.begin();
-      while (iter != start->second.end())
-      {
-        JitBlock* block = *iter;
-        if (block->Overlap(pAddr, length))
-        {
-          // If the block overlaps, also remove all other occupied slots in the other macro blocks.
-          // This will leak empty macro blocks, but they may be reused or cleared later on.
-          for (u32 addr : block->physical_addresses)
-            if ((addr & range_mask) != start->first)
-              block_range_map[addr & range_mask].erase(block);
-
-          // And remove the block.
-          DestroyBlock(*block);
-          block_map.erase(block->physicalAddress);
-          iter = start->second.erase(iter);
-        }
-        else
-        {
-          iter++;
-        }
-      }
-
-      // If the macro block is empty, drop it.
-      if (start->second.empty())
-        start = block_range_map.erase(start);
-      else
-        start++;
-    }
+    // destroy JIT blocks
+    ErasePhysicalRange(pAddr, length);
 
     // If the code was actually modified, we need to clear the relevant entries from the
     // FIFO write address cache, so we don't end up with FIFO checks in places they shouldn't
@@ -251,6 +217,46 @@ void JitBaseBlockCache::InvalidateICache(u32 address, const u32 length, bool for
         m_jit.js.pairedQuantizeAddresses.erase(i);
       }
     }
+  }
+}
+
+void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
+{
+  // Iterate over all macro blocks which overlap the given range.
+  u32 range_mask = ~(BLOCK_RANGE_MAP_ELEMENTS - 1);
+  auto start = block_range_map.lower_bound(address & range_mask);
+  auto end = block_range_map.lower_bound(address + length);
+  while (start != end)
+  {
+    // Iterate over all blocks in the macro block.
+    auto iter = start->second.begin();
+    while (iter != start->second.end())
+    {
+      JitBlock* block = *iter;
+      if (block->OverlapsPhysicalRange(address, length))
+      {
+        // If the block overlaps, also remove all other occupied slots in the other macro blocks.
+        // This will leak empty macro blocks, but they may be reused or cleared later on.
+        for (u32 addr : block->physical_addresses)
+          if ((addr & range_mask) != start->first)
+            block_range_map[addr & range_mask].erase(block);
+
+        // And remove the block.
+        DestroyBlock(*block);
+        block_map.erase(block->physicalAddress);
+        iter = start->second.erase(iter);
+      }
+      else
+      {
+        iter++;
+      }
+    }
+
+    // If the macro block is empty, drop it.
+    if (start->second.empty())
+      start = block_range_map.erase(start);
+    else
+      start++;
   }
 }
 

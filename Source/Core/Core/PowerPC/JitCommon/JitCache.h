@@ -25,7 +25,7 @@ class JitBase;
 // address.
 struct JitBlock
 {
-  bool Overlap(u32 addr, u32 length);
+  bool OverlapsPhysicalRange(u32 address, u32 length) const;
 
   // A special entry point for block linking; usually used to check the
   // downcount.
@@ -143,7 +143,8 @@ public:
   // assembly version.)
   const u8* Dispatch();
 
-  void InvalidateICache(u32 address, const u32 length, bool forced);
+  void InvalidateICache(u32 address, u32 length, bool forced);
+  void ErasePhysicalRange(u32 address, u32 length);
 
   u32* GetBlockBitSet() const;
 
