@@ -890,6 +890,5 @@ add_definitions(-DWXBUILDING)
 # wxWidgets warnings are not our problem.
 add_definitions(-w)
 
-#enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
 add_library(wx STATIC ${PNG_SRCS} ${SRCS})
 target_link_libraries(wx ${LIBS})
