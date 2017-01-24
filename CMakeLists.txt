@@ -307,7 +307,7 @@ if(APPLE)
 
 	# Identify the target system:
 	# Ask for 64-bit binary.
-	set(TARGET_FLAGS "-arch x86_64")
+	set(TARGET_FLAGS "${TARGET_FLAGS} -arch x86_64")
 	# Minimum OS X version.
 	# This is inserted into the Info.plist as well.
 	# Note that the SDK determines the maximum version of which optional
