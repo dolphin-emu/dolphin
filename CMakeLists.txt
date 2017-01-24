@@ -11,7 +11,6 @@ option(USE_SHARED_GTEST "Use shared gtest library if found" OFF)
 option(USE_UPNP "Enables UPnP port mapping support" ON)
 option(DISABLE_WX "Disable wxWidgets (use Qt or CLI interface)" OFF)
 option(ENABLE_QT2 "Enable Qt2 (use the other experimental Qt interface)" OFF)
-option(ENABLE_PCH "Use PCH to speed up compilation" ON)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
@@ -121,34 +120,6 @@ endif()
 # here.  You must run "make install" to install these to the proper location
 # as defined above.
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/Binaries)
-
-# Precompiled header support for MSVC:
-# Call this after setting the source list (and don't add the source file used
-# to generate the pch file, this will be done here automatically)
-function(enable_precompiled_headers PRECOMPILED_HEADER SOURCE_FILE SOURCE_VARIABLE_NAME)
-	if(MSVC)
-		set(files ${${SOURCE_VARIABLE_NAME}})
-
-		# Generate precompiled header translation unit
-		get_filename_component(pch_basename ${PRECOMPILED_HEADER} NAME_WE)
-		set(pch_abs ${CMAKE_CURRENT_SOURCE_DIR}/${PRECOMPILED_HEADER})
-		set(pch_unity ${CMAKE_CURRENT_SOURCE_DIR}/${SOURCE_FILE})
-		set_source_files_properties(${pch_unity}  PROPERTIES COMPILE_FLAGS
-			"/Yc\"${pch_abs}\"")
-
-		# Update properties of source files to use the precompiled header.
-		# Additionally, force the inclusion of the precompiled header at
-		# beginning of each source file.
-		foreach(source_file ${files} )
-			set_source_files_properties(${source_file} PROPERTIES COMPILE_FLAGS
-				"/Yu\"${pch_abs}\" /FI\"${pch_abs}\"")
-		endforeach(source_file)
-
-		# Finally, update the source file collection to contain the
-		# precompiled header translation unit
-		set(${SOURCE_VARIABLE_NAME} ${pch_unity} ${${SOURCE_VARIABLE_NAME}} PARENT_SCOPE)
-	endif(MSVC)
-endfunction(enable_precompiled_headers)
 
 # setup CCache
 include(CCache)
@@ -1006,7 +977,6 @@ if(NOT DISABLE_WX)
 		set(wxWidgets_FOUND TRUE)
 		set(wxWidgets_LIBRARIES "wx")
 	endif(wxWidgets_FOUND)
-	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")

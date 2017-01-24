@@ -10,12 +10,6 @@
 #include <string>
 #include <utility>
 #include <vector>
-#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
-#include <signal.h>
-#endif
-#ifdef _WIN32
-#include <windows.h>
-#endif
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 #include <wx/filename.h>
@@ -30,6 +24,24 @@
 #include <wx/textctrl.h>
 #include <wx/thread.h>
 #include <wx/toolbar.h>
+
+#include "DolphinWX/Config/ConfigMain.h"
+#include "DolphinWX/Debugger/BreakpointDlg.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/MemoryCheckDlg.h"
+#include "DolphinWX/GameListCtrl.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/LogWindow.h"
+#include "DolphinWX/Main.h"
+#include "DolphinWX/TASInputDlg.h"
+#include "DolphinWX/WxUtils.h"
+
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include <signal.h>
+#endif
+#ifdef _WIN32
+#include <windows.h>
+#endif
 
 #include "AudioCommon/AudioCommon.h"
 
@@ -51,17 +63,6 @@
 #include "Core/Movie.h"
 #include "Core/State.h"
 
-#include "DolphinWX/Config/ConfigMain.h"
-#include "DolphinWX/Debugger/BreakpointDlg.h"
-#include "DolphinWX/Debugger/CodeWindow.h"
-#include "DolphinWX/Debugger/MemoryCheckDlg.h"
-#include "DolphinWX/GameListCtrl.h"
-#include "DolphinWX/Globals.h"
-#include "DolphinWX/LogWindow.h"
-#include "DolphinWX/Main.h"
-#include "DolphinWX/TASInputDlg.h"
-#include "DolphinWX/WxUtils.h"
-
 #include "InputCommon/GCPadStatus.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
@@ -70,6 +71,10 @@
 #include "VideoCommon/VideoConfig.h"
 
 #if defined(HAVE_X11) && HAVE_X11
+
+#include <gdk/gdkx.h>
+#include <gtk/gtk.h>
+
 // X11Utils nastiness that's only used here
 namespace X11Utils
 {
