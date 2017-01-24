@@ -154,7 +154,7 @@ private:
   const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
   u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 
-  typedef std::map<u32, SContentAccess> CContentAccessMap;
+  using CContentAccessMap = std::map<u32, SContentAccess>;
   CContentAccessMap m_ContentAccessMap;
 
   std::vector<u64> m_TitleIDs;
