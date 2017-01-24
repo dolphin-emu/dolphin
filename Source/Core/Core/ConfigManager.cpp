@@ -900,7 +900,12 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
 
       m_region = ContentLoader.GetRegion();
       const char* retrieved_region_dir = GetDirectoryForRegion(m_region);
-      set_region_dir = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
+      if (!retrieved_region_dir)
+      {
+        m_region = DiscIO::Region::PAL;
+        retrieved_region_dir = EUR_DIR;
+      }
+      set_region_dir = retrieved_region_dir;
 
       bWii = true;
       m_BootType = BOOT_WII_NAND;
