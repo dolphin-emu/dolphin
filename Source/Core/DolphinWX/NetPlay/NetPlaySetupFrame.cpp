@@ -14,16 +14,17 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Core/NetPlayClient.h"
-#include "Core/NetPlayServer.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/NetPlay/NetPlayLauncher.h"
 #include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
+
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
 
 namespace
 {
