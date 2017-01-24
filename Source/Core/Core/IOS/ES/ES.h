@@ -138,21 +138,6 @@ private:
     u32 m_Size;
   };
 
-  typedef std::map<u32, SContentAccess> CContentAccessMap;
-  CContentAccessMap m_ContentAccessMap;
-
-  std::vector<u64> m_TitleIDs;
-  u64 m_TitleID = -1;
-  u32 m_AccessIdentID = 0x6000000;
-
-  // For title installation (ioctls IOCTL_ES_ADDTITLE*).
-  TMDReader m_addtitle_tmd;
-  u32 m_addtitle_content_id = 0xFFFFFFFF;
-  std::vector<u8> m_addtitle_content_buffer;
-
-  const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
-  u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
-
   struct ecc_cert_t
   {
     u32 sig_type;
@@ -165,6 +150,21 @@ private:
     u8 ecc_pubkey[0x3c];
     u8 padding[0x3c];
   };
+
+  const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
+  u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
+
+  typedef std::map<u32, SContentAccess> CContentAccessMap;
+  CContentAccessMap m_ContentAccessMap;
+
+  std::vector<u64> m_TitleIDs;
+  u64 m_TitleID = -1;
+  u32 m_AccessIdentID = 0x6000000;
+
+  // For title installation (ioctls IOCTL_ES_ADDTITLE*).
+  TMDReader m_addtitle_tmd;
+  u32 m_addtitle_content_id = 0xFFFFFFFF;
+  std::vector<u8> m_addtitle_content_buffer;
 };
 }  // namespace Device
 }  // namespace HLE
