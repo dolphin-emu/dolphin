@@ -106,17 +106,24 @@ void JitArm64::GenerateAsm()
   MOVP2R(X30, reinterpret_cast<void*>(&JitBase::Dispatch));
   BLR(X30);
 
-  // set the mem_base based on MSR flags
+  FixupBranch no_block_available = CBZ(X0);
+
+  // set the mem_base based on MSR flags and jump to next block.
   LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
   FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
   MOVP2R(MEM_REG, Memory::physical_base);
-  FixupBranch membaseend = B();
+  BR(X0);
   SetJumpTarget(physmem);
   MOVP2R(MEM_REG, Memory::logical_base);
-  SetJumpTarget(membaseend);
-
-  // Jump to next block.
   BR(X0);
+
+  // Call JIT
+  SetJumpTarget(no_block_available);
+  MOV(W0, DISPATCHER_PC);
+  MOVP2R(X30, reinterpret_cast<void*>(&JitTrampoline));
+  BLR(X30);
+  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+  B(dispatcherNoCheck);
 
   SetJumpTarget(bail);
   doTiming = GetCodePtr();
