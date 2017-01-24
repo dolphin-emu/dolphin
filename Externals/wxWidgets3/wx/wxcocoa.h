@@ -875,7 +875,7 @@
 /*
  * wxWebKitCtrl
  */
-#define wxUSE_WEBKIT 1
+#define wxUSE_WEBKIT 0
 
 /*
  * Objective-C class name uniquifying

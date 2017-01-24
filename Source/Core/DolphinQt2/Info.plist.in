@@ -75,7 +75,7 @@
     <key>NSHumanReadableCopyright</key>
     <string>Licensed under GPL version 2 or later (GPLv2+)</string>
     <key>LSMinimumSystemVersion</key>
-    <string>${OSX_MIN_VERSION}</string>
+    <string>${CMAKE_OSX_DEPLOYMENT_TARGET}</string>
     <key>NSHighResolutionCapable</key>
     <true/>
     <key>CSResourcesFileMapped</key>

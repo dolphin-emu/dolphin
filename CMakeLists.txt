@@ -2,8 +2,14 @@
 # General setup
 #
 cmake_minimum_required(VERSION 3.5.0)
-project(dolphin-emu)
+set(CMAKE_OSX_ARCHITECTURES "x86_64")
+# Minimum OS X version.
+# This is inserted into the Info.plist as well.
+# Note that the SDK determines the maximum version of which optional
+# features can be used, not the minimum required version to run.
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE string "")
 
+project(dolphin-emu)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
@@ -66,25 +72,6 @@ endif()
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
 
-# Update compiler before calling project()
-if (APPLE)
-	# Use clang compiler
-	if (NOT DEFINED CMAKE_CXX_COMPILER)
-		set(CMAKE_CXX_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++")
-		if (NOT EXISTS "${CMAKE_CXX_COMPILER}")
-			set(CMAKE_CXX_COMPILER "clang++")
-		endif()
-	endif()
-	if (NOT DEFINED CMAKE_C_COMPILER)
-		set(CMAKE_C_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang")
-		if (NOT EXISTS "${CMAKE_C_COMPILER}")
-			set(CMAKE_C_COMPILER "clang")
-		endif()
-	endif()
-
-	# This doesn't play with with the packaging script that doesn't understand @rpath
-	set(CMAKE_MACOSX_RPATH OFF)
-endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 # Libraries to link
 set(LIBS)
@@ -264,6 +251,9 @@ if(ENABLE_LTO)
 endif()
 
 if(APPLE)
+	# This doesn't play well with the packaging script that doesn't understand @rpath
+	set(CMAKE_MACOSX_RPATH OFF)
+
 	if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
 		# Hack up the path to prioritize the path to built-in OS libraries to
 		# increase the chance of not depending on a bunch of copies of them
@@ -276,18 +266,6 @@ if(APPLE)
 		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
 	endif()
 
-	# Identify the target system:
-	# Ask for 64-bit binary.
-	set(TARGET_FLAGS "-arch x86_64")
-	# Minimum OS X version.
-	# This is inserted into the Info.plist as well.
-	# Note that the SDK determines the maximum version of which optional
-	# features can be used, not the minimum required version to run.
-	set(OSX_MIN_VERSION "10.9")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
-	# Do not warn about frameworks that are not available on all architectures.
-	# This avoids a warning when linking with QuickTime.
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
 	# Specify target CPUs.
 	set(TARGET_FLAGS "${TARGET_FLAGS} -mssse3")
 	set(TARGET_FLAGS "${TARGET_FLAGS} -march=core2")
@@ -306,7 +284,6 @@ if(APPLE)
 
 	find_library(APPKIT_LIBRARY AppKit)
 	find_library(APPSERV_LIBRARY ApplicationServices)
-	find_library(ATB_LIBRARY AudioToolbox)
 	find_library(AU_LIBRARY AudioUnit)
 	find_library(CARBON_LIBRARY Carbon)
 	find_library(COCOA_LIBRARY Cocoa)
@@ -316,10 +293,19 @@ if(APPLE)
 	find_library(FOUNDATION_LIBRARY Foundation)
 	find_library(IOB_LIBRARY IOBluetooth)
 	find_library(IOK_LIBRARY IOKit)
-	find_library(QUICKTIME_LIBRARY QuickTime)
-	find_library(WEBKIT_LIBRARY WebKit)
 	find_library(FORCEFEEDBACK ForceFeedback)
 	find_library(OPENGL_LIBRARY OpenGL)
+
+	# Link against OS X system frameworks.
+	list(APPEND LIBS
+		${APPKIT_LIBRARY}
+		${AU_LIBRARY}
+		${COREAUDIO_LIBRARY}
+		${COREFUND_LIBRARY}
+		${CORESERV_LIBRARY}
+		${IOK_LIBRARY}
+		${FORCEFEEDBACK}
+		)
 endif()
 
 if(WIN32)
@@ -349,12 +335,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
 endif()
 
 # Dolphin requires threads.
-# The Apple build may not need an explicit flag because one of the
-# frameworks may already provide it.
-# But for non-OSX systems, we will use the CMake Threads package.
-IF(NOT APPLE)
-  FIND_PACKAGE(Threads)
-ENDIF(NOT APPLE)
+find_package(Threads)
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release" CACHE STRING
@@ -981,19 +962,6 @@ endif(NOT DISABLE_WX)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
 	set(LIBS ${LIBS} usbhid)
-endif()
-
-if(APPLE)
-	# Link against OS X system frameworks.
-	list(APPEND LIBS
-		${APPKIT_LIBRARY}
-		${AU_LIBRARY}
-		${COREAUDIO_LIBRARY}
-		${COREFUND_LIBRARY}
-		${CORESERV_LIBRARY}
-		${IOK_LIBRARY}
-		${FORCEFEEDBACK}
-		)
 endif()
 
 ########################################
