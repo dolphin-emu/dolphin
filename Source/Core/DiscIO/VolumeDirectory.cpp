@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <cstring>
+#include <locale>
 #include <map>
 #include <memory>
 #include <string>
@@ -25,6 +26,7 @@
 namespace DiscIO
 {
 static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
+static std::string ASCIIToLowercase(std::string str);
 
 const size_t CVolumeDirectory::MAX_NAME_LENGTH;
 const size_t CVolumeDirectory::MAX_ID_LENGTH;
@@ -452,10 +454,16 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* f
 {
   std::vector<File::FSTEntry> sorted_entries = parent_entry.children;
 
-  std::sort(sorted_entries.begin(), sorted_entries.end(),
-            [](const File::FSTEntry& one, const File::FSTEntry& two) {
-              return one.virtualName < two.virtualName;
-            });
+  // Sort for determinism
+  std::sort(sorted_entries.begin(), sorted_entries.end(), [](const File::FSTEntry& one,
+                                                             const File::FSTEntry& two) {
+    // For some reason, sorting by lowest ASCII value first prevents many games from
+    // fully booting. We make the comparison case insensitive to solve the problem.
+    // (Highest ASCII value first seems to work regardless of case sensitivity.)
+    const std::string one_lower = ASCIIToLowercase(one.virtualName);
+    const std::string two_lower = ASCIIToLowercase(two.virtualName);
+    return one_lower == two_lower ? one.virtualName < two.virtualName : one_lower < two_lower;
+  });
 
   for (const File::FSTEntry& entry : sorted_entries)
   {
@@ -495,6 +503,13 @@ static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
     name_size += (u32)entry.virtualName.length() + 1;
   }
   return name_size;
+}
+
+static std::string ASCIIToLowercase(std::string str)
+{
+  std::transform(str.begin(), str.end(), str.begin(),
+                 [](char c) { return std::tolower(c, std::locale::classic()); });
+  return str;
 }
 
 }  // namespace
