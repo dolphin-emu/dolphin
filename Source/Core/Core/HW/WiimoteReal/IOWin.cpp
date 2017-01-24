@@ -6,20 +6,20 @@
 #include <cstdio>
 #include <cstdlib>
 #include <ctime>
-#include <hidsdi.h>
 #include <unordered_map>
 #include <unordered_set>
 
-// clang-format off
 #include <windows.h>
-// The following Windows headers must be included AFTER windows.h.
 #include <BluetoothAPIs.h>
 #include <Cfgmgr32.h>
-#include <initguid.h>
-// initguid.h must be included before Devpkey.h
-#include <Devpkey.h>
 #include <dbt.h>
+#include <hidsdi.h>
 #include <setupapi.h>
+
+// initguid.h must be included before Devpkey.h
+// clang-format off
+#include <initguid.h>
+#include <Devpkey.h>
 // clang-format on
 
 #include "Common/CommonFuncs.h"

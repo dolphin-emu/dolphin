@@ -70,7 +70,7 @@ bool AVIDump::Start(int w, int h)
   s_last_pts = 0;
 
   InitAVCodec();
-  bool success = CreateFile();
+  bool success = CreateVideoFile();
   if (!success)
   {
     CloseFile();
@@ -79,7 +79,7 @@ bool AVIDump::Start(int w, int h)
   return success;
 }
 
-bool AVIDump::CreateFile()
+bool AVIDump::CreateVideoFile()
 {
   AVCodec* codec = nullptr;
 

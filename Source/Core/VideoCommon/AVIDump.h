@@ -9,7 +9,7 @@
 class AVIDump
 {
 private:
-  static bool CreateFile();
+  static bool CreateVideoFile();
   static void CloseFile();
   static void CheckResolution(int width, int height);
 

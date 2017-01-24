@@ -45,10 +45,12 @@ DerivePointerAlignment: false
 DisableFormat:   false
 ForEachMacros:   []
 IncludeCategories:
-  - Regex:           '^<'
+  - Regex:           '^<[Ww]indows\.h>$'
     Priority:        1
-  - Regex:           '^"'
+  - Regex:           '^<'
     Priority:        2
+  - Regex:           '^"'
+    Priority:        3
 IndentCaseLabels: false
 IndentWidth:     2
 IndentWrappedFunctionNames: false
