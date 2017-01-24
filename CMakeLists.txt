@@ -73,10 +73,6 @@ endif()
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
 
-if (APPLE)
-	# This doesn't play with with the packaging script that doesn't understand @rpath
-	set(CMAKE_MACOSX_RPATH OFF)
-endif()
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
 # Libraries to link
 set(LIBS)
@@ -284,6 +280,9 @@ if(ENABLE_LTO)
 endif()
 
 if(APPLE)
+	# This doesn't play well with the packaging script that doesn't understand @rpath
+	set(CMAKE_MACOSX_RPATH OFF)
+
 	if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
 		# Hack up the path to prioritize the path to built-in OS libraries to
 		# increase the chance of not depending on a bunch of copies of them
