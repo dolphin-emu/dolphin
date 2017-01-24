@@ -2,8 +2,9 @@
 # General setup
 #
 cmake_minimum_required(VERSION 3.5.0)
-project(dolphin-emu)
+set(CMAKE_OSX_ARCHITECTURES "x86_64")
 
+project(dolphin-emu)
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)
@@ -305,15 +306,12 @@ if(APPLE)
 		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
 	endif()
 
-	# Identify the target system:
-	# Ask for 64-bit binary.
-	set(TARGET_FLAGS "-arch x86_64")
 	# Minimum OS X version.
 	# This is inserted into the Info.plist as well.
 	# Note that the SDK determines the maximum version of which optional
 	# features can be used, not the minimum required version to run.
 	set(OSX_MIN_VERSION "10.9")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -mmacosx-version-min=${OSX_MIN_VERSION}")
+	set(TARGET_FLAGS "-mmacosx-version-min=${OSX_MIN_VERSION}")
 	# Do not warn about frameworks that are not available on all architectures.
 	# This avoids a warning when linking with QuickTime.
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-no_arch_warnings")
