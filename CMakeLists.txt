@@ -73,22 +73,7 @@ endif()
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
 
-# Update compiler before calling project()
 if (APPLE)
-	# Use clang compiler
-	if (NOT DEFINED CMAKE_CXX_COMPILER)
-		set(CMAKE_CXX_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++")
-		if (NOT EXISTS "${CMAKE_CXX_COMPILER}")
-			set(CMAKE_CXX_COMPILER "clang++")
-		endif()
-	endif()
-	if (NOT DEFINED CMAKE_C_COMPILER)
-		set(CMAKE_C_COMPILER "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang")
-		if (NOT EXISTS "${CMAKE_C_COMPILER}")
-			set(CMAKE_C_COMPILER "clang")
-		endif()
-	endif()
-
 	# This doesn't play with with the packaging script that doesn't understand @rpath
 	set(CMAKE_MACOSX_RPATH OFF)
 endif()
