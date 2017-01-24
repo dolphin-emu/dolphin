@@ -39,9 +39,13 @@ extern const std::string scm_distributor_str;
 
 // Since they are always around on Windows
 #define HAVE_WX 1
+#ifndef HAVE_OPENAL
 #define HAVE_OPENAL 1
+#endif
 
+#ifndef HAVE_PORTAUDIO
 #define HAVE_PORTAUDIO 1
+#endif
 
 // Debug definitions
 #if defined(_DEBUG)
