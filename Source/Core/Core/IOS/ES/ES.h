@@ -151,6 +151,44 @@ private:
     u8 padding[0x3c];
   };
 
+  IPCCommandResult AddTicket(const IOCtlVRequest& request);
+  IPCCommandResult AddTitleStart(const IOCtlVRequest& request);
+  IPCCommandResult AddContentStart(const IOCtlVRequest& request);
+  IPCCommandResult AddContentData(const IOCtlVRequest& request);
+  IPCCommandResult AddContentFinish(const IOCtlVRequest& request);
+  IPCCommandResult AddTitleFinish(const IOCtlVRequest& request);
+  IPCCommandResult ESGetDeviceID(const IOCtlVRequest& request);
+  IPCCommandResult GetTitleContentsCount(const IOCtlVRequest& request);
+  IPCCommandResult GetTitleContents(const IOCtlVRequest& request);
+  IPCCommandResult OpenTitleContent(const IOCtlVRequest& request);
+  IPCCommandResult OpenContent(const IOCtlVRequest& request);
+  IPCCommandResult ReadContent(const IOCtlVRequest& request);
+  IPCCommandResult CloseContent(const IOCtlVRequest& request);
+  IPCCommandResult SeekContent(const IOCtlVRequest& request);
+  IPCCommandResult GetTitleDirectory(const IOCtlVRequest& request);
+  IPCCommandResult GetTitleID(const IOCtlVRequest& request);
+  IPCCommandResult SetUID(const IOCtlVRequest& request);
+  IPCCommandResult GetTitleCount(const IOCtlVRequest& request);
+  IPCCommandResult GetTitles(const IOCtlVRequest& request);
+  IPCCommandResult GetViewCount(const IOCtlVRequest& request);
+  IPCCommandResult GetViews(const IOCtlVRequest& request);
+  IPCCommandResult GetTMDViewCount(const IOCtlVRequest& request);
+  IPCCommandResult GetTMDViews(const IOCtlVRequest& request);
+  IPCCommandResult GetConsumption(const IOCtlVRequest& request);
+  IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
+  IPCCommandResult DeleteTitleContent(const IOCtlVRequest& request);
+  IPCCommandResult GetStoredTMDSize(const IOCtlVRequest& request);
+  IPCCommandResult GetStoredTMD(const IOCtlVRequest& request);
+  IPCCommandResult Encrypt(const IOCtlVRequest& request);
+  IPCCommandResult Decrypt(const IOCtlVRequest& request);
+  IPCCommandResult Launch(const IOCtlVRequest& request);
+  IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
+  IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
+  IPCCommandResult Sign(const IOCtlVRequest& request);
+  IPCCommandResult GetBoot2Version(const IOCtlVRequest& request);
+  IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
+  IPCCommandResult GetOwnedTitleCount(const IOCtlVRequest& request);
+
   const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
   u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 
