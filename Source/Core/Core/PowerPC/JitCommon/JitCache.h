@@ -6,6 +6,7 @@
 
 #include <array>
 #include <bitset>
+#include <cstring>
 #include <functional>
 #include <map>
 #include <memory>

@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cstring>
 #include <string>
 
 #include "Common/FileUtil.h"
