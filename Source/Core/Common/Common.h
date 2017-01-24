@@ -37,9 +37,6 @@ extern const std::string scm_distributor_str;
 // Memory leak checks
 #define CHECK_HEAP_INTEGRITY()
 
-// Since they are always around on Windows
-#define HAVE_WX 1
-
 // Debug definitions
 #if defined(_DEBUG)
 #include <crtdbg.h>

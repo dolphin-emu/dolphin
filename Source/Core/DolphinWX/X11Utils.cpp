@@ -13,12 +13,8 @@
 
 extern char** environ;
 
-#if defined(HAVE_WX) && HAVE_WX
 #include <algorithm>
 #include <string>
-
-#include "DolphinWX/WxUtils.h"
-#endif
 
 namespace X11Utils
 {

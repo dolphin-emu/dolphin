@@ -71,6 +71,10 @@
 #include "VideoCommon/VideoConfig.h"
 
 #if defined(HAVE_X11) && HAVE_X11
+
+#include <gdk/gdkx.h>
+#include <gtk/gtk.h>
+
 // X11Utils nastiness that's only used here
 namespace X11Utils
 {

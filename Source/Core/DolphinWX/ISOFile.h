@@ -11,10 +11,8 @@
 
 #include "Common/Common.h"
 
-#if defined(HAVE_WX) && HAVE_WX
 #include <wx/bitmap.h>
 #include <wx/image.h>
-#endif
 
 namespace DiscIO
 {
@@ -60,12 +58,9 @@ public:
   u64 GetVolumeSize() const { return m_VolumeSize; }
   // 0 is the first disc, 1 is the second disc
   u8 GetDiscNumber() const { return m_disc_number; }
-#if defined(HAVE_WX) && HAVE_WX
   // NOTE: Banner image is at the original resolution, use WxUtils::ScaleImageToBitmap
   //   to display it
   const wxImage& GetBannerImage() const { return m_image; }
-#endif
-
   void DoState(PointerWrap& p);
 
 private:
@@ -90,9 +85,7 @@ private:
   DiscIO::BlobType m_blob_type;
   u16 m_Revision;
 
-#if defined(HAVE_WX) && HAVE_WX
   wxImage m_image;
-#endif
   bool m_Valid;
   std::vector<u8> m_pImage;
   int m_ImageWidth, m_ImageHeight;

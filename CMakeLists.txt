@@ -977,7 +977,6 @@ if(NOT DISABLE_WX)
 		set(wxWidgets_FOUND TRUE)
 		set(wxWidgets_LIBRARIES "wx")
 	endif(wxWidgets_FOUND)
-	add_definitions(-DHAVE_WX=1)
 endif(NOT DISABLE_WX)
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
