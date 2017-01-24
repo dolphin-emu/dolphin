@@ -11,3 +11,7 @@ add_subdirectory(VideoBackends)
 if(ENABLE_QT2)
 	add_subdirectory(DolphinQt2)
 endif()
+
+if(ENABLE_PYQT)
+        add_subdirectory(DolphinPyQt)
+endif()

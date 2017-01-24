@@ -12,7 +12,7 @@ enum class Language;
 }
 
 // UI settings to be stored in the config directory.
-class Settings final : public QSettings
+class Settings : public QSettings
 {
   Q_OBJECT
 

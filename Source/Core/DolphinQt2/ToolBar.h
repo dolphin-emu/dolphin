@@ -8,7 +8,7 @@
 #include <QLineEdit>
 #include <QToolBar>
 
-class ToolBar final : public QToolBar
+class ToolBar : public QToolBar
 {
   Q_OBJECT
 

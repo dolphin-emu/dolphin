@@ -7,7 +7,7 @@
 #include <QMenu>
 #include <QMenuBar>
 
-class MenuBar final : public QMenuBar
+class MenuBar : public QMenuBar
 {
   Q_OBJECT
 

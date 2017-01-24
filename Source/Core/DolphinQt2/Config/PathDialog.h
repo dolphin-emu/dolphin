@@ -10,7 +10,7 @@
 #include <QHBoxLayout>
 #include <QListWidget>
 
-class PathDialog final : public QDialog
+class PathDialog : public QDialog
 {
   Q_OBJECT
 public:

@@ -15,7 +15,7 @@
 
 class TableDelegate;
 
-class GameList final : public QStackedWidget
+class GameList : public QStackedWidget
 {
   Q_OBJECT
 
