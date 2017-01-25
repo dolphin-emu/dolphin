@@ -331,7 +331,7 @@ constexpr std::array<IosMemoryValues, 31> ios_memory_values = {
          RAM_VENDOR, 0x93600000, 0x93620000,
      },
      {
-         58,         0x311820,   0x030110,         MEM1_SIZE,
+         58,         0x3a1820,   0x030110,         MEM1_SIZE,
          MEM1_SIZE,  MEM1_END,   MEM1_ARENA_BEGIN, MEM1_ARENA_END,
          MEM2_SIZE,  MEM2_SIZE,  0x93600000,       MEM2_ARENA_BEGIN,
          0x935E0000, 0x935E0000, 0x93600000,       HOLLYWOOD_REVISION,
