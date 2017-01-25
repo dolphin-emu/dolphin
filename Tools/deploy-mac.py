@@ -120,7 +120,10 @@ def updateMachO(bin, execPath, root):
 				print('Updating Mach-O id from {} to {}...'.format(oldExecPath, newExecPath))
 			args.extend(['-id', newExecPath])
 	args.append(bin)
-	subprocess.check_call(args)
+
+	# Check we actually have to update some paths
+	if len(args) > 2:
+		subprocess.check_call(args)
 
 if __name__ == '__main__':
 	parser = argparse.ArgumentParser()
