@@ -200,7 +200,9 @@ if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_L
 	message(FATAL_ERROR "Dolphin requires at least GCC 5.0 (found ${CMAKE_CXX_COMPILER_VERSION})")
 endif()
 
-if(NOT MSVC)
+if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
+	check_and_add_flag(EXCEPTIONS /EHsc)
+else()
 	add_definitions(-D_DEFAULT_SOURCE)
 	check_and_add_flag(HAVE_WALL -Wall)
 	# TODO: would like these but they produce overwhelming amounts of warnings
@@ -231,7 +233,7 @@ if(NOT MSVC)
 	if(FLAG_C_FOMIT_FRAME_POINTER)
 		add_compile_options($<$<CONFIG:Release>:-fomit-frame-pointer>)
 	endif()
-endif(NOT MSVC)
+endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
 	# Only MSBuild needs this, other generators will compile one file at a time
