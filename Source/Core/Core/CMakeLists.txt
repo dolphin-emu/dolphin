@@ -266,7 +266,7 @@ if(LIBUSB_FOUND)
 	set(LIBS	${LIBS}	${LIBUSB_LIBRARIES})
 	set(SRCS	${SRCS}	IOS/USB/USB_HIDv4.cpp
 	        	       	IOS/USB/Bluetooth/BTReal.cpp)
-endif(LIBUSB_FOUND)
+endif()
 
 if(NOT APPLE)
 	set(LIBS ${LIBS} videovulkan)
@@ -297,22 +297,22 @@ elseif(UNIX)
 endif()
 if(HIDAPI_FOUND)
 	set(SRCS ${SRCS} HW/WiimoteReal/IOhidapi.cpp)
-endif(HIDAPI_FOUND)
+endif()
 
 if(PORTAUDIO_FOUND)
 	set(LIBS ${LIBS} ${PORTAUDIO_LIBRARIES})
-endif(PORTAUDIO_FOUND)
+endif()
 
 if(OPROFILE_FOUND)
 	set(LIBS ${LIBS} ${OPROFILE_LIBRARIES})
-endif(OPROFILE_FOUND)
+endif()
 
 if(GDBSTUB)
 	set(SRCS ${SRCS} PowerPC/GDBStub.cpp)
-endif(GDBSTUB)
+endif()
 
 if(UNIX)
 	set(SRCS ${SRCS} MemoryWatcher.cpp)
-endif(UNIX)
+endif()
 
 add_dolphin_library(core "${SRCS}" "${LIBS}")
