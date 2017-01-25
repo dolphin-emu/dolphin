@@ -191,6 +191,11 @@ endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 	check_and_add_flag(EXCEPTIONS /EHsc)
+
+	# Only MSBuild needs this, other generators will compile one file at a time
+	if(CMAKE_GENERATOR MATCHES "Visual Studio")
+		add_compile_options("/MP")
+	endif()
 else()
 	add_definitions(-D_DEFAULT_SOURCE)
 	check_and_add_flag(HAVE_WALL -Wall)
@@ -238,11 +243,6 @@ else()
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-	# Only MSBuild needs this, other generators will compile one file at a time
-	if(CMAKE_GENERATOR MATCHES "Visual Studio")
-		add_compile_options("/MP")
-	endif()
-
 	add_definitions(-DNOMINMAX)
 	add_definitions(-DUNICODE)
 	add_definitions(-D_UNICODE)
