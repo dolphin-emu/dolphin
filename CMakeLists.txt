@@ -94,15 +94,6 @@ else()
 	add_definitions(-DDATA_DIR="${datadir}/")
 endif()
 
-# Set file offset size to 64 bits.
-#
-# On modern Unixes, this is typically already the case. The lone exception is
-# glibc, which may default to 32 bits. glibc allows this to be configured
-# by setting _FILE_OFFSET_BITS.
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	add_definitions(-D_FILE_OFFSET_BITS=64)
-endif()
-
 if(CMAKE_SYSROOT)
 	# If we should use a sysroot, tell pkg-config to search for packages in there, not on the host
 	set(ENV{PKG_CONFIG_LIBDIR} "${CMAKE_SYSROOT}/usr/lib/pkgconfig:${CMAKE_SYSROOT}/usr/share/pkgconfig")
@@ -414,7 +405,15 @@ if(ENABLE_HEADLESS)
 	add_definitions(-DUSE_HEADLESS)
 endif()
 
-add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
+# Set file offset size to 64 bits.
+#
+# On modern Unixes, this is typically already the case. The lone exception is
+# glibc, which may default to 32 bits. glibc allows this to be configured
+# by setting _FILE_OFFSET_BITS.
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+	add_definitions(-D_FILE_OFFSET_BITS=64)
+	add_definitions(-D_LARGEFILE_SOURCE)
+endif()
 
 ########################################
 # Dependency checking
