@@ -225,10 +225,8 @@ else()
 	check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
 	check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
 
-	check_c_compiler_flag(-fomit-frame-pointer FLAG_C_FOMIT_FRAME_POINTER)
-	if(FLAG_C_FOMIT_FRAME_POINTER)
-		add_compile_options($<$<CONFIG:Release>:-fomit-frame-pointer>)
-	endif()
+	check_and_add_flag(FOMIT_FRAME_POINTER -fomit-frame-pointer RELEASE_ONLY)
+	check_and_add_flag(GGDB -ggdb DEBUG_ONLY)
 
 	if(NOT ANDROID AND _M_X86_64)
 		# PIE is required on Android, but not supported with the x86_64 jit currently
@@ -337,7 +335,6 @@ endif()
 
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
 	add_definitions(-D_DEBUG)
-	check_and_add_flag(GGDB -ggdb)
 
 	option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 	if(ENABLE_GPROF)
