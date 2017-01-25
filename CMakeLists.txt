@@ -166,12 +166,7 @@ if(ENABLE_GENERIC)
 	message(STATUS "Warning! Building generic build!")
 	set(_M_GENERIC 1)
 	add_definitions(-D_M_GENERIC=1)
-elseif(_ARCH_64 AND (
-	${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
-	${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
-	${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
-	APPLE
-))
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
 	set(_M_X86 1)
 	set(_M_X86_64 1)
 	add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
