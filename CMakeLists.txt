@@ -72,7 +72,13 @@ endif()
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
+list(APPEND CMAKE_MODULE_PATH
+	${CMAKE_SOURCE_DIR}/CMakeTests
+)
+
+# Support functions
+include(CheckAndAddFlag)
+
 # Libraries to link
 set(LIBS)
 
@@ -198,13 +204,6 @@ else()
 	message(FATAL_ERROR "You're building on an unsupported platform. Enable generic build if you really want a JIT-less binary.")
 endif()
 
-include(CheckCXXCompilerFlag)
-macro(check_and_add_flag var flag)
-	CHECK_CXX_COMPILER_FLAG(${flag} FLAG_${var})
-	if(FLAG_${var})
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
-	endif()
-endmacro()
 
 # Enforce minimum GCC version
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
