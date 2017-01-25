@@ -230,7 +230,21 @@ if(NOT MSVC)
 	endif()
 endif(NOT MSVC)
 
-if(APPLE)
+if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+	# Only MSBuild needs this, other generators will compile one file at a time
+	if(CMAKE_GENERATOR MATCHES "Visual Studio")
+		add_compile_options("/MP")
+	endif()
+
+	add_definitions(-DNOMINMAX)
+	add_definitions(-DUNICODE)
+	add_definitions(-D_UNICODE)
+	add_definitions(-DWIN32_LEAN_AND_MEAN)
+	add_definitions(-D_WIN32_WINNT=0x0602)
+	add_definitions(-D_SECURE_SCL=0)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	# This doesn't play well with the packaging script that doesn't understand @rpath
 	set(CMAKE_MACOSX_RPATH OFF)
 
@@ -291,12 +305,6 @@ if(ENABLE_LTO)
 		set(CMAKE_RANLIB gcc-ranlib)
 	endif()
 endif()
-
-if(WIN32)
-	add_definitions(-D_SECURE_SCL=0)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-endif(WIN32)
 
 # Add an option to build relocatable binaries on Linux
 # The Sys folder will need to be copied to the Binaries folder.
