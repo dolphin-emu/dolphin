@@ -1030,7 +1030,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     _dbg_assert_(IOS_ES, request.in_vectors.size() == 2);
     bool bSuccess = false;
     bool bReset = false;
-    u16 IOSv = 0xffff;
 
     u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
     u32 view = Memory::Read_U32(request.in_vectors[1].address);
@@ -1044,12 +1043,20 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     // (supposedly when trying to re-open those files).
     DiscIO::CNANDContentManager::Access().ClearCache();
 
+    u64 ios_to_load = 0;
     std::string tContentFile;
-    if ((u32)(TitleID >> 32) != 0x00000001 || TitleID == TITLEID_SYSMENU)
+    if ((u32)(TitleID >> 32) == 0x00000001 && TitleID != TITLEID_SYSMENU)
+    {
+      ios_to_load = TitleID;
+      bSuccess = true;
+    }
+    else
     {
       const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(TitleID);
       if (ContentLoader.IsValid())
       {
+        ios_to_load = 0x0000000100000000ULL | ContentLoader.GetIosVersion();
+
         u32 bootInd = ContentLoader.GetBootIndex();
         const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(bootInd);
         if (pContent)
@@ -1060,7 +1067,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 
           if (pDolLoader->IsValid())
           {
-            pDolLoader->Load();  // TODO: Check why sysmenu does not load the DOL correctly
+            pDolLoader->Load();
+            // TODO: Check why sysmenu does not load the DOL correctly
             // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
             //
             // The state of other CPU registers (like the BAT registers) doesn't matter much
@@ -1068,27 +1076,15 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
             MSR = 0;
             PC = 0x3400;
             bSuccess = true;
-            bReset = true;
           }
           else
           {
             PanicAlertT("IOCTL_ES_LAUNCH: The DOL file is invalid!");
-            bSuccess = false;
           }
-
-          IOSv = ContentLoader.GetIosVersion();
         }
       }
     }
-    else  // IOS, MIOS, BC etc
-    {
-      // TODO: fixme
-      // The following is obviously a hack
-      // Lie to mem about loading a different IOS
-      // someone with an affected game should test
-      IOSv = TitleID & 0xffff;
-      bSuccess = true;
-    }
+
     if (!bSuccess)
     {
       PanicAlertT(
@@ -1108,6 +1104,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 
       Reset(true);
       Reinit();
+      SetupMemory(ios_to_load);
+      bReset = true;
 
       if (!SConfig::GetInstance().m_bt_passthrough_enabled)
       {
@@ -1128,15 +1126,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
       delete[] wiiMoteConnected;
       SetDefaultContentFile(tContentFile);
     }
-    // Pass the "#002 check"
-    // Apploader should write the IOS version and revision to 0x3140, and compare it
-    // to 0x3188 to pass the check, but we don't do it, and i don't know where to read the IOS
-    // rev...
-    // Currently we just write 0xFFFF for the revision, copy manually and it works fine :p
-    // TODO : figure it correctly : where should we read the IOS rev that the wad "needs" ?
-    Memory::Write_U16(IOSv, 0x00003140);
-    Memory::Write_U16(0xFFFF, 0x00003142);
-    Memory::Write_U32(Memory::Read_U32(0x00003140), 0x00003188);
 
     // Note: If we just reset the PPC, don't write anything to the command buffer. This
     // could clobber the DOL we just loaded.

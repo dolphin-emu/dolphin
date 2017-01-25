@@ -420,9 +420,13 @@ bool CBoot::BootUp()
 
     // Poor man's bootup
     if (_StartupPara.bWii)
-      SetupWiiMemory();
+    {
+      SetupWiiMemory(0x0000000100000050ULL);
+    }
     else
+    {
       EmulatedBS2_GC(true);
+    }
 
     Load_FST(_StartupPara.bWii);
     if (!Boot_ELF(_StartupPara.m_strFilename))
