@@ -13,6 +13,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -47,16 +48,12 @@ static const char* err_string[] = {"",
                                    "Number out of range"};
 
 DSPAssembler::DSPAssembler(const AssemblerSettings& settings)
-    : gdg_buffer(nullptr), m_cur_addr(0), m_cur_pass(0), m_current_param(0), settings_(settings)
+    : m_cur_addr(0), m_cur_pass(0), m_current_param(0), settings_(settings)
 
 {
 }
 
-DSPAssembler::~DSPAssembler()
-{
-  if (gdg_buffer)
-    free(gdg_buffer);
-}
+DSPAssembler::~DSPAssembler() = default;
 
 bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
                             std::vector<int>* line_numbers)
@@ -71,32 +68,18 @@ bool DSPAssembler::Assemble(const std::string& text, std::vector<u16>& code,
     return false;
 
   // We now have the size of the output buffer
-  if (m_totalSize > 0)
-  {
-    gdg_buffer = (char*)malloc(m_totalSize * sizeof(u16) + 4);
-    if (!gdg_buffer)
-      return false;
-
-    memset(gdg_buffer, 0, m_totalSize * sizeof(u16));
-  }
-  else
+  if (m_totalSize <= 0)
     return false;
+
+  m_output_buffer.resize(m_totalSize);
 
   InitPass(2);
   if (!AssembleFile(file_name, 2))
     return false;
 
-  code.resize(m_totalSize);
-  for (int i = 0; i < m_totalSize; i++)
-  {
-    code[i] = *(u16*)(gdg_buffer + i * 2);
-  }
-
-  if (gdg_buffer)
-  {
-    free(gdg_buffer);
-    gdg_buffer = nullptr;
-  }
+  code = std::move(m_output_buffer);
+  m_output_buffer.clear();
+  m_output_buffer.shrink_to_fit();
 
   last_error_str = "(no errors)";
   last_error = ERR_OK;
@@ -1017,10 +1000,10 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
     if (pass == 2)
     {
       // generate binary
-      ((u16*)gdg_buffer)[m_cur_addr] = 0x0000;
-      BuildCode(opc, params, params_count, (u16*)gdg_buffer);
+      m_output_buffer[m_cur_addr] = 0x0000;
+      BuildCode(opc, params, params_count, m_output_buffer.data());
       if (opc_ext)
-        BuildCode(opc_ext, params_ext, params_count_ext, (u16*)gdg_buffer);
+        BuildCode(opc_ext, params_ext, params_count_ext, m_output_buffer.data());
     }
 
     m_cur_addr += opcode_size;

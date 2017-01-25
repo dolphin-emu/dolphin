@@ -8,6 +8,7 @@
 #include <cstddef>
 #include <map>
 #include <string>
+#include <vector>
 
 #include "Common/CommonTypes.h"
 
@@ -95,7 +96,7 @@ private:
   bool VerifyParams(const opc_t* opc, param_t* par, size_t count, bool ext = false);
   void BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf);
 
-  char* gdg_buffer;
+  std::vector<u16> m_output_buffer;
 
   std::string include_dir;
   std::string cur_line;
