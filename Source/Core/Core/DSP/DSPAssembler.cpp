@@ -93,18 +93,18 @@ void DSPAssembler::ShowError(err_t err_code, const char* extra_info)
   if (!settings_.force)
     failed = true;
 
-  std::string error = StringFromFormat("%i : %s ", code_line, cur_line.c_str());
+  std::string error = StringFromFormat("%u : %s ", code_line, cur_line.c_str());
   if (!extra_info)
     extra_info = "-";
 
   if (m_current_param == 0)
   {
     error +=
-        StringFromFormat("ERROR: %s Line: %d : %s\n", err_string[err_code], code_line, extra_info);
+        StringFromFormat("ERROR: %s Line: %u : %s\n", err_string[err_code], code_line, extra_info);
   }
   else
   {
-    error += StringFromFormat("ERROR: %s Line: %d Param: %d : %s\n", err_string[err_code],
+    error += StringFromFormat("ERROR: %s Line: %u Param: %d : %s\n", err_string[err_code],
                               code_line, m_current_param, extra_info);
   }
 
