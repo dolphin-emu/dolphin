@@ -230,14 +230,6 @@ if(NOT MSVC)
 	endif()
 endif(NOT MSVC)
 
-if(ENABLE_LTO)
-	check_and_add_flag(LTO -flto)
-	if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-		set(CMAKE_AR gcc-ar)
-		set(CMAKE_RANLIB gcc-ranlib)
-	endif()
-endif()
-
 if(APPLE)
 	# This doesn't play well with the packaging script that doesn't understand @rpath
 	set(CMAKE_MACOSX_RPATH OFF)
@@ -290,6 +282,14 @@ if(APPLE)
 		${IOK_LIBRARY}
 		${FORCEFEEDBACK}
 		)
+endif()
+
+if(ENABLE_LTO)
+	check_and_add_flag(LTO -flto)
+	if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+		set(CMAKE_AR gcc-ar)
+		set(CMAKE_RANLIB gcc-ranlib)
+	endif()
 endif()
 
 if(WIN32)
