@@ -12,7 +12,7 @@
 
 JitBase* g_jit;
 
-void Jit(u32 em_address)
+void JitTrampoline(u32 em_address)
 {
   g_jit->Jit(em_address);
 }

@@ -140,16 +140,13 @@ void Jit64AsmRoutineManager::Generate()
     // Failure, fallback to the C++ dispatcher for calling the JIT.
   }
 
-  // We reset the stack because Jit might clear the code cache.
-  // Also if we are in the middle of disabling BLR optimization on windows
-  // we need to reset the stack before _resetstkoflw() is called in Jit
-  // otherwise we will generate a second stack overflow exception during DoJit()
-  ResetStack(*this);
-
   // Ok, no block, let's call the slow dispatcher
   ABI_PushRegistersAndAdjustStack({}, 0);
   ABI_CallFunction(JitBase::Dispatch);
   ABI_PopRegistersAndAdjustStack({}, 0);
+
+  TEST(64, R(ABI_RETURN), R(ABI_RETURN));
+  FixupBranch no_block_available = J_CC(CC_Z);
 
   // Switch to the correct memory base, in case MSR.DR has changed.
   TEST(32, PPCSTATE(msr), Imm32(1 << (31 - 27)));
@@ -159,6 +156,21 @@ void Jit64AsmRoutineManager::Generate()
   SetJumpTarget(physmem);
   MOV(64, R(RMEM), ImmPtr(Memory::physical_base));
   JMPptr(R(ABI_RETURN));
+
+  SetJumpTarget(no_block_available);
+
+  // We reset the stack because Jit might clear the code cache.
+  // Also if we are in the middle of disabling BLR optimization on windows
+  // we need to reset the stack before _resetstkoflw() is called in Jit
+  // otherwise we will generate a second stack overflow exception during DoJit()
+  ResetStack(*this);
+
+  ABI_PushRegistersAndAdjustStack({}, 0);
+  MOV(32, R(ABI_PARAM1), PPCSTATE(pc));
+  ABI_CallFunction(JitTrampoline);
+  ABI_PopRegistersAndAdjustStack({}, 0);
+
+  JMP(dispatcherNoCheck, true);
 
   SetJumpTarget(bail);
   doTiming = GetCodePtr();

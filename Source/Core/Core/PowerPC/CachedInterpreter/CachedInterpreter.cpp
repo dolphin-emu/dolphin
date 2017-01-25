@@ -36,6 +36,12 @@ void CachedInterpreter::Shutdown()
 void CachedInterpreter::ExecuteOneBlock()
 {
   const u8* normal_entry = m_block_cache.Dispatch();
+  if (!normal_entry)
+  {
+    Jit(PC);
+    return;
+  }
+
   const Instruction* code = reinterpret_cast<const Instruction*>(normal_entry);
 
   for (; code->type != Instruction::INSTRUCTION_ABORT; ++code)

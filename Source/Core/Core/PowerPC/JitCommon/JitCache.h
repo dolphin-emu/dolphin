@@ -161,7 +161,7 @@ private:
   void UnlinkBlock(const JitBlock& block);
   void DestroyBlock(JitBlock& block);
 
-  void MoveBlockIntoFastCache(u32 em_address, u32 msr);
+  JitBlock* MoveBlockIntoFastCache(u32 em_address, u32 msr);
 
   // Fast but risky block lookup based on fast_block_map.
   size_t FastLookupIndexForAddress(u32 address);
