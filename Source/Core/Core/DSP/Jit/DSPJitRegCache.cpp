@@ -689,7 +689,7 @@ void DSPJitRegCache::MovToMemory(size_t reg)
   m_regs[reg].loc = tmp;
 }
 
-void DSPJitRegCache::GetReg(int reg, OpArg& oparg, bool load)
+OpArg DSPJitRegCache::GetReg(int reg, bool load)
 {
   int real_reg;
   int shift;
@@ -723,7 +723,7 @@ void DSPJitRegCache::GetReg(int reg, OpArg& oparg, bool load)
   _assert_msg_(DSPLLE, m_regs[real_reg].loc.IsSimpleReg(), "did not get host reg for %d", reg);
 
   RotateHostReg(real_reg, shift, load);
-  oparg = m_regs[real_reg].loc;
+  const OpArg oparg = m_regs[real_reg].loc;
   m_regs[real_reg].used = true;
 
   // do some register specific fixup
@@ -742,6 +742,8 @@ void DSPJitRegCache::GetReg(int reg, OpArg& oparg, bool load)
   default:
     break;
   }
+
+  return oparg;
 }
 
 void DSPJitRegCache::PutReg(int reg, bool dirty)
@@ -808,8 +810,7 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
 
 void DSPJitRegCache::ReadReg(int sreg, X64Reg host_dreg, DSPJitSignExtend extend)
 {
-  OpArg reg;
-  GetReg(sreg, reg);
+  const OpArg reg = GetReg(sreg);
 
   switch (m_regs[sreg].size)
   {
@@ -853,8 +854,7 @@ void DSPJitRegCache::ReadReg(int sreg, X64Reg host_dreg, DSPJitSignExtend extend
 
 void DSPJitRegCache::WriteReg(int dreg, OpArg arg)
 {
-  OpArg reg;
-  GetReg(dreg, reg, false);
+  const OpArg reg = GetReg(dreg, false);
   if (arg.IsImm())
   {
     switch (m_regs[dreg].size)

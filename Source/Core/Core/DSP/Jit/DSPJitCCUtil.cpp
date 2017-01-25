@@ -19,8 +19,7 @@ namespace x86
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
 {
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
   //	// 0x04
   //	if (_Value == 0) g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
   TEST(64, R(val), R(val));
@@ -63,8 +62,7 @@ void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
 void DSPEmitter::Update_SR_Register64(Gen::X64Reg val)
 {
   //	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
   AND(16, sr_reg, Imm16(~SR_CMP_MASK));
   gpr.PutReg(DSP_REG_SR);
   Update_SR_Register(val);
@@ -75,8 +73,7 @@ void DSPEmitter::Update_SR_Register64(Gen::X64Reg val)
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl, bool carry_eq)
 {
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
   //	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
   AND(16, sr_reg, Imm16(~SR_CMP_MASK));
 
@@ -115,8 +112,7 @@ void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl, bool 
 // In: RAX: s64 _Value
 void DSPEmitter::Update_SR_Register16(X64Reg val)
 {
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
   AND(16, sr_reg, Imm16(~SR_CMP_MASK));
 
   //	// 0x04
@@ -152,8 +148,7 @@ void DSPEmitter::Update_SR_Register16(X64Reg val)
 // Clobbers RCX
 void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
 {
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
   AND(16, sr_reg, Imm16(~SR_CMP_MASK));
 
   //	// 0x10
