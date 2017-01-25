@@ -17,6 +17,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/StringUtil.h"
 
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/DSP/DSPTables.h"
@@ -92,19 +93,22 @@ void DSPAssembler::ShowError(err_t err_code, const char* extra_info)
   if (!settings_.force)
     failed = true;
 
-  char error_buffer[1024];
-  char* buf_ptr = error_buffer;
-  buf_ptr += sprintf(buf_ptr, "%i : %s ", code_line, cur_line.c_str());
+  std::string error = StringFromFormat("%i : %s ", code_line, cur_line.c_str());
   if (!extra_info)
     extra_info = "-";
 
   if (m_current_param == 0)
-    buf_ptr +=
-        sprintf(buf_ptr, "ERROR: %s Line: %d : %s\n", err_string[err_code], code_line, extra_info);
+  {
+    error +=
+        StringFromFormat("ERROR: %s Line: %d : %s\n", err_string[err_code], code_line, extra_info);
+  }
   else
-    buf_ptr += sprintf(buf_ptr, "ERROR: %s Line: %d Param: %d : %s\n", err_string[err_code],
-                       code_line, m_current_param, extra_info);
-  last_error_str = error_buffer;
+  {
+    error += StringFromFormat("ERROR: %s Line: %d Param: %d : %s\n", err_string[err_code],
+                              code_line, m_current_param, extra_info);
+  }
+
+  last_error_str = std::move(error);
   last_error = err_code;
 }
 
