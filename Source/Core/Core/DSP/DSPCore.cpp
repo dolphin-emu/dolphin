@@ -253,7 +253,7 @@ int DSPCore_RunCycles(int cycles)
     }
 
     g_cycles_left = cycles;
-    auto exec_addr = (JIT::x86::DSPEmitter::DSPCompiledCode)g_dsp_jit->enterDispatcher;
+    auto exec_addr = (JIT::x86::DSPEmitter::DSPCompiledCode)g_dsp_jit->m_enter_dispatcher;
     exec_addr();
 
     if (g_dsp.reset_dspjit_codespace)
@@ -325,11 +325,11 @@ void CompileCurrent()
     retry = false;
     for (u16 i = 0x0000; i < 0xffff; ++i)
     {
-      if (!g_dsp_jit->unresolvedJumps[i].empty())
+      if (!g_dsp_jit->m_unresolved_jumps[i].empty())
       {
-        u16 addrToCompile = g_dsp_jit->unresolvedJumps[i].front();
+        u16 addrToCompile = g_dsp_jit->m_unresolved_jumps[i].front();
         g_dsp_jit->Compile(addrToCompile);
-        if (!g_dsp_jit->unresolvedJumps[i].empty())
+        if (!g_dsp_jit->m_unresolved_jumps[i].empty())
           retry = true;
       }
     }
