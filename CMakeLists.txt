@@ -78,6 +78,7 @@ list(APPEND CMAKE_MODULE_PATH
 
 # Support functions
 include(CheckAndAddFlag)
+include(CheckCCompilerFlag)
 
 # Libraries to link
 set(LIBS)
@@ -161,7 +162,6 @@ else()
 	add_definitions(-D_ARCH_32=1)
 endif()
 
-include(CheckCCompilerFlag)
 if(ENABLE_GENERIC)
 	message(STATUS "Warning! Building generic build!")
 	set(_M_GENERIC 1)
