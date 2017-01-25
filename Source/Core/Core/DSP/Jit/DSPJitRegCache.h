@@ -119,7 +119,7 @@ public:
   // Gives no SCALE_RIP with abs(offset) >= 0x80000000
   // 32/64 bit writes allowed when the register has a _64 or _32 suffix
   // only 16 bit writes allowed without any suffix.
-  void GetReg(int reg, Gen::OpArg& oparg, bool load = true);
+  Gen::OpArg GetReg(int reg, bool load = true);
   // Done with all usages of OpArg above
   void PutReg(int reg, bool dirty = true);
 

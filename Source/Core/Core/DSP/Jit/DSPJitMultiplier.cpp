@@ -28,8 +28,7 @@ void DSPEmitter::multiply()
 
   //	Conditionally multiply by 2.
   //	if ((g_dsp.r.sr & SR_MUL_MODIFY) == 0)
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
   TEST(16, sr_reg, Imm16(SR_MUL_MODIFY));
   FixupBranch noMult2 = J_CC(CC_NZ);
   //		prod <<= 1;
@@ -81,8 +80,7 @@ void DSPEmitter::multiply_mulx(u8 axh0, u8 axh1)
   //		result = dsp_multiply(val1, val2, 0); // unsigned support OFF if both ax?.h regs are used
 
   //	if ((sign == 1) && (g_dsp.r.sr & SR_MUL_UNSIGNED)) //unsigned
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
   TEST(16, sr_reg, Imm16(SR_MUL_UNSIGNED));
   FixupBranch unsignedMul = J_CC(CC_NZ);
   //		prod = (s16)a * (s16)b; //signed

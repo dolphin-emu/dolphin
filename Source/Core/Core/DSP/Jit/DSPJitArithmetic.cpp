@@ -79,8 +79,7 @@ void DSPEmitter::andcf(const UDSPInstruction opc)
     //			g_dsp.r.sr |= SR_LOGIC_ZERO;
     //		else
     //			g_dsp.r.sr &= ~SR_LOGIC_ZERO;
-    OpArg sr_reg;
-    gpr.GetReg(DSP_REG_SR, sr_reg);
+    const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
     AND(16, R(RAX), Imm16(imm));
     CMP(16, R(RAX), Imm16(imm));
     FixupBranch notLogicZero = J_CC(CC_NE);
@@ -115,8 +114,7 @@ void DSPEmitter::andf(const UDSPInstruction opc)
     //			g_dsp.r.sr |= SR_LOGIC_ZERO;
     //		else
     //			g_dsp.r.sr &= ~SR_LOGIC_ZERO;
-    OpArg sr_reg;
-    gpr.GetReg(DSP_REG_SR, sr_reg);
+    const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
     TEST(16, R(RAX), Imm16(imm));
     FixupBranch notLogicZero = J_CC(CC_NE);
     OR(16, sr_reg, Imm16(SR_LOGIC_ZERO));
