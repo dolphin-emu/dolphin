@@ -255,12 +255,8 @@ if(APPLE)
 	endif()
 
 	# Specify target CPUs.
-	set(TARGET_FLAGS "${TARGET_FLAGS} -mssse3")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -march=core2")
-	# Target flags apply to both C and C++ compilation.
-	# CMake passes these to the compiler on the link command line as well.
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TARGET_FLAGS}")
+	check_and_add_flag(HAVE_MSSSE3 -mssse3)
+	check_and_add_flag(HAVE_ARCH_CORE2 -march=core2)
 
 	# Linker flags.
 	# Drop unreachable code and data.
