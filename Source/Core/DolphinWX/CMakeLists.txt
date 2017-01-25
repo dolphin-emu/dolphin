@@ -189,7 +189,7 @@ if(wxWidgets_FOUND)
 						${BUNDLE_PATH}/Contents/Resources/\${TRANSLATION_DIR}/\${TRANSLATION_FILE}
 						${BUNDLE_PATH}/Contents/Resources/\${TRANSLATION_DIR}/dolphin-emu.mo
 						)
-				endforeach(TRANSLATION_FILE)
+				endforeach()
 				")
 
 			file(GLOB PO_FILES RELATIVE ${CMAKE_SOURCE_DIR}/Languages/po
