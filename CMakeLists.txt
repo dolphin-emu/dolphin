@@ -72,7 +72,14 @@ endif()
 # TODO: Add DSPSpy
 option(DSPTOOL "Build dsptool" OFF)
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_SOURCE_DIR}/CMakeTests)
+list(APPEND CMAKE_MODULE_PATH
+	${CMAKE_SOURCE_DIR}/CMakeTests
+)
+
+# Support functions
+include(CheckAndAddFlag)
+include(CheckCCompilerFlag)
+
 # Libraries to link
 set(LIBS)
 
@@ -86,15 +93,6 @@ else()
 	set(datadir ${CMAKE_INSTALL_PREFIX}/share/dolphin-emu CACHE PATH "datadir")
 	set(mandir  ${CMAKE_INSTALL_PREFIX}/share/man         CACHE PATH "mandir")
 	add_definitions(-DDATA_DIR="${datadir}/")
-endif()
-
-# Set file offset size to 64 bits.
-#
-# On modern Unixes, this is typically already the case. The lone exception is
-# glibc, which may default to 32 bits. glibc allows this to be configured
-# by setting _FILE_OFFSET_BITS.
-if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
-	add_definitions(-D_FILE_OFFSET_BITS=64)
 endif()
 
 if(CMAKE_SYSROOT)
@@ -164,57 +162,43 @@ else()
 	add_definitions(-D_ARCH_32=1)
 endif()
 
-include(CheckCCompilerFlag)
 if(ENABLE_GENERIC)
 	message(STATUS "Warning! Building generic build!")
 	set(_M_GENERIC 1)
 	add_definitions(-D_M_GENERIC=1)
-elseif(_ARCH_64 AND (
-	${CMAKE_SYSTEM_PROCESSOR} MATCHES "^x86" OR
-	${CMAKE_SYSTEM_PROCESSOR} MATCHES "i.86" OR
-	${CMAKE_SYSTEM_PROCESSOR} MATCHES "amd64" OR
-	APPLE
-))
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
 	set(_M_X86 1)
 	set(_M_X86_64 1)
-	add_definitions(-D_M_X86=1 -D_M_X86_64=1 -msse2)
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
-	if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-		CHECK_C_COMPILER_FLAG("-no-pie" NO_PIE_UPSTREAM)
-		if(NO_PIE_UPSTREAM)
-			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -no-pie")
-		endif()
-		CHECK_C_COMPILER_FLAG("-nopie" NO_PIE_PATCHED)
-		if(NO_PIE_PATCHED)
-			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nopie")
-		endif()
-	endif()
-elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+	add_definitions(-D_M_X86=1)
+	add_definitions(-D_M_X86_64=1)
+	check_and_add_flag(HAVE_SSE2 -msse2)
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
 	set(_M_ARM 1)
 	set(_M_ARM_64 1)
-	add_definitions(-D_M_ARM=1 -D_M_ARM_64=1)
-	add_definitions(-march=armv8-a+crc)
+	add_definitions(-D_M_ARM=1)
+	add_definitions(-D_M_ARM_64=1)
+	# CRC instruction set is used in the CRC32 hash function
+	check_and_add_flag(HAVE_ARCH_ARMV8 -march=armv8-a+crc)
 else()
-	message(FATAL_ERROR "You're building on an unsupported platform. Enable generic build if you really want a JIT-less binary.")
+	message(FATAL_ERROR "You're building on an unsupported platform '${CMAKE_SYSTEM_PROCESSOR}'. Enable generic build if you really want a JIT-less binary.")
 endif()
 
-include(CheckCXXCompilerFlag)
-macro(check_and_add_flag var flag)
-	CHECK_CXX_COMPILER_FLAG(${flag} FLAG_${var})
-	if(FLAG_${var})
-		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
-	endif()
-endmacro()
 
 # Enforce minimum GCC version
 if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND CMAKE_CXX_COMPILER_VERSION VERSION_LESS 5.0)
 	message(FATAL_ERROR "Dolphin requires at least GCC 5.0 (found ${CMAKE_CXX_COMPILER_VERSION})")
 endif()
 
-# Enabling all warnings in MSVC spams too much
-if(NOT MSVC)
-	add_definitions(-Wall)
+if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
+	check_and_add_flag(EXCEPTIONS /EHsc)
+
+	# Only MSBuild needs this, other generators will compile one file at a time
+	if(CMAKE_GENERATOR MATCHES "Visual Studio")
+		add_compile_options("/MP")
+	endif()
+else()
 	add_definitions(-D_DEFAULT_SOURCE)
+	check_and_add_flag(HAVE_WALL -Wall)
 	# TODO: would like these but they produce overwhelming amounts of warnings
 	#check_and_add_flag(EXTRA -Wextra)
 	#check_and_add_flag(MISSING_FIELD_INITIALIZERS -Wmissing-field-initializers)
@@ -231,26 +215,43 @@ if(NOT MSVC)
 	check_and_add_flag(INIT_SELF -Winit-self)
 	check_and_add_flag(MISSING_DECLARATIONS -Wmissing-declarations)
 	check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
-endif(NOT MSVC)
 
-# gcc uses some optimizations which might break stuff without this flag
-add_definitions(-fno-strict-aliasing -fno-exceptions)
+	# gcc uses some optimizations which might break stuff without this flag
+	check_and_add_flag(NO_STRICT_ALIASING -fno-strict-aliasing)
+	check_and_add_flag(NO_EXCEPTIONS -fno-exceptions)
 
-check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
-
-if(UNIX AND NOT APPLE)
+	check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
 	check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
-endif()
 
-if(ENABLE_LTO)
-	check_and_add_flag(LTO -flto)
-	if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
-		set(CMAKE_AR gcc-ar)
-		set(CMAKE_RANLIB gcc-ranlib)
+	check_c_compiler_flag(-fomit-frame-pointer FLAG_C_FOMIT_FRAME_POINTER)
+	if(FLAG_C_FOMIT_FRAME_POINTER)
+		add_compile_options($<$<CONFIG:Release>:-fomit-frame-pointer>)
+	endif()
+
+	if(NOT ANDROID AND _M_X86_64)
+		# PIE is required on Android, but not supported with the x86_64 jit currently
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -fno-pie")
+		check_c_compiler_flag("-no-pie" NO_PIE_UPSTREAM)
+		if(NO_PIE_UPSTREAM)
+			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -no-pie")
+		endif()
+		check_c_compiler_flag("-nopie" NO_PIE_PATCHED)
+		if(NO_PIE_PATCHED)
+			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nopie")
+		endif()
 	endif()
 endif()
 
-if(APPLE)
+if(CMAKE_SYSTEM_NAME MATCHES "Windows")
+	add_definitions(-DNOMINMAX)
+	add_definitions(-DUNICODE)
+	add_definitions(-D_UNICODE)
+	add_definitions(-DWIN32_LEAN_AND_MEAN)
+	add_definitions(-D_WIN32_WINNT=0x0602)
+	add_definitions(-D_SECURE_SCL=0)
+	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	# This doesn't play well with the packaging script that doesn't understand @rpath
 	set(CMAKE_MACOSX_RPATH OFF)
 
@@ -263,16 +264,12 @@ if(APPLE)
 		# path entirely as was done in a previous version of this file.  This is
 		# still kinda evil, since it defeats the user's path settings...
 		# See http://www.cmake.org/cmake/help/v3.0/command/find_program.html
-		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
+		list(APPEND CMAKE_PREFIX_PATH "/usr")
 	endif()
 
 	# Specify target CPUs.
-	set(TARGET_FLAGS "${TARGET_FLAGS} -mssse3")
-	set(TARGET_FLAGS "${TARGET_FLAGS} -march=core2")
-	# Target flags apply to both C and C++ compilation.
-	# CMake passes these to the compiler on the link command line as well.
-	set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${TARGET_FLAGS}")
-	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${TARGET_FLAGS}")
+	check_and_add_flag(HAVE_MSSSE3 -mssse3)
+	check_and_add_flag(HAVE_ARCH_CORE2 -march=core2)
 
 	# Linker flags.
 	# Drop unreachable code and data.
@@ -308,18 +305,20 @@ if(APPLE)
 		)
 endif()
 
-if(WIN32)
-	add_definitions(-D_SECURE_SCL=0)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-endif(WIN32)
+if(ENABLE_LTO)
+	check_and_add_flag(LTO -flto)
+	if(CMAKE_CXX_COMPILER_ID STREQUAL GNU)
+		set(CMAKE_AR gcc-ar)
+		set(CMAKE_RANLIB gcc-ranlib)
+	endif()
+endif()
 
 # Add an option to build relocatable binaries on Linux
 # The Sys folder will need to be copied to the Binaries folder.
 if(UNIX)
 	option(LINUX_LOCAL_DEV "Enable relocatable binary" OFF)
 	if(LINUX_LOCAL_DEV)
-		add_definitions('-DLINUX_LOCAL_DEV')
+		add_definitions(-DLINUX_LOCAL_DEV)
 	endif(LINUX_LOCAL_DEV)
 endif(UNIX)
 
@@ -328,7 +327,7 @@ endif(UNIX)
 # All commands and submodule commands also need to see these
 # changes, so just setting them in the project scope via
 # include_directories and link_directories is not sufficient
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
+if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|NetBSD")
 	set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr/local")
 	set(CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
@@ -339,23 +338,22 @@ find_package(Threads)
 
 if(NOT CMAKE_BUILD_TYPE)
 	set(CMAKE_BUILD_TYPE "Release" CACHE STRING
-		"Build type (Release/Debug/RelWithDebInfo/MinSizeRe)" FORCE)
+		"Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
 endif(NOT CMAKE_BUILD_TYPE)
 
 
-if(CMAKE_BUILD_TYPE STREQUAL Debug)
-	add_definitions(-D_DEBUG -ggdb)
-	set(wxWidgets_USE_DEBUG ON CACHE BOOL "Use wxWidgets Debugging")
+if(CMAKE_BUILD_TYPE STREQUAL "Debug")
+	add_definitions(-D_DEBUG)
+	check_and_add_flag(GGDB -ggdb)
 
 	option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
 	if(ENABLE_GPROF)
-		add_definitions(-pg)
+		check_and_add_flag(HAVE_PG -pg)
+		if(NOT FLAG_C_HAVE_PG)
+			message(FATAL_ERROR "Compiler option -pg is not supported")
+		endif()
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 	endif()
-endif(CMAKE_BUILD_TYPE STREQUAL Debug)
-
-if(CMAKE_BUILD_TYPE STREQUAL Release AND NOT APPLE)
-	add_definitions(-fomit-frame-pointer)
 endif()
 
 if(FASTLOG)
@@ -415,7 +413,15 @@ if(ENABLE_HEADLESS)
 	add_definitions(-DUSE_HEADLESS)
 endif()
 
-add_definitions(-D_FILE_OFFSET_BITS=64 -D_LARGEFILE_SOURCE)
+# Set file offset size to 64 bits.
+#
+# On modern Unixes, this is typically already the case. The lone exception is
+# glibc, which may default to 32 bits. glibc allows this to be configured
+# by setting _FILE_OFFSET_BITS.
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Windows")
+	add_definitions(-D_FILE_OFFSET_BITS=64)
+	add_definitions(-D_LARGEFILE_SOURCE)
+endif()
 
 ########################################
 # Dependency checking
