@@ -1043,12 +1043,20 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     // (supposedly when trying to re-open those files).
     DiscIO::CNANDContentManager::Access().ClearCache();
 
+    u64 ios_to_load = 0;
     std::string tContentFile;
-    if ((u32)(TitleID >> 32) != 0x00000001 || TitleID == TITLEID_SYSMENU)
+    if ((u32)(TitleID >> 32) == 0x00000001 && TitleID != TITLEID_SYSMENU)
+    {
+      ios_to_load = TitleID;
+      bSuccess = true;
+    }
+    else
     {
       const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(TitleID);
       if (ContentLoader.IsValid())
       {
+        ios_to_load = 0x0000000100000000ULL | ContentLoader.GetIosVersion();
+
         u32 bootInd = ContentLoader.GetBootIndex();
         const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(bootInd);
         if (pContent)
@@ -1059,7 +1067,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 
           if (pDolLoader->IsValid())
           {
-            pDolLoader->Load();  // TODO: Check why sysmenu does not load the DOL correctly
+            pDolLoader->Load();
+            // TODO: Check why sysmenu does not load the DOL correctly
             // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
             //
             // The state of other CPU registers (like the BAT registers) doesn't matter much
@@ -1067,25 +1076,15 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
             MSR = 0;
             PC = 0x3400;
             bSuccess = true;
-            bReset = true;
           }
           else
           {
             PanicAlertT("IOCTL_ES_LAUNCH: The DOL file is invalid!");
-            bSuccess = false;
           }
         }
       }
     }
-    else  // IOS, MIOS, BC etc
-    {
-      // We need to reset any open resources and do the memory setup
-      // IOS does on launch.
-      if (SetupMemory(TitleID))
-      {
-        bSuccess = true;
-      }
-    }
+
     if (!bSuccess)
     {
       PanicAlertT(
@@ -1105,6 +1104,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 
       Reset(true);
       Reinit();
+      SetupMemory(ios_to_load);
+      bReset = true;
 
       if (!SConfig::GetInstance().m_bt_passthrough_enabled)
       {
