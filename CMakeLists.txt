@@ -183,7 +183,7 @@ elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
 			set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -nopie")
 		endif()
 	endif()
-elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
+elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
 	set(_M_ARM 1)
 	set(_M_ARM_64 1)
 	add_definitions(-D_M_ARM=1)
@@ -191,7 +191,7 @@ elseif(${CMAKE_SYSTEM_PROCESSOR} STREQUAL "aarch64")
 	# CRC instruction set is used in the CRC32 hash function
 	check_and_add_flag(HAVE_ARCH_ARMV8 -march=armv8-a+crc)
 else()
-	message(FATAL_ERROR "You're building on an unsupported platform. Enable generic build if you really want a JIT-less binary.")
+	message(FATAL_ERROR "You're building on an unsupported platform '${CMAKE_SYSTEM_PROCESSOR}'. Enable generic build if you really want a JIT-less binary.")
 endif()
 
 
@@ -260,7 +260,7 @@ elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 		# path entirely as was done in a previous version of this file.  This is
 		# still kinda evil, since it defeats the user's path settings...
 		# See http://www.cmake.org/cmake/help/v3.0/command/find_program.html
-		set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr")
+		list(APPEND CMAKE_PREFIX_PATH "/usr")
 	endif()
 
 	# Specify target CPUs.
@@ -323,7 +323,7 @@ endif(UNIX)
 # All commands and submodule commands also need to see these
 # changes, so just setting them in the project scope via
 # include_directories and link_directories is not sufficient
-if(${CMAKE_SYSTEM_NAME} MATCHES "FreeBSD|NetBSD")
+if(CMAKE_SYSTEM_NAME MATCHES "FreeBSD|NetBSD")
 	set(CMAKE_PREFIX_PATH "${CMAKE_PREFIX_PATH};/usr/local")
 	set(CMAKE_REQUIRED_INCLUDES "/usr/local/include")
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -L/usr/local/lib")
