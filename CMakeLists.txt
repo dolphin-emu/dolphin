@@ -222,20 +222,18 @@ if(NOT MSVC)
 	check_and_add_flag(MISSING_DECLARATIONS -Wmissing-declarations)
 	check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
 
+	# gcc uses some optimizations which might break stuff without this flag
+	check_and_add_flag(NO_STRICT_ALIASING -fno-strict-aliasing)
+	check_and_add_flag(NO_EXCEPTIONS -fno-exceptions)
+
+	check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
+	check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
+
 	check_c_compiler_flag(-fomit-frame-pointer FLAG_C_FOMIT_FRAME_POINTER)
 	if(FLAG_C_FOMIT_FRAME_POINTER)
 		add_compile_options($<$<CONFIG:Release>:-fomit-frame-pointer>)
 	endif()
 endif(NOT MSVC)
-
-# gcc uses some optimizations which might break stuff without this flag
-add_definitions(-fno-strict-aliasing -fno-exceptions)
-
-check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
-
-if(UNIX AND NOT APPLE)
-	check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
-endif()
 
 if(ENABLE_LTO)
 	check_and_add_flag(LTO -flto)
