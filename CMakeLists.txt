@@ -221,6 +221,11 @@ if(NOT MSVC)
 	check_and_add_flag(INIT_SELF -Winit-self)
 	check_and_add_flag(MISSING_DECLARATIONS -Wmissing-declarations)
 	check_and_add_flag(MISSING_VARIABLE_DECLARATIONS -Wmissing-variable-declarations)
+
+	check_c_compiler_flag(-fomit-frame-pointer FLAG_C_FOMIT_FRAME_POINTER)
+	if(FLAG_C_FOMIT_FRAME_POINTER)
+		add_compile_options($<$<CONFIG:Release>:-fomit-frame-pointer>)
+	endif()
 endif(NOT MSVC)
 
 # gcc uses some optimizations which might break stuff without this flag
@@ -342,10 +347,6 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug)
 		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 	endif()
 endif(CMAKE_BUILD_TYPE STREQUAL Debug)
-
-if(CMAKE_BUILD_TYPE STREQUAL Release AND NOT APPLE)
-	add_definitions(-fomit-frame-pointer)
-endif()
 
 if(FASTLOG)
 	add_definitions(-DDEBUGFAST)
