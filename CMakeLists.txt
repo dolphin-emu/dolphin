@@ -336,17 +336,13 @@ if(NOT CMAKE_BUILD_TYPE)
 		"Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
 endif()
 
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-
-	option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
-	if(ENABLE_GPROF)
-		check_and_add_flag(HAVE_PG -pg)
-		if(NOT FLAG_C_HAVE_PG)
-			message(FATAL_ERROR "Compiler option -pg is not supported")
-		endif()
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
+if(ENABLE_GPROF)
+	check_and_add_flag(HAVE_PG -pg)
+	if(NOT FLAG_C_HAVE_PG)
+		message(FATAL_ERROR "Compiler option -pg is not supported")
 	endif()
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 endif()
 
 if(FASTLOG)
