@@ -1,3 +1,6 @@
+find_package(Qt5Widgets REQUIRED)
+message(STATUS "Found Qt version ${Qt5Core_VERSION}")
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_definitions(-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII)
