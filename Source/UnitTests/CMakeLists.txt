@@ -1,4 +1,4 @@
-set(LIBS core gtest)
+set(LIBS core gtest_main)
 if(APPLE)
 	list(APPEND LIBS ${FOUNDATION_LIBRARY} ${CORESERV_LIBRARY})
 endif()
