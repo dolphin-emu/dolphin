@@ -41,7 +41,7 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 void DSPEmitter::lri(const UDSPInstruction opc)
 {
   u8 reg = opc & 0x1F;
-  u16 imm = dsp_imem_read(compilePC + 1);
+  u16 imm = dsp_imem_read(m_compile_pc + 1);
   dsp_op_write_reg_imm(reg, imm);
   dsp_conditional_extend_accum_imm(reg, imm);
 }
@@ -118,21 +118,21 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 void DSPEmitter::setCompileSR(u16 bit)
 {
   //	g_dsp.r[DSP_REG_SR] |= bit
-  const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
+  const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   OR(16, sr_reg, Imm16(bit));
-  gpr.PutReg(DSP_REG_SR);
+  m_gpr.PutReg(DSP_REG_SR);
 
-  compileSR |= bit;
+  m_compile_status_register |= bit;
 }
 
 void DSPEmitter::clrCompileSR(u16 bit)
 {
   //	g_dsp.r[DSP_REG_SR] &= bit
-  const OpArg sr_reg = gpr.GetReg(DSP_REG_SR);
+  const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   AND(16, sr_reg, Imm16(~bit));
-  gpr.PutReg(DSP_REG_SR);
+  m_gpr.PutReg(DSP_REG_SR);
 
-  compileSR &= ~bit;
+  m_compile_status_register &= ~bit;
 }
 // SBCLR #I
 // 0001 0011 aaaa aiii

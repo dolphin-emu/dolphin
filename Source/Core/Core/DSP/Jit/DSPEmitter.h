@@ -245,29 +245,26 @@ public:
   void msub(const UDSPInstruction opc);
 
   // CALL this to start the dispatcher
-  const u8* enterDispatcher;
-  const u8* reenterDispatcher;
-  const u8* stubEntryPoint;
-  const u8* returnDispatcher;
-  u16 compilePC;
-  u16 startAddr;
-  std::vector<Block> blockLinks;
-  std::vector<u16> blockSize;
-  std::list<u16> unresolvedJumps[MAX_BLOCKS];
+  const u8* m_enter_dispatcher;
+  const u8* m_reenter_dispatcher;
+  const u8* m_stub_entry_point;
+  const u8* m_return_dispatcher;
+  u16 m_compile_pc;
+  u16 m_start_address;
+  std::vector<Block> m_block_links;
+  std::vector<u16> m_block_size;
+  std::list<u16> m_unresolved_jumps[MAX_BLOCKS];
 
-  DSPJitRegCache gpr{*this};
+  DSPJitRegCache m_gpr{*this};
 
 private:
-  std::vector<DSPCompiledCode> blocks;
-  Block blockLinkEntry;
-  u16 compileSR;
+  std::vector<DSPCompiledCode> m_blocks;
+  Block m_block_link_entry;
+  u16 m_compile_status_register;
 
   // The index of the last stored ext value (compile time).
-  int storeIndex = -1;
-  int storeIndex2 = -1;
-
-  // Counts down.
-  // int cycles;
+  int m_store_index = -1;
+  int m_store_index2 = -1;
 
   void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
