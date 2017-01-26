@@ -98,7 +98,7 @@ private:
 
   char* FindBrackets(char* src, char* dst);
   const opc_t* FindOpcode(std::string name, size_t par_count, OpcodeType type);
-  bool VerifyParams(const opc_t* opc, param_t* par, size_t count, bool ext = false);
+  bool VerifyParams(const opc_t* opc, param_t* par, size_t count, OpcodeType type);
   void BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf);
 
   std::vector<u16> m_output_buffer;
