@@ -285,7 +285,7 @@ void DSPEmitter::addpaxz(const UDSPInstruction opc)
 void DSPEmitter::mulaxh(const UDSPInstruction opc)
 {
   //	s64 prod = dsp_multiply(dsp_get_ax_h(0), dsp_get_ax_h(0));
-  dsp_op_read_reg(DSP_REG_AXH0, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0, RCX, RegisterExtension::Sign);
   MOV(64, R(RAX), R(RCX));
   multiply();
   //	dsp_set_long_prod(prod);
@@ -303,9 +303,9 @@ void DSPEmitter::mul(const UDSPInstruction opc)
   u8 sreg = (opc >> 11) & 0x1;
 
   //	u16 axl = dsp_get_ax_l(sreg);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg, RCX, RegisterExtension::Sign);
   //	u16 axh = dsp_get_ax_h(sreg);
-  dsp_op_read_reg(DSP_REG_AXH0 + sreg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + sreg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply(axh, axl);
   multiply();
   //	dsp_set_long_prod(prod);
@@ -331,9 +331,9 @@ void DSPEmitter::mulac(const UDSPInstruction opc)
   ADD(64, R(RAX), R(RDX));
   PUSH(64, R(RAX));
   //	u16 axl = dsp_get_ax_l(sreg);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg, RCX, RegisterExtension::Sign);
   //	u16 axh = dsp_get_ax_h(sreg);
-  dsp_op_read_reg(DSP_REG_AXH0 + sreg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + sreg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply(axl, axh);
   multiply();
   //	dsp_set_long_prod(prod);
@@ -409,9 +409,9 @@ void DSPEmitter::mulx(const UDSPInstruction opc)
   u8 sreg = ((opc >> 12) & 0x1);
 
   //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, RegisterExtension::Sign);
   //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
   multiply_mulx(sreg, treg);
   //	dsp_set_long_prod(prod);
@@ -437,9 +437,9 @@ void DSPEmitter::mulxac(const UDSPInstruction opc)
   get_long_prod();
   ADD(64, R(tmp1), R(RAX));
   //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, RegisterExtension::Sign);
   //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
   multiply_mulx(sreg, treg);
 
@@ -472,9 +472,9 @@ void DSPEmitter::mulxmv(const UDSPInstruction opc)
   X64Reg tmp1 = m_gpr.GetFreeXReg();
   get_long_prod(tmp1);
   //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, RegisterExtension::Sign);
   //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
   multiply_mulx(sreg, treg);
 
@@ -508,9 +508,9 @@ void DSPEmitter::mulxmvz(const UDSPInstruction opc)
   X64Reg tmp1 = m_gpr.GetFreeXReg();
   get_long_prod_round_prodl(tmp1);
   //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, RegisterExtension::Sign);
   //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_mulx(sreg, treg, val1, val2);
   multiply_mulx(sreg, treg);
 
@@ -540,7 +540,7 @@ void DSPEmitter::mulc(const UDSPInstruction opc)
   //	u16 accm = dsp_get_acc_m(sreg);
   get_acc_m(sreg, ECX);
   //	u16 axh = dsp_get_ax_h(treg);
-  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply(accm, axh);
   multiply();
   //	dsp_set_long_prod(prod);
@@ -569,7 +569,7 @@ void DSPEmitter::mulcac(const UDSPInstruction opc)
   //	u16 accm = dsp_get_acc_m(sreg);
   get_acc_m(sreg, ECX);
   //	u16 axh = dsp_get_ax_h(treg);
-  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply(accm, axh);
   multiply();
   //	dsp_set_long_prod(prod);
@@ -604,7 +604,7 @@ void DSPEmitter::mulcmv(const UDSPInstruction opc)
   //	u16 accm = dsp_get_acc_m(sreg);
   get_acc_m(sreg, ECX);
   //	u16 axh = dsp_get_ax_h(treg);
-  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply(accm, axh);
   multiply();
   //	dsp_set_long_prod(prod);
@@ -640,7 +640,7 @@ void DSPEmitter::mulcmvz(const UDSPInstruction opc)
   //	u16 accm = dsp_get_acc_m(sreg);
   get_acc_m(sreg, ECX);
   //	u16 axh = dsp_get_ax_h(treg);
-  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply(accm, axh);
   multiply();
   //	dsp_set_long_prod(prod);
@@ -668,9 +668,9 @@ void DSPEmitter::maddx(const UDSPInstruction opc)
   u8 sreg = (opc >> 9) & 0x1;
 
   //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, RegisterExtension::Sign);
   //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_add(val1, val2);
   multiply_add();
   //	dsp_set_long_prod(prod);
@@ -688,9 +688,9 @@ void DSPEmitter::msubx(const UDSPInstruction opc)
   u8 sreg = (opc >> 9) & 0x1;
 
   //	u16 val1 = (sreg == 0) ? dsp_get_ax_l(0) : dsp_get_ax_h(0);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg * 2, RCX, RegisterExtension::Sign);
   //	u16 val2 = (treg == 0) ? dsp_get_ax_l(1) : dsp_get_ax_h(1);
-  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL1 + treg * 2, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_sub(val1, val2);
   multiply_sub();
   //	dsp_set_long_prod(prod);
@@ -710,7 +710,7 @@ void DSPEmitter::maddc(const UDSPInstruction opc)
   //	u16 accm = dsp_get_acc_m(sreg);
   get_acc_m(sreg, ECX);
   //	u16 axh = dsp_get_ax_h(treg);
-  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_add(accm, axh);
   multiply_add();
   //	dsp_set_long_prod(prod);
@@ -730,7 +730,7 @@ void DSPEmitter::msubc(const UDSPInstruction opc)
   //	u16 accm = dsp_get_acc_m(sreg);
   get_acc_m(sreg, ECX);
   //	u16 axh = dsp_get_ax_h(treg);
-  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + treg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_sub(accm, axh);
   multiply_sub();
   //	dsp_set_long_prod(prod);
@@ -747,9 +747,9 @@ void DSPEmitter::madd(const UDSPInstruction opc)
   u8 sreg = (opc >> 8) & 0x1;
 
   //	u16 axl = dsp_get_ax_l(sreg);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg, RCX, RegisterExtension::Sign);
   //	u16 axh = dsp_get_ax_h(sreg);
-  dsp_op_read_reg(DSP_REG_AXH0 + sreg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + sreg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_add(axl, axh);
   multiply_add();
   //	dsp_set_long_prod(prod);
@@ -766,9 +766,9 @@ void DSPEmitter::msub(const UDSPInstruction opc)
   u8 sreg = (opc >> 8) & 0x1;
 
   //	u16 axl = dsp_get_ax_l(sreg);
-  dsp_op_read_reg(DSP_REG_AXL0 + sreg, RCX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXL0 + sreg, RCX, RegisterExtension::Sign);
   //	u16 axh = dsp_get_ax_h(sreg);
-  dsp_op_read_reg(DSP_REG_AXH0 + sreg, RAX, SIGN);
+  dsp_op_read_reg(DSP_REG_AXH0 + sreg, RAX, RegisterExtension::Sign);
   //	s64 prod = dsp_multiply_sub(axl, axh);
   multiply_sub();
   //	dsp_set_long_prod(prod);

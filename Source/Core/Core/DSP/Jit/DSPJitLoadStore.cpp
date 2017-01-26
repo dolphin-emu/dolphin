@@ -31,8 +31,8 @@ void DSPEmitter::srs(const UDSPInstruction opc)
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(reg, tmp1, ZERO);
-  dsp_op_read_reg(DSP_REG_CR, RAX, ZERO);
+  dsp_op_read_reg(reg, tmp1, RegisterExtension::Zero);
+  dsp_op_read_reg(DSP_REG_CR, RAX, RegisterExtension::Zero);
   SHL(16, R(EAX), Imm8(8));
   OR(16, R(EAX), Imm16(opc & 0xFF));
   dmem_write(tmp1);
@@ -52,7 +52,7 @@ void DSPEmitter::lrs(const UDSPInstruction opc)
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
   // u16 addr = (g_dsp.r[DSP_REG_CR] << 8) | (opc & 0xFF);
-  dsp_op_read_reg(DSP_REG_CR, tmp1, ZERO);
+  dsp_op_read_reg(DSP_REG_CR, tmp1, RegisterExtension::Zero);
   SHL(16, R(tmp1), Imm8(8));
   OR(16, R(tmp1), Imm16(opc & 0xFF));
   dmem_read(tmp1);
@@ -205,7 +205,7 @@ void DSPEmitter::srr(const UDSPInstruction opc)
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
   dsp_op_read_reg(sreg, tmp1);
-  dsp_op_read_reg(dreg, RAX, ZERO);
+  dsp_op_read_reg(dreg, RAX, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -223,7 +223,7 @@ void DSPEmitter::srrd(const UDSPInstruction opc)
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
   dsp_op_read_reg(sreg, tmp1);
-  dsp_op_read_reg(dreg, RAX, ZERO);
+  dsp_op_read_reg(dreg, RAX, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -243,7 +243,7 @@ void DSPEmitter::srri(const UDSPInstruction opc)
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
   dsp_op_read_reg(sreg, tmp1);
-  dsp_op_read_reg(dreg, RAX, ZERO);
+  dsp_op_read_reg(dreg, RAX, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -263,7 +263,7 @@ void DSPEmitter::srrn(const UDSPInstruction opc)
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
   dsp_op_read_reg(sreg, tmp1);
-  dsp_op_read_reg(dreg, RAX, ZERO);
+  dsp_op_read_reg(dreg, RAX, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -282,7 +282,7 @@ void DSPEmitter::ilrr(const UDSPInstruction opc)
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(reg, tmp1, ZERO);
+  dsp_op_read_reg(reg, tmp1, RegisterExtension::Zero);
   imem_read(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -302,7 +302,7 @@ void DSPEmitter::ilrrd(const UDSPInstruction opc)
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(reg, tmp1, ZERO);
+  dsp_op_read_reg(reg, tmp1, RegisterExtension::Zero);
   imem_read(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -323,7 +323,7 @@ void DSPEmitter::ilrri(const UDSPInstruction opc)
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(reg, tmp1, ZERO);
+  dsp_op_read_reg(reg, tmp1, RegisterExtension::Zero);
   imem_read(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -345,7 +345,7 @@ void DSPEmitter::ilrrn(const UDSPInstruction opc)
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(reg, tmp1, ZERO);
+  dsp_op_read_reg(reg, tmp1, RegisterExtension::Zero);
   imem_read(tmp1);
 
   m_gpr.PutXReg(tmp1);
