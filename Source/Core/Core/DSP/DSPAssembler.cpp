@@ -425,33 +425,33 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
   return count;
 }
 
-const opc_t* DSPAssembler::FindOpcode(const char* name, u32 par_count, const opc_t* const opcodes,
-                                      size_t opcodes_size)
+const opc_t* DSPAssembler::FindOpcode(std::string name, size_t par_count, OpcodeType type)
 {
   if (name[0] == 'C' && name[1] == 'W')
     return &cw;
 
   const auto alias_iter = aliases.find(name);
   if (alias_iter != aliases.end())
-    name = alias_iter->second.c_str();
-  for (size_t i = 0; i < opcodes_size; i++)
+    name = alias_iter->second;
+
+  const DSPOPCTemplate* const info =
+      type == OpcodeType::Primary ? FindOpInfoByName(name) : FindExtOpInfoByName(name);
+  if (!info)
   {
-    const opc_t* opcode = &opcodes[i];
-    if (strcmp(opcode->name, name) == 0)
-    {
-      if (par_count < opcode->param_count)
-      {
-        ShowError(ERR_NOT_ENOUGH_PARAMETERS);
-      }
-      else if (par_count > opcode->param_count)
-      {
-        ShowError(ERR_TOO_MANY_PARAMETERS);
-      }
-      return opcode;
-    }
+    ShowError(ERR_UNKNOWN_OPCODE);
+    return nullptr;
   }
-  ShowError(ERR_UNKNOWN_OPCODE);
-  return nullptr;
+
+  if (par_count < info->param_count)
+  {
+    ShowError(ERR_NOT_ENOUGH_PARAMETERS);
+  }
+  else if (par_count > info->param_count)
+  {
+    ShowError(ERR_TOO_MANY_PARAMETERS);
+  }
+
+  return info;
 }
 
 // weird...
@@ -969,7 +969,7 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
       continue;
     }
 
-    const opc_t* opc = FindOpcode(opcode, params_count, opcodes.data(), opcodes.size());
+    const opc_t* opc = FindOpcode(opcode, params_count, OpcodeType::Primary);
     if (!opc)
       opc = &cw;
 
@@ -983,7 +983,7 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
     {
       if (opcode_ext)
       {
-        opc_ext = FindOpcode(opcode_ext, params_count_ext, opcodes_ext.data(), opcodes_ext.size());
+        opc_ext = FindOpcode(opcode_ext, params_count_ext, OpcodeType::Extension);
         VerifyParams(opc_ext, params_ext, params_count_ext, true);
       }
       else if (params_count_ext)

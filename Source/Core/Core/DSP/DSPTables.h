@@ -8,6 +8,7 @@
 
 #include <array>
 #include <cstddef>
+#include <string>
 
 #include "Core/DSP/DSPCommon.h"
 #include "Core/DSP/Jit/DSPEmitter.h"
@@ -90,8 +91,6 @@ struct DSPOPCTemplate
 typedef DSPOPCTemplate opc_t;
 
 // Opcodes
-extern const std::array<DSPOPCTemplate, 214> opcodes;
-extern const std::array<DSPOPCTemplate, 25> opcodes_ext;
 extern const DSPOPCTemplate cw;
 
 constexpr size_t WRITEBACK_LOG_SIZE = 5;
@@ -118,6 +117,14 @@ void applyWriteBackLog();
 void zeroWriteBackLog();
 void zeroWriteBackLogPreserveAcc(u8 acc);
 
+// Used by the assembler and disassembler for info retrieval.
+const DSPOPCTemplate* FindOpInfoByOpcode(UDSPInstruction opcode);
+const DSPOPCTemplate* FindOpInfoByName(const std::string& name);
+
+const DSPOPCTemplate* FindExtOpInfoByOpcode(UDSPInstruction opcode);
+const DSPOPCTemplate* FindExtOpInfoByName(const std::string& name);
+
+// Used by the interpreter and JIT for instruction emulation
 const DSPOPCTemplate* GetOpTemplate(UDSPInstruction inst);
 const DSPOPCTemplate* GetExtOpTemplate(UDSPInstruction inst);
 }  // namespace DSP

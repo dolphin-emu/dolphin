@@ -180,22 +180,10 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pa
     return false;
   }
 
-  const u32 op1 = binbuf[*pc & 0x0fff];
+  const u16 op1 = binbuf[*pc & 0x0fff];
 
-  const DSPOPCTemplate* opc = nullptr;
-  const DSPOPCTemplate* opc_ext = nullptr;
-
-  // find opcode
-  for (const auto& opcode : opcodes)
-  {
-    u16 mask = opcode.opcode_mask;
-
-    if ((op1 & mask) == opcode.opcode)
-    {
-      opc = &opcode;
-      break;
-    }
-  }
+  // Find main opcode
+  const DSPOPCTemplate* opc = FindOpInfoByOpcode(op1);
   const DSPOPCTemplate fake_op = {"CW",    0x0000, 0x0000, DSP::Interpreter::nop,
                                   nullptr, 1,      1,      {{P_VAL, 2, 0, 0, 0xffff}},
                                   false,   false,  false,  false,
@@ -203,42 +191,25 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pa
   if (!opc)
     opc = &fake_op;
 
-  bool extended = false;
-  bool only7bitext = false;
+  bool is_extended = false;
+  bool is_only_7_bit_ext = false;
 
   if (((opc->opcode >> 12) == 0x3) && (op1 & 0x007f))
   {
-    extended = true;
-    only7bitext = true;
+    is_extended = true;
+    is_only_7_bit_ext = true;
   }
   else if (((opc->opcode >> 12) > 0x3) && (op1 & 0x00ff))
   {
-    extended = true;
+    is_extended = true;
   }
 
-  if (extended)
+  const DSPOPCTemplate* opc_ext = nullptr;
+  if (is_extended)
   {
     // opcode has an extension
-    // find opcode
-    for (const auto& opcode_ext : opcodes_ext)
-    {
-      if (only7bitext)
-      {
-        if (((op1 & 0x7f) & opcode_ext.opcode_mask) == opcode_ext.opcode)
-        {
-          opc_ext = &opcode_ext;
-          break;
-        }
-      }
-      else
-      {
-        if ((op1 & opcode_ext.opcode_mask) == opcode_ext.opcode)
-        {
-          opc_ext = &opcode_ext;
-          break;
-        }
-      }
-    }
+    const u16 extended_opcode = is_only_7_bit_ext ? op1 & 0x7F : op1;
+    opc_ext = FindExtOpInfoByOpcode(extended_opcode);
   }
 
   // printing
@@ -246,7 +217,7 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pa
   if (settings_.show_pc)
     buf += StringFromFormat("%04x ", *pc);
 
-  u32 op2;
+  u16 op2;
 
   // Size 2 - the op has a large immediate.
   if (opc->size == 2)
@@ -267,7 +238,7 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pa
     opname = MakeLowerCase(opname);
 
   std::string ext_buf;
-  if (extended)
+  if (is_extended)
     ext_buf = StringFromFormat("%s%c%s", opname.c_str(), settings_.ext_separator, opc_ext->name);
   else
     ext_buf = opname;
@@ -283,7 +254,7 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pa
     buf += DisassembleParameters(*opc, op1, op2);
 
   // Handle opcode extension.
-  if (extended)
+  if (is_extended)
   {
     if (opc->param_count > 0)
       buf += " ";
@@ -301,7 +272,7 @@ bool DSPDisassembler::DisassembleOpcode(const u16* binbuf, int base_addr, int pa
     buf += "\t\t; *** UNKNOWN OPCODE ***";
   }
 
-  if (extended)
+  if (is_extended)
     *pc += opc_ext->size;
   else
     *pc += opc->size;
