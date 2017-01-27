@@ -51,6 +51,8 @@ void Init();
 // Needs to be called after Reset(true) to recreate the device tree
 void Reinit();
 
+u32 GetVersion();
+
 bool SetupMemory(u64 ios_title_id);
 
 // Shutdown

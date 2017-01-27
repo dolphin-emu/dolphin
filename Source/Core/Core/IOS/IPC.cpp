@@ -86,6 +86,8 @@ static CoreTiming::EventType* s_event_sdio_notify;
 
 static u64 s_last_reply_time;
 
+static u64 s_active_title_id;
+
 static constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static constexpr u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
 
@@ -412,6 +414,14 @@ static void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
     device->EventNotify();
 }
 
+// The title ID is a u64 where the first 32 bits are used for the title type.
+// For IOS title IDs, the type will always be 00000001 (system), and the lower 32 bits
+// are used for the IOS major version -- which is what we want here.
+u32 GetVersion()
+{
+  return static_cast<u32>(s_active_title_id);
+}
+
 bool SetupMemory(u64 ios_title_id)
 {
   auto target_imv = std::find_if(
@@ -423,6 +433,8 @@ bool SetupMemory(u64 ios_title_id)
     ERROR_LOG(IOS, "Unknown IOS version: %016" PRIx64, ios_title_id);
     return false;
   }
+
+  s_active_title_id = ios_title_id;
 
   Memory::Write_U32(target_imv->mem1_physical_size, ADDR_MEM1_SIZE);
   Memory::Write_U32(target_imv->mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
