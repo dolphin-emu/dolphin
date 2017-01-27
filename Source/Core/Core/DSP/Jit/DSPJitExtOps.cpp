@@ -64,7 +64,7 @@ void DSPEmitter::mv(const UDSPInstruction opc)
 {
   u8 sreg = (opc & 0x3) + DSP_REG_ACL0;
   u8 dreg = ((opc >> 2) & 0x3);
-  dsp_op_read_reg(sreg, RBX, ZERO);
+  dsp_op_read_reg(sreg, RBX, RegisterExtension::Zero);
   m_store_index = dreg + DSP_REG_AXL0;
 }
 
@@ -77,11 +77,11 @@ void DSPEmitter::s(const UDSPInstruction opc)
   u8 dreg = opc & 0x3;
   u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
   //	u16 addr = g_dsp.r[dest];
-  dsp_op_read_reg(dreg, RAX, ZERO);
+  dsp_op_read_reg(dreg, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg, tmp1, ZERO);
+  dsp_op_read_reg(sreg, tmp1, RegisterExtension::Zero);
   //	u16 val = g_dsp.r[src];
   dmem_write(tmp1);
 
@@ -98,11 +98,11 @@ void DSPEmitter::sn(const UDSPInstruction opc)
 {
   u8 dreg = opc & 0x3;
   u8 sreg = ((opc >> 3) & 0x3) + DSP_REG_ACL0;
-  dsp_op_read_reg(dreg, RAX, ZERO);
+  dsp_op_read_reg(dreg, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg, tmp1, ZERO);
+  dsp_op_read_reg(sreg, tmp1, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -169,11 +169,11 @@ void DSPEmitter::ls(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
   u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-  dsp_op_read_reg(DSP_REG_AR3, RAX, ZERO);
+  dsp_op_read_reg(DSP_REG_AR3, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -194,11 +194,11 @@ void DSPEmitter::lsn(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
   u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-  dsp_op_read_reg(DSP_REG_AR3, RAX, ZERO);
+  dsp_op_read_reg(DSP_REG_AR3, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -219,11 +219,11 @@ void DSPEmitter::lsm(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
   u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-  dsp_op_read_reg(DSP_REG_AR3, RAX, ZERO);
+  dsp_op_read_reg(DSP_REG_AR3, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -245,11 +245,11 @@ void DSPEmitter::lsnm(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
   u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-  dsp_op_read_reg(DSP_REG_AR3, RAX, ZERO);
+  dsp_op_read_reg(DSP_REG_AR3, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -269,11 +269,11 @@ void DSPEmitter::sl(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
   u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-  dsp_op_read_reg(DSP_REG_AR0, RAX, ZERO);
+  dsp_op_read_reg(DSP_REG_AR0, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -294,11 +294,11 @@ void DSPEmitter::sln(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
   u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-  dsp_op_read_reg(DSP_REG_AR0, RAX, ZERO);
+  dsp_op_read_reg(DSP_REG_AR0, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -319,11 +319,11 @@ void DSPEmitter::slm(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
   u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-  dsp_op_read_reg(DSP_REG_AR0, RAX, ZERO);
+  dsp_op_read_reg(DSP_REG_AR0, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -344,11 +344,11 @@ void DSPEmitter::slnm(const UDSPInstruction opc)
 {
   u8 sreg = opc & 0x1;
   u8 dreg = ((opc >> 4) & 0x3) + DSP_REG_AXL0;
-  dsp_op_read_reg(DSP_REG_AR0, RAX, ZERO);
+  dsp_op_read_reg(DSP_REG_AR0, RAX, RegisterExtension::Zero);
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, ZERO);
+  dsp_op_read_reg(sreg + DSP_REG_ACM0, tmp1, RegisterExtension::Zero);
   dmem_write(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -379,8 +379,8 @@ void DSPEmitter::ld(const UDSPInstruction opc)
 
   // 	if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
   X64Reg tmp = m_gpr.GetFreeXReg();
-  dsp_op_read_reg(sreg, RCX, NONE);
-  dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+  dsp_op_read_reg(sreg, RCX);
+  dsp_op_read_reg(DSP_REG_AR3, tmp);
   XOR(16, R(ECX), R(tmp));
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
@@ -410,8 +410,8 @@ void DSPEmitter::ldax(const UDSPInstruction opc)
 
   X64Reg tmp = m_gpr.GetFreeXReg();
   // if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-  dsp_op_read_reg(sreg, RCX, NONE);
-  dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+  dsp_op_read_reg(sreg, RCX);
+  dsp_op_read_reg(DSP_REG_AR3, tmp);
   XOR(16, R(ECX), R(tmp));
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
@@ -442,8 +442,8 @@ void DSPEmitter::ldn(const UDSPInstruction opc)
 
   X64Reg tmp = m_gpr.GetFreeXReg();
   // if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-  dsp_op_read_reg(sreg, RCX, NONE);
-  dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+  dsp_op_read_reg(sreg, RCX);
+  dsp_op_read_reg(DSP_REG_AR3, tmp);
   XOR(16, R(ECX), R(tmp));
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
@@ -473,8 +473,8 @@ void DSPEmitter::ldaxn(const UDSPInstruction opc)
 
   X64Reg tmp = m_gpr.GetFreeXReg();
   // if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-  dsp_op_read_reg(sreg, RCX, NONE);
-  dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+  dsp_op_read_reg(sreg, RCX);
+  dsp_op_read_reg(DSP_REG_AR3, tmp);
   XOR(16, R(ECX), R(tmp));
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
@@ -505,8 +505,8 @@ void DSPEmitter::ldm(const UDSPInstruction opc)
 
   X64Reg tmp = m_gpr.GetFreeXReg();
   // if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-  dsp_op_read_reg(sreg, RCX, NONE);
-  dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+  dsp_op_read_reg(sreg, RCX);
+  dsp_op_read_reg(DSP_REG_AR3, tmp);
   XOR(16, R(ECX), R(tmp));
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
@@ -536,8 +536,8 @@ void DSPEmitter::ldaxm(const UDSPInstruction opc)
 
   X64Reg tmp = m_gpr.GetFreeXReg();
   // if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-  dsp_op_read_reg(sreg, RCX, NONE);
-  dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+  dsp_op_read_reg(sreg, RCX);
+  dsp_op_read_reg(DSP_REG_AR3, tmp);
   XOR(16, R(ECX), R(tmp));
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
@@ -568,8 +568,8 @@ void DSPEmitter::ldnm(const UDSPInstruction opc)
 
   X64Reg tmp = m_gpr.GetFreeXReg();
   // if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-  dsp_op_read_reg(sreg, RCX, NONE);
-  dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+  dsp_op_read_reg(sreg, RCX);
+  dsp_op_read_reg(DSP_REG_AR3, tmp);
   XOR(16, R(ECX), R(tmp));
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
@@ -599,8 +599,8 @@ void DSPEmitter::ldaxnm(const UDSPInstruction opc)
 
   X64Reg tmp = m_gpr.GetFreeXReg();
   // if (IsSameMemArea(g_dsp.r[sreg], g_dsp.r[DSP_REG_AR3])) {
-  dsp_op_read_reg(sreg, RCX, NONE);
-  dsp_op_read_reg(DSP_REG_AR3, tmp, NONE);
+  dsp_op_read_reg(sreg, RCX);
+  dsp_op_read_reg(DSP_REG_AR3, tmp);
   XOR(16, R(ECX), R(tmp));
   m_gpr.PutXReg(tmp);
   DSPJitRegCache c(m_gpr);
@@ -627,7 +627,7 @@ void DSPEmitter::pushExtValueFromMem(u16 dreg, u16 sreg)
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg, tmp1, ZERO);
+  dsp_op_read_reg(sreg, tmp1, RegisterExtension::Zero);
   dmem_read(tmp1);
 
   m_gpr.PutXReg(tmp1);
@@ -643,7 +643,7 @@ void DSPEmitter::pushExtValueFromMem2(u16 dreg, u16 sreg)
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
 
-  dsp_op_read_reg(sreg, tmp1, ZERO);
+  dsp_op_read_reg(sreg, tmp1, RegisterExtension::Zero);
   dmem_read(tmp1);
 
   m_gpr.PutXReg(tmp1);

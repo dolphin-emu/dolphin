@@ -157,7 +157,7 @@ static void r_jmprcc(const UDSPInstruction opc, DSPEmitter& emitter)
   u8 reg = (opc >> 5) & 0x7;
   // reg can only be DSP_REG_ARx and DSP_REG_IXx now,
   // no need to handle DSP_REG_STx.
-  emitter.dsp_op_read_reg(reg, RAX, NONE);
+  emitter.dsp_op_read_reg(reg, RAX);
   emitter.MOV(16, M(&g_dsp.pc), R(EAX));
   WriteBranchExit(emitter);
 }
@@ -204,7 +204,7 @@ static void r_callr(const UDSPInstruction opc, DSPEmitter& emitter)
   u8 reg = (opc >> 5) & 0x7;
   emitter.MOV(16, R(DX), Imm16(emitter.m_compile_pc + 1));
   emitter.dsp_reg_store_stack(DSP_STACK_C);
-  emitter.dsp_op_read_reg(reg, RAX, NONE);
+  emitter.dsp_op_read_reg(reg, RAX);
   emitter.MOV(16, M(&g_dsp.pc), R(EAX));
   WriteBranchExit(emitter);
 }
@@ -334,7 +334,7 @@ void DSPEmitter::loop(const UDSPInstruction opc)
   u16 reg = opc & 0x1f;
   //	u16 cnt = g_dsp.r[reg];
   // todo: check if we can use normal variant here
-  dsp_op_read_reg_dont_saturate(reg, RDX, ZERO);
+  dsp_op_read_reg_dont_saturate(reg, RDX, RegisterExtension::Zero);
   u16 loop_pc = m_compile_pc + 1;
 
   TEST(16, R(EDX), R(EDX));
@@ -403,7 +403,7 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
   u16 reg = opc & 0x1f;
   //	u16 cnt = g_dsp.r[reg];
   // todo: check if we can use normal variant here
-  dsp_op_read_reg_dont_saturate(reg, RDX, ZERO);
+  dsp_op_read_reg_dont_saturate(reg, RDX, RegisterExtension::Zero);
   u16 loop_pc = dsp_imem_read(m_compile_pc + 1);
 
   TEST(16, R(EDX), R(EDX));

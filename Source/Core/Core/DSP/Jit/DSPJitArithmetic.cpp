@@ -533,7 +533,7 @@ void DSPEmitter::addr(const UDSPInstruction opc)
   get_long_acc(dreg, tmp1);
   MOV(64, R(RAX), R(tmp1));
   //	s64 ax = (s16)g_dsp.r[sreg];
-  dsp_op_read_reg(sreg, RDX, SIGN);
+  dsp_op_read_reg(sreg, RDX, RegisterExtension::Sign);
   //	ax <<= 16;
   SHL(64, R(RDX), Imm8(16));
   //	s64 res = acc + ax;
@@ -842,7 +842,7 @@ void DSPEmitter::subr(const UDSPInstruction opc)
   get_long_acc(dreg, tmp1);
   MOV(64, R(RAX), R(tmp1));
   //	s64 ax = (s16)g_dsp.r[sreg];
-  dsp_op_read_reg(sreg, RDX, SIGN);
+  dsp_op_read_reg(sreg, RDX, RegisterExtension::Sign);
   //	ax <<= 16;
   SHL(64, R(RDX), Imm8(16));
   //	s64 res = acc - ax;
@@ -1089,7 +1089,7 @@ void DSPEmitter::movr(const UDSPInstruction opc)
   u8 sreg = ((opc >> 9) & 0x3) + DSP_REG_AXL0;
 
   //	s64 acc = (s16)g_dsp.r[sreg];
-  dsp_op_read_reg(sreg, RAX, SIGN);
+  dsp_op_read_reg(sreg, RAX, RegisterExtension::Sign);
   //	acc <<= 16;
   SHL(64, R(RAX), Imm8(16));
   //	acc &= ~0xffff;

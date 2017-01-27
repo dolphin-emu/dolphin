@@ -808,7 +808,7 @@ void DSPJitRegCache::PutReg(int reg, bool dirty)
   }
 }
 
-void DSPJitRegCache::ReadReg(int sreg, X64Reg host_dreg, DSPJitSignExtend extend)
+void DSPJitRegCache::ReadReg(int sreg, X64Reg host_dreg, RegisterExtension extend)
 {
   const OpArg reg = GetReg(sreg);
 
@@ -817,13 +817,13 @@ void DSPJitRegCache::ReadReg(int sreg, X64Reg host_dreg, DSPJitSignExtend extend
   case 2:
     switch (extend)
     {
-    case SIGN:
+    case RegisterExtension::Sign:
       m_emitter.MOVSX(64, 16, host_dreg, reg);
       break;
-    case ZERO:
+    case RegisterExtension::Zero:
       m_emitter.MOVZX(64, 16, host_dreg, reg);
       break;
-    case NONE:
+    case RegisterExtension::None:
       m_emitter.MOV(16, R(host_dreg), reg);
       break;
     }
@@ -831,13 +831,13 @@ void DSPJitRegCache::ReadReg(int sreg, X64Reg host_dreg, DSPJitSignExtend extend
   case 4:
     switch (extend)
     {
-    case SIGN:
+    case RegisterExtension::Sign:
       m_emitter.MOVSX(64, 32, host_dreg, reg);
       break;
-    case ZERO:
+    case RegisterExtension::Zero:
       m_emitter.MOVZX(64, 32, host_dreg, reg);
       break;
-    case NONE:
+    case RegisterExtension::None:
       m_emitter.MOV(32, R(host_dreg), reg);
       break;
     }

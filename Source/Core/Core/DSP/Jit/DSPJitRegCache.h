@@ -29,11 +29,11 @@ enum DSPJitRegSpecial
   DSP_REG_NONE = 255
 };
 
-enum DSPJitSignExtend
+enum class RegisterExtension
 {
-  SIGN,
-  ZERO,
-  NONE
+  Sign,
+  Zero,
+  None
 };
 
 class DSPJitRegCache
@@ -123,7 +123,7 @@ public:
   // Done with all usages of OpArg above
   void PutReg(int reg, bool dirty = true);
 
-  void ReadReg(int sreg, Gen::X64Reg host_dreg, DSPJitSignExtend extend);
+  void ReadReg(int sreg, Gen::X64Reg host_dreg, RegisterExtension extend);
   void WriteReg(int dreg, Gen::OpArg arg);
 
   // Find a free host reg, spill if used, reserve
