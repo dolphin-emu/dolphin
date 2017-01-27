@@ -259,14 +259,6 @@ public:
   DSPJitRegCache m_gpr{*this};
 
 private:
-  std::vector<DSPCompiledCode> m_blocks;
-  Block m_block_link_entry;
-  u16 m_compile_status_register;
-
-  // The index of the last stored ext value (compile time).
-  int m_store_index = -1;
-  int m_store_index2 = -1;
-
   void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
   void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);
@@ -284,6 +276,14 @@ private:
   void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
   void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
   void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
+
+  std::vector<DSPCompiledCode> m_blocks;
+  Block m_block_link_entry;
+  u16 m_compile_status_register;
+
+  // The index of the last stored ext value (compile time).
+  int m_store_index = -1;
+  int m_store_index2 = -1;
 };
 
 }  // namespace x86
