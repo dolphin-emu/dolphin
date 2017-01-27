@@ -259,6 +259,17 @@ public:
   DSPJitRegCache m_gpr{*this};
 
 private:
+  void WriteBranchExit();
+  void WriteBlockLink(u16 dest);
+
+  void ReJitConditional(UDSPInstruction opc, void (DSPEmitter::*conditional_fn)(UDSPInstruction));
+  void r_jcc(UDSPInstruction opc);
+  void r_jmprcc(UDSPInstruction opc);
+  void r_call(UDSPInstruction opc);
+  void r_callr(UDSPInstruction opc);
+  void r_ifcc(UDSPInstruction opc);
+  void r_ret(UDSPInstruction opc);
+
   void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
   void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);
