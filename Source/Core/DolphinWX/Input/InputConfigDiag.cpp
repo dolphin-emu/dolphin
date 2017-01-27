@@ -71,31 +71,34 @@ void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
   {
   case WiimoteEmu::EXT_NUNCHUK:
   {
-    NunchukInputConfigDialog dlg(this, m_config, _("Nunchuk Configuration"), m_port_num);
+    NunchukInputConfigDialog dlg(this, m_config, _("Nunchuk Configuration"), device_cbox,
+                                 m_port_num);
     dlg.ShowModal();
   }
   break;
   case WiimoteEmu::EXT_CLASSIC:
   {
-    ClassicInputConfigDialog dlg(this, m_config, _("Classic Controller Configuration"), m_port_num);
+    ClassicInputConfigDialog dlg(this, m_config, _("Classic Controller Configuration"), device_cbox,
+                                 m_port_num);
     dlg.ShowModal();
   }
   break;
   case WiimoteEmu::EXT_GUITAR:
   {
-    GuitarInputConfigDialog dlg(this, m_config, _("Guitar Configuration"), m_port_num);
+    GuitarInputConfigDialog dlg(this, m_config, _("Guitar Configuration"), device_cbox, m_port_num);
     dlg.ShowModal();
   }
   break;
   case WiimoteEmu::EXT_DRUMS:
   {
-    DrumsInputConfigDialog dlg(this, m_config, _("Drums Configuration"), m_port_num);
+    DrumsInputConfigDialog dlg(this, m_config, _("Drums Configuration"), device_cbox, m_port_num);
     dlg.ShowModal();
   }
   break;
   case WiimoteEmu::EXT_TURNTABLE:
   {
-    TurntableInputConfigDialog dlg(this, m_config, _("Turntable Configuration"), m_port_num);
+    TurntableInputConfigDialog dlg(this, m_config, _("Turntable Configuration"), device_cbox,
+                                   m_port_num);
     dlg.ShowModal();
   }
   break;

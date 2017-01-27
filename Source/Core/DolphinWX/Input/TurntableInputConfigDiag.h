@@ -6,9 +6,11 @@
 
 #include "DolphinWX/Input/InputConfigDiag.h"
 
+class wxComboBox;
+
 class TurntableInputConfigDialog final : public InputConfigDialog
 {
 public:
   TurntableInputConfigDialog(wxWindow* parent, InputConfig& config, const wxString& name,
-                             int port_num = 0);
+                             wxComboBox* device_cbox_parent, int port_num = 0);
 };

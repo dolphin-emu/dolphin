@@ -8,10 +8,13 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
 GuitarInputConfigDialog::GuitarInputConfigDialog(wxWindow* const parent, InputConfig& config,
-                                                 const wxString& name, const int port_num)
+                                                 const wxString& name,
+                                                 wxComboBox* device_cbox_parent, const int port_num)
     : InputConfigDialog(parent, config, name, port_num)
 {
   const int space5 = FromDIP(5);
+
+  device_cbox = device_cbox_parent;
 
   auto* const group_box_buttons = new ControlGroupBox(
       Wiimote::GetGuitarGroup(port_num, WiimoteEmu::GuitarGroup::Buttons), this, this);
