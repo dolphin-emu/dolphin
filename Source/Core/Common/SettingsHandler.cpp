@@ -132,7 +132,7 @@ void SettingsHandler::WriteByte(u8 b)
   m_key = (m_key >> 31) | (m_key << 1);
 }
 
-const std::string SettingsHandler::generateSerialNumber()
+std::string SettingsHandler::GenerateSerialNumber()
 {
   time_t rawtime;
   tm* timeinfo;

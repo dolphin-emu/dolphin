@@ -211,7 +211,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
     if (Core::g_want_determinism)
       serno = "123456789";
     else
-      serno = gen.generateSerialNumber();
+      serno = SettingsHandler::GenerateSerialNumber();
     INFO_LOG(BOOT, "No previous serial number found, generated one instead: %s", serno.c_str());
   }
   else

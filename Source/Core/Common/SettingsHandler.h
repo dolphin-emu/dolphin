@@ -33,7 +33,7 @@ public:
 
   void Decrypt();
   void Reset();
-  const std::string generateSerialNumber();
+  static std::string GenerateSerialNumber();
 
 private:
   void WriteByte(u8 b);
