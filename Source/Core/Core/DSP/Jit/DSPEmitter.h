@@ -250,13 +250,8 @@ public:
   const u8* m_reenter_dispatcher;
   const u8* m_stub_entry_point;
   const u8* m_return_dispatcher;
-  u16 m_compile_pc;
-  u16 m_start_address;
-  std::vector<Block> m_block_links;
-  std::vector<u16> m_block_size;
-  std::list<u16> m_unresolved_jumps[MAX_BLOCKS];
 
-  DSPJitRegCache m_gpr{*this};
+  std::list<u16> m_unresolved_jumps[MAX_BLOCKS];
 
 private:
   void WriteBranchExit();
@@ -288,9 +283,16 @@ private:
   void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
   void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
 
-  std::vector<DSPCompiledCode> m_blocks;
-  Block m_block_link_entry;
+  DSPJitRegCache m_gpr{*this};
+
+  u16 m_compile_pc;
   u16 m_compile_status_register;
+  u16 m_start_address;
+
+  std::vector<DSPCompiledCode> m_blocks;
+  std::vector<u16> m_block_size;
+  std::vector<Block> m_block_links;
+  Block m_block_link_entry;
 
   // The index of the last stored ext value (compile time).
   int m_store_index = -1;
