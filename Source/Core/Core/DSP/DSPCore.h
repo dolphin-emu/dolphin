@@ -354,8 +354,6 @@ void DSPCore_SetExternalInterrupt(bool val);
 // sets a flag in the pending exception register.
 void DSPCore_SetException(u8 level);
 
-void CompileCurrent();
-
 enum DSPCoreState
 {
   DSPCORE_STOP = 0,

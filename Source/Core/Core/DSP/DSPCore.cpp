@@ -314,28 +314,6 @@ void DSPCore_Step()
     step_event.Set();
 }
 
-void CompileCurrent()
-{
-  g_dsp_jit->Compile(g_dsp.pc);
-
-  bool retry = true;
-
-  while (retry)
-  {
-    retry = false;
-    for (u16 i = 0x0000; i < 0xffff; ++i)
-    {
-      if (!g_dsp_jit->m_unresolved_jumps[i].empty())
-      {
-        u16 addrToCompile = g_dsp_jit->m_unresolved_jumps[i].front();
-        g_dsp_jit->Compile(addrToCompile);
-        if (!g_dsp_jit->m_unresolved_jumps[i].empty())
-          retry = true;
-      }
-    }
-  }
-}
-
 u16 DSPCore_ReadRegister(size_t reg)
 {
   switch (reg)

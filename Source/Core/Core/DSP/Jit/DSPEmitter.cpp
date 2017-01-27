@@ -352,6 +352,28 @@ void DSPEmitter::Compile(u16 start_addr)
   JMP(m_return_dispatcher, true);
 }
 
+static void CompileCurrent()
+{
+  g_dsp_jit->Compile(g_dsp.pc);
+
+  bool retry = true;
+
+  while (retry)
+  {
+    retry = false;
+    for (u16 i = 0x0000; i < 0xffff; ++i)
+    {
+      if (!g_dsp_jit->m_unresolved_jumps[i].empty())
+      {
+        const u16 address_to_compile = g_dsp_jit->m_unresolved_jumps[i].front();
+        g_dsp_jit->Compile(address_to_compile);
+        if (!g_dsp_jit->m_unresolved_jumps[i].empty())
+          retry = true;
+      }
+    }
+  }
+}
+
 const u8* DSPEmitter::CompileStub()
 {
   const u8* entryPoint = AlignCode16();
