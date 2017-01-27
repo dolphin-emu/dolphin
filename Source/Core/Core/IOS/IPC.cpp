@@ -44,12 +44,15 @@
 #include "Core/IOS/IPC.h"
 #include "Core/IOS/Network/Net.h"
 #include "Core/IOS/Network/SSL.h"
+#include "Core/IOS/Network/Socket.h"
 #include "Core/IOS/SDIO/SDIOSlot0.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/IOS/USB/OH0/OH0.h"
+#include "Core/IOS/USB/USB_HID/HIDv4.h"
 #include "Core/IOS/USB/USB_KBD.h"
-#include "Core/IOS/USB/USB_VEN.h"
+#include "Core/IOS/USB/USB_VEN/VEN.h"
 #include "Core/IOS/WFS/WFSI.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 
@@ -57,10 +60,6 @@ namespace CoreTiming
 {
 struct EventType;
 }  // namespace CoreTiming
-
-#if defined(__LIBUSB__)
-#include "Core/IOS/USB/USB_HIDv4.h"
-#endif
 
 namespace IOS
 {
@@ -495,15 +494,12 @@ void Reinit()
   AddDevice<Device::NetIPTop>("/dev/net/ip/top");
   AddDevice<Device::NetSSL>("/dev/net/ssl");
   AddDevice<Device::USB_KBD>("/dev/usb/kbd");
-  AddDevice<Device::USB_VEN>("/dev/usb/ven");
   AddDevice<Device::SDIOSlot0>("/dev/sdio/slot0");
   AddDevice<Device::Stub>("/dev/sdio/slot1");
-#if defined(__LIBUSB__)
   AddDevice<Device::USB_HIDv4>("/dev/usb/hid");
-#else
-  AddDevice<Device::Stub>("/dev/usb/hid");
-#endif
+  AddDevice<Device::OH0>("/dev/usb/oh0");
   AddDevice<Device::Stub>("/dev/usb/oh1");
+  AddDevice<Device::USB_VEN>("/dev/usb/ven");
   AddDevice<Device::WFSSRV>("/dev/usb/wfssrv");
   AddDevice<Device::WFSI>("/dev/wfsi");
 }
@@ -644,6 +640,10 @@ void DoState(PointerWrap& p)
           s_fdmap[i] = std::make_shared<Device::FileIO>(i, "");
           s_fdmap[i]->DoState(p);
           break;
+        case Device::Device::DeviceType::OH0:
+          s_fdmap[i] = std::make_shared<Device::OH0Device>(i, "");
+          s_fdmap[i]->DoState(p);
+          break;
         }
       }
     }
@@ -709,6 +709,10 @@ static s32 OpenDevice(const OpenRequest& request)
     device = GetUnusedESDevice();
     if (!device)
       return IPC_EESEXHAUSTED;
+  }
+  else if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
+  {
+    device = std::make_shared<Device::OH0Device>(new_fd, request.path);
   }
   else if (request.path.find("/dev/") == 0)
   {
@@ -850,6 +854,13 @@ void UpdateDevices()
       entry.second->Update();
     }
   }
+}
+
+void UpdateWantDeterminism(const bool new_want_determinism)
+{
+  WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
+  for (const auto& device : s_device_map)
+    device.second->UpdateWantDeterminism(new_want_determinism);
 }
 }  // namespace HLE
 }  // namespace IOS
