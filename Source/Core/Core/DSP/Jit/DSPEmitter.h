@@ -250,22 +250,20 @@ public:
   const u8* m_reenter_dispatcher;
   const u8* m_stub_entry_point;
   const u8* m_return_dispatcher;
-  u16 m_compile_pc;
-  u16 m_start_address;
-  std::vector<Block> m_block_links;
-  std::vector<u16> m_block_size;
+
   std::list<u16> m_unresolved_jumps[MAX_BLOCKS];
 
-  DSPJitRegCache m_gpr{*this};
-
 private:
-  std::vector<DSPCompiledCode> m_blocks;
-  Block m_block_link_entry;
-  u16 m_compile_status_register;
+  void WriteBranchExit();
+  void WriteBlockLink(u16 dest);
 
-  // The index of the last stored ext value (compile time).
-  int m_store_index = -1;
-  int m_store_index2 = -1;
+  void ReJitConditional(UDSPInstruction opc, void (DSPEmitter::*conditional_fn)(UDSPInstruction));
+  void r_jcc(UDSPInstruction opc);
+  void r_jmprcc(UDSPInstruction opc);
+  void r_call(UDSPInstruction opc);
+  void r_callr(UDSPInstruction opc);
+  void r_ifcc(UDSPInstruction opc);
+  void r_ret(UDSPInstruction opc);
 
   void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
@@ -284,6 +282,21 @@ private:
   void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
   void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
   void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
+
+  DSPJitRegCache m_gpr{*this};
+
+  u16 m_compile_pc;
+  u16 m_compile_status_register;
+  u16 m_start_address;
+
+  std::vector<DSPCompiledCode> m_blocks;
+  std::vector<u16> m_block_size;
+  std::vector<Block> m_block_links;
+  Block m_block_link_entry;
+
+  // The index of the last stored ext value (compile time).
+  int m_store_index = -1;
+  int m_store_index2 = -1;
 };
 
 }  // namespace x86
