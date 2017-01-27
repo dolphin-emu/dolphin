@@ -78,6 +78,12 @@ private:
     SEGMENT_MAX
   };
 
+  enum class OpcodeType
+  {
+    Primary,
+    Extension
+  };
+
   // Utility functions
   s32 ParseValue(const char* str);
   u32 ParseExpression(const char* ptr);
@@ -91,9 +97,8 @@ private:
   // void ShowWarning(err_t err_code, const char *extra_info = nullptr);
 
   char* FindBrackets(char* src, char* dst);
-  const opc_t* FindOpcode(const char* name, u32 par_count, const opc_t* opcodes,
-                          size_t opcodes_size);
-  bool VerifyParams(const opc_t* opc, param_t* par, size_t count, bool ext = false);
+  const opc_t* FindOpcode(std::string name, size_t par_count, OpcodeType type);
+  bool VerifyParams(const opc_t* opc, param_t* par, size_t count, OpcodeType type);
   void BuildCode(const opc_t* opc, param_t* par, u32 par_count, u16* outbuf);
 
   std::vector<u16> m_output_buffer;

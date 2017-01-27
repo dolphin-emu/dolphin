@@ -429,33 +429,33 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
   return count;
 }
 
-const opc_t* DSPAssembler::FindOpcode(const char* name, u32 par_count, const opc_t* const opcodes,
-                                      size_t opcodes_size)
+const opc_t* DSPAssembler::FindOpcode(std::string name, size_t par_count, OpcodeType type)
 {
   if (name[0] == 'C' && name[1] == 'W')
     return &cw;
 
   const auto alias_iter = aliases.find(name);
   if (alias_iter != aliases.end())
-    name = alias_iter->second.c_str();
-  for (size_t i = 0; i < opcodes_size; i++)
+    name = alias_iter->second;
+
+  const DSPOPCTemplate* const info =
+      type == OpcodeType::Primary ? FindOpInfoByName(name) : FindExtOpInfoByName(name);
+  if (!info)
   {
-    const opc_t* opcode = &opcodes[i];
-    if (strcmp(opcode->name, name) == 0)
-    {
-      if (par_count < opcode->param_count)
-      {
-        ShowError(ERR_NOT_ENOUGH_PARAMETERS);
-      }
-      else if (par_count > opcode->param_count)
-      {
-        ShowError(ERR_TOO_MANY_PARAMETERS);
-      }
-      return opcode;
-    }
+    ShowError(ERR_UNKNOWN_OPCODE);
+    return nullptr;
   }
-  ShowError(ERR_UNKNOWN_OPCODE);
-  return nullptr;
+
+  if (par_count < info->param_count)
+  {
+    ShowError(ERR_NOT_ENOUGH_PARAMETERS);
+  }
+  else if (par_count > info->param_count)
+  {
+    ShowError(ERR_TOO_MANY_PARAMETERS);
+  }
+
+  return info;
 }
 
 // weird...
@@ -466,7 +466,7 @@ static u16 get_mask_shifted_down(u16 mask)
   return mask;
 }
 
-bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, bool ext)
+bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, OpcodeType type)
 {
   for (size_t i = 0; i < count; i++)
   {
@@ -495,7 +495,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, bo
           if ((int)par[i].val < value ||
               (int)par[i].val > value + get_mask_shifted_down(opc->params[i].mask))
           {
-            if (ext)
+            if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
             fprintf(stderr, "%s   (param %zu)", cur_line.c_str(), current_param);
@@ -505,7 +505,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, bo
         case P_PRG:
           if ((int)par[i].val < 0 || (int)par[i].val > 0x3)
           {
-            if (ext)
+            if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
             fprintf(stderr, "%s   (param %zu)", cur_line.c_str(), current_param);
@@ -515,7 +515,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, bo
         case P_ACC:
           if ((int)par[i].val < 0x20 || (int)par[i].val > 0x21)
           {
-            if (ext)
+            if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
             if (par[i].val >= 0x1e && par[i].val <= 0x1f)
@@ -523,7 +523,8 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, bo
               fprintf(stderr, "%i : %s ", code_line, cur_line.c_str());
               fprintf(stderr, "WARNING: $ACM%d register used instead of $ACC%d register Line: %d "
                               "Param: %zu Ext: %d\n",
-                      (par[i].val & 1), (par[i].val & 1), code_line, current_param, ext);
+                      (par[i].val & 1), (par[i].val & 1), code_line, current_param,
+                      static_cast<int>(type));
             }
             else if (par[i].val >= 0x1c && par[i].val <= 0x1d)
             {
@@ -541,7 +542,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, bo
         case P_ACCM:
           if ((int)par[i].val < 0x1e || (int)par[i].val > 0x1f)
           {
-            if (ext)
+            if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
             if (par[i].val >= 0x1c && par[i].val <= 0x1d)
@@ -568,7 +569,7 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, bo
         case P_ACCL:
           if ((int)par[i].val < 0x1c || (int)par[i].val > 0x1d)
           {
-            if (ext)
+            if (type == OpcodeType::Extension)
               fprintf(stderr, "(ext) ");
 
             if (par[i].val >= 0x1e && par[i].val <= 0x1f)
@@ -606,22 +607,22 @@ bool DSPAssembler::VerifyParams(const opc_t* opc, param_t* par, size_t count, bo
       switch (par[i].type & (P_REG | 7))
       {
       case P_REG:
-        if (ext)
+        if (type == OpcodeType::Extension)
           fprintf(stderr, "(ext) ");
         ShowError(ERR_EXPECTED_PARAM_REG);
         break;
       case P_MEM:
-        if (ext)
+        if (type == OpcodeType::Extension)
           fprintf(stderr, "(ext) ");
         ShowError(ERR_EXPECTED_PARAM_MEM);
         break;
       case P_VAL:
-        if (ext)
+        if (type == OpcodeType::Extension)
           fprintf(stderr, "(ext) ");
         ShowError(ERR_EXPECTED_PARAM_VAL);
         break;
       case P_IMM:
-        if (ext)
+        if (type == OpcodeType::Extension)
           fprintf(stderr, "(ext) ");
         ShowError(ERR_EXPECTED_PARAM_IMM);
         break;
@@ -973,13 +974,13 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
       continue;
     }
 
-    const opc_t* opc = FindOpcode(opcode, params_count, opcodes.data(), opcodes.size());
+    const opc_t* opc = FindOpcode(opcode, params_count, OpcodeType::Primary);
     if (!opc)
       opc = &cw;
 
     opcode_size = opc->size;
 
-    VerifyParams(opc, params, params_count);
+    VerifyParams(opc, params, params_count, OpcodeType::Primary);
 
     const opc_t* opc_ext = nullptr;
     // Check for opcode extensions.
@@ -987,11 +988,13 @@ bool DSPAssembler::AssembleFile(const std::string& file_path, int pass)
     {
       if (opcode_ext)
       {
-        opc_ext = FindOpcode(opcode_ext, params_count_ext, opcodes_ext.data(), opcodes_ext.size());
-        VerifyParams(opc_ext, params_ext, params_count_ext, true);
+        opc_ext = FindOpcode(opcode_ext, params_count_ext, OpcodeType::Extension);
+        VerifyParams(opc_ext, params_ext, params_count_ext, OpcodeType::Extension);
       }
       else if (params_count_ext)
+      {
         ShowError(ERR_EXT_PAR_NOT_EXT);
+      }
     }
     else
     {

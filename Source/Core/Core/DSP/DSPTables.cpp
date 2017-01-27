@@ -6,6 +6,7 @@
 
 #include "Core/DSP/DSPTables.h"
 
+#include <algorithm>
 #include <array>
 #include <cstddef>
 
@@ -20,7 +21,7 @@ namespace DSP
 using JIT::x86::DSPEmitter;
 
 // clang-format off
-const std::array<DSPOPCTemplate, 214> opcodes =
+const std::array<DSPOPCTemplate, 214> s_opcodes =
 {{
   //                                                      # of parameters----+   {type, size, loc, lshift, mask}                                                               branch        reads PC       // instruction approximation
   // name      opcode  mask    interpreter function  JIT function    size-V  V   param 1                       param 2                       param 3                    extendable    uncond.       updates SR
@@ -296,7 +297,7 @@ const DSPOPCTemplate cw =
 
 // extended opcodes
 
-const std::array<DSPOPCTemplate, 25> opcodes_ext =
+const std::array<DSPOPCTemplate, 25> s_opcodes_ext =
 {{
   {"XXX",    0x0000, 0x00fc, Interpreter::Ext::nop,  &DSPEmitter::nop,  1, 1, {{P_VAL, 1, 0, 0, 0x00ff}}, false, false, false, false, false}, // no operation
 
@@ -512,7 +513,58 @@ constexpr size_t OPTABLE_SIZE = 0xffff + 1;
 constexpr size_t EXT_OPTABLE_SIZE = 0xff + 1;
 std::array<const DSPOPCTemplate*, OPTABLE_SIZE> s_op_table;
 std::array<const DSPOPCTemplate*, EXT_OPTABLE_SIZE> s_ext_op_table;
+
+template <size_t N>
+auto FindByOpcode(UDSPInstruction opcode, const std::array<DSPOPCTemplate, N>& data)
+{
+  return std::find_if(data.cbegin(), data.cend(), [opcode](const auto& info) {
+    return (opcode & info.opcode_mask) == info.opcode;
+  });
+}
+
+template <size_t N>
+auto FindByName(const std::string& name, const std::array<DSPOPCTemplate, N>& data)
+{
+  return std::find_if(data.cbegin(), data.cend(),
+                      [&name](const auto& info) { return name == info.name; });
+}
 }  // Anonymous namespace
+
+const DSPOPCTemplate* FindOpInfoByOpcode(UDSPInstruction opcode)
+{
+  const auto iter = FindByOpcode(opcode, s_opcodes);
+  if (iter == s_opcodes.cend())
+    return nullptr;
+
+  return &*iter;
+}
+
+const DSPOPCTemplate* FindOpInfoByName(const std::string& name)
+{
+  const auto iter = FindByName(name, s_opcodes);
+  if (iter == s_opcodes.cend())
+    return nullptr;
+
+  return &*iter;
+}
+
+const DSPOPCTemplate* FindExtOpInfoByOpcode(UDSPInstruction opcode)
+{
+  const auto iter = FindByOpcode(opcode, s_opcodes_ext);
+  if (iter == s_opcodes_ext.cend())
+    return nullptr;
+
+  return &*iter;
+}
+
+const DSPOPCTemplate* FindExtOpInfoByName(const std::string& name)
+{
+  const auto iter = FindByName(name, s_opcodes_ext);
+  if (iter == s_opcodes_ext.cend())
+    return nullptr;
+
+  return &*iter;
+}
 
 const DSPOPCTemplate* GetOpTemplate(UDSPInstruction inst)
 {
@@ -538,25 +590,21 @@ void InitInstructionTable()
   {
     s_ext_op_table[i] = &cw;
 
-    for (const DSPOPCTemplate& ext : opcodes_ext)
+    const auto iter = FindByOpcode(static_cast<UDSPInstruction>(i), s_opcodes_ext);
+    if (iter == s_opcodes_ext.cend())
+      continue;
+
+    if (s_ext_op_table[i] == &cw)
     {
-      u16 mask = ext.opcode_mask;
-      if ((mask & i) == ext.opcode)
+      s_ext_op_table[i] = &*iter;
+    }
+    else
+    {
+      // If the entry already in the table is a strict subset, allow it
+      if ((s_ext_op_table[i]->opcode_mask | iter->opcode_mask) != s_ext_op_table[i]->opcode_mask)
       {
-        if (s_ext_op_table[i] == &cw)
-        {
-          s_ext_op_table[i] = &ext;
-        }
-        else
-        {
-          // if the entry already in the table
-          // is a strict subset, allow it
-          if ((s_ext_op_table[i]->opcode_mask | ext.opcode_mask) != s_ext_op_table[i]->opcode_mask)
-          {
-            ERROR_LOG(DSPLLE, "opcode ext table place %zu already in use by %s when inserting %s",
-                      i, s_ext_op_table[i]->name, ext.name);
-          }
-        }
+        ERROR_LOG(DSPLLE, "opcode ext table place %zu already in use by %s when inserting %s", i,
+                  s_ext_op_table[i]->name, iter->name);
       }
     }
   }
@@ -566,17 +614,14 @@ void InitInstructionTable()
 
   for (size_t i = 0; i < s_op_table.size(); i++)
   {
-    for (const DSPOPCTemplate& opcode : opcodes)
-    {
-      u16 mask = opcode.opcode_mask;
-      if ((mask & i) == opcode.opcode)
-      {
-        if (s_op_table[i] == &cw)
-          s_op_table[i] = &opcode;
-        else
-          ERROR_LOG(DSPLLE, "opcode table place %zu already in use for %s", i, opcode.name);
-      }
-    }
+    const auto iter = FindByOpcode(static_cast<UDSPInstruction>(i), s_opcodes);
+    if (iter == s_opcodes.cend())
+      continue;
+
+    if (s_op_table[i] == &cw)
+      s_op_table[i] = &*iter;
+    else
+      ERROR_LOG(DSPLLE, "opcode table place %zu already in use for %s", i, iter->name);
   }
 
   writeBackLogIdx.fill(-1);
