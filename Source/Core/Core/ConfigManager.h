@@ -365,5 +365,7 @@ private:
   void LoadBluetoothPassthroughSettings(IniFile& ini);
   void LoadSysconfSettings(IniFile& ini);
 
+  bool SetRegion(DiscIO::Region region, std::string* directory_name);
+
   static SConfig* m_Instance;
 };
