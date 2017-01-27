@@ -244,16 +244,7 @@ else()
 	endif()
 endif()
 
-if(CMAKE_SYSTEM_NAME MATCHES "Windows")
-	add_definitions(-DNOMINMAX)
-	add_definitions(-DUNICODE)
-	add_definitions(-D_UNICODE)
-	add_definitions(-DWIN32_LEAN_AND_MEAN)
-	add_definitions(-D_WIN32_WINNT=0x0602)
-	add_definitions(-D_SECURE_SCL=0)
-	add_definitions(-D_CRT_SECURE_NO_WARNINGS)
-	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-elseif(CMAKE_SYSTEM_NAME MATCHES "Darwin")
+if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
 	# This doesn't play well with the packaging script that doesn't understand @rpath
 	set(CMAKE_MACOSX_RPATH OFF)
 
