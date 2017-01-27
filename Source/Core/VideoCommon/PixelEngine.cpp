@@ -224,8 +224,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   // Token register, readonly.
-  mmio->Register(base | PE_TOKEN_REG, MMIO::ComplexRead<u16>([](u32) { return s_token; }),
-                 MMIO::InvalidWrite<u16>());
+  mmio->Register(base | PE_TOKEN_REG, MMIO::DirectRead<u16>(&s_token), MMIO::InvalidWrite<u16>());
 
   // BBOX registers, readonly and need to update a flag.
   for (int i = 0; i < 4; ++i)
