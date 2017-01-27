@@ -324,7 +324,7 @@ void RunGpuLoop()
         }
         else
         {
-          SCPFifoStruct& fifo = CommandProcessor::fifo;
+          CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
 
           AsyncRequests::GetInstance()->PullEvents();
 
@@ -414,7 +414,7 @@ void GpuMaySleep()
 
 bool AtBreakpoint()
 {
-  SCPFifoStruct& fifo = CommandProcessor::fifo;
+  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   return fifo.bFF_BPEnable && (fifo.CPReadPointer == fifo.CPBreakpoint);
 }
 
@@ -442,7 +442,7 @@ void RunGpu()
 
 static int RunGpuOnCpu(int ticks)
 {
-  SCPFifoStruct& fifo = CommandProcessor::fifo;
+  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   bool reset_simd_state = false;
   int available_ticks = int(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
   while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() &&
