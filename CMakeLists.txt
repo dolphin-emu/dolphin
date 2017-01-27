@@ -166,7 +166,7 @@ if(ENABLE_GENERIC)
 	message(STATUS "Warning! Building generic build!")
 	set(_M_GENERIC 1)
 	add_definitions(-D_M_GENERIC=1)
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
+elseif(_ARCH_64 AND CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64|amd64|AMD64")
 	set(_M_X86 1)
 	set(_M_X86_64 1)
 	add_definitions(-D_M_X86=1)
@@ -180,7 +180,9 @@ elseif(CMAKE_SYSTEM_PROCESSOR STREQUAL "aarch64")
 	# CRC instruction set is used in the CRC32 hash function
 	check_and_add_flag(HAVE_ARCH_ARMV8 -march=armv8-a+crc)
 else()
-	message(FATAL_ERROR "You're building on an unsupported platform '${CMAKE_SYSTEM_PROCESSOR}'. Enable generic build if you really want a JIT-less binary.")
+	message(FATAL_ERROR "You're building on an unsupported platform: "
+		"'${CMAKE_SYSTEM_PROCESSOR}' with ${CMAKE_SIZEOF_VOID_P}-byte pointers."
+		" Enable generic build if you really want a JIT-less binary.")
 endif()
 
 
