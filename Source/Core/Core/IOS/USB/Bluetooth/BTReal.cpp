@@ -7,10 +7,7 @@
 #include <cstring>
 #include <iomanip>
 #include <iterator>
-#include <map>
-#include <memory>
 #include <sstream>
-#include <string>
 #include <utility>
 #include <vector>
 
@@ -30,21 +27,12 @@
 #include "Core/IOS/Device.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/IOS/USB/Bluetooth/hci.h"
+#include "VideoCommon/OnScreenDisplay.h"
 
 namespace IOS
 {
 namespace HLE
 {
-// This stores the address of paired devices and associated link keys.
-// It is needed because some adapters forget all stored link keys when they are reset,
-// which breaks pairings because the Wii relies on the Bluetooth module to remember them.
-static std::map<btaddr_t, linkkey_t> s_link_keys;
-static Common::Flag s_need_reset_keys;
-
-// This flag is set when a libusb transfer failed (for reasons other than timing out)
-// and we showed an OSD message about it.
-static Common::Flag s_showed_failed_transfer;
-
 static bool IsWantedDevice(const libusb_device_descriptor& descriptor)
 {
   const int vid = SConfig::GetInstance().m_bt_passthrough_vid;
@@ -166,7 +154,7 @@ void BluetoothReal::Close()
 
 IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
 {
-  if (!m_is_wii_bt_module && s_need_reset_keys.TestAndClear())
+  if (!m_is_wii_bt_module && m_need_reset_keys.TestAndClear())
   {
     // Do this now before transferring any more data, so that this is fully transparent to games
     SendHCIDeleteLinkKeyCommand();
@@ -180,6 +168,7 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
   // HCI commands to the Bluetooth adapter
   case USB::IOCTLV_USBV0_CTRLMSG:
   {
+    std::lock_guard<std::mutex> lk(m_transfers_mutex);
     auto cmd = std::make_unique<USB::V0CtrlMessage>(request);
     const u16 opcode = Common::swap16(Memory::Read_U16(cmd->data_address));
     if (opcode == HCI_CMD_READ_BUFFER_SIZE)
@@ -200,13 +189,13 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
       Memory::CopyFromEmu(&delete_cmd, cmd->data_address, sizeof(delete_cmd));
       if (delete_cmd.delete_all)
       {
-        s_link_keys.clear();
+        m_link_keys.clear();
       }
       else
       {
         btaddr_t addr;
         std::copy(std::begin(delete_cmd.bdaddr.b), std::end(delete_cmd.bdaddr.b), addr.begin());
-        s_link_keys.erase(addr);
+        m_link_keys.erase(addr);
       }
     }
     auto buffer = std::make_unique<u8[]>(cmd->length + LIBUSB_CONTROL_SETUP_SIZE);
@@ -215,8 +204,12 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
     Memory::CopyFromEmu(buffer.get() + LIBUSB_CONTROL_SETUP_SIZE, cmd->data_address, cmd->length);
     libusb_transfer* transfer = libusb_alloc_transfer(0);
     transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
-    libusb_fill_control_transfer(transfer, m_handle, buffer.release(), CommandCallback,
-                                 cmd.release(), 0);
+    libusb_fill_control_transfer(transfer, m_handle, buffer.get(), nullptr, this, 0);
+    transfer->callback = [](libusb_transfer* tr) {
+      static_cast<BluetoothReal*>(tr->user_data)->HandleCtrlTransfer(tr);
+    };
+    PendingTransfer pending_transfer{std::move(cmd), std::move(buffer)};
+    m_current_transfers.emplace(transfer, std::move(pending_transfer));
     libusb_submit_transfer(transfer);
     break;
   }
@@ -224,43 +217,49 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
   case USB::IOCTLV_USBV0_BLKMSG:
   case USB::IOCTLV_USBV0_INTRMSG:
   {
-    auto buffer = std::make_unique<USB::V0IntrMessage>(request);
+    std::lock_guard<std::mutex> lk(m_transfers_mutex);
+    auto cmd = std::make_unique<USB::V0IntrMessage>(request);
     if (request.request == USB::IOCTLV_USBV0_INTRMSG)
     {
       if (m_sync_button_state == SyncButtonState::Pressed)
       {
         Core::DisplayMessage("Scanning for Wii Remotes", 2000);
-        FakeSyncButtonPressedEvent(*buffer);
+        FakeSyncButtonPressedEvent(*cmd);
         return GetNoReply();
       }
       if (m_sync_button_state == SyncButtonState::LongPressed)
       {
         Core::DisplayMessage("Reset saved Wii Remote pairings", 2000);
-        FakeSyncButtonHeldEvent(*buffer);
+        FakeSyncButtonHeldEvent(*cmd);
         return GetNoReply();
       }
       if (m_fake_read_buffer_size_reply.TestAndClear())
       {
-        FakeReadBufferSizeReply(*buffer);
+        FakeReadBufferSizeReply(*cmd);
         return GetNoReply();
       }
       if (m_fake_vendor_command_reply.TestAndClear())
       {
-        FakeVendorCommandReply(*buffer);
+        FakeVendorCommandReply(*cmd);
         return GetNoReply();
       }
     }
+    auto buffer = cmd->MakeBuffer(cmd->length);
     libusb_transfer* transfer = libusb_alloc_transfer(0);
-    transfer->buffer = Memory::GetPointer(buffer->data_address);
-    transfer->callback = TransferCallback;
+    transfer->buffer = buffer.get();
+    transfer->callback = [](libusb_transfer* tr) {
+      static_cast<BluetoothReal*>(tr->user_data)->HandleBulkOrIntrTransfer(tr);
+    };
     transfer->dev_handle = m_handle;
-    transfer->endpoint = buffer->endpoint;
+    transfer->endpoint = cmd->endpoint;
     transfer->flags |= LIBUSB_TRANSFER_FREE_TRANSFER;
-    transfer->length = buffer->length;
+    transfer->length = cmd->length;
     transfer->timeout = TIMEOUT;
     transfer->type = request.request == USB::IOCTLV_USBV0_BLKMSG ? LIBUSB_TRANSFER_TYPE_BULK :
                                                                    LIBUSB_TRANSFER_TYPE_INTERRUPT;
-    transfer->user_data = buffer.release();
+    transfer->user_data = this;
+    PendingTransfer pending_transfer{std::move(cmd), std::move(buffer)};
+    m_current_transfers.emplace(transfer, std::move(pending_transfer));
     libusb_submit_transfer(transfer);
     break;
   }
@@ -269,18 +268,60 @@ IPCCommandResult BluetoothReal::IOCtlV(const IOCtlVRequest& request)
   return GetNoReply();
 }
 
+static bool s_has_shown_savestate_warning = false;
 void BluetoothReal::DoState(PointerWrap& p)
 {
   bool passthrough_bluetooth = true;
   p.Do(passthrough_bluetooth);
-  if (p.GetMode() == PointerWrap::MODE_READ)
-    PanicAlertT("Attempted to load a state. Bluetooth will likely be broken now.");
-
   if (!passthrough_bluetooth && p.GetMode() == PointerWrap::MODE_READ)
   {
     Core::DisplayMessage("State needs Bluetooth passthrough to be disabled. Aborting load.", 4000);
     p.SetMode(PointerWrap::MODE_VERIFY);
+    return;
   }
+
+  // Prevent the transfer callbacks from messing with m_current_transfers after we have started
+  // writing a savestate. We cannot use a scoped lock here because DoState is called twice and
+  // we would lose the lock between the two calls.
+  if (p.GetMode() == PointerWrap::MODE_MEASURE || p.GetMode() == PointerWrap::MODE_VERIFY)
+    m_transfers_mutex.lock();
+
+  std::vector<u32> addresses_to_discard;
+  if (p.GetMode() != PointerWrap::MODE_READ)
+  {
+    // Save addresses of transfer commands to discard on savestate load.
+    for (const auto& transfer : m_current_transfers)
+      addresses_to_discard.push_back(transfer.second.command->ios_request.address);
+  }
+  p.Do(addresses_to_discard);
+  if (p.GetMode() == PointerWrap::MODE_READ)
+  {
+    // On load, discard any pending transfer to make sure the emulated software is not stuck
+    // waiting for the previous request to complete. This is usually not an issue as long as
+    // the Bluetooth state is the same (same Wii remote connections).
+    for (const auto& address_to_discard : addresses_to_discard)
+      EnqueueReply(Request{address_to_discard}, 0);
+
+    // Prevent the callbacks from replying to a request that has already been discarded.
+    m_current_transfers.clear();
+
+    OSD::AddMessage("If the savestate does not load correctly, disconnect all Wii Remotes "
+                    "and reload it.",
+                    OSD::Duration::NORMAL);
+  }
+
+  if (!s_has_shown_savestate_warning && p.GetMode() == PointerWrap::MODE_WRITE)
+  {
+    OSD::AddMessage("Savestates may not work with Bluetooth passthrough in all cases.\n"
+                    "They will only work if no remote is connected when restoring the state,\n"
+                    "or no remote is disconnected after saving.",
+                    OSD::Duration::VERY_LONG);
+    s_has_shown_savestate_warning = true;
+  }
+
+  // We have finished the savestate now, so the transfers mutex can be unlocked.
+  if (p.GetMode() == PointerWrap::MODE_WRITE)
+    m_transfers_mutex.unlock();
 }
 
 void BluetoothReal::UpdateSyncButtonState(const bool is_held)
@@ -355,14 +396,14 @@ void BluetoothReal::SendHCIDeleteLinkKeyCommand()
 
 bool BluetoothReal::SendHCIStoreLinkKeyCommand()
 {
-  if (s_link_keys.empty())
+  if (m_link_keys.empty())
     return false;
 
   const u8 type = LIBUSB_ENDPOINT_OUT | LIBUSB_REQUEST_TYPE_CLASS | LIBUSB_RECIPIENT_INTERFACE;
   // The HCI command field is limited to uint8_t, and libusb to uint16_t.
   const u8 payload_size =
       static_cast<u8>(sizeof(hci_write_stored_link_key_cp)) +
-      (sizeof(btaddr_t) + sizeof(linkkey_t)) * static_cast<u8>(s_link_keys.size());
+      (sizeof(btaddr_t) + sizeof(linkkey_t)) * static_cast<u8>(m_link_keys.size());
   std::vector<u8> packet(sizeof(hci_cmd_hdr_t) + payload_size);
 
   auto* header = reinterpret_cast<hci_cmd_hdr_t*>(packet.data());
@@ -371,7 +412,7 @@ bool BluetoothReal::SendHCIStoreLinkKeyCommand()
 
   auto* cmd =
       reinterpret_cast<hci_write_stored_link_key_cp*>(packet.data() + sizeof(hci_cmd_hdr_t));
-  cmd->num_keys_write = static_cast<u8>(s_link_keys.size());
+  cmd->num_keys_write = static_cast<u8>(m_link_keys.size());
 
   // This is really ugly, but necessary because of the HCI command structure:
   //   u8 num_keys;
@@ -379,7 +420,7 @@ bool BluetoothReal::SendHCIStoreLinkKeyCommand()
   //   u8 key[16];
   // where the two last items are repeated num_keys times.
   auto iterator = packet.begin() + sizeof(hci_cmd_hdr_t) + sizeof(hci_write_stored_link_key_cp);
-  for (const auto& entry : s_link_keys)
+  for (const auto& entry : m_link_keys)
   {
     std::copy(entry.first.begin(), entry.first.end(), iterator);
     iterator += entry.first.size();
@@ -488,14 +529,14 @@ void BluetoothReal::LoadLinkKeys()
       key[pos++] = value;
     }
 
-    s_link_keys[address] = key;
+    m_link_keys[address] = key;
   }
 }
 
 void BluetoothReal::SaveLinkKeys()
 {
   std::ostringstream oss;
-  for (const auto& entry : s_link_keys)
+  for (const auto& entry : m_link_keys)
   {
     btaddr_t address;
     // Reverse the address so that it is stored in the correct order in the config file
@@ -565,45 +606,52 @@ void BluetoothReal::TransferThread()
 }
 
 // The callbacks are called from libusb code on a separate thread.
-void BluetoothReal::CommandCallback(libusb_transfer* tr)
+void BluetoothReal::HandleCtrlTransfer(libusb_transfer* tr)
 {
-  const std::unique_ptr<USB::CtrlMessage> cmd(static_cast<USB::CtrlMessage*>(tr->user_data));
-  const std::unique_ptr<u8[]> buffer(tr->buffer);
+  std::lock_guard<std::mutex> lk(m_transfers_mutex);
+  if (!m_current_transfers.count(tr))
+    return;
+
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_NO_DEVICE)
   {
     ERROR_LOG(IOS_WIIMOTE, "libusb command transfer failed, status: 0x%02x", tr->status);
-    if (!s_showed_failed_transfer.IsSet())
+    if (!m_showed_failed_transfer.IsSet())
     {
       Core::DisplayMessage("Failed to send a command to the Bluetooth adapter.", 10000);
       Core::DisplayMessage("It may not be compatible with passthrough mode.", 10000);
-      s_showed_failed_transfer.Set();
+      m_showed_failed_transfer.Set();
     }
   }
   else
   {
-    s_showed_failed_transfer.Clear();
+    m_showed_failed_transfer.Clear();
   }
-  cmd->FillBuffer(libusb_control_transfer_get_data(tr), tr->actual_length);
-  EnqueueReply(cmd->ios_request, tr->actual_length, 0, CoreTiming::FromThread::NON_CPU);
+  const auto& command = m_current_transfers.at(tr).command;
+  command->FillBuffer(libusb_control_transfer_get_data(tr), tr->actual_length);
+  EnqueueReply(command->ios_request, tr->actual_length, 0, CoreTiming::FromThread::NON_CPU);
+  m_current_transfers.erase(tr);
 }
 
-void BluetoothReal::TransferCallback(libusb_transfer* tr)
+void BluetoothReal::HandleBulkOrIntrTransfer(libusb_transfer* tr)
 {
-  const std::unique_ptr<USB::V0IntrMessage> ctrl(static_cast<USB::V0IntrMessage*>(tr->user_data));
+  std::lock_guard<std::mutex> lk(m_transfers_mutex);
+  if (!m_current_transfers.count(tr))
+    return;
+
   if (tr->status != LIBUSB_TRANSFER_COMPLETED && tr->status != LIBUSB_TRANSFER_TIMED_OUT &&
       tr->status != LIBUSB_TRANSFER_NO_DEVICE)
   {
     ERROR_LOG(IOS_WIIMOTE, "libusb transfer failed, status: 0x%02x", tr->status);
-    if (!s_showed_failed_transfer.IsSet())
+    if (!m_showed_failed_transfer.IsSet())
     {
       Core::DisplayMessage("Failed to transfer to or from to the Bluetooth adapter.", 10000);
       Core::DisplayMessage("It may not be compatible with passthrough mode.", 10000);
-      s_showed_failed_transfer.Set();
+      m_showed_failed_transfer.Set();
     }
   }
   else
   {
-    s_showed_failed_transfer.Clear();
+    m_showed_failed_transfer.Clear();
   }
 
   if (tr->status == LIBUSB_TRANSFER_COMPLETED && tr->endpoint == HCI_EVENT)
@@ -618,16 +666,20 @@ void BluetoothReal::TransferCallback(libusb_transfer* tr)
       std::copy(std::begin(notification->bdaddr.b), std::end(notification->bdaddr.b), addr.begin());
       linkkey_t key;
       std::copy(std::begin(notification->key), std::end(notification->key), std::begin(key));
-      s_link_keys[addr] = key;
+      m_link_keys[addr] = key;
     }
     else if (event->event == HCI_EVENT_COMMAND_COMPL &&
              reinterpret_cast<hci_command_compl_ep*>(tr->buffer + sizeof(*event))->opcode ==
                  HCI_CMD_RESET)
     {
-      s_need_reset_keys.Set();
+      m_need_reset_keys.Set();
     }
   }
-  EnqueueReply(ctrl->ios_request, tr->actual_length, 0, CoreTiming::FromThread::NON_CPU);
+
+  const auto& command = m_current_transfers.at(tr).command;
+  command->FillBuffer(tr->buffer, tr->actual_length);
+  EnqueueReply(command->ios_request, tr->actual_length, 0, CoreTiming::FromThread::NON_CPU);
+  m_current_transfers.erase(tr);
 }
 }  // namespace Device
 }  // namespace HLE

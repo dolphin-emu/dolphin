@@ -71,7 +71,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 72;  // Last changed in PR 4710
+static const u32 STATE_VERSION = 73;  // Last changed in PR 4651
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
