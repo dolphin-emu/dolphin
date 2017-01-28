@@ -331,7 +331,7 @@ IPCCommandResult FileIO::GetFileStats(const IOCtlRequest& request)
   if (!m_file->IsOpen())
     return GetDefaultReply(FS_ENOENT);
 
-  DEBUG_LOG(IOS_FILEIO, "File: %s, Length: %" PRIu64 ", Pos: %i", m_name.c_str(), m_file->GetSize(),
+  DEBUG_LOG(IOS_FILEIO, "File: %s, Length: %" PRIu64 ", Pos: %u", m_name.c_str(), m_file->GetSize(),
             m_SeekPos);
   Memory::Write_U32(static_cast<u32>(m_file->GetSize()), request.buffer_out);
   Memory::Write_U32(m_SeekPos, request.buffer_out + 4);
