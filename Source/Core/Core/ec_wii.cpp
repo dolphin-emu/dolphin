@@ -7,15 +7,17 @@
 // Licensed under the terms of the GNU GPL, version 2
 // http://www.gnu.org/licenses/old-licenses/gpl-2.0.txt
 
+#include "Core/ec_wii.h"
+
 #include <cstdio>
 #include <string.h>
 
 #include <mbedtls/sha1.h>
 
+#include "Common/CommonFuncs.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Core/ec_wii.h"
 
 static u32 default_NG_id = 0x0403AC68;
 static u32 default_NG_key_id = 0x6AAB8C59;
@@ -156,6 +158,26 @@ EcWii::EcWii()
 
 EcWii::~EcWii()
 {
+}
+
+u32 EcWii::getNgId()
+{
+  return Common::swap32(BootMiiKeysBin.ng_id);
+}
+
+u32 EcWii::getNgKeyId()
+{
+  return Common::swap32(BootMiiKeysBin.ng_key_id);
+}
+
+const u8* EcWii::getNgPriv()
+{
+  return BootMiiKeysBin.ng_priv;
+}
+
+const u8* EcWii::getNgSig()
+{
+  return BootMiiKeysBin.ng_sig;
 }
 
 void EcWii::InitDefaults()

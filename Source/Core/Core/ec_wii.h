@@ -24,7 +24,6 @@
 
 #pragma once
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
 void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, const u8* NG_sig);
@@ -40,10 +39,11 @@ public:
   EcWii();
   ~EcWii();
   static EcWii& GetInstance();
-  u32 getNgId() { return Common::swap32(BootMiiKeysBin.ng_id); }
-  u32 getNgKeyId() { return Common::swap32(BootMiiKeysBin.ng_key_id); }
-  const u8* getNgPriv() { return BootMiiKeysBin.ng_priv; }
-  const u8* getNgSig() { return BootMiiKeysBin.ng_sig; }
+  u32 getNgId();
+  u32 getNgKeyId();
+  const u8* getNgPriv();
+  const u8* getNgSig();
+
 private:
   void InitDefaults();
 
