@@ -130,15 +130,48 @@ public:
     return static_cast<T>(GetArg<T>());
   }
 
-private:
+protected:
   u32 m_gpr = 3;
   u32 m_fpr = 1;
   const u32 m_gpr_max = 10;
   const u32 m_fpr_max = 8;
   u32 m_stack;
 
+private:
   virtual u32 GetGPR(u32 gpr) const;
   virtual double GetFPR(u32 fpr) const;
 };
+
+// See System V ABI (SVR4) for more details
+//  -> 6-6 Required Routines
+//  -> 3-21 Variable Argument Lists
+//
+// Source:
+// http://refspecs.linux-foundation.org/elf/elfspec_ppc.pdf
+class VAListStruct : public VAList
+{
+public:
+  explicit VAListStruct(u32 address);
+  ~VAListStruct() = default;
+
+private:
+  struct svr4_va_list
+  {
+    u8 gpr;
+    u8 fpr;
+    u32 overflow_arg_area;
+    u32 reg_save_area;
+  };
+  const svr4_va_list m_va_list;
+  const u32 m_address;
+  const bool m_has_fpr_area;
+
+  u32 GetGPRArea() const;
+  u32 GetFPRArea() const;
+
+  u32 GetGPR(u32 gpr) const override;
+  double GetFPR(u32 fpr) const override;
+};
+
 }  // namespace SystemVABI
 }  // namespace HLE
