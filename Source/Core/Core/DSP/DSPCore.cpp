@@ -245,21 +245,7 @@ int DSPCore_RunCycles(int cycles)
 {
   if (g_dsp_jit)
   {
-    if (g_dsp.external_interrupt_waiting)
-    {
-      DSPCore_CheckExternalInterrupt();
-      DSPCore_CheckExceptions();
-      DSPCore_SetExternalInterrupt(false);
-    }
-
-    g_cycles_left = cycles;
-    auto exec_addr = (JIT::x86::DSPEmitter::DSPCompiledCode)g_dsp_jit->m_enter_dispatcher;
-    exec_addr();
-
-    if (g_dsp.reset_dspjit_codespace)
-      g_dsp_jit->ClearIRAMandDSPJITCodespaceReset();
-
-    return g_cycles_left;
+    return g_dsp_jit->RunCycles(static_cast<u16>(cycles));
   }
 
   while (cycles > 0)

@@ -32,6 +32,8 @@ public:
   DSPEmitter();
   ~DSPEmitter();
 
+  u16 RunCycles(u16 cycles);
+
   void EmitInstruction(UDSPInstruction inst);
   void ClearIRAM();
   void ClearIRAMandDSPJITCodespaceReset();
