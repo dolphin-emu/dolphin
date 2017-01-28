@@ -1105,7 +1105,6 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 {
   _dbg_assert_(IOS_ES, request.in_vectors.size() == 2);
   bool bSuccess = false;
-  bool bReset = false;
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 view = Memory::Read_U32(request.in_vectors[1].address);
@@ -1171,30 +1170,16 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   else
   {
     ResetAfterLaunch(ios_to_load);
-    bReset = true;
     SetDefaultContentFile(tContentFile);
   }
 
-  // Note: If we just reset the PPC, don't write anything to the command buffer. This
-  // could clobber the DOL we just loaded.
-
   ERROR_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
             TitleID, view, ticketid, devicetype, titleid, access);
-  //                     IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000
-  //                     0001000248414341 ffff
-
-  // This is necessary because Reset(true) above deleted this object.  Ew.
-
-  if (!bReset)
-  {
-    // The command type is overwritten with the reply type.
-    Memory::Write_U32(IPC_REPLY, request.address);
-    // IOS also writes back the command that was responded to in the FD field.
-    Memory::Write_U32(IPC_CMD_IOCTLV, request.address + 8);
-  }
 
   // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
   // involves restarting IOS; IOS generates two acknowledgements in a row.
+  // Note: If we just reset the PPC, don't write anything to the command buffer. This
+  // could clobber the DOL we just loaded.
   EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
 }
