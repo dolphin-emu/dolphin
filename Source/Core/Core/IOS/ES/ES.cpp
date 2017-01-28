@@ -317,6 +317,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return Decrypt(request);
   case IOCTL_ES_LAUNCH:
     return Launch(request);
+  case IOCTL_ES_LAUNCHBC:
+    return LaunchBC(request);
   case IOCTL_ES_CHECKKOREAREGION:
     return CheckKoreaRegion(request);
   case IOCTL_ES_GETDEVICECERT:
@@ -1168,34 +1170,8 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   }
   else
   {
-    bool* wiiMoteConnected = new bool[MAX_BBMOTES];
-    if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-    {
-      BluetoothEmu* s_Usb = GetUsbPointer();
-      for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-        wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
-    }
-
-    Reload(ios_to_load);
+    ResetAfterLaunch(ios_to_load);
     bReset = true;
-
-    if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-    {
-      BluetoothEmu* s_Usb = GetUsbPointer();
-      for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-      {
-        if (wiiMoteConnected[i])
-        {
-          s_Usb->m_WiiMotes[i].Activate(false);
-          s_Usb->m_WiiMotes[i].Activate(true);
-        }
-        else
-        {
-          s_Usb->m_WiiMotes[i].Activate(false);
-        }
-      }
-    }
-    delete[] wiiMoteConnected;
     SetDefaultContentFile(tContentFile);
   }
 
@@ -1221,6 +1197,52 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   // involves restarting IOS; IOS generates two acknowledgements in a row.
   EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
+}
+
+IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
+{
+  if (request.in_vectors.size() != 0 || request.io_vectors.size() != 0)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  // Here, IOS checks the clock speed and prevents ioctlv 0x25 from being used in GC mode.
+  // An alternative way to do this is to check whether the current active IOS is MIOS.
+  if (GetVersion() == 0x101)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  ResetAfterLaunch(0x00000001'00000100);
+  EnqueueCommandAcknowledgement(request.address, 0);
+  return GetNoReply();
+}
+
+void ES::ResetAfterLaunch(const u64 ios_to_load) const
+{
+  bool* wiiMoteConnected = new bool[MAX_BBMOTES];
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+  {
+    BluetoothEmu* s_Usb = GetUsbPointer();
+    for (unsigned int i = 0; i < MAX_BBMOTES; i++)
+      wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
+  }
+
+  Reload(ios_to_load);
+
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+  {
+    BluetoothEmu* s_Usb = GetUsbPointer();
+    for (unsigned int i = 0; i < MAX_BBMOTES; i++)
+    {
+      if (wiiMoteConnected[i])
+      {
+        s_Usb->m_WiiMotes[i].Activate(false);
+        s_Usb->m_WiiMotes[i].Activate(true);
+      }
+      else
+      {
+        s_Usb->m_WiiMotes[i].Activate(false);
+      }
+    }
+  }
+  delete[] wiiMoteConnected;
 }
 
 IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)

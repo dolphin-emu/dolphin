@@ -90,7 +90,7 @@ private:
     IOCTL_ES_DELETETITLECONTENT = 0x22,
     IOCTL_ES_SEEKCONTENT = 0x23,
     IOCTL_ES_OPENTITLECONTENT = 0x24,
-    // IOCTL_ES_LAUNCHBC           = 0x25,
+    IOCTL_ES_LAUNCHBC = 0x25,
     // IOCTL_ES_EXPORTTITLEINIT    = 0x26,
     // IOCTL_ES_EXPORTCONTENTBEGIN = 0x27,
     // IOCTL_ES_EXPORTCONTENTDATA  = 0x28,
@@ -182,12 +182,15 @@ private:
   IPCCommandResult Encrypt(const IOCtlVRequest& request);
   IPCCommandResult Decrypt(const IOCtlVRequest& request);
   IPCCommandResult Launch(const IOCtlVRequest& request);
+  IPCCommandResult LaunchBC(const IOCtlVRequest& request);
   IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
   IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
   IPCCommandResult Sign(const IOCtlVRequest& request);
   IPCCommandResult GetBoot2Version(const IOCtlVRequest& request);
   IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
   IPCCommandResult GetOwnedTitleCount(const IOCtlVRequest& request);
+
+  void ResetAfterLaunch(u64 ios_to_load) const;
 
   const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
   u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
