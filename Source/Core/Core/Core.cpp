@@ -528,9 +528,11 @@ void EmuThread()
       Wiimote::LoadConfig();
 
     // Activate Wiimotes which don't have source set to "None"
+    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+        IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
     for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
-      if (g_wiimote_sources[i])
-        IOS::HLE::GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(true);
+      if (g_wiimote_sources[i] && bt)
+        bt->AccessWiiMote(i | 0x100)->Activate(true);
   }
 
   AudioCommon::InitSoundStream();

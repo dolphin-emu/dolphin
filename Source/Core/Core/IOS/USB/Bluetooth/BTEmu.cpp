@@ -50,7 +50,6 @@ BluetoothEmu::BluetoothEmu(u32 device_id, const std::string& device_name)
   // Activate only first Wii Remote by default
 
   _conf_pads BT_DINF;
-  SetUsbPointer(this);
   if (!sysconf.GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
   {
     PanicAlertT("Trying to read from invalid SYSCONF\nWii Remote Bluetooth IDs are not available");
@@ -103,8 +102,8 @@ BluetoothEmu::BluetoothEmu(u32 device_id, const std::string& device_name)
 
 BluetoothEmu::~BluetoothEmu()
 {
+  Host_SetWiiMoteConnectionState(0);
   m_WiiMotes.clear();
-  SetUsbPointer(nullptr);
 }
 
 template <typename T>

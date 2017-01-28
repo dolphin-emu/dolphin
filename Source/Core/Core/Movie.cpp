@@ -521,11 +521,13 @@ void ChangeWiiPads(bool instantly)
   if (instantly && (s_controllers >> 4) == controllers)
     return;
 
+  const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
     g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
-    if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-      IOS::HLE::GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
+    if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
+      bt->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
   }
 }
 

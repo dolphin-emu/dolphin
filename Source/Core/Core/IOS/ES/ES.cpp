@@ -1201,29 +1201,30 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
 
 void ES::ResetAfterLaunch(const u64 ios_to_load) const
 {
+  auto bt = std::static_pointer_cast<BluetoothEmu>(GetDeviceByName("/dev/usb/oh1/57e/305"));
   bool* wiiMoteConnected = new bool[MAX_BBMOTES];
-  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
   {
-    BluetoothEmu* s_Usb = GetUsbPointer();
     for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-      wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
+      wiiMoteConnected[i] = bt->m_WiiMotes[i].IsConnected();
   }
 
   Reload(ios_to_load);
 
-  if (!SConfig::GetInstance().m_bt_passthrough_enabled)
+  // Get the new Bluetooth device. Note that it is not guaranteed to exist.
+  bt = std::static_pointer_cast<BluetoothEmu>(GetDeviceByName("/dev/usb/oh1/57e/305"));
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
   {
-    BluetoothEmu* s_Usb = GetUsbPointer();
     for (unsigned int i = 0; i < MAX_BBMOTES; i++)
     {
       if (wiiMoteConnected[i])
       {
-        s_Usb->m_WiiMotes[i].Activate(false);
-        s_Usb->m_WiiMotes[i].Activate(true);
+        bt->m_WiiMotes[i].Activate(false);
+        bt->m_WiiMotes[i].Activate(true);
       }
       else
       {
-        s_Usb->m_WiiMotes[i].Activate(false);
+        bt->m_WiiMotes[i].Activate(false);
       }
     }
   }

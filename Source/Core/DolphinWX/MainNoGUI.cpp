@@ -143,7 +143,10 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
   {
     Core::QueueHostJob([=] {
       bool was_unpaused = Core::PauseAndLock(true);
-      IOS::HLE::GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+      const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+          IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+      if (bt)
+        bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
       Host_UpdateMainFrame();
       Core::PauseAndLock(false, was_unpaused);
     });
