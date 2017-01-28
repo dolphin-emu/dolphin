@@ -476,6 +476,21 @@ float Renderer::CalculateDrawAspectRatio(int target_width, int target_height)
   }
 }
 
+std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width, const int height)
+{
+  // Scale either the width or height depending the content aspect ratio.
+  // This way we preserve as much resolution as possible when scaling.
+  float ratio = CalculateDrawAspectRatio(width, height);
+  if (ratio >= 1.0f)
+  {
+    // Preserve horizontal resolution, scale vertically.
+    return std::make_tuple(static_cast<float>(width), static_cast<float>(height) * ratio);
+  }
+
+  // Preserve vertical resolution, scale horizontally.
+  return std::make_tuple(static_cast<float>(width) / ratio, static_cast<float>(height));
+}
+
 TargetRectangle Renderer::CalculateFrameDumpDrawRectangle()
 {
   // No point including any borders in the frame dump image, since they'd have to be cropped anyway.
@@ -498,22 +513,8 @@ TargetRectangle Renderer::CalculateFrameDumpDrawRectangle()
   unsigned int efb_width, efb_height;
   g_framebuffer_manager->GetTargetSize(&efb_width, &efb_height);
 
-  // Scale either the width or height depending the content aspect ratio.
-  // This way we preserve as much resolution as possible when scaling.
-  float ratio = CalculateDrawAspectRatio(efb_width, efb_height);
   float draw_width, draw_height;
-  if (ratio >= 1.0f)
-  {
-    // Preserve horizontal resolution, scale vertically.
-    draw_width = static_cast<float>(efb_width);
-    draw_height = static_cast<float>(efb_height) * ratio;
-  }
-  else
-  {
-    // Preserve vertical resolution, scale horizontally.
-    draw_width = static_cast<float>(efb_width) / ratio;
-    draw_height = static_cast<float>(efb_height);
-  }
+  std::tie(draw_width, draw_height) = ScaleToDisplayAspectRatio(efb_width, efb_height);
 
   rc.right = static_cast<int>(std::ceil(draw_width));
   rc.bottom = static_cast<int>(std::ceil(draw_height));
@@ -585,7 +586,12 @@ void Renderer::UpdateDrawRectangle()
   float Ratio = CalculateDrawAspectRatio(s_backbuffer_width, s_backbuffer_height);
   if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
   {
-    if (Ratio > 1.0f)
+    if (Ratio >= 0.995f && Ratio <= 1.005f)
+    {
+      // If we're very close already, don't scale.
+      Ratio = 1.0f;
+    }
+    else if (Ratio > 1.0f)
     {
       // Scale down and center in the X direction.
       FloatGLWidth /= Ratio;
@@ -646,6 +652,38 @@ void Renderer::SetWindowSize(int width, int height)
 
   // Scale the window size by the EFB scale.
   CalculateTargetScale(width, height, &width, &height);
+
+  float scaled_width, scaled_height;
+  std::tie(scaled_width, scaled_height) = ScaleToDisplayAspectRatio(width, height);
+
+  if (g_ActiveConfig.bCrop)
+  {
+    // Force 4:3 or 16:9 by cropping the image.
+    float current_aspect = scaled_width / scaled_height;
+    float expected_aspect =
+        (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
+         (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && Core::g_aspect_wide)) ?
+            (16.0f / 9.0f) :
+            (4.0f / 3.0f);
+    if (current_aspect > expected_aspect)
+    {
+      // keep height, crop width
+      scaled_width = scaled_height * expected_aspect;
+    }
+    else
+    {
+      // keep width, crop height
+      scaled_height = scaled_width / expected_aspect;
+    }
+  }
+
+  width = static_cast<int>(std::ceil(scaled_width));
+  height = static_cast<int>(std::ceil(scaled_height));
+
+  // UpdateDrawRectangle() makes sure that the rendered image is divisible by four for video
+  // encoders, so do that here too to match it
+  width -= width % 4;
+  height -= height % 4;
 
   Host_RequestRenderWindowSize(width, height);
 }
