@@ -247,12 +247,6 @@ public:
   void madd(const UDSPInstruction opc);
   void msub(const UDSPInstruction opc);
 
-  // CALL this to start the dispatcher
-  const u8* m_enter_dispatcher;
-  const u8* m_reenter_dispatcher;
-  const u8* m_stub_entry_point;
-  const u8* m_return_dispatcher;
-
   std::list<u16> m_unresolved_jumps[MAX_BLOCKS];
 
 private:
@@ -299,6 +293,12 @@ private:
   // The index of the last stored ext value (compile time).
   int m_store_index = -1;
   int m_store_index2 = -1;
+
+  // CALL this to start the dispatcher
+  const u8* m_enter_dispatcher;
+  const u8* m_reenter_dispatcher;
+  const u8* m_stub_entry_point;
+  const u8* m_return_dispatcher;
 };
 
 }  // namespace x86
