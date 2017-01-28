@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <list>
 #include <vector>
@@ -247,7 +248,7 @@ public:
   void madd(const UDSPInstruction opc);
   void msub(const UDSPInstruction opc);
 
-  std::list<u16> m_unresolved_jumps[MAX_BLOCKS];
+  std::array<std::list<u16>, MAX_BLOCKS> m_unresolved_jumps;
 
 private:
   void WriteBranchExit();
