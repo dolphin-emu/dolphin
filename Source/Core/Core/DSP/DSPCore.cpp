@@ -218,8 +218,8 @@ void DSPCore_CheckExceptions()
       if (Interpreter::dsp_SR_is_flag_set(SR_INT_ENABLE) || (i == EXP_INT))
       {
         // store pc and sr until RTI
-        dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
-        dsp_reg_store_stack(DSP_STACK_D, g_dsp.r.sr);
+        dsp_reg_store_stack(StackRegister::Call, g_dsp.pc);
+        dsp_reg_store_stack(StackRegister::Data, g_dsp.r.sr);
 
         g_dsp.pc = i * 2;
         g_dsp.exceptions &= ~(1 << i);

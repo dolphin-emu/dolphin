@@ -174,7 +174,7 @@ void DSPEmitter::jmprcc(const UDSPInstruction opc)
 void DSPEmitter::r_call(const UDSPInstruction opc)
 {
   MOV(16, R(DX), Imm16(m_compile_pc + 2));
-  dsp_reg_store_stack(DSP_STACK_C);
+  dsp_reg_store_stack(StackRegister::Call);
   u16 dest = dsp_imem_read(m_compile_pc + 1);
   const DSPOPCTemplate* opcode = GetOpTemplate(opc);
 
@@ -202,7 +202,7 @@ void DSPEmitter::r_callr(const UDSPInstruction opc)
 {
   u8 reg = (opc >> 5) & 0x7;
   MOV(16, R(DX), Imm16(m_compile_pc + 1));
-  dsp_reg_store_stack(DSP_STACK_C);
+  dsp_reg_store_stack(StackRegister::Call);
   dsp_op_read_reg(reg, RAX);
   MOV(16, M(&g_dsp.pc), R(EAX));
   WriteBranchExit();
@@ -241,7 +241,7 @@ void DSPEmitter::ifcc(const UDSPInstruction opc)
 
 void DSPEmitter::r_ret(const UDSPInstruction opc)
 {
-  dsp_reg_load_stack(DSP_STACK_C);
+  dsp_reg_load_stack(StackRegister::Call);
   MOV(16, M(&g_dsp.pc), R(DX));
   WriteBranchExit();
 }
@@ -265,11 +265,11 @@ void DSPEmitter::ret(const UDSPInstruction opc)
 // location.
 void DSPEmitter::rti(const UDSPInstruction opc)
 {
-  //	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(DSP_STACK_D);
-  dsp_reg_load_stack(DSP_STACK_D);
+  //	g_dsp.r[DSP_REG_SR] = dsp_reg_load_stack(StackRegister::Data);
+  dsp_reg_load_stack(StackRegister::Data);
   dsp_op_write_reg(DSP_REG_SR, RDX);
-  //	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
-  dsp_reg_load_stack(DSP_STACK_C);
+  //	g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
+  dsp_reg_load_stack(StackRegister::Call);
   MOV(16, M(&g_dsp.pc), R(DX));
 }
 
@@ -279,8 +279,8 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 void DSPEmitter::halt(const UDSPInstruction opc)
 {
   OR(16, M(&g_dsp.cr), Imm16(4));
-  //	g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
-  dsp_reg_load_stack(DSP_STACK_C);
+  //	g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
+  dsp_reg_load_stack(StackRegister::Call);
   MOV(16, M(&g_dsp.pc), R(DX));
 }
 
@@ -310,9 +310,9 @@ void DSPEmitter::HandleLoop()
 
   SetJumpTarget(loadStack);
   DSPJitRegCache c(m_gpr);
-  dsp_reg_load_stack(0);
-  dsp_reg_load_stack(2);
-  dsp_reg_load_stack(3);
+  dsp_reg_load_stack(StackRegister::Call);
+  dsp_reg_load_stack(StackRegister::LoopAddress);
+  dsp_reg_load_stack(StackRegister::LoopCounter);
   m_gpr.FlushRegs(c);
 
   SetJumpTarget(loopUpdated);
@@ -339,11 +339,11 @@ void DSPEmitter::loop(const UDSPInstruction opc)
   TEST(16, R(EDX), R(EDX));
   DSPJitRegCache c(m_gpr);
   FixupBranch cnt = J_CC(CC_Z, true);
-  dsp_reg_store_stack(3);
+  dsp_reg_store_stack(StackRegister::LoopCounter);
   MOV(16, R(RDX), Imm16(m_compile_pc + 1));
-  dsp_reg_store_stack(0);
+  dsp_reg_store_stack(StackRegister::Call);
   MOV(16, R(RDX), Imm16(loop_pc));
-  dsp_reg_store_stack(2);
+  dsp_reg_store_stack(StackRegister::LoopAddress);
   m_gpr.FlushRegs(c);
   MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 1));
   FixupBranch exit = J(true);
@@ -372,11 +372,11 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
   if (cnt)
   {
     MOV(16, R(RDX), Imm16(m_compile_pc + 1));
-    dsp_reg_store_stack(0);
+    dsp_reg_store_stack(StackRegister::Call);
     MOV(16, R(RDX), Imm16(loop_pc));
-    dsp_reg_store_stack(2);
+    dsp_reg_store_stack(StackRegister::LoopAddress);
     MOV(16, R(RDX), Imm16(cnt));
-    dsp_reg_store_stack(3);
+    dsp_reg_store_stack(StackRegister::LoopCounter);
 
     MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 1));
   }
@@ -408,11 +408,11 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
   TEST(16, R(EDX), R(EDX));
   DSPJitRegCache c(m_gpr);
   FixupBranch cnt = J_CC(CC_Z, true);
-  dsp_reg_store_stack(3);
+  dsp_reg_store_stack(StackRegister::LoopCounter);
   MOV(16, R(RDX), Imm16(m_compile_pc + 2));
-  dsp_reg_store_stack(0);
+  dsp_reg_store_stack(StackRegister::Call);
   MOV(16, R(RDX), Imm16(loop_pc));
-  dsp_reg_store_stack(2);
+  dsp_reg_store_stack(StackRegister::LoopAddress);
   MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 2));
   m_gpr.FlushRegs(c, true);
   FixupBranch exit = J(true);
@@ -444,11 +444,11 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
   if (cnt)
   {
     MOV(16, R(RDX), Imm16(m_compile_pc + 2));
-    dsp_reg_store_stack(0);
+    dsp_reg_store_stack(StackRegister::Call);
     MOV(16, R(RDX), Imm16(loop_pc));
-    dsp_reg_store_stack(2);
+    dsp_reg_store_stack(StackRegister::LoopAddress);
     MOV(16, R(RDX), Imm16(cnt));
-    dsp_reg_store_stack(3);
+    dsp_reg_store_stack(StackRegister::LoopCounter);
 
     MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 2));
   }

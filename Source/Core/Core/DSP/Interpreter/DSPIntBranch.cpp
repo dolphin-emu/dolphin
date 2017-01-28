@@ -28,7 +28,7 @@ void call(const UDSPInstruction opc)
   u16 dest = dsp_fetch_code();
   if (CheckCondition(opc & 0xf))
   {
-    dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
+    dsp_reg_store_stack(StackRegister::Call, g_dsp.pc);
     g_dsp.pc = dest;
   }
 }
@@ -45,7 +45,7 @@ void callr(const UDSPInstruction opc)
   {
     u8 reg = (opc >> 5) & 0x7;
     u16 addr = dsp_op_read_reg(reg);
-    dsp_reg_store_stack(DSP_STACK_C, g_dsp.pc);
+    dsp_reg_store_stack(StackRegister::Call, g_dsp.pc);
     g_dsp.pc = addr;
   }
 }
@@ -100,7 +100,7 @@ void ret(const UDSPInstruction opc)
 {
   if (CheckCondition(opc & 0xf))
   {
-    g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
+    g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
   }
 }
 
@@ -111,8 +111,8 @@ void ret(const UDSPInstruction opc)
 // location.
 void rti(const UDSPInstruction opc)
 {
-  g_dsp.r.sr = dsp_reg_load_stack(DSP_STACK_D);
-  g_dsp.pc = dsp_reg_load_stack(DSP_STACK_C);
+  g_dsp.r.sr = dsp_reg_load_stack(StackRegister::Data);
+  g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
 }
 
 // HALT
@@ -150,9 +150,9 @@ void HandleLoop()
       else
       {
         // end of loop
-        dsp_reg_load_stack(0);
-        dsp_reg_load_stack(2);
-        dsp_reg_load_stack(3);
+        dsp_reg_load_stack(StackRegister::Call);
+        dsp_reg_load_stack(StackRegister::LoopAddress);
+        dsp_reg_load_stack(StackRegister::LoopCounter);
       }
     }
   }
@@ -174,9 +174,9 @@ void loop(const UDSPInstruction opc)
 
   if (cnt)
   {
-    dsp_reg_store_stack(0, g_dsp.pc);
-    dsp_reg_store_stack(2, loop_pc);
-    dsp_reg_store_stack(3, cnt);
+    dsp_reg_store_stack(StackRegister::Call, g_dsp.pc);
+    dsp_reg_store_stack(StackRegister::LoopAddress, loop_pc);
+    dsp_reg_store_stack(StackRegister::LoopCounter, cnt);
   }
   else
   {
@@ -199,9 +199,9 @@ void loopi(const UDSPInstruction opc)
 
   if (cnt)
   {
-    dsp_reg_store_stack(0, g_dsp.pc);
-    dsp_reg_store_stack(2, loop_pc);
-    dsp_reg_store_stack(3, cnt);
+    dsp_reg_store_stack(StackRegister::Call, g_dsp.pc);
+    dsp_reg_store_stack(StackRegister::LoopAddress, loop_pc);
+    dsp_reg_store_stack(StackRegister::LoopCounter, cnt);
   }
   else
   {
@@ -226,9 +226,9 @@ void bloop(const UDSPInstruction opc)
 
   if (cnt)
   {
-    dsp_reg_store_stack(0, g_dsp.pc);
-    dsp_reg_store_stack(2, loop_pc);
-    dsp_reg_store_stack(3, cnt);
+    dsp_reg_store_stack(StackRegister::Call, g_dsp.pc);
+    dsp_reg_store_stack(StackRegister::LoopAddress, loop_pc);
+    dsp_reg_store_stack(StackRegister::LoopCounter, cnt);
   }
   else
   {
@@ -253,9 +253,9 @@ void bloopi(const UDSPInstruction opc)
 
   if (cnt)
   {
-    dsp_reg_store_stack(0, g_dsp.pc);
-    dsp_reg_store_stack(2, loop_pc);
-    dsp_reg_store_stack(3, cnt);
+    dsp_reg_store_stack(StackRegister::Call, g_dsp.pc);
+    dsp_reg_store_stack(StackRegister::LoopAddress, loop_pc);
+    dsp_reg_store_stack(StackRegister::LoopCounter, cnt);
   }
   else
   {
