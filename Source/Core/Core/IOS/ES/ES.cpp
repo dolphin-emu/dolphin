@@ -490,7 +490,7 @@ IPCCommandResult ES::ESGetDeviceID(const IOCtlVRequest& request)
 {
   _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETDEVICEID no io vectors");
 
-  EcWii& ec = EcWii::GetInstance();
+  const EcWii& ec = EcWii::GetInstance();
   INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICEID %08X", ec.getNgId());
   Memory::Write_U32(ec.getNgId(), request.io_vectors[0].address);
   return GetDefaultReply(IPC_SUCCESS);
@@ -1246,7 +1246,7 @@ IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
   _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
   u8* destination = Memory::GetPointer(request.io_vectors[0].address);
 
-  EcWii& ec = EcWii::GetInstance();
+  const EcWii& ec = EcWii::GetInstance();
   get_ng_cert(destination, ec.getNgId(), ec.getNgKeyId(), ec.getNgPriv(), ec.getNgSig());
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -1259,7 +1259,7 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
   u32 data_size = request.in_vectors[0].size;
   u8* sig_out = Memory::GetPointer(request.io_vectors[0].address);
 
-  EcWii& ec = EcWii::GetInstance();
+  const EcWii& ec = EcWii::GetInstance();
   get_ap_sig_and_cert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.getNgPriv(),
                       ec.getNgId());
 

@@ -160,22 +160,22 @@ EcWii::~EcWii()
 {
 }
 
-u32 EcWii::getNgId()
+u32 EcWii::getNgId() const
 {
   return Common::swap32(BootMiiKeysBin.ng_id);
 }
 
-u32 EcWii::getNgKeyId()
+u32 EcWii::getNgKeyId() const
 {
   return Common::swap32(BootMiiKeysBin.ng_key_id);
 }
 
-const u8* EcWii::getNgPriv()
+const u8* EcWii::getNgPriv() const
 {
   return BootMiiKeysBin.ng_priv;
 }
 
-const u8* EcWii::getNgSig()
+const u8* EcWii::getNgSig() const
 {
   return BootMiiKeysBin.ng_sig;
 }

@@ -39,10 +39,10 @@ public:
   EcWii();
   ~EcWii();
   static EcWii& GetInstance();
-  u32 getNgId();
-  u32 getNgKeyId();
-  const u8* getNgPriv();
-  const u8* getNgSig();
+  u32 getNgId() const;
+  u32 getNgKeyId() const;
+  const u8* getNgPriv() const;
+  const u8* getNgSig() const;
 
 private:
   void InitDefaults();

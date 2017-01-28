@@ -149,7 +149,7 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
         u8 id_ctr = config.IdGen();
         u8 hardware_model = GetHardwareModel(model);
 
-        EcWii& ec = EcWii::GetInstance();
+        const EcWii& ec = EcWii::GetInstance();
         u32 HollywoodID = ec.getNgId();
         u64 UserID = 0;
 
