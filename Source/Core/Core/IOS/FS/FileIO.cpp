@@ -291,31 +291,18 @@ IPCCommandResult FileIO::Write(const ReadWriteRequest& request)
 IPCCommandResult FileIO::IOCtl(const IOCtlRequest& request)
 {
   DEBUG_LOG(IOS_FILEIO, "FileIO: IOCtl (Device=%s)", m_name.c_str());
-  s32 return_value = IPC_SUCCESS;
 
   switch (request.request)
   {
   case ISFS_IOCTL_GETFILESTATS:
-  {
-    if (m_file->IsOpen())
-    {
-      DEBUG_LOG(IOS_FILEIO, "File: %s, Length: %" PRIu64 ", Pos: %i", m_name.c_str(),
-                m_file->GetSize(), m_SeekPos);
-      Memory::Write_U32(static_cast<u32>(m_file->GetSize()), request.buffer_out);
-      Memory::Write_U32(m_SeekPos, request.buffer_out + 4);
-    }
-    else
-    {
-      return_value = FS_ENOENT;
-    }
-  }
-  break;
+    return GetFileStats(request);
 
   default:
     request.Log(GetDeviceName(), LogTypes::IOS_FILEIO, LogTypes::LERROR);
+    break;
   }
 
-  return GetDefaultReply(return_value);
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 void FileIO::PrepareForState(PointerWrap::Mode mode)
@@ -337,6 +324,18 @@ void FileIO::DoState(PointerWrap& p)
   // The file was closed during state (and might now be pointing at another file)
   // Open it again
   OpenFile();
+}
+
+IPCCommandResult FileIO::GetFileStats(const IOCtlRequest& request)
+{
+  if (!m_file->IsOpen())
+    return GetDefaultReply(FS_ENOENT);
+
+  DEBUG_LOG(IOS_FILEIO, "File: %s, Length: %" PRIu64 ", Pos: %i", m_name.c_str(), m_file->GetSize(),
+            m_SeekPos);
+  Memory::Write_U32(static_cast<u32>(m_file->GetSize()), request.buffer_out);
+  Memory::Write_U32(m_SeekPos, request.buffer_out + 4);
+  return GetDefaultReply(IPC_SUCCESS);
 }
 }  // namespace Device
 }  // namespace HLE

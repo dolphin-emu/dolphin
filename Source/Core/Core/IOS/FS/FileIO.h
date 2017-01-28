@@ -70,6 +70,8 @@ private:
     ISFS_IOCTL_SHUTDOWN = 13
   };
 
+  IPCCommandResult GetFileStats(const IOCtlRequest& request);
+
   u32 m_Mode = 0;
   u32 m_SeekPos = 0;
 
