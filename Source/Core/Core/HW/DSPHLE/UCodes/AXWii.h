@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/AX.h"
 
 namespace DSP
@@ -11,6 +12,7 @@ namespace DSP
 namespace HLE
 {
 struct AXPBWii;
+class DSPHLE;
 
 class AXWiiUCode : public AXUCode
 {

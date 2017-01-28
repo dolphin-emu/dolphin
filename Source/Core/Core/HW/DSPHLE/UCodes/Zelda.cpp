@@ -2,16 +2,19 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/DSPHLE/UCodes/Zelda.h"
+
 #include <array>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
-#include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
 namespace DSP
 {
@@ -370,6 +373,31 @@ void ZeldaUCode::HandleMailLight(u32 mail)
     WARN_LOG(DSPHLE, "Received mail %08x while we're halted.", mail);
     break;
   }
+}
+
+void ZeldaUCode::SetMailState(MailState new_state)
+{
+  // WARN_LOG(DSPHLE, "MailState %d -> %d", m_mail_current_state, new_state);
+  m_mail_current_state = new_state;
+}
+
+u32 ZeldaUCode::Read32()
+{
+  if (m_read_offset == m_write_offset)
+  {
+    ERROR_LOG(DSPHLE, "Reading too many command params");
+    return 0;
+  }
+
+  u32 res = m_cmd_buffer[m_read_offset];
+  m_read_offset = (m_read_offset + 1) % (sizeof(m_cmd_buffer) / sizeof(u32));
+  return res;
+}
+
+void ZeldaUCode::Write32(u32 val)
+{
+  m_cmd_buffer[m_write_offset] = val;
+  m_write_offset = (m_write_offset + 1) % (sizeof(m_cmd_buffer) / sizeof(u32));
 }
 
 void ZeldaUCode::RunPendingCommands()
