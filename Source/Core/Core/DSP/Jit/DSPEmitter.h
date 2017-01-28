@@ -296,9 +296,8 @@ private:
 
   // CALL this to start the dispatcher
   const u8* m_enter_dispatcher;
-  const u8* m_reenter_dispatcher;
-  const u8* m_stub_entry_point;
   const u8* m_return_dispatcher;
+  const u8* m_stub_entry_point;
 };
 
 }  // namespace x86
