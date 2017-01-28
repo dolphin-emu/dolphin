@@ -48,6 +48,25 @@ DSPEmitter::~DSPEmitter()
   FreeCodeSpace();
 }
 
+u16 DSPEmitter::RunCycles(u16 cycles)
+{
+  if (g_dsp.external_interrupt_waiting)
+  {
+    DSPCore_CheckExternalInterrupt();
+    DSPCore_CheckExceptions();
+    DSPCore_SetExternalInterrupt(false);
+  }
+
+  g_cycles_left = cycles;
+  auto exec_addr = (DSPCompiledCode)m_enter_dispatcher;
+  exec_addr();
+
+  if (g_dsp.reset_dspjit_codespace)
+    ClearIRAMandDSPJITCodespaceReset();
+
+  return g_cycles_left;
+}
+
 void DSPEmitter::ClearIRAM()
 {
   for (int i = 0x0000; i < 0x1000; i++)
