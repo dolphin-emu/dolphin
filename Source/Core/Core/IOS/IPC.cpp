@@ -421,7 +421,7 @@ u32 GetVersion()
   return static_cast<u32>(s_active_title_id);
 }
 
-bool SetupMemory(u64 ios_title_id)
+static bool SetupMemory(u64 ios_title_id)
 {
   auto target_imv = std::find_if(
       ios_memory_values.begin(), ios_memory_values.end(),
@@ -432,8 +432,6 @@ bool SetupMemory(u64 ios_title_id)
     ERROR_LOG(IOS, "Unknown IOS version: %016" PRIx64, ios_title_id);
     return false;
   }
-
-  s_active_title_id = ios_title_id;
 
   Memory::Write_U32(target_imv->mem1_physical_size, ADDR_MEM1_SIZE);
   Memory::Write_U32(target_imv->mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
@@ -477,7 +475,7 @@ std::shared_ptr<T> AddDevice(const char* device_name)
   return device;
 }
 
-void Reinit()
+static void AddStaticDevices()
 {
   std::lock_guard<std::mutex> lock(s_device_map_mutex);
   _assert_msg_(IOS, s_device_map.empty(), "Reinit called while already initialized");
@@ -519,13 +517,12 @@ void Reinit()
 
 void Init()
 {
-  Reinit();
-
+  AddStaticDevices();
   s_event_enqueue = CoreTiming::RegisterEvent("IPCEvent", EnqueueEvent);
   s_event_sdio_notify = CoreTiming::RegisterEvent("SDIO_EventNotify", SDIO_EventNotify_CPUThread);
 }
 
-void Reset(bool hard)
+void Reset(const bool clear_devices)
 {
   CoreTiming::RemoveAllEvents(s_event_enqueue);
 
@@ -538,7 +535,7 @@ void Reset(bool hard)
     device.reset();
   }
 
-  if (hard)
+  if (clear_devices)
   {
     std::lock_guard<std::mutex> lock(s_device_map_mutex);
     s_device_map.clear();
@@ -553,6 +550,18 @@ void Reset(bool hard)
 void Shutdown()
 {
   Reset(true);
+}
+
+bool Reload(const u64 ios_title_id)
+{
+  if (!SetupMemory(ios_title_id))
+    return false;
+
+  s_active_title_id = ios_title_id;
+  Reset(true);
+
+  AddStaticDevices();
+  return true;
 }
 
 void SetDefaultContentFile(const std::string& file_name)
@@ -618,6 +627,7 @@ void DoState(PointerWrap& p)
   p.Do(s_request_queue);
   p.Do(s_reply_queue);
   p.Do(s_last_reply_time);
+  p.Do(s_active_title_id);
 
   // We need to make sure all file handles are closed so IOS::HLE::Device::FS::DoState can
   // successfully save or re-create /tmp

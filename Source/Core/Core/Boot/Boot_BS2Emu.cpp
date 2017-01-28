@@ -275,7 +275,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
   Memory::Write_U16(0x8201, 0x000030e6);                // Dev console / debug capable
   Memory::Write_U32(0x00000000, 0x000030f0);            // Apploader
 
-  if (!IOS::HLE::SetupMemory(ios_title_id))
+  if (!IOS::HLE::Reload(ios_title_id))
   {
     return false;
   }

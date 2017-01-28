@@ -1176,9 +1176,7 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
         wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
     }
 
-    Reset(true);
-    Reinit();
-    SetupMemory(ios_to_load);
+    Reload(ios_to_load);
     bReset = true;
 
     if (!SConfig::GetInstance().m_bt_passthrough_enabled)
