@@ -156,6 +156,19 @@ static std::string DoState(PointerWrap& p)
     return version_created_by;
   }
 
+  bool is_wii =
+      SConfig::GetInstance().bWii || SConfig::GetInstance().m_BootType == SConfig::BOOT_MIOS;
+  const bool is_wii_currently = is_wii;
+  p.Do(is_wii);
+  if (is_wii != is_wii_currently)
+  {
+    OSD::AddMessage(StringFromFormat("Cannot load a savestate created under %s mode in %s mode",
+                                     is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
+                    OSD::Duration::NORMAL, OSD::Color::RED);
+    p.SetMode(PointerWrap::MODE_MEASURE);
+    return version_created_by;
+  }
+
   // Begin with video backend, so that it gets a chance to clear its caches and writeback modified
   // things to RAM
   g_video_backend->DoState(p);

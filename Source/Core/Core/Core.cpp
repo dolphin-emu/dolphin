@@ -634,10 +634,6 @@ void EmuThread()
 
   FileMon::Close();
 
-  // Stop audio thread - Actually this does nothing when using HLE
-  // emulation, but stops the DSP Interpreter when using LLE emulation.
-  DSP::GetDSPEmulator()->DSP_StopSoundStream();
-
   // We must set up this flag before executing HW::Shutdown()
   s_hardware_initialized = false;
   INFO_LOG(CONSOLE, "%s", StopMessage(false, "Shutting down HW").c_str());

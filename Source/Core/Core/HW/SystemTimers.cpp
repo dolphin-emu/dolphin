@@ -223,7 +223,12 @@ static void ThrottleCallback(u64 last_time, s64 cyclesLate)
 // SystemTimers::Init
 void PreInit()
 {
-  if (SConfig::GetInstance().bWii)
+  ChangePPCClock(SConfig::GetInstance().bWii ? Mode::Wii : Mode::GC);
+}
+
+void ChangePPCClock(Mode mode)
+{
+  if (mode == Mode::Wii)
     s_cpu_core_clock = 729000000u;
   else
     s_cpu_core_clock = 486000000u;

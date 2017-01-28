@@ -37,6 +37,12 @@ static bool s_request_disable_thread;
 
 DSPLLE::DSPLLE() = default;
 
+DSPLLE::~DSPLLE()
+{
+  DSPCore_Shutdown();
+  DSP_StopSoundStream();
+}
+
 void DSPLLE::DoState(PointerWrap& p)
 {
   bool is_hle = false;

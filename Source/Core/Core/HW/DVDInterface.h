@@ -102,6 +102,7 @@ enum class ReplyType : u32
 };
 
 void Init();
+void Reset();
 void Shutdown();
 void DoState(PointerWrap& p);
 

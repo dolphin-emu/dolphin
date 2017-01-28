@@ -1113,6 +1113,9 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   u64 titleid = Memory::Read_U64(request.in_vectors[1].address + 16);
   u16 access = Memory::Read_U16(request.in_vectors[1].address + 24);
 
+  NOTICE_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
+             TitleID, view, ticketid, devicetype, titleid, access);
+
   // ES_LAUNCH should probably reset thw whole state, which at least means closing all open files.
   // leaving them open through ES_LAUNCH may cause hangs and other funky behavior
   // (supposedly when trying to re-open those files).
@@ -1172,9 +1175,6 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
     ResetAfterLaunch(ios_to_load);
     SetDefaultContentFile(tContentFile);
   }
-
-  ERROR_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
-            TitleID, view, ticketid, devicetype, titleid, access);
 
   // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
   // involves restarting IOS; IOS generates two acknowledgements in a row.

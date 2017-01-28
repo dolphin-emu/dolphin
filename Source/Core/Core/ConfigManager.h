@@ -188,6 +188,7 @@ struct SConfig : NonCopyable
     BOOT_ELF,
     BOOT_DOL,
     BOOT_WII_NAND,
+    BOOT_MIOS,
     BOOT_BS2,
     BOOT_DFF
   };

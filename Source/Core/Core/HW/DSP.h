@@ -60,6 +60,7 @@ union UDSPControl
 };
 
 void Init(bool hle);
+void Reinit(bool hle);
 void Shutdown();
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);
