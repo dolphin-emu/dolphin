@@ -31,8 +31,8 @@ constexpr size_t MAX_BLOCK_SIZE = 250;
 constexpr u16 DSP_IDLE_SKIP_CYCLES = 0x1000;
 
 DSPEmitter::DSPEmitter()
-    : m_block_links(MAX_BLOCKS), m_block_size(MAX_BLOCKS), m_blocks(MAX_BLOCKS),
-      m_compile_status_register{SR_INT_ENABLE | SR_EXT_INT_ENABLE}
+    : m_compile_status_register{SR_INT_ENABLE | SR_EXT_INT_ENABLE}, m_blocks(MAX_BLOCKS),
+      m_block_size(MAX_BLOCKS), m_block_links(MAX_BLOCKS)
 {
   AllocCodeSpace(COMPILED_CODE_SIZE);
 
