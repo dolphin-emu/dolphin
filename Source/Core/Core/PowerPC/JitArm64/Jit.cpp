@@ -55,6 +55,7 @@ void JitArm64::Init()
   code_block.m_fpa = &js.fpa;
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
+  analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
 
   m_supports_cycle_counter = HasCycleCounters();
 }

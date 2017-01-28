@@ -32,8 +32,9 @@
 namespace PPCAnalyst
 {
 constexpr int CODEBUFFER_SIZE = 32000;
+
 // 0 does not perform block merging
-constexpr u32 FUNCTION_FOLLOWING_THRESHOLD = 16;
+constexpr u32 BRANCH_FOLLOWING_THRESHOLD = 2;
 
 constexpr u32 INVALID_BRANCH_TARGET = 0xFFFFFFFF;
 
@@ -651,7 +652,8 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
   CodeOp* code = buffer->codebuffer;
 
   bool found_exit = false;
-  u32 return_address = 0;
+  bool found_call = false;
+  size_t caller = 0;
   u32 numFollows = 0;
   u32 num_inst = 0;
 
@@ -686,50 +688,65 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
 
     bool conditional_continue = false;
 
-    // Do we inline leaf functions?
-    if (HasOption(OPTION_LEAF_INLINE))
+    // TODO: Find the optimal value for BRANCH_FOLLOWING_THRESHOLD.
+    //       If it is small, the performance will be down.
+    //       If it is big, the size of generated code will be big and
+    //       cache clearning will happen many times.
+    if (HasOption(OPTION_BRANCH_FOLLOW) && numFollows < BRANCH_FOLLOWING_THRESHOLD)
     {
       if (inst.OPCD == 18 && blockSize > 1)
       {
-        // Is bx - should we inline? yes!
-        if (inst.AA)
-          destination = SignExt26(inst.LI << 2);
-        else
-          destination = address + SignExt26(inst.LI << 2);
-        if (destination != block->m_address)
-          follow = true;
+        // Always follow BX instructions.
+        // TODO: Loop unrolling might bloat the code size too much.
+        //       Enable it carefully.
+        follow = destination != block->m_address;
+        destination = SignExt26(inst.LI << 2) + (inst.AA ? 0 : address);
+        if (inst.LK)
+        {
+          found_call = true;
+          caller = i;
+        }
       }
-      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && (inst.BO & (1 << 4)) &&
-               (inst.BO & (1 << 2)) && return_address != 0)
+      else if (inst.OPCD == 16 && (inst.BO & BO_DONT_DECREMENT_FLAG) &&
+               (inst.BO & BO_DONT_CHECK_CONDITION) && blockSize > 1)
+      {
+        // Always follow unconditional BCX instructions, but they are very rare.
+        follow = true;
+        destination = SignExt16(inst.BD << 2) + (inst.AA ? 0 : address);
+        if (inst.LK)
+        {
+          found_call = true;
+          caller = i;
+        }
+      }
+      else if (inst.OPCD == 19 && inst.SUBOP10 == 16 && !inst.LK && found_call &&
+               (inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION))
       {
         // bclrx with unconditional branch = return
+        // Follow it if we can propagate the LR value of the last CALL instruction.
+        // Through it would be easy to track the upper level of call/return,
+        // we can't guarantee the LR value. The PPC ABI forces all functions to push
+        // the LR value on the stack as there are no spare registers. So we'd need
+        // to check all store instruction to not alias with the stack.
         follow = true;
-        destination = return_address;
-        return_address = 0;
+        destination = code[caller].address + 4;
+        found_call = false;
+        code[i].skip = true;
 
-        if (inst.LK)
-          return_address = address + 4;
+        // Skip the RET, so also don't generate the stack entry for the BLR optimization.
+        code[caller].skipLRStack = true;
       }
       else if (inst.OPCD == 31 && inst.SUBOP10 == 467)
       {
-        // mtspr
+        // mtspr, skip CALL/RET merging as LR is overwritten.
         const u32 index = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
         if (index == SPR_LR)
         {
           // We give up to follow the return address
           // because we have to check the register usage.
-          return_address = 0;
+          found_call = false;
         }
       }
-
-      // TODO: Find the optimal value for FUNCTION_FOLLOWING_THRESHOLD.
-      //       If it is small, the performance will be down.
-      //       If it is big, the size of generated code will be big and
-      //       cache clearning will happen many times.
-      // TODO: Investivate the reason why
-      //       "0" is fastest in some games, MP2 for example.
-      if (numFollows > FUNCTION_FOLLOWING_THRESHOLD)
-        follow = false;
     }
 
     if (HasOption(OPTION_CONDITIONAL_CONTINUE))
@@ -759,27 +776,28 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
       }
     }
 
-    if (!follow)
+    if (follow)
     {
+      // Follow the unconditional branch.
+      numFollows++;
+      address = destination;
+    }
+    else
+    {
+      // Just pick the next instruction
       address += 4;
       if (!conditional_continue && opinfo->flags & FL_ENDBLOCK)  // right now we stop early
       {
         found_exit = true;
         break;
       }
+      if (conditional_continue)
+      {
+        // If we skip any conditional branch, we can't garantee to get the matching CALL/RET pair.
+        // So we stop inling the RET here and let the BLR optitmization handle this case.
+        found_call = false;
+      }
     }
-// XXX: We don't support inlining yet.
-#if 0
-		else
-		{
-			numFollows++;
-			// We don't "code[i].skip = true" here
-			// because bx may store a certain value to the link register.
-			// Instead, we skip a part of bx in Jit**::bx().
-			address = destination;
-			merged_addresses[size_of_merged_addresses++] = address;
-		}
-#endif
   }
 
   block->m_num_instructions = num_inst;
