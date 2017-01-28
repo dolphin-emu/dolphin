@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <memory>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -15,7 +16,14 @@
 
 namespace HLE_OS
 {
-std::string GetStringVA(u32 strReg = 3);
+enum class ParameterType : bool
+{
+  ParameterList = false,
+  VariableArgumentList = true
+};
+
+std::string GetStringVA(u32 str_reg = 3,
+                        ParameterType parameter_type = ParameterType::ParameterList);
 
 void HLE_OSPanic()
 {
@@ -28,8 +36,8 @@ void HLE_OSPanic()
   NPC = LR;
 }
 
-// Generalized func for just printing string pointed to by r3.
-void HLE_GeneralDebugPrint()
+// Generalized function for printing formatted string.
+void HLE_GeneralDebugPrint(ParameterType parameter_type)
 {
   std::string report_message;
 
@@ -39,12 +47,12 @@ void HLE_GeneralDebugPrint()
     if (GPR(4) > 0x80000000)
     {
       // ___blank(void* this, const char* fmt, ...);
-      report_message = GetStringVA(4);
+      report_message = GetStringVA(4, parameter_type);
     }
     else
     {
       // ___blank(void* this, int log_type, const char* fmt, ...);
-      report_message = GetStringVA(5);
+      report_message = GetStringVA(5, parameter_type);
     }
   }
   else
@@ -52,18 +60,30 @@ void HLE_GeneralDebugPrint()
     if (GPR(3) > 0x80000000)
     {
       // ___blank(const char* fmt, ...);
-      report_message = GetStringVA();
+      report_message = GetStringVA(3, parameter_type);
     }
     else
     {
       // ___blank(int log_type, const char* fmt, ...);
-      report_message = GetStringVA(4);
+      report_message = GetStringVA(4, parameter_type);
     }
   }
 
   NPC = LR;
 
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
+}
+
+// Generalized function for printing formatted string using parameter list.
+void HLE_GeneralDebugPrint()
+{
+  HLE_GeneralDebugPrint(ParameterType::ParameterList);
+}
+
+// Generalized function for printing formatted string using va_list.
+void HLE_GeneralDebugVPrint()
+{
+  HLE_GeneralDebugPrint(ParameterType::VariableArgumentList);
 }
 
 // __write_console(int fd, const void* buffer, const u32* size)
@@ -90,12 +110,14 @@ void HLE_write_console()
   NOTICE_LOG(OSREPORT, "%08x->%08x| %s", LR, PC, SHIFTJISToUTF8(report_message).c_str());
 }
 
-std::string GetStringVA(u32 str_reg)
+std::string GetStringVA(u32 str_reg, ParameterType parameter_type)
 {
   std::string ArgumentBuffer;
   std::string result;
   std::string string = PowerPC::HostGetString(GPR(str_reg));
-  HLE::SystemVABI::VAList ap(GPR(1) + 0x8, str_reg + 1);
+  auto ap = parameter_type == ParameterType::VariableArgumentList ?
+                std::make_unique<HLE::SystemVABI::VAListStruct>(GPR(str_reg + 1)) :
+                std::make_unique<HLE::SystemVABI::VAList>(GPR(1) + 0x8, str_reg + 1);
 
   for (size_t i = 0; i < string.size(); i++)
   {
@@ -123,7 +145,7 @@ std::string GetStringVA(u32 str_reg)
       {
       case 's':
         result += StringFromFormat(ArgumentBuffer.c_str(),
-                                   PowerPC::HostGetString(ap.GetArgT<u32>()).c_str());
+                                   PowerPC::HostGetString(ap->GetArgT<u32>()).c_str());
         break;
 
       case 'a':
@@ -134,24 +156,24 @@ std::string GetStringVA(u32 str_reg)
       case 'F':
       case 'g':
       case 'G':
-        result += StringFromFormat(ArgumentBuffer.c_str(), ap.GetArgT<double>());
+        result += StringFromFormat(ArgumentBuffer.c_str(), ap->GetArgT<double>());
         break;
 
       case 'p':
         // Override, so 64bit Dolphin prints 32bit pointers, since the ppc is 32bit :)
-        result += StringFromFormat("%x", ap.GetArgT<u32>());
+        result += StringFromFormat("%x", ap->GetArgT<u32>());
         break;
 
       case 'n':
         // %n doesn't output anything, so the result variable is untouched
-        PowerPC::HostWrite_U32(static_cast<u32>(result.size()), ap.GetArgT<u32>());
+        PowerPC::HostWrite_U32(static_cast<u32>(result.size()), ap->GetArgT<u32>());
         break;
 
       default:
         if (string[i - 1] == 'l' && string[i - 2] == 'l')
-          result += StringFromFormat(ArgumentBuffer.c_str(), ap.GetArgT<u64>());
+          result += StringFromFormat(ArgumentBuffer.c_str(), ap->GetArgT<u64>());
         else
-          result += StringFromFormat(ArgumentBuffer.c_str(), ap.GetArgT<u32>());
+          result += StringFromFormat(ArgumentBuffer.c_str(), ap->GetArgT<u32>());
         break;
       }
     }
