@@ -1,4 +1,4 @@
-// Copyright 2016 Dolphin Emulator Project
+// Copyright 2017 Dolphin Emulator Project
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
@@ -14,6 +14,18 @@
 
 namespace HLE
 {
+namespace SystemVABI
+{
+// SFINAE
+template <typename T>
+constexpr bool IS_ARG_POINTER = std::is_union<T>() || std::is_class<T>();
+template <typename T>
+constexpr bool IS_WORD = std::is_pointer<T>() || (std::is_integral<T>() && sizeof(T) <= 4);
+template <typename T>
+constexpr bool IS_DOUBLE_WORD = std::is_integral<T>() && sizeof(T) == 8;
+template <typename T>
+constexpr bool IS_ARG_REAL = std::is_floating_point<T>();
+
 // See System V ABI (SVR4) for more details
 //  -> 3-18 Parameter Passing
 //  -> 3-21 Variable Argument Lists
@@ -27,17 +39,7 @@ public:
       : m_gpr(gpr), m_fpr(fpr), m_gpr_max(gpr_max), m_fpr_max(fpr_max), m_stack(stack)
   {
   }
-  ~VAList() = default;
-
-  // SFINAE
-  template <typename T>
-  constexpr bool IS_ARG_POINTER = std::is_union<T>() || std::is_class<T>();
-  template <typename T>
-  constexpr bool IS_WORD = std::is_pointer<T>() || (std::is_integral<T>() && sizeof(T) <= 4);
-  template <typename T>
-  constexpr bool IS_DOUBLE_WORD = std::is_integral<T>() && sizeof(T) == 8;
-  template <typename T>
-  constexpr bool IS_ARG_REAL = std::is_floating_point<T>();
+  virtual ~VAList();
 
   // 0 - arg_ARGPOINTER
   template <typename T, typename std::enable_if_t<IS_ARG_POINTER<T>>* = nullptr>
@@ -63,7 +65,7 @@ public:
 
     if (m_gpr <= m_gpr_max)
     {
-      value = GPR(m_gpr);
+      value = GetGPR(m_gpr);
       m_gpr += 1;
     }
     else
@@ -86,7 +88,7 @@ public:
       m_gpr += 1;
     if (m_gpr < m_gpr_max)
     {
-      value = static_cast<u64>(GPR(m_gpr)) << 32 | GPR(m_gpr + 1);
+      value = static_cast<u64>(GetGPR(m_gpr)) << 32 | GetGPR(m_gpr + 1);
       m_gpr += 2;
     }
     else
@@ -107,7 +109,7 @@ public:
 
     if (m_fpr <= m_fpr_max)
     {
-      value = rPS0(m_fpr);
+      value = GetFPR(m_fpr);
       m_fpr += 1;
     }
     else
@@ -134,5 +136,9 @@ private:
   const u32 m_gpr_max = 10;
   const u32 m_fpr_max = 8;
   u32 m_stack;
+
+  virtual u32 GetGPR(u32 gpr) const;
+  virtual double GetFPR(u32 fpr) const;
 };
-}
+}  // namespace SystemVABI
+}  // namespace HLE

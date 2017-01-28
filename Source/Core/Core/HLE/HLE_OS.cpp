@@ -95,7 +95,7 @@ std::string GetStringVA(u32 str_reg)
   std::string ArgumentBuffer;
   std::string result;
   std::string string = PowerPC::HostGetString(GPR(str_reg));
-  HLE::VAList ap(GPR(1) + 0x8, str_reg + 1);
+  HLE::SystemVABI::VAList ap(GPR(1) + 0x8, str_reg + 1);
 
   for (size_t i = 0; i < string.size(); i++)
   {
@@ -143,8 +143,8 @@ std::string GetStringVA(u32 str_reg)
         break;
 
       case 'n':
-        PowerPC::HostWrite_U32(static_cast<u32>(result.size()), ap.GetArgT<u32>());
         // %n doesn't output anything, so the result variable is untouched
+        PowerPC::HostWrite_U32(static_cast<u32>(result.size()), ap.GetArgT<u32>());
         break;
 
       default:
