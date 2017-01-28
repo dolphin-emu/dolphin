@@ -1,5 +1,5 @@
 /**
- * \file mbedtls_md.h
+ * \file md.h
  *
  * \brief Generic message digest wrapper
  *
@@ -26,10 +26,6 @@
 #define MBEDTLS_MD_H
 
 #include <stddef.h>
-
-#if ( defined(__ARMCC_VERSION) || defined(_MSC_VER) ) && !defined(inline)
-#define inline __inline
-#endif
 
 #define MBEDTLS_ERR_MD_FEATURE_UNAVAILABLE                -0x5080  /**< The selected feature is not available. */
 #define MBEDTLS_ERR_MD_BAD_INPUT_DATA                     -0x5100  /**< Bad input parameters to function. */
@@ -308,8 +304,8 @@ int mbedtls_md_hmac_update( mbedtls_md_context_t *ctx, const unsigned char *inpu
 /**
  * \brief           Output HMAC.
  *                  Called after mbedtls_md_hmac_update().
- *                  Usually followed my mbedtls_md_hmac_reset(), mbedtls_md_hmac_starts(),
- *                  or mbedtls_md_free().
+ *                  Usually followed by mbedtls_md_hmac_reset(),
+ *                  mbedtls_md_hmac_starts(), or mbedtls_md_free().
  *
  * \param ctx       HMAC context
  * \param output    Generic HMAC checksum result
@@ -321,7 +317,8 @@ int mbedtls_md_hmac_finish( mbedtls_md_context_t *ctx, unsigned char *output);
 
 /**
  * \brief           Prepare to authenticate a new message with the same key.
- *                  Called after mbedtls_md_hmac_finish() and before mbedtls_md_hmac_update().
+ *                  Called after mbedtls_md_hmac_finish() and before
+ *                  mbedtls_md_hmac_update().
  *
  * \param ctx       HMAC context to be reset
  *

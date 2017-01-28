@@ -27,7 +27,18 @@
 
 #if defined(MBEDTLS_NET_C)
 
-#include "mbedtls/net.h"
+#if !defined(unix) && !defined(__unix__) && !defined(__unix) && \
+    !defined(__APPLE__) && !defined(_WIN32)
+#error "This module only works on Unix and Windows, see MBEDTLS_NET_C in config.h"
+#endif
+
+#if defined(MBEDTLS_PLATFORM_C)
+#include "mbedtls/platform.h"
+#else
+#include <stdlib.h>
+#endif
+
+#include "mbedtls/net_sockets.h"
 
 #include <string.h>
 
@@ -81,7 +92,6 @@ static int wsa_init_done = 0;
 #define MSVC_INT_CAST
 #endif
 
-#include <stdlib.h>
 #include <stdio.h>
 
 #include <time.h>
@@ -292,7 +302,7 @@ int mbedtls_net_accept( mbedtls_net_context *bind_ctx,
     struct sockaddr_storage client_addr;
 
 #if defined(__socklen_t_defined) || defined(_SOCKLEN_T) ||  \
-    defined(_SOCKLEN_T_DECLARED)
+    defined(_SOCKLEN_T_DECLARED) || defined(__DEFINED_socklen_t)
     socklen_t n = (socklen_t) sizeof( client_addr );
     socklen_t type_len = (socklen_t) sizeof( type );
 #else
