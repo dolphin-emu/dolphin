@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-21 12:22+0100\n"
-"PO-Revision-Date: 2017-01-21 11:22+0000\n"
+"POT-Creation-Date: 2017-01-28 12:42+0100\n"
+"PO-Revision-Date: 2017-01-28 11:43+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Arabic (http://www.transifex.com/delroth/dolphin-emu/language/"
 "ar/)\n"
@@ -69,7 +69,7 @@ msgstr "\"%s\" failed to be scrubbed. Probably the image is corrupt."
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" يتم ضغط بالفعل! لا يمكن ضغط أكثر من ذلك."
 
-#: Source/Core/Core/ConfigManager.cpp:827
+#: Source/Core/Core/ConfigManager.cpp:838
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
@@ -79,7 +79,7 @@ msgstr "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgid "%1$sCopy%1$s"
 msgstr "%1$sنسخ%1$s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:237
+#: Source/Core/DiscIO/CompressedBlob.cpp:239
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i of %i blocks. Compression ratio %i%%"
@@ -717,7 +717,7 @@ msgstr ""
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "A sync can only be triggered when a Wii game is running."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:193
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:194
 msgid ""
 "ALERT:\n"
 "\n"
@@ -1000,7 +1000,7 @@ msgstr "النقش"
 msgid "Analyze"
 msgstr "تحليل"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:294
+#: Source/Core/InputCommon/ControllerEmu.cpp:296
 msgid "Angle"
 msgstr "الزاوية"
 
@@ -1020,15 +1020,15 @@ msgstr "إلحاق توقيع إلى"
 msgid "Append to &Existing Signature File..."
 msgstr "Append to &Existing Signature File..."
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:226
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:223
 msgid "Apploader Date:"
 msgstr "تاريخ المنتج:"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:314
+#: Source/Core/DiscIO/VolumeDirectory.cpp:316
 msgid "Apploader is the wrong size...is it really an apploader?"
 msgstr "محمل التطبيق هو حجم الخطأ... هل حقا محمل التطبيق؟"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:307
+#: Source/Core/DiscIO/VolumeDirectory.cpp:309
 msgid "Apploader unable to load from file"
 msgstr "Apploader غير قادر على تحميل ملف من"
 
@@ -1085,10 +1085,6 @@ msgstr "تعيين منفذ وحدة التحكم"
 msgid "At least one pane must remain open."
 msgstr "يجب أن لا يقل عن جزء واحد لا تزال مفتوحة."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:277
-msgid "Attempted to load a state. Bluetooth will likely be broken now."
-msgstr "حاول تحميل الحالة. ومن المرجح أن يكون البلوتوث معطل الآن"
-
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:86
 msgid "Audio"
 msgstr "الصوت"
@@ -1101,7 +1097,7 @@ msgstr "صوت الخلفية :"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: Error opening AO device.\n"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:90
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:92
 msgid "Australia"
 msgstr "أستراليا"
 
@@ -1192,7 +1188,7 @@ msgstr "الخلفية:"
 msgid "Background Input"
 msgstr "خلفية الإدخال"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:276
+#: Source/Core/InputCommon/ControllerEmu.cpp:278
 msgid "Backward"
 msgstr "الى الوراء"
 
@@ -1202,15 +1198,15 @@ msgstr "الى الوراء"
 msgid "Banner"
 msgstr "الشعار"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:304
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:298
 msgid "Banner Details"
 msgstr "تفاصيل الشعار"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:280
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:274
 msgid "Banner:"
 msgstr "شعار:"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:56
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:57
 msgid "Bar"
 msgstr "شريط"
 
@@ -1222,7 +1218,7 @@ msgstr "الأساسية"
 msgid "Basic Settings"
 msgstr "إعدادات أساسية"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:23
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:25
 msgid "Bass"
 msgstr "صوت عميق"
 
@@ -1238,15 +1234,15 @@ msgstr "كتلة الاختباري جدول تخصيص فشل"
 msgid "Blocks"
 msgstr "كتل"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Blue"
 msgstr "أزرق"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Blue Left"
 msgstr "اليسار أزرق"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Blue Right"
 msgstr "اليمين أزرق"
 
@@ -1258,7 +1254,7 @@ msgstr ""
 "Bluetooth passthrough mode is enabled, but Dolphin was built without libusb. "
 "Passthrough mode cannot be used."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:142
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:130
 msgid ""
 "Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device "
 "was found. Aborting."
@@ -1442,7 +1438,7 @@ msgid "Caps Lock"
 msgstr "Caps Lock"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:387
-#: Source/Core/InputCommon/ControllerEmu.cpp:307
+#: Source/Core/InputCommon/ControllerEmu.cpp:309
 msgid "Center"
 msgstr "مركز"
 
@@ -1559,11 +1555,11 @@ msgstr "اختيار ملف الإدخال الثانوي"
 msgid "Choose the folder to extract to"
 msgstr "اختيار مجلد لاستخراج"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:293
+#: Source/Core/InputCommon/ControllerEmu.cpp:295
 msgid "Circle Stick"
 msgstr "دائرة العصا"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:43
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:49
 msgid "Classic"
 msgstr "الكلاسيكية"
 
@@ -1662,7 +1658,7 @@ msgid ""
 "removing padding data. Your disc image will still work. Continue?"
 msgstr "ضغط قرص الوي عن طريق إزالة البيانات الحشو . استمر؟"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:237
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:245
 msgid "Compute"
 msgstr "إحصاء"
 
@@ -1675,7 +1671,7 @@ msgstr ""
 "اختبار MD5:\n"
 "%s"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Computing MD5 checksum"
 msgstr "اختبار MD5 :"
 
@@ -1720,8 +1716,8 @@ msgstr "تأكيد الكتابة فوق ملف"
 msgid "Confirm on Stop"
 msgstr "تأكيد على التوقف"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:170
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:188
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:171
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:189
 msgid "Connect"
 msgstr "اتصال"
 
@@ -1763,7 +1759,7 @@ msgstr "ربط ريموت الوي "
 msgid "Connecting..."
 msgstr "متصل"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:116
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:117
 msgid "Connection Type:"
 msgstr "نوع الاتصال:"
 
@@ -1784,7 +1780,7 @@ msgstr "عصا تحكم"
 msgid "Control Stick"
 msgstr "عصا التحكم"
 
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:17
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:18
 msgid "Controller Ports"
 msgstr "منفذ التحكم"
 
@@ -1855,7 +1851,7 @@ msgstr "Copy &function"
 msgid "Copy &hex"
 msgstr "Copy &hex"
 
-#: Source/Core/Core/ConfigManager.cpp:1025
+#: Source/Core/Core/ConfigManager.cpp:1020
 msgid "Copy failed"
 msgstr "فشل نسخ"
 
@@ -1873,7 +1869,7 @@ msgstr "النواة"
 msgid "Cost"
 msgstr "كلفة"
 
-#: Source/Core/Core/ConfigManager.cpp:821
+#: Source/Core/Core/ConfigManager.cpp:832
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1884,7 +1880,7 @@ msgstr ""
 "Wii backup. Please note that Dolphin cannot play games directly from the "
 "original GameCube and Wii discs."
 
-#: Source/Core/Core/ConfigManager.cpp:937
+#: Source/Core/Core/ConfigManager.cpp:935
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "لا يمكن التعرف ملف ايزو %s"
@@ -1927,7 +1923,7 @@ msgstr "لا يمكن إنشاء الأقران."
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "لا يمكن العثور فتح الأوامر للتمديد 'ini'!"
 
-#: Source/Core/Core/BootManager.cpp:380
+#: Source/Core/Core/BootManager.cpp:388
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -1952,7 +1948,7 @@ msgstr "الاحصاء :"
 msgid "Count: %lu"
 msgstr "الاحصاء: %lu"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:216
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:220
 msgid "Country:"
 msgstr "البلد:"
 
@@ -1997,7 +1993,7 @@ msgstr "إنشاء مشهد جديد"
 msgid "Creator: "
 msgstr "المنشئ :"
 
-#: Source/Core/Common/MsgHandler.cpp:64
+#: Source/Core/Common/MsgHandler.cpp:68
 msgid "Critical"
 msgstr "حرج"
 
@@ -2015,7 +2011,7 @@ msgstr ""
 "\n"
 "If unsure, leave this unchecked."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:54
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
 msgstr "الإبهات المتداخل"
 
@@ -2086,12 +2082,12 @@ msgstr "نوع البيانات"
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro files(*.sav)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:187
-#: Source/Core/InputCommon/ControllerEmu.cpp:256
-#: Source/Core/InputCommon/ControllerEmu.cpp:264
-#: Source/Core/InputCommon/ControllerEmu.cpp:278
-#: Source/Core/InputCommon/ControllerEmu.cpp:292
-#: Source/Core/InputCommon/ControllerEmu.cpp:310
+#: Source/Core/InputCommon/ControllerEmu.cpp:189
+#: Source/Core/InputCommon/ControllerEmu.cpp:258
+#: Source/Core/InputCommon/ControllerEmu.cpp:266
+#: Source/Core/InputCommon/ControllerEmu.cpp:280
+#: Source/Core/InputCommon/ControllerEmu.cpp:294
+#: Source/Core/InputCommon/ControllerEmu.cpp:312
 msgid "Dead Zone"
 msgstr "المنطقة الميتة"
 
@@ -2183,7 +2179,7 @@ msgstr "العمق:"
 msgid "Description"
 msgstr "الوصف"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:277
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:271
 msgid "Description:"
 msgstr "الوصف:"
 
@@ -2209,7 +2205,7 @@ msgstr "إعدادات الجهاز"
 msgid "Device not found"
 msgstr "لم يتم العثور علي الجهاز"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:51
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:45
 msgid "Dial"
 msgstr "الاتصال الهاتفي"
 
@@ -2217,7 +2213,7 @@ msgstr "الاتصال الهاتفي"
 msgid "Dims the screen after five minutes of inactivity."
 msgstr "تقوم بتعتيم الشاشة بعد خمس دقائق من الخمول ."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:120
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:121
 msgid "Direct Connection"
 msgstr "اتصال مباشر"
 
@@ -2359,7 +2355,7 @@ msgstr "Dolphin Map File (*.map)"
 msgid "Dolphin NetPlay"
 msgstr "لعب شبكة"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:39
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:40
 msgid "Dolphin NetPlay Setup"
 msgstr "ثبت لعب الشبكه"
 
@@ -2408,14 +2404,14 @@ msgstr "دولفين غير قادر على إكمال الإجراء المطل
 msgid "Dolphin's cheat system is currently disabled."
 msgstr "تم تعطيل نظام الاسرار حاليا."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:329
+#: Source/Core/DiscIO/CompressedBlob.cpp:331
 msgid "Done compressing disc image."
 msgstr "يتم ضغط صورة القرص ."
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:78
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:76
-#: Source/Core/InputCommon/ControllerEmu.cpp:272
+#: Source/Core/InputCommon/ControllerEmu.cpp:274
 msgid "Down"
 msgstr "أسفل"
 
@@ -2436,7 +2432,7 @@ msgstr "Drawn Object Range"
 msgid "Driver Not Detected"
 msgstr " لم يتم الكشف عن التعريف"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:29
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:32
 msgid "Drums"
 msgstr "الطبول"
 
@@ -2524,7 +2520,7 @@ msgstr "Duplicate Bundled ActionReplay Code"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:64
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:66
 msgid "Dutch"
 msgstr "الهولندية"
 
@@ -2574,7 +2570,7 @@ msgstr "تحرير مشهد"
 msgid "Edit..."
 msgstr "تحرير"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:50
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:44
 msgid "Effect"
 msgstr "تأثير"
 
@@ -2855,7 +2851,7 @@ msgstr "شبكة لم تتم تهيئة"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:52
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:34
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:49
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:51
 msgid "English"
 msgstr "الإنجليزية"
 
@@ -2924,11 +2920,11 @@ msgstr ""
 msgid "Escape"
 msgstr "هروب"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:32
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Euphoria"
 msgstr "Euphoria"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:92
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "Europe"
 msgstr "أوروبا"
 
@@ -3035,7 +3031,7 @@ msgstr "لاعبين"
 msgid "FP value"
 msgstr "FP value"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:230
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:224
 msgid "FST Size:"
 msgstr "الحجم :"
 
@@ -3047,11 +3043,11 @@ msgstr "خطأ الاتصال"
 msgid "Failed to Connect!"
 msgstr "خطأ الاتصال"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:534
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:575
 msgid "Failed to claim interface for BT passthrough"
 msgstr "Failed to claim interface for BT passthrough"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:529
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:570
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr "Failed to detach kernel driver for BT passthrough: %s"
@@ -3080,19 +3076,19 @@ msgstr ""
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr "Failed to listen. Is another instance of the NetPlay server running?"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:522
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:563
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr "فشل في فتح جهاز بلوتوث: %s"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:168
-#: Source/Core/DiscIO/CompressedBlob.cpp:351
+#: Source/Core/DiscIO/CompressedBlob.cpp:353
 #, c-format
 msgid "Failed to open the input file \"%s\"."
 msgstr "Failed to open the input file \"%s\"."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:175
-#: Source/Core/DiscIO/CompressedBlob.cpp:358
+#: Source/Core/DiscIO/CompressedBlob.cpp:360
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3169,8 +3165,8 @@ msgstr "فشل في قراءة معرف فريد من صورة القرص"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Failed to write BT.DINF to SYSCONF"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:295
-#: Source/Core/DiscIO/CompressedBlob.cpp:389
+#: Source/Core/DiscIO/CompressedBlob.cpp:297
+#: Source/Core/DiscIO/CompressedBlob.cpp:391
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -3239,7 +3235,7 @@ msgstr ""
 msgid "File is not recognized as a memory card"
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:342
+#: Source/Core/DiscIO/CompressedBlob.cpp:344
 msgid "File not compressed"
 msgstr "ملف غير مضغوط "
 
@@ -3337,7 +3333,7 @@ msgstr "العرض 4:3"
 msgid "Force Console as NTSC-J"
 msgstr "فرض وحدة التحكم على النظام الياباني"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:228
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:229
 msgid "Force Listen Port: "
 msgstr "Force Listen Port: "
 
@@ -3398,11 +3394,11 @@ msgid ""
 "Choose no for Windows-1252 (Western)"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:275
+#: Source/Core/InputCommon/ControllerEmu.cpp:277
 msgid "Forward"
 msgstr "إلى الأمام"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:251
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:252
 msgid "Forward port (UPnP)"
 msgstr "Forward port (UPnP)"
 
@@ -3475,7 +3471,7 @@ msgstr "Frame dump image(s) '%s' already exists. Overwrite?"
 msgid "Frames to Record"
 msgstr "إطارات للتسجيل"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:96
 msgid "France"
 msgstr "فرنسا"
 
@@ -3529,11 +3525,11 @@ msgstr " تصغير نظرة حرة "
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:54
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:36
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:55
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:57
 msgid "French"
 msgstr "الفرنسية"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:37
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:38
 msgid "Frets"
 msgstr "الحنق"
 
@@ -3570,7 +3566,7 @@ msgstr "Function calls"
 msgid "GBA"
 msgstr "GBA"
 
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:61
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:62
 msgid "GC Port"
 msgstr "GC منفذ"
 
@@ -3632,7 +3628,7 @@ msgstr "Game Boy Advance Carts (*.gba)"
 msgid "Game ID"
 msgstr "عنوان اللعبة"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:213
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:219
 msgid "Game ID:"
 msgstr "معرف اللعبة:"
 
@@ -3723,11 +3719,11 @@ msgstr "بيانات الهندسة"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:53
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:35
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:52
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:54
 msgid "German"
 msgstr "الألمانية"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:98
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:100
 msgid "Germany"
 msgstr "ألمانيا"
 
@@ -3772,19 +3768,19 @@ msgstr ""
 "\n"
 "If unsure, leave this checked."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:23
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Green"
 msgstr "أخضر"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Green Left"
 msgstr "اليسار أخضر"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:27
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Green Right"
 msgstr "اليمين أخضر"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:34
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:35
 msgid "Guitar"
 msgstr "غيتار"
 
@@ -3817,7 +3813,7 @@ msgstr "Hashes match!"
 msgid "Header checksum failed"
 msgstr "عنوان اختباري فشل"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:309
+#: Source/Core/InputCommon/ControllerEmu.cpp:311
 msgid "Height"
 msgstr "ارتفاع"
 
@@ -3834,7 +3830,7 @@ msgstr "Hex"
 msgid "Hexadecimal"
 msgstr "Hexadecimal"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:304
+#: Source/Core/InputCommon/ControllerEmu.cpp:306
 msgid "Hide"
 msgstr "إخفاء"
 
@@ -3877,12 +3873,12 @@ msgstr ""
 msgid "Home"
 msgstr "الصفحة الرئيسية"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:172
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:238
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:173
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:239
 msgid "Host"
 msgstr "هوست"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:176
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:177
 msgid "Host Code :"
 msgstr "رمز الاستضافة :"
 
@@ -3916,7 +3912,7 @@ msgstr "عنوان"
 msgid "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 msgstr "IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x"
 
-#: Source/Core/Core/IOS/ES/ES.cpp:1095
+#: Source/Core/Core/IOS/ES/ES.cpp:1091
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3929,9 +3925,13 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 " Dolphin will likely hang now."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:1075
+#: Source/Core/Core/IOS/ES/ES.cpp:1082
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: The DOL file is invalid!"
+
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:227
+msgid "IOS Version:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:112
 msgid "IPL Settings"
@@ -3951,7 +3951,7 @@ msgstr "IR"
 msgid "IR Sensitivity:"
 msgstr "IR حساسية:"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:261
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:255
 msgid "ISO Details"
 msgstr "تفاصيل ايزو"
 
@@ -4103,7 +4103,7 @@ msgstr "IR زيادة"
 msgid "Info"
 msgstr "معلومات"
 
-#: Source/Core/Common/MsgHandler.cpp:61
+#: Source/Core/Common/MsgHandler.cpp:65
 msgid "Information"
 msgstr "المعلومات"
 
@@ -4185,7 +4185,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Internal LZO Error - lzo_init() failed"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:209
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:218
 msgid "Internal Name:"
 msgstr "اسم الداخلي :"
 
@@ -4253,11 +4253,11 @@ msgstr "قيمة غير صالحة: %s"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:56
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:38
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:61
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:63
 msgid "Italian"
 msgstr "الإيطالية"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:96
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:98
 msgid "Italy"
 msgstr "إيطاليا"
 
@@ -4283,12 +4283,12 @@ msgstr "JIT Recompiler (موصى به)"
 msgid "JITIL Recompiler (slow, experimental)"
 msgstr "JITIL Recompiler (بطيء , تجريبي)"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:108
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:110
 msgid "Japan"
 msgstr "اليابان"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:46
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:48
 msgid "Japanese"
 msgstr "اليابانية"
 
@@ -4324,12 +4324,12 @@ msgstr "مفاتيح"
 msgid "Kick Player"
 msgstr "طرد لاعب"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:110
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:112
 msgid "Korea"
 msgstr "كوريا"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:42
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:73
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:75
 msgid "Korean"
 msgstr "الكورية"
 
@@ -4370,11 +4370,11 @@ msgstr "Latency:"
 #: Source/Core/DolphinWX/TASInputDlg.cpp:80
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:70
-#: Source/Core/InputCommon/ControllerEmu.cpp:273
+#: Source/Core/InputCommon/ControllerEmu.cpp:275
 msgid "Left"
 msgstr "اليسار"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:52
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:58
 msgid "Left Stick"
 msgstr "العصا الأيسر"
 
@@ -4637,7 +4637,7 @@ msgid "Logger Outputs"
 msgstr "مسجل المخرجات"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:139
-#: Source/Core/DolphinWX/Frame.cpp:369
+#: Source/Core/DolphinWX/Frame.cpp:374
 msgid "Logging"
 msgstr "تسجيل"
 
@@ -4649,7 +4649,7 @@ msgstr "M Button"
 msgid "MD5 Checksum"
 msgstr "اختبار MD5  :"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:234
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:242
 msgid "MD5 Checksum:"
 msgstr "اختبار MD5  :"
 
@@ -4679,11 +4679,11 @@ msgstr ""
 msgid "Maker"
 msgstr "المنتج"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:219
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:221
 msgid "Maker ID:"
 msgstr "معرف المنتج :"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:274
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:268
 msgid "Maker:"
 msgstr "المنتج :"
 
@@ -4732,7 +4732,7 @@ msgstr "بطاقة الذاكرة"
 msgid "Memory Card Manager"
 msgstr "مدير بطاقة الذاكرة"
 
-#: Source/Core/Core/ConfigManager.cpp:1017
+#: Source/Core/Core/ConfigManager.cpp:1012
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4802,8 +4802,8 @@ msgstr "متفرقات"
 msgid "Misc Settings"
 msgstr "إعدادات منوعة"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:184
-#: Source/Core/InputCommon/ControllerEmu.cpp:290
+#: Source/Core/InputCommon/ControllerEmu.cpp:186
+#: Source/Core/InputCommon/ControllerEmu.cpp:292
 msgid "Modifier"
 msgstr "معدل"
 
@@ -4950,7 +4950,7 @@ msgid "NP Up"
 msgstr "فوق"
 
 #: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:42
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:271
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:265
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:58
 msgid "Name:"
 msgstr "الاسم :"
@@ -4971,7 +4971,7 @@ msgstr "Native (640x528)"
 msgid "Native GCI files(*.gci)"
 msgstr "Native GCI files(*.gci)"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:100
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:102
 msgid "Netherlands"
 msgstr "هولندا"
 
@@ -5004,7 +5004,7 @@ msgstr "الصفحة التالية"
 msgid "Next Scan"
 msgstr "البحث التالي"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:127
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:128
 msgid "Nickname:"
 msgstr "الاسم:"
 
@@ -5047,7 +5047,7 @@ msgstr "No undo.dtm found, aborting undo load state to prevent movie desyncs"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:291
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:26
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:1121
 msgid "None"
 msgstr "لا شيء"
@@ -5115,7 +5115,7 @@ msgstr "NumExec"
 msgid "Number of Codes: "
 msgstr "عدد من رموز:"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:23
 msgid "Nunchuk"
 msgstr "ننشوك"
 
@@ -5195,16 +5195,16 @@ msgstr "افتح مجلد حفظ الوي"
 msgid "Open file..."
 msgstr "فتح الملف"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:57
+#: Source/Core/AudioCommon/OpenALStream.cpp:58
 #, c-format
 msgid "OpenAL: can't create context for device %s"
 msgstr "OpenAL : لا يمكن إنشاء سياق الجهاز  %s"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:67
+#: Source/Core/AudioCommon/OpenALStream.cpp:68
 msgid "OpenAL: can't find sound devices"
 msgstr "OpenAL : لا يمكن العثور على أجهزة الصوت"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:62
+#: Source/Core/AudioCommon/OpenALStream.cpp:63
 #, c-format
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL : لا يمكن فتح الجهاز %s"
@@ -5223,7 +5223,7 @@ msgstr ""
 msgid "Options"
 msgstr "خيارات"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:23
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Orange"
 msgstr "البرتقالي"
 
@@ -5283,7 +5283,7 @@ msgstr "PPC vs x86"
 msgid "Pad"
 msgstr "تحكم"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:32
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:35
 msgid "Pads"
 msgstr "منصات"
 
@@ -5426,8 +5426,8 @@ msgstr "Plus-Minus"
 msgid "Port %i"
 msgstr "المنفذ %i"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:184
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:224
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:185
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:225
 msgid "Port :"
 msgstr "المنفذ :"
 
@@ -5498,11 +5498,11 @@ msgstr "حذف ذاكرة التخزين المؤقته"
 msgid "Put BIOS roms in User/GC/{region}."
 msgstr "Put BIOS roms in User/GC/{region}."
 
-#: Source/Core/Common/MsgHandler.cpp:62
+#: Source/Core/Common/MsgHandler.cpp:66
 msgid "Question"
 msgstr "السؤال"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:133
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:134
 msgid "Quit"
 msgstr "خروج"
 
@@ -5526,7 +5526,7 @@ msgstr "R Button"
 msgid "R-Analog"
 msgstr "R-Analog"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:186
+#: Source/Core/InputCommon/ControllerEmu.cpp:188
 msgid "Radius"
 msgstr "نصف القطر"
 
@@ -5585,7 +5585,7 @@ msgstr "تسجيل معلومات"
 msgid "Recording Options"
 msgstr "تسجيل الخيارات"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Red"
 msgstr "أحمر"
 
@@ -5593,7 +5593,7 @@ msgstr "أحمر"
 msgid "Red Left"
 msgstr "اليسار أحمر"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:28
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Red Right"
 msgstr "اليمين أحمر"
 
@@ -5640,7 +5640,7 @@ msgstr "المنطقة"
 msgid "Registers"
 msgstr "سجلات"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:311
+#: Source/Core/InputCommon/ControllerEmu.cpp:313
 msgid "Relative Input"
 msgstr "Relative Input"
 
@@ -5691,7 +5691,7 @@ msgstr "Report: GCIFolder Writing to unallocated block 0x%x"
 msgid "Reset"
 msgstr "إعادة ضبط"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:123
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:124
 msgid "Reset Traversal Settings"
 msgstr "إعادة تعيين إعدادات الانتقالي"
 
@@ -5732,11 +5732,11 @@ msgstr "المراجعة: %s"
 #: Source/Core/DolphinWX/TASInputDlg.cpp:76
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:74
-#: Source/Core/InputCommon/ControllerEmu.cpp:274
+#: Source/Core/InputCommon/ControllerEmu.cpp:276
 msgid "Right"
 msgstr "اليمين"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:54
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:60
 msgid "Right Stick"
 msgstr "العصا الايمن"
 
@@ -5758,7 +5758,7 @@ msgstr "هزاز"
 msgid "Run"
 msgstr "شغل"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:102
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:104
 msgid "Russia"
 msgstr "روسيا"
 
@@ -5862,8 +5862,8 @@ msgstr "Save Symbol Map &As..."
 msgid "Save and Load State"
 msgstr ""
 
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:348
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:354
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:360
 msgid "Save as..."
 msgstr "حفظ باسم"
 
@@ -6283,7 +6283,7 @@ msgstr ""
 "Sets the latency (in ms). Higher values may reduce audio crackling. Certain "
 "backends only."
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:240
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:242
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Can't create setting.txt file"
 
@@ -6364,7 +6364,7 @@ msgstr "كوريا"
 msgid "Show Lag Counter"
 msgstr "عرض عداد التأخر"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:284
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:278
 msgid "Show Language:"
 msgstr "عرض اللغة :"
 
@@ -6525,7 +6525,7 @@ msgid "Sideways Wii Remote"
 msgstr "انحراف ريموت الوي "
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:40
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:67
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:69
 msgid "Simplified Chinese"
 msgstr "الصينية المبسطة"
 
@@ -6609,13 +6609,13 @@ msgstr "إعدادات الصوت"
 msgid "Space"
 msgstr "مجال"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:104
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:106
 msgid "Spain"
 msgstr "اسبانيا"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:55
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:37
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:58
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:60
 msgid "Spanish"
 msgstr "الأسبانية"
 
@@ -6787,7 +6787,7 @@ msgstr "3D وضع:"
 msgid "Stereoscopy"
 msgstr "Stereoscopy"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:52
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
 msgstr "عصا"
 
@@ -6828,7 +6828,7 @@ msgstr "امتداد لنافذة"
 msgid "String"
 msgstr "String"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:42
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:43
 msgid "Strum"
 msgstr "داعب الأ وتار"
 
@@ -6950,15 +6950,15 @@ msgstr "التبويب"
 msgid "Tab Split"
 msgstr "Tab Split"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:43
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:37
 msgid "Table Left"
 msgstr "الجدول الأيسر"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:44
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:38
 msgid "Table Right"
 msgstr "الجدول الأيمن"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:112
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:114
 msgid "Taiwan"
 msgstr "تايوان"
 
@@ -7130,7 +7130,7 @@ msgstr "أجاب الخادم : اللعبة قيد التشغيل حاليا"
 msgid "The server sent an unknown error message!"
 msgstr "بعث الملقم رسالة خطأ غير معروف"
 
-#: Source/Core/Core/ConfigManager.cpp:805
+#: Source/Core/Core/ConfigManager.cpp:816
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "الملف الذي حددته  (%s) غير موجود"
@@ -7273,10 +7273,10 @@ msgstr "يتم ضرب هذه القيمة مع عمق المنصوص عليها 
 msgid "This will let you manually edit the INI config file."
 msgstr "This will let you manually edit the INI config file."
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:193
-#: Source/Core/InputCommon/ControllerEmu.cpp:199
-#: Source/Core/InputCommon/ControllerEmu.cpp:205
-#: Source/Core/InputCommon/ControllerEmu.cpp:250
+#: Source/Core/InputCommon/ControllerEmu.cpp:195
+#: Source/Core/InputCommon/ControllerEmu.cpp:201
+#: Source/Core/InputCommon/ControllerEmu.cpp:207
+#: Source/Core/InputCommon/ControllerEmu.cpp:252
 msgid "Threshold"
 msgstr "بداية"
 
@@ -7376,15 +7376,15 @@ msgid "Top-and-Bottom"
 msgstr "فوق وتحت"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:41
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:70
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:72
 msgid "Traditional Chinese"
 msgstr "الصينية التقليدية"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:121
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:122
 msgid "Traversal Server"
 msgstr "اجتياز الخادم"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:34
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:35
 #, c-format
 msgid "Traversal Server: %s"
 msgstr "اجتياز الخادم: %s"
@@ -7393,12 +7393,12 @@ msgstr "اجتياز الخادم: %s"
 msgid "Traversal server timed out connecting to the host"
 msgstr "توقيت الخادم اجتياز خارج اتصال بمضيف"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:77 Source/Core/DiscIO/VolumeGC.cpp:37
-#: Source/Core/DiscIO/VolumeWad.cpp:52
+#: Source/Core/DiscIO/VolumeDirectory.cpp:79 Source/Core/DiscIO/VolumeGC.cpp:37
+#: Source/Core/DiscIO/VolumeWad.cpp:48
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Tried to decrypt data from a non-Wii volume"
 
-#: Source/Core/Core/Boot/Boot.cpp:474
+#: Source/Core/Core/Boot/Boot.cpp:478
 msgid "Tried to load an unknown file type."
 msgstr "حاول تحميل نوع ملف غير معروف."
 
@@ -7436,7 +7436,7 @@ msgstr ""
 msgid "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
 msgstr "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:35
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:29
 msgid "Turntable"
 msgstr "القرص الدوار"
 
@@ -7454,7 +7454,7 @@ msgstr "نوع"
 msgid "UNKNOWN_%02X"
 msgstr "غير معروف_%02X"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:106
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:108
 msgid "USA"
 msgstr "امريكا"
 
@@ -7499,8 +7499,8 @@ msgstr "Unexpected 0x80 call? Aborting..."
 
 #: Source/Core/Core/State.cpp:454
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:105
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:77
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:117
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:79
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:119
 msgid "Unknown"
 msgstr "غير معروف"
 
@@ -7538,14 +7538,14 @@ msgstr "Unknown message with id:%d received from player:%d Kicking player!"
 msgid "Unlimited"
 msgstr "غير محدود"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:378
+#: Source/Core/DiscIO/CompressedBlob.cpp:380
 msgid "Unpacking"
 msgstr "تفريغ"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:74
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:72
-#: Source/Core/InputCommon/ControllerEmu.cpp:271
+#: Source/Core/InputCommon/ControllerEmu.cpp:273
 msgid "Up"
 msgstr "أعلى"
 
@@ -7773,7 +7773,7 @@ msgstr ""
 "\n"
 "إذا لم تكن متأكدا اترك هذا غير محددة."
 
-#: Source/Core/Common/MsgHandler.cpp:63
+#: Source/Core/Common/MsgHandler.cpp:67
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1142
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1462
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
@@ -7896,7 +7896,7 @@ msgstr "Watch"
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - file not open."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:55
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:56
 msgid "Whammy"
 msgstr "الضربة"
 
@@ -7916,7 +7916,7 @@ msgstr ""
 msgid "Widescreen Hack"
 msgstr "شاشة عريضة"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:308
+#: Source/Core/InputCommon/ControllerEmu.cpp:310
 msgid "Width"
 msgstr "عرض"
 
@@ -7934,7 +7934,7 @@ msgid "Wii NAND Root:"
 msgstr "Wii NAND Root:"
 
 #: Source/Core/Core/HW/Wiimote.cpp:15
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:62
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:63
 msgid "Wii Remote"
 msgstr "ريموت الوي"
 
@@ -8011,11 +8011,11 @@ msgstr "كلمة ختامية"
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1255
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1374
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Working..."
 msgstr "العمل"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:114
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:116
 msgid "World"
 msgstr "عالم"
 
@@ -8059,7 +8059,7 @@ msgstr "XFB Cmd"
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Yellow"
 msgstr "أصفر"
 
@@ -8067,7 +8067,7 @@ msgstr "أصفر"
 msgid "You can't close panes that have pages in them."
 msgstr "لا يمكنك إغلاق أجزاء الصفحات التي فيها."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:325
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:326
 msgid "You must choose a game!"
 msgstr "عليك اختيار لعبة!"
 
@@ -8097,7 +8097,7 @@ msgstr ""
 "Would you like to stop now to fix the problem?\n"
 "If you select \"No\", audio might be garbled."
 
-#: Source/Core/Core/ConfigManager.cpp:842
+#: Source/Core/Core/ConfigManager.cpp:850
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -8160,11 +8160,11 @@ msgstr "إكمال زائف "
 msgid "none"
 msgstr "لا شيء"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:238
+#: Source/Core/InputCommon/ControllerEmu.cpp:240
 msgid "off"
 msgstr "إيقاف"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:236
+#: Source/Core/InputCommon/ControllerEmu.cpp:238
 msgid "on"
 msgstr "تفعيل"
 

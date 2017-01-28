@@ -8,8 +8,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-21 12:22+0100\n"
-"PO-Revision-Date: 2017-01-21 11:22+0000\n"
+"POT-Creation-Date: 2017-01-28 12:42+0100\n"
+"PO-Revision-Date: 2017-01-28 11:43+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Malay (Malaysia) (http://www.transifex.com/delroth/dolphin-"
 "emu/language/ms_MY/)\n"
@@ -67,7 +67,7 @@ msgstr "\"%s\" gagal diskrub. Berkemungkinan imej telah rosak."
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s\" sudahpun dimampat! Tidak dapat mampat ia lagi."
 
-#: Source/Core/Core/ConfigManager.cpp:827
+#: Source/Core/Core/ConfigManager.cpp:838
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" ialah fail GCM/ISO tidak sah, atau bukan ISO GC/Wii."
@@ -77,7 +77,7 @@ msgstr "\"%s\" ialah fail GCM/ISO tidak sah, atau bukan ISO GC/Wii."
 msgid "%1$sCopy%1$s"
 msgstr "%1$sSalin%1$s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:237
+#: Source/Core/DiscIO/CompressedBlob.cpp:239
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i dari %i blok. Nisbah mampatan %i%%"
@@ -718,7 +718,7 @@ msgstr ""
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr "Segerak hanya boleh dipicu bila permainan Wii berjalan."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:193
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:194
 msgid ""
 "ALERT:\n"
 "\n"
@@ -1004,7 +1004,7 @@ msgstr "Anaglif"
 msgid "Analyze"
 msgstr "Analisis"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:294
+#: Source/Core/InputCommon/ControllerEmu.cpp:296
 msgid "Angle"
 msgstr "Sudut"
 
@@ -1024,15 +1024,15 @@ msgstr "Tambah tandatangan kepada"
 msgid "Append to &Existing Signature File..."
 msgstr "Tambah ke Fail Tandatangan &Sedia Ada..."
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:226
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:223
 msgid "Apploader Date:"
 msgstr "Tarikh Pemuatapl:"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:314
+#: Source/Core/DiscIO/VolumeDirectory.cpp:316
 msgid "Apploader is the wrong size...is it really an apploader?"
 msgstr "Sazi pemuatapl salah... adalah ia benar-benar apploader?"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:307
+#: Source/Core/DiscIO/VolumeDirectory.cpp:309
 msgid "Apploader unable to load from file"
 msgstr "Pemuatapl tidak boleh dimuatkan dari fail"
 
@@ -1089,12 +1089,6 @@ msgstr "Umpuk Port Kawalan"
 msgid "At least one pane must remain open."
 msgstr "Sekurang-kurangnya satu anak tetingkap kekal dibuka."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:277
-msgid "Attempted to load a state. Bluetooth will likely be broken now."
-msgstr ""
-"Percubaan untuk memuatkan keadaan. Bluetooth berkemungkinan mengalami "
-"kerosakan sekarang."
-
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:86
 msgid "Audio"
 msgstr "Audio"
@@ -1107,7 +1101,7 @@ msgstr "Bahagian Belakang Audio:"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "UmumAudio: Ralat membuka peranti AO.\n"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:90
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:92
 msgid "Australia"
 msgstr "Australia"
 
@@ -1199,7 +1193,7 @@ msgstr "Bahagian Belakang:"
 msgid "Background Input"
 msgstr "Input Latar Belakang"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:276
+#: Source/Core/InputCommon/ControllerEmu.cpp:278
 msgid "Backward"
 msgstr "Undur"
 
@@ -1209,15 +1203,15 @@ msgstr "Undur"
 msgid "Banner"
 msgstr "Sepanduk"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:304
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:298
 msgid "Banner Details"
 msgstr "Perincian Sepanduk"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:280
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:274
 msgid "Banner:"
 msgstr "Sepanduk:"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:56
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:57
 msgid "Bar"
 msgstr "Palang"
 
@@ -1229,7 +1223,7 @@ msgstr "Asas"
 msgid "Basic Settings"
 msgstr "Tetapan Asas"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:23
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:25
 msgid "Bass"
 msgstr "Bass"
 
@@ -1245,15 +1239,15 @@ msgstr "Hasil tambah semak Jadual Peruntukan Blok gagal"
 msgid "Blocks"
 msgstr "Blok"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Blue"
 msgstr "Biru"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Blue Left"
 msgstr "Biru Kiri"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Blue Right"
 msgstr "Biru Kanan"
 
@@ -1265,7 +1259,7 @@ msgstr ""
 "Mod passthrough Bluetooth dibenarkan, tetapi Dolphin dibina tanpa libusb. "
 "Mod passthrough tidak dapat digunakan."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:142
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:130
 msgid ""
 "Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device "
 "was found. Aborting."
@@ -1450,7 +1444,7 @@ msgid "Caps Lock"
 msgstr "Caps Lock"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:387
-#: Source/Core/InputCommon/ControllerEmu.cpp:307
+#: Source/Core/InputCommon/ControllerEmu.cpp:309
 msgid "Center"
 msgstr "Tengah"
 
@@ -1568,11 +1562,11 @@ msgstr "Pilih fail input sekunder"
 msgid "Choose the folder to extract to"
 msgstr "Pilih folder untuk diekstrak ke"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:293
+#: Source/Core/InputCommon/ControllerEmu.cpp:295
 msgid "Circle Stick"
 msgstr "Batang Bulat"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:43
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:49
 msgid "Classic"
 msgstr "Klasik"
 
@@ -1674,7 +1668,7 @@ msgstr ""
 "salinan termampat dengan membuang data pemadatan. Imej cakera anda masih "
 "lagi berfungsi. Teruskan?"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:237
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:245
 msgid "Compute"
 msgstr "Kira"
 
@@ -1687,7 +1681,7 @@ msgstr ""
 "Mengira Hasil Tambah Semak MD5 untuk:\n"
 "%s"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Computing MD5 checksum"
 msgstr "Mengira hasil tambah semak MD5"
 
@@ -1732,8 +1726,8 @@ msgstr "Sahkan Tulis-Ganti Fail"
 msgid "Confirm on Stop"
 msgstr "Sahkan bil Berhenti"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:170
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:188
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:171
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:189
 msgid "Connect"
 msgstr "Sambung"
 
@@ -1775,7 +1769,7 @@ msgstr "Sambung Wii Remote"
 msgid "Connecting..."
 msgstr "Menyambung..."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:116
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:117
 msgid "Connection Type:"
 msgstr "Jenis Sambungan:"
 
@@ -1796,7 +1790,7 @@ msgstr "Kawalan"
 msgid "Control Stick"
 msgstr "Bidak Kawalan"
 
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:17
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:18
 msgid "Controller Ports"
 msgstr "Port Kawalan"
 
@@ -1867,7 +1861,7 @@ msgstr "Salin &fungsi"
 msgid "Copy &hex"
 msgstr "Salin &heks"
 
-#: Source/Core/Core/ConfigManager.cpp:1025
+#: Source/Core/Core/ConfigManager.cpp:1020
 msgid "Copy failed"
 msgstr "Salin gagal"
 
@@ -1885,7 +1879,7 @@ msgstr "Teras"
 msgid "Cost"
 msgstr "Kos"
 
-#: Source/Core/Core/ConfigManager.cpp:821
+#: Source/Core/Core/ConfigManager.cpp:832
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1896,7 +1890,7 @@ msgstr ""
 "GameCube/Wii. Perhatian Dolphin tidak dapat mainkan permainan secara terus "
 "cakera GameCuba dan Wii yang asal."
 
-#: Source/Core/Core/ConfigManager.cpp:937
+#: Source/Core/Core/ConfigManager.cpp:935
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Tidak dapat kenalpasti fail ISO %s"
@@ -1938,7 +1932,7 @@ msgstr "Tidak dapat cipta rakan."
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Tidak dapat cari perintah buka untuk sambungan 'ini'!"
 
-#: Source/Core/Core/BootManager.cpp:380
+#: Source/Core/Core/BootManager.cpp:388
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -1963,7 +1957,7 @@ msgstr "Kiraan:"
 msgid "Count: %lu"
 msgstr "Kiraan: %lu"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:216
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:220
 msgid "Country:"
 msgstr "Negara:"
 
@@ -2002,7 +1996,7 @@ msgstr "Cipta perspektif baru"
 msgid "Creator: "
 msgstr "Pencipta:"
 
-#: Source/Core/Common/MsgHandler.cpp:64
+#: Source/Core/Common/MsgHandler.cpp:68
 msgid "Critical"
 msgstr "Kritikal"
 
@@ -2020,7 +2014,7 @@ msgstr ""
 "\n"
 "Jika tidak pasti, biarkan ia tidak bertanda."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:54
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
 msgstr "Resap Silang"
 
@@ -2091,12 +2085,12 @@ msgstr "Jenis Data"
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Fail Datel MaxDrive/Pro (*.sav)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:187
-#: Source/Core/InputCommon/ControllerEmu.cpp:256
-#: Source/Core/InputCommon/ControllerEmu.cpp:264
-#: Source/Core/InputCommon/ControllerEmu.cpp:278
-#: Source/Core/InputCommon/ControllerEmu.cpp:292
-#: Source/Core/InputCommon/ControllerEmu.cpp:310
+#: Source/Core/InputCommon/ControllerEmu.cpp:189
+#: Source/Core/InputCommon/ControllerEmu.cpp:258
+#: Source/Core/InputCommon/ControllerEmu.cpp:266
+#: Source/Core/InputCommon/ControllerEmu.cpp:280
+#: Source/Core/InputCommon/ControllerEmu.cpp:294
+#: Source/Core/InputCommon/ControllerEmu.cpp:312
 msgid "Dead Zone"
 msgstr "Zon Mati"
 
@@ -2188,7 +2182,7 @@ msgstr "Kedalaman:"
 msgid "Description"
 msgstr "Keterangan"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:277
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:271
 msgid "Description:"
 msgstr "Keterangan:"
 
@@ -2214,7 +2208,7 @@ msgstr "Tetapan Peranti"
 msgid "Device not found"
 msgstr "Peranti tidak ditemui"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:51
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:45
 msgid "Dial"
 msgstr "Dail"
 
@@ -2222,7 +2216,7 @@ msgstr "Dail"
 msgid "Dims the screen after five minutes of inactivity."
 msgstr "Malapkan skrin selepas lima minit ketidakaktifan."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:120
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:121
 msgid "Direct Connection"
 msgstr "Sambungan Terus"
 
@@ -2367,7 +2361,7 @@ msgstr "Fail Peta Dolphin (*.map)"
 msgid "Dolphin NetPlay"
 msgstr "NetPlay Dolphin"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:39
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:40
 msgid "Dolphin NetPlay Setup"
 msgstr "Persediaan NetPlay Dolphin"
 
@@ -2417,14 +2411,14 @@ msgstr "Dolphin tidak dapat selesaikan tindakan yang dipinta."
 msgid "Dolphin's cheat system is currently disabled."
 msgstr "Sistem tipuan Dolphin buat masa ini dilumpuhkan."
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:329
+#: Source/Core/DiscIO/CompressedBlob.cpp:331
 msgid "Done compressing disc image."
 msgstr "Selesai memampatkan imej cakera."
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:78
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:76
-#: Source/Core/InputCommon/ControllerEmu.cpp:272
+#: Source/Core/InputCommon/ControllerEmu.cpp:274
 msgid "Down"
 msgstr "Turun"
 
@@ -2445,7 +2439,7 @@ msgstr "Julat Objek Dilukis"
 msgid "Driver Not Detected"
 msgstr "Pemacu Tidak Dikesan"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:29
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:32
 msgid "Drums"
 msgstr "Dram"
 
@@ -2533,7 +2527,7 @@ msgstr "Duplikasi Kod ActionReplay Bundle"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:64
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:66
 msgid "Dutch"
 msgstr "Bahasa Belanda"
 
@@ -2583,7 +2577,7 @@ msgstr "Sunting Perspektif"
 msgid "Edit..."
 msgstr "Sunting..."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:50
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:44
 msgid "Effect"
 msgstr "Kesan"
 
@@ -2865,7 +2859,7 @@ msgstr "Enet Tidak Diawalkan"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:52
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:34
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:49
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:51
 msgid "English"
 msgstr "Bahasa Inggeris"
 
@@ -2934,11 +2928,11 @@ msgstr ""
 msgid "Escape"
 msgstr "Escape"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:32
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Euphoria"
 msgstr "Euforia"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:92
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "Europe"
 msgstr "Eropah"
 
@@ -3045,7 +3039,7 @@ msgstr "Pemain FIFO"
 msgid "FP value"
 msgstr "Nilai FP"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:230
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:224
 msgid "FST Size:"
 msgstr "Saiz FST:"
 
@@ -3057,11 +3051,11 @@ msgstr "Gagal Menyambung!"
 msgid "Failed to Connect!"
 msgstr "Gagal Menyambung!"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:534
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:575
 msgid "Failed to claim interface for BT passthrough"
 msgstr "Gagal menuntut antaramuka untuk passthrough BT"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:529
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:570
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr "Gagal menanggalkan pemacu kernel untuk passthrough BT: %s"
@@ -3090,19 +3084,19 @@ msgstr ""
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr "Gagal mendengar. Adakah kejadian pelayan NetPlay lain sedang berjalan?"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:522
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:563
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr "Gagal membuka peranti Bluetooth: %s"
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:168
-#: Source/Core/DiscIO/CompressedBlob.cpp:351
+#: Source/Core/DiscIO/CompressedBlob.cpp:353
 #, c-format
 msgid "Failed to open the input file \"%s\"."
 msgstr "Gagal membuka fail input \"%s\"."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:175
-#: Source/Core/DiscIO/CompressedBlob.cpp:358
+#: Source/Core/DiscIO/CompressedBlob.cpp:360
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3179,8 +3173,8 @@ msgstr "Gagal membaca ID unik dari imej cakera"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "Gagal menulis BT.DINF ke SYSCONF"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:295
-#: Source/Core/DiscIO/CompressedBlob.cpp:389
+#: Source/Core/DiscIO/CompressedBlob.cpp:297
+#: Source/Core/DiscIO/CompressedBlob.cpp:391
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -3250,7 +3244,7 @@ msgstr ""
 msgid "File is not recognized as a memory card"
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:342
+#: Source/Core/DiscIO/CompressedBlob.cpp:344
 msgid "File not compressed"
 msgstr "Fail tidak dimampat"
 
@@ -3348,7 +3342,7 @@ msgstr "Paksa 4:3"
 msgid "Force Console as NTSC-J"
 msgstr "Paksa Konsol sebagai NTSC-J"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:228
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:229
 msgid "Force Listen Port: "
 msgstr "Paksa Port Dengar:"
 
@@ -3411,11 +3405,11 @@ msgid ""
 "Choose no for Windows-1252 (Western)"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:275
+#: Source/Core/InputCommon/ControllerEmu.cpp:277
 msgid "Forward"
 msgstr "Maju"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:251
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:252
 msgid "Forward port (UPnP)"
 msgstr "Port maju (UPnP)"
 
@@ -3488,7 +3482,7 @@ msgstr ""
 msgid "Frames to Record"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:96
 msgid "France"
 msgstr "Perancis"
 
@@ -3542,11 +3536,11 @@ msgstr "Zum Keluar Freelook"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:54
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:36
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:55
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:57
 msgid "French"
 msgstr "Perancis"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:37
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:38
 msgid "Frets"
 msgstr "Frets"
 
@@ -3583,7 +3577,7 @@ msgstr "Panggilan fungsi"
 msgid "GBA"
 msgstr "GBA"
 
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:61
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:62
 msgid "GC Port"
 msgstr "Port GC"
 
@@ -3645,7 +3639,7 @@ msgstr "Kartu Game Boy Advance (*.gba)"
 msgid "Game ID"
 msgstr "ID Permainan"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:213
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:219
 msgid "Game ID:"
 msgstr "ID Permainan:"
 
@@ -3737,11 +3731,11 @@ msgstr "Data geometri"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:53
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:35
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:52
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:54
 msgid "German"
 msgstr "Jerman"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:98
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:100
 msgid "Germany"
 msgstr "Jerman"
 
@@ -3786,19 +3780,19 @@ msgstr ""
 "\n"
 "Jika tidak pasti, biarkan ia bertanda."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:23
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Green"
 msgstr "Hijau"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Green Left"
 msgstr "Hijau Kiri"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:27
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Green Right"
 msgstr "Hijau Kanan"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:34
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:35
 msgid "Guitar"
 msgstr "Gitar"
 
@@ -3831,7 +3825,7 @@ msgstr "Cincangan sepadan!"
 msgid "Header checksum failed"
 msgstr "Hasil tambah semak pengepala gagal"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:309
+#: Source/Core/InputCommon/ControllerEmu.cpp:311
 msgid "Height"
 msgstr "Tinggi"
 
@@ -3848,7 +3842,7 @@ msgstr "Heks"
 msgid "Hexadecimal"
 msgstr "Heksadesimal"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:304
+#: Source/Core/InputCommon/ControllerEmu.cpp:306
 msgid "Hide"
 msgstr "Sembunyi"
 
@@ -3891,12 +3885,12 @@ msgstr ""
 msgid "Home"
 msgstr "Rumah"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:172
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:238
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:173
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:239
 msgid "Host"
 msgstr "Hos"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:176
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:177
 msgid "Host Code :"
 msgstr "Kod Hos :"
 
@@ -3932,7 +3926,7 @@ msgstr ""
 "IOCTL_ES_GETVIEWS: Cuba dapatkan data dari tiket yang tidak diketahui: %08x/"
 "%08x"
 
-#: Source/Core/Core/IOS/ES/ES.cpp:1095
+#: Source/Core/Core/IOS/ES/ES.cpp:1091
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3945,9 +3939,13 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 "Dolphin berkemungkinan menjadi kaku sekarang."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:1075
+#: Source/Core/Core/IOS/ES/ES.cpp:1082
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: Fail DOL tidak sah!"
+
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:227
+msgid "IOS Version:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:112
 msgid "IPL Settings"
@@ -3967,7 +3965,7 @@ msgstr "IR"
 msgid "IR Sensitivity:"
 msgstr "Kepekaan IR:"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:261
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:255
 msgid "ISO Details"
 msgstr "Perincian ISO"
 
@@ -4121,7 +4119,7 @@ msgstr "Tingkatkan IR"
 msgid "Info"
 msgstr "Maklumat"
 
-#: Source/Core/Common/MsgHandler.cpp:61
+#: Source/Core/Common/MsgHandler.cpp:65
 msgid "Information"
 msgstr "Maklumat"
 
@@ -4203,7 +4201,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Ralat LZO Dalaman - lzo_init() gagal"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:209
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:218
 msgid "Internal Name:"
 msgstr "Nama Dalaman:"
 
@@ -4271,11 +4269,11 @@ msgstr "Nilai tidak sah: %s"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:56
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:38
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:61
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:63
 msgid "Italian"
 msgstr "Itali"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:96
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:98
 msgid "Italy"
 msgstr "Itali"
 
@@ -4301,12 +4299,12 @@ msgstr "Pengkompil JIT (disarankan)"
 msgid "JITIL Recompiler (slow, experimental)"
 msgstr "Pengompil Semula JITIL (perlahan, eksperimental)"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:108
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:110
 msgid "Japan"
 msgstr "Jepun"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:46
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:48
 msgid "Japanese"
 msgstr "Jepun"
 
@@ -4342,12 +4340,12 @@ msgstr "Kekunci"
 msgid "Kick Player"
 msgstr "Tendang Pemain"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:110
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:112
 msgid "Korea"
 msgstr "Korea"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:42
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:73
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:75
 msgid "Korean"
 msgstr "Korea"
 
@@ -4388,11 +4386,11 @@ msgstr "Kependaman:"
 #: Source/Core/DolphinWX/TASInputDlg.cpp:80
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:70
-#: Source/Core/InputCommon/ControllerEmu.cpp:273
+#: Source/Core/InputCommon/ControllerEmu.cpp:275
 msgid "Left"
 msgstr "Kiri"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:52
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:58
 msgid "Left Stick"
 msgstr "Bidak Kiri"
 
@@ -4656,7 +4654,7 @@ msgid "Logger Outputs"
 msgstr "Output Pengelog"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:139
-#: Source/Core/DolphinWX/Frame.cpp:369
+#: Source/Core/DolphinWX/Frame.cpp:374
 msgid "Logging"
 msgstr "Mengelog"
 
@@ -4668,7 +4666,7 @@ msgstr "Butang M"
 msgid "MD5 Checksum"
 msgstr "Hasil tambah semak MD5"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:234
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:242
 msgid "MD5 Checksum:"
 msgstr "Hasil Tambah Semak MD5:"
 
@@ -4698,11 +4696,11 @@ msgstr ""
 msgid "Maker"
 msgstr "Pembuat:"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:219
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:221
 msgid "Maker ID:"
 msgstr "ID Pembuat:"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:274
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:268
 msgid "Maker:"
 msgstr "Pembuat:"
 
@@ -4752,7 +4750,7 @@ msgstr "Kad Ingatan"
 msgid "Memory Card Manager"
 msgstr "Pengurus Kad Ingatan"
 
-#: Source/Core/Core/ConfigManager.cpp:1017
+#: Source/Core/Core/ConfigManager.cpp:1012
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4822,8 +4820,8 @@ msgstr "Pelbagai"
 msgid "Misc Settings"
 msgstr "Tetapan Pelbagai"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:184
-#: Source/Core/InputCommon/ControllerEmu.cpp:290
+#: Source/Core/InputCommon/ControllerEmu.cpp:186
+#: Source/Core/InputCommon/ControllerEmu.cpp:292
 msgid "Modifier"
 msgstr "Pengubahsuai"
 
@@ -4973,7 +4971,7 @@ msgid "NP Up"
 msgstr "NP Naik"
 
 #: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:42
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:271
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:265
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:58
 msgid "Name:"
 msgstr "Nama:"
@@ -4994,7 +4992,7 @@ msgstr "Natif (640x528)"
 msgid "Native GCI files(*.gci)"
 msgstr "Fail GCI Tabii(*.gci)"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:100
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:102
 msgid "Netherlands"
 msgstr "Belanda"
 
@@ -5027,7 +5025,7 @@ msgstr "Halaman Berikutnya"
 msgid "Next Scan"
 msgstr "Imbas Berikutnya"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:127
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:128
 msgid "Nickname:"
 msgstr "Gelaran:"
 
@@ -5072,7 +5070,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:291
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:26
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:1121
 msgid "None"
 msgstr "Tiada"
@@ -5140,7 +5138,7 @@ msgstr "NumExec"
 msgid "Number of Codes: "
 msgstr "Nombor Kod:"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:23
 msgid "Nunchuk"
 msgstr "Nunchuk"
 
@@ -5220,16 +5218,16 @@ msgstr "Buka folder &simpan Wii"
 msgid "Open file..."
 msgstr "Buka fail..."
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:57
+#: Source/Core/AudioCommon/OpenALStream.cpp:58
 #, c-format
 msgid "OpenAL: can't create context for device %s"
 msgstr "OpenAL: tidak dapat cipta konteks untuk peranti %s"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:67
+#: Source/Core/AudioCommon/OpenALStream.cpp:68
 msgid "OpenAL: can't find sound devices"
 msgstr "OpenAL: tidak dapat cari peranti bunyi"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:62
+#: Source/Core/AudioCommon/OpenALStream.cpp:63
 #, c-format
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: tidak dapat buka peranti %s"
@@ -5248,7 +5246,7 @@ msgstr ""
 msgid "Options"
 msgstr "Pilihan"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:23
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Orange"
 msgstr "Oren"
 
@@ -5308,7 +5306,7 @@ msgstr "PPC vs x86"
 msgid "Pad"
 msgstr "Pad"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:32
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:35
 msgid "Pads"
 msgstr "Pad"
 
@@ -5451,8 +5449,8 @@ msgstr "Campur-Tolak"
 msgid "Port %i"
 msgstr "Port %i"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:184
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:224
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:185
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:225
 msgid "Port :"
 msgstr "Port :"
 
@@ -5523,11 +5521,11 @@ msgstr "Singkir Cache Senarai Permainan"
 msgid "Put BIOS roms in User/GC/{region}."
 msgstr "Letak rom BIOS dalam User/GC/{region}."
 
-#: Source/Core/Common/MsgHandler.cpp:62
+#: Source/Core/Common/MsgHandler.cpp:66
 msgid "Question"
 msgstr "Soalan"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:133
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:134
 msgid "Quit"
 msgstr "Keluar"
 
@@ -5551,7 +5549,7 @@ msgstr "Butang R"
 msgid "R-Analog"
 msgstr "Analog-R"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:186
+#: Source/Core/InputCommon/ControllerEmu.cpp:188
 msgid "Radius"
 msgstr "Jejari"
 
@@ -5610,7 +5608,7 @@ msgstr "Maklumat Rakaman"
 msgid "Recording Options"
 msgstr "Pilihan Rakaman"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Red"
 msgstr "Merah"
 
@@ -5618,7 +5616,7 @@ msgstr "Merah"
 msgid "Red Left"
 msgstr "Merah Kiri"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:28
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Red Right"
 msgstr "Merah Kanan"
 
@@ -5665,7 +5663,7 @@ msgstr "Wilayah"
 msgid "Registers"
 msgstr "Daftar"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:311
+#: Source/Core/InputCommon/ControllerEmu.cpp:313
 msgid "Relative Input"
 msgstr "Input Relatif"
 
@@ -5716,7 +5714,7 @@ msgstr "Report: GCIFolder Menulis ke blok tak-peruntuk 0x%x"
 msgid "Reset"
 msgstr "Tetap Semula"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:123
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:124
 msgid "Reset Traversal Settings"
 msgstr "Tetap Semula Tetapan Traversal"
 
@@ -5757,11 +5755,11 @@ msgstr "Revisi: %s"
 #: Source/Core/DolphinWX/TASInputDlg.cpp:76
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:74
-#: Source/Core/InputCommon/ControllerEmu.cpp:274
+#: Source/Core/InputCommon/ControllerEmu.cpp:276
 msgid "Right"
 msgstr "Kanan"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:54
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:60
 msgid "Right Stick"
 msgstr "Bidak Kanan"
 
@@ -5783,7 +5781,7 @@ msgstr "Rumble"
 msgid "Run"
 msgstr "Jalan"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:102
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:104
 msgid "Russia"
 msgstr "Rusia"
 
@@ -5887,8 +5885,8 @@ msgstr "Simpan Peta Simbol Sebag&ai..."
 msgid "Save and Load State"
 msgstr ""
 
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:348
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:354
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:360
 msgid "Save as..."
 msgstr "Simpan sebagai..."
 
@@ -6311,7 +6309,7 @@ msgstr ""
 "Tetapkan kependaman (dalam ms). Nilai lebih tinggi mungkin mengurangkan "
 "ketaran audio. Bahagian belakang tertentu sahaja."
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:240
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:242
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: Tidak dapat cipta fail setting.txt"
 
@@ -6392,7 +6390,7 @@ msgstr "Tunjuk Korea"
 msgid "Show Lag Counter"
 msgstr "Tunjuk Kiraan Lengah"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:284
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:278
 msgid "Show Language:"
 msgstr "Tunjuk Bahasa:"
 
@@ -6554,7 +6552,7 @@ msgid "Sideways Wii Remote"
 msgstr "Wii Remote Sisi"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:40
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:67
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:69
 msgid "Simplified Chinese"
 msgstr "Cina Ringkas"
 
@@ -6641,13 +6639,13 @@ msgstr "Tetapan Bunyi"
 msgid "Space"
 msgstr "Jaraj"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:104
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:106
 msgid "Spain"
 msgstr "Sepanyol"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:55
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:37
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:58
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:60
 msgid "Spanish"
 msgstr "Sepanyol"
 
@@ -6821,7 +6819,7 @@ msgstr "Mod Stereoskopik 3D:"
 msgid "Stereoscopy"
 msgstr "Stereoskopi"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:52
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
 msgstr "Bidak"
 
@@ -6862,7 +6860,7 @@ msgstr "Regang ke Tetingkap"
 msgid "String"
 msgstr "Rentetan"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:42
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:43
 msgid "Strum"
 msgstr "Strum"
 
@@ -6984,15 +6982,15 @@ msgstr "Tab"
 msgid "Tab Split"
 msgstr "Pisah Tab"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:43
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:37
 msgid "Table Left"
 msgstr "Jadual Kiri"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:44
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:38
 msgid "Table Right"
 msgstr "Jadual Kanan"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:112
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:114
 msgid "Taiwan"
 msgstr "Taiwan"
 
@@ -7167,7 +7165,7 @@ msgstr "Pelayan membalas: permainan kini sedang berjalan!"
 msgid "The server sent an unknown error message!"
 msgstr "Pelayan menghantar mesej ralat tidak diketahui!"
 
-#: Source/Core/Core/ConfigManager.cpp:805
+#: Source/Core/Core/ConfigManager.cpp:816
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "Fail \"%s\" yang dinyatakan tidak wujud"
@@ -7318,10 +7316,10 @@ msgstr ""
 msgid "This will let you manually edit the INI config file."
 msgstr "Ia membolehkan anda sunting secara manual fail konfig INI."
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:193
-#: Source/Core/InputCommon/ControllerEmu.cpp:199
-#: Source/Core/InputCommon/ControllerEmu.cpp:205
-#: Source/Core/InputCommon/ControllerEmu.cpp:250
+#: Source/Core/InputCommon/ControllerEmu.cpp:195
+#: Source/Core/InputCommon/ControllerEmu.cpp:201
+#: Source/Core/InputCommon/ControllerEmu.cpp:207
+#: Source/Core/InputCommon/ControllerEmu.cpp:252
 msgid "Threshold"
 msgstr "Ambang"
 
@@ -7421,15 +7419,15 @@ msgid "Top-and-Bottom"
 msgstr "Atas-dan-Bawah"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:41
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:70
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:72
 msgid "Traditional Chinese"
 msgstr "Cina Tradisional"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:121
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:122
 msgid "Traversal Server"
 msgstr "Pelayan Traversal"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:34
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:35
 #, c-format
 msgid "Traversal Server: %s"
 msgstr "Pelayan Traversal: %s"
@@ -7438,12 +7436,12 @@ msgstr "Pelayan Traversal: %s"
 msgid "Traversal server timed out connecting to the host"
 msgstr "Pelayan travesal tamat masa ketika menyambung ke hos"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:77 Source/Core/DiscIO/VolumeGC.cpp:37
-#: Source/Core/DiscIO/VolumeWad.cpp:52
+#: Source/Core/DiscIO/VolumeDirectory.cpp:79 Source/Core/DiscIO/VolumeGC.cpp:37
+#: Source/Core/DiscIO/VolumeWad.cpp:48
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Cuba menyahsulit data dari volum bukan-Wii"
 
-#: Source/Core/Core/Boot/Boot.cpp:474
+#: Source/Core/Core/Boot/Boot.cpp:478
 msgid "Tried to load an unknown file type."
 msgstr "Cuba memuatkan jenis fail yang tidak diketahui."
 
@@ -7481,7 +7479,7 @@ msgid "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
 msgstr ""
 "Matikan semua fungsi JIT, tetapi masih gunakan teras JIT daripada Jit.cpp"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:35
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:29
 msgid "Turntable"
 msgstr "Boleh Dikalih"
 
@@ -7499,7 +7497,7 @@ msgstr "Jenis"
 msgid "UNKNOWN_%02X"
 msgstr "UNKNOWN_%02X"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:106
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:108
 msgid "USA"
 msgstr "USA"
 
@@ -7544,8 +7542,8 @@ msgstr "Panggilan 0x80 tidak dijangka? Menghentipaksa..."
 
 #: Source/Core/Core/State.cpp:454
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:105
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:77
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:117
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:79
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:119
 msgid "Unknown"
 msgstr "Tidak diketahui"
 
@@ -7584,14 +7582,14 @@ msgstr ""
 msgid "Unlimited"
 msgstr "Tanpa had"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:378
+#: Source/Core/DiscIO/CompressedBlob.cpp:380
 msgid "Unpacking"
 msgstr "Nyahpek"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:74
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:72
-#: Source/Core/InputCommon/ControllerEmu.cpp:271
+#: Source/Core/InputCommon/ControllerEmu.cpp:273
 msgid "Up"
 msgstr "Naik"
 
@@ -7821,7 +7819,7 @@ msgstr ""
 "\n"
 "Jika tidak pasti, biarkan ia tidak bertanda."
 
-#: Source/Core/Common/MsgHandler.cpp:63
+#: Source/Core/Common/MsgHandler.cpp:67
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1142
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1462
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
@@ -7946,7 +7944,7 @@ msgstr "Pantau"
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - fail tidak dibuka."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:55
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:56
 msgid "Whammy"
 msgstr "Whammy"
 
@@ -7966,7 +7964,7 @@ msgstr ""
 msgid "Widescreen Hack"
 msgstr "Skrin Lebar Godam"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:308
+#: Source/Core/InputCommon/ControllerEmu.cpp:310
 msgid "Width"
 msgstr "Lebar"
 
@@ -7984,7 +7982,7 @@ msgid "Wii NAND Root:"
 msgstr "Root NAND Wii:"
 
 #: Source/Core/Core/HW/Wiimote.cpp:15
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:62
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:63
 msgid "Wii Remote"
 msgstr "Wii Remote"
 
@@ -8061,11 +8059,11 @@ msgstr "Lilit Kata"
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1255
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1374
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Working..."
 msgstr "Berfungsi..."
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:114
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:116
 msgid "World"
 msgstr "Dunia"
 
@@ -8109,7 +8107,7 @@ msgstr "Cmd XFB"
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Yellow"
 msgstr "Kuning"
 
@@ -8118,7 +8116,7 @@ msgid "You can't close panes that have pages in them."
 msgstr ""
 "Anda tidak boleh tutup anak tetingkap yang mempunyai halaman di dalamnya."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:325
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:326
 msgid "You must choose a game!"
 msgstr "Anda mesti pilih satu permainan!"
 
@@ -8148,7 +8146,7 @@ msgstr ""
 "Anda hendak hentikan sekarang untuk membaiki masalah?\n"
 "Jika anda pilih \"Tidak\", audio akan tidak berbutir."
 
-#: Source/Core/Core/ConfigManager.cpp:842
+#: Source/Core/Core/ConfigManager.cpp:850
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -8211,11 +8209,11 @@ msgstr "pelengkapan-palsu"
 msgid "none"
 msgstr "tiada"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:238
+#: Source/Core/InputCommon/ControllerEmu.cpp:240
 msgid "off"
 msgstr "mati"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:236
+#: Source/Core/InputCommon/ControllerEmu.cpp:238
 msgid "on"
 msgstr "hidup"
 

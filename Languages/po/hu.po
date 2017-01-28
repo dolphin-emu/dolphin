@@ -10,8 +10,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2017-01-21 12:22+0100\n"
-"PO-Revision-Date: 2017-01-21 11:22+0000\n"
+"POT-Creation-Date: 2017-01-28 12:42+0100\n"
+"PO-Revision-Date: 2017-01-28 11:43+0000\n"
 "Last-Translator: JosJuice\n"
 "Language-Team: Hungarian (http://www.transifex.com/delroth/dolphin-emu/"
 "language/hu/)\n"
@@ -69,7 +69,7 @@ msgstr "\"%s\" tisztítása sikertelen. Valószínűleg sérült az image."
 msgid "\"%s\" is already compressed! Cannot compress it further."
 msgstr "\"%s” már tömörítve van! Nem lehet tovább tömöríteni."
 
-#: Source/Core/Core/ConfigManager.cpp:827
+#: Source/Core/Core/ConfigManager.cpp:838
 #, c-format
 msgid "\"%s\" is an invalid GCM/ISO file, or is not a GC/Wii ISO."
 msgstr "\"%s\" egy érvénytelen GCM/ISO fájl, vagy nem GC/Wii ISO."
@@ -79,7 +79,7 @@ msgstr "\"%s\" egy érvénytelen GCM/ISO fájl, vagy nem GC/Wii ISO."
 msgid "%1$sCopy%1$s"
 msgstr "%1$sMásolás%1$s"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:237
+#: Source/Core/DiscIO/CompressedBlob.cpp:239
 #, c-format
 msgid "%i of %i blocks. Compression ratio %i%%"
 msgstr "%i / %i blokk. Tömörítési arány: %i%%"
@@ -712,7 +712,7 @@ msgstr ""
 msgid "A sync can only be triggered when a Wii game is running."
 msgstr ""
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:193
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:194
 msgid ""
 "ALERT:\n"
 "\n"
@@ -985,7 +985,7 @@ msgstr "Anaglif"
 msgid "Analyze"
 msgstr "Elemzés"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:294
+#: Source/Core/InputCommon/ControllerEmu.cpp:296
 msgid "Angle"
 msgstr "Szög"
 
@@ -1005,15 +1005,15 @@ msgstr ""
 msgid "Append to &Existing Signature File..."
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:226
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:223
 msgid "Apploader Date:"
 msgstr "Betöltőprogram dátuma:"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:314
+#: Source/Core/DiscIO/VolumeDirectory.cpp:316
 msgid "Apploader is the wrong size...is it really an apploader?"
 msgstr "A betöltőprogram hibás méretű...ez tényleg egy betöltőprogram?"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:307
+#: Source/Core/DiscIO/VolumeDirectory.cpp:309
 msgid "Apploader unable to load from file"
 msgstr "A betöltőprogram nem képes fájlból betölteni"
 
@@ -1070,10 +1070,6 @@ msgstr "Vezérlő portjainak társítása"
 msgid "At least one pane must remain open."
 msgstr "Legalább egy panelnak nyitva kell maradnia."
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:277
-msgid "Attempted to load a state. Bluetooth will likely be broken now."
-msgstr ""
-
 #: Source/Core/DolphinWX/Config/ConfigMain.cpp:86
 msgid "Audio"
 msgstr "Audió"
@@ -1086,7 +1082,7 @@ msgstr "Audió feldolgozó:"
 msgid "AudioCommon: Error opening AO device.\n"
 msgstr "AudioCommon: AO eszköz megnyitási hiba.\n"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:90
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:92
 msgid "Australia"
 msgstr "Ausztrália"
 
@@ -1169,7 +1165,7 @@ msgstr "Háttéralkalmazás:"
 msgid "Background Input"
 msgstr "Háttér bemenet"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:276
+#: Source/Core/InputCommon/ControllerEmu.cpp:278
 msgid "Backward"
 msgstr "Hátra"
 
@@ -1179,15 +1175,15 @@ msgstr "Hátra"
 msgid "Banner"
 msgstr "Banner"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:304
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:298
 msgid "Banner Details"
 msgstr "Banner részletek"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:280
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:274
 msgid "Banner:"
 msgstr "Banner:"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:56
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:57
 msgid "Bar"
 msgstr "Hangoló"
 
@@ -1199,7 +1195,7 @@ msgstr "Alap"
 msgid "Basic Settings"
 msgstr "Alapok beállítása"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:23
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:25
 msgid "Bass"
 msgstr "Basszus"
 
@@ -1215,15 +1211,15 @@ msgstr "Blokk allokációs tábla ellenőrzőösszege hibás"
 msgid "Blocks"
 msgstr "Blokk"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Blue"
 msgstr "Kék"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Blue Left"
 msgstr "Kék balra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:29
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Blue Right"
 msgstr "Kék jobbra"
 
@@ -1233,7 +1229,7 @@ msgid ""
 "Passthrough mode cannot be used."
 msgstr ""
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:142
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:130
 msgid ""
 "Bluetooth passthrough mode is enabled, but no usable Bluetooth USB device "
 "was found. Aborting."
@@ -1416,7 +1412,7 @@ msgid "Caps Lock"
 msgstr "Caps Lock"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:387
-#: Source/Core/InputCommon/ControllerEmu.cpp:307
+#: Source/Core/InputCommon/ControllerEmu.cpp:309
 msgid "Center"
 msgstr "Közép"
 
@@ -1534,11 +1530,11 @@ msgstr ""
 msgid "Choose the folder to extract to"
 msgstr "Válassz mappát a kitömörítéshez"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:293
+#: Source/Core/InputCommon/ControllerEmu.cpp:295
 msgid "Circle Stick"
 msgstr "Körös kar"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:43
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:49
 msgid "Classic"
 msgstr "Klasszikus"
 
@@ -1639,7 +1635,7 @@ msgstr ""
 "A Wii lemezkép tömörítése a kitöltő adatok eltávolításával "
 "viszafordíthatatlan módosítást végez. A lemezkép még működni fog. Folytatod?"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:237
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:245
 msgid "Compute"
 msgstr "Számítás"
 
@@ -1650,7 +1646,7 @@ msgid ""
 "%s"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Computing MD5 checksum"
 msgstr "MD5 összeg számítása"
 
@@ -1695,8 +1691,8 @@ msgstr "Fájl felülírás megerősítése"
 msgid "Confirm on Stop"
 msgstr "Megerősítés leállításkor"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:170
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:188
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:171
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:189
 msgid "Connect"
 msgstr "Csatlakozás"
 
@@ -1738,7 +1734,7 @@ msgstr ""
 msgid "Connecting..."
 msgstr "Csatlakozás..."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:116
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:117
 msgid "Connection Type:"
 msgstr "Csatlakozás típusa:"
 
@@ -1759,7 +1755,7 @@ msgstr "Irányítás"
 msgid "Control Stick"
 msgstr "Vezérlő kar"
 
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:17
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:18
 msgid "Controller Ports"
 msgstr "Vezérlő portjai"
 
@@ -1830,7 +1826,7 @@ msgstr ""
 msgid "Copy &hex"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:1025
+#: Source/Core/Core/ConfigManager.cpp:1020
 msgid "Copy failed"
 msgstr "Sikertelen másolás"
 
@@ -1848,7 +1844,7 @@ msgstr "Mag"
 msgid "Cost"
 msgstr ""
 
-#: Source/Core/Core/ConfigManager.cpp:821
+#: Source/Core/Core/ConfigManager.cpp:832
 #, c-format
 msgid ""
 "Could not read \"%s\". There is no disc in the drive or it is not a GameCube/"
@@ -1859,7 +1855,7 @@ msgstr ""
 "mentés.  Ne feledd, az eredeti GameCube és Wii lemezeket nem tudja közvetlen "
 "lejátszani a Dolphin."
 
-#: Source/Core/Core/ConfigManager.cpp:937
+#: Source/Core/Core/ConfigManager.cpp:935
 #, c-format
 msgid "Could not recognize ISO file %s"
 msgstr "Az ISO fájl nem ismerhető fel: %s"
@@ -1900,7 +1896,7 @@ msgstr "Peer nem hozható létre."
 msgid "Couldn't find open command for extension 'ini'!"
 msgstr "Az 'ini' kiterjesztéshez nem található megnyitó parancs!"
 
-#: Source/Core/Core/BootManager.cpp:380
+#: Source/Core/Core/BootManager.cpp:388
 msgid ""
 "Couldn't init the core.\n"
 "Check your configuration."
@@ -1925,7 +1921,7 @@ msgstr "Számláló:"
 msgid "Count: %lu"
 msgstr "Számláló: %lu"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:216
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:220
 msgid "Country:"
 msgstr "Ország:"
 
@@ -1962,7 +1958,7 @@ msgstr "Új perspektíva készítése"
 msgid "Creator: "
 msgstr "Készítő:"
 
-#: Source/Core/Common/MsgHandler.cpp:64
+#: Source/Core/Common/MsgHandler.cpp:68
 msgid "Critical"
 msgstr "Kritikus"
 
@@ -1980,7 +1976,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagy üresen."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:54
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:48
 msgid "Crossfade"
 msgstr "Átúsztatás"
 
@@ -2051,12 +2047,12 @@ msgstr ""
 msgid "Datel MaxDrive/Pro files(*.sav)"
 msgstr "Datel MaxDrive/Pro fájlok(*.sav)"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:187
-#: Source/Core/InputCommon/ControllerEmu.cpp:256
-#: Source/Core/InputCommon/ControllerEmu.cpp:264
-#: Source/Core/InputCommon/ControllerEmu.cpp:278
-#: Source/Core/InputCommon/ControllerEmu.cpp:292
-#: Source/Core/InputCommon/ControllerEmu.cpp:310
+#: Source/Core/InputCommon/ControllerEmu.cpp:189
+#: Source/Core/InputCommon/ControllerEmu.cpp:258
+#: Source/Core/InputCommon/ControllerEmu.cpp:266
+#: Source/Core/InputCommon/ControllerEmu.cpp:280
+#: Source/Core/InputCommon/ControllerEmu.cpp:294
+#: Source/Core/InputCommon/ControllerEmu.cpp:312
 msgid "Dead Zone"
 msgstr "Holtsáv"
 
@@ -2148,7 +2144,7 @@ msgstr "Mélység:"
 msgid "Description"
 msgstr "Leírás"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:277
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:271
 msgid "Description:"
 msgstr "Leírás:"
 
@@ -2174,7 +2170,7 @@ msgstr "Eszköz beállítások"
 msgid "Device not found"
 msgstr "Eszköz nem található"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:51
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:45
 msgid "Dial"
 msgstr "Tárcsa"
 
@@ -2182,7 +2178,7 @@ msgstr "Tárcsa"
 msgid "Dims the screen after five minutes of inactivity."
 msgstr "Képernyő sötétítése öt perc inaktivitás után."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:120
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:121
 msgid "Direct Connection"
 msgstr "Közvetlen kapcsolat"
 
@@ -2326,7 +2322,7 @@ msgstr ""
 msgid "Dolphin NetPlay"
 msgstr "Dolphin NetPlay"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:39
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:40
 msgid "Dolphin NetPlay Setup"
 msgstr "Dolphin NetPlay beállítás"
 
@@ -2376,14 +2372,14 @@ msgstr "A Dolphin nem tudta elvégezni a kívánt műveletet."
 msgid "Dolphin's cheat system is currently disabled."
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:329
+#: Source/Core/DiscIO/CompressedBlob.cpp:331
 msgid "Done compressing disc image."
 msgstr "Lemezkép tömörítése kész."
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:78
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:76
-#: Source/Core/InputCommon/ControllerEmu.cpp:272
+#: Source/Core/InputCommon/ControllerEmu.cpp:274
 msgid "Down"
 msgstr "Le"
 
@@ -2404,7 +2400,7 @@ msgstr "Tárgyhatókör rajzolása"
 msgid "Driver Not Detected"
 msgstr "Meghajtó nem érzékelhető"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:29
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:32
 msgid "Drums"
 msgstr "Dobok"
 
@@ -2492,7 +2488,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:57
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:39
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:64
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:66
 msgid "Dutch"
 msgstr "Holland"
 
@@ -2542,7 +2538,7 @@ msgstr ""
 msgid "Edit..."
 msgstr "Szerkesztés..."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:50
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:44
 msgid "Effect"
 msgstr "Effekt"
 
@@ -2819,7 +2815,7 @@ msgstr "Enet nincs inicializálva"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:52
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:34
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:49
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:51
 msgid "English"
 msgstr "Angol"
 
@@ -2890,11 +2886,11 @@ msgstr ""
 msgid "Escape"
 msgstr "Escape"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:32
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Euphoria"
 msgstr "Eufória"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:92
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
 msgid "Europe"
 msgstr "Európa"
 
@@ -3001,7 +2997,7 @@ msgstr "FIFO lejátszó"
 msgid "FP value"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:230
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:224
 msgid "FST Size:"
 msgstr "FST méret:"
 
@@ -3013,11 +3009,11 @@ msgstr "Sikertelen csatlakozás!"
 msgid "Failed to Connect!"
 msgstr "Sikertelen csatlakozás!"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:534
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:575
 msgid "Failed to claim interface for BT passthrough"
 msgstr ""
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:529
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:570
 #, c-format
 msgid "Failed to detach kernel driver for BT passthrough: %s"
 msgstr ""
@@ -3046,19 +3042,19 @@ msgstr ""
 msgid "Failed to listen. Is another instance of the NetPlay server running?"
 msgstr "Sikertelen figyelés. Egy másik NetPlay szerver példány fut?"
 
-#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:522
+#: Source/Core/Core/IOS/USB/Bluetooth/BTReal.cpp:563
 #, c-format
 msgid "Failed to open Bluetooth device: %s"
 msgstr ""
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:168
-#: Source/Core/DiscIO/CompressedBlob.cpp:351
+#: Source/Core/DiscIO/CompressedBlob.cpp:353
 #, c-format
 msgid "Failed to open the input file \"%s\"."
 msgstr "Bemeneti fájl megnyitása sikertelen: \"%s\"."
 
 #: Source/Core/DiscIO/CompressedBlob.cpp:175
-#: Source/Core/DiscIO/CompressedBlob.cpp:358
+#: Source/Core/DiscIO/CompressedBlob.cpp:360
 #, c-format
 msgid ""
 "Failed to open the output file \"%s\".\n"
@@ -3135,8 +3131,8 @@ msgstr "A lemezképfájl egyedi azonosítójának olvasása sikertelen"
 msgid "Failed to write BT.DINF to SYSCONF"
 msgstr "A BT.DINF írása a SYSCONF fájlba sikertelen"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:295
-#: Source/Core/DiscIO/CompressedBlob.cpp:389
+#: Source/Core/DiscIO/CompressedBlob.cpp:297
+#: Source/Core/DiscIO/CompressedBlob.cpp:391
 #, c-format
 msgid ""
 "Failed to write the output file \"%s\".\n"
@@ -3206,7 +3202,7 @@ msgstr ""
 msgid "File is not recognized as a memory card"
 msgstr ""
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:342
+#: Source/Core/DiscIO/CompressedBlob.cpp:344
 msgid "File not compressed"
 msgstr "A fájl nem tömörített"
 
@@ -3303,7 +3299,7 @@ msgstr "4:3 kényszerítése"
 msgid "Force Console as NTSC-J"
 msgstr "Konzol kényszerítése NTSC-J típusra"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:228
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:229
 msgid "Force Listen Port: "
 msgstr "Portfigyelés kényszerítése: "
 
@@ -3358,11 +3354,11 @@ msgid ""
 "Choose no for Windows-1252 (Western)"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:275
+#: Source/Core/InputCommon/ControllerEmu.cpp:277
 msgid "Forward"
 msgstr "Előre"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:251
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:252
 msgid "Forward port (UPnP)"
 msgstr "Port forward (UPnP)"
 
@@ -3435,7 +3431,7 @@ msgstr ""
 msgid "Frames to Record"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:94
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:96
 msgid "France"
 msgstr "Francia"
 
@@ -3489,11 +3485,11 @@ msgstr "Szabadnézet kicsinyítés"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:54
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:36
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:55
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:57
 msgid "French"
 msgstr "Francia"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:37
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:38
 msgid "Frets"
 msgstr "Gitár"
 
@@ -3530,7 +3526,7 @@ msgstr ""
 msgid "GBA"
 msgstr "GBA"
 
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:61
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:62
 msgid "GC Port"
 msgstr ""
 
@@ -3592,7 +3588,7 @@ msgstr "Game Boy Advance kártyák (*.gba)"
 msgid "Game ID"
 msgstr "Játék azonosító"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:213
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:219
 msgid "Game ID:"
 msgstr "Játék azonosító:"
 
@@ -3682,11 +3678,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:53
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:35
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:52
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:54
 msgid "German"
 msgstr "Német"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:98
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:100
 msgid "Germany"
 msgstr "Németország"
 
@@ -3732,19 +3728,19 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd bejelölve."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:23
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Green"
 msgstr "Zöld"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:24
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Green Left"
 msgstr "Zöld balra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:27
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:25
 msgid "Green Right"
 msgstr "Zöld jobbra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:34
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:35
 msgid "Guitar"
 msgstr "Gitár"
 
@@ -3775,7 +3771,7 @@ msgstr "A hash egyezik!"
 msgid "Header checksum failed"
 msgstr "Hibás fejléc ellenőrzőösszeg"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:309
+#: Source/Core/InputCommon/ControllerEmu.cpp:311
 msgid "Height"
 msgstr "Magasság"
 
@@ -3792,7 +3788,7 @@ msgstr ""
 msgid "Hexadecimal"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:304
+#: Source/Core/InputCommon/ControllerEmu.cpp:306
 msgid "Hide"
 msgstr "Elrejtés"
 
@@ -3834,12 +3830,12 @@ msgstr ""
 msgid "Home"
 msgstr "Home"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:172
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:238
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:173
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:239
 msgid "Host"
 msgstr "Gazda"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:176
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:177
 msgid "Host Code :"
 msgstr "Gazda kód:"
 
@@ -3875,7 +3871,7 @@ msgstr ""
 "IOCTL_ES_GETVIEWS: Adatok kinyerésének kísérlete egy ismeretlen ticketből: "
 "%08x/%08x"
 
-#: Source/Core/Core/IOS/ES/ES.cpp:1095
+#: Source/Core/Core/IOS/ES/ES.cpp:1091
 #, c-format
 msgid ""
 "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your "
@@ -3888,9 +3884,13 @@ msgstr ""
 "TitleID %016<PRIx64>.\n"
 " A Dolphin most megakad."
 
-#: Source/Core/Core/IOS/ES/ES.cpp:1075
+#: Source/Core/Core/IOS/ES/ES.cpp:1082
 msgid "IOCTL_ES_LAUNCH: The DOL file is invalid!"
 msgstr "IOCTL_ES_LAUNCH: A DOL fájl érvénytelen!"
+
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:227
+msgid "IOS Version:"
+msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:112
 msgid "IPL Settings"
@@ -3910,7 +3910,7 @@ msgstr "IR"
 msgid "IR Sensitivity:"
 msgstr "IR érzékenysége:"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:261
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:255
 msgid "ISO Details"
 msgstr "ISO részletek"
 
@@ -4065,7 +4065,7 @@ msgstr "IR növelése"
 msgid "Info"
 msgstr "Infó"
 
-#: Source/Core/Common/MsgHandler.cpp:61
+#: Source/Core/Common/MsgHandler.cpp:65
 msgid "Information"
 msgstr "Információk"
 
@@ -4147,7 +4147,7 @@ msgstr ""
 msgid "Internal LZO Error - lzo_init() failed"
 msgstr "Belső LZO hiba - sikertelen lzo_init()"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:209
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:218
 msgid "Internal Name:"
 msgstr "Belső név:"
 
@@ -4216,11 +4216,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:56
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:38
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:61
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:63
 msgid "Italian"
 msgstr "Olasz"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:96
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:98
 msgid "Italy"
 msgstr "Olaszország"
 
@@ -4246,12 +4246,12 @@ msgstr "JIT újrafordító (ajánlott)"
 msgid "JITIL Recompiler (slow, experimental)"
 msgstr "JITIL újrafordító (lassú, kísérleti)"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:108
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:110
 msgid "Japan"
 msgstr "Japán"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:33
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:46
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:48
 msgid "Japanese"
 msgstr "Japán"
 
@@ -4287,12 +4287,12 @@ msgstr "Gombok"
 msgid "Kick Player"
 msgstr "Játékos kirúgása"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:110
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:112
 msgid "Korea"
 msgstr "Korea"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:42
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:73
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:75
 msgid "Korean"
 msgstr "Korea"
 
@@ -4333,11 +4333,11 @@ msgstr "Késleltetés:"
 #: Source/Core/DolphinWX/TASInputDlg.cpp:80
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:70
-#: Source/Core/InputCommon/ControllerEmu.cpp:273
+#: Source/Core/InputCommon/ControllerEmu.cpp:275
 msgid "Left"
 msgstr "Balra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:52
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:58
 msgid "Left Stick"
 msgstr "Bal kar"
 
@@ -4599,7 +4599,7 @@ msgid "Logger Outputs"
 msgstr "Napló kimenetek"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:139
-#: Source/Core/DolphinWX/Frame.cpp:369
+#: Source/Core/DolphinWX/Frame.cpp:374
 msgid "Logging"
 msgstr "Naplózás"
 
@@ -4611,7 +4611,7 @@ msgstr "M gomb"
 msgid "MD5 Checksum"
 msgstr "MD5 ellenőrzőösszeg"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:234
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:242
 msgid "MD5 Checksum:"
 msgstr "MD5 ellenőrzőösszeg"
 
@@ -4639,11 +4639,11 @@ msgstr ""
 msgid "Maker"
 msgstr "Készítő"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:219
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:221
 msgid "Maker ID:"
 msgstr "Készítő azonosító:"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:274
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:268
 msgid "Maker:"
 msgstr "Készítő:"
 
@@ -4693,7 +4693,7 @@ msgstr "Memóriakártya"
 msgid "Memory Card Manager"
 msgstr "Memóriakártya kezelő"
 
-#: Source/Core/Core/ConfigManager.cpp:1017
+#: Source/Core/Core/ConfigManager.cpp:1012
 #, c-format
 msgid ""
 "Memory Card filename in Slot %c is incorrect\n"
@@ -4763,8 +4763,8 @@ msgstr "Egyebek"
 msgid "Misc Settings"
 msgstr "Egyéb beállítások"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:184
-#: Source/Core/InputCommon/ControllerEmu.cpp:290
+#: Source/Core/InputCommon/ControllerEmu.cpp:186
+#: Source/Core/InputCommon/ControllerEmu.cpp:292
 msgid "Modifier"
 msgstr "Módosító"
 
@@ -4909,7 +4909,7 @@ msgid "NP Up"
 msgstr "Num fel"
 
 #: Source/Core/DolphinWX/Cheats/ARCodeAddEdit.cpp:42
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:271
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:265
 #: Source/Core/DolphinWX/PatchAddEdit.cpp:58
 msgid "Name:"
 msgstr "Név:"
@@ -4930,7 +4930,7 @@ msgstr "Natív (640x528)"
 msgid "Native GCI files(*.gci)"
 msgstr "Natív GCI fájlok (*.gci)"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:100
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:102
 msgid "Netherlands"
 msgstr "Hollandia"
 
@@ -4963,7 +4963,7 @@ msgstr "Következő lap"
 msgid "Next Scan"
 msgstr "Következő keresés"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:127
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:128
 msgid "Nickname:"
 msgstr "Becenév:"
 
@@ -5008,7 +5008,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:50
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:291
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:26
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:27
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:1121
 msgid "None"
 msgstr "Nincs"
@@ -5076,7 +5076,7 @@ msgstr ""
 msgid "Number of Codes: "
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Nunchuk.cpp:23
 msgid "Nunchuk"
 msgstr "Nunchuk"
 
@@ -5154,16 +5154,16 @@ msgstr "Wii menté&si mappa megnyitása"
 msgid "Open file..."
 msgstr "Fájl megnyitása..."
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:57
+#: Source/Core/AudioCommon/OpenALStream.cpp:58
 #, c-format
 msgid "OpenAL: can't create context for device %s"
 msgstr "OpenAL: környezet létrehozása sikertelen az eszköz számára: %s "
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:67
+#: Source/Core/AudioCommon/OpenALStream.cpp:68
 msgid "OpenAL: can't find sound devices"
 msgstr "OpenAL: nem található hang eszköz"
 
-#: Source/Core/AudioCommon/OpenALStream.cpp:62
+#: Source/Core/AudioCommon/OpenALStream.cpp:63
 #, c-format
 msgid "OpenAL: can't open device %s"
 msgstr "OpenAL: %s eszköz nem nyitható meg"
@@ -5182,7 +5182,7 @@ msgstr ""
 msgid "Options"
 msgstr "Beállítások"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:23
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Orange"
 msgstr "Narancs"
 
@@ -5242,7 +5242,7 @@ msgstr ""
 msgid "Pad"
 msgstr "Irányító"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:32
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:35
 msgid "Pads"
 msgstr "Irányítók"
 
@@ -5383,8 +5383,8 @@ msgstr "Plusz - mínusz"
 msgid "Port %i"
 msgstr "Port %i"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:184
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:224
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:185
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:225
 msgid "Port :"
 msgstr "Port:"
 
@@ -5455,11 +5455,11 @@ msgstr "Játéklista gyorsítótár ürítése"
 msgid "Put BIOS roms in User/GC/{region}."
 msgstr "Tedd ide a BIOS romokat: User/GC/{region}."
 
-#: Source/Core/Common/MsgHandler.cpp:62
+#: Source/Core/Common/MsgHandler.cpp:66
 msgid "Question"
 msgstr "Kérdés"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:133
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:134
 msgid "Quit"
 msgstr "Kilépés"
 
@@ -5483,7 +5483,7 @@ msgstr "R gomb"
 msgid "R-Analog"
 msgstr "Jobb analóg"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:186
+#: Source/Core/InputCommon/ControllerEmu.cpp:188
 msgid "Radius"
 msgstr "Sugár"
 
@@ -5540,7 +5540,7 @@ msgstr "Rögzítési információ"
 msgid "Recording Options"
 msgstr "Rögzítési beállítások"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Red"
 msgstr "Vörös"
 
@@ -5548,7 +5548,7 @@ msgstr "Vörös"
 msgid "Red Left"
 msgstr "Vörös balra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:28
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:26
 msgid "Red Right"
 msgstr "Vörös jobbra"
 
@@ -5594,7 +5594,7 @@ msgstr "Régió"
 msgid "Registers"
 msgstr ""
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:311
+#: Source/Core/InputCommon/ControllerEmu.cpp:313
 msgid "Relative Input"
 msgstr ""
 
@@ -5645,7 +5645,7 @@ msgstr "Jelentés: GCIFolder Le nem foglalt blokkra írás: 0x%x"
 msgid "Reset"
 msgstr "Alapbeállítások"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:123
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:124
 msgid "Reset Traversal Settings"
 msgstr "Átjárási beállítások visszaállítása"
 
@@ -5686,11 +5686,11 @@ msgstr "Változat: %s"
 #: Source/Core/DolphinWX/TASInputDlg.cpp:76
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:74
-#: Source/Core/InputCommon/ControllerEmu.cpp:274
+#: Source/Core/InputCommon/ControllerEmu.cpp:276
 msgid "Right"
 msgstr "Jobbra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:54
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Classic.cpp:60
 msgid "Right Stick"
 msgstr "Jobb kar"
 
@@ -5712,7 +5712,7 @@ msgstr "Rumble"
 msgid "Run"
 msgstr ""
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:102
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:104
 msgid "Russia"
 msgstr "Oroszország"
 
@@ -5816,8 +5816,8 @@ msgstr ""
 msgid "Save and Load State"
 msgstr ""
 
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:348
 #: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:354
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:360
 msgid "Save as..."
 msgstr "Mentés másként..."
 
@@ -6226,7 +6226,7 @@ msgid ""
 "backends only."
 msgstr ""
 
-#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:240
+#: Source/Core/Core/Boot/Boot_BS2Emu.cpp:242
 msgid "SetupWiiMemory: Can't create setting.txt file"
 msgstr "SetupWiiMemory: setting.txt fájl nem hozható létre"
 
@@ -6307,7 +6307,7 @@ msgstr "Korea megjelenítése"
 msgid "Show Lag Counter"
 msgstr "Eltérési szám megjelenítése"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:284
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:278
 msgid "Show Language:"
 msgstr "Nyelv megjelenítése:"
 
@@ -6468,7 +6468,7 @@ msgid "Sideways Wii Remote"
 msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:40
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:67
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:69
 msgid "Simplified Chinese"
 msgstr "Egyszerűsített kínai"
 
@@ -6554,13 +6554,13 @@ msgstr "Hang beállítások"
 msgid "Space"
 msgstr "Space"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:104
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:106
 msgid "Spain"
 msgstr "Spanyolország"
 
 #: Source/Core/DolphinWX/Config/GameCubeConfigPane.cpp:55
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:37
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:58
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:60
 msgid "Spanish"
 msgstr "Spanyol"
 
@@ -6732,7 +6732,7 @@ msgstr "Sztereoszkópikus 3D mód:"
 msgid "Stereoscopy"
 msgstr "Sztereoszkóp"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:52
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:53
 msgid "Stick"
 msgstr "Kar"
 
@@ -6773,7 +6773,7 @@ msgstr "Ablakméretűvé nyújtás"
 msgid "String"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:42
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:43
 msgid "Strum"
 msgstr "Pengetés"
 
@@ -6895,15 +6895,15 @@ msgstr "Tab"
 msgid "Tab Split"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:43
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:37
 msgid "Table Left"
 msgstr "Asztal balra"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:44
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:38
 msgid "Table Right"
 msgstr "Asztal jobbra"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:112
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:114
 msgid "Taiwan"
 msgstr "Tajvan"
 
@@ -7078,7 +7078,7 @@ msgstr "A szerver válaszolt: a játék jelenleg fut!"
 msgid "The server sent an unknown error message!"
 msgstr "A szerver ismeretlen hibaüzenetet küldött!"
 
-#: Source/Core/Core/ConfigManager.cpp:805
+#: Source/Core/Core/ConfigManager.cpp:816
 #, c-format
 msgid "The specified file \"%s\" does not exist"
 msgstr "A megadott fájl nem létezik: \"%s\""
@@ -7222,10 +7222,10 @@ msgstr ""
 msgid "This will let you manually edit the INI config file."
 msgstr "Ezzel manuálisan szerkesztheted az INI konfig fájlt."
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:193
-#: Source/Core/InputCommon/ControllerEmu.cpp:199
-#: Source/Core/InputCommon/ControllerEmu.cpp:205
-#: Source/Core/InputCommon/ControllerEmu.cpp:250
+#: Source/Core/InputCommon/ControllerEmu.cpp:195
+#: Source/Core/InputCommon/ControllerEmu.cpp:201
+#: Source/Core/InputCommon/ControllerEmu.cpp:207
+#: Source/Core/InputCommon/ControllerEmu.cpp:252
 msgid "Threshold"
 msgstr "Küszöbérték"
 
@@ -7325,15 +7325,15 @@ msgid "Top-and-Bottom"
 msgstr "Egymás alatt"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:41
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:70
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:72
 msgid "Traditional Chinese"
 msgstr "Hagyományos kínai"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:121
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:122
 msgid "Traversal Server"
 msgstr "Átjárási szerver"
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:34
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:35
 #, c-format
 msgid "Traversal Server: %s"
 msgstr ""
@@ -7342,12 +7342,12 @@ msgstr ""
 msgid "Traversal server timed out connecting to the host"
 msgstr "Időtúllépés az átjárási szerver és a gazda csatlakozásakor"
 
-#: Source/Core/DiscIO/VolumeDirectory.cpp:77 Source/Core/DiscIO/VolumeGC.cpp:37
-#: Source/Core/DiscIO/VolumeWad.cpp:52
+#: Source/Core/DiscIO/VolumeDirectory.cpp:79 Source/Core/DiscIO/VolumeGC.cpp:37
+#: Source/Core/DiscIO/VolumeWad.cpp:48
 msgid "Tried to decrypt data from a non-Wii volume"
 msgstr "Megpróbálta a nem Wii hangerő adatát dekódolni"
 
-#: Source/Core/Core/Boot/Boot.cpp:474
+#: Source/Core/Core/Boot/Boot.cpp:478
 msgid "Tried to load an unknown file type."
 msgstr "Megpróbált betölteni egy ismeretlen fájltípust. "
 
@@ -7380,7 +7380,7 @@ msgstr ""
 msgid "Turn off all JIT functions, but still use the JIT core from Jit.cpp"
 msgstr ""
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:35
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Turntable.cpp:29
 msgid "Turntable"
 msgstr "DJ pult"
 
@@ -7398,7 +7398,7 @@ msgstr "Típus"
 msgid "UNKNOWN_%02X"
 msgstr "ISMERETLEN_%02X"
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:106
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:108
 msgid "USA"
 msgstr "USA"
 
@@ -7439,8 +7439,8 @@ msgstr "Váratlan 0x80 hivás? Megszakítás..."
 
 #: Source/Core/Core/State.cpp:454
 #: Source/Core/DolphinWX/Cheats/CheatSearchTab.cpp:105
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:77
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:117
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:79
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:119
 msgid "Unknown"
 msgstr "Ismeretlen"
 
@@ -7480,14 +7480,14 @@ msgstr ""
 msgid "Unlimited"
 msgstr "Végtelen"
 
-#: Source/Core/DiscIO/CompressedBlob.cpp:378
+#: Source/Core/DiscIO/CompressedBlob.cpp:380
 msgid "Unpacking"
 msgstr "Kicsomagolása"
 
 #: Source/Core/DolphinWX/TASInputDlg.cpp:74
 #: Source/Core/DolphinWX/TASInputDlg.cpp:251
 #: Source/Core/DolphinWX/WXInputBase.cpp:72
-#: Source/Core/InputCommon/ControllerEmu.cpp:271
+#: Source/Core/InputCommon/ControllerEmu.cpp:273
 msgid "Up"
 msgstr "Fel"
 
@@ -7714,7 +7714,7 @@ msgstr ""
 "\n"
 "Ha bizonytalan vagy, hagyd üresen."
 
-#: Source/Core/Common/MsgHandler.cpp:63
+#: Source/Core/Common/MsgHandler.cpp:67
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1142
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1462
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:44
@@ -7839,7 +7839,7 @@ msgstr ""
 msgid "WaveFileWriter - file not open."
 msgstr "WaveFileWriter - a fájl nincs megnyitva."
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:55
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Guitar.cpp:56
 msgid "Whammy"
 msgstr "Whammy"
 
@@ -7859,7 +7859,7 @@ msgstr ""
 msgid "Widescreen Hack"
 msgstr "Szélesvásznú hangolás"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:308
+#: Source/Core/InputCommon/ControllerEmu.cpp:310
 msgid "Width"
 msgstr "Szélesség"
 
@@ -7877,7 +7877,7 @@ msgid "Wii NAND Root:"
 msgstr "Wii NAND gyökér:"
 
 #: Source/Core/Core/HW/Wiimote.cpp:15
-#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:62
+#: Source/Core/DolphinWX/NetPlay/PadMapDialog.cpp:63
 msgid "Wii Remote"
 msgstr ""
 
@@ -7954,11 +7954,11 @@ msgstr "Sortörés"
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1255
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1374
 #: Source/Core/DolphinWX/ISOProperties/FilesystemPanel.cpp:381
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:331
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:325
 msgid "Working..."
 msgstr "Folyamatban..."
 
-#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:114
+#: Source/Core/DolphinWX/ISOProperties/InfoPanel.cpp:116
 msgid "World"
 msgstr "Világ"
 
@@ -8002,7 +8002,7 @@ msgstr ""
 msgid "Y"
 msgstr "Y"
 
-#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:22
+#: Source/Core/Core/HW/WiimoteEmu/Attachment/Drums.cpp:24
 msgid "Yellow"
 msgstr "Sárga"
 
@@ -8010,7 +8010,7 @@ msgstr "Sárga"
 msgid "You can't close panes that have pages in them."
 msgstr "Nem zárhatod be a lapokat tartalmazó paneleket."
 
-#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:325
+#: Source/Core/DolphinWX/NetPlay/NetPlaySetupFrame.cpp:326
 msgid "You must choose a game!"
 msgstr "Választanod kell egy játékot!"
 
@@ -8042,7 +8042,7 @@ msgstr ""
 "Szeretnéd most leállítani, kijavítani a problémát?\n"
 "Ha a választásod \"Nem\", a hang torz lehet."
 
-#: Source/Core/Core/ConfigManager.cpp:842
+#: Source/Core/Core/ConfigManager.cpp:850
 msgid ""
 "Your GCM/ISO file seems to be invalid (invalid country).\n"
 "Continue with PAL region?"
@@ -8105,11 +8105,11 @@ msgstr "fake-completion"
 msgid "none"
 msgstr "nincs"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:238
+#: Source/Core/InputCommon/ControllerEmu.cpp:240
 msgid "off"
 msgstr "ki"
 
-#: Source/Core/InputCommon/ControllerEmu.cpp:236
+#: Source/Core/InputCommon/ControllerEmu.cpp:238
 msgid "on"
 msgstr "be-"
 
