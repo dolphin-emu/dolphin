@@ -723,6 +723,11 @@ u32 PPCAnalyzer::Analyze(u32 address, CodeBlock* block, CodeBuffer* buffer, u32 
                (inst.BO & BO_DONT_DECREMENT_FLAG) && (inst.BO & BO_DONT_CHECK_CONDITION))
       {
         // bclrx with unconditional branch = return
+        // Follow it if we can propagate the LR value of the last CALL instruction.
+        // Through it would be easy to track the upper level of call/return,
+        // we can't guarantee the LR value. The PPC ABI forces all functions to push
+        // the LR value on the stack as there are no spare registers. So we'd need
+        // to check all store instruction to not alias with the stack.
         follow = true;
         destination = code[caller].address + 4;
         found_call = false;

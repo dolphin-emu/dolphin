@@ -190,7 +190,8 @@ public:
     // Requires JIT support to be enabled.
     OPTION_CONDITIONAL_CONTINUE = (1 << 0),
 
-    // Try to inline unconditional branches.
+    // Try to inline unconditional branches/calls/returns.
+    // Also track the LR value to follow unconditional return instructions.
     // Might require JIT intervention to support it correctly.
     // Especially if the BLR optimization is used.
     OPTION_BRANCH_FOLLOW = (1 << 1),
