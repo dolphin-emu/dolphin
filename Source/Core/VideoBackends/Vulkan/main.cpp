@@ -98,13 +98,6 @@ bool VideoBackend::Initialize(void* window_handle)
     return false;
   }
 
-  // HACK: Use InitBackendInfo to initially populate backend features.
-  // This is because things like stereo get disabled when the config is validated,
-  // which happens before our device is created (settings control instance behavior),
-  // and we don't want that to happen if the device actually supports it.
-  InitBackendInfo();
-  InitializeShared();
-
   // Check for presence of the validation layers before trying to enable it
   bool enable_validation_layer = g_Config.bEnableValidationLayer;
   if (enable_validation_layer && !VulkanContext::CheckValidationLayerAvailablility())
@@ -113,7 +106,8 @@ bool VideoBackend::Initialize(void* window_handle)
     enable_validation_layer = false;
   }
 
-  // Create Vulkan instance, needed before we can create a surface.
+  // Create Vulkan instance, needed before we can create a surface, or enumerate devices.
+  // We use this instance to fill in backend info, then re-use it for the actual device.
   bool enable_surface = window_handle != nullptr;
   bool enable_debug_reports = ShouldEnableDebugReports(enable_validation_layer);
   VkInstance instance = VulkanContext::CreateVulkanInstance(enable_surface, enable_debug_reports,
@@ -122,21 +116,34 @@ bool VideoBackend::Initialize(void* window_handle)
   {
     PanicAlert("Failed to create Vulkan instance.");
     UnloadVulkanLibrary();
-    ShutdownShared();
     return false;
   }
 
-  // Load instance function pointers
+  // Load instance function pointers.
   if (!LoadVulkanInstanceFunctions(instance))
   {
     PanicAlert("Failed to load Vulkan instance functions.");
     vkDestroyInstance(instance, nullptr);
     UnloadVulkanLibrary();
-    ShutdownShared();
     return false;
   }
 
-  // Create Vulkan surface
+  // Obtain a list of physical devices (GPUs) from the instance.
+  // We'll re-use this list later when creating the device.
+  VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(instance);
+  if (gpu_list.empty())
+  {
+    PanicAlert("No Vulkan physical devices available.");
+    vkDestroyInstance(instance, nullptr);
+    UnloadVulkanLibrary();
+    return false;
+  }
+
+  // Populate BackendInfo with as much information as we can at this point.
+  VulkanContext::PopulateBackendInfo(&g_Config);
+  VulkanContext::PopulateBackendInfoAdapters(&g_Config, gpu_list);
+
+  // We need the surface before we can create a device, as some parameters depend on it.
   VkSurfaceKHR surface = VK_NULL_HANDLE;
   if (enable_surface)
   {
@@ -146,44 +153,38 @@ bool VideoBackend::Initialize(void* window_handle)
       PanicAlert("Failed to create Vulkan surface.");
       vkDestroyInstance(instance, nullptr);
       UnloadVulkanLibrary();
-      ShutdownShared();
       return false;
     }
   }
 
-  // Fill the adapter list, and check if the user has selected an invalid device
-  // For some reason nvidia's driver crashes randomly if you call vkEnumeratePhysicalDevices
-  // after creating a device..
-  VulkanContext::GPUList gpu_list = VulkanContext::EnumerateGPUs(instance);
+  // Since we haven't called InitializeShared yet, iAdapter may be out of range,
+  // so we have to check it ourselves.
   size_t selected_adapter_index = static_cast<size_t>(g_Config.iAdapter);
-  if (gpu_list.empty())
-  {
-    PanicAlert("No Vulkan physical devices available.");
-    if (surface != VK_NULL_HANDLE)
-      vkDestroySurfaceKHR(instance, surface, nullptr);
-
-    vkDestroyInstance(instance, nullptr);
-    UnloadVulkanLibrary();
-    ShutdownShared();
-    return false;
-  }
-  else if (selected_adapter_index >= gpu_list.size())
+  if (selected_adapter_index >= gpu_list.size())
   {
     WARN_LOG(VIDEO, "Vulkan adapter index out of range, selecting first adapter.");
     selected_adapter_index = 0;
   }
 
-  // Pass ownership over to VulkanContext, and let it take care of everything.
-  g_vulkan_context =
-      VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface, &g_Config,
-                            enable_debug_reports, enable_validation_layer);
+  // Now we can create the Vulkan device. VulkanContext takes ownership of the instance and surface.
+  g_vulkan_context = VulkanContext::Create(instance, gpu_list[selected_adapter_index], surface,
+                                           enable_debug_reports, enable_validation_layer);
   if (!g_vulkan_context)
   {
     PanicAlert("Failed to create Vulkan device");
     UnloadVulkanLibrary();
-    ShutdownShared();
     return false;
   }
+
+  // Since VulkanContext maintains a copy of the device features and properties, we can use this
+  // to initialize the backend information, so that we don't need to enumerate everything again.
+  VulkanContext::PopulateBackendInfoFeatures(&g_Config, g_vulkan_context->GetPhysicalDevice(),
+                                             g_vulkan_context->GetDeviceFeatures());
+  VulkanContext::PopulateBackendInfoMultisampleModes(
+      &g_Config, g_vulkan_context->GetPhysicalDevice(), g_vulkan_context->GetDeviceProperties());
+
+  // With the backend information populated, we can now initialize videocommon.
+  InitializeShared();
 
   // Create swap chain. This has to be done early so that the target size is correct for auto-scale.
   std::unique_ptr<SwapChain> swap_chain;
@@ -193,6 +194,9 @@ bool VideoBackend::Initialize(void* window_handle)
     if (!swap_chain)
     {
       PanicAlert("Failed to create Vulkan swap chain.");
+      g_vulkan_context.reset();
+      ShutdownShared();
+      UnloadVulkanLibrary();
       return false;
     }
   }
@@ -204,8 +208,8 @@ bool VideoBackend::Initialize(void* window_handle)
     PanicAlert("Failed to create Vulkan command buffers");
     g_command_buffer_mgr.reset();
     g_vulkan_context.reset();
-    UnloadVulkanLibrary();
     ShutdownShared();
+    UnloadVulkanLibrary();
     return false;
   }
 
@@ -227,8 +231,8 @@ bool VideoBackend::Initialize(void* window_handle)
     g_object_cache.reset();
     g_command_buffer_mgr.reset();
     g_vulkan_context.reset();
-    UnloadVulkanLibrary();
     ShutdownShared();
+    UnloadVulkanLibrary();
     return false;
   }
 
@@ -249,8 +253,8 @@ bool VideoBackend::Initialize(void* window_handle)
     g_object_cache.reset();
     g_command_buffer_mgr.reset();
     g_vulkan_context.reset();
-    UnloadVulkanLibrary();
     ShutdownShared();
+    UnloadVulkanLibrary();
     return false;
   }
 
