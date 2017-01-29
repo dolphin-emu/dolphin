@@ -56,7 +56,18 @@ private:
   };
 
   IPCCommandResult GetFSReply(s32 return_value) const;
-  s32 ExecuteCommand(const IOCtlRequest& request);
+
+  IPCCommandResult GetStats(const IOCtlRequest& request);
+  IPCCommandResult CreateDirectory(const IOCtlRequest& request);
+  IPCCommandResult SetAttribute(const IOCtlRequest& request);
+  IPCCommandResult GetAttribute(const IOCtlRequest& request);
+  IPCCommandResult DeleteFile(const IOCtlRequest& request);
+  IPCCommandResult RenameFile(const IOCtlRequest& request);
+  IPCCommandResult CreateFile(const IOCtlRequest& request);
+  IPCCommandResult Shutdown(const IOCtlRequest& request);
+
+  IPCCommandResult ReadDirectory(const IOCtlVRequest& request);
+  IPCCommandResult GetUsage(const IOCtlVRequest& request);
 };
 }  // namespace Device
 }  // namespace HLE
