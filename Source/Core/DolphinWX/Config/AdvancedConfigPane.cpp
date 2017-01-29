@@ -16,6 +16,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/HW/SystemTimers.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/WxEventUtils.h"
 
@@ -181,12 +182,12 @@ void AdvancedConfigPane::OnCustomRTCTimeChanged(wxCommandEvent& event)
 
 void AdvancedConfigPane::UpdateCPUClock()
 {
-  bool wii = SConfig::GetInstance().bWii;
-  int percent = (int)(std::roundf(SConfig::GetInstance().m_OCFactor * 100.f));
-  int clock = (int)(std::roundf(SConfig::GetInstance().m_OCFactor * (wii ? 729.f : 486.f)));
+  int core_clock = SystemTimers::GetTicksPerSecond() / pow(10, 6);
+  int percent = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * 100.f));
+  int clock = static_cast<int>(std::round(SConfig::GetInstance().m_OCFactor * core_clock));
 
   m_clock_override_text->SetLabel(
-      SConfig::GetInstance().m_OCEnable ? wxString::Format("%d %% (%d mhz)", percent, clock) : "");
+      SConfig::GetInstance().m_OCEnable ? wxString::Format("%d %% (%d MHz)", percent, clock) : "");
 }
 
 void AdvancedConfigPane::LoadCustomRTC()
