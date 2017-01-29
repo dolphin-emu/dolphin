@@ -73,6 +73,7 @@ private:
   bool bAccurateNaNs;
   bool bMMU;
   bool bDCBZOFF;
+  bool bLowDCBZHack;
   bool m_EnableJIT;
   bool bSyncGPU;
   bool bFastDiscSpeed;
@@ -145,6 +146,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bAccurateNaNs = bAccurateNaNs;
   config->bMMU = bMMU;
   config->bDCBZOFF = bDCBZOFF;
+  config->bLowDCBZHack = bLowDCBZHack;
   config->m_DSPEnableJIT = m_EnableJIT;
   config->bSyncGPU = bSyncGPU;
   config->bFastDiscSpeed = bFastDiscSpeed;
@@ -248,6 +250,7 @@ bool BootCore(const std::string& _rFilename)
     core_section->Get("AccurateNaNs", &StartUp.bAccurateNaNs, StartUp.bAccurateNaNs);
     core_section->Get("MMU", &StartUp.bMMU, StartUp.bMMU);
     core_section->Get("DCBZ", &StartUp.bDCBZOFF, StartUp.bDCBZOFF);
+    core_section->Get("LowDCBZHack", &StartUp.bLowDCBZHack, StartUp.bLowDCBZHack);
     core_section->Get("SyncGPU", &StartUp.bSyncGPU, StartUp.bSyncGPU);
     core_section->Get("FastDiscSpeed", &StartUp.bFastDiscSpeed, StartUp.bFastDiscSpeed);
     core_section->Get("DSPHLE", &StartUp.bDSPHLE, StartUp.bDSPHLE);

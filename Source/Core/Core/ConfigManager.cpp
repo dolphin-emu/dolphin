@@ -578,6 +578,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
   core->Get("DCBZ", &bDCBZOFF, false);
+  core->Get("LowDCBZHack", &bLowDCBZHack, false);
   core->Get("FPRF", &bFPRF, false);
   core->Get("AccurateNaNs", &bAccurateNaNs, false);
   core->Get("EmulationSpeed", &m_EmulationSpeed, 1.0f);
@@ -725,6 +726,7 @@ void SConfig::LoadDefaults()
   bAccurateNaNs = false;
   bMMU = false;
   bDCBZOFF = false;
+  bLowDCBZHack = false;
   iBBDumpPort = -1;
   bSyncGPU = false;
   bFastDiscSpeed = false;

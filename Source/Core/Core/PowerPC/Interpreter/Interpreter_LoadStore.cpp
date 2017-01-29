@@ -362,11 +362,18 @@ void Interpreter::dcbtst(UGeckoInstruction inst)
 
 void Interpreter::dcbz(UGeckoInstruction inst)
 {
-  // TODO: Implement some sort of L2 emulation.
   // DCBZOFF is a hack to fix certain games which would otherwise require
   // accurate L2 emulation.
-  if (!SConfig::GetInstance().bDCBZOFF)
-    PowerPC::ClearCacheLine(Helper_Get_EA_X(inst) & (~31));
+  if (SConfig::GetInstance().bDCBZOFF)
+    return;
+
+  u32 dcbz_addr = Helper_Get_EA_X(inst);
+  // Hack to stop dcbz/dcbi over low MEM1 trashing memory.
+  if (SConfig::GetInstance().bLowDCBZHack && (dcbz_addr < 0x80008000) && (dcbz_addr >= 0x80000000))
+    return;
+
+  // TODO: Implement some sort of L2 emulation.
+  PowerPC::ClearCacheLine(dcbz_addr & (~31));
 }
 
 // eciwx/ecowx technically should access the specified device
