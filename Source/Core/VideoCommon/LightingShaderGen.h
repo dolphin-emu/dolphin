@@ -45,6 +45,6 @@ constexpr inline char s_lighting_struct[] = "struct Light {\n"
                                             "\tfloat4 dir;\n"
                                             "};\n";
 
-void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data, int components,
+void GenerateLightingShaderCode(ShaderCode& object, const LightingUidData& uid_data,
                                 std::string_view in_color_name, std::string_view dest);
 void GetLightingShaderUid(LightingUidData& uid_data);

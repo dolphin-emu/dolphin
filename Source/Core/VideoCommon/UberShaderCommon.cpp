@@ -103,42 +103,23 @@ void WriteVertexLighting(ShaderCode& out, APIType api_type, std::string_view wor
             "  int4 lacc = int4(255, 255, 255, 255);\n"
             "\n");
 
-  out.Write("  if ({} != 0u) {{\n", BitfieldExtract("colorreg", LitChannel().matsource));
-  out.Write("    if ((components & ({}u << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("      mat.xyz = int3(round(((chan == 0u) ? {}.xyz : {}.xyz) * 255.0));\n",
+  out.Write("  if ({} != 0u)\n", BitfieldExtract("colorreg", LitChannel().matsource));
+  out.Write("    mat.xyz = int3(round(((chan == 0u) ? {}.xyz : {}.xyz) * 255.0));\n",
             in_color_0_var, in_color_1_var);
-  out.Write("    else if ((components & {}u) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("      mat.xyz = int3(round({}.xyz * 255.0));\n", in_color_0_var);
-  out.Write("    else\n"
-            "      mat.xyz = int3(255, 255, 255);\n"
-            "  }}\n"
-            "\n");
 
-  out.Write("  if ({} != 0u) {{\n", BitfieldExtract("alphareg", LitChannel().matsource));
-  out.Write("    if ((components & ({}u << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("      mat.w = int(round(((chan == 0u) ? {}.w : {}.w) * 255.0));\n", in_color_0_var,
+  out.Write("  if ({} != 0u)\n", BitfieldExtract("alphareg", LitChannel().matsource));
+  out.Write("    mat.w = int(round(((chan == 0u) ? {}.w : {}.w) * 255.0));\n", in_color_0_var,
             in_color_1_var);
-  out.Write("    else if ((components & {}u) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("      mat.w = int(round({}.w * 255.0));\n", in_color_0_var);
-  out.Write("    else\n"
-            "      mat.w = 255;\n"
-            "  }} else {{\n"
+  out.Write("  else\n"
             "    mat.w = " I_MATERIALS " [chan + 2u].w;\n"
-            "  }}\n"
             "\n");
 
   out.Write("  if ({} != 0u) {{\n", BitfieldExtract("colorreg", LitChannel().enablelighting));
-  out.Write("    if ({} != 0u) {{\n", BitfieldExtract("colorreg", LitChannel().ambsource));
-  out.Write("      if ((components & ({}u << chan)) != 0u) // VB_HAS_COL0\n", VB_HAS_COL0);
-  out.Write("        lacc.xyz = int3(round(((chan == 0u) ? {}.xyz : {}.xyz) * 255.0));\n",
+  out.Write("    if ({} != 0u)\n", BitfieldExtract("colorreg", LitChannel().ambsource));
+  out.Write("      lacc.xyz = int3(round(((chan == 0u) ? {}.xyz : {}.xyz) * 255.0));\n",
             in_color_0_var, in_color_1_var);
-  out.Write("      else if ((components & {}u) != 0u) // VB_HAS_COLO0\n", VB_HAS_COL0);
-  out.Write("        lacc.xyz = int3(round({}.xyz * 255.0));\n", in_color_0_var);
-  out.Write("      else\n"
-            "        lacc.xyz = int3(255, 255, 255);\n"
-            "    }} else {{\n"
+  out.Write("    else\n"
             "      lacc.xyz = " I_MATERIALS " [chan].xyz;\n"
-            "    }}\n"
             "\n");
   out.Write("    uint light_mask = {} | ({} << 4u);\n",
             BitfieldExtract("colorreg", LitChannel().lightMask0_3),

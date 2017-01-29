@@ -452,7 +452,6 @@ void VertexShaderManager::SetConstants()
       constants.xfmem_pack1[i][3] = xfmem.alpha[i].hex;
     }
     constants.xfmem_numColorChans = xfmem.numChan.numColorChans;
-
     dirty = true;
   }
 }
@@ -615,6 +614,17 @@ void VertexShaderManager::SetVertexFormat(u32 components)
   if (components != constants.components)
   {
     constants.components = components;
+    dirty = true;
+  }
+
+  // The default alpha channel seems to depend on the number of components in the vertex format.
+  // If the vertex attribute has an alpha channel, zero is used, otherwise one.
+  const u32 color_chan_alpha =
+      (g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color0Elements ^ 1) |
+      ((g_main_cp_state.vtx_attr[g_main_cp_state.last_id].g0.Color1Elements ^ 1) << 1);
+  if (color_chan_alpha != constants.color_chan_alpha)
+  {
+    constants.color_chan_alpha = color_chan_alpha;
     dirty = true;
   }
 }

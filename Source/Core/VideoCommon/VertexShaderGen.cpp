@@ -191,6 +191,35 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
 
   out.Write("VS_OUTPUT o;\n");
 
+  // xfmem.numColorChans controls the number of color channels available to TEV, but we still need
+  // to generate all channels here, as it can be used in texgen. Cel-damage is an example of this.
+  out.Write("float4 vertex_color_0, vertex_color_1;\n");
+
+  // To use color 1, the vertex descriptor must have color 0 and 1.
+  // If color 1 is present but not color 0, it is used for lighting channel 0.
+  const bool use_color_1 =
+      (uid_data->components & (VB_HAS_COL0 | VB_HAS_COL1)) == (VB_HAS_COL0 | VB_HAS_COL1);
+  for (u32 color = 0; color < NUM_XF_COLOR_CHANNELS; color++)
+  {
+    if ((color == 0 || use_color_1) && (uid_data->components & (VB_HAS_COL0 << color)) != 0)
+    {
+      // Use color0 for channel 0, and color1 for channel 1 if both colors 0 and 1 are present.
+      out.Write("vertex_color_{0} = rawcolor{0};\n", color);
+    }
+    else if (color == 0 && (uid_data->components & VB_HAS_COL1) != 0)
+    {
+      // Use color1 for channel 0 if color0 is not present.
+      out.Write("vertex_color_{} = rawcolor1;\n", color);
+    }
+    else
+    {
+      // The default alpha channel depends on the number of components in the vertex format.
+      out.Write(
+          "vertex_color_{0} = float4(1.0, 1.0, 1.0, float((color_chan_alpha >> {0}) & 1u));\n",
+          color);
+    }
+  }
+
   // transforms
   if ((uid_data->components & VB_HAS_POSMTXIDX) != 0)
   {
@@ -256,8 +285,7 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
             "float3 ldir, h, cosAttn, distAttn;\n"
             "float dist, dist2, attn;\n");
 
-  GenerateLightingShaderCode(out, uid_data->lighting, uid_data->components, "rawcolor",
-                             "o.colors_");
+  GenerateLightingShaderCode(out, uid_data->lighting, "vertex_color_", "o.colors_");
 
   // transform texcoords
   out.Write("float4 coord = float4(0.0, 0.0, 1.0, 1.0);\n");
@@ -434,11 +462,21 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const ShaderHostConfig& ho
     out.Write("o.Normal = _norm0;\n"
               "o.WorldPos = pos.xyz;\n");
 
+    // Pass through the vertex colors unmodified so we can evaluate the lighting in the same manner.
     if ((uid_data->components & VB_HAS_COL0) != 0)
-      out.Write("o.colors_0 = rawcolor0;\n");
+      out.Write("o.colors_0 = vertex_color_0;\n");
 
     if ((uid_data->components & VB_HAS_COL1) != 0)
-      out.Write("o.colors_1 = rawcolor1;\n");
+      out.Write("o.colors_1 = vertex_color_1;\n");
+  }
+  else
+  {
+    // The number of colors available to TEV is determined by numColorChans.
+    // We have to provide the fields to match the interface, so set to zero if it's not enabled.
+    if (uid_data->numColorChans == 0)
+      out.Write("o.colors_0 = float4(0.0, 0.0, 0.0, 0.0);\n");
+    if (uid_data->numColorChans <= 1)
+      out.Write("o.colors_1 = float4(0.0, 0.0, 0.0, 0.0);\n");
   }
 
   // If we can disable the incorrect depth clipping planes using depth clamping, then we can do
