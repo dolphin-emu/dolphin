@@ -327,7 +327,7 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
 }
 
 std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu,
-                                                     VkSurfaceKHR surface, VideoConfig* config,
+                                                     VkSurfaceKHR surface,
                                                      bool enable_debug_reports,
                                                      bool enable_validation_layer)
 {
@@ -354,9 +354,6 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
     return nullptr;
   }
 
-  // Update video config with features.
-  PopulateBackendInfoFeatures(config, gpu, context->m_device_features);
-  PopulateBackendInfoMultisampleModes(config, gpu, context->m_device_properties);
   return context;
 }
 
