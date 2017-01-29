@@ -24,15 +24,11 @@
 
 #pragma once
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
-void get_ng_cert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, const u8* NG_sig);
-void get_ap_sig_and_cert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 data_size,
-                         const u8* NG_priv, u32 NG_id);
-
-void make_blanksig_ec_cert(u8* cert_out, const char* signer, const char* name,
-                           const u8* private_key, u32 key_id);
+void MakeNGCert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, const u8* NG_sig);
+void MakeAPSigAndCert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 data_size,
+                      const u8* NG_priv, u32 NG_id);
 
 class EcWii
 {
@@ -40,10 +36,11 @@ public:
   EcWii();
   ~EcWii();
   static EcWii& GetInstance();
-  u32 getNgId() { return Common::swap32(BootMiiKeysBin.ng_id); }
-  u32 getNgKeyId() { return Common::swap32(BootMiiKeysBin.ng_key_id); }
-  const u8* getNgPriv() { return BootMiiKeysBin.ng_priv; }
-  const u8* getNgSig() { return BootMiiKeysBin.ng_sig; }
+  u32 GetNGID() const;
+  u32 GetNGKeyID() const;
+  const u8* GetNGPriv() const;
+  const u8* GetNGSig() const;
+
 private:
   void InitDefaults();
 
