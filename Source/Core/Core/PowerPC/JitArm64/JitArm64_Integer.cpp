@@ -437,12 +437,12 @@ void JitArm64::cmpl(UGeckoInstruction inst)
 
   if (gpr.IsImm(a) && gpr.IsImm(b))
   {
-    ComputeRC(gpr.GetImm(a) - gpr.GetImm(b), crf);
+    ComputeRC(static_cast<u64>(gpr.GetImm(a)) - static_cast<u64>(gpr.GetImm(b)), crf, false);
     return;
   }
   else if (gpr.IsImm(b) && !gpr.GetImm(b))
   {
-    ComputeRC(gpr.R(a), crf);
+    ComputeRC(gpr.R(a), crf, false);
     return;
   }
 
