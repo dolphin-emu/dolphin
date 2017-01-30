@@ -10,13 +10,8 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/Logging/Log.h"
+#include "Core/Core.h"
 #include "Core/HW/Memmap.h"
-
-namespace Core
-{
-void QueueHostJob(std::function<void()> job, bool run_during_stop);
-void Stop();
-}
 
 namespace IOS
 {
