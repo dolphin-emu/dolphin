@@ -5,8 +5,8 @@
 #include "Core/Core.h"
 
 #include <atomic>
-#include <cctype>
 #include <cstring>
+#include <locale>
 #include <mutex>
 #include <queue>
 #include <utility>
@@ -178,7 +178,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
   // Actually displaying non-ASCII could cause things to go pear-shaped
   for (const char& c : message)
   {
-    if (!std::isprint(c))
+    if (!std::isprint(c, std::locale::classic()))
       return;
   }
 
