@@ -17,52 +17,90 @@
 #include "Core/HW/EXI/EXI_DeviceMic.h"
 #include "Core/HW/Memmap.h"
 
-void IEXIDevice::ImmWrite(u32 _uData, u32 _uSize)
+void IEXIDevice::ImmWrite(u32 data, u32 size)
 {
-  while (_uSize--)
+  while (size--)
   {
-    u8 uByte = _uData >> 24;
-    TransferByte(uByte);
-    _uData <<= 8;
+    u8 byte = data >> 24;
+    TransferByte(byte);
+    data <<= 8;
   }
 }
 
-u32 IEXIDevice::ImmRead(u32 _uSize)
+u32 IEXIDevice::ImmRead(u32 size)
 {
-  u32 uResult = 0;
-  u32 uPosition = 0;
-  while (_uSize--)
+  u32 result = 0;
+  u32 position = 0;
+  while (size--)
   {
-    u8 uByte = 0;
-    TransferByte(uByte);
-    uResult |= uByte << (24 - (uPosition++ * 8));
+    u8 byte = 0;
+    TransferByte(byte);
+    result |= byte << (24 - (position++ * 8));
   }
-  return uResult;
+  return result;
 }
 
-void IEXIDevice::DMAWrite(u32 _uAddr, u32 _uSize)
+void IEXIDevice::ImmReadWrite(u32& data, u32 size)
 {
-  // _dbg_assert_(EXPANSIONINTERFACE, 0);
-  while (_uSize--)
+}
+
+void IEXIDevice::DMAWrite(u32 address, u32 size)
+{
+  while (size--)
   {
-    u8 uByte = Memory::Read_U8(_uAddr++);
-    TransferByte(uByte);
+    u8 byte = Memory::Read_U8(address++);
+    TransferByte(byte);
   }
 }
 
-void IEXIDevice::DMARead(u32 _uAddr, u32 _uSize)
+void IEXIDevice::DMARead(u32 address, u32 size)
 {
-  // _dbg_assert_(EXPANSIONINTERFACE, 0);
-  while (_uSize--)
+  while (size--)
   {
-    u8 uByte = 0;
-    TransferByte(uByte);
-    Memory::Write_U8(uByte, _uAddr++);
+    u8 byte = 0;
+    TransferByte(byte);
+    Memory::Write_U8(byte, address++);
   }
+}
+
+IEXIDevice* IEXIDevice::FindDevice(TEXIDevices device_type, int custom_index)
+{
+  return (device_type == m_device_type) ? this : nullptr;
+}
+
+bool IEXIDevice::UseDelayedTransferCompletion() const
+{
+  return false;
+}
+
+bool IEXIDevice::IsPresent() const
+{
+  return false;
+}
+
+void IEXIDevice::SetCS(int cs)
+{
+}
+
+void IEXIDevice::DoState(PointerWrap& p)
+{
+}
+
+void IEXIDevice::PauseAndLock(bool do_lock, bool resume_on_unlock)
+{
+}
+
+bool IEXIDevice::IsInterruptSet()
+{
+  return false;
+}
+
+void IEXIDevice::TransferByte(u8& byte)
+{
 }
 
 // F A C T O R Y
-std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, const int channel_num)
+std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, const int channel_num)
 {
   std::unique_ptr<IEXIDevice> result;
 
@@ -111,7 +149,7 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(TEXIDevices device_type, const int 
   }
 
   if (result != nullptr)
-    result->m_deviceType = device_type;
+    result->m_device_type = device_type;
 
   return result;
 }
