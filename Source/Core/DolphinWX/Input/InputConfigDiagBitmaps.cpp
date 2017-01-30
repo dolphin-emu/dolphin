@@ -22,7 +22,7 @@
 #include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 

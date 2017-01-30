@@ -5,7 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 class InputConfig;
 enum class KeyboardGroup;

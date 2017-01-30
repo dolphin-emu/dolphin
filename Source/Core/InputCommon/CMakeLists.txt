@@ -1,5 +1,5 @@
-set(SRCS	ControllerEmu.cpp
-			InputConfig.cpp
+set(SRCS	InputConfig.cpp
+			ControllerEmu/ControllerEmu.cpp
 			ControllerInterface/ControllerInterface.cpp
 			ControllerInterface/Device.cpp
 			ControllerInterface/ExpressionParser.cpp)

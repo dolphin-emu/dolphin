@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include <memory>
 #include "Common/Common.h"
 #include "VideoCommon/OnScreenDisplay.h"

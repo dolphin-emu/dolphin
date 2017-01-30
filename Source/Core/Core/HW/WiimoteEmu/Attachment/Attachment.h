@@ -7,7 +7,7 @@
 #include <array>
 #include <string>
 #include "Common/CommonTypes.h"
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 namespace WiimoteEmu
 {

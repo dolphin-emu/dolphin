@@ -6,7 +6,7 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 class InputConfig;
 class PointerWrap;

@@ -4,7 +4,7 @@
 
 #include "Core/HW/GCKeyboardEmu.h"
 #include "Common/Common.h"
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/KeyboardStatus.h"
 
 static const u16 keys0_bitmasks[] = {KEYMASK_HOME,       KEYMASK_END, KEYMASK_PGUP, KEYMASK_PGDN,

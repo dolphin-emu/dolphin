@@ -21,7 +21,7 @@
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
 #include "VideoCommon/VideoBackendBase.h"

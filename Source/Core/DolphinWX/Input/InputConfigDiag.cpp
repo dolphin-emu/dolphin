@@ -52,7 +52,7 @@
 #include "DolphinWX/Input/NunchukInputConfigDiag.h"
 #include "DolphinWX/Input/TurntableInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 #include "InputCommon/ControllerInterface/ExpressionParser.h"
