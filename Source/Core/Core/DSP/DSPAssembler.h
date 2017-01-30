@@ -50,7 +50,7 @@ enum err_t
 class DSPAssembler
 {
 public:
-  DSPAssembler(const AssemblerSettings& settings);
+  explicit DSPAssembler(const AssemblerSettings& settings);
   ~DSPAssembler();
 
   // line_numbers is optional (and not yet implemented). It'll receieve a list of ints,
