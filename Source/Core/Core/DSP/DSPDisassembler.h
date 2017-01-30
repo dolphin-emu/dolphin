@@ -33,7 +33,7 @@ struct AssemblerSettings
 class DSPDisassembler
 {
 public:
-  DSPDisassembler(const AssemblerSettings& settings);
+  explicit DSPDisassembler(const AssemblerSettings& settings);
   ~DSPDisassembler();
 
   bool Disassemble(int start_pc, const std::vector<u16>& code, int base_addr, std::string& text);
