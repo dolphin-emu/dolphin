@@ -51,6 +51,9 @@
 
 #include "VideoCommon/VideoBackendBase.h"
 
+#include "Patches.cpp"
+
+
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
 #endif
@@ -66,6 +69,8 @@ std::string wxStringTranslator(const char*);
 CFrame* main_frame = nullptr;
 
 static std::mutex s_init_mutex;
+
+GLOBAL_INITALIZATION
 
 bool DolphinApp::Initialize(int& c, wxChar** v)
 {
@@ -154,6 +159,7 @@ void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
        wxCMD_LINE_PARAM_OPTIONAL},
       {wxCMD_LINE_OPTION, "u", "user", "User folder path", wxCMD_LINE_VAL_STRING,
        wxCMD_LINE_PARAM_OPTIONAL},
+	   ADD_ARGUMENT
       {wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0}};
 
   parser.SetDesc(desc);
@@ -182,6 +188,7 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
   m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
   m_play_movie = parser.Found("movie", &m_movie_file);
   parser.Found("user", &m_user_path);
+  ADD_PARSER
 
   return true;
 }
