@@ -655,7 +655,10 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
+  if (SConfig::GetInstance().bDCBZOFF)
+    return;
   FALLBACK_IF(jo.memcheck);
+  FALLBACK_IF(SConfig::GetInstance().bLowDCBZHack);
 
   int a = inst.RA, b = inst.RB;
 
