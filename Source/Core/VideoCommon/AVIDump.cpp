@@ -73,7 +73,7 @@ bool AVIDump::Start(int w, int h)
   bool success = CreateVideoFile();
   if (!success)
   {
-    CloseFile();
+    CloseVideoFile();
     OSD::AddMessage("AVIDump Start failed");
   }
   return success;
@@ -257,13 +257,13 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const 
 void AVIDump::Stop()
 {
   av_write_trailer(s_format_context);
-  CloseFile();
+  CloseVideoFile();
   s_file_index = 0;
   NOTICE_LOG(VIDEO, "Stopping frame dump");
   OSD::AddMessage("Stopped dumping frames");
 }
 
-void AVIDump::CloseFile()
+void AVIDump::CloseVideoFile()
 {
   if (s_stream)
   {
