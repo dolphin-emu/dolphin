@@ -46,9 +46,7 @@ void JitArm64::Init()
   UpdateMemoryOptions();
   gpr.Init(this);
   fpr.Init(this);
-
   blocks.Init();
-  GenerateAsm();
 
   code_block.m_stats = &js.st;
   code_block.m_gpa = &js.gpa;
@@ -56,6 +54,9 @@ void JitArm64::Init()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
+  m_enable_blr_optimization = true;
+
+  GenerateAsm();
 
   m_supports_cycle_counter = HasCycleCounters();
 }
@@ -192,8 +193,16 @@ void JitArm64::DoDownCount()
   gpr.Unlock(WA, WB);
 }
 
-// Exits
-void JitArm64::WriteExit(u32 destination)
+void JitArm64::ResetStack()
+{
+  if (!m_enable_blr_optimization)
+    return;
+
+  LDR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
+  SUB(SP, X0, 16);
+}
+
+void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return)
 {
   Cleanup();
   DoDownCount();
@@ -201,31 +210,159 @@ void JitArm64::WriteExit(u32 destination)
   if (Profiler::g_ProfileBlocks)
     EndTimeProfile(js.curBlock);
 
-  // If nobody has taken care of this yet (this can be removed when all branches are done)
+  LK &= m_enable_blr_optimization;
+
+  if (LK)
+  {
+    // Push {ARM_PC+20; PPC_PC} on the stack
+    MOVI2R(X1, exit_address_after_return);
+    ADR(X0, 20);
+    STP(INDEX_PRE, X0, X1, SP, -16);
+  }
+
   JitBlock* b = js.curBlock;
   JitBlock::LinkData linkData;
   linkData.exitAddress = destination;
   linkData.exitPtrs = GetWritableCodePtr();
   linkData.linkStatus = false;
+  linkData.call = LK;
   b->linkData.push_back(linkData);
 
   MOVI2R(DISPATCHER_PC, destination);
-  B(dispatcher);
+
+  if (!LK)
+  {
+    B(dispatcher);
+  }
+  else
+  {
+    BL(dispatcher);
+
+    // MOVI2R might only require one instruction. So the const offset of 20 bytes
+    // might be wrong. Be sure and just add a NOP here.
+    HINT(HINT_NOP);
+
+    // Write the regular exit node after the return.
+    linkData.exitAddress = exit_address_after_return;
+    linkData.exitPtrs = GetWritableCodePtr();
+    linkData.linkStatus = false;
+    linkData.call = false;
+    b->linkData.push_back(linkData);
+
+    MOVI2R(DISPATCHER_PC, exit_address_after_return);
+    B(dispatcher);
+  }
 }
 
-void JitArm64::WriteExit(ARM64Reg Reg)
+void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_after_return)
 {
   Cleanup();
   DoDownCount();
 
-  if (Reg != DISPATCHER_PC)
-    MOV(DISPATCHER_PC, Reg);
-  gpr.Unlock(Reg);
+  LK &= m_enable_blr_optimization;
+
+  if (dest != DISPATCHER_PC)
+    MOV(DISPATCHER_PC, dest);
+  gpr.Unlock(dest);
 
   if (Profiler::g_ProfileBlocks)
     EndTimeProfile(js.curBlock);
 
+  if (!LK)
+  {
+    B(dispatcher);
+  }
+  else
+  {
+    // Push {ARM_PC, PPC_PC} on the stack
+    MOVI2R(X1, exit_address_after_return);
+    ADR(X0, 12);
+    STP(INDEX_PRE, X0, X1, SP, -16);
+
+    BL(dispatcher);
+
+    // Write the regular exit node after the return.
+    JitBlock* b = js.curBlock;
+    JitBlock::LinkData linkData;
+    linkData.exitAddress = exit_address_after_return;
+    linkData.exitPtrs = GetWritableCodePtr();
+    linkData.linkStatus = false;
+    linkData.call = false;
+    b->linkData.push_back(linkData);
+
+    MOVI2R(DISPATCHER_PC, exit_address_after_return);
+    B(dispatcher);
+  }
+}
+
+void JitArm64::FakeLKExit(u32 exit_address_after_return)
+{
+  if (!m_enable_blr_optimization)
+    return;
+
+  // We may need to fake the BLR stack on inlined CALL instructions.
+  // Else we can't return to this location any more.
+  ARM64Reg after_reg = gpr.GetReg();
+  ARM64Reg code_reg = gpr.GetReg();
+  MOVI2R(after_reg, exit_address_after_return);
+  ADR(EncodeRegTo64(code_reg), 12);
+  STP(INDEX_PRE, EncodeRegTo64(code_reg), EncodeRegTo64(after_reg), SP, -16);
+  gpr.Unlock(after_reg, code_reg);
+
+  FixupBranch skip_exit = BL();
+
+  // Write the regular exit node after the return.
+  JitBlock* b = js.curBlock;
+  JitBlock::LinkData linkData;
+  linkData.exitAddress = exit_address_after_return;
+  linkData.exitPtrs = GetWritableCodePtr();
+  linkData.linkStatus = false;
+  linkData.call = false;
+  b->linkData.push_back(linkData);
+
+  MOVI2R(DISPATCHER_PC, exit_address_after_return);
   B(dispatcher);
+
+  SetJumpTarget(skip_exit);
+}
+
+void JitArm64::WriteBLRExit(Arm64Gen::ARM64Reg dest)
+{
+  if (!m_enable_blr_optimization)
+  {
+    WriteExit(dest);
+    return;
+  }
+
+  Cleanup();
+
+  if (Profiler::g_ProfileBlocks)
+    EndTimeProfile(js.curBlock);
+
+  ARM64Reg code = gpr.GetReg();
+  ARM64Reg pc = gpr.GetReg();
+
+  // Check if {ARM_PC, PPC_PC} matches the current state.
+  LDP(INDEX_POST, EncodeRegTo64(code), EncodeRegTo64(pc), SP, 16);
+  CMP(pc, dest);
+  FixupBranch no_match = B(CC_NEQ);
+
+  DoDownCount();
+
+  RET(EncodeRegTo64(code));
+
+  SetJumpTarget(no_match);
+
+  DoDownCount();
+
+  if (dest != DISPATCHER_PC)
+    MOV(DISPATCHER_PC, dest);
+
+  ResetStack();
+
+  B(dispatcher);
+
+  gpr.Unlock(dest, pc, code);
 }
 
 void JitArm64::WriteExceptionExit(u32 destination, bool only_external)
@@ -399,11 +536,11 @@ void JitArm64::Jit(u32)
   }
 
   JitBlock* b = blocks.AllocateBlock(em_address);
-  const u8* BlockPtr = DoJit(em_address, &code_buffer, b, nextPC);
+  DoJit(em_address, &code_buffer, b, nextPC);
   blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
 }
 
-const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)
+void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)
 {
   if (em_address == 0)
   {
@@ -629,5 +766,4 @@ const u8* JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitB
 
   FlushIcache();
   farcode.FlushIcache();
-  return start;
 }

@@ -116,6 +116,9 @@ struct PowerPCState
   // also for power management, but we don't care about that.
   u32 spr[1024];
 
+  // Storage for the stack pointer of the BLR optimization.
+  u8* stored_stack_pointer;
+
   std::array<std::array<tlb_entry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
 
   u32 pagetable_base;

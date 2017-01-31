@@ -58,6 +58,7 @@ struct JitBlock
     u8* exitPtrs;  // to be able to rewrite the exit jump
     u32 exitAddress;
     bool linkStatus;  // is it already linked?
+    bool call;
   };
   std::vector<LinkData> linkData;
 

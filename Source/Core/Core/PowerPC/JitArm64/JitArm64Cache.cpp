@@ -19,21 +19,31 @@ void JitArm64BlockCache::WriteLinkBlock(const JitBlock::LinkData& source, const 
 
   if (dest)
   {
-    // Are we able to jump directly to the normal entry?
-    s64 distance = ((s64)dest->normalEntry - (s64)location) >> 2;
-    if (distance >= -0x40000 && distance <= 0x3FFFF)
+    if (source.call)
     {
-      emit.B(CC_PL, dest->normalEntry);
+      emit.BL(dest->checkedEntry);
     }
+    else
+    {
+      // Are we able to jump directly to the normal entry?
+      s64 distance = ((s64)dest->normalEntry - (s64)location) >> 2;
+      if (distance >= -0x40000 && distance <= 0x3FFFF)
+      {
+        emit.B(CC_PL, dest->normalEntry);
+      }
 
-    // Use the checked entry if either downcount is smaller zero,
-    // or if we're not able to inline the downcount check here.
-    emit.B(dest->checkedEntry);
+      // Use the checked entry if either downcount is smaller zero,
+      // or if we're not able to inline the downcount check here.
+      emit.B(dest->checkedEntry);
+    }
   }
   else
   {
     emit.MOVI2R(DISPATCHER_PC, source.exitAddress);
-    emit.B(m_jit.GetAsmRoutines()->dispatcher);
+    if (source.call)
+      emit.BL(m_jit.GetAsmRoutines()->dispatcher);
+    else
+      emit.B(m_jit.GetAsmRoutines()->dispatcher);
   }
   emit.FlushIcache();
 }
