@@ -322,11 +322,10 @@ void Renderer::DrawDebugText()
       final_cyan += " - ";
     if (SConfig::GetInstance().m_ShowFrameCount)
     {
-      final_cyan += StringFromFormat("Frame: %llu", (unsigned long long)Movie::GetCurrentFrame());
+      final_cyan += StringFromFormat("Frame: %" PRIu64, Movie::GetCurrentFrame());
       if (Movie::IsPlayingInput())
-        final_cyan += StringFromFormat("\nInput: %llu / %llu",
-                                       (unsigned long long)Movie::GetCurrentInputCount(),
-                                       (unsigned long long)Movie::GetTotalInputCount());
+        final_cyan += StringFromFormat("\nInput: %" PRIu64 " / %" PRIu64,
+                                       Movie::GetCurrentInputCount(), Movie::GetTotalInputCount());
     }
 
     final_cyan += "\n";
