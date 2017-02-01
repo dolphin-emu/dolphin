@@ -56,7 +56,7 @@ void WiiConfigPane::InitializeGUI()
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_bt_sensor_bar_pos_strings);
   m_bt_sensor_bar_sens = new DolphinSlider(this, wxID_ANY, 0, 0, 4);
   m_bt_speaker_volume = new DolphinSlider(this, wxID_ANY, 0, 0, 127);
-  m_bt_wiimote_motor = new wxCheckBox(this, wxID_ANY, _("Wii Remote Motor"));
+  m_bt_wiimote_motor = new wxCheckBox(this, wxID_ANY, _("Wii Remote Rumble"));
 
   m_screensaver_checkbox->SetToolTip(_("Dims the screen after five minutes of inactivity."));
   m_pal60_mode_checkbox->SetToolTip(_("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
