@@ -6,6 +6,8 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
+struct ID3D11Buffer;
+
 namespace DX11
 {
 class VertexManager : public VertexManagerBase

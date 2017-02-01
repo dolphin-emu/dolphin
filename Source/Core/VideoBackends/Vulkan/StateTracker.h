@@ -13,6 +13,7 @@
 #include "VideoBackends/Vulkan/Constants.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoCommon/GeometryShaderGen.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/PixelShaderGen.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VertexShaderGen.h"

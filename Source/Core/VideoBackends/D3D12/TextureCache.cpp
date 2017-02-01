@@ -3,7 +3,11 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/TextureCache.h"
+
 #include "Common/Align.h"
+#include "Common/Assert.h"
+#include "Common/Logging/Log.h"
+
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
@@ -15,8 +19,8 @@
 #include "VideoBackends/D3D12/PSTextureEncoder.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
 #include "VideoBackends/D3D12/TextureEncoder.h"
+
 #include "VideoCommon/ImageWrite.h"
-#include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 

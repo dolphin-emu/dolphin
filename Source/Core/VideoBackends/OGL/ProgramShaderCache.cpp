@@ -2,16 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+
 #include <memory>
 #include <string>
 
 #include "Common/Align.h"
 #include "Common/Common.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 
-#include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 

@@ -2,35 +2,27 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/TextureCache.h"
+
 #include <algorithm>
 #include <cmath>
+#include <cstring>
 #include <fstream>
 #include <memory>
 #include <vector>
 
-#include "Common/Common.h"
-#include "Common/CommonPaths.h"
-#include "Common/FileUtil.h"
-#include "Common/Hash.h"
-#include "Common/MemoryUtil.h"
-#include "Common/StringUtil.h"
-
 #include "Common/GL/GLInterfaceBase.h"
-
-#include "Core/HW/Memmap.h"
+#include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
-#include "VideoBackends/OGL/TextureCache.h"
 #include "VideoBackends/OGL/TextureConverter.h"
 
-#include "VideoCommon/BPStructs.h"
-#include "VideoCommon/HiresTextures.h"
 #include "VideoCommon/ImageWrite.h"
-#include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoConfig.h"
 

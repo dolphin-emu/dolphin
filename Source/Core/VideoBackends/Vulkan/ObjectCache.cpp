@@ -9,8 +9,11 @@
 #include <type_traits>
 #include <xxhash.h>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/LinearDiskCache.h"
+#include "Common/MsgHandler.h"
+
 #include "Core/ConfigManager.h"
 
 #include "VideoBackends/Vulkan/ShaderCompiler.h"

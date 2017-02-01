@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
 
-#include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace OGL

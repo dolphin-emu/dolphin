@@ -7,8 +7,10 @@
 #include <algorithm>
 #include <cstddef>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/HW/Memmap.h"
 
