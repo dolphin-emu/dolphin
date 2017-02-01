@@ -876,11 +876,6 @@ if (OPENSLES_LIBRARIES AND OPENSLES_INCLUDE_DIR)
 	message(STATUS "OpenSLES found, enabling OpenSLES sound backend")
 endif()
 
-if(ENABLE_QT2)
-	find_package(Qt5Widgets REQUIRED)
-	message(STATUS "Found Qt version ${Qt5Core_VERSION}, enabling the Qt backend")
-endif()
-
 if(NOT DISABLE_WX)
 	find_package(wxWidgets COMPONENTS core aui adv)
 
