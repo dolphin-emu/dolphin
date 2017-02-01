@@ -9,6 +9,8 @@
 #include <string>
 
 #include "Common/Align.h"
+#include "Common/Assert.h"
+#include "Common/Logging/Log.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/D3DState.h"

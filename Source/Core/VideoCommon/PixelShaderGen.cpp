@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/PixelShaderGen.h"
+
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -13,7 +15,7 @@
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
-#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"

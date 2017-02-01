@@ -9,6 +9,7 @@
 #include <limits>
 #include <string>
 
+#include "Common/Assert.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 

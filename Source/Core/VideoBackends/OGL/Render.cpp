@@ -19,6 +19,7 @@
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/Core.h"
