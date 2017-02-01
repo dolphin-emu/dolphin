@@ -142,8 +142,11 @@ static bool FillDSPInitOptions(DSPInitOptions* opts)
   if (!LoadDSPRom(opts->coef_contents.data(), coef_file, DSP_COEF_BYTE_SIZE))
     return false;
 
-  opts->core_type = SConfig::GetInstance().m_DSPEnableJIT ? DSPInitOptions::CORE_JIT :
-                                                            DSPInitOptions::CORE_INTERPRETER;
+  opts->core_type = DSPInitOptions::CORE_INTERPRETER;
+#ifdef _M_X86
+  if (SConfig::GetInstance().m_DSPEnableJIT)
+    opts->core_type = DSPInitOptions::CORE_JIT;
+#endif
 
   if (SConfig::GetInstance().m_DSPCaptureLog)
   {
