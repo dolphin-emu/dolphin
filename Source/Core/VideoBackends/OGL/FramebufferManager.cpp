@@ -5,11 +5,14 @@
 #include "VideoBackends/OGL/FramebufferManager.h"
 
 #include <memory>
+#include <sstream>
 #include <vector>
 
 #include "Common/Common.h"
-#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
+#include "Common/Logging/Log.h"
+
 #include "Core/HW/Memmap.h"
 
 #include "VideoBackends/OGL/Render.h"

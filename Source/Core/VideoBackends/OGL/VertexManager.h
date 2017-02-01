@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <vector>
+
+#include "Common/CommonTypes.h"
+#include "Common/GL/GLUtil.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 

@@ -4,6 +4,8 @@
 
 #include "VideoBackends/Vulkan/VertexManager.h"
 
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
 #include "VideoBackends/Vulkan/BoundingBox.h"

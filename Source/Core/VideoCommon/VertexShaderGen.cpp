@@ -14,6 +14,7 @@
 #include "VideoCommon/VertexShaderGen.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 VertexShaderUid GetVertexShaderUid()
 {
