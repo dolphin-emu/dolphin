@@ -95,7 +95,7 @@ struct SConfig : NonCopyable
   bool bDSPThread = false;
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
-  bool bForceNTSCJ = false;
+  bool bJapaneseVIBit = false;
   bool bHLE_BS2 = true;
   bool bEnableCheats = false;
   bool bEnableMemcardSdWriting = true;
@@ -120,6 +120,8 @@ struct SConfig : NonCopyable
 
   int SelectedLanguage = 0;
   bool bOverrideGCLanguage = false;
+  bool GCLanguageAndRegionCompatible() const;
+  void SetDefaultGCLanguageForRegion();
 
   bool bWii = false;
 

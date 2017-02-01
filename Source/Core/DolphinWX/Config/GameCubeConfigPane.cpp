@@ -49,6 +49,7 @@ GameCubeConfigPane::GameCubeConfigPane(wxWindow* parent, wxWindowID id) : wxPane
 
 void GameCubeConfigPane::InitializeGUI()
 {
+  m_ipl_language_strings.Add(_("Japanese"));
   m_ipl_language_strings.Add(_("English"));
   m_ipl_language_strings.Add(_("German"));
   m_ipl_language_strings.Add(_("French"));
@@ -145,8 +146,18 @@ void GameCubeConfigPane::InitializeGUI()
 void GameCubeConfigPane::LoadGUIValues()
 {
   const SConfig& startup_params = SConfig::GetInstance();
+  // 0 is both Japanese and English
+  // Japanese is selected by a bit in a VI register also being set, English if cleared.
+  // This bit controlled by bForceNTSCJ.
+  int selected_language = startup_params.SelectedLanguage;
 
-  m_system_lang_choice->SetSelection(startup_params.SelectedLanguage);
+  if ((selected_language != 0) || !startup_params.bJapaneseVIBit)
+  {
+    // All non-Japanese languages are shifted up in value by one
+    selected_language += 1;
+  }
+
+  m_system_lang_choice->SetSelection(selected_language);
   m_skip_bios_checkbox->SetValue(startup_params.bHLE_BS2);
   m_override_lang_checkbox->SetValue(startup_params.bOverrideGCLanguage);
 
@@ -237,8 +248,7 @@ void GameCubeConfigPane::BindEvents()
 
 void GameCubeConfigPane::OnSystemLanguageChange(wxCommandEvent& event)
 {
-  SConfig::GetInstance().SelectedLanguage = m_system_lang_choice->GetSelection();
-
+  SetSystemLanguage(m_system_lang_choice->GetSelection());
   AddPendingEvent(wxCommandEvent(wxDOLPHIN_CFG_REFRESH_LIST));
 }
 
@@ -418,5 +428,21 @@ void GameCubeConfigPane::ChooseSlotPath(bool is_slot_a, TEXIDevices device_type)
     {
       WxUtils::ShowErrorDialog(_("Are you trying to use the same file in both slots?"));
     }
+  }
+}
+
+void GameCubeConfigPane::SetSystemLanguage(int language)
+{
+  SConfig& sconfig = SConfig::GetInstance();
+  switch (language)
+  {
+  case 0:  // Japanese
+    sconfig.SelectedLanguage = 0;
+    sconfig.bJapaneseVIBit = true;
+    break;
+  default:
+    sconfig.SelectedLanguage = language - 1;
+    sconfig.bJapaneseVIBit = false;
+    break;
   }
 }

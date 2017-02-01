@@ -81,6 +81,7 @@ private:
   bool bHLE_BS2;
   bool bProgressive;
   bool bPAL60;
+  bool bJapaneseVIBit;
   int iSelectedLanguage;
   int iCPUCore;
   int Volume;
@@ -115,6 +116,7 @@ void ConfigCache::SaveConfig(const SConfig& config)
   bProgressive = config.bProgressive;
   bPAL60 = config.bPAL60;
   iSelectedLanguage = config.SelectedLanguage;
+  bJapaneseVIBit = config.bJapaneseVIBit;
   iCPUCore = config.iCPUCore;
   Volume = config.m_Volume;
   m_EmulationSpeed = config.m_EmulationSpeed;
@@ -159,6 +161,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->bProgressive = bProgressive;
   config->bPAL60 = bPAL60;
   config->SelectedLanguage = iSelectedLanguage;
+  config->bJapaneseVIBit = bJapaneseVIBit;
   config->iCPUCore = iCPUCore;
 
   // Only change these back if they were actually set by game ini, since they can be changed while a
@@ -373,19 +376,17 @@ bool BootCore(const std::string& _rFilename)
     g_SRAM_netplay_initialized = false;
   }
 
-  const bool ntsc = DiscIO::IsNTSC(StartUp.m_region);
-
   // Apply overrides
   // Some NTSC GameCube games such as Baten Kaitos react strangely to
   // language settings that would be invalid on an NTSC system
-  if (!StartUp.bOverrideGCLanguage && ntsc)
+  if (!StartUp.bOverrideGCLanguage && !StartUp.GCLanguageAndRegionCompatible())
   {
-    StartUp.SelectedLanguage = 0;
+    StartUp.SetDefaultGCLanguageForRegion();
   }
 
   // Some NTSC Wii games such as Doc Louis's Punch-Out!! and
   // 1942 (Virtual Console) crash if the PAL60 option is enabled
-  if (StartUp.bWii && ntsc)
+  if (StartUp.bWii && DiscIO::IsNTSC(StartUp.m_region))
   {
     StartUp.bPAL60 = false;
   }
