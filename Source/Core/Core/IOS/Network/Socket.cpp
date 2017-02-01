@@ -615,9 +615,13 @@ s32 WiiSockMan::NewSocket(s32 af, s32 type, s32 protocol)
 
 s32 WiiSockMan::DeleteSocket(s32 s)
 {
+  s32 ReturnValue = EBADF;
   auto socket_entry = WiiSockets.find(s);
-  s32 ReturnValue = socket_entry->second.CloseFd();
-  WiiSockets.erase(socket_entry);
+  if (socket_entry != WiiSockets.end())
+  {
+    ReturnValue = socket_entry->second.CloseFd();
+    WiiSockets.erase(socket_entry);
+  }
   return ReturnValue;
 }
 
