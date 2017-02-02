@@ -190,6 +190,8 @@ private:
   // Do we support cycle counter profiling?
   bool m_supports_cycle_counter;
 
+  bool m_enable_blr_optimization;
+
   void EmitResetCycleCounters();
   void EmitGetCycles(Arm64Gen::ARM64Reg reg);
 
@@ -219,10 +221,11 @@ private:
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
 
-  const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
+  void DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
 
   void DoDownCount();
   void Cleanup();
+  void ResetStack();
 
   // AsmRoutines
   void GenerateAsm();
@@ -234,10 +237,12 @@ private:
   void EndTimeProfile(JitBlock* b);
 
   // Exits
-  void WriteExit(u32 destination);
-  void WriteExit(Arm64Gen::ARM64Reg dest);
+  void WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0);
+  void WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0);
   void WriteExceptionExit(u32 destination, bool only_external = false);
   void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false);
+  void FakeLKExit(u32 exit_address_after_return);
+  void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 
