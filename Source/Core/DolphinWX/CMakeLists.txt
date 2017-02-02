@@ -114,16 +114,44 @@ endif()
 
 set(DOLPHIN_EXE ${DOLPHIN_EXE_BASE})
 
-find_package(Gettext)
-if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
-	file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
-	add_custom_target(translations ALL)
-	GETTEXT_CREATE_TRANSLATIONS(${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot ${LINGUAS})
-endif()
 
 if(wxWidgets_FOUND)
 	add_executable(${DOLPHIN_EXE} ${SRCS} ${GUI_SRCS})
 	target_link_libraries(${DOLPHIN_EXE} ${LIBS} ${WXLIBS})
+
+	# Handle localization
+	find_package(Gettext)
+	if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE)
+		set(pot_file "${CMAKE_SOURCE_DIR}/Languages/po/dolphin-emu.pot")
+		file(GLOB LINGUAS ${CMAKE_SOURCE_DIR}/Languages/po/*.po)
+
+		target_sources(${DOLPHIN_EXE} PRIVATE ${pot_file} ${LINGUAS})
+		source_group("Localization" FILES ${LINGUAS})
+		source_group("Localization\\\\Generated" FILES ${pot_file})
+
+		foreach(po ${LINGUAS})
+			get_filename_component(lang ${po} NAME_WE)
+			set(mo_dir ${CMAKE_CURRENT_BINARY_DIR}/${lang})
+			set(mo ${mo_dir}/dolphin-emu.mo)
+
+			target_sources(${DOLPHIN_EXE} PRIVATE ${mo})
+			source_group("Localization\\\\Generated" FILES ${mo})
+
+			if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+				set_source_files_properties(${mo} PROPERTIES MACOSX_PACKAGE_LOCATION "Resources/${lang}.lproj")
+			else()
+				install(FILES ${mo} DESTINATION share/locale/${lang}/LC_MESSAGES)
+			endif()
+
+			add_custom_command(OUTPUT ${mo}
+				COMMAND mkdir -p ${mo_dir}
+				COMMAND ${GETTEXT_MSGMERGE_EXECUTABLE} --quiet --update --backup=none -s ${po} ${pot_file}
+				COMMAND ${GETTEXT_MSGFMT_EXECUTABLE} -o ${mo} ${po}
+				DEPENDS ${po}
+			)
+		endforeach()
+	endif()
+
 	if(APPLE)
 		include(BundleUtilities)
 		set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
@@ -170,43 +198,7 @@ if(wxWidgets_FOUND)
 				)
 		endif()
 
-		if(GETTEXT_MSGMERGE_EXECUTABLE AND GETTEXT_MSGFMT_EXECUTABLE AND wxWidgets_FOUND)
-			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/copy_translations_into_bundle.cmake "
-				file(GLOB TRANSLATION_FILES RELATIVE ${CMAKE_CURRENT_BINARY_DIR}
-					${CMAKE_CURRENT_BINARY_DIR}/*.gmo
-					)
-				foreach(TRANSLATION_FILE \${TRANSLATION_FILES})
-					string(REPLACE \".gmo\" \".lproj\" TRANSLATION_DIR
-						\${TRANSLATION_FILE}
-						)
-					# It would be better to copy to the new name as a single action,
-					# but I can't figure out a way to let CMake do that.
-					file(COPY ${CMAKE_CURRENT_BINARY_DIR}/\${TRANSLATION_FILE}
-						DESTINATION ${BUNDLE_PATH}/Contents/Resources/\${TRANSLATION_DIR}
-						NO_SOURCE_PERMISSIONS
-						)
-					file(RENAME
-						${BUNDLE_PATH}/Contents/Resources/\${TRANSLATION_DIR}/\${TRANSLATION_FILE}
-						${BUNDLE_PATH}/Contents/Resources/\${TRANSLATION_DIR}/dolphin-emu.mo
-						)
-				endforeach()
-				")
 
-			file(GLOB PO_FILES RELATIVE ${CMAKE_SOURCE_DIR}/Languages/po
-				${CMAKE_SOURCE_DIR}/Languages/po/*.po
-				)
-			string(REPLACE .po .gmo GMO_FILES "${PO_FILES}")
-
-			add_custom_command(OUTPUT ${BUNDLE_PATH}/Contents/Resources/en.lproj
-				COMMAND ${CMAKE_COMMAND} -P copy_translations_into_bundle.cmake
-				DEPENDS ${GMO_FILES}
-				${CMAKE_SOURCE_DIR}/Data/Sys
-				VERBATIM
-				)
-			add_custom_target(CopyTranslationsIntoBundleWx ALL
-				DEPENDS ${BUNDLE_PATH}/Contents/Resources/en.lproj
-				)
-		endif()
 
 		# Install bundle into systemwide /Applications directory.
 		install(DIRECTORY ${BUNDLE_PATH} DESTINATION /Applications

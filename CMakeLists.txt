@@ -1002,9 +1002,6 @@ add_subdirectory(Source)
 ########################################
 # Install shared data files
 #
-if(NOT APPLE)
-	install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
-endif()
 if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
 	install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
