@@ -153,7 +153,6 @@ if(wxWidgets_FOUND)
 	endif()
 
 	if(APPLE)
-		include(BundleUtilities)
 		set(BUNDLE_PATH ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/${DOLPHIN_EXE}.app)
 
 		# Ask for an application bundle.
@@ -162,48 +161,25 @@ if(wxWidgets_FOUND)
 			MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 			)
 
-		# get rid of any old copies
-		file (REMOVE_RECURSE ${BUNDLE_PATH}/Contents/Resources/Sys)
-		if(NOT SKIP_POSTPROCESS_BUNDLE)
-			# Fix up the bundle after it is finished.
-			# There does not seem to be an easy way to run CMake commands post-build,
-			# so we invoke CMake again on a generated script.
-			file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/postprocess_bundle.cmake "
-				include(BundleUtilities)
-				message(\"Fixing up application bundle: ${BUNDLE_PATH}\")
-				message(\"(Note: This is only necessary to produce a redistributable binary.\")
-				message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
-				set(BU_CHMOD_BUNDLE_ITEMS ON)
-				execute_process(
-					COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py \"${BUNDLE_PATH}\"
-					RESULT_VARIABLE retcode
-				)
-				if(NOT \${retcode} EQUAL 0)
-					message(FATAL_ERROR \"Error when postprocessing bundle (return code: \${retcode}).\")
-				endif()
-				file(INSTALL \"${CMAKE_SOURCE_DIR}/Data/Sys\"
-					DESTINATION \"${BUNDLE_PATH}/Contents/Resources\"
-					)
-				")
-			add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
-				COMMAND ${CMAKE_COMMAND} -P postprocess_bundle.cmake
-				)
-		else()
-			add_custom_command(OUTPUT ${BUNDLE_PATH}/Contents/Resources/Sys
-				COMMAND ln -nfs ${CMAKE_SOURCE_DIR}/Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
-				VERBATIM
-				)
-			add_custom_target(CopyDataIntoBundleWx ALL
-				DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
-				)
-		endif()
+		# Copy resources in the bundle
+		file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
+		foreach(res ${resources})
+			target_sources(${DOLPHIN_EXE} PRIVATE "${CMAKE_SOURCE_DIR}/Data/${res}")
+			get_filename_component(resdir "${res}" DIRECTORY)
+			set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/${res}" PROPERTIES
+				MACOSX_PACKAGE_LOCATION "Resources/${resdir}")
+			source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Data/${res}")
+		endforeach()
 
+		# Update library references to make the bundle portable
+		add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
+			COMMAND echo "Fixing up application bundle: ${BUNDLE_PATH}"
+			COMMAND echo ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py $<TARGET_FILE_DIR:${DOLPHIN_EXE}>/../..
+			)
 
 
 		# Install bundle into systemwide /Applications directory.
-		install(DIRECTORY ${BUNDLE_PATH} DESTINATION /Applications
-			USE_SOURCE_PERMISSIONS
-			)
+		install(TARGETS ${DOLPHIN_EXE} DESTINATION /Applications)
 	elseif(WIN32)
 		set_target_properties(${DOLPHIN_EXE} PROPERTIES
 			WIN32_EXECUTABLE ON
