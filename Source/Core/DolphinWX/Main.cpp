@@ -126,8 +126,12 @@ bool DolphinApp::OnInit()
   // event dispatch including WM_MOVE/WM_SIZE)
   wxRect window_geometry(SConfig::GetInstance().iPosX, SConfig::GetInstance().iPosY,
                          SConfig::GetInstance().iWidth, SConfig::GetInstance().iHeight);
+
+  
   main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(scm_rev_str), window_geometry,
-                          m_use_debugger, m_batch_mode, m_use_logger);
+	  m_use_debugger, m_batch_mode, m_use_logger);
+	
+	  
   SetTopWindow(main_frame);
 
   AfterInit();
