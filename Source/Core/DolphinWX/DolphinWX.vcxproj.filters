@@ -266,6 +266,9 @@
     <ClCompile Include="Patches.cpp">
       <Filter>CustomNetplay</Filter>
     </ClCompile>
+    <ClCompile Include="MeleeNET.cpp">
+      <Filter>CustomNetplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -484,6 +487,9 @@
     </ClInclude>
     <ClInclude Include="DolphinSlider.h">
       <Filter>GUI\Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="MeleeNET.h">
+      <Filter>CustomNetplay</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

@@ -50,9 +50,10 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "NetPlay/NetPlaySetupFrame.h"
 
 #include "Patches.cpp"
-
+#include "MeleeNET.h"
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
@@ -70,8 +71,6 @@ CFrame* main_frame = nullptr;
 
 static std::mutex s_init_mutex;
 
-GLOBAL_INITALIZATION
-
 bool DolphinApp::Initialize(int& c, wxChar** v)
 {
 #if defined HAVE_X11 && HAVE_X11
@@ -84,6 +83,7 @@ bool DolphinApp::Initialize(int& c, wxChar** v)
 
 bool DolphinApp::OnInit()
 {
+
   std::lock_guard<std::mutex> lk(s_init_mutex);
   if (!wxApp::OnInit())
     return false;
@@ -266,6 +266,7 @@ void DolphinApp::AfterInit()
       main_frame->BootGame("");
     }
   }
+  AFTER_INIT
 }
 
 void DolphinApp::OnActivate(wxActivateEvent& ev)
