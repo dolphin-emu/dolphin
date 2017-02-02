@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+#include <memory>
 #include <string>
 #include <wx/dialog.h>
 #include <wx/listctrl.h>
@@ -93,7 +95,7 @@ private:
     NUMBER_OF_COLUMN
   };
 
-  GCMemcard* memoryCard[2];
+  std::array<std::unique_ptr<GCMemcard>, 2> memoryCard;
 
   void CreateGUIControls();
   void CopyDeleteClick(wxCommandEvent& event);
