@@ -188,6 +188,9 @@ if(wxWidgets_FOUND)
 		set_target_properties(${DOLPHIN_EXE} PROPERTIES
 			WIN32_EXECUTABLE ON
 		)
+		add_custom_command(TARGET ${DOLPHIN_EXE}
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${CMAKE_SOURCE_DIR}/Data/Sys $<TARGET_FILE_DIR:${DOLPHIN_EXE}>/Sys
+		)
 	else()
 		install(TARGETS ${DOLPHIN_EXE} RUNTIME DESTINATION ${bindir})
 	endif()
