@@ -139,23 +139,12 @@ if __name__ == '__main__':
 	installNameTool = args.install_name_tool
 	verbose = args.verbose
 
-	try:
-		shutil.rmtree(os.path.join(args.bundle, 'Contents/Frameworks/'))
-	except OSError as e:
-		if e.errno != errno.ENOENT:
-			raise
-
 	for executable in os.listdir(os.path.join(args.bundle, 'Contents/MacOS')):
 		if executable.endswith('.dSYM'):
 			continue
 		fullPath = os.path.join(args.bundle, 'Contents/MacOS/', executable)
 		updateMachO(fullPath, splitPath(os.path.join(args.bundle, 'Contents/MacOS')), splitPath(args.root))
 	if args.qt_plugins:
-		try:
-			shutil.rmtree(os.path.join(args.bundle, 'Contents/PlugIns/'))
-		except OSError as e:
-			if e.errno != errno.ENOENT:
-				raise
 		makedirs(os.path.join(args.bundle, 'Contents/PlugIns'))
 		makedirs(os.path.join(args.bundle, 'Contents/Resources'))
 		with open(os.path.join(args.bundle, 'Contents/Resources/qt.conf'), 'w') as conf:
