@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 
@@ -101,7 +102,8 @@ class FramebufferManager : public FramebufferManagerBase
   {
     return std::make_unique<XFBSource>();
   }
-  void GetTargetSize(unsigned int* width, unsigned int* height) override{};
+
+  std::pair<u32, u32> GetTargetSize() const override { return std::make_pair(0, 0); }
   void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
                      float Gamma = 1.0f) override
   {

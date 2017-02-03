@@ -12,11 +12,14 @@
 // Next frame, that one is scanned out and the other one gets the copy. = double buffering.
 // ---------------------------------------------------------------------------------------------
 
+#include "VideoCommon/RenderBase.h"
+
 #include <cinttypes>
 #include <cmath>
 #include <memory>
 #include <mutex>
 #include <string>
+#include <tuple>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -48,7 +51,6 @@
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PostProcessing.h"
-#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
@@ -509,8 +511,8 @@ TargetRectangle Renderer::CalculateFrameDumpDrawRectangle()
   }
 
   // Grab the dimensions of the EFB textures, we scale either of these depending on the ratio.
-  unsigned int efb_width, efb_height;
-  g_framebuffer_manager->GetTargetSize(&efb_width, &efb_height);
+  u32 efb_width, efb_height;
+  std::tie(efb_width, efb_height) = g_framebuffer_manager->GetTargetSize();
 
   float draw_width, draw_height;
   std::tie(draw_width, draw_height) = ScaleToDisplayAspectRatio(efb_width, efb_height);

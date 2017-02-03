@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/FramebufferManager.h"
+
 #include "Common/Align.h"
+#include "Common/CommonTypes.h"
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
@@ -218,10 +220,9 @@ std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int 
       layers);
 }
 
-void FramebufferManager::GetTargetSize(unsigned int* width, unsigned int* height)
+std::pair<u32, u32> FramebufferManager::GetTargetSize() const
 {
-  *width = m_target_width;
-  *height = m_target_height;
+  return std::make_pair(m_target_width, m_target_height);
 }
 
 void FramebufferManager::ResolveDepthTexture()

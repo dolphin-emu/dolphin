@@ -115,10 +115,9 @@ bool FramebufferManager::Initialize()
   return true;
 }
 
-void FramebufferManager::GetTargetSize(unsigned int* width, unsigned int* height)
+std::pair<u32, u32> FramebufferManager::GetTargetSize() const
 {
-  *width = m_efb_width;
-  *height = m_efb_height;
+  return std::make_pair(m_efb_width, m_efb_height);
 }
 
 bool FramebufferManager::CreateEFBRenderPass()

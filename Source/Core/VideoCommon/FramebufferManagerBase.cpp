@@ -3,9 +3,12 @@
 // Refer to the license.txt file included.
 
 #include "VideoCommon/FramebufferManagerBase.h"
+
 #include <algorithm>
 #include <array>
 #include <memory>
+#include <tuple>
+
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -158,8 +161,8 @@ void FramebufferManagerBase::CopyToVirtualXFB(u32 xfbAddr, u32 fbStride, u32 fbH
   if (m_virtualXFBList.begin() != vxfb)
     m_virtualXFBList.splice(m_virtualXFBList.begin(), m_virtualXFBList, vxfb);
 
-  unsigned int target_width, target_height;
-  g_framebuffer_manager->GetTargetSize(&target_width, &target_height);
+  u32 target_width, target_height;
+  std::tie(target_width, target_height) = g_framebuffer_manager->GetTargetSize();
 
   // recreate if needed
   if (vxfb->xfbSource &&
