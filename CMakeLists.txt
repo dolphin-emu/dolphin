@@ -81,6 +81,9 @@ include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
 include(DolphinCompileDefinitions)
 
+# Enable folders for IDE
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 # Libraries to link
 set(LIBS)
 
@@ -567,7 +570,7 @@ if(NOT ANDROID)
 		option(PA_USE_ASIO "Enable PortAudio support for ASIO" OFF)
 		option(PA_USE_DS "Enable PortAudio support for DirectSound" OFF)
 		option(PA_USE_WDMKS "Enable PortAudio support for WDMKS" OFF)
-		add_subdirectory(Externals/portaudio)
+		add_subdirectory(Externals/portaudio EXCLUDE_FROM_ALL)
 		set(PORTAUDIO_LIBRARIES portaudio_static)
 	endif()
 endif()
