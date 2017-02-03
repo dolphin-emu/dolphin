@@ -81,6 +81,9 @@ include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
 include(DolphinCompileDefinitions)
 
+# Enable folders for IDE
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 # Libraries to link
 set(LIBS)
 

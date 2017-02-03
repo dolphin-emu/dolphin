@@ -13,7 +13,10 @@ macro(add_dolphin_test target srcs)
 	# Host_ functions.
 	set(srcs2 ${srcs} ${CMAKE_SOURCE_DIR}/Source/UnitTests/TestUtils/StubHost.cpp)
 	add_executable(Test_${target} EXCLUDE_FROM_ALL ${srcs2})
-	set_target_properties(Test_${target} PROPERTIES OUTPUT_NAME Tests/${target})
+	set_target_properties(Test_${target} PROPERTIES
+		OUTPUT_NAME Tests/${target}
+		FOLDER Tests
+	)
 	target_link_libraries(Test_${target} ${LIBS})
 	add_dependencies(unittests Test_${target})
 	add_test(NAME ${target} COMMAND ${CMAKE_RUNTIME_OUTPUT_DIRECTORY}/Tests/${target})
