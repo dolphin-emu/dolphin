@@ -28,23 +28,23 @@ public:
 private:
   DECLARE_EVENT_TABLE();
 
-  int page[2];
+  std::array<int, 2> page;
   int itemsPerPage;
   int maxPages;
-  std::string DefaultMemcard[2];
+  std::array<std::string, 2> DefaultMemcard;
   std::string DefaultIOPath;
   IniFile MemcardManagerIni;
   IniFile::Section* iniMemcardSection;
 
-  wxButton* m_CopyFrom[2];
-  wxButton* m_SaveImport[2];
-  wxButton* m_SaveExport[2];
-  wxButton* m_Delete[2];
-  wxButton* m_NextPage[2];
-  wxButton* m_PrevPage[2];
+  std::array<wxButton*, 2> m_CopyFrom;
+  std::array<wxButton*, 2> m_SaveImport;
+  std::array<wxButton*, 2> m_SaveExport;
+  std::array<wxButton*, 2> m_Delete;
+  std::array<wxButton*, 2> m_NextPage;
+  std::array<wxButton*, 2> m_PrevPage;
   wxButton* m_ConvertToGci;
-  wxFilePickerCtrl* m_MemcardPath[2];
-  wxStaticText* t_Status[2];
+  std::array<wxFilePickerCtrl*, 2> m_MemcardPath;
+  std::array<wxStaticText*, 2> t_Status;
 
   enum
   {
@@ -112,7 +112,7 @@ private:
   {
     bool twoCardsLoaded;
     bool usePages;
-    bool column[NUMBER_OF_COLUMN + 1];
+    std::array<bool, NUMBER_OF_COLUMN + 1> column;
   } mcmSettings;
 
   class CMemcardListCtrl : public wxListCtrl
@@ -134,5 +134,5 @@ private:
   };
 
   wxSize m_image_list_size;
-  CMemcardListCtrl* m_MemcardList[2];
+  std::array<CMemcardListCtrl*, 2> m_MemcardList;
 };
