@@ -809,7 +809,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
     popupMenu.Append(ID_SAVEEXPORT_A + slot, _("Export Save"));
     popupMenu.Append(ID_EXPORTALL_A + slot, _("Export all saves"));
 
-    popupMenu.FindItem(ID_COPYFROM_A + slot)->Enable(__mcmSettings.twoCardsLoaded);
+    popupMenu.FindItem(ID_COPYFROM_A + slot)->Enable(mgr_settings.twoCardsLoaded);
 
     popupMenu.AppendSeparator();
 
@@ -820,9 +820,9 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
                      wxString::Format(_("Set as default Memory Card %c"), 'A' + slot));
     popupMenu.AppendCheckItem(ID_USEPAGES, _("Enable pages"));
 
-    popupMenu.FindItem(ID_PREVPAGE_A + slot)->Enable(prevPage && __mcmSettings.usePages);
-    popupMenu.FindItem(ID_NEXTPAGE_A + slot)->Enable(nextPage && __mcmSettings.usePages);
-    popupMenu.FindItem(ID_USEPAGES)->Check(__mcmSettings.usePages);
+    popupMenu.FindItem(ID_PREVPAGE_A + slot)->Enable(prevPage && mgr_settings.usePages);
+    popupMenu.FindItem(ID_NEXTPAGE_A + slot)->Enable(nextPage && mgr_settings.usePages);
+    popupMenu.FindItem(ID_USEPAGES)->Check(mgr_settings.usePages);
 
     popupMenu.AppendSeparator();
 
@@ -836,7 +836,7 @@ void CMemcardManager::CMemcardListCtrl::OnRightClick(wxMouseEvent& event)
     // for (int i = COLUMN_BANNER; i <= COLUMN_FIRSTBLOCK; i++)
     for (int i = COLUMN_TITLE; i <= COLUMN_FIRSTBLOCK; i++)
     {
-      popupMenu.FindItem(i)->Check(__mcmSettings.column[i]);
+      popupMenu.FindItem(i)->Check(mgr_settings.column[i]);
     }
   }
   PopupMenu(&popupMenu);
