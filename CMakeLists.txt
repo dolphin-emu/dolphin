@@ -79,6 +79,7 @@ list(APPEND CMAKE_MODULE_PATH
 # Support functions
 include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
+include(DolphinCompileDefinitions)
 
 # Libraries to link
 set(LIBS)
@@ -193,6 +194,7 @@ endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 	check_and_add_flag(EXCEPTIONS /EHsc)
+	dolphin_compile_definitions(-D_DEBUG DEBUG_ONLY)
 
 	# Only MSBuild needs this, other generators will compile one file at a time
 	if(CMAKE_GENERATOR MATCHES "Visual Studio")
@@ -225,10 +227,10 @@ else()
 	check_and_add_flag(VISIBILITY_INLINES_HIDDEN -fvisibility-inlines-hidden)
 	check_and_add_flag(VISIBILITY_HIDDEN -fvisibility=hidden)
 
-	check_c_compiler_flag(-fomit-frame-pointer FLAG_C_FOMIT_FRAME_POINTER)
-	if(FLAG_C_FOMIT_FRAME_POINTER)
-		add_compile_options($<$<CONFIG:Release>:-fomit-frame-pointer>)
-	endif()
+	check_and_add_flag(FOMIT_FRAME_POINTER -fomit-frame-pointer RELEASE_ONLY)
+
+	dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
+	check_and_add_flag(GGDB -ggdb DEBUG_ONLY)
 
 	if(NOT ANDROID AND _M_X86_64)
 		# PIE is required on Android, but not supported with the x86_64 jit currently
@@ -334,19 +336,13 @@ if(NOT CMAKE_BUILD_TYPE)
 		"Build type (Release/Debug/RelWithDebInfo/MinSizeRel)" FORCE)
 endif()
 
-
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-	add_definitions(-D_DEBUG)
-	check_and_add_flag(GGDB -ggdb)
-
-	option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
-	if(ENABLE_GPROF)
-		check_and_add_flag(HAVE_PG -pg)
-		if(NOT FLAG_C_HAVE_PG)
-			message(FATAL_ERROR "Compiler option -pg is not supported")
-		endif()
-		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
+option(ENABLE_GPROF "Enable gprof profiling (must be using Debug build)" OFF)
+if(ENABLE_GPROF)
+	check_and_add_flag(HAVE_PG -pg)
+	if(NOT FLAG_C_HAVE_PG)
+		message(FATAL_ERROR "Compiler option -pg is not supported")
 	endif()
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -pg")
 endif()
 
 if(FASTLOG)
