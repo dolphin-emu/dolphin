@@ -178,7 +178,7 @@ if(wxWidgets_FOUND)
 		# Update library references to make the bundle portable
 		add_custom_command(TARGET ${DOLPHIN_EXE} POST_BUILD
 			COMMAND echo "Fixing up application bundle: ${BUNDLE_PATH}"
-			COMMAND echo ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py $<TARGET_FILE_DIR:${DOLPHIN_EXE}>/../..
+			COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py $<TARGET_FILE_DIR:${DOLPHIN_EXE}>/../..
 			)
 
 
