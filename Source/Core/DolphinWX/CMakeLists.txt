@@ -106,6 +106,10 @@ if(APPLE)
 		MACOSX_PACKAGE_LOCATION Resources)
 endif()
 
+if(WIN32)
+	list(APPEND SRCS DolphinWX.rc)
+endif()
+
 if(APPLE)
 	set(DOLPHIN_EXE_BASE Dolphin)
 else()
