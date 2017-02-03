@@ -29,7 +29,7 @@ join_config.game_list_ctrl = m_game_list;\
 join_config.SetDialogInfo(netplay_section, m_parent);\
 }
 
-#define IF_NETPLAY_SET_CODE join_config.connect_hash_code = std::string(MeleeNET::m_netplay_code.mb_str());
+#define IF_NETPLAY_SET_CODE if(MeleeNET::m_netplay){join_config.connect_hash_code = std::string(MeleeNET::m_netplay_code.mb_str());}
 
 #define INITALIZE_MELEENET \
 wxString MeleeNET::m_netplay_code = wxString("");\
@@ -37,9 +37,6 @@ bool MeleeNET::m_netplay = false;\
 bool MeleeNET::m_netplay_host = false;
 
 #define GAME_WINDOW_TITLE std::string titleStr = StringFromFormat("%s | %s", "SmashLadder Custom Dolphin", str.c_str());
-
-#define MAIN_WINDOW_TITLE main_frame = new CFrame(nullptr, wxID_ANY, "SmashLadder Custom Dolphin", window_geometry,m_use_debugger, m_batch_mode, m_use_logger);
-
 
 
 /*
