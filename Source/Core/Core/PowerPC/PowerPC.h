@@ -40,11 +40,6 @@ enum CoreMode
 #define TLB_SIZE 128
 #define NUM_TLBS 2
 #define TLB_WAYS 2
-
-#define HW_PAGE_INDEX_SHIFT 12
-#define HW_PAGE_INDEX_MASK 0x3f
-#define HW_PAGE_TAG_SHIFT 18
-
 #define TLB_TAG_INVALID 0xffffffff
 
 struct tlb_entry
