@@ -196,6 +196,11 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
 	check_and_add_flag(EXCEPTIONS /EHsc)
 	dolphin_compile_definitions(-D_DEBUG DEBUG_ONLY)
 
+	string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
+	string(APPEND CMAKE_EXE_LINKER_FLAGS " /BASE:0x00400000")
+	string(APPEND CMAKE_EXE_LINKER_FLAGS " /DYNAMICBASE:NO")
+	string(APPEND CMAKE_EXE_LINKER_FLAGS " /FIXED")
+
 	# Only MSBuild needs this, other generators will compile one file at a time
 	if(CMAKE_GENERATOR MATCHES "Visual Studio")
 		add_compile_options("/MP")
