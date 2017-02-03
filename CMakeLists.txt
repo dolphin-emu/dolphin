@@ -873,16 +873,6 @@ if(NOT ANDROID)
 	add_definitions(-DHAVE_HIDAPI=1)
 endif()
 
-find_library(OPENSLES_LIBRARIES NAMES OpenSLES)
-find_path(OPENSLES_INCLUDE_DIR NAMES SLES/OpenSLES.h)
-
-if (OPENSLES_LIBRARIES AND OPENSLES_INCLUDE_DIR)
-	set(OPENSLES_FOUND 1)
-	add_definitions(-DHAVE_OPENSLES=1)
-	include_directories(${OPENSLES_INCLUDE_DIR})
-	message(STATUS "OpenSLES found, enabling OpenSLES sound backend")
-endif()
-
 if(NOT DISABLE_WX)
 	find_package(wxWidgets COMPONENTS core aui adv)
 

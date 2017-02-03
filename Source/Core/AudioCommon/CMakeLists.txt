@@ -6,9 +6,11 @@ set(SRCS	AudioCommon.cpp
 
 set(LIBS "")
 
+find_package(OpenSLES)
 if(OPENSLES_FOUND)
+	message(STATUS "OpenSLES found, enabling OpenSLES sound backend")
 	set(SRCS ${SRCS} OpenSLESStream.cpp)
-	set(LIBS ${LIBS} ${OPENSLES_LIBRARIES})
+	set(LIBS ${LIBS} OpenSLES::OpenSLES)
 endif()
 
 if(ALSA_FOUND)
