@@ -4,8 +4,7 @@
 
 #pragma once
 
-#include "VideoCommon/BPMemory.h"
-#include "VideoCommon/TextureCacheBase.h"
+#include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
 
 namespace DX11

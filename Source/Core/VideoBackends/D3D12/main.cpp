@@ -5,6 +5,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/D3D12/BoundingBox.h"

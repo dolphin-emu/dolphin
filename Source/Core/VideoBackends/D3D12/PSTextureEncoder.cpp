@@ -3,8 +3,13 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/PSTextureEncoder.h"
+
 #include "Common/Align.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+
 #include "Core/HW/Memmap.h"
+
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"

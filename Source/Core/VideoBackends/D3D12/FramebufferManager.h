@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "VideoBackends/D3D12/D3DTexture.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 

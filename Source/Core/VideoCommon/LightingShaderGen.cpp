@@ -9,6 +9,7 @@
 
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/ShaderGenCommon.h"
+#include "VideoCommon/XFMemory.h"
 
 static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_data, int index,
                                 int litchan_index, bool alpha)

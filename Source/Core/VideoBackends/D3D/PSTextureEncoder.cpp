@@ -3,6 +3,8 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D/PSTextureEncoder.h"
+
+#include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"

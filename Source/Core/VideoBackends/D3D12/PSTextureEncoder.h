@@ -4,9 +4,12 @@
 
 #pragma once
 
+#include <map>
+#include <vector>
+
+#include "Common/CommonTypes.h"
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/TextureEncoder.h"
-#include "VideoCommon/TextureCacheBase.h"
 
 namespace DX12
 {

@@ -8,7 +8,8 @@
 #include <string>
 
 #include "Common/Align.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
@@ -18,7 +19,6 @@
 #include "VideoBackends/OGL/StreamBuffer.h"
 
 #include "VideoCommon/Debugger.h"
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/PixelShaderManager.h"

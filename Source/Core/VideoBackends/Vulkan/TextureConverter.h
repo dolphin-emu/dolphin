@@ -10,7 +10,6 @@
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
 #include "VideoBackends/Vulkan/TextureCache.h"
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VideoCommon.h"
 
