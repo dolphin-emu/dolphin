@@ -2,9 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/MemcardManager.h"
+
 #include <algorithm>
 #include <array>
 #include <cstring>
+#include <memory>
 #include <string>
 #include <vector>
 #include <wx/bitmap.h>
@@ -27,7 +30,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/HW/GCMemcard.h"
-#include "DolphinWX/MemcardManager.h"
 #include "DolphinWX/WxUtils.h"
 
 #define FIRSTPAGE 0
@@ -102,16 +104,6 @@ CMemcardManager::CMemcardManager(wxWindow* parent)
 
 CMemcardManager::~CMemcardManager()
 {
-  if (memoryCard[SLOT_A])
-  {
-    delete memoryCard[SLOT_A];
-    memoryCard[SLOT_A] = nullptr;
-  }
-  if (memoryCard[SLOT_B])
-  {
-    delete memoryCard[SLOT_B];
-    memoryCard[SLOT_B] = nullptr;
-  }
   SaveSettings();
 }
 
@@ -303,11 +295,7 @@ void CMemcardManager::ChangePath(int slot)
     }
     else
     {
-      if (memoryCard[slot])
-      {
-        delete memoryCard[slot];
-        memoryCard[slot] = nullptr;
-      }
+      memoryCard[slot].reset();
       mcmSettings.twoCardsLoaded = false;
       m_MemcardPath[slot]->SetPath(wxEmptyString);
       m_MemcardList[slot]->ClearAll();
@@ -622,11 +610,8 @@ void CMemcardManager::CopyDeleteClick(wxCommandEvent& event)
 
 bool CMemcardManager::ReloadMemcard(const std::string& fileName, int card)
 {
-  if (memoryCard[card])
-    delete memoryCard[card];
-
   // TODO: add error checking and animate icons
-  memoryCard[card] = new GCMemcard(fileName);
+  memoryCard[card] = std::make_unique<GCMemcard>(fileName);
 
   if (!memoryCard[card]->IsValid())
     return false;
