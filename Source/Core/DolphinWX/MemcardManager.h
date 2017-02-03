@@ -108,7 +108,7 @@ private:
   bool LoadSettings();
   bool SaveSettings();
 
-  struct _mcmSettings
+  struct ManagerSettings
   {
     bool twoCardsLoaded;
     bool usePages;
@@ -119,13 +119,13 @@ private:
   {
   public:
     CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
-                     long style, _mcmSettings& _mcmSetngs)
-        : wxListCtrl(parent, id, pos, size, style), __mcmSettings(_mcmSetngs)
+                     long style, ManagerSettings& manager_settings)
+        : wxListCtrl(parent, id, pos, size, style), mgr_settings(manager_settings)
     {
       Bind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this);
     }
     ~CMemcardListCtrl() { Unbind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this); }
-    _mcmSettings& __mcmSettings;
+    ManagerSettings& mgr_settings;
     bool prevPage;
     bool nextPage;
 
