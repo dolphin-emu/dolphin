@@ -478,6 +478,7 @@ void Shutdown()
 
 const DiscIO::IVolume& GetVolume()
 {
+  _assert_(IsDiscInside());
   return *s_inserted_volume;
 }
 
