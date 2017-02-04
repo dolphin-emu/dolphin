@@ -668,10 +668,9 @@ std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int 
   return std::make_unique<XFBSource>(texture, layers);
 }
 
-void FramebufferManager::GetTargetSize(unsigned int* width, unsigned int* height)
+std::pair<u32, u32> FramebufferManager::GetTargetSize() const
 {
-  *width = m_targetWidth;
-  *height = m_targetHeight;
+  return std::make_pair(m_targetWidth, m_targetHeight);
 }
 
 void FramebufferManager::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)

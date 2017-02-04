@@ -5,6 +5,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "VideoBackends/Vulkan/Constants.h"
@@ -39,7 +40,7 @@ public:
   Texture2D* GetEFBColorTexture() const { return m_efb_color_texture.get(); }
   Texture2D* GetEFBDepthTexture() const { return m_efb_depth_texture.get(); }
   VkFramebuffer GetEFBFramebuffer() const { return m_efb_framebuffer; }
-  void GetTargetSize(unsigned int* width, unsigned int* height) override;
+  std::pair<u32, u32> GetTargetSize() const override;
 
   std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
                                                  unsigned int target_height,

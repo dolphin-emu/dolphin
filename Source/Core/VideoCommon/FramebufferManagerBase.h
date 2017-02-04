@@ -7,6 +7,7 @@
 #include <array>
 #include <list>
 #include <memory>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "VideoCommon/VideoCommon.h"
@@ -60,7 +61,7 @@ public:
   static int ScaleToVirtualXfbHeight(int y);
 
   static unsigned int GetEFBLayers() { return m_EFBLayers; }
-  virtual void GetTargetSize(unsigned int* width, unsigned int* height) = 0;
+  virtual std::pair<u32, u32> GetTargetSize() const = 0;
 
 protected:
   struct VirtualXFB
