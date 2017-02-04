@@ -972,7 +972,7 @@ enum TLBLookupResult
 static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
 {
   u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
-  PowerPC::tlb_entry* tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
+  TLBEntry* tlbe = &ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
   if (tlbe->tag[0] == tag)
   {
     // Check if C bit requires updating
@@ -1026,7 +1026,7 @@ static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 addre
     return;
 
   int tag = address >> HW_PAGE_INDEX_SHIFT;
-  PowerPC::tlb_entry* tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
+  TLBEntry* tlbe = &ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
   int index = tlbe->recent == 0 && tlbe->tag[0] != TLB_TAG_INVALID;
   tlbe->recent = index;
   tlbe->paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
@@ -1036,12 +1036,11 @@ static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 addre
 
 void InvalidateTLBEntry(u32 address)
 {
-  PowerPC::tlb_entry* tlbe =
-      &PowerPC::ppcState.tlb[0][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+  TLBEntry* tlbe = &ppcState.tlb[0][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
   tlbe->tag[0] = TLB_TAG_INVALID;
   tlbe->tag[1] = TLB_TAG_INVALID;
-  PowerPC::tlb_entry* tlbe_i =
-      &PowerPC::ppcState.tlb[1][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
+
+  TLBEntry* tlbe_i = &ppcState.tlb[1][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
   tlbe_i->tag[0] = TLB_TAG_INVALID;
   tlbe_i->tag[1] = TLB_TAG_INVALID;
 }

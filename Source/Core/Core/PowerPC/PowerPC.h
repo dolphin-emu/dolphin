@@ -42,7 +42,7 @@ enum CoreMode
 #define TLB_WAYS 2
 #define TLB_TAG_INVALID 0xffffffff
 
-struct tlb_entry
+struct TLBEntry
 {
   u32 tag[TLB_WAYS] = {TLB_TAG_INVALID, TLB_TAG_INVALID};
   u32 paddr[TLB_WAYS] = {};
@@ -114,7 +114,7 @@ struct PowerPCState
   // Storage for the stack pointer of the BLR optimization.
   u8* stored_stack_pointer;
 
-  std::array<std::array<tlb_entry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
+  std::array<std::array<TLBEntry, TLB_SIZE / TLB_WAYS>, NUM_TLBS> tlb;
 
   u32 pagetable_base;
   u32 pagetable_hashmask;
