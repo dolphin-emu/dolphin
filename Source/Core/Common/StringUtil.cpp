@@ -201,7 +201,7 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
   return oss.str();
 }
 
-// Turns "  hej " into "hej". Also handles tabs.
+// Turns "  hello " into "hello". Also handles tabs.
 std::string StripSpaces(const std::string& str)
 {
   const size_t s = str.find_first_not_of(" \t\r\n");
