@@ -17,78 +17,87 @@ namespace JIT
 namespace x86
 {
 // clobbers:
-// EAX = (s8)g_dsp.reg_stack_ptr[stack_reg]
+// EAX = (s8)g_dsp.reg_stack_ptr[reg_index]
 // expects:
-void DSPEmitter::dsp_reg_stack_push(int stack_reg)
+void DSPEmitter::dsp_reg_stack_push(StackRegister stack_reg)
 {
-  // g_dsp.reg_stack_ptr[stack_reg]++;
-  // g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
-  MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
+  const auto reg_index = static_cast<size_t>(stack_reg);
+
+  // g_dsp.reg_stack_ptr[reg_index]++;
+  // g_dsp.reg_stack_ptr[reg_index] &= DSP_STACK_MASK;
+  MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[reg_index]));
   ADD(8, R(AL), Imm8(1));
   AND(8, R(AL), Imm8(DSP_STACK_MASK));
-  MOV(8, M(&g_dsp.reg_stack_ptr[stack_reg]), R(AL));
+  MOV(8, M(&g_dsp.reg_stack_ptr[reg_index]), R(AL));
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
   X64Reg tmp2 = m_gpr.GetFreeXReg();
-  // g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]] = g_dsp.r[DSP_REG_ST0 + stack_reg];
-  MOV(16, R(tmp1), M(&g_dsp.r.st[stack_reg]));
+  // g_dsp.reg_stack[reg_index][g_dsp.reg_stack_ptr[reg_index]] = g_dsp.r[DSP_REG_ST0 + reg_index];
+  MOV(16, R(tmp1), M(&g_dsp.r.st[reg_index]));
   MOVZX(64, 8, RAX, R(AL));
-  MOV(64, R(tmp2), ImmPtr(g_dsp.reg_stack[stack_reg]));
+  MOV(64, R(tmp2), ImmPtr(g_dsp.reg_stack[reg_index]));
   MOV(16, MComplex(tmp2, EAX, SCALE_2, 0), R(tmp1));
   m_gpr.PutXReg(tmp1);
   m_gpr.PutXReg(tmp2);
 }
 
 // clobbers:
-// EAX = (s8)g_dsp.reg_stack_ptr[stack_reg]
+// EAX = (s8)g_dsp.reg_stack_ptr[reg_index]
 // expects:
-void DSPEmitter::dsp_reg_stack_pop(int stack_reg)
+void DSPEmitter::dsp_reg_stack_pop(StackRegister stack_reg)
 {
-  // g_dsp.r[DSP_REG_ST0 + stack_reg] = g_dsp.reg_stack[stack_reg][g_dsp.reg_stack_ptr[stack_reg]];
-  MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[stack_reg]));
+  const auto reg_index = static_cast<size_t>(stack_reg);
+
+  // g_dsp.r[DSP_REG_ST0 + reg_index] = g_dsp.reg_stack[reg_index][g_dsp.reg_stack_ptr[reg_index]];
+  MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[reg_index]));
   X64Reg tmp1 = m_gpr.GetFreeXReg();
   X64Reg tmp2 = m_gpr.GetFreeXReg();
   MOVZX(64, 8, RAX, R(AL));
-  MOV(64, R(tmp2), ImmPtr(g_dsp.reg_stack[stack_reg]));
+  MOV(64, R(tmp2), ImmPtr(g_dsp.reg_stack[reg_index]));
   MOV(16, R(tmp1), MComplex(tmp2, EAX, SCALE_2, 0));
-  MOV(16, M(&g_dsp.r.st[stack_reg]), R(tmp1));
+  MOV(16, M(&g_dsp.r.st[reg_index]), R(tmp1));
   m_gpr.PutXReg(tmp1);
   m_gpr.PutXReg(tmp2);
 
-  // g_dsp.reg_stack_ptr[stack_reg]--;
-  // g_dsp.reg_stack_ptr[stack_reg] &= DSP_STACK_MASK;
+  // g_dsp.reg_stack_ptr[reg_index]--;
+  // g_dsp.reg_stack_ptr[reg_index] &= DSP_STACK_MASK;
   SUB(8, R(AL), Imm8(1));
   AND(8, R(AL), Imm8(DSP_STACK_MASK));
-  MOV(8, M(&g_dsp.reg_stack_ptr[stack_reg]), R(AL));
+  MOV(8, M(&g_dsp.reg_stack_ptr[reg_index]), R(AL));
 }
 
-void DSPEmitter::dsp_reg_store_stack(int stack_reg, Gen::X64Reg host_sreg)
+void DSPEmitter::dsp_reg_store_stack(StackRegister stack_reg, Gen::X64Reg host_sreg)
 {
   if (host_sreg != EDX)
   {
     MOV(16, R(EDX), R(host_sreg));
   }
+
   dsp_reg_stack_push(stack_reg);
+
   // g_dsp.r[DSP_REG_ST0 + stack_reg] = val;
-  MOV(16, M(&g_dsp.r.st[stack_reg]), R(EDX));
+  MOV(16, M(&g_dsp.r.st[static_cast<size_t>(stack_reg)]), R(EDX));
 }
 
-void DSPEmitter::dsp_reg_load_stack(int stack_reg, Gen::X64Reg host_dreg)
+void DSPEmitter::dsp_reg_load_stack(StackRegister stack_reg, Gen::X64Reg host_dreg)
 {
   // u16 val = g_dsp.r[DSP_REG_ST0 + stack_reg];
-  MOV(16, R(EDX), M(&g_dsp.r.st[stack_reg]));
+  MOV(16, R(EDX), M(&g_dsp.r.st[static_cast<size_t>(stack_reg)]));
+
   dsp_reg_stack_pop(stack_reg);
+
   if (host_dreg != EDX)
   {
     MOV(16, R(host_dreg), R(EDX));
   }
 }
 
-void DSPEmitter::dsp_reg_store_stack_imm(int stack_reg, u16 val)
+void DSPEmitter::dsp_reg_store_stack_imm(StackRegister stack_reg, u16 val)
 {
   dsp_reg_stack_push(stack_reg);
+
   // g_dsp.r[DSP_REG_ST0 + stack_reg] = val;
-  MOV(16, M(&g_dsp.r.st[stack_reg]), Imm16(val));
+  MOV(16, M(&g_dsp.r.st[static_cast<size_t>(stack_reg)]), Imm16(val));
 }
 
 void DSPEmitter::dsp_op_write_reg(int reg, Gen::X64Reg host_sreg)
@@ -106,7 +115,7 @@ void DSPEmitter::dsp_op_write_reg(int reg, Gen::X64Reg host_sreg)
   case DSP_REG_ST1:
   case DSP_REG_ST2:
   case DSP_REG_ST3:
-    dsp_reg_store_stack(reg - DSP_REG_ST0, host_sreg);
+    dsp_reg_store_stack(static_cast<StackRegister>(reg - DSP_REG_ST0), host_sreg);
     break;
 
   default:
@@ -129,7 +138,7 @@ void DSPEmitter::dsp_op_write_reg_imm(int reg, u16 val)
   case DSP_REG_ST1:
   case DSP_REG_ST2:
   case DSP_REG_ST3:
-    dsp_reg_store_stack_imm(reg - DSP_REG_ST0, val);
+    dsp_reg_store_stack_imm(static_cast<StackRegister>(reg - DSP_REG_ST0), val);
     break;
 
   default:
@@ -202,7 +211,7 @@ void DSPEmitter::dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg,
   case DSP_REG_ST1:
   case DSP_REG_ST2:
   case DSP_REG_ST3:
-    dsp_reg_load_stack(reg - DSP_REG_ST0, host_dreg);
+    dsp_reg_load_stack(static_cast<StackRegister>(reg - DSP_REG_ST0), host_dreg);
     switch (extend)
     {
     case RegisterExtension::Sign:
@@ -230,7 +239,7 @@ void DSPEmitter::dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, RegisterExtensi
   case DSP_REG_ST1:
   case DSP_REG_ST2:
   case DSP_REG_ST3:
-    dsp_reg_load_stack(reg - DSP_REG_ST0, host_dreg);
+    dsp_reg_load_stack(static_cast<StackRegister>(reg - DSP_REG_ST0), host_dreg);
     switch (extend)
     {
     case RegisterExtension::Sign:

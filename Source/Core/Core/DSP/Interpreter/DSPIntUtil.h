@@ -117,7 +117,7 @@ static inline u16 dsp_op_read_reg(int _reg)
   case DSP_REG_ST1:
   case DSP_REG_ST2:
   case DSP_REG_ST3:
-    return dsp_reg_load_stack(reg - DSP_REG_ST0);
+    return dsp_reg_load_stack(static_cast<StackRegister>(reg - DSP_REG_ST0));
   case DSP_REG_AR0:
   case DSP_REG_AR1:
   case DSP_REG_AR2:
@@ -184,9 +184,8 @@ static inline void dsp_op_write_reg(int _reg, u16 val)
   case DSP_REG_ST1:
   case DSP_REG_ST2:
   case DSP_REG_ST3:
-    dsp_reg_store_stack(reg - DSP_REG_ST0, val);
+    dsp_reg_store_stack(static_cast<StackRegister>(reg - DSP_REG_ST0), val);
     break;
-
   case DSP_REG_AR0:
   case DSP_REG_AR1:
   case DSP_REG_AR2:

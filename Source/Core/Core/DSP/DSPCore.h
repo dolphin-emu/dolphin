@@ -161,11 +161,12 @@ enum : u32
   DSP_CMBL = 0xff   // CPU Mailbox L
 };
 
-// Stacks
-enum : int
+enum class StackRegister
 {
-  DSP_STACK_C,
-  DSP_STACK_D
+  Call,
+  Data,
+  LoopAddress,
+  LoopCounter
 };
 
 // cr (Not g_dsp.r[CR]) bits

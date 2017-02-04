@@ -17,6 +17,8 @@
 
 namespace DSP
 {
+enum class StackRegister;
+
 namespace JIT
 {
 namespace x86
@@ -100,11 +102,11 @@ public:
   void nr(const UDSPInstruction opc);
   void nop(const UDSPInstruction opc) {}
   // Command helpers
-  void dsp_reg_stack_push(int stack_reg);
-  void dsp_reg_stack_pop(int stack_reg);
-  void dsp_reg_store_stack(int stack_reg, Gen::X64Reg host_sreg = Gen::EDX);
-  void dsp_reg_load_stack(int stack_reg, Gen::X64Reg host_dreg = Gen::EDX);
-  void dsp_reg_store_stack_imm(int stack_reg, u16 val);
+  void dsp_reg_stack_push(StackRegister stack_reg);
+  void dsp_reg_stack_pop(StackRegister stack_reg);
+  void dsp_reg_store_stack(StackRegister stack_reg, Gen::X64Reg host_sreg = Gen::EDX);
+  void dsp_reg_load_stack(StackRegister stack_reg, Gen::X64Reg host_dreg = Gen::EDX);
+  void dsp_reg_store_stack_imm(StackRegister stack_reg, u16 val);
   void dsp_op_write_reg(int reg, Gen::X64Reg host_sreg);
   void dsp_op_write_reg_imm(int reg, u16 val);
   void dsp_conditional_extend_accum(int reg);
