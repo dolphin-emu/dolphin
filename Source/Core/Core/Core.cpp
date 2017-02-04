@@ -230,8 +230,6 @@ bool IsGPUThread()
 // BootManager.cpp
 bool Init()
 {
-  const SConfig& _CoreParameter = SConfig::GetInstance();
-
   if (s_emu_thread.joinable())
   {
     if (IsRunning())
@@ -249,18 +247,10 @@ bool Init()
 
   Core::UpdateWantDeterminism(/*initial*/ true);
 
-  INFO_LOG(OSREPORT, "Starting core = %s mode", _CoreParameter.bWii ? "Wii" : "GameCube");
-  INFO_LOG(OSREPORT, "CPU Thread separate = %s", _CoreParameter.bCPUThread ? "Yes" : "No");
+  INFO_LOG(OSREPORT, "Starting core = %s mode", SConfig::GetInstance().bWii ? "Wii" : "GameCube");
+  INFO_LOG(OSREPORT, "CPU Thread separate = %s", SConfig::GetInstance().bCPUThread ? "Yes" : "No");
 
   Host_UpdateMainFrame();  // Disable any menus or buttons at boot
-
-  g_aspect_wide = _CoreParameter.bWii;
-  if (g_aspect_wide)
-  {
-    IniFile gameIni = _CoreParameter.LoadGameIni();
-    gameIni.GetOrCreateSection("Wii")->Get("Widescreen", &g_aspect_wide,
-                                           !!SConfig::GetInstance().m_wii_aspect_ratio);
-  }
 
   s_window_handle = Host_GetRenderHandle();
 
