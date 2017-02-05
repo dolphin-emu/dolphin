@@ -6,6 +6,8 @@
 #include <climits>
 #include <memory>
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
@@ -613,17 +615,7 @@ void SConfig::LoadDSPSettings(IniFile& ini)
   dsp->Get("DumpAudio", &m_DumpAudio, false);
   dsp->Get("DumpAudioSilent", &m_DumpAudioSilent, false);
   dsp->Get("DumpUCode", &m_DumpUCode, false);
-#if defined __linux__ && HAVE_ALSA
-  dsp->Get("Backend", &sBackend, BACKEND_ALSA);
-#elif defined __APPLE__
-  dsp->Get("Backend", &sBackend, BACKEND_COREAUDIO);
-#elif defined _WIN32
-  dsp->Get("Backend", &sBackend, BACKEND_XAUDIO2);
-#elif defined ANDROID
-  dsp->Get("Backend", &sBackend, BACKEND_OPENSLES);
-#else
-  dsp->Get("Backend", &sBackend, BACKEND_NULLSOUND);
-#endif
+  dsp->Get("Backend", &sBackend, AudioCommon::GetDefaultSoundBackend());
   dsp->Get("Volume", &m_Volume, 100);
   dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 
