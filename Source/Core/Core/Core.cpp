@@ -547,7 +547,7 @@ void EmuThread()
   CPU::Break();
 
   // Load GCM/DOL/ELF whatever ... we boot with the interpreter core
-  PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+  PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
 
   CBoot::BootUp();
 
@@ -561,11 +561,11 @@ void EmuThread()
   if (core_parameter.iCPUCore != PowerPC::CORE_INTERPRETER &&
       (!core_parameter.bRunCompareServer || core_parameter.bRunCompareClient))
   {
-    PowerPC::SetMode(PowerPC::MODE_JIT);
+    PowerPC::SetMode(PowerPC::CoreMode::JIT);
   }
   else
   {
-    PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+    PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
   }
 
   // Update the window again because all stuff is initialized
