@@ -86,6 +86,8 @@ private:
   int Volume;
   int m_wii_language;
   float m_EmulationSpeed;
+  float m_OCFactor;
+  bool m_OCEnable;
   std::string strBackend;
   std::string sBackend;
   std::string m_strGPUDeterminismMode;
@@ -120,6 +122,8 @@ void ConfigCache::SaveConfig(const SConfig& config)
   sBackend = config.sBackend;
   m_strGPUDeterminismMode = config.m_strGPUDeterminismMode;
   m_wii_language = config.m_wii_language;
+  m_OCFactor = config.m_OCFactor;
+  m_OCEnable = config.m_OCEnable;
 
   std::copy(std::begin(g_wiimote_sources), std::end(g_wiimote_sources), std::begin(iWiimoteSource));
   std::copy(std::begin(config.m_SIDevice), std::end(config.m_SIDevice), std::begin(Pads));
@@ -194,6 +198,8 @@ void ConfigCache::RestoreConfig(SConfig* config)
   config->m_strVideoBackend = strBackend;
   config->sBackend = sBackend;
   config->m_strGPUDeterminismMode = m_strGPUDeterminismMode;
+  config->m_OCFactor = m_OCFactor;
+  config->m_OCEnable = m_OCEnable;
   VideoBackendBase::ActivateBackend(config->m_strVideoBackend);
 }
 
@@ -270,6 +276,8 @@ bool BootCore(const std::string& _rFilename)
     VideoBackendBase::ActivateBackend(StartUp.m_strVideoBackend);
     core_section->Get("GPUDeterminismMode", &StartUp.m_strGPUDeterminismMode,
                       StartUp.m_strGPUDeterminismMode);
+    core_section->Get("Overclock", &StartUp.m_OCFactor, StartUp.m_OCFactor);
+    core_section->Get("OverclockEnable", &StartUp.m_OCEnable, StartUp.m_OCEnable);
 
     for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
     {
