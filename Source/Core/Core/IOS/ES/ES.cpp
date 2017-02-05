@@ -57,15 +57,10 @@
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
-#include "Core/Movie.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
-
-#ifdef _WIN32
-#include <Windows.h>
-#endif
 
 namespace IOS
 {
@@ -1315,52 +1310,6 @@ u32 ES::ES_DIVerify(const std::vector<u8>& tmd)
 
   File::CreateFullPath(tmd_path);
   File::CreateFullPath(Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT));
-
-  Movie::SetTitleId(tmd_title_id);
-  std::string save_path = Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT);
-  if (Movie::IsRecordingInput())
-  {
-    // TODO: Check for the actual save data
-    if (File::Exists(save_path + "banner.bin"))
-      Movie::SetClearSave(false);
-    else
-      Movie::SetClearSave(true);
-  }
-
-  // TODO: Force the game to save to another location, instead of moving the user's save.
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsStartingFromClearSave())
-  {
-    if (File::Exists(save_path + "banner.bin"))
-    {
-      if (File::Exists(save_path + "../backup/"))
-      {
-        // The last run of this game must have been to play back a movie, so their save is already
-        // backed up.
-        File::DeleteDirRecursively(save_path);
-      }
-      else
-      {
-#ifdef _WIN32
-        MoveFile(UTF8ToTStr(save_path).c_str(), UTF8ToTStr(save_path + "../backup/").c_str());
-#else
-        File::CopyDir(save_path, save_path + "../backup/");
-        File::DeleteDirRecursively(save_path);
-#endif
-      }
-    }
-  }
-  else if (File::Exists(save_path + "../backup/"))
-  {
-    // Delete the save made by a previous movie, and copy back the user's save.
-    if (File::Exists(save_path + "banner.bin"))
-      File::DeleteDirRecursively(save_path);
-#ifdef _WIN32
-    MoveFile(UTF8ToTStr(save_path + "../backup/").c_str(), UTF8ToTStr(save_path).c_str());
-#else
-    File::CopyDir(save_path + "../backup/", save_path);
-    File::DeleteDirRecursively(save_path + "../backup/");
-#endif
-  }
 
   if (!File::Exists(tmd_path))
   {

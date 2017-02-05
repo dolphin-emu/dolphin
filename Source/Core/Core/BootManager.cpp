@@ -413,6 +413,7 @@ void RestoreConfig()
 {
   SConfig::GetInstance().LoadSettingsFromSysconf();
   SConfig::GetInstance().m_strGameID = "00000000";
+  SConfig::GetInstance().m_title_id = 0;
   config_cache.RestoreConfig(&SConfig::GetInstance());
 }
 

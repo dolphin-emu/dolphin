@@ -753,6 +753,7 @@ void SConfig::LoadDefaults()
 
   m_strName = "NONE";
   m_strGameID = "00000000";
+  m_title_id = 0;
   m_revision = 0;
 }
 
@@ -835,6 +836,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       }
       m_strName = pVolume->GetInternalName();
       m_strGameID = pVolume->GetGameID();
+      pVolume->GetTitleID(&m_title_id);
       m_revision = pVolume->GetRevision();
 
       // Check if we have a Wii disc
@@ -901,6 +903,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       {
         m_strName = pVolume->GetInternalName();
         m_strGameID = pVolume->GetGameID();
+        pVolume->GetTitleID(&m_title_id);
       }
       else
       {
@@ -908,12 +911,13 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
         // if this is the second boot we would be using the Name and id of the last title
         m_strName.clear();
         m_strGameID.clear();
+        m_title_id = 0;
       }
 
       // Use the TitleIDhex for name and/or game ID if launching
       // from nand folder or if it is not ascii characters
       // (specifically sysmenu could potentially apply to other things)
-      std::string titleidstr = StringFromFormat("%016" PRIx64, ContentLoader.GetTitleID());
+      std::string titleidstr = StringFromFormat("%016" PRIx64, m_title_id);
 
       if (m_strName.empty())
       {

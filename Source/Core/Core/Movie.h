@@ -129,10 +129,8 @@ u64 GetTotalInputCount();
 u64 GetCurrentLagCount();
 u64 GetTotalLagCount();
 
-void SetClearSave(bool enabled);
 void SignalDiscChange(const std::string& new_path);
 void SetReset(bool reset);
-void SetTitleId(u64 title_id);
 
 bool IsConfigSaved();
 bool IsDualCore();
