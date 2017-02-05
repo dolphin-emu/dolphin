@@ -15,9 +15,10 @@ if(OPENSLES_FOUND)
   target_link_libraries(audiocommon PRIVATE OpenSLES::OpenSLES)
 endif()
 
+find_package(ALSA)
 if(ALSA_FOUND)
   target_sources(audiocommon PRIVATE AlsaSoundStream.cpp)
-  target_link_libraries(audiocommon PRIVATE ${ALSA_LIBRARIES})
+  target_link_libraries(audiocommon PRIVATE ALSA::ALSA)
 endif()
 
 if(AO_FOUND)

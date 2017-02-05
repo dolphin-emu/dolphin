@@ -39,7 +39,7 @@ if(ALSA_INCLUDE_DIR AND EXISTS "${ALSA_INCLUDE_DIR}/alsa/version.h")
   unset(alsa_version_str)
 endif()
 
-include(${CMAKE_CURRENT_LIST_DIR}/FindPackageHandleStandardArgs.cmake)
+include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(ALSA
                                   REQUIRED_VARS ALSA_LIBRARY ALSA_INCLUDE_DIR
                                   VERSION_VAR ALSA_VERSION_STRING)
@@ -47,6 +47,11 @@ FIND_PACKAGE_HANDLE_STANDARD_ARGS(ALSA
 if(ALSA_FOUND)
   set( ALSA_LIBRARIES ${ALSA_LIBRARY} )
   set( ALSA_INCLUDE_DIRS ${ALSA_INCLUDE_DIR} )
+  add_library(ALSA::ALSA UNKNOWN IMPORTED)
+  set_target_properties(ALSA::ALSA PROPERTIES
+    IMPORTED_LOCATION ${ALSA_LIBRARY}
+    INTERFACE_INCLUDE_DIRECTORIES ${ALSA_INCLUDE_DIR}
+  )
 endif()
 
 mark_as_advanced(ALSA_INCLUDE_DIR ALSA_LIBRARY)
