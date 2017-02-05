@@ -133,7 +133,7 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
     if (Core::GetState() == Core::CORE_RUN)
       Core::SetState(Core::CORE_PAUSE);
 
-    if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::MODE_JIT)
+    if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::CoreMode::JIT)
     {
       if (g_jit != nullptr)
       {

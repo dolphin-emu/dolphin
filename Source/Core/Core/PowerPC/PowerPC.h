@@ -30,10 +30,10 @@ enum
   CORE_CACHEDINTERPRETER,
 };
 
-enum CoreMode
+enum class CoreMode
 {
-  MODE_INTERPRETER,
-  MODE_JIT,
+  Interpreter,
+  JIT,
 };
 
 // TLB cache
@@ -146,7 +146,7 @@ const char* GetCPUName();
 
 // Set the current CPU Core to the given implementation until removed.
 // Remove the current injected CPU Core by passing nullptr.
-// While an external CPUCoreBase is injected, GetMode() will return MODE_INTERPRETER.
+// While an external CPUCoreBase is injected, GetMode() will return CoreMode::Interpreter.
 // Init() will be called when added and Shutdown() when removed.
 // [Threadsafety: Same as SetMode(), except it cannot be called from inside the CPU
 //  run loop on the CPU Thread - it doesn't make sense for a CPU to remove itself
