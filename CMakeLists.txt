@@ -88,16 +88,10 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set(LIBS)
 
 # Set up paths
-if(APPLE)
-	# The gettext module will install the translations unconditionally.
-	# Redirect the installation to a build directory where it does no harm.
-	set(CMAKE_INSTALL_PREFIX ${CMAKE_BINARY_DIR}/install-dummy)
-else()
-	set(bindir  ${CMAKE_INSTALL_PREFIX}/bin               CACHE PATH "bindir")
-	set(datadir ${CMAKE_INSTALL_PREFIX}/share/dolphin-emu CACHE PATH "datadir")
-	set(mandir  ${CMAKE_INSTALL_PREFIX}/share/man         CACHE PATH "mandir")
-	add_definitions(-DDATA_DIR="${datadir}/")
-endif()
+set(bindir  ${CMAKE_INSTALL_PREFIX}/bin               CACHE PATH "bindir")
+set(datadir ${CMAKE_INSTALL_PREFIX}/share/dolphin-emu CACHE PATH "datadir")
+set(mandir  ${CMAKE_INSTALL_PREFIX}/share/man         CACHE PATH "mandir")
+add_definitions(-DDATA_DIR="${datadir}/")
 
 if(CMAKE_SYSROOT)
 	# If we should use a sysroot, tell pkg-config to search for packages in there, not on the host
@@ -973,7 +967,7 @@ if(GTEST_FOUND AND USE_SHARED_GTEST)
 else()
 	message(STATUS "Using static gtest from Externals")
 	include_directories(Externals/gtest/include)
-	add_subdirectory(Externals/gtest)
+	add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 endif()
 
 enable_testing()
@@ -986,10 +980,13 @@ add_subdirectory(Source)
 ########################################
 # Install shared data files
 #
-if(NOT ${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Darwin|Windows")
+  install(DIRECTORY Data/Sys/ DESTINATION ${datadir}/sys PATTERN)
+endif()
+if(NOT CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD|Darwin")
 	install(FILES Data/license.txt DESTINATION ${datadir})
 endif()
-if(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD|OpenBSD")
+if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD")
 	# Install the application icon and menu item
 	install(FILES Data/dolphin-emu.svg
 		DESTINATION ${CMAKE_INSTALL_PREFIX}/share/icons/hicolor/scalable/apps)
