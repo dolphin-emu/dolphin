@@ -282,17 +282,17 @@ void SetPolledDevice()
 // NOTE: Host Thread
 void DoFrameStep()
 {
-  if (Core::GetState() == Core::CORE_PAUSE)
+  if (Core::GetState() == Core::State::Paused)
   {
     // if already paused, frame advance for 1 frame
     s_bFrameStep = true;
     Core::RequestRefreshInfo();
-    Core::SetState(Core::CORE_RUN);
+    Core::SetState(Core::State::Running);
   }
   else if (!s_bFrameStep)
   {
     // if not paused yet, pause immediately instead
-    Core::SetState(Core::CORE_PAUSE);
+    Core::SetState(Core::State::Paused);
   }
 }
 

@@ -13,12 +13,12 @@ namespace WxEventUtils
 {
 void OnEnableIfCoreInitialized(wxUpdateUIEvent& event)
 {
-  event.Enable(Core::GetState() != Core::CORE_UNINITIALIZED);
+  event.Enable(Core::GetState() != Core::State::Uninitialized);
 }
 
 void OnEnableIfCoreUninitialized(wxUpdateUIEvent& event)
 {
-  event.Enable(Core::GetState() == Core::CORE_UNINITIALIZED);
+  event.Enable(Core::GetState() == Core::State::Uninitialized);
 }
 
 void OnEnableIfCoreRunning(wxUpdateUIEvent& event)
@@ -33,14 +33,14 @@ void OnEnableIfCoreNotRunning(wxUpdateUIEvent& event)
 
 void OnEnableIfCorePaused(wxUpdateUIEvent& event)
 {
-  event.Enable(Core::GetState() == Core::CORE_PAUSE);
+  event.Enable(Core::GetState() == Core::State::Paused);
 }
 
 void OnEnableIfCoreRunningOrPaused(wxUpdateUIEvent& event)
 {
   const auto state = Core::GetState();
 
-  event.Enable(state == Core::CORE_RUN || state == Core::CORE_PAUSE);
+  event.Enable(state == Core::State::Running || state == Core::State::Paused);
 }
 
 void OnEnableIfCPUCanStep(wxUpdateUIEvent& event)

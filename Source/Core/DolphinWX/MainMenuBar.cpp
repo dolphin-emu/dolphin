@@ -512,7 +512,7 @@ void MainMenuBar::RefreshPlayMenuLabel() const
 {
   auto* const item = FindItem(IDM_PLAY);
 
-  if (Core::GetState() == Core::CORE_RUN)
+  if (Core::GetState() == Core::State::Running)
     item->SetItemLabel(_("&Pause"));
   else
     item->SetItemLabel(_("&Play"));

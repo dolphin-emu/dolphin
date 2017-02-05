@@ -140,7 +140,7 @@ void DoState(PointerWrap& p);
 void ScheduleInvalidateCacheThreadSafe(u32 address);
 
 CoreMode GetMode();
-// [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or CORE_UNINITIALIZED
+// [NOT THREADSAFE] CPU Thread or CPU::PauseAndLock or Core::State::Uninitialized
 void SetMode(CoreMode _coreType);
 const char* GetCPUName();
 

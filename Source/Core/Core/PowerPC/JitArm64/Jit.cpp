@@ -544,7 +544,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
 {
   if (em_address == 0)
   {
-    Core::SetState(Core::CORE_PAUSE);
+    Core::SetState(Core::State::Paused);
     WARN_LOG(DYNA_REC, "ERROR: Compiling at 0. LR=%08x CTR=%08x", LR, CTR);
   }
 

@@ -188,7 +188,7 @@ void DisplayMessage(const std::string& message, int time_in_ms)
 
 bool IsRunning()
 {
-  return (GetState() != CORE_UNINITIALIZED || s_hardware_initialized) && !s_is_stopping;
+  return (GetState() != State::Uninitialized || s_hardware_initialized) && !s_is_stopping;
 }
 
 bool IsRunningAndStarted()
@@ -263,7 +263,7 @@ bool Init()
 // Called from GUI thread
 void Stop()  // - Hammertime!
 {
-  if (GetState() == CORE_STOPPING)
+  if (GetState() == State::Stopping)
     return;
 
   const SConfig& _CoreParameter = SConfig::GetInstance();
@@ -327,7 +327,7 @@ void UndeclareAsCPUThread()
 static void CPUSetInitialExecutionState()
 {
   QueueHostJob([] {
-    SetState(SConfig::GetInstance().bBootToPause ? CORE_PAUSE : CORE_RUN);
+    SetState(SConfig::GetInstance().bBootToPause ? State::Paused : State::Running);
     Host_UpdateMainFrame();
   });
 }
@@ -363,7 +363,7 @@ static void CpuThread()
     QueueHostJob([] {
       // Recheck in case Movie cleared it since.
       if (!s_state_filename.empty())
-        State::LoadAs(s_state_filename);
+        ::State::LoadAs(s_state_filename);
     });
   }
 
@@ -678,7 +678,7 @@ void EmuThread()
 
 // Set or get the running state
 
-void SetState(EState state)
+void SetState(State state)
 {
   // State cannot be controlled until the CPU Thread is operational
   if (!IsRunningAndStarted())
@@ -686,8 +686,8 @@ void SetState(EState state)
 
   switch (state)
   {
-  case CORE_PAUSE:
-    // NOTE: GetState() will return CORE_PAUSE immediately, even before anything has
+  case State::Paused:
+    // NOTE: GetState() will return State::Paused immediately, even before anything has
     //   stopped (including the CPU).
     CPU::EnableStepping(true);  // Break
     Wiimote::Pause();
@@ -695,7 +695,7 @@ void SetState(EState state)
     GCAdapter::ResetRumble();
 #endif
     break;
-  case CORE_RUN:
+  case State::Running:
     CPU::EnableStepping(false);
     Wiimote::Resume();
     break;
@@ -705,20 +705,20 @@ void SetState(EState state)
   }
 }
 
-EState GetState()
+State GetState()
 {
   if (s_is_stopping)
-    return CORE_STOPPING;
+    return State::Stopping;
 
   if (s_hardware_initialized)
   {
     if (CPU::IsStepping())
-      return CORE_PAUSE;
+      return State::Paused;
 
-    return CORE_RUN;
+    return State::Running;
   }
 
-  return CORE_UNINITIALIZED;
+  return State::Uninitialized;
 }
 
 static std::string GenerateScreenshotFolderPath()
@@ -753,28 +753,28 @@ static std::string GenerateScreenshotName()
 
 void SaveScreenShot()
 {
-  const bool bPaused = (GetState() == CORE_PAUSE);
+  const bool bPaused = GetState() == State::Paused;
 
-  SetState(CORE_PAUSE);
+  SetState(State::Paused);
 
   Renderer::SetScreenshot(GenerateScreenshotName());
 
   if (!bPaused)
-    SetState(CORE_RUN);
+    SetState(State::Running);
 }
 
 void SaveScreenShot(const std::string& name)
 {
-  const bool bPaused = (GetState() == CORE_PAUSE);
+  const bool bPaused = GetState() == State::Paused;
 
-  SetState(CORE_PAUSE);
+  SetState(State::Paused);
 
   std::string filePath = GenerateScreenshotFolderPath() + name + ".png";
 
   Renderer::SetScreenshot(filePath);
 
   if (!bPaused)
-    SetState(CORE_RUN);
+    SetState(State::Running);
 }
 
 void RequestRefreshInfo()
@@ -1015,7 +1015,7 @@ void HostDispatchJobs()
 
     // NOTE: Memory ordering is important. The booting flag needs to be
     //   checked first because the state transition is:
-    //   CORE_UNINITIALIZED: s_is_booting -> s_hardware_initialized
+    //   Core::State::Uninitialized: s_is_booting -> s_hardware_initialized
     //   We need to check variables in the same order as the state
     //   transition, otherwise we race and get transient failures.
     if (!job.run_after_stop && !s_is_booting.IsSet() && !IsRunning())

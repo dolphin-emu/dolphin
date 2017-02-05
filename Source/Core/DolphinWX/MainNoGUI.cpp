@@ -261,17 +261,17 @@ class PlatformX11 : public Platform
           key = XLookupKeysym((XKeyEvent*)&event, 0);
           if (key == XK_Escape)
           {
-            if (Core::GetState() == Core::CORE_RUN)
+            if (Core::GetState() == Core::State::Running)
             {
               if (SConfig::GetInstance().bHideCursor)
                 XUndefineCursor(dpy, win);
-              Core::SetState(Core::CORE_PAUSE);
+              Core::SetState(Core::State::Paused);
             }
             else
             {
               if (SConfig::GetInstance().bHideCursor)
                 XDefineCursor(dpy, win, blankCursor);
-              Core::SetState(Core::CORE_RUN);
+              Core::SetState(Core::State::Running);
             }
           }
           else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
@@ -304,7 +304,7 @@ class PlatformX11 : public Platform
           break;
         case FocusIn:
           rendererHasFocus = true;
-          if (SConfig::GetInstance().bHideCursor && Core::GetState() != Core::CORE_PAUSE)
+          if (SConfig::GetInstance().bHideCursor && Core::GetState() != Core::State::Paused)
             XDefineCursor(dpy, win, blankCursor);
           break;
         case FocusOut:

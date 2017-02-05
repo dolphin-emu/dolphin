@@ -88,7 +88,7 @@ void ControllerConfigDiag::UpdateUI()
     m_wiimote_sources[i]->Select(g_wiimote_sources[i]);
 
     const bool wii_game_started =
-        SConfig::GetInstance().bWii || Core::GetState() == Core::CORE_UNINITIALIZED;
+        SConfig::GetInstance().bWii || Core::GetState() == Core::State::Uninitialized;
     if (Core::g_want_determinism || !wii_game_started)
       m_wiimote_sources[i]->Disable();
     if (!wii_game_started ||

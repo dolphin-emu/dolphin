@@ -123,17 +123,17 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
   switch (event.GetId())
   {
   case IDM_PROFILE_BLOCKS:
-    Core::SetState(Core::CORE_PAUSE);
+    Core::SetState(Core::State::Paused);
     if (g_jit != nullptr)
       g_jit->ClearCache();
     Profiler::g_ProfileBlocks = GetParentMenuBar()->IsChecked(IDM_PROFILE_BLOCKS);
-    Core::SetState(Core::CORE_RUN);
+    Core::SetState(Core::State::Running);
     break;
   case IDM_WRITE_PROFILE:
-    if (Core::GetState() == Core::CORE_RUN)
-      Core::SetState(Core::CORE_PAUSE);
+    if (Core::GetState() == Core::State::Running)
+      Core::SetState(Core::State::Paused);
 
-    if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::CoreMode::JIT)
+    if (Core::GetState() == Core::State::Paused && PowerPC::GetMode() == PowerPC::CoreMode::JIT)
     {
       if (g_jit != nullptr)
       {

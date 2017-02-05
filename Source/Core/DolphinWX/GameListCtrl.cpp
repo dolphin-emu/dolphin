@@ -291,7 +291,7 @@ void CGameListCtrl::ReloadList()
 {
   int scrollPos = wxWindow::GetScrollPos(wxVERTICAL);
   // Don't let the user refresh it while a game is running
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  if (Core::GetState() != Core::State::Uninitialized)
     return;
 
   ScanForISOs();

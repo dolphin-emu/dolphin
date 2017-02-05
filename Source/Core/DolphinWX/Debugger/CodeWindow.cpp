@@ -457,7 +457,7 @@ void CCodeWindow::UpdateLists()
 
 void CCodeWindow::UpdateCallstack()
 {
-  if (Core::GetState() == Core::CORE_STOPPING)
+  if (Core::GetState() == Core::State::Stopping)
     return;
 
   callstack->Clear();

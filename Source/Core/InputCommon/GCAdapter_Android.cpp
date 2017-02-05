@@ -194,7 +194,7 @@ void Init()
   if (s_fd)
     return;
 
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  if (Core::GetState() != Core::State::Uninitialized)
   {
     if ((CoreTiming::GetTicks() - s_last_init) < SystemTimers::GetTicksPerSecond())
       return;
