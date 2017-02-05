@@ -967,7 +967,7 @@ if(GTEST_FOUND AND USE_SHARED_GTEST)
 else()
 	message(STATUS "Using static gtest from Externals")
 	include_directories(Externals/gtest/include)
-	add_subdirectory(Externals/gtest)
+	add_subdirectory(Externals/gtest EXCLUDE_FROM_ALL)
 endif()
 
 enable_testing()
