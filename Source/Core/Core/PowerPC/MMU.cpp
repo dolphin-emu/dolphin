@@ -971,49 +971,50 @@ enum TLBLookupResult
 
 static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
 {
-  u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
-  PowerPC::tlb_entry* tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
-  if (tlbe->tag[0] == tag)
+  const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
+  TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
+
+  if (tlbe.tag[0] == tag)
   {
     // Check if C bit requires updating
     if (flag == FLAG_WRITE)
     {
       UPTE2 PTE2;
-      PTE2.Hex = tlbe->pte[0];
+      PTE2.Hex = tlbe.pte[0];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
-        tlbe->pte[0] = PTE2.Hex;
+        tlbe.pte[0] = PTE2.Hex;
         return TLB_UPDATE_C;
       }
     }
 
     if (!IsNoExceptionFlag(flag))
-      tlbe->recent = 0;
+      tlbe.recent = 0;
 
-    *paddr = tlbe->paddr[0] | (vpa & 0xfff);
+    *paddr = tlbe.paddr[0] | (vpa & 0xfff);
 
     return TLB_FOUND;
   }
-  if (tlbe->tag[1] == tag)
+  if (tlbe.tag[1] == tag)
   {
     // Check if C bit requires updating
     if (flag == FLAG_WRITE)
     {
       UPTE2 PTE2;
-      PTE2.Hex = tlbe->pte[1];
+      PTE2.Hex = tlbe.pte[1];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
-        tlbe->pte[1] = PTE2.Hex;
+        tlbe.pte[1] = PTE2.Hex;
         return TLB_UPDATE_C;
       }
     }
 
     if (!IsNoExceptionFlag(flag))
-      tlbe->recent = 1;
+      tlbe.recent = 1;
 
-    *paddr = tlbe->paddr[1] | (vpa & 0xfff);
+    *paddr = tlbe.paddr[1] | (vpa & 0xfff);
 
     return TLB_FOUND;
   }
@@ -1025,25 +1026,26 @@ static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 addre
   if (IsNoExceptionFlag(flag))
     return;
 
-  int tag = address >> HW_PAGE_INDEX_SHIFT;
-  PowerPC::tlb_entry* tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
-  int index = tlbe->recent == 0 && tlbe->tag[0] != TLB_TAG_INVALID;
-  tlbe->recent = index;
-  tlbe->paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-  tlbe->pte[index] = PTE2.Hex;
-  tlbe->tag[index] = tag;
+  const int tag = address >> HW_PAGE_INDEX_SHIFT;
+  TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
+  const int index = tlbe.recent == 0 && tlbe.tag[0] != TLB_TAG_INVALID;
+  tlbe.recent = index;
+  tlbe.paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
+  tlbe.pte[index] = PTE2.Hex;
+  tlbe.tag[index] = tag;
 }
 
 void InvalidateTLBEntry(u32 address)
 {
-  PowerPC::tlb_entry* tlbe =
-      &PowerPC::ppcState.tlb[0][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
-  tlbe->tag[0] = TLB_TAG_INVALID;
-  tlbe->tag[1] = TLB_TAG_INVALID;
-  PowerPC::tlb_entry* tlbe_i =
-      &PowerPC::ppcState.tlb[1][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
-  tlbe_i->tag[0] = TLB_TAG_INVALID;
-  tlbe_i->tag[1] = TLB_TAG_INVALID;
+  const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
+
+  TLBEntry& tlbe = ppcState.tlb[0][entry_index];
+  tlbe.tag[0] = TLB_TAG_INVALID;
+  tlbe.tag[1] = TLB_TAG_INVALID;
+
+  TLBEntry& tlbe_i = ppcState.tlb[1][entry_index];
+  tlbe_i.tag[0] = TLB_TAG_INVALID;
+  tlbe_i.tag[1] = TLB_TAG_INVALID;
 }
 
 // Page Address Translation
