@@ -95,4 +95,24 @@ unset(_OpenAL_ARCH_DIR)
 include(FindPackageHandleStandardArgs)
 FIND_PACKAGE_HANDLE_STANDARD_ARGS(OpenAL  DEFAULT_MSG  OPENAL_LIBRARY OPENAL_INCLUDE_DIR)
 
+if(OPENAL_FOUND)
+  if(NOT TARGET OpenAL::OpenAL)
+    add_library(OpenAL::OpenAL UNKNOWN IMPORTED)
+    if(OPENAL_LIBRARY MATCHES "/([^/]+)\\.framework$")
+      set(_al_fw "${OPENAL_LIBRARY}/${CMAKE_MATCH_1}")
+      if(EXISTS "${_al_fw}.tbd")
+        set(_al_fw "${_al_fw}.tbd")
+      endif()
+      set_target_properties(OpenAL::OpenAL PROPERTIES
+        IMPORTED_LOCATION "${_al_fw}")
+    else()
+      set_target_properties(OpenAL::OpenAL PROPERTIES
+        IMPORTED_LOCATION "${OPENAL_LIBRARY}")
+    endif()
+    set_target_properties(OpenAL::OpenAL PROPERTIES
+      INTERFACE_INCLUDE_DIRECTORIES ${OPENAL_INCLUDE_DIR}
+    )
+  endif()
+endif()
+
 mark_as_advanced(OPENAL_LIBRARY OPENAL_INCLUDE_DIR)
