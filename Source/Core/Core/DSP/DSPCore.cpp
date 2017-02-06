@@ -28,7 +28,7 @@ namespace DSP
 {
 SDSP g_dsp;
 DSPBreakpoints g_dsp_breakpoints;
-static DSPCoreState core_state = DSPCORE_STOP;
+static State core_state = State::Stopped;
 u16 g_cycles_left = 0;
 bool g_init_hax = false;
 std::unique_ptr<JIT::x86::DSPEmitter> g_dsp_jit;
@@ -154,16 +154,16 @@ bool DSPCore_Init(const DSPInitOptions& opts)
 
   g_dsp_cap.reset(opts.capture_logger);
 
-  core_state = DSPCORE_RUNNING;
+  core_state = State::Running;
   return true;
 }
 
 void DSPCore_Shutdown()
 {
-  if (core_state == DSPCORE_STOP)
+  if (core_state == State::Stopped)
     return;
 
-  core_state = DSPCORE_STOP;
+  core_state = State::Stopped;
 
   g_dsp_jit.reset();
 
@@ -252,7 +252,7 @@ int DSPCore_RunCycles(int cycles)
   {
     switch (core_state)
     {
-    case DSPCORE_RUNNING:
+    case State::Running:
 // Seems to slow things down
 #if defined(_DEBUG) || defined(DEBUGFAST)
       cycles = Interpreter::RunCyclesDebug(cycles);
@@ -261,9 +261,9 @@ int DSPCore_RunCycles(int cycles)
 #endif
       break;
 
-    case DSPCORE_STEPPING:
+    case State::Stepping:
       step_event.Wait();
-      if (core_state != DSPCORE_STEPPING)
+      if (core_state != State::Stepping)
         continue;
 
       Interpreter::Step();
@@ -271,32 +271,32 @@ int DSPCore_RunCycles(int cycles)
 
       Host::UpdateDebugger();
       break;
-    case DSPCORE_STOP:
+    case State::Stopped:
       break;
     }
   }
   return cycles;
 }
 
-void DSPCore_SetState(DSPCoreState new_state)
+void DSPCore_SetState(State new_state)
 {
   core_state = new_state;
 
   // kick the event, in case we are waiting
-  if (new_state == DSPCORE_RUNNING)
+  if (new_state == State::Running)
     step_event.Set();
 
   Host::UpdateDebugger();
 }
 
-DSPCoreState DSPCore_GetState()
+State DSPCore_GetState()
 {
   return core_state;
 }
 
 void DSPCore_Step()
 {
-  if (core_state == DSPCORE_STEPPING)
+  if (core_state == State::Stepping)
     step_event.Set();
 }
 
