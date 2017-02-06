@@ -28,7 +28,7 @@ void SetIsThrottlerTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
 
-enum State
+enum class State
 {
   Uninitialized,
   Paused,
