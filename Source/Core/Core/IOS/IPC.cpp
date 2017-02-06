@@ -44,12 +44,16 @@
 #include "Core/IOS/IPC.h"
 #include "Core/IOS/Network/Net.h"
 #include "Core/IOS/Network/SSL.h"
+#include "Core/IOS/Network/Socket.h"
 #include "Core/IOS/SDIO/SDIOSlot0.h"
 #include "Core/IOS/STM/STM.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
+#include "Core/IOS/USB/OH0/OH0.h"
+#include "Core/IOS/USB/OH0/OH0Device.h"
+#include "Core/IOS/USB/USB_HID/HIDv4.h"
 #include "Core/IOS/USB/USB_KBD.h"
-#include "Core/IOS/USB/USB_VEN.h"
+#include "Core/IOS/USB/USB_VEN/VEN.h"
 #include "Core/IOS/WFS/WFSI.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 
@@ -57,10 +61,6 @@ namespace CoreTiming
 {
 struct EventType;
 }  // namespace CoreTiming
-
-#if defined(__LIBUSB__)
-#include "Core/IOS/USB/USB_HIDv4.h"
-#endif
 
 namespace IOS
 {
@@ -84,6 +84,8 @@ static CoreTiming::EventType* s_event_enqueue;
 static CoreTiming::EventType* s_event_sdio_notify;
 
 static u64 s_last_reply_time;
+
+static u64 s_active_title_id;
 
 static constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static constexpr u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
@@ -411,6 +413,14 @@ static void SDIO_EventNotify_CPUThread(u64 userdata, s64 cycles_late)
     device->EventNotify();
 }
 
+// The title ID is a u64 where the first 32 bits are used for the title type.
+// For IOS title IDs, the type will always be 00000001 (system), and the lower 32 bits
+// are used for the IOS major version -- which is what we want here.
+u32 GetVersion()
+{
+  return static_cast<u32>(s_active_title_id);
+}
+
 bool SetupMemory(u64 ios_title_id)
 {
   auto target_imv = std::find_if(
@@ -422,6 +432,8 @@ bool SetupMemory(u64 ios_title_id)
     ERROR_LOG(IOS, "Unknown IOS version: %016" PRIx64, ios_title_id);
     return false;
   }
+
+  s_active_title_id = ios_title_id;
 
   Memory::Write_U32(target_imv->mem1_physical_size, ADDR_MEM1_SIZE);
   Memory::Write_U32(target_imv->mem1_simulated_size, ADDR_MEM1_SIM_SIZE);
@@ -495,15 +507,12 @@ void Reinit()
   AddDevice<Device::NetIPTop>("/dev/net/ip/top");
   AddDevice<Device::NetSSL>("/dev/net/ssl");
   AddDevice<Device::USB_KBD>("/dev/usb/kbd");
-  AddDevice<Device::USB_VEN>("/dev/usb/ven");
   AddDevice<Device::SDIOSlot0>("/dev/sdio/slot0");
   AddDevice<Device::Stub>("/dev/sdio/slot1");
-#if defined(__LIBUSB__)
   AddDevice<Device::USB_HIDv4>("/dev/usb/hid");
-#else
-  AddDevice<Device::Stub>("/dev/usb/hid");
-#endif
+  AddDevice<Device::OH0>("/dev/usb/oh0");
   AddDevice<Device::Stub>("/dev/usb/oh1");
+  AddDevice<Device::USB_VEN>("/dev/usb/ven");
   AddDevice<Device::WFSSRV>("/dev/usb/wfssrv");
   AddDevice<Device::WFSI>("/dev/wfsi");
 }
@@ -644,6 +653,10 @@ void DoState(PointerWrap& p)
           s_fdmap[i] = std::make_shared<Device::FileIO>(i, "");
           s_fdmap[i]->DoState(p);
           break;
+        case Device::Device::DeviceType::OH0:
+          s_fdmap[i] = std::make_shared<Device::OH0Device>(i, "");
+          s_fdmap[i]->DoState(p);
+          break;
         }
       }
     }
@@ -709,6 +722,10 @@ static s32 OpenDevice(const OpenRequest& request)
     device = GetUnusedESDevice();
     if (!device)
       return IPC_EESEXHAUSTED;
+  }
+  else if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
+  {
+    device = std::make_shared<Device::OH0Device>(new_fd, request.path);
   }
   else if (request.path.find("/dev/") == 0)
   {
@@ -850,6 +867,13 @@ void UpdateDevices()
       entry.second->Update();
     }
   }
+}
+
+void UpdateWantDeterminism(const bool new_want_determinism)
+{
+  WiiSockMan::GetInstance().UpdateWantDeterminism(new_want_determinism);
+  for (const auto& device : s_device_map)
+    device.second->UpdateWantDeterminism(new_want_determinism);
 }
 }  // namespace HLE
 }  // namespace IOS

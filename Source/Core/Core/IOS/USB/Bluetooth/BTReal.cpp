@@ -16,6 +16,7 @@
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
+#include "Common/LibusbContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/Network.h"
@@ -59,8 +60,8 @@ namespace Device
 BluetoothReal::BluetoothReal(u32 device_id, const std::string& device_name)
     : BluetoothBase(device_id, device_name)
 {
-  const int ret = libusb_init(&m_libusb_context);
-  _assert_msg_(IOS_WIIMOTE, ret == 0, "Failed to init libusb.");
+  m_libusb_context = LibusbContext::Get();
+  _assert_msg_(IOS_WIIMOTE, m_libusb_context, "Failed to init libusb.");
 
   LoadLinkKeys();
 }
@@ -78,15 +79,13 @@ BluetoothReal::~BluetoothReal()
     libusb_unref_device(m_device);
   }
 
-  libusb_exit(m_libusb_context);
-
   SaveLinkKeys();
 }
 
 ReturnCode BluetoothReal::Open(const OpenRequest& request)
 {
   libusb_device** list;
-  const ssize_t cnt = libusb_get_device_list(m_libusb_context, &list);
+  const ssize_t cnt = libusb_get_device_list(m_libusb_context.get(), &list);
   _dbg_assert_msg_(IOS, cnt > 0, "Couldn't get device list");
   for (ssize_t i = 0; i < cnt; ++i)
   {
@@ -601,7 +600,7 @@ void BluetoothReal::TransferThread()
   Common::SetCurrentThreadName("BT USB Thread");
   while (m_thread_running.IsSet())
   {
-    libusb_handle_events_completed(m_libusb_context, nullptr);
+    libusb_handle_events_completed(m_libusb_context.get(), nullptr);
   }
 }
 

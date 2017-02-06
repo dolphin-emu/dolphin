@@ -42,6 +42,7 @@ enum ReturnCode : s32
   FS_EDIRDEPTH = -116,       // Max directory depth exceeded
   FS_EBUSY = -118,           // Resource busy
   IPC_EESEXHAUSTED = -1016,  // Max of 2 ES handles exceeded
+  USB_ECANCELED = -7022,     // USB OH0 insertion hook cancelled
 };
 
 struct Request
@@ -122,6 +123,7 @@ struct IOCtlVRequest final : Request
   std::vector<IOVector> io_vectors;
   explicit IOCtlVRequest(u32 address);
   bool HasInputVectorWithAddress(u32 vector_address) const;
+  bool HasNumberOfValidVectors(size_t in_count, size_t io_count) const;
   void Dump(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
             LogTypes::LOG_LEVELS level = LogTypes::LINFO) const;
   void DumpUnknown(const std::string& description, LogTypes::LOG_TYPE type = LogTypes::IOS,
@@ -137,6 +139,7 @@ public:
   {
     Static,  // Devices which appear in s_device_map.
     FileIO,  // FileIO devices which are created dynamically.
+    OH0,     // OH0 child devices which are created dynamically.
   };
 
   Device(u32 device_id, const std::string& device_name, DeviceType type = DeviceType::Static);
@@ -159,6 +162,7 @@ public:
   virtual IPCCommandResult IOCtl(const IOCtlRequest& ioctl) { return Unsupported(ioctl); }
   virtual IPCCommandResult IOCtlV(const IOCtlVRequest& ioctlv) { return Unsupported(ioctlv); }
   virtual void Update() {}
+  virtual void UpdateWantDeterminism(bool new_want_determinism) {}
   virtual DeviceType GetDeviceType() const { return m_device_type; }
   virtual bool IsOpened() const { return m_is_active; }
   static IPCCommandResult GetDefaultReply(s32 return_value);

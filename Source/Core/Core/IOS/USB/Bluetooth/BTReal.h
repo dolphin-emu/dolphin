@@ -76,7 +76,7 @@ private:
 
   libusb_device* m_device = nullptr;
   libusb_device_handle* m_handle = nullptr;
-  libusb_context* m_libusb_context = nullptr;
+  std::shared_ptr<libusb_context> m_libusb_context;
 
   Common::Flag m_thread_running;
   std::thread m_thread;

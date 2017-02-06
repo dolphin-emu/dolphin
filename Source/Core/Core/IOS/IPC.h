@@ -51,6 +51,8 @@ void Init();
 // Needs to be called after Reset(true) to recreate the device tree
 void Reinit();
 
+u32 GetVersion();
+
 bool SetupMemory(u64 ios_title_id);
 
 // Shutdown
@@ -76,6 +78,8 @@ void Update();
 
 // Update Devices
 void UpdateDevices();
+
+void UpdateWantDeterminism(bool new_want_determinism);
 
 void ExecuteCommand(u32 address);
 

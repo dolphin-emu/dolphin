@@ -62,6 +62,7 @@
     <ClCompile Include="Cheats\CheatsWindow.cpp" />
     <ClCompile Include="Cheats\CreateCodeDialog.cpp" />
     <ClCompile Include="Cheats\GeckoCodeDiag.cpp" />
+    <ClCompile Include="Config\AddUSBDeviceDiag.cpp" />
     <ClCompile Include="Config\AdvancedConfigPane.cpp" />
     <ClCompile Include="Config\AudioConfigPane.cpp" />
     <ClCompile Include="Config\ConfigMain.cpp" />
@@ -139,6 +140,7 @@
   <ItemGroup>
     <ClInclude Include="Cheats\ActionReplayCodesPanel.h" />
     <ClInclude Include="Cheats\ARCodeAddEdit.h" />
+    <ClInclude Include="Config\AddUSBDeviceDiag.h" />
     <ClInclude Include="Config\AdvancedConfigPane.h" />
     <ClInclude Include="Config\AudioConfigPane.h" />
     <ClInclude Include="Config\GameCubeConfigPane.h" />

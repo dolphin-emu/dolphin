@@ -186,16 +186,20 @@
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp" />
     <ClCompile Include="IOS\STM\STM.cpp" />
     <ClCompile Include="IOS\USB\Common.cpp" />
-    <ClCompile Include="IOS\USB\USBV0.cpp" />
-    <ClCompile Include="IOS\USB\USB_HIDv4.cpp">
-      <!--
-      Disable "nonstandard extension used : zero-sized array in struct/union" warning,
-      which is hit in libusb.h.
-      -->
+    <ClCompile Include="IOS\USB\LibusbDevice.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
+    <ClCompile Include="IOS\USB\Host.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
+    <ClCompile Include="IOS\USB\OH0\OH0.cpp" />
+    <ClCompile Include="IOS\USB\OH0\OH0Device.cpp" />
+    <ClCompile Include="IOS\USB\USB_HID\HIDv4.cpp" />
+    <ClCompile Include="IOS\USB\USB_VEN\VEN.cpp" />
+    <ClCompile Include="IOS\USB\USBV0.cpp" />
+    <ClCompile Include="IOS\USB\USBV4.cpp" />
+    <ClCompile Include="IOS\USB\USBV5.cpp" />
     <ClCompile Include="IOS\USB\USB_KBD.cpp" />
-    <ClCompile Include="IOS\USB\USB_VEN.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTBase.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTEmu.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTStub.cpp" />
@@ -419,10 +423,16 @@
     <ClInclude Include="IOS\SDIO\SDIOSlot0.h" />
     <ClInclude Include="IOS\STM\STM.h" />
     <ClInclude Include="IOS\USB\Common.h" />
+    <ClInclude Include="IOS\USB\LibusbDevice.h" />
+    <ClInclude Include="IOS\USB\Host.h" />
+    <ClInclude Include="IOS\USB\OH0\OH0.h" />
+    <ClInclude Include="IOS\USB\OH0\OH0Device.h" />
+    <ClInclude Include="IOS\USB\USB_HID\HIDv4.h" />
+    <ClInclude Include="IOS\USB\USB_VEN\VEN.h" />
     <ClInclude Include="IOS\USB\USBV0.h" />
-    <ClInclude Include="IOS\USB\USB_HIDv4.h" />
+    <ClInclude Include="IOS\USB\USBV4.h" />
+    <ClInclude Include="IOS\USB\USBV5.h" />
     <ClInclude Include="IOS\USB\USB_KBD.h" />
-    <ClInclude Include="IOS\USB\USB_VEN.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTBase.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTEmu.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTStub.h" />

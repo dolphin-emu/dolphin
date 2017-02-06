@@ -7,6 +7,7 @@ set(GUI_SRCS
 	Cheats/CheatsWindow.cpp
 	Cheats/CreateCodeDialog.cpp
 	Cheats/GeckoCodeDiag.cpp
+	Config/AddUSBDeviceDiag.cpp
 	Config/AdvancedConfigPane.cpp
 	Config/AudioConfigPane.cpp
 	Config/ConfigMain.cpp
