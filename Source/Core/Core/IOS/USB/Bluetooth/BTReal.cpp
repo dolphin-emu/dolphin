@@ -61,8 +61,6 @@ BluetoothReal::BluetoothReal(u32 device_id, const std::string& device_name)
     : BluetoothBase(device_id, device_name)
 {
   m_libusb_context = LibusbContext::Get();
-  _assert_msg_(IOS_WIIMOTE, m_libusb_context, "Failed to init libusb.");
-
   LoadLinkKeys();
 }
 
@@ -84,6 +82,9 @@ BluetoothReal::~BluetoothReal()
 
 ReturnCode BluetoothReal::Open(const OpenRequest& request)
 {
+  if (!m_libusb_context)
+    return IPC_EACCES;
+
   libusb_device** list;
   const ssize_t cnt = libusb_get_device_list(m_libusb_context.get(), &list);
   _dbg_assert_msg_(IOS, cnt > 0, "Couldn't get device list");
