@@ -355,18 +355,18 @@ void DSPCore_SetExternalInterrupt(bool val);
 // sets a flag in the pending exception register.
 void DSPCore_SetException(u8 level);
 
-enum DSPCoreState
+enum class State
 {
-  DSPCORE_STOP = 0,
-  DSPCORE_RUNNING,
-  DSPCORE_STEPPING,
+  Stopped,
+  Running,
+  Stepping,
 };
 
 int DSPCore_RunCycles(int cycles);
 
 // These are meant to be called from the UI thread.
-void DSPCore_SetState(DSPCoreState new_state);
-DSPCoreState DSPCore_GetState();
+void DSPCore_SetState(State new_state);
+State DSPCore_GetState();
 
 void DSPCore_Step();
 

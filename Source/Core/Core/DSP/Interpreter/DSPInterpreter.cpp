@@ -134,7 +134,7 @@ int RunCyclesDebug(int cycles)
       return 0;
     if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
     {
-      DSPCore_SetState(DSPCORE_STEPPING);
+      DSPCore_SetState(State::Stepping);
       return cycles;
     }
     Step();
@@ -153,7 +153,7 @@ int RunCyclesDebug(int cycles)
         return 0;
       if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
       {
-        DSPCore_SetState(DSPCORE_STEPPING);
+        DSPCore_SetState(State::Stepping);
         return cycles;
       }
       // Idle skipping.
@@ -170,7 +170,7 @@ int RunCyclesDebug(int cycles)
     {
       if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
       {
-        DSPCore_SetState(DSPCORE_STEPPING);
+        DSPCore_SetState(State::Stepping);
         return cycles;
       }
       Step();

@@ -24,7 +24,7 @@ std::string DSPDebugInterface::Disassemble(unsigned int address)
 
 std::string DSPDebugInterface::GetRawMemoryString(int memory, unsigned int address)
 {
-  if (DSPCore_GetState() == DSPCORE_STOP)
+  if (DSPCore_GetState() == State::Stopped)
     return "";
 
   switch (memory)
