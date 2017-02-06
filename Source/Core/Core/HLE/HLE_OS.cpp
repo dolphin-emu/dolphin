@@ -48,8 +48,16 @@ void HLE_GeneralDebugPrint()
   }
   else
   {
-    // ___blank(const char* fmt, ...);
-    report_message = GetStringVA();
+    if (GPR(3) > 0x80000000)
+    {
+      // ___blank(const char* fmt, ...);
+      report_message = GetStringVA();
+    }
+    else
+    {
+      // ___blank(int log_type, const char* fmt, ...);
+      report_message = GetStringVA(4);
+    }
   }
 
   NPC = LR;
