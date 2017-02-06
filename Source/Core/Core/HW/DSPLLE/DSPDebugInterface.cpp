@@ -67,7 +67,7 @@ unsigned int DSPDebugInterface::ReadInstruction(unsigned int address)
 
 bool DSPDebugInterface::IsAlive()
 {
-  return true;  // Core::GetState() != Core::CORE_UNINITIALIZED;
+  return true;
 }
 
 bool DSPDebugInterface::IsBreakpoint(unsigned int address)

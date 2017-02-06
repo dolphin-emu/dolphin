@@ -21,7 +21,7 @@ std::string PPCDebugInterface::Disassemble(unsigned int address)
   if (!IsAlive())
     return "";
 
-  if (Core::GetState() == Core::CORE_PAUSE)
+  if (Core::GetState() == Core::State::Paused)
   {
     if (!PowerPC::HostIsRAMAddress(address))
     {

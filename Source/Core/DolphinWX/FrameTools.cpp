@@ -275,7 +275,7 @@ void CFrame::BootGame(const std::string& filename)
   std::string bootfile = filename;
   SConfig& StartUp = SConfig::GetInstance();
 
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  if (Core::GetState() != Core::State::Uninitialized)
     return;
 
   // Start filename if non empty.
@@ -322,7 +322,7 @@ void CFrame::BootGame(const std::string& filename)
 // Open file to boot
 void CFrame::OnOpen(wxCommandEvent& WXUNUSED(event))
 {
-  if (Core::GetState() == Core::CORE_UNINITIALIZED)
+  if (Core::GetState() == Core::State::Uninitialized)
     DoOpen(true);
 }
 
@@ -431,11 +431,11 @@ void CFrame::OnShowRTCDisplay(wxCommandEvent& WXUNUSED(event))
 
 void CFrame::OnFrameStep(wxCommandEvent& event)
 {
-  bool wasPaused = (Core::GetState() == Core::CORE_PAUSE);
+  bool wasPaused = Core::GetState() == Core::State::Paused;
 
   Movie::DoFrameStep();
 
-  bool isPaused = (Core::GetState() == Core::CORE_PAUSE);
+  bool isPaused = Core::GetState() == Core::State::Paused;
   if (isPaused && !wasPaused)  // don't update on unpause, otherwise the status would be wrong when
                                // pausing next frame
     UpdateGUI();
@@ -534,7 +534,7 @@ void CFrame::OnRenderParentClose(wxCloseEvent& event)
 {
   // Before closing the window we need to shut down the emulation core.
   // We'll try to close this window again once that is done.
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  if (Core::GetState() != Core::State::Uninitialized)
   {
     DoStop();
     if (event.CanVeto())
@@ -549,7 +549,7 @@ void CFrame::OnRenderParentClose(wxCloseEvent& event)
 
 void CFrame::OnRenderParentMove(wxMoveEvent& event)
 {
-  if (Core::GetState() != Core::CORE_UNINITIALIZED && !RendererIsFullscreen() &&
+  if (Core::GetState() != Core::State::Uninitialized && !RendererIsFullscreen() &&
       !m_RenderFrame->IsMaximized() && !m_RenderFrame->IsIconized())
   {
     SConfig::GetInstance().iRenderWindowXPos = m_RenderFrame->GetPosition().x;
@@ -560,7 +560,7 @@ void CFrame::OnRenderParentMove(wxMoveEvent& event)
 
 void CFrame::OnRenderParentResize(wxSizeEvent& event)
 {
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  if (Core::GetState() != Core::State::Uninitialized)
   {
     int width, height;
     if (!SConfig::GetInstance().bRenderToMain && !RendererIsFullscreen() &&
@@ -751,16 +751,16 @@ void CFrame::OnScreenshot(wxCommandEvent& WXUNUSED(event))
 // Pause the emulation
 void CFrame::DoPause()
 {
-  if (Core::GetState() == Core::CORE_RUN)
+  if (Core::GetState() == Core::State::Running)
   {
-    Core::SetState(Core::CORE_PAUSE);
+    Core::SetState(Core::State::Paused);
     if (SConfig::GetInstance().bHideCursor)
       m_RenderParent->SetCursor(wxNullCursor);
     Core::UpdateTitle();
   }
   else
   {
-    Core::SetState(Core::CORE_RUN);
+    Core::SetState(Core::State::Running);
     if (SConfig::GetInstance().bHideCursor && RendererHasFocus())
       m_RenderParent->SetCursor(wxCURSOR_BLANK);
   }
@@ -779,7 +779,7 @@ void CFrame::DoStop()
   m_confirmStop = true;
 
   m_bGameLoading = false;
-  if (Core::GetState() != Core::CORE_UNINITIALIZED || m_RenderParent != nullptr)
+  if (Core::GetState() != Core::State::Uninitialized || m_RenderParent != nullptr)
   {
 #if defined __WXGTK__
     wxMutexGuiLeave();
@@ -793,7 +793,7 @@ void CFrame::DoStop()
       DoFullscreen(false);
 
       // Pause the state during confirmation and restore it afterwards
-      Core::EState state = Core::GetState();
+      Core::State state = Core::GetState();
 
       // Do not pause if netplay is running as CPU thread might be blocked
       // waiting on inputs
@@ -801,7 +801,7 @@ void CFrame::DoStop()
 
       if (should_pause)
       {
-        Core::SetState(Core::CORE_PAUSE);
+        Core::SetState(Core::State::Paused);
       }
 
       wxMessageDialog m_StopDlg(
@@ -866,7 +866,7 @@ bool CFrame::TriggerSTMPowerEvent()
 
   Core::DisplayMessage("Shutting down", 30000);
   // Unpause because gracefully shutting down needs the game to actually request a shutdown
-  if (Core::GetState() == Core::CORE_PAUSE)
+  if (Core::GetState() == Core::State::Paused)
     DoPause();
   ProcessorInterface::PowerButton_Tap();
   m_confirmStop = false;
@@ -943,7 +943,7 @@ void CFrame::OnStopped()
 
 void CFrame::DoRecordingSave()
 {
-  bool paused = (Core::GetState() == Core::CORE_PAUSE);
+  bool paused = Core::GetState() == Core::State::Paused;
 
   if (!paused)
     DoPause();
@@ -1007,9 +1007,9 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED(event))
 
   // check if game is running
   bool game_running = false;
-  if (Core::GetState() == Core::CORE_RUN)
+  if (Core::GetState() == Core::State::Running)
   {
-    Core::SetState(Core::CORE_PAUSE);
+    Core::SetState(Core::State::Paused);
     game_running = true;
   }
 
@@ -1029,7 +1029,7 @@ void CFrame::OnConfigHotkey(wxCommandEvent& WXUNUSED(event))
   // if game isn't running
   if (game_running)
   {
-    Core::SetState(Core::CORE_RUN);
+    Core::SetState(Core::State::Running);
   }
 
   // Update the GUI in case menu accelerators were changed
@@ -1383,9 +1383,9 @@ void CFrame::UpdateGUI()
 {
   // Save status
   bool Initialized = Core::IsRunning();
-  bool Running = Core::GetState() == Core::CORE_RUN;
-  bool Paused = Core::GetState() == Core::CORE_PAUSE;
-  bool Stopping = Core::GetState() == Core::CORE_STOPPING;
+  bool Running = Core::GetState() == Core::State::Running;
+  bool Paused = Core::GetState() == Core::State::Paused;
+  bool Stopping = Core::GetState() == Core::State::Stopping;
 
   GetToolBar()->Refresh(false);
   GetMenuBar()->Refresh(false);

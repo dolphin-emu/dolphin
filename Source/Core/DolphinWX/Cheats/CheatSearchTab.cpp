@@ -234,7 +234,7 @@ void CheatSearchTab::OnListViewItemSelected(wxListEvent&)
 
 void CheatSearchTab::OnTimerUpdate(wxTimerEvent&)
 {
-  if (Core::GetState() != Core::CORE_RUN)
+  if (Core::GetState() != Core::State::Running)
     return;
 
   // Only update the currently visible list rows.
