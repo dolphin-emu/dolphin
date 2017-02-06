@@ -11,11 +11,9 @@
 #include "Common/NandPaths.h"
 
 #include "Core/Boot/Boot.h"
-#include "Core/Boot/Boot_DOL.h"
 #include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IPC.h"
 #include "Core/PatchEngine.h"
-#include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
@@ -88,24 +86,10 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 
   if (!SetupWiiMemory(ContentLoader.GetTMD().GetIOSId()))
     return false;
-  // DOL
-  const DiscIO::SNANDContent* pContent =
-      ContentLoader.GetContentByIndex(ContentLoader.GetTMD().GetBootIndex());
-  if (pContent == nullptr)
-    return false;
 
   IOS::HLE::SetDefaultContentFile(_pFilename);
-
-  std::unique_ptr<CDolLoader> pDolLoader = std::make_unique<CDolLoader>(pContent->m_Data->Get());
-  if (!pDolLoader->IsValid())
+  if (!IOS::HLE::BootstrapPPC(ContentLoader))
     return false;
-
-  pDolLoader->Load();
-  // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
-  // The state of other CPU registers (like the BAT registers) doesn't matter much
-  // because the realmode code at 0x3400 initializes everything itself anyway.
-  MSR = 0;
-  PC = 0x3400;
 
   // Load patches and run startup patches
   const std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(_pFilename));

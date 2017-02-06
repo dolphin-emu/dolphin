@@ -79,6 +79,50 @@ void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, 
   mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, new_iv, input, output);
 }
 
+bool ES::LaunchTitle(u64 title_id, bool skip_reload) const
+{
+  NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
+
+  // ES_Launch should probably reset the whole state, which at least means closing all open files.
+  // leaving them open through ES_Launch may cause hangs and other funky behavior
+  // (supposedly when trying to re-open those files).
+  DiscIO::CNANDContentManager::Access().ClearCache();
+
+  if (IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != TITLEID_SYSMENU)
+    return LaunchIOS(title_id);
+  return LaunchPPCTitle(title_id, skip_reload);
+}
+
+bool ES::LaunchIOS(u64 ios_title_id) const
+{
+  return Reload(ios_title_id);
+}
+
+bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload) const
+{
+  const DiscIO::CNANDContentLoader& content_loader = AccessContentDevice(title_id);
+  if (!content_loader.IsValid())
+  {
+    PanicAlertT("Could not launch title %016" PRIx64 " because it is missing from the NAND.\n"
+                "The emulated software will likely hang now.",
+                title_id);
+    return false;
+  }
+
+  // Before launching a title, IOS first reads the TMD and reloads into the specified IOS version,
+  // even when that version is already running. After it has reloaded, ES_Launch will be called
+  // again with the reload skipped, and the PPC will be bootstrapped then.
+  if (!skip_reload)
+  {
+    SetTitleToLaunch(title_id);
+    const u64 required_ios = content_loader.GetTMD().GetIOSId();
+    return LaunchTitle(required_ios);
+  }
+
+  SetDefaultContentFile(Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT));
+  return BootstrapPPC(content_loader);
+}
+
 void ES::OpenInternal()
 {
   auto& contentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
@@ -971,7 +1015,6 @@ IPCCommandResult ES::Decrypt(const IOCtlVRequest& request)
 IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 {
   _dbg_assert_(IOS_ES, request.in_vectors.size() == 2);
-  bool bSuccess = false;
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 view = Memory::Read_U32(request.in_vectors[1].address);
@@ -980,73 +1023,18 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   u64 titleid = Memory::Read_U64(request.in_vectors[1].address + 16);
   u16 access = Memory::Read_U16(request.in_vectors[1].address + 24);
 
-  NOTICE_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
-             TitleID, view, ticketid, devicetype, titleid, access);
+  INFO_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
+           TitleID, view, ticketid, devicetype, titleid, access);
 
-  // ES_LAUNCH should probably reset thw whole state, which at least means closing all open files.
-  // leaving them open through ES_LAUNCH may cause hangs and other funky behavior
-  // (supposedly when trying to re-open those files).
-  DiscIO::CNANDContentManager::Access().ClearCache();
-
-  u64 ios_to_load = 0;
-  std::string tContentFile;
-  if ((u32)(TitleID >> 32) == 0x00000001 && TitleID != TITLEID_SYSMENU)
-  {
-    ios_to_load = TitleID;
-    bSuccess = true;
-  }
-  else
-  {
-    const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(TitleID);
-    if (ContentLoader.IsValid())
-    {
-      ios_to_load = ContentLoader.GetTMD().GetIOSId();
-
-      u32 bootInd = ContentLoader.GetTMD().GetBootIndex();
-      const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(bootInd);
-      if (pContent)
-      {
-        tContentFile = Common::GetTitleContentPath(TitleID, Common::FROM_SESSION_ROOT);
-        std::unique_ptr<CDolLoader> pDolLoader =
-            std::make_unique<CDolLoader>(pContent->m_Data->Get());
-
-        if (pDolLoader->IsValid())
-        {
-          pDolLoader->Load();
-          // TODO: Check why sysmenu does not load the DOL correctly
-          // NAND titles start with address translation off at 0x3400 (via the PPC bootstub)
-          //
-          // The state of other CPU registers (like the BAT registers) doesn't matter much
-          // because the realmode code at 0x3400 initializes everything itself anyway.
-          MSR = 0;
-          PC = 0x3400;
-          bSuccess = true;
-        }
-        else
-        {
-          PanicAlertT("IOCTL_ES_LAUNCH: The DOL file is invalid!");
-        }
-      }
-    }
-  }
-
-  if (!bSuccess)
-  {
-    PanicAlertT(
-        "IOCTL_ES_LAUNCH: Game tried to reload a title that is not available in your NAND dump\n"
-        "TitleID %016" PRIx64 ".\n Dolphin will likely hang now.",
-        TitleID);
-  }
-  else
-  {
-    ResetAfterLaunch(ios_to_load);
-    SetDefaultContentFile(tContentFile);
-  }
+  // IOS replies to the request through the mailbox on failure, and acks if the launch succeeds.
+  // Note: Launch will potentially reset the whole IOS state -- including this ES instance.
+  if (!LaunchTitle(TitleID))
+    return GetDefaultReply(ES_INVALID_TMD);
 
   // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
   // involves restarting IOS; IOS generates two acknowledgements in a row.
-  // Note: If we just reset the PPC, don't write anything to the command buffer. This
-  // could clobber the DOL we just loaded.
+  // Note: If the launch succeeded, we should not write anything to the command buffer as
+  // IOS does not even reply unless it failed.
   EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
 }
@@ -1061,14 +1049,11 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
   if (GetVersion() == 0x101)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  ResetAfterLaunch(0x0000000100000100);
+  if (!LaunchTitle(0x0000000100000100))
+    return GetDefaultReply(ES_INVALID_TMD);
+
   EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
-}
-
-void ES::ResetAfterLaunch(const u64 ios_to_load) const
-{
-  Reload(ios_to_load);
 }
 
 IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
@@ -1130,7 +1115,7 @@ IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
+const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id) const
 {
   // for WADs, the passed title id and the stored title id match; along with m_ContentFile being set
   // to the
