@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <memory>
+#include <mutex>
 
 #ifdef __LIBUSB__
 #include <libusb.h>
@@ -14,6 +15,7 @@
 #include "UICommon/USBUtils.h"
 
 #ifdef __LIBUSB__
+static std::once_flag s_tried_libusb_init;
 static std::shared_ptr<libusb_context> s_libusb_context;
 #endif
 
@@ -36,25 +38,12 @@ static const std::map<std::pair<u16, u16>, std::string> s_wii_peripherals = {{
 
 namespace USBUtils
 {
-void Init()
-{
-#ifdef __LIBUSB__
-  s_libusb_context = LibusbContext::Get();
-#endif
-}
-
-void Shutdown()
-{
-#ifdef __LIBUSB__
-  s_libusb_context = nullptr;
-#endif
-}
-
 std::map<std::pair<u16, u16>, std::string> GetInsertedDevices()
 {
   std::map<std::pair<u16, u16>, std::string> devices;
 
 #ifdef __LIBUSB__
+  std::call_once(s_tried_libusb_init, []() { s_libusb_context = LibusbContext::Get(); });
   if (!s_libusb_context)
     return devices;
 
