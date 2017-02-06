@@ -249,9 +249,6 @@ else()
 endif()
 
 if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
-	# This doesn't play well with the packaging script that doesn't understand @rpath
-	set(CMAKE_MACOSX_RPATH OFF)
-
 	if(NOT OSX_USE_DEFAULT_SEARCH_PATH)
 		# Hack up the path to prioritize the path to built-in OS libraries to
 		# increase the chance of not depending on a bunch of copies of them

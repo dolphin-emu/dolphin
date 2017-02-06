@@ -49,13 +49,16 @@ if(APPLE)
 		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 		)
 
-	# Update library references to make the bundle portable
-	add_custom_command(TARGET ${DOLPHINQT2_BINARY} POST_BUILD
-		COMMAND echo "Fixing up application bundle: ${BUNDLE_PATH}"
-		COMMAND echo ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py $<TARGET_FILE_DIR:${DOLPHINQT2_BINARY}>/../..
-	)
+	# Copy qt.conf into the bundle
+	target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf")
+	set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/qt.conf" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
-	# Copy resources in the bundle
+	# Copy Qt plugins into the bundle
+	get_target_property(qtcocoa_location Qt5::QCocoaIntegrationPlugin LOCATION)
+	target_sources(${DOLPHINQT2_BINARY} PRIVATE "${qtcocoa_location}")
+	set_source_files_properties("${qtcocoa_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/platforms)
+
+	# Copy resources into the bundle
 	file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
 	foreach(res ${resources})
 		target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_SOURCE_DIR}/Data/${res}")
@@ -64,6 +67,10 @@ if(APPLE)
 			MACOSX_PACKAGE_LOCATION "Resources/${resdir}")
 		source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Data/${res}")
 	endforeach()
+
+	# Update library references to make the bundle portable
+	include(DolphinPostprocessBundle)
+	dolphin_postprocess_bundle(${DOLPHINQT2_BINARY})
 else()
 	install(TARGETS ${DOLPHINQT2_BINARY} RUNTIME DESTINATION ${bindir})
 endif()
