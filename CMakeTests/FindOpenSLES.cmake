@@ -18,11 +18,13 @@ find_package_handle_standard_args(OpenSLES  DEFAULT_MSG
                                   OPENSLES_LIBRARY OPENSLES_INCLUDE_DIR)
 
 if(OpenSLES_FOUND)
-  add_library(OpenSLES::OpenSLES UNKNOWN IMPORTED)
-  set_target_properties(OpenSLES::OpenSLES PROPERTIES
-    IMPORTED_LOCATION ${OPENSLES_LIBRARY}
-    INTERFACE_INCLUDE_DIRECTORIES ${OPENSLES_INCLUDE_DIR}
-  )
+  if(NOT TARGET OpenSLES::OpenSLES)
+    add_library(OpenSLES::OpenSLES UNKNOWN IMPORTED)
+    set_target_properties(OpenSLES::OpenSLES PROPERTIES
+      IMPORTED_LOCATION ${OPENSLES_LIBRARY}
+      INTERFACE_INCLUDE_DIRECTORIES ${OPENSLES_INCLUDE_DIR}
+    )
+  endif()
 endif()
 
 mark_as_advanced(OPENSLES_INCLUDE_DIR OPENSLES_LIBRARY )
