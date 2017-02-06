@@ -941,13 +941,10 @@ else()
 	set(DOLPHIN_WC_IS_STABLE "0")
 endif()
 
-file(WRITE ${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h
-	"#define SCM_REV_STR \"" ${DOLPHIN_WC_REVISION} "\"\n"
-	"#define SCM_DESC_STR \"" ${DOLPHIN_WC_DESCRIBE} "\"\n"
-	"#define SCM_BRANCH_STR \"" ${DOLPHIN_WC_BRANCH} "\"\n"
-	"#define SCM_IS_MASTER " ${DOLPHIN_WC_IS_STABLE} "\n"
-	"#define SCM_DISTRIBUTOR_STR \"" ${DISTRIBUTOR} "\"\n"
-	)
+configure_file(
+	"${PROJECT_SOURCE_DIR}/Source/Core/Common/scmrev.h.in"
+	"${PROJECT_BINARY_DIR}/Source/Core/Common/scmrev.h"
+)
 include_directories("${PROJECT_BINARY_DIR}/Source/Core")
 
 ########################################
