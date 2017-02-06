@@ -386,7 +386,7 @@ void NetPlayDialog::Update()
 
 void NetPlayDialog::AppendChat(const std::string& msg)
 {
-  chat_msgs.Push(msg);
+  m_chat_msgs.Push(msg);
   // silly
   Update();
 }
@@ -613,10 +613,10 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   }
 
   // chat messages
-  while (chat_msgs.Size())
+  while (m_chat_msgs.Size())
   {
     std::string s;
-    chat_msgs.Pop(s);
+    m_chat_msgs.Pop(s);
     AddChatMessage(ChatMessageType::UserIn, s);
 
     if (g_ActiveConfig.bShowNetPlayMessages)
