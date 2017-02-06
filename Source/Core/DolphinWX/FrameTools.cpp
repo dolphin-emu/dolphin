@@ -501,7 +501,7 @@ void CFrame::OnRecordExport(wxCommandEvent& WXUNUSED(event))
   DoRecordingSave();
 }
 
-void CFrame::OnPlay(wxCommandEvent& WXUNUSED(event))
+void CFrame::OnPlay(wxCommandEvent& event)
 {
   if (Core::IsRunning())
   {
@@ -526,7 +526,7 @@ void CFrame::OnPlay(wxCommandEvent& WXUNUSED(event))
   else
   {
     // Core is uninitialized, start the game
-    BootGame("");
+    BootGame(WxStrToStr(event.GetString()));
   }
 }
 

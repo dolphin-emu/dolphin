@@ -229,6 +229,8 @@ wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_LOCAL_INI_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_BOOT_SOFTWARE, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_STOP_SOFTWARE, wxCommandEvent);
 
 // Event tables
 BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
@@ -495,6 +497,8 @@ void CFrame::BindEvents()
   Bind(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, &CFrame::OnReloadThemeBitmaps, this);
   Bind(DOLPHIN_EVT_RELOAD_GAMELIST, &CFrame::OnReloadGameList, this);
   Bind(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, &CFrame::OnUpdateLoadWiiMenuItem, this);
+  Bind(DOLPHIN_EVT_BOOT_SOFTWARE, &CFrame::OnPlay, this);
+  Bind(DOLPHIN_EVT_STOP_SOFTWARE, &CFrame::OnStop, this);
 }
 
 bool CFrame::RendererIsFullscreen()
