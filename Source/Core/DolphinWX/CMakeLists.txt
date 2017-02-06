@@ -166,6 +166,7 @@ if(wxWidgets_FOUND)
 			)
 
 		# Copy resources in the bundle
+		set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
 		file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
 		foreach(res ${resources})
 			target_sources(${DOLPHIN_EXE} PRIVATE "${CMAKE_SOURCE_DIR}/Data/${res}")
