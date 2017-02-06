@@ -8,6 +8,7 @@
 
 #include "Common/LibusbContext.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 namespace LibusbContext
 {
@@ -24,10 +25,12 @@ static libusb_context* Create()
 #ifdef _WIN32
     is_windows = true;
 #endif
-    if (is_windows && ret == LIBUSB_ERROR_NOT_FOUND)
-      PanicAlertT("Failed to initialize libusb because usbdk is not installed.");
-    else
-      PanicAlertT("Failed to initialize libusb: %s", libusb_error_name(ret));
+    const std::string reason =
+        is_windows && ret == LIBUSB_ERROR_NOT_FOUND ?
+            GetStringT("Failed to initialize libusb because usbdk is not installed.") :
+            StringFromFormat(GetStringT("Failed to initialize libusb (%s).").c_str(),
+                             libusb_error_name(ret));
+    PanicAlertT("%s\nSome USB features will not work.", reason.c_str());
     return nullptr;
   }
   return context;
