@@ -401,8 +401,6 @@ static void CpuThread()
 
   if (_CoreParameter.bFastmem)
     EMM::UninstallExceptionHandler();
-
-  return;
 }
 
 static void FifoPlayerThread()
@@ -454,8 +452,6 @@ static void FifoPlayerThread()
 
   if (!_CoreParameter.bCPUThread)
     g_video_backend->Video_Cleanup();
-
-  return;
 }
 
 // Initialize and create emulation thread
