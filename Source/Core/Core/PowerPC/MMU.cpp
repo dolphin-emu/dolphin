@@ -1028,7 +1028,7 @@ static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 addre
 
   const int tag = address >> HW_PAGE_INDEX_SHIFT;
   TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
-  const int index = tlbe.recent == 0 && tlbe.tag[0] != TLB_TAG_INVALID;
+  const int index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
   tlbe.recent = index;
   tlbe.paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
   tlbe.pte[index] = PTE2.Hex;
@@ -1040,12 +1040,12 @@ void InvalidateTLBEntry(u32 address)
   const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
 
   TLBEntry& tlbe = ppcState.tlb[0][entry_index];
-  tlbe.tag[0] = TLB_TAG_INVALID;
-  tlbe.tag[1] = TLB_TAG_INVALID;
+  tlbe.tag[0] = TLBEntry::INVALID_TAG;
+  tlbe.tag[1] = TLBEntry::INVALID_TAG;
 
   TLBEntry& tlbe_i = ppcState.tlb[1][entry_index];
-  tlbe_i.tag[0] = TLB_TAG_INVALID;
-  tlbe_i.tag[1] = TLB_TAG_INVALID;
+  tlbe_i.tag[0] = TLBEntry::INVALID_TAG;
+  tlbe_i.tag[1] = TLBEntry::INVALID_TAG;
 }
 
 // Page Address Translation

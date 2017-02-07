@@ -37,14 +37,15 @@ enum class CoreMode
 };
 
 // TLB cache
-#define TLB_SIZE 128
-#define NUM_TLBS 2
-#define TLB_WAYS 2
-#define TLB_TAG_INVALID 0xffffffff
+constexpr size_t TLB_SIZE = 128;
+constexpr size_t NUM_TLBS = 2;
+constexpr size_t TLB_WAYS = 2;
 
 struct TLBEntry
 {
-  u32 tag[TLB_WAYS] = {TLB_TAG_INVALID, TLB_TAG_INVALID};
+  static constexpr u32 INVALID_TAG = 0xffffffff;
+
+  u32 tag[TLB_WAYS] = {INVALID_TAG, INVALID_TAG};
   u32 paddr[TLB_WAYS] = {};
   u32 pte[TLB_WAYS] = {};
   u8 recent = 0;
