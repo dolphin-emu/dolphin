@@ -26,7 +26,15 @@
 
 using namespace Arm64Gen;
 
-static const int AARCH64_FARCODE_SIZE = 1024 * 1024 * 16;
+constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
+constexpr size_t FARCODE_SIZE = 1024 * 1024 * 16;
+constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 48;
+
+constexpr size_t STACK_SIZE = 2 * 1024 * 1024;
+constexpr size_t SAFE_STACK_SIZE = 512 * 1024;
+constexpr size_t GUARD_SIZE = 0x10000;  // two guards - bottom (permanent) and middle (see above)
+constexpr size_t GUARD_OFFSET = STACK_SIZE - SAFE_STACK_SIZE - GUARD_SIZE;
+
 static bool HasCycleCounters()
 {
   // Bit needs to be set to support cycle counters
@@ -38,7 +46,7 @@ static bool HasCycleCounters()
 
 void JitArm64::Init()
 {
-  size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : AARCH64_FARCODE_SIZE;
+  size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
   AddChildCodeSpace(&farcode, child_code_size);
   jo.enableBlocklink = true;
@@ -56,6 +64,7 @@ void JitArm64::Init()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
   m_enable_blr_optimization = true;
 
+  AllocStack();
   GenerateAsm();
 
   m_supports_cycle_counter = HasCycleCounters();
@@ -78,6 +87,7 @@ void JitArm64::Shutdown()
 {
   FreeCodeSpace();
   blocks.Shutdown();
+  FreeStack();
 }
 
 void JitArm64::FallBackToInterpreter(UGeckoInstruction inst)
@@ -199,7 +209,41 @@ void JitArm64::ResetStack()
     return;
 
   LDR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
-  SUB(SP, X0, 16);
+  ADD(SP, X0, 0);
+}
+
+void JitArm64::AllocStack()
+{
+  if (!m_enable_blr_optimization)
+    return;
+
+#ifndef _WIN32
+  m_stack_base = static_cast<u8*>(Common::AllocateMemoryPages(STACK_SIZE));
+  if (!m_stack_base)
+  {
+    m_enable_blr_optimization = false;
+    return;
+  }
+
+  m_stack_pointer = m_stack_base + GUARD_OFFSET;
+  Common::ReadProtectMemory(m_stack_base, GUARD_SIZE);
+  Common::ReadProtectMemory(m_stack_pointer, GUARD_SIZE);
+#else
+  // For windows we just keep using the system stack and reserve a large amount of memory at the end
+  // of the stack.
+  ULONG reserveSize = SAFE_STACK_SIZE;
+  SetThreadStackGuarantee(&reserveSize);
+#endif
+}
+
+void JitArm64::FreeStack()
+{
+#ifndef _WIN32
+  if (m_stack_base)
+    Common::FreeMemoryPages(m_stack_base, STACK_SIZE);
+  m_stack_base = nullptr;
+  m_stack_pointer = nullptr;
+#endif
 }
 
 void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return)

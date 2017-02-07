@@ -18,9 +18,6 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-constexpr size_t CODE_SIZE = 1024 * 1024 * 32;
-constexpr size_t FARCODE_SIZE_MMU = 1024 * 1024 * 48;
-
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
@@ -191,6 +188,9 @@ private:
   bool m_supports_cycle_counter;
 
   bool m_enable_blr_optimization;
+  u8* m_stack_base = nullptr;
+  u8* m_stack_pointer = nullptr;
+  u8* m_saved_stack_pointer = nullptr;
 
   void EmitResetCycleCounters();
   void EmitGetCycles(Arm64Gen::ARM64Reg reg);
@@ -226,6 +226,8 @@ private:
   void DoDownCount();
   void Cleanup();
   void ResetStack();
+  void AllocStack();
+  void FreeStack();
 
   // AsmRoutines
   void GenerateAsm();
