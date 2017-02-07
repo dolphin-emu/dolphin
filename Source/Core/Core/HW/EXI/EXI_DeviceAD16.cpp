@@ -8,15 +8,12 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
-CEXIAD16::CEXIAD16() : m_uPosition(0), m_uCommand(0)
-{
-  m_uAD16Register.U32 = 0x00;
-}
+CEXIAD16::CEXIAD16() = default;
 
 void CEXIAD16::SetCS(int cs)
 {
   if (cs)
-    m_uPosition = 0;
+    m_position = 0;
 }
 
 bool CEXIAD16::IsPresent() const
@@ -24,35 +21,35 @@ bool CEXIAD16::IsPresent() const
   return true;
 }
 
-void CEXIAD16::TransferByte(u8& _byte)
+void CEXIAD16::TransferByte(u8& byte)
 {
-  if (m_uPosition == 0)
+  if (m_position == 0)
   {
-    m_uCommand = _byte;
+    m_command = byte;
   }
   else
   {
-    switch (m_uCommand)
+    switch (m_command)
     {
     case init:
     {
-      m_uAD16Register.U32 = 0x04120000;
-      switch (m_uPosition)
+      m_ad16_register.U32 = 0x04120000;
+      switch (m_position)
       {
       case 1:
-        _dbg_assert_(EXPANSIONINTERFACE, (_byte == 0x00));
+        _dbg_assert_(EXPANSIONINTERFACE, byte == 0x00);
         break;  // just skip
       case 2:
-        _byte = m_uAD16Register.U8[0];
+        byte = m_ad16_register.U8[0];
         break;
       case 3:
-        _byte = m_uAD16Register.U8[1];
+        byte = m_ad16_register.U8[1];
         break;
       case 4:
-        _byte = m_uAD16Register.U8[2];
+        byte = m_ad16_register.U8[2];
         break;
       case 5:
-        _byte = m_uAD16Register.U8[3];
+        byte = m_ad16_register.U8[3];
         break;
       }
     }
@@ -60,19 +57,19 @@ void CEXIAD16::TransferByte(u8& _byte)
 
     case write:
     {
-      switch (m_uPosition)
+      switch (m_position)
       {
       case 1:
-        m_uAD16Register.U8[0] = _byte;
+        m_ad16_register.U8[0] = byte;
         break;
       case 2:
-        m_uAD16Register.U8[1] = _byte;
+        m_ad16_register.U8[1] = byte;
         break;
       case 3:
-        m_uAD16Register.U8[2] = _byte;
+        m_ad16_register.U8[2] = byte;
         break;
       case 4:
-        m_uAD16Register.U8[3] = _byte;
+        m_ad16_register.U8[3] = byte;
         break;
       }
     }
@@ -80,19 +77,19 @@ void CEXIAD16::TransferByte(u8& _byte)
 
     case read:
     {
-      switch (m_uPosition)
+      switch (m_position)
       {
       case 1:
-        _byte = m_uAD16Register.U8[0];
+        byte = m_ad16_register.U8[0];
         break;
       case 2:
-        _byte = m_uAD16Register.U8[1];
+        byte = m_ad16_register.U8[1];
         break;
       case 3:
-        _byte = m_uAD16Register.U8[2];
+        byte = m_ad16_register.U8[2];
         break;
       case 4:
-        _byte = m_uAD16Register.U8[3];
+        byte = m_ad16_register.U8[3];
         break;
       }
     }
@@ -100,12 +97,12 @@ void CEXIAD16::TransferByte(u8& _byte)
     }
   }
 
-  m_uPosition++;
+  m_position++;
 }
 
 void CEXIAD16::DoState(PointerWrap& p)
 {
-  p.Do(m_uPosition);
-  p.Do(m_uCommand);
-  p.Do(m_uAD16Register);
+  p.Do(m_position);
+  p.Do(m_command);
+  p.Do(m_ad16_register);
 }
