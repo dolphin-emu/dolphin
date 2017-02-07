@@ -109,7 +109,13 @@ include(CCache)
 
 # for revision info
 find_package(Git)
-if(GIT_FOUND AND NOT DOLPHIN_WC_REVISION)
+if(GIT_FOUND)
+	# make sure version information gets re-run when the current Git HEAD changes
+	execute_process(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse --git-path HEAD
+		OUTPUT_VARIABLE dolphin_git_head_filename
+		OUTPUT_STRIP_TRAILING_WHITESPACE)
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${dolphin_git_head_filename}")
+
 	# defines DOLPHIN_WC_REVISION
 	EXECUTE_PROCESS(WORKING_DIRECTORY ${PROJECT_SOURCE_DIR} COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
 		OUTPUT_VARIABLE DOLPHIN_WC_REVISION
