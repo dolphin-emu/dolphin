@@ -1370,11 +1370,11 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
     number_of_operands[CInt16] = 0;
     number_of_operands[CInt32] = 0;
 
-    static constexpr std::array<u32, 12> zero_op = {
-        LoadCR,    LoadLink, LoadMSR,  LoadGReg,          LoadCTR, InterpreterBranch,
-        LoadCarry, RFIExit,  LoadFReg, LoadFRegDENToZero, LoadGQR, Int3,
-    };
-    static constexpr std::array<u32, 39> unary_op = {
+    static constexpr std::array<u32, 12> zero_op = {{
+        LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit,
+        LoadFReg, LoadFRegDENToZero, LoadGQR, Int3,
+    }};
+    static constexpr std::array<u32, 39> unary_op = {{
         StoreLink,
         BranchUncond,
         StoreCR,
@@ -1414,8 +1414,8 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
         FastCREQSet,
         FastCRGTSet,
         FastCRLTSet,
-    };
-    static constexpr std::array<u32, 44> binary_op = {
+    }};
+    static constexpr std::array<u32, 44> binary_op = {{
         BranchCond,
         IdleBranch,
         And,
@@ -1460,7 +1460,7 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
         FPMerge10,
         FPMerge11,
         FDCmpCR,
-    };
+    }};
     for (auto op : zero_op)
       number_of_operands[op] = 0;
 
