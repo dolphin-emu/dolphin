@@ -1371,8 +1371,8 @@ unsigned IRBuilder::getNumberOfOperands(InstLoc I) const
     number_of_operands[CInt32] = 0;
 
     static constexpr std::array<u32, 12> zero_op = {{
-        LoadCR,    LoadLink, LoadMSR,  LoadGReg,          LoadCTR, InterpreterBranch,
-        LoadCarry, RFIExit,  LoadFReg, LoadFRegDENToZero, LoadGQR, Int3,
+        LoadCR, LoadLink, LoadMSR, LoadGReg, LoadCTR, InterpreterBranch, LoadCarry, RFIExit,
+        LoadFReg, LoadFRegDENToZero, LoadGQR, Int3,
     }};
     static constexpr std::array<u32, 39> unary_op = {{
         StoreLink,
