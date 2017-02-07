@@ -403,7 +403,7 @@ IPCCommandResult ES::AddContentStart(const IOCtlVRequest& request)
   if (title_id != m_addtitle_tmd.GetTitleId())
   {
     ERROR_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 " != "
-                      "TMD title id %016lx, ignoring",
+                      "TMD title id %016" PRIx64 ", ignoring",
               title_id, m_addtitle_tmd.GetTitleId());
   }
 
