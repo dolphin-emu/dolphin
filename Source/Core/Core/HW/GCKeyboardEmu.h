@@ -25,7 +25,7 @@ enum class KeyboardGroup
 class GCKeyboard : public ControllerEmu
 {
 public:
-  GCKeyboard(const unsigned int index);
+  explicit GCKeyboard(unsigned int index);
   KeyboardStatus GetInput() const;
   std::string GetName() const override;
   ControlGroup* GetGroup(KeyboardGroup group);
