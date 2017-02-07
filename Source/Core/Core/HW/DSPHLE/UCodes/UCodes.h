@@ -7,8 +7,6 @@
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/DSPHLE/DSPHLE.h"
-#include "Core/HW/Memmap.h"
 
 class PointerWrap;
 
@@ -17,111 +15,35 @@ namespace DSP
 namespace HLE
 {
 class CMailHandler;
+class DSPHLE;
 
 #define UCODE_ROM 0x00000000
 #define UCODE_INIT_AUDIO_SYSTEM 0x00000001
 #define UCODE_NULL 0xFFFFFFFF
 
-constexpr bool ExramRead(u32 address)
-{
-  return (address & 0x10000000) != 0;
-}
+u8 HLEMemory_Read_U8(u32 address);
+void HLEMemory_Write_U8(u32 address, u8 value);
 
-inline u8 HLEMemory_Read_U8(u32 address)
-{
-  if (ExramRead(address))
-    return Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
-  else
-    return Memory::m_pRAM[address & Memory::RAM_MASK];
-}
+u16 HLEMemory_Read_U16LE(u32 address);
+u16 HLEMemory_Read_U16(u32 address);
 
-inline void HLEMemory_Write_U8(u32 address, u8 value)
-{
-  if (ExramRead(address))
-    Memory::m_pEXRAM[address & Memory::EXRAM_MASK] = value;
-  else
-    Memory::m_pRAM[address & Memory::RAM_MASK] = value;
-}
+void HLEMemory_Write_U16LE(u32 address, u16 value);
+void HLEMemory_Write_U16(u32 address, u16 value);
 
-inline u16 HLEMemory_Read_U16LE(u32 address)
-{
-  u16 value;
+u32 HLEMemory_Read_U32LE(u32 address);
+u32 HLEMemory_Read_U32(u32 address);
 
-  if (ExramRead(address))
-    std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::EXRAM_MASK], sizeof(u16));
-  else
-    std::memcpy(&value, &Memory::m_pRAM[address & Memory::RAM_MASK], sizeof(u16));
+void HLEMemory_Write_U32LE(u32 address, u32 value);
+void HLEMemory_Write_U32(u32 address, u32 value);
 
-  return value;
-}
-
-inline u16 HLEMemory_Read_U16(u32 address)
-{
-  return Common::swap16(HLEMemory_Read_U16LE(address));
-}
-
-inline void HLEMemory_Write_U16LE(u32 address, u16 value)
-{
-  if (ExramRead(address))
-    std::memcpy(&Memory::m_pEXRAM[address & Memory::EXRAM_MASK], &value, sizeof(u16));
-  else
-    std::memcpy(&Memory::m_pRAM[address & Memory::RAM_MASK], &value, sizeof(u16));
-}
-
-inline void HLEMemory_Write_U16(u32 address, u16 value)
-{
-  HLEMemory_Write_U16LE(address, Common::swap16(value));
-}
-
-inline u32 HLEMemory_Read_U32LE(u32 address)
-{
-  u32 value;
-
-  if (ExramRead(address))
-    std::memcpy(&value, &Memory::m_pEXRAM[address & Memory::EXRAM_MASK], sizeof(u32));
-  else
-    std::memcpy(&value, &Memory::m_pRAM[address & Memory::RAM_MASK], sizeof(u32));
-
-  return value;
-}
-
-inline u32 HLEMemory_Read_U32(u32 address)
-{
-  return Common::swap32(HLEMemory_Read_U32LE(address));
-}
-
-inline void HLEMemory_Write_U32LE(u32 address, u32 value)
-{
-  if (ExramRead(address))
-    std::memcpy(&Memory::m_pEXRAM[address & Memory::EXRAM_MASK], &value, sizeof(u32));
-  else
-    std::memcpy(&Memory::m_pRAM[address & Memory::RAM_MASK], &value, sizeof(u32));
-}
-
-inline void HLEMemory_Write_U32(u32 address, u32 value)
-{
-  HLEMemory_Write_U32LE(address, Common::swap32(value));
-}
-
-inline void* HLEMemory_Get_Pointer(u32 address)
-{
-  if (ExramRead(address))
-    return &Memory::m_pEXRAM[address & Memory::EXRAM_MASK];
-  else
-    return &Memory::m_pRAM[address & Memory::RAM_MASK];
-}
+void* HLEMemory_Get_Pointer(u32 address);
 
 class UCodeInterface
 {
 public:
-  UCodeInterface(DSPHLE* dsphle, u32 crc)
-      : m_mail_handler(dsphle->AccessMailHandler()), m_upload_setup_in_progress(false),
-        m_dsphle(dsphle), m_crc(crc), m_next_ucode(), m_next_ucode_steps(0),
-        m_needs_resume_mail(false)
-  {
-  }
+  UCodeInterface(DSPHLE* dsphle, u32 crc);
+  virtual ~UCodeInterface();
 
-  virtual ~UCodeInterface() {}
   virtual void Initialize() = 0;
   virtual void HandleMail(u32 mail) = 0;
   virtual void Update() = 0;
@@ -152,7 +74,7 @@ protected:
 
   // UCode is forwarding mails to PrepareBootUCode
   // UCode only needs to set this to true, UCodeInterface will set to false when done!
-  bool m_upload_setup_in_progress;
+  bool m_upload_setup_in_progress = false;
 
   // Need a pointer back to DSPHLE to switch ucodes.
   DSPHLE* m_dsphle;
@@ -175,10 +97,10 @@ private:
     u16 dram_size;
     u16 dram_dest;
   };
-  NextUCodeInfo m_next_ucode;
-  int m_next_ucode_steps;
+  NextUCodeInfo m_next_ucode{};
+  int m_next_ucode_steps = 0;
 
-  bool m_needs_resume_mail;
+  bool m_needs_resume_mail = false;
 };
 
 UCodeInterface* UCodeFactory(u32 crc, DSPHLE* dsphle, bool wii);

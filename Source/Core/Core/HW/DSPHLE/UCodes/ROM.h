@@ -4,12 +4,15 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
 
 namespace DSP
 {
 namespace HLE
 {
+class DSPHLE;
+
 class ROMUCode : public UCodeInterface
 {
 public:

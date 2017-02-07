@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/DSPHLE/UCodes/AX.h"
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
@@ -10,6 +11,8 @@
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 
 #define AX_GC

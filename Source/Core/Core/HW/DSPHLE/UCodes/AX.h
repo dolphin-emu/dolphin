@@ -19,6 +19,8 @@ namespace DSP
 {
 namespace HLE
 {
+class DSPHLE;
+
 // We can't directly use the mixer_control field from the PB because it does
 // not mean the same in all AX versions. The AX UCode converts the
 // mixer_control value to an AXMixControl bitfield.

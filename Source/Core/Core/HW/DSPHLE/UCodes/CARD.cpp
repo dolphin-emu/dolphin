@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/DSPHLE/UCodes/CARD.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/DSP.h"

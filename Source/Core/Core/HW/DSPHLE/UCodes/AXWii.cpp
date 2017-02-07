@@ -5,12 +5,15 @@
 #define AX_WII  // Used in AXVoice.
 
 #include "Core/HW/DSPHLE/UCodes/AXWii.h"
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 #include "Common/StringUtil.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
