@@ -25,7 +25,7 @@ enum class PadGroup
 class GCPad : public ControllerEmu
 {
 public:
-  GCPad(const unsigned int index);
+  explicit GCPad(unsigned int index);
   GCPadStatus GetInput() const;
   void SetOutput(const ControlState strength);
 
