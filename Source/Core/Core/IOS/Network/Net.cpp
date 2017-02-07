@@ -356,7 +356,6 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_READCONFIG");
     config.ReadConfig();
     config.WriteToMem(request.io_vectors.at(0).address);
-    common_vector = 1;
     break;
 
   case IOCTLV_NCD_WRITECONFIG:
