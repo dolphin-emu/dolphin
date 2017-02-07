@@ -8,10 +8,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
-CEXIAD16::CEXIAD16() : m_uPosition(0), m_uCommand(0)
-{
-  m_uAD16Register.U32 = 0x00;
-}
+CEXIAD16::CEXIAD16() = default;
 
 void CEXIAD16::SetCS(int cs)
 {

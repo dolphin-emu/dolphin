@@ -26,13 +26,13 @@ private:
 
   union UAD16Reg
   {
-    u32 U32;
+    u32 U32 = 0;
     u32 U8[4];
   };
 
   // STATE_TO_SAVE
-  u32 m_uPosition;
-  u32 m_uCommand;
+  u32 m_uPosition = 0;
+  u32 m_uCommand = 0;
   UAD16Reg m_uAD16Register;
 
   void TransferByte(u8& _uByte) override;
