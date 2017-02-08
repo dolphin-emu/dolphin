@@ -18,6 +18,7 @@
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
 #include "Common/SettingsHandler.h"
 #include "Common/Timer.h"
 
@@ -26,9 +27,30 @@ SettingsHandler::SettingsHandler()
   Reset();
 }
 
+bool SettingsHandler::Open(const std::string& settings_file_path)
+{
+  Reset();
+
+  File::IOFile file{settings_file_path, "rb"};
+  if (!file.ReadBytes(m_buffer.data(), m_buffer.size()))
+    return false;
+
+  Decrypt();
+  return true;
+}
+
+bool SettingsHandler::Save(const std::string& destination_file_path) const
+{
+  if (!File::CreateFullPath(destination_file_path))
+    return false;
+
+  File::IOFile file{destination_file_path, "wb"};
+  return file.WriteBytes(m_buffer.data(), m_buffer.size());
+}
+
 const u8* SettingsHandler::GetData() const
 {
-  return m_buffer;
+  return m_buffer.data();
 }
 
 const std::string SettingsHandler::GetValue(const std::string& key)
@@ -62,10 +84,10 @@ const std::string SettingsHandler::GetValue(const std::string& key)
 
 void SettingsHandler::Decrypt()
 {
-  const u8* str = m_buffer;
+  const u8* str = m_buffer.data();
   while (*str != 0)
   {
-    if (m_position >= SETTINGS_SIZE)
+    if (m_position >= m_buffer.size())
       return;
     decoded.push_back((u8)(m_buffer[m_position] ^ m_key));
     m_position++;
@@ -79,7 +101,7 @@ void SettingsHandler::Reset()
   decoded = "";
   m_position = 0;
   m_key = INITIAL_SEED;
-  memset(m_buffer, 0, SETTINGS_SIZE);
+  m_buffer = {};
 }
 
 void SettingsHandler::AddSetting(const std::string& key, const std::string& value)
@@ -102,7 +124,7 @@ void SettingsHandler::AddSetting(const std::string& key, const std::string& valu
 
 void SettingsHandler::WriteByte(u8 b)
 {
-  if (m_position >= SETTINGS_SIZE)
+  if (m_position >= m_buffer.size())
     return;
 
   m_buffer[m_position] = b ^ m_key;
@@ -110,7 +132,7 @@ void SettingsHandler::WriteByte(u8 b)
   m_key = (m_key >> 31) | (m_key << 1);
 }
 
-const std::string SettingsHandler::generateSerialNumber()
+std::string SettingsHandler::GenerateSerialNumber()
 {
   time_t rawtime;
   tm* timeinfo;

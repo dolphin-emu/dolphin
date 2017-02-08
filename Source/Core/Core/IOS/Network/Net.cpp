@@ -126,24 +126,19 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
     INFO_LOG(IOS_WC24, "NET_KD_REQ: IOCTL_NWC24_REQUEST_GENERATED_USER_ID");
     if (config.CreationStage() == NWC24::NWC24Config::NWC24_IDCS_INITIAL)
     {
-      std::string settings_Filename(
+      const std::string settings_file_path(
           Common::GetTitleDataPath(TITLEID_SYSMENU, Common::FROM_SESSION_ROOT) + WII_SETTING);
       SettingsHandler gen;
       std::string area, model;
-      bool _GotSettings = false;
+      bool got_settings = false;
 
-      if (File::Exists(settings_Filename))
+      if (File::Exists(settings_file_path) && gen.Open(settings_file_path))
       {
-        File::IOFile settingsFileHandle(settings_Filename, "rb");
-        if (settingsFileHandle.ReadBytes((void*)gen.GetData(), SettingsHandler::SETTINGS_SIZE))
-        {
-          gen.Decrypt();
-          area = gen.GetValue("AREA");
-          model = gen.GetValue("MODEL");
-          _GotSettings = true;
-        }
+        area = gen.GetValue("AREA");
+        model = gen.GetValue("MODEL");
+        got_settings = true;
       }
-      if (_GotSettings)
+      if (got_settings)
       {
         u8 area_code = GetAreaCode(area);
         u8 id_ctr = config.IdGen();
