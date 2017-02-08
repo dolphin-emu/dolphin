@@ -13,6 +13,5 @@ struct CodeOp;
 
 namespace JitArm64Tables
 {
-void CompileInstruction(JitArm64& jit, PPCAnalyst::CodeOp& op);
 void InitTables();
 }

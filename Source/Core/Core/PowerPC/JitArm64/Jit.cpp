@@ -846,7 +846,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
         js.firstFPInstructionFound = true;
       }
 
-      JitArm64Tables::CompileInstruction(*this, ops[i]);
+      CompileInstruction(ops[i]);
       if (!MergeAllowedNextInstructions(1) || js.op[1].opinfo->type != OPTYPE_INTEGER)
         FlushCarry();
 

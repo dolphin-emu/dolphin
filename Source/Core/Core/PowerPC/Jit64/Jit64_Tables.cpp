@@ -358,25 +358,26 @@ static GekkoOPTemplate table63_2[] = {
     {31, &Jit64::fmaddXX},   // fnmaddx
 };
 
-namespace Jit64Tables
+void Jit64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
-void CompileInstruction(Jit64& jit, PPCAnalyst::CodeOp& op)
-{
-  (jit.*dynaOpTable[op.inst.OPCD])(op.inst);
+  (this->*dynaOpTable[op.inst.OPCD])(op.inst);
+
   GekkoOPInfo* info = op.opinfo;
   if (info)
   {
 #ifdef OPLOG
     if (!strcmp(info->opname, OP_TO_LOG))  // "mcrfs"
     {
-      rsplocations.push_back(jit.js.compilerPC);
+      rsplocations.push_back(js.compilerPC);
     }
 #endif
     info->compileCount++;
-    info->lastUse = jit.js.compilerPC;
+    info->lastUse = js.compilerPC;
   }
 }
 
+namespace Jit64Tables
+{
 void InitTables()
 {
   // once initialized, tables are read-only

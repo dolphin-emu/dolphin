@@ -376,30 +376,31 @@ static GekkoOPTemplate table63_2[] = {
     {31, &JitIL::fmaddXX},                //"fnmaddx",  OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
-namespace JitILTables
+void JitIL::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
-void CompileInstruction(JitIL& jit, PPCAnalyst::CodeOp& op)
-{
-  (jit.*dynaOpTable[op.inst.OPCD])(op.inst);
+  (this->*dynaOpTable[op.inst.OPCD])(op.inst);
+
   GekkoOPInfo* info = op.opinfo;
   if (info)
   {
 #ifdef OPLOG
     if (!strcmp(info->opname, OP_TO_LOG))  // "mcrfs"
     {
-      rsplocations.push_back(jit.js.compilerPC);
+      rsplocations.push_back(js.compilerPC);
     }
 #endif
     info->compileCount++;
-    info->lastUse = jit.js.compilerPC;
+    info->lastUse = js.compilerPC;
   }
   else
   {
     PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", op.inst.hex,
-               jit.js.compilerPC);
+               js.compilerPC);
   }
 }
 
+namespace JitILTables
+{
 void InitTables()
 {
   // once initialized, tables are read-only

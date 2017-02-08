@@ -13,6 +13,5 @@ struct CodeOp;
 
 namespace JitILTables
 {
-void CompileInstruction(JitIL& jit, PPCAnalyst::CodeOp& op);
 void InitTables();
 }

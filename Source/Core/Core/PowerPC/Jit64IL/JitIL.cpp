@@ -640,7 +640,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));
       }
 
-      JitILTables::CompileInstruction(*this, ops[i]);
+      CompileInstruction(ops[i]);
 
       if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
       {

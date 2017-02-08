@@ -77,4 +77,7 @@ public:
   void DynaRunTable31(UGeckoInstruction _inst) override;
   void DynaRunTable59(UGeckoInstruction _inst) override;
   void DynaRunTable63(UGeckoInstruction _inst) override;
+
+private:
+  void CompileInstruction(PPCAnalyst::CodeOp& op);
 };
