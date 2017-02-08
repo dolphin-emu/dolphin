@@ -1,6 +1,6 @@
 #include <disasm.h>  // Bochs
 
-#if defined(HAS_LLVM)
+#if defined(HAVE_LLVM)
 // PowerPC.h defines PC.
 // This conflicts with a function that has an argument named PC
 #undef PC
@@ -28,7 +28,7 @@ private:
                                    u32* host_instructions_count, u64 starting_pc) override;
 };
 
-#if defined(HAS_LLVM)
+#if defined(HAVE_LLVM)
 class HostDisassemblerLLVM : public HostDisassembler
 {
 public:
@@ -153,7 +153,7 @@ std::string HostDisassemblerX86::DisassembleHostBlock(const u8* code_start, cons
 
 HostDisassembler* GetNewDisassembler(const std::string& arch)
 {
-#if defined(HAS_LLVM)
+#if defined(HAVE_LLVM)
   if (arch == "x86")
     return new HostDisassemblerLLVM("x86_64-none-unknown");
   else if (arch == "aarch64")
