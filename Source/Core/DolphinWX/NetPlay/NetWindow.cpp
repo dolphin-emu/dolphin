@@ -256,12 +256,15 @@ wxSizer* NetPlayDialog::CreateBottomGUI(wxWindow* parent)
     padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
     padbuf_spin->SetMinSize(WxUtils::GetTextWidgetMinSize(padbuf_spin));
 
-    m_memcard_write = new wxCheckBox(parent, wxID_ANY, _("Write to memory cards/SD"));
+    m_memcard_write = new wxCheckBox(parent, wxID_ANY, _("Write save/SD data"));
+
+    m_copy_wii_save = new wxCheckBox(parent, wxID_ANY, _("Copy Wii Save"));
 
     bottom_szr->Add(m_start_btn, 0, wxALIGN_CENTER_VERTICAL);
     bottom_szr->Add(buffer_lbl, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
     bottom_szr->Add(padbuf_spin, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
     bottom_szr->Add(m_memcard_write, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
+    bottom_szr->Add(m_copy_wii_save, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
     bottom_szr->AddSpacer(space5);
   }
 
@@ -328,6 +331,7 @@ void NetPlayDialog::GetNetSettings(NetSettings& settings)
   settings.m_DSPHLE = instance.bDSPHLE;
   settings.m_DSPEnableJIT = instance.m_DSPEnableJIT;
   settings.m_WriteToMemcard = m_memcard_write->GetValue();
+  settings.m_CopyWiiSave = m_copy_wii_save->GetValue();
   settings.m_OCEnable = instance.m_OCEnable;
   settings.m_OCFactor = instance.m_OCFactor;
   settings.m_EXIDevice[0] = instance.m_EXIDevice[0];
@@ -413,6 +417,7 @@ void NetPlayDialog::OnMsgStartGame()
   {
     m_start_btn->Disable();
     m_memcard_write->Disable();
+    m_copy_wii_save->Disable();
     m_game_btn->Disable();
     m_player_config_btn->Disable();
   }
@@ -428,6 +433,7 @@ void NetPlayDialog::OnMsgStopGame()
   {
     m_start_btn->Enable();
     m_memcard_write->Enable();
+    m_copy_wii_save->Enable();
     m_game_btn->Enable();
     m_player_config_btn->Enable();
   }

@@ -22,6 +22,7 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
 #include "Core/IOS/IPC.h"
+#include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
 #include "DiscIO/NANDContentLoader.h"

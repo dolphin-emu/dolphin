@@ -58,6 +58,7 @@
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/PowerPC/PowerPC.h"
+#include "Core/WiiRoot.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"

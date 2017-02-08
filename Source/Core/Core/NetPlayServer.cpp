@@ -807,6 +807,7 @@ bool NetPlayServer::StartGame()
   *spac << m_settings.m_DSPEnableJIT;
   *spac << m_settings.m_DSPHLE;
   *spac << m_settings.m_WriteToMemcard;
+  *spac << m_settings.m_CopyWiiSave;
   *spac << m_settings.m_OCEnable;
   *spac << m_settings.m_OCFactor;
   *spac << m_settings.m_EXIDevice[0];

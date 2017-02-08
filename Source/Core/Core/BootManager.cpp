@@ -354,6 +354,7 @@ bool BootCore(const std::string& _rFilename)
     StartUp.bEnableCheats = g_NetPlaySettings.m_EnableCheats;
     StartUp.bDSPHLE = g_NetPlaySettings.m_DSPHLE;
     StartUp.bEnableMemcardSdWriting = g_NetPlaySettings.m_WriteToMemcard;
+    StartUp.bCopyWiiSaveNetplay = g_NetPlaySettings.m_CopyWiiSave;
     StartUp.iCPUCore = g_NetPlaySettings.m_CPUcore;
     StartUp.SelectedLanguage = g_NetPlaySettings.m_SelectedLanguage;
     StartUp.bOverrideGCLanguage = g_NetPlaySettings.m_OverrideGCLanguage;

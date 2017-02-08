@@ -374,6 +374,11 @@ u64 GetTotalLagCount()
   return s_totalLagCount;
 }
 
+void SetClearSave(bool enabled)
+{
+  s_bClearSave = enabled;
+}
+
 void SignalDiscChange(const std::string& new_path)
 {
   if (Movie::IsRecordingInput())
