@@ -170,17 +170,8 @@ void Init()
 
   s_libusb_driver_not_supported = false;
 
-  s_libusb_context = LibusbContext::Get();
-  if (!s_libusb_context)
-  {
-    s_libusb_driver_not_supported = true;
-    Shutdown();
-  }
-  else
-  {
-    if (UseAdapter())
-      StartScanThread();
-  }
+  if (UseAdapter())
+    StartScanThread();
 }
 
 void StartScanThread()
@@ -188,6 +179,9 @@ void StartScanThread()
   if (s_adapter_detect_thread_running.IsSet())
     return;
 
+  s_libusb_context = LibusbContext::Get();
+  if (!s_libusb_context)
+    return;
   s_adapter_detect_thread_running.Set(true);
   s_adapter_detect_thread = std::thread(ScanThreadFunc);
 }
@@ -334,7 +328,7 @@ void Shutdown()
 {
   StopScanThread();
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
-  if (s_libusb_hotplug_enabled)
+  if (s_libusb_context && s_libusb_hotplug_enabled)
     libusb_hotplug_deregister_callback(s_libusb_context.get(), s_hotplug_handle);
 #endif
   Reset();

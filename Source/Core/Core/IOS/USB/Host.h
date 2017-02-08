@@ -71,7 +71,6 @@ private:
   void DispatchHooks(const DeviceChangeHooks& hooks);
 
 #ifdef __LIBUSB__
-  std::shared_ptr<libusb_context> m_libusb_context;
   // Event thread for libusb
   Common::Flag m_event_thread_running;
   std::thread m_event_thread;

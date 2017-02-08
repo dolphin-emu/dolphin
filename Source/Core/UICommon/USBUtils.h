@@ -12,9 +12,6 @@
 
 namespace USBUtils
 {
-void Init();
-void Shutdown();
-
 std::map<std::pair<u16, u16>, std::string> GetInsertedDevices();
 std::string GetDeviceName(std::pair<u16, u16> vid_pid);
 }  // namespace USBUtils
