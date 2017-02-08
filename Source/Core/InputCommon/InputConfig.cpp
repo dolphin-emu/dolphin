@@ -9,7 +9,7 @@
 #include "Common/MsgHandler.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/Wiimote.h"
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/InputConfig.h"
 

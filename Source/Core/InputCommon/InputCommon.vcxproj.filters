@@ -13,11 +13,16 @@
     <Filter Include="ControllerInterface\ForceFeedback">
       <UniqueIdentifier>{e10ce316-283c-4be0-848d-578dec2b6404}</UniqueIdentifier>
     </Filter>
+    <Filter Include="ControllerEmu">
+      <UniqueIdentifier>{4c839215-4085-4e34-a960-7960986ad015}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="ControllerEmu.cpp" />
     <ClCompile Include="GCAdapter.cpp" />
     <ClCompile Include="InputConfig.cpp" />
+    <ClCompile Include="ControllerEmu\ControllerEmu.cpp">
+      <Filter>ControllerEmu</Filter>
+    </ClCompile>
     <ClCompile Include="ControllerInterface\DInput\DInput.cpp">
       <Filter>ControllerInterface\DInput</Filter>
     </ClCompile>
@@ -47,10 +52,12 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="ControllerEmu.h" />
-    <ClCompile Include="GCAdapter.h" />
+    <ClInclude Include="GCAdapter.h" />
     <ClInclude Include="GCPadStatus.h" />
     <ClInclude Include="InputConfig.h" />
+    <ClInclude Include="ControllerEmu\ControllerEmu.h">
+      <Filter>ControllerEmu</Filter>
+    </ClInclude>
     <ClInclude Include="ControllerInterface\DInput\DInput.h">
       <Filter>ControllerInterface\DInput</Filter>
     </ClInclude>

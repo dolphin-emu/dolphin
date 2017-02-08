@@ -7,7 +7,7 @@
 #include <array>
 #include <string>
 
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
 
 enum Hotkey

@@ -23,7 +23,7 @@
 #include <wx/spinctrl.h>
 #include <wx/timer.h>
 
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
