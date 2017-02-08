@@ -35,16 +35,13 @@ public:
   Jit64() : code_buffer(32000) {}
   ~Jit64() {}
   void Init() override;
-
-  void EnableOptimization();
-
-  void EnableBlockLink();
-
   void Shutdown() override;
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
-
   bool HandleStackFault() override;
+
+  void EnableOptimization();
+  void EnableBlockLink();
 
   // Jit!
 
@@ -234,6 +231,7 @@ public:
   void eieio(UGeckoInstruction inst);
 
 private:
+  static void InitializeInstructionTables();
   void CompileInstruction(PPCAnalyst::CodeOp& op);
 
   void AllocStack();

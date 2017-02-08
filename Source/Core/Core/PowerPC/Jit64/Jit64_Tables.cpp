@@ -4,7 +4,6 @@
 
 #include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64/Jit64_Tables.h"
 
 static Jit64::Instruction dynaOpTable[64];
 static Jit64::Instruction dynaOpTable4[1024];
@@ -376,9 +375,7 @@ void Jit64::CompileInstruction(PPCAnalyst::CodeOp& op)
   }
 }
 
-namespace Jit64Tables
-{
-void InitTables()
+void Jit64::InitializeInstructionTables()
 {
   // once initialized, tables are read-only
   static bool initialized = false;
@@ -471,5 +468,3 @@ void InitTables()
 
   initialized = true;
 }
-
-}  // namespace

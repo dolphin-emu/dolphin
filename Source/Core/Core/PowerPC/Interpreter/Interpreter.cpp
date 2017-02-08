@@ -63,6 +63,7 @@ void Interpreter::RunTable63(UGeckoInstruction inst)
 
 void Interpreter::Init()
 {
+  InitializeInstructionTables();
   m_reserve = false;
   m_end_block = false;
 }

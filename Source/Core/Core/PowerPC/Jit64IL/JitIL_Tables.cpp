@@ -4,7 +4,6 @@
 
 #include "Core/PowerPC/Jit64IL/JitIL.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 #include "Core/PowerPC/PPCTables.h"
 
 static JitIL::Instruction dynaOpTable[64];
@@ -399,9 +398,7 @@ void JitIL::CompileInstruction(PPCAnalyst::CodeOp& op)
   }
 }
 
-namespace JitILTables
-{
-void InitTables()
+void JitIL::InitializeInstructionTables()
 {
   // once initialized, tables are read-only
   static bool initialized = false;
@@ -493,5 +490,4 @@ void InitTables()
   }
 
   initialized = true;
-}
 }

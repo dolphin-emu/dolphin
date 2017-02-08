@@ -2,10 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
+#include "Core/PowerPC/JitArm64/Jit.h"
 
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCTables.h"
@@ -385,9 +384,7 @@ void JitArm64::CompileInstruction(PPCAnalyst::CodeOp& op)
   }
 }
 
-namespace JitArm64Tables
-{
-void InitTables()
+void JitArm64::InitializeInstructionTables()
 {
   // once initialized, tables are read-only
   static bool initialized = false;
@@ -480,5 +477,3 @@ void InitTables()
 
   initialized = true;
 }
-
-}  // namespace

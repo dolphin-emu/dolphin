@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/JitArm64/Jit.h"
+
 #include <cstdio>
 
 #include "Common/Arm64Emitter.h"
@@ -19,9 +21,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PatchEngine.h"
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
-#include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/Profiler.h"
 
@@ -47,6 +47,8 @@ static bool HasCycleCounters()
 
 void JitArm64::Init()
 {
+  InitializeInstructionTables();
+
   size_t child_code_size = SConfig::GetInstance().bMMU ? FARCODE_SIZE_MMU : FARCODE_SIZE;
   AllocCodeSpace(CODE_SIZE + child_code_size);
   AddChildCodeSpace(&farcode, child_code_size);
