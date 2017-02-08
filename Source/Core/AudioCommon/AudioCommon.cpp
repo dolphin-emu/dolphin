@@ -95,15 +95,15 @@ void ShutdownSoundStream()
 std::string GetDefaultSoundBackend()
 {
   std::string backend = BACKEND_NULLSOUND;
-#if defined __linux__
+#if defined ANDROID
+  backend = BACKEND_OPENSLES;
+#elif defined __linux__
   if (AlsaSound::isValid())
     backend = BACKEND_ALSA;
 #elif defined __APPLE__
   backend = BACKEND_COREAUDIO;
 #elif defined _WIN32
   backend = BACKEND_XAUDIO2;
-#elif defined ANDROID
-  backend = BACKEND_OPENSLES;
 #endif
   return backend;
 }
