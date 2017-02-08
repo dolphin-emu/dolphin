@@ -436,19 +436,6 @@ if (OPENGL_GL)
 	include_directories(${OPENGL_INCLUDE_DIR})
 endif()
 
-if(ENABLE_LLVM)
-	find_package(LLVM)
-	if (LLVM_FOUND)
-		add_definitions(-DHAS_LLVM=1)
-		set(HAS_LLVM 1)
-
-		include_directories(${LLVM_INCLUDE_DIRS})
-		list(APPEND LIBS ${LLVM_LIBRARIES})
-
-		message(STATUS "Found LLVM ${LLVM_PACKAGE_VERSION}")
-	endif()
-endif()
-
 set(USE_X11 0)
 
 if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT ENABLE_HEADLESS)
