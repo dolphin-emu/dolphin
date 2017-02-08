@@ -7,6 +7,8 @@
 #include <cstdlib>
 #include <string>
 
+#include "Common/CommonTypes.h"
+
 struct RegionSetting
 {
   const std::string area;
