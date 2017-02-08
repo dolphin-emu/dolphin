@@ -31,7 +31,7 @@ private:
   u32 entryPoint;
 
 public:
-  ElfReader(void* ptr);
+  explicit ElfReader(void* ptr);
   ~ElfReader() {}
   u32 Read32(int off) const { return base32[off >> 2]; }
   // Quick accessors
