@@ -3,6 +3,7 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
+#include <cctype>
 
 #include <wx/button.h>
 #include <wx/dialog.h>
