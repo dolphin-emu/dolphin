@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "Core/Boot/ElfTypes.h"
 
 enum KnownElfTypes
