@@ -17,7 +17,7 @@
 
 using namespace Arm64Gen;
 
-static void DoBacktrace(uintptr_t access_address, SContext* ctx)
+void JitArm64::DoBacktrace(uintptr_t access_address, SContext* ctx)
 {
   for (int i = 0; i < 30; i += 2)
     ERROR_LOG(DYNA_REC, "R%d: 0x%016llx\tR%d: 0x%016llx", i, ctx->CTX_REG(i), i + 1,
@@ -283,17 +283,8 @@ void JitArm64::EmitBackpatchRoutine(u32 flags, bool fastmem, bool do_farcode, AR
   }
 }
 
-bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
+bool JitArm64::HandleFastmemFault(uintptr_t access_address, SContext* ctx)
 {
-  if (!IsInSpace((u8*)ctx->CTX_PC))
-  {
-    ERROR_LOG(DYNA_REC, "Backpatch location not within codespace 0x%016llx(0x%08x)", ctx->CTX_PC,
-              Common::swap32(*(u32*)ctx->CTX_PC));
-
-    DoBacktrace(access_address, ctx);
-    return false;
-  }
-
   if (!(access_address >= (uintptr_t)Memory::physical_base &&
         access_address < (uintptr_t)Memory::physical_base + 0x100010000) &&
       !(access_address >= (uintptr_t)Memory::logical_base &&
@@ -302,8 +293,6 @@ bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
     ERROR_LOG(DYNA_REC,
               "Exception handler - access below memory space. PC: 0x%016llx 0x%016lx < 0x%016lx",
               ctx->CTX_PC, access_address, (uintptr_t)Memory::physical_base);
-
-    DoBacktrace(access_address, ctx);
     return false;
   }
 

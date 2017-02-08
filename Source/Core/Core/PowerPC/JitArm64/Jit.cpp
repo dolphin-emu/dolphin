@@ -13,6 +13,7 @@
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
+#include "Core/CoreTiming.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/Memmap.h"
@@ -62,12 +63,62 @@ void JitArm64::Init()
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CONDITIONAL_CONTINUE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_CARRY_MERGE);
   analyzer.SetOption(PPCAnalyst::PPCAnalyzer::OPTION_BRANCH_FOLLOW);
-  m_enable_blr_optimization = true;
+
+  m_enable_blr_optimization = jo.enableBlocklink && SConfig::GetInstance().bFastmem &&
+                              !SConfig::GetInstance().bEnableDebugging;
+  m_cleanup_after_stackfault = false;
 
   AllocStack();
   GenerateAsm();
 
   m_supports_cycle_counter = HasCycleCounters();
+}
+
+bool JitArm64::HandleFault(uintptr_t access_address, SContext* ctx)
+{
+  // We can't handle any fault from other threads.
+  if (!Core::IsCPUThread())
+  {
+    ERROR_LOG(DYNA_REC, "Exception handler - Not on CPU thread");
+    DoBacktrace(access_address, ctx);
+    return false;
+  }
+
+  bool success = false;
+
+  // Handle BLR stack faults, may happen in C++ code.
+  uintptr_t stack = (uintptr_t)m_stack_base;
+  uintptr_t diff = access_address - stack;
+  if (diff >= GUARD_OFFSET && diff < GUARD_OFFSET + GUARD_SIZE)
+    success = HandleStackFault();
+
+  // If the fault is in JIT code space, look for fastmem areas.
+  if (!success && IsInSpace((u8*)ctx->CTX_PC))
+    success = HandleFastmemFault(access_address, ctx);
+
+  if (!success)
+  {
+    ERROR_LOG(DYNA_REC, "Exception handler - Unhandled fault");
+    DoBacktrace(access_address, ctx);
+  }
+  return success;
+}
+
+bool JitArm64::HandleStackFault()
+{
+  if (!m_enable_blr_optimization)
+    return false;
+
+  ERROR_LOG(POWERPC, "BLR cache disabled due to excessive BL in the emulated program.");
+  m_enable_blr_optimization = false;
+#ifndef _WIN32
+  Common::UnWriteProtectMemory(m_stack_base + GUARD_OFFSET, GUARD_SIZE);
+#endif
+  GetBlockCache()->InvalidateICache(0, 0xffffffff, true);
+  CoreTiming::ForceExceptionCheck(0);
+  m_cleanup_after_stackfault = true;
+
+  return true;
 }
 
 void JitArm64::ClearCache()
@@ -550,6 +601,16 @@ void JitArm64::SingleStep()
 
 void JitArm64::Jit(u32)
 {
+  if (m_cleanup_after_stackfault)
+  {
+    ClearCache();
+    m_cleanup_after_stackfault = false;
+#ifdef _WIN32
+    // The stack is in an invalid state with no guard page, reset it.
+    _resetstkoflw();
+#endif
+  }
+
   if (IsAlmostFull() || farcode.IsAlmostFull() || SConfig::GetInstance().bJITNoBlockCache)
   {
     ClearCache();

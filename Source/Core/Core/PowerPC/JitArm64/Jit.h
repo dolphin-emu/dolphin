@@ -29,6 +29,9 @@ public:
   JitBaseBlockCache* GetBlockCache() override { return &blocks; }
   bool IsInCodeSpace(const u8* ptr) const { return IsInSpace(ptr); }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+  void DoBacktrace(uintptr_t access_address, SContext* ctx);
+  bool HandleStackFault() override;
+  bool HandleFastmemFault(uintptr_t access_address, SContext* ctx);
 
   void ClearCache() override;
 
@@ -188,6 +191,7 @@ private:
   bool m_supports_cycle_counter;
 
   bool m_enable_blr_optimization;
+  bool m_cleanup_after_stackfault = false;
   u8* m_stack_base = nullptr;
   u8* m_stack_pointer = nullptr;
   u8* m_saved_stack_pointer = nullptr;
