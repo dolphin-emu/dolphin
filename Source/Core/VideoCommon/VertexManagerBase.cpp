@@ -107,22 +107,22 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
   {
     switch (primitive)
     {
-    case GX_DRAW_QUADS:
-    case GX_DRAW_QUADS_2:
+    case OpcodeDecoder::GX_DRAW_QUADS:
+    case OpcodeDecoder::GX_DRAW_QUADS_2:
       return index_len / 5 * 4;
-    case GX_DRAW_TRIANGLES:
+    case OpcodeDecoder::GX_DRAW_TRIANGLES:
       return index_len / 4 * 3;
-    case GX_DRAW_TRIANGLE_STRIP:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
       return index_len / 1 - 1;
-    case GX_DRAW_TRIANGLE_FAN:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
       return index_len / 6 * 4 + 1;
 
-    case GX_DRAW_LINES:
+    case OpcodeDecoder::GX_DRAW_LINES:
       return index_len;
-    case GX_DRAW_LINE_STRIP:
+    case OpcodeDecoder::GX_DRAW_LINE_STRIP:
       return index_len / 2 + 1;
 
-    case GX_DRAW_POINTS:
+    case OpcodeDecoder::GX_DRAW_POINTS:
       return index_len;
 
     default:
@@ -133,22 +133,22 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
   {
     switch (primitive)
     {
-    case GX_DRAW_QUADS:
-    case GX_DRAW_QUADS_2:
+    case OpcodeDecoder::GX_DRAW_QUADS:
+    case OpcodeDecoder::GX_DRAW_QUADS_2:
       return index_len / 6 * 4;
-    case GX_DRAW_TRIANGLES:
+    case OpcodeDecoder::GX_DRAW_TRIANGLES:
       return index_len;
-    case GX_DRAW_TRIANGLE_STRIP:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
       return index_len / 3 + 2;
-    case GX_DRAW_TRIANGLE_FAN:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
       return index_len / 3 + 2;
 
-    case GX_DRAW_LINES:
+    case OpcodeDecoder::GX_DRAW_LINES:
       return index_len;
-    case GX_DRAW_LINE_STRIP:
+    case OpcodeDecoder::GX_DRAW_LINE_STRIP:
       return index_len / 2 + 1;
 
-    case GX_DRAW_POINTS:
+    case OpcodeDecoder::GX_DRAW_POINTS:
       return index_len;
 
     default:

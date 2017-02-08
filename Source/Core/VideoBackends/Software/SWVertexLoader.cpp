@@ -62,14 +62,15 @@ void SWVertexLoader::vFlush()
   switch (m_current_primitive_type)
   {
   case PRIMITIVE_POINTS:
-    primitiveType = GX_DRAW_POINTS;
+    primitiveType = OpcodeDecoder::GX_DRAW_POINTS;
     break;
   case PRIMITIVE_LINES:
-    primitiveType = GX_DRAW_LINES;
+    primitiveType = OpcodeDecoder::GX_DRAW_LINES;
     break;
   case PRIMITIVE_TRIANGLES:
-    primitiveType = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ? GX_DRAW_TRIANGLE_STRIP :
-                                                                            GX_DRAW_TRIANGLES;
+    primitiveType = g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+                        OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP :
+                        OpcodeDecoder::GX_DRAW_TRIANGLES;
     break;
   }
 

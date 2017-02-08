@@ -24,23 +24,23 @@ void IndexGenerator::Init()
 {
   if (g_Config.backend_info.bSupportsPrimitiveRestart)
   {
-    primitive_table[GX_DRAW_QUADS] = IndexGenerator::AddQuads<true>;
-    primitive_table[GX_DRAW_QUADS_2] = IndexGenerator::AddQuads_nonstandard<true>;
-    primitive_table[GX_DRAW_TRIANGLES] = IndexGenerator::AddList<true>;
-    primitive_table[GX_DRAW_TRIANGLE_STRIP] = IndexGenerator::AddStrip<true>;
-    primitive_table[GX_DRAW_TRIANGLE_FAN] = IndexGenerator::AddFan<true>;
+    primitive_table[OpcodeDecoder::GX_DRAW_QUADS] = AddQuads<true>;
+    primitive_table[OpcodeDecoder::GX_DRAW_QUADS_2] = AddQuads_nonstandard<true>;
+    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLES] = AddList<true>;
+    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip<true>;
+    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan<true>;
   }
   else
   {
-    primitive_table[GX_DRAW_QUADS] = IndexGenerator::AddQuads<false>;
-    primitive_table[GX_DRAW_QUADS_2] = IndexGenerator::AddQuads_nonstandard<false>;
-    primitive_table[GX_DRAW_TRIANGLES] = IndexGenerator::AddList<false>;
-    primitive_table[GX_DRAW_TRIANGLE_STRIP] = IndexGenerator::AddStrip<false>;
-    primitive_table[GX_DRAW_TRIANGLE_FAN] = IndexGenerator::AddFan<false>;
+    primitive_table[OpcodeDecoder::GX_DRAW_QUADS] = AddQuads<false>;
+    primitive_table[OpcodeDecoder::GX_DRAW_QUADS_2] = AddQuads_nonstandard<false>;
+    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLES] = AddList<false>;
+    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP] = AddStrip<false>;
+    primitive_table[OpcodeDecoder::GX_DRAW_TRIANGLE_FAN] = AddFan<false>;
   }
-  primitive_table[GX_DRAW_LINES] = &IndexGenerator::AddLineList;
-  primitive_table[GX_DRAW_LINE_STRIP] = &IndexGenerator::AddLineStrip;
-  primitive_table[GX_DRAW_POINTS] = &IndexGenerator::AddPoints;
+  primitive_table[OpcodeDecoder::GX_DRAW_LINES] = &AddLineList;
+  primitive_table[OpcodeDecoder::GX_DRAW_LINE_STRIP] = &AddLineStrip;
+  primitive_table[OpcodeDecoder::GX_DRAW_POINTS] = &AddPoints;
 }
 
 void IndexGenerator::Start(u16* Indexptr)
