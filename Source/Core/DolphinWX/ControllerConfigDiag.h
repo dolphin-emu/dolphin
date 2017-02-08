@@ -30,6 +30,7 @@ private:
   wxSizer* CreateWiimoteConfigSizer();
   wxSizer* CreatePassthroughBTConfigSizer();
   wxSizer* CreateEmulatedBTConfigSizer();
+  wxSizer* CreateAdvancedSettingsSizer();
 
   void OnClose(wxCloseEvent& event);
   void OnCloseButton(wxCommandEvent& event);
@@ -49,6 +50,8 @@ private:
   void OnBalanceBoardChanged(wxCommandEvent& event);
   void OnContinuousScanning(wxCommandEvent& event);
   void OnEnableSpeaker(wxCommandEvent& event);
+
+  void OnBackgroundInputChanged(wxCommandEvent& event);
 
   std::map<wxWindowID, unsigned int> m_gc_port_from_choice_id;
   std::map<wxWindowID, unsigned int> m_gc_port_from_config_id;
@@ -74,4 +77,6 @@ private:
   wxButton* m_refresh_wm_button;
   wxStaticText* m_unsupported_bt_text;
   wxCheckBox* m_enable_speaker_data;
+
+  wxCheckBox* m_background_input_checkbox;
 };

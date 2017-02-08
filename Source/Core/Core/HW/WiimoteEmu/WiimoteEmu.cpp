@@ -36,7 +36,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
-#include "InputCommon/ControllerEmu/Setting/BackgroundInputSetting.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
@@ -296,8 +295,6 @@ Wiimote::Wiimote(const unsigned int index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::BackgroundInputSetting>(_trans("Background Input")));
   m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
       "Sideways Wiimote", _trans("Sideways Wii Remote"), false));
   m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
