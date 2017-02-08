@@ -9,6 +9,7 @@
 
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
@@ -57,14 +58,19 @@ u16 DSPEmitter::RunCycles(u16 cycles)
     DSPCore_SetExternalInterrupt(false);
   }
 
-  g_cycles_left = cycles;
+  m_cycles_left = cycles;
   auto exec_addr = (DSPCompiledCode)m_enter_dispatcher;
   exec_addr();
 
   if (g_dsp.reset_dspjit_codespace)
     ClearIRAMandDSPJITCodespaceReset();
 
-  return g_cycles_left;
+  return m_cycles_left;
+}
+
+void DSPEmitter::DoState(PointerWrap& p)
+{
+  p.Do(m_cycles_left);
 }
 
 void DSPEmitter::ClearIRAM()
@@ -430,7 +436,7 @@ void DSPEmitter::CompileDispatcher()
   m_return_dispatcher = GetCodePtr();
 
   // Decrement cyclesLeft
-  SUB(16, M(&g_cycles_left), R(EAX));
+  SUB(16, M(&m_cycles_left), R(EAX));
 
   J_CC(CC_A, dispatcherLoop);
 
