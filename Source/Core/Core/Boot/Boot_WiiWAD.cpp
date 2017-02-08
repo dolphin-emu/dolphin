@@ -6,24 +6,20 @@
 #include <string>
 
 #include "Common/CommonPaths.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/NandPaths.h"
 
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
-#include "Core/HLE/HLE.h"
-#include "Core/HW/Memmap.h"
-#include "Core/HW/VideoInterface.h"
 #include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IPC.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
-#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
-#include "DiscIO/WiiWad.h"
 
 static u32 state_checksum(u32* buf, int len)
 {
