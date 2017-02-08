@@ -30,7 +30,7 @@ wxBoxSizer* HotkeyInputConfigDialog::CreateMainSizer()
   auto* const main_sizer = new wxBoxSizer(wxVERTICAL);
 
   main_sizer->AddSpacer(space5);
-  main_sizer->Add(CreateDeviceRelatedSizer());
+  main_sizer->Add(CreateDeviceRelatedSizer(), 0, wxEXPAND | wxLEFT | wxRIGHT);
   main_sizer->AddSpacer(space5);
   main_sizer->Add(m_notebook, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
