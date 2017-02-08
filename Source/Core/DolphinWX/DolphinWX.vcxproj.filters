@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="GUI">
@@ -33,6 +33,9 @@
     </Filter>
     <Filter Include="GUI\ISOProperties">
       <UniqueIdentifier>{d72aa7f0-ed24-4fed-9d3a-38b82d1b753c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="CustomNetplay">
+      <UniqueIdentifier>{75089ce3-bf14-4d14-baab-13fda7a36af1}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -263,6 +266,12 @@
     <ClCompile Include="DolphinSlider.cpp">
       <Filter>GUI\Widgets</Filter>
     </ClCompile>
+    <ClCompile Include="Patches.cpp">
+      <Filter>CustomNetplay</Filter>
+    </ClCompile>
+    <ClCompile Include="MeleeNET.cpp">
+      <Filter>CustomNetplay</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Main.h" />
@@ -484,6 +493,9 @@
     </ClInclude>
     <ClInclude Include="DolphinSlider.h">
       <Filter>GUI\Widgets</Filter>
+    </ClInclude>
+    <ClInclude Include="MeleeNET.h">
+      <Filter>CustomNetplay</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

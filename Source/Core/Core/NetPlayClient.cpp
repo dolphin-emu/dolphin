@@ -27,6 +27,7 @@
 #include "InputCommon/GCAdapter.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VideoConfig.h"
+#include "DolphinWX/Patches.cpp"
 
 static std::mutex crit_netplay_client;
 static NetPlayClient* netplay_client = nullptr;

@@ -19,6 +19,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "DolphinWX/Globals.h"
 #include "InputCommon/GCPadStatus.h"
+#include "DolphinWX/Patches.cpp"
 
 #if defined(HAVE_X11) && HAVE_X11
 #include "DolphinWX/X11Utils.h"
@@ -66,6 +67,7 @@ wxDECLARE_EVENT(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, wxCommandEvent);
 class CFrame : public CRenderFrame
 {
 public:
+  ONNETPLAY_PUBLIC
   CFrame(wxFrame* parent, wxWindowID id = wxID_ANY, const wxString& title = "Dolphin",
          wxRect geometry = wxDefaultSize, bool use_debugger = false, bool batch_mode = false,
          bool show_log_window = false,
@@ -303,8 +305,9 @@ private:
   void OnMemcard(wxCommandEvent& event);  // Misc
   void OnImportSave(wxCommandEvent& event);
   void OnExportAllSaves(wxCommandEvent& event);
-
+#ifndef ONNETPLAY_PUBLIC
   void OnNetPlay(wxCommandEvent& event);
+#endif // !ONNETPLAY_PUBLIC
 
   void OnShowCheatsWindow(wxCommandEvent& event);
   void OnLoadWiiMenu(wxCommandEvent& event);

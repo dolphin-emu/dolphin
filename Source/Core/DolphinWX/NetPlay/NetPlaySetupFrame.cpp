@@ -25,6 +25,8 @@
 #include "Common/IniFile.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayServer.h"
+#include "DolphinWX/Patches.cpp"
+#include "DolphinWX/MeleeNET.h"
 
 namespace
 {
@@ -326,7 +328,6 @@ void NetPlaySetupFrame::DoHost()
     WxUtils::ShowErrorDialog(_("You must choose a game!"));
     return;
   }
-
   IniFile ini_file;
   const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
   ini_file.Load(dolphin_ini);
@@ -378,10 +379,13 @@ void NetPlaySetupFrame::DoJoin()
   IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
 
   NetPlayJoinConfig join_config;
+
   join_config.use_traversal = m_direct_traversal->GetCurrentSelection() == TRAVERSAL_CHOICE;
   join_config.player_name = WxStrToStr(m_nickname_text->GetValue());
   join_config.game_list_ctrl = m_game_list;
   join_config.SetDialogInfo(netplay_section, m_parent);
+
+  IF_NETPLAY
 
   unsigned long port = 0;
   m_connect_port_text->GetValue().ToULong(&port);
@@ -395,8 +399,8 @@ void NetPlaySetupFrame::DoJoin()
 
   join_config.traversal_port = NetPlayLaunchConfig::GetTraversalPortFromIniConfig(netplay_section);
   join_config.traversal_host = NetPlayLaunchConfig::GetTraversalHostFromIniConfig(netplay_section);
-
-  if (NetPlayLauncher::Join(join_config))
+  IF_NETPLAY_SET_CODE
+if (NetPlayLauncher::Join(join_config))
   {
     Destroy();
   }

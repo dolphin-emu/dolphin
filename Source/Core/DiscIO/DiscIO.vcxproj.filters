@@ -137,9 +137,7 @@
     <ClInclude Include="Enums.h">
       <Filter>Volume</Filter>
     </ClInclude>
-    <ClCompile Include="TGCBlob.h">
-      <Filter>Volume\Blob</Filter>
-    </ClCompile>
+    <ClInclude Include="TGCBlob.h" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="CMakeLists.txt" />

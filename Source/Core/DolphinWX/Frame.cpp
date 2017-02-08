@@ -663,12 +663,16 @@ void CFrame::UpdateTitle(const std::string& str)
 {
   if (SConfig::GetInstance().bRenderToMain && SConfig::GetInstance().m_InterfaceStatusbar)
   {
-    GetStatusBar()->SetStatusText(str, 0);
+	GetStatusBar()->SetStatusText(str, 0);
     m_RenderFrame->SetTitle(scm_rev_str);
   }
   else
   {
-    std::string titleStr = StringFromFormat("%s | %s", scm_rev_str.c_str(), str.c_str());
+#ifndef GAME_WINDOW_TITLE
+	  std::string titleStr = StringFromFormat("%s | %s", scm_rev_str.c_str(), str.c_str());
+#endif
+	  GAME_WINDOW_TITLE
+
     m_RenderFrame->SetTitle(titleStr);
   }
 }

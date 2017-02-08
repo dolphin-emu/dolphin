@@ -50,6 +50,10 @@
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/VideoBackendBase.h"
+#include "NetPlay/NetPlaySetupFrame.h"
+
+#include "Patches.cpp"
+#include "MeleeNET.h"
 
 #if defined HAVE_X11 && HAVE_X11
 #include <X11/Xlib.h>
@@ -79,6 +83,7 @@ bool DolphinApp::Initialize(int& c, wxChar** v)
 
 bool DolphinApp::OnInit()
 {
+
   std::lock_guard<std::mutex> lk(s_init_mutex);
   if (!wxApp::OnInit())
     return false;
@@ -121,8 +126,12 @@ bool DolphinApp::OnInit()
   // event dispatch including WM_MOVE/WM_SIZE)
   wxRect window_geometry(SConfig::GetInstance().iPosX, SConfig::GetInstance().iPosY,
                          SConfig::GetInstance().iWidth, SConfig::GetInstance().iHeight);
+
+  
   main_frame = new CFrame(nullptr, wxID_ANY, StrToWxStr(scm_rev_str), window_geometry,
-                          m_use_debugger, m_batch_mode, m_use_logger);
+	  m_use_debugger, m_batch_mode, m_use_logger);
+	
+	  
   SetTopWindow(main_frame);
 
   AfterInit();
@@ -154,6 +163,7 @@ void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
        wxCMD_LINE_PARAM_OPTIONAL},
       {wxCMD_LINE_OPTION, "u", "user", "User folder path", wxCMD_LINE_VAL_STRING,
        wxCMD_LINE_PARAM_OPTIONAL},
+	   ADD_ARGUMENT
       {wxCMD_LINE_NONE, nullptr, nullptr, nullptr, wxCMD_LINE_VAL_NONE, 0}};
 
   parser.SetDesc(desc);
@@ -182,6 +192,7 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
   m_select_audio_emulation = parser.Found("audio_emulation", &m_audio_emulation_name);
   m_play_movie = parser.Found("movie", &m_movie_file);
   parser.Found("user", &m_user_path);
+  ADD_PARSER
 
   return true;
 }
@@ -259,6 +270,7 @@ void DolphinApp::AfterInit()
       main_frame->BootGame("");
     }
   }
+  AFTER_INIT
 }
 
 void DolphinApp::OnActivate(wxActivateEvent& ev)
