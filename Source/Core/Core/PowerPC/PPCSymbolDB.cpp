@@ -356,6 +356,8 @@ bool PPCSymbolDB::LoadMap(const std::string& filename, bool bad)
     if (namepos != nullptr)  // would be odd if not :P
       strcpy(name, namepos);
     name[strlen(name) - 1] = 0;
+    if (name[strlen(name) - 1] == '\r')
+      name[strlen(name) - 1] = 0;
 
     // Check if this is a valid entry.
     if (strcmp(name, ".text") != 0 && strcmp(name, ".init") != 0 && strlen(name) > 0)
