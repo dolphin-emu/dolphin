@@ -33,29 +33,29 @@ void SetupUnit::SetupVertex()
 {
   switch (m_PrimType)
   {
-  case GX_DRAW_QUADS:
+  case OpcodeDecoder::GX_DRAW_QUADS:
     SetupQuad();
     break;
-  case GX_DRAW_QUADS_2:
+  case OpcodeDecoder::GX_DRAW_QUADS_2:
     WARN_LOG(VIDEO, "Non-standard primitive drawing command GL_DRAW_QUADS_2");
     SetupQuad();
     break;
-  case GX_DRAW_TRIANGLES:
+  case OpcodeDecoder::GX_DRAW_TRIANGLES:
     SetupTriangle();
     break;
-  case GX_DRAW_TRIANGLE_STRIP:
+  case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
     SetupTriStrip();
     break;
-  case GX_DRAW_TRIANGLE_FAN:
+  case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
     SetupTriFan();
     break;
-  case GX_DRAW_LINES:
+  case OpcodeDecoder::GX_DRAW_LINES:
     SetupLine();
     break;
-  case GX_DRAW_LINE_STRIP:
+  case OpcodeDecoder::GX_DRAW_LINE_STRIP:
     SetupLineStrip();
     break;
-  case GX_DRAW_POINTS:
+  case OpcodeDecoder::GX_DRAW_POINTS:
     SetupPoint();
     break;
   }
