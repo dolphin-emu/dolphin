@@ -47,9 +47,10 @@ FifoPlayerDlg::FifoPlayerDlg(wxWindow* const parent)
 {
   CreateGUIControls();
 
-  sMutex.lock();
-  m_EvtHandler = GetEventHandler();
-  sMutex.unlock();
+  {
+    std::lock_guard<std::recursive_mutex> lock{sMutex};
+    m_EvtHandler = GetEventHandler();
+  }
 
   FifoPlayer::GetInstance().SetFileLoadedCallback(FileLoaded);
   FifoPlayer::GetInstance().SetFrameWrittenCallback(FrameWritten);
@@ -59,9 +60,8 @@ FifoPlayerDlg::~FifoPlayerDlg()
 {
   FifoPlayer::GetInstance().SetFrameWrittenCallback(nullptr);
 
-  sMutex.lock();
+  std::lock_guard<std::recursive_mutex> lock{sMutex};
   m_EvtHandler = nullptr;
-  sMutex.unlock();
 }
 
 void FifoPlayerDlg::CreateGUIControls()
@@ -953,39 +953,33 @@ bool FifoPlayerDlg::GetSaveButtonEnabled() const
 
 void FifoPlayerDlg::RecordingFinished()
 {
-  sMutex.lock();
+  std::lock_guard<std::recursive_mutex> lock{sMutex};
 
   if (m_EvtHandler)
   {
     wxCommandEvent event(RECORDING_FINISHED_EVENT);
     m_EvtHandler->AddPendingEvent(event);
   }
-
-  sMutex.unlock();
 }
 
 void FifoPlayerDlg::FileLoaded()
 {
-  sMutex.lock();
+  std::lock_guard<std::recursive_mutex> lock{sMutex};
 
   if (m_EvtHandler)
   {
     wxPaintEvent event;
     m_EvtHandler->AddPendingEvent(event);
   }
-
-  sMutex.unlock();
 }
 
 void FifoPlayerDlg::FrameWritten()
 {
-  sMutex.lock();
+  std::lock_guard<std::recursive_mutex> lock{sMutex};
 
   if (m_EvtHandler)
   {
     wxCommandEvent event(FRAME_WRITTEN_EVENT);
     m_EvtHandler->AddPendingEvent(event);
   }
-
-  sMutex.unlock();
 }
