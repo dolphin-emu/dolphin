@@ -15,6 +15,8 @@
 #include "Core/DSP/DSPCommon.h"
 #include "Core/DSP/Jit/DSPJitRegCache.h"
 
+class PointerWrap;
+
 namespace DSP
 {
 enum class StackRegister;
@@ -35,6 +37,8 @@ public:
   ~DSPEmitter();
 
   u16 RunCycles(u16 cycles);
+
+  void DoState(PointerWrap& p);
 
   void EmitInstruction(UDSPInstruction inst);
   void ClearIRAM();
@@ -291,6 +295,8 @@ private:
   std::vector<u16> m_block_size;
   std::vector<Block> m_block_links;
   Block m_block_link_entry;
+
+  u16 m_cycles_left = 0;
 
   // The index of the last stored ext value (compile time).
   int m_store_index = -1;

@@ -312,7 +312,6 @@ struct SDSP
 
 extern SDSP g_dsp;
 extern DSPBreakpoints g_dsp_breakpoints;
-extern u16 g_cycles_left;
 extern bool g_init_hax;
 extern std::unique_ptr<JIT::x86::DSPEmitter> g_dsp_jit;
 extern std::unique_ptr<DSPCaptureLogger> g_dsp_cap;

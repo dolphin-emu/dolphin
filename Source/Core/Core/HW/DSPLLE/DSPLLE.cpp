@@ -73,9 +73,11 @@ void DSPLLE::DoState(PointerWrap& p)
   if (p.GetMode() == PointerWrap::MODE_READ)
     Host::CodeLoaded((const u8*)g_dsp.iram, DSP_IRAM_BYTE_SIZE);
   p.DoArray(g_dsp.dram, DSP_DRAM_SIZE);
-  p.Do(g_cycles_left);
   p.Do(g_init_hax);
   p.Do(m_cycle_count);
+
+  if (g_dsp_jit)
+    g_dsp_jit->DoState(p);
 }
 
 // Regular thread

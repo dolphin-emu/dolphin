@@ -109,12 +109,12 @@ void DSPEmitter::WriteBlockLink(u16 dest)
     {
       m_gpr.FlushRegs();
       // Check if we have enough cycles to execute the next block
-      MOV(16, R(ECX), M(&g_cycles_left));
+      MOV(16, R(ECX), M(&m_cycles_left));
       CMP(16, R(ECX), Imm16(m_block_size[m_start_address] + m_block_size[dest]));
       FixupBranch notEnoughCycles = J_CC(CC_BE);
 
       SUB(16, R(ECX), Imm16(m_block_size[m_start_address]));
-      MOV(16, M(&g_cycles_left), R(ECX));
+      MOV(16, M(&m_cycles_left), R(ECX));
       JMP(m_block_links[dest], true);
       SetJumpTarget(notEnoughCycles);
     }

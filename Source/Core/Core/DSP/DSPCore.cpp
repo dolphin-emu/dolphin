@@ -29,7 +29,6 @@ namespace DSP
 SDSP g_dsp;
 DSPBreakpoints g_dsp_breakpoints;
 static State core_state = State::Stopped;
-u16 g_cycles_left = 0;
 bool g_init_hax = false;
 std::unique_ptr<JIT::x86::DSPEmitter> g_dsp_jit;
 std::unique_ptr<DSPCaptureLogger> g_dsp_cap;
@@ -104,7 +103,6 @@ static void DSPCore_FreeMemoryPages()
 bool DSPCore_Init(const DSPInitOptions& opts)
 {
   g_dsp.step_counter = 0;
-  g_cycles_left = 0;
   g_init_hax = false;
 
   g_dsp.irom = static_cast<u16*>(Common::AllocateMemoryPages(DSP_IROM_BYTE_SIZE));
