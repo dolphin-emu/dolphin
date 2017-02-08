@@ -62,6 +62,8 @@ private:
 
 wxDECLARE_EVENT(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, wxCommandEvent);
 wxDECLARE_EVENT(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_BOOT_SOFTWARE, wxCommandEvent);
+wxDECLARE_EVENT(DOLPHIN_EVT_STOP_SOFTWARE, wxCommandEvent);
 
 class CFrame : public CRenderFrame
 {
@@ -88,29 +90,16 @@ public:
   wxCheatsWindow* g_CheatsWindow = nullptr;
   TASInputDlg* g_TASInputDlg[8];
 
-  void DoPause();
   void DoStop();
-  bool TriggerSTMPowerEvent();
-  void OnStopped();
-  void DoRecordingSave();
   void UpdateGUI();
   void UpdateGameList();
   void ToggleLogWindow(bool bShow);
   void ToggleLogConfigWindow(bool bShow);
-  void PostEvent(wxCommandEvent& event);
   void StatusBarMessage(const char* Text, ...);
   void ClearStatusBar();
-  void OnRenderWindowSizeRequest(int width, int height);
   void BootGame(const std::string& filename);
-  void OnRenderParentClose(wxCloseEvent& event);
-  void OnRenderParentMove(wxMoveEvent& event);
   bool RendererHasFocus();
   bool RendererIsFullscreen();
-  void DoFullscreen(bool enable_fullscreen);
-  void DoExclusiveFullscreen(bool enable_fullscreen);
-  void ToggleDisplayMode(bool bFullscreen);
-  static void ConnectWiimote(int wm_idx, bool connect);
-  void UpdateTitle(const std::string& str);
   void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
 
   const CGameListCtrl* GetGameListCtrl() const;
@@ -232,7 +221,25 @@ private:
   // Override window proc for tricks like screensaver disabling
   WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
+
+  void DoOpen(bool Boot);
+  void DoPause();
+  void DoToggleToolbar(bool);
+  void DoRecordingSave();
+  void DoFullscreen(bool enable_fullscreen);
+  void DoExclusiveFullscreen(bool enable_fullscreen);
+  void ToggleDisplayMode(bool bFullscreen);
+  bool TriggerSTMPowerEvent();
+  void OnStopped();
+  void OnRenderWindowSizeRequest(int width, int height);
+  void UpdateTitle(const std::string& str);
+  static void ConnectWiimote(int wm_idx, bool connect);
+
   // Event functions
+  void PostEvent(wxCommandEvent& event);
+  void OnRenderParentClose(wxCloseEvent& event);
+  void OnRenderParentMove(wxMoveEvent& event);
+
   void OnQuit(wxCommandEvent& event);
   void OnHelp(wxCommandEvent& event);
 
@@ -245,7 +252,6 @@ private:
   void UpdateLoadWiiMenuItem() const;
 
   void OnOpen(wxCommandEvent& event);  // File menu
-  void DoOpen(bool Boot);
   void OnRefresh(wxCommandEvent& event);
   void OnBootDrive(wxCommandEvent& event);
 
@@ -291,7 +297,6 @@ private:
   void OnMove(wxMoveEvent& event);
   void OnResize(wxSizeEvent& event);
   void OnToggleToolbar(wxCommandEvent& event);
-  void DoToggleToolbar(bool);
   void OnToggleStatusbar(wxCommandEvent& event);
   void OnToggleWindow(wxCommandEvent& event);
 

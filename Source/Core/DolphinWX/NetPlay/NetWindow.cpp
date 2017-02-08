@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/NetPlay/NetWindow.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <limits>
@@ -43,9 +45,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/ISOFile.h"
-#include "DolphinWX/Main.h"
 #include "DolphinWX/NetPlay/ChangeGameDialog.h"
-#include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/NetPlay/PadMapDialog.h"
 #include "DolphinWX/WxUtils.h"
 #include "MD5Dialog.h"
@@ -369,12 +369,19 @@ void NetPlayDialog::OnStart(wxCommandEvent&)
 
 void NetPlayDialog::BootGame(const std::string& filename)
 {
-  main_frame->BootGame(filename);
+  wxCommandEvent play_event{DOLPHIN_EVT_BOOT_SOFTWARE, GetId()};
+  play_event.SetString(StrToWxStr(filename));
+  play_event.SetEventObject(this);
+
+  AddPendingEvent(play_event);
 }
 
 void NetPlayDialog::StopGame()
 {
-  main_frame->DoStop();
+  wxCommandEvent stop_event{DOLPHIN_EVT_STOP_SOFTWARE, GetId()};
+  stop_event.SetEventObject(this);
+
+  AddPendingEvent(stop_event);
 }
 
 // NetPlayUI methods called from ---NETPLAY--- thread

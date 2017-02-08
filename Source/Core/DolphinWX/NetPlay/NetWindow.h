@@ -8,6 +8,7 @@
 #include <vector>
 #include <wx/frame.h>
 
+#include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
