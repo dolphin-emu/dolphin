@@ -73,7 +73,7 @@ endif()
 option(DSPTOOL "Build dsptool" OFF)
 
 list(APPEND CMAKE_MODULE_PATH
-	${CMAKE_SOURCE_DIR}/CMakeTests
+        ${CMAKE_SOURCE_DIR}/CMake
 )
 
 # Support functions
