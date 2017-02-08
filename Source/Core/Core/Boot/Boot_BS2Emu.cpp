@@ -2,10 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Assert.h"
+#include <map>
+#include <string>
+#include <vector>
+
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/SettingsHandler.h"
 
@@ -13,13 +18,11 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HLE/HLE.h"
-#include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IPC.h"
-#include "Core/MemTools.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 
