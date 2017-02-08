@@ -398,16 +398,11 @@ void CNANDContentLoader::RemoveTitle() const
   }
 }
 
-cUIDsys::cUIDsys()
-{
-  UpdateLocation();
-}
-
-void cUIDsys::UpdateLocation()
+cUIDsys::cUIDsys(Common::FromWhichRoot root)
 {
   m_Elements.clear();
   m_LastUID = 0x00001000;
-  m_UidSys = File::GetUserPath(D_SESSION_WIIROOT_IDX) + "/sys/uid.sys";
+  m_UidSys = Common::RootUserPath(root) + "/sys/uid.sys";
 
   File::IOFile pFile(m_UidSys, "rb");
   SElement Element;
@@ -428,10 +423,6 @@ void cUIDsys::UpdateLocation()
     if (!pFile.WriteArray(&Element, 1))
       ERROR_LOG(DISCIO, "Failed to write to %s", m_UidSys.c_str());
   }
-}
-
-cUIDsys::~cUIDsys()
-{
 }
 
 u32 cUIDsys::GetUIDFromTitle(u64 title_id)
@@ -541,7 +532,8 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
     return 0;
   }
 
-  cUIDsys::AccessInstance().AddTitle(title_id);
+  cUIDsys uid_sys{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  uid_sys.AddTitle(title_id);
 
   ClearCache();
 

@@ -188,27 +188,16 @@ private:
   std::vector<SElement> m_Elements;
 };
 
-class cUIDsys
+class cUIDsys final
 {
 public:
-  static cUIDsys& AccessInstance()
-  {
-    static cUIDsys instance;
-    return instance;
-  }
+  explicit cUIDsys(Common::FromWhichRoot root);
 
   u32 GetUIDFromTitle(u64 title_id);
   void AddTitle(u64 title_id);
   void GetTitleIDs(std::vector<u64>& title_ids, bool owned = false);
-  void UpdateLocation();
 
 private:
-  cUIDsys();
-  virtual ~cUIDsys();
-
-  cUIDsys(cUIDsys const&) = delete;
-  void operator=(cUIDsys const&) = delete;
-
 #pragma pack(push, 1)
   struct SElement
   {
