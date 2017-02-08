@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <array>
+#include <cstddef>
 #include <memory>
+#include <numeric>
 #include <string>
 
 #include "Common/CommonPaths.h"
@@ -21,19 +24,6 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
 
-static u32 state_checksum(u32* buf, int len)
-{
-  u32 checksum = 0;
-  len = len >> 2;
-
-  for (int i = 0; i < len; i++)
-  {
-    checksum += buf[i];
-  }
-
-  return checksum;
-}
-
 struct StateFlags
 {
   u32 checksum;
@@ -43,6 +33,17 @@ struct StateFlags
   u8 returnto;
   u32 unknown[6];
 };
+
+static u32 StateChecksum(const StateFlags& flags)
+{
+  constexpr size_t length_in_bytes = sizeof(StateFlags) - 4;
+  constexpr size_t num_elements = length_in_bytes / sizeof(u32);
+  std::array<u32, num_elements> flag_data;
+
+  std::memcpy(flag_data.data(), &flags.flags, length_in_bytes);
+
+  return std::accumulate(flag_data.cbegin(), flag_data.cend(), 0U);
+}
 
 bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
 {
@@ -56,7 +57,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
     state_file.ReadBytes(&state, sizeof(StateFlags));
 
     state.type = 0x03;  // TYPE_RETURN
-    state.checksum = state_checksum((u32*)&state.flags, sizeof(StateFlags) - 4);
+    state.checksum = StateChecksum(state);
 
     state_file.Seek(0, SEEK_SET);
     state_file.WriteBytes(&state, sizeof(StateFlags));
@@ -69,7 +70,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
     memset(&state, 0, sizeof(StateFlags));
     state.type = 0x03;       // TYPE_RETURN
     state.discstate = 0x01;  // DISCSTATE_WII
-    state.checksum = state_checksum((u32*)&state.flags, sizeof(StateFlags) - 4);
+    state.checksum = StateChecksum(state);
     state_file.WriteBytes(&state, sizeof(StateFlags));
   }
 
