@@ -199,5 +199,11 @@ Device::Output* DeviceContainer::FindOutput(const std::string& name, const Devic
 {
   return def_dev->FindOutput(name);
 }
+
+bool DeviceContainer::HasConnectedDevice(const DeviceQualifier& qualifier) const
+{
+  const auto device = FindDevice(qualifier);
+  return device != nullptr && device->IsValid();
+}
 }
 }

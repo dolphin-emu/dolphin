@@ -6,6 +6,7 @@
 
 #include <string>
 
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 struct GCPadStatus;
@@ -14,7 +15,6 @@ namespace ControllerEmu
 {
 class AnalogStick;
 class Buttons;
-class ControlGroup;
 class MixedTriggers;
 }
 
@@ -54,6 +54,7 @@ private:
   ControllerEmu::ControlGroup* m_rumble;
   ControllerEmu::Buttons* m_mic;
   ControllerEmu::ControlGroup* m_options;
+  ControllerEmu::BooleanSetting* m_always_connected;
 
   const unsigned int m_index;
 

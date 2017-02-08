@@ -33,6 +33,7 @@ public:
   virtual void LoadConfig(IniFile::Section* sec, const std::string& base = "");
   virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");
 
+  bool IsDefaultDeviceConnected() const;
   const ciface::Core::DeviceQualifier& GetDefaultDevice() const;
   void SetDefaultDevice(const std::string& device);
   void SetDefaultDevice(ciface::Core::DeviceQualifier devq);
@@ -49,5 +50,6 @@ public:
 
 private:
   ciface::Core::DeviceQualifier m_default_device;
+  bool m_default_device_is_connected{false};
 };
 }  // namespace ControllerEmu

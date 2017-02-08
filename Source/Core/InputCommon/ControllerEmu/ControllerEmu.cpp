@@ -34,6 +34,8 @@ std::unique_lock<std::recursive_mutex> EmulatedController::GetStateLock()
 void EmulatedController::UpdateReferences(const ControllerInterface& devi)
 {
   const auto lock = GetStateLock();
+  m_default_device_is_connected = devi.HasConnectedDevice(m_default_device);
+
   for (auto& ctrlGroup : groups)
   {
     for (auto& control : ctrlGroup->controls)
@@ -46,6 +48,11 @@ void EmulatedController::UpdateReferences(const ControllerInterface& devi)
         attachment->UpdateReferences(devi);
     }
   }
+}
+
+bool EmulatedController::IsDefaultDeviceConnected() const
+{
+  return m_default_device_is_connected;
 }
 
 const ciface::Core::DeviceQualifier& EmulatedController::GetDefaultDevice() const
