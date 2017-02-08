@@ -18,10 +18,9 @@ public:
                  const bool default_value, const SettingType setting_type = SettingType::NORMAL);
   BooleanSetting(const std::string& setting_name, const bool default_value,
                  const SettingType setting_type = SettingType::NORMAL);
-  virtual ~BooleanSetting();
 
-  virtual bool GetValue() const;
-  virtual void SetValue(bool value);
+  bool GetValue() const;
+  void SetValue(bool value);
   const SettingType m_type;
   const std::string m_name;
   const std::string m_ui_name;
