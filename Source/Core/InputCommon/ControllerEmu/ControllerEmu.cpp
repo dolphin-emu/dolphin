@@ -172,7 +172,7 @@ void ControllerEmu::ControlGroup::SetControlExpression(int index, const std::str
 }
 
 ControllerEmu::AnalogStick::AnalogStick(const char* const _name, ControlState default_radius)
-    : AnalogStick(_name, _name, GROUP_TYPE_STICK)
+    : AnalogStick(_name, _name, default_radius)
 {
 }
 
