@@ -155,6 +155,122 @@ static int CompareGameListItems(const GameListItem* iso1, const GameListItem* is
   return 0;
 }
 
+static std::unordered_map<std::string, std::string> LoadCustomTitles()
+{
+  // Load custom game titles from titles.txt
+  // http://www.gametdb.com/Wii/Downloads
+  const std::string& load_directory = File::GetUserPath(D_LOAD_IDX);
+
+  std::ifstream titlestxt;
+  OpenFStream(titlestxt, load_directory + "titles.txt", std::ios::in);
+
+  if (!titlestxt.is_open())
+    OpenFStream(titlestxt, load_directory + "wiitdb.txt", std::ios::in);
+
+  if (!titlestxt.is_open())
+    return {};
+
+  std::unordered_map<std::string, std::string> custom_titles;
+
+  std::string line;
+  while (!titlestxt.eof() && std::getline(titlestxt, line))
+  {
+    const size_t equals_index = line.find('=');
+    if (equals_index != std::string::npos)
+    {
+      custom_titles.emplace(StripSpaces(line.substr(0, equals_index)),
+                            StripSpaces(line.substr(equals_index + 1)));
+    }
+  }
+
+  return custom_titles;
+}
+
+static std::vector<std::string> GetFileSearchExtensions()
+{
+  std::vector<std::string> extensions;
+
+  if (SConfig::GetInstance().m_ListGC)
+  {
+    extensions.push_back(".gcm");
+    extensions.push_back(".tgc");
+  }
+
+  if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)
+  {
+    extensions.push_back(".iso");
+    extensions.push_back(".ciso");
+    extensions.push_back(".gcz");
+    extensions.push_back(".wbfs");
+  }
+
+  if (SConfig::GetInstance().m_ListWad)
+    extensions.push_back(".wad");
+
+  if (SConfig::GetInstance().m_ListElfDol)
+  {
+    extensions.push_back(".dol");
+    extensions.push_back(".elf");
+  }
+
+  return extensions;
+}
+
+static bool ShouldDisplayGameListItem(const GameListItem& item)
+{
+  const bool show_platform = [&item] {
+    switch (item.GetPlatform())
+    {
+    case DiscIO::Platform::GAMECUBE_DISC:
+      return SConfig::GetInstance().m_ListGC;
+    case DiscIO::Platform::WII_DISC:
+      return SConfig::GetInstance().m_ListWii;
+    case DiscIO::Platform::WII_WAD:
+      return SConfig::GetInstance().m_ListWad;
+    case DiscIO::Platform::ELF_DOL:
+      return SConfig::GetInstance().m_ListElfDol;
+    default:
+      return false;
+    }
+  }();
+
+  if (!show_platform)
+    return false;
+
+  switch (item.GetCountry())
+  {
+  case DiscIO::Country::COUNTRY_AUSTRALIA:
+    return SConfig::GetInstance().m_ListAustralia;
+  case DiscIO::Country::COUNTRY_EUROPE:
+    return SConfig::GetInstance().m_ListPal;
+  case DiscIO::Country::COUNTRY_FRANCE:
+    return SConfig::GetInstance().m_ListFrance;
+  case DiscIO::Country::COUNTRY_GERMANY:
+    return SConfig::GetInstance().m_ListGermany;
+  case DiscIO::Country::COUNTRY_ITALY:
+    return SConfig::GetInstance().m_ListItaly;
+  case DiscIO::Country::COUNTRY_JAPAN:
+    return SConfig::GetInstance().m_ListJap;
+  case DiscIO::Country::COUNTRY_KOREA:
+    return SConfig::GetInstance().m_ListKorea;
+  case DiscIO::Country::COUNTRY_NETHERLANDS:
+    return SConfig::GetInstance().m_ListNetherlands;
+  case DiscIO::Country::COUNTRY_RUSSIA:
+    return SConfig::GetInstance().m_ListRussia;
+  case DiscIO::Country::COUNTRY_SPAIN:
+    return SConfig::GetInstance().m_ListSpain;
+  case DiscIO::Country::COUNTRY_TAIWAN:
+    return SConfig::GetInstance().m_ListTaiwan;
+  case DiscIO::Country::COUNTRY_USA:
+    return SConfig::GetInstance().m_ListUsa;
+  case DiscIO::Country::COUNTRY_WORLD:
+    return SConfig::GetInstance().m_ListWorld;
+  case DiscIO::Country::COUNTRY_UNKNOWN:
+  default:
+    return SConfig::GetInstance().m_ListUnknown;
+  }
+}
+
 wxDEFINE_EVENT(DOLPHIN_EVT_RELOAD_GAMELIST, wxCommandEvent);
 
 CGameListCtrl::CGameListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos,
@@ -541,51 +657,8 @@ void CGameListCtrl::ScanForISOs()
 {
   m_ISOFiles.clear();
 
-  // Load custom game titles from titles.txt
-  // http://www.gametdb.com/Wii/Downloads
-  std::unordered_map<std::string, std::string> custom_title_map;
-  std::ifstream titlestxt;
-  OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "titles.txt", std::ios::in);
-
-  if (!titlestxt.is_open())
-    OpenFStream(titlestxt, File::GetUserPath(D_LOAD_IDX) + "wiitdb.txt", std::ios::in);
-
-  if (titlestxt.is_open())
-  {
-    std::string line;
-    while (!titlestxt.eof() && std::getline(titlestxt, line))
-    {
-      const size_t equals_index = line.find('=');
-      if (equals_index != std::string::npos)
-        custom_title_map.emplace(StripSpaces(line.substr(0, equals_index)),
-                                 StripSpaces(line.substr(equals_index + 1)));
-    }
-    titlestxt.close();
-  }
-
-  std::vector<std::string> Extensions;
-
-  if (SConfig::GetInstance().m_ListGC)
-  {
-    Extensions.push_back(".gcm");
-    Extensions.push_back(".tgc");
-  }
-  if (SConfig::GetInstance().m_ListWii || SConfig::GetInstance().m_ListGC)
-  {
-    Extensions.push_back(".iso");
-    Extensions.push_back(".ciso");
-    Extensions.push_back(".gcz");
-    Extensions.push_back(".wbfs");
-  }
-  if (SConfig::GetInstance().m_ListWad)
-    Extensions.push_back(".wad");
-  if (SConfig::GetInstance().m_ListElfDol)
-  {
-    Extensions.push_back(".dol");
-    Extensions.push_back(".elf");
-  }
-
-  auto rFilenames = DoFileSearch(Extensions, SConfig::GetInstance().m_ISOFolder,
+  const auto custom_titles = LoadCustomTitles();
+  auto rFilenames = DoFileSearch(GetFileSearchExtensions(), SConfig::GetInstance().m_ISOFolder,
                                  SConfig::GetInstance().m_RecursiveISOFolder);
 
   if (rFilenames.size() > 0)
@@ -606,95 +679,11 @@ void CGameListCtrl::ScanForISOs()
       if (dialog.WasCancelled())
         break;
 
-      auto iso_file = std::make_unique<GameListItem>(rFilenames[i], custom_title_map);
+      auto iso_file = std::make_unique<GameListItem>(rFilenames[i], custom_titles);
 
-      if (iso_file->IsValid())
+      if (iso_file->IsValid() && ShouldDisplayGameListItem(*iso_file))
       {
-        bool list = true;
-
-        switch (iso_file->GetPlatform())
-        {
-        case DiscIO::Platform::WII_DISC:
-          if (!SConfig::GetInstance().m_ListWii)
-            list = false;
-          break;
-        case DiscIO::Platform::WII_WAD:
-          if (!SConfig::GetInstance().m_ListWad)
-            list = false;
-          break;
-        case DiscIO::Platform::ELF_DOL:
-          if (!SConfig::GetInstance().m_ListElfDol)
-            list = false;
-          break;
-        default:
-          if (!SConfig::GetInstance().m_ListGC)
-            list = false;
-          break;
-        }
-
-        switch (iso_file->GetCountry())
-        {
-        case DiscIO::Country::COUNTRY_AUSTRALIA:
-          if (!SConfig::GetInstance().m_ListAustralia)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_EUROPE:
-          if (!SConfig::GetInstance().m_ListPal)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_FRANCE:
-          if (!SConfig::GetInstance().m_ListFrance)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_GERMANY:
-          if (!SConfig::GetInstance().m_ListGermany)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_ITALY:
-          if (!SConfig::GetInstance().m_ListItaly)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_JAPAN:
-          if (!SConfig::GetInstance().m_ListJap)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_KOREA:
-          if (!SConfig::GetInstance().m_ListKorea)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_NETHERLANDS:
-          if (!SConfig::GetInstance().m_ListNetherlands)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_RUSSIA:
-          if (!SConfig::GetInstance().m_ListRussia)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_SPAIN:
-          if (!SConfig::GetInstance().m_ListSpain)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_TAIWAN:
-          if (!SConfig::GetInstance().m_ListTaiwan)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_USA:
-          if (!SConfig::GetInstance().m_ListUsa)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_WORLD:
-          if (!SConfig::GetInstance().m_ListWorld)
-            list = false;
-          break;
-        case DiscIO::Country::COUNTRY_UNKNOWN:
-        default:
-          if (!SConfig::GetInstance().m_ListUnknown)
-            list = false;
-          break;
-        }
-
-        if (list)
-          m_ISOFiles.push_back(std::move(iso_file));
+        m_ISOFiles.push_back(std::move(iso_file));
       }
     }
   }
@@ -705,7 +694,7 @@ void CGameListCtrl::ScanForISOs()
 
     for (const auto& drive : drives)
     {
-      auto gli = std::make_unique<GameListItem>(drive, custom_title_map);
+      auto gli = std::make_unique<GameListItem>(drive, custom_titles);
 
       if (gli->IsValid())
         m_ISOFiles.push_back(std::move(gli));
