@@ -11,6 +11,13 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Slider.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Triggers.h"
+
 namespace WiimoteEmu
 {
 constexpr std::array<u8, 6> turntable_id{{0x03, 0x00, 0xa4, 0x20, 0x01, 0x03}};
@@ -29,23 +36,24 @@ constexpr std::array<const char*, 9> turntable_button_names{{
 Turntable::Turntable(ExtensionReg& reg) : Attachment(_trans("Turntable"), reg)
 {
   // buttons
-  groups.emplace_back(m_buttons = new Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
   for (auto& turntable_button_name : turntable_button_names)
-    m_buttons->controls.emplace_back(new ControlGroup::Input(turntable_button_name));
+    m_buttons->controls.emplace_back(new ControllerEmu::Input(turntable_button_name));
 
   // turntables
-  groups.emplace_back(m_left_table = new Slider(_trans("Table Left")));
-  groups.emplace_back(m_right_table = new Slider(_trans("Table Right")));
+  groups.emplace_back(m_left_table = new ControllerEmu::Slider(_trans("Table Left")));
+  groups.emplace_back(m_right_table = new ControllerEmu::Slider(_trans("Table Right")));
 
   // stick
-  groups.emplace_back(m_stick = new AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(m_stick =
+                          new ControllerEmu::AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // effect dial
-  groups.emplace_back(m_effect_dial = new Triggers(_trans("Effect")));
-  m_effect_dial->controls.emplace_back(new ControlGroup::Input(_trans("Dial")));
+  groups.emplace_back(m_effect_dial = new ControllerEmu::Triggers(_trans("Effect")));
+  m_effect_dial->controls.emplace_back(new ControllerEmu::Input(_trans("Dial")));
 
   // crossfade
-  groups.emplace_back(m_crossfade = new Slider(_trans("Crossfade")));
+  groups.emplace_back(m_crossfade = new ControllerEmu::Slider(_trans("Crossfade")));
 
   // set up register
   m_id = turntable_id;

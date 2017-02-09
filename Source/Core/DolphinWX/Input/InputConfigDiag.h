@@ -23,10 +23,10 @@
 #include <wx/spinctrl.h>
 #include <wx/timer.h>
 
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+class ControlReference;
 class DolphinSlider;
 class InputConfig;
 class wxComboBox;
@@ -34,6 +34,12 @@ class wxListBox;
 class wxStaticBitmap;
 class wxStaticText;
 class wxTextCtrl;
+
+namespace ControllerEmu
+{
+class EmulatedController;
+class Extension;
+}
 
 class PadSetting
 {
@@ -221,7 +227,7 @@ public:
   void AdjustBooleanSetting(wxCommandEvent& event);
 
   void GetProfilePath(std::string& path);
-  ControllerEmu* GetController() const;
+  ControllerEmu::EmulatedController* GetController() const;
 
   wxComboBox* profile_cbox = nullptr;
   wxComboBox* device_cbox = nullptr;
@@ -234,7 +240,7 @@ protected:
   wxBoxSizer* CreaterResetGroupBox(wxOrientation orientation);
   wxBoxSizer* CreateProfileChooserGroupBox();
 
-  ControllerEmu* const controller;
+  ControllerEmu::EmulatedController* const controller;
 
   wxTimer m_update_timer;
 

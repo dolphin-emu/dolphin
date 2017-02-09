@@ -7,8 +7,15 @@
 #include <array>
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/InputConfig.h"
+
+namespace ControllerEmu
+{
+class ControllerEmu;
+class Buttons;
+}
 
 enum Hotkey
 {
@@ -183,7 +190,7 @@ struct HotkeyStatus
   s8 err;
 };
 
-class HotkeyManager : public ControllerEmu
+class HotkeyManager : public ControllerEmu::EmulatedController
 {
 public:
   HotkeyManager();
@@ -191,16 +198,16 @@ public:
 
   void GetInput(HotkeyStatus* const hk);
   std::string GetName() const override;
-  ControlGroup* GetHotkeyGroup(HotkeyGroup group) const;
-  ControlGroup* GetOptionsGroup() const;
+  ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group) const;
+  ControllerEmu::ControlGroup* GetOptionsGroup() const;
   int FindGroupByID(int id) const;
   int GetIndexForGroup(int group, int id) const;
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-  Buttons* m_keys[NUM_HOTKEY_GROUPS];
-  std::array<ControlGroup*, NUM_HOTKEY_GROUPS> m_hotkey_groups;
-  ControlGroup* m_options;
+  ControllerEmu::Buttons* m_keys[NUM_HOTKEY_GROUPS];
+  std::array<ControllerEmu::ControlGroup*, NUM_HOTKEY_GROUPS> m_hotkey_groups;
+  ControllerEmu::ControlGroup* m_options;
 };
 
 namespace HotkeyManagerEmu

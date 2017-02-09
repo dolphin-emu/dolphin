@@ -11,6 +11,7 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 
 namespace WiimoteEmu
 {
@@ -53,12 +54,14 @@ void Attachment::Reset()
 }
 }  // namespace WiimoteEmu
 
-void ControllerEmu::Extension::GetState(u8* const data)
+namespace ControllerEmu
+{
+void Extension::GetState(u8* const data)
 {
   ((WiimoteEmu::Attachment*)attachments[active_extension].get())->GetState(data);
 }
 
-bool ControllerEmu::Extension::IsButtonPressed() const
+bool Extension::IsButtonPressed() const
 {
   // Extension == 0 means no Extension, > 0 means one is connected
   // Since we want to use this to know if disconnected Wiimotes want to be connected, and
@@ -71,3 +74,4 @@ bool ControllerEmu::Extension::IsButtonPressed() const
     return ((WiimoteEmu::Attachment*)attachments[switch_extension].get())->IsButtonPressed();
   return false;
 }
+}  // namespace ControllerEmu

@@ -11,6 +11,10 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+
 namespace WiimoteEmu
 {
 constexpr std::array<u8, 6> drums_id{{0x01, 0x00, 0xa4, 0x20, 0x01, 0x03}};
@@ -32,17 +36,18 @@ constexpr std::array<u16, 2> drum_button_bitmasks{{
 Drums::Drums(ExtensionReg& reg) : Attachment(_trans("Drums"), reg)
 {
   // pads
-  groups.emplace_back(m_pads = new Buttons(_trans("Pads")));
+  groups.emplace_back(m_pads = new ControllerEmu::Buttons(_trans("Pads")));
   for (auto& drum_pad_name : drum_pad_names)
-    m_pads->controls.emplace_back(new ControlGroup::Input(drum_pad_name));
+    m_pads->controls.emplace_back(new ControllerEmu::Input(drum_pad_name));
 
   // stick
-  groups.emplace_back(m_stick = new AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(m_stick =
+                          new ControllerEmu::AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // buttons
-  groups.emplace_back(m_buttons = new Buttons("Buttons"));
-  m_buttons->controls.emplace_back(new ControlGroup::Input("-"));
-  m_buttons->controls.emplace_back(new ControlGroup::Input("+"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input("-"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input("+"));
 
   // set up register
   m_id = drums_id;

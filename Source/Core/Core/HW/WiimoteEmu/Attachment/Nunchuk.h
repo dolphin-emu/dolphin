@@ -7,6 +7,15 @@
 #include <array>
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
+namespace ControllerEmu
+{
+class AnalogStick;
+class Buttons;
+class ControlGroup;
+class Force;
+class Tilt;
+}
+
 namespace WiimoteEmu
 {
 enum class NunchukGroup;
@@ -20,7 +29,7 @@ public:
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
 
-  ControlGroup* GetGroup(NunchukGroup group);
+  ControllerEmu::ControlGroup* GetGroup(NunchukGroup group);
 
   enum
   {
@@ -44,13 +53,13 @@ public:
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-  Tilt* m_tilt;
-  Force* m_swing;
+  ControllerEmu::Tilt* m_tilt;
+  ControllerEmu::Force* m_swing;
 
-  Buttons* m_shake;
+  ControllerEmu::Buttons* m_shake;
 
-  Buttons* m_buttons;
-  AnalogStick* m_stick;
+  ControllerEmu::Buttons* m_buttons;
+  ControllerEmu::AnalogStick* m_stick;
 
   std::array<u8, 3> m_shake_step{};
 };

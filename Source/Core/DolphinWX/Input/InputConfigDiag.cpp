@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Input/InputConfigDiag.h"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -38,21 +40,27 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
+
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/Input/ClassicInputConfigDiag.h"
 #include "DolphinWX/Input/DrumsInputConfigDiag.h"
 #include "DolphinWX/Input/GuitarInputConfigDiag.h"
-#include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/Input/NunchukInputConfigDiag.h"
 #include "DolphinWX/Input/TurntableInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
+
+#include "InputCommon/ControlReference/ControlReference.h"
 #include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -385,7 +393,7 @@ bool ControlDialog::Validate()
 {
   control_reference->expression = WxStrToStr(textctrl->GetValue());
 
-  auto lock = ControllerEmu::GetStateLock();
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
                                      m_parent->GetController()->default_device);
 
@@ -424,7 +432,7 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 {
   control_reference->expression.clear();
 
-  auto lock = ControllerEmu::GetStateLock();
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
                                      m_parent->GetController()->default_device);
 
@@ -483,7 +491,7 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
   textctrl->WriteText(expr);
   control_reference->expression = textctrl->GetValue();
 
-  auto lock = ControllerEmu::GetStateLock();
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
                                      m_parent->GetController()->default_device);
 
@@ -519,7 +527,7 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
   textctrl->WriteText(expr);
   control_reference->expression = textctrl->GetValue();
 
-  auto lock = ControllerEmu::GetStateLock();
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   control_reference->UpdateReference(g_controller_interface,
                                      m_parent->GetController()->default_device);
 
@@ -701,7 +709,7 @@ bool InputConfigDialog::DetectButton(ControlButton* button)
       wxString expr;
       GetExpressionForControl(expr, control_name);
       button->control_reference->expression = expr;
-      auto lock = ControllerEmu::GetStateLock();
+      const auto lock = ControllerEmu::EmulatedController::GetStateLock();
       button->control_reference->UpdateReference(g_controller_interface,
                                                  controller->default_device);
       success = true;
@@ -831,7 +839,7 @@ void InputConfigDialog::GetProfilePath(std::string& path)
   }
 }
 
-ControllerEmu* InputConfigDialog::GetController() const
+ControllerEmu::EmulatedController* InputConfigDialog::GetController() const
 {
   return controller;
 }
@@ -930,8 +938,10 @@ ControlGroupBox::~ControlGroupBox()
 
 bool ControlGroupBox::HasBitmapHeading() const
 {
-  return control_group->type == GROUP_TYPE_STICK || control_group->type == GROUP_TYPE_TILT ||
-         control_group->type == GROUP_TYPE_CURSOR || control_group->type == GROUP_TYPE_FORCE;
+  return control_group->type == ControllerEmu::GROUP_TYPE_STICK ||
+         control_group->type == ControllerEmu::GROUP_TYPE_TILT ||
+         control_group->type == ControllerEmu::GROUP_TYPE_CURSOR ||
+         control_group->type == ControllerEmu::GROUP_TYPE_FORCE;
 }
 
 ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent,
@@ -986,10 +996,10 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 
   switch (group->type)
   {
-  case GROUP_TYPE_STICK:
-  case GROUP_TYPE_TILT:
-  case GROUP_TYPE_CURSOR:
-  case GROUP_TYPE_FORCE:
+  case ControllerEmu::GROUP_TYPE_STICK:
+  case ControllerEmu::GROUP_TYPE_TILT:
+  case ControllerEmu::GROUP_TYPE_CURSOR:
+  case ControllerEmu::GROUP_TYPE_FORCE:
   {
     wxSize bitmap_size = parent->FromDIP(wxSize(64, 64));
     m_scale = bitmap_size.GetWidth() / 64.0;
@@ -1031,7 +1041,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(h_szr, 0, wxEXPAND | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case GROUP_TYPE_BUTTONS:
+  case ControllerEmu::GROUP_TYPE_BUTTONS:
   {
     // Draw buttons in rows of 8
     unsigned int button_cols = group->controls.size() > 8 ? 8 : group->controls.size();
@@ -1069,17 +1079,17 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(static_bitmap, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case GROUP_TYPE_MIXED_TRIGGERS:
-  case GROUP_TYPE_TRIGGERS:
-  case GROUP_TYPE_SLIDER:
+  case ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS:
+  case ControllerEmu::GROUP_TYPE_TRIGGERS:
+  case ControllerEmu::GROUP_TYPE_SLIDER:
   {
     int height = (int)(12 * group->controls.size());
     int width = 64;
 
-    if (GROUP_TYPE_MIXED_TRIGGERS == group->type)
+    if (ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS == group->type)
       width = 64 + 12 + 1;
 
-    if (GROUP_TYPE_TRIGGERS != group->type)
+    if (ControllerEmu::GROUP_TYPE_TRIGGERS != group->type)
       height /= 2;
     height += 1;
 
@@ -1113,7 +1123,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(static_bitmap, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case GROUP_TYPE_EXTENSION:
+  case ControllerEmu::GROUP_TYPE_EXTENSION:
   {
     PadSettingExtension* const attachments =
         new PadSettingExtension(parent, (ControllerEmu::Extension*)group);
