@@ -42,63 +42,6 @@ static uintptr_t RoundPage(uintptr_t addr)
 }
 #endif
 
-// This is purposely not a full wrapper for virtualalloc/mmap, but it
-// provides exactly the primitive operations that Dolphin needs.
-
-void* AllocateExecutableMemory(size_t size, bool low)
-{
-#if defined(_WIN32)
-  void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
-#else
-  static char* map_hint = nullptr;
-#if defined(_M_X86_64) && !defined(MAP_32BIT)
-  // This OS has no flag to enforce allocation below the 4 GB boundary,
-  // but if we hint that we want a low address it is very likely we will
-  // get one.
-  // An older version of this code used MAP_FIXED, but that has the side
-  // effect of discarding already mapped pages that happen to be in the
-  // requested virtual memory range (such as the emulated RAM, sometimes).
-  if (low && (!map_hint))
-    map_hint = (char*)RoundPage(512 * 1024 * 1024); /* 0.5 GB rounded up to the next page */
-#endif
-  void* ptr = mmap(map_hint, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE
-#if defined(_M_X86_64) && defined(MAP_32BIT)
-                                                                           | (low ? MAP_32BIT : 0)
-#endif
-                                                                           ,
-                   -1, 0);
-#endif /* defined(_WIN32) */
-
-#ifdef _WIN32
-  if (ptr == nullptr)
-  {
-#else
-  if (ptr == MAP_FAILED)
-  {
-    ptr = nullptr;
-#endif
-    PanicAlert("Failed to allocate executable memory. If you are running Dolphin in Valgrind, try "
-               "'#undef MAP_32BIT'.");
-  }
-#if !defined(_WIN32) && defined(_M_X86_64) && !defined(MAP_32BIT)
-  else
-  {
-    if (low)
-    {
-      map_hint += size;
-      map_hint = (char*)RoundPage((uintptr_t)map_hint); /* round up to the next page */
-    }
-  }
-#endif
-
-#if _M_X86_64
-  if ((u64)ptr >= 0x80000000 && low == true)
-    PanicAlert("Executable memory ended up above 2GB!");
-#endif
-
-  return ptr;
-}
-
 void* AllocateMemoryPages(size_t size)
 {
 #ifdef _WIN32

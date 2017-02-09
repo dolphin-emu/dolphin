@@ -23,19 +23,16 @@
 
 using namespace Gen;
 
-void TrampolineCache::Init(size_t size)
-{
-  AllocCodeSpace(size);
-}
+alignas(JIT_MEM_ALIGNMENT) std::array<u8, TRAMPOLINE_CODE_SIZE> TrampolineCache::code_area;
 
-void TrampolineCache::ClearCodeSpace()
+void TrampolineCache::Init()
 {
-  X64CodeBlock::ClearCodeSpace();
+  SetCodeSpace(code_area.data(), code_area.size());
 }
 
 void TrampolineCache::Shutdown()
 {
-  FreeCodeSpace();
+  ReleaseCodeSpace();
 }
 
 const u8* TrampolineCache::GenerateTrampoline(const TrampolineInfo& info)

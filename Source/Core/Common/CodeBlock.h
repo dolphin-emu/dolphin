@@ -11,6 +11,11 @@
 #include "Common/MemoryUtil.h"
 #include "Common/NonCopyable.h"
 
+// We need to mark the JIT pages as read/write/executable. All current CPUs
+// support such checks within the MMU, but only with a granularity of 4 KB.
+// Se we force the JIT code area to be aligned by this page size.
+constexpr size_t JIT_MEM_ALIGNMENT = 4096;
+
 // Everything that needs to generate code should inherit from this.
 // You get memory management for free, plus, you can use all emitter functions without
 // having to prefix them with gen-> or something similar.
@@ -41,11 +46,18 @@ public:
       FreeCodeSpace();
   }
 
-  // Call this before you generate any code.
-  void AllocCodeSpace(size_t size, bool need_low = true)
+  void AllocCodeSpace(size_t size)
   {
+    region = static_cast<u8*>(Common::AllocateMemoryPages(size));
+    SetCodeSpace(region, size);
+  }
+
+  // Call this before you generate any code.
+  void SetCodeSpace(u8* region_, size_t size)
+  {
+    region = region_;
     region_size = size;
-    region = static_cast<u8*>(Common::AllocateExecutableMemory(region_size, need_low));
+    Common::UnWriteProtectMemory(region, region_size, true);
     T::SetCodePtr(region);
   }
 
@@ -61,6 +73,11 @@ public:
   void FreeCodeSpace()
   {
     Common::FreeMemoryPages(region, region_size);
+    ReleaseCodeSpace();
+  }
+
+  void ReleaseCodeSpace()
+  {
     region = nullptr;
     region_size = 0;
     parent_region_size = 0;

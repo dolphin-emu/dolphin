@@ -4,15 +4,17 @@
 
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
 
-void FarCodeCache::Init(size_t size)
+alignas(JIT_MEM_ALIGNMENT) std::array<u8, FARCODE_SIZE> FarCodeCache::code_area;
+
+void FarCodeCache::Init()
 {
-  AllocCodeSpace(size);
+  SetCodeSpace(code_area.data(), code_area.size());
   m_enabled = true;
 }
 
 void FarCodeCache::Shutdown()
 {
-  FreeCodeSpace();
+  ReleaseCodeSpace();
   m_enabled = false;
 }
 

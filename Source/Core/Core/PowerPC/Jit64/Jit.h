@@ -18,6 +18,8 @@
 // ----------
 #pragma once
 
+#include <array>
+
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
@@ -34,6 +36,9 @@ class Jit64 : public Jitx86Base
 private:
   void AllocStack();
   void FreeStack();
+
+  // Code buffer for the actual x86_64 instructions.
+  static std::array<u8, CODE_SIZE> code_area;
 
   GPRRegCache gpr{*this};
   FPURegCache fpr{*this};
