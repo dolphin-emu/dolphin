@@ -23,7 +23,7 @@ void ControllerEmu::UpdateReferences(ControllerInterface& devi)
   for (auto& ctrlGroup : groups)
   {
     for (auto& control : ctrlGroup->controls)
-      devi.UpdateReference(control->control_ref.get(), default_device);
+      control->control_ref.get()->UpdateReference(devi, default_device);
 
     // extension
     if (ctrlGroup->type == GROUP_TYPE_EXTENSION)

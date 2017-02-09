@@ -10,7 +10,7 @@
 #include <string>
 #include <vector>
 
-#include "InputCommon/ControllerInterface/ExpressionParser.h"
+#include "InputCommon/ControlReference/ExpressionParser.h"
 
 using namespace ciface::Core;
 
@@ -241,8 +241,8 @@ public:
   {
   }
 
-  ControlState GetValue() override { return control->ToInput()->GetGatedState(); }
-  void SetValue(ControlState value) override { control->ToOutput()->SetGatedState(value); }
+  ControlState GetValue() override { return control->ToInput()->GetState(); }
+  void SetValue(ControlState value) override { control->ToOutput()->SetState(value); }
   int CountNumControls() override { return 1; }
   operator std::string() override { return "`" + (std::string)qualifier + "`"; }
 private:

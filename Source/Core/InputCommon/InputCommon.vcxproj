@@ -42,7 +42,8 @@
     <ClCompile Include="ControllerInterface\DInput\DInputJoystick.cpp" />
     <ClCompile Include="ControllerInterface\DInput\DInputKeyboardMouse.cpp" />
     <ClCompile Include="ControllerInterface\DInput\XInputFilter.cpp" />
-    <ClCompile Include="ControllerInterface\ExpressionParser.cpp" />
+    <ClCompile Include="ControlReference\ControlReference.cpp" />
+    <ClCompile Include="ControlReference\ExpressionParser.cpp" />
     <ClCompile Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.cpp" />
     <ClCompile Include="ControllerInterface\XInput\XInput.cpp" />
     <ClCompile Include="GCAdapter.cpp">
@@ -63,7 +64,8 @@
     <ClInclude Include="ControllerInterface\DInput\DInputJoystick.h" />
     <ClInclude Include="ControllerInterface\DInput\DInputKeyboardMouse.h" />
     <ClInclude Include="ControllerInterface\DInput\XInputFilter.h" />
-    <ClInclude Include="ControllerInterface\ExpressionParser.h" />
+    <ClInclude Include="ControlReference\ControlReference.h" />
+    <ClInclude Include="ControlReference\ExpressionParser.h" />
     <ClInclude Include="ControllerInterface\ForceFeedback\ForceFeedbackDevice.h" />
     <ClInclude Include="ControllerInterface\XInput\XInput.h" />
     <ClInclude Include="GCAdapter.h" />

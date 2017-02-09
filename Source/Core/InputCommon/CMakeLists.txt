@@ -2,7 +2,9 @@ set(SRCS InputConfig.cpp
          ControllerEmu/ControllerEmu.cpp
          ControllerInterface/ControllerInterface.cpp
          ControllerInterface/Device.cpp
-         ControllerInterface/ExpressionParser.cpp)
+         ControlReference/ControlReference.cpp
+         ControlReference/ExpressionParser.cpp
+)
 set(LIBS common)
 
 if(WIN32)
