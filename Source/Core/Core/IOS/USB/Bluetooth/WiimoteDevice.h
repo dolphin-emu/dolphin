@@ -23,9 +23,6 @@ namespace Device
 class BluetoothEmu;
 }
 
-Device::BluetoothEmu* GetUsbPointer();
-void SetUsbPointer(Device::BluetoothEmu* ptr);
-
 class CBigEndianBuffer
 {
 public:

@@ -71,7 +71,7 @@ static Common::Event g_compressAndDumpStateSyncEvent;
 static std::thread g_save_thread;
 
 // Don't forget to increase this after doing changes on the savestate system
-static const u32 STATE_VERSION = 76;  // Last changed in PR 4829
+static const u32 STATE_VERSION = 77;  // Last changed in PR 4784
 
 // Maps savestate versions to Dolphin versions.
 // Versions after 42 don't need to be added to this list,
@@ -152,6 +152,19 @@ static std::string DoState(PointerWrap& p)
     // this will trigger an OSD message like "Can't load state from other revisions"
     // we could use the version numbers to maintain some level of backward compatibility, but
     // currently don't.
+    p.SetMode(PointerWrap::MODE_MEASURE);
+    return version_created_by;
+  }
+
+  bool is_wii =
+      SConfig::GetInstance().bWii || SConfig::GetInstance().m_BootType == SConfig::BOOT_MIOS;
+  const bool is_wii_currently = is_wii;
+  p.Do(is_wii);
+  if (is_wii != is_wii_currently)
+  {
+    OSD::AddMessage(StringFromFormat("Cannot load a savestate created under %s mode in %s mode",
+                                     is_wii ? "Wii" : "GC", is_wii_currently ? "Wii" : "GC"),
+                    OSD::Duration::NORMAL, OSD::Color::RED);
     p.SetMode(PointerWrap::MODE_MEASURE);
     return version_created_by;
   }

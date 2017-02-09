@@ -317,6 +317,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return Decrypt(request);
   case IOCTL_ES_LAUNCH:
     return Launch(request);
+  case IOCTL_ES_LAUNCHBC:
+    return LaunchBC(request);
   case IOCTL_ES_CHECKKOREAREGION:
     return CheckKoreaRegion(request);
   case IOCTL_ES_GETDEVICECERT:
@@ -1103,7 +1105,6 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 {
   _dbg_assert_(IOS_ES, request.in_vectors.size() == 2);
   bool bSuccess = false;
-  bool bReset = false;
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 view = Memory::Read_U32(request.in_vectors[1].address);
@@ -1111,6 +1112,9 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   u32 devicetype = Memory::Read_U32(request.in_vectors[1].address + 12);
   u64 titleid = Memory::Read_U64(request.in_vectors[1].address + 16);
   u16 access = Memory::Read_U16(request.in_vectors[1].address + 24);
+
+  NOTICE_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
+             TitleID, view, ticketid, devicetype, titleid, access);
 
   // ES_LAUNCH should probably reset thw whole state, which at least means closing all open files.
   // leaving them open through ES_LAUNCH may cause hangs and other funky behavior
@@ -1168,61 +1172,63 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   }
   else
   {
-    bool* wiiMoteConnected = new bool[MAX_BBMOTES];
-    if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-    {
-      BluetoothEmu* s_Usb = GetUsbPointer();
-      for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-        wiiMoteConnected[i] = s_Usb->m_WiiMotes[i].IsConnected();
-    }
-
-    Reset(true);
-    Reinit();
-    SetupMemory(ios_to_load);
-    bReset = true;
-
-    if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-    {
-      BluetoothEmu* s_Usb = GetUsbPointer();
-      for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-      {
-        if (wiiMoteConnected[i])
-        {
-          s_Usb->m_WiiMotes[i].Activate(false);
-          s_Usb->m_WiiMotes[i].Activate(true);
-        }
-        else
-        {
-          s_Usb->m_WiiMotes[i].Activate(false);
-        }
-      }
-    }
-    delete[] wiiMoteConnected;
+    ResetAfterLaunch(ios_to_load);
     SetDefaultContentFile(tContentFile);
-  }
-
-  // Note: If we just reset the PPC, don't write anything to the command buffer. This
-  // could clobber the DOL we just loaded.
-
-  ERROR_LOG(IOS_ES, "IOCTL_ES_LAUNCH %016" PRIx64 " %08x %016" PRIx64 " %08x %016" PRIx64 " %04x",
-            TitleID, view, ticketid, devicetype, titleid, access);
-  //                     IOCTL_ES_LAUNCH 0001000248414341 00000001 0001c0fef3df2cfa 00000000
-  //                     0001000248414341 ffff
-
-  // This is necessary because Reset(true) above deleted this object.  Ew.
-
-  if (!bReset)
-  {
-    // The command type is overwritten with the reply type.
-    Memory::Write_U32(IPC_REPLY, request.address);
-    // IOS also writes back the command that was responded to in the FD field.
-    Memory::Write_U32(IPC_CMD_IOCTLV, request.address + 8);
   }
 
   // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
   // involves restarting IOS; IOS generates two acknowledgements in a row.
+  // Note: If we just reset the PPC, don't write anything to the command buffer. This
+  // could clobber the DOL we just loaded.
   EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
+}
+
+IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
+{
+  if (request.in_vectors.size() != 0 || request.io_vectors.size() != 0)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  // Here, IOS checks the clock speed and prevents ioctlv 0x25 from being used in GC mode.
+  // An alternative way to do this is to check whether the current active IOS is MIOS.
+  if (GetVersion() == 0x101)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  ResetAfterLaunch(0x00000001'00000100);
+  EnqueueCommandAcknowledgement(request.address, 0);
+  return GetNoReply();
+}
+
+void ES::ResetAfterLaunch(const u64 ios_to_load) const
+{
+  auto bt = std::static_pointer_cast<BluetoothEmu>(GetDeviceByName("/dev/usb/oh1/57e/305"));
+  bool* wiiMoteConnected = new bool[MAX_BBMOTES];
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
+  {
+    for (unsigned int i = 0; i < MAX_BBMOTES; i++)
+      wiiMoteConnected[i] = bt->m_WiiMotes[i].IsConnected();
+  }
+
+  Reload(ios_to_load);
+
+  // Get the new Bluetooth device. Note that it is not guaranteed to exist.
+  bt = std::static_pointer_cast<BluetoothEmu>(GetDeviceByName("/dev/usb/oh1/57e/305"));
+  if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
+  {
+    for (unsigned int i = 0; i < MAX_BBMOTES; i++)
+    {
+      if (wiiMoteConnected[i])
+      {
+        bt->m_WiiMotes[i].Activate(false);
+        bt->m_WiiMotes[i].Activate(true);
+      }
+      else
+      {
+        bt->m_WiiMotes[i].Activate(false);
+      }
+    }
+  }
+  delete[] wiiMoteConnected;
 }
 
 IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)

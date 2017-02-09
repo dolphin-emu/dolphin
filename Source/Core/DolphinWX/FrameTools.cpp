@@ -1245,7 +1245,10 @@ void CFrame::ConnectWiimote(int wm_idx, bool connect)
       !SConfig::GetInstance().m_bt_passthrough_enabled)
   {
     bool was_unpaused = Core::PauseAndLock(true);
-    IOS::HLE::GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+        IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+    if (bt)
+      bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
     const char* message = connect ? "Wii Remote %i connected" : "Wii Remote %i disconnected";
     Core::DisplayMessage(StringFromFormat(message, wm_idx + 1), 3000);
     Host_UpdateMainFrame();
@@ -1258,10 +1261,11 @@ void CFrame::OnConnectWiimote(wxCommandEvent& event)
   if (SConfig::GetInstance().m_bt_passthrough_enabled)
     return;
   bool was_unpaused = Core::PauseAndLock(true);
-  ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1,
-                 !IOS::HLE::GetUsbPointer()
-                      ->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)
-                      ->IsConnected());
+  const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+  const bool is_connected =
+      bt && bt->AccessWiiMote((event.GetId() - IDM_CONNECT_WIIMOTE1) | 0x100)->IsConnected();
+  ConnectWiimote(event.GetId() - IDM_CONNECT_WIIMOTE1, !is_connected);
   Core::PauseAndLock(false, was_unpaused);
 }
 
@@ -1416,8 +1420,9 @@ void CFrame::UpdateGUI()
   // Tools
   GetMenuBar()->FindItem(IDM_CHEATS)->Enable(SConfig::GetInstance().bEnableCheats);
 
-  bool ShouldEnableWiimotes =
-      Running && SConfig::GetInstance().bWii && !SConfig::GetInstance().m_bt_passthrough_enabled;
+  const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+  bool ShouldEnableWiimotes = Running && bt && !SConfig::GetInstance().m_bt_passthrough_enabled;
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Enable(ShouldEnableWiimotes);
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Enable(ShouldEnableWiimotes);
   GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Enable(ShouldEnableWiimotes);
@@ -1426,21 +1431,13 @@ void CFrame::UpdateGUI()
   if (ShouldEnableWiimotes)
   {
     bool was_unpaused = Core::PauseAndLock(true);
-    GetMenuBar()
-        ->FindItem(IDM_CONNECT_WIIMOTE1)
-        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0100)->IsConnected());
-    GetMenuBar()
-        ->FindItem(IDM_CONNECT_WIIMOTE2)
-        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0101)->IsConnected());
-    GetMenuBar()
-        ->FindItem(IDM_CONNECT_WIIMOTE3)
-        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0102)->IsConnected());
-    GetMenuBar()
-        ->FindItem(IDM_CONNECT_WIIMOTE4)
-        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0103)->IsConnected());
+    GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE1)->Check(bt->AccessWiiMote(0x0100)->IsConnected());
+    GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE2)->Check(bt->AccessWiiMote(0x0101)->IsConnected());
+    GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE3)->Check(bt->AccessWiiMote(0x0102)->IsConnected());
+    GetMenuBar()->FindItem(IDM_CONNECT_WIIMOTE4)->Check(bt->AccessWiiMote(0x0103)->IsConnected());
     GetMenuBar()
         ->FindItem(IDM_CONNECT_BALANCEBOARD)
-        ->Check(IOS::HLE::GetUsbPointer()->AccessWiiMote(0x0104)->IsConnected());
+        ->Check(bt->AccessWiiMote(0x0104)->IsConnected());
     Core::PauseAndLock(false, was_unpaused);
   }
 

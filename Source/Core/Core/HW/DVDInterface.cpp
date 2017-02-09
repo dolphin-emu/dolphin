@@ -419,8 +419,24 @@ void Init()
 {
   DVDThread::Start();
 
-  s_DISR.Hex = 0;
+  Reset();
   s_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
+  s_disc_inside = false;
+
+  s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
+  s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
+
+  s_finish_executing_command =
+      CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
+
+  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::INT_TCINT);
+  CoreTiming::ScheduleEvent(0, s_finish_executing_command, userdata);
+}
+
+// This doesn't reset any inserted disc or the cover state.
+void Reset()
+{
+  s_DISR.Hex = 0;
   s_DICMDBUF[0].Hex = 0;
   s_DICMDBUF[1].Hex = 0;
   s_DICMDBUF[2].Hex = 0;
@@ -441,7 +457,6 @@ void Init()
   s_pending_samples = 0;
 
   s_error_code = 0;
-  s_disc_inside = false;
 
   // The buffer is empty at start
   s_read_buffer_start_offset = 0;
@@ -450,15 +465,6 @@ void Init()
   s_read_buffer_end_time = 0;
 
   s_disc_path_to_insert.clear();
-
-  s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
-  s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
-
-  s_finish_executing_command =
-      CoreTiming::RegisterEvent("FinishExecutingCommand", FinishExecutingCommandCallback);
-
-  u64 userdata = PackFinishExecutingCommandUserdata(ReplyType::DTK, DIInterruptType::INT_TCINT);
-  CoreTiming::ScheduleEvent(0, s_finish_executing_command, userdata);
 }
 
 void Shutdown()

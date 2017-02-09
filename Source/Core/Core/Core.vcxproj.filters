@@ -752,6 +752,9 @@
     <ClCompile Include="IOS\IPC.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\MIOS.cpp">
+      <Filter>IOS</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\Network\Net.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
@@ -1417,6 +1420,9 @@
       <Filter>IOS</Filter>
     </ClInclude>
     <ClInclude Include="IOS\IPC.h">
+      <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\MIOS.h">
       <Filter>IOS</Filter>
     </ClInclude>
   </ItemGroup>

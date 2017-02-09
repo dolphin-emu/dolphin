@@ -178,6 +178,13 @@ DSPEmulator* GetDSPEmulator()
 
 void Init(bool hle)
 {
+  Reinit(hle);
+  s_et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
+  s_et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
+}
+
+void Reinit(bool hle)
+{
   s_dsp_emulator = CreateDSPEmulator(hle);
   s_dsp_is_lle = s_dsp_emulator->IsLLE();
 
@@ -206,9 +213,6 @@ void Init(bool hle)
   s_ARAM_Info.Hex = 0;
   s_AR_MODE = 1;       // ARAM Controller has init'd
   s_AR_REFRESH = 156;  // 156MHz
-
-  s_et_GenerateDSPInterrupt = CoreTiming::RegisterEvent("DSPint", GenerateDSPInterrupt);
-  s_et_CompleteARAM = CoreTiming::RegisterEvent("ARAMint", CompleteARAM);
 }
 
 void Shutdown()

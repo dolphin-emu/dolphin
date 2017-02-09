@@ -25,18 +25,6 @@ namespace IOS
 {
 namespace HLE
 {
-static Device::BluetoothEmu* s_Usb = nullptr;
-
-Device::BluetoothEmu* GetUsbPointer()
-{
-  return s_Usb;
-}
-
-void SetUsbPointer(Device::BluetoothEmu* ptr)
-{
-  s_Usb = ptr;
-}
-
 WiimoteDevice::WiimoteDevice(Device::BluetoothEmu* host, int number, bdaddr_t bd, bool ready)
     : m_BD(bd),
       m_Name(number == WIIMOTE_BALANCE_BOARD ? "Nintendo RVL-WBC-01" : "Nintendo RVL-CNT-01"),
@@ -943,6 +931,9 @@ void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _
   DEBUG_LOG(WIIMOTE, "   Data: %s", ArrayToString(pData, _Size, 50).c_str());
   DEBUG_LOG(WIIMOTE, "   Channel: %x", _channelID);
 
-  IOS::HLE::s_Usb->m_WiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
+  const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+  if (bt)
+    bt->m_WiiMotes[_number].ReceiveL2capData(_channelID, _pData, _Size);
 }
 }

@@ -61,12 +61,11 @@ void Init()
 
 void Shutdown()
 {
+  // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
+  IOS::HLE::Shutdown();  // Depends on Memory
+  IOS::Shutdown();
   if (SConfig::GetInstance().bWii)
-  {
-    IOS::HLE::Shutdown();  // Depends on Memory
-    IOS::Shutdown();
     Core::ShutdownWiiRoot();
-  }
 
   SystemTimers::Shutdown();
   CPU::Shutdown();

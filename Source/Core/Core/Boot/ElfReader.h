@@ -40,7 +40,7 @@ public:
   ElfMachine GetMachine() const { return (ElfMachine)(header->e_machine); }
   u32 GetEntryPoint() const { return entryPoint; }
   u32 GetFlags() const { return (u32)(header->e_flags); }
-  bool LoadIntoMemory();
+  bool LoadIntoMemory(bool only_in_mem1 = false);
   bool LoadSymbols();
 
   int GetNumSegments() const { return (int)(header->e_phnum); }

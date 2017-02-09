@@ -189,17 +189,23 @@ void Init(int cpu_core)
   s_invalidate_cache_thread_safe =
       CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
 
-  ppcState.pagetable_base = 0;
-  ppcState.pagetable_hashmask = 0;
-  ppcState.tlb = {};
-
-  ResetRegisters();
+  Reset();
 
   InitializeCPUCore(cpu_core);
   ppcState.iCache.Init();
 
   if (SConfig::GetInstance().bEnableDebugging)
     breakpoints.ClearAllTemporary();
+}
+
+void Reset()
+{
+  ppcState.pagetable_base = 0;
+  ppcState.pagetable_hashmask = 0;
+  ppcState.tlb = {};
+
+  ResetRegisters();
+  ppcState.iCache.Reset();
 }
 
 void ScheduleInvalidateCacheThreadSafe(u32 address)

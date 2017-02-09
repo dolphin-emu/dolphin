@@ -140,6 +140,7 @@ set(SRCS	ActionReplay.cpp
 			IOS/Device.cpp
 			IOS/DeviceStub.cpp
 			IOS/IPC.cpp
+			IOS/MIOS.cpp
 			IOS/DI/DI.cpp
 			IOS/ES/ES.cpp
 			IOS/ES/Formats.cpp
