@@ -40,6 +40,7 @@ struct GCPadStatus
   u8 triggerRight;  // 0 <= triggerRight <= 255
   u8 analogA;       // 0 <= analogA      <= 255
   u8 analogB;       // 0 <= analogB      <= 255
+  bool isConnected{true};
 
   static const u8 MAIN_STICK_CENTER_X = 0x80;
   static const u8 MAIN_STICK_CENTER_Y = 0x80;
