@@ -348,7 +348,7 @@ bool CBoot::EmulatedBS2_Wii()
 
   std::vector<u8> tmd = DVDInterface::GetVolume().GetTMD();
 
-  IOS::HLE::TMDReader tmd_reader{std::move(tmd)};
+  ES::TMDReader tmd_reader{std::move(tmd)};
 
   if (!SetupWiiMemory(tmd_reader.GetIOSId()))
     return false;

@@ -9,7 +9,6 @@
 #include <cstring>
 #include <functional>
 #include <map>
-#include <mbedtls/aes.h>
 #include <string>
 #include <utility>
 #include <vector>
@@ -29,50 +28,6 @@
 
 namespace DiscIO
 {
-namespace
-{
-// Strips the signature part of a ticket, which has variable size based on
-// signature type. Returns a new vector which has only the ticket structure
-// itself.
-std::vector<u8> SignedTicketToTicket(const std::vector<u8>& signed_ticket)
-{
-  u32 signature_type = Common::swap32(signed_ticket.data());
-  u32 entry_offset;
-  if (signature_type == 0x10000)  // RSA4096
-  {
-    entry_offset = 576;
-  }
-  else if (signature_type == 0x10001)  // RSA2048
-  {
-    entry_offset = 320;
-  }
-  else if (signature_type == 0x10002)  // ECDSA
-  {
-    entry_offset = 128;
-  }
-  else
-  {
-    ERROR_LOG(DISCIO, "Invalid ticket signature type: %08x", signature_type);
-    return std::vector<u8>();
-  }
-
-  std::vector<u8> ticket(signed_ticket.size() - entry_offset);
-  std::copy(signed_ticket.begin() + entry_offset, signed_ticket.end(), ticket.begin());
-  return ticket;
-}
-
-std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
-{
-  mbedtls_aes_context aes_ctx;
-  std::vector<u8> buffer(size);
-
-  mbedtls_aes_setkey_dec(&aes_ctx, key, 128);
-  mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, size, iv, src, buffer.data());
-
-  return buffer;
-}
-}
-
 CNANDContentData::~CNANDContentData() = default;
 
 CSharedContent::CSharedContent(Common::FromWhichRoot root) : m_root(root)
@@ -222,13 +177,11 @@ bool CNANDContentLoader::Initialize(const std::string& name)
   WiiWAD wad(name);
   std::vector<u8> data_app;
   std::vector<u8> tmd;
-  std::vector<u8> decrypted_title_key;
 
   if (wad.IsValid())
   {
     m_IsWAD = true;
-    m_Ticket = wad.GetTicket();
-    decrypted_title_key = GetKeyFromTicket(m_Ticket);
+    m_ticket = wad.GetTicket();
     tmd = wad.GetTMD();
     data_app = wad.GetDataApp();
   }
@@ -265,12 +218,14 @@ bool CNANDContentLoader::Initialize(const std::string& name)
   if (m_Country == 2)  // SYSMENU
     m_Country = GetSysMenuRegion(m_TitleVersion);
 
-  InitializeContentEntries(tmd, decrypted_title_key, data_app);
+  if (!m_IsWAD)
+    m_ticket = FindSignedTicket(m_TitleID);
+
+  InitializeContentEntries(tmd, data_app);
   return true;
 }
 
 void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd,
-                                                  const std::vector<u8>& decrypted_title_key,
                                                   const std::vector<u8>& data_app)
 {
   m_Content.resize(m_NumEntries);
@@ -305,8 +260,8 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd,
       iv.fill(0);
       std::copy(&tmd[entry_offset + 0x01E8], &tmd[entry_offset + 0x01E8 + 2], iv.begin());
 
-      content.m_Data = std::make_unique<CNANDContentDataBuffer>(AESDecode(
-          decrypted_title_key.data(), iv.data(), &data_app[data_app_offset], rounded_size));
+      content.m_Data = std::make_unique<CNANDContentDataBuffer>(ES::AESDecode(
+          m_ticket.GetTitleKey().data(), iv.data(), &data_app[data_app_offset], rounded_size));
 
       data_app_offset += rounded_size;
       continue;
@@ -533,14 +488,14 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   return title_id;
 }
 
-bool AddTicket(const std::vector<u8>& signed_ticket)
+bool AddTicket(const ES::TicketReader& signed_ticket)
 {
-  std::vector<u8> ticket = SignedTicketToTicket(signed_ticket);
-  if (ticket.empty())
+  if (!signed_ticket.IsValid())
   {
     return false;
   }
-  u64 title_id = Common::swap64(ticket.data() + 0x9c);
+
+  u64 title_id = signed_ticket.GetTitleId();
 
   std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
   File::CreateFullPath(ticket_filename);
@@ -549,46 +504,25 @@ bool AddTicket(const std::vector<u8>& signed_ticket)
   if (!ticket_file)
     return false;
 
-  return ticket_file.WriteBytes(signed_ticket.data(), signed_ticket.size());
+  const std::vector<u8>& raw_ticket = signed_ticket.GetRawTicket();
+  return ticket_file.WriteBytes(raw_ticket.data(), raw_ticket.size());
 }
 
-std::vector<u8> FindSignedTicket(u64 title_id)
+ES::TicketReader FindSignedTicket(u64 title_id)
 {
   std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
   File::IOFile ticket_file(ticket_filename, "rb");
   if (!ticket_file)
   {
-    return std::vector<u8>();
+    return ES::TicketReader{};
   }
 
   std::vector<u8> signed_ticket(ticket_file.GetSize());
   if (!ticket_file.ReadBytes(signed_ticket.data(), signed_ticket.size()))
   {
-    return std::vector<u8>();
+    return ES::TicketReader{};
   }
 
-  return signed_ticket;
+  return ES::TicketReader{std::move(signed_ticket)};
 }
-
-std::vector<u8> FindTicket(u64 title_id)
-{
-  std::vector<u8> signed_ticket = FindSignedTicket(title_id);
-  if (signed_ticket.empty())
-  {
-    return std::vector<u8>();
-  }
-
-  return SignedTicketToTicket(signed_ticket);
-}
-
-std::vector<u8> GetKeyFromTicket(const std::vector<u8>& signed_ticket)
-{
-  const u8 common_key[16] = {0xeb, 0xe4, 0x2a, 0x22, 0x5e, 0x85, 0x93, 0xe4,
-                             0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
-  u8 iv[16] = {};
-
-  std::copy(&signed_ticket[0x01DC], &signed_ticket[0x01DC + 8], iv);
-  return AESDecode(common_key, iv, &signed_ticket[0x01BF], 16);
-}
-
 }  // namespace end

@@ -2,35 +2,6 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// =======================================================
-// File description
-// -------------
-/*  Here we handle /dev/es requests. We have cases for these functions, the exact
-  DevKitPro/libogc name is in parenthesis:
-
-  0x20 GetTitleID (ES_GetTitleID) (Input: none, Output: 8 bytes)
-  0x1d GetDataDir (ES_GetDataDir) (Input: 8 bytes, Output: 30 bytes)
-
-  0x1b DiGetTicketView (Input: none, Output: 216 bytes)
-  0x16 GetConsumption (Input: 8 bytes, Output: 0 bytes, 4 bytes) // there are two output buffers
-
-  0x12 GetNumTicketViews (ES_GetNumTicketViews) (Input: 8 bytes, Output: 4 bytes)
-  0x14 GetTMDViewSize (ES_GetTMDViewSize) (Input: ?, Output: ?) // I don't get this anymore,
-    it used to come after 0x12
-
-  but only the first two are correctly supported. For the other four we ignore any potential
-  input and only write zero to the out buffer. However, most games only use first two,
-  but some Nintendo developed games use the other ones to:
-
-  0x1b: Mario Galaxy, Mario Kart, SSBB
-  0x16: Mario Galaxy, Mario Kart, SSBB
-  0x12: Mario Kart
-  0x14: Mario Kart: But only if we don't return a zeroed out buffer for the 0x12 question,
-    and instead answer for example 1 will this question appear.
-
-*/
-// =============
-
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
@@ -347,7 +318,8 @@ IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDTICKET");
   std::vector<u8> ticket(request.in_vectors[0].size);
   Memory::CopyFromEmu(ticket.data(), request.in_vectors[0].address, request.in_vectors[0].size);
-  DiscIO::AddTicket(ticket);
+
+  DiscIO::AddTicket(::ES::TicketReader{std::move(ticket)});
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -441,18 +413,18 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
 
   // Try to find the title key from a pre-installed ticket.
-  std::vector<u8> ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
-  if (ticket.size() == 0)
+  ::ES::TicketReader ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
+  if (!ticket.IsValid())
   {
     return GetDefaultReply(ES_NO_TICKET_INSTALLED);
   }
 
   mbedtls_aes_context aes_ctx;
-  mbedtls_aes_setkey_dec(&aes_ctx, DiscIO::GetKeyFromTicket(ticket).data(), 128);
+  mbedtls_aes_setkey_dec(&aes_ctx, ticket.GetTitleKey().data(), 128);
 
   // The IV for title content decryption is the lower two bytes of the
   // content index, zero extended.
-  TMDReader::Content content_info;
+  ::ES::TMDReader::Content content_info;
   if (!m_addtitle_tmd.FindContentById(m_addtitle_content_id, &content_info))
   {
     return GetDefaultReply(ES_INVALID_TMD);
@@ -777,46 +749,24 @@ IPCCommandResult ES::GetViewCount(const IOCtlVRequest& request)
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
-  u32 retVal = 0;
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-  u32 ViewCount =
-      static_cast<u32>(Loader.GetTicket().size()) / DiscIO::CNANDContentLoader::TICKET_SIZE;
 
-  if (!ViewCount)
+  size_t view_count = 0;
+  if (TitleID >> 32 == 0x00000001 && TitleID != TITLEID_SYSMENU)
   {
-    std::string TicketFilename = Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT);
-    if (File::Exists(TicketFilename))
-    {
-      u32 FileSize = (u32)File::GetSize(TicketFilename);
-      _dbg_assert_msg_(IOS_ES, (FileSize % DiscIO::CNANDContentLoader::TICKET_SIZE) == 0,
-                       "IOCTL_ES_GETVIEWCNT ticket file size seems to be wrong");
-
-      ViewCount = FileSize / DiscIO::CNANDContentLoader::TICKET_SIZE;
-      _dbg_assert_msg_(IOS_ES, (ViewCount > 0) && (ViewCount <= 4),
-                       "IOCTL_ES_GETVIEWCNT ticket count seems to be wrong");
-    }
-    else if (TitleID >> 32 == 0x00000001)
-    {
-      // Fake a ticket view to make IOS reload work.
-      ViewCount = 1;
-    }
-    else
-    {
-      ViewCount = 0;
-      if (TitleID == TITLEID_SYSMENU)
-      {
-        PanicAlertT("There must be a ticket for 00000001/00000002. Your NAND dump is probably "
-                    "incomplete.");
-      }
-      // retVal = ES_NO_TICKET_INSTALLED;
-    }
+    // Fake a ticket view to make IOS reload work.
+    view_count = 1;
+  }
+  else if (Loader.IsValid() && Loader.GetTicket().IsValid())
+  {
+    view_count = Loader.GetTicket().GetNumberOfTickets();
   }
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %i)",
-           (u32)(TitleID >> 32), (u32)TitleID, ViewCount);
+  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %zu)",
+           static_cast<u32>(TitleID >> 32), static_cast<u32>(TitleID), view_count);
 
-  Memory::Write_U32(ViewCount, request.io_vectors[0].address);
-  return GetDefaultReply(retVal);
+  Memory::Write_U32(static_cast<u32>(view_count), request.io_vectors[0].address);
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
@@ -826,68 +776,37 @@ IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
-  u32 retVal = 0;
 
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-  const std::vector<u8>& ticket = Loader.GetTicket();
-
-  if (ticket.empty())
+  if (TitleID >> 32 == 0x00000001 && TitleID != TITLEID_SYSMENU)
   {
-    std::string TicketFilename = Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT);
-    if (File::Exists(TicketFilename))
-    {
-      File::IOFile pFile(TicketFilename, "rb");
-      if (pFile)
-      {
-        u8 FileTicket[DiscIO::CNANDContentLoader::TICKET_SIZE];
-        for (unsigned int View = 0;
-             View != maxViews &&
-             pFile.ReadBytes(FileTicket, DiscIO::CNANDContentLoader::TICKET_SIZE);
-             ++View)
-        {
-          Memory::Write_U32(View, request.io_vectors[0].address + View * 0xD8);
-          Memory::CopyToEmu(request.io_vectors[0].address + 4 + View * 0xD8, FileTicket + 0x1D0,
-                            212);
-        }
-      }
-    }
-    else if (TitleID >> 32 == 0x00000001)
-    {
-      // For IOS titles, the ticket view isn't normally parsed by either the
-      // SDK or libogc, just passed to LaunchTitle, so this
-      // shouldn't matter at all.  Just fill out some fields just
-      // to be on the safe side.
-      u32 Address = request.io_vectors[0].address;
-      Memory::Memset(Address, 0, 0xD8);
-      Memory::Write_U64(TitleID, Address + 4 + (0x1dc - 0x1d0));  // title ID
-      Memory::Write_U16(0xffff, Address + 4 + (0x1e4 - 0x1d0));   // unnnown
-      Memory::Write_U32(0xff00, Address + 4 + (0x1ec - 0x1d0));   // access mask
-      Memory::Memset(Address + 4 + (0x222 - 0x1d0), 0xff, 0x20);  // content permissions
-    }
-    else
-    {
-      // retVal = ES_NO_TICKET_INSTALLED;
-      PanicAlertT("IOCTL_ES_GETVIEWS: Tried to get data from an unknown ticket: %08x/%08x",
-                  (u32)(TitleID >> 32), (u32)TitleID);
-    }
+    // For IOS titles, the ticket view isn't normally parsed by either the
+    // SDK or libogc, just passed to LaunchTitle, so this
+    // shouldn't matter at all.  Just fill out some fields just
+    // to be on the safe side.
+    u32 Address = request.io_vectors[0].address;
+    Memory::Memset(Address, 0, 0xD8);
+    Memory::Write_U64(TitleID, Address + 4 + (0x1dc - 0x1d0));  // title ID
+    Memory::Write_U16(0xffff, Address + 4 + (0x1e4 - 0x1d0));   // unnnown
+    Memory::Write_U32(0xff00, Address + 4 + (0x1ec - 0x1d0));   // access mask
+    Memory::Memset(Address + 4 + (0x222 - 0x1d0), 0xff, 0x20);  // content permissions
   }
-  else
+  else if (Loader.IsValid() && Loader.GetTicket().IsValid())
   {
-    u32 view_count =
-        static_cast<u32>(Loader.GetTicket().size()) / DiscIO::CNANDContentLoader::TICKET_SIZE;
-    for (unsigned int view = 0; view != maxViews && view < view_count; ++view)
+    u32 number_of_views = std::min(maxViews, Loader.GetTicket().GetNumberOfTickets());
+    for (u32 view = 0; view < number_of_views; ++view)
     {
-      Memory::Write_U32(view, request.io_vectors[0].address + view * 0xD8);
-      Memory::CopyToEmu(request.io_vectors[0].address + 4 + view * 0xD8,
-                        &ticket[0x1D0 + (view * DiscIO::CNANDContentLoader::TICKET_SIZE)], 212);
+      const std::vector<u8> ticket_view = Loader.GetTicket().GetRawTicketView(view);
+      Memory::CopyToEmu(request.io_vectors[0].address + view * sizeof(::ES::TicketView),
+                        ticket_view.data(), ticket_view.size());
     }
   }
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32),
            (u32)TitleID, maxViews);
 
-  return GetDefaultReply(retVal);
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::GetTMDViewCount(const IOCtlVRequest& request)

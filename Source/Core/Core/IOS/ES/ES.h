@@ -203,7 +203,7 @@ private:
   u32 m_AccessIdentID = 0;
 
   // For title installation (ioctls IOCTL_ES_ADDTITLE*).
-  TMDReader m_addtitle_tmd;
+  ::ES::TMDReader m_addtitle_tmd;
   u32 m_addtitle_content_id = 0xFFFFFFFF;
   std::vector<u8> m_addtitle_content_buffer;
 };

@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
+#include "Core/IOS/ES/Formats.h"
 
 namespace File
 {
@@ -22,10 +23,8 @@ namespace DiscIO
 {
 enum class Region;
 
-bool AddTicket(const std::vector<u8>& signed_ticket);
-std::vector<u8> FindSignedTicket(u64 title_id);
-std::vector<u8> FindTicket(u64 title_id);
-std::vector<u8> GetKeyFromTicket(const std::vector<u8>& ticket);
+bool AddTicket(const ES::TicketReader& signed_ticket);
+ES::TicketReader FindSignedTicket(u64 title_id);
 
 class CNANDContentData
 {
@@ -93,7 +92,7 @@ public:
   const SNANDContent* GetContentByIndex(int index) const;
   const u8* GetTMDView() const { return m_TMDView; }
   const u8* GetTMDHeader() const { return m_TMDHeader; }
-  const std::vector<u8>& GetTicket() const { return m_Ticket; }
+  const ES::TicketReader& GetTicket() const { return m_ticket; }
   const std::vector<SNANDContent>& GetContent() const { return m_Content; }
   u16 GetTitleVersion() const { return m_TitleVersion; }
   u16 GetNumEntries() const { return m_NumEntries; }
@@ -104,14 +103,11 @@ public:
     TMD_VIEW_SIZE = 0x58,
     TMD_HEADER_SIZE = 0x1E4,
     CONTENT_HEADER_SIZE = 0x24,
-    TICKET_SIZE = 0x2A4
   };
 
 private:
   bool Initialize(const std::string& name);
-  void InitializeContentEntries(const std::vector<u8>& tmd,
-                                const std::vector<u8>& decrypted_title_key,
-                                const std::vector<u8>& data_app);
+  void InitializeContentEntries(const std::vector<u8>& tmd, const std::vector<u8>& data_app);
 
   bool m_Valid;
   bool m_IsWAD;
@@ -123,7 +119,7 @@ private:
   u16 m_TitleVersion;
   u8 m_TMDView[TMD_VIEW_SIZE];
   u8 m_TMDHeader[TMD_HEADER_SIZE];
-  std::vector<u8> m_Ticket;
+  ES::TicketReader m_ticket;
   u8 m_Country;
 
   std::vector<SNANDContent> m_Content;

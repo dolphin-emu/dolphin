@@ -182,7 +182,7 @@ void InfoPanel::LoadISODetails()
   m_fst->SetValue(StrToWxStr(std::to_string(m_opened_iso->GetFSTSize())));
   if (m_ios_version)
   {
-    IOS::HLE::TMDReader tmd{m_opened_iso->GetTMD()};
+    ES::TMDReader tmd{m_opened_iso->GetTMD()};
     if (tmd.IsValid())
       m_ios_version->SetValue(StringFromFormat("IOS%u", static_cast<u32>(tmd.GetIOSId())));
   }
