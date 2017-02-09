@@ -753,6 +753,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
 
       gpr.Lock(W30);
       BitSet32 regs_in_use = gpr.GetCallerSavedUsed();
+      BitSet32 fprs_in_use = fpr.GetCallerSavedUsed();
       regs_in_use[W30] = 0;
 
       FixupBranch Exception = B();
@@ -761,8 +762,10 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       FixupBranch exit = B();
       SetJumpTarget(Exception);
       ABI_PushRegisters(regs_in_use);
+      m_float_emit.ABI_PushRegisters(fprs_in_use, X30);
       MOVP2R(X30, &GPFifo::FastCheckGatherPipe);
       BLR(X30);
+      m_float_emit.ABI_PopRegisters(fprs_in_use, X30);
       ABI_PopRegisters(regs_in_use);
 
       // Inline exception check
