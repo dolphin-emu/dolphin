@@ -158,61 +158,37 @@ void FileIO::OpenFile()
 
 IPCCommandResult FileIO::Seek(const SeekRequest& request)
 {
-  u32 return_value = FS_EINVAL;
+  if (!m_file->IsOpen())
+    return GetDefaultReply(FS_ENOENT);
 
-  if (m_file->IsOpen())
+  const u32 file_size = static_cast<u32>(m_file->GetSize());
+  DEBUG_LOG(IOS_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", request.offset,
+            request.mode, m_name.c_str(), file_size);
+
+  u32 new_position = 0;
+  switch (request.mode)
   {
-    const u32 file_size = static_cast<u32>(m_file->GetSize());
-    DEBUG_LOG(IOS_FILEIO, "FileIO: Seek Pos: 0x%08x, Mode: %i (%s, Length=0x%08x)", request.offset,
-              request.mode, m_name.c_str(), file_size);
+  case SeekRequest::IOS_SEEK_SET:
+    new_position = request.offset;
+    break;
 
-    switch (request.mode)
-    {
-    case SeekRequest::IOS_SEEK_SET:
-    {
-      if (request.offset <= file_size)
-      {
-        m_SeekPos = request.offset;
-        return_value = m_SeekPos;
-      }
-      break;
-    }
+  case SeekRequest::IOS_SEEK_CUR:
+    new_position = m_SeekPos + request.offset;
+    break;
 
-    case SeekRequest::IOS_SEEK_CUR:
-    {
-      const u32 wanted_pos = request.offset + m_SeekPos;
-      if (wanted_pos <= file_size)
-      {
-        m_SeekPos = wanted_pos;
-        return_value = m_SeekPos;
-      }
-      break;
-    }
+  case SeekRequest::IOS_SEEK_END:
+    new_position = file_size + request.offset;
+    break;
 
-    case SeekRequest::IOS_SEEK_END:
-    {
-      const u32 wanted_pos = request.offset + file_size;
-      if (wanted_pos <= file_size)
-      {
-        m_SeekPos = wanted_pos;
-        return_value = m_SeekPos;
-      }
-      break;
-    }
-
-    default:
-    {
-      PanicAlert("FileIO Unsupported seek mode %i", request.mode);
-      return_value = FS_EINVAL;
-      break;
-    }
-    }
+  default:
+    return GetDefaultReply(FS_EINVAL);
   }
-  else
-  {
-    return_value = FS_ENOENT;
-  }
-  return GetDefaultReply(return_value);
+
+  if (new_position > file_size)
+    return GetDefaultReply(FS_EINVAL);
+
+  m_SeekPos = new_position;
+  return GetDefaultReply(new_position);
 }
 
 IPCCommandResult FileIO::Read(const ReadWriteRequest& request)
