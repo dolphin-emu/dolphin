@@ -55,8 +55,6 @@
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/IOS/IPC.h"
-#include "Core/IOS/USB/Bluetooth/BTEmu.h"
-#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -526,13 +524,6 @@ void EmuThread()
                               Wiimote::InitializeMode::DO_NOT_WAIT_FOR_WIIMOTES);
     else
       Wiimote::LoadConfig();
-
-    // Activate Wiimotes which don't have source set to "None"
-    const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
-        IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
-    for (unsigned int i = 0; i != MAX_BBMOTES; ++i)
-      if (g_wiimote_sources[i] && bt)
-        bt->AccessWiiMote(i | 0x100)->Activate(true);
   }
 
   AudioCommon::InitSoundStream();
