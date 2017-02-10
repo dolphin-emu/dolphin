@@ -7,7 +7,6 @@
 #include <SFML/Network/Packet.hpp>
 #include <array>
 #include <map>
-#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -65,7 +64,7 @@ class NetPlayClient : public TraversalClientClient
 {
 public:
   void ThreadFunc();
-  void SendAsync(std::unique_ptr<sf::Packet> packet);
+  void SendAsync(sf::Packet&& packet);
 
   NetPlayClient(const std::string& address, const u16 port, NetPlayUI* dialog,
                 const std::string& name, bool traversal, const std::string& centralServer,
@@ -111,7 +110,7 @@ protected:
     std::recursive_mutex async_queue_write;
   } m_crit;
 
-  Common::FifoQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
+  Common::FifoQueue<sf::Packet, false> m_async_queue;
 
   std::array<Common::FifoQueue<GCPadStatus>, 4> m_pad_buffer;
   std::array<Common::FifoQueue<NetWiimote>, 4> m_wiimote_buffer;

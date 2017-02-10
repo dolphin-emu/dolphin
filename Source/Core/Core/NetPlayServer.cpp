@@ -129,7 +129,7 @@ void NetPlayServer::ThreadFunc()
     {
       {
         std::lock_guard<std::recursive_mutex> lkp(m_crit.players);
-        SendToClients(*(m_async_queue.Front().get()));
+        SendToClients(m_async_queue.Front());
       }
       m_async_queue.Pop();
     }
@@ -456,14 +456,14 @@ void NetPlayServer::AdjustPadBufferSize(unsigned int size)
   m_target_buffer_size = size;
 
   // tell clients to change buffer size
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
-  *spac << static_cast<u32>(m_target_buffer_size);
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_PAD_BUFFER);
+  spac << static_cast<u32>(m_target_buffer_size);
 
   SendAsyncToClients(std::move(spac));
 }
 
-void NetPlayServer::SendAsyncToClients(std::unique_ptr<sf::Packet> packet)
+void NetPlayServer::SendAsyncToClients(sf::Packet&& packet)
 {
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
@@ -723,10 +723,10 @@ void NetPlayServer::OnTraversalStateChanged()
 // called from ---GUI--- thread
 void NetPlayServer::SendChatMessage(const std::string& msg)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
-  *spac << static_cast<PlayerId>(0);  // server id always 0
-  *spac << msg;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
+  spac << static_cast<PlayerId>(0);  // server id always 0
+  spac << msg;
 
   SendAsyncToClients(std::move(spac));
 }
@@ -739,9 +739,9 @@ bool NetPlayServer::ChangeGame(const std::string& game)
   m_selected_game = game;
 
   // send changed game to clients
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
-  *spac << game;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_CHANGE_GAME);
+  spac << game;
 
   SendAsyncToClients(std::move(spac));
 
@@ -751,9 +751,9 @@ bool NetPlayServer::ChangeGame(const std::string& game)
 // called from ---GUI--- thread
 bool NetPlayServer::ComputeMD5(const std::string& file_identifier)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_COMPUTE_MD5);
-  *spac << file_identifier;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_COMPUTE_MD5);
+  spac << file_identifier;
 
   SendAsyncToClients(std::move(spac));
 
@@ -763,8 +763,8 @@ bool NetPlayServer::ComputeMD5(const std::string& file_identifier)
 // called from ---GUI--- thread
 bool NetPlayServer::AbortMD5()
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_MD5_ABORT);
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_MD5_ABORT);
 
   SendAsyncToClients(std::move(spac));
 
@@ -794,26 +794,26 @@ bool NetPlayServer::StartGame()
     g_netplay_initial_rtc = Common::Timer::GetLocalTimeSinceJan1970();
 
   // tell clients to start game
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << (MessageId)NP_MSG_START_GAME;
-  *spac << m_current_game;
-  *spac << m_settings.m_CPUthread;
-  *spac << m_settings.m_CPUcore;
-  *spac << m_settings.m_EnableCheats;
-  *spac << m_settings.m_SelectedLanguage;
-  *spac << m_settings.m_OverrideGCLanguage;
-  *spac << m_settings.m_ProgressiveScan;
-  *spac << m_settings.m_PAL60;
-  *spac << m_settings.m_DSPEnableJIT;
-  *spac << m_settings.m_DSPHLE;
-  *spac << m_settings.m_WriteToMemcard;
-  *spac << m_settings.m_CopyWiiSave;
-  *spac << m_settings.m_OCEnable;
-  *spac << m_settings.m_OCFactor;
-  *spac << m_settings.m_EXIDevice[0];
-  *spac << m_settings.m_EXIDevice[1];
-  *spac << (u32)g_netplay_initial_rtc;
-  *spac << (u32)(g_netplay_initial_rtc >> 32);
+  sf::Packet spac;
+  spac << (MessageId)NP_MSG_START_GAME;
+  spac << m_current_game;
+  spac << m_settings.m_CPUthread;
+  spac << m_settings.m_CPUcore;
+  spac << m_settings.m_EnableCheats;
+  spac << m_settings.m_SelectedLanguage;
+  spac << m_settings.m_OverrideGCLanguage;
+  spac << m_settings.m_ProgressiveScan;
+  spac << m_settings.m_PAL60;
+  spac << m_settings.m_DSPEnableJIT;
+  spac << m_settings.m_DSPHLE;
+  spac << m_settings.m_WriteToMemcard;
+  spac << m_settings.m_CopyWiiSave;
+  spac << m_settings.m_OCEnable;
+  spac << m_settings.m_OCFactor;
+  spac << m_settings.m_EXIDevice[0];
+  spac << m_settings.m_EXIDevice[1];
+  spac << (u32)g_netplay_initial_rtc;
+  spac << (u32)(g_netplay_initial_rtc >> 32);
 
   SendAsyncToClients(std::move(spac));
 

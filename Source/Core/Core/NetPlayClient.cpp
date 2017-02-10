@@ -614,7 +614,7 @@ void NetPlayClient::Disconnect()
   m_server = nullptr;
 }
 
-void NetPlayClient::SendAsync(std::unique_ptr<sf::Packet> packet)
+void NetPlayClient::SendAsync(sf::Packet&& packet)
 {
   {
     std::lock_guard<std::recursive_mutex> lkq(m_crit.async_queue_write);
@@ -635,7 +635,7 @@ void NetPlayClient::ThreadFunc()
     net = enet_host_service(m_client, &netEvent, 250);
     while (!m_async_queue.Empty())
     {
-      Send(*(m_async_queue.Front().get()));
+      Send(m_async_queue.Front());
       m_async_queue.Pop();
     }
     if (net > 0)
@@ -733,9 +733,9 @@ std::vector<const Player*> NetPlayClient::GetPlayers()
 // called from ---GUI--- thread
 void NetPlayClient::SendChatMessage(const std::string& msg)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
-  *spac << msg;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
+  spac << msg;
 
   SendAsync(std::move(spac));
 }
@@ -743,11 +743,11 @@ void NetPlayClient::SendChatMessage(const std::string& msg)
 // called from ---CPU--- thread
 void NetPlayClient::SendPadState(const int in_game_pad, const GCPadStatus& pad)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
-  *spac << static_cast<PadMapping>(in_game_pad);
-  *spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
-        << pad.substickY << pad.triggerLeft << pad.triggerRight;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
+  spac << static_cast<PadMapping>(in_game_pad);
+  spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
+       << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
   SendAsync(std::move(spac));
 }
@@ -755,13 +755,13 @@ void NetPlayClient::SendPadState(const int in_game_pad, const GCPadStatus& pad)
 // called from ---CPU--- thread
 void NetPlayClient::SendWiimoteState(const int in_game_pad, const NetWiimote& nw)
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
-  *spac << static_cast<PadMapping>(in_game_pad);
-  *spac << static_cast<u8>(nw.size());
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
+  spac << static_cast<PadMapping>(in_game_pad);
+  spac << static_cast<u8>(nw.size());
   for (auto it : nw)
   {
-    *spac << it;
+    spac << it;
   }
 
   SendAsync(std::move(spac));
@@ -770,9 +770,9 @@ void NetPlayClient::SendWiimoteState(const int in_game_pad, const NetWiimote& nw
 // called from ---GUI--- thread
 void NetPlayClient::SendStartGamePacket()
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_START_GAME);
-  *spac << m_current_game;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_START_GAME);
+  spac << m_current_game;
 
   SendAsync(std::move(spac));
 }
@@ -780,8 +780,8 @@ void NetPlayClient::SendStartGamePacket()
 // called from ---GUI--- thread
 void NetPlayClient::SendStopGamePacket()
 {
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_STOP_GAME);
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_STOP_GAME);
 
   SendAsync(std::move(spac));
 }
@@ -1193,11 +1193,11 @@ void NetPlayClient::SendTimeBase()
 
   u64 timebase = SystemTimers::GetFakeTimeBase();
 
-  auto spac = std::make_unique<sf::Packet>();
-  *spac << static_cast<MessageId>(NP_MSG_TIMEBASE);
-  *spac << static_cast<u32>(timebase);
-  *spac << static_cast<u32>(timebase << 32);
-  *spac << netplay_client->m_timebase_frame++;
+  sf::Packet spac;
+  spac << static_cast<MessageId>(NP_MSG_TIMEBASE);
+  spac << static_cast<u32>(timebase);
+  spac << static_cast<u32>(timebase << 32);
+  spac << netplay_client->m_timebase_frame++;
 
   netplay_client->SendAsync(std::move(spac));
 }
