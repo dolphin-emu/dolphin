@@ -155,26 +155,15 @@ private:
   std::unordered_map<std::string, std::unique_ptr<CNANDContentLoader>> m_map;
 };
 
-class CSharedContent
+class CSharedContent final
 {
 public:
-  static CSharedContent& AccessInstance()
-  {
-    static CSharedContent instance;
-    return instance;
-  }
+  explicit CSharedContent(Common::FromWhichRoot root);
 
-  std::string GetFilenameFromSHA1(const u8* hash);
+  std::string GetFilenameFromSHA1(const u8* hash) const;
   std::string AddSharedContent(const u8* hash);
-  void UpdateLocation();
 
 private:
-  CSharedContent();
-  virtual ~CSharedContent();
-
-  CSharedContent(CSharedContent const&) = delete;
-  void operator=(CSharedContent const&) = delete;
-
 #pragma pack(push, 1)
   struct SElement
   {
@@ -183,6 +172,7 @@ private:
   };
 #pragma pack(pop)
 
+  Common::FromWhichRoot m_root;
   u32 m_LastID;
   std::string m_ContentMap;
   std::vector<SElement> m_Elements;
