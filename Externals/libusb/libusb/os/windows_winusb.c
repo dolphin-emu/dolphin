@@ -24,8 +24,6 @@
 
 #include <config.h>
 
-#if !defined(USE_USBDK)
-
 #include <windows.h>
 #include <setupapi.h>
 #include <ctype.h>
@@ -103,6 +101,7 @@ static int composite_abort_control(int sub_api, struct usbi_transfer *itransfer)
 static int composite_reset_device(int sub_api, struct libusb_device_handle *dev_handle);
 static int composite_copy_transfer_data(int sub_api, struct usbi_transfer *itransfer, uint32_t io_size);
 
+static void backend_init(void);
 
 // Global variables
 int windows_version = WINDOWS_UNDEFINED;
@@ -804,6 +803,8 @@ static int windows_init(struct libusb_context *ctx)
 			r = LIBUSB_ERROR_NOT_SUPPORTED;
 			goto init_exit;
 		}
+
+		backend_init();
 
 		// We need a lock for proper auto-release
 		usbi_mutex_init(&autoclaim_lock);
@@ -1897,7 +1898,7 @@ static void windows_destroy_device(struct libusb_device *dev)
 	windows_device_priv_release(dev);
 }
 
-void windows_clear_transfer_priv(struct usbi_transfer *itransfer)
+static void windows_clear_transfer_priv(struct usbi_transfer *itransfer)
 {
 	struct windows_transfer_priv *transfer_priv = usbi_transfer_get_os_priv(itransfer);
 
@@ -2017,20 +2018,20 @@ static int windows_cancel_transfer(struct usbi_transfer *itransfer)
 	}
 }
 
-int windows_copy_transfer_data(struct usbi_transfer *itransfer, uint32_t io_size)
+static int windows_copy_transfer_data(struct usbi_transfer *itransfer, uint32_t io_size)
 {
 	struct libusb_transfer *transfer = USBI_TRANSFER_TO_LIBUSB_TRANSFER(itransfer);
 	struct windows_device_priv *priv = _device_priv(transfer->dev_handle->dev);
 	return priv->apib->copy_transfer_data(SUB_API_NOTSET, itransfer, io_size);
 }
 
-struct winfd *windows_get_fd(struct usbi_transfer *transfer)
+static struct winfd *windows_get_fd(struct usbi_transfer *transfer)
 {
 	struct windows_transfer_priv *transfer_priv = usbi_transfer_get_os_priv(transfer);
 	return &transfer_priv->pollable_fd;
 }
 
-void windows_get_overlapped_result(struct usbi_transfer *transfer, struct winfd *pollable_fd, DWORD *io_result, DWORD *io_size)
+static void windows_get_overlapped_result(struct usbi_transfer *transfer, struct winfd *pollable_fd, DWORD *io_result, DWORD *io_size)
 {
 	if (HasOverlappedIoCompletedSync(pollable_fd->overlapped)) {
 		*io_result = NO_ERROR;
@@ -4285,4 +4286,12 @@ static int composite_copy_transfer_data(int sub_api, struct usbi_transfer *itran
 		copy_transfer_data(priv->usb_interface[transfer_priv->interface_number].sub_api, itransfer, io_size);
 }
 
-#endif /* !USE_USBDK */
+static void backend_init(void)
+{
+	win_backend backend;
+	backend.clear_transfer_priv = windows_clear_transfer_priv;
+	backend.copy_transfer_data = windows_copy_transfer_data;
+	backend.get_fd = windows_get_fd;
+	backend.get_overlapped_result = windows_get_overlapped_result;
+	win_nt_init(&backend);
+}

@@ -53,6 +53,7 @@
     <ClCompile Include="libusb\os\threads_windows.c" />
     <ClCompile Include="libusb\os\windows_nt_common.c" />
     <ClCompile Include="libusb\os\windows_usbdk.c" />
+    <ClCompile Include="libusb\os\windows_winusb.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="msvc\config.h" />
@@ -66,6 +67,7 @@
     <ClInclude Include="libusb\os\windows_common.h" />
     <ClInclude Include="libusb\os\windows_nt_common.h" />
     <ClInclude Include="libusb\os\windows_usbdk.h" />
+    <ClInclude Include="libusb\os\windows_winusb.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

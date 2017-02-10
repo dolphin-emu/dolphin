@@ -23,8 +23,6 @@
 
 #include <config.h>
 
-#if defined(USE_USBDK)
-
 #include <windows.h>
 #include <cfgmgr32.h>
 #include <stdio.h>
@@ -65,6 +63,8 @@ typedef int32_t USBD_STATUS;
 #define USBD_STATUS_TIMEOUT		((USBD_STATUS) 0xc0006000)
 #define USBD_STATUS_CANCELED		((USBD_STATUS) 0xc0010000)
 #endif
+
+static void backend_init(void);
 
 static int concurrent_usage = -1;
 
@@ -201,6 +201,9 @@ static int usbdk_init(struct libusb_context *ctx)
 	int r;
 
 	if (++concurrent_usage == 0) { // First init?
+
+		backend_init();
+
 		r = load_usbdk_helper_dll(ctx);
 		if (r)
 			goto init_exit;
@@ -533,7 +536,7 @@ static void usbdk_destroy_device(struct libusb_device *dev)
 		usbdk_release_config_descriptors(p, p->info.DeviceDescriptor.bNumConfigurations);
 }
 
-void windows_clear_transfer_priv(struct usbi_transfer *itransfer)
+static void windows_clear_transfer_priv(struct usbi_transfer *itransfer)
 {
 	struct usbdk_transfer_priv *transfer_priv = _usbdk_transfer_priv(itransfer);
 	struct libusb_transfer *transfer = USBI_TRANSFER_TO_LIBUSB_TRANSFER(itransfer);
@@ -778,13 +781,13 @@ static int usbdk_cancel_transfer(struct usbi_transfer *itransfer)
 	}
 }
 
-int windows_copy_transfer_data(struct usbi_transfer *itransfer, uint32_t io_size)
+static int windows_copy_transfer_data(struct usbi_transfer *itransfer, uint32_t io_size)
 {
 	itransfer->transferred += io_size;
 	return LIBUSB_TRANSFER_COMPLETED;
 }
 
-struct winfd *windows_get_fd(struct usbi_transfer *transfer)
+static struct winfd *windows_get_fd(struct usbi_transfer *transfer)
 {
 	struct usbdk_transfer_priv *transfer_priv = _usbdk_transfer_priv(transfer);
 	return &transfer_priv->pollable_fd;
@@ -809,7 +812,7 @@ static DWORD usbdk_translate_usbd_status(USBD_STATUS UsbdStatus)
 	}
 }
 
-void windows_get_overlapped_result(struct usbi_transfer *transfer, struct winfd *pollable_fd, DWORD *io_result, DWORD *io_size)
+static void windows_get_overlapped_result(struct usbi_transfer *transfer, struct winfd *pollable_fd, DWORD *io_result, DWORD *io_size)
 {
 	if (HasOverlappedIoCompletedSync(pollable_fd->overlapped) // Handle async requests that completed synchronously first
 			|| GetOverlappedResult(pollable_fd->handle, pollable_fd->overlapped, io_size, false)) { // Regular async overlapped
@@ -902,4 +905,12 @@ const struct usbi_os_backend usbdk_backend = {
 	sizeof(struct usbdk_transfer_priv),
 };
 
-#endif /* USE_USBDK */
+static void backend_init(void)
+{
+	win_backend backend;
+	backend.clear_transfer_priv = windows_clear_transfer_priv;
+	backend.copy_transfer_data = windows_copy_transfer_data;
+	backend.get_fd = windows_get_fd;
+	backend.get_overlapped_result = windows_get_overlapped_result;
+	win_nt_init(&backend);
+}

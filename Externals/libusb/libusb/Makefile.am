@@ -15,8 +15,8 @@ NETBSD_USB_SRC = os/netbsd_usb.c
 SUNOS_USB_SRC = os/sunos_usb.c os/sunos_usb.h
 WINDOWS_COMMON_SRC = os/windows_nt_common.h os/windows_nt_common.c \
                      os/windows_common.h libusb-1.0.rc libusb-1.0.def
-WINDOWS_USB_SRC = os/windows_winusb.h os/windows_winusb.c
-WINDOWS_USBDK_SRC = os/windows_usbdk.h os/windows_usbdk.c
+WINDOWS_USB_SRC = os/windows_winusb.h os/windows_winusb.c os/windows_usbdk.h \
+		  os/windows_usbdk.c $(COMMON_WINDOWS_SRC)
 WINCE_USB_SRC = os/wince_usb.h os/wince_usb.c
 HAIKU_USB_SRC = os/haiku_usb.h os/haiku_usb_backend.cpp \
 		os/haiku_usb_raw.h os/haiku_usb_raw.cpp os/haiku_pollfs.cpp
@@ -63,12 +63,7 @@ libusb_1_0_la_LIBADD = libusb_haiku.la
 endif
 
 if OS_WINDOWS
-
-if USE_USBDK
-OS_SRC = $(WINDOWS_USBDK_SRC) $(WINDOWS_COMMON_SRC)
-else
 OS_SRC = $(WINDOWS_USB_SRC) $(WINDOWS_COMMON_SRC)
-endif
 
 .rc.lo:
 	$(AM_V_GEN)$(LIBTOOL) $(AM_V_lt) $(AM_LIBTOOLFLAGS) $(LIBTOOLFLAGS) --tag=RC --mode=compile $(RC) $(RCFLAGS) -i $< -o $@

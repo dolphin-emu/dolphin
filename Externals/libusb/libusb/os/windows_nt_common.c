@@ -59,6 +59,8 @@ DLL_DECLARE_FUNC_PREFIXED(WINAPI, BOOL, p, GetMessageA, (LPMSG, HWND, UINT, UINT
 DLL_DECLARE_FUNC_PREFIXED(WINAPI, BOOL, p, PeekMessageA, (LPMSG, HWND, UINT, UINT, UINT));
 DLL_DECLARE_FUNC_PREFIXED(WINAPI, BOOL, p, PostThreadMessageA, (DWORD, UINT, WPARAM, LPARAM));
 
+win_backend backend_func;
+
 static unsigned __stdcall windows_clock_gettime_threaded(void *param);
 
 /*
@@ -487,7 +489,7 @@ static void windows_transfer_callback(struct usbi_transfer *itransfer, uint32_t 
 
 	switch (io_result) {
 	case NO_ERROR:
-		status = windows_copy_transfer_data(itransfer, io_size);
+		status = backend_func.copy_transfer_data(itransfer, io_size);
 		break;
 	case ERROR_GEN_FAILURE:
 		usbi_dbg("detected endpoint stall");
@@ -498,7 +500,7 @@ static void windows_transfer_callback(struct usbi_transfer *itransfer, uint32_t 
 		status = LIBUSB_TRANSFER_TIMED_OUT;
 		break;
 	case ERROR_OPERATION_ABORTED:
-		istatus = windows_copy_transfer_data(itransfer, io_size);
+		istatus = backend_func.copy_transfer_data(itransfer, io_size);
 		if (istatus != LIBUSB_TRANSFER_COMPLETED)
 			usbi_dbg("Failed to copy partial data in aborted operation: %d", istatus);
 
@@ -510,7 +512,7 @@ static void windows_transfer_callback(struct usbi_transfer *itransfer, uint32_t 
 		status = LIBUSB_TRANSFER_ERROR;
 		break;
 	}
-	windows_clear_transfer_priv(itransfer);	// Cancel polling
+	backend_func.clear_transfer_priv(itransfer);    // Cancel polling
 	if (status == LIBUSB_TRANSFER_CANCELLED)
 		usbi_handle_transfer_cancellation(itransfer);
 	else
@@ -560,7 +562,7 @@ int windows_handle_events(struct libusb_context *ctx, struct pollfd *fds, POLL_N
 		usbi_mutex_lock(&ctx->flying_transfers_lock);
 		found = false;
 		list_for_each_entry(transfer, &ctx->flying_transfers, list, struct usbi_transfer) {
-			pollable_fd = windows_get_fd(transfer);
+			pollable_fd = backend_func.get_fd(transfer);
 			if (pollable_fd->fd == fds[i].fd) {
 				found = true;
 				break;
@@ -569,7 +571,7 @@ int windows_handle_events(struct libusb_context *ctx, struct pollfd *fds, POLL_N
 		usbi_mutex_unlock(&ctx->flying_transfers_lock);
 
 		if (found) {
-			windows_get_overlapped_result(transfer, pollable_fd, &io_result, &io_size);
+			backend_func.get_overlapped_result(transfer, pollable_fd, &io_result, &io_size);
 
 			usbi_remove_pollfd(ctx, pollable_fd->fd);
 			// let handle_callback free the event using the transfer wfd
@@ -607,4 +609,9 @@ void windows_common_exit(void)
 	htab_destroy();
 	windows_destroy_clock();
 	windows_exit_dlls();
+}
+
+void win_nt_init(win_backend *backend)
+{
+	backend_func = *backend;
 }

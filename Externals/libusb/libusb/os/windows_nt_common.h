@@ -50,10 +50,20 @@ void windows_common_exit(void);
 unsigned long htab_hash(const char *str);
 int windows_clock_gettime(int clk_id, struct timespec *tp);
 
-void windows_clear_transfer_priv(struct usbi_transfer *itransfer);
-int windows_copy_transfer_data(struct usbi_transfer *itransfer, uint32_t io_size);
-struct winfd *windows_get_fd(struct usbi_transfer *transfer);
-void windows_get_overlapped_result(struct usbi_transfer *transfer, struct winfd *pollable_fd, DWORD *io_result, DWORD *io_size);
+typedef void(*CLEAR_TRANSFER_PRIV)(struct usbi_transfer *itransfer);
+typedef int(*COPY_TRANSFER_DATA)(struct usbi_transfer *itransfer, uint32_t io_size);
+typedef struct winfd *(*GET_FD)(struct usbi_transfer *transfer);
+typedef void(*GET_OVERLAPPED_RESULT)(struct usbi_transfer *transfer, struct winfd *pollable_fd, DWORD *io_result, DWORD *io_size);
+
+typedef struct win_backend
+{
+	CLEAR_TRANSFER_PRIV clear_transfer_priv;
+	COPY_TRANSFER_DATA copy_transfer_data;
+	GET_FD get_fd;
+	GET_OVERLAPPED_RESULT get_overlapped_result;
+} win_backend;
+
+void win_nt_init(win_backend *backend);
 
 void windows_handle_callback(struct usbi_transfer *itransfer, uint32_t io_result, uint32_t io_size);
 int windows_handle_events(struct libusb_context *ctx, struct pollfd *fds, POLL_NFDS_TYPE nfds, int num_ready);

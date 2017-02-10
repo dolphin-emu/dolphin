@@ -1132,7 +1132,11 @@ struct usbi_os_backend {
 	size_t transfer_priv_size;
 };
 
+#if defined(OS_WINDOWS)
+extern const struct usbi_os_backend * usbi_backend;
+#else
 extern const struct usbi_os_backend * const usbi_backend;
+#endif
 
 extern const struct usbi_os_backend linux_usbfs_backend;
 extern const struct usbi_os_backend darwin_backend;
