@@ -54,9 +54,9 @@ public:
   u64 GetRawSize() const override;
 
 private:
-  static const unsigned int s_block_header_size = 0x0400;
-  static const unsigned int s_block_data_size = 0x7C00;
-  static const unsigned int s_block_total_size = s_block_header_size + s_block_data_size;
+  static constexpr unsigned int BLOCK_HEADER_SIZE = 0x0400;
+  static constexpr unsigned int BLOCK_DATA_SIZE = 0x7C00;
+  static constexpr unsigned int BLOCK_TOTAL_SIZE = BLOCK_HEADER_SIZE + BLOCK_DATA_SIZE;
 
   std::unique_ptr<IBlobReader> m_pReader;
   std::unique_ptr<mbedtls_aes_context> m_AES_ctx;
@@ -65,7 +65,7 @@ private:
   u64 m_dataOffset;
 
   mutable u64 m_LastDecryptedBlockOffset;
-  mutable unsigned char m_LastDecryptedBlock[s_block_data_size];
+  mutable unsigned char m_LastDecryptedBlock[BLOCK_DATA_SIZE];
 };
 
 }  // namespace
