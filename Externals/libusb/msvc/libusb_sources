@@ -38,6 +38,7 @@ SOURCES=..\core.c \
 	..\hotplug.c \
 	threads_windows.c \
 	poll_windows.c \
+	windows_usbdk.c \
 	windows_winusb.c \
 	windows_usbdk.c \
 	windows_nt_common.c \
