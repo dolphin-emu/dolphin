@@ -388,6 +388,11 @@ bool CBoot::BootUp()
       PowerPC::DBATUpdated();
       PowerPC::IBATUpdated();
 
+      // Because there is no TMD to get the requested system (IOS) version from,
+      // we default to IOS58, which is the version used by the Homebrew Channel.
+      if (dolLoader.IsWii())
+        SetupWiiMemory(0x000000010000003a);
+
       dolLoader.Load();
       PC = dolLoader.GetEntryPoint();
     }
@@ -422,7 +427,9 @@ bool CBoot::BootUp()
     // Poor man's bootup
     if (_StartupPara.bWii)
     {
-      SetupWiiMemory(0x0000000100000050ULL);
+      // Because there is no TMD to get the requested system (IOS) version from,
+      // we default to IOS58, which is the version used by the Homebrew Channel.
+      SetupWiiMemory(0x000000010000003a);
     }
     else
     {
