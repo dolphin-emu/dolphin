@@ -11,6 +11,12 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
+
 namespace WiimoteEmu
 {
 constexpr std::array<u8, 6> classic_id{{0x00, 0x00, 0xa4, 0x20, 0x01, 0x01}};
@@ -49,25 +55,25 @@ constexpr std::array<u16, 4> classic_dpad_bitmasks{{
 Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
 {
   // buttons
-  groups.emplace_back(m_buttons = new Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
   for (auto& classic_button_name : classic_button_names)
-    m_buttons->controls.emplace_back(new ControlGroup::Input(classic_button_name));
+    m_buttons->controls.emplace_back(new ControllerEmu::Input(classic_button_name));
 
   // sticks
-  groups.emplace_back(m_left_stick =
-                          new AnalogStick(_trans("Left Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
-  groups.emplace_back(m_right_stick =
-                          new AnalogStick(_trans("Right Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(m_left_stick = new ControllerEmu::AnalogStick(
+                          _trans("Left Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(m_right_stick = new ControllerEmu::AnalogStick(
+                          _trans("Right Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // triggers
-  groups.emplace_back(m_triggers = new MixedTriggers("Triggers"));
+  groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers("Triggers"));
   for (auto& classic_trigger_name : classic_trigger_names)
-    m_triggers->controls.emplace_back(new ControlGroup::Input(classic_trigger_name));
+    m_triggers->controls.emplace_back(new ControllerEmu::Input(classic_trigger_name));
 
   // dpad
-  groups.emplace_back(m_dpad = new Buttons("D-Pad"));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons("D-Pad"));
   for (auto& named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
+    m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
 
   // Set up register
   m_calibration = classic_calibration;

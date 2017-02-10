@@ -2,11 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HotkeyManager.h"
+
 #include <string>
 #include <vector>
 
 #include "Common/Common.h"
-#include "Core/HotkeyManager.h"
+#include "Common/CommonTypes.h"
+
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/GCPadStatus.h"
 
 const std::string hotkey_labels[] = {
@@ -255,19 +261,22 @@ HotkeyManager::HotkeyManager()
 {
   for (int group = 0; group < NUM_HOTKEY_GROUPS; group++)
   {
-    m_hotkey_groups[group] = (m_keys[group] = new Buttons("Keys", groups_info[group].name));
+    m_hotkey_groups[group] =
+        (m_keys[group] = new ControllerEmu::Buttons("Keys", groups_info[group].name));
     groups.emplace_back(m_hotkey_groups[group]);
     for (int key = groups_info[group].first; key <= groups_info[group].last; key++)
     {
-      m_keys[group]->controls.emplace_back(new ControlGroup::Input(hotkey_labels[key]));
+      m_keys[group]->controls.emplace_back(new ControllerEmu::Input(hotkey_labels[key]));
     }
   }
 
-  groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
+  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
-  m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
-      _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
+      std::make_unique<ControllerEmu::ControlGroup::BackgroundInputSetting>(
+          _trans("Background Input")));
+  m_options->boolean_settings.emplace_back(
+      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
+          _trans("Iterative Input"), false, ControllerEmu::ControlGroup::SettingType::VIRTUAL));
 }
 
 HotkeyManager::~HotkeyManager()
@@ -281,7 +290,7 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
-  auto lock = ControllerEmu::GetStateLock();
+  const auto lock = GetStateLock();
   for (int group = 0; group < NUM_HOTKEY_GROUPS; group++)
   {
     const int group_count = (groups_info[group].last - groups_info[group].first) + 1;
@@ -319,7 +328,7 @@ int HotkeyManager::GetIndexForGroup(int group, int id) const
 
 void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 {
-  ControllerEmu::LoadDefaults(ciface);
+  EmulatedController::LoadDefaults(ciface);
 
 #ifdef _WIN32
   const std::string NON = "(!(LMENU | RMENU) & !(LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL))";

@@ -10,6 +10,12 @@
 
 struct KeyboardStatus;
 
+namespace ControllerEmu
+{
+class ControlGroup;
+class Buttons;
+}
+
 enum class KeyboardGroup
 {
   Kb0x,
@@ -22,23 +28,23 @@ enum class KeyboardGroup
   Options
 };
 
-class GCKeyboard : public ControllerEmu
+class GCKeyboard : public ControllerEmu::EmulatedController
 {
 public:
   explicit GCKeyboard(unsigned int index);
   KeyboardStatus GetInput() const;
   std::string GetName() const override;
-  ControlGroup* GetGroup(KeyboardGroup group);
+  ControllerEmu::ControlGroup* GetGroup(KeyboardGroup group);
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-  Buttons* m_keys0x;
-  Buttons* m_keys1x;
-  Buttons* m_keys2x;
-  Buttons* m_keys3x;
-  Buttons* m_keys4x;
-  Buttons* m_keys5x;
-  ControlGroup* m_options;
+  ControllerEmu::Buttons* m_keys0x;
+  ControllerEmu::Buttons* m_keys1x;
+  ControllerEmu::Buttons* m_keys2x;
+  ControllerEmu::Buttons* m_keys3x;
+  ControllerEmu::Buttons* m_keys4x;
+  ControllerEmu::Buttons* m_keys5x;
+  ControllerEmu::ControlGroup* m_options;
 
   const unsigned int m_index;
 };

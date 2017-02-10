@@ -22,6 +22,15 @@
 #include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
+#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Force.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Slider.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Triggers.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
@@ -150,9 +159,9 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
 
   switch (g->control_group->type)
   {
-  case GROUP_TYPE_TILT:
-  case GROUP_TYPE_STICK:
-  case GROUP_TYPE_CURSOR:
+  case ControllerEmu::GROUP_TYPE_TILT:
+  case ControllerEmu::GROUP_TYPE_STICK:
+  case ControllerEmu::GROUP_TYPE_CURSOR:
   {
     // this is starting to be a mess combining all these in one case
 
@@ -160,19 +169,19 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
 
     switch (g->control_group->type)
     {
-    case GROUP_TYPE_STICK:
+    case ControllerEmu::GROUP_TYPE_STICK:
       ((ControllerEmu::AnalogStick*)g->control_group)->GetState(&x, &y);
       break;
-    case GROUP_TYPE_TILT:
+    case ControllerEmu::GROUP_TYPE_TILT:
       ((ControllerEmu::Tilt*)g->control_group)->GetState(&x, &y);
       break;
-    case GROUP_TYPE_CURSOR:
+    case ControllerEmu::GROUP_TYPE_CURSOR:
       ((ControllerEmu::Cursor*)g->control_group)->GetState(&x, &y, &z);
       break;
     }
 
     // ir cursor forward movement
-    if (GROUP_TYPE_CURSOR == g->control_group->type)
+    if (ControllerEmu::GROUP_TYPE_CURSOR == g->control_group->type)
     {
       gc->SetBrush(z ? *wxRED_BRUSH : *wxGREY_BRUSH);
       wxGraphicsPath path = gc->CreatePath();
@@ -182,7 +191,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
 
     // input zone
     gc->SetPen(*wxLIGHT_GREY_PEN);
-    if (GROUP_TYPE_STICK == g->control_group->type)
+    if (ControllerEmu::GROUP_TYPE_STICK == g->control_group->type)
     {
       gc->SetBrush(wxColour(0xDDDDDD));  // Light Gray
 
@@ -222,9 +231,12 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
       gc->DrawRectangle(16, 16, 32, 32);
     }
 
-    if (GROUP_TYPE_CURSOR != g->control_group->type)
+    if (ControllerEmu::GROUP_TYPE_CURSOR != g->control_group->type)
     {
-      int deadzone_idx = g->control_group->type == GROUP_TYPE_STICK ? SETTING_DEADZONE : 0;
+      const int deadzone_idx = g->control_group->type == ControllerEmu::GROUP_TYPE_STICK ?
+                                   ControllerEmu::AnalogStick::SETTING_DEADZONE :
+                                   0;
+
       wxGraphicsPath path = gc->CreatePath();
       path.AddCircle(VIS_BITMAP_SIZE / 2, VIS_BITMAP_SIZE / 2,
                      g->control_group->numeric_settings[deadzone_idx]->GetValue() *
@@ -255,7 +267,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case GROUP_TYPE_FORCE:
+  case ControllerEmu::GROUP_TYPE_FORCE:
   {
     ControlState raw_dot[3];
     ControlState adj_dot[3];
@@ -320,7 +332,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case GROUP_TYPE_BUTTONS:
+  case ControllerEmu::GROUP_TYPE_BUTTONS:
   {
     const unsigned int button_count = static_cast<unsigned int>(g->control_group->controls.size());
     std::vector<unsigned int> bitmasks(button_count);
@@ -349,7 +361,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case GROUP_TYPE_TRIGGERS:
+  case ControllerEmu::GROUP_TYPE_TRIGGERS:
   {
     const unsigned int trigger_count = static_cast<unsigned int>(g->control_group->controls.size());
     std::vector<ControlState> trigs(trigger_count);
@@ -391,7 +403,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case GROUP_TYPE_MIXED_TRIGGERS:
+  case ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS:
   {
     const unsigned int trigger_count = ((unsigned int)(g->control_group->controls.size() / 2));
 
@@ -431,7 +443,7 @@ static void DrawControlGroupBox(wxGraphicsContext* gc, ControlGroupBox* g)
   }
   break;
 
-  case GROUP_TYPE_SLIDER:
+  case ControllerEmu::GROUP_TYPE_SLIDER:
   {
     const ControlState deadzone = g->control_group->numeric_settings[0]->GetValue();
 
@@ -488,7 +500,7 @@ void InputConfigDialog::UpdateBitmaps(wxTimerEvent& WXUNUSED(event))
   g_controller_interface.UpdateInput();
 
   wxMemoryDC dc;
-  auto lock = ControllerEmu::GetStateLock();
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
   for (ControlGroupBox* g : control_groups)
   {
     // Only if this control group has a bitmap

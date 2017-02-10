@@ -11,6 +11,12 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Triggers.h"
+
 namespace WiimoteEmu
 {
 constexpr std::array<u8, 6> guitar_id{{0x00, 0x00, 0xa4, 0x20, 0x01, 0x03}};
@@ -35,26 +41,27 @@ constexpr std::array<u16, 2> guitar_strum_bitmasks{{
 Guitar::Guitar(ExtensionReg& reg) : Attachment(_trans("Guitar"), reg)
 {
   // frets
-  groups.emplace_back(m_frets = new Buttons(_trans("Frets")));
+  groups.emplace_back(m_frets = new ControllerEmu::Buttons(_trans("Frets")));
   for (auto& guitar_fret_name : guitar_fret_names)
-    m_frets->controls.emplace_back(new ControlGroup::Input(guitar_fret_name));
+    m_frets->controls.emplace_back(new ControllerEmu::Input(guitar_fret_name));
 
   // strum
-  groups.emplace_back(m_strum = new Buttons(_trans("Strum")));
-  m_strum->controls.emplace_back(new ControlGroup::Input("Up"));
-  m_strum->controls.emplace_back(new ControlGroup::Input("Down"));
+  groups.emplace_back(m_strum = new ControllerEmu::Buttons(_trans("Strum")));
+  m_strum->controls.emplace_back(new ControllerEmu::Input("Up"));
+  m_strum->controls.emplace_back(new ControllerEmu::Input("Down"));
 
   // buttons
-  groups.emplace_back(m_buttons = new Buttons("Buttons"));
-  m_buttons->controls.emplace_back(new ControlGroup::Input("-"));
-  m_buttons->controls.emplace_back(new ControlGroup::Input("+"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input("-"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input("+"));
 
   // stick
-  groups.emplace_back(m_stick = new AnalogStick(_trans("Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(
+      m_stick = new ControllerEmu::AnalogStick(_trans("Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // whammy
-  groups.emplace_back(m_whammy = new Triggers(_trans("Whammy")));
-  m_whammy->controls.emplace_back(new ControlGroup::Input(_trans("Bar")));
+  groups.emplace_back(m_whammy = new ControllerEmu::Triggers(_trans("Whammy")));
+  m_whammy->controls.emplace_back(new ControllerEmu::Input(_trans("Bar")));
 
   // set up register
   m_id = guitar_id;

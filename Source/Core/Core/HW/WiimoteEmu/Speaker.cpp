@@ -7,7 +7,9 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 
 //#define WIIMOTE_SPEAKER_DUMP
 #ifdef WIIMOTE_SPEAKER_DUMP

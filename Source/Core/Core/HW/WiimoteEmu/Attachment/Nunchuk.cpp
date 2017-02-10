@@ -12,6 +12,13 @@
 #include "Common/MathUtil.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Force.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+
 namespace WiimoteEmu
 {
 constexpr std::array<u8, 6> nunchuk_id{{0x00, 0x00, 0xa4, 0x20, 0x00, 0x00}};
@@ -23,24 +30,25 @@ constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
 Nunchuk::Nunchuk(ExtensionReg& reg) : Attachment(_trans("Nunchuk"), reg)
 {
   // buttons
-  groups.emplace_back(m_buttons = new Buttons("Buttons"));
-  m_buttons->controls.emplace_back(new ControlGroup::Input("C"));
-  m_buttons->controls.emplace_back(new ControlGroup::Input("Z"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input("C"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input("Z"));
 
   // stick
-  groups.emplace_back(m_stick = new AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(m_stick =
+                          new ControllerEmu::AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // swing
-  groups.emplace_back(m_swing = new Force("Swing"));
+  groups.emplace_back(m_swing = new ControllerEmu::Force("Swing"));
 
   // tilt
-  groups.emplace_back(m_tilt = new Tilt("Tilt"));
+  groups.emplace_back(m_tilt = new ControllerEmu::Tilt("Tilt"));
 
   // shake
-  groups.emplace_back(m_shake = new Buttons("Shake"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("X"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
+  groups.emplace_back(m_shake = new ControllerEmu::Buttons("Shake"));
+  m_shake->controls.emplace_back(new ControllerEmu::Input("X"));
+  m_shake->controls.emplace_back(new ControllerEmu::Input("Y"));
+  m_shake->controls.emplace_back(new ControllerEmu::Input("Z"));
 
   m_id = nunchuk_id;
 }

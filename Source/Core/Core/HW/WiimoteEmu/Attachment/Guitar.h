@@ -6,6 +6,14 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
+namespace ControllerEmu
+{
+class AnalogStick;
+class Buttons;
+class ControlGroup;
+class Triggers;
+}
+
 namespace WiimoteEmu
 {
 enum class GuitarGroup;
@@ -18,7 +26,7 @@ public:
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
 
-  ControlGroup* GetGroup(GuitarGroup group);
+  ControllerEmu::ControlGroup* GetGroup(GuitarGroup group);
 
   enum
   {
@@ -35,10 +43,10 @@ public:
   };
 
 private:
-  Buttons* m_buttons;
-  Buttons* m_frets;
-  Buttons* m_strum;
-  Triggers* m_whammy;
-  AnalogStick* m_stick;
+  ControllerEmu::Buttons* m_buttons;
+  ControllerEmu::Buttons* m_frets;
+  ControllerEmu::Buttons* m_strum;
+  ControllerEmu::Triggers* m_whammy;
+  ControllerEmu::AnalogStick* m_stick;
 };
 }
