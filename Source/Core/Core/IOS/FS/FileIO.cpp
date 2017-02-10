@@ -24,7 +24,7 @@ namespace HLE
 static std::map<std::string, std::weak_ptr<File::IOFile>> openFiles;
 
 // This is used by several of the FileIO and /dev/fs functions
-std::string HLE_IPC_BuildFilename(const std::string& wii_path)
+std::string BuildFilename(const std::string& wii_path)
 {
   std::string nand_path = File::GetUserPath(D_SESSION_WIIROOT_IDX);
   if (wii_path.compare(0, 1, "/") == 0)
@@ -34,7 +34,7 @@ std::string HLE_IPC_BuildFilename(const std::string& wii_path)
   return nand_path;
 }
 
-void HLE_IPC_CreateVirtualFATFilesystem()
+void CreateVirtualFATFilesystem()
 {
   const int cdbSize = 0x01400000;
   const std::string cdbPath =
@@ -94,7 +94,7 @@ ReturnCode FileIO::Open(const OpenRequest& request)
 
   static const char* const Modes[] = {"Unk Mode", "Read only", "Write only", "Read and Write"};
 
-  m_filepath = HLE_IPC_BuildFilename(m_name);
+  m_filepath = BuildFilename(m_name);
 
   // The file must exist before we can open it
   // It should be created by ISFS_CreateFile, not here
@@ -319,7 +319,7 @@ void FileIO::DoState(PointerWrap& p)
   p.Do(m_Mode);
   p.Do(m_SeekPos);
 
-  m_filepath = HLE_IPC_BuildFilename(m_name);
+  m_filepath = BuildFilename(m_name);
 
   // The file was closed during state (and might now be pointing at another file)
   // Open it again
