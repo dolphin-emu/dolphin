@@ -52,7 +52,6 @@ void Init()
   if (SConfig::GetInstance().bWii)
   {
     Core::InitializeWiiRoot(Core::g_want_determinism);
-    DiscIO::cUIDsys::AccessInstance().UpdateLocation();
     DiscIO::CSharedContent::AccessInstance().UpdateLocation();
     IOS::Init();
     IOS::HLE::Init();  // Depends on Memory

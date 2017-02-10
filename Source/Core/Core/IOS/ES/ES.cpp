@@ -121,7 +121,8 @@ void ES::OpenInternal()
     m_TitleID = contentLoader.GetTitleID();
 
     m_TitleIDs.clear();
-    DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDs);
+    DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+    uid_sys.GetTitleIDs(m_TitleIDs);
     // uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
     // m_TitleIDsOwned.clear();
     // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
@@ -1324,7 +1325,8 @@ u32 ES::ES_DIVerify(const std::vector<u8>& tmd)
     if (!tmd_file.WriteBytes(tmd.data(), tmd.size()))
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
-  DiscIO::cUIDsys::AccessInstance().AddTitle(tmd_title_id);
+  DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  uid_sys.AddTitle(tmd_title_id);
   // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
   // clear the cache to avoid content access mismatches.
   DiscIO::CNANDContentManager::Access().ClearCache();
