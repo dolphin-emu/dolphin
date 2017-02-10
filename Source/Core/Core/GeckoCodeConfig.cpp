@@ -2,19 +2,30 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/GeckoCodeConfig.h"
+
 #include <algorithm>
 #include <sstream>
 #include <string>
 #include <vector>
 
-#include <SFML/Network/Http.hpp>
+#include <curl/curl.h>
 
 #include "Common/IniFile.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
-#include "Core/GeckoCodeConfig.h"
 
 namespace Gecko
 {
+static size_t DownloadCodesWriteCallback(void* contents, size_t size, size_t nmemb,
+                                         std::string* body)
+{
+  size_t realsize = size * nmemb;
+  body->insert(body->end(), reinterpret_cast<char*>(contents),
+               reinterpret_cast<char*>(contents) + realsize);
+  return realsize;
+}
+
 std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
 {
   switch (gameid[0])
@@ -29,17 +40,28 @@ std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
     break;
   }
 
-  sf::Http::Request req;
-  req.setUri("/txt.php?txt=" + gameid);
+  std::unique_ptr<CURL, decltype(&curl_easy_cleanup)> curl{curl_easy_init(), curl_easy_cleanup};
 
-  sf::Http http;
-  http.setHost("geckocodes.org");
-
-  const sf::Http::Response resp = http.sendRequest(req, sf::seconds(5));
+  std::string endpoint{"http://geckocodes.org/txt.php?txt=" + gameid};
+  curl_easy_setopt(curl.get(), CURLOPT_URL, endpoint.c_str());
+  curl_easy_setopt(curl.get(), CURLOPT_TIMEOUT, 5);
+  std::string response_body;
+  curl_easy_setopt(curl.get(), CURLOPT_WRITEFUNCTION, DownloadCodesWriteCallback);
+  curl_easy_setopt(curl.get(), CURLOPT_WRITEDATA, &response_body);
 
   *succeeded = true;
-  if (sf::Http::Response::Ok != resp.getStatus())
+  CURLcode res = curl_easy_perform(curl.get());
+  if (res != CURLE_OK)
   {
+    ERROR_LOG(COMMON, "DownloadCodes: Curl error: %s", curl_easy_strerror(res));
+    *succeeded = false;
+    return {};
+  }
+  long response_code{0};
+  curl_easy_getinfo(curl.get(), CURLINFO_RESPONSE_CODE, &response_code);
+  if (response_code != 200)
+  {
+    WARN_LOG(COMMON, "DownloadCodes: Curl response code: %li", response_code);
     *succeeded = false;
     return {};
   }
@@ -48,7 +70,7 @@ std::vector<GeckoCode> DownloadCodes(std::string gameid, bool* succeeded)
   std::vector<GeckoCode> gcodes;
 
   // parse the codes
-  std::istringstream ss(resp.getBody());
+  std::istringstream ss(response_body);
 
   std::string line;
 
