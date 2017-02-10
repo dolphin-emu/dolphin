@@ -24,6 +24,7 @@ class ControlReference
 public:
   static bool InputGateOn();
 
+  virtual ~ControlReference();
   virtual ControlState State(const ControlState state = 0) = 0;
   virtual ciface::Core::Device::Control* Detect(const unsigned int ms,
                                                 ciface::Core::Device* const device) = 0;
