@@ -94,6 +94,8 @@ constexpr const u8* s_key_table[11] = {
     s_key_empty,  // Unknown
 };
 
+constexpr u8 MAX_OPEN_COUNT = 3;
+
 ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
@@ -144,6 +146,7 @@ void ES::OpenInternal()
 void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
+  p.Do(m_open_count);
   p.Do(m_ContentFile);
   OpenInternal();
   p.Do(m_AccessIdentID);
@@ -194,10 +197,14 @@ void ES::DoState(PointerWrap& p)
 
 ReturnCode ES::Open(const OpenRequest& request)
 {
-  OpenInternal();
+  // IOS only allows 3 ES handles at the same time.
+  if (m_open_count >= MAX_OPEN_COUNT)
+    return IPC_EESEXHAUSTED;
 
-  if (m_is_active)
+  OpenInternal();
+  if (m_open_count > 0)
     INFO_LOG(IOS_ES, "Device was re-opened.");
+  m_open_count++;
   return Device::Open(request);
 }
 
@@ -209,7 +216,7 @@ void ES::Close()
   m_AccessIdentID = 0x6000000;
 
   INFO_LOG(IOS_ES, "ES: Close");
-  m_is_active = false;
+  m_open_count--;
   // clear the NAND content cache to make sure nothing remains open.
   DiscIO::CNANDContentManager::Access().ClearCache();
 }

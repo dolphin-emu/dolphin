@@ -72,9 +72,7 @@ static std::mutex s_device_map_mutex;
 
 // STATE_TO_SAVE
 constexpr u8 IPC_MAX_FDS = 0x18;
-constexpr u8 ES_MAX_COUNT = 3;
 static std::shared_ptr<Device::Device> s_fdmap[IPC_MAX_FDS];
-static std::shared_ptr<Device::ES> s_es_handles[ES_MAX_COUNT];
 
 using IPCMsgQueue = std::deque<u32>;
 static IPCMsgQueue s_request_queue;  // ppc -> arm
@@ -495,11 +493,7 @@ static void AddStaticDevices()
   AddDevice<Device::STMImmediate>("/dev/stm/immediate");
   AddDevice<Device::STMEventHook>("/dev/stm/eventhook");
   AddDevice<Device::FS>("/dev/fs");
-
-  // IOS allows two ES devices at a time
-  for (auto& es_device : s_es_handles)
-    es_device = AddDevice<Device::ES>("/dev/es");
-
+  AddDevice<Device::ES>("/dev/es");
   AddDevice<Device::DI>("/dev/di");
   AddDevice<Device::NetKDRequest>("/dev/net/kd/request");
   AddDevice<Device::NetKDTime>("/dev/net/kd/time");
@@ -585,8 +579,8 @@ bool Reload(const u64 ios_title_id)
 
 void SetDefaultContentFile(const std::string& file_name)
 {
-  std::lock_guard<std::mutex> lock(s_device_map_mutex);
-  for (const auto& es : s_es_handles)
+  auto es = std::static_pointer_cast<Device::ES>(GetDeviceByName("/dev/es"));
+  if (es)
     es->LoadWAD(file_name);
 }
 
@@ -692,13 +686,6 @@ void DoState(PointerWrap& p)
         }
       }
     }
-
-    for (auto& es_device : s_es_handles)
-    {
-      const u32 handle_id = es_device->GetDeviceID();
-      p.Do(handle_id);
-      es_device = std::static_pointer_cast<Device::ES>(AccessDeviceByID(handle_id));
-    }
   }
   else
   {
@@ -721,20 +708,7 @@ void DoState(PointerWrap& p)
         }
       }
     }
-
-    for (const auto& es_device : s_es_handles)
-    {
-      const u32 handle_id = es_device->GetDeviceID();
-      p.Do(handle_id);
-    }
   }
-}
-
-static std::shared_ptr<Device::Device> GetUnusedESDevice()
-{
-  const auto iterator = std::find_if(std::begin(s_es_handles), std::end(s_es_handles),
-                                     [](const auto& es_device) { return !es_device->IsOpened(); });
-  return (iterator != std::end(s_es_handles)) ? *iterator : nullptr;
 }
 
 // Returns the FD for the newly opened device (on success) or an error code.
@@ -749,13 +723,7 @@ static s32 OpenDevice(const OpenRequest& request)
   }
 
   std::shared_ptr<Device::Device> device;
-  if (request.path == "/dev/es")
-  {
-    device = GetUnusedESDevice();
-    if (!device)
-      return IPC_EESEXHAUSTED;
-  }
-  else if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
+  if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
   {
     device = std::make_shared<Device::OH0Device>(new_fd, request.path);
   }
