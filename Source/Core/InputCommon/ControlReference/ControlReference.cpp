@@ -26,7 +26,7 @@ bool ControlReference::InputGateOn()
 // Updates a controlreference's binded devices/controls
 // need to call this to re-parse a control reference's expression after changing it
 //
-void ControlReference::UpdateReference(ciface::Core::DeviceContainer& devices,
+void ControlReference::UpdateReference(const ciface::Core::DeviceContainer& devices,
                                        const ciface::Core::DeviceQualifier& default_device)
 {
   Expression* expr;
