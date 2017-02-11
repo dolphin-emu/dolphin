@@ -495,7 +495,7 @@ void Reinit()
   AddDevice<Device::STMEventHook>("/dev/stm/eventhook");
   AddDevice<Device::FS>("/dev/fs");
 
-  // IOS allows two ES devices at a time
+  // IOS allows three ES devices at a time
   for (auto& es_device : s_es_handles)
     es_device = AddDevice<Device::ES>("/dev/es");
 
