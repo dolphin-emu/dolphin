@@ -52,6 +52,8 @@ ControlReference::ControlReference() : range(1), m_parsed_expression(nullptr)
 {
 }
 
+ControlReference::~ControlReference() = default;
+
 InputReference::InputReference() : ControlReference()
 {
 }
