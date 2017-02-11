@@ -25,6 +25,7 @@ if(WIN32 OR CYGWIN)
     target_sources(usb PRIVATE
       libusb/os/threads_windows.c
       libusb/os/windows_winusb.c
+      libusb/os/windows_usbdk.c
       libusb/os/windows_nt_common.c
     )
     set(OS_WINDOWS TRUE)
