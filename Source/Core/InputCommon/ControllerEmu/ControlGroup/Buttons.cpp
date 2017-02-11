@@ -11,9 +11,8 @@
 
 namespace ControllerEmu
 {
-Buttons::Buttons(const std::string& name_) : ControlGroup(name_, name_, GROUP_TYPE_BUTTONS)
+Buttons::Buttons(const std::string& name_) : Buttons(name_, name_)
 {
-  numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Threshold"), 0.5));
 }
 
 Buttons::Buttons(const std::string& ini_name, const std::string& group_name)
