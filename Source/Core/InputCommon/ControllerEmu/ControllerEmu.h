@@ -33,7 +33,7 @@ public:
   virtual void SaveConfig(IniFile::Section* sec, const std::string& base = "");
   void UpdateDefaultDevice();
 
-  void UpdateReferences(ControllerInterface& devi);
+  void UpdateReferences(const ControllerInterface& devi);
 
   // This returns a lock that should be held before calling State() on any control
   // references and GetState(), by extension. This prevents a race condition

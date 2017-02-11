@@ -30,7 +30,7 @@ std::unique_lock<std::recursive_mutex> EmulatedController::GetStateLock()
   return lock;
 }
 
-void EmulatedController::UpdateReferences(ControllerInterface& devi)
+void EmulatedController::UpdateReferences(const ControllerInterface& devi)
 {
   const auto lock = GetStateLock();
   for (auto& ctrlGroup : groups)

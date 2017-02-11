@@ -32,7 +32,7 @@ public:
 
   int BoundCount() const;
   ciface::ExpressionParser::ExpressionParseStatus GetParseStatus() const;
-  void UpdateReference(ciface::Core::DeviceContainer& devices,
+  void UpdateReference(const ciface::Core::DeviceContainer& devices,
                        const ciface::Core::DeviceQualifier& default_device);
 
   ControlState range;
