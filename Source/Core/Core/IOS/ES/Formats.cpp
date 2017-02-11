@@ -16,8 +16,12 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
+namespace IOS
+{
 namespace ES
 {
+constexpr size_t CONTENT_VIEW_SIZE = 0x10;
+
 std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
 {
   mbedtls_aes_context aes_ctx;
@@ -49,13 +53,13 @@ void TMDReader::SetBytes(std::vector<u8>&& bytes)
 
 bool TMDReader::IsValid() const
 {
-  if (m_bytes.size() < 0x1E4)
+  if (m_bytes.size() < sizeof(TMDHeader))
   {
     // TMD is too small to contain its base fields.
     return false;
   }
 
-  if (m_bytes.size() < 0x1E4 + GetNumContents() * 36u)
+  if (m_bytes.size() < sizeof(TMDHeader) + GetNumContents() * sizeof(Content))
   {
     // TMD is too small to contain all its expected content entries.
     return false;
@@ -64,19 +68,69 @@ bool TMDReader::IsValid() const
   return true;
 }
 
+const std::vector<u8>& TMDReader::GetRawTMD() const
+{
+  return m_bytes;
+}
+
+std::vector<u8> TMDReader::GetRawHeader() const
+{
+  return std::vector<u8>(m_bytes.begin(), m_bytes.begin() + sizeof(TMDHeader));
+}
+
+std::vector<u8> TMDReader::GetRawView() const
+{
+  // Base fields
+  std::vector<u8> view(m_bytes.cbegin() + offsetof(TMDHeader, tmd_version),
+                       m_bytes.cbegin() + offsetof(TMDHeader, access_rights));
+
+  const auto version = m_bytes.cbegin() + offsetof(TMDHeader, title_version);
+  view.insert(view.end(), version, version + sizeof(TMDHeader::title_version));
+
+  const auto num_contents = m_bytes.cbegin() + offsetof(TMDHeader, num_contents);
+  view.insert(view.end(), num_contents, num_contents + sizeof(TMDHeader::num_contents));
+
+  // Content views (same as Content, but without the hash)
+  for (size_t i = 0; i < GetNumContents(); ++i)
+  {
+    const auto content_iterator = m_bytes.cbegin() + sizeof(TMDHeader) + i * sizeof(Content);
+    view.insert(view.end(), content_iterator, content_iterator + CONTENT_VIEW_SIZE);
+  }
+
+  return view;
+}
+
+u16 TMDReader::GetBootIndex() const
+{
+  return Common::swap16(m_bytes.data() + offsetof(TMDHeader, boot_index));
+}
+
 u64 TMDReader::GetIOSId() const
 {
-  return Common::swap64(m_bytes.data() + 0x184);
+  return Common::swap64(m_bytes.data() + offsetof(TMDHeader, ios_id));
+}
+
+DiscIO::Region TMDReader::GetRegion() const
+{
+  if (GetTitleId() == 0x0000000100000002)
+    return DiscIO::RegionSwitchWii(DiscIO::GetSysMenuRegion(GetTitleVersion()));
+
+  return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
 }
 
 u64 TMDReader::GetTitleId() const
 {
-  return Common::swap64(m_bytes.data() + 0x18C);
+  return Common::swap64(m_bytes.data() + offsetof(TMDHeader, title_id));
+}
+
+u16 TMDReader::GetTitleVersion() const
+{
+  return Common::swap16(m_bytes.data() + offsetof(TMDHeader, title_version));
 }
 
 u16 TMDReader::GetNumContents() const
 {
-  return Common::swap16(m_bytes.data() + 0x1DE);
+  return Common::swap16(m_bytes.data() + offsetof(TMDHeader, num_contents));
 }
 
 bool TMDReader::GetContent(u16 index, Content* content) const
@@ -86,14 +140,22 @@ bool TMDReader::GetContent(u16 index, Content* content) const
     return false;
   }
 
-  const u8* content_base = m_bytes.data() + 0x1E4 + index * 36;
-  content->id = Common::swap32(content_base);
-  content->index = Common::swap16(content_base + 4);
-  content->type = Common::swap16(content_base + 6);
-  content->size = Common::swap64(content_base + 8);
-  std::copy(content_base + 16, content_base + 36, content->sha1.begin());
+  const u8* content_base = m_bytes.data() + sizeof(TMDHeader) + index * sizeof(Content);
+  content->id = Common::swap32(content_base + offsetof(Content, id));
+  content->index = Common::swap16(content_base + offsetof(Content, index));
+  content->type = Common::swap16(content_base + offsetof(Content, type));
+  content->size = Common::swap64(content_base + offsetof(Content, size));
+  std::copy_n(content_base + offsetof(Content, sha1), content->sha1.size(), content->sha1.begin());
 
   return true;
+}
+
+std::vector<Content> TMDReader::GetContents() const
+{
+  std::vector<Content> contents(GetNumContents());
+  for (size_t i = 0; i < contents.size(); ++i)
+    GetContent(static_cast<u16>(i), &contents[i]);
+  return contents;
 }
 
 bool TMDReader::FindContentById(u32 id, Content* content) const
@@ -205,3 +267,4 @@ std::vector<u8> TicketReader::GetTitleKey() const
   return AESDecode(common_key, iv, &m_bytes[GetOffset() + offsetof(Ticket, title_key)], 16);
 }
 }  // namespace ES
+}  // namespace IOS

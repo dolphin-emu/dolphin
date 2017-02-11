@@ -12,45 +12,50 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "DiscIO/Enums.h"
 
+namespace IOS
+{
 namespace ES
 {
-std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size);
-
-class TMDReader final
-{
-public:
-  TMDReader() = default;
-  explicit TMDReader(const std::vector<u8>& bytes);
-  explicit TMDReader(std::vector<u8>&& bytes);
-
-  void SetBytes(const std::vector<u8>& bytes);
-  void SetBytes(std::vector<u8>&& bytes);
-
-  bool IsValid() const;
-
-  u64 GetIOSId() const;
-  u64 GetTitleId() const;
-
-  struct Content
-  {
-    u32 id;
-    u16 index;
-    u16 type;
-    u64 size;
-    std::array<u8, 20> sha1;
-  };
-  u16 GetNumContents() const;
-  bool GetContent(u16 index, Content* content) const;
-  bool FindContentById(u32 id, Content* content) const;
-
-  void DoState(PointerWrap& p);
-
-private:
-  std::vector<u8> m_bytes;
-};
-
 #pragma pack(push, 4)
+struct TMDHeader
+{
+  u32 signature_type;
+  u8 rsa_2048_signature[256];
+  u8 fill[60];
+  u8 issuer[64];
+  u8 tmd_version;
+  u8 ca_crl_version;
+  u8 signer_crl_version;
+  u64 ios_id;
+  u64 title_id;
+  u32 title_type;
+  u16 group_id;
+  u16 zero;
+  u16 region;
+  u8 ratings[16];
+  u8 reserved[12];
+  u8 ipc_mask[12];
+  u8 reserved2[18];
+  u32 access_rights;
+  u16 title_version;
+  u16 num_contents;
+  u16 boot_index;
+  u16 fill2;
+};
+static_assert(sizeof(TMDHeader) == 0x1e4, "TMDHeader has the wrong size");
+
+struct Content
+{
+  u32 id;
+  u16 index;
+  u16 type;
+  u64 size;
+  std::array<u8, 20> sha1;
+};
+static_assert(sizeof(Content) == 36, "Content has the wrong size");
+
 struct TimeLimit
 {
   u32 enabled;
@@ -96,6 +101,42 @@ struct Ticket
 static_assert(sizeof(Ticket) == 356, "Ticket has the wrong size");
 #pragma pack(pop)
 
+std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size);
+
+class TMDReader final
+{
+public:
+  TMDReader() = default;
+  explicit TMDReader(const std::vector<u8>& bytes);
+  explicit TMDReader(std::vector<u8>&& bytes);
+
+  void SetBytes(const std::vector<u8>& bytes);
+  void SetBytes(std::vector<u8>&& bytes);
+
+  bool IsValid() const;
+
+  // Returns the TMD or parts of it without any kind of parsing. Intended for use by ES.
+  const std::vector<u8>& GetRawTMD() const;
+  std::vector<u8> GetRawHeader() const;
+  std::vector<u8> GetRawView() const;
+
+  u16 GetBootIndex() const;
+  u64 GetIOSId() const;
+  DiscIO::Region GetRegion() const;
+  u64 GetTitleId() const;
+  u16 GetTitleVersion() const;
+
+  u16 GetNumContents() const;
+  bool GetContent(u16 index, Content* content) const;
+  std::vector<Content> GetContents() const;
+  bool FindContentById(u32 id, Content* content) const;
+
+  void DoState(PointerWrap& p);
+
+private:
+  std::vector<u8> m_bytes;
+};
+
 class TicketReader final
 {
 public:
@@ -125,3 +166,4 @@ private:
   std::vector<u8> m_bytes;
 };
 }  // namespace ES
+}  // namespace IOS

@@ -86,7 +86,7 @@ void ES::OpenInternal()
   // check for cd ...
   if (contentLoader.IsValid())
   {
-    m_TitleID = contentLoader.GetTitleID();
+    m_TitleID = contentLoader.GetTMD().GetTitleId();
 
     m_TitleIDs.clear();
     DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
@@ -201,8 +201,8 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 
   SContentAccess Access;
   Access.m_Position = 0;
-  Access.m_Index = pContent->m_Index;
-  Access.m_Size = pContent->m_Size;
+  Access.m_Index = pContent->m_metadata.index;
+  Access.m_Size = static_cast<u32>(pContent->m_metadata.size);
   Access.m_TitleID = TitleID;
 
   pContent->m_Data->Open();
@@ -319,7 +319,7 @@ IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
   std::vector<u8> ticket(request.in_vectors[0].size);
   Memory::CopyFromEmu(ticket.data(), request.in_vectors[0].address, request.in_vectors[0].size);
 
-  DiscIO::AddTicket(::ES::TicketReader{std::move(ticket)});
+  DiscIO::AddTicket(IOS::ES::TicketReader{std::move(ticket)});
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -413,7 +413,7 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
 
   // Try to find the title key from a pre-installed ticket.
-  ::ES::TicketReader ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
+  IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
   if (!ticket.IsValid())
   {
     return GetDefaultReply(ES_NO_TICKET_INSTALLED);
@@ -424,7 +424,7 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
 
   // The IV for title content decryption is the lower two bytes of the
   // content index, zero extended.
-  ::ES::TMDReader::Content content_info;
+  IOS::ES::Content content_info;
   if (!m_addtitle_tmd.FindContentById(m_addtitle_content_id, &content_info))
   {
     return GetDefaultReply(ES_INVALID_TMD);
@@ -471,28 +471,21 @@ IPCCommandResult ES::GetTitleContentsCount(const IOCtlVRequest& request)
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
-  const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
-  u16 NumberOfPrivateContent = 0;
-  s32 return_value = IPC_SUCCESS;
-  if (rNANDContent.IsValid())  // Not sure if dolphin will ever fail this check
-  {
-    NumberOfPrivateContent = rNANDContent.GetNumEntries();
+  const DiscIO::CNANDContentLoader& nand_content = AccessContentDevice(TitleID);
+  if (!nand_content.IsValid())
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-    if ((u32)(TitleID >> 32) == 0x00010000)
-      Memory::Write_U32(0, request.io_vectors[0].address);
-    else
-      Memory::Write_U32(NumberOfPrivateContent, request.io_vectors[0].address);
-  }
+  const u16 num_contents = nand_content.GetTMD().GetNumContents();
+
+  if ((u32)(TitleID >> 32) == 0x00010000)
+    Memory::Write_U32(0, request.io_vectors[0].address);
   else
-  {
-    return_value = static_cast<s32>(rNANDContent.GetContentSize());
-  }
+    Memory::Write_U32(num_contents, request.io_vectors[0].address);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTSCNT: TitleID: %08x/%08x  content count %i",
-           (u32)(TitleID >> 32), (u32)TitleID,
-           rNANDContent.IsValid() ? NumberOfPrivateContent : (u32)rNANDContent.GetContentSize());
+           (u32)(TitleID >> 32), (u32)TitleID, num_contents);
 
-  return GetDefaultReply(return_value);
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::GetTitleContents(const IOCtlVRequest& request)
@@ -505,25 +498,17 @@ IPCCommandResult ES::GetTitleContents(const IOCtlVRequest& request)
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
   const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
-  s32 return_value = IPC_SUCCESS;
-  if (rNANDContent.IsValid())  // Not sure if dolphin will ever fail this check
+  if (!rNANDContent.IsValid())
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  for (const auto& content : rNANDContent.GetContent())
   {
-    for (u16 i = 0; i < rNANDContent.GetNumEntries(); i++)
-    {
-      Memory::Write_U32(rNANDContent.GetContentByIndex(i)->m_ContentID,
-                        request.io_vectors[0].address + i * 4);
-      INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", i,
-               rNANDContent.GetContentByIndex(i)->m_ContentID);
-    }
-  }
-  else
-  {
-    return_value = static_cast<s32>(rNANDContent.GetContentSize());
-    ERROR_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTS: Unable to open content %zu",
-              rNANDContent.GetContentSize());
+    const u16 index = content.m_metadata.index;
+    Memory::Write_U32(content.m_metadata.id, request.io_vectors[0].address + index * 4);
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", index, content.m_metadata.id);
   }
 
-  return GetDefaultReply(return_value);
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::OpenTitleContent(const IOCtlVRequest& request)
@@ -798,7 +783,7 @@ IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
     for (u32 view = 0; view < number_of_views; ++view)
     {
       const std::vector<u8> ticket_view = Loader.GetTicket().GetRawTicketView(view);
-      Memory::CopyToEmu(request.io_vectors[0].address + view * sizeof(::ES::TicketView),
+      Memory::CopyToEmu(request.io_vectors[0].address + view * sizeof(IOS::ES::TicketView),
                         ticket_view.data(), ticket_view.size());
     }
   }
@@ -809,6 +794,7 @@ IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
+// TODO: rename this to GetTMDViewSize. There is only one TMD, so the name doesn't make sense.
 IPCCommandResult ES::GetTMDViewCount(const IOCtlVRequest& request)
 {
   _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETTMDVIEWCNT no in buffer");
@@ -818,18 +804,13 @@ IPCCommandResult ES::GetTMDViewCount(const IOCtlVRequest& request)
 
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-  u32 TMDViewCnt = 0;
+  u32 view_size = 0;
   if (Loader.IsValid())
-  {
-    TMDViewCnt += DiscIO::CNANDContentLoader::TMD_VIEW_SIZE;
-    TMDViewCnt += 2;                                               // title version
-    TMDViewCnt += 2;                                               // num entries
-    TMDViewCnt += (u32)Loader.GetContentSize() * (4 + 2 + 2 + 8);  // content id, index, type, size
-  }
-  Memory::Write_U32(TMDViewCnt, request.io_vectors[0].address);
+    view_size = static_cast<u32>(Loader.GetTMD().GetRawView().size());
+  Memory::Write_U32(view_size, request.io_vectors[0].address);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32),
-           (u32)TitleID, TMDViewCnt);
+           (u32)TitleID, view_size);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -848,30 +829,11 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 
   if (Loader.IsValid())
   {
-    u32 Address = request.io_vectors[0].address;
+    const std::vector<u8> raw_view = Loader.GetTMD().GetRawView();
+    if (raw_view.size() != request.io_vectors[0].size)
+      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-    Memory::CopyToEmu(Address, Loader.GetTMDView(), DiscIO::CNANDContentLoader::TMD_VIEW_SIZE);
-    Address += DiscIO::CNANDContentLoader::TMD_VIEW_SIZE;
-
-    Memory::Write_U16(Loader.GetTitleVersion(), Address);
-    Address += 2;
-    Memory::Write_U16(Loader.GetNumEntries(), Address);
-    Address += 2;
-
-    const std::vector<DiscIO::SNANDContent>& rContent = Loader.GetContent();
-    for (size_t i = 0; i < Loader.GetContentSize(); i++)
-    {
-      Memory::Write_U32(rContent[i].m_ContentID, Address);
-      Address += 4;
-      Memory::Write_U16(rContent[i].m_Index, Address);
-      Address += 2;
-      Memory::Write_U16(rContent[i].m_Type, Address);
-      Address += 2;
-      Memory::Write_U64(rContent[i].m_Size, Address);
-      Address += 8;
-    }
-
-    _dbg_assert_(IOS_ES, (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
+    Memory::CopyToEmu(request.io_vectors[0].address, raw_view.data(), raw_view.size());
   }
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)", (u32)(TitleID >> 32),
@@ -923,18 +885,15 @@ IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
   _dbg_assert_(IOS_ES, Loader.IsValid());
-  u32 TMDCnt = 0;
+  u32 tmd_size = 0;
   if (Loader.IsValid())
-  {
-    TMDCnt += DiscIO::CNANDContentLoader::TMD_HEADER_SIZE;
-    TMDCnt += (u32)Loader.GetContentSize() * DiscIO::CNANDContentLoader::CONTENT_HEADER_SIZE;
-  }
+    tmd_size = static_cast<u32>(Loader.GetTMD().GetRawTMD().size());
 
   if (request.io_vectors.size())
-    Memory::Write_U32(TMDCnt, request.io_vectors[0].address);
+    Memory::Write_U32(tmd_size, request.io_vectors[0].address);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)",
-           (u32)(TitleID >> 32), (u32)TitleID, TMDCnt);
+           (u32)(TitleID >> 32), (u32)TitleID, tmd_size);
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -962,20 +921,11 @@ IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
 
   if (Loader.IsValid() && request.io_vectors.size())
   {
-    u32 Address = request.io_vectors[0].address;
+    const std::vector<u8> raw_tmd = Loader.GetTMD().GetRawTMD();
+    if (raw_tmd.size() != request.io_vectors[0].size)
+      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-    Memory::CopyToEmu(Address, Loader.GetTMDHeader(), DiscIO::CNANDContentLoader::TMD_HEADER_SIZE);
-    Address += DiscIO::CNANDContentLoader::TMD_HEADER_SIZE;
-
-    const std::vector<DiscIO::SNANDContent>& rContent = Loader.GetContent();
-    for (size_t i = 0; i < Loader.GetContentSize(); i++)
-    {
-      Memory::CopyToEmu(Address, rContent[i].m_Header,
-                        DiscIO::CNANDContentLoader::CONTENT_HEADER_SIZE);
-      Address += DiscIO::CNANDContentLoader::CONTENT_HEADER_SIZE;
-    }
-
-    _dbg_assert_(IOS_ES, (Address - request.io_vectors[0].address) == request.io_vectors[0].size);
+    Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
   }
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)",
@@ -1050,9 +1000,9 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
     const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(TitleID);
     if (ContentLoader.IsValid())
     {
-      ios_to_load = 0x0000000100000000ULL | ContentLoader.GetIosVersion();
+      ios_to_load = ContentLoader.GetTMD().GetIOSId();
 
-      u32 bootInd = ContentLoader.GetBootIndex();
+      u32 bootInd = ContentLoader.GetTMD().GetBootIndex();
       const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(bootInd);
       if (pContent)
       {
@@ -1194,10 +1144,13 @@ const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
   return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
-u32 ES::ES_DIVerify(const std::vector<u8>& tmd)
+u32 ES::ES_DIVerify(const IOS::ES::TMDReader& tmd)
 {
+  if (!tmd.IsValid())
+    return -1;
+
   u64 title_id = 0xDEADBEEFDEADBEEFull;
-  u64 tmd_title_id = Common::swap64(&tmd[0x18C]);
+  u64 tmd_title_id = tmd.GetTitleId();
 
   DVDInterface::GetVolume().GetTitleID(&title_id);
   if (title_id != tmd_title_id)
@@ -1211,7 +1164,8 @@ u32 ES::ES_DIVerify(const std::vector<u8>& tmd)
   if (!File::Exists(tmd_path))
   {
     File::IOFile tmd_file(tmd_path, "wb");
-    if (!tmd_file.WriteBytes(tmd.data(), tmd.size()))
+    const std::vector<u8>& tmd_bytes = tmd.GetRawTMD();
+    if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
   DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};

@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cinttypes>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
@@ -146,7 +147,6 @@ bool CNANDContentDataBuffer::GetRange(u32 start, u32 size, u8* buffer)
 }
 
 CNANDContentLoader::CNANDContentLoader(const std::string& content_name)
-    : m_Valid(false), m_IsWAD(false), m_TitleID(-1), m_IosVersion(0x09), m_BootIndex(-1)
 {
   m_Valid = Initialize(content_name);
 }
@@ -159,7 +159,7 @@ const SNANDContent* CNANDContentLoader::GetContentByIndex(int index) const
 {
   for (auto& Content : m_Content)
   {
-    if (Content.m_Index == index)
+    if (Content.m_metadata.index == index)
     {
       return &Content;
     }
@@ -176,13 +176,12 @@ bool CNANDContentLoader::Initialize(const std::string& name)
 
   WiiWAD wad(name);
   std::vector<u8> data_app;
-  std::vector<u8> tmd;
 
   if (wad.IsValid())
   {
     m_IsWAD = true;
     m_ticket = wad.GetTicket();
-    tmd = wad.GetTMD();
+    m_tmd = wad.GetTMD();
     data_app = wad.GetDataApp();
   }
   else
@@ -201,92 +200,62 @@ bool CNANDContentLoader::Initialize(const std::string& name)
       return false;
     }
 
-    tmd.resize(static_cast<size_t>(File::GetSize(tmd_filename)));
-    tmd_file.ReadBytes(tmd.data(), tmd.size());
+    std::vector<u8> bytes(File::GetSize(tmd_filename));
+    tmd_file.ReadBytes(bytes.data(), bytes.size());
+    m_tmd.SetBytes(std::move(bytes));
+
+    m_ticket = FindSignedTicket(m_tmd.GetTitleId());
   }
 
-  std::copy(&tmd[0], &tmd[TMD_HEADER_SIZE], m_TMDHeader);
-  std::copy(&tmd[0x180], &tmd[0x180 + TMD_VIEW_SIZE], m_TMDView);
-
-  m_TitleVersion = Common::swap16(&tmd[0x01DC]);
-  m_NumEntries = Common::swap16(&tmd[0x01DE]);
-  m_BootIndex = Common::swap16(&tmd[0x01E0]);
-  m_TitleID = Common::swap64(&tmd[0x018C]);
-  m_IosVersion = Common::swap16(&tmd[0x018A]);
-  m_Country = static_cast<u8>(m_TitleID & 0xFF);
-
-  if (m_Country == 2)  // SYSMENU
-    m_Country = GetSysMenuRegion(m_TitleVersion);
-
-  if (!m_IsWAD)
-    m_ticket = FindSignedTicket(m_TitleID);
-
-  InitializeContentEntries(tmd, data_app);
+  InitializeContentEntries(data_app);
   return true;
 }
 
-void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd,
-                                                  const std::vector<u8>& data_app)
+void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_app)
 {
-  m_Content.resize(m_NumEntries);
+  if (!m_ticket.IsValid())
+  {
+    ERROR_LOG(IOS_ES, "No valid ticket for title %016" PRIx64, m_tmd.GetTitleId());
+    return;
+  }
 
-  std::array<u8, 16> iv;
+  const std::vector<IOS::ES::Content> contents = m_tmd.GetContents();
+  m_Content.resize(contents.size());
+
   u32 data_app_offset = 0;
-
+  const std::vector<u8> title_key = m_ticket.GetTitleKey();
   CSharedContent shared_content{Common::FromWhichRoot::FROM_SESSION_ROOT};
 
-  for (u32 i = 0; i < m_NumEntries; i++)
+  for (size_t i = 0; i < contents.size(); ++i)
   {
-    const u32 entry_offset = 0x24 * i;
-
-    SNANDContent& content = m_Content[i];
-    content.m_ContentID = Common::swap32(&tmd[entry_offset + 0x01E4]);
-    content.m_Index = Common::swap16(&tmd[entry_offset + 0x01E8]);
-    content.m_Type = Common::swap16(&tmd[entry_offset + 0x01EA]);
-    content.m_Size = static_cast<u32>(Common::swap64(&tmd[entry_offset + 0x01EC]));
-
-    const auto header_begin = std::next(tmd.begin(), entry_offset + 0x01E4);
-    const auto header_end = std::next(header_begin, ArraySize(content.m_Header));
-    std::copy(header_begin, header_end, content.m_Header);
-
-    const auto hash_begin = std::next(tmd.begin(), entry_offset + 0x01F4);
-    const auto hash_end = std::next(hash_begin, ArraySize(content.m_SHA1Hash));
-    std::copy(hash_begin, hash_end, content.m_SHA1Hash);
+    const auto& content = contents.at(i);
 
     if (m_IsWAD)
     {
-      u32 rounded_size = Common::AlignUp(content.m_Size, 0x40);
+      // The content index is used as IV (2 bytes); the remaining 14 bytes are zeroes.
+      std::array<u8, 16> iv{};
+      iv[0] = static_cast<u8>(content.index >> 8) & 0xFF;
+      iv[1] = static_cast<u8>(content.index) & 0xFF;
 
-      iv.fill(0);
-      std::copy(&tmd[entry_offset + 0x01E8], &tmd[entry_offset + 0x01E8 + 2], iv.begin());
+      u32 rounded_size = Common::AlignUp(static_cast<u32>(content.size), 0x40);
 
-      content.m_Data = std::make_unique<CNANDContentDataBuffer>(ES::AESDecode(
-          m_ticket.GetTitleKey().data(), iv.data(), &data_app[data_app_offset], rounded_size));
-
+      m_Content[i].m_Data = std::make_unique<CNANDContentDataBuffer>(IOS::ES::AESDecode(
+          title_key.data(), iv.data(), &data_app[data_app_offset], rounded_size));
       data_app_offset += rounded_size;
-      continue;
+    }
+    else
+    {
+      std::string filename;
+      if (content.type & 0x8000)  // shared app
+        filename = shared_content.GetFilenameFromSHA1(content.sha1.data());
+      else
+        filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.id);
+
+      m_Content[i].m_Data = std::make_unique<CNANDContentDataFile>(filename);
     }
 
-    std::string filename;
-    if (content.m_Type & 0x8000)  // shared app
-      filename = shared_content.GetFilenameFromSHA1(content.m_SHA1Hash);
-    else
-      filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.m_ContentID);
-
-    content.m_Data = std::make_unique<CNANDContentDataFile>(filename);
-
-    // Be graceful about incorrect TMDs.
-    if (File::Exists(filename))
-      content.m_Size = static_cast<u32>(File::GetSize(filename));
+    m_Content[i].m_metadata = std::move(content);
   }
-}
-
-DiscIO::Region CNANDContentLoader::GetRegion() const
-{
-  if (!IsValid())
-    return DiscIO::Region::UNKNOWN_REGION;
-
-  return RegionSwitchWii(m_Country);
 }
 
 CNANDContentManager::~CNANDContentManager()
@@ -327,18 +296,18 @@ void CNANDContentManager::ClearCache()
 
 void CNANDContentLoader::RemoveTitle() const
 {
-  INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
+  const u64 title_id = m_tmd.GetTitleId();
+  INFO_LOG(DISCIO, "RemoveTitle %08x/%08x", (u32)(title_id >> 32), (u32)title_id);
   if (IsValid())
   {
     // remove TMD?
-    for (u32 i = 0; i < m_NumEntries; i++)
+    for (const auto& content : m_Content)
     {
-      if (!(m_Content[i].m_Type & 0x8000))  // skip shared apps
+      if (!(content.m_metadata.type & 0x8000))  // skip shared apps
       {
-        std::string filename =
-            StringFromFormat("%s/%08x.app", m_Path.c_str(), m_Content[i].m_ContentID);
-        INFO_LOG(DISCIO, "Delete %s", filename.c_str());
-        File::Delete(filename);
+        std::string path = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.m_metadata.id);
+        INFO_LOG(DISCIO, "Delete %s", path.c_str());
+        File::Delete(path);
       }
     }
     CNANDContentManager::Access().ClearCache();  // deletes 'this'
@@ -425,7 +394,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   if (content_loader.IsValid() == false)
     return 0;
 
-  u64 title_id = content_loader.GetTitleID();
+  const u64 title_id = content_loader.GetTMD().GetTitleId();
 
   // copy WAD's TMD header and contents to content directory
 
@@ -440,20 +409,17 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
     return 0;
   }
 
-  tmd_file.WriteBytes(content_loader.GetTMDHeader(), CNANDContentLoader::TMD_HEADER_SIZE);
+  const auto& raw_tmd = content_loader.GetTMD().GetRawTMD();
+  tmd_file.WriteBytes(raw_tmd.data(), raw_tmd.size());
 
   CSharedContent shared_content{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-  for (u32 i = 0; i < content_loader.GetContentSize(); i++)
+  for (const auto& content : content_loader.GetContent())
   {
-    const SNANDContent& content = content_loader.GetContent()[i];
-
-    tmd_file.WriteBytes(content.m_Header, CNANDContentLoader::CONTENT_HEADER_SIZE);
-
     std::string app_filename;
-    if (content.m_Type & 0x8000)  // shared
-      app_filename = shared_content.AddSharedContent(content.m_SHA1Hash);
+    if (content.m_metadata.type & 0x8000)  // shared
+      app_filename = shared_content.AddSharedContent(content.m_metadata.sha1.data());
     else
-      app_filename = StringFromFormat("%s%08x.app", content_path.c_str(), content.m_ContentID);
+      app_filename = StringFromFormat("%s%08x.app", content_path.c_str(), content.m_metadata.id);
 
     if (!File::Exists(app_filename))
     {
@@ -465,7 +431,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
         return 0;
       }
 
-      app_file.WriteBytes(content.m_Data->Get().data(), content.m_Size);
+      app_file.WriteBytes(content.m_Data->Get().data(), content.m_metadata.size);
     }
     else
     {
@@ -488,7 +454,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   return title_id;
 }
 
-bool AddTicket(const ES::TicketReader& signed_ticket)
+bool AddTicket(const IOS::ES::TicketReader& signed_ticket)
 {
   if (!signed_ticket.IsValid())
   {
@@ -508,21 +474,21 @@ bool AddTicket(const ES::TicketReader& signed_ticket)
   return ticket_file.WriteBytes(raw_ticket.data(), raw_ticket.size());
 }
 
-ES::TicketReader FindSignedTicket(u64 title_id)
+IOS::ES::TicketReader FindSignedTicket(u64 title_id)
 {
   std::string ticket_filename = Common::GetTicketFileName(title_id, Common::FROM_CONFIGURED_ROOT);
   File::IOFile ticket_file(ticket_filename, "rb");
   if (!ticket_file)
   {
-    return ES::TicketReader{};
+    return IOS::ES::TicketReader{};
   }
 
   std::vector<u8> signed_ticket(ticket_file.GetSize());
   if (!ticket_file.ReadBytes(signed_ticket.data(), signed_ticket.size()))
   {
-    return ES::TicketReader{};
+    return IOS::ES::TicketReader{};
   }
 
-  return ES::TicketReader{std::move(signed_ticket)};
+  return IOS::ES::TicketReader{std::move(signed_ticket)};
 }
 }  // namespace end

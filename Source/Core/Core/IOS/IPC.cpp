@@ -658,7 +658,7 @@ void SetDefaultContentFile(const std::string& file_name)
     es->LoadWAD(file_name);
 }
 
-void ES_DIVerify(const std::vector<u8>& tmd)
+void ES_DIVerify(const ES::TMDReader& tmd)
 {
   Device::ES::ES_DIVerify(tmd);
 }
