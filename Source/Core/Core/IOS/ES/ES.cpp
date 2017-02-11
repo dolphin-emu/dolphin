@@ -52,11 +52,8 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/Wiimote.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/IOS/USB/Bluetooth/BTEmu.h"
-#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
 #include "Core/ec_wii.h"
@@ -1202,34 +1199,7 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
 
 void ES::ResetAfterLaunch(const u64 ios_to_load) const
 {
-  auto bt = std::static_pointer_cast<BluetoothEmu>(GetDeviceByName("/dev/usb/oh1/57e/305"));
-  bool* wiiMoteConnected = new bool[MAX_BBMOTES];
-  if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
-  {
-    for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-      wiiMoteConnected[i] = bt->m_WiiMotes[i].IsConnected();
-  }
-
   Reload(ios_to_load);
-
-  // Get the new Bluetooth device. Note that it is not guaranteed to exist.
-  bt = std::static_pointer_cast<BluetoothEmu>(GetDeviceByName("/dev/usb/oh1/57e/305"));
-  if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
-  {
-    for (unsigned int i = 0; i < MAX_BBMOTES; i++)
-    {
-      if (wiiMoteConnected[i])
-      {
-        bt->m_WiiMotes[i].Activate(false);
-        bt->m_WiiMotes[i].Activate(true);
-      }
-      else
-      {
-        bt->m_WiiMotes[i].Activate(false);
-      }
-    }
-  }
-  delete[] wiiMoteConnected;
 }
 
 IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
