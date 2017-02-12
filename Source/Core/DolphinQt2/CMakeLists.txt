@@ -32,6 +32,10 @@ set(SRCS
 
 list(APPEND LIBS core uicommon)
 
+if(WIN32)
+	list(APPEND SRCS DolphinQt2.manifest)
+endif()
+
 set(DOLPHINQT2_BINARY dolphin-emu-qt2)
 
 add_executable(${DOLPHINQT2_BINARY} ${SRCS} ${UI_HEADERS})

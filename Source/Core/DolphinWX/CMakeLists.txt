@@ -108,7 +108,10 @@ if(APPLE)
 endif()
 
 if(WIN32)
-	list(APPEND SRCS DolphinWX.rc)
+	list(APPEND SRCS
+		DolphinWX.manifest
+		DolphinWX.rc
+	)
 endif()
 
 if(APPLE)
