@@ -16,6 +16,8 @@
 //   Ioctlv: Depends on the handler
 // Replies may be sent immediately or asynchronously for ioctls and ioctlvs.
 
+#include "Core/IOS/IPC.h"
+
 #include <algorithm>
 #include <array>
 #include <cinttypes>
@@ -41,8 +43,9 @@
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FS.h"
 #include "Core/IOS/FS/FileIO.h"
-#include "Core/IOS/IPC.h"
 #include "Core/IOS/MIOS.h"
+#include "Core/IOS/Network/KD/NetKDRequest.h"
+#include "Core/IOS/Network/KD/NetKDTime.h"
 #include "Core/IOS/Network/Net.h"
 #include "Core/IOS/Network/SSL.h"
 #include "Core/IOS/Network/Socket.h"
