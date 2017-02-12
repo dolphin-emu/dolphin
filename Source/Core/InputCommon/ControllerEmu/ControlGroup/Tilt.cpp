@@ -6,7 +6,6 @@
 
 #include <algorithm>
 #include <cmath>
-#include <cstring>
 #include <memory>
 #include <string>
 
@@ -19,8 +18,6 @@ namespace ControllerEmu
 {
 Tilt::Tilt(const std::string& name_) : ControlGroup(name_, GROUP_TYPE_TILT)
 {
-  memset(m_tilt, 0, sizeof(m_tilt));
-
   controls.emplace_back(std::make_unique<Input>("Forward"));
   controls.emplace_back(std::make_unique<Input>("Backward"));
   controls.emplace_back(std::make_unique<Input>("Left"));
