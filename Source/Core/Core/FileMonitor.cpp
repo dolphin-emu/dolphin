@@ -21,6 +21,7 @@
 
 namespace FileMonitor
 {
+static const DiscIO::IVolume* s_volume = nullptr;
 static bool s_wii_disc;
 static std::unique_ptr<DiscIO::IFileSystem> s_filesystem;
 static std::string s_previous_file;
@@ -53,9 +54,13 @@ static bool IsSoundFile(const std::string& filename)
 
 void SetFileSystem(const DiscIO::IVolume* volume)
 {
-  s_wii_disc = volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
-  s_filesystem = DiscIO::CreateFileSystem(volume);
-  s_previous_file.clear();
+  // Instead of creating the file system object right away, we will let Log
+  // create it later once we know that it actually will get used
+  s_volume = volume;
+
+  // If the volume that was passed in was nullptr, Log won't try to create a
+  // file system object later, so we have to set s_filesystem to nullptr right away
+  s_filesystem = nullptr;
 }
 
 // Logs access to files in the file system set by SetFileSystem
@@ -64,6 +69,17 @@ void Log(u64 offset, bool decrypt)
   // Do nothing if the log isn't selected
   if (!LogManager::GetInstance()->IsEnabled(LogTypes::FILEMON, LogTypes::LWARNING))
     return;
+
+  // If a new volume has been set, use the file system of that volume
+  if (s_volume)
+  {
+    s_wii_disc = s_volume->GetVolumeType() == DiscIO::Platform::WII_DISC;
+    if (decrypt != s_wii_disc)
+      return;
+    s_filesystem = DiscIO::CreateFileSystem(s_volume);
+    s_volume = nullptr;
+    s_previous_file.clear();
+  }
 
   // For Wii discs, FileSystemGCWii will only load file systems from encrypted partitions
   if (decrypt != s_wii_disc)
