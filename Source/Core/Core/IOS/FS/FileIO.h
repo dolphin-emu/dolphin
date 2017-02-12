@@ -22,8 +22,8 @@ namespace IOS
 {
 namespace HLE
 {
-std::string HLE_IPC_BuildFilename(const std::string& wii_path);
-void HLE_IPC_CreateVirtualFATFilesystem();
+std::string BuildFilename(const std::string& wii_path);
+void CreateVirtualFATFilesystem();
 
 namespace Device
 {

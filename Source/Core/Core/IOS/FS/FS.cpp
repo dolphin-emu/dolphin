@@ -136,7 +136,7 @@ ReturnCode FS::Open(const OpenRequest& request)
 {
   // clear tmp folder
   {
-    std::string Path = HLE_IPC_BuildFilename("/tmp");
+    std::string Path = BuildFilename("/tmp");
     File::DeleteDirRecursively(Path);
     File::CreateDir(Path);
   }
@@ -252,7 +252,7 @@ IPCCommandResult FS::CreateDirectory(const IOCtlRequest& request)
     return GetFSReply(FS_EINVAL);
   }
 
-  std::string DirName(HLE_IPC_BuildFilename(wii_path));
+  std::string DirName(BuildFilename(wii_path));
   Addr += 64;
   Addr += 9;  // owner attribs, permission
   u8 Attribs = Memory::Read_U8(Addr);
@@ -284,7 +284,7 @@ IPCCommandResult FS::SetAttribute(const IOCtlRequest& request)
     return GetFSReply(FS_EINVAL);
   }
 
-  std::string Filename = HLE_IPC_BuildFilename(wii_path);
+  std::string Filename = BuildFilename(wii_path);
   Addr += 64;
   u8 OwnerPerm = Memory::Read_U8(Addr);
   Addr += 1;
@@ -323,7 +323,7 @@ IPCCommandResult FS::GetAttribute(const IOCtlRequest& request)
     return GetFSReply(FS_EINVAL);
   }
 
-  std::string Filename = HLE_IPC_BuildFilename(wii_path);
+  std::string Filename = BuildFilename(wii_path);
   u8 OwnerPerm = 0x3;    // read/write
   u8 GroupPerm = 0x3;    // read/write
   u8 OtherPerm = 0x3;    // read/write
@@ -382,7 +382,7 @@ IPCCommandResult FS::DeleteFile(const IOCtlRequest& request)
     return GetFSReply(FS_EINVAL);
   }
 
-  std::string Filename = HLE_IPC_BuildFilename(wii_path);
+  std::string Filename = BuildFilename(wii_path);
   Offset += 64;
   if (File::Delete(Filename))
   {
@@ -411,7 +411,7 @@ IPCCommandResult FS::RenameFile(const IOCtlRequest& request)
     WARN_LOG(IOS_FILEIO, "Not a valid path: %s", wii_path.c_str());
     return GetFSReply(FS_EINVAL);
   }
-  std::string Filename = HLE_IPC_BuildFilename(wii_path);
+  std::string Filename = BuildFilename(wii_path);
   Offset += 64;
 
   const std::string wii_path_rename = Memory::GetString(request.buffer_in + Offset, 64);
@@ -421,7 +421,7 @@ IPCCommandResult FS::RenameFile(const IOCtlRequest& request)
     return GetFSReply(FS_EINVAL);
   }
 
-  std::string FilenameRename = HLE_IPC_BuildFilename(wii_path_rename);
+  std::string FilenameRename = BuildFilename(wii_path_rename);
   Offset += 64;
 
   // try to make the basis directory
@@ -464,7 +464,7 @@ IPCCommandResult FS::CreateFile(const IOCtlRequest& request)
     return GetFSReply(FS_EINVAL);
   }
 
-  std::string Filename(HLE_IPC_BuildFilename(wii_path));
+  std::string Filename(BuildFilename(wii_path));
   Addr += 64;
   u8 OwnerPerm = Memory::Read_U8(Addr);
   Addr++;
@@ -523,7 +523,7 @@ IPCCommandResult FS::ReadDirectory(const IOCtlVRequest& request)
   }
 
   // the Wii uses this function to define the type (dir or file)
-  std::string DirName(HLE_IPC_BuildFilename(relative_path));
+  std::string DirName(BuildFilename(relative_path));
 
   INFO_LOG(IOS_FILEIO, "FS: IOCTL_READ_DIR %s", DirName.c_str());
 
@@ -609,7 +609,7 @@ IPCCommandResult FS::GetUsage(const IOCtlVRequest& request)
     return GetFSReply(FS_EINVAL);
   }
 
-  std::string path(HLE_IPC_BuildFilename(relativepath));
+  std::string path(BuildFilename(relativepath));
   u32 fsBlocks = 0;
   u32 iNodes = 0;
 

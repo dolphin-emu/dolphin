@@ -83,7 +83,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   File::CreateFullPath(Common::GetTitleDataPath(titleID, Common::FROM_SESSION_ROOT));
 
   if (titleID == TITLEID_SYSMENU)
-    IOS::HLE::HLE_IPC_CreateVirtualFATFilesystem();
+    IOS::HLE::CreateVirtualFATFilesystem();
   // setup Wii memory
 
   u64 ios_title_id = 0x0000000100000000ULL | ContentLoader.GetIosVersion();
