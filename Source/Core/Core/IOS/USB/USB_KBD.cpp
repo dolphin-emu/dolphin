@@ -62,6 +62,12 @@ ReturnCode USB_KBD::Open(const OpenRequest& request)
   return IPC_SUCCESS;
 }
 
+IPCCommandResult USB_KBD::Write(const ReadWriteRequest& request)
+{
+  // Stubbed.
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
 IPCCommandResult USB_KBD::IOCtl(const IOCtlRequest& request)
 {
   if (SConfig::GetInstance().m_WiiKeyboard && !Core::g_want_determinism && !m_MessageQueue.empty())
