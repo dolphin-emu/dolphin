@@ -47,8 +47,6 @@ BluetoothEmu::BluetoothEmu(u32 device_id, const std::string& device_name)
   if (!Core::g_want_determinism)
     BackUpBTInfoSection(&sysconf);
 
-  // Activate only first Wii Remote by default
-
   _conf_pads BT_DINF;
   if (!sysconf.GetArrayData("BT.DINF", (u8*)&BT_DINF, sizeof(_conf_pads)))
   {
@@ -78,7 +76,7 @@ BluetoothEmu::BluetoothEmu(u32 device_id, const std::string& device_name)
 
       DEBUG_LOG(IOS_WIIMOTE, "Wii Remote %d BT ID %x,%x,%x,%x,%x,%x", i, tmpBD.b[0], tmpBD.b[1],
                 tmpBD.b[2], tmpBD.b[3], tmpBD.b[4], tmpBD.b[5]);
-      m_WiiMotes.emplace_back(this, i, tmpBD, false);
+      m_WiiMotes.emplace_back(this, i, tmpBD, g_wiimote_sources[i] != WIIMOTE_SRC_NONE);
       i++;
     }
 
