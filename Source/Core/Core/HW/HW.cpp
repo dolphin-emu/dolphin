@@ -25,7 +25,6 @@
 #include "Core/Movie.h"
 #include "Core/State.h"
 #include "Core/WiiRoot.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace HW
 {
@@ -52,7 +51,6 @@ void Init()
   if (SConfig::GetInstance().bWii)
   {
     Core::InitializeWiiRoot(Core::g_want_determinism);
-    DiscIO::CSharedContent::AccessInstance().UpdateLocation();
     IOS::Init();
     IOS::HLE::Init();  // Depends on Memory
   }

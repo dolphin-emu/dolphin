@@ -75,17 +75,11 @@ std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
 
 CNANDContentData::~CNANDContentData() = default;
 
-CSharedContent::CSharedContent()
-{
-  UpdateLocation();
-}
-
-void CSharedContent::UpdateLocation()
+CSharedContent::CSharedContent(Common::FromWhichRoot root) : m_root(root)
 {
   m_Elements.clear();
   m_LastID = 0;
-  m_ContentMap =
-      StringFromFormat("%s/shared1/content.map", File::GetUserPath(D_WIIROOT_IDX).c_str());
+  m_ContentMap = Common::RootUserPath(root) + "/shared1/content.map";
 
   File::IOFile pFile(m_ContentMap, "rb");
   SElement Element;
@@ -96,18 +90,14 @@ void CSharedContent::UpdateLocation()
   }
 }
 
-CSharedContent::~CSharedContent()
+std::string CSharedContent::GetFilenameFromSHA1(const u8* hash) const
 {
-}
-
-std::string CSharedContent::GetFilenameFromSHA1(const u8* hash)
-{
-  for (auto& Element : m_Elements)
+  for (const auto& Element : m_Elements)
   {
     if (memcmp(hash, Element.SHA1Hash, 20) == 0)
     {
       return StringFromFormat(
-          "%s/shared1/%c%c%c%c%c%c%c%c.app", File::GetUserPath(D_WIIROOT_IDX).c_str(),
+          "%s/shared1/%c%c%c%c%c%c%c%c.app", Common::RootUserPath(m_root).c_str(),
           Element.FileName[0], Element.FileName[1], Element.FileName[2], Element.FileName[3],
           Element.FileName[4], Element.FileName[5], Element.FileName[6], Element.FileName[7]);
     }
@@ -133,7 +123,7 @@ std::string CSharedContent::AddSharedContent(const u8* hash)
     pFile.WriteArray(&Element, 1);
 
     filename =
-        StringFromFormat("%s/shared1/%s.app", File::GetUserPath(D_WIIROOT_IDX).c_str(), id.c_str());
+        StringFromFormat("%s/shared1/%s.app", Common::RootUserPath(m_root).c_str(), id.c_str());
     m_LastID++;
   }
 
@@ -288,6 +278,8 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd,
   std::array<u8, 16> iv;
   u32 data_app_offset = 0;
 
+  CSharedContent shared_content{Common::FromWhichRoot::FROM_SESSION_ROOT};
+
   for (u32 i = 0; i < m_NumEntries; i++)
   {
     const u32 entry_offset = 0x24 * i;
@@ -322,7 +314,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& tmd,
 
     std::string filename;
     if (content.m_Type & 0x8000)  // shared app
-      filename = CSharedContent::AccessInstance().GetFilenameFromSHA1(content.m_SHA1Hash);
+      filename = shared_content.GetFilenameFromSHA1(content.m_SHA1Hash);
     else
       filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.m_ContentID);
 
@@ -495,6 +487,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
 
   tmd_file.WriteBytes(content_loader.GetTMDHeader(), CNANDContentLoader::TMD_HEADER_SIZE);
 
+  CSharedContent shared_content{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
   for (u32 i = 0; i < content_loader.GetContentSize(); i++)
   {
     const SNANDContent& content = content_loader.GetContent()[i];
@@ -503,7 +496,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
 
     std::string app_filename;
     if (content.m_Type & 0x8000)  // shared
-      app_filename = CSharedContent::AccessInstance().AddSharedContent(content.m_SHA1Hash);
+      app_filename = shared_content.AddSharedContent(content.m_SHA1Hash);
     else
       app_filename = StringFromFormat("%s%08x.app", content_path.c_str(), content.m_ContentID);
 
