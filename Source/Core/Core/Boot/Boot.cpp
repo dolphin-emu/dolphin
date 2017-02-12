@@ -278,8 +278,6 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting ISO in wrong console mode!");
     }
 
-    std::string game_id = DVDInterface::GetVolume().GetGameID();
-
     std::vector<u8> tmd_buffer = pVolume.GetTMD();
     if (!tmd_buffer.empty())
     {
