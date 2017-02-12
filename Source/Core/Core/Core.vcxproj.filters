@@ -281,6 +281,9 @@
     <ClCompile Include="FifoPlayer\FifoRecorder.cpp">
       <Filter>FifoPlayer</Filter>
     </ClCompile>
+    <ClCompile Include="FileMonitor.cpp">
+      <Filter>FileMonitor</Filter>
+    </ClCompile>
     <ClCompile Include="GeckoCode.cpp">
       <Filter>GeckoCode</Filter>
     </ClCompile>
@@ -939,6 +942,9 @@
     <ClInclude Include="FifoPlayer\FifoRecorder.h">
       <Filter>FifoPlayer</Filter>
     </ClInclude>
+    <ClInclude Include="FileMonitor.h">
+      <Filter>FileMonitor</Filter>
+    </ClInclud
     <ClInclude Include="GeckoCode.h">
       <Filter>GeckoCode</Filter>
     </ClInclude>

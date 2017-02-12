@@ -7,7 +7,6 @@ set(SRCS
   DriveBlob.cpp
   Enums.cpp
   FileBlob.cpp
-  FileMonitor.cpp
   FileSystemGCWii.cpp
   Filesystem.cpp
   NANDContentLoader.cpp

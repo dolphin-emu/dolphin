@@ -17,7 +17,6 @@
 #include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeGC.h"
@@ -37,8 +36,6 @@ bool CVolumeGC::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
   if (decrypt)
     PanicAlertT("Tried to decrypt data from a non-Wii volume");
-
-  FileMon::FindFilename(_Offset);
 
   return m_pReader->Read(_Offset, _Length, _pBuffer);
 }

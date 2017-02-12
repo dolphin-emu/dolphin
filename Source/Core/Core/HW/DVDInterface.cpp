@@ -17,6 +17,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/FileMonitor.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/DVDThread.h"
@@ -321,9 +322,14 @@ void DoState(PointerWrap& p)
   if (disc_inside != IsDiscInside())
   {
     if (disc_inside)
+    {
       PanicAlertT("An inserted disc was expected but not found.");
+    }
     else
+    {
       s_inserted_volume.reset();
+      FileMonitor::SetFileSystem(nullptr);
+    }
   }
 }
 
@@ -474,6 +480,7 @@ void Shutdown()
 {
   DVDThread::Stop();
   s_inserted_volume.reset();
+  FileMonitor::SetFileSystem(nullptr);
 }
 
 const DiscIO::IVolume& GetVolume()
@@ -486,6 +493,7 @@ bool SetVolumeName(const std::string& disc_path)
 {
   DVDThread::WaitUntilIdle();
   s_inserted_volume = DiscIO::CreateVolumeFromFilename(disc_path);
+  FileMonitor::SetFileSystem(s_inserted_volume.get());
   SetLidOpen();
   return IsDiscInside();
 }
@@ -496,6 +504,7 @@ bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
   DVDThread::WaitUntilIdle();
   s_inserted_volume =
       DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path);
+  FileMonitor::SetFileSystem(s_inserted_volume.get());
   SetLidOpen();
   return IsDiscInside();
 }
@@ -513,6 +522,7 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
   DVDThread::WaitUntilIdle();
   s_inserted_volume.reset();
+  FileMonitor::SetFileSystem(s_inserted_volume.get());
   SetLidOpen();
 }
 
@@ -568,7 +578,9 @@ void SetLidOpen()
 bool ChangePartition(u64 offset)
 {
   DVDThread::WaitUntilIdle();
-  return s_inserted_volume->ChangePartition(offset);
+  const bool success = s_inserted_volume->ChangePartition(offset);
+  FileMonitor::SetFileSystem(s_inserted_volume.get());
+  return success;
 }
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)

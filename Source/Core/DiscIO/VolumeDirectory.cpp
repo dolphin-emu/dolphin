@@ -19,7 +19,6 @@
 #include "Common/Logging/Log.h"
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeDirectory.h"
 
@@ -129,8 +128,6 @@ bool CVolumeDirectory::Read(u64 offset, u64 length, u8* buffer, bool decrypt) co
       return false;
 
     u64 fileSize = file.GetSize();
-
-    FileMon::CheckFile(fileName, fileSize);
 
     if (fileOffset < fileSize)
     {
