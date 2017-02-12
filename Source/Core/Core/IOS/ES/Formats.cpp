@@ -10,28 +10,16 @@
 #include <utility>
 #include <vector>
 
-#include <mbedtls/aes.h>
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
 
 namespace IOS
 {
 namespace ES
 {
 constexpr size_t CONTENT_VIEW_SIZE = 0x10;
-
-std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size)
-{
-  mbedtls_aes_context aes_ctx;
-  std::vector<u8> buffer(size);
-
-  mbedtls_aes_setkey_dec(&aes_ctx, key, 128);
-  mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, size, iv, src, buffer.data());
-
-  return buffer;
-}
 
 TMDReader::TMDReader(const std::vector<u8>& bytes) : m_bytes(bytes)
 {
@@ -264,7 +252,8 @@ std::vector<u8> TicketReader::GetTitleKey() const
                              0x48, 0xd9, 0xc5, 0x45, 0x73, 0x81, 0xaa, 0xf7};
   u8 iv[16] = {};
   std::copy_n(&m_bytes[GetOffset() + offsetof(Ticket, title_id)], sizeof(Ticket::title_id), iv);
-  return AESDecode(common_key, iv, &m_bytes[GetOffset() + offsetof(Ticket, title_key)], 16);
+  return Common::AES::Decrypt(common_key, iv, &m_bytes[GetOffset() + offsetof(Ticket, title_key)],
+                              16);
 }
 }  // namespace ES
 }  // namespace IOS

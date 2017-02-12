@@ -101,8 +101,6 @@ struct Ticket
 static_assert(sizeof(Ticket) == 356, "Ticket has the wrong size");
 #pragma pack(pop)
 
-std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size);
-
 class TMDReader final
 {
 public:

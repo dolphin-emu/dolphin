@@ -17,6 +17,7 @@
 #include "Common/Align.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Crypto/AES.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -239,7 +240,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_ap
 
       u32 rounded_size = Common::AlignUp(static_cast<u32>(content.size), 0x40);
 
-      m_Content[i].m_Data = std::make_unique<CNANDContentDataBuffer>(IOS::ES::AESDecode(
+      m_Content[i].m_Data = std::make_unique<CNANDContentDataBuffer>(Common::AES::Decrypt(
           title_key.data(), iv.data(), &data_app[data_app_offset], rounded_size));
       data_app_offset += rounded_size;
     }
