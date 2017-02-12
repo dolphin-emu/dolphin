@@ -23,6 +23,7 @@ public:
   USB_KBD(u32 device_id, const std::string& device_name);
 
   ReturnCode Open(const OpenRequest& request) override;
+  IPCCommandResult Write(const ReadWriteRequest& request) override;
   IPCCommandResult IOCtl(const IOCtlRequest& request) override;
   void Update() override;
 
