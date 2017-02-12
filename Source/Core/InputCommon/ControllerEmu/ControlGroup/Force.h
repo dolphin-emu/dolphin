@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <string>
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 
@@ -17,6 +18,6 @@ public:
   void GetState(ControlState* axis);
 
 private:
-  ControlState m_swing[3];
+  std::array<ControlState, 3> m_swing{};
 };
 }  // namespace ControllerEmu

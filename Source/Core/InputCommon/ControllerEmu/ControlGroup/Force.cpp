@@ -5,7 +5,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 
 #include <cmath>
-#include <cstring>
 #include <memory>
 #include <string>
 
@@ -19,8 +18,6 @@ namespace ControllerEmu
 {
 Force::Force(const std::string& name_) : ControlGroup(name_, GROUP_TYPE_FORCE)
 {
-  memset(m_swing, 0, sizeof(m_swing));
-
   controls.emplace_back(std::make_unique<Input>(_trans("Up")));
   controls.emplace_back(std::make_unique<Input>(_trans("Down")));
   controls.emplace_back(std::make_unique<Input>(_trans("Left")));
