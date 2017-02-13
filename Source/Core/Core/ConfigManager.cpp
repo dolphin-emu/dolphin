@@ -130,10 +130,6 @@ void SConfig::SaveSettingsToSysconf()
 
 void SConfig::LoadSettings()
 {
-  INFO_LOG(BOOT, "Loading Settings from %s", File::GetUserPath(F_DOLPHINCONFIG_IDX).c_str());
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-
   LoadGeneralSettings();
   LoadInterfaceSettings();
   LoadDisplaySettings();
