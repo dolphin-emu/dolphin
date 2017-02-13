@@ -39,6 +39,7 @@
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
@@ -1163,19 +1164,14 @@ void CGameListCtrl::OnNetPlayHost(wxCommandEvent& WXUNUSED(event))
   if (!iso)
     return;
 
-  IniFile ini_file;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
-  ini_file.Load(dolphin_ini);
-  IniFile::Section& netplay_section = *ini_file.GetOrCreateSection("NetPlay");
-
+  auto netplay_section = Config::GetOrCreateSection(Config::System::Main, "NetPlay");
   NetPlayHostConfig config;
-  config.FromIniConfig(netplay_section);
+  config.FromConfig(*netplay_section);
   config.game_name = iso->GetUniqueIdentifier();
   config.game_list_ctrl = this;
-  config.SetDialogInfo(netplay_section, m_parent);
+  config.SetDialogInfo(*netplay_section, m_parent);
 
-  netplay_section.Set("SelectedHostGame", config.game_name);
-  ini_file.Save(dolphin_ini);
+  netplay_section->Set("SelectedHostGame", config.game_name);
 
   NetPlayLauncher::Host(config);
 }
