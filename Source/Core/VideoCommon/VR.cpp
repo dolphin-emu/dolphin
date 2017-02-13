@@ -111,7 +111,7 @@ bool g_vr_needs_endframe = false;
 
 bool g_vr_should_swap_buffers = true, g_vr_dont_vsync = false;
 
-bool g_force_vr = false, g_prefer_openvr = false;
+bool g_force_vr = false, g_prefer_openvr = false, g_one_hmd = false;
 bool g_has_hmd = false, g_has_two_hmds = false, g_has_rift = false, g_has_vr920 = false, g_has_openvr = false, g_openvr_is_vive = true, g_openvr_is_rift = false;
 bool g_is_direct_mode = false, g_is_nes = false;
 bool g_new_tracking_frame = true;
@@ -640,20 +640,26 @@ void VR_Init()
   if (g_prefer_openvr)
   {
     InitOpenVR();
-    if (g_openvr_is_rift || !InitOculusVR())
-      InitVR920VR();
-    if (!g_has_hmd)
-      InitOculusDebugVR();
+    if (!(g_has_openvr && g_one_hmd))
+    {
+      if (g_openvr_is_rift || !InitOculusVR())
+        InitVR920VR();
+      if (!g_has_hmd)
+        InitOculusDebugVR();
+    }
     if (g_force_vr)
       g_has_hmd = true;
   }
   else
   {
     InitOculusVR();
-    if (!InitOpenVR())
-      InitVR920VR();
-    if (!g_has_hmd)
-      InitOculusDebugVR();
+    if (!(g_has_rift && g_one_hmd))
+    {
+      if (!InitOpenVR())
+        InitVR920VR();
+      if (!g_has_hmd)
+        InitOculusDebugVR();
+    }
     if (g_force_vr)
       g_has_hmd = true;
   }

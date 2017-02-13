@@ -170,7 +170,10 @@ void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
       // -oculus option to use Oculus instead of SteamVR, and to force virtual reality on
       {wxCMD_LINE_SWITCH, "oculus", nullptr, "use Oculus instead of SteamVR, and force VR on",
        wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL},
-      // -force-d3d11 and -force-ogl options like in Oculus Rift unity demos
+       // -oculus option to use Oculus instead of SteamVR, and to force virtual reality on
+      {wxCMD_LINE_SWITCH, "onehmd", nullptr, "only use a single HMD if multiple are present",
+       wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL },
+       // -force-d3d11 and -force-ogl options like in Oculus Rift unity demos
       // note, wxwidgets had to be modified to allow this
       {wxCMD_LINE_SWITCH, "force-d3d11", nullptr, "force use of Direct3D 11 backend",
        wxCMD_LINE_VAL_NONE, wxCMD_LINE_PARAM_OPTIONAL},
@@ -204,6 +207,8 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
     g_prefer_openvr = false;
   else if (parser.Found("steamvr"))
     g_prefer_openvr = true;
+  if (parser.Found("onehmd"))
+    g_one_hmd = true;
   wxString bruteforceResult;
   ARBruteForcer::ch_bruteforce = parser.Found("bruteforce", &bruteforceResult);
   ARBruteForcer::ch_code = WxStrToStr(bruteforceResult);
