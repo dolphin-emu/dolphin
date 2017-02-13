@@ -25,6 +25,7 @@ void MovieConfigLayerLoader::Load(Config::Layer* config_layer)
   core->Set("CPUCore", m_header->CPUCore);
   core->Set("SyncGPU", m_header->bSyncGPU);
   core->Set("GFXBackend", std::string(reinterpret_cast<char*>(m_header->videoBackend)));
+  core->Set("Language", m_header->language);
   display->Set("ProgressiveScan", m_header->bProgressive);
   display->Set("PAL60", m_header->bPAL60);
 
@@ -52,6 +53,7 @@ void MovieConfigLayerLoader::Save(Config::Layer* config_layer)
   core->Get("CPUCore", &cpu_core);
   core->Get("SyncGPU", &m_header->bSyncGPU);
   core->Get("GFXBackend", &video_backend);
+  core->Get("Language", &m_header->language);
   display->Get("ProgressiveScan", &m_header->bProgressive);
   display->Get("PAL60", &m_header->bPAL60);
 

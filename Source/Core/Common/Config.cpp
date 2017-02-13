@@ -183,6 +183,18 @@ bool Section::Get(const std::string& key, std::string* value,
   return false;
 }
 
+bool Section::Get(const std::string& key, u8* value, u8 defaultValue) const
+{
+  std::string temp;
+  bool retval = Get(key, &temp);
+
+  if (retval && TryParse(temp, value))
+    return true;
+
+  *value = defaultValue;
+  return false;
+}
+
 bool Section::Get(const std::string& key, int* value, int defaultValue) const
 {
   std::string temp;

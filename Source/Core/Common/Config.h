@@ -85,6 +85,7 @@ public:
   virtual bool Get(const std::string& key, std::string* value,
                    const std::string& default_value = NULL_STRING) const;
 
+  bool Get(const std::string& key, u8* value, u8 defaultValue = 0) const;
   bool Get(const std::string& key, int* value, int defaultValue = 0) const;
   bool Get(const std::string& key, u32* value, u32 defaultValue = 0) const;
   bool Get(const std::string& key, bool* value, bool defaultValue = false) const;
