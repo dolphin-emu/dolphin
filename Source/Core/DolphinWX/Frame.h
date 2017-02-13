@@ -260,6 +260,7 @@ private:
   void OnReset(wxCommandEvent& event);
   void OnRecord(wxCommandEvent& event);
   void OnPlayRecording(wxCommandEvent& event);
+  void OnStopRecording(wxCommandEvent& event);
   void OnRecordExport(wxCommandEvent& event);
   void OnRecordReadOnly(wxCommandEvent& event);
   void OnTASInput(wxCommandEvent& event);
