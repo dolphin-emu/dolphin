@@ -258,7 +258,7 @@ wxSizer* NetPlayDialog::CreateBottomGUI(wxWindow* parent)
 
     m_memcard_write = new wxCheckBox(parent, wxID_ANY, _("Write save/SD data"));
 
-    m_copy_wii_save = new wxCheckBox(parent, wxID_ANY, _("Copy Wii Save"));
+    m_copy_wii_save = new wxCheckBox(parent, wxID_ANY, _("Load Wii Save"));
 
     bottom_szr->Add(m_start_btn, 0, wxALIGN_CENTER_VERTICAL);
     bottom_szr->Add(buffer_lbl, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
