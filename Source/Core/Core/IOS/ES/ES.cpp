@@ -1192,7 +1192,7 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
   if (GetVersion() == 0x101)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  ResetAfterLaunch(0x00000001'00000100);
+  ResetAfterLaunch(0x0000000100000100);
   EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
 }
