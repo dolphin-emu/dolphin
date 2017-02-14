@@ -38,7 +38,6 @@ CEXIETHERNET::CEXIETHERNET()
   {
     Common::GenerateMacAddress(Common::MACConsumer::BBA, mac_addr);
     mac_addr_setting = Common::MacAddressToString(mac_addr);
-    SConfig::GetInstance().SaveSettings();
   }
 
   memcpy(&mBbaMem[BBA_NAFR_PAR0], mac_addr, Common::MAC_ADDRESS_SIZE);

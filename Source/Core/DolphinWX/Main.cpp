@@ -205,7 +205,6 @@ void DolphinApp::AfterInit()
 
     SConfig::GetInstance().m_analytics_permission_asked = true;
     SConfig::GetInstance().m_analytics_enabled = (answer == wxYES);
-    SConfig::GetInstance().SaveSettings();
 
     DolphinAnalytics::Instance()->ReloadConfig();
   }

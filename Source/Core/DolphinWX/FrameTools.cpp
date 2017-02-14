@@ -394,13 +394,11 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 void CFrame::OnTogglePauseMovie(wxCommandEvent& WXUNUSED(event))
 {
   SConfig::GetInstance().m_PauseMovie = !SConfig::GetInstance().m_PauseMovie;
-  SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnToggleDumpFrames(wxCommandEvent& WXUNUSED(event))
 {
   SConfig::GetInstance().m_DumpFrames = !SConfig::GetInstance().m_DumpFrames;
-  SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnToggleDumpAudio(wxCommandEvent& WXUNUSED(event))
@@ -411,25 +409,21 @@ void CFrame::OnToggleDumpAudio(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnShowLag(wxCommandEvent& WXUNUSED(event))
 {
   SConfig::GetInstance().m_ShowLag = !SConfig::GetInstance().m_ShowLag;
-  SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnShowFrameCount(wxCommandEvent& WXUNUSED(event))
 {
   SConfig::GetInstance().m_ShowFrameCount = !SConfig::GetInstance().m_ShowFrameCount;
-  SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnShowInputDisplay(wxCommandEvent& WXUNUSED(event))
 {
   SConfig::GetInstance().m_ShowInputDisplay = !SConfig::GetInstance().m_ShowInputDisplay;
-  SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnShowRTCDisplay(wxCommandEvent& WXUNUSED(event))
 {
   SConfig::GetInstance().m_ShowRTC = !SConfig::GetInstance().m_ShowRTC;
-  SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnFrameStep(wxCommandEvent& event)
@@ -1318,7 +1312,6 @@ void CFrame::OnToggleFullscreen(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnToggleDualCore(wxCommandEvent& WXUNUSED(event))
 {
   SConfig::GetInstance().bCPUThread = !SConfig::GetInstance().bCPUThread;
-  SConfig::GetInstance().SaveSettings();
 }
 
 void CFrame::OnLoadStateFromFile(wxCommandEvent& WXUNUSED(event))
@@ -1700,5 +1693,4 @@ void CFrame::OnChangeColumnsVisible(wxCommandEvent& event)
     return;
   }
   UpdateGameList();
-  SConfig::GetInstance().SaveSettings();
 }

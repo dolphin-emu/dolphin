@@ -55,7 +55,6 @@ bool BootCore(const std::string& _rFilename)
   StartUp.m_BootType = SConfig::BOOT_ISO;
   StartUp.m_strFilename = _rFilename;
   StartUp.m_LastFilename = _rFilename;
-  StartUp.SaveSettings();
   StartUp.bRunCompareClient = false;
   StartUp.bRunCompareServer = false;
 

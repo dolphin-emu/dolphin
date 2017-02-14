@@ -80,7 +80,6 @@ void DolphinAnalytics::GenerateNewIdentity()
 
   // Save the new id in the configuration.
   SConfig::GetInstance().m_analytics_id = m_unique_id;
-  SConfig::GetInstance().SaveSettings();
 }
 
 std::string DolphinAnalytics::MakeUniqueId(const std::string& data)

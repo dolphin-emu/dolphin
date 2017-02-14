@@ -224,16 +224,6 @@ struct SConfig : NonCopyable
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
   DiscIO::Language GetCurrentLanguage(bool wii) const;
 
-  void LoadGameSettings();
-
-  IniFile LoadDefaultGameIni() const;
-  IniFile LoadLocalGameIni() const;
-  IniFile LoadGameIni() const;
-
-  static IniFile LoadDefaultGameIni(const std::string& id, u16 revision);
-  static IniFile LoadLocalGameIni(const std::string& id, u16 revision);
-  static IniFile LoadGameIni(const std::string& id, u16 revision);
-
   static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision);
 
   std::string m_NANDPath;
@@ -330,9 +320,6 @@ struct SConfig : NonCopyable
   bool m_SSLVerifyCert;
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
-
-  // Save settings
-  void SaveSettings();
 
   // Load settings
   void LoadSettings();

@@ -397,7 +397,6 @@ void CGameListCtrl::BrowseForDirectory()
     if (itResult == SConfig::GetInstance().m_ISOFolder.end())
     {
       SConfig::GetInstance().m_ISOFolder.push_back(sPath);
-      SConfig::GetInstance().SaveSettings();
     }
 
     ReloadList();
@@ -1112,13 +1111,11 @@ void CGameListCtrl::OnSetDefaultISO(wxCommandEvent& event)
   {
     // Write the new default value and save it the ini file
     SConfig::GetInstance().m_strDefaultISO = iso->GetFileName();
-    SConfig::GetInstance().SaveSettings();
   }
   else
   {
     // Otherwise blank the value and save it
     SConfig::GetInstance().m_strDefaultISO = "";
-    SConfig::GetInstance().SaveSettings();
   }
 }
 

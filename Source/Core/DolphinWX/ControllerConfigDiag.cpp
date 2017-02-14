@@ -373,7 +373,6 @@ wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
 void ControllerConfigDiag::OnClose(wxCloseEvent& event)
 {
   // Save all settings
-  SConfig::GetInstance().SaveSettings();
   SaveWiimoteSource();
   EndModal(wxID_OK);
 }
