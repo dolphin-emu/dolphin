@@ -77,7 +77,7 @@ public:
   explicit CNANDContentLoader(const std::string& content_name);
   ~CNANDContentLoader();
 
-  bool IsValid() const { return m_Valid; }
+  bool IsValid() const;
   void RemoveTitle() const;
   const SNANDContent* GetContentByIndex(int index) const;
   const IOS::ES::TMDReader& GetTMD() const { return m_tmd; }

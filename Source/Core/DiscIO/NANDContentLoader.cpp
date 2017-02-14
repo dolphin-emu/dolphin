@@ -156,6 +156,11 @@ CNANDContentLoader::~CNANDContentLoader()
 {
 }
 
+bool CNANDContentLoader::IsValid() const
+{
+  return m_Valid && m_tmd.IsValid();
+}
+
 const SNANDContent* CNANDContentLoader::GetContentByIndex(int index) const
 {
   for (auto& Content : m_Content)

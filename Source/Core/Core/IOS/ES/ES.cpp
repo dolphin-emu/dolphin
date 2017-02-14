@@ -186,7 +186,7 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 {
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-  if (!Loader.IsValid())
+  if (!Loader.IsValid() || !Loader.GetTicket().IsValid())
   {
     WARN_LOG(IOS_ES, "ES: loader not valid for %" PRIx64, TitleID);
     return 0xffffffff;
@@ -501,11 +501,11 @@ IPCCommandResult ES::GetTitleContents(const IOCtlVRequest& request)
   if (!rNANDContent.IsValid())
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  for (const auto& content : rNANDContent.GetContent())
+  for (const auto& content : rNANDContent.GetTMD().GetContents())
   {
-    const u16 index = content.m_metadata.index;
-    Memory::Write_U32(content.m_metadata.id, request.io_vectors[0].address + index * 4);
-    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", index, content.m_metadata.id);
+    const u16 index = content.index;
+    Memory::Write_U32(content.id, request.io_vectors[0].address + index * 4);
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECONTENTS: Index %d: %08x", index, content.id);
   }
 
   return GetDefaultReply(IPC_SUCCESS);
@@ -568,7 +568,7 @@ IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
     {
       const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_TitleID);
       // ContentLoader should never be invalid; rContent has been created by it.
-      if (ContentLoader.IsValid())
+      if (ContentLoader.IsValid() && ContentLoader.GetTicket().IsValid())
       {
         const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(rContent.m_Index);
         if (!pContent->m_Data->GetRange(rContent.m_Position, Size, pDest))
