@@ -92,13 +92,17 @@ public:
   bool Get(const std::string& key, double* value, double defaultValue = 0.0) const;
 
   // Section chunk
-  void SetLines(const std::vector<std::string>& lines) { m_lines = lines; }
+  void SetLines(const std::vector<std::string>& lines);
   // XXX: Add to recursive layer
   virtual bool GetLines(std::vector<std::string>* lines, const bool remove_comments = true) const;
   virtual bool HasLines() const { return m_lines.size() > 0; }
   const std::string& GetName() const { return m_name; }
   const SectionValueMap& GetValues() const { return m_values; }
+  bool IsDirty() const { return m_dirty; }
+  void ClearDirty() { m_dirty = false; }
 protected:
+  bool m_dirty = false;
+
   LayerType m_layer;
   System m_system;
   const std::string m_name;
@@ -154,6 +158,9 @@ public:
   // Stay away from this routine as much as possible
   ConfigLayerLoader* GetLoader() { return m_loader.get(); }
 protected:
+  bool IsDirty() const;
+  void ClearDirty();
+
   LayerMap m_sections;
   const LayerType m_layer;
   std::unique_ptr<ConfigLayerLoader> m_loader;

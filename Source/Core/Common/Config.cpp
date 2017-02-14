@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <array>
 #include <map>
 
@@ -119,16 +120,23 @@ bool Section::Delete(const std::string& key)
     return false;
 
   m_values.erase(it);
+  m_dirty = true;
   return true;
 }
 
 void Section::Set(const std::string& key, const std::string& value)
 {
   auto it = m_values.find(key);
-  if (it != m_values.end())
+  if (it != m_values.end() && it->second != value)
+  {
     it->second = value;
-  else
+    m_dirty = true;
+  }
+  else if (it == m_values.end())
+  {
     m_values[key] = value;
+    m_dirty = true;
+  }
 }
 
 void Section::Set(const std::string& key, u32 newValue)
@@ -163,6 +171,12 @@ void Section::Set(const std::string& key, const std::string& newValue,
     Set(key, newValue);
   else
     Delete(key);
+}
+
+void Section::SetLines(const std::vector<std::string>& lines)
+{
+  m_lines = lines;
+  m_dirty = true;
 }
 
 bool Section::Get(const std::string& key, std::string* value,
@@ -326,13 +340,33 @@ void Layer::Load()
 {
   if (m_loader)
     m_loader->Load(this);
+  ClearDirty();
   CallbackSystems();
 }
 
 void Layer::Save()
 {
-  if (m_loader)
-    m_loader->Save(this);
+  if (!m_loader || !IsDirty())
+    return;
+
+  m_loader->Save(this);
+  ClearDirty();
+}
+
+bool Layer::IsDirty() const
+{
+  return std::any_of(m_sections.begin(), m_sections.end(), [](const auto& system) {
+    return std::any_of(system.second.begin(), system.second.end(),
+                       [](const auto& section) { return section->IsDirty(); });
+  });
+}
+
+void Layer::ClearDirty()
+{
+  std::for_each(m_sections.begin(), m_sections.end(), [](const auto& system) {
+    std::for_each(system.second.begin(), system.second.end(),
+                  [](const auto& section) { section->ClearDirty(); });
+  });
 }
 
 Section* GetOrCreateSection(System system, const std::string& section_name)
