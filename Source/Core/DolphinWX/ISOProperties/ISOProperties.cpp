@@ -509,7 +509,7 @@ void CISOProperties::SetCheckboxValueFromGameini(Config::System system, const ch
   bool value;
   if (m_local_config->GetOrCreateSection(system, section)->Get(key, &value))
     checkbox->Set3StateValue((wxCheckBoxState)value);
-  else if (m_local_config->GetOrCreateSection(system, section)->Get(key, &value))
+  else if (m_global_config->GetOrCreateSection(system, section)->Get(key, &value))
     checkbox->Set3StateValue((wxCheckBoxState)value);
   else
     checkbox->Set3StateValue(wxCHK_UNDETERMINED);
