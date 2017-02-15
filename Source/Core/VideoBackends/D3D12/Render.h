@@ -4,11 +4,16 @@
 
 #pragma once
 
+#include <d3d12.h>
 #include <string>
 #include "VideoCommon/RenderBase.h"
 
+enum class EFBAccessType;
+
 namespace DX12
 {
+class D3DTexture2D;
+
 class Renderer final : public ::Renderer
 {
 public:
@@ -27,7 +32,7 @@ public:
   void SetViewport() override;
 
   // TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
-  void ApplyState(bool use_dst_alpha) override;
+  void ApplyState() override;
   void RestoreState() override;
 
   void ApplyCullDisable();

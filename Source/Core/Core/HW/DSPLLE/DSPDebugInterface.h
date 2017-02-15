@@ -9,6 +9,10 @@
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
 
+namespace DSP
+{
+namespace LLE
+{
 class DSPDebugInterface final : public DebugInterface
 {
 public:
@@ -36,3 +40,5 @@ public:
   int GetColor(unsigned int address) override;
   std::string GetDescription(unsigned int address) override;
 };
+}  // namespace LLE
+}  // namespace DSP

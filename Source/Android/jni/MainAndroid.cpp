@@ -113,10 +113,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-void Host_RequestFullscreen(bool enable_fullscreen)
-{
-}
-
 void Host_SetStartupDebuggingParameters()
 {
 }
@@ -145,6 +141,10 @@ void Host_SetWiiMoteConnectionState(int _State)
 }
 
 void Host_ShowVideoConfig(void*, const std::string&)
+{
+}
+
+void Host_YieldToUI()
 {
 }
 
@@ -471,13 +471,13 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_UnPauseEmula
                                                                                      jobject obj)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  Core::SetState(Core::CORE_RUN);
+  Core::SetState(Core::State::Running);
 }
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_PauseEmulation(JNIEnv* env,
                                                                                    jobject obj)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  Core::SetState(Core::CORE_PAUSE);
+  Core::SetState(Core::State::Paused);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulation(JNIEnv* env,
@@ -695,10 +695,10 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetProfiling
                                                                                  jboolean enable)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  Core::SetState(Core::CORE_PAUSE);
+  Core::SetState(Core::State::Paused);
   JitInterface::ClearCache();
   Profiler::g_ProfileBlocks = enable;
-  Core::SetState(Core::CORE_RUN);
+  Core::SetState(Core::State::Running);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_WriteProfileResults(JNIEnv* env,

@@ -18,6 +18,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/Host.h"
 #include "Core/NetPlayProto.h"
 
 #include "VideoCommon/AsyncRequests.h"
@@ -94,7 +95,13 @@ void PauseAndLock(bool doLock, bool unpauseOnUnlock)
   {
     SyncGPU(SyncGPUReason::Other);
     EmulatorState(false);
-    FlushGpu();
+
+    const SConfig& param = SConfig::GetInstance();
+
+    if (!param.bCPUThread || s_use_deterministic_gpu_thread)
+      return;
+
+    s_gpu_mainloop.WaitYield(std::chrono::milliseconds(100), Host_YieldToUI);
   }
   else
   {
@@ -317,7 +324,7 @@ void RunGpuLoop()
         }
         else
         {
-          SCPFifoStruct& fifo = CommandProcessor::fifo;
+          CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
 
           AsyncRequests::GetInstance()->PullEvents();
 
@@ -407,7 +414,7 @@ void GpuMaySleep()
 
 bool AtBreakpoint()
 {
-  SCPFifoStruct& fifo = CommandProcessor::fifo;
+  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   return fifo.bFF_BPEnable && (fifo.CPReadPointer == fifo.CPBreakpoint);
 }
 
@@ -435,7 +442,7 @@ void RunGpu()
 
 static int RunGpuOnCpu(int ticks)
 {
-  SCPFifoStruct& fifo = CommandProcessor::fifo;
+  CommandProcessor::SCPFifoStruct& fifo = CommandProcessor::fifo;
   bool reset_simd_state = false;
   int available_ticks = int(ticks * SConfig::GetInstance().fSyncGpuOverclock) + s_sync_ticks.load();
   while (fifo.bFF_GPReadEnable && fifo.CPReadWriteDistance && !AtBreakpoint() &&

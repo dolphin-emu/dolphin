@@ -5,6 +5,7 @@
 #include <algorithm>
 #include <cstdio>
 #include <memory>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
@@ -12,13 +13,12 @@
 
 namespace DiscIO
 {
-static const char CISO_MAGIC[] = "CISO";
-
-CISOFileReader::CISOFileReader(std::FILE* file) : m_file(file)
+CISOFileReader::CISOFileReader(File::IOFile file) : m_file(std::move(file))
 {
   m_size = m_file.GetSize();
 
   CISOHeader header;
+  m_file.Seek(0, SEEK_SET);
   m_file.ReadArray(&header, 1);
 
   m_block_size = header.block_size;
@@ -28,13 +28,11 @@ CISOFileReader::CISOFileReader(std::FILE* file) : m_file(file)
     m_ciso_map[idx] = (1 == header.map[idx]) ? count++ : UNUSED_BLOCK_ID;
 }
 
-std::unique_ptr<CISOFileReader> CISOFileReader::Create(const std::string& filename)
+std::unique_ptr<CISOFileReader> CISOFileReader::Create(File::IOFile file)
 {
-  if (IsCISOBlob(filename))
-  {
-    File::IOFile f(filename, "rb");
-    return std::unique_ptr<CISOFileReader>(new CISOFileReader(f.ReleaseHandle()));
-  }
+  CISOHeader header;
+  if (file.Seek(0, SEEK_SET) && file.ReadArray(&header, 1) && header.magic == CISO_MAGIC)
+    return std::unique_ptr<CISOFileReader>(new CISOFileReader(std::move(file)));
 
   return nullptr;
 }
@@ -79,15 +77,6 @@ bool CISOFileReader::Read(u64 offset, u64 nbytes, u8* out_ptr)
   }
 
   return true;
-}
-
-bool IsCISOBlob(const std::string& filename)
-{
-  File::IOFile f(filename, "rb");
-
-  CISOHeader header;
-  return (f.ReadArray(&header, 1) &&
-          std::equal(header.magic, header.magic + sizeof(header.magic), CISO_MAGIC));
 }
 
 }  // namespace

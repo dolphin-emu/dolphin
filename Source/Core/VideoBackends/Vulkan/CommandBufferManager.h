@@ -33,7 +33,6 @@ public:
 
   bool Initialize();
 
-  VkCommandPool GetCommandPool() const { return m_command_pool; }
   // These command buffers are allocated per-frame. They are valid until the command buffer
   // is submitted, after that you should call these functions again.
   VkCommandBuffer GetCurrentInitCommandBuffer()
@@ -100,9 +99,6 @@ public:
   void RemoveFencePointCallback(const void* key);
 
 private:
-  bool CreateCommandPool();
-  void DestroyCommandPool();
-
   bool CreateCommandBuffers();
   void DestroyCommandBuffers();
 
@@ -113,11 +109,10 @@ private:
 
   void OnCommandBufferExecuted(size_t index);
 
-  VkCommandPool m_command_pool = VK_NULL_HANDLE;
-
   struct FrameResources
   {
     // [0] - Init (upload) command buffer, [1] - draw command buffer
+    VkCommandPool command_pool;
     std::array<VkCommandBuffer, 2> command_buffers;
     VkDescriptorPool descriptor_pool;
     VkFence fence;

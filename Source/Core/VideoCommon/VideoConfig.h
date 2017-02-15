@@ -63,8 +63,6 @@ struct VideoConfig final
 
   // General
   bool bVSync;
-  bool bFullscreen;
-  bool bExclusiveMode;
   bool bRunning;
   bool bWidescreenHack;
   int iAspectRatio;
@@ -101,7 +99,9 @@ struct VideoConfig final
   bool bConvertHiresTextures;
   bool bCacheHiresTextures;
   bool bDumpEFBTarget;
+  bool bDumpFramesAsImages;
   bool bUseFFV1;
+  bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   bool bBorderlessFullscreen;
 
@@ -185,6 +185,7 @@ struct VideoConfig final
     bool bSupportsDepthClamp;  // Needed by VertexShaderGen, so must stay in VideoCommon
     bool bSupportsReversedDepthRange;
     bool bSupportsMultithreading;
+    bool bSupportsInternalResolutionFrameDumps;
   } backend_info;
 
   // Utility

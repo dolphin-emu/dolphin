@@ -89,7 +89,8 @@ static bool s_disable_logging = false;
 
 struct ARAddr
 {
-  union {
+  union
+  {
     u32 address;
     struct
     {

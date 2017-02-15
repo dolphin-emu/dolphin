@@ -28,12 +28,12 @@ void SetIsThrottlerTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
 
-enum EState
+enum class State
 {
-  CORE_UNINITIALIZED,
-  CORE_PAUSE,
-  CORE_RUN,
-  CORE_STOPPING
+  Uninitialized,
+  Paused,
+  Running,
+  Stopping
 };
 
 bool Init();
@@ -52,8 +52,8 @@ bool IsCPUThread();               // this tells us whether we are the CPU thread
 bool IsGPUThread();
 
 // [NOT THREADSAFE] For use by Host only
-void SetState(EState state);
-EState GetState();
+void SetState(State state);
+State GetState();
 
 void SaveScreenShot();
 void SaveScreenShot(const std::string& name);

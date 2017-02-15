@@ -7,11 +7,12 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "DolphinWX/NetPlay/PadMapDialog.h"
+#include "DolphinWX/WxUtils.h"
+
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
-#include "DolphinWX/NetPlay/PadMapDialog.h"
-#include "DolphinWX/WxUtils.h"
 
 PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client)
     : wxDialog(parent, wxID_ANY, _("Controller Ports")), m_pad_mapping(server->GetPadMapping()),
@@ -40,7 +41,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
     {
       for (unsigned int j = 0; j < m_player_list.size(); j++)
       {
-        if (m_pad_mapping[idx] == m_player_list[j]->pid)
+        if (mapping[idx] == m_player_list[j]->pid)
         {
           m_map_cbox[base_idx + idx]->Select(j + 1);
           break;
@@ -59,7 +60,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
     // This looks a little weird but it's fine because we're using a grid bag sizer;
     // we can add columns in any order.
     build_choice(0, i, m_pad_mapping, _("GC Port"));
-    build_choice(4, i, m_wii_mapping, _("Wiimote"));
+    build_choice(4, i, m_wii_mapping, _("Wii Remote"));
   }
 
   wxBoxSizer* const main_szr = new wxBoxSizer(wxVERTICAL);

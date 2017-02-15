@@ -17,6 +17,7 @@
 #include "InputCommon/GCAdapter.h"
 
 #include "UICommon/UICommon.h"
+#include "UICommon/USBUtils.h"
 
 #include "VideoCommon/VideoBackendBase.h"
 

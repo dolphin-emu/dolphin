@@ -56,7 +56,7 @@ GCAdapterConfigDiag::GCAdapterConfigDiag(wxWindow* const parent, const wxString&
   SetSizerAndFit(szr);
   Center();
 
-  Bind(wxEVT_ADAPTER_UPDATE, &GCAdapterConfigDiag::UpdateAdapter, this);
+  Bind(wxEVT_ADAPTER_UPDATE, &GCAdapterConfigDiag::OnUpdateAdapter, this);
 }
 
 GCAdapterConfigDiag::~GCAdapterConfigDiag()
@@ -69,7 +69,7 @@ void GCAdapterConfigDiag::ScheduleAdapterUpdate()
   wxQueueEvent(this, new wxCommandEvent(wxEVT_ADAPTER_UPDATE));
 }
 
-void GCAdapterConfigDiag::UpdateAdapter(wxCommandEvent& ev)
+void GCAdapterConfigDiag::OnUpdateAdapter(wxCommandEvent& WXUNUSED(event))
 {
   bool unpause = Core::PauseAndLock(true);
   if (GCAdapter::IsDetected())

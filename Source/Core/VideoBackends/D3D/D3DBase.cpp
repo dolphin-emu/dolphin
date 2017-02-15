@@ -8,6 +8,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Core/ConfigManager.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DTexture.h"
@@ -315,7 +316,8 @@ HRESULT Create(HWND wnd)
   swap_chain_desc.OutputWindow = wnd;
   swap_chain_desc.SampleDesc.Count = 1;
   swap_chain_desc.SampleDesc.Quality = 0;
-  swap_chain_desc.Windowed = !g_Config.bFullscreen;
+  swap_chain_desc.Windowed =
+      !SConfig::GetInstance().bFullscreen || g_ActiveConfig.bBorderlessFullscreen;
 
   DXGI_OUTPUT_DESC out_desc = {};
   output->GetDesc(&out_desc);
@@ -610,17 +612,11 @@ HRESULT SetFullscreenState(bool enable_fullscreen)
   return swapchain->SetFullscreenState(enable_fullscreen, nullptr);
 }
 
-HRESULT GetFullscreenState(bool* fullscreen_state)
+bool GetFullscreenState()
 {
-  if (fullscreen_state == nullptr)
-  {
-    return E_POINTER;
-  }
-
-  BOOL state;
-  HRESULT hr = swapchain->GetFullscreenState(&state, nullptr);
-  *fullscreen_state = !!state;
-  return hr;
+  BOOL state = FALSE;
+  swapchain->GetFullscreenState(&state, nullptr);
+  return !!state;
 }
 
 }  // namespace D3D

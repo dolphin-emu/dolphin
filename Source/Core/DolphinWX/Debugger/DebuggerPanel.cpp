@@ -90,8 +90,7 @@ void GFXDebuggerPanel::CreateGUIControls()
                             wxDefaultValidator, _("Count"));
   m_pCount->SetMinSize(WxUtils::GetTextWidgetMinSize(m_pCount, 10000));
 
-  m_pPauseAtList = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, 0,
-                                wxDefaultValidator, _("PauseAtList"));
+  m_pPauseAtList = new wxChoice(this, wxID_ANY);
   for (int i = 0; i < numPauseEventMap; i++)
   {
     m_pPauseAtList->Append(pauseEventMap[i].ListStr);
@@ -116,20 +115,21 @@ void GFXDebuggerPanel::CreateGUIControls()
   m_pButtonClearTextureCache->Bind(wxEVT_BUTTON, &GFXDebuggerPanel::OnClearTextureCacheButton,
                                    this);
 
+  const wxString clear_vertex_shaders = _("Clear Vertex Shaders");
   m_pButtonClearVertexShaderCache =
-      new wxButton(this, wxID_ANY, _("Clear V Shaders"), wxDefaultPosition, wxDefaultSize, 0,
-                   wxDefaultValidator, _("Clear V Shaders"));
+      new wxButton(this, wxID_ANY, clear_vertex_shaders, wxDefaultPosition, wxDefaultSize, 0,
+                   wxDefaultValidator, clear_vertex_shaders);
   m_pButtonClearVertexShaderCache->Bind(wxEVT_BUTTON,
                                         &GFXDebuggerPanel::OnClearVertexShaderCacheButton, this);
 
+  const wxString clear_pixel_shaders = _("Clear Pixel Shaders");
   m_pButtonClearPixelShaderCache =
-      new wxButton(this, wxID_ANY, _("Clear P Shaders"), wxDefaultPosition, wxDefaultSize, 0,
-                   wxDefaultValidator, _("Clear P Shaders"));
+      new wxButton(this, wxID_ANY, clear_pixel_shaders, wxDefaultPosition, wxDefaultSize, 0,
+                   wxDefaultValidator, clear_pixel_shaders);
   m_pButtonClearPixelShaderCache->Bind(wxEVT_BUTTON,
                                        &GFXDebuggerPanel::OnClearPixelShaderCacheButton, this);
 
-  m_pDumpList = new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, 0, nullptr, 0,
-                             wxDefaultValidator, _("DumpList"));
+  m_pDumpList = new wxChoice(this, wxID_ANY);
   m_pDumpList->Insert(_("Pixel Shader"), 0);
   m_pDumpList->Append(_("Vertex Shader"));
   m_pDumpList->Append(_("Pixel Shader Constants"));
@@ -302,7 +302,7 @@ void GFXDebuggerPanel::OnClearScreenButton(wxCommandEvent& event)
 
 void GFXDebuggerPanel::OnClearTextureCacheButton(wxCommandEvent& event)
 {
-  TextureCacheBase::Invalidate();
+  g_texture_cache->Invalidate();
 }
 
 void GFXDebuggerPanel::OnClearVertexShaderCacheButton(wxCommandEvent& event)

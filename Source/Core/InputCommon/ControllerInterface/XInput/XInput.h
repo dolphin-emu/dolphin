@@ -9,8 +9,8 @@
 
 #pragma once
 
-#include <XInput.h>
 #include <windows.h>
+#include <XInput.h>
 
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 
@@ -23,6 +23,7 @@ namespace ciface
 namespace XInput
 {
 void Init();
+void PopulateDevices();
 void DeInit();
 
 class Device : public Core::Device

@@ -57,9 +57,10 @@ public:
     u64 base_hash;
     u64 hash;    // for paletted textures, hash = base_hash ^ palette_hash
     u32 format;  // bits 0-3 will contain the in-memory format.
+    u32 memory_stride;
     bool is_efb_copy;
     bool is_custom_tex;
-    u32 memory_stride;
+    bool may_have_overlapping_textures;
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -127,15 +128,11 @@ public:
                                           const MathUtil::Rectangle<int>& srcrect,
                                           const MathUtil::Rectangle<int>& dstrect) = 0;
 
-    virtual void Load(unsigned int width, unsigned int height, unsigned int expanded_width,
-                      unsigned int level) = 0;
-    virtual void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat,
-                                  const EFBRectangle& srcRect, bool scaleByHalf,
+    virtual void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) = 0;
+    virtual void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
                                   unsigned int cbufid, const float* colmat) = 0;
 
     bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
-
-    TextureCacheBase::TCacheEntryBase* ApplyPalette(u8* palette, u32 tlutfmt);
 
     bool IsEfbCopy() const { return is_efb_copy; }
     u32 NumBlocksY() const;
@@ -146,30 +143,29 @@ public:
 
   virtual ~TextureCacheBase();  // needs virtual for DX11 dtor
 
-  static void OnConfigChanged(VideoConfig& config);
+  void OnConfigChanged(VideoConfig& config);
 
   // Removes textures which aren't used for more than TEXTURE_KILL_THRESHOLD frames,
   // frameCount is the current frame number.
-  static void Cleanup(int _frameCount);
+  void Cleanup(int _frameCount);
 
-  static void Invalidate();
+  void Invalidate();
 
   virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 
   virtual void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                       u32 memory_stride, PEControl::PixelFormat srcFormat,
-                       const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf) = 0;
+                       u32 memory_stride, bool is_depth_copy, const EFBRectangle& srcRect,
+                       bool isIntensity, bool scaleByHalf) = 0;
 
   virtual bool CompileShaders() = 0;
   virtual void DeleteShaders() = 0;
 
-  static TCacheEntryBase* Load(const u32 stage);
-  static void UnbindTextures();
+  TCacheEntryBase* Load(const u32 stage);
+  void UnbindTextures();
   virtual void BindTextures();
-  static void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
-                                        PEControl::PixelFormat srcFormat,
-                                        const EFBRectangle& srcRect, bool isIntensity,
-                                        bool scaleByHalf);
+  void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
+                                 bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
+                                 bool scaleByHalf);
 
   virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
                               TlutFormat format) = 0;
@@ -177,46 +173,59 @@ public:
 protected:
   TextureCacheBase();
 
-  alignas(16) static u8* temp;
-  static size_t temp_size;
+  alignas(16) u8* temp = nullptr;
+  size_t temp_size = 0;
 
-  static TCacheEntryBase* bound_textures[8];
+  TCacheEntryBase* bound_textures[8] = {};
 
 private:
-  typedef std::multimap<u64, TCacheEntryBase*> TexCache;
+  typedef std::multimap<u32, TCacheEntryBase*> TexAddrCache;
+  typedef std::multimap<u64, TCacheEntryBase*> TexHashCache;
   typedef std::unordered_multimap<TCacheEntryConfig, TCacheEntryBase*, TCacheEntryConfig::Hasher>
       TexPool;
-  static void ScaleTextureCacheEntryTo(TCacheEntryBase** entry, u32 new_width, u32 new_height);
-  static TCacheEntryBase* DoPartialTextureUpdates(TexCache::iterator iter, u8* palette,
-                                                  u32 tlutfmt);
-  static void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
-  static void CheckTempSize(size_t required_size);
 
-  static TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
-  static TexPool::iterator FindMatchingTextureFromPool(const TCacheEntryConfig& config);
-  static TexCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
+  void SetBackupConfig(const VideoConfig& config);
+
+  TCacheEntryBase* ApplyPaletteToEntry(TCacheEntryBase* entry, u8* palette, u32 tlutfmt);
+
+  void ScaleTextureCacheEntryTo(TCacheEntryBase** entry, u32 new_width, u32 new_height);
+  TCacheEntryBase* DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* palette,
+                                           u32 tlutfmt);
+
+  void DumpTexture(TCacheEntryBase* entry, std::string basename, unsigned int level);
+  void CheckTempSize(size_t required_size);
+
+  TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
+  TexPool::iterator FindMatchingTextureFromPool(const TCacheEntryConfig& config);
+  TexAddrCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
+
+  // Return all possible overlapping textures. As addr+size of the textures is not
+  // indexed, this may return false positives.
+  std::pair<TexAddrCache::iterator, TexAddrCache::iterator>
+  FindOverlappingTextures(u32 addr, u32 size_in_bytes);
 
   // Removes and unlinks texture from texture cache and returns it to the pool
-  static TexCache::iterator InvalidateTexture(TexCache::iterator t_iter);
+  TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);
 
-  static TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
+  TCacheEntryBase* ReturnEntry(unsigned int stage, TCacheEntryBase* entry);
 
-  static TexCache textures_by_address;
-  static TexCache textures_by_hash;
-  static TexPool texture_pool;
+  TexAddrCache textures_by_address;
+  TexHashCache textures_by_hash;
+  TexPool texture_pool;
 
   // Backup configuration values
-  static struct BackupConfig
+  struct BackupConfig
   {
-    int s_colorsamples;
-    bool s_texfmt_overlay;
-    bool s_texfmt_overlay_center;
-    bool s_hires_textures;
-    bool s_cache_hires_textures;
-    bool s_copy_cache_enable;
-    bool s_stereo_3d;
-    bool s_efb_mono_depth;
-  } backup_config;
+    int color_samples;
+    bool texfmt_overlay;
+    bool texfmt_overlay_center;
+    bool hires_textures;
+    bool cache_hires_textures;
+    bool copy_cache_enable;
+    bool stereo_3d;
+    bool efb_mono_depth;
+  };
+  BackupConfig backup_config = {};
 };
 
 extern std::unique_ptr<TextureCacheBase> g_texture_cache;

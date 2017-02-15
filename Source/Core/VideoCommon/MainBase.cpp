@@ -9,7 +9,6 @@
 #include "Common/Event.h"
 #include "Common/Flag.h"
 #include "Common/Logging/Log.h"
-#include "Core/ConfigManager.h"
 #include "Core/Host.h"
 #include "VideoCommon/AsyncRequests.h"
 #include "VideoCommon/BPStructs.h"
@@ -73,11 +72,11 @@ u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 Inpu
     return 0;
   }
 
-  if (type == POKE_COLOR || type == POKE_Z)
+  if (type == EFBAccessType::PokeColor || type == EFBAccessType::PokeZ)
   {
     AsyncRequests::Event e;
-    e.type = type == POKE_COLOR ? AsyncRequests::Event::EFB_POKE_COLOR :
-                                  AsyncRequests::Event::EFB_POKE_Z;
+    e.type = type == EFBAccessType::PokeColor ? AsyncRequests::Event::EFB_POKE_COLOR :
+                                                AsyncRequests::Event::EFB_POKE_Z;
     e.time = 0;
     e.efb_poke.data = InputData;
     e.efb_poke.x = x;
@@ -89,8 +88,8 @@ u32 VideoBackendBase::Video_AccessEFB(EFBAccessType type, u32 x, u32 y, u32 Inpu
   {
     AsyncRequests::Event e;
     u32 result;
-    e.type = type == PEEK_COLOR ? AsyncRequests::Event::EFB_PEEK_COLOR :
-                                  AsyncRequests::Event::EFB_PEEK_Z;
+    e.type = type == EFBAccessType::PeekColor ? AsyncRequests::Event::EFB_PEEK_COLOR :
+                                                AsyncRequests::Event::EFB_PEEK_Z;
     e.time = 0;
     e.efb_peek.x = x;
     e.efb_peek.y = y;
@@ -121,15 +120,23 @@ u32 VideoBackendBase::Video_GetQueryResult(PerfQueryType type)
 
 u16 VideoBackendBase::Video_GetBoundingBox(int index)
 {
-  if (!g_ActiveConfig.backend_info.bSupportsBBox)
-    return 0;
-
   if (!g_ActiveConfig.bBBoxEnable)
   {
     static bool warn_once = true;
     if (warn_once)
       ERROR_LOG(VIDEO, "BBox shall be used but it is disabled. Please use a gameini to enable it "
                        "for this game.");
+    warn_once = false;
+    return 0;
+  }
+
+  if (!g_ActiveConfig.backend_info.bSupportsBBox)
+  {
+    static bool warn_once = true;
+    if (warn_once)
+      PanicAlertT("This game requires bounding box emulation to run properly but your graphics "
+                  "card or its drivers do not support it. As a result you will experience bugs or "
+                  "freezes while running this game.");
     warn_once = false;
     return 0;
   }
@@ -244,6 +251,6 @@ void VideoBackendBase::CheckInvalidState()
     m_invalid = false;
 
     BPReload();
-    TextureCacheBase::Invalidate();
+    g_texture_cache->Invalidate();
   }
 }

@@ -41,7 +41,7 @@ static double StringToDouble(const std::string& text)
   return result;
 }
 
-void Init()
+void PopulateDevices()
 {
   // Search the Pipes directory for files that we can open in read-only,
   // non-blocking mode. The device name is the virtual name of the file.

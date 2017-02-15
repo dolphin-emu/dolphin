@@ -23,14 +23,15 @@
 #include "Core/Core.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/Host.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_stm.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "Core/IOS/IPC.h"
+#include "Core/IOS/STM/STM.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/State.h"
 
 #include "UICommon/UICommon.h"
 
+#include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoBackendBase.h"
 
 static bool rendererHasFocus = true;
@@ -113,10 +114,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
 }
 
-void Host_RequestFullscreen(bool enable_fullscreen)
-{
-}
-
 void Host_SetStartupDebuggingParameters()
 {
   SConfig& StartUp = SConfig::GetInstance();
@@ -146,7 +143,10 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
   {
     Core::QueueHostJob([=] {
       bool was_unpaused = Core::PauseAndLock(true);
-      GetUsbPointer()->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
+      const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+          IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
+      if (bt)
+        bt->AccessWiiMote(wm_idx | 0x100)->Activate(connect);
       Host_UpdateMainFrame();
       Core::PauseAndLock(false, was_unpaused);
     });
@@ -158,6 +158,10 @@ void Host_SetWiiMoteConnectionState(int _State)
 }
 
 void Host_ShowVideoConfig(void*, const std::string&)
+{
+}
+
+void Host_YieldToUI()
 {
 }
 
@@ -188,7 +192,7 @@ class PlatformX11 : public Platform
                               SConfig::GetInstance().iRenderWindowYPos,
                               SConfig::GetInstance().iRenderWindowWidth,
                               SConfig::GetInstance().iRenderWindowHeight, 0, 0, BlackPixel(dpy, 0));
-    XSelectInput(dpy, win, KeyPressMask | FocusChangeMask);
+    XSelectInput(dpy, win, StructureNotifyMask | KeyPressMask | FocusChangeMask);
     Atom wmProtocols[1];
     wmProtocols[0] = XInternAtom(dpy, "WM_DELETE_WINDOW", True);
     XSetWMProtocols(dpy, win, wmProtocols, 1);
@@ -220,6 +224,8 @@ class PlatformX11 : public Platform
   void MainLoop() override
   {
     bool fullscreen = SConfig::GetInstance().bFullscreen;
+    int last_window_width = SConfig::GetInstance().iRenderWindowWidth;
+    int last_window_height = SConfig::GetInstance().iRenderWindowHeight;
 
     if (fullscreen)
     {
@@ -234,9 +240,9 @@ class PlatformX11 : public Platform
     {
       if (s_shutdown_requested.TestAndClear())
       {
-        const auto& stm = WII_IPC_HLE_Interface::GetDeviceByName("/dev/stm/eventhook");
+        const auto stm = IOS::HLE::GetDeviceByName("/dev/stm/eventhook");
         if (!s_tried_graceful_shutdown.IsSet() && stm &&
-            std::static_pointer_cast<CWII_IPC_HLE_Device_stm_eventhook>(stm)->HasHookInstalled())
+            std::static_pointer_cast<IOS::HLE::Device::STMEventHook>(stm)->HasHookInstalled())
         {
           ProcessorInterface::PowerButton_Tap();
           s_tried_graceful_shutdown.Set();
@@ -258,17 +264,17 @@ class PlatformX11 : public Platform
           key = XLookupKeysym((XKeyEvent*)&event, 0);
           if (key == XK_Escape)
           {
-            if (Core::GetState() == Core::CORE_RUN)
+            if (Core::GetState() == Core::State::Running)
             {
               if (SConfig::GetInstance().bHideCursor)
                 XUndefineCursor(dpy, win);
-              Core::SetState(Core::CORE_PAUSE);
+              Core::SetState(Core::State::Paused);
             }
             else
             {
               if (SConfig::GetInstance().bHideCursor)
                 XDefineCursor(dpy, win, blankCursor);
-              Core::SetState(Core::CORE_RUN);
+              Core::SetState(Core::State::Running);
             }
           }
           else if ((key == XK_Return) && (event.xkey.state & Mod1Mask))
@@ -301,7 +307,7 @@ class PlatformX11 : public Platform
           break;
         case FocusIn:
           rendererHasFocus = true;
-          if (SConfig::GetInstance().bHideCursor && Core::GetState() != Core::CORE_PAUSE)
+          if (SConfig::GetInstance().bHideCursor && Core::GetState() != Core::State::Paused)
             XDefineCursor(dpy, win, blankCursor);
           break;
         case FocusOut:
@@ -313,6 +319,22 @@ class PlatformX11 : public Platform
           if ((unsigned long)event.xclient.data.l[0] == XInternAtom(dpy, "WM_DELETE_WINDOW", False))
             s_shutdown_requested.Set();
           break;
+        case ConfigureNotify:
+        {
+          if (last_window_width != event.xconfigure.width ||
+              last_window_height != event.xconfigure.height)
+          {
+            last_window_width = event.xconfigure.width;
+            last_window_height = event.xconfigure.height;
+
+            // We call Renderer::ChangeSurface here to indicate the size has changed,
+            // but pass the same window handle. This is needed for the Vulkan backend,
+            // otherwise it cannot tell that the window has been resized on some drivers.
+            if (g_renderer)
+              g_renderer->ChangeSurface(s_window_handle);
+          }
+        }
+        break;
         }
       }
       if (!fullscreen)

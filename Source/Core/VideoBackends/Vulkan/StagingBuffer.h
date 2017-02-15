@@ -16,7 +16,7 @@ class StagingBuffer
 public:
   StagingBuffer(STAGING_BUFFER_TYPE type, VkBuffer buffer, VkDeviceMemory memory, VkDeviceSize size,
                 bool coherent);
-  ~StagingBuffer();
+  virtual ~StagingBuffer();
 
   STAGING_BUFFER_TYPE GetType() const { return m_type; }
   VkDeviceSize GetSize() const { return m_size; }
@@ -33,6 +33,7 @@ public:
   void FlushCPUCache(VkDeviceSize offset = 0, VkDeviceSize size = VK_WHOLE_SIZE);
 
   // Upload part 2: Prepare for device read from the GPU side
+  // Implicit when submitting the command buffer, so rarely needed.
   void InvalidateGPUCache(VkCommandBuffer command_buffer, VkAccessFlagBits dst_access_flags,
                           VkPipelineStageFlagBits dst_pipeline_stage, VkDeviceSize offset = 0,
                           VkDeviceSize size = VK_WHOLE_SIZE);
@@ -59,6 +60,10 @@ public:
                                                VkBufferUsageFlags usage);
 
 protected:
+  // Allocates the resources needed to create a staging buffer.
+  static bool AllocateBuffer(STAGING_BUFFER_TYPE type, VkDeviceSize size, VkBufferUsageFlags usage,
+                             VkBuffer* out_buffer, VkDeviceMemory* out_memory, bool* out_coherent);
+
   STAGING_BUFFER_TYPE m_type;
   VkBuffer m_buffer;
   VkDeviceMemory m_memory;

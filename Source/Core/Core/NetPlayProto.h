@@ -7,7 +7,7 @@
 #include <array>
 #include <vector>
 #include "Common/CommonTypes.h"
-#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI/EXI_Device.h"
 
 struct NetSettings
 {
@@ -21,6 +21,7 @@ struct NetSettings
   bool m_DSPHLE;
   bool m_DSPEnableJIT;
   bool m_WriteToMemcard;
+  bool m_CopyWiiSave;
   bool m_OCEnable;
   float m_OCFactor;
   TEXIDevices m_EXIDevice[2];

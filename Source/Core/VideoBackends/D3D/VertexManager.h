@@ -6,6 +6,8 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
+struct ID3D11Buffer;
+
 namespace DX11
 {
 class VertexManager : public VertexManagerBase
@@ -25,7 +27,7 @@ private:
   void PrepareDrawBuffers(u32 stride);
   void Draw(u32 stride);
   // temp
-  void vFlush(bool useDstAlpha) override;
+  void vFlush() override;
 
   u32 m_vertexDrawOffset;
   u32 m_indexDrawOffset;

@@ -23,7 +23,7 @@ public:
   void MakeDirty();
 
   s32 Read(u32 address, s32 length, u8* destaddress) override;
-  s32 Write(u32 destaddress, s32 length, u8* srcaddress) override;
+  s32 Write(u32 destaddress, s32 length, const u8* srcaddress) override;
   void ClearBlock(u32 address) override;
   void ClearAll() override;
   void DoState(PointerWrap& p) override;

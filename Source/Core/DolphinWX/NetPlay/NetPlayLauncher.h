@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#pragma once
+
 #include <string>
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
@@ -39,7 +41,9 @@ public:
 
   std::string game_name;
   u16 listen_port = 0;
+#ifdef USE_UPNP
   bool forward_port;
+#endif
 };
 
 class NetPlayJoinConfig : public NetPlayLaunchConfig

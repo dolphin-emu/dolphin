@@ -46,7 +46,7 @@ namespace ciface
 namespace XInput2
 {
 // This function will add zero or more KeyboardMouse objects to devices.
-void Init(void* const hwnd)
+void PopulateDevices(void* const hwnd)
 {
   Display* dpy = XOpenDisplay(nullptr);
 

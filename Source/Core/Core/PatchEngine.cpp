@@ -223,11 +223,7 @@ static bool IsStackSane()
     return false;
 
   // Check the link register makes sense (that it points to a valid IBAT address)
-  auto insn = PowerPC::TryReadInstruction(PowerPC::HostRead_U32(next_SP + 4));
-  if (!insn.valid || !insn.hex)
-    return false;
-
-  return true;
+  return PowerPC::HostIsInstructionRAMAddress(PowerPC::HostRead_U32(next_SP + 4));
 }
 
 bool ApplyFramePatches()
@@ -239,7 +235,7 @@ bool ApplyFramePatches()
   UReg_MSR msr = MSR;
   if (!msr.DR || !msr.IR || !IsStackSane())
   {
-    INFO_LOG(
+    DEBUG_LOG(
         ACTIONREPLAY,
         "Need to retry later. CPU configuration is currently incorrect. PC = 0x%08X, MSR = 0x%08X",
         PC, MSR);

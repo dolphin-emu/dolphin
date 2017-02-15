@@ -14,6 +14,7 @@
 #include <wx/listbox.h>
 #include <wx/menu.h>
 #include <wx/mimetype.h>
+#include <wx/srchctrl.h>
 #include <wx/textdlg.h>
 
 #include "Common/CommonPaths.h"
@@ -31,7 +32,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
-#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
@@ -93,8 +94,8 @@ void CCodeWindow::Save()
 
   IniFile::Section* general = ini.GetOrCreateSection("General");
   general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
-  general->Set("AutomaticStart", GetMenuBar()->IsChecked(IDM_AUTOMATIC_START));
-  general->Set("BootToPause", GetMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE));
+  general->Set("AutomaticStart", GetParentMenuBar()->IsChecked(IDM_AUTOMATIC_START));
+  general->Set("BootToPause", GetParentMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE));
 
   const char* SettingName[] = {"Log",    "LogConfig", "Console", "Registers", "Breakpoints",
                                "Memory", "JIT",       "Sound",   "Video",     "Code"};
@@ -102,7 +103,7 @@ void CCodeWindow::Save()
   // Save windows settings
   for (int i = IDM_LOG_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
     ini.GetOrCreateSection("ShowOnStart")
-        ->Set(SettingName[i - IDM_LOG_WINDOW], GetMenuBar()->IsChecked(i));
+        ->Set(SettingName[i - IDM_LOG_WINDOW], GetParentMenuBar()->IsChecked(i));
 
   // Save notebook affiliations
   std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
@@ -122,19 +123,19 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
   switch (event.GetId())
   {
   case IDM_PROFILE_BLOCKS:
-    Core::SetState(Core::CORE_PAUSE);
-    if (jit != nullptr)
-      jit->ClearCache();
-    Profiler::g_ProfileBlocks = GetMenuBar()->IsChecked(IDM_PROFILE_BLOCKS);
-    Core::SetState(Core::CORE_RUN);
+    Core::SetState(Core::State::Paused);
+    if (g_jit != nullptr)
+      g_jit->ClearCache();
+    Profiler::g_ProfileBlocks = GetParentMenuBar()->IsChecked(IDM_PROFILE_BLOCKS);
+    Core::SetState(Core::State::Running);
     break;
   case IDM_WRITE_PROFILE:
-    if (Core::GetState() == Core::CORE_RUN)
-      Core::SetState(Core::CORE_PAUSE);
+    if (Core::GetState() == Core::State::Running)
+      Core::SetState(Core::State::Paused);
 
-    if (Core::GetState() == Core::CORE_PAUSE && PowerPC::GetMode() == PowerPC::MODE_JIT)
+    if (Core::GetState() == Core::State::Paused && PowerPC::GetMode() == PowerPC::CoreMode::JIT)
     {
-      if (jit != nullptr)
+      if (g_jit != nullptr)
       {
         std::string filename = File::GetUserPath(D_DUMP_IDX) + "Debug/profiler.txt";
         File::CreateFullPath(filename);
@@ -160,6 +161,9 @@ void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)
 
 void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 {
+  static const wxString signature_selector = _("Dolphin Signature File (*.dsy)") + "|*.dsy|" +
+                                             _("Dolphin Signature CSV File (*.csv)") + "|*.csv|" +
+                                             wxGetTranslation(wxALL_FILES);
   Parent->ClearStatusBar();
 
   if (!Core::IsRunning())
@@ -308,8 +312,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
       wxString path = wxFileSelector(_("Save signature as"), File::GetSysDirectory(), wxEmptyString,
-                                     wxEmptyString, _("Dolphin Signature File (*.dsy)") +
-                                                        "|*.dsy|" + wxGetTranslation(wxALL_FILES),
+                                     wxEmptyString, signature_selector,
                                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
       if (!path.IsEmpty())
       {
@@ -331,10 +334,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     {
       std::string prefix(WxStrToStr(input_prefix.GetValue()));
 
-      wxString path = wxFileSelector(
-          _("Append signature to"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
-          _("Dolphin Signature File (*.dsy)") + "|*.dsy|" + wxGetTranslation(wxALL_FILES),
-          wxFD_SAVE, this);
+      wxString path =
+          wxFileSelector(_("Append signature to"), File::GetSysDirectory(), wxEmptyString,
+                         wxEmptyString, signature_selector, wxFD_SAVE, this);
       if (!path.IsEmpty())
       {
         SignatureDB db;
@@ -349,10 +351,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   break;
   case IDM_USE_SIGNATURE_FILE:
   {
-    wxString path = wxFileSelector(
-        _("Apply signature file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
-        _("Dolphin Signature File (*.dsy)") + "|*.dsy|" + wxGetTranslation(wxALL_FILES),
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+    wxString path =
+        wxFileSelector(_("Apply signature file"), File::GetSysDirectory(), wxEmptyString,
+                       wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path.IsEmpty())
     {
       SignatureDB db;
@@ -365,25 +366,22 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   break;
   case IDM_COMBINE_SIGNATURE_FILES:
   {
-    wxString path1 = wxFileSelector(
-        _("Choose priority input file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
-        _("Dolphin Signature File (*.dsy)") + "|*.dsy|" + wxGetTranslation(wxALL_FILES),
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+    wxString path1 =
+        wxFileSelector(_("Choose priority input file"), File::GetSysDirectory(), wxEmptyString,
+                       wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path1.IsEmpty())
     {
       SignatureDB db;
-      wxString path2 = wxFileSelector(
-          _("Choose secondary input file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
-          _("Dolphin Signature File (*.dsy)") + "|*.dsy|" + wxGetTranslation(wxALL_FILES),
-          wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+      wxString path2 =
+          wxFileSelector(_("Choose secondary input file"), File::GetSysDirectory(), wxEmptyString,
+                         wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
       if (!path2.IsEmpty())
       {
         db.Load(WxStrToStr(path2));
         db.Load(WxStrToStr(path1));
 
         path2 = wxFileSelector(_("Save combined output file as"), File::GetSysDirectory(),
-                               wxEmptyString, ".dsy", _("Dolphin Signature File (*.dsy)") +
-                                                          "|*.dsy|" + wxGetTranslation(wxALL_FILES),
+                               wxEmptyString, ".dsy", signature_selector,
                                wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
         db.Save(WxStrToStr(path2));
         db.List();
@@ -398,20 +396,28 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   }
 }
 
+void CCodeWindow::ReloadSymbolListBox()
+{
+  symbols->Freeze();  // HyperIris: wx style fast filling
+  symbols->Clear();
+  const wxString filtering_string = m_symbol_filter_ctrl->GetValue().Trim().Trim(false);
+  for (const auto& symbol : g_symbolDB.Symbols())
+  {
+    if (symbol.second.name.find(filtering_string) == std::string::npos)
+      continue;
+    int idx = symbols->Append(StrToWxStr(symbol.second.name));
+    symbols->SetClientData(idx, (void*)&symbol.second);
+  }
+  symbols->Thaw();
+}
+
 void CCodeWindow::NotifyMapLoaded()
 {
   if (!codeview)
     return;
 
   g_symbolDB.FillInCallers();
-  symbols->Freeze();  // HyperIris: wx style fast filling
-  symbols->Clear();
-  for (const auto& symbol : g_symbolDB.Symbols())
-  {
-    int idx = symbols->Append(StrToWxStr(symbol.second.name));
-    symbols->SetClientData(idx, (void*)&symbol.second);
-  }
-  symbols->Thaw();
+  ReloadSymbolListBox();
   Repopulate();
 }
 
@@ -447,6 +453,7 @@ void CCodeWindow::OnChangeFont(wxCommandEvent& event)
   if (dialog.ShowModal() == wxID_OK)
     DebuggerFont = dialog.GetFontData().GetChosenFont();
 
+  UpdateFonts();
   // TODO: Send event to all panels that tells them to reload the font when it changes.
 }
 
@@ -466,7 +473,7 @@ void CCodeWindow::TogglePanel(int id, bool show)
   wxPanel* panel = GetUntypedPanel(id);
 
   // Not all the panels (i.e. CodeWindow) have corresponding menu options.
-  wxMenuItem* item = GetMenuBar()->FindItem(id);
+  wxMenuItem* item = GetParentMenuBar()->FindItem(id);
   if (item)
     item->Check(show);
 

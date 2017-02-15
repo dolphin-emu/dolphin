@@ -69,7 +69,7 @@ int linux_udev_start_event_monitor(void)
 		goto err_free_ctx;
 	}
 
-	r = udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "usb", 0);
+	r = udev_monitor_filter_add_match_subsystem_devtype(udev_monitor, "usb", "usb_device");
 	if (r) {
 		usbi_err(NULL, "could not initialize udev monitor filter for \"usb\" subsystem");
 		goto err_free_monitor;
@@ -240,7 +240,7 @@ static void udev_hotplug_event(struct udev_device* udev_dev)
 		if (strncmp(udev_action, "add", 3) == 0) {
 			linux_hotplug_enumerate(busnum, devaddr, sys_name);
 		} else if (detached) {
-			linux_device_disconnected(busnum, devaddr, sys_name);
+			linux_device_disconnected(busnum, devaddr);
 		} else {
 			usbi_err(NULL, "ignoring udev action %s", udev_action);
 		}
@@ -266,6 +266,7 @@ int linux_udev_scan_devices(struct libusb_context *ctx)
 	}
 
 	udev_enumerate_add_match_subsystem(enumerator, "usb");
+	udev_enumerate_add_match_property(enumerator, "DEVTYPE", "usb_device");
 	udev_enumerate_scan_devices(enumerator);
 	devices = udev_enumerate_get_list_entry(enumerator);
 

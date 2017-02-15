@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D/Render.h"
+
 #include <cinttypes>
 #include <cmath>
 #include <memory>
@@ -11,11 +13,10 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Host.h"
 
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
@@ -24,19 +25,19 @@
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
-#include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/Television.h"
 #include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPFunctions.h"
-#include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/SamplerCommon.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace DX11
 {
@@ -244,13 +245,13 @@ Renderer::Renderer(void*& window_handle)
   FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
   FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+  UpdateDrawRectangle();
 
   s_last_multisamples = g_ActiveConfig.iMultisamples;
   s_last_efb_scale = g_ActiveConfig.iEFBScale;
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
-  CalculateTargetSize(s_backbuffer_width, s_backbuffer_height);
+  CalculateTargetSize();
   PixelShaderManager::SetEfbScaleChanged();
 
   SetupDeviceObjects();
@@ -381,7 +382,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   // Take the mean of the resulting dimensions; TODO: Don't use the center pixel, compute the
   // average color instead
   D3D11_RECT RectToLock;
-  if (type == PEEK_COLOR || type == PEEK_Z)
+  if (type == EFBAccessType::PeekColor || type == EFBAccessType::PeekZ)
   {
     RectToLock.left = (targetPixelRc.left + targetPixelRc.right) / 2;
     RectToLock.top = (targetPixelRc.top + targetPixelRc.bottom) / 2;
@@ -407,7 +408,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   D3DTexture2D* source_tex;
   D3DTexture2D* read_tex;
   ID3D11Texture2D* staging_tex;
-  if (type == PEEK_COLOR)
+  if (type == EFBAccessType::PeekColor)
   {
     source_tex = FramebufferManager::GetEFBColorTexture();
     read_tex = FramebufferManager::GetEFBColorReadTexture();
@@ -422,7 +423,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
   // Select pixel shader (we don't want to average depth samples, instead select the minimum).
   ID3D11PixelShader* copy_pixel_shader;
-  if (type == PEEK_Z && g_ActiveConfig.iMultisamples > 1)
+  if (type == EFBAccessType::PeekZ && g_ActiveConfig.iMultisamples > 1)
     copy_pixel_shader = PixelShaderCache::GetDepthResolveProgram();
   else
     copy_pixel_shader = PixelShaderCache::GetColorCopyProgram(true);
@@ -448,7 +449,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
   // Convert the framebuffer data to the format the game is expecting to receive.
   u32 ret;
-  if (type == PEEK_COLOR)
+  if (type == EFBAccessType::PeekColor)
   {
     u32 val;
     memcpy(&val, map.pData, sizeof(val));
@@ -479,7 +480,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     else                         /*if(alpha_read_mode.ReadMode == 0)*/
       ret = (val & 0x00FFFFFF);  // GX_READ_00
   }
-  else  // type == PEEK_Z
+  else  // type == EFBAccessType::PeekZ
   {
     float val;
     memcpy(&val, map.pData, sizeof(val));
@@ -506,7 +507,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 {
   ResetAPIState();
 
-  if (type == POKE_COLOR)
+  if (type == EFBAccessType::PokeColor)
   {
     D3D11_VIEWPORT vp =
         CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
@@ -514,7 +515,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
     D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
                                      nullptr);
   }
-  else  // if (type == POKE_Z)
+  else  // if (type == EFBAccessType::PokeZ)
   {
     D3D::stateman->PushBlendState(clearblendstates[3]);
     D3D::stateman->PushDepthState(cleardepthstates[1]);
@@ -530,7 +531,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 
   D3D::DrawEFBPokeQuads(type, points, num_points);
 
-  if (type == POKE_Z)
+  if (type == EFBAccessType::PokeZ)
   {
     D3D::stateman->PopDepthState();
     D3D::stateman->PopBlendState();
@@ -560,6 +561,10 @@ void Renderer::SetViewport()
   float Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
   float Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f);
+  float min_depth =
+      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
+  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (Wd < 0.0f)
   {
     X += Wd;
@@ -571,18 +576,24 @@ void Renderer::SetViewport()
     Ht = -Ht;
   }
 
+  // If an inverted depth range is used, which D3D doesn't support,
+  // we need to calculate the depth range in the vertex shader.
+  if (xfmem.viewport.zRange < 0.0f)
+  {
+    min_depth = 0.0f;
+    max_depth = GX_MAX_DEPTH;
+  }
+
   // In D3D, the viewport rectangle must fit within the render target.
   X = (X >= 0.f) ? X : 0.f;
   Y = (Y >= 0.f) ? Y : 0.f;
   Wd = (X + Wd <= GetTargetWidth()) ? Wd : (GetTargetWidth() - X);
   Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
 
-  // We do depth clipping and depth range in the vertex shader instead of relying
-  // on the graphics API. However we still need to ensure depth values don't exceed
-  // the maximum value supported by the console GPU. We also need to account for the
-  // fact that the entire depth buffer is inverted on D3D, so we set GX_MAX_DEPTH as
-  // an inverted near value.
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - GX_MAX_DEPTH, D3D11_MAX_DEPTH);
+  // We use an inverted depth range here to apply the Reverse Z trick.
+  // This trick makes sure we match the precision provided by the 1:0
+  // clipping depth range on the hardware.
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - max_depth, 1.0f - min_depth);
   D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -733,7 +744,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   ResetAPIState();
 
   // Prepare to copy the XFBs to our backbuffer
-  UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+  UpdateDrawRectangle();
   TargetRectangle targetRc = GetTargetRectangle();
 
   D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
@@ -824,8 +835,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     D3D11_MAPPED_SUBRESOURCE map;
     D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
 
+    AVIDump::Frame state = AVIDump::FetchState(ticks);
     DumpFrameData(reinterpret_cast<const u8*>(map.pData), source_width, source_height, map.RowPitch,
-                  ticks);
+                  state);
     FinishFrameData();
 
     D3D::context->Unmap(s_screenshot_texture, 0);
@@ -841,17 +853,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   OSD::DrawMessages();
   D3D::EndFrame();
 
-  TextureCacheBase::Cleanup(frameCount);
+  g_texture_cache->Cleanup(frameCount);
 
   // Enable configuration changes
   UpdateActiveConfig();
-  TextureCacheBase::OnConfigChanged(g_ActiveConfig);
+  g_texture_cache->OnConfigChanged(g_ActiveConfig);
 
   SetWindowSize(fbStride, fbHeight);
 
   const bool windowResized = CheckForResize();
-  const bool fullscreen = g_ActiveConfig.bFullscreen && !g_ActiveConfig.bBorderlessFullscreen &&
-                          !SConfig::GetInstance().bRenderToMain;
 
   bool xfbchanged = s_last_xfb_mode != g_ActiveConfig.bUseRealXFB;
 
@@ -868,33 +878,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   // Flip/present backbuffer to frontbuffer here
   D3D::Present();
 
-  // Check exclusive fullscreen state
-  bool exclusive_mode, fullscreen_changed = false;
-  if (SUCCEEDED(D3D::GetFullscreenState(&exclusive_mode)))
-  {
-    if (fullscreen && !exclusive_mode)
-    {
-      if (g_Config.bExclusiveMode)
-        OSD::AddMessage("Lost exclusive fullscreen.");
-
-      // Exclusive fullscreen is enabled in the configuration, but we're
-      // not in exclusive mode. Either exclusive fullscreen was turned on
-      // or the render frame lost focus. When the render frame is in focus
-      // we can apply exclusive mode.
-      fullscreen_changed = Host_RendererHasFocus();
-
-      g_Config.bExclusiveMode = false;
-    }
-    else if (!fullscreen && exclusive_mode)
-    {
-      // Exclusive fullscreen is disabled, but we're still in exclusive mode.
-      fullscreen_changed = true;
-    }
-  }
-
   // Resize the back buffers NOW to avoid flickering
-  if (CalculateTargetSize(s_backbuffer_width, s_backbuffer_height) || xfbchanged || windowResized ||
-      fullscreen_changed || s_last_efb_scale != g_ActiveConfig.iEFBScale ||
+  if (CalculateTargetSize() || xfbchanged || windowResized ||
+      s_last_efb_scale != g_ActiveConfig.iEFBScale ||
       s_last_multisamples != g_ActiveConfig.iMultisamples ||
       s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
   {
@@ -902,23 +888,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     s_last_multisamples = g_ActiveConfig.iMultisamples;
     PixelShaderCache::InvalidateMSAAShaders();
 
-    if (windowResized || fullscreen_changed)
+    if (windowResized)
     {
-      // Apply fullscreen state
-      if (fullscreen_changed)
-      {
-        g_Config.bExclusiveMode = fullscreen;
-
-        if (fullscreen)
-          OSD::AddMessage("Entered exclusive fullscreen.");
-
-        D3D::SetFullscreenState(fullscreen);
-
-        // If fullscreen is disabled we can safely notify the UI to exit fullscreen.
-        if (!g_ActiveConfig.bFullscreen)
-          Host_RequestFullscreen(false);
-      }
-
       // TODO: Aren't we still holding a reference to the back buffer right now?
       D3D::Reset();
       SAFE_RELEASE(s_screenshot_texture);
@@ -927,7 +898,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       s_backbuffer_height = D3D::GetBackBufferHeight();
     }
 
-    UpdateDrawRectangle(s_backbuffer_width, s_backbuffer_height);
+    UpdateDrawRectangle();
 
     s_last_efb_scale = g_ActiveConfig.iEFBScale;
     s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
@@ -971,8 +942,12 @@ void Renderer::RestoreAPIState()
   BPFunctions::SetScissor();
 }
 
-void Renderer::ApplyState(bool bUseDstAlpha)
+void Renderer::ApplyState()
 {
+  // TODO: Refactor this logic here.
+  bool bUseDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+                      bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
   gx_state.blend.use_dst_alpha = bUseDstAlpha;
   D3D::stateman->PushBlendState(gx_state_cache.Get(gx_state.blend));
   D3D::stateman->PushDepthState(gx_state_cache.Get(gx_state.zmode));
@@ -1288,6 +1263,16 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
                            VertexShaderCache::GetSimpleVertexShader(),
                            VertexShaderCache::GetSimpleInputLayout(), nullptr, Gamma);
   }
+}
+
+void Renderer::SetFullscreen(bool enable_fullscreen)
+{
+  D3D::SetFullscreenState(enable_fullscreen);
+}
+
+bool Renderer::IsFullscreen() const
+{
+  return D3D::GetFullscreenState();
 }
 
 }  // namespace DX11

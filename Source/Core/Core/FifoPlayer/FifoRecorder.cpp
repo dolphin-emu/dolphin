@@ -183,7 +183,7 @@ void FifoRecorder::EndFrame(u32 fifoStart, u32 fifoEnd)
 }
 
 void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32* xfMem,
-                                  const u32* xfRegs, u32 xfRegsSize)
+                                  const u32* xfRegs, u32 xfRegsSize, const u8* texMem)
 {
   std::lock_guard<std::recursive_mutex> lk(sMutex);
 
@@ -195,6 +195,8 @@ void FifoRecorder::SetVideoMemory(const u32* bpMem, const u32* cpMem, const u32*
 
     u32 xfRegsCopySize = std::min((u32)FifoDataFile::XF_REGS_SIZE, xfRegsSize);
     memcpy(m_File->GetXFRegs(), xfRegs, xfRegsCopySize * 4);
+
+    memcpy(m_File->GetTexMem(), texMem, FifoDataFile::TEX_MEM_SIZE);
   }
 
   FifoRecordAnalyzer::Initialize(cpMem);

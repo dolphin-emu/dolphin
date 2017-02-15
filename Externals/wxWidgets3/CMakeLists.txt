@@ -164,7 +164,7 @@ set(SRCS_COMMON
 	"src/common/object.cpp"
 	"src/common/odcombocmn.cpp"
 	"src/common/overlaycmn.cpp"
-	#"src/common/ownerdrwcmn.cpp"
+	"src/common/ownerdrwcmn.cpp"
 	"src/common/panelcmn.cpp"
 	"src/common/paper.cpp"
 	"src/common/persist.cpp"
@@ -265,7 +265,7 @@ set(SRCS_GENERIC
 	"src/generic/busyinfo.cpp"
 	"src/generic/buttonbar.cpp"
 	"src/generic/calctrlg.cpp"
-	"src/generic/caret.cpp"
+	#"src/generic/caret.cpp"
 	"src/generic/choicbkg.cpp"
 	"src/generic/choicdgg.cpp"
 	"src/generic/collheaderctrlg.cpp"
@@ -279,7 +279,7 @@ set(SRCS_GENERIC
 	"src/generic/dirctrlg.cpp"
 	"src/generic/dragimgg.cpp"
 	"src/generic/editlbox.cpp"
-	"src/generic/fdrepdlg.cpp"
+	#"src/generic/fdrepdlg.cpp"
 	"src/generic/filectrlg.cpp"
 	"src/generic/filepickerg.cpp"
 	"src/generic/fontdlgg.cpp"
@@ -296,7 +296,7 @@ set(SRCS_GENERIC
 	"src/generic/infobar.cpp"
 	"src/generic/laywin.cpp"
 	"src/generic/listbkg.cpp"
-	"src/generic/listctrl.cpp"
+
 	"src/generic/logg.cpp"
 	#"src/generic/markuptext.cpp"
 	#"src/generic/mask.cpp"
@@ -344,11 +344,13 @@ set(SRCS_GENERICGTK
 	"src/generic/activityindicator.cpp"
 	"src/generic/icon.cpp"
 	"src/generic/imaglist.cpp"
+	"src/generic/listctrl.cpp"
 	"src/generic/paletteg.cpp"
 	"src/generic/preferencesg.cpp")
 
 set(SRCS_GENERICMSW
-	"src/generic/activityindicator.cpp")
+	"src/generic/activityindicator.cpp"
+	"src/generic/collpaneg.cpp")
 
 set(SRCS_GENERICOSX
 	"src/generic/animateg.cpp"
@@ -357,7 +359,8 @@ set(SRCS_GENERICOSX
 	"src/generic/colrdlgg.cpp"
 	"src/generic/dirdlgg.cpp"
 	"src/generic/filedlgg.cpp"
-	"src/generic/fontpickerg.cpp")
+	"src/generic/fontpickerg.cpp"
+	"src/generic/listctrl.cpp")
 
 set(SRCS_GTK
 	"src/aui/tabartgtk.cpp"
@@ -504,7 +507,7 @@ set(SRCS_MSW
 	"src/msw/dragimag.cpp"
 	#"src/msw/enhmeta.cpp"
 	"src/msw/evtloop.cpp"
-	#"src/msw/evtloopconsole.cpp"
+	"src/msw/evtloopconsole.cpp"
 	"src/msw/fdrepdlg.cpp"
 	"src/msw/filedlg.cpp"
 	"src/msw/font.cpp"
@@ -608,11 +611,11 @@ set(SRCS_MSW
 	"src/msw/utilsgui.cpp"
 	"src/msw/utilswin.cpp"
 	"src/msw/uxtheme.cpp"
-	"src/msw/version.rc"
+	#"src/msw/version.rc"
 	"src/msw/volume.cpp"
 	#"src/msw/webview_ie.cpp"
 	"src/msw/window.cpp"
-	"src/msw/winestub.c"
+	#"src/msw/winestub.c"
 	#"src/msw/rt/notifmsgrt.cpp"
 	#"src/msw/rt/utilsrt.cpp"
 	)
@@ -836,14 +839,13 @@ if(APPLE)
 		iconv
 		${APPKIT_LIBRARY}
 		${APPSERV_LIBRARY}
-		${ATB_LIBRARY}
 		${CARBON_LIBRARY}
 		${COCOA_LIBRARY}
 		${COREFUND_LIBRARY}
 		${CORESERV_LIBRARY}
 		${IOK_LIBRARY}
 		${OPENGL_LIBRARY}
-		${QUICKTIME_LIBRARY})
+	)
 elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
 	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11")
 	if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -872,16 +874,22 @@ elseif(${CMAKE_SYSTEM_NAME} MATCHES "Linux|FreeBSD")
 		${X11_Xinerama_LIB})
 else()
 	add_definitions(-D__WXMSW__)
+	add_definitions(-DNOPCH)
+	remove_definitions(-DWIN32_LEAN_AND_MEAN)
 	set(SRCS
 		${SRCS}
 		${SRCS_GENERICMSW}
 		${SRCS_MSW})
+	set(LIBS
+	  Comctl32.lib
+		Rpcrt4.lib
+		${OPENGL_LIBRARIES}
+	)
 endif()
 
 add_definitions(-DWXBUILDING)
 # wxWidgets warnings are not our problem.
 add_definitions(-w)
 
-enable_precompiled_headers(include/wx/wxprec.h src/common/dummy.cpp SRCS)
 add_library(wx STATIC ${PNG_SRCS} ${SRCS})
 target_link_libraries(wx ${LIBS})

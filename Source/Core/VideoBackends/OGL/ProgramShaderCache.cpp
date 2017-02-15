@@ -2,19 +2,23 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+
 #include <memory>
 #include <string>
 
-#include "Common/Common.h"
-#include "Common/MathUtil.h"
+#include "Common/Align.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "VideoBackends/OGL/ProgramShaderCache.h"
+#include "Core/ConfigManager.h"
+
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 
 #include "VideoCommon/Debugger.h"
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -146,22 +150,22 @@ void ProgramShaderCache::UploadConstants()
 
     memcpy(buffer.first, &PixelShaderManager::constants, sizeof(PixelShaderConstants));
 
-    memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
+    memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align),
            &VertexShaderManager::constants, sizeof(VertexShaderConstants));
 
-    memcpy(buffer.first + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
-               ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
+    memcpy(buffer.first + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
+               Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
            &GeometryShaderManager::constants, sizeof(GeometryShaderConstants));
 
     s_buffer->Unmap(s_ubo_buffer_size);
     glBindBufferRange(GL_UNIFORM_BUFFER, 1, s_buffer->m_buffer, buffer.second,
                       sizeof(PixelShaderConstants));
     glBindBufferRange(GL_UNIFORM_BUFFER, 2, s_buffer->m_buffer,
-                      buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align),
+                      buffer.second + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align),
                       sizeof(VertexShaderConstants));
     glBindBufferRange(GL_UNIFORM_BUFFER, 3, s_buffer->m_buffer,
-                      buffer.second + ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
-                          ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align),
+                      buffer.second + Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
+                          Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align),
                       sizeof(GeometryShaderConstants));
 
     PixelShaderManager::dirty = false;
@@ -172,10 +176,10 @@ void ProgramShaderCache::UploadConstants()
   }
 }
 
-SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
+SHADER* ProgramShaderCache::SetShader(u32 primitive_type)
 {
   SHADERUID uid;
-  GetShaderId(&uid, dstAlphaMode, primitive_type);
+  GetShaderId(&uid, primitive_type);
 
   // Check if the shader is already set
   if (last_entry)
@@ -386,9 +390,9 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
   return result;
 }
 
-void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
+void ProgramShaderCache::GetShaderId(SHADERUID* uid, u32 primitive_type)
 {
-  uid->puid = GetPixelShaderUid(dstAlphaMode);
+  uid->puid = GetPixelShaderUid();
   uid->vuid = GetVertexShaderUid();
   uid->guid = GetGeometryShaderUid(primitive_type);
 }
@@ -405,9 +409,10 @@ void ProgramShaderCache::Init()
   // then the UBO will fail.
   glGetIntegerv(GL_UNIFORM_BUFFER_OFFSET_ALIGNMENT, &s_ubo_align);
 
-  s_ubo_buffer_size = ROUND_UP(sizeof(PixelShaderConstants), s_ubo_align) +
-                      ROUND_UP(sizeof(VertexShaderConstants), s_ubo_align) +
-                      ROUND_UP(sizeof(GeometryShaderConstants), s_ubo_align);
+  s_ubo_buffer_size =
+      static_cast<u32>(Common::AlignUp(sizeof(PixelShaderConstants), s_ubo_align) +
+                       Common::AlignUp(sizeof(VertexShaderConstants), s_ubo_align) +
+                       Common::AlignUp(sizeof(GeometryShaderConstants), s_ubo_align));
 
   // We multiply by *4*4 because we need to get down to basic machine units.
   // So multiply by four to get how many floats we have from vec4s

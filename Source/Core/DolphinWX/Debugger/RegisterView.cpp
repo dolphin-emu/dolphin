@@ -483,6 +483,8 @@ void CRegisterView::OnMouseDownR(wxGridEvent& event)
   TryParse("0x" + WxStrToStr(strNewVal), &m_selectedAddress);
 
   wxMenu menu;
+  // i18n: This kind of "watch" is used for watching emulated memory.
+  // It's not related to timekeeping devices.
   menu.Append(IDM_WATCHADDRESS, _("Add to &watch"));
   menu.Append(IDM_VIEWMEMORY, _("View &memory"));
   menu.Append(IDM_VIEWCODE, _("View &code"));
@@ -495,11 +497,13 @@ void CRegisterView::OnMouseDownR(wxGridEvent& event)
       menu.Append(IDM_VIEW_HEX8, _("View as hexadecimal"));
       menu.Append(IDM_VIEW_INT, _("View as signed integer"));
       menu.Append(IDM_VIEW_UINT, _("View as unsigned integer"));
+      // i18n: Float means floating point number
       menu.Append(IDM_VIEW_FLOAT, _("View as float"));
     }
     else
     {
       menu.Append(IDM_VIEW_HEX16, _("View as hexadecimal"));
+      // i18n: Double means double-precision floating point number
       menu.Append(IDM_VIEW_DOUBLE, _("View as double"));
     }
   }

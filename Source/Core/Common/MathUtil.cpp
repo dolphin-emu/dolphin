@@ -104,7 +104,8 @@ const int frsqrte_expected_dec[] = {
 
 double ApproximateReciprocalSquareRoot(double val)
 {
-  union {
+  union
+  {
     double valf;
     s64 vali;
   };
@@ -178,7 +179,8 @@ double ApproximateReciprocal(double val)
   // The workaround for this is to just use namespace std within this function's scope
   // That way on real toolchains it will use the std:: variant like normal.
   using namespace std;
-  union {
+  union
+  {
     double valf;
     s64 vali;
   };

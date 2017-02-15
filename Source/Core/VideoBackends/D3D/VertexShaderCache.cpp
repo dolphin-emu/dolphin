@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
@@ -122,7 +123,8 @@ void VertexShaderCache::Init()
       {"COLOR", 0, DXGI_FORMAT_R8G8B8A8_UNORM, 0, 12, D3D11_INPUT_PER_VERTEX_DATA, 0},
   };
 
-  unsigned int cbsize = ROUND_UP(sizeof(VertexShaderConstants), 16);  // must be a multiple of 16
+  unsigned int cbsize = Common::AlignUp(static_cast<unsigned int>(sizeof(VertexShaderConstants)),
+                                        16);  // must be a multiple of 16
   D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER,
                                                 D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
   HRESULT hr = D3D::device->CreateBuffer(&cbdesc, nullptr, &vscbuf);

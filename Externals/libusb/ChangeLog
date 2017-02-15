@@ -1,6 +1,23 @@
 For detailed information about the changes below, please see the git log or
 visit: http://log.libusb.info
 
+2016-10-01: v1.0.21:
+* Core: Refactor code related to transfer flags and timeout handling
+* Darwin: Ignore root hub simulation devices
+* Darwin: Improved support for OS X El Capitan
+* Darwin: Work around devices with buggy endpoint descriptors
+* Darwin: Do not use objc_registerThreadWithCollector after its deprecation
+* Darwin: Use C11 atomics on 10.12+ as the OS atomics are now deprecated
+* Linux: Support preallocating kernel memory for zerocopy USB
+* Linux: Deal with receiving POLLERR before all transfers have completed
+* Solaris: Add solaris backend
+* Windows: Add Visual Studio 2015 support
+* Windows: Add usbdk backend
+* Prevent attempts to recursively handle events
+* Fix race condition in handle_timeout()
+* Allow transferred argument to be optional in bulk APIs
+* Various other bug fixes and improvements
+
 2015-09-13: v1.0.20
 * Add Haiku support
 * Fix multiple memory and resource leaks (#16, #52, #76, #81)

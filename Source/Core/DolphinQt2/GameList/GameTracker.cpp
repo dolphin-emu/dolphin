@@ -9,10 +9,10 @@
 #include "DolphinQt2/GameList/GameTracker.h"
 #include "DolphinQt2/Settings.h"
 
-static const QStringList game_filters{QStringLiteral("*.gcm"),  QStringLiteral("*.iso"),
-                                      QStringLiteral("*.ciso"), QStringLiteral("*.gcz"),
-                                      QStringLiteral("*.wbfs"), QStringLiteral("*.wad"),
-                                      QStringLiteral("*.elf"),  QStringLiteral("*.dol")};
+static const QStringList game_filters{
+    QStringLiteral("*.gcm"),  QStringLiteral("*.iso"), QStringLiteral("*.tgc"),
+    QStringLiteral("*.ciso"), QStringLiteral("*.gcz"), QStringLiteral("*.wbfs"),
+    QStringLiteral("*.wad"),  QStringLiteral("*.elf"), QStringLiteral("*.dol")};
 
 GameTracker::GameTracker(QObject* parent) : QFileSystemWatcher(parent)
 {

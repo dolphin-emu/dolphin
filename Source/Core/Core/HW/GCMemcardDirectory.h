@@ -22,23 +22,22 @@ void MigrateFromMemcardFile(const std::string& strDirectoryName, int card_index)
 class GCMemcardDirectory : public MemoryCardBase, NonCopyable
 {
 public:
-  GCMemcardDirectory(const std::string& directory, int slot = 0, u16 sizeMb = MemCard2043Mb,
-                     bool ascii = true,
-                     DiscIO::Country card_region = DiscIO::Country::COUNTRY_EUROPE, int gameId = 0);
+  GCMemcardDirectory(const std::string& directory, int slot, u16 sizeMb, bool shift_jis,
+                     DiscIO::Region card_region, int gameId);
   ~GCMemcardDirectory();
   void FlushToFile();
   void FlushThread();
   s32 Read(u32 address, s32 length, u8* destaddress) override;
-  s32 Write(u32 destaddress, s32 length, u8* srcaddress) override;
+  s32 Write(u32 destaddress, s32 length, const u8* srcaddress) override;
   void ClearBlock(u32 address) override;
   void ClearAll() override {}
   void DoState(PointerWrap& p) override;
 
 private:
-  int LoadGCI(const std::string& fileName, DiscIO::Country card_region, bool currentGameOnly);
+  int LoadGCI(const std::string& fileName, DiscIO::Region card_region, bool currentGameOnly);
   inline s32 SaveAreaRW(u32 block, bool writing = false);
   // s32 DirectoryRead(u32 offset, u32 length, u8* destaddress);
-  s32 DirectoryWrite(u32 destaddress, u32 length, u8* srcaddress);
+  s32 DirectoryWrite(u32 destaddress, u32 length, const u8* srcaddress);
   inline void SyncSaves();
   bool SetUsedBlocks(int saveIndex);
 

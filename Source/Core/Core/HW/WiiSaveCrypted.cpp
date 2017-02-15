@@ -18,19 +18,17 @@
 #include <string>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 
 #include "Core/HW/WiiSaveCrypted.h"
-
-static Common::replace_v replacements;
 
 const u8 CWiiSaveCrypted::s_sd_key[16] = {0xAB, 0x01, 0xB9, 0xD8, 0xE1, 0x62, 0x2B, 0x08,
                                           0xAF, 0xBA, 0xD8, 0x4D, 0xBF, 0xC2, 0xA5, 0x5D};
@@ -102,7 +100,6 @@ void CWiiSaveCrypted::ExportAllSaves()
 CWiiSaveCrypted::CWiiSaveCrypted(const std::string& filename, u64 title_id)
     : m_encrypted_save_path(filename), m_title_id(title_id)
 {
-  Common::ReadReplacements(replacements);
   memcpy(m_sd_iv, "\x21\x67\x12\xE6\xAA\x1F\x68\x9F\x95\xC5\xA2\x23\x24\xDC\x6A\x98", 0x10);
 
   if (!title_id)  // Import
@@ -340,23 +337,20 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
     }
     else
     {
-      std::string filename((char*)file_hdr_tmp.name);
-      for (const Common::replace_t& replacement : replacements)
-      {
-        for (size_t j = 0; (j = filename.find(replacement.first, j)) != filename.npos; ++j)
-          filename.replace(j, 1, replacement.second);
-      }
+      // Allows files in subfolders to be escaped properly (ex: "nocopy/data00")
+      // Special characters in path components will be escaped such as /../
+      std::string file_path = Common::EscapePath(reinterpret_cast<const char*>(file_hdr_tmp.name));
 
-      std::string file_path_full = m_wii_title_path + filename;
+      std::string file_path_full = m_wii_title_path + file_path;
       File::CreateFullPath(file_path_full);
       if (file_hdr_tmp.type == 1)
       {
         file_size = Common::swap32(file_hdr_tmp.size);
-        u32 file_size_rounded = ROUND_UP(file_size, BLOCK_SZ);
+        u32 file_size_rounded = Common::AlignUp(file_size, BLOCK_SZ);
         std::vector<u8> file_data(file_size_rounded);
         std::vector<u8> file_data_enc(file_size_rounded);
 
-        if (!data_file.ReadBytes(&file_data_enc[0], file_size_rounded))
+        if (!data_file.ReadBytes(file_data_enc.data(), file_size_rounded))
         {
           ERROR_LOG(CONSOLE, "Failed to read data from file %d", i);
           m_valid = false;
@@ -365,7 +359,7 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
 
         memcpy(m_iv, file_hdr_tmp.IV, 0x10);
         mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, file_size_rounded, m_iv,
-                              (const u8*)&file_data_enc[0], &file_data[0]);
+                              static_cast<const u8*>(file_data_enc.data()), file_data.data());
 
         if (!File::Exists(file_path_full) ||
             AskYesNoT("%s already exists, overwrite?", file_path_full.c_str()))
@@ -373,7 +367,21 @@ void CWiiSaveCrypted::ImportWiiSaveFiles()
           INFO_LOG(CONSOLE, "Creating file %s", file_path_full.c_str());
 
           File::IOFile raw_save_file(file_path_full, "wb");
-          raw_save_file.WriteBytes(&file_data[0], file_size);
+          raw_save_file.WriteBytes(file_data.data(), file_size);
+        }
+      }
+      else if (file_hdr_tmp.type == 2)
+      {
+        if (!File::Exists(file_path_full))
+        {
+          if (!File::CreateDir(file_path_full))
+            ERROR_LOG(CONSOLE, "Failed to create directory %s", file_path_full.c_str());
+        }
+        else if (!File::IsDirectory(file_path_full))
+        {
+          ERROR_LOG(CONSOLE,
+                    "Failed to create directory %s because a file with the same name exists",
+                    file_path_full.c_str());
         }
       }
     }
@@ -388,7 +396,6 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
   for (u32 i = 0; i < m_files_list_size; i++)
   {
     FileHDR file_hdr_tmp;
-    std::string name;
     memset(&file_hdr_tmp, 0, FILE_HDR_SZ);
 
     u32 file_size = 0;
@@ -402,20 +409,13 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
       file_hdr_tmp.type = 1;
     }
 
-    u32 file_size_rounded = ROUND_UP(file_size, BLOCK_SZ);
+    u32 file_size_rounded = Common::AlignUp(file_size, BLOCK_SZ);
     file_hdr_tmp.magic = Common::swap32(FILE_HDR_MAGIC);
     file_hdr_tmp.size = Common::swap32(file_size);
     file_hdr_tmp.Permissions = 0x3c;
 
-    name = m_files_list[i].substr(m_wii_title_path.length() + 1);
-
-    for (const Common::replace_t& repl : replacements)
-    {
-      for (size_t j = 0; (j = name.find(repl.second, j)) != name.npos; ++j)
-      {
-        name.replace(j, repl.second.length(), 1, repl.first);
-      }
-    }
+    std::string name =
+        Common::UnescapeFileName(m_files_list[i].substr(m_wii_title_path.length() + 1));
 
     if (name.length() > 0x44)
     {
@@ -449,17 +449,17 @@ void CWiiSaveCrypted::ExportWiiSaveFiles()
       std::vector<u8> file_data(file_size_rounded);
       std::vector<u8> file_data_enc(file_size_rounded);
 
-      if (!raw_save_file.ReadBytes(&file_data[0], file_size))
+      if (!raw_save_file.ReadBytes(file_data.data(), file_size))
       {
         ERROR_LOG(CONSOLE, "Failed to read data from file: %s", m_files_list[i].c_str());
         m_valid = false;
       }
 
       mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_ENCRYPT, file_size_rounded, file_hdr_tmp.IV,
-                            (const u8*)&file_data[0], &file_data_enc[0]);
+                            static_cast<const u8*>(file_data.data()), file_data_enc.data());
 
       File::IOFile fpData_bin(m_encrypted_save_path, "ab");
-      if (!fpData_bin.WriteBytes(&file_data_enc[0], file_size_rounded))
+      if (!fpData_bin.WriteBytes(file_data_enc.data(), file_size_rounded))
       {
         ERROR_LOG(CONSOLE, "Failed to write data to file: %s", m_encrypted_save_path.c_str());
       }
@@ -645,7 +645,7 @@ void CWiiSaveCrypted::ScanForFiles(const std::string& save_directory,
         else
         {
           file_list.push_back(elem.physicalName);
-          size += ROUND_UP(elem.size, BLOCK_SZ);
+          size += static_cast<u32>(Common::AlignUp(elem.size, BLOCK_SZ));
         }
       }
     }

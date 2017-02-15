@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/PowerPC.h"
+
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
@@ -18,8 +20,6 @@
 #include "Core/PowerPC/CPUCoreBase.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PPCTables.h"
-#include "Core/PowerPC/PowerPC.h"
 
 namespace PowerPC
 {
@@ -29,7 +29,7 @@ PowerPCState ppcState;
 static CPUCoreBase* s_cpu_core_base = nullptr;
 static bool s_cpu_core_base_is_injected = false;
 Interpreter* const s_interpreter = Interpreter::getInstance();
-static CoreMode s_mode = MODE_INTERPRETER;
+static CoreMode s_mode = CoreMode::Interpreter;
 
 Watches watches;
 BreakPoints breakpoints;
@@ -72,7 +72,26 @@ void DoState(PointerWrap& p)
   // *((u64 *)&TL) = SystemTimers::GetFakeTimeBase(); //works since we are little endian and TL
   // comes first :)
 
-  p.DoPOD(ppcState);
+  p.DoArray(ppcState.gpr);
+  p.Do(ppcState.pc);
+  p.Do(ppcState.npc);
+  p.DoArray(ppcState.cr_val);
+  p.Do(ppcState.msr);
+  p.Do(ppcState.fpscr);
+  p.Do(ppcState.Exceptions);
+  p.Do(ppcState.downcount);
+  p.Do(ppcState.xer_ca);
+  p.Do(ppcState.xer_so_ov);
+  p.Do(ppcState.xer_stringctrl);
+  p.DoArray(ppcState.ps);
+  p.DoArray(ppcState.sr);
+  p.DoArray(ppcState.spr);
+  p.DoArray(ppcState.tlb);
+  p.Do(ppcState.pagetable_base);
+  p.Do(ppcState.pagetable_hashmask);
+
+  ppcState.iCache.DoState(p);
+
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
     IBATUpdated();
@@ -88,6 +107,7 @@ void DoState(PointerWrap& p)
 static void ResetRegisters()
 {
   memset(ppcState.ps, 0, sizeof(ppcState.ps));
+  memset(ppcState.sr, 0, sizeof(ppcState.sr));
   memset(ppcState.gpr, 0, sizeof(ppcState.gpr));
   memset(ppcState.spr, 0, sizeof(ppcState.spr));
   /*
@@ -126,36 +146,8 @@ static void ResetRegisters()
   SystemTimers::DecrementerSet();
 }
 
-void Init(int cpu_core)
+static void InitializeCPUCore(int cpu_core)
 {
-  // NOTE: This function runs on EmuThread, not the CPU Thread.
-  //   Changing the rounding mode has a limited effect.
-  FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
-
-  s_invalidate_cache_thread_safe =
-      CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
-
-  memset(ppcState.sr, 0, sizeof(ppcState.sr));
-  ppcState.pagetable_base = 0;
-  ppcState.pagetable_hashmask = 0;
-
-  for (int tlb = 0; tlb < 2; tlb++)
-  {
-    for (int set = 0; set < 64; set++)
-    {
-      ppcState.tlb[tlb][set].recent = 0;
-      for (int way = 0; way < 2; way++)
-      {
-        ppcState.tlb[tlb][set].paddr[way] = 0;
-        ppcState.tlb[tlb][set].pte[way] = 0;
-        ppcState.tlb[tlb][set].tag[way] = TLB_TAG_INVALID;
-      }
-    }
-  }
-
-  ResetRegisters();
-  PPCTables::InitTables(cpu_core);
-
   // We initialize the interpreter because
   // it is used on boot and code window independently.
   s_interpreter->Init();
@@ -178,17 +170,40 @@ void Init(int cpu_core)
 
   if (s_cpu_core_base != s_interpreter)
   {
-    s_mode = MODE_JIT;
+    s_mode = CoreMode::JIT;
   }
   else
   {
-    s_mode = MODE_INTERPRETER;
+    s_mode = CoreMode::Interpreter;
   }
+}
 
+void Init(int cpu_core)
+{
+  // NOTE: This function runs on EmuThread, not the CPU Thread.
+  //   Changing the rounding mode has a limited effect.
+  FPURoundMode::SetPrecisionMode(FPURoundMode::PREC_53);
+
+  s_invalidate_cache_thread_safe =
+      CoreTiming::RegisterEvent("invalidateEmulatedCache", InvalidateCacheThreadSafe);
+
+  Reset();
+
+  InitializeCPUCore(cpu_core);
   ppcState.iCache.Init();
 
   if (SConfig::GetInstance().bEnableDebugging)
     breakpoints.ClearAllTemporary();
+}
+
+void Reset()
+{
+  ppcState.pagetable_base = 0;
+  ppcState.pagetable_hashmask = 0;
+  ppcState.tlb = {};
+
+  ResetRegisters();
+  ppcState.iCache.Reset();
 }
 
 void ScheduleInvalidateCacheThreadSafe(u32 address)
@@ -210,18 +225,18 @@ void Shutdown()
 
 CoreMode GetMode()
 {
-  return !s_cpu_core_base_is_injected ? s_mode : MODE_INTERPRETER;
+  return !s_cpu_core_base_is_injected ? s_mode : CoreMode::Interpreter;
 }
 
 static void ApplyMode()
 {
   switch (s_mode)
   {
-  case MODE_INTERPRETER:  // Switching from JIT to interpreter
+  case CoreMode::Interpreter:  // Switching from JIT to interpreter
     s_cpu_core_base = s_interpreter;
     break;
 
-  case MODE_JIT:  // Switching from interpreter to JIT.
+  case CoreMode::JIT:  // Switching from interpreter to JIT.
     // Don't really need to do much. It'll work, the cache will refill itself.
     s_cpu_core_base = JitInterface::GetCore();
     if (!s_cpu_core_base)  // Has a chance to not get a working JIT core if one isn't active on host

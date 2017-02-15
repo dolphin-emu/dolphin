@@ -11,6 +11,8 @@
 #include "Common/StringUtil.h"
 #include "Common/Timer.h"
 
+namespace Common
+{
 void GenerateMacAddress(const MACConsumer type, u8* mac)
 {
   memset(mac, 0, MAC_ADDRESS_SIZE);
@@ -20,10 +22,10 @@ void GenerateMacAddress(const MACConsumer type, u8* mac)
 
   switch (type)
   {
-  case BBA:
+  case MACConsumer::BBA:
     memcpy(mac, oui_bba, 3);
     break;
-  case IOS:
+  case MACConsumer::IOS:
     memcpy(mac, oui_ios, 3);
     break;
   }
@@ -68,3 +70,4 @@ bool StringToMacAddress(const std::string& mac_string, u8* mac)
   }
   return success;
 }
+}  // namespace Common

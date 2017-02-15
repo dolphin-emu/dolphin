@@ -10,31 +10,31 @@
 #include "Core/DSP/DSPTables.h"
 
 // Stub out the dsplib host stuff, since this is just a simple cmdline tools.
-u8 DSPHost::ReadHostMemory(u32 addr)
+u8 DSP::Host::ReadHostMemory(u32 addr)
 {
   return 0;
 }
-void DSPHost::WriteHostMemory(u8 value, u32 addr)
+void DSP::Host::WriteHostMemory(u8 value, u32 addr)
 {
 }
-void DSPHost::OSD_AddMessage(const std::string& str, u32 ms)
+void DSP::Host::OSD_AddMessage(const std::string& str, u32 ms)
 {
 }
-bool DSPHost::OnThread()
-{
-  return false;
-}
-bool DSPHost::IsWiiHost()
+bool DSP::Host::OnThread()
 {
   return false;
 }
-void DSPHost::CodeLoaded(const u8* ptr, int size)
+bool DSP::Host::IsWiiHost()
+{
+  return false;
+}
+void DSP::Host::CodeLoaded(const u8* ptr, int size)
 {
 }
-void DSPHost::InterruptRequest()
+void DSP::Host::InterruptRequest()
 {
 }
-void DSPHost::UpdateDebugger()
+void DSP::Host::UpdateDebugger()
 {
 }
 
@@ -44,19 +44,19 @@ static bool RoundTrip(const std::vector<u16>& code1)
 {
   std::vector<u16> code2;
   std::string text;
-  if (!Disassemble(code1, false, text))
+  if (!DSP::Disassemble(code1, false, text))
   {
     printf("RoundTrip: Disassembly failed.\n");
     return false;
   }
-  if (!Assemble(text.c_str(), code2))
+  if (!DSP::Assemble(text, code2))
   {
     printf("RoundTrip: Assembly failed.\n");
     return false;
   }
-  if (!Compare(code1, code2))
+  if (!DSP::Compare(code1, code2))
   {
-    Disassemble(code1, true, text);
+    DSP::Disassemble(code1, true, text);
     printf("%s", text.c_str());
   }
   return true;
@@ -68,13 +68,13 @@ static bool SuperTrip(const char* asm_code)
 {
   std::vector<u16> code1, code2;
   std::string text;
-  if (!Assemble(asm_code, code1))
+  if (!DSP::Assemble(asm_code, code1))
   {
     printf("SuperTrip: First assembly failed\n");
     return false;
   }
   printf("First assembly: %i words\n", (int)code1.size());
-  if (!Disassemble(code1, false, text))
+  if (!DSP::Disassemble(code1, false, text))
   {
     printf("SuperTrip: Disassembly failed\n");
     return false;
@@ -84,7 +84,7 @@ static bool SuperTrip(const char* asm_code)
     printf("Disass:\n");
     printf("%s", text.c_str());
   }
-  if (!Assemble(text.c_str(), code2))
+  if (!DSP::Assemble(text, code2))
   {
     printf("SuperTrip: Second assembly failed\n");
     return false;
@@ -315,11 +315,11 @@ int main(int argc, const char* argv[])
     // Two binary inputs, let's diff.
     std::string binary_code;
     std::vector<u16> code1, code2;
-    File::ReadFileToString(input_name.c_str(), binary_code);
-    BinaryStringBEToCode(binary_code, code1);
-    File::ReadFileToString(output_name.c_str(), binary_code);
-    BinaryStringBEToCode(binary_code, code2);
-    Compare(code1, code2);
+    File::ReadFileToString(input_name, binary_code);
+    DSP::BinaryStringBEToCode(binary_code, code1);
+    File::ReadFileToString(output_name, binary_code);
+    DSP::BinaryStringBEToCode(binary_code, code2);
+    DSP::Compare(code1, code2);
     return 0;
   }
 
@@ -328,8 +328,8 @@ int main(int argc, const char* argv[])
     std::string dumpfile, results;
     std::vector<u16> reg_vector;
 
-    File::ReadFileToString(input_name.c_str(), dumpfile);
-    BinaryStringBEToCode(dumpfile, reg_vector);
+    File::ReadFileToString(input_name, dumpfile);
+    DSP::BinaryStringBEToCode(dumpfile, reg_vector);
 
     results.append("Start:\n");
     for (int initial_reg = 0; initial_reg < 32; initial_reg++)
@@ -390,8 +390,8 @@ int main(int argc, const char* argv[])
         }
         if (last_reg != current_reg)
         {
-          results.append(StringFromFormat("%02x %-7s: %04x %04x\n", reg, pdregname(reg), last_reg,
-                                          current_reg));
+          results.append(StringFromFormat("%02x %-7s: %04x %04x\n", reg, DSP::pdregname(reg),
+                                          last_reg, current_reg));
           changed = true;
         }
       }
@@ -417,12 +417,12 @@ int main(int argc, const char* argv[])
     }
     std::string binary_code;
     std::vector<u16> code;
-    File::ReadFileToString(input_name.c_str(), binary_code);
-    BinaryStringBEToCode(binary_code, code);
+    File::ReadFileToString(input_name, binary_code);
+    DSP::BinaryStringBEToCode(binary_code, code);
     std::string text;
-    Disassemble(code, true, text);
+    DSP::Disassemble(code, true, text);
     if (!output_name.empty())
-      File::WriteStringToFile(text, output_name.c_str());
+      File::WriteStringToFile(text, output_name);
     else
       printf("%s", text.c_str());
   }
@@ -476,7 +476,7 @@ int main(int argc, const char* argv[])
           }
           else
           {
-            if (!Assemble(currentSource.c_str(), codes[i], force))
+            if (!DSP::Assemble(currentSource, codes[i], force))
             {
               printf("Assemble: Assembly of %s failed due to errors\n", files[i].c_str());
               lines--;
@@ -488,8 +488,8 @@ int main(int argc, const char* argv[])
           }
         }
 
-        CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
-        File::WriteStringToFile(header, (output_header_name + ".h").c_str());
+        DSP::CodesToHeader(codes, &files, lines, output_header_name.c_str(), header);
+        File::WriteStringToFile(header, output_header_name + ".h");
 
         delete[] codes;
       }
@@ -497,7 +497,7 @@ int main(int argc, const char* argv[])
       {
         std::vector<u16> code;
 
-        if (!Assemble(source.c_str(), code, force))
+        if (!DSP::Assemble(source, code, force))
         {
           printf("Assemble: Assembly failed due to errors\n");
           return 1;
@@ -511,14 +511,14 @@ int main(int argc, const char* argv[])
         if (!output_name.empty())
         {
           std::string binary_code;
-          CodeToBinaryStringBE(code, binary_code);
-          File::WriteStringToFile(binary_code, output_name.c_str());
+          DSP::CodeToBinaryStringBE(code, binary_code);
+          File::WriteStringToFile(binary_code, output_name);
         }
         if (!output_header_name.empty())
         {
           std::string header;
-          CodeToHeader(code, input_name, output_header_name.c_str(), header);
-          File::WriteStringToFile(header, (output_header_name + ".h").c_str());
+          DSP::CodeToHeader(code, input_name, output_header_name.c_str(), header);
+          File::WriteStringToFile(header, output_header_name + ".h");
         }
       }
     }

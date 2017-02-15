@@ -9,6 +9,8 @@
 
 #include "Common/CommonTypes.h"
 
+namespace DSP
+{
 enum LabelType
 {
   LABEL_IADDR = 1,  // Jump addresses, etc
@@ -40,3 +42,4 @@ public:
   bool GetLabelValue(const std::string& label, u16* value, LabelType type = LABEL_ANY) const;
   void Clear();
 };
+}  // namespace DSP

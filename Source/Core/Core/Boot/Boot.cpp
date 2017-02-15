@@ -2,18 +2,21 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Boot/Boot.h"
+
+#include <string>
 #include <vector>
 
 #include <zlib.h>
 
+#include "Common/Align.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/MathUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
-#include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -21,22 +24,20 @@
 #include "Core/GeckoCode.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVDInterface.h"
-#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
-#include "Core/HW/ProcessorInterface.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/Host.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IOS/IPC.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "Core/PowerPC/SignatureDB.h"
+#include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 
 bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt)
 {
@@ -72,7 +73,7 @@ void CBoot::Load_FST(bool _bIsWii)
   volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
   volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
 
-  u32 arena_high = ROUND_DOWN(0x817FFFFF - (max_fst_size << shift), 0x20);
+  u32 arena_high = Common::AlignDown(0x817FFFFF - (max_fst_size << shift), 0x20);
   Memory::Write_U32(arena_high, 0x00000034);
 
   // load FST
@@ -188,32 +189,34 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
   // Use zlibs crc32 implementation to compute the hash
   u32 ipl_hash = crc32(0L, Z_NULL, 0);
   ipl_hash = crc32(ipl_hash, (const Bytef*)data.data(), (u32)data.size());
-  std::string ipl_region;
+  DiscIO::Region ipl_region;
   switch (ipl_hash)
   {
   case USA_v1_0:
   case USA_v1_1:
   case USA_v1_2:
   case BRA_v1_0:
-    ipl_region = USA_DIR;
+    ipl_region = DiscIO::Region::NTSC_U;
     break;
   case JAP_v1_0:
   case JAP_v1_1:
-    ipl_region = JAP_DIR;
+    ipl_region = DiscIO::Region::NTSC_J;
     break;
   case PAL_v1_0:
   case PAL_v1_2:
-    ipl_region = EUR_DIR;
+    ipl_region = DiscIO::Region::PAL;
     break;
   default:
     PanicAlertT("IPL with unknown hash %x", ipl_hash);
+    ipl_region = DiscIO::Region::UNKNOWN_REGION;
     break;
   }
 
-  std::string BootRegion = _rBootROMFilename.substr(_rBootROMFilename.find_last_of(DIR_SEP) - 3, 3);
-  if (BootRegion != ipl_region)
+  const DiscIO::Region boot_region = SConfig::GetInstance().m_region;
+  if (ipl_region != DiscIO::Region::UNKNOWN_REGION && boot_region != ipl_region)
     PanicAlertT("%s IPL found in %s directory. The disc might not be recognized",
-                ipl_region.c_str(), BootRegion.c_str());
+                SConfig::GetDirectoryForRegion(ipl_region),
+                SConfig::GetDirectoryForRegion(boot_region));
 
   // Run the descrambler over the encrypted section containing BS1/BS2
   CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
@@ -255,7 +258,8 @@ bool CBoot::BootUp()
   g_symbolDB.Clear();
 
   // PAL Wii uses NTSC framerate and linecount in 60Hz modes
-  VideoInterface::Preset(_StartupPara.bNTSC || (_StartupPara.bWii && _StartupPara.bPAL60));
+  VideoInterface::Preset(DiscIO::IsNTSC(_StartupPara.m_region) ||
+                         (_StartupPara.bWii && _StartupPara.bPAL60));
 
   switch (_StartupPara.m_BootType)
   {
@@ -274,14 +278,10 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting ISO in wrong console mode!");
     }
 
-    std::string game_id = DVDInterface::GetVolume().GetGameID();
-    if (game_id.size() >= 4)
-      VideoInterface::SetRegionReg(game_id.at(3));
-
     std::vector<u8> tmd_buffer = pVolume.GetTMD();
     if (!tmd_buffer.empty())
     {
-      WII_IPC_HLE_Interface::ES_DIVerify(tmd_buffer);
+      IOS::HLE::ES_DIVerify(tmd_buffer);
     }
 
     _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;
@@ -381,8 +381,15 @@ bool CBoot::BootUp()
       PowerPC::ppcState.spr[SPR_DBAT4L] = 0x10000002;
       PowerPC::ppcState.spr[SPR_DBAT5U] = 0xd0001fff;
       PowerPC::ppcState.spr[SPR_DBAT5L] = 0x1000002a;
+      if (dolLoader.IsWii())
+        HID4.SBE = 1;
       PowerPC::DBATUpdated();
       PowerPC::IBATUpdated();
+
+      // Because there is no TMD to get the requested system (IOS) version from,
+      // we default to IOS58, which is the version used by the Homebrew Channel.
+      if (dolLoader.IsWii())
+        SetupWiiMemory(0x000000010000003a);
 
       dolLoader.Load();
       PC = dolLoader.GetEntryPoint();
@@ -417,9 +424,15 @@ bool CBoot::BootUp()
 
     // Poor man's bootup
     if (_StartupPara.bWii)
-      SetupWiiMemory(DiscIO::Country::COUNTRY_UNKNOWN);
+    {
+      // Because there is no TMD to get the requested system (IOS) version from,
+      // we default to IOS58, which is the version used by the Homebrew Channel.
+      SetupWiiMemory(0x000000010000003a);
+    }
     else
+    {
       EmulatedBS2_GC(true);
+    }
 
     Load_FST(_StartupPara.bWii);
     if (!Boot_ELF(_StartupPara.m_strFilename))

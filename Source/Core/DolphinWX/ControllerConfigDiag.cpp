@@ -23,17 +23,20 @@
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
+#include "Core/IOS/IPC.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/DolphinSlider.h"
-#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/Input/GCKeyboardInputConfigDiag.h"
+#include "DolphinWX/Input/GCPadInputConfigDiag.h"
+#include "DolphinWX/Input/InputConfigDiag.h"
+#include "DolphinWX/Input/WiimoteInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "InputCommon/GCAdapter.h"
 
@@ -85,7 +88,7 @@ void ControllerConfigDiag::UpdateUI()
     m_wiimote_sources[i]->Select(g_wiimote_sources[i]);
 
     const bool wii_game_started =
-        SConfig::GetInstance().bWii || Core::GetState() == Core::CORE_UNINITIALIZED;
+        SConfig::GetInstance().bWii || Core::GetState() == Core::State::Uninitialized;
     if (Core::g_want_determinism || !wii_game_started)
       m_wiimote_sources[i]->Disable();
     if (!wii_game_started ||
@@ -447,20 +450,24 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
 
   if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_GC_KEYBOARD)
   {
-    InputConfigDialog config_diag(this, *key_plugin, _("GameCube Keyboard Configuration"),
-                                  port_num);
+    GCKeyboardInputConfigDialog config_diag(
+        this, *key_plugin,
+        wxString::Format(_("GameCube Keyboard Configuration Port %i"), port_num + 1), port_num);
     config_diag.ShowModal();
   }
   else if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_WIIU_ADAPTER)
   {
-    GCAdapterConfigDiag config_diag(this, _("Wii U GameCube Controller Adapter Configuration"),
-                                    port_num);
+    GCAdapterConfigDiag config_diag(
+        this, wxString::Format(_("Wii U GameCube Controller Adapter Configuration Port %i"),
+                               port_num + 1),
+        port_num);
     config_diag.ShowModal();
   }
   else
   {
-    InputConfigDialog config_diag(this, *pad_plugin, _("GameCube Controller Configuration"),
-                                  port_num);
+    GCPadInputConfigDialog config_diag(
+        this, *pad_plugin,
+        wxString::Format(_("GameCube Controller Configuration Port %i"), port_num + 1), port_num);
     config_diag.ShowModal();
   }
 
@@ -494,9 +501,12 @@ void ControllerConfigDiag::OnWiimoteConfigButton(wxCommandEvent& ev)
 
   HotkeyManagerEmu::Enable(false);
 
-  InputConfigDialog m_ConfigFrame(this, *wiimote_plugin,
-                                  _("Dolphin Emulated Wii Remote Configuration"),
-                                  m_wiimote_index_from_config_id[ev.GetId()]);
+  const int port_num = m_wiimote_index_from_config_id[ev.GetId()];
+
+  WiimoteInputConfigDialog m_ConfigFrame(
+      this, *wiimote_plugin,
+      wxString::Format(_("Dolphin Emulated Wii Remote Configuration Port %i"), port_num + 1),
+      port_num);
   m_ConfigFrame.ShowModal();
 
   HotkeyManagerEmu::Enable(true);
@@ -517,9 +527,9 @@ void ControllerConfigDiag::OnPassthroughScanButton(wxCommandEvent& event)
                  _("Sync Wii Remotes"), wxICON_WARNING);
     return;
   }
-  auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
+  auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
   if (device != nullptr)
-    std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
+    std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)
         ->TriggerSyncButtonPressedEvent();
 }
 
@@ -531,10 +541,9 @@ void ControllerConfigDiag::OnPassthroughResetButton(wxCommandEvent& event)
                  _("Reset Wii Remote pairings"), wxICON_WARNING);
     return;
   }
-  auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
+  auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
   if (device != nullptr)
-    std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
-        ->TriggerSyncButtonHeldEvent();
+    std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->TriggerSyncButtonHeldEvent();
 }
 
 void ControllerConfigDiag::OnBalanceBoardChanged(wxCommandEvent& event)

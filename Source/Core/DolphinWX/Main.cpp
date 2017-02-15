@@ -10,6 +10,7 @@
 #include <wx/app.h>
 #include <wx/buffer.h>
 #include <wx/cmdline.h>
+#include <wx/evtloop.h>
 #include <wx/image.h>
 #include <wx/imagpng.h>
 #include <wx/intl.h>
@@ -17,6 +18,7 @@
 #include <wx/msgdlg.h>
 #include <wx/thread.h>
 #include <wx/timer.h>
+#include <wx/tooltip.h>
 #include <wx/utils.h>
 #include <wx/window.h>
 
@@ -111,6 +113,8 @@ bool DolphinApp::OnInit()
 
   DolphinAnalytics::Instance()->ReportDolphinStart("wx");
 
+  wxToolTip::Enable(!SConfig::GetInstance().m_DisableTooltips);
+
   // Enable the PNG image handler for screenshots
   wxImage::AddHandler(new wxPNGHandler);
 
@@ -138,8 +142,8 @@ void DolphinApp::OnInitCmdLine(wxCmdLineParser& parser)
       {wxCMD_LINE_SWITCH, "l", "logger", "Opens the logger", wxCMD_LINE_VAL_NONE,
        wxCMD_LINE_PARAM_OPTIONAL},
       {wxCMD_LINE_OPTION, "e", "exec",
-       "Loads the specified file (ELF, DOL, GCM, ISO, WBFS, CISO, GCZ, WAD)", wxCMD_LINE_VAL_STRING,
-       wxCMD_LINE_PARAM_OPTIONAL},
+       "Loads the specified file (ELF, DOL, GCM, ISO, TGC, WBFS, CISO, GCZ, WAD)",
+       wxCMD_LINE_VAL_STRING, wxCMD_LINE_PARAM_OPTIONAL},
       {wxCMD_LINE_SWITCH, "b", "batch", "Exit Dolphin with emulator", wxCMD_LINE_VAL_NONE,
        wxCMD_LINE_PARAM_OPTIONAL},
       {wxCMD_LINE_OPTION, "c", "confirm", "Set Confirm on Stop", wxCMD_LINE_VAL_STRING,
@@ -359,19 +363,17 @@ void DolphinApp::OnIdle(wxIdleEvent& ev)
 
 bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
-#ifdef __WXGTK__
   if (wxIsMainThread())
   {
-#endif
     NetPlayDialog*& npd = NetPlayDialog::GetInstance();
     if (npd != nullptr && npd->IsShown())
     {
       npd->AppendChat("/!\\ " + std::string{text});
       return true;
     }
-    return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption), (yes_no) ? wxYES_NO : wxOK,
+    return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
+                                 wxSTAY_ON_TOP | ((yes_no) ? wxYES_NO : wxOK),
                                  wxWindow::FindFocus());
-#ifdef __WXGTK__
   }
   else
   {
@@ -382,7 +384,6 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
     main_frame->panic_event.Wait();
     return main_frame->bPanicResult;
   }
-#endif
 }
 
 std::string wxStringTranslator(const char* text)
@@ -459,13 +460,6 @@ void Host_RequestRenderWindowSize(int width, int height)
 {
   wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_WINDOW_SIZE_REQUEST);
   event.SetClientData(new std::pair<int, int>(width, height));
-  main_frame->GetEventHandler()->AddPendingEvent(event);
-}
-
-void Host_RequestFullscreen(bool enable_fullscreen)
-{
-  wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_FULLSCREEN_REQUEST);
-  event.SetInt(enable_fullscreen ? 1 : 0);
   main_frame->GetEventHandler()->AddPendingEvent(event);
 }
 
@@ -557,4 +551,9 @@ void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
     VideoConfigDiag diag((wxWindow*)parent, backend_name);
     diag.ShowModal();
   }
+}
+
+void Host_YieldToUI()
+{
+  wxGetApp().GetMainLoop()->YieldFor(wxEVT_CATEGORY_UI);
 }

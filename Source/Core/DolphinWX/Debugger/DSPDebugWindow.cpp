@@ -46,9 +46,12 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
       new DolphinAuiToolBar(this, ID_TOOLBAR, wxDefaultPosition, wxDefaultSize, wxAUI_TB_HORZ_TEXT);
   m_Toolbar->AddTool(ID_RUNTOOL, _("Pause"),
                      wxArtProvider::GetBitmap(wxART_TICK_MARK, wxART_OTHER, m_toolbar_item_size));
+  // i18n: Here, "Step" is a verb. This function is used for
+  // going through code step by step.
   m_Toolbar->AddTool(ID_STEPTOOL, _("Step"),
                      wxArtProvider::GetBitmap(wxART_GO_DOWN, wxART_OTHER, m_toolbar_item_size));
   m_Toolbar->AddTool(
+      // i18n: Here, PC is an acronym for program counter, not personal computer.
       ID_SHOWPCTOOL, _("Show PC"),
       wxArtProvider::GetBitmap(wxART_GO_TO_PARENT, wxART_OTHER, m_toolbar_item_size));
   m_Toolbar->AddSeparator();
@@ -69,7 +72,7 @@ DSPDebuggerLLE::DSPDebuggerLLE(wxWindow* parent, wxWindowID id)
 
   wxPanel* code_panel = new wxPanel(m_MainNotebook, wxID_ANY);
   wxBoxSizer* code_sizer = new wxBoxSizer(wxVERTICAL);
-  m_CodeView = new CCodeView(&debug_interface, &DSPSymbols::g_dsp_symbol_db, code_panel);
+  m_CodeView = new CCodeView(&debug_interface, &DSP::Symbols::g_dsp_symbol_db, code_panel);
   m_CodeView->SetPlain();
   code_sizer->Add(m_CodeView, 1, wxEXPAND);
   code_panel->SetSizer(code_sizer);
@@ -112,22 +115,24 @@ DSPDebuggerLLE::~DSPDebuggerLLE()
 
 void DSPDebuggerLLE::OnChangeState(wxCommandEvent& event)
 {
-  if (DSPCore_GetState() == DSPCORE_STOP)
+  const DSP::State dsp_state = DSP::DSPCore_GetState();
+
+  if (dsp_state == DSP::State::Stopped)
     return;
 
   switch (event.GetId())
   {
   case ID_RUNTOOL:
-    if (DSPCore_GetState() == DSPCORE_RUNNING)
-      DSPCore_SetState(DSPCORE_STEPPING);
+    if (dsp_state == DSP::State::Running)
+      DSP::DSPCore_SetState(DSP::State::Stepping);
     else
-      DSPCore_SetState(DSPCORE_RUNNING);
+      DSP::DSPCore_SetState(DSP::State::Running);
     break;
 
   case ID_STEPTOOL:
-    if (DSPCore_GetState() == DSPCORE_STEPPING)
+    if (dsp_state == DSP::State::Stepping)
     {
-      DSPCore_Step();
+      DSP::DSPCore_Step();
       Repopulate();
     }
     break;
@@ -165,12 +170,12 @@ void DSPDebuggerLLE::Repopulate()
 
 void DSPDebuggerLLE::FocusOnPC()
 {
-  JumpToAddress(g_dsp.pc);
+  JumpToAddress(DSP::g_dsp.pc);
 }
 
 void DSPDebuggerLLE::UpdateState()
 {
-  if (DSPCore_GetState() == DSPCORE_RUNNING)
+  if (DSP::DSPCore_GetState() == DSP::State::Running)
   {
     m_Toolbar->SetToolLabel(ID_RUNTOOL, _("Pause"));
     m_Toolbar->SetToolBitmap(
@@ -189,23 +194,23 @@ void DSPDebuggerLLE::UpdateState()
 
 void DSPDebuggerLLE::UpdateDisAsmListView()
 {
-  if (m_CachedStepCounter == g_dsp.step_counter)
+  if (m_CachedStepCounter == DSP::g_dsp.step_counter)
     return;
 
   // show PC
   FocusOnPC();
-  m_CachedStepCounter = g_dsp.step_counter;
+  m_CachedStepCounter = DSP::g_dsp.step_counter;
   m_Regs->Repopulate();
 }
 
 void DSPDebuggerLLE::UpdateSymbolMap()
 {
-  if (g_dsp.dram == nullptr)
+  if (DSP::g_dsp.dram == nullptr)
     return;
 
   m_SymbolList->Freeze();  // HyperIris: wx style fast filling
   m_SymbolList->Clear();
-  for (const auto& symbol : DSPSymbols::g_dsp_symbol_db.Symbols())
+  for (const auto& symbol : DSP::Symbols::g_dsp_symbol_db.Symbols())
   {
     int idx = m_SymbolList->Append(StrToWxStr(symbol.second.name));
     m_SymbolList->SetClientData(idx, (void*)&symbol.second);
@@ -256,7 +261,7 @@ bool DSPDebuggerLLE::JumpToAddress(u16 addr)
   if (page == 0)
   {
     // Center on valid instruction in IRAM/IROM
-    int new_line = DSPSymbols::Addr2Line(addr);
+    int new_line = DSP::Symbols::Addr2Line(addr);
     if (new_line >= 0)
     {
       m_CodeView->Center(new_line);

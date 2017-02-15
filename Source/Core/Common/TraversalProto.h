@@ -52,7 +52,8 @@ struct TraversalPacket
 {
   u8 type;
   TraversalRequestId requestId;
-  union {
+  union
+  {
     struct
     {
       u8 ok;

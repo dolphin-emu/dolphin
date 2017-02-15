@@ -114,6 +114,9 @@ const struct usbi_os_backend netbsd_backend = {
 	NULL,				/* alloc_streams */
 	NULL,				/* free_streams */
 
+	NULL,				/* dev_mem_alloc() */
+	NULL,				/* dev_mem_free() */
+
 	NULL,				/* kernel_driver_active() */
 	NULL,				/* detach_kernel_driver() */
 	NULL,				/* attach_kernel_driver() */

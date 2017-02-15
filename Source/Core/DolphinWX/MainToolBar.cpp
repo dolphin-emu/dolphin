@@ -8,8 +8,8 @@
 #include <utility>
 
 #include "Core/Core.h"
-#include "Core/HW/CPU.h"
 #include "DolphinWX/Globals.h"
+#include "DolphinWX/WxEventUtils.h"
 #include "DolphinWX/WxUtils.h"
 
 wxDEFINE_EVENT(DOLPHIN_EVT_RELOAD_TOOLBAR_BITMAPS, wxCommandEvent);
@@ -21,7 +21,6 @@ MainToolBar::MainToolBar(ToolBarType type, wxWindow* parent, wxWindowID id, cons
   wxToolBar::SetToolBitmapSize(FromDIP(wxSize{32, 32}));
   InitializeBitmaps();
   AddToolBarButtons();
-  wxToolBar::Realize();
 
   BindEvents();
 }
@@ -38,42 +37,20 @@ void MainToolBar::BindEvents()
 
 void MainToolBar::BindMainButtonEvents()
 {
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCoreNotRunning, this, wxID_OPEN);
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCoreNotRunning, this, wxID_REFRESH);
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCoreRunningOrPaused, this, IDM_STOP);
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCoreRunningOrPaused, this, IDM_TOGGLE_FULLSCREEN);
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCoreRunningOrPaused, this, IDM_SCREENSHOT);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning, wxID_OPEN);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning, wxID_REFRESH);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunningOrPaused, IDM_STOP);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunningOrPaused, IDM_TOGGLE_FULLSCREEN);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreRunningOrPaused, IDM_SCREENSHOT);
 }
 
 void MainToolBar::BindDebuggerButtonEvents()
 {
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCPUCanStep, this, IDM_STEP);
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCPUCanStep, this, IDM_STEPOVER);
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCPUCanStep, this, IDM_STEPOUT);
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCPUCanStep, this, IDM_SKIP);
-  Bind(wxEVT_UPDATE_UI, &MainToolBar::OnUpdateIfCorePaused, this, IDM_SETPC);
-}
-
-void MainToolBar::OnUpdateIfCoreNotRunning(wxUpdateUIEvent& event)
-{
-  event.Enable(!Core::IsRunning());
-}
-
-void MainToolBar::OnUpdateIfCorePaused(wxUpdateUIEvent& event)
-{
-  event.Enable(Core::GetState() == Core::CORE_PAUSE);
-}
-
-void MainToolBar::OnUpdateIfCoreRunningOrPaused(wxUpdateUIEvent& event)
-{
-  const auto state = Core::GetState();
-
-  event.Enable(state == Core::CORE_RUN || state == Core::CORE_PAUSE);
-}
-
-void MainToolBar::OnUpdateIfCPUCanStep(wxUpdateUIEvent& event)
-{
-  event.Enable(Core::IsRunning() && CPU::IsStepping());
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCPUCanStep, IDM_STEP);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCPUCanStep, IDM_STEPOVER);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCPUCanStep, IDM_STEPOUT);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCPUCanStep, IDM_SKIP);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCPUCanStep, IDM_SETPC);
 }
 
 void MainToolBar::OnReloadBitmaps(wxCommandEvent& WXUNUSED(event))
@@ -214,9 +191,15 @@ void MainToolBar::AddMainToolBarButtons()
 
 void MainToolBar::AddDebuggerToolBarButtons()
 {
+  // i18n: Here, "Step" is a verb. This function is used for
+  // going through code step by step.
   AddToolBarButton(IDM_STEP, TOOLBAR_DEBUG_STEP, _("Step"), _("Step into the next instruction"));
+  // i18n: Here, "Step" is a verb. This function is used for
+  // going through code step by step.
   AddToolBarButton(IDM_STEPOVER, TOOLBAR_DEBUG_STEPOVER, _("Step Over"),
                    _("Step over the next instruction"));
+  // i18n: Here, "Step" is a verb. This function is used for
+  // going through code step by step.
   AddToolBarButton(IDM_STEPOUT, TOOLBAR_DEBUG_STEPOUT, _("Step Out"),
                    _("Step out of the current function"));
   AddToolBarButton(IDM_SKIP, TOOLBAR_DEBUG_SKIP, _("Skip"),
@@ -240,7 +223,7 @@ void MainToolBar::RefreshPlayButton()
   ToolBarBitmapID bitmap_id;
   wxString label;
 
-  if (Core::GetState() == Core::CORE_RUN)
+  if (Core::GetState() == Core::State::Running)
   {
     bitmap_id = TOOLBAR_PAUSE;
     label = _("Pause");

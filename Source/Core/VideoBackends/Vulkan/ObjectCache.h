@@ -62,25 +62,16 @@ public:
   ObjectCache();
   ~ObjectCache();
 
-  // We have four shared pipeline layouts:
-  //   - Standard
-  //       - Per-stage UBO (VS/GS/PS, VS constants accessible from PS)
-  //       - 8 combined image samplers (accessible from PS)
-  //   - BBox Enabled
-  //       - Same as standard, plus a single SSBO accessible from PS
-  //   - Push Constant
-  //       - Same as standard, plus 128 bytes of push constants, accessible from all stages.
-  //
-  // All three pipeline layouts use the same descriptor set layouts, but the final descriptor set
-  // (SSBO) is only required when using the BBox Enabled pipeline layout.
-  //
-  VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET set) const
+  // Descriptor set layout accessor. Used for allocating descriptor sets.
+  VkDescriptorSetLayout GetDescriptorSetLayout(DESCRIPTOR_SET_LAYOUT layout) const
   {
-    return m_descriptor_set_layouts[set];
+    return m_descriptor_set_layouts[layout];
   }
-  VkPipelineLayout GetStandardPipelineLayout() const { return m_standard_pipeline_layout; }
-  VkPipelineLayout GetBBoxPipelineLayout() const { return m_bbox_pipeline_layout; }
-  VkPipelineLayout GetPushConstantPipelineLayout() const { return m_push_constant_pipeline_layout; }
+  // Pipeline layout accessor. Used to fill in required field in PipelineInfo.
+  VkPipelineLayout GetPipelineLayout(PIPELINE_LAYOUT layout) const
+  {
+    return m_pipeline_layouts[layout];
+  }
   // Shared utility shader resources
   VertexFormat* GetUtilityShaderVertexFormat() const
   {
@@ -111,12 +102,17 @@ public:
   // Perform at startup, create descriptor layouts, compiles all static shaders.
   bool Initialize();
 
-  // Find a pipeline by the specified description, if not found, attempts to create it
+  // Creates a pipeline for the specified description. The resulting pipeline, if successful
+  // is not stored anywhere, this is left up to the caller.
+  VkPipeline CreatePipeline(const PipelineInfo& info);
+
+  // Find a pipeline by the specified description, if not found, attempts to create it.
   VkPipeline GetPipeline(const PipelineInfo& info);
 
-  // Wipes out the pipeline cache, use when MSAA modes change, for example
-  // Also destroys the data that would be stored in the disk cache.
-  void ClearPipelineCache();
+  // Find a pipeline by the specified description, if not found, attempts to create it. If this
+  // resulted in a pipeline being created, the second field of the return value will be false,
+  // otherwise for a cache hit it will be true.
+  std::pair<VkPipeline, bool> GetPipelineWithCacheResult(const PipelineInfo& info);
 
   // Saves the pipeline cache to disk. Call when shutting down.
   void SavePipelineCache();
@@ -133,8 +129,12 @@ public:
   VkShaderModule GetPassthroughVertexShader() const { return m_passthrough_vertex_shader; }
   VkShaderModule GetScreenQuadGeometryShader() const { return m_screen_quad_geometry_shader; }
   VkShaderModule GetPassthroughGeometryShader() const { return m_passthrough_geometry_shader; }
+  // Gets the filename of the specified type of cache object (e.g. vertex shader, pipeline).
+  std::string GetDiskCacheFileName(const char* type);
+
 private:
   bool CreatePipelineCache(bool load_from_disk);
+  bool ValidatePipelineCache(const u8* data, size_t data_length);
   void DestroyPipelineCache();
   void LoadShaderCaches();
   void DestroyShaderCaches();
@@ -148,13 +148,8 @@ private:
   void DestroySharedShaders();
   void DestroySamplers();
 
-  std::string GetDiskCacheFileName(const char* type);
-
-  std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SETS> m_descriptor_set_layouts = {};
-
-  VkPipelineLayout m_standard_pipeline_layout = VK_NULL_HANDLE;
-  VkPipelineLayout m_bbox_pipeline_layout = VK_NULL_HANDLE;
-  VkPipelineLayout m_push_constant_pipeline_layout = VK_NULL_HANDLE;
+  std::array<VkDescriptorSetLayout, NUM_DESCRIPTOR_SET_LAYOUTS> m_descriptor_set_layouts = {};
+  std::array<VkPipelineLayout, NUM_PIPELINE_LAYOUTS> m_pipeline_layouts = {};
 
   std::unique_ptr<VertexFormat> m_utility_shader_vertex_format;
   std::unique_ptr<StreamBuffer> m_utility_shader_vertex_buffer;

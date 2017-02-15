@@ -3,8 +3,11 @@
 // Refer to the license.txt file included.
 
 #include "Core/PowerPC/JitArm64/Jit.h"
-#include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
+
+#include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCTables.h"
 
 // Should be moved in to the Jit class
 typedef void (JitArm64::*_Instruction)(UGeckoInstruction instCode);
@@ -363,27 +366,25 @@ static GekkoOPTemplate table63_2[] = {
     {31, &JitArm64::fp_arith},               // fnmaddx
 };
 
-namespace JitArm64Tables
+void JitArm64::CompileInstruction(PPCAnalyst::CodeOp& op)
 {
-void CompileInstruction(PPCAnalyst::CodeOp& op)
-{
-  JitArm64* jitarm = (JitArm64*)jit;
-  (jitarm->*dynaOpTable[op.inst.OPCD])(op.inst);
+  (this->*dynaOpTable[op.inst.OPCD])(op.inst);
+
   GekkoOPInfo* info = op.opinfo;
   if (info)
   {
 #ifdef OPLOG
     if (!strcmp(info->opname, OP_TO_LOG))
     {  ///"mcrfs"
-      rsplocations.push_back(jit.js.compilerPC);
+      rsplocations.push_back(js.compilerPC);
     }
 #endif
     info->compileCount++;
-    info->lastUse = jit->js.compilerPC;
+    info->lastUse = js.compilerPC;
   }
 }
 
-void InitTables()
+void JitArm64::InitializeInstructionTables()
 {
   // once initialized, tables are read-only
   static bool initialized = false;
@@ -476,5 +477,3 @@ void InitTables()
 
   initialized = true;
 }
-
-}  // namespace

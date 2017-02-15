@@ -10,6 +10,7 @@ namespace Vulkan
 {
 class VideoBackend : public VideoBackendBase
 {
+public:
   bool Initialize(void* window_handle) override;
   void Shutdown() override;
 

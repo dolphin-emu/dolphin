@@ -18,13 +18,14 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Align.h" />
     <ClInclude Include="Atomic.h" />
     <ClInclude Include="Atomic_GCC.h" />
     <ClInclude Include="Atomic_Win32.h" />
     <ClInclude Include="BitField.h" />
     <ClInclude Include="BitSet.h" />
+    <ClInclude Include="BitUtils.h" />
     <ClInclude Include="BlockingLoop.h" />
-    <ClInclude Include="BreakPoints.h" />
     <ClInclude Include="CDUtils.h" />
     <ClInclude Include="ChunkFile.h" />
     <ClInclude Include="CodeBlock.h" />
@@ -44,6 +45,7 @@
     <ClInclude Include="FPURoundMode.h" />
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
+    <ClInclude Include="LibusbContext.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="MemArena.h" />
@@ -228,7 +230,6 @@
     <ClInclude Include="Semaphore.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="BreakPoints.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
@@ -236,6 +237,7 @@
     <ClCompile Include="FileUtil.cpp" />
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="IniFile.cpp" />
+    <ClCompile Include="LibusbContext.cpp" />
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MemArena.cpp" />
     <ClCompile Include="MemoryUtil.cpp" />

@@ -21,38 +21,26 @@
 #ifndef LIBUSB_THREADS_WINDOWS_H
 #define LIBUSB_THREADS_WINDOWS_H
 
-#define usbi_mutex_static_t     volatile LONG
-#define USBI_MUTEX_INITIALIZER  0
+#define usbi_mutex_static_t	volatile LONG
+#define USBI_MUTEX_INITIALIZER	0
 
-#define usbi_mutex_t            HANDLE
+#define usbi_mutex_t		HANDLE
 
-struct usbi_cond_perthread {
-	struct list_head list;
-	DWORD            tid;
-	HANDLE           event;
-};
-struct usbi_cond_t_ {
+typedef struct usbi_cond {
 	// Every time a thread touches the CV, it winds up in one of these lists.
-	//   It stays there until the CV is destroyed, even if the thread
-	//   terminates.
+	//   It stays there until the CV is destroyed, even if the thread terminates.
 	struct list_head waiters;
 	struct list_head not_waiting;
-};
-typedef struct usbi_cond_t_ usbi_cond_t;
+} usbi_cond_t;
 
 // We *were* getting timespec from pthread.h:
 #if (!defined(HAVE_STRUCT_TIMESPEC) && !defined(_TIMESPEC_DEFINED))
 #define HAVE_STRUCT_TIMESPEC 1
-// (shuffle2) see https://github.com/libusb/libusb/pull/60
-#if defined(_MSC_VER) && (_MSC_VER >= 1900)
-#include <time.h>
-#else
 #define _TIMESPEC_DEFINED 1
 struct timespec {
-		long tv_sec;
-		long tv_nsec;
+	long tv_sec;
+	long tv_nsec;
 };
-#endif
 #endif /* HAVE_STRUCT_TIMESPEC | _TIMESPEC_DEFINED */
 
 // We *were* getting ETIMEDOUT from pthread.h:
@@ -60,32 +48,28 @@ struct timespec {
 #  define ETIMEDOUT 10060     /* This is the value in winsock.h. */
 #endif
 
-#define usbi_mutexattr_t void
-#define usbi_condattr_t  void
-
-// all Windows mutexes are recursive
-#define usbi_mutex_init_recursive(mutex, attr) usbi_mutex_init((mutex), (attr))
+#define usbi_tls_key_t		DWORD
 
 int usbi_mutex_static_lock(usbi_mutex_static_t *mutex);
 int usbi_mutex_static_unlock(usbi_mutex_static_t *mutex);
 
-
-int usbi_mutex_init(usbi_mutex_t *mutex,
-					const usbi_mutexattr_t *attr);
+int usbi_mutex_init(usbi_mutex_t *mutex);
 int usbi_mutex_lock(usbi_mutex_t *mutex);
 int usbi_mutex_unlock(usbi_mutex_t *mutex);
 int usbi_mutex_trylock(usbi_mutex_t *mutex);
 int usbi_mutex_destroy(usbi_mutex_t *mutex);
 
-int usbi_cond_init(usbi_cond_t *cond,
-				   const usbi_condattr_t *attr);
-int usbi_cond_destroy(usbi_cond_t *cond);
+int usbi_cond_init(usbi_cond_t *cond);
 int usbi_cond_wait(usbi_cond_t *cond, usbi_mutex_t *mutex);
 int usbi_cond_timedwait(usbi_cond_t *cond,
-						usbi_mutex_t *mutex,
-						const struct timespec *abstime);
+	usbi_mutex_t *mutex, const struct timeval *tv);
 int usbi_cond_broadcast(usbi_cond_t *cond);
-int usbi_cond_signal(usbi_cond_t *cond);
+int usbi_cond_destroy(usbi_cond_t *cond);
+
+int usbi_tls_key_create(usbi_tls_key_t *key);
+void *usbi_tls_key_get(usbi_tls_key_t key);
+int usbi_tls_key_set(usbi_tls_key_t key, void *value);
+int usbi_tls_key_delete(usbi_tls_key_t key);
 
 int usbi_get_tid(void);
 

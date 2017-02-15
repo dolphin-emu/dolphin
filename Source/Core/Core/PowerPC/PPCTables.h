@@ -4,6 +4,9 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
+
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"
 
@@ -92,23 +95,21 @@ struct GekkoOPInfo
   int compileCount;
   u32 lastUse;
 };
-extern GekkoOPInfo* m_infoTable[64];
-extern GekkoOPInfo* m_infoTable4[1024];
-extern GekkoOPInfo* m_infoTable19[1024];
-extern GekkoOPInfo* m_infoTable31[1024];
-extern GekkoOPInfo* m_infoTable59[32];
-extern GekkoOPInfo* m_infoTable63[1024];
+extern std::array<GekkoOPInfo*, 64> m_infoTable;
+extern std::array<GekkoOPInfo*, 1024> m_infoTable4;
+extern std::array<GekkoOPInfo*, 1024> m_infoTable19;
+extern std::array<GekkoOPInfo*, 1024> m_infoTable31;
+extern std::array<GekkoOPInfo*, 32> m_infoTable59;
+extern std::array<GekkoOPInfo*, 1024> m_infoTable63;
 
-extern GekkoOPInfo* m_allInstructions[512];
-
-extern int m_numInstructions;
+extern std::array<GekkoOPInfo*, 512> m_allInstructions;
+extern size_t m_numInstructions;
 
 GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst);
 Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst);
 
 namespace PPCTables
 {
-void InitTables(int cpu_core);
 bool IsValidInstruction(UGeckoInstruction _instCode);
 bool UsesFPU(UGeckoInstruction _inst);
 
@@ -116,5 +117,4 @@ void CountInstruction(UGeckoInstruction _inst);
 void PrintInstructionRunCounts();
 void LogCompiledInstructions();
 const char* GetInstructionName(UGeckoInstruction _inst);
-
-}  // namespace
+}  // namespace PPCTables

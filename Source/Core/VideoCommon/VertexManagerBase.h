@@ -82,7 +82,7 @@ protected:
 private:
   bool m_is_flushed = true;
 
-  virtual void vFlush(bool useDstAlpha) = 0;
+  virtual void vFlush() = 0;
 
   virtual void CreateDeviceObjects() {}
   virtual void DestroyDeviceObjects() {}

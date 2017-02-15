@@ -6,10 +6,8 @@
 #include <unordered_set>
 #include <vector>
 
-// clang-format off
 #include <Windows.h>
 #include <SetupAPI.h>
-// clang-format on
 
 namespace ciface
 {

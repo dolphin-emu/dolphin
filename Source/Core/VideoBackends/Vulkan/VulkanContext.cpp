@@ -82,10 +82,11 @@ bool VulkanContext::CheckValidationLayerAvailablility()
           }) != layer_list.end());
 }
 
-VkInstance VulkanContext::CreateVulkanInstance(bool enable_surface, bool enable_validation_layer)
+VkInstance VulkanContext::CreateVulkanInstance(bool enable_surface, bool enable_debug_report,
+                                               bool enable_validation_layer)
 {
   ExtensionList enabled_extensions;
-  if (!SelectInstanceExtensions(&enabled_extensions, enable_surface, enable_validation_layer))
+  if (!SelectInstanceExtensions(&enabled_extensions, enable_surface, enable_debug_report))
     return VK_NULL_HANDLE;
 
   VkApplicationInfo app_info = {};
@@ -127,7 +128,7 @@ VkInstance VulkanContext::CreateVulkanInstance(bool enable_surface, bool enable_
 }
 
 bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool enable_surface,
-                                             bool enable_validation_layer)
+                                             bool enable_debug_report)
 {
   u32 extension_count = 0;
   VkResult res = vkEnumerateInstanceExtensionProperties(nullptr, &extension_count, nullptr);
@@ -192,8 +193,8 @@ bool VulkanContext::SelectInstanceExtensions(ExtensionList* extension_list, bool
 #endif
 
   // VK_EXT_debug_report
-  if (enable_validation_layer && !CheckForExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, true))
-    return false;
+  if (enable_debug_report && !CheckForExtension(VK_EXT_DEBUG_REPORT_EXTENSION_NAME, true))
+    WARN_LOG(VIDEO, "Vulkan: Debug report requested, but extension is not available.");
 
   return true;
 }
@@ -233,14 +234,15 @@ void VulkanContext::PopulateBackendInfo(VideoConfig* config)
   config->backend_info.bSupportsPaletteConversion = true;     // Assumed support.
   config->backend_info.bSupportsClipControl = true;           // Assumed support.
   config->backend_info.bSupportsMultithreading = true;        // Assumed support.
-  config->backend_info.bSupportsPostProcessing = false;       // No support yet.
-  config->backend_info.bSupportsDualSourceBlend = false;      // Dependent on features.
-  config->backend_info.bSupportsGeometryShaders = false;      // Dependent on features.
-  config->backend_info.bSupportsGSInstancing = false;         // Dependent on features.
-  config->backend_info.bSupportsBBox = false;                 // Dependent on features.
-  config->backend_info.bSupportsSSAA = false;                 // Dependent on features.
-  config->backend_info.bSupportsDepthClamp = false;           // Dependent on features.
-  config->backend_info.bSupportsReversedDepthRange = false;   // No support yet due to driver bugs.
+  config->backend_info.bSupportsInternalResolutionFrameDumps = true;  // Assumed support.
+  config->backend_info.bSupportsPostProcessing = false;               // No support yet.
+  config->backend_info.bSupportsDualSourceBlend = false;              // Dependent on features.
+  config->backend_info.bSupportsGeometryShaders = false;              // Dependent on features.
+  config->backend_info.bSupportsGSInstancing = false;                 // Dependent on features.
+  config->backend_info.bSupportsBBox = false;                         // Dependent on features.
+  config->backend_info.bSupportsSSAA = false;                         // Dependent on features.
+  config->backend_info.bSupportsDepthClamp = false;                   // Dependent on features.
+  config->backend_info.bSupportsReversedDepthRange = false;  // No support yet due to driver bugs.
 }
 
 void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPUList& gpu_list)
@@ -266,10 +268,10 @@ void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalD
   // Disable geometry shader when shaderTessellationAndGeometryPointSize is not supported.
   // Seems this is needed for gl_Layer.
   if (!features.shaderTessellationAndGeometryPointSize)
+  {
     config->backend_info.bSupportsGeometryShaders = VK_FALSE;
-
-  // TODO: Investigate if there's a feature we can enable for GS instancing.
-  config->backend_info.bSupportsGSInstancing = VK_FALSE;
+    config->backend_info.bSupportsGSInstancing = VK_FALSE;
+  }
 
   // Depth clamping implies shaderClipDistance and depthClamp
   config->backend_info.bSupportsDepthClamp =
@@ -293,7 +295,7 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
   VkSampleCountFlags supported_sample_counts = properties.limits.framebufferColorSampleCounts &
                                                properties.limits.framebufferDepthSampleCounts &
                                                efb_color_properties.sampleCounts &
-                                               efb_color_properties.sampleCounts;
+                                               efb_depth_properties.sampleCounts;
 
   // No AA
   config->backend_info.AAModes.clear();
@@ -325,7 +327,8 @@ void VulkanContext::PopulateBackendInfoMultisampleModes(
 }
 
 std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhysicalDevice gpu,
-                                                     VkSurfaceKHR surface, VideoConfig* config,
+                                                     VkSurfaceKHR surface,
+                                                     bool enable_debug_reports,
                                                      bool enable_validation_layer)
 {
   std::unique_ptr<VulkanContext> context = std::make_unique<VulkanContext>(instance, gpu);
@@ -337,8 +340,8 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
                       static_cast<double>(context->m_device_properties.driverVersion),
                       DriverDetails::Family::UNKNOWN);
 
-  // Enable debug reports if validation layer is enabled.
-  if (enable_validation_layer)
+  // Enable debug reports if the "Host GPU" log category is enabled.
+  if (enable_debug_reports)
     context->EnableDebugReports();
 
   // Attempt to create the device.
@@ -351,14 +354,10 @@ std::unique_ptr<VulkanContext> VulkanContext::Create(VkInstance instance, VkPhys
     return nullptr;
   }
 
-  // Update video config with features.
-  PopulateBackendInfoFeatures(config, gpu, context->m_device_features);
-  PopulateBackendInfoMultisampleModes(config, gpu, context->m_device_properties);
   return context;
 }
 
-bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool enable_surface,
-                                           bool enable_validation_layer)
+bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool enable_surface)
 {
   u32 extension_count = 0;
   VkResult res =
@@ -404,9 +403,7 @@ bool VulkanContext::SelectDeviceExtensions(ExtensionList* extension_list, bool e
   };
 
   if (enable_surface && !CheckForExtension(VK_KHR_SWAPCHAIN_EXTENSION_NAME, true))
-  {
     return false;
-  }
 
   return true;
 }
@@ -526,8 +523,7 @@ bool VulkanContext::CreateDevice(VkSurfaceKHR surface, bool enable_validation_la
   device_info.pQueueCreateInfos = &queue_info;
 
   ExtensionList enabled_extensions;
-  if (!SelectDeviceExtensions(&enabled_extensions, (surface != VK_NULL_HANDLE),
-                              enable_validation_layer))
+  if (!SelectDeviceExtensions(&enabled_extensions, surface != VK_NULL_HANDLE))
     return false;
 
   device_info.enabledLayerCount = 0;

@@ -75,7 +75,7 @@ bool BGRATexturesSupported();
 unsigned int GetMaxTextureSize();
 
 HRESULT SetFullscreenState(bool enable_fullscreen);
-HRESULT GetFullscreenState(bool* fullscreen_state);
+bool GetFullscreenState();
 
 // This function will assign a name to the given resource.
 // The DirectX debug layer will make it easier to identify resources that way,

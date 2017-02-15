@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "Common/CommonTypes.h"
 #include "Core/Boot/ElfTypes.h"
 
 enum KnownElfTypes
@@ -31,7 +32,7 @@ private:
   u32 entryPoint;
 
 public:
-  ElfReader(void* ptr);
+  explicit ElfReader(void* ptr);
   ~ElfReader() {}
   u32 Read32(int off) const { return base32[off >> 2]; }
   // Quick accessors
@@ -39,7 +40,7 @@ public:
   ElfMachine GetMachine() const { return (ElfMachine)(header->e_machine); }
   u32 GetEntryPoint() const { return entryPoint; }
   u32 GetFlags() const { return (u32)(header->e_flags); }
-  bool LoadIntoMemory();
+  bool LoadIntoMemory(bool only_in_mem1 = false);
   bool LoadSymbols();
 
   int GetNumSegments() const { return (int)(header->e_phnum); }
@@ -55,8 +56,9 @@ public:
     else
       return nullptr;
   }
-  bool IsCodeSection(int section) const { return sections[section].sh_type == SHT_PROGBITS; }
+  bool IsCodeSegment(int segment) const { return segments[segment].p_flags & PF_X; }
   const u8* GetSegmentPtr(int segment) { return GetPtr(segments[segment].p_offset); }
+  int GetSegmentSize(int segment) const { return segments[segment].p_filesz; }
   u32 GetSectionAddr(SectionID section) const { return sectionAddrs[section]; }
   int GetSectionSize(SectionID section) const { return sections[section].sh_size; }
   SectionID GetSectionByName(const char* name, int firstSection = 0) const;  //-1 for not found

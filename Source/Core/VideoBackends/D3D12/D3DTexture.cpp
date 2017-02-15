@@ -4,6 +4,7 @@
 
 #include <memory>
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "VideoBackends/D3D12/D3DBase.h"
@@ -34,7 +35,7 @@ void ReplaceRGBATexture2D(ID3D12Resource* texture12, const u8* buffer, unsigned 
                           D3D12_RESOURCE_STATES current_resource_state)
 {
   const unsigned int upload_size =
-      AlignValue(src_pitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * height;
+      Common::AlignUp(src_pitch, D3D12_TEXTURE_DATA_PITCH_ALIGNMENT) * height;
 
   ID3D12Resource* upload_buffer = nullptr;
   size_t upload_buffer_offset = 0;

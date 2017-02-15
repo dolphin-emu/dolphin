@@ -10,9 +10,9 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "DiscIO/Blob.h"
@@ -20,49 +20,54 @@
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeWad.h"
 
-#define ALIGN_40(x) ROUND_UP(Common::swap32(x), 0x40)
-
 namespace DiscIO
 {
-CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader)
-    : m_pReader(std::move(reader)), m_offset(0), m_tmd_offset(0), m_opening_bnr_offset(0),
-      m_hdr_size(0), m_cert_size(0), m_tick_size(0), m_tmd_size(0), m_data_size(0)
+CVolumeWAD::CVolumeWAD(std::unique_ptr<IBlobReader> reader) : m_reader(std::move(reader))
 {
   // Source: http://wiibrew.org/wiki/WAD_files
-  Read(0x00, 4, (u8*)&m_hdr_size);
-  Read(0x08, 4, (u8*)&m_cert_size);
-  Read(0x10, 4, (u8*)&m_tick_size);
-  Read(0x14, 4, (u8*)&m_tmd_size);
-  Read(0x18, 4, (u8*)&m_data_size);
+  ReadSwapped(0x00, &m_hdr_size, false);
+  ReadSwapped(0x08, &m_cert_size, false);
+  ReadSwapped(0x10, &m_tick_size, false);
+  ReadSwapped(0x14, &m_tmd_size, false);
+  ReadSwapped(0x18, &m_data_size, false);
 
-  m_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size);
-  m_tmd_offset = ALIGN_40(m_hdr_size) + ALIGN_40(m_cert_size) + ALIGN_40(m_tick_size);
-  m_opening_bnr_offset = m_tmd_offset + ALIGN_40(m_tmd_size) + ALIGN_40(m_data_size);
+  m_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40);
+  m_tmd_offset = Common::AlignUp(m_hdr_size, 0x40) + Common::AlignUp(m_cert_size, 0x40) +
+                 Common::AlignUp(m_tick_size, 0x40);
+  m_opening_bnr_offset =
+      m_tmd_offset + Common::AlignUp(m_tmd_size, 0x40) + Common::AlignUp(m_data_size, 0x40);
 }
 
 CVolumeWAD::~CVolumeWAD()
 {
 }
 
-bool CVolumeWAD::Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const
+bool CVolumeWAD::Read(u64 offset, u64 length, u8* buffer, bool decrypt) const
 {
   if (decrypt)
     PanicAlertT("Tried to decrypt data from a non-Wii volume");
 
-  if (m_pReader == nullptr)
+  if (m_reader == nullptr)
     return false;
 
-  return m_pReader->Read(_Offset, _Length, _pBuffer);
+  return m_reader->Read(offset, length, buffer);
+}
+
+Region CVolumeWAD::GetRegion() const
+{
+  u8 country_code;
+  if (!Read(m_tmd_offset + 0x0193, 1, &country_code))
+    return Region::UNKNOWN_REGION;
+
+  return RegionSwitchWii(country_code);
 }
 
 Country CVolumeWAD::GetCountry() const
 {
-  if (!m_pReader)
-    return Country::COUNTRY_UNKNOWN;
-
   // read the last digit of the titleID in the ticket
   u8 country_code;
-  Read(m_tmd_offset + 0x0193, 1, &country_code);
+  if (!Read(m_tmd_offset + 0x0193, 1, &country_code))
+    return Country::COUNTRY_UNKNOWN;
 
   if (country_code == 2)  // SYSMENU
   {
@@ -72,6 +77,18 @@ Country CVolumeWAD::GetCountry() const
   }
 
   return CountrySwitch(country_code);
+}
+
+std::vector<u8> CVolumeWAD::GetTMD() const
+{
+  if (m_tmd_size > 1024 * 1024 * 4)
+  {
+    ERROR_LOG(DISCIO, "TMD is too large: %u bytes", m_tmd_size);
+    return {};
+  }
+  std::vector<u8> buffer(m_tmd_size);
+  Read(m_tmd_offset, m_tmd_size, buffer.data(), false);
+  return buffer;
 }
 
 std::string CVolumeWAD::GetGameID() const
@@ -109,7 +126,7 @@ bool CVolumeWAD::GetTitleID(u64* buffer) const
 u16 CVolumeWAD::GetRevision() const
 {
   u16 revision;
-  if (!m_pReader->Read(m_tmd_offset + 0x1dc, 2, (u8*)&revision))
+  if (!m_reader->Read(m_tmd_offset + 0x1dc, 2, (u8*)&revision))
     return 0;
 
   return Common::swap16(revision);
@@ -142,23 +159,17 @@ std::vector<u32> CVolumeWAD::GetBanner(int* width, int* height) const
 
 BlobType CVolumeWAD::GetBlobType() const
 {
-  return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
+  return m_reader ? m_reader->GetBlobType() : BlobType::PLAIN;
 }
 
 u64 CVolumeWAD::GetSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetDataSize();
-  else
-    return 0;
+  return m_reader ? m_reader->GetDataSize() : 0;
 }
 
 u64 CVolumeWAD::GetRawSize() const
 {
-  if (m_pReader)
-    return m_pReader->GetRawSize();
-  else
-    return 0;
+  return m_reader ? m_reader->GetRawSize() : 0;
 }
 
 }  // namespace

@@ -8,6 +8,7 @@
 #include <vector>
 #include <wx/frame.h>
 
+#include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
@@ -70,8 +71,6 @@ public:
                 const bool is_hosting = false);
   ~NetPlayDialog();
 
-  Common::FifoQueue<std::string> chat_msgs;
-
   void OnStart(wxCommandEvent& event);
 
   // implementation of NetPlayUI methods
@@ -131,6 +130,7 @@ private:
   wxTextCtrl* m_chat_text;
   wxTextCtrl* m_chat_msg_text;
   wxCheckBox* m_memcard_write;
+  wxCheckBox* m_copy_wii_save;
   wxCheckBox* m_record_chkbox;
 
   std::string m_selected_game;
@@ -150,6 +150,7 @@ private:
   std::string m_desync_player;
 
   std::vector<int> m_playerids;
+  Common::FifoQueue<std::string> m_chat_msgs;
 
   const CGameListCtrl* const m_game_list;
 

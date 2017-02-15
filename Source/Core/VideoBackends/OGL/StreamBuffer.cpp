@@ -2,11 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/StreamBuffer.h"
+
+#include "Common/Align.h"
+#include "Common/CommonFuncs.h"
 #include "Common/GL/GLUtil.h"
 #include "Common/MemoryUtil.h"
 
 #include "VideoBackends/OGL/Render.h"
-#include "VideoBackends/OGL/StreamBuffer.h"
 
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -261,11 +264,11 @@ public:
   PinnedMemory(u32 type, u32 size) : StreamBuffer(type, size)
   {
     CreateFences();
-    m_pointer = static_cast<u8*>(
-        Common::AllocateAlignedMemory(ROUND_UP(m_size, ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY));
+    m_pointer = static_cast<u8*>(Common::AllocateAlignedMemory(
+        Common::AlignUp(m_size, ALIGN_PINNED_MEMORY), ALIGN_PINNED_MEMORY));
     glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, m_buffer);
-    glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, ROUND_UP(m_size, ALIGN_PINNED_MEMORY),
-                 m_pointer, GL_STREAM_COPY);
+    glBufferData(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD,
+                 Common::AlignUp(m_size, ALIGN_PINNED_MEMORY), m_pointer, GL_STREAM_COPY);
     glBindBuffer(GL_EXTERNAL_VIRTUAL_MEMORY_BUFFER_AMD, 0);
     glBindBuffer(m_buffertype, m_buffer);
   }

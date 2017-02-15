@@ -146,7 +146,8 @@
     <ClCompile Include="..\libusb\strerror.c" />
     <ClCompile Include="..\libusb\sync.c" />
     <ClCompile Include="..\libusb\os\threads_windows.c" />
-    <ClCompile Include="..\libusb\os\windows_usb.c" />
+    <ClCompile Include="..\libusb\os\windows_nt_common.c" />
+    <ClCompile Include="..\libusb\os\windows_winusb.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include=".\config.h" />
@@ -155,8 +156,11 @@
     <ClInclude Include="..\libusb\libusbi.h" />
     <ClInclude Include="..\libusb\os\poll_windows.h" />
     <ClInclude Include="..\libusb\os\threads_windows.h" />
-    <ClInclude Include="..\libusb\os\windows_usb.h" />
+    <ClInclude Include="..\libusb\version.h" />
+    <ClInclude Include="..\libusb\version_nano.h" />
     <ClInclude Include="..\libusb\os\windows_common.h" />
+    <ClInclude Include="..\libusb\os\windows_nt_common.h" />
+    <ClInclude Include="..\libusb\os\windows_winusb.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\libusb\libusb-1.0.def" />

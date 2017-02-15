@@ -5,9 +5,12 @@
 #include <string>
 
 #include "AudioCommon/WaveFile.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
+
 #include "Core/ConfigManager.h"
 
 constexpr size_t WaveFileWriter::BUFFER_SIZE;
@@ -23,6 +26,21 @@ WaveFileWriter::~WaveFileWriter()
 
 bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRate)
 {
+  // Ask to delete file
+  if (File::Exists(filename))
+  {
+    if (SConfig::GetInstance().m_DumpAudioSilent ||
+        AskYesNoT("Delete the existing file '%s'?", filename.c_str()))
+    {
+      File::Delete(filename);
+    }
+    else
+    {
+      // Stop and cancel dumping the audio
+      return false;
+    }
+  }
+
   // Check if the file is already open
   if (file)
   {

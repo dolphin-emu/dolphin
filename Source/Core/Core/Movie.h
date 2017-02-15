@@ -56,7 +56,8 @@ struct DTMHeader
   char gameID[6];  // The Game ID
   bool bWii;       // Wii game
 
-  u8 numControllers;  // The number of connected controllers (1-4)
+  u8 controllers;  // Controllers plugged in (from least to most significant,
+                   // the bits are GC controllers 1-4 and Wiimotes 1-4)
 
   bool
       bFromSaveState;  // false indicates that the recording started from bootup, true for savestate
@@ -87,9 +88,9 @@ struct DTMHeader
   bool bEFBEmulateFormatChanges;
   bool bUseXFB;
   bool bUseRealXFB;
-  u8 memcards;
+  u8 memcards;      // Memcards inserted (from least to most significant, the bits are slot A and B)
   bool bClearSave;  // Create a new memory card when playing back a movie if true
-  u8 bongos;
+  u8 bongos;        // Bongos plugged in (from least to most significant, the bits are ports 1-4)
   bool bSyncGPU;
   bool bNetPlay;
   bool bPAL60;
@@ -131,13 +132,11 @@ u64 GetTotalLagCount();
 void SetClearSave(bool enabled);
 void SignalDiscChange(const std::string& new_path);
 void SetReset(bool reset);
-void SetTitleId(u64 title_id);
 
 bool IsConfigSaved();
 bool IsDualCore();
 bool IsProgressive();
 bool IsPAL60();
-bool IsSkipIdle();
 bool IsDSPHLE();
 bool IsFastDiscSpeed();
 int GetCPUMode();

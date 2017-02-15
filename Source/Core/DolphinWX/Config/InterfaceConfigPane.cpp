@@ -24,7 +24,7 @@
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/Config/InterfaceConfigPane.h"
 #include "DolphinWX/Frame.h"
-#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR

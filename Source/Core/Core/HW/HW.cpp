@@ -4,7 +4,6 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
-#include "Common/NandPaths.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -13,18 +12,19 @@
 #include "Core/HW/CPU.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVDInterface.h"
-#include "Core/HW/EXI.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/HW/HW.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IOS/IPC.h"
+#include "Core/Movie.h"
 #include "Core/State.h"
-#include "DiscIO/NANDContentLoader.h"
+#include "Core/WiiRoot.h"
 
 namespace HW
 {
@@ -50,22 +50,19 @@ void Init()
 
   if (SConfig::GetInstance().bWii)
   {
-    Common::InitializeWiiRoot(Core::g_want_determinism);
-    DiscIO::cUIDsys::AccessInstance().UpdateLocation();
-    DiscIO::CSharedContent::AccessInstance().UpdateLocation();
-    WII_IPCInterface::Init();
-    WII_IPC_HLE_Interface::Init();  // Depends on Memory
+    Core::InitializeWiiRoot(Core::g_want_determinism);
+    IOS::Init();
+    IOS::HLE::Init();  // Depends on Memory
   }
 }
 
 void Shutdown()
 {
+  // IOS should always be shut down regardless of bWii because it can be running in GC mode (MIOS).
+  IOS::HLE::Shutdown();  // Depends on Memory
+  IOS::Shutdown();
   if (SConfig::GetInstance().bWii)
-  {
-    WII_IPC_HLE_Interface::Shutdown();  // Depends on Memory
-    WII_IPCInterface::Shutdown();
-    Common::ShutdownWiiRoot();
-  }
+    Core::ShutdownWiiRoot();
 
   SystemTimers::Shutdown();
   CPU::Shutdown();
@@ -103,10 +100,10 @@ void DoState(PointerWrap& p)
 
   if (SConfig::GetInstance().bWii)
   {
-    WII_IPCInterface::DoState(p);
-    p.DoMarker("WII_IPCInterface");
-    WII_IPC_HLE_Interface::DoState(p);
-    p.DoMarker("WII_IPC_HLE_Interface");
+    IOS::DoState(p);
+    p.DoMarker("IOS");
+    IOS::HLE::DoState(p);
+    p.DoMarker("IOS::HLE");
   }
 
   p.DoMarker("WIIHW");

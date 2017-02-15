@@ -6,19 +6,14 @@
 
 #include <cstdarg>
 #include <cstring>
-#include <fstream>
-#include <iomanip>
 #include <map>
 #include <string>
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
-#include "VideoCommon/XFMemory.h"
 
 /**
  * Common interface for classes that need to go through the shader generation path
@@ -104,7 +99,8 @@ public:
   const u8* GetUidDataRaw() const { return &values[0]; }
   size_t GetUidDataSize() const { return sizeof(values); }
 private:
-  union {
+  union
+  {
     uid_data data;
     u8 values[sizeof(uid_data)];
   };

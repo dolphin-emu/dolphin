@@ -25,6 +25,7 @@ set(SRCS	AsyncRequests.cpp
 			PixelShaderManager.cpp
 			PostProcessing.cpp
 			RenderBase.cpp
+			RenderState.cpp
 			Statistics.cpp
 			TextureCacheBase.cpp
 			TextureConversionShader.cpp
@@ -61,5 +62,5 @@ endif()
 add_dolphin_library(videocommon "${SRCS}" "${LIBS}")
 
 if(LIBAV_FOUND)
-	target_link_libraries(videocommon ${LIBS} ${LIBAV_LIBRARIES})
+	target_link_libraries(videocommon PRIVATE ${LIBS} ${LIBAV_LIBRARIES})
 endif()

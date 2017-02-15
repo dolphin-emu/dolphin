@@ -2,8 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D/TextureCache.h"
+
 #include <algorithm>
 #include <memory>
+
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DShader.h"
@@ -13,11 +18,9 @@
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PSTextureEncoder.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
-#include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/TextureEncoder.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoCommon/ImageWrite.h"
-#include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -127,12 +130,11 @@ void TextureCache::TCacheEntry::CopyRectangleFromTexture(const TCacheEntryBase* 
   g_renderer->RestoreAPIState();
 }
 
-void TextureCache::TCacheEntry::Load(unsigned int width, unsigned int height,
-                                     unsigned int expanded_width, unsigned int level)
+void TextureCache::TCacheEntry::Load(const u8* buffer, u32 width, u32 height, u32 expanded_width,
+                                     u32 level)
 {
   unsigned int src_pitch = 4 * expanded_width;
-  D3D::ReplaceRGBATexture2D(texture->GetTex(), TextureCache::temp, width, height, src_pitch, level,
-                            usage);
+  D3D::ReplaceRGBATexture2D(texture->GetTex(), buffer, width, height, src_pitch, level, usage);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntryConfig& config)
@@ -180,23 +182,22 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
   }
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat,
-                                                 const EFBRectangle& srcRect, bool scaleByHalf,
-                                                 unsigned int cbufid, const float* colmat)
+void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect,
+                                                 bool scaleByHalf, unsigned int cbufid,
+                                                 const float* colmat)
 {
   // When copying at half size, in multisampled mode, resolve the color/depth buffer first.
   // This is because multisampled texture reads go through Load, not Sample, and the linear
   // filter is ignored.
   bool multisampled = (g_ActiveConfig.iMultisamples > 1);
-  ID3D11ShaderResourceView* efbTexSRV = (srcFormat == PEControl::Z24) ?
+  ID3D11ShaderResourceView* efbTexSRV = is_depth_copy ?
                                             FramebufferManager::GetEFBDepthTexture()->GetSRV() :
                                             FramebufferManager::GetEFBColorTexture()->GetSRV();
   if (multisampled && scaleByHalf)
   {
     multisampled = false;
-    efbTexSRV = (srcFormat == PEControl::Z24) ?
-                    FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
-                    FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
+    efbTexSRV = is_depth_copy ? FramebufferManager::GetResolvedEFBDepthTexture()->GetSRV() :
+                                FramebufferManager::GetResolvedEFBColorTexture()->GetSRV();
   }
 
   g_renderer->ResetAPIState();
@@ -240,8 +241,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   // Create texture copy
   D3D::drawShadedTexQuad(
       efbTexSRV, &sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-      srcFormat == PEControl::Z24 ? PixelShaderCache::GetDepthMatrixProgram(multisampled) :
-                                    PixelShaderCache::GetColorMatrixProgram(multisampled),
+      is_depth_copy ? PixelShaderCache::GetDepthMatrixProgram(multisampled) :
+                      PixelShaderCache::GetColorMatrixProgram(multisampled),
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader());
 
@@ -252,11 +253,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 }
 
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                           u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat srcFormat,
+                           u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
                            const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
   g_encoder->Encode(dst, format, native_width, bytes_per_row, num_blocks_y, memory_stride,
-                    srcFormat, srcRect, isIntensity, scaleByHalf);
+                    is_depth_copy, srcRect, isIntensity, scaleByHalf);
 }
 
 const char palette_shader[] =

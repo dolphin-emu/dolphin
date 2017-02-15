@@ -19,12 +19,12 @@
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
 #include "Core/HW/DVDInterface.h"
-#include "Core/HW/EXI.h"
+#include "Core/HW/EXI/EXI.h"
 #include "Core/HW/MMIO.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/MemoryInterface.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/VideoInterface.h"
 #include "Core/HW/WII_IPC.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
@@ -79,7 +79,7 @@ static std::unique_ptr<MMIO::Mapping> InitMMIOWii()
 {
   auto mmio = InitMMIO();
 
-  WII_IPCInterface::RegisterMMIO(mmio.get(), 0x0D000000);
+  IOS::RegisterMMIO(mmio.get(), 0x0D000000);
   DVDInterface::RegisterMMIO(mmio.get(), 0x0D006000);
   SerialInterface::RegisterMMIO(mmio.get(), 0x0D006400);
   ExpansionInterface::RegisterMMIO(mmio.get(), 0x0D006800);
