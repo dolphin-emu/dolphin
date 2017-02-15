@@ -14,7 +14,7 @@ namespace Config
 {
 const std::string& Section::NULL_STRING = "";
 static Bloom s_layers;
-static std::list<std::pair<CallbackFunction, void*>> s_callbacks;
+static std::list<CallbackFunction> s_callbacks;
 
 void CallbackSystems();
 
@@ -435,15 +435,15 @@ bool LayerExists(LayerType layer)
   return s_layers.find(layer) != s_layers.end();
 }
 
-void AddConfigChangedCallback(CallbackFunction func, void* user_data)
+void AddConfigChangedCallback(CallbackFunction func)
 {
-  s_callbacks.emplace_back(std::make_pair(func, user_data));
+  s_callbacks.emplace_back(func);
 }
 
 void CallbackSystems()
 {
-  for (auto& callback : s_callbacks)
-    callback.first(callback.second);
+  for (const auto& callback : s_callbacks)
+    callback();
 }
 
 // Explicit load and save of layers

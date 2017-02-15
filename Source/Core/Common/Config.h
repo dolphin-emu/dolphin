@@ -45,7 +45,7 @@ class ConfigLayerLoader;
 using SectionValueMap = std::map<std::string, std::string, CaseInsensitiveStringCompare>;
 using LayerMap = std::map<System, std::list<Section*>>;
 using Bloom = std::map<LayerType, Layer*>;
-using CallbackFunction = std::function<void(void*)>;
+using CallbackFunction = std::function<void()>;
 
 class Section
 {
@@ -182,7 +182,7 @@ Layer* GetLayer(LayerType layer);
 void RemoveLayer(LayerType layer);
 bool LayerExists(LayerType layer);
 
-void AddConfigChangedCallback(CallbackFunction func, void* user_data);
+void AddConfigChangedCallback(CallbackFunction func);
 
 // Explicit load and save of layers
 void Load();

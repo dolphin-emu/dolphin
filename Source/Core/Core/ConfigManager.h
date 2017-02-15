@@ -338,7 +338,6 @@ private:
 
   bool SetRegion(DiscIO::Region region, std::string* directory_name);
 
-  static void ConfigChanged(void* class_ptr);
   GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode);
 
   void LoadGeneralSettings();

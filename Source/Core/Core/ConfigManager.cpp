@@ -57,17 +57,11 @@ SConfig::SConfig()
   LoadSettingsFromSysconf();
 }
 
-void SConfig::ConfigChanged(void* class_ptr)
-{
-  SConfig* config = static_cast<SConfig*>(class_ptr);
-  config->LoadSettings();
-}
-
 void SConfig::Init()
 {
   m_Instance = new SConfig;
 
-  Config::AddConfigChangedCallback(SConfig::ConfigChanged, m_Instance);
+  Config::AddConfigChangedCallback([&]() { m_Instance->LoadSettings(); });
 }
 
 void SConfig::Shutdown()
