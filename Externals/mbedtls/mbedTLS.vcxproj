@@ -48,12 +48,14 @@
     <ClCompile Include="library\certs.c" />
     <ClCompile Include="library\cipher.c" />
     <ClCompile Include="library\cipher_wrap.c" />
+    <ClCompile Include="library\cmac.c" />
     <ClCompile Include="library\ctr_drbg.c" />
     <ClCompile Include="library\debug.c" />
     <ClCompile Include="library\des.c" />
     <ClCompile Include="library\dhm.c" />
     <ClCompile Include="library\ecdh.c" />
     <ClCompile Include="library\ecdsa.c" />
+    <ClCompile Include="library\ecjpake.c" />
     <ClCompile Include="library\ecp.c" />
     <ClCompile Include="library\ecp_curves.c" />
     <ClCompile Include="library\entropy.c" />
@@ -68,7 +70,7 @@
     <ClCompile Include="library\md5.c" />
     <ClCompile Include="library\md_wrap.c" />
     <ClCompile Include="library\memory_buffer_alloc.c" />
-    <ClCompile Include="library\net.c" />
+    <ClCompile Include="library\net_sockets.c" />
     <ClCompile Include="library\oid.c" />
     <ClCompile Include="library\padlock.c" />
     <ClCompile Include="library\pem.c" />
