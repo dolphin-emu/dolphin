@@ -17,6 +17,7 @@
 #include "Common/CPUDetect.h"
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
@@ -39,6 +40,7 @@ DolphinAnalytics::DolphinAnalytics()
 {
   ReloadConfig();
   MakeBaseBuilder();
+  Config::AddConfigChangedCallback([this]() { ReloadConfig(); });
 }
 
 std::shared_ptr<DolphinAnalytics> DolphinAnalytics::Instance()
@@ -55,16 +57,21 @@ void DolphinAnalytics::ReloadConfig()
 {
   std::lock_guard<std::mutex> lk(m_reporter_mutex);
 
+  auto base_layer = Config::GetLayer(Config::LayerType::Base);
+  auto analytics_section = base_layer->GetOrCreateSection(Config::System::Main, "Analytics");
+  bool enabled = false;
+  analytics_section->Get("Enabled", &enabled, false);
+
   // Install the HTTP backend if analytics support is enabled.
   std::unique_ptr<Common::AnalyticsReportingBackend> new_backend;
-  if (SConfig::GetInstance().m_analytics_enabled)
+  if (enabled)
   {
     new_backend = std::make_unique<Common::HttpAnalyticsBackend>(ANALYTICS_ENDPOINT);
   }
   m_reporter.SetBackend(std::move(new_backend));
 
   // Load the unique ID or generate it if needed.
-  m_unique_id = SConfig::GetInstance().m_analytics_id;
+  analytics_section->Get("ID", &m_unique_id, "");
   if (m_unique_id.empty())
   {
     GenerateNewIdentity();
@@ -79,7 +86,9 @@ void DolphinAnalytics::GenerateNewIdentity()
   m_unique_id = StringFromFormat("%016" PRIx64 "%016" PRIx64, id_high, id_low);
 
   // Save the new id in the configuration.
-  SConfig::GetInstance().m_analytics_id = m_unique_id;
+  auto base_layer = Config::GetLayer(Config::LayerType::Base);
+  auto analytics_section = base_layer->GetOrCreateSection(Config::System::Main, "Analytics");
+  analytics_section->Set("ID", m_unique_id);
 }
 
 std::string DolphinAnalytics::MakeUniqueId(const std::string& data)

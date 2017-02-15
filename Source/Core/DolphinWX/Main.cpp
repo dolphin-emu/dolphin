@@ -187,7 +187,11 @@ void DolphinApp::AfterInit()
   if (!m_batch_mode)
     main_frame->UpdateGameList();
 
-  if (!SConfig::GetInstance().m_analytics_permission_asked)
+  auto base_layer = Config::GetLayer(Config::LayerType::Base);
+  auto analytics_section = base_layer->GetOrCreateSection(Config::System::Main, "Analytics");
+  bool permission_asked = false;
+  analytics_section->Get("PermissionAsked", &permission_asked, false);
+  if (!permission_asked)
   {
     int answer =
         wxMessageBox(_("If authorized, Dolphin can collect data on its performance, "
@@ -203,10 +207,9 @@ void DolphinApp::AfterInit()
                        "developers?"),
                      _("Usage statistics reporting"), wxYES_NO, main_frame);
 
-    SConfig::GetInstance().m_analytics_permission_asked = true;
-    SConfig::GetInstance().m_analytics_enabled = (answer == wxYES);
-
-    DolphinAnalytics::Instance()->ReloadConfig();
+    analytics_section->Set("PermissionAsked", true);
+    analytics_section->Set("Enabled", answer == wxYES);
+    base_layer->Save();
   }
 
   if (m_confirm_stop)
