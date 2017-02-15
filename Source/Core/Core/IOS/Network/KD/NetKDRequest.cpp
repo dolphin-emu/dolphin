@@ -152,7 +152,7 @@ IPCCommandResult NetKDRequest::IOCtl(const IOCtlRequest& request)
 
 u8 NetKDRequest::GetAreaCode(const std::string& area) const
 {
-  static std::map<const std::string, u8> regions = {
+  static const std::map<std::string, u8> regions = {
       {"JPN", 0}, {"USA", 1}, {"EUR", 2}, {"AUS", 2}, {"BRA", 1}, {"TWN", 3}, {"ROC", 3},
       {"KOR", 4}, {"HKG", 5}, {"ASI", 5}, {"LTN", 1}, {"SAF", 2}, {"CHN", 6},
   };
@@ -166,7 +166,7 @@ u8 NetKDRequest::GetAreaCode(const std::string& area) const
 
 u8 NetKDRequest::GetHardwareModel(const std::string& model) const
 {
-  static std::map<const std::string, u8> models = {
+  static const std::map<std::string, u8> models = {
       {"RVL", MODEL_RVL}, {"RVT", MODEL_RVT}, {"RVV", MODEL_RVV}, {"RVD", MODEL_RVD},
   };
 
