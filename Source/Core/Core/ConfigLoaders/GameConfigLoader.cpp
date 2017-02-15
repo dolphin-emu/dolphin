@@ -322,11 +322,47 @@ public:
     }
   }
 
-  void Save(Config::Layer* config_layer) override {}
+  void Save(Config::Layer* config_layer) override;
+
 private:
   const std::string m_id;
   const u16 m_revision;
 };
+
+void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
+{
+  if (config_layer->GetLayer() != Config::LayerType::LocalGame)
+    return;
+
+  IniFile ini;
+  for (const std::string& file_name : GetGameIniFilenames(m_id, m_revision))
+    ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + file_name, true);
+
+  for (const auto& system : config_layer->GetLayerMap())
+  {
+    for (const auto& section : system.second)
+    {
+      IniFile::Section* ini_section = ini.GetOrCreateSection(section->GetName());
+
+      for (const auto& value : section->GetValues())
+        ini_section->Set(value.first, value.second);
+    }
+  }
+
+  // Try to save to the revision specific INI first, if it exists.
+  const std::string gameini_with_rev =
+      File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + StringFromFormat("r%d", m_revision) + ".ini";
+  if (File::Exists(gameini_with_rev))
+  {
+    ini.Save(gameini_with_rev);
+    return;
+  }
+
+  // Otherwise, save to the game INI. We don't try any INI broader than that because it will
+  // likely cause issues with cheat codes and game patches.
+  const std::string gameini = File::GetUserPath(D_GAMESETTINGS_IDX) + m_id + ".ini";
+  ini.Save(gameini);
+}
 
 // Loader generation
 Config::ConfigLayerLoader* GenerateGlobalGameConfigLoader(const std::string& id, u16 revision)
