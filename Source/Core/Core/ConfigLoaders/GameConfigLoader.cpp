@@ -198,9 +198,8 @@ MapINIToRealLocation(const std::string& section, const std::string& key)
     if (!fail)
       return std::make_tuple(Config::GetSystemFromName(system_str), config_section, key);
 
-    ERROR_LOG(COMMON, "Couldn't load game INI option %s-%s properly!\n", section.c_str(),
-              key.c_str());
-    return std::make_tuple(Config::System::Main, "FAIL!", key);
+    WARN_LOG(COMMON, "Unknown game INI option in section %s: %s", section.c_str(), key.c_str());
+    return std::make_tuple(Config::System::Main, "", "");
   }
 
   return ini_to_location[std::make_pair(section, key)];
@@ -245,6 +244,10 @@ public:
         {
           std::tuple<Config::System, std::string, std::string> mapped_config =
               MapINIToRealLocation(section_name, "");
+
+          if (std::get<1>(mapped_config).empty() && std::get<2>(mapped_config).empty())
+            continue;
+
           auto* config_section = config_layer->GetOrCreateSection(std::get<0>(mapped_config),
                                                                   std::get<1>(mapped_config));
           config_section->SetLines(chunk);
@@ -258,6 +261,10 @@ public:
       {
         std::tuple<Config::System, std::string, std::string> mapped_config =
             MapINIToRealLocation(section_name, value.first);
+
+        if (std::get<1>(mapped_config).empty() && std::get<2>(mapped_config).empty())
+          continue;
+
         auto* config_section = config_layer->GetOrCreateSection(std::get<0>(mapped_config),
                                                                 std::get<1>(mapped_config));
 
