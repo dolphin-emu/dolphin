@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/IOS/Network/NWC24Config.h"
+#include "Core/IOS/Network/KD/NWC24Config.h"
 
 #include <cstring>
 
