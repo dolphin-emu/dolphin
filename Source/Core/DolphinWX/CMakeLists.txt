@@ -58,6 +58,7 @@ set(GUI_SRCS
 	Input/GuitarInputConfigDiag.cpp
 	Input/DrumsInputConfigDiag.cpp
 	Input/TurntableInputConfigDiag.cpp
+	ConfigUtils.cpp
 	DolphinSlider.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
