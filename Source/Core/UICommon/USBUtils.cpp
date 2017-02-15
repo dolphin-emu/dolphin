@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <mutex>
+#include <vector>
 
 #ifdef __LIBUSB__
 #include <libusb.h>
@@ -11,6 +12,7 @@
 #endif
 
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/StringUtil.h"
 #include "UICommon/USBUtils.h"
 
@@ -67,5 +69,68 @@ std::string GetDeviceName(const std::pair<u16, u16> vid_pid)
   const auto iter = s_wii_peripherals.find(vid_pid);
   const std::string device_name = iter == s_wii_peripherals.cend() ? "Unknown" : iter->second;
   return StringFromFormat("%04x:%04x - %s", vid_pid.first, vid_pid.second, device_name.c_str());
+}
+
+static DeviceWhitelist ParseConfiguredWhitelist()
+{
+  std::set<std::pair<u16, u16>> whitelist;
+  auto base_layer = Config::GetLayer(Config::LayerType::Base);
+  auto section = base_layer->GetOrCreateSection(Config::System::Main, "USBPassthrough");
+
+  std::string devices_string;
+  std::vector<std::string> pairs;
+  section->Get("Devices", &devices_string, "");
+  SplitString(devices_string, ',', pairs);
+  for (const auto& pair : pairs)
+  {
+    const auto index = pair.find(':');
+    if (index == std::string::npos)
+      continue;
+
+    const u16 vid = static_cast<u16>(strtol(pair.substr(0, index).c_str(), nullptr, 16));
+    const u16 pid = static_cast<u16>(strtol(pair.substr(index + 1).c_str(), nullptr, 16));
+    if (vid && pid)
+      whitelist.emplace(vid, pid);
+  }
+  return whitelist;
+}
+
+static void SaveDeviceWhitelist(const DeviceWhitelist& whitelist)
+{
+  std::ostringstream oss;
+  for (const auto& device : whitelist)
+    oss << StringFromFormat("%04x:%04x", device.first, device.second) << ',';
+  std::string devices_string = oss.str();
+  if (!devices_string.empty())
+    devices_string.pop_back();
+
+  auto base_layer = Config::GetLayer(Config::LayerType::Base);
+  auto section = base_layer->GetOrCreateSection(Config::System::Main, "USBPassthrough");
+  section->Set("Devices", devices_string);
+}
+
+DeviceWhitelist GetWhitelist()
+{
+  return ParseConfiguredWhitelist();
+}
+
+void AddDeviceToWhitelist(const std::pair<u16, u16> vid_pid)
+{
+  auto whitelist = ParseConfiguredWhitelist();
+  whitelist.emplace(vid_pid);
+  SaveDeviceWhitelist(whitelist);
+}
+
+void RemoveDeviceFromWhitelist(const std::pair<u16, u16> vid_pid)
+{
+  auto whitelist = ParseConfiguredWhitelist();
+  whitelist.erase(vid_pid);
+  SaveDeviceWhitelist(whitelist);
+}
+
+bool IsDeviceInWhitelist(const std::pair<u16, u16> vid_pid)
+{
+  const auto whitelist = ParseConfiguredWhitelist();
+  return whitelist.find(vid_pid) != whitelist.end();
 }
 }  // namespace USBUtils

@@ -20,12 +20,8 @@ class wxTextCtrl;
 class USBPassthroughDeviceEntry final : public wxClientData
 {
 public:
-  explicit USBPassthroughDeviceEntry(const std::pair<u16, u16> pair)
-      : m_vid(pair.first), m_pid(pair.second)
-  {
-  }
-  const u16 m_vid;
-  const u16 m_pid;
+  explicit USBPassthroughDeviceEntry(const std::pair<u16, u16> pair) : m_vid_pid(pair) {}
+  const std::pair<u16, u16> m_vid_pid;
 };
 
 // This dialog is used to add a new USB device to the USB passthrough whitelist,
