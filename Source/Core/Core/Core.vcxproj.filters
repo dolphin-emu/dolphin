@@ -940,13 +940,7 @@
     <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h">
       <Filter>PowerPC\Interpreter</Filter>
     </ClInclude>
-    <ClInclude Include="PowerPC\Interpreter\Interpreter_Tables.h">
-      <Filter>PowerPC\Interpreter</Filter>
-    </ClInclude>
     <ClInclude Include="PowerPC\Jit64\Jit.h">
-      <Filter>PowerPC\Jit64</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\Jit64\Jit64_Tables.h">
       <Filter>PowerPC\Jit64</Filter>
     </ClInclude>
     <ClInclude Include="HW\AudioInterface.h">
@@ -1259,9 +1253,6 @@
       <Filter>PowerPC\JitCommon</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64IL\JitIL.h">
-      <Filter>PowerPC\JitIL</Filter>
-    </ClInclude>
-    <ClInclude Include="PowerPC\Jit64IL\JitIL_Tables.h">
       <Filter>PowerPC\JitIL</Filter>
     </ClInclude>
     <ClInclude Include="PowerPC\Jit64\FPURegCache.h">

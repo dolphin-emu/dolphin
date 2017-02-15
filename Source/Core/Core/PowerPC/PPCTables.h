@@ -110,7 +110,6 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst);
 
 namespace PPCTables
 {
-void InitTables(int cpu_core);
 bool IsValidInstruction(UGeckoInstruction _instCode);
 bool UsesFPU(UGeckoInstruction _inst);
 
@@ -118,5 +117,4 @@ void CountInstruction(UGeckoInstruction _inst);
 void PrintInstructionRunCounts();
 void LogCompiledInstructions();
 const char* GetInstructionName(UGeckoInstruction _inst);
-
-}  // namespace
+}  // namespace PPCTables

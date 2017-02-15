@@ -31,36 +31,17 @@
 
 class Jit64 : public Jitx86Base
 {
-private:
-  void AllocStack();
-  void FreeStack();
-
-  GPRRegCache gpr{*this};
-  FPURegCache fpr{*this};
-
-  // The default code buffer. We keep it around to not have to alloc/dealloc a
-  // large chunk of memory for each recompiled block.
-  PPCAnalyst::CodeBuffer code_buffer;
-  Jit64AsmRoutineManager asm_routines;
-
-  bool m_enable_blr_optimization;
-  bool m_cleanup_after_stackfault;
-  u8* m_stack;
-
 public:
   Jit64() : code_buffer(32000) {}
   ~Jit64() {}
   void Init() override;
-
-  void EnableOptimization();
-
-  void EnableBlockLink();
-
   void Shutdown() override;
 
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
-
   bool HandleStackFault() override;
+
+  void EnableOptimization();
+  void EnableBlockLink();
 
   // Jit!
 
@@ -248,4 +229,23 @@ public:
   void dcbx(UGeckoInstruction inst);
 
   void eieio(UGeckoInstruction inst);
+
+private:
+  static void InitializeInstructionTables();
+  void CompileInstruction(PPCAnalyst::CodeOp& op);
+
+  void AllocStack();
+  void FreeStack();
+
+  GPRRegCache gpr{*this};
+  FPURegCache fpr{*this};
+
+  // The default code buffer. We keep it around to not have to alloc/dealloc a
+  // large chunk of memory for each recompiled block.
+  PPCAnalyst::CodeBuffer code_buffer;
+  Jit64AsmRoutineManager asm_routines;
+
+  bool m_enable_blr_optimization;
+  bool m_cleanup_after_stackfault;
+  u8* m_stack;
 };

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/Jit64IL/JitIL.h"
+
 #include <cinttypes>
 #include <ctime>  // For profiling
 #include <map>
@@ -19,8 +21,6 @@
 #include "Core/HW/CPU.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
-#include "Core/PowerPC/Jit64IL/JitIL.h"
-#include "Core/PowerPC/Jit64IL/JitIL_Tables.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
 
@@ -255,6 +255,7 @@ static void Shutdown()
 
 void JitIL::Init()
 {
+  InitializeInstructionTables();
   EnableBlockLink();
 
   jo.optimizeGatherPipe = true;
@@ -640,7 +641,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));
       }
 
-      JitILTables::CompileInstruction(*this, ops[i]);
+      CompileInstruction(ops[i]);
 
       if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
       {

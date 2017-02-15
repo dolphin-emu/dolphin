@@ -172,29 +172,8 @@ private:
     const u8* slowmem_code;
   };
 
-  // <Fastmem fault location, slowmem handler location>
-  std::map<const u8*, FastmemArea> m_fault_to_handler;
-  std::map<SlowmemHandler, const u8*> m_handler_to_loc;
-  Arm64GPRCache gpr;
-  Arm64FPRCache fpr;
-
-  JitArm64BlockCache blocks{*this};
-
-  PPCAnalyst::CodeBuffer code_buffer;
-
-  ARM64FloatEmitter m_float_emit;
-
-  Arm64Gen::ARM64CodeBlock farcode;
-  u8* nearcode;  // Backed up when we switch to far code.
-
-  // Do we support cycle counter profiling?
-  bool m_supports_cycle_counter;
-
-  bool m_enable_blr_optimization;
-  bool m_cleanup_after_stackfault = false;
-  u8* m_stack_base = nullptr;
-  u8* m_stack_pointer = nullptr;
-  u8* m_saved_stack_pointer = nullptr;
+  static void InitializeInstructionTables();
+  void CompileInstruction(PPCAnalyst::CodeOp& op);
 
   void EmitResetCycleCounters();
   void EmitGetCycles(Arm64Gen::ARM64Reg reg);
@@ -260,4 +239,28 @@ private:
 
   void reg_imm(u32 d, u32 a, u32 value, u32 (*do_op)(u32, u32),
                void (ARM64XEmitter::*op)(ARM64Reg, ARM64Reg, u64, ARM64Reg), bool Rc = false);
+
+  // <Fastmem fault location, slowmem handler location>
+  std::map<const u8*, FastmemArea> m_fault_to_handler;
+  std::map<SlowmemHandler, const u8*> m_handler_to_loc;
+  Arm64GPRCache gpr;
+  Arm64FPRCache fpr;
+
+  JitArm64BlockCache blocks{*this};
+
+  PPCAnalyst::CodeBuffer code_buffer;
+
+  ARM64FloatEmitter m_float_emit;
+
+  Arm64Gen::ARM64CodeBlock farcode;
+  u8* nearcode;  // Backed up when we switch to far code.
+
+  // Do we support cycle counter profiling?
+  bool m_supports_cycle_counter;
+
+  bool m_enable_blr_optimization;
+  bool m_cleanup_after_stackfault = false;
+  u8* m_stack_base = nullptr;
+  u8* m_stack_pointer = nullptr;
+  u8* m_saved_stack_pointer = nullptr;
 };
