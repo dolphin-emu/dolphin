@@ -24,10 +24,10 @@
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/ICMP.h"
+#include "Core/IOS/Network/MACUtils.h"
 #include "Core/IOS/Network/Socket.h"
 
 #ifdef _WIN32
@@ -62,35 +62,6 @@ namespace HLE
 {
 namespace Device
 {
-static void SaveMacAddress(u8* mac)
-{
-  SConfig::GetInstance().m_WirelessMac = Common::MacAddressToString(mac);
-  SConfig::GetInstance().SaveSettings();
-}
-
-static void GetMacAddress(u8* mac)
-{
-  // Parse MAC address from config, and generate a new one if it doesn't
-  // exist or can't be parsed.
-  std::string wireless_mac = SConfig::GetInstance().m_WirelessMac;
-
-  if (Core::g_want_determinism)
-    wireless_mac = "12:34:56:78:9a:bc";
-
-  if (!Common::StringToMacAddress(wireless_mac, mac))
-  {
-    Common::GenerateMacAddress(Common::MACConsumer::IOS, mac);
-    SaveMacAddress(mac);
-    if (!wireless_mac.empty())
-    {
-      ERROR_LOG(IOS_NET, "The MAC provided (%s) is invalid. We have "
-                         "generated another one for you.",
-                Common::MacAddressToString(mac).c_str());
-    }
-  }
-  INFO_LOG(IOS_NET, "Using MAC address: %s", Common::MacAddressToString(mac).c_str());
-}
-
 // **********************************************************************************
 // Handle /dev/net/ncd/manage requests
 NetNCDManage::NetNCDManage(u32 device_id, const std::string& device_name)
@@ -146,7 +117,7 @@ IPCCommandResult NetNCDManage::IOCtlV(const IOCtlVRequest& request)
     INFO_LOG(IOS_NET, "NET_NCD_MANAGE: IOCTLV_NCD_GETWIRELESSMACADDRESS");
 
     u8 address[Common::MAC_ADDRESS_SIZE];
-    GetMacAddress(address);
+    IOS::Net::GetMACAddress(address);
     Memory::CopyToEmu(request.io_vectors.at(1).address, address, sizeof(address));
     break;
 
@@ -215,7 +186,7 @@ IPCCommandResult NetWDCommand::IOCtlV(const IOCtlVRequest& request)
     info->ntr_allowed_channels = Common::swap16(0xfffe);
 
     u8 address[Common::MAC_ADDRESS_SIZE];
-    GetMacAddress(address);
+    IOS::Net::GetMACAddress(address);
     memcpy(info->mac, address, sizeof(info->mac));
   }
   break;
@@ -930,7 +901,7 @@ IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
 
     case 0x1004:  // mac address
       u8 address[Common::MAC_ADDRESS_SIZE];
-      GetMacAddress(address);
+      IOS::Net::GetMACAddress(address);
       Memory::CopyToEmu(request.io_vectors[0].address, address, sizeof(address));
       break;
 

@@ -758,6 +758,9 @@
     <ClCompile Include="IOS\MIOS.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\Network\MACUtils.cpp">
+      <Filter>IOS\Network</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\Network\Net.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
@@ -1351,6 +1354,9 @@
       <Filter>IOS\Network</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\ICMPLin.h">
+      <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\MACUtils.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\Net.h">
