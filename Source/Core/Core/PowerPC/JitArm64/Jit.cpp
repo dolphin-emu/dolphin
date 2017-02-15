@@ -325,20 +325,10 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
   linkData.call = LK;
   b->linkData.push_back(linkData);
 
-  MOVI2R(DISPATCHER_PC, destination);
+  blocks.WriteLinkBlock(*this, linkData);
 
-  if (!LK)
+  if (LK)
   {
-    B(dispatcher);
-  }
-  else
-  {
-    BL(dispatcher);
-
-    // MOVI2R might only require one instruction. So the const offset of 20 bytes
-    // might be wrong. Be sure and just add a NOP here.
-    HINT(HINT_NOP);
-
     // Write the regular exit node after the return.
     linkData.exitAddress = exit_address_after_return;
     linkData.exitPtrs = GetWritableCodePtr();
@@ -346,8 +336,7 @@ void JitArm64::WriteExit(u32 destination, bool LK, u32 exit_address_after_return
     linkData.call = false;
     b->linkData.push_back(linkData);
 
-    MOVI2R(DISPATCHER_PC, exit_address_after_return);
-    B(dispatcher);
+    blocks.WriteLinkBlock(*this, linkData);
   }
 }
 
@@ -387,8 +376,7 @@ void JitArm64::WriteExit(Arm64Gen::ARM64Reg dest, bool LK, u32 exit_address_afte
     linkData.call = false;
     b->linkData.push_back(linkData);
 
-    MOVI2R(DISPATCHER_PC, exit_address_after_return);
-    B(dispatcher);
+    blocks.WriteLinkBlock(*this, linkData);
   }
 }
 
@@ -417,8 +405,7 @@ void JitArm64::FakeLKExit(u32 exit_address_after_return)
   linkData.call = false;
   b->linkData.push_back(linkData);
 
-  MOVI2R(DISPATCHER_PC, exit_address_after_return);
-  B(dispatcher);
+  blocks.WriteLinkBlock(*this, linkData);
 
   SetJumpTarget(skip_exit);
 }
