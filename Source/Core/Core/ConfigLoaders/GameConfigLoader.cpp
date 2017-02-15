@@ -346,6 +346,9 @@ void INIGameConfigLayerLoader::Save(Config::Layer* config_layer)
 
       for (const auto& value : section->GetValues())
         ini_section->Set(value.first, value.second);
+
+      for (const auto& key : section->GetDeletedKeys())
+        ini_section->Delete(key);
     }
   }
 

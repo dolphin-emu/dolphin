@@ -120,6 +120,8 @@ bool Section::Delete(const std::string& key)
     return false;
 
   m_values.erase(it);
+
+  m_deleted_keys.push_back(key);
   m_dirty = true;
   return true;
 }
