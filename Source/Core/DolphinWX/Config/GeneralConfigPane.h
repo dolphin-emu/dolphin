@@ -8,6 +8,9 @@
 #include <wx/arrstr.h>
 #include <wx/panel.h>
 
+#include "Common/Config.h"
+#include "DolphinWX/ConfigUtils.h"
+
 class wxButton;
 class wxCheckBox;
 class wxChoice;
@@ -29,12 +32,8 @@ private:
   void LoadGUIValues();
   void BindEvents();
 
-  void OnDualCoreCheckBoxChanged(wxCommandEvent&);
-  void OnCheatCheckBoxChanged(wxCommandEvent&);
-  void OnForceNTSCJCheckBoxChanged(wxCommandEvent&);
   void OnThrottlerChoiceChanged(wxCommandEvent&);
   void OnCPUEngineRadioBoxChanged(wxCommandEvent&);
-  void OnAnalyticsCheckBoxChanged(wxCommandEvent&);
   void OnAnalyticsNewIdButtonClick(wxCommandEvent&);
 
   wxArrayString m_throttler_array_string;
@@ -50,4 +49,6 @@ private:
   wxChoice* m_throttler_choice;
 
   wxRadioBox* m_cpu_engine_radiobox;
+
+  ConfigUtils::SettingsMap m_settings;
 };
