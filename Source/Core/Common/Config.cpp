@@ -365,6 +365,7 @@ void Layer::Save()
 
   m_loader->Save(this);
   ClearDirty();
+  CallbackSystems();
 }
 
 bool Layer::IsDirty() const
@@ -451,8 +452,6 @@ void Load()
 {
   for (auto& layer : s_layers)
     layer.second->Load();
-
-  CallbackSystems();
 }
 
 void Save()
