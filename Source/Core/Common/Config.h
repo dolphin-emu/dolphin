@@ -98,6 +98,7 @@ public:
   virtual bool HasLines() const { return m_lines.size() > 0; }
   const std::string& GetName() const { return m_name; }
   const SectionValueMap& GetValues() const { return m_values; }
+  const std::vector<std::string>& GetDeletedKeys() const { return m_deleted_keys; }
   bool IsDirty() const { return m_dirty; }
   void ClearDirty() { m_dirty = false; }
 protected:
@@ -109,6 +110,7 @@ protected:
   static const std::string& NULL_STRING;
 
   SectionValueMap m_values;
+  std::vector<std::string> m_deleted_keys;
 
   std::vector<std::string> m_lines;
 };
