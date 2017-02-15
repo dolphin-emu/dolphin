@@ -44,6 +44,7 @@
 #include "Core/IOS/FS/FS.h"
 #include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/MIOS.h"
+#include "Core/IOS/Network/IP/Top.h"
 #include "Core/IOS/Network/KD/NetKDRequest.h"
 #include "Core/IOS/Network/KD/NetKDTime.h"
 #include "Core/IOS/Network/Net.h"

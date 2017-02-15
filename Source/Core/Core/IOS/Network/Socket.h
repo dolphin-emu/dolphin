@@ -53,7 +53,7 @@ typedef struct pollfd pollfd_t;
 #include "Common/NonCopyable.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/IPC.h"
-#include "Core/IOS/Network/Net.h"
+#include "Core/IOS/Network/IP/Top.h"
 #include "Core/IOS/Network/SSL.h"
 
 namespace IOS
