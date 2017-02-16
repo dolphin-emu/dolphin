@@ -227,8 +227,6 @@ public final class SettingsFile
 	public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_LEFT = "TurntableCrossLeft_";
 	public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_RIGHT = "TurntableCrossRight_";
 
-
-
 	public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
 	public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
 
@@ -438,12 +436,12 @@ public final class SettingsFile
 		writer.println(header);
 
 		// Write this section's values.
-        // Convert to Sorted set to write out more readable ini file
+		// Convert to Sorted set to write out more readable ini file.
 		HashMap<String, Setting> settings = section.getSettings();
 		Set<String> keySet = settings.keySet();
-        Set<String> sortedKeySet = new TreeSet<>(keySet);
+		Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-        for (String key : sortedKeySet)
+		for (String key : sortedKeySet)
 		{
 			Setting setting = settings.get(key);
 			String settingString = settingAsString(setting);
