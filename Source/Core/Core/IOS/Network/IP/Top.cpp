@@ -119,12 +119,34 @@ static int inet_pton(const char* src, unsigned char* dst)
   return 1;
 }
 
-// Maps SOCKOPT level from native to Wii
-static unsigned int opt_level_mapping[][2] = {{SOL_SOCKET, 0xFFFF}};
+// Maps SOCKOPT level from Wii to native
+static s32 MapWiiSockOptLevelToNative(u32 level)
+{
+  if (level == 0xFFFF)
+    return SOL_SOCKET;
+
+  INFO_LOG(IOS_NET, "SO_SETSOCKOPT: unknown level %u", level);
+  return level;
+}
 
 // Maps SOCKOPT optname from native to Wii
-static unsigned int opt_name_mapping[][2] = {
-    {SO_REUSEADDR, 0x4}, {SO_SNDBUF, 0x1001}, {SO_RCVBUF, 0x1002}, {SO_ERROR, 0x1009}};
+static s32 MapWiiSockOptNameToNative(u32 optname)
+{
+  switch (optname)
+  {
+  case 0x4:
+    return SO_REUSEADDR;
+  case 0x1001:
+    return SO_SNDBUF;
+  case 0x1002:
+    return SO_RCVBUF;
+  case 0x1009:
+    return SO_ERROR;
+  }
+
+  INFO_LOG(IOS_NET, "SO_SETSOCKOPT: unknown optname %u", optname);
+  return optname;
+}
 
 IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
 {
@@ -216,15 +238,8 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
     request.Log(GetDeviceName(), LogTypes::IOS_WC24);
 
     // Do the level/optname translation
-    int nat_level = -1, nat_optname = -1;
-
-    for (auto& map : opt_level_mapping)
-      if (level == map[1])
-        nat_level = map[0];
-
-    for (auto& map : opt_name_mapping)
-      if (optname == map[1])
-        nat_optname = map[0];
+    int nat_level = MapWiiSockOptLevelToNative(level);
+    int nat_optname = MapWiiSockOptNameToNative(optname);
 
     u8 optval[20];
     u32 optlen = 4;
@@ -274,24 +289,8 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
     }
 
     // Do the level/optname translation
-    int nat_level = -1, nat_optname = -1;
-
-    for (auto& map : opt_level_mapping)
-      if (level == map[1])
-        nat_level = map[0];
-
-    for (auto& map : opt_name_mapping)
-      if (optname == map[1])
-        nat_optname = map[0];
-
-    if (nat_level == -1 || nat_optname == -1)
-    {
-      INFO_LOG(IOS_NET, "SO_SETSOCKOPT: unknown level %d or optname %d", level, optname);
-
-      // Default to the given level/optname. They match on Windows...
-      nat_level = level;
-      nat_optname = optname;
-    }
+    int nat_level = MapWiiSockOptLevelToNative(level);
+    int nat_optname = MapWiiSockOptNameToNative(optname);
 
     int ret = setsockopt(fd, nat_level, nat_optname, (char*)optval, optlen);
     return_value = WiiSockMan::GetNetErrorCode(ret, "SO_SETSOCKOPT", false);
