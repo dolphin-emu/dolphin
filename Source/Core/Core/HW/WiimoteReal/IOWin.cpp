@@ -187,7 +187,7 @@ int IOWrite(HANDLE& dev_handle, OVERLAPPED& hid_overlap_write, enum WinWriteMeth
 int IORead(HANDLE& dev_handle, OVERLAPPED& hid_overlap_read, u8* buf, int index);
 
 template <typename T>
-void ProcessWiimotes(bool new_scan, T& callback);
+void ProcessWiimotes(bool new_scan, const T& callback);
 
 bool AttachWiimote(HANDLE hRadio, const BLUETOOTH_RADIO_INFO&, BLUETOOTH_DEVICE_INFO_STRUCT&);
 void RemoveWiimote(BLUETOOTH_DEVICE_INFO_STRUCT&);
@@ -795,7 +795,7 @@ int WiimoteWindows::IOWrite(const u8* buf, size_t len)
 
 // invokes callback for each found Wiimote Bluetooth device
 template <typename T>
-void ProcessWiimotes(bool new_scan, T& callback)
+void ProcessWiimotes(bool new_scan, const T& callback)
 {
   BLUETOOTH_DEVICE_SEARCH_PARAMS srch;
   srch.dwSize = sizeof(srch);

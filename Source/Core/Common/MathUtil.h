@@ -24,6 +24,8 @@ constexpr T SNANConstant()
 // will use __builtin_nans, which is improperly handled by the compiler and generates
 // a bad constant. Here we go back to the version MSVC used before the builtin.
 // TODO: Remove this and use numeric_limits directly whenever this bug is fixed.
+#include <intrin.h>
+
 template <>
 constexpr double SNANConstant()
 {
