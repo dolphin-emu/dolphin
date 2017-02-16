@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/Render.h"
+
 #include <SOIL/SOIL.h>
 #include <algorithm>
 #include <cinttypes>
@@ -19,6 +21,7 @@
 #include "Common/GL/GLUtil.h"
 #include "Common/Logging/LogManager.h"
 #include "Common/MathUtil.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ARBruteForcer.h"
@@ -30,7 +33,6 @@
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/RasterFont.h"
-#include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/TextureCache.h"
 #include "VideoBackends/OGL/VertexManager.h"
@@ -45,9 +47,12 @@
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
+#include "VideoCommon/RenderState.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 static bool g_first_rift_frame = true;
 static GLsync eyesFence = 0;
@@ -75,8 +80,6 @@ static int s_last_multisamples = 1;
 static bool s_last_stereo_mode = false;
 static bool s_last_xfb_mode = false;
 
-static u32 s_blendMode;
-
 static bool s_vsync;
 
 // EFB cache related
@@ -87,7 +90,7 @@ static const u32 EFB_CACHE_HEIGHT = (EFB_HEIGHT + EFB_CACHE_RECT_SIZE - 1) / EFB
 static bool s_efbCacheValid[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];
 static bool s_efbCacheIsCleared = false;
 static std::vector<u32>
-    s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];  // 2 for PEEK_Z and PEEK_COLOR
+    s_efbCache[2][EFB_CACHE_WIDTH * EFB_CACHE_HEIGHT];  // 2 for PeekZ and PeekColor
 
 static void APIENTRY ErrorCallback(GLenum source, GLenum type, GLuint id, GLenum severity,
                                    GLsizei length, const char* message, const void* userParam)
@@ -341,8 +344,6 @@ static void InitDriverInfo()
 Renderer::Renderer()
 {
   g_first_rift_frame = true;
-  s_blendMode = 0;
-
   bool bSuccess = true;
 
   // Init extension support.
@@ -900,20 +901,6 @@ void Renderer::SetScissorRect(const EFBRectangle& rc)
   }
 }
 
-void Renderer::SetColorMask()
-{
-  // Only enable alpha channel if it's supported by the current EFB format
-  GLenum ColorMask = GL_FALSE, AlphaMask = GL_FALSE;
-  if (bpmem.alpha_test.TestResult() != AlphaTest::FAIL)
-  {
-    if (bpmem.blendmode.colorupdate)
-      ColorMask = GL_TRUE;
-    if (bpmem.blendmode.alphaupdate && (bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24))
-      AlphaMask = GL_TRUE;
-  }
-  glColorMask(ColorMask, ColorMask, ColorMask, AlphaMask);
-}
-
 void ClearEFBCache()
 {
   if (!s_efbCacheIsCleared)
@@ -926,7 +913,7 @@ void ClearEFBCache()
 void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRectangle& efbPixelRc,
                               const TargetRectangle& targetPixelRc, const void* data)
 {
-  u32 cacheType = (type == PEEK_Z ? 0 : 1);
+  const u32 cacheType = (type == EFBAccessType::PeekZ ? 0 : 1);
 
   if (!s_efbCache[cacheType][cacheRectIdx].size())
     s_efbCache[cacheType][cacheRectIdx].resize(EFB_CACHE_RECT_SIZE * EFB_CACHE_RECT_SIZE);
@@ -947,7 +934,7 @@ void Renderer::UpdateEFBCache(EFBAccessType type, u32 cacheRectIdx, const EFBRec
       u32 xPixel = (EFBToScaledX(xEFB) + EFBToScaledX(xEFB + 1)) / 2;
       u32 xData = xPixel - targetPixelRc.left;
       u32 value;
-      if (type == PEEK_Z)
+      if (type == EFBAccessType::PeekZ)
       {
         float* ptr = (float*)data;
         value = MathUtil::Clamp<u32>((u32)(ptr[yData * targetPixelRcWidth + xData] * 16777216.0f),
@@ -986,7 +973,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
   EFBRectangle efbPixelRc;
 
-  if (type == PEEK_COLOR || type == PEEK_Z)
+  if (type == EFBAccessType::PeekColor || type == EFBAccessType::PeekZ)
   {
     // Get the rectangular target region containing the EFB pixel
     efbPixelRc.left = (x / EFB_CACHE_RECT_SIZE) * EFB_CACHE_RECT_SIZE;
@@ -1009,7 +996,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   // TODO (FIX) : currently, AA path is broken/offset and doesn't return the correct pixel
   switch (type)
   {
-  case PEEK_Z:
+  case EFBAccessType::PeekZ:
   {
     if (!s_efbCacheValid[0][cacheRectIdx])
     {
@@ -1043,7 +1030,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     return z;
   }
 
-  case PEEK_COLOR:  // GXPeekARGB
+  case EFBAccessType::PeekColor:  // GXPeekARGB
   {
     // Although it may sound strange, this really is A8R8G8B8 and not RGBA or 24-bit...
 
@@ -1190,12 +1177,10 @@ void Renderer::SetViewport()
                           (float)scissorYOff);
   float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
-  float GLNear = MathUtil::Clamp<float>(
-                     xfmem.viewport.farZ -
-                         MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777216.0f, 16777216.0f),
-                     0.0f, 16777215.0f) /
-                 16777216.0f;
-  float GLFar = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
+  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777215.0f, 16777215.0f);
+  float min_depth =
+      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
+  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (Width < 0)
   {
     X += Width;
@@ -1245,17 +1230,7 @@ void Renderer::SetViewport()
   // vertex shader we only need to ensure depth values don't exceed the maximum
   // value supported by the console GPU. If not, we simply clamp the near/far values
   // themselves to the maximum value as done above.
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
-  {
-    if (xfmem.viewport.zRange < 0.0f)
-      glDepthRangef(0.0f, GX_MAX_DEPTH);
-    else
-      glDepthRangef(GX_MAX_DEPTH, 0.0f);
-  }
-  else
-  {
-    glDepthRangef(GLFar, GLNear);
-  }
+  glDepthRangef(max_depth, min_depth);
   // NOTICE_LOG(VR, "gDepthRangef(%f, %f)", GLNear, GLFar);
 }
 
@@ -1350,111 +1325,72 @@ void Renderer::ReinterpretPixelData(unsigned int convtype)
 
 void Renderer::SetBlendMode(bool forceUpdate)
 {
-  // Our render target always uses an alpha channel, so we need to override the blend functions to
-  // assume a destination alpha of 1 if the render target isn't supposed to have an alpha channel
-  // Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel
-  // is assumed to always be 1.
-  bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+  BlendingState state;
+  state.Generate(bpmem);
 
-  bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate && target_has_alpha;
-  bool useDualSource = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
+  bool useDualSource =
+      g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
+      (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) || state.dstalpha);
 
-  // Only use dual-source blending when required on drivers that don't support it very well.
-  if (DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) && !useDstAlpha)
-    useDualSource = false;
-
-  const GLenum glSrcFactors[8] = {
+  const GLenum src_factors[8] = {
       GL_ZERO,
       GL_ONE,
       GL_DST_COLOR,
       GL_ONE_MINUS_DST_COLOR,
-      (useDualSource) ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-      (useDualSource) ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-      (target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
-      (target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO};
-  const GLenum glDestFactors[8] = {
+      useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+      useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+      GL_DST_ALPHA,
+      GL_ONE_MINUS_DST_ALPHA};
+  const GLenum dst_factors[8] = {
       GL_ZERO,
       GL_ONE,
       GL_SRC_COLOR,
       GL_ONE_MINUS_SRC_COLOR,
-      (useDualSource) ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
-      (useDualSource) ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
-      (target_has_alpha) ? GL_DST_ALPHA : (GLenum)GL_ONE,
-      (target_has_alpha) ? GL_ONE_MINUS_DST_ALPHA : (GLenum)GL_ZERO};
+      useDualSource ? GL_SRC1_ALPHA : (GLenum)GL_SRC_ALPHA,
+      useDualSource ? GL_ONE_MINUS_SRC1_ALPHA : (GLenum)GL_ONE_MINUS_SRC_ALPHA,
+      GL_DST_ALPHA,
+      GL_ONE_MINUS_DST_ALPHA};
 
-  // blend mode bit mask
-  // 0 - blend enable
-  // 1 - dst alpha enabled
-  // 2 - reverse subtract enable (else add)
-  // 3-5 - srcRGB function
-  // 6-8 - dstRGB function
-
-  u32 newval = useDstAlpha << 1;
-  newval |= bpmem.blendmode.subtract << 2;
-
-  if (bpmem.blendmode.subtract)
+  if (state.blendenable)
   {
-    newval |= 0x0049;  // enable blending src 1 dst 1
-  }
-  else if (bpmem.blendmode.blendenable)
-  {
-    newval |= 1;  // enable blending
-    newval |= bpmem.blendmode.srcfactor << 3;
-    newval |= bpmem.blendmode.dstfactor << 6;
-  }
+    GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+    GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
 
-  u32 changes = forceUpdate ? 0xFFFFFFFF : newval ^ s_blendMode;
-
-  if (changes & 1)
-  {
-    // blend enable change
-    (newval & 1) ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-  }
-
-  if (changes & 4)
-  {
-    // subtract enable change
-    GLenum equation = newval & 4 ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-    GLenum equationAlpha = useDstAlpha ? GL_FUNC_ADD : equation;
-
+    glEnable(GL_BLEND);
     glBlendEquationSeparate(equation, equationAlpha);
+    glBlendFuncSeparate(src_factors[state.srcfactor], dst_factors[state.dstfactor],
+                        src_factors[state.srcfactoralpha], dst_factors[state.dstfactoralpha]);
   }
-
-  if (changes & 0x1FA)
+  else
   {
-    u32 srcidx = (newval >> 3) & 7;
-    u32 dstidx = (newval >> 6) & 7;
-    GLenum srcFactor = glSrcFactors[srcidx];
-    GLenum dstFactor = glDestFactors[dstidx];
-
-    // adjust alpha factors
-    if (useDstAlpha)
-    {
-      srcidx = BlendMode::ONE;
-      dstidx = BlendMode::ZERO;
-    }
-    else
-    {
-      // we can't use GL_DST_COLOR or GL_ONE_MINUS_DST_COLOR for source in alpha channel so use
-      // their alpha equivalent instead
-      if (srcidx == BlendMode::DSTCLR)
-        srcidx = BlendMode::DSTALPHA;
-      else if (srcidx == BlendMode::INVDSTCLR)
-        srcidx = BlendMode::INVDSTALPHA;
-
-      // we can't use GL_SRC_COLOR or GL_ONE_MINUS_SRC_COLOR for destination in alpha channel so use
-      // their alpha equivalent instead
-      if (dstidx == BlendMode::SRCCLR)
-        dstidx = BlendMode::SRCALPHA;
-      else if (dstidx == BlendMode::INVSRCCLR)
-        dstidx = BlendMode::INVSRCALPHA;
-    }
-    GLenum srcFactorAlpha = glSrcFactors[srcidx];
-    GLenum dstFactorAlpha = glDestFactors[dstidx];
-    // blend RGB change
-    glBlendFuncSeparate(srcFactor, dstFactor, srcFactorAlpha, dstFactorAlpha);
+    glDisable(GL_BLEND);
   }
-  s_blendMode = newval;
+
+  const GLenum logic_op_codes[16] = {
+      GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,
+      GL_XOR,           GL_OR,          GL_NOR,         GL_EQUIV, GL_INVERT,       GL_OR_REVERSE,
+      GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND,        GL_SET};
+
+  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
+  {
+    // Logic ops aren't available in GLES3
+  }
+  else if (state.logicopenable)
+  {
+    glEnable(GL_COLOR_LOGIC_OP);
+    glLogicOp(logic_op_codes[state.logicmode]);
+  }
+  else
+  {
+    glDisable(GL_COLOR_LOGIC_OP);
+  }
+
+  if (state.dither)
+    glEnable(GL_DITHER);
+  else
+    glDisable(GL_DITHER);
+
+  glColorMask(state.colorupdate, state.colorupdate, state.colorupdate, state.alphaupdate);
 }
 
 void Renderer::AsyncTimewarpDraw()
@@ -2400,10 +2336,8 @@ void Renderer::RestoreAPIState()
   }
   SetGenerationMode();
   BPFunctions::SetScissor();
-  SetColorMask();
   SetDepthMode();
   SetBlendMode(true);
-  SetLogicOpMode();
   SetViewport();
 
   const VertexManager* const vm = static_cast<VertexManager*>(g_vertex_manager.get());
@@ -2452,35 +2386,6 @@ void Renderer::SetDepthMode()
     glDisable(GL_DEPTH_TEST);
     glDepthMask(GL_FALSE);
   }
-}
-
-void Renderer::SetLogicOpMode()
-{
-  if (GLInterface->GetMode() != GLInterfaceMode::MODE_OPENGL)
-    return;
-  // Logic ops aren't available in GLES3/GLES2
-  const GLenum glLogicOpCodes[16] = {
-      GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,
-      GL_XOR,           GL_OR,          GL_NOR,         GL_EQUIV, GL_INVERT,       GL_OR_REVERSE,
-      GL_COPY_INVERTED, GL_OR_INVERTED, GL_NAND,        GL_SET};
-
-  if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable)
-  {
-    glEnable(GL_COLOR_LOGIC_OP);
-    glLogicOp(glLogicOpCodes[bpmem.blendmode.logicmode]);
-  }
-  else
-  {
-    glDisable(GL_COLOR_LOGIC_OP);
-  }
-}
-
-void Renderer::SetDitherMode()
-{
-  if (bpmem.blendmode.dither)
-    glEnable(GL_DITHER);
-  else
-    glDisable(GL_DITHER);
 }
 
 void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D12/Render.h"
+
 #include <cinttypes>
 #include <cmath>
 #include <memory>
@@ -12,10 +14,10 @@
 #include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
 #include "Core/Core.h"
-#include "Core/Host.h"
 
 #include "VideoBackends/D3D12/BoundingBox.h"
 #include "VideoBackends/D3D12/D3DBase.h"
@@ -25,7 +27,6 @@
 #include "VideoBackends/D3D12/D3DUtil.h"
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/NativeVertexFormat.h"
-#include "VideoBackends/D3D12/Render.h"
 #include "VideoBackends/D3D12/ShaderCache.h"
 #include "VideoBackends/D3D12/ShaderConstantsManager.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
@@ -41,7 +42,9 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/VertexLoaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace DX12
 {
@@ -365,7 +368,7 @@ void Renderer::SetColorMask()
 //  - GX_PokeZMode (TODO)
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
-  if (type == PEEK_COLOR)
+  if (type == EFBAccessType::PeekColor)
   {
     u32 color = FramebufferManager::ReadEFBColorAccessCopy(x, y);
 
@@ -401,7 +404,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
       return (color & 0x00FFFFFF);  // GX_READ_00
     }
   }
-  else  // if (type == PEEK_Z)
+  else  // if (type == EFBAccessType::PeekZ)
   {
     // depth buffer is inverted in the d3d backend
     float depth = 1.0f - FramebufferManager::ReadEFBDepthAccessCopy(x, y);
@@ -425,14 +428,14 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 {
   D3D::SetViewportAndScissor(0, 0, GetTargetWidth(), GetTargetHeight());
 
-  if (type == POKE_COLOR)
+  if (type == EFBAccessType::PokeColor)
   {
     // In the D3D12 backend, the rt/db/viewport is passed into DrawEFBPokeQuads, and set there.
     D3D::DrawEFBPokeQuads(type, points, num_points, &g_reset_blend_desc, &g_reset_depth_desc,
                           &FramebufferManager::GetEFBColorTexture()->GetRTV12(), nullptr,
                           FramebufferManager::GetEFBColorTexture()->GetMultisampled());
   }
-  else  // if (type == POKE_Z)
+  else  // if (type == EFBAccessType::PokeZ)
   {
     D3D::DrawEFBPokeQuads(type, points, num_points,
                           &s_clear_blend_descs[CLEAR_BLEND_DESC_ALL_CHANNELS_DISABLED],
@@ -466,6 +469,10 @@ void Renderer::SetViewport()
   float y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_offset);
   float width = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float height = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f);
+  float min_depth =
+      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
+  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (width < 0.0f)
   {
     x += width;
@@ -477,18 +484,24 @@ void Renderer::SetViewport()
     height = -height;
   }
 
+  // If an inverted depth range is used, which D3D doesn't support,
+  // we need to calculate the depth range in the vertex shader.
+  if (xfmem.viewport.zRange < 0.0f)
+  {
+    min_depth = 0.0f;
+    max_depth = GX_MAX_DEPTH;
+  }
+
   // In D3D, the viewport rectangle must fit within the render target.
   x = (x >= 0.f) ? x : 0.f;
   y = (y >= 0.f) ? y : 0.f;
   width = (x + width <= GetTargetWidth()) ? width : (GetTargetWidth() - x);
   height = (y + height <= GetTargetHeight()) ? height : (GetTargetHeight() - y);
 
-  // We do depth clipping and depth range in the vertex shader instead of relying
-  // on the graphics API. However we still need to ensure depth values don't exceed
-  // the maximum value supported by the console GPU. We also need to account for the
-  // fact that the entire depth buffer is inverted on D3D, so we set GX_MAX_DEPTH as
-  // an inverted near value.
-  D3D12_VIEWPORT vp = {x, y, width, height, 1.0f - GX_MAX_DEPTH, D3D12_MAX_DEPTH};
+  // We use an inverted depth range here to apply the Reverse Z trick.
+  // This trick makes sure we match the precision provided by the 1:0
+  // clipping depth range on the hardware.
+  D3D12_VIEWPORT vp = {x, y, width, height, 1.0f - max_depth, 1.0f - min_depth};
   D3D::current_command_list->RSSetViewports(1, &vp);
 }
 
@@ -923,8 +936,12 @@ void Renderer::RestoreAPIState()
 static bool s_previous_use_dst_alpha = false;
 static D3DVertexFormat* s_previous_vertex_format = nullptr;
 
-void Renderer::ApplyState(bool use_dst_alpha)
+void Renderer::ApplyState()
 {
+  // TODO: Refactor this logic here.
+  bool use_dst_alpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+                       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
   if (use_dst_alpha != s_previous_use_dst_alpha)
   {
     s_previous_use_dst_alpha = use_dst_alpha;

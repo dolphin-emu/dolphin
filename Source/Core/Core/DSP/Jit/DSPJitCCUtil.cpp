@@ -9,12 +9,17 @@
 
 using namespace Gen;
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 // In: RAX: s64 _Value
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
 {
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   //	// 0x04
   //	if (_Value == 0) g_dsp.r[DSP_REG_SR] |= SR_ARITH_ZERO;
   TEST(64, R(val), R(val));
@@ -49,7 +54,7 @@ void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
   OR(16, sr_reg, Imm16(SR_TOP2BITS));
   SetJumpTarget(cC);
   SetJumpTarget(end);
-  gpr.PutReg(DSP_REG_SR);
+  m_gpr.PutReg(DSP_REG_SR);
 }
 
 // In: RAX: s64 _Value
@@ -57,10 +62,9 @@ void DSPEmitter::Update_SR_Register(Gen::X64Reg val)
 void DSPEmitter::Update_SR_Register64(Gen::X64Reg val)
 {
   //	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   AND(16, sr_reg, Imm16(~SR_CMP_MASK));
-  gpr.PutReg(DSP_REG_SR);
+  m_gpr.PutReg(DSP_REG_SR);
   Update_SR_Register(val);
 }
 
@@ -69,8 +73,7 @@ void DSPEmitter::Update_SR_Register64(Gen::X64Reg val)
 // Clobbers RDX
 void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl, bool carry_eq)
 {
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   //	g_dsp.r[DSP_REG_SR] &= ~SR_CMP_MASK;
   AND(16, sr_reg, Imm16(~SR_CMP_MASK));
 
@@ -95,7 +98,7 @@ void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl, bool 
   OR(16, sr_reg, Imm16(SR_OVERFLOW | SR_OVERFLOW_STICKY));
   SetJumpTarget(noOverflow);
 
-  gpr.PutReg(DSP_REG_SR);
+  m_gpr.PutReg(DSP_REG_SR);
   if (carry_eq)
   {
     Update_SR_Register();
@@ -109,8 +112,7 @@ void DSPEmitter::Update_SR_Register64_Carry(X64Reg val, X64Reg carry_ovfl, bool 
 // In: RAX: s64 _Value
 void DSPEmitter::Update_SR_Register16(X64Reg val)
 {
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   AND(16, sr_reg, Imm16(~SR_CMP_MASK));
 
   //	// 0x04
@@ -139,15 +141,14 @@ void DSPEmitter::Update_SR_Register16(X64Reg val)
   OR(16, sr_reg, Imm16(SR_TOP2BITS));
   SetJumpTarget(notThree);
   SetJumpTarget(end);
-  gpr.PutReg(DSP_REG_SR);
+  m_gpr.PutReg(DSP_REG_SR);
 }
 
 // In: RAX: s64 _Value
 // Clobbers RCX
 void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
 {
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   AND(16, sr_reg, Imm16(~SR_CMP_MASK));
 
   //	// 0x10
@@ -158,9 +159,13 @@ void DSPEmitter::Update_SR_Register16_OverS32(Gen::X64Reg val)
   OR(16, sr_reg, Imm16(SR_OVER_S32));
   SetJumpTarget(noOverS32);
 
-  gpr.PutReg(DSP_REG_SR);
+  m_gpr.PutReg(DSP_REG_SR);
   //	// 0x20 - Checks if top bits of m are equal
   //	if ((((u16)_Value >> 14) == 0) || (((u16)_Value >> 14) == 3))
   // AND(32, R(val), Imm32(0xc0000000));
   Update_SR_Register16(val);
 }
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP

@@ -20,9 +20,12 @@ class IOFile;
 
 namespace DiscIO
 {
-enum class Country;
+enum class Region;
 
-bool AddTicket(u64 title_id, const std::vector<u8>& ticket);
+bool AddTicket(const std::vector<u8>& signed_ticket);
+std::vector<u8> FindSignedTicket(u64 title_id);
+std::vector<u8> FindTicket(u64 title_id);
+std::vector<u8> GetKeyFromTicket(const std::vector<u8>& ticket);
 
 class CNANDContentData
 {
@@ -98,7 +101,7 @@ public:
   const std::vector<SNANDContent>& GetContent() const { return m_Content; }
   u16 GetTitleVersion() const { return m_TitleVersion; }
   u16 GetNumEntries() const { return m_NumEntries; }
-  DiscIO::Country GetCountry() const;
+  DiscIO::Region GetRegion() const;
   u8 GetCountryChar() const { return m_Country; }
   enum
   {
@@ -113,9 +116,6 @@ private:
   void InitializeContentEntries(const std::vector<u8>& tmd,
                                 const std::vector<u8>& decrypted_title_key,
                                 const std::vector<u8>& data_app);
-
-  static std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size);
-  static std::vector<u8> GetKeyFromTicket(const std::vector<u8>& ticket);
 
   bool m_Valid;
   bool m_IsWAD;
@@ -159,26 +159,15 @@ private:
   std::unordered_map<std::string, std::unique_ptr<CNANDContentLoader>> m_map;
 };
 
-class CSharedContent
+class CSharedContent final
 {
 public:
-  static CSharedContent& AccessInstance()
-  {
-    static CSharedContent instance;
-    return instance;
-  }
+  explicit CSharedContent(Common::FromWhichRoot root);
 
-  std::string GetFilenameFromSHA1(const u8* hash);
+  std::string GetFilenameFromSHA1(const u8* hash) const;
   std::string AddSharedContent(const u8* hash);
-  void UpdateLocation();
 
 private:
-  CSharedContent();
-  virtual ~CSharedContent();
-
-  CSharedContent(CSharedContent const&) = delete;
-  void operator=(CSharedContent const&) = delete;
-
 #pragma pack(push, 1)
   struct SElement
   {
@@ -187,32 +176,22 @@ private:
   };
 #pragma pack(pop)
 
+  Common::FromWhichRoot m_root;
   u32 m_LastID;
   std::string m_ContentMap;
   std::vector<SElement> m_Elements;
 };
 
-class cUIDsys
+class cUIDsys final
 {
 public:
-  static cUIDsys& AccessInstance()
-  {
-    static cUIDsys instance;
-    return instance;
-  }
+  explicit cUIDsys(Common::FromWhichRoot root);
 
   u32 GetUIDFromTitle(u64 title_id);
   void AddTitle(u64 title_id);
   void GetTitleIDs(std::vector<u64>& title_ids, bool owned = false);
-  void UpdateLocation();
 
 private:
-  cUIDsys();
-  virtual ~cUIDsys();
-
-  cUIDsys(cUIDsys const&) = delete;
-  void operator=(cUIDsys const&) = delete;
-
 #pragma pack(push, 1)
   struct SElement
   {

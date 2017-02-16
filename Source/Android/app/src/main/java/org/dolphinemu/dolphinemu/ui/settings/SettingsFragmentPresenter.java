@@ -798,7 +798,7 @@ public final class SettingsFragmentPresenter
 			{
 				videoBackendValue = 1;
 			}
-			else if (videoBackend.equals("Software"))
+			else if (videoBackend.equals("Software Renderer"))
 			{
 				videoBackendValue = 2;
 			}

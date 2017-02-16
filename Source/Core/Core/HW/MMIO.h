@@ -6,6 +6,7 @@
 
 #include <array>
 #include <string>
+#include <tuple>
 #include <type_traits>
 
 #include "Common/Assert.h"
@@ -177,45 +178,30 @@ private:
   HandlerArray<u32>::Write m_write_handlers32;
 
   // Getter functions for the handler arrays.
-  //
-  // TODO:
-  // It would be desirable to clean these methods up using tuples, i.e. doing something like
-  //
-  //     auto handlers = std::tie(m_read_handlers8, m_read_handlers16, m_read_handlers32);
-  //     return std::get<Unit>(handlers)[index];
-  //
-  // However, we cannot use this currently because of a compiler bug in clang, presumably related
-  // to http://llvm.org/bugs/show_bug.cgi?id=18345, due to which the above code makes the compiler
-  // exceed the template recursion depth.
-  // As a workaround, we cast all handlers to the requested one's type. This cast will
-  // compile to a NOP for the returned member variable, but it's necessary to get this
-  // code to compile at all.
   template <typename Unit>
   ReadHandler<Unit>& GetReadHandler(size_t index)
   {
-    static_assert(std::is_same<Unit, u8>::value || std::is_same<Unit, u16>::value ||
-                      std::is_same<Unit, u32>::value,
+    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
+                      std::is_same<Unit, u32>(),
                   "Invalid unit used");
+
+    auto handlers = std::tie(m_read_handlers8, m_read_handlers16, m_read_handlers32);
+
     using ArrayType = typename HandlerArray<Unit>::Read;
-    ArrayType& handler = *(std::is_same<Unit, u8>::value ?
-                               (ArrayType*)&m_read_handlers8 :
-                               std::is_same<Unit, u16>::value ? (ArrayType*)&m_read_handlers16 :
-                                                                (ArrayType*)&m_read_handlers32);
-    return handler[index];
+    return std::get<ArrayType&>(handlers)[index];
   }
 
   template <typename Unit>
   WriteHandler<Unit>& GetWriteHandler(size_t index)
   {
-    static_assert(std::is_same<Unit, u8>::value || std::is_same<Unit, u16>::value ||
-                      std::is_same<Unit, u32>::value,
+    static_assert(std::is_same<Unit, u8>() || std::is_same<Unit, u16>() ||
+                      std::is_same<Unit, u32>(),
                   "Invalid unit used");
+
+    auto handlers = std::tie(m_write_handlers8, m_write_handlers16, m_write_handlers32);
+
     using ArrayType = typename HandlerArray<Unit>::Write;
-    ArrayType& handler = *(std::is_same<Unit, u8>::value ?
-                               (ArrayType*)&m_write_handlers8 :
-                               std::is_same<Unit, u16>::value ? (ArrayType*)&m_write_handlers16 :
-                                                                (ArrayType*)&m_write_handlers32);
-    return handler[index];
+    return std::get<ArrayType&>(handlers)[index];
   }
 };
 

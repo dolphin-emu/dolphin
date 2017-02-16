@@ -4,6 +4,8 @@
 
 #include "VideoCommon/VRTracker.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControlReference/ControlReference.h"
+
 
 static const char* const named_positions[] = {"Pos X", "Pos Y", "Pos Z"};
 
@@ -12,8 +14,8 @@ static const char* const named_orientations[] = {"Quat W", "Quat X", "Quat Y", "
 namespace VRTracker
 {
 static ciface::Core::Device* s_device = nullptr;
-static ControllerInterface::ControlReference* s_position_inputs[3];
-static ControllerInterface::ControlReference* s_orientation_inputs[4];
+static ControlReference* s_position_inputs[3];
+static ControlReference* s_orientation_inputs[4];
 
 static float s_initial_position[3];
 static float s_initial_orientation[4];

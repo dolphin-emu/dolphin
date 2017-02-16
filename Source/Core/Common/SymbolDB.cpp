@@ -48,6 +48,40 @@ Symbol* SymbolDB::GetSymbolFromName(const std::string& name)
   return nullptr;
 }
 
+std::vector<Symbol*> SymbolDB::GetSymbolsFromName(const std::string& name)
+{
+  std::vector<Symbol*> symbols;
+
+  for (auto& func : functions)
+  {
+    if (func.second.function_name == name)
+      symbols.push_back(&func.second);
+  }
+
+  return symbols;
+}
+
+Symbol* SymbolDB::GetSymbolFromHash(u32 hash)
+{
+  XFuncPtrMap::iterator iter = checksumToFunction.find(hash);
+  if (iter != checksumToFunction.end())
+    return *iter->second.begin();
+  else
+    return nullptr;
+}
+
+std::vector<Symbol*> SymbolDB::GetSymbolsFromHash(u32 hash)
+{
+  std::vector<Symbol*> symbols;
+
+  for (const auto& iter : checksumToFunction)
+    if (iter.first == hash)
+      for (const auto& symbol : iter.second)
+        symbols.push_back(symbol);
+
+  return symbols;
+}
+
 void SymbolDB::AddCompleteSymbol(const Symbol& symbol)
 {
   functions.emplace(symbol.address, symbol);

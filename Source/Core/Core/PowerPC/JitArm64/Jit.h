@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include <map>
 #include <tuple>
 
@@ -17,9 +18,6 @@
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 
-constexpr int CODE_SIZE = 1024 * 1024 * 32;
-constexpr int FARCODE_SIZE_MMU = 1024 * 1024 * 48;
-
 class JitArm64 : public JitBase, public Arm64Gen::ARM64CodeBlock, public CommonAsmRoutinesBase
 {
 public:
@@ -29,8 +27,11 @@ public:
   void Shutdown() override;
 
   JitBaseBlockCache* GetBlockCache() override { return &blocks; }
-  bool IsInCodeSpace(u8* ptr) const { return IsInSpace(ptr); }
+  bool IsInCodeSpace(const u8* ptr) const { return IsInSpace(ptr); }
   bool HandleFault(uintptr_t access_address, SContext* ctx) override;
+  void DoBacktrace(uintptr_t access_address, SContext* ctx);
+  bool HandleStackFault() override;
+  bool HandleFastmemFault(uintptr_t access_address, SContext* ctx);
 
   void ClearCache() override;
 
@@ -177,7 +178,7 @@ private:
   Arm64GPRCache gpr;
   Arm64FPRCache fpr;
 
-  JitArm64BlockCache blocks;
+  JitArm64BlockCache blocks{*this};
 
   PPCAnalyst::CodeBuffer code_buffer;
 
@@ -188,6 +189,12 @@ private:
 
   // Do we support cycle counter profiling?
   bool m_supports_cycle_counter;
+
+  bool m_enable_blr_optimization;
+  bool m_cleanup_after_stackfault = false;
+  u8* m_stack_base = nullptr;
+  u8* m_stack_pointer = nullptr;
+  u8* m_saved_stack_pointer = nullptr;
 
   void EmitResetCycleCounters();
   void EmitGetCycles(Arm64Gen::ARM64Reg reg);
@@ -218,10 +225,13 @@ private:
   void SafeLoadToReg(u32 dest, s32 addr, s32 offsetReg, u32 flags, s32 offset, bool update);
   void SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s32 offset);
 
-  const u8* DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
+  void DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC);
 
   void DoDownCount();
   void Cleanup();
+  void ResetStack();
+  void AllocStack();
+  void FreeStack();
 
   // AsmRoutines
   void GenerateAsm();
@@ -233,10 +243,12 @@ private:
   void EndTimeProfile(JitBlock* b);
 
   // Exits
-  void WriteExit(u32 destination);
-  void WriteExit(Arm64Gen::ARM64Reg dest);
+  void WriteExit(u32 destination, bool LK = false, u32 exit_address_after_return = 0);
+  void WriteExit(Arm64Gen::ARM64Reg dest, bool LK = false, u32 exit_address_after_return = 0);
   void WriteExceptionExit(u32 destination, bool only_external = false);
   void WriteExceptionExit(Arm64Gen::ARM64Reg dest, bool only_external = false);
+  void FakeLKExit(u32 exit_address_after_return);
+  void WriteBLRExit(Arm64Gen::ARM64Reg dest);
 
   FixupBranch JumpIfCRFieldBit(int field, int bit, bool jump_if_set);
 

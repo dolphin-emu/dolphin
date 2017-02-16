@@ -9,6 +9,7 @@
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/GCPadEmu.h"
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+#include "InputCommon/GCPadStatus.h"
 #include "InputCommon/ControllerInterface/Sixense/RazerHydra.h"
 #include "VideoCommon/VR.h"
 

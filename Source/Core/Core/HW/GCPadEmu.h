@@ -6,9 +6,17 @@
 
 #include <string>
 
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
+struct GCPadStatus;
+
+namespace ControllerEmu
+{
+class AnalogStick;
+class Buttons;
 class ControlGroup;
+class MixedTriggers;
+}
 
 enum class PadGroup
 {
@@ -22,10 +30,10 @@ enum class PadGroup
   Options
 };
 
-class GCPad : public ControllerEmu
+class GCPad : public ControllerEmu::EmulatedController
 {
 public:
-  GCPad(const unsigned int index);
+  explicit GCPad(unsigned int index);
   GCPadStatus GetInput() const;
   void SetOutput(const ControlState strength);
 
@@ -33,19 +41,19 @@ public:
 
   std::string GetName() const override;
 
-  ControlGroup* GetGroup(PadGroup group);
+  ControllerEmu::ControlGroup* GetGroup(PadGroup group);
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
 private:
-  Buttons* m_buttons;
-  AnalogStick* m_main_stick;
-  AnalogStick* m_c_stick;
-  Buttons* m_dpad;
-  MixedTriggers* m_triggers;
-  ControlGroup* m_rumble;
-  Buttons* m_mic;
-  ControlGroup* m_options;
+  ControllerEmu::Buttons* m_buttons;
+  ControllerEmu::AnalogStick* m_main_stick;
+  ControllerEmu::AnalogStick* m_c_stick;
+  ControllerEmu::Buttons* m_dpad;
+  ControllerEmu::MixedTriggers* m_triggers;
+  ControllerEmu::ControlGroup* m_rumble;
+  ControllerEmu::Buttons* m_mic;
+  ControllerEmu::ControlGroup* m_options;
 
   const unsigned int m_index;
 

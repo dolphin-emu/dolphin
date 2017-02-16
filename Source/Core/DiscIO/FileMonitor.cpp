@@ -110,7 +110,7 @@ void CheckFile(const std::string& file, u64 size)
 void FindFilename(u64 offset)
 {
   // Don't do anything if a game is not running
-  if (Core::GetState() != Core::CORE_RUN)
+  if (Core::GetState() != Core::State::Running)
     return;
 
   // Or if the log is unselected

@@ -19,13 +19,15 @@ namespace DX12
 {
 class PipelineStateCacheInserter;
 
-union RasterizerState {
+union RasterizerState
+{
   BitField<0, 2, D3D12_CULL_MODE> cull_mode;
 
   u32 hex;
 };
 
-union BlendState {
+union BlendState
+{
   BitField<0, 1, u32> blend_enable;
   BitField<1, 3, D3D12_BLEND_OP> blend_op;
   BitField<4, 4, u8> write_mask;
@@ -36,7 +38,8 @@ union BlendState {
   u32 hex;
 };
 
-union SamplerState {
+union SamplerState
+{
   BitField<0, 3, u32> min_filter;
   BitField<3, 1, u32> mag_filter;
   BitField<4, 8, u32> min_lod;

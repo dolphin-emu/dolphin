@@ -10,7 +10,9 @@
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 // MRR $D, $S
 // 0001 11dd ddds ssss
@@ -39,7 +41,7 @@ void mrr(const UDSPInstruction opc)
 // S16 mode.
 void lri(const UDSPInstruction opc)
 {
-  u8 reg = opc & DSP_REG_MASK;
+  u8 reg = opc & 0x1F;
   u16 imm = dsp_fetch_code();
   dsp_op_write_reg(reg, imm);
   dsp_conditional_extend_accum(reg);
@@ -158,4 +160,5 @@ void srbith(const UDSPInstruction opc)
   }
 }
 
-}  // namespace
+}  // namespace Interpreter
+}  // namespace DSP

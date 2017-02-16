@@ -43,8 +43,7 @@ public:
   // This assumes that PopulateBackendInfo and PopulateBackendInfoAdapters has already
   // been called for the specified VideoConfig.
   static std::unique_ptr<VulkanContext> Create(VkInstance instance, VkPhysicalDevice gpu,
-                                               VkSurfaceKHR surface, VideoConfig* config,
-                                               bool enable_debug_reports,
+                                               VkSurfaceKHR surface, bool enable_debug_reports,
                                                bool enable_validation_layer);
 
   // Enable/disable debug message runtime.

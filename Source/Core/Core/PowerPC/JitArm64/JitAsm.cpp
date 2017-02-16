@@ -28,6 +28,24 @@ void JitArm64::GenerateAsm()
 
   MOVP2R(PPC_REG, &PowerPC::ppcState);
 
+  // Swap the stack pointer, so we have proper guard pages.
+  ADD(X0, SP, 0);
+  MOVP2R(X1, &m_saved_stack_pointer);
+  STR(INDEX_UNSIGNED, X0, X1, 0);
+  MOVP2R(X1, &m_stack_pointer);
+  LDR(INDEX_UNSIGNED, X0, X1, 0);
+  FixupBranch no_fake_stack = CBZ(X0);
+  ADD(SP, X0, 0);
+  SetJumpTarget(no_fake_stack);
+
+  // Push {nullptr; -1} as invalid destination on the stack.
+  MOVI2R(X0, 0xFFFFFFFF);
+  STP(INDEX_PRE, ZR, X0, SP, -16);
+
+  // Store the stack pointer, so we can reset it if the BLR optimization fails.
+  ADD(X0, SP, 0);
+  STR(INDEX_UNSIGNED, X0, PPC_REG, PPCSTATE_OFF(stored_stack_pointer));
+
   // The PC will be loaded into DISPATCHER_PC after the call to CoreTiming::Advance().
   // Advance() does an exception check so we don't know what PC to use until afterwards.
   FixupBranch to_start_of_timing_slice = B();
@@ -73,18 +91,12 @@ void JitArm64::GenerateAsm()
     // iCache[(address >> 2) & iCache_Mask];
     ARM64Reg pc_masked = W25;
     ARM64Reg cache_base = X27;
-    ARM64Reg block_num = W27;
-    ANDI2R(pc_masked, DISPATCHER_PC, JitBaseBlockCache::iCache_Mask << 2);
-    MOVP2R(cache_base, jit->GetBlockCache()->GetICache());
-    LDR(block_num, cache_base, EncodeRegTo64(pc_masked));
-
-    // blocks[block_num]
     ARM64Reg block = X30;
-    ARM64Reg jit_block_size = W24;
-    MOVI2R(jit_block_size, sizeof(JitBlock));
-    MUL(block_num, block_num, jit_block_size);
-    MOVP2R(block, jit->GetBlockCache()->GetBlocks());
-    ADD(block, block, EncodeRegTo64(block_num));
+    ORRI2R(pc_masked, WZR, JitBaseBlockCache::FAST_BLOCK_MAP_MASK << 3);
+    AND(pc_masked, pc_masked, DISPATCHER_PC, ArithOption(DISPATCHER_PC, ST_LSL, 1));
+    MOVP2R(cache_base, g_jit->GetBlockCache()->GetFastBlockMap());
+    LDR(block, cache_base, EncodeRegTo64(pc_masked));
+    FixupBranch not_found = CBZ(block);
 
     // b.effectiveAddress != addr || b.msrBits != msr
     ARM64Reg pc_and_msr = W25;
@@ -94,7 +106,7 @@ void JitArm64::GenerateAsm()
     FixupBranch pc_missmatch = B(CC_NEQ);
 
     LDR(INDEX_UNSIGNED, pc_and_msr2, PPC_REG, PPCSTATE_OFF(msr));
-    ANDI2R(pc_and_msr2, pc_and_msr2, JitBlock::JIT_CACHE_MSR_MASK);
+    ANDI2R(pc_and_msr2, pc_and_msr2, JitBaseBlockCache::JIT_CACHE_MSR_MASK);
     LDR(INDEX_UNSIGNED, pc_and_msr, block, offsetof(JitBlock, msrBits));
     CMP(pc_and_msr, pc_and_msr2);
     FixupBranch msr_missmatch = B(CC_NEQ);
@@ -102,6 +114,7 @@ void JitArm64::GenerateAsm()
     // return blocks[block_num].normalEntry;
     LDR(INDEX_UNSIGNED, block, block, offsetof(JitBlock, normalEntry));
     BR(block);
+    SetJumpTarget(not_found);
     SetJumpTarget(pc_missmatch);
     SetJumpTarget(msr_missmatch);
   }
@@ -111,17 +124,25 @@ void JitArm64::GenerateAsm()
   MOVP2R(X30, reinterpret_cast<void*>(&JitBase::Dispatch));
   BLR(X30);
 
-  // set the mem_base based on MSR flags
+  FixupBranch no_block_available = CBZ(X0);
+
+  // set the mem_base based on MSR flags and jump to next block.
   LDR(INDEX_UNSIGNED, ARM64Reg::W28, PPC_REG, PPCSTATE_OFF(msr));
   FixupBranch physmem = TBNZ(ARM64Reg::W28, 31 - 27);
   MOVP2R(MEM_REG, Memory::physical_base);
-  FixupBranch membaseend = B();
+  BR(X0);
   SetJumpTarget(physmem);
   MOVP2R(MEM_REG, Memory::logical_base);
-  SetJumpTarget(membaseend);
-
-  // Jump to next block.
   BR(X0);
+
+  // Call JIT
+  SetJumpTarget(no_block_available);
+  ResetStack();
+  MOV(W0, DISPATCHER_PC);
+  MOVP2R(X30, reinterpret_cast<void*>(&JitTrampoline));
+  BLR(X30);
+  LDR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
+  B(dispatcherNoCheck);
 
   SetJumpTarget(bail);
   doTiming = GetCodePtr();
@@ -148,6 +169,12 @@ void JitArm64::GenerateAsm()
   B(dispatcherNoCheck);
 
   SetJumpTarget(Exit);
+
+  // Reset the stack pointer, as the BLR optimization have touched it.
+  MOVP2R(X1, &m_saved_stack_pointer);
+  LDR(INDEX_UNSIGNED, X0, X1, 0);
+  ADD(SP, X0, 0);
+
   ABI_PopRegisters(regs_to_save);
   RET(X30);
 

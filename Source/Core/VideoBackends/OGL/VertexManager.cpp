@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/VertexManager.h"
+
 #include <fstream>
 #include <memory>
 #include <string>
@@ -10,15 +12,12 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/GL/GLExtensions/GLExtensions.h"
-#include "Common/GL/GLInterfaceBase.h"
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
-#include "VideoBackends/OGL/VertexManager.h"
 
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -137,7 +136,7 @@ void VertexManager::Draw(u32 stride)
     static_cast<Renderer*>(g_renderer.get())->SetGenerationMode();
 }
 
-void VertexManager::vFlush(bool useDstAlpha)
+void VertexManager::vFlush()
 {
   if (VertexShaderManager::m_layer_on_top)
     glDepthFunc(GL_ALWAYS);
@@ -152,19 +151,7 @@ void VertexManager::vFlush(bool useDstAlpha)
 
   PrepareDrawBuffers(stride);
 
-  // Makes sure we can actually do Dual source blending
-  bool dualSourcePossible = g_ActiveConfig.backend_info.bSupportsDualSourceBlend;
-
-  // If host supports GL_ARB_blend_func_extended, we can do dst alpha in
-  // the same pass as regular rendering.
-  if (useDstAlpha && dualSourcePossible)
-  {
-    ProgramShaderCache::SetShader(DSTALPHA_DUAL_SOURCE_BLEND, m_current_primitive_type);
-  }
-  else
-  {
-    ProgramShaderCache::SetShader(DSTALPHA_NONE, m_current_primitive_type);
-  }
+  ProgramShaderCache::SetShader(m_current_primitive_type);
 
   // upload global constants
   ProgramShaderCache::UploadConstants(false);
@@ -173,38 +160,6 @@ void VertexManager::vFlush(bool useDstAlpha)
   nativeVertexFmt->SetupVertexPointers();
 
   Draw(stride);
-
-  // If the GPU does not support dual-source blending, we can approximate the effect by drawing
-  // the object a second time, with the write mask set to alpha only using a shader that outputs
-  // the destination/constant alpha value (which would normally be SRC_COLOR.a).
-  //
-  // This is also used when logic ops and destination alpha is enabled, since we can't enable
-  // blending and logic ops concurrently.
-  bool logic_op_enabled = (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable &&
-                           GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL);
-  if (useDstAlpha && (!dualSourcePossible || logic_op_enabled))
-  {
-    ProgramShaderCache::SetShader(DSTALPHA_ALPHA_PASS, m_current_primitive_type);
-
-    // only update alpha
-    glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_TRUE);
-
-    glDisable(GL_BLEND);
-
-    if (logic_op_enabled)
-      glDisable(GL_COLOR_LOGIC_OP);
-
-    Draw(stride);
-
-    // restore color mask
-    g_renderer->SetColorMask();
-
-    if (bpmem.blendmode.blendenable || bpmem.blendmode.subtract)
-      glEnable(GL_BLEND);
-
-    if (logic_op_enabled)
-      glEnable(GL_COLOR_LOGIC_OP);
-  }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS)

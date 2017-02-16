@@ -7,8 +7,10 @@
 #include <algorithm>
 #include <cstddef>
 
+#include "Common/Assert.h"
 #include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/HW/Memmap.h"
 
@@ -121,10 +123,9 @@ bool FramebufferManager::Initialize()
   return true;
 }
 
-void FramebufferManager::GetTargetSize(unsigned int* width, unsigned int* height)
+std::pair<u32, u32> FramebufferManager::GetTargetSize() const
 {
-  *width = m_efb_width;
-  *height = m_efb_height;
+  return std::make_pair(m_efb_width, m_efb_height);
 }
 
 bool FramebufferManager::CreateEFBRenderPass()
@@ -341,7 +342,7 @@ bool FramebufferManager::CreateEFBFramebuffer()
                                           VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
 
   // Clear the contents of the buffers.
-  static const VkClearColorValue clear_color = {{0.0f, 0.0f, 0.0f, 1.0f}};
+  static const VkClearColorValue clear_color = {{0.0f, 0.0f, 0.0f, 0.0f}};
   static const VkClearDepthStencilValue clear_depth = {0.0f, 0};
   VkImageSubresourceRange clear_color_range = {VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, m_efb_layers};
   VkImageSubresourceRange clear_depth_range = {VK_IMAGE_ASPECT_DEPTH_BIT, 0, 1, 0, m_efb_layers};

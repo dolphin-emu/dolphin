@@ -15,6 +15,8 @@
 
 #ifdef _WIN32
 
+#include <windows.h>
+
 struct StreamingVoiceContext;
 struct IXAudio2;
 struct IXAudio2MasteringVoice;

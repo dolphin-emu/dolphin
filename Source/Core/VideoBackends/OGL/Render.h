@@ -6,6 +6,8 @@
 
 #include <array>
 #include <string>
+
+#include "Common/GL/GLUtil.h"
 #include "VideoCommon/RenderBase.h"
 
 struct XFBSourceBase;
@@ -72,13 +74,10 @@ public:
   static void Init();
   static void Shutdown();
 
-  void SetColorMask() override;
   void SetBlendMode(bool forceUpdate) override;
   void SetScissorRect(const EFBRectangle& rc) override;
   void SetGenerationMode() override;
   void SetDepthMode() override;
-  void SetLogicOpMode() override;
-  void SetDitherMode() override;
   void SetSamplerState(int stage, int texindex, bool custom_tex) override;
   void SetInterlacingMode() override;
   void SetViewport() override;

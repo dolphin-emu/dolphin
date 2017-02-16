@@ -378,10 +378,9 @@ static GekkoOPTemplate table63_2[] = {
 
 namespace JitILTables
 {
-void CompileInstruction(PPCAnalyst::CodeOp& op)
+void CompileInstruction(JitIL& jit, PPCAnalyst::CodeOp& op)
 {
-  JitIL* jitil = (JitIL*)jit;
-  (jitil->*dynaOpTable[op.inst.OPCD])(op.inst);
+  (jit.*dynaOpTable[op.inst.OPCD])(op.inst);
   GekkoOPInfo* info = op.opinfo;
   if (info)
   {
@@ -392,12 +391,12 @@ void CompileInstruction(PPCAnalyst::CodeOp& op)
     }
 #endif
     info->compileCount++;
-    info->lastUse = jit->js.compilerPC;
+    info->lastUse = jit.js.compilerPC;
   }
   else
   {
     PanicAlert("Tried to compile illegal (or unknown) instruction %08x, at %08x", op.inst.hex,
-               jit->js.compilerPC);
+               jit.js.compilerPC);
   }
 }
 

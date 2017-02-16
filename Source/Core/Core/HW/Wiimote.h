@@ -6,10 +6,15 @@
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "InputCommon/ControllerEmu.h"
 
 class InputConfig;
 class PointerWrap;
+
+namespace ControllerEmu
+{
+class ControlGroup;
+}
+
 namespace WiimoteEmu
 {
 enum class WiimoteGroup;

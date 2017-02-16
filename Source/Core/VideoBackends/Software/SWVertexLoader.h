@@ -25,7 +25,7 @@ protected:
   void ResetBuffer(u32 stride) override;
   u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
 private:
-  void vFlush(bool useDstAlpha) override;
+  void vFlush() override;
   std::vector<u8> LocalVBuffer;
   std::vector<u16> LocalIBuffer;
 

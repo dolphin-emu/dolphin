@@ -6,9 +6,9 @@
 
 #include "Core/DSP/DSPCommon.h"
 
-#define DSP_REG_MASK 0x1f
-
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 void Step();
 
@@ -146,4 +146,5 @@ void xorc(const UDSPInstruction opc);
 void xori(const UDSPInstruction opc);
 void xorr(const UDSPInstruction opc);
 
-}  // namespace
+}  // namespace Interpreter
+}  // namespace DSP

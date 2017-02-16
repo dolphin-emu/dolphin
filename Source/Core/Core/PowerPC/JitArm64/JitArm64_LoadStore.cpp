@@ -597,7 +597,7 @@ void JitArm64::dcbx(UGeckoInstruction inst)
   AND(value, addr, 32 - 10, 28 - 10);  // upper three bits and last 10 bit are masked for the bitset
                                        // of cachelines, 0x1ffffc00
   LSR(value, value, 5 + 5);            // >> 5 for cache line size, >> 5 for width of bitset
-  MOVP2R(EncodeRegTo64(WA), jit->GetBlockCache()->GetBlockBitSet());
+  MOVP2R(EncodeRegTo64(WA), GetBlockCache()->GetBlockBitSet());
   LDR(value, EncodeRegTo64(WA), ArithOption(EncodeRegTo64(value), true));
 
   LSR(addr, addr, 5);  // mask sizeof cacheline, & 0x1f is the position within the bitset
@@ -655,7 +655,10 @@ void JitArm64::dcbz(UGeckoInstruction inst)
 {
   INSTRUCTION_START
   JITDISABLE(bJITLoadStoreOff);
+  if (SConfig::GetInstance().bDCBZOFF)
+    return;
   FALLBACK_IF(jo.memcheck);
+  FALLBACK_IF(SConfig::GetInstance().bLowDCBZHack);
 
   int a = inst.RA, b = inst.RB;
 
@@ -672,7 +675,7 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     {
       // full imm_addr
       u32 imm_addr = gpr.GetImm(b) + gpr.GetImm(a);
-      MOVI2R(addr_reg, imm_addr);
+      MOVI2R(addr_reg, imm_addr & ~31);
     }
     else if (is_imm_a || is_imm_b)
     {
@@ -680,11 +683,13 @@ void JitArm64::dcbz(UGeckoInstruction inst)
       ARM64Reg base = is_imm_a ? gpr.R(b) : gpr.R(a);
       u32 imm_offset = is_imm_a ? gpr.GetImm(a) : gpr.GetImm(b);
       ADDI2R(addr_reg, base, imm_offset, addr_reg);
+      ANDI2R(addr_reg, addr_reg, ~31);
     }
     else
     {
       // Both are registers
       ADD(addr_reg, gpr.R(a), gpr.R(b));
+      ANDI2R(addr_reg, addr_reg, ~31);
     }
   }
   else
@@ -693,11 +698,11 @@ void JitArm64::dcbz(UGeckoInstruction inst)
     if (gpr.IsImm(b))
     {
       u32 imm_addr = gpr.GetImm(b);
-      MOVI2R(addr_reg, imm_addr);
+      MOVI2R(addr_reg, imm_addr & ~31);
     }
     else
     {
-      MOV(addr_reg, gpr.R(b));
+      ANDI2R(addr_reg, gpr.R(b), ~31);
     }
   }
 

@@ -5,6 +5,7 @@
 #pragma once
 
 #include <d3d11.h>
+#include "Common/CommonTypes.h"
 
 namespace DX11
 {

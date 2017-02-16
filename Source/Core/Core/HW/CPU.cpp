@@ -87,13 +87,13 @@ void Run()
       // SingleStep so that the "continue", "step over" and "step out" debugger functions
       // work when the PC is at a breakpoint at the beginning of the block
       // If watchpoints are enabled, any instruction could be a breakpoint.
-      if (PowerPC::GetMode() != PowerPC::MODE_INTERPRETER)
+      if (PowerPC::GetMode() != PowerPC::CoreMode::Interpreter)
       {
         if (PowerPC::breakpoints.IsAddressBreakPoint(PC) || PowerPC::memchecks.HasAny())
         {
           s_state = CPU_STEPPING;
           PowerPC::CoreMode old_mode = PowerPC::GetMode();
-          PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+          PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
           PowerPC::SingleStep();
           PowerPC::SetMode(old_mode);
           s_state = CPU_RUNNING;

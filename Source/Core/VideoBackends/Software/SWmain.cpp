@@ -4,6 +4,7 @@
 
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "Common/CommonTypes.h"
 
@@ -53,8 +54,8 @@ public:
   {
   }
   void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-               bool isIntensity, bool scaleByHalf) override
+               u32 memory_stride, bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
+               bool scaleByHalf) override
   {
     EfbCopy::CopyEfb();
   }
@@ -65,8 +66,8 @@ private:
     TCacheEntry(const TCacheEntryConfig& _config) : TCacheEntryBase(_config) {}
     ~TCacheEntry() {}
     void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) override {}
-    void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat, const EFBRectangle& srcRect,
-                          bool scaleByHalf, unsigned int cbufid, const float* colmat) override
+    void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
+                          unsigned int cbufid, const float* colmat) override
     {
       EfbCopy::CopyEfb();
     }
@@ -101,7 +102,8 @@ class FramebufferManager : public FramebufferManagerBase
   {
     return std::make_unique<XFBSource>();
   }
-  void GetTargetSize(unsigned int* width, unsigned int* height) override{};
+
+  std::pair<u32, u32> GetTargetSize() const override { return std::make_pair(0, 0); }
   void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
                      float Gamma = 1.0f) override
   {

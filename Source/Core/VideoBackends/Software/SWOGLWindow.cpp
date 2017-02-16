@@ -55,7 +55,7 @@ void SWOGLWindow::Prepare()
                             "out vec4 ColorOut;\n"
                             "uniform sampler2D Texture;\n"
                             "void main() {\n"
-                            "	ColorOut = texture2D(Texture, TexCoord);\n"
+                            "	ColorOut = texture(Texture, TexCoord);\n"
                             "}\n";
 
   std::string vertex_shader = "out vec2 TexCoord;\n"

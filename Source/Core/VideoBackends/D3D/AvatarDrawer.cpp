@@ -6,6 +6,7 @@
 #include "Common/FileUtil.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "SOIL/SOIL.h"
 #include "VideoBackends/D3D/D3DBase.h"
 #include "VideoBackends/D3D/D3DBlob.h"

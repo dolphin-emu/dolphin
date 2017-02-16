@@ -4,7 +4,7 @@
 
 #include "Core/PowerPC/Jit64Common/FarCodeCache.h"
 
-void FarCodeCache::Init(int size)
+void FarCodeCache::Init(size_t size)
 {
   AllocCodeSpace(size);
   m_enabled = true;

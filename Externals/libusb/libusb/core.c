@@ -53,13 +53,7 @@ const struct usbi_os_backend * const usbi_backend = &openbsd_backend;
 #elif defined(OS_NETBSD)
 const struct usbi_os_backend * const usbi_backend = &netbsd_backend;
 #elif defined(OS_WINDOWS)
-
-#if defined(USE_USBDK)
-const struct usbi_os_backend * const usbi_backend = &usbdk_backend;
-#else
-const struct usbi_os_backend * const usbi_backend = &windows_backend;
-#endif
-
+const struct usbi_os_backend * usbi_backend;
 #elif defined(OS_WINCE)
 const struct usbi_os_backend * const usbi_backend = &wince_backend;
 #elif defined(OS_HAIKU)
@@ -628,6 +622,26 @@ static struct discovered_devs *discovered_devs_alloc(void)
 	}
 	return ret;
 }
+
+#ifdef OS_WINDOWS
+static int is_usbdk_driver_installed(void)
+{
+	int usbdk_installed = 0;
+
+	SC_HANDLE managerHandle = OpenSCManager(NULL, NULL, SC_MANAGER_CONNECT);
+	if (managerHandle)
+	{
+		SC_HANDLE serviceHandle = OpenService(managerHandle, TEXT("UsbDk"), GENERIC_READ);
+		if (serviceHandle)
+		{
+			usbdk_installed = 1;
+			CloseServiceHandle(serviceHandle);
+		}
+		CloseServiceHandle(managerHandle);
+	}
+	return usbdk_installed;
+}
+#endif
 
 static void discovered_devs_free(struct discovered_devs *discdevs)
 {
@@ -2066,6 +2080,19 @@ int API_EXPORTED libusb_init(libusb_context **context)
 	struct libusb_context *ctx;
 	static int first_init = 1;
 	int r = 0;
+
+#ifdef OS_WINDOWS
+	if (is_usbdk_driver_installed())
+	{
+		usbi_backend = &usbdk_backend;
+		usbi_dbg("libusb will work with UsbDk backend");
+	}
+	else
+	{
+		usbi_backend = &windows_backend;
+		usbi_dbg("libusb will work with windows_backend");
+	}
+#endif
 
 	usbi_mutex_static_lock(&default_context_lock);
 

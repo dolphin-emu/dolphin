@@ -13,7 +13,9 @@
 #include "Core/DSP/DSPMemoryMap.h"
 #include "Core/DSP/DSPTables.h"
 
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 namespace
 {
@@ -23,10 +25,7 @@ void ExecuteInstruction(const UDSPInstruction inst)
 
   if (opcode_template->extended)
   {
-    if ((inst >> 12) == 0x3)
-      extOpTable[inst & 0x7F]->intFunc(inst);
-    else
-      extOpTable[inst & 0xFF]->intFunc(inst);
+    GetExtOpTemplate(inst)->intFunc(inst);
   }
 
   opcode_template->intFunc(inst);
@@ -100,7 +99,7 @@ void Step()
   u16 opc = dsp_fetch_code();
   ExecuteInstruction(UDSPInstruction(opc));
 
-  if (DSPAnalyzer::code_flags[static_cast<u16>(g_dsp.pc - 1u)] & DSPAnalyzer::CODE_LOOP_END)
+  if (Analyzer::GetCodeFlags(static_cast<u16>(g_dsp.pc - 1u)) & Analyzer::CODE_LOOP_END)
     HandleLoop();
 }
 
@@ -135,7 +134,7 @@ int RunCyclesDebug(int cycles)
       return 0;
     if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
     {
-      DSPCore_SetState(DSPCORE_STEPPING);
+      DSPCore_SetState(State::Stepping);
       return cycles;
     }
     Step();
@@ -154,11 +153,11 @@ int RunCyclesDebug(int cycles)
         return 0;
       if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
       {
-        DSPCore_SetState(DSPCORE_STEPPING);
+        DSPCore_SetState(State::Stepping);
         return cycles;
       }
       // Idle skipping.
-      if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+      if (Analyzer::GetCodeFlags(g_dsp.pc) & Analyzer::CODE_IDLE_SKIP)
         return 0;
       Step();
       cycles--;
@@ -171,7 +170,7 @@ int RunCyclesDebug(int cycles)
     {
       if (g_dsp_breakpoints.IsAddressBreakPoint(g_dsp.pc))
       {
-        DSPCore_SetState(DSPCORE_STEPPING);
+        DSPCore_SetState(State::Stepping);
         return cycles;
       }
       Step();
@@ -208,7 +207,7 @@ int RunCycles(int cycles)
       if (g_dsp.cr & CR_HALT)
         return 0;
       // Idle skipping.
-      if (DSPAnalyzer::code_flags[g_dsp.pc] & DSPAnalyzer::CODE_IDLE_SKIP)
+      if (Analyzer::GetCodeFlags(g_dsp.pc) & Analyzer::CODE_IDLE_SKIP)
         return 0;
       Step();
       cycles--;
@@ -238,4 +237,5 @@ void nop(const UDSPInstruction opc)
   ERROR_LOG(DSPLLE, "LLE: Unrecognized opcode 0x%04x", opc);
 }
 
-}  // namespace
+}  // namespace Interpreter
+}  // namespace DSP

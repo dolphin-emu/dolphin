@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/VertexManagerBase.h"
+
 #include <memory>
 
 #include "Common/BitSet.h"
@@ -25,8 +27,8 @@
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/VertexLoaderManager.h"
-#include "VideoCommon/VertexManagerBase.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -109,22 +111,22 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
   {
     switch (primitive)
     {
-    case GX_DRAW_QUADS:
-    case GX_DRAW_QUADS_2:
+    case OpcodeDecoder::GX_DRAW_QUADS:
+    case OpcodeDecoder::GX_DRAW_QUADS_2:
       return index_len / 5 * 4;
-    case GX_DRAW_TRIANGLES:
+    case OpcodeDecoder::GX_DRAW_TRIANGLES:
       return index_len / 4 * 3;
-    case GX_DRAW_TRIANGLE_STRIP:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
       return index_len / 1 - 1;
-    case GX_DRAW_TRIANGLE_FAN:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
       return index_len / 6 * 4 + 1;
 
-    case GX_DRAW_LINES:
+    case OpcodeDecoder::GX_DRAW_LINES:
       return index_len;
-    case GX_DRAW_LINE_STRIP:
+    case OpcodeDecoder::GX_DRAW_LINE_STRIP:
       return index_len / 2 + 1;
 
-    case GX_DRAW_POINTS:
+    case OpcodeDecoder::GX_DRAW_POINTS:
       return index_len;
 
     default:
@@ -135,22 +137,22 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
   {
     switch (primitive)
     {
-    case GX_DRAW_QUADS:
-    case GX_DRAW_QUADS_2:
+    case OpcodeDecoder::GX_DRAW_QUADS:
+    case OpcodeDecoder::GX_DRAW_QUADS_2:
       return index_len / 6 * 4;
-    case GX_DRAW_TRIANGLES:
+    case OpcodeDecoder::GX_DRAW_TRIANGLES:
       return index_len;
-    case GX_DRAW_TRIANGLE_STRIP:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_STRIP:
       return index_len / 3 + 2;
-    case GX_DRAW_TRIANGLE_FAN:
+    case OpcodeDecoder::GX_DRAW_TRIANGLE_FAN:
       return index_len / 3 + 2;
 
-    case GX_DRAW_LINES:
+    case OpcodeDecoder::GX_DRAW_LINES:
       return index_len;
-    case GX_DRAW_LINE_STRIP:
+    case OpcodeDecoder::GX_DRAW_LINE_STRIP:
       return index_len / 2 + 1;
 
-    case GX_DRAW_POINTS:
+    case OpcodeDecoder::GX_DRAW_POINTS:
       return index_len;
 
     default:
@@ -257,12 +259,9 @@ void VertexManagerBase::Flush()
     GeometryShaderManager::SetConstants();
     PixelShaderManager::SetConstants();
 
-    bool useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
-                       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-
     if (PerfQueryBase::ShouldEmulate())
       g_perf_query->EnableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
-    g_vertex_manager->vFlush(useDstAlpha);
+    g_vertex_manager->vFlush();
     if (PerfQueryBase::ShouldEmulate())
       g_perf_query->DisableQuery(bpmem.zcontrol.early_ztest ? PQG_ZCOMP_ZCOMPLOC : PQG_ZCOMP);
   }

@@ -7,6 +7,7 @@
 #include <limits>
 #include <memory>
 #include <string>
+#include <utility>
 
 #include "Common/CDUtils.h"
 #include "Common/CommonTypes.h"
@@ -177,23 +178,31 @@ std::unique_ptr<IBlobReader> CreateBlobReader(const std::string& filename)
   if (cdio_is_cdrom(filename))
     return DriveReader::Create(filename);
 
-  if (!File::Exists(filename))
+  File::IOFile file(filename, "rb");
+  u32 magic;
+  if (!file.ReadArray(&magic, 1))
     return nullptr;
 
-  if (IsWbfsBlob(filename))
-    return WbfsFileReader::Create(filename);
+  // Conveniently, every supported file format (except for plain disc images) starts
+  // with a 4-byte magic number that identifies the format, so we just need a simple
+  // switch statement to create the right blob type. If the magic number doesn't
+  // match any known magic number, we assume it's a plain disc image. If that
+  // assumption is wrong, the volume code that runs later will notice the error
+  // because the blob won't provide valid data when reading the GC/Wii disc header.
 
-  if (IsGCZBlob(filename))
-    return CompressedBlobReader::Create(filename);
-
-  if (IsCISOBlob(filename))
-    return CISOFileReader::Create(filename);
-
-  if (IsTGCBlob(filename))
-    return TGCFileReader::Create(filename);
-
-  // Still here? Assume plain file - since we know it exists due to the File::Exists check above.
-  return PlainFileReader::Create(filename);
+  switch (magic)
+  {
+  case CISO_MAGIC:
+    return CISOFileReader::Create(std::move(file));
+  case GCZ_MAGIC:
+    return CompressedBlobReader::Create(std::move(file), filename);
+  case TGC_MAGIC:
+    return TGCFileReader::Create(std::move(file));
+  case WBFS_MAGIC:
+    return WbfsFileReader::Create(std::move(file), filename);
+  default:
+    return PlainFileReader::Create(std::move(file));
+  }
 }
 
 }  // namespace

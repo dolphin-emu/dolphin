@@ -60,9 +60,10 @@ public:
     u64 base_hash;
     u64 hash;    // for paletted textures, hash = base_hash ^ palette_hash
     u32 format;  // bits 0-3 will contain the in-memory format.
+    u32 memory_stride;
     bool is_efb_copy;
     bool is_custom_tex;
-    u32 memory_stride;
+    bool may_have_overlapping_textures;
 
     unsigned int native_width,
         native_height;  // Texture dimensions from the GameCube's point of view
@@ -131,8 +132,7 @@ public:
                                           const MathUtil::Rectangle<int>& dstrect) = 0;
 
     virtual void Load(const u8* buffer, u32 width, u32 height, u32 expanded_width, u32 level) = 0;
-    virtual void FromRenderTarget(u8* dst, PEControl::PixelFormat srcFormat,
-                                  const EFBRectangle& srcRect, bool scaleByHalf,
+    virtual void FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect, bool scaleByHalf,
                                   unsigned int cbufid, const float* colmat) = 0;
 
     bool OverlapsMemoryRange(u32 range_address, u32 range_size) const;
@@ -157,8 +157,8 @@ public:
   virtual TCacheEntryBase* CreateTexture(const TCacheEntryConfig& config) = 0;
 
   virtual void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                       u32 memory_stride, PEControl::PixelFormat srcFormat,
-                       const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf) = 0;
+                       u32 memory_stride, bool is_depth_copy, const EFBRectangle& srcRect,
+                       bool isIntensity, bool scaleByHalf) = 0;
 
   virtual bool CompileShaders() = 0;
   virtual void DeleteShaders() = 0;
@@ -167,9 +167,8 @@ public:
   void UnbindTextures();
   virtual void BindTextures();
   void CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFormat, u32 dstStride,
-                                 PEControl::PixelFormat srcFormat, const EFBRectangle& gameSrcRect,
-                       const EFBRectangle& ourSrcRect,
-                                 bool isIntensity, bool scaleByHalf);
+                                 bool is_depth_copy, const EFBRectangle& gameSrcRect, const EFBRectangle& ourSrcRect, bool isIntensity,
+                                 bool scaleByHalf);
 
   virtual void ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* unconverted, void* palette,
                               TlutFormat format) = 0;
@@ -202,6 +201,11 @@ private:
   TCacheEntryBase* AllocateTexture(const TCacheEntryConfig& config);
   TexPool::iterator FindMatchingTextureFromPool(const TCacheEntryConfig& config);
   TexAddrCache::iterator GetTexCacheIter(TCacheEntryBase* entry);
+
+  // Return all possible overlapping textures. As addr+size of the textures is not
+  // indexed, this may return false positives.
+  std::pair<TexAddrCache::iterator, TexAddrCache::iterator>
+  FindOverlappingTextures(u32 addr, u32 size_in_bytes);
 
   // Removes and unlinks texture from texture cache and returns it to the pool
   TexAddrCache::iterator InvalidateTexture(TexAddrCache::iterator t_iter);

@@ -8,11 +8,8 @@
 #include <memory>
 #include <utility>
 
+#include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
-
-#include "VideoBackends/OGL/FramebufferManager.h"
-
-#include "VideoCommon/VideoCommon.h"
 
 namespace OGL
 {

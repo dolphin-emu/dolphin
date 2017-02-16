@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D12/D3DUtil.h"
+
 #include <cctype>
 #include <list>
 #include <memory>
@@ -16,11 +18,10 @@
 #include "VideoBackends/D3D12/D3DState.h"
 #include "VideoBackends/D3D12/D3DStreamBuffer.h"
 #include "VideoBackends/D3D12/D3DTexture.h"
-#include "VideoBackends/D3D12/D3DUtil.h"
-
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/Render.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace DX12
 {
@@ -860,9 +861,19 @@ void DrawEFBPokeQuads(EFBAccessType type, const EfbPokeData* points, size_t num_
       float y1 = -float(point->y) * 2.0f / EFB_HEIGHT + 1.0f;
       float x2 = float(point->x + 1) * 2.0f / EFB_WIDTH - 1.0f;
       float y2 = -float(point->y + 1) * 2.0f / EFB_HEIGHT + 1.0f;
-      float z = (type == POKE_Z) ? (1.0f - float(point->data & 0xFFFFFF) / 16777216.0f) : 0.0f;
-      u32 col = (type == POKE_Z) ? 0 : ((point->data & 0xFF00FF00) | ((point->data >> 16) & 0xFF) |
-                                        ((point->data << 16) & 0xFF0000));
+      float z = 0.0f;
+      u32 col = 0;
+
+      if (type == EFBAccessType::PokeZ)
+      {
+        z = 1.0f - static_cast<float>(point->data & 0xFFFFFF) / 16777216.0f;
+      }
+      else
+      {
+        col = ((point->data & 0xFF00FF00) | ((point->data >> 16) & 0xFF) |
+               ((point->data << 16) & 0xFF0000));
+      }
+
       current_point_index++;
 
       // quad -> triangles
@@ -874,9 +885,9 @@ void DrawEFBPokeQuads(EFBAccessType type, const EfbPokeData* points, size_t num_
       InitColVertex(&vertex[4], x2, y1, z, col);
       InitColVertex(&vertex[5], x2, y2, z, col);
 
-      if (type == POKE_COLOR)
+      if (type == EFBAccessType::PokeColor)
         FramebufferManager::UpdateEFBColorAccessCopy(point->x, point->y, col);
-      else if (type == POKE_Z)
+      else if (type == EFBAccessType::PokeZ)
         FramebufferManager::UpdateEFBDepthAccessCopy(point->x, point->y, z);
     }
 

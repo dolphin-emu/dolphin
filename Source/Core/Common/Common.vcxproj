@@ -44,8 +44,8 @@
     <ClInclude Include="Atomic_Win32.h" />
     <ClInclude Include="BitField.h" />
     <ClInclude Include="BitSet.h" />
+    <ClInclude Include="BitUtils.h" />
     <ClInclude Include="BlockingLoop.h" />
-    <ClInclude Include="BreakPoints.h" />
     <ClInclude Include="CDUtils.h" />
     <ClInclude Include="ChunkFile.h" />
     <ClInclude Include="CodeBlock.h" />
@@ -114,6 +114,7 @@
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
+    <ClInclude Include="LibusbContext.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="MD5.h" />
@@ -147,7 +148,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Analytics.cpp" />
-    <ClCompile Include="BreakPoints.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
@@ -161,6 +161,9 @@
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="JitRegister.cpp" />
+    <ClCompile Include="LibusbContext.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MD5.cpp" />

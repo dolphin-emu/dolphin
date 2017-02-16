@@ -23,12 +23,12 @@
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_real.h"
+#include "Core/IOS/IPC.h"
+#include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "DolphinWX/ControllerConfigDiag.h"
@@ -88,7 +88,7 @@ void ControllerConfigDiag::UpdateUI()
     m_wiimote_sources[i]->Select(g_wiimote_sources[i]);
 
     const bool wii_game_started =
-        SConfig::GetInstance().bWii || Core::GetState() == Core::CORE_UNINITIALIZED;
+        SConfig::GetInstance().bWii || Core::GetState() == Core::State::Uninitialized;
     if (Core::g_want_determinism || !wii_game_started)
       m_wiimote_sources[i]->Disable();
     if (!wii_game_started ||
@@ -527,9 +527,9 @@ void ControllerConfigDiag::OnPassthroughScanButton(wxCommandEvent& event)
                  _("Sync Wii Remotes"), wxICON_WARNING);
     return;
   }
-  auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
+  auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
   if (device != nullptr)
-    std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
+    std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)
         ->TriggerSyncButtonPressedEvent();
 }
 
@@ -541,10 +541,9 @@ void ControllerConfigDiag::OnPassthroughResetButton(wxCommandEvent& event)
                  _("Reset Wii Remote pairings"), wxICON_WARNING);
     return;
   }
-  auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
+  auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
   if (device != nullptr)
-    std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
-        ->TriggerSyncButtonHeldEvent();
+    std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->TriggerSyncButtonHeldEvent();
 }
 
 void ControllerConfigDiag::OnBalanceBoardChanged(wxCommandEvent& event)

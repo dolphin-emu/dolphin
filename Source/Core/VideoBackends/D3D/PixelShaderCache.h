@@ -9,8 +9,6 @@
 
 #include "VideoCommon/PixelShaderGen.h"
 
-enum DSTALPHA_MODE;
-
 namespace DX11
 {
 class PixelShaderCache
@@ -19,7 +17,7 @@ public:
   static void Init();
   static void Clear();
   static void Shutdown();
-  static bool SetShader(DSTALPHA_MODE dstAlphaMode);  // TODO: Should be renamed to LoadShader
+  static bool SetShader();  // TODO: Should be renamed to LoadShader
   static bool InsertByteCode(const PixelShaderUid& uid, const void* bytecode,
                              unsigned int bytecodelen);
 

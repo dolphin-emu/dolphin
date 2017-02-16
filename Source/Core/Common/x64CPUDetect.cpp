@@ -12,6 +12,8 @@
 #ifndef _WIN32
 
 #ifdef __FreeBSD__
+#include <unistd.h>
+
 #include <machine/cpufunc.h>
 #include <sys/types.h>
 #endif

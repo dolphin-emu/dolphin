@@ -7,12 +7,9 @@
 #include <cstdlib>
 #include <string>
 
-namespace DiscIO
-{
-enum class Country;
-}
+#include "Common/CommonTypes.h"
 
-struct CountrySetting
+struct RegionSetting
 {
   const std::string area;
   const std::string video;
@@ -40,6 +37,7 @@ public:
   // Returns true if a map file exists, false if none could be found.
   static bool FindMapFile(std::string* existing_map_file, std::string* writable_map_file,
                           std::string* title_id = nullptr);
+  static bool LoadMapFromFilename();
 
 private:
   static bool DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt);
@@ -47,7 +45,6 @@ private:
 
   static void UpdateDebugger_MapLoaded();
 
-  static bool LoadMapFromFilename();
   static bool Boot_ELF(const std::string& filename);
   static bool Boot_WiiWAD(const std::string& filename);
 
@@ -57,5 +54,5 @@ private:
   static bool Load_BS2(const std::string& _rBootROMFilename);
   static void Load_FST(bool _bIsWii);
 
-  static bool SetupWiiMemory(DiscIO::Country country);
+  static bool SetupWiiMemory(u64 ios_title_id);
 };

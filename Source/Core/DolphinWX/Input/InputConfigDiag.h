@@ -23,10 +23,10 @@
 #include <wx/spinctrl.h>
 #include <wx/timer.h>
 
-#include "InputCommon/ControllerEmu.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
+class ControlReference;
 class DolphinSlider;
 class InputConfig;
 class wxComboBox;
@@ -35,10 +35,17 @@ class wxStaticBitmap;
 class wxStaticText;
 class wxTextCtrl;
 
+namespace ControllerEmu
+{
+class EmulatedController;
+class Extension;
+}
+
 class PadSetting
 {
 protected:
-  PadSetting(wxControl* const _control) : wxcontrol(_control) { wxcontrol->SetClientData(this); }
+  PadSetting(wxControl* const _control);
+
 public:
   virtual void UpdateGUI() = 0;
   virtual void UpdateValue() = 0;
@@ -82,19 +89,14 @@ public:
 class InputEventFilter : public wxEventFilter
 {
 public:
-  InputEventFilter() { wxEvtHandler::AddFilter(this); }
-  ~InputEventFilter() { wxEvtHandler::RemoveFilter(this); }
+  InputEventFilter();
+  ~InputEventFilter();
   int FilterEvent(wxEvent& event) override;
 
-  void BlockEvents(bool block) { m_block = block; }
+  void BlockEvents(bool block);
+
 private:
-  static bool ShouldCatchEventType(wxEventType type)
-  {
-    return type == wxEVT_KEY_DOWN || type == wxEVT_KEY_UP || type == wxEVT_CHAR ||
-           type == wxEVT_CHAR_HOOK || type == wxEVT_LEFT_DOWN || type == wxEVT_LEFT_UP ||
-           type == wxEVT_MIDDLE_DOWN || type == wxEVT_MIDDLE_UP || type == wxEVT_RIGHT_DOWN ||
-           type == wxEVT_RIGHT_UP;
-  }
+  static bool ShouldCatchEventType(wxEventType type);
 
   bool m_block = false;
 };
@@ -104,14 +106,13 @@ class InputConfigDialog;
 class ControlDialog : public wxDialog
 {
 public:
-  ControlDialog(InputConfigDialog* const parent, InputConfig& config,
-                ControllerInterface::ControlReference* const ref);
+  ControlDialog(InputConfigDialog* const parent, InputConfig& config, ControlReference* const ref);
 
   bool Validate() override;
 
   int GetRangeSliderValue() const;
 
-  ControllerInterface::ControlReference* const control_reference;
+  ControlReference* const control_reference;
   InputConfig& m_config;
 
 private:
@@ -148,21 +149,17 @@ private:
 class ExtensionButton : public wxButton
 {
 public:
-  ExtensionButton(wxWindow* const parent, ControllerEmu::Extension* const ext)
-      : wxButton(parent, wxID_ANY, _("Configure"), wxDefaultPosition), extension(ext)
-  {
-  }
-
+  ExtensionButton(wxWindow* const parent, ControllerEmu::Extension* const ext);
   ControllerEmu::Extension* const extension;
 };
 
 class ControlButton : public wxButton
 {
 public:
-  ControlButton(wxWindow* const parent, ControllerInterface::ControlReference* const _ref,
-                const std::string& name, const unsigned int width, const std::string& label = {});
+  ControlButton(wxWindow* const parent, ControlReference* const _ref, const std::string& name,
+                const unsigned int width, const std::string& label = {});
 
-  ControllerInterface::ControlReference* const control_reference;
+  ControlReference* const control_reference;
   const std::string m_name;
 
 protected:
@@ -178,11 +175,7 @@ public:
                   InputConfigDialog* eventsink);
   ~ControlGroupBox();
 
-  bool HasBitmapHeading() const
-  {
-    return control_group->type == GROUP_TYPE_STICK || control_group->type == GROUP_TYPE_TILT ||
-           control_group->type == GROUP_TYPE_CURSOR || control_group->type == GROUP_TYPE_FORCE;
-  }
+  bool HasBitmapHeading() const;
 
   std::vector<PadSetting*> options;
 
@@ -235,7 +228,7 @@ public:
   void AdjustBooleanSetting(wxCommandEvent& event);
 
   void GetProfilePath(std::string& path);
-  ControllerEmu* GetController() const;
+  ControllerEmu::EmulatedController* GetController() const;
 
   wxComboBox* profile_cbox = nullptr;
   wxComboBox* device_cbox = nullptr;
@@ -250,7 +243,7 @@ protected:
   wxBoxSizer* CreateProfileChooserGroupBox();
   wxSizer* CreateTextureChooserAndButtonBar();
 
-  ControllerEmu* const controller;
+  ControllerEmu::EmulatedController* const controller;
 
   wxTimer m_update_timer;
 

@@ -1,3 +1,6 @@
+find_package(Qt5Widgets REQUIRED)
+message(STATUS "Found Qt version ${Qt5Core_VERSION}")
+
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_definitions(-DQT_USE_QSTRINGBUILDER -DQT_NO_CAST_FROM_ASCII -DQT_NO_CAST_TO_ASCII)
@@ -29,6 +32,10 @@ set(SRCS
 
 list(APPEND LIBS core uicommon)
 
+if(WIN32)
+	list(APPEND SRCS DolphinQt2.manifest)
+endif()
+
 set(DOLPHINQT2_BINARY dolphin-emu-qt2)
 
 add_executable(${DOLPHINQT2_BINARY} ${SRCS} ${UI_HEADERS})
@@ -46,41 +53,29 @@ if(APPLE)
 		MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/Info.plist.in
 		)
 
-	# get rid of any old copies
-	file (REMOVE_RECURSE ${BUNDLE_PATH}/Contents/Resources/Sys)
-	if(NOT SKIP_POSTPROCESS_BUNDLE)
-		# Fix up the bundle after it is finished.
-		# There does not seem to be an easy way to run CMake commands post-build,
-		# so we invoke CMake again on a generated script.
-		file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/postprocess_bundle.cmake "
-			include(BundleUtilities)
-			message(\"Fixing up application bundle: ${BUNDLE_PATH}\")
-			message(\"(Note: This is only necessary to produce a redistributable binary.\")
-			message(\"To skip, pass -DSKIP_POSTPROCESS_BUNDLE=1 to cmake.)\")
-			set(BU_CHMOD_BUNDLE_ITEMS ON)
-			execute_process(
-				COMMAND ${CMAKE_SOURCE_DIR}/Tools/deploy-mac.py -p platforms/libqcocoa.dylib \"${BUNDLE_PATH}\"
-				RESULT_VARIABLE retcode
-			)
-			if(NOT \${retcode} EQUAL 0)
-				message(FATAL_ERROR \"Error when postprocessing bundle (return code: \${retcode}).\")
-			endif()
-			file(INSTALL ${CMAKE_SOURCE_DIR}/Data/Sys
-				DESTINATION ${BUNDLE_PATH}/Contents/Resources
-				)
-			")
-		add_custom_command(TARGET ${DOLPHINQT2_BINARY} POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -P postprocess_bundle.cmake
-			)
-	else()
-		add_custom_command(OUTPUT ${BUNDLE_PATH}/Contents/Resources/Sys
-			COMMAND ln -nfs ${CMAKE_SOURCE_DIR}/Data/Sys ${BUNDLE_PATH}/Contents/Resources/Sys
-			VERBATIM
-			)
-		add_custom_target(CopyDataIntoBundleQt ALL
-			DEPENDS ${BUNDLE_PATH}/Contents/Resources/Sys
-			)
-	endif()
+	# Copy qt.conf into the bundle
+	target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_CURRENT_SOURCE_DIR}/qt.conf")
+	set_source_files_properties("${CMAKE_CURRENT_SOURCE_DIR}/qt.conf" PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
+
+	# Copy Qt plugins into the bundle
+	get_target_property(qtcocoa_location Qt5::QCocoaIntegrationPlugin LOCATION)
+	target_sources(${DOLPHINQT2_BINARY} PRIVATE "${qtcocoa_location}")
+	set_source_files_properties("${qtcocoa_location}" PROPERTIES MACOSX_PACKAGE_LOCATION MacOS/platforms)
+
+	# Copy resources into the bundle
+	set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${CMAKE_SOURCE_DIR}/Data/Sys")
+	file(GLOB_RECURSE resources RELATIVE "${CMAKE_SOURCE_DIR}/Data" "${CMAKE_SOURCE_DIR}/Data/Sys/*")
+	foreach(res ${resources})
+		target_sources(${DOLPHINQT2_BINARY} PRIVATE "${CMAKE_SOURCE_DIR}/Data/${res}")
+		get_filename_component(resdir "${res}" DIRECTORY)
+		set_source_files_properties("${CMAKE_SOURCE_DIR}/Data/${res}" PROPERTIES
+			MACOSX_PACKAGE_LOCATION "Resources/${resdir}")
+		source_group("Resources" FILES "${CMAKE_SOURCE_DIR}/Data/${res}")
+	endforeach()
+
+	# Update library references to make the bundle portable
+	include(DolphinPostprocessBundle)
+	dolphin_postprocess_bundle(${DOLPHINQT2_BINARY})
 else()
 	install(TARGETS ${DOLPHINQT2_BINARY} RUNTIME DESTINATION ${bindir})
 endif()

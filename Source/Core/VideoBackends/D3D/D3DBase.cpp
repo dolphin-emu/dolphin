@@ -15,6 +15,8 @@
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VideoConfig.h"
 
+extern LUID* g_hmd_luid;
+
 namespace DX11
 {
 HINSTANCE hD3DCompilerDll = nullptr;

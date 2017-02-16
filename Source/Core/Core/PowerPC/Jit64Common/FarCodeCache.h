@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <cstddef>
 #include "Common/x64Emitter.h"
 
 #if defined(_MSC_VER) && _MSC_VER <= 1800
@@ -14,15 +15,15 @@
 #endif
 // a bit of a hack; the MMU results in a vast amount more code ending up in the far cache,
 // mostly exception handling, so give it a whole bunch more space if the MMU is on.
-CONSTEXPR(int, FARCODE_SIZE, 1024 * 1024 * 8);
-CONSTEXPR(int, FARCODE_SIZE_MMU, 1024 * 1024 * 48);
+CONSTEXPR(size_t, FARCODE_SIZE, 1024 * 1024 * 8);
+CONSTEXPR(size_t, FARCODE_SIZE_MMU, 1024 * 1024 * 48);
 
 // A place to throw blocks of code we don't want polluting the cache, e.g. rarely taken
 // exception branches.
 class FarCodeCache : public Gen::X64CodeBlock
 {
 public:
-  void Init(int size);
+  void Init(size_t size);
   void Shutdown();
 
   bool Enabled() const;

@@ -7,7 +7,9 @@
 #include "AudioCommon/AudioCommon.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 
 //#define WIIMOTE_SPEAKER_DUMP
 #ifdef WIIMOTE_SPEAKER_DUMP
@@ -110,7 +112,7 @@ void Wiimote::SpeakerData(wm_speaker_data* sd)
   }
   else
   {
-    ERROR_LOG(WII_IPC_WIIMOTE, "Unknown speaker format %x", m_reg_speaker.format);
+    ERROR_LOG(IOS_WIIMOTE, "Unknown speaker format %x", m_reg_speaker.format);
     return;
   }
 

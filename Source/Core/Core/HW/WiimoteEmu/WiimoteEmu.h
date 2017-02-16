@@ -9,7 +9,7 @@
 
 #include "Core/HW/WiimoteEmu/Encryption.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "InputCommon/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 
 // Registry sizes
 #define WIIMOTE_EEPROM_SIZE (16 * 1024)
@@ -48,6 +48,17 @@ static const u8 mp_gyro_calib2[] = {
     0x71, 0x64, 0x88, 0x5a, 0x44, 0x22, 0x05, 0x00, 0x1e, 0xa9, 0xa5, 0x35, 0xf1, 0xd0, 0x0e, 0x06,
     0xa6, 0xe9, 0x9c, 0x6c, 0x4b, 0xa8, 0x2e, 0x1a, 0xac, 0x9a, 0x02, 0x17, 0x54, 0xe7, 0xba, 0x3e,
 };
+
+namespace ControllerEmu
+{
+class Buttons;
+class ControlGroup;
+class Cursor;
+class Extension;
+class Force;
+class ModifySettingsButton;
+class Tilt;
+}
 
 namespace WiimoteReal
 {
@@ -191,7 +202,7 @@ enum
   ACCEL_RANGE = (ACCEL_ONE_G - ACCEL_ZERO_G),
 };
 
-class Wiimote : public ControllerEmu
+class Wiimote : public ControllerEmu::EmulatedController
 {
   friend class WiimoteReal::Wiimote;
 
@@ -214,8 +225,8 @@ public:
 
   Wiimote(const unsigned int index);
   std::string GetName() const override;
-  ControlGroup* GetWiimoteGroup(WiimoteGroup group);
-  ControlGroup* GetNunchukGroup(NunchukGroup group);
+  ControllerEmu::ControlGroup* GetWiimoteGroup(WiimoteGroup group);
+  ControllerEmu::ControlGroup* GetNunchukGroup(NunchukGroup group);
   ControllerEmu::ControlGroup* GetClassicGroup(ClassicGroup group);
   ControllerEmu::ControlGroup* GetGuitarGroup(GuitarGroup group);
   ControllerEmu::ControlGroup* GetDrumsGroup(DrumsGroup group);
@@ -232,7 +243,8 @@ public:
 
   void LoadDefaults(const ControllerInterface& ciface) override;
 
-  int CurrentExtension() const { return m_extension->active_extension; }
+  int CurrentExtension() const;
+
   void CycleThroughExtensions();
 
 protected:
@@ -246,8 +258,9 @@ protected:
   void GetIRData(u8* const data, bool use_accel);
   void GetExtData(u8* const data);
 
-  bool HaveExtension() const { return m_extension->active_extension > 0; }
-  bool WantExtension() const { return m_extension->switch_extension != 0; }
+  bool HaveExtension() const;
+  bool WantExtension() const;
+
   bool GetMotionPlusAttached() const;
   bool GetMotionPlusActive() const;
 
@@ -269,14 +282,16 @@ private:
   bool NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size, u8 reporting_mode);
 
   // control groups
-  Buttons *m_buttons, *m_dpad, *m_shake;
-  Cursor* m_ir;
-  Tilt* m_tilt;
-  Force* m_swing;
-  ControlGroup* m_rumble;
-  Extension* m_extension;
-  ControlGroup* m_options;
-  ModifySettingsButton* m_hotkeys;
+  ControllerEmu::Buttons* m_buttons;
+  ControllerEmu::Buttons* m_dpad;
+  ControllerEmu::Buttons* m_shake;
+  ControllerEmu::Cursor* m_ir;
+  ControllerEmu::Tilt* m_tilt;
+  ControllerEmu::Force* m_swing;
+  ControllerEmu::ControlGroup* m_rumble;
+  ControllerEmu::Extension* m_extension;
+  ControllerEmu::ControlGroup* m_options;
+  ControllerEmu::ModifySettingsButton* m_hotkeys;
 
   // Wiimote accel data
   AccelData m_accel;

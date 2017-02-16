@@ -466,7 +466,7 @@ void JitIL::Trace()
 void JitIL::Jit(u32 em_address)
 {
   if (IsAlmostFull() || m_far_code.IsAlmostFull() || trampolines.IsAlmostFull() ||
-      blocks.IsFull() || SConfig::GetInstance().bJITNoBlockCache)
+      SConfig::GetInstance().bJITNoBlockCache)
   {
     ClearCache();
   }
@@ -507,9 +507,9 @@ void JitIL::Jit(u32 em_address)
     return;
   }
 
-  int block_num = blocks.AllocateBlock(em_address);
-  JitBlock* b = blocks.GetBlock(block_num);
-  blocks.FinalizeBlock(block_num, jo.enableBlocklink, DoJit(em_address, &code_buffer, b, nextPC));
+  JitBlock* b = blocks.AllocateBlock(em_address);
+  DoJit(em_address, &code_buffer, b, nextPC);
+  blocks.FinalizeBlock(*b, jo.enableBlocklink, code_block.m_physical_addresses);
 }
 
 const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock* b, u32 nextPC)
@@ -640,7 +640,7 @@ const u8* JitIL::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBloc
         ibuild.EmitBreakPointCheck(ibuild.EmitIntConst(ops[i].address));
       }
 
-      JitILTables::CompileInstruction(ops[i]);
+      JitILTables::CompileInstruction(*this, ops[i]);
 
       if (jo.memcheck && (opinfo->flags & FL_LOADSTORE))
       {

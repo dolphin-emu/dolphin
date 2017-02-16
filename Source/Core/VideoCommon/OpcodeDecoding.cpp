@@ -80,60 +80,6 @@ static void InterpretDisplayListPreprocess(u32 address, u32 size)
   }
 }
 
-static void UnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess, bool g_opcode_replay_frame,
-                          bool in_display_list, bool recursive_call)
-{
-  if (ARBruteForcer::ch_bruteforce)
-  {
-    Core::KillDolphinAndRestart();
-  }
-  else if (!s_bFifoErrorSeen)
-  {
-    // TODO(Omega): Maybe dump FIFO to file on this error
-    PanicAlert("GFX FIFO: Unknown Opcode (0x%02x @ %p, %s).\n"
-               "This means one of the following:\n"
-               "* The opcode replay buffer is enabled, which is currently buggy\n"
-               "* The emulated GPU got desynced, disabling dual core can help\n"
-               "* Command stream corrupted by some spurious memory bug\n"
-               "* This really is an unknown opcode (unlikely)\n"
-               "* Some other sort of bug\n\n"
-               "Further errors will be sent to the Video Backend log and\n"
-               "Dolphin will now likely crash or hang. \n"
-               "(timewarped_frame = %s, in_display_list=%s, recursive_call = %s).\n",
-               cmd_byte, buffer, preprocess ? "preprocess=true" : "preprocess=false",
-               g_opcode_replay_frame ? "yes" : "no", in_display_list ? "yes" : "no",
-               recursive_call ? "yes" : "no");
-
-    {
-      SCPFifoStruct& fifo = CommandProcessor::fifo;
-
-      PanicAlert("Illegal command %02x\n"
-                 "CPBase: 0x%08x\n"
-                 "CPEnd: 0x%08x\n"
-                 "CPHiWatermark: 0x%08x\n"
-                 "CPLoWatermark: 0x%08x\n"
-                 "CPReadWriteDistance: 0x%08x\n"
-                 "CPWritePointer: 0x%08x\n"
-                 "CPReadPointer: 0x%08x\n"
-                 "CPBreakpoint: 0x%08x\n"
-                 "bFF_GPReadEnable: %s\n"
-                 "bFF_BPEnable: %s\n"
-                 "bFF_BPInt: %s\n"
-                 "bFF_Breakpoint: %s\n"
-                 "bFF_GPLinkEnable: %s\n"
-                 "bFF_HiWatermarkInt: %s\n"
-                 "bFF_LoWatermarkInt: %s\n",
-                 cmd_byte, fifo.CPBase, fifo.CPEnd, fifo.CPHiWatermark, fifo.CPLoWatermark,
-                 fifo.CPReadWriteDistance, fifo.CPWritePointer, fifo.CPReadPointer,
-                 fifo.CPBreakpoint, fifo.bFF_GPReadEnable ? "true" : "false",
-                 fifo.bFF_BPEnable ? "true" : "false", fifo.bFF_BPInt ? "true" : "false",
-                 fifo.bFF_Breakpoint ? "true" : "false", fifo.bFF_GPLinkEnable ? "true" : "false",
-                 fifo.bFF_HiWatermarkInt ? "true" : "false",
-                 fifo.bFF_LoWatermarkInt ? "true" : "false");
-    }
-  }
-}
-
 void Init()
 {
   g_opcode_replay_enabled =
@@ -355,11 +301,9 @@ u8* Run(DataReader src, u32* cycles, bool in_display_list, bool recursive_call)
       }
       else
       {
-        if (!g_ActiveConfig.bOpcodeWarningDisable)
-        {
-          UnknownOpcode(cmd_byte, opcodeStart, is_preprocess, g_opcode_replay_frame,
-                        in_display_list, recursive_call);
-        }
+        if (!s_bFifoErrorSeen && !g_ActiveConfig.bOpcodeWarningDisable)
+          CommandProcessor::HandleUnknownOpcode(cmd_byte, opcodeStart, is_preprocess, g_opcode_replay_frame,
+                                                in_display_list, recursive_call);
         ERROR_LOG(VIDEO, "FIFO: Unknown Opcode(0x%02x @ %p, preprocessing = %s)", cmd_byte,
                   opcodeStart, is_preprocess ? "yes" : "no");
         s_bFifoErrorSeen = true;

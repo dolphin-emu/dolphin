@@ -100,8 +100,8 @@ const int FNT_PIXMAP_WIDTH = 512; // Must be >= CELL_SIZE * CELLS_PER_ROW
 // The two types of font which can be generated
 enum class font_type
 {
-	ansi,
-	sjis,
+	windows_1252,
+	shift_jis,
 };
 
 #define SEQUENCE_4(x) (x), (x)+1, (x)+2, (x)+3
@@ -110,8 +110,8 @@ enum class font_type
 #define SEQUENCE_32(x) SEQUENCE_16(x), SEQUENCE_16((x)+16)
 #define SEQUENCE_64(x) SEQUENCE_32(x), SEQUENCE_32((x)+32)
 
-// List of unicode codepoints appearing in the ANSI font
-const uint16_t ansi_font_table[] =
+// List of unicode codepoints appearing in the Windows-1252 font
+const uint16_t windows_1252_font_table[] =
 {
 	SEQUENCE_32(0x20),
 	SEQUENCE_64(0x40),
@@ -124,10 +124,10 @@ const uint16_t ansi_font_table[] =
 	SEQUENCE_64(0xC0),
 };
 
-// List of unicode codepoints appearing in the SJIS font
-const uint16_t sjis_font_table[] =
+// List of unicode codepoints appearing in the Shift JIS font
+const uint16_t shift_jis_font_table[] =
 {
-	// Starts at SJIS 0x8740. Any holes are skipped over.
+	// Starts at Shift JIS 0x8740. Any holes are skipped over.
 	0x3000, 0x3001, 0x3002, 0xFF0C, 0xFF0E, 0x30FB, 0xFF1A, 0xFF1B,
 	0xFF1F, 0xFF01, 0x309B, 0x309C, 0x00B4, 0xFF40, 0x00A8, 0xFF3E,
 	0xFFE3, 0xFF3F, 0x30FD, 0x30FE, 0x309D, 0x309E, 0x3003, 0x4EDD,
@@ -1117,9 +1117,9 @@ static std::vector<uint8_t> generate_fnt(
 {
 	std::vector<uint8_t> out;
 
-	write_be16(out, type == font_type::ansi ? 0 : 2);
-	write_be16(out, type == font_type::ansi ? 0x0020 : 0x8140);
-	write_be16(out, type == font_type::ansi ? 0x00FF : 0x9872);
+	write_be16(out, type == font_type::windows_1252 ? 0 : 2);
+	write_be16(out, type == font_type::windows_1252 ? 0x0020 : 0x8140);
+	write_be16(out, type == font_type::windows_1252 ? 0x00FF : 0x9872);
 	write_be16(out, 0x20);
 	write_be16(out, FNT_CELL_SIZE);
 	write_be16(out, 0x00);
@@ -1237,15 +1237,15 @@ static std::vector<uint8_t> freetype_to_fnt(const std::vector<uint8_t>& font_buf
 	const uint16_t* font_table;
 	unsigned font_table_size;
 
-	if (type == font_type::ansi)
+	if (type == font_type::windows_1252)
 	{
-		font_table = ansi_font_table;
-		font_table_size = sizeof(ansi_font_table) / 2;
+		font_table = windows_1252_font_table;
+		font_table_size = sizeof(windows_1252_font_table) / 2;
 	}
 	else
 	{
-		font_table = sjis_font_table;
-		font_table_size = sizeof(sjis_font_table) / 2;
+		font_table = shift_jis_font_table;
+		font_table_size = sizeof(shift_jis_font_table) / 2;
 	}
 
 	// Generate pixmap
@@ -1268,8 +1268,8 @@ static void usage()
 	std::cerr << "gc-font-tool <mode> <input> <output>" << std::endl;
 	std::cerr << " c = compress using yay0" << std::endl;
 	std::cerr << " d = decompress a yay0 file" << std::endl;
-	std::cerr << " a = generate an ansi gamecube font file from a true type font" << std::endl;
-	std::cerr << " s = generate a sjis gamecube font file from a true type font" << std::endl;
+	std::cerr << " a = generate a windows-1252 gamecube font file from a true type font" << std::endl;
+	std::cerr << " s = generate a shift jis gamecube font file from a true type font" << std::endl;
 	std::cerr << " b = like a, but do not dither the final image" << std::endl;
 	std::cerr << " t = like s, but do not dither the final image" << std::endl;
 	std::cerr << " v = generate a bitmap showing the contents of a gamecube font file" << std::endl;
@@ -1350,10 +1350,10 @@ int main(int argc, char* argv[])
 		{
 			case 'c': result = yay0_compress(input); break;
 			case 'd': result = yay0_decompress(input); break;
-			case 'a': result = freetype_to_fnt(input, font_type::ansi, true); break;
-			case 's': result = freetype_to_fnt(input, font_type::sjis, true); break;
-			case 'b': result = freetype_to_fnt(input, font_type::ansi, false); break;
-			case 't': result = freetype_to_fnt(input, font_type::sjis, false); break;
+			case 'a': result = freetype_to_fnt(input, font_type::windows_1252, true); break;
+			case 's': result = freetype_to_fnt(input, font_type::shift_jis, true); break;
+			case 'b': result = freetype_to_fnt(input, font_type::windows_1252, false); break;
+			case 't': result = freetype_to_fnt(input, font_type::shift_jis, false); break;
 			case 'v': result = fnt_to_bmp(input); break;
 			default:
 				usage();

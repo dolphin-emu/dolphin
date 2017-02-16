@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D/Render.h"
+
 #include <cinttypes>
 #include <cmath>
 #include <memory>
@@ -13,12 +15,12 @@
 #include "Common/Atomic.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
 
 #include "Core/ARBruteForcer.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/Host.h"
 
 #include "VideoBackends/D3D/BoundingBox.h"
 #include "VideoBackends/D3D/D3DBase.h"
@@ -27,7 +29,6 @@
 #include "VideoBackends/D3D/FramebufferManager.h"
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
-#include "VideoBackends/D3D/Render.h"
 #include "VideoBackends/D3D/Television.h"
 #include "VideoBackends/D3D/TextureCache.h"
 #include "VideoBackends/D3D/VRD3D.h"
@@ -42,9 +43,11 @@
 #include "VideoCommon/PixelEngine.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/SamplerCommon.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 static bool g_first_rift_frame = true;
 
@@ -431,7 +434,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   // Take the mean of the resulting dimensions; TODO: Don't use the center pixel, compute the
   // average color instead
   D3D11_RECT RectToLock;
-  if (type == PEEK_COLOR || type == PEEK_Z)
+  if (type == EFBAccessType::PeekColor || type == EFBAccessType::PeekZ)
   {
     RectToLock.left = (targetPixelRc.left + targetPixelRc.right) / 2;
     RectToLock.top = (targetPixelRc.top + targetPixelRc.bottom) / 2;
@@ -457,7 +460,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
   D3DTexture2D* source_tex;
   D3DTexture2D* read_tex;
   ID3D11Texture2D* staging_tex;
-  if (type == PEEK_COLOR)
+  if (type == EFBAccessType::PeekColor)
   {
     source_tex = FramebufferManager::GetEFBColorTexture();
     read_tex = FramebufferManager::GetEFBColorReadTexture();
@@ -472,7 +475,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
   // Select pixel shader (we don't want to average depth samples, instead select the minimum).
   ID3D11PixelShader* copy_pixel_shader;
-  if (type == PEEK_Z && g_ActiveConfig.iMultisamples > 1)
+  if (type == EFBAccessType::PeekZ && g_ActiveConfig.iMultisamples > 1)
     copy_pixel_shader = PixelShaderCache::GetDepthResolveProgram();
   else
     copy_pixel_shader = PixelShaderCache::GetColorCopyProgram(true);
@@ -498,7 +501,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
   // Convert the framebuffer data to the format the game is expecting to receive.
   u32 ret;
-  if (type == PEEK_COLOR)
+  if (type == EFBAccessType::PeekColor)
   {
     u32 val;
     memcpy(&val, map.pData, sizeof(val));
@@ -529,7 +532,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
     else                         /*if(alpha_read_mode.ReadMode == 0)*/
       ret = (val & 0x00FFFFFF);  // GX_READ_00
   }
-  else  // type == PEEK_Z
+  else  // type == EFBAccessType::PeekZ
   {
     float val;
     memcpy(&val, map.pData, sizeof(val));
@@ -556,7 +559,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 {
   ResetAPIState();
 
-  if (type == POKE_COLOR)
+  if (type == EFBAccessType::PokeColor)
   {
     D3D11_VIEWPORT vp =
         CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
@@ -564,7 +567,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
     D3D::context->OMSetRenderTargets(1, &FramebufferManager::GetEFBColorTexture()->GetRTV(),
                                      nullptr);
   }
-  else  // if (type == POKE_Z)
+  else  // if (type == EFBAccessType::PokeZ)
   {
     D3D::stateman->PushBlendState(clearblendstates[3]);
     D3D::stateman->PushDepthState(cleardepthstates[1]);
@@ -580,7 +583,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
 
   D3D::DrawEFBPokeQuads(type, points, num_points);
 
-  if (type == POKE_Z)
+  if (type == EFBAccessType::PokeZ)
   {
     D3D::stateman->PopDepthState();
     D3D::stateman->PopBlendState();
@@ -611,6 +614,10 @@ void Renderer::SetViewport()
   Y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissorYOff);
   Wd = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
   Ht = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, 0.0f, 16777215.0f);
+  float min_depth =
+      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
+  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (Wd < 0.0f)
   {
     X += Wd;
@@ -639,6 +646,14 @@ void Renderer::SetViewport()
     Ht = (float)GetTargetHeight();
   }
 
+  // If an inverted depth range is used, which D3D doesn't support,
+  // we need to calculate the depth range in the vertex shader.
+  if (xfmem.viewport.zRange < 0.0f)
+  {
+    min_depth = 0.0f;
+    max_depth = GX_MAX_DEPTH;
+  }
+
   // In D3D, the viewport rectangle must fit within the render target.
   X = (X >= 0.f) ? X : 0.f;
   Y = (Y >= 0.f) ? Y : 0.f;
@@ -646,12 +661,10 @@ void Renderer::SetViewport()
   Ht = (Y + Ht <= GetTargetHeight()) ? Ht : (GetTargetHeight() - Y);
   g_rendered_viewport = EFBRectangle((int)X, (int)Y, (int)Wd, (int)Ht);
 
-  // We do depth clipping and depth range in the vertex shader instead of relying
-  // on the graphics API. However we still need to ensure depth values don't exceed
-  // the maximum value supported by the console GPU. We also need to account for the
-  // fact that the entire depth buffer is inverted on D3D, so we set GX_MAX_DEPTH as
-  // an inverted near value.
-  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - GX_MAX_DEPTH, D3D11_MAX_DEPTH);
+  // We use an inverted depth range here to apply the Reverse Z trick.
+  // This trick makes sure we match the precision provided by the 1:0
+  // clipping depth range on the hardware.
+  D3D11_VIEWPORT vp = CD3D11_VIEWPORT(X, Y, Wd, Ht, 1.0f - max_depth, 1.0f - min_depth);
   D3D::context->RSSetViewports(1, &vp);
 }
 
@@ -1410,8 +1423,12 @@ void Renderer::RestoreAPIState()
   gx_state.raster.depth_clip_enable = !g_ActiveConfig.bDisableNearClipping;
 }
 
-void Renderer::ApplyState(bool bUseDstAlpha)
+void Renderer::ApplyState()
 {
+  // TODO: Refactor this logic here.
+  bool bUseDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+                      bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
   gx_state.blend.use_dst_alpha = bUseDstAlpha;
   D3D::stateman->PushBlendState(gx_state_cache.Get(gx_state.blend));
   D3D::stateman->PushDepthState(gx_state_cache.Get(gx_state.zmode));

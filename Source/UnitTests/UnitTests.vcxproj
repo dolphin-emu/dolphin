@@ -51,7 +51,7 @@
         -->
       <AdditionalLibraryDirectories Condition="'$(VisualStudioVersion)' == '12.0'">$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories Condition="'$(VisualStudioVersion)' == '14.0'">$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2015;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)openvr\lib\win64;$(ExternalsDir)OSVR\lib%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\lib;$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)openvr\lib\win64;$(ExternalsDir)OSVR\lib%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
 	  <AdditionalDependencies Condition="'$(VisualStudioVersion)' != '12.0'">avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalDependencies Condition="Exists('$(ExternalsDir)OSVR/lib/osvrClientKit.lib')">osvrClientKit.lib;%(AdditionalDependencies)</AdditionalDependencies>
@@ -121,7 +121,7 @@
     OutDir :)
     -->
   <ItemGroup>
-    <ExternalDlls Include="$(ExternalsDir)OSVR\bin\osvr*.dll;$(ExternalsDir)OpenAL\$(PlatformName)\*.dll" />
+    <ExternalDlls Include="$(ExternalsDir)OSVR\bin\osvr*.dll;$(ExternalsDir)OpenAL\lib\*.dll" />
   </ItemGroup>
   <!--Either method of running requires the runtime deps to be copied to pwd-->
   <Target Name="CopyDeps" AfterTargets="AfterBuild" Inputs="@(ExternalDlls)" Outputs="@(ExternalDlls -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')">

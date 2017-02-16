@@ -4,8 +4,6 @@
 
 #pragma once
 
-#include "ShaderCache.h"
-
 namespace DX12
 {
 class ShaderConstantsManager final

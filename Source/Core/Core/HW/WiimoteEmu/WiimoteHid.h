@@ -87,7 +87,8 @@ struct wm_ir_extended
 };
 
 // Nunchuk
-union wm_nc_core {
+union wm_nc_core
+{
   u8 hex;
 
   struct
@@ -102,7 +103,8 @@ union wm_nc_core {
   };
 };
 
-union wm_nc {
+union wm_nc
+{
   struct
   {
     // joystick x, y
@@ -137,7 +139,8 @@ union wm_nc {
   } passthrough_data;
 };
 
-union wm_classic_extension_buttons {
+union wm_classic_extension_buttons
+{
   u16 hex;
 
   struct
@@ -181,7 +184,8 @@ union wm_classic_extension_buttons {
   } passthrough_data;
 };
 
-union wm_classic_extension {
+union wm_classic_extension
+{
   // lx/ly/lz; left joystick
   // rx/ry/rz; right joystick
   // lt; left trigger
@@ -283,7 +287,8 @@ struct wm_turntable_extension
   u8 ltable1 : 5;
   u8 dial1 : 3;
 
-  union {
+  union
+  {
     u16 ltable2 : 1;
     u16 bt;  // buttons
   };
@@ -314,7 +319,8 @@ struct wm_motionplus_data
 struct wm_report
 {
   u8 wm;
-  union {
+  union
+  {
     u8 data[0];
     struct
     {

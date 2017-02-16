@@ -5,11 +5,15 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "InputCommon/ControllerEmu.h"
 
 class InputConfig;
 enum class KeyboardGroup;
 struct KeyboardStatus;
+
+namespace ControllerEmu
+{
+class ControlGroup;
+}
 
 namespace Keyboard
 {

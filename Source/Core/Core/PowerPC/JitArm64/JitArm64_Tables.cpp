@@ -2,9 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitArm64/JitArm64_Tables.h"
+
+#include "Core/PowerPC/Gekko.h"
+#include "Core/PowerPC/JitArm64/Jit.h"
 #include "Core/PowerPC/JitInterface.h"
+#include "Core/PowerPC/PPCAnalyst.h"
+#include "Core/PowerPC/PPCTables.h"
 
 // Should be moved in to the Jit class
 typedef void (JitArm64::*_Instruction)(UGeckoInstruction instCode);
@@ -365,10 +369,9 @@ static GekkoOPTemplate table63_2[] = {
 
 namespace JitArm64Tables
 {
-void CompileInstruction(PPCAnalyst::CodeOp& op)
+void CompileInstruction(JitArm64& jit, PPCAnalyst::CodeOp& op)
 {
-  JitArm64* jitarm = (JitArm64*)jit;
-  (jitarm->*dynaOpTable[op.inst.OPCD])(op.inst);
+  (jit.*dynaOpTable[op.inst.OPCD])(op.inst);
   GekkoOPInfo* info = op.opinfo;
   if (info)
   {
@@ -379,7 +382,7 @@ void CompileInstruction(PPCAnalyst::CodeOp& op)
     }
 #endif
     info->compileCount++;
-    info->lastUse = jit->js.compilerPC;
+    info->lastUse = jit.js.compilerPC;
   }
 }
 

@@ -75,6 +75,8 @@
 #define ANAGLYPH_DIR "Anaglyph"
 #define PIPES_DIR "Pipes"
 #define MEMORYWATCHER_DIR "MemoryWatcher"
+#define WFSROOT_DIR "WFS"
+#define BACKUP_DIR "Backup"
 
 // This one is only used to remove it if it was present
 #define SHADERCACHE_LEGACY_DIR "ShaderCache"
@@ -106,8 +108,8 @@
 // Sys files
 #define TOTALDB "totaldb.dsy"
 
-#define FONT_ANSI "font_ansi.bin"
-#define FONT_SJIS "font_sjis.bin"
+#define FONT_WINDOWS_1252 "font_western.bin"
+#define FONT_SHIFT_JIS "font_japanese.bin"
 
 #define DSP_IROM "dsp_rom.bin"
 #define DSP_COEF "dsp_coef.bin"

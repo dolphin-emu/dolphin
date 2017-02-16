@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/BPStructs.h"
+
 #include <cmath>
 #include <cstring>
 #include <string>
@@ -15,7 +17,6 @@
 
 #include "VideoCommon/BPFunctions.h"
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/BPStructs.h"
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/GeometryShaderManager.h"
@@ -27,6 +28,7 @@
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/VR.h"
 #include "VideoCommon/VertexShaderManager.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -145,6 +147,10 @@ static void BPWritten(const BPCmd& bp)
                (int)bpmem.blendmode.dstfactor, (int)bpmem.blendmode.srcfactor,
                (int)bpmem.blendmode.subtract, (int)bpmem.blendmode.logicmode);
 
+      // Set Blending Mode
+      if (bp.changes)
+        SetBlendMode();
+
       // Set LogicOp Blending Mode
       if (bp.changes & 0xF002)  // logicopenable | logicmode
         SetLogicOpMode();
@@ -152,10 +158,6 @@ static void BPWritten(const BPCmd& bp)
       // Set Dithering Mode
       if (bp.changes & 4)  // dither
         SetDitherMode();
-
-      // Set Blending Mode
-      if (bp.changes & 0xFF1)  // blendenable | alphaupdate | dstfactor | srcfactor | subtract
-        SetBlendMode();
 
       // Set Color Mask
       if (bp.changes & 0x18)  // colorupdate | alphaupdate
@@ -264,9 +266,10 @@ static void BPWritten(const BPCmd& bp)
       // (Zbuffer uses 24-bit Format)
       if (g_ActiveConfig.bEFBCopyEnable)
       {
-        g_texture_cache->CopyRenderTargetToTexture(
-            destAddr, PE_copy.tp_realFormat(), destStride, bpmem.zcontrol.pixel_format, gameSrcRect,
-            ourSrcRect, !!PE_copy.intensity_fmt, !!PE_copy.half_scale);
+        bool is_depth_copy = bpmem.zcontrol.pixel_format == PEControl::Z24;
+        g_texture_cache->CopyRenderTargetToTexture(destAddr, PE_copy.tp_realFormat(), destStride,
+                                                   is_depth_copy, gameSrcRect, ourSrcRect, !!PE_copy.intensity_fmt,
+                                                   !!PE_copy.half_scale);
       }
 
     }
@@ -365,7 +368,10 @@ static void BPWritten(const BPCmd& bp)
     if (bp.changes & 0xFFFF)
       PixelShaderManager::SetAlpha();
     if (bp.changes)
+    {
       g_renderer->SetColorMask();
+      SetBlendMode();
+    }
     return;
   case BPMEM_BIAS:  // BIAS
     PRIM_LOG("ztex bias=0x%x", bpmem.ztex1.bias);

@@ -11,9 +11,15 @@
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 #include "Common/NonCopyable.h"
+#include "Common/Timer.h"
 
-#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Sram.h"
+
+namespace File
+{
+class IOFile;
+}
 
 #define BE64(x) (Common::swap64(x))
 #define BE32(x) (Common::swap32(x))
@@ -70,7 +76,7 @@ public:
   }
   virtual ~MemoryCardBase() {}
   virtual s32 Read(u32 address, s32 length, u8* destaddress) = 0;
-  virtual s32 Write(u32 destaddress, s32 length, u8* srcaddress) = 0;
+  virtual s32 Write(u32 destaddress, s32 length, const u8* srcaddress) = 0;
   virtual void ClearBlock(u32 address) = 0;
   virtual void ClearAll() = 0;
   virtual void DoState(PointerWrap& p) = 0;
@@ -89,7 +95,7 @@ struct GCMBlock
   u8 block[BLOCK_SIZE];
 };
 
-void calc_checksumsBE(u16* buf, u32 length, u16* csum, u16* inv_csum);
+void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum);
 
 #pragma pack(push, 1)
 struct Header  // Offset    Size    Description
@@ -103,7 +109,7 @@ struct Header  // Offset    Size    Description
   // end Serial in libogc
   u8 deviceID[2];     // 0x0020    2       0 if formated in slot A 1 if formated in slot B
   u8 SizeMb[2];       // 0x0022    2       Size of memcard in Mbits
-  u16 Encoding;       // 0x0024    2       Encoding (ASCII or Japanese)
+  u16 Encoding;       // 0x0024    2       Encoding (Windows-1252 or Shift JIS)
   u8 Unused1[468];    // 0x0026    468     Unused (0xff)
   u16 UpdateCounter;  // 0x01fa    2       Update Counter (?, probably unused)
   u16 Checksum;       // 0x01fc    2       Additive Checksum
@@ -126,12 +132,12 @@ struct Header  // Offset    Size    Description
   // Nintendo format algorithm.
   // Constants are fixed by the GC SDK
   // Changing the constants will break memory card support
-  Header(int slot = 0, u16 sizeMb = MemCard2043Mb, bool ascii = true)
+  Header(int slot = 0, u16 sizeMb = MemCard2043Mb, bool shift_jis = false)
   {
     memset(this, 0xFF, BLOCK_SIZE);
     *(u16*)SizeMb = BE16(sizeMb);
-    Encoding = BE16(ascii ? 0 : 1);
-    u64 rand = CEXIIPL::GetEmulatedTime(CEXIIPL::GC_EPOCH);
+    Encoding = BE16(shift_jis ? 1 : 0);
+    u64 rand = Common::Timer::GetLocalTimeSinceJan1970() - CEXIIPL::GC_EPOCH;
     formatTime = Common::swap64(rand);
     for (int i = 0; i < 12; i++)
     {
@@ -304,19 +310,20 @@ private:
 
   std::vector<GCMBlock> mc_data_blocks;
 
-  u32 ImportGciInternal(FILE* gcih, const std::string& inputFile, const std::string& outputFile);
+  u32 ImportGciInternal(File::IOFile&& gci, const std::string& inputFile,
+                        const std::string& outputFile);
   void InitDirBatPointers();
 
 public:
-  GCMemcard(const std::string& fileName, bool forceCreation = false, bool sjis = false);
+  GCMemcard(const std::string& fileName, bool forceCreation = false, bool shift_jis = false);
   bool IsValid() const { return m_valid; }
-  bool IsAsciiEncoding() const;
+  bool IsShiftJIS() const;
   bool Save();
-  bool Format(bool ascii = true, u16 SizeMb = MemCard2043Mb);
-  static bool Format(u8* card_data, bool ascii = true, u16 SizeMb = MemCard2043Mb);
-  static s32 FZEROGX_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
+  bool Format(bool shift_jis = false, u16 SizeMb = MemCard2043Mb);
+  static bool Format(u8* card_data, bool shift_jis = false, u16 SizeMb = MemCard2043Mb);
+  static s32 FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                        std::vector<GCMBlock>& FileBuffer);
-  static s32 PSO_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
+  static s32 PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                    std::vector<GCMBlock>& FileBuffer);
 
   u32 TestChecksums() const;
@@ -357,7 +364,7 @@ public:
   u32 GetSaveData(u8 index, std::vector<GCMBlock>& saveBlocks) const;
 
   // adds the file to the directory and copies its contents
-  u32 ImportFile(DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
+  u32 ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks);
 
   // delete a file from the directory
   u32 RemoveFile(u8 index);

@@ -16,13 +16,13 @@
 #include "Common/MsgHandler.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/EXI_DeviceIPL.h"
-#include "Core/HW/SI.h"
-#include "Core/HW/SI_DeviceGCController.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
 #include "InputCommon/GCAdapter.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -411,6 +411,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> g_NetPlaySettings.m_DSPEnableJIT;
       packet >> g_NetPlaySettings.m_DSPHLE;
       packet >> g_NetPlaySettings.m_WriteToMemcard;
+      packet >> g_NetPlaySettings.m_CopyWiiSave;
       packet >> g_NetPlaySettings.m_OCEnable;
       packet >> g_NetPlaySettings.m_OCFactor;
 

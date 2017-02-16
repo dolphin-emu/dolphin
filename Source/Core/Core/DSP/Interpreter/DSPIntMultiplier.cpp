@@ -11,7 +11,9 @@
 #include "Core/DSP/Interpreter/DSPIntUtil.h"
 #include "Core/DSP/Interpreter/DSPInterpreter.h"
 
-namespace DSPInterpreter
+namespace DSP
+{
+namespace Interpreter
 {
 // Only MULX family instructions have unsigned/mixed support.
 inline s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
@@ -592,4 +594,5 @@ void msub(const UDSPInstruction opc)
   dsp_set_long_prod(prod);
 }
 
-}  // namespace
+}  // namespace Interpreter
+}  // namespace DSP

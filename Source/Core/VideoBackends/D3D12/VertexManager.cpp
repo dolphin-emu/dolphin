@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D12/VertexManager.h"
+
 #include "Common/CommonTypes.h"
 
 #include "VideoBackends/D3D12/BoundingBox.h"
@@ -12,11 +14,11 @@
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/Render.h"
 #include "VideoBackends/D3D12/ShaderCache.h"
-#include "VideoBackends/D3D12/VertexManager.h"
 
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/Debugger.h"
 #include "VideoCommon/IndexGenerator.h"
+#include "VideoCommon/PerfQueryBase.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VertexLoaderManager.h"
@@ -135,10 +137,9 @@ void VertexManager::Draw(u32 stride)
   INCSTAT(stats.thisFrame.numDrawCalls);
 }
 
-void VertexManager::vFlush(bool use_dst_alpha)
+void VertexManager::vFlush()
 {
-  ShaderCache::LoadAndSetActiveShaders(use_dst_alpha ? DSTALPHA_DUAL_SOURCE_BLEND : DSTALPHA_NONE,
-                                       m_current_primitive_type);
+  ShaderCache::LoadAndSetActiveShaders(m_current_primitive_type);
 
   if (g_ActiveConfig.backend_info.bSupportsBBox && BoundingBox::active)
     BBox::Invalidate();
@@ -147,7 +148,7 @@ void VertexManager::vFlush(bool use_dst_alpha)
 
   PrepareDrawBuffers(stride);
 
-  g_renderer->ApplyState(use_dst_alpha);
+  g_renderer->ApplyState();
 
   Draw(stride);
 

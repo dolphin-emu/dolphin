@@ -12,12 +12,6 @@
 // is terrible, but such is the life with Xlib.
 #include <SFML/Network.hpp>  // NOLINT
 
-#if defined(HAVE_WX) && HAVE_WX
-#include <gdk/gdkx.h>
-#include <gtk/gtk.h>
-#include <wx/arrstr.h>
-#endif
-
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
 #include <X11/extensions/Xrandr.h>
 #endif
@@ -33,10 +27,8 @@
 namespace X11Utils
 {
 bool ToggleFullscreen(Display* dpy, Window win);
-#if defined(HAVE_WX) && HAVE_WX
 Window XWindowFromHandle(void* Handle);
 Display* XDisplayFromHandle(void* Handle);
-#endif
 
 void InhibitScreensaver(Display* dpy, Window win, bool suspend);
 

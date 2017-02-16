@@ -130,7 +130,8 @@ enum
   XFMEM_SETPOSMTXINFO = 0x1050,
 };
 
-union LitChannel {
+union LitChannel
+{
   struct
   {
     u32 matsource : 1;
@@ -158,7 +159,8 @@ union LitChannel {
   }
 };
 
-union INVTXSPEC {
+union INVTXSPEC
+{
   struct
   {
     u32 numcolors : 2;
@@ -169,7 +171,8 @@ union INVTXSPEC {
   u32 hex;
 };
 
-union TexMtxInfo {
+union TexMtxInfo
+{
   struct
   {
     u32 unknown : 1;
@@ -184,7 +187,8 @@ union TexMtxInfo {
   u32 hex;
 };
 
-union PostMtxInfo {
+union PostMtxInfo
+{
   struct
   {
     u32 index : 6;  // base row of dual transform matrix
@@ -194,7 +198,8 @@ union PostMtxInfo {
   u32 hex;
 };
 
-union NumColorChannel {
+union NumColorChannel
+{
   struct
   {
     u32 numColorChans : 2;
@@ -202,7 +207,8 @@ union NumColorChannel {
   u32 hex;
 };
 
-union NumTexGen {
+union NumTexGen
+{
   struct
   {
     u32 numTexGens : 4;
@@ -210,7 +216,8 @@ union NumTexGen {
   u32 hex;
 };
 
-union DualTexInfo {
+union DualTexInfo
+{
   struct
   {
     u32 enabled : 1;
@@ -225,7 +232,8 @@ struct Light
   float cosatt[3];   // cos attenuation
   float distatt[3];  // dist attenuation
 
-  union {
+  union
+  {
     struct
     {
       float dpos[3];

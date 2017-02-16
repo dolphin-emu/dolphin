@@ -6,12 +6,15 @@
 #include <climits>
 #include <memory>
 
+#include "AudioCommon/AudioCommon.h"
+
 #include "Common/CDUtils.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/SysConf.h"
 
@@ -21,48 +24,15 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // for bWii
 #include "Core/FifoPlayer/FifoDataFile.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
-
-// Change from IPL.LNG value to IPL.SADR country code.
-// http://wiibrew.org/wiki/Country_Codes
-static u8 GetSADRCountryCode(DiscIO::Language language)
-{
-  switch (language)
-  {
-  case DiscIO::Language::LANGUAGE_JAPANESE:
-    return 1;  // Japan
-  case DiscIO::Language::LANGUAGE_ENGLISH:
-    return 49;  // USA
-  case DiscIO::Language::LANGUAGE_GERMAN:
-    return 78;  // Germany
-  case DiscIO::Language::LANGUAGE_FRENCH:
-    return 77;  // France
-  case DiscIO::Language::LANGUAGE_SPANISH:
-    return 105;  // Spain
-  case DiscIO::Language::LANGUAGE_ITALIAN:
-    return 83;  // Italy
-  case DiscIO::Language::LANGUAGE_DUTCH:
-    return 94;  // Netherlands
-  case DiscIO::Language::LANGUAGE_SIMPLIFIED_CHINESE:
-  case DiscIO::Language::LANGUAGE_TRADITIONAL_CHINESE:
-    return 157;  // China
-  case DiscIO::Language::LANGUAGE_KOREAN:
-    return 136;  // Korea
-  case DiscIO::Language::LANGUAGE_UNKNOWN:
-    break;
-  }
-
-  PanicAlert("Invalid language. Defaulting to Japanese.");
-  return 1;
-}
 
 SConfig* SConfig::m_Instance;
 
@@ -310,6 +280,7 @@ void SConfig::SaveSettings()
   SaveAnalyticsSettings(ini);
   SaveNetworkSettings(ini);
   SaveBluetoothPassthroughSettings(ini);
+  SaveUSBPassthroughSettings(ini);
   SaveSysconfSettings(ini);
 
   ini.Save(File::GetUserPath(F_DOLPHINCONFIG_IDX));
@@ -585,6 +556,7 @@ void SConfig::SaveDSPSettings(IniFile& ini)
 
   dsp->Set("EnableJIT", m_DSPEnableJIT);
   dsp->Set("DumpAudio", m_DumpAudio);
+  dsp->Set("DumpAudioSilent", m_DumpAudioSilent);
   dsp->Set("DumpUCode", m_DumpUCode);
   if (!ARBruteForcer::ch_dont_save_settings)
     dsp->Set("Backend", sBackend);
@@ -636,6 +608,20 @@ void SConfig::SaveBluetoothPassthroughSettings(IniFile& ini)
   section->Set("LinkKeys", m_bt_passthrough_link_keys);
 }
 
+void SConfig::SaveUSBPassthroughSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
+
+  std::ostringstream oss;
+  for (const auto& device : m_usb_passthrough_devices)
+    oss << StringFromFormat("%04x:%04x", device.first, device.second) << ',';
+  std::string devices_string = oss.str();
+  if (!devices_string.empty())
+    devices_string.pop_back();
+
+  section->Set("Devices", devices_string);
+}
+
 void SConfig::SaveSysconfSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
@@ -651,12 +637,10 @@ void SConfig::SaveSysconfSettings(IniFile& ini)
 
 void SConfig::SaveSettingsToSysconf()
 {
-  SysConf sysconf;
+  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
 
   sysconf.SetData<u8>("IPL.SSV", m_wii_screensaver);
   sysconf.SetData<u8>("IPL.LNG", m_wii_language);
-  u8 country_code = GetSADRCountryCode(static_cast<DiscIO::Language>(m_wii_language));
-  sysconf.SetArrayData("IPL.SADR", &country_code, 1);
 
   sysconf.SetData<u8>("IPL.AR", m_wii_aspect_ratio);
   sysconf.SetData<u8>("BT.BAR", m_sensor_bar_position);
@@ -672,7 +656,7 @@ void SConfig::SaveSettingsToSysconf()
   sysconf.SetData<u8>("IPL.IDL", 0x00);
   NOTICE_LOG(COMMON, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
 
-  RestoreBTInfoSection(&sysconf);
+  IOS::HLE::RestoreBTInfoSection(&sysconf);
 
   sysconf.Save();
 }
@@ -696,6 +680,7 @@ void SConfig::LoadSettings()
   LoadVRSettings(ini);
   LoadAnalyticsSettings(ini);
   LoadBluetoothPassthroughSettings(ini);
+  LoadUSBPassthroughSettings(ini);
   LoadSysconfSettings(ini);
 }
 
@@ -956,9 +941,10 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SyncGPU", &bSyncGPU, false);
   core->Get("SyncGpuMaxDistance", &iSyncGpuMaxDistance, 200000);
   core->Get("SyncGpuMinDistance", &iSyncGpuMinDistance, -200000);
-  core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0);
+  core->Get("SyncGpuOverclock", &fSyncGpuOverclock, 1.0f);
   core->Get("FastDiscSpeed", &bFastDiscSpeed, false);
   core->Get("DCBZ", &bDCBZOFF, false);
+  core->Get("LowDCBZHack", &bLowDCBZHack, false);
   // if (ARBruteForcer::ch_bruteforce)
   // 	m_Framelimit = 0;
   // else
@@ -997,18 +983,9 @@ void SConfig::LoadDSPSettings(IniFile& ini)
 
   dsp->Get("EnableJIT", &m_DSPEnableJIT, true);
   dsp->Get("DumpAudio", &m_DumpAudio, false);
+  dsp->Get("DumpAudioSilent", &m_DumpAudioSilent, false);
   dsp->Get("DumpUCode", &m_DumpUCode, false);
-#if defined __linux__ && HAVE_ALSA
-  dsp->Get("Backend", &sBackend, BACKEND_ALSA);
-#elif defined __APPLE__
-  dsp->Get("Backend", &sBackend, BACKEND_COREAUDIO);
-#elif defined _WIN32
-  dsp->Get("Backend", &sBackend, BACKEND_XAUDIO2);
-#elif defined ANDROID
-  dsp->Get("Backend", &sBackend, BACKEND_OPENSLES);
-#else
-  dsp->Get("Backend", &sBackend, BACKEND_NULLSOUND);
-#endif
+  dsp->Get("Backend", &sBackend, AudioCommon::GetDefaultSoundBackend());
   dsp->Get("Volume", &m_Volume, 100);
   dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 
@@ -1062,6 +1039,27 @@ void SConfig::LoadBluetoothPassthroughSettings(IniFile& ini)
   section->Get("LinkKeys", &m_bt_passthrough_link_keys, "");
 }
 
+void SConfig::LoadUSBPassthroughSettings(IniFile& ini)
+{
+  IniFile::Section* section = ini.GetOrCreateSection("USBPassthrough");
+  m_usb_passthrough_devices.clear();
+  std::string devices_string;
+  std::vector<std::string> pairs;
+  section->Get("Devices", &devices_string, "");
+  SplitString(devices_string, ',', pairs);
+  for (const auto& pair : pairs)
+  {
+    const auto index = pair.find(':');
+    if (index == std::string::npos)
+      continue;
+
+    const u16 vid = static_cast<u16>(strtol(pair.substr(0, index).c_str(), nullptr, 16));
+    const u16 pid = static_cast<u16>(strtol(pair.substr(index + 1).c_str(), nullptr, 16));
+    if (vid && pid)
+      m_usb_passthrough_devices.emplace(vid, pid);
+  }
+}
+
 void SConfig::LoadSysconfSettings(IniFile& ini)
 {
   IniFile::Section* section = ini.GetOrCreateSection("Sysconf");
@@ -1077,7 +1075,7 @@ void SConfig::LoadSysconfSettings(IniFile& ini)
 
 void SConfig::LoadSettingsFromSysconf()
 {
-  SysConf sysconf;
+  SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
 
   m_wii_screensaver = sysconf.GetData<u8>("IPL.SSV");
   m_wii_language = sysconf.GetData<u8>("IPL.LNG");
@@ -1115,6 +1113,7 @@ void SConfig::LoadDefaults()
   bAccurateNaNs = false;
   bMMU = false;
   bDCBZOFF = false;
+  bLowDCBZHack = false;
   iBBDumpPort = -1;
   bSyncGPU = false;
   bFastDiscSpeed = false;
@@ -1149,37 +1148,51 @@ void SConfig::LoadDefaults()
 
   m_strName = "NONE";
   m_strGameID = "00000000";
+  m_title_id = 0;
   m_revision = 0;
 }
 
-static const char* GetRegionOfCountry(DiscIO::Country country)
+bool SConfig::IsUSBDeviceWhitelisted(const std::pair<u16, u16> vid_pid) const
 {
-  switch (country)
-  {
-  case DiscIO::Country::COUNTRY_USA:
-    return USA_DIR;
+  return m_usb_passthrough_devices.find(vid_pid) != m_usb_passthrough_devices.end();
+}
 
-  case DiscIO::Country::COUNTRY_TAIWAN:
-  case DiscIO::Country::COUNTRY_KOREA:
-  // TODO: Should these have their own Region Dir?
-  case DiscIO::Country::COUNTRY_JAPAN:
+const char* SConfig::GetDirectoryForRegion(DiscIO::Region region)
+{
+  switch (region)
+  {
+  case DiscIO::Region::NTSC_J:
     return JAP_DIR;
 
-  case DiscIO::Country::COUNTRY_AUSTRALIA:
-  case DiscIO::Country::COUNTRY_EUROPE:
-  case DiscIO::Country::COUNTRY_FRANCE:
-  case DiscIO::Country::COUNTRY_GERMANY:
-  case DiscIO::Country::COUNTRY_ITALY:
-  case DiscIO::Country::COUNTRY_NETHERLANDS:
-  case DiscIO::Country::COUNTRY_RUSSIA:
-  case DiscIO::Country::COUNTRY_SPAIN:
-  case DiscIO::Country::COUNTRY_WORLD:
+  case DiscIO::Region::NTSC_U:
+    return USA_DIR;
+
+  case DiscIO::Region::PAL:
     return EUR_DIR;
 
-  case DiscIO::Country::COUNTRY_UNKNOWN:
+  case DiscIO::Region::NTSC_K:
+    // This function can't return a Korean directory name, because this
+    // function is only used for GameCube things (memory cards, IPL), and
+    // GameCube has no NTSC-K region. Since NTSC-K doesn't correspond to any
+    // GameCube region, let's return an arbitrary pick. Returning nullptr like
+    // with unknown regions would be inappropriate, because Dolphin expects
+    // to get valid memory card paths even when running an NTSC-K Wii game.
+    return JAP_DIR;
+
   default:
     return nullptr;
   }
+}
+
+// Sets m_region to the region parameter, or to PAL if the region parameter
+// is invalid. Set directory_name to the value returned by GetDirectoryForRegion
+// for m_region. Returns false if the region parameter is invalid.
+bool SConfig::SetRegion(DiscIO::Region region, std::string* directory_name)
+{
+  const char* retrieved_region_dir = GetDirectoryForRegion(region);
+  m_region = retrieved_region_dir ? region : DiscIO::Region::PAL;
+  *directory_name = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
+  return !!retrieved_region_dir;
 }
 
 bool SConfig::AutoSetup(EBootBS2 _BootBS2)
@@ -1223,22 +1236,16 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       }
       m_strName = pVolume->GetInternalName();
       m_strGameID = pVolume->GetGameID();
+      pVolume->GetTitleID(&m_title_id);
       m_revision = pVolume->GetRevision();
 
       // Check if we have a Wii disc
       bWii = pVolume->GetVolumeType() == DiscIO::Platform::WII_DISC;
 
-      const char* retrieved_region_dir = GetRegionOfCountry(pVolume->GetCountry());
-      if (!retrieved_region_dir)
-      {
+      if (!SetRegion(pVolume->GetRegion(), &set_region_dir))
         if (!PanicYesNoT("Your GCM/ISO file seems to be invalid (invalid country)."
                          "\nContinue with PAL region?"))
           return false;
-        retrieved_region_dir = EUR_DIR;
-      }
-
-      set_region_dir = retrieved_region_dir;
-      bNTSC = set_region_dir == USA_DIR || set_region_dir == JAP_DIR;
     }
     else if (!strcasecmp(Extension.c_str(), ".elf"))
     {
@@ -1248,8 +1255,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       // all GC homebrew to 50Hz.
       // In the future, it probably makes sense to add a Region setting for homebrew somewhere in
       // the emulator config.
-      bNTSC = bWii ? false : true;
-      set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
+      SetRegion(bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U, &set_region_dir);
       m_BootType = BOOT_ELF;
     }
     else if (!strcasecmp(Extension.c_str(), ".dol"))
@@ -1257,15 +1263,13 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       CDolLoader dolfile(m_strFilename);
       bWii = dolfile.IsWii();
       // TODO: See the ELF code above.
-      bNTSC = bWii ? false : true;
-      set_region_dir = bNTSC ? USA_DIR : EUR_DIR;
+      SetRegion(bWii ? DiscIO::Region::PAL : DiscIO::Region::NTSC_U, &set_region_dir);
       m_BootType = BOOT_DOL;
     }
     else if (!strcasecmp(Extension.c_str(), ".dff"))
     {
       bWii = true;
-      set_region_dir = USA_DIR;
-      bNTSC = true;
+      SetRegion(DiscIO::Region::NTSC_U, &set_region_dir);
       m_BootType = BOOT_DFF;
 
       std::unique_ptr<FifoDataFile> ddfFile(FifoDataFile::Load(m_strFilename, true));
@@ -1290,9 +1294,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
         return false;  // do not boot
       }
 
-      const char* retrieved_region_dir = GetRegionOfCountry(ContentLoader.GetCountry());
-      set_region_dir = retrieved_region_dir ? retrieved_region_dir : EUR_DIR;
-      bNTSC = set_region_dir == USA_DIR || set_region_dir == JAP_DIR;
+      SetRegion(ContentLoader.GetRegion(), &set_region_dir);
 
       bWii = true;
       m_BootType = BOOT_WII_NAND;
@@ -1301,6 +1303,7 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       {
         m_strName = pVolume->GetInternalName();
         m_strGameID = pVolume->GetGameID();
+        pVolume->GetTitleID(&m_title_id);
       }
       else
       {
@@ -1308,12 +1311,13 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
         // if this is the second boot we would be using the Name and id of the last title
         m_strName.clear();
         m_strGameID.clear();
+        m_title_id = 0;
       }
 
       // Use the TitleIDhex for name and/or game ID if launching
       // from nand folder or if it is not ascii characters
       // (specifically sysmenu could potentially apply to other things)
-      std::string titleidstr = StringFromFormat("%016" PRIx64, ContentLoader.GetTitleID());
+      std::string titleidstr = StringFromFormat("%016" PRIx64, m_title_id);
 
       if (m_strName.empty())
       {
@@ -1333,21 +1337,18 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
   break;
 
   case BOOT_BS2_USA:
-    set_region_dir = USA_DIR;
+    SetRegion(DiscIO::Region::NTSC_U, &set_region_dir);
     m_strFilename.clear();
-    bNTSC = true;
     break;
 
   case BOOT_BS2_JAP:
-    set_region_dir = JAP_DIR;
+    SetRegion(DiscIO::Region::NTSC_J, &set_region_dir);
     m_strFilename.clear();
-    bNTSC = true;
     break;
 
   case BOOT_BS2_EUR:
-    set_region_dir = EUR_DIR;
+    SetRegion(DiscIO::Region::PAL, &set_region_dir);
     m_strFilename.clear();
-    bNTSC = false;
     break;
   }
 

@@ -9,6 +9,8 @@
 #include <limits>
 #include <string>
 
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 
@@ -34,7 +36,9 @@
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/SamplerCommon.h"
 #include "VideoCommon/TextureCacheBase.h"
+#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 namespace Vulkan
 {
@@ -179,7 +183,7 @@ void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 {
-  if (type == PEEK_COLOR)
+  if (type == EFBAccessType::PeekColor)
   {
     u32 color = FramebufferManager::GetInstance()->PeekEFBColor(x, y);
 
@@ -215,7 +219,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
       return color & 0x00FFFFFF;  // GX_READ_00
     }
   }
-  else  // if (type == PEEK_Z)
+  else  // if (type == EFBAccessType::PeekZ)
   {
     // Depth buffer is inverted for improved precision near far plane
     float depth = 1.0f - FramebufferManager::GetInstance()->PeekEFBDepth(x, y);
@@ -237,7 +241,7 @@ u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)
 
 void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
 {
-  if (type == POKE_COLOR)
+  if (type == EFBAccessType::PokeColor)
   {
     for (size_t i = 0; i < num_points; i++)
     {
@@ -249,7 +253,7 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
       FramebufferManager::GetInstance()->PokeEFBColor(point.x, point.y, color);
     }
   }
-  else  // if (type == POKE_Z)
+  else  // if (type == EFBAccessType::PokeZ)
   {
     for (size_t i = 0; i < num_points; i++)
     {
@@ -345,9 +349,10 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
       bpmem.zcontrol.pixel_format == PEControl::RGB8_Z24 ||
       bpmem.zcontrol.pixel_format == PEControl::Z24)
   {
-    // Force alpha writes, and set the color to 0xFF.
+    // Force alpha writes, and clear the alpha channel. This is different to the other backends,
+    // where the existing values of the alpha channel are preserved.
     alpha_enable = true;
-    color |= 0xFF000000;
+    color &= 0x00FFFFFF;
   }
 
   // Convert RGBA8 -> floating-point values.
@@ -1227,7 +1232,7 @@ void Renderer::ResizeSwapChain()
   OnSwapChainResized();
 }
 
-void Renderer::ApplyState(bool bUseDstAlpha)
+void Renderer::ApplyState()
 {
 }
 
@@ -1645,6 +1650,10 @@ void Renderer::SetViewport()
   float y = Renderer::EFBToScaledYf(xfmem.viewport.yOrig + xfmem.viewport.ht - scissor_y_offset);
   float width = Renderer::EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float height = Renderer::EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777215.0f, 16777215.0f);
+  float min_depth =
+      MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
+  float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
   if (width < 0.0f)
   {
     x += width;
@@ -1656,28 +1665,19 @@ void Renderer::SetViewport()
     height = -height;
   }
 
-  // If we do depth clipping and depth range in the vertex shader we only need to ensure
-  // depth values don't exceed the maximum value supported by the console GPU. If not,
-  // we simply clamp the near/far values themselves to the maximum value as done above.
-  float min_depth, max_depth;
-  if (g_ActiveConfig.backend_info.bSupportsDepthClamp)
+  // If an inverted depth range is used, which the Vulkan drivers don't
+  // support, we need to calculate the depth range in the vertex shader.
+  // TODO: Make this into a DriverDetails bug and write a test for CTS.
+  if (xfmem.viewport.zRange < 0.0f)
   {
-    min_depth = 1.0f - GX_MAX_DEPTH;
-    max_depth = 1.0f;
-  }
-  else
-  {
-    float near_val = MathUtil::Clamp<float>(xfmem.viewport.farZ -
-                                                MathUtil::Clamp<float>(xfmem.viewport.zRange,
-                                                                       -16777216.0f, 16777216.0f),
-                                            0.0f, 16777215.0f) /
-                     16777216.0f;
-    float far_val = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
-    min_depth = near_val;
-    max_depth = far_val;
+    min_depth = 0.0f;
+    max_depth = GX_MAX_DEPTH;
   }
 
-  VkViewport viewport = {x, y, width, height, min_depth, max_depth};
+  // We use an inverted depth range here to apply the Reverse Z trick.
+  // This trick makes sure we match the precision provided by the 1:0
+  // clipping depth range on the hardware.
+  VkViewport viewport = {x, y, width, height, 1.0f - max_depth, 1.0f - min_depth};
   StateTracker::GetInstance()->SetViewport(viewport);
 }
 

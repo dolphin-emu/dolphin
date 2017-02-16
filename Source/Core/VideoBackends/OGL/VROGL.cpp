@@ -9,6 +9,8 @@
 #endif
 
 #include "Common/GL/GLUtil.h"
+#include "Common/MsgHandler.h"
+#include "Common/Logging/Log.h"
 #include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/PostProcessing.h"
 #include "VideoBackends/OGL/Render.h"

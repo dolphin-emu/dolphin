@@ -2,52 +2,56 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
+
+#include <array>
 #include <cassert>
-#include <cstring>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
-#include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/HydraTLayer.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Force.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+
 namespace WiimoteEmu
 {
-static const u8 nunchuk_id[] = {0x00, 0x00, 0xa4, 0x20, 0x00, 0x00};
+constexpr std::array<u8, 6> nunchuk_id{{0x00, 0x00, 0xa4, 0x20, 0x00, 0x00}};
 
-static const u8 nunchuk_button_bitmasks[] = {
+constexpr std::array<u8, 2> nunchuk_button_bitmasks{{
     Nunchuk::BUTTON_C, Nunchuk::BUTTON_Z,
-};
+}};
 
-Nunchuk::Nunchuk(WiimoteEmu::ExtensionReg& _reg, int index)
-    : Attachment(_trans("Nunchuk"), _reg), m_index(index)
+Nunchuk::Nunchuk(ExtensionReg& reg, int index) : Attachment(_trans("Nunchuk"), reg), m_index(index)
 {
   // buttons
-  groups.emplace_back(m_buttons = new Buttons("Buttons"));
-  m_buttons->controls.emplace_back(new ControlGroup::Input("C"));
-  m_buttons->controls.emplace_back(new ControlGroup::Input("Z"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input("C"));
+  m_buttons->controls.emplace_back(new ControllerEmu::Input("Z"));
 
   // stick
-  groups.emplace_back(m_stick = new AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(m_stick =
+                          new ControllerEmu::AnalogStick("Stick", DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // swing
-  groups.emplace_back(m_swing = new Force("Swing"));
+  groups.emplace_back(m_swing = new ControllerEmu::Force("Swing"));
 
   // tilt
-  groups.emplace_back(m_tilt = new Tilt("Tilt"));
+  groups.emplace_back(m_tilt = new ControllerEmu::Tilt("Tilt"));
 
   // shake
-  groups.emplace_back(m_shake = new Buttons("Shake"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("X"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
+  groups.emplace_back(m_shake = new ControllerEmu::Buttons("Shake"));
+  m_shake->controls.emplace_back(new ControllerEmu::Input("X"));
+  m_shake->controls.emplace_back(new ControllerEmu::Input("Y"));
+  m_shake->controls.emplace_back(new ControllerEmu::Input("Z"));
 
-  // id
-  memcpy(&id, nunchuk_id, sizeof(nunchuk_id));
-
-  // this should get set to 0 on disconnect, but it isn't, o well
-  memset(m_shake_step, 0, sizeof(m_shake_step));
+  m_id = nunchuk_id;
 }
 
 void Nunchuk::GetState(u8* const data)
@@ -89,9 +93,9 @@ void Nunchuk::GetState(u8* const data)
   // swing
   EmulateSwing(&accel, m_swing);
   // shake
-  EmulateShake(&accel, m_shake, m_shake_step);
+  EmulateShake(&accel, m_shake, m_shake_step.data());
   // buttons
-  m_buttons->GetState(&ncdata->bt.hex, nunchuk_button_bitmasks);
+  m_buttons->GetState(&ncdata->bt.hex, nunchuk_button_bitmasks.data());
 
   // flip the button bits :/
   ncdata->bt.hex ^= 0x03;
@@ -116,7 +120,7 @@ void Nunchuk::GetState(u8* const data)
 bool Nunchuk::IsButtonPressed() const
 {
   u8 buttons = 0;
-  m_buttons->GetState(&buttons, nunchuk_button_bitmasks);
+  m_buttons->GetState(&buttons, nunchuk_button_bitmasks.data());
   return buttons != 0;
 }
 

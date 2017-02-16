@@ -43,7 +43,7 @@
       <FixedBaseAddress>true</FixedBaseAddress>
       <AdditionalLibraryDirectories Condition="'$(VisualStudioVersion)' == '12.0'">$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2013;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2013;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalLibraryDirectories Condition="'$(VisualStudioVersion)' == '14.0'">$(ExternalsDir)LibOVR\Lib\$(PlatformName)\VS2015;$(ExternalsDir)LibOVR\Lib\Windows\$(PlatformName)\$(Configuration)\VS2015;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)OpenAL\$(PlatformName);$(ExternalsDir)openvr\lib\win64;$(ExternalsDir)OSVR\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;$(ExternalsDir)OpenAL\lib;$(ExternalsDir)openvr\lib\win64;$(ExternalsDir)OSVR\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;%(AdditionalDependencies)</AdditionalDependencies>
 	  <AdditionalDependencies Condition="'$(VisualStudioVersion)' != '12.0'">avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
@@ -65,7 +65,7 @@
     <ClCompile />
     <ClCompile />
     <Manifest>
-      <EnableDpiAwareness>true</EnableDpiAwareness>
+      <AdditionalManifestFiles>DolphinWX.manifest;%(AdditionalManifestFiles)</AdditionalManifestFiles>
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -76,6 +76,7 @@
     <ClCompile Include="Cheats\CheatsWindow.cpp" />
     <ClCompile Include="Cheats\CreateCodeDialog.cpp" />
     <ClCompile Include="Cheats\GeckoCodeDiag.cpp" />
+    <ClCompile Include="Config\AddUSBDeviceDiag.cpp" />
     <ClCompile Include="Config\AdvancedConfigPane.cpp" />
     <ClCompile Include="Config\AudioConfigPane.cpp" />
     <ClCompile Include="Config\ConfigMain.cpp" />
@@ -155,6 +156,7 @@
   <ItemGroup>
     <ClInclude Include="Cheats\ActionReplayCodesPanel.h" />
     <ClInclude Include="Cheats\ARCodeAddEdit.h" />
+    <ClInclude Include="Config\AddUSBDeviceDiag.h" />
     <ClInclude Include="Config\AdvancedConfigPane.h" />
     <ClInclude Include="Config\AudioConfigPane.h" />
     <ClInclude Include="Config\GameCubeConfigPane.h" />
@@ -312,7 +314,7 @@
   <ItemGroup>
     <DataSysFiles Include="$(DolphinRootDir)Data\**\Sys\**\*.*" />
     <DataTxtFiles Include="$(DolphinRootDir)Data\license.txt" />
-    <ExternalDlls Include="$(ExternalsDir)OSVR\bin\osvr*.dll;$(ExternalsDir)OpenAL\$(PlatformName)\*.dll;$(ExternalsDir)openvr\bin\win64\*.dll" />
+    <ExternalDlls Include="$(ExternalsDir)OSVR\bin\osvr*.dll;$(ExternalsDir)OpenAL\lib\*.dll;$(ExternalsDir)openvr\bin\win64\*.dll" />
     <BinaryFiles Include="$(TargetPath)" />
     <AllInputFiles Include="@(DataSysFiles);@(DataTxtFiles);@(ExternalDlls);@(BinaryFiles)" />
   </ItemGroup>

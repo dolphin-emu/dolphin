@@ -4,25 +4,41 @@
 
 #pragma once
 
+#include <cstddef>
 #include <list>
+#include <vector>
 
+#include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
 
 #include "Core/DSP/DSPCommon.h"
 #include "Core/DSP/Jit/DSPJitRegCache.h"
 
-#define COMPILED_CODE_SIZE 2097152
-#define MAX_BLOCKS 0x10000
+class PointerWrap;
 
-typedef u32 (*DSPCompiledCode)();
-typedef const u8* Block;
+namespace DSP
+{
+enum class StackRegister;
 
+namespace JIT
+{
+namespace x86
+{
 class DSPEmitter : public Gen::X64CodeBlock
 {
 public:
+  using DSPCompiledCode = u32 (*)();
+  using Block = const u8*;
+
+  static constexpr size_t MAX_BLOCKS = 0x10000;
+
   DSPEmitter();
   ~DSPEmitter();
+
+  u16 RunCycles(u16 cycles);
+
+  void DoState(PointerWrap& p);
 
   void EmitInstruction(UDSPInstruction inst);
   void ClearIRAM();
@@ -32,7 +48,7 @@ public:
   Block CompileStub();
   void Compile(u16 start_addr);
 
-  bool FlagsNeeded();
+  bool FlagsNeeded() const;
 
   void FallBackToInterpreter(UDSPInstruction inst);
 
@@ -90,18 +106,19 @@ public:
   void nr(const UDSPInstruction opc);
   void nop(const UDSPInstruction opc) {}
   // Command helpers
-  void dsp_reg_stack_push(int stack_reg);
-  void dsp_reg_stack_pop(int stack_reg);
-  void dsp_reg_store_stack(int stack_reg, Gen::X64Reg host_sreg = Gen::EDX);
-  void dsp_reg_load_stack(int stack_reg, Gen::X64Reg host_dreg = Gen::EDX);
-  void dsp_reg_store_stack_imm(int stack_reg, u16 val);
+  void dsp_reg_stack_push(StackRegister stack_reg);
+  void dsp_reg_stack_pop(StackRegister stack_reg);
+  void dsp_reg_store_stack(StackRegister stack_reg, Gen::X64Reg host_sreg = Gen::EDX);
+  void dsp_reg_load_stack(StackRegister stack_reg, Gen::X64Reg host_dreg = Gen::EDX);
+  void dsp_reg_store_stack_imm(StackRegister stack_reg, u16 val);
   void dsp_op_write_reg(int reg, Gen::X64Reg host_sreg);
   void dsp_op_write_reg_imm(int reg, u16 val);
   void dsp_conditional_extend_accum(int reg);
   void dsp_conditional_extend_accum_imm(int reg, u16 val);
   void dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg,
-                                     DSPJitSignExtend extend = NONE);
-  void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg, DSPJitSignExtend extend = NONE);
+                                     RegisterExtension extend = RegisterExtension::None);
+  void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg,
+                       RegisterExtension extend = RegisterExtension::None);
 
   // Commands
   void dar(const UDSPInstruction opc);
@@ -236,30 +253,19 @@ public:
   void madd(const UDSPInstruction opc);
   void msub(const UDSPInstruction opc);
 
-  // CALL this to start the dispatcher
-  const u8* enterDispatcher;
-  const u8* reenterDispatcher;
-  const u8* stubEntryPoint;
-  const u8* returnDispatcher;
-  u16 compilePC;
-  u16 startAddr;
-  Block* blockLinks;
-  u16* blockSize;
-  std::list<u16> unresolvedJumps[MAX_BLOCKS];
-
-  DSPJitRegCache gpr;
+  std::list<u16> m_unresolved_jumps[MAX_BLOCKS];
 
 private:
-  DSPCompiledCode* blocks;
-  Block blockLinkEntry;
-  u16 compileSR;
+  void WriteBranchExit();
+  void WriteBlockLink(u16 dest);
 
-  // The index of the last stored ext value (compile time).
-  int storeIndex;
-  int storeIndex2;
-
-  // Counts down.
-  // int cycles;
+  void ReJitConditional(UDSPInstruction opc, void (DSPEmitter::*conditional_fn)(UDSPInstruction));
+  void r_jcc(UDSPInstruction opc);
+  void r_jmprcc(UDSPInstruction opc);
+  void r_call(UDSPInstruction opc);
+  void r_callr(UDSPInstruction opc);
+  void r_ifcc(UDSPInstruction opc);
+  void r_ret(UDSPInstruction opc);
 
   void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
 
@@ -278,4 +284,30 @@ private:
   void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
   void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
   void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
+
+  DSPJitRegCache m_gpr{*this};
+
+  u16 m_compile_pc;
+  u16 m_compile_status_register;
+  u16 m_start_address;
+
+  std::vector<DSPCompiledCode> m_blocks;
+  std::vector<u16> m_block_size;
+  std::vector<Block> m_block_links;
+  Block m_block_link_entry;
+
+  u16 m_cycles_left = 0;
+
+  // The index of the last stored ext value (compile time).
+  int m_store_index = -1;
+  int m_store_index2 = -1;
+
+  // CALL this to start the dispatcher
+  const u8* m_enter_dispatcher;
+  const u8* m_return_dispatcher;
+  const u8* m_stub_entry_point;
 };
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP

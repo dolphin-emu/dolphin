@@ -8,7 +8,8 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 
-union TestUnion {
+union TestUnion
+{
   u64 hex;
 
   BitField<0, 64, u64> full_u64;  // spans whole storage

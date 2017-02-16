@@ -7,13 +7,16 @@
 #include <memory>
 #include <string>
 
+#include "Common/CommonTypes.h"
 #include "VideoBackends/D3D12/D3DState.h"
-#include "VideoBackends/D3D12/D3DStreamBuffer.h"
 
-#include "VideoCommon/RenderBase.h"
+enum class EFBAccessType;
+struct EfbPokeData;
 
 namespace DX12
 {
+class D3DStreamBuffer;
+
 extern StateCache gx_state_cache;
 
 namespace D3D

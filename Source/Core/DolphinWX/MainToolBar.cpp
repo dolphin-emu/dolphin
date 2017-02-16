@@ -229,7 +229,7 @@ void MainToolBar::RefreshPlayButton()
   ToolBarBitmapID bitmap_id;
   wxString label;
 
-  if (Core::GetState() == Core::CORE_RUN)
+  if (Core::GetState() == Core::State::Running)
   {
     bitmap_id = TOOLBAR_PAUSE;
     label = _("Pause");

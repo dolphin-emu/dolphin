@@ -4,6 +4,10 @@
 
 #pragma once
 
+#include <vector>
+
+#include "Common/CommonTypes.h"
+#include "Common/GL/GLUtil.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -41,7 +45,7 @@ protected:
 
 private:
   void Draw(u32 stride);
-  void vFlush(bool useDstAlpha) override;
+  void vFlush() override;
   void vFlush3D(bool useDstAlpha);
   void PrepareDrawBuffers(u32 stride);
 

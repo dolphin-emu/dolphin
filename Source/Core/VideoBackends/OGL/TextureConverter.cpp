@@ -4,10 +4,14 @@
 
 // Fast image conversion using OpenGL shaders.
 
+#include "VideoBackends/OGL/TextureConverter.h"
+
 #include <string>
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/HW/Memmap.h"
@@ -17,9 +21,7 @@
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/TextureCache.h"
-#include "VideoBackends/OGL/TextureConverter.h"
 
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VideoCommon.h"
@@ -270,7 +272,7 @@ static void EncodeToRamUsingShader(GLuint srcTexture, u8* destAddr, u32 dst_line
 }
 
 void EncodeToRamFromTexture(u8* dest_ptr, u32 format, u32 native_width, u32 bytes_per_row,
-                            u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat srcFormat,
+                            u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
                             bool bIsIntensityFmt, int bScaleByHalf, const EFBRectangle& source)
 {
   g_renderer->ResetAPIState();
@@ -281,12 +283,11 @@ void EncodeToRamFromTexture(u8* dest_ptr, u32 format, u32 native_width, u32 byte
   glUniform4i(s_encodingUniforms[format], source.left, source.top, native_width,
               bScaleByHalf ? 2 : 1);
 
-  const GLuint read_texture = (srcFormat == PEControl::Z24) ?
-                                  FramebufferManager::ResolveAndGetDepthTarget(source) :
-                                  FramebufferManager::ResolveAndGetRenderTarget(source);
+  const GLuint read_texture = is_depth_copy ? FramebufferManager::ResolveAndGetDepthTarget(source) :
+                                              FramebufferManager::ResolveAndGetRenderTarget(source);
 
   EncodeToRamUsingShader(read_texture, dest_ptr, bytes_per_row, num_blocks_y, memory_stride,
-                         bScaleByHalf > 0 && srcFormat != PEControl::Z24);
+                         bScaleByHalf > 0 && !is_depth_copy);
 
   FramebufferManager::SetFramebuffer(0);
   g_renderer->RestoreAPIState();

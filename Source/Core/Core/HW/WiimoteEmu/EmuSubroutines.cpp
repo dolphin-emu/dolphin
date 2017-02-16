@@ -30,6 +30,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 
 namespace WiimoteEmu
 {

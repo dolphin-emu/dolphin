@@ -11,6 +11,8 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
+#include "Core/ConfigManager.h"
+
 #if defined(_MSC_VER) && _MSC_VER <= 1800
 #undef BUFFER_SIZE
 #define BUFFER_SIZE WAVE_WRITER_BUFFER_SIZE
@@ -29,6 +31,21 @@ WaveFileWriter::~WaveFileWriter()
 
 bool WaveFileWriter::Start(const std::string& filename, unsigned int HLESampleRate)
 {
+  // Ask to delete file
+  if (File::Exists(filename))
+  {
+    if (SConfig::GetInstance().m_DumpAudioSilent ||
+        AskYesNoT("Delete the existing file '%s'?", filename.c_str()))
+    {
+      File::Delete(filename);
+    }
+    else
+    {
+      // Stop and cancel dumping the audio
+      return false;
+    }
+  }
+
   // Check if the file is already open
   if (file)
   {

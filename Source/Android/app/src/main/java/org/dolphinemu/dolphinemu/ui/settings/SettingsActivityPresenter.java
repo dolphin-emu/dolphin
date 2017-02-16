@@ -91,8 +91,7 @@ public final class SettingsActivityPresenter
 	{
 		switch (itemId)
 		{
-			case R.id.menu_exit_no_save:
-				mShouldSave = false;
+			case R.id.menu_save_exit:
 				mView.finish();
 				return true;
 		}

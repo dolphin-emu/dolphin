@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Input/InputConfigDiag.h"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -39,24 +41,30 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
+
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/Input/ClassicInputConfigDiag.h"
 #include "DolphinWX/Input/DrumsInputConfigDiag.h"
 #include "DolphinWX/Input/GuitarInputConfigDiag.h"
-#include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/Input/NunchukInputConfigDiag.h"
 #include "DolphinWX/Input/TurntableInputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
-#include "InputCommon/ControllerEmu.h"
+
+#include "InputCommon/ControlReference/ControlReference.h"
+#include "InputCommon/ControlReference/ExpressionParser.h"
+#include "InputCommon/ControllerEmu/Control/Control.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
+#include "InputCommon/ControllerEmu/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/ControllerInterface/Device.h"
-#include "InputCommon/ControllerInterface/ExpressionParser.h"
 #include "InputCommon/InputConfig.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -73,38 +81,46 @@ void InputConfigDialog::ConfigExtension(wxCommandEvent& event)
   {
   case WiimoteEmu::EXT_NUNCHUK:
   {
-    NunchukInputConfigDialog dlg(this, m_config, _("Nunchuk Configuration"), m_port_num);
+    NunchukInputConfigDialog dlg(this, m_config, _("Nunchuk Configuration"), device_cbox,
+                                 m_port_num);
     UpdateGUI();
     dlg.ShowModal();
   }
   break;
   case WiimoteEmu::EXT_CLASSIC:
   {
-    ClassicInputConfigDialog dlg(this, m_config, _("Classic Controller Configuration"), m_port_num);
+    ClassicInputConfigDialog dlg(this, m_config, _("Classic Controller Configuration"), device_cbox,
+                                 m_port_num);
     dlg.ShowModal();
   }
   break;
   case WiimoteEmu::EXT_GUITAR:
   {
-    GuitarInputConfigDialog dlg(this, m_config, _("Guitar Configuration"), m_port_num);
+    GuitarInputConfigDialog dlg(this, m_config, _("Guitar Configuration"), device_cbox, m_port_num);
     dlg.ShowModal();
   }
   break;
   case WiimoteEmu::EXT_DRUMS:
   {
-    DrumsInputConfigDialog dlg(this, m_config, _("Drums Configuration"), m_port_num);
+    DrumsInputConfigDialog dlg(this, m_config, _("Drums Configuration"), device_cbox, m_port_num);
     dlg.ShowModal();
   }
   break;
   case WiimoteEmu::EXT_TURNTABLE:
   {
-    TurntableInputConfigDialog dlg(this, m_config, _("Turntable Configuration"), m_port_num);
+    TurntableInputConfigDialog dlg(this, m_config, _("Turntable Configuration"), device_cbox,
+                                   m_port_num);
     dlg.ShowModal();
   }
   break;
   default:
     break;
   }
+}
+
+PadSetting::PadSetting(wxControl* const _control) : wxcontrol(_control)
+{
+  wxcontrol->SetClientData(this);
 }
 
 PadSettingExtension::PadSettingExtension(wxWindow* const parent,
@@ -175,7 +191,7 @@ void PadSettingSpin::UpdateValue()
 }
 
 ControlDialog::ControlDialog(InputConfigDialog* const parent, InputConfig& config,
-                             ControllerInterface::ControlReference* const ref)
+                             ControlReference* const ref)
     : wxDialog(parent, wxID_ANY, _("Configure Control"), wxDefaultPosition, wxDefaultSize,
                wxDEFAULT_DIALOG_STYLE | wxRESIZE_BORDER),
       control_reference(ref), m_config(config), m_parent(parent)
@@ -213,8 +229,12 @@ ControlDialog::ControlDialog(InputConfigDialog* const parent, InputConfig& confi
   SetFocus();
 }
 
-ControlButton::ControlButton(wxWindow* const parent,
-                             ControllerInterface::ControlReference* const _ref,
+ExtensionButton::ExtensionButton(wxWindow* const parent, ControllerEmu::Extension* const ext)
+    : wxButton(parent, wxID_ANY, _("Configure"), wxDefaultPosition), extension(ext)
+{
+}
+
+ControlButton::ControlButton(wxWindow* const parent, ControlReference* const _ref,
                              const std::string& name, const unsigned int width,
                              const std::string& label)
     : wxButton(parent, wxID_ANY), control_reference(_ref), m_name(name),
@@ -340,7 +360,7 @@ void ControlDialog::UpdateListContents()
   const auto dev = g_controller_interface.FindDevice(m_devq);
   if (dev != nullptr)
   {
-    if (control_reference->is_input)
+    if (control_reference->IsInput())
     {
       for (ciface::Core::Device::Input* input : dev->Inputs())
       {
@@ -375,7 +395,7 @@ void ControlDialog::UpdateGUI()
   m_bound_label->SetLabel(
       wxString::Format(_("Bound Controls: %lu"), (unsigned long)control_reference->BoundCount()));
 
-  switch (control_reference->parse_error)
+  switch (control_reference->GetParseStatus())
   {
   case EXPRESSION_PARSE_SYNTAX_ERROR:
     m_error_label->SetLabel(_("Syntax error"));
@@ -454,7 +474,7 @@ void InputConfigDialog::UpdateGUI()
       expr.Replace("VR/0/Touch:", "T:");
       expr.Replace("VR/0/Vive:", "V:");
       expr.Replace("`", "");
-      if (button->control_reference->is_input)
+      if (button->control_reference->IsInput())
         button->SetToolTip(_("Left-click to detect input.\nMiddle-click to clear.\nRight-click for "
                              "more options.") +
                            "\n\n" + expr);
@@ -499,14 +519,14 @@ bool ControlDialog::Validate()
 {
   control_reference->expression = WxStrToStr(textctrl->GetValue());
 
-  auto lock = ControllerEmu::GetStateLock();
-  g_controller_interface.UpdateReference(control_reference,
-                                         m_parent->GetController()->default_device);
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+  control_reference->UpdateReference(g_controller_interface,
+                                     m_parent->GetController()->default_device);
 
   UpdateGUI();
 
-  return (control_reference->parse_error == EXPRESSION_PARSE_SUCCESS ||
-          control_reference->parse_error == EXPRESSION_PARSE_NO_DEVICE);
+  return (control_reference->GetParseStatus() == EXPRESSION_PARSE_SUCCESS ||
+          control_reference->GetParseStatus() == EXPRESSION_PARSE_NO_DEVICE);
 }
 
 void InputConfigDialog::SetDevice(wxCommandEvent&)
@@ -538,9 +558,9 @@ void ControlDialog::ClearControl(wxCommandEvent&)
 {
   control_reference->expression.clear();
 
-  auto lock = ControllerEmu::GetStateLock();
-  g_controller_interface.UpdateReference(control_reference,
-                                         m_parent->GetController()->default_device);
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+  control_reference->UpdateReference(g_controller_interface,
+                                     m_parent->GetController()->default_device);
 
   UpdateGUI();
 }
@@ -597,9 +617,9 @@ void ControlDialog::SetSelectedControl(wxCommandEvent&)
   textctrl->WriteText(expr);
   control_reference->expression = textctrl->GetValue();
 
-  auto lock = ControllerEmu::GetStateLock();
-  g_controller_interface.UpdateReference(control_reference,
-                                         m_parent->GetController()->default_device);
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+  control_reference->UpdateReference(g_controller_interface,
+                                     m_parent->GetController()->default_device);
 
   UpdateGUI();
 }
@@ -633,9 +653,9 @@ void ControlDialog::AppendControl(wxCommandEvent& event)
   textctrl->WriteText(expr);
   control_reference->expression = textctrl->GetValue();
 
-  auto lock = ControllerEmu::GetStateLock();
-  g_controller_interface.UpdateReference(control_reference,
-                                         m_parent->GetController()->default_device);
+  const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+  control_reference->UpdateReference(g_controller_interface,
+                                     m_parent->GetController()->default_device);
 
   UpdateGUI();
 }
@@ -815,8 +835,9 @@ bool InputConfigDialog::DetectButton(ControlButton* button)
       wxString expr;
       GetExpressionForControl(expr, control_name);
       button->control_reference->expression = expr;
-      auto lock = ControllerEmu::GetStateLock();
-      g_controller_interface.UpdateReference(button->control_reference, controller->default_device);
+      const auto lock = ControllerEmu::EmulatedController::GetStateLock();
+      button->control_reference->UpdateReference(g_controller_interface,
+                                                 controller->default_device);
       success = true;
     }
 
@@ -833,7 +854,7 @@ bool InputConfigDialog::DetectButton(ControlButton* button)
 wxStaticBoxSizer* ControlDialog::CreateControlChooser(InputConfigDialog* const parent)
 {
   wxStaticBoxSizer* const main_szr = new wxStaticBoxSizer(
-      wxVERTICAL, this, control_reference->is_input ? _("Input") : _("Output"));
+      wxVERTICAL, this, control_reference->IsInput() ? _("Input") : _("Output"));
   const int space5 = FromDIP(5);
 
   textctrl = new wxTextCtrl(this, wxID_ANY, wxEmptyString, wxDefaultPosition,
@@ -843,7 +864,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(InputConfigDialog* const p
   textctrl->SetFont(font);
 
   wxButton* const detect_button =
-      new wxButton(this, wxID_ANY, control_reference->is_input ? _("Detect") : _("Test"));
+      new wxButton(this, wxID_ANY, control_reference->IsInput() ? _("Detect") : _("Test"));
 
   wxButton* const clear_button = new wxButton(this, wxID_ANY, _("Clear"));
 
@@ -860,7 +881,7 @@ wxStaticBoxSizer* ControlDialog::CreateControlChooser(InputConfigDialog* const p
   button_sizer->Add(select_button, 1);
   button_sizer->Add(or_button, 1);
 
-  if (control_reference->is_input)
+  if (control_reference->IsInput())
   {
     // TODO: check if && is good on other OS
     wxButton* const and_button = new wxButton(this, wxID_ANY, _("&& AND"));
@@ -944,7 +965,7 @@ void InputConfigDialog::GetProfilePath(std::string& path)
   }
 }
 
-ControllerEmu* InputConfigDialog::GetController() const
+ControllerEmu::EmulatedController* InputConfigDialog::GetController() const
 {
   return controller;
 }
@@ -1063,6 +1084,14 @@ ControlGroupBox::~ControlGroupBox()
     delete padSetting;
 }
 
+bool ControlGroupBox::HasBitmapHeading() const
+{
+  return control_group->type == ControllerEmu::GROUP_TYPE_STICK ||
+         control_group->type == ControllerEmu::GROUP_TYPE_TILT ||
+         control_group->type == ControllerEmu::GROUP_TYPE_CURSOR ||
+         control_group->type == ControllerEmu::GROUP_TYPE_FORCE;
+}
+
 ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWindow* const parent,
                                  InputConfigDialog* eventsink)
     : wxStaticBoxSizer(wxVERTICAL, parent, wxGetTranslation(StrToWxStr(group->ui_name))),
@@ -1096,7 +1125,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
             exclude_buttons.end())
       eventsink->control_buttons.push_back(control_button);
 
-    if (control->control_ref->is_input)
+    if (control->control_ref->IsInput())
     {
       control_button->SetToolTip(
           _("Left-click to detect input.\nMiddle-click to clear.\nRight-click for more options."));
@@ -1118,10 +1147,10 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
 
   switch (group->type)
   {
-  case GROUP_TYPE_STICK:
-  case GROUP_TYPE_TILT:
-  case GROUP_TYPE_CURSOR:
-  case GROUP_TYPE_FORCE:
+  case ControllerEmu::GROUP_TYPE_STICK:
+  case ControllerEmu::GROUP_TYPE_TILT:
+  case ControllerEmu::GROUP_TYPE_CURSOR:
+  case ControllerEmu::GROUP_TYPE_FORCE:
   {
     wxSize bitmap_size = parent->FromDIP(wxSize(64, 64));
     m_scale = bitmap_size.GetWidth() / 64.0;
@@ -1163,7 +1192,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(h_szr, 0, wxEXPAND | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case GROUP_TYPE_BUTTONS:
+  case ControllerEmu::GROUP_TYPE_BUTTONS:
   {
     // Draw buttons in rows of 8
     unsigned int button_cols = group->controls.size() > 8 ? 8 : group->controls.size();
@@ -1201,17 +1230,17 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(static_bitmap, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case GROUP_TYPE_MIXED_TRIGGERS:
-  case GROUP_TYPE_TRIGGERS:
-  case GROUP_TYPE_SLIDER:
+  case ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS:
+  case ControllerEmu::GROUP_TYPE_TRIGGERS:
+  case ControllerEmu::GROUP_TYPE_SLIDER:
   {
     int height = (int)(12 * group->controls.size());
     int width = 64;
 
-    if (GROUP_TYPE_MIXED_TRIGGERS == group->type)
+    if (ControllerEmu::GROUP_TYPE_MIXED_TRIGGERS == group->type)
       width = 64 + 12 + 1;
 
-    if (GROUP_TYPE_TRIGGERS != group->type)
+    if (ControllerEmu::GROUP_TYPE_TRIGGERS != group->type)
       height /= 2;
     height += 1;
 
@@ -1245,7 +1274,7 @@ ControlGroupBox::ControlGroupBox(ControllerEmu::ControlGroup* const group, wxWin
     Add(static_bitmap, 0, wxALIGN_CENTER_HORIZONTAL | wxLEFT | wxRIGHT, space3);
   }
   break;
-  case GROUP_TYPE_EXTENSION:
+  case ControllerEmu::GROUP_TYPE_EXTENSION:
   {
     PadSettingExtension* const attachments =
         new PadSettingExtension(parent, (ControllerEmu::Extension*)group);
@@ -1435,6 +1464,16 @@ InputConfigDialog::InputConfigDialog(wxWindow* const parent, InputConfig& config
   m_update_timer.Start(PREVIEW_UPDATE_TIME, wxTIMER_CONTINUOUS);
 }
 
+InputEventFilter::InputEventFilter()
+{
+  wxEvtHandler::AddFilter(this);
+}
+
+InputEventFilter::~InputEventFilter()
+{
+  wxEvtHandler::RemoveFilter(this);
+}
+
 int InputEventFilter::FilterEvent(wxEvent& event)
 {
   if (m_block && ShouldCatchEventType(event.GetEventType()))
@@ -1444,4 +1483,17 @@ int InputEventFilter::FilterEvent(wxEvent& event)
   }
 
   return Event_Skip;
+}
+
+void InputEventFilter::BlockEvents(bool block)
+{
+  m_block = block;
+}
+
+bool InputEventFilter::ShouldCatchEventType(wxEventType type)
+{
+  return type == wxEVT_KEY_DOWN || type == wxEVT_KEY_UP || type == wxEVT_CHAR ||
+         type == wxEVT_CHAR_HOOK || type == wxEVT_LEFT_DOWN || type == wxEVT_LEFT_UP ||
+         type == wxEVT_MIDDLE_DOWN || type == wxEVT_MIDDLE_UP || type == wxEVT_RIGHT_DOWN ||
+         type == wxEVT_RIGHT_UP;
 }

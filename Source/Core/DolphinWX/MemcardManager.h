@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+#include <memory>
 #include <string>
 #include <wx/dialog.h>
 #include <wx/listctrl.h>
@@ -26,23 +28,23 @@ public:
 private:
   DECLARE_EVENT_TABLE();
 
-  int page[2];
+  std::array<int, 2> page;
   int itemsPerPage;
   int maxPages;
-  std::string DefaultMemcard[2];
+  std::array<std::string, 2> DefaultMemcard;
   std::string DefaultIOPath;
   IniFile MemcardManagerIni;
   IniFile::Section* iniMemcardSection;
 
-  wxButton* m_CopyFrom[2];
-  wxButton* m_SaveImport[2];
-  wxButton* m_SaveExport[2];
-  wxButton* m_Delete[2];
-  wxButton* m_NextPage[2];
-  wxButton* m_PrevPage[2];
+  std::array<wxButton*, 2> m_CopyFrom;
+  std::array<wxButton*, 2> m_SaveImport;
+  std::array<wxButton*, 2> m_SaveExport;
+  std::array<wxButton*, 2> m_Delete;
+  std::array<wxButton*, 2> m_NextPage;
+  std::array<wxButton*, 2> m_PrevPage;
   wxButton* m_ConvertToGci;
-  wxFilePickerCtrl* m_MemcardPath[2];
-  wxStaticText* t_Status[2];
+  std::array<wxFilePickerCtrl*, 2> m_MemcardPath;
+  std::array<wxStaticText*, 2> t_Status;
 
   enum
   {
@@ -93,7 +95,7 @@ private:
     NUMBER_OF_COLUMN
   };
 
-  GCMemcard* memoryCard[2];
+  std::array<std::unique_ptr<GCMemcard>, 2> memoryCard;
 
   void CreateGUIControls();
   void CopyDeleteClick(wxCommandEvent& event);
@@ -106,24 +108,24 @@ private:
   bool LoadSettings();
   bool SaveSettings();
 
-  struct _mcmSettings
+  struct ManagerSettings
   {
     bool twoCardsLoaded;
     bool usePages;
-    bool column[NUMBER_OF_COLUMN + 1];
+    std::array<bool, NUMBER_OF_COLUMN + 1> column;
   } mcmSettings;
 
   class CMemcardListCtrl : public wxListCtrl
   {
   public:
     CMemcardListCtrl(wxWindow* parent, const wxWindowID id, const wxPoint& pos, const wxSize& size,
-                     long style, _mcmSettings& _mcmSetngs)
-        : wxListCtrl(parent, id, pos, size, style), __mcmSettings(_mcmSetngs)
+                     long style, ManagerSettings& manager_settings)
+        : wxListCtrl(parent, id, pos, size, style), mgr_settings(manager_settings)
     {
       Bind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this);
     }
     ~CMemcardListCtrl() { Unbind(wxEVT_RIGHT_DOWN, &CMemcardListCtrl::OnRightClick, this); }
-    _mcmSettings& __mcmSettings;
+    ManagerSettings& mgr_settings;
     bool prevPage;
     bool nextPage;
 
@@ -132,5 +134,5 @@ private:
   };
 
   wxSize m_image_list_size;
-  CMemcardListCtrl* m_MemcardList[2];
+  std::array<CMemcardListCtrl*, 2> m_MemcardList;
 };

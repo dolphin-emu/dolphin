@@ -18,9 +18,9 @@ wxString CDSPRegTable::GetValue(int row, int col)
     switch (col)
     {
     case 0:
-      return StrToWxStr(pdregname(row));
+      return StrToWxStr(DSP::pdregname(row));
     case 1:
-      return wxString::Format("0x%04x", DSPCore_ReadRegister(row));
+      return wxString::Format("0x%04x", DSP::DSPCore_ReadRegister(row));
     default:
       return wxEmptyString;
     }
@@ -34,16 +34,16 @@ void CDSPRegTable::SetValue(int, int, const wxString&)
 
 void CDSPRegTable::UpdateCachedRegs()
 {
-  if (m_CachedCounter == g_dsp.step_counter)
+  if (m_CachedCounter == DSP::g_dsp.step_counter)
   {
     return;
   }
 
-  m_CachedCounter = g_dsp.step_counter;
+  m_CachedCounter = DSP::g_dsp.step_counter;
 
   for (size_t i = 0; i < m_CachedRegs.size(); ++i)
   {
-    const u16 value = DSPCore_ReadRegister(i);
+    const u16 value = DSP::DSPCore_ReadRegister(i);
 
     m_CachedRegHasChanged[i] = m_CachedRegs[i] != value;
     m_CachedRegs[i] = value;

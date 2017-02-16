@@ -21,6 +21,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
+#include "Core/PowerPC/Jit64/FPURegCache.h"
+#include "Core/PowerPC/Jit64/GPRRegCache.h"
 #include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64Base.h"
@@ -33,8 +35,8 @@ private:
   void AllocStack();
   void FreeStack();
 
-  GPRRegCache gpr;
-  FPURegCache fpr;
+  GPRRegCache gpr{*this};
+  FPURegCache fpr{*this};
 
   // The default code buffer. We keep it around to not have to alloc/dealloc a
   // large chunk of memory for each recompiled block.
@@ -83,6 +85,7 @@ public:
 
   // Utilities for use by opcodes
 
+  void FakeBLCall(u32 after);
   void WriteExit(u32 destination, bool bl = false, u32 after = 0);
   void JustWriteExit(u32 destination, bool bl, u32 after);
   void WriteExitDestInRSCRATCH(bool bl = false, u32 after = 0);

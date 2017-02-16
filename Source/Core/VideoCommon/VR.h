@@ -271,6 +271,3 @@ extern bool debug_nextScene;
 
 extern int g_ovr_frameindex;
 
-#ifdef _WIN32
-extern LUID* g_hmd_luid;
-#endif

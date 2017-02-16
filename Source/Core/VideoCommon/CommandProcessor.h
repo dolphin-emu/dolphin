@@ -15,7 +15,35 @@ class Mapping;
 
 namespace CommandProcessor
 {
-extern SCPFifoStruct fifo;  // This one is shared between gfx thread and emulator thread.
+struct SCPFifoStruct
+{
+  // fifo registers
+  volatile u32 CPBase;
+  volatile u32 CPEnd;
+  u32 CPHiWatermark;
+  u32 CPLoWatermark;
+  volatile u32 CPReadWriteDistance;
+  volatile u32 CPWritePointer;
+  volatile u32 CPReadPointer;
+  volatile u32 CPBreakpoint;
+  volatile u32 SafeCPReadPointer;
+
+  volatile u32 bFF_GPLinkEnable;
+  volatile u32 bFF_GPReadEnable;
+  volatile u32 bFF_BPEnable;
+  volatile u32 bFF_BPInt;
+  volatile u32 bFF_Breakpoint;
+
+  volatile u32 bFF_LoWatermarkInt;
+  volatile u32 bFF_HiWatermarkInt;
+
+  volatile u32 bFF_LoWatermark;
+  volatile u32 bFF_HiWatermark;
+};
+
+// This one is shared between gfx thread and emulator thread.
+// It is only used by the Fifo and by the CommandProcessor.
+extern SCPFifoStruct fifo;
 
 // internal hardware addresses
 enum
@@ -71,7 +99,8 @@ enum
 };
 
 // Fifo Status Register
-union UCPStatusReg {
+union UCPStatusReg
+{
   struct
   {
     u16 OverflowHiWatermark : 1;
@@ -87,7 +116,8 @@ union UCPStatusReg {
 };
 
 // Fifo Control Register
-union UCPCtrlReg {
+union UCPCtrlReg
+{
   struct
   {
     u16 GPReadEnable : 1;
@@ -104,7 +134,8 @@ union UCPCtrlReg {
 };
 
 // Fifo Clear Register
-union UCPClearReg {
+union UCPClearReg
+{
   struct
   {
     u16 ClearFifoOverflow : 1;
@@ -134,5 +165,8 @@ bool IsInterruptWaiting();
 void SetCpClearRegister();
 void SetCpControlRegister();
 void SetCpStatusRegister();
+
+void HandleUnknownOpcode(u8 cmd_byte, void* buffer, bool preprocess, bool g_opcode_replay_frame,
+                         bool in_display_list, bool recursive_call);
 
 }  // namespace CommandProcessor

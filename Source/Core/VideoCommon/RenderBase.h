@@ -19,6 +19,7 @@
 #include <mutex>
 #include <string>
 #include <thread>
+#include <tuple>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -28,10 +29,10 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
-#include "VideoCommon/VideoBackendBase.h"
 #include "VideoCommon/VideoCommon.h"
 
 class PostProcessingShaderImplementation;
+enum class EFBAccessType;
 
 struct EfbPokeData
 {
@@ -74,7 +75,7 @@ public:
   virtual void SetViewport() {}
   virtual void SetFullscreen(bool enable_fullscreen) {}
   virtual bool IsFullscreen() const { return false; }
-  virtual void ApplyState(bool bUseDstAlpha) {}
+  virtual void ApplyState() {}
   virtual void RestoreState() {}
   virtual void ResetAPIState() {}
   virtual void RestoreAPIState() {}
@@ -94,6 +95,7 @@ public:
 
   static const TargetRectangle& GetTargetRectangle() { return target_rc; }
   static float CalculateDrawAspectRatio(int target_width, int target_height);
+  static std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height);
   static TargetRectangle CalculateFrameDumpDrawRectangle();
   static void UpdateDrawRectangle();
 

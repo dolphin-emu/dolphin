@@ -26,14 +26,14 @@
 #include "Core/DSP/DSPCore.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/DVDInterface.h"
-#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/ProcessorInterface.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_WiiMote.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
+#include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -81,7 +81,6 @@ static bool s_bDiscChange = false;
 static bool s_bReset = false;
 static std::string s_author = "";
 static std::string s_discChange = "";
-static u64 s_titleID = 0;
 static u8 s_MD5[16];
 static u8 s_bongos, s_memcards;
 static u8 s_revision[20];
@@ -176,7 +175,7 @@ std::string GetInputDisplay()
     for (int i = 0; i < 8; ++i)
     {
       if ((s_controllers & (1 << i)) != 0)
-        input_display += s_InputDisplay[i];
+        input_display += s_InputDisplay[i] + '\n';
     }
   }
   return input_display;
@@ -188,7 +187,7 @@ std::string GetRTCDisplay()
   time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
   tm* gm_time = gmtime(&current_time);
   char buffer[256];
-  strftime(buffer, sizeof(buffer), "Date/Time: %c", gm_time);
+  strftime(buffer, sizeof(buffer), "Date/Time: %c\n", gm_time);
   std::stringstream format_time;
   format_time << buffer;
   return format_time.str();
@@ -304,17 +303,17 @@ void SetPolledDevice()
 // NOTE: Host Thread
 void DoFrameStep()
 {
-  if (Core::GetState() == Core::CORE_PAUSE)
+  if (Core::GetState() == Core::State::Paused)
   {
     // if already paused, frame advance for 1 frame
     s_bFrameStep = true;
     Core::RequestRefreshInfo();
-    Core::SetState(Core::CORE_RUN);
+    Core::SetState(Core::State::Running);
   }
   else if (!s_bFrameStep)
   {
     // if not paused yet, pause immediately instead
-    Core::SetState(Core::CORE_PAUSE);
+    Core::SetState(Core::State::Paused);
   }
 }
 
@@ -441,11 +440,6 @@ void SetReset(bool reset)
   s_bReset = reset;
 }
 
-void SetTitleId(u64 title_id)
-{
-  s_titleID = title_id;
-}
-
 bool IsUsingPad(int controller)
 {
   return ((s_controllers & (1 << controller)) != 0);
@@ -570,11 +564,13 @@ void ChangeWiiPads(bool instantly)
   if (instantly && (s_controllers >> 4) == controllers)
     return;
 
+  const auto bt = std::static_pointer_cast<IOS::HLE::Device::BluetoothEmu>(
+      IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305"));
   for (int i = 0; i < MAX_WIIMOTES; ++i)
   {
     g_wiimote_sources[i] = IsUsingWiimote(i) ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE;
-    if (!SConfig::GetInstance().m_bt_passthrough_enabled)
-      GetUsbPointer()->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
+    if (!SConfig::GetInstance().m_bt_passthrough_enabled && bt)
+      bt->AccessWiiMote(i | 0x100)->Activate(IsUsingWiimote(i));
   }
 }
 
@@ -622,17 +618,6 @@ bool BeginRecordingInput(int controllers)
     State::SaveAs(save_path);
     s_bRecordingFromSaveState = true;
 
-    // This is only done here if starting from save state because otherwise we won't have the
-    // titleid. Otherwise it's set in WII_IPC_HLE_Device_es.cpp.
-    // TODO: find a way to GetTitleDataPath() from Movie::Init()
-    if (SConfig::GetInstance().bWii)
-    {
-      if (File::Exists(Common::GetTitleDataPath(s_titleID, Common::FROM_SESSION_ROOT) +
-                       "banner.bin"))
-        Movie::s_bClearSave = false;
-      else
-        Movie::s_bClearSave = true;
-    }
     std::thread md5thread(GetMD5);
     md5thread.detach();
     GetSettings();
@@ -1537,6 +1522,9 @@ void GetSettings()
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
   {
+    u64 title_id = SConfig::GetInstance().m_title_id;
+    s_bClearSave =
+        !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
     s_language = SConfig::GetInstance().m_wii_language;
   }
   else
@@ -1559,23 +1547,23 @@ void GetSettings()
       irom_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_IROM;
     if (!File::Exists(coef_file))
       coef_file = File::GetSysDirectory() + GC_SYS_DIR DIR_SEP DSP_COEF;
-    std::vector<u16> irom(DSP_IROM_SIZE);
+    std::vector<u16> irom(DSP::DSP_IROM_SIZE);
     File::IOFile file_irom(irom_file, "rb");
 
-    file_irom.ReadArray(irom.data(), DSP_IROM_SIZE);
+    file_irom.ReadArray(irom.data(), irom.size());
     file_irom.Close();
-    for (u32 i = 0; i < DSP_IROM_SIZE; ++i)
-      irom[i] = Common::swap16(irom[i]);
+    for (u16& entry : irom)
+      entry = Common::swap16(entry);
 
-    std::vector<u16> coef(DSP_COEF_SIZE);
+    std::vector<u16> coef(DSP::DSP_COEF_SIZE);
     File::IOFile file_coef(coef_file, "rb");
 
-    file_coef.ReadArray(coef.data(), DSP_COEF_SIZE);
+    file_coef.ReadArray(coef.data(), coef.size());
     file_coef.Close();
-    for (u32 i = 0; i < DSP_COEF_SIZE; ++i)
-      coef[i] = Common::swap16(coef[i]);
-    s_DSPiromHash = HashAdler32((u8*)irom.data(), DSP_IROM_BYTE_SIZE);
-    s_DSPcoefHash = HashAdler32((u8*)coef.data(), DSP_COEF_BYTE_SIZE);
+    for (u16& entry : coef)
+      entry = Common::swap16(entry);
+    s_DSPiromHash = HashAdler32(reinterpret_cast<u8*>(irom.data()), DSP::DSP_IROM_BYTE_SIZE);
+    s_DSPcoefHash = HashAdler32(reinterpret_cast<u8*>(coef.data()), DSP::DSP_COEF_BYTE_SIZE);
   }
   else
   {

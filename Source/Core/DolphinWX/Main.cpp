@@ -440,19 +440,17 @@ void DolphinApp::OnIdle(wxIdleEvent& ev)
 
 bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*/)
 {
-#ifdef __WXGTK__
   if (wxIsMainThread())
   {
-#endif
     NetPlayDialog*& npd = NetPlayDialog::GetInstance();
     if (npd != nullptr && npd->IsShown())
     {
       npd->AppendChat("/!\\ " + std::string{text});
       return true;
     }
-    return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption), (yes_no) ? wxYES_NO : wxOK,
+    return wxYES == wxMessageBox(StrToWxStr(text), StrToWxStr(caption),
+                                 wxSTAY_ON_TOP | ((yes_no) ? wxYES_NO : wxOK),
                                  wxWindow::FindFocus());
-#ifdef __WXGTK__
   }
   else
   {
@@ -463,7 +461,6 @@ bool wxMsgAlert(const char* caption, const char* text, bool yes_no, int /*Style*
     main_frame->panic_event.Wait();
     return main_frame->bPanicResult;
   }
-#endif
 }
 
 std::string wxStringTranslator(const char* text)

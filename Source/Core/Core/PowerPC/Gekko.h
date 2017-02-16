@@ -11,7 +11,8 @@
 
 // --- Gekko Instruction ---
 
-union UGeckoInstruction {
+union UGeckoInstruction
+{
   u32 hex;
 
   UGeckoInstruction(u32 _hex) : hex(_hex) {}
@@ -311,7 +312,8 @@ enum EQuantizeType : u32
 };
 
 // GQR Register
-union UGQR {
+union UGQR
+{
   BitField<0, 3, EQuantizeType> st_type;
   BitField<8, 6, u32> st_scale;
   BitField<16, 3, EQuantizeType> ld_type;
@@ -324,7 +326,8 @@ union UGQR {
 };
 
 // FPU Register
-union UFPR {
+union UFPR
+{
   u64 as_u64;
   s64 as_s64;
   double d;
@@ -339,7 +342,8 @@ union UFPR {
 #define XER_OV_MASK 1
 #define XER_SO_MASK 2
 // XER
-union UReg_XER {
+union UReg_XER
+{
   struct
   {
     u32 BYTE_COUNT : 7;
@@ -357,7 +361,8 @@ union UReg_XER {
 };
 
 // Machine State Register
-union UReg_MSR {
+union UReg_MSR
+{
   struct
   {
     u32 LE : 1;
@@ -418,7 +423,8 @@ enum FPSCRExceptionFlag : u32
 };
 
 // Floating Point Status and Control Register
-union UReg_FPSCR {
+union UReg_FPSCR
+{
   struct
   {
     // Rounding mode (towards: nearest, zero, +inf, -inf)
@@ -484,7 +490,8 @@ union UReg_FPSCR {
 };
 
 // Hardware Implementation-Dependent Register 0
-union UReg_HID0 {
+union UReg_HID0
+{
   struct
   {
     u32 NOOPTI : 1;
@@ -522,7 +529,8 @@ union UReg_HID0 {
 };
 
 // Hardware Implementation-Dependent Register 2
-union UReg_HID2 {
+union UReg_HID2
+{
   struct
   {
     u32 : 16;
@@ -547,7 +555,8 @@ union UReg_HID2 {
 };
 
 // Hardware Implementation-Dependent Register 4
-union UReg_HID4 {
+union UReg_HID4
+{
   struct
   {
     u32 : 20;
@@ -569,7 +578,8 @@ union UReg_HID4 {
 };
 
 // SPR1 - Page Table format
-union UReg_SPR1 {
+union UReg_SPR1
+{
   u32 Hex;
   struct
   {
@@ -580,7 +590,8 @@ union UReg_SPR1 {
 };
 
 // MMCR0 - Monitor Mode Control Register 0 format
-union UReg_MMCR0 {
+union UReg_MMCR0
+{
   u32 Hex;
   struct
   {
@@ -603,7 +614,8 @@ union UReg_MMCR0 {
 };
 
 // MMCR1 - Monitor Mode Control Register 1 format
-union UReg_MMCR1 {
+union UReg_MMCR1
+{
   u32 Hex;
   struct
   {
@@ -614,7 +626,8 @@ union UReg_MMCR1 {
 };
 
 // Write Pipe Address Register
-union UReg_WPAR {
+union UReg_WPAR
+{
   struct
   {
     u32 BNE : 1;
@@ -628,7 +641,8 @@ union UReg_WPAR {
 };
 
 // Direct Memory Access Upper register
-union UReg_DMAU {
+union UReg_DMAU
+{
   struct
   {
     u32 DMA_LEN_U : 5;
@@ -641,7 +655,8 @@ union UReg_DMAU {
 };
 
 // Direct Memory Access Lower (DMAL) register
-union UReg_DMAL {
+union UReg_DMAL
+{
   struct
   {
     u32 DMA_F : 1;
@@ -656,7 +671,8 @@ union UReg_DMAL {
   UReg_DMAL() { Hex = 0; }
 };
 
-union UReg_BAT_Up {
+union UReg_BAT_Up
+{
   struct
   {
     u32 VP : 1;
@@ -671,7 +687,8 @@ union UReg_BAT_Up {
   UReg_BAT_Up() { Hex = 0; }
 };
 
-union UReg_BAT_Lo {
+union UReg_BAT_Lo
+{
   struct
   {
     u32 PP : 2;
@@ -686,7 +703,8 @@ union UReg_BAT_Lo {
   UReg_BAT_Lo() { Hex = 0; }
 };
 
-union UReg_PTE {
+union UReg_PTE
+{
   struct
   {
     u64 API : 6;

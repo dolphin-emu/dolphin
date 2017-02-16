@@ -31,7 +31,8 @@ public:
     } type;
     u64 time;
 
-    union {
+    union
+    {
       struct
       {
         u16 x;

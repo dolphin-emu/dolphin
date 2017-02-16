@@ -20,6 +20,7 @@ namespace DiscIO
 enum class BlobType;
 enum class Country;
 enum class Language;
+enum class Region;
 enum class Platform;
 
 class CVolumeWiiCrypted : public IVolume
@@ -46,6 +47,7 @@ public:
   bool CheckIntegrity() const override;
   bool ChangePartition(u64 offset) override;
 
+  Region GetRegion() const override;
   Country GetCountry() const override;
   BlobType GetBlobType() const override;
   u64 GetSize() const override;

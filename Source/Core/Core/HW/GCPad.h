@@ -5,12 +5,16 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
-#include "InputCommon/ControllerEmu.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 class InputConfig;
 enum class PadGroup;
 struct GCPadStatus;
+
+namespace ControllerEmu
+{
+class ControlGroup;
+}
 
 namespace Pad
 {

@@ -45,12 +45,6 @@ extern const std::string scm_distributor_str;
 #define GC_ALIGNED16_DECL(x) __declspec(align(16)) x
 #define GC_ALIGNED64_DECL(x) __declspec(align(64)) x
 
-// Since they are always around on Windows
-#define HAVE_WX 1
-#define HAVE_OPENAL 1
-
-#define HAVE_PORTAUDIO 1
-
 // Debug definitions
 #if defined(_DEBUG)
 #include <crtdbg.h>

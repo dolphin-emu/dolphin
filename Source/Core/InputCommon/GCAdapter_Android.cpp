@@ -13,7 +13,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/SI/SI.h"
 #include "Core/HW/SystemTimers.h"
 
 #include "InputCommon/GCAdapter.h"
@@ -194,7 +194,7 @@ void Init()
   if (s_fd)
     return;
 
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  if (Core::GetState() != Core::State::Uninitialized)
   {
     if ((CoreTiming::GetTicks() - s_last_init) < SystemTimers::GetTicksPerSecond())
       return;

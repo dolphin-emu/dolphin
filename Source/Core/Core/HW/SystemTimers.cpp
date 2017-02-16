@@ -29,18 +29,18 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
   IPC_HLE_UpdateCallback() // In this file
 
     // This function seems to call all devices' Update() function four times per frame
-    WII_IPC_HLE_Interface::Update()
+    IOS::HLE::Update()
 
       // If the AclFrameQue is empty this will call Wiimote_Update() and make it send
       the current input status to the game. I'm not sure if this occurs approximately
       once every frame or if the frequency is not exactly tied to rendered frames
-      CWII_IPC_HLE_Device_usb_oh1_57e_305::Update()
+      IOS::HLE::Device::BluetoothEmu::Update()
       PluginWiimote::Wiimote_Update()
 
-      // This is also a device updated by WII_IPC_HLE_Interface::Update() but it doesn't
+      // This is also a device updated by IOS::HLE::Update() but it doesn't
       seem to ultimately call PluginWiimote::Wiimote_Update(). However it can be called
       by the /dev/usb/oh1 device if the AclFrameQue is empty.
-      CWII_IPC_HLE_WiiMote::Update()
+      IOS::HLE::WiimoteDevice::Update()
 */
 
 #include "Core/HW/SystemTimers.h"
@@ -55,10 +55,9 @@ IPC_HLE_PERIOD: For the Wii Remote this is the call schedule:
 #include "Core/DSPEmulator.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"
-#include "Core/HW/EXI_DeviceIPL.h"
-#include "Core/HW/SI.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/VideoInterface.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
+#include "Core/IOS/IPC.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
@@ -121,7 +120,7 @@ static void IPC_HLE_UpdateCallback(u64 userdata, s64 cyclesLate)
 {
   if (SConfig::GetInstance().bWii)
   {
-    WII_IPC_HLE_Interface::UpdateDevices();
+    IOS::HLE::UpdateDevices();
     CoreTiming::ScheduleEvent(s_ipc_hle_period - cyclesLate, et_IPC_HLE);
   }
 }
@@ -240,10 +239,17 @@ static void ThrottleCallback(u64 last_time, s64 cyclesLate)
 // SystemTimers::Init
 void PreInit()
 {
-  if (SConfig::GetInstance().bWii)
+  ChangePPCClock(SConfig::GetInstance().bWii ? Mode::Wii : Mode::GC);
+}
+
+void ChangePPCClock(Mode mode)
+{
+  const u32 previous_clock = s_cpu_core_clock;
+  if (mode == Mode::Wii)
     s_cpu_core_clock = 729000000u;
   else
     s_cpu_core_clock = 486000000u;
+  CoreTiming::AdjustEventQueueTimes(s_cpu_core_clock, previous_clock);
 }
 
 void Init()
@@ -253,8 +259,6 @@ void Init()
     // AyuanX: TO BE TWEAKED
     // Now the 1500 is a pure assumption
     // We need to figure out the real frequency though
-
-    // FYI, WII_IPC_HLE_Interface::Update is also called in WII_IPCInterface::Write32
     const int freq = 1500;
     s_ipc_hle_period = GetTicksPerSecond() / freq;
   }

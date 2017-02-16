@@ -18,44 +18,18 @@ class Mapping;
 }
 class PointerWrap;
 
-enum FieldType
+enum class FieldType
 {
-  FIELD_ODD = 0,
-  FIELD_EVEN = 1,
+  Odd,
+  Even,
 };
 
-enum EFBAccessType
+enum class EFBAccessType
 {
-  PEEK_Z = 0,
-  POKE_Z,
-  PEEK_COLOR,
-  POKE_COLOR
-};
-
-struct SCPFifoStruct
-{
-  // fifo registers
-  volatile u32 CPBase;
-  volatile u32 CPEnd;
-  u32 CPHiWatermark;
-  u32 CPLoWatermark;
-  volatile u32 CPReadWriteDistance;
-  volatile u32 CPWritePointer;
-  volatile u32 CPReadPointer;
-  volatile u32 CPBreakpoint;
-  volatile u32 SafeCPReadPointer;
-
-  volatile u32 bFF_GPLinkEnable;
-  volatile u32 bFF_GPReadEnable;
-  volatile u32 bFF_BPEnable;
-  volatile u32 bFF_BPInt;
-  volatile u32 bFF_Breakpoint;
-
-  volatile u32 bFF_LoWatermarkInt;
-  volatile u32 bFF_HiWatermarkInt;
-
-  volatile u32 bFF_LoWatermark;
-  volatile u32 bFF_HiWatermark;
+  PeekZ,
+  PokeZ,
+  PeekColor,
+  PokeColor
 };
 
 class VideoBackendBase

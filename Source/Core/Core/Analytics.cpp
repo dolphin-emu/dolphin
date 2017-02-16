@@ -1,3 +1,5 @@
+#include "Core/Analytics.h"
+
 #include <cinttypes>
 #include <mbedtls/sha1.h>
 #include <memory>
@@ -16,12 +18,10 @@
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
-#include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/GCPad.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
-#include "InputCommon/ControllerEmu.h"
 #include "InputCommon/GCAdapter.h"
 #include "InputCommon/InputConfig.h"
 #include "VideoCommon/VideoBackendBase.h"

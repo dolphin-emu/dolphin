@@ -20,12 +20,12 @@
 #include "Common/Logging/Log.h"
 
 #ifdef _WIN32
+#include <windows.h>
 #include <commdlg.h>  // for GetSaveFileName
 #include <direct.h>   // getcwd
 #include <io.h>
 #include <objbase.h>  // guid stuff
 #include <shellapi.h>
-#include <windows.h>
 #else
 #include <dirent.h>
 #include <errno.h>
@@ -785,6 +785,8 @@ static void RebuildUserDirectories(unsigned int dir_index)
     s_user_paths[D_MAILLOGS_IDX] = s_user_paths[D_LOGS_IDX] + MAIL_LOGS_DIR DIR_SEP;
     s_user_paths[D_THEMES_IDX] = s_user_paths[D_USER_IDX] + THEMES_DIR DIR_SEP;
     s_user_paths[D_PIPES_IDX] = s_user_paths[D_USER_IDX] + PIPES_DIR DIR_SEP;
+    s_user_paths[D_WFSROOT_IDX] = s_user_paths[D_USER_IDX] + WFSROOT_DIR DIR_SEP;
+    s_user_paths[D_BACKUP_IDX] = s_user_paths[D_USER_IDX] + BACKUP_DIR DIR_SEP;
     s_user_paths[F_DOLPHINCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DOLPHIN_CONFIG;
     s_user_paths[F_DEBUGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + DEBUGGER_CONFIG;
     s_user_paths[F_LOGGERCONFIG_IDX] = s_user_paths[D_CONFIG_IDX] + LOGGER_CONFIG;
@@ -913,18 +915,18 @@ IOFile::~IOFile()
   Close();
 }
 
-IOFile::IOFile(IOFile&& other) : m_file(nullptr), m_good(true)
+IOFile::IOFile(IOFile&& other) noexcept : m_file(nullptr), m_good(true)
 {
   Swap(other);
 }
 
-IOFile& IOFile::operator=(IOFile&& other)
+IOFile& IOFile::operator=(IOFile&& other) noexcept
 {
   Swap(other);
   return *this;
 }
 
-void IOFile::Swap(IOFile& other)
+void IOFile::Swap(IOFile& other) noexcept
 {
   std::swap(m_file, other.m_file);
   std::swap(m_good, other.m_good);
@@ -950,13 +952,6 @@ bool IOFile::Close()
 
   m_file = nullptr;
   return m_good;
-}
-
-std::FILE* IOFile::ReleaseHandle()
-{
-  std::FILE* const ret = m_file;
-  m_file = nullptr;
-  return ret;
 }
 
 void IOFile::SetHandle(std::FILE* file)

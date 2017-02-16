@@ -55,6 +55,7 @@ public:
   virtual bool SupportsIntegrityCheck() const { return false; }
   virtual bool CheckIntegrity() const { return false; }
   virtual bool ChangePartition(u64 offset) { return false; }
+  virtual Region GetRegion() const = 0;
   virtual Country GetCountry() const = 0;
   virtual BlobType GetBlobType() const = 0;
   // Size of virtual disc (not always accurate)
@@ -71,12 +72,7 @@ protected:
     // strnlen to trim NULLs
     std::string string(data, strnlen(data, sizeof(data)));
 
-    // There doesn't seem to be any GC discs with the country set to Taiwan...
-    // But maybe they would use Shift_JIS if they existed? Not sure
-    bool use_shift_jis =
-        (Country::COUNTRY_JAPAN == GetCountry() || Country::COUNTRY_TAIWAN == GetCountry());
-
-    if (use_shift_jis)
+    if (GetRegion() == Region::NTSC_J)
       return SHIFTJISToUTF8(string);
     else
       return CP1252ToUTF8(string);

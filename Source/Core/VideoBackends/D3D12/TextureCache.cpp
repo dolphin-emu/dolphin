@@ -3,7 +3,11 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/TextureCache.h"
+
 #include "Common/Align.h"
+#include "Common/Assert.h"
+#include "Common/Logging/Log.h"
+
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
 #include "VideoBackends/D3D12/D3DDescriptorHeapManager.h"
@@ -15,8 +19,8 @@
 #include "VideoBackends/D3D12/PSTextureEncoder.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
 #include "VideoBackends/D3D12/TextureEncoder.h"
+
 #include "VideoCommon/ImageWrite.h"
-#include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/RenderBase.h"
 #include "VideoCommon/VideoConfig.h"
 
@@ -229,22 +233,21 @@ TextureCacheBase::TCacheEntryBase* TextureCache::CreateTexture(const TCacheEntry
   }
 }
 
-void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat src_format,
-                                                 const EFBRectangle& srcRect, bool scale_by_half,
-                                                 unsigned int cbuf_id, const float* colmat)
+void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRectangle& srcRect,
+                                                 bool scale_by_half, unsigned int cbuf_id,
+                                                 const float* colmat)
 {
   // When copying at half size, in multisampled mode, resolve the color/depth buffer first.
   // This is because multisampled texture reads go through Load, not Sample, and the linear
   // filter is ignored.
   bool multisampled = (g_ActiveConfig.iMultisamples > 1);
-  D3DTexture2D* efb_tex = (src_format == PEControl::Z24) ?
-                              FramebufferManager::GetEFBDepthTexture() :
-                              FramebufferManager::GetEFBColorTexture();
+  D3DTexture2D* efb_tex = is_depth_copy ? FramebufferManager::GetEFBDepthTexture() :
+                                          FramebufferManager::GetEFBColorTexture();
   if (multisampled && scale_by_half)
   {
     multisampled = false;
-    efb_tex = (src_format == PEControl::Z24) ? FramebufferManager::GetResolvedEFBDepthTexture() :
-                                               FramebufferManager::GetResolvedEFBColorTexture();
+    efb_tex = is_depth_copy ? FramebufferManager::GetResolvedEFBDepthTexture() :
+                              FramebufferManager::GetResolvedEFBColorTexture();
   }
 
   // set transformation
@@ -286,8 +289,8 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
   // Create texture copy
   D3D::DrawShadedTexQuad(
       efb_tex, &sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
-      (src_format == PEControl::Z24) ? StaticShaderCache::GetDepthMatrixPixelShader(multisampled) :
-                                       StaticShaderCache::GetColorMatrixPixelShader(multisampled),
+      is_depth_copy ? StaticShaderCache::GetDepthMatrixPixelShader(multisampled) :
+                      StaticShaderCache::GetColorMatrixPixelShader(multisampled),
       StaticShaderCache::GetSimpleVertexShader(),
       StaticShaderCache::GetSimpleVertexShaderInputLayout(),
       StaticShaderCache::GetCopyGeometryShader(), 1.0f, 0, DXGI_FORMAT_R8G8B8A8_UNORM, false,
@@ -305,11 +308,11 @@ void TextureCache::TCacheEntry::FromRenderTarget(u8* dst, PEControl::PixelFormat
 }
 
 void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                           u32 num_blocks_y, u32 memory_stride, PEControl::PixelFormat srcFormat,
+                           u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
                            const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
 {
   s_encoder->Encode(dst, format, native_width, bytes_per_row, num_blocks_y, memory_stride,
-                    srcFormat, srcRect, isIntensity, scaleByHalf);
+                    is_depth_copy, srcRect, isIntensity, scaleByHalf);
 }
 
 static const constexpr char s_palette_shader_hlsl[] =

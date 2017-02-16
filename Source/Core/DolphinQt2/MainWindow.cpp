@@ -150,9 +150,9 @@ void MainWindow::Play()
   // Otherwise, play the default game.
   // Otherwise, play the last played game, if there is one.
   // Otherwise, prompt for a new game.
-  if (Core::GetState() == Core::CORE_PAUSE)
+  if (Core::GetState() == Core::State::Paused)
   {
-    Core::SetState(Core::CORE_RUN);
+    Core::SetState(Core::State::Running);
     emit EmulationStarted();
   }
   else
@@ -183,7 +183,7 @@ void MainWindow::Play()
 
 void MainWindow::Pause()
 {
-  Core::SetState(Core::CORE_PAUSE);
+  Core::SetState(Core::State::Paused);
   emit EmulationPaused();
 }
 
@@ -251,7 +251,7 @@ void MainWindow::ScreenShot()
 void MainWindow::StartGame(const QString& path)
 {
   // If we're running, only start a new game once we've stopped the last.
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  if (Core::GetState() != Core::State::Uninitialized)
   {
     if (!Stop())
       return;

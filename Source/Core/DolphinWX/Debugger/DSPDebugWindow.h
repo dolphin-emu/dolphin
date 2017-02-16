@@ -34,7 +34,7 @@ private:
     ID_SHOWPCTOOL,
   };
 
-  DSPDebugInterface debug_interface;
+  DSP::LLE::DSPDebugInterface debug_interface;
   u64 m_CachedStepCounter;
 
   // GUI updaters

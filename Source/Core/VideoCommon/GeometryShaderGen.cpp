@@ -2,16 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/GeometryShaderGen.h"
+
 #include <cmath>
 #include <cstring>
 
 #include "Common/CommonTypes.h"
-#include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DriverDetails.h"
-#include "VideoCommon/GeometryShaderGen.h"
 #include "VideoCommon/LightingShaderGen.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
+#include "VideoCommon/XFMemory.h"
 
 static const char* primitives_ogl[] = {"points", "lines", "triangles"};
 
@@ -301,9 +302,9 @@ ShaderCode GenerateGeometryShaderCode(APIType ApiType, const geometry_shader_uid
     for (unsigned int i = 0; i < uid_data->numTexGens; ++i)
     {
       out.Write("\tif (((" I_TEXOFFSET "[1] >> %d) & 0x1) != 0) {\n", i);
-      out.Write("\t\tll.tex%d.xy += float2(0,1) * texOffset;\n", i);
-      out.Write("\t\tlr.tex%d.xy += texOffset;\n", i);
-      out.Write("\t\tur.tex%d.xy += float2(1,0) * texOffset;\n", i);
+      out.Write("\t\tul.tex%d.xy += float2(0,1) * texOffset;\n", i);
+      out.Write("\t\tur.tex%d.xy += texOffset;\n", i);
+      out.Write("\t\tlr.tex%d.xy += float2(1,0) * texOffset;\n", i);
       out.Write("\t}\n");
     }
     out.Write("\t}\n");

@@ -2,21 +2,23 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/ProgramShaderCache.h"
+
 #include <memory>
 #include <string>
 
 #include "Common/Align.h"
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 
-#include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
 
 #include "VideoCommon/Debugger.h"
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/GeometryShaderManager.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/PixelShaderManager.h"
@@ -175,10 +177,10 @@ void ProgramShaderCache::UploadConstants(bool force_upload)
   }
 }
 
-SHADER* ProgramShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
+SHADER* ProgramShaderCache::SetShader(u32 primitive_type)
 {
   SHADERUID uid;
-  GetShaderId(&uid, dstAlphaMode, primitive_type);
+  GetShaderId(&uid, primitive_type);
 
   // Check if the shader is already set
   if (last_entry)
@@ -389,9 +391,9 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
   return result;
 }
 
-void ProgramShaderCache::GetShaderId(SHADERUID* uid, DSTALPHA_MODE dstAlphaMode, u32 primitive_type)
+void ProgramShaderCache::GetShaderId(SHADERUID* uid, u32 primitive_type)
 {
-  uid->puid = GetPixelShaderUid(dstAlphaMode);
+  uid->puid = GetPixelShaderUid();
   uid->vuid = GetVertexShaderUid();
   uid->guid = GetGeometryShaderUid(primitive_type);
 }

@@ -2,22 +2,22 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Debugger/BreakpointDlg.h"
+
 #include <string>
 #include <wx/dialog.h>
 #include <wx/msgdlg.h>
 #include <wx/sizer.h>
 #include <wx/textctrl.h>
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PowerPC.h"
-#include "DolphinWX/Debugger/BreakpointDlg.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/WxUtils.h"
 
-BreakPointDlg::BreakPointDlg(CBreakPointWindow* _Parent)
-    : wxDialog(_Parent, wxID_ANY, _("Add Breakpoint")), Parent(_Parent)
+BreakPointDlg::BreakPointDlg(wxWindow* _Parent) : wxDialog(_Parent, wxID_ANY, _("Add Breakpoint"))
 {
   Bind(wxEVT_BUTTON, &BreakPointDlg::OnOK, this, wxID_OK);
 
@@ -42,8 +42,7 @@ void BreakPointDlg::OnOK(wxCommandEvent& event)
   if (AsciiToHex(WxStrToStr(AddressString), Address))
   {
     PowerPC::breakpoints.Add(Address);
-    Parent->NotifyUpdate();
-    Close();
+    EndModal(wxID_OK);
   }
   else
   {

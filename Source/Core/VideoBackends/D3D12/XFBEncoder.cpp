@@ -3,13 +3,15 @@
 // Refer to the license.txt file included.
 
 #include "VideoBackends/D3D12/XFBEncoder.h"
+
 #include "Common/Align.h"
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+
 #include "VideoBackends/D3D12/D3DBase.h"
 #include "VideoBackends/D3D12/D3DCommandListManager.h"
-#include "VideoBackends/D3D12/D3DShader.h"
 #include "VideoBackends/D3D12/D3DState.h"
 #include "VideoBackends/D3D12/D3DUtil.h"
 #include "VideoBackends/D3D12/FramebufferManager.h"
