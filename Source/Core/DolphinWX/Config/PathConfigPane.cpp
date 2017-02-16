@@ -147,7 +147,7 @@ void PathConfigPane::BindEvents()
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 }
 
-void PathConfigPane::OnISOPathSelectionChanged(wxCommandEvent& event)
+void PathConfigPane::OnISOPathSelectionChanged(const wxCommandEvent& event)
 {
   m_remove_iso_path_button->Enable(m_iso_paths_listbox->GetSelection() != wxNOT_FOUND);
 }

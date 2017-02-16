@@ -499,7 +499,7 @@ void TextureCache::ConvertTexture(TCacheEntryBase* entry, TCacheEntryBase* uncon
   g_renderer->RestoreAPIState();
 }
 
-D3D12_SHADER_BYTECODE GetConvertShader12(std::string& Type)
+D3D12_SHADER_BYTECODE GetConvertShader12(const std::string& Type)
 {
   std::string shader = "#define DECODE DecodePixel_";
   shader.append(Type);
