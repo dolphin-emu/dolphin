@@ -43,7 +43,7 @@ public final class SettingsFile
 	public static final String SECTION_GFX_HACKS = "Hacks";
 
 	public static final String SECTION_STEREOSCOPY = "Stereoscopy";
-
+	public static final String SECTION_WIIMOTE = "Wiimote";
 	public static final String SECTION_BINDINGS = "Android";
 
 	public static final String KEY_CPU_CORE = "CPUCore";
