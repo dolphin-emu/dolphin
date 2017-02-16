@@ -43,7 +43,9 @@ public final class SettingsFile
 	public static final String SECTION_GFX_HACKS = "Hacks";
 
 	public static final String SECTION_STEREOSCOPY = "Stereoscopy";
+
 	public static final String SECTION_WIIMOTE = "Wiimote";
+
 	public static final String SECTION_BINDINGS = "Android";
 
 	public static final String KEY_CPU_CORE = "CPUCore";
@@ -320,7 +322,6 @@ public final class SettingsFile
 		{
 			writer = new PrintWriter(ini, "UTF-8");
 
-			//Add Sorting for output, change keySet into sortKeySet and itterate through the new sorted set
 			Set<String> keySet = sections.keySet();
 			Set<String> sortedKeySet = new TreeSet<>(keySet);
 
@@ -436,7 +437,6 @@ public final class SettingsFile
 		writer.println(header);
 
 		// Write this section's values.
-		// Convert to Sorted set to write out more readable ini file.
 		HashMap<String, Setting> settings = section.getSettings();
 		Set<String> keySet = settings.keySet();
 		Set<String> sortedKeySet = new TreeSet<>(keySet);
