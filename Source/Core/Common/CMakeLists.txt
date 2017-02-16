@@ -1,6 +1,9 @@
 set(SRCS Analytics.cpp
          CDUtils.cpp
          ColorUtil.cpp
+         Config/Config.cpp
+         Config/Layer.cpp
+         Config/Section.cpp
          ENetUtil.cpp
          FileSearch.cpp
          FileUtil.cpp
@@ -15,7 +18,6 @@ set(SRCS Analytics.cpp
          MsgHandler.cpp
          NandPaths.cpp
          Network.cpp
-         Config.cpp
          PcapFile.cpp
          PerformanceCounter.cpp
          Profiler.cpp

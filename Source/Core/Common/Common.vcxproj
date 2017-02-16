@@ -53,6 +53,10 @@
     <ClInclude Include="CommonFuncs.h" />
     <ClInclude Include="CommonPaths.h" />
     <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="Config\Config.h" />
+    <ClInclude Include="Config\Enums.h" />
+    <ClInclude Include="Config\Layer.h" />
+    <ClInclude Include="Config\Section.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="ENetUtil.h" />
@@ -123,7 +127,6 @@
     <ClInclude Include="NandPaths.h" />
     <ClInclude Include="Network.h" />
     <ClInclude Include="NonCopyable.h" />
-    <ClInclude Include="Config.h" />
     <ClInclude Include="PcapFile.h" />
     <ClInclude Include="Profiler.h" />
     <ClInclude Include="ScopeGuard.h" />
@@ -150,6 +153,9 @@
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
+    <ClCompile Include="Config\Config.cpp" />
+    <ClCompile Include="Config\Layer.cpp" />
+    <ClCompile Include="Config\Section.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
@@ -173,7 +179,6 @@
     <ClCompile Include="MsgHandler.cpp" />
     <ClCompile Include="NandPaths.cpp" />
     <ClCompile Include="Network.cpp" />
-    <ClCompile Include="Config.cpp" />
     <ClCompile Include="PcapFile.cpp" />
     <ClCompile Include="Profiler.cpp" />
     <ClCompile Include="SDCardUtil.cpp" />
