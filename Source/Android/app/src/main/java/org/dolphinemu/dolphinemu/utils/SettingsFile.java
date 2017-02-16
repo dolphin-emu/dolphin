@@ -326,7 +326,6 @@ public final class SettingsFile
 			Set<String> keySet = sections.keySet();
 			Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-			//for (String key : keySet)
 			for (String key : sortedKeySet)
 			{
 				SettingSection section = sections.get(key);
@@ -444,8 +443,6 @@ public final class SettingsFile
 		Set<String> keySet = settings.keySet();
         Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-
-		//for (String key : keySet)
         for (String key : sortedKeySet)
 		{
 			Setting setting = settings.get(key);
