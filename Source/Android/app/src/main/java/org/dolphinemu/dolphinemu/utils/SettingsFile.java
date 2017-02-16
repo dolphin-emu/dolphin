@@ -20,6 +20,8 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Set;
+import java.util.SortedSet;
+import java.util.TreeSet;
 
 /**
  * Contains static methods for interacting with .ini files in which settings are stored.
@@ -105,6 +107,7 @@ public final class SettingsFile
 
 	public static final String KEY_WIIMOTE_TYPE = "Source";
 	public static final String KEY_WIIMOTE_EXTENSION = "Extension";
+    public static final String KEY_WIIBIND_SIDEWAYS = "Options/Sideways Wiimote";
 
 	public static final String KEY_WIIBIND_A = "WiimoteA_";
 	public static final String KEY_WIIBIND_B = "WiimoteB_";
@@ -228,6 +231,8 @@ public final class SettingsFile
 	public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_LEFT = "TurntableCrossLeft_";
 	public static final String KEY_WIIBIND_TURNTABLE_CROSSFADE_RIGHT = "TurntableCrossRight_";
 
+
+
 	public static final String KEY_WIIMOTE_SCAN = "WiimoteContinuousScanning";
 	public static final String KEY_WIIMOTE_SPEAKER = "WiimoteEnableSpeaker";
 
@@ -321,9 +326,12 @@ public final class SettingsFile
 		{
 			writer = new PrintWriter(ini, "UTF-8");
 
+			//Add Sorting for output, change keySet into sortKeySet and itterate through the new sorted set
 			Set<String> keySet = sections.keySet();
+			Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-			for (String key : keySet)
+			//for (String key : keySet)
+			for (String key : sortedKeySet)
 			{
 				SettingSection section = sections.get(key);
 				writeSection(writer, section);
@@ -435,10 +443,14 @@ public final class SettingsFile
 		writer.println(header);
 
 		// Write this section's values.
+        // Convert to Sorted set to write out more readable ini file
 		HashMap<String, Setting> settings = section.getSettings();
 		Set<String> keySet = settings.keySet();
+        Set<String> sortedKeySet = new TreeSet<>(keySet);
 
-		for (String key : keySet)
+
+		//for (String key : keySet)
+        for (String key : sortedKeySet)
 		{
 			Setting setting = settings.get(key);
 			String settingString = settingAsString(setting);
