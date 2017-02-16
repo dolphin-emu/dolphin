@@ -22,7 +22,7 @@ private:
   void LoadGUIValues();
   void BindEvents();
 
-  void OnISOPathSelectionChanged(const wxCommandEvent&);
+  void OnISOPathSelectionChanged(wxCommandEvent&);
   void OnRecursiveISOCheckBoxChanged(wxCommandEvent&);
   void OnAddISOPath(wxCommandEvent&);
   void OnRemoveISOPath(wxCommandEvent&);
