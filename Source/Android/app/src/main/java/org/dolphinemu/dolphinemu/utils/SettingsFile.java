@@ -20,7 +20,6 @@ import java.io.PrintWriter;
 import java.io.UnsupportedEncodingException;
 import java.util.HashMap;
 import java.util.Set;
-import java.util.SortedSet;
 import java.util.TreeSet;
 
 /**
@@ -44,8 +43,6 @@ public final class SettingsFile
 	public static final String SECTION_GFX_HACKS = "Hacks";
 
 	public static final String SECTION_STEREOSCOPY = "Stereoscopy";
-
-	public static final String SECTION_WIIMOTE = "Wiimote";
 
 	public static final String SECTION_BINDINGS = "Android";
 
@@ -107,7 +104,6 @@ public final class SettingsFile
 
 	public static final String KEY_WIIMOTE_TYPE = "Source";
 	public static final String KEY_WIIMOTE_EXTENSION = "Extension";
-    public static final String KEY_WIIBIND_SIDEWAYS = "Options/Sideways Wiimote";
 
 	public static final String KEY_WIIBIND_A = "WiimoteA_";
 	public static final String KEY_WIIBIND_B = "WiimoteB_";
