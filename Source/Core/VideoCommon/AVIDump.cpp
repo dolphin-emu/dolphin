@@ -168,6 +168,47 @@ static void PreparePacket(AVPacket* pkt)
   pkt->size = 0;
 }
 
+static int send_frame_and_receive_packet(AVCodecContext* avctx, AVPacket* pkt, AVFrame* frame,
+                                         int* got_packet)
+{
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(57, 37, 100)
+  return avcodec_encode_video2(avctx, pkt, frame, got_packet);
+#else
+  int error;
+
+  *got_packet = 0;
+
+  error = avcodec_send_frame(avctx, frame);
+  if (error)
+    return error;
+
+  error = avcodec_receive_packet(avctx, pkt);
+  if (!error)
+    *got_packet = 1;
+  if (error == AVERROR(EAGAIN))
+    return 0;
+
+  return error;
+#endif
+}
+
+static int receive_packet(AVCodecContext* avctx, AVPacket* pkt, int* got_packet)
+{
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(57, 37, 100)
+  return avcodec_encode_video2(avctx, pkt, nullptr, got_packet);
+#else
+  *got_packet = 0;
+
+  int error = avcodec_receive_packet(avctx, pkt);
+  if (!error)
+    *got_packet = 1;
+  if (error == AVERROR(EAGAIN))
+    return 0;
+
+  return error;
+#endif
+}
+
 void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
 {
   // Assume that the timing is valid, if the savestate id of the new frame
@@ -226,7 +267,7 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const 
   {
     s_last_frame = state.ticks;
     s_last_pts = pts_in_ticks;
-    error = avcodec_encode_video2(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
+    error = send_frame_and_receive_packet(s_stream->codec, &pkt, s_scaled_frame, &got_packet);
   }
   while (!error && got_packet)
   {
@@ -248,7 +289,8 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const 
 
     // Handle delayed frames.
     PreparePacket(&pkt);
-    error = avcodec_encode_video2(s_stream->codec, &pkt, nullptr, &got_packet);
+    got_packet = 0;
+    // error = receive_packet(s_stream->codec, &pkt, &got_packet);
   }
   if (error)
     ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
