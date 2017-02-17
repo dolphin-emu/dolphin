@@ -968,10 +968,8 @@ void Renderer::DumpFrameToImage(const FrameDumpConfig& config)
   std::string filename = GetFrameDumpNextImageFileName();
   if (g_Config.bDumpFramesToPPM)
   {
-    std::ofstream out;
-    out.open(filename);
+    std::ofstream out(filename);
     writePPM(out, config.width, config.height, config.stride, config.data);
-    out.close();
   }
   else
   {
