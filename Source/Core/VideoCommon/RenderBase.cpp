@@ -946,8 +946,6 @@ bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
 
 void writePPM(std::ostream& os, int width, int height, int stride, const u8* data)
 {
-  using namespace std;
-
   // header
   os << "P6\n"
      << width << " " << height << "\n"
