@@ -16,11 +16,11 @@
 
 #include <cinttypes>
 #include <cmath>
+#include <fstream>
 #include <memory>
 #include <mutex>
 #include <string>
 #include <tuple>
-#include <fstream>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -910,7 +910,19 @@ void Renderer::StopFrameDumpToAVI()
 
 std::string Renderer::GetFrameDumpNextImageFileName() const
 {
-  return StringFromFormat("%sframedump.ppm", File::GetUserPath(D_DUMPFRAMES_IDX).c_str());
+  std::stringstream filename;
+  filename << File::GetUserPath(D_DUMPFRAMES_IDX);
+  filename << "framedump";
+
+  if (g_Config.bDumpFramesCounter)
+    filename << "_" << m_frame_dump_image_counter;
+
+  if (g_Config.bDumpFramesToPPM)
+    filename << ".ppm";
+  else
+    filename << ".png";
+
+  return filename.str();
 }
 
 bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
@@ -937,13 +949,15 @@ void writePPM(std::ostream& os, int width, int height, int stride, const u8* dat
   using namespace std;
 
   // header
-  os << "P6\n" << width << " " << height << "\n" << "255\n";
-  
+  os << "P6\n"
+     << width << " " << height << "\n"
+     << "255\n";
+
   // pixels. we omit the alpha channel
-  for(int row=0; row < height; ++row)
+  for (int row = 0; row < height; ++row)
   {
     int index = row * stride;
-    for(int col=0; col < width; ++col)
+    for (int col = 0; col < width; ++col)
     {
       os.write(reinterpret_cast<const char*>(data) + index, 3);
       index += 4;
@@ -954,10 +968,16 @@ void writePPM(std::ostream& os, int width, int height, int stride, const u8* dat
 void Renderer::DumpFrameToImage(const FrameDumpConfig& config)
 {
   std::string filename = GetFrameDumpNextImageFileName();
-  //TextureToPng(config.data, config.stride, filename, config.width, config.height, false);
-  std::ofstream out;
-  out.open(filename);
-  writePPM(out, config.width, config.height, config.stride, config.data);
-  out.close();
+  if (g_Config.bDumpFramesToPPM)
+  {
+    std::ofstream out;
+    out.open(filename);
+    writePPM(out, config.width, config.height, config.stride, config.data);
+    out.close();
+  }
+  else
+  {
+    TextureToPng(config.data, config.stride, filename, config.width, config.height, false);
+  }
   m_frame_dump_image_counter++;
 }
