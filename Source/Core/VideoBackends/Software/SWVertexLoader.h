@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -19,7 +20,8 @@ public:
   SWVertexLoader();
   ~SWVertexLoader();
 
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
+  std::unique_ptr<NativeVertexFormat>
+  CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
 
 protected:
   void ResetBuffer(u32 stride) override;

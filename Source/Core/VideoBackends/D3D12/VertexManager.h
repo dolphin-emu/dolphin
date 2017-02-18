@@ -17,7 +17,9 @@ public:
   VertexManager();
   ~VertexManager();
 
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+  std::unique_ptr<NativeVertexFormat>
+  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+
   void CreateDeviceObjects() override;
   void DestroyDeviceObjects() override;
 

@@ -63,10 +63,10 @@ bool VertexManager::Initialize()
   return true;
 }
 
-NativeVertexFormat*
+std::unique_ptr<NativeVertexFormat>
 VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-  return new VertexFormat(vtx_decl);
+  return std::make_unique<VertexFormat>(vtx_decl);
 }
 
 void VertexManager::PrepareDrawBuffers(u32 stride)

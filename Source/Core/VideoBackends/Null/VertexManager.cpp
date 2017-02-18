@@ -19,10 +19,10 @@ public:
   void SetupVertexPointers() override {}
 };
 
-NativeVertexFormat*
+std::unique_ptr<NativeVertexFormat>
 VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-  return new NullNativeVertexFormat;
+  return std::make_unique<NullNativeVertexFormat>();
 }
 
 VertexManager::VertexManager() : m_local_v_buffer(MAXVBUFFERSIZE), m_local_i_buffer(MAXIBUFFERSIZE)
