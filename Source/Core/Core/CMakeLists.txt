@@ -148,9 +148,11 @@ set(SRCS	ActionReplay.cpp
 			IOS/FS/FS.cpp
 			IOS/Network/Config.cpp
 			IOS/Network/ICMPLin.cpp
-			IOS/Network/Socket.cpp
+			IOS/Network/MACUtils.cpp
 			IOS/Network/Net.cpp
+			IOS/Network/Socket.cpp
 			IOS/Network/SSL.cpp
+			IOS/Network/IP/Top.cpp
 			IOS/Network/KD/NetKDRequest.cpp
 			IOS/Network/KD/NetKDTime.cpp
 			IOS/Network/KD/NWC24Config.cpp

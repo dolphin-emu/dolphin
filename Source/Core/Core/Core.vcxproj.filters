@@ -127,6 +127,9 @@
     <Filter Include="IOS\Network">
       <UniqueIdentifier>{ab9cdd90-54d7-4f42-9248-d7903ce52cc8}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IOS\Network\IP">
+      <UniqueIdentifier>{f20fc3ea-846b-4629-b86c-fd7860f73ee9}</UniqueIdentifier>
+    </Filter>
     <Filter Include="IOS\Network\KD">
       <UniqueIdentifier>{165768ae-ee50-4789-8051-5c5b7023fa4b}</UniqueIdentifier>
     </Filter>
@@ -758,6 +761,9 @@
     <ClCompile Include="IOS\MIOS.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\Network\MACUtils.cpp">
+      <Filter>IOS\Network</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\Network\Net.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
@@ -766,6 +772,9 @@
     </ClCompile>
     <ClCompile Include="IOS\Network\SSL.cpp">
       <Filter>IOS\Network</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\IP\Top.cpp">
+      <Filter>IOS\Network\IP</Filter>
     </ClCompile>
     <ClCompile Include="IOS\Network\KD\NetKDRequest.cpp">
       <Filter>IOS\Network\KD</Filter>
@@ -1353,6 +1362,9 @@
     <ClInclude Include="IOS\Network\ICMPLin.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
+    <ClInclude Include="IOS\Network\MACUtils.h">
+      <Filter>IOS\Network</Filter>
+    </ClInclude>
     <ClInclude Include="IOS\Network\Net.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
@@ -1361,6 +1373,9 @@
     </ClInclude>
     <ClInclude Include="IOS\Network\SSL.h">
       <Filter>IOS\Network</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\IP\Top.h">
+      <Filter>IOS\Network\IP</Filter>
     </ClInclude>
     <ClInclude Include="IOS\Network\KD\NetKDRequest.h">
       <Filter>IOS\Network\KD</Filter>

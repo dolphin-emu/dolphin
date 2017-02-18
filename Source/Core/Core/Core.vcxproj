@@ -180,9 +180,11 @@
     <ClCompile Include="IOS\FS\FS.cpp" />
     <ClCompile Include="IOS\Network\Config.cpp" />
     <ClCompile Include="IOS\Network\ICMPLin.cpp" />
-    <ClCompile Include="IOS\Network\Socket.cpp" />
+    <ClCompile Include="IOS\Network\MACUtils.cpp" />
     <ClCompile Include="IOS\Network\Net.cpp" />
+    <ClCompile Include="IOS\Network\Socket.cpp" />
     <ClCompile Include="IOS\Network\SSL.cpp" />
+    <ClCompile Include="IOS\Network\IP\Top.cpp" />
     <ClCompile Include="IOS\Network\KD\NetKDRequest.cpp" />
     <ClCompile Include="IOS\Network\KD\NetKDTime.cpp" />
     <ClCompile Include="IOS\Network\KD\NWC24Config.cpp" />
@@ -420,9 +422,11 @@
     <ClInclude Include="IOS\Network\Config.h" />
     <ClInclude Include="IOS\Network\ICMPLin.h" />
     <ClInclude Include="IOS\Network\ICMP.h" />
-    <ClInclude Include="IOS\Network\Socket.h" />
+    <ClInclude Include="IOS\Network\MACUtils.h" />
     <ClInclude Include="IOS\Network\Net.h" />
+    <ClInclude Include="IOS\Network\Socket.h" />
     <ClInclude Include="IOS\Network\SSL.h" />
+    <ClInclude Include="IOS\Network\IP\Top.h" />
     <ClInclude Include="IOS\Network\KD\NetKDRequest.h" />
     <ClInclude Include="IOS\Network\KD\NetKDTime.h" />
     <ClInclude Include="IOS\Network\KD\NWC24Config.h" />
