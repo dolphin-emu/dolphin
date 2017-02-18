@@ -136,6 +136,9 @@
     <Filter Include="IOS\Network\NCD">
       <UniqueIdentifier>{a749993a-d2cf-46b6-9f7f-f76294e9ad02}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IOS\Network\WD">
+      <UniqueIdentifier>{fc3080d6-d99a-44c6-bdd4-140cec1c6bf0}</UniqueIdentifier>
+    </Filter>
     <Filter Include="IOS\DI">
       <UniqueIdentifier>{3db8c364-1d72-4660-9179-86d1c46904b9}</UniqueIdentifier>
     </Filter>
@@ -764,9 +767,6 @@
     <ClCompile Include="IOS\Network\MACUtils.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\Network\Net.cpp">
-      <Filter>IOS\Network</Filter>
-    </ClCompile>
     <ClCompile Include="IOS\Network\Socket.cpp">
       <Filter>IOS\Network</Filter>
     </ClCompile>
@@ -790,6 +790,9 @@
     </ClCompile>
     <ClCompile Include="IOS\Network\NCD\Manage.cpp">
       <Filter>IOS\Network\NCD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\WD\Command.cpp">
+      <Filter>IOS\Network\WD</Filter>
     </ClCompile>
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp">
       <Filter>IOS\SDIO</Filter>
@@ -1368,9 +1371,6 @@
     <ClInclude Include="IOS\Network\MACUtils.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\Network\Net.h">
-      <Filter>IOS\Network</Filter>
-    </ClInclude>
     <ClInclude Include="IOS\Network\Socket.h">
       <Filter>IOS\Network</Filter>
     </ClInclude>
@@ -1394,6 +1394,9 @@
     </ClInclude>
     <ClInclude Include="IOS\Network\NCD\Manage.h">
       <Filter>IOS\Network\NCD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\WD\Command.h">
+      <Filter>IOS\Network\WD</Filter>
     </ClInclude>
     <ClInclude Include="IOS\SDIO\SDIOSlot0.h">
       <Filter>IOS\SDIO</Filter>

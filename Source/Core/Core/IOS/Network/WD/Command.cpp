@@ -2,21 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/IOS/Network/Net.h"
+#include "Core/IOS/Network/WD/Command.h"
 
-#include <cstddef>
 #include <cstring>
 #include <string>
-#include <vector>
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/Network.h"
-#include "Core/Core.h"
+
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Network/MACUtils.h"
-#include "Core/IOS/Network/Socket.h"
 
 namespace IOS
 {
@@ -24,7 +21,6 @@ namespace HLE
 {
 namespace Device
 {
-// Handle /dev/net/wd/command requests
 NetWDCommand::NetWDCommand(u32 device_id, const std::string& device_name)
     : Device(device_id, device_name)
 {

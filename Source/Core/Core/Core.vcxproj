@@ -180,7 +180,6 @@
     <ClCompile Include="IOS\FS\FS.cpp" />
     <ClCompile Include="IOS\Network\ICMPLin.cpp" />
     <ClCompile Include="IOS\Network\MACUtils.cpp" />
-    <ClCompile Include="IOS\Network\Net.cpp" />
     <ClCompile Include="IOS\Network\Socket.cpp" />
     <ClCompile Include="IOS\Network\SSL.cpp" />
     <ClCompile Include="IOS\Network\IP\Top.cpp" />
@@ -189,6 +188,7 @@
     <ClCompile Include="IOS\Network\KD\NWC24Config.cpp" />
     <ClCompile Include="IOS\Network\NCD\Config.cpp" />
     <ClCompile Include="IOS\Network\NCD\Manage.cpp" />
+    <ClCompile Include="IOS\Network\WD\Command.cpp" />
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp" />
     <ClCompile Include="IOS\STM\STM.cpp" />
     <ClCompile Include="IOS\USB\Common.cpp" />
@@ -423,7 +423,6 @@
     <ClInclude Include="IOS\Network\ICMPLin.h" />
     <ClInclude Include="IOS\Network\ICMP.h" />
     <ClInclude Include="IOS\Network\MACUtils.h" />
-    <ClInclude Include="IOS\Network\Net.h" />
     <ClInclude Include="IOS\Network\Socket.h" />
     <ClInclude Include="IOS\Network\SSL.h" />
     <ClInclude Include="IOS\Network\IP\Top.h" />
@@ -432,6 +431,7 @@
     <ClInclude Include="IOS\Network\KD\NWC24Config.h" />
     <ClInclude Include="IOS\Network\NCD\Config.h" />
     <ClInclude Include="IOS\Network\NCD\Manage.h" />
+    <ClInclude Include="IOS\Network\WD\Command.h" />
     <ClInclude Include="IOS\SDIO\SDIOSlot0.h" />
     <ClInclude Include="IOS\STM\STM.h" />
     <ClInclude Include="IOS\USB\Common.h" />

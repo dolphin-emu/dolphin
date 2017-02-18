@@ -8,13 +8,11 @@
 
 #include "Common/CommonTypes.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/IPC.h"
 
 namespace IOS
 {
 namespace HLE
 {
-// TODO: split this up.
 namespace Device
 {
 class NetWDCommand : public Device
