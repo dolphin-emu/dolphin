@@ -133,6 +133,9 @@
     <Filter Include="IOS\Network\KD">
       <UniqueIdentifier>{165768ae-ee50-4789-8051-5c5b7023fa4b}</UniqueIdentifier>
     </Filter>
+    <Filter Include="IOS\Network\NCD">
+      <UniqueIdentifier>{a749993a-d2cf-46b6-9f7f-f76294e9ad02}</UniqueIdentifier>
+    </Filter>
     <Filter Include="IOS\DI">
       <UniqueIdentifier>{3db8c364-1d72-4660-9179-86d1c46904b9}</UniqueIdentifier>
     </Filter>
@@ -728,9 +731,6 @@
     <ClCompile Include="IOS\USB\Bluetooth\BTStub.cpp">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
-    <ClCompile Include="IOS\Network\Config.cpp">
-      <Filter>IOS\Network</Filter>
-    </ClCompile>
     <ClCompile Include="IOS\Device.cpp">
       <Filter>IOS</Filter>
     </ClCompile>
@@ -784,6 +784,12 @@
     </ClCompile>
     <ClCompile Include="IOS\Network\KD\NWC24Config.cpp">
       <Filter>IOS\Network\KD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\NCD\Config.cpp">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\Network\NCD\Manage.cpp">
+      <Filter>IOS\Network\NCD</Filter>
     </ClCompile>
     <ClCompile Include="IOS\SDIO\SDIOSlot0.cpp">
       <Filter>IOS\SDIO</Filter>
@@ -1329,9 +1335,6 @@
     <ClInclude Include="IOS\USB\Bluetooth\BTStub.h">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClInclude>
-    <ClInclude Include="IOS\Network\Config.h">
-      <Filter>IOS\Network</Filter>
-    </ClInclude>
     <ClInclude Include="IOS\DeviceStub.h">
       <Filter>IOS</Filter>
     </ClInclude>
@@ -1385,6 +1388,12 @@
     </ClInclude>
     <ClInclude Include="IOS\Network\KD\NWC24Config.h">
       <Filter>IOS\Network\KD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\NCD\Config.h">
+      <Filter>IOS\Network\NCD</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\Network\NCD\Manage.h">
+      <Filter>IOS\Network\NCD</Filter>
     </ClInclude>
     <ClInclude Include="IOS\SDIO\SDIOSlot0.h">
       <Filter>IOS\SDIO</Filter>

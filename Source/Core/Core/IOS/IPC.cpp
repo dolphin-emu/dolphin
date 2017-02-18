@@ -47,6 +47,7 @@
 #include "Core/IOS/Network/IP/Top.h"
 #include "Core/IOS/Network/KD/NetKDRequest.h"
 #include "Core/IOS/Network/KD/NetKDTime.h"
+#include "Core/IOS/Network/NCD/Manage.h"
 #include "Core/IOS/Network/Net.h"
 #include "Core/IOS/Network/SSL.h"
 #include "Core/IOS/Network/Socket.h"
