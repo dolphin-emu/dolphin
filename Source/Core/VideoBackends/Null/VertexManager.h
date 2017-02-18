@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "VideoCommon/VertexManagerBase.h"
@@ -15,7 +16,9 @@ class VertexManager : public VertexManagerBase
 public:
   VertexManager();
   ~VertexManager();
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+
+  std::unique_ptr<NativeVertexFormat>
+  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
 
 protected:
   void ResetBuffer(u32 stride) override;

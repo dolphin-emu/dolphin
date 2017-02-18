@@ -56,7 +56,7 @@ public:
 
   void Flush();
 
-  virtual NativeVertexFormat*
+  virtual std::unique_ptr<NativeVertexFormat>
   CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) = 0;
 
   void DoState(PointerWrap& p);
