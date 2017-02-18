@@ -944,7 +944,7 @@ bool Renderer::StartFrameDumpToImage(const FrameDumpConfig& config)
   return true;
 }
 
-void writePPM(std::ostream& os, int width, int height, int stride, const u8* data)
+static void WritePPM(std::ostream& os, int width, int height, int stride, const u8* data)
 {
   // header
   os << "P6\n"
@@ -969,7 +969,7 @@ void Renderer::DumpFrameToImage(const FrameDumpConfig& config)
   if (g_Config.bDumpFramesToPPM)
   {
     std::ofstream out(filename);
-    writePPM(out, config.width, config.height, config.stride, config.data);
+    WritePPM(out, config.width, config.height, config.stride, config.data);
   }
   else
   {
