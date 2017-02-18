@@ -31,9 +31,9 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/FifoQueue.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/ConfigManager.h"
@@ -76,15 +76,13 @@ NetPlayDialog::NetPlayDialog(wxWindow* const parent, const CGameListCtrl* const 
 
   // Remember the window size and position for NetWindow
   {
-    IniFile inifile;
-    inifile.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-    IniFile::Section& netplay_section = *inifile.GetOrCreateSection("NetPlay");
+    auto netplay_section = Config::GetOrCreateSection(Config::System::Main, "NetPlay");
 
     int winPosX, winPosY, winWidth, winHeight;
-    netplay_section.Get("NetWindowPosX", &winPosX, std::numeric_limits<int>::min());
-    netplay_section.Get("NetWindowPosY", &winPosY, std::numeric_limits<int>::min());
-    netplay_section.Get("NetWindowWidth", &winWidth, -1);
-    netplay_section.Get("NetWindowHeight", &winHeight, -1);
+    netplay_section->Get("NetWindowPosX", &winPosX, std::numeric_limits<int>::min());
+    netplay_section->Get("NetWindowPosY", &winPosY, std::numeric_limits<int>::min());
+    netplay_section->Get("NetWindowWidth", &winWidth, -1);
+    netplay_section->Get("NetWindowHeight", &winHeight, -1);
 
     WxUtils::SetWindowSizeAndFitToScreen(this, wxPoint(winPosX, winPosY),
                                          wxSize(winWidth, winHeight), GetSize());
@@ -281,17 +279,13 @@ wxSizer* NetPlayDialog::CreateBottomGUI(wxWindow* parent)
 
 NetPlayDialog::~NetPlayDialog()
 {
-  IniFile inifile;
-  const std::string dolphin_ini = File::GetUserPath(F_DOLPHINCONFIG_IDX);
-  inifile.Load(dolphin_ini);
-  IniFile::Section& netplay_config = *inifile.GetOrCreateSection("NetPlay");
-
-  netplay_config.Set("NetWindowPosX", GetPosition().x);
-  netplay_config.Set("NetWindowPosY", GetPosition().y);
-  netplay_config.Set("NetWindowWidth", GetSize().GetWidth());
-  netplay_config.Set("NetWindowHeight", GetSize().GetHeight());
-
-  inifile.Save(dolphin_ini);
+  auto* base_layer = Config::GetLayer(Config::LayerType::Base);
+  auto* netplay_section = base_layer->GetOrCreateSection(Config::System::Main, "NetPlay");
+  netplay_section->Set("NetWindowPosX", GetPosition().x);
+  netplay_section->Set("NetWindowPosY", GetPosition().y);
+  netplay_section->Set("NetWindowWidth", GetSize().GetWidth());
+  netplay_section->Set("NetWindowHeight", GetSize().GetHeight());
+  base_layer->Save();
 
   if (netplay_client)
   {

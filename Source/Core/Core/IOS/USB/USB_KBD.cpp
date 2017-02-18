@@ -5,8 +5,8 @@
 #include <cstring>
 
 #include "Common/CommonFuncs.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/Log.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"  // Local core functions
@@ -44,10 +44,8 @@ USB_KBD::USB_KBD(u32 device_id, const std::string& device_name) : Device(device_
 
 ReturnCode USB_KBD::Open(const OpenRequest& request)
 {
-  INFO_LOG(IOS, "USB_KBD: Open");
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DOLPHINCONFIG_IDX));
-  ini.GetOrCreateSection("USB Keyboard")->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
+  Config::Section* keyboard = Config::GetOrCreateSection(Config::System::Main, "USB Keyboard");
+  keyboard->Get("Layout", &m_KeyboardLayout, KBD_LAYOUT_QWERTY);
 
   m_MessageQueue = std::queue<SMessageData>();
   for (bool& pressed : m_OldKeyBuffer)
@@ -150,8 +148,9 @@ void USB_KBD::Update()
     Modifiers |= 0x10;
   if (GetAsyncKeyState(VK_RSHIFT) & 0x8000)
     Modifiers |= 0x20;
-  if (GetAsyncKeyState(VK_MENU) &
-      0x8000)  // TODO: VK_MENU is for ALT, not for ALT GR (ALT GR seems to work though...)
+  if (GetAsyncKeyState(VK_MENU) & 0x8000)  // TODO: VK_MENU is for ALT, not for
+                                           // ALT GR (ALT GR seems to work
+                                           // though...)
     Modifiers |= 0x40;
   if (GetAsyncKeyState(VK_RWIN) & 0x8000)
     Modifiers |= 0x80;

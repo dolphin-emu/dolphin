@@ -17,7 +17,7 @@
 
 namespace Wiimote
 {
-static InputConfig s_config(WIIMOTE_INI_NAME, _trans("Wii Remote"), "Wiimote");
+static InputConfig s_config(Config::System::WiiPad, _trans("Wii Remote"), "Wiimote");
 
 InputConfig* GetConfig()
 {
@@ -72,7 +72,7 @@ void Initialize(InitializeMode init_mode)
 
   g_controller_interface.RegisterHotplugCallback(LoadConfig);
 
-  s_config.LoadConfig(false);
+  s_config.LoadConfig();
 
   WiimoteReal::Initialize(init_mode);
 
@@ -89,7 +89,7 @@ void ResetAllWiimotes()
 
 void LoadConfig()
 {
-  s_config.LoadConfig(false);
+  s_config.LoadConfig();
 }
 
 void Resume()
@@ -102,7 +102,8 @@ void Pause()
   WiimoteReal::Pause();
 }
 
-// An L2CAP packet is passed from the Core to the Wiimote on the HID CONTROL channel.
+// An L2CAP packet is passed from the Core to the Wiimote on the HID CONTROL
+// channel.
 void ControlChannel(int number, u16 channel_id, const void* data, u32 size)
 {
   if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[number])
@@ -110,7 +111,8 @@ void ControlChannel(int number, u16 channel_id, const void* data, u32 size)
         ->ControlChannel(channel_id, data, size);
 }
 
-// An L2CAP packet is passed from the Core to the Wiimote on the HID INTERRUPT channel.
+// An L2CAP packet is passed from the Core to the Wiimote on the HID INTERRUPT
+// channel.
 void InterruptChannel(int number, u16 channel_id, const void* data, u32 size)
 {
   if (WIIMOTE_SRC_HYBRID & g_wiimote_sources[number])

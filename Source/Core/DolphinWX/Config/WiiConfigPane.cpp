@@ -187,7 +187,7 @@ void WiiConfigPane::PopulateUSBPassthroughListbox()
 {
   m_usb_passthrough_devices_listbox->Freeze();
   m_usb_passthrough_devices_listbox->Clear();
-  for (const auto& device : SConfig::GetInstance().m_usb_passthrough_devices)
+  for (const auto& device : USBUtils::GetWhitelist())
   {
     m_usb_passthrough_devices_listbox->Append(USBUtils::GetDeviceName(device),
                                               new USBPassthroughDeviceEntry(device));
@@ -249,7 +249,8 @@ void WiiConfigPane::OnUSBWhitelistRemoveButton(wxCommandEvent&)
     return;
   auto* const entry = static_cast<const USBPassthroughDeviceEntry*>(
       m_usb_passthrough_devices_listbox->GetClientObject(index));
-  SConfig::GetInstance().m_usb_passthrough_devices.erase({entry->m_vid, entry->m_pid});
+
+  USBUtils::RemoveDeviceFromWhitelist(entry->m_vid_pid);
   m_usb_passthrough_devices_listbox->Delete(index);
 }
 

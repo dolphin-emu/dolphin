@@ -15,7 +15,6 @@
 #include <wx/stattext.h>
 
 #include "Core/Analytics.h"
-#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxEventUtils.h"
@@ -132,40 +131,53 @@ void GeneralConfigPane::InitializeGUI()
   main_sizer->AddSpacer(space5);
 
   SetSizer(main_sizer);
+
+  m_settings = {
+      {m_dual_core_checkbox, {Config::System::Main, "Core", "CPUThread"}},
+      {m_cheats_checkbox, {Config::System::Main, "Core", "EnableCheats"}},
+
+      {m_force_ntscj_checkbox, {Config::System::Main, "Display", "ForceNTSCJ"}},
+
+      {m_analytics_checkbox, {Config::System::Main, "Analytics", "Enabled"}},
+
+      {m_throttler_choice, {Config::System::Main, "Core", "EmulationSpeed"}},
+      {m_cpu_engine_radiobox, {Config::System::Main, "Core", "CPUCore"}},
+  };
+  Config::AddConfigChangedCallback([this]() { LoadGUIValues(); });
 }
 
 void GeneralConfigPane::LoadGUIValues()
 {
-  const SConfig& startup_params = SConfig::GetInstance();
+  ConfigUtils::LoadValue(m_settings, m_dual_core_checkbox);
+  ConfigUtils::LoadValue(m_settings, m_cheats_checkbox);
+  ConfigUtils::LoadValue(m_settings, m_force_ntscj_checkbox);
+  ConfigUtils::LoadValue(m_settings, m_analytics_checkbox);
 
-  m_dual_core_checkbox->SetValue(startup_params.bCPUThread);
-  m_cheats_checkbox->SetValue(startup_params.bEnableCheats);
-  m_force_ntscj_checkbox->SetValue(startup_params.bForceNTSCJ);
-  m_analytics_checkbox->SetValue(startup_params.m_analytics_enabled);
-  u32 selection = std::lround(startup_params.m_EmulationSpeed * 10.0f);
+  const float speed = ConfigUtils::Get<float>(m_settings, m_throttler_choice);
+  u32 selection = std::lround(speed * 10.0f);
   if (selection < m_throttler_array_string.size())
     m_throttler_choice->SetSelection(selection);
 
+  const int cpu_core = ConfigUtils::Get<int>(m_settings, m_cpu_engine_radiobox);
   for (size_t i = 0; i < m_cpu_cores.size(); ++i)
   {
-    if (m_cpu_cores[i].CPUid == startup_params.iCPUCore)
+    if (m_cpu_cores[i].CPUid == cpu_core)
       m_cpu_engine_radiobox->SetSelection(i);
   }
 }
 
 void GeneralConfigPane::BindEvents()
 {
-  m_dual_core_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnDualCoreCheckBoxChanged, this);
+  ConfigUtils::SaveOnChange(m_settings, m_dual_core_checkbox);
   m_dual_core_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
-  m_cheats_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnCheatCheckBoxChanged, this);
+  ConfigUtils::SaveOnChange(m_settings, m_cheats_checkbox);
   m_cheats_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
-  m_force_ntscj_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnForceNTSCJCheckBoxChanged,
-                               this);
+  ConfigUtils::SaveOnChange(m_settings, m_force_ntscj_checkbox);
   m_force_ntscj_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
-  m_analytics_checkbox->Bind(wxEVT_CHECKBOX, &GeneralConfigPane::OnAnalyticsCheckBoxChanged, this);
+  ConfigUtils::SaveOnChange(m_settings, m_analytics_checkbox);
 
   m_analytics_new_id->Bind(wxEVT_BUTTON, &GeneralConfigPane::OnAnalyticsNewIdButtonClick, this);
 
@@ -175,39 +187,15 @@ void GeneralConfigPane::BindEvents()
   m_cpu_engine_radiobox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 }
 
-void GeneralConfigPane::OnDualCoreCheckBoxChanged(wxCommandEvent& event)
-{
-  if (Core::IsRunning())
-    return;
-
-  SConfig::GetInstance().bCPUThread = m_dual_core_checkbox->IsChecked();
-}
-
-void GeneralConfigPane::OnCheatCheckBoxChanged(wxCommandEvent& event)
-{
-  SConfig::GetInstance().bEnableCheats = m_cheats_checkbox->IsChecked();
-}
-
-void GeneralConfigPane::OnForceNTSCJCheckBoxChanged(wxCommandEvent& event)
-{
-  SConfig::GetInstance().bForceNTSCJ = m_force_ntscj_checkbox->IsChecked();
-}
-
 void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 {
   if (m_throttler_choice->GetSelection() != wxNOT_FOUND)
-    SConfig::GetInstance().m_EmulationSpeed = m_throttler_choice->GetSelection() * 0.1f;
+    ConfigUtils::Set(m_settings, m_throttler_choice, m_throttler_choice->GetSelection() * 0.1f);
 }
 
 void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().iCPUCore = m_cpu_cores.at(event.GetSelection()).CPUid;
-}
-
-void GeneralConfigPane::OnAnalyticsCheckBoxChanged(wxCommandEvent& event)
-{
-  SConfig::GetInstance().m_analytics_enabled = m_analytics_checkbox->IsChecked();
-  DolphinAnalytics::Instance()->ReloadConfig();
+  ConfigUtils::Set(m_settings, m_cpu_engine_radiobox, m_cpu_cores.at(event.GetSelection()).CPUid);
 }
 
 void GeneralConfigPane::OnAnalyticsNewIdButtonClick(wxCommandEvent& event)

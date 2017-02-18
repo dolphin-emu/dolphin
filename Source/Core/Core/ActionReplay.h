@@ -7,8 +7,7 @@
 #include <string>
 #include <vector>
 #include "Common/CommonTypes.h"
-
-class IniFile;
+#include "Common/Config.h"
 
 namespace ActionReplay
 {
@@ -36,10 +35,10 @@ void RunAllActive();
 
 void ApplyCodes(const std::vector<ARCode>& codes);
 void AddCode(ARCode new_code);
-void LoadAndApplyCodes(const IniFile& global_ini, const IniFile& local_ini);
+void LoadAndApplyCodes(Config::Layer& global_ini, Config::Layer& local_ini);
 
-std::vector<ARCode> LoadCodes(const IniFile& global_ini, const IniFile& local_ini);
-void SaveCodes(IniFile* local_ini, const std::vector<ARCode>& codes);
+std::vector<ARCode> LoadCodes(Config::Layer& global_ini, Config::Layer& local_ini);
+void SaveCodes(Config::Section* ar, Config::Section* ar_enabled, const std::vector<ARCode>& codes);
 
 void EnableSelfLogging(bool enable);
 std::vector<std::string> GetSelfLog();

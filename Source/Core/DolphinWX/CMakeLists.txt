@@ -1,4 +1,5 @@
 set(GUI_SRCS
+	AdvancedConfigurationWindow.cpp
 	AboutDolphin.cpp
 	ControllerConfigDiag.cpp
 	Cheats/ActionReplayCodesPanel.cpp
@@ -17,6 +18,7 @@ set(GUI_SRCS
 	Config/InterfaceConfigPane.cpp
 	Config/PathConfigPane.cpp
 	Config/WiiConfigPane.cpp
+	ControllerProfileLoader.cpp
 	Debugger/BreakpointDlg.cpp
 	Debugger/BreakpointView.cpp
 	Debugger/BreakpointWindow.cpp
@@ -56,6 +58,7 @@ set(GUI_SRCS
 	Input/GuitarInputConfigDiag.cpp
 	Input/DrumsInputConfigDiag.cpp
 	Input/TurntableInputConfigDiag.cpp
+	ConfigUtils.cpp
 	DolphinSlider.cpp
 	FifoPlayerDlg.cpp
 	Frame.cpp
@@ -91,7 +94,7 @@ if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
 	set(WXLIBS ${WXLIBS} dl)
 endif()
 
-list(APPEND LIBS core uicommon)
+list(APPEND LIBS core uicommon cpp-optparse)
 
 if(APPLE)
 	if(wxWidgets_FOUND)

@@ -224,14 +224,6 @@ struct SConfig : NonCopyable
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
   DiscIO::Language GetCurrentLanguage(bool wii) const;
 
-  IniFile LoadDefaultGameIni() const;
-  IniFile LoadLocalGameIni() const;
-  IniFile LoadGameIni() const;
-
-  static IniFile LoadDefaultGameIni(const std::string& id, u16 revision);
-  static IniFile LoadLocalGameIni(const std::string& id, u16 revision);
-  static IniFile LoadGameIni(const std::string& id, u16 revision);
-
   static std::vector<std::string> GetGameIniFilenames(const std::string& id, u16 revision);
 
   std::string m_NANDPath;
@@ -329,9 +321,6 @@ struct SConfig : NonCopyable
   bool m_SSLDumpRootCA;
   bool m_SSLDumpPeerCert;
 
-  // Save settings
-  void SaveSettings();
-
   // Load settings
   void LoadSettings();
 
@@ -347,37 +336,24 @@ private:
   SConfig();
   ~SConfig();
 
-  void SaveGeneralSettings(IniFile& ini);
-  void SaveInterfaceSettings(IniFile& ini);
-  void SaveDisplaySettings(IniFile& ini);
-  void SaveGameListSettings(IniFile& ini);
-  void SaveCoreSettings(IniFile& ini);
-  void SaveDSPSettings(IniFile& ini);
-  void SaveInputSettings(IniFile& ini);
-  void SaveMovieSettings(IniFile& ini);
-  void SaveFifoPlayerSettings(IniFile& ini);
-  void SaveNetworkSettings(IniFile& ini);
-  void SaveAnalyticsSettings(IniFile& ini);
-  void SaveBluetoothPassthroughSettings(IniFile& ini);
-  void SaveUSBPassthroughSettings(IniFile& ini);
-  void SaveSysconfSettings(IniFile& ini);
-
-  void LoadGeneralSettings(IniFile& ini);
-  void LoadInterfaceSettings(IniFile& ini);
-  void LoadDisplaySettings(IniFile& ini);
-  void LoadGameListSettings(IniFile& ini);
-  void LoadCoreSettings(IniFile& ini);
-  void LoadDSPSettings(IniFile& ini);
-  void LoadInputSettings(IniFile& ini);
-  void LoadMovieSettings(IniFile& ini);
-  void LoadFifoPlayerSettings(IniFile& ini);
-  void LoadNetworkSettings(IniFile& ini);
-  void LoadAnalyticsSettings(IniFile& ini);
-  void LoadBluetoothPassthroughSettings(IniFile& ini);
-  void LoadUSBPassthroughSettings(IniFile& ini);
-  void LoadSysconfSettings(IniFile& ini);
-
   bool SetRegion(DiscIO::Region region, std::string* directory_name);
+
+  GPUDeterminismMode ParseGPUDeterminismMode(const std::string& mode);
+
+  void LoadGeneralSettings();
+  void LoadInterfaceSettings();
+  void LoadDisplaySettings();
+  void LoadGameListSettings();
+  void LoadCoreSettings();
+  void LoadDSPSettings();
+  void LoadInputSettings();
+  void LoadMovieSettings();
+  void LoadFifoPlayerSettings();
+  void LoadAnalyticsSettings();
+  void LoadNetworkSettings();
+  void LoadBluetoothPassthroughSettings();
+  void LoadUSBPassthroughSettings();
+  void LoadSysconfSettings();
 
   static SConfig* m_Instance;
 };

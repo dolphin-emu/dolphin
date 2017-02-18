@@ -11,6 +11,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/SysConf.h"
@@ -89,9 +90,21 @@ void SysConf::ApplySettingsFromMovie()
   if (!Movie::IsMovieActive())
     return;
 
-  SetData("IPL.LNG", Movie::GetLanguage());
-  SetData("IPL.E60", Movie::IsPAL60());
-  SetData("IPL.PGS", Movie::IsProgressive());
+  auto movie_layer = Config::GetLayer(Config::LayerType::Movie);
+  auto* core = movie_layer->GetOrCreateSection(Config::System::Main, "Core");
+  auto* display = movie_layer->GetOrCreateSection(Config::System::Main, "Display");
+
+  u8 language;
+  core->Get("Language", &language, 0);
+  SetData("IPL.LNG", language);
+
+  bool pal60;
+  display->Get("PAL60", &pal60, false);
+  SetData("IPL.E60", pal60);
+
+  bool progressive;
+  display->Get("ProgressiveScan", &progressive, false);
+  SetData("IPL.PGS", progressive);
 }
 
 bool SysConf::LoadFromFileInternal(File::IOFile&& file)

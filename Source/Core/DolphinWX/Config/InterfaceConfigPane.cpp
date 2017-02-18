@@ -17,10 +17,10 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
+#include "Common/Config.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
-#include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/Config/InterfaceConfigPane.h"
 #include "DolphinWX/Frame.h"
@@ -45,6 +45,7 @@ InterfaceConfigPane::InterfaceConfigPane(wxWindow* parent, wxWindowID id) : wxPa
 {
   InitializeGUI();
   LoadGUIValues();
+  BindEvents();
 }
 
 void InterfaceConfigPane::InitializeGUI()
@@ -91,18 +92,6 @@ void InterfaceConfigPane::InitializeGUI()
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_interface_lang_strings);
   m_theme_choice = new wxChoice(this, wxID_ANY);
 
-  m_confirm_stop_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnConfirmStopCheckBoxChanged,
-                                this);
-  m_panic_handlers_checkbox->Bind(wxEVT_CHECKBOX,
-                                  &InterfaceConfigPane::OnPanicHandlersCheckBoxChanged, this);
-  m_osd_messages_checkbox->Bind(wxEVT_CHECKBOX, &InterfaceConfigPane::OnOSDMessagesCheckBoxChanged,
-                                this);
-  m_pause_focus_lost_checkbox->Bind(wxEVT_CHECKBOX,
-                                    &InterfaceConfigPane::OnPauseOnFocusLostCheckBoxChanged, this);
-  m_interface_lang_choice->Bind(wxEVT_CHOICE,
-                                &InterfaceConfigPane::OnInterfaceLanguageChoiceChanged, this);
-  m_theme_choice->Bind(wxEVT_CHOICE, &InterfaceConfigPane::OnThemeSelected, this);
-
   m_confirm_stop_checkbox->SetToolTip(_("Show a confirmation box before stopping a game."));
   m_panic_handlers_checkbox->SetToolTip(
       _("Show a message box when a potentially serious error has occurred.\nDisabling this may "
@@ -148,18 +137,29 @@ void InterfaceConfigPane::InitializeGUI()
   main_box_sizer->AddSpacer(space5);
 
   SetSizer(main_box_sizer);
+
+  m_settings = {
+      {m_confirm_stop_checkbox, {Config::System::Main, "Interface", "ConfirmStop"}},
+      {m_panic_handlers_checkbox, {Config::System::Main, "Interface", "UsePanicHandlers"}},
+      {m_osd_messages_checkbox, {Config::System::Main, "Interface", "OnScreenDisplayMessages"}},
+      {m_pause_focus_lost_checkbox, {Config::System::Main, "Interface", "PauseOnFocusLost"}},
+      {m_interface_lang_choice, {Config::System::Main, "Interface", "LanguageCode"}},
+      {m_theme_choice, {Config::System::Main, "Interface", "ThemeName"}},
+  };
+  Config::AddConfigChangedCallback([this]() {
+    LoadGUIValues();
+    SetEnableAlert(m_panic_handlers_checkbox->IsChecked());
+  });
 }
 
 void InterfaceConfigPane::LoadGUIValues()
 {
-  const SConfig& startup_params = SConfig::GetInstance();
+  ConfigUtils::LoadValue(m_settings, m_confirm_stop_checkbox);
+  ConfigUtils::LoadValue(m_settings, m_panic_handlers_checkbox);
+  ConfigUtils::LoadValue(m_settings, m_osd_messages_checkbox);
+  ConfigUtils::LoadValue(m_settings, m_pause_focus_lost_checkbox);
 
-  m_confirm_stop_checkbox->SetValue(startup_params.bConfirmStop);
-  m_panic_handlers_checkbox->SetValue(startup_params.bUsePanicHandlers);
-  m_osd_messages_checkbox->SetValue(startup_params.bOnScreenDisplayMessages);
-  m_pause_focus_lost_checkbox->SetValue(SConfig::GetInstance().m_PauseOnFocusLost);
-
-  const std::string exact_language = SConfig::GetInstance().m_InterfaceLanguage;
+  const auto exact_language = ConfigUtils::Get<std::string>(m_settings, m_interface_lang_choice);
   const std::string loose_language = exact_language.substr(0, exact_language.find('_'));
   size_t exact_match_index = std::numeric_limits<size_t>::max();
   size_t loose_match_index = std::numeric_limits<size_t>::max();
@@ -183,6 +183,18 @@ void InterfaceConfigPane::LoadGUIValues()
   LoadThemes();
 }
 
+void InterfaceConfigPane::BindEvents()
+{
+  ConfigUtils::SaveOnChange(m_settings, m_confirm_stop_checkbox);
+  ConfigUtils::SaveOnChange(m_settings, m_panic_handlers_checkbox);
+  ConfigUtils::SaveOnChange(m_settings, m_osd_messages_checkbox);
+  ConfigUtils::SaveOnChange(m_settings, m_pause_focus_lost_checkbox);
+
+  m_interface_lang_choice->Bind(wxEVT_CHOICE,
+                                &InterfaceConfigPane::OnInterfaceLanguageChoiceChanged, this);
+  m_theme_choice->Bind(wxEVT_CHOICE, &InterfaceConfigPane::OnThemeSelected, this);
+}
+
 void InterfaceConfigPane::LoadThemes()
 {
   auto sv =
@@ -199,46 +211,25 @@ void InterfaceConfigPane::LoadThemes()
       m_theme_choice->Append(wxname);
   }
 
-  m_theme_choice->SetStringSelection(StrToWxStr(SConfig::GetInstance().theme_name));
-}
-
-void InterfaceConfigPane::OnConfirmStopCheckBoxChanged(wxCommandEvent& event)
-{
-  SConfig::GetInstance().bConfirmStop = m_confirm_stop_checkbox->IsChecked();
-}
-
-void InterfaceConfigPane::OnPanicHandlersCheckBoxChanged(wxCommandEvent& event)
-{
-  SConfig::GetInstance().bUsePanicHandlers = m_panic_handlers_checkbox->IsChecked();
-  SetEnableAlert(m_panic_handlers_checkbox->IsChecked());
-}
-
-void InterfaceConfigPane::OnOSDMessagesCheckBoxChanged(wxCommandEvent& event)
-{
-  SConfig::GetInstance().bOnScreenDisplayMessages = m_osd_messages_checkbox->IsChecked();
+  m_theme_choice->SetStringSelection(ConfigUtils::Get<std::string>(m_settings, m_theme_choice));
 }
 
 void InterfaceConfigPane::OnInterfaceLanguageChoiceChanged(wxCommandEvent& event)
 {
-  if (SConfig::GetInstance().m_InterfaceLanguage !=
+  if (ConfigUtils::Get<std::string>(m_settings, m_interface_lang_choice) !=
       language_ids[m_interface_lang_choice->GetSelection()])
   {
     wxMessageBox(_("You must restart Dolphin in order for the change to take effect."),
                  _("Restart Required"), wxOK | wxICON_INFORMATION, this);
   }
 
-  SConfig::GetInstance().m_InterfaceLanguage =
-      language_ids[m_interface_lang_choice->GetSelection()];
-}
-
-void InterfaceConfigPane::OnPauseOnFocusLostCheckBoxChanged(wxCommandEvent& event)
-{
-  SConfig::GetInstance().m_PauseOnFocusLost = m_pause_focus_lost_checkbox->IsChecked();
+  ConfigUtils::Set(m_settings, m_interface_lang_choice,
+                   language_ids[m_interface_lang_choice->GetSelection()]);
 }
 
 void InterfaceConfigPane::OnThemeSelected(wxCommandEvent& event)
 {
-  SConfig::GetInstance().theme_name = WxStrToStr(m_theme_choice->GetStringSelection());
+  ConfigUtils::Set(m_settings, m_theme_choice, WxStrToStr(m_theme_choice->GetStringSelection()));
 
   wxCommandEvent theme_event{DOLPHIN_EVT_RELOAD_THEME_BITMAPS};
   theme_event.SetEventObject(this);

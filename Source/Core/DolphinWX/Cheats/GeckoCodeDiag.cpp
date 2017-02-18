@@ -96,14 +96,14 @@ void CodeConfigPanel::UpdateCodeList(bool checkRunning)
   UpdateInfoBox(evt);
 }
 
-void CodeConfigPanel::LoadCodes(const IniFile& globalIni, const IniFile& localIni,
+void CodeConfigPanel::LoadCodes(Config::Layer& global_config, Config::Layer& local_config,
                                 const std::string& gameid, bool checkRunning)
 {
   m_gameid = gameid;
 
   m_gcodes.clear();
   if (!checkRunning || Core::IsRunning())
-    Gecko::LoadCodes(globalIni, localIni, m_gcodes);
+    Gecko::LoadCodes(global_config, local_config, m_gcodes);
 
   UpdateCodeList(checkRunning);
 }

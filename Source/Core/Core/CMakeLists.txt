@@ -173,6 +173,10 @@ set(SRCS	ActionReplay.cpp
 			IOS/USB/Bluetooth/WiimoteHIDAttr.cpp
 			IOS/WFS/WFSSRV.cpp
 			IOS/WFS/WFSI.cpp
+			ConfigLoaders/BaseConfigLoader.cpp
+			ConfigLoaders/GameConfigLoader.cpp
+			ConfigLoaders/MovieConfigLoader.cpp
+			ConfigLoaders/NetPlayConfigLoader.cpp
 			PowerPC/BreakPoints.cpp
 			PowerPC/MMU.cpp
 			PowerPC/PowerPC.cpp

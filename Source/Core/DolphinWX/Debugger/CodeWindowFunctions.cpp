@@ -19,8 +19,8 @@
 
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/SymbolDB.h"
 
 #include "Core/Boot/Boot.h"
@@ -51,15 +51,16 @@
 // -----------------------------
 void CCodeWindow::Load()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
-
   // The font to override DebuggerFont with
   std::string fontDesc;
 
   auto& config_instance = SConfig::GetInstance();
 
-  IniFile::Section* general = ini.GetOrCreateSection("General");
+  Config::Section* general = Config::GetOrCreateSection(Config::System::Debugger, "General");
+  Config::Section* show_on_start =
+      Config::GetOrCreateSection(Config::System::Debugger, "ShowOnStart");
+  Config::Section* float_windows = Config::GetOrCreateSection(Config::System::Debugger, "Float");
+
   general->Get("DebuggerFont", &fontDesc);
   general->Get("AutomaticStart", &config_instance.bAutomaticStart, false);
   general->Get("BootToPause", &config_instance.bBootToPause, true);
@@ -72,7 +73,7 @@ void CCodeWindow::Load()
 
   // Decide what windows to show
   for (int i = 0; i <= IDM_VIDEO_WINDOW - IDM_LOG_WINDOW; i++)
-    ini.GetOrCreateSection("ShowOnStart")->Get(SettingName[i], &bShowOnStart[i], false);
+    show_on_start->Get(SettingName[i], &bShowOnStart[i], false);
 
   // Get notebook affiliation
   std::string section = "P - " + ((Parent->ActivePerspective < Parent->Perspectives.size()) ?
@@ -80,19 +81,25 @@ void CCodeWindow::Load()
                                       "Perspective 1");
 
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-    ini.GetOrCreateSection(section)->Get(SettingName[i], &iNbAffiliation[i], 0);
+  {
+    auto* config_section = Config::GetOrCreateSection(Config::System::Debugger, section);
+    config_section->Get(SettingName[i], &iNbAffiliation[i], 0);
+  }
 
   // Get floating setting
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-    ini.GetOrCreateSection("Float")->Get(SettingName[i], &Parent->bFloatWindow[i], false);
+    float_windows->Get(SettingName[i], &Parent->bFloatWindow[i], false);
 }
 
 void CCodeWindow::Save()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+  Config::Layer* base_layer = Config::GetLayer(Config::LayerType::Base);
+  Config::Section* general = base_layer->GetOrCreateSection(Config::System::Debugger, "General");
+  Config::Section* show_on_start =
+      base_layer->GetOrCreateSection(Config::System::Debugger, "ShowOnStart");
+  Config::Section* float_windows =
+      base_layer->GetOrCreateSection(Config::System::Debugger, "Float");
 
-  IniFile::Section* general = ini.GetOrCreateSection("General");
   general->Set("DebuggerFont", WxStrToStr(DebuggerFont.GetNativeFontInfoUserDesc()));
   general->Set("AutomaticStart", GetParentMenuBar()->IsChecked(IDM_AUTOMATIC_START));
   general->Set("BootToPause", GetParentMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE));
@@ -102,20 +109,20 @@ void CCodeWindow::Save()
 
   // Save windows settings
   for (int i = IDM_LOG_WINDOW; i <= IDM_VIDEO_WINDOW; i++)
-    ini.GetOrCreateSection("ShowOnStart")
-        ->Set(SettingName[i - IDM_LOG_WINDOW], GetParentMenuBar()->IsChecked(i));
+    show_on_start->Set(SettingName[i - IDM_LOG_WINDOW], GetParentMenuBar()->IsChecked(i));
 
   // Save notebook affiliations
   std::string section = "P - " + Parent->Perspectives[Parent->ActivePerspective].Name;
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
-    ini.GetOrCreateSection(section)->Set(SettingName[i], iNbAffiliation[i]);
+  {
+    auto* config_section = base_layer->GetOrCreateSection(Config::System::Debugger, section);
+    config_section->Set(SettingName[i], iNbAffiliation[i]);
+  }
 
   // Save floating setting
   for (int i = IDM_LOG_WINDOW_PARENT; i <= IDM_CODE_WINDOW_PARENT; i++)
-    ini.GetOrCreateSection("Float")->Set(SettingName[i - IDM_LOG_WINDOW_PARENT],
-                                         !!FindWindowById(i));
-
-  ini.Save(File::GetUserPath(F_DEBUGGERCONFIG_IDX));
+    float_windows->Set(SettingName[i - IDM_LOG_WINDOW_PARENT], !!FindWindowById(i));
+  base_layer->Save();
 }
 
 void CCodeWindow::OnProfilerMenu(wxCommandEvent& event)

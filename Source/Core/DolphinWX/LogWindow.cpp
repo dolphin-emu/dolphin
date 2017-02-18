@@ -20,8 +20,8 @@
 #include <wx/validate.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/Logging/ConsoleListener.h"
 #include "Common/Logging/LogManager.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
@@ -52,11 +52,10 @@ CLogWindow::CLogWindow(CFrame* parent, wxWindowID id, const wxPoint& pos, const 
 
 void CLogWindow::CreateGUIControls()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  Config::Section* options = Config::GetOrCreateSection(Config::System::Logger, "Options");
+  Config::Section* log_window = Config::GetOrCreateSection(Config::System::Logger, "LogWindow");
+  Config::Section* logs = Config::GetOrCreateSection(Config::System::Logger, "Logs");
 
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
-  IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
   log_window->Get("x", &x, Parent->GetSize().GetX() / 2);
   log_window->Get("y", &y, Parent->GetSize().GetY());
   log_window->Get("pos", &winpos, wxAUI_DOCK_RIGHT);
@@ -75,7 +74,6 @@ void CLogWindow::CreateGUIControls()
   options->Get("WriteToFile", &m_writeFile, false);
   options->Get("WriteToWindow", &m_writeWindow, true);
 
-  IniFile::Section* logs = ini.GetOrCreateSection("Logs");
   for (int i = 0; i < LogTypes::NUMBER_OF_LOGS; ++i)
   {
     bool enable;
@@ -171,22 +169,21 @@ void CLogWindow::RemoveAllListeners()
 
 void CLogWindow::SaveSettings()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(F_LOGGERCONFIG_IDX));
-
+  Config::Layer* base_config = Config::GetLayer(Config::LayerType::Base);
   if (!Parent->g_pCodeWindow)
   {
-    IniFile::Section* log_window = ini.GetOrCreateSection("LogWindow");
+    Config::Section* log_window =
+        base_config->GetOrCreateSection(Config::System::Logger, "LogWindow");
     log_window->Set("x", x);
     log_window->Set("y", y);
     log_window->Set("pos", winpos);
   }
 
-  IniFile::Section* options = ini.GetOrCreateSection("Options");
+  Config::Section* options = base_config->GetOrCreateSection(Config::System::Logger, "Options");
   options->Set("Font", m_FontChoice->GetSelection());
   options->Set("WrapLines", m_WrapLine->IsChecked());
 
-  ini.Save(File::GetUserPath(F_LOGGERCONFIG_IDX));
+  base_config->Save();
 }
 
 void CLogWindow::OnClear(wxCommandEvent& WXUNUSED(event))
@@ -250,7 +247,8 @@ void CLogWindow::OnWrapLineCheck(wxCommandEvent& event)
   wxString Text;
   // Unfortunately wrapping styles can only be changed dynamically with wxGTK
   // Notice: To retain the colors when changing word wrapping we need to
-  //         loop through every letter with GetStyle and then reapply them letter by letter
+  //         loop through every letter with GetStyle and then reapply them
+  //         letter by letter
   // Prevent m_Log access while it's being destroyed
   m_LogAccess = false;
   UnPopulateBottom();
@@ -292,8 +290,10 @@ void CLogWindow::UpdateLog()
 
   m_LogTimer.Stop();
 
-  // This function runs on the main gui thread, and needs to finish in a finite time otherwise
-  // the GUI will lock up, which could be an issue if new messages are flooding in faster than
+  // This function runs on the main gui thread, and needs to finish in a finite
+  // time otherwise
+  // the GUI will lock up, which could be an issue if new messages are flooding
+  // in faster than
   // this function can render them to the screen.
   // So we limit this function to processing MSGQUEUE_MAX_SIZE messages each time it's called.
   for (size_t num = 0; num < MSGQUEUE_MAX_SIZE; num++)

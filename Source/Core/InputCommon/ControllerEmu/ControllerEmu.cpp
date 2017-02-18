@@ -63,7 +63,7 @@ void EmulatedController::UpdateDefaultDevice()
   }
 }
 
-void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& base)
+void EmulatedController::LoadConfig(Config::Section* sec, const std::string& base)
 {
   std::string defdev = default_device.ToString();
   if (base.empty())
@@ -76,7 +76,7 @@ void EmulatedController::LoadConfig(IniFile::Section* sec, const std::string& ba
     cg->LoadConfig(sec, defdev, base);
 }
 
-void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& base)
+void EmulatedController::SaveConfig(Config::Section* sec, const std::string& base)
 {
   const std::string defdev = default_device.ToString();
   if (base.empty())
@@ -89,8 +89,8 @@ void EmulatedController::SaveConfig(IniFile::Section* sec, const std::string& ba
 void EmulatedController::LoadDefaults(const ControllerInterface& ciface)
 {
   // load an empty inifile section, clears everything
-  IniFile::Section sec;
-  LoadConfig(&sec);
+  Config::Section section(Config::LayerType::Meta, Config::System::GCPad, "");
+  LoadConfig(&section);
 
   const std::string& default_device_string = ciface.GetDefaultDeviceString();
   if (!default_device_string.empty())

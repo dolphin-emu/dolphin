@@ -7,20 +7,19 @@
 #include <string>
 #include <vector>
 
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 #include "Core/GeckoCodeConfig.h"
 
 namespace Gecko
 {
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<GeckoCode>& gcodes)
+void LoadCodes(Config::Layer& globalIni, Config::Layer& localIni, std::vector<GeckoCode>& gcodes)
 {
-  const IniFile* inis[2] = {&globalIni, &localIni};
-
-  for (const IniFile* ini : inis)
+  for (auto* ini : {&globalIni, &localIni})
   {
     std::vector<std::string> lines;
-    ini->GetLines("Gecko", &lines, false);
+    auto* codes = ini->GetOrCreateSection(Config::System::Main, "Gecko");
+    auto* codes_enabled = ini->GetOrCreateSection(Config::System::Main, "Gecko_Enabled");
+    codes->GetLines(&lines, false);
 
     GeckoCode gcode;
 
@@ -75,7 +74,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
       gcodes.push_back(gcode);
     }
 
-    ini->GetLines("Gecko_Enabled", &lines, false);
+    codes_enabled->GetLines(&lines, false);
 
     for (const std::string& line : lines)
     {
@@ -135,7 +134,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
     lines.push_back(std::string("*") + note);
 }
 
-void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
+void SaveCodes(Config::Layer& config, const std::vector<GeckoCode>& gcodes)
 {
   std::vector<std::string> lines;
   std::vector<std::string> enabledLines;
@@ -145,7 +144,10 @@ void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
     SaveGeckoCode(lines, enabledLines, geckoCode);
   }
 
-  inifile.SetLines("Gecko", lines);
-  inifile.SetLines("Gecko_Enabled", enabledLines);
+  auto* codes = config.GetOrCreateSection(Config::System::Main, "Gecko");
+  auto* codes_enabled = config.GetOrCreateSection(Config::System::Main, "Gecko_Enabled");
+
+  codes->SetLines(lines);
+  codes_enabled->SetLines(enabledLines);
 }
 }

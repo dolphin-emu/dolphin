@@ -65,7 +65,6 @@ QString Settings::GetDefaultGame() const
 void Settings::SetDefaultGame(const QString& path)
 {
   SConfig::GetInstance().m_strDefaultISO = path.toStdString();
-  SConfig::GetInstance().SaveSettings();
 }
 
 QString Settings::GetDVDRoot() const
@@ -76,7 +75,6 @@ QString Settings::GetDVDRoot() const
 void Settings::SetDVDRoot(const QString& path)
 {
   SConfig::GetInstance().m_strDVDRoot = path.toStdString();
-  SConfig::GetInstance().SaveSettings();
 }
 
 QString Settings::GetApploader() const
@@ -87,7 +85,6 @@ QString Settings::GetApploader() const
 void Settings::SetApploader(const QString& path)
 {
   SConfig::GetInstance().m_strApploader = path.toStdString();
-  SConfig::GetInstance().SaveSettings();
 }
 
 QString Settings::GetWiiNAND() const
@@ -98,7 +95,6 @@ QString Settings::GetWiiNAND() const
 void Settings::SetWiiNAND(const QString& path)
 {
   SConfig::GetInstance().m_NANDPath = path.toStdString();
-  SConfig::GetInstance().SaveSettings();
 }
 
 DiscIO::Language Settings::GetWiiSystemLanguage() const

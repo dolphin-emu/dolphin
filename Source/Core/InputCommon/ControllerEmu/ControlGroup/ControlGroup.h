@@ -9,7 +9,7 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Common/IniFile.h"
+#include "Common/Config.h"
 #include "Core/ConfigManager.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
@@ -99,9 +99,9 @@ public:
   ControlGroup(const std::string& name, const std::string& ui_name, u32 type = GROUP_TYPE_OTHER);
   virtual ~ControlGroup();
 
-  virtual void LoadConfig(IniFile::Section* sec, const std::string& defdev = "",
+  virtual void LoadConfig(Config::Section* section, const std::string& defdev = "",
                           const std::string& base = "");
-  virtual void SaveConfig(IniFile::Section* sec, const std::string& defdev = "",
+  virtual void SaveConfig(Config::Section* section, const std::string& defdev = "",
                           const std::string& base = "");
 
   void SetControlExpression(int index, const std::string& expression);

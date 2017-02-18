@@ -36,9 +36,9 @@
 #include <wx/textctrl.h>
 #include <wx/timer.h>
 
+#include "Common/Config.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
 
 #include "Core/Core.h"
@@ -48,6 +48,7 @@
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
 
+#include "DolphinWX/ControllerProfileLoader.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/Input/ClassicInputConfigDiag.h"
 #include "DolphinWX/Input/DrumsInputConfigDiag.h"
@@ -372,7 +373,7 @@ void InputConfigDialog::UpdateGUI()
 void InputConfigDialog::ClearAll(wxCommandEvent&)
 {
   // just load an empty ini section to clear everything :P
-  IniFile::Section section;
+  Config::Section section(Config::LayerType::Meta, Config::System::GCPad, "");
   controller->LoadConfig(&section);
 
   // no point in using the real ControllerInterface i guess
@@ -855,10 +856,11 @@ void InputConfigDialog::LoadProfile(wxCommandEvent&)
   if (!File::Exists(fname))
     return;
 
-  IniFile inifile;
-  inifile.Load(fname);
+  std::unique_ptr<Config::Layer> profile(new Config::Layer(
+      std::unique_ptr<Config::ConfigLayerLoader>(GenerateProfileConfigLoader(fname))));
+  profile->Load();
 
-  controller->LoadConfig(inifile.GetOrCreateSection("Profile"));
+  controller->LoadConfig(profile->GetOrCreateSection(Config::System::Main, "Profile"));
   controller->UpdateReferences(g_controller_interface);
 
   UpdateGUI();
@@ -872,9 +874,10 @@ void InputConfigDialog::SaveProfile(wxCommandEvent&)
 
   if (!fname.empty())
   {
-    IniFile inifile;
-    controller->SaveConfig(inifile.GetOrCreateSection("Profile"));
-    inifile.Save(fname);
+    std::unique_ptr<Config::Layer> profile(new Config::Layer(
+        std::unique_ptr<Config::ConfigLayerLoader>(GenerateProfileConfigLoader(fname))));
+    controller->SaveConfig(profile->GetOrCreateSection(Config::System::Main, "Profile"));
+    profile->Save();
 
     UpdateProfileComboBox();
   }

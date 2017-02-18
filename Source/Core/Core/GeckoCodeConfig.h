@@ -5,12 +5,11 @@
 #pragma once
 
 #include <vector>
+#include "Common/Config.h"
 #include "Core/GeckoCode.h"
-
-class IniFile;
 
 namespace Gecko
 {
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<GeckoCode>& gcodes);
-void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes);
+void LoadCodes(Config::Layer& globalIni, Config::Layer& localIni, std::vector<GeckoCode>& gcodes);
+void SaveCodes(Config::Layer& config, const std::vector<GeckoCode>& gcodes);
 }

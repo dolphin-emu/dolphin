@@ -16,11 +16,14 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/Config.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/BreakPoints.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinWX/Debugger/BreakpointDlg.h"
 #include "DolphinWX/Debugger/BreakpointView.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
@@ -169,13 +172,17 @@ void CBreakPointWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
 
 void CBreakPointWindow::SaveAll()
 {
-  // simply dump all to bp/mc files in a way we can read again
-  IniFile ini;
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
-           false);
-  ini.SetLines("BreakPoints", PowerPC::breakpoints.GetStrings());
-  ini.SetLines("MemoryBreakPoints", PowerPC::memchecks.GetStrings());
-  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
+  auto game_layer = std::make_unique<Config::Layer>(std::unique_ptr<Config::ConfigLayerLoader>(
+      GenerateLocalGameConfigLoader(SConfig::GetInstance().GetGameID(), 0)));
+
+  Config::Section* breakpoints =
+      game_layer->GetOrCreateSection(Config::System::Debugger, "BreakPoints");
+  Config::Section* memory_checks =
+      game_layer->GetOrCreateSection(Config::System::Debugger, "MemoryBreakPoints");
+
+  breakpoints->SetLines(PowerPC::breakpoints.GetStrings());
+  memory_checks->SetLines(PowerPC::memchecks.GetStrings());
+  game_layer->Save();
 }
 
 void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
@@ -186,23 +193,21 @@ void CBreakPointWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
 
 void CBreakPointWindow::LoadAll()
 {
-  IniFile ini;
   BreakPoints::TBreakPointsStr newbps;
   MemChecks::TMemChecksStr newmcs;
 
-  if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
-                false))
-  {
-    return;
-  }
+  Config::Section* breakpoints =
+      Config::GetOrCreateSection(Config::System::Debugger, "BreakPoints");
+  Config::Section* memory_checks =
+      Config::GetOrCreateSection(Config::System::Debugger, "MemoryBreakPoints");
 
-  if (ini.GetLines("BreakPoints", &newbps, false))
+  if (breakpoints->GetLines(&newbps, false))
   {
     PowerPC::breakpoints.Clear();
     PowerPC::breakpoints.AddFromStrings(newbps);
   }
 
-  if (ini.GetLines("MemoryBreakPoints", &newmcs, false))
+  if (memory_checks->GetLines(&newmcs, false))
   {
     PowerPC::memchecks.Clear();
     PowerPC::memchecks.AddFromStrings(newmcs);

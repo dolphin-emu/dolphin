@@ -22,9 +22,9 @@
 #include <wx/utils.h>
 
 #include "Common/CommonPaths.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
 
 #include "DolphinWX/WxUtils.h"
 
@@ -391,7 +391,10 @@ wxBitmap LoadScaledThemeBitmap(const std::string& name, const wxWindow* context,
                                const wxSize& output_size, const wxRect& usable_rect, LSIFlags flags,
                                const wxColour& fill_color)
 {
-  std::string path = File::GetThemeDir(SConfig::GetInstance().theme_name) + name + ".png";
+  const auto base_layer = Config::GetLayer(Config::LayerType::Base);
+  std::string theme = "Clean";
+  base_layer->GetIfExists(Config::System::Main, "Interface", "ThemeName", &theme);
+  std::string path = File::GetThemeDir(theme) + name + ".png";
   return LoadScaledBitmap(path, context, output_size, usable_rect, flags, fill_color);
 }
 

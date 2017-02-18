@@ -14,7 +14,6 @@
 #include <wx/window.h>
 
 #include "Common/StringUtil.h"
-#include "Core/ConfigManager.h"
 #include "DolphinWX/Config/AddUSBDeviceDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "UICommon/USBUtils.h"
@@ -78,7 +77,7 @@ void AddUSBDeviceDiag::RefreshDeviceList()
   m_inserted_devices_listbox->Clear();
   for (const auto& device : current_devices)
   {
-    if (SConfig::GetInstance().IsUSBDeviceWhitelisted(device.first))
+    if (USBUtils::IsDeviceInWhitelist(device.first))
       continue;
     m_inserted_devices_listbox->Append(device.second, new USBPassthroughDeviceEntry(device.first));
   }
@@ -130,8 +129,8 @@ void AddUSBDeviceDiag::OnDeviceSelection(wxCommandEvent&)
     return;
   auto* const entry = static_cast<const USBPassthroughDeviceEntry*>(
       m_inserted_devices_listbox->GetClientObject(index));
-  m_new_device_vid_ctrl->SetValue(StringFromFormat("%04x", entry->m_vid));
-  m_new_device_pid_ctrl->SetValue(StringFromFormat("%04x", entry->m_pid));
+  m_new_device_vid_ctrl->SetValue(StringFromFormat("%04x", entry->m_vid_pid.first));
+  m_new_device_pid_ctrl->SetValue(StringFromFormat("%04x", entry->m_vid_pid.second));
 }
 
 void AddUSBDeviceDiag::OnSave(wxCommandEvent&)
@@ -154,12 +153,12 @@ void AddUSBDeviceDiag::OnSave(wxCommandEvent&)
   const u16 vid = static_cast<u16>(std::stoul(vid_string, nullptr, 16));
   const u16 pid = static_cast<u16>(std::stoul(pid_string, nullptr, 16));
 
-  if (SConfig::GetInstance().IsUSBDeviceWhitelisted({vid, pid}))
+  if (USBUtils::IsDeviceInWhitelist({vid, pid}))
   {
     WxUtils::ShowErrorDialog(_("This USB device is already whitelisted."));
     return;
   }
 
-  SConfig::GetInstance().m_usb_passthrough_devices.emplace(vid, pid);
+  USBUtils::AddDeviceToWhitelist({vid, pid});
   AcceptAndClose();
 }

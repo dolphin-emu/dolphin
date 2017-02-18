@@ -528,7 +528,8 @@ unsigned int NetPlayServer::OnData(sf::Packet& packet, Client& player)
 
   case NP_MSG_WIIMOTE_DATA:
   {
-    // if this is Wiimote data from the last game still being received, ignore it
+    // if this is Wiimote data from the last game still being received, ignore
+    // it
     if (player.current_game != m_current_game)
       break;
 

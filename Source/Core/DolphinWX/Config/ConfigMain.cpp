@@ -113,8 +113,6 @@ void CConfigMain::OnClose(wxCloseEvent& WXUNUSED(event))
 {
   Hide();
 
-  SConfig::GetInstance().SaveSettings();
-
   if (m_refresh_game_list_on_close)
     AddPendingEvent(wxCommandEvent{DOLPHIN_EVT_RELOAD_GAMELIST});
 }

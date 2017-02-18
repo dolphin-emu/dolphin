@@ -7,6 +7,8 @@
 #include <wx/arrstr.h>
 #include <wx/panel.h>
 
+#include "DolphinWX/ConfigUtils.h"
+
 class wxButton;
 class wxCheckBox;
 class wxChoice;
@@ -19,13 +21,10 @@ public:
 private:
   void InitializeGUI();
   void LoadGUIValues();
+  void BindEvents();
   void LoadThemes();
 
-  void OnConfirmStopCheckBoxChanged(wxCommandEvent&);
-  void OnPanicHandlersCheckBoxChanged(wxCommandEvent&);
-  void OnOSDMessagesCheckBoxChanged(wxCommandEvent&);
   void OnInterfaceLanguageChoiceChanged(wxCommandEvent&);
-  void OnPauseOnFocusLostCheckBoxChanged(wxCommandEvent&);
   void OnThemeSelected(wxCommandEvent&);
 
   wxArrayString m_interface_lang_strings;
@@ -36,4 +35,6 @@ private:
   wxCheckBox* m_pause_focus_lost_checkbox;
   wxChoice* m_interface_lang_choice;
   wxChoice* m_theme_choice;
+
+  ConfigUtils::SettingsMap m_settings;
 };

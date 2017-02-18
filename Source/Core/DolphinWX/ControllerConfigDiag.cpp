@@ -17,8 +17,8 @@
 #include <wx/stattext.h>
 
 #include "Common/CommonTypes.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/GCKeyboard.h"
@@ -30,6 +30,7 @@
 #include "Core/IOS/IPC.h"
 #include "Core/IOS/USB/Bluetooth/BTReal.h"
 #include "Core/NetPlayProto.h"
+
 #include "DolphinWX/Config/GCAdapterConfigDiag.h"
 #include "DolphinWX/ControllerConfigDiag.h"
 #include "DolphinWX/DolphinSlider.h"
@@ -372,7 +373,6 @@ wxSizer* ControllerConfigDiag::CreateEmulatedBTConfigSizer()
 void ControllerConfigDiag::OnClose(wxCloseEvent& event)
 {
   // Save all settings
-  SConfig::GetInstance().SaveSettings();
   SaveWiimoteSource();
   EndModal(wxID_OK);
 }
@@ -570,23 +570,20 @@ void ControllerConfigDiag::OnEnableSpeaker(wxCommandEvent& event)
 
 void ControllerConfigDiag::SaveWiimoteSource()
 {
-  std::string ini_filename = File::GetUserPath(D_CONFIG_IDX) + WIIMOTE_INI_NAME ".ini";
-
-  IniFile inifile;
-  inifile.Load(ini_filename);
+  Config::Layer* base_layer = Config::GetLayer(Config::LayerType::Base);
 
   for (unsigned int i = 0; i < MAX_WIIMOTES; ++i)
   {
     std::string secname("Wiimote");
     secname += (char)('1' + i);
-    IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
+    Config::Section* section = base_layer->GetOrCreateSection(Config::System::WiiPad, secname);
 
-    sec.Set("Source", (int)g_wiimote_sources[i]);
+    section->Set("Source", (int)g_wiimote_sources[i]);
   }
 
   std::string secname("BalanceBoard");
-  IniFile::Section& sec = *inifile.GetOrCreateSection(secname);
-  sec.Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
+  Config::Section* section = base_layer->GetOrCreateSection(Config::System::WiiPad, secname);
+  section->Set("Source", (int)g_wiimote_sources[WIIMOTE_BALANCE_BOARD]);
 
-  inifile.Save(ini_filename);
+  base_layer->Save();
 }

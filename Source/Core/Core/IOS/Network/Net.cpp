@@ -65,7 +65,6 @@ namespace Device
 static void SaveMacAddress(u8* mac)
 {
   SConfig::GetInstance().m_WirelessMac = Common::MacAddressToString(mac);
-  SConfig::GetInstance().SaveSettings();
 }
 
 static void GetMacAddress(u8* mac)

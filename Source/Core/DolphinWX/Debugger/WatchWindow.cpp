@@ -10,9 +10,12 @@
 // clang-format on
 
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
+#include "Common/Config.h"
+
 #include "Core/ConfigManager.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/PowerPC/PowerPC.h"
+
 #include "DolphinWX/Debugger/WatchView.h"
 #include "DolphinWX/Debugger/WatchWindow.h"
 #include "DolphinWX/AuiToolBar.h"
@@ -93,11 +96,13 @@ void CWatchWindow::Event_SaveAll(wxCommandEvent& WXUNUSED(event))
 
 void CWatchWindow::SaveAll()
 {
-  IniFile ini;
-  ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
-           false);
-  ini.SetLines("Watches", PowerPC::watches.GetStrings());
-  ini.Save(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini");
+  auto game_layer = std::make_unique<Config::Layer>(std::unique_ptr<Config::ConfigLayerLoader>(
+      GenerateLocalGameConfigLoader(SConfig::GetInstance().GetGameID(), 0)));
+
+  Config::Section* watches = game_layer->GetOrCreateSection(Config::System::Debugger, "Watches");
+
+  watches->SetLines(PowerPC::watches.GetStrings());
+  game_layer->Save();
 }
 
 void CWatchWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
@@ -107,16 +112,10 @@ void CWatchWindow::Event_LoadAll(wxCommandEvent& WXUNUSED(event))
 
 void CWatchWindow::LoadAll()
 {
-  IniFile ini;
   Watches::TWatchesStr watches;
+  Config::Section* watches_config = Config::GetOrCreateSection(Config::System::Debugger, "Watches");
 
-  if (!ini.Load(File::GetUserPath(D_GAMESETTINGS_IDX) + SConfig::GetInstance().GetGameID() + ".ini",
-                false))
-  {
-    return;
-  }
-
-  if (ini.GetLines("Watches", &watches, false))
+  if (watches_config->GetLines(&watches, false))
   {
     PowerPC::watches.Clear();
     PowerPC::watches.AddFromStrings(watches);

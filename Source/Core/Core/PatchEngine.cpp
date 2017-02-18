@@ -3,14 +3,16 @@
 // Refer to the license.txt file included.
 
 // PatchEngine
-// Supports simple memory patches, and has a partial Action Replay implementation
+// Supports simple memory patches, and has a partial Action Replay
+// implementation
 // in ActionReplay.cpp/h.
 
 // TODO: Still even needed?  Zelda WW now works with improved DSP code.
 // Zelda item hang fixes:
 // [Tue Aug 21 2007] [18:30:40] <Knuckles->    0x802904b4 in US released
 // [Tue Aug 21 2007] [18:30:53] <Knuckles->    0x80294d54 in EUR Demo version
-// [Tue Aug 21 2007] [18:31:10] <Knuckles->    we just patch a blr on it (0x4E800020)
+// [Tue Aug 21 2007] [18:31:10] <Knuckles->    we just patch a blr on it
+// (0x4E800020)
 // [OnLoad]
 // 0x80020394=dword,0x4e800020
 
@@ -22,8 +24,9 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonPaths.h"
+#include "Common/Config.h"
+#include "Common/Config.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
 #include "Core/ActionReplay.h"
@@ -44,14 +47,14 @@ const char* PatchTypeStrings[] = {
 static std::vector<Patch> onFrame;
 static std::map<u32, int> speedHacks;
 
-void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, IniFile& globalIni,
-                      IniFile& localIni)
+void LoadPatchSection(Config::Layer& globalIni, Config::Layer& localIni,
+                      std::vector<Patch>& patches)
 {
   // Load the name of all enabled patches
-  std::string enabledSectionName = section + "_Enabled";
+  auto enabled_section = localIni.GetOrCreateSection(Config::System::Main, "OnFrame_Enabled");
   std::vector<std::string> enabledLines;
   std::set<std::string> enabledNames;
-  localIni.GetLines(enabledSectionName, &enabledLines);
+  enabled_section->GetLines(&enabledLines);
   for (const std::string& line : enabledLines)
   {
     if (line.size() != 0 && line[0] == '$')
@@ -61,13 +64,13 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
     }
   }
 
-  const IniFile* inis[2] = {&globalIni, &localIni};
-
-  for (const IniFile* ini : inis)
+  for (Config::Layer* ini : {&globalIni, &localIni})
   {
+    auto section = ini->GetOrCreateSection(Config::System::Main, "OnFrame");
+
     std::vector<std::string> lines;
     Patch currentPatch;
-    ini->GetLines(section, &lines);
+    section->GetLines(&lines);
 
     for (std::string& line : lines)
     {
@@ -125,25 +128,21 @@ void LoadPatchSection(const std::string& section, std::vector<Patch>& patches, I
   }
 }
 
-static void LoadSpeedhacks(const std::string& section, IniFile& ini)
+static void LoadSpeedhacks()
 {
-  std::vector<std::string> keys;
-  ini.GetKeys(section, &keys);
-  for (const std::string& key : keys)
+  Config::Section* speedhacks = Config::GetOrCreateSection(Config::System::Main, "Speedhacks");
+
+  const auto& values = speedhacks->GetValues();
+  for (auto value : values)
   {
-    std::string value;
-    ini.GetOrCreateSection(section)->Get(key, &value, "BOGUS");
-    if (value != "BOGUS")
+    u32 address;
+    u32 cycles;
+    bool success = true;
+    success &= TryParse(value.first, &address);
+    success &= TryParse(value.second, &cycles);
+    if (success)
     {
-      u32 address;
-      u32 cycles;
-      bool success = true;
-      success &= TryParse(key, &address);
-      success &= TryParse(value, &cycles);
-      if (success)
-      {
-        speedHacks[address] = (int)cycles;
-      }
+      speedHacks[address] = (int)cycles;
     }
   }
 }
@@ -159,19 +158,17 @@ int GetSpeedhackCycles(const u32 addr)
 
 void LoadPatches()
 {
-  IniFile merged = SConfig::GetInstance().LoadGameIni();
-  IniFile globalIni = SConfig::GetInstance().LoadDefaultGameIni();
-  IniFile localIni = SConfig::GetInstance().LoadLocalGameIni();
-
-  LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
-  ActionReplay::LoadAndApplyCodes(globalIni, localIni);
+  auto* global_config = Config::GetLayer(Config::LayerType::GlobalGame);
+  auto* local_config = Config::GetLayer(Config::LayerType::LocalGame);
+  LoadPatchSection(*global_config, *local_config, onFrame);
+  ActionReplay::LoadAndApplyCodes(*global_config, *local_config);
 
   // lil silly
   std::vector<Gecko::GeckoCode> gcodes;
-  Gecko::LoadCodes(globalIni, localIni, gcodes);
+  Gecko::LoadCodes(*global_config, *local_config, gcodes);
   Gecko::SetActiveCodes(gcodes);
 
-  LoadSpeedhacks("Speedhacks", merged);
+  LoadSpeedhacks();
 }
 
 static void ApplyPatches(const std::vector<Patch>& patches)

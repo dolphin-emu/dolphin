@@ -25,9 +25,10 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+
 #include "Core/ActionReplay.h"
+#include "Core/ConfigLoaders/GameConfigLoader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/GeckoCode.h"
@@ -174,11 +175,18 @@ void wxCheatsWindow::UpdateGUI()
 {
   // load code
   const SConfig& parameters = SConfig::GetInstance();
-  m_gameini_default = parameters.LoadDefaultGameIni();
-  m_gameini_local = parameters.LoadLocalGameIni();
-  m_game_id = parameters.GetGameID();
+  m_global_config.reset(new Config::Layer(std::unique_ptr<Config::ConfigLayerLoader>(
+      GenerateGlobalGameConfigLoader(parameters.GetGameID(), 0))));
+  m_local_config.reset(new Config::Layer(std::unique_ptr<Config::ConfigLayerLoader>(
+      GenerateLocalGameConfigLoader(parameters.GetGameID(), 0))));
+
+  m_global_config->Load();
+  m_local_config->Load();
+
   m_game_revision = parameters.m_revision;
+  m_game_id = parameters.GetGameID();
   m_gameini_local_path = File::GetUserPath(D_GAMESETTINGS_IDX) + m_game_id + ".ini";
+
   Load_ARCodes();
   Load_GeckoCodes();
   m_tab_cheat_search->UpdateGUI();
@@ -207,12 +215,12 @@ void wxCheatsWindow::Load_ARCodes()
   {
     m_ar_codes_panel->Enable();
   }
-  m_ar_codes_panel->LoadCodes(m_gameini_default, m_gameini_local);
+  m_ar_codes_panel->LoadCodes(*m_global_config, *m_local_config);
 }
 
 void wxCheatsWindow::Load_GeckoCodes()
 {
-  m_geckocode_panel->LoadCodes(m_gameini_default, m_gameini_local, m_game_id, true);
+  m_geckocode_panel->LoadCodes(*m_global_config, *m_local_config, m_game_id, true);
 }
 
 void wxCheatsWindow::OnNewARCodeCreated(wxCommandEvent& ev)
@@ -246,9 +254,9 @@ void wxCheatsWindow::OnEvent_ApplyChanges_Press(wxCommandEvent& ev)
   // Save gameini, with changed codes
   if (m_gameini_local_path.size())
   {
-    m_ar_codes_panel->SaveCodes(&m_gameini_local);
-    Gecko::SaveCodes(m_gameini_local, m_geckocode_panel->GetCodes());
-    m_gameini_local.Save(m_gameini_local_path);
+    m_ar_codes_panel->SaveCodes(m_local_config.get());
+    Gecko::SaveCodes(*m_local_config, m_geckocode_panel->GetCodes());
+    m_local_config->Save();
 
     wxCommandEvent ini_changed(DOLPHIN_EVT_LOCAL_INI_CHANGED);
     ini_changed.SetString(StrToWxStr(m_game_id));
