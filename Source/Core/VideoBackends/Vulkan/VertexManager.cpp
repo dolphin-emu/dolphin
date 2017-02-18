@@ -153,7 +153,10 @@ void VertexManager::vFlush()
     break;
 
   case PRIMITIVE_TRIANGLES:
-    StateTracker::GetInstance()->SetPrimitiveTopology(VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP);
+    StateTracker::GetInstance()->SetPrimitiveTopology(
+        g_ActiveConfig.backend_info.bSupportsPrimitiveRestart ?
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_STRIP :
+            VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
     g_renderer->SetGenerationMode();
     break;
   }
