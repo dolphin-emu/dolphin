@@ -121,7 +121,7 @@ wxMenu* MainMenuBar::CreateEmulationMenu() const
   emulation_menu->Append(IDM_STOP, _("&Stop"));
   emulation_menu->Append(IDM_RESET, _("&Reset"));
   emulation_menu->AppendSeparator();
-  emulation_menu->Append(IDM_TOGGLE_FULLSCREEN, _("&Fullscreen"));
+  emulation_menu->Append(IDM_TOGGLE_FULLSCREEN, _("Toggle &Fullscreen"));
   emulation_menu->Append(IDM_FRAMESTEP, _("&Frame Advance"));
   emulation_menu->AppendSeparator();
   emulation_menu->Append(IDM_SCREENSHOT, _("Take Screenshot"));
