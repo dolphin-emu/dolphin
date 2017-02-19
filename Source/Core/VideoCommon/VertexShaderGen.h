@@ -43,7 +43,8 @@ struct vertex_shader_uid_data
   u32 texMtxInfo_n_projection : 16;  // Stored separately to guarantee that the texMtxInfo struct is
                                      // 8 bits wide
   u32 ssaa : 1;
-  u32 pad : 15;
+  u32 vertex_rounding : 1;
+  u32 pad : 14;
 
   struct
   {

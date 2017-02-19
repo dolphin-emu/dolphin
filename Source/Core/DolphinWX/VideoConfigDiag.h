@@ -239,6 +239,17 @@ protected:
       progressive_scan_checkbox->Disable();
       render_to_main_checkbox->Disable();
     }
+
+    // Don't enable 'vertex rounding' at native
+    if (vconfig.iEFBScale == SCALE_1X)
+    {
+      vertex_rounding_checkbox->Enable(false);
+    }
+    else
+    {
+      vertex_rounding_checkbox->Enable(true);
+    }
+
     ev.Skip();
   }
 
@@ -286,6 +297,7 @@ protected:
   SettingCheckBox* cache_hires_textures;
 
   wxCheckBox* progressive_scan_checkbox;
+  wxCheckBox* vertex_rounding_checkbox;
 
   wxChoice* choice_ppshader;
 

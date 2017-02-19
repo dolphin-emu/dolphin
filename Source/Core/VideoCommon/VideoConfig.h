@@ -127,6 +127,7 @@ struct VideoConfig final
   float fAspectRatioHackW, fAspectRatioHackH;
   bool bEnablePixelLighting;
   bool bFastDepthCalc;
+  bool bVertexRounding;
   int iLog;           // CONF_ bits
   int iSaveTargetId;  // TODO: Should be dropped
 
