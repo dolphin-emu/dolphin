@@ -73,7 +73,7 @@ private:
   void InitBitmaps();
   void UpdateItemAtColumn(long _Index, int column);
   void InsertItemInReportView(long _Index);
-  void SetBackgroundColor();
+  void SetColors();
   void ScanForISOs();
 
   // events
