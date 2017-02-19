@@ -4,6 +4,7 @@
 
 #include "VideoBackends/Vulkan/Renderer.h"
 
+#include <cmath>
 #include <cstddef>
 #include <cstdio>
 #include <limits>
@@ -1655,11 +1656,13 @@ void Renderer::SetViewport()
     height = -height;
   }
 
-  // If an inverted depth range is used, which the Vulkan drivers don't
-  // support, we need to calculate the depth range in the vertex shader.
-  // TODO: Make this into a DriverDetails bug and write a test for CTS.
-  if (xfmem.viewport.zRange < 0.0f)
+  // If an oversized or inverted depth range is used, we need to calculate the depth range in the
+  // vertex shader.
+  // TODO: Inverted depth ranges are bugged in all drivers, which should be added to DriverDetails.
+  if (xfmem.viewport.zRange < 0.0f || fabs(xfmem.viewport.zRange) > 16777215.0f ||
+      fabs(xfmem.viewport.farZ) > 16777215.0f)
   {
+    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
     min_depth = 0.0f;
     max_depth = GX_MAX_DEPTH;
   }

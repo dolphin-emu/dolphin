@@ -1123,6 +1123,24 @@ void Renderer::SetViewport()
     Height *= -1;
   }
 
+  // If an oversized depth range is used, we need to calculate the depth range in the vertex shader.
+  if (g_ActiveConfig.backend_info.bSupportsDepthClamp &&
+      (fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f))
+  {
+    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
+    // Taking into account whether the depth range is inverted or not.
+    if (xfmem.viewport.zRange < 0.0f)
+    {
+      min_depth = GX_MAX_DEPTH;
+      max_depth = 0.0f;
+    }
+    else
+    {
+      min_depth = 0.0f;
+      max_depth = GX_MAX_DEPTH;
+    }
+  }
+
   // Update the view port
   if (g_ogl_config.bSupportViewportFloat)
   {
@@ -1134,10 +1152,7 @@ void Renderer::SetViewport()
     glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
   }
 
-  // Set the reversed depth range. If we do depth clipping and depth range in the
-  // vertex shader we only need to ensure depth values don't exceed the maximum
-  // value supported by the console GPU. If not, we simply clamp the near/far values
-  // themselves to the maximum value as done above.
+  // Set the reversed depth range.
   glDepthRangef(max_depth, min_depth);
 }
 
