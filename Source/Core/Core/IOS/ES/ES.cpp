@@ -203,7 +203,7 @@ void ES::Close()
   m_ContentAccessMap.clear();
   m_TitleIDs.clear();
   m_TitleID = -1;
-  m_AccessIdentID = 0x6000000;
+  m_AccessIdentID = 0;
 
   INFO_LOG(IOS_ES, "ES: Close");
   m_is_active = false;
