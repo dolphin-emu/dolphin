@@ -27,13 +27,23 @@ function(check_and_add_flag var flag)
     message(FATAL_ERROR "check_and_add_flag called with incorrect arguments: ${ARGN}")
   endif()
 
+  set(is_c "$<COMPILE_LANGUAGE:C>")
+  set(is_cxx "$<COMPILE_LANGUAGE:CXX>")
+
+  # The Visual Studio generators don't support COMPILE_LANGUAGE
+  # So we fail all the C flags and only actually test CXX ones
+  if(CMAKE_GENERATOR MATCHES "Visual Studio")
+    set(is_c "0")
+    set(is_cxx "1")
+  endif()
+
   check_c_compiler_flag(${flag} FLAG_C_${var})
   if(FLAG_C_${var})
-    add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:C>,${genexp_config_test}>:${flag}>")
+    add_compile_options("$<$<AND:${is_c},${genexp_config_test}>:${flag}>")
   endif()
 
   check_cxx_compiler_flag(${flag} FLAG_CXX_${var})
   if(FLAG_CXX_${var})
-    add_compile_options("$<$<AND:$<COMPILE_LANGUAGE:CXX>,${genexp_config_test}>:${flag}>")
+    add_compile_options("$<$<AND:${is_cxx},${genexp_config_test}>:${flag}>")
   endif()
 endfunction()
