@@ -1,0 +1,33 @@
+function(set_folder directory folder)
+  set(options)
+  set(oneValueArgs)
+  set(multiValueArgs EXCLUDE_TARGET EXCLUDE_DIRECTORY)
+  cmake_parse_arguments(SF "${options}" "${oneValueArgs}" "${multiValueArgs}" ${ARGN})
+
+  set(exclude_directory)
+  foreach(excl IN LISTS SF_EXCLUDE_DIRECTORY)
+    get_filename_component(excl_abs "${excl}" ABSOLUTE)
+    list(APPEND exclude_directory ${excl_abs})
+  endforeach()
+
+  get_directory_property(targets DIRECTORY "${directory}" BUILDSYSTEM_TARGETS)
+  foreach(target IN LISTS targets)
+    if(target IN_LIST SF_EXCLUDE_TARGET)
+      continue()
+    endif()
+
+    get_target_property(target_type ${target} TYPE)
+    if(target_type MATCHES "STATIC_LIBRARY|SHARED_LIBRARY|EXECUTABLE|UTILITY")
+      set_property(TARGET ${target} PROPERTY FOLDER "${folder}")
+    endif()
+  endforeach()
+
+  get_directory_property(subdirectories DIRECTORY "${directory}" SUBDIRECTORIES)
+  foreach(subdirectory IN LISTS subdirectories)
+    if(subdirectory IN_LIST exclude_directory)
+      continue()
+    endif()
+
+    set_folder("${subdirectory}" "${folder}")
+  endforeach()
+endfunction()

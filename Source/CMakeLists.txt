@@ -34,4 +34,6 @@ if (DSPTOOL)
 	add_subdirectory(DSPTool)
 endif()
 
+set_folder("." "Dolphin" EXCLUDE_DIRECTORY "UnitTests")
+
 # TODO: Add DSPSpy. Preferably make it option() and cpack component
