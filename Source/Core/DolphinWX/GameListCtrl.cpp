@@ -463,11 +463,7 @@ void CGameListCtrl::ReloadList()
 
     // add all items
     for (int i = 0; i < (int)m_ISOFiles.size(); i++)
-    {
       InsertItemInReportView(i);
-      if (SConfig::GetInstance().m_ColorCompressed && m_ISOFiles[i]->IsCompressed())
-        SetItemTextColour(i, wxColour(0xFF0000));
-    }
 
     // Sort items by Title
     if (!sorted)
