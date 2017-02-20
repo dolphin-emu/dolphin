@@ -885,8 +885,6 @@ else()
 endif()
 
 enable_testing()
-add_custom_target(unittests)
-add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 
 add_subdirectory(Source)
 
