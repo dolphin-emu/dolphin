@@ -53,7 +53,6 @@ public:
   DiscIO::BlobType GetBlobType() const { return m_blob_type; }
   const std::string& GetIssues() const { return m_issues; }
   int GetEmuState() const { return m_emu_state; }
-  bool IsCompressed() const;
   u64 GetFileSize() const { return m_FileSize; }
   u64 GetVolumeSize() const { return m_VolumeSize; }
   // 0 is the first disc, 1 is the second disc
