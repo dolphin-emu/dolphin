@@ -200,7 +200,7 @@ private:
 
   std::vector<u64> m_TitleIDs;
   u64 m_TitleID = -1;
-  u32 m_AccessIdentID = 0x6000000;
+  u32 m_AccessIdentID = 0;
 
   // For title installation (ioctls IOCTL_ES_ADDTITLE*).
   TMDReader m_addtitle_tmd;
