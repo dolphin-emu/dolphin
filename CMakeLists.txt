@@ -81,6 +81,7 @@ include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
 include(DolphinCompileDefinitions)
 include(SetFolder)
+include(SetTargetSourceFolder)
 
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)

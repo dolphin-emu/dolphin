@@ -19,10 +19,11 @@ endif()
 add_definitions(-D__STDC_LIMIT_MACROS)
 add_definitions(-D__STDC_CONSTANT_MACROS)
 
-macro(add_dolphin_library lib srcs libs)
+function(add_dolphin_library lib srcs libs)
 	add_library(${lib} STATIC ${srcs})
 	target_link_libraries(${lib} PUBLIC ${libs})
-endmacro()
+	set_target_source_folder(${lib})
+endfunction()
 
 add_subdirectory(Core)
 if (ANDROID)
