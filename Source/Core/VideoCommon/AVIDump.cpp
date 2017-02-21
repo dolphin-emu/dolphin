@@ -136,6 +136,7 @@ bool AVIDump::CreateVideoFile()
   if (!(codec = avcodec_find_encoder(codec_id)) ||
       !(s_codec_context = avcodec_alloc_context3(codec)))
   {
+    WARN_LOG(VIDEO, "Could not find encoder or allocate codec context.");
     return false;
   }
 
@@ -153,6 +154,7 @@ bool AVIDump::CreateVideoFile()
 
   if (avcodec_open2(s_codec_context, codec, nullptr) < 0)
   {
+    WARN_LOG(VIDEO, "Could not open codec.");
     return false;
   }
 
@@ -174,6 +176,7 @@ bool AVIDump::CreateVideoFile()
   if (!(s_stream = avformat_new_stream(s_format_context, codec)) ||
       !AVStreamCopyContext(s_stream, s_codec_context))
   {
+    WARN_LOG(VIDEO, "Could not create stream.");
     return false;
   }
 
