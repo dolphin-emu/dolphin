@@ -129,10 +129,15 @@ bool AVIDump::CreateVideoFile()
   AVOutputFormat* output_format = av_guess_format(s_format.c_str(), s_dump_path.c_str(), nullptr);
   if (!output_format)
   {
-    WARN_LOG(VIDEO, "Invalid format %s", s_format.c_str());
+    ERROR_LOG(VIDEO, "Invalid format %s", s_format.c_str());
     return false;
   }
-  avformat_alloc_output_context2(&s_format_context, output_format, nullptr, s_dump_path.c_str());
+  
+  if(avformat_alloc_output_context2(&s_format_context, output_format, nullptr, s_dump_path.c_str()) < 0)
+  {
+    ERROR_LOG(VIDEO, "Could not allocate output context");
+    return false;
+  }
 
   const AVCodecDescriptor* codec_desc = avcodec_descriptor_get_by_name(g_Config.sDumpCodec.c_str());
   AVCodecID codec_id = codec_desc ? codec_desc->id : output_format->video_codec;
@@ -142,7 +147,7 @@ bool AVIDump::CreateVideoFile()
   if (!(codec = avcodec_find_encoder(codec_id)) ||
       !(s_codec_context = avcodec_alloc_context3(codec)))
   {
-    WARN_LOG(VIDEO, "Could not find encoder or allocate codec context.");
+    ERROR_LOG(VIDEO, "Could not find encoder or allocate codec context");
     return false;
   }
 
@@ -164,7 +169,7 @@ bool AVIDump::CreateVideoFile()
 
   if (avcodec_open2(s_codec_context, codec, nullptr) < 0)
   {
-    WARN_LOG(VIDEO, "Could not open codec.");
+    ERROR_LOG(VIDEO, "Could not open codec");
     return false;
   }
 
@@ -186,7 +191,7 @@ bool AVIDump::CreateVideoFile()
   if (!(s_stream = avformat_new_stream(s_format_context, codec)) ||
       !AVStreamCopyContext(s_stream, s_codec_context))
   {
-    WARN_LOG(VIDEO, "Could not create stream.");
+    ERROR_LOG(VIDEO, "Could not create stream");
     return false;
   }
 
@@ -194,7 +199,7 @@ bool AVIDump::CreateVideoFile()
   if (avio_open(&s_format_context->pb, s_format_context->filename, AVIO_FLAG_WRITE) < 0 ||
       avformat_write_header(s_format_context, nullptr))
   {
-    WARN_LOG(VIDEO, "Could not open %s", s_format_context->filename);
+    ERROR_LOG(VIDEO, "Could not open %s", s_format_context->filename);
     return false;
   }
 
