@@ -1111,6 +1111,8 @@ void Renderer::SetViewport()
                           (float)scissorYOff);
   float Width = EFBToScaledXf(2.0f * xfmem.viewport.wd);
   float Height = EFBToScaledYf(-2.0f * xfmem.viewport.ht);
+  float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
+  float max_depth = xfmem.viewport.farZ / 16777216.0f;
   if (Width < 0)
   {
     X += Width;
@@ -1136,17 +1138,10 @@ void Renderer::SetViewport()
   // Set the reversed depth range.
   if (g_ActiveConfig.backend_info.bSupportsOversizedDepthRanges)
   {
-    float min_depth = (xfmem.viewport.farZ - xfmem.viewport.zRange) / 16777216.0f;
-    float max_depth = xfmem.viewport.farZ / 16777216.0f;
     glDepthRangedNV(max_depth, min_depth);
   }
   else
   {
-    float range = MathUtil::Clamp<float>(xfmem.viewport.zRange, -16777216.0f, 16777216.0f);
-    float min_depth =
-        MathUtil::Clamp<float>(xfmem.viewport.farZ - range, 0.0f, 16777215.0f) / 16777216.0f;
-    float max_depth = MathUtil::Clamp<float>(xfmem.viewport.farZ, 0.0f, 16777215.0f) / 16777216.0f;
-
     // If an oversized depth range is used, we need to calculate the depth range in the
     // vertex shader.
     if (g_ActiveConfig.backend_info.bSupportsDepthClamp &&
@@ -1164,6 +1159,13 @@ void Renderer::SetViewport()
         min_depth = 0.0f;
         max_depth = GX_MAX_DEPTH;
       }
+    }
+    else
+    {
+      // There's no way to support oversized depth ranges in this situation. Let's just clamp the
+      // range to the maximum value supported by the console GPU and hope for the best.
+      min_depth = MathUtil::Clamp(min_depth, 0.0f, GX_MAX_DEPTH);
+      max_depth = MathUtil::Clamp(max_depth, 0.0f, GX_MAX_DEPTH);
     }
 
     glDepthRangef(max_depth, min_depth);
