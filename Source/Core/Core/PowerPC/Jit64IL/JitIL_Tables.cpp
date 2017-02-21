@@ -40,7 +40,7 @@ struct GekkoOPTemplate
   JitIL::Instruction Inst;
 };
 
-static GekkoOPTemplate primarytable[] = {
+const GekkoOPTemplate primarytable[] = {
     {4, &JitIL::DynaRunTable4},    //"RunTable4",  OPTYPE_SUBTABLE | (4<<24), 0}},
     {19, &JitIL::DynaRunTable19},  //"RunTable19", OPTYPE_SUBTABLE | (19<<24), 0}},
     {31, &JitIL::DynaRunTable31},  //"RunTable31", OPTYPE_SUBTABLE | (31<<24), 0}},
@@ -111,7 +111,7 @@ static GekkoOPTemplate primarytable[] = {
     // missing: 0, 1, 2, 5, 6, 9, 22, 30, 62, 58
 };
 
-static GekkoOPTemplate table4[] = {
+const GekkoOPTemplate table4[] = {
     // SUBOP10
     {0, &JitIL::FallBackToInterpreter},    //"ps_cmpu0",   OPTYPE_PS, FL_SET_CRn}},
     {32, &JitIL::FallBackToInterpreter},   //"ps_cmpo0",   OPTYPE_PS, FL_SET_CRn}},
@@ -129,7 +129,7 @@ static GekkoOPTemplate table4[] = {
     {1014, &JitIL::FallBackToInterpreter},  //"dcbz_l",     OPTYPE_SYSTEM, 0}},
 };
 
-static GekkoOPTemplate table4_2[] = {
+const GekkoOPTemplate table4_2[] = {
     {10, &JitIL::ps_sum},                 //"ps_sum0",   OPTYPE_PS, 0}},
     {11, &JitIL::ps_sum},                 //"ps_sum1",   OPTYPE_PS, 0}},
     {12, &JitIL::ps_muls},                //"ps_muls0",  OPTYPE_PS, 0}},
@@ -149,14 +149,14 @@ static GekkoOPTemplate table4_2[] = {
     {31, &JitIL::ps_maddXX},              //"ps_nmadd",  OPTYPE_PS, 0}},
 };
 
-static GekkoOPTemplate table4_3[] = {
+const GekkoOPTemplate table4_3[] = {
     {6, &JitIL::FallBackToInterpreter},   //"psq_lx",   OPTYPE_PS, 0}},
     {7, &JitIL::FallBackToInterpreter},   //"psq_stx",  OPTYPE_PS, 0}},
     {38, &JitIL::FallBackToInterpreter},  //"psq_lux",  OPTYPE_PS, 0}},
     {39, &JitIL::FallBackToInterpreter},  //"psq_stux", OPTYPE_PS, 0}},
 };
 
-static GekkoOPTemplate table19[] = {
+const GekkoOPTemplate table19[] = {
     {528, &JitIL::bcctrx},  //"bcctrx", OPTYPE_BRANCH, FL_ENDBLOCK}},
     {16, &JitIL::bclrx},    //"bclrx",  OPTYPE_BRANCH, FL_ENDBLOCK}},
     {257, &JitIL::crXX},    //"crand",  OPTYPE_CR, FL_EVIL}},
@@ -174,7 +174,7 @@ static GekkoOPTemplate table19[] = {
     {50, &JitIL::rfi},  //"rfi",    OPTYPE_SYSTEM, FL_ENDBLOCK | FL_CHECKEXCEPTIONS, 1}},
 };
 
-static GekkoOPTemplate table31[] = {
+const GekkoOPTemplate table31[] = {
     {266, &JitIL::addx},  //"addx",    OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
     {778, &JitIL::addx},  //"addox",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB | FL_RC_BIT}},
     {10, &JitIL::FallBackToInterpreter},   //"addcx",   OPTYPE_INTEGER, FL_OUT_D | FL_IN_AB |
@@ -331,7 +331,7 @@ static GekkoOPTemplate table31[] = {
     {566, &JitIL::DoNothing},              //"tlbsync", OPTYPE_SYSTEM, 0}},
 };
 
-static GekkoOPTemplate table59[] = {
+const GekkoOPTemplate table59[] = {
     {18, &JitIL::FallBackToInterpreter},  //{"fdivsx",  OPTYPE_FPU, FL_RC_BIT_F, 16}},
     {20, &JitIL::fp_arith_s},             //"fsubsx",   OPTYPE_FPU, FL_RC_BIT_F}},
     {21, &JitIL::fp_arith_s},             //"faddsx",   OPTYPE_FPU, FL_RC_BIT_F}},
@@ -343,7 +343,7 @@ static GekkoOPTemplate table59[] = {
     {31, &JitIL::fmaddXX},                //"fnmaddsx", OPTYPE_FPU, FL_RC_BIT_F}},
 };
 
-static GekkoOPTemplate table63[] = {
+const GekkoOPTemplate table63[] = {
     {264, &JitIL::fsign},                 //"fabsx",   OPTYPE_FPU, FL_RC_BIT_F}},
     {32, &JitIL::fcmpX},                  //"fcmpo",   OPTYPE_FPU, FL_RC_BIT_F}},
     {0, &JitIL::fcmpX},                   //"fcmpu",   OPTYPE_FPU, FL_RC_BIT_F}},
@@ -362,7 +362,7 @@ static GekkoOPTemplate table63[] = {
     {711, &JitIL::FallBackToInterpreter},  //"mtfsfx",  OPTYPE_SYSTEMFP, 0, 2}},
 };
 
-static GekkoOPTemplate table63_2[] = {
+const GekkoOPTemplate table63_2[] = {
     {18, &JitIL::FallBackToInterpreter},  //"fdivx",    OPTYPE_FPU, FL_RC_BIT_F, 30}},
     {20, &JitIL::FallBackToInterpreter},  //"fsubx",    OPTYPE_FPU, FL_RC_BIT_F}},
     {21, &JitIL::FallBackToInterpreter},  //"faddx",    OPTYPE_FPU, FL_RC_BIT_F}},
@@ -424,7 +424,7 @@ void JitIL::InitializeInstructionTables()
     dynaOpTable63[i] = &JitIL::FallBackToInterpreter;
   }
 
-  for (auto& tpl : primarytable)
+  for (const auto& tpl : primarytable)
   {
     dynaOpTable[tpl.opcode] = tpl.Inst;
   }
@@ -432,7 +432,7 @@ void JitIL::InitializeInstructionTables()
   for (int i = 0; i < 32; i++)
   {
     int fill = i << 5;
-    for (auto& tpl : table4_2)
+    for (const auto& tpl : table4_2)
     {
       int op = fill + tpl.opcode;
       dynaOpTable4[op] = tpl.Inst;
@@ -442,38 +442,38 @@ void JitIL::InitializeInstructionTables()
   for (int i = 0; i < 16; i++)
   {
     int fill = i << 6;
-    for (auto& tpl : table4_3)
+    for (const auto& tpl : table4_3)
     {
       int op = fill + tpl.opcode;
       dynaOpTable4[op] = tpl.Inst;
     }
   }
 
-  for (auto& tpl : table4)
+  for (const auto& tpl : table4)
   {
     int op = tpl.opcode;
     dynaOpTable4[op] = tpl.Inst;
   }
 
-  for (auto& tpl : table31)
+  for (const auto& tpl : table31)
   {
     int op = tpl.opcode;
     dynaOpTable31[op] = tpl.Inst;
   }
 
-  for (auto& tpl : table19)
+  for (const auto& tpl : table19)
   {
     int op = tpl.opcode;
     dynaOpTable19[op] = tpl.Inst;
   }
 
-  for (auto& tpl : table59)
+  for (const auto& tpl : table59)
   {
     int op = tpl.opcode;
     dynaOpTable59[op] = tpl.Inst;
   }
 
-  for (auto& tpl : table63)
+  for (const auto& tpl : table63)
   {
     int op = tpl.opcode;
     dynaOpTable63[op] = tpl.Inst;
@@ -482,7 +482,7 @@ void JitIL::InitializeInstructionTables()
   for (int i = 0; i < 32; i++)
   {
     int fill = i << 5;
-    for (auto& tpl : table63_2)
+    for (const auto& tpl : table63_2)
     {
       int op = fill + tpl.opcode;
       dynaOpTable63[op] = tpl.Inst;
