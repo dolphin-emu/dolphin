@@ -58,6 +58,7 @@ static void InitAVCodec()
   if (first_run)
   {
     av_register_all();
+    avformat_network_init();
     first_run = false;
   }
 }
@@ -98,35 +99,40 @@ bool AVIDump::CreateVideoFile()
 {
   const std::string& s_format = g_Config.sDumpFormat;
 
-  std::stringstream file_ss;
-  file_ss << File::GetUserPath(D_DUMPFRAMES_IDX)
-                   << "framedump" << s_file_index
-                   << "." << s_format;
-  std::string filename = file_ss.str();
-  File::CreateFullPath(filename);
+  std::string s_dump_path = g_Config.sDumpPath;
 
-  // Ask to delete file
-  if (File::Exists(filename))
+  if (s_dump_path.empty())
   {
-    if (SConfig::GetInstance().m_DumpFramesSilent ||
-        AskYesNoT("Delete the existing file '%s'?", filename.c_str()))
+    std::stringstream file_ss;
+    file_ss << File::GetUserPath(D_DUMPFRAMES_IDX)
+                     << "framedump" << s_file_index
+                     << "." << s_format;
+    s_dump_path = file_ss.str();
+    File::CreateFullPath(s_dump_path);
+
+    // Ask to delete file
+    if (File::Exists(s_dump_path))
     {
-      File::Delete(filename);
-    }
-    else
-    {
-      // Stop and cancel dumping the video
-      return false;
+      if (SConfig::GetInstance().m_DumpFramesSilent ||
+          AskYesNoT("Delete the existing file '%s'?", s_dump_path.c_str()))
+      {
+        File::Delete(s_dump_path);
+      }
+      else
+      {
+        // Stop and cancel dumping the video
+        return false;
+      }
     }
   }
 
-  AVOutputFormat* output_format = av_guess_format(s_format.c_str(), filename.c_str(), nullptr);
+  AVOutputFormat* output_format = av_guess_format(s_format.c_str(), s_dump_path.c_str(), nullptr);
   if (!output_format)
   {
     WARN_LOG(VIDEO, "Invalid format %s", s_format.c_str());
     return false;
   }
-  avformat_alloc_output_context2(&s_format_context, output_format, nullptr, filename.c_str());
+  avformat_alloc_output_context2(&s_format_context, output_format, nullptr, s_dump_path.c_str());
 
   const AVCodecDescriptor* codec_desc = avcodec_descriptor_get_by_name(g_Config.sDumpCodec.c_str());
   AVCodecID codec_id = codec_desc ? codec_desc->id : output_format->video_codec;

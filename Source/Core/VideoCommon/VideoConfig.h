@@ -104,6 +104,7 @@ struct VideoConfig final
   bool bUseFFV1;
   std::string sDumpCodec;
   std::string sDumpFormat;
+  std::string sDumpPath;
   bool bInternalResolutionFrameDumps;
   bool bFreeLook;
   bool bBorderlessFullscreen;
