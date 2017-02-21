@@ -98,21 +98,22 @@ bool AVIDump::CreateVideoFile()
 {
   AVCodec* codec = nullptr;
 
-  s_format_context = avformat_alloc_context();
-  std::stringstream s_file_index_str;
-  s_file_index_str << s_file_index;
-  snprintf(s_format_context->filename, sizeof(s_format_context->filename), "%s",
-           (File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" + s_file_index_str.str() + ".avi")
-               .c_str());
-  File::CreateFullPath(s_format_context->filename);
+  const char s_format[] = "avi";
+
+  std::stringstream file_ss;
+  file_ss << File::GetUserPath(D_DUMPFRAMES_IDX)
+                   << "framedump" << s_file_index
+                   << "." << s_format;
+  std::string filename = file_ss.str();
+  File::CreateFullPath(filename);
 
   // Ask to delete file
-  if (File::Exists(s_format_context->filename))
+  if (File::Exists(filename))
   {
     if (SConfig::GetInstance().m_DumpFramesSilent ||
-        AskYesNoT("Delete the existing file '%s'?", s_format_context->filename))
+        AskYesNoT("Delete the existing file '%s'?", filename.c_str()))
     {
-      File::Delete(s_format_context->filename);
+      File::Delete(filename);
     }
     else
     {
@@ -121,13 +122,13 @@ bool AVIDump::CreateVideoFile()
     }
   }
 
-  if (!(s_format_context->oformat = av_guess_format("avi", nullptr, nullptr)))
-  {
-    return false;
-  }
+  AVOutputFormat* output_format = av_guess_format(s_format, filename.c_str(), nullptr);
+  if (!output_format) return false;
+  avformat_alloc_output_context2(&s_format_context, output_format, nullptr, filename.c_str());
 
   AVCodecID codec_id =
-      g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1 : s_format_context->oformat->video_codec;
+      g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1 : output_format->video_codec;
+
   if (!(codec = avcodec_find_encoder(codec_id)) ||
       !(s_codec_context = avcodec_alloc_context3(codec)))
   {
