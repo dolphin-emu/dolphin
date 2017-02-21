@@ -224,6 +224,25 @@ static int SendFrameAndReceivePacket(AVCodecContext* avctx, AVPacket* pkt, AVFra
 #endif
 }
 
+static void WritePacket(AVPacket& pkt)
+{
+  // Write the compressed frame in the media file.
+  if (pkt.pts != (s64)AV_NOPTS_VALUE)
+  {
+    pkt.pts = av_rescale_q(pkt.pts, s_codec_context->time_base, s_stream->time_base);
+  }
+  if (pkt.dts != (s64)AV_NOPTS_VALUE)
+  {
+    pkt.dts = av_rescale_q(pkt.dts, s_codec_context->time_base, s_stream->time_base);
+  }
+#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 60, 100)
+  if (s_codec_context->coded_frame->key_frame)
+    pkt.flags |= AV_PKT_FLAG_KEY;
+#endif
+  pkt.stream_index = s_stream->index;
+  av_interleaved_write_frame(s_format_context, &pkt);
+}
+
 void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const Frame& state)
 {
   // Assume that the timing is valid, if the savestate id of the new frame
@@ -284,34 +303,39 @@ void AVIDump::AddFrame(const u8* data, int width, int height, int stride, const 
     s_last_pts = pts_in_ticks;
     error = SendFrameAndReceivePacket(s_codec_context, &pkt, s_scaled_frame, &got_packet);
   }
-  while (!error && got_packet)
+  if (!error && got_packet)
   {
-    // Write the compressed frame in the media file.
-    if (pkt.pts != (s64)AV_NOPTS_VALUE)
-    {
-      pkt.pts = av_rescale_q(pkt.pts, s_codec_context->time_base, s_stream->time_base);
-    }
-    if (pkt.dts != (s64)AV_NOPTS_VALUE)
-    {
-      pkt.dts = av_rescale_q(pkt.dts, s_codec_context->time_base, s_stream->time_base);
-    }
-#if LIBAVCODEC_VERSION_INT < AV_VERSION_INT(56, 60, 100)
-    if (s_codec_context->coded_frame->key_frame)
-      pkt.flags |= AV_PKT_FLAG_KEY;
-#endif
-    pkt.stream_index = s_stream->index;
-    av_interleaved_write_frame(s_format_context, &pkt);
-
-    // Handle delayed frames.
-    PreparePacket(&pkt);
-    error = ReceivePacket(s_codec_context, &pkt, &got_packet);
+    WritePacket(pkt);
   }
   if (error)
     ERROR_LOG(VIDEO, "Error while encoding video: %d", error);
 }
 
+static void HandleDelayedPackets()
+{
+  AVPacket pkt;
+
+  while (true)
+  {
+    PreparePacket(&pkt);
+    int got_packet;
+    int error = ReceivePacket(s_codec_context, &pkt, &got_packet);
+    if (error)
+    {
+      ERROR_LOG(VIDEO, "Error while stopping video: %d", error);
+      break;
+    }
+    
+    if (!got_packet)
+      break;
+    
+    WritePacket(pkt);
+  }
+}
+
 void AVIDump::Stop()
 {
+  HandleDelayedPackets();
   av_write_trailer(s_format_context);
   CloseVideoFile();
   s_file_index = 0;
