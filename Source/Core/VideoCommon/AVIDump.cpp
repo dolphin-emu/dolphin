@@ -96,8 +96,6 @@ bool AVIDump::Start(int w, int h)
 
 bool AVIDump::CreateVideoFile()
 {
-  AVCodec* codec = nullptr;
-
   const std::string& s_format = g_Config.sDumpFormat;
 
   std::stringstream file_ss;
@@ -130,8 +128,10 @@ bool AVIDump::CreateVideoFile()
   }
   avformat_alloc_output_context2(&s_format_context, output_format, nullptr, filename.c_str());
 
-  AVCodecID codec_id =
-      g_Config.bUseFFV1 ? AV_CODEC_ID_FFV1 : output_format->video_codec;
+  const AVCodecDescriptor* codec_desc = avcodec_descriptor_get_by_name(g_Config.sDumpCodec.c_str());
+  AVCodecID codec_id = codec_desc ? codec_desc->id : output_format->video_codec;
+
+  const AVCodec* codec = nullptr;
 
   if (!(codec = avcodec_find_encoder(codec_id)) ||
       !(s_codec_context = avcodec_alloc_context3(codec)))
