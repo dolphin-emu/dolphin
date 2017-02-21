@@ -98,7 +98,7 @@ bool AVIDump::CreateVideoFile()
 {
   AVCodec* codec = nullptr;
 
-  const char s_format[] = "avi";
+  const std::string& s_format = g_Config.sDumpFormat;
 
   std::stringstream file_ss;
   file_ss << File::GetUserPath(D_DUMPFRAMES_IDX)
@@ -122,8 +122,12 @@ bool AVIDump::CreateVideoFile()
     }
   }
 
-  AVOutputFormat* output_format = av_guess_format(s_format, filename.c_str(), nullptr);
-  if (!output_format) return false;
+  AVOutputFormat* output_format = av_guess_format(s_format.c_str(), filename.c_str(), nullptr);
+  if (!output_format)
+  {
+    WARN_LOG(VIDEO, "Invalid format %s", s_format.c_str());
+    return false;
+  }
   avformat_alloc_output_context2(&s_format_context, output_format, nullptr, filename.c_str());
 
   AVCodecID codec_id =

@@ -75,6 +75,7 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("DumpFramesAsImages", &bDumpFramesAsImages, false);
   settings->Get("FreeLook", &bFreeLook, false);
   settings->Get("UseFFV1", &bUseFFV1, false);
+  settings->Get("DumpFormat", &sDumpFormat, "avi");
   settings->Get("BitrateKbps", &iBitrateKbps, 2500);
   settings->Get("InternalResolutionFrameDumps", &bInternalResolutionFrameDumps, false);
   settings->Get("EnablePixelLighting", &bEnablePixelLighting, false);
