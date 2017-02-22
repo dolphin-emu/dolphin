@@ -209,9 +209,10 @@ IPCCommandResult FileIO::Read(const ReadWriteRequest& request)
   }
 
   u32 requested_read_length = request.size;
+  const u32 file_size = static_cast<u32>(m_file->GetSize());
   // IOS has this check in the read request handler.
-  if (requested_read_length + m_SeekPos > static_cast<u32>(m_file->GetSize()))
-    requested_read_length -= m_SeekPos;
+  if (requested_read_length + m_SeekPos > file_size)
+    requested_read_length = file_size - m_SeekPos;
 
   DEBUG_LOG(IOS_FILEIO, "Read 0x%x bytes to 0x%08x from %s", request.size, request.buffer,
             m_name.c_str());
@@ -219,7 +220,7 @@ IPCCommandResult FileIO::Read(const ReadWriteRequest& request)
   const u32 number_of_bytes_read = static_cast<u32>(
       fread(Memory::GetPointer(request.buffer), 1, requested_read_length, m_file->GetHandle()));
 
-  if (number_of_bytes_read != request.size && ferror(m_file->GetHandle()))
+  if (number_of_bytes_read != requested_read_length && ferror(m_file->GetHandle()))
     return GetDefaultReply(FS_EACCESS);
 
   // IOS returns the number of bytes read and adds that value to the seek position,
