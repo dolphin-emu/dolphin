@@ -820,16 +820,11 @@ bool NetPlayClient::StartGame(const std::string& path)
     Movie::BeginRecordingInput(controllers_mask);
   }
 
+  for (unsigned int i = 0; i < 4; ++i)
+    WiimoteReal::ChangeWiimoteSource(i, m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
+
   // boot game
-
   m_dialog->BootGame(path);
-
-  if (SConfig::GetInstance().bWii)
-  {
-    for (unsigned int i = 0; i < 4; ++i)
-      WiimoteReal::ChangeWiimoteSource(i,
-                                       m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
-  }
 
   UpdateDevices();
 
