@@ -21,7 +21,10 @@
 #if !defined(_WIN32)
 #include <sys/socket.h>
 #include <sys/types.h>
-#ifndef ANDROID
+#ifdef __HAIKU__
+#define _BSD_SOURCE
+#include <bsd/ifaddrs.h>
+#elif !defined ANDROID
 #include <ifaddrs.h>
 #endif
 #include <arpa/inet.h>
