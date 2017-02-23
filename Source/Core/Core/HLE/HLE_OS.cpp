@@ -138,7 +138,14 @@ std::string GetStringVA(u32 strReg)
         break;
       }
 
+      case 'a':
+      case 'A':
+      case 'e':
+      case 'E':
       case 'f':
+      case 'F':
+      case 'g':
+      case 'G':
       {
         result += StringFromFormat(ArgumentBuffer.c_str(), rPS0(FloatingParameterCounter));
         FloatingParameterCounter++;
