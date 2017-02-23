@@ -176,7 +176,7 @@ private:
 
   void ReorderInstructionsCore(u32 instructions, CodeOp* code, bool reverse, ReorderType type);
   void ReorderInstructions(u32 instructions, CodeOp* code);
-  void SetInstructionStats(CodeBlock* block, CodeOp* code, GekkoOPInfo* opinfo, u32 index);
+  void SetInstructionStats(CodeBlock* block, CodeOp* code, const GekkoOPInfo* opinfo, u32 index);
 
   // Options
   u32 m_options;
