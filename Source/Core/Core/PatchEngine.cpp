@@ -223,7 +223,8 @@ static bool IsStackSane()
     return false;
 
   // Check the link register makes sense (that it points to a valid IBAT address)
-  return PowerPC::HostIsInstructionRAMAddress(PowerPC::HostRead_U32(next_SP + 4));
+  const u32 address = PowerPC::HostRead_U32(next_SP + 4);
+  return PowerPC::HostIsInstructionRAMAddress(address) && 0 != PowerPC::HostRead_U32(address);
 }
 
 bool ApplyFramePatches()
