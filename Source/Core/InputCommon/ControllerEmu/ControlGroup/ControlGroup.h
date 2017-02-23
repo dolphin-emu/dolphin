@@ -64,9 +64,15 @@ public:
   class BooleanSetting
   {
   public:
+    BooleanSetting(const std::string& setting_name, const std::string& ui_name,
+                   const bool default_value, const SettingType setting_type = SettingType::NORMAL)
+        : m_type(setting_type), m_name(setting_name), m_ui_name(ui_name),
+          m_default_value(default_value)
+    {
+    }
     BooleanSetting(const std::string& setting_name, const bool default_value,
                    const SettingType setting_type = SettingType::NORMAL)
-        : m_type(setting_type), m_name(setting_name), m_default_value(default_value)
+        : BooleanSetting(setting_name, setting_name, default_value, setting_type)
     {
     }
     virtual ~BooleanSetting();
@@ -75,6 +81,7 @@ public:
     virtual void SetValue(bool value) { m_value = value; }
     const SettingType m_type;
     const std::string m_name;
+    const std::string m_ui_name;
     const bool m_default_value;
     bool m_value;
   };
