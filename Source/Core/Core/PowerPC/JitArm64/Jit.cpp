@@ -699,7 +699,7 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
       SetJumpTarget(fail);
       MOVI2R(DISPATCHER_PC, js.blockStart);
       STR(INDEX_UNSIGNED, DISPATCHER_PC, PPC_REG, PPCSTATE_OFF(pc));
-      MOVI2R(W0, (u32)JitInterface::ExceptionType::EXCEPTIONS_PAIRED_QUANTIZE);
+      MOVI2R(W0, static_cast<u32>(JitInterface::ExceptionType::PairedQuantize));
       MOVP2R(X1, &JitInterface::CompileExceptionCheck);
       BLR(X1);
       B(dispatcher);
