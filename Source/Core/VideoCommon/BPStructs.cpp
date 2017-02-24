@@ -332,6 +332,8 @@ static void BPWritten(const BPCmd& bp)
   {
     if (bp.changes & 3)
       PixelShaderManager::SetZTextureTypeChanged();
+    if (bp.changes & 12)
+      VertexShaderManager::SetViewportChanged();
 #if defined(_DEBUG) || defined(DEBUGFAST)
     const char* pzop[] = {"DISABLE", "ADD", "REPLACE", "?"};
     const char* pztype[] = {"Z8", "Z16", "Z24", "?"};

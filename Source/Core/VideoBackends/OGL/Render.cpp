@@ -1135,41 +1135,36 @@ void Renderer::SetViewport()
     glViewport(iceilf(X), iceilf(Y), iceilf(Width), iceilf(Height));
   }
 
-  // Set the reversed depth range.
-  if (g_ActiveConfig.backend_info.bSupportsOversizedDepthRanges)
+  if (!g_ActiveConfig.backend_info.bSupportsOversizedDepthRanges &&
+      !g_ActiveConfig.backend_info.bSupportsDepthClamp)
   {
-    glDepthRangedNV(max_depth, min_depth);
+    // There's no way to support oversized depth ranges in this situation. Let's just clamp the
+    // range to the maximum value supported by the console GPU and hope for the best.
+    min_depth = MathUtil::Clamp(min_depth, 0.0f, GX_MAX_DEPTH);
+    max_depth = MathUtil::Clamp(max_depth, 0.0f, GX_MAX_DEPTH);
   }
-  else
+
+  if (UseVertexDepthRange())
   {
-    // If an oversized depth range is used, we need to calculate the depth range in the
-    // vertex shader.
-    if (g_ActiveConfig.backend_info.bSupportsDepthClamp &&
-        (fabs(xfmem.viewport.zRange) > 16777215.0f || fabs(xfmem.viewport.farZ) > 16777215.0f))
+    // We need to ensure depth values are clamped the maximum value supported by the console GPU.
+    // Taking into account whether the depth range is inverted or not.
+    if (xfmem.viewport.zRange < 0.0f)
     {
-      // We need to ensure depth values are clamped the maximum value supported by the console GPU.
-      // Taking into account whether the depth range is inverted or not.
-      if (xfmem.viewport.zRange < 0.0f)
-      {
-        min_depth = GX_MAX_DEPTH;
-        max_depth = 0.0f;
-      }
-      else
-      {
-        min_depth = 0.0f;
-        max_depth = GX_MAX_DEPTH;
-      }
+      min_depth = GX_MAX_DEPTH;
+      max_depth = 0.0f;
     }
     else
     {
-      // There's no way to support oversized depth ranges in this situation. Let's just clamp the
-      // range to the maximum value supported by the console GPU and hope for the best.
-      min_depth = MathUtil::Clamp(min_depth, 0.0f, GX_MAX_DEPTH);
-      max_depth = MathUtil::Clamp(max_depth, 0.0f, GX_MAX_DEPTH);
+      min_depth = 0.0f;
+      max_depth = GX_MAX_DEPTH;
     }
-
-    glDepthRangef(max_depth, min_depth);
   }
+
+  // Set the reversed depth range.
+  if (g_ActiveConfig.backend_info.bSupportsOversizedDepthRanges)
+    glDepthRangedNV(max_depth, min_depth);
+  else
+    glDepthRangef(max_depth, min_depth);
 }
 
 void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,

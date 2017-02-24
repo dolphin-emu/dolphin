@@ -481,8 +481,7 @@ void Renderer::SetViewport()
 
   // If an inverted or oversized depth range is used, we need to calculate the depth range in the
   // vertex shader.
-  if (xfmem.viewport.zRange < 0.0f || fabs(xfmem.viewport.zRange) > 16777215.0f ||
-      fabs(xfmem.viewport.farZ) > 16777215.0f)
+  if (UseVertexDepthRange())
   {
     // We need to ensure depth values are clamped the maximum value supported by the console GPU.
     min_depth = 0.0f;
