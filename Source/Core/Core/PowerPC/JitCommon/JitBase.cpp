@@ -23,6 +23,10 @@ u32 Helper_Mask(u8 mb, u8 me)
   return mb > me ? ~mask : mask;
 }
 
+JitBase::JitBase() = default;
+
+JitBase::~JitBase() = default;
+
 bool JitBase::MergeAllowedNextInstructions(int count)
 {
   if (CPU::GetState() == CPU::CPU_STEPPING || js.instructionsLeft < count)
