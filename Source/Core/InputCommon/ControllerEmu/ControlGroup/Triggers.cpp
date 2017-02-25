@@ -15,7 +15,7 @@
 
 namespace ControllerEmu
 {
-Triggers::Triggers(const std::string& name_) : ControlGroup(name_, GROUP_TYPE_TRIGGERS)
+Triggers::Triggers(const std::string& name_) : ControlGroup(name_, GroupType::Triggers)
 {
   numeric_settings.emplace_back(std::make_unique<NumericSetting>(_trans("Dead Zone"), 0, 0, 50));
 }
