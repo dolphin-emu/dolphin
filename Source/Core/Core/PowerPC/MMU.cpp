@@ -1132,6 +1132,24 @@ static TranslateAddressResult TranslatePageAddress(const u32 address, const XChe
   return TranslateAddressResult{TranslateAddressResult::PAGE_FAULT, 0};
 }
 
+static bool overlaps_memcheck(u32 pageEndAddress)
+{
+  if (!memchecks.HasAny())
+    return false;
+  u32 page_end_suffix = ((1 << BAT_INDEX_SHIFT)) - 1;
+  for (TMemCheck memcheck : memchecks.GetMemChecks())
+  {
+    if (((memcheck.start_address | page_end_suffix) == pageEndAddress ||
+         (memcheck.end_address | page_end_suffix) == pageEndAddress) ||
+        ((memcheck.start_address | page_end_suffix) < pageEndAddress &&
+         (memcheck.end_address | page_end_suffix) > pageEndAddress))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
 static void UpdateBATs(BatTable& bat_table, u32 base_spr)
 {
   // TODO: Separate BATs for MSR.PR==0 and MSR.PR==1
@@ -1191,6 +1209,8 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
           valid_bit = 0x3;
         else if ((address >> 28) == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
           valid_bit = 0x3;
+        if (overlaps_memcheck(((batu.BEPI | j) << BAT_INDEX_SHIFT) | ((1 << BAT_INDEX_SHIFT) - 1)))
+          valid_bit &= ~0x2;
 
         // (BEPI | j) == (BEPI & ~BL) | (j & BL).
         bat_table[batu.BEPI | j] = address | valid_bit;

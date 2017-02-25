@@ -46,7 +46,6 @@ bool JitBase::MergeAllowedNextInstructions(int count)
 void JitBase::UpdateMemoryOptions()
 {
   bool any_watchpoints = PowerPC::memchecks.HasAny();
-  jo.fastmem = SConfig::GetInstance().bFastmem && !any_watchpoints;
+  jo.fastmem = SConfig::GetInstance().bFastmem;
   jo.memcheck = SConfig::GetInstance().bMMU || any_watchpoints;
-  jo.alwaysUseMemFuncs = any_watchpoints;
 }

@@ -52,7 +52,6 @@ protected:
     bool accurateSinglePrecision;
     bool fastmem;
     bool memcheck;
-    bool alwaysUseMemFuncs;
   };
   struct JitState
   {

@@ -11,8 +11,10 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/DebugInterface.h"
+#include "Core/Core.h"
 #include "Core/PowerPC/JitCommon/JitBase.h"
 #include "Core/PowerPC/JitCommon/JitCache.h"
+#include "Core/PowerPC/PowerPC.h"
 
 bool BreakPoints::IsAddressBreakPoint(u32 address) const
 {
@@ -168,13 +170,18 @@ void MemChecks::AddFromStrings(const TMemChecksStr& mc_strings)
 
 void MemChecks::Add(const TMemCheck& memory_check)
 {
-  bool had_any = HasAny();
   if (GetMemCheck(memory_check.start_address) == nullptr)
+  {
+    bool had_any = HasAny();
     m_mem_checks.push_back(memory_check);
-  // If this is the first one, clear the JIT cache so it can switch to
-  // watchpoint-compatible code.
-  if (!had_any && g_jit)
-    g_jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
+    bool lock = Core::PauseAndLock(true);
+    // If this is the first one, clear the JIT cache so it can switch to
+    // watchpoint-compatible code.
+    if (!had_any && g_jit)
+      g_jit->ClearCache();
+    PowerPC::DBATUpdated();
+    Core::PauseAndLock(false, lock);
+  }
 }
 
 void MemChecks::Remove(u32 address)
@@ -184,8 +191,11 @@ void MemChecks::Remove(u32 address)
     if (i->start_address == address)
     {
       m_mem_checks.erase(i);
+      bool lock = Core::PauseAndLock(true);
       if (!HasAny() && g_jit)
-        g_jit->GetBlockCache()->SchedulateClearCacheThreadSafe();
+        g_jit->ClearCache();
+      PowerPC::DBATUpdated();
+      Core::PauseAndLock(false, lock);
       return;
     }
   }
