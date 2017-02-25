@@ -136,7 +136,7 @@ bool AVIDump::CreateVideoFile()
     s_codec_context->codec_tag =
         MKTAG('X', 'V', 'I', 'D');  // Force XVID FourCC for better compatibility
   s_codec_context->codec_type = AVMEDIA_TYPE_VIDEO;
-  s_codec_context->bit_rate = 400000;
+  s_codec_context->bit_rate = g_Config.iBitrateKbps * 1000;
   s_codec_context->width = s_width;
   s_codec_context->height = s_height;
   s_codec_context->time_base.num = 1;
