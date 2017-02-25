@@ -247,6 +247,25 @@ bool TryParse(const std::string& str, u32* const output)
   return true;
 }
 
+bool TryParse(const std::string& str, u64* const output)
+{
+  char* end_ptr = nullptr;
+
+  // Set errno to a clean slate
+  errno = 0;
+
+  u64 value = strtoull(str.c_str(), &end_ptr, 0);
+
+  if (end_ptr == nullptr || *end_ptr != '\0')
+    return false;
+
+  if (errno == ERANGE)
+    return false;
+
+  *output = value;
+  return true;
+}
+
 bool TryParse(const std::string& str, bool* const output)
 {
   float value;

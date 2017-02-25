@@ -61,6 +61,7 @@ std::string StringFromBool(bool value);
 
 bool TryParse(const std::string& str, bool* output);
 bool TryParse(const std::string& str, u32* output);
+bool TryParse(const std::string& str, u64* output);
 
 template <typename N>
 static bool TryParse(const std::string& str, N* const output)

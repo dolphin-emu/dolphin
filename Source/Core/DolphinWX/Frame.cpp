@@ -25,17 +25,6 @@
 #include <wx/thread.h>
 #include <wx/toolbar.h>
 
-#include "DolphinWX/Config/ConfigMain.h"
-#include "DolphinWX/Debugger/BreakpointDlg.h"
-#include "DolphinWX/Debugger/CodeWindow.h"
-#include "DolphinWX/Debugger/MemoryCheckDlg.h"
-#include "DolphinWX/GameListCtrl.h"
-#include "DolphinWX/Globals.h"
-#include "DolphinWX/LogWindow.h"
-#include "DolphinWX/Main.h"
-#include "DolphinWX/TASInputDlg.h"
-#include "DolphinWX/WxUtils.h"
-
 #if defined(__unix__) || defined(__unix) || defined(__APPLE__)
 #include <signal.h>
 #endif
@@ -49,6 +38,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/ConsoleListener.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"
@@ -62,6 +52,17 @@
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
+
+#include "DolphinWX/Config/ConfigMain.h"
+#include "DolphinWX/Debugger/BreakpointDlg.h"
+#include "DolphinWX/Debugger/CodeWindow.h"
+#include "DolphinWX/Debugger/MemoryCheckDlg.h"
+#include "DolphinWX/GameListCtrl.h"
+#include "DolphinWX/Globals.h"
+#include "DolphinWX/LogWindow.h"
+#include "DolphinWX/Main.h"
+#include "DolphinWX/TASInputDlg.h"
+#include "DolphinWX/WxUtils.h"
 
 #include "InputCommon/GCPadStatus.h"
 
