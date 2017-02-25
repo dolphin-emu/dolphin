@@ -168,38 +168,23 @@ void ES::DoState(PointerWrap& p)
   u32 Count = (u32)(m_ContentAccessMap.size());
   p.Do(Count);
 
-  u32 CFD = 0;
-  u32 Position = 0;
-  u64 TitleID = 0;
-  u16 Index = 0;
   if (p.GetMode() == PointerWrap::MODE_READ)
   {
     for (u32 i = 0; i < Count; i++)
     {
-      p.Do(CFD);
-      p.Do(Position);
-      p.Do(TitleID);
-      p.Do(Index);
-      CFD = OpenTitleContent(CFD, TitleID, Index);
-      if (CFD != 0xffffffff)
-      {
-        m_ContentAccessMap[CFD].m_Position = Position;
-      }
+      u32 cfd = 0;
+      OpenedContent content;
+      p.Do(cfd);
+      p.Do(content);
+      cfd = OpenTitleContent(cfd, content.m_title_id, content.m_content.index);
     }
   }
   else
   {
-    for (auto& pair : m_ContentAccessMap)
+    for (const auto& pair : m_ContentAccessMap)
     {
-      CFD = pair.first;
-      SContentAccess& Access = pair.second;
-      Position = Access.m_Position;
-      TitleID = Access.m_TitleID;
-      Index = Access.m_Index;
-      p.Do(CFD);
-      p.Do(Position);
-      p.Do(TitleID);
-      p.Do(Index);
+      p.Do(pair.first);
+      p.Do(pair.second);
     }
   }
 }
@@ -243,15 +228,14 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
     return 0xffffffff;  // TODO: what is the correct error value here?
   }
 
-  SContentAccess Access;
-  Access.m_Position = 0;
-  Access.m_Index = pContent->m_metadata.index;
-  Access.m_Size = static_cast<u32>(pContent->m_metadata.size);
-  Access.m_TitleID = TitleID;
+  OpenedContent content;
+  content.m_position = 0;
+  content.m_content = pContent->m_metadata;
+  content.m_title_id = TitleID;
 
   pContent->m_Data->Open();
 
-  m_ContentAccessMap[CFD] = Access;
+  m_ContentAccessMap[CFD] = content;
   return CFD;
 }
 
@@ -599,29 +583,30 @@ IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
   {
     return GetDefaultReply(-1);
   }
-  SContentAccess& rContent = itr->second;
+  OpenedContent& rContent = itr->second;
 
   u8* pDest = Memory::GetPointer(Addr);
 
-  if (rContent.m_Position + Size > rContent.m_Size)
+  if (rContent.m_position + Size > rContent.m_content.size)
   {
-    Size = rContent.m_Size - rContent.m_Position;
+    Size = static_cast<u32>(rContent.m_content.size) - rContent.m_position;
   }
 
   if (Size > 0)
   {
     if (pDest)
     {
-      const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_TitleID);
+      const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(rContent.m_title_id);
       // ContentLoader should never be invalid; rContent has been created by it.
       if (ContentLoader.IsValid() && ContentLoader.GetTicket().IsValid())
       {
-        const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(rContent.m_Index);
-        if (!pContent->m_Data->GetRange(rContent.m_Position, Size, pDest))
-          ERROR_LOG(IOS_ES, "ES: failed to read %u bytes from %u!", Size, rContent.m_Position);
+        const DiscIO::SNANDContent* pContent =
+            ContentLoader.GetContentByIndex(rContent.m_content.index);
+        if (!pContent->m_Data->GetRange(rContent.m_position, Size, pDest))
+          ERROR_LOG(IOS_ES, "ES: failed to read %u bytes from %u!", Size, rContent.m_position);
       }
 
-      rContent.m_Position += Size;
+      rContent.m_position += Size;
     }
     else
     {
@@ -631,7 +616,7 @@ IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
 
   DEBUG_LOG(IOS_ES,
             "IOCTL_ES_READCONTENT: CFD %x, Address 0x%x, Size %i -> stream pos %i (Index %i)", CFD,
-            Addr, Size, rContent.m_Position, rContent.m_Index);
+            Addr, Size, rContent.m_position, rContent.m_content.index);
 
   return GetDefaultReply(Size);
 }
@@ -651,11 +636,12 @@ IPCCommandResult ES::CloseContent(const IOCtlVRequest& request)
     return GetDefaultReply(-1);
   }
 
-  const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(itr->second.m_TitleID);
+  const DiscIO::CNANDContentLoader& ContentLoader = AccessContentDevice(itr->second.m_title_id);
   // ContentLoader should never be invalid; we shouldn't be here if ES_OPENCONTENT failed before.
   if (ContentLoader.IsValid())
   {
-    const DiscIO::SNANDContent* pContent = ContentLoader.GetContentByIndex(itr->second.m_Index);
+    const DiscIO::SNANDContent* pContent =
+        ContentLoader.GetContentByIndex(itr->second.m_content.index);
     pContent->m_Data->Close();
   }
 
@@ -678,27 +664,27 @@ IPCCommandResult ES::SeekContent(const IOCtlVRequest& request)
   {
     return GetDefaultReply(-1);
   }
-  SContentAccess& rContent = itr->second;
+  OpenedContent& rContent = itr->second;
 
   switch (Mode)
   {
   case 0:  // SET
-    rContent.m_Position = Addr;
+    rContent.m_position = Addr;
     break;
 
   case 1:  // CUR
-    rContent.m_Position += Addr;
+    rContent.m_position += Addr;
     break;
 
   case 2:  // END
-    rContent.m_Position = rContent.m_Size + Addr;
+    rContent.m_position = static_cast<u32>(rContent.m_content.size) + Addr;
     break;
   }
 
   DEBUG_LOG(IOS_ES, "IOCTL_ES_SEEKCONTENT: CFD %x, Address 0x%x, Mode %i -> Pos %i", CFD, Addr,
-            Mode, rContent.m_Position);
+            Mode, rContent.m_position);
 
-  return GetDefaultReply(rContent.m_Position);
+  return GetDefaultReply(rContent.m_position);
 }
 
 IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)

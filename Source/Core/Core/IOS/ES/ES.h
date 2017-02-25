@@ -131,12 +131,11 @@ private:
     ES_HASH_SIZE_WRONG = -2014,  // HASH !=20
   };
 
-  struct SContentAccess
+  struct OpenedContent
   {
-    u32 m_Position;
-    u64 m_TitleID;
-    u16 m_Index;
-    u32 m_Size;
+    u64 m_title_id;
+    IOS::ES::Content m_content;
+    u32 m_position;
   };
 
   struct ecc_cert_t
@@ -199,8 +198,8 @@ private:
 
   u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 
-  using CContentAccessMap = std::map<u32, SContentAccess>;
-  CContentAccessMap m_ContentAccessMap;
+  using ContentAccessMap = std::map<u32, OpenedContent>;
+  ContentAccessMap m_ContentAccessMap;
 
   std::vector<u64> m_TitleIDs;
   u64 m_TitleID = -1;
