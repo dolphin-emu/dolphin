@@ -139,7 +139,8 @@ bool AVIDump::CreateVideoFile()
     return false;
   }
 
-  const AVCodecDescriptor* codec_desc = avcodec_descriptor_get_by_name(g_Config.sDumpCodec.c_str());
+  const std::string& codec_name = g_Config.bUseFFV1 ? "ffv1" : g_Config.sDumpCodec;
+  const AVCodecDescriptor* codec_desc = avcodec_descriptor_get_by_name(codec_name.c_str());
   AVCodecID codec_id = codec_desc ? codec_desc->id : output_format->video_codec;
 
   const AVCodec* codec = nullptr;
