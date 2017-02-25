@@ -447,6 +447,9 @@ IPCCommandResult ES::AddContentStart(const IOCtlVRequest& request)
                    "content id %08x",
            title_id, m_addtitle_content_id);
 
+  if (!m_addtitle_tmd.IsValid())
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   if (title_id != m_addtitle_tmd.GetTitleId())
   {
     ERROR_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTSTART: title id %016" PRIx64 " != "
@@ -485,6 +488,9 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
 
   u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
+
+  if (!m_addtitle_tmd.IsValid())
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   // Try to find the title key from a pre-installed ticket.
   IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
