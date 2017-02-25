@@ -161,6 +161,14 @@ bool CNANDContentLoader::IsValid() const
   return m_Valid && m_tmd.IsValid();
 }
 
+const SNANDContent* CNANDContentLoader::GetContentByID(u32 id) const
+{
+  const auto iterator = std::find_if(m_Content.begin(), m_Content.end(), [id](const auto& content) {
+    return content.m_metadata.id == id;
+  });
+  return iterator != m_Content.end() ? &*iterator : nullptr;
+}
+
 const SNANDContent* CNANDContentLoader::GetContentByIndex(int index) const
 {
   for (auto& Content : m_Content)

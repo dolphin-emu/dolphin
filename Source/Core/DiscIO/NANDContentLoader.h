@@ -79,6 +79,7 @@ public:
 
   bool IsValid() const;
   void RemoveTitle() const;
+  const SNANDContent* GetContentByID(u32 id) const;
   const SNANDContent* GetContentByIndex(int index) const;
   const IOS::ES::TMDReader& GetTMD() const { return m_tmd; }
   const IOS::ES::TicketReader& GetTicket() const { return m_ticket; }

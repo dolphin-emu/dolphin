@@ -12,6 +12,7 @@
 
 #include <mbedtls/aes.h>
 
+#include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonFuncs.h"
@@ -164,6 +165,11 @@ void ES::DoState(PointerWrap& p)
   m_addtitle_tmd.DoState(p);
   p.Do(m_addtitle_content_id);
   p.Do(m_addtitle_content_buffer);
+
+  p.Do(m_export_title_context.valid);
+  m_export_title_context.tmd.DoState(p);
+  p.Do(m_export_title_context.title_key);
+  p.Do(m_export_title_context.contents);
 
   u32 Count = (u32)(m_ContentAccessMap.size());
   p.Do(Count);
@@ -318,6 +324,16 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return Launch(request);
   case IOCTL_ES_LAUNCHBC:
     return LaunchBC(request);
+  case IOCTL_ES_EXPORTTITLEINIT:
+    return ExportTitleInit(request);
+  case IOCTL_ES_EXPORTCONTENTBEGIN:
+    return ExportContentBegin(request);
+  case IOCTL_ES_EXPORTCONTENTDATA:
+    return ExportContentData(request);
+  case IOCTL_ES_EXPORTCONTENTEND:
+    return ExportContentEnd(request);
+  case IOCTL_ES_EXPORTTITLEDONE:
+    return ExportTitleDone(request);
   case IOCTL_ES_CHECKKOREAREGION:
     return CheckKoreaRegion(request);
   case IOCTL_ES_GETDEVICECERT:
@@ -472,7 +488,7 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
       m_addtitle_content_id);
 
   File::IOFile fp(path, "wb");
-  fp.WriteBytes(decrypted_data.data(), decrypted_data.size());
+  fp.WriteBytes(decrypted_data.data(), content_info.size);
 
   m_addtitle_content_id = 0xFFFFFFFF;
   return GetDefaultReply(IPC_SUCCESS);
@@ -1076,6 +1092,171 @@ IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
 
   EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
+}
+
+IPCCommandResult ES::ExportTitleInit(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != 8)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  // No concurrent title import/export is allowed.
+  if (m_export_title_context.valid)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  const auto& content_loader = AccessContentDevice(Memory::Read_U64(request.in_vectors[0].address));
+  if (!content_loader.IsValid())
+    return GetDefaultReply(FS_ENOENT);
+  if (!content_loader.GetTMD().IsValid())
+    return GetDefaultReply(ES_INVALID_TMD);
+
+  m_export_title_context.tmd = content_loader.GetTMD();
+
+  const auto ticket = DiscIO::FindSignedTicket(m_export_title_context.tmd.GetTitleId());
+  if (!ticket.IsValid())
+    return GetDefaultReply(ES_NO_TICKET_INSTALLED);
+  if (ticket.GetTitleId() != m_export_title_context.tmd.GetTitleId())
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  m_export_title_context.title_key = ticket.GetTitleKey();
+
+  const auto& raw_tmd = m_export_title_context.tmd.GetRawTMD();
+  if (request.io_vectors[0].size != raw_tmd.size())
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
+
+  m_export_title_context.valid = true;
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::ExportContentBegin(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(2, 0) || request.in_vectors[0].size != 8 ||
+      request.in_vectors[1].size != 4)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+  const u32 content_id = Memory::Read_U32(request.in_vectors[1].address);
+
+  if (!m_export_title_context.valid || m_export_title_context.tmd.GetTitleId() != title_id)
+  {
+    ERROR_LOG(IOS_ES, "Tried to use ExportContentBegin with an invalid title export context.");
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  }
+
+  const auto& content_loader = AccessContentDevice(title_id);
+  if (!content_loader.IsValid())
+    return GetDefaultReply(FS_ENOENT);
+
+  const auto* content = content_loader.GetContentByID(content_id);
+  if (!content)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  OpenedContent entry;
+  entry.m_position = 0;
+  entry.m_content = content->m_metadata;
+  entry.m_title_id = title_id;
+  content->m_Data->Open();
+
+  u32 cid = 0;
+  while (m_export_title_context.contents.find(cid) != m_export_title_context.contents.end())
+    cid++;
+
+  TitleExportContext::ExportContent content_export;
+  content_export.content = std::move(entry);
+  content_export.iv[0] = (content->m_metadata.index >> 8) & 0xFF;
+  content_export.iv[1] = content->m_metadata.index & 0xFF;
+
+  m_export_title_context.contents.emplace(cid, content_export);
+  // IOS returns a content ID which is passed to further content calls.
+  return GetDefaultReply(cid);
+}
+
+IPCCommandResult ES::ExportContentData(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != 4 ||
+      request.io_vectors[0].size == 0)
+  {
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  }
+
+  const u32 content_id = Memory::Read_U32(request.in_vectors[0].address);
+  const u32 bytes_to_read = request.io_vectors[0].size;
+
+  const auto iterator = m_export_title_context.contents.find(content_id);
+  if (!m_export_title_context.valid || iterator == m_export_title_context.contents.end() ||
+      iterator->second.content.m_position >= iterator->second.content.m_content.size)
+  {
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  }
+
+  auto& metadata = iterator->second.content;
+
+  const auto& content_loader = AccessContentDevice(metadata.m_title_id);
+  const auto* content = content_loader.GetContentByID(metadata.m_content.id);
+  content->m_Data->Open();
+
+  const u32 length =
+      std::min(static_cast<u32>(metadata.m_content.size - metadata.m_position), bytes_to_read);
+  std::vector<u8> buffer(length);
+
+  if (!content->m_Data->GetRange(metadata.m_position, length, buffer.data()))
+  {
+    ERROR_LOG(IOS_ES, "ExportContentData: ES_READ_LESS_DATA_THAN_EXPECTED");
+    return GetDefaultReply(ES_READ_LESS_DATA_THAN_EXPECTED);
+  }
+
+  // IOS aligns the buffer to 32 bytes. Since we also need to align it to 16 bytes,
+  // let's just follow IOS here.
+  buffer.resize(Common::AlignUp(buffer.size(), 32));
+  std::vector<u8> output(buffer.size());
+
+  mbedtls_aes_context aes_ctx;
+  mbedtls_aes_setkey_enc(&aes_ctx, m_export_title_context.title_key.data(), 128);
+  const int ret = mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_ENCRYPT, buffer.size(),
+                                        iterator->second.iv.data(), buffer.data(), output.data());
+  if (ret != 0)
+  {
+    // XXX: proper error code when IOSC_Encrypt fails.
+    ERROR_LOG(IOS_ES, "ExportContentData: Failed to encrypt content.");
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  }
+
+  Memory::CopyToEmu(request.io_vectors[0].address, output.data(), output.size());
+  metadata.m_position += length;
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::ExportContentEnd(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 4)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  const u32 content_id = Memory::Read_U32(request.in_vectors[0].address);
+
+  const auto iterator = m_export_title_context.contents.find(content_id);
+  if (!m_export_title_context.valid || iterator == m_export_title_context.contents.end() ||
+      iterator->second.content.m_position != iterator->second.content.m_content.size)
+  {
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  }
+
+  // XXX: Check the content hash, as IOS does?
+
+  const auto& content_loader = AccessContentDevice(iterator->second.content.m_title_id);
+  content_loader.GetContentByID(iterator->second.content.m_content.id)->m_Data->Close();
+
+  m_export_title_context.contents.erase(iterator);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::ExportTitleDone(const IOCtlVRequest& request)
+{
+  if (!m_export_title_context.valid)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  m_export_title_context.valid = false;
+  return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
