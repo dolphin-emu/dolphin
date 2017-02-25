@@ -153,6 +153,7 @@ private:
   };
 
   IPCCommandResult AddTicket(const IOCtlVRequest& request);
+  IPCCommandResult AddTMD(const IOCtlVRequest& request);
   IPCCommandResult AddTitleStart(const IOCtlVRequest& request);
   IPCCommandResult AddContentStart(const IOCtlVRequest& request);
   IPCCommandResult AddContentData(const IOCtlVRequest& request);

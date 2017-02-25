@@ -260,6 +260,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   {
   case IOCTL_ES_ADDTICKET:
     return AddTicket(request);
+  case IOCTL_ES_ADDTMD:
+    return AddTMD(request);
   case IOCTL_ES_ADDTITLESTART:
     return AddTitleStart(request);
   case IOCTL_ES_ADDCONTENTSTART:
@@ -370,6 +372,37 @@ IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
+// TODO: write this to /tmp (or /import?) first, as title imports can be cancelled.
+static bool WriteTMD(const IOS::ES::TMDReader& tmd)
+{
+  const std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
+  File::CreateFullPath(tmd_path);
+
+  File::IOFile fp(tmd_path, "wb");
+  return fp.WriteBytes(tmd.GetRawTMD().data(), tmd.GetRawTMD().size());
+}
+
+IPCCommandResult ES::AddTMD(const IOCtlVRequest& request)
+{
+  // This may appear to be very similar to AddTitleStart, but AddTitleStart takes
+  // three additional vectors and may do some additional processing -- so let's keep these separate.
+
+  if (!request.HasNumberOfValidVectors(1, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  std::vector<u8> tmd(request.in_vectors[0].size);
+  Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
+
+  m_addtitle_tmd.SetBytes(tmd);
+  if (!m_addtitle_tmd.IsValid())
+    return GetDefaultReply(ES_INVALID_TMD);
+
+  if (!WriteTMD(m_addtitle_tmd))
+    return GetDefaultReply(ES_WRITE_FAILURE);
+
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
 IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
 {
   _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 4,
@@ -386,13 +419,8 @@ IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
     return GetDefaultReply(ES_INVALID_TMD);
   }
 
-  // Write the TMD to title storage.
-  std::string tmd_path =
-      Common::GetTMDFileName(m_addtitle_tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
-  File::CreateFullPath(tmd_path);
-
-  File::IOFile fp(tmd_path, "wb");
-  fp.WriteBytes(tmd.data(), tmd.size());
+  if (!WriteTMD(m_addtitle_tmd))
+    return GetDefaultReply(ES_WRITE_FAILURE);
 
   return GetDefaultReply(IPC_SUCCESS);
 }
