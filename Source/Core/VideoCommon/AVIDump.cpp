@@ -95,36 +95,40 @@ bool AVIDump::Start(int w, int h)
   return success;
 }
 
+static std::string GetDumpPath(const std::string& format)
+{
+  if (!g_Config.sDumpPath.empty())
+    return g_Config.sDumpPath;
+
+  std::string s_dump_path = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" +
+    std::to_string(s_file_index) + "." + format;
+
+  // Ask to delete file
+  if (File::Exists(s_dump_path))
+  {
+    if (SConfig::GetInstance().m_DumpFramesSilent ||
+        AskYesNoT("Delete the existing file '%s'?", s_dump_path.c_str()))
+    {
+      File::Delete(s_dump_path);
+    }
+    else
+    {
+      // Stop and cancel dumping the video
+      return "";
+    }
+  }
+
+  return s_dump_path;
+}
+
 bool AVIDump::CreateVideoFile()
 {
   const std::string& s_format = g_Config.sDumpFormat;
 
-  std::string s_dump_path = g_Config.sDumpPath;
+  std::string s_dump_path = GetDumpPath(s_format);
 
   if (s_dump_path.empty())
-  {
-    std::stringstream file_ss;
-    file_ss << File::GetUserPath(D_DUMPFRAMES_IDX)
-                     << "framedump" << s_file_index
-                     << "." << s_format;
-    s_dump_path = file_ss.str();
-    File::CreateFullPath(s_dump_path);
-
-    // Ask to delete file
-    if (File::Exists(s_dump_path))
-    {
-      if (SConfig::GetInstance().m_DumpFramesSilent ||
-          AskYesNoT("Delete the existing file '%s'?", s_dump_path.c_str()))
-      {
-        File::Delete(s_dump_path);
-      }
-      else
-      {
-        // Stop and cancel dumping the video
-        return false;
-      }
-    }
-  }
+    return false;
 
   AVOutputFormat* output_format = av_guess_format(s_format.c_str(), s_dump_path.c_str(), nullptr);
   if (!output_format)
