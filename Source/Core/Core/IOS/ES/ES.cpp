@@ -272,6 +272,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return GetTMDViews(request);
   case IOCTL_ES_GETCONSUMPTION:
     return GetConsumption(request);
+  case IOCTL_ES_DELETETITLE:
+    return DeleteTitle(request);
   case IOCTL_ES_DELETETICKET:
     return DeleteTicket(request);
   case IOCTL_ES_DELETETITLECONTENT:
@@ -846,6 +848,40 @@ IPCCommandResult ES::GetConsumption(const IOCtlVRequest& request)
   // This is at least what crediar's ES module does
   Memory::Write_U32(0, request.io_vectors[1].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_GETCONSUMPTION");
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+static bool CanDeleteTitle(u64 title_id)
+{
+  // IOS only allows deleting non-system titles (or a system title higher than 00000001-00000101).
+  return static_cast<u32>(title_id >> 32) != 0x00000001 || static_cast<u32>(title_id) > 0x101;
+}
+
+IPCCommandResult ES::DeleteTitle(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+
+  if (!CanDeleteTitle(title_id))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  const std::string title_dir =
+      StringFromFormat("%s/title/%08x/%08x/", RootUserPath(Common::FROM_SESSION_ROOT).c_str(),
+                       static_cast<u32>(title_id >> 32), static_cast<u32>(title_id));
+  if (!File::IsDirectory(title_dir) ||
+      !DiscIO::CNANDContentManager::Access().RemoveTitle(title_id, Common::FROM_SESSION_ROOT))
+  {
+    return GetDefaultReply(FS_ENOENT);
+  }
+
+  if (!File::DeleteDirRecursively(title_dir))
+  {
+    ERROR_LOG(IOS_ES, "DeleteTitle: Failed to delete title directory: %s", title_dir.c_str());
+    return GetDefaultReply(FS_EACCESS);
+  }
+
   return GetDefaultReply(IPC_SUCCESS);
 }
 
