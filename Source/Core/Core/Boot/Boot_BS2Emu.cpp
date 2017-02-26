@@ -406,9 +406,6 @@ bool CBoot::EmulatedBS2_Wii()
   DEBUG_LOG(BOOT, "Run iAppLoaderClose");
   RunFunction(iAppLoaderClose);
 
-  // Load patches and run startup patches
-  PatchEngine::LoadPatches();
-
   IOS::HLE::ES_DIVerify(tmd, DVDInterface::GetVolume().GetTicket());
 
   // return

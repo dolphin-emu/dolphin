@@ -20,17 +20,22 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
+#include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
+#include "Core/HLE/HLE.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/PatchEngine.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
+#include "VideoCommon/HiresTextures.h"
 
 namespace IOS
 {
@@ -44,10 +49,12 @@ struct TitleContext
   void DoState(PointerWrap& p);
   void Update(const DiscIO::CNANDContentLoader& content_loader);
   void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
+  void UpdateRunningGame() const;
 
   IOS::ES::TicketReader ticket;
   IOS::ES::TMDReader tmd;
   bool active = false;
+  bool first_change = true;
 };
 
 // Shared across all ES instances.
@@ -138,6 +145,46 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
   ticket = ticket_;
   tmd = tmd_;
   active = true;
+
+  // Interesting title changes (channel or disc game launch) always happen after an IOS reload.
+  if (first_change)
+  {
+    UpdateRunningGame();
+    first_change = false;
+  }
+}
+
+void TitleContext::UpdateRunningGame() const
+{
+  // This one does not always make sense for Wii titles, so let's reset it back to a sane value.
+  SConfig::GetInstance().m_strName = "";
+  if (IOS::ES::IsTitleType(tmd.GetTitleId(), IOS::ES::TitleType::Game) ||
+      IOS::ES::IsTitleType(tmd.GetTitleId(), IOS::ES::TitleType::GameWithChannel))
+  {
+    const u32 title_identifier = Common::swap32(static_cast<u32>(tmd.GetTitleId()));
+    const u16 group_id = Common::swap16(tmd.GetGroupId());
+
+    char ascii_game_id[6];
+    std::memcpy(ascii_game_id, &title_identifier, sizeof(title_identifier));
+    std::memcpy(ascii_game_id + sizeof(title_identifier), &group_id, sizeof(group_id));
+
+    SConfig::GetInstance().m_strGameID = ascii_game_id;
+  }
+  else
+  {
+    SConfig::GetInstance().m_strGameID = StringFromFormat("%016" PRIX64, tmd.GetTitleId());
+  }
+
+  SConfig::GetInstance().m_title_id = tmd.GetTitleId();
+
+  // TODO: have a callback mechanism for title changes?
+  g_symbolDB.Clear();
+  CBoot::LoadMapFromFilename();
+  ::HLE::Clear();
+  ::HLE::PatchFunctions();
+  PatchEngine::Shutdown();
+  PatchEngine::LoadPatches();
+  HiresTexture::Update();
 }
 
 void ES::LoadWAD(const std::string& _rContentFile)
@@ -1425,13 +1472,10 @@ IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
 
 const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
 {
-  // for WADs, the passed title id and the stored title id match; along with s_content_file being
-  // set
-  // to the
-  // actual WAD file name. We cannot simply get a NAND Loader for the title id in those cases, since
-  // the WAD
-  // need not be installed in the NAND, but it could be opened directly from a WAD file anywhere on
-  // disk.
+  // for WADs, the passed title id and the stored title id match; along with s_content_file
+  // being set to the actual WAD file name. We cannot simply get a NAND Loader for the title id
+  // in those cases, since the WAD need not be installed in the NAND, but it could be opened
+  // directly from a WAD file anywhere on disk.
   if (s_title_context.active && s_title_context.tmd.GetTitleId() == title_id &&
       !s_content_file.empty())
   {

@@ -137,6 +137,7 @@ public:
   DiscIO::Region GetRegion() const;
   u64 GetTitleId() const;
   u16 GetTitleVersion() const;
+  u16 GetGroupId() const;
 
   u16 GetNumContents() const;
   bool GetContent(u16 index, Content* content) const;

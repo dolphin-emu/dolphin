@@ -126,6 +126,11 @@ u16 TMDReader::GetTitleVersion() const
   return Common::swap16(m_bytes.data() + offsetof(TMDHeader, title_version));
 }
 
+u16 TMDReader::GetGroupId() const
+{
+  return Common::swap16(m_bytes.data() + offsetof(TMDHeader, group_id));
+}
+
 u16 TMDReader::GetNumContents() const
 {
   return Common::swap16(m_bytes.data() + offsetof(TMDHeader, num_contents));
