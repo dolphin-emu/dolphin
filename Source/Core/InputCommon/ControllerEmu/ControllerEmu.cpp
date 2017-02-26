@@ -39,7 +39,7 @@ void EmulatedController::UpdateReferences(const ControllerInterface& devi)
       control->control_ref.get()->UpdateReference(devi, default_device);
 
     // extension
-    if (ctrlGroup->type == GROUP_TYPE_EXTENSION)
+    if (ctrlGroup->type == GroupType::Extension)
     {
       for (auto& attachment : ((Extension*)ctrlGroup.get())->attachments)
         attachment->UpdateReferences(devi);
@@ -52,7 +52,7 @@ void EmulatedController::UpdateDefaultDevice()
   for (auto& ctrlGroup : groups)
   {
     // extension
-    if (ctrlGroup->type == GROUP_TYPE_EXTENSION)
+    if (ctrlGroup->type == GroupType::Extension)
     {
       for (auto& ai : ((Extension*)ctrlGroup.get())->attachments)
       {

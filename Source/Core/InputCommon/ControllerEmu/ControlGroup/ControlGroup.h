@@ -17,18 +17,18 @@ namespace ControllerEmu
 {
 class Control;
 
-enum
+enum class GroupType
 {
-  GROUP_TYPE_OTHER,
-  GROUP_TYPE_STICK,
-  GROUP_TYPE_MIXED_TRIGGERS,
-  GROUP_TYPE_BUTTONS,
-  GROUP_TYPE_FORCE,
-  GROUP_TYPE_EXTENSION,
-  GROUP_TYPE_TILT,
-  GROUP_TYPE_CURSOR,
-  GROUP_TYPE_TRIGGERS,
-  GROUP_TYPE_SLIDER
+  Other,
+  Stick,
+  MixedTriggers,
+  Buttons,
+  Force,
+  Extension,
+  Tilt,
+  Cursor,
+  Triggers,
+  Slider
 };
 
 class ControlGroup
@@ -102,8 +102,9 @@ public:
     }
   };
 
-  explicit ControlGroup(const std::string& name, u32 type = GROUP_TYPE_OTHER);
-  ControlGroup(const std::string& name, const std::string& ui_name, u32 type = GROUP_TYPE_OTHER);
+  explicit ControlGroup(const std::string& name, GroupType type = GroupType::Other);
+  ControlGroup(const std::string& name, const std::string& ui_name,
+               GroupType type = GroupType::Other);
   virtual ~ControlGroup();
 
   virtual void LoadConfig(IniFile::Section* sec, const std::string& defdev = "",
@@ -115,7 +116,7 @@ public:
 
   const std::string name;
   const std::string ui_name;
-  const u32 type;
+  const GroupType type;
 
   std::vector<std::unique_ptr<Control>> controls;
   std::vector<std::unique_ptr<NumericSetting>> numeric_settings;

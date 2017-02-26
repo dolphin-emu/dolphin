@@ -19,7 +19,7 @@
 
 namespace ControllerEmu
 {
-Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GROUP_TYPE_CURSOR)
+Cursor::Cursor(const std::string& name_) : ControlGroup(name_, GroupType::Cursor)
 {
   for (auto& named_direction : named_directions)
     controls.emplace_back(std::make_unique<Input>(named_direction));

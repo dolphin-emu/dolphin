@@ -16,7 +16,7 @@
 
 namespace ControllerEmu
 {
-Force::Force(const std::string& name_) : ControlGroup(name_, GROUP_TYPE_FORCE)
+Force::Force(const std::string& name_) : ControlGroup(name_, GroupType::Force)
 {
   controls.emplace_back(std::make_unique<Input>(_trans("Up")));
   controls.emplace_back(std::make_unique<Input>(_trans("Down")));
