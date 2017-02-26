@@ -355,8 +355,9 @@ std::unique_ptr<StreamBuffer> StreamBuffer::Create(u32 type, u32 size)
   if (g_ogl_config.bSupportsGLSync)
   {
     // pinned memory is much faster than buffer storage on AMD cards
-     if (g_ogl_config.bSupportsGLPinnedMemory && !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_PINNED_MEMORY))
-       return std::make_unique<PinnedMemory>(type, size);
+    if (g_ogl_config.bSupportsGLPinnedMemory &&
+        !DriverDetails::HasBug(DriverDetails::BUG_BROKEN_PINNED_MEMORY))
+      return std::make_unique<PinnedMemory>(type, size);
 
     // buffer storage works well in most situations
     bool coherent = DriverDetails::HasBug(DriverDetails::BUG_BROKEN_EXPLICIT_FLUSH);
