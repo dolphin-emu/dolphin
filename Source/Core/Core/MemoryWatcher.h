@@ -30,7 +30,7 @@ private:
 
   void ParseLine(const std::string& line);
   u32 ChasePointer(const std::string& line);
-  std::string ComposeMessage(const std::string& line, u32 value);
+  std::string ComposeMessages();
 
   bool m_running;
 

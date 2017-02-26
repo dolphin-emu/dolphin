@@ -77,17 +77,10 @@ u32 MemoryWatcher::ChasePointer(const std::string& line)
   return value;
 }
 
-std::string MemoryWatcher::ComposeMessage(const std::string& line, u32 value)
+std::string MemoryWatcher::ComposeMessages()
 {
   std::stringstream message_stream;
-  message_stream << line << '\n' << std::hex << value;
-  return message_stream.str();
-}
-
-void MemoryWatcher::Step()
-{
-  if (!m_running)
-    return;
+  message_stream << std::hex;
 
   for (auto& entry : m_values)
   {
@@ -99,9 +92,18 @@ void MemoryWatcher::Step()
     {
       // Update the value
       current_value = new_value;
-      std::string message = ComposeMessage(address, new_value);
-      sendto(m_fd, message.c_str(), message.size() + 1, 0, reinterpret_cast<sockaddr*>(&m_addr),
-             sizeof(m_addr));
+      message_stream << address << '\n' << new_value << '\n';
     }
   }
+
+  return message_stream.str();
+}
+
+void MemoryWatcher::Step()
+{
+  if (!m_running)
+    return;
+
+  std::string message = ComposeMessages();
+  sendto(m_fd, message.c_str(), message.size() + 1, 0, reinterpret_cast<sockaddr*>(&m_addr), sizeof(m_addr));
 }
