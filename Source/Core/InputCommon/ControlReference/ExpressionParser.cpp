@@ -58,7 +58,7 @@ public:
 
   Token(TokenType type_) : type(type_) {}
   Token(TokenType type_, ControlQualifier qualifier_) : type(type_), qualifier(qualifier_) {}
-  operator std::string()
+  operator std::string() const
   {
     switch (type)
     {
@@ -211,10 +211,10 @@ class ExpressionNode
 {
 public:
   virtual ~ExpressionNode() {}
-  virtual ControlState GetValue() { return 0; }
+  virtual ControlState GetValue() const { return 0; }
   virtual void SetValue(ControlState state) {}
-  virtual int CountNumControls() { return 0; }
-  virtual operator std::string() { return ""; }
+  virtual int CountNumControls() const { return 0; }
+  virtual operator std::string() const { return ""; }
 };
 
 class DummyExpression : public ExpressionNode
@@ -223,10 +223,10 @@ public:
   std::string name;
 
   DummyExpression(const std::string& name_) : name(name_) {}
-  ControlState GetValue() override { return 0.0; }
+  ControlState GetValue() const override { return 0.0; }
   void SetValue(ControlState value) override {}
-  int CountNumControls() override { return 0; }
-  operator std::string() override { return "`" + name + "`"; }
+  int CountNumControls() const override { return 0; }
+  operator std::string() const override { return "`" + name + "`"; }
 };
 
 class ControlExpression : public ExpressionNode
@@ -241,10 +241,10 @@ public:
   {
   }
 
-  ControlState GetValue() override { return control->ToInput()->GetState(); }
+  ControlState GetValue() const override { return control->ToInput()->GetState(); }
   void SetValue(ControlState value) override { control->ToOutput()->SetState(value); }
-  int CountNumControls() override { return 1; }
-  operator std::string() override { return "`" + (std::string)qualifier + "`"; }
+  int CountNumControls() const override { return 1; }
+  operator std::string() const override { return "`" + (std::string)qualifier + "`"; }
 private:
   std::shared_ptr<Device> m_device;
 };
@@ -266,7 +266,7 @@ public:
     delete rhs;
   }
 
-  ControlState GetValue() override
+  ControlState GetValue() const override
   {
     ControlState lhsValue = lhs->GetValue();
     ControlState rhsValue = rhs->GetValue();
@@ -292,8 +292,12 @@ public:
     rhs->SetValue(value);
   }
 
-  int CountNumControls() override { return lhs->CountNumControls() + rhs->CountNumControls(); }
-  operator std::string() override
+  int CountNumControls() const override
+  {
+    return lhs->CountNumControls() + rhs->CountNumControls();
+  }
+
+  operator std::string() const override
   {
     return OpName(op) + "(" + (std::string)(*lhs) + ", " + (std::string)(*rhs) + ")";
   }
@@ -307,7 +311,7 @@ public:
 
   UnaryExpression(TokenType op_, ExpressionNode* inner_) : op(op_), inner(inner_) {}
   virtual ~UnaryExpression() { delete inner; }
-  ControlState GetValue() override
+  ControlState GetValue() const override
   {
     ControlState value = inner->GetValue();
     switch (op)
@@ -333,11 +337,11 @@ public:
     }
   }
 
-  int CountNumControls() override { return inner->CountNumControls(); }
-  operator std::string() override { return OpName(op) + "(" + (std::string)(*inner) + ")"; }
+  int CountNumControls() const override { return inner->CountNumControls(); }
+  operator std::string() const override { return OpName(op) + "(" + (std::string)(*inner) + ")"; }
 };
 
-std::shared_ptr<Device> ControlFinder::FindDevice(ControlQualifier qualifier)
+std::shared_ptr<Device> ControlFinder::FindDevice(ControlQualifier qualifier) const
 {
   if (qualifier.has_device)
     return container.FindDevice(qualifier.device_qualifier);
@@ -345,7 +349,7 @@ std::shared_ptr<Device> ControlFinder::FindDevice(ControlQualifier qualifier)
     return container.FindDevice(default_device);
 }
 
-Device::Control* ControlFinder::FindControl(ControlQualifier qualifier)
+Device::Control* ControlFinder::FindControl(ControlQualifier qualifier) const
 {
   const std::shared_ptr<Device> device = FindDevice(qualifier);
   if (!device)
@@ -497,7 +501,7 @@ private:
   ExpressionParseStatus Toplevel(ExpressionNode** expr_out) { return Binary(expr_out); }
 };
 
-ControlState Expression::GetValue()
+ControlState Expression::GetValue() const
 {
   return node->GetValue();
 }
