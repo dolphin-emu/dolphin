@@ -38,8 +38,25 @@ namespace HLE
 {
 namespace Device
 {
-std::string ES::m_ContentFile;
-ES::TitleContext ES::m_title_context;
+struct TitleContext
+{
+  void Clear();
+  void DoState(PointerWrap& p);
+  void Update(const DiscIO::CNANDContentLoader& content_loader);
+  void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
+
+  IOS::ES::TicketReader ticket;
+  IOS::ES::TMDReader tmd;
+  bool active = false;
+};
+
+// Shared across all ES instances.
+static std::string s_content_file;
+static std::vector<u64> s_title_ids;
+static TitleContext s_title_context;
+
+// Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
+static u64 s_title_to_launch;
 
 constexpr u8 s_key_sd[0x10] = {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08,
                                0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
@@ -66,39 +83,51 @@ constexpr const u8* s_key_table[11] = {
 
 ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
-  m_title_context.Clear();
-
-  m_TitleIDs.clear();
-  DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
-  uid_sys.GetTitleIDs(m_TitleIDs);
-
-  // uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
-  // m_TitleIDsOwned.clear();
-  // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
 }
 
-void ES::TitleContext::Clear()
+void ES::Init()
+{
+  s_content_file = "";
+  s_title_context = TitleContext{};
+
+  s_title_ids.clear();
+  DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  uid_sys.GetTitleIDs(s_title_ids);
+
+  // uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
+  // s_title_idsOwned.clear();
+  // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(s_title_idsOwned, true);
+
+  if (s_title_to_launch != 0)
+  {
+    NOTICE_LOG(IOS, "Re-launching title after IOS reload.");
+    LaunchTitle(s_title_to_launch, true);
+    s_title_to_launch = 0;
+  }
+}
+
+void TitleContext::Clear()
 {
   ticket.SetBytes({});
   tmd.SetBytes({});
   active = false;
 }
 
-void ES::TitleContext::DoState(PointerWrap& p)
+void TitleContext::DoState(PointerWrap& p)
 {
   ticket.DoState(p);
   tmd.DoState(p);
   p.Do(active);
 }
 
-void ES::TitleContext::Update(const DiscIO::CNANDContentLoader& content_loader)
+void TitleContext::Update(const DiscIO::CNANDContentLoader& content_loader)
 {
   if (!content_loader.IsValid())
     return;
   Update(content_loader.GetTMD(), content_loader.GetTicket());
 }
 
-void ES::TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
+void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
 {
   if (!tmd_.IsValid() || !ticket_.IsValid())
   {
@@ -113,11 +142,11 @@ void ES::TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::Tic
 
 void ES::LoadWAD(const std::string& _rContentFile)
 {
-  m_ContentFile = _rContentFile;
+  s_content_file = _rContentFile;
   // XXX: Ideally, this should be done during a launch, but because we support launching WADs
   // without installing them (which is a bit of a hack), we have to do this manually here.
-  const auto& content_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
-  m_title_context.Update(content_loader);
+  const auto& content_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(s_content_file);
+  s_title_context.Update(content_loader);
 }
 
 void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output)
@@ -128,9 +157,9 @@ void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, 
   mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, new_iv, input, output);
 }
 
-bool ES::LaunchTitle(u64 title_id, bool skip_reload) const
+bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 {
-  m_title_context.Clear();
+  s_title_context.Clear();
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
@@ -144,12 +173,12 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload) const
   return LaunchPPCTitle(title_id, skip_reload);
 }
 
-bool ES::LaunchIOS(u64 ios_title_id) const
+bool ES::LaunchIOS(u64 ios_title_id)
 {
   return Reload(ios_title_id);
 }
 
-bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload) const
+bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
 {
   const DiscIO::CNANDContentLoader& content_loader = AccessContentDevice(title_id);
   if (!content_loader.IsValid())
@@ -165,23 +194,22 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload) const
   // again with the reload skipped, and the PPC will be bootstrapped then.
   if (!skip_reload)
   {
-    SetTitleToLaunch(title_id);
+    s_title_to_launch = title_id;
     const u64 required_ios = content_loader.GetTMD().GetIOSId();
     return LaunchTitle(required_ios);
   }
 
-  m_title_context.Update(content_loader);
-  SetDefaultContentFile(Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT));
+  s_title_context.Update(content_loader);
   return BootstrapPPC(content_loader);
 }
 
 void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
-  p.Do(m_ContentFile);
+  p.Do(s_content_file);
   p.Do(m_AccessIdentID);
-  p.Do(m_TitleIDs);
-  m_title_context.DoState(p);
+  p.Do(s_title_ids);
+  s_title_context.DoState(p);
 
   m_addtitle_tmd.DoState(p);
   p.Do(m_addtitle_content_id);
@@ -646,10 +674,10 @@ IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
   u32 Index = Memory::Read_U32(request.in_vectors[0].address);
 
-  if (!m_title_context.active)
+  if (!s_title_context.active)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  s32 CFD = OpenTitleContent(m_AccessIdentID++, m_title_context.tmd.GetTitleId(), Index);
+  s32 CFD = OpenTitleContent(m_AccessIdentID++, s_title_context.tmd.GetTitleId(), Index);
   INFO_LOG(IOS_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
 
   return GetDefaultReply(CFD);
@@ -792,10 +820,10 @@ IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  if (!m_title_context.active)
+  if (!s_title_context.active)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  const u64 title_id = m_title_context.tmd.GetTitleId();
+  const u64 title_id = s_title_context.tmd.GetTitleId();
   Memory::Write_U64(title_id, request.io_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", static_cast<u32>(title_id >> 32),
            static_cast<u32>(title_id));
@@ -818,9 +846,9 @@ IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  Memory::Write_U32((u32)m_TitleIDs.size(), request.io_vectors[0].address);
+  Memory::Write_U32((u32)s_title_ids.size(), request.io_vectors[0].address);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", m_TitleIDs.size());
+  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", s_title_ids.size());
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -832,11 +860,11 @@ IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
 
   u32 MaxCount = Memory::Read_U32(request.in_vectors[0].address);
   u32 Count = 0;
-  for (int i = 0; i < (int)m_TitleIDs.size(); i++)
+  for (int i = 0; i < (int)s_title_ids.size(); i++)
   {
-    Memory::Write_U64(m_TitleIDs[i], request.io_vectors[0].address + i * 8);
-    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(m_TitleIDs[i] >> 32),
-             (u32)m_TitleIDs[i]);
+    Memory::Write_U64(s_title_ids[i], request.io_vectors[0].address + i * 8);
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(s_title_ids[i] >> 32),
+             (u32)s_title_ids[i]);
     Count++;
     if (Count >= MaxCount)
       break;
@@ -1353,11 +1381,11 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
   u32 data_size = request.in_vectors[0].size;
   u8* sig_out = Memory::GetPointer(request.io_vectors[0].address);
 
-  if (!m_title_context.active)
+  if (!s_title_context.active)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   const EcWii& ec = EcWii::GetInstance();
-  MakeAPSigAndCert(sig_out, ap_cert_out, m_title_context.tmd.GetTitleId(), data, data_size,
+  MakeAPSigAndCert(sig_out, ap_cert_out, s_title_context.tmd.GetTitleId(), data, data_size,
                    ec.GetNGPriv(), ec.GetNGID());
 
   return GetDefaultReply(IPC_SUCCESS);
@@ -1395,24 +1423,27 @@ IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id) const
+const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
 {
-  // for WADs, the passed title id and the stored title id match; along with m_ContentFile being set
+  // for WADs, the passed title id and the stored title id match; along with s_content_file being
+  // set
   // to the
   // actual WAD file name. We cannot simply get a NAND Loader for the title id in those cases, since
   // the WAD
   // need not be installed in the NAND, but it could be opened directly from a WAD file anywhere on
   // disk.
-  if (m_title_context.active && m_title_context.tmd.GetTitleId() == title_id &&
-      !m_ContentFile.empty())
-    return DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
+  if (s_title_context.active && s_title_context.tmd.GetTitleId() == title_id &&
+      !s_content_file.empty())
+  {
+    return DiscIO::CNANDContentManager::Access().GetNANDLoader(s_content_file);
+  }
 
   return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
 s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
-  m_title_context.Clear();
+  s_title_context.Clear();
 
   if (!tmd.IsValid() || !ticket.IsValid())
     return ES_PARAMETER_SIZE_OR_ALIGNMENT;
@@ -1438,7 +1469,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   // clear the cache to avoid content access mismatches.
   DiscIO::CNANDContentManager::Access().ClearCache();
 
-  m_title_context.Update(tmd, ticket);
+  s_title_context.Update(tmd, ticket);
   return IPC_SUCCESS;
 }
 }  // namespace Device

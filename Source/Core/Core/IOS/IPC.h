@@ -68,8 +68,6 @@ bool Reload(u64 ios_title_id);
 u32 GetVersion();
 
 bool BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader);
-// This sets a title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
-void SetTitleToLaunch(u64 title_id);
 
 // Do State
 void DoState(PointerWrap& p);

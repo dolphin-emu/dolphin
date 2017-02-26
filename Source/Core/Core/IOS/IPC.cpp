@@ -95,7 +95,6 @@ static CoreTiming::EventType* s_event_sdio_notify;
 static u64 s_last_reply_time;
 
 static u64 s_active_title_id;
-static u64 s_title_to_launch;
 
 static constexpr u64 ENQUEUE_REQUEST_FLAG = 0x100000000ULL;
 static constexpr u64 ENQUEUE_ACKNOWLEDGEMENT_FLAG = 0x200000000ULL;
@@ -586,7 +585,6 @@ static void AddStaticDevices()
 {
   std::lock_guard<std::mutex> lock(s_device_map_mutex);
   _assert_msg_(IOS, s_device_map.empty(), "Reinit called while already initialized");
-  Device::ES::m_ContentFile = "";
 
   num_devices = 0;
 
@@ -706,18 +704,8 @@ bool Reload(const u64 ios_title_id)
 
   AddStaticDevices();
 
-  if (s_title_to_launch != 0)
-  {
-    NOTICE_LOG(IOS, "Re-launching title after IOS reload.");
-    s_es_handles[0]->LaunchTitle(s_title_to_launch, true);
-    s_title_to_launch = 0;
-  }
+  Device::ES::Init();
   return true;
-}
-
-void SetTitleToLaunch(const u64 title_id)
-{
-  s_title_to_launch = title_id;
 }
 
 // This corresponds to syscall 0x41, which loads a binary from the NAND and bootstraps the PPC.
