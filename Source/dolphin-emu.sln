@@ -80,6 +80,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DolphinQt2", "Core\DolphinQ
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glslang", "..\Externals\glslang\glslang.vcxproj", "{D178061B-84D3-44F9-BEED-EFD18D9033F0}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "cpp-optparse", "..\Externals\cpp-optparse\cpp-optparse.vcxproj", "{C636D9D1-82FE-42B5-9987-63B7D4836341}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
@@ -230,6 +232,10 @@ Global
 		{D178061B-84D3-44F9-BEED-EFD18D9033F0}.Debug|x64.Build.0 = Debug|x64
 		{D178061B-84D3-44F9-BEED-EFD18D9033F0}.Release|x64.ActiveCfg = Release|x64
 		{D178061B-84D3-44F9-BEED-EFD18D9033F0}.Release|x64.Build.0 = Release|x64
+		{C636D9D1-82FE-42B5-9987-63B7D4836341}.Debug|x64.ActiveCfg = Debug|x64
+		{C636D9D1-82FE-42B5-9987-63B7D4836341}.Debug|x64.Build.0 = Debug|x64
+		{C636D9D1-82FE-42B5-9987-63B7D4836341}.Release|x64.ActiveCfg = Release|x64
+		{C636D9D1-82FE-42B5-9987-63B7D4836341}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -266,5 +272,6 @@ Global
 		{BB00605C-125F-4A21-B33B-7BF418322DCB} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 		{570215B7-E32F-4438-95AE-C8D955F9FCA3} = {AAD1BCD6-9804-44A5-A5FC-4782EA00E9D4}
 		{D178061B-84D3-44F9-BEED-EFD18D9033F0} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
+		{C636D9D1-82FE-42B5-9987-63B7D4836341} = {87ADDFF9-5768-4DA2-A33B-2477593D6677}
 	EndGlobalSection
 EndGlobal
