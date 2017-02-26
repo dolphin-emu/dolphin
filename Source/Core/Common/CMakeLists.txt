@@ -1,6 +1,9 @@
 set(SRCS Analytics.cpp
          CDUtils.cpp
          ColorUtil.cpp
+         Config/Config.cpp
+         Config/Layer.cpp
+         Config/Section.cpp
          ENetUtil.cpp
          FileSearch.cpp
          FileUtil.cpp
