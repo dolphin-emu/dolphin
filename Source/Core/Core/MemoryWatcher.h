@@ -24,9 +24,6 @@ public:
   ~MemoryWatcher();
   void Step();
 
-  static void Init();
-  static void Shutdown();
-
 private:
   bool LoadAddresses(const std::string& path);
   bool OpenSocket(const std::string& path);

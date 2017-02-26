@@ -68,6 +68,7 @@ std::string GetStateFileName();
 void SetStateFileName(const std::string& val);
 
 void FrameUpdateOnCPUThread();
+void FrameAdvance();
 
 bool ShouldSkipFrame(int skipped);
 void VideoThrottle();
