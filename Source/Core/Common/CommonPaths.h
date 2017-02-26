@@ -126,6 +126,7 @@
 
 #define WII_SETTING "setting.txt"
 
+//Source code is at https://github.com/FIX94/Nintendont/blob/master/codehandler/codehandleronly.s
 #define GECKO_CODE_HANDLER "codehandleronly.bin"
 
 // Subdirs in Sys
