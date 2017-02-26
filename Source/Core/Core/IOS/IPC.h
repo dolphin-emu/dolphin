@@ -24,6 +24,7 @@ namespace IOS
 namespace ES
 {
 class TMDReader;
+class TicketReader;
 }
 
 namespace HLE
@@ -75,7 +76,7 @@ void DoState(PointerWrap& p);
 
 // Set default content file
 void SetDefaultContentFile(const std::string& file_name);
-void ES_DIVerify(const ES::TMDReader& tmd);
+void ES_DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket);
 
 void SDIO_EventNotify();
 

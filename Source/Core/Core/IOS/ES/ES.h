@@ -40,15 +40,13 @@ public:
   // Internal implementation of the ES_DECRYPT ioctlv.
   void DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output);
 
-  void OpenInternal();
-
   void DoState(PointerWrap& p) override;
 
   ReturnCode Open(const OpenRequest& request) override;
   void Close() override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
-  static u32 ES_DIVerify(const IOS::ES::TMDReader& tmd);
+  static s32 DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket);
 
   // This should only be cleared on power reset
   static std::string m_ContentFile;
@@ -211,8 +209,20 @@ private:
   ContentAccessMap m_ContentAccessMap;
 
   std::vector<u64> m_TitleIDs;
-  u64 m_TitleID = -1;
   u32 m_AccessIdentID = 0;
+
+  // Shared across all ES instances.
+  static struct TitleContext
+  {
+    void Clear();
+    void DoState(PointerWrap& p);
+    void Update(const DiscIO::CNANDContentLoader& content_loader);
+    void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
+
+    IOS::ES::TicketReader ticket;
+    IOS::ES::TMDReader tmd;
+    bool active = false;
+  } m_title_context;
 
   // For title installation (ioctls IOCTL_ES_ADDTITLE*).
   IOS::ES::TMDReader m_addtitle_tmd;

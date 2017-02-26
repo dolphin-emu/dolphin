@@ -311,6 +311,11 @@ bool CBoot::EmulatedBS2_Wii()
   if (DVDInterface::GetVolume().GetVolumeType() != DiscIO::Platform::WII_DISC)
     return false;
 
+  const IOS::ES::TMDReader tmd = DVDInterface::GetVolume().GetTMD();
+
+  if (!SetupWiiMemory(tmd.GetIOSId()))
+    return false;
+
   // This is some kind of consistency check that is compared to the 0x00
   // values as the game boots. This location keeps the 4 byte ID for as long
   // as the game is running. The 6 byte ID at 0x00 is overwritten sometime
@@ -346,11 +351,6 @@ bool CBoot::EmulatedBS2_Wii()
 
   PowerPC::ppcState.gpr[1] = 0x816ffff0;  // StackPointer
 
-  IOS::ES::TMDReader tmd = DVDInterface::GetVolume().GetTMD();
-
-  if (!SetupWiiMemory(tmd.GetIOSId()))
-    return false;
-
   // Execute the apploader
   const u32 apploader_offset = 0x2440;  // 0x1c40;
 
@@ -383,11 +383,7 @@ bool CBoot::EmulatedBS2_Wii()
   PowerPC::ppcState.gpr[3] = 0x81300000;
   RunFunction(iAppLoaderInit);
 
-  // Let the apploader load the exe to memory. At this point I get an unknown IPC command
-  // (command zero) when I load Wii Sports or other games a second time. I don't notice
-  // any side effects however. It's a little disconcerting however that Start after Stop
-  // behaves differently than the first Start after starting Dolphin. It means something
-  // was not reset correctly.
+  // Let the apploader load the exe to memory
   DEBUG_LOG(BOOT, "Run iAppLoaderMain");
   do
   {
@@ -412,6 +408,8 @@ bool CBoot::EmulatedBS2_Wii()
 
   // Load patches and run startup patches
   PatchEngine::LoadPatches();
+
+  IOS::HLE::ES_DIVerify(tmd, DVDInterface::GetVolume().GetTicket());
 
   // return
   PC = PowerPC::ppcState.gpr[3];

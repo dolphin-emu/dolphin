@@ -39,6 +39,7 @@ namespace HLE
 namespace Device
 {
 std::string ES::m_ContentFile;
+ES::TitleContext ES::m_title_context;
 
 constexpr u8 s_key_sd[0x10] = {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08,
                                0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
@@ -65,11 +66,58 @@ constexpr const u8* s_key_table[11] = {
 
 ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
+  m_title_context.Clear();
+
+  m_TitleIDs.clear();
+  DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  uid_sys.GetTitleIDs(m_TitleIDs);
+
+  // uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
+  // m_TitleIDsOwned.clear();
+  // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
+}
+
+void ES::TitleContext::Clear()
+{
+  ticket.SetBytes({});
+  tmd.SetBytes({});
+  active = false;
+}
+
+void ES::TitleContext::DoState(PointerWrap& p)
+{
+  ticket.DoState(p);
+  tmd.DoState(p);
+  p.Do(active);
+}
+
+void ES::TitleContext::Update(const DiscIO::CNANDContentLoader& content_loader)
+{
+  if (!content_loader.IsValid())
+    return;
+  Update(content_loader.GetTMD(), content_loader.GetTicket());
+}
+
+void ES::TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
+{
+  if (!tmd_.IsValid() || !ticket_.IsValid())
+  {
+    ERROR_LOG(IOS_ES, "TMD or ticket is not valid -- refusing to update title context");
+    return;
+  }
+
+  ticket = ticket_;
+  tmd = tmd_;
+  active = true;
 }
 
 void ES::LoadWAD(const std::string& _rContentFile)
 {
   m_ContentFile = _rContentFile;
+  // XXX: Ideally, this should be done during a launch, but because we support launching WADs
+  // without installing them (which is a bit of a hack), we have to do this manually here.
+  const auto& content_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
+  m_title_context.Update(content_loader);
 }
 
 void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output)
@@ -82,6 +130,8 @@ void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, 
 
 bool ES::LaunchTitle(u64 title_id, bool skip_reload) const
 {
+  m_title_context.Clear();
+
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
   // ES_Launch should probably reset the whole state, which at least means closing all open files.
@@ -120,47 +170,18 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload) const
     return LaunchTitle(required_ios);
   }
 
+  m_title_context.Update(content_loader);
   SetDefaultContentFile(Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT));
   return BootstrapPPC(content_loader);
-}
-
-void ES::OpenInternal()
-{
-  auto& contentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
-
-  // check for cd ...
-  if (contentLoader.IsValid())
-  {
-    m_TitleID = contentLoader.GetTMD().GetTitleId();
-
-    m_TitleIDs.clear();
-    DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
-    uid_sys.GetTitleIDs(m_TitleIDs);
-    // uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
-    // m_TitleIDsOwned.clear();
-    // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
-  }
-  else if (DVDInterface::VolumeIsValid())
-  {
-    // blindly grab the titleID from the disc - it's unencrypted at:
-    // offset 0x0F8001DC and 0x0F80044C
-    DVDInterface::GetVolume().GetTitleID(&m_TitleID);
-  }
-  else
-  {
-    m_TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
-  }
-
-  INFO_LOG(IOS_ES, "Set default title to %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
 }
 
 void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
   p.Do(m_ContentFile);
-  OpenInternal();
   p.Do(m_AccessIdentID);
   p.Do(m_TitleIDs);
+  m_title_context.DoState(p);
 
   m_addtitle_tmd.DoState(p);
   p.Do(m_addtitle_content_id);
@@ -197,8 +218,6 @@ void ES::DoState(PointerWrap& p)
 
 ReturnCode ES::Open(const OpenRequest& request)
 {
-  OpenInternal();
-
   if (m_is_active)
     INFO_LOG(IOS_ES, "Device was re-opened.");
   return Device::Open(request);
@@ -206,9 +225,8 @@ ReturnCode ES::Open(const OpenRequest& request)
 
 void ES::Close()
 {
+  // XXX: does IOS really clear the content access map here?
   m_ContentAccessMap.clear();
-  m_TitleIDs.clear();
-  m_TitleID = -1;
   m_AccessIdentID = 0;
 
   INFO_LOG(IOS_ES, "ES: Close");
@@ -628,7 +646,10 @@ IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
   u32 Index = Memory::Read_U32(request.in_vectors[0].address);
 
-  s32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
+  if (!m_title_context.active)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  s32 CFD = OpenTitleContent(m_AccessIdentID++, m_title_context.tmd.GetTitleId(), Index);
   INFO_LOG(IOS_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
 
   return GetDefaultReply(CFD);
@@ -771,8 +792,13 @@ IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  Memory::Write_U64(m_TitleID, request.io_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
+  if (!m_title_context.active)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  const u64 title_id = m_title_context.tmd.GetTitleId();
+  Memory::Write_U64(title_id, request.io_vectors[0].address);
+  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", static_cast<u32>(title_id >> 32),
+           static_cast<u32>(title_id));
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -1327,8 +1353,12 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
   u32 data_size = request.in_vectors[0].size;
   u8* sig_out = Memory::GetPointer(request.io_vectors[0].address);
 
+  if (!m_title_context.active)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   const EcWii& ec = EcWii::GetInstance();
-  MakeAPSigAndCert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.GetNGPriv(), ec.GetNGID());
+  MakeAPSigAndCert(sig_out, ap_cert_out, m_title_context.tmd.GetTitleId(), data, data_size,
+                   ec.GetNGPriv(), ec.GetNGID());
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -1373,28 +1403,27 @@ const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id) const
   // the WAD
   // need not be installed in the NAND, but it could be opened directly from a WAD file anywhere on
   // disk.
-  if (m_TitleID == title_id && !m_ContentFile.empty())
+  if (m_title_context.active && m_title_context.tmd.GetTitleId() == title_id &&
+      !m_ContentFile.empty())
     return DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
 
   return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
-u32 ES::ES_DIVerify(const IOS::ES::TMDReader& tmd)
+s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
-  if (!tmd.IsValid())
-    return -1;
+  m_title_context.Clear();
 
-  u64 title_id = 0xDEADBEEFDEADBEEFull;
-  u64 tmd_title_id = tmd.GetTitleId();
+  if (!tmd.IsValid() || !ticket.IsValid())
+    return ES_PARAMETER_SIZE_OR_ALIGNMENT;
 
-  DVDInterface::GetVolume().GetTitleID(&title_id);
-  if (title_id != tmd_title_id)
-    return -1;
+  if (tmd.GetTitleId() != ticket.GetTitleId())
+    return ES_PARAMETER_SIZE_OR_ALIGNMENT;
 
-  std::string tmd_path = Common::GetTMDFileName(tmd_title_id, Common::FROM_SESSION_ROOT);
+  std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
 
   File::CreateFullPath(tmd_path);
-  File::CreateFullPath(Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT));
+  File::CreateFullPath(Common::GetTitleDataPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT));
 
   if (!File::Exists(tmd_path))
   {
@@ -1404,11 +1433,13 @@ u32 ES::ES_DIVerify(const IOS::ES::TMDReader& tmd)
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
   DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
-  uid_sys.AddTitle(tmd_title_id);
+  uid_sys.AddTitle(tmd.GetTitleId());
   // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
   // clear the cache to avoid content access mismatches.
   DiscIO::CNANDContentManager::Access().ClearCache();
-  return 0;
+
+  m_title_context.Update(tmd, ticket);
+  return IPC_SUCCESS;
 }
 }  // namespace Device
 }  // namespace HLE

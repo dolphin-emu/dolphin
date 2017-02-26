@@ -160,6 +160,7 @@ public:
   void SetBytes(std::vector<u8>&& bytes);
 
   bool IsValid() const;
+  void DoState(PointerWrap& p);
 
   const std::vector<u8>& GetRawTicket() const;
   u32 GetNumberOfTickets() const;

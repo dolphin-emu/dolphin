@@ -212,6 +212,11 @@ bool TicketReader::IsValid() const
   return true;
 }
 
+void TicketReader::DoState(PointerWrap& p)
+{
+  p.Do(m_bytes);
+}
+
 u32 TicketReader::GetNumberOfTickets() const
 {
   return static_cast<u32>(m_bytes.size() / (GetOffset() + sizeof(Ticket)));
