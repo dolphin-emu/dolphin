@@ -185,6 +185,8 @@ void TitleContext::UpdateRunningGame() const
   PatchEngine::Shutdown();
   PatchEngine::LoadPatches();
   HiresTexture::Update();
+
+  NOTICE_LOG(IOS_ES, "Active title: %016" PRIx64, tmd.GetTitleId());
 }
 
 void ES::LoadWAD(const std::string& _rContentFile)
@@ -194,6 +196,7 @@ void ES::LoadWAD(const std::string& _rContentFile)
   // without installing them (which is a bit of a hack), we have to do this manually here.
   const auto& content_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(s_content_file);
   s_title_context.Update(content_loader);
+  INFO_LOG(IOS_ES, "LoadWAD: Title context changed: %016" PRIx64, s_title_context.tmd.GetTitleId());
 }
 
 void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output)
@@ -207,6 +210,7 @@ void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, 
 bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 {
   s_title_context.Clear();
+  INFO_LOG(IOS_ES, "ES_Launch: Title context changed: (none)");
 
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
@@ -247,6 +251,8 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
   }
 
   s_title_context.Update(content_loader);
+  INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64,
+           s_title_context.tmd.GetTitleId());
   return BootstrapPPC(content_loader);
 }
 
@@ -1488,6 +1494,7 @@ const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
 s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
   s_title_context.Clear();
+  INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: (none)");
 
   if (!tmd.IsValid() || !ticket.IsValid())
     return ES_PARAMETER_SIZE_OR_ALIGNMENT;
@@ -1514,6 +1521,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   DiscIO::CNANDContentManager::Access().ClearCache();
 
   s_title_context.Update(tmd, ticket);
+  INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
   return IPC_SUCCESS;
 }
 }  // namespace Device
