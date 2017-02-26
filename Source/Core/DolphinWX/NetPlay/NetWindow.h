@@ -14,6 +14,7 @@
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
 
+#ifdef _WIN32
 // HACK: wxWidgets headers don't play well with some of the macros defined in Windows
 // headers and perform their own magic to fix things, as long as they're included entirely
 // either before or after any Windows headers.
@@ -22,6 +23,7 @@
 // include ENet headers, which leak Windows header macros. To fix this, explicitly tell
 // wxWidgets here that it needs to re-clean macros.
 #include <wx/msw/winundef.h>
+#endif
 
 class CGameListCtrl;
 class MD5Dialog;
