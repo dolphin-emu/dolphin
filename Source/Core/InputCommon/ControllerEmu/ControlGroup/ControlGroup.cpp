@@ -11,6 +11,8 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 #include "InputCommon/ControllerEmu/ControllerEmu.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace ControllerEmu
 {
@@ -26,8 +28,6 @@ ControlGroup::ControlGroup(const std::string& name_, const std::string& ui_name_
 }
 
 ControlGroup::~ControlGroup() = default;
-
-ControlGroup::BooleanSetting::~BooleanSetting() = default;
 
 void ControlGroup::LoadConfig(IniFile::Section* sec, const std::string& defdev,
                               const std::string& base)

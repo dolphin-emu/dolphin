@@ -36,6 +36,9 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Force.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerEmu/Setting/BackgroundInputSetting.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace
 {
@@ -280,7 +283,7 @@ Wiimote::Wiimote(const unsigned int index)
   m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
 
   m_extension->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(_trans("Motion Plus"), false));
+      std::make_unique<ControllerEmu::BooleanSetting>(_trans("Motion Plus"), false));
 
   // rumble
   groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
@@ -294,23 +297,17 @@ Wiimote::Wiimote(const unsigned int index)
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BackgroundInputSetting>(
-          _trans("Background Input")));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
-          "Sideways Wiimote", _trans("Sideways Wii Remote"), false));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
-          "Upright Wiimote", _trans("Upright Wii Remote"), false));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::BooleanSetting>(
-          _trans("Iterative Input"), false, ControllerEmu::ControlGroup::SettingType::VIRTUAL));
+      std::make_unique<ControllerEmu::BackgroundInputSetting>(_trans("Background Input")));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      "Sideways Wiimote", _trans("Sideways Wii Remote"), false));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      "Upright Wiimote", _trans("Upright Wii Remote"), false));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
   m_options->numeric_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::NumericSetting>(_trans("Speaker Pan"), 0, -127,
-                                                                    127));
+      std::make_unique<ControllerEmu::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
   m_options->numeric_settings.emplace_back(
-      std::make_unique<ControllerEmu::ControlGroup::NumericSetting>(_trans("Battery"), 95.0 / 100,
-                                                                    0, 255));
+      std::make_unique<ControllerEmu::NumericSetting>(_trans("Battery"), 95.0 / 100, 0, 255));
 
   // hotkeys
   groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
