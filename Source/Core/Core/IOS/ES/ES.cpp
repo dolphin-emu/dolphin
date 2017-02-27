@@ -422,6 +422,9 @@ IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
   if (!WriteTMD(m_addtitle_tmd))
     return GetDefaultReply(ES_WRITE_FAILURE);
 
+  DiscIO::cUIDsys uid_sys{Common::FROM_CONFIGURED_ROOT};
+  uid_sys.AddTitle(m_addtitle_tmd.GetTitleId());
+
   return GetDefaultReply(IPC_SUCCESS);
 }
 
