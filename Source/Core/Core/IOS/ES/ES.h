@@ -34,6 +34,7 @@ public:
   ES(u32 device_id, const std::string& device_name);
 
   void LoadWAD(const std::string& _rContentFile);
+  bool LaunchTitle(u64 title_id, bool skip_reload = false) const;
 
   // Internal implementation of the ES_DECRYPT ioctlv.
   void DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output);
@@ -190,9 +191,11 @@ private:
   IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
   IPCCommandResult GetOwnedTitleCount(const IOCtlVRequest& request);
 
-  void ResetAfterLaunch(u64 ios_to_load) const;
+  bool LaunchIOS(u64 ios_title_id) const;
+  bool LaunchPPCTitle(u64 title_id, bool skip_reload) const;
 
-  const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
+  const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id) const;
+
   u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 
   using CContentAccessMap = std::map<u32, SContentAccess>;

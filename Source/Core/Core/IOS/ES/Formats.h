@@ -18,6 +18,19 @@ namespace IOS
 {
 namespace ES
 {
+enum class TitleType : u32
+{
+  System = 0x00000001,
+  Game = 0x00010000,
+  Channel = 0x00010001,
+  SystemChannel = 0x00010002,
+  GameWithChannel = 0x00010004,
+  DLC = 0x00010005,
+  HiddenChannel = 0x00010008,
+};
+
+bool IsTitleType(u64 title_id, TitleType title_type);
+
 #pragma pack(push, 4)
 struct TMDHeader
 {

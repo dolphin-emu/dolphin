@@ -14,6 +14,11 @@
 
 class PointerWrap;
 
+namespace DiscIO
+{
+class CNANDContentLoader;
+}
+
 namespace IOS
 {
 namespace ES
@@ -57,9 +62,13 @@ void Reset(bool clear_devices = false);
 // Shutdown
 void Shutdown();
 
-// Reload IOS (to a possibly different version); set up memory and devices.
+// Reload IOS (to a possibly different version); write the new version to 0x3140 and set up devices.
 bool Reload(u64 ios_title_id);
 u32 GetVersion();
+
+bool BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader);
+// This sets a title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
+void SetTitleToLaunch(u64 title_id);
 
 // Do State
 void DoState(PointerWrap& p);
