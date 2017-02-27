@@ -323,7 +323,13 @@ void AVIDump::CloseVideoFile()
   av_frame_free(&s_scaled_frame);
 
   avcodec_free_context(&s_codec_context);
+
+  if (s_format_context)
+  {
+    avio_closep(&s_format_context->pb);
+  }
   avformat_free_context(s_format_context);
+  s_format_context = nullptr;
 
   if (s_sws_context)
   {
