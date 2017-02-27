@@ -69,6 +69,7 @@ struct VideoConfig final
   bool bCrop;  // Aspect ratio controls.
   bool bUseXFB;
   bool bUseRealXFB;
+  bool bShaderCache;
 
   // Enhancements
   int iMultisamples;

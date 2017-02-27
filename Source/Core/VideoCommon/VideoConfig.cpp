@@ -89,6 +89,7 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("EnableValidationLayer", &bEnableValidationLayer, false);
   settings->Get("BackendMultithreading", &bBackendMultithreading, true);
   settings->Get("CommandBufferExecuteInterval", &iCommandBufferExecuteInterval, 100);
+  settings->Get("ShaderCache", &bShaderCache, true);
 
   settings->Get("SWZComploc", &bZComploc, true);
   settings->Get("SWZFreeze", &bZFreeze, true);
@@ -307,6 +308,7 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("EnableValidationLayer", bEnableValidationLayer);
   settings->Set("BackendMultithreading", bBackendMultithreading);
   settings->Set("CommandBufferExecuteInterval", iCommandBufferExecuteInterval);
+  settings->Set("ShaderCache", bShaderCache);
 
   settings->Set("SWZComploc", bZComploc);
   settings->Set("SWZFreeze", bZFreeze);

@@ -69,29 +69,32 @@ void ShaderCache::Init()
   s_last_pixel_shader_uid = {};
   s_last_vertex_shader_uid = {};
 
-  // Ensure shader cache directory exists..
-  std::string shader_cache_path = File::GetUserPath(D_SHADERCACHE_IDX);
+  if (g_ActiveConfig.bShaderCache)
+  {
+    // Ensure shader cache directory exists..
+    std::string shader_cache_path = File::GetUserPath(D_SHADERCACHE_IDX);
 
-  if (!File::Exists(shader_cache_path))
-    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+    if (!File::Exists(shader_cache_path))
+      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-  std::string title_game_id = SConfig::GetInstance().m_strGameID.c_str();
+    std::string title_game_id = SConfig::GetInstance().m_strGameID.c_str();
 
-  std::string gs_cache_filename =
-      StringFromFormat("%sdx11-%s-gs.cache", shader_cache_path.c_str(), title_game_id.c_str());
-  std::string ps_cache_filename =
-      StringFromFormat("%sdx11-%s-ps.cache", shader_cache_path.c_str(), title_game_id.c_str());
-  std::string vs_cache_filename =
-      StringFromFormat("%sdx11-%s-vs.cache", shader_cache_path.c_str(), title_game_id.c_str());
+    std::string gs_cache_filename =
+        StringFromFormat("%sdx11-%s-gs.cache", shader_cache_path.c_str(), title_game_id.c_str());
+    std::string ps_cache_filename =
+        StringFromFormat("%sdx11-%s-ps.cache", shader_cache_path.c_str(), title_game_id.c_str());
+    std::string vs_cache_filename =
+        StringFromFormat("%sdx11-%s-vs.cache", shader_cache_path.c_str(), title_game_id.c_str());
 
-  ShaderCacheInserter<GeometryShaderUid, GsBytecodeCache, &s_gs_bytecode_cache> gs_inserter;
-  s_gs_disk_cache.OpenAndRead(gs_cache_filename, gs_inserter);
+    ShaderCacheInserter<GeometryShaderUid, GsBytecodeCache, &s_gs_bytecode_cache> gs_inserter;
+    s_gs_disk_cache.OpenAndRead(gs_cache_filename, gs_inserter);
 
-  ShaderCacheInserter<PixelShaderUid, PsBytecodeCache, &s_ps_bytecode_cache> ps_inserter;
-  s_ps_disk_cache.OpenAndRead(ps_cache_filename, ps_inserter);
+    ShaderCacheInserter<PixelShaderUid, PsBytecodeCache, &s_ps_bytecode_cache> ps_inserter;
+    s_ps_disk_cache.OpenAndRead(ps_cache_filename, ps_inserter);
 
-  ShaderCacheInserter<VertexShaderUid, VsBytecodeCache, &s_vs_bytecode_cache> vs_inserter;
-  s_vs_disk_cache.OpenAndRead(vs_cache_filename, vs_inserter);
+    ShaderCacheInserter<VertexShaderUid, VsBytecodeCache, &s_vs_bytecode_cache> vs_inserter;
+    s_vs_disk_cache.OpenAndRead(vs_cache_filename, vs_inserter);
+  }
 
   SETSTAT(stats.numPixelShadersAlive, static_cast<int>(s_ps_bytecode_cache.size()));
   SETSTAT(stats.numPixelShadersCreated, static_cast<int>(s_ps_bytecode_cache.size()));
