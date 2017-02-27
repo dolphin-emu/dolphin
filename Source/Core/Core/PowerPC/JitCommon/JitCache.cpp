@@ -315,8 +315,14 @@ void JitBaseBlockCache::LinkBlock(JitBlock& block)
 
 void JitBaseBlockCache::UnlinkBlock(const JitBlock& block)
 {
-  auto ppp = links_to.equal_range(block.effectiveAddress);
+  // Unlink all exits of this block.
+  for (auto& e : block.linkData)
+  {
+    WriteLinkBlock(e, nullptr);
+  }
 
+  // Unlink all exits of other blocks which points to this block
+  auto ppp = links_to.equal_range(block.effectiveAddress);
   for (auto iter = ppp.first; iter != ppp.second; ++iter)
   {
     JitBlock& sourceBlock = *iter->second;
