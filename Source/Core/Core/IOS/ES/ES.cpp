@@ -831,12 +831,7 @@ IPCCommandResult ES::GetViewCount(const IOCtlVRequest& request)
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
   size_t view_count = 0;
-  if (TitleID >> 32 == 0x00000001 && TitleID != TITLEID_SYSMENU)
-  {
-    // Fake a ticket view to make IOS reload work.
-    view_count = 1;
-  }
-  else if (Loader.IsValid() && Loader.GetTicket().IsValid())
+  if (Loader.IsValid() && Loader.GetTicket().IsValid())
   {
     view_count = Loader.GetTicket().GetNumberOfTickets();
   }
@@ -858,20 +853,7 @@ IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
 
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-  if (TitleID >> 32 == 0x00000001 && TitleID != TITLEID_SYSMENU)
-  {
-    // For IOS titles, the ticket view isn't normally parsed by either the
-    // SDK or libogc, just passed to LaunchTitle, so this
-    // shouldn't matter at all.  Just fill out some fields just
-    // to be on the safe side.
-    u32 Address = request.io_vectors[0].address;
-    Memory::Memset(Address, 0, 0xD8);
-    Memory::Write_U64(TitleID, Address + 4 + (0x1dc - 0x1d0));  // title ID
-    Memory::Write_U16(0xffff, Address + 4 + (0x1e4 - 0x1d0));   // unnnown
-    Memory::Write_U32(0xff00, Address + 4 + (0x1ec - 0x1d0));   // access mask
-    Memory::Memset(Address + 4 + (0x222 - 0x1d0), 0xff, 0x20);  // content permissions
-  }
-  else if (Loader.IsValid() && Loader.GetTicket().IsValid())
+  if (Loader.IsValid() && Loader.GetTicket().IsValid())
   {
     u32 number_of_views = std::min(maxViews, Loader.GetTicket().GetNumberOfTickets());
     for (u32 view = 0; view < number_of_views; ++view)
