@@ -14,6 +14,7 @@
 #include "Common/ENetUtil.h"
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"

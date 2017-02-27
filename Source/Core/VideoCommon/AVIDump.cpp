@@ -6,6 +6,7 @@
 #define __STDC_CONSTANT_MACROS 1
 #endif
 
+#include <sstream>
 #include <string>
 
 extern "C" {
@@ -18,6 +19,7 @@ extern "C" {
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/HW/SystemTimers.h"
