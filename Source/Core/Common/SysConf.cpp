@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
@@ -33,9 +34,6 @@ SysConf::~SysConf()
 
 void SysConf::Clear()
 {
-  for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
-    delete[] i->data;
-
   m_Entries.clear();
 }
 
@@ -107,7 +105,7 @@ bool SysConf::LoadFromFileInternal(File::IOFile&& file)
     SSysConfEntry tmpEntry;
     file.ReadArray(&tmpEntry.offset, 1);
     tmpEntry.offset = Common::swap16(tmpEntry.offset);
-    m_Entries.push_back(tmpEntry);
+    m_Entries.push_back(std::move(tmpEntry));
   }
 
   // Last offset is an invalid entry. We ignore it throughout this class
@@ -126,7 +124,7 @@ bool SysConf::LoadFromFileInternal(File::IOFile&& file)
     file.ReadArray(curEntry.name, curEntry.nameLength);
     curEntry.name[curEntry.nameLength] = '\0';
     // Get length of data
-    curEntry.data = nullptr;
+    curEntry.data.clear();
     curEntry.dataLength = 0;
     switch (curEntry.type)
     {
@@ -169,8 +167,8 @@ bool SysConf::LoadFromFileInternal(File::IOFile&& file)
     // Fill in the actual data
     if (curEntry.dataLength)
     {
-      curEntry.data = new u8[curEntry.dataLength];
-      file.ReadArray(curEntry.data, curEntry.dataLength);
+      curEntry.data.resize(curEntry.dataLength);
+      file.ReadArray(curEntry.data.data(), curEntry.dataLength);
     }
   }
 
@@ -186,8 +184,7 @@ static unsigned int create_item(SSysConfEntry& item, SysconfType type, const std
   item.nameLength = (u8)(name.length());
   strncpy(item.name, name.c_str(), 32);
   item.dataLength = data_length;
-  item.data = new u8[data_length];
-  memset(item.data, 0, data_length);
+  item.data.resize(data_length);
   switch (type)
   {
   case Type_BigArray:
@@ -235,7 +232,7 @@ void SysConf::GenerateSysConf()
   // IPL.NIK
   current_offset += create_item(items[2], Type_SmallArray, "IPL.NIK", 0x15, current_offset);
   const u8 console_nick[14] = {0, 'd', 0, 'o', 0, 'l', 0, 'p', 0, 'h', 0, 'i', 0, 'n'};
-  memcpy(items[2].data, console_nick, 14);
+  memcpy(items[2].data.data(), console_nick, 14);
 
   // IPL.AR
   current_offset += create_item(items[3], Type_Byte, "IPL.AR", 1, current_offset);
@@ -358,19 +355,19 @@ void SysConf::GenerateSysConf()
     {
       const u16 tmpDataLength = Common::swap16(item.dataLength);
       g.WriteBytes(&tmpDataLength, 2);
-      g.WriteBytes(item.data, item.dataLength);
+      g.WriteBytes(item.data.data(), item.dataLength);
       g.WriteBytes(&null_byte, 1);
     }
     break;
 
     case Type_SmallArray:
       g.WriteBytes(&item.dataLength, 1);
-      g.WriteBytes(item.data, item.dataLength);
+      g.WriteBytes(item.data.data(), item.dataLength);
       g.WriteBytes(&null_byte, 1);
       break;
 
     default:
-      g.WriteBytes(item.data, item.dataLength);
+      g.WriteBytes(item.data.data(), item.dataLength);
       break;
     }
   }
@@ -410,7 +407,7 @@ bool SysConf::SaveToFile(const std::string& filename)
     }
 
     // Now write the actual data
-    f.WriteBytes(i->data, i->dataLength);
+    f.WriteBytes(i->data.data(), i->dataLength);
   }
 
   return f.IsGood();
