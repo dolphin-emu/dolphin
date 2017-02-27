@@ -78,7 +78,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   if (!ContentLoader.IsValid())
     return false;
 
-  u64 titleID = ContentLoader.GetTitleID();
+  u64 titleID = ContentLoader.GetTMD().GetTitleId();
   // create data directory
   File::CreateFullPath(Common::GetTitleDataPath(titleID, Common::FROM_SESSION_ROOT));
 
@@ -86,12 +86,11 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
     IOS::HLE::CreateVirtualFATFilesystem();
   // setup Wii memory
 
-  u64 ios_title_id = 0x0000000100000000ULL | ContentLoader.GetIosVersion();
-  if (!SetupWiiMemory(ios_title_id))
+  if (!SetupWiiMemory(ContentLoader.GetTMD().GetIOSId()))
     return false;
   // DOL
   const DiscIO::SNANDContent* pContent =
-      ContentLoader.GetContentByIndex(ContentLoader.GetBootIndex());
+      ContentLoader.GetContentByIndex(ContentLoader.GetTMD().GetBootIndex());
   if (pContent == nullptr)
     return false;
 

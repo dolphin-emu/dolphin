@@ -79,6 +79,9 @@
     <ClInclude Include="Logging\LogManager.h">
       <Filter>Logging</Filter>
     </ClInclude>
+    <ClInclude Include="Crypto\AES.h">
+      <Filter>Crypto</Filter>
+    </ClInclude>
     <ClInclude Include="Crypto\ec.h">
       <Filter>Crypto</Filter>
     </ClInclude>
@@ -266,6 +269,9 @@
     <ClCompile Include="x64CPUDetect.cpp" />
     <ClCompile Include="x64Emitter.cpp" />
     <ClCompile Include="x64FPURoundMode.cpp" />
+    <ClCompile Include="Crypto\AES.cpp">
+      <Filter>Crypto</Filter>
+    </ClCompile>
     <ClCompile Include="Crypto\bn.cpp">
       <Filter>Crypto</Filter>
     </ClCompile>

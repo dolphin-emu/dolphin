@@ -16,6 +16,11 @@ class PointerWrap;
 
 namespace IOS
 {
+namespace ES
+{
+class TMDReader;
+}
+
 namespace HLE
 {
 namespace Device
@@ -61,7 +66,7 @@ void DoState(PointerWrap& p);
 
 // Set default content file
 void SetDefaultContentFile(const std::string& file_name);
-void ES_DIVerify(const std::vector<u8>& tmd);
+void ES_DIVerify(const ES::TMDReader& tmd);
 
 void SDIO_EventNotify();
 

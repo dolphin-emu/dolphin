@@ -23,6 +23,7 @@
 #include "Core/HW/DVDThread.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/MIOS.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -97,7 +98,7 @@ static std::vector<u8> GetMIOSBinary()
   if (!loader.IsValid())
     return {};
 
-  const auto* content = loader.GetContentByIndex(loader.GetBootIndex());
+  const auto* content = loader.GetContentByIndex(loader.GetTMD().GetBootIndex());
   if (!content)
     return {};
 

@@ -12,6 +12,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Core/IOS/ES/Formats.h"
 #include "DiscIO/Enums.h"
 
 namespace DiscIO
@@ -36,7 +37,7 @@ public:
   }
 
   virtual bool GetTitleID(u64*) const { return false; }
-  virtual std::vector<u8> GetTMD() const { return {}; }
+  virtual IOS::ES::TMDReader GetTMD() const { return {}; }
   virtual u64 PartitionOffsetToRawOffset(u64 offset) const { return offset; }
   virtual std::string GetGameID() const = 0;
   virtual std::string GetMakerID() const = 0;

@@ -50,7 +50,7 @@ private:
   u8 m_aes_key[0x10] = {};
   u8 m_aes_iv[0x10] = {};
 
-  TMDReader m_tmd;
+  IOS::ES::TMDReader m_tmd;
   std::string m_base_extract_path;
 
   ARCUnpacker m_arc_unpacker;

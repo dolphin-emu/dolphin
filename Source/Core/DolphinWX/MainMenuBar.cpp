@@ -12,6 +12,7 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
@@ -546,8 +547,8 @@ void MainMenuBar::RefreshWiiSystemMenuLabel() const
 
   if (sys_menu_loader.IsValid())
   {
-    const auto sys_menu_version = sys_menu_loader.GetTitleVersion();
-    const auto sys_menu_region = sys_menu_loader.GetCountryChar();
+    const u16 sys_menu_version = sys_menu_loader.GetTMD().GetTitleVersion();
+    const char sys_menu_region = DiscIO::GetSysMenuRegion(sys_menu_version);
     item->Enable();
     item->SetItemLabel(
         wxString::Format(_("Load Wii System Menu %u%c"), sys_menu_version, sys_menu_region));

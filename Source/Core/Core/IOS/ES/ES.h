@@ -46,7 +46,7 @@ public:
   void Close() override;
   IPCCommandResult IOCtlV(const IOCtlVRequest& request) override;
 
-  static u32 ES_DIVerify(const std::vector<u8>& tmd);
+  static u32 ES_DIVerify(const IOS::ES::TMDReader& tmd);
 
   // This should only be cleared on power reset
   static std::string m_ContentFile;
@@ -203,7 +203,7 @@ private:
   u32 m_AccessIdentID = 0;
 
   // For title installation (ioctls IOCTL_ES_ADDTITLE*).
-  TMDReader m_addtitle_tmd;
+  IOS::ES::TMDReader m_addtitle_tmd;
   u32 m_addtitle_content_id = 0xFFFFFFFF;
   std::vector<u8> m_addtitle_content_buffer;
 };
