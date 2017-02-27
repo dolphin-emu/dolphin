@@ -712,9 +712,6 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
   gpr.Start(js.gpa);
   fpr.Start(js.fpa);
 
-  if (!SConfig::GetInstance().bEnableDebugging)
-    js.downcountAmount += PatchEngine::GetSpeedhackCycles(em_address);
-
   // Translate instructions
   for (u32 i = 0; i < code_block.m_num_instructions; i++)
   {
@@ -724,12 +721,10 @@ void JitArm64::DoJit(u32 em_address, PPCAnalyst::CodeBuffer* code_buf, JitBlock*
     js.instructionsLeft = (code_block.m_num_instructions - 1) - i;
     const GekkoOPInfo* opinfo = ops[i].opinfo;
     js.downcountAmount += opinfo->numCycles;
+    js.isLastInstruction = i == (code_block.m_num_instructions - 1);
 
-    if (i == (code_block.m_num_instructions - 1))
-    {
-      // WARNING - cmp->branch merging will screw this up.
-      js.isLastInstruction = true;
-    }
+    if (!SConfig::GetInstance().bEnableDebugging)
+      js.downcountAmount += PatchEngine::GetSpeedhackCycles(js.compilerPC);
 
     // Gather pipe writes using a non-immediate address are discovered by profiling.
     bool gatherPipeIntCheck =
