@@ -11,6 +11,7 @@
 #include "Common/NandPaths.h"
 
 #include "Core/Boot/Boot.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/FS/FileIO.h"
 #include "Core/IOS/IPC.h"
 #include "Core/PatchEngine.h"
@@ -87,7 +88,7 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   if (!SetupWiiMemory(ContentLoader.GetTMD().GetIOSId()))
     return false;
 
-  IOS::HLE::SetDefaultContentFile(_pFilename);
+  IOS::HLE::Device::ES::LoadWAD(_pFilename);
   if (!IOS::HLE::BootstrapPPC(ContentLoader))
     return false;
 

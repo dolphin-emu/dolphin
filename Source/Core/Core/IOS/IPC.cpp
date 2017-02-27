@@ -737,18 +737,6 @@ bool BootstrapPPC(const DiscIO::CNANDContentLoader& content_loader)
   return true;
 }
 
-void SetDefaultContentFile(const std::string& file_name)
-{
-  std::lock_guard<std::mutex> lock(s_device_map_mutex);
-  s_es_handles[0]->LoadWAD(file_name);
-}
-
-// XXX: also pass certificate chains?
-void ES_DIVerify(const ES::TMDReader& tmd, const ES::TicketReader& ticket)
-{
-  Device::ES::DIVerify(tmd, ticket);
-}
-
 void SDIO_EventNotify()
 {
   // TODO: Potential race condition: If IsRunning() becomes false after

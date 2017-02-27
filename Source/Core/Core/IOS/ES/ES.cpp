@@ -1491,6 +1491,8 @@ const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
   return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
+// This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
+// used from the PowerPC (for unpatched IOSes anyway).
 s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
   s_title_context.Clear();

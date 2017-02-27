@@ -21,6 +21,7 @@
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/IPC.h"
 #include "Core/PatchEngine.h"
@@ -406,7 +407,7 @@ bool CBoot::EmulatedBS2_Wii()
   DEBUG_LOG(BOOT, "Run iAppLoaderClose");
   RunFunction(iAppLoaderClose);
 
-  IOS::HLE::ES_DIVerify(tmd, DVDInterface::GetVolume().GetTicket());
+  IOS::HLE::Device::ES::DIVerify(tmd, DVDInterface::GetVolume().GetTicket());
 
   // return
   PC = PowerPC::ppcState.gpr[3];
