@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <map>
 #include <memory>
 #include <string>
@@ -92,11 +93,11 @@ private:
     IOCTL_ES_SEEKCONTENT = 0x23,
     IOCTL_ES_OPENTITLECONTENT = 0x24,
     IOCTL_ES_LAUNCHBC = 0x25,
-    // IOCTL_ES_EXPORTTITLEINIT    = 0x26,
-    // IOCTL_ES_EXPORTCONTENTBEGIN = 0x27,
-    // IOCTL_ES_EXPORTCONTENTDATA  = 0x28,
-    // IOCTL_ES_EXPORTCONTENTEND   = 0x29,
-    // IOCTL_ES_EXPORTTITLEDONE    = 0x2A,
+    IOCTL_ES_EXPORTTITLEINIT = 0x26,
+    IOCTL_ES_EXPORTCONTENTBEGIN = 0x27,
+    IOCTL_ES_EXPORTCONTENTDATA = 0x28,
+    IOCTL_ES_EXPORTCONTENTEND = 0x29,
+    IOCTL_ES_EXPORTTITLEDONE = 0x2A,
     IOCTL_ES_ADDTMD = 0x2B,
     IOCTL_ES_ENCRYPT = 0x2C,
     IOCTL_ES_DECRYPT = 0x2D,
@@ -131,12 +132,11 @@ private:
     ES_HASH_SIZE_WRONG = -2014,  // HASH !=20
   };
 
-  struct SContentAccess
+  struct OpenedContent
   {
-    u32 m_Position;
-    u64 m_TitleID;
-    u16 m_Index;
-    u32 m_Size;
+    u64 m_title_id;
+    IOS::ES::Content m_content;
+    u32 m_position;
   };
 
   struct ecc_cert_t
@@ -153,6 +153,7 @@ private:
   };
 
   IPCCommandResult AddTicket(const IOCtlVRequest& request);
+  IPCCommandResult AddTMD(const IOCtlVRequest& request);
   IPCCommandResult AddTitleStart(const IOCtlVRequest& request);
   IPCCommandResult AddContentStart(const IOCtlVRequest& request);
   IPCCommandResult AddContentData(const IOCtlVRequest& request);
@@ -185,6 +186,13 @@ private:
   IPCCommandResult Decrypt(const IOCtlVRequest& request);
   IPCCommandResult Launch(const IOCtlVRequest& request);
   IPCCommandResult LaunchBC(const IOCtlVRequest& request);
+
+  IPCCommandResult ExportTitleInit(const IOCtlVRequest& request);
+  IPCCommandResult ExportContentBegin(const IOCtlVRequest& request);
+  IPCCommandResult ExportContentData(const IOCtlVRequest& request);
+  IPCCommandResult ExportContentEnd(const IOCtlVRequest& request);
+  IPCCommandResult ExportTitleDone(const IOCtlVRequest& request);
+
   IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
   IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
   IPCCommandResult Sign(const IOCtlVRequest& request);
@@ -199,8 +207,8 @@ private:
 
   u32 OpenTitleContent(u32 CFD, u64 TitleID, u16 Index);
 
-  using CContentAccessMap = std::map<u32, SContentAccess>;
-  CContentAccessMap m_ContentAccessMap;
+  using ContentAccessMap = std::map<u32, OpenedContent>;
+  ContentAccessMap m_ContentAccessMap;
 
   std::vector<u64> m_TitleIDs;
   u64 m_TitleID = -1;
@@ -210,6 +218,20 @@ private:
   IOS::ES::TMDReader m_addtitle_tmd;
   u32 m_addtitle_content_id = 0xFFFFFFFF;
   std::vector<u8> m_addtitle_content_buffer;
+
+  struct TitleExportContext
+  {
+    struct ExportContent
+    {
+      OpenedContent content;
+      std::array<u8, 16> iv{};
+    };
+
+    bool valid = false;
+    IOS::ES::TMDReader tmd;
+    std::vector<u8> title_key;
+    std::map<u32, ExportContent> contents;
+  } m_export_title_context;
 };
 }  // namespace Device
 }  // namespace HLE
