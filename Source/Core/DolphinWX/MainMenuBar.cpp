@@ -28,8 +28,6 @@ MainMenuBar::MainMenuBar(MenuType type, long style) : wxMenuBar{style}, m_type{t
 {
   BindEvents();
   AddMenus();
-
-  MainMenuBar::Refresh(false);
 }
 
 void MainMenuBar::Refresh(bool erase_background, const wxRect* rect)
