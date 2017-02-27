@@ -303,7 +303,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_GETVIEWS:
     return GetViews(request);
   case IOCTL_ES_GETTMDVIEWCNT:
-    return GetTMDViewCount(request);
+    return GetTMDViewSize(request);
   case IOCTL_ES_GETTMDVIEWS:
     return GetTMDViews(request);
   case IOCTL_ES_GETCONSUMPTION:
@@ -870,8 +870,7 @@ IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-// TODO: rename this to GetTMDViewSize. There is only one TMD, so the name doesn't make sense.
-IPCCommandResult ES::GetTMDViewCount(const IOCtlVRequest& request)
+IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
@@ -880,9 +879,10 @@ IPCCommandResult ES::GetTMDViewCount(const IOCtlVRequest& request)
 
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-  u32 view_size = 0;
-  if (Loader.IsValid())
-    view_size = static_cast<u32>(Loader.GetTMD().GetRawView().size());
+  if (!Loader.IsValid())
+    return GetDefaultReply(FS_ENOENT);
+
+  const u32 view_size = static_cast<u32>(Loader.GetTMD().GetRawView().size());
   Memory::Write_U32(view_size, request.io_vectors[0].address);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32),
@@ -903,14 +903,14 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffer size: %i",
            (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
-  if (Loader.IsValid())
-  {
-    const std::vector<u8> raw_view = Loader.GetTMD().GetRawView();
-    if (raw_view.size() != request.io_vectors[0].size)
-      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  if (!Loader.IsValid())
+    return GetDefaultReply(FS_ENOENT);
 
-    Memory::CopyToEmu(request.io_vectors[0].address, raw_view.data(), raw_view.size());
-  }
+  const std::vector<u8> raw_view = Loader.GetTMD().GetRawView();
+  if (raw_view.size() != request.io_vectors[0].size)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  Memory::CopyToEmu(request.io_vectors[0].address, raw_view.data(), raw_view.size());
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)", (u32)(TitleID >> 32),
            (u32)TitleID, MaxCount);
