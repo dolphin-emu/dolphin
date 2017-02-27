@@ -540,10 +540,11 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
 
 IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(0, 0))
+  if (!request.HasNumberOfValidVectors(0, 0) || !m_addtitle_tmd.IsValid())
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLEFINISH");
+  m_addtitle_tmd.SetBytes({});
   return GetDefaultReply(IPC_SUCCESS);
 }
 
