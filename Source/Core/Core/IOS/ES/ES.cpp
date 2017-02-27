@@ -516,12 +516,22 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
   mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, m_addtitle_content_buffer.size(), iv,
                         m_addtitle_content_buffer.data(), decrypted_data.data());
 
-  std::string path = StringFromFormat(
-      "%s%08x.app",
-      Common::GetTitleContentPath(m_addtitle_tmd.GetTitleId(), Common::FROM_SESSION_ROOT).c_str(),
-      m_addtitle_content_id);
+  std::string content_path;
+  if (content_info.type & 0x8000)
+  {
+    // Shared content.
+    DiscIO::CSharedContent shared_content{Common::FROM_SESSION_ROOT};
+    content_path = shared_content.AddSharedContent(content_info.sha1.data());
+  }
+  else
+  {
+    content_path = StringFromFormat(
+        "%s%08x.app",
+        Common::GetTitleContentPath(m_addtitle_tmd.GetTitleId(), Common::FROM_SESSION_ROOT).c_str(),
+        m_addtitle_content_id);
+  }
 
-  File::IOFile fp(path, "wb");
+  File::IOFile fp(content_path, "wb");
   fp.WriteBytes(decrypted_data.data(), content_info.size);
 
   m_addtitle_content_id = 0xFFFFFFFF;
