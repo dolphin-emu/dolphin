@@ -520,9 +520,8 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
                         m_addtitle_content_buffer.data(), decrypted_data.data());
 
   std::string content_path;
-  if (content_info.type & 0x8000)
+  if (content_info.IsShared())
   {
-    // Shared content.
     DiscIO::CSharedContent shared_content{Common::FROM_SESSION_ROOT};
     content_path = shared_content.AddSharedContent(content_info.sha1.data());
   }
