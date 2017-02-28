@@ -31,7 +31,7 @@ public:
   virtual bool IsInput() const = 0;
 
   int BoundCount() const;
-  ciface::ExpressionParser::ExpressionParseStatus GetParseStatus() const;
+  ciface::ExpressionParser::ParseStatus GetParseStatus() const;
   void UpdateReference(const ciface::Core::DeviceContainer& devices,
                        const ciface::Core::DeviceQualifier& default_device);
 
@@ -41,7 +41,7 @@ public:
 protected:
   ControlReference();
   std::unique_ptr<ciface::ExpressionParser::Expression> m_parsed_expression;
-  ciface::ExpressionParser::ExpressionParseStatus m_parse_status;
+  ciface::ExpressionParser::ParseStatus m_parse_status;
 };
 
 //

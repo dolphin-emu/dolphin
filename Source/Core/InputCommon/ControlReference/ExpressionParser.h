@@ -59,14 +59,13 @@ public:
   ExpressionNode* node;
 };
 
-enum ExpressionParseStatus
+enum class ParseStatus
 {
-  EXPRESSION_PARSE_SUCCESS = 0,
-  EXPRESSION_PARSE_SYNTAX_ERROR,
-  EXPRESSION_PARSE_NO_DEVICE,
+  Success,
+  SyntaxError,
+  NoDevice,
 };
 
-ExpressionParseStatus ParseExpression(const std::string& expr, ControlFinder& finder,
-                                      Expression** expr_out);
+ParseStatus ParseExpression(const std::string& expr, ControlFinder& finder, Expression** expr_out);
 }
 }
