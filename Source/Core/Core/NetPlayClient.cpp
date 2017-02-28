@@ -170,11 +170,11 @@ NetPlayClient::NetPlayClient(const std::string& address, const u16 port, NetPlay
 bool NetPlayClient::Connect()
 {
   // send connect message
-  sf::Packet spac;
-  spac << scm_rev_git_str;
-  spac << netplay_dolphin_ver;
-  spac << m_player_name;
-  Send(spac);
+  sf::Packet packet;
+  packet << scm_rev_git_str;
+  packet << netplay_dolphin_ver;
+  packet << m_player_name;
+  Send(packet);
   enet_host_flush(m_client);
   sf::Packet rpac;
   // TODO: make this not hang
@@ -368,15 +368,15 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     // update gui
     m_dialog->OnMsgChangeGame(m_selected_game);
 
-    sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+    sf::Packet packet;
+    packet << static_cast<MessageId>(NP_MSG_GAME_STATUS);
 
     PlayerGameStatus status = m_dialog->FindGame(m_selected_game).empty() ?
                                   PlayerGameStatus::NotFound :
                                   PlayerGameStatus::Ok;
 
-    spac << static_cast<u32>(status);
-    Send(spac);
+    packet << static_cast<u32>(status);
+    Send(packet);
   }
   break;
 
@@ -445,11 +445,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     u32 ping_key = 0;
     packet >> ping_key;
 
-    sf::Packet spac;
-    spac << (MessageId)NP_MSG_PONG;
-    spac << ping_key;
+    sf::Packet packet;
+    packet << (MessageId)NP_MSG_PONG;
+    packet << ping_key;
 
-    Send(spac);
+    Send(packet);
   }
   break;
 
@@ -733,57 +733,57 @@ std::vector<const Player*> NetPlayClient::GetPlayers()
 // called from ---GUI--- thread
 void NetPlayClient::SendChatMessage(const std::string& msg)
 {
-  sf::Packet spac;
-  spac << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
-  spac << msg;
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_CHAT_MESSAGE);
+  packet << msg;
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendPadState(const int in_game_pad, const GCPadStatus& pad)
 {
-  sf::Packet spac;
-  spac << static_cast<MessageId>(NP_MSG_PAD_DATA);
-  spac << static_cast<PadMapping>(in_game_pad);
-  spac << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
-       << pad.substickY << pad.triggerLeft << pad.triggerRight;
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_PAD_DATA);
+  packet << static_cast<PadMapping>(in_game_pad);
+  packet << pad.button << pad.analogA << pad.analogB << pad.stickX << pad.stickY << pad.substickX
+         << pad.substickY << pad.triggerLeft << pad.triggerRight;
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---CPU--- thread
 void NetPlayClient::SendWiimoteState(const int in_game_pad, const NetWiimote& nw)
 {
-  sf::Packet spac;
-  spac << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
-  spac << static_cast<PadMapping>(in_game_pad);
-  spac << static_cast<u8>(nw.size());
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_WIIMOTE_DATA);
+  packet << static_cast<PadMapping>(in_game_pad);
+  packet << static_cast<u8>(nw.size());
   for (auto it : nw)
   {
-    spac << it;
+    packet << it;
   }
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---GUI--- thread
 void NetPlayClient::SendStartGamePacket()
 {
-  sf::Packet spac;
-  spac << static_cast<MessageId>(NP_MSG_START_GAME);
-  spac << m_current_game;
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_START_GAME);
+  packet << m_current_game;
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---GUI--- thread
 void NetPlayClient::SendStopGamePacket()
 {
-  sf::Packet spac;
-  spac << static_cast<MessageId>(NP_MSG_STOP_GAME);
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_STOP_GAME);
 
-  SendAsync(std::move(spac));
+  SendAsync(std::move(packet));
 }
 
 // called from ---GUI--- thread
@@ -1193,13 +1193,13 @@ void NetPlayClient::SendTimeBase()
 
   u64 timebase = SystemTimers::GetFakeTimeBase();
 
-  sf::Packet spac;
-  spac << static_cast<MessageId>(NP_MSG_TIMEBASE);
-  spac << static_cast<u32>(timebase);
-  spac << static_cast<u32>(timebase << 32);
-  spac << netplay_client->m_timebase_frame++;
+  sf::Packet packet;
+  packet << static_cast<MessageId>(NP_MSG_TIMEBASE);
+  packet << static_cast<u32>(timebase);
+  packet << static_cast<u32>(timebase << 32);
+  packet << netplay_client->m_timebase_frame++;
 
-  netplay_client->SendAsync(std::move(spac));
+  netplay_client->SendAsync(std::move(packet));
 }
 
 bool NetPlayClient::DoAllPlayersHaveGame()
@@ -1226,27 +1226,27 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
 
   if (file.empty() || !File::Exists(file))
   {
-    sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_MD5_ERROR);
-    spac << "file not found";
-    Send(spac);
+    sf::Packet packet;
+    packet << static_cast<MessageId>(NP_MSG_MD5_ERROR);
+    packet << "file not found";
+    Send(packet);
     return;
   }
 
   m_MD5_thread = std::thread([this, file]() {
     std::string sum = MD5::MD5Sum(file, [&](int progress) {
-      sf::Packet spac;
-      spac << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
-      spac << progress;
-      Send(spac);
+      sf::Packet packet;
+      packet << static_cast<MessageId>(NP_MSG_MD5_PROGRESS);
+      packet << progress;
+      Send(packet);
 
       return m_should_compute_MD5;
     });
 
-    sf::Packet spac;
-    spac << static_cast<MessageId>(NP_MSG_MD5_RESULT);
-    spac << sum;
-    Send(spac);
+    sf::Packet packet;
+    packet << static_cast<MessageId>(NP_MSG_MD5_RESULT);
+    packet << sum;
+    Send(packet);
   });
   m_MD5_thread.detach();
 }
