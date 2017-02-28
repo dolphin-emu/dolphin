@@ -183,7 +183,7 @@ public:
     }
   }
 
-  ExpressionParseStatus Tokenize(std::vector<Token>& tokens)
+  ParseStatus Tokenize(std::vector<Token>& tokens)
   {
     while (true)
     {
@@ -195,7 +195,7 @@ public:
       if (tok.type == TOK_INVALID)
       {
         tokens.clear();
-        return EXPRESSION_PARSE_SYNTAX_ERROR;
+        return ParseStatus::SyntaxError;
       }
 
       tokens.push_back(tok);
@@ -203,7 +203,7 @@ public:
       if (tok.type == TOK_EOF)
         break;
     }
-    return EXPRESSION_PARSE_SUCCESS;
+    return ParseStatus::Success;
   }
 };
 
@@ -369,15 +369,15 @@ public:
     m_it = tokens.begin();
   }
 
-  ExpressionParseStatus Parse(Expression** expr_out)
+  ParseStatus Parse(Expression** expr_out)
   {
     ExpressionNode* node;
-    ExpressionParseStatus status = Toplevel(&node);
-    if (status != EXPRESSION_PARSE_SUCCESS)
+    ParseStatus status = Toplevel(&node);
+    if (status != ParseStatus::Success)
       return status;
 
     *expr_out = new Expression(node);
-    return EXPRESSION_PARSE_SUCCESS;
+    return ParseStatus::Success;
   }
 
 private:
@@ -393,7 +393,7 @@ private:
     return tok.type == type;
   }
 
-  ExpressionParseStatus Atom(ExpressionNode** expr_out)
+  ParseStatus Atom(ExpressionNode** expr_out)
   {
     Token tok = Chew();
     switch (tok.type)
@@ -405,16 +405,16 @@ private:
       if (control == nullptr)
       {
         *expr_out = new DummyExpression(tok.qualifier);
-        return EXPRESSION_PARSE_NO_DEVICE;
+        return ParseStatus::NoDevice;
       }
 
       *expr_out = new ControlExpression(tok.qualifier, device, control);
-      return EXPRESSION_PARSE_SUCCESS;
+      return ParseStatus::Success;
     }
     case TOK_LPAREN:
       return Paren(expr_out);
     default:
-      return EXPRESSION_PARSE_SYNTAX_ERROR;
+      return ParseStatus::SyntaxError;
     }
   }
 
@@ -429,17 +429,17 @@ private:
     }
   }
 
-  ExpressionParseStatus Unary(ExpressionNode** expr_out)
+  ParseStatus Unary(ExpressionNode** expr_out)
   {
     if (IsUnaryExpression(Peek().type))
     {
       Token tok = Chew();
       ExpressionNode* atom_expr;
-      ExpressionParseStatus status = Atom(&atom_expr);
-      if (status == EXPRESSION_PARSE_SYNTAX_ERROR)
+      ParseStatus status = Atom(&atom_expr);
+      if (status == ParseStatus::SyntaxError)
         return status;
       *expr_out = new UnaryExpression(tok.type, atom_expr);
-      return EXPRESSION_PARSE_SUCCESS;
+      return ParseStatus::Success;
     }
 
     return Atom(expr_out);
@@ -458,10 +458,10 @@ private:
     }
   }
 
-  ExpressionParseStatus Binary(ExpressionNode** expr_out)
+  ParseStatus Binary(ExpressionNode** expr_out)
   {
-    ExpressionParseStatus status = Unary(expr_out);
-    if (status == EXPRESSION_PARSE_SYNTAX_ERROR)
+    ParseStatus status = Unary(expr_out);
+    if (status == ParseStatus::SyntaxError)
       return status;
 
     while (IsBinaryToken(Peek().type))
@@ -469,7 +469,7 @@ private:
       Token tok = Chew();
       ExpressionNode* unary_expr;
       status = Unary(&unary_expr);
-      if (status == EXPRESSION_PARSE_SYNTAX_ERROR)
+      if (status == ParseStatus::SyntaxError)
       {
         delete *expr_out;
         return status;
@@ -478,27 +478,27 @@ private:
       *expr_out = new BinaryExpression(tok.type, *expr_out, unary_expr);
     }
 
-    return EXPRESSION_PARSE_SUCCESS;
+    return ParseStatus::Success;
   }
 
-  ExpressionParseStatus Paren(ExpressionNode** expr_out)
+  ParseStatus Paren(ExpressionNode** expr_out)
   {
-    ExpressionParseStatus status;
+    ParseStatus status;
 
     // lparen already chewed
-    if ((status = Toplevel(expr_out)) != EXPRESSION_PARSE_SUCCESS)
+    if ((status = Toplevel(expr_out)) != ParseStatus::Success)
       return status;
 
     if (!Expects(TOK_RPAREN))
     {
       delete *expr_out;
-      return EXPRESSION_PARSE_SYNTAX_ERROR;
+      return ParseStatus::SyntaxError;
     }
 
-    return EXPRESSION_PARSE_SUCCESS;
+    return ParseStatus::Success;
   }
 
-  ExpressionParseStatus Toplevel(ExpressionNode** expr_out) { return Binary(expr_out); }
+  ParseStatus Toplevel(ExpressionNode** expr_out) { return Binary(expr_out); }
 };
 
 ControlState Expression::GetValue() const
@@ -522,33 +522,32 @@ Expression::~Expression()
   delete node;
 }
 
-static ExpressionParseStatus ParseExpressionInner(const std::string& str, ControlFinder& finder,
-                                                  Expression** expr_out)
+static ParseStatus ParseExpressionInner(const std::string& str, ControlFinder& finder,
+                                        Expression** expr_out)
 {
-  ExpressionParseStatus status;
+  ParseStatus status;
   Expression* expr;
   *expr_out = nullptr;
 
   if (str == "")
-    return EXPRESSION_PARSE_SUCCESS;
+    return ParseStatus::Success;
 
   Lexer l(str);
   std::vector<Token> tokens;
   status = l.Tokenize(tokens);
-  if (status != EXPRESSION_PARSE_SUCCESS)
+  if (status != ParseStatus::Success)
     return status;
 
   Parser p(tokens, finder);
   status = p.Parse(&expr);
-  if (status != EXPRESSION_PARSE_SUCCESS)
+  if (status != ParseStatus::Success)
     return status;
 
   *expr_out = expr;
-  return EXPRESSION_PARSE_SUCCESS;
+  return ParseStatus::Success;
 }
 
-ExpressionParseStatus ParseExpression(const std::string& str, ControlFinder& finder,
-                                      Expression** expr_out)
+ParseStatus ParseExpression(const std::string& str, ControlFinder& finder, Expression** expr_out)
 {
   // Add compatibility with old simple expressions, which are simple
   // barewords control names.
@@ -562,7 +561,7 @@ ExpressionParseStatus ParseExpression(const std::string& str, ControlFinder& fin
   if (control)
   {
     *expr_out = new Expression(new ControlExpression(qualifier, device, control));
-    return EXPRESSION_PARSE_SUCCESS;
+    return ParseStatus::Success;
   }
 
   return ParseExpressionInner(str, finder, expr_out);
