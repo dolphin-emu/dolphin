@@ -234,7 +234,7 @@ const std::vector<u8>& TicketReader::GetRawTicket() const
 std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
 {
   // A ticket view is composed of a view ID + part of a ticket starting from the ticket_id field.
-  const auto ticket_start = m_bytes.cbegin() + (GetOffset() + sizeof(Ticket)) * ticket_num;
+  const auto ticket_start = m_bytes.cbegin() + GetOffset() + sizeof(Ticket) * ticket_num;
   const auto view_start = ticket_start + offsetof(Ticket, ticket_id);
 
   // Copy the view ID to the buffer.
