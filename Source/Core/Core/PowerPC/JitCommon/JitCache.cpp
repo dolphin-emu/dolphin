@@ -243,7 +243,16 @@ void JitBaseBlockCache::ErasePhysicalRange(u32 address, u32 length)
 
         // And remove the block.
         DestroyBlock(*block);
-        block_map.erase(block->physicalAddress);
+        auto block_map_iter = block_map.equal_range(block->physicalAddress);
+        while (block_map_iter.first != block_map_iter.second)
+        {
+          if (&block_map_iter.first->second == block)
+          {
+            block_map.erase(block_map_iter.first);
+            break;
+          }
+          block_map_iter.first++;
+        }
         iter = start->second.erase(iter);
       }
       else
@@ -306,8 +315,14 @@ void JitBaseBlockCache::LinkBlock(JitBlock& block)
 
 void JitBaseBlockCache::UnlinkBlock(const JitBlock& block)
 {
-  auto ppp = links_to.equal_range(block.effectiveAddress);
+  // Unlink all exits of this block.
+  for (auto& e : block.linkData)
+  {
+    WriteLinkBlock(e, nullptr);
+  }
 
+  // Unlink all exits of other blocks which points to this block
+  auto ppp = links_to.equal_range(block.effectiveAddress);
   for (auto iter = ppp.first; iter != ppp.second; ++iter)
   {
     JitBlock& sourceBlock = *iter->second;
