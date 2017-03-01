@@ -640,9 +640,6 @@ void Renderer::UpdateDrawRectangle()
   int YOffset = (int)(FloatYOffset + 0.5f);
   int iWhidth = (int)ceil(FloatGLWidth);
   int iHeight = (int)ceil(FloatGLHeight);
-  iWhidth -=
-      iWhidth % 4;  // ensure divisibility by 4 to make it compatible with all the video encoders
-  iHeight -= iHeight % 4;
 
   m_target_rectangle.left = XOffset;
   m_target_rectangle.top = YOffset;
@@ -683,11 +680,6 @@ void Renderer::SetWindowSize(int width, int height)
 
   width = static_cast<int>(std::ceil(scaled_width));
   height = static_cast<int>(std::ceil(scaled_height));
-
-  // UpdateDrawRectangle() makes sure that the rendered image is divisible by four for video
-  // encoders, so do that here too to match it
-  width -= width % 4;
-  height -= height % 4;
 
   // Track the last values of width/height to avoid sending a window resize event every frame.
   if (width != m_last_window_request_width || height != m_last_window_request_height)
