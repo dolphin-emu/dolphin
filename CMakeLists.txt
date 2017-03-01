@@ -915,6 +915,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "Linux|FreeBSD|OpenBSD")
 		DESTINATION ${mandir}/man6)
 	install(FILES Data/dolphin-emu-nogui.6
 		DESTINATION ${mandir}/man6)
+	# Install the GameCube Controller Adapter and DolphinBar udev rules
+	install(FILES Data/51-usb-device.rules
+		DESTINATION ${CMAKE_INSTALL_PREFIX}/lib/udev/rules.d)
 endif()
 
 # packaging information
