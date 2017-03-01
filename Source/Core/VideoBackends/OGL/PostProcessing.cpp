@@ -42,6 +42,8 @@ void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle 
 {
   ApplyShader();
 
+  glEnable(GL_SCISSOR_TEST);
+  glScissor(crop_rc.left, crop_rc.bottom, crop_rc.GetWidth(), crop_rc.GetHeight());
   glViewport(dst.left, dst.bottom, dst.GetWidth(), dst.GetHeight());
 
   OpenGL_BindAttributelessVAO();

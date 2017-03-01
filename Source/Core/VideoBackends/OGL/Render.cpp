@@ -1339,6 +1339,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     }
   }
 
+  // GL_SCISSOR_TEST is enabled by DrawFrame calls
+  glDisable(GL_SCISSOR_TEST);
+
   // Finish up the current frame, print some stats
 
   SetWindowSize(fbStride, fbHeight);
