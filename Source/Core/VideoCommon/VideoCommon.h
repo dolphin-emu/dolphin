@@ -31,17 +31,22 @@ const u32 MAX_XFB_WIDTH = 720;
 // that are next to each other in memory (TODO: handle that situation).
 const u32 MAX_XFB_HEIGHT = 574;
 
-// This structure should only be used to represent a rectangle in EFB
-// coordinates, where the origin is at the upper left and the frame dimensions
-// are 640 x 528.
-typedef MathUtil::Rectangle<int> EFBRectangle;
-
-// This structure should only be used to represent a rectangle in standard target
-// coordinates, where the origin is at the lower left and the frame dimensions
-// depend on the resolution settings. Use Renderer::ConvertEFBRectangle to
-// convert an EFBRectangle to a TargetRectangle.
-struct TargetRectangle : public MathUtil::Rectangle<int>
+template <typename Tag>
+struct TaggedRectangle : public MathUtil::Rectangle<int>
 {
+  constexpr TaggedRectangle() = default;
+  constexpr TaggedRectangle(int left, int top, int right, int bottom)
+      : MathUtil::Rectangle<int>(left, top, right, bottom)
+  {
+  }
+  explicit constexpr TaggedRectangle(const MathUtil::Rectangle<int>& rect)
+  {
+    top = rect.top;
+    right = rect.right;
+    bottom = rect.bottom;
+    left = rect.left;
+  }
+
 #ifdef _WIN32
   // Only used by D3D backend.
   const RECT* AsRECT() const
@@ -56,6 +61,17 @@ struct TargetRectangle : public MathUtil::Rectangle<int>
   }
 #endif
 };
+
+// This structure should only be used to represent a rectangle in EFB
+// coordinates, where the origin is at the upper left and the frame dimensions
+// are 640 x 528.
+using EFBRectangle = TaggedRectangle<struct EFBRectangleTag>;
+
+// This structure should only be used to represent a rectangle in standard target
+// coordinates, where the origin is at the lower left and the frame dimensions
+// depend on the resolution settings. Use Renderer::ConvertEFBRectangle to
+// convert an EFBRectangle to a TargetRectangle.
+using TargetRectangle = TaggedRectangle<struct TargetRectangleTag>;
 
 #ifdef _WIN32
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, __VA_ARGS__)
