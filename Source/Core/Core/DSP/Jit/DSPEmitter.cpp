@@ -75,7 +75,7 @@ void DSPEmitter::DoState(PointerWrap& p)
 
 void DSPEmitter::ClearIRAM()
 {
-  for (int i = 0x0000; i < 0x1000; i++)
+  for (size_t i = 0; i < DSP_IRAM_SIZE; i++)
   {
     m_blocks[i] = (DSPCompiledCode)m_stub_entry_point;
     m_block_links[i] = nullptr;
@@ -91,7 +91,7 @@ void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
   CompileDispatcher();
   m_stub_entry_point = CompileStub();
 
-  for (int i = 0x0000; i < 0x10000; i++)
+  for (size_t i = 0; i < MAX_BLOCKS; i++)
   {
     m_blocks[i] = (DSPCompiledCode)m_stub_entry_point;
     m_block_links[i] = nullptr;
@@ -339,7 +339,7 @@ void DSPEmitter::Compile(u16 start_addr)
   {
     m_block_links[start_addr] = m_block_link_entry;
 
-    for (u16 i = 0x0000; i < 0xffff; ++i)
+    for (size_t i = 0; i < 0xffff; ++i)
     {
       if (!m_unresolved_jumps[i].empty())
       {
@@ -386,7 +386,7 @@ static void CompileCurrent()
   while (retry)
   {
     retry = false;
-    for (u16 i = 0x0000; i < 0xffff; ++i)
+    for (size_t i = 0; i < 0xffff; ++i)
     {
       if (!g_dsp_jit->m_unresolved_jumps[i].empty())
       {
