@@ -383,10 +383,16 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return GetTitleID(request);
   case IOCTL_ES_SETUID:
     return SetUID(request);
+
+  case IOCTL_ES_GETOWNEDTITLECNT:
+    return GetOwnedTitleCount(request);
+  case IOCTL_ES_GETOWNEDTITLES:
+    return GetOwnedTitles(request);
   case IOCTL_ES_GETTITLECNT:
     return GetTitleCount(request);
   case IOCTL_ES_GETTITLES:
     return GetTitles(request);
+
   case IOCTL_ES_GETVIEWCNT:
     return GetViewCount(request);
   case IOCTL_ES_GETVIEWS:
@@ -435,8 +441,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return GetBoot2Version(request);
   case IOCTL_ES_DIGETTICKETVIEW:
     return DIGetTicketView(request);
-  case IOCTL_ES_GETOWNEDTITLECNT:
-    return GetOwnedTitleCount(request);
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS);
     break;
@@ -920,6 +924,47 @@ static std::vector<u64> GetInstalledTitles()
 
       const u32 type = std::stoul(title_type.virtualName, nullptr, 16);
       const u32 identifier = std::stoul(title_identifier.virtualName, nullptr, 16);
+      title_ids.push_back(static_cast<u64>(type) << 32 | identifier);
+    }
+  }
+
+  return title_ids;
+}
+
+// Returns a vector of title IDs for which there is a ticket.
+static std::vector<u64> GetTitlesWithTickets()
+{
+  const std::string titles_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/ticket";
+  if (!File::IsDirectory(titles_dir))
+  {
+    ERROR_LOG(IOS_ES, "/ticket is not a directory");
+    return {};
+  }
+
+  std::vector<u64> title_ids;
+
+  // The /ticket directory contains one directory per title type, and each of them contains
+  // one ticket per title (where the name is the low 32 bits of the title ID in %08x format).
+  const auto& entries = File::ScanDirectoryTree(titles_dir, true);
+  for (const File::FSTEntry& title_type : entries.children)
+  {
+    if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
+      continue;
+
+    if (title_type.children.empty())
+      continue;
+
+    for (const File::FSTEntry& ticket : title_type.children)
+    {
+      const std::string name_without_ext = ticket.virtualName.substr(0, 8);
+      if (ticket.isDirectory || !IsValidPartOfTitleID(name_without_ext) ||
+          name_without_ext + ".tik" != ticket.virtualName)
+      {
+        continue;
+      }
+
+      const u32 type = std::stoul(title_type.virtualName, nullptr, 16);
+      const u32 identifier = std::stoul(name_without_ext, nullptr, 16);
       title_ids.push_back(static_cast<u64>(type) << 32 | identifier);
     }
   }
@@ -1529,9 +1574,26 @@ IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETOWNEDTITLECNT");
-  // TODO: unimplemented.
-  Memory::Write_U32(0, request.io_vectors[0].address);
+  const std::vector<u64> titles = GetTitlesWithTickets();
+  Memory::Write_U32(static_cast<u32>(titles.size()), request.io_vectors[0].address);
+
+  INFO_LOG(IOS_ES, "GetOwnedTitleCount: %zu titles", titles.size());
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::GetOwnedTitles(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  const std::vector<u64> titles = GetTitlesWithTickets();
+
+  const size_t max_count = Memory::Read_U32(request.in_vectors[0].address);
+  for (size_t i = 0; i < std::min(max_count, titles.size()); i++)
+  {
+    Memory::Write_U64(titles[i], request.io_vectors[0].address + static_cast<u32>(i) * 8);
+    INFO_LOG(IOS_ES, "     title %016" PRIx64, titles[i]);
+  }
   return GetDefaultReply(IPC_SUCCESS);
 }
 

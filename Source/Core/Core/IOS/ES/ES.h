@@ -167,8 +167,12 @@ private:
   IPCCommandResult GetTitleDirectory(const IOCtlVRequest& request);
   IPCCommandResult GetTitleID(const IOCtlVRequest& request);
   IPCCommandResult SetUID(const IOCtlVRequest& request);
+
+  IPCCommandResult GetOwnedTitleCount(const IOCtlVRequest& request);
+  IPCCommandResult GetOwnedTitles(const IOCtlVRequest& request);
   IPCCommandResult GetTitleCount(const IOCtlVRequest& request);
   IPCCommandResult GetTitles(const IOCtlVRequest& request);
+
   IPCCommandResult GetViewCount(const IOCtlVRequest& request);
   IPCCommandResult GetViews(const IOCtlVRequest& request);
   IPCCommandResult GetTMDViewSize(const IOCtlVRequest& request);
@@ -195,7 +199,6 @@ private:
   IPCCommandResult Sign(const IOCtlVRequest& request);
   IPCCommandResult GetBoot2Version(const IOCtlVRequest& request);
   IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
-  IPCCommandResult GetOwnedTitleCount(const IOCtlVRequest& request);
 
   static bool LaunchIOS(u64 ios_title_id);
   static bool LaunchPPCTitle(u64 title_id, bool skip_reload);

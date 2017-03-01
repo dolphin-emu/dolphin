@@ -158,7 +158,7 @@ CNANDContentLoader::~CNANDContentLoader()
 
 bool CNANDContentLoader::IsValid() const
 {
-  return m_Valid && m_tmd.IsValid();
+  return m_Valid;
 }
 
 const SNANDContent* CNANDContentLoader::GetContentByID(u32 id) const
