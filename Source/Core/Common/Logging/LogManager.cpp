@@ -49,6 +49,7 @@ LogManager::LogManager()
   m_Log[LogTypes::COMMANDPROCESSOR] = new LogContainer("CP", "CommandProc");
   m_Log[LogTypes::COMMON] = new LogContainer("COMMON", "Common");
   m_Log[LogTypes::CONSOLE] = new LogContainer("CONSOLE", "Dolphin Console");
+  m_Log[LogTypes::CORE] = new LogContainer("CORE", "Core");
   m_Log[LogTypes::DISCIO] = new LogContainer("DIO", "Disc IO");
   m_Log[LogTypes::DSPHLE] = new LogContainer("DSPHLE", "DSP HLE");
   m_Log[LogTypes::DSPLLE] = new LogContainer("DSPLLE", "DSP LLE");
