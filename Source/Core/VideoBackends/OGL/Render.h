@@ -112,23 +112,25 @@ private:
                       const TargetRectangle& targetPixelRc, const void* data);
 
   // Draw either the EFB, or specified XFB sources to the currently-bound framebuffer.
-  void DrawFrame(GLuint framebuffer, const TargetRectangle& target_rc,
+  void DrawFrame(GLuint framebuffer, const TargetRectangle& target_rc, const CropRectangle& crop_rc,
                  const EFBRectangle& source_rc, u32 xfb_addr,
                  const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                  u32 fb_stride, u32 fb_height);
-  void DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc, const EFBRectangle& source_rc);
-  void DrawVirtualXFB(GLuint framebuffer, const TargetRectangle& target_rc, u32 xfb_addr,
+  void DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc, const CropRectangle& crop_rc,
+               const EFBRectangle& source_rc);
+  void DrawVirtualXFB(GLuint framebuffer, const TargetRectangle& target_rc,
+                      const CropRectangle& crop_rc, u32 xfb_addr,
                       const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                       u32 fb_stride, u32 fb_height);
   void DrawRealXFB(GLuint framebuffer, const TargetRectangle& target_rc,
-                   const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                   u32 fb_stride, u32 fb_height);
+                   const CropRectangle& crop_rc, const XFBSourceBase* const* xfb_sources,
+                   u32 xfb_count, u32 fb_width, u32 fb_stride, u32 fb_height);
 
-  void BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture, int src_width,
-                  int src_height);
+  void BlitScreen(TargetRectangle src, TargetRectangle dst, CropRectangle crop_rc,
+                  GLuint src_texture, int src_width, int src_height);
 
   void FlushFrameDump();
-  void DumpFrame(const TargetRectangle& flipped_trc, u64 ticks);
+  void DumpFrame(const TargetRectangle& flipped_trc, const CropRectangle& flipped_crop, u64 ticks);
   void DumpFrameUsingFBO(const EFBRectangle& source_rc, u32 xfb_addr,
                          const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                          u32 fb_stride, u32 fb_height, u64 ticks);

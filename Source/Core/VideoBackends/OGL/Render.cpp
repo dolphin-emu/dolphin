@@ -1173,8 +1173,8 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   ClearEFBCache();
 }
 
-void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_texture,
-                          int src_width, int src_height)
+void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, CropRectangle crop_rc,
+                          GLuint src_texture, int src_width, int src_height)
 {
   if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
@@ -1193,8 +1193,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
   }
   else
   {
-    m_post_processor->BlitFromTexture(src, dst, CropRectangle{dst}, src_texture, src_width,
-                                      src_height);
+    m_post_processor->BlitFromTexture(src, dst, crop_rc, src_texture, src_width, src_height);
   }
 }
 
@@ -1311,12 +1310,15 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   UpdateDrawRectangle();
   TargetRectangle flipped_trc = GetTargetRectangle();
+  CropRectangle flipped_crop = GetCropRectangle();
 
   // Flip top and bottom for some reason; TODO: Fix the code to suck less?
   std::swap(flipped_trc.top, flipped_trc.bottom);
+  std::swap(flipped_crop.top, flipped_crop.bottom);
 
   // Copy the framebuffer to screen.
-  DrawFrame(0, flipped_trc, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride, fbHeight);
+  DrawFrame(0, flipped_trc, flipped_crop, rc, xfbAddr, xfbSourceList, xfbCount, fbWidth, fbStride,
+            fbHeight);
 
   // The FlushFrameDump call here is necessary even after frame dumping is stopped.
   // If left out, screenshots are "one frame" behind, as an extra frame is dumped and buffered.
@@ -1335,7 +1337,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     else
     {
       // GL_READ_FRAMEBUFFER is set by GL_FRAMEBUFFER in DrawFrame -> Draw{EFB,VirtualXFB,RealXFB}.
-      DumpFrame(flipped_trc, ticks);
+      DumpFrame(flipped_trc, flipped_crop, ticks);
     }
   }
 
@@ -1468,36 +1470,38 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 }
 
 void Renderer::DrawFrame(GLuint framebuffer, const TargetRectangle& target_rc,
-                         const EFBRectangle& source_rc, u32 xfb_addr,
+                         const CropRectangle& crop_rc, const EFBRectangle& source_rc, u32 xfb_addr,
                          const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                          u32 fb_stride, u32 fb_height)
 {
   if (g_ActiveConfig.bUseXFB)
   {
     if (g_ActiveConfig.bUseRealXFB)
-      DrawRealXFB(framebuffer, target_rc, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
+      DrawRealXFB(framebuffer, target_rc, crop_rc, xfb_sources, xfb_count, fb_width, fb_stride,
+                  fb_height);
     else
-      DrawVirtualXFB(framebuffer, target_rc, xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride,
-                     fb_height);
+      DrawVirtualXFB(framebuffer, target_rc, crop_rc, xfb_addr, xfb_sources, xfb_count, fb_width,
+                     fb_stride, fb_height);
   }
   else
   {
-    DrawEFB(framebuffer, target_rc, source_rc);
+    DrawEFB(framebuffer, target_rc, crop_rc, source_rc);
   }
 }
 
 void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
-                       const EFBRectangle& source_rc)
+                       const CropRectangle& crop_rc, const EFBRectangle& source_rc)
 {
   TargetRectangle scaled_source_rc = ConvertEFBRectangle(source_rc);
 
   // for msaa mode, we must resolve the efb content to non-msaa
   GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(source_rc);
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-  BlitScreen(scaled_source_rc, target_rc, tex, m_target_width, m_target_height);
+  BlitScreen(scaled_source_rc, target_rc, crop_rc, tex, m_target_width, m_target_height);
 }
 
-void Renderer::DrawVirtualXFB(GLuint framebuffer, const TargetRectangle& target_rc, u32 xfb_addr,
+void Renderer::DrawVirtualXFB(GLuint framebuffer, const TargetRectangle& target_rc,
+                              const CropRectangle& crop_rc, u32 xfb_addr,
                               const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
                               u32 fb_stride, u32 fb_height)
 {
@@ -1541,13 +1545,14 @@ void Renderer::DrawVirtualXFB(GLuint framebuffer, const TargetRectangle& target_
 
     source_rc.right -= Renderer::EFBToScaledX(fb_stride - fb_width);
 
-    BlitScreen(source_rc, draw_rc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+    BlitScreen(source_rc, draw_rc, crop_rc, xfbSource->texture, xfbSource->texWidth,
+               xfbSource->texHeight);
   }
 }
 
 void Renderer::DrawRealXFB(GLuint framebuffer, const TargetRectangle& target_rc,
-                           const XFBSourceBase* const* xfb_sources, u32 xfb_count, u32 fb_width,
-                           u32 fb_stride, u32 fb_height)
+                           const CropRectangle& crop_rc, const XFBSourceBase* const* xfb_sources,
+                           u32 xfb_count, u32 fb_width, u32 fb_stride, u32 fb_height)
 {
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
 
@@ -1568,8 +1573,8 @@ void Renderer::DrawRealXFB(GLuint framebuffer, const TargetRectangle& target_rc,
     source_rc.top = source_rc.bottom;
     source_rc.bottom = 0;
 
-    TargetRectangle draw_rc = target_rc;
-    BlitScreen(source_rc, draw_rc, xfbSource->texture, xfbSource->texWidth, xfbSource->texHeight);
+    BlitScreen(source_rc, target_rc, crop_rc, xfbSource->texture, xfbSource->texWidth,
+               xfbSource->texHeight);
   }
 }
 
@@ -1589,7 +1594,8 @@ void Renderer::FlushFrameDump()
   m_last_frame_exported = false;
 }
 
-void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
+void Renderer::DumpFrame(const TargetRectangle& flipped_trc, const CropRectangle& flipped_crop,
+                         u64 ticks)
 {
   if (!m_frame_dumping_pbo[0])
   {
@@ -1609,11 +1615,11 @@ void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
     m_frame_pbo_is_mapped[0] = false;
   }
 
-  if (flipped_trc.GetWidth() != m_last_frame_width[0] ||
-      flipped_trc.GetHeight() != m_last_frame_height[0])
+  if (flipped_crop.GetWidth() != m_last_frame_width[0] ||
+      flipped_crop.GetHeight() != m_last_frame_height[0])
   {
-    m_last_frame_width[0] = flipped_trc.GetWidth();
-    m_last_frame_height[0] = flipped_trc.GetHeight();
+    m_last_frame_width[0] = flipped_crop.GetWidth();
+    m_last_frame_height[0] = flipped_crop.GetHeight();
     glBufferData(GL_PIXEL_PACK_BUFFER, m_last_frame_width[0] * m_last_frame_height[0] * 4, nullptr,
                  GL_STREAM_READ);
   }
@@ -1622,8 +1628,8 @@ void Renderer::DumpFrame(const TargetRectangle& flipped_trc, u64 ticks)
   m_last_frame_exported = true;
 
   glPixelStorei(GL_PACK_ALIGNMENT, 1);
-  glReadPixels(flipped_trc.left, flipped_trc.bottom, m_last_frame_width[0], m_last_frame_height[0],
-               GL_RGBA, GL_UNSIGNED_BYTE, 0);
+  glReadPixels(flipped_crop.left, flipped_crop.bottom, m_last_frame_width[0],
+               m_last_frame_height[0], GL_RGBA, GL_UNSIGNED_BYTE, 0);
   glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
@@ -1649,11 +1655,11 @@ void Renderer::DumpFrameUsingFBO(const EFBRectangle& source_rc, u32 xfb_addr,
   // Render the frame into the frame dump render texture. Disable alpha writes in case the
   // post-processing shader writes a non-1.0 value.
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_FALSE);
-  DrawFrame(m_frame_dump_render_framebuffer, render_rc, source_rc, xfb_addr, xfb_sources, xfb_count,
-            fb_width, fb_stride, fb_height);
+  DrawFrame(m_frame_dump_render_framebuffer, render_rc, CropRectangle{render_rc}, source_rc,
+            xfb_addr, xfb_sources, xfb_count, fb_width, fb_stride, fb_height);
 
   // Copy frame to output buffer. This assumes that GL_FRAMEBUFFER has been set.
-  DumpFrame(render_rc, ticks);
+  DumpFrame(render_rc, CropRectangle{render_rc}, ticks);
 
   // Restore state after drawing. This isn't the game state, it's the state set by ResetAPIState.
   glColorMask(GL_TRUE, GL_TRUE, GL_TRUE, GL_TRUE);
