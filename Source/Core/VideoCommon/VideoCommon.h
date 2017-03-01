@@ -73,6 +73,10 @@ using EFBRectangle = TaggedRectangle<struct EFBRectangleTag>;
 // convert an EFBRectangle to a TargetRectangle.
 using TargetRectangle = TaggedRectangle<struct TargetRectangleTag>;
 
+// This structure should only be used to represent an area in the backbuffer
+// outside of which nothing will be drawn.
+using CropRectangle = TaggedRectangle<struct CropRectangleTag>;
+
 #ifdef _WIN32
 #define PRIM_LOG(...) DEBUG_LOG(VIDEO, __VA_ARGS__)
 #else

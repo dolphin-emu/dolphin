@@ -617,34 +617,66 @@ void Renderer::UpdateDrawRectangle()
   // Crop the picture from Analog to 4:3 or from Analog (Wide) to 16:9.
   // Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
   // ------------------
+  float cropWidth = FloatGLWidth;
+  float cropHeight = FloatGLHeight;
+  float cropXOffset = FloatXOffset;
+  float cropYOffset = FloatYOffset;
   if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop)
   {
     Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio();
-    if (Ratio <= 1.0f)
+    if ((Ratio >= 1.0f && WinHeight == FloatGLHeight) ||
+        (Ratio <= 1.0f && WinWidth == FloatGLWidth))
     {
-      Ratio = 1.0f / Ratio;
+      if (Ratio <= 1.0f)
+      {
+        Ratio = 1.0f / Ratio;
+      }
+      // The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is
+      // adjusted)
+      float IncreasedWidth = (Ratio - 1.0f) * FloatGLWidth;
+      float IncreasedHeight = (Ratio - 1.0f) * FloatGLHeight;
+      // The new width and height
+      FloatGLWidth = FloatGLWidth * Ratio;
+      FloatGLHeight = FloatGLHeight * Ratio;
+      // Adjust the X and Y offset
+      FloatXOffset = FloatXOffset - (IncreasedWidth * 0.5f);
+      FloatYOffset = FloatYOffset - (IncreasedHeight * 0.5f);
+
+      cropWidth = FloatGLWidth;
+      cropHeight = FloatGLHeight;
+      cropXOffset = FloatXOffset;
+      cropYOffset = FloatYOffset;
     }
-    // The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is
-    // adjusted)
-    float IncreasedWidth = (Ratio - 1.0f) * FloatGLWidth;
-    float IncreasedHeight = (Ratio - 1.0f) * FloatGLHeight;
-    // The new width and height
-    FloatGLWidth = FloatGLWidth * Ratio;
-    FloatGLHeight = FloatGLHeight * Ratio;
-    // Adjust the X and Y offset
-    FloatXOffset = FloatXOffset - (IncreasedWidth * 0.5f);
-    FloatYOffset = FloatYOffset - (IncreasedHeight * 0.5f);
+    else
+    {
+      cropWidth = FloatGLWidth * Ratio;
+      cropHeight = FloatGLHeight / Ratio;
+
+      cropXOffset = cropXOffset + (FloatGLWidth - cropWidth) * 0.5f;
+      cropYOffset = cropYOffset + (FloatGLHeight - cropHeight) * 0.5f;
+    }
   }
 
-  int XOffset = (int)(FloatXOffset + 0.5f);
-  int YOffset = (int)(FloatYOffset + 0.5f);
-  int iWhidth = (int)ceil(FloatGLWidth);
-  int iHeight = (int)ceil(FloatGLHeight);
+  if (cropWidth >= WinWidth)
+  {
+    cropWidth = WinWidth;
+    cropXOffset = 0;
+  }
+  if (cropHeight >= WinHeight)
+  {
+    cropHeight = WinHeight;
+    cropYOffset = 0;
+  }
 
-  m_target_rectangle.left = XOffset;
-  m_target_rectangle.top = YOffset;
-  m_target_rectangle.right = XOffset + iWhidth;
-  m_target_rectangle.bottom = YOffset + iHeight;
+  m_target_rectangle.left = (int)(FloatXOffset + 0.5f);
+  m_target_rectangle.top = (int)(FloatYOffset + 0.5f);
+  m_target_rectangle.right = m_target_rectangle.left + (int)ceil(FloatGLWidth);
+  m_target_rectangle.bottom = m_target_rectangle.top + (int)ceil(FloatGLHeight);
+
+  m_crop_rectangle.left = (int)(cropXOffset + 0.5f);
+  m_crop_rectangle.top = (int)(cropYOffset + 0.5f);
+  m_crop_rectangle.right = m_crop_rectangle.left + (int)ceil(cropWidth);
+  m_crop_rectangle.bottom = m_crop_rectangle.top + (int)ceil(cropHeight);
 }
 
 void Renderer::SetWindowSize(int width, int height)

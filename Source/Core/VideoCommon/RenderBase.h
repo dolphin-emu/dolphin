@@ -93,6 +93,7 @@ public:
   virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
   const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
+  const CropRectangle& GetCropRectangle() const { return m_crop_rectangle; }
   float CalculateDrawAspectRatio(int target_width, int target_height) const;
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   TargetRectangle CalculateFrameDumpDrawRectangle() const;
@@ -168,6 +169,7 @@ protected:
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
   int m_last_efb_scale = 0;
+  CropRectangle m_crop_rectangle = {};
   TargetRectangle m_target_rectangle = {};
   bool m_xfb_written = false;
 
