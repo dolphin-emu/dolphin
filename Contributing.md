@@ -5,6 +5,7 @@ If you make any contributions to Dolphin after December 1st, 2014, you are agree
 ## Coding Style
 
 - [Introduction] (#introduction)
+  - [Checking and fixing formatting issues](#checking-and-fixing-formatting-issues)
 - [Styling and formatting] (#styling-and-formatting)
   - [General] (#general)
   - [Naming] (#naming)
@@ -16,6 +17,7 @@ If you make any contributions to Dolphin after December 1st, 2014, you are agree
   - [Loops] (#loops)
   - [Functions] (#functions)
   - [Classes and Structs] (#classes-and-structs-1)
+- [Java] (#java)
 
 
 ## Introduction
