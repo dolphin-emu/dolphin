@@ -360,8 +360,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 
 IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 3,
-                   "IOCTL_ES_ADDTICKET wrong number of inputs");
+  if (!request.HasNumberOfValidVectors(3, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDTICKET");
   std::vector<u8> ticket(request.in_vectors[0].size);
@@ -405,8 +405,8 @@ IPCCommandResult ES::AddTMD(const IOCtlVRequest& request)
 
 IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 4,
-                   "IOCTL_ES_ADDTITLESTART wrong number of inputs");
+  if (!request.HasNumberOfValidVectors(4, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLESTART");
   std::vector<u8> tmd(request.in_vectors[0].size);
@@ -427,8 +427,8 @@ IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
 
 IPCCommandResult ES::AddContentStart(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2,
-                   "IOCTL_ES_ADDCONTENTSTART wrong number of inputs");
+  if (!request.HasNumberOfValidVectors(2, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   u32 content_id = Memory::Read_U32(request.in_vectors[1].address);
@@ -467,8 +467,8 @@ IPCCommandResult ES::AddContentStart(const IOCtlVRequest& request)
 
 IPCCommandResult ES::AddContentData(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2,
-                   "IOCTL_ES_ADDCONTENTDATA wrong number of inputs");
+  if (!request.HasNumberOfValidVectors(2, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTDATA: content fd %08x, "
@@ -483,8 +483,8 @@ IPCCommandResult ES::AddContentData(const IOCtlVRequest& request)
 
 IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1,
-                   "IOCTL_ES_ADDCONTENTFINISH wrong number of inputs");
+  if (!request.HasNumberOfValidVectors(1, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
@@ -530,13 +530,17 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
 
 IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(0, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLEFINISH");
   return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::ESGetDeviceID(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETDEVICEID no io vectors");
+  if (!request.HasNumberOfValidVectors(0, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   const EcWii& ec = EcWii::GetInstance();
   INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICEID %08X", ec.GetNGID());
@@ -546,8 +550,8 @@ IPCCommandResult ES::ESGetDeviceID(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTitleContentsCount(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -570,10 +574,8 @@ IPCCommandResult ES::GetTitleContentsCount(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTitleContents(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2,
-                   "IOCTL_ES_GETTITLECONTENTS bad in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
-                   "IOCTL_ES_GETTITLECONTENTS bad out buffer");
+  if (!request.HasNumberOfValidVectors(2, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -593,8 +595,8 @@ IPCCommandResult ES::GetTitleContents(const IOCtlVRequest& request)
 
 IPCCommandResult ES::OpenTitleContent(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 3);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
+  if (!request.HasNumberOfValidVectors(3, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 Index = Memory::Read_U32(request.in_vectors[2].address);
@@ -609,8 +611,8 @@ IPCCommandResult ES::OpenTitleContent(const IOCtlVRequest& request)
 
 IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
+  if (!request.HasNumberOfValidVectors(1, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
   u32 Index = Memory::Read_U32(request.in_vectors[0].address);
 
   s32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
@@ -621,8 +623,8 @@ IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
 
 IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
   u32 Size = request.io_vectors[0].size;
@@ -673,8 +675,8 @@ IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
 
 IPCCommandResult ES::CloseContent(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
+  if (!request.HasNumberOfValidVectors(1, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
 
@@ -702,8 +704,8 @@ IPCCommandResult ES::CloseContent(const IOCtlVRequest& request)
 
 IPCCommandResult ES::SeekContent(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 3);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 0);
+  if (!request.HasNumberOfValidVectors(3, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
   u32 Addr = Memory::Read_U32(request.in_vectors[1].address);
@@ -739,8 +741,8 @@ IPCCommandResult ES::SeekContent(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 1);
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -753,8 +755,8 @@ IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 0);
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETTITLEID no out buffer");
+  if (!request.HasNumberOfValidVectors(0, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   Memory::Write_U64(m_TitleID, request.io_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
@@ -763,9 +765,8 @@ IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
 
 IPCCommandResult ES::SetUID(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_SETUID no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 0,
-                   "IOCTL_ES_SETUID has a payload, it shouldn't");
+  if (!request.HasNumberOfValidVectors(1, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   // TODO: fs permissions based on this
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
@@ -775,11 +776,8 @@ IPCCommandResult ES::SetUID(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 0, "IOCTL_ES_GETTITLECNT has an in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
-                   "IOCTL_ES_GETTITLECNT has no out buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors[0].size == 4,
-                   "IOCTL_ES_GETTITLECNT payload[0].size != 4");
+  if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   Memory::Write_U32((u32)m_TitleIDs.size(), request.io_vectors[0].address);
 
@@ -790,8 +788,8 @@ IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETTITLES has an in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETTITLES has no out buffer");
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u32 MaxCount = Memory::Read_U32(request.in_vectors[0].address);
   u32 Count = 0;
@@ -811,8 +809,8 @@ IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetViewCount(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETVIEWCNT no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETVIEWCNT no out buffer");
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -838,8 +836,8 @@ IPCCommandResult ES::GetViewCount(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2, "IOCTL_ES_GETVIEWS no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETVIEWS no out buffer");
+  if (!request.HasNumberOfValidVectors(2, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
@@ -879,8 +877,8 @@ IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
 // TODO: rename this to GetTMDViewSize. There is only one TMD, so the name doesn't make sense.
 IPCCommandResult ES::GetTMDViewCount(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1, "IOCTL_ES_GETTMDVIEWCNT no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETTMDVIEWCNT no out buffer");
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -898,8 +896,8 @@ IPCCommandResult ES::GetTMDViewCount(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 2, "IOCTL_ES_GETTMDVIEWCNT no in buffer");
-  _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1, "IOCTL_ES_GETTMDVIEWCNT no out buffer");
+  if (!request.HasNumberOfValidVectors(2, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
@@ -925,6 +923,9 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetConsumption(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(1, 2))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   // This is at least what crediar's ES module does
   Memory::Write_U32(0, request.io_vectors[1].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_GETCONSUMPTION");
@@ -967,6 +968,9 @@ IPCCommandResult ES::DeleteTitle(const IOCtlVRequest& request)
 
 IPCCommandResult ES::DeleteTicket(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(1, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
 
@@ -979,6 +983,9 @@ IPCCommandResult ES::DeleteTicket(const IOCtlVRequest& request)
 
 IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(1, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_DELETETITLECONTENT: title: %08x/%08x", (u32)(TitleID >> 32),
            (u32)TitleID);
@@ -992,21 +999,17 @@ IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() == 1,
-                   "IOCTL_ES_GETSTOREDTMDSIZE no in buffer");
-  // _dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
-  //                  "IOCTL_ES_ES_GETSTOREDTMDSIZE no out buffer");
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-  _dbg_assert_(IOS_ES, Loader.IsValid());
   u32 tmd_size = 0;
   if (Loader.IsValid())
     tmd_size = static_cast<u32>(Loader.GetTMD().GetRawTMD().size());
 
-  if (request.io_vectors.size())
-    Memory::Write_U32(tmd_size, request.io_vectors[0].address);
+  Memory::Write_U32(tmd_size, request.io_vectors[0].address);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)",
            (u32)(TitleID >> 32), (u32)TitleID, tmd_size);
@@ -1016,26 +1019,18 @@ IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
 {
-  _dbg_assert_msg_(IOS_ES, request.in_vectors.size() > 0, "IOCTL_ES_GETSTOREDTMD no in buffer");
-  // requires 1 inbuffer and no outbuffer, presumably outbuffer required when second inbuffer is
-  // used for maxcount (allocated mem?)
-  // called with 1 inbuffer after deleting a titleid
-  //_dbg_assert_msg_(IOS_ES, request.io_vectors.size() == 1,
-  //                 "IOCTL_ES_GETSTOREDTMD no out buffer");
+  if (!request.HasNumberOfValidVectors(2, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  u32 MaxCount = 0;
-  if (request.in_vectors.size() > 1)
-  {
-    // TODO: actually use this param in when writing to the outbuffer :/
-    MaxCount = Memory::Read_U32(request.in_vectors[1].address);
-  }
+  // TODO: actually use this param in when writing to the outbuffer :/
+  const u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffer size: %i",
            (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
 
-  if (Loader.IsValid() && request.io_vectors.size())
+  if (Loader.IsValid())
   {
     const std::vector<u8> raw_tmd = Loader.GetTMD().GetRawTMD();
     if (raw_tmd.size() != request.io_vectors[0].size)
@@ -1051,6 +1046,9 @@ IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
 
 IPCCommandResult ES::Encrypt(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(3, 2))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   u32 keyIndex = Memory::Read_U32(request.in_vectors[0].address);
   u8* IV = Memory::GetPointer(request.in_vectors[1].address);
   u8* source = Memory::GetPointer(request.in_vectors[2].address);
@@ -1070,6 +1068,9 @@ IPCCommandResult ES::Encrypt(const IOCtlVRequest& request)
 
 IPCCommandResult ES::Decrypt(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(3, 2))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   u32 keyIndex = Memory::Read_U32(request.in_vectors[0].address);
   u8* IV = Memory::GetPointer(request.in_vectors[1].address);
   u8* source = Memory::GetPointer(request.in_vectors[2].address);
@@ -1086,7 +1087,8 @@ IPCCommandResult ES::Decrypt(const IOCtlVRequest& request)
 
 IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 {
-  _dbg_assert_(IOS_ES, request.in_vectors.size() == 2);
+  if (!request.HasNumberOfValidVectors(2, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 view = Memory::Read_U32(request.in_vectors[1].address);
@@ -1113,7 +1115,7 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 
 IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
 {
-  if (request.in_vectors.size() != 0 || request.io_vectors.size() != 0)
+  if (!request.HasNumberOfValidVectors(0, 0))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   // Here, IOS checks the clock speed and prevents ioctlv 0x25 from being used in GC mode.
@@ -1295,6 +1297,9 @@ IPCCommandResult ES::ExportTitleDone(const IOCtlVRequest& request)
 
 IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(0, 0))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   // note by DacoTaco : name is unknown, I just tried to name it SOMETHING.
   // IOS70 has this to let system menu 4.2 check if the console is region changed. it returns
   // -1017
@@ -1305,9 +1310,10 @@ IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
 {
-  // (Input: none, Output: 384 bytes)
+  if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 0x180)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICECERT");
-  _dbg_assert_(IOS_ES, request.io_vectors.size() == 1);
   u8* destination = Memory::GetPointer(request.io_vectors[0].address);
 
   const EcWii& ec = EcWii::GetInstance();
@@ -1317,6 +1323,9 @@ IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
 
 IPCCommandResult ES::Sign(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(1, 2))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   INFO_LOG(IOS_ES, "IOCTL_ES_SIGN");
   u8* ap_cert_out = Memory::GetPointer(request.io_vectors[1].address);
   u8* data = Memory::GetPointer(request.in_vectors[0].address);
@@ -1331,6 +1340,9 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(0, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   INFO_LOG(IOS_ES, "IOCTL_ES_GETBOOT2VERSION");
 
   // as of 26/02/2012, this was latest bootmii version
@@ -1340,14 +1352,20 @@ IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)
 
 IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
 {
-  // (Input: none, Output: 216 bytes) bug crediar :D
-  WARN_LOG(IOS_ES, "IOCTL_ES_DIGETTICKETVIEW: this looks really wrong...");
+  if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 0xd8)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  // TODO: unimplemented.
   return GetDefaultReply(IPC_SUCCESS);
 }
 
 IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
 {
+  if (!request.HasNumberOfValidVectors(0, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   INFO_LOG(IOS_ES, "IOCTL_ES_GETOWNEDTITLECNT");
+  // TODO: unimplemented.
   Memory::Write_U32(0, request.io_vectors[0].address);
   return GetDefaultReply(IPC_SUCCESS);
 }
