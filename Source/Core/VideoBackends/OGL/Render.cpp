@@ -1186,12 +1186,15 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
     else
       std::tie(leftRc, rightRc) = ConvertStereoRectangle(dst);
 
-    m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
-    m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);
+    m_post_processor->BlitFromTexture(src, leftRc, CropRectangle{leftRc}, src_texture, src_width,
+                                      src_height, 0);
+    m_post_processor->BlitFromTexture(src, rightRc, CropRectangle{rightRc}, src_texture, src_width,
+                                      src_height, 1);
   }
   else
   {
-    m_post_processor->BlitFromTexture(src, dst, src_texture, src_width, src_height);
+    m_post_processor->BlitFromTexture(src, dst, CropRectangle{dst}, src_texture, src_width,
+                                      src_height);
   }
 }
 

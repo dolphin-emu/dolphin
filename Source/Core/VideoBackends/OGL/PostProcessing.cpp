@@ -37,8 +37,8 @@ OpenGLPostProcessing::~OpenGLPostProcessing()
 }
 
 void OpenGLPostProcessing::BlitFromTexture(TargetRectangle src, TargetRectangle dst,
-                                           int src_texture, int src_width, int src_height,
-                                           int layer)
+                                           CropRectangle crop_rc, int src_texture, int src_width,
+                                           int src_height, int layer)
 {
   ApplyShader();
 

@@ -84,8 +84,8 @@ public:
 
   PostProcessingShaderConfiguration* GetConfig() { return &m_config; }
   // Should be implemented by the backends for backend specific code
-  virtual void BlitFromTexture(TargetRectangle src, TargetRectangle dst, int src_texture,
-                               int src_width, int src_height, int layer = 0) = 0;
+  virtual void BlitFromTexture(TargetRectangle src, TargetRectangle dst, CropRectangle crop_rc,
+                               int src_texture, int src_width, int src_height, int layer = 0) = 0;
   virtual void ApplyShader() = 0;
 
 protected:
