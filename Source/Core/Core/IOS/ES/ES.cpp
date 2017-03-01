@@ -59,7 +59,6 @@ struct TitleContext
 
 // Shared across all ES instances.
 static std::string s_content_file;
-static std::vector<u64> s_title_ids;
 static TitleContext s_title_context;
 
 // Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
@@ -96,14 +95,6 @@ void ES::Init()
 {
   s_content_file = "";
   s_title_context = TitleContext{};
-
-  s_title_ids.clear();
-  DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
-  uid_sys.GetTitleIDs(s_title_ids);
-
-  // uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
-  // s_title_idsOwned.clear();
-  // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(s_title_idsOwned, true);
 
   if (s_title_to_launch != 0)
   {
@@ -261,7 +252,6 @@ void ES::DoState(PointerWrap& p)
   Device::DoState(p);
   p.Do(s_content_file);
   p.Do(m_AccessIdentID);
-  p.Do(s_title_ids);
   s_title_context.DoState(p);
 
   m_addtitle_tmd.DoState(p);
@@ -892,14 +882,61 @@ IPCCommandResult ES::SetUID(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
+static bool IsValidPartOfTitleID(const std::string& string)
+{
+  if (string.length() != 8)
+    return false;
+  return std::all_of(string.begin(), string.end(),
+                     [](const auto character) { return std::isxdigit(character) != 0; });
+}
+
+// Returns a vector of title IDs. IOS does not check the TMD at all here.
+static std::vector<u64> GetInstalledTitles()
+{
+  const std::string titles_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/title";
+  if (!File::IsDirectory(titles_dir))
+  {
+    ERROR_LOG(IOS_ES, "/title is not a directory");
+    return {};
+  }
+
+  std::vector<u64> title_ids;
+
+  // The /title directory contains one directory per title type, and each of them contains
+  // a directory per title (where the name is the low 32 bits of the title ID in %08x format).
+  const auto& entries = File::ScanDirectoryTree(titles_dir, true);
+  for (const File::FSTEntry& title_type : entries.children)
+  {
+    if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
+      continue;
+
+    if (title_type.children.empty())
+      continue;
+
+    for (const File::FSTEntry& title_identifier : title_type.children)
+    {
+      if (!title_identifier.isDirectory || !IsValidPartOfTitleID(title_identifier.virtualName))
+        continue;
+
+      const u32 type = std::stoul(title_type.virtualName, nullptr, 16);
+      const u32 identifier = std::stoul(title_identifier.virtualName, nullptr, 16);
+      title_ids.push_back(static_cast<u64>(type) << 32 | identifier);
+    }
+  }
+
+  return title_ids;
+}
+
 IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  Memory::Write_U32((u32)s_title_ids.size(), request.io_vectors[0].address);
+  const std::vector<u64> titles = GetInstalledTitles();
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", s_title_ids.size());
+  Memory::Write_U32(static_cast<u32>(titles.size()), request.io_vectors[0].address);
+
+  INFO_LOG(IOS_ES, "GetTitleCount: %zu titles", titles.size());
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -909,19 +946,14 @@ IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  u32 MaxCount = Memory::Read_U32(request.in_vectors[0].address);
-  u32 Count = 0;
-  for (int i = 0; i < (int)s_title_ids.size(); i++)
-  {
-    Memory::Write_U64(s_title_ids[i], request.io_vectors[0].address + i * 8);
-    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(s_title_ids[i] >> 32),
-             (u32)s_title_ids[i]);
-    Count++;
-    if (Count >= MaxCount)
-      break;
-  }
+  const std::vector<u64> titles = GetInstalledTitles();
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: Number of titles returned %i", Count);
+  const size_t max_count = Memory::Read_U32(request.in_vectors[0].address);
+  for (size_t i = 0; i < std::min(max_count, titles.size()); i++)
+  {
+    Memory::Write_U64(titles[i], request.io_vectors[0].address + static_cast<u32>(i) * 8);
+    INFO_LOG(IOS_ES, "     title %016" PRIx64, titles[i]);
+  }
   return GetDefaultReply(IPC_SUCCESS);
 }
 
