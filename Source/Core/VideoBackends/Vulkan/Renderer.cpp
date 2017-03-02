@@ -503,6 +503,10 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   StateTracker::GetInstance()->EndRenderPass();
   StateTracker::GetInstance()->OnEndFrame();
 
+  // There are a few variables which can alter the final window draw rectangle, and some of them
+  // are determined by guest state. Currently, the only way to catch these is to update every frame.
+  UpdateDrawRectangle();
+
   // Render the frame dump image if enabled.
   if (IsFrameDumping())
   {
@@ -562,6 +566,10 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   // the changes will be delayed by one frame. For the moment it has to be done here because
   // this can cause a target size change, which would result in a black frame if done earlier.
   CheckForTargetResize(fb_width, fb_stride, fb_height);
+
+  // Update the window size based on the frame that was just rendered.
+  // Due to depending on guest state, we need to call this every frame.
+  SetWindowSize(static_cast<int>(fb_stride), static_cast<int>(fb_height));
 
   // Clean up stale textures.
   TextureCache::GetInstance()->Cleanup(frameCount);
@@ -1010,16 +1018,12 @@ void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
   FramebufferManagerBase::SetLastXfbWidth(new_width);
   FramebufferManagerBase::SetLastXfbHeight(new_height);
 
-  // Changing the XFB source area will likely change the final drawing rectangle.
-  UpdateDrawRectangle();
+  // Changing the XFB source area may alter the target size.
   if (CalculateTargetSize())
   {
     PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();
   }
-
-  // This call is needed for auto-resizing to work.
-  SetWindowSize(static_cast<int>(fb_stride), static_cast<int>(fb_height));
 }
 
 void Renderer::CheckForSurfaceChange()
@@ -1101,6 +1105,8 @@ void Renderer::CheckForConfigChanges()
   int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
   bool old_force_filtering = g_ActiveConfig.bForceFiltering;
   bool old_ssaa = g_ActiveConfig.bSSAA;
+  bool old_use_xfb = g_ActiveConfig.bUseXFB;
+  bool old_use_realxfb = g_ActiveConfig.bUseRealXFB;
 
   // Copy g_Config to g_ActiveConfig.
   // NOTE: This can potentially race with the UI thread, however if it does, the changes will be
@@ -1115,20 +1121,16 @@ void Renderer::CheckForConfigChanges()
   bool stereo_changed = old_stereo_mode != g_ActiveConfig.iStereoMode;
   bool efb_scale_changed = s_last_efb_scale != g_ActiveConfig.iEFBScale;
   bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
+  bool use_xfb_changed = old_use_xfb != g_ActiveConfig.bUseXFB;
+  bool use_realxfb_changed = old_use_realxfb != g_ActiveConfig.bUseRealXFB;
 
   // Update texture cache settings with any changed options.
   TextureCache::GetInstance()->OnConfigChanged(g_ActiveConfig);
 
-  // Handle internal resolution changes.
-  if (efb_scale_changed)
-    s_last_efb_scale = g_ActiveConfig.iEFBScale;
-
-  // If the aspect ratio is changed, this changes the area that the game is drawn to.
-  if (aspect_changed)
-    UpdateDrawRectangle();
-
-  if (efb_scale_changed || aspect_changed)
+  // Handle settings that can cause the target rectangle to change.
+  if (efb_scale_changed || aspect_changed || use_xfb_changed || use_realxfb_changed)
   {
+    s_last_efb_scale = g_ActiveConfig.iEFBScale;
     if (CalculateTargetSize())
       ResizeEFBTextures();
   }
