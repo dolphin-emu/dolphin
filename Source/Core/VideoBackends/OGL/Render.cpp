@@ -1238,18 +1238,22 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
   if (state.blendenable)
   {
-    GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-    GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
-
     glEnable(GL_BLEND);
-    glBlendEquationSeparate(equation, equationAlpha);
-    glBlendFuncSeparate(src_factors[state.srcfactor], dst_factors[state.dstfactor],
-                        src_factors[state.srcfactoralpha], dst_factors[state.dstfactoralpha]);
   }
   else
   {
     glDisable(GL_BLEND);
   }
+
+  // Always call glBlendEquationSeparate and glBlendFuncSeparate, even when
+  // GL_BLEND is disabled, as a workaround for some bugs (possibly graphics
+  // driver issues?). See https://bugs.dolphin-emu.org/issues/10120 : "Sonic
+  // Adventure 2 Battle: graphics crash when loading first Dark level"
+  GLenum equation = state.subtract ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+  GLenum equationAlpha = state.subtractAlpha ? GL_FUNC_REVERSE_SUBTRACT : GL_FUNC_ADD;
+  glBlendEquationSeparate(equation, equationAlpha);
+  glBlendFuncSeparate(src_factors[state.srcfactor], dst_factors[state.dstfactor],
+                      src_factors[state.srcfactoralpha], dst_factors[state.dstfactoralpha]);
 
   const GLenum logic_op_codes[16] = {
       GL_CLEAR,         GL_AND,         GL_AND_REVERSE, GL_COPY,  GL_AND_INVERTED, GL_NOOP,
