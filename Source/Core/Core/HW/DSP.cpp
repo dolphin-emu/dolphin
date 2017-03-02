@@ -25,6 +25,7 @@
 #include <memory>
 
 #include "AudioCommon/AudioCommon.h"
+#include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/MemoryUtil.h"
 #include "Core/ConfigManager.h"

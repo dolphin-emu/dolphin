@@ -4,6 +4,8 @@
 
 #include "Core/PowerPC/PowerPC.h"
 
+#include <cstring>
+
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
