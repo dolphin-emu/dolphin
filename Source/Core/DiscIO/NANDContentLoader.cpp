@@ -260,7 +260,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_ap
     else
     {
       std::string filename;
-      if (content.type & 0x8000)  // shared app
+      if (content.IsShared())
         filename = shared_content.GetFilenameFromSHA1(content.sha1.data());
       else
         filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.id);
@@ -317,7 +317,7 @@ void CNANDContentLoader::RemoveTitle() const
     // remove TMD?
     for (const auto& content : m_Content)
     {
-      if (!(content.m_metadata.type & 0x8000))  // skip shared apps
+      if (!content.m_metadata.IsShared())
       {
         std::string path = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.m_metadata.id);
         INFO_LOG(DISCIO, "Delete %s", path.c_str());
@@ -430,7 +430,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   for (const auto& content : content_loader.GetContent())
   {
     std::string app_filename;
-    if (content.m_metadata.type & 0x8000)  // shared
+    if (content.m_metadata.IsShared())
       app_filename = shared_content.AddSharedContent(content.m_metadata.sha1.data());
     else
       app_filename = StringFromFormat("%s%08x.app", content_path.c_str(), content.m_metadata.id);

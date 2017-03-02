@@ -61,6 +61,7 @@ static_assert(sizeof(TMDHeader) == 0x1e4, "TMDHeader has the wrong size");
 
 struct Content
 {
+  bool IsShared() const;
   u32 id;
   u16 index;
   u16 type;

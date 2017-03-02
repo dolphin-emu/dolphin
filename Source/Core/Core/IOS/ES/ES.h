@@ -174,7 +174,7 @@ private:
   IPCCommandResult GetTitles(const IOCtlVRequest& request);
   IPCCommandResult GetViewCount(const IOCtlVRequest& request);
   IPCCommandResult GetViews(const IOCtlVRequest& request);
-  IPCCommandResult GetTMDViewCount(const IOCtlVRequest& request);
+  IPCCommandResult GetTMDViewSize(const IOCtlVRequest& request);
   IPCCommandResult GetTMDViews(const IOCtlVRequest& request);
   IPCCommandResult GetConsumption(const IOCtlVRequest& request);
   IPCCommandResult DeleteTitle(const IOCtlVRequest& request);
