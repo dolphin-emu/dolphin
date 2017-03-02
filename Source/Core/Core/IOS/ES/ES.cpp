@@ -231,6 +231,9 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
     return false;
   }
 
+  if (!content_loader.GetTMD().IsValid() || !content_loader.GetTicket().IsValid())
+    return false;
+
   // Before launching a title, IOS first reads the TMD and reloads into the specified IOS version,
   // even when that version is already running. After it has reloaded, ES_Launch will be called
   // again with the reload skipped, and the PPC will be bootstrapped then.
@@ -310,7 +313,7 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 {
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-  if (!Loader.IsValid() || !Loader.GetTicket().IsValid())
+  if (!Loader.IsValid() || !Loader.GetTMD().IsValid() || !Loader.GetTicket().IsValid())
   {
     WARN_LOG(IOS_ES, "ES: loader not valid for %" PRIx64, TitleID);
     return 0xffffffff;
@@ -660,7 +663,7 @@ IPCCommandResult ES::GetTitleContentsCount(const IOCtlVRequest& request)
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
   const DiscIO::CNANDContentLoader& nand_content = AccessContentDevice(TitleID);
-  if (!nand_content.IsValid())
+  if (!nand_content.IsValid() || !nand_content.GetTMD().IsValid())
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   const u16 num_contents = nand_content.GetTMD().GetNumContents();
@@ -684,7 +687,7 @@ IPCCommandResult ES::GetTitleContents(const IOCtlVRequest& request)
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
   const DiscIO::CNANDContentLoader& rNANDContent = AccessContentDevice(TitleID);
-  if (!rNANDContent.IsValid())
+  if (!rNANDContent.IsValid() || !rNANDContent.GetTMD().IsValid())
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   for (const auto& content : rNANDContent.GetTMD().GetContents())
@@ -1182,10 +1185,10 @@ IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-  u32 tmd_size = 0;
-  if (Loader.IsValid())
-    tmd_size = static_cast<u32>(Loader.GetTMD().GetRawTMD().size());
+  if (!Loader.IsValid() || !Loader.GetTMD().IsValid())
+    return GetDefaultReply(FS_ENOENT);
 
+  const u32 tmd_size = static_cast<u32>(Loader.GetTMD().GetRawTMD().size());
   Memory::Write_U32(tmd_size, request.io_vectors[0].address);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)",
@@ -1204,17 +1207,14 @@ IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
   const u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
   const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x   buffer size: %i",
-           (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
+  if (!Loader.IsValid() || !Loader.GetTMD().IsValid())
+    return GetDefaultReply(FS_ENOENT);
 
-  if (Loader.IsValid())
-  {
-    const std::vector<u8> raw_tmd = Loader.GetTMD().GetRawTMD();
-    if (raw_tmd.size() != request.io_vectors[0].size)
-      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  const std::vector<u8> raw_tmd = Loader.GetTMD().GetRawTMD();
+  if (raw_tmd.size() != request.io_vectors[0].size)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-    Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
-  }
+  Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)",
            (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
