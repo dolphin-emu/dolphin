@@ -443,8 +443,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return Sign(request);
   case IOCTL_ES_GETBOOT2VERSION:
     return GetBoot2Version(request);
-
-  // Unsupported functions
   case IOCTL_ES_DIGETTICKETVIEW:
     return DIGetTicketView(request);
   case IOCTL_ES_GETOWNEDTITLECNT:
@@ -1458,10 +1456,39 @@ IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)
 
 IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 0xd8)
+  if (!request.HasNumberOfValidVectors(1, 1) ||
+      request.io_vectors[0].size != sizeof(IOS::ES::TicketView))
+  {
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  }
+
+  const bool has_ticket_vector = request.in_vectors[0].size == 0x2A4;
+
+  // This ioctlv takes either a signed ticket or no ticket, in which case the ticket size must be 0.
+  if (!has_ticket_vector && request.in_vectors[0].size != 0)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  // TODO: unimplemented.
+  std::vector<u8> view;
+
+  // If no ticket was passed in, IOS returns the ticket view for the current title.
+  // Of course, this returns -1017 if no title is active and no ticket is passed.
+  if (!has_ticket_vector)
+  {
+    if (!s_title_context.active)
+      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+    view = s_title_context.ticket.GetRawTicketView(0);
+  }
+  else
+  {
+    std::vector<u8> ticket_bytes(request.in_vectors[0].size);
+    Memory::CopyFromEmu(ticket_bytes.data(), request.in_vectors[0].address, ticket_bytes.size());
+    const IOS::ES::TicketReader ticket{std::move(ticket_bytes)};
+
+    view = ticket.GetRawTicketView(0);
+  }
+
+  Memory::CopyToEmu(request.io_vectors[0].address, view.data(), view.size());
   return GetDefaultReply(IPC_SUCCESS);
 }
 
