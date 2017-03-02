@@ -20,18 +20,18 @@ add_definitions(-D__STDC_LIMIT_MACROS)
 add_definitions(-D__STDC_CONSTANT_MACROS)
 
 macro(add_dolphin_library lib srcs libs)
-	add_library(${lib} STATIC ${srcs})
-	target_link_libraries(${lib} PUBLIC ${libs})
+  add_library(${lib} STATIC ${srcs})
+  target_link_libraries(${lib} PUBLIC ${libs})
 endmacro()
 
 add_subdirectory(Core)
 if (ANDROID)
-	add_subdirectory(Android/jni)
+  add_subdirectory(Android/jni)
 endif()
 add_subdirectory(UnitTests)
 
 if (DSPTOOL)
-	add_subdirectory(DSPTool)
+  add_subdirectory(DSPTool)
 endif()
 
 # TODO: Add DSPSpy. Preferably make it option() and cpack component

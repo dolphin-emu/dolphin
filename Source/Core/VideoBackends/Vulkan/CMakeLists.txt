@@ -1,31 +1,31 @@
 set(SRCS
-	BoundingBox.cpp
-	CommandBufferManager.cpp
-	FramebufferManager.cpp
-	ObjectCache.cpp
-	PerfQuery.cpp
-	RasterFont.cpp
-	Renderer.cpp
-	ShaderCompiler.cpp
-	StateTracker.cpp
-	StagingBuffer.cpp
-	StagingTexture2D.cpp
-	StreamBuffer.cpp
-	SwapChain.cpp
-	Texture2D.cpp
-	TextureCache.cpp
-	TextureConverter.cpp
-	Util.cpp
-	VertexFormat.cpp
-	VertexManager.cpp
-	VulkanContext.cpp
-	VulkanLoader.cpp
-	main.cpp
+  BoundingBox.cpp
+  CommandBufferManager.cpp
+  FramebufferManager.cpp
+  ObjectCache.cpp
+  PerfQuery.cpp
+  RasterFont.cpp
+  Renderer.cpp
+  ShaderCompiler.cpp
+  StateTracker.cpp
+  StagingBuffer.cpp
+  StagingTexture2D.cpp
+  StreamBuffer.cpp
+  SwapChain.cpp
+  Texture2D.cpp
+  TextureCache.cpp
+  TextureConverter.cpp
+  Util.cpp
+  VertexFormat.cpp
+  VertexManager.cpp
+  VulkanContext.cpp
+  VulkanLoader.cpp
+  main.cpp
 )
 
 set(LIBS
-	videocommon
-	common
+  videocommon
+  common
 )
 
 # Only include the Vulkan headers when building the Vulkan backend
