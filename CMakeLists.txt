@@ -80,6 +80,8 @@ list(APPEND CMAKE_MODULE_PATH
 include(CheckAndAddFlag)
 include(CheckCCompilerFlag)
 include(DolphinCompileDefinitions)
+include(SetFolder)
+include(SetTargetSourceFolder)
 
 # Enable folders for IDE
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -887,8 +889,6 @@ else()
 endif()
 
 enable_testing()
-add_custom_target(unittests)
-add_custom_command(TARGET unittests POST_BUILD COMMAND ${CMAKE_CTEST_COMMAND})
 
 add_subdirectory(Source)
 
@@ -942,3 +942,8 @@ list(APPEND CPACK_SOURCE_IGNORE_FILES "${CMAKE_BINARY_DIR}")
 # CPack must be included after the CPACK_* variables are set in order for those
 # variables to take effect.
 Include(CPack)
+
+# Put all the other targets in "Externals".
+# This should be moved to Externals/CMakeLists.txt when there is no more
+# add_subdirectory(Externals/foobar) in this file
+set_folder("." "Externals" EXCLUDE_DIRECTORY Source)
