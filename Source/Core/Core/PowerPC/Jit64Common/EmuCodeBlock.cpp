@@ -335,7 +335,7 @@ void EmuCodeBlock::MMIOLoadToReg(MMIO::Mapping* mmio, Gen::X64Reg reg_value,
 void EmuCodeBlock::SafeLoadToReg(X64Reg reg_value, const Gen::OpArg& opAddress, int accessSize,
                                  s32 offset, BitSet32 registersInUse, bool signExtend, int flags)
 {
-  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0 || g_jit->jo.alwaysUseMemFuncs;
+  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
 
   registersInUse[reg_value] = false;
   if (g_jit->jo.fastmem && !(flags & SAFE_LOADSTORE_NO_FASTMEM) && !slowmem)
@@ -492,7 +492,7 @@ void EmuCodeBlock::SafeWriteRegToReg(OpArg reg_value, X64Reg reg_addr, int acces
                                      BitSet32 registersInUse, int flags)
 {
   bool swap = !(flags & SAFE_LOADSTORE_NO_SWAP);
-  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0 || g_jit->jo.alwaysUseMemFuncs;
+  bool slowmem = (flags & SAFE_LOADSTORE_FORCE_SLOWMEM) != 0;
 
   // set the correct immediate format
   reg_value = FixImmediate(accessSize, reg_value);

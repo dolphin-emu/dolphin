@@ -1191,6 +1191,10 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
           valid_bit = 0x3;
         else if ((address >> 28) == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
           valid_bit = 0x3;
+        // Fastmem doesn't support memchecks, so disable it for all overlapping virtual pages.
+        if (PowerPC::memchecks.OverlapsMemcheck(((batu.BEPI | j) << BAT_INDEX_SHIFT),
+                                                1 << BAT_INDEX_SHIFT))
+          valid_bit &= ~0x2;
 
         // (BEPI | j) == (BEPI & ~BL) | (j & BL).
         bat_table[batu.BEPI | j] = address | valid_bit;

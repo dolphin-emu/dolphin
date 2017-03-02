@@ -87,6 +87,7 @@ public:
 
   // memory breakpoint
   TMemCheck* GetMemCheck(u32 address);
+  bool OverlapsMemcheck(u32 address, u32 length);
   void Remove(u32 address);
 
   void Clear() { m_mem_checks.clear(); }
