@@ -278,8 +278,6 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting ISO in wrong console mode!");
     }
 
-    IOS::HLE::ES_DIVerify(pVolume.GetTMD());
-
     _StartupPara.bWii = pVolume.GetVolumeType() == DiscIO::Platform::WII_DISC;
 
     // HLE BS2 or not

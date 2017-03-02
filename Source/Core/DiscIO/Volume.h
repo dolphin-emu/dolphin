@@ -37,6 +37,7 @@ public:
   }
 
   virtual bool GetTitleID(u64*) const { return false; }
+  virtual IOS::ES::TicketReader GetTicket() const { return {}; }
   virtual IOS::ES::TMDReader GetTMD() const { return {}; }
   virtual u64 PartitionOffsetToRawOffset(u64 offset) const { return offset; }
   virtual std::string GetGameID() const = 0;

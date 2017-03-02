@@ -33,6 +33,7 @@ public:
   ~CVolumeWiiCrypted();
   bool Read(u64 _Offset, u64 _Length, u8* _pBuffer, bool decrypt) const override;
   bool GetTitleID(u64* buffer) const override;
+  IOS::ES::TicketReader GetTicket() const override;
   IOS::ES::TMDReader GetTMD() const override;
   u64 PartitionOffsetToRawOffset(u64 offset) const override;
   std::string GetGameID() const override;

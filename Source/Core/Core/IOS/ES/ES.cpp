@@ -20,17 +20,22 @@
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
+#include "Core/Boot/Boot.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
+#include "Core/HLE/HLE.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/PatchEngine.h"
+#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/WiiRoot.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
+#include "VideoCommon/HiresTextures.h"
 
 namespace IOS
 {
@@ -38,7 +43,27 @@ namespace HLE
 {
 namespace Device
 {
-std::string ES::m_ContentFile;
+struct TitleContext
+{
+  void Clear();
+  void DoState(PointerWrap& p);
+  void Update(const DiscIO::CNANDContentLoader& content_loader);
+  void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
+  void UpdateRunningGame() const;
+
+  IOS::ES::TicketReader ticket;
+  IOS::ES::TMDReader tmd;
+  bool active = false;
+  bool first_change = true;
+};
+
+// Shared across all ES instances.
+static std::string s_content_file;
+static std::vector<u64> s_title_ids;
+static TitleContext s_title_context;
+
+// Title to launch after IOS has been reset and reloaded (similar to /sys/launch.sys).
+static u64 s_title_to_launch;
 
 constexpr u8 s_key_sd[0x10] = {0xab, 0x01, 0xb9, 0xd8, 0xe1, 0x62, 0x2b, 0x08,
                                0xaf, 0xba, 0xd8, 0x4d, 0xbf, 0xc2, 0xa5, 0x5d};
@@ -67,9 +92,111 @@ ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device
 {
 }
 
+void ES::Init()
+{
+  s_content_file = "";
+  s_title_context = TitleContext{};
+
+  s_title_ids.clear();
+  DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  uid_sys.GetTitleIDs(s_title_ids);
+
+  // uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
+  // s_title_idsOwned.clear();
+  // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(s_title_idsOwned, true);
+
+  if (s_title_to_launch != 0)
+  {
+    NOTICE_LOG(IOS, "Re-launching title after IOS reload.");
+    LaunchTitle(s_title_to_launch, true);
+    s_title_to_launch = 0;
+  }
+}
+
+void TitleContext::Clear()
+{
+  ticket.SetBytes({});
+  tmd.SetBytes({});
+  active = false;
+}
+
+void TitleContext::DoState(PointerWrap& p)
+{
+  ticket.DoState(p);
+  tmd.DoState(p);
+  p.Do(active);
+}
+
+void TitleContext::Update(const DiscIO::CNANDContentLoader& content_loader)
+{
+  if (!content_loader.IsValid())
+    return;
+  Update(content_loader.GetTMD(), content_loader.GetTicket());
+}
+
+void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_)
+{
+  if (!tmd_.IsValid() || !ticket_.IsValid())
+  {
+    ERROR_LOG(IOS_ES, "TMD or ticket is not valid -- refusing to update title context");
+    return;
+  }
+
+  ticket = ticket_;
+  tmd = tmd_;
+  active = true;
+
+  // Interesting title changes (channel or disc game launch) always happen after an IOS reload.
+  if (first_change)
+  {
+    UpdateRunningGame();
+    first_change = false;
+  }
+}
+
+void TitleContext::UpdateRunningGame() const
+{
+  // This one does not always make sense for Wii titles, so let's reset it back to a sane value.
+  SConfig::GetInstance().m_strName = "";
+  if (IOS::ES::IsTitleType(tmd.GetTitleId(), IOS::ES::TitleType::Game) ||
+      IOS::ES::IsTitleType(tmd.GetTitleId(), IOS::ES::TitleType::GameWithChannel))
+  {
+    const u32 title_identifier = Common::swap32(static_cast<u32>(tmd.GetTitleId()));
+    const u16 group_id = Common::swap16(tmd.GetGroupId());
+
+    char ascii_game_id[6];
+    std::memcpy(ascii_game_id, &title_identifier, sizeof(title_identifier));
+    std::memcpy(ascii_game_id + sizeof(title_identifier), &group_id, sizeof(group_id));
+
+    SConfig::GetInstance().m_strGameID = ascii_game_id;
+  }
+  else
+  {
+    SConfig::GetInstance().m_strGameID = StringFromFormat("%016" PRIX64, tmd.GetTitleId());
+  }
+
+  SConfig::GetInstance().m_title_id = tmd.GetTitleId();
+
+  // TODO: have a callback mechanism for title changes?
+  g_symbolDB.Clear();
+  CBoot::LoadMapFromFilename();
+  ::HLE::Clear();
+  ::HLE::PatchFunctions();
+  PatchEngine::Shutdown();
+  PatchEngine::LoadPatches();
+  HiresTexture::Update();
+
+  NOTICE_LOG(IOS_ES, "Active title: %016" PRIx64, tmd.GetTitleId());
+}
+
 void ES::LoadWAD(const std::string& _rContentFile)
 {
-  m_ContentFile = _rContentFile;
+  s_content_file = _rContentFile;
+  // XXX: Ideally, this should be done during a launch, but because we support launching WADs
+  // without installing them (which is a bit of a hack), we have to do this manually here.
+  const auto& content_loader = DiscIO::CNANDContentManager::Access().GetNANDLoader(s_content_file);
+  s_title_context.Update(content_loader);
+  INFO_LOG(IOS_ES, "LoadWAD: Title context changed: %016" PRIx64, s_title_context.tmd.GetTitleId());
 }
 
 void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, u8* output)
@@ -80,8 +207,11 @@ void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, 
   mbedtls_aes_crypt_cbc(&AES_ctx, MBEDTLS_AES_DECRYPT, size, new_iv, input, output);
 }
 
-bool ES::LaunchTitle(u64 title_id, bool skip_reload) const
+bool ES::LaunchTitle(u64 title_id, bool skip_reload)
 {
+  s_title_context.Clear();
+  INFO_LOG(IOS_ES, "ES_Launch: Title context changed: (none)");
+
   NOTICE_LOG(IOS_ES, "Launching title %016" PRIx64 "...", title_id);
 
   // ES_Launch should probably reset the whole state, which at least means closing all open files.
@@ -94,12 +224,12 @@ bool ES::LaunchTitle(u64 title_id, bool skip_reload) const
   return LaunchPPCTitle(title_id, skip_reload);
 }
 
-bool ES::LaunchIOS(u64 ios_title_id) const
+bool ES::LaunchIOS(u64 ios_title_id)
 {
   return Reload(ios_title_id);
 }
 
-bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload) const
+bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
 {
   const DiscIO::CNANDContentLoader& content_loader = AccessContentDevice(title_id);
   if (!content_loader.IsValid())
@@ -115,52 +245,24 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload) const
   // again with the reload skipped, and the PPC will be bootstrapped then.
   if (!skip_reload)
   {
-    SetTitleToLaunch(title_id);
+    s_title_to_launch = title_id;
     const u64 required_ios = content_loader.GetTMD().GetIOSId();
     return LaunchTitle(required_ios);
   }
 
-  SetDefaultContentFile(Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT));
+  s_title_context.Update(content_loader);
+  INFO_LOG(IOS_ES, "LaunchPPCTitle: Title context changed: %016" PRIx64,
+           s_title_context.tmd.GetTitleId());
   return BootstrapPPC(content_loader);
-}
-
-void ES::OpenInternal()
-{
-  auto& contentLoader = DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
-
-  // check for cd ...
-  if (contentLoader.IsValid())
-  {
-    m_TitleID = contentLoader.GetTMD().GetTitleId();
-
-    m_TitleIDs.clear();
-    DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
-    uid_sys.GetTitleIDs(m_TitleIDs);
-    // uncomment if  ES_GetOwnedTitlesCount / ES_GetOwnedTitles is implemented
-    // m_TitleIDsOwned.clear();
-    // DiscIO::cUIDsys::AccessInstance().GetTitleIDs(m_TitleIDsOwned, true);
-  }
-  else if (DVDInterface::VolumeIsValid())
-  {
-    // blindly grab the titleID from the disc - it's unencrypted at:
-    // offset 0x0F8001DC and 0x0F80044C
-    DVDInterface::GetVolume().GetTitleID(&m_TitleID);
-  }
-  else
-  {
-    m_TitleID = ((u64)0x00010000 << 32) | 0xF00DBEEF;
-  }
-
-  INFO_LOG(IOS_ES, "Set default title to %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
 }
 
 void ES::DoState(PointerWrap& p)
 {
   Device::DoState(p);
-  p.Do(m_ContentFile);
-  OpenInternal();
+  p.Do(s_content_file);
   p.Do(m_AccessIdentID);
-  p.Do(m_TitleIDs);
+  p.Do(s_title_ids);
+  s_title_context.DoState(p);
 
   m_addtitle_tmd.DoState(p);
   p.Do(m_addtitle_content_id);
@@ -197,8 +299,6 @@ void ES::DoState(PointerWrap& p)
 
 ReturnCode ES::Open(const OpenRequest& request)
 {
-  OpenInternal();
-
   if (m_is_active)
     INFO_LOG(IOS_ES, "Device was re-opened.");
   return Device::Open(request);
@@ -206,9 +306,8 @@ ReturnCode ES::Open(const OpenRequest& request)
 
 void ES::Close()
 {
+  // XXX: does IOS really clear the content access map here?
   m_ContentAccessMap.clear();
-  m_TitleIDs.clear();
-  m_TitleID = -1;
   m_AccessIdentID = 0;
 
   INFO_LOG(IOS_ES, "ES: Close");
@@ -628,7 +727,10 @@ IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
   u32 Index = Memory::Read_U32(request.in_vectors[0].address);
 
-  s32 CFD = OpenTitleContent(m_AccessIdentID++, m_TitleID, Index);
+  if (!s_title_context.active)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  s32 CFD = OpenTitleContent(m_AccessIdentID++, s_title_context.tmd.GetTitleId(), Index);
   INFO_LOG(IOS_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
 
   return GetDefaultReply(CFD);
@@ -771,8 +873,13 @@ IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  Memory::Write_U64(m_TitleID, request.io_vectors[0].address);
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", (u32)(m_TitleID >> 32), (u32)m_TitleID);
+  if (!s_title_context.active)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  const u64 title_id = s_title_context.tmd.GetTitleId();
+  Memory::Write_U64(title_id, request.io_vectors[0].address);
+  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLEID: %08x/%08x", static_cast<u32>(title_id >> 32),
+           static_cast<u32>(title_id));
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -792,9 +899,9 @@ IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  Memory::Write_U32((u32)m_TitleIDs.size(), request.io_vectors[0].address);
+  Memory::Write_U32((u32)s_title_ids.size(), request.io_vectors[0].address);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", m_TitleIDs.size());
+  INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLECNT: Number of Titles %zu", s_title_ids.size());
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -806,11 +913,11 @@ IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
 
   u32 MaxCount = Memory::Read_U32(request.in_vectors[0].address);
   u32 Count = 0;
-  for (int i = 0; i < (int)m_TitleIDs.size(); i++)
+  for (int i = 0; i < (int)s_title_ids.size(); i++)
   {
-    Memory::Write_U64(m_TitleIDs[i], request.io_vectors[0].address + i * 8);
-    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(m_TitleIDs[i] >> 32),
-             (u32)m_TitleIDs[i]);
+    Memory::Write_U64(s_title_ids[i], request.io_vectors[0].address + i * 8);
+    INFO_LOG(IOS_ES, "IOCTL_ES_GETTITLES: %08x/%08x", (u32)(s_title_ids[i] >> 32),
+             (u32)s_title_ids[i]);
     Count++;
     if (Count >= MaxCount)
       break;
@@ -1327,8 +1434,12 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
   u32 data_size = request.in_vectors[0].size;
   u8* sig_out = Memory::GetPointer(request.io_vectors[0].address);
 
+  if (!s_title_context.active)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   const EcWii& ec = EcWii::GetInstance();
-  MakeAPSigAndCert(sig_out, ap_cert_out, m_TitleID, data, data_size, ec.GetNGPriv(), ec.GetNGID());
+  MakeAPSigAndCert(sig_out, ap_cert_out, s_title_context.tmd.GetTitleId(), data, data_size,
+                   ec.GetNGPriv(), ec.GetNGID());
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -1365,36 +1476,38 @@ IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id) const
+const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
 {
-  // for WADs, the passed title id and the stored title id match; along with m_ContentFile being set
-  // to the
-  // actual WAD file name. We cannot simply get a NAND Loader for the title id in those cases, since
-  // the WAD
-  // need not be installed in the NAND, but it could be opened directly from a WAD file anywhere on
-  // disk.
-  if (m_TitleID == title_id && !m_ContentFile.empty())
-    return DiscIO::CNANDContentManager::Access().GetNANDLoader(m_ContentFile);
+  // for WADs, the passed title id and the stored title id match; along with s_content_file
+  // being set to the actual WAD file name. We cannot simply get a NAND Loader for the title id
+  // in those cases, since the WAD need not be installed in the NAND, but it could be opened
+  // directly from a WAD file anywhere on disk.
+  if (s_title_context.active && s_title_context.tmd.GetTitleId() == title_id &&
+      !s_content_file.empty())
+  {
+    return DiscIO::CNANDContentManager::Access().GetNANDLoader(s_content_file);
+  }
 
   return DiscIO::CNANDContentManager::Access().GetNANDLoader(title_id, Common::FROM_SESSION_ROOT);
 }
 
-u32 ES::ES_DIVerify(const IOS::ES::TMDReader& tmd)
+// This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
+// used from the PowerPC (for unpatched IOSes anyway).
+s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
-  if (!tmd.IsValid())
-    return -1;
+  s_title_context.Clear();
+  INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: (none)");
 
-  u64 title_id = 0xDEADBEEFDEADBEEFull;
-  u64 tmd_title_id = tmd.GetTitleId();
+  if (!tmd.IsValid() || !ticket.IsValid())
+    return ES_PARAMETER_SIZE_OR_ALIGNMENT;
 
-  DVDInterface::GetVolume().GetTitleID(&title_id);
-  if (title_id != tmd_title_id)
-    return -1;
+  if (tmd.GetTitleId() != ticket.GetTitleId())
+    return ES_PARAMETER_SIZE_OR_ALIGNMENT;
 
-  std::string tmd_path = Common::GetTMDFileName(tmd_title_id, Common::FROM_SESSION_ROOT);
+  std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
 
   File::CreateFullPath(tmd_path);
-  File::CreateFullPath(Common::GetTitleDataPath(tmd_title_id, Common::FROM_SESSION_ROOT));
+  File::CreateFullPath(Common::GetTitleDataPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT));
 
   if (!File::Exists(tmd_path))
   {
@@ -1404,11 +1517,14 @@ u32 ES::ES_DIVerify(const IOS::ES::TMDReader& tmd)
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
   DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
-  uid_sys.AddTitle(tmd_title_id);
+  uid_sys.AddTitle(tmd.GetTitleId());
   // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
   // clear the cache to avoid content access mismatches.
   DiscIO::CNANDContentManager::Access().ClearCache();
-  return 0;
+
+  s_title_context.Update(tmd, ticket);
+  INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: %016" PRIx64, tmd.GetTitleId());
+  return IPC_SUCCESS;
 }
 }  // namespace Device
 }  // namespace HLE

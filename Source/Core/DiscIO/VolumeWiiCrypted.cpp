@@ -114,6 +114,13 @@ bool CVolumeWiiCrypted::GetTitleID(u64* buffer) const
   return true;
 }
 
+IOS::ES::TicketReader CVolumeWiiCrypted::GetTicket() const
+{
+  std::vector<u8> buffer(0x2a4);
+  Read(m_VolumeOffset, buffer.size(), buffer.data(), false);
+  return IOS::ES::TicketReader{std::move(buffer)};
+}
+
 IOS::ES::TMDReader CVolumeWiiCrypted::GetTMD() const
 {
   u32 tmd_size;
