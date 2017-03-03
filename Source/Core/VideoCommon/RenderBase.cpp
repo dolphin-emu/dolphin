@@ -456,29 +456,23 @@ void Renderer::DrawDebugText()
   RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
 
-float Renderer::CalculateDrawAspectRatio(int target_width, int target_height) const
+float Renderer::CalculateDrawAspectRatio() const
 {
-  // The dimensions are the sizes that are used to create the EFB/backbuffer textures, so
-  // they should always be greater than zero.
-  _assert_(target_width > 0 && target_height > 0);
   if (g_ActiveConfig.iAspectRatio == ASPECT_STRETCH)
   {
     // If stretch is enabled, we prefer the aspect ratio of the window.
-    return (static_cast<float>(target_width) / static_cast<float>(target_height)) /
-           (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
+    return (static_cast<float>(m_backbuffer_width) / static_cast<float>(m_backbuffer_height));
   }
 
   // The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
   if (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
       (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide))
   {
-    return (static_cast<float>(target_width) / static_cast<float>(target_height)) /
-           AspectToWidescreen(VideoInterface::GetAspectRatio());
+    return AspectToWidescreen(VideoInterface::GetAspectRatio());
   }
   else
   {
-    return (static_cast<float>(target_width) / static_cast<float>(target_height)) /
-           VideoInterface::GetAspectRatio();
+    return VideoInterface::GetAspectRatio();
   }
 }
 
@@ -487,15 +481,14 @@ std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
 {
   // Scale either the width or height depending the content aspect ratio.
   // This way we preserve as much resolution as possible when scaling.
-  float ratio = CalculateDrawAspectRatio(width, height);
-  if (ratio >= 1.0f)
-  {
-    // Preserve horizontal resolution, scale vertically.
-    return std::make_tuple(static_cast<float>(width), static_cast<float>(height) * ratio);
-  }
-
-  // Preserve vertical resolution, scale horizontally.
-  return std::make_tuple(static_cast<float>(width) / ratio, static_cast<float>(height));
+  float scaled_width = static_cast<float>(width);
+  float scaled_height = static_cast<float>(height);
+  const float draw_aspect = CalculateDrawAspectRatio();
+  if (scaled_width / scaled_height >= draw_aspect)
+    scaled_height = scaled_width / draw_aspect;
+  else
+    scaled_width = scaled_height * draw_aspect;
+  return std::make_tuple(scaled_width, scaled_height);
 }
 
 TargetRectangle Renderer::CalculateFrameDumpDrawRectangle() const
@@ -530,14 +523,9 @@ TargetRectangle Renderer::CalculateFrameDumpDrawRectangle() const
 
 void Renderer::UpdateDrawRectangle()
 {
-  float FloatGLWidth = static_cast<float>(m_backbuffer_width);
-  float FloatGLHeight = static_cast<float>(m_backbuffer_height);
-  float FloatXOffset = 0;
-  float FloatYOffset = 0;
-
   // The rendering window size
-  const float WinWidth = FloatGLWidth;
-  const float WinHeight = FloatGLHeight;
+  const float win_width = static_cast<float>(m_backbuffer_width);
+  const float win_height = static_cast<float>(m_backbuffer_height);
 
   // Update aspect ratio hack values
   // Won't take effect until next frame
@@ -552,7 +540,7 @@ void Renderer::UpdateDrawRectangle()
     switch (g_ActiveConfig.iAspectRatio)
     {
     case ASPECT_STRETCH:
-      target_aspect = WinWidth / WinHeight;
+      target_aspect = win_width / win_height;
       break;
     case ASPECT_ANALOG:
       target_aspect = VideoInterface::GetAspectRatio();
@@ -587,67 +575,57 @@ void Renderer::UpdateDrawRectangle()
     g_Config.fAspectRatioHackH = 1;
   }
 
-  // Check for force-settings and override.
+  float draw_width, draw_height, crop_width, crop_height;
 
-  // The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
-  float Ratio = CalculateDrawAspectRatio(m_backbuffer_width, m_backbuffer_height);
-  if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
+  // get the picture aspect ratio
+  draw_width = crop_width = CalculateDrawAspectRatio();
+  draw_height = crop_height = 1;
+
+  // crop the picture to a standard aspect ratio
+  if (g_ActiveConfig.bCrop && g_ActiveConfig.iAspectRatio != ASPECT_STRETCH)
   {
-    if (Ratio >= 0.995f && Ratio <= 1.005f)
+    float expected_aspect = (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
+                             (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide)) ?
+                                (16.0f / 9.0f) :
+                                (4.0f / 3.0f);
+    if (crop_width / crop_height >= expected_aspect)
     {
-      // If we're very close already, don't scale.
-      Ratio = 1.0f;
+      // the picture is flatter than it should be
+      crop_width = crop_height * expected_aspect;
     }
-    else if (Ratio > 1.0f)
-    {
-      // Scale down and center in the X direction.
-      FloatGLWidth /= Ratio;
-      FloatXOffset = (WinWidth - FloatGLWidth) / 2.0f;
-    }
-    // The window is too high, we have to limit the height
     else
     {
-      // Scale down and center in the Y direction.
-      FloatGLHeight *= Ratio;
-      FloatYOffset = FloatYOffset + (WinHeight - FloatGLHeight) / 2.0f;
+      // the picture is skinnier than it should be
+      crop_height = crop_width / expected_aspect;
     }
   }
 
-  // -----------------------------------------------------------------------
-  // Crop the picture from Analog to 4:3 or from Analog (Wide) to 16:9.
-  // Output: FloatGLWidth, FloatGLHeight, FloatXOffset, FloatYOffset
-  // ------------------
-  if (g_ActiveConfig.iAspectRatio != ASPECT_STRETCH && g_ActiveConfig.bCrop)
+  // scale the picture to fit the rendering window
+  if (win_width / win_height >= crop_width / crop_height)
   {
-    Ratio = (4.0f / 3.0f) / VideoInterface::GetAspectRatio();
-    if (Ratio <= 1.0f)
-    {
-      Ratio = 1.0f / Ratio;
-    }
-    // The width and height we will add (calculate this before FloatGLWidth and FloatGLHeight is
-    // adjusted)
-    float IncreasedWidth = (Ratio - 1.0f) * FloatGLWidth;
-    float IncreasedHeight = (Ratio - 1.0f) * FloatGLHeight;
-    // The new width and height
-    FloatGLWidth = FloatGLWidth * Ratio;
-    FloatGLHeight = FloatGLHeight * Ratio;
-    // Adjust the X and Y offset
-    FloatXOffset = FloatXOffset - (IncreasedWidth * 0.5f);
-    FloatYOffset = FloatYOffset - (IncreasedHeight * 0.5f);
+    // the window is flatter than the picture
+    draw_width *= win_height / crop_height;
+    crop_width *= win_height / crop_height;
+    draw_height *= win_height / crop_height;
+    crop_height = win_height;
+  }
+  else
+  {
+    // the window is skinnier than the picture
+    draw_width *= win_width / crop_width;
+    draw_height *= win_width / crop_width;
+    crop_height *= win_width / crop_width;
+    crop_width = win_width;
   }
 
-  int XOffset = (int)(FloatXOffset + 0.5f);
-  int YOffset = (int)(FloatYOffset + 0.5f);
-  int iWhidth = (int)ceil(FloatGLWidth);
-  int iHeight = (int)ceil(FloatGLHeight);
-  iWhidth -=
-      iWhidth % 4;  // ensure divisibility by 4 to make it compatible with all the video encoders
-  iHeight -= iHeight % 4;
+  // ensure divisibility by 4 to make it compatible with all the video encoders
+  draw_width = std::ceil(draw_width) - static_cast<int>(std::ceil(draw_width)) % 4;
+  draw_height = std::ceil(draw_height) - static_cast<int>(std::ceil(draw_height)) % 4;
 
-  m_target_rectangle.left = XOffset;
-  m_target_rectangle.top = YOffset;
-  m_target_rectangle.right = XOffset + iWhidth;
-  m_target_rectangle.bottom = YOffset + iHeight;
+  m_target_rectangle.left = static_cast<int>(std::round(win_width / 2.0 - draw_width / 2.0));
+  m_target_rectangle.top = static_cast<int>(std::round(win_height / 2.0 - draw_height / 2.0));
+  m_target_rectangle.right = m_target_rectangle.left + static_cast<int>(draw_width);
+  m_target_rectangle.bottom = m_target_rectangle.top + static_cast<int>(draw_height);
 }
 
 void Renderer::SetWindowSize(int width, int height)
