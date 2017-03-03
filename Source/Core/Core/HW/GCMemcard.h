@@ -7,10 +7,10 @@
 #include <algorithm>
 #include <string>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
 #include "Common/NonCopyable.h"
+#include "Common/Swap.h"
 #include "Common/Timer.h"
 
 #include "Core/HW/EXI/EXI_DeviceIPL.h"

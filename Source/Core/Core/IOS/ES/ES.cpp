@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/ES/ES.h"
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstdio>
@@ -15,23 +17,18 @@
 #include "Common/Align.h"
 #include "Common/Assert.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
+#include "Common/Swap.h"
 #include "Core/Boot/Boot.h"
-#include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
 #include "Core/HLE/HLE.h"
-#include "Core/HW/DVDInterface.h"
 #include "Core/HW/Memmap.h"
-#include "Core/IOS/ES/ES.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
-#include "Core/PowerPC/PowerPC.h"
-#include "Core/WiiRoot.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"

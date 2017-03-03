@@ -2,15 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/VertexLoader_TextCoord.h"
+
 #include <type_traits>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
+
 #include "VideoCommon/DataReader.h"
 #include "VideoCommon/VertexLoader.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexLoaderUtils.h"
-#include "VideoCommon/VertexLoader_TextCoord.h"
 
 template <int N>
 void LOG_TEX();

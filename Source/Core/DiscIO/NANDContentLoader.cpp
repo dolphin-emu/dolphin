@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DiscIO/NANDContentLoader.h"
+
 #include <algorithm>
 #include <array>
 #include <cinttypes>
@@ -15,7 +17,6 @@
 #include <vector>
 
 #include "Common/Align.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
 #include "Common/FileUtil.h"
@@ -23,9 +24,8 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
-#include "DiscIO/Enums.h"
-#include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/WiiWad.h"
 
 namespace DiscIO

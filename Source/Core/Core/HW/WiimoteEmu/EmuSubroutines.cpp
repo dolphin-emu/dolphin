@@ -25,6 +25,7 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"

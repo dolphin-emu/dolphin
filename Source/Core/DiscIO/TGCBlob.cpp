@@ -2,13 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DiscIO/TGCBlob.h"
+
 #include <memory>
 #include <string>
 #include <utility>
 
-#include "Common/CommonFuncs.h"
 #include "Common/FileUtil.h"
-#include "DiscIO/TGCBlob.h"
+#include "Common/Swap.h"
 
 namespace
 {

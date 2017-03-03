@@ -11,10 +11,10 @@
 #include <memory>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemArena.h"
+#include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 #include "Core/HW/AudioInterface.h"
 #include "Core/HW/DSP.h"

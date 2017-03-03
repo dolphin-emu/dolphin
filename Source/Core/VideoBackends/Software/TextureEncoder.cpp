@@ -2,13 +2,15 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Software/TextureEncoder.h"
+
 #include "Common/Align.h"
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 
 #include "VideoBackends/Software/EfbInterface.h"
-#include "VideoBackends/Software/TextureEncoder.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"

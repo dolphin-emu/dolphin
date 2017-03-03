@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DiscIO/VolumeWiiCrypted.h"
+
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -12,18 +14,17 @@
 #include <utility>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
+
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
 #include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
-#include "DiscIO/VolumeGC.h"
-#include "DiscIO/VolumeWiiCrypted.h"
 
 namespace DiscIO
 {

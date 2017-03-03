@@ -2,19 +2,17 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/Bluetooth/BTBase.h"
+
 #include <memory>
 #include <string>
 #include <vector>
 
-#include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/SysConf.h"
-#include "Core/HW/Memmap.h"
-#include "Core/IOS/USB/Bluetooth/BTBase.h"
 
 namespace IOS
 {

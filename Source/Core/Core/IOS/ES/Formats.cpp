@@ -11,9 +11,9 @@
 #include <vector>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
+#include "Common/Swap.h"
 
 namespace IOS
 {

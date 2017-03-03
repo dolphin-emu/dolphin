@@ -2,14 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "AudioCommon/Mixer.h"
+
 #include <cstring>
 
-#include "AudioCommon/AudioCommon.h"
-#include "AudioCommon/Mixer.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
+#include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 
 #if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)

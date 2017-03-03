@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/VertexLoader.h"
 
 class VertexLoader_Normal
 {

@@ -6,6 +6,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 
 #include "Core/ConfigManager.h"
 #include "Core/PowerPC/Interpreter/Interpreter.h"

@@ -5,9 +5,10 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
+
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
 #include "VideoCommon/TextureDecoder_Util.h"
