@@ -418,7 +418,7 @@ void CMemoryView::OnPaint(wxPaintEvent& event)
       draw_text(StrToWxStr(desc), 2);
 
     // Show blue memory check dot
-    if (debugger->IsMemCheck(address))
+    if (debugger->IsMemCheck(address, sizeof(u8)))
     {
       dc.SetPen(*wxTRANSPARENT_PEN);
       dc.SetBrush(mc_brush);

@@ -416,11 +416,11 @@ u32 HostRead_Instruction(const u32 address)
   return inst.hex;
 }
 
-static void Memcheck(u32 address, u32 var, bool write, int size)
+static void Memcheck(u32 address, u32 var, bool write, size_t size)
 {
   if (PowerPC::memchecks.HasAny())
   {
-    TMemCheck* mc = PowerPC::memchecks.GetMemCheck(address);
+    TMemCheck* mc = PowerPC::memchecks.GetMemCheck(address, size);
     if (mc)
     {
       if (CPU::IsStepping())

@@ -5,6 +5,7 @@
 #include "Core/PowerPC/BreakPoints.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <sstream>
 #include <string>
 #include <vector>
@@ -201,16 +202,11 @@ void MemChecks::Remove(u32 address)
   }
 }
 
-TMemCheck* MemChecks::GetMemCheck(u32 address)
+TMemCheck* MemChecks::GetMemCheck(u32 address, size_t size)
 {
   for (TMemCheck& mc : m_mem_checks)
   {
-    if (mc.is_ranged)
-    {
-      if (address >= mc.start_address && address <= mc.end_address)
-        return &mc;
-    }
-    else if (mc.start_address == address)
+    if (mc.end_address >= address && address + size - 1 >= mc.start_address)
     {
       return &mc;
     }
@@ -239,8 +235,8 @@ bool MemChecks::OverlapsMemcheck(u32 address, u32 length)
   return false;
 }
 
-bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, bool write, int size,
-                       u32 pc)
+bool TMemCheck::Action(DebugInterface* debug_interface, u32 value, u32 addr, bool write,
+                       size_t size, u32 pc)
 {
   if ((write && is_break_on_write) || (!write && is_break_on_read))
   {
