@@ -8,7 +8,8 @@ namespace ControllerEmu
 {
 BooleanSetting::BooleanSetting(const std::string& setting_name, const std::string& ui_name,
                                const bool default_value, const SettingType setting_type)
-    : m_type(setting_type), m_name(setting_name), m_ui_name(ui_name), m_default_value(default_value)
+    : m_type(setting_type), m_name(setting_name), m_ui_name(ui_name),
+      m_default_value(default_value), m_value(default_value)
 {
 }
 
