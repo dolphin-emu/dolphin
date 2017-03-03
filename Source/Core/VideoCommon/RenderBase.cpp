@@ -55,6 +55,8 @@
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VertexManagerBase.h"
+#include "VideoCommon/VertexShaderManager.h"
 #include "VideoCommon/VideoConfig.h"
 #include "VideoCommon/XFMemory.h"
 
@@ -89,6 +91,11 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
 
   OSDChoice = 0;
   OSDTime = 0;
+
+  if (SConfig::GetInstance().bWii)
+  {
+    m_aspect_wide = SConfig::GetInstance().m_wii_aspect_ratio != 0;
+  }
 }
 
 Renderer::~Renderer()
@@ -447,7 +454,7 @@ float Renderer::CalculateDrawAspectRatio(int target_width, int target_height)
 
   // The rendering window aspect ratio as a proportion of the 4:3 or 16:9 ratio
   if (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
-      (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && Core::g_aspect_wide))
+      (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide))
   {
     return (static_cast<float>(target_width) / static_cast<float>(target_height)) /
            AspectToWidescreen(VideoInterface::GetAspectRatio());
@@ -521,7 +528,7 @@ void Renderer::UpdateDrawRectangle()
   if (g_ActiveConfig.bWidescreenHack)
   {
     float source_aspect = VideoInterface::GetAspectRatio();
-    if (Core::g_aspect_wide)
+    if (m_aspect_wide)
       source_aspect = AspectToWidescreen(source_aspect);
     float target_aspect;
 
@@ -641,11 +648,10 @@ void Renderer::SetWindowSize(int width, int height)
   {
     // Force 4:3 or 16:9 by cropping the image.
     float current_aspect = scaled_width / scaled_height;
-    float expected_aspect =
-        (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
-         (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && Core::g_aspect_wide)) ?
-            (16.0f / 9.0f) :
-            (4.0f / 3.0f);
+    float expected_aspect = (g_ActiveConfig.iAspectRatio == ASPECT_ANALOG_WIDE ||
+                             (g_ActiveConfig.iAspectRatio != ASPECT_ANALOG && m_aspect_wide)) ?
+                                (16.0f / 9.0f) :
+                                (4.0f / 3.0f);
     if (current_aspect > expected_aspect)
     {
       // keep height, crop width
@@ -711,6 +717,22 @@ void Renderer::RecordVideoMemory()
 void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const EFBRectangle& rc,
                     u64 ticks, float Gamma)
 {
+  // Heuristic to detect if a GameCube game is in 16:9 anamorphic widescreen mode.
+  if (!SConfig::GetInstance().bWii)
+  {
+    size_t flush_count_4_3, flush_count_anamorphic;
+    std::tie(flush_count_4_3, flush_count_anamorphic) =
+        g_vertex_manager->ResetFlushAspectRatioCount();
+    size_t flush_total = flush_count_4_3 + flush_count_anamorphic;
+
+    // Modify the threshold based on which aspect ratio we're already using: if
+    // the game's in 4:3, it probably won't switch to anamorphic, and vice-versa.
+    if (m_aspect_wide)
+      m_aspect_wide = !(flush_count_4_3 > 0.75 * flush_total);
+    else
+      m_aspect_wide = flush_count_anamorphic > 0.75 * flush_total;
+  }
+
   // TODO: merge more generic parts into VideoCommon
   g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, ticks, Gamma);
 

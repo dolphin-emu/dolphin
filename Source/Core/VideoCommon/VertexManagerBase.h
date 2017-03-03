@@ -61,6 +61,8 @@ public:
 
   void DoState(PointerWrap& p);
 
+  std::pair<size_t, size_t> ResetFlushAspectRatioCount();
+
 protected:
   virtual void vDoState(PointerWrap& p) {}
   PrimitiveType m_current_primitive_type = PrimitiveType::PRIMITIVE_POINTS;
@@ -81,6 +83,8 @@ protected:
 
 private:
   bool m_is_flushed = true;
+  size_t m_flush_count_4_3 = 0;
+  size_t m_flush_count_anamorphic = 0;
 
   virtual void vFlush() = 0;
 

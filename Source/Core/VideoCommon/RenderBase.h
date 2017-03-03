@@ -158,6 +158,7 @@ protected:
   Common::Event m_screenshot_completed;
   std::mutex m_screenshot_lock;
   std::string m_screenshot_name;
+  bool m_aspect_wide = false;
 
   // The framebuffer size
   int m_target_width = 0;
