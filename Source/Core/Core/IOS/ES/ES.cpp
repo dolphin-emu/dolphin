@@ -911,7 +911,7 @@ static std::vector<u64> GetInstalledTitles()
 
   // The /title directory contains one directory per title type, and each of them contains
   // a directory per title (where the name is the low 32 bits of the title ID in %08x format).
-  const auto& entries = File::ScanDirectoryTree(titles_dir, true);
+  const auto entries = File::ScanDirectoryTree(titles_dir, true);
   for (const File::FSTEntry& title_type : entries.children)
   {
     if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
@@ -948,7 +948,7 @@ static std::vector<u64> GetTitlesWithTickets()
 
   // The /ticket directory contains one directory per title type, and each of them contains
   // one ticket per title (where the name is the low 32 bits of the title ID in %08x format).
-  const auto& entries = File::ScanDirectoryTree(titles_dir, true);
+  const auto entries = File::ScanDirectoryTree(titles_dir, true);
   for (const File::FSTEntry& title_type : entries.children)
   {
     if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
@@ -975,34 +975,40 @@ static std::vector<u64> GetTitlesWithTickets()
   return title_ids;
 }
 
-IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
+IPCCommandResult ES::GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  const std::vector<u64> titles = GetInstalledTitles();
-
   Memory::Write_U32(static_cast<u32>(titles.size()), request.io_vectors[0].address);
-
-  INFO_LOG(IOS_ES, "GetTitleCount: %zu titles", titles.size());
 
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
+IPCCommandResult ES::GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  const std::vector<u64> titles = GetInstalledTitles();
-
   const size_t max_count = Memory::Read_U32(request.in_vectors[0].address);
   for (size_t i = 0; i < std::min(max_count, titles.size()); i++)
   {
-    Memory::Write_U64(titles[i], request.io_vectors[0].address + static_cast<u32>(i) * 8);
+    Memory::Write_U64(titles[i], request.io_vectors[0].address + static_cast<u32>(i) * sizeof(u64));
     INFO_LOG(IOS_ES, "     title %016" PRIx64, titles[i]);
   }
   return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
+{
+  const std::vector<u64> titles = GetInstalledTitles();
+  INFO_LOG(IOS_ES, "GetTitleCount: %zu titles", titles.size());
+  return GetTitleCount(titles, request);
+}
+
+IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
+{
+  return GetTitles(GetInstalledTitles(), request);
 }
 
 IPCCommandResult ES::GetViewCount(const IOCtlVRequest& request)
@@ -1571,30 +1577,14 @@ IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(0, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
-
   const std::vector<u64> titles = GetTitlesWithTickets();
-  Memory::Write_U32(static_cast<u32>(titles.size()), request.io_vectors[0].address);
-
   INFO_LOG(IOS_ES, "GetOwnedTitleCount: %zu titles", titles.size());
-  return GetDefaultReply(IPC_SUCCESS);
+  return GetTitleCount(titles, request);
 }
 
 IPCCommandResult ES::GetOwnedTitles(const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
-
-  const std::vector<u64> titles = GetTitlesWithTickets();
-
-  const size_t max_count = Memory::Read_U32(request.in_vectors[0].address);
-  for (size_t i = 0; i < std::min(max_count, titles.size()); i++)
-  {
-    Memory::Write_U64(titles[i], request.io_vectors[0].address + static_cast<u32>(i) * 8);
-    INFO_LOG(IOS_ES, "     title %016" PRIx64, titles[i]);
-  }
-  return GetDefaultReply(IPC_SUCCESS);
+  return GetTitles(GetTitlesWithTickets(), request);
 }
 
 const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)

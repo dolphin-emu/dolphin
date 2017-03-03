@@ -168,6 +168,8 @@ private:
   IPCCommandResult GetTitleID(const IOCtlVRequest& request);
   IPCCommandResult SetUID(const IOCtlVRequest& request);
 
+  IPCCommandResult GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request);
+  IPCCommandResult GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request);
   IPCCommandResult GetOwnedTitleCount(const IOCtlVRequest& request);
   IPCCommandResult GetOwnedTitles(const IOCtlVRequest& request);
   IPCCommandResult GetTitleCount(const IOCtlVRequest& request);
