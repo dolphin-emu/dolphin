@@ -6,15 +6,17 @@
 // Should give a very noticable speed boost to paired single heavy code.
 
 #include "Core/PowerPC/Jit64/Jit.h"
+
+#include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
 #include "Common/x64ABI.h"
 #include "Common/x64Emitter.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/DSP.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/Jit64/JitRegCache.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"

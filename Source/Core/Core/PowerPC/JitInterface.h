@@ -5,10 +5,13 @@
 #pragma once
 
 #include <string>
-#include "Common/ChunkFile.h"
+
+#include "Common/CommonTypes.h"
 #include "Core/MachineContext.h"
-#include "Core/PowerPC/CPUCoreBase.h"
-#include "Core/PowerPC/Profiler.h"
+
+class CPUCoreBase;
+class PointerWrap;
+struct ProfileStats;
 
 namespace JitInterface
 {
