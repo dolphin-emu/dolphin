@@ -92,9 +92,9 @@ public:
   // Use this to convert a whole native EFB rect to backbuffer coordinates
   virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
-  const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
-  const CropRectangle& GetCropRectangle() const { return m_crop_rectangle; }
-  float CalculateDrawAspectRatio(int target_width, int target_height) const;
+  const TargetRectangle& GetTargetRectangle() { return m_target_rectangle; }
+  const CropRectangle& GetCropRectangle() { return m_crop_rectangle; }
+  float CalculateDrawAspectRatio() const;
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
   TargetRectangle CalculateFrameDumpDrawRectangle() const;
   void UpdateDrawRectangle();
