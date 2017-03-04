@@ -9,7 +9,7 @@ namespace ControllerEmu
 NumericSetting::NumericSetting(const std::string& setting_name, const ControlState default_value,
                                const u32 low, const u32 high, const SettingType setting_type)
     : m_type(setting_type), m_name(setting_name), m_default_value(default_value), m_low(low),
-      m_high(high)
+      m_high(high), m_value(default_value)
 {
 }
 
