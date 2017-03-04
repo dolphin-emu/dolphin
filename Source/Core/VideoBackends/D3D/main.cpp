@@ -6,6 +6,7 @@
 #include <string>
 
 #include "Common/CommonTypes.h"
+#include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 
 #include "VideoBackends/D3D/BoundingBox.h"
@@ -144,11 +145,15 @@ bool VideoBackend::Initialize(void* window_handle)
 
 void VideoBackend::Video_Prepare()
 {
+  if (FAILED(D3D::Create(reinterpret_cast<HWND>(m_window_handle))))
+    PanicAlert("Failed to create D3D device.");
+
   // internal interfaces
-  g_renderer = std::make_unique<Renderer>(m_window_handle);
+  g_renderer = std::make_unique<Renderer>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();
+  g_renderer->InitializeCommon();
   VertexShaderCache::Init();
   PixelShaderCache::Init();
   GeometryShaderCache::Init();

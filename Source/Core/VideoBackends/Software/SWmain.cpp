@@ -181,6 +181,7 @@ void VideoSoftware::Video_Prepare()
   g_vertex_manager = std::make_unique<SWVertexLoader>();
   g_perf_query = std::make_unique<PerfQuery>();
   g_texture_cache = std::make_unique<TextureCache>();
+  g_renderer->InitializeCommon();
   SWRenderer::Init();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
 }

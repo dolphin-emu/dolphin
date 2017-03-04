@@ -84,8 +84,6 @@ static void SetupDeviceObjects()
 {
   s_television.Init();
 
-  g_framebuffer_manager = std::make_unique<FramebufferManager>();
-
   HRESULT hr;
 
   D3D11_DEPTH_STENCIL_DESC ddesc;
@@ -235,25 +233,13 @@ static void Create3DVisionTexture(int width, int height)
   delete[] sysData.pSysMem;
 }
 
-Renderer::Renderer(void*& window_handle)
+Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight())
 {
-  D3D::Create((HWND)window_handle);
-
-  s_backbuffer_width = D3D::GetBackBufferWidth();
-  s_backbuffer_height = D3D::GetBackBufferHeight();
-
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-
-  UpdateDrawRectangle();
-
   s_last_multisamples = g_ActiveConfig.iMultisamples;
-  s_last_efb_scale = g_ActiveConfig.iEFBScale;
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
-  CalculateTargetSize();
-  PixelShaderManager::SetEfbScaleChanged();
 
+  g_framebuffer_manager = std::make_unique<FramebufferManager>(s_target_width, s_target_height);
   SetupDeviceObjects();
 
   // Setup GX pipeline state
@@ -907,7 +893,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
     g_framebuffer_manager.reset();
-    g_framebuffer_manager = std::make_unique<FramebufferManager>();
+    g_framebuffer_manager = std::make_unique<FramebufferManager>(s_target_width, s_target_height);
     float clear_col[4] = {0.f, 0.f, 0.f, 1.f};
     D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(),
                                         clear_col);

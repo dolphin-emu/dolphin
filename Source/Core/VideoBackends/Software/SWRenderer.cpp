@@ -25,6 +25,11 @@
 static u8* s_xfbColorTexture[2];
 static int s_currentColorTexture = 0;
 
+SWRenderer::SWRenderer()
+    : ::Renderer(static_cast<int>(MAX_XFB_WIDTH), static_cast<int>(MAX_XFB_HEIGHT))
+{
+}
+
 SWRenderer::~SWRenderer()
 {
   delete[] s_xfbColorTexture[0];

@@ -16,8 +16,8 @@ class D3DTexture2D;
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(void*& window_handle);
-  ~Renderer();
+  Renderer();
+  ~Renderer() override;
 
   void SetColorMask() override;
   void SetBlendMode(bool forceUpdate) override;

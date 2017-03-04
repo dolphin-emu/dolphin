@@ -329,6 +329,8 @@ static void InitDriverInfo()
 
 // Init functions
 Renderer::Renderer()
+    : ::Renderer(static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u)),
+                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)))
 {
   bool bSuccess = true;
 
@@ -687,25 +689,10 @@ Renderer::Renderer()
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
-  // Decide framebuffer size
-  s_backbuffer_width = static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u));
-  s_backbuffer_height = static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u));
-
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
     GLInterface->SwapInterval(s_vsync);
-
-  // TODO: Move these somewhere else?
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-
-  UpdateDrawRectangle();
-
-  s_last_efb_scale = g_ActiveConfig.iEFBScale;
-  CalculateTargetSize();
-
-  PixelShaderManager::SetEfbScaleChanged();
 
   // Because of the fixed framebuffer size we need to disable the resolution
   // options while running
@@ -786,6 +773,8 @@ void Renderer::Shutdown()
 
 void Renderer::Init()
 {
+  InitializeCommon();
+
   // Initialize the FramebufferManager
   g_framebuffer_manager =
       std::make_unique<FramebufferManager>(s_target_width, s_target_height, s_MSAASamples);

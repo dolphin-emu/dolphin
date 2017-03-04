@@ -69,7 +69,7 @@ class Renderer : public ::Renderer
 {
 public:
   Renderer();
-  ~Renderer();
+  ~Renderer() override;
 
   void Init();
   void Shutdown();

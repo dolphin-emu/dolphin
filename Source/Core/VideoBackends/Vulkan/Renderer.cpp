@@ -42,7 +42,10 @@
 
 namespace Vulkan
 {
-Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::move(swap_chain))
+Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain)
+    : ::Renderer(swap_chain ? static_cast<int>(swap_chain->GetWidth()) : 1,
+                 swap_chain ? static_cast<int>(swap_chain->GetHeight()) : 0),
+      m_swap_chain(std::move(swap_chain))
 {
   g_Config.bRunning = true;
   UpdateActiveConfig();
@@ -50,17 +53,6 @@ Renderer::Renderer(std::unique_ptr<SwapChain> swap_chain) : m_swap_chain(std::mo
   // Set to something invalid, forcing all states to be re-initialized.
   for (size_t i = 0; i < m_sampler_states.size(); i++)
     m_sampler_states[i].bits = std::numeric_limits<decltype(m_sampler_states[i].bits)>::max();
-
-  // These have to be initialized before FramebufferManager is created.
-  // If running surfaceless, assume a window size of MAX_XFB_{WIDTH,HEIGHT}.
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-  s_backbuffer_width = m_swap_chain ? m_swap_chain->GetWidth() : MAX_XFB_WIDTH;
-  s_backbuffer_height = m_swap_chain ? m_swap_chain->GetHeight() : MAX_XFB_HEIGHT;
-  s_last_efb_scale = g_ActiveConfig.iEFBScale;
-  UpdateDrawRectangle();
-  CalculateTargetSize();
-  PixelShaderManager::SetEfbScaleChanged();
 }
 
 Renderer::~Renderer()

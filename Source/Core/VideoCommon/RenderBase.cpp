@@ -50,6 +50,7 @@
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/OnScreenDisplay.h"
+#include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -75,9 +76,18 @@ static float AspectToWidescreen(float aspect)
   return aspect * ((16.0f / 9.0f) / (4.0f / 3.0f));
 }
 
-Renderer::Renderer()
+Renderer::Renderer(int backbuffer_width, int backbuffer_height)
 {
+  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
+  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
+
   UpdateActiveConfig();
+
+  s_backbuffer_width = backbuffer_width;
+  s_backbuffer_height = backbuffer_height;
+  s_last_efb_scale = g_ActiveConfig.iEFBScale;
+  CalculateTargetSize();
+  UpdateDrawRectangle();
 
   OSDChoice = 0;
   OSDTime = 0;
@@ -604,6 +614,11 @@ void Renderer::UpdateDrawRectangle()
   target_rc.top = YOffset;
   target_rc.right = XOffset + iWhidth;
   target_rc.bottom = YOffset + iHeight;
+}
+
+void Renderer::InitializeCommon()
+{
+  PixelShaderManager::SetEfbScaleChanged();
 }
 
 void Renderer::SetWindowSize(int width, int height)

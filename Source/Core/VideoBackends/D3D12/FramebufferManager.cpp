@@ -84,10 +84,10 @@ D3DTexture2D*& FramebufferManager::GetResolvedEFBDepthTexture()
   }
 }
 
-FramebufferManager::FramebufferManager()
+FramebufferManager::FramebufferManager(int target_width, int target_height)
 {
-  m_target_width = std::max(g_renderer->GetTargetWidth(), 1);
-  m_target_height = std::max(g_renderer->GetTargetHeight(), 1);
+  m_target_width = static_cast<unsigned int>(std::max(target_width, 1));
+  m_target_height = static_cast<unsigned int>(std::max(target_height, 1));
 
   DXGI_SAMPLE_DESC sample_desc;
   sample_desc.Count = g_ActiveConfig.iMultisamples;
