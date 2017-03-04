@@ -240,7 +240,7 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRe
 
   // Create texture copy
   D3D::drawShadedTexQuad(
-      efbTexSRV, &sourcerect, Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
+      efbTexSRV, &sourcerect, g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
       is_depth_copy ? PixelShaderCache::GetDepthMatrixProgram(multisampled) :
                       PixelShaderCache::GetColorMatrixProgram(multisampled),
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),

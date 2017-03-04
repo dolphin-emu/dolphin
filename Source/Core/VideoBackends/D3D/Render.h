@@ -60,7 +60,7 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  static bool CheckForResize();
+  bool CheckForResize();
 
   u32 GetMaxTextureSize() override;
 

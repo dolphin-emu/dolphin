@@ -27,7 +27,6 @@ void PixelShaderManager::Init()
   s_bFogRangeAdjustChanged = true;
   s_bViewPortChanged = false;
 
-  SetEfbScaleChanged();
   SetIndMatrixChanged(0);
   SetIndMatrixChanged(1);
   SetIndMatrixChanged(2);
@@ -78,7 +77,8 @@ void PixelShaderManager::SetConstants()
       // so to simplify I use the hi coefficient as K in the shader taking 256 as the scale
       // TODO: Shouldn't this be EFBToScaledXf?
       constants.fogf[0][0] = ScreenSpaceCenter;
-      constants.fogf[0][1] = (float)Renderer::EFBToScaledX((int)(2.0f * xfmem.viewport.wd));
+      constants.fogf[0][1] =
+          static_cast<float>(g_renderer->EFBToScaledX(static_cast<int>(2.0f * xfmem.viewport.wd)));
       constants.fogf[0][2] = bpmem.fogRange.K[4].HI / 256.0f;
     }
     else
@@ -161,8 +161,8 @@ void PixelShaderManager::SetViewportChanged()
 
 void PixelShaderManager::SetEfbScaleChanged()
 {
-  constants.efbscale[0] = 1.0f / Renderer::EFBToScaledXf(1);
-  constants.efbscale[1] = 1.0f / Renderer::EFBToScaledYf(1);
+  constants.efbscale[0] = 1.0f / g_renderer->EFBToScaledXf(1);
+  constants.efbscale[1] = 1.0f / g_renderer->EFBToScaledYf(1);
   dirty = true;
 }
 

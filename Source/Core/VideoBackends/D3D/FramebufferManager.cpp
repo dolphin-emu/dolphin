@@ -100,8 +100,8 @@ D3DTexture2D*& FramebufferManager::GetResolvedEFBDepthTexture()
 
 FramebufferManager::FramebufferManager()
 {
-  m_target_width = Renderer::GetTargetWidth();
-  m_target_height = Renderer::GetTargetHeight();
+  m_target_width = g_renderer->GetTargetWidth();
+  m_target_height = g_renderer->GetTargetHeight();
   if (m_target_height < 1)
   {
     m_target_height = 1;
@@ -318,8 +318,8 @@ void XFBSource::CopyEFB(float Gamma)
   D3D::SetPointCopySampler();
 
   D3D::drawShadedTexQuad(
-      FramebufferManager::GetEFBColorTexture()->GetSRV(), &rect, Renderer::GetTargetWidth(),
-      Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(true),
+      FramebufferManager::GetEFBColorTexture()->GetSRV(), &rect, g_renderer->GetTargetWidth(),
+      g_renderer->GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(true),
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader(), Gamma);
 

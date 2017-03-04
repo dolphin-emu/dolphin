@@ -261,7 +261,7 @@ static void BPWritten(const BPCmd& bp)
                        "fbStride: %u | fbHeight: %u",
                 destAddr, srcRect.left, srcRect.top, srcRect.right, srcRect.bottom,
                 bpmem.copyTexSrcWH.x + 1, destStride, height);
-      Renderer::RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
+      g_renderer->RenderToXFB(destAddr, srcRect, destStride, height, s_gammaLUT[PE_copy.gamma]);
     }
 
     // Clear the rectangular region after copying it.

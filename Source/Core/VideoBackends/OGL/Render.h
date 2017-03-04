@@ -71,8 +71,8 @@ public:
   Renderer();
   ~Renderer();
 
-  static void Init();
-  static void Shutdown();
+  void Init();
+  void Shutdown();
 
   void SetBlendMode(bool forceUpdate) override;
   void SetScissorRect(const EFBRectangle& rc) override;

@@ -308,7 +308,7 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 
 // With D3D, we have to resize the backbuffer if the window changed
 // size.
-__declspec(noinline) bool Renderer::CheckForResize()
+bool Renderer::CheckForResize()
 {
   RECT rc_window;
   GetClientRect(D3D::hWnd, &rc_window);

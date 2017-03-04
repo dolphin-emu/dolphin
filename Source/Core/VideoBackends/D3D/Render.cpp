@@ -324,8 +324,7 @@ bool Renderer::CheckForResize()
   int client_height = rcWindow.bottom - rcWindow.top;
 
   // Sanity check
-  if ((client_width != Renderer::GetBackbufferWidth() ||
-       client_height != Renderer::GetBackbufferHeight()) &&
+  if ((client_width != GetBackbufferWidth() || client_height != GetBackbufferHeight()) &&
       client_width >= 4 && client_height >= 4)
   {
     return true;

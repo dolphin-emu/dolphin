@@ -226,8 +226,8 @@ void FramebufferManager::DestroyEFBRenderPass()
 
 bool FramebufferManager::CreateEFBFramebuffer()
 {
-  m_efb_width = static_cast<u32>(std::max(Renderer::GetTargetWidth(), 1));
-  m_efb_height = static_cast<u32>(std::max(Renderer::GetTargetHeight(), 1));
+  m_efb_width = static_cast<u32>(std::max(g_renderer->GetTargetWidth(), 1));
+  m_efb_height = static_cast<u32>(std::max(g_renderer->GetTargetHeight(), 1));
   m_efb_layers = (g_ActiveConfig.iStereoMode != STEREO_OFF) ? 2 : 1;
   INFO_LOG(VIDEO, "EFB size: %ux%ux%u", m_efb_width, m_efb_height, m_efb_layers);
 

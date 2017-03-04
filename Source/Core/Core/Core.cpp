@@ -738,7 +738,7 @@ void SaveScreenShot()
 
   SetState(State::Paused);
 
-  Renderer::SetScreenshot(GenerateScreenshotName());
+  g_renderer->SetScreenshot(GenerateScreenshotName());
 
   if (!bPaused)
     SetState(State::Running);
@@ -752,7 +752,7 @@ void SaveScreenShot(const std::string& name)
 
   std::string filePath = GenerateScreenshotFolderPath() + name + ".png";
 
-  Renderer::SetScreenshot(filePath);
+  g_renderer->SetScreenshot(filePath);
 
   if (!bPaused)
     SetState(State::Running);

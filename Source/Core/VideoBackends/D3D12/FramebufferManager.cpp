@@ -86,8 +86,8 @@ D3DTexture2D*& FramebufferManager::GetResolvedEFBDepthTexture()
 
 FramebufferManager::FramebufferManager()
 {
-  m_target_width = std::max(Renderer::GetTargetWidth(), 1);
-  m_target_height = std::max(Renderer::GetTargetHeight(), 1);
+  m_target_width = std::max(g_renderer->GetTargetWidth(), 1);
+  m_target_height = std::max(g_renderer->GetTargetHeight(), 1);
 
   DXGI_SAMPLE_DESC sample_desc;
   sample_desc.Count = g_ActiveConfig.iMultisamples;
@@ -525,7 +525,7 @@ void XFBSource::CopyEFB(float gamma)
   D3D::SetPointCopySampler();
 
   D3D::DrawShadedTexQuad(FramebufferManager::GetEFBColorTexture(), &rect,
-                         Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
+                         g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
                          StaticShaderCache::GetColorCopyPixelShader(true),
                          StaticShaderCache::GetSimpleVertexShader(),
                          StaticShaderCache::GetSimpleVertexShaderInputLayout(),

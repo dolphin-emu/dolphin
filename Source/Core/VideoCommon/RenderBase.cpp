@@ -64,39 +64,6 @@ static int OSDTime;
 
 std::unique_ptr<Renderer> g_renderer;
 
-std::mutex Renderer::s_criticalScreenshot;
-std::string Renderer::s_sScreenshotName;
-
-Common::Event Renderer::s_screenshotCompleted;
-Common::Flag Renderer::s_screenshot;
-
-// The framebuffer size
-int Renderer::s_target_width;
-int Renderer::s_target_height;
-
-// TODO: Add functionality to reinit all the render targets when the window is resized.
-int Renderer::s_backbuffer_width;
-int Renderer::s_backbuffer_height;
-
-std::unique_ptr<PostProcessingShaderImplementation> Renderer::m_post_processor;
-
-// Final surface changing
-Common::Flag Renderer::s_surface_needs_change;
-Common::Event Renderer::s_surface_changed;
-void* Renderer::s_new_surface_handle;
-
-TargetRectangle Renderer::target_rc;
-
-int Renderer::s_last_efb_scale;
-
-bool Renderer::XFBWrited;
-
-PEControl::PixelFormat Renderer::prev_efb_format = PEControl::INVALID_FMT;
-unsigned int Renderer::efb_scale_numeratorX = 1;
-unsigned int Renderer::efb_scale_numeratorY = 1;
-unsigned int Renderer::efb_scale_denominatorX = 1;
-unsigned int Renderer::efb_scale_denominatorY = 1;
-
 // The maximum depth that is written to the depth buffer should never exceed this value.
 // This is necessary because we use a 2^24 divisor for all our depth values to prevent
 // floating-point round-trip errors. However the console GPU doesn't ever write a value
@@ -118,11 +85,6 @@ Renderer::Renderer()
 
 Renderer::~Renderer()
 {
-  // invalidate previous efb format
-  prev_efb_format = PEControl::INVALID_FMT;
-
-  efb_scale_numeratorX = efb_scale_numeratorY = efb_scale_denominatorX = efb_scale_denominatorY = 1;
-
   ShutdownFrameDumping();
   if (m_frame_dump_thread.joinable())
     m_frame_dump_thread.join();

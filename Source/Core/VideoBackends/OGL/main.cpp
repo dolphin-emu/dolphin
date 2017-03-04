@@ -149,7 +149,7 @@ void VideoBackend::Video_Prepare()
   ProgramShaderCache::Init();
   g_texture_cache = std::make_unique<TextureCache>();
   g_sampler_cache = std::make_unique<SamplerCache>();
-  Renderer::Init();
+  static_cast<Renderer*>(g_renderer.get())->Init();
   TextureConverter::Init();
   BoundingBox::Init();
 }
@@ -166,7 +166,7 @@ void VideoBackend::Video_Cleanup()
   // The following calls are NOT Thread Safe
   // And need to be called from the video thread
   CleanupShared();
-  Renderer::Shutdown();
+  static_cast<Renderer*>(g_renderer.get())->Shutdown();
   BoundingBox::Shutdown();
   TextureConverter::Shutdown();
   g_sampler_cache.reset();
