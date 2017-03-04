@@ -109,7 +109,7 @@ struct TranslateAddressResult
   bool Success() const { return result <= PAGE_TABLE_TRANSLATED; }
 };
 template <const XCheckTLBFlag flag>
-static TranslateAddressResult TranslateAddress(const u32 address);
+static TranslateAddressResult TranslateAddress(u32 address);
 
 // Nasty but necessary. Super Mario Galaxy pointer relies on this stuff.
 static u32 EFB_Read(const u32 addr)
@@ -623,7 +623,7 @@ bool IsOptimizableRAMAddress(const u32 address)
   // We store whether an access can be optimized to an unchecked access
   // in dbat_table.
   u32 bat_result = dbat_table[address >> BAT_INDEX_SHIFT];
-  return (bat_result & 2) != 0;
+  return (bat_result & BAT_PHYSICAL_BIT) != 0;
 }
 
 template <XCheckTLBFlag flag>
@@ -1177,27 +1177,29 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
       {
         // This bit is a little weird: if BRPN & j != 0, we end up with
         // a strange mapping. Need to check on hardware.
-        u32 address = (batl.BRPN | j) << BAT_INDEX_SHIFT;
+        u32 physical_address = (batl.BRPN | j) << BAT_INDEX_SHIFT;
+        u32 virtual_address = (batu.BEPI | j) << BAT_INDEX_SHIFT;
 
         // The bottom bit is whether the translation is valid; the second
         // bit from the bottom is whether we can use the fastmem arena.
-        u32 valid_bit = 0x1;
-        if (Memory::m_pFakeVMEM && ((address & 0xFE000000) == 0x7E000000))
-          valid_bit = 0x3;
-        else if (address < Memory::REALRAM_SIZE)
-          valid_bit = 0x3;
-        else if (Memory::m_pEXRAM && (address >> 28) == 0x1 &&
-                 (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
-          valid_bit = 0x3;
-        else if ((address >> 28) == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
-          valid_bit = 0x3;
+        u32 valid_bit = BAT_MAPPED_BIT;
+        if (Memory::m_pFakeVMEM && (physical_address & 0xFE000000) == 0x7E000000)
+          valid_bit |= BAT_PHYSICAL_BIT;
+        else if (physical_address < Memory::REALRAM_SIZE)
+          valid_bit |= BAT_PHYSICAL_BIT;
+        else if (Memory::m_pEXRAM && physical_address >> 28 == 0x1 &&
+                 (physical_address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
+          valid_bit |= BAT_PHYSICAL_BIT;
+        else if (physical_address >> 28 == 0xE &&
+                 physical_address < 0xE0000000 + Memory::L1_CACHE_SIZE)
+          valid_bit |= BAT_PHYSICAL_BIT;
+
         // Fastmem doesn't support memchecks, so disable it for all overlapping virtual pages.
-        if (PowerPC::memchecks.OverlapsMemcheck(((batu.BEPI | j) << BAT_INDEX_SHIFT),
-                                                1 << BAT_INDEX_SHIFT))
-          valid_bit &= ~0x2;
+        if (PowerPC::memchecks.OverlapsMemcheck(virtual_address, BAT_PAGE_SIZE))
+          valid_bit &= ~BAT_PHYSICAL_BIT;
 
         // (BEPI | j) == (BEPI & ~BL) | (j & BL).
-        bat_table[batu.BEPI | j] = address | valid_bit;
+        bat_table[virtual_address >> BAT_INDEX_SHIFT] = physical_address | valid_bit;
       }
     }
   }
@@ -1210,8 +1212,13 @@ static void UpdateFakeMMUBat(BatTable& bat_table, u32 start_addr)
     // Map from 0x4XXXXXXX or 0x7XXXXXXX to the range
     // [0x7E000000,0x80000000).
     u32 e_address = i + (start_addr >> BAT_INDEX_SHIFT);
-    u32 p_address = 0x7E000003 | ((i << BAT_INDEX_SHIFT) & Memory::FAKEVMEM_MASK);
-    bat_table[e_address] = p_address;
+    u32 p_address = 0x7E000000 | (i << BAT_INDEX_SHIFT & Memory::FAKEVMEM_MASK);
+    u32 flags = BAT_MAPPED_BIT | BAT_PHYSICAL_BIT;
+
+    if (PowerPC::memchecks.OverlapsMemcheck(e_address << BAT_INDEX_SHIFT, BAT_PAGE_SIZE))
+      flags &= ~BAT_PHYSICAL_BIT;
+
+    bat_table[e_address] = p_address | flags;
   }
 }
 
@@ -1258,14 +1265,11 @@ void IBATUpdated()
 // So we first check if there is a matching BAT entry, else we look for the TLB in
 // TranslatePageAddress().
 template <const XCheckTLBFlag flag>
-static TranslateAddressResult TranslateAddress(const u32 address)
+static TranslateAddressResult TranslateAddress(u32 address)
 {
-  u32 bat_result = (IsOpcodeFlag(flag) ? ibat_table : dbat_table)[address >> BAT_INDEX_SHIFT];
-  if (bat_result & 1)
-  {
-    u32 result_addr = (bat_result & ~3) | (address & 0x0001FFFF);
-    return TranslateAddressResult{TranslateAddressResult::BAT_TRANSLATED, result_addr};
-  }
+  if (TranslateBatAddess(IsOpcodeFlag(flag) ? ibat_table : dbat_table, &address))
+    return TranslateAddressResult{TranslateAddressResult::BAT_TRANSLATED, address};
+
   return TranslatePageAddress(address, flag);
 }
 
