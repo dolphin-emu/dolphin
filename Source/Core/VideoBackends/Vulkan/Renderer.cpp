@@ -266,12 +266,12 @@ u16 Renderer::BBoxRead(int index)
   if (index < 2)
   {
     // left/right
-    value = value * EFB_WIDTH / s_target_width;
+    value = value * EFB_WIDTH / m_target_width;
   }
   else
   {
     // up/down
-    value = value * EFB_HEIGHT / s_target_height;
+    value = value * EFB_HEIGHT / m_target_height;
   }
 
   // fix max values to describe the outer border
@@ -293,12 +293,12 @@ void Renderer::BBoxWrite(int index, u16 value)
   if (index < 2)
   {
     // left/right
-    scaled_value = scaled_value * s_target_width / EFB_WIDTH;
+    scaled_value = scaled_value * m_target_width / EFB_WIDTH;
   }
   else
   {
     // up/down
-    scaled_value = scaled_value * s_target_height / EFB_HEIGHT;
+    scaled_value = scaled_value * m_target_height / EFB_HEIGHT;
   }
 
   m_bounding_box->Set(static_cast<size_t>(index), scaled_value);
@@ -477,7 +477,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
   FramebufferManager::GetInstance()->FlushEFBPokes();
 
   // Check that we actually have an image to render in XFB-on modes.
-  if ((!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
+  if ((!m_xfb_written && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
   {
     Core::Callback_VideoCopiedToXFB(false);
     return;
@@ -1020,22 +1020,22 @@ void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
 
 void Renderer::CheckForSurfaceChange()
 {
-  if (!s_surface_needs_change.IsSet())
+  if (!m_surface_needs_change.IsSet())
     return;
 
   u32 old_width = m_swap_chain ? m_swap_chain->GetWidth() : 0;
   u32 old_height = m_swap_chain ? m_swap_chain->GetHeight() : 0;
 
   // Fast path, if the surface handle is the same, the window has just been resized.
-  if (m_swap_chain && s_new_surface_handle == m_swap_chain->GetNativeHandle())
+  if (m_swap_chain && m_new_surface_handle == m_swap_chain->GetNativeHandle())
   {
     INFO_LOG(VIDEO, "Detected window resize.");
     ResizeSwapChain();
 
     // Notify the main thread we are done.
-    s_surface_needs_change.Clear();
-    s_new_surface_handle = nullptr;
-    s_surface_changed.Set();
+    m_surface_needs_change.Clear();
+    m_new_surface_handle = nullptr;
+    m_surface_changed.Set();
   }
   else
   {
@@ -1045,7 +1045,7 @@ void Renderer::CheckForSurfaceChange()
     // Did we previously have a swap chain?
     if (m_swap_chain)
     {
-      if (!s_new_surface_handle)
+      if (!m_new_surface_handle)
       {
         // If there is no surface now, destroy the swap chain.
         m_swap_chain.reset();
@@ -1053,7 +1053,7 @@ void Renderer::CheckForSurfaceChange()
       else
       {
         // Recreate the surface. If this fails we're in trouble.
-        if (!m_swap_chain->RecreateSurface(s_new_surface_handle))
+        if (!m_swap_chain->RecreateSurface(m_new_surface_handle))
           PanicAlert("Failed to recreate Vulkan surface. Cannot continue.");
       }
     }
@@ -1061,10 +1061,10 @@ void Renderer::CheckForSurfaceChange()
     {
       // Previously had no swap chain. So create one.
       VkSurfaceKHR surface = SwapChain::CreateVulkanSurface(g_vulkan_context->GetVulkanInstance(),
-                                                            s_new_surface_handle);
+                                                            m_new_surface_handle);
       if (surface != VK_NULL_HANDLE)
       {
-        m_swap_chain = SwapChain::Create(s_new_surface_handle, surface, g_ActiveConfig.IsVSync());
+        m_swap_chain = SwapChain::Create(m_new_surface_handle, surface, g_ActiveConfig.IsVSync());
         if (!m_swap_chain)
           PanicAlert("Failed to create swap chain.");
       }
@@ -1075,9 +1075,9 @@ void Renderer::CheckForSurfaceChange()
     }
 
     // Notify calling thread.
-    s_surface_needs_change.Clear();
-    s_new_surface_handle = nullptr;
-    s_surface_changed.Set();
+    m_surface_needs_change.Clear();
+    m_new_surface_handle = nullptr;
+    m_surface_changed.Set();
   }
 
   if (m_swap_chain)
@@ -1111,7 +1111,7 @@ void Renderer::CheckForConfigChanges()
   bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
   bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
   bool stereo_changed = old_stereo_mode != g_ActiveConfig.iStereoMode;
-  bool efb_scale_changed = s_last_efb_scale != g_ActiveConfig.iEFBScale;
+  bool efb_scale_changed = m_last_efb_scale != g_ActiveConfig.iEFBScale;
   bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
   bool use_xfb_changed = old_use_xfb != g_ActiveConfig.bUseXFB;
   bool use_realxfb_changed = old_use_realxfb != g_ActiveConfig.bUseRealXFB;
@@ -1122,7 +1122,7 @@ void Renderer::CheckForConfigChanges()
   // Handle settings that can cause the target rectangle to change.
   if (efb_scale_changed || aspect_changed || use_xfb_changed || use_realxfb_changed)
   {
-    s_last_efb_scale = g_ActiveConfig.iEFBScale;
+    m_last_efb_scale = g_ActiveConfig.iEFBScale;
     if (CalculateTargetSize())
       ResizeEFBTextures();
   }
@@ -1162,8 +1162,8 @@ void Renderer::CheckForConfigChanges()
 
 void Renderer::OnSwapChainResized()
 {
-  s_backbuffer_width = m_swap_chain->GetWidth();
-  s_backbuffer_height = m_swap_chain->GetHeight();
+  m_backbuffer_width = m_swap_chain->GetWidth();
+  m_backbuffer_height = m_swap_chain->GetHeight();
   UpdateDrawRectangle();
   if (CalculateTargetSize())
   {
@@ -1668,9 +1668,9 @@ void Renderer::SetViewport()
 void Renderer::ChangeSurface(void* new_surface_handle)
 {
   // Called by the main thread when the window is resized.
-  s_new_surface_handle = new_surface_handle;
-  s_surface_needs_change.Set();
-  s_surface_changed.Set();
+  m_new_surface_handle = new_surface_handle;
+  m_surface_needs_change.Set();
+  m_surface_changed.Set();
 }
 
 void Renderer::RecompileShaders()

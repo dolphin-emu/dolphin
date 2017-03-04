@@ -85,11 +85,11 @@ public:
 
   // Ideal internal resolution - determined by display resolution (automatic scaling) and/or a
   // multiple of the native EFB resolution
-  int GetTargetWidth() { return s_target_width; }
-  int GetTargetHeight() { return s_target_height; }
+  int GetTargetWidth() { return m_target_width; }
+  int GetTargetHeight() { return m_target_height; }
   // Display resolution
-  int GetBackbufferWidth() { return s_backbuffer_width; }
-  int GetBackbufferHeight() { return s_backbuffer_height; }
+  int GetBackbufferWidth() { return m_backbuffer_width; }
+  int GetBackbufferHeight() { return m_backbuffer_height; }
   void SetWindowSize(int width, int height);
 
   // EFB coordinate conversion functions
@@ -97,7 +97,7 @@ public:
   // Use this to convert a whole native EFB rect to backbuffer coordinates
   virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
-  const TargetRectangle& GetTargetRectangle() { return target_rc; }
+  const TargetRectangle& GetTargetRectangle() { return m_target_rectangle; }
   float CalculateDrawAspectRatio(int target_width, int target_height);
   std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height);
   TargetRectangle CalculateFrameDumpDrawRectangle();
@@ -138,13 +138,13 @@ public:
   virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                         const EFBRectangle& rc, u64 ticks, float Gamma = 1.0f) = 0;
 
-  PEControl::PixelFormat GetPrevPixelFormat() { return prev_efb_format; }
-  void StorePixelFormat(PEControl::PixelFormat new_format) { prev_efb_format = new_format; }
+  PEControl::PixelFormat GetPrevPixelFormat() { return m_prev_efb_format; }
+  void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
   PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
   // Max height/width
   virtual u32 GetMaxTextureSize() = 0;
 
-  Common::Event s_screenshotCompleted;
+  Common::Event s_screenshot_completed;
 
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
@@ -161,24 +161,20 @@ protected:
                      bool swap_upside_down = false);
   void FinishFrameData();
 
-  Common::Flag s_screenshot;
-  std::mutex s_criticalScreenshot;
-  std::string s_sScreenshotName;
+  Common::Flag m_screenshot_request;
+  std::mutex m_screenshot_lock;
+  std::string m_screenshot_name;
 
   // The framebuffer size
-  int s_target_width = 0;
-  int s_target_height = 0;
+  int m_target_width = 0;
+  int m_target_height = 0;
 
   // TODO: Add functionality to reinit all the render targets when the window is resized.
-  int s_backbuffer_width = 0;
-  int s_backbuffer_height = 0;
-
-  TargetRectangle target_rc;
-
-  // TODO: Can probably eliminate this static var.
-  int s_last_efb_scale = 0;
-
-  bool XFBWrited = false;
+  int m_backbuffer_width = 0;
+  int m_backbuffer_height = 0;
+  int m_last_efb_scale = 0;
+  TargetRectangle m_target_rectangle;
+  bool m_xfb_written = false;
 
   FPSCounter m_fps_counter;
 
@@ -186,19 +182,19 @@ protected:
 
   static const float GX_MAX_DEPTH;
 
-  Common::Flag s_surface_needs_change;
-  Common::Event s_surface_changed;
-  void* s_new_surface_handle = nullptr;
+  Common::Flag m_surface_needs_change;
+  Common::Event m_surface_changed;
+  void* m_new_surface_handle = nullptr;
 
 private:
   void RunFrameDumps();
   void ShutdownFrameDumping();
 
-  PEControl::PixelFormat prev_efb_format = PEControl::INVALID_FMT;
-  unsigned int efb_scale_numeratorX = 1;
-  unsigned int efb_scale_numeratorY = 1;
-  unsigned int efb_scale_denominatorX = 1;
-  unsigned int efb_scale_denominatorY = 1;
+  PEControl::PixelFormat m_prev_efb_format = PEControl::INVALID_FMT;
+  unsigned int m_efb_scale_numeratorX = 1;
+  unsigned int m_efb_scale_numeratorY = 1;
+  unsigned int m_efb_scale_denominatorX = 1;
+  unsigned int m_efb_scale_denominatorY = 1;
 
   // frame dumping
   std::thread m_frame_dump_thread;
