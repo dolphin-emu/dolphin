@@ -67,7 +67,6 @@ void VideoBackend::Video_Prepare()
   g_perf_query = std::make_unique<PerfQuery>();
   g_framebuffer_manager = std::make_unique<FramebufferManager>();
   g_texture_cache = std::make_unique<TextureCache>();
-  g_renderer->InitializeCommon();
   VertexShaderCache::s_instance = std::make_unique<VertexShaderCache>();
   GeometryShaderCache::s_instance = std::make_unique<GeometryShaderCache>();
   PixelShaderCache::s_instance = std::make_unique<PixelShaderCache>();

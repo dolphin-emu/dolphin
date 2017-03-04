@@ -865,7 +865,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   // Resize the back buffers NOW to avoid flickering
   if (CalculateTargetSize() || xfbchanged || windowResized ||
-      m_last_efb_scale != g_ActiveConfig.iEFBScale ||
       s_last_multisamples != g_ActiveConfig.iMultisamples ||
       s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
   {
@@ -885,10 +884,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
     UpdateDrawRectangle();
 
-    m_last_efb_scale = g_ActiveConfig.iEFBScale;
     s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
-
-    PixelShaderManager::SetEfbScaleChanged();
 
     D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 

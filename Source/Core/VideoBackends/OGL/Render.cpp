@@ -773,8 +773,6 @@ void Renderer::Shutdown()
 
 void Renderer::Init()
 {
-  InitializeCommon();
-
   // Initialize the FramebufferManager
   g_framebuffer_manager =
       std::make_unique<FramebufferManager>(m_target_width, m_target_height, s_MSAASamples);
@@ -1353,13 +1351,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   bool window_resized = false;
   int window_width = static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u));
   int window_height = static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u));
-  if (window_width != m_backbuffer_width || window_height != m_backbuffer_height ||
-      m_last_efb_scale != g_ActiveConfig.iEFBScale)
+  if (window_width != m_backbuffer_width || window_height != m_backbuffer_height)
   {
     window_resized = true;
     m_backbuffer_width = window_width;
     m_backbuffer_height = window_height;
-    m_last_efb_scale = g_ActiveConfig.iEFBScale;
   }
 
   bool target_size_changed = CalculateTargetSize();
@@ -1390,8 +1386,6 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       g_framebuffer_manager.reset();
       g_framebuffer_manager =
           std::make_unique<FramebufferManager>(m_target_width, m_target_height, s_MSAASamples);
-
-      PixelShaderManager::SetEfbScaleChanged();
     }
   }
 

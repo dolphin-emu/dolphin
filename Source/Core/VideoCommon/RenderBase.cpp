@@ -166,6 +166,8 @@ bool Renderer::CalculateTargetSize()
   int newEFBWidth, newEFBHeight;
   newEFBWidth = newEFBHeight = 0;
 
+  m_last_efb_scale = g_ActiveConfig.iEFBScale;
+
   // TODO: Ugly. Clean up
   switch (m_last_efb_scale)
   {
@@ -231,6 +233,7 @@ bool Renderer::CalculateTargetSize()
   {
     m_target_width = newEFBWidth;
     m_target_height = newEFBHeight;
+    PixelShaderManager::SetEfbScaleChanged(EFBToScaledXf(1), EFBToScaledYf(1));
     return true;
   }
   return false;
@@ -612,11 +615,6 @@ void Renderer::UpdateDrawRectangle()
   m_target_rectangle.top = YOffset;
   m_target_rectangle.right = XOffset + iWhidth;
   m_target_rectangle.bottom = YOffset + iHeight;
-}
-
-void Renderer::InitializeCommon()
-{
-  PixelShaderManager::SetEfbScaleChanged();
 }
 
 void Renderer::SetWindowSize(int width, int height)

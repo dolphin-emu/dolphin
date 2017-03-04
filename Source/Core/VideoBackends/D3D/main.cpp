@@ -153,7 +153,6 @@ void VideoBackend::Video_Prepare()
   g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();
-  g_renderer->InitializeCommon();
   VertexShaderCache::Init();
   PixelShaderCache::Init();
   GeometryShaderCache::Init();

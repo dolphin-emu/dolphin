@@ -1012,10 +1012,7 @@ void Renderer::CheckForTargetResize(u32 fb_width, u32 fb_stride, u32 fb_height)
 
   // Changing the XFB source area may alter the target size.
   if (CalculateTargetSize())
-  {
-    PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();
-  }
 }
 
 void Renderer::CheckForSurfaceChange()
@@ -1095,6 +1092,7 @@ void Renderer::CheckForConfigChanges()
   int old_anisotropy = g_ActiveConfig.iMaxAnisotropy;
   int old_stereo_mode = g_ActiveConfig.iStereoMode;
   int old_aspect_ratio = g_ActiveConfig.iAspectRatio;
+  int old_efb_scale = g_ActiveConfig.iEFBScale;
   bool old_force_filtering = g_ActiveConfig.bForceFiltering;
   bool old_ssaa = g_ActiveConfig.bSSAA;
   bool old_use_xfb = g_ActiveConfig.bUseXFB;
@@ -1111,7 +1109,7 @@ void Renderer::CheckForConfigChanges()
   bool anisotropy_changed = old_anisotropy != g_ActiveConfig.iMaxAnisotropy;
   bool force_texture_filtering_changed = old_force_filtering != g_ActiveConfig.bForceFiltering;
   bool stereo_changed = old_stereo_mode != g_ActiveConfig.iStereoMode;
-  bool efb_scale_changed = m_last_efb_scale != g_ActiveConfig.iEFBScale;
+  bool efb_scale_changed = old_efb_scale != g_ActiveConfig.iEFBScale;
   bool aspect_changed = old_aspect_ratio != g_ActiveConfig.iAspectRatio;
   bool use_xfb_changed = old_use_xfb != g_ActiveConfig.bUseXFB;
   bool use_realxfb_changed = old_use_realxfb != g_ActiveConfig.bUseRealXFB;
@@ -1122,7 +1120,6 @@ void Renderer::CheckForConfigChanges()
   // Handle settings that can cause the target rectangle to change.
   if (efb_scale_changed || aspect_changed || use_xfb_changed || use_realxfb_changed)
   {
-    m_last_efb_scale = g_ActiveConfig.iEFBScale;
     if (CalculateTargetSize())
       ResizeEFBTextures();
   }
@@ -1166,10 +1163,7 @@ void Renderer::OnSwapChainResized()
   m_backbuffer_height = m_swap_chain->GetHeight();
   UpdateDrawRectangle();
   if (CalculateTargetSize())
-  {
-    PixelShaderManager::SetEfbScaleChanged();
     ResizeEFBTextures();
-  }
 }
 
 void Renderer::BindEFBToStateTracker()

@@ -79,10 +79,6 @@ public:
   virtual void RestoreState() {}
   virtual void ResetAPIState() {}
   virtual void RestoreAPIState() {}
-  // Some of the methods called by here assume g_renderer is initialized, therefore
-  // we must call it after constructing the backend's Renderer instance.
-  void InitializeCommon();
-
   // Ideal internal resolution - determined by display resolution (automatic scaling) and/or a
   // multiple of the native EFB resolution
   int GetTargetWidth() { return m_target_width; }

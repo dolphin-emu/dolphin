@@ -49,7 +49,7 @@ void PixelShaderManager::Dirty()
   // Any constants that can changed based on settings should be re-calculated
   s_bFogRangeAdjustChanged = true;
 
-  SetEfbScaleChanged();
+  SetEfbScaleChanged(g_renderer->EFBToScaledXf(1), g_renderer->EFBToScaledYf(1));
   SetFogParamChanged();
 
   dirty = true;
@@ -159,10 +159,10 @@ void PixelShaderManager::SetViewportChanged()
       true;  // TODO: Shouldn't be necessary with an accurate fog range adjust implementation
 }
 
-void PixelShaderManager::SetEfbScaleChanged()
+void PixelShaderManager::SetEfbScaleChanged(float scalex, float scaley)
 {
-  constants.efbscale[0] = 1.0f / g_renderer->EFBToScaledXf(1);
-  constants.efbscale[1] = 1.0f / g_renderer->EFBToScaledYf(1);
+  constants.efbscale[0] = 1.0f / scalex;
+  constants.efbscale[1] = 1.0f / scaley;
   dirty = true;
 }
 
