@@ -192,6 +192,10 @@ private:
   unsigned int m_efb_scale_denominatorX = 1;
   unsigned int m_efb_scale_denominatorY = 1;
 
+  // These will be set on the first call to SetWindowSize.
+  int m_last_window_request_width = 0;
+  int m_last_window_request_height = 0;
+
   // frame dumping
   std::thread m_frame_dump_thread;
   Common::Event m_frame_dump_start;

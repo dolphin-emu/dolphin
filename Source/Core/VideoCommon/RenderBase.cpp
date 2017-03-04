@@ -619,10 +619,8 @@ void Renderer::UpdateDrawRectangle()
 
 void Renderer::SetWindowSize(int width, int height)
 {
-  if (width < 1)
-    width = 1;
-  if (height < 1)
-    height = 1;
+  width = std::max(width, 1);
+  height = std::max(height, 1);
 
   // Scale the window size by the EFB scale.
   CalculateTargetScale(width, height, &width, &height);
@@ -659,7 +657,13 @@ void Renderer::SetWindowSize(int width, int height)
   width -= width % 4;
   height -= height % 4;
 
-  Host_RequestRenderWindowSize(width, height);
+  // Track the last values of width/height to avoid sending a window resize event every frame.
+  if (width != m_last_window_request_width || height != m_last_window_request_height)
+  {
+    m_last_window_request_width = width;
+    m_last_window_request_height = height;
+    Host_RequestRenderWindowSize(width, height);
+  }
 }
 
 void Renderer::CheckFifoRecording()
