@@ -276,11 +276,20 @@ void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle
   }
 }
 
-void Renderer::SetScreenshot(const std::string& filename)
+void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_completion)
 {
-  std::lock_guard<std::mutex> lk(m_screenshot_lock);
-  m_screenshot_name = filename;
-  m_screenshot_request.Set();
+  // We must not hold the lock while waiting for the screenshot to complete.
+  {
+    std::lock_guard<std::mutex> lk(m_screenshot_lock);
+    m_screenshot_name = filename;
+    m_screenshot_request.Set();
+  }
+
+  if (wait_for_completion)
+  {
+    // This is currently only used by Android, and it was using a wait time of 2 seconds.
+    m_screenshot_completed.WaitFor(std::chrono::seconds(2));
+  }
 }
 
 // Create On-Screen-Messages
@@ -814,7 +823,7 @@ void Renderer::RunFrameDumps()
 
       // Reset settings
       m_screenshot_name.clear();
-      s_screenshot_completed.Set();
+      m_screenshot_completed.Set();
     }
 
     if (SConfig::GetInstance().m_DumpFrames)

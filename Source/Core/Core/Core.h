@@ -55,8 +55,8 @@ bool IsGPUThread();
 void SetState(State state);
 State GetState();
 
-void SaveScreenShot();
-void SaveScreenShot(const std::string& name);
+void SaveScreenShot(bool wait_for_completion = false);
+void SaveScreenShot(const std::string& name, bool wait_for_completion = false);
 
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 

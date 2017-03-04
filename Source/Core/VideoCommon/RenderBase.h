@@ -111,7 +111,7 @@ public:
   float EFBToScaledXf(float x) { return x * ((float)GetTargetWidth() / (float)EFB_WIDTH); }
   float EFBToScaledYf(float y) { return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT); }
   // Random utilities
-  void SetScreenshot(const std::string& filename);
+  void SaveScreenshot(const std::string& filename, bool wait_for_completion);
   void DrawDebugText();
 
   virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
@@ -140,8 +140,6 @@ public:
   // Max height/width
   virtual u32 GetMaxTextureSize() = 0;
 
-  Common::Event s_screenshot_completed;
-
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   virtual void ChangeSurface(void* new_surface_handle) {}
@@ -158,6 +156,7 @@ protected:
   void FinishFrameData();
 
   Common::Flag m_screenshot_request;
+  Common::Event m_screenshot_completed;
   std::mutex m_screenshot_lock;
   std::string m_screenshot_name;
 
