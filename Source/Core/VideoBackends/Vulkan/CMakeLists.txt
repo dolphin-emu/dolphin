@@ -28,6 +28,10 @@ set(LIBS
   common
 )
 
+if(ENABLE_XCB)
+  list(APPEND LIBS X11-xcb)
+endif()
+
 # Only include the Vulkan headers when building the Vulkan backend
 include_directories(${CMAKE_SOURCE_DIR}/Externals/Vulkan/Include)
 

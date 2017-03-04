@@ -8,11 +8,12 @@
 
 #if defined(WIN32)
 #define VK_USE_PLATFORM_WIN32_KHR
-#elif defined(HAVE_X11)
-// Currently we're getting xlib handles passed to the backend.
-// If this ever changes to xcb, it's a simple change here.
+#elif defined(HAVE_X11) && HAVE_X11
+#if defined(USE_XCB)
+#define VK_USE_PLATFORM_XCB_KHR
+#else
 #define VK_USE_PLATFORM_XLIB_KHR
-//#define VK_USE_PLATFORM_XCB_KHR
+#endif
 #elif defined(ANDROID)
 #define VK_USE_PLATFORM_ANDROID_KHR
 #else
