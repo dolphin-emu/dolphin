@@ -239,6 +239,8 @@ void DolphinAnalytics::MakePerGameBuilder()
   builder.AddData("gpu-has-early-z", g_Config.backend_info.bSupportsEarlyZ);
   builder.AddData("gpu-has-binding-layout", g_Config.backend_info.bSupportsBindingLayout);
   builder.AddData("gpu-has-bbox", g_Config.backend_info.bSupportsBBox);
+  builder.AddData("gpu-has-fragment-stores-and-atomics",
+                  g_Config.backend_info.bSupportsFragmentStoresAndAtomics);
   builder.AddData("gpu-has-gs-instancing", g_Config.backend_info.bSupportsGSInstancing);
   builder.AddData("gpu-has-post-processing", g_Config.backend_info.bSupportsPostProcessing);
   builder.AddData("gpu-has-palette-conversion", g_Config.backend_info.bSupportsPaletteConversion);

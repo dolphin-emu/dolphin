@@ -17,7 +17,7 @@ namespace OGL
 {
 void BoundingBox::Init()
 {
-  if (g_ActiveConfig.backend_info.bSupportsBBox)
+  if (g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics)
   {
     int initial_values[4] = {0, 0, 0, 0};
     glGenBuffers(1, &s_bbox_buffer_id);
@@ -29,8 +29,10 @@ void BoundingBox::Init()
 
 void BoundingBox::Shutdown()
 {
-  if (g_ActiveConfig.backend_info.bSupportsBBox)
+  if (g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics)
+  {
     glDeleteBuffers(1, &s_bbox_buffer_id);
+  }
 }
 
 void BoundingBox::Set(int index, int value)
