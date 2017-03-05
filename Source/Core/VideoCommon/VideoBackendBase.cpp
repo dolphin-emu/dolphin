@@ -57,7 +57,7 @@ void VideoBackendBase::PopulateList()
     g_available_video_backends.push_back(std::make_unique<DX12::VideoBackend>());
   }
 #endif
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !USE_HEADLESS
   g_available_video_backends.push_back(std::make_unique<Vulkan::VideoBackend>());
 #endif
 

@@ -288,7 +288,7 @@ if(LIBUSB_FOUND)
   )
 endif()
 
-if(NOT APPLE)
+if(NOT APPLE AND NOT ENABLE_HEADLESS)
   set(LIBS ${LIBS} videovulkan)
 endif()
 
