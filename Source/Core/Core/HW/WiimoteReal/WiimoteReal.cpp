@@ -2,17 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteReal/WiimoteReal.h"
+
 #include <algorithm>
 #include <cstdlib>
 #include <queue>
 #include <unordered_set>
 
-#include "Core/HW/WiimoteReal/WiimoteReal.h"
-
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"

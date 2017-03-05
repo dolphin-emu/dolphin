@@ -10,14 +10,15 @@
 #include "Core/ec_wii.h"
 
 #include <cstdio>
-#include <string.h>
+#include <cstring>
 
 #include <mbedtls/sha1.h>
 
-#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/Crypto/ec.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 
 constexpr u32 default_NG_id = 0x0403AC68;
 constexpr u32 default_NG_key_id = 0x6AAB8C59;

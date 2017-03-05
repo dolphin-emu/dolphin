@@ -2,19 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/USB_HID/HIDv4.h"
+
 #include <cstring>
 #include <utility>
 
 #include "Common/Align.h"
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV4.h"
-#include "Core/IOS/USB/USB_HID/HIDv4.h"
 
 namespace IOS
 {

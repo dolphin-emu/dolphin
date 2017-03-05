@@ -9,12 +9,12 @@
 #include <string>
 
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/GekkoDisassembler.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 #include "Common/x64Reg.h"
 #include "Core/HW/Memmap.h"
 #include "Core/MachineContext.h"

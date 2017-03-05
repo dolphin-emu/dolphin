@@ -3,20 +3,17 @@
 // Refer to the license.txt file included.
 
 #include <algorithm>
-#include <cstdio>
-#include <fstream>
-#include <stdlib.h>
 #include <string>
 #include <unordered_set>
 #include <utility>
+#include <vector>
 
-#include "Common/CommonFuncs.h"
-#include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 namespace Common
 {

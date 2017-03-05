@@ -2,15 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "AudioCommon/WaveFile.h"
+
 #include <string>
 
-#include "AudioCommon/WaveFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-
+#include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 
 constexpr size_t WaveFileWriter::BUFFER_SIZE;

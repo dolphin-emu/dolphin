@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DiscIO/WbfsBlob.h"
+
 #include <algorithm>
 #include <cstdio>
 #include <cstring>
@@ -12,12 +14,10 @@
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
-#include "DiscIO/WbfsBlob.h"
+#include "Common/Swap.h"
 
 namespace DiscIO
 {

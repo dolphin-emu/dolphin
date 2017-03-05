@@ -2,15 +2,16 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/IOS/USB/USBV4.h"
+
 #include <algorithm>
 #include <locale>
 #include <string>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/Device.h"
-#include "Core/IOS/USB/USBV4.h"
 
 namespace IOS
 {

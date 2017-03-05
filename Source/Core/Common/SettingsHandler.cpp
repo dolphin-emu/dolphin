@@ -14,7 +14,6 @@
 #include <windows.h>
 #include <mmsystem.h>
 #include <sys/timeb.h>
-#include "Common/CommonFuncs.h"  // snprintf
 #endif
 
 #include "Common/CommonTypes.h"

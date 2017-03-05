@@ -6,12 +6,12 @@
 #include <utility>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
+#include "Common/Swap.h"
 #include "Core/Boot/Boot.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/ConfigManager.h"

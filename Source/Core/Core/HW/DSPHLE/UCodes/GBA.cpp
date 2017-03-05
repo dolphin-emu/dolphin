@@ -5,7 +5,6 @@
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 
 #include "Common/Align.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Core/HW/DSP.h"

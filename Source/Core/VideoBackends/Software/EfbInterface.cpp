@@ -8,9 +8,10 @@
 #include <cstddef>
 #include <cstring>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
+
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/PerfQueryBase.h"

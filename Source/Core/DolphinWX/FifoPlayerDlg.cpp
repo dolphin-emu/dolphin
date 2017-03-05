@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/FifoPlayerDlg.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <mutex>
@@ -27,11 +29,11 @@
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/FifoPlayer/FifoPlaybackAnalyzer.h"
 #include "Core/FifoPlayer/FifoPlayer.h"
 #include "Core/FifoPlayer/FifoRecorder.h"
-#include "DolphinWX/FifoPlayerDlg.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/OpcodeDecoding.h"

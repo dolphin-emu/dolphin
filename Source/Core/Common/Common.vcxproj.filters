@@ -63,6 +63,7 @@
     <ClInclude Include="SDCardUtil.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="StringUtil.h" />
+    <ClInclude Include="Swap.h" />
     <ClInclude Include="SymbolDB.h" />
     <ClInclude Include="SysConf.h" />
     <ClInclude Include="Thread.h" />

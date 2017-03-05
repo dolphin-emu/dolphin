@@ -9,6 +9,7 @@
 
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
+#include "Common/Swap.h"
 #include "Core/PowerPC/PowerPC.h"
 
 // Global declarations

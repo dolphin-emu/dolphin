@@ -6,10 +6,11 @@
 #include "Core/DSP/DSPHWInterface.h"
 
 #include "Common/CPUDetect.h"
-#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 #include "Common/Logging/Log.h"
 #include "Common/MemoryUtil.h"
+#include "Common/Swap.h"
 
 #include "Core/DSP/DSPAccelerator.h"
 #include "Core/DSP/DSPCore.h"

@@ -21,7 +21,6 @@
 #include <vector>
 
 #include "Common/Assert.h"
-#include "Common/CommonPaths.h"
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/StringUtil.h"
@@ -32,8 +31,6 @@
 #include "Core/GeckoCodeConfig.h"
 #include "Core/PatchEngine.h"
 #include "Core/PowerPC/PowerPC.h"
-
-using namespace Common;
 
 namespace PatchEngine
 {

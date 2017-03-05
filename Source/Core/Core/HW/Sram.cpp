@@ -3,9 +3,11 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/Sram.h"
+
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 
 // english

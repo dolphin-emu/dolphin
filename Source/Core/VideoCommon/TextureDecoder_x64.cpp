@@ -7,10 +7,10 @@
 #include <cstring>
 
 #include "Common/CPUDetect.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Intrinsics.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
