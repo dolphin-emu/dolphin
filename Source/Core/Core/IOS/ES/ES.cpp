@@ -322,6 +322,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return AddContentFinish(request);
   case IOCTL_ES_ADDTITLEFINISH:
     return AddTitleFinish(request);
+  case IOCTL_ES_ADDTITLECANCEL:
+    return AddTitleCancel(request);
   case IOCTL_ES_GETDEVICEID:
     return ESGetDeviceID(request);
   case IOCTL_ES_GETTITLECONTENTSCNT:
@@ -681,6 +683,16 @@ IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
     return GetDefaultReply(ES_WRITE_FAILURE);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLEFINISH");
+  m_addtitle_tmd.SetBytes({});
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::AddTitleCancel(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(0, 0) || !m_addtitle_tmd.IsValid())
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  AbortImport(m_addtitle_tmd.GetTitleId(), {});
   m_addtitle_tmd.SetBytes({});
   return GetDefaultReply(IPC_SUCCESS);
 }

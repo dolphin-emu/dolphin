@@ -156,6 +156,7 @@ private:
   IPCCommandResult AddContentData(const IOCtlVRequest& request);
   IPCCommandResult AddContentFinish(const IOCtlVRequest& request);
   IPCCommandResult AddTitleFinish(const IOCtlVRequest& request);
+  IPCCommandResult AddTitleCancel(const IOCtlVRequest& request);
   IPCCommandResult ESGetDeviceID(const IOCtlVRequest& request);
   IPCCommandResult GetTitleContentsCount(const IOCtlVRequest& request);
   IPCCommandResult GetTitleContents(const IOCtlVRequest& request);
