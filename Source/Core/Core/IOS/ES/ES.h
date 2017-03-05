@@ -77,8 +77,8 @@ private:
     IOCTL_ES_GETCONSUMPTION = 0x16,
     IOCTL_ES_DELETETITLE = 0x17,
     IOCTL_ES_DELETETICKET = 0x18,
-    // IOCTL_ES_DIGETTMDVIEWSIZE   = 0x19,
-    // IOCTL_ES_DIGETTMDVIEW       = 0x1A,
+    IOCTL_ES_DIGETTMDVIEWSIZE = 0x19,
+    IOCTL_ES_DIGETTMDVIEW = 0x1A,
     IOCTL_ES_DIGETTICKETVIEW = 0x1B,
     IOCTL_ES_DIVERIFY = 0x1C,
     IOCTL_ES_GETTITLEDIR = 0x1D,
@@ -177,8 +177,14 @@ private:
 
   IPCCommandResult GetViewCount(const IOCtlVRequest& request);
   IPCCommandResult GetViews(const IOCtlVRequest& request);
+  IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
+
   IPCCommandResult GetTMDViewSize(const IOCtlVRequest& request);
   IPCCommandResult GetTMDViews(const IOCtlVRequest& request);
+
+  IPCCommandResult DIGetTMDViewSize(const IOCtlVRequest& request);
+  IPCCommandResult DIGetTMDView(const IOCtlVRequest& request);
+
   IPCCommandResult GetConsumption(const IOCtlVRequest& request);
   IPCCommandResult DeleteTitle(const IOCtlVRequest& request);
   IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
@@ -200,7 +206,6 @@ private:
   IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
   IPCCommandResult Sign(const IOCtlVRequest& request);
   IPCCommandResult GetBoot2Version(const IOCtlVRequest& request);
-  IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
 
   static bool LaunchIOS(u64 ios_title_id);
   static bool LaunchPPCTitle(u64 title_id, bool skip_reload);

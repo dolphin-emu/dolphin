@@ -397,10 +397,19 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return GetViewCount(request);
   case IOCTL_ES_GETVIEWS:
     return GetViews(request);
+  case IOCTL_ES_DIGETTICKETVIEW:
+    return DIGetTicketView(request);
+
   case IOCTL_ES_GETTMDVIEWCNT:
     return GetTMDViewSize(request);
   case IOCTL_ES_GETTMDVIEWS:
     return GetTMDViews(request);
+
+  case IOCTL_ES_DIGETTMDVIEWSIZE:
+    return DIGetTMDViewSize(request);
+  case IOCTL_ES_DIGETTMDVIEW:
+    return DIGetTMDView(request);
+
   case IOCTL_ES_GETCONSUMPTION:
     return GetConsumption(request);
   case IOCTL_ES_DELETETITLE:
@@ -439,8 +448,6 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return Sign(request);
   case IOCTL_ES_GETBOOT2VERSION:
     return GetBoot2Version(request);
-  case IOCTL_ES_DIGETTICKETVIEW:
-    return DIGetTicketView(request);
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS);
     break;
@@ -1101,6 +1108,93 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)", (u32)(TitleID >> 32),
            (u32)TitleID, MaxCount);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::DIGetTMDViewSize(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(1, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  // Sanity check the TMD size.
+  if (request.in_vectors[0].size >= 4 * 1024 * 1024)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  if (request.io_vectors[0].size != sizeof(u32))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  const bool has_tmd = request.in_vectors[0].size != 0;
+  size_t tmd_view_size = 0;
+
+  if (has_tmd)
+  {
+    std::vector<u8> tmd_bytes(request.in_vectors[0].size);
+    Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
+    const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
+
+    // Yes, this returns -1017, not ES_INVALID_TMD.
+    // IOS simply checks whether the TMD has all required content entries.
+    if (!tmd.IsValid())
+      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+    tmd_view_size = tmd.GetRawView().size();
+  }
+  else
+  {
+    // If no TMD was passed in and no title is active, IOS returns -1017.
+    if (!s_title_context.active)
+      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+    tmd_view_size = s_title_context.tmd.GetRawView().size();
+  }
+
+  Memory::Write_U32(static_cast<u32>(tmd_view_size), request.io_vectors[0].address);
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::DIGetTMDView(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(2, 1))
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  // Sanity check the TMD size.
+  if (request.in_vectors[0].size >= 4 * 1024 * 1024)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  // Check whether the TMD view size is consistent.
+  if (request.in_vectors[1].size != sizeof(u32) ||
+      Memory::Read_U32(request.in_vectors[1].address) != request.io_vectors[0].size)
+  {
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  }
+
+  const bool has_tmd = request.in_vectors[0].size != 0;
+  std::vector<u8> tmd_view;
+
+  if (has_tmd)
+  {
+    std::vector<u8> tmd_bytes(request.in_vectors[0].size);
+    Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
+    const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
+
+    if (!tmd.IsValid())
+      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+    tmd_view = tmd.GetRawView();
+  }
+  else
+  {
+    // If no TMD was passed in and no title is active, IOS returns -1017.
+    if (!s_title_context.active)
+      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+    tmd_view = s_title_context.tmd.GetRawView();
+  }
+
+  if (tmd_view.size() != request.io_vectors[0].size)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  Memory::CopyToEmu(request.io_vectors[0].address, tmd_view.data(), tmd_view.size());
   return GetDefaultReply(IPC_SUCCESS);
 }
 
