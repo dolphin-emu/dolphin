@@ -40,7 +40,7 @@ __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
 void VideoBackendBase::PopulateList()
 {
-  // OGL > D3D11 > D3D12 > Vulkan > SW > Null
+// OGL > D3D11 > D3D12 > Vulkan > SW > Null
 
 #ifdef HAVE_OPENGL
   g_available_video_backends.push_back(std::make_unique<OGL::VideoBackend>());
