@@ -1,6 +1,9 @@
-add_subdirectory(OGL)
 add_subdirectory(Null)
-add_subdirectory(Software)
+
+if(USE_OPENGL)
+  add_subdirectory(OGL)
+  add_subdirectory(Software)
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   add_subdirectory(D3D)

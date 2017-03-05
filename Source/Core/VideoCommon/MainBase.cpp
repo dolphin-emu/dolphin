@@ -192,7 +192,9 @@ void VideoBackendBase::InitializeShared()
 
   g_Config.Load(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
   g_Config.GameIniLoad();
+#ifdef HAVE_OPENGL
   g_Config.UpdateProjectionHack();
+#endif
   g_Config.VerifyValidity();
   UpdateActiveConfig();
 

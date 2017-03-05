@@ -270,11 +270,14 @@ set(LIBS
   ${LZO}
   sfml-network
   sfml-system
+  SOIL
   videonull
-  videoogl
-  videosoftware
   z
 )
+
+if(USE_OPENGL)
+  list(APPEND LIBS videoogl videosoftware)
+endif()
 
 if(LIBUSB_FOUND)
   # Using shared LibUSB
