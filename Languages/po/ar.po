@@ -7993,7 +7993,7 @@ msgstr ""
 #. It's not related to timekeeping devices.
 #: Source/Core/DolphinWX/Debugger/WatchWindow.h:19
 msgid "Watch"
-msgstr "Watch"
+msgstr “شاهد”
 
 #: Source/Core/AudioCommon/WaveFile.cpp:119
 msgid "WaveFileWriter - file not open."
@@ -8017,7 +8017,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:140
 msgid "Whitelisted USB Passthrough Devices"
-msgstr ""
+msgstr “ تم ادماج الاجهزة اليو سبي في القائمة البيظاء“
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:626
 msgid "Widescreen Hack"
@@ -8056,7 +8056,7 @@ msgstr "ريموت الوي متصل"
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:66
 msgid "Wii Remote Rumble"
-msgstr ""
+msgstr “الرومل للوي ريموت”
 
 #: Source/Core/DolphinWX/Config/WiiConfigPane.cpp:149
 msgid "Wii Remote Settings"
@@ -8073,11 +8073,11 @@ msgstr "ضبط وحدة تحكم جيم كيوب بعصا تحكم الوي يو
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1213
 msgid "Wii WAD files (*.wad)"
-msgstr "Wii WAD files (*.wad)"
+msgstr “ملفات الوي الواد (*.wad)"
 
 #: Source/Core/DolphinWX/Input/HotkeyInputConfigDiag.cpp:87
 msgid "Wii and Wii Remote"
-msgstr "Wii and Wii Remote"
+msgstr “الوي و الوي ريموت“
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1175
 msgid "Wii save files (*.bin)"
@@ -8108,7 +8108,7 @@ msgstr "مع عنوان"
 
 #: Source/Core/DolphinWX/Debugger/MemoryCheckDlg.cpp:40
 msgid "Within a range"
-msgstr "Within a range"
+msgstr “في نطاق”
 
 #: Source/Core/DolphinWX/LogWindow.cpp:118
 msgid "Word Wrap"
@@ -8132,7 +8132,7 @@ msgstr "كتابة"
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:259
 msgid "Write save/SD data"
-msgstr ""
+msgstr “احفظ\معلومات الاس دي”
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:56
 msgid "Write to Console"
@@ -8277,7 +8277,7 @@ msgstr "تفعيل"
 
 #: Source/Core/DolphinWX/Config/AddUSBDeviceDiag.cpp:43
 msgid "or select a device"
-msgstr ""
+msgstr “او اختر جهاز”
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:708
 msgid "wxExecute returned -1 on application run!"
