@@ -152,12 +152,13 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
     m_resolvedColorTexture = CreateTexture(resolvedType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
     m_resolvedDepthTexture =
-        CreateTexture(resolvedType, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+        CreateTexture(resolvedType, GL_DEPTH32F_STENCIL8, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV);
 
     // Bind resolved textures to resolved framebuffer.
     glGenFramebuffers(m_EFBLayers, m_resolvedFramebuffer.data());
     BindLayeredTexture(m_resolvedColorTexture, m_resolvedFramebuffer, GL_COLOR_ATTACHMENT0, resolvedType);
     BindLayeredTexture(m_resolvedDepthTexture, m_resolvedFramebuffer, GL_DEPTH_ATTACHMENT, resolvedType);
+    BindLayeredTexture(m_resolvedDepthTexture, m_resolvedFramebuffer, GL_STENCIL_ATTACHMENT, resolvedType);
   }
 
   m_efbColor = CreateTexture(m_textureType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
@@ -172,13 +173,15 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   glGenFramebuffers(m_EFBLayers, m_efbFramebuffer.data());
   BindLayeredTexture(m_efbColor, m_efbFramebuffer, GL_COLOR_ATTACHMENT0, m_textureType);
   BindLayeredTexture(m_efbDepth, m_efbFramebuffer, GL_DEPTH_ATTACHMENT, m_textureType);
+  BindLayeredTexture(m_efbDepth, m_efbFramebuffer, GL_STENCIL_ATTACHMENT, m_textureType);
 
   // EFB framebuffer is currently bound, make sure to clear it before use.
   glViewport(0, 0, m_targetWidth, m_targetHeight);
   glScissor(0, 0, m_targetWidth, m_targetHeight);
   glClearColor(0.f, 0.f, 0.f, 0.f);
   glClearDepthf(1.0f);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  glClearStencil(0);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
   // reinterpret pixel format
   const char* vs = m_EFBLayers > 1 ? "void main(void) {\n"
@@ -478,6 +481,24 @@ GLuint FramebufferManager::GetEFBDepthTexture(const EFBRectangle& sourceRc)
   }
 }
 
+void FramebufferManager::ResolveEFBStencilTexture()
+{
+  if (m_msaaSamples <= 1)
+    return;
+
+  // Resolve.
+  for (unsigned int i = 0; i < m_EFBLayers; i++)
+  {
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, m_efbFramebuffer[i]);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, m_resolvedFramebuffer[i]);
+    glBlitFramebuffer(0, 0, m_targetWidth, m_targetHeight, 0, 0, m_targetWidth, m_targetHeight,
+                      GL_STENCIL_BUFFER_BIT, GL_NEAREST);
+  }
+
+  // Return to EFB.
+  glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[0]);
+}
+
 void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
                                        const EFBRectangle& sourceRc, float Gamma)
 {
@@ -491,6 +512,13 @@ void FramebufferManager::CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight,
   TargetRectangle targetRc = g_renderer->ConvertEFBRectangle(sourceRc);
   TextureConverter::EncodeToRamYUYV(ResolveAndGetRenderTarget(sourceRc), targetRc, xfb_in_ram,
                                     sourceRc.GetWidth(), fbStride, fbHeight);
+}
+
+GLuint FramebufferManager::GetResolvedFramebuffer()
+{
+  if (m_msaaSamples <= 1)
+    return m_efbFramebuffer[0];
+  return m_resolvedFramebuffer[0];
 }
 
 void FramebufferManager::SetFramebuffer(GLuint fb)

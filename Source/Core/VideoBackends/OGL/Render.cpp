@@ -411,7 +411,8 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsPrimitiveRestart =
       !DriverDetails::HasBug(DriverDetails::BUG_PRIMITIVE_RESTART) &&
       ((GLExtensions::Version() >= 310) || GLExtensions::Supports("GL_NV_primitive_restart"));
-  g_Config.backend_info.bSupportsBBox = g_Config.backend_info.bSupportsFragmentStoresAndAtomics =
+  g_Config.backend_info.bSupportsBBox = true;
+  g_Config.backend_info.bSupportsFragmentStoresAndAtomics =
       GLExtensions::Supports("GL_ARB_shader_storage_buffer_object");
   g_Config.backend_info.bSupportsGSInstancing = GLExtensions::Supports("GL_ARB_gpu_shader5");
   g_Config.backend_info.bSupportsSSAA = GLExtensions::Supports("GL_ARB_gpu_shader5") &&
@@ -497,7 +498,6 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsGSInstancing =
           g_Config.backend_info.bSupportsGeometryShaders && g_ogl_config.SupportedESPointSize > 0;
       g_Config.backend_info.bSupportsSSAA = g_ogl_config.bSupportsAEP;
-      g_Config.backend_info.bSupportsBBox = true;
       g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
       g_ogl_config.bSupportsMSAA = true;
       g_ogl_config.bSupports2DTextureStorage = true;
@@ -519,7 +519,6 @@ Renderer::Renderer()
       g_Config.backend_info.bSupportsGSInstancing = g_ogl_config.SupportedESPointSize > 0;
       g_Config.backend_info.bSupportsPaletteConversion = true;
       g_Config.backend_info.bSupportsSSAA = true;
-      g_Config.backend_info.bSupportsBBox = true;
       g_Config.backend_info.bSupportsFragmentStoresAndAtomics = true;
       g_ogl_config.bSupportsCopySubImage = true;
       g_ogl_config.bSupportsGLBaseVertex = true;
@@ -657,10 +656,13 @@ Renderer::Renderer()
   // options while running
   g_Config.bRunning = true;
 
-  glStencilFunc(GL_ALWAYS, 0, 0);
-  glBlendFunc(GL_ONE, GL_ONE);
+  // The stencil is used for bounding box emulation when SSBOs are not available
+  glDisable(GL_STENCIL_TEST);
+  glStencilFunc(GL_ALWAYS, 1, 0xFF);
+  glStencilOp(GL_KEEP, GL_KEEP, GL_REPLACE);
 
-  glViewport(0, 0, GetTargetWidth(), GetTargetHeight());  // Reset The Current Viewport
+  // Reset The Current Viewport
+  glViewport(0, 0, GetTargetWidth(), GetTargetHeight());
   if (g_ActiveConfig.backend_info.bSupportsClipControl)
     glClipControl(GL_LOWER_LEFT, GL_ZERO_TO_ONE);
 
@@ -677,10 +679,9 @@ Renderer::Renderer()
 
   glPixelStorei(GL_UNPACK_ALIGNMENT, 4);  // 4-byte pixel alignment
 
-  glDisable(GL_STENCIL_TEST);
   glEnable(GL_SCISSOR_TEST);
-
   glScissor(0, 0, GetTargetWidth(), GetTargetHeight());
+  glBlendFunc(GL_ONE, GL_ONE);
   glBlendColor(0, 0, 0, 0.5f);
   glClearDepthf(1.0f);
 
@@ -1364,6 +1365,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       g_framebuffer_manager.reset();
       g_framebuffer_manager =
           std::make_unique<FramebufferManager>(m_target_width, m_target_height, s_MSAASamples);
+      BoundingBox::SetTargetSizeChanged(m_target_width, m_target_height);
     }
   }
 

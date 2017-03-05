@@ -70,6 +70,7 @@ public:
   // the EFB to a resolved texture first.
   static GLuint GetEFBColorTexture(const EFBRectangle& sourceRc);
   static GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc);
+  static void ResolveEFBStencilTexture();
 
   static GLuint GetEFBFramebuffer(unsigned int layer = 0)
   {
@@ -77,7 +78,7 @@ public:
   }
   static GLuint GetXFBFramebuffer() { return m_xfbFramebuffer; }
   // Resolved framebuffer is only used in MSAA mode.
-  static GLuint GetResolvedFramebuffer() { return m_resolvedFramebuffer[0]; }
+  static GLuint GetResolvedFramebuffer();
   static void SetFramebuffer(GLuint fb);
   static void FramebufferTexture(GLenum target, GLenum attachment, GLenum textarget, GLuint texture,
                                  GLint level);
