@@ -379,11 +379,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
             "int3 iround(float3 x) { return int3(round(x)); }\n"
             "int4 iround(float4 x) { return int4(round(x)); }\n\n");
 
-  out.Write("int  itrunc(float  x) { return int (trunc(x)); }\n"
-            "int2 itrunc(float2 x) { return int2(trunc(x)); }\n"
-            "int3 itrunc(float3 x) { return int3(trunc(x)); }\n"
-            "int4 itrunc(float4 x) { return int4(trunc(x)); }\n\n");
-
   if (ApiType == APIType::OpenGL)
   {
     out.Write("SAMPLER_BINDING(0) uniform sampler2DArray samp[8];\n");
@@ -661,7 +656,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + uid_data->genMode_numtexgens - 1);
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
-      out.Write("\tint2 fixpoint_uv%d = itrunc(", i);
+      out.Write("\tint2 fixpoint_uv%d = int2(", i);
       out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
       out.Write(" * " I_TEXDIMS "[%d].zw);\n", i);
       // TODO: S24 overflows here?
