@@ -55,7 +55,9 @@ struct SSysConfEntry
   template <class T>
   T GetData()
   {
-    return *(T*)data.data();
+    T extracted_data;
+    std::memcpy(&extracted_data, data.data(), sizeof(T));
+    return extracted_data;
   }
   bool GetArrayData(u8* dest, u16 destSize)
   {
@@ -169,7 +171,7 @@ public:
       return false;
     }
 
-    *(T*)index->data.data() = newValue;
+    std::memcpy(index->data.data(), &newValue, sizeof(T));
     return true;
   }
 
