@@ -53,11 +53,13 @@ struct SSysConfEntry
   std::vector<u8> data;
 
   template <class T>
-  T GetData()
+  T GetData() const
   {
-    return *(T*)data.data();
+    T extracted_data;
+    std::memcpy(&extracted_data, data.data(), sizeof(T));
+    return extracted_data;
   }
-  bool GetArrayData(u8* dest, u16 destSize)
+  bool GetArrayData(u8* dest, u16 destSize) const
   {
     if (dest && destSize >= dataLength)
     {
@@ -66,7 +68,7 @@ struct SSysConfEntry
     }
     return false;
   }
-  bool SetArrayData(u8* buffer, u16 bufferSize)
+  bool SetArrayData(const u8* buffer, u16 bufferSize)
   {
     if (buffer)
     {
@@ -83,9 +85,9 @@ public:
   SysConf(Common::FromWhichRoot root_type);
   ~SysConf();
 
-  bool IsValid() { return m_IsValid; }
+  bool IsValid() const { return m_IsValid; }
   template <class T>
-  T GetData(const char* sectionName)
+  T GetData(const char* sectionName) const
   {
     if (!m_IsValid)
     {
@@ -93,13 +95,13 @@ public:
       return 0;
     }
 
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-    for (; index < m_Entries.end() - 1; ++index)
+    auto index = m_Entries.cbegin();
+    for (; index < m_Entries.cend() - 1; ++index)
     {
       if (strcmp(index->name, sectionName) == 0)
         break;
     }
-    if (index == m_Entries.end() - 1)
+    if (index == m_Entries.cend() - 1)
     {
       PanicAlertT("Section %s not found in SYSCONF", sectionName);
       return 0;
@@ -108,35 +110,35 @@ public:
     return index->GetData<T>();
   }
 
-  bool GetArrayData(const char* sectionName, u8* dest, u16 destSize)
+  bool GetArrayData(const char* sectionName, u8* dest, u16 destSize) const
   {
     if (!m_IsValid)
     {
       PanicAlertT("Trying to read from invalid SYSCONF");
-      return 0;
+      return false;
     }
 
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
-    for (; index < m_Entries.end() - 1; ++index)
+    auto index = m_Entries.cbegin();
+    for (; index < m_Entries.cend() - 1; ++index)
     {
       if (strcmp(index->name, sectionName) == 0)
         break;
     }
-    if (index == m_Entries.end() - 1)
+    if (index == m_Entries.cend() - 1)
     {
       PanicAlertT("Section %s not found in SYSCONF", sectionName);
-      return 0;
+      return false;
     }
 
     return index->GetArrayData(dest, destSize);
   }
 
-  bool SetArrayData(const char* sectionName, u8* buffer, u16 bufferSize)
+  bool SetArrayData(const char* sectionName, const u8* buffer, u16 bufferSize)
   {
     if (!m_IsValid)
       return false;
 
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
+    auto index = m_Entries.begin();
     for (; index < m_Entries.end() - 1; ++index)
     {
       if (strcmp(index->name, sectionName) == 0)
@@ -157,7 +159,7 @@ public:
     if (!m_IsValid)
       return false;
 
-    std::vector<SSysConfEntry>::iterator index = m_Entries.begin();
+    auto index = m_Entries.begin();
     for (; index < m_Entries.end() - 1; ++index)
     {
       if (strcmp(index->name, sectionName) == 0)
@@ -169,7 +171,7 @@ public:
       return false;
     }
 
-    *(T*)index->data.data() = newValue;
+    std::memcpy(index->data.data(), &newValue, sizeof(T));
     return true;
   }
 
