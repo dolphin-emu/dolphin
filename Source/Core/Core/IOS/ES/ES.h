@@ -157,8 +157,6 @@ private:
   IPCCommandResult AddContentFinish(const IOCtlVRequest& request);
   IPCCommandResult AddTitleFinish(const IOCtlVRequest& request);
   IPCCommandResult ESGetDeviceID(const IOCtlVRequest& request);
-  IPCCommandResult GetTitleContentsCount(const IOCtlVRequest& request);
-  IPCCommandResult GetTitleContents(const IOCtlVRequest& request);
   IPCCommandResult OpenTitleContent(const IOCtlVRequest& request);
   IPCCommandResult OpenContent(const IOCtlVRequest& request);
   IPCCommandResult ReadContent(const IOCtlVRequest& request);
@@ -174,6 +172,14 @@ private:
   IPCCommandResult GetOwnedTitles(const IOCtlVRequest& request);
   IPCCommandResult GetTitleCount(const IOCtlVRequest& request);
   IPCCommandResult GetTitles(const IOCtlVRequest& request);
+
+  IPCCommandResult GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
+                                          const IOCtlVRequest& request);
+  IPCCommandResult GetStoredContents(const IOS::ES::TMDReader& tmd, const IOCtlVRequest& request);
+  IPCCommandResult GetStoredContentsCount(const IOCtlVRequest& request);
+  IPCCommandResult GetStoredContents(const IOCtlVRequest& request);
+  IPCCommandResult GetTMDStoredContentsCount(const IOCtlVRequest& request);
+  IPCCommandResult GetTMDStoredContents(const IOCtlVRequest& request);
 
   IPCCommandResult GetViewCount(const IOCtlVRequest& request);
   IPCCommandResult GetViews(const IOCtlVRequest& request);
