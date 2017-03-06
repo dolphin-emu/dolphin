@@ -101,7 +101,7 @@ static std::string GetDumpPath(const std::string& format)
     return g_Config.sDumpPath;
 
   std::string s_dump_path = File::GetUserPath(D_DUMPFRAMES_IDX) + "framedump" +
-    std::to_string(s_file_index) + "." + format;
+                            std::to_string(s_file_index) + "." + format;
 
   // Ask to delete file
   if (File::Exists(s_dump_path))
@@ -136,8 +136,9 @@ bool AVIDump::CreateVideoFile()
     ERROR_LOG(VIDEO, "Invalid format %s", s_format.c_str());
     return false;
   }
-  
-  if(avformat_alloc_output_context2(&s_format_context, output_format, nullptr, s_dump_path.c_str()) < 0)
+
+  if (avformat_alloc_output_context2(&s_format_context, output_format, nullptr,
+                                     s_dump_path.c_str()) < 0)
   {
     ERROR_LOG(VIDEO, "Could not allocate output context");
     return false;
@@ -362,10 +363,10 @@ static void HandleDelayedPackets()
       ERROR_LOG(VIDEO, "Error while stopping video: %d", error);
       break;
     }
-    
+
     if (!got_packet)
       break;
-    
+
     WritePacket(pkt);
   }
 }
