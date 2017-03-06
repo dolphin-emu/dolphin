@@ -163,9 +163,14 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 
   const bool shift_jis = region == DiscIO::Region::NTSC_J;
 
-  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX) +
-                                 SConfig::GetDirectoryForRegion(region) + DIR_SEP +
-                                 StringFromFormat("Card %c", 'A' + card_index);
+  std::string strDirectoryName = File::GetUserPath(D_GCUSER_IDX);
+
+  if (Movie::IsPlayingInput() && Movie::IsConfigSaved() && Movie::IsUsingMemcard(card_index) &&
+      Movie::IsStartingFromClearSave())
+    strDirectoryName += "Movie" DIR_SEP;
+
+  strDirectoryName = strDirectoryName + SConfig::GetDirectoryForRegion(region) + DIR_SEP +
+                     StringFromFormat("Card %c", 'A' + card_index);
 
   if (!File::Exists(strDirectoryName))  // first use of memcard folder, migrate automatically
   {

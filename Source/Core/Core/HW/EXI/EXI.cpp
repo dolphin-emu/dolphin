@@ -33,6 +33,34 @@ static std::array<std::unique_ptr<CEXIChannel>, MAX_EXI_CHANNELS> g_Channels;
 static void ChangeDeviceCallback(u64 userdata, s64 cyclesLate);
 static void UpdateInterruptsCallback(u64 userdata, s64 cycles_late);
 
+namespace
+{
+void AddMemoryCards(int i)
+{
+  TEXIDevices memorycard_device;
+  if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
+  {
+    if (Movie::IsUsingMemcard(i))
+    {
+      if (SConfig::GetInstance().m_EXIDevice[i] == EXIDEVICE_MEMORYCARDFOLDER)
+        memorycard_device = EXIDEVICE_MEMORYCARDFOLDER;
+      else
+        memorycard_device = EXIDEVICE_MEMORYCARD;
+    }
+    else
+    {
+      memorycard_device = EXIDEVICE_NONE;
+    }
+  }
+  else
+  {
+    memorycard_device = SConfig::GetInstance().m_EXIDevice[i];
+  }
+
+  g_Channels[i]->AddDevice(memorycard_device, 0);
+}
+}  // namespace
+
 void Init()
 {
   if (!g_SRAM_netplay_initialized)
@@ -44,18 +72,9 @@ void Init()
   for (u32 i = 0; i < MAX_EXI_CHANNELS; i++)
     g_Channels[i] = std::make_unique<CEXIChannel>(i);
 
-  if (Movie::IsPlayingInput() && Movie::IsConfigSaved())
-  {
-    g_Channels[0]->AddDevice(Movie::IsUsingMemcard(0) ? EXIDEVICE_MEMORYCARD : EXIDEVICE_NONE,
-                             0);  // SlotA
-    g_Channels[1]->AddDevice(Movie::IsUsingMemcard(1) ? EXIDEVICE_MEMORYCARD : EXIDEVICE_NONE,
-                             0);  // SlotB
-  }
-  else
-  {
-    g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[0], 0);  // SlotA
-    g_Channels[1]->AddDevice(SConfig::GetInstance().m_EXIDevice[1], 0);  // SlotB
-  }
+  for (int i = 0; i < MAX_MEMORYCARD_SLOTS; i++)
+    AddMemoryCards(i);
+
   g_Channels[0]->AddDevice(EXIDEVICE_MASKROM, 1);
   g_Channels[0]->AddDevice(SConfig::GetInstance().m_EXIDevice[2], 2);  // Serial Port 1
   g_Channels[2]->AddDevice(EXIDEVICE_AD16, 0);
