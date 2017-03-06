@@ -442,7 +442,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_DIGETTICKETVIEW:
     return DIGetTicketView(request);
   default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS);
+    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_ES);
     break;
   }
 
