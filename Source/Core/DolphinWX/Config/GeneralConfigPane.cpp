@@ -126,7 +126,7 @@ void GeneralConfigPane::InitializeGUI()
   main_sizer->AddSpacer(space5);
   main_sizer->Add(basic_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
-  main_sizer->Add(analytics_sizer, 0, wxEXPAND | wxLEFT | wxLEFT, space5);
+  main_sizer->Add(analytics_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
   main_sizer->Add(advanced_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
