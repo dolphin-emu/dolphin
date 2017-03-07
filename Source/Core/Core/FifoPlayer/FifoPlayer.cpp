@@ -30,6 +30,7 @@
 #include "VideoCommon/TextureDecoder.h"
 
 bool IsPlayingBackFifologWithBrokenEFBCopies = false;
+bool IsPlayingBackFifologWithoutVIUpdates = false;
 
 FifoPlayer::~FifoPlayer()
 {
@@ -74,12 +75,17 @@ public:
   void Init() override
   {
     IsPlayingBackFifologWithBrokenEFBCopies = m_parent->m_File->HasBrokenEFBCopies();
+    IsPlayingBackFifologWithoutVIUpdates = true;
 
     m_parent->m_CurrentFrame = m_parent->m_FrameRangeStart;
     m_parent->LoadMemory();
   }
 
-  void Shutdown() override { IsPlayingBackFifologWithBrokenEFBCopies = false; }
+  void Shutdown() override
+  {
+    IsPlayingBackFifologWithBrokenEFBCopies = false;
+    IsPlayingBackFifologWithoutVIUpdates = false;
+  }
   void ClearCache() override
   {
     // Nothing to clear.
