@@ -1,0 +1,20 @@
+{
+  "configurations": [
+    {
+      "name": "x64-Debug",
+      "generator": "Visual Studio 15 2017 Win64",
+      "configurationType": "Debug",
+      "buildRoot": "${env.LOCALAPPDATA}\\CMakeBuild\\${workspaceHash}\\build\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-m -p:PreferredToolArchitecture=x64"
+    },
+    {
+      "name": "x64-Release",
+      "generator": "Visual Studio 15 2017 Win64",
+      "configurationType": "Release",
+      "buildRoot": "${env.LOCALAPPDATA}\\CMakeBuild\\${workspaceHash}\\build\\${name}",
+      "cmakeCommandArgs": "",
+      "buildCommandArgs": "-m -p:PreferredToolArchitecture=x64"
+    }
+  ]
+}
