@@ -4,7 +4,10 @@
 
 #pragma once
 
+#include <memory>
 #include "VideoCommon/VertexManagerBase.h"
+
+struct ID3D11Buffer;
 
 namespace DX11
 {
@@ -14,7 +17,9 @@ public:
   VertexManager();
   ~VertexManager();
 
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+  std::unique_ptr<NativeVertexFormat>
+  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+
   void CreateDeviceObjects() override;
   void DestroyDeviceObjects() override;
 
@@ -25,7 +30,7 @@ private:
   void PrepareDrawBuffers(u32 stride);
   void Draw(u32 stride);
   // temp
-  void vFlush(bool useDstAlpha) override;
+  void vFlush() override;
 
   u32 m_vertexDrawOffset;
   u32 m_indexDrawOffset;

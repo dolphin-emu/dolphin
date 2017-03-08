@@ -7,13 +7,17 @@
 #include <string>
 #include "VideoCommon/RenderBase.h"
 
+enum class EFBAccessType;
+
 namespace DX11
 {
+class D3DTexture2D;
+
 class Renderer : public ::Renderer
 {
 public:
-  Renderer(void*& window_handle);
-  ~Renderer();
+  Renderer();
+  ~Renderer() override;
 
   void SetColorMask() override;
   void SetBlendMode(bool forceUpdate) override;
@@ -25,9 +29,11 @@ public:
   void SetSamplerState(int stage, int texindex, bool custom_tex) override;
   void SetInterlacingMode() override;
   void SetViewport() override;
+  void SetFullscreen(bool enable_fullscreen) override;
+  bool IsFullscreen() const override;
 
   // TODO: Fix confusing names (see ResetAPIState and RestoreAPIState)
-  void ApplyState(bool bUseDstAlpha) override;
+  void ApplyState() override;
   void RestoreState() override;
 
   void ApplyCullDisable();
@@ -54,7 +60,7 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  static bool CheckForResize();
+  bool CheckForResize();
 
   u32 GetMaxTextureSize() override;
 

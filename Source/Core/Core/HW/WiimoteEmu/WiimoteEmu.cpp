@@ -2,6 +2,9 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+
+#include <cassert>
 #include <cmath>
 #include <cstring>
 
@@ -9,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
+
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/Attachment/Classic.h"
@@ -17,12 +21,24 @@
 #include "Core/HW/WiimoteEmu/Attachment/Nunchuk.h"
 #include "Core/HW/WiimoteEmu/Attachment/Turntable.h"
 #include "Core/HW/WiimoteEmu/MatrixMath.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
 #include "Core/Host.h"
 #include "Core/Movie.h"
 #include "Core/NetPlayClient.h"
+
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/Control/Output.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Cursor.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Force.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ModifySettingsButton.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Tilt.h"
+#include "InputCommon/ControllerEmu/Setting/BackgroundInputSetting.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
+#include "InputCommon/ControllerEmu/Setting/NumericSetting.h"
 
 namespace
 {
@@ -238,27 +254,27 @@ Wiimote::Wiimote(const unsigned int index)
   // ---- set up all the controls ----
 
   // buttons
-  groups.emplace_back(m_buttons = new Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
   for (auto& named_button : named_buttons)
-    m_buttons->controls.emplace_back(new ControlGroup::Input(named_button));
+    m_buttons->controls.emplace_back(new ControllerEmu::Input(named_button));
 
   // ir
-  groups.emplace_back(m_ir = new Cursor(_trans("IR")));
+  groups.emplace_back(m_ir = new ControllerEmu::Cursor(_trans("IR")));
 
   // swing
-  groups.emplace_back(m_swing = new Force(_trans("Swing")));
+  groups.emplace_back(m_swing = new ControllerEmu::Force(_trans("Swing")));
 
   // tilt
-  groups.emplace_back(m_tilt = new Tilt(_trans("Tilt")));
+  groups.emplace_back(m_tilt = new ControllerEmu::Tilt(_trans("Tilt")));
 
   // shake
-  groups.emplace_back(m_shake = new Buttons(_trans("Shake")));
-  m_shake->controls.emplace_back(new ControlGroup::Input("X"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("Y"));
-  m_shake->controls.emplace_back(new ControlGroup::Input("Z"));
+  groups.emplace_back(m_shake = new ControllerEmu::Buttons(_trans("Shake")));
+  m_shake->controls.emplace_back(new ControllerEmu::Input("X"));
+  m_shake->controls.emplace_back(new ControllerEmu::Input("Y"));
+  m_shake->controls.emplace_back(new ControllerEmu::Input("Z"));
 
   // extension
-  groups.emplace_back(m_extension = new Extension(_trans("Extension")));
+  groups.emplace_back(m_extension = new ControllerEmu::Extension(_trans("Extension")));
   m_extension->attachments.emplace_back(new WiimoteEmu::None(m_reg_ext));
   m_extension->attachments.emplace_back(new WiimoteEmu::Nunchuk(m_reg_ext));
   m_extension->attachments.emplace_back(new WiimoteEmu::Classic(m_reg_ext));
@@ -267,34 +283,34 @@ Wiimote::Wiimote(const unsigned int index)
   m_extension->attachments.emplace_back(new WiimoteEmu::Turntable(m_reg_ext));
 
   m_extension->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BooleanSetting>(_trans("Motion Plus"), false));
+      std::make_unique<ControllerEmu::BooleanSetting>(_trans("Motion Plus"), false));
 
   // rumble
-  groups.emplace_back(m_rumble = new ControlGroup(_trans("Rumble")));
-  m_rumble->controls.emplace_back(new ControlGroup::Output(_trans("Motor")));
+  groups.emplace_back(m_rumble = new ControllerEmu::ControlGroup(_trans("Rumble")));
+  m_rumble->controls.emplace_back(new ControllerEmu::Output(_trans("Motor")));
 
   // dpad
-  groups.emplace_back(m_dpad = new Buttons("D-Pad"));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons("D-Pad"));
   for (auto& named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
+    m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
 
   // options
-  groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
+  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BooleanSetting>(_trans("Sideways Wii Remote"), false));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BooleanSetting>(_trans("Upright Wii Remote"), false));
-  m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
-      _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
+      std::make_unique<ControllerEmu::BackgroundInputSetting>(_trans("Background Input")));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      "Sideways Wiimote", _trans("Sideways Wii Remote"), false));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      "Upright Wiimote", _trans("Upright Wii Remote"), false));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
   m_options->numeric_settings.emplace_back(
-      std::make_unique<ControlGroup::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
+      std::make_unique<ControllerEmu::NumericSetting>(_trans("Speaker Pan"), 0, -127, 127));
   m_options->numeric_settings.emplace_back(
-      std::make_unique<ControlGroup::NumericSetting>(_trans("Battery"), 95.0 / 100, 0, 255));
+      std::make_unique<ControllerEmu::NumericSetting>(_trans("Battery"), 95.0 / 100, 0, 255));
 
   // hotkeys
-  groups.emplace_back(m_hotkeys = new ModifySettingsButton(_trans("Hotkeys")));
+  groups.emplace_back(m_hotkeys = new ControllerEmu::ModifySettingsButton(_trans("Hotkeys")));
   // hotkeys to temporarily modify the Wii Remote orientation (sideways, upright)
   // this setting modifier is toggled
   m_hotkeys->AddInput(_trans("Sideways Toggle"), true);
@@ -313,6 +329,61 @@ Wiimote::Wiimote(const unsigned int index)
 std::string Wiimote::GetName() const
 {
   return std::string("Wiimote") + char('1' + m_index);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetWiimoteGroup(WiimoteGroup group)
+{
+  switch (group)
+  {
+  case WiimoteGroup::Buttons:
+    return m_buttons;
+  case WiimoteGroup::DPad:
+    return m_dpad;
+  case WiimoteGroup::Shake:
+    return m_shake;
+  case WiimoteGroup::IR:
+    return m_ir;
+  case WiimoteGroup::Tilt:
+    return m_tilt;
+  case WiimoteGroup::Swing:
+    return m_swing;
+  case WiimoteGroup::Rumble:
+    return m_rumble;
+  case WiimoteGroup::Extension:
+    return m_extension;
+  case WiimoteGroup::Options:
+    return m_options;
+  case WiimoteGroup::Hotkeys:
+    return m_hotkeys;
+  default:
+    assert(false);
+    return nullptr;
+  }
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetNunchukGroup(NunchukGroup group)
+{
+  return static_cast<Nunchuk*>(m_extension->attachments[EXT_NUNCHUK].get())->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetClassicGroup(ClassicGroup group)
+{
+  return static_cast<Classic*>(m_extension->attachments[EXT_CLASSIC].get())->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetGuitarGroup(GuitarGroup group)
+{
+  return static_cast<Guitar*>(m_extension->attachments[EXT_GUITAR].get())->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetDrumsGroup(DrumsGroup group)
+{
+  return static_cast<Drums*>(m_extension->attachments[EXT_DRUMS].get())->GetGroup(group);
+}
+
+ControllerEmu::ControlGroup* Wiimote::GetTurntableGroup(TurntableGroup group)
+{
+  return static_cast<Turntable*>(m_extension->attachments[EXT_TURNTABLE].get())->GetGroup(group);
 }
 
 bool Wiimote::Step()
@@ -643,7 +714,7 @@ void Wiimote::Update()
 
   // returns true if a report was sent
   {
-    auto lock = ControllerEmu::GetStateLock();
+    const auto lock = GetStateLock();
     if (Step())
       return;
   }
@@ -668,7 +739,7 @@ void Wiimote::Update()
     data[0] = 0xA1;
     data[1] = m_reporting_mode;
 
-    auto lock = ControllerEmu::GetStateLock();
+    const auto lock = GetStateLock();
 
     // hotkey/settings modifier
     m_hotkeys->GetState();  // data is later accessed in UpdateButtonsStatus and GetAccelData
@@ -903,7 +974,7 @@ void Wiimote::ConnectOnInput()
   }
 
   u16 buttons = 0;
-  auto lock = ControllerEmu::GetStateLock();
+  const auto lock = GetStateLock();
   m_buttons->GetState(&buttons, button_bitmasks);
   m_dpad->GetState(&buttons, dpad_bitmasks);
 
@@ -918,7 +989,7 @@ void Wiimote::ConnectOnInput()
 
 void Wiimote::LoadDefaults(const ControllerInterface& ciface)
 {
-  ControllerEmu::LoadDefaults(ciface);
+  EmulatedController::LoadDefaults(ciface);
 
 // Buttons
 #if defined HAVE_X11 && HAVE_X11
@@ -974,4 +1045,19 @@ void Wiimote::LoadDefaults(const ControllerInterface& ciface)
   // set nunchuk defaults
   m_extension->attachments[1]->LoadDefaults(ciface);
 }
+
+int Wiimote::CurrentExtension() const
+{
+  return m_extension->active_extension;
 }
+
+bool Wiimote::HaveExtension() const
+{
+  return m_extension->active_extension > 0;
+}
+
+bool Wiimote::WantExtension() const
+{
+  return m_extension->switch_extension != 0;
+}
+}  // namespace WiimoteEmu

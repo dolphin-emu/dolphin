@@ -3,31 +3,40 @@
 // Refer to the license.txt file included.
 
 #include "Core/HW/DSPHLE/UCodes/AX.h"
+
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MathUtil.h"
-#include "Core/ConfigManager.h"
+#include "Common/Swap.h"
 #include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
+#include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/AXStructs.h"
 
 #define AX_GC
 #include "Core/HW/DSPHLE/UCodes/AXVoice.h"
 
+namespace DSP
+{
+namespace HLE
+{
 AXUCode::AXUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc), m_cmdlist_size(0)
 {
   INFO_LOG(DSPHLE, "Instantiating AXUCode: crc=%08x", crc);
-  m_mail_handler.PushMail(DSP_INIT);
-  DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
-
-  LoadResamplingCoefficients();
 }
 
 AXUCode::~AXUCode()
 {
   m_mail_handler.Clear();
+}
+
+void AXUCode::Initialize()
+{
+  m_mail_handler.PushMail(DSP_INIT, true);
+
+  LoadResamplingCoefficients();
 }
 
 void AXUCode::LoadResamplingCoefficients()
@@ -68,8 +77,7 @@ void AXUCode::LoadResamplingCoefficients()
 void AXUCode::SignalWorkEnd()
 {
   // Signal end of processing
-  m_mail_handler.PushMail(DSP_YIELD);
-  DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+  m_mail_handler.PushMail(DSP_YIELD, true);
 }
 
 void AXUCode::HandleCommandList()
@@ -613,8 +621,7 @@ void AXUCode::HandleMail(u32 mail)
   else if (mail == MAIL_RESUME)
   {
     // Acknowledge the resume request
-    m_mail_handler.PushMail(DSP_RESUME);
-    DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_mail_handler.PushMail(DSP_RESUME, true);
   }
   else if (mail == MAIL_NEW_UCODE)
   {
@@ -661,8 +668,7 @@ void AXUCode::Update()
   // Used for UCode switching.
   if (NeedsResumeMail())
   {
-    m_mail_handler.PushMail(DSP_RESUME);
-    DSP::GenerateDSPInterruptFromDSPEmu(DSP::INT_DSP);
+    m_mail_handler.PushMail(DSP_RESUME, true);
   }
 }
 
@@ -687,3 +693,5 @@ void AXUCode::DoState(PointerWrap& p)
   DoStateShared(p);
   DoAXState(p);
 }
+}  // namespace HLE
+}  // namespace DSP

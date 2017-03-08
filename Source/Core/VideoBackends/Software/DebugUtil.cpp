@@ -6,17 +6,16 @@
 
 #include <cstring>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/StringUtil.h"
+#include "Common/Swap.h"
 
 #include "VideoBackends/Software/EfbInterface.h"
 #include "VideoBackends/Software/SWRenderer.h"
 #include "VideoBackends/Software/TextureSampler.h"
 
 #include "VideoCommon/BPMemory.h"
-#include "VideoCommon/Fifo.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/VideoConfig.h"

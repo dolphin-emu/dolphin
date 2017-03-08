@@ -74,7 +74,7 @@ SoftwareVideoConfigDialog::SoftwareVideoConfigDialog(wxWindow* parent, const std
       szr_rendering->Add(label_backend, 0, wxALIGN_CENTER_VERTICAL);
       szr_rendering->Add(choice_backend, 0, wxALIGN_CENTER_VERTICAL);
 
-      if (Core::GetState() != Core::CORE_UNINITIALIZED)
+      if (Core::GetState() != Core::State::Uninitialized)
       {
         label_backend->Disable();
         choice_backend->Disable();

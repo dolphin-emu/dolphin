@@ -6,6 +6,8 @@
 // GCNcrypt - GameCube AR Crypto Program
 // Copyright (C) 2003-2004 Parasyte
 
+#include "Core/ARDecrypt.h"
+
 #include <algorithm>
 #include <cstring>
 
@@ -16,7 +18,7 @@
 #include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
-#include "Core/ARDecrypt.h"
+#include "Common/Swap.h"
 
 namespace ActionReplay
 {

@@ -2,7 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <VideoCommon/LightingShaderGen.h>
+#include "VideoCommon/LightingShaderGen.h"
+
+#include "Common/Assert.h"
+#include "Common/CommonTypes.h"
+
+#include "VideoCommon/NativeVertexFormat.h"
+#include "VideoCommon/ShaderGenCommon.h"
+#include "VideoCommon/XFMemory.h"
 
 static void GenerateLightShader(ShaderCode& object, const LightingUidData& uid_data, int index,
                                 int litchan_index, bool alpha)

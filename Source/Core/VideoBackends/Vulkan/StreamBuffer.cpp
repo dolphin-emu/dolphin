@@ -286,8 +286,11 @@ bool StreamBuffer::WaitForClearSpace(size_t num_bytes)
   for (; iter != m_tracked_fences.end(); iter++)
   {
     // Would this fence bring us in line with the GPU?
+    // This is the "last resort" case, where a command buffer execution has been forced
+    // after no additional data has been written to it, so we can assume that after the
+    // fence has been signaled the entire buffer is now consumed.
     size_t gpu_position = iter->second;
-    if (gpu_position == m_current_offset)
+    if (m_current_offset == gpu_position)
     {
       // Start at the start of the buffer again.
       new_offset = 0;
@@ -295,12 +298,12 @@ bool StreamBuffer::WaitForClearSpace(size_t num_bytes)
       break;
     }
 
-    // We can wrap around to the start, behind the GPU, if there is enough space.
-    // We use > here because otherwise we'd end up lining up with the GPU, and then the
-    // allocator would assume that the GPU has consumed what we just wrote.
-    if (m_current_offset >= m_current_gpu_position)
+    // Assuming that we wait for this fence, are we allocating in front of the GPU?
+    if (m_current_offset > gpu_position)
     {
-      // Wrap around to the start (behind the GPU) if there is sufficient space.
+      // We can wrap around to the start, behind the GPU, if there is enough space.
+      // We use > here because otherwise we'd end up lining up with the GPU, and then the
+      // allocator would assume that the GPU has consumed what we just wrote.
       if (gpu_position > num_bytes)
       {
         new_offset = 0;
@@ -310,19 +313,16 @@ bool StreamBuffer::WaitForClearSpace(size_t num_bytes)
     }
     else
     {
-      // We're currently allocating behind the GPU. Therefore, if this fence is behind us,
-      // and it's the last fence in the list (no data has been written after it), we can
-      // move back to allocating in front of the GPU.
-      if (gpu_position < m_current_offset)
+      // We're currently allocating behind the GPU. This would give us between the current
+      // offset and the GPU position worth of space to work with. Again, > because we can't
+      // align the GPU position with the buffer offset.
+      size_t available_space_inbetween = gpu_position - m_current_offset;
+      if (available_space_inbetween > num_bytes)
       {
-        if (std::none_of(iter, m_tracked_fences.end(),
-                         [gpu_position](const auto& it) { return it.second > gpu_position; }))
-        {
-          // Wait for this fence to complete, then allocate directly after it.
-          new_offset = gpu_position;
-          new_gpu_position = gpu_position;
-          break;
-        }
+        // Leave the offset as-is, but update the GPU position.
+        new_offset = m_current_offset;
+        new_gpu_position = gpu_position;
+        break;
       }
     }
   }

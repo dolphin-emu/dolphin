@@ -4,6 +4,7 @@
 
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 #include "Common/Assert.h"
+#include "Common/CPUDetect.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/MathUtil.h"
@@ -11,8 +12,8 @@
 #include "Common/x64Emitter.h"
 #include "Core/HW/GPFifo.h"
 #include "Core/PowerPC/Gekko.h"
-#include "Core/PowerPC/JitCommon/JitBase.h"
-#include "Core/PowerPC/JitCommon/Jit_Util.h"
+#include "Core/PowerPC/Jit64Common/Jit64Base.h"
+#include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 
 #define QUANTIZED_REGS_TO_SAVE                                                                     \
@@ -27,10 +28,8 @@ void CommonAsmRoutines::GenFifoWrite(int size)
   const void* start = GetCodePtr();
 
   // Assume value in RSCRATCH
-  u32 gather_pipe = (u32)(u64)GPFifo::m_gatherPipe;
-  _assert_msg_(DYNA_REC, gather_pipe <= 0x7FFFFFFF, "Gather pipe not in low 2GB of memory!");
   MOV(32, R(RSCRATCH2), M(&GPFifo::m_gatherPipeCount));
-  SwapAndStore(size, MDisp(RSCRATCH2, gather_pipe), RSCRATCH);
+  SwapAndStore(size, MDisp(RSCRATCH2, PtrOffset(GPFifo::m_gatherPipe)), RSCRATCH);
   ADD(32, R(RSCRATCH2), Imm8(size >> 3));
   MOV(32, M(&GPFifo::m_gatherPipeCount), R(RSCRATCH2));
   RET();
@@ -72,9 +71,9 @@ void CommonAsmRoutines::GenFrsqrte()
 
   SHR(64, R(RSCRATCH), Imm8(37));
   AND(32, R(RSCRATCH), Imm32(0x7FF));
-  IMUL(32, RSCRATCH, MScaled(RSCRATCH_EXTRA, SCALE_4, (u32)(u64)MathUtil::frsqrte_expected_dec));
+  IMUL(32, RSCRATCH, MScaled(RSCRATCH_EXTRA, SCALE_4, PtrOffset(MathUtil::frsqrte_expected_dec)));
   MOV(32, R(RSCRATCH_EXTRA),
-      MScaled(RSCRATCH_EXTRA, SCALE_4, (u32)(u64)MathUtil::frsqrte_expected_base));
+      MScaled(RSCRATCH_EXTRA, SCALE_4, PtrOffset(MathUtil::frsqrte_expected_base)));
   SUB(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHL(64, R(RSCRATCH_EXTRA), Imm8(26));
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(frsqrte_expected_base[index] -
@@ -141,11 +140,11 @@ void CommonAsmRoutines::GenFres()
   AND(32, R(RSCRATCH), Imm32(0x3FF));  // i % 1024
   AND(32, R(RSCRATCH2), Imm8(0x1F));   // i / 1024
 
-  IMUL(32, RSCRATCH, MScaled(RSCRATCH2, SCALE_4, (u32)(u64)MathUtil::fres_expected_dec));
+  IMUL(32, RSCRATCH, MScaled(RSCRATCH2, SCALE_4, PtrOffset(MathUtil::fres_expected_dec)));
   ADD(32, R(RSCRATCH), Imm8(1));
   SHR(32, R(RSCRATCH), Imm8(1));
 
-  MOV(32, R(RSCRATCH2), MScaled(RSCRATCH2, SCALE_4, (u32)(u64)MathUtil::fres_expected_base));
+  MOV(32, R(RSCRATCH2), MScaled(RSCRATCH2, SCALE_4, PtrOffset(MathUtil::fres_expected_base)));
   SUB(32, R(RSCRATCH2), R(RSCRATCH));
   SHL(64, R(RSCRATCH2), Imm8(29));
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(fres_expected_base[i / 1024] -
@@ -205,7 +204,7 @@ void CommonAsmRoutines::GenMfcr()
     // SO: Bit 61 set; set flag bit 0
     // LT: Bit 62 set; set flag bit 3
     SHR(64, R(cr_val), Imm8(61));
-    OR(32, R(dst), MScaled(cr_val, SCALE_4, (u32)(u64)m_flagTable));
+    OR(32, R(dst), MScaled(cr_val, SCALE_4, PtrOffset(m_flagTable)));
   }
   RET();
 
@@ -298,7 +297,7 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
     if (quantize == -1)
     {
       SHR(32, R(RSCRATCH2), Imm8(5));
-      MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
+      MULSS(XMM0, MDisp(RSCRATCH2, PtrOffset(m_quantizeTableS)));
     }
     else if (quantize > 0)
     {
@@ -336,7 +335,7 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
     if (quantize == -1)
     {
       SHR(32, R(RSCRATCH2), Imm8(5));
-      MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_quantizeTableS));
+      MOVQ_xmm(XMM1, MDisp(RSCRATCH2, PtrOffset(m_quantizeTableS)));
       MULPS(XMM0, R(XMM1));
     }
     else if (quantize > 0)
@@ -457,7 +456,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
 
   bool extend = single && (type == QUANTIZE_S8 || type == QUANTIZE_S16);
 
-  if (jit->jo.memcheck)
+  if (g_jit->jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE_LOAD;
     int flags =
@@ -493,7 +492,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
     if (quantize == -1)
     {
       SHR(32, R(RSCRATCH2), Imm8(5));
-      MULSS(XMM0, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
+      MULSS(XMM0, MDisp(RSCRATCH2, PtrOffset(m_dequantizeTableS)));
     }
     else if (quantize > 0)
     {
@@ -565,7 +564,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoad(bool single, EQuantizeType type, 
     if (quantize == -1)
     {
       SHR(32, R(RSCRATCH2), Imm8(5));
-      MOVQ_xmm(XMM1, MDisp(RSCRATCH2, (u32)(u64)m_dequantizeTableS));
+      MOVQ_xmm(XMM1, MDisp(RSCRATCH2, PtrOffset(m_dequantizeTableS)));
       MULPS(XMM0, R(XMM1));
     }
     else if (quantize > 0)
@@ -581,7 +580,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
   int size = single ? 32 : 64;
   bool extend = false;
 
-  if (jit->jo.memcheck)
+  if (g_jit->jo.memcheck)
   {
     BitSet32 regsToSave = QUANTIZED_REGS_TO_SAVE;
     int flags =
@@ -591,7 +590,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
 
   if (single)
   {
-    if (jit->jo.memcheck)
+    if (g_jit->jo.memcheck)
     {
       MOVD_xmm(XMM0, R(RSCRATCH_EXTRA));
     }
@@ -616,7 +615,7 @@ void QuantizedMemoryRoutines::GenQuantizedLoadFloat(bool single, bool isInline)
     // for a good reason, or merely because no game does this.
     // If we find something that actually does do this, maybe this should be changed. How
     // much of a performance hit would it be?
-    if (jit->jo.memcheck)
+    if (g_jit->jo.memcheck)
     {
       ROL(64, R(RSCRATCH_EXTRA), Imm8(32));
       MOVQ_xmm(XMM0, R(RSCRATCH_EXTRA));

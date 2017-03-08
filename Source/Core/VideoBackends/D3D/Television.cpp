@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/D3D/Television.h"
+
 #include <vector>
 
 #include "Core/HW/Memmap.h"
@@ -9,8 +11,8 @@
 #include "VideoBackends/D3D/D3DShader.h"
 #include "VideoBackends/D3D/D3DState.h"
 #include "VideoBackends/D3D/D3DUtil.h"
-#include "VideoBackends/D3D/Television.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
+#include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
 
 namespace DX11

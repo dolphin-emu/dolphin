@@ -161,7 +161,7 @@ static VertexLoaderBase* RefreshLoader(int vtx_attr_group, bool preprocess = fal
       std::unique_ptr<NativeVertexFormat>& native = s_native_vertex_map[format];
       if (!native)
       {
-        native.reset(g_vertex_manager->CreateNativeVertexFormat(format));
+        native = g_vertex_manager->CreateNativeVertexFormat(format);
       }
       loader->m_native_vertex_format = native.get();
     }

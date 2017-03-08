@@ -34,14 +34,14 @@
 #include "hotplug.h"
 
 /**
- * @defgroup hotplug  Device hotplug event notification
+ * @defgroup libusb_hotplug Device hotplug event notification
  * This page details how to use the libusb hotplug interface, where available.
  *
  * Be mindful that not all platforms currently implement hotplug notification and
  * that you should first call on \ref libusb_has_capability() with parameter
  * \ref LIBUSB_CAP_HAS_HOTPLUG to confirm that hotplug support is available.
  *
- * \page hotplug Device hotplug event notification
+ * \page libusb_hotplug Device hotplug event notification
  *
  * \section hotplug_intro Introduction
  *
@@ -55,7 +55,7 @@
  *
  * To receive hotplug notification you register a callback by calling
  * \ref libusb_hotplug_register_callback(). This function will optionally return
- * a handle that can be passed to \ref libusb_hotplug_deregister_callback().
+ * a callback handle that can be passed to \ref libusb_hotplug_deregister_callback().
  *
  * A callback function must return an int (0 or 1) indicating whether the callback is
  * expecting additional events. Returning 0 will rearm the callback and 1 will cause
@@ -75,40 +75,47 @@
  *
  * Note: If you receive notification that a device has left and you have any
  * a libusb_device_handles for the device it is up to you to call libusb_close()
- * on each handle to free up any remaining resources associated with the device.
+ * on each device handle to free up any remaining resources associated with the device.
  * Once a device has left any libusb_device_handle associated with the device
  * are invalid and will remain so even if the device comes back.
  *
  * When handling a LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED event it is considered
- * safe to call any libusb function that takes a libusb_device. On the other hand,
- * when handling a LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT event the only safe function
+ * safe to call any libusb function that takes a libusb_device. It also safe to
+ * open a device and submit asynchronous transfers. However, most other functions
+ * that take a libusb_device_handle are <b>not</b> safe to call. Examples of such
+ * functions are any of the \ref libusb_syncio "synchronous API" functions or the blocking
+ * functions that retrieve various \ref libusb_desc "USB descriptors". These functions must
+ * be used outside of the context of the hotplug callback.
+ *
+ * When handling a LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT event the only safe function
  * is libusb_get_device_descriptor().
  *
  * The following code provides an example of the usage of the hotplug interface:
 \code
 #include <stdio.h>
 #include <stdlib.h>
+#include <time.h>
 #include <libusb.h>
 
 static int count = 0;
 
 int hotplug_callback(struct libusb_context *ctx, struct libusb_device *dev,
                      libusb_hotplug_event event, void *user_data) {
-  static libusb_device_handle *handle = NULL;
+  static libusb_device_handle *dev_handle = NULL;
   struct libusb_device_descriptor desc;
   int rc;
 
   (void)libusb_get_device_descriptor(dev, &desc);
 
   if (LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED == event) {
-    rc = libusb_open(dev, &handle);
+    rc = libusb_open(dev, &dev_handle);
     if (LIBUSB_SUCCESS != rc) {
       printf("Could not open USB device\n");
     }
   } else if (LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT == event) {
-    if (handle) {
-      libusb_close(handle);
-      handle = NULL;
+    if (dev_handle) {
+      libusb_close(dev_handle);
+      dev_handle = NULL;
     }
   } else {
     printf("Unhandled event %d\n", event);
@@ -119,7 +126,7 @@ int hotplug_callback(struct libusb_context *ctx, struct libusb_device *dev,
 }
 
 int main (void) {
-  libusb_hotplug_callback_handle handle;
+  libusb_hotplug_callback_handle callback_handle;
   int rc;
 
   libusb_init(NULL);
@@ -127,7 +134,7 @@ int main (void) {
   rc = libusb_hotplug_register_callback(NULL, LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
                                         LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT, 0, 0x045a, 0x5005,
                                         LIBUSB_HOTPLUG_MATCH_ANY, hotplug_callback, NULL,
-                                        &handle);
+                                        &callback_handle);
   if (LIBUSB_SUCCESS != rc) {
     printf("Error creating a hotplug callback\n");
     libusb_exit(NULL);
@@ -136,10 +143,10 @@ int main (void) {
 
   while (count < 2) {
     libusb_handle_events_completed(NULL, NULL);
-    usleep(10000);
+    nanosleep(&(struct timespec){0, 10000000UL}, NULL);
   }
 
-  libusb_hotplug_deregister_callback(NULL, handle);
+  libusb_hotplug_deregister_callback(NULL, callback_handle);
   libusb_exit(NULL);
 
   return 0;
@@ -231,7 +238,7 @@ int API_EXPORTED libusb_hotplug_register_callback(libusb_context *ctx,
 	libusb_hotplug_event events, libusb_hotplug_flag flags,
 	int vendor_id, int product_id, int dev_class,
 	libusb_hotplug_callback_fn cb_fn, void *user_data,
-	libusb_hotplug_callback_handle *handle)
+	libusb_hotplug_callback_handle *callback_handle)
 {
 	libusb_hotplug_callback *new_callback;
 	static int handle_id = 1;
@@ -298,15 +305,14 @@ int API_EXPORTED libusb_hotplug_register_callback(libusb_context *ctx,
 	}
 
 
-	if (handle) {
-		*handle = new_callback->handle;
-	}
+	if (callback_handle)
+		*callback_handle = new_callback->handle;
 
 	return LIBUSB_SUCCESS;
 }
 
 void API_EXPORTED libusb_hotplug_deregister_callback (struct libusb_context *ctx,
-	libusb_hotplug_callback_handle handle)
+	libusb_hotplug_callback_handle callback_handle)
 {
 	struct libusb_hotplug_callback *hotplug_cb;
 
@@ -320,7 +326,7 @@ void API_EXPORTED libusb_hotplug_deregister_callback (struct libusb_context *ctx
 	usbi_mutex_lock(&ctx->hotplug_cbs_lock);
 	list_for_each_entry(hotplug_cb, &ctx->hotplug_cbs, list,
 			    struct libusb_hotplug_callback) {
-		if (handle == hotplug_cb->handle) {
+		if (callback_handle == hotplug_cb->handle) {
 			/* Mark this callback for deregistration */
 			hotplug_cb->needs_free = 1;
 		}

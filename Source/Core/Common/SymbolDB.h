@@ -8,6 +8,7 @@
 #pragma once
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 #include <vector>
@@ -57,7 +58,7 @@ class SymbolDB
 {
 public:
   typedef std::map<u32, Symbol> XFuncMap;
-  typedef std::map<u32, Symbol*> XFuncPtrMap;
+  typedef std::map<u32, std::set<Symbol*>> XFuncPtrMap;
 
 protected:
   XFuncMap functions;
@@ -71,14 +72,9 @@ public:
   void AddCompleteSymbol(const Symbol& symbol);
 
   Symbol* GetSymbolFromName(const std::string& name);
-  Symbol* GetSymbolFromHash(u32 hash)
-  {
-    XFuncPtrMap::iterator iter = checksumToFunction.find(hash);
-    if (iter != checksumToFunction.end())
-      return iter->second;
-    else
-      return nullptr;
-  }
+  std::vector<Symbol*> GetSymbolsFromName(const std::string& name);
+  Symbol* GetSymbolFromHash(u32 hash);
+  std::vector<Symbol*> GetSymbolsFromHash(u32 hash);
 
   const XFuncMap& Symbols() const { return functions; }
   XFuncMap& AccessSymbols() { return functions; }

@@ -2,10 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
+
+#include <map>
+
 #include <Carbon/Carbon.h>
 #include <Cocoa/Cocoa.h>
-
-#include "InputCommon/ControllerInterface/Quartz/QuartzKeyboardAndMouse.h"
 
 namespace ciface
 {

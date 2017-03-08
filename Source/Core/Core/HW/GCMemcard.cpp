@@ -2,18 +2,21 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/GCMemcard.h"
+
 #include <algorithm>
 #include <cinttypes>
 #include <cstring>
 #include <vector>
 
 #include "Common/ColorUtil.h"
+#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
-#include "Core/HW/GCMemcard.h"
+#include "Common/Swap.h"
 
 static void ByteSwap(u8* valueA, u8* valueB)
 {
@@ -22,7 +25,7 @@ static void ByteSwap(u8* valueA, u8* valueB)
   *valueB = tmp;
 }
 
-GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool ascii)
+GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool shift_jis)
     : m_valid(false), m_fileName(filename)
 {
   // Currently there is a string freeze. instead of adding a new message about needing r/w
@@ -32,11 +35,12 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool ascii
   {
     if (!forceCreation)
     {
-      if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memcard?", filename.c_str()))
+      if (!AskYesNoT("\"%s\" does not exist.\n Create a new 16MB Memory Card?", filename.c_str()))
         return;
-      ascii = AskYesNoT("Format as ASCII (NTSC\\PAL)?\nChoose no for Shift JIS (NTSC-J)");
+      shift_jis =
+          AskYesNoT("Format as Shift JIS (Japanese)?\nChoose no for Windows-1252 (Western)");
     }
-    Format(ascii);
+    Format(shift_jis);
     return;
   }
   else
@@ -189,7 +193,7 @@ GCMemcard::GCMemcard(const std::string& filename, bool forceCreation, bool ascii
     }
     else
     {
-      PanicAlertT("Failed to read block %u of the save data\nMemcard may be truncated\nFile "
+      PanicAlertT("Failed to read block %u of the save data\nMemory card may be truncated\nFile "
                   "position: 0x%" PRIx64,
                   i, mcdFile.Tell());
       m_valid = false;
@@ -226,9 +230,9 @@ void GCMemcard::InitDirBatPointers()
   }
 }
 
-bool GCMemcard::IsAsciiEncoding() const
+bool GCMemcard::IsShiftJIS() const
 {
-  return hdr.Encoding == 0;
+  return hdr.Encoding == 1;
 }
 
 bool GCMemcard::Save()
@@ -249,7 +253,7 @@ bool GCMemcard::Save()
   return mcdFile.Close();
 }
 
-void calc_checksumsBE(u16* buf, u32 length, u16* csum, u16* inv_csum)
+void calc_checksumsBE(const u16* buf, u32 length, u16* csum, u16* inv_csum)
 {
   *csum = *inv_csum = 0;
 
@@ -638,7 +642,7 @@ u32 GCMemcard::GetSaveData(u8 index, std::vector<GCMBlock>& Blocks) const
 }
 // End DEntry functions
 
-u32 GCMemcard::ImportFile(DEntry& direntry, std::vector<GCMBlock>& saveBlocks)
+u32 GCMemcard::ImportFile(const DEntry& direntry, std::vector<GCMBlock>& saveBlocks)
 {
   if (!m_valid)
     return NOMEMCARD;
@@ -826,15 +830,12 @@ u32 GCMemcard::ImportGci(const std::string& inputFile, const std::string& output
   if (!gci)
     return OPENFAIL;
 
-  u32 result = ImportGciInternal(gci.ReleaseHandle(), inputFile, outputFile);
-
-  return result;
+  return ImportGciInternal(std::move(gci), inputFile, outputFile);
 }
 
-u32 GCMemcard::ImportGciInternal(FILE* gcih, const std::string& inputFile,
+u32 GCMemcard::ImportGciInternal(File::IOFile&& gci, const std::string& inputFile,
                                  const std::string& outputFile)
 {
-  File::IOFile gci(gcih);
   unsigned int offset;
   std::string fileType;
   SplitPath(inputFile, nullptr, nullptr, &fileType);
@@ -1162,8 +1163,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
     }
   }
 
-  u16* sharedPal = (u16*)(animData);
-  int j = 0;
+  const u16* sharedPal = reinterpret_cast<u16*>(animData);
 
   for (int i = 0; i < 8; i++)
   {
@@ -1185,7 +1185,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
         buffer += 32 * 32;
         break;
       case CI8:  // CI8 with own palette
-        u16* paldata = (u16*)(data[i] + 32 * 32);
+        const u16* paldata = reinterpret_cast<u16*>(data[i] + 32 * 32);
         ColorUtil::decodeCI8image(buffer, data[i], paldata, 32, 32);
         buffer += 32 * 32;
         break;
@@ -1196,7 +1196,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
       // Speed is set but there's no actual icon
       // This is used to reduce animation speed in Pikmin and Luigi's Mansion for example
       // These "blank frames" show the next icon
-      for (j = i; j < 8; ++j)
+      for (int j = i; j < 8; ++j)
       {
         if (fmts[j] != 0)
         {
@@ -1210,7 +1210,7 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
             buffer += 32 * 32;
             break;
           case CI8:  // CI8 with own palette
-            u16* paldata = (u16*)(data[j] + 32 * 32);
+            const u16* paldata = reinterpret_cast<u16*>(data[j] + 32 * 32);
             ColorUtil::decodeCI8image(buffer, data[j], paldata, 32, 32);
             buffer += 32 * 32;
             break;
@@ -1223,14 +1223,14 @@ u32 GCMemcard::ReadAnimRGBA8(u8 index, u32* buffer, u8* delays) const
   return frames;
 }
 
-bool GCMemcard::Format(u8* card_data, bool ascii, u16 SizeMb)
+bool GCMemcard::Format(u8* card_data, bool shift_jis, u16 SizeMb)
 {
   if (!card_data)
     return false;
   memset(card_data, 0xFF, BLOCK_SIZE * 3);
   memset(card_data + BLOCK_SIZE * 3, 0, BLOCK_SIZE * 2);
 
-  *((Header*)card_data) = Header(SLOT_A, SizeMb, ascii);
+  *((Header*)card_data) = Header(SLOT_A, SizeMb, shift_jis);
 
   *((Directory*)(card_data + BLOCK_SIZE)) = Directory();
   *((Directory*)(card_data + BLOCK_SIZE * 2)) = Directory();
@@ -1239,7 +1239,7 @@ bool GCMemcard::Format(u8* card_data, bool ascii, u16 SizeMb)
   return true;
 }
 
-bool GCMemcard::Format(bool ascii, u16 SizeMb)
+bool GCMemcard::Format(bool shift_jis, u16 SizeMb)
 {
   memset(&hdr, 0xFF, BLOCK_SIZE);
   memset(&dir, 0xFF, BLOCK_SIZE);
@@ -1247,7 +1247,7 @@ bool GCMemcard::Format(bool ascii, u16 SizeMb)
   memset(&bat, 0, BLOCK_SIZE);
   memset(&bat_backup, 0, BLOCK_SIZE);
 
-  hdr = Header(SLOT_A, SizeMb, ascii);
+  hdr = Header(SLOT_A, SizeMb, shift_jis);
   dir = dir_backup = Directory();
   bat = bat_backup = BlockAlloc(SizeMb);
 
@@ -1273,7 +1273,7 @@ bool GCMemcard::Format(bool ascii, u16 SizeMb)
 /* Returns: Error code                                       */
 /*************************************************************/
 
-s32 GCMemcard::FZEROGX_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
+s32 GCMemcard::FZEROGX_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                          std::vector<GCMBlock>& FileBuffer)
 {
   u32 i, j;
@@ -1282,7 +1282,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
   int block = 0;
 
   // check for F-Zero GX system file
-  if (strcmp((char*)direntry.Filename, "f_zero.dat") != 0)
+  if (strcmp(reinterpret_cast<const char*>(direntry.Filename), "f_zero.dat") != 0)
     return 0;
 
   // get encrypted destination memory card serial numbers
@@ -1326,7 +1326,7 @@ s32 GCMemcard::FZEROGX_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
 /* Returns: Error code                                     */
 /***********************************************************/
 
-s32 GCMemcard::PSO_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
+s32 GCMemcard::PSO_MakeSaveGameValid(const Header& cardheader, const DEntry& direntry,
                                      std::vector<GCMBlock>& FileBuffer)
 {
   u32 i, j;
@@ -1336,10 +1336,10 @@ s32 GCMemcard::PSO_MakeSaveGameValid(Header& cardheader, DEntry& direntry,
   u32 pso3offset = 0x00;
 
   // check for PSO1&2 system file
-  if (strcmp((char*)direntry.Filename, "PSO_SYSTEM") != 0)
+  if (strcmp(reinterpret_cast<const char*>(direntry.Filename), "PSO_SYSTEM") != 0)
   {
     // check for PSO3 system file
-    if (strcmp((char*)direntry.Filename, "PSO3_SYSTEM") == 0)
+    if (strcmp(reinterpret_cast<const char*>(direntry.Filename), "PSO3_SYSTEM") == 0)
     {
       // PSO3 data block size adjustment
       pso3offset = 0x10;

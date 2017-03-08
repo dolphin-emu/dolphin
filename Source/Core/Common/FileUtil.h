@@ -46,9 +46,16 @@ enum
   D_THEMES_IDX,
   D_PIPES_IDX,
   D_MEMORYWATCHER_IDX,
+  D_WFSROOT_IDX,
+  D_BACKUP_IDX,
   F_DOLPHINCONFIG_IDX,
+  F_GCPADCONFIG_IDX,
+  F_WIIPADCONFIG_IDX,
+  F_GCKEYBOARDCONFIG_IDX,
+  F_GFXCONFIG_IDX,
   F_DEBUGGERCONFIG_IDX,
   F_LOGGERCONFIG_IDX,
+  F_UICONFIG_IDX,
   F_MAINLOG_IDX,
   F_RAMDUMP_IDX,
   F_ARAMDUMP_IDX,
@@ -112,7 +119,7 @@ bool Copy(const std::string& srcFilename, const std::string& destFilename);
 // creates an empty file filename, returns true on success
 bool CreateEmptyFile(const std::string& filename);
 
-// Recursive or non-recursive list of files under directory.
+// Recursive or non-recursive list of files and directories under directory.
 FSTEntry ScanDirectoryTree(const std::string& directory, bool recursive);
 
 // deletes the given directory and anything under it. Returns true on success.
@@ -168,10 +175,10 @@ public:
 
   ~IOFile();
 
-  IOFile(IOFile&& other);
-  IOFile& operator=(IOFile&& other);
+  IOFile(IOFile&& other) noexcept;
+  IOFile& operator=(IOFile&& other) noexcept;
 
-  void Swap(IOFile& other);
+  void Swap(IOFile& other) noexcept;
 
   bool Open(const std::string& filename, const char openmode[]);
   bool Close();
@@ -211,9 +218,7 @@ public:
   bool IsOpen() const { return nullptr != m_file; }
   // m_good is set to false when a read, write or other function fails
   bool IsGood() const { return m_good; }
-  operator void*() { return m_good ? m_file : nullptr; }
-  std::FILE* ReleaseHandle();
-
+  explicit operator bool() const { return IsGood() && IsOpen(); }
   std::FILE* GetHandle() { return m_file; }
   void SetHandle(std::FILE* file);
 
@@ -230,12 +235,9 @@ public:
     std::clearerr(m_file);
   }
 
+private:
   std::FILE* m_file;
   bool m_good;
-
-private:
-  IOFile(IOFile&);
-  IOFile& operator=(IOFile& other);
 };
 
 }  // namespace

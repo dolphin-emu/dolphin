@@ -29,7 +29,7 @@ public:
   static void SetTexDims(int texmapid, u32 width, u32 height);
   static void SetZTextureBias();
   static void SetViewportChanged();
-  static void SetEfbScaleChanged();
+  static void SetEfbScaleChanged(float scalex, float scaley);
   static void SetZSlope(float dfdx, float dfdy, float f0);
   static void SetIndMatrixChanged(int matrixidx);
   static void SetZTextureTypeChanged();

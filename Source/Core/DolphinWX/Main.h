@@ -8,6 +8,7 @@
 #include <wx/app.h>
 
 class CFrame;
+class wxCmdLineParser;
 class wxLocale;
 
 extern CFrame* main_frame;
@@ -21,9 +22,9 @@ public:
 
 private:
   bool OnInit() override;
-  int OnExit() override;
   void OnInitCmdLine(wxCmdLineParser& parser) override;
   bool OnCmdLineParsed(wxCmdLineParser& parser) override;
+  int OnExit() override;
   void OnFatalException() override;
   bool Initialize(int& c, wxChar** v) override;
 
@@ -37,6 +38,8 @@ private:
   void OnActivate(wxActivateEvent& ev);
   void OnIdle(wxIdleEvent&);
 
+  void ParseCommandLine();
+
   bool m_batch_mode = false;
   bool m_confirm_stop = false;
   bool m_is_active = true;
@@ -46,7 +49,7 @@ private:
   bool m_use_logger = false;
   bool m_select_video_backend = false;
   bool m_select_audio_emulation = false;
-  wxString m_confirm_setting;
+  bool m_confirm_setting;
   wxString m_video_backend_name;
   wxString m_audio_emulation_name;
   wxString m_user_path;

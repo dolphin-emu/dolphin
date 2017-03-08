@@ -19,6 +19,10 @@
 #include "Core/DSP/DSPDisassembler.h"
 #include "Core/HW/DSPLLE/DSPLLETools.h"
 
+namespace DSP
+{
+namespace LLE
+{
 bool DumpDSPCode(const u8* code_be, int size_in_bytes, u32 crc)
 {
   const std::string binFile =
@@ -76,3 +80,5 @@ bool DumpCWCode(u32 _Address, u32 _Length)
 
   return false;
 }
+}  // namespace LLE
+}  // namespace DSP

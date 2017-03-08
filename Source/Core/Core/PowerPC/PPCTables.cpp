@@ -2,36 +2,41 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/PPCTables.h"
+
 #include <algorithm>
+#include <array>
 #include <cinttypes>
+#include <cstddef>
+#include <cstdio>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 
 #include "Core/PowerPC/Interpreter/Interpreter.h"
-#include "Core/PowerPC/Interpreter/Interpreter_Tables.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PPCTables.h"
 #include "Core/PowerPC/PowerPC.h"
 
-GekkoOPInfo* m_infoTable[64];
-GekkoOPInfo* m_infoTable4[1024];
-GekkoOPInfo* m_infoTable19[1024];
-GekkoOPInfo* m_infoTable31[1024];
-GekkoOPInfo* m_infoTable59[32];
-GekkoOPInfo* m_infoTable63[1024];
+std::array<GekkoOPInfo*, 64> m_infoTable;
+std::array<GekkoOPInfo*, 1024> m_infoTable4;
+std::array<GekkoOPInfo*, 1024> m_infoTable19;
+std::array<GekkoOPInfo*, 1024> m_infoTable31;
+std::array<GekkoOPInfo*, 32> m_infoTable59;
+std::array<GekkoOPInfo*, 1024> m_infoTable63;
 
-GekkoOPInfo* m_allInstructions[512];
-int m_numInstructions;
+std::array<GekkoOPInfo*, 512> m_allInstructions;
+size_t m_numInstructions;
 
-const u64 m_crTable[16] = {
+const std::array<u64, 16> m_crTable = {{
     PPCCRToInternal(0x0), PPCCRToInternal(0x1), PPCCRToInternal(0x2), PPCCRToInternal(0x3),
     PPCCRToInternal(0x4), PPCCRToInternal(0x5), PPCCRToInternal(0x6), PPCCRToInternal(0x7),
     PPCCRToInternal(0x8), PPCCRToInternal(0x9), PPCCRToInternal(0xA), PPCCRToInternal(0xB),
     PPCCRToInternal(0xC), PPCCRToInternal(0xD), PPCCRToInternal(0xE), PPCCRToInternal(0xF),
-};
+}};
 
 GekkoOPInfo* GetOpInfo(UGeckoInstruction _inst)
 {
@@ -74,15 +79,15 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
     switch (_inst.OPCD)
     {
     case 4:
-      return Interpreter::m_opTable4[_inst.SUBOP10];
+      return Interpreter::m_op_table4[_inst.SUBOP10];
     case 19:
-      return Interpreter::m_opTable19[_inst.SUBOP10];
+      return Interpreter::m_op_table19[_inst.SUBOP10];
     case 31:
-      return Interpreter::m_opTable31[_inst.SUBOP10];
+      return Interpreter::m_op_table31[_inst.SUBOP10];
     case 59:
-      return Interpreter::m_opTable59[_inst.SUBOP5];
+      return Interpreter::m_op_table59[_inst.SUBOP5];
     case 63:
-      return Interpreter::m_opTable63[_inst.SUBOP10];
+      return Interpreter::m_op_table63[_inst.SUBOP10];
     default:
       _assert_msg_(POWERPC, 0, "GetInterpreterOp - invalid subtable op %08x @ %08x", _inst.hex, PC);
       return nullptr;
@@ -95,7 +100,7 @@ Interpreter::Instruction GetInterpreterOp(UGeckoInstruction _inst)
       _assert_msg_(POWERPC, 0, "GetInterpreterOp - invalid op %08x @ %08x", _inst.hex, PC);
       return nullptr;
     }
-    return Interpreter::m_opTable[_inst.OPCD];
+    return Interpreter::m_op_table[_inst.OPCD];
   }
 }
 namespace PPCTables
@@ -105,15 +110,6 @@ bool UsesFPU(UGeckoInstruction inst)
   GekkoOPInfo* const info = GetOpInfo(inst);
 
   return (info->flags & FL_USE_FPU) != 0;
-}
-
-void InitTables(int cpu_core)
-{
-  // Interpreter ALWAYS needs to be initialized
-  InterpreterTables::InitTables();
-
-  if (cpu_core != PowerPC::CORE_INTERPRETER)
-    JitInterface::InitTables(cpu_core);
 }
 
 #define OPLOG
@@ -152,7 +148,7 @@ void PrintInstructionRunCounts()
   typedef std::pair<const char*, u64> OpInfo;
   std::vector<OpInfo> temp;
   temp.reserve(m_numInstructions);
-  for (int i = 0; i < m_numInstructions; ++i)
+  for (size_t i = 0; i < m_numInstructions; ++i)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
     temp.emplace_back(pInst->opname, pInst->runCount);
@@ -175,7 +171,7 @@ void LogCompiledInstructions()
 
   File::IOFile f(StringFromFormat("%sinst_log%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time),
                  "w");
-  for (int i = 0; i < m_numInstructions; i++)
+  for (size_t i = 0; i < m_numInstructions; i++)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
     if (pInst->compileCount > 0)
@@ -186,7 +182,7 @@ void LogCompiledInstructions()
   }
 
   f.Open(StringFromFormat("%sinst_not%i.txt", File::GetUserPath(D_LOGS_IDX).c_str(), time), "w");
-  for (int i = 0; i < m_numInstructions; i++)
+  for (size_t i = 0; i < m_numInstructions; i++)
   {
     GekkoOPInfo* pInst = m_allInstructions[i];
     if (pInst->compileCount == 0)

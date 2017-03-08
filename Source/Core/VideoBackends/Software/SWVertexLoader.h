@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <memory>
 #include <vector>
 
 #include "Common/CommonTypes.h"
@@ -19,13 +20,14 @@ public:
   SWVertexLoader();
   ~SWVertexLoader();
 
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
+  std::unique_ptr<NativeVertexFormat>
+  CreateNativeVertexFormat(const PortableVertexDeclaration& vdec) override;
 
 protected:
   void ResetBuffer(u32 stride) override;
   u16* GetIndexBuffer() { return &LocalIBuffer[0]; }
 private:
-  void vFlush(bool useDstAlpha) override;
+  void vFlush() override;
   std::vector<u8> LocalVBuffer;
   std::vector<u16> LocalIBuffer;
 

@@ -81,7 +81,7 @@ public:
 
     if (!native)
     {
-      native.reset(g_vertex_manager->CreateNativeVertexFormat(native_vtx_decl));
+      native = g_vertex_manager->CreateNativeVertexFormat(native_vtx_decl);
     }
 
     desc.InputLayout = reinterpret_cast<D3DVertexFormat*>(native.get())->GetActiveInputLayout12();

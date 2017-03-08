@@ -35,6 +35,7 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
+    <ClInclude Include="Align.h" />
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="Assert.h" />
     <ClInclude Include="Atomic.h" />
@@ -42,8 +43,8 @@
     <ClInclude Include="Atomic_Win32.h" />
     <ClInclude Include="BitField.h" />
     <ClInclude Include="BitSet.h" />
+    <ClInclude Include="BitUtils.h" />
     <ClInclude Include="BlockingLoop.h" />
-    <ClInclude Include="BreakPoints.h" />
     <ClInclude Include="CDUtils.h" />
     <ClInclude Include="ChunkFile.h" />
     <ClInclude Include="CodeBlock.h" />
@@ -52,6 +53,10 @@
     <ClInclude Include="CommonFuncs.h" />
     <ClInclude Include="CommonPaths.h" />
     <ClInclude Include="CommonTypes.h" />
+    <ClInclude Include="Config\Config.h" />
+    <ClInclude Include="Config\Enums.h" />
+    <ClInclude Include="Config\Layer.h" />
+    <ClInclude Include="Config\Section.h" />
     <ClInclude Include="CPUDetect.h" />
     <ClInclude Include="DebugInterface.h" />
     <ClInclude Include="ENetUtil.h" />
@@ -112,6 +117,7 @@
     <ClInclude Include="Hash.h" />
     <ClInclude Include="IniFile.h" />
     <ClInclude Include="JitRegister.h" />
+    <ClInclude Include="LibusbContext.h" />
     <ClInclude Include="LinearDiskCache.h" />
     <ClInclude Include="MathUtil.h" />
     <ClInclude Include="MD5.h" />
@@ -128,6 +134,7 @@
     <ClInclude Include="Semaphore.h" />
     <ClInclude Include="SettingsHandler.h" />
     <ClInclude Include="StringUtil.h" />
+    <ClInclude Include="Swap.h" />
     <ClInclude Include="SymbolDB.h" />
     <ClInclude Include="SysConf.h" />
     <ClInclude Include="Thread.h" />
@@ -137,6 +144,7 @@
     <ClInclude Include="x64ABI.h" />
     <ClInclude Include="x64Emitter.h" />
     <ClInclude Include="x64Reg.h" />
+    <ClInclude Include="Crypto\AES.h" />
     <ClInclude Include="Crypto\bn.h" />
     <ClInclude Include="Crypto\ec.h" />
     <ClInclude Include="Logging\ConsoleListener.h" />
@@ -145,9 +153,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Analytics.cpp" />
-    <ClCompile Include="BreakPoints.cpp" />
     <ClCompile Include="CDUtils.cpp" />
     <ClCompile Include="ColorUtil.cpp" />
+    <ClCompile Include="Config\Config.cpp" />
+    <ClCompile Include="Config\Layer.cpp" />
+    <ClCompile Include="Config\Section.cpp" />
     <ClCompile Include="ENetUtil.cpp" />
     <ClCompile Include="FileSearch.cpp" />
     <ClCompile Include="FileUtil.cpp" />
@@ -159,6 +169,9 @@
     <ClCompile Include="Hash.cpp" />
     <ClCompile Include="IniFile.cpp" />
     <ClCompile Include="JitRegister.cpp" />
+    <ClCompile Include="LibusbContext.cpp">
+      <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
+    </ClCompile>
     <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MD5.cpp" />
@@ -184,6 +197,7 @@
     <ClCompile Include="x64CPUDetect.cpp" />
     <ClCompile Include="x64Emitter.cpp" />
     <ClCompile Include="x64FPURoundMode.cpp" />
+    <ClCompile Include="Crypto\AES.cpp" />
     <ClCompile Include="Crypto\bn.cpp" />
     <ClCompile Include="Crypto\ec.cpp" />
     <ClCompile Include="Logging\LogManager.cpp" />

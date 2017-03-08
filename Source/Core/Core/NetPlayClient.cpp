@@ -14,15 +14,16 @@
 #include "Common/ENetUtil.h"
 #include "Common/MD5.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 #include "Common/Timer.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/EXI_DeviceIPL.h"
-#include "Core/HW/SI.h"
-#include "Core/HW/SI_DeviceGCController.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
+#include "Core/HW/SI/SI.h"
+#include "Core/HW/SI/SI_DeviceGCController.h"
 #include "Core/HW/Sram.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_emu.h"
+#include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/Movie.h"
 #include "InputCommon/GCAdapter.h"
 #include "VideoCommon/OnScreenDisplay.h"
@@ -411,6 +412,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
       packet >> g_NetPlaySettings.m_DSPEnableJIT;
       packet >> g_NetPlaySettings.m_DSPHLE;
       packet >> g_NetPlaySettings.m_WriteToMemcard;
+      packet >> g_NetPlaySettings.m_CopyWiiSave;
       packet >> g_NetPlaySettings.m_OCEnable;
       packet >> g_NetPlaySettings.m_OCFactor;
 
@@ -819,16 +821,11 @@ bool NetPlayClient::StartGame(const std::string& path)
     Movie::BeginRecordingInput(controllers_mask);
   }
 
+  for (unsigned int i = 0; i < 4; ++i)
+    WiimoteReal::ChangeWiimoteSource(i, m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
+
   // boot game
-
   m_dialog->BootGame(path);
-
-  if (SConfig::GetInstance().bWii)
-  {
-    for (unsigned int i = 0; i < 4; ++i)
-      WiimoteReal::ChangeWiimoteSource(i,
-                                       m_wiimote_map[i] > 0 ? WIIMOTE_SRC_EMU : WIIMOTE_SRC_NONE);
-  }
 
   UpdateDevices();
 

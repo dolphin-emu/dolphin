@@ -11,6 +11,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -157,7 +158,7 @@ s32 MemoryCard::Read(u32 srcaddress, s32 length, u8* destaddress)
   return length;
 }
 
-s32 MemoryCard::Write(u32 destaddress, s32 length, u8* srcaddress)
+s32 MemoryCard::Write(u32 destaddress, s32 length, const u8* srcaddress)
 {
   if (!IsAddressInBounds(destaddress))
   {

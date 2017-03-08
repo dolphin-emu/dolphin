@@ -2,18 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Frame.h"
+
 #include <atomic>
 #include <cstddef>
 #include <fstream>
 #include <string>
 #include <utility>
 #include <vector>
-#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
-#include <signal.h>
-#endif
-#ifdef _WIN32
-#include <windows.h>
-#endif
 #include <wx/aui/auibook.h>
 #include <wx/aui/framemanager.h>
 #include <wx/filename.h>
@@ -29,12 +25,20 @@
 #include <wx/thread.h>
 #include <wx/toolbar.h>
 
+#if defined(__unix__) || defined(__unix) || defined(__APPLE__)
+#include <signal.h>
+#endif
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "AudioCommon/AudioCommon.h"
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/Flag.h"
 #include "Common/Logging/ConsoleListener.h"
+#include "Common/StringUtil.h"
 #include "Common/Thread.h"
 
 #include "Core/ConfigManager.h"
@@ -44,13 +48,15 @@
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
 #include "Core/HotkeyManager.h"
-#include "Core/IPC_HLE/WII_IPC_HLE.h"
-#include "Core/IPC_HLE/WII_IPC_HLE_Device_usb_bt_base.h"
+#include "Core/IOS/IPC.h"
+#include "Core/IOS/USB/Bluetooth/BTBase.h"
 #include "Core/Movie.h"
 #include "Core/State.h"
 
+#include "DolphinWX/Config/ConfigMain.h"
+#include "DolphinWX/Debugger/BreakpointDlg.h"
 #include "DolphinWX/Debugger/CodeWindow.h"
-#include "DolphinWX/Frame.h"
+#include "DolphinWX/Debugger/MemoryCheckDlg.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/LogWindow.h"
@@ -66,6 +72,10 @@
 #include "VideoCommon/VideoConfig.h"
 
 #if defined(HAVE_X11) && HAVE_X11
+
+#include <gdk/gdkx.h>
+#include <gtk/gtk.h>
+
 // X11Utils nastiness that's only used here
 namespace X11Utils
 {
@@ -155,7 +165,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
     {
     case SC_SCREENSAVE:
     case SC_MONITORPOWER:
-      if (Core::GetState() == Core::CORE_RUN && SConfig::GetInstance().bDisableScreenSaver)
+      if (Core::GetState() == Core::State::Running && SConfig::GetInstance().bDisableScreenSaver)
         break;
     default:
       return wxFrame::MSWWindowProc(nMsg, wParam, lParam);
@@ -171,7 +181,7 @@ WXLRESULT CRenderFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lPa
 
     case WM_USER_SETCURSOR:
       if (SConfig::GetInstance().bHideCursor && main_frame->RendererHasFocus() &&
-          Core::GetState() == Core::CORE_RUN)
+          Core::GetState() == Core::State::Running)
         SetCursor(wxCURSOR_BLANK);
       else
         SetCursor(wxNullCursor);
@@ -200,11 +210,6 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
   {
     // OpenGL requires the pop-up style to activate exclusive mode.
     SetWindowStyle((GetWindowStyle() & ~wxDEFAULT_FRAME_STYLE) | wxPOPUP_WINDOW);
-
-    // Some backends don't support exclusive fullscreen, so we
-    // can't tell exactly when exclusive mode is activated.
-    if (!g_Config.backend_info.bSupportsExclusiveFullscreen)
-      OSD::AddMessage("Entered exclusive fullscreen.");
   }
 #endif
 
@@ -224,6 +229,9 @@ bool CRenderFrame::ShowFullScreen(bool show, long style)
 wxDEFINE_EVENT(wxEVT_HOST_COMMAND, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_LOCAL_INI_CHANGED, wxCommandEvent);
 wxDEFINE_EVENT(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_BOOT_SOFTWARE, wxCommandEvent);
+wxDEFINE_EVENT(DOLPHIN_EVT_STOP_SOFTWARE, wxCommandEvent);
 
 // Event tables
 BEGIN_EVENT_TABLE(CFrame, CRenderFrame)
@@ -310,6 +318,8 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
 {
   BindEvents();
 
+  m_main_config_dialog = new CConfigMain(this);
+
   for (int i = 0; i <= IDM_CODE_WINDOW - IDM_LOG_WINDOW; i++)
     bFloatWindow[i] = false;
 
@@ -319,12 +329,12 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   // Debugger class
   if (UseDebugger)
   {
-    g_pCodeWindow = new CCodeWindow(SConfig::GetInstance(), this, IDM_CODE_WINDOW);
+    g_pCodeWindow = new CCodeWindow(this, IDM_CODE_WINDOW);
     LoadIniPerspectives();
     g_pCodeWindow->Load();
   }
 
-  wxFrame::CreateToolBar(wxTB_DEFAULT_STYLE | wxTB_TEXT | wxTB_FLAT);
+  wxFrame::CreateToolBar(wxTB_DEFAULT_STYLE | wxTB_TEXT | wxTB_FLAT)->Realize();
 
   // Give it a status bar
   SetStatusBar(CreateStatusBar(2, wxST_SIZEGRIP, ID_STATUSBAR));
@@ -429,16 +439,11 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
                                                X11Utils::XWindowFromHandle(GetHandle()));
 #endif
 
-  // -------------------------
   // Connect event handlers
-
   m_Mgr->Bind(wxEVT_AUI_RENDER, &CFrame::OnManagerResize, this);
-  // ----------
 
   // Update controls
   UpdateGUI();
-  if (g_pCodeWindow)
-    g_pCodeWindow->UpdateButtonStates();
 
   // check if game is running
   InitControllers();
@@ -473,8 +478,6 @@ CFrame::~CFrame()
   HotkeyManagerEmu::Shutdown();
   g_controller_interface.Shutdown();
 
-  drives.clear();
-
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   delete m_XRRConfig;
 #endif
@@ -493,13 +496,17 @@ void CFrame::BindEvents()
   BindMenuBarEvents();
 
   Bind(DOLPHIN_EVT_RELOAD_THEME_BITMAPS, &CFrame::OnReloadThemeBitmaps, this);
+  Bind(DOLPHIN_EVT_RELOAD_GAMELIST, &CFrame::OnReloadGameList, this);
+  Bind(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, &CFrame::OnUpdateLoadWiiMenuItem, this);
+  Bind(DOLPHIN_EVT_BOOT_SOFTWARE, &CFrame::OnPlay, this);
+  Bind(DOLPHIN_EVT_STOP_SOFTWARE, &CFrame::OnStop, this);
 }
 
 bool CFrame::RendererIsFullscreen()
 {
   bool fullscreen = false;
 
-  if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
+  if (Core::GetState() == Core::State::Running || Core::GetState() == Core::State::Paused)
   {
     fullscreen = m_RenderFrame->IsFullScreen();
   }
@@ -517,22 +524,24 @@ void CFrame::OnQuit(wxCommandEvent& WXUNUSED(event))
 void CFrame::OnActive(wxActivateEvent& event)
 {
   m_bRendererHasFocus = (event.GetActive() && event.GetEventObject() == m_RenderFrame);
-  if (Core::GetState() == Core::CORE_RUN || Core::GetState() == Core::CORE_PAUSE)
+  if (Core::GetState() == Core::State::Running || Core::GetState() == Core::State::Paused)
   {
     if (m_bRendererHasFocus)
     {
       if (SConfig::GetInstance().bRenderToMain)
         m_RenderParent->SetFocus();
+      else if (RendererIsFullscreen() && g_ActiveConfig.ExclusiveFullscreenEnabled())
+        DoExclusiveFullscreen(true);  // Regain exclusive mode
 
-      if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::CORE_PAUSE)
+      if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Paused)
         DoPause();
 
-      if (SConfig::GetInstance().bHideCursor && Core::GetState() == Core::CORE_RUN)
+      if (SConfig::GetInstance().bHideCursor && Core::GetState() == Core::State::Running)
         m_RenderParent->SetCursor(wxCURSOR_BLANK);
     }
     else
     {
-      if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::CORE_RUN)
+      if (SConfig::GetInstance().m_PauseOnFocusLost && Core::GetState() == Core::State::Running)
         DoPause();
 
       if (SConfig::GetInstance().bHideCursor)
@@ -546,7 +555,7 @@ void CFrame::OnClose(wxCloseEvent& event)
 {
   // Before closing the window we need to shut down the emulation core.
   // We'll try to close this window again once that is done.
-  if (Core::GetState() != Core::CORE_UNINITIALIZED)
+  if (Core::GetState() != Core::State::Uninitialized)
   {
     DoStop();
     if (event.CanVeto())
@@ -614,7 +623,7 @@ void CFrame::OnResize(wxSizeEvent& event)
 
   if (!IsMaximized() && !IsIconized() &&
       !(SConfig::GetInstance().bRenderToMain && RendererIsFullscreen()) &&
-      !(Core::GetState() != Core::CORE_UNINITIALIZED && SConfig::GetInstance().bRenderToMain &&
+      !(Core::GetState() != Core::State::Uninitialized && SConfig::GetInstance().bRenderToMain &&
         SConfig::GetInstance().bRenderWindowAutoSize))
   {
     SConfig::GetInstance().iWidth = GetSize().GetWidth();
@@ -674,7 +683,7 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   switch (event.GetId())
   {
   case IDM_UPDATE_DISASM_DIALOG:  // For breakpoints causing pausing
-    if (!g_pCodeWindow || Core::GetState() != Core::CORE_PAUSE)
+    if (!g_pCodeWindow || Core::GetState() != Core::State::Paused)
       return;
   // fallthrough
 
@@ -699,37 +708,21 @@ void CFrame::OnHostMessage(wxCommandEvent& event)
   }
   break;
 
-  case IDM_FULLSCREEN_REQUEST:
-  {
-    bool enable_fullscreen = event.GetInt() == 0 ? false : true;
-    ToggleDisplayMode(enable_fullscreen);
-    if (m_RenderFrame != nullptr)
-      m_RenderFrame->ShowFullScreen(enable_fullscreen);
-
-    // If the stop dialog initiated this fullscreen switch then we need
-    // to pause the emulator after we've completed the switch.
-    // TODO: Allow the renderer to switch fullscreen modes while paused.
-    if (m_confirmStop)
-      Core::SetState(Core::CORE_PAUSE);
-  }
-  break;
-
   case WM_USER_CREATE:
     if (SConfig::GetInstance().bHideCursor)
       m_RenderParent->SetCursor(wxCURSOR_BLANK);
     break;
 
-#ifdef __WXGTK__
   case IDM_PANIC:
   {
     wxString caption = event.GetString().BeforeFirst(':');
     wxString text = event.GetString().AfterFirst(':');
-    bPanicResult = (wxYES == wxMessageBox(text, caption, event.GetInt() ? wxYES_NO : wxOK,
-                                          wxWindow::FindFocus()));
+    bPanicResult =
+        (wxYES == wxMessageBox(text, caption, wxSTAY_ON_TOP | (event.GetInt() ? wxYES_NO : wxOK),
+                               wxWindow::FindFocus()));
     panic_event.Set();
   }
   break;
-#endif
 
   case WM_USER_STOP:
     DoStop();
@@ -1129,31 +1122,12 @@ void CFrame::OnMouse(wxMouseEvent& event)
 
 void CFrame::DoFullscreen(bool enable_fullscreen)
 {
-  if (g_Config.bExclusiveMode && Core::GetState() == Core::CORE_PAUSE)
-  {
-    // A responsive renderer is required for exclusive fullscreen, but the
-    // renderer can only respond in the running state. Therefore we ignore
-    // fullscreen switches if we are in exclusive fullscreen, but the
-    // renderer is not running.
-    // TODO: Allow the renderer to switch fullscreen modes while paused.
-    return;
-  }
-
   ToggleDisplayMode(enable_fullscreen);
-
-  if (enable_fullscreen)
-  {
-    m_RenderFrame->ShowFullScreen(true, wxFULLSCREEN_ALL);
-  }
-  else if (!g_Config.bExclusiveMode)
-  {
-    // Exiting exclusive fullscreen should be done from a Renderer callback.
-    // Therefore we don't exit fullscreen from here if we are in exclusive mode.
-    m_RenderFrame->ShowFullScreen(false, wxFULLSCREEN_ALL);
-  }
 
   if (SConfig::GetInstance().bRenderToMain)
   {
+    m_RenderFrame->ShowFullScreen(enable_fullscreen, wxFULLSCREEN_ALL);
+
     if (enable_fullscreen)
     {
       // Save the current mode before going to fullscreen
@@ -1195,12 +1169,32 @@ void CFrame::DoFullscreen(bool enable_fullscreen)
       }
     }
   }
+  else if (g_ActiveConfig.ExclusiveFullscreenEnabled())
+  {
+    if (!enable_fullscreen)
+      DoExclusiveFullscreen(false);
+
+    m_RenderFrame->ShowFullScreen(enable_fullscreen, wxFULLSCREEN_ALL);
+    m_RenderFrame->Raise();
+
+    if (enable_fullscreen)
+      DoExclusiveFullscreen(true);
+  }
   else
   {
+    m_RenderFrame->ShowFullScreen(enable_fullscreen, wxFULLSCREEN_ALL);
     m_RenderFrame->Raise();
   }
+}
 
-  g_Config.bFullscreen = enable_fullscreen;
+void CFrame::DoExclusiveFullscreen(bool enable_fullscreen)
+{
+  if (!g_renderer || g_renderer->IsFullscreen() == enable_fullscreen)
+    return;
+
+  bool was_unpaused = Core::PauseAndLock(true);
+  g_renderer->SetFullscreen(enable_fullscreen);
+  Core::PauseAndLock(false, was_unpaused);
 }
 
 const CGameListCtrl* CFrame::GetGameListCtrl() const
@@ -1213,10 +1207,10 @@ void CFrame::PollHotkeys(wxTimerEvent& event)
   if (!HotkeyManagerEmu::IsEnabled())
     return;
 
-  if (Core::GetState() == Core::CORE_UNINITIALIZED || Core::GetState() == Core::CORE_PAUSE)
+  if (Core::GetState() == Core::State::Uninitialized || Core::GetState() == Core::State::Paused)
     g_controller_interface.UpdateInput();
 
-  if (Core::GetState() != Core::CORE_STOPPING)
+  if (Core::GetState() != Core::State::Stopping)
   {
     HotkeyManagerEmu::GetStatus();
     ParseHotkeys();
@@ -1293,10 +1287,67 @@ void CFrame::ParseHotkeys()
 
   if (SConfig::GetInstance().m_bt_passthrough_enabled)
   {
-    auto device = WII_IPC_HLE_Interface::GetDeviceByName("/dev/usb/oh1/57e/305");
+    auto device = IOS::HLE::GetDeviceByName("/dev/usb/oh1/57e/305");
     if (device != nullptr)
-      std::static_pointer_cast<CWII_IPC_HLE_Device_usb_oh1_57e_305_base>(device)
-          ->UpdateSyncButtonState(IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
+      std::static_pointer_cast<IOS::HLE::Device::BluetoothBase>(device)->UpdateSyncButtonState(
+          IsHotkey(HK_TRIGGER_SYNC_BUTTON, true));
+  }
+
+  if (UseDebugger)
+  {
+    if (IsHotkey(HK_STEP))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_STEP);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_STEP_OVER))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_STEPOVER);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_STEP_OUT))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_STEPOUT);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_SKIP))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_SKIP);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_SHOW_PC))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_GOTOPC);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_SET_PC))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_SETPC);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_BP_TOGGLE))
+    {
+      wxCommandEvent evt(wxEVT_MENU, IDM_TOGGLE_BREAKPOINT);
+      GetEventHandler()->AddPendingEvent(evt);
+    }
+    if (IsHotkey(HK_BP_ADD))
+    {
+      BreakPointDlg bpDlg(this);
+      if (bpDlg.ShowModal() == wxID_OK)
+      {
+        wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_BREAKPOINTS);
+        g_pCodeWindow->GetEventHandler()->AddPendingEvent(evt);
+      }
+    }
+    if (IsHotkey(HK_MBP_ADD))
+    {
+      MemoryCheckDlg memDlg(this);
+      if (memDlg.ShowModal() == wxID_OK)
+      {
+        wxCommandEvent evt(wxEVT_HOST_COMMAND, IDM_UPDATE_BREAKPOINTS);
+        g_pCodeWindow->GetEventHandler()->AddPendingEvent(evt);
+      }
+    }
   }
 
   // Wiimote connect and disconnect hotkeys
@@ -1351,6 +1402,10 @@ void CFrame::ParseHotkeys()
   {
     OSDChoice = 4;
     g_Config.bDisableFog = !g_Config.bDisableFog;
+  }
+  if (IsHotkey(HK_TOGGLE_DUMPTEXTURES))
+  {
+    g_Config.bDumpTextures = !g_Config.bDumpTextures;
   }
   if (IsHotkey(HK_TOGGLE_TEXTURES))
     g_Config.bHiresTextures = !g_Config.bHiresTextures;

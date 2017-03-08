@@ -28,12 +28,12 @@ void SetIsThrottlerTempDisabled(bool disable);
 
 void Callback_VideoCopiedToXFB(bool video_update);
 
-enum EState
+enum class State
 {
-  CORE_UNINITIALIZED,
-  CORE_PAUSE,
-  CORE_RUN,
-  CORE_STOPPING
+  Uninitialized,
+  Paused,
+  Running,
+  Stopping
 };
 
 bool Init();
@@ -52,11 +52,11 @@ bool IsCPUThread();               // this tells us whether we are the CPU thread
 bool IsGPUThread();
 
 // [NOT THREADSAFE] For use by Host only
-void SetState(EState state);
-EState GetState();
+void SetState(State state);
+State GetState();
 
-void SaveScreenShot();
-void SaveScreenShot(const std::string& name);
+void SaveScreenShot(bool wait_for_completion = false);
+void SaveScreenShot(const std::string& name, bool wait_for_completion = false);
 
 void Callback_WiimoteInterruptChannel(int _number, u16 _channelID, const void* _pData, u32 _Size);
 

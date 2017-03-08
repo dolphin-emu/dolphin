@@ -2,22 +2,26 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/OGL/FramebufferManager.h"
+
 #include <memory>
+#include <sstream>
 #include <vector>
 
 #include "Common/Common.h"
-#include "Common/CommonFuncs.h"
+#include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
+#include "Common/Logging/Log.h"
+
 #include "Core/HW/Memmap.h"
 
-#include "VideoBackends/OGL/FramebufferManager.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/SamplerCache.h"
 #include "VideoBackends/OGL/TextureConverter.h"
 
-#include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/VertexShaderGen.h"
+#include "VideoCommon/VideoBackendBase.h"
 
 namespace OGL
 {
@@ -233,10 +237,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
     glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_efbDepth, 0, i);
   }
 
-  // EFB framebuffer is currently bound, make sure to clear its alpha value to 1.f
+  // EFB framebuffer is currently bound, make sure to clear it before use.
   glViewport(0, 0, m_targetWidth, m_targetHeight);
   glScissor(0, 0, m_targetWidth, m_targetHeight);
-  glClearColor(0.f, 0.f, 0.f, 1.f);
+  glClearColor(0.f, 0.f, 0.f, 0.f);
   glClearDepthf(1.0f);
   glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -664,17 +668,16 @@ std::unique_ptr<XFBSourceBase> FramebufferManager::CreateXFBSource(unsigned int 
   return std::make_unique<XFBSource>(texture, layers);
 }
 
-void FramebufferManager::GetTargetSize(unsigned int* width, unsigned int* height)
+std::pair<u32, u32> FramebufferManager::GetTargetSize() const
 {
-  *width = m_targetWidth;
-  *height = m_targetHeight;
+  return std::make_pair(m_targetWidth, m_targetHeight);
 }
 
 void FramebufferManager::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points)
 {
   g_renderer->ResetAPIState();
 
-  if (type == POKE_Z)
+  if (type == EFBAccessType::PokeZ)
   {
     glDepthMask(GL_TRUE);
     glColorMask(GL_FALSE, GL_FALSE, GL_FALSE, GL_FALSE);

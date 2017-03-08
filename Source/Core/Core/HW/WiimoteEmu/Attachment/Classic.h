@@ -6,16 +6,27 @@
 
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 
+namespace ControllerEmu
+{
+class AnalogStick;
+class Buttons;
+class ControlGroup;
+class MixedTriggers;
+}
+
 namespace WiimoteEmu
 {
+enum class ClassicGroup;
 struct ExtensionReg;
 
 class Classic : public Attachment
 {
 public:
-  Classic(WiimoteEmu::ExtensionReg& _reg);
+  explicit Classic(ExtensionReg& reg);
   void GetState(u8* const data) override;
   bool IsButtonPressed() const override;
+
+  ControllerEmu::ControlGroup* GetGroup(ClassicGroup group);
 
   enum
   {
@@ -49,10 +60,10 @@ public:
   static const u8 RIGHT_TRIGGER_RANGE = 0x1F;
 
 private:
-  Buttons* m_buttons;
-  MixedTriggers* m_triggers;
-  Buttons* m_dpad;
-  AnalogStick* m_left_stick;
-  AnalogStick* m_right_stick;
+  ControllerEmu::Buttons* m_buttons;
+  ControllerEmu::MixedTriggers* m_triggers;
+  ControllerEmu::Buttons* m_dpad;
+  ControllerEmu::AnalogStick* m_left_stick;
+  ControllerEmu::AnalogStick* m_right_stick;
 };
 }

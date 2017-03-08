@@ -2,9 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-// see IniFile.h
+#include "Common/IniFile.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <cstddef>
 #include <cstring>
 #include <fstream>
@@ -15,7 +16,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/IniFile.h"
 #include "Common/StringUtil.h"
 
 void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::string* valueOut)
@@ -71,6 +71,41 @@ void IniFile::Section::Set(const std::string& key, const std::vector<std::string
   // remove last ,
   temp.resize(temp.length() - 1);
   Set(key, temp);
+}
+
+void IniFile::Section::Set(const std::string& key, u32 newValue)
+{
+  Set(key, StringFromFormat("0x%08x", newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, u64 new_value)
+{
+  Set(key, StringFromFormat("0x%016" PRIx64, new_value));
+}
+
+void IniFile::Section::Set(const std::string& key, float newValue)
+{
+  Set(key, StringFromFormat("%#.9g", newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, double newValue)
+{
+  Set(key, StringFromFormat("%#.17g", newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, int newValue)
+{
+  Set(key, StringFromInt(newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, s64 newValue)
+{
+  Set(key, StringFromFormat("%" PRId64, newValue));
+}
+
+void IniFile::Section::Set(const std::string& key, bool newValue)
+{
+  Set(key, StringFromBool(newValue));
 }
 
 bool IniFile::Section::Get(const std::string& key, std::string* value,
@@ -133,6 +168,18 @@ bool IniFile::Section::Get(const std::string& key, int* value, int defaultValue)
   return false;
 }
 
+bool IniFile::Section::Get(const std::string& key, s64* value, s64 default_value) const
+{
+  std::string temp;
+  bool retval = Get(key, &temp);
+
+  if (retval && TryParse(temp, value))
+    return true;
+
+  *value = default_value;
+  return false;
+}
+
 bool IniFile::Section::Get(const std::string& key, u32* value, u32 defaultValue) const
 {
   std::string temp;
@@ -142,6 +189,18 @@ bool IniFile::Section::Get(const std::string& key, u32* value, u32 defaultValue)
     return true;
 
   *value = defaultValue;
+  return false;
+}
+
+bool IniFile::Section::Get(const std::string& key, u64* value, u64 default_value) const
+{
+  std::string temp;
+  bool retval = Get(key, &temp);
+
+  if (retval && TryParse(temp, value))
+    return true;
+
+  *value = default_value;
   return false;
 }
 
@@ -434,14 +493,14 @@ bool IniFile::Save(const std::string& filename)
    {
     IniFile ini;
     ini.Load("my.ini");
-    ini.Set("Hej", "A", "amaskdfl");
-    ini.Set("Mossa", "A", "amaskdfl");
+    ini.Set("Hello", "A", "amaskdfl");
+    ini.Set("Moss", "A", "amaskdfl");
     ini.Set("Aissa", "A", "amaskdfl");
     //ini.Read("my.ini");
     std::string x;
-    ini.Get("Hej", "B", &x, "boo");
-    ini.DeleteKey("Mossa", "A");
-    ini.DeleteSection("Mossa");
+    ini.Get("Hello", "B", &x, "boo");
+    ini.DeleteKey("Moss", "A");
+    ini.DeleteSection("Moss");
     ini.SortSections();
     ini.Save("my.ini");
     //UpdateVars(ini);

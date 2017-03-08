@@ -2,13 +2,20 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/DSP/DSPEmitter.h"
-#include "Core/DSP/DSPIntUtil.h"
-#include "Core/DSP/DSPInterpreter.h"
+#include "Common/CommonTypes.h"
+
+#include "Core/DSP/DSPCore.h"
 #include "Core/DSP/DSPMemoryMap.h"
+#include "Core/DSP/Jit/DSPEmitter.h"
 
 using namespace Gen;
 
+namespace DSP
+{
+namespace JIT
+{
+namespace x86
+{
 // MRR $D, $S
 // 0001 11dd ddds ssss
 // Move value from register $S to register $D.
@@ -33,8 +40,8 @@ void DSPEmitter::mrr(const UDSPInstruction opc)
 // S16 mode.
 void DSPEmitter::lri(const UDSPInstruction opc)
 {
-  u8 reg = opc & DSP_REG_MASK;
-  u16 imm = dsp_imem_read(compilePC + 1);
+  u8 reg = opc & 0x1F;
+  u16 imm = dsp_imem_read(m_compile_pc + 1);
   dsp_op_write_reg_imm(reg, imm);
   dsp_conditional_extend_accum_imm(reg, imm);
 }
@@ -111,23 +118,21 @@ void DSPEmitter::addarn(const UDSPInstruction opc)
 void DSPEmitter::setCompileSR(u16 bit)
 {
   //	g_dsp.r[DSP_REG_SR] |= bit
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   OR(16, sr_reg, Imm16(bit));
-  gpr.PutReg(DSP_REG_SR);
+  m_gpr.PutReg(DSP_REG_SR);
 
-  compileSR |= bit;
+  m_compile_status_register |= bit;
 }
 
 void DSPEmitter::clrCompileSR(u16 bit)
 {
   //	g_dsp.r[DSP_REG_SR] &= bit
-  OpArg sr_reg;
-  gpr.GetReg(DSP_REG_SR, sr_reg);
+  const OpArg sr_reg = m_gpr.GetReg(DSP_REG_SR);
   AND(16, sr_reg, Imm16(~bit));
-  gpr.PutReg(DSP_REG_SR);
+  m_gpr.PutReg(DSP_REG_SR);
 
-  compileSR &= ~bit;
+  m_compile_status_register &= ~bit;
 }
 // SBCLR #I
 // 0001 0011 aaaa aiii
@@ -189,3 +194,7 @@ void DSPEmitter::srbith(const UDSPInstruction opc)
     break;
   }
 }
+
+}  // namespace x86
+}  // namespace JIT
+}  // namespace DSP

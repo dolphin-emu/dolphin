@@ -61,6 +61,7 @@ std::string StringFromBool(bool value);
 
 bool TryParse(const std::string& str, bool* output);
 bool TryParse(const std::string& str, u32* output);
+bool TryParse(const std::string& str, u64* output);
 
 template <typename N>
 static bool TryParse(const std::string& str, N* const output)
@@ -106,6 +107,7 @@ bool AsciiToHex(const std::string& _szValue, u32& result);
 std::string TabsToSpaces(int tab_size, const std::string& in);
 
 void SplitString(const std::string& str, char delim, std::vector<std::string>& output);
+std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter);
 
 // "C:/Windows/winhelp.exe" to "C:/Windows/", "winhelp", ".exe"
 bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _pFilename,
@@ -114,6 +116,9 @@ bool SplitPath(const std::string& full_path, std::string* _pPath, std::string* _
 void BuildCompleteFilename(std::string& _CompleteFilename, const std::string& _Path,
                            const std::string& _Filename);
 std::string ReplaceAll(std::string result, const std::string& src, const std::string& dest);
+
+bool StringBeginsWith(const std::string& str, const std::string& begin);
+bool StringEndsWith(const std::string& str, const std::string& end);
 
 std::string CP1252ToUTF8(const std::string& str);
 std::string SHIFTJISToUTF8(const std::string& str);

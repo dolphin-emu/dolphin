@@ -2,18 +2,24 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/DSPHLE/UCodes/Zelda.h"
+
 #include <array>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Core/ConfigManager.h"
+#include "Common/Swap.h"
+#include "Core/HW/DSP.h"
+#include "Core/HW/DSPHLE/DSPHLE.h"
 #include "Core/HW/DSPHLE/MailHandler.h"
 #include "Core/HW/DSPHLE/UCodes/GBA.h"
 #include "Core/HW/DSPHLE/UCodes/UCodes.h"
-#include "Core/HW/DSPHLE/UCodes/Zelda.h"
 
+namespace DSP
+{
+namespace HLE
+{
 // Uncomment this to have a strict version of the HLE implementation, which
 // PanicAlerts on recoverable unknown behaviors instead of silently ignoring
 // them.  Recommended for development.
@@ -119,7 +125,15 @@ ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
   m_renderer.SetFlags(m_flags);
 
   INFO_LOG(DSPHLE, "Zelda UCode loaded, crc=%08x, flags=%08x", crc, m_flags);
+}
 
+ZeldaUCode::~ZeldaUCode()
+{
+  m_mail_handler.Clear();
+}
+
+void ZeldaUCode::Initialize()
+{
   if (m_flags & LIGHT_PROTOCOL)
   {
     m_mail_handler.PushMail(0x88881111);
@@ -129,11 +143,6 @@ ZeldaUCode::ZeldaUCode(DSPHLE* dsphle, u32 crc) : UCodeInterface(dsphle, crc)
     m_mail_handler.PushMail(DSP_INIT, true);
     m_mail_handler.PushMail(0xF3551111);  // handshake
   }
-}
-
-ZeldaUCode::~ZeldaUCode()
-{
-  m_mail_handler.Clear();
 }
 
 void ZeldaUCode::Update()
@@ -364,6 +373,31 @@ void ZeldaUCode::HandleMailLight(u32 mail)
     WARN_LOG(DSPHLE, "Received mail %08x while we're halted.", mail);
     break;
   }
+}
+
+void ZeldaUCode::SetMailState(MailState new_state)
+{
+  // WARN_LOG(DSPHLE, "MailState %d -> %d", m_mail_current_state, new_state);
+  m_mail_current_state = new_state;
+}
+
+u32 ZeldaUCode::Read32()
+{
+  if (m_read_offset == m_write_offset)
+  {
+    ERROR_LOG(DSPHLE, "Reading too many command params");
+    return 0;
+  }
+
+  u32 res = m_cmd_buffer[m_read_offset];
+  m_read_offset = (m_read_offset + 1) % (sizeof(m_cmd_buffer) / sizeof(u32));
+  return res;
+}
+
+void ZeldaUCode::Write32(u32 val)
+{
+  m_cmd_buffer[m_write_offset] = val;
+  m_write_offset = (m_write_offset + 1) % (sizeof(m_cmd_buffer) / sizeof(u32));
 }
 
 void ZeldaUCode::RunPendingCommands()
@@ -1804,3 +1838,5 @@ void ZeldaAudioRenderer::DoState(PointerWrap& p)
   p.Do(m_buf_front_left_reverb_last8);
   p.Do(m_buf_front_right_reverb_last8);
 }
+}  // namespace HLE
+}  // namespace DSP

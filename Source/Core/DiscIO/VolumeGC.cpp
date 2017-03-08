@@ -61,13 +61,20 @@ std::string CVolumeGC::GetGameID() const
   return DecodeString(ID);
 }
 
+Region CVolumeGC::GetRegion() const
+{
+  u8 country_code;
+  if (!m_pReader->Read(3, 1, &country_code))
+    return Region::UNKNOWN_REGION;
+
+  return RegionSwitchGC(country_code);
+}
+
 Country CVolumeGC::GetCountry() const
 {
-  if (!m_pReader)
-    return Country::COUNTRY_UNKNOWN;
-
   u8 country_code;
-  m_pReader->Read(3, 1, &country_code);
+  if (!m_pReader->Read(3, 1, &country_code))
+    return Country::COUNTRY_UNKNOWN;
 
   return CountrySwitch(country_code);
 }
@@ -247,7 +254,7 @@ void CVolumeGC::ExtractBannerInformation(const GCBanner& banner_file, bool is_bn
 
   if (is_bnr1)  // NTSC
   {
-    bool is_japanese = GetCountry() == Country::COUNTRY_JAPAN;
+    bool is_japanese = GetRegion() == Region::NTSC_J;
     number_of_languages = 1;
     start_language = is_japanese ? Language::LANGUAGE_JAPANESE : Language::LANGUAGE_ENGLISH;
   }

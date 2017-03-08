@@ -2,71 +2,82 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <cstring>
+#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
+
+#include <array>
+#include <cassert>
 
 #include "Common/Common.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/Attachment/Classic.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
+
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/AnalogStick.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
 
 namespace WiimoteEmu
 {
-static const u8 classic_id[] = {0x00, 0x00, 0xa4, 0x20, 0x01, 0x01};
-/* Classic Controller calibration */
-static const u8 classic_calibration[] = {0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0xff, 0x00,
-                                         0x80, 0xff, 0x00, 0x80, 0x00, 0x00, 0x51, 0xa6};
+constexpr std::array<u8, 6> classic_id{{0x00, 0x00, 0xa4, 0x20, 0x01, 0x01}};
 
-static const u16 classic_button_bitmasks[] = {
-    Classic::BUTTON_A,     Classic::BUTTON_B,    Classic::BUTTON_X, Classic::BUTTON_Y,
+// Classic Controller calibration
+constexpr std::array<u8, 0x10> classic_calibration{{
+    0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0xff, 0x00, 0x80, 0x00, 0x00, 0x51, 0xa6,
+}};
 
-    Classic::BUTTON_ZL,    Classic::BUTTON_ZR,
+constexpr std::array<u16, 9> classic_button_bitmasks{{
+    Classic::BUTTON_A, Classic::BUTTON_B, Classic::BUTTON_X, Classic::BUTTON_Y,
+
+    Classic::BUTTON_ZL, Classic::BUTTON_ZR,
 
     Classic::BUTTON_MINUS, Classic::BUTTON_PLUS,
 
     Classic::BUTTON_HOME,
-};
+}};
 
-static const char* const classic_button_names[] = {
+constexpr std::array<const char*, 9> classic_button_names{{
     "A", "B", "X", "Y", "ZL", "ZR", "-", "+", "Home",
-};
+}};
 
-static const u16 classic_trigger_bitmasks[] = {
+constexpr std::array<u16, 2> classic_trigger_bitmasks{{
     Classic::TRIGGER_L, Classic::TRIGGER_R,
-};
+}};
 
-static const char* const classic_trigger_names[] = {"L", "R", "L-Analog", "R-Analog"};
+constexpr std::array<const char*, 4> classic_trigger_names{{
+    "L", "R", "L-Analog", "R-Analog",
+}};
 
-static const u16 classic_dpad_bitmasks[] = {Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT,
-                                            Classic::PAD_RIGHT};
+constexpr std::array<u16, 4> classic_dpad_bitmasks{{
+    Classic::PAD_UP, Classic::PAD_DOWN, Classic::PAD_LEFT, Classic::PAD_RIGHT,
+}};
 
-Classic::Classic(WiimoteEmu::ExtensionReg& _reg) : Attachment(_trans("Classic"), _reg)
+Classic::Classic(ExtensionReg& reg) : Attachment(_trans("Classic"), reg)
 {
   // buttons
-  groups.emplace_back(m_buttons = new Buttons("Buttons"));
+  groups.emplace_back(m_buttons = new ControllerEmu::Buttons("Buttons"));
   for (auto& classic_button_name : classic_button_names)
-    m_buttons->controls.emplace_back(new ControlGroup::Input(classic_button_name));
+    m_buttons->controls.emplace_back(new ControllerEmu::Input(classic_button_name));
 
   // sticks
-  groups.emplace_back(m_left_stick =
-                          new AnalogStick(_trans("Left Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
-  groups.emplace_back(m_right_stick =
-                          new AnalogStick(_trans("Right Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(m_left_stick = new ControllerEmu::AnalogStick(
+                          _trans("Left Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
+  groups.emplace_back(m_right_stick = new ControllerEmu::AnalogStick(
+                          _trans("Right Stick"), DEFAULT_ATTACHMENT_STICK_RADIUS));
 
   // triggers
-  groups.emplace_back(m_triggers = new MixedTriggers("Triggers"));
+  groups.emplace_back(m_triggers = new ControllerEmu::MixedTriggers("Triggers"));
   for (auto& classic_trigger_name : classic_trigger_names)
-    m_triggers->controls.emplace_back(new ControlGroup::Input(classic_trigger_name));
+    m_triggers->controls.emplace_back(new ControllerEmu::Input(classic_trigger_name));
 
   // dpad
-  groups.emplace_back(m_dpad = new Buttons("D-Pad"));
+  groups.emplace_back(m_dpad = new ControllerEmu::Buttons("D-Pad"));
   for (auto& named_direction : named_directions)
-    m_dpad->controls.emplace_back(new ControlGroup::Input(named_direction));
+    m_dpad->controls.emplace_back(new ControllerEmu::Input(named_direction));
 
-  // set up register
-  // calibration
-  memcpy(&calibration, classic_calibration, sizeof(classic_calibration));
-  // id
-  memcpy(&id, classic_id, sizeof(classic_id));
+  // Set up register
+  m_calibration = classic_calibration;
+  m_id = classic_id;
 }
 
 void Classic::GetState(u8* const data)
@@ -106,7 +117,7 @@ void Classic::GetState(u8* const data)
   {
     ControlState trigs[2] = {0, 0};
     u8 lt, rt;
-    m_triggers->GetState(&ccdata->bt.hex, classic_trigger_bitmasks, trigs);
+    m_triggers->GetState(&ccdata->bt.hex, classic_trigger_bitmasks.data(), trigs);
 
     lt = static_cast<u8>(trigs[0] * Classic::LEFT_TRIGGER_RANGE);
     rt = static_cast<u8>(trigs[1] * Classic::RIGHT_TRIGGER_RANGE);
@@ -117,9 +128,9 @@ void Classic::GetState(u8* const data)
   }
 
   // buttons
-  m_buttons->GetState(&ccdata->bt.hex, classic_button_bitmasks);
+  m_buttons->GetState(&ccdata->bt.hex, classic_button_bitmasks.data());
   // dpad
-  m_dpad->GetState(&ccdata->bt.hex, classic_dpad_bitmasks);
+  m_dpad->GetState(&ccdata->bt.hex, classic_dpad_bitmasks.data());
 
   // flip button bits
   ccdata->bt.hex ^= 0xFFFF;
@@ -128,10 +139,30 @@ void Classic::GetState(u8* const data)
 bool Classic::IsButtonPressed() const
 {
   u16 buttons = 0;
-  ControlState trigs[2] = {0, 0};
-  m_buttons->GetState(&buttons, classic_button_bitmasks);
-  m_dpad->GetState(&buttons, classic_dpad_bitmasks);
-  m_triggers->GetState(&buttons, classic_trigger_bitmasks, trigs);
+  std::array<ControlState, 2> trigs{};
+  m_buttons->GetState(&buttons, classic_button_bitmasks.data());
+  m_dpad->GetState(&buttons, classic_dpad_bitmasks.data());
+  m_triggers->GetState(&buttons, classic_trigger_bitmasks.data(), trigs.data());
   return buttons != 0;
+}
+
+ControllerEmu::ControlGroup* Classic::GetGroup(ClassicGroup group)
+{
+  switch (group)
+  {
+  case ClassicGroup::Buttons:
+    return m_buttons;
+  case ClassicGroup::Triggers:
+    return m_triggers;
+  case ClassicGroup::DPad:
+    return m_dpad;
+  case ClassicGroup::LeftStick:
+    return m_left_stick;
+  case ClassicGroup::RightStick:
+    return m_right_stick;
+  default:
+    assert(false);
+    return nullptr;
+  }
 }
 }

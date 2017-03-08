@@ -44,6 +44,9 @@
     <ClCompile Include="RenderBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
+    <ClCompile Include="RenderState.cpp">
+      <Filter>Base</Filter>
+    </ClCompile>
     <ClCompile Include="TextureCacheBase.cpp">
       <Filter>Base</Filter>
     </ClCompile>
@@ -182,6 +185,9 @@
     <ClInclude Include="RenderBase.h">
       <Filter>Base</Filter>
     </ClInclude>
+    <ClInclude Include="RenderState.h">
+      <Filter>Base</Filter>
+    </ClInclude>
     <ClInclude Include="TextureCacheBase.h">
       <Filter>Base</Filter>
     </ClInclude>
@@ -195,6 +201,9 @@
       <Filter>Decoding</Filter>
     </ClInclude>
     <ClInclude Include="TextureDecoder.h">
+      <Filter>Decoding</Filter>
+    </ClInclude>
+    <ClInclude Include="TextureDecoder_Util.h">
       <Filter>Decoding</Filter>
     </ClInclude>
     <ClInclude Include="BPFunctions.h">

@@ -4,6 +4,11 @@
 
 #pragma once
 
+#include <memory>
+#include <vector>
+
+#include "Common/CommonTypes.h"
+#include "Common/GL/GLUtil.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexManagerBase.h"
 
@@ -27,7 +32,10 @@ class VertexManager : public VertexManagerBase
 public:
   VertexManager();
   ~VertexManager();
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+
+  std::unique_ptr<NativeVertexFormat>
+  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+
   void CreateDeviceObjects() override;
   void DestroyDeviceObjects() override;
 
@@ -41,7 +49,7 @@ protected:
 
 private:
   void Draw(u32 stride);
-  void vFlush(bool useDstAlpha) override;
+  void vFlush() override;
   void PrepareDrawBuffers(u32 stride);
 
   // Alternative buffers in CPU memory for primatives we are going to discard.

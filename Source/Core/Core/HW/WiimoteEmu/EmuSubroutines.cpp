@@ -25,11 +25,13 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
 #include "Core/Core.h"
 #include "Core/HW/WiimoteEmu/Attachment/Attachment.h"
 #include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/HW/WiimoteReal/WiimoteReal.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
 
 namespace WiimoteEmu
 {

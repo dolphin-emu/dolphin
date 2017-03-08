@@ -14,16 +14,17 @@
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
-#include "Common/FileUtil.h"
-#include "Common/IniFile.h"
-#include "Core/NetPlayClient.h"
-#include "Core/NetPlayServer.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
 #include "DolphinWX/NetPlay/NetPlayLauncher.h"
 #include "DolphinWX/NetPlay/NetPlaySetupFrame.h"
 #include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/WxUtils.h"
+
+#include "Common/FileUtil.h"
+#include "Common/IniFile.h"
+#include "Core/NetPlayClient.h"
+#include "Core/NetPlayServer.h"
 
 namespace
 {
@@ -337,7 +338,9 @@ void NetPlaySetupFrame::DoHost()
   host_config.player_name = WxStrToStr(m_nickname_text->GetValue());
   host_config.game_list_ctrl = m_game_list;
   host_config.SetDialogInfo(netplay_section, m_parent);
+#ifdef USE_UPNP
   host_config.forward_port = m_upnp_chk->GetValue();
+#endif
 
   if (host_config.use_traversal)
   {

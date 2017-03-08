@@ -206,10 +206,10 @@ class Arm64GPRCache : public Arm64RegCache
 {
 public:
   ~Arm64GPRCache() {}
-  void Start(PPCAnalyst::BlockRegStats& stats);
+  void Start(PPCAnalyst::BlockRegStats& stats) override;
 
   // Flushes the register cache in different ways depending on the mode
-  void Flush(FlushMode mode, PPCAnalyst::CodeOp* op = nullptr);
+  void Flush(FlushMode mode, PPCAnalyst::CodeOp* op = nullptr) override;
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
@@ -228,7 +228,7 @@ public:
 
 protected:
   // Get the order of the host registers
-  void GetAllocationOrder();
+  void GetAllocationOrder() override;
 
   // Flushes a guest register by host provided
   void FlushByHost(ARM64Reg host_reg) override;
@@ -246,7 +246,7 @@ class Arm64FPRCache : public Arm64RegCache
 public:
   ~Arm64FPRCache() {}
   // Flushes the register cache in different ways depending on the mode
-  void Flush(FlushMode mode, PPCAnalyst::CodeOp* op = nullptr);
+  void Flush(FlushMode mode, PPCAnalyst::CodeOp* op = nullptr) override;
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
@@ -262,7 +262,7 @@ public:
 
 protected:
   // Get the order of the host registers
-  void GetAllocationOrder();
+  void GetAllocationOrder() override;
 
   // Flushes a guest register by host provided
   void FlushByHost(ARM64Reg host_reg) override;

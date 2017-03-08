@@ -6,7 +6,9 @@
 
 #include <d3d11.h>
 #include <memory>
+#include <utility>
 
+#include "Common/CommonTypes.h"
 #include "VideoBackends/D3D/D3DTexture.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 
@@ -58,7 +60,7 @@ struct XFBSource : public XFBSourceBase
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
-  FramebufferManager();
+  FramebufferManager(int target_width, int target_height);
   ~FramebufferManager();
 
   static D3DTexture2D*& GetEFBColorTexture();
@@ -84,7 +86,7 @@ private:
   std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
                                                  unsigned int target_height,
                                                  unsigned int layers) override;
-  void GetTargetSize(unsigned int* width, unsigned int* height) override;
+  std::pair<u32, u32> GetTargetSize() const override;
 
   void CopyToRealXFB(u32 xfbAddr, u32 fbStride, u32 fbHeight, const EFBRectangle& sourceRc,
                      float Gamma) override;

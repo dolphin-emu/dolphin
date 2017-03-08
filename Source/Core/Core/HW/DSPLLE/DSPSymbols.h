@@ -9,7 +9,9 @@
 #include "Common/CommonTypes.h"
 #include "Common/SymbolDB.h"
 
-namespace DSPSymbols
+namespace DSP
+{
+namespace Symbols
 {
 class DSPSymbolDB : public SymbolDB
 {
@@ -31,4 +33,5 @@ int Line2Addr(int line);  // -1 for not found
 
 const char* GetLineText(int line);
 
-}  // namespace DSPSymbols
+}  // namespace Symbols
+}  // namespace DSP

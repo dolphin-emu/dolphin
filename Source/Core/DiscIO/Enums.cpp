@@ -11,7 +11,56 @@
 
 namespace DiscIO
 {
+bool IsNTSC(Region region)
+{
+  return region == Region::NTSC_J || region == Region::NTSC_U || region == Region::NTSC_K;
+}
+
 // Increment CACHE_REVISION (ISOFile.cpp & GameFile.cpp) if the code below is modified
+
+Region RegionSwitchGC(u8 country_code)
+{
+  Region region = RegionSwitchWii(country_code);
+  return region == Region::NTSC_K ? Region::UNKNOWN_REGION : region;
+}
+
+Region RegionSwitchWii(u8 country_code)
+{
+  switch (country_code)
+  {
+  case 'J':
+  case 'W':
+    return Region::NTSC_J;
+
+  case 'B':
+  case 'E':
+  case 'N':
+  case 'Z':
+    return Region::NTSC_U;
+
+  case 'D':
+  case 'F':
+  case 'H':
+  case 'I':
+  case 'L':
+  case 'M':
+  case 'P':
+  case 'R':
+  case 'S':
+  case 'U':
+  case 'X':
+  case 'Y':
+    return Region::PAL;
+
+  case 'K':
+  case 'Q':
+  case 'T':
+    return Region::NTSC_K;
+
+  default:
+    return Region::UNKNOWN_REGION;
+  }
+}
 
 Country CountrySwitch(u8 country_code)
 {

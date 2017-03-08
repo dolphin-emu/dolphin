@@ -12,6 +12,7 @@
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
+#include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
@@ -28,8 +29,6 @@ MainMenuBar::MainMenuBar(MenuType type, long style) : wxMenuBar{style}, m_type{t
 {
   BindEvents();
   AddMenus();
-
-  MainMenuBar::Refresh(false);
 }
 
 void MainMenuBar::Refresh(bool erase_background, const wxRect* rect)
@@ -81,7 +80,7 @@ wxMenu* MainMenuBar::CreateFileMenu() const
   file_menu->Append(IDM_CHANGE_DISC, _("Change &Disc..."));
   file_menu->Append(IDM_DRIVES, _("&Boot from DVD Backup"), external_drive_menu);
   file_menu->AppendSeparator();
-  file_menu->Append(wxID_REFRESH, _("&Refresh List"));
+  file_menu->Append(wxID_REFRESH, _("&Refresh Game List"));
   file_menu->AppendSeparator();
   file_menu->Append(wxID_EXIT, _("E&xit") + "\tAlt+F4");
 
@@ -140,6 +139,7 @@ wxMenu* MainMenuBar::CreateMovieMenu() const
 
   movie_menu->Append(IDM_RECORD, _("Start Re&cording Input"));
   movie_menu->Append(IDM_PLAY_RECORD, _("P&lay Input Recording..."));
+  movie_menu->Append(IDM_STOP_RECORD, _("Stop Playing/Recording Input"));
   movie_menu->Append(IDM_RECORD_EXPORT, _("Export Recording..."));
   movie_menu->AppendCheckItem(IDM_RECORD_READ_ONLY, _("&Read-Only Mode"));
   movie_menu->Append(IDM_TAS_INPUT, _("TAS Input"));
@@ -167,7 +167,7 @@ wxMenu* MainMenuBar::CreateMovieMenu() const
 wxMenu* MainMenuBar::CreateOptionsMenu() const
 {
   auto* const options_menu = new wxMenu;
-  options_menu->Append(wxID_PREFERENCES, _("Co&nfigure..."));
+  options_menu->Append(wxID_PREFERENCES, _("Co&nfiguration"));
   options_menu->AppendSeparator();
   options_menu->Append(IDM_CONFIG_GFX_BACKEND, _("&Graphics Settings"));
   options_menu->Append(IDM_CONFIG_AUDIO, _("&Audio Settings"));
@@ -212,7 +212,7 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   wiimote_menu->AppendCheckItem(IDM_CONNECT_BALANCEBOARD, _("Connect Balance Board"));
 
   auto* const tools_menu = new wxMenu;
-  tools_menu->Append(IDM_MEMCARD, _("&Memcard Manager (GC)"));
+  tools_menu->Append(IDM_MEMCARD, _("&Memory Card Manager (GC)"));
   tools_menu->Append(IDM_IMPORT_SAVE, _("Import Wii Save..."));
   tools_menu->Append(IDM_EXPORT_ALL_SAVE, _("Export All Wii Saves"));
   tools_menu->Append(IDM_CHEATS, _("&Cheat Manager"));
@@ -401,10 +401,10 @@ wxMenu* MainMenuBar::CreateDebugMenu()
                                     _("Disable docking of perspective panes to main window"));
 
   auto* const debug_menu = new wxMenu;
-  debug_menu->Append(IDM_STEP, _("Step &Into\tF11"));
-  debug_menu->Append(IDM_STEPOVER, _("Step &Over\tF10"));
-  debug_menu->Append(IDM_STEPOUT, _("Step O&ut\tSHIFT+F11"));
-  debug_menu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint\tF9"));
+  debug_menu->Append(IDM_STEP, _("Step &Into"));
+  debug_menu->Append(IDM_STEPOVER, _("Step &Over"));
+  debug_menu->Append(IDM_STEPOUT, _("Step O&ut"));
+  debug_menu->Append(IDM_TOGGLE_BREAKPOINT, _("Toggle &Breakpoint"));
   debug_menu->AppendSeparator();
   debug_menu->AppendSubMenu(perspective_menu, _("Perspectives"), _("Edit Perspectives"));
 
@@ -512,7 +512,7 @@ void MainMenuBar::RefreshPlayMenuLabel() const
 {
   auto* const item = FindItem(IDM_PLAY);
 
-  if (Core::GetState() == Core::CORE_RUN)
+  if (Core::GetState() == Core::State::Running)
     item->SetItemLabel(_("&Pause"));
   else
     item->SetItemLabel(_("&Play"));
@@ -545,8 +545,8 @@ void MainMenuBar::RefreshWiiSystemMenuLabel() const
 
   if (sys_menu_loader.IsValid())
   {
-    const auto sys_menu_version = sys_menu_loader.GetTitleVersion();
-    const auto sys_menu_region = sys_menu_loader.GetCountryChar();
+    const u16 sys_menu_version = sys_menu_loader.GetTMD().GetTitleVersion();
+    const char sys_menu_region = DiscIO::GetSysMenuRegion(sys_menu_version);
     item->Enable();
     item->SetItemLabel(
         wxString::Format(_("Load Wii System Menu %u%c"), sys_menu_version, sys_menu_region));

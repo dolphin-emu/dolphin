@@ -10,7 +10,7 @@ namespace ciface
 {
 namespace Android
 {
-void Init()
+void PopulateDevices()
 {
   for (int i = 0; i < 8; ++i)
     g_controller_interface.AddDevice(std::make_shared<Touchscreen>(i));

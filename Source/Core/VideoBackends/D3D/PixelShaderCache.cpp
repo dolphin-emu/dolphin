@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
@@ -103,7 +104,7 @@ const char color_matrix_program_code[] = {"sampler samp0 : register(s0);\n"
                                           "in float4 pos : SV_Position,\n"
                                           "in float3 uv0 : TEXCOORD0){\n"
                                           "float4 texcol = Tex0.Sample(samp0,uv0);\n"
-                                          "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
+                                          "texcol = floor(texcol * cColMatrix[5])*cColMatrix[6];\n"
                                           "ocol0 = "
                                           "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix["
                                           "1]),dot(texcol,cColMatrix[2]),dot(texcol,cColMatrix[3]))"
@@ -125,7 +126,7 @@ const char color_matrix_program_code_msaa[] = {
     "for(int i = 0; i < SAMPLES; ++i)\n"
     "	texcol += Tex0.Load(int3(uv0.x*(width), uv0.y*(height), uv0.z), i);\n"
     "texcol /= SAMPLES;\n"
-    "texcol = round(texcol * cColMatrix[5])*cColMatrix[6];\n"
+    "texcol = floor(texcol * cColMatrix[5])*cColMatrix[6];\n"
     "ocol0 = "
     "float4(dot(texcol,cColMatrix[0]),dot(texcol,cColMatrix[1]),dot(texcol,cColMatrix[2]),dot("
     "texcol,cColMatrix[3])) + cColMatrix[4];\n"
@@ -457,7 +458,8 @@ public:
 
 void PixelShaderCache::Init()
 {
-  unsigned int cbsize = ROUND_UP(sizeof(PixelShaderConstants), 16);  // must be a multiple of 16
+  unsigned int cbsize = Common::AlignUp(static_cast<unsigned int>(sizeof(PixelShaderConstants)),
+                                        16);  // must be a multiple of 16
   D3D11_BUFFER_DESC cbdesc = CD3D11_BUFFER_DESC(cbsize, D3D11_BIND_CONSTANT_BUFFER,
                                                 D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
   D3D::device->CreateBuffer(&cbdesc, nullptr, &pscbuf);
@@ -492,17 +494,20 @@ void PixelShaderCache::Init()
 
   Clear();
 
-  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
-
   SETSTAT(stats.numPixelShadersCreated, 0);
   SETSTAT(stats.numPixelShadersAlive, 0);
 
-  std::string cache_filename =
-      StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                       SConfig::GetInstance().m_strGameID.c_str());
-  PixelShaderCacheInserter inserter;
-  g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+  if (g_ActiveConfig.bShaderCache)
+  {
+    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+
+    std::string cache_filename =
+        StringFromFormat("%sdx11-%s-ps.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+                         SConfig::GetInstance().m_strGameID.c_str());
+    PixelShaderCacheInserter inserter;
+    g_ps_disk_cache.OpenAndRead(cache_filename, inserter);
+  }
 
   last_entry = nullptr;
 }
@@ -549,9 +554,9 @@ void PixelShaderCache::Shutdown()
   g_ps_disk_cache.Close();
 }
 
-bool PixelShaderCache::SetShader(DSTALPHA_MODE dstAlphaMode)
+bool PixelShaderCache::SetShader()
 {
-  PixelShaderUid uid = GetPixelShaderUid(dstAlphaMode);
+  PixelShaderUid uid = GetPixelShaderUid();
 
   // Check if the shader is already set
   if (last_entry)

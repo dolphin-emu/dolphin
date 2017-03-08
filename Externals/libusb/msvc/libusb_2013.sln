@@ -21,6 +21,10 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stress", "stress_2013.vcxpr
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "hotplugtest", "hotplugtest_2013.vcxproj", "{99D2AC64-DC66-4422-91CE-6715C403C9E5}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-usbdk-1.0 (dll)", "libusb_usbdk_dll_2013.vcxproj", "{F53A5974-2319-48EB-A67B-27933AEDF14A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libusb-usbdk-1.0 (static)", "libusb_usbdk_static_2013.vcxproj", "{0B3D86CF-5D70-41A9-B391-A2E7C5C969ED}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -93,6 +97,22 @@ Global
 		{99D2AC64-DC66-4422-91CE-6715C403C9E5}.Release|Win32.Build.0 = Release|Win32
 		{99D2AC64-DC66-4422-91CE-6715C403C9E5}.Release|x64.ActiveCfg = Release|x64
 		{99D2AC64-DC66-4422-91CE-6715C403C9E5}.Release|x64.Build.0 = Release|x64
+		{F53A5974-2319-48EB-A67B-27933AEDF14A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F53A5974-2319-48EB-A67B-27933AEDF14A}.Debug|Win32.Build.0 = Debug|Win32
+		{F53A5974-2319-48EB-A67B-27933AEDF14A}.Debug|x64.ActiveCfg = Debug|x64
+		{F53A5974-2319-48EB-A67B-27933AEDF14A}.Debug|x64.Build.0 = Debug|x64
+		{F53A5974-2319-48EB-A67B-27933AEDF14A}.Release|Win32.ActiveCfg = Release|Win32
+		{F53A5974-2319-48EB-A67B-27933AEDF14A}.Release|Win32.Build.0 = Release|Win32
+		{F53A5974-2319-48EB-A67B-27933AEDF14A}.Release|x64.ActiveCfg = Release|x64
+		{F53A5974-2319-48EB-A67B-27933AEDF14A}.Release|x64.Build.0 = Release|x64
+		{0B3D86CF-5D70-41A9-B391-A2E7C5C969ED}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0B3D86CF-5D70-41A9-B391-A2E7C5C969ED}.Debug|Win32.Build.0 = Debug|Win32
+		{0B3D86CF-5D70-41A9-B391-A2E7C5C969ED}.Debug|x64.ActiveCfg = Debug|x64
+		{0B3D86CF-5D70-41A9-B391-A2E7C5C969ED}.Debug|x64.Build.0 = Debug|x64
+		{0B3D86CF-5D70-41A9-B391-A2E7C5C969ED}.Release|Win32.ActiveCfg = Release|Win32
+		{0B3D86CF-5D70-41A9-B391-A2E7C5C969ED}.Release|Win32.Build.0 = Release|Win32
+		{0B3D86CF-5D70-41A9-B391-A2E7C5C969ED}.Release|x64.ActiveCfg = Release|x64
+		{0B3D86CF-5D70-41A9-B391-A2E7C5C969ED}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

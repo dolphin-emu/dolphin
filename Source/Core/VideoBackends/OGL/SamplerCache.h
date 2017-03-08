@@ -28,7 +28,8 @@ public:
 private:
   struct Params
   {
-    union {
+    union
+    {
       struct
       {
         TexMode0 tm0;

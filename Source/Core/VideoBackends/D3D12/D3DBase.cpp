@@ -871,12 +871,11 @@ HRESULT SetFullscreenState(bool enable_fullscreen)
   return S_OK;
 }
 
-HRESULT GetFullscreenState(bool* fullscreen_state)
+bool GetFullscreenState()
 {
   // Fullscreen exclusive intentionally not supported in DX12 backend. No performance
   // difference between it and windowed full-screen due to usage of a FLIP swap chain.
-  *fullscreen_state = false;
-  return S_OK;
+  return false;
 }
 
 }  // namespace D3D

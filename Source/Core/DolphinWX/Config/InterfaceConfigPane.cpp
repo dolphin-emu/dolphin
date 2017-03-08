@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Config/InterfaceConfigPane.h"
+
 #include <array>
 #include <limits>
 #include <string>
@@ -15,16 +17,16 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/FileSearch.h"
 #include "Common/FileUtil.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
+
 #include "Core/ConfigManager.h"
-#include "Core/HotkeyManager.h"
-#include "DolphinWX/Config/InterfaceConfigPane.h"
+
 #include "DolphinWX/Frame.h"
-#include "DolphinWX/InputConfigDiag.h"
+#include "DolphinWX/Input/InputConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 
 #if defined(HAVE_XRANDR) && HAVE_XRANDR

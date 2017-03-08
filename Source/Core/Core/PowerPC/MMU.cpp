@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <cstddef>
 #include <cstring>
 
 #include "Common/Atomic.h"
@@ -25,7 +26,10 @@
 
 namespace PowerPC
 {
-#define HW_PAGE_SIZE 4096
+constexpr size_t HW_PAGE_SIZE = 4096;
+constexpr u32 HW_PAGE_INDEX_SHIFT = 12;
+constexpr u32 HW_PAGE_INDEX_MASK = 0x3f;
+constexpr u32 HW_PAGE_TAG_SHIFT = 18;
 
 // EFB RE
 /*
@@ -112,7 +116,7 @@ static u32 EFB_Read(const u32 addr)
 {
   u32 var = 0;
   // Convert address to coordinates. It's possible that this should be done
-  // differently depending on color depth, especially regarding PEEK_COLOR.
+  // differently depending on color depth, especially regarding PeekColor.
   int x = (addr & 0xfff) >> 2;
   int y = (addr >> 12) & 0x3ff;
 
@@ -122,12 +126,12 @@ static u32 EFB_Read(const u32 addr)
   }
   else if (addr & 0x00400000)
   {
-    var = g_video_backend->Video_AccessEFB(PEEK_Z, x, y, 0);
+    var = g_video_backend->Video_AccessEFB(EFBAccessType::PeekZ, x, y, 0);
     DEBUG_LOG(MEMMAP, "EFB Z Read @ %i, %i\t= 0x%08x", x, y, var);
   }
   else
   {
-    var = g_video_backend->Video_AccessEFB(PEEK_COLOR, x, y, 0);
+    var = g_video_backend->Video_AccessEFB(EFBAccessType::PeekColor, x, y, 0);
     DEBUG_LOG(MEMMAP, "EFB Color Read @ %i, %i\t= 0x%08x", x, y, var);
   }
 
@@ -147,12 +151,12 @@ static void EFB_Write(u32 data, u32 addr)
   }
   else if (addr & 0x00400000)
   {
-    g_video_backend->Video_AccessEFB(POKE_Z, x, y, data);
+    g_video_backend->Video_AccessEFB(EFBAccessType::PokeZ, x, y, data);
     DEBUG_LOG(MEMMAP, "EFB Z Write %08x @ %i, %i", data, x, y);
   }
   else
   {
-    g_video_backend->Video_AccessEFB(POKE_COLOR, x, y, data);
+    g_video_backend->Video_AccessEFB(EFBAccessType::PokeColor, x, y, data);
     DEBUG_LOG(MEMMAP, "EFB Color Write %08x @ %i, %i", data, x, y);
   }
 }
@@ -384,7 +388,7 @@ TryReadInstResult TryReadInstruction(u32 address)
     auto tlb_addr = TranslateAddress<FLAG_OPCODE>(address);
     if (!tlb_addr.Success())
     {
-      return TryReadInstResult{false, false, 0};
+      return TryReadInstResult{false, false, 0, 0};
     }
     else
     {
@@ -403,7 +407,7 @@ TryReadInstResult TryReadInstruction(u32 address)
   {
     hex = PowerPC::ppcState.iCache.ReadInstruction(address);
   }
-  return TryReadInstResult{true, from_bat, hex};
+  return TryReadInstResult{true, from_bat, hex, address};
 }
 
 u32 HostRead_Instruction(const u32 address)
@@ -424,7 +428,7 @@ static void Memcheck(u32 address, u32 var, bool write, int size)
         // Disable when stepping so that resume works.
         return;
       }
-      mc->numHits++;
+      mc->num_hits++;
       bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
       if (pause)
       {
@@ -622,19 +626,18 @@ bool IsOptimizableRAMAddress(const u32 address)
   return (bat_result & 2) != 0;
 }
 
-bool HostIsRAMAddress(u32 address)
+template <XCheckTLBFlag flag>
+static bool IsRAMAddress(u32 address, bool translate)
 {
-  bool performTranslation = UReg_MSR(MSR).DR;
-  int segment = address >> 28;
-  if (performTranslation)
+  if (translate)
   {
-    auto translate_address = TranslateAddress<FLAG_NO_EXCEPTION>(address);
+    auto translate_address = TranslateAddress<flag>(address);
     if (!translate_address.Success())
       return false;
     address = translate_address.address;
-    segment = address >> 28;
   }
 
+  u32 segment = address >> 28;
   if (segment == 0x0 && (address & 0x0FFFFFFF) < Memory::REALRAM_SIZE)
     return true;
   else if (Memory::m_pEXRAM && segment == 0x1 && (address & 0x0FFFFFFF) < Memory::EXRAM_SIZE)
@@ -644,6 +647,17 @@ bool HostIsRAMAddress(u32 address)
   else if (segment == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
     return true;
   return false;
+}
+
+bool HostIsRAMAddress(u32 address)
+{
+  return IsRAMAddress<FLAG_NO_EXCEPTION>(address, UReg_MSR(MSR).DR);
+}
+
+bool HostIsInstructionRAMAddress(u32 address)
+{
+  // Instructions are always 32bit aligned.
+  return !(address & 3) && IsRAMAddress<FLAG_OPCODE_NO_EXCEPTION>(address, UReg_MSR(MSR).IR);
 }
 
 void DMA_LCToMemory(const u32 memAddr, const u32 cacheAddr, const u32 numBlocks)
@@ -771,16 +785,16 @@ u32 IsOptimizableMMIOAccess(u32 address, u32 accessSize)
 bool IsOptimizableGatherPipeWrite(u32 address)
 {
   if (PowerPC::memchecks.HasAny())
-    return 0;
+    return false;
 
   if (!UReg_MSR(MSR).DR)
-    return 0;
+    return false;
 
   // Translate address, only check BAT mapping.
   // If we also optimize for TLB mappings, we'd have to clear the
   // JitCache on each TLB invalidation.
   if (!TranslateBatAddess(dbat_table, &address))
-    return 0;
+    return false;
 
   // Check whether the translated address equals the address in WPAR.
   return address == 0x0C008000;
@@ -867,7 +881,8 @@ TranslateResult JitCache_TranslateAddress(u32 address)
 #define PTE2_PP(v) ((v)&3)
 
 // Hey! these duplicate a structure in Gekko.h
-union UPTE1 {
+union UPTE1
+{
   struct
   {
     u32 API : 6;
@@ -878,7 +893,8 @@ union UPTE1 {
   u32 Hex;
 };
 
-union UPTE2 {
+union UPTE2
+{
   struct
   {
     u32 PP : 2;
@@ -955,49 +971,50 @@ enum TLBLookupResult
 
 static TLBLookupResult LookupTLBPageAddress(const XCheckTLBFlag flag, const u32 vpa, u32* paddr)
 {
-  u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
-  PowerPC::tlb_entry* tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
-  if (tlbe->tag[0] == tag)
+  const u32 tag = vpa >> HW_PAGE_INDEX_SHIFT;
+  TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
+
+  if (tlbe.tag[0] == tag)
   {
     // Check if C bit requires updating
     if (flag == FLAG_WRITE)
     {
       UPTE2 PTE2;
-      PTE2.Hex = tlbe->pte[0];
+      PTE2.Hex = tlbe.pte[0];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
-        tlbe->pte[0] = PTE2.Hex;
+        tlbe.pte[0] = PTE2.Hex;
         return TLB_UPDATE_C;
       }
     }
 
     if (!IsNoExceptionFlag(flag))
-      tlbe->recent = 0;
+      tlbe.recent = 0;
 
-    *paddr = tlbe->paddr[0] | (vpa & 0xfff);
+    *paddr = tlbe.paddr[0] | (vpa & 0xfff);
 
     return TLB_FOUND;
   }
-  if (tlbe->tag[1] == tag)
+  if (tlbe.tag[1] == tag)
   {
     // Check if C bit requires updating
     if (flag == FLAG_WRITE)
     {
       UPTE2 PTE2;
-      PTE2.Hex = tlbe->pte[1];
+      PTE2.Hex = tlbe.pte[1];
       if (PTE2.C == 0)
       {
         PTE2.C = 1;
-        tlbe->pte[1] = PTE2.Hex;
+        tlbe.pte[1] = PTE2.Hex;
         return TLB_UPDATE_C;
       }
     }
 
     if (!IsNoExceptionFlag(flag))
-      tlbe->recent = 1;
+      tlbe.recent = 1;
 
-    *paddr = tlbe->paddr[1] | (vpa & 0xfff);
+    *paddr = tlbe.paddr[1] | (vpa & 0xfff);
 
     return TLB_FOUND;
   }
@@ -1009,25 +1026,26 @@ static void UpdateTLBEntry(const XCheckTLBFlag flag, UPTE2 PTE2, const u32 addre
   if (IsNoExceptionFlag(flag))
     return;
 
-  int tag = address >> HW_PAGE_INDEX_SHIFT;
-  PowerPC::tlb_entry* tlbe = &PowerPC::ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
-  int index = tlbe->recent == 0 && tlbe->tag[0] != TLB_TAG_INVALID;
-  tlbe->recent = index;
-  tlbe->paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
-  tlbe->pte[index] = PTE2.Hex;
-  tlbe->tag[index] = tag;
+  const int tag = address >> HW_PAGE_INDEX_SHIFT;
+  TLBEntry& tlbe = ppcState.tlb[IsOpcodeFlag(flag)][tag & HW_PAGE_INDEX_MASK];
+  const int index = tlbe.recent == 0 && tlbe.tag[0] != TLBEntry::INVALID_TAG;
+  tlbe.recent = index;
+  tlbe.paddr[index] = PTE2.RPN << HW_PAGE_INDEX_SHIFT;
+  tlbe.pte[index] = PTE2.Hex;
+  tlbe.tag[index] = tag;
 }
 
 void InvalidateTLBEntry(u32 address)
 {
-  PowerPC::tlb_entry* tlbe =
-      &PowerPC::ppcState.tlb[0][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
-  tlbe->tag[0] = TLB_TAG_INVALID;
-  tlbe->tag[1] = TLB_TAG_INVALID;
-  PowerPC::tlb_entry* tlbe_i =
-      &PowerPC::ppcState.tlb[1][(address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK];
-  tlbe_i->tag[0] = TLB_TAG_INVALID;
-  tlbe_i->tag[1] = TLB_TAG_INVALID;
+  const u32 entry_index = (address >> HW_PAGE_INDEX_SHIFT) & HW_PAGE_INDEX_MASK;
+
+  TLBEntry& tlbe = ppcState.tlb[0][entry_index];
+  tlbe.tag[0] = TLBEntry::INVALID_TAG;
+  tlbe.tag[1] = TLBEntry::INVALID_TAG;
+
+  TLBEntry& tlbe_i = ppcState.tlb[1][entry_index];
+  tlbe_i.tag[0] = TLBEntry::INVALID_TAG;
+  tlbe_i.tag[1] = TLBEntry::INVALID_TAG;
 }
 
 // Page Address Translation
@@ -1173,6 +1191,10 @@ static void UpdateBATs(BatTable& bat_table, u32 base_spr)
           valid_bit = 0x3;
         else if ((address >> 28) == 0xE && (address < (0xE0000000 + Memory::L1_CACHE_SIZE)))
           valid_bit = 0x3;
+        // Fastmem doesn't support memchecks, so disable it for all overlapping virtual pages.
+        if (PowerPC::memchecks.OverlapsMemcheck(((batu.BEPI | j) << BAT_INDEX_SHIFT),
+                                                1 << BAT_INDEX_SHIFT))
+          valid_bit &= ~0x2;
 
         // (BEPI | j) == (BEPI & ~BL) | (j & BL).
         bat_table[batu.BEPI | j] = address | valid_bit;
@@ -1238,7 +1260,7 @@ void IBATUpdated()
 template <const XCheckTLBFlag flag>
 static TranslateAddressResult TranslateAddress(const u32 address)
 {
-  u32 bat_result = (flag == FLAG_OPCODE ? ibat_table : dbat_table)[address >> BAT_INDEX_SHIFT];
+  u32 bat_result = (IsOpcodeFlag(flag) ? ibat_table : dbat_table)[address >> BAT_INDEX_SHIFT];
   if (bat_result & 1)
   {
     u32 result_addr = (bat_result & ~3) | (address & 0x0001FFFF);

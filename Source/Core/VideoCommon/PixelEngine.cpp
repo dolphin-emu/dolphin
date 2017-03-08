@@ -21,7 +21,8 @@
 
 namespace PixelEngine
 {
-union UPEZConfReg {
+union UPEZConfReg
+{
   u16 Hex;
   struct
   {
@@ -32,7 +33,8 @@ union UPEZConfReg {
   };
 };
 
-union UPEAlphaConfReg {
+union UPEAlphaConfReg
+{
   u16 Hex;
   struct
   {
@@ -48,7 +50,8 @@ union UPEAlphaConfReg {
   };
 };
 
-union UPEDstAlphaConfReg {
+union UPEDstAlphaConfReg
+{
   u16 Hex;
   struct
   {
@@ -58,7 +61,8 @@ union UPEDstAlphaConfReg {
   };
 };
 
-union UPEAlphaModeConfReg {
+union UPEAlphaModeConfReg
+{
   u16 Hex;
   struct
   {
@@ -68,7 +72,8 @@ union UPEAlphaModeConfReg {
 };
 
 // fifo Control Register
-union UPECtrlReg {
+union UPECtrlReg
+{
   struct
   {
     u16 PETokenEnable : 1;
@@ -219,8 +224,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                  }));
 
   // Token register, readonly.
-  mmio->Register(base | PE_TOKEN_REG, MMIO::ComplexRead<u16>([](u32) { return s_token; }),
-                 MMIO::InvalidWrite<u16>());
+  mmio->Register(base | PE_TOKEN_REG, MMIO::DirectRead<u16>(&s_token), MMIO::InvalidWrite<u16>());
 
   // BBOX registers, readonly and need to update a flag.
   for (int i = 0; i < 4; ++i)

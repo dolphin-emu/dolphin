@@ -2,13 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoBackends/Vulkan/VertexFormat.h"
+
 #include "Common/Assert.h"
 
 #include "VideoBackends/Vulkan/CommandBufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
-#include "VideoBackends/Vulkan/VertexFormat.h"
 
-#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VertexShaderGen.h"
 
@@ -51,6 +51,19 @@ VertexFormat::VertexFormat(const PortableVertexDeclaration& in_vtx_decl)
   vtx_decl = in_vtx_decl;
   MapAttributes();
   SetupInputState();
+}
+
+VertexFormat* VertexFormat::GetOrCreateMatchingFormat(const PortableVertexDeclaration& decl)
+{
+  auto vertex_format_map = VertexLoaderManager::GetNativeVertexFormatMap();
+  auto iter = vertex_format_map->find(decl);
+  if (iter == vertex_format_map->end())
+  {
+    auto ipair = vertex_format_map->emplace(decl, std::make_unique<VertexFormat>(decl));
+    iter = ipair.first;
+  }
+
+  return static_cast<VertexFormat*>(iter->second.get());
 }
 
 void VertexFormat::MapAttributes()

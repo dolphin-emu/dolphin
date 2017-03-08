@@ -2,16 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Common/Common.h"
+#include "Common/CommonTypes.h"
 #include "Common/GL/GLUtil.h"
-#include "Common/MemoryUtil.h"
-#include "Common/x64ABI.h"
-#include "Common/x64Emitter.h"
+#include "Common/MsgHandler.h"
 
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/VertexManager.h"
 
-#include "VideoCommon/CPMemory.h"
 #include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexShaderGen.h"
 
@@ -20,10 +17,10 @@
 
 namespace OGL
 {
-NativeVertexFormat*
+std::unique_ptr<NativeVertexFormat>
 VertexManager::CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl)
 {
-  return new GLVertexFormat(vtx_decl);
+  return std::make_unique<GLVertexFormat>(vtx_decl);
 }
 
 static inline GLuint VarToGL(VarType t)

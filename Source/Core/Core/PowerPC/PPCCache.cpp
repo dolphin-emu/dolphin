@@ -2,12 +2,14 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/PowerPC/PPCCache.h"
+
 #include <cstring>
 
-#include "Common/CommonFuncs.h"
+#include "Common/ChunkFile.h"
+#include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/PowerPC/JitInterface.h"
-#include "Core/PowerPC/PPCCache.h"
 #include "Core/PowerPC/PowerPC.h"
 
 namespace PowerPC
@@ -148,4 +150,17 @@ u32 InstructionCache::ReadInstruction(u32 addr)
   u32 res = Common::swap32(data[set][t][(addr >> 2) & 7]);
   return res;
 }
+
+void InstructionCache::DoState(PointerWrap& p)
+{
+  p.DoArray(data);
+  p.DoArray(tags);
+  p.DoArray(plru);
+  p.DoArray(valid);
+  p.DoArray(way_from_valid);
+  p.DoArray(way_from_plru);
+  p.DoArray(lookup_table);
+  p.DoArray(lookup_table_ex);
+  p.DoArray(lookup_table_vmem);
 }
+}  // namespace PowerPC

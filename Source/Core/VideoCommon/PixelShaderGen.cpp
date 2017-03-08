@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "VideoCommon/PixelShaderGen.h"
+
 #include <cmath>
 #include <cstdio>
 #include <cstring>
@@ -13,7 +15,7 @@
 #include "VideoCommon/BoundingBox.h"
 #include "VideoCommon/DriverDetails.h"
 #include "VideoCommon/LightingShaderGen.h"
-#include "VideoCommon/PixelShaderGen.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/VertexLoaderManager.h"
 #include "VideoCommon/VideoCommon.h"
 #include "VideoCommon/VideoConfig.h"
@@ -156,13 +158,15 @@ static const char* tevAOutputTable[] = {"prev.a", "c0.a", "c1.a", "c2.a"};
 // leak
 //        into this UID; This is really unhelpful if these UIDs ever move from one machine to
 //        another.
-PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
+PixelShaderUid GetPixelShaderUid()
 {
   PixelShaderUid out;
   pixel_shader_uid_data* uid_data = out.GetUidData<pixel_shader_uid_data>();
   memset(uid_data, 0, sizeof(*uid_data));
 
-  uid_data->dstAlphaMode = dstAlphaMode;
+  uid_data->useDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
+                          bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+
   uid_data->genMode_numindstages = bpmem.genMode.numindstages;
   uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
   uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
@@ -327,13 +331,9 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
   uid_data->ztex_op = bpmem.ztex2.op;
   uid_data->early_ztest = bpmem.UseEarlyDepthTest();
   uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
-
-  if (dstAlphaMode != DSTALPHA_ALPHA_PASS)
-  {
-    uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
-    uid_data->fog_proj = bpmem.fog.c_proj_fsel.proj;
-    uid_data->fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
-  }
+  uid_data->fog_fsel = bpmem.fog.c_proj_fsel.fsel;
+  uid_data->fog_proj = bpmem.fog.c_proj_fsel.proj;
+  uid_data->fog_RangeBaseEnabled = bpmem.fogRange.Base.Enabled;
 
   return out;
 }
@@ -341,7 +341,7 @@ PixelShaderUid GetPixelShaderUid(DSTALPHA_MODE dstAlphaMode)
 static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, int n,
                        APIType ApiType);
 static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp,
-                            int shift);
+                            int shift, bool alpha);
 static void SampleTexture(ShaderCode& out, const char* texcoords, const char* texswap, int texmap,
                           bool stereo, APIType ApiType);
 static void WriteAlphaTest(ShaderCode& out, const pixel_shader_uid_data* uid_data, APIType ApiType,
@@ -378,11 +378,6 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
             "int2 iround(float2 x) { return int2(round(x)); }\n"
             "int3 iround(float3 x) { return int3(round(x)); }\n"
             "int4 iround(float4 x) { return int4(round(x)); }\n\n");
-
-  out.Write("int  itrunc(float  x) { return int (trunc(x)); }\n"
-            "int2 itrunc(float2 x) { return int2(trunc(x)); }\n"
-            "int3 itrunc(float3 x) { return int3(trunc(x)); }\n"
-            "int4 itrunc(float4 x) { return int4(trunc(x)); }\n\n");
 
   if (ApiType == APIType::OpenGL)
   {
@@ -510,7 +505,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
   const bool use_dual_source =
       g_ActiveConfig.backend_info.bSupportsDualSourceBlend &&
       (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_DUAL_SOURCE_BLENDING) ||
-       uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND);
+       uid_data->useDstAlpha);
 
   if (ApiType == APIType::OpenGL || ApiType == APIType::Vulkan)
   {
@@ -661,7 +656,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     out.SetConstantsUsed(C_TEXDIMS, C_TEXDIMS + uid_data->genMode_numtexgens - 1);
     for (unsigned int i = 0; i < uid_data->genMode_numtexgens; ++i)
     {
-      out.Write("\tint2 fixpoint_uv%d = itrunc(", i);
+      out.Write("\tint2 fixpoint_uv%d = int2(", i);
       out.Write("(uv%d.z == 0.0 ? uv%d.xy : uv%d.xy / uv%d.z)", i, i, i, i);
       out.Write(" * " I_TEXDIMS "[%d].zw);\n", i);
       // TODO: S24 overflows here?
@@ -795,8 +790,7 @@ ShaderCode GeneratePixelShaderCode(APIType ApiType, const pixel_shader_uid_data*
     out.Write("\tprev.rgb = (prev.rgb - (prev.rgb >> 6)) + abs(dither.y * 3 - dither.x * 2);\n");
   }
 
-  if (uid_data->dstAlphaMode != DSTALPHA_ALPHA_PASS)
-    WriteFog(out, uid_data);
+  WriteFog(out, uid_data);
 
   // Write the color and alpha values to the framebuffer
   WriteColor(out, uid_data, use_dual_source);
@@ -1038,7 +1032,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   out.Write("\t%s = clamp(", tevCOutputTable[cc.dest]);
   if (cc.bias != TEVBIAS_COMPARE)
   {
-    WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift);
+    WriteTevRegular(out, "rgb", cc.bias, cc.op, cc.clamp, cc.shift, false);
   }
   else
   {
@@ -1071,7 +1065,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
   out.Write("\t%s = clamp(", tevAOutputTable[ac.dest]);
   if (ac.bias != TEVBIAS_COMPARE)
   {
-    WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift);
+    WriteTevRegular(out, "a", ac.bias, ac.op, ac.clamp, ac.shift, true);
   }
   else
   {
@@ -1099,7 +1093,7 @@ static void WriteStage(ShaderCode& out, const pixel_shader_uid_data* uid_data, i
 }
 
 static void WriteTevRegular(ShaderCode& out, const char* components, int bias, int op, int clamp,
-                            int shift)
+                            int shift, bool alpha)
 {
   const char* tevScaleTableLeft[] = {
       "",       // SCALE_1
@@ -1141,7 +1135,7 @@ static void WriteTevRegular(ShaderCode& out, const char* components, int bias, i
   out.Write(" %s ", tevOpTable[op]);
   out.Write("(((((tevin_a.%s<<8) + (tevin_b.%s-tevin_a.%s)*(tevin_c.%s+(tevin_c.%s>>7)))%s)%s)>>8)",
             components, components, components, components, components, tevScaleTableLeft[shift],
-            tevLerpBias[2 * op + (shift != 3)]);
+            tevLerpBias[2 * op + ((shift == 3) == alpha)]);
   out.Write(")%s", tevScaleTableRight[shift]);
 }
 
@@ -1308,7 +1302,7 @@ static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, b
 
   // Colors will be blended against the 8-bit alpha from ocol1 and
   // the 6-bit alpha from ocol0 will be written to the framebuffer
-  if (uid_data->dstAlphaMode == DSTALPHA_NONE)
+  if (!uid_data->useDstAlpha)
   {
     out.Write("\tocol0.a = float(prev.a >> 2) / 63.0;\n");
     if (use_dual_source)
@@ -1322,7 +1316,7 @@ static void WriteColor(ShaderCode& out, const pixel_shader_uid_data* uid_data, b
     // Use dual-source color blending to perform dst alpha in a single pass
     if (use_dual_source)
     {
-      if (uid_data->dstAlphaMode == DSTALPHA_DUAL_SOURCE_BLEND)
+      if (uid_data->useDstAlpha)
         out.Write("\tocol1.a = float(prev.a) / 255.0;\n");
       else
         out.Write("\tocol1.a = float(" I_ALPHA ".a) / 255.0;\n");

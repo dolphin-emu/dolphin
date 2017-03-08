@@ -10,7 +10,9 @@
 #include <cstring>
 #include <iomanip>
 #include <istream>
+#include <iterator>
 #include <limits.h>
+#include <sstream>
 #include <string>
 #include <vector>
 
@@ -199,7 +201,7 @@ std::string ArrayToString(const u8* data, u32 size, int line_len, bool spaces)
   return oss.str();
 }
 
-// Turns "  hej " into "hej". Also handles tabs.
+// Turns "  hello " into "hello". Also handles tabs.
 std::string StripSpaces(const std::string& str)
 {
   const size_t s = str.find_first_not_of(" \t\r\n");
@@ -242,6 +244,25 @@ bool TryParse(const std::string& str, u32* const output)
 #endif
 
   *output = static_cast<u32>(value);
+  return true;
+}
+
+bool TryParse(const std::string& str, u64* const output)
+{
+  char* end_ptr = nullptr;
+
+  // Set errno to a clean slate
+  errno = 0;
+
+  u64 value = strtoull(str.c_str(), &end_ptr, 0);
+
+  if (end_ptr == nullptr || *end_ptr != '\0')
+    return false;
+
+  if (errno == ERANGE)
+    return false;
+
+  *output = value;
   return true;
 }
 
@@ -328,6 +349,21 @@ void SplitString(const std::string& str, const char delim, std::vector<std::stri
   output.pop_back();
 }
 
+std::string JoinStrings(const std::vector<std::string>& strings, const std::string& delimiter)
+{
+  // Check if we can return early, just for speed
+  if (strings.empty())
+    return "";
+
+  std::stringstream res;
+  std::copy(strings.begin(), strings.end(),
+            std::ostream_iterator<std::string>(res, delimiter.c_str()));
+
+  // Drop the trailing delimiter.
+  std::string joined = res.str();
+  return joined.substr(0, joined.length() - delimiter.length());
+}
+
 std::string TabsToSpaces(int tab_size, const std::string& in)
 {
   const std::string spaces(tab_size, ' ');
@@ -354,6 +390,16 @@ std::string ReplaceAll(std::string result, const std::string& src, const std::st
   }
 
   return result;
+}
+
+bool StringBeginsWith(const std::string& str, const std::string& begin)
+{
+  return str.size() >= begin.size() && std::equal(begin.begin(), begin.end(), str.begin());
+}
+
+bool StringEndsWith(const std::string& str, const std::string& end)
+{
+  return str.size() >= end.size() && std::equal(end.rbegin(), end.rend(), str.rbegin());
 }
 
 #ifdef _WIN32

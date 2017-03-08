@@ -12,6 +12,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/NandPaths.h"
+#include "Core/IOS/ES/Formats.h"
 
 namespace File
 {
@@ -20,9 +21,10 @@ class IOFile;
 
 namespace DiscIO
 {
-enum class Country;
+enum class Region;
 
-bool AddTicket(u64 title_id, const std::vector<u8>& ticket);
+bool AddTicket(const IOS::ES::TicketReader& signed_ticket);
+IOS::ES::TicketReader FindSignedTicket(u64 title_id);
 
 class CNANDContentData
 {
@@ -64,13 +66,7 @@ private:
 
 struct SNANDContent
 {
-  u32 m_ContentID;
-  u16 m_Index;
-  u16 m_Type;
-  u32 m_Size;
-  u8 m_SHA1Hash[20];
-  u8 m_Header[36];  // all of the above
-
+  IOS::ES::Content m_metadata;
   std::unique_ptr<CNANDContentData> m_Data;
 };
 
@@ -81,50 +77,22 @@ public:
   explicit CNANDContentLoader(const std::string& content_name);
   ~CNANDContentLoader();
 
-  bool IsValid() const { return m_Valid; }
+  bool IsValid() const;
   void RemoveTitle() const;
-  u64 GetTitleID() const { return m_TitleID; }
-  u16 GetIosVersion() const { return m_IosVersion; }
-  u32 GetBootIndex() const { return m_BootIndex; }
-  size_t GetContentSize() const { return m_Content.size(); }
+  const SNANDContent* GetContentByID(u32 id) const;
   const SNANDContent* GetContentByIndex(int index) const;
-  const u8* GetTMDView() const { return m_TMDView; }
-  const u8* GetTMDHeader() const { return m_TMDHeader; }
-  const std::vector<u8>& GetTicket() const { return m_Ticket; }
+  const IOS::ES::TMDReader& GetTMD() const { return m_tmd; }
+  const IOS::ES::TicketReader& GetTicket() const { return m_ticket; }
   const std::vector<SNANDContent>& GetContent() const { return m_Content; }
-  u16 GetTitleVersion() const { return m_TitleVersion; }
-  u16 GetNumEntries() const { return m_NumEntries; }
-  DiscIO::Country GetCountry() const;
-  u8 GetCountryChar() const { return m_Country; }
-  enum
-  {
-    TMD_VIEW_SIZE = 0x58,
-    TMD_HEADER_SIZE = 0x1E4,
-    CONTENT_HEADER_SIZE = 0x24,
-    TICKET_SIZE = 0x2A4
-  };
-
 private:
   bool Initialize(const std::string& name);
-  void InitializeContentEntries(const std::vector<u8>& tmd,
-                                const std::vector<u8>& decrypted_title_key,
-                                const std::vector<u8>& data_app);
+  void InitializeContentEntries(const std::vector<u8>& data_app);
 
-  static std::vector<u8> AESDecode(const u8* key, u8* iv, const u8* src, u32 size);
-  static std::vector<u8> GetKeyFromTicket(const std::vector<u8>& ticket);
-
-  bool m_Valid;
-  bool m_IsWAD;
+  bool m_Valid = false;
+  bool m_IsWAD = false;
   std::string m_Path;
-  u64 m_TitleID;
-  u16 m_IosVersion;
-  u32 m_BootIndex;
-  u16 m_NumEntries;
-  u16 m_TitleVersion;
-  u8 m_TMDView[TMD_VIEW_SIZE];
-  u8 m_TMDHeader[TMD_HEADER_SIZE];
-  std::vector<u8> m_Ticket;
-  u8 m_Country;
+  IOS::ES::TMDReader m_tmd;
+  IOS::ES::TicketReader m_ticket;
 
   std::vector<SNANDContent> m_Content;
 };
@@ -155,26 +123,15 @@ private:
   std::unordered_map<std::string, std::unique_ptr<CNANDContentLoader>> m_map;
 };
 
-class CSharedContent
+class CSharedContent final
 {
 public:
-  static CSharedContent& AccessInstance()
-  {
-    static CSharedContent instance;
-    return instance;
-  }
+  explicit CSharedContent(Common::FromWhichRoot root);
 
-  std::string GetFilenameFromSHA1(const u8* hash);
+  std::string GetFilenameFromSHA1(const u8* hash) const;
   std::string AddSharedContent(const u8* hash);
-  void UpdateLocation();
 
 private:
-  CSharedContent();
-  virtual ~CSharedContent();
-
-  CSharedContent(CSharedContent const&) = delete;
-  void operator=(CSharedContent const&) = delete;
-
 #pragma pack(push, 1)
   struct SElement
   {
@@ -183,32 +140,22 @@ private:
   };
 #pragma pack(pop)
 
+  Common::FromWhichRoot m_root;
   u32 m_LastID;
   std::string m_ContentMap;
   std::vector<SElement> m_Elements;
 };
 
-class cUIDsys
+class cUIDsys final
 {
 public:
-  static cUIDsys& AccessInstance()
-  {
-    static cUIDsys instance;
-    return instance;
-  }
+  explicit cUIDsys(Common::FromWhichRoot root);
 
   u32 GetUIDFromTitle(u64 title_id);
   void AddTitle(u64 title_id);
   void GetTitleIDs(std::vector<u64>& title_ids, bool owned = false);
-  void UpdateLocation();
 
 private:
-  cUIDsys();
-  virtual ~cUIDsys();
-
-  cUIDsys(cUIDsys const&) = delete;
-  void operator=(cUIDsys const&) = delete;
-
 #pragma pack(push, 1)
   struct SElement
   {

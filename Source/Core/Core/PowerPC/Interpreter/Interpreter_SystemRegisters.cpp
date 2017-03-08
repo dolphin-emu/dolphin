@@ -45,54 +45,54 @@ static void FPSCRtoFPUSettings(UReg_FPSCR fp)
   FPURoundMode::SetSIMDMode(fp.RN, fp.NI);
 }
 
-void Interpreter::mtfsb0x(UGeckoInstruction _inst)
+void Interpreter::mtfsb0x(UGeckoInstruction inst)
 {
-  u32 b = 0x80000000 >> _inst.CRBD;
+  u32 b = 0x80000000 >> inst.CRBD;
 
   /*if (b & 0x9ff80700)
-    PanicAlert("mtfsb0 clears bit %d, PC=%x", _inst.CRBD, PC);*/
+    PanicAlert("mtfsb0 clears bit %d, PC=%x", inst.CRBD, PC);*/
 
   FPSCR.Hex &= ~b;
   FPSCRtoFPUSettings(FPSCR);
 
-  if (_inst.Rc)
-    PanicAlert("mtfsb0x: inst_.Rc");
+  if (inst.Rc)
+    PanicAlert("mtfsb0x: inst.Rc");
 }
 
-void Interpreter::mtfsb1x(UGeckoInstruction _inst)
+void Interpreter::mtfsb1x(UGeckoInstruction inst)
 {
   // this instruction can affect FX
-  u32 b = 0x80000000 >> _inst.CRBD;
+  u32 b = 0x80000000 >> inst.CRBD;
   if (b & FPSCR_ANY_X)
     SetFPException(b);
   else
     FPSCR.Hex |= b;
   FPSCRtoFPUSettings(FPSCR);
 
-  if (_inst.Rc)
-    PanicAlert("mtfsb1x: inst_.Rc");
+  if (inst.Rc)
+    PanicAlert("mtfsb1x: inst.Rc");
 }
 
-void Interpreter::mtfsfix(UGeckoInstruction _inst)
+void Interpreter::mtfsfix(UGeckoInstruction inst)
 {
-  u32 mask = (0xF0000000 >> (4 * _inst.CRFD));
-  u32 imm = (_inst.hex << 16) & 0xF0000000;
+  u32 mask = (0xF0000000 >> (4 * inst.CRFD));
+  u32 imm = (inst.hex << 16) & 0xF0000000;
 
   /*u32 cleared = ~(imm >> (4 * _inst.CRFD)) & FPSCR.Hex & mask;
   if (cleared & 0x9ff80700)
     PanicAlert("mtfsfi clears %08x, PC=%x", cleared, PC);*/
 
-  FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * _inst.CRFD));
+  FPSCR.Hex = (FPSCR.Hex & ~mask) | (imm >> (4 * inst.CRFD));
 
   FPSCRtoFPUSettings(FPSCR);
 
-  if (_inst.Rc)
-    PanicAlert("mtfsfix: inst_.Rc");
+  if (inst.Rc)
+    PanicAlert("mtfsfix: inst.Rc");
 }
 
-void Interpreter::mtfsfx(UGeckoInstruction _inst)
+void Interpreter::mtfsfx(UGeckoInstruction inst)
 {
-  u32 fm = _inst.FM;
+  u32 fm = inst.FM;
   u32 m = 0;
   for (int i = 0; i < 8; i++)
   {
@@ -104,31 +104,31 @@ void Interpreter::mtfsfx(UGeckoInstruction _inst)
   if (cleared & 0x9ff80700)
     PanicAlert("mtfsf clears %08x, PC=%x", cleared, PC);*/
 
-  FPSCR.Hex = (FPSCR.Hex & ~m) | ((u32)(riPS0(_inst.FB)) & m);
+  FPSCR.Hex = (FPSCR.Hex & ~m) | ((u32)(riPS0(inst.FB)) & m);
   FPSCRtoFPUSettings(FPSCR);
 
-  if (_inst.Rc)
-    PanicAlert("mtfsfx: inst_.Rc");
+  if (inst.Rc)
+    PanicAlert("mtfsfx: inst.Rc");
 }
 
-void Interpreter::mcrxr(UGeckoInstruction _inst)
+void Interpreter::mcrxr(UGeckoInstruction inst)
 {
-  SetCRField(_inst.CRFD, GetXER().Hex >> 28);
+  SetCRField(inst.CRFD, GetXER().Hex >> 28);
   PowerPC::ppcState.xer_ca = 0;
   PowerPC::ppcState.xer_so_ov = 0;
 }
 
-void Interpreter::mfcr(UGeckoInstruction _inst)
+void Interpreter::mfcr(UGeckoInstruction inst)
 {
-  rGPR[_inst.RD] = GetCR();
+  rGPR[inst.RD] = GetCR();
 }
 
-void Interpreter::mtcrf(UGeckoInstruction _inst)
+void Interpreter::mtcrf(UGeckoInstruction inst)
 {
-  u32 crm = _inst.CRM;
+  u32 crm = inst.CRM;
   if (crm == 0xFF)
   {
-    SetCR(rGPR[_inst.RS]);
+    SetCR(rGPR[inst.RS]);
   }
   else
   {
@@ -140,33 +140,33 @@ void Interpreter::mtcrf(UGeckoInstruction _inst)
         mask |= 0xF << (i * 4);
     }
 
-    SetCR((GetCR() & ~mask) | (rGPR[_inst.RS] & mask));
+    SetCR((GetCR() & ~mask) | (rGPR[inst.RS] & mask));
   }
 }
 
-void Interpreter::mfmsr(UGeckoInstruction _inst)
+void Interpreter::mfmsr(UGeckoInstruction inst)
 {
   // Privileged?
-  rGPR[_inst.RD] = MSR;
+  rGPR[inst.RD] = MSR;
 }
 
-void Interpreter::mfsr(UGeckoInstruction _inst)
+void Interpreter::mfsr(UGeckoInstruction inst)
 {
-  rGPR[_inst.RD] = PowerPC::ppcState.sr[_inst.SR];
+  rGPR[inst.RD] = PowerPC::ppcState.sr[inst.SR];
 }
 
-void Interpreter::mfsrin(UGeckoInstruction _inst)
+void Interpreter::mfsrin(UGeckoInstruction inst)
 {
-  int index = (rGPR[_inst.RB] >> 28) & 0xF;
-  rGPR[_inst.RD] = PowerPC::ppcState.sr[index];
+  int index = (rGPR[inst.RB] >> 28) & 0xF;
+  rGPR[inst.RD] = PowerPC::ppcState.sr[index];
 }
 
-void Interpreter::mtmsr(UGeckoInstruction _inst)
+void Interpreter::mtmsr(UGeckoInstruction inst)
 {
   // Privileged?
-  MSR = rGPR[_inst.RS];
+  MSR = rGPR[inst.RS];
   PowerPC::CheckExceptions();
-  m_EndBlock = true;
+  m_end_block = true;
 }
 
 // Segment registers. MMU control.
@@ -178,31 +178,31 @@ static void SetSR(int index, u32 value)
   PowerPC::ppcState.sr[index] = value;
 }
 
-void Interpreter::mtsr(UGeckoInstruction _inst)
+void Interpreter::mtsr(UGeckoInstruction inst)
 {
-  int index = _inst.SR;
-  u32 value = rGPR[_inst.RS];
+  int index = inst.SR;
+  u32 value = rGPR[inst.RS];
   SetSR(index, value);
 }
 
-void Interpreter::mtsrin(UGeckoInstruction _inst)
+void Interpreter::mtsrin(UGeckoInstruction inst)
 {
-  int index = (rGPR[_inst.RB] >> 28) & 0xF;
-  u32 value = rGPR[_inst.RS];
+  int index = (rGPR[inst.RB] >> 28) & 0xF;
+  u32 value = rGPR[inst.RS];
   SetSR(index, value);
 }
 
-void Interpreter::mftb(UGeckoInstruction _inst)
+void Interpreter::mftb(UGeckoInstruction inst)
 {
-  int iIndex = (_inst.TBR >> 5) | ((_inst.TBR & 0x1F) << 5);
+  int iIndex = (inst.TBR >> 5) | ((inst.TBR & 0x1F) << 5);
   _dbg_assert_msg_(POWERPC, (iIndex == SPR_TL) || (iIndex == SPR_TU), "Invalid mftb");
   (void)iIndex;
-  mfspr(_inst);
+  mfspr(inst);
 }
 
-void Interpreter::mfspr(UGeckoInstruction _inst)
+void Interpreter::mfspr(UGeckoInstruction inst)
 {
-  u32 iIndex = ((_inst.SPR & 0x1F) << 5) + ((_inst.SPR >> 5) & 0x1F);
+  u32 iIndex = ((inst.SPR & 0x1F) << 5) + ((inst.SPR >> 5) & 0x1F);
 
   // TODO - check processor privilege level - many of these require privilege
   // XER LR CTR are the only ones available in user mode, time base can be read too.
@@ -241,14 +241,14 @@ void Interpreter::mfspr(UGeckoInstruction _inst)
     rSPR(iIndex) = GetXER().Hex;
     break;
   }
-  rGPR[_inst.RD] = rSPR(iIndex);
+  rGPR[inst.RD] = rSPR(iIndex);
 }
 
-void Interpreter::mtspr(UGeckoInstruction _inst)
+void Interpreter::mtspr(UGeckoInstruction inst)
 {
-  u32 iIndex = (_inst.SPRU << 5) | (_inst.SPRL & 0x1F);
+  u32 iIndex = (inst.SPRU << 5) | (inst.SPRL & 0x1F);
   u32 oldValue = rSPR(iIndex);
-  rSPR(iIndex) = rGPR[_inst.RD];
+  rSPR(iIndex) = rGPR[inst.RD];
 
   // TODO - check processor privilege level - many of these require privilege
   // XER LR CTR are the only ones available in user mode, time base can be read too.
@@ -265,12 +265,12 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
     break;
 
   case SPR_TL_W:
-    TL = rGPR[_inst.RD];
+    TL = rGPR[inst.RD];
     SystemTimers::TimeBaseSet();
     break;
 
   case SPR_TU_W:
-    TU = rGPR[_inst.RD];
+    TU = rGPR[inst.RD];
     SystemTimers::TimeBaseSet();
     break;
 
@@ -313,7 +313,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
     break;
 
   case SPR_WPAR:
-    _assert_msg_(POWERPC, rGPR[_inst.RD] == 0x0C008000, "Gather pipe @ %08x", PC);
+    _assert_msg_(POWERPC, rGPR[inst.RD] == 0x0C008000, "Gather pipe @ %08x", PC);
     GPFifo::ResetGatherPipe();
     break;
 
@@ -353,7 +353,7 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
     break;
 
   case SPR_DEC:
-    if (!(oldValue >> 31) && (rGPR[_inst.RD] >> 31))  // top bit from 0 to 1
+    if (!(oldValue >> 31) && (rGPR[inst.RD] >> 31))  // top bit from 0 to 1
     {
       PanicAlert("Interesting - Software triggered Decrementer exception");
       PowerPC::ppcState.Exceptions |= EXCEPTION_DECREMENTER;
@@ -418,67 +418,67 @@ void Interpreter::mtspr(UGeckoInstruction _inst)
   }
 }
 
-void Interpreter::crand(UGeckoInstruction _inst)
+void Interpreter::crand(UGeckoInstruction inst)
 {
-  SetCRBit(_inst.CRBD, GetCRBit(_inst.CRBA) & GetCRBit(_inst.CRBB));
+  SetCRBit(inst.CRBD, GetCRBit(inst.CRBA) & GetCRBit(inst.CRBB));
 }
 
-void Interpreter::crandc(UGeckoInstruction _inst)
+void Interpreter::crandc(UGeckoInstruction inst)
 {
-  SetCRBit(_inst.CRBD, GetCRBit(_inst.CRBA) & (1 ^ GetCRBit(_inst.CRBB)));
+  SetCRBit(inst.CRBD, GetCRBit(inst.CRBA) & (1 ^ GetCRBit(inst.CRBB)));
 }
 
-void Interpreter::creqv(UGeckoInstruction _inst)
+void Interpreter::creqv(UGeckoInstruction inst)
 {
-  SetCRBit(_inst.CRBD, 1 ^ (GetCRBit(_inst.CRBA) ^ GetCRBit(_inst.CRBB)));
+  SetCRBit(inst.CRBD, 1 ^ (GetCRBit(inst.CRBA) ^ GetCRBit(inst.CRBB)));
 }
 
-void Interpreter::crnand(UGeckoInstruction _inst)
+void Interpreter::crnand(UGeckoInstruction inst)
 {
-  SetCRBit(_inst.CRBD, 1 ^ (GetCRBit(_inst.CRBA) & GetCRBit(_inst.CRBB)));
+  SetCRBit(inst.CRBD, 1 ^ (GetCRBit(inst.CRBA) & GetCRBit(inst.CRBB)));
 }
 
-void Interpreter::crnor(UGeckoInstruction _inst)
+void Interpreter::crnor(UGeckoInstruction inst)
 {
-  SetCRBit(_inst.CRBD, 1 ^ (GetCRBit(_inst.CRBA) | GetCRBit(_inst.CRBB)));
+  SetCRBit(inst.CRBD, 1 ^ (GetCRBit(inst.CRBA) | GetCRBit(inst.CRBB)));
 }
 
-void Interpreter::cror(UGeckoInstruction _inst)
+void Interpreter::cror(UGeckoInstruction inst)
 {
-  SetCRBit(_inst.CRBD, (GetCRBit(_inst.CRBA) | GetCRBit(_inst.CRBB)));
+  SetCRBit(inst.CRBD, (GetCRBit(inst.CRBA) | GetCRBit(inst.CRBB)));
 }
 
-void Interpreter::crorc(UGeckoInstruction _inst)
+void Interpreter::crorc(UGeckoInstruction inst)
 {
-  SetCRBit(_inst.CRBD, (GetCRBit(_inst.CRBA) | (1 ^ GetCRBit(_inst.CRBB))));
+  SetCRBit(inst.CRBD, (GetCRBit(inst.CRBA) | (1 ^ GetCRBit(inst.CRBB))));
 }
 
-void Interpreter::crxor(UGeckoInstruction _inst)
+void Interpreter::crxor(UGeckoInstruction inst)
 {
-  SetCRBit(_inst.CRBD, (GetCRBit(_inst.CRBA) ^ GetCRBit(_inst.CRBB)));
+  SetCRBit(inst.CRBD, (GetCRBit(inst.CRBA) ^ GetCRBit(inst.CRBB)));
 }
 
-void Interpreter::mcrf(UGeckoInstruction _inst)
+void Interpreter::mcrf(UGeckoInstruction inst)
 {
-  int cr_f = GetCRField(_inst.CRFS);
-  SetCRField(_inst.CRFD, cr_f);
+  int cr_f = GetCRField(inst.CRFS);
+  SetCRField(inst.CRFD, cr_f);
 }
 
-void Interpreter::isync(UGeckoInstruction _inst)
+void Interpreter::isync(UGeckoInstruction inst)
 {
   // shouldn't do anything
 }
 
 // the following commands read from FPSCR
 
-void Interpreter::mcrfs(UGeckoInstruction _inst)
+void Interpreter::mcrfs(UGeckoInstruction inst)
 {
   // if (_inst.CRFS != 3 && _inst.CRFS != 4)
   //   PanicAlert("msrfs at %x, CRFS = %d, CRFD = %d", PC, (int)_inst.CRFS, (int)_inst.CRFD);
 
   UpdateFPSCR();
-  u32 fpflags = ((FPSCR.Hex >> (4 * (7 - _inst.CRFS))) & 0xF);
-  switch (_inst.CRFS)
+  u32 fpflags = ((FPSCR.Hex >> (4 * (7 - inst.CRFS))) & 0xF);
+  switch (inst.CRFS)
   {
   case 0:
     FPSCR.FX = 0;
@@ -505,17 +505,17 @@ void Interpreter::mcrfs(UGeckoInstruction _inst)
     FPSCR.VXCVI = 0;
     break;
   }
-  SetCRField(_inst.CRFD, fpflags);
+  SetCRField(inst.CRFD, fpflags);
 }
 
-void Interpreter::mffsx(UGeckoInstruction _inst)
+void Interpreter::mffsx(UGeckoInstruction inst)
 {
   // load from FPSCR
   // TODO(ector): grab all overflow flags etc and set them in FPSCR
 
   UpdateFPSCR();
-  riPS0(_inst.FD) = 0xFFF8000000000000 | FPSCR.Hex;
+  riPS0(inst.FD) = 0xFFF8000000000000 | FPSCR.Hex;
 
-  if (_inst.Rc)
+  if (inst.Rc)
     PanicAlert("mffsx: inst_.Rc");
 }

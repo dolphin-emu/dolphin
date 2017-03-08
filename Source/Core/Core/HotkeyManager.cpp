@@ -2,22 +2,41 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HotkeyManager.h"
+
 #include <string>
 #include <vector>
 
 #include "Common/Common.h"
-#include "Core/ConfigManager.h"
-#include "Core/HotkeyManager.h"
+#include "Common/CommonTypes.h"
+#include "Common/StringUtil.h"
+
+#include "InputCommon/ControllerEmu/Control/Input.h"
+#include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
+#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
+#include "InputCommon/ControllerEmu/Setting/BackgroundInputSetting.h"
+#include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/GCPadStatus.h"
 
 const std::string hotkey_labels[] = {
     _trans("Open"),
     _trans("Change Disc"),
     _trans("Refresh List"),
-
     _trans("Toggle Pause"),
     _trans("Stop"),
     _trans("Reset"),
+    _trans("Toggle Fullscreen"),
+    _trans("Take Screenshot"),
+    _trans("Exit"),
+
+    _trans("Volume Down"),
+    _trans("Volume Up"),
+    _trans("Volume Toggle Mute"),
+
+    _trans("Decrease Emulation Speed"),
+    _trans("Increase Emulation Speed"),
+    _trans("Disable Emulation Speed Limit"),
+
     _trans("Frame Advance"),
     _trans("Frame Advance Decrease Speed"),
     _trans("Frame Advance Increase Speed"),
@@ -28,9 +47,17 @@ const std::string hotkey_labels[] = {
     _trans("Export Recording"),
     _trans("Read-only mode"),
 
-    _trans("Toggle Fullscreen"),
-    _trans("Take Screenshot"),
-    _trans("Exit"),
+    _trans("Step Into"),
+    _trans("Step Over"),
+    _trans("Step Out"),
+    _trans("Skip"),
+
+    _trans("Show PC"),
+    _trans("Set PC"),
+
+    _trans("Toggle Breakpoint"),
+    _trans("Add a Breakpoint"),
+    _trans("Add a Memory Breakpoint"),
 
     _trans("Press Sync Button"),
     _trans("Connect Wii Remote 1"),
@@ -39,21 +66,15 @@ const std::string hotkey_labels[] = {
     _trans("Connect Wii Remote 4"),
     _trans("Connect Balance Board"),
 
-    _trans("Volume Down"),
-    _trans("Volume Up"),
-    _trans("Volume Toggle Mute"),
-
-    _trans("Increase IR"),
-    _trans("Decrease IR"),
-
     _trans("Toggle Crop"),
     _trans("Toggle Aspect Ratio"),
     _trans("Toggle EFB Copies"),
     _trans("Toggle Fog"),
-    _trans("Disable Emulation Speed Limit"),
+    _trans("Toggle Texture Dumping"),
     _trans("Toggle Custom Textures"),
-    _trans("Decrease Emulation Speed"),
-    _trans("Increase Emulation Speed"),
+
+    _trans("Increase IR"),
+    _trans("Decrease IR"),
 
     _trans("Freelook Decrease Speed"),
     _trans("Freelook Increase Speed"),
@@ -70,7 +91,6 @@ const std::string hotkey_labels[] = {
     _trans("Toggle 3D Top-bottom"),
     _trans("Toggle 3D Anaglyph"),
     _trans("Toggle 3D Vision"),
-
     _trans("Decrease Depth"),
     _trans("Increase Depth"),
     _trans("Decrease Convergence"),
@@ -86,6 +106,7 @@ const std::string hotkey_labels[] = {
     _trans("Load State Slot 8"),
     _trans("Load State Slot 9"),
     _trans("Load State Slot 10"),
+    _trans("Load from selected slot"),
 
     _trans("Save State Slot 1"),
     _trans("Save State Slot 2"),
@@ -97,6 +118,7 @@ const std::string hotkey_labels[] = {
     _trans("Save State Slot 8"),
     _trans("Save State Slot 9"),
     _trans("Save State Slot 10"),
+    _trans("Save to selected slot"),
 
     _trans("Select State Slot 1"),
     _trans("Select State Slot 2"),
@@ -108,9 +130,6 @@ const std::string hotkey_labels[] = {
     _trans("Select State Slot 8"),
     _trans("Select State Slot 9"),
     _trans("Select State Slot 10"),
-
-    _trans("Save to selected slot"),
-    _trans("Load from selected slot"),
 
     _trans("Load State Last 1"),
     _trans("Load State Last 2"),
@@ -134,7 +153,7 @@ static_assert(NUM_HOTKEYS == sizeof(hotkey_labels) / sizeof(hotkey_labels[0]),
 
 namespace HotkeyManagerEmu
 {
-static u32 s_hotkeyDown[(NUM_HOTKEYS + 31) / 32];
+static u32 s_hotkeyDown[NUM_HOTKEY_GROUPS];
 static HotkeyStatus s_hotkey;
 static bool s_enabled;
 
@@ -163,20 +182,21 @@ void Enable(bool enable_toggle)
   s_enabled = enable_toggle;
 }
 
-bool IsPressed(int Id, bool held)
+bool IsPressed(int id, bool held)
 {
-  unsigned int set = Id / 32;
-  unsigned int setKey = Id % 32;
-  if (s_hotkey.button[set] & (1 << setKey))
+  unsigned int group = static_cast<HotkeyManager*>(s_config.GetController(0))->FindGroupByID(id);
+  unsigned int group_key =
+      static_cast<HotkeyManager*>(s_config.GetController(0))->GetIndexForGroup(group, id);
+  if (s_hotkey.button[group] & (1 << group_key))
   {
-    bool pressed = !!(s_hotkeyDown[set] & (1 << setKey));
-    s_hotkeyDown[set] |= (1 << setKey);
+    bool pressed = !!(s_hotkeyDown[group] & (1 << group_key));
+    s_hotkeyDown[group] |= (1 << group_key);
     if (!pressed || held)
       return true;
   }
   else
   {
-    s_hotkeyDown[set] &= ~(1 << setKey);
+    s_hotkeyDown[group] &= ~(1 << group_key);
   }
 
   return false;
@@ -203,29 +223,61 @@ void LoadConfig()
   s_config.LoadConfig(true);
 }
 
+ControllerEmu::ControlGroup* GetHotkeyGroup(HotkeyGroup group)
+{
+  return static_cast<HotkeyManager*>(s_config.GetController(0))->GetHotkeyGroup(group);
+}
+
+ControllerEmu::ControlGroup* GetOptionsGroup()
+{
+  return static_cast<HotkeyManager*>(s_config.GetController(0))->GetOptionsGroup();
+}
+
 void Shutdown()
 {
   s_config.ClearControllers();
 }
 }
 
+const std::array<HotkeyGroupInfo, NUM_HOTKEY_GROUPS> groups_info = {
+    {{_trans("General"), HK_OPEN, HK_EXIT},
+     {_trans("Volume"), HK_VOLUME_DOWN, HK_VOLUME_TOGGLE_MUTE},
+     {_trans("Emulation speed"), HK_DECREASE_EMULATION_SPEED, HK_TOGGLE_THROTTLE},
+     {_trans("Frame advance"), HK_FRAME_ADVANCE, HK_FRAME_ADVANCE_RESET_SPEED},
+     {_trans("Movie"), HK_START_RECORDING, HK_READ_ONLY_MODE},
+     {_trans("Stepping"), HK_STEP, HK_SKIP},
+     {_trans("Program Counter"), HK_SHOW_PC, HK_SET_PC},
+     {_trans("Breakpoint"), HK_BP_TOGGLE, HK_MBP_ADD},
+     {_trans("Wii"), HK_TRIGGER_SYNC_BUTTON, HK_BALANCEBOARD_CONNECT},
+     {_trans("Graphics toggles"), HK_TOGGLE_CROP, HK_TOGGLE_TEXTURES},
+     {_trans("Internal Resolution"), HK_INCREASE_IR, HK_DECREASE_IR},
+     {_trans("Freelook"), HK_FREELOOK_DECREASE_SPEED, HK_FREELOOK_RESET},
+     {_trans("3D"), HK_TOGGLE_STEREO_SBS, HK_TOGGLE_STEREO_3DVISION},
+     {_trans("3D depth"), HK_DECREASE_DEPTH, HK_INCREASE_CONVERGENCE},
+     {_trans("Load state"), HK_LOAD_STATE_SLOT_1, HK_LOAD_STATE_SLOT_SELECTED},
+     {_trans("Save state"), HK_SAVE_STATE_SLOT_1, HK_SAVE_STATE_SLOT_SELECTED},
+     {_trans("Select state"), HK_SELECT_STATE_SLOT_1, HK_SELECT_STATE_SLOT_10},
+     {_trans("Load last state"), HK_LOAD_LAST_STATE_1, HK_LOAD_LAST_STATE_10},
+     {_trans("Other state hotkeys"), HK_SAVE_FIRST_STATE, HK_LOAD_STATE_FILE}}};
+
 HotkeyManager::HotkeyManager()
 {
-  for (int key = 0; key < NUM_HOTKEYS; key++)
+  for (int group = 0; group < NUM_HOTKEY_GROUPS; group++)
   {
-    int set = key / 32;
-
-    if (key % 32 == 0)
-      groups.emplace_back(m_keys[set] = new Buttons(_trans("Keys")));
-
-    m_keys[set]->controls.emplace_back(new ControlGroup::Input(hotkey_labels[key]));
+    m_hotkey_groups[group] =
+        (m_keys[group] = new ControllerEmu::Buttons("Keys", groups_info[group].name));
+    groups.emplace_back(m_hotkey_groups[group]);
+    for (int key = groups_info[group].first; key <= groups_info[group].last; key++)
+    {
+      m_keys[group]->controls.emplace_back(new ControllerEmu::Input(hotkey_labels[key]));
+    }
   }
 
-  groups.emplace_back(m_options = new ControlGroup(_trans("Options")));
+  groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
   m_options->boolean_settings.emplace_back(
-      std::make_unique<ControlGroup::BackgroundInputSetting>(_trans("Background Input")));
-  m_options->boolean_settings.emplace_back(std::make_unique<ControlGroup::BooleanSetting>(
-      _trans("Iterative Input"), false, ControlGroup::SettingType::VIRTUAL));
+      std::make_unique<ControllerEmu::BackgroundInputSetting>(_trans("Background Input")));
+  m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
+      _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
 }
 
 HotkeyManager::~HotkeyManager()
@@ -239,21 +291,45 @@ std::string HotkeyManager::GetName() const
 
 void HotkeyManager::GetInput(HotkeyStatus* const kb)
 {
-  auto lock = ControllerEmu::GetStateLock();
-  for (int set = 0; set < (NUM_HOTKEYS + 31) / 32; set++)
+  const auto lock = GetStateLock();
+  for (int group = 0; group < NUM_HOTKEY_GROUPS; group++)
   {
-    std::vector<u32> bitmasks;
-    for (int key = 0; key < std::min(32, NUM_HOTKEYS - set * 32); key++)
-      bitmasks.push_back(1 << key);
+    const int group_count = (groups_info[group].last - groups_info[group].first) + 1;
+    std::vector<u32> bitmasks(group_count);
+    for (size_t key = 0; key < bitmasks.size(); key++)
+      bitmasks[key] = static_cast<u32>(1 << key);
 
-    kb->button[set] = 0;
-    m_keys[set]->GetState(&kb->button[set], bitmasks.data());
+    kb->button[group] = 0;
+    m_keys[group]->GetState(&kb->button[group], bitmasks.data());
   }
+}
+
+ControllerEmu::ControlGroup* HotkeyManager::GetHotkeyGroup(HotkeyGroup group) const
+{
+  return m_hotkey_groups[group];
+}
+
+ControllerEmu::ControlGroup* HotkeyManager::GetOptionsGroup() const
+{
+  return m_options;
+}
+
+int HotkeyManager::FindGroupByID(int id) const
+{
+  const auto i = std::find_if(groups_info.begin(), groups_info.end(),
+                              [id](const auto& entry) { return entry.last >= id; });
+
+  return static_cast<int>(std::distance(groups_info.begin(), i));
+}
+
+int HotkeyManager::GetIndexForGroup(int group, int id) const
+{
+  return id - groups_info[group].first;
 }
 
 void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 {
-  ControllerEmu::LoadDefaults(ciface);
+  EmulatedController::LoadDefaults(ciface);
 
 #ifdef _WIN32
   const std::string NON = "(!(LMENU | RMENU) & !(LSHIFT | RSHIFT) & !(LCONTROL | RCONTROL))";
@@ -268,7 +344,9 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
 #endif
 
   auto set_key_expression = [this](int index, const std::string& expression) {
-    m_keys[index / 32]->controls[index % 32]->control_ref->expression = expression;
+    m_keys[FindGroupByID(index)]
+        ->controls[GetIndexForGroup(FindGroupByID(index), index)]
+        ->control_ref->expression = expression;
   };
 
   // General hotkeys
@@ -281,6 +359,10 @@ void HotkeyManager::LoadDefaults(const ControllerInterface& ciface)
   set_key_expression(HK_STOP, "Escape");
   set_key_expression(HK_FULLSCREEN, ALT + " & Return");
 #endif
+  set_key_expression(HK_STEP, NON + " & `F11`");
+  set_key_expression(HK_STEP_OVER, NON + " & `F10`");
+  set_key_expression(HK_STEP_OUT, SHIFT + " & `F11`");
+  set_key_expression(HK_BP_TOGGLE, NON + " & `F9`");
   set_key_expression(HK_SCREENSHOT, NON + " & `F9`");
   set_key_expression(HK_WIIMOTE1_CONNECT, ALT + " & `F5`");
   set_key_expression(HK_WIIMOTE2_CONNECT, ALT + " & `F6`");

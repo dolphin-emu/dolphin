@@ -2,7 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Debugger/CodeWindow.h"
+
 #include <array>
+#include <chrono>
 #include <cstdio>
 #include <string>
 #include <vector>
@@ -22,17 +25,16 @@
 #include <wx/aui/dockart.h>
 // clang-format on
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/SymbolDB.h"
+#include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
 #include "Core/Debugger/PPCDebugInterface.h"
 #include "Core/HW/CPU.h"
-#include "Core/HW/Memmap.h"
-#include "Core/HW/SystemTimers.h"
-#include "Core/Host.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/JitInterface.h"
 #include "Core/PowerPC/PPCSymbolDB.h"
@@ -40,7 +42,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
 #include "DolphinWX/Debugger/CodeView.h"
-#include "DolphinWX/Debugger/CodeWindow.h"
 #include "DolphinWX/Debugger/DebuggerUIUtil.h"
 #include "DolphinWX/Debugger/JitWindow.h"
 #include "DolphinWX/Debugger/MemoryWindow.h"
@@ -51,11 +52,9 @@
 #include "DolphinWX/Globals.h"
 #include "DolphinWX/WxUtils.h"
 
-CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* parent, wxWindowID id,
-                         const wxPoint& position, const wxSize& size, long style,
-                         const wxString& name)
-    : wxPanel(parent, id, position, size, style, name), m_sibling_panels(), Parent(parent),
-      codeview(nullptr)
+CCodeWindow::CCodeWindow(CFrame* parent, wxWindowID id, const wxPoint& position, const wxSize& size,
+                         long style, const wxString& name)
+    : wxPanel(parent, id, position, size, style, name), Parent(parent)
 {
   DebugInterface* di = &PowerPC::debug_interface;
 
@@ -79,8 +78,13 @@ CCodeWindow::CCodeWindow(const SConfig& _LocalCoreStartupParameter, CFrame* pare
   wxSearchCtrl* const address_searchctrl = new wxSearchCtrl(m_aui_toolbar, IDM_ADDRBOX);
   address_searchctrl->Bind(wxEVT_TEXT, &CCodeWindow::OnAddrBoxChange, this);
   address_searchctrl->SetDescriptiveText(_("Search Address"));
+  m_symbol_filter_ctrl = new wxSearchCtrl(m_aui_toolbar, wxID_ANY);
+  m_symbol_filter_ctrl->Bind(wxEVT_TEXT, &CCodeWindow::OnSymbolFilterText, this);
+  m_symbol_filter_ctrl->SetDescriptiveText(_("Filter Symbols"));
+  m_symbol_filter_ctrl->SetToolTip(_("Filter the symbol list by name. This is case-sensitive."));
 
   m_aui_toolbar->AddControl(address_searchctrl);
+  m_aui_toolbar->AddControl(m_symbol_filter_ctrl);
   m_aui_toolbar->Realize();
 
   m_aui_manager.SetManagedWindow(this);
@@ -132,7 +136,7 @@ CCodeWindow::~CCodeWindow()
   m_aui_manager.UnInit();
 }
 
-wxMenuBar* CCodeWindow::GetMenuBar()
+wxMenuBar* CCodeWindow::GetParentMenuBar()
 {
   return Parent->GetMenuBar();
 }
@@ -213,7 +217,6 @@ void CCodeWindow::OnCodeStep(wxCommandEvent& event)
     break;
   }
 
-  UpdateButtonStates();
   // Update all toolbars in the aui manager
   Parent->UpdateGUI();
 }
@@ -262,6 +265,11 @@ void CCodeWindow::OnAddrBoxChange(wxCommandEvent& event)
   event.Skip();
 }
 
+void CCodeWindow::OnSymbolFilterText(wxCommandEvent&)
+{
+  ReloadSymbolListBox();
+}
+
 void CCodeWindow::OnCallstackListChange(wxCommandEvent& event)
 {
   int index = callstack->GetSelection();
@@ -300,11 +308,12 @@ void CCodeWindow::SingleStep()
   if (CPU::IsStepping())
   {
     PowerPC::CoreMode old_mode = PowerPC::GetMode();
-    PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
+    PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
     PowerPC::breakpoints.ClearAllTemporary();
     CPU::StepOpcode(&sync_event);
     sync_event.WaitFor(std::chrono::milliseconds(20));
     PowerPC::SetMode(old_mode);
+    Core::DisplayMessage(_("Step successful!").ToStdString(), 2000);
     // Will get a IDM_UPDATE_DISASM_DIALOG. Don't update the GUI here.
   }
 }
@@ -319,6 +328,7 @@ void CCodeWindow::StepOver()
       PowerPC::breakpoints.ClearAllTemporary();
       PowerPC::breakpoints.Add(PC + 4, true);
       CPU::EnableStepping(false);
+      Core::DisplayMessage(_("Step over in progress...").ToStdString(), 2000);
     }
     else
     {
@@ -327,9 +337,12 @@ void CCodeWindow::StepOver()
   }
 }
 
-// Returns true on a blr or on a bclr that evaluates to true.
+// Returns true on a rfi, blr or on a bclr that evaluates to true.
 static bool WillInstructionReturn(UGeckoInstruction inst)
 {
+  // Is a rfi instruction
+  if (inst.hex == 0x4C000064u)
+    return true;
   bool counter = (inst.BO_2 >> 2 & 1) != 0 || (CTR != 0) != ((inst.BO_2 >> 1 & 1) != 0);
   bool condition = inst.BO_2 >> 4 != 0 || GetCRBit(inst.BI_2) == (inst.BO_2 >> 3 & 1);
   bool isBclr = inst.OPCD_7 == 0b010011 && (inst.hex >> 1 & 0b10000) != 0;
@@ -343,43 +356,54 @@ void CCodeWindow::StepOut()
     CPU::PauseAndLock(true, false);
     PowerPC::breakpoints.ClearAllTemporary();
 
-    // Keep stepping until the next return instruction or timeout after one second
-    u64 timeout = SystemTimers::GetTicksPerSecond();
-    u64 steps = 0;
+    // Keep stepping until the next return instruction or timeout after five seconds
+    using clock = std::chrono::steady_clock;
+    clock::time_point timeout = clock::now() + std::chrono::seconds(5);
     PowerPC::CoreMode old_mode = PowerPC::GetMode();
-    PowerPC::SetMode(PowerPC::MODE_INTERPRETER);
-    UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
+    PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
+
     // Loop until either the current instruction is a return instruction with no Link flag
-    // or a breakpoint is detected so it can step at the breakpoint.
-    while (!(WillInstructionReturn(inst)) && steps < timeout &&
-           !PowerPC::breakpoints.IsAddressBreakPoint(PC))
+    // or a breakpoint is detected so it can step at the breakpoint. If the PC is currently
+    // on a breakpoint, skip it.
+    UGeckoInstruction inst = PowerPC::HostRead_Instruction(PC);
+    do
     {
+      if (WillInstructionReturn(inst))
+      {
+        PowerPC::SingleStep();
+        break;
+      }
+
       if (inst.LK)
       {
         // Step over branches
         u32 next_pc = PC + 4;
-        while (PC != next_pc && steps < timeout)
+        do
         {
           PowerPC::SingleStep();
-          ++steps;
-        }
+        } while (PC != next_pc && clock::now() < timeout &&
+                 !PowerPC::breakpoints.IsAddressBreakPoint(PC));
       }
       else
       {
         PowerPC::SingleStep();
-        ++steps;
       }
+
       inst = PowerPC::HostRead_Instruction(PC);
-    }
-    // If the loop stopped because of a breakpoint, we do not want to step to
-    // an instruction after it.
-    if (!PowerPC::breakpoints.IsAddressBreakPoint(PC))
-      PowerPC::SingleStep();
+    } while (clock::now() < timeout && !PowerPC::breakpoints.IsAddressBreakPoint(PC));
+
     PowerPC::SetMode(old_mode);
     CPU::PauseAndLock(false, false);
 
     wxCommandEvent ev(wxEVT_HOST_COMMAND, IDM_UPDATE_DISASM_DIALOG);
     GetEventHandler()->ProcessEvent(ev);
+
+    if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
+      Core::DisplayMessage(_("Breakpoint encountered! Step out aborted.").ToStdString(), 2000);
+    else if (clock::now() >= timeout)
+      Core::DisplayMessage(_("Step out timed out!").ToStdString(), 2000);
+    else
+      Core::DisplayMessage(_("Step out successful!").ToStdString(), 2000);
 
     // Update all toolbars in the aui manager
     Parent->UpdateGUI();
@@ -432,7 +456,7 @@ void CCodeWindow::UpdateLists()
 
 void CCodeWindow::UpdateCallstack()
 {
-  if (Core::GetState() == Core::CORE_STOPPING)
+  if (Core::GetState() == Core::State::Stopping)
     return;
 
   callstack->Clear();
@@ -457,7 +481,7 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
   switch (event.GetId())
   {
   case IDM_INTERPRETER:
-    PowerPC::SetMode(UseInterpreter() ? PowerPC::MODE_INTERPRETER : PowerPC::MODE_JIT);
+    PowerPC::SetMode(UseInterpreter() ? PowerPC::CoreMode::Interpreter : PowerPC::CoreMode::JIT);
     break;
   case IDM_BOOT_TO_PAUSE:
     SConfig::GetInstance().bBootToPause = event.IsChecked();
@@ -502,9 +526,6 @@ void CCodeWindow::OnCPUMode(wxCommandEvent& event)
 
   // Clear the JIT cache to enable these changes
   JitInterface::ClearCache();
-
-  // Update
-  UpdateButtonStates();
 }
 
 void CCodeWindow::OnJitMenu(wxCommandEvent& event)
@@ -543,27 +564,27 @@ void CCodeWindow::OnJitMenu(wxCommandEvent& event)
 // Shortcuts
 bool CCodeWindow::UseInterpreter()
 {
-  return GetMenuBar()->IsChecked(IDM_INTERPRETER);
+  return GetParentMenuBar()->IsChecked(IDM_INTERPRETER);
 }
 
 bool CCodeWindow::BootToPause()
 {
-  return GetMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE);
+  return GetParentMenuBar()->IsChecked(IDM_BOOT_TO_PAUSE);
 }
 
 bool CCodeWindow::AutomaticStart()
 {
-  return GetMenuBar()->IsChecked(IDM_AUTOMATIC_START);
+  return GetParentMenuBar()->IsChecked(IDM_AUTOMATIC_START);
 }
 
 bool CCodeWindow::JITNoBlockCache()
 {
-  return GetMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_CACHE);
+  return GetParentMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_CACHE);
 }
 
 bool CCodeWindow::JITNoBlockLinking()
 {
-  return GetMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_LINKING);
+  return GetParentMenuBar()->IsChecked(IDM_JIT_NO_BLOCK_LINKING);
 }
 
 // Update GUI
@@ -574,63 +595,20 @@ void CCodeWindow::Repopulate(bool refresh_codeview)
 
   if (refresh_codeview)
     codeview->Refresh();
+
   UpdateCallstack();
-  UpdateButtonStates();
 
   // Do not automatically show the current PC position when a breakpoint is hit or
   // when we pause since this can be called at other times too.
   // codeview->Center(PC);
 }
 
-void CCodeWindow::UpdateButtonStates()
+void CCodeWindow::UpdateFonts()
 {
-  bool Initialized = (Core::GetState() != Core::CORE_UNINITIALIZED);
-  bool Pause = (Core::GetState() == Core::CORE_PAUSE);
-  bool Stepping = CPU::IsStepping();
-  bool can_step = Initialized && Stepping;
-
-  GetMenuBar()->Enable(IDM_INTERPRETER, Pause);  // CPU Mode
-
-  GetMenuBar()->Enable(IDM_STEP, can_step);
-  GetMenuBar()->Enable(IDM_STEPOVER, can_step);
-  GetMenuBar()->Enable(IDM_STEPOUT, can_step);
-
-  GetMenuBar()->Enable(IDM_JIT_NO_BLOCK_CACHE, !Initialized);
-
-  GetMenuBar()->Enable(IDM_JIT_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LS_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSLXZ_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSLWZ_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSLBZX_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSF_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_LSP_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_FP_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_I_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_P_OFF, Pause);
-  GetMenuBar()->Enable(IDM_JIT_SR_OFF, Pause);
-
-  GetMenuBar()->Enable(IDM_CLEAR_CODE_CACHE, Pause);  // JIT Menu
-  GetMenuBar()->Enable(IDM_SEARCH_INSTRUCTION, Initialized);
-
-  GetMenuBar()->Enable(IDM_CLEAR_SYMBOLS, Initialized);  // Symbols menu
-  GetMenuBar()->Enable(IDM_SCAN_FUNCTIONS, Initialized);
-  GetMenuBar()->Enable(IDM_LOAD_MAP_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_SAVEMAPFILE, Initialized);
-  GetMenuBar()->Enable(IDM_LOAD_MAP_FILE_AS, Initialized);
-  GetMenuBar()->Enable(IDM_SAVE_MAP_FILE_AS, Initialized);
-  GetMenuBar()->Enable(IDM_LOAD_BAD_MAP_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_SAVE_MAP_FILE_WITH_CODES, Initialized);
-  GetMenuBar()->Enable(IDM_CREATE_SIGNATURE_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_APPEND_SIGNATURE_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_COMBINE_SIGNATURE_FILES, Initialized);
-  GetMenuBar()->Enable(IDM_RENAME_SYMBOLS, Initialized);
-  GetMenuBar()->Enable(IDM_USE_SIGNATURE_FILE, Initialized);
-  GetMenuBar()->Enable(IDM_PATCH_HLE_FUNCTIONS, Initialized);
-
-  // Update Fonts
   callstack->SetFont(DebuggerFont);
   symbols->SetFont(DebuggerFont);
   callers->SetFont(DebuggerFont);
   calls->SetFont(DebuggerFont);
   m_aui_manager.GetArtProvider()->SetFont(wxAUI_DOCKART_CAPTION_FONT, DebuggerFont);
+  m_aui_manager.Update();
 }

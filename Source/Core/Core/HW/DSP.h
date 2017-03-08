@@ -31,7 +31,8 @@ enum
 
 // UDSPControl
 constexpr u16 DSP_CONTROL_MASK = 0x0C07;
-union UDSPControl {
+union UDSPControl
+{
   u16 Hex;
   struct
   {
@@ -58,9 +59,8 @@ union UDSPControl {
   UDSPControl(u16 _Hex = 0) : Hex(_Hex) {}
 };
 
-extern UDSPControl g_dspState;
-
 void Init(bool hle);
+void Reinit(bool hle);
 void Shutdown();
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base);

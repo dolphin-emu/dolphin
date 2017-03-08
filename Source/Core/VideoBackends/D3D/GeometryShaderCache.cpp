@@ -4,6 +4,7 @@
 
 #include <string>
 
+#include "Common/Align.h"
 #include "Common/FileUtil.h"
 #include "Common/LinearDiskCache.h"
 #include "Common/StringUtil.h"
@@ -135,7 +136,8 @@ const char copy_shader_code[] = {
 
 void GeometryShaderCache::Init()
 {
-  unsigned int gbsize = ROUND_UP(sizeof(GeometryShaderConstants), 16);  // must be a multiple of 16
+  unsigned int gbsize = Common::AlignUp(static_cast<unsigned int>(sizeof(GeometryShaderConstants)),
+                                        16);  // must be a multiple of 16
   D3D11_BUFFER_DESC gbdesc = CD3D11_BUFFER_DESC(gbsize, D3D11_BIND_CONSTANT_BUFFER,
                                                 D3D11_USAGE_DYNAMIC, D3D11_CPU_ACCESS_WRITE);
   HRESULT hr = D3D::device->CreateBuffer(&gbdesc, nullptr, &gscbuf);
@@ -155,14 +157,17 @@ void GeometryShaderCache::Init()
 
   Clear();
 
-  if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
-    File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
+  if (g_ActiveConfig.bShaderCache)
+  {
+    if (!File::Exists(File::GetUserPath(D_SHADERCACHE_IDX)))
+      File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-  std::string cache_filename =
-      StringFromFormat("%sdx11-%s-gs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
-                       SConfig::GetInstance().m_strGameID.c_str());
-  GeometryShaderCacheInserter inserter;
-  g_gs_disk_cache.OpenAndRead(cache_filename, inserter);
+    std::string cache_filename =
+        StringFromFormat("%sdx11-%s-gs.cache", File::GetUserPath(D_SHADERCACHE_IDX).c_str(),
+                         SConfig::GetInstance().m_strGameID.c_str());
+    GeometryShaderCacheInserter inserter;
+    g_gs_disk_cache.OpenAndRead(cache_filename, inserter);
+  }
 
   last_entry = nullptr;
 }

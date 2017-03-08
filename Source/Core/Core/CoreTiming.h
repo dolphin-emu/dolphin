@@ -91,6 +91,8 @@ void LogPendingEvents();
 
 std::string GetScheduledEventsSummary();
 
+void AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock);
+
 u32 GetFakeDecStartValue();
 void SetFakeDecStartValue(u32 val);
 u64 GetFakeDecStartTicks();

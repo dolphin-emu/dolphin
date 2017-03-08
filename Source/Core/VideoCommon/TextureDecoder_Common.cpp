@@ -5,11 +5,13 @@
 #include <algorithm>
 #include <cmath>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
 #include "Common/MsgHandler.h"
+#include "Common/Swap.h"
+
 #include "VideoCommon/LookUpTables.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/TextureDecoder_Util.h"
 #include "VideoCommon/sfont.inc"
 
 static bool TexFmt_Overlay_Enable = false;
@@ -422,18 +424,6 @@ static inline u32 DecodePixel_Paletted(u16 pixel, TlutFormat tlutfmt)
   }
 }
 
-struct DXTBlock
-{
-  u16 color1;
-  u16 color2;
-  u8 lines[4];
-};
-
-static inline u32 MakeRGBA(int r, int g, int b, int a)
-{
-  return (a << 24) | (b << 16) | (g << 8) | r;
-}
-
 void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth, int texformat,
                             const u8* tlut_, TlutFormat tlutfmt)
 {
@@ -675,19 +665,18 @@ void TexDecoder_DecodeTexel(u8* dst, const u8* src, int s, int t, int imageWidth
       color = MakeRGBA(red2, green2, blue2, 255);
       break;
     case 2:
-      color = MakeRGBA(red1 + (red2 - red1) / 3, green1 + (green2 - green1) / 3,
-                       blue1 + (blue2 - blue1) / 3, 255);
+      color = MakeRGBA(DXTBlend(red2, red1), DXTBlend(green2, green1), DXTBlend(blue2, blue1), 255);
       break;
     case 3:
-      color = MakeRGBA(red2 + (red1 - red2) / 3, green2 + (green1 - green2) / 3,
-                       blue2 + (blue1 - blue2) / 3, 255);
+      color = MakeRGBA(DXTBlend(red1, red2), DXTBlend(green1, green2), DXTBlend(blue1, blue2), 255);
       break;
     case 6:
-      color = MakeRGBA((int)ceil((float)(red1 + red2) / 2), (int)ceil((float)(green1 + green2) / 2),
-                       (int)ceil((float)(blue1 + blue2) / 2), 255);
+      color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 255);
       break;
     case 7:
-      color = MakeRGBA(red2, green2, blue2, 0);
+      // color[3] is the same as color[2] (average of both colors), but transparent.
+      // This differs from DXT1 where color[3] is transparent black.
+      color = MakeRGBA((red1 + red2) / 2, (green1 + green2) / 2, (blue1 + blue2) / 2, 0);
       break;
     default:
       color = 0;

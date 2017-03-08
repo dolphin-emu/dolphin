@@ -28,8 +28,8 @@ public:
 
   ~StreamingVoiceContext2_7();
 
-  void StreamingVoiceContext2_7::Stop();
-  void StreamingVoiceContext2_7::Play();
+  void Stop();
+  void Play();
 
   STDMETHOD_(void, OnVoiceError)(THIS_ void* pBufferContext, HRESULT Error) {}
   STDMETHOD_(void, OnVoiceProcessingPassStart)(UINT32) {}

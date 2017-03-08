@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/NetPlay/NetWindow.h"
+
 #include <algorithm>
 #include <cstddef>
 #include <limits>
@@ -33,9 +35,10 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/MsgHandler.h"
+#include "Common/StringUtil.h"
 
 #include "Core/ConfigManager.h"
-#include "Core/HW/EXI_Device.h"
+#include "Core/HW/EXI/EXI_Device.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
@@ -43,9 +46,7 @@
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/GameListCtrl.h"
 #include "DolphinWX/ISOFile.h"
-#include "DolphinWX/Main.h"
 #include "DolphinWX/NetPlay/ChangeGameDialog.h"
-#include "DolphinWX/NetPlay/NetWindow.h"
 #include "DolphinWX/NetPlay/PadMapDialog.h"
 #include "DolphinWX/WxUtils.h"
 #include "MD5Dialog.h"
@@ -256,12 +257,15 @@ wxSizer* NetPlayDialog::CreateBottomGUI(wxWindow* parent)
     padbuf_spin->Bind(wxEVT_SPINCTRL, &NetPlayDialog::OnAdjustBuffer, this);
     padbuf_spin->SetMinSize(WxUtils::GetTextWidgetMinSize(padbuf_spin));
 
-    m_memcard_write = new wxCheckBox(parent, wxID_ANY, _("Write to memcards/SD"));
+    m_memcard_write = new wxCheckBox(parent, wxID_ANY, _("Write save/SD data"));
+
+    m_copy_wii_save = new wxCheckBox(parent, wxID_ANY, _("Load Wii Save"));
 
     bottom_szr->Add(m_start_btn, 0, wxALIGN_CENTER_VERTICAL);
     bottom_szr->Add(buffer_lbl, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
     bottom_szr->Add(padbuf_spin, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
     bottom_szr->Add(m_memcard_write, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
+    bottom_szr->Add(m_copy_wii_save, 0, wxALIGN_CENTER_VERTICAL | wxLEFT, space5);
     bottom_szr->AddSpacer(space5);
   }
 
@@ -328,6 +332,7 @@ void NetPlayDialog::GetNetSettings(NetSettings& settings)
   settings.m_DSPHLE = instance.bDSPHLE;
   settings.m_DSPEnableJIT = instance.m_DSPEnableJIT;
   settings.m_WriteToMemcard = m_memcard_write->GetValue();
+  settings.m_CopyWiiSave = m_copy_wii_save->GetValue();
   settings.m_OCEnable = instance.m_OCEnable;
   settings.m_OCFactor = instance.m_OCFactor;
   settings.m_EXIDevice[0] = instance.m_EXIDevice[0];
@@ -369,12 +374,19 @@ void NetPlayDialog::OnStart(wxCommandEvent&)
 
 void NetPlayDialog::BootGame(const std::string& filename)
 {
-  main_frame->BootGame(filename);
+  wxCommandEvent play_event{DOLPHIN_EVT_BOOT_SOFTWARE, GetId()};
+  play_event.SetString(StrToWxStr(filename));
+  play_event.SetEventObject(this);
+
+  AddPendingEvent(play_event);
 }
 
 void NetPlayDialog::StopGame()
 {
-  main_frame->DoStop();
+  wxCommandEvent stop_event{DOLPHIN_EVT_STOP_SOFTWARE, GetId()};
+  stop_event.SetEventObject(this);
+
+  AddPendingEvent(stop_event);
 }
 
 // NetPlayUI methods called from ---NETPLAY--- thread
@@ -386,7 +398,7 @@ void NetPlayDialog::Update()
 
 void NetPlayDialog::AppendChat(const std::string& msg)
 {
-  chat_msgs.Push(msg);
+  m_chat_msgs.Push(msg);
   // silly
   Update();
 }
@@ -406,6 +418,7 @@ void NetPlayDialog::OnMsgStartGame()
   {
     m_start_btn->Disable();
     m_memcard_write->Disable();
+    m_copy_wii_save->Disable();
     m_game_btn->Disable();
     m_player_config_btn->Disable();
   }
@@ -421,6 +434,7 @@ void NetPlayDialog::OnMsgStopGame()
   {
     m_start_btn->Enable();
     m_memcard_write->Enable();
+    m_copy_wii_save->Enable();
     m_game_btn->Enable();
     m_player_config_btn->Enable();
   }
@@ -613,10 +627,10 @@ void NetPlayDialog::OnThread(wxThreadEvent& event)
   }
 
   // chat messages
-  while (chat_msgs.Size())
+  while (m_chat_msgs.Size())
   {
     std::string s;
-    chat_msgs.Pop(s);
+    m_chat_msgs.Pop(s);
     AddChatMessage(ChatMessageType::UserIn, s);
 
     if (g_ActiveConfig.bShowNetPlayMessages)

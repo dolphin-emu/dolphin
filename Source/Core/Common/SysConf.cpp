@@ -2,24 +2,24 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Common/SysConf.h"
+
+#include <algorithm>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
 #include <string>
 #include <vector>
 
-#include "Common/CommonFuncs.h"
 #include "Common/CommonPaths.h"
 #include "Common/CommonTypes.h"
 #include "Common/FileUtil.h"
-#include "Common/Logging/Log.h"
-#include "Common/SysConf.h"
-
+#include "Common/Swap.h"
 #include "Core/Movie.h"
 
-SysConf::SysConf()
+SysConf::SysConf(const Common::FromWhichRoot root_type)
 {
-  UpdateLocation();
+  UpdateLocation(root_type);
 }
 
 SysConf::~SysConf()
@@ -33,9 +33,6 @@ SysConf::~SysConf()
 
 void SysConf::Clear()
 {
-  for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
-    delete[] i->data;
-
   m_Entries.clear();
 }
 
@@ -50,6 +47,7 @@ bool SysConf::LoadFromFile(const std::string& filename)
   {
     File::CreateFullPath(filename);
     GenerateSysConf();
+    ApplySettingsFromMovie();
     return true;
   }
 
@@ -61,28 +59,20 @@ bool SysConf::LoadFromFile(const std::string& filename)
                   SYSCONF_SIZE, size))
     {
       GenerateSysConf();
+      ApplySettingsFromMovie();
       return true;
     }
-    else
-    {
-      return false;
-    }
+    return false;
   }
 
   File::IOFile f(filename, "rb");
   if (f.IsOpen())
   {
-    if (LoadFromFileInternal(f.ReleaseHandle()))
+    if (LoadFromFileInternal(std::move(f)))
     {
       m_Filename = filename;
       m_IsValid = true;
-      // Apply Wii settings from normal SYSCONF on Movie recording/playback
-      if (Movie::IsRecordingInput() || Movie::IsPlayingInput())
-      {
-        SetData("IPL.LNG", Movie::GetLanguage());
-        SetData("IPL.E60", Movie::IsPAL60());
-        SetData("IPL.PGS", Movie::IsProgressive());
-      }
+      ApplySettingsFromMovie();
       return true;
     }
   }
@@ -90,52 +80,62 @@ bool SysConf::LoadFromFile(const std::string& filename)
   return false;
 }
 
-bool SysConf::LoadFromFileInternal(FILE* fh)
+// Apply Wii settings from normal SYSCONF on Movie recording/playback
+void SysConf::ApplySettingsFromMovie()
 {
-  File::IOFile f(fh);
+  if (!Movie::IsMovieActive())
+    return;
+
+  SetData("IPL.LNG", Movie::GetLanguage());
+  SetData("IPL.E60", Movie::IsPAL60());
+  SetData("IPL.PGS", Movie::IsProgressive());
+}
+
+bool SysConf::LoadFromFileInternal(File::IOFile&& file)
+{
   // Fill in infos
   SSysConfHeader s_Header;
-  f.ReadArray(s_Header.version, 4);
-  f.ReadArray(&s_Header.numEntries, 1);
+  file.ReadArray(s_Header.version, 4);
+  file.ReadArray(&s_Header.numEntries, 1);
   s_Header.numEntries = Common::swap16(s_Header.numEntries) + 1;
 
   for (u16 index = 0; index < s_Header.numEntries; index++)
   {
     SSysConfEntry tmpEntry;
-    f.ReadArray(&tmpEntry.offset, 1);
+    file.ReadArray(&tmpEntry.offset, 1);
     tmpEntry.offset = Common::swap16(tmpEntry.offset);
-    m_Entries.push_back(tmpEntry);
+    m_Entries.push_back(std::move(tmpEntry));
   }
 
   // Last offset is an invalid entry. We ignore it throughout this class
   for (auto i = m_Entries.begin(); i < m_Entries.end() - 1; ++i)
   {
     SSysConfEntry& curEntry = *i;
-    f.Seek(curEntry.offset, SEEK_SET);
+    file.Seek(curEntry.offset, SEEK_SET);
 
     u8 description = 0;
-    f.ReadArray(&description, 1);
+    file.ReadArray(&description, 1);
     // Data type
     curEntry.type = (SysconfType)((description & 0xe0) >> 5);
     // Length of name in bytes - 1
     curEntry.nameLength = (description & 0x1f) + 1;
     // Name
-    f.ReadArray(curEntry.name, curEntry.nameLength);
+    file.ReadArray(curEntry.name, curEntry.nameLength);
     curEntry.name[curEntry.nameLength] = '\0';
     // Get length of data
-    curEntry.data = nullptr;
+    curEntry.data.clear();
     curEntry.dataLength = 0;
     switch (curEntry.type)
     {
     case Type_BigArray:
-      f.ReadArray(&curEntry.dataLength, 1);
+      file.ReadArray(&curEntry.dataLength, 1);
       curEntry.dataLength = Common::swap16(curEntry.dataLength);
       break;
 
     case Type_SmallArray:
     {
       u8 dlength = 0;
-      f.ReadBytes(&dlength, 1);
+      file.ReadBytes(&dlength, 1);
       curEntry.dataLength = dlength;
       break;
     }
@@ -166,12 +166,12 @@ bool SysConf::LoadFromFileInternal(FILE* fh)
     // Fill in the actual data
     if (curEntry.dataLength)
     {
-      curEntry.data = new u8[curEntry.dataLength];
-      f.ReadArray(curEntry.data, curEntry.dataLength);
+      curEntry.data.resize(curEntry.dataLength);
+      file.ReadArray(curEntry.data.data(), curEntry.dataLength);
     }
   }
 
-  return f.IsGood();
+  return file.IsGood();
 }
 
 // Returns the size of the item in file
@@ -183,8 +183,7 @@ static unsigned int create_item(SSysConfEntry& item, SysconfType type, const std
   item.nameLength = (u8)(name.length());
   strncpy(item.name, name.c_str(), 32);
   item.dataLength = data_length;
-  item.data = new u8[data_length];
-  memset(item.data, 0, data_length);
+  item.data.resize(data_length);
   switch (type)
   {
   case Type_BigArray:
@@ -232,7 +231,7 @@ void SysConf::GenerateSysConf()
   // IPL.NIK
   current_offset += create_item(items[2], Type_SmallArray, "IPL.NIK", 0x15, current_offset);
   const u8 console_nick[14] = {0, 'd', 0, 'o', 0, 'l', 0, 'p', 0, 'h', 0, 'i', 0, 'n'};
-  memcpy(items[2].data, console_nick, 14);
+  memcpy(items[2].data.data(), console_nick, 14);
 
   // IPL.AR
   current_offset += create_item(items[3], Type_Byte, "IPL.AR", 1, current_offset);
@@ -355,19 +354,19 @@ void SysConf::GenerateSysConf()
     {
       const u16 tmpDataLength = Common::swap16(item.dataLength);
       g.WriteBytes(&tmpDataLength, 2);
-      g.WriteBytes(item.data, item.dataLength);
+      g.WriteBytes(item.data.data(), item.dataLength);
       g.WriteBytes(&null_byte, 1);
     }
     break;
 
     case Type_SmallArray:
       g.WriteBytes(&item.dataLength, 1);
-      g.WriteBytes(item.data, item.dataLength);
+      g.WriteBytes(item.data.data(), item.dataLength);
       g.WriteBytes(&null_byte, 1);
       break;
 
     default:
-      g.WriteBytes(item.data, item.dataLength);
+      g.WriteBytes(item.data.data(), item.dataLength);
       break;
     }
   }
@@ -407,7 +406,7 @@ bool SysConf::SaveToFile(const std::string& filename)
     }
 
     // Now write the actual data
-    f.WriteBytes(i->data, i->dataLength);
+    f.WriteBytes(i->data.data(), i->dataLength);
   }
 
   return f.IsGood();
@@ -421,7 +420,7 @@ bool SysConf::Save()
   return SaveToFile(m_Filename);
 }
 
-void SysConf::UpdateLocation()
+void SysConf::UpdateLocation(const Common::FromWhichRoot root_type)
 {
   // if the old Wii User dir had a sysconf file save any settings that have been changed to it
   if (m_IsValid)
@@ -430,11 +429,8 @@ void SysConf::UpdateLocation()
   // Clear the old filename and set the default filename to the new user path
   // So that it can be generated if the file does not exist in the new location
   m_Filename.clear();
-  // Note: We don't use the dummy Wii root here (if in use) because this is
-  // all tied up with the configuration code.  In the future this should
-  // probably just be synced with the other settings.
-  m_FilenameDefault =
-      File::GetUserPath(D_WIIROOT_IDX) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF;
+  // In the future the SYSCONF should probably just be synced with the other settings.
+  m_FilenameDefault = Common::RootUserPath(root_type) + DIR_SEP WII_SYSCONF_DIR DIR_SEP WII_SYSCONF;
   Reload();
 }
 

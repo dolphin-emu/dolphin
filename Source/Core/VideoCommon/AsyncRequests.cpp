@@ -31,7 +31,8 @@ void AsyncRequests::PullEventsInternal()
     {
       m_merged_efb_pokes.clear();
       Event first_event = m_queue.front();
-      EFBAccessType t = first_event.type == Event::EFB_POKE_COLOR ? POKE_COLOR : POKE_Z;
+      const auto t = first_event.type == Event::EFB_POKE_COLOR ? EFBAccessType::PokeColor :
+                                                                 EFBAccessType::PokeZ;
 
       do
       {
@@ -114,28 +115,29 @@ void AsyncRequests::HandleEvent(const AsyncRequests::Event& e)
   case Event::EFB_POKE_COLOR:
   {
     EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
-    g_renderer->PokeEFB(POKE_COLOR, &poke, 1);
+    g_renderer->PokeEFB(EFBAccessType::PokeColor, &poke, 1);
   }
   break;
 
   case Event::EFB_POKE_Z:
   {
     EfbPokeData poke = {e.efb_poke.x, e.efb_poke.y, e.efb_poke.data};
-    g_renderer->PokeEFB(POKE_Z, &poke, 1);
+    g_renderer->PokeEFB(EFBAccessType::PokeZ, &poke, 1);
   }
   break;
 
   case Event::EFB_PEEK_COLOR:
-    *e.efb_peek.data = g_renderer->AccessEFB(PEEK_COLOR, e.efb_peek.x, e.efb_peek.y, 0);
+    *e.efb_peek.data =
+        g_renderer->AccessEFB(EFBAccessType::PeekColor, e.efb_peek.x, e.efb_peek.y, 0);
     break;
 
   case Event::EFB_PEEK_Z:
-    *e.efb_peek.data = g_renderer->AccessEFB(PEEK_Z, e.efb_peek.x, e.efb_peek.y, 0);
+    *e.efb_peek.data = g_renderer->AccessEFB(EFBAccessType::PeekZ, e.efb_peek.x, e.efb_peek.y, 0);
     break;
 
   case Event::SWAP_EVENT:
-    Renderer::Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
-                   e.swap_event.fbHeight, rc, e.time);
+    g_renderer->Swap(e.swap_event.xfbAddr, e.swap_event.fbWidth, e.swap_event.fbStride,
+                     e.swap_event.fbHeight, rc, e.time);
     break;
 
   case Event::BBOX_READ:

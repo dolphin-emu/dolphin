@@ -17,7 +17,9 @@ public:
   VertexManager();
   ~VertexManager();
 
-  NativeVertexFormat* CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+  std::unique_ptr<NativeVertexFormat>
+  CreateNativeVertexFormat(const PortableVertexDeclaration& vtx_decl) override;
+
   void CreateDeviceObjects() override;
   void DestroyDeviceObjects() override;
 
@@ -29,7 +31,7 @@ protected:
 private:
   void PrepareDrawBuffers(u32 stride);
   void Draw(u32 stride);
-  void vFlush(bool use_dst_alpha) override;
+  void vFlush() override;
 
   u32 m_vertex_draw_offset;
   u32 m_index_draw_offset;

@@ -14,7 +14,7 @@
 #include "Common/MsgHandler.h"
 #include "Common/StringUtil.h"
 #include "Core/ConfigManager.h"
-#include "Core/HW/EXI_DeviceIPL.h"
+#include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Sram.h"
 #include "Core/NetPlayClient.h"  //for NetPlayUI
 #include "InputCommon/GCPadStatus.h"
@@ -807,6 +807,7 @@ bool NetPlayServer::StartGame()
   *spac << m_settings.m_DSPEnableJIT;
   *spac << m_settings.m_DSPHLE;
   *spac << m_settings.m_WriteToMemcard;
+  *spac << m_settings.m_CopyWiiSave;
   *spac << m_settings.m_OCEnable;
   *spac << m_settings.m_OCFactor;
   *spac << m_settings.m_EXIDevice[0];

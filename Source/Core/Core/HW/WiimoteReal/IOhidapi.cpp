@@ -15,19 +15,19 @@ static bool IsDeviceUsable(const std::string& device_path)
   hid_device* handle = hid_open_path(device_path.c_str());
   if (handle == nullptr)
   {
-    ERROR_LOG(WIIMOTE, "Could not connect to Wiimote at \"%s\". "
+    ERROR_LOG(WIIMOTE, "Could not connect to Wii Remote at \"%s\". "
                        "Do you have permission to access the device?",
               device_path.c_str());
     return false;
   }
-  // Some third-party adapters (DolphinBar) always expose all four Wiimotes as HIDs
+  // Some third-party adapters (DolphinBar) always expose all four Wii Remotes as HIDs
   // even when they are not connected, which causes an endless error loop when we try to use them.
-  // Try to write a report to the device to see if this Wiimote is really usable.
+  // Try to write a report to the device to see if this Wii Remote is really usable.
   static const u8 report[] = {WM_SET_REPORT | WM_BT_OUTPUT, WM_REQUEST_STATUS, 0};
   const int result = hid_write(handle, report, sizeof(report));
-  // The DolphinBar uses EPIPE to signal the absence of a Wiimote connected to this HID.
+  // The DolphinBar uses EPIPE to signal the absence of a Wii Remote connected to this HID.
   if (result == -1 && errno != EPIPE)
-    ERROR_LOG(WIIMOTE, "Couldn't write to Wiimote at \"%s\".", device_path.c_str());
+    ERROR_LOG(WIIMOTE, "Couldn't write to Wii Remote at \"%s\".", device_path.c_str());
 
   hid_close(handle);
   return result != -1;
@@ -96,7 +96,7 @@ bool WiimoteHidapi::ConnectInternal()
   m_handle = hid_open_path(m_device_path.c_str());
   if (m_handle == nullptr)
   {
-    ERROR_LOG(WIIMOTE, "Could not connect to Wiimote at \"%s\". "
+    ERROR_LOG(WIIMOTE, "Could not connect to Wii Remote at \"%s\". "
                        "Do you have permission to access the device?",
               m_device_path.c_str());
   }

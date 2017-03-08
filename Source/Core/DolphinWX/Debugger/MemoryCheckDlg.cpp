@@ -2,22 +2,23 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/Debugger/MemoryCheckDlg.h"
+
 #include <string>
 #include <wx/radiobut.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/textctrl.h>
 
-#include "Common/BreakPoints.h"
 #include "Common/CommonTypes.h"
 #include "Common/StringUtil.h"
+#include "Core/PowerPC/BreakPoints.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/Debugger/BreakpointWindow.h"
-#include "DolphinWX/Debugger/MemoryCheckDlg.h"
 #include "DolphinWX/WxUtils.h"
 
-MemoryCheckDlg::MemoryCheckDlg(CBreakPointWindow* parent)
-    : wxDialog(parent, wxID_ANY, _("Add a Memory Breakpoint")), m_parent(parent)
+MemoryCheckDlg::MemoryCheckDlg(wxWindow* parent)
+    : wxDialog(parent, wxID_ANY, _("Add a Memory Breakpoint"))
 {
   Bind(wxEVT_BUTTON, &MemoryCheckDlg::OnOK, this, wxID_OK);
   Bind(wxEVT_RADIOBUTTON, &MemoryCheckDlg::OnRadioButtonClick, this);
@@ -156,17 +157,16 @@ void MemoryCheckDlg::OnOK(wxCommandEvent& event)
     if (!EndAddressOK)
       EndAddress = StartAddress;
 
-    MemCheck.StartAddress = StartAddress;
-    MemCheck.EndAddress = EndAddress;
-    MemCheck.bRange = StartAddress != EndAddress;
-    MemCheck.OnRead = OnRead;
-    MemCheck.OnWrite = OnWrite;
-    MemCheck.Log = Log;
-    MemCheck.Break = Break;
+    MemCheck.start_address = StartAddress;
+    MemCheck.end_address = EndAddress;
+    MemCheck.is_ranged = StartAddress != EndAddress;
+    MemCheck.is_break_on_read = OnRead;
+    MemCheck.is_break_on_write = OnWrite;
+    MemCheck.log_on_hit = Log;
+    MemCheck.break_on_hit = Break;
 
     PowerPC::memchecks.Add(MemCheck);
-    m_parent->NotifyUpdate();
-    Close();
+    EndModal(wxID_OK);
   }
 
   event.Skip();

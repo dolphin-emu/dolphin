@@ -16,6 +16,11 @@ class VertexFormat : public ::NativeVertexFormat
 public:
   VertexFormat(const PortableVertexDeclaration& in_vtx_decl);
 
+  // Creates or obtains a pointer to a VertexFormat representing decl.
+  // If this results in a VertexFormat being created, if the game later uses a matching vertex
+  // declaration, the one that was previously created will be used.
+  static VertexFormat* GetOrCreateMatchingFormat(const PortableVertexDeclaration& decl);
+
   // Passed to pipeline state creation
   const VkPipelineVertexInputStateCreateInfo& GetVertexInputStateInfo() const
   {

@@ -8,10 +8,22 @@
 #include <vector>
 #include <wx/frame.h>
 
+#include "Common/CommonTypes.h"
 #include "Common/FifoQueue.h"
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
+
+#ifdef _WIN32
+// HACK: wxWidgets headers don't play well with some of the macros defined in Windows
+// headers and perform their own magic to fix things, as long as they're included entirely
+// either before or after any Windows headers.
+//
+// This file can cause a conflict in other DolphinWX files because NetPlay headers directly
+// include ENet headers, which leak Windows header macros. To fix this, explicitly tell
+// wxWidgets here that it needs to re-clean macros.
+#include <wx/msw/winundef.h>
+#endif
 
 class CGameListCtrl;
 class MD5Dialog;
@@ -69,8 +81,6 @@ public:
   NetPlayDialog(wxWindow* parent, const CGameListCtrl* const game_list, const std::string& game,
                 const bool is_hosting = false);
   ~NetPlayDialog();
-
-  Common::FifoQueue<std::string> chat_msgs;
 
   void OnStart(wxCommandEvent& event);
 
@@ -131,6 +141,7 @@ private:
   wxTextCtrl* m_chat_text;
   wxTextCtrl* m_chat_msg_text;
   wxCheckBox* m_memcard_write;
+  wxCheckBox* m_copy_wii_save;
   wxCheckBox* m_record_chkbox;
 
   std::string m_selected_game;
@@ -150,6 +161,7 @@ private:
   std::string m_desync_player;
 
   std::vector<int> m_playerids;
+  Common::FifoQueue<std::string> m_chat_msgs;
 
   const CGameListCtrl* const m_game_list;
 

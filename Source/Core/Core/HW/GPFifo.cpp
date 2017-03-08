@@ -2,12 +2,13 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/GPFifo.h"
+
 #include <cstring>
 
 #include "Common/ChunkFile.h"
-#include "Common/CommonFuncs.h"
 #include "Common/CommonTypes.h"
-#include "Core/HW/GPFifo.h"
+#include "Common/Swap.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/ProcessorInterface.h"
 #include "Core/PowerPC/JitInterface.h"
@@ -98,7 +99,7 @@ void CheckGatherPipe()
     UpdateGatherPipe();
 
     // Profile where slow FIFO writes are occurring.
-    JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::EXCEPTIONS_FIFO_WRITE);
+    JitInterface::CompileExceptionCheck(JitInterface::ExceptionType::FIFOWrite);
   }
 }
 

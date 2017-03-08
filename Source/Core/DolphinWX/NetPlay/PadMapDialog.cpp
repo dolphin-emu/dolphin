@@ -7,11 +7,12 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "DolphinWX/NetPlay/PadMapDialog.h"
+#include "DolphinWX/WxUtils.h"
+
 #include "Core/NetPlayClient.h"
 #include "Core/NetPlayProto.h"
 #include "Core/NetPlayServer.h"
-#include "DolphinWX/NetPlay/PadMapDialog.h"
-#include "DolphinWX/WxUtils.h"
 
 PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClient* client)
     : wxDialog(parent, wxID_ANY, _("Controller Ports")), m_pad_mapping(server->GetPadMapping()),
@@ -40,7 +41,7 @@ PadMapDialog::PadMapDialog(wxWindow* parent, NetPlayServer* server, NetPlayClien
     {
       for (unsigned int j = 0; j < m_player_list.size(); j++)
       {
-        if (m_pad_mapping[idx] == m_player_list[j]->pid)
+        if (mapping[idx] == m_player_list[j]->pid)
         {
           m_map_cbox[base_idx + idx]->Select(j + 1);
           break;

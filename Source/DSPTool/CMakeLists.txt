@@ -1,5 +1,5 @@
 add_executable(dsptool DSPTool.cpp)
 target_link_libraries(dsptool core)
 if(NOT APPLE)
-	install(TARGETS dsptool RUNTIME DESTINATION ${bindir})
+  install(TARGETS dsptool RUNTIME DESTINATION ${bindir})
 endif()

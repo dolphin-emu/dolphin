@@ -54,7 +54,7 @@ void PathDialog::BrowseDefaultGame()
 {
   QString file = QFileDialog::getOpenFileName(
       this, tr("Select a Game"), QDir::currentPath(),
-      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.wbfs *.ciso *.gcz *.wad);;"
+      tr("All GC/Wii files (*.elf *.dol *.gcm *.iso *.tgc *.wbfs *.ciso *.gcz *.wad);;"
          "All Files (*)"));
   if (!file.isEmpty())
   {

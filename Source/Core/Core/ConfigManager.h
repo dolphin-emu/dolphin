@@ -5,17 +5,20 @@
 #pragma once
 
 #include <limits>
+#include <set>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "Common/IniFile.h"
 #include "Common/NonCopyable.h"
-#include "Core/HW/EXI_Device.h"
-#include "Core/HW/SI_Device.h"
+#include "Core/HW/EXI/EXI_Device.h"
+#include "Core/HW/SI/SI_Device.h"
 
 namespace DiscIO
 {
 enum class Language;
+enum class Region;
 }
 
 // DSP Backend Types
@@ -92,11 +95,11 @@ struct SConfig : NonCopyable
   bool bDSPThread = false;
   bool bDSPHLE = true;
   bool bSyncGPUOnSkipIdleHack = true;
-  bool bNTSC = false;
   bool bForceNTSCJ = false;
   bool bHLE_BS2 = true;
   bool bEnableCheats = false;
   bool bEnableMemcardSdWriting = true;
+  bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
   int iLatency = 14;
@@ -106,6 +109,7 @@ struct SConfig : NonCopyable
 
   bool bMMU = false;
   bool bDCBZOFF = false;
+  bool bLowDCBZHack = false;
   int iBBDumpPort = 0;
   bool bFastDiscSpeed = false;
 
@@ -150,6 +154,10 @@ struct SConfig : NonCopyable
   int m_bt_passthrough_vid = -1;
   std::string m_bt_passthrough_link_keys;
 
+  // USB passthrough settings
+  std::set<std::pair<u16, u16>> m_usb_passthrough_devices;
+  bool IsUSBDeviceWhitelisted(std::pair<u16, u16> vid_pid) const;
+
   // SYSCONF settings
   int m_sensor_bar_position = 0x01;
   int m_sensor_bar_sensitivity = 0x03;
@@ -180,10 +188,13 @@ struct SConfig : NonCopyable
     BOOT_ELF,
     BOOT_DOL,
     BOOT_WII_NAND,
+    BOOT_MIOS,
     BOOT_BS2,
     BOOT_DFF
   };
+
   EBootType m_BootType;
+  DiscIO::Region m_region;
 
   std::string m_strVideoBackend;
   std::string m_strGPUDeterminismMode;
@@ -199,6 +210,7 @@ struct SConfig : NonCopyable
   std::string m_strDVDRoot;
   std::string m_strApploader;
   std::string m_strGameID;
+  u64 m_title_id;
   std::string m_strName;
   std::string m_strWiiSDCardPath;
   u16 m_revision;
@@ -206,6 +218,7 @@ struct SConfig : NonCopyable
   std::string m_perfDir;
 
   void LoadDefaults();
+  static const char* GetDirectoryForRegion(DiscIO::Region region);
   bool AutoSetup(EBootBS2 _BootBS2);
   const std::string& GetGameID() const { return m_strGameID; }
   void CheckMemcardPath(std::string& memcardPath, const std::string& gameRegion, bool isSlotA);
@@ -276,9 +289,6 @@ struct SConfig : NonCopyable
   bool m_showSizeColumn;
   bool m_showStateColumn;
 
-  // Toggles whether compressed titles show up in blue in the game list
-  bool m_ColorCompressed;
-
   std::string m_WirelessMac;
   bool m_PauseMovie;
   bool m_ShowLag;
@@ -292,10 +302,13 @@ struct SConfig : NonCopyable
 
   bool m_PauseOnFocusLost;
 
+  bool m_DisableTooltips;
+
   // DSP settings
   bool m_DSPEnableJIT;
   bool m_DSPCaptureLog;
   bool m_DumpAudio;
+  bool m_DumpAudioSilent;
   bool m_IsMuted;
   bool m_DumpUCode;
   int m_Volume;
@@ -343,6 +356,7 @@ private:
   void SaveNetworkSettings(IniFile& ini);
   void SaveAnalyticsSettings(IniFile& ini);
   void SaveBluetoothPassthroughSettings(IniFile& ini);
+  void SaveUSBPassthroughSettings(IniFile& ini);
   void SaveSysconfSettings(IniFile& ini);
 
   void LoadGeneralSettings(IniFile& ini);
@@ -357,7 +371,10 @@ private:
   void LoadNetworkSettings(IniFile& ini);
   void LoadAnalyticsSettings(IniFile& ini);
   void LoadBluetoothPassthroughSettings(IniFile& ini);
+  void LoadUSBPassthroughSettings(IniFile& ini);
   void LoadSysconfSettings(IniFile& ini);
+
+  bool SetRegion(DiscIO::Region region, std::string* directory_name);
 
   static SConfig* m_Instance;
 };
