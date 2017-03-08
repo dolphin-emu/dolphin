@@ -168,7 +168,7 @@ void Host_YieldToUI()
 
 #if HAVE_X11
 #include <X11/keysym.h>
-#include "DolphinWX/X11Utils.h"
+#include "UICommon/X11Utils.h"
 
 class PlatformX11 : public Platform
 {
@@ -380,7 +380,7 @@ static Platform* GetPlatform()
 
 int main(int argc, char* argv[])
 {
-  std::string boot_filename;
+  std::string boot_filename, user_directory;
   auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
   optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
   std::vector<std::string> args = parser->args();
@@ -400,6 +400,11 @@ int main(int argc, char* argv[])
     return 0;
   }
 
+  if (options.is_set("user"))
+  {
+    user_directory = static_cast<const char*>(options.get("user"));
+  }
+
   platform = GetPlatform();
   if (!platform)
   {
@@ -407,7 +412,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  UICommon::SetUserDirectory("");  // Auto-detect user folder
+  UICommon::SetUserDirectory(user_directory);  // Auto-detect user folder
   UICommon::Init();
 
   Core::SetOnStoppedCallback([]() { s_running.Clear(); });

@@ -46,7 +46,7 @@ elseif(APPLE)
     ControllerInterface/ForceFeedback/ForceFeedbackDevice.cpp
   )
   set(LIBS ${LIBS} ${COREFOUNDATION_LIBRARY} ${CARBON_LIBRARY} ${COCOA_LIBRARY})
-elseif(X11_FOUND)
+elseif(USE_X11)
   set(SRCS ${SRCS}
     ControllerInterface/Xlib/XInput2.cpp
   )

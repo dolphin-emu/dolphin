@@ -5,6 +5,10 @@ set(SRCS
   USBUtils.cpp
 )
 
+if(USE_X11)
+  set(SRCS ${SRCS} X11Utils.cpp)
+endif()
+
 set(LIBS common cpp-optparse)
 if(LIBUSB_FOUND)
   set(LIBS ${LIBS} ${LIBUSB_LIBRARIES})
