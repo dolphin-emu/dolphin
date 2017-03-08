@@ -5,6 +5,7 @@
 #include "Core/IOS/ES/ES.h"
 
 #include <algorithm>
+#include <cctype>
 #include <cinttypes>
 #include <cstdio>
 #include <cstring>
