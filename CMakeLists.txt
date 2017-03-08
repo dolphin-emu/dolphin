@@ -206,7 +206,7 @@ endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   check_and_add_flag(EXCEPTIONS /EHsc)
-  dolphin_compile_definitions(-D_DEBUG DEBUG_ONLY)
+  dolphin_compile_definitions(_DEBUG DEBUG_ONLY)
 
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /NXCOMPAT")
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /BASE:0x00400000")

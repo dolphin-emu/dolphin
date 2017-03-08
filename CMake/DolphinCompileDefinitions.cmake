@@ -30,5 +30,5 @@ function(dolphin_compile_definitions)
   endif()
 
   set_property(DIRECTORY APPEND PROPERTY COMPILE_DEFINITIONS
-    "$<${genexp_config_test}:${ARGN}>")
+    "$<${genexp_config_test}:${defs}>")
 endfunction()
