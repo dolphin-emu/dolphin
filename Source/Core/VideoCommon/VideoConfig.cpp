@@ -298,6 +298,9 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("DumpFramesAsImages", bDumpFramesAsImages);
   settings->Set("FreeLook", bFreeLook);
   settings->Set("UseFFV1", bUseFFV1);
+  settings->Set("DumpFormat", sDumpFormat);
+  settings->Set("DumpCodec", sDumpCodec);
+  settings->Set("DumpPath", sDumpPath);
   settings->Set("BitrateKbps", iBitrateKbps);
   settings->Set("InternalResolutionFrameDumps", bInternalResolutionFrameDumps);
   settings->Set("EnablePixelLighting", bEnablePixelLighting);
