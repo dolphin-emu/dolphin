@@ -97,8 +97,10 @@ static_assert(sizeof(TicketView) == 0xd8, "TicketView has the wrong size");
 struct Ticket
 {
   u8 signature_issuer[0x40];
-  u8 ecdh_key[0x3c];
-  u8 unknown[0x03];
+  u8 server_public_key[0x3c];
+  u8 version;
+  u8 ca_crl_version;
+  u8 signer_crl_version;
   u8 title_key[0x10];
   u64 ticket_id;
   u32 device_id;
@@ -174,8 +176,13 @@ public:
   // more than just one ticket and generate ticket views for them, so we implement it too.
   std::vector<u8> GetRawTicketView(u32 ticket_num) const;
 
+  u32 GetDeviceId() const;
   u64 GetTitleId() const;
   std::vector<u8> GetTitleKey() const;
+
+  // Decrypts the title key field for a "personalised" ticket -- one that is device-specific
+  // and has a title key that must be decrypted first.
+  s32 Unpersonalise();
 
 private:
   std::vector<u8> m_bytes;
