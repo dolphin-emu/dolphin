@@ -145,8 +145,6 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
 
 void TitleContext::UpdateRunningGame() const
 {
-  // This one does not always make sense for Wii titles, so let's reset it back to a sane value.
-  SConfig::GetInstance().m_strName = "";
   if (IOS::ES::IsTitleType(tmd.GetTitleId(), IOS::ES::TitleType::Game) ||
       IOS::ES::IsTitleType(tmd.GetTitleId(), IOS::ES::TitleType::GameWithChannel))
   {

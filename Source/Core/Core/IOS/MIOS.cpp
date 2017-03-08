@@ -126,7 +126,6 @@ static void UpdateRunningGame()
   DVDThread::WaitUntilIdle();
   const DiscIO::IVolume& volume = DVDInterface::GetVolume();
   SConfig::GetInstance().m_BootType = SConfig::BOOT_MIOS;
-  SConfig::GetInstance().m_strName = volume.GetInternalName();
   SConfig::GetInstance().m_strGameID = volume.GetGameID();
   SConfig::GetInstance().m_revision = volume.GetRevision();
 
@@ -135,8 +134,7 @@ static void UpdateRunningGame()
   ::HLE::Clear();
   ::HLE::PatchFunctions();
 
-  NOTICE_LOG(IOS, "Running game: %s (%s)", SConfig::GetInstance().m_strName.c_str(),
-             SConfig::GetInstance().m_strGameID.c_str());
+  NOTICE_LOG(IOS, "Running game: %s", SConfig::GetInstance().m_strGameID.c_str());
 }
 
 constexpr u32 ADDRESS_INIT_SEMAPHORE = 0x30f8;
