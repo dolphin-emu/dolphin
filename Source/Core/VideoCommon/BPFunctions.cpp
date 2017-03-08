@@ -156,7 +156,7 @@ void OnPixelFormatChange()
   if (!g_ActiveConfig.bEFBEmulateFormatChanges)
     return;
 
-  auto old_format = Renderer::GetPrevPixelFormat();
+  auto old_format = g_renderer->GetPrevPixelFormat();
   auto new_format = bpmem.zcontrol.pixel_format;
 
   // no need to reinterpret pixel data in these cases
@@ -209,7 +209,7 @@ skip:
   DEBUG_LOG(VIDEO, "pixelfmt: pixel=%d, zc=%d", static_cast<int>(new_format),
             static_cast<int>(bpmem.zcontrol.zformat));
 
-  Renderer::StorePixelFormat(new_format);
+  g_renderer->StorePixelFormat(new_format);
 }
 
 void SetInterlacingMode(const BPCmd& bp)

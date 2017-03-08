@@ -329,6 +329,8 @@ static void InitDriverInfo()
 
 // Init functions
 Renderer::Renderer()
+    : ::Renderer(static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u)),
+                 static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u)))
 {
   bool bSuccess = true;
 
@@ -687,25 +689,10 @@ Renderer::Renderer()
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
 
-  // Decide framebuffer size
-  s_backbuffer_width = static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u));
-  s_backbuffer_height = static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u));
-
   // Handle VSync on/off
   s_vsync = g_ActiveConfig.IsVSync();
   if (!DriverDetails::HasBug(DriverDetails::BUG_BROKEN_VSYNC))
     GLInterface->SwapInterval(s_vsync);
-
-  // TODO: Move these somewhere else?
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-
-  UpdateDrawRectangle();
-
-  s_last_efb_scale = g_ActiveConfig.iEFBScale;
-  CalculateTargetSize();
-
-  PixelShaderManager::SetEfbScaleChanged();
 
   // Because of the fixed framebuffer size we need to disable the resolution
   // options while running
@@ -788,7 +775,7 @@ void Renderer::Init()
 {
   // Initialize the FramebufferManager
   g_framebuffer_manager =
-      std::make_unique<FramebufferManager>(s_target_width, s_target_height, s_MSAASamples);
+      std::make_unique<FramebufferManager>(m_target_width, m_target_height, s_MSAASamples);
 
   m_post_processor = std::make_unique<OpenGLPostProcessing>();
   s_raster_font = std::make_unique<RasterFont>();
@@ -1056,12 +1043,12 @@ u16 Renderer::BBoxRead(int index)
   if (index < 2)
   {
     // left/right
-    value = value * EFB_WIDTH / s_target_width;
+    value = value * EFB_WIDTH / m_target_width;
   }
   else
   {
     // up/down -- we have to swap up and down
-    value = value * EFB_HEIGHT / s_target_height;
+    value = value * EFB_HEIGHT / m_target_height;
     value = EFB_HEIGHT - value - 1;
   }
   if (index & 1)
@@ -1077,13 +1064,13 @@ void Renderer::BBoxWrite(int index, u16 _value)
     value--;
   if (index < 2)
   {
-    value = value * s_target_width / EFB_WIDTH;
+    value = value * m_target_width / EFB_WIDTH;
   }
   else
   {
     index ^= 1;  // swap 2 and 3 for top/bottom
     value = EFB_HEIGHT - value - 1;
-    value = value * s_target_height / EFB_HEIGHT;
+    value = value * m_target_height / EFB_HEIGHT;
   }
 
   BoundingBox::Set(index, value);
@@ -1294,7 +1281,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
       glDisable(GL_DEBUG_OUTPUT);
   }
 
-  if ((!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
+  if ((!m_xfb_written && !g_ActiveConfig.RealXFBEnabled()) || !fbWidth || !fbHeight)
   {
     Core::Callback_VideoCopiedToXFB(false);
     return;
@@ -1364,13 +1351,11 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   bool window_resized = false;
   int window_width = static_cast<int>(std::max(GLInterface->GetBackBufferWidth(), 1u));
   int window_height = static_cast<int>(std::max(GLInterface->GetBackBufferHeight(), 1u));
-  if (window_width != s_backbuffer_width || window_height != s_backbuffer_height ||
-      s_last_efb_scale != g_ActiveConfig.iEFBScale)
+  if (window_width != m_backbuffer_width || window_height != m_backbuffer_height)
   {
     window_resized = true;
-    s_backbuffer_width = window_width;
-    s_backbuffer_height = window_height;
-    s_last_efb_scale = g_ActiveConfig.iEFBScale;
+    m_backbuffer_width = window_width;
+    m_backbuffer_height = window_height;
   }
 
   bool target_size_changed = CalculateTargetSize();
@@ -1400,9 +1385,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
       g_framebuffer_manager.reset();
       g_framebuffer_manager =
-          std::make_unique<FramebufferManager>(s_target_width, s_target_height, s_MSAASamples);
-
-      PixelShaderManager::SetEfbScaleChanged();
+          std::make_unique<FramebufferManager>(m_target_width, m_target_height, s_MSAASamples);
     }
   }
 
@@ -1420,13 +1403,13 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   OSD::DrawMessages();
 
 #ifdef ANDROID
-  if (s_surface_needs_change.IsSet())
+  if (m_surface_needs_change.IsSet())
   {
-    GLInterface->UpdateHandle(s_new_surface_handle);
+    GLInterface->UpdateHandle(m_new_surface_handle);
     GLInterface->UpdateSurface();
-    s_new_surface_handle = nullptr;
-    s_surface_needs_change.Clear();
-    s_surface_changed.Set();
+    m_new_surface_handle = nullptr;
+    m_surface_needs_change.Clear();
+    m_surface_changed.Set();
   }
 #endif
 
@@ -1493,7 +1476,7 @@ void Renderer::DrawEFB(GLuint framebuffer, const TargetRectangle& target_rc,
   // for msaa mode, we must resolve the efb content to non-msaa
   GLuint tex = FramebufferManager::ResolveAndGetRenderTarget(source_rc);
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffer);
-  BlitScreen(scaled_source_rc, target_rc, tex, s_target_width, s_target_height);
+  BlitScreen(scaled_source_rc, target_rc, tex, m_target_width, m_target_height);
 }
 
 void Renderer::DrawVirtualXFB(GLuint framebuffer, const TargetRectangle& target_rc, u32 xfb_addr,
@@ -1815,9 +1798,9 @@ void Renderer::ChangeSurface(void* new_surface_handle)
 // This is only necessary for Android at this point, although handling resizes here
 // would be more efficient than polling.
 #ifdef ANDROID
-  s_new_surface_handle = new_surface_handle;
-  s_surface_needs_change.Set();
-  s_surface_changed.Wait();
+  m_new_surface_handle = new_surface_handle;
+  m_surface_needs_change.Set();
+  m_surface_changed.Wait();
 #endif
 }
 }

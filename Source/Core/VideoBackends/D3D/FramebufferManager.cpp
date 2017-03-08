@@ -98,18 +98,10 @@ D3DTexture2D*& FramebufferManager::GetResolvedEFBDepthTexture()
   }
 }
 
-FramebufferManager::FramebufferManager()
+FramebufferManager::FramebufferManager(int target_width, int target_height)
 {
-  m_target_width = Renderer::GetTargetWidth();
-  m_target_height = Renderer::GetTargetHeight();
-  if (m_target_height < 1)
-  {
-    m_target_height = 1;
-  }
-  if (m_target_width < 1)
-  {
-    m_target_width = 1;
-  }
+  m_target_width = static_cast<unsigned int>(std::max(target_width, 1));
+  m_target_height = static_cast<unsigned int>(std::max(target_height, 1));
   DXGI_SAMPLE_DESC sample_desc;
   sample_desc.Count = g_ActiveConfig.iMultisamples;
   sample_desc.Quality = 0;
@@ -318,8 +310,8 @@ void XFBSource::CopyEFB(float Gamma)
   D3D::SetPointCopySampler();
 
   D3D::drawShadedTexQuad(
-      FramebufferManager::GetEFBColorTexture()->GetSRV(), &rect, Renderer::GetTargetWidth(),
-      Renderer::GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(true),
+      FramebufferManager::GetEFBColorTexture()->GetSRV(), &rect, g_renderer->GetTargetWidth(),
+      g_renderer->GetTargetHeight(), PixelShaderCache::GetColorCopyProgram(true),
       VertexShaderCache::GetSimpleVertexShader(), VertexShaderCache::GetSimpleInputLayout(),
       GeometryShaderCache::GetCopyGeometryShader(), Gamma);
 

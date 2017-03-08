@@ -166,7 +166,7 @@ void PSTextureEncoder::Encode(u8* dst, u32 format, u32 native_width, u32 bytes_p
     D3D::SetPointCopySampler();
 
   D3D::DrawShadedTexQuad(
-      efb_source, target_rect.AsRECT(), Renderer::GetTargetWidth(), Renderer::GetTargetHeight(),
+      efb_source, target_rect.AsRECT(), g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight(),
       SetStaticShader(format, is_depth_copy, is_intensity, scale_by_half),
       StaticShaderCache::GetSimpleVertexShader(),
       StaticShaderCache::GetSimpleVertexShaderInputLayout(), D3D12_SHADER_BYTECODE(), 1.0f, 0,

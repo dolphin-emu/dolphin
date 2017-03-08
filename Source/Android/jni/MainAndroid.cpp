@@ -484,8 +484,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_StopEmulatio
                                                                                   jobject obj)
 {
   std::lock_guard<std::mutex> guard(s_host_identity_lock);
-  Core::SaveScreenShot("thumb");
-  Renderer::s_screenshotCompleted.WaitFor(std::chrono::seconds(2));
+  Core::SaveScreenShot("thumb", true);
   Core::Stop();
   updateMainFrameEvent.Set();  // Kick the waiting event
 }

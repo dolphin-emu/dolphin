@@ -69,10 +69,10 @@ class Renderer : public ::Renderer
 {
 public:
   Renderer();
-  ~Renderer();
+  ~Renderer() override;
 
-  static void Init();
-  static void Shutdown();
+  void Init();
+  void Shutdown();
 
   void SetBlendMode(bool forceUpdate) override;
   void SetScissorRect(const EFBRectangle& rc) override;

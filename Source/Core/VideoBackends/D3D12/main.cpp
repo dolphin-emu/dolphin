@@ -163,7 +163,7 @@ bool VideoBackend::Initialize(void* window_handle)
 void VideoBackend::Video_Prepare()
 {
   // internal interfaces
-  g_renderer = std::make_unique<Renderer>(m_window_handle);
+  g_renderer = std::make_unique<Renderer>();
   g_texture_cache = std::make_unique<TextureCache>();
   g_vertex_manager = std::make_unique<VertexManager>();
   g_perf_query = std::make_unique<PerfQuery>();

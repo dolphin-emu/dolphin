@@ -385,17 +385,17 @@ TextureCacheBase::DoPartialTextureUpdates(TCacheEntryBase* entry_to_update, u8* 
             entry->native_height != entry->config.height)
         {
           ScaleTextureCacheEntryTo(&entry_to_update,
-                                   Renderer::EFBToScaledX(entry_to_update->native_width),
-                                   Renderer::EFBToScaledY(entry_to_update->native_height));
-          ScaleTextureCacheEntryTo(&entry, Renderer::EFBToScaledX(entry->native_width),
-                                   Renderer::EFBToScaledY(entry->native_height));
+                                   g_renderer->EFBToScaledX(entry_to_update->native_width),
+                                   g_renderer->EFBToScaledY(entry_to_update->native_height));
+          ScaleTextureCacheEntryTo(&entry, g_renderer->EFBToScaledX(entry->native_width),
+                                   g_renderer->EFBToScaledY(entry->native_height));
 
-          src_x = Renderer::EFBToScaledX(src_x);
-          src_y = Renderer::EFBToScaledY(src_y);
-          dst_x = Renderer::EFBToScaledX(dst_x);
-          dst_y = Renderer::EFBToScaledY(dst_y);
-          copy_width = Renderer::EFBToScaledX(copy_width);
-          copy_height = Renderer::EFBToScaledY(copy_height);
+          src_x = g_renderer->EFBToScaledX(src_x);
+          src_y = g_renderer->EFBToScaledY(src_y);
+          dst_x = g_renderer->EFBToScaledX(dst_x);
+          dst_y = g_renderer->EFBToScaledY(dst_y);
+          copy_width = g_renderer->EFBToScaledX(copy_width);
+          copy_height = g_renderer->EFBToScaledY(copy_height);
         }
 
         MathUtil::Rectangle<int> srcrect, dstrect;
@@ -1197,8 +1197,10 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   const unsigned int tex_w = scaleByHalf ? srcRect.GetWidth() / 2 : srcRect.GetWidth();
   const unsigned int tex_h = scaleByHalf ? srcRect.GetHeight() / 2 : srcRect.GetHeight();
 
-  unsigned int scaled_tex_w = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledX(tex_w) : tex_w;
-  unsigned int scaled_tex_h = g_ActiveConfig.bCopyEFBScaled ? Renderer::EFBToScaledY(tex_h) : tex_h;
+  unsigned int scaled_tex_w =
+      g_ActiveConfig.bCopyEFBScaled ? g_renderer->EFBToScaledX(tex_w) : tex_w;
+  unsigned int scaled_tex_h =
+      g_ActiveConfig.bCopyEFBScaled ? g_renderer->EFBToScaledY(tex_h) : tex_h;
 
   // Remove all texture cache entries at dstAddr
   //   It's not possible to have two EFB copies at the same address, this makes sure any old efb

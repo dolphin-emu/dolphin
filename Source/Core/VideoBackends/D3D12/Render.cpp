@@ -101,8 +101,6 @@ StateCache gx_state_cache;
 
 static void SetupDeviceObjects()
 {
-  g_framebuffer_manager = std::make_unique<FramebufferManager>();
-
   D3D12_DEPTH_STENCIL_DESC depth_desc;
   depth_desc.DepthEnable = FALSE;
   depth_desc.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO;
@@ -211,7 +209,7 @@ static void Create3DVisionTexture(int width, int height)
   // D3D12TODO: 3D Vision not implemented on D3D12 backend.
 }
 
-Renderer::Renderer(void*& window_handle)
+Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight())
 {
   if (g_ActiveConfig.iStereoMode == STEREO_3DVISION)
   {
@@ -219,21 +217,11 @@ Renderer::Renderer(void*& window_handle)
     return;
   }
 
-  s_backbuffer_width = D3D::GetBackBufferWidth();
-  s_backbuffer_height = D3D::GetBackBufferHeight();
-
-  FramebufferManagerBase::SetLastXfbWidth(MAX_XFB_WIDTH);
-  FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
-
-  UpdateDrawRectangle();
-
   s_last_multisamples = g_ActiveConfig.iMultisamples;
-  s_last_efb_scale = g_ActiveConfig.iEFBScale;
   s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
   s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
-  CalculateTargetSize();
-  PixelShaderManager::SetEfbScaleChanged();
 
+  g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
   SetupDeviceObjects();
 
   // Setup GX pipeline state
@@ -269,8 +257,8 @@ Renderer::Renderer(void*& window_handle)
 
   D3D12_VIEWPORT vp = {0.f,
                        0.f,
-                       static_cast<float>(s_target_width),
-                       static_cast<float>(s_target_height),
+                       static_cast<float>(m_target_width),
+                       static_cast<float>(m_target_height),
                        D3D12_MIN_DEPTH,
                        D3D12_MAX_DEPTH};
   D3D::current_command_list->RSSetViewports(1, &vp);
@@ -308,7 +296,7 @@ TargetRectangle Renderer::ConvertEFBRectangle(const EFBRectangle& rc)
 
 // With D3D, we have to resize the backbuffer if the window changed
 // size.
-__declspec(noinline) bool Renderer::CheckForResize()
+bool Renderer::CheckForResize()
 {
   RECT rc_window;
   GetClientRect(D3D::hWnd, &rc_window);
@@ -646,7 +634,7 @@ void Renderer::SetBlendMode(bool force_update)
 void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height,
                         const EFBRectangle& rc, u64 ticks, float gamma)
 {
-  if ((!XFBWrited && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
+  if ((!m_xfb_written && !g_ActiveConfig.RealXFBEnabled()) || !fb_width || !fb_height)
   {
     Core::Callback_VideoCopiedToXFB(false);
     return;
@@ -833,7 +821,6 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
 
   // Resize the back buffers NOW to avoid flickering
   if (CalculateTargetSize() || xfb_changed || window_resized ||
-      s_last_efb_scale != g_ActiveConfig.iEFBScale ||
       s_last_multisamples != g_ActiveConfig.iMultisamples ||
       s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
   {
@@ -860,16 +847,13 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
         s_screenshot_texture = nullptr;
       }
 
-      s_backbuffer_width = D3D::GetBackBufferWidth();
-      s_backbuffer_height = D3D::GetBackBufferHeight();
+      m_backbuffer_width = D3D::GetBackBufferWidth();
+      m_backbuffer_height = D3D::GetBackBufferHeight();
     }
 
     UpdateDrawRectangle();
 
-    s_last_efb_scale = g_ActiveConfig.iEFBScale;
     s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
-
-    PixelShaderManager::SetEfbScaleChanged();
 
     D3D::GetBackBuffer()->TransitionToResourceState(D3D::current_command_list,
                                                     D3D12_RESOURCE_STATE_RENDER_TARGET);
@@ -877,7 +861,7 @@ void Renderer::SwapImpl(u32 xfb_addr, u32 fb_width, u32 fb_stride, u32 fb_height
                                                   nullptr);
 
     g_framebuffer_manager.reset();
-    g_framebuffer_manager = std::make_unique<FramebufferManager>();
+    g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
     const float clear_color[4] = {0.f, 0.f, 0.f, 1.f};
 
     FramebufferManager::GetEFBColorTexture()->TransitionToResourceState(
@@ -1189,12 +1173,12 @@ u16 Renderer::BBoxRead(int index)
   if (index < 2)
   {
     // left/right
-    value = value * EFB_WIDTH / s_target_width;
+    value = value * EFB_WIDTH / m_target_width;
   }
   else
   {
     // up/down
-    value = value * EFB_HEIGHT / s_target_height;
+    value = value * EFB_HEIGHT / m_target_height;
   }
   if (index & 1)
     value++;  // fix max values to describe the outer border
@@ -1209,11 +1193,11 @@ void Renderer::BBoxWrite(int index, u16 value)
     local_value--;
   if (index < 2)
   {
-    local_value = local_value * s_target_width / EFB_WIDTH;
+    local_value = local_value * m_target_width / EFB_WIDTH;
   }
   else
   {
-    local_value = local_value * s_target_height / EFB_HEIGHT;
+    local_value = local_value * m_target_height / EFB_HEIGHT;
   }
 
   BBox::Set(index, local_value);

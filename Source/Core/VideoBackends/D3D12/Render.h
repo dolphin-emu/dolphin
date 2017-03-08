@@ -17,8 +17,8 @@ class D3DTexture2D;
 class Renderer final : public ::Renderer
 {
 public:
-  Renderer(void*& window_handle);
-  ~Renderer();
+  Renderer();
+  ~Renderer() override;
 
   void SetColorMask() override;
   void SetBlendMode(bool force_update) override;
@@ -59,7 +59,7 @@ public:
 
   void ReinterpretPixelData(unsigned int conv_type) override;
 
-  static bool CheckForResize();
+  bool CheckForResize();
 
   u32 GetMaxTextureSize() override;
 

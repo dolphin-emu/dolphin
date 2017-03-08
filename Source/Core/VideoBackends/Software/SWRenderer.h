@@ -13,6 +13,7 @@
 class SWRenderer : public Renderer
 {
 public:
+  SWRenderer();
   ~SWRenderer() override;
 
   static void Init();
