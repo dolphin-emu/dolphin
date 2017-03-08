@@ -14,6 +14,7 @@
 #include <vector>
 
 #include <mbedtls/aes.h>
+#include <mbedtls/sha1.h>
 
 #include "Common/Align.h"
 #include "Common/Assert.h"
@@ -583,6 +584,13 @@ IPCCommandResult ES::AddContentData(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
+static bool CheckIfContentHashMatches(const std::vector<u8>& content, const IOS::ES::Content& info)
+{
+  std::array<u8, 20> sha1;
+  mbedtls_sha1(content.data(), info.size, sha1.data());
+  return sha1 == info.sha1;
+}
+
 IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
@@ -617,6 +625,11 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
   std::vector<u8> decrypted_data(m_addtitle_content_buffer.size());
   mbedtls_aes_crypt_cbc(&aes_ctx, MBEDTLS_AES_DECRYPT, m_addtitle_content_buffer.size(), iv,
                         m_addtitle_content_buffer.data(), decrypted_data.data());
+  if (!CheckIfContentHashMatches(decrypted_data, content_info))
+  {
+    ERROR_LOG(IOS_ES, "AddContentFinish: Hash for content %08x doesn't match", content_info.id);
+    return GetDefaultReply(ES_HASH_DOESNT_MATCH);
+  }
 
   std::string content_path;
   if (content_info.IsShared())
