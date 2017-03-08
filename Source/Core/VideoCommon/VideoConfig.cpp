@@ -75,6 +75,9 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("DumpFramesAsImages", &bDumpFramesAsImages, false);
   settings->Get("FreeLook", &bFreeLook, false);
   settings->Get("UseFFV1", &bUseFFV1, false);
+  settings->Get("DumpFormat", &sDumpFormat, "avi");
+  settings->Get("DumpCodec", &sDumpCodec, "");
+  settings->Get("DumpPath", &sDumpPath, "");
   settings->Get("BitrateKbps", &iBitrateKbps, 2500);
   settings->Get("InternalResolutionFrameDumps", &bInternalResolutionFrameDumps, false);
   settings->Get("EnablePixelLighting", &bEnablePixelLighting, false);
@@ -295,6 +298,9 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("DumpFramesAsImages", bDumpFramesAsImages);
   settings->Set("FreeLook", bFreeLook);
   settings->Set("UseFFV1", bUseFFV1);
+  settings->Set("DumpFormat", sDumpFormat);
+  settings->Set("DumpCodec", sDumpCodec);
+  settings->Set("DumpPath", sDumpPath);
   settings->Set("BitrateKbps", iBitrateKbps);
   settings->Set("InternalResolutionFrameDumps", bInternalResolutionFrameDumps);
   settings->Set("EnablePixelLighting", bEnablePixelLighting);
