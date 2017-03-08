@@ -190,7 +190,7 @@ void wxCheatsWindow::UpdateGUI()
 
   // write the ISO name in the title
   if (Core::IsRunning())
-    SetTitle(title + StrToWxStr(": " + m_game_id + " - " + parameters.m_strName));
+    SetTitle(title + StrToWxStr(": " + m_game_id));
   else
     SetTitle(title);
 }

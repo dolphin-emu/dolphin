@@ -783,7 +783,6 @@ void SConfig::LoadDefaults()
   bJITSystemRegistersOff = false;
   bJITBranchOff = false;
 
-  m_strName = "NONE";
   m_strGameID = "00000000";
   m_title_id = 0;
   m_revision = 0;
@@ -871,7 +870,6 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
                       m_strFilename.c_str());
         return false;
       }
-      m_strName = pVolume->GetInternalName();
       m_strGameID = pVolume->GetGameID();
       pVolume->GetTitleID(&m_title_id);
       m_revision = pVolume->GetRevision();
@@ -938,7 +936,6 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
 
       if (pVolume)
       {
-        m_strName = pVolume->GetInternalName();
         m_strGameID = pVolume->GetGameID();
         pVolume->GetTitleID(&m_title_id);
       }
@@ -946,7 +943,6 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       {
         // null pVolume means that we are loading from nand folder (Most Likely Wii Menu)
         // if this is the second boot we would be using the Name and id of the last title
-        m_strName.clear();
         m_strGameID.clear();
         m_title_id = 0;
       }
@@ -956,10 +952,6 @@ bool SConfig::AutoSetup(EBootBS2 _BootBS2)
       // (specifically sysmenu could potentially apply to other things)
       std::string titleidstr = StringFromFormat("%016" PRIx64, m_title_id);
 
-      if (m_strName.empty())
-      {
-        m_strName = titleidstr;
-      }
       if (m_strGameID.empty())
       {
         m_strGameID = titleidstr;
