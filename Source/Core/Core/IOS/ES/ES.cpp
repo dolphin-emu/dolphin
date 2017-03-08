@@ -86,6 +86,12 @@ constexpr const u8* s_key_table[11] = {
     s_key_empty,  // Unknown
 };
 
+static bool IsDiscTitle(u64 title_id)
+{
+  return IsTitleType(title_id, IOS::ES::TitleType::Game) ||
+         IsTitleType(title_id, IOS::ES::TitleType::GameWithChannel);
+}
+
 ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
 }
@@ -146,8 +152,7 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
 
 void TitleContext::UpdateRunningGame() const
 {
-  if (IOS::ES::IsTitleType(tmd.GetTitleId(), IOS::ES::TitleType::Game) ||
-      IOS::ES::IsTitleType(tmd.GetTitleId(), IOS::ES::TitleType::GameWithChannel))
+  if (IsDiscTitle(tmd.GetTitleId()))
   {
     const u32 title_identifier = Common::swap32(static_cast<u32>(tmd.GetTitleId()));
     const u16 group_id = Common::swap16(tmd.GetGroupId());
@@ -1027,6 +1032,18 @@ IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
   return GetTitles(GetInstalledTitles(), request);
 }
 
+// HACK: Since we do not want to require users to install disc updates when launching
+//       Wii games from the game list (which is the inaccurate game boot path anyway),
+//       IOSes have to be faked for games which reload IOS to work properly.
+//       To minimize the effect of this hack, we should only do this for disc titles
+//       booted from the game list, though.
+static bool ShouldReturnFakeViewsForIOSes(u64 title_id)
+{
+  const bool ios = IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != TITLEID_SYSMENU;
+  const bool disc_title = s_title_context.active && IsDiscTitle(s_title_context.tmd.GetTitleId());
+  return ios && SConfig::GetInstance().m_BootType == SConfig::BOOT_ISO && disc_title;
+}
+
 IPCCommandResult ES::GetViewCount(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
@@ -1040,6 +1057,11 @@ IPCCommandResult ES::GetViewCount(const IOCtlVRequest& request)
   if (Loader.IsValid() && Loader.GetTicket().IsValid())
   {
     view_count = Loader.GetTicket().GetNumberOfTickets();
+  }
+  else if (ShouldReturnFakeViewsForIOSes(TitleID))
+  {
+    view_count = 1;
+    WARN_LOG(IOS_ES, "GetViewCount: Faking IOS title %016" PRIx64 " being present", TitleID);
   }
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %zu)",
@@ -1068,6 +1090,11 @@ IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
       Memory::CopyToEmu(request.io_vectors[0].address + view * sizeof(IOS::ES::TicketView),
                         ticket_view.data(), ticket_view.size());
     }
+  }
+  else if (ShouldReturnFakeViewsForIOSes(TitleID))
+  {
+    Memory::Memset(request.io_vectors[0].address, 0, sizeof(IOS::ES::TicketView));
+    WARN_LOG(IOS_ES, "GetViews: Faking IOS title %016" PRIx64 " being present", TitleID);
   }
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWS for titleID: %08x/%08x (MaxViews = %i)", (u32)(TitleID >> 32),
