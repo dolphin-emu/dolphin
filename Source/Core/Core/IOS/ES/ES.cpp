@@ -86,6 +86,10 @@ ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device
 
 void ES::Init()
 {
+  const std::string import_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/import";
+  File::DeleteDirRecursively(import_dir);
+  File::CreateDir(import_dir);
+
   s_content_file = "";
   s_title_context = TitleContext{};
 
