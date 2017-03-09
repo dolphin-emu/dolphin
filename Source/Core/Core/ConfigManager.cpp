@@ -24,6 +24,8 @@
 #include "Core/Core.h"
 #include "Core/FifoPlayer/FifoDataFile.h"
 #include "Core/HLE/HLE.h"
+#include "Core/HW/DVDInterface.h"
+#include "Core/HW/DVDThread.h"
 #include "Core/HW/SI/SI.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
@@ -745,26 +747,27 @@ void SConfig::SetRunningGameMetadata(const DiscIO::IVolume& volume)
 
 void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
 {
-  const u64 title_id = tmd.GetTitleId();
-  std::string game_id;
+  const u64 tmd_title_id = tmd.GetTitleId();
 
-  if (IOS::ES::IsDiscTitle(title_id))
+  // If we're launching a disc game, we want to read the revision from
+  // the disc header instead of the TMD. They can differ.
+  // (IOS HLE ES calls us with a TMDReader rather than a volume when launching
+  // a disc game, because ES has no reason to be accessing the disc directly.)
+  if (DVDInterface::VolumeIsValid())
   {
-    const u32 title_identifier = Common::swap32(static_cast<u32>(title_id));
-    const u16 group_id = Common::swap16(tmd.GetGroupId());
-
-    char ascii_game_id[6];
-    std::memcpy(ascii_game_id, &title_identifier, sizeof(title_identifier));
-    std::memcpy(ascii_game_id + sizeof(title_identifier), &group_id, sizeof(group_id));
-
-    game_id = ascii_game_id;
-  }
-  else
-  {
-    game_id = StringFromFormat("%016" PRIX64, title_id);
+    DVDThread::WaitUntilIdle();
+    const DiscIO::IVolume& volume = DVDInterface::GetVolume();
+    u64 volume_title_id;
+    if (volume.GetTitleID(&volume_title_id) && volume_title_id == tmd_title_id)
+    {
+      SetRunningGameMetadata(volume.GetGameID(), volume_title_id, volume.GetRevision());
+      return;
+    }
   }
 
-  SetRunningGameMetadata(game_id, title_id, tmd.GetTitleVersion());
+  // If not launching a disc game, just read everything from the TMD.
+  SetRunningGameMetadata(StringFromFormat("%016" PRIX64, tmd_title_id), tmd_title_id,
+                         tmd.GetTitleVersion());
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision)
