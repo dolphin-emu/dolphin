@@ -84,6 +84,8 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
   UpdateActiveConfig();
+
+  // g_renderer has to be initialized to call CalculateTargetSize()
   CalculateTargetSize();
   UpdateDrawRectangle();
 
