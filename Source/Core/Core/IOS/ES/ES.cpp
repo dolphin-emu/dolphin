@@ -161,7 +161,7 @@ void TitleContext::UpdateRunningGame() const
     std::memcpy(ascii_game_id, &title_identifier, sizeof(title_identifier));
     std::memcpy(ascii_game_id + sizeof(title_identifier), &group_id, sizeof(group_id));
 
-    SConfig::GetInstance().m_strGameID = ascii_game_id;
+    SConfig::GetInstance().m_strGameID = std::string(ascii_game_id, 6);
   }
   else
   {
