@@ -88,6 +88,17 @@ GLuint FramebufferManager::CreateTexture(GLenum texture_type, GLenum internal_fo
   return texture;
 }
 
+void FramebufferManager::BindLayeredTexture(GLuint texture, const std::vector<GLuint>& framebuffers, GLenum attachment, GLenum texture_type)
+{
+  glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[0]);
+  FramebufferTexture(GL_FRAMEBUFFER, attachment, texture_type, texture, 0);
+  // Bind all the other layers as separate FBOs for blitting.
+  for (unsigned int i = 1; i < m_EFBLayers; i++) {
+    glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[i]);
+    glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texture, 0, i);
+  }
+}
+
 FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples)
 {
   m_xfbFramebuffer = 0;
@@ -145,23 +156,13 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
     // Bind resolved textures to resolved framebuffer.
     glGenFramebuffers(m_EFBLayers, m_resolvedFramebuffer.data());
-    glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[0]);
-    FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, resolvedType, m_resolvedColorTexture,
-                       0);
-    FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, resolvedType, m_resolvedDepthTexture,
-                       0);
-
-    // Bind all the other layers as separate FBOs for blitting.
-    for (unsigned int i = 1; i < m_EFBLayers; i++)
-    {
-      glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[i]);
-      glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_resolvedColorTexture, 0, i);
-      glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_resolvedDepthTexture, 0, i);
-    }
+    BindLayeredTexture(m_resolvedColorTexture, m_resolvedFramebuffer, GL_COLOR_ATTACHMENT0, resolvedType);
+    BindLayeredTexture(m_resolvedDepthTexture, m_resolvedFramebuffer, GL_DEPTH_ATTACHMENT, resolvedType);
   }
 
   m_efbColor = CreateTexture(m_textureType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-  m_efbDepth = CreateTexture(m_textureType, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+  m_efbDepth = CreateTexture(m_textureType, GL_DEPTH32F_STENCIL8, GL_DEPTH_STENCIL,
+                GL_FLOAT_32_UNSIGNED_INT_24_8_REV);
   m_efbColorSwap = CreateTexture(m_textureType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 
   // Create XFB framebuffer; targets will be created elsewhere.
@@ -169,17 +170,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
   // Bind target textures to EFB framebuffer.
   glGenFramebuffers(m_EFBLayers, m_efbFramebuffer.data());
-  glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[0]);
-  FramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_textureType, m_efbColor, 0);
-  FramebufferTexture(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_textureType, m_efbDepth, 0);
-
-  // Bind all the other layers as separate FBOs for blitting.
-  for (unsigned int i = 1; i < m_EFBLayers; i++)
-  {
-    glBindFramebuffer(GL_FRAMEBUFFER, m_efbFramebuffer[i]);
-    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, m_efbColor, 0, i);
-    glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_efbDepth, 0, i);
-  }
+  BindLayeredTexture(m_efbColor, m_efbFramebuffer, GL_COLOR_ATTACHMENT0, m_textureType);
+  BindLayeredTexture(m_efbDepth, m_efbFramebuffer, GL_DEPTH_ATTACHMENT, m_textureType);
 
   // EFB framebuffer is currently bound, make sure to clear it before use.
   glViewport(0, 0, m_targetWidth, m_targetHeight);
