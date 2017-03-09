@@ -157,7 +157,7 @@ void TitleContext::UpdateRunningGame() const
     const u32 title_identifier = Common::swap32(static_cast<u32>(tmd.GetTitleId()));
     const u16 group_id = Common::swap16(tmd.GetGroupId());
 
-    char ascii_game_id[6];
+    char ascii_game_id[7] = "";
     std::memcpy(ascii_game_id, &title_identifier, sizeof(title_identifier));
     std::memcpy(ascii_game_id + sizeof(title_identifier), &group_id, sizeof(group_id));
 
