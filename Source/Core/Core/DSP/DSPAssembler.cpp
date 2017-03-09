@@ -384,8 +384,7 @@ u32 DSPAssembler::GetParams(char* parstr, param_t* par)
     if (tmpstr == nullptr)
       break;
     tmpstr = skip_spaces(tmpstr);
-    //if (strlen(tmpstr) == 0)
-    if (!*tmpstr)
+    if (tmpstr[0] == '\0')
       break;
     if (tmpstr)
       count++;
