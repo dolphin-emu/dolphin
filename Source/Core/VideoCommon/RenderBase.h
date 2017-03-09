@@ -168,7 +168,7 @@ protected:
   int m_backbuffer_width = 0;
   int m_backbuffer_height = 0;
   int m_last_efb_scale = 0;
-  TargetRectangle m_target_rectangle;
+  TargetRectangle m_target_rectangle = {};
   bool m_xfb_written = false;
 
   FPSCounter m_fps_counter;
