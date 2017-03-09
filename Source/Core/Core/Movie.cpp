@@ -1477,7 +1477,7 @@ void GetSettings()
   s_bNetPlay = NetPlay::IsNetPlayRunning();
   if (SConfig::GetInstance().bWii)
   {
-    u64 title_id = SConfig::GetInstance().m_title_id;
+    u64 title_id = SConfig::GetInstance().GetTitleID();
     s_bClearSave =
         !File::Exists(Common::GetTitleDataPath(title_id, Common::FROM_SESSION_ROOT) + "banner.bin");
     s_language = SConfig::GetInstance().m_wii_language;

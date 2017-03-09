@@ -156,7 +156,7 @@ void CEXIMemoryCard::SetupGciFolder(u16 sizeMb)
 {
   DiscIO::Region region = SConfig::GetInstance().m_region;
 
-  std::string game_id = SConfig::GetInstance().m_strGameID;
+  const std::string& game_id = SConfig::GetInstance().GetGameID();
   u32 CurrentGameId = 0;
   if (game_id.length() >= 4 && game_id != "00000000" && game_id != TITLEID_SYSMENU_STRING)
     CurrentGameId = BE32((u8*)game_id.c_str());

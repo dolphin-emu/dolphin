@@ -24,17 +24,12 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/Swap.h"
-#include "Core/Boot/Boot.h"
 #include "Core/ConfigManager.h"
-#include "Core/HLE/HLE.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
-#include "Core/PatchEngine.h"
-#include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 #include "DiscIO/Volume.h"
-#include "VideoCommon/HiresTextures.h"
 
 namespace IOS
 {
@@ -48,7 +43,6 @@ struct TitleContext
   void DoState(PointerWrap& p);
   void Update(const DiscIO::CNANDContentLoader& content_loader);
   void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
-  void UpdateRunningGame() const;
 
   IOS::ES::TicketReader ticket;
   IOS::ES::TMDReader tmd;
@@ -85,12 +79,6 @@ constexpr const u8* s_key_table[11] = {
     s_key_empty,  // Unknown
     s_key_empty,  // Unknown
 };
-
-static bool IsDiscTitle(u64 title_id)
-{
-  return IsTitleType(title_id, IOS::ES::TitleType::Game) ||
-         IsTitleType(title_id, IOS::ES::TitleType::GameWithChannel);
-}
 
 ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device_name)
 {
@@ -145,41 +133,9 @@ void TitleContext::Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketR
   // Interesting title changes (channel or disc game launch) always happen after an IOS reload.
   if (first_change)
   {
-    UpdateRunningGame();
+    SConfig::GetInstance().SetRunningGameMetadata(tmd);
     first_change = false;
   }
-}
-
-void TitleContext::UpdateRunningGame() const
-{
-  if (IsDiscTitle(tmd.GetTitleId()))
-  {
-    const u32 title_identifier = Common::swap32(static_cast<u32>(tmd.GetTitleId()));
-    const u16 group_id = Common::swap16(tmd.GetGroupId());
-
-    char ascii_game_id[6];
-    std::memcpy(ascii_game_id, &title_identifier, sizeof(title_identifier));
-    std::memcpy(ascii_game_id + sizeof(title_identifier), &group_id, sizeof(group_id));
-
-    SConfig::GetInstance().m_strGameID = ascii_game_id;
-  }
-  else
-  {
-    SConfig::GetInstance().m_strGameID = StringFromFormat("%016" PRIX64, tmd.GetTitleId());
-  }
-
-  SConfig::GetInstance().m_title_id = tmd.GetTitleId();
-
-  // TODO: have a callback mechanism for title changes?
-  g_symbolDB.Clear();
-  CBoot::LoadMapFromFilename();
-  ::HLE::Clear();
-  ::HLE::PatchFunctions();
-  PatchEngine::Shutdown();
-  PatchEngine::LoadPatches();
-  HiresTexture::Update();
-
-  NOTICE_LOG(IOS_ES, "Active title: %016" PRIx64, tmd.GetTitleId());
 }
 
 void ES::LoadWAD(const std::string& _rContentFile)
@@ -1040,7 +996,8 @@ IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
 static bool ShouldReturnFakeViewsForIOSes(u64 title_id)
 {
   const bool ios = IsTitleType(title_id, IOS::ES::TitleType::System) && title_id != TITLEID_SYSMENU;
-  const bool disc_title = s_title_context.active && IsDiscTitle(s_title_context.tmd.GetTitleId());
+  const bool disc_title =
+      s_title_context.active && IOS::ES::IsDiscTitle(s_title_context.tmd.GetTitleId());
   return ios && SConfig::GetInstance().m_BootType == SConfig::BOOT_ISO && disc_title;
 }
 

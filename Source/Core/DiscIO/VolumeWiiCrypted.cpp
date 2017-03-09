@@ -161,7 +161,7 @@ std::string CVolumeWiiCrypted::GetGameID() const
 
   char ID[6];
 
-  if (!Read(0, 6, (u8*)ID, false))
+  if (!Read(0, 6, (u8*)ID, true))
     return std::string();
 
   return DecodeString(ID);
@@ -179,7 +179,7 @@ Region CVolumeWiiCrypted::GetRegion() const
 Country CVolumeWiiCrypted::GetCountry() const
 {
   u8 country_byte;
-  if (!m_pReader->Read(3, 1, &country_byte))
+  if (!ReadSwapped(3, &country_byte, true))
     return Country::COUNTRY_UNKNOWN;
 
   const Region region = GetRegion();
@@ -209,7 +209,7 @@ std::string CVolumeWiiCrypted::GetMakerID() const
 
   char makerID[2];
 
-  if (!Read(0x4, 0x2, (u8*)&makerID, false))
+  if (!Read(0x4, 0x2, (u8*)&makerID, true))
     return std::string();
 
   return DecodeString(makerID);
@@ -221,7 +221,7 @@ u16 CVolumeWiiCrypted::GetRevision() const
     return 0;
 
   u8 revision;
-  if (!m_pReader->Read(7, 1, &revision))
+  if (!ReadSwapped(7, &revision, true))
     return 0;
 
   return revision;
@@ -230,7 +230,7 @@ u16 CVolumeWiiCrypted::GetRevision() const
 std::string CVolumeWiiCrypted::GetInternalName() const
 {
   char name_buffer[0x60];
-  if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name_buffer, false))
+  if (m_pReader != nullptr && Read(0x20, 0x60, (u8*)&name_buffer, true))
     return DecodeString(name_buffer);
 
   return "";
@@ -291,7 +291,7 @@ Platform CVolumeWiiCrypted::GetVolumeType() const
 u8 CVolumeWiiCrypted::GetDiscNumber() const
 {
   u8 disc_number;
-  m_pReader->Read(6, 1, &disc_number);
+  ReadSwapped(6, &disc_number, true);
   return disc_number;
 }
 

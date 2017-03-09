@@ -30,6 +30,7 @@ enum class TitleType : u32
 };
 
 bool IsTitleType(u64 title_id, TitleType title_type);
+bool IsDiscTitle(u64 title_id);
 
 #pragma pack(push, 4)
 struct TMDHeader
