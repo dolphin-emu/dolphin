@@ -12,6 +12,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/GL/GLInterfaceBase.h"
 #include "Common/Logging/Log.h"
+#include "Common/MsgHandler.h"
 
 #include "Core/HW/Memmap.h"
 
@@ -49,6 +50,44 @@ GLuint FramebufferManager::m_EfbPokes_VBO;
 GLuint FramebufferManager::m_EfbPokes_VAO;
 SHADER FramebufferManager::m_EfbPokes;
 
+GLuint FramebufferManager::CreateTexture(GLenum texture_type, GLenum internal_format,
+                                         GLenum pixel_format, GLenum data_type)
+{
+  GLuint texture;
+  glGenTextures(1, &texture);
+  glBindTexture(texture_type, texture);
+  if (texture_type == GL_TEXTURE_2D_ARRAY)
+  {
+    glTexParameteri(texture_type, GL_TEXTURE_MAX_LEVEL, 0);
+    glTexImage3D(texture_type, 0, internal_format, m_targetWidth, m_targetHeight, m_EFBLayers, 0,
+                 pixel_format, data_type, nullptr);
+  }
+  else if (texture == GL_TEXTURE_2D_MULTISAMPLE_ARRAY)
+  {
+    if (g_ogl_config.bSupports3DTextureStorage)
+      glTexStorage3DMultisample(texture_type, m_msaaSamples, internal_format, m_targetWidth,
+                                m_targetHeight, m_EFBLayers, false);
+    else
+      glTexImage3DMultisample(texture_type, m_msaaSamples, internal_format, m_targetWidth,
+                              m_targetHeight, m_EFBLayers, false);
+  }
+  else if (texture == GL_TEXTURE_2D_MULTISAMPLE)
+  {
+    if (g_ogl_config.bSupports2DTextureStorage)
+      glTexStorage2DMultisample(texture_type, m_msaaSamples, internal_format, m_targetWidth,
+                                m_targetHeight, false);
+    else
+      glTexImage2DMultisample(texture_type, m_msaaSamples, internal_format, m_targetWidth,
+                              m_targetHeight, false);
+  }
+  else
+  {
+    PanicAlert("Unhandled texture type %d", texture_type);
+  }
+  glBindTexture(texture_type, 0);
+  return texture;
+}
+
 FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples)
 {
   m_xfbFramebuffer = 0;
@@ -76,132 +115,33 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
   glActiveTexture(GL_TEXTURE9);
 
-  GLuint glObj[3];
-  glGenTextures(3, glObj);
-  m_efbColor = glObj[0];
-  m_efbDepth = glObj[1];
-  m_efbColorSwap = glObj[2];
-
   m_EFBLayers = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
   m_efbFramebuffer.resize(m_EFBLayers);
   m_resolvedFramebuffer.resize(m_EFBLayers);
 
-  // OpenGL MSAA textures are a different kind of texture type and must be allocated
-  // with a different function, so we create them separately.
   if (m_msaaSamples <= 1)
   {
     m_textureType = GL_TEXTURE_2D_ARRAY;
-
-    glBindTexture(m_textureType, m_efbColor);
-    glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-    glTexImage3D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, nullptr);
-
-    glBindTexture(m_textureType, m_efbDepth);
-    glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-    glTexImage3D(m_textureType, 0, GL_DEPTH_COMPONENT32F, m_targetWidth, m_targetHeight,
-                 m_EFBLayers, 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
-
-    glBindTexture(m_textureType, m_efbColorSwap);
-    glTexParameteri(m_textureType, GL_TEXTURE_MAX_LEVEL, 0);
-    glTexImage3D(m_textureType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, nullptr);
   }
   else
   {
-    GLenum resolvedType = GL_TEXTURE_2D_ARRAY;
-
     // Only use a layered multisample texture if needed. Some drivers
     // slow down significantly with single-layered multisample textures.
     if (m_EFBLayers > 1)
-    {
       m_textureType = GL_TEXTURE_2D_MULTISAMPLE_ARRAY;
-
-      if (g_ogl_config.bSupports3DTextureStorage)
-      {
-        glBindTexture(m_textureType, m_efbColor);
-        glTexStorage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth,
-                                  m_targetHeight, m_EFBLayers, false);
-
-        glBindTexture(m_textureType, m_efbDepth);
-        glTexStorage3DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F,
-                                  m_targetWidth, m_targetHeight, m_EFBLayers, false);
-
-        glBindTexture(m_textureType, m_efbColorSwap);
-        glTexStorage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth,
-                                  m_targetHeight, m_EFBLayers, false);
-        glBindTexture(m_textureType, 0);
-      }
-      else
-      {
-        glBindTexture(m_textureType, m_efbColor);
-        glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth,
-                                m_targetHeight, m_EFBLayers, false);
-
-        glBindTexture(m_textureType, m_efbDepth);
-        glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F, m_targetWidth,
-                                m_targetHeight, m_EFBLayers, false);
-
-        glBindTexture(m_textureType, m_efbColorSwap);
-        glTexImage3DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth,
-                                m_targetHeight, m_EFBLayers, false);
-        glBindTexture(m_textureType, 0);
-      }
-    }
     else
-    {
       m_textureType = GL_TEXTURE_2D_MULTISAMPLE;
-
-      if (g_ogl_config.bSupports2DTextureStorage)
-      {
-        glBindTexture(m_textureType, m_efbColor);
-        glTexStorage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth,
-                                  m_targetHeight, false);
-
-        glBindTexture(m_textureType, m_efbDepth);
-        glTexStorage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F,
-                                  m_targetWidth, m_targetHeight, false);
-
-        glBindTexture(m_textureType, m_efbColorSwap);
-        glTexStorage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA8, m_targetWidth,
-                                  m_targetHeight, false);
-        glBindTexture(m_textureType, 0);
-      }
-      else
-      {
-        glBindTexture(m_textureType, m_efbColor);
-        glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth,
-                                m_targetHeight, false);
-
-        glBindTexture(m_textureType, m_efbDepth);
-        glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_DEPTH_COMPONENT32F, m_targetWidth,
-                                m_targetHeight, false);
-
-        glBindTexture(m_textureType, m_efbColorSwap);
-        glTexImage2DMultisample(m_textureType, m_msaaSamples, GL_RGBA, m_targetWidth,
-                                m_targetHeight, false);
-        glBindTexture(m_textureType, 0);
-      }
-    }
 
     // Although we are able to access the multisampled texture directly, we don't do it everywhere.
     // The old way is to "resolve" this multisampled texture by copying it into a non-sampled
     // texture.
     // This would lead to an unneeded copy of the EFB, so we are going to avoid it.
     // But as this job isn't done right now, we do need that texture for resolving:
-    glGenTextures(2, glObj);
-    m_resolvedColorTexture = glObj[0];
-    m_resolvedDepthTexture = glObj[1];
+    GLenum resolvedType = GL_TEXTURE_2D_ARRAY;
 
-    glBindTexture(resolvedType, m_resolvedColorTexture);
-    glTexParameteri(resolvedType, GL_TEXTURE_MAX_LEVEL, 0);
-    glTexImage3D(resolvedType, 0, GL_RGBA, m_targetWidth, m_targetHeight, m_EFBLayers, 0, GL_RGBA,
-                 GL_UNSIGNED_BYTE, nullptr);
-
-    glBindTexture(resolvedType, m_resolvedDepthTexture);
-    glTexParameteri(resolvedType, GL_TEXTURE_MAX_LEVEL, 0);
-    glTexImage3D(resolvedType, 0, GL_DEPTH_COMPONENT32F, m_targetWidth, m_targetHeight, m_EFBLayers,
-                 0, GL_DEPTH_COMPONENT, GL_FLOAT, nullptr);
+    m_resolvedColorTexture = CreateTexture(resolvedType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+    m_resolvedDepthTexture =
+        CreateTexture(resolvedType, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
 
     // Bind resolved textures to resolved framebuffer.
     glGenFramebuffers(m_EFBLayers, m_resolvedFramebuffer.data());
@@ -219,6 +159,10 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
       glFramebufferTextureLayer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, m_resolvedDepthTexture, 0, i);
     }
   }
+
+  m_efbColor = CreateTexture(m_textureType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
+  m_efbDepth = CreateTexture(m_textureType, GL_DEPTH_COMPONENT32F, GL_DEPTH_COMPONENT, GL_FLOAT);
+  m_efbColorSwap = CreateTexture(m_textureType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 
   // Create XFB framebuffer; targets will be created elsewhere.
   glGenFramebuffers(1, &m_xfbFramebuffer);

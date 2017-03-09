@@ -102,6 +102,8 @@ public:
   static void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
 
 private:
+  GLuint CreateTexture(GLenum texture_type, GLenum internal_format, GLenum pixel_format,
+                       GLenum data_type);
   std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
                                                  unsigned int target_height,
                                                  unsigned int layers) override;
