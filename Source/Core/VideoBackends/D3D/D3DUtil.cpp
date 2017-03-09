@@ -198,7 +198,10 @@ int CD3DFont::Init()
       CreateFont(24, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
                  CLIP_DEFAULT_PRECIS, PROOF_QUALITY, VARIABLE_PITCH, _T("Tahoma"));
   if (nullptr == hFont)
+  {
+    DeleteObject(hbmBitmap);
     return E_FAIL;
+  }
 
   HGDIOBJ hOldbmBitmap = SelectObject(hDC, hbmBitmap);
   HGDIOBJ hOldFont = SelectObject(hDC, hFont);
