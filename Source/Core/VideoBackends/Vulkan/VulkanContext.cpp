@@ -257,8 +257,10 @@ void VulkanContext::PopulateBackendInfoAdapters(VideoConfig* config, const GPULi
 }
 
 void VulkanContext::PopulateBackendInfoFeatures(VideoConfig* config, VkPhysicalDevice gpu,
+                                                const VkPhysicalDeviceProperties& properties,
                                                 const VkPhysicalDeviceFeatures& features)
 {
+  config->backend_info.MaxTextureSize = properties.limits.maxImageDimension2D;
   config->backend_info.bSupportsDualSourceBlend = (features.dualSrcBlend == VK_TRUE);
   config->backend_info.bSupportsGeometryShaders = (features.geometryShader == VK_TRUE);
   config->backend_info.bSupportsGSInstancing = (features.geometryShader == VK_TRUE);

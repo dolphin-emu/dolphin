@@ -61,8 +61,6 @@ public:
 
   bool CheckForResize();
 
-  u32 GetMaxTextureSize() override;
-
   static D3D12_BLEND_DESC GetResetBlendDesc();
   static D3D12_DEPTH_STENCIL_DESC GetResetDepthStencilDesc();
   static D3D12_RASTERIZER_DESC GetResetRasterizerDesc();

@@ -137,9 +137,6 @@ public:
   PEControl::PixelFormat GetPrevPixelFormat() { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
   PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
-  // Max height/width
-  virtual u32 GetMaxTextureSize() = 0;
-
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   virtual void ChangeSurface(void* new_surface_handle) {}

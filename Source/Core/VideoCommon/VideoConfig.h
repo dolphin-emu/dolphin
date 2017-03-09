@@ -173,6 +173,8 @@ struct VideoConfig final
     // TODO: merge AdapterName and Adapters array
     std::string AdapterName;  // for OpenGL
 
+    u32 MaxTextureSize;
+
     bool bSupportsExclusiveFullscreen;
     bool bSupportsDualSourceBlend;
     bool bSupportsPrimitiveRestart;

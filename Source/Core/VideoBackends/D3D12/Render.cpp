@@ -1159,11 +1159,6 @@ void Renderer::SetInterlacingMode()
   // EXISTINGD3D11TODO
 }
 
-u32 Renderer::GetMaxTextureSize()
-{
-  return DX12::D3D::GetMaxTextureSize();
-}
-
 u16 Renderer::BBoxRead(int index)
 {
   // Here we get the min/max value of the truncated position of the upscaled framebuffer.
