@@ -77,7 +77,7 @@ void ShaderCache::Init()
     if (!File::Exists(shader_cache_path))
       File::CreateDir(File::GetUserPath(D_SHADERCACHE_IDX));
 
-    std::string title_game_id = SConfig::GetInstance().m_strGameID.c_str();
+    const std::string& title_game_id = SConfig::GetInstance().GetGameID();
 
     std::string gs_cache_filename =
         StringFromFormat("%sdx11-%s-gs.cache", shader_cache_path.c_str(), title_game_id.c_str());

@@ -26,6 +26,12 @@ bool IsTitleType(u64 title_id, TitleType title_type)
   return static_cast<u32>(title_id >> 32) == static_cast<u32>(title_type);
 }
 
+bool IsDiscTitle(u64 title_id)
+{
+  return IsTitleType(title_id, TitleType::Game) ||
+         IsTitleType(title_id, TitleType::GameWithChannel);
+}
+
 bool Content::IsShared() const
 {
   return (type & 0x8000) != 0;

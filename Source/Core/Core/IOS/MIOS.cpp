@@ -12,7 +12,6 @@
 #include "Common/MsgHandler.h"
 #include "Common/NandPaths.h"
 #include "Common/Swap.h"
-#include "Core/Boot/Boot.h"
 #include "Core/Boot/ElfReader.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -124,17 +123,8 @@ static void ReinitHardware()
 static void UpdateRunningGame()
 {
   DVDThread::WaitUntilIdle();
-  const DiscIO::IVolume& volume = DVDInterface::GetVolume();
   SConfig::GetInstance().m_BootType = SConfig::BOOT_MIOS;
-  SConfig::GetInstance().m_strGameID = volume.GetGameID();
-  SConfig::GetInstance().m_revision = volume.GetRevision();
-
-  g_symbolDB.Clear();
-  CBoot::LoadMapFromFilename();
-  ::HLE::Clear();
-  ::HLE::PatchFunctions();
-
-  NOTICE_LOG(IOS, "Running game: %s", SConfig::GetInstance().m_strGameID.c_str());
+  SConfig::GetInstance().SetRunningGameMetadata(DVDInterface::GetVolume());
 }
 
 constexpr u32 ADDRESS_INIT_SEMAPHORE = 0x30f8;
