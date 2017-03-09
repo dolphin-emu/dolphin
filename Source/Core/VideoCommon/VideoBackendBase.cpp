@@ -13,8 +13,10 @@
 #include "VideoBackends/D3D12/VideoBackend.h"
 #endif
 #include "VideoBackends/Null/VideoBackend.h"
+#ifdef HAVE_OPENGL
 #include "VideoBackends/OGL/VideoBackend.h"
 #include "VideoBackends/Software/VideoBackend.h"
+#endif
 #ifndef __APPLE__
 #include "VideoBackends/Vulkan/VideoBackend.h"
 #endif
@@ -38,8 +40,12 @@ __declspec(dllexport) DWORD NvOptimusEnablement = 1;
 
 void VideoBackendBase::PopulateList()
 {
-  // OGL > D3D11 > D3D12 > Vulkan > SW > Null
+// OGL > D3D11 > D3D12 > Vulkan > SW > Null
+
+#ifdef HAVE_OPENGL
   g_available_video_backends.push_back(std::make_unique<OGL::VideoBackend>());
+#endif
+
 #ifdef _WIN32
   g_available_video_backends.push_back(std::make_unique<DX11::VideoBackend>());
 
@@ -51,10 +57,13 @@ void VideoBackendBase::PopulateList()
     g_available_video_backends.push_back(std::make_unique<DX12::VideoBackend>());
   }
 #endif
-#ifndef __APPLE__
+#if !defined(__APPLE__) && !USE_HEADLESS
   g_available_video_backends.push_back(std::make_unique<Vulkan::VideoBackend>());
 #endif
+
+#ifdef HAVE_OPENGL
   g_available_video_backends.push_back(std::make_unique<SW::VideoSoftware>());
+#endif
   g_available_video_backends.push_back(std::make_unique<Null::VideoBackend>());
 
   const auto iter =

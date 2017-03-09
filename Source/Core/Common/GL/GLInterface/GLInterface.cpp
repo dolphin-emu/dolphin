@@ -20,8 +20,6 @@
 #include "Common/GL/GLInterface/EGL.h"
 #elif ANDROID
 #include "Common/GL/GLInterface/EGLAndroid.h"
-#else
-#error Platform doesnt have a GLInterface
 #endif
 
 std::unique_ptr<cInterfaceBase> HostGL_CreateGLInterface()

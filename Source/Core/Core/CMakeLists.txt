@@ -274,11 +274,14 @@ set(LIBS
   ${LZO}
   sfml-network
   sfml-system
+  SOIL
   videonull
-  videoogl
-  videosoftware
   z
 )
+
+if(USE_OPENGL)
+  list(APPEND LIBS videoogl videosoftware)
+endif()
 
 if(LIBUSB_FOUND)
   # Using shared LibUSB
@@ -289,7 +292,7 @@ if(LIBUSB_FOUND)
   )
 endif()
 
-if(NOT APPLE)
+if(NOT APPLE AND NOT ENABLE_HEADLESS)
   set(LIBS ${LIBS} videovulkan)
 endif()
 

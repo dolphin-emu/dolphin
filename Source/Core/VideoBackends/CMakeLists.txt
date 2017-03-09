@@ -1,12 +1,15 @@
-add_subdirectory(OGL)
 add_subdirectory(Null)
-add_subdirectory(Software)
+
+if(USE_OPENGL)
+  add_subdirectory(OGL)
+  add_subdirectory(Software)
+endif()
 
 if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
   add_subdirectory(D3D)
   add_subdirectory(D3D12)
 endif()
 
-if(NOT APPLE)
+if(NOT APPLE AND NOT ENABLE_HEADLESS)
   add_subdirectory(Vulkan)
 endif()

@@ -403,13 +403,23 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   list(APPEND LIBS rt)
 endif()
 
+set(USE_OPENGL 1)
+
 if(ENABLE_HEADLESS)
-  message(STATUS "Enabling Headless! Disabling GUI, force enabling EGL!")
+  message(STATUS "Enabling Headless, disabling GUI!")
   set(USE_X11 0)
-  set(USE_EGL 1)
+  if(NOT USE_EGL)
+    set(USE_OPENGL 0)
+  endif()
   set(DISABLE_WX 1)
   set(ENABLE_QT2 0)
   add_definitions(-DUSE_HEADLESS)
+endif()
+
+if(USE_OPENGL)
+  add_definitions(-DHAVE_OPENGL)
+else()
+  message(STATUS "Not using OpenGL.")
 endif()
 
 # Set file offset size to 64 bits.
