@@ -70,7 +70,7 @@ enum
 class MemoryCardBase
 {
 public:
-  MemoryCardBase(int _card_index = 0, int sizeMb = MemCard2043Mb)
+  explicit MemoryCardBase(int _card_index = 0, int sizeMb = MemCard2043Mb)
       : card_index(_card_index), nintendo_card_id(sizeMb)
   {
   }
@@ -132,7 +132,7 @@ struct Header  // Offset    Size    Description
   // Nintendo format algorithm.
   // Constants are fixed by the GC SDK
   // Changing the constants will break memory card support
-  Header(int slot = 0, u16 sizeMb = MemCard2043Mb, bool shift_jis = false)
+  explicit Header(int slot = 0, u16 sizeMb = MemCard2043Mb, bool shift_jis = false)
   {
     memset(this, 0xFF, BLOCK_SIZE);
     *(u16*)SizeMb = BE16(sizeMb);
@@ -245,7 +245,7 @@ struct BlockAlloc
   u16 NextFreeBlock(u16 MaxBlock, u16 StartingBlock = MC_FST_BLOCKS) const;
   bool ClearBlocks(u16 StartingBlock, u16 Length);
   void fixChecksums() { calc_checksumsBE((u16*)&UpdateCounter, 0xFFE, &Checksum, &Checksum_Inv); }
-  BlockAlloc(u16 sizeMb = MemCard2043Mb)
+  explicit BlockAlloc(u16 sizeMb = MemCard2043Mb)
   {
     memset(this, 0, BLOCK_SIZE);
     // UpdateCounter = 0;
@@ -315,7 +315,8 @@ private:
   void InitDirBatPointers();
 
 public:
-  GCMemcard(const std::string& fileName, bool forceCreation = false, bool shift_jis = false);
+  explicit GCMemcard(const std::string& fileName, bool forceCreation = false,
+                     bool shift_jis = false);
   bool IsValid() const { return m_valid; }
   bool IsShiftJIS() const;
   bool Save();
