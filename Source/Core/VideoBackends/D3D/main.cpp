@@ -61,6 +61,7 @@ void VideoBackend::InitBackendInfo()
   }
 
   g_Config.backend_info.api_type = APIType::D3D;
+  g_Config.backend_info.MaxTextureSize = DX11::D3D::GetMaxTextureSize();
   g_Config.backend_info.bSupportsExclusiveFullscreen = true;
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;

@@ -242,7 +242,7 @@ void TextureCacheBase::ScaleTextureCacheEntryTo(TextureCacheBase::TCacheEntryBas
     return;
   }
 
-  u32 max = g_renderer->GetMaxTextureSize();
+  const u32 max = g_ActiveConfig.backend_info.MaxTextureSize;
   if (max < new_width || max < new_height)
   {
     ERROR_LOG(VIDEO, "Texture too big, width = %d, height = %d", new_width, new_height);

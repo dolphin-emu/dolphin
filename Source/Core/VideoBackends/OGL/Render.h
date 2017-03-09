@@ -103,8 +103,6 @@ public:
 
   void ReinterpretPixelData(unsigned int convtype) override;
 
-  u32 GetMaxTextureSize() override;
-
   void ChangeSurface(void* new_surface_handle) override;
 
 private:

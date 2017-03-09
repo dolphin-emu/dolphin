@@ -84,8 +84,8 @@ Renderer::Renderer(int backbuffer_width, int backbuffer_height)
   FramebufferManagerBase::SetLastXfbHeight(MAX_XFB_HEIGHT);
 
   UpdateActiveConfig();
-  CalculateTargetSize();
   UpdateDrawRectangle();
+  CalculateTargetSize();
 
   OSDChoice = 0;
   OSDTime = 0;
@@ -127,7 +127,7 @@ int Renderer::EFBToScaledX(int x)
   switch (g_ActiveConfig.iEFBScale)
   {
   case SCALE_AUTO:  // fractional
-    return FramebufferManagerBase::ScaleToVirtualXfbWidth(x);
+    return FramebufferManagerBase::ScaleToVirtualXfbWidth(x, m_target_rectangle);
 
   default:
     return x * (int)m_efb_scale_numeratorX / (int)m_efb_scale_denominatorX;
@@ -139,7 +139,7 @@ int Renderer::EFBToScaledY(int y)
   switch (g_ActiveConfig.iEFBScale)
   {
   case SCALE_AUTO:  // fractional
-    return FramebufferManagerBase::ScaleToVirtualXfbHeight(y);
+    return FramebufferManagerBase::ScaleToVirtualXfbHeight(y, m_target_rectangle);
 
   default:
     return y * (int)m_efb_scale_numeratorY / (int)m_efb_scale_denominatorY;
@@ -173,8 +173,8 @@ bool Renderer::CalculateTargetSize()
   {
   case SCALE_AUTO:
   case SCALE_AUTO_INTEGRAL:
-    newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH);
-    newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT);
+    newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, m_target_rectangle);
+    newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, m_target_rectangle);
 
     if (m_last_efb_scale == SCALE_AUTO_INTEGRAL)
     {
@@ -217,7 +217,7 @@ bool Renderer::CalculateTargetSize()
     m_efb_scale_numeratorX = m_efb_scale_numeratorY = m_last_efb_scale - 3;
     m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
 
-    const u32 max_size = GetMaxTextureSize();
+    const u32 max_size = g_ActiveConfig.backend_info.MaxTextureSize;
     if (max_size < EFB_WIDTH * m_efb_scale_numeratorX / m_efb_scale_denominatorX)
     {
       m_efb_scale_numeratorX = m_efb_scale_numeratorY = (max_size / EFB_WIDTH);

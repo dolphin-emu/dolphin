@@ -51,8 +51,6 @@ void VideoConfig::UpdateProjectionHack()
   ::UpdateProjectionHack(g_Config.iPhackvalue, g_Config.sPhackvalue);
 }
 
-static int s_max_texture_size = 0;
-
 namespace OGL
 {
 VideoConfig g_ogl_config;
@@ -334,48 +332,11 @@ Renderer::Renderer()
 {
   bool bSuccess = true;
 
-  // Init extension support.
-  if (!GLExtensions::Init())
-  {
-    // OpenGL 2.0 is required for all shader based drawings. There is no way to get this by
-    // extensions
-    PanicAlert("GPU: OGL ERROR: Does your video card support OpenGL 2.0?");
-    bSuccess = false;
-  }
-
   g_ogl_config.gl_vendor = (const char*)glGetString(GL_VENDOR);
   g_ogl_config.gl_renderer = (const char*)glGetString(GL_RENDERER);
   g_ogl_config.gl_version = (const char*)glGetString(GL_VERSION);
 
   InitDriverInfo();
-
-  if (GLExtensions::Version() < 300)
-  {
-    // integer vertex attributes require a gl3 only function
-    PanicAlert("GPU: OGL ERROR: Need OpenGL version 3.\n"
-               "GPU: Does your video card support OpenGL 3?");
-    bSuccess = false;
-  }
-
-  // check for the max vertex attributes
-  GLint numvertexattribs = 0;
-  glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &numvertexattribs);
-  if (numvertexattribs < 16)
-  {
-    PanicAlert("GPU: OGL ERROR: Number of attributes %d not enough.\n"
-               "GPU: Does your video card support OpenGL 2.x?",
-               numvertexattribs);
-    bSuccess = false;
-  }
-
-  // check the max texture width and height
-  GLint max_texture_size;
-  glGetIntegerv(GL_MAX_TEXTURE_SIZE, (GLint*)&max_texture_size);
-  if (max_texture_size < 1024)
-  {
-    PanicAlert("GL_MAX_TEXTURE_SIZE too small at %i - must be at least 1024.", max_texture_size);
-    bSuccess = false;
-  }
 
   if (GLInterface->GetMode() == GLInterfaceMode::MODE_OPENGL)
   {
@@ -656,10 +617,6 @@ Renderer::Renderer()
     // Else some of the next calls might crash.
     return;
   }
-
-  glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
-  if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
-    g_ogl_config.max_samples = 1;
 
   g_Config.VerifyValidity();
   UpdateActiveConfig();
@@ -1777,19 +1734,6 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
 void Renderer::SetInterlacingMode()
 {
   // TODO
-}
-}
-
-namespace OGL
-{
-u32 Renderer::GetMaxTextureSize()
-{
-  // Right now nvidia seems to do something very weird if we try to cache GL_MAX_TEXTURE_SIZE in
-  // init. This is a workaround that lets
-  // us keep the perf improvement that caching it gives us.
-  if (s_max_texture_size == 0)
-    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &s_max_texture_size);
-  return static_cast<u32>(s_max_texture_size);
 }
 
 void Renderer::ChangeSurface(void* new_surface_handle)

@@ -37,6 +37,7 @@ VideoConfig::VideoConfig()
 
   // disable all features by default
   backend_info.api_type = APIType::Nothing;
+  backend_info.MaxTextureSize = 16384;
   backend_info.bSupportsExclusiveFullscreen = false;
   backend_info.bSupportsMultithreading = false;
   backend_info.bSupportsInternalResolutionFrameDumps = false;
