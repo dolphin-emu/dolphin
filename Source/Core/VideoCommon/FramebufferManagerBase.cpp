@@ -250,7 +250,7 @@ void FramebufferManagerBase::ReplaceVirtualXFB()
 
 int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x)
 {
-  if (g_ActiveConfig.RealXFBEnabled())
+  if (g_ActiveConfig.RealXFBEnabled() || !g_renderer)
     return x;
 
   return x * static_cast<int>(g_renderer->GetTargetRectangle().GetWidth()) /
@@ -259,7 +259,7 @@ int FramebufferManagerBase::ScaleToVirtualXfbWidth(int x)
 
 int FramebufferManagerBase::ScaleToVirtualXfbHeight(int y)
 {
-  if (g_ActiveConfig.RealXFBEnabled())
+  if (g_ActiveConfig.RealXFBEnabled() || !g_renderer)
     return y;
 
   return y * static_cast<int>(g_renderer->GetTargetRectangle().GetHeight()) /
