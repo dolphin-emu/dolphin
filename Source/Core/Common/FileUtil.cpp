@@ -636,7 +636,7 @@ std::string GetCurrentDir()
   if (!(dir = __getcwd(nullptr, 0)))
   {
     ERROR_LOG(COMMON, "GetCurrentDirectory failed: %s", GetLastErrorMsg().c_str());
-    return std::string();
+    return "";
   }
   std::string strDir = dir;
   free(dir);
