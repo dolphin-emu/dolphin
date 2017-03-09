@@ -170,6 +170,10 @@
     <ClCompile Include="NetPlayClient.cpp" />
     <ClCompile Include="NetPlayServer.cpp" />
     <ClCompile Include="PatchEngine.cpp" />
+    <ClCompile Include="ConfigLoaders\BaseConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\GameConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\MovieConfigLoader.cpp" />
+    <ClCompile Include="ConfigLoaders\NetPlayConfigLoader.cpp" />
     <ClCompile Include="State.cpp" />
     <ClCompile Include="WiiRoot.cpp" />
     <ClCompile Include="ActionReplay.cpp">
@@ -860,6 +864,10 @@
     <ClInclude Include="NetPlayProto.h" />
     <ClInclude Include="NetPlayServer.h" />
     <ClInclude Include="PatchEngine.h" />
+    <ClInclude Include="ConfigLoaders\BaseConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\GameConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\MovieConfigLoader.h" />
+    <ClInclude Include="ConfigLoaders\NetPlayConfigLoader.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="WiiRoot.h" />
     <ClInclude Include="ActionReplay.h">
