@@ -192,15 +192,13 @@ int CD3DFont::Init()
   HFONT hFont =
       CreateFont(24, 0, 0, 0, FW_NORMAL, FALSE, FALSE, FALSE, DEFAULT_CHARSET, OUT_DEFAULT_PRECIS,
                  CLIP_DEFAULT_PRECIS, PROOF_QUALITY, VARIABLE_PITCH, _T("Tahoma"));
-  if (nullptr == hFont)
+  if (hFont == nullptr)
     return E_FAIL;
 
   // Create a DC and a bitmap for the font
   HDC hDC = CreateCompatibleDC(nullptr);
   HBITMAP hbmBitmap = CreateDIBSection(hDC, &bmi, DIB_RGB_COLORS, (void**)&pBitmapBits, nullptr, 0);
   SetMapMode(hDC, MM_TEXT);
-
- 
 
   HGDIOBJ hOldbmBitmap = SelectObject(hDC, hbmBitmap);
   HGDIOBJ hOldFont = SelectObject(hDC, hFont);
