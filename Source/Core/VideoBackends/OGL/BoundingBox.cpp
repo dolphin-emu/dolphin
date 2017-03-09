@@ -167,4 +167,10 @@ void BoundingBox::StencilWasUpdated()
   s_stencil_updated = true;
   s_stencil_cleared = false;
 }
+
+bool BoundingBox::NeedsStencilBuffer()
+{
+  return g_ActiveConfig.bBBoxEnable &&
+         !g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics;
+}
 };

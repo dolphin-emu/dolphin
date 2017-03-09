@@ -29,6 +29,7 @@ namespace OGL
 int FramebufferManager::m_targetWidth;
 int FramebufferManager::m_targetHeight;
 int FramebufferManager::m_msaaSamples;
+bool FramebufferManager::m_enable_stencil_buffer;
 
 GLenum FramebufferManager::m_textureType;
 std::vector<GLuint> FramebufferManager::m_efbFramebuffer;
@@ -88,18 +89,26 @@ GLuint FramebufferManager::CreateTexture(GLenum texture_type, GLenum internal_fo
   return texture;
 }
 
-void FramebufferManager::BindLayeredTexture(GLuint texture, const std::vector<GLuint>& framebuffers, GLenum attachment, GLenum texture_type)
+void FramebufferManager::BindLayeredTexture(GLuint texture, const std::vector<GLuint>& framebuffers,
+                                            GLenum attachment, GLenum texture_type)
 {
   glBindFramebuffer(GL_FRAMEBUFFER, framebuffers[0]);
   FramebufferTexture(GL_FRAMEBUFFER, attachment, texture_type, texture, 0);
   // Bind all the other layers as separate FBOs for blitting.
-  for (unsigned int i = 1; i < m_EFBLayers; i++) {
+  for (unsigned int i = 1; i < m_EFBLayers; i++)
+  {
     glBindFramebuffer(GL_FRAMEBUFFER, m_resolvedFramebuffer[i]);
     glFramebufferTextureLayer(GL_FRAMEBUFFER, attachment, texture, 0, i);
   }
 }
 
-FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples)
+bool FramebufferManager::HasStencilBuffer()
+{
+  return m_enable_stencil_buffer;
+}
+
+FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int msaaSamples,
+                                       bool enable_stencil_buffer)
 {
   m_xfbFramebuffer = 0;
   m_efbColor = 0;
@@ -110,8 +119,8 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
   m_targetWidth = targetWidth;
   m_targetHeight = targetHeight;
-
   m_msaaSamples = msaaSamples;
+  m_enable_stencil_buffer = enable_stencil_buffer;
 
   // The EFB can be set to different pixel formats by the game through the
   // BPMEM_ZCOMPARE register (which should probably have a different name).
@@ -129,6 +138,16 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   m_EFBLayers = (g_ActiveConfig.iStereoMode > 0) ? 2 : 1;
   m_efbFramebuffer.resize(m_EFBLayers);
   m_resolvedFramebuffer.resize(m_EFBLayers);
+
+  GLenum depth_internal_format = GL_DEPTH_COMPONENT32F;
+  GLenum depth_pixel_format = GL_DEPTH_COMPONENT;
+  GLenum depth_data_type = GL_FLOAT;
+  if (m_enable_stencil_buffer)
+  {
+    depth_internal_format = GL_DEPTH32F_STENCIL8;
+    depth_pixel_format = GL_DEPTH_STENCIL;
+    depth_data_type = GL_FLOAT_32_UNSIGNED_INT_24_8_REV;
+  }
 
   if (m_msaaSamples <= 1)
   {
@@ -152,18 +171,22 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
 
     m_resolvedColorTexture = CreateTexture(resolvedType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
     m_resolvedDepthTexture =
-        CreateTexture(resolvedType, GL_DEPTH32F_STENCIL8, GL_DEPTH_STENCIL, GL_FLOAT_32_UNSIGNED_INT_24_8_REV);
+        CreateTexture(resolvedType, depth_internal_format, depth_pixel_format, depth_data_type);
 
     // Bind resolved textures to resolved framebuffer.
     glGenFramebuffers(m_EFBLayers, m_resolvedFramebuffer.data());
-    BindLayeredTexture(m_resolvedColorTexture, m_resolvedFramebuffer, GL_COLOR_ATTACHMENT0, resolvedType);
-    BindLayeredTexture(m_resolvedDepthTexture, m_resolvedFramebuffer, GL_DEPTH_ATTACHMENT, resolvedType);
-    BindLayeredTexture(m_resolvedDepthTexture, m_resolvedFramebuffer, GL_STENCIL_ATTACHMENT, resolvedType);
+    BindLayeredTexture(m_resolvedColorTexture, m_resolvedFramebuffer, GL_COLOR_ATTACHMENT0,
+                       resolvedType);
+    BindLayeredTexture(m_resolvedDepthTexture, m_resolvedFramebuffer, GL_DEPTH_ATTACHMENT,
+                       resolvedType);
+    if (m_enable_stencil_buffer)
+      BindLayeredTexture(m_resolvedDepthTexture, m_resolvedFramebuffer, GL_STENCIL_ATTACHMENT,
+                         resolvedType);
   }
 
   m_efbColor = CreateTexture(m_textureType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
-  m_efbDepth = CreateTexture(m_textureType, GL_DEPTH32F_STENCIL8, GL_DEPTH_STENCIL,
-                GL_FLOAT_32_UNSIGNED_INT_24_8_REV);
+  m_efbDepth =
+      CreateTexture(m_textureType, depth_internal_format, depth_pixel_format, depth_data_type);
   m_efbColorSwap = CreateTexture(m_textureType, GL_RGBA8, GL_RGBA, GL_UNSIGNED_BYTE);
 
   // Create XFB framebuffer; targets will be created elsewhere.
@@ -173,15 +196,20 @@ FramebufferManager::FramebufferManager(int targetWidth, int targetHeight, int ms
   glGenFramebuffers(m_EFBLayers, m_efbFramebuffer.data());
   BindLayeredTexture(m_efbColor, m_efbFramebuffer, GL_COLOR_ATTACHMENT0, m_textureType);
   BindLayeredTexture(m_efbDepth, m_efbFramebuffer, GL_DEPTH_ATTACHMENT, m_textureType);
-  BindLayeredTexture(m_efbDepth, m_efbFramebuffer, GL_STENCIL_ATTACHMENT, m_textureType);
+  if (m_enable_stencil_buffer)
+    BindLayeredTexture(m_efbDepth, m_efbFramebuffer, GL_STENCIL_ATTACHMENT, m_textureType);
 
   // EFB framebuffer is currently bound, make sure to clear it before use.
   glViewport(0, 0, m_targetWidth, m_targetHeight);
   glScissor(0, 0, m_targetWidth, m_targetHeight);
   glClearColor(0.f, 0.f, 0.f, 0.f);
   glClearDepthf(1.0f);
-  glClearStencil(0);
-  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+  glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+  if (m_enable_stencil_buffer)
+  {
+    glClearStencil(0);
+    glClear(GL_STENCIL_BUFFER_BIT);
+  }
 
   // reinterpret pixel format
   const char* vs = m_EFBLayers > 1 ? "void main(void) {\n"

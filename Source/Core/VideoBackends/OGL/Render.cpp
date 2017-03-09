@@ -734,8 +734,8 @@ void Renderer::Shutdown()
 void Renderer::Init()
 {
   // Initialize the FramebufferManager
-  g_framebuffer_manager =
-      std::make_unique<FramebufferManager>(m_target_width, m_target_height, s_MSAASamples);
+  g_framebuffer_manager = std::make_unique<FramebufferManager>(
+      m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
 
   m_post_processor = std::make_unique<OpenGLPostProcessing>();
   s_raster_font = std::make_unique<RasterFont>();
@@ -1338,35 +1338,38 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   }
 
   bool target_size_changed = CalculateTargetSize();
-  if (target_size_changed || xfbchanged || window_resized ||
-      (s_last_multisamples != g_ActiveConfig.iMultisamples) ||
-      (s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0)))
+  bool stencil_buffer_enabled =
+      static_cast<FramebufferManager*>(g_framebuffer_manager.get())->HasStencilBuffer();
+
+  bool fb_needs_update = target_size_changed ||
+                         s_last_multisamples != g_ActiveConfig.iMultisamples ||
+                         stencil_buffer_enabled != BoundingBox::NeedsStencilBuffer() ||
+                         s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0);
+
+  if (xfbchanged || window_resized || fb_needs_update)
   {
     s_last_xfb_mode = g_ActiveConfig.bUseRealXFB;
-
     UpdateDrawRectangle();
+  }
+  if (fb_needs_update)
+  {
+    s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
+    s_last_multisamples = g_ActiveConfig.iMultisamples;
+    s_MSAASamples = s_last_multisamples;
 
-    if (target_size_changed || s_last_multisamples != g_ActiveConfig.iMultisamples ||
-        s_last_stereo_mode != (g_ActiveConfig.iStereoMode > 0))
+    if (s_MSAASamples > 1 && s_MSAASamples > g_ogl_config.max_samples)
     {
-      s_last_stereo_mode = g_ActiveConfig.iStereoMode > 0;
-      s_last_multisamples = g_ActiveConfig.iMultisamples;
-      s_MSAASamples = s_last_multisamples;
-
-      if (s_MSAASamples > 1 && s_MSAASamples > g_ogl_config.max_samples)
-      {
-        s_MSAASamples = g_ogl_config.max_samples;
-        OSD::AddMessage(StringFromFormat(
-                            "%d Anti Aliasing samples selected, but only %d supported by your GPU.",
-                            s_last_multisamples, g_ogl_config.max_samples),
-                        10000);
-      }
-
-      g_framebuffer_manager.reset();
-      g_framebuffer_manager =
-          std::make_unique<FramebufferManager>(m_target_width, m_target_height, s_MSAASamples);
-      BoundingBox::SetTargetSizeChanged(m_target_width, m_target_height);
+      s_MSAASamples = g_ogl_config.max_samples;
+      OSD::AddMessage(
+          StringFromFormat("%d Anti Aliasing samples selected, but only %d supported by your GPU.",
+                           s_last_multisamples, g_ogl_config.max_samples),
+          10000);
     }
+
+    g_framebuffer_manager.reset();
+    g_framebuffer_manager = std::make_unique<FramebufferManager>(
+        m_target_width, m_target_height, s_MSAASamples, BoundingBox::NeedsStencilBuffer());
+    BoundingBox::SetTargetSizeChanged(m_target_width, m_target_height);
   }
 
   // ---------------------------------------------------------------------
