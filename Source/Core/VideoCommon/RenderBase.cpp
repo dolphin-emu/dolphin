@@ -947,15 +947,17 @@ bool Renderer::UseVertexDepthRange() const
   if (!g_ActiveConfig.backend_info.bSupportsDepthClamp)
     return false;
 
+  const bool ztexture_enabled = bpmem.ztex2.type != ZTEXTURE_DISABLE && !bpmem.zcontrol.early_ztest;
+
   if (g_ActiveConfig.backend_info.bSupportsOversizedDepthRanges)
   {
     // We support oversized depth ranges, but we need a full depth range if a ztexture is used.
-    return bpmem.ztex2.type != ZTEXTURE_DISABLE;
+    return ztexture_enabled;
   }
   else
   {
     // We need a full depth range if a ztexture is used.
-    if (bpmem.ztex2.type != ZTEXTURE_DISABLE)
+    if (ztexture_enabled)
       return true;
 
     // If an inverted depth range is unsupported, we also need to check if the range is inverted.
