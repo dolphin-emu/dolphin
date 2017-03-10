@@ -79,13 +79,6 @@ set(GUI_SRCS
   WxUtils.cpp
 )
 
-set(NOGUI_SRCS MainNoGUI.cpp)
-
-if(USE_X11)
-  set(GUI_SRCS ${GUI_SRCS} X11Utils.cpp)
-  set(NOGUI_SRCS ${NOGUI_SRCS} X11Utils.cpp)
-endif()
-
 set(WXLIBS ${wxWidgets_LIBRARIES})
 
 if(${CMAKE_SYSTEM_NAME} STREQUAL "Linux")
@@ -199,12 +192,4 @@ if(wxWidgets_FOUND)
   endif()
 
   set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_EXE})
-endif()
-
-if(USE_X11 OR ENABLE_HEADLESS)
-  set(DOLPHIN_NOGUI_EXE ${DOLPHIN_EXE_BASE}-nogui)
-  add_executable(${DOLPHIN_NOGUI_EXE} ${SRCS} ${NOGUI_SRCS})
-  target_link_libraries(${DOLPHIN_NOGUI_EXE} ${LIBS})
-  set(CPACK_PACKAGE_EXECUTABLES ${CPACK_PACKAGE_EXECUTABLES} ${DOLPHIN_NOGUI_EXE})
-  install(TARGETS ${DOLPHIN_NOGUI_EXE} RUNTIME DESTINATION ${bindir})
 endif()
