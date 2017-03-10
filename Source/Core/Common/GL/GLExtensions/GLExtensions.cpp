@@ -2072,7 +2072,7 @@ static void InitExtensionList()
       std::string gl300exts[] = {
           "GL_ARB_map_buffer_range", "GL_ARB_color_buffer_float", "GL_ARB_texture_float",
           "GL_ARB_half_float_pixel", "GL_ARB_framebuffer_object", "GL_ARB_texture_float",
-          "GL_ARB_vertex_array_object", "GL_NV_depth_buffer_float",
+          "GL_ARB_vertex_array_object", "GL_ARB_depth_buffer_float",
           //"GL_EXT_texture_integer",
           //"GL_EXT_gpu_shader4",
           //"GL_APPLE_flush_buffer_range",
