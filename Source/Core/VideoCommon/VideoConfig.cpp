@@ -119,6 +119,7 @@ void VideoConfig::Load(const std::string& ini_file)
   IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
   hacks->Get("EFBAccessEnable", &bEFBAccessEnable, true);
   hacks->Get("BBoxEnable", &bBBoxEnable, false);
+  hacks->Get("BBoxPreferStencilImplementation", &bBBoxPreferStencilImplementation, false);
   hacks->Get("ForceProgressive", &bForceProgressive, true);
   hacks->Get("EFBToTextureEnable", &bSkipEFBCopyToRam, true);
   hacks->Get("EFBScaledCopy", &bCopyEFBScaled, true);
@@ -342,6 +343,7 @@ void VideoConfig::Save(const std::string& ini_file)
   IniFile::Section* hacks = iniFile.GetOrCreateSection("Hacks");
   hacks->Set("EFBAccessEnable", bEFBAccessEnable);
   hacks->Set("BBoxEnable", bBBoxEnable);
+  hacks->Set("BBoxPreferStencilImplementation", bBBoxPreferStencilImplementation);
   hacks->Set("ForceProgressive", bForceProgressive);
   hacks->Set("EFBToTextureEnable", bSkipEFBCopyToRam);
   hacks->Set("EFBScaledCopy", bCopyEFBScaled);

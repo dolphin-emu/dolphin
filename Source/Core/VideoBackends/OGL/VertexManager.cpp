@@ -158,14 +158,14 @@ void VertexManager::vFlush()
   // setup the pointers
   nativeVertexFmt->SetupVertexPointers();
 
-  if (!g_Config.backend_info.bSupportsFragmentStoresAndAtomics && ::BoundingBox::active)
+  if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
   {
     glEnable(GL_STENCIL_TEST);
   }
 
   Draw(stride);
 
-  if (!g_Config.backend_info.bSupportsFragmentStoresAndAtomics && ::BoundingBox::active)
+  if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
   {
     OGL::BoundingBox::StencilWasUpdated();
     glDisable(GL_STENCIL_TEST);

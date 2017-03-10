@@ -114,6 +114,7 @@ struct VideoConfig final
   bool bEFBAccessEnable;
   bool bPerfQueriesEnable;
   bool bBBoxEnable;
+  bool bBBoxPreferStencilImplementation;  // OpenGL-only, to see how slow it is compared to SSBOs
   bool bForceProgressive;
 
   bool bEFBEmulateFormatChanges;
@@ -202,6 +203,12 @@ struct VideoConfig final
   bool ExclusiveFullscreenEnabled() const
   {
     return backend_info.bSupportsExclusiveFullscreen && !bBorderlessFullscreen;
+  }
+  bool BBoxUseFragmentShaderImplementation() const
+  {
+    if (backend_info.api_type == APIType::OpenGL && bBBoxPreferStencilImplementation)
+      return false;
+    return backend_info.bSupportsBBox && backend_info.bSupportsFragmentStoresAndAtomics;
   }
 };
 

@@ -28,7 +28,7 @@ namespace OGL
 {
 void BoundingBox::SetTargetSizeChanged(int target_width, int target_height)
 {
-  if (g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics)
+  if (g_ActiveConfig.BBoxUseFragmentShaderImplementation())
     return;
 
   s_target_width = target_width;
@@ -42,7 +42,7 @@ void BoundingBox::SetTargetSizeChanged(int target_width, int target_height)
 
 void BoundingBox::Init(int target_width, int target_height)
 {
-  if (g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics)
+  if (g_ActiveConfig.BBoxUseFragmentShaderImplementation())
   {
     int initial_values[4] = {0, 0, 0, 0};
     glGenBuffers(1, &s_bbox_buffer_id);
@@ -60,7 +60,7 @@ void BoundingBox::Init(int target_width, int target_height)
 
 void BoundingBox::Shutdown()
 {
-  if (g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics)
+  if (g_ActiveConfig.BBoxUseFragmentShaderImplementation())
   {
     glDeleteBuffers(1, &s_bbox_buffer_id);
   }
@@ -72,7 +72,7 @@ void BoundingBox::Shutdown()
 
 void BoundingBox::Set(int index, int value)
 {
-  if (g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics)
+  if (g_ActiveConfig.BBoxUseFragmentShaderImplementation())
   {
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
     glBufferSubData(GL_SHADER_STORAGE_BUFFER, index * sizeof(int), sizeof(int), &value);
@@ -95,7 +95,7 @@ void BoundingBox::Set(int index, int value)
 
 int BoundingBox::Get(int index)
 {
-  if (g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics)
+  if (g_ActiveConfig.BBoxUseFragmentShaderImplementation())
   {
     int data = 0;
     glBindBuffer(GL_SHADER_STORAGE_BUFFER, s_bbox_buffer_id);
@@ -170,7 +170,6 @@ void BoundingBox::StencilWasUpdated()
 
 bool BoundingBox::NeedsStencilBuffer()
 {
-  return g_ActiveConfig.bBBoxEnable &&
-         !g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics;
+  return g_ActiveConfig.bBBoxEnable && !g_ActiveConfig.BBoxUseFragmentShaderImplementation();
 }
 };
