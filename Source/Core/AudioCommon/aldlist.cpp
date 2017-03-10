@@ -93,7 +93,7 @@ ALDeviceList::ALDeviceList()
           alcMakeContextCurrent(context);
           // if new actual device name isn't already in the list, then add it...
           const char* actualDeviceName = alcGetString(device, ALC_DEVICE_SPECIFIER);
-          if (actualDeviceName && actualDeviceName[0] != '\0)
+          if (actualDeviceName && actualDeviceName[0] != '\0')
           {
             bool bNewName = true;
             for (s32 i = 0; i < GetNumDevices(); i++)
