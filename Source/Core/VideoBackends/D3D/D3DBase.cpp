@@ -526,9 +526,9 @@ bool BGRATexturesSupported()
 
 // Returns the maximum width/height of a texture. This value only depends upon the feature level in
 // DX11
-unsigned int GetMaxTextureSize()
+u32 GetMaxTextureSize(D3D_FEATURE_LEVEL feature_level)
 {
-  switch (featlevel)
+  switch (feature_level)
   {
   case D3D_FEATURE_LEVEL_11_0:
     return D3D11_REQ_TEXTURE2D_U_OR_V_DIMENSION;
