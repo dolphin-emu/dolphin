@@ -27,12 +27,12 @@ void BackUpBTInfoSection(const SysConf* sysconf)
   if (File::Exists(filename))
     return;
   File::IOFile backup(filename, "wb");
-  std::vector<u8> section(BT_INFO_SECTION_LENGTH);
-  if (!sysconf->GetArrayData("BT.DINF", section.data(), static_cast<u16>(section.size())))
-  {
-    ERROR_LOG(IOS_WIIMOTE, "Failed to read source BT.DINF section");
+
+  const SysConf::Entry* btdinf = sysconf->GetEntry("BT.DINF");
+  if (!btdinf)
     return;
-  }
+
+  const std::vector<u8>& section = btdinf->bytes;
   if (!backup.WriteBytes(section.data(), section.size()))
     ERROR_LOG(IOS_WIIMOTE, "Failed to back up BT.DINF section");
 }
@@ -49,7 +49,8 @@ void RestoreBTInfoSection(SysConf* sysconf)
     ERROR_LOG(IOS_WIIMOTE, "Failed to read backed up BT.DINF section");
     return;
   }
-  sysconf->SetArrayData("BT.DINF", section.data(), static_cast<u16>(section.size()));
+
+  sysconf->GetOrAddEntry("BT.DINF", SysConf::Entry::Type::BigArray)->bytes = std::move(section);
   File::Delete(filename);
 }
 }  // namespace HLE

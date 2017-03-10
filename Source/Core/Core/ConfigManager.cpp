@@ -376,21 +376,25 @@ void SConfig::SaveSettingsToSysconf()
 {
   SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
 
-  sysconf.SetData<u8>("IPL.SSV", m_wii_screensaver);
-  sysconf.SetData<u8>("IPL.LNG", m_wii_language);
+  sysconf.SetData<u8>("IPL.SSV", SysConf::Entry::Type::Byte, m_wii_screensaver);
+  sysconf.SetData<u8>("IPL.LNG", SysConf::Entry::Type::Byte, m_wii_language);
 
-  sysconf.SetData<u8>("IPL.AR", m_wii_aspect_ratio);
-  sysconf.SetData<u8>("BT.BAR", m_sensor_bar_position);
-  sysconf.SetData<u32>("BT.SENS", m_sensor_bar_sensitivity);
-  sysconf.SetData<u8>("BT.SPKV", m_speaker_volume);
-  sysconf.SetData("BT.MOT", m_wiimote_motor);
-  sysconf.SetData("IPL.PGS", bProgressive);
-  sysconf.SetData("IPL.E60", bPAL60);
+  sysconf.SetData<u8>("IPL.AR", SysConf::Entry::Type::Byte, m_wii_aspect_ratio);
+  sysconf.SetData<u8>("BT.BAR", SysConf::Entry::Type::Byte, m_sensor_bar_position);
+  sysconf.SetData<u32>("BT.SENS", SysConf::Entry::Type::Long, m_sensor_bar_sensitivity);
+  sysconf.SetData<u8>("BT.SPKV", SysConf::Entry::Type::Byte, m_speaker_volume);
+  sysconf.SetData<u8>("BT.MOT", SysConf::Entry::Type::Byte, m_wiimote_motor);
+  sysconf.SetData<u8>("IPL.PGS", SysConf::Entry::Type::Byte, bProgressive);
+  sysconf.SetData<u8>("IPL.E60", SysConf::Entry::Type::Byte, bPAL60);
 
   // Disable WiiConnect24's standby mode. If it is enabled, it prevents us from receiving
   // shutdown commands in the State Transition Manager (STM).
   // TODO: remove this if and once Dolphin supports WC24 standby mode.
-  sysconf.SetData<u8>("IPL.IDL", 0x00);
+  SysConf::Entry* idle_entry = sysconf.GetOrAddEntry("IPL.IDL", SysConf::Entry::Type::SmallArray);
+  if (idle_entry->bytes.empty())
+    idle_entry->bytes = std::vector<u8>(2);
+  else
+    idle_entry->bytes[0] = 0;
   NOTICE_LOG(COMMON, "Disabling WC24 'standby' (shutdown to idle) to avoid hanging on shutdown");
 
   IOS::HLE::RestoreBTInfoSection(&sysconf);
@@ -706,15 +710,15 @@ void SConfig::LoadSettingsFromSysconf()
 {
   SysConf sysconf{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
 
-  m_wii_screensaver = sysconf.GetData<u8>("IPL.SSV");
-  m_wii_language = sysconf.GetData<u8>("IPL.LNG");
-  m_wii_aspect_ratio = sysconf.GetData<u8>("IPL.AR");
-  m_sensor_bar_position = sysconf.GetData<u8>("BT.BAR");
-  m_sensor_bar_sensitivity = sysconf.GetData<u32>("BT.SENS");
-  m_speaker_volume = sysconf.GetData<u8>("BT.SPKV");
-  m_wiimote_motor = sysconf.GetData<u8>("BT.MOT") != 0;
-  bProgressive = sysconf.GetData<u8>("IPL.PGS") != 0;
-  bPAL60 = sysconf.GetData<u8>("IPL.E60") != 0;
+  m_wii_screensaver = sysconf.GetData<u8>("IPL.SSV", m_wii_screensaver);
+  m_wii_language = sysconf.GetData<u8>("IPL.LNG", m_wii_language);
+  m_wii_aspect_ratio = sysconf.GetData<u8>("IPL.AR", m_wii_aspect_ratio);
+  m_sensor_bar_position = sysconf.GetData<u8>("BT.BAR", m_sensor_bar_position);
+  m_sensor_bar_sensitivity = sysconf.GetData<u32>("BT.SENS", m_sensor_bar_sensitivity);
+  m_speaker_volume = sysconf.GetData<u8>("BT.SPKV", m_speaker_volume);
+  m_wiimote_motor = sysconf.GetData<u8>("BT.MOT", m_wiimote_motor) != 0;
+  bProgressive = sysconf.GetData<u8>("IPL.PGS", bProgressive) != 0;
+  bPAL60 = sysconf.GetData<u8>("IPL.E60", bPAL60) != 0;
 }
 
 void SConfig::ResetRunningGameMetadata()
