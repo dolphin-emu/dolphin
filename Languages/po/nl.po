@@ -11,6 +11,7 @@
 # Pierre Bourdon <delroth@gmail.com>, 2014
 # Tijmen Wildervanck <tijmen.wildervanck@gmail.com>, 2015-2016
 # Tijmen Wildervanck <tijmen.wildervanck@gmail.com>, 2016
+# Daborbor <https://github.com/daborbor>, 2017
 msgid ""
 msgstr ""
 "Project-Id-Version: Dolphin Emulator\n"
@@ -279,11 +280,11 @@ msgstr "&Over"
 
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:106
 msgid "&Add New Code..."
-msgstr ""
+msgstr "&Nieuwe Code Toevoegen..."
 
 #: Source/Core/DolphinWX/Debugger/CodeView.cpp:371
 msgid "&Add function"
-msgstr ""
+msgstr "&Functie toevoegen"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:174
 msgid "&Audio Settings"
@@ -346,7 +347,7 @@ msgstr ""
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:107
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:206
 msgid "&Edit Code..."
-msgstr ""
+msgstr "&Code Bewerken..."
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:45
 msgid "&Emulation"
@@ -524,7 +525,7 @@ msgstr "&Registers"
 
 #: Source/Core/DolphinWX/Cheats/ActionReplayCodesPanel.cpp:108
 msgid "&Remove Code"
-msgstr ""
+msgstr "&Code Verwijderen"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:465
 msgid "&Rename Symbols from File..."
@@ -745,6 +746,17 @@ msgid ""
 "Wii Remote support in netplay is experimental and should not be expected to "
 "work.\n"
 msgstr ""
+"Waarschuwing:\n"
+"\n"
+"Alle spelers moeten dezelfde Dolphin versie hebben.\n"
+"Alle geheugenkaarten, SD kaarten en cheats moeten tussen de spelers identiek"
+"of uitgeschakeld zijn.\n"
+"Wanneer DSP LLE wordt gebruikt, moeten DSP ROMs identiek zijn tussen spelers.\n"
+"Wanneer je rechtstreeks verbind, moet de host de gekozen poort hebben geopend/"
+"doorgestuurd (portforwarded!)\n"
+"\n"
+"Wii remote ondersteuning in netplay is exirimenteel en je moet niet verwachten dat het "
+"werkt.\n"
 
 #: Source/Core/DolphinWX/Cheats/CheatsWindow.cpp:136
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:247
@@ -2631,11 +2643,11 @@ msgstr ""
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:241
 msgid "Emulate the Wii's Bluetooth adapter"
-msgstr ""
+msgstr "Emuleer de Wii's Bluetooth adapter"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:291
 msgid "Emulated Wii Remote"
-msgstr ""
+msgstr "Geëmuleerde Wii Remote"
 
 #: Source/Core/DolphinWX/ISOProperties/ISOProperties.cpp:329
 msgid "Emulation State: "
@@ -2643,7 +2655,7 @@ msgstr "Emulatie Staat:"
 
 #: Source/Core/Core/HotkeyManager.cpp:242
 msgid "Emulation speed"
-msgstr ""
+msgstr "Emulatie snelheid"
 
 #: Source/Core/DolphinWX/VideoConfigDiag.cpp:840
 msgid "Enable API Validation Layers"
@@ -3909,7 +3921,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:1011
 msgid "Host with Netplay"
-msgstr ""
+msgstr "Host met Netplay"
 
 #: Source/Core/Core/HotkeyManager.cpp:157
 #: Source/Core/Core/HW/WiimoteEmu/WiimoteEmu.cpp:316
@@ -3918,7 +3930,7 @@ msgstr "Sneltoetsen"
 
 #: Source/Core/DolphinWX/ControllerConfigDiag.cpp:291
 msgid "Hybrid Wii Remote"
-msgstr ""
+msgstr "Hybride Wii Remote"
 
 #: Source/Core/DolphinWX/GameListCtrl.cpp:431
 msgid "ID"
@@ -4566,22 +4578,22 @@ msgstr "Laad Staat..."
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:261
 msgid "Load Wii Save"
-msgstr ""
+msgstr "Laad Wii Save"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1250
 #: Source/Core/DolphinWX/MainMenuBar.cpp:558
 msgid "Load Wii System Menu"
-msgstr "Laad Wii System Menu"
+msgstr "Laad Wii Systeem Menu"
 
 #: Source/Core/DolphinWX/FrameTools.cpp:1245
 #, c-format
 msgid "Load Wii System Menu %d%c"
-msgstr "Laad Wii System Menu %d%c"
+msgstr "Laad Wii Systeem Menu %d%c"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:553
 #, c-format
 msgid "Load Wii System Menu %u%c"
-msgstr ""
+msgstr "Laad Wii Systeem Menu %u%c"
 
 #: Source/Core/DolphinWX/MainMenuBar.cpp:433
 msgid ""
@@ -8079,7 +8091,7 @@ msgstr ""
 
 #: Source/Core/DolphinWX/NetPlay/NetWindow.cpp:259
 msgid "Write save/SD data"
-msgstr ""
+msgstr "Schrijf save/SD data"
 
 #: Source/Core/DolphinWX/LogConfigWindow.cpp:56
 msgid "Write to Console"
