@@ -179,6 +179,7 @@ struct VideoConfig final
     bool bSupportsDualSourceBlend;
     bool bSupportsPrimitiveRestart;
     bool bSupportsOversizedViewports;
+    bool bSupportsOversizedDepthRanges;
     bool bSupportsGeometryShaders;
     bool bSupports3DVision;
     bool bSupportsEarlyZ;         // needed by PixelShaderGen, so must stay in VideoCommon

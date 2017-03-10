@@ -29,6 +29,7 @@ void VideoBackend::InitBackendInfo()
   g_Config.backend_info.bSupportsDualSourceBlend = true;
   g_Config.backend_info.bSupportsPrimitiveRestart = true;
   g_Config.backend_info.bSupportsOversizedViewports = true;
+  g_Config.backend_info.bSupportsOversizedDepthRanges = false;
   g_Config.backend_info.bSupportsGeometryShaders = true;
   g_Config.backend_info.bSupports3DVision = false;
   g_Config.backend_info.bSupportsEarlyZ = true;
