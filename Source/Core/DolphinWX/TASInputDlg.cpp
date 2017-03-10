@@ -683,16 +683,15 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
         SetButtonValue(m_buttons[i],
                        (((wm_buttons*)coreData)->hex & s_wii_buttons_bitmask[i]) != 0);
     }
+    if (accelData)
+    {
+      wm_accel* dt = (wm_accel*)accelData;
+      SetSliderValue(&m_x_cont, dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb);
+      SetSliderValue(&m_y_cont, dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb << 1);
+      SetSliderValue(&m_z_cont, dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb << 1);
+    }
   }
-  if (accelData)
-  {
-    wm_accel* dt = (wm_accel*)accelData;
-
-    SetSliderValue(&m_x_cont, dt->x << 2 | ((wm_buttons*)coreData)->acc_x_lsb);
-    SetSliderValue(&m_y_cont, dt->y << 2 | ((wm_buttons*)coreData)->acc_y_lsb << 1);
-    SetSliderValue(&m_z_cont, dt->z << 2 | ((wm_buttons*)coreData)->acc_z_lsb << 1);
-  }
-
+ 
   // I don't think this can be made to work in a sane manner.
   // if (irData)
   //{
@@ -761,19 +760,21 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext,
   if (ext != 2)
   {
     if (coreData)
+	{
       SetWiiButtons(&((wm_buttons*)coreData)->hex);
 
-    if (accelData)
-    {
-      wm_accel& dt = *(wm_accel*)accelData;
-      wm_buttons& but = *(wm_buttons*)coreData;
-      dt.x = m_x_cont.value >> 2;
-      dt.y = m_y_cont.value >> 2;
-      dt.z = m_z_cont.value >> 2;
-      but.acc_x_lsb = m_x_cont.value & 0x3;
-      but.acc_y_lsb = m_y_cont.value >> 1 & 0x1;
-      but.acc_z_lsb = m_z_cont.value >> 1 & 0x1;
-    }
+      if (accelData)
+      {
+        wm_accel& dt = *(wm_accel*)accelData;
+        wm_buttons& but = *(wm_buttons*)coreData;
+        dt.x = m_x_cont.value >> 2;
+        dt.y = m_y_cont.value >> 2;
+        dt.z = m_z_cont.value >> 2;
+        but.acc_x_lsb = m_x_cont.value & 0x3;
+        but.acc_y_lsb = m_y_cont.value >> 1 & 0x1;
+        but.acc_z_lsb = m_z_cont.value >> 1 & 0x1;
+      }
+	}
     if (irData)
     {
       u16 x[4];
