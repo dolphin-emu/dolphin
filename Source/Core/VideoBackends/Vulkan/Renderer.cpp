@@ -21,7 +21,6 @@
 #include "VideoBackends/Vulkan/FramebufferManager.h"
 #include "VideoBackends/Vulkan/ObjectCache.h"
 #include "VideoBackends/Vulkan/PostProcessing.h"
-#include "VideoBackends/Vulkan/RasterFont.h"
 #include "VideoBackends/Vulkan/Renderer.h"
 #include "VideoBackends/Vulkan/StateTracker.h"
 #include "VideoBackends/Vulkan/StreamBuffer.h"
@@ -84,11 +83,21 @@ bool Renderer::Initialize()
     return false;
   }
 
-  m_raster_font = std::make_unique<RasterFont>();
-  if (!m_raster_font->Initialize())
+  // Swap chain render pass.
+  if (m_swap_chain)
   {
-    PanicAlert("Failed to initialize raster font.");
-    return false;
+    m_swap_chain_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_LOAD);
+    m_swap_chain_clear_render_pass =
+        g_object_cache->GetRenderPass(m_swap_chain->GetSurfaceFormat().format, VK_FORMAT_UNDEFINED,
+                                      1, VK_ATTACHMENT_LOAD_OP_CLEAR);
+    if (m_swap_chain_render_pass == VK_NULL_HANDLE ||
+        m_swap_chain_clear_render_pass == VK_NULL_HANDLE)
+    {
+      PanicAlert("Failed to create swap chain render passes.");
+      return false;
+    }
   }
 
   // Swap chain render pass.
@@ -125,8 +134,7 @@ bool Renderer::Initialize()
 
   // Initialize post processing.
   m_post_processor = std::make_unique<VulkanPostProcessing>();
-  if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())
-           ->Initialize(m_raster_font->GetTexture()))
+  if (!static_cast<VulkanPostProcessing*>(m_post_processor.get())->Initialize())
   {
     PanicAlert("failed to initialize post processor.");
     return false;
@@ -404,17 +412,6 @@ void Renderer::DispatchComputeShader(const AbstractShader* shader, const void* u
   vkCmdBindDescriptorSets(command_buffer, VK_PIPELINE_BIND_POINT_COMPUTE, pipeline_layout, 0, 1,
                           &dset, 1, &uniform_buffer_offset);
   vkCmdDispatch(command_buffer, groups_x, groups_y, groups_z);
-}
-
-void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
-{
-  u32 backbuffer_width = m_swap_chain->GetWidth();
-  u32 backbuffer_height = m_swap_chain->GetHeight();
-
-  m_raster_font->PrintMultiLineText(m_swap_chain->GetRenderPass(), text,
-                                    left * 2.0f / static_cast<float>(backbuffer_width) - 1,
-                                    1 - top * 2.0f / static_cast<float>(backbuffer_height),
-                                    backbuffer_width, backbuffer_height, color);
 }
 
 u32 Renderer::AccessEFB(EFBAccessType type, u32 x, u32 y, u32 poke_data)

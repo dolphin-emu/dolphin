@@ -48,11 +48,6 @@ SWRenderer::CreateFramebuffer(const AbstractTexture* color_attachment,
                                    static_cast<const SW::SWTexture*>(depth_attachment));
 }
 
-void SWRenderer::RenderText(const std::string& pstr, int left, int top, u32 color)
-{
-  SWOGLWindow::s_instance->PrintText(pstr, left, top, color);
-}
-
 class SWShader final : public AbstractShader
 {
 public:

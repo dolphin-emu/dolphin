@@ -44,6 +44,8 @@
 
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/AbstractFramebuffer.h"
+#include "VideoCommon/AbstractPipeline.h"
+#include "VideoCommon/AbstractShader.h"
 #include "VideoCommon/AbstractStagingTexture.h"
 #include "VideoCommon/AbstractTexture.h"
 #include "VideoCommon/BPMemory.h"
@@ -53,9 +55,11 @@
 #include "VideoCommon/FPSCounter.h"
 #include "VideoCommon/FramebufferManagerBase.h"
 #include "VideoCommon/ImageWrite.h"
+#include "VideoCommon/NativeVertexFormat.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/PixelShaderManager.h"
 #include "VideoCommon/PostProcessing.h"
+#include "VideoCommon/RasterFont.h"
 #include "VideoCommon/ShaderGenCommon.h"
 #include "VideoCommon/Statistics.h"
 #include "VideoCommon/TextureCacheBase.h"
@@ -100,6 +104,16 @@ Renderer::~Renderer() = default;
 
 bool Renderer::Initialize()
 {
+  if (m_backbuffer_format != AbstractTextureFormat::Undefined)
+  {
+    m_raster_font = std::make_unique<VideoCommon::RasterFont>();
+    if (!m_raster_font->Initialize(m_backbuffer_format))
+    {
+      PanicAlert("Failed to create raster font for OSD.");
+      return false;
+    }
+  }
+
   return true;
 }
 
@@ -108,6 +122,7 @@ void Renderer::Shutdown()
   // First stop any framedumping, which might need to dump the last xfb frame. This process
   // can require additional graphics sub-systems so it needs to be done first
   ShutdownFrameDumping();
+  m_raster_font.reset();
 }
 
 void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStride, u32 fbHeight,
@@ -381,6 +396,29 @@ void Renderer::DrawDebugText()
   // and then the text
   RenderText(final_cyan, 20, 20, OSD::Color::CYAN);
   RenderText(final_yellow, 20, 20, OSD::Color::YELLOW);
+}
+
+void Renderer::RenderText(const std::string& text, int left, int top, u32 color)
+{
+  u32 target_width, target_height;
+  AbstractTextureFormat target_format;
+  if (m_current_framebuffer)
+  {
+    target_width = m_current_framebuffer->GetWidth();
+    target_height = m_current_framebuffer->GetHeight();
+    target_format = m_current_framebuffer->GetColorFormat();
+  }
+  else
+  {
+    target_width = m_backbuffer_width;
+    target_height = m_backbuffer_height;
+    target_format = m_backbuffer_format;
+  }
+  if (!m_raster_font || !m_raster_font->SetFramebufferFormat(target_format))
+    return;
+
+  m_raster_font->RenderText(text, static_cast<float>(left), static_cast<float>(top), color,
+                            target_width, target_height, true);
 }
 
 float Renderer::CalculateDrawAspectRatio() const

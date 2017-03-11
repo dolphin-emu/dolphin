@@ -65,6 +65,7 @@
     <ClCompile Include="PixelShaderGen.cpp" />
     <ClCompile Include="PixelShaderManager.cpp" />
     <ClCompile Include="PostProcessing.cpp" />
+    <ClCompile Include="RasterFont.cpp" />
     <ClCompile Include="RenderBase.cpp" />
     <ClCompile Include="RenderState.cpp" />
     <ClCompile Include="LightingShaderGen.cpp" />
@@ -134,6 +135,7 @@
     <ClInclude Include="PixelShaderGen.h" />
     <ClInclude Include="PixelShaderManager.h" />
     <ClInclude Include="PostProcessing.h" />
+    <ClInclude Include="RasterFont.h" />
     <ClInclude Include="RenderBase.h" />
     <ClInclude Include="RenderState.h" />
     <ClInclude Include="SamplerCommon.h" />

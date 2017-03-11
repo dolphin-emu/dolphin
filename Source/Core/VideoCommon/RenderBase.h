@@ -30,6 +30,7 @@
 #include "VideoCommon/AVIDump.h"
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/FPSCounter.h"
+#include "VideoCommon/RasterFont.h"
 #include "VideoCommon/RenderState.h"
 #include "VideoCommon/TextureConfig.h"
 #include "VideoCommon/VideoCommon.h"
@@ -39,6 +40,7 @@ class AbstractPipeline;
 class AbstractShader;
 class AbstractTexture;
 class AbstractStagingTexture;
+class NativeVertexFormat;
 class PostProcessingShaderImplementation;
 struct TextureConfig;
 struct ComputePipelineConfig;
@@ -164,7 +166,7 @@ public:
   void SaveScreenshot(const std::string& filename, bool wait_for_completion);
   void DrawDebugText();
 
-  virtual void RenderText(const std::string& text, int left, int top, u32 color) = 0;
+  void RenderText(const std::string& text, int left, int top, u32 color);
 
   virtual void ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaEnable, bool zEnable,
                            u32 color, u32 z) = 0;
@@ -235,6 +237,8 @@ protected:
   AbstractTextureFormat m_backbuffer_format = AbstractTextureFormat::Undefined;
   TargetRectangle m_target_rectangle = {};
 
+  // Shared resources - raster font
+  std::unique_ptr<VideoCommon::RasterFont> m_raster_font;
   FPSCounter m_fps_counter;
 
   std::unique_ptr<PostProcessingShaderImplementation> m_post_processor;
