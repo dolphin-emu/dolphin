@@ -17,12 +17,12 @@
 
 namespace Vulkan
 {
-constexpr int CHAR_WIDTH = 8;
-constexpr int CHAR_HEIGHT = 13;
-constexpr int CHAR_OFFSET = 32;
-constexpr int CHAR_COUNT = 95;
+constexpr int CHARACTER_WIDTH = 8;
+constexpr int CHARACTER_HEIGHT = 13;
+constexpr int CHARACTER_OFFSET = 32;
+constexpr int CHARACTER_COUNT = 95;
 
-static const u8 rasters[CHAR_COUNT][CHAR_HEIGHT] = {
+static const u8 rasters[CHARACTER_COUNT][CHARACTER_HEIGHT] = {
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00},
     {0x00, 0x00, 0x18, 0x18, 0x00, 0x00, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18, 0x18},
     {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x36, 0x36, 0x36, 0x36},
@@ -187,24 +187,25 @@ bool RasterFont::Initialize()
 bool RasterFont::CreateTexture()
 {
   // generate the texture
-  std::vector<u32> texture_data(CHAR_WIDTH * CHAR_COUNT * CHAR_HEIGHT);
-  for (int y = 0; y < CHAR_HEIGHT; y++)
+  std::vector<u32> texture_data(CHARACTER_WIDTH * CHARACTER_COUNT * CHARACTER_HEIGHT);
+  for (int y = 0; y < CHARACTER_HEIGHT; y++)
   {
-    for (int c = 0; c < CHAR_COUNT; c++)
+    for (int c = 0; c < CHARACTER_COUNT; c++)
     {
-      for (int x = 0; x < CHAR_WIDTH; x++)
+      for (int x = 0; x < CHARACTER_WIDTH; x++)
       {
-        bool pixel = (0 != (rasters[c][y] & (1 << (CHAR_WIDTH - x - 1))));
-        texture_data[CHAR_WIDTH * CHAR_COUNT * y + CHAR_WIDTH * c + x] = pixel ? -1 : 0;
+        bool pixel = (0 != (rasters[c][y] & (1 << (CHARACTER_WIDTH - x - 1))));
+        texture_data[CHARACTER_WIDTH * CHARACTER_COUNT * y + CHARACTER_WIDTH * c + x] =
+            pixel ? -1 : 0;
       }
     }
   }
 
   // create the actual texture object
-  m_texture =
-      Texture2D::Create(CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 1, 1, VK_FORMAT_R8G8B8A8_UNORM,
-                        VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
-                        VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
+  m_texture = Texture2D::Create(CHARACTER_WIDTH * CHARACTER_COUNT, CHARACTER_HEIGHT, 1, 1,
+                                VK_FORMAT_R8G8B8A8_UNORM, VK_SAMPLE_COUNT_1_BIT,
+                                VK_IMAGE_VIEW_TYPE_2D, VK_IMAGE_TILING_OPTIMAL,
+                                VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT);
   if (!m_texture)
     return false;
 
@@ -268,9 +269,12 @@ bool RasterFont::CreateTexture()
   vkUnmapMemory(g_vulkan_context->GetDevice(), temp_buffer_memory);
 
   // Copy from staging buffer to the final texture
-  VkBufferImageCopy region = {0,           CHAR_WIDTH * CHAR_COUNT,
-                              CHAR_HEIGHT, {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
-                              {0, 0, 0},   {CHAR_WIDTH * CHAR_COUNT, CHAR_HEIGHT, 1}};
+  VkBufferImageCopy region = {0,
+                              CHARACTER_WIDTH * CHARACTER_COUNT,
+                              CHARACTER_HEIGHT,
+                              {VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+                              {0, 0, 0},
+                              {CHARACTER_WIDTH * CHARACTER_COUNT, CHARACTER_HEIGHT, 1}};
   m_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentInitCommandBuffer(),
                                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
   vkCmdCopyBufferToImage(g_command_buffer_mgr->GetCurrentInitCommandBuffer(), temp_buffer,
@@ -309,8 +313,8 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
   if (!vertices)
     return;
 
-  float delta_x = float(2 * CHAR_WIDTH) / float(bbWidth);
-  float delta_y = float(2 * CHAR_HEIGHT) / float(bbHeight);
+  float delta_x = float(2 * CHARACTER_WIDTH) / float(bbWidth);
+  float delta_y = float(2 * CHARACTER_HEIGHT) / float(bbHeight);
   float border_x = 2.0f / float(bbWidth);
   float border_y = 4.0f / float(bbHeight);
 
@@ -333,31 +337,34 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
       continue;
     }
 
-    if (c < CHAR_OFFSET || c >= CHAR_COUNT + CHAR_OFFSET)
+    if (c < CHARACTER_OFFSET || c >= CHARACTER_COUNT + CHARACTER_OFFSET)
       continue;
 
     vertices[num_vertices].SetPosition(x, y);
-    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHAR_OFFSET), 0.0f);
+    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHARACTER_OFFSET), 0.0f);
     num_vertices++;
 
     vertices[num_vertices].SetPosition(x + delta_x, y);
-    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHAR_OFFSET + 1), 0.0f);
+    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHARACTER_OFFSET + 1),
+                                                 0.0f);
     num_vertices++;
 
     vertices[num_vertices].SetPosition(x + delta_x, y + delta_y);
-    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHAR_OFFSET + 1), 1.0f);
+    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHARACTER_OFFSET + 1),
+                                                 1.0f);
     num_vertices++;
 
     vertices[num_vertices].SetPosition(x, y);
-    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHAR_OFFSET), 0.0f);
+    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHARACTER_OFFSET), 0.0f);
     num_vertices++;
 
     vertices[num_vertices].SetPosition(x + delta_x, y + delta_y);
-    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHAR_OFFSET + 1), 1.0f);
+    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHARACTER_OFFSET + 1),
+                                                 1.0f);
     num_vertices++;
 
     vertices[num_vertices].SetPosition(x, y + delta_y);
-    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHAR_OFFSET), 1.0f);
+    vertices[num_vertices].SetTextureCoordinates(static_cast<float>(c - CHARACTER_OFFSET), 1.0f);
     num_vertices++;
 
     x += delta_x + border_x;
@@ -376,7 +383,7 @@ void RasterFont::PrintMultiLineText(VkRenderPass render_pass, const std::string&
     float color[4];
   } pc_block = {};
 
-  pc_block.char_size[0] = 1.0f / static_cast<float>(CHAR_COUNT);
+  pc_block.char_size[0] = 1.0f / static_cast<float>(CHARACTER_COUNT);
   pc_block.char_size[1] = 1.0f;
 
   // shadows
