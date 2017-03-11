@@ -1008,23 +1008,19 @@ IPCCommandResult ES::GetViewCount(const IOCtlVRequest& request)
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
+  const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(TitleID);
+  u32 view_count = ticket.IsValid() ? ticket.GetNumberOfTickets() : 0;
 
-  size_t view_count = 0;
-  if (Loader.IsValid() && Loader.GetTicket().IsValid())
-  {
-    view_count = Loader.GetTicket().GetNumberOfTickets();
-  }
-  else if (ShouldReturnFakeViewsForIOSes(TitleID))
+  if (ShouldReturnFakeViewsForIOSes(TitleID))
   {
     view_count = 1;
     WARN_LOG(IOS_ES, "GetViewCount: Faking IOS title %016" PRIx64 " being present", TitleID);
   }
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %zu)",
+  INFO_LOG(IOS_ES, "IOCTL_ES_GETVIEWCNT for titleID: %08x/%08x (View Count = %u)",
            static_cast<u32>(TitleID >> 32), static_cast<u32>(TitleID), view_count);
 
-  Memory::Write_U32(static_cast<u32>(view_count), request.io_vectors[0].address);
+  Memory::Write_U32(view_count, request.io_vectors[0].address);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -1036,14 +1032,14 @@ IPCCommandResult ES::GetViews(const IOCtlVRequest& request)
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
 
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
+  const IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(TitleID);
 
-  if (Loader.IsValid() && Loader.GetTicket().IsValid())
+  if (ticket.IsValid())
   {
-    u32 number_of_views = std::min(maxViews, Loader.GetTicket().GetNumberOfTickets());
+    u32 number_of_views = std::min(maxViews, ticket.GetNumberOfTickets());
     for (u32 view = 0; view < number_of_views; ++view)
     {
-      const std::vector<u8> ticket_view = Loader.GetTicket().GetRawTicketView(view);
+      const std::vector<u8> ticket_view = ticket.GetRawTicketView(view);
       Memory::CopyToEmu(request.io_vectors[0].address + view * sizeof(IOS::ES::TicketView),
                         ticket_view.data(), ticket_view.size());
     }
