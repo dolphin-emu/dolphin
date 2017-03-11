@@ -436,7 +436,8 @@ void DSPEmitter::CompileDispatcher()
   m_return_dispatcher = GetCodePtr();
 
   // Decrement cyclesLeft
-  SUB(16, M(&m_cycles_left), R(EAX));
+  MOV(64, R(RCX), ImmPtr(&m_cycles_left));
+  SUB(16, MatR(RCX), R(EAX));
 
   J_CC(CC_A, dispatcherLoop);
 
