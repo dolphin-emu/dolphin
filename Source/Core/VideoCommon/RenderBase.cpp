@@ -379,8 +379,8 @@ void Renderer::DrawDebugText()
     final_cyan += Statistics::ToStringProj();
 
   // and then the text
-  RenderText(final_cyan, 20, 20, 0xFF00FFFF);
-  RenderText(final_yellow, 20, 20, 0xFFFFFF00);
+  RenderText(final_cyan, 20, 20, OSD::Color::CYAN);
+  RenderText(final_yellow, 20, 20, OSD::Color::YELLOW);
 }
 
 float Renderer::CalculateDrawAspectRatio() const
