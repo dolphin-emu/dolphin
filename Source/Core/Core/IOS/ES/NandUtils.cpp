@@ -18,6 +18,29 @@ namespace IOS
 {
 namespace ES
 {
+static TMDReader FindTMD(u64 title_id, const std::string& tmd_path)
+{
+  File::IOFile file(tmd_path, "rb");
+  if (!file)
+    return {};
+
+  std::vector<u8> tmd_bytes(file.GetSize());
+  if (!file.ReadBytes(tmd_bytes.data(), tmd_bytes.size()))
+    return {};
+
+  return TMDReader{std::move(tmd_bytes)};
+}
+
+TMDReader FindImportTMD(u64 title_id)
+{
+  return FindTMD(title_id, Common::GetImportTitlePath(title_id) + "/content/title.tmd");
+}
+
+TMDReader FindInstalledTMD(u64 title_id)
+{
+  return FindTMD(title_id, Common::GetTMDFileName(title_id, Common::FROM_SESSION_ROOT));
+}
+
 static bool IsValidPartOfTitleID(const std::string& string)
 {
   if (string.length() != 8)
