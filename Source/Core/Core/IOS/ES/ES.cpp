@@ -86,6 +86,10 @@ ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device
 
 void ES::Init()
 {
+  const std::string import_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/import";
+  File::DeleteDirRecursively(import_dir);
+  File::CreateDir(import_dir);
+
   s_content_file = "";
   s_title_context = TitleContext{};
 
@@ -322,6 +326,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return AddContentFinish(request);
   case IOCTL_ES_ADDTITLEFINISH:
     return AddTitleFinish(request);
+  case IOCTL_ES_ADDTITLECANCEL:
+    return AddTitleCancel(request);
   case IOCTL_ES_GETDEVICEID:
     return ESGetDeviceID(request);
   case IOCTL_ES_OPENTITLECONTENT:
@@ -459,33 +465,44 @@ IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-// TODO: write this to /tmp (or /import?) first, as title imports can be cancelled.
-static bool WriteTMD(const IOS::ES::TMDReader& tmd)
+static bool WriteImportTMD(const IOS::ES::TMDReader& tmd)
 {
-  const std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
+  const std::string tmd_path = Common::GetImportTitlePath(tmd.GetTitleId()) + "/content/title.tmd";
   File::CreateFullPath(tmd_path);
 
-  File::IOFile fp(tmd_path, "wb");
-  return fp.WriteBytes(tmd.GetRawTMD().data(), tmd.GetRawTMD().size());
+  File::IOFile file(tmd_path, "wb");
+  return file.WriteBytes(tmd.GetRawTMD().data(), tmd.GetRawTMD().size());
+}
+
+static bool MoveImportTMDToTitleDirectory(const IOS::ES::TMDReader& tmd)
+{
+  const std::string src = Common::GetImportTitlePath(tmd.GetTitleId()) + "/content/title.tmd";
+  const std::string dest = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
+  return File::RenameSync(src, dest);
+}
+
+static std::string GetImportContentPath(const IOS::ES::TMDReader& tmd, u32 content_id)
+{
+  return Common::GetImportTitlePath(tmd.GetTitleId()) +
+         StringFromFormat("/content/%08x.app", content_id);
 }
 
 IPCCommandResult ES::AddTMD(const IOCtlVRequest& request)
 {
-  // This may appear to be very similar to AddTitleStart, but AddTitleStart takes
-  // three additional vectors and may do some additional processing -- so let's keep these separate.
-
   if (!request.HasNumberOfValidVectors(1, 0))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   std::vector<u8> tmd(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
 
-  m_addtitle_tmd.SetBytes(tmd);
+  // Ioctlv 0x2b writes the TMD to /tmp/title.tmd (for imports) and doesn't seem to write it
+  // to either /import or /title. So here we simply have to set the import TMD.
+  m_addtitle_tmd.SetBytes(std::move(tmd));
   if (!m_addtitle_tmd.IsValid())
     return GetDefaultReply(ES_INVALID_TMD);
 
-  if (!WriteTMD(m_addtitle_tmd))
-    return GetDefaultReply(ES_WRITE_FAILURE);
+  DiscIO::cUIDsys uid_sys{Common::FROM_CONFIGURED_ROOT};
+  uid_sys.AddTitle(m_addtitle_tmd.GetTitleId());
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -506,11 +523,10 @@ IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
     return GetDefaultReply(ES_INVALID_TMD);
   }
 
-  if (!WriteTMD(m_addtitle_tmd))
-    return GetDefaultReply(ES_WRITE_FAILURE);
-
   DiscIO::cUIDsys uid_sys{Common::FROM_CONFIGURED_ROOT};
   uid_sys.AddTitle(m_addtitle_tmd.GetTitleId());
+
+  // TODO: check and use the other vectors.
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -583,6 +599,9 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 0))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
+  if (m_addtitle_content_id == 0xFFFFFFFF)
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
   u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
 
@@ -618,25 +637,29 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
     return GetDefaultReply(ES_HASH_DOESNT_MATCH);
   }
 
-  std::string content_path;
-  if (content_info.IsShared())
-  {
-    DiscIO::CSharedContent shared_content{Common::FROM_SESSION_ROOT};
-    content_path = shared_content.AddSharedContent(content_info.sha1.data());
-  }
-  else
-  {
-    content_path = StringFromFormat(
-        "%s%08x.app",
-        Common::GetTitleContentPath(m_addtitle_tmd.GetTitleId(), Common::FROM_SESSION_ROOT).c_str(),
-        m_addtitle_content_id);
-  }
+  // Just write all contents to the title import directory. AddTitleFinish will
+  // move the contents to the proper location.
+  const std::string tmp_path = GetImportContentPath(m_addtitle_tmd, m_addtitle_content_id);
+  File::CreateFullPath(tmp_path);
 
-  File::IOFile fp(content_path, "wb");
-  fp.WriteBytes(decrypted_data.data(), content_info.size);
+  File::IOFile fp(tmp_path, "wb");
+  if (!fp.WriteBytes(decrypted_data.data(), content_info.size))
+  {
+    ERROR_LOG(IOS_ES, "AddContentFinish: Failed to write to %s", tmp_path.c_str());
+    return GetDefaultReply(ES_WRITE_FAILURE);
+  }
 
   m_addtitle_content_id = 0xFFFFFFFF;
   return GetDefaultReply(IPC_SUCCESS);
+}
+
+static void AbortImport(const u64 title_id, const std::vector<std::string>& processed_paths)
+{
+  for (const auto& path : processed_paths)
+    File::Delete(path);
+
+  const std::string import_dir = Common::GetImportTitlePath(title_id);
+  File::DeleteDirRecursively(import_dir);
 }
 
 IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
@@ -644,7 +667,64 @@ IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 0) || !m_addtitle_tmd.IsValid())
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
+  std::vector<std::string> processed_paths;
+
+  for (const auto& content_info : m_addtitle_tmd.GetContents())
+  {
+    const std::string source = GetImportContentPath(m_addtitle_tmd, content_info.id);
+
+    // Contents may not have been all imported. This is normal and this isn't an error condition.
+    if (!File::Exists(source))
+      continue;
+
+    std::string content_path;
+    if (content_info.IsShared())
+    {
+      DiscIO::CSharedContent shared_content{Common::FROM_SESSION_ROOT};
+      content_path = shared_content.AddSharedContent(content_info.sha1.data());
+    }
+    else
+    {
+      content_path =
+          StringFromFormat("%s%08x.app", Common::GetTitleContentPath(m_addtitle_tmd.GetTitleId(),
+                                                                     Common::FROM_SESSION_ROOT)
+                                             .c_str(),
+                           content_info.id);
+    }
+
+    File::CreateFullPath(content_path);
+    if (!File::RenameSync(source, content_path))
+    {
+      ERROR_LOG(IOS_ES, "AddTitleFinish: Failed to rename %s to %s", source.c_str(),
+                content_path.c_str());
+      AbortImport(m_addtitle_tmd.GetTitleId(), processed_paths);
+      return GetDefaultReply(ES_WRITE_FAILURE);
+    }
+
+    // Do not delete shared contents even if the import fails. This is because
+    // they can be used by several titles and it's not safe to delete them.
+    //
+    // The reason we delete private contents is to avoid having a title with half-complete
+    // contents, as it can cause issues with the system menu. On the other hand, leaving
+    // shared contents does not cause any issue.
+    if (!content_info.IsShared())
+      processed_paths.push_back(content_path);
+  }
+
+  if (!WriteImportTMD(m_addtitle_tmd) || !MoveImportTMDToTitleDirectory(m_addtitle_tmd))
+    return GetDefaultReply(ES_WRITE_FAILURE);
+
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLEFINISH");
+  m_addtitle_tmd.SetBytes({});
+  return GetDefaultReply(IPC_SUCCESS);
+}
+
+IPCCommandResult ES::AddTitleCancel(const IOCtlVRequest& request)
+{
+  if (!request.HasNumberOfValidVectors(0, 0) || !m_addtitle_tmd.IsValid())
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+
+  AbortImport(m_addtitle_tmd.GetTitleId(), {});
   m_addtitle_tmd.SetBytes({});
   return GetDefaultReply(IPC_SUCCESS);
 }

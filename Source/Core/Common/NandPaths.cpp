@@ -23,6 +23,13 @@ std::string RootUserPath(FromWhichRoot from)
   return File::GetUserPath(idx);
 }
 
+std::string GetImportTitlePath(u64 title_id, FromWhichRoot from)
+{
+  return RootUserPath(from) + StringFromFormat("/import/%08x/%08x",
+                                               static_cast<u32>(title_id >> 32),
+                                               static_cast<u32>(title_id));
+}
+
 std::string GetTicketFileName(u64 _titleID, FromWhichRoot from)
 {
   return StringFromFormat("%s/ticket/%08x/%08x.tik", RootUserPath(from).c_str(),
