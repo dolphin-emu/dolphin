@@ -26,6 +26,8 @@
 
 #include "Common/CommonTypes.h"
 
+#include <array>
+
 void MakeNGCert(u8* ng_cert_out, u32 NG_id, u32 NG_key_id, const u8* NG_priv, const u8* NG_sig);
 void MakeAPSigAndCert(u8* sig_out, u8* ap_cert_out, u64 title_id, u8* data, u32 data_size,
                       const u8* NG_priv, u32 NG_id);
@@ -40,6 +42,9 @@ public:
   u32 GetNGKeyID() const;
   const u8* GetNGPriv() const;
   const u8* GetNGSig() const;
+
+  using ECCKey = std::array<u8, 0x3c>;
+  std::array<u8, 16> GetSharedSecret(const ECCKey& peer_public_key) const;
 
 private:
   void InitDefaults();

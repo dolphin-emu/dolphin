@@ -427,12 +427,35 @@ IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(3, 0))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_ADDTICKET");
-  std::vector<u8> ticket(request.in_vectors[0].size);
-  Memory::CopyFromEmu(ticket.data(), request.in_vectors[0].address, request.in_vectors[0].size);
+  std::vector<u8> bytes(request.in_vectors[0].size);
+  Memory::CopyFromEmu(bytes.data(), request.in_vectors[0].address, request.in_vectors[0].size);
 
-  DiscIO::AddTicket(IOS::ES::TicketReader{std::move(ticket)});
+  IOS::ES::TicketReader ticket{std::move(bytes)};
+  if (!ticket.IsValid())
+    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
+  const u32 ticket_device_id = ticket.GetDeviceId();
+  const u32 device_id = EcWii::GetInstance().GetNGID();
+  if (ticket_device_id != 0)
+  {
+    if (device_id != ticket_device_id)
+    {
+      WARN_LOG(IOS_ES, "Device ID mismatch: ticket %08x, device %08x", ticket_device_id, device_id);
+      return GetDefaultReply(ES_DEVICE_ID_MISMATCH);
+    }
+    const s32 ret = ticket.Unpersonalise();
+    if (ret < 0)
+    {
+      ERROR_LOG(IOS_ES, "AddTicket: Failed to unpersonalise ticket for %016" PRIx64 " (ret = %d)",
+                ticket.GetTitleId(), ret);
+      return GetDefaultReply(ret);
+    }
+  }
+
+  if (!DiscIO::AddTicket(ticket))
+    return GetDefaultReply(ES_WRITE_FAILURE);
+
+  INFO_LOG(IOS_ES, "AddTicket: Imported ticket for title %016" PRIx64, ticket.GetTitleId());
   return GetDefaultReply(IPC_SUCCESS);
 }
 

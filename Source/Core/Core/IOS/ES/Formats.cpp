@@ -14,6 +14,7 @@
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
 #include "Common/Swap.h"
+#include "Core/ec_wii.h"
 
 namespace IOS
 {
@@ -270,6 +271,11 @@ std::vector<u8> TicketReader::GetRawTicketView(u32 ticket_num) const
   return view;
 }
 
+u32 TicketReader::GetDeviceId() const
+{
+  return Common::swap32(m_bytes.data() + GetOffset() + offsetof(Ticket, device_id));
+}
+
 u64 TicketReader::GetTitleId() const
 {
   return Common::swap64(m_bytes.data() + GetOffset() + offsetof(Ticket, title_id));
@@ -283,6 +289,34 @@ std::vector<u8> TicketReader::GetTitleKey() const
   std::copy_n(&m_bytes[GetOffset() + offsetof(Ticket, title_id)], sizeof(Ticket::title_id), iv);
   return Common::AES::Decrypt(common_key, iv, &m_bytes[GetOffset() + offsetof(Ticket, title_key)],
                               16);
+}
+
+constexpr s32 IOSC_OK = 0;
+
+s32 TicketReader::Unpersonalise()
+{
+  const auto ticket_begin = m_bytes.begin() + GetOffset();
+
+  // IOS uses IOSC to compute an AES key from the peer public key and the device's private ECC key,
+  // which is used the decrypt the title key. The IV is the ticket ID (8 bytes), zero extended.
+
+  const auto public_key_iter = ticket_begin + offsetof(Ticket, server_public_key);
+  EcWii::ECCKey public_key;
+  std::copy_n(public_key_iter, sizeof(Ticket::server_public_key), public_key.begin());
+
+  const EcWii& ec = EcWii::GetInstance();
+  const std::array<u8, 16> shared_secret = ec.GetSharedSecret(public_key);
+
+  std::array<u8, 16> iv{};
+  std::copy_n(ticket_begin + offsetof(Ticket, ticket_id), sizeof(Ticket::ticket_id), iv.begin());
+
+  const std::vector<u8> key =
+      Common::AES::Decrypt(shared_secret.data(), iv.data(),
+                           &*ticket_begin + offsetof(Ticket, title_key), sizeof(Ticket::title_key));
+
+  // Finally, IOS copies the decrypted title key back to the ticket buffer.
+  std::copy(key.cbegin(), key.cend(), ticket_begin + offsetof(Ticket, title_key));
+  return IOSC_OK;
 }
 }  // namespace ES
 }  // namespace IOS
