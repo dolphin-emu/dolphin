@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <cctype>
+#include <iterator>
 #include <string>
 #include <vector>
 
@@ -11,8 +12,10 @@
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
+#include "Common/StringUtil.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/ES/NandUtils.h"
+#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {
@@ -132,6 +135,31 @@ std::vector<u64> GetTitlesWithTickets()
   }
 
   return title_ids;
+}
+
+std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd)
+{
+  if (!tmd.IsValid())
+    return {};
+
+  const DiscIO::CSharedContent shared{Common::FROM_SESSION_ROOT};
+  const std::vector<Content> contents = tmd.GetContents();
+
+  std::vector<Content> stored_contents;
+
+  std::copy_if(contents.begin(), contents.end(), std::back_inserter(stored_contents),
+               [&tmd, &shared](const auto& content) {
+                 if (content.IsShared())
+                 {
+                   const std::string path = shared.GetFilenameFromSHA1(content.sha1.data());
+                   return path != "unk" && File::Exists(path);
+                 }
+                 return File::Exists(
+                     Common::GetTitleContentPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT) +
+                     StringFromFormat("%08x.app", content.id));
+               });
+
+  return stored_contents;
 }
 }  // namespace ES
 }  // namespace IOS

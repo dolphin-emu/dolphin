@@ -4,10 +4,8 @@
 
 #include "Core/IOS/ES/ES.h"
 
-#include <algorithm>
 #include <cinttypes>
 #include <cstdio>
-#include <iterator>
 #include <string>
 #include <vector>
 
@@ -26,31 +24,6 @@ namespace HLE
 {
 namespace Device
 {
-static std::vector<IOS::ES::Content> GetStoredContentsFromTMD(const IOS::ES::TMDReader& tmd)
-{
-  if (!tmd.IsValid())
-    return {};
-
-  const DiscIO::CSharedContent shared{Common::FROM_SESSION_ROOT};
-  const std::vector<IOS::ES::Content> contents = tmd.GetContents();
-
-  std::vector<IOS::ES::Content> stored_contents;
-
-  std::copy_if(contents.begin(), contents.end(), std::back_inserter(stored_contents),
-               [&tmd, &shared](const auto& content) {
-                 if (content.IsShared())
-                 {
-                   const std::string path = shared.GetFilenameFromSHA1(content.sha1.data());
-                   return path != "unk" && File::Exists(path);
-                 }
-                 return File::Exists(
-                     Common::GetTitleContentPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT) +
-                     StringFromFormat("%08x.app", content.id));
-               });
-
-  return stored_contents;
-}
-
 // Used by the GetStoredContents ioctlvs. This assumes that the first output vector
 // is used for the content count (u32).
 IPCCommandResult ES::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
@@ -59,7 +32,7 @@ IPCCommandResult ES::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
   if (request.io_vectors[0].size != sizeof(u32) || !tmd.IsValid())
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  const u16 num_contents = static_cast<u16>(GetStoredContentsFromTMD(tmd).size());
+  const u16 num_contents = static_cast<u16>(IOS::ES::GetStoredContentsFromTMD(tmd).size());
   Memory::Write_U32(num_contents, request.io_vectors[0].address);
 
   INFO_LOG(IOS_ES, "GetStoredContentsCount (0x%x):  %u content(s) for %016" PRIx64, request.request,
@@ -80,7 +53,7 @@ IPCCommandResult ES::GetStoredContents(const IOS::ES::TMDReader& tmd, const IOCt
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
   }
 
-  const auto contents = GetStoredContentsFromTMD(tmd);
+  const auto contents = IOS::ES::GetStoredContentsFromTMD(tmd);
   const u32 max_content_count = Memory::Read_U32(request.in_vectors[1].address);
   for (u32 i = 0; i < std::min(static_cast<u32>(contents.size()), max_content_count); ++i)
     Memory::Write_U32(contents[i].id, request.io_vectors[0].address + i * sizeof(u32));

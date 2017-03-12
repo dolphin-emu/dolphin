@@ -7,12 +7,14 @@
 #include <vector>
 
 #include "Common/CommonTypes.h"
-#include "Core/IOS/ES/Formats.h"
 
 namespace IOS
 {
 namespace ES
 {
+struct Content;
+class TMDReader;
+
 TMDReader FindImportTMD(u64 title_id);
 TMDReader FindInstalledTMD(u64 title_id);
 
@@ -22,5 +24,7 @@ std::vector<u64> GetInstalledTitles();
 std::vector<u64> GetTitleImports();
 // Get titles for which there is a ticket (in /ticket).
 std::vector<u64> GetTitlesWithTickets();
+
+std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd);
 }  // namespace ES
 }  // namespace IOS
