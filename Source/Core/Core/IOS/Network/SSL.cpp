@@ -103,7 +103,7 @@ constexpr std::array<u8, 32> s_root_ca_hash = {{0xc5, 0xb0, 0xf8, 0xdf, 0xce, 0x
 
 static std::vector<u8> ReadCertFile(const std::string& path, const std::array<u8, 32>& correct_hash)
 {
-  File::IOFile file(path, "r");
+  File::IOFile file(path, "rb");
   std::vector<u8> bytes(file.GetSize());
   if (!file.ReadBytes(bytes.data(), bytes.size()))
   {
