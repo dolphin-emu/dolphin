@@ -53,33 +53,6 @@ public:
 
   void FallBackToInterpreter(UDSPInstruction inst);
 
-  // CC Util
-  void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
-  void Update_SR_Register64_Carry(Gen::X64Reg val, Gen::X64Reg carry_ovfl, bool carry_eq = false);
-  void Update_SR_Register16(Gen::X64Reg val = Gen::EAX);
-  void Update_SR_Register16_OverS32(Gen::X64Reg val = Gen::EAX);
-
-  // Register helpers
-  void setCompileSR(u16 bit);
-  void clrCompileSR(u16 bit);
-  void checkExceptions(u32 retval);
-
-  // Memory helper functions
-  void increment_addr_reg(int reg);
-  void decrement_addr_reg(int reg);
-  void increase_addr_reg(int reg, int ix_reg);
-  void decrease_addr_reg(int reg);
-  void imem_read(Gen::X64Reg address);
-  void dmem_read(Gen::X64Reg address);
-  void dmem_read_imm(u16 addr);
-  void dmem_write(Gen::X64Reg value);
-  void dmem_write_imm(u16 addr, Gen::X64Reg value);
-
-  // Ext command helpers
-  void popExtValueToReg();
-  void pushExtValueFromMem(u16 dreg, u16 sreg);
-  void pushExtValueFromMem2(u16 dreg, u16 sreg);
-
   // Ext commands
   void l(const UDSPInstruction opc);
   void ln(const UDSPInstruction opc);
@@ -106,21 +79,6 @@ public:
   void ir(const UDSPInstruction opc);
   void nr(const UDSPInstruction opc);
   void nop(const UDSPInstruction opc) {}
-  // Command helpers
-  void dsp_reg_stack_push(StackRegister stack_reg);
-  void dsp_reg_stack_pop(StackRegister stack_reg);
-  void dsp_reg_store_stack(StackRegister stack_reg, Gen::X64Reg host_sreg = Gen::EDX);
-  void dsp_reg_load_stack(StackRegister stack_reg, Gen::X64Reg host_dreg = Gen::EDX);
-  void dsp_reg_store_stack_imm(StackRegister stack_reg, u16 val);
-  void dsp_op_write_reg(int reg, Gen::X64Reg host_sreg);
-  void dsp_op_write_reg_imm(int reg, u16 val);
-  void dsp_conditional_extend_accum(int reg);
-  void dsp_conditional_extend_accum_imm(int reg, u16 val);
-  void dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg,
-                                     RegisterExtension extend = RegisterExtension::None);
-  void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg,
-                       RegisterExtension extend = RegisterExtension::None);
-
   // Commands
   void dar(const UDSPInstruction opc);
   void iar(const UDSPInstruction opc);
@@ -135,7 +93,6 @@ public:
   void nx(const UDSPInstruction opc);
 
   // Branch
-  void HandleLoop();
   void jcc(const UDSPInstruction opc);
   void jmprcc(const UDSPInstruction opc);
   void call(const UDSPInstruction opc);
@@ -224,10 +181,6 @@ public:
   void asrnr(const UDSPInstruction opc);
 
   // Multipliers
-  void multiply();
-  void multiply_add();
-  void multiply_sub();
-  void multiply_mulx(u8 axh0, u8 axh1);
   void clrp(const UDSPInstruction opc);
   void tstprod(const UDSPInstruction opc);
   void movp(const UDSPInstruction opc);
@@ -285,6 +238,57 @@ private:
   void get_ax_l(int _reg, Gen::X64Reg acx = Gen::EAX);
   void get_ax_h(int _reg, Gen::X64Reg acc = Gen::EAX);
   void get_long_acc(int _reg, Gen::X64Reg acc = Gen::EAX);
+
+  // Branch helpers
+  void HandleLoop();
+
+  // CC helpers
+  void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
+  void Update_SR_Register64_Carry(Gen::X64Reg val, Gen::X64Reg carry_ovfl, bool carry_eq = false);
+  void Update_SR_Register16(Gen::X64Reg val = Gen::EAX);
+  void Update_SR_Register16_OverS32(Gen::X64Reg val = Gen::EAX);
+
+  // Register helpers
+  void setCompileSR(u16 bit);
+  void clrCompileSR(u16 bit);
+  void checkExceptions(u32 retval);
+
+  // Memory helper functions
+  void increment_addr_reg(int reg);
+  void decrement_addr_reg(int reg);
+  void increase_addr_reg(int reg, int ix_reg);
+  void decrease_addr_reg(int reg);
+  void imem_read(Gen::X64Reg address);
+  void dmem_read(Gen::X64Reg address);
+  void dmem_read_imm(u16 addr);
+  void dmem_write(Gen::X64Reg value);
+  void dmem_write_imm(u16 addr, Gen::X64Reg value);
+
+  // Command helpers
+  void dsp_reg_stack_push(StackRegister stack_reg);
+  void dsp_reg_stack_pop(StackRegister stack_reg);
+  void dsp_reg_store_stack(StackRegister stack_reg, Gen::X64Reg host_sreg = Gen::EDX);
+  void dsp_reg_load_stack(StackRegister stack_reg, Gen::X64Reg host_dreg = Gen::EDX);
+  void dsp_reg_store_stack_imm(StackRegister stack_reg, u16 val);
+  void dsp_op_write_reg(int reg, Gen::X64Reg host_sreg);
+  void dsp_op_write_reg_imm(int reg, u16 val);
+  void dsp_conditional_extend_accum(int reg);
+  void dsp_conditional_extend_accum_imm(int reg, u16 val);
+  void dsp_op_read_reg_dont_saturate(int reg, Gen::X64Reg host_dreg,
+                                     RegisterExtension extend = RegisterExtension::None);
+  void dsp_op_read_reg(int reg, Gen::X64Reg host_dreg,
+                       RegisterExtension extend = RegisterExtension::None);
+
+  // Ext command helpers
+  void popExtValueToReg();
+  void pushExtValueFromMem(u16 dreg, u16 sreg);
+  void pushExtValueFromMem2(u16 dreg, u16 sreg);
+
+  // Multiplier helpers
+  void multiply();
+  void multiply_add();
+  void multiply_sub();
+  void multiply_mulx(u8 axh0, u8 axh1);
 
   DSPJitRegCache m_gpr{*this};
 
