@@ -150,6 +150,7 @@ set(SRCS
   IOS/ES/ES.cpp
   IOS/ES/Formats.cpp
   IOS/ES/Identity.cpp
+  IOS/ES/NandUtils.cpp
   IOS/ES/TitleContents.cpp
   IOS/ES/TitleInformation.cpp
   IOS/ES/TitleManagement.cpp

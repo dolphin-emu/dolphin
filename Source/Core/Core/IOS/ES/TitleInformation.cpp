@@ -5,7 +5,6 @@
 #include "Core/IOS/ES/ES.h"
 
 #include <algorithm>
-#include <cctype>
 #include <cinttypes>
 #include <cstdio>
 #include <iterator>
@@ -18,6 +17,7 @@
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/ES/NandUtils.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
@@ -132,92 +132,6 @@ IPCCommandResult ES::GetTMDStoredContents(const IOCtlVRequest& request)
   return GetStoredContents(IOS::ES::TMDReader{std::move(tmd_bytes)}, request);
 }
 
-static bool IsValidPartOfTitleID(const std::string& string)
-{
-  if (string.length() != 8)
-    return false;
-  return std::all_of(string.begin(), string.end(),
-                     [](const auto character) { return std::isxdigit(character) != 0; });
-}
-
-// Returns a vector of title IDs. IOS does not check the TMD at all here.
-static std::vector<u64> GetInstalledTitles()
-{
-  const std::string titles_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/title";
-  if (!File::IsDirectory(titles_dir))
-  {
-    ERROR_LOG(IOS_ES, "/title is not a directory");
-    return {};
-  }
-
-  std::vector<u64> title_ids;
-
-  // The /title directory contains one directory per title type, and each of them contains
-  // a directory per title (where the name is the low 32 bits of the title ID in %08x format).
-  const auto entries = File::ScanDirectoryTree(titles_dir, true);
-  for (const File::FSTEntry& title_type : entries.children)
-  {
-    if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
-      continue;
-
-    if (title_type.children.empty())
-      continue;
-
-    for (const File::FSTEntry& title_identifier : title_type.children)
-    {
-      if (!title_identifier.isDirectory || !IsValidPartOfTitleID(title_identifier.virtualName))
-        continue;
-
-      const u32 type = std::stoul(title_type.virtualName, nullptr, 16);
-      const u32 identifier = std::stoul(title_identifier.virtualName, nullptr, 16);
-      title_ids.push_back(static_cast<u64>(type) << 32 | identifier);
-    }
-  }
-
-  return title_ids;
-}
-
-// Returns a vector of title IDs for which there is a ticket.
-static std::vector<u64> GetTitlesWithTickets()
-{
-  const std::string titles_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/ticket";
-  if (!File::IsDirectory(titles_dir))
-  {
-    ERROR_LOG(IOS_ES, "/ticket is not a directory");
-    return {};
-  }
-
-  std::vector<u64> title_ids;
-
-  // The /ticket directory contains one directory per title type, and each of them contains
-  // one ticket per title (where the name is the low 32 bits of the title ID in %08x format).
-  const auto entries = File::ScanDirectoryTree(titles_dir, true);
-  for (const File::FSTEntry& title_type : entries.children)
-  {
-    if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
-      continue;
-
-    if (title_type.children.empty())
-      continue;
-
-    for (const File::FSTEntry& ticket : title_type.children)
-    {
-      const std::string name_without_ext = ticket.virtualName.substr(0, 8);
-      if (ticket.isDirectory || !IsValidPartOfTitleID(name_without_ext) ||
-          name_without_ext + ".tik" != ticket.virtualName)
-      {
-        continue;
-      }
-
-      const u32 type = std::stoul(title_type.virtualName, nullptr, 16);
-      const u32 identifier = std::stoul(name_without_ext, nullptr, 16);
-      title_ids.push_back(static_cast<u64>(type) << 32 | identifier);
-    }
-  }
-
-  return title_ids;
-}
-
 IPCCommandResult ES::GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
@@ -244,14 +158,14 @@ IPCCommandResult ES::GetTitles(const std::vector<u64>& titles, const IOCtlVReque
 
 IPCCommandResult ES::GetTitleCount(const IOCtlVRequest& request)
 {
-  const std::vector<u64> titles = GetInstalledTitles();
+  const std::vector<u64> titles = IOS::ES::GetInstalledTitles();
   INFO_LOG(IOS_ES, "GetTitleCount: %zu titles", titles.size());
   return GetTitleCount(titles, request);
 }
 
 IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
 {
-  return GetTitles(GetInstalledTitles(), request);
+  return GetTitles(IOS::ES::GetInstalledTitles(), request);
 }
 
 IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
@@ -300,14 +214,14 @@ IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetOwnedTitleCount(const IOCtlVRequest& request)
 {
-  const std::vector<u64> titles = GetTitlesWithTickets();
+  const std::vector<u64> titles = IOS::ES::GetTitlesWithTickets();
   INFO_LOG(IOS_ES, "GetOwnedTitleCount: %zu titles", titles.size());
   return GetTitleCount(titles, request);
 }
 
 IPCCommandResult ES::GetOwnedTitles(const IOCtlVRequest& request)
 {
-  return GetTitles(GetTitlesWithTickets(), request);
+  return GetTitles(IOS::ES::GetTitlesWithTickets(), request);
 }
 
 IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)

@@ -1,0 +1,114 @@
+// Copyright 2017 Dolphin Emulator Project
+// Licensed under GPLv2+
+// Refer to the license.txt file included.
+
+#include <algorithm>
+#include <cctype>
+#include <string>
+#include <vector>
+
+#include "Common/CommonTypes.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
+#include "Common/NandPaths.h"
+#include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/ES/NandUtils.h"
+
+namespace IOS
+{
+namespace ES
+{
+static bool IsValidPartOfTitleID(const std::string& string)
+{
+  if (string.length() != 8)
+    return false;
+  return std::all_of(string.begin(), string.end(),
+                     [](const auto character) { return std::isxdigit(character) != 0; });
+}
+
+static std::vector<u64> GetTitlesInTitleOrImport(const std::string& titles_dir)
+{
+  if (!File::IsDirectory(titles_dir))
+  {
+    ERROR_LOG(IOS_ES, "%s is not a directory", titles_dir.c_str());
+    return {};
+  }
+
+  std::vector<u64> title_ids;
+
+  // The /title and /import directories contain one directory per title type, and each of them has
+  // a directory per title (where the name is the low 32 bits of the title ID in %08x format).
+  const auto entries = File::ScanDirectoryTree(titles_dir, true);
+  for (const File::FSTEntry& title_type : entries.children)
+  {
+    if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
+      continue;
+
+    if (title_type.children.empty())
+      continue;
+
+    for (const File::FSTEntry& title_identifier : title_type.children)
+    {
+      if (!title_identifier.isDirectory || !IsValidPartOfTitleID(title_identifier.virtualName))
+        continue;
+
+      const u32 type = std::stoul(title_type.virtualName, nullptr, 16);
+      const u32 identifier = std::stoul(title_identifier.virtualName, nullptr, 16);
+      title_ids.push_back(static_cast<u64>(type) << 32 | identifier);
+    }
+  }
+
+  return title_ids;
+}
+
+std::vector<u64> GetInstalledTitles()
+{
+  return GetTitlesInTitleOrImport(Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/title");
+}
+
+std::vector<u64> GetTitleImports()
+{
+  return GetTitlesInTitleOrImport(Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/import");
+}
+
+std::vector<u64> GetTitlesWithTickets()
+{
+  const std::string tickets_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/ticket";
+  if (!File::IsDirectory(tickets_dir))
+  {
+    ERROR_LOG(IOS_ES, "/ticket is not a directory");
+    return {};
+  }
+
+  std::vector<u64> title_ids;
+
+  // The /ticket directory contains one directory per title type, and each of them contains
+  // one ticket per title (where the name is the low 32 bits of the title ID in %08x format).
+  const auto entries = File::ScanDirectoryTree(tickets_dir, true);
+  for (const File::FSTEntry& title_type : entries.children)
+  {
+    if (!title_type.isDirectory || !IsValidPartOfTitleID(title_type.virtualName))
+      continue;
+
+    if (title_type.children.empty())
+      continue;
+
+    for (const File::FSTEntry& ticket : title_type.children)
+    {
+      const std::string name_without_ext = ticket.virtualName.substr(0, 8);
+      if (ticket.isDirectory || !IsValidPartOfTitleID(name_without_ext) ||
+          name_without_ext + ".tik" != ticket.virtualName)
+      {
+        continue;
+      }
+
+      const u32 type = std::stoul(title_type.virtualName, nullptr, 16);
+      const u32 identifier = std::stoul(name_without_ext, nullptr, 16);
+      title_ids.push_back(static_cast<u64>(type) << 32 | identifier);
+    }
+  }
+
+  return title_ids;
+}
+}  // namespace ES
+}  // namespace IOS
