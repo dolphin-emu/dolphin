@@ -70,6 +70,31 @@ public:
   void Update() override;
 
 private:
+  IPCCommandResult StartUp(const IOCtlRequest& request);
+  IPCCommandResult Socket(const IOCtlRequest& request);
+  IPCCommandResult ICMPSocket(const IOCtlRequest& request);
+  IPCCommandResult Close(const IOCtlRequest& request);
+  IPCCommandResult DoSock(const IOCtlRequest& request);
+  IPCCommandResult Shutdown(const IOCtlRequest& request);
+  IPCCommandResult Listen(const IOCtlRequest& request);
+  IPCCommandResult GetSockOpt(const IOCtlRequest& request);
+  IPCCommandResult SetSockOpt(const IOCtlRequest& request);
+  IPCCommandResult GetSockName(const IOCtlRequest& request);
+  IPCCommandResult GetPeerName(const IOCtlRequest& request);
+  IPCCommandResult GetHostID(const IOCtlRequest& request);
+  IPCCommandResult InetAToN(const IOCtlRequest& request);
+  IPCCommandResult InetPToN(const IOCtlRequest& request);
+  IPCCommandResult InetNToP(const IOCtlRequest& request);
+  IPCCommandResult Poll(const IOCtlRequest& request);
+  IPCCommandResult GetHostByName(const IOCtlRequest& request);
+  IPCCommandResult ICMPCancel(const IOCtlRequest& request);
+
+  IPCCommandResult GetInterfaceOpt(const IOCtlVRequest& request);
+  IPCCommandResult SendTo(const IOCtlVRequest& request);
+  IPCCommandResult RecvFrom(const IOCtlVRequest& request);
+  IPCCommandResult GetAddressInfo(const IOCtlVRequest& request);
+  IPCCommandResult ICMPPing(const IOCtlVRequest& request);
+
 #ifdef _WIN32
   WSADATA InitData;
 #endif
