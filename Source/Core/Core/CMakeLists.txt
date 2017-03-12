@@ -149,6 +149,11 @@ set(SRCS
   IOS/DI/DI.cpp
   IOS/ES/ES.cpp
   IOS/ES/Formats.cpp
+  IOS/ES/Identity.cpp
+  IOS/ES/TitleContents.cpp
+  IOS/ES/TitleInformation.cpp
+  IOS/ES/TitleManagement.cpp
+  IOS/ES/Views.cpp
   IOS/FS/FileIO.cpp
   IOS/FS/FS.cpp
   IOS/Network/ICMPLin.cpp
