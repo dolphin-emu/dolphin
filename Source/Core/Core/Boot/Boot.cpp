@@ -167,19 +167,23 @@ bool CBoot::LoadMapFromFilename()
 // It does not initialize the hardware or anything else like BS1 does.
 bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 {
-  // CRC32
-  const u32 USA_v1_0 =
-      0x6D740AE7;  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
-  const u32 USA_v1_1 =
-      0xD5E6FEEA;  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385334#pid385334
-  const u32 USA_v1_2 =
-      0x86573808;  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385399#pid385399
-  const u32 BRA_v1_0 =
-      0x667D0B64;  // GameCubes sold in Brazil have this IPL. Same as USA v1.2 but localized
-  const u32 JAP_v1_0 = 0x6DAC1F2A;  // Redump
-  const u32 JAP_v1_1 = 0xD235E3F9;  // https://bugs.dolphin-emu.org/issues/8936
-  const u32 PAL_v1_0 = 0x4F319F43;  // Redump
-  const u32 PAL_v1_2 = 0xAD1B7F16;  // Redump
+  // CRC32 hashes of the IPL file; including source where known
+  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
+  constexpr u32 USA_v1_0 = 0x6D740AE7;
+  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385334#pid385334
+  constexpr u32 USA_v1_1 = 0xD5E6FEEA;
+  // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385399#pid385399
+  constexpr u32 USA_v1_2 = 0x86573808;
+  // GameCubes sold in Brazil have this IPL. Same as USA v1.2 but localized
+  constexpr u32 BRA_v1_0 = 0x667D0B64;
+  // Redump
+  constexpr u32 JAP_v1_0 = 0x6DAC1F2A;
+  // https://bugs.dolphin-emu.org/issues/8936
+  constexpr u32 JAP_v1_1 = 0xD235E3F9;
+  // Redump
+  constexpr u32 PAL_v1_0 = 0x4F319F43;
+  // Redump
+  constexpr u32 PAL_v1_2 = 0xAD1B7F16;
 
   // Load the whole ROM dump
   std::string data;
