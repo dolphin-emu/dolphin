@@ -365,3 +365,12 @@ int CSIDevice_GBA::TransferInterval()
 {
   return GetTransferTime(send_data[0]);
 }
+
+bool CSIDevice_GBA::GetData(u32& hi, u32& low)
+{
+  return false;
+}
+
+void CSIDevice_GBA::SendCommand(u32 command, u8 poll)
+{
+}

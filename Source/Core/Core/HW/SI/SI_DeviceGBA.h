@@ -52,9 +52,9 @@ public:
 
   int RunBuffer(u8* _pBuffer, int _iLength) override;
   int TransferInterval() override;
+  bool GetData(u32& _Hi, u32& _Low) override;
+  void SendCommand(u32 _Cmd, u8 _Poll) override;
 
-  bool GetData(u32& _Hi, u32& _Low) override { return false; }
-  void SendCommand(u32 _Cmd, u8 _Poll) override {}
 private:
   std::array<u8, 5> send_data{};
   int num_data_received = 0;
