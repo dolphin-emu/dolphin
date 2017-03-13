@@ -756,6 +756,21 @@
     <ClCompile Include="IOS\ES\Formats.cpp">
       <Filter>IOS\ES</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\ES\Identity.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\TitleContents.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\TitleInformation.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\TitleManagement.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
+    <ClCompile Include="IOS\ES\Views.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\FS\FS.cpp">
       <Filter>IOS\FS</Filter>
     </ClCompile>

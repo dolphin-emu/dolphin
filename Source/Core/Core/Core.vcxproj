@@ -176,6 +176,11 @@
     <ClCompile Include="IOS\DI\DI.cpp" />
     <ClCompile Include="IOS\ES\ES.cpp" />
     <ClCompile Include="IOS\ES\Formats.cpp" />
+    <ClCompile Include="IOS\ES\Identity.cpp" />
+    <ClCompile Include="IOS\ES\TitleContents.cpp" />
+    <ClCompile Include="IOS\ES\TitleInformation.cpp" />
+    <ClCompile Include="IOS\ES\TitleManagement.cpp" />
+    <ClCompile Include="IOS\ES\Views.cpp" />
     <ClCompile Include="IOS\FS\FileIO.cpp" />
     <ClCompile Include="IOS\FS\FS.cpp" />
     <ClCompile Include="IOS\Network\ICMPLin.cpp" />

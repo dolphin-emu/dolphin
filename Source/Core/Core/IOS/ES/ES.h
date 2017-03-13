@@ -6,7 +6,6 @@
 
 #include <array>
 #include <map>
-#include <memory>
 #include <string>
 #include <vector>
 
@@ -20,7 +19,6 @@ class PointerWrap;
 namespace DiscIO
 {
 class CNANDContentLoader;
-struct SNANDContent;
 }
 
 namespace IOS
@@ -29,7 +27,20 @@ namespace HLE
 {
 namespace Device
 {
-class ES : public Device
+struct TitleContext
+{
+  void Clear();
+  void DoState(PointerWrap& p);
+  void Update(const DiscIO::CNANDContentLoader& content_loader);
+  void Update(const IOS::ES::TMDReader& tmd_, const IOS::ES::TicketReader& ticket_);
+
+  IOS::ES::TicketReader ticket;
+  IOS::ES::TMDReader tmd;
+  bool active = false;
+  bool first_change = true;
+};
+
+class ES final : public Device
 {
 public:
   ES(u32 device_id, const std::string& device_name);
@@ -150,6 +161,7 @@ private:
     u8 padding[0x3c];
   };
 
+  // Title management
   IPCCommandResult AddTicket(const IOCtlVRequest& request);
   IPCCommandResult AddTMD(const IOCtlVRequest& request);
   IPCCommandResult AddTitleStart(const IOCtlVRequest& request);
@@ -158,23 +170,46 @@ private:
   IPCCommandResult AddContentFinish(const IOCtlVRequest& request);
   IPCCommandResult AddTitleFinish(const IOCtlVRequest& request);
   IPCCommandResult AddTitleCancel(const IOCtlVRequest& request);
-  IPCCommandResult ESGetDeviceID(const IOCtlVRequest& request);
+  IPCCommandResult ExportTitleInit(const IOCtlVRequest& request);
+  IPCCommandResult ExportContentBegin(const IOCtlVRequest& request);
+  IPCCommandResult ExportContentData(const IOCtlVRequest& request);
+  IPCCommandResult ExportContentEnd(const IOCtlVRequest& request);
+  IPCCommandResult ExportTitleDone(const IOCtlVRequest& request);
+  IPCCommandResult DeleteTitle(const IOCtlVRequest& request);
+  IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
+  IPCCommandResult DeleteTitleContent(const IOCtlVRequest& request);
+
+  // Device identity and encryption
+  IPCCommandResult GetConsoleID(const IOCtlVRequest& request);
+  IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
+  IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
+  IPCCommandResult Sign(const IOCtlVRequest& request);
+  IPCCommandResult Encrypt(const IOCtlVRequest& request);
+  IPCCommandResult Decrypt(const IOCtlVRequest& request);
+
+  // Misc
+  IPCCommandResult SetUID(const IOCtlVRequest& request);
+  IPCCommandResult GetTitleDirectory(const IOCtlVRequest& request);
+  IPCCommandResult GetTitleID(const IOCtlVRequest& request);
+  IPCCommandResult GetConsumption(const IOCtlVRequest& request);
+  IPCCommandResult Launch(const IOCtlVRequest& request);
+  IPCCommandResult LaunchBC(const IOCtlVRequest& request);
+
+  // Title contents
   IPCCommandResult OpenTitleContent(const IOCtlVRequest& request);
   IPCCommandResult OpenContent(const IOCtlVRequest& request);
   IPCCommandResult ReadContent(const IOCtlVRequest& request);
   IPCCommandResult CloseContent(const IOCtlVRequest& request);
   IPCCommandResult SeekContent(const IOCtlVRequest& request);
-  IPCCommandResult GetTitleDirectory(const IOCtlVRequest& request);
-  IPCCommandResult GetTitleID(const IOCtlVRequest& request);
-  IPCCommandResult SetUID(const IOCtlVRequest& request);
 
+  // Title information
   IPCCommandResult GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request);
   IPCCommandResult GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request);
   IPCCommandResult GetOwnedTitleCount(const IOCtlVRequest& request);
   IPCCommandResult GetOwnedTitles(const IOCtlVRequest& request);
   IPCCommandResult GetTitleCount(const IOCtlVRequest& request);
   IPCCommandResult GetTitles(const IOCtlVRequest& request);
-
+  IPCCommandResult GetBoot2Version(const IOCtlVRequest& request);
   IPCCommandResult GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
                                           const IOCtlVRequest& request);
   IPCCommandResult GetStoredContents(const IOS::ES::TMDReader& tmd, const IOCtlVRequest& request);
@@ -182,41 +217,21 @@ private:
   IPCCommandResult GetStoredContents(const IOCtlVRequest& request);
   IPCCommandResult GetTMDStoredContentsCount(const IOCtlVRequest& request);
   IPCCommandResult GetTMDStoredContents(const IOCtlVRequest& request);
+  IPCCommandResult GetStoredTMDSize(const IOCtlVRequest& request);
+  IPCCommandResult GetStoredTMD(const IOCtlVRequest& request);
 
-  IPCCommandResult GetViewCount(const IOCtlVRequest& request);
-  IPCCommandResult GetViews(const IOCtlVRequest& request);
-  IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
-
+  // Views for tickets and TMDs
+  IPCCommandResult GetTicketViewCount(const IOCtlVRequest& request);
+  IPCCommandResult GetTicketViews(const IOCtlVRequest& request);
   IPCCommandResult GetTMDViewSize(const IOCtlVRequest& request);
   IPCCommandResult GetTMDViews(const IOCtlVRequest& request);
-
+  IPCCommandResult DIGetTicketView(const IOCtlVRequest& request);
   IPCCommandResult DIGetTMDViewSize(const IOCtlVRequest& request);
   IPCCommandResult DIGetTMDView(const IOCtlVRequest& request);
 
-  IPCCommandResult GetConsumption(const IOCtlVRequest& request);
-  IPCCommandResult DeleteTitle(const IOCtlVRequest& request);
-  IPCCommandResult DeleteTicket(const IOCtlVRequest& request);
-  IPCCommandResult DeleteTitleContent(const IOCtlVRequest& request);
-  IPCCommandResult GetStoredTMDSize(const IOCtlVRequest& request);
-  IPCCommandResult GetStoredTMD(const IOCtlVRequest& request);
-  IPCCommandResult Encrypt(const IOCtlVRequest& request);
-  IPCCommandResult Decrypt(const IOCtlVRequest& request);
-  IPCCommandResult Launch(const IOCtlVRequest& request);
-  IPCCommandResult LaunchBC(const IOCtlVRequest& request);
-
-  IPCCommandResult ExportTitleInit(const IOCtlVRequest& request);
-  IPCCommandResult ExportContentBegin(const IOCtlVRequest& request);
-  IPCCommandResult ExportContentData(const IOCtlVRequest& request);
-  IPCCommandResult ExportContentEnd(const IOCtlVRequest& request);
-  IPCCommandResult ExportTitleDone(const IOCtlVRequest& request);
-
-  IPCCommandResult CheckKoreaRegion(const IOCtlVRequest& request);
-  IPCCommandResult GetDeviceCertificate(const IOCtlVRequest& request);
-  IPCCommandResult Sign(const IOCtlVRequest& request);
-  IPCCommandResult GetBoot2Version(const IOCtlVRequest& request);
-
   static bool LaunchIOS(u64 ios_title_id);
   static bool LaunchPPCTitle(u64 title_id, bool skip_reload);
+  static TitleContext& GetTitleContext();
 
   static const DiscIO::CNANDContentLoader& AccessContentDevice(u64 title_id);
 
