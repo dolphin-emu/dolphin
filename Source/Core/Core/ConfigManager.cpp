@@ -753,7 +753,7 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
   // the disc header instead of the TMD. They can differ.
   // (IOS HLE ES calls us with a TMDReader rather than a volume when launching
   // a disc game, because ES has no reason to be accessing the disc directly.)
-  if (DVDInterface::VolumeIsValid())
+  if (DVDInterface::IsDiscInside())
   {
     DVDThread::WaitUntilIdle();
     const DiscIO::IVolume& volume = DVDInterface::GetVolume();
