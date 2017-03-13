@@ -465,8 +465,8 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* f
     if (entry.isDirectory)
     {
       u32 entry_index = *fst_offset / ENTRY_SIZE;
-      WriteEntryData(fst_offset, DIRECTORY_ENTRY, *name_offset, parent_entry_index,
-                     entry_index + entry.size + 1);
+      WriteEntryData(fst_offset, DIRECTORY_ENTRY, *name_offset,
+                     parent_entry_index << m_address_shift, entry_index + entry.size + 1);
       WriteEntryName(name_offset, entry.virtualName);
 
       WriteDirectory(entry, fst_offset, name_offset, data_offset, entry_index);
