@@ -350,7 +350,7 @@ void CVolumeDirectory::BuildFST()
   m_fst_data.clear();
 
   File::FSTEntry rootEntry = File::ScanDirectoryTree(m_root_directory, true);
-  u32 name_table_size = ComputeNameSize(rootEntry);
+  u32 name_table_size = Common::AlignUp(ComputeNameSize(rootEntry), 1ull << m_address_shift);
   u64 total_entries = rootEntry.size + 1;  // The root entry itself isn't counted in rootEntry.size
 
   m_fst_name_offset = total_entries * ENTRY_SIZE;  // offset of name table in FST
