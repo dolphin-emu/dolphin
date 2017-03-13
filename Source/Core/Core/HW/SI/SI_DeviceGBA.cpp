@@ -4,6 +4,7 @@
 
 #include "Core/HW/SI/SI_DeviceGBA.h"
 
+#include <cstddef>
 #include <memory>
 #include <mutex>
 #include <queue>
@@ -237,7 +238,7 @@ void GBASockServer::Send(const u8* si_buffer)
     if (!GetAvailableSock(client))
       return;
 
-  for (int i = 0; i < 5; i++)
+  for (size_t i = 0; i < send_data.size(); i++)
     send_data[i] = si_buffer[i ^ 3];
 
   cmd = (u8)send_data[0];
@@ -250,9 +251,9 @@ void GBASockServer::Send(const u8* si_buffer)
   client->setBlocking(false);
   sf::Socket::Status status;
   if (cmd == CMD_WRITE)
-    status = client->send(send_data, sizeof(send_data));
+    status = client->send(send_data.data(), send_data.size());
   else
-    status = client->send(send_data, 1);
+    status = client->send(send_data.data(), 1);
 
   if (cmd != CMD_STATUS)
     booted = true;
@@ -282,7 +283,7 @@ int GBASockServer::Receive(u8* si_buffer)
     Selector.wait(sf::milliseconds(1000));
   }
 
-  sf::Socket::Status recv_stat = client->receive(recv_data, sizeof(recv_data), num_received);
+  sf::Socket::Status recv_stat = client->receive(recv_data.data(), recv_data.size(), num_received);
   if (recv_stat == sf::Socket::Disconnected)
   {
     Disconnect();
@@ -292,8 +293,8 @@ int GBASockServer::Receive(u8* si_buffer)
   if (recv_stat == sf::Socket::NotReady)
     num_received = 0;
 
-  if (num_received > sizeof(recv_data))
-    num_received = sizeof(recv_data);
+  if (num_received > recv_data.size())
+    num_received = recv_data.size();
 
   if (num_received > 0)
   {
@@ -312,7 +313,7 @@ int GBASockServer::Receive(u8* si_buffer)
     }
 #endif
 
-    for (int i = 0; i < 5; i++)
+    for (size_t i = 0; i < recv_data.size(); i++)
       si_buffer[i ^ 3] = recv_data[i];
   }
 
@@ -333,7 +334,7 @@ int CSIDevice_GBA::RunBuffer(u8* _pBuffer, int _iLength)
 {
   if (!waiting_for_response)
   {
-    for (int i = 0; i < 5; i++)
+    for (size_t i = 0; i < send_data.size(); i++)
       send_data[i] = _pBuffer[i ^ 3];
 
     num_data_received = 0;

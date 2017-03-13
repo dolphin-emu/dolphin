@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <memory>
 
 #include <SFML/Network.hpp>
@@ -33,8 +34,8 @@ public:
 private:
   std::unique_ptr<sf::TcpSocket> client;
   std::unique_ptr<sf::TcpSocket> clock_sync;
-  char send_data[5] = {};
-  char recv_data[5] = {};
+  std::array<char, 5> send_data{};
+  std::array<char, 5> recv_data{};
 
   u64 time_cmd_sent = 0;
   u64 last_time_slice = 0;
@@ -55,7 +56,7 @@ public:
   bool GetData(u32& _Hi, u32& _Low) override { return false; }
   void SendCommand(u32 _Cmd, u8 _Poll) override {}
 private:
-  u8 send_data[5] = {};
+  std::array<u8, 5> send_data{};
   int num_data_received = 0;
   u64 timestamp_sent = 0;
   bool waiting_for_response = false;
