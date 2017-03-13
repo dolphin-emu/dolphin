@@ -79,6 +79,12 @@ void CBoot::Load_FST(bool is_wii)
   DVDRead(fst_offset << shift, arena_high, fst_size << shift, is_wii);
   Memory::Write_U32(arena_high, 0x00000038);
   Memory::Write_U32(max_fst_size << shift, 0x0000003c);
+
+  if (is_wii)
+  {
+    // the apploader changes IOS MEM1_ARENA_END too
+    Memory::Write_U32(arena_high, 0x00003110);
+  }
 }
 
 void CBoot::UpdateDebugger_MapLoaded()
