@@ -38,7 +38,7 @@ private:
 
   u64 time_cmd_sent;
   u64 last_time_slice;
-  u8 device_number;
+  int device_number;
   u8 cmd;
   bool booted;
 };
