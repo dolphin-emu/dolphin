@@ -22,6 +22,7 @@ namespace HLE
 {
 namespace Device
 {
+// The front SD slot
 class SDIOSlot0 : public Device
 {
 public:
@@ -110,13 +111,28 @@ private:
     EVENT_INVALID = 0xc210000
   };
 
-  // TODO do we need more than one?
   struct Event
   {
     Event(EventType type_, Request request_) : type(type_), request(request_) {}
     EventType type;
     Request request;
   };
+
+  IPCCommandResult WriteHCRegister(const IOCtlRequest& request);
+  IPCCommandResult ReadHCRegister(const IOCtlRequest& request);
+  IPCCommandResult ResetCard(const IOCtlRequest& request);
+  IPCCommandResult SetClk(const IOCtlRequest& request);
+  IPCCommandResult SendCommand(const IOCtlRequest& request);
+  IPCCommandResult GetStatus(const IOCtlRequest& request);
+  IPCCommandResult GetOCRegister(const IOCtlRequest& request);
+
+  IPCCommandResult SendCommand(const IOCtlVRequest& request);
+
+  u32 ExecuteCommand(const Request& request, u32 BufferIn, u32 BufferInSize, u32 BufferIn2,
+                     u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
+  void OpenInternal();
+
+  // TODO: do we need more than one?
   std::unique_ptr<Event> m_event;
 
   u32 m_Status = CARD_NOT_EXIST;
@@ -126,10 +142,6 @@ private:
   std::array<u32, 0x200 / sizeof(u32)> m_registers;
 
   File::IOFile m_Card;
-
-  u32 ExecuteCommand(const Request& request, u32 BufferIn, u32 BufferInSize, u32 BufferIn2,
-                     u32 BufferInSize2, u32 _BufferOut, u32 BufferOutSize);
-  void OpenInternal();
 };
 }  // namespace Device
 }  // namespace HLE
