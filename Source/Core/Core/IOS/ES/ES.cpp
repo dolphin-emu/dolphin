@@ -758,7 +758,8 @@ static std::vector<IOS::ES::Content> GetStoredContentsFromTMD(const IOS::ES::TMD
                    return path != "unk" && File::Exists(path);
                  }
                  return File::Exists(
-                     Common::GetTitleContentPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT));
+                     Common::GetTitleContentPath(tmd.GetTitleId(), Common::FROM_SESSION_ROOT) +
+                     StringFromFormat("%08x.app", content.id));
                });
 
   return stored_contents;
