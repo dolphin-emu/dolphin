@@ -351,8 +351,9 @@ void CVolumeDirectory::BuildFST()
 
   File::FSTEntry rootEntry = File::ScanDirectoryTree(m_root_directory, true);
   u32 name_table_size = ComputeNameSize(rootEntry);
+  u64 total_entries = rootEntry.size + 1;  // The root entry itself isn't counted in rootEntry.size
 
-  m_fst_name_offset = rootEntry.size * ENTRY_SIZE;  // offset of name table in FST
+  m_fst_name_offset = total_entries * ENTRY_SIZE;  // offset of name table in FST
   m_fst_data.resize(m_fst_name_offset + name_table_size);
 
   // if FST hasn't been assigned (ie no apploader/dol setup), set to default
@@ -368,7 +369,7 @@ void CVolumeDirectory::BuildFST()
   u32 root_offset = 0;  // Offset of root of FST
 
   // write root entry
-  WriteEntryData(&fst_offset, DIRECTORY_ENTRY, 0, 0, rootEntry.size);
+  WriteEntryData(&fst_offset, DIRECTORY_ENTRY, 0, 0, total_entries);
 
   WriteDirectory(rootEntry, &fst_offset, &name_offset, &current_data_address, root_offset);
 
@@ -454,9 +455,6 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* f
   // Sort for determinism
   std::sort(sorted_entries.begin(), sorted_entries.end(), [](const File::FSTEntry& one,
                                                              const File::FSTEntry& two) {
-    // For some reason, sorting by lowest ASCII value first prevents many games from
-    // fully booting. We make the comparison case insensitive to solve the problem.
-    // (Highest ASCII value first seems to work regardless of case sensitivity.)
     const std::string one_lower = ASCIIToLowercase(one.virtualName);
     const std::string two_lower = ASCIIToLowercase(two.virtualName);
     return one_lower == two_lower ? one.virtualName < two.virtualName : one_lower < two_lower;
