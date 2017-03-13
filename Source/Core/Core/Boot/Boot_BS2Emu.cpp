@@ -182,9 +182,6 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   // return
   PC = PowerPC::ppcState.gpr[3];
 
-  // Load patches
-  PatchEngine::LoadPatches();
-
   return true;
 }
 
