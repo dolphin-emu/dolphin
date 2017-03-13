@@ -14,6 +14,7 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 #include "Common/MsgHandler.h"
@@ -33,6 +34,8 @@ CVolumeWiiCrypted::CVolumeWiiCrypted(std::unique_ptr<IBlobReader> reader, u64 _V
     : m_pReader(std::move(reader)), m_AES_ctx(std::make_unique<mbedtls_aes_context>()),
       m_VolumeOffset(_VolumeOffset), m_dataOffset(0x20000), m_LastDecryptedBlockOffset(-1)
 {
+  _assert_(m_pReader);
+
   mbedtls_aes_setkey_dec(m_AES_ctx.get(), _pVolumeKey, 128);
 }
 
@@ -53,9 +56,6 @@ CVolumeWiiCrypted::~CVolumeWiiCrypted()
 
 bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool decrypt) const
 {
-  if (m_pReader == nullptr)
-    return false;
-
   if (!decrypt)
     return m_pReader->Read(_ReadOffset, _Length, _pBuffer);
 
@@ -275,17 +275,17 @@ u8 CVolumeWiiCrypted::GetDiscNumber() const
 
 BlobType CVolumeWiiCrypted::GetBlobType() const
 {
-  return m_pReader ? m_pReader->GetBlobType() : BlobType::PLAIN;
+  return m_pReader->GetBlobType();
 }
 
 u64 CVolumeWiiCrypted::GetSize() const
 {
-  return m_pReader ? m_pReader->GetDataSize() : 0;
+  return m_pReader->GetDataSize();
 }
 
 u64 CVolumeWiiCrypted::GetRawSize() const
 {
-  return m_pReader ? m_pReader->GetRawSize() : 0;
+  return m_pReader->GetRawSize();
 }
 
 bool CVolumeWiiCrypted::CheckIntegrity() const
