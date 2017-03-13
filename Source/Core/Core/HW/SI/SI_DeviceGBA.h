@@ -21,7 +21,7 @@ void GBAConnectionWaiter_Shutdown();
 class GBASockServer
 {
 public:
-  GBASockServer(int _iDeviceNumber);
+  explicit GBASockServer(int _iDeviceNumber);
   ~GBASockServer();
 
   void Disconnect();
