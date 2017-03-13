@@ -48,7 +48,7 @@ bool CBoot::DVDRead(u64 dvd_offset, u32 output_address, u32 length, bool decrypt
   return true;
 }
 
-void CBoot::Load_FST(bool _bIsWii)
+void CBoot::Load_FST(bool is_wii)
 {
   if (!DVDInterface::IsDiscInside())
     return;
@@ -62,22 +62,22 @@ void CBoot::Load_FST(bool _bIsWii)
   Memory::Write_U32(Memory::Read_U32(0x0000), 0x3180);
 
   u32 shift = 0;
-  if (_bIsWii)
+  if (is_wii)
     shift = 2;
 
   u32 fst_offset = 0;
   u32 fst_size = 0;
   u32 max_fst_size = 0;
 
-  volume.ReadSwapped(0x0424, &fst_offset, _bIsWii);
-  volume.ReadSwapped(0x0428, &fst_size, _bIsWii);
-  volume.ReadSwapped(0x042c, &max_fst_size, _bIsWii);
+  volume.ReadSwapped(0x0424, &fst_offset, is_wii);
+  volume.ReadSwapped(0x0428, &fst_size, is_wii);
+  volume.ReadSwapped(0x042c, &max_fst_size, is_wii);
 
   u32 arena_high = Common::AlignDown(0x817FFFFF - (max_fst_size << shift), 0x20);
   Memory::Write_U32(arena_high, 0x00000034);
 
   // load FST
-  DVDRead(fst_offset << shift, arena_high, fst_size << shift, _bIsWii);
+  DVDRead(fst_offset << shift, arena_high, fst_size << shift, is_wii);
   Memory::Write_U32(arena_high, 0x00000038);
   Memory::Write_U32(max_fst_size << shift, 0x0000003c);
 }
@@ -165,7 +165,7 @@ bool CBoot::LoadMapFromFilename()
 // If ipl.bin is not found, this function does *some* of what BS1 does:
 // loading IPL(BS2) and jumping to it.
 // It does not initialize the hardware or anything else like BS1 does.
-bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
+bool CBoot::Load_BS2(const std::string& boot_rom_filename)
 {
   // CRC32 hashes of the IPL file; including source where known
   // https://forums.dolphin-emu.org/Thread-unknown-hash-on-ipl-bin?pid=385344#pid385344
@@ -189,7 +189,7 @@ bool CBoot::Load_BS2(const std::string& _rBootROMFilename)
 
   // Load the whole ROM dump
   std::string data;
-  if (!File::ReadFileToString(_rBootROMFilename, data))
+  if (!File::ReadFileToString(boot_rom_filename, data))
     return false;
 
   // Use zlibs crc32 implementation to compute the hash

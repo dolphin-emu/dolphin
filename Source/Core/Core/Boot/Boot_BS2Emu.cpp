@@ -30,9 +30,9 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
-void CBoot::RunFunction(u32 _iAddr)
+void CBoot::RunFunction(u32 address)
 {
-  PC = _iAddr;
+  PC = address;
   LR = 0x00;
 
   while (PC != 0x00)
@@ -43,7 +43,7 @@ void CBoot::RunFunction(u32 _iAddr)
 // GameCube Bootstrap 2 HLE:
 // copy the apploader to 0x81200000
 // execute the apploader, function by function, using the above utility.
-bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
+bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
 {
   INFO_LOG(BOOT, "Faking GC BS2...");
 
@@ -108,7 +108,7 @@ bool CBoot::EmulatedBS2_GC(bool skipAppLoader)
   const DiscIO::IVolume& volume = DVDInterface::GetVolume();
   const u32 apploader_offset = 0x2440;
   u32 apploader_entry, apploader_size, apploader_trailer;
-  if (skipAppLoader || !volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, false) ||
+  if (skip_app_loader || !volume.ReadSwapped(apploader_offset + 0x10, &apploader_entry, false) ||
       !volume.ReadSwapped(apploader_offset + 0x14, &apploader_size, false) ||
       !volume.ReadSwapped(apploader_offset + 0x18, &apploader_trailer, false) ||
       apploader_entry == (u32)-1 || apploader_size + apploader_trailer == (u32)-1)
@@ -412,7 +412,7 @@ bool CBoot::EmulatedBS2_Wii()
 }
 
 // Returns true if apploader has run successfully
-bool CBoot::EmulatedBS2(bool _bIsWii)
+bool CBoot::EmulatedBS2(bool is_wii)
 {
-  return _bIsWii ? EmulatedBS2_Wii() : EmulatedBS2_GC();
+  return is_wii ? EmulatedBS2_Wii() : EmulatedBS2_GC();
 }
