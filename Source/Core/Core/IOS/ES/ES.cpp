@@ -494,7 +494,7 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
     if (!tmd_file.WriteBytes(tmd_bytes.data(), tmd_bytes.size()))
       ERROR_LOG(IOS_ES, "DIVerify failed to write disc TMD to NAND.");
   }
-  DiscIO::cUIDsys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_SESSION_ROOT};
   uid_sys.AddTitle(tmd.GetTitleId());
   // DI_VERIFY writes to title.tmd, which is read and cached inside the NAND Content Manager.
   // clear the cache to avoid content access mismatches.

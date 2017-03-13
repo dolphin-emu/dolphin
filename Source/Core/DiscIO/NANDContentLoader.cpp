@@ -25,67 +25,14 @@
 #include "Common/NandPaths.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
+// TODO: kill this dependency.
+#include "Core/IOS/ES/Formats.h"
 
 #include "DiscIO/WiiWad.h"
 
 namespace DiscIO
 {
 CNANDContentData::~CNANDContentData() = default;
-
-CSharedContent::CSharedContent(Common::FromWhichRoot root) : m_root(root)
-{
-  m_Elements.clear();
-  m_LastID = 0;
-  m_ContentMap = Common::RootUserPath(root) + "/shared1/content.map";
-
-  File::IOFile pFile(m_ContentMap, "rb");
-  SElement Element;
-  while (pFile.ReadArray(&Element, 1))
-  {
-    m_Elements.push_back(Element);
-    m_LastID++;
-  }
-}
-
-std::string CSharedContent::GetFilenameFromSHA1(const u8* hash) const
-{
-  for (const auto& Element : m_Elements)
-  {
-    if (memcmp(hash, Element.SHA1Hash, 20) == 0)
-    {
-      return StringFromFormat(
-          "%s/shared1/%c%c%c%c%c%c%c%c.app", Common::RootUserPath(m_root).c_str(),
-          Element.FileName[0], Element.FileName[1], Element.FileName[2], Element.FileName[3],
-          Element.FileName[4], Element.FileName[5], Element.FileName[6], Element.FileName[7]);
-    }
-  }
-  return "unk";
-}
-
-std::string CSharedContent::AddSharedContent(const u8* hash)
-{
-  std::string filename = GetFilenameFromSHA1(hash);
-
-  if (strcasecmp(filename.c_str(), "unk") == 0)
-  {
-    std::string id = StringFromFormat("%08x", m_LastID);
-    SElement Element;
-    memcpy(Element.FileName, id.c_str(), 8);
-    memcpy(Element.SHA1Hash, hash, 20);
-    m_Elements.push_back(Element);
-
-    File::CreateFullPath(m_ContentMap);
-
-    File::IOFile pFile(m_ContentMap, "ab");
-    pFile.WriteArray(&Element, 1);
-
-    filename =
-        StringFromFormat("%s/shared1/%s.app", Common::RootUserPath(m_root).c_str(), id.c_str());
-    m_LastID++;
-  }
-
-  return filename;
-}
 
 CNANDContentDataFile::CNANDContentDataFile(const std::string& filename) : m_filename{filename}
 {
@@ -238,7 +185,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_ap
 
   u32 data_app_offset = 0;
   const std::vector<u8> title_key = m_ticket.GetTitleKey();
-  CSharedContent shared_content{Common::FromWhichRoot::FROM_SESSION_ROOT};
+  IOS::ES::SharedContentMap shared_content{Common::FromWhichRoot::FROM_SESSION_ROOT};
 
   for (size_t i = 0; i < contents.size(); ++i)
   {
@@ -261,7 +208,7 @@ void CNANDContentLoader::InitializeContentEntries(const std::vector<u8>& data_ap
     {
       std::string filename;
       if (content.IsShared())
-        filename = shared_content.GetFilenameFromSHA1(content.sha1.data());
+        filename = shared_content.GetFilenameFromSHA1(content.sha1);
       else
         filename = StringFromFormat("%s/%08x.app", m_Path.c_str(), content.id);
 
@@ -328,78 +275,6 @@ void CNANDContentLoader::RemoveTitle() const
   }
 }
 
-cUIDsys::cUIDsys(Common::FromWhichRoot root)
-{
-  m_Elements.clear();
-  m_LastUID = 0x00001000;
-  m_UidSys = Common::RootUserPath(root) + "/sys/uid.sys";
-
-  File::IOFile pFile(m_UidSys, "rb");
-  SElement Element;
-  while (pFile.ReadArray(&Element, 1))
-  {
-    *(u32*)&(Element.UID) = Common::swap32(m_LastUID++);
-    m_Elements.push_back(Element);
-  }
-  pFile.Close();
-
-  if (m_Elements.empty())
-  {
-    *(u64*)&(Element.titleID) = Common::swap64(TITLEID_SYSMENU);
-    *(u32*)&(Element.UID) = Common::swap32(m_LastUID++);
-
-    File::CreateFullPath(m_UidSys);
-    pFile.Open(m_UidSys, "wb");
-    if (!pFile.WriteArray(&Element, 1))
-      ERROR_LOG(DISCIO, "Failed to write to %s", m_UidSys.c_str());
-  }
-}
-
-u32 cUIDsys::GetUIDFromTitle(u64 title_id)
-{
-  for (auto& Element : m_Elements)
-  {
-    if (Common::swap64(title_id) == *(u64*)&(Element.titleID))
-    {
-      return Common::swap32(Element.UID);
-    }
-  }
-  return 0;
-}
-
-void cUIDsys::AddTitle(u64 title_id)
-{
-  if (GetUIDFromTitle(title_id))
-  {
-    INFO_LOG(DISCIO, "Title %08x%08x, already exists in uid.sys", (u32)(title_id >> 32),
-             (u32)title_id);
-    return;
-  }
-
-  SElement Element;
-  *(u64*)&(Element.titleID) = Common::swap64(title_id);
-  *(u32*)&(Element.UID) = Common::swap32(m_LastUID++);
-  m_Elements.push_back(Element);
-
-  File::CreateFullPath(m_UidSys);
-  File::IOFile pFile(m_UidSys, "ab");
-
-  if (!pFile.WriteArray(&Element, 1))
-    ERROR_LOG(DISCIO, "fwrite failed");
-}
-
-void cUIDsys::GetTitleIDs(std::vector<u64>& title_ids, bool owned)
-{
-  for (auto& Element : m_Elements)
-  {
-    if ((owned &&
-         Common::CheckTitleTIK(Common::swap64(Element.titleID), Common::FROM_SESSION_ROOT)) ||
-        (!owned &&
-         Common::CheckTitleTMD(Common::swap64(Element.titleID), Common::FROM_SESSION_ROOT)))
-      title_ids.push_back(Common::swap64(Element.titleID));
-  }
-}
-
 u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
 {
   if (filename.find(".wad") == std::string::npos)
@@ -426,12 +301,12 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
   const auto& raw_tmd = content_loader.GetTMD().GetRawTMD();
   tmd_file.WriteBytes(raw_tmd.data(), raw_tmd.size());
 
-  CSharedContent shared_content{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  IOS::ES::SharedContentMap shared_content{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
   for (const auto& content : content_loader.GetContent())
   {
     std::string app_filename;
     if (content.m_metadata.IsShared())
-      app_filename = shared_content.AddSharedContent(content.m_metadata.sha1.data());
+      app_filename = shared_content.AddSharedContent(content.m_metadata.sha1);
     else
       app_filename = StringFromFormat("%s%08x.app", content_path.c_str(), content.m_metadata.id);
 
@@ -460,7 +335,7 @@ u64 CNANDContentManager::Install_WiiWAD(const std::string& filename)
     return 0;
   }
 
-  cUIDsys uid_sys{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
+  IOS::ES::UIDSys uid_sys{Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
   uid_sys.AddTitle(title_id);
 
   ClearCache();

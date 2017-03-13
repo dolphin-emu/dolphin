@@ -102,7 +102,7 @@ IPCCommandResult ES::AddTMD(const IOCtlVRequest& request)
   if (!m_addtitle_tmd.IsValid())
     return GetDefaultReply(ES_INVALID_TMD);
 
-  DiscIO::cUIDsys uid_sys{Common::FROM_CONFIGURED_ROOT};
+  IOS::ES::UIDSys uid_sys{Common::FROM_CONFIGURED_ROOT};
   uid_sys.AddTitle(m_addtitle_tmd.GetTitleId());
 
   return GetDefaultReply(IPC_SUCCESS);
@@ -124,7 +124,7 @@ IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
     return GetDefaultReply(ES_INVALID_TMD);
   }
 
-  DiscIO::cUIDsys uid_sys{Common::FROM_CONFIGURED_ROOT};
+  IOS::ES::UIDSys uid_sys{Common::FROM_CONFIGURED_ROOT};
   uid_sys.AddTitle(m_addtitle_tmd.GetTitleId());
 
   // TODO: check and use the other vectors.
@@ -281,8 +281,8 @@ IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
     std::string content_path;
     if (content_info.IsShared())
     {
-      DiscIO::CSharedContent shared_content{Common::FROM_SESSION_ROOT};
-      content_path = shared_content.AddSharedContent(content_info.sha1.data());
+      IOS::ES::SharedContentMap shared_content{Common::FROM_SESSION_ROOT};
+      content_path = shared_content.AddSharedContent(content_info.sha1);
     }
     else
     {

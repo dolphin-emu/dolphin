@@ -13,6 +13,7 @@
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
+#include "Common/NandPaths.h"
 #include "DiscIO/Enums.h"
 
 namespace IOS
@@ -193,6 +194,37 @@ public:
 
 private:
   std::vector<u8> m_bytes;
+};
+
+class SharedContentMap final
+{
+public:
+  explicit SharedContentMap(Common::FromWhichRoot root);
+  ~SharedContentMap();
+
+  std::string GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const;
+  std::string AddSharedContent(const std::array<u8, 20>& sha1);
+
+private:
+  struct Entry;
+  Common::FromWhichRoot m_root;
+  u32 m_last_id = 0;
+  std::string m_file_path;
+  std::vector<Entry> m_entries;
+};
+
+class UIDSys final
+{
+public:
+  explicit UIDSys(Common::FromWhichRoot root);
+
+  u32 GetUIDFromTitle(u64 title_id);
+  void AddTitle(u64 title_id);
+  u32 GetNextUID() const;
+
+private:
+  std::string m_file_path;
+  std::map<u32, u64> m_entries;
 };
 }  // namespace ES
 }  // namespace IOS
