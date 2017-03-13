@@ -12,10 +12,6 @@
 #include "Common/Swap.h"
 #include "Core/ConfigManager.h"
 
-#if _M_SSE >= 0x301 && !(defined __GNUC__ && !defined __SSSE3__)
-#include <tmmintrin.h>
-#endif
-
 CMixer::CMixer(unsigned int BackendSampleRate) : m_sampleRate(BackendSampleRate)
 {
   INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
