@@ -244,7 +244,6 @@ static u32 s_pending_samples;
 
 // Disc drive state
 static u32 s_error_code = 0;
-static bool s_disc_inside = false;
 
 // Disc drive timing
 static u64 s_read_buffer_start_time;
@@ -264,7 +263,7 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate);
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate);
 static void FinishExecutingCommandCallback(u64 userdata, s64 cycles_late);
 
-void SetLidOpen(bool _bOpen);
+void SetLidOpen();
 
 void UpdateInterrupts();
 void GenerateDIInterrupt(DIInterruptType _DVDInterrupt);
@@ -282,6 +281,8 @@ u64 CalculateRawDiscReadTime(u64 offset, u64 length);
 
 void DoState(PointerWrap& p)
 {
+  bool disc_inside = IsDiscInside();
+
   p.DoPOD(s_DISR);
   p.DoPOD(s_DICVR);
   p.DoArray(s_DICMDBUF);
@@ -301,7 +302,7 @@ void DoState(PointerWrap& p)
   p.Do(s_pending_samples);
 
   p.Do(s_error_code);
-  p.Do(s_disc_inside);
+  p.Do(disc_inside);
 
   p.Do(s_read_buffer_start_time);
   p.Do(s_read_buffer_end_time);
@@ -313,13 +314,13 @@ void DoState(PointerWrap& p)
   DVDThread::DoState(p);
 
   // s_inserted_volume isn't savestated (because it points to
-  // files on the local system). Instead, we check that
-  // s_disc_inside matches the status of s_inserted_volume.
-  // This won't catch cases of having the wrong disc inserted, though.
+  // files on the local system). Instead, we check that the
+  // savestated disc_inside matches our IsDiscInside(). This
+  // won't catch cases of having the wrong disc inserted, though.
   // TODO: Check the game ID, disc number, revision?
-  if (s_disc_inside != (s_inserted_volume != nullptr))
+  if (disc_inside != IsDiscInside())
   {
-    if (s_disc_inside)
+    if (disc_inside)
       PanicAlertT("An inserted disc was expected but not found.");
     else
       s_inserted_volume.reset();
@@ -418,11 +419,12 @@ static void DTKStreamingCallback(const std::vector<u8>& audio_data, s64 cycles_l
 
 void Init()
 {
+  _assert_(!IsDiscInside());
+
   DVDThread::Start();
 
   Reset();
   s_DICVR.Hex = 1;  // Disc Channel relies on cover being open when no disc is inserted
-  s_disc_inside = false;
 
   s_eject_disc = CoreTiming::RegisterEvent("EjectDisc", EjectDiscCallback);
   s_insert_disc = CoreTiming::RegisterEvent("InsertDisc", InsertDiscCallback);
@@ -476,6 +478,7 @@ void Shutdown()
 
 const DiscIO::IVolume& GetVolume()
 {
+  _assert_(IsDiscInside());
   return *s_inserted_volume;
 }
 
@@ -483,7 +486,8 @@ bool SetVolumeName(const std::string& disc_path)
 {
   DVDThread::WaitUntilIdle();
   s_inserted_volume = DiscIO::CreateVolumeFromFilename(disc_path);
-  return VolumeIsValid();
+  SetLidOpen();
+  return IsDiscInside();
 }
 
 bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
@@ -492,25 +496,13 @@ bool SetVolumeDirectory(const std::string& full_path, bool is_wii,
   DVDThread::WaitUntilIdle();
   s_inserted_volume =
       DiscIO::CreateVolumeFromDirectory(full_path, is_wii, apploader_path, DOL_path);
-  return VolumeIsValid();
-}
-
-bool VolumeIsValid()
-{
-  return s_inserted_volume != nullptr;
-}
-
-void SetDiscInside(bool disc_inside)
-{
-  if (s_disc_inside != disc_inside)
-    SetLidOpen(!disc_inside);
-
-  s_disc_inside = disc_inside;
+  SetLidOpen();
+  return IsDiscInside();
 }
 
 bool IsDiscInside()
 {
-  return s_disc_inside;
+  return s_inserted_volume != nullptr;
 }
 
 // Take care of all logic of "swapping discs"
@@ -521,7 +513,7 @@ static void EjectDiscCallback(u64 userdata, s64 cyclesLate)
 {
   DVDThread::WaitUntilIdle();
   s_inserted_volume.reset();
-  SetDiscInside(false);
+  SetLidOpen();
 }
 
 static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
@@ -534,7 +526,6 @@ static void InsertDiscCallback(u64 userdata, s64 cyclesLate)
     SetVolumeName(old_path);
     PanicAlertT("The disc that was about to be inserted couldn't be found.");
   }
-  SetDiscInside(VolumeIsValid());
 
   s_disc_path_to_insert.clear();
 }
@@ -566,11 +557,12 @@ void ChangeDiscAsCPU(const std::string& new_path)
   Movie::SignalDiscChange(new_path);
 }
 
-void SetLidOpen(bool open)
+void SetLidOpen()
 {
-  s_DICVR.CVR = open ? 1 : 0;
-
-  GenerateDIInterrupt(INT_CVRINT);
+  u32 old_value = s_DICVR.CVR;
+  s_DICVR.CVR = IsDiscInside() ? 0 : 1;
+  if (s_DICVR.CVR != old_value)
+    GenerateDIInterrupt(INT_CVRINT);
 }
 
 bool ChangePartition(u64 offset)
@@ -699,7 +691,7 @@ void WriteImmediate(u32 value, u32 output_address, bool reply_to_ios)
 bool ExecuteReadCommand(u64 DVD_offset, u32 output_address, u32 DVD_length, u32 output_length,
                         bool decrypt, ReplyType reply_type, DIInterruptType* interrupt_type)
 {
-  if (!s_disc_inside)
+  if (!IsDiscInside())
   {
     // Disc read fails
     s_error_code = ERROR_NO_DISK | ERROR_COVER_H;
@@ -814,8 +806,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
 
   // Probably only used by Wii
   case DVDLowGetCoverStatus:
-    WriteImmediate(s_disc_inside ? 2 : 1, output_address, reply_to_ios);
-    INFO_LOG(DVDINTERFACE, "DVDLowGetCoverStatus: Disc %sInserted", s_disc_inside ? "" : "Not ");
+    WriteImmediate(IsDiscInside() ? 2 : 1, output_address, reply_to_ios);
+    INFO_LOG(DVDINTERFACE, "DVDLowGetCoverStatus: Disc %sInserted", IsDiscInside() ? "" : "Not ");
     break;
 
   // Probably only used by Wii
