@@ -112,11 +112,7 @@ std::string CVolumeWAD::GetMakerID() const
 
 bool CVolumeWAD::GetTitleID(u64* buffer) const
 {
-  if (!Read(m_offset + 0x01DC, sizeof(u64), reinterpret_cast<u8*>(buffer)))
-    return false;
-
-  *buffer = Common::swap64(*buffer);
-  return true;
+  return ReadSwapped(m_offset + 0x01DC, buffer, false);
 }
 
 u16 CVolumeWAD::GetRevision() const
