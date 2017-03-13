@@ -166,16 +166,12 @@ static bool GetNextClock(std::unique_ptr<sf::TcpSocket>& sock_to_fill)
   return sock_filled;
 }
 
-GBASockServer::GBASockServer(int _iDeviceNumber)
+GBASockServer::GBASockServer(int _iDeviceNumber) : device_number{_iDeviceNumber}
 {
   if (!connectionThread.joinable())
     connectionThread = std::thread(GBAConnectionWaiter);
 
-  cmd = 0;
   num_connected = 0;
-  last_time_slice = 0;
-  booted = false;
-  device_number = _iDeviceNumber;
 }
 
 GBASockServer::~GBASockServer()
@@ -326,7 +322,6 @@ int GBASockServer::Receive(u8* si_buffer)
 CSIDevice_GBA::CSIDevice_GBA(SIDevices _device, int _iDeviceNumber)
     : ISIDevice(_device, _iDeviceNumber), GBASockServer(_iDeviceNumber)
 {
-  waiting_for_response = false;
 }
 
 CSIDevice_GBA::~CSIDevice_GBA()

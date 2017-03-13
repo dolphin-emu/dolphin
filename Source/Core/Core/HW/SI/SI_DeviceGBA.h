@@ -33,14 +33,14 @@ public:
 private:
   std::unique_ptr<sf::TcpSocket> client;
   std::unique_ptr<sf::TcpSocket> clock_sync;
-  char send_data[5];
-  char recv_data[5];
+  char send_data[5] = {};
+  char recv_data[5] = {};
 
-  u64 time_cmd_sent;
-  u64 last_time_slice;
+  u64 time_cmd_sent = 0;
+  u64 last_time_slice = 0;
   int device_number;
-  u8 cmd;
-  bool booted;
+  u8 cmd = 0;
+  bool booted = false;
 };
 
 class CSIDevice_GBA : public ISIDevice, private GBASockServer
@@ -55,8 +55,8 @@ public:
   bool GetData(u32& _Hi, u32& _Low) override { return false; }
   void SendCommand(u32 _Cmd, u8 _Poll) override {}
 private:
-  u8 send_data[5];
-  int num_data_received;
-  u64 timestamp_sent;
-  bool waiting_for_response;
+  u8 send_data[5] = {};
+  int num_data_received = 0;
+  u64 timestamp_sent = 0;
+  bool waiting_for_response = false;
 };
