@@ -42,7 +42,7 @@ int CSIDevice_GCSteeringWheel::RunBuffer(u8* _pBuffer, int _iLength)
 
 bool CSIDevice_GCSteeringWheel::GetData(u32& _Hi, u32& _Low)
 {
-  if (m_Mode == 6)
+  if (m_mode == 6)
   {
     GCPadStatus PadStatus = GetPadStatus();
 
@@ -75,12 +75,13 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 _Cmd, u8 _Poll)
 {
   UCommand command(_Cmd);
 
-  if (command.Command == CMD_FORCE)
+  if (command.command == CMD_FORCE)
   {
-    unsigned int uStrength =
-        command
-            .Parameter1;  // 0 = left strong, 127 = left weak, 128 = right weak, 255 = right strong
-    unsigned int uType = command.Parameter2;  // 06 = motor on, 04 = motor off
+    // 0 = left strong, 127 = left weak, 128 = right weak, 255 = right strong
+    unsigned int uStrength = command.parameter1;
+
+    // 06 = motor on, 04 = motor off
+    unsigned int uType = command.parameter2;
 
     // get the correct pad number that should rumble locally when using netplay
     const int numPAD = NetPlay_InGamePadToLocalPad(m_device_number);
@@ -101,8 +102,8 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 _Cmd, u8 _Poll)
 
     if (!_Poll)
     {
-      m_Mode = command.Parameter2;
-      INFO_LOG(SERIALINTERFACE, "PAD %i set to mode %i", m_device_number, m_Mode);
+      m_mode = command.parameter2;
+      INFO_LOG(SERIALINTERFACE, "PAD %i set to mode %i", m_device_number, m_mode);
     }
   }
   else
