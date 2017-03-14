@@ -20,8 +20,6 @@
 #include "Core/PatchEngine.h"
 
 #include "DiscIO/NANDContentLoader.h"
-#include "DiscIO/Volume.h"
-#include "DiscIO/VolumeCreator.h"
 
 struct StateFlags
 {
@@ -92,11 +90,6 @@ bool CBoot::Boot_WiiWAD(const std::string& _pFilename)
   IOS::HLE::Device::ES::LoadWAD(_pFilename);
   if (!IOS::HLE::BootstrapPPC(ContentLoader))
     return false;
-
-  // Load patches and run startup patches
-  const std::unique_ptr<DiscIO::IVolume> pVolume(DiscIO::CreateVolumeFromFilename(_pFilename));
-  if (pVolume != nullptr)
-    PatchEngine::LoadPatches();
 
   return true;
 }
