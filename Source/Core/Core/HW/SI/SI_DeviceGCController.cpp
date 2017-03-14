@@ -19,13 +19,8 @@
 
 // --- standard GameCube controller ---
 CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int _iDeviceNumber)
-    : ISIDevice(device, _iDeviceNumber), m_TButtonComboStart(0), m_TButtonCombo(0),
-      m_LastButtonCombo(COMBO_NONE)
+    : ISIDevice(device, _iDeviceNumber)
 {
-  // Dunno if we need to do this, game/lib should set it?
-  m_Mode = 0x03;
-
-  m_Calibrated = false;
 }
 
 void CSIDevice_GCController::Calibrate()

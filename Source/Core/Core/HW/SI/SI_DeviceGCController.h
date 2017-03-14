@@ -43,7 +43,7 @@ protected:
 
   union UCommand
   {
-    u32 Hex;
+    u32 Hex = 0;
     struct
     {
       u32 Parameter1 : 8;
@@ -51,7 +51,7 @@ protected:
       u32 Command : 8;
       u32 : 8;
     };
-    UCommand() { Hex = 0; }
+    UCommand() = default;
     UCommand(u32 _iValue) { Hex = _iValue; }
   };
 
@@ -66,18 +66,20 @@ protected:
   // Set on connection and (standard pad only) on button combo
   SOrigin m_Origin;
 
-  bool m_Calibrated;
+  bool m_Calibrated = false;
 
   // PADAnalogMode
-  u8 m_Mode;
+  // Dunno if we need to do this, game/lib should set it?
+  u8 m_Mode = 0x3;
 
   // Timer to track special button combos:
   // y, X, start for 3 seconds updates origin with current status
   //   Technically, the above is only on standard pad, wavebird does not support it for example
   // b, x, start for 3 seconds triggers reset (PI reset button interrupt)
-  u64 m_TButtonComboStart, m_TButtonCombo;
+  u64 m_TButtonComboStart = 0;
+  u64 m_TButtonCombo = 0;
   // Type of button combo from the last/current poll
-  EButtonCombo m_LastButtonCombo;
+  EButtonCombo m_LastButtonCombo = COMBO_NONE;
 
   // Set this if we want to simulate the "TaruKonga" DK Bongo controller
   bool m_simulate_konga = false;
