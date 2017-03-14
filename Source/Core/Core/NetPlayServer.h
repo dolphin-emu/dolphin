@@ -26,7 +26,7 @@ class NetPlayServer : public TraversalClientClient
 {
 public:
   void ThreadFunc();
-  void SendAsyncToClients(std::unique_ptr<sf::Packet> packet);
+  void SendAsyncToClients(sf::Packet&& packet);
 
   NetPlayServer(const u16 port, bool traversal, const std::string& centralServer, u16 centralPort);
   ~NetPlayServer();
@@ -118,7 +118,7 @@ private:
 
   std::string m_selected_game;
   std::thread m_thread;
-  Common::FifoQueue<std::unique_ptr<sf::Packet>, false> m_async_queue;
+  Common::FifoQueue<sf::Packet, false> m_async_queue;
 
   ENetHost* m_server = nullptr;
   TraversalClient* m_traversal_client = nullptr;
