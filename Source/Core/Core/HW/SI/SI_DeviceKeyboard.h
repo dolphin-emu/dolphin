@@ -28,7 +28,7 @@ protected:
 
   union UCommand
   {
-    u32 Hex;
+    u32 Hex = 0;
     struct
     {
       u32 Parameter1 : 8;
@@ -36,15 +36,15 @@ protected:
       u32 Command : 8;
       u32 : 8;
     };
-    UCommand() { Hex = 0; }
-    UCommand(u32 _iValue) { Hex = _iValue; }
+    UCommand() = default;
+    UCommand(u32 value) : Hex{value} {}
   };
 
   // PADAnalogMode
-  u8 m_Mode;
+  u8 m_Mode = 0;
 
   // Internal counter synchonizing GC and keyboard
-  u8 m_Counter;
+  u8 m_Counter = 0;
 
 public:
   // Constructor
