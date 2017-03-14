@@ -23,7 +23,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/EXI/EXI.h"
-#include "Core/HW/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/NetPlayProto.h"
 #include "DolphinWX/Config/ConfigMain.h"

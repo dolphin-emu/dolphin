@@ -104,9 +104,9 @@ set(SRCS
   HW/EXI/EXI_DeviceMic.cpp
   HW/GCKeyboard.cpp
   HW/GCKeyboardEmu.cpp
-  HW/GCMemcard.cpp
-  HW/GCMemcardDirectory.cpp
-  HW/GCMemcardRaw.cpp
+  HW/GCMemcard/GCMemcard.cpp
+  HW/GCMemcard/GCMemcardDirectory.cpp
+  HW/GCMemcard/GCMemcardRaw.cpp
   HW/GCPad.cpp
   HW/GCPadEmu.cpp
   HW/GPFifo.cpp
