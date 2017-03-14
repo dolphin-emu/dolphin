@@ -225,16 +225,15 @@ VulkanContext::GPUList VulkanContext::EnumerateGPUs(VkInstance instance)
 void VulkanContext::PopulateBackendInfo(VideoConfig* config)
 {
   config->backend_info.api_type = APIType::Vulkan;
-  config->backend_info.bSupportsExclusiveFullscreen = false;   // Currently WSI does not allow this.
-  config->backend_info.bSupports3DVision = false;              // D3D-exclusive.
-  config->backend_info.bSupportsOversizedViewports = true;     // Assumed support.
-  config->backend_info.bSupportsOversizedDepthRanges = false;  // No support yet.
-  config->backend_info.bSupportsEarlyZ = true;                 // Assumed support.
-  config->backend_info.bSupportsPrimitiveRestart = true;       // Assumed support.
-  config->backend_info.bSupportsBindingLayout = false;         // Assumed support.
-  config->backend_info.bSupportsPaletteConversion = true;      // Assumed support.
-  config->backend_info.bSupportsClipControl = true;            // Assumed support.
-  config->backend_info.bSupportsMultithreading = true;         // Assumed support.
+  config->backend_info.bSupportsExclusiveFullscreen = false;  // Currently WSI does not allow this.
+  config->backend_info.bSupports3DVision = false;             // D3D-exclusive.
+  config->backend_info.bSupportsOversizedViewports = true;    // Assumed support.
+  config->backend_info.bSupportsEarlyZ = true;                // Assumed support.
+  config->backend_info.bSupportsPrimitiveRestart = true;      // Assumed support.
+  config->backend_info.bSupportsBindingLayout = false;        // Assumed support.
+  config->backend_info.bSupportsPaletteConversion = true;     // Assumed support.
+  config->backend_info.bSupportsClipControl = true;           // Assumed support.
+  config->backend_info.bSupportsMultithreading = true;        // Assumed support.
   config->backend_info.bSupportsInternalResolutionFrameDumps = true;  // Assumed support.
   config->backend_info.bSupportsPostProcessing = false;               // No support yet.
   config->backend_info.bSupportsDualSourceBlend = false;              // Dependent on features.
