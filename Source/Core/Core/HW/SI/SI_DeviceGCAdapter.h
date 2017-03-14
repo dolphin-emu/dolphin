@@ -11,7 +11,7 @@
 class CSIDevice_GCAdapter : public CSIDevice_GCController
 {
 public:
-  CSIDevice_GCAdapter(SIDevices device, int _iDeviceNumber);
+  CSIDevice_GCAdapter(SIDevices device, int device_number);
 
   GCPadStatus GetPadStatus() override;
   int RunBuffer(u8* buffer, int length) override;
