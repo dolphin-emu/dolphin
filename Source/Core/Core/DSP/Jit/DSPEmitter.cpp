@@ -5,6 +5,7 @@
 #include "Core/DSP/Jit/DSPEmitter.h"
 
 #include <algorithm>
+#include <cstddef>
 #include <cstring>
 
 #include "Common/Assert.h"
@@ -105,10 +106,10 @@ void DSPEmitter::ClearIRAMandDSPJITCodespaceReset()
 void DSPEmitter::checkExceptions(u32 retval)
 {
   // Check for interrupts and exceptions
-  TEST(8, M(&g_dsp.exceptions), Imm8(0xff));
+  TEST(8, M_SDSP_exceptions(), Imm8(0xff));
   FixupBranch skipCheck = J_CC(CC_Z, true);
 
-  MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc));
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc));
 
   DSPJitRegCache c(m_gpr);
   m_gpr.SaveRegs();
@@ -138,7 +139,7 @@ void DSPEmitter::FallBackToInterpreter(UDSPInstruction inst)
     // of block.
     // Fallbacks to interpreter need this for fetching immediate values
 
-    MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 1));
+    MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
   }
 
   // Fall back to interpreter
@@ -250,18 +251,18 @@ void DSPEmitter::Compile(u16 start_addr)
     // by the analyzer.
     if (Analyzer::GetCodeFlags(static_cast<u16>(m_compile_pc - 1u)) & Analyzer::CODE_LOOP_END)
     {
-      MOVZX(32, 16, EAX, M(&(g_dsp.r.st[2])));
+      MOVZX(32, 16, EAX, M_SDSP_r_st(2));
       TEST(32, R(EAX), R(EAX));
       FixupBranch rLoopAddressExit = J_CC(CC_LE, true);
 
-      MOVZX(32, 16, EAX, M(&g_dsp.r.st[3]));
+      MOVZX(32, 16, EAX, M_SDSP_r_st(3));
       TEST(32, R(EAX), R(EAX));
       FixupBranch rLoopCounterExit = J_CC(CC_LE, true);
 
       if (!opcode->branch)
       {
         // branch insns update the g_dsp.pc
-        MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc));
+        MOV(16, M_SDSP_pc(), Imm16(m_compile_pc));
       }
 
       // These functions branch and therefore only need to be called in the
@@ -296,7 +297,7 @@ void DSPEmitter::Compile(u16 start_addr)
       else if (!opcode->jitFunc)
       {
         // look at g_dsp.pc if we actually branched
-        MOV(16, R(AX), M(&g_dsp.pc));
+        MOV(16, R(AX), M_SDSP_pc());
         CMP(16, R(AX), Imm16(m_compile_pc));
         FixupBranch rNoBranch = J_CC(CC_Z, true);
 
@@ -328,7 +329,7 @@ void DSPEmitter::Compile(u16 start_addr)
 
   if (fixup_pc)
   {
-    MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc));
+    MOV(16, M_SDSP_pc(), Imm16(m_compile_pc));
   }
 
   m_blocks[start_addr] = (DSPCompiledCode)entryPoint;
@@ -415,21 +416,23 @@ void DSPEmitter::CompileDispatcher()
   BitSet32 registers_used = ABI_ALL_CALLEE_SAVED & BitSet32(0xffff);
   ABI_PushRegistersAndAdjustStack(registers_used, 8);
 
+  MOV(64, R(R15), ImmPtr(&g_dsp));
+
   const u8* dispatcherLoop = GetCodePtr();
 
   FixupBranch exceptionExit;
   if (Host::OnThread())
   {
-    CMP(8, M(const_cast<bool*>(&g_dsp.external_interrupt_waiting)), Imm8(0));
+    CMP(8, M_SDSP_external_interrupt_waiting(), Imm8(0));
     exceptionExit = J_CC(CC_NE);
   }
 
   // Check for DSP halt
-  TEST(8, M(&g_dsp.cr), Imm8(CR_HALT));
+  TEST(8, M_SDSP_cr(), Imm8(CR_HALT));
   FixupBranch _halt = J_CC(CC_NE);
 
   // Execute block. Cycles executed returned in EAX.
-  MOVZX(64, 16, ECX, M(&g_dsp.pc));
+  MOVZX(64, 16, ECX, M_SDSP_pc());
   MOV(64, R(RBX), ImmPtr(m_blocks.data()));
   JMPptr(MComplex(RBX, RCX, SCALE_8, 0));
 
@@ -450,6 +453,36 @@ void DSPEmitter::CompileDispatcher()
   // MOV(32, M(&cyclesLeft), Imm32(0));
   ABI_PopRegistersAndAdjustStack(registers_used, 8);
   RET();
+}
+
+Gen::OpArg DSPEmitter::M_SDSP_pc()
+{
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, pc)));
+}
+
+Gen::OpArg DSPEmitter::M_SDSP_exceptions()
+{
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, exceptions)));
+}
+
+Gen::OpArg DSPEmitter::M_SDSP_cr()
+{
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, cr)));
+}
+
+Gen::OpArg DSPEmitter::M_SDSP_external_interrupt_waiting()
+{
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, external_interrupt_waiting)));
+}
+
+Gen::OpArg DSPEmitter::M_SDSP_r_st(size_t index)
+{
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, r.st[index])));
+}
+
+Gen::OpArg DSPEmitter::M_SDSP_reg_stack_ptr(size_t index)
+{
+  return MDisp(R15, static_cast<int>(offsetof(SDSP, reg_stack_ptr[index])));
 }
 
 }  // namespace x86

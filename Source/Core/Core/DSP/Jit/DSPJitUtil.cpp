@@ -25,15 +25,15 @@ void DSPEmitter::dsp_reg_stack_push(StackRegister stack_reg)
 
   // g_dsp.reg_stack_ptr[reg_index]++;
   // g_dsp.reg_stack_ptr[reg_index] &= DSP_STACK_MASK;
-  MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[reg_index]));
+  MOV(8, R(AL), M_SDSP_reg_stack_ptr(reg_index));
   ADD(8, R(AL), Imm8(1));
   AND(8, R(AL), Imm8(DSP_STACK_MASK));
-  MOV(8, M(&g_dsp.reg_stack_ptr[reg_index]), R(AL));
+  MOV(8, M_SDSP_reg_stack_ptr(reg_index), R(AL));
 
   X64Reg tmp1 = m_gpr.GetFreeXReg();
   X64Reg tmp2 = m_gpr.GetFreeXReg();
   // g_dsp.reg_stack[reg_index][g_dsp.reg_stack_ptr[reg_index]] = g_dsp.r[DSP_REG_ST0 + reg_index];
-  MOV(16, R(tmp1), M(&g_dsp.r.st[reg_index]));
+  MOV(16, R(tmp1), M_SDSP_r_st(reg_index));
   MOVZX(64, 8, RAX, R(AL));
   MOV(64, R(tmp2), ImmPtr(g_dsp.reg_stack[reg_index]));
   MOV(16, MComplex(tmp2, EAX, SCALE_2, 0), R(tmp1));
@@ -49,13 +49,13 @@ void DSPEmitter::dsp_reg_stack_pop(StackRegister stack_reg)
   const auto reg_index = static_cast<size_t>(stack_reg);
 
   // g_dsp.r[DSP_REG_ST0 + reg_index] = g_dsp.reg_stack[reg_index][g_dsp.reg_stack_ptr[reg_index]];
-  MOV(8, R(AL), M(&g_dsp.reg_stack_ptr[reg_index]));
+  MOV(8, R(AL), M_SDSP_reg_stack_ptr(reg_index));
   X64Reg tmp1 = m_gpr.GetFreeXReg();
   X64Reg tmp2 = m_gpr.GetFreeXReg();
   MOVZX(64, 8, RAX, R(AL));
   MOV(64, R(tmp2), ImmPtr(g_dsp.reg_stack[reg_index]));
   MOV(16, R(tmp1), MComplex(tmp2, EAX, SCALE_2, 0));
-  MOV(16, M(&g_dsp.r.st[reg_index]), R(tmp1));
+  MOV(16, M_SDSP_r_st(reg_index), R(tmp1));
   m_gpr.PutXReg(tmp1);
   m_gpr.PutXReg(tmp2);
 
@@ -63,7 +63,7 @@ void DSPEmitter::dsp_reg_stack_pop(StackRegister stack_reg)
   // g_dsp.reg_stack_ptr[reg_index] &= DSP_STACK_MASK;
   SUB(8, R(AL), Imm8(1));
   AND(8, R(AL), Imm8(DSP_STACK_MASK));
-  MOV(8, M(&g_dsp.reg_stack_ptr[reg_index]), R(AL));
+  MOV(8, M_SDSP_reg_stack_ptr(reg_index), R(AL));
 }
 
 void DSPEmitter::dsp_reg_store_stack(StackRegister stack_reg, Gen::X64Reg host_sreg)
@@ -76,13 +76,13 @@ void DSPEmitter::dsp_reg_store_stack(StackRegister stack_reg, Gen::X64Reg host_s
   dsp_reg_stack_push(stack_reg);
 
   // g_dsp.r[DSP_REG_ST0 + stack_reg] = val;
-  MOV(16, M(&g_dsp.r.st[static_cast<size_t>(stack_reg)]), R(EDX));
+  MOV(16, M_SDSP_r_st(static_cast<size_t>(stack_reg)), R(EDX));
 }
 
 void DSPEmitter::dsp_reg_load_stack(StackRegister stack_reg, Gen::X64Reg host_dreg)
 {
   // u16 val = g_dsp.r[DSP_REG_ST0 + stack_reg];
-  MOV(16, R(EDX), M(&g_dsp.r.st[static_cast<size_t>(stack_reg)]));
+  MOV(16, R(EDX), M_SDSP_r_st(static_cast<size_t>(stack_reg)));
 
   dsp_reg_stack_pop(stack_reg);
 
@@ -97,7 +97,7 @@ void DSPEmitter::dsp_reg_store_stack_imm(StackRegister stack_reg, u16 val)
   dsp_reg_stack_push(stack_reg);
 
   // g_dsp.r[DSP_REG_ST0 + stack_reg] = val;
-  MOV(16, M(&g_dsp.r.st[static_cast<size_t>(stack_reg)]), Imm16(val));
+  MOV(16, M_SDSP_r_st(static_cast<size_t>(stack_reg)), Imm16(val));
 }
 
 void DSPEmitter::dsp_op_write_reg(int reg, Gen::X64Reg host_sreg)

@@ -136,7 +136,7 @@ void DSPEmitter::r_jcc(const UDSPInstruction opc)
   // If the block is unconditional, attempt to link block
   if (opcode->uncond_branch)
     WriteBlockLink(dest);
-  MOV(16, M(&g_dsp.pc), Imm16(dest));
+  MOV(16, M_SDSP_pc(), Imm16(dest));
   WriteBranchExit();
 }
 // Generic jmp implementation
@@ -148,7 +148,7 @@ void DSPEmitter::r_jcc(const UDSPInstruction opc)
 // NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::jcc(const UDSPInstruction opc)
 {
-  MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 2));
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 2));
   ReJitConditional(opc, &DSPEmitter::r_jcc);
 }
 
@@ -158,7 +158,7 @@ void DSPEmitter::r_jmprcc(const UDSPInstruction opc)
   // reg can only be DSP_REG_ARx and DSP_REG_IXx now,
   // no need to handle DSP_REG_STx.
   dsp_op_read_reg(reg, RAX);
-  MOV(16, M(&g_dsp.pc), R(EAX));
+  MOV(16, M_SDSP_pc(), R(EAX));
   WriteBranchExit();
 }
 // Generic jmpr implementation
@@ -168,7 +168,7 @@ void DSPEmitter::r_jmprcc(const UDSPInstruction opc)
 // NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::jmprcc(const UDSPInstruction opc)
 {
-  MOV(16, M(&g_dsp.pc), Imm16(m_compile_pc + 1));
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
   ReJitConditional(opc, &DSPEmitter::r_jmprcc);
 }
 
@@ -182,7 +182,7 @@ void DSPEmitter::r_call(const UDSPInstruction opc)
   // If the block is unconditional, attempt to link block
   if (opcode->uncond_branch)
     WriteBlockLink(dest);
-  MOV(16, M(&g_dsp.pc), Imm16(dest));
+  MOV(16, M_SDSP_pc(), Imm16(dest));
   WriteBranchExit();
 }
 // Generic call implementation
@@ -195,7 +195,7 @@ void DSPEmitter::r_call(const UDSPInstruction opc)
 // NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::call(const UDSPInstruction opc)
 {
-  MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 2));
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 2));
   ReJitConditional(opc, &DSPEmitter::r_call);
 }
 
@@ -205,7 +205,7 @@ void DSPEmitter::r_callr(const UDSPInstruction opc)
   MOV(16, R(DX), Imm16(m_compile_pc + 1));
   dsp_reg_store_stack(StackRegister::Call);
   dsp_op_read_reg(reg, RAX);
-  MOV(16, M(&g_dsp.pc), R(EAX));
+  MOV(16, M_SDSP_pc(), R(EAX));
   WriteBranchExit();
 }
 // Generic callr implementation
@@ -217,13 +217,13 @@ void DSPEmitter::r_callr(const UDSPInstruction opc)
 // NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::callr(const UDSPInstruction opc)
 {
-  MOV(16, M(&g_dsp.pc), Imm16(m_compile_pc + 1));
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
   ReJitConditional(opc, &DSPEmitter::r_callr);
 }
 
 void DSPEmitter::r_ifcc(const UDSPInstruction opc)
 {
-  MOV(16, M(&g_dsp.pc), Imm16(m_compile_pc + 1));
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
 }
 // Generic if implementation
 // IFcc
@@ -235,7 +235,7 @@ void DSPEmitter::ifcc(const UDSPInstruction opc)
   const u16 address = m_compile_pc + 1;
   const DSPOPCTemplate* const op_template = GetOpTemplate(dsp_imem_read(address));
 
-  MOV(16, M(&g_dsp.pc), Imm16(address + op_template->size));
+  MOV(16, M_SDSP_pc(), Imm16(address + op_template->size));
   ReJitConditional(opc, &DSPEmitter::r_ifcc);
   WriteBranchExit();
 }
@@ -243,7 +243,7 @@ void DSPEmitter::ifcc(const UDSPInstruction opc)
 void DSPEmitter::r_ret(const UDSPInstruction opc)
 {
   dsp_reg_load_stack(StackRegister::Call);
-  MOV(16, M(&g_dsp.pc), R(DX));
+  MOV(16, M_SDSP_pc(), R(DX));
   WriteBranchExit();
 }
 
@@ -255,7 +255,7 @@ void DSPEmitter::r_ret(const UDSPInstruction opc)
 // NOTE: Cannot use FallBackToInterpreter(opc) here because of the need to write branch exit
 void DSPEmitter::ret(const UDSPInstruction opc)
 {
-  MOV(16, M(&g_dsp.pc), Imm16(m_compile_pc + 1));
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
   ReJitConditional(opc, &DSPEmitter::r_ret);
 }
 
@@ -271,7 +271,7 @@ void DSPEmitter::rti(const UDSPInstruction opc)
   dsp_op_write_reg(DSP_REG_SR, RDX);
   //	g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
   dsp_reg_load_stack(StackRegister::Call);
-  MOV(16, M(&g_dsp.pc), R(DX));
+  MOV(16, M_SDSP_pc(), R(DX));
 }
 
 // HALT
@@ -279,10 +279,10 @@ void DSPEmitter::rti(const UDSPInstruction opc)
 // Stops execution of DSP code. Sets bit DSP_CR_HALT in register DREG_CR.
 void DSPEmitter::halt(const UDSPInstruction opc)
 {
-  OR(16, M(&g_dsp.cr), Imm16(4));
+  OR(16, M_SDSP_cr(), Imm16(4));
   //	g_dsp.pc = dsp_reg_load_stack(StackRegister::Call);
   dsp_reg_load_stack(StackRegister::Call);
-  MOV(16, M(&g_dsp.pc), R(DX));
+  MOV(16, M_SDSP_pc(), R(DX));
 }
 
 // LOOP handling: Loop stack is used to control execution of repeated blocks of
@@ -293,20 +293,20 @@ void DSPEmitter::halt(const UDSPInstruction opc)
 // continues at next opcode.
 void DSPEmitter::HandleLoop()
 {
-  MOVZX(32, 16, EAX, M(&g_dsp.r.st[2]));
-  MOVZX(32, 16, ECX, M(&g_dsp.r.st[3]));
+  MOVZX(32, 16, EAX, M_SDSP_r_st(2));
+  MOVZX(32, 16, ECX, M_SDSP_r_st(3));
 
   TEST(32, R(RCX), R(RCX));
   FixupBranch rLoopCntG = J_CC(CC_LE, true);
   CMP(16, R(RAX), Imm16(m_compile_pc - 1));
   FixupBranch rLoopAddrG = J_CC(CC_NE, true);
 
-  SUB(16, M(&(g_dsp.r.st[3])), Imm16(1));
-  CMP(16, M(&(g_dsp.r.st[3])), Imm16(0));
+  SUB(16, M_SDSP_r_st(3), Imm16(1));
+  CMP(16, M_SDSP_r_st(3), Imm16(0));
 
   FixupBranch loadStack = J_CC(CC_LE, true);
-  MOVZX(32, 16, ECX, M(&(g_dsp.r.st[0])));
-  MOV(16, M(&g_dsp.pc), R(RCX));
+  MOVZX(32, 16, ECX, M_SDSP_r_st(0));
+  MOV(16, M_SDSP_pc(), R(RCX));
   FixupBranch loopUpdated = J(true);
 
   SetJumpTarget(loadStack);
@@ -346,12 +346,12 @@ void DSPEmitter::loop(const UDSPInstruction opc)
   MOV(16, R(RDX), Imm16(loop_pc));
   dsp_reg_store_stack(StackRegister::LoopAddress);
   m_gpr.FlushRegs(c);
-  MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 1));
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
   FixupBranch exit = J(true);
 
   SetJumpTarget(cnt);
   // dsp_skip_inst();
-  MOV(16, M(&g_dsp.pc), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
+  MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
   WriteBranchExit();
   m_gpr.FlushRegs(c, false);
   SetJumpTarget(exit);
@@ -379,12 +379,12 @@ void DSPEmitter::loopi(const UDSPInstruction opc)
     MOV(16, R(RDX), Imm16(cnt));
     dsp_reg_store_stack(StackRegister::LoopCounter);
 
-    MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 1));
+    MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 1));
   }
   else
   {
     // dsp_skip_inst();
-    MOV(16, M(&g_dsp.pc), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
+    MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
     WriteBranchExit();
   }
 }
@@ -414,14 +414,14 @@ void DSPEmitter::bloop(const UDSPInstruction opc)
   dsp_reg_store_stack(StackRegister::Call);
   MOV(16, R(RDX), Imm16(loop_pc));
   dsp_reg_store_stack(StackRegister::LoopAddress);
-  MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 2));
+  MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 2));
   m_gpr.FlushRegs(c, true);
   FixupBranch exit = J(true);
 
   SetJumpTarget(cnt);
   // g_dsp.pc = loop_pc;
   // dsp_skip_inst();
-  MOV(16, M(&g_dsp.pc), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
+  MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
   WriteBranchExit();
   m_gpr.FlushRegs(c, false);
   SetJumpTarget(exit);
@@ -451,13 +451,13 @@ void DSPEmitter::bloopi(const UDSPInstruction opc)
     MOV(16, R(RDX), Imm16(cnt));
     dsp_reg_store_stack(StackRegister::LoopCounter);
 
-    MOV(16, M(&(g_dsp.pc)), Imm16(m_compile_pc + 2));
+    MOV(16, M_SDSP_pc(), Imm16(m_compile_pc + 2));
   }
   else
   {
     // g_dsp.pc = loop_pc;
     // dsp_skip_inst();
-    MOV(16, M(&g_dsp.pc), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
+    MOV(16, M_SDSP_pc(), Imm16(loop_pc + GetOpTemplate(dsp_imem_read(loop_pc))->size));
     WriteBranchExit();
   }
 }
