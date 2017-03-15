@@ -198,6 +198,7 @@ set(SRCS
   PowerPC/Profiler.cpp
   PowerPC/SignatureDB/CSVSignatureDB.cpp
   PowerPC/SignatureDB/DSYSignatureDB.cpp
+  PowerPC/SignatureDB/MEGASignatureDB.cpp
   PowerPC/SignatureDB/SignatureDB.cpp
   PowerPC/JitInterface.cpp
   PowerPC/CachedInterpreter/CachedInterpreter.cpp

@@ -34,6 +34,7 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/PowerPC/Profiler.h"
+#include "Core/PowerPC/SignatureDB/MEGASignatureDB.h"
 #include "Core/PowerPC/SignatureDB/SignatureDB.h"
 
 #include "DolphinWX/Debugger/BreakpointWindow.h"
@@ -387,6 +388,22 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
         db.Save(WxStrToStr(path2));
         db.List();
       }
+    }
+  }
+  break;
+  case IDM_USE_MEGA_SIGNATURE_FILE:
+  {
+    wxString path = wxFileSelector(
+        _("Apply MEGA signature file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
+        _("MEGA Signature File (*.mega)") + "|*.mega|" + wxGetTranslation(wxALL_FILES),
+        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
+    if (!path.IsEmpty())
+    {
+      MEGASignatureDB db;
+      db.Load(WxStrToStr(path));
+      db.Apply(&g_symbolDB);
+      db.List();
+      NotifyMapLoaded();
     }
   }
   break;

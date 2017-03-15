@@ -728,6 +728,7 @@
     <ClCompile Include="Analytics.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
     <ClCompile Include="IOS\USB\Bluetooth\BTBase.cpp">
       <Filter>IOS\USB\Bluetooth</Filter>
@@ -1360,6 +1361,7 @@
     <ClInclude Include="Analytics.h" />
     <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
+    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
     <ClInclude Include="IOS\USB\Bluetooth\BTBase.h">
       <Filter>IOS\USB\Bluetooth</Filter>
