@@ -70,22 +70,22 @@ enum
 class MemoryCardBase
 {
 public:
-  explicit MemoryCardBase(int _card_index = 0, int sizeMb = MemCard2043Mb)
-      : card_index(_card_index), nintendo_card_id(sizeMb)
+  explicit MemoryCardBase(int card_index = 0, int size_mbits = MemCard2043Mb)
+      : m_card_index(card_index), m_nintendo_card_id(size_mbits)
   {
   }
   virtual ~MemoryCardBase() {}
-  virtual s32 Read(u32 address, s32 length, u8* destaddress) = 0;
-  virtual s32 Write(u32 destaddress, s32 length, const u8* srcaddress) = 0;
+  virtual s32 Read(u32 src_address, s32 length, u8* dest_address) = 0;
+  virtual s32 Write(u32 dest_address, s32 length, const u8* src_address) = 0;
   virtual void ClearBlock(u32 address) = 0;
   virtual void ClearAll() = 0;
   virtual void DoState(PointerWrap& p) = 0;
-  u32 GetCardId() const { return nintendo_card_id; }
-  bool IsAddressInBounds(u32 address) const { return address <= (memory_card_size - 1); }
+  u32 GetCardId() const { return m_nintendo_card_id; }
+  bool IsAddressInBounds(u32 address) const { return address <= (m_memory_card_size - 1); }
 protected:
-  int card_index;
-  u16 nintendo_card_id;
-  u32 memory_card_size;
+  int m_card_index;
+  u16 m_nintendo_card_id;
+  u32 m_memory_card_size;
 };
 
 struct GCMBlock
