@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/GCMemcard/GCMemcardDirectory.h"
+
 #include <cinttypes>
 #include <cstring>
 #include <memory>
@@ -18,7 +20,6 @@
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/HW/GCMemcardDirectory.h"
 #include "DiscIO/Volume.h"
 
 const int NO_INDEX = -1;

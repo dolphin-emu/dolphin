@@ -12,7 +12,7 @@
 
 #include "Common/Event.h"
 #include "Common/NonCopyable.h"
-#include "Core/HW/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 #include "DiscIO/Enums.h"
 
 // Uncomment this to write the system data of the memorycard from directory to disc

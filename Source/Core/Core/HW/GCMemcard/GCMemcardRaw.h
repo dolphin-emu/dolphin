@@ -10,7 +10,7 @@
 #include <thread>
 #include "Common/Event.h"
 #include "Common/Flag.h"
-#include "Core/HW/GCMemcard.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 
 class PointerWrap;
 

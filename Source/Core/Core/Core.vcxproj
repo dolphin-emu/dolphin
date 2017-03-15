@@ -130,9 +130,9 @@
     <ClCompile Include="HW\EXI\EXI_DeviceMic.cpp" />
     <ClCompile Include="HW\GCKeyboard.cpp" />
     <ClCompile Include="HW\GCKeyboardEmu.cpp" />
-    <ClCompile Include="HW\GCMemcard.cpp" />
-    <ClCompile Include="HW\GCMemcardDirectory.cpp" />
-    <ClCompile Include="HW\GCMemcardRaw.cpp" />
+    <ClCompile Include="HW\GCMemcard\GCMemcard.cpp" />
+    <ClCompile Include="HW\GCMemcard\GCMemcardDirectory.cpp" />
+    <ClCompile Include="HW\GCMemcard\GCMemcardRaw.cpp" />
     <ClCompile Include="HW\GCPad.cpp" />
     <ClCompile Include="HW\GCPadEmu.cpp" />
     <ClCompile Include="HW\GPFifo.cpp" />
@@ -380,9 +380,9 @@
     <ClInclude Include="HW\EXI\EXI_DeviceMic.h" />
     <ClInclude Include="HW\GCKeyboard.h" />
     <ClInclude Include="HW\GCKeyboardEmu.h" />
-    <ClInclude Include="HW\GCMemcard.h" />
-    <ClInclude Include="HW\GCMemcardDirectory.h" />
-    <ClInclude Include="HW\GCMemcardRaw.h" />
+    <ClInclude Include="HW\GCMemcard\GCMemcard.h" />
+    <ClInclude Include="HW\GCMemcard\GCMemcardDirectory.h" />
+    <ClInclude Include="HW\GCMemcard\GCMemcardRaw.h" />
     <ClInclude Include="HW\GCPad.h" />
     <ClInclude Include="HW\GCPadEmu.h" />
     <ClInclude Include="HW\GPFifo.h" />

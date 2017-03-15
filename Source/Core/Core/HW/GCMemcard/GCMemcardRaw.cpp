@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/HW/GCMemcard/GCMemcardRaw.h"
+
 #include <chrono>
 #include <cstring>
 #include <memory>
@@ -15,8 +17,7 @@
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
-#include "Core/HW/GCMemcard.h"
-#include "Core/HW/GCMemcardRaw.h"
+#include "Core/HW/GCMemcard/GCMemcard.h"
 
 #define SIZE_TO_Mb (1024 * 8 * 16)
 #define MC_HDR_SIZE 0xA000
