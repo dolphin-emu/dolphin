@@ -29,31 +29,31 @@ MemoryCard::MemoryCard(const std::string& filename, int _card_index, u16 sizeMb)
   if (pFile)
   {
     // Measure size of the existing memcard file.
-    memory_card_size = (u32)pFile.GetSize();
-    nintendo_card_id = memory_card_size / SIZE_TO_Mb;
-    m_memcard_data = std::make_unique<u8[]>(memory_card_size);
-    memset(&m_memcard_data[0], 0xFF, memory_card_size);
+    m_memory_card_size = (u32)pFile.GetSize();
+    m_nintendo_card_id = m_memory_card_size / SIZE_TO_Mb;
+    m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
+    memset(&m_memcard_data[0], 0xFF, m_memory_card_size);
 
     INFO_LOG(EXPANSIONINTERFACE, "Reading memory card %s", m_filename.c_str());
-    pFile.ReadBytes(&m_memcard_data[0], memory_card_size);
+    pFile.ReadBytes(&m_memcard_data[0], m_memory_card_size);
   }
   else
   {
     // Create a new 128Mb memcard
-    nintendo_card_id = sizeMb;
-    memory_card_size = sizeMb * SIZE_TO_Mb;
+    m_nintendo_card_id = sizeMb;
+    m_memory_card_size = sizeMb * SIZE_TO_Mb;
 
-    m_memcard_data = std::make_unique<u8[]>(memory_card_size);
+    m_memcard_data = std::make_unique<u8[]>(m_memory_card_size);
     // Fills in MC_HDR_SIZE bytes
     GCMemcard::Format(&m_memcard_data[0], m_filename.find(".JAP.raw") != std::string::npos, sizeMb);
-    memset(&m_memcard_data[MC_HDR_SIZE], 0xFF, memory_card_size - MC_HDR_SIZE);
+    memset(&m_memcard_data[MC_HDR_SIZE], 0xFF, m_memory_card_size - MC_HDR_SIZE);
 
     INFO_LOG(EXPANSIONINTERFACE, "No memory card found. A new one was created instead.");
   }
 
   // Class members (including inherited ones) have now been initialized, so
   // it's safe to startup the flush thread (which reads them).
-  m_flush_buffer = std::make_unique<u8[]>(memory_card_size);
+  m_flush_buffer = std::make_unique<u8[]>(m_memory_card_size);
   m_flush_thread = std::thread(&MemoryCard::FlushThread, this);
 }
 
@@ -74,7 +74,8 @@ void MemoryCard::FlushThread()
     return;
   }
 
-  Common::SetCurrentThreadName(StringFromFormat("Memcard %d flushing thread", card_index).c_str());
+  Common::SetCurrentThreadName(
+      StringFromFormat("Memcard %d flushing thread", m_card_index).c_str());
 
   const auto flush_interval = std::chrono::seconds(15);
 
@@ -124,14 +125,14 @@ void MemoryCard::FlushThread()
 
     {
       std::unique_lock<std::mutex> l(m_flush_mutex);
-      memcpy(&m_flush_buffer[0], &m_memcard_data[0], memory_card_size);
+      memcpy(&m_flush_buffer[0], &m_memcard_data[0], m_memory_card_size);
     }
-    pFile.WriteBytes(&m_flush_buffer[0], memory_card_size);
+    pFile.WriteBytes(&m_flush_buffer[0], m_memory_card_size);
 
     if (!do_exit)
     {
       Core::DisplayMessage(StringFromFormat("Wrote memory card %c contents to %s",
-                                            card_index ? 'B' : 'A', m_filename.c_str())
+                                            m_card_index ? 'B' : 'A', m_filename.c_str())
                                .c_str(),
                            4000);
     }
@@ -194,14 +195,14 @@ void MemoryCard::ClearAll()
 {
   {
     std::unique_lock<std::mutex> l(m_flush_mutex);
-    memset(&m_memcard_data[0], 0xFF, memory_card_size);
+    memset(&m_memcard_data[0], 0xFF, m_memory_card_size);
   }
   MakeDirty();
 }
 
 void MemoryCard::DoState(PointerWrap& p)
 {
-  p.Do(card_index);
-  p.Do(memory_card_size);
-  p.DoArray(&m_memcard_data[0], memory_card_size);
+  p.Do(m_card_index);
+  p.Do(m_memory_card_size);
+  p.DoArray(&m_memcard_data[0], m_memory_card_size);
 }

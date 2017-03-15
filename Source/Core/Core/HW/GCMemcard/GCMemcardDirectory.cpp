@@ -185,7 +185,8 @@ void GCMemcardDirectory::FlushThread()
     return;
   }
 
-  Common::SetCurrentThreadName(StringFromFormat("Memcard %d flushing thread", card_index).c_str());
+  Common::SetCurrentThreadName(
+      StringFromFormat("Memcard %d flushing thread", m_card_index).c_str());
 
   while (true)
   {
