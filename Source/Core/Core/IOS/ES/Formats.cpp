@@ -5,14 +5,18 @@
 #include "Core/IOS/ES/Formats.h"
 
 #include <algorithm>
+#include <cinttypes>
 #include <cstddef>
 #include <cstring>
+#include <locale>
+#include <string>
 #include <utility>
 #include <vector>
 
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
+#include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/ec_wii.h"
 
@@ -136,6 +140,22 @@ u16 TMDReader::GetTitleVersion() const
 u16 TMDReader::GetGroupId() const
 {
   return Common::swap16(m_bytes.data() + offsetof(TMDHeader, group_id));
+}
+
+std::string TMDReader::GetGameID() const
+{
+  char game_id[6];
+  std::memcpy(game_id, m_bytes.data() + offsetof(TMDHeader, title_id) + 4, 4);
+  std::memcpy(game_id + 4, m_bytes.data() + offsetof(TMDHeader, group_id), 2);
+
+  const bool all_printable = std::all_of(std::begin(game_id), std::end(game_id), [](char c) {
+    return std::isprint(c, std::locale::classic());
+  });
+
+  if (all_printable)
+    return std::string(game_id, sizeof(game_id));
+
+  return StringFromFormat("%016" PRIx64, GetTitleId());
 }
 
 u16 TMDReader::GetNumContents() const

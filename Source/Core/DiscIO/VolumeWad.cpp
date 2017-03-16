@@ -4,6 +4,7 @@
 
 #include <cstddef>
 #include <cstring>
+#include <locale>
 #include <map>
 #include <memory>
 #include <string>
@@ -89,22 +90,18 @@ IOS::ES::TMDReader CVolumeWAD::GetTMD() const
 
 std::string CVolumeWAD::GetGameID() const
 {
-  char GameCode[6];
-  if (!Read(m_offset + 0x01E0, 4, (u8*)GameCode))
-    return "0";
-
-  std::string temp = GetMakerID();
-  GameCode[4] = temp.at(0);
-  GameCode[5] = temp.at(1);
-
-  return DecodeString(GameCode);
+  return m_tmd.GetGameID();
 }
 
 std::string CVolumeWAD::GetMakerID() const
 {
-  char temp[2] = {1};
-  // Some weird channels use 0x0000 in place of the MakerID, so we need a check there
-  if (!Read(0x198 + m_tmd_offset, 2, (u8*)temp) || temp[0] == 0 || temp[1] == 0)
+  char temp[2];
+  if (!Read(0x198 + m_tmd_offset, 2, (u8*)temp))
+    return "00";
+
+  // Some weird channels use 0x0000 in place of the MakerID, so we need a check here
+  const std::locale& c_locale = std::locale::classic();
+  if (!std::isprint(temp[0], c_locale) || !std::isprint(temp[1], c_locale))
     return "00";
 
   return DecodeString(temp);
