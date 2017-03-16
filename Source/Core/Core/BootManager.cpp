@@ -61,8 +61,8 @@ public:
   bool bSetEmulationSpeed;
   bool bSetVolume;
   std::array<bool, MAX_BBMOTES> bSetWiimoteSource;
-  std::array<bool, MAX_SI_CHANNELS> bSetPads;
-  std::array<bool, MAX_EXI_CHANNELS> bSetEXIDevice;
+  std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads;
+  std::array<bool, ExpansionInterface::MAX_EXI_CHANNELS> bSetEXIDevice;
 
 private:
   bool valid;
@@ -92,8 +92,8 @@ private:
   std::string sBackend;
   std::string m_strGPUDeterminismMode;
   std::array<int, MAX_BBMOTES> iWiimoteSource;
-  std::array<SIDevices, MAX_SI_CHANNELS> Pads;
-  std::array<TEXIDevices, MAX_EXI_CHANNELS> m_EXIDevice;
+  std::array<SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
+  std::array<TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice;
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)
@@ -180,7 +180,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
     config->m_wii_language = m_wii_language;
   }
 
-  for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     if (bSetPads[i])
       config->m_SIDevice[i] = Pads[i];
@@ -189,7 +189,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   if (bSetEmulationSpeed)
     config->m_EmulationSpeed = m_EmulationSpeed;
 
-  for (unsigned int i = 0; i < MAX_EXI_CHANNELS; ++i)
+  for (unsigned int i = 0; i < ExpansionInterface::MAX_EXI_CHANNELS; ++i)
   {
     if (bSetEXIDevice[i])
       config->m_EXIDevice[i] = m_EXIDevice[i];
@@ -279,7 +279,7 @@ bool BootCore(const std::string& _rFilename)
     core_section->Get("Overclock", &StartUp.m_OCFactor, StartUp.m_OCFactor);
     core_section->Get("OverclockEnable", &StartUp.m_OCEnable, StartUp.m_OCEnable);
 
-    for (unsigned int i = 0; i < MAX_SI_CHANNELS; ++i)
+    for (unsigned int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     {
       int source;
       controls_section->Get(StringFromFormat("PadType%u", i), &source, -1);

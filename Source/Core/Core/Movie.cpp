@@ -484,14 +484,14 @@ void ChangePads(bool instantly)
 
   int controllers = 0;
 
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
       controllers |= (1 << i);
 
   if (instantly && (s_controllers & 0x0F) == controllers)
     return;
 
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     SIDevices device = SIDEVICE_NONE;
     if (IsUsingPad(i))
@@ -563,7 +563,7 @@ bool BeginRecordingInput(int controllers)
 
   s_rerecords = 0;
 
-  for (int i = 0; i < MAX_SI_CHANNELS; ++i)
+  for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
     if (SConfig::GetInstance().m_SIDevice[i] == SIDEVICE_GC_TARUKONGA)
       s_bongos |= (1 << i);
 
