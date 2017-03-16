@@ -385,10 +385,11 @@ bool DeviceConnected(int chan)
 
 bool UseAdapter()
 {
-  return SConfig::GetInstance().m_SIDevice[0] == SIDEVICE_WIIU_ADAPTER ||
-         SConfig::GetInstance().m_SIDevice[1] == SIDEVICE_WIIU_ADAPTER ||
-         SConfig::GetInstance().m_SIDevice[2] == SIDEVICE_WIIU_ADAPTER ||
-         SConfig::GetInstance().m_SIDevice[3] == SIDEVICE_WIIU_ADAPTER;
+  const auto& si_devices = SConfig::GetInstance().m_SIDevice;
+
+  return std::any_of(std::begin(si_devices), std::end(si_devices), [](const auto device_type) {
+    return device_type == SerialInterface::SIDEVICE_WIIU_ADAPTER;
+  });
 }
 
 void ResetRumble()

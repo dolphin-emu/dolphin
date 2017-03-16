@@ -6,6 +6,8 @@
 
 #include "Core/HW/SI/SI_DeviceGCController.h"
 
+namespace SerialInterface
+{
 class CSIDevice_GCSteeringWheel : public CSIDevice_GCController
 {
 public:
@@ -31,3 +33,4 @@ private:
     CMD_WRITE = 0x40
   };
 };
+}  // namespace SerialInterface

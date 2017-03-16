@@ -6,6 +6,8 @@
 
 #include <cstring>
 
+namespace SerialInterface
+{
 CSIDevice_Null::CSIDevice_Null(SIDevices device, int device_number)
     : ISIDevice{device, device_number}
 {
@@ -27,3 +29,4 @@ bool CSIDevice_Null::GetData(u32& hi, u32& low)
 void CSIDevice_Null::SendCommand(u32 command, u8 poll)
 {
 }
+}  // namespace SerialInterface

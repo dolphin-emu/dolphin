@@ -851,23 +851,23 @@ void NetPlayClient::UpdateDevices()
     // exotic devices are not supported on netplay.
     if (player_id == m_local_player->pid)
     {
-      if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
+      if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[local_pad]))
       {
         SerialInterface::AddDevice(SConfig::GetInstance().m_SIDevice[local_pad], pad);
       }
       else
       {
-        SerialInterface::AddDevice(SIDEVICE_GC_CONTROLLER, pad);
+        SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
       }
       local_pad++;
     }
     else if (player_id > 0)
     {
-      SerialInterface::AddDevice(SIDEVICE_GC_CONTROLLER, pad);
+      SerialInterface::AddDevice(SerialInterface::SIDEVICE_GC_CONTROLLER, pad);
     }
     else
     {
-      SerialInterface::AddDevice(SIDEVICE_NONE, pad);
+      SerialInterface::AddDevice(SerialInterface::SIDEVICE_NONE, pad);
     }
     pad++;
   }
@@ -967,10 +967,10 @@ bool NetPlayClient::GetNetPads(const int pad_nb, GCPadStatus* pad_status)
     {
       switch (SConfig::GetInstance().m_SIDevice[local_pad])
       {
-      case SIDEVICE_WIIU_ADAPTER:
+      case SerialInterface::SIDEVICE_WIIU_ADAPTER:
         *pad_status = GCAdapter::Input(local_pad);
         break;
-      case SIDEVICE_GC_CONTROLLER:
+      case SerialInterface::SIDEVICE_GC_CONTROLLER:
       default:
         *pad_status = Pad::GetStatus(local_pad);
         break;
@@ -1255,7 +1255,7 @@ void NetPlayClient::ComputeMD5(const std::string& file_identifier)
 
 // called from ---CPU--- thread
 // Actual Core function which is called on every frame
-bool CSIDevice_GCController::NetPlay_GetInput(int numPAD, GCPadStatus* PadStatus)
+bool SerialInterface::CSIDevice_GCController::NetPlay_GetInput(int numPAD, GCPadStatus* PadStatus)
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
 
@@ -1291,7 +1291,7 @@ u64 CEXIIPL::NetPlay_GetEmulatedTime()
 
 // called from ---CPU--- thread
 // return the local pad num that should rumble given a ingame pad num
-int CSIDevice_GCController::NetPlay_InGamePadToLocalPad(int numPAD)
+int SerialInterface::CSIDevice_GCController::NetPlay_InGamePadToLocalPad(int numPAD)
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
 

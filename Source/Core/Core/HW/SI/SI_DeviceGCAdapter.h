@@ -8,6 +8,8 @@
 #include "Core/HW/SI/SI_DeviceGCController.h"
 #include "InputCommon/GCPadStatus.h"
 
+namespace SerialInterface
+{
 class CSIDevice_GCAdapter : public CSIDevice_GCController
 {
 public:
@@ -16,3 +18,4 @@ public:
   GCPadStatus GetPadStatus() override;
   int RunBuffer(u8* buffer, int length) override;
 };
+}  // namespace SerialInterface

@@ -7,6 +7,8 @@
 #include "Common/CommonTypes.h"
 #include "InputCommon/GCPadStatus.h"
 
+namespace SerialInterface
+{
 CSIDevice_DanceMat::CSIDevice_DanceMat(SIDevices device, int device_number)
     : CSIDevice_GCController(device, device_number)
 {
@@ -68,3 +70,4 @@ bool CSIDevice_DanceMat::GetData(u32& hi, u32& low)
 
   return true;
 }
+}  // namespace SerialInterface

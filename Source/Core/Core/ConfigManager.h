@@ -252,7 +252,7 @@ struct SConfig : NonCopyable
   std::string m_strGbaCartA;
   std::string m_strGbaCartB;
   TEXIDevices m_EXIDevice[3];
-  SIDevices m_SIDevice[4];
+  SerialInterface::SIDevices m_SIDevice[4];
   std::string m_bba_mac;
 
   // interface language

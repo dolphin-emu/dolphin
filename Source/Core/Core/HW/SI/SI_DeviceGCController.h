@@ -8,6 +8,8 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "InputCommon/GCPadStatus.h"
 
+namespace SerialInterface
+{
 class CSIDevice_GCController : public ISIDevice
 {
 protected:
@@ -126,3 +128,4 @@ public:
     m_simulate_konga = true;
   }
 };
+}  // namespace SerialInterface

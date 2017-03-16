@@ -8,8 +8,7 @@
 #include "Common/CommonTypes.h"
 
 class PointerWrap;
-class ISIDevice;
-enum SIDevices : int;
+
 namespace MMIO
 {
 class Mapping;
@@ -17,6 +16,9 @@ class Mapping;
 
 namespace SerialInterface
 {
+class ISIDevice;
+enum SIDevices : int;
+
 // SI number of channels
 enum
 {

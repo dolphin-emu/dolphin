@@ -9,6 +9,8 @@
 class PointerWrap;
 struct KeyboardStatus;
 
+namespace SerialInterface
+{
 class CSIDevice_Keyboard : public ISIDevice
 {
 public:
@@ -65,3 +67,4 @@ protected:
   // Internal counter synchonizing GC and keyboard
   u8 m_counter = 0;
 };
+}  // namespace SerialInterface

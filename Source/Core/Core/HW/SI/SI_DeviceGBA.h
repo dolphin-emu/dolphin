@@ -14,6 +14,8 @@
 
 // GameBoy Advance "Link Cable"
 
+namespace SerialInterface
+{
 u8 GetNumConnected();
 int GetTransferTime(u8 cmd);
 void GBAConnectionWaiter_Shutdown();
@@ -61,3 +63,4 @@ private:
   u64 m_timestamp_sent = 0;
   bool m_waiting_for_response = false;
 };
+}  // namespace SerialInterface

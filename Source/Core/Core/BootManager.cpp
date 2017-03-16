@@ -92,7 +92,7 @@ private:
   std::string sBackend;
   std::string m_strGPUDeterminismMode;
   std::array<int, MAX_BBMOTES> iWiimoteSource;
-  std::array<SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
+  std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
   std::array<TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice;
 };
 
@@ -283,9 +283,9 @@ bool BootCore(const std::string& _rFilename)
     {
       int source;
       controls_section->Get(StringFromFormat("PadType%u", i), &source, -1);
-      if (source >= SIDEVICE_NONE && source < SIDEVICE_COUNT)
+      if (source >= SerialInterface::SIDEVICE_NONE && source < SerialInterface::SIDEVICE_COUNT)
       {
-        StartUp.m_SIDevice[i] = static_cast<SIDevices>(source);
+        StartUp.m_SIDevice[i] = static_cast<SerialInterface::SIDevices>(source);
         config_cache.bSetPads[i] = true;
       }
     }

@@ -17,6 +17,8 @@
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCPadStatus.h"
 
+namespace SerialInterface
+{
 // --- standard GameCube controller ---
 CSIDevice_GCController::CSIDevice_GCController(SIDevices device, int device_number)
     : ISIDevice(device, device_number)
@@ -327,3 +329,4 @@ void CSIDevice_GCController::DoState(PointerWrap& p)
   p.Do(m_timer_button_combo);
   p.Do(m_last_button_combo);
 }
+}  // namespace SerialInterface

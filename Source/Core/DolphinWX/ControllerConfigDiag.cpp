@@ -183,26 +183,26 @@ wxSizer* ControllerConfigDiag::CreateGamecubeSizer()
     // Set the saved pad type as the default choice.
     switch (SConfig::GetInstance().m_SIDevice[i])
     {
-    case SIDEVICE_GC_CONTROLLER:
+    case SerialInterface::SIDEVICE_GC_CONTROLLER:
       pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[1]);
       break;
-    case SIDEVICE_WIIU_ADAPTER:
+    case SerialInterface::SIDEVICE_WIIU_ADAPTER:
       pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[2]);
       break;
-    case SIDEVICE_GC_STEERING:
+    case SerialInterface::SIDEVICE_GC_STEERING:
       pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[3]);
       break;
-    case SIDEVICE_DANCEMAT:
+    case SerialInterface::SIDEVICE_DANCEMAT:
       pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[4]);
       break;
-    case SIDEVICE_GC_TARUKONGA:
+    case SerialInterface::SIDEVICE_GC_TARUKONGA:
       pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[5]);
       break;
-    case SIDEVICE_GC_GBA:
+    case SerialInterface::SIDEVICE_GC_GBA:
       pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[6]);
       m_gc_port_configure_button[i]->Disable();
       break;
-    case SIDEVICE_GC_KEYBOARD:
+    case SerialInterface::SIDEVICE_GC_KEYBOARD:
       pad_type_choices[i]->SetStringSelection(m_gc_pad_type_strs[7]);
       break;
     default:
@@ -387,45 +387,45 @@ void ControllerConfigDiag::OnGameCubePortChanged(wxCommandEvent& event)
   const unsigned int device_num = m_gc_port_from_choice_id[event.GetId()];
   const wxString device_name = event.GetString();
 
-  SIDevices tempType;
+  SerialInterface::SIDevices tempType;
   if (device_name == m_gc_pad_type_strs[1])
   {
-    tempType = SIDEVICE_GC_CONTROLLER;
+    tempType = SerialInterface::SIDEVICE_GC_CONTROLLER;
     m_gc_port_configure_button[device_num]->Enable();
   }
   else if (device_name == m_gc_pad_type_strs[2])
   {
-    tempType = SIDEVICE_WIIU_ADAPTER;
+    tempType = SerialInterface::SIDEVICE_WIIU_ADAPTER;
     m_gc_port_configure_button[device_num]->Enable();
   }
   else if (device_name == m_gc_pad_type_strs[3])
   {
-    tempType = SIDEVICE_GC_STEERING;
+    tempType = SerialInterface::SIDEVICE_GC_STEERING;
     m_gc_port_configure_button[device_num]->Enable();
   }
   else if (device_name == m_gc_pad_type_strs[4])
   {
-    tempType = SIDEVICE_DANCEMAT;
+    tempType = SerialInterface::SIDEVICE_DANCEMAT;
     m_gc_port_configure_button[device_num]->Enable();
   }
   else if (device_name == m_gc_pad_type_strs[5])
   {
-    tempType = SIDEVICE_GC_TARUKONGA;
+    tempType = SerialInterface::SIDEVICE_GC_TARUKONGA;
     m_gc_port_configure_button[device_num]->Enable();
   }
   else if (device_name == m_gc_pad_type_strs[6])
   {
-    tempType = SIDEVICE_GC_GBA;
+    tempType = SerialInterface::SIDEVICE_GC_GBA;
     m_gc_port_configure_button[device_num]->Disable();
   }
   else if (device_name == m_gc_pad_type_strs[7])
   {
-    tempType = SIDEVICE_GC_KEYBOARD;
+    tempType = SerialInterface::SIDEVICE_GC_KEYBOARD;
     m_gc_port_configure_button[device_num]->Enable();
   }
   else
   {
-    tempType = SIDEVICE_NONE;
+    tempType = SerialInterface::SIDEVICE_NONE;
     m_gc_port_configure_button[device_num]->Disable();
   }
 
@@ -445,17 +445,18 @@ void ControllerConfigDiag::OnGameCubeConfigButton(wxCommandEvent& event)
   InputConfig* const pad_plugin = Pad::GetConfig();
   InputConfig* const key_plugin = Keyboard::GetConfig();
   const int port_num = m_gc_port_from_config_id[event.GetId()];
+  const auto device_type = SConfig::GetInstance().m_SIDevice[port_num];
 
   HotkeyManagerEmu::Enable(false);
 
-  if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_GC_KEYBOARD)
+  if (device_type == SerialInterface::SIDEVICE_GC_KEYBOARD)
   {
     GCKeyboardInputConfigDialog config_diag(
         this, *key_plugin,
         wxString::Format(_("GameCube Keyboard Configuration Port %i"), port_num + 1), port_num);
     config_diag.ShowModal();
   }
-  else if (SConfig::GetInstance().m_SIDevice[port_num] == SIDEVICE_WIIU_ADAPTER)
+  else if (device_type == SerialInterface::SIDEVICE_WIIU_ADAPTER)
   {
     GCAdapterConfigDiag config_diag(
         this, wxString::Format(_("Wii U GameCube Controller Adapter Configuration Port %i"),
