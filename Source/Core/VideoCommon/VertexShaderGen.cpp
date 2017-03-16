@@ -453,6 +453,10 @@ ShaderCode GenerateVertexShaderCode(APIType api_type, const vertex_shader_uid_da
     out.Write("o.pos.z = o.pos.z * 2.0 - o.pos.w;\n");
   }
 
+  // Correct for negative viewports by mirroring all vertices. We need to negate the height here,
+  // since the viewport height is already negated by the render backend.
+  out.Write("o.pos.xy *= sign(" I_PIXELCENTERCORRECTION ".xy * float2(1.0, -1.0));\n");
+
   // The console GPU places the pixel center at 7/12 in screen space unless
   // antialiasing is enabled, while D3D and OpenGL place it at 0.5. This results
   // in some primitives being placed one pixel too far to the bottom-right,
