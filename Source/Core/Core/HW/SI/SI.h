@@ -15,14 +15,14 @@ namespace MMIO
 class Mapping;
 }
 
+namespace SerialInterface
+{
 // SI number of channels
 enum
 {
   MAX_SI_CHANNELS = 0x04
 };
 
-namespace SerialInterface
-{
 void Init();
 void Shutdown();
 void DoState(PointerWrap& p);
