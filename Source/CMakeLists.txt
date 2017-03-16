@@ -1,7 +1,6 @@
-check_and_add_flag(CXX14 -std=c++14)
-if(NOT FLAG_CXX_CXX14)
-  check_and_add_flag(HAS_CXX1Y -std=c++1y)
-endif()
+set(CMAKE_CXX_STANDARD 14)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_CXX_EXTENSIONS OFF)
 
 if(CMAKE_SYSTEM_NAME MATCHES "Windows")
   add_definitions(-DNOMINMAX)
