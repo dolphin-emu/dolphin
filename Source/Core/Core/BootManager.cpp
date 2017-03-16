@@ -62,7 +62,7 @@ public:
   bool bSetVolume;
   std::array<bool, MAX_BBMOTES> bSetWiimoteSource;
   std::array<bool, SerialInterface::MAX_SI_CHANNELS> bSetPads;
-  std::array<bool, MAX_EXI_CHANNELS> bSetEXIDevice;
+  std::array<bool, ExpansionInterface::MAX_EXI_CHANNELS> bSetEXIDevice;
 
 private:
   bool valid;
@@ -93,7 +93,7 @@ private:
   std::string m_strGPUDeterminismMode;
   std::array<int, MAX_BBMOTES> iWiimoteSource;
   std::array<SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
-  std::array<TEXIDevices, MAX_EXI_CHANNELS> m_EXIDevice;
+  std::array<TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice;
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)
@@ -189,7 +189,7 @@ void ConfigCache::RestoreConfig(SConfig* config)
   if (bSetEmulationSpeed)
     config->m_EmulationSpeed = m_EmulationSpeed;
 
-  for (unsigned int i = 0; i < MAX_EXI_CHANNELS; ++i)
+  for (unsigned int i = 0; i < ExpansionInterface::MAX_EXI_CHANNELS; ++i)
   {
     if (bSetEXIDevice[i])
       config->m_EXIDevice[i] = m_EXIDevice[i];
