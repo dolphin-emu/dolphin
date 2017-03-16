@@ -18,7 +18,7 @@
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 
 std::unique_ptr<SignatureDBFormatHandler>
-SignatureDB::CreateFormatHandler(const std::string& file_path)
+SignatureDB::CreateFormatHandler(const std::string& file_path) const
 {
   if (StringEndsWith(file_path, ".csv"))
     return std::make_unique<CSVSignatureDB>();
@@ -31,7 +31,7 @@ bool SignatureDB::Load(const std::string& file_path)
   return handler->Load(file_path, m_database);
 }
 
-bool SignatureDB::Save(const std::string& file_path)
+bool SignatureDB::Save(const std::string& file_path) const
 {
   auto handler = CreateFormatHandler(file_path);
   return handler->Save(file_path, m_database);
@@ -53,7 +53,7 @@ bool SignatureDB::Save(const std::string& file_path)
   return hash;
 }*/
 
-void SignatureDB::List()
+void SignatureDB::List() const
 {
   for (const auto& entry : m_database)
   {
@@ -68,7 +68,7 @@ void SignatureDB::Clear()
   m_database.clear();
 }
 
-void SignatureDB::Apply(PPCSymbolDB* symbol_db)
+void SignatureDB::Apply(PPCSymbolDB* symbol_db) const
 {
   for (const auto& entry : m_database)
   {
@@ -92,13 +92,13 @@ void SignatureDB::Apply(PPCSymbolDB* symbol_db)
   symbol_db->Index();
 }
 
-void SignatureDB::Initialize(PPCSymbolDB* symbol_db, const std::string& prefix)
+void SignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& filter)
 {
   for (const auto& symbol : symbol_db->Symbols())
   {
-    if ((prefix.empty() && (!symbol.second.name.empty()) &&
+    if ((filter.empty() && (!symbol.second.name.empty()) &&
          symbol.second.name.substr(0, 3) != "zz_" && symbol.second.name.substr(0, 1) != ".") ||
-        ((!prefix.empty()) && symbol.second.name.substr(0, prefix.size()) == prefix))
+        ((!filter.empty()) && symbol.second.name.substr(0, filter.size()) == filter))
     {
       DBFunc temp_dbfunc;
       temp_dbfunc.name = symbol.second.name;

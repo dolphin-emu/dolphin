@@ -353,7 +353,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
       if (!path.IsEmpty())
       {
         SignatureDB db;
-        db.Initialize(&g_symbolDB, prefix);
+        db.Populate(&g_symbolDB, prefix);
         db.Save(WxStrToStr(path));
         db.List();
       }
@@ -376,7 +376,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
       if (!path.IsEmpty())
       {
         SignatureDB db;
-        db.Initialize(&g_symbolDB, prefix);
+        db.Populate(&g_symbolDB, prefix);
         db.List();
         db.Load(WxStrToStr(path));
         db.Save(WxStrToStr(path));

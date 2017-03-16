@@ -33,17 +33,17 @@ public:
 
   // Does not clear. Remember to clear first if that's what you want.
   bool Load(const std::string& file_path);
-  bool Save(const std::string& file_path);
+  bool Save(const std::string& file_path) const;
+  void List() const;
   void Clear();
-  void List();
 
-  void Initialize(PPCSymbolDB* func_db, const std::string& prefix = "");
-  void Apply(PPCSymbolDB* func_db);
+  void Populate(const PPCSymbolDB* func_db, const std::string& filter = "");
+  void Apply(PPCSymbolDB* func_db) const;
 
   static u32 ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd);
 
 private:
-  std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(const std::string& file_path);
+  std::unique_ptr<SignatureDBFormatHandler> CreateFormatHandler(const std::string& file_path) const;
   // Map from signature to function. We store the DB in this map because it optimizes the
   // most common operation - lookup. We don't care about ordering anyway.
   FuncDB m_database;
