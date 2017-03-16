@@ -227,9 +227,9 @@ void UpdateLogicalMemory(const PowerPC::BatTable& dbat_table)
     g_arena.ReleaseView(entry.mapped_pointer, entry.mapped_size);
   }
   logical_mapped_entries.clear();
-  for (u32 i = 0; i < (1 << (32 - PowerPC::BAT_INDEX_SHIFT)); ++i)
+  for (u32 i = 0; i < dbat_table.size(); ++i)
   {
-    if (dbat_table[i] & PowerPC::BAT_MAPPED_BIT)
+    if (dbat_table[i] & PowerPC::BAT_PHYSICAL_BIT)
     {
       u32 logical_address = i << PowerPC::BAT_INDEX_SHIFT;
       // TODO: Merge adjacent mappings to make this faster.
