@@ -171,7 +171,7 @@ PixelShaderUid GetPixelShaderUid()
   uid_data->genMode_numtevstages = bpmem.genMode.numtevstages;
   uid_data->genMode_numtexgens = bpmem.genMode.numtexgens;
   uid_data->per_pixel_lighting = g_ActiveConfig.bEnablePixelLighting;
-  uid_data->bounding_box = g_ActiveConfig.backend_info.bSupportsBBox &&
+  uid_data->bounding_box = g_ActiveConfig.BBoxUseFragmentShaderImplementation() &&
                            g_ActiveConfig.bBBoxEnable && BoundingBox::active;
   uid_data->rgba6_format =
       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24 && !g_ActiveConfig.bForceTrueColor;

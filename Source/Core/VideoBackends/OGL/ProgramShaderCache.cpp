@@ -618,7 +618,7 @@ void ProgramShaderCache::CreateHeader()
           "#define SAMPLER_BINDING(x)\n",
       // Input/output blocks are matched by name during program linking
       "#define VARYING_LOCATION(x)\n",
-      !is_glsles && g_ActiveConfig.backend_info.bSupportsBBox ?
+      !is_glsles && g_ActiveConfig.backend_info.bSupportsFragmentStoresAndAtomics ?
           "#extension GL_ARB_shader_storage_buffer_object : enable" :
           "",
       v < GLSL_400 && g_ActiveConfig.backend_info.bSupportsGSInstancing ?

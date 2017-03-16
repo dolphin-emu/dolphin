@@ -112,7 +112,8 @@ void VideoBackend::InitBackendInfo()
       g_Config.backend_info.bSupportsEarlyZ = shader_model_5_supported;
 
       // Requires full UAV functionality (only available in shader model 5)
-      g_Config.backend_info.bSupportsBBox = shader_model_5_supported;
+      g_Config.backend_info.bSupportsBBox =
+          g_Config.backend_info.bSupportsFragmentStoresAndAtomics = shader_model_5_supported;
 
       // Requires the instance attribute (only available in shader model 5)
       g_Config.backend_info.bSupportsGSInstancing = shader_model_5_supported;

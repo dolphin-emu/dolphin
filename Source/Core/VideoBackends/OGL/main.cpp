@@ -212,7 +212,7 @@ void VideoBackend::Video_Prepare()
   g_sampler_cache = std::make_unique<SamplerCache>();
   static_cast<Renderer*>(g_renderer.get())->Init();
   TextureConverter::Init();
-  BoundingBox::Init();
+  BoundingBox::Init(g_renderer->GetTargetWidth(), g_renderer->GetTargetHeight());
 }
 
 void VideoBackend::Shutdown()

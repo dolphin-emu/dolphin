@@ -63,13 +63,15 @@ struct XFBSource : public XFBSourceBase
 class FramebufferManager : public FramebufferManagerBase
 {
 public:
-  FramebufferManager(int targetWidth, int targetHeight, int msaaSamples);
+  FramebufferManager(int targetWidth, int targetHeight, int msaaSamples,
+                     bool enable_stencil_buffer);
   ~FramebufferManager();
 
   // To get the EFB in texture form, these functions may have to transfer
   // the EFB to a resolved texture first.
   static GLuint GetEFBColorTexture(const EFBRectangle& sourceRc);
   static GLuint GetEFBDepthTexture(const EFBRectangle& sourceRc);
+  static void ResolveEFBStencilTexture();
 
   static GLuint GetEFBFramebuffer(unsigned int layer = 0)
   {
@@ -77,7 +79,7 @@ public:
   }
   static GLuint GetXFBFramebuffer() { return m_xfbFramebuffer; }
   // Resolved framebuffer is only used in MSAA mode.
-  static GLuint GetResolvedFramebuffer() { return m_resolvedFramebuffer[0]; }
+  static GLuint GetResolvedFramebuffer();
   static void SetFramebuffer(GLuint fb);
   static void FramebufferTexture(GLenum target, GLenum attachment, GLenum textarget, GLuint texture,
                                  GLint level);
@@ -100,8 +102,13 @@ public:
   static void ReinterpretPixelData(unsigned int convtype);
 
   static void PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num_points);
+  static bool HasStencilBuffer();
 
 private:
+  GLuint CreateTexture(GLenum texture_type, GLenum internal_format, GLenum pixel_format,
+                       GLenum data_type);
+  void BindLayeredTexture(GLuint texture, const std::vector<GLuint>& framebuffers,
+                          GLenum attachment, GLenum texture_type);
   std::unique_ptr<XFBSourceBase> CreateXFBSource(unsigned int target_width,
                                                  unsigned int target_height,
                                                  unsigned int layers) override;
@@ -121,6 +128,8 @@ private:
   static GLuint m_efbDepth;
   static GLuint
       m_efbColorSwap;  // will be hot swapped with m_efbColor when reinterpreting EFB pixel formats
+
+  static bool m_enable_stencil_buffer;
 
   // Only used in MSAA mode, TODO: try to avoid them
   static std::vector<GLuint> m_resolvedFramebuffer;

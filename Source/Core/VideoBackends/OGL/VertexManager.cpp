@@ -14,9 +14,11 @@
 #include "Common/GL/GLExtensions/GLExtensions.h"
 #include "Common/StringUtil.h"
 
+#include "VideoBackends/OGL/BoundingBox.h"
 #include "VideoBackends/OGL/ProgramShaderCache.h"
 #include "VideoBackends/OGL/Render.h"
 #include "VideoBackends/OGL/StreamBuffer.h"
+#include "VideoCommon/BoundingBox.h"
 
 #include "VideoCommon/IndexGenerator.h"
 #include "VideoCommon/Statistics.h"
@@ -156,7 +158,18 @@ void VertexManager::vFlush()
   // setup the pointers
   nativeVertexFmt->SetupVertexPointers();
 
+  if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
+  {
+    glEnable(GL_STENCIL_TEST);
+  }
+
   Draw(stride);
+
+  if (::BoundingBox::active && !g_Config.BBoxUseFragmentShaderImplementation())
+  {
+    OGL::BoundingBox::StencilWasUpdated();
+    glDisable(GL_STENCIL_TEST);
+  }
 
 #if defined(_DEBUG) || defined(DEBUGFAST)
   if (g_ActiveConfig.iLog & CONF_SAVESHADERS)
@@ -177,7 +190,6 @@ void VertexManager::vFlush()
   }
 #endif
   g_Config.iSaveTargetId++;
-
   ClearEFBCache();
 }
 
