@@ -126,6 +126,9 @@ Country CountrySwitch(u8 country_code)
 
 u8 GetSysMenuRegion(u16 title_version)
 {
+  if (title_version == 33)
+    return 'A';  // 1.0 uses 33 as the version number in all regions
+
   switch (title_version & 0xf)
   {
   case 0:
