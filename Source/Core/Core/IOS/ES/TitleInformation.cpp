@@ -67,10 +67,10 @@ IPCCommandResult ES::GetStoredContentsCount(const IOCtlVRequest& request)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  const DiscIO::CNANDContentLoader& content_loader = AccessContentDevice(title_id);
-  if (!content_loader.IsValid())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
-  return GetStoredContentsCount(content_loader.GetTMD(), request);
+  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
+  if (!tmd.IsValid())
+    return GetDefaultReply(FS_ENOENT);
+  return GetStoredContentsCount(tmd, request);
 }
 
 IPCCommandResult ES::GetStoredContents(const IOCtlVRequest& request)
@@ -79,10 +79,10 @@ IPCCommandResult ES::GetStoredContents(const IOCtlVRequest& request)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
-  const DiscIO::CNANDContentLoader& content_loader = AccessContentDevice(title_id);
-  if (!content_loader.IsValid())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
-  return GetStoredContents(content_loader.GetTMD(), request);
+  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
+  if (!tmd.IsValid())
+    return GetDefaultReply(FS_ENOENT);
+  return GetStoredContents(tmd, request);
 }
 
 IPCCommandResult ES::GetTMDStoredContentsCount(const IOCtlVRequest& request)
@@ -146,17 +146,15 @@ IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-
-  if (!Loader.IsValid() || !Loader.GetTMD().IsValid())
+  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
+  if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
-  const u32 tmd_size = static_cast<u32>(Loader.GetTMD().GetRawTMD().size());
+  const u32 tmd_size = static_cast<u32>(tmd.GetRawTMD().size());
   Memory::Write_U32(tmd_size, request.io_vectors[0].address);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMDSIZE: title: %08x/%08x (view size %i)",
-           (u32)(TitleID >> 32), (u32)TitleID, tmd_size);
+  INFO_LOG(IOS_ES, "GetStoredTMDSize: %u bytes  for %016" PRIx64, tmd_size, title_id);
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -166,22 +164,21 @@ IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(2, 1))
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  // TODO: actually use this param in when writing to the outbuffer :/
-  const u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
-
-  if (!Loader.IsValid() || !Loader.GetTMD().IsValid())
+  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
+  if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
-  const std::vector<u8> raw_tmd = Loader.GetTMD().GetRawTMD();
+  // TODO: actually use this param in when writing to the outbuffer :/
+  const u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
+
+  const std::vector<u8> raw_tmd = tmd.GetRawTMD();
   if (raw_tmd.size() != request.io_vectors[0].size)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETSTOREDTMD: title: %08x/%08x (buffer size: %i)",
-           (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
+  INFO_LOG(IOS_ES, "GetStoredTMD: title %016" PRIx64 " (buffer size: %u)", title_id, MaxCount);
   return GetDefaultReply(IPC_SUCCESS);
 }
 

@@ -14,6 +14,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/ES/NandUtils.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
@@ -96,16 +97,15 @@ IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
+  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(TitleID);
 
-  if (!Loader.IsValid())
+  if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
-  const u32 view_size = static_cast<u32>(Loader.GetTMD().GetRawView().size());
+  const u32 view_size = static_cast<u32>(tmd.GetRawView().size());
   Memory::Write_U32(view_size, request.io_vectors[0].address);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x (view size %i)", (u32)(TitleID >> 32),
-           (u32)TitleID, view_size);
+  INFO_LOG(IOS_ES, "GetTMDViewSize: %u bytes for title %016" PRIx64, view_size, TitleID);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -117,22 +117,18 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
 
-  const DiscIO::CNANDContentLoader& Loader = AccessContentDevice(TitleID);
+  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(TitleID);
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWCNT: title: %08x/%08x   buffer size: %i",
-           (u32)(TitleID >> 32), (u32)TitleID, MaxCount);
-
-  if (!Loader.IsValid())
+  if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
-  const std::vector<u8> raw_view = Loader.GetTMD().GetRawView();
+  const std::vector<u8> raw_view = tmd.GetRawView();
   if (raw_view.size() != request.io_vectors[0].size)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
   Memory::CopyToEmu(request.io_vectors[0].address, raw_view.data(), raw_view.size());
 
-  INFO_LOG(IOS_ES, "IOCTL_ES_GETTMDVIEWS: title: %08x/%08x (buffer size: %i)", (u32)(TitleID >> 32),
-           (u32)TitleID, MaxCount);
+  INFO_LOG(IOS_ES, "GetTMDView: %u bytes for title %016" PRIx64, MaxCount, TitleID);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
