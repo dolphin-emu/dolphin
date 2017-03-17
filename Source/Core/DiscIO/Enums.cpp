@@ -141,6 +141,62 @@ u8 GetSysMenuRegion(u16 title_version)
   }
 }
 
+std::string GetSysMenuVersionString(u16 title_version)
+{
+  if (title_version == 33)
+    return "1.0";  // 1.0 uses 33 as the version number in all regions
+
+  std::string region_letter;
+
+  switch (GetSysMenuRegion(title_version))
+  {
+  case 'J':
+    region_letter = "J";
+    break;
+  case 'E':
+    region_letter = "U";
+    break;
+  case 'P':
+    region_letter = "E";
+    break;
+  case 'K':
+    region_letter = "K";
+    break;
+  }
+
+  switch (title_version & ~0xf)
+  {
+  case 96:
+  case 128:
+    return "2.0" + region_letter;
+  case 160:
+    return "2.1" + region_letter;
+  case 192:
+    return "2.2" + region_letter;
+  case 224:
+    return "3.0" + region_letter;
+  case 256:
+    return "3.1" + region_letter;
+  case 288:
+    return "3.2" + region_letter;
+  case 320:
+  case 352:
+    return "3.3" + region_letter;
+  case 384:
+    return (region_letter != "K" ? "3.4" : "3.5") + region_letter;
+  case 416:
+    return "4.0" + region_letter;
+  case 448:
+    return "4.1" + region_letter;
+  case 480:
+    return "4.2" + region_letter;
+  case 512:
+    return "4.3" + region_letter;
+  default:
+    return "?.?" + region_letter;
+  }
+}
+
 std::string GetCompanyFromID(const std::string& company_id)
 {
   static const std::map<std::string, std::string> companies = {
