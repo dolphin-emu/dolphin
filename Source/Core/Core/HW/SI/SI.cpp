@@ -213,7 +213,7 @@ static USIPoll s_poll;
 static USIComCSR s_com_csr;
 static USIStatusReg s_status_reg;
 static USIEXIClockCount s_exi_clock_count;
-static u8 s_si_buffer[128];
+static std::array<u8, 128> s_si_buffer;
 
 void DoState(PointerWrap& p)
 {
@@ -296,7 +296,7 @@ void Init()
   // Supposedly set on reset, but logs from real Wii don't look like it is...
   // s_exi_clock_count.LOCK = 1;
 
-  memset(s_si_buffer, 0, 128);
+  s_si_buffer = {};
 
   s_change_device_event = CoreTiming::RegisterEvent("ChangeSIDevice", ChangeDeviceCallback);
   s_tranfer_pending_event = CoreTiming::RegisterEvent("SITransferPending", RunSIBuffer);
@@ -312,9 +312,13 @@ void Shutdown()
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
   // Register SI buffer direct accesses.
-  for (int i = 0; i < 0x80; i += 4)
-    mmio->Register(base | (0x80 + i), MMIO::DirectRead<u32>((u32*)&s_si_buffer[i]),
+  for (size_t i = 0; i < s_si_buffer.size(); i += sizeof(u32))
+  {
+    const u32 address = base | static_cast<u32>(s_si_buffer.size() + i);
+
+    mmio->Register(address, MMIO::DirectRead<u32>((u32*)&s_si_buffer[i]),
                    MMIO::DirectWrite<u32>((u32*)&s_si_buffer[i]));
+  }
 
   // In and out for the 4 SI channels.
   for (int i = 0; i < MAX_SI_CHANNELS; ++i)
@@ -606,7 +610,7 @@ static void RunSIBuffer(u64 user_data, s64 cycles_late)
       out_length++;
 
     std::unique_ptr<ISIDevice>& device = s_channel[s_com_csr.CHANNEL].device;
-    int numOutput = device->RunBuffer(s_si_buffer, in_length);
+    int numOutput = device->RunBuffer(s_si_buffer.data(), in_length);
 
     DEBUG_LOG(SERIALINTERFACE, "RunSIBuffer  chan: %d  inLen: %i  outLen: %i  processed: %i",
               s_com_csr.CHANNEL, in_length, out_length, numOutput);
