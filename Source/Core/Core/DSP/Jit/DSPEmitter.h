@@ -221,7 +221,7 @@ private:
   void r_ifcc(UDSPInstruction opc);
   void r_ret(UDSPInstruction opc);
 
-  void Update_SR_Register(Gen::X64Reg val = Gen::EAX);
+  void Update_SR_Register(Gen::X64Reg val = Gen::EAX, Gen::X64Reg scratch = Gen::EDX);
 
   void get_long_prod(Gen::X64Reg long_prod = Gen::RAX);
   void get_long_prod_round_prodl(Gen::X64Reg long_prod = Gen::RAX);
@@ -243,7 +243,7 @@ private:
   void HandleLoop();
 
   // CC helpers
-  void Update_SR_Register64(Gen::X64Reg val = Gen::EAX);
+  void Update_SR_Register64(Gen::X64Reg val = Gen::EAX, Gen::X64Reg scratch = Gen::EDX);
   void Update_SR_Register64_Carry(Gen::X64Reg val, Gen::X64Reg carry_ovfl, bool carry_eq = false);
   void Update_SR_Register16(Gen::X64Reg val = Gen::EAX);
   void Update_SR_Register16_OverS32(Gen::X64Reg val = Gen::EAX);

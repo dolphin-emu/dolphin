@@ -393,7 +393,7 @@ void DSPEmitter::mulmvz(const UDSPInstruction opc)
   //	Update_SR_Register64(dsp_get_long_acc(rreg));
   if (FlagsNeeded())
   {
-    Update_SR_Register64(RDX);
+    Update_SR_Register64(RDX, RCX);
   }
 }
 
