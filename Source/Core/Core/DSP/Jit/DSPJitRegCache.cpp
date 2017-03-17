@@ -380,8 +380,6 @@ void DSPJitRegCache::FlushRegs()
   m_use_ctr = 0;
 }
 
-static u64 ebp_store;
-
 void DSPJitRegCache::LoadRegs(bool emit)
 {
   for (size_t i = 0; i < m_regs.size(); i++)
@@ -390,11 +388,6 @@ void DSPJitRegCache::LoadRegs(bool emit)
     {
       MovToHostReg(i, m_regs[i].host_reg, emit);
     }
-  }
-
-  if (emit)
-  {
-    m_emitter.MOV(64, M(&ebp_store), R(RBP));
   }
 }
 
@@ -411,8 +404,6 @@ void DSPJitRegCache::SaveRegs()
 
     _assert_msg_(DSPLLE, !m_regs[i].loc.IsSimpleReg(), "register %zu is still a simple reg", i);
   }
-
-  m_emitter.MOV(64, R(RBP), M(&ebp_store));
 }
 
 void DSPJitRegCache::PushRegs()
@@ -455,14 +446,10 @@ void DSPJitRegCache::PushRegs()
                  m_xregs[i].guest_reg == DSP_REG_NONE || m_xregs[i].guest_reg == DSP_REG_STATIC,
                  "register %zu is still used", i);
   }
-
-  m_emitter.MOV(64, R(RBP), M(&ebp_store));
 }
 
 void DSPJitRegCache::PopRegs()
 {
-  m_emitter.MOV(64, M(&ebp_store), R(RBP));
-
   int push_count = 0;
   for (int i = static_cast<int>(m_xregs.size() - 1); i >= 0; i--)
   {
@@ -493,22 +480,7 @@ void DSPJitRegCache::PopRegs()
 
 X64Reg DSPJitRegCache::MakeABICallSafe(X64Reg reg)
 {
-  if (reg != RBP)
-  {
-    return reg;
-  }
-
-  size_t rbp_guest = m_xregs[RBP].guest_reg;
-  m_xregs[RBP].guest_reg = DSP_REG_USED;
-  X64Reg safe = FindSpillFreeXReg();
-  _assert_msg_(DSPLLE, safe != INVALID_REG, "could not find register");
-  if (safe == INVALID_REG)
-  {
-    m_emitter.INT3();
-  }
-  m_xregs[RBP].guest_reg = rbp_guest;
-  m_emitter.MOV(64, R(safe), R(reg));
-  return safe;
+  return reg;
 }
 
 void DSPJitRegCache::MovToHostReg(size_t reg, X64Reg host_reg, bool load)
