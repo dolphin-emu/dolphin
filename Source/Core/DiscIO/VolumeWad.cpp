@@ -2,6 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <algorithm>
 #include <cstddef>
 #include <cstring>
 #include <map>
@@ -130,6 +131,13 @@ Platform CVolumeWAD::GetVolumeType() const
 
 std::map<Language, std::string> CVolumeWAD::GetLongNames() const
 {
+  const auto contents = m_tmd.GetContents();
+  const bool has_content_0 =
+      std::find_if(contents.begin(), contents.end(),
+                   [](const auto& content) { return content.id == 0; }) != contents.end();
+  if (!has_content_0)
+    return {};
+
   std::vector<u8> name_data(NAMES_TOTAL_BYTES);
   if (!Read(m_opening_bnr_offset + 0x9C, NAMES_TOTAL_BYTES, name_data.data()))
     return std::map<Language, std::string>();
