@@ -18,6 +18,23 @@ bool IsNTSC(Region region)
 
 // Increment CACHE_REVISION (ISOFile.cpp & GameFile.cpp) if the code below is modified
 
+Country TypicalCountryForRegion(Region region)
+{
+  switch (region)
+  {
+  case Region::NTSC_J:
+    return Country::COUNTRY_JAPAN;
+  case Region::NTSC_U:
+    return Country::COUNTRY_USA;
+  case Region::PAL:
+    return Country::COUNTRY_EUROPE;
+  case Region::NTSC_K:
+    return Country::COUNTRY_KOREA;
+  default:
+    return Country::COUNTRY_UNKNOWN;
+  }
+}
+
 Region RegionSwitchGC(u8 country_code)
 {
   Region region = RegionSwitchWii(country_code);
@@ -124,23 +141,23 @@ Country CountrySwitch(u8 country_code)
   }
 }
 
-u8 GetSysMenuRegion(u16 title_version)
+Region GetSysMenuRegion(u16 title_version)
 {
   if (title_version == 33)
-    return 'A';  // 1.0 uses 33 as the version number in all regions
+    return Region::UNKNOWN_REGION;  // 1.0 uses 33 as the version number in all regions
 
   switch (title_version & 0xf)
   {
   case 0:
-    return 'J';
+    return Region::NTSC_J;
   case 1:
-    return 'E';
+    return Region::NTSC_U;
   case 2:
-    return 'P';
+    return Region::PAL;
   case 6:
-    return 'K';
+    return Region::NTSC_K;
   default:
-    return 'A';
+    return Region::UNKNOWN_REGION;
   }
 }
 
@@ -153,16 +170,16 @@ std::string GetSysMenuVersionString(u16 title_version)
 
   switch (GetSysMenuRegion(title_version))
   {
-  case 'J':
+  case Region::NTSC_J:
     region_letter = "J";
     break;
-  case 'E':
+  case Region::NTSC_U:
     region_letter = "U";
     break;
-  case 'P':
+  case Region::PAL:
     region_letter = "E";
     break;
-  case 'K':
+  case Region::NTSC_K:
     region_letter = "K";
     break;
   }

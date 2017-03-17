@@ -118,7 +118,7 @@ u64 TMDReader::GetIOSId() const
 DiscIO::Region TMDReader::GetRegion() const
 {
   if (GetTitleId() == 0x0000000100000002)
-    return DiscIO::RegionSwitchWii(DiscIO::GetSysMenuRegion(GetTitleVersion()));
+    return DiscIO::GetSysMenuRegion(GetTitleVersion());
 
   return DiscIO::RegionSwitchWii(static_cast<u8>(GetTitleId() & 0xff));
 }

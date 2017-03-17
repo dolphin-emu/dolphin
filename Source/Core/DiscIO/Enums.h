@@ -69,10 +69,11 @@ enum class Language
 };
 
 bool IsNTSC(Region region);
+Country TypicalCountryForRegion(Region region);
 Region RegionSwitchGC(u8 country_code);
 Region RegionSwitchWii(u8 country_code);
 Country CountrySwitch(u8 country_code);
-u8 GetSysMenuRegion(u16 title_version);
+Region GetSysMenuRegion(u16 title_version);
 std::string GetSysMenuVersionString(u16 title_version);
 std::string GetCompanyFromID(const std::string& company_id);
 }

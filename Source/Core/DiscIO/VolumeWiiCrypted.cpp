@@ -174,22 +174,10 @@ Country CVolumeWiiCrypted::GetCountry() const
 
   const Region region = GetRegion();
 
-  if (RegionSwitchWii(country_byte) == region)
-    return CountrySwitch(country_byte);
+  if (RegionSwitchWii(country_byte) != region)
+    return TypicalCountryForRegion(region);
 
-  switch (region)
-  {
-  case Region::NTSC_J:
-    return Country::COUNTRY_JAPAN;
-  case Region::NTSC_U:
-    return Country::COUNTRY_USA;
-  case Region::PAL:
-    return Country::COUNTRY_EUROPE;
-  case Region::NTSC_K:
-    return Country::COUNTRY_KOREA;
-  default:
-    return Country::COUNTRY_UNKNOWN;
-  }
+  return CountrySwitch(country_byte);
 }
 
 std::string CVolumeWiiCrypted::GetMakerID() const
