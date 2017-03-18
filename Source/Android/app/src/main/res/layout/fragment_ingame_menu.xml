@@ -53,11 +53,6 @@
                 style="@style/InGameMenuOption"/>
 
             <Button
-                android:id="@+id/menu_ingame_settings"
-                android:text="@string/preferences_settings"
-                style="@style/InGameMenuOption"/>
-
-            <Button
                 android:id="@+id/menu_refresh_wiimotes"
                 android:text="@string/emulation_refresh_wiimotes"
                 style="@style/InGameMenuOption"/>
