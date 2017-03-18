@@ -310,13 +310,6 @@ void CFrame::BootGame(const std::string& filename)
   if (!bootfile.empty())
   {
     StartGame(bootfile);
-    if (UseDebugger && g_pCodeWindow)
-    {
-      if (g_pCodeWindow->HasPanel<CWatchWindow>())
-        g_pCodeWindow->GetPanel<CWatchWindow>()->LoadAll();
-      if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
-        g_pCodeWindow->GetPanel<CBreakPointWindow>()->LoadAll();
-    }
   }
 }
 
@@ -844,11 +837,7 @@ void CFrame::DoStop()
 
     if (UseDebugger && g_pCodeWindow)
     {
-      if (g_pCodeWindow->HasPanel<CWatchWindow>())
-        g_pCodeWindow->GetPanel<CWatchWindow>()->SaveAll();
       PowerPC::watches.Clear();
-      if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
-        g_pCodeWindow->GetPanel<CBreakPointWindow>()->SaveAll();
       PowerPC::breakpoints.Clear();
       PowerPC::memchecks.Clear();
       if (g_pCodeWindow->HasPanel<CBreakPointWindow>())
