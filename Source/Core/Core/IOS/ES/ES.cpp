@@ -177,9 +177,18 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
   const DiscIO::CNANDContentLoader& content_loader = AccessContentDevice(title_id);
   if (!content_loader.IsValid())
   {
-    PanicAlertT("Could not launch title %016" PRIx64 " because it is missing from the NAND.\n"
-                "The emulated software will likely hang now.",
-                title_id);
+    if (title_id == 0x0000000100000002)
+    {
+      PanicAlertT("Could not launch the Wii Menu because it is missing from the NAND.\n"
+                  "The emulated software will likely hang now.",
+                  title_id);
+    }
+    else
+    {
+      PanicAlertT("Could not launch title %016" PRIx64 " because it is missing from the NAND.\n"
+                  "The emulated software will likely hang now.",
+                  title_id);
+    }
     return false;
   }
 
