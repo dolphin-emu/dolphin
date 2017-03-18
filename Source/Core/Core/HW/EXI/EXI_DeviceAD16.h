@@ -8,6 +8,8 @@
 
 class PointerWrap;
 
+namespace ExpansionInterface
+{
 class CEXIAD16 : public IEXIDevice
 {
 public:
@@ -37,3 +39,4 @@ private:
 
   void TransferByte(u8& byte) override;
 };
+}  // namespace ExpansionInterface

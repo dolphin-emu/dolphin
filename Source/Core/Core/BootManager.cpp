@@ -93,7 +93,7 @@ private:
   std::string m_strGPUDeterminismMode;
   std::array<int, MAX_BBMOTES> iWiimoteSource;
   std::array<SerialInterface::SIDevices, SerialInterface::MAX_SI_CHANNELS> Pads;
-  std::array<TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice;
+  std::array<ExpansionInterface::TEXIDevices, ExpansionInterface::MAX_EXI_CHANNELS> m_EXIDevice;
 };
 
 void ConfigCache::SaveConfig(const SConfig& config)

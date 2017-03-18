@@ -8,6 +8,8 @@
 #include "Common/Common.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
+namespace ExpansionInterface
+{
 #if HAVE_PORTAUDIO
 
 class CEXIMic : public IEXIDevice
@@ -107,3 +109,4 @@ public:
 };
 
 #endif
+}  // namespace ExpansionInterface

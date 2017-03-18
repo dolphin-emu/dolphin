@@ -226,7 +226,7 @@ bool CBoot::Load_BS2(const std::string& boot_rom_filename)
                 SConfig::GetDirectoryForRegion(boot_region));
 
   // Run the descrambler over the encrypted section containing BS1/BS2
-  CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
+  ExpansionInterface::CEXIIPL::Descrambler((u8*)data.data() + 0x100, 0x1AFE00);
 
   // TODO: Execution is supposed to start at 0xFFF00000, not 0x81200000;
   // copying the initial boot code to 0x81200000 is a hack.

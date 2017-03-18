@@ -13,6 +13,8 @@
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/MMIO.h"
 
+namespace ExpansionInterface
+{
 enum
 {
   EXI_READ,
@@ -268,3 +270,4 @@ IEXIDevice* CEXIChannel::FindDevice(TEXIDevices device_type, int custom_index)
   }
   return nullptr;
 }
+}  // namespace ExpansionInterface

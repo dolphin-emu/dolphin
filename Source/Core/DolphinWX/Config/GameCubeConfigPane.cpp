@@ -181,28 +181,28 @@ void GameCubeConfigPane::LoadGUIValues()
 
     switch (SConfig::GetInstance().m_EXIDevice[i])
     {
-    case EXIDEVICE_NONE:
+    case ExpansionInterface::EXIDEVICE_NONE:
       m_exi_devices[i]->SetStringSelection(slot_devices[0]);
       break;
-    case EXIDEVICE_MEMORYCARD:
+    case ExpansionInterface::EXIDEVICE_MEMORYCARD:
       isMemcard = m_exi_devices[i]->SetStringSelection(slot_devices[2]);
       break;
-    case EXIDEVICE_MEMORYCARDFOLDER:
+    case ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER:
       m_exi_devices[i]->SetStringSelection(slot_devices[3]);
       break;
-    case EXIDEVICE_GECKO:
+    case ExpansionInterface::EXIDEVICE_GECKO:
       m_exi_devices[i]->SetStringSelection(slot_devices[4]);
       break;
-    case EXIDEVICE_AGP:
+    case ExpansionInterface::EXIDEVICE_AGP:
       isMemcard = m_exi_devices[i]->SetStringSelection(slot_devices[5]);
       break;
-    case EXIDEVICE_MIC:
+    case ExpansionInterface::EXIDEVICE_MIC:
       isMic = m_exi_devices[i]->SetStringSelection(slot_devices[6]);
       break;
-    case EXIDEVICE_ETH:
+    case ExpansionInterface::EXIDEVICE_ETH:
       m_exi_devices[i]->SetStringSelection(sp1_devices[2]);
       break;
-    case EXIDEVICE_DUMMY:
+    case ExpansionInterface::EXIDEVICE_DUMMY:
     default:
       m_exi_devices[i]->SetStringSelection(slot_devices[1]);
       break;
@@ -298,30 +298,36 @@ void GameCubeConfigPane::OnSlotBButtonClick(wxCommandEvent& event)
 
 void GameCubeConfigPane::ChooseEXIDevice(const wxString& deviceName, int deviceNum)
 {
-  TEXIDevices tempType;
+  ExpansionInterface::TEXIDevices tempType;
 
   if (!deviceName.compare(_(EXIDEV_MEMCARD_STR)))
-    tempType = EXIDEVICE_MEMORYCARD;
+    tempType = ExpansionInterface::EXIDEVICE_MEMORYCARD;
   else if (!deviceName.compare(_(EXIDEV_MEMDIR_STR)))
-    tempType = EXIDEVICE_MEMORYCARDFOLDER;
+    tempType = ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER;
   else if (!deviceName.compare(_(EXIDEV_MIC_STR)))
-    tempType = EXIDEVICE_MIC;
+    tempType = ExpansionInterface::EXIDEVICE_MIC;
   else if (!deviceName.compare(_(EXIDEV_BBA_STR)))
-    tempType = EXIDEVICE_ETH;
+    tempType = ExpansionInterface::EXIDEVICE_ETH;
   else if (!deviceName.compare(_(EXIDEV_AGP_STR)))
-    tempType = EXIDEVICE_AGP;
+    tempType = ExpansionInterface::EXIDEVICE_AGP;
   else if (!deviceName.compare(_(EXIDEV_GECKO_STR)))
-    tempType = EXIDEVICE_GECKO;
+    tempType = ExpansionInterface::EXIDEVICE_GECKO;
   else if (!deviceName.compare(_(DEV_NONE_STR)))
-    tempType = EXIDEVICE_NONE;
+    tempType = ExpansionInterface::EXIDEVICE_NONE;
   else
-    tempType = EXIDEVICE_DUMMY;
+    tempType = ExpansionInterface::EXIDEVICE_DUMMY;
 
   // Gray out the memcard path button if we're not on a memcard or AGP
-  if (tempType == EXIDEVICE_MEMORYCARD || tempType == EXIDEVICE_AGP || tempType == EXIDEVICE_MIC)
+  if (tempType == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+      tempType == ExpansionInterface::EXIDEVICE_AGP ||
+      tempType == ExpansionInterface::EXIDEVICE_MIC)
+  {
     m_memcard_path[deviceNum]->Enable();
+  }
   else if (deviceNum == 0 || deviceNum == 1)
+  {
     m_memcard_path[deviceNum]->Disable();
+  }
 
   SConfig::GetInstance().m_EXIDevice[deviceNum] = tempType;
 
@@ -335,9 +341,9 @@ void GameCubeConfigPane::ChooseEXIDevice(const wxString& deviceName, int deviceN
   }
 }
 
-void GameCubeConfigPane::ChooseSlotPath(bool is_slot_a, TEXIDevices device_type)
+void GameCubeConfigPane::ChooseSlotPath(bool is_slot_a, ExpansionInterface::TEXIDevices device_type)
 {
-  bool memcard = (device_type == EXIDEVICE_MEMORYCARD);
+  bool memcard = (device_type == ExpansionInterface::EXIDEVICE_MEMORYCARD);
   std::string path;
   std::string cardname;
   std::string ext;

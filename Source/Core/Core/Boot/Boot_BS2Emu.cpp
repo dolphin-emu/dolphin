@@ -30,6 +30,19 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/Volume.h"
 
+namespace
+{
+void PresetTimeBaseTicks()
+{
+  const u64 emulated_time =
+      ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::GC_EPOCH);
+
+  const u64 time_base_ticks = emulated_time * 40500000ULL;
+
+  PowerPC::HostWrite_U64(time_base_ticks, 0x800030D8);
+}
+}  // Anonymous namespace
+
 void CBoot::RunFunction(u32 address)
 {
   PC = address;
@@ -93,8 +106,8 @@ bool CBoot::EmulatedBS2_GC(bool skip_app_loader)
   PowerPC::HostWrite_U32(0x4c000064, 0x80000800);  // Write default FPU Handler:     rfi
   PowerPC::HostWrite_U32(0x4c000064, 0x80000C00);  // Write default Syscall Handler: rfi
 
-  PowerPC::HostWrite_U64((u64)CEXIIPL::GetEmulatedTime(CEXIIPL::GC_EPOCH) * (u64)40500000,
-                         0x800030D8);  // Preset time base ticks
+  PresetTimeBaseTicks();
+
   // HIO checks this
   // PowerPC::HostWrite_U16(0x8200,     0x000030e6); // Console type
 

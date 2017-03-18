@@ -23,6 +23,8 @@
 #include <sys/socket.h>
 #endif
 
+namespace ExpansionInterface
+{
 #define NOTIMPLEMENTED(Name)                                                                       \
   NOTICE_LOG(SP1, "CEXIETHERNET::%s not implemented for your UNIX", Name);
 
@@ -181,3 +183,4 @@ void CEXIETHERNET::RecvStop()
   NOTIMPLEMENTED("RecvStop");
 #endif
 }
+}  // namespace ExpansionInterface

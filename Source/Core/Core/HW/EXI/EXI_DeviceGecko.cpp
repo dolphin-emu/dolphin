@@ -17,6 +17,8 @@
 #include "Common/Thread.h"
 #include "Core/Core.h"
 
+namespace ExpansionInterface
+{
 u16 GeckoSockServer::server_port;
 int GeckoSockServer::client_count;
 std::thread GeckoSockServer::connectionThread;
@@ -221,3 +223,4 @@ void CEXIGecko::ImmReadWrite(u32& _uData, u32 _uSize)
     break;
   }
 }
+}  // namespace ExpansionInterface

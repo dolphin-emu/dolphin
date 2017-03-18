@@ -10,6 +10,8 @@
 #include "Core/HW/EXI/EXI_Device.h"
 #include "Core/HW/EXI/EXI_DeviceEthernet.h"
 
+namespace ExpansionInterface
+{
 bool CEXIETHERNET::Activate()
 {
   if (IsActivated())
@@ -105,3 +107,4 @@ void CEXIETHERNET::RecvStop()
 {
   readEnabled.Clear();
 }
+}  // namespace ExpansionInterface

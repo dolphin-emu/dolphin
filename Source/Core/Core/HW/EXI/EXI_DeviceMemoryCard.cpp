@@ -32,6 +32,8 @@
 #include "DiscIO/Enums.h"
 #include "DiscIO/NANDContentLoader.h"
 
+namespace ExpansionInterface
+{
 #define MC_STATUS_BUSY 0x80
 #define MC_STATUS_UNLOCKED 0x40
 #define MC_STATUS_SLEEP 0x20
@@ -532,3 +534,4 @@ void CEXIMemoryCard::DMAWrite(u32 _uAddr, u32 _uSize)
   CoreTiming::ScheduleEvent(_uSize * (SystemTimers::GetTicksPerSecond() / MC_TRANSFER_RATE_WRITE),
                             s_et_transfer_complete[card_index], (u64)card_index);
 }
+}  // namespace ExpansionInterface
