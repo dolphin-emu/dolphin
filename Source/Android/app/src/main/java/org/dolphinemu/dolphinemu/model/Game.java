@@ -95,7 +95,7 @@ public final class Game
 	{
 		ContentValues values = new ContentValues();
 
-		String screenPath = PATH_SCREENSHOT_FOLDER + gameId + "/thumb.png";
+		String screenPath = PATH_SCREENSHOT_FOLDER + gameId + "/" + gameId + "-1.png";
 
 		values.put(GameDatabase.KEY_GAME_PLATFORM, platform);
 		values.put(GameDatabase.KEY_GAME_TITLE, title);
