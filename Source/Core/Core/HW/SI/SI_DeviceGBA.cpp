@@ -20,6 +20,8 @@
 #include "Core/HW/SI/SI_Device.h"
 #include "Core/HW/SystemTimers.h"
 
+namespace SerialInterface
+{
 namespace
 {
 std::thread s_connection_thread;
@@ -375,3 +377,4 @@ bool CSIDevice_GBA::GetData(u32& hi, u32& low)
 void CSIDevice_GBA::SendCommand(u32 command, u8 poll)
 {
 }
+}  // namespace SerialInterface

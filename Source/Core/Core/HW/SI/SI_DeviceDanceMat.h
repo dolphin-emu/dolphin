@@ -9,6 +9,8 @@
 
 struct GCPadStatus;
 
+namespace SerialInterface
+{
 class CSIDevice_DanceMat : public CSIDevice_GCController
 {
 public:
@@ -18,3 +20,4 @@ public:
   u32 MapPadStatus(const GCPadStatus& pad_status) override;
   bool GetData(u32& hi, u32& low) override;
 };
+}  // namespace SerialInterface

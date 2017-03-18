@@ -15,6 +15,8 @@
 #include "Core/NetPlayProto.h"
 #include "InputCommon/GCAdapter.h"
 
+namespace SerialInterface
+{
 CSIDevice_GCAdapter::CSIDevice_GCAdapter(SIDevices device, int device_number)
     : CSIDevice_GCController(device, device_number)
 {
@@ -68,3 +70,4 @@ void CSIDevice_GCController::Rumble(int pad_num, ControlState strength)
   else if (SIDevice_IsGCController(device))
     Pad::Rumble(pad_num, strength);
 }
+}  // namespace SerialInterface

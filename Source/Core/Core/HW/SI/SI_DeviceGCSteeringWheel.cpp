@@ -8,6 +8,8 @@
 #include "Common/Logging/Log.h"
 #include "Core/HW/GCPad.h"
 
+namespace SerialInterface
+{
 CSIDevice_GCSteeringWheel::CSIDevice_GCSteeringWheel(SIDevices device, int device_number)
     : CSIDevice_GCController(device, device_number)
 {
@@ -111,3 +113,4 @@ void CSIDevice_GCSteeringWheel::SendCommand(u32 command, u8 poll)
     return CSIDevice_GCController::SendCommand(command, poll);
   }
 }
+}  // namespace SerialInterface

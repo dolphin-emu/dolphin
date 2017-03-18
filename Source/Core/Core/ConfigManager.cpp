@@ -580,7 +580,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; ++i)
   {
     core->Get(StringFromFormat("SIDevice%i", i), (u32*)&m_SIDevice[i],
-              (i == 0) ? SIDEVICE_GC_CONTROLLER : SIDEVICE_NONE);
+              (i == 0) ? SerialInterface::SIDEVICE_GC_CONTROLLER : SerialInterface::SIDEVICE_NONE);
     core->Get(StringFromFormat("AdapterRumble%i", i), &m_AdapterRumble[i], true);
     core->Get(StringFromFormat("SimulateKonga%i", i), &m_AdapterKonga[i], false);
   }

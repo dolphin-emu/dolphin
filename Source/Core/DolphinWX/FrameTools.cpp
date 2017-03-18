@@ -371,8 +371,8 @@ void CFrame::OnTASInput(wxCommandEvent& event)
 {
   for (int i = 0; i < 4; ++i)
   {
-    if (SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_NONE &&
-        SConfig::GetInstance().m_SIDevice[i] != SIDEVICE_GC_GBA)
+    if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
+        SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
     {
       g_TASInputDlg[i]->CreateGCLayout();
       g_TASInputDlg[i]->Show();
@@ -464,7 +464,7 @@ void CFrame::OnRecord(wxCommandEvent& WXUNUSED(event))
 
   for (int i = 0; i < 4; i++)
   {
-    if (SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
+    if (SerialInterface::SIDevice_IsGCController(SConfig::GetInstance().m_SIDevice[i]))
       controllers |= (1 << i);
 
     if (g_wiimote_sources[i] != WIIMOTE_SRC_NONE)

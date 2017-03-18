@@ -10,6 +10,8 @@
 #include "Core/HW/GCKeyboard.h"
 #include "InputCommon/KeyboardStatus.h"
 
+namespace SerialInterface
+{
 // --- GameCube keyboard ---
 CSIDevice_Keyboard::CSIDevice_Keyboard(SIDevices device, int device_number)
     : ISIDevice(device, device_number)
@@ -617,3 +619,4 @@ void CSIDevice_Keyboard::MapKeys(const KeyboardStatus& key_status, u8* key)
       return;
   }
 }
+}  // namespace SerialInterface
