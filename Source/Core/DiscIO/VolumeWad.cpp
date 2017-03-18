@@ -130,6 +130,9 @@ Platform CVolumeWAD::GetVolumeType() const
 
 std::map<Language, std::string> CVolumeWAD::GetLongNames() const
 {
+  if (!m_tmd.IsValid() || !IOS::ES::IsChannel(m_tmd.GetTitleId()))
+    return {};
+
   std::vector<u8> name_data(NAMES_TOTAL_BYTES);
   if (!Read(m_opening_bnr_offset + 0x9C, NAMES_TOTAL_BYTES, name_data.data()))
     return std::map<Language, std::string>();
