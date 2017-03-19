@@ -368,15 +368,15 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     // update gui
     m_dialog->OnMsgChangeGame(m_selected_game);
 
-    sf::Packet packet;
-    packet << static_cast<MessageId>(NP_MSG_GAME_STATUS);
+    sf::Packet game_status_packet;
+    game_status_packet << static_cast<MessageId>(NP_MSG_GAME_STATUS);
 
     PlayerGameStatus status = m_dialog->FindGame(m_selected_game).empty() ?
                                   PlayerGameStatus::NotFound :
                                   PlayerGameStatus::Ok;
 
-    packet << static_cast<u32>(status);
-    Send(packet);
+    game_status_packet << static_cast<u32>(status);
+    Send(game_status_packet);
   }
   break;
 
@@ -445,11 +445,11 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
     u32 ping_key = 0;
     packet >> ping_key;
 
-    sf::Packet packet;
-    packet << (MessageId)NP_MSG_PONG;
-    packet << ping_key;
+    sf::Packet response_packet;
+    response_packet << static_cast<MessageId>(NP_MSG_PONG);
+    response_packet << ping_key;
 
-    Send(packet);
+    Send(response_packet);
   }
   break;
 
