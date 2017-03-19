@@ -288,7 +288,7 @@ void Shutdown()
     if ((flags & region.flags) != region.flags)
       continue;
     g_arena.ReleaseView(*region.out_pointer, region.size);
-    *region.out_pointer = 0;
+    *region.out_pointer = nullptr;
   }
   for (auto& entry : logical_mapped_entries)
   {
