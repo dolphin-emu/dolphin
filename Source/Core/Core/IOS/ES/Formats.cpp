@@ -33,6 +33,13 @@ bool IsDiscTitle(u64 title_id)
          IsTitleType(title_id, TitleType::GameWithChannel);
 }
 
+bool IsChannel(u64 title_id)
+{
+  return IsTitleType(title_id, TitleType::Channel) ||
+         IsTitleType(title_id, TitleType::SystemChannel) ||
+         IsTitleType(title_id, TitleType::GameWithChannel);
+}
+
 bool Content::IsShared() const
 {
   return (type & 0x8000) != 0;
