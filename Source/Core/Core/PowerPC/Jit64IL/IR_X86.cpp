@@ -1753,7 +1753,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       X64Reg reg = fregURegWithMov(RI, I);
       alignas(16) static const u32 ssSignBits[4] = {0x80000000};
-      Jit->PXOR(reg, M(ssSignBits));
+      Jit->PXOR(reg, Jit->MConst(ssSignBits));
       RI.fregs[reg] = I;
       fregNormalRegClear(RI, I);
       break;
@@ -1765,7 +1765,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       X64Reg reg = fregURegWithMov(RI, I);
       alignas(16) static const u64 sdSignBits[2] = {0x8000000000000000ULL};
-      Jit->PXOR(reg, M(sdSignBits));
+      Jit->PXOR(reg, Jit->MConst(sdSignBits));
       RI.fregs[reg] = I;
       fregNormalRegClear(RI, I);
       break;
@@ -1777,7 +1777,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       X64Reg reg = fregURegWithMov(RI, I);
       alignas(16) static const u32 psSignBits[4] = {0x80000000, 0x80000000};
-      Jit->PXOR(reg, M(psSignBits));
+      Jit->PXOR(reg, Jit->MConst(psSignBits));
       RI.fregs[reg] = I;
       fregNormalRegClear(RI, I);
       break;
