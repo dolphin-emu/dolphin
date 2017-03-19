@@ -219,6 +219,8 @@ wxMenu* MainMenuBar::CreateToolsMenu() const
   tools_menu->Append(IDM_NETPLAY, _("Start &NetPlay..."));
   tools_menu->Append(IDM_MENU_INSTALL_WAD, _("Install WAD..."));
   tools_menu->Append(IDM_LOAD_WII_MENU, dummy_string);
+  tools_menu->Append(IDM_IMPORT_NAND, _("Import BootMii NAND Backup..."));
+  tools_menu->Append(IDM_EXTRACT_CERTIFICATES, _("Extract Certificates from NAND"));
   tools_menu->Append(IDM_FIFOPLAYER, _("FIFO Player"));
   tools_menu->AppendSeparator();
   tools_menu->AppendSubMenu(wiimote_menu, _("Connect Wii Remotes"));

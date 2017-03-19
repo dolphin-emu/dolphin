@@ -52,6 +52,7 @@
 #include "Core/State.h"
 
 #include "DiscIO/NANDContentLoader.h"
+#include "DiscIO/NANDImporter.h"
 
 #include "DolphinWX/AboutDolphin.h"
 #include "DolphinWX/Cheats/CheatsWindow.h"
@@ -168,6 +169,8 @@ void CFrame::BindMenuBarEvents()
   Bind(wxEVT_MENU, &CFrame::OnNetPlay, this, IDM_NETPLAY);
   Bind(wxEVT_MENU, &CFrame::OnInstallWAD, this, IDM_MENU_INSTALL_WAD);
   Bind(wxEVT_MENU, &CFrame::OnLoadWiiMenu, this, IDM_LOAD_WII_MENU);
+  Bind(wxEVT_MENU, &CFrame::OnImportBootMiiBackup, this, IDM_IMPORT_NAND);
+  Bind(wxEVT_MENU, &CFrame::OnExtractCertificates, this, IDM_EXTRACT_CERTIFICATES);
   Bind(wxEVT_MENU, &CFrame::OnFifoPlayer, this, IDM_FIFOPLAYER);
   Bind(wxEVT_MENU, &CFrame::OnConnectWiimote, this, IDM_CONNECT_WIIMOTE1, IDM_CONNECT_BALANCEBOARD);
 
@@ -1217,6 +1220,37 @@ void CFrame::OnInstallWAD(wxCommandEvent& event)
   {
     UpdateLoadWiiMenuItem();
   }
+}
+
+void CFrame::OnImportBootMiiBackup(wxCommandEvent& WXUNUSED(event))
+{
+  if (!AskYesNoT("Merging a new NAND over your currently selected NAND will overwrite any channels "
+                 "and savegames that already exist. This process is not reversible, so it is "
+                 "recommended that you keep backups of both NANDs. Are you sure you want to "
+                 "continue?"))
+    return;
+
+  wxString path = wxFileSelector(
+      _("Select a BootMii NAND backup to import"), wxEmptyString, wxEmptyString, wxEmptyString,
+      _("BootMii NAND backup file (*.bin)") + "|*.bin|" + wxGetTranslation(wxALL_FILES),
+      wxFD_OPEN | wxFD_PREVIEW | wxFD_FILE_MUST_EXIST, this);
+  const std::string file_name = WxStrToStr(path);
+  if (file_name.empty())
+    return;
+
+  wxProgressDialog dialog(_("Importing NAND backup"), _("Working..."), 100, this,
+                          wxPD_APP_MODAL | wxPD_ELAPSED_TIME | wxPD_SMOOTH);
+  DiscIO::NANDImporter().ImportNANDBin(file_name,
+                                       [&dialog](size_t current_entry, size_t total_entries) {
+                                         dialog.SetRange(total_entries);
+                                         dialog.Update(current_entry);
+                                       });
+  UpdateLoadWiiMenuItem();
+}
+
+void CFrame::OnExtractCertificates(wxCommandEvent& WXUNUSED(event))
+{
+  DiscIO::NANDImporter().ExtractCertificates(File::GetUserPath(D_WIIROOT_IDX));
 }
 
 void CFrame::UpdateLoadWiiMenuItem() const

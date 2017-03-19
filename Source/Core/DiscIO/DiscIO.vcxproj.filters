@@ -33,6 +33,9 @@
     <ClCompile Include="NANDContentLoader.cpp">
       <Filter>NAND</Filter>
     </ClCompile>
+    <ClCompile Include="NANDImporter.cpp">
+      <Filter>NAND</Filter>
+    </ClCompile>
     <ClCompile Include="Blob.cpp">
       <Filter>Volume\Blob</Filter>
     </ClCompile>
@@ -90,6 +93,9 @@
       <Filter>NAND</Filter>
     </ClInclude>
     <ClInclude Include="NANDContentLoader.h">
+      <Filter>NAND</Filter>
+    </ClInclude>
+    <ClInclude Include="NANDImporter.h">
       <Filter>NAND</Filter>
     </ClInclude>
     <ClInclude Include="Blob.h">
