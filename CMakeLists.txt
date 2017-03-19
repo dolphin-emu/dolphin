@@ -708,7 +708,7 @@ if(MBEDTLS_FOUND)
 else()
   message(STATUS "Using static mbed TLS from Externals")
   set(MBEDTLS_LIBRARIES mbedtls mbedcrypto mbedx509)
-  add_subdirectory(Externals/mbedtls/)
+  add_subdirectory(Externals/mbedtls/ EXCLUDE_FROM_ALL)
   include_directories(Externals/mbedtls/include)
 endif()
 
