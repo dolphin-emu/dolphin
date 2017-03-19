@@ -243,6 +243,7 @@
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Paired.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_SystemRegisters.cpp" />
     <ClCompile Include="PowerPC\Interpreter\Interpreter_Tables.cpp" />
+    <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp" />
     <ClCompile Include="PowerPC\JitILCommon\IR.cpp" />
     <ClCompile Include="PowerPC\JitILCommon\JitILBase_Branch.cpp" />
     <ClCompile Include="PowerPC\JitILCommon\JitILBase_FloatingPoint.cpp" />
@@ -484,6 +485,7 @@
     <ClInclude Include="PowerPC\CachedInterpreter\InterpreterBlockCache.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter.h" />
     <ClInclude Include="PowerPC\Interpreter\Interpreter_FPUtils.h" />
+    <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h" />
     <ClInclude Include="PowerPC\Jit64IL\JitIL.h" />
     <ClInclude Include="PowerPC\Jit64\FPURegCache.h" />
     <ClInclude Include="PowerPC\Jit64\GPRRegCache.h" />

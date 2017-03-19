@@ -867,6 +867,9 @@
     <ClCompile Include="IOS\USB\Bluetooth\WiimoteHIDAttr.cpp">
       <Filter>IOS\USB\Bluetooth</Filter>
     </ClCompile>
+    <ClCompile Include="PowerPC\Jit64Common\ConstantPool.cpp">
+      <Filter>PowerPC\Jit64Common</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="BootManager.h" />
@@ -1486,6 +1489,9 @@
     </ClInclude>
     <ClInclude Include="IOS\MIOS.h">
       <Filter>IOS</Filter>
+    </ClInclude>
+    <ClInclude Include="PowerPC\Jit64Common\ConstantPool.h">
+      <Filter>PowerPC\Jit64Common</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
