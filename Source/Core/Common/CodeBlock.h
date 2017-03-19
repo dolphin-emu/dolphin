@@ -42,7 +42,7 @@ public:
   }
 
   // Call this before you generate any code.
-  void AllocCodeSpace(size_t size, bool need_low = true)
+  virtual void AllocCodeSpace(size_t size, bool need_low = true)
   {
     region_size = size;
     region = static_cast<u8*>(Common::AllocateExecutableMemory(region_size, need_low));
@@ -51,7 +51,7 @@ public:
 
   // Always clear code space with breakpoints, so that if someone accidentally executes
   // uninitialized, it just breaks into the debugger.
-  void ClearCodeSpace()
+  virtual void ClearCodeSpace()
   {
     PoisonMemory();
     ResetCodePtr();
