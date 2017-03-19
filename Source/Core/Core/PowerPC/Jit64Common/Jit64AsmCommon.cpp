@@ -301,7 +301,7 @@ void QuantizedMemoryRoutines::GenQuantizedStore(bool single, EQuantizeType type,
     }
     else if (quantize > 0)
     {
-      MULSS(XMM0, M(&m_dequantizeTableS[quantize * 2]));
+      MULSS(XMM0, M(&m_quantizeTableS[quantize * 2]));
     }
 
     switch (type)
