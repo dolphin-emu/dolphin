@@ -180,8 +180,7 @@ bool ES::LaunchPPCTitle(u64 title_id, bool skip_reload)
     if (title_id == 0x0000000100000002)
     {
       PanicAlertT("Could not launch the Wii Menu because it is missing from the NAND.\n"
-                  "The emulated software will likely hang now.",
-                  title_id);
+                  "The emulated software will likely hang now.");
     }
     else
     {
