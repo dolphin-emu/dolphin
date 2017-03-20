@@ -94,5 +94,7 @@ dependencies {
 }
 
 def getVersion() {
-    return 'git describe --abbrev=0'.execute([], project.rootDir).text.trim()
+    return 'git describe --always --long'.execute([], project.rootDir).text
+            .trim()
+            .replaceAll(/(-0)?-[^-]+$/, "")
 }
