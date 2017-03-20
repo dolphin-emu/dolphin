@@ -240,6 +240,7 @@ protected:
 
   ControllerEmu::EmulatedController* const controller;
 
+  bool m_iterate = false;
   wxTimer m_update_timer;
 
 private:
@@ -249,5 +250,4 @@ private:
   InputEventFilter m_event_filter;
 
   bool DetectButton(ControlButton* button);
-  bool m_iterate = false;
 };

@@ -60,6 +60,8 @@ ControllerConfigDiag::ControllerConfigDiag(wxWindow* const parent)
   main_sizer->AddSpacer(space5);
   main_sizer->Add(CreateWiimoteConfigSizer(), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
+  main_sizer->Add(CreateAdvancedSettingsSizer(), 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
   main_sizer->Add(CreateButtonSizer(wxCLOSE | wxNO_DEFAULT), 0, wxEXPAND | wxLEFT | wxRIGHT,
                   space5);
   main_sizer->AddSpacer(space5);
@@ -218,6 +220,25 @@ wxSizer* ControllerConfigDiag::CreateGamecubeSizer()
   }
 
   return gamecube_static_sizer;
+}
+
+void ControllerConfigDiag::OnBackgroundInputChanged(wxCommandEvent& event)
+{
+  SConfig::GetInstance().m_BackgroundInput = event.IsChecked();
+}
+
+wxSizer* ControllerConfigDiag::CreateAdvancedSettingsSizer()
+{
+  const int space5 = FromDIP(5);
+
+  m_background_input_checkbox = new wxCheckBox(this, wxID_ANY, _("Background Input"));
+  m_background_input_checkbox->SetValue(SConfig::GetInstance().m_BackgroundInput);
+  m_background_input_checkbox->Bind(wxEVT_CHECKBOX, &ControllerConfigDiag::OnBackgroundInputChanged,
+                                    this);
+
+  auto* const box = new wxStaticBoxSizer(wxVERTICAL, this, _("Advanced Settings"));
+  box->Add(m_background_input_checkbox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  return box;
 }
 
 wxSizer* ControllerConfigDiag::CreateWiimoteConfigSizer()

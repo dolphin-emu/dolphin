@@ -19,8 +19,6 @@ BooleanSetting::BooleanSetting(const std::string& setting_name, const bool defau
 {
 }
 
-BooleanSetting::~BooleanSetting() = default;
-
 bool BooleanSetting::GetValue() const
 {
   return m_value;

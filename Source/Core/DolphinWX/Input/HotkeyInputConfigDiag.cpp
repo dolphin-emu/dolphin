@@ -2,10 +2,12 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include <wx/checkbox.h>
 #include <wx/notebook.h>
 #include <wx/panel.h>
 #include <wx/sizer.h>
 
+#include "Core/ConfigManager.h"
 #include "Core/HotkeyManager.h"
 #include "DolphinWX/Input/HotkeyInputConfigDiag.h"
 
@@ -24,13 +26,13 @@ HotkeyInputConfigDialog::HotkeyInputConfigDialog(wxWindow* parent, InputConfig& 
   UpdateGUI();
 }
 
-wxBoxSizer* HotkeyInputConfigDialog::CreateMainSizer()
+wxSizer* HotkeyInputConfigDialog::CreateMainSizer()
 {
   const int space5 = FromDIP(5);
   auto* const main_sizer = new wxBoxSizer(wxVERTICAL);
 
   main_sizer->AddSpacer(space5);
-  main_sizer->Add(CreateDeviceRelatedSizer());
+  main_sizer->Add(CreateDeviceRelatedSizer(), 0, wxEXPAND | wxLEFT | wxRIGHT);
   main_sizer->AddSpacer(space5);
   main_sizer->Add(m_notebook, 1, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
@@ -41,24 +43,54 @@ wxBoxSizer* HotkeyInputConfigDialog::CreateMainSizer()
   return main_sizer;
 }
 
-wxBoxSizer* HotkeyInputConfigDialog::CreateDeviceRelatedSizer()
+void HotkeyInputConfigDialog::OnBackgroundInputChanged(wxCommandEvent& event)
+{
+  SConfig::GetInstance().m_BackgroundInput = event.IsChecked();
+}
+
+void HotkeyInputConfigDialog::OnIterativeInputChanged(wxCommandEvent& event)
+{
+  m_iterate = event.IsChecked();
+}
+
+wxSizer* HotkeyInputConfigDialog::CreateOptionsSizer()
+{
+  const int space3 = FromDIP(3);
+
+  auto background_input_checkbox = new wxCheckBox(this, wxID_ANY, _("Background Input"));
+  background_input_checkbox->SetValue(SConfig::GetInstance().m_BackgroundInput);
+  background_input_checkbox->Bind(wxEVT_CHECKBOX,
+                                  &HotkeyInputConfigDialog::OnBackgroundInputChanged, this);
+
+  auto iterative_input_checkbox = new wxCheckBox(this, wxID_ANY, _("Iterative Input"));
+  iterative_input_checkbox->SetValue(m_iterate);
+  iterative_input_checkbox->Bind(wxEVT_CHECKBOX, &HotkeyInputConfigDialog::OnIterativeInputChanged,
+                                 this);
+
+  auto sizer = new wxStaticBoxSizer(wxVERTICAL, this, _("Options"));
+  sizer->AddSpacer(space3);
+  sizer->Add(background_input_checkbox, 0, wxLEFT | wxRIGHT, space3);
+  sizer->AddSpacer(space3);
+  sizer->Add(iterative_input_checkbox, 0, wxLEFT | wxRIGHT, space3);
+  sizer->AddSpacer(space3);
+  return sizer;
+}
+
+wxSizer* HotkeyInputConfigDialog::CreateDeviceRelatedSizer()
 {
   const int space5 = FromDIP(5);
   auto* const enclosing_sizer = new wxBoxSizer(wxHORIZONTAL);
-  auto* const reset_sizer = CreaterResetGroupBox(wxVERTICAL);
-  auto* const options_group_box =
-      new ControlGroupBox(HotkeyManagerEmu::GetOptionsGroup(), this, this);
 
   enclosing_sizer->AddSpacer(space5);
   enclosing_sizer->Add(CreateDeviceProfileSizer(), 3, wxEXPAND);
-  enclosing_sizer->Add(reset_sizer, 0, wxEXPAND);
-  enclosing_sizer->Add(options_group_box, 1, wxEXPAND);
+  enclosing_sizer->Add(CreaterResetGroupBox(wxVERTICAL), 0, wxEXPAND);
+  enclosing_sizer->Add(CreateOptionsSizer(), 1, wxEXPAND);
   enclosing_sizer->AddSpacer(space5);
 
   return enclosing_sizer;
 }
 
-wxBoxSizer* HotkeyInputConfigDialog::CreateDeviceProfileSizer()
+wxSizer* HotkeyInputConfigDialog::CreateDeviceProfileSizer()
 {
   auto* const device_chooser = CreateDeviceChooserGroupBox();
   auto* const profile_chooser = CreateProfileChooserGroupBox();

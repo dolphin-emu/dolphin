@@ -17,9 +17,10 @@ public:
                           bool using_debugger, int port_num = 0);
 
 private:
-  wxBoxSizer* CreateMainSizer();
-  wxBoxSizer* CreateDeviceRelatedSizer();
-  wxBoxSizer* CreateDeviceProfileSizer();
+  wxSizer* CreateMainSizer();
+  wxSizer* CreateDeviceRelatedSizer();
+  wxSizer* CreateDeviceProfileSizer();
+  wxSizer* CreateOptionsSizer();
 
   void InitializeNotebook();
   wxPanel* CreateGeneralPanel();
@@ -30,6 +31,9 @@ private:
   wxPanel* CreateStereoscopic3DPanel();
   wxPanel* CreateSaveAndLoadStatePanel();
   wxPanel* CreateOtherStateManagementPanel();
+
+  void OnBackgroundInputChanged(wxCommandEvent& event);
+  void OnIterativeInputChanged(wxCommandEvent& event);
 
   wxNotebook* m_notebook;
   bool m_using_debugger;

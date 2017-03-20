@@ -13,7 +13,6 @@
 #include "InputCommon/ControllerEmu/ControlGroup/Buttons.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/MixedTriggers.h"
-#include "InputCommon/ControllerEmu/Setting/BackgroundInputSetting.h"
 #include "InputCommon/ControllerEmu/Setting/BooleanSetting.h"
 #include "InputCommon/GCPadStatus.h"
 
@@ -79,8 +78,6 @@ GCPad::GCPad(const unsigned int index) : m_index(index)
 
   // options
   groups.emplace_back(m_options = new ControllerEmu::ControlGroup(_trans("Options")));
-  m_options->boolean_settings.emplace_back(
-      std::make_unique<ControllerEmu::BackgroundInputSetting>(_trans("Background Input")));
   m_options->boolean_settings.emplace_back(std::make_unique<ControllerEmu::BooleanSetting>(
       _trans("Iterative Input"), false, ControllerEmu::SettingType::VIRTUAL));
 }
