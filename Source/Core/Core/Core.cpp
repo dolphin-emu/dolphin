@@ -64,9 +64,9 @@
 #include "Core/PowerPC/GDBStub.h"
 #endif
 
-#include "DiscIO/FileMonitor.h"
 #include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCAdapter.h"
+
 #include "VideoCommon/Fifo.h"
 #include "VideoCommon/OnScreenDisplay.h"
 #include "VideoCommon/RenderBase.h"
@@ -618,8 +618,6 @@ void EmuThread()
 
   if (core_parameter.bCPUThread)
     g_video_backend->Video_Cleanup();
-
-  FileMon::Close();
 
   // We must set up this flag before executing HW::Shutdown()
   s_hardware_initialized = false;

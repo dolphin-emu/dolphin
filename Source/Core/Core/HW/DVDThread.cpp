@@ -21,6 +21,7 @@
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
+#include "Core/FileMonitor.h"
 #include "Core/HW/DVDInterface.h"
 #include "Core/HW/DVDThread.h"
 #include "Core/HW/Memmap.h"
@@ -277,6 +278,8 @@ static void DVDThread()
     ReadRequest request;
     while (s_request_queue.Pop(request))
     {
+      FileMonitor::Log(request.dvd_offset, request.decrypt);
+
       std::vector<u8> buffer(request.length);
       const DiscIO::IVolume& volume = DVDInterface::GetVolume();
       if (!volume.Read(request.dvd_offset, request.length, buffer.data(), request.decrypt))

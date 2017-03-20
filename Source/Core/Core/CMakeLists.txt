@@ -8,6 +8,7 @@ set(SRCS
   CoreTiming.cpp
   DSPEmulator.cpp
   ec_wii.cpp
+  FileMonitor.cpp
   GeckoCodeConfig.cpp
   GeckoCode.cpp
   HotkeyManager.cpp

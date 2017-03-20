@@ -22,7 +22,6 @@
 
 #include "DiscIO/Blob.h"
 #include "DiscIO/Enums.h"
-#include "DiscIO/FileMonitor.h"
 #include "DiscIO/Filesystem.h"
 #include "DiscIO/Volume.h"
 #include "DiscIO/VolumeCreator.h"
@@ -58,8 +57,6 @@ bool CVolumeWiiCrypted::Read(u64 _ReadOffset, u64 _Length, u8* _pBuffer, bool de
 {
   if (!decrypt)
     return m_pReader->Read(_ReadOffset, _Length, _pBuffer);
-
-  FileMon::FindFilename(_ReadOffset);
 
   std::vector<u8> read_buffer(BLOCK_TOTAL_SIZE);
   while (_Length > 0)
