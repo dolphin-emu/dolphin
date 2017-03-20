@@ -93,8 +93,8 @@ public:
   bool IsFirstInGamePad(int ingame_pad) const;
   int NumLocalPads() const;
 
-  int InGamePadToLocalPad(int ingame_pad);
-  int LocalPadToInGamePad(int localPad);
+  int InGamePadToLocalPad(int ingame_pad) const;
+  int LocalPadToInGamePad(int localPad) const;
 
   static void SendTimeBase();
   bool DoAllPlayersHaveGame();
@@ -156,7 +156,7 @@ private:
   void SendPadState(int in_game_pad, const GCPadStatus& np);
   void SendWiimoteState(int in_game_pad, const NetWiimote& nw);
   unsigned int OnData(sf::Packet& packet);
-  void Send(sf::Packet& packet);
+  void Send(const sf::Packet& packet);
   void Disconnect();
   bool Connect();
   void ComputeMD5(const std::string& file_identifier);

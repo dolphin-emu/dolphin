@@ -342,7 +342,7 @@ unsigned int NetPlayServer::OnConnect(ENetPeer* socket)
 }
 
 // called from ---NETPLAY--- thread
-unsigned int NetPlayServer::OnDisconnect(Client& player)
+unsigned int NetPlayServer::OnDisconnect(const Client& player)
 {
   PlayerId pid = player.pid;
 
@@ -823,7 +823,7 @@ bool NetPlayServer::StartGame()
 }
 
 // called from multiple threads
-void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
+void NetPlayServer::SendToClients(const sf::Packet& packet, const PlayerId skip_pid)
 {
   for (auto& p : m_players)
   {
@@ -834,7 +834,7 @@ void NetPlayServer::SendToClients(sf::Packet& packet, const PlayerId skip_pid)
   }
 }
 
-void NetPlayServer::Send(ENetPeer* socket, sf::Packet& packet)
+void NetPlayServer::Send(ENetPeer* socket, const sf::Packet& packet)
 {
   ENetPacket* epac =
       enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -853,7 +853,7 @@ void NetPlayServer::KickPlayer(PlayerId player)
   }
 }
 
-u16 NetPlayServer::GetPort()
+u16 NetPlayServer::GetPort() const
 {
   return m_server->address.port;
 }
@@ -864,7 +864,7 @@ void NetPlayServer::SetNetPlayUI(NetPlayUI* dialog)
 }
 
 // called from ---GUI--- thread
-std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
+std::unordered_set<std::string> NetPlayServer::GetInterfaceSet() const
 {
   std::unordered_set<std::string> result;
   auto lst = GetInterfaceListInternal();
@@ -874,7 +874,7 @@ std::unordered_set<std::string> NetPlayServer::GetInterfaceSet()
 }
 
 // called from ---GUI--- thread
-std::string NetPlayServer::GetInterfaceHost(const std::string& inter)
+std::string NetPlayServer::GetInterfaceHost(const std::string& inter) const
 {
   char buf[16];
   sprintf(buf, ":%d", GetPort());
@@ -890,7 +890,7 @@ std::string NetPlayServer::GetInterfaceHost(const std::string& inter)
 }
 
 // called from ---GUI--- thread
-std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceListInternal()
+std::vector<std::pair<std::string, std::string>> NetPlayServer::GetInterfaceListInternal() const
 {
   std::vector<std::pair<std::string, std::string>> result;
 #if defined(_WIN32)

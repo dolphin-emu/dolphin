@@ -50,11 +50,11 @@ public:
 
   void KickPlayer(PlayerId player);
 
-  u16 GetPort();
+  u16 GetPort() const;
 
   void SetNetPlayUI(NetPlayUI* dialog);
-  std::unordered_set<std::string> GetInterfaceSet();
-  std::string GetInterfaceHost(const std::string& inter);
+  std::unordered_set<std::string> GetInterfaceSet() const;
+  std::string GetInterfaceHost(const std::string& inter) const;
 
   bool is_connected = false;
 
@@ -78,10 +78,10 @@ private:
     bool operator==(const Client& other) const { return this == &other; }
   };
 
-  void SendToClients(sf::Packet& packet, const PlayerId skip_pid = 0);
-  void Send(ENetPeer* socket, sf::Packet& packet);
+  void SendToClients(const sf::Packet& packet, const PlayerId skip_pid = 0);
+  void Send(ENetPeer* socket, const sf::Packet& packet);
   unsigned int OnConnect(ENetPeer* socket);
-  unsigned int OnDisconnect(Client& player);
+  unsigned int OnDisconnect(const Client& player);
   unsigned int OnData(sf::Packet& packet, Client& player);
 
   void OnTraversalStateChanged() override;
@@ -89,7 +89,7 @@ private:
   void OnConnectFailed(u8) override {}
   void UpdatePadMapping();
   void UpdateWiimoteMapping();
-  std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal();
+  std::vector<std::pair<std::string, std::string>> GetInterfaceListInternal() const;
 
   NetSettings m_settings;
 

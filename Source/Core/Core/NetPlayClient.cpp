@@ -560,7 +560,7 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
   return 0;
 }
 
-void NetPlayClient::Send(sf::Packet& packet)
+void NetPlayClient::Send(const sf::Packet& packet)
 {
   ENetPacket* epac =
       enet_packet_create(packet.getData(), packet.getDataSize(), ENET_PACKET_FLAG_RELIABLE);
@@ -1150,7 +1150,7 @@ int NetPlayClient::NumLocalPads() const
   }));
 }
 
-int NetPlayClient::InGamePadToLocalPad(int ingame_pad)
+int NetPlayClient::InGamePadToLocalPad(int ingame_pad) const
 {
   // not our pad
   if (m_pad_map[ingame_pad] != m_local_player->pid)
@@ -1168,7 +1168,7 @@ int NetPlayClient::InGamePadToLocalPad(int ingame_pad)
   return local_pad;
 }
 
-int NetPlayClient::LocalPadToInGamePad(int local_pad)
+int NetPlayClient::LocalPadToInGamePad(int local_pad) const
 {
   // Figure out which in-game pad maps to which local pad.
   // The logic we have here is that the local slots always
