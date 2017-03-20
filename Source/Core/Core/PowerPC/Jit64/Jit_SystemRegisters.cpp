@@ -657,7 +657,7 @@ void Jit64::mffsx(UGeckoInstruction inst)
 }
 
 // MXCSR = s_fpscr_to_mxcsr[FPSCR & 7]
-static const u32 s_fpscr_to_mxcsr[] = {
+static const u32 s_fpscr_to_mxcsr[8] = {
     0x1F80, 0x7F80, 0x5F80, 0x3F80, 0x9F80, 0xFF80, 0xDF80, 0xBF80,
 };
 
