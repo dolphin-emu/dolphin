@@ -21,7 +21,7 @@ android {
         targetSdkVersion 25
 
         // TODO This should be set to the Buildbot build number for release builds, and be "1" for debug builds.
-        versionCode 1
+        versionCode 13
 
         versionName "${getVersion()}"
     }
