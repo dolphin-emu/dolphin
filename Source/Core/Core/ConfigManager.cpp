@@ -766,8 +766,7 @@ void SConfig::SetRunningGameMetadata(const IOS::ES::TMDReader& tmd)
   }
 
   // If not launching a disc game, just read everything from the TMD.
-  SetRunningGameMetadata(StringFromFormat("%016" PRIX64, tmd_title_id), tmd_title_id,
-                         tmd.GetTitleVersion());
+  SetRunningGameMetadata(tmd.GetGameID(), tmd_title_id, tmd.GetTitleVersion());
 }
 
 void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u16 revision)

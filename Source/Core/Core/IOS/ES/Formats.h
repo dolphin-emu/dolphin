@@ -8,6 +8,7 @@
 #pragma once
 
 #include <array>
+#include <string>
 #include <vector>
 
 #include "Common/ChunkFile.h"
@@ -142,6 +143,11 @@ public:
   u64 GetTitleId() const;
   u16 GetTitleVersion() const;
   u16 GetGroupId() const;
+
+  // Constructs a 6-character game ID in the format typically used by Dolphin.
+  // If the 6-character game ID would contain unprintable characters,
+  // the title ID converted to hexadecimal is returned instead.
+  std::string GetGameID() const;
 
   u16 GetNumContents() const;
   bool GetContent(u16 index, Content* content) const;
