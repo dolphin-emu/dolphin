@@ -78,7 +78,7 @@ Country CVolumeWAD::GetCountry() const
 
   u8 country_code = static_cast<u8>(m_tmd.GetTitleId() & 0xff);
   if (country_code == 2)  // SYSMENU
-    country_code = GetSysMenuRegion(m_tmd.GetTitleVersion());
+    return TypicalCountryForRegion(GetSysMenuRegion(m_tmd.GetTitleVersion()));
 
   return CountrySwitch(country_code);
 }
