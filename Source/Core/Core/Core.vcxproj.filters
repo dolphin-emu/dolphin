@@ -759,6 +759,9 @@
     <ClCompile Include="IOS\ES\Identity.cpp">
       <Filter>IOS\ES</Filter>
     </ClCompile>
+    <ClCompile Include="IOS\ES\NandUtils.cpp">
+      <Filter>IOS\ES</Filter>
+    </ClCompile>
     <ClCompile Include="IOS\ES\TitleContents.cpp">
       <Filter>IOS\ES</Filter>
     </ClCompile>
@@ -1368,6 +1371,9 @@
       <Filter>IOS\DI</Filter>
     </ClInclude>
     <ClInclude Include="IOS\ES\ES.h">
+      <Filter>IOS\ES</Filter>
+    </ClInclude>
+    <ClInclude Include="IOS\ES\NandUtils.h">
       <Filter>IOS\ES</Filter>
     </ClInclude>
     <ClInclude Include="IOS\FS\FileIO.h">

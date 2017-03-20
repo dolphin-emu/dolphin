@@ -177,6 +177,7 @@
     <ClCompile Include="IOS\ES\ES.cpp" />
     <ClCompile Include="IOS\ES\Formats.cpp" />
     <ClCompile Include="IOS\ES\Identity.cpp" />
+    <ClCompile Include="IOS\ES\NandUtils.cpp" />
     <ClCompile Include="IOS\ES\TitleContents.cpp" />
     <ClCompile Include="IOS\ES\TitleInformation.cpp" />
     <ClCompile Include="IOS\ES\TitleManagement.cpp" />
@@ -427,6 +428,7 @@
     <ClInclude Include="IOS\DI\DI.h" />
     <ClInclude Include="IOS\ES\ES.h" />
     <ClInclude Include="IOS\ES\Formats.h" />
+    <ClInclude Include="IOS\ES\NandUtils.h" />
     <ClInclude Include="IOS\FS\FileIO.h" />
     <ClInclude Include="IOS\FS\FS.h" />
     <ClInclude Include="IOS\Network\ICMPLin.h" />

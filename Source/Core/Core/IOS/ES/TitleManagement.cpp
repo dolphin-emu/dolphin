@@ -19,6 +19,7 @@
 #include "Common/StringUtil.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/ES/NandUtils.h"
 #include "Core/ec_wii.h"
 #include "DiscIO/NANDContentLoader.h"
 
@@ -403,13 +404,11 @@ IPCCommandResult ES::ExportTitleInit(const IOCtlVRequest& request)
   if (m_export_title_context.valid)
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  const auto& content_loader = AccessContentDevice(Memory::Read_U64(request.in_vectors[0].address));
-  if (!content_loader.IsValid())
+  const auto tmd = IOS::ES::FindInstalledTMD(Memory::Read_U64(request.in_vectors[0].address));
+  if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
-  if (!content_loader.GetTMD().IsValid())
-    return GetDefaultReply(ES_INVALID_TMD);
 
-  m_export_title_context.tmd = content_loader.GetTMD();
+  m_export_title_context.tmd = tmd;
 
   const auto ticket = DiscIO::FindSignedTicket(m_export_title_context.tmd.GetTitleId());
   if (!ticket.IsValid())
