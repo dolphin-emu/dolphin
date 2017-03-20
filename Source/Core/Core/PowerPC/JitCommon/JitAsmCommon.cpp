@@ -7,7 +7,7 @@
 alignas(16) const u8 pbswapShuffle1x4[16] = {3, 2, 1, 0, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
 alignas(16) const u8 pbswapShuffle2x4[16] = {3, 2, 1, 0, 7, 6, 5, 4, 8, 9, 10, 11, 12, 13, 14, 15};
 
-alignas(16) const float m_quantizeTableS[] = {
+alignas(16) const float m_quantizeTableS[128] = {
     (1ULL << 0),        (1ULL << 0),        (1ULL << 1),        (1ULL << 1),
     (1ULL << 2),        (1ULL << 2),        (1ULL << 3),        (1ULL << 3),
     (1ULL << 4),        (1ULL << 4),        (1ULL << 5),        (1ULL << 5),
@@ -42,7 +42,7 @@ alignas(16) const float m_quantizeTableS[] = {
     1.0 / (1ULL << 2),  1.0 / (1ULL << 2),  1.0 / (1ULL << 1),  1.0 / (1ULL << 1),
 };
 
-alignas(16) const float m_dequantizeTableS[] = {
+alignas(16) const float m_dequantizeTableS[128] = {
     1.0 / (1ULL << 0),  1.0 / (1ULL << 0),  1.0 / (1ULL << 1),  1.0 / (1ULL << 1),
     1.0 / (1ULL << 2),  1.0 / (1ULL << 2),  1.0 / (1ULL << 3),  1.0 / (1ULL << 3),
     1.0 / (1ULL << 4),  1.0 / (1ULL << 4),  1.0 / (1ULL << 5),  1.0 / (1ULL << 5),
@@ -77,4 +77,4 @@ alignas(16) const float m_dequantizeTableS[] = {
     (1ULL << 2),        (1ULL << 2),        (1ULL << 1),        (1ULL << 1),
 };
 
-alignas(16) const float m_one[] = {1.0f, 0.0f, 0.0f, 0.0f};
+alignas(16) const float m_one[4] = {1.0f, 0.0f, 0.0f, 0.0f};

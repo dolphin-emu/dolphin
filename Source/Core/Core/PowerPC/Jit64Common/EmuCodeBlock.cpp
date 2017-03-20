@@ -40,6 +40,18 @@ OpArg FixImmediate(int access_size, OpArg arg)
 }
 }  // Anonymous namespace
 
+void EmuCodeBlock::ClearCodeSpace()
+{
+  X64CodeBlock::ClearCodeSpace();
+  m_const_pool.ClearCodeSpace();
+}
+
+void EmuCodeBlock::AllocCodeSpace(size_t size, bool need_low)
+{
+  X64CodeBlock::AllocCodeSpace(size + ConstantPool::CONST_POOL_SIZE, need_low);
+  m_const_pool.AllocCodeSpace();
+}
+
 void EmuCodeBlock::MemoryExceptionCheck()
 {
   // TODO: We really should untangle the trampolines, exception handlers and
@@ -836,16 +848,16 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
     // mantissa = (mantissa & ~0xFFFFFFF) + ((mantissa & (1ULL << 27)) << 1);
     if (input.IsSimpleReg() && cpu_info.bAVX)
     {
-      VPAND(tmp, input.GetSimpleReg(), M(psRoundBit));
-      VPAND(output, input.GetSimpleReg(), M(psMantissaTruncate));
+      VPAND(tmp, input.GetSimpleReg(), MConst(psRoundBit));
+      VPAND(output, input.GetSimpleReg(), MConst(psMantissaTruncate));
       PADDQ(output, R(tmp));
     }
     else
     {
       if (!input.IsSimpleReg(output))
         MOVAPD(output, input);
-      avx_op(&XEmitter::VPAND, &XEmitter::PAND, tmp, R(output), M(psRoundBit), true, true);
-      PAND(output, M(psMantissaTruncate));
+      avx_op(&XEmitter::VPAND, &XEmitter::PAND, tmp, R(output), MConst(psRoundBit), true, true);
+      PAND(output, MConst(psMantissaTruncate));
       PADDQ(output, R(tmp));
     }
   }
@@ -890,7 +902,7 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   MOVSD(XMM1, R(src));
 
   // Grab Exponent
-  PAND(XMM1, M(&double_exponent));
+  PAND(XMM1, MConst(double_exponent));
   PSRLQ(XMM1, 52);
   MOVD_xmm(R(RSCRATCH), XMM1);
 
@@ -909,15 +921,15 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
   // xmm1 = fraction | 0x0010000000000000
   MOVSD(XMM1, R(src));
-  PAND(XMM1, M(&double_fraction));
-  POR(XMM1, M(&double_explicit_top_bit));
+  PAND(XMM1, MConst(double_fraction));
+  POR(XMM1, MConst(double_explicit_top_bit));
 
   // fraction >> shift
   PSRLQ(XMM1, R(XMM0));
 
   // OR the sign bit in.
   MOVSD(XMM0, R(src));
-  PAND(XMM0, M(&double_sign_bit));
+  PAND(XMM0, MConst(double_sign_bit));
   PSRLQ(XMM0, 32);
   POR(XMM1, R(XMM0));
 
@@ -930,12 +942,12 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
 
   // We want bits 0, 1
   MOVSD(XMM1, R(src));
-  PAND(XMM1, M(&double_top_two_bits));
+  PAND(XMM1, MConst(double_top_two_bits));
   PSRLQ(XMM1, 32);
 
   // And 5 through to 34
   MOVSD(XMM0, R(src));
-  PAND(XMM0, M(&double_bottom_bits));
+  PAND(XMM0, MConst(double_bottom_bits));
   PSRLQ(XMM0, 29);
 
   // OR them togther
@@ -967,8 +979,8 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   // Here, check to see if the source is small enough that it will result in a denormal, and pass it
   // to the x87 unit
   // if it is.
-  avx_op(&XEmitter::VPAND, &XEmitter::PAND, XMM0, R(src), M(&double_sign_bit), true, true);
-  UCOMISD(XMM0, M(&min_norm_single));
+  avx_op(&XEmitter::VPAND, &XEmitter::PAND, XMM0, R(src), MConst(double_sign_bit), true, true);
+  UCOMISD(XMM0, MConst(min_norm_single));
   FixupBranch nanConversion = J_CC(CC_P, true);
   FixupBranch denormalConversion = J_CC(CC_B, true);
   CVTSD2SS(dst, R(src));
@@ -982,7 +994,7 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   FixupBranch continue1 = J_CC(CC_C, true);
   // Clear the quiet bit of the SNaN, which was 0 (signalling) but got set to 1 (quiet) by
   // conversion.
-  ANDPS(dst, M(&single_qnan_bit));
+  ANDPS(dst, MConst(single_qnan_bit));
   FixupBranch continue2 = J(true);
 
   SetJumpTarget(denormalConversion);
@@ -1025,7 +1037,7 @@ void EmuCodeBlock::ConvertSingleToDouble(X64Reg dst, X64Reg src, bool src_is_gpr
   SetJumpTarget(nanConversion);
   TEST(32, R(gprsrc), Imm32(0x00400000));
   FixupBranch continue1 = J_CC(CC_NZ, true);
-  ANDPD(dst, M(&double_qnan_bit));
+  ANDPD(dst, MConst(double_qnan_bit));
   FixupBranch continue2 = J(true);
   SwitchToNearCode();
 
@@ -1057,7 +1069,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
   {
     MOVQ_xmm(R(RSCRATCH), xmm);
     SHR(64, R(RSCRATCH), Imm8(63));  // Get the sign bit; almost all the branches need it.
-    PTEST(xmm, M(psDoubleExp));
+    PTEST(xmm, MConst(psDoubleExp));
     FixupBranch maxExponent = J_CC(CC_C);
     FixupBranch zeroExponent = J_CC(CC_Z);
 
@@ -1067,7 +1079,7 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
     continue1 = J();
 
     SetJumpTarget(maxExponent);
-    PTEST(xmm, M(psDoubleFrac));
+    PTEST(xmm, MConst(psDoubleFrac));
     FixupBranch notNAN = J_CC(CC_Z);
 
     // Max exponent + mantissa: PPC_FPCLASS_QNAN
@@ -1097,10 +1109,10 @@ void EmuCodeBlock::SetFPRF(Gen::X64Reg xmm)
   else
   {
     MOVQ_xmm(R(RSCRATCH), xmm);
-    TEST(64, R(RSCRATCH), M(psDoubleExp));
+    TEST(64, R(RSCRATCH), MConst(psDoubleExp));
     FixupBranch zeroExponent = J_CC(CC_Z);
-    AND(64, R(RSCRATCH), M(psDoubleNoSign));
-    CMP(64, R(RSCRATCH), M(psDoubleExp));
+    AND(64, R(RSCRATCH), MConst(psDoubleNoSign));
+    CMP(64, R(RSCRATCH), MConst(psDoubleExp));
     FixupBranch nan =
         J_CC(CC_G);  // This works because if the sign bit is set, RSCRATCH is negative
     FixupBranch infinity = J_CC(CC_E);
