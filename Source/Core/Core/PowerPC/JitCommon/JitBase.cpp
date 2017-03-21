@@ -27,7 +27,7 @@ JitBase::JitBase() = default;
 
 JitBase::~JitBase() = default;
 
-bool JitBase::MergeAllowedNextInstructions(int count)
+bool JitBase::CanMergeNextInstructions(int count) const
 {
   if (CPU::GetState() == CPU::CPU_STEPPING || js.instructionsLeft < count)
     return false;

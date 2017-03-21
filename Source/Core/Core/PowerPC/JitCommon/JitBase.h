@@ -104,7 +104,7 @@ protected:
   PPCAnalyst::CodeBlock code_block;
   PPCAnalyst::PPCAnalyzer analyzer;
 
-  bool MergeAllowedNextInstructions(int count);
+  bool CanMergeNextInstructions(int count) const;
 
   void UpdateMemoryOptions();
 

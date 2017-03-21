@@ -73,7 +73,7 @@ void JitArm64::ComputeCarry()
     return;
 
   js.carryFlagSet = true;
-  if (MergeAllowedNextInstructions(1) && js.op[1].opinfo->type == OPTYPE_INTEGER)
+  if (CanMergeNextInstructions(1) && js.op[1].opinfo->type == OPTYPE_INTEGER)
   {
     return;
   }
@@ -575,7 +575,7 @@ void JitArm64::srawix(UGeckoInstruction inst)
   int a = inst.RA;
   int s = inst.RS;
   int amount = inst.SH;
-  bool inplace_carry = MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags;
+  bool inplace_carry = CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags;
 
   if (gpr.IsImm(s))
   {
@@ -1286,7 +1286,7 @@ void JitArm64::srawx(UGeckoInstruction inst)
   JITDISABLE(bJITIntegerOff);
 
   int a = inst.RA, b = inst.RB, s = inst.RS;
-  bool inplace_carry = MergeAllowedNextInstructions(1) && js.op[1].wantsCAInFlags;
+  bool inplace_carry = CanMergeNextInstructions(1) && js.op[1].wantsCAInFlags;
 
   if (gpr.IsImm(b) && gpr.IsImm(s))
   {
