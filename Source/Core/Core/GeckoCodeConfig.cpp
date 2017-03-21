@@ -79,14 +79,15 @@ std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localI
 
     for (const std::string& line : lines)
     {
-      if (line.size() == 0 || line[0] != '$')
+      if (line.empty() || line[0] != '$')
       {
         continue;
       }
-      std::string name = line.substr(1);
+
       for (GeckoCode& ogcode : gcodes)
       {
-        if (ogcode.name == name)
+        // Exclude the initial '$' from the comparison.
+        if (line.compare(1, std::string::npos, ogcode.name) == 0)
         {
           ogcode.enabled = true;
         }
