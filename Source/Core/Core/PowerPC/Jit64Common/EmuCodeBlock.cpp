@@ -40,18 +40,6 @@ OpArg FixImmediate(int access_size, OpArg arg)
 }
 }  // Anonymous namespace
 
-void EmuCodeBlock::ClearCodeSpace()
-{
-  X64CodeBlock::ClearCodeSpace();
-  m_const_pool.ClearCodeSpace();
-}
-
-void EmuCodeBlock::AllocCodeSpace(size_t size, bool need_low)
-{
-  X64CodeBlock::AllocCodeSpace(size + ConstantPool::CONST_POOL_SIZE, need_low);
-  m_const_pool.AllocCodeSpace();
-}
-
 void EmuCodeBlock::MemoryExceptionCheck()
 {
   // TODO: We really should untangle the trampolines, exception handlers and

@@ -10,21 +10,31 @@
 #include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64Common/ConstantPool.h"
 
-ConstantPool::ConstantPool(Gen::X64CodeBlock* parent) : m_parent(parent)
-{
-}
+ConstantPool::ConstantPool() = default;
 
 ConstantPool::~ConstantPool() = default;
 
-void ConstantPool::AllocCodeSpace()
+void ConstantPool::Init(void* memory, size_t size)
 {
-  _assert_(!m_current_ptr);
-  Init();
+  m_region = memory;
+  m_region_size = size;
+  Clear();
 }
 
-void ConstantPool::ClearCodeSpace()
+void ConstantPool::Clear()
 {
-  Init();
+  m_current_ptr = m_region;
+  m_remaining_size = m_region_size;
+  m_const_info.clear();
+}
+
+void ConstantPool::Shutdown()
+{
+  m_region = nullptr;
+  m_region_size = 0;
+  m_current_ptr = nullptr;
+  m_remaining_size = 0;
+  m_const_info.clear();
 }
 
 Gen::OpArg ConstantPool::GetConstantOpArg(const void* value, size_t element_size,
@@ -50,18 +60,4 @@ Gen::OpArg ConstantPool::GetConstantOpArg(const void* value, size_t element_size
                "Constant has incorrect size in constant pool.");
   u8* location = static_cast<u8*>(info.m_location);
   return Gen::M(location + element_size * index);
-}
-
-void ConstantPool::Init()
-{
-  // If execution happens to run to the start of the constant pool, halt.
-  m_parent->INT3();
-  m_parent->AlignCode16();
-
-  // Reserve a block of memory CONST_POOL_SIZE in size.
-  m_current_ptr = m_parent->GetWritableCodePtr();
-  m_parent->ReserveCodeSpace(CONST_POOL_SIZE);
-
-  m_remaining_size = CONST_POOL_SIZE;
-  m_const_info.clear();
 }

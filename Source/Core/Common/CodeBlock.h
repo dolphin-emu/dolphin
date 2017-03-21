@@ -44,7 +44,7 @@ public:
   }
 
   // Call this before you generate any code.
-  virtual void AllocCodeSpace(size_t size, bool need_low = true)
+  void AllocCodeSpace(size_t size, bool need_low = true)
   {
     region_size = size;
     total_region_size = size;
@@ -54,7 +54,7 @@ public:
 
   // Always clear code space with breakpoints, so that if someone accidentally executes
   // uninitialized, it just breaks into the debugger.
-  virtual void ClearCodeSpace()
+  void ClearCodeSpace()
   {
     PoisonMemory();
     ResetCodePtr();

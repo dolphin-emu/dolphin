@@ -230,7 +230,9 @@ void Jit64::Init()
   fpr.SetEmitter(this);
 
   trampolines.Init(jo.memcheck ? TRAMPOLINE_CODE_SIZE_MMU : TRAMPOLINE_CODE_SIZE);
-  AllocCodeSpace(CODE_SIZE);
+  const size_t constpool_size = m_const_pool.CONST_POOL_SIZE;
+  AllocCodeSpace(CODE_SIZE + constpool_size);
+  m_const_pool.Init(AllocChildCodeSpace(constpool_size), constpool_size);
 
   // BLR optimization has the same consequences as block linking, as well as
   // depending on the fault handler to be safe in the event of excessive BL.
@@ -262,6 +264,7 @@ void Jit64::ClearCache()
   blocks.Clear();
   trampolines.ClearCodeSpace();
   m_far_code.ClearCodeSpace();
+  m_const_pool.Clear();
   ClearCodeSpace();
   Clear();
   UpdateMemoryOptions();
@@ -276,6 +279,7 @@ void Jit64::Shutdown()
   trampolines.Shutdown();
   asm_routines.Shutdown();
   m_far_code.Shutdown();
+  m_const_pool.Shutdown();
 }
 
 void Jit64::FallBackToInterpreter(UGeckoInstruction inst)

@@ -23,9 +23,6 @@ class Mapping;
 class EmuCodeBlock : public Gen::X64CodeBlock
 {
 public:
-  void ClearCodeSpace() override;
-  void AllocCodeSpace(size_t size, bool need_low = true) override;
-
   void MemoryExceptionCheck();
 
   // Simple functions to switch between near and far code emitting
@@ -121,7 +118,7 @@ public:
   void Clear();
 
 protected:
-  ConstantPool m_const_pool{this};
+  ConstantPool m_const_pool;
   FarCodeCache m_far_code;
   u8* m_near_code;  // Backed up when we switch to far code.
 
