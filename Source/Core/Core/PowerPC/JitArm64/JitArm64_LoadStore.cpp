@@ -380,6 +380,9 @@ void JitArm64::lXX(UGeckoInstruction inst)
        (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&  // cmpXwi r0,0
       js.op[2].inst.hex == 0x4182fff8)                                       // beq -8
   {
+    ARM64Reg WA = gpr.GetReg();
+    ARM64Reg XA = EncodeRegTo64(WA);
+
     // if it's still 0, we can wait until the next event
     FixupBranch noIdle = CBNZ(gpr.R(d));
 
@@ -390,8 +393,6 @@ void JitArm64::lXX(UGeckoInstruction inst)
     gpr.Flush(FLUSH_MAINTAIN_STATE);
     fpr.Flush(FLUSH_MAINTAIN_STATE);
 
-    ARM64Reg WA = gpr.GetReg();
-    ARM64Reg XA = EncodeRegTo64(WA);
     MOVP2R(XA, &CoreTiming::Idle);
     BLR(XA);
     gpr.Unlock(WA);
