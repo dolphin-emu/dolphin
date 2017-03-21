@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/Jit64/Jit.h"
+#include "Core/PowerPC/Jit64/JitAsm.h"
 #include "Common/CommonTypes.h"
 #include "Common/JitRegister.h"
 #include "Common/x64ABI.h"
@@ -11,7 +11,7 @@
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
-#include "Core/PowerPC/Jit64/JitAsm.h"
+#include "Core/PowerPC/Jit64/Jit.h"
 #include "Core/PowerPC/Jit64Common/Jit64PowerPCState.h"
 #include "Core/PowerPC/PowerPC.h"
 
@@ -19,6 +19,14 @@ using namespace Gen;
 
 // Not PowerPC state.  Can't put in 'this' because it's out of range...
 static void* s_saved_rsp;
+
+void Jit64AsmRoutineManager::Init(u8* stack_top)
+{
+  m_const_pool.Init(AllocChildCodeSpace(4096), 4096);
+  m_stack_top = stack_top;
+  Generate();
+  WriteProtect();
+}
 
 // PLAN: no more block numbers - crazy opcodes just contain offset within
 // dynarec buffer

@@ -24,8 +24,6 @@ class TrampolineCache : public EmuCodeBlock
   const u8* GenerateWriteTrampoline(const TrampolineInfo& info);
 
 public:
-  void Init(size_t size);
-  void Shutdown();
   const u8* GenerateTrampoline(const TrampolineInfo& info);
   void ClearCodeSpace();
 };
