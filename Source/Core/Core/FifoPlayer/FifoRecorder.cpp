@@ -17,11 +17,7 @@
 static FifoRecorder instance;
 static std::recursive_mutex sMutex;
 
-FifoRecorder::FifoRecorder()
-    : m_IsRecording(false), m_WasRecording(false), m_RequestedRecordingEnd(false),
-      m_RecordFramesRemaining(0), m_FinishedCb(nullptr), m_File(nullptr), m_SkipNextData(true),
-      m_SkipFutureData(true), m_FrameEnded(false), m_Ram(Memory::RAM_SIZE),
-      m_ExRam(Memory::EXRAM_SIZE)
+FifoRecorder::FifoRecorder() : m_Ram(Memory::RAM_SIZE), m_ExRam(Memory::EXRAM_SIZE)
 {
 }
 
