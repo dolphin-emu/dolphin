@@ -97,6 +97,18 @@ std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localI
   return gcodes;
 }
 
+static std::string MakeGeckoCodeTitle(const GeckoCode& code)
+{
+  std::string title = '$' + code.name;
+
+  if (!code.creator.empty())
+  {
+    title += " [" + code.creator + ']';
+  }
+
+  return title;
+}
+
 // used by the SaveGeckoCodes function
 static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::string>& enabledLines,
                           const GeckoCode& gcode)
@@ -107,21 +119,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
   if (!gcode.user_defined)
     return;
 
-  std::string name;
-
-  // save the name
-  name += '$';
-  name += gcode.name;
-
-  // save the creator name
-  if (gcode.creator.size())
-  {
-    name += " [";
-    name += gcode.creator;
-    name += ']';
-  }
-
-  lines.push_back(name);
+  lines.push_back(MakeGeckoCodeTitle(gcode));
 
   // save all the code lines
   for (const GeckoCode::Code& code : gcode.codes)
