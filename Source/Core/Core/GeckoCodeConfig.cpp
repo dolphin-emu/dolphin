@@ -124,10 +124,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
   // save all the code lines
   for (const GeckoCode::Code& code : gcode.codes)
   {
-    // ss << std::hex << codes_iter->address << ' ' << codes_iter->data;
-    // lines.push_back(StringFromFormat("%08X %08X", codes_iter->address, codes_iter->data));
     lines.push_back(code.original_line);
-    // ss.clear();
   }
 
   // save the notes
