@@ -7,6 +7,11 @@
 #include "Common/CommonTypes.h"
 #include "Core/PowerPC/Jit64Common/Jit64AsmCommon.h"
 
+namespace Gen
+{
+class X64CodeBlock;
+}
+
 // In Dolphin, we don't use inline assembly. Instead, we generate all machine-near
 // code at runtime. In the case of fixed code like this, after writing it, we write
 // protect the memory, essentially making it work just like precompiled code.
@@ -40,5 +45,5 @@ public:
   }
 
   void Shutdown() { FreeCodeSpace(); }
-  void ResetStack(X64CodeBlock& emitter);
+  void ResetStack(Gen::X64CodeBlock& emitter);
 };
