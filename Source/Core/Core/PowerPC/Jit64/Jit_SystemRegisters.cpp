@@ -314,7 +314,7 @@ void Jit64::mfspr(UGeckoInstruction inst)
     ADD(64, R(RAX), R(RDX));
     MOV(64, PPCSTATE(spr[SPR_TL]), R(RAX));
 
-    if (MergeAllowedNextInstructions(1))
+    if (CanMergeNextInstructions(1))
     {
       const UGeckoInstruction& next = js.op[1].inst;
       // Two calls of TU/TL next to each other are extremely common in typical usage, so merge them

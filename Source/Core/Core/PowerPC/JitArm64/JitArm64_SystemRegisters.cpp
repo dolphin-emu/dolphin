@@ -283,7 +283,7 @@ void JitArm64::mfspr(UGeckoInstruction inst)
     ADD(XA, XB, XA, ArithOption(XA, ST_LSR, 3));
     STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(spr[SPR_TL]));
 
-    if (MergeAllowedNextInstructions(1))
+    if (CanMergeNextInstructions(1))
     {
       const UGeckoInstruction& next = js.op[1].inst;
       // Two calls of TU/TL next to each other are extremely common in typical usage, so merge them
