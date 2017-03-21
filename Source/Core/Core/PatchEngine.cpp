@@ -155,10 +155,7 @@ void LoadPatches()
   LoadPatchSection("OnFrame", onFrame, globalIni, localIni);
   ActionReplay::LoadAndApplyCodes(globalIni, localIni);
 
-  // lil silly
-  std::vector<Gecko::GeckoCode> gcodes;
-  Gecko::LoadCodes(globalIni, localIni, gcodes);
-  Gecko::SetActiveCodes(gcodes);
+  Gecko::SetActiveCodes(Gecko::LoadCodes(globalIni, localIni));
 
   LoadSpeedhacks("Speedhacks", merged);
 }

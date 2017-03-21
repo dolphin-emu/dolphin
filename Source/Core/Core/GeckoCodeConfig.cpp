@@ -13,14 +13,14 @@
 
 namespace Gecko
 {
-void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<GeckoCode>& gcodes)
+std::vector<GeckoCode> LoadCodes(const IniFile& globalIni, const IniFile& localIni)
 {
-  const IniFile* inis[2] = {&globalIni, &localIni};
+  std::vector<GeckoCode> gcodes;
 
-  for (const IniFile* ini : inis)
+  for (const IniFile& ini : {globalIni, localIni})
   {
     std::vector<std::string> lines;
-    ini->GetLines("Gecko", &lines, false);
+    ini.GetLines("Gecko", &lines, false);
 
     GeckoCode gcode;
 
@@ -42,7 +42,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
           gcodes.push_back(gcode);
         gcode = GeckoCode();
         gcode.enabled = (1 == ss.tellg());  // silly
-        gcode.user_defined = (ini == &localIni);
+        gcode.user_defined = (&ini == &localIni);
         ss.seekg(1, std::ios_base::cur);
         // read the code name
         std::getline(ss, gcode.name, '[');  // stop at [ character (beginning of contributor name)
@@ -75,7 +75,7 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
       gcodes.push_back(gcode);
     }
 
-    ini->GetLines("Gecko_Enabled", &lines, false);
+    ini.GetLines("Gecko_Enabled", &lines, false);
 
     for (const std::string& line : lines)
     {
@@ -93,6 +93,8 @@ void LoadCodes(const IniFile& globalIni, const IniFile& localIni, std::vector<Ge
       }
     }
   }
+
+  return gcodes;
 }
 
 // used by the SaveGeckoCodes function
