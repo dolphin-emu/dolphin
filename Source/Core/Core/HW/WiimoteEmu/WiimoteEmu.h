@@ -22,12 +22,15 @@ class PointerWrap;
 
 namespace ControllerEmu
 {
+class BooleanSetting;
 class Buttons;
 class ControlGroup;
 class Cursor;
 class Extension;
 class Force;
 class ModifySettingsButton;
+class NumericSetting;
+class Output;
 class Tilt;
 }
 
@@ -245,8 +248,13 @@ private:
   ControllerEmu::Tilt* m_tilt;
   ControllerEmu::Force* m_swing;
   ControllerEmu::ControlGroup* m_rumble;
+  ControllerEmu::Output* m_motor;
   ControllerEmu::Extension* m_extension;
+  ControllerEmu::BooleanSetting* m_motion_plus_setting;
   ControllerEmu::ControlGroup* m_options;
+  ControllerEmu::BooleanSetting* m_sideways_setting;
+  ControllerEmu::BooleanSetting* m_upright_setting;
+  ControllerEmu::NumericSetting* m_battery_setting;
   ControllerEmu::ModifySettingsButton* m_hotkeys;
 
   // Wiimote accel data
