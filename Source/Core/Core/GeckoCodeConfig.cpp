@@ -114,7 +114,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
                           const GeckoCode& gcode)
 {
   if (gcode.enabled)
-    enabledLines.push_back("$" + gcode.name);
+    enabledLines.push_back('$' + gcode.name);
 
   if (!gcode.user_defined)
     return;
@@ -129,7 +129,7 @@ static void SaveGeckoCode(std::vector<std::string>& lines, std::vector<std::stri
 
   // save the notes
   for (const std::string& note : gcode.notes)
-    lines.push_back(std::string("*") + note);
+    lines.push_back('*' + note);
 }
 
 void SaveCodes(IniFile& inifile, const std::vector<GeckoCode>& gcodes)
