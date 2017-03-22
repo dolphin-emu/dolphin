@@ -22,13 +22,12 @@ public:
   static constexpr size_t CONST_POOL_SIZE = 1024 * 32;
   static constexpr size_t ALIGNMENT = 16;
 
-  explicit ConstantPool(Gen::X64CodeBlock* parent);
+  ConstantPool();
   ~ConstantPool();
 
-  // ConstantPool reserves CONST_POOL_SIZE bytes from parent, and uses
-  // that space to store its constants.
-  void AllocCodeSpace();
-  void ClearCodeSpace();
+  void Init(void* memory, size_t size);
+  void Clear();
+  void Shutdown();
 
   // Copies the value into the pool if it doesn't exist. Returns a pointer
   // to existing values if they were already copied. Pointer equality is
@@ -37,16 +36,15 @@ public:
                               size_t index);
 
 private:
-  void Init();
-
   struct ConstantInfo
   {
     void* m_location;
     size_t m_size;
   };
 
-  Gen::X64CodeBlock* m_parent;
+  void* m_region = nullptr;
+  size_t m_region_size = 0;
   void* m_current_ptr = nullptr;
-  size_t m_remaining_size = CONST_POOL_SIZE;
+  size_t m_remaining_size = 0;
   std::map<const void*, ConstantInfo> m_const_info;
 };
