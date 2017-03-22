@@ -660,6 +660,8 @@ find_package(OpenAL)
 add_subdirectory(Externals/soundtouch)
 include_directories(Externals)
 
+add_subdirectory(Externals/cubeb EXCLUDE_FROM_ALL)
+
 if(NOT ANDROID)
   add_definitions(-D__LIBUSB__)
   if(NOT APPLE)
