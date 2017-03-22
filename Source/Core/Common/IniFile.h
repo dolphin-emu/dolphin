@@ -67,6 +67,7 @@ public:
     bool Get(const std::string& key, std::vector<std::string>* values) const;
 
     void SetLines(const std::vector<std::string>& lines);
+    void SetLines(std::vector<std::string>&& lines);
     bool GetLines(std::vector<std::string>* lines, const bool remove_comments = true) const;
 
     bool operator<(const Section& other) const { return name < other.name; }
@@ -124,6 +125,7 @@ public:
   bool GetKeys(const std::string& sectionName, std::vector<std::string>* keys) const;
 
   void SetLines(const std::string& sectionName, const std::vector<std::string>& lines);
+  void SetLines(const std::string& section_name, std::vector<std::string>&& lines);
   bool GetLines(const std::string& sectionName, std::vector<std::string>* lines,
                 const bool remove_comments = true) const;
 

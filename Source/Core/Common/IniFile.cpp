@@ -267,6 +267,11 @@ void IniFile::Section::SetLines(const std::vector<std::string>& lines)
   m_lines = lines;
 }
 
+void IniFile::Section::SetLines(std::vector<std::string>&& lines)
+{
+  m_lines = std::move(lines);
+}
+
 bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remove_comments) const
 {
   for (std::string line : m_lines)
@@ -350,6 +355,12 @@ void IniFile::SetLines(const std::string& sectionName, const std::vector<std::st
 {
   Section* section = GetOrCreateSection(sectionName);
   section->SetLines(lines);
+}
+
+void IniFile::SetLines(const std::string& section_name, std::vector<std::string>&& lines)
+{
+  Section* section = GetOrCreateSection(section_name);
+  section->SetLines(std::move(lines));
 }
 
 bool IniFile::DeleteKey(const std::string& sectionName, const std::string& key)
