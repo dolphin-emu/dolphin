@@ -68,15 +68,7 @@ void IniFile::Section::Set(const std::string& key, const std::string& newValue,
 
 void IniFile::Section::Set(const std::string& key, const std::vector<std::string>& newValues)
 {
-  std::string temp;
-  // Join the strings with ,
-  for (const std::string& value : newValues)
-  {
-    temp = value + ",";
-  }
-  // remove last ,
-  temp.resize(temp.length() - 1);
-  Set(key, temp);
+  Set(key, JoinStrings(newValues, ","));
 }
 
 void IniFile::Section::Set(const std::string& key, u32 newValue)
