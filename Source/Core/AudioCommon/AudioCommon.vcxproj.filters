@@ -23,6 +23,9 @@
     <ClCompile Include="XAudio2_7Stream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
+    <ClCompile Include="CubebStream.cpp">
+      <Filter>SoundStreams</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="aldlist.h" />
@@ -55,6 +58,9 @@
       <Filter>SoundStreams</Filter>
     </ClInclude>
     <ClInclude Include="SoundStream.h">
+      <Filter>SoundStreams</Filter>
+    </ClInclude>
+    <ClInclude Include="CubebStream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
   </ItemGroup>
