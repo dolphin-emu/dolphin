@@ -427,9 +427,9 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 
 #ifndef _WIN32
     // Check for CRLF eol and convert it to LF
-    if (!line.empty() && line.at(line.size() - 1) == '\r')
+    if (!line.empty() && line.back() == '\r')
     {
-      line.erase(line.size() - 1);
+      line.pop_back();
     }
 #endif
 
