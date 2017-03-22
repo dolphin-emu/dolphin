@@ -23,7 +23,7 @@ void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::strin
   if (line[0] == '#')
     return;
 
-  size_t firstEquals = line.find("=", 0);
+  size_t firstEquals = line.find('=');
 
   if (firstEquals != std::string::npos)
   {
@@ -445,7 +445,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
     {
       if (line[0] == '[')
       {
-        size_t endpos = line.find("]");
+        size_t endpos = line.find(']');
 
         if (endpos != std::string::npos)
         {
@@ -492,7 +492,7 @@ bool IniFile::Save(const std::string& filename)
   for (const Section& section : sections)
   {
     if (section.keys_order.size() != 0 || section.m_lines.size() != 0)
-      out << "[" << section.name << "]" << std::endl;
+      out << '[' << section.name << ']' << std::endl;
 
     if (section.keys_order.size() == 0)
     {
