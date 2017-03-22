@@ -36,8 +36,8 @@
 #include "VideoCommon/VideoConfig.h"
 
 static const u64 TEXHASH_INVALID = 0;
-static const int TEXTURE_KILL_THRESHOLD =
-    64;  // Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
+// Sonic the Fighters (inside Sonic Gems Collection) loops a 64 frames animation
+static const int TEXTURE_KILL_THRESHOLD = 64;
 static const int TEXTURE_POOL_KILL_THRESHOLD = 3;
 static const int FRAMECOUNT_INVALID = 0;
 
@@ -1374,9 +1374,11 @@ TextureCacheBase::FindMatchingTextureFromPool(const TCacheEntryConfig& config)
   // Find a texture from the pool that does not have a frameCount of FRAMECOUNT_INVALID.
   // This prevents a texture from being used twice in a single frame with different data,
   // which potentially means that a driver has to maintain two copies of the texture anyway.
+  // Render-target textures are fine through, as they have to be generated in a seperated pass.
+  // As non-render-target textures are usually static, this should not matter much.
   auto range = texture_pool.equal_range(config);
   auto matching_iter = std::find_if(range.first, range.second, [](const auto& iter) {
-    return iter.second->frameCount != FRAMECOUNT_INVALID;
+    return iter.first.rendertarget || iter.second->frameCount != FRAMECOUNT_INVALID;
   });
   return matching_iter != range.second ? matching_iter : texture_pool.end();
 }
