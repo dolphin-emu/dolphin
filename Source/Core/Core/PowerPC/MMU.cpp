@@ -29,7 +29,6 @@ namespace PowerPC
 constexpr size_t HW_PAGE_SIZE = 4096;
 constexpr u32 HW_PAGE_INDEX_SHIFT = 12;
 constexpr u32 HW_PAGE_INDEX_MASK = 0x3f;
-constexpr u32 HW_PAGE_TAG_SHIFT = 18;
 
 // EFB RE
 /*
