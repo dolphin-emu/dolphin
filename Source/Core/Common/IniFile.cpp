@@ -274,13 +274,13 @@ void IniFile::Section::SetLines(std::vector<std::string>&& lines)
 
 bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remove_comments) const
 {
-  for (std::string line : m_lines)
+  for (const std::string& line : m_lines)
   {
-    line = StripSpaces(line);
+    std::string stripped_line = StripSpaces(line);
 
     if (remove_comments)
     {
-      size_t commentPos = line.find('#');
+      size_t commentPos = stripped_line.find('#');
       if (commentPos == 0)
       {
         continue;
@@ -288,11 +288,11 @@ bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remo
 
       if (commentPos != std::string::npos)
       {
-        line = StripSpaces(line.substr(0, commentPos));
+        stripped_line = StripSpaces(stripped_line.substr(0, commentPos));
       }
     }
 
-    lines->push_back(line);
+    lines->push_back(std::move(stripped_line));
   }
 
   return true;
