@@ -182,6 +182,9 @@ std::string GetSysMenuVersionString(u16 title_version)
   case Region::NTSC_K:
     region_letter = "K";
     break;
+  case Region::UNKNOWN_REGION:
+    WARN_LOG(DISCIO, "Unknown Region for title: %u", title_version);
+    break;
   }
 
   switch (title_version & ~0xf)
