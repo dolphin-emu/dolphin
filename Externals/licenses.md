@@ -6,6 +6,8 @@ Dolphin includes or links code of the following third-party software projects:
    [LGPLv2.1+](https://git.kernel.org/cgit/bluetooth/bluez.git/tree/COPYING.LIB)
 - [Bochs](http://bochs.sourceforge.net/):
    [LGPLv2.1+](http://bochs.sourceforge.net/cgi-bin/lxr/source/COPYING)
+- [cubeb](https://github.com/kinetiknz/cubeb):
+   [ISC](https://github.com/kinetiknz/cubeb/blob/master/LICENSE)
 - [d3dx12.h](https://github.com/Microsoft/DirectX-Graphics-Samples/blob/master/Samples/D3D1211On12/src/d3dx12.h):
    [MIT](https://github.com/Microsoft/DirectX-Graphics-Samples/blob/master/LICENSE)
 - [ENet](http://enet.bespin.org/):
