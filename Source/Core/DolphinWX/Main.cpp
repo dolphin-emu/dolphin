@@ -91,7 +91,6 @@ bool DolphinApp::OnCmdLineParsed(wxCmdLineParser& parser)
 
 bool DolphinApp::OnInit()
 {
-  std::lock_guard<std::mutex> lk(s_init_mutex);
   if (!wxApp::OnInit())
     return false;
 
@@ -109,6 +108,8 @@ bool DolphinApp::OnInit()
 #endif
 
   ParseCommandLine();
+
+  std::lock_guard<std::mutex> lk(s_init_mutex);
 
   UICommon::SetUserDirectory(m_user_path.ToStdString());
   UICommon::CreateDirectories();
