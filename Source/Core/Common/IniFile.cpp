@@ -39,6 +39,12 @@ void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::strin
 
 const std::string& IniFile::NULL_STRING = "";
 
+IniFile::Section::Section() = default;
+
+IniFile::Section::Section(std::string name_) : name{std::move(name_)}
+{
+}
+
 void IniFile::Section::Set(const std::string& key, const std::string& newValue)
 {
   auto it = values.find(key);

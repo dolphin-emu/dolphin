@@ -29,8 +29,8 @@ public:
     friend class IniFile;
 
   public:
-    Section() {}
-    explicit Section(const std::string& name_) : name(name_) {}
+    Section();
+    explicit Section(std::string name_);
     bool Exists(const std::string& key) const;
     bool Delete(const std::string& key);
 
