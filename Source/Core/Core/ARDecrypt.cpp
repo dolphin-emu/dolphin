@@ -209,7 +209,7 @@ static void buildseeds()
   generateseeds(genseeds, gensubtable, 0);
 }
 
-static void getcode(u32* src, u32* addr, u32* val)
+static void getcode(const u32* src, u32* addr, u32* val)
 {
   *addr = Common::swap32(src[0]);
   *val = Common::swap32(src[1]);
@@ -221,7 +221,7 @@ static void setcode(u32* dst, u32 addr, u32 val)
   dst[1] = Common::swap32(val);
 }
 
-static u16 gencrc16(u32* codes, u16 size)
+static u16 gencrc16(const u32* codes, u16 size)
 {
   u16 ret = 0;
 
@@ -239,7 +239,7 @@ static u16 gencrc16(u32* codes, u16 size)
   return ret;
 }
 
-static u8 verifycode(u32* codes, u16 size)
+static u8 verifycode(const u32* codes, u16 size)
 {
   u16 tmp = gencrc16(codes, size);
   return (((tmp >> 12) ^ (tmp >> 8) ^ (tmp >> 4) ^ tmp) & 0x0F);
@@ -299,7 +299,7 @@ static void unscramble2(u32* addr, u32* val)
   *addr = _rotr((*addr ^ tmp), 4);
 }
 
-static void decryptcode(u32* seeds, u32* code)
+static void decryptcode(const u32* seeds, u32* code)
 {
   u32 addr, val;
   u32 tmp, tmp2;
