@@ -146,8 +146,11 @@ private:
   // T is an enumeration. Note that T is wrapped within an enable_if in the
   // former case to workaround compile errors which arise when using
   // std::underlying_type<T>::type directly.
-  typedef typename std::conditional<std::is_enum<T>::value, std::underlying_type<T>,
-                                    std::enable_if<true, T>>::type::type StorageType;
+  using StorageType = typename std::conditional_t<std::is_enum<T>::value, std::underlying_type<T>,
+                                                  std::enable_if<true, T>>::type;
+
+  // Unsigned version of StorageType
+  using StorageTypeU = std::make_unsigned_t<StorageType>;
 
   constexpr T Value(std::true_type) const
   {
@@ -159,9 +162,6 @@ private:
   {
     return static_cast<T>((storage & GetMask()) >> position);
   }
-
-  // Unsigned version of StorageType
-  typedef typename std::make_unsigned<StorageType>::type StorageTypeU;
 
   static constexpr StorageType GetMask()
   {
