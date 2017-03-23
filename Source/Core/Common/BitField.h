@@ -121,7 +121,7 @@ private:
 public:
   // Force default constructor to be created
   // so that we can use this within unions
-  BitField() = default;
+  constexpr BitField() = default;
 
   // We explicitly delete the copy assignment operator here, because the
   // default copy assignment would copy the full storage value, rather than
@@ -139,20 +139,8 @@ public:
     return *this;
   }
 
-  __forceinline T Value() const
-  {
-    if (std::numeric_limits<T>::is_signed)
-    {
-      std::size_t shift = 8 * sizeof(T) - bits;
-      return (T)((storage << (shift - position)) >> shift);
-    }
-    else
-    {
-      return (T)((storage & GetMask()) >> position);
-    }
-  }
-
-  __forceinline operator T() const { return Value(); }
+  constexpr T Value() const { return Value(std::is_signed<T>()); }
+  constexpr operator T() const { return Value(); }
 private:
   // StorageType is T for non-enum types and the underlying type of T if
   // T is an enumeration. Note that T is wrapped within an enable_if in the
@@ -161,10 +149,21 @@ private:
   typedef typename std::conditional<std::is_enum<T>::value, std::underlying_type<T>,
                                     std::enable_if<true, T>>::type::type StorageType;
 
+  constexpr T Value(std::true_type) const
+  {
+    using shift_amount = std::integral_constant<size_t, 8 * sizeof(T) - bits>;
+    return static_cast<T>((storage << (shift_amount() - position)) >> shift_amount());
+  }
+
+  constexpr T Value(std::false_type) const
+  {
+    return static_cast<T>((storage & GetMask()) >> position);
+  }
+
   // Unsigned version of StorageType
   typedef typename std::make_unsigned<StorageType>::type StorageTypeU;
 
-  __forceinline StorageType GetMask() const
+  static constexpr StorageType GetMask()
   {
     return (((StorageTypeU)~0) >> (8 * sizeof(T) - bits)) << position;
   }
