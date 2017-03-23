@@ -165,7 +165,7 @@ private:
 
   static constexpr StorageType GetMask()
   {
-    return (((StorageTypeU)~0) >> (8 * sizeof(T) - bits)) << position;
+    return (std::numeric_limits<StorageTypeU>::max() >> (8 * sizeof(T) - bits)) << position;
   }
 
   StorageType storage;
