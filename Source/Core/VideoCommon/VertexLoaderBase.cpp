@@ -24,16 +24,9 @@
 #endif
 
 VertexLoaderBase::VertexLoaderBase(const TVtxDesc& vtx_desc, const VAT& vtx_attr)
+    : m_VtxDesc{vtx_desc}, m_vat{vtx_attr}
 {
-  m_numLoadedVertices = 0;
-  m_VertexSize = 0;
-  m_native_vertex_format = nullptr;
-  m_native_components = 0;
-  memset(&m_native_vtx_decl, 0, sizeof(m_native_vtx_decl));
-
   SetVAT(vtx_attr);
-  m_VtxDesc = vtx_desc;
-  m_vat = vtx_attr;
 }
 
 void VertexLoaderBase::SetVAT(const VAT& vat)
