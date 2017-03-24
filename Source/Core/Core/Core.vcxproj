@@ -115,6 +115,7 @@
     <ClCompile Include="HW\DSPLLE\DSPLLETools.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPSymbols.cpp" />
     <ClCompile Include="HW\DVD\DVDInterface.cpp" />
+    <ClCompile Include="HW\DVD\DVDMath.cpp" />
     <ClCompile Include="HW\DVD\DVDThread.cpp" />
     <ClCompile Include="HW\DVD\FileMonitor.cpp" />
     <ClCompile Include="HW\EXI\BBA-TAP\TAP_Win32.cpp" />
@@ -369,6 +370,7 @@
     <ClInclude Include="HW\DSPLLE\DSPLLETools.h" />
     <ClInclude Include="HW\DSPLLE\DSPSymbols.h" />
     <ClInclude Include="HW\DVD\DVDInterface.h" />
+    <ClInclude Include="HW\DVD\DVDMath.h" />
     <ClInclude Include="HW\DVD\DVDThread.h" />
     <ClInclude Include="HW\DVD\FileMonitor.h" />
     <ClInclude Include="HW\EXI\BBA-TAP\TAP_Win32.h" />

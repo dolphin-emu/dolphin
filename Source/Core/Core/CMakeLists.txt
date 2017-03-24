@@ -90,6 +90,7 @@ set(SRCS
   HW/DSPLLE/DSPLLE.cpp
   HW/DSPLLE/DSPLLETools.cpp
   HW/DVD/DVDInterface.cpp
+  HW/DVD/DVDMath.cpp
   HW/DVD/DVDThread.cpp
   HW/DVD/FileMonitor.cpp
   HW/EXI/EXI_Channel.cpp
