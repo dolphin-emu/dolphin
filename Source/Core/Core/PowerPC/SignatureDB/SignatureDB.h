@@ -23,7 +23,7 @@ public:
     DSY,
     CSV
   };
-  explicit SignatureDB(HandlerType handler = HandlerType::DSY);
+  explicit SignatureDB(HandlerType handler);
   explicit SignatureDB(const std::string& file_path);
 
   static HandlerType GetHandlerType(const std::string& file_path);

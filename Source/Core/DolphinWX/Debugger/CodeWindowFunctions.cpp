@@ -190,7 +190,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
   case IDM_SCAN_SIGNATURES:
   {
     PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
-    SignatureDB db;
+    SignatureDB db(SignatureDB::HandlerType::DSY);
     if (db.Load(File::GetSysDirectory() + TOTALDB))
     {
       db.Apply(&g_symbolDB);
@@ -239,7 +239,7 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     {
       g_symbolDB.Clear();
       PPCAnalyst::FindFunctions(0x81300000, 0x81800000, &g_symbolDB);
-      SignatureDB db;
+      SignatureDB db(SignatureDB::HandlerType::DSY);
       if (db.Load(File::GetSysDirectory() + TOTALDB))
         db.Apply(&g_symbolDB);
       Parent->StatusBarMessage("'%s' not found, scanning for common functions instead",
