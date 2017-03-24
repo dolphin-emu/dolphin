@@ -1183,7 +1183,7 @@ void ScheduleReads(u64 offset, u32 length, bool decrypt, u32 output_address, Rep
 {
   // The drive continues to read 1 MiB beyond the last read position when idle.
   // If a future read falls within this window, part of the read may be returned
-  // from the buffer. Data can be transferred from the buffer at up to 16 MiB/s.
+  // from the buffer. Data can be transferred from the buffer at up to 32 MiB/s.
 
   // Metroid Prime is a good example of a game that's sensitive to disc timing
   // details; if there isn't enough latency in the right places, doors can open
