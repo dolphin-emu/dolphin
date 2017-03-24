@@ -174,11 +174,19 @@ GBASockServer::GBASockServer(int device_number) : m_device_number{device_number}
     s_connection_thread = std::thread(GBAConnectionWaiter);
 
   s_num_connected = 0;
+
+  // TODO: the SI device number shouldn't be exposed to the socket server
+  (void)m_device_number;
 }
 
 GBASockServer::~GBASockServer()
 {
   Disconnect();
+}
+
+int GBASockServer::GetDeviceNumber() const
+{
+  return m_device_number;
 }
 
 void GBASockServer::Disconnect()
@@ -245,7 +253,7 @@ void GBASockServer::Send(const u8* si_buffer)
   m_cmd = (u8)m_send_data[0];
 
 #ifdef _DEBUG
-  NOTICE_LOG(SERIALINTERFACE, "%01d cmd %02x [> %02x%02x%02x%02x]", m_device_number,
+  NOTICE_LOG(SERIALINTERFACE, "%01d cmd %02x [> %02x%02x%02x%02x]", GetDeviceNumber(),
              (u8)m_send_data[0], (u8)m_send_data[1], (u8)m_send_data[2], (u8)m_send_data[3],
              (u8)m_send_data[4]);
 #endif
@@ -305,13 +313,13 @@ int GBASockServer::Receive(u8* si_buffer)
     if ((u8)m_send_data[0] == 0x00 || (u8)m_send_data[0] == 0xff)
     {
       WARN_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%zu)",
-               m_device_number, (u8)m_recv_data[0], (u8)m_recv_data[1], (u8)m_recv_data[2],
+               GetDeviceNumber(), (u8)m_recv_data[0], (u8)m_recv_data[1], (u8)m_recv_data[2],
                (u8)m_recv_data[3], (u8)m_recv_data[4], num_received);
     }
     else
     {
       ERROR_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%zu)",
-                m_device_number, (u8)m_recv_data[0], (u8)m_recv_data[1], (u8)m_recv_data[2],
+                GetDeviceNumber(), (u8)m_recv_data[0], (u8)m_recv_data[1], (u8)m_recv_data[2],
                 (u8)m_recv_data[3], (u8)m_recv_data[4], num_received);
     }
 #endif

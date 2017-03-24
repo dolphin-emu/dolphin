@@ -70,30 +70,30 @@ public:
   void Update() override;
 
 private:
-  IPCCommandResult StartUp(const IOCtlRequest& request);
-  IPCCommandResult Socket(const IOCtlRequest& request);
-  IPCCommandResult ICMPSocket(const IOCtlRequest& request);
-  IPCCommandResult Close(const IOCtlRequest& request);
-  IPCCommandResult DoSock(const IOCtlRequest& request);
-  IPCCommandResult Shutdown(const IOCtlRequest& request);
-  IPCCommandResult Listen(const IOCtlRequest& request);
-  IPCCommandResult GetSockOpt(const IOCtlRequest& request);
-  IPCCommandResult SetSockOpt(const IOCtlRequest& request);
-  IPCCommandResult GetSockName(const IOCtlRequest& request);
-  IPCCommandResult GetPeerName(const IOCtlRequest& request);
-  IPCCommandResult GetHostID(const IOCtlRequest& request);
-  IPCCommandResult InetAToN(const IOCtlRequest& request);
-  IPCCommandResult InetPToN(const IOCtlRequest& request);
-  IPCCommandResult InetNToP(const IOCtlRequest& request);
-  IPCCommandResult Poll(const IOCtlRequest& request);
-  IPCCommandResult GetHostByName(const IOCtlRequest& request);
-  IPCCommandResult ICMPCancel(const IOCtlRequest& request);
+  IPCCommandResult HandleStartUpRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleSocketRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleICMPSocketRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleCloseRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleDoSockRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleShutdownRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleListenRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleGetSockOptRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleSetSockOptRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleGetSockNameRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleGetPeerNameRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleGetHostIDRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleInetAToNRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleInetPToNRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleInetNToPRequest(const IOCtlRequest& request);
+  IPCCommandResult HandlePollRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleGetHostByNameRequest(const IOCtlRequest& request);
+  IPCCommandResult HandleICMPCancelRequest(const IOCtlRequest& request);
 
-  IPCCommandResult GetInterfaceOpt(const IOCtlVRequest& request);
-  IPCCommandResult SendTo(const IOCtlVRequest& request);
-  IPCCommandResult RecvFrom(const IOCtlVRequest& request);
-  IPCCommandResult GetAddressInfo(const IOCtlVRequest& request);
-  IPCCommandResult ICMPPing(const IOCtlVRequest& request);
+  IPCCommandResult HandleGetInterfaceOptRequest(const IOCtlVRequest& request);
+  IPCCommandResult HandleSendToRequest(const IOCtlVRequest& request);
+  IPCCommandResult HandleRecvFromRequest(const IOCtlVRequest& request);
+  IPCCommandResult HandleGetAddressInfoRequest(const IOCtlVRequest& request);
+  IPCCommandResult HandleICMPPingRequest(const IOCtlVRequest& request);
 
 #ifdef _WIN32
   WSADATA InitData;
