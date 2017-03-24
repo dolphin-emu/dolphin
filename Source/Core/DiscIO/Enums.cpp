@@ -183,7 +183,7 @@ std::string GetSysMenuVersionString(u16 title_version)
     region_letter = "K";
     break;
   case Region::UNKNOWN_REGION:
-    WARN_LOG(DISCIO, "Unknown Region for title: %u", title_version);
+    WARN_LOG(DISCIO, "Unknown region for Wii Menu version %u", title_version);
     break;
   }
 
