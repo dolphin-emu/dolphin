@@ -352,9 +352,10 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
                                      wxFD_SAVE | wxFD_OVERWRITE_PROMPT, this);
       if (!path.IsEmpty())
       {
-        SignatureDB db;
+        std::string save_path = WxStrToStr(path);
+        SignatureDB db(save_path);
         db.Populate(&g_symbolDB, prefix);
-        db.Save(WxStrToStr(path));
+        db.Save(save_path);
         db.List();
       }
     }
@@ -375,11 +376,12 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
                          wxEmptyString, signature_selector, wxFD_SAVE, this);
       if (!path.IsEmpty())
       {
-        SignatureDB db;
+        std::string signature_path = WxStrToStr(path);
+        SignatureDB db(signature_path);
         db.Populate(&g_symbolDB, prefix);
         db.List();
-        db.Load(WxStrToStr(path));
-        db.Save(WxStrToStr(path));
+        db.Load(signature_path);
+        db.Save(signature_path);
         db.List();
       }
     }
@@ -392,8 +394,9 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
                        wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path.IsEmpty())
     {
-      SignatureDB db;
-      db.Load(WxStrToStr(path));
+      std::string load_path = WxStrToStr(path);
+      SignatureDB db(load_path);
+      db.Load(load_path);
       db.Apply(&g_symbolDB);
       db.List();
       NotifyMapLoaded();
@@ -407,14 +410,15 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
                        wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
     if (!path1.IsEmpty())
     {
-      SignatureDB db;
+      std::string load_path1 = WxStrToStr(path1);
+      SignatureDB db(load_path1);
       wxString path2 =
           wxFileSelector(_("Choose secondary input file"), File::GetSysDirectory(), wxEmptyString,
                          wxEmptyString, signature_selector, wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
       if (!path2.IsEmpty())
       {
+        db.Load(load_path1);
         db.Load(WxStrToStr(path2));
-        db.Load(WxStrToStr(path1));
 
         path2 = wxFileSelector(_("Save combined output file as"), File::GetSysDirectory(),
                                wxEmptyString, ".dsy", signature_selector,

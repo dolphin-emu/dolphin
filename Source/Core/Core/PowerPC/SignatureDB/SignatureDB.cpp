@@ -17,28 +17,72 @@
 #include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
 
-std::unique_ptr<SignatureDBFormatHandler>
-SignatureDB::CreateFormatHandler(const std::string& file_path) const
+SignatureDB::SignatureDB(SignatureDB::HandlerType handler)
+    : m_handler(std::move(CreateFormatHandler(handler)))
+{
+}
+
+SignatureDB::SignatureDB(const std::string& file_path) : SignatureDB(GetHandlerType(file_path))
+{
+}
+
+SignatureDB::HandlerType SignatureDB::GetHandlerType(const std::string& file_path)
 {
   if (StringEndsWith(file_path, ".csv"))
+    return SignatureDB::HandlerType::CSV;
+  return SignatureDB::HandlerType::DSY;
+}
+
+std::unique_ptr<SignatureDBFormatHandler>
+SignatureDB::CreateFormatHandler(SignatureDB::HandlerType handler) const
+{
+  switch (handler)
+  {
+  default:
+  case SignatureDB::HandlerType::DSY:
+    return std::make_unique<DSYSignatureDB>();
+  case SignatureDB::HandlerType::CSV:
     return std::make_unique<CSVSignatureDB>();
-  return std::make_unique<DSYSignatureDB>();
+  }
+}
+
+void SignatureDB::Clear()
+{
+  m_handler->Clear();
 }
 
 bool SignatureDB::Load(const std::string& file_path)
 {
-  auto handler = CreateFormatHandler(file_path);
-  return handler->Load(file_path, m_database);
+  return m_handler->Load(file_path);
 }
 
 bool SignatureDB::Save(const std::string& file_path) const
 {
-  auto handler = CreateFormatHandler(file_path);
-  return handler->Save(file_path, m_database);
+  return m_handler->Save(file_path);
+}
+
+void SignatureDB::List() const
+{
+  m_handler->List();
+}
+
+void SignatureDB::Populate(const PPCSymbolDB* func_db, const std::string& filter)
+{
+  m_handler->Populate(func_db, filter);
+}
+
+void SignatureDB::Apply(PPCSymbolDB* func_db) const
+{
+  m_handler->Apply(func_db);
+}
+
+bool SignatureDB::Add(u32 start_addr, u32 size, const std::string& name)
+{
+  return m_handler->Add(start_addr, size, name);
 }
 
 // Adds a known function to the hash database
-/*u32 SignatureDB::Add(u32 startAddr, u32 size, const std::string& name)
+bool HashSignatureDB::Add(u32 startAddr, u32 size, const std::string& name)
 {
   u32 hash = ComputeCodeChecksum(startAddr, startAddr + size - 4);
 
@@ -48,12 +92,14 @@ bool SignatureDB::Save(const std::string& file_path) const
 
   FuncDB::iterator iter = m_database.find(hash);
   if (iter == m_database.end())
+  {
     m_database[hash] = temp_dbfunc;
+    return true;
+  }
+  return false;
+}
 
-  return hash;
-}*/
-
-void SignatureDB::List() const
+void HashSignatureDB::List() const
 {
   for (const auto& entry : m_database)
   {
@@ -63,12 +109,12 @@ void SignatureDB::List() const
   INFO_LOG(OSHLE, "%zu functions known in current database.", m_database.size());
 }
 
-void SignatureDB::Clear()
+void HashSignatureDB::Clear()
 {
   m_database.clear();
 }
 
-void SignatureDB::Apply(PPCSymbolDB* symbol_db) const
+void HashSignatureDB::Apply(PPCSymbolDB* symbol_db) const
 {
   for (const auto& entry : m_database)
   {
@@ -92,7 +138,7 @@ void SignatureDB::Apply(PPCSymbolDB* symbol_db) const
   symbol_db->Index();
 }
 
-void SignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& filter)
+void HashSignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& filter)
 {
   for (const auto& symbol : symbol_db->Symbols())
   {
@@ -108,7 +154,7 @@ void SignatureDB::Populate(const PPCSymbolDB* symbol_db, const std::string& filt
   }
 }
 
-/*static*/ u32 SignatureDB::ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd)
+u32 HashSignatureDB::ComputeCodeChecksum(u32 offsetStart, u32 offsetEnd)
 {
   u32 sum = 0;
   for (u32 offset = offsetStart; offset <= offsetEnd; offset += 4)
