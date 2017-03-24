@@ -1,3 +1,5 @@
+import org.apache.tools.ant.taskdefs.condition.Os
+
 apply plugin: 'com.android.application'
 
 android {
@@ -94,7 +96,12 @@ dependencies {
 }
 
 def getVersion() {
-    return 'git describe --always --long'.execute([], project.rootDir).text
-            .trim()
-            .replaceAll(/(-0)?-[^-]+$/, "")
+    String result
+    if(Os.isFamily(Os.FAMILY_WINDOWS)) {
+        result = 'cmd /c git describe --always --long'.execute([], project.rootDir).text
+    } else {
+        result = 'git describe --always --long'.execute([], project.rootDir).text
+    }
+
+    return result.trim().replaceAll(/(-0)?-[^-]+$/, "")
 }
