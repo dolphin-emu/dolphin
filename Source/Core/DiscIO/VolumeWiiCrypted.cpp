@@ -115,11 +115,13 @@ IOS::ES::TicketReader CVolumeWiiCrypted::GetTicket() const
 
 IOS::ES::TMDReader CVolumeWiiCrypted::GetTMD() const
 {
-  u32 tmd_size;
-  u32 tmd_address;
+  u32 tmd_size = 0;
+  u32 tmd_address = 0;
 
-  ReadSwapped(m_VolumeOffset + 0x2a4, &tmd_size, false);
-  ReadSwapped(m_VolumeOffset + 0x2a8, &tmd_address, false);
+  if (!ReadSwapped(m_VolumeOffset + 0x2a4, &tmd_size, false))
+    return {};
+  if (!ReadSwapped(m_VolumeOffset + 0x2a8, &tmd_address, false))
+    return {};
   tmd_address <<= 2;
 
   if (tmd_size > 1024 * 1024 * 4)
@@ -133,7 +135,8 @@ IOS::ES::TMDReader CVolumeWiiCrypted::GetTMD() const
   }
 
   std::vector<u8> buffer(tmd_size);
-  Read(m_VolumeOffset + tmd_address, tmd_size, buffer.data(), false);
+  if (!Read(m_VolumeOffset + tmd_address, tmd_size, buffer.data(), false))
+    return {};
 
   return IOS::ES::TMDReader{std::move(buffer)};
 }
@@ -253,7 +256,7 @@ Platform CVolumeWiiCrypted::GetVolumeType() const
 
 u8 CVolumeWiiCrypted::GetDiscNumber() const
 {
-  u8 disc_number;
+  u8 disc_number = 0;
   ReadSwapped(6, &disc_number, true);
   return disc_number;
 }
