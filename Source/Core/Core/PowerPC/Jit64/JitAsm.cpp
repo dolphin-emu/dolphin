@@ -17,9 +17,6 @@
 
 using namespace Gen;
 
-// Not PowerPC state.  Can't put in 'this' because it's out of range...
-static void* s_saved_rsp;
-
 void Jit64AsmRoutineManager::Init(u8* stack_top)
 {
   m_const_pool.Init(AllocChildCodeSpace(4096), 4096);
@@ -48,7 +45,7 @@ void Jit64AsmRoutineManager::Generate()
   }
   else
   {
-    MOV(64, M(&s_saved_rsp), R(RSP));
+    MOV(64, PPCSTATE(stored_stack_pointer), R(RSP));
   }
   // something that can't pass the BLR test
   MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
@@ -215,7 +212,7 @@ void Jit64AsmRoutineManager::ResetStack(X64CodeBlock& emitter)
   if (m_stack_top)
     emitter.MOV(64, R(RSP), Imm64((u64)m_stack_top - 0x20));
   else
-    emitter.MOV(64, R(RSP), M(&s_saved_rsp));
+    emitter.MOV(64, R(RSP), PPCSTATE(stored_stack_pointer));
 }
 
 void Jit64AsmRoutineManager::GenerateCommon()
