@@ -2,7 +2,7 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/FileMonitor.h"
+#include "Core/HW/DVD/FileMonitor.h"
 
 #include <algorithm>
 #include <cctype>

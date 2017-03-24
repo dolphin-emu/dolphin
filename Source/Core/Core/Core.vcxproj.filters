@@ -281,9 +281,6 @@
     <ClCompile Include="FifoPlayer\FifoRecorder.cpp">
       <Filter>FifoPlayer</Filter>
     </ClCompile>
-    <ClCompile Include="FileMonitor.cpp">
-      <Filter>FileMonitor</Filter>
-    </ClCompile>
     <ClCompile Include="GeckoCode.cpp">
       <Filter>GeckoCode</Filter>
     </ClCompile>
@@ -347,10 +344,13 @@
     <ClCompile Include="HW\StreamADPCM.cpp">
       <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DVDInterface.cpp">
+    <ClCompile Include="HW\DVD\DVDInterface.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
-    <ClCompile Include="HW\DVDThread.cpp">
+    <ClCompile Include="HW\DVD\DVDThread.cpp">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClCompile>
+    <ClCompile Include="HW\DVD\FileMonitor.cpp">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClCompile>
     <ClCompile Include="HW\DSPHLE\UCodes\AX.cpp">
@@ -964,9 +964,6 @@
     <ClInclude Include="FifoPlayer\FifoRecorder.h">
       <Filter>FifoPlayer</Filter>
     </ClInclude>
-    <ClInclude Include="FileMonitor.h">
-      <Filter>FileMonitor</Filter>
-    </ClInclude>
     <ClInclude Include="GeckoCode.h">
       <Filter>GeckoCode</Filter>
     </ClInclude>
@@ -1003,12 +1000,15 @@
     <ClInclude Include="HW\StreamADPCM.h">
       <Filter>HW %28Flipper/Hollywood%29\AI - Audio Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DVDInterface.h">
+    <ClInclude Include="HW\DVD\DVDInterface.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
-    <ClInclude Include="HW\DVDThread.h">
+    <ClInclude Include="HW\DVD\DVDThread.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
     </ClInclude>
+    <ClInclude Include="HW\DVD\FileMonitor.h">
+      <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
+    </ClInclud
     <ClInclude Include="HW\DSPHLE\UCodes\AX.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
