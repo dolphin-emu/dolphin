@@ -168,7 +168,7 @@ static bool GetNextClock(std::unique_ptr<sf::TcpSocket>& sock_to_fill)
   return sock_filled;
 }
 
-GBASockServer::GBASockServer(int device_number) : m_device_number{device_number}
+GBASockServer::GBASockServer()
 {
   if (!s_connection_thread.joinable())
     s_connection_thread = std::thread(GBAConnectionWaiter);
@@ -245,9 +245,8 @@ void GBASockServer::Send(const u8* si_buffer)
   m_cmd = (u8)m_send_data[0];
 
 #ifdef _DEBUG
-  NOTICE_LOG(SERIALINTERFACE, "%01d cmd %02x [> %02x%02x%02x%02x]", m_device_number,
-             (u8)m_send_data[0], (u8)m_send_data[1], (u8)m_send_data[2], (u8)m_send_data[3],
-             (u8)m_send_data[4]);
+  NOTICE_LOG(SERIALINTERFACE, "GBASockServer cmd %02x [> %02x%02x%02x%02x]", (u8)m_send_data[0],
+             (u8)m_send_data[1], (u8)m_send_data[2], (u8)m_send_data[3], (u8)m_send_data[4]);
 #endif
 
   m_client->setBlocking(false);
@@ -304,15 +303,15 @@ int GBASockServer::Receive(u8* si_buffer)
 #ifdef _DEBUG
     if ((u8)m_send_data[0] == 0x00 || (u8)m_send_data[0] == 0xff)
     {
-      WARN_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%zu)",
-               m_device_number, (u8)m_recv_data[0], (u8)m_recv_data[1], (u8)m_recv_data[2],
-               (u8)m_recv_data[3], (u8)m_recv_data[4], num_received);
+      WARN_LOG(SERIALINTERFACE, "GBASockServer [< %02x%02x%02x%02x%02x] (%zu)", (u8)m_recv_data[0],
+               (u8)m_recv_data[1], (u8)m_recv_data[2], (u8)m_recv_data[3], (u8)m_recv_data[4],
+               num_received);
     }
     else
     {
-      ERROR_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%zu)",
-                m_device_number, (u8)m_recv_data[0], (u8)m_recv_data[1], (u8)m_recv_data[2],
-                (u8)m_recv_data[3], (u8)m_recv_data[4], num_received);
+      ERROR_LOG(SERIALINTERFACE, "GBASockServer [< %02x%02x%02x%02x%02x] (%zu)", (u8)m_recv_data[0],
+                (u8)m_recv_data[1], (u8)m_recv_data[2], (u8)m_recv_data[3], (u8)m_recv_data[4],
+                num_received);
     }
 #endif
 
@@ -323,8 +322,7 @@ int GBASockServer::Receive(u8* si_buffer)
   return (int)num_received;
 }
 
-CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number)
-    : ISIDevice(device, device_number), GBASockServer(device_number)
+CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number) : ISIDevice(device, device_number)
 {
 }
 
