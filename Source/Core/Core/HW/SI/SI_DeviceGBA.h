@@ -36,10 +36,7 @@ public:
 private:
   std::unique_ptr<sf::TcpSocket> m_client;
   std::unique_ptr<sf::TcpSocket> m_clock_sync;
-  std::array<char, 5> m_send_data{};
-  std::array<char, 5> m_recv_data{};
 
-  u64 m_time_cmd_sent = 0;
   u64 m_last_time_slice = 0;
   int m_device_number;
   u8 m_cmd = 0;
@@ -58,9 +55,15 @@ public:
   void SendCommand(u32 command, u8 poll) override;
 
 private:
-  std::array<u8, 5> m_send_data{};
-  int m_num_data_received = 0;
+  enum class NextAction
+  {
+    SendCommand,
+    WaitTransferTime,
+    ReceiveResponse
+  };
+
+  NextAction m_next_action = NextAction::SendCommand;
+  u8 m_last_cmd;
   u64 m_timestamp_sent = 0;
-  bool m_waiting_for_response = false;
 };
 }  // namespace SerialInterface
