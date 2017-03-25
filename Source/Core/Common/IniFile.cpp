@@ -23,7 +23,7 @@ void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::strin
   if (line[0] == '#')
     return;
 
-  size_t firstEquals = line.find("=", 0);
+  size_t firstEquals = line.find('=');
 
   if (firstEquals != std::string::npos)
   {
@@ -38,6 +38,12 @@ void IniFile::ParseLine(const std::string& line, std::string* keyOut, std::strin
 }
 
 const std::string& IniFile::NULL_STRING = "";
+
+IniFile::Section::Section() = default;
+
+IniFile::Section::Section(std::string name_) : name{std::move(name_)}
+{
+}
 
 void IniFile::Section::Set(const std::string& key, const std::string& newValue)
 {
@@ -62,15 +68,7 @@ void IniFile::Section::Set(const std::string& key, const std::string& newValue,
 
 void IniFile::Section::Set(const std::string& key, const std::vector<std::string>& newValues)
 {
-  std::string temp;
-  // Join the strings with ,
-  for (const std::string& value : newValues)
-  {
-    temp = value + ",";
-  }
-  // remove last ,
-  temp.resize(temp.length() - 1);
-  Set(key, temp);
+  Set(key, JoinStrings(newValues, ","));
 }
 
 void IniFile::Section::Set(const std::string& key, u32 newValue)
@@ -261,15 +259,20 @@ void IniFile::Section::SetLines(const std::vector<std::string>& lines)
   m_lines = lines;
 }
 
+void IniFile::Section::SetLines(std::vector<std::string>&& lines)
+{
+  m_lines = std::move(lines);
+}
+
 bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remove_comments) const
 {
-  for (std::string line : m_lines)
+  for (const std::string& line : m_lines)
   {
-    line = StripSpaces(line);
+    std::string stripped_line = StripSpaces(line);
 
     if (remove_comments)
     {
-      size_t commentPos = line.find('#');
+      size_t commentPos = stripped_line.find('#');
       if (commentPos == 0)
       {
         continue;
@@ -277,11 +280,11 @@ bool IniFile::Section::GetLines(std::vector<std::string>* lines, const bool remo
 
       if (commentPos != std::string::npos)
       {
-        line = StripSpaces(line.substr(0, commentPos));
+        stripped_line = StripSpaces(stripped_line.substr(0, commentPos));
       }
     }
 
-    lines->push_back(line);
+    lines->push_back(std::move(stripped_line));
   }
 
   return true;
@@ -344,6 +347,12 @@ void IniFile::SetLines(const std::string& sectionName, const std::vector<std::st
 {
   Section* section = GetOrCreateSection(sectionName);
   section->SetLines(lines);
+}
+
+void IniFile::SetLines(const std::string& section_name, std::vector<std::string>&& lines)
+{
+  Section* section = GetOrCreateSection(section_name);
+  section->SetLines(std::move(lines));
 }
 
 bool IniFile::DeleteKey(const std::string& sectionName, const std::string& key)
@@ -418,9 +427,9 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
 
 #ifndef _WIN32
     // Check for CRLF eol and convert it to LF
-    if (!line.empty() && line.at(line.size() - 1) == '\r')
+    if (!line.empty() && line.back() == '\r')
     {
-      line.erase(line.size() - 1);
+      line.pop_back();
     }
 #endif
 
@@ -428,7 +437,7 @@ bool IniFile::Load(const std::string& filename, bool keep_current_data)
     {
       if (line[0] == '[')
       {
-        size_t endpos = line.find("]");
+        size_t endpos = line.find(']');
 
         if (endpos != std::string::npos)
         {
@@ -475,7 +484,7 @@ bool IniFile::Save(const std::string& filename)
   for (const Section& section : sections)
   {
     if (section.keys_order.size() != 0 || section.m_lines.size() != 0)
-      out << "[" << section.name << "]" << std::endl;
+      out << '[' << section.name << ']' << std::endl;
 
     if (section.keys_order.size() == 0)
     {
