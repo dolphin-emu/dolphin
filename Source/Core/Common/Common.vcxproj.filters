@@ -288,7 +288,7 @@
     <ClCompile Include="GekkoDisassembler.cpp" />
     <ClCompile Include="JitRegister.cpp" />
     <ClCompile Include="TraversalClient.cpp" />
-    <ClCompile Include="Logging\ConsoleListenerWin.cpp">
+    <ClCompile Include="Logging\ConsoleListener.cpp">
       <Filter>Logging</Filter>
     </ClCompile>
     <ClCompile Include="GL\GLUtil.cpp">
