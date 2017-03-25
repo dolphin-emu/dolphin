@@ -177,6 +177,11 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     Host_NotifyMapLoaded();
     break;
   case IDM_SCAN_FUNCTIONS:
+    PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
+    // Update GUI
+    NotifyMapLoaded();
+    break;
+  case IDM_SCAN_SIGNATURES:
   {
     PPCAnalyst::FindFunctions(0x80000000, 0x81800000, &g_symbolDB);
     SignatureDB db;
@@ -190,7 +195,6 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
     {
       Parent->StatusBarMessage("'%s' not found, no symbol names generated", TOTALDB);
     }
-    // HLE::PatchFunctions();
     // Update GUI
     NotifyMapLoaded();
     break;
