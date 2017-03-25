@@ -274,12 +274,11 @@ static void WriteToHardware(u32 em_address, const T data)
       }
       T val = bswap(data);
       u32 addr_translated = translated_addr.address;
-      for (u32 addr = em_address; addr < em_address + sizeof(T);
-           addr++, addr_translated++, val >>= 8)
+      for (size_t i = 0; i < sizeof(T); i++, addr_translated++)
       {
-        if (addr == em_address_next_page)
+        if (em_address + i == em_address_next_page)
           addr_translated = addr_next_page.address;
-        WriteToHardware<flag, u8, true>(addr_translated, (u8)val);
+        WriteToHardware<flag, u8, true>(addr_translated, static_cast<u8>(val >> (i * 8)));
       }
       return;
     }
