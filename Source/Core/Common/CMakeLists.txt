@@ -40,6 +40,8 @@ set(SRCS
   Logging/LogManager.cpp
 )
 
+set(LIBS ${LIBS} ${MBEDTLS_LIBRARIES})
+
 if(ANDROID)
   set(SRCS ${SRCS}
     Logging/ConsoleListenerDroid.cpp)
