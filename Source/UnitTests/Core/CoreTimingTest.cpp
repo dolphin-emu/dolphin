@@ -49,7 +49,8 @@ public:
   }
 };
 
-void AdvanceAndCheck(u32 idx, int downcount, int expected_lateness = 0, int cpu_downcount = 0)
+static void AdvanceAndCheck(u32 idx, int downcount, int expected_lateness = 0,
+                            int cpu_downcount = 0)
 {
   s_callbacks_ran_flags = 0;
   s_expected_callback = CB_IDS[idx];
