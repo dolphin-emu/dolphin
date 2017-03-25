@@ -4108,27 +4108,29 @@ void ARM64XEmitter::ANDSI2R(ARM64Reg Rd, ARM64Reg Rn, u64 imm, ARM64Reg scratch)
   }
 }
 
+void ARM64XEmitter::AddImmediate(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative,
+                                 bool flags)
+{
+  switch ((negative << 1) | flags)
+  {
+  case 0:
+    ADD(Rd, Rn, imm, shift);
+    break;
+  case 1:
+    ADDS(Rd, Rn, imm, shift);
+    break;
+  case 2:
+    SUB(Rd, Rn, imm, shift);
+    break;
+  case 3:
+    SUBS(Rd, Rn, imm, shift);
+    break;
+  }
+}
+
 void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool negative, bool flags,
                                     ARM64Reg scratch)
 {
-  auto addi = [this](ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool shift, bool negative, bool flags) {
-    switch ((negative << 1) | flags)
-    {
-    case 0:
-      ADD(Rd, Rn, imm, shift);
-      break;
-    case 1:
-      ADDS(Rd, Rn, imm, shift);
-      break;
-    case 2:
-      SUB(Rd, Rn, imm, shift);
-      break;
-    case 3:
-      SUBS(Rd, Rn, imm, shift);
-      break;
-    }
-  };
-
   bool has_scratch = scratch != INVALID_REG;
   u64 imm_neg = Is64Bit(Rd) ? -imm : -imm & 0xFFFFFFFFuLL;
   bool neg_neg = negative ? false : true;
@@ -4137,22 +4139,22 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
   // Try them all first
   if (imm <= 0xFFF)
   {
-    addi(Rd, Rn, imm, false, negative, flags);
+    AddImmediate(Rd, Rn, imm, false, negative, flags);
     return;
   }
   if (imm <= 0xFFFFFF && (imm & 0xFFF) == 0)
   {
-    addi(Rd, Rn, imm >> 12, true, negative, flags);
+    AddImmediate(Rd, Rn, imm >> 12, true, negative, flags);
     return;
   }
   if (imm_neg <= 0xFFF)
   {
-    addi(Rd, Rn, imm_neg, false, neg_neg, flags);
+    AddImmediate(Rd, Rn, imm_neg, false, neg_neg, flags);
     return;
   }
   if (imm_neg <= 0xFFFFFF && (imm_neg & 0xFFF) == 0)
   {
-    addi(Rd, Rn, imm_neg >> 12, true, neg_neg, flags);
+    AddImmediate(Rd, Rn, imm_neg >> 12, true, neg_neg, flags);
     return;
   }
 
@@ -4161,14 +4163,14 @@ void ARM64XEmitter::ADDI2R_internal(ARM64Reg Rd, ARM64Reg Rn, u64 imm, bool nega
   // As this splits the addition in two parts, this must not be done on setting flags.
   if (!flags && (imm >= 0x10000u || !has_scratch) && imm < 0x1000000u)
   {
-    addi(Rd, Rn, imm & 0xFFF, false, negative, false);
-    addi(Rd, Rd, imm >> 12, true, negative, false);
+    AddImmediate(Rd, Rn, imm & 0xFFF, false, negative, false);
+    AddImmediate(Rd, Rd, imm >> 12, true, negative, false);
     return;
   }
   if (!flags && (imm_neg >= 0x10000u || !has_scratch) && imm_neg < 0x1000000u)
   {
-    addi(Rd, Rn, imm_neg & 0xFFF, false, neg_neg, false);
-    addi(Rd, Rd, imm_neg >> 12, true, neg_neg, false);
+    AddImmediate(Rd, Rn, imm_neg & 0xFFF, false, neg_neg, false);
+    AddImmediate(Rd, Rd, imm_neg >> 12, true, neg_neg, false);
     return;
   }
 
