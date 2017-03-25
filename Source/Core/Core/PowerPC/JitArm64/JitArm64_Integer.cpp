@@ -175,7 +175,6 @@ void JitArm64::addix(UGeckoInstruction inst)
   {
     imm <<= 16;
   }
-  u32 imm_neg = 0u - imm;
 
   if (a)
   {
