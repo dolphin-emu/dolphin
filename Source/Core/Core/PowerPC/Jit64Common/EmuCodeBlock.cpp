@@ -855,9 +855,6 @@ void EmuCodeBlock::Force25BitPrecision(X64Reg output, const OpArg& input, X64Reg
   }
 }
 
-alignas(16) static u32 temp32;
-alignas(16) static u64 temp64;
-
 // Since the following float conversion functions are used in non-arithmetic PPC float instructions,
 // they must convert floats bitexact and never flush denormals to zero or turn SNaNs into QNaNs.
 // This means we can't use CVTSS2SD/CVTSD2SS :(
@@ -986,10 +983,13 @@ void EmuCodeBlock::ConvertDoubleToSingle(X64Reg dst, X64Reg src)
   FixupBranch continue2 = J(true);
 
   SetJumpTarget(denormalConversion);
-  MOVSD(M(&temp64), src);
-  FLD(64, M(&temp64));
-  FSTP(32, M(&temp32));
-  MOVSS(dst, M(&temp32));
+  // We're using 8 bytes on the stack
+  SUB(64, R(RSP), Imm8(8));
+  MOVSD(MatR(RSP), src);
+  FLD(64, MatR(RSP));
+  FSTP(32, MatR(RSP));
+  MOVSS(dst, MatR(RSP));
+  ADD(64, R(RSP), Imm8(8));
   FixupBranch continue3 = J(true);
   SwitchToNearCode();
 
