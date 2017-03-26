@@ -94,7 +94,7 @@ ReturnCode BluetoothReal::Open(const OpenRequest& request)
     libusb_device_descriptor device_descriptor;
     libusb_config_descriptor* config_descriptor;
     libusb_get_device_descriptor(device, &device_descriptor);
-    const int ret = libusb_get_active_config_descriptor(device, &config_descriptor);
+    const int ret = libusb_get_config_descriptor(device, 0, &config_descriptor);
     if (ret != 0)
     {
       ERROR_LOG(IOS_WIIMOTE, "Failed to get config descriptor for device %04x:%04x: %s",
