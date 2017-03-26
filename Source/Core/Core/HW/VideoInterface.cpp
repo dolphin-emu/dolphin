@@ -57,7 +57,7 @@ static UVIBorderBlankRegister m_BorderHBlank;
 
 static u32 s_target_refresh_rate = 0;
 
-static std::array<u32, 2> s_clock_freqs{{
+static constexpr std::array<u32, 2> s_clock_freqs{{
     27000000, 54000000,
 }};
 
