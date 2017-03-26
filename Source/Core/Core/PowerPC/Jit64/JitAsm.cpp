@@ -36,6 +36,11 @@ void Jit64AsmRoutineManager::Generate()
   // for the shadow region before calls in this function.  This call will
   // waste a bit of space for a second shadow, but whatever.
   ABI_PushRegistersAndAdjustStack(ABI_ALL_CALLEE_SAVED, 8, /*frame*/ 16);
+
+  // Two statically allocated registers.
+  // MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
+  MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
+
   if (m_stack_top)
   {
     // Pivot the stack to our custom one.
@@ -49,10 +54,6 @@ void Jit64AsmRoutineManager::Generate()
   }
   // something that can't pass the BLR test
   MOV(64, MDisp(RSP, 8), Imm32((u32)-1));
-
-  // Two statically allocated registers.
-  // MOV(64, R(RMEM), Imm64((u64)Memory::physical_base));
-  MOV(64, R(RPPCSTATE), Imm64((u64)&PowerPC::ppcState + 0x80));
 
   const u8* outerLoop = GetCodePtr();
   ABI_PushRegistersAndAdjustStack({}, 0);
