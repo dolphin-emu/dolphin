@@ -15,8 +15,10 @@ namespace DSP
 {
 namespace Interpreter
 {
+namespace
+{
 // Only MULX family instructions have unsigned/mixed support.
-inline s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
+s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
 {
   s64 prod;
 
@@ -34,25 +36,25 @@ inline s64 dsp_get_multiply_prod(u16 a, u16 b, u8 sign)
   return prod;
 }
 
-inline s64 dsp_multiply(u16 a, u16 b, u8 sign = 0)
+s64 dsp_multiply(u16 a, u16 b, u8 sign = 0)
 {
   s64 prod = dsp_get_multiply_prod(a, b, sign);
   return prod;
 }
 
-inline s64 dsp_multiply_add(u16 a, u16 b, u8 sign = 0)
+s64 dsp_multiply_add(u16 a, u16 b, u8 sign = 0)
 {
   s64 prod = dsp_get_long_prod() + dsp_get_multiply_prod(a, b, sign);
   return prod;
 }
 
-inline s64 dsp_multiply_sub(u16 a, u16 b, u8 sign = 0)
+s64 dsp_multiply_sub(u16 a, u16 b, u8 sign = 0)
 {
   s64 prod = dsp_get_long_prod() - dsp_get_multiply_prod(a, b, sign);
   return prod;
 }
 
-inline s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
+s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
 {
   s64 result;
 
@@ -67,8 +69,7 @@ inline s64 dsp_multiply_mulx(u8 axh0, u8 axh1, u16 val1, u16 val2)
 
   return result;
 }
-
-//----
+}  // Anonymous namespace
 
 // CLRP
 // 1000 0100 xxxx xxxx
