@@ -87,7 +87,13 @@ ReturnCode BluetoothReal::Open(const OpenRequest& request)
 
   libusb_device** list;
   const ssize_t cnt = libusb_get_device_list(m_libusb_context.get(), &list);
-  _dbg_assert_msg_(IOS, cnt > 0, "Couldn't get device list");
+  if (cnt < 0)
+  {
+    ERROR_LOG(IOS_WIIMOTE, "Couldn't get device list: %s",
+              libusb_error_name(static_cast<int>(cnt)));
+    return IPC_ENOENT;
+  }
+
   for (ssize_t i = 0; i < cnt; ++i)
   {
     libusb_device* device = list[i];
