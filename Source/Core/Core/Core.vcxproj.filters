@@ -965,7 +965,7 @@
     </ClInclude>
     <ClInclude Include="FileMonitor.h">
       <Filter>FileMonitor</Filter>
-    </ClInclud
+    </ClInclude>
     <ClInclude Include="GeckoCode.h">
       <Filter>GeckoCode</Filter>
     </ClInclude>
