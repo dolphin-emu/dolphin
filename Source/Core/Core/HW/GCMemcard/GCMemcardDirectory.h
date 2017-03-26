@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <chrono>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -52,7 +51,6 @@ private:
 
   std::vector<std::string> m_loaded_saves;
   std::string m_save_directory;
-  const std::chrono::seconds flush_interval = std::chrono::seconds(1);
   Common::Event m_flush_trigger;
   std::mutex m_write_mutex;
   Common::Flag m_exiting;
