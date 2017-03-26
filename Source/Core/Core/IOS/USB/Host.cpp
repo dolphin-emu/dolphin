@@ -145,17 +145,25 @@ bool USBHost::AddNewDevices(std::set<u64>& new_devices, DeviceChangeHooks& hooks
       libusb_get_device_descriptor(device, &descriptor);
       if (!SConfig::GetInstance().IsUSBDeviceWhitelisted(
               {descriptor.idVendor, descriptor.idProduct}))
+      {
+        libusb_unref_device(device);
         continue;
+      }
 
       auto usb_device = std::make_unique<USB::LibusbDevice>(device, descriptor);
       if (!ShouldAddDevice(*usb_device))
+      {
+        libusb_unref_device(device);
         continue;
+      }
       const u64 id = usb_device->GetId();
       new_devices.insert(id);
       if (AddDevice(std::move(usb_device)) || always_add_hooks)
         hooks.emplace(GetDeviceById(id), ChangeEvent::Inserted);
+      else
+        libusb_unref_device(device);
     }
-    libusb_free_device_list(list, 1);
+    libusb_free_device_list(list, 0);
   }
 #endif
   return true;
