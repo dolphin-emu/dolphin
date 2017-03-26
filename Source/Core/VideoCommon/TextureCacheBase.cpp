@@ -472,16 +472,16 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::ReturnEntry(unsigned int st
 
 void TextureCacheBase::BindTextures()
 {
-  for (int i = 0; i < 8; ++i)
+  for (size_t i = 0; i < bound_textures.size(); ++i)
   {
     if (bound_textures[i])
-      bound_textures[i]->Bind(i);
+      bound_textures[i]->Bind(static_cast<u32>(i));
   }
 }
 
 void TextureCacheBase::UnbindTextures()
 {
-  std::fill(std::begin(bound_textures), std::end(bound_textures), nullptr);
+  bound_textures.fill(nullptr);
 }
 
 TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
