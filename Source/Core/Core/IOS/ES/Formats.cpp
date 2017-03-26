@@ -13,9 +13,12 @@
 #include <utility>
 #include <vector>
 
+#include "Common/Assert.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Crypto/AES.h"
+#include "Common/FileUtil.h"
+#include "Common/Logging/Log.h"
 #include "Common/StringUtil.h"
 #include "Common/Swap.h"
 #include "Core/ec_wii.h"
@@ -344,6 +347,133 @@ s32 TicketReader::Unpersonalise()
   // Finally, IOS copies the decrypted title key back to the ticket buffer.
   std::copy(key.cbegin(), key.cend(), ticket_begin + offsetof(Ticket, title_key));
   return IOSC_OK;
+}
+
+struct SharedContentMap::Entry
+{
+  // ID string
+  std::array<u8, 8> id;
+  // Binary SHA1 hash
+  std::array<u8, 20> sha1;
+};
+
+SharedContentMap::SharedContentMap(Common::FromWhichRoot root) : m_root(root)
+{
+  static_assert(sizeof(Entry) == 28, "SharedContentMap::Entry has the wrong size");
+
+  m_file_path = Common::RootUserPath(root) + "/shared1/content.map";
+
+  File::IOFile file(m_file_path, "rb");
+  Entry entry;
+  while (file.ReadArray(&entry, 1))
+  {
+    m_entries.push_back(entry);
+    m_last_id++;
+  }
+}
+
+SharedContentMap::~SharedContentMap() = default;
+
+std::string SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1) const
+{
+  const auto it = std::find_if(m_entries.begin(), m_entries.end(),
+                               [&sha1](const auto& entry) { return entry.sha1 == sha1; });
+  if (it == m_entries.end())
+    return "unk";
+
+  const std::string id_string(it->id.begin(), it->id.end());
+  return Common::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id_string.c_str());
+}
+
+std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
+{
+  std::string filename = GetFilenameFromSHA1(sha1);
+  if (filename != "unk")
+    return filename;
+
+  const std::string id = StringFromFormat("%08x", m_last_id);
+  Entry entry;
+  std::copy(id.cbegin(), id.cend(), entry.id.begin());
+  entry.sha1 = sha1;
+  m_entries.push_back(entry);
+
+  File::CreateFullPath(m_file_path);
+
+  File::IOFile file(m_file_path, "ab");
+  file.WriteArray(&entry, 1);
+
+  filename = Common::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id.c_str());
+  m_last_id++;
+  return filename;
+}
+
+static std::pair<u32, u64> ReadUidSysEntry(File::IOFile& file)
+{
+  u64 title_id = 0;
+  if (!file.ReadBytes(&title_id, sizeof(title_id)))
+    return {};
+
+  u32 uid = 0;
+  if (!file.ReadBytes(&uid, sizeof(uid)))
+    return {};
+
+  return {Common::swap32(uid), Common::swap64(title_id)};
+}
+
+UIDSys::UIDSys(Common::FromWhichRoot root)
+{
+  m_file_path = Common::RootUserPath(root) + "/sys/uid.sys";
+
+  File::IOFile file(m_file_path, "rb");
+  while (true)
+  {
+    const std::pair<u32, u64> entry = ReadUidSysEntry(file);
+    if (!entry.first && !entry.second)
+      break;
+
+    m_entries.insert(std::move(entry));
+  }
+
+  if (m_entries.empty())
+  {
+    AddTitle(TITLEID_SYSMENU);
+  }
+}
+
+u32 UIDSys::GetUIDFromTitle(u64 title_id)
+{
+  const auto it = std::find_if(m_entries.begin(), m_entries.end(),
+                               [title_id](const auto& entry) { return entry.second == title_id; });
+  return (it == m_entries.end()) ? 0 : it->first;
+}
+
+u32 UIDSys::GetNextUID() const
+{
+  if (m_entries.empty())
+    return 0x00001000;
+  return m_entries.rbegin()->first + 1;
+}
+
+void UIDSys::AddTitle(u64 title_id)
+{
+  if (GetUIDFromTitle(title_id))
+  {
+    INFO_LOG(IOS_ES, "Title %016" PRIx64 " already exists in uid.sys", title_id);
+    return;
+  }
+
+  u32 uid = GetNextUID();
+  m_entries.insert({uid, title_id});
+
+  // Byte swap before writing.
+  title_id = Common::swap64(title_id);
+  uid = Common::swap32(uid);
+
+  File::CreateFullPath(m_file_path);
+  File::IOFile file(m_file_path, "ab");
+
+  if (!file.WriteBytes(&title_id, sizeof(title_id)) || !file.WriteBytes(&uid, sizeof(uid)))
+    ERROR_LOG(IOS_ES, "Failed to write to /sys/uid.sys");
 }
 }  // namespace ES
 }  // namespace IOS

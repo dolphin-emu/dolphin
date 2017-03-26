@@ -15,7 +15,6 @@
 #include "Common/StringUtil.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/ES/NandUtils.h"
-#include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
 {
@@ -142,7 +141,7 @@ std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd)
   if (!tmd.IsValid())
     return {};
 
-  const DiscIO::CSharedContent shared{Common::FROM_SESSION_ROOT};
+  const IOS::ES::SharedContentMap shared{Common::FROM_SESSION_ROOT};
   const std::vector<Content> contents = tmd.GetContents();
 
   std::vector<Content> stored_contents;
@@ -151,7 +150,7 @@ std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd)
                [&tmd, &shared](const auto& content) {
                  if (content.IsShared())
                  {
-                   const std::string path = shared.GetFilenameFromSHA1(content.sha1.data());
+                   const std::string path = shared.GetFilenameFromSHA1(content.sha1);
                    return path != "unk" && File::Exists(path);
                  }
                  return File::Exists(
