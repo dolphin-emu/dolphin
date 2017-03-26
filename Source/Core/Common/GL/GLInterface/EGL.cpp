@@ -50,10 +50,10 @@ void cInterfaceEGL::DetectMode()
 
   EGLint num_configs;
   bool supportsGL = false, supportsGLES2 = false, supportsGLES3 = false;
-  std::array<int, 3> renderable_types = {
+  std::array<int, 3> renderable_types{{
       EGL_OPENGL_BIT, (1 << 6), /* EGL_OPENGL_ES3_BIT_KHR */
       EGL_OPENGL_ES2_BIT,
-  };
+  }};
 
   for (auto renderable_type : renderable_types)
   {
