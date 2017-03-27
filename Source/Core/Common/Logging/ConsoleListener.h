@@ -15,5 +15,7 @@ public:
   void Log(LogTypes::LOG_LEVELS, const char* text) override;
 
 private:
+#if !defined(__ANDROID__) && !defined(_WIN32)
   bool m_use_color;
+#endif
 };

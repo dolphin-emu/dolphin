@@ -37,6 +37,7 @@ set(SRCS
   Crypto/AES.cpp
   Crypto/bn.cpp
   Crypto/ec.cpp
+  Logging/ConsoleListener.cpp
   Logging/LogManager.cpp
 )
 
@@ -44,17 +45,6 @@ if(LIBUSB_FOUND)
   set(LIBS ${LIBS} ${LIBUSB_LIBRARIES})
   set(SRCS ${SRCS} LibusbContext.cpp)
 endif(LIBUSB_FOUND)
-
-if(ANDROID)
-  set(SRCS ${SRCS}
-    Logging/ConsoleListenerDroid.cpp)
-elseif(WIN32)
-  set(SRCS ${SRCS}
-    Logging/ConsoleListenerWin.cpp)
-else()
-  set(SRCS ${SRCS}
-    Logging/ConsoleListenerNix.cpp)
-endif()
 
 list(APPEND LIBS enet ${CURL_LIBRARIES})
 if(_M_ARM_64)

@@ -173,7 +173,7 @@
     <ClCompile Include="LibusbContext.cpp">
       <DisableSpecificWarnings>4200;%(DisableSpecificWarnings)</DisableSpecificWarnings>
     </ClCompile>
-    <ClCompile Include="Logging\ConsoleListenerWin.cpp" />
+    <ClCompile Include="Logging\ConsoleListener.cpp" />
     <ClCompile Include="MathUtil.cpp" />
     <ClCompile Include="MD5.cpp" />
     <ClCompile Include="MemArena.cpp" />

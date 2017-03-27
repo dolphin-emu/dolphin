@@ -107,9 +107,9 @@ static inline u16 dsp_decrement_addr_reg(u16 reg)
 // --- reg
 // ---------------------------------------------------------------------------------------
 
-static inline u16 dsp_op_read_reg(int _reg)
+static inline u16 dsp_op_read_reg(u8 _reg)
 {
-  int reg = _reg & 0x1f;
+  u8 reg = _reg & 0x1f;
 
   switch (reg)
   {
