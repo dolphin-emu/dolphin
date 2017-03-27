@@ -2,10 +2,10 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include <OptionParser.h>
 #include <cstddef>
 #include <cstdio>
 #include <cstring>
+#include <getopt.h>
 #include <signal.h>
 #include <string>
 #include <thread>
@@ -29,7 +29,6 @@
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
 #include "Core/State.h"
 
-#include "UICommon/CommandLineParse.h"
 #include "UICommon/UICommon.h"
 
 #include "VideoCommon/RenderBase.h"
@@ -168,7 +167,7 @@ void Host_YieldToUI()
 
 #if HAVE_X11
 #include <X11/keysym.h>
-#include "UICommon/X11Utils.h"
+#include "DolphinWX/X11Utils.h"
 
 class PlatformX11 : public Platform
 {
@@ -380,30 +379,37 @@ static Platform* GetPlatform()
 
 int main(int argc, char* argv[])
 {
-  auto parser = CommandLineParse::CreateParser(CommandLineParse::ParserOptions::OmitGUIOptions);
-  optparse::Values& options = CommandLineParse::ParseArguments(parser.get(), argc, argv);
-  std::vector<std::string> args = parser->args();
+  int ch, help = 0;
+  struct option longopts[] = {{"exec", no_argument, nullptr, 'e'},
+                              {"help", no_argument, nullptr, 'h'},
+                              {"version", no_argument, nullptr, 'v'},
+                              {nullptr, 0, nullptr, 0}};
 
-  std::string boot_filename;
-  if (options.is_set("exec"))
+  while ((ch = getopt_long(argc, argv, "eh?v", longopts, 0)) != -1)
   {
-    boot_filename = static_cast<const char*>(options.get("exec"));
-  }
-  else if (args.size())
-  {
-    boot_filename = args.front();
-    args.erase(args.begin());
-  }
-  else
-  {
-    parser->print_help();
-    return 0;
+    switch (ch)
+    {
+    case 'e':
+      break;
+    case 'h':
+    case '?':
+      help = 1;
+      break;
+    case 'v':
+      fprintf(stderr, "%s\n", scm_rev_str.c_str());
+      return 1;
+    }
   }
 
-  std::string user_directory;
-  if (options.is_set("user"))
+  if (help == 1 || argc == optind)
   {
-    user_directory = static_cast<const char*>(options.get("user"));
+    fprintf(stderr, "%s\n\n", scm_rev_str.c_str());
+    fprintf(stderr, "A multi-platform GameCube/Wii emulator\n\n");
+    fprintf(stderr, "Usage: %s [-e <file>] [-h] [-v]\n", argv[0]);
+    fprintf(stderr, "  -e, --exec     Load the specified file\n");
+    fprintf(stderr, "  -h, --help     Show this help message\n");
+    fprintf(stderr, "  -v, --version  Print version and exit\n");
+    return 1;
   }
 
   platform = GetPlatform();
@@ -413,7 +419,7 @@ int main(int argc, char* argv[])
     return 1;
   }
 
-  UICommon::SetUserDirectory(user_directory);
+  UICommon::SetUserDirectory("");  // Auto-detect user folder
   UICommon::Init();
 
   Core::SetOnStoppedCallback([]() { s_running.Clear(); });
@@ -429,9 +435,9 @@ int main(int argc, char* argv[])
 
   DolphinAnalytics::Instance()->ReportDolphinStart("nogui");
 
-  if (!BootManager::BootCore(boot_filename))
+  if (!BootManager::BootCore(argv[optind]))
   {
-    fprintf(stderr, "Could not boot %s\n", boot_filename.c_str());
+    fprintf(stderr, "Could not boot %s\n", argv[optind]);
     return 1;
   }
 
