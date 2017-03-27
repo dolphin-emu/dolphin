@@ -98,7 +98,7 @@ struct entry
 };
 }
 
-void AppendListToString(std::string* dest)
+std::string VertexLoadersToString()
 {
   std::lock_guard<std::mutex> lk(s_vertex_loader_map_lock);
   std::vector<entry> entries;
@@ -112,13 +112,18 @@ void AppendListToString(std::string* dest)
     total_size += e.text.size() + 1;
     entries.push_back(std::move(e));
   }
+
   sort(entries.begin(), entries.end());
-  dest->reserve(dest->size() + total_size);
+
+  std::string dest;
+  dest.reserve(total_size);
   for (const entry& entry : entries)
   {
-    *dest += entry.text;
-    *dest += '\n';
+    dest += entry.text;
+    dest += '\n';
   }
+
+  return dest;
 }
 
 void MarkAllDirty()
