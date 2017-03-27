@@ -72,12 +72,13 @@ void VertexLoaderBase::SetVAT(const VAT& vat)
   m_VtxAttr.texCoord[7].Frac = vat.g2.Tex7Frac;
 };
 
-void VertexLoaderBase::AppendToString(std::string* dest) const
+std::string VertexLoaderBase::ToString() const
 {
-  dest->reserve(250);
+  std::string dest;
+  dest.reserve(250);
 
-  dest->append(GetName());
-  dest->append(": ");
+  dest += GetName();
+  dest += ": ";
 
   static constexpr std::array<const char*, 4> pos_mode{{
       "Inv", "Dir", "I8", "I16",
@@ -89,14 +90,14 @@ void VertexLoaderBase::AppendToString(std::string* dest) const
       "565", "888", "888x", "4444", "6666", "8888", "Inv", "Inv",
   }};
 
-  dest->append(StringFromFormat("%ib skin: %i P: %i %s-%s ", m_VertexSize, (u32)m_VtxDesc.PosMatIdx,
-                                m_VtxAttr.PosElements ? 3 : 2, pos_mode[m_VtxDesc.Position],
-                                pos_formats[m_VtxAttr.PosFormat]));
+  dest += StringFromFormat("%ib skin: %i P: %i %s-%s ", m_VertexSize, (u32)m_VtxDesc.PosMatIdx,
+                           m_VtxAttr.PosElements ? 3 : 2, pos_mode[m_VtxDesc.Position],
+                           pos_formats[m_VtxAttr.PosFormat]);
 
   if (m_VtxDesc.Normal)
   {
-    dest->append(StringFromFormat("Nrm: %i %s-%s ", m_VtxAttr.NormalElements,
-                                  pos_mode[m_VtxDesc.Normal], pos_formats[m_VtxAttr.NormalFormat]));
+    dest += StringFromFormat("Nrm: %i %s-%s ", m_VtxAttr.NormalElements, pos_mode[m_VtxDesc.Normal],
+                             pos_formats[m_VtxAttr.NormalFormat]);
   }
 
   const std::array<u64, 2> color_mode{{m_VtxDesc.Color0, m_VtxDesc.Color1}};
@@ -104,8 +105,8 @@ void VertexLoaderBase::AppendToString(std::string* dest) const
   {
     if (color_mode[i])
     {
-      dest->append(StringFromFormat("C%zu: %i %s-%s ", i, m_VtxAttr.color[i].Elements,
-                                    pos_mode[color_mode[i]], color_format[m_VtxAttr.color[i].Comp]));
+      dest += StringFromFormat("C%zu: %i %s-%s ", i, m_VtxAttr.color[i].Elements,
+                               pos_mode[color_mode[i]], color_format[m_VtxAttr.color[i].Comp]);
     }
   }
   const std::array<u64, 8> tex_mode{{m_VtxDesc.Tex0Coord, m_VtxDesc.Tex1Coord, m_VtxDesc.Tex2Coord,
@@ -115,12 +116,12 @@ void VertexLoaderBase::AppendToString(std::string* dest) const
   {
     if (tex_mode[i])
     {
-      dest->append(StringFromFormat("T%zu: %i %s-%s ", i, m_VtxAttr.texCoord[i].Elements,
-                                    pos_mode[tex_mode[i]],
-                                    pos_formats[m_VtxAttr.texCoord[i].Format]));
+      dest += StringFromFormat("T%zu: %i %s-%s ", i, m_VtxAttr.texCoord[i].Elements,
+                               pos_mode[tex_mode[i]], pos_formats[m_VtxAttr.texCoord[i].Format]);
     }
   }
-  dest->append(StringFromFormat(" - %i v", m_numLoadedVertices));
+  dest += StringFromFormat(" - %i v", m_numLoadedVertices);
+  return dest;
 }
 
 // a hacky implementation to compare two vertex loaders
