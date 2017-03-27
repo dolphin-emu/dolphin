@@ -33,7 +33,7 @@ enum class SyncGPUReason
 // In deterministic GPU thread mode this waits for the GPU to be done with pending work.
 void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr = true);
 
-void PushFifoAuxBuffer(void* ptr, size_t size);
+void PushFifoAuxBuffer(const void* ptr, size_t size);
 void* PopFifoAuxBuffer(size_t size);
 
 void FlushGpu();
