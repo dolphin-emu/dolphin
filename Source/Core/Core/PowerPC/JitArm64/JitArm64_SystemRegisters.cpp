@@ -247,41 +247,55 @@ void JitArm64::mfspr(UGeckoInstruction inst)
   case SPR_TL:
   case SPR_TU:
   {
-    // The inline implementation here is inaccurate and out of date as of PR3601
-    FALLBACK_IF(true);  // Fallback to interpreted version.
+    ARM64Reg Wg = gpr.GetReg();
+    ARM64Reg Xg = EncodeRegTo64(Wg);
 
-    /*
+    ARM64Reg Wresult = gpr.GetReg();
+    ARM64Reg Xresult = EncodeRegTo64(Wresult);
+
     ARM64Reg WA = gpr.GetReg();
     ARM64Reg WB = gpr.GetReg();
     ARM64Reg XA = EncodeRegTo64(WA);
     ARM64Reg XB = EncodeRegTo64(WB);
 
+    ARM64Reg VC = fpr.GetReg();
+    ARM64Reg VD = fpr.GetReg();
+    ARM64Reg SC = EncodeRegToSingle(VC);
+    ARM64Reg SD = EncodeRegToSingle(VD);
+
     // An inline implementation of CoreTiming::GetFakeTimeBase, since in timer-heavy games the
     // cost of calling out to C for this is actually significant.
-    MOVI2R(XA, (u64)&CoreTiming::g_global_timer);
-    LDR(INDEX_UNSIGNED, XA, XA, 0);
-    MOVI2R(XB, (u64)&CoreTiming::g_fake_TB_start_ticks);
-    LDR(INDEX_UNSIGNED, XB, XB, 0);
-    SUB(XA, XA, XB);
+
+    MOVP2R(Xg, &CoreTiming::g);
+
+    LDR(INDEX_UNSIGNED, WA, PPC_REG, PPCSTATE_OFF(downcount));
+    m_float_emit.SCVTF(SC, WA);
+    m_float_emit.LDR(32, INDEX_UNSIGNED, SD, Xg,
+                     offsetof(CoreTiming::Globals, last_OC_factor_inverted));
+    m_float_emit.FMUL(SC, SC, SD);
+    m_float_emit.FCVTS(Xresult, SC, ROUND_Z);
+
+    LDP(INDEX_SIGNED, XA, XB, Xg, offsetof(CoreTiming::Globals, global_timer));
+    SXTW(XB, WB);
+    SUB(Xresult, XB, Xresult);
+    ADD(Xresult, Xresult, XA);
 
     // It might seem convenient to correct the timer for the block position here for even more
-    accurate
-    // timing, but as of currently, this can break games. If we end up reading a time *after* the
-    time
-    // at which an interrupt was supposed to occur, e.g. because we're 100 cycles into a block with
-    only
-    // 50 downcount remaining, some games don't function correctly, such as Karaoke Party
-    Revolution,
-    // which won't get past the loading screen.
-    // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
-    ORR(XB, SP, 1, 60);
-    ADD(XB, XB, 1);
-    UMULH(XA, XA, XB);
+    // accurate timing, but as of currently, this can break games. If we end up reading a time
+    // *after* the time at which an interrupt was supposed to occur, e.g. because we're 100 cycles
+    // into a block with only 50 downcount remaining, some games don't function correctly, such as
+    // Karaoke Party Revolution, which won't get past the loading screen.
 
-    MOVI2R(XB, (u64)&CoreTiming::g_fake_TB_start_value);
-    LDR(INDEX_UNSIGNED, XB, XB, 0);
-    ADD(XA, XB, XA, ArithOption(XA, ST_LSR, 3));
-    STR(INDEX_UNSIGNED, XA, PPC_REG, PPCSTATE_OFF(spr[SPR_TL]));
+    LDP(INDEX_SIGNED, XA, XB, Xg, offsetof(CoreTiming::Globals, fake_TB_start_value));
+    SUB(Xresult, Xresult, XB);
+
+    // a / 12 = (a * 0xAAAAAAAAAAAAAAAB) >> 67
+    ORRI2R(XB, ZR, 0xAAAAAAAAAAAAAAAA);
+    ADD(XB, XB, 1);
+    UMULH(Xresult, Xresult, XB);
+
+    ADD(Xresult, XA, Xresult, ArithOption(Xresult, ST_LSR, 3));
+    STR(INDEX_UNSIGNED, Xresult, PPC_REG, PPCSTATE_OFF(spr[SPR_TL]));
 
     if (CanMergeNextInstructions(1))
     {
@@ -292,32 +306,35 @@ void JitArm64::mfspr(UGeckoInstruction inst)
       // Be careful; the actual opcode is for mftb (371), not mfspr (339)
       int n = next.RD;
       if (next.OPCD == 31 && next.SUBOP10 == 371 && (nextIndex == SPR_TU || nextIndex == SPR_TL) &&
-    n != d)
+          n != d)
       {
         js.downcountAmount++;
         js.skipInstructions = 1;
         gpr.BindToRegister(d, false);
         gpr.BindToRegister(n, false);
         if (iIndex == SPR_TL)
-          MOV(gpr.R(d), WA);
+          MOV(gpr.R(d), Wresult);
         else
-          ORR(EncodeRegTo64(gpr.R(d)), SP, XA, ArithOption(XA, ST_LSR, 32));
+          ORR(EncodeRegTo64(gpr.R(d)), ZR, Xresult, ArithOption(Xresult, ST_LSR, 32));
 
         if (nextIndex == SPR_TL)
-          MOV(gpr.R(n), WA);
+          MOV(gpr.R(n), Wresult);
         else
-          ORR(EncodeRegTo64(gpr.R(n)), SP, XA, ArithOption(XA, ST_LSR, 32));
+          ORR(EncodeRegTo64(gpr.R(n)), ZR, Xresult, ArithOption(Xresult, ST_LSR, 32));
 
-        gpr.Unlock(WA, WB);
+        gpr.Unlock(Wg, Wresult, WA, WB);
+        fpr.Unlock(VC, VD);
         break;
       }
     }
     gpr.BindToRegister(d, false);
     if (iIndex == SPR_TU)
-      ORR(EncodeRegTo64(gpr.R(d)), SP, XA, ArithOption(XA, ST_LSR, 32));
+      ORR(EncodeRegTo64(gpr.R(d)), ZR, Xresult, ArithOption(Xresult, ST_LSR, 32));
     else
-      MOV(gpr.R(d), WA);
-    gpr.Unlock(WA, WB);*/
+      MOV(gpr.R(d), Wresult);
+
+    gpr.Unlock(Wg, Wresult, WA, WB);
+    fpr.Unlock(VC, VD);
   }
   break;
   case SPR_XER:
