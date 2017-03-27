@@ -11,6 +11,9 @@ if(CMAKE_SYSTEM_NAME MATCHES "Windows")
   add_definitions(-D_SCL_SECURE_NO_WARNINGS)
   add_definitions(-D_CRT_SECURE_NO_WARNINGS)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+else()
+  add_definitions(-Werror)
+  add_definitions(-Wno-tautological-compare)
 endif()
 
 # These aren't actually needed for C11/C++11

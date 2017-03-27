@@ -10,6 +10,12 @@ set(CMAKE_OSX_ARCHITECTURES "x86_64")
 set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE string "")
 
 project(dolphin-emu)
+
+
+message(STATUS "CMAKE_C_COMPILER: ${CMAKE_C_COMPILER_ID} ${CMAKE_C_COMPILER_VERSION}")
+message(STATUS "CMAKE_CXX_COMPILER_VERSION: ${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER_VERSION}")
+
+
 option(USE_EGL "Enables EGL OpenGL Interface" OFF)
 option(TRY_X11 "Enables X11 Support" ON)
 option(USE_SHARED_ENET "Use shared libenet if found rather than Dolphin's soon-to-compatibly-diverge version" OFF)

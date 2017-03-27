@@ -32,6 +32,7 @@ public:
 
   void Send(const u8* si_buffer);
   int Receive(u8* si_buffer);
+  int GetDeviceNumber() const;
 
 private:
   std::unique_ptr<sf::TcpSocket> m_client;
