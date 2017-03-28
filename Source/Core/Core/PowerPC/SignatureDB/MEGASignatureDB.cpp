@@ -8,6 +8,8 @@
 #include <cstdlib>
 #include <fstream>
 #include <limits>
+#include <sstream>
+#include <utility>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -16,66 +18,11 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
-static constexpr size_t INSTRUCTION_HEXSTRING_LENGTH = 8;
-
-MEGASignatureDB::MEGASignatureDB() = default;
-MEGASignatureDB::~MEGASignatureDB() = default;
-
-bool MEGASignatureDB::Load(const std::string& file_path)
+namespace
 {
-  std::string line;
-  std::ifstream ifs;
-  OpenFStream(ifs, file_path, std::ios_base::in);
+constexpr size_t INSTRUCTION_HEXSTRING_LENGTH = 8;
 
-  if (!ifs)
-    return false;
-  for (size_t i = 1; std::getline(ifs, line); ++i)
-  {
-    std::istringstream iss(line);
-    MEGASignature sig;
-
-    if (GetCode(&sig, &iss) && GetName(&sig, &iss) && GetRefs(&sig, &iss))
-    {
-      m_signatures.push_back(sig);
-    }
-    else
-    {
-      WARN_LOG(OSHLE, "MEGA database failed to parse line %zu", i);
-    }
-  }
-  return true;
-}
-
-void MEGASignatureDB::Apply(PPCSymbolDB* symbol_db) const
-{
-  for (auto& it : symbol_db->AccessSymbols())
-  {
-    u32 hash = it.first;
-    auto& symbol = it.second;
-    for (const auto& sig : m_signatures)
-    {
-      if (Compare(symbol.address, symbol.size, sig))
-      {
-        symbol.name = sig.name;
-        INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", sig.name.c_str(), symbol.address,
-                 symbol.size);
-        break;
-      }
-    }
-  }
-  symbol_db->Index();
-}
-
-void MEGASignatureDB::List() const
-{
-  for (const auto& entry : m_signatures)
-  {
-    DEBUG_LOG(OSHLE, "%s : %zu bytes", entry.name.c_str(), entry.code.size() * sizeof(u32));
-  }
-  INFO_LOG(OSHLE, "%zu functions known in current MEGA database.", m_signatures.size());
-}
-
-bool MEGASignatureDB::GetCode(MEGASignature* sig, std::istringstream* iss) const
+bool GetCode(MEGASignature* sig, std::istringstream* iss)
 {
   std::string code;
   if ((*iss >> code) && (code.length() % INSTRUCTION_HEXSTRING_LENGTH) == 0)
@@ -99,7 +46,7 @@ bool MEGASignatureDB::GetCode(MEGASignature* sig, std::istringstream* iss) const
   return false;
 }
 
-bool MEGASignatureDB::GetFunctionName(std::istringstream* iss, std::string* name) const
+bool GetFunctionName(std::istringstream* iss, std::string* name)
 {
   std::string buffer;
 
@@ -117,13 +64,13 @@ bool MEGASignatureDB::GetFunctionName(std::istringstream* iss, std::string* name
   return true;
 }
 
-bool MEGASignatureDB::GetName(MEGASignature* sig, std::istringstream* iss) const
+bool GetName(MEGASignature* sig, std::istringstream* iss)
 {
   std::string unknown;
   return (*iss >> unknown) && GetFunctionName(iss, &sig->name);
 }
 
-bool MEGASignatureDB::GetRefs(MEGASignature* sig, std::istringstream* iss) const
+bool GetRefs(MEGASignature* sig, std::istringstream* iss)
 {
   std::string num, ref;
   u32 ref_count = 1;
@@ -145,7 +92,7 @@ bool MEGASignatureDB::GetRefs(MEGASignature* sig, std::istringstream* iss) const
       WARN_LOG(OSHLE, "MEGA database failed to parse reference %u name", ref_count);
       return false;
     }
-    sig->refs.emplace_back(static_cast<u32>(offset), ref);
+    sig->refs.emplace_back(static_cast<u32>(offset), std::move(ref));
 
     ref_count += 1;
     num.clear();
@@ -154,7 +101,7 @@ bool MEGASignatureDB::GetRefs(MEGASignature* sig, std::istringstream* iss) const
   return true;
 }
 
-bool MEGASignatureDB::Compare(u32 address, u32 size, const MEGASignature& sig) const
+bool Compare(u32 address, u32 size, const MEGASignature& sig)
 {
   if (size != sig.code.size() * sizeof(u32))
     return false;
@@ -166,4 +113,62 @@ bool MEGASignatureDB::Compare(u32 address, u32 size, const MEGASignature& sig) c
       return false;
   }
   return true;
+}
+}  // Anonymous namespace
+
+MEGASignatureDB::MEGASignatureDB() = default;
+MEGASignatureDB::~MEGASignatureDB() = default;
+
+bool MEGASignatureDB::Load(const std::string& file_path)
+{
+  std::ifstream ifs;
+  OpenFStream(ifs, file_path, std::ios_base::in);
+
+  if (!ifs)
+    return false;
+
+  std::string line;
+  for (size_t i = 1; std::getline(ifs, line); ++i)
+  {
+    std::istringstream iss(line);
+    MEGASignature sig;
+
+    if (GetCode(&sig, &iss) && GetName(&sig, &iss) && GetRefs(&sig, &iss))
+    {
+      m_signatures.push_back(std::move(sig));
+    }
+    else
+    {
+      WARN_LOG(OSHLE, "MEGA database failed to parse line %zu", i);
+    }
+  }
+  return true;
+}
+
+void MEGASignatureDB::Apply(PPCSymbolDB* symbol_db) const
+{
+  for (auto& it : symbol_db->AccessSymbols())
+  {
+    auto& symbol = it.second;
+    for (const auto& sig : m_signatures)
+    {
+      if (Compare(symbol.address, symbol.size, sig))
+      {
+        symbol.name = sig.name;
+        INFO_LOG(OSHLE, "Found %s at %08x (size: %08x)!", sig.name.c_str(), symbol.address,
+                 symbol.size);
+        break;
+      }
+    }
+  }
+  symbol_db->Index();
+}
+
+void MEGASignatureDB::List() const
+{
+  for (const auto& entry : m_signatures)
+  {
+    DEBUG_LOG(OSHLE, "%s : %zu bytes", entry.name.c_str(), entry.code.size() * sizeof(u32));
+  }
+  INFO_LOG(OSHLE, "%zu functions known in current MEGA database.", m_signatures.size());
 }

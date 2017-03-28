@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include <sstream>
 #include <string>
 #include <vector>
 
@@ -47,11 +46,5 @@ public:
   void List() const;
 
 private:
-  bool GetCode(MEGASignature* sig, std::istringstream* iss) const;
-  bool GetFunctionName(std::istringstream* iss, std::string* name) const;
-  bool GetName(MEGASignature* sig, std::istringstream* iss) const;
-  bool GetRefs(MEGASignature* sig, std::istringstream* iss) const;
-  bool Compare(u32 address, u32 size, const MEGASignature& sig) const;
-
   std::vector<MEGASignature> m_signatures;
 };
