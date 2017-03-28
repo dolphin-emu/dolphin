@@ -373,8 +373,8 @@ void CVolumeDirectory::BuildFST()
 
   WriteDirectory(rootEntry, &fst_offset, &name_offset, &current_data_address, root_offset);
 
-  // overflow check
-  _dbg_assert_(DVDINTERFACE, name_offset == name_table_size);
+  // overflow check, compare the aligned name offset with the aligned name table size
+  _assert_(Common::AlignUp(name_offset, 1ull << m_address_shift) == name_table_size);
 
   // write FST size and location
   Write32((u32)(m_fst_address >> m_address_shift), 0x0424, &m_disk_header);
