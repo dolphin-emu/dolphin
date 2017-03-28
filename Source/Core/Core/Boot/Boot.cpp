@@ -427,8 +427,9 @@ bool CBoot::BootUp()
 
     PatchEngine::LoadPatches();
 
-    if (LoadMapFromFilename())
-      HLE::PatchFunctions();
+    // Not bootstrapped yet, can't translate memory addresses. Thus, prevents Symbol Map usage.
+    // if (LoadMapFromFilename())
+    //   HLE::PatchFunctions();
 
     // load default image or create virtual drive from directory
     if (!_StartupPara.m_strDVDRoot.empty())
