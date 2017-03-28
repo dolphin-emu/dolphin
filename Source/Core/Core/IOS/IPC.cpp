@@ -895,7 +895,7 @@ static s32 OpenDevice(const OpenRequest& request)
   {
     device = GetUnusedESDevice();
     if (!device)
-      return IPC_EESEXHAUSTED;
+      return ES_FD_EXHAUSTED;
   }
   else if (request.path.find("/dev/usb/oh0/") == 0 && !GetDeviceByName(request.path))
   {

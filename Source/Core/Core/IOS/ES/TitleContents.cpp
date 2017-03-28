@@ -51,7 +51,7 @@ u32 ES::OpenTitleContent(u32 CFD, u64 TitleID, u16 Index)
 IPCCommandResult ES::OpenTitleContent(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 Index = Memory::Read_U32(request.in_vectors[2].address);
@@ -67,11 +67,11 @@ IPCCommandResult ES::OpenTitleContent(const IOCtlVRequest& request)
 IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
   u32 Index = Memory::Read_U32(request.in_vectors[0].address);
 
   if (!GetTitleContext().active)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   s32 CFD = OpenTitleContent(m_AccessIdentID++, GetTitleContext().tmd.GetTitleId(), Index);
   INFO_LOG(IOS_ES, "IOCTL_ES_OPENCONTENT: Index %i -> got CFD %x", Index, CFD);
@@ -82,7 +82,7 @@ IPCCommandResult ES::OpenContent(const IOCtlVRequest& request)
 IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
   u32 Size = request.io_vectors[0].size;
@@ -134,7 +134,7 @@ IPCCommandResult ES::ReadContent(const IOCtlVRequest& request)
 IPCCommandResult ES::CloseContent(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
 
@@ -163,7 +163,7 @@ IPCCommandResult ES::CloseContent(const IOCtlVRequest& request)
 IPCCommandResult ES::SeekContent(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u32 CFD = Memory::Read_U32(request.in_vectors[0].address);
   u32 Addr = Memory::Read_U32(request.in_vectors[1].address);

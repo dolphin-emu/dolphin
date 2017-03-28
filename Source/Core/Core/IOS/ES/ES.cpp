@@ -132,7 +132,7 @@ void ES::LoadWAD(const std::string& _rContentFile)
 IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -146,10 +146,10 @@ IPCCommandResult ES::GetTitleDirectory(const IOCtlVRequest& request)
 IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   if (!s_title_context.active)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = s_title_context.tmd.GetTitleId();
   Memory::Write_U64(title_id, request.io_vectors[0].address);
@@ -161,7 +161,7 @@ IPCCommandResult ES::GetTitleID(const IOCtlVRequest& request)
 IPCCommandResult ES::SetUID(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   // TODO: fs permissions based on this
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
@@ -420,7 +420,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
 IPCCommandResult ES::GetConsumption(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 2))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   // This is at least what crediar's ES module does
   Memory::Write_U32(0, request.io_vectors[1].address);
@@ -431,7 +431,7 @@ IPCCommandResult ES::GetConsumption(const IOCtlVRequest& request)
 IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 view = Memory::Read_U32(request.in_vectors[1].address);
@@ -446,7 +446,7 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
   // IOS replies to the request through the mailbox on failure, and acks if the launch succeeds.
   // Note: Launch will potentially reset the whole IOS state -- including this ES instance.
   if (!LaunchTitle(TitleID))
-    return GetDefaultReply(ES_INVALID_TMD);
+    return GetDefaultReply(FS_ENOENT);
 
   // Generate a "reply" to the IPC command.  ES_LAUNCH is unique because it
   // involves restarting IOS; IOS generates two acknowledgements in a row.
@@ -459,15 +459,15 @@ IPCCommandResult ES::Launch(const IOCtlVRequest& request)
 IPCCommandResult ES::LaunchBC(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   // Here, IOS checks the clock speed and prevents ioctlv 0x25 from being used in GC mode.
   // An alternative way to do this is to check whether the current active IOS is MIOS.
   if (GetVersion() == 0x101)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   if (!LaunchTitle(0x0000000100000100))
-    return GetDefaultReply(ES_INVALID_TMD);
+    return GetDefaultReply(FS_ENOENT);
 
   EnqueueCommandAcknowledgement(request.address, 0);
   return GetNoReply();
@@ -496,10 +496,10 @@ s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& tic
   INFO_LOG(IOS_ES, "ES_DIVerify: Title context changed: (none)");
 
   if (!tmd.IsValid() || !ticket.IsValid())
-    return ES_PARAMETER_SIZE_OR_ALIGNMENT;
+    return ES_EINVAL;
 
   if (tmd.GetTitleId() != ticket.GetTitleId())
-    return ES_PARAMETER_SIZE_OR_ALIGNMENT;
+    return ES_EINVAL;
 
   std::string tmd_path = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
 

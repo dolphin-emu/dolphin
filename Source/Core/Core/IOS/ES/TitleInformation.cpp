@@ -30,7 +30,7 @@ IPCCommandResult ES::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
                                             const IOCtlVRequest& request)
 {
   if (request.io_vectors[0].size != sizeof(u32) || !tmd.IsValid())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u16 num_contents = static_cast<u16>(IOS::ES::GetStoredContentsFromTMD(tmd).size());
   Memory::Write_U32(num_contents, request.io_vectors[0].address);
@@ -45,12 +45,12 @@ IPCCommandResult ES::GetStoredContentsCount(const IOS::ES::TMDReader& tmd,
 IPCCommandResult ES::GetStoredContents(const IOS::ES::TMDReader& tmd, const IOCtlVRequest& request)
 {
   if (!tmd.IsValid())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   if (request.in_vectors[1].size != sizeof(u32) ||
       request.io_vectors[0].size != Memory::Read_U32(request.in_vectors[1].address) * sizeof(u32))
   {
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
   }
 
   const auto contents = IOS::ES::GetStoredContentsFromTMD(tmd);
@@ -64,7 +64,7 @@ IPCCommandResult ES::GetStoredContents(const IOS::ES::TMDReader& tmd, const IOCt
 IPCCommandResult ES::GetStoredContentsCount(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != sizeof(u64))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
@@ -76,7 +76,7 @@ IPCCommandResult ES::GetStoredContentsCount(const IOCtlVRequest& request)
 IPCCommandResult ES::GetStoredContents(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1) || request.in_vectors[0].size != sizeof(u64))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
@@ -88,7 +88,7 @@ IPCCommandResult ES::GetStoredContents(const IOCtlVRequest& request)
 IPCCommandResult ES::GetTMDStoredContentsCount(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   std::vector<u8> tmd_bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
@@ -98,7 +98,7 @@ IPCCommandResult ES::GetTMDStoredContentsCount(const IOCtlVRequest& request)
 IPCCommandResult ES::GetTMDStoredContents(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   std::vector<u8> tmd_bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd_bytes.data(), request.in_vectors[0].address, tmd_bytes.size());
@@ -108,7 +108,7 @@ IPCCommandResult ES::GetTMDStoredContents(const IOCtlVRequest& request)
 IPCCommandResult ES::GetTitleCount(const std::vector<u64>& titles, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 4)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   Memory::Write_U32(static_cast<u32>(titles.size()), request.io_vectors[0].address);
 
@@ -118,7 +118,7 @@ IPCCommandResult ES::GetTitleCount(const std::vector<u64>& titles, const IOCtlVR
 IPCCommandResult ES::GetTitles(const std::vector<u64>& titles, const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const size_t max_count = Memory::Read_U32(request.in_vectors[0].address);
   for (size_t i = 0; i < std::min(max_count, titles.size()); i++)
@@ -144,7 +144,7 @@ IPCCommandResult ES::GetTitles(const IOCtlVRequest& request)
 IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
@@ -162,7 +162,7 @@ IPCCommandResult ES::GetStoredTMDSize(const IOCtlVRequest& request)
 IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
@@ -174,7 +174,7 @@ IPCCommandResult ES::GetStoredTMD(const IOCtlVRequest& request)
 
   const std::vector<u8> raw_tmd = tmd.GetRawTMD();
   if (raw_tmd.size() != request.io_vectors[0].size)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
@@ -197,7 +197,7 @@ IPCCommandResult ES::GetOwnedTitles(const IOCtlVRequest& request)
 IPCCommandResult ES::GetBoot2Version(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETBOOT2VERSION");
 
