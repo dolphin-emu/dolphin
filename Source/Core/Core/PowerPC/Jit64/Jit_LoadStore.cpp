@@ -119,7 +119,7 @@ void Jit64::lXXx(UGeckoInstruction inst)
     signExtend = true;
   }
 
-  if (CPU::GetState() != CPU::CPU_STEPPING && inst.OPCD == 32 && CanMergeNextInstructions(2) &&
+  if (!CPU::IsStepping() && inst.OPCD == 32 && CanMergeNextInstructions(2) &&
       (inst.hex & 0xFFFF0000) == 0x800D0000 &&
       (js.op[1].inst.hex == 0x28000000 ||
        (SConfig::GetInstance().bWii && js.op[1].inst.hex == 0x2C000000)) &&

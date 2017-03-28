@@ -224,7 +224,7 @@ int ShowSteps = 300;
 // FastRun - inspired by GCemu (to imitate the JIT so that they can be compared).
 void Interpreter::Run()
 {
-  while (!CPU::GetState())
+  while (CPU::GetState() == CPU::State::Running)
   {
     // CoreTiming Advance() ends the previous slice and declares the start of the next
     // one so it must always be called at the start. At boot, we are in slice -1 and must

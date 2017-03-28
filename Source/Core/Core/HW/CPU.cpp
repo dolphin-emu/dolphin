@@ -22,7 +22,7 @@ namespace CPU
 // CPU Thread execution state.
 // Requires s_state_change_lock to modify the value.
 // Read access is unsynchronized.
-static State s_state = CPU_POWERDOWN;
+static State s_state = State::PowerDown;
 
 // Synchronizes EnableStepping and PauseAndLock so only one instance can be
 // active at a time. Simplifies code by eliminating several edge cases where
@@ -50,7 +50,7 @@ static Common::Event* s_state_cpu_step_instruction_sync = nullptr;
 void Init(int cpu_core)
 {
   PowerPC::Init(cpu_core);
-  s_state = CPU_STEPPING;
+  s_state = State::Stepping;
 }
 
 void Shutdown()
@@ -73,13 +73,13 @@ static void FlushStepSyncEventLocked()
 void Run()
 {
   std::unique_lock<std::mutex> state_lock(s_state_change_lock);
-  while (s_state != CPU_POWERDOWN)
+  while (s_state != State::PowerDown)
   {
     s_state_cpu_cvar.wait(state_lock, [] { return !s_state_paused_and_locked; });
 
     switch (s_state)
     {
-    case CPU_RUNNING:
+    case State::Running:
       s_state_cpu_thread_active = true;
       state_lock.unlock();
 
@@ -91,12 +91,12 @@ void Run()
       {
         if (PowerPC::breakpoints.IsAddressBreakPoint(PC) || PowerPC::memchecks.HasAny())
         {
-          s_state = CPU_STEPPING;
+          s_state = State::Stepping;
           PowerPC::CoreMode old_mode = PowerPC::GetMode();
           PowerPC::SetMode(PowerPC::CoreMode::Interpreter);
           PowerPC::SingleStep();
           PowerPC::SetMode(old_mode);
-          s_state = CPU_RUNNING;
+          s_state = State::Running;
         }
       }
 
@@ -108,11 +108,11 @@ void Run()
       s_state_cpu_idle_cvar.notify_all();
       break;
 
-    case CPU_STEPPING:
+    case State::Stepping:
       // Wait for step command.
       s_state_cpu_cvar.wait(state_lock,
-                            [] { return s_state_cpu_step_instruction || s_state != CPU_STEPPING; });
-      if (s_state != CPU_STEPPING)
+                            [] { return s_state_cpu_step_instruction || !IsStepping(); });
+      if (!IsStepping())
       {
         // Signal event if the mode changes.
         FlushStepSyncEventLocked();
@@ -136,7 +136,7 @@ void Run()
       Host_UpdateDisasmDialog();
       break;
 
-    case CPU_POWERDOWN:
+    case State::PowerDown:
       break;
     }
   }
@@ -155,10 +155,10 @@ static void RunAdjacentSystems(bool running)
 void Stop()
 {
   // Change state and wait for it to be acknowledged.
-  // We don't need the stepping lock because CPU_POWERDOWN is a priority state which
+  // We don't need the stepping lock because State::PowerDown is a priority state which
   // will stick permanently.
   std::unique_lock<std::mutex> state_lock(s_state_change_lock);
-  s_state = CPU_POWERDOWN;
+  s_state = State::PowerDown;
   s_state_cpu_cvar.notify_one();
 
   while (s_state_cpu_thread_active)
@@ -175,7 +175,7 @@ void Stop()
 
 bool IsStepping()
 {
-  return s_state == CPU_STEPPING;
+  return s_state == State::Stepping;
 }
 
 State GetState()
@@ -215,7 +215,7 @@ void StepOpcode(Common::Event* event)
 // Requires s_state_change_lock
 static bool SetStateLocked(State s)
 {
-  if (s_state == CPU_POWERDOWN)
+  if (s_state == State::PowerDown)
     return false;
   s_state = s;
   return true;
@@ -228,7 +228,7 @@ void EnableStepping(bool stepping)
 
   if (stepping)
   {
-    SetStateLocked(CPU_STEPPING);
+    SetStateLocked(State::Stepping);
 
     while (s_state_cpu_thread_active)
     {
@@ -240,7 +240,7 @@ void EnableStepping(bool stepping)
 
     RunAdjacentSystems(false);
   }
-  else if (SetStateLocked(CPU_RUNNING))
+  else if (SetStateLocked(State::Running))
   {
     s_state_cpu_cvar.notify_one();
     RunAdjacentSystems(true);
@@ -261,7 +261,7 @@ void Break()
 
   // We'll deadlock if we synchronize, the CPU may block waiting for our caller to
   // finish resulting in the CPU loop never terminating.
-  SetStateLocked(CPU_STEPPING);
+  SetStateLocked(State::Stepping);
   RunAdjacentSystems(false);
 }
 
@@ -278,8 +278,8 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
     std::unique_lock<std::mutex> state_lock(s_state_change_lock);
     s_state_paused_and_locked = true;
 
-    was_unpaused = s_state == CPU_RUNNING;
-    SetStateLocked(CPU_STEPPING);
+    was_unpaused = s_state == State::Running;
+    SetStateLocked(State::Stepping);
 
     while (s_state_cpu_thread_active)
     {
@@ -316,7 +316,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
       {
         s_state_system_request_stepping = false;
       }
-      else if (unpause_on_unlock && SetStateLocked(CPU_RUNNING))
+      else if (unpause_on_unlock && SetStateLocked(State::Running))
       {
         was_unpaused = true;
       }
@@ -324,7 +324,7 @@ bool PauseAndLock(bool do_lock, bool unpause_on_unlock, bool control_adjacent)
       s_state_cpu_cvar.notify_one();
 
       if (control_adjacent)
-        RunAdjacentSystems(s_state == CPU_RUNNING);
+        RunAdjacentSystems(s_state == State::Running);
     }
     s_stepping_lock.unlock();
   }

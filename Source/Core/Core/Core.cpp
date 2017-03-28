@@ -352,7 +352,7 @@ static void CpuThread()
   if (!s_state_filename.empty())
   {
     // Needs to PauseAndLock the Core
-    // NOTE: EmuThread should have left us in CPU_STEPPING so nothing will happen
+    // NOTE: EmuThread should have left us in State::Stepping so nothing will happen
     //   until after the job is serviced.
     QueueHostJob([] {
       // Recheck in case Movie cleared it since.
@@ -431,11 +431,11 @@ static void FifoPlayerThread()
 
   // If we did not enter the CPU Run Loop above then run a fake one instead.
   // We need to be IsRunningAndStarted() for DolphinWX to stop us.
-  if (CPU::GetState() != CPU::CPU_POWERDOWN)
+  if (CPU::GetState() != CPU::State::PowerDown)
   {
     s_is_started = true;
     Host_Message(WM_USER_STOP);
-    while (CPU::GetState() != CPU::CPU_POWERDOWN)
+    while (CPU::GetState() != CPU::State::PowerDown)
     {
       if (!_CoreParameter.bCPUThread)
         g_video_backend->PeekMessages();
@@ -594,7 +594,7 @@ void EmuThread()
     // Spawn the CPU+GPU thread
     s_cpu_thread = std::thread(cpuThreadFunc);
 
-    while (CPU::GetState() != CPU::CPU_POWERDOWN)
+    while (CPU::GetState() != CPU::State::PowerDown)
     {
       g_video_backend->PeekMessages();
       Common::SleepCurrentThread(20);
