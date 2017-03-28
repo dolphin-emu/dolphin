@@ -26,5 +26,12 @@ std::vector<u64> GetTitleImports();
 std::vector<u64> GetTitlesWithTickets();
 
 std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd);
+
+// Start a title import.
+bool InitImport(u64 title_id);
+// Clean up the import content directory and move it back to /title.
+bool FinishImport(const IOS::ES::TMDReader& tmd);
+// Write a TMD for a title in /import atomically.
+bool WriteImportTMD(const IOS::ES::TMDReader& tmd);
 }  // namespace ES
 }  // namespace IOS

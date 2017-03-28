@@ -18,6 +18,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/ES/NandUtils.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
@@ -37,11 +38,29 @@ ES::ES(u32 device_id, const std::string& device_name) : Device(device_id, device
 {
 }
 
-void ES::Init()
+static void FinishAllStaleImports()
 {
+  const std::vector<u64> titles = IOS::ES::GetTitleImports();
+  for (const u64& title_id : titles)
+  {
+    const IOS::ES::TMDReader tmd = IOS::ES::FindImportTMD(title_id);
+    if (!tmd.IsValid())
+    {
+      File::DeleteDirRecursively(Common::GetImportTitlePath(title_id) + "/content");
+      continue;
+    }
+
+    FinishImport(tmd);
+  }
+
   const std::string import_dir = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/import";
   File::DeleteDirRecursively(import_dir);
   File::CreateDir(import_dir);
+}
+
+void ES::Init()
+{
+  FinishAllStaleImports();
 
   s_content_file = "";
   s_title_context = TitleContext{};

@@ -66,28 +66,6 @@ IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-static bool WriteImportTMD(const IOS::ES::TMDReader& tmd)
-{
-  const std::string tmd_path = Common::GetImportTitlePath(tmd.GetTitleId()) + "/content/title.tmd";
-  File::CreateFullPath(tmd_path);
-
-  File::IOFile file(tmd_path, "wb");
-  return file.WriteBytes(tmd.GetRawTMD().data(), tmd.GetRawTMD().size());
-}
-
-static bool MoveImportTMDToTitleDirectory(const IOS::ES::TMDReader& tmd)
-{
-  const std::string src = Common::GetImportTitlePath(tmd.GetTitleId()) + "/content/title.tmd";
-  const std::string dest = Common::GetTMDFileName(tmd.GetTitleId(), Common::FROM_SESSION_ROOT);
-  return File::RenameSync(src, dest);
-}
-
-static std::string GetImportContentPath(const IOS::ES::TMDReader& tmd, u32 content_id)
-{
-  return Common::GetImportTitlePath(tmd.GetTitleId()) +
-         StringFromFormat("/content/%08x.app", content_id);
-}
-
 IPCCommandResult ES::AddTMD(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
@@ -102,8 +80,8 @@ IPCCommandResult ES::AddTMD(const IOCtlVRequest& request)
   if (!m_addtitle_tmd.IsValid())
     return GetDefaultReply(ES_INVALID_TMD);
 
-  IOS::ES::UIDSys uid_sys{Common::FROM_CONFIGURED_ROOT};
-  uid_sys.AddTitle(m_addtitle_tmd.GetTitleId());
+  if (!IOS::ES::InitImport(m_addtitle_tmd.GetTitleId()))
+    return GetDefaultReply(FS_EIO);
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -124,8 +102,13 @@ IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
     return GetDefaultReply(ES_INVALID_TMD);
   }
 
-  IOS::ES::UIDSys uid_sys{Common::FROM_CONFIGURED_ROOT};
-  uid_sys.AddTitle(m_addtitle_tmd.GetTitleId());
+  // Finish a previous import (if it exists).
+  const IOS::ES::TMDReader previous_tmd = IOS::ES::FindImportTMD(m_addtitle_tmd.GetTitleId());
+  if (previous_tmd.IsValid())
+    FinishImport(previous_tmd);
+
+  if (!IOS::ES::InitImport(m_addtitle_tmd.GetTitleId()))
+    return GetDefaultReply(FS_EIO);
 
   // TODO: check and use the other vectors.
 
@@ -195,6 +178,11 @@ static bool CheckIfContentHashMatches(const std::vector<u8>& content, const IOS:
   return sha1 == info.sha1;
 }
 
+static std::string GetImportContentPath(u64 title_id, u32 content_id)
+{
+  return Common::GetImportTitlePath(title_id) + StringFromFormat("/content/%08x.app", content_id);
+}
+
 IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
@@ -238,15 +226,34 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
     return GetDefaultReply(ES_HASH_DOESNT_MATCH);
   }
 
-  // Just write all contents to the title import directory. AddTitleFinish will
-  // move the contents to the proper location.
-  const std::string tmp_path = GetImportContentPath(m_addtitle_tmd, m_addtitle_content_id);
-  File::CreateFullPath(tmp_path);
-
-  File::IOFile fp(tmp_path, "wb");
-  if (!fp.WriteBytes(decrypted_data.data(), content_info.size))
+  std::string content_path;
+  if (content_info.IsShared())
   {
-    ERROR_LOG(IOS_ES, "AddContentFinish: Failed to write to %s", tmp_path.c_str());
+    IOS::ES::SharedContentMap shared_content{Common::FROM_SESSION_ROOT};
+    content_path = shared_content.AddSharedContent(content_info.sha1);
+  }
+  else
+  {
+    content_path = GetImportContentPath(m_addtitle_tmd.GetTitleId(), m_addtitle_content_id);
+  }
+  File::CreateFullPath(content_path);
+
+  const std::string temp_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) +
+                                StringFromFormat("/tmp/%08x.app", m_addtitle_content_id);
+  File::CreateFullPath(temp_path);
+
+  {
+    File::IOFile file(temp_path, "wb");
+    if (!file.WriteBytes(decrypted_data.data(), content_info.size))
+    {
+      ERROR_LOG(IOS_ES, "AddContentFinish: Failed to write to %s", temp_path.c_str());
+      return GetDefaultReply(ES_WRITE_FAILURE);
+    }
+  }
+
+  if (!File::Rename(temp_path, content_path))
+  {
+    ERROR_LOG(IOS_ES, "AddContentFinish: Failed to move content to %s", content_path.c_str());
     return GetDefaultReply(ES_WRITE_FAILURE);
   }
 
@@ -254,66 +261,16 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
   return GetDefaultReply(IPC_SUCCESS);
 }
 
-static void AbortImport(const u64 title_id, const std::vector<std::string>& processed_paths)
-{
-  for (const auto& path : processed_paths)
-    File::Delete(path);
-
-  const std::string import_dir = Common::GetImportTitlePath(title_id);
-  File::DeleteDirRecursively(import_dir);
-}
-
 IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0) || !m_addtitle_tmd.IsValid())
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  std::vector<std::string> processed_paths;
-
-  for (const auto& content_info : m_addtitle_tmd.GetContents())
-  {
-    const std::string source = GetImportContentPath(m_addtitle_tmd, content_info.id);
-
-    // Contents may not have been all imported. This is normal and this isn't an error condition.
-    if (!File::Exists(source))
-      continue;
-
-    std::string content_path;
-    if (content_info.IsShared())
-    {
-      IOS::ES::SharedContentMap shared_content{Common::FROM_SESSION_ROOT};
-      content_path = shared_content.AddSharedContent(content_info.sha1);
-    }
-    else
-    {
-      content_path =
-          StringFromFormat("%s%08x.app", Common::GetTitleContentPath(m_addtitle_tmd.GetTitleId(),
-                                                                     Common::FROM_SESSION_ROOT)
-                                             .c_str(),
-                           content_info.id);
-    }
-
-    File::CreateFullPath(content_path);
-    if (!File::RenameSync(source, content_path))
-    {
-      ERROR_LOG(IOS_ES, "AddTitleFinish: Failed to rename %s to %s", source.c_str(),
-                content_path.c_str());
-      AbortImport(m_addtitle_tmd.GetTitleId(), processed_paths);
-      return GetDefaultReply(ES_WRITE_FAILURE);
-    }
-
-    // Do not delete shared contents even if the import fails. This is because
-    // they can be used by several titles and it's not safe to delete them.
-    //
-    // The reason we delete private contents is to avoid having a title with half-complete
-    // contents, as it can cause issues with the system menu. On the other hand, leaving
-    // shared contents does not cause any issue.
-    if (!content_info.IsShared())
-      processed_paths.push_back(content_path);
-  }
-
-  if (!WriteImportTMD(m_addtitle_tmd) || !MoveImportTMDToTitleDirectory(m_addtitle_tmd))
+  if (!WriteImportTMD(m_addtitle_tmd))
     return GetDefaultReply(ES_WRITE_FAILURE);
+
+  if (!FinishImport(m_addtitle_tmd))
+    return GetDefaultReply(FS_EIO);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLEFINISH");
   m_addtitle_tmd.SetBytes({});
@@ -325,7 +282,17 @@ IPCCommandResult ES::AddTitleCancel(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(0, 0) || !m_addtitle_tmd.IsValid())
     return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
 
-  AbortImport(m_addtitle_tmd.GetTitleId(), {});
+  const IOS::ES::TMDReader original_tmd = IOS::ES::FindInstalledTMD(m_addtitle_tmd.GetTitleId());
+  if (!original_tmd.IsValid())
+  {
+    // This should never happen unless someone messed with the installed TMD directly.
+    // Still, let's check for this case and return an error instead of potentially crashing.
+    return GetDefaultReply(FS_ENOENT);
+  }
+
+  if (!FinishImport(original_tmd))
+    return GetDefaultReply(FS_EIO);
+
   m_addtitle_tmd.SetBytes({});
   return GetDefaultReply(IPC_SUCCESS);
 }
