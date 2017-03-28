@@ -42,8 +42,8 @@ static UVIFBInfoRegister m_XFBInfoTop;
 static UVIFBInfoRegister m_XFBInfoBottom;
 static UVIFBInfoRegister m_3DFBInfoTop;  // Start making your stereoscopic demos! :p
 static UVIFBInfoRegister m_3DFBInfoBottom;
-static UVIInterruptRegister m_InterruptRegister[4];
-static UVILatchRegister m_LatchRegister[2];
+static std::array<UVIInterruptRegister, 4> m_InterruptRegister;
+static std::array<UVILatchRegister, 2> m_LatchRegister;
 static PictureConfigurationRegister m_PictureConfiguration;
 static UVIHorizontalScaling m_HorizontalScaling;
 static SVIFilterCoefTables m_FilterCoefTables;
@@ -57,9 +57,9 @@ static UVIBorderBlankRegister m_BorderHBlank;
 
 static u32 s_target_refresh_rate = 0;
 
-static u32 s_clock_freqs[2] = {
-    27000000UL, 54000000UL,
-};
+static constexpr std::array<u32, 2> s_clock_freqs{{
+    27000000, 54000000,
+}};
 
 static u64 s_ticks_last_line_start;  // number of ticks when the current full scanline started
 static u32 s_half_line_count;        // number of halflines that have occurred for this full frame
@@ -164,8 +164,7 @@ void Preset(bool _bNTSC)
   m_InterruptRegister[2].Hex = 0;
   m_InterruptRegister[3].Hex = 0;
 
-  m_LatchRegister[0].Hex = 0;
-  m_LatchRegister[1].Hex = 0;
+  m_LatchRegister = {};
 
   m_PictureConfiguration.STD = 40;
   m_PictureConfiguration.WPL = 40;
@@ -201,11 +200,13 @@ void Init()
 
 void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
 {
-  struct
+  struct MappedVar
   {
     u32 addr;
     u16* ptr;
-  } directly_mapped_vars[] = {
+  };
+
+  std::array<MappedVar, 46> directly_mapped_vars{{
       {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.Hex},
       {VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi},
       {VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo},
@@ -252,7 +253,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {VI_FBWIDTH, &m_FBWidth.Hex},
       {VI_BORDER_BLANK_END, &m_BorderHBlank.Lo},
       {VI_BORDER_BLANK_START, &m_BorderHBlank.Hi},
-  };
+  }};
 
   // Declare all the boilerplate direct MMIOs.
   for (auto& mapped_var : directly_mapped_vars)
@@ -261,11 +262,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    MMIO::DirectWrite<u16>(mapped_var.ptr));
   }
 
-  struct
-  {
-    u32 addr;
-    u16* ptr;
-  } update_params_on_read_vars[] = {
+  std::array<MappedVar, 8> update_params_on_read_vars{{
       {VI_VERTICAL_TIMING, &m_VerticalTimingRegister.Hex},
       {VI_HORIZONTAL_TIMING_0_HI, &m_HTiming0.Hi},
       {VI_HORIZONTAL_TIMING_0_LO, &m_HTiming0.Lo},
@@ -274,7 +271,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
       {VI_VBLANK_TIMING_EVEN_HI, &m_VBlankTimingEven.Hi},
       {VI_VBLANK_TIMING_EVEN_LO, &m_VBlankTimingEven.Lo},
       {VI_CLOCK, &m_Clock},
-  };
+  }};
 
   // Declare all the MMIOs that update timing params.
   for (auto& mapped_var : update_params_on_read_vars)
@@ -391,10 +388,7 @@ void RegisterMMIO(MMIO::Mapping* mmio, u32 base)
                    {
                      // shuffle2 clear all data, reset to default vals, and enter idle mode
                      m_DisplayControlRegister.RST = 0;
-                     for (UVIInterruptRegister& reg : m_InterruptRegister)
-                     {
-                       reg.Hex = 0;
-                     }
+                     m_InterruptRegister = {};
                      UpdateInterrupts();
                    }
 
