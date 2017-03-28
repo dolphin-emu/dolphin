@@ -149,7 +149,6 @@ void MEGASignatureDB::Apply(PPCSymbolDB* symbol_db) const
 {
   for (auto& it : symbol_db->AccessSymbols())
   {
-    u32 hash = it.first;
     auto& symbol = it.second;
     for (const auto& sig : m_signatures)
     {
