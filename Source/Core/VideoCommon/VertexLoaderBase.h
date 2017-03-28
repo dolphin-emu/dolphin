@@ -67,7 +67,7 @@ public:
   virtual bool IsInitialized() = 0;
 
   // For debugging / profiling
-  void AppendToString(std::string* dest) const;
+  std::string ToString() const;
 
   virtual std::string GetName() const = 0;
 

@@ -68,8 +68,7 @@ std::string Statistics::ToString()
   str += StringFromFormat("Uniform streamed: %i kB\n", stats.thisFrame.bytesUniformStreamed / 1024);
   str += StringFromFormat("Vertex Loaders: %i\n", stats.numVertexLoaders);
 
-  std::string vertex_list;
-  VertexLoaderManager::AppendListToString(&vertex_list);
+  std::string vertex_list = VertexLoaderManager::VertexLoadersToString();
 
   // TODO : at some point text1 just becomes too huge and overflows, we can't even read the added
   // stuff
