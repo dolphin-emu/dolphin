@@ -282,6 +282,7 @@
     <ClCompile Include="PowerPC\JitCommon\JitCache.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\CSVSignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\DSYSignatureDB.cpp" />
+    <ClCompile Include="PowerPC\SignatureDB\MEGASignatureDB.cpp" />
     <ClCompile Include="PowerPC\SignatureDB\SignatureDB.cpp" />
     <ClCompile Include="PowerPC\JitInterface.cpp" />
     <ClCompile Include="PowerPC\MMU.cpp" />
@@ -509,6 +510,7 @@
     <ClInclude Include="PowerPC\JitCommon\JitCache.h" />
     <ClInclude Include="PowerPC\SignatureDB\CSVSignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\DSYSignatureDB.h" />
+    <ClInclude Include="PowerPC\SignatureDB\MEGASignatureDB.h" />
     <ClInclude Include="PowerPC\SignatureDB\SignatureDB.h" />
     <ClInclude Include="PowerPC\JitInterface.h" />
     <ClInclude Include="PowerPC\PowerPC.h" />

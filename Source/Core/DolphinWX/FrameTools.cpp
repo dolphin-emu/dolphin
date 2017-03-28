@@ -243,6 +243,7 @@ void CFrame::BindDebuggerMenuBarUpdateEvents()
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_COMBINE_SIGNATURE_FILES);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_RENAME_SYMBOLS);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_USE_SIGNATURE_FILE);
+  Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_USE_MEGA_SIGNATURE_FILE);
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreInitialized, IDM_PATCH_HLE_FUNCTIONS);
 
   Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreUninitialized, IDM_JIT_NO_BLOCK_CACHE);
