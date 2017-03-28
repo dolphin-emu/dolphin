@@ -8,6 +8,7 @@
 #include <cstdlib>
 #include <fstream>
 #include <limits>
+#include <sstream>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -16,7 +17,103 @@
 #include "Core/PowerPC/PPCSymbolDB.h"
 #include "Core/PowerPC/PowerPC.h"
 
-static constexpr size_t INSTRUCTION_HEXSTRING_LENGTH = 8;
+namespace
+{
+constexpr size_t INSTRUCTION_HEXSTRING_LENGTH = 8;
+
+bool GetCode(MEGASignature* sig, std::istringstream* iss)
+{
+  std::string code;
+  if ((*iss >> code) && (code.length() % INSTRUCTION_HEXSTRING_LENGTH) == 0)
+  {
+    for (size_t i = 0; i < code.length(); i += INSTRUCTION_HEXSTRING_LENGTH)
+    {
+      std::string instruction = code.substr(i, INSTRUCTION_HEXSTRING_LENGTH);
+      u32 num = static_cast<u32>(strtoul(instruction.c_str(), nullptr, 16));
+      if (num != 0 || instruction == "........")
+      {
+        sig->code.emplace_back(num);
+      }
+      else
+      {
+        WARN_LOG(OSHLE, "MEGA database failed to parse code");
+        return false;
+      }
+    }
+    return true;
+  }
+  return false;
+}
+
+bool GetFunctionName(std::istringstream* iss, std::string* name)
+{
+  std::string buffer;
+
+  std::getline(*iss, buffer);
+  size_t next = buffer.find(" ^");
+  *name = StripSpaces(buffer.substr(0, next));
+
+  if (name->empty())
+    return false;
+
+  if (next == std::string::npos)
+    next = buffer.length();
+  iss->str(buffer.substr(next));
+  iss->clear();
+  return true;
+}
+
+bool GetName(MEGASignature* sig, std::istringstream* iss)
+{
+  std::string unknown;
+  return (*iss >> unknown) && GetFunctionName(iss, &sig->name);
+}
+
+bool GetRefs(MEGASignature* sig, std::istringstream* iss)
+{
+  std::string num, ref;
+  u32 ref_count = 1;
+  while (*iss && (*iss >> num) && !num.empty())
+  {
+    num = num.substr(1);
+    const char* ptr = num.c_str();
+    char* endptr;
+    u64 offset = strtoul(ptr, &endptr, 16);
+
+    if (ptr == endptr || offset > std::numeric_limits<u32>::max())
+    {
+      WARN_LOG(OSHLE, "MEGA database failed to parse reference %u offset", ref_count);
+      return false;
+    }
+
+    if (!GetFunctionName(iss, &ref))
+    {
+      WARN_LOG(OSHLE, "MEGA database failed to parse reference %u name", ref_count);
+      return false;
+    }
+    sig->refs.emplace_back(static_cast<u32>(offset), ref);
+
+    ref_count += 1;
+    num.clear();
+    ref.clear();
+  }
+  return true;
+}
+
+bool Compare(u32 address, u32 size, const MEGASignature& sig)
+{
+  if (size != sig.code.size() * sizeof(u32))
+    return false;
+
+  for (size_t i = 0; i < sig.code.size(); ++i)
+  {
+    if (sig.code[i] != 0 &&
+        PowerPC::HostRead_U32(static_cast<u32>(address + i * sizeof(u32))) != sig.code[i])
+      return false;
+  }
+  return true;
+}
+}  // Anonymous namespace
 
 MEGASignatureDB::MEGASignatureDB() = default;
 MEGASignatureDB::~MEGASignatureDB() = default;
@@ -73,97 +170,4 @@ void MEGASignatureDB::List() const
     DEBUG_LOG(OSHLE, "%s : %zu bytes", entry.name.c_str(), entry.code.size() * sizeof(u32));
   }
   INFO_LOG(OSHLE, "%zu functions known in current MEGA database.", m_signatures.size());
-}
-
-bool MEGASignatureDB::GetCode(MEGASignature* sig, std::istringstream* iss) const
-{
-  std::string code;
-  if ((*iss >> code) && (code.length() % INSTRUCTION_HEXSTRING_LENGTH) == 0)
-  {
-    for (size_t i = 0; i < code.length(); i += INSTRUCTION_HEXSTRING_LENGTH)
-    {
-      std::string instruction = code.substr(i, INSTRUCTION_HEXSTRING_LENGTH);
-      u32 num = static_cast<u32>(strtoul(instruction.c_str(), nullptr, 16));
-      if (num != 0 || instruction == "........")
-      {
-        sig->code.emplace_back(num);
-      }
-      else
-      {
-        WARN_LOG(OSHLE, "MEGA database failed to parse code");
-        return false;
-      }
-    }
-    return true;
-  }
-  return false;
-}
-
-bool MEGASignatureDB::GetFunctionName(std::istringstream* iss, std::string* name) const
-{
-  std::string buffer;
-
-  std::getline(*iss, buffer);
-  size_t next = buffer.find(" ^");
-  *name = StripSpaces(buffer.substr(0, next));
-
-  if (name->empty())
-    return false;
-
-  if (next == std::string::npos)
-    next = buffer.length();
-  iss->str(buffer.substr(next));
-  iss->clear();
-  return true;
-}
-
-bool MEGASignatureDB::GetName(MEGASignature* sig, std::istringstream* iss) const
-{
-  std::string unknown;
-  return (*iss >> unknown) && GetFunctionName(iss, &sig->name);
-}
-
-bool MEGASignatureDB::GetRefs(MEGASignature* sig, std::istringstream* iss) const
-{
-  std::string num, ref;
-  u32 ref_count = 1;
-  while (*iss && (*iss >> num) && !num.empty())
-  {
-    num = num.substr(1);
-    const char* ptr = num.c_str();
-    char* endptr;
-    u64 offset = strtoul(ptr, &endptr, 16);
-
-    if (ptr == endptr || offset > std::numeric_limits<u32>::max())
-    {
-      WARN_LOG(OSHLE, "MEGA database failed to parse reference %u offset", ref_count);
-      return false;
-    }
-
-    if (!GetFunctionName(iss, &ref))
-    {
-      WARN_LOG(OSHLE, "MEGA database failed to parse reference %u name", ref_count);
-      return false;
-    }
-    sig->refs.emplace_back(static_cast<u32>(offset), ref);
-
-    ref_count += 1;
-    num.clear();
-    ref.clear();
-  }
-  return true;
-}
-
-bool MEGASignatureDB::Compare(u32 address, u32 size, const MEGASignature& sig) const
-{
-  if (size != sig.code.size() * sizeof(u32))
-    return false;
-
-  for (size_t i = 0; i < sig.code.size(); ++i)
-  {
-    if (sig.code[i] != 0 &&
-        PowerPC::HostRead_U32(static_cast<u32>(address + i * sizeof(u32))) != sig.code[i])
-      return false;
-  }
-  return true;
 }
