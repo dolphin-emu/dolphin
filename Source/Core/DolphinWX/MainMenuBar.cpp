@@ -466,7 +466,7 @@ wxMenu* MainMenuBar::CreateSymbolsMenu() const
         "used in multiple games, by loading them from a .dsy file."));
   symbols_menu->Append(
       IDM_USE_MEGA_SIGNATURE_FILE, _("Apply &MEGA Signature File..."),
-      _("Must use Generate Symbol Map first! Recognise names of any standard library functions "
+      _("Must use Generate Symbols first! Recognise names of any standard library functions "
         "used in multiple games, by loading them from a .mega file."));
   symbols_menu->AppendSeparator();
   symbols_menu->Append(IDM_PATCH_HLE_FUNCTIONS, _("&Patch HLE Functions"));
