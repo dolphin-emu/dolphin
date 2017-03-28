@@ -191,7 +191,7 @@ void SyncGPU(SyncGPUReason reason, bool may_move_read_ptr)
   }
 }
 
-void PushFifoAuxBuffer(void* ptr, size_t size)
+void PushFifoAuxBuffer(const void* ptr, size_t size)
 {
   if (size > (size_t)(s_fifo_aux_data + FIFO_SIZE - s_fifo_aux_write_ptr))
   {

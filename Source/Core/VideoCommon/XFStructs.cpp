@@ -288,12 +288,12 @@ void LoadIndexedXF(u32 val, int refarray)
 
 void PreprocessIndexedXF(u32 val, int refarray)
 {
-  int index = val >> 16;
-  int size = ((val >> 12) & 0xF) + 1;
+  const u32 index = val >> 16;
+  const u32 size = ((val >> 12) & 0xF) + 1;
 
-  u32* new_data = (u32*)Memory::GetPointer(g_preprocess_cp_state.array_bases[refarray] +
-                                           g_preprocess_cp_state.array_strides[refarray] * index);
+  const u8* new_data = Memory::GetPointer(g_preprocess_cp_state.array_bases[refarray] +
+                                          g_preprocess_cp_state.array_strides[refarray] * index);
 
-  size_t buf_size = size * sizeof(u32);
+  const size_t buf_size = size * sizeof(u32);
   Fifo::PushFifoAuxBuffer(new_data, buf_size);
 }
