@@ -34,7 +34,7 @@ class USBHost : public Device
 {
 public:
   USBHost(u32 device_id, const std::string& device_name);
-  virtual ~USBHost() = default;
+  virtual ~USBHost();
 
   ReturnCode Open(const OpenRequest& request) override;
 
@@ -71,6 +71,8 @@ private:
   void DispatchHooks(const DeviceChangeHooks& hooks);
 
 #ifdef __LIBUSB__
+  libusb_context* m_libusb_context = nullptr;
+
   // Event thread for libusb
   Common::Flag m_event_thread_running;
   std::thread m_event_thread;

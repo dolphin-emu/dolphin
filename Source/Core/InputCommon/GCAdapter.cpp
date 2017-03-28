@@ -4,11 +4,9 @@
 
 #include <algorithm>
 #include <libusb.h>
-#include <memory>
 #include <mutex>
 
 #include "Common/Flag.h"
-#include "Common/LibusbContext.h"
 #include "Common/Logging/Log.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
@@ -52,7 +50,7 @@ static Common::Flag s_adapter_detect_thread_running;
 static std::function<void(void)> s_detect_callback;
 
 static bool s_libusb_driver_not_supported = false;
-static std::shared_ptr<libusb_context> s_libusb_context;
+static libusb_context* s_libusb_context;
 #if defined(__FreeBSD__) && __FreeBSD__ >= 11
 static bool s_libusb_hotplug_enabled = true;
 #else
@@ -118,8 +116,8 @@ static void ScanThreadFunc()
   if (s_libusb_hotplug_enabled)
   {
     if (libusb_hotplug_register_callback(
-            s_libusb_context.get(), (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
-                                                           LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
+            s_libusb_context, (libusb_hotplug_event)(LIBUSB_HOTPLUG_EVENT_DEVICE_ARRIVED |
+                                                     LIBUSB_HOTPLUG_EVENT_DEVICE_LEFT),
             LIBUSB_HOTPLUG_ENUMERATE, 0x057e, 0x0337, LIBUSB_HOTPLUG_MATCH_ANY, HotplugCallback,
             nullptr, &s_hotplug_handle) != LIBUSB_SUCCESS)
       s_libusb_hotplug_enabled = false;
@@ -133,7 +131,7 @@ static void ScanThreadFunc()
     if (s_libusb_hotplug_enabled)
     {
       static timeval tv = {0, 500000};
-      libusb_handle_events_timeout(s_libusb_context.get(), &tv);
+      libusb_handle_events_timeout(s_libusb_context, &tv);
     }
     else
     {
@@ -179,9 +177,12 @@ void StartScanThread()
   if (s_adapter_detect_thread_running.IsSet())
     return;
 
-  s_libusb_context = LibusbContext::Get();
-  if (!s_libusb_context)
+  const int ret = libusb_init(&s_libusb_context);
+  if (ret < 0)
+  {
+    ERROR_LOG(SERIALINTERFACE, "libusb_init failed with error: %d", ret);
     return;
+  }
   s_adapter_detect_thread_running.Set(true);
   s_adapter_detect_thread = std::thread(ScanThreadFunc);
 }
@@ -197,7 +198,7 @@ void StopScanThread()
 static void Setup()
 {
   libusb_device** list;
-  ssize_t cnt = libusb_get_device_list(s_libusb_context.get(), &list);
+  ssize_t cnt = libusb_get_device_list(s_libusb_context, &list);
 
   for (int i = 0; i < SerialInterface::MAX_SI_CHANNELS; i++)
   {
@@ -329,11 +330,15 @@ void Shutdown()
   StopScanThread();
 #if defined(LIBUSB_API_VERSION) && LIBUSB_API_VERSION >= 0x01000102
   if (s_libusb_context && s_libusb_hotplug_enabled)
-    libusb_hotplug_deregister_callback(s_libusb_context.get(), s_hotplug_handle);
+    libusb_hotplug_deregister_callback(s_libusb_context, s_hotplug_handle);
 #endif
   Reset();
 
-  s_libusb_context.reset();
+  if (s_libusb_context)
+  {
+    libusb_exit(s_libusb_context);
+    s_libusb_context = nullptr;
+  }
   s_libusb_driver_not_supported = false;
 }
 
