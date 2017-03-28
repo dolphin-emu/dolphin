@@ -188,6 +188,30 @@ typedef mcontext_t SContext;
 #else
 #error No context definition for architecture
 #endif
+#elif defined(__HAIKU__)
+#include <signal.h>
+typedef mcontext_t SContext;
+#if _M_X86_64
+#define CTX_RAX rax
+#define CTX_RBX rbx
+#define CTX_RCX rcx
+#define CTX_RDX rdx
+#define CTX_RDI rdi
+#define CTX_RSI rsi
+#define CTX_RBP rbp
+#define CTX_RSP rsp
+#define CTX_R8 r8
+#define CTX_R9 r9
+#define CTX_R10 r10
+#define CTX_R11 r11
+#define CTX_R12 r12
+#define CTX_R13 r13
+#define CTX_R14 r14
+#define CTX_R15 r15
+#define CTX_RIP rip
+#else
+#error No context definition for machine
+#endif
 #else
 #error No context definition for OS
 #endif

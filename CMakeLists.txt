@@ -89,8 +89,13 @@ set(LIBS)
 
 # Set up paths
 set(bindir  ${CMAKE_INSTALL_PREFIX}/bin               CACHE PATH "bindir")
-set(datadir ${CMAKE_INSTALL_PREFIX}/share/dolphin-emu CACHE PATH "datadir")
-set(mandir  ${CMAKE_INSTALL_PREFIX}/share/man         CACHE PATH "mandir")
+if(HAIKU)
+	set(datadir ${CMAKE_INSTALL_PREFIX}/data/dolphin-emu  CACHE PATH "datadir")
+	set(mandir  ${CMAKE_INSTALL_PREFIX}/documentation/man CACHE PATH "mandir")
+else()
+	set(datadir ${CMAKE_INSTALL_PREFIX}/share/dolphin-emu CACHE PATH "datadir")
+	set(mandir  ${CMAKE_INSTALL_PREFIX}/share/man         CACHE PATH "mandir")
+endif()
 add_definitions(-DDATA_DIR="${datadir}/")
 
 if(CMAKE_SYSROOT)
@@ -399,6 +404,10 @@ if(ANDROID)
   SET(CMAKE_FIND_ROOT_PATH_MODE_INCLUDE ONLY)
   SET(CMAKE_FIND_ROOT_PATH_MODE_PROGRAM NEVER)
   SET(CMAKE_FIND_ROOT_PATH_MODE_PACKAGE ONLY)
+elseif(HAIKU)
+  set(USE_X11 0)
+  set(USE_UPNP 0)
+  set(USE_EGL 0)
 elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux")
   list(APPEND LIBS rt)
 endif()
@@ -438,7 +447,7 @@ endif()
 
 set(USE_X11 0)
 
-if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT ENABLE_HEADLESS)
+if(UNIX AND NOT APPLE AND NOT ANDROID AND NOT HAIKU AND NOT ENABLE_HEADLESS)
   find_package(X11)
   if(TRY_X11 AND X11_FOUND)
     set(USE_X11 1)
@@ -808,7 +817,7 @@ if(NOT DISABLE_WX)
     endif()
   endif()
 
-  if(UNIX AND NOT APPLE)
+  if(UNIX AND NOT APPLE AND NOT HAIKU)
     # There is a bug in the FindGTK module in cmake version 2.8.2 that
     # does not find gdk-pixbuf-2.0.  On the other hand some 2.8.3
     # users have complained that pkg-config does not find

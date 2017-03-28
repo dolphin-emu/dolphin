@@ -8,6 +8,9 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #endif
+#ifdef __HAIKU__
+#include <sys/select.h>
+#endif
 
 #include "Common/FileUtil.h"
 #include "Core/ConfigManager.h"
@@ -162,8 +165,12 @@ s32 WiiSocket::CloseFd()
 
 s32 WiiSocket::FCntl(u32 cmd, u32 arg)
 {
+#ifndef F_GETFL
 #define F_GETFL 3
+#endif
+#ifndef F_SETFL
 #define F_SETFL 4
+#endif
 #define F_NONBLOCK 4
   s32 ret = 0;
   if (cmd == F_GETFL)
