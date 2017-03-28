@@ -85,7 +85,8 @@ private:
   void Write32(u32 data, u32 offset, std::vector<u8>* const buffer);
 
   // FST creation
-  void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length);
+  void WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset, u64 length,
+                      u32 address_shift);
   void WriteEntryName(u32* name_offset, const std::string& name);
   void WriteDirectory(const File::FSTEntry& parent_entry, u32* fst_offset, u32* name_offset,
                       u64* data_offset, u32 parent_entry_index);

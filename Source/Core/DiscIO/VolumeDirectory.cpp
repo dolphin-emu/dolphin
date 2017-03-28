@@ -369,7 +369,7 @@ void CVolumeDirectory::BuildFST()
   u32 root_offset = 0;  // Offset of root of FST
 
   // write root entry
-  WriteEntryData(&fst_offset, DIRECTORY_ENTRY, 0, 0, total_entries);
+  WriteEntryData(&fst_offset, DIRECTORY_ENTRY, 0, 0, total_entries, m_address_shift);
 
   WriteDirectory(rootEntry, &fst_offset, &name_offset, &current_data_address, root_offset);
 
@@ -425,7 +425,7 @@ void CVolumeDirectory::Write32(u32 data, u32 offset, std::vector<u8>* const buff
 }
 
 void CVolumeDirectory::WriteEntryData(u32* entry_offset, u8 type, u32 name_offset, u64 data_offset,
-                                      u64 length)
+                                      u64 length, u32 address_shift)
 {
   m_fst_data[(*entry_offset)++] = type;
 
@@ -433,7 +433,7 @@ void CVolumeDirectory::WriteEntryData(u32* entry_offset, u8 type, u32 name_offse
   m_fst_data[(*entry_offset)++] = (name_offset >> 8) & 0xff;
   m_fst_data[(*entry_offset)++] = (name_offset)&0xff;
 
-  Write32((u32)(data_offset >> m_address_shift), *entry_offset, &m_fst_data);
+  Write32((u32)(data_offset >> address_shift), *entry_offset, &m_fst_data);
   *entry_offset += 4;
 
   Write32((u32)length, *entry_offset, &m_fst_data);
@@ -465,8 +465,8 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* f
     if (entry.isDirectory)
     {
       u32 entry_index = *fst_offset / ENTRY_SIZE;
-      WriteEntryData(fst_offset, DIRECTORY_ENTRY, *name_offset,
-                     parent_entry_index << m_address_shift, entry_index + entry.size + 1);
+      WriteEntryData(fst_offset, DIRECTORY_ENTRY, *name_offset, parent_entry_index,
+                     entry_index + entry.size + 1, 0);
       WriteEntryName(name_offset, entry.virtualName);
 
       WriteDirectory(entry, fst_offset, name_offset, data_offset, entry_index);
@@ -474,7 +474,8 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* f
     else
     {
       // put entry in FST
-      WriteEntryData(fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.size);
+      WriteEntryData(fst_offset, FILE_ENTRY, *name_offset, *data_offset, entry.size,
+                     m_address_shift);
       WriteEntryName(name_offset, entry.virtualName);
 
       // write entry to virtual disk
