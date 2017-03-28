@@ -94,7 +94,6 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
     if (func.size >= CODEBUFFER_SIZE * 4)  // weird
       return false;
 
-    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
     if (max_size && func.size > max_size)
     {
       func.address = startAddr;
@@ -104,7 +103,9 @@ bool AnalyzeFunction(u32 startAddr, Symbol& func, int max_size)
         func.flags |= FFLAG_STRAIGHT;
       return true;
     }
-    if (PPCTables::IsValidInstruction(instr))
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
+    const UGeckoInstruction instr = read_result.hex;
+    if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
       if (instr.hex == 0x4e800020)  // 4e800021 is blrl, not the end of a function
       {
@@ -271,9 +272,10 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func
 {
   for (u32 addr = startAddr; addr < endAddr; addr += 4)
   {
-    const UGeckoInstruction instr = PowerPC::HostRead_Instruction(addr);
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(addr);
+    const UGeckoInstruction instr = read_result.hex;
 
-    if (PPCTables::IsValidInstruction(instr))
+    if (read_result.valid && PPCTables::IsValidInstruction(instr))
     {
       switch (instr.OPCD)
       {
@@ -309,11 +311,15 @@ static void FindFunctionsAfterBLR(PPCSymbolDB* func_db)
   {
     while (true)
     {
-      // skip zeroes that sometimes pad function to 16 byte boundary (e.g. Donkey Kong Country
+      // Skip zeroes that sometimes pad function to 16 byte boundary (e.g. Donkey Kong Country
       // Returns)
-      while (PowerPC::HostRead_Instruction(location) == 0 && ((location & 0xf) != 0))
+      PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(location);
+      while (read_result.valid && read_result.hex == 0 && (location & 0xf) != 0)
+      {
         location += 4;
-      if (PPCTables::IsValidInstruction(PowerPC::HostRead_Instruction(location)))
+        read_result = PowerPC::TryReadInstruction(location);
+      }
+      if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
       {
         // check if this function is already mapped
         Symbol* f = func_db->AddFunction(location);
