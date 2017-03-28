@@ -9,6 +9,7 @@
 #include <fstream>
 #include <limits>
 #include <sstream>
+#include <utility>
 
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -91,7 +92,7 @@ bool GetRefs(MEGASignature* sig, std::istringstream* iss)
       WARN_LOG(OSHLE, "MEGA database failed to parse reference %u name", ref_count);
       return false;
     }
-    sig->refs.emplace_back(static_cast<u32>(offset), ref);
+    sig->refs.emplace_back(static_cast<u32>(offset), std::move(ref));
 
     ref_count += 1;
     num.clear();
@@ -120,12 +121,13 @@ MEGASignatureDB::~MEGASignatureDB() = default;
 
 bool MEGASignatureDB::Load(const std::string& file_path)
 {
-  std::string line;
   std::ifstream ifs;
   OpenFStream(ifs, file_path, std::ios_base::in);
 
   if (!ifs)
     return false;
+
+  std::string line;
   for (size_t i = 1; std::getline(ifs, line); ++i)
   {
     std::istringstream iss(line);
@@ -133,7 +135,7 @@ bool MEGASignatureDB::Load(const std::string& file_path)
 
     if (GetCode(&sig, &iss) && GetName(&sig, &iss) && GetRefs(&sig, &iss))
     {
-      m_signatures.push_back(sig);
+      m_signatures.push_back(std::move(sig));
     }
     else
     {
