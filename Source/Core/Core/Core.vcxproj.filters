@@ -209,6 +209,9 @@
     <ClCompile Include="Debugger\PPCDebugInterface.cpp">
       <Filter>Debugger</Filter>
     </ClCompile>
+    <ClCompile Include="Debugger\RSO.cpp">
+      <Filter>Debugger</Filter>
+    </ClCompile>
     <ClCompile Include="DSP\Interpreter\DSPIntArithmetic.cpp">
       <Filter>DSPCore\Interpreter</Filter>
     </ClCompile>
@@ -926,6 +929,9 @@
       <Filter>Debugger</Filter>
     </ClInclude>
     <ClInclude Include="Debugger\PPCDebugInterface.h">
+      <Filter>Debugger</Filter>
+    </ClInclude>
+    <ClInclude Include="Debugger\RSO.h">
       <Filter>Debugger</Filter>
     </ClInclude>
     <ClInclude Include="DSP\Interpreter\DSPIntCCUtil.h">
