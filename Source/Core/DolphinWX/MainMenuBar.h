@@ -46,6 +46,7 @@ private:
   void RefreshMenuLabels() const;
   void RefreshPlayMenuLabel() const;
   void RefreshSaveStateMenuLabels() const;
+  void RefreshWiiToolsLabels() const;
   void RefreshWiiSystemMenuLabel() const;
 
   void ClearSavedPerspectivesMenu() const;

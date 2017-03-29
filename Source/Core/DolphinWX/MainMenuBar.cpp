@@ -514,7 +514,7 @@ void MainMenuBar::RefreshMenuLabels() const
 {
   RefreshPlayMenuLabel();
   RefreshSaveStateMenuLabels();
-  RefreshWiiSystemMenuLabel();
+  RefreshWiiToolsLabels();
 }
 
 void MainMenuBar::RefreshPlayMenuLabel() const
@@ -543,6 +543,21 @@ void MainMenuBar::RefreshSaveStateMenuLabels() const
     FindItem(IDM_SELECT_SLOT_1 + i)
         ->SetItemLabel(wxString::Format(_("Select Slot %u - %s"), slot_number, slot_string));
   }
+}
+
+void MainMenuBar::RefreshWiiToolsLabels() const
+{
+  RefreshWiiSystemMenuLabel();
+
+  // The Install WAD option should not be enabled while emulation is running, because
+  // having unexpected title changes can confuse emulated software; and of course, this is
+  // not possible on a real Wii and won't be if we have IOS LLE (or simply more accurate IOS HLE).
+  //
+  // For similar reasons, it should not be possible to export or import saves, because this can
+  // result in the emulated software being confused, or even worse, exported saves having
+  // inconsistent data.
+  for (const int index : {IDM_MENU_INSTALL_WAD, IDM_EXPORT_ALL_SAVE, IDM_IMPORT_SAVE})
+    FindItem(index)->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
 }
 
 void MainMenuBar::RefreshWiiSystemMenuLabel() const

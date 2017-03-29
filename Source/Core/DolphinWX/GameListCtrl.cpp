@@ -984,8 +984,17 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
       }
       if (platform == DiscIO::Platform::WII_DISC || platform == DiscIO::Platform::WII_WAD)
       {
-        popupMenu.Append(IDM_OPEN_SAVE_FOLDER, _("Open Wii &save folder"));
-        popupMenu.Append(IDM_EXPORT_SAVE, _("Export Wii save (Experimental)"));
+        auto* const open_save_folder_item =
+            popupMenu.Append(IDM_OPEN_SAVE_FOLDER, _("Open Wii &save folder"));
+        auto* const export_save_item =
+            popupMenu.Append(IDM_EXPORT_SAVE, _("Export Wii save (Experimental)"));
+
+        // We should not allow the user to mess with the save folder or export saves while
+        // emulation is running, because this could result in the exported save being in
+        // an inconsistent state; the emulated software can do *anything* to its data directory,
+        // and we definitely do not want the user to touch anything in there if it's running.
+        for (auto* menu_item : {open_save_folder_item, export_save_item})
+          menu_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
       }
       popupMenu.Append(IDM_OPEN_CONTAINING_FOLDER, _("Open &containing folder"));
 
@@ -1011,7 +1020,12 @@ void CGameListCtrl::OnRightClick(wxMouseEvent& event)
       }
 
       if (platform == DiscIO::Platform::WII_WAD)
-        popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to Wii Menu"));
+      {
+        auto* const install_wad_item =
+            popupMenu.Append(IDM_LIST_INSTALL_WAD, _("Install to Wii Menu"));
+        // This should not be allowed while emulation is running, just like the Install WAD option.
+        install_wad_item->Enable(!Core::IsRunning() || !SConfig::GetInstance().bWii);
+      }
 
       popupMenu.Append(IDM_START_NETPLAY, _("Host with Netplay"));
 
