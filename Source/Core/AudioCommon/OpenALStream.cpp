@@ -159,28 +159,20 @@ void OpenALStream::SoundLoop()
 {
   Common::SetCurrentThreadName("Audio thread - openal");
 
-  bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
-  bool float32_capable = false;
-  bool fixed32_capable = false;
+  bool float32_capable = alIsExtensionPresent("AL_EXT_float32") != 0;
+  bool surround_capable =
+      SConfig::GetInstance().bDPL2Decoder && alIsExtensionPresent("AL_EXT_MCFORMATS");
 
-#if defined(__APPLE__)
-  surround_capable = false;
-#endif
+  // As there is no extension to check for 32-bit fixed point support
+  // and we know that only a X-Fi with hardware OpenAL supports it,
+  // we just check if one is being used.
+  bool fixed32_capable = strstr(alGetString(AL_RENDERER), "X-Fi") != nullptr;
 
   u32 ulFrequency = m_mixer->GetSampleRate();
   numBuffers = SConfig::GetInstance().iLatency + 2;  // OpenAL requires a minimum of two buffers
 
   memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
   uiSource = 0;
-
-  if (alIsExtensionPresent("AL_EXT_float32"))
-    float32_capable = true;
-
-  // As there is no extension to check for 32-bit fixed point support
-  // and we know that only a X-Fi with hardware OpenAL supports it,
-  // we just check if one is being used.
-  if (strstr(alGetString(AL_RENDERER), "X-Fi"))
-    fixed32_capable = true;
 
   // Clear error state before querying or else we get false positives.
   ALenum err = alGetError();
