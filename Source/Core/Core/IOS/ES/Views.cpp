@@ -38,7 +38,7 @@ static bool ShouldReturnFakeViewsForIOSes(u64 title_id, const TitleContext& cont
 IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -61,7 +61,7 @@ IPCCommandResult ES::GetTicketViewCount(const IOCtlVRequest& request)
 IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 maxViews = Memory::Read_U32(request.in_vectors[1].address);
@@ -93,7 +93,7 @@ IPCCommandResult ES::GetTicketViews(const IOCtlVRequest& request)
 IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
 
@@ -112,7 +112,7 @@ IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
 IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
@@ -124,7 +124,7 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 
   const std::vector<u8> raw_view = tmd.GetRawView();
   if (raw_view.size() != request.io_vectors[0].size)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   Memory::CopyToEmu(request.io_vectors[0].address, raw_view.data(), raw_view.size());
 
@@ -135,14 +135,14 @@ IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 IPCCommandResult ES::DIGetTMDViewSize(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   // Sanity check the TMD size.
   if (request.in_vectors[0].size >= 4 * 1024 * 1024)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   if (request.io_vectors[0].size != sizeof(u32))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const bool has_tmd = request.in_vectors[0].size != 0;
   size_t tmd_view_size = 0;
@@ -156,7 +156,7 @@ IPCCommandResult ES::DIGetTMDViewSize(const IOCtlVRequest& request)
     // Yes, this returns -1017, not ES_INVALID_TMD.
     // IOS simply checks whether the TMD has all required content entries.
     if (!tmd.IsValid())
-      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+      return GetDefaultReply(ES_EINVAL);
 
     tmd_view_size = tmd.GetRawView().size();
   }
@@ -164,7 +164,7 @@ IPCCommandResult ES::DIGetTMDViewSize(const IOCtlVRequest& request)
   {
     // If no TMD was passed in and no title is active, IOS returns -1017.
     if (!GetTitleContext().active)
-      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+      return GetDefaultReply(ES_EINVAL);
 
     tmd_view_size = GetTitleContext().tmd.GetRawView().size();
   }
@@ -176,17 +176,17 @@ IPCCommandResult ES::DIGetTMDViewSize(const IOCtlVRequest& request)
 IPCCommandResult ES::DIGetTMDView(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   // Sanity check the TMD size.
   if (request.in_vectors[0].size >= 4 * 1024 * 1024)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   // Check whether the TMD view size is consistent.
   if (request.in_vectors[1].size != sizeof(u32) ||
       Memory::Read_U32(request.in_vectors[1].address) != request.io_vectors[0].size)
   {
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
   }
 
   const bool has_tmd = request.in_vectors[0].size != 0;
@@ -199,7 +199,7 @@ IPCCommandResult ES::DIGetTMDView(const IOCtlVRequest& request)
     const IOS::ES::TMDReader tmd{std::move(tmd_bytes)};
 
     if (!tmd.IsValid())
-      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+      return GetDefaultReply(ES_EINVAL);
 
     tmd_view = tmd.GetRawView();
   }
@@ -207,13 +207,13 @@ IPCCommandResult ES::DIGetTMDView(const IOCtlVRequest& request)
   {
     // If no TMD was passed in and no title is active, IOS returns -1017.
     if (!GetTitleContext().active)
-      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+      return GetDefaultReply(ES_EINVAL);
 
     tmd_view = GetTitleContext().tmd.GetRawView();
   }
 
   if (tmd_view.size() != request.io_vectors[0].size)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   Memory::CopyToEmu(request.io_vectors[0].address, tmd_view.data(), tmd_view.size());
   return GetDefaultReply(IPC_SUCCESS);
@@ -224,14 +224,14 @@ IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1) ||
       request.io_vectors[0].size != sizeof(IOS::ES::TicketView))
   {
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
   }
 
   const bool has_ticket_vector = request.in_vectors[0].size == 0x2A4;
 
   // This ioctlv takes either a signed ticket or no ticket, in which case the ticket size must be 0.
   if (!has_ticket_vector && request.in_vectors[0].size != 0)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   std::vector<u8> view;
 
@@ -240,7 +240,7 @@ IPCCommandResult ES::DIGetTicketView(const IOCtlVRequest& request)
   if (!has_ticket_vector)
   {
     if (!GetTitleContext().active)
-      return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+      return GetDefaultReply(ES_EINVAL);
 
     view = GetTitleContext().ticket.GetRawTicketView(0);
   }

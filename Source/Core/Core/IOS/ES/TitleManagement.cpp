@@ -32,14 +32,14 @@ namespace Device
 IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   std::vector<u8> bytes(request.in_vectors[0].size);
   Memory::CopyFromEmu(bytes.data(), request.in_vectors[0].address, request.in_vectors[0].size);
 
   IOS::ES::TicketReader ticket{std::move(bytes)};
   if (!ticket.IsValid())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u32 ticket_device_id = ticket.GetDeviceId();
   const u32 device_id = EcWii::GetInstance().GetNGID();
@@ -60,7 +60,7 @@ IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
   }
 
   if (!DiscIO::AddTicket(ticket))
-    return GetDefaultReply(ES_WRITE_FAILURE);
+    return GetDefaultReply(ES_EIO);
 
   INFO_LOG(IOS_ES, "AddTicket: Imported ticket for title %016" PRIx64, ticket.GetTitleId());
   return GetDefaultReply(IPC_SUCCESS);
@@ -69,7 +69,7 @@ IPCCommandResult ES::AddTicket(const IOCtlVRequest& request)
 IPCCommandResult ES::AddTMD(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   std::vector<u8> tmd(request.in_vectors[0].size);
   Memory::CopyFromEmu(tmd.data(), request.in_vectors[0].address, request.in_vectors[0].size);
@@ -77,8 +77,9 @@ IPCCommandResult ES::AddTMD(const IOCtlVRequest& request)
   // Ioctlv 0x2b writes the TMD to /tmp/title.tmd (for imports) and doesn't seem to write it
   // to either /import or /title. So here we simply have to set the import TMD.
   m_addtitle_tmd.SetBytes(std::move(tmd));
+  // TODO: validate TMDs and return the proper error code (-1027) if the signature type is invalid.
   if (!m_addtitle_tmd.IsValid())
-    return GetDefaultReply(ES_INVALID_TMD);
+    return GetDefaultReply(ES_EINVAL);
 
   if (!IOS::ES::InitImport(m_addtitle_tmd.GetTitleId()))
     return GetDefaultReply(FS_EIO);
@@ -89,7 +90,7 @@ IPCCommandResult ES::AddTMD(const IOCtlVRequest& request)
 IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(4, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDTITLESTART");
   std::vector<u8> tmd(request.in_vectors[0].size);
@@ -99,7 +100,7 @@ IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
   if (!m_addtitle_tmd.IsValid())
   {
     ERROR_LOG(IOS_ES, "Invalid TMD while adding title (size = %zd)", tmd.size());
-    return GetDefaultReply(ES_INVALID_TMD);
+    return GetDefaultReply(ES_EINVAL);
   }
 
   // Finish a previous import (if it exists).
@@ -118,7 +119,7 @@ IPCCommandResult ES::AddTitleStart(const IOCtlVRequest& request)
 IPCCommandResult ES::AddContentStart(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   u32 content_id = Memory::Read_U32(request.in_vectors[1].address);
@@ -127,7 +128,7 @@ IPCCommandResult ES::AddContentStart(const IOCtlVRequest& request)
   {
     ERROR_LOG(IOS_ES, "Trying to add content when we haven't finished adding "
                       "another content. Unsupported.");
-    return GetDefaultReply(ES_WRITE_FAILURE);
+    return GetDefaultReply(ES_EINVAL);
   }
   m_addtitle_content_id = content_id;
 
@@ -138,7 +139,7 @@ IPCCommandResult ES::AddContentStart(const IOCtlVRequest& request)
            title_id, m_addtitle_content_id);
 
   if (!m_addtitle_tmd.IsValid())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   if (title_id != m_addtitle_tmd.GetTitleId())
   {
@@ -158,7 +159,7 @@ IPCCommandResult ES::AddContentStart(const IOCtlVRequest& request)
 IPCCommandResult ES::AddContentData(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTDATA: content fd %08x, "
@@ -186,22 +187,22 @@ static std::string GetImportContentPath(u64 title_id, u32 content_id)
 IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   if (m_addtitle_content_id == 0xFFFFFFFF)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u32 content_fd = Memory::Read_U32(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_ADDCONTENTFINISH: content fd %08x", content_fd);
 
   if (!m_addtitle_tmd.IsValid())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   // Try to find the title key from a pre-installed ticket.
   IOS::ES::TicketReader ticket = DiscIO::FindSignedTicket(m_addtitle_tmd.GetTitleId());
   if (!ticket.IsValid())
   {
-    return GetDefaultReply(ES_NO_TICKET_INSTALLED);
+    return GetDefaultReply(ES_NO_TICKET);
   }
 
   mbedtls_aes_context aes_ctx;
@@ -212,7 +213,7 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
   IOS::ES::Content content_info;
   if (!m_addtitle_tmd.FindContentById(m_addtitle_content_id, &content_info))
   {
-    return GetDefaultReply(ES_INVALID_TMD);
+    return GetDefaultReply(ES_EINVAL);
   }
   u8 iv[16] = {0};
   iv[0] = (content_info.index >> 8) & 0xFF;
@@ -223,7 +224,7 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
   if (!CheckIfContentHashMatches(decrypted_data, content_info))
   {
     ERROR_LOG(IOS_ES, "AddContentFinish: Hash for content %08x doesn't match", content_info.id);
-    return GetDefaultReply(ES_HASH_DOESNT_MATCH);
+    return GetDefaultReply(ES_HASH_MISMATCH);
   }
 
   std::string content_path;
@@ -247,14 +248,14 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
     if (!file.WriteBytes(decrypted_data.data(), content_info.size))
     {
       ERROR_LOG(IOS_ES, "AddContentFinish: Failed to write to %s", temp_path.c_str());
-      return GetDefaultReply(ES_WRITE_FAILURE);
+      return GetDefaultReply(ES_EIO);
     }
   }
 
   if (!File::Rename(temp_path, content_path))
   {
     ERROR_LOG(IOS_ES, "AddContentFinish: Failed to move content to %s", content_path.c_str());
-    return GetDefaultReply(ES_WRITE_FAILURE);
+    return GetDefaultReply(ES_EIO);
   }
 
   m_addtitle_content_id = 0xFFFFFFFF;
@@ -264,10 +265,10 @@ IPCCommandResult ES::AddContentFinish(const IOCtlVRequest& request)
 IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0) || !m_addtitle_tmd.IsValid())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   if (!WriteImportTMD(m_addtitle_tmd))
-    return GetDefaultReply(ES_WRITE_FAILURE);
+    return GetDefaultReply(ES_EIO);
 
   if (!FinishImport(m_addtitle_tmd))
     return GetDefaultReply(FS_EIO);
@@ -280,7 +281,7 @@ IPCCommandResult ES::AddTitleFinish(const IOCtlVRequest& request)
 IPCCommandResult ES::AddTitleCancel(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0) || !m_addtitle_tmd.IsValid())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const IOS::ES::TMDReader original_tmd = IOS::ES::FindInstalledTMD(m_addtitle_tmd.GetTitleId());
   if (!original_tmd.IsValid())
@@ -306,12 +307,12 @@ static bool CanDeleteTitle(u64 title_id)
 IPCCommandResult ES::DeleteTitle(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 8)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
 
   if (!CanDeleteTitle(title_id))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const std::string title_dir =
       StringFromFormat("%s/title/%08x/%08x/", RootUserPath(Common::FROM_SESSION_ROOT).c_str(),
@@ -334,14 +335,14 @@ IPCCommandResult ES::DeleteTitle(const IOCtlVRequest& request)
 IPCCommandResult ES::DeleteTicket(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_DELETETICKET: title: %08x/%08x", (u32)(TitleID >> 32), (u32)TitleID);
 
   // Presumably return -1017 when delete fails
   if (!File::Delete(Common::GetTicketFileName(TitleID, Common::FROM_SESSION_ROOT)))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -349,7 +350,7 @@ IPCCommandResult ES::DeleteTicket(const IOCtlVRequest& request)
 IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
   INFO_LOG(IOS_ES, "IOCTL_ES_DELETETITLECONTENT: title: %08x/%08x", (u32)(TitleID >> 32),
@@ -357,7 +358,7 @@ IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
 
   // Presumably return -1017 when title not installed TODO verify
   if (!DiscIO::CNANDContentManager::Access().RemoveTitle(TitleID, Common::FROM_SESSION_ROOT))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   return GetDefaultReply(IPC_SUCCESS);
 }
@@ -365,11 +366,11 @@ IPCCommandResult ES::DeleteTitleContent(const IOCtlVRequest& request)
 IPCCommandResult ES::ExportTitleInit(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != 8)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   // No concurrent title import/export is allowed.
   if (m_export_title_context.valid)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const auto tmd = IOS::ES::FindInstalledTMD(Memory::Read_U64(request.in_vectors[0].address));
   if (!tmd.IsValid())
@@ -379,15 +380,15 @@ IPCCommandResult ES::ExportTitleInit(const IOCtlVRequest& request)
 
   const auto ticket = DiscIO::FindSignedTicket(m_export_title_context.tmd.GetTitleId());
   if (!ticket.IsValid())
-    return GetDefaultReply(ES_NO_TICKET_INSTALLED);
+    return GetDefaultReply(ES_NO_TICKET);
   if (ticket.GetTitleId() != m_export_title_context.tmd.GetTitleId())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   m_export_title_context.title_key = ticket.GetTitleKey();
 
   const auto& raw_tmd = m_export_title_context.tmd.GetRawTMD();
   if (request.io_vectors[0].size != raw_tmd.size())
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   Memory::CopyToEmu(request.io_vectors[0].address, raw_tmd.data(), raw_tmd.size());
 
@@ -399,7 +400,7 @@ IPCCommandResult ES::ExportContentBegin(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(2, 0) || request.in_vectors[0].size != 8 ||
       request.in_vectors[1].size != 4)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
   const u32 content_id = Memory::Read_U32(request.in_vectors[1].address);
@@ -407,7 +408,7 @@ IPCCommandResult ES::ExportContentBegin(const IOCtlVRequest& request)
   if (!m_export_title_context.valid || m_export_title_context.tmd.GetTitleId() != title_id)
   {
     ERROR_LOG(IOS_ES, "Tried to use ExportContentBegin with an invalid title export context.");
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
   }
 
   const auto& content_loader = AccessContentDevice(title_id);
@@ -416,7 +417,7 @@ IPCCommandResult ES::ExportContentBegin(const IOCtlVRequest& request)
 
   const auto* content = content_loader.GetContentByID(content_id);
   if (!content)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   OpenedContent entry;
   entry.m_position = 0;
@@ -443,7 +444,7 @@ IPCCommandResult ES::ExportContentData(const IOCtlVRequest& request)
   if (!request.HasNumberOfValidVectors(1, 1) || request.in_vectors[0].size != 4 ||
       request.io_vectors[0].size == 0)
   {
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
   }
 
   const u32 content_id = Memory::Read_U32(request.in_vectors[0].address);
@@ -453,7 +454,7 @@ IPCCommandResult ES::ExportContentData(const IOCtlVRequest& request)
   if (!m_export_title_context.valid || iterator == m_export_title_context.contents.end() ||
       iterator->second.content.m_position >= iterator->second.content.m_content.size)
   {
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
   }
 
   auto& metadata = iterator->second.content;
@@ -468,8 +469,8 @@ IPCCommandResult ES::ExportContentData(const IOCtlVRequest& request)
 
   if (!content->m_Data->GetRange(metadata.m_position, length, buffer.data()))
   {
-    ERROR_LOG(IOS_ES, "ExportContentData: ES_READ_LESS_DATA_THAN_EXPECTED");
-    return GetDefaultReply(ES_READ_LESS_DATA_THAN_EXPECTED);
+    ERROR_LOG(IOS_ES, "ExportContentData: ES_SHORT_READ");
+    return GetDefaultReply(ES_SHORT_READ);
   }
 
   // IOS aligns the buffer to 32 bytes. Since we also need to align it to 16 bytes,
@@ -485,7 +486,7 @@ IPCCommandResult ES::ExportContentData(const IOCtlVRequest& request)
   {
     // XXX: proper error code when IOSC_Encrypt fails.
     ERROR_LOG(IOS_ES, "ExportContentData: Failed to encrypt content.");
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
   }
 
   Memory::CopyToEmu(request.io_vectors[0].address, output.data(), output.size());
@@ -496,7 +497,7 @@ IPCCommandResult ES::ExportContentData(const IOCtlVRequest& request)
 IPCCommandResult ES::ExportContentEnd(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 0) || request.in_vectors[0].size != 4)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const u32 content_id = Memory::Read_U32(request.in_vectors[0].address);
 
@@ -504,7 +505,7 @@ IPCCommandResult ES::ExportContentEnd(const IOCtlVRequest& request)
   if (!m_export_title_context.valid || iterator == m_export_title_context.contents.end() ||
       iterator->second.content.m_position != iterator->second.content.m_content.size)
   {
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
   }
 
   // XXX: Check the content hash, as IOS does?
@@ -519,7 +520,7 @@ IPCCommandResult ES::ExportContentEnd(const IOCtlVRequest& request)
 IPCCommandResult ES::ExportTitleDone(const IOCtlVRequest& request)
 {
   if (!m_export_title_context.valid)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   m_export_title_context.valid = false;
   return GetDefaultReply(IPC_SUCCESS);

@@ -55,7 +55,7 @@ void ES::DecryptContent(u32 key_index, u8* iv, u8* input, u32 size, u8* new_iv, 
 IPCCommandResult ES::GetConsoleID(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const EcWii& ec = EcWii::GetInstance();
   INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICEID %08X", ec.GetNGID());
@@ -66,7 +66,7 @@ IPCCommandResult ES::GetConsoleID(const IOCtlVRequest& request)
 IPCCommandResult ES::Encrypt(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 2))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u32 keyIndex = Memory::Read_U32(request.in_vectors[0].address);
   u8* IV = Memory::GetPointer(request.in_vectors[1].address);
@@ -88,7 +88,7 @@ IPCCommandResult ES::Encrypt(const IOCtlVRequest& request)
 IPCCommandResult ES::Decrypt(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(3, 2))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   u32 keyIndex = Memory::Read_U32(request.in_vectors[0].address);
   u8* IV = Memory::GetPointer(request.in_vectors[1].address);
@@ -107,20 +107,20 @@ IPCCommandResult ES::Decrypt(const IOCtlVRequest& request)
 IPCCommandResult ES::CheckKoreaRegion(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 0))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   // note by DacoTaco : name is unknown, I just tried to name it SOMETHING.
   // IOS70 has this to let system menu 4.2 check if the console is region changed. it returns
   // -1017
   // if the IOS didn't find the Korean keys and 0 if it does. 0 leads to a error 003
   INFO_LOG(IOS_ES, "IOCTL_ES_CHECKKOREAREGION: Title checked for Korean keys.");
-  return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+  return GetDefaultReply(ES_EINVAL);
 }
 
 IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(0, 1) || request.io_vectors[0].size != 0x180)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_GETDEVICECERT");
   u8* destination = Memory::GetPointer(request.io_vectors[0].address);
@@ -133,7 +133,7 @@ IPCCommandResult ES::GetDeviceCertificate(const IOCtlVRequest& request)
 IPCCommandResult ES::Sign(const IOCtlVRequest& request)
 {
   if (!request.HasNumberOfValidVectors(1, 2))
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   INFO_LOG(IOS_ES, "IOCTL_ES_SIGN");
   u8* ap_cert_out = Memory::GetPointer(request.io_vectors[1].address);
@@ -142,7 +142,7 @@ IPCCommandResult ES::Sign(const IOCtlVRequest& request)
   u8* sig_out = Memory::GetPointer(request.io_vectors[0].address);
 
   if (!GetTitleContext().active)
-    return GetDefaultReply(ES_PARAMETER_SIZE_OR_ALIGNMENT);
+    return GetDefaultReply(ES_EINVAL);
 
   const EcWii& ec = EcWii::GetInstance();
   MakeAPSigAndCert(sig_out, ap_cert_out, GetTitleContext().tmd.GetTitleId(), data, data_size,
