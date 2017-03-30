@@ -52,38 +52,6 @@ std::string GetTitleContentPath(u64 _titleID, FromWhichRoot from)
                           (u32)(_titleID >> 32), (u32)_titleID);
 }
 
-bool CheckTitleTMD(u64 _titleID, FromWhichRoot from)
-{
-  const std::string TitlePath = GetTMDFileName(_titleID, from);
-  if (File::Exists(TitlePath))
-  {
-    File::IOFile pTMDFile(TitlePath, "rb");
-    u64 TitleID = 0;
-    pTMDFile.Seek(0x18C, SEEK_SET);
-    if (pTMDFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))
-      return true;
-  }
-  INFO_LOG(DISCIO, "Invalid or no tmd for title %08x %08x", (u32)(_titleID >> 32),
-           (u32)(_titleID & 0xFFFFFFFF));
-  return false;
-}
-
-bool CheckTitleTIK(u64 _titleID, FromWhichRoot from)
-{
-  const std::string ticketFileName = Common::GetTicketFileName(_titleID, from);
-  if (File::Exists(ticketFileName))
-  {
-    File::IOFile pTIKFile(ticketFileName, "rb");
-    u64 TitleID = 0;
-    pTIKFile.Seek(0x1dC, SEEK_SET);
-    if (pTIKFile.ReadArray(&TitleID, 1) && _titleID == Common::swap64(TitleID))
-      return true;
-  }
-  INFO_LOG(DISCIO, "Invalid or no tik for title %08x %08x", (u32)(_titleID >> 32),
-           (u32)(_titleID & 0xFFFFFFFF));
-  return false;
-}
-
 std::string EscapeFileName(const std::string& filename)
 {
   // Prevent paths from containing special names like ., .., ..., ...., and so on
