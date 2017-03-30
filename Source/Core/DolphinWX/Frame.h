@@ -102,7 +102,6 @@ public:
   bool RendererIsFullscreen();
   void OpenGeneralConfiguration(wxWindowID tab_id = wxID_ANY);
 
-  const CGameListCtrl* GetGameListCtrl() const;
   wxMenuBar* GetMenuBar() const override;
 
   Common::Event panic_event;
