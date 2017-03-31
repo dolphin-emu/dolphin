@@ -16,6 +16,7 @@
 // Format Handlers
 #include "Core/PowerPC/SignatureDB/CSVSignatureDB.h"
 #include "Core/PowerPC/SignatureDB/DSYSignatureDB.h"
+#include "Core/PowerPC/SignatureDB/MEGASignatureDB.h"
 
 SignatureDB::SignatureDB(SignatureDB::HandlerType handler)
     : m_handler(std::move(CreateFormatHandler(handler)))
@@ -30,6 +31,8 @@ SignatureDB::HandlerType SignatureDB::GetHandlerType(const std::string& file_pat
 {
   if (StringEndsWith(file_path, ".csv"))
     return SignatureDB::HandlerType::CSV;
+  if (StringEndsWith(file_path, ".mega"))
+    return SignatureDB::HandlerType::MEGA;
   return SignatureDB::HandlerType::DSY;
 }
 
@@ -43,6 +46,8 @@ SignatureDB::CreateFormatHandler(SignatureDB::HandlerType handler) const
     return std::make_unique<DSYSignatureDB>();
   case SignatureDB::HandlerType::CSV:
     return std::make_unique<CSVSignatureDB>();
+  case SignatureDB::HandlerType::MEGA:
+    return std::make_unique<MEGASignatureDB>();
   }
 }
 

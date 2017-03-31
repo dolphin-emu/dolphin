@@ -21,7 +21,8 @@ public:
   enum class HandlerType
   {
     DSY,
-    CSV
+    CSV,
+    MEGA
   };
   explicit SignatureDB(HandlerType handler);
   explicit SignatureDB(const std::string& file_path);

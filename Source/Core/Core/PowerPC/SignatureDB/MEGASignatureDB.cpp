@@ -119,6 +119,11 @@ bool Compare(u32 address, u32 size, const MEGASignature& sig)
 MEGASignatureDB::MEGASignatureDB() = default;
 MEGASignatureDB::~MEGASignatureDB() = default;
 
+void MEGASignatureDB::Clear()
+{
+  m_signatures.clear();
+}
+
 bool MEGASignatureDB::Load(const std::string& file_path)
 {
   std::ifstream ifs;
@@ -145,6 +150,12 @@ bool MEGASignatureDB::Load(const std::string& file_path)
   return true;
 }
 
+bool MEGASignatureDB::Save(const std::string& file_path) const
+{
+  ERROR_LOG(OSHLE, "MEGA database save unsupported yet.");
+  return false;
+}
+
 void MEGASignatureDB::Apply(PPCSymbolDB* symbol_db) const
 {
   for (auto& it : symbol_db->AccessSymbols())
@@ -162,6 +173,17 @@ void MEGASignatureDB::Apply(PPCSymbolDB* symbol_db) const
     }
   }
   symbol_db->Index();
+}
+
+void MEGASignatureDB::Populate(const PPCSymbolDB* func_db, const std::string& filter)
+{
+  ERROR_LOG(OSHLE, "MEGA database can't be populated yet.");
+}
+
+bool MEGASignatureDB::Add(u32 startAddr, u32 size, const std::string& name)
+{
+  ERROR_LOG(OSHLE, "Can't add symbol to MEGA database yet.");
+  return false;
 }
 
 void MEGASignatureDB::List() const

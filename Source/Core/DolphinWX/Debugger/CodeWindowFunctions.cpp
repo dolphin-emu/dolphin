@@ -166,7 +166,8 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
 {
   static const wxString signature_selector = _("Dolphin Signature File (*.dsy)") + "|*.dsy|" +
                                              _("Dolphin Signature CSV File (*.csv)") + "|*.csv|" +
-                                             wxGetTranslation(wxALL_FILES);
+                                             _("WiiTools Signature MEGA File (*.mega)") +
+                                             "|*.mega|" + wxGetTranslation(wxALL_FILES);
   Parent->ClearStatusBar();
 
   if (!Core::IsRunning())
@@ -426,22 +427,6 @@ void CCodeWindow::OnSymbolsMenu(wxCommandEvent& event)
         db.Save(WxStrToStr(path2));
         db.List();
       }
-    }
-  }
-  break;
-  case IDM_USE_MEGA_SIGNATURE_FILE:
-  {
-    wxString path = wxFileSelector(
-        _("Apply MEGA signature file"), File::GetSysDirectory(), wxEmptyString, wxEmptyString,
-        _("MEGA Signature File (*.mega)") + "|*.mega|" + wxGetTranslation(wxALL_FILES),
-        wxFD_OPEN | wxFD_FILE_MUST_EXIST, this);
-    if (!path.IsEmpty())
-    {
-      MEGASignatureDB db;
-      db.Load(WxStrToStr(path));
-      db.Apply(&g_symbolDB);
-      db.List();
-      NotifyMapLoaded();
     }
   }
   break;
