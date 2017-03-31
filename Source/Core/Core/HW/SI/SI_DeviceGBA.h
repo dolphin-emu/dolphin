@@ -24,8 +24,6 @@ public:
   GBASockServer();
   ~GBASockServer();
 
-  void Disconnect();
-
   bool Connect();
   bool IsConnected();
   void ClockSync();
@@ -33,6 +31,8 @@ public:
   int Receive(u8* si_buffer);
 
 private:
+  void Disconnect();
+
   std::unique_ptr<sf::TcpSocket> m_client;
   std::unique_ptr<sf::TcpSocket> m_clock_sync;
 
@@ -44,7 +44,6 @@ class CSIDevice_GBA : public ISIDevice, private GBASockServer
 {
 public:
   CSIDevice_GBA(SIDevices device, int device_number);
-  ~CSIDevice_GBA();
 
   int RunBuffer(u8* buffer, int length) override;
   int TransferInterval() override;

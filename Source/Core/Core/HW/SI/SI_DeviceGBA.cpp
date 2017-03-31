@@ -287,11 +287,6 @@ CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number) : ISIDevice(de
 {
 }
 
-CSIDevice_GBA::~CSIDevice_GBA()
-{
-  GBASockServer::Disconnect();
-}
-
 int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
 {
   switch (m_next_action)
