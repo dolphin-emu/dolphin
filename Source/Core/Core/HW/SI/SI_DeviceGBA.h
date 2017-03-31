@@ -16,8 +16,6 @@
 
 namespace SerialInterface
 {
-u8 GetNumConnected();
-int GetTransferTime(u8 cmd);
 void GBAConnectionWaiter_Shutdown();
 
 class GBASockServer

@@ -29,7 +29,7 @@ std::queue<std::unique_ptr<sf::TcpSocket>> s_waiting_socks;
 std::queue<std::unique_ptr<sf::TcpSocket>> s_waiting_clocks;
 std::mutex s_cs_gba;
 std::mutex s_cs_gba_clk;
-u8 s_num_connected;
+int s_num_connected;
 Common::Flag s_server_running;
 }
 
@@ -41,21 +41,12 @@ enum EJoybusCmds
   CMD_WRITE = 0x15
 };
 
-const u64 BITS_PER_SECOND = 115200;
-const u64 BYTES_PER_SECOND = BITS_PER_SECOND / 8;
-
-u8 GetNumConnected()
-{
-  int num_ports_connected = s_num_connected;
-  if (num_ports_connected == 0)
-    num_ports_connected = 1;
-
-  return num_ports_connected;
-}
+constexpr auto BITS_PER_SECOND = 115200;
+constexpr auto BYTES_PER_SECOND = BITS_PER_SECOND / 8;
 
 // --- GameBoy Advance "Link Cable" ---
 
-int GetTransferTime(u8 cmd)
+static int GetTransferTime(u8 cmd)
 {
   u64 bytes_transferred = 0;
 
@@ -83,8 +74,8 @@ int GetTransferTime(u8 cmd)
     break;
   }
   }
-  return (int)(bytes_transferred * SystemTimers::GetTicksPerSecond() /
-               (GetNumConnected() * BYTES_PER_SECOND));
+  return static_cast<int>(bytes_transferred * SystemTimers::GetTicksPerSecond() /
+                          (std::max(s_num_connected, 1) * BYTES_PER_SECOND));
 }
 
 static void GBAConnectionWaiter()
