@@ -218,6 +218,8 @@ TEST_P(VertexLoaderParamTest, PositionAll)
       f = *iter++;
       g = *iter++;
       break;
+    default:
+      FAIL() << "Unknown format";
     }
     ExpectOut(f * scale);
     ExpectOut(g * scale);
