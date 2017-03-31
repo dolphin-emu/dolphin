@@ -580,6 +580,10 @@ Renderer::Renderer()
   g_Config.backend_info.bSupportsEarlyZ =
       g_ogl_config.bSupportsEarlyFragmentTests || g_ogl_config.bSupportsConservativeDepth;
 
+  glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
+  if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
+    g_ogl_config.max_samples = 1;
+
   if (g_ogl_config.bSupportsDebug)
   {
     if (GLExtensions::Supports("GL_KHR_debug"))

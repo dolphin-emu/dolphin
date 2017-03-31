@@ -170,10 +170,6 @@ bool VideoBackend::FillBackendInfo()
     return false;
   }
 
-  glGetIntegerv(GL_MAX_SAMPLES, &g_ogl_config.max_samples);
-  if (g_ogl_config.max_samples < 1 || !g_ogl_config.bSupportsMSAA)
-    g_ogl_config.max_samples = 1;
-
   // TODO: Move the remaining fields from the Renderer constructor here.
   return true;
 }
