@@ -155,4 +155,8 @@
         <item name="android:layout_margin">0dp</item>
     </style>
 
+    <style name="OverlayInGameMenuOption" parent="InGameMenuOption">
+        <item name="android:textColor">@color/button_text_color</item>
+    </style>
+
 </resources>
