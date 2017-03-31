@@ -347,7 +347,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     // Perform lookup to see if we can use fast path.
     MOV(32, R(RSCRATCH2), R(RSCRATCH));
     SHR(32, R(RSCRATCH2), Imm8(PowerPC::BAT_INDEX_SHIFT));
-    TEST(32, MScaled(RSCRATCH2, SCALE_4, PtrOffset(&PowerPC::dbat_table[0])),
+    TEST(32, MScaledPIC(RSCRATCH2, SCALE_4, &PowerPC::dbat_table[0]),
          Imm32(PowerPC::BAT_PHYSICAL_BIT));
     FixupBranch slow = J_CC(CC_Z, true);
 

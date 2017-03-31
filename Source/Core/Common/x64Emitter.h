@@ -324,7 +324,7 @@ inline OpArg ImmPtr(const void* imm)
   return Imm64((u64)imm);
 }
 
-inline u32 PtrOffset(const void* ptr, const void* base = nullptr)
+inline u32 PtrOffset(const void* ptr, const void* base)
 {
   s64 distance = (s64)ptr - (s64)base;
   if (distance >= 0x80000000LL || distance < -0x80000000LL)

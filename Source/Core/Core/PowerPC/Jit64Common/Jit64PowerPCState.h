@@ -5,6 +5,7 @@
 #pragma once
 
 #include "Common/CommonTypes.h"
+#include "Core/PowerPC/Jit64Common/Jit64Base.h"
 #include "Core/PowerPC/PowerPC.h"
 
 // We offset by 0x80 because the range of one byte memory offsets is
@@ -17,3 +18,16 @@
 #define PPCSTATE_CTR PPCSTATE(spr[SPR_CTR])
 #define PPCSTATE_SRR0 PPCSTATE(spr[SPR_SRR0])
 #define PPCSTATE_SRR1 PPCSTATE(spr[SPR_SRR1])
+
+namespace Gen
+{
+inline OpArg MScaledPIC(X64Reg scaled, int scale, const void* ptr)
+{
+  return MComplex(RPPCSTATE, scaled, scale,
+                  PtrOffset(ptr, reinterpret_cast<char*>(&PowerPC::ppcState) + 0x80));
+}
+inline OpArg MDispPIC(X64Reg value, const void* ptr)
+{
+  return MScaledPIC(value, SCALE_1, ptr);
+}
+}
