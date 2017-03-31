@@ -168,7 +168,7 @@ static bool GetNextClock(std::unique_ptr<sf::TcpSocket>& sock_to_fill)
   return sock_filled;
 }
 
-GBASockServer::GBASockServer(int device_number) : m_device_number{device_number}
+GBASockServer::GBASockServer()
 {
   if (!s_connection_thread.joinable())
     s_connection_thread = std::thread(GBAConnectionWaiter);
@@ -233,31 +233,37 @@ void GBASockServer::ClockSync()
   }
 }
 
+bool GBASockServer::Connect()
+{
+  if (!IsConnected())
+    GetAvailableSock(m_client);
+  return IsConnected();
+}
+
+bool GBASockServer::IsConnected()
+{
+  return static_cast<bool>(m_client);
+}
+
 void GBASockServer::Send(const u8* si_buffer)
 {
-  if (!m_client)
-    if (!GetAvailableSock(m_client))
-      return;
+  if (!Connect())
+    return;
 
   std::array<u8, 5> send_data;
   for (size_t i = 0; i < send_data.size(); i++)
     send_data[i] = si_buffer[i ^ 3];
-  m_cmd = send_data[0];
 
-#ifdef _DEBUG
-  NOTICE_LOG(SERIALINTERFACE, "%01d cmd %02x [> %02x%02x%02x%02x]", m_device_number, send_data[0],
-             send_data[1], send_data[2], send_data[3], send_data[4]);
-#endif
+  u8 cmd = send_data[0];
+  if (cmd != CMD_STATUS)
+    m_booted = true;
 
   m_client->setBlocking(false);
   sf::Socket::Status status;
-  if (m_cmd == CMD_WRITE)
+  if (cmd == CMD_WRITE)
     status = m_client->send(send_data.data(), send_data.size());
   else
     status = m_client->send(send_data.data(), 1);
-
-  if (m_cmd != CMD_STATUS)
-    m_booted = true;
 
   if (status == sf::Socket::Disconnected)
     Disconnect();
@@ -294,32 +300,14 @@ int GBASockServer::Receive(u8* si_buffer)
 
   if (num_received > 0)
   {
-#ifdef _DEBUG
-    if (m_cmd == CMD_STATUS || m_cmd == CMD_RESET)
-    {
-      WARN_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%zu)",
-               m_device_number, recv_data[0], recv_data[1], recv_data[2], recv_data[3],
-               recv_data[4], num_received);
-    }
-    else
-    {
-      ERROR_LOG(SERIALINTERFACE, "%01d                              [< %02x%02x%02x%02x%02x] (%zu)",
-                m_device_number, recv_data[0], recv_data[1], recv_data[2], recv_data[3],
-                recv_data[4], num_received);
-    }
-#endif
-
     for (size_t i = 0; i < recv_data.size(); i++)
-    {
       si_buffer[i ^ 3] = recv_data[i];
-    }
   }
 
   return static_cast<int>(num_received);
 }
 
-CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number)
-    : ISIDevice(device, device_number), GBASockServer(device_number)
+CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number) : ISIDevice(device, device_number)
 {
 }
 
@@ -335,7 +323,14 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
   case NextAction::SendCommand:
   {
     ClockSync();
-    Send(buffer);
+    if (Connect())
+    {
+#ifdef _DEBUG
+      NOTICE_LOG(SERIALINTERFACE, "%01d cmd %02x [> %02x%02x%02x%02x]", m_device_number, buffer[3],
+                 buffer[2], buffer[1], buffer[0], buffer[7]);
+#endif
+      Send(buffer);
+    }
     m_last_cmd = buffer[3];
     m_timestamp_sent = CoreTiming::GetTicks();
     m_next_action = NextAction::WaitTransferTime;
@@ -355,6 +350,18 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
   case NextAction::ReceiveResponse:
   {
     int num_data_received = Receive(buffer);
+    if (IsConnected())
+    {
+#ifdef _DEBUG
+      LogTypes::LOG_LEVELS log_level = (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ?
+                                           LogTypes::LERROR :
+                                           LogTypes::LWARNING;
+      GENERIC_LOG(LogTypes::SERIALINTERFACE, log_level,
+                  "%01d                              [< %02x%02x%02x%02x%02x] (%i)",
+                  m_device_number, buffer[3], buffer[2], buffer[1], buffer[0], buffer[7],
+                  num_data_received);
+#endif
+    }
     if (num_data_received > 0)
       m_next_action = NextAction::SendCommand;
     return num_data_received;

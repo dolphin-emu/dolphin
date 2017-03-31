@@ -23,13 +23,14 @@ void GBAConnectionWaiter_Shutdown();
 class GBASockServer
 {
 public:
-  explicit GBASockServer(int device_number);
+  GBASockServer();
   ~GBASockServer();
 
   void Disconnect();
 
+  bool Connect();
+  bool IsConnected();
   void ClockSync();
-
   void Send(const u8* si_buffer);
   int Receive(u8* si_buffer);
 
@@ -38,8 +39,6 @@ private:
   std::unique_ptr<sf::TcpSocket> m_clock_sync;
 
   u64 m_last_time_slice = 0;
-  int m_device_number;
-  u8 m_cmd = 0;
   bool m_booted = false;
 };
 
