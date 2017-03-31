@@ -173,7 +173,7 @@ u64 CVolumeGC::GetRawSize() const
 
 u8 CVolumeGC::GetDiscNumber() const
 {
-  u8 disc_number;
+  u8 disc_number = 0;
   ReadSwapped(6, &disc_number, false);
   return disc_number;
 }
