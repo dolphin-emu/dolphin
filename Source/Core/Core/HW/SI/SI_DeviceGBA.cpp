@@ -262,8 +262,7 @@ void GBASockServer::Send(const u8* si_buffer)
 int GBASockServer::Receive(u8* si_buffer)
 {
   if (!m_client)
-    if (!GetAvailableSock(m_client))
-      return 5;
+    return 0;
 
   if (m_booted)
   {
@@ -279,22 +278,18 @@ int GBASockServer::Receive(u8* si_buffer)
   if (recv_stat == sf::Socket::Disconnected)
   {
     Disconnect();
-    return 5;
+    return 0;
   }
 
   if (recv_stat == sf::Socket::NotReady)
     num_received = 0;
-
-  if (num_received > recv_data.size())
-    num_received = recv_data.size();
 
   if (num_received > 0)
   {
     for (size_t i = 0; i < recv_data.size(); i++)
       si_buffer[i ^ 3] = recv_data[i];
   }
-
-  return static_cast<int>(num_received);
+  return static_cast<int>(std::min(num_received, recv_data.size()));
 }
 
 CSIDevice_GBA::CSIDevice_GBA(SIDevices device, int device_number) : ISIDevice(device, device_number)
@@ -351,6 +346,10 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
                   m_device_number, buffer[3], buffer[2], buffer[1], buffer[0], buffer[7],
                   num_data_received);
 #endif
+    }
+    else
+    {
+      num_data_received = 5;
     }
     if (num_data_received > 0)
       m_next_action = NextAction::SendCommand;
