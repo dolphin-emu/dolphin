@@ -89,7 +89,6 @@
     <ClCompile Include="FifoPlayer\FifoPlayer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecordAnalyzer.cpp" />
     <ClCompile Include="FifoPlayer\FifoRecorder.cpp" />
-    <ClCompile Include="FileMonitor.cpp" />
     <ClCompile Include="GeckoCode.cpp" />
     <ClCompile Include="GeckoCodeConfig.cpp" />
     <ClCompile Include="HLE\HLE.cpp" />
@@ -115,8 +114,10 @@
     <ClCompile Include="HW\DSPLLE\DSPLLEGlobals.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPLLETools.cpp" />
     <ClCompile Include="HW\DSPLLE\DSPSymbols.cpp" />
-    <ClCompile Include="HW\DVDInterface.cpp" />
-    <ClCompile Include="HW\DVDThread.cpp" />
+    <ClCompile Include="HW\DVD\DVDInterface.cpp" />
+    <ClCompile Include="HW\DVD\DVDMath.cpp" />
+    <ClCompile Include="HW\DVD\DVDThread.cpp" />
+    <ClCompile Include="HW\DVD\FileMonitor.cpp" />
     <ClCompile Include="HW\EXI\BBA-TAP\TAP_Win32.cpp" />
     <ClCompile Include="HW\EXI\EXI.cpp" />
     <ClCompile Include="HW\EXI\EXI_Channel.cpp" />
@@ -341,7 +342,6 @@
     <ClInclude Include="FifoPlayer\FifoPlayer.h" />
     <ClInclude Include="FifoPlayer\FifoRecordAnalyzer.h" />
     <ClInclude Include="FifoPlayer\FifoRecorder.h" />
-    <ClInclude Include="FileMonitor.h" />
     <ClInclude Include="GeckoCode.h" />
     <ClInclude Include="GeckoCodeConfig.h" />
     <ClInclude Include="HLE\HLE.h" />
@@ -369,8 +369,10 @@
     <ClInclude Include="HW\DSPLLE\DSPLLEGlobals.h" />
     <ClInclude Include="HW\DSPLLE\DSPLLETools.h" />
     <ClInclude Include="HW\DSPLLE\DSPSymbols.h" />
-    <ClInclude Include="HW\DVDInterface.h" />
-    <ClInclude Include="HW\DVDThread.h" />
+    <ClInclude Include="HW\DVD\DVDInterface.h" />
+    <ClInclude Include="HW\DVD\DVDMath.h" />
+    <ClInclude Include="HW\DVD\DVDThread.h" />
+    <ClInclude Include="HW\DVD\FileMonitor.h" />
     <ClInclude Include="HW\EXI\BBA-TAP\TAP_Win32.h" />
     <ClInclude Include="HW\EXI\EXI.h" />
     <ClInclude Include="HW\EXI\EXI_Channel.h" />

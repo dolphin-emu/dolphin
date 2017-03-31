@@ -21,9 +21,9 @@
 
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
-#include "Core/FileMonitor.h"
-#include "Core/HW/DVDInterface.h"
-#include "Core/HW/DVDThread.h"
+#include "Core/HW/DVD/DVDInterface.h"
+#include "Core/HW/DVD/DVDThread.h"
+#include "Core/HW/DVD/FileMonitor.h"
 #include "Core/HW/Memmap.h"
 #include "Core/HW/SystemTimers.h"
 

@@ -8,7 +8,6 @@ set(SRCS
   CoreTiming.cpp
   DSPEmulator.cpp
   ec_wii.cpp
-  FileMonitor.cpp
   GeckoCodeConfig.cpp
   GeckoCode.cpp
   HotkeyManager.cpp
@@ -90,8 +89,10 @@ set(SRCS
   HW/DSPLLE/DSPLLEGlobals.cpp
   HW/DSPLLE/DSPLLE.cpp
   HW/DSPLLE/DSPLLETools.cpp
-  HW/DVDInterface.cpp
-  HW/DVDThread.cpp
+  HW/DVD/DVDInterface.cpp
+  HW/DVD/DVDMath.cpp
+  HW/DVD/DVDThread.cpp
+  HW/DVD/FileMonitor.cpp
   HW/EXI/EXI_Channel.cpp
   HW/EXI/EXI.cpp
   HW/EXI/EXI_Device.cpp
