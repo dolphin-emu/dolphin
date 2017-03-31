@@ -40,7 +40,7 @@ private:
   bool m_booted = false;
 };
 
-class CSIDevice_GBA : public ISIDevice, private GBASockServer
+class CSIDevice_GBA : public ISIDevice
 {
 public:
   CSIDevice_GBA(SIDevices device, int device_number);
@@ -58,6 +58,7 @@ private:
     ReceiveResponse
   };
 
+  GBASockServer m_sock_server;
   NextAction m_next_action = NextAction::SendCommand;
   u8 m_last_cmd;
   u64 m_timestamp_sent = 0;

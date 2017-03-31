@@ -293,14 +293,14 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
   {
   case NextAction::SendCommand:
   {
-    ClockSync();
-    if (Connect())
+    m_sock_server.ClockSync();
+    if (m_sock_server.Connect())
     {
 #ifdef _DEBUG
       NOTICE_LOG(SERIALINTERFACE, "%01d cmd %02x [> %02x%02x%02x%02x]", m_device_number, buffer[3],
                  buffer[2], buffer[1], buffer[0], buffer[7]);
 #endif
-      Send(buffer);
+      m_sock_server.Send(buffer);
     }
     m_last_cmd = buffer[3];
     m_timestamp_sent = CoreTiming::GetTicks();
@@ -320,8 +320,8 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
   // [[fallthrough]]
   case NextAction::ReceiveResponse:
   {
-    int num_data_received = Receive(buffer);
-    if (IsConnected())
+    int num_data_received = m_sock_server.Receive(buffer);
+    if (m_sock_server.IsConnected())
     {
 #ifdef _DEBUG
       LogTypes::LOG_LEVELS log_level = (m_last_cmd == CMD_STATUS || m_last_cmd == CMD_RESET) ?
