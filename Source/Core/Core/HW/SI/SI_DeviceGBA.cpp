@@ -136,36 +136,26 @@ void GBAConnectionWaiter_Shutdown()
     s_connection_thread.join();
 }
 
-static bool GetAvailableSock(std::unique_ptr<sf::TcpSocket>& sock_to_fill)
+template <typename T>
+static std::unique_ptr<T> MoveFromFront(std::queue<std::unique_ptr<T>>& ptrs)
 {
-  bool sock_filled = false;
-
-  std::lock_guard<std::mutex> lk(s_cs_gba);
-
-  if (!s_waiting_socks.empty())
-  {
-    sock_to_fill = std::move(s_waiting_socks.front());
-    s_waiting_socks.pop();
-    sock_filled = true;
-  }
-
-  return sock_filled;
+  if (ptrs.empty())
+    return nullptr;
+  std::unique_ptr<T> ptr = std::move(ptrs.front());
+  ptrs.pop();
+  return ptr;
 }
 
-static bool GetNextClock(std::unique_ptr<sf::TcpSocket>& sock_to_fill)
+static std::unique_ptr<sf::TcpSocket> GetNextSock()
 {
-  bool sock_filled = false;
+  std::lock_guard<std::mutex> lk(s_cs_gba);
+  return MoveFromFront(s_waiting_socks);
+}
 
+static std::unique_ptr<sf::TcpSocket> GetNextClock()
+{
   std::lock_guard<std::mutex> lk(s_cs_gba_clk);
-
-  if (!s_waiting_clocks.empty())
-  {
-    sock_to_fill = std::move(s_waiting_clocks.front());
-    s_waiting_clocks.pop();
-    sock_filled = true;
-  }
-
-  return sock_filled;
+  return MoveFromFront(s_waiting_clocks);
 }
 
 GBASockServer::GBASockServer()
@@ -201,7 +191,7 @@ void GBASockServer::Disconnect()
 void GBASockServer::ClockSync()
 {
   if (!m_clock_sync)
-    if (!GetNextClock(m_clock_sync))
+    if (!(m_clock_sync = GetNextClock()))
       return;
 
   u32 time_slice = 0;
@@ -236,7 +226,7 @@ void GBASockServer::ClockSync()
 bool GBASockServer::Connect()
 {
   if (!IsConnected())
-    GetAvailableSock(m_client);
+    m_client = GetNextSock();
   return IsConnected();
 }
 
