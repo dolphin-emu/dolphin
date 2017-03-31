@@ -1197,11 +1197,6 @@ void CFrame::DoExclusiveFullscreen(bool enable_fullscreen)
   Core::PauseAndLock(false, was_unpaused);
 }
 
-const CGameListCtrl* CFrame::GetGameListCtrl() const
-{
-  return m_GameListCtrl;
-}
-
 void CFrame::PollHotkeys(wxTimerEvent& event)
 {
   if (!HotkeyManagerEmu::IsEnabled())
