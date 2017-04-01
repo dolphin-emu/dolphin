@@ -43,6 +43,7 @@ enum EJoybusCmds
 
 constexpr auto BITS_PER_SECOND = 115200;
 constexpr auto BYTES_PER_SECOND = BITS_PER_SECOND / 8;
+constexpr auto SEND_MAX_SIZE = 5, RECV_MAX_SIZE = 5;
 
 // --- GameBoy Advance "Link Cable" ---
 
@@ -231,7 +232,7 @@ void GBASockServer::Send(const u8* si_buffer)
   if (!Connect())
     return;
 
-  std::array<u8, 5> send_data;
+  std::array<u8, SEND_MAX_SIZE> send_data;
   for (size_t i = 0; i < send_data.size(); i++)
     send_data[i] = si_buffer[i ^ 3];
 
@@ -263,7 +264,7 @@ int GBASockServer::Receive(u8* si_buffer)
   }
 
   size_t num_received = 0;
-  std::array<u8, 5> recv_data;
+  std::array<u8, RECV_MAX_SIZE> recv_data;
   sf::Socket::Status recv_stat =
       m_client->receive(recv_data.data(), recv_data.size(), num_received);
   if (recv_stat == sf::Socket::Disconnected)
@@ -335,7 +336,7 @@ int CSIDevice_GBA::RunBuffer(u8* buffer, int length)
     }
     else
     {
-      num_data_received = 5;
+      num_data_received = RECV_MAX_SIZE;
     }
     if (num_data_received > 0)
       m_next_action = NextAction::SendCommand;
