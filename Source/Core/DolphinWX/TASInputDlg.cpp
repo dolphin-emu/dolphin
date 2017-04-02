@@ -1159,7 +1159,7 @@ void TASInputDlg::InvalidateButton(Button* button)
   {
     auto* evt = new wxCommandEvent(INVALIDATE_BUTTON_EVENT, button->id);
     evt->SetClientData(button);
-    wxQueueEvent(this, evt);
+    QueueEvent(evt);
     return;
   }
 
@@ -1173,7 +1173,7 @@ void TASInputDlg::InvalidateControl(Control* control)
   {
     auto* evt = new wxCommandEvent(INVALIDATE_CONTROL_EVENT, control->text_id);
     evt->SetClientData(control);
-    wxQueueEvent(this, evt);
+    QueueEvent(evt);
     return;
   }
 
@@ -1184,7 +1184,7 @@ void TASInputDlg::InvalidateExtension()
 {
   if (!wxIsMainThread())
   {
-    GetEventHandler()->QueueEvent(new wxThreadEvent(INVALIDATE_EXTENSION_EVENT));
+    QueueEvent(new wxThreadEvent(INVALIDATE_EXTENSION_EVENT));
     return;
   }
 
