@@ -26,7 +26,11 @@
 
 #ifdef ANDROID
 struct AAsset;
-struct AAssetDir;
+
+namespace AndroidAssets
+{
+struct Asset;
+}
 #endif
 
 namespace File
@@ -223,12 +227,13 @@ class AndroidAssetDirectoryIterator final : public DirectoryIterator, private No
 {
 public:
   AndroidAssetDirectoryIterator(const std::string& path);
-  ~AndroidAssetDirectoryIterator();
 
   std::string NextChild() override;
 
 private:
-  AAssetDir* m_dir;
+  std::vector<AndroidAssets::Asset>::const_iterator m_current;
+  std::vector<AndroidAssets::Asset>::const_iterator m_end;
+  bool m_valid;
 };
 #endif
 

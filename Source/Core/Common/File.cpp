@@ -363,21 +363,18 @@ std::string StandardDirectoryIterator::NextChild()
 #ifdef ANDROID
 AndroidAssetDirectoryIterator::AndroidAssetDirectoryIterator(const std::string& path)
 {
-  // Note: Even if the directory doesn't exist, AAssetManager_openDir won't return nullptr
-  m_dir = AndroidAssets::OpenDirectory(path.c_str());
-}
-
-AndroidAssetDirectoryIterator::~AndroidAssetDirectoryIterator()
-{
-  AAssetDir_close(m_dir);
+  const AndroidAssets::Asset* directory = AndroidAssets::GetAssetsRoot().Resolve(path);
+  m_valid = !!directory;
+  if (m_valid)
+  {
+    m_current = directory->children.begin();
+    m_end = directory->children.end();
+  }
 }
 
 std::string AndroidAssetDirectoryIterator::NextChild()
 {
-  const char* path = AAssetDir_getNextFileName(m_dir);
-  if (!path)
-    return "";  // End of directory
-  return path;
+  return (m_valid && (m_current != m_end)) ? (*m_current++).path : "";
 }
 #endif
 

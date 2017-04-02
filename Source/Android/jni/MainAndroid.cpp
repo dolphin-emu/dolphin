@@ -4,7 +4,6 @@
 
 #include <EGL/egl.h>
 #include <android/asset_manager.h>
-#include <android/asset_manager_jni.h>
 #include <android/log.h>
 #include <android/native_window_jni.h>
 #include <cinttypes>
@@ -668,7 +667,7 @@ JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_LoadState(JN
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_SetAssetManager(
     JNIEnv* env, jobject obj, jobject jAssetManager)
 {
-  AndroidAssets::SetAssetManager(AAssetManager_fromJava(env, jAssetManager));
+  AndroidAssets::SetAssetManager(env, jAssetManager);
 }
 
 JNIEXPORT void JNICALL Java_org_dolphinemu_dolphinemu_NativeLibrary_CreateUserFolders(JNIEnv* env,

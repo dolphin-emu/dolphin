@@ -5,17 +5,29 @@
 #pragma once
 
 struct AAsset;
-struct AAssetDir;
-struct AAssetManager;
+
+#include <jni.h>
+#include <string>
+#include <vector>
 
 namespace AndroidAssets
 {
-void SetAssetManager(AAssetManager* asset_manager);
+struct Asset
+{
+  Asset(const std::string& path = "");
+
+  std::string path;
+  std::vector<Asset> children;
+
+  // Returns nullptr if not found
+  const Asset* Resolve(const std::string& path_to_resolve) const;
+};
+
+void SetAssetManager(JNIEnv* env, jobject asset_manager);
 
 // Wrapper of AAssetManager_open. Uses the AAssetManager set by SetAssetManager.
 AAsset* OpenFile(const char* path, int mode);
 
-// Wrapper of AAssetManager_openDir. Uses the AAssetManager set by SetAssetManager.
-AAssetDir* OpenDirectory(const char* path);
+const Asset& GetAssetsRoot();
 
 }  // namespace Common
