@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <mutex>
 #include <string>
@@ -16,9 +17,7 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/Event.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "DolphinWX/Globals.h"
-#include "InputCommon/GCPadStatus.h"
 
 #if defined(HAVE_X11) && HAVE_X11
 #include "UICommon/X11Utils.h"
@@ -88,7 +87,6 @@ public:
   CCodeWindow* g_pCodeWindow = nullptr;
   NetPlaySetupFrame* g_NetPlaySetupDiag = nullptr;
   wxCheatsWindow* g_CheatsWindow = nullptr;
-  TASInputDlg* g_TASInputDlg[8];
 
   void DoStop();
   void UpdateGUI();
@@ -140,6 +138,7 @@ private:
   CLogWindow* m_LogWindow = nullptr;
   LogConfigWindow* m_LogConfigWindow = nullptr;
   FifoPlayerDlg* m_FifoPlayerDlg = nullptr;
+  std::array<TASInputDlg*, 8> m_tas_input_dialogs{};
   bool UseDebugger = false;
   bool m_bBatchMode = false;
   bool m_bEdit = false;
@@ -173,6 +172,8 @@ private:
 
   wxToolBar* OnCreateToolBar(long style, wxWindowID id, const wxString& name) override;
   wxMenuBar* CreateMenuBar() const;
+
+  void InitializeTASDialogs();
 
   // Utility
   wxWindow* GetNotebookPageFromId(wxWindowID Id);
@@ -339,8 +340,3 @@ private:
 
 void OnAfterLoadCallback();
 void OnStoppedCallback();
-
-// For TASInputDlg
-void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID);
-void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
-                         const wiimote_key key);
