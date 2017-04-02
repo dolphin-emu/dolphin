@@ -23,9 +23,10 @@ class wxTextCtrl;
 class TASInputDlg : public wxDialog
 {
 public:
-  TASInputDlg(wxWindow* parent, wxWindowID id = wxID_ANY, const wxString& title = _("TAS Input"),
-              const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
-              long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
+  explicit TASInputDlg(wxWindow* parent, wxWindowID id = wxID_ANY,
+                       const wxString& title = _("TAS Input"),
+                       const wxPoint& pos = wxDefaultPosition, const wxSize& size = wxDefaultSize,
+                       long style = wxDEFAULT_DIALOG_STYLE | wxSTAY_ON_TOP);
 
   void GetValues(GCPadStatus* PadStatus);
   void GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext, const wiimote_key key);
