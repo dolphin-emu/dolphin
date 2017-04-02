@@ -1344,7 +1344,7 @@ void EndPlayInput(bool cont)
   }
   else if (s_playMode != MODE_NONE)
   {
-    // We can be called by EmuThread during boot (CPU_POWERDOWN)
+    // We can be called by EmuThread during boot (CPU::State::PowerDown)
     bool was_running = Core::IsRunningAndStarted() && !CPU::IsStepping();
     if (was_running)
       CPU::Break();

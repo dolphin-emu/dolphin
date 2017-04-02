@@ -16,6 +16,11 @@ class FifoDataFile;
 struct MemoryUpdate;
 struct AnalyzedFrameInfo;
 
+namespace CPU
+{
+enum class State;
+}
+
 // Story time:
 // When FifoRecorder was created, efb copies weren't really used or they used efb2tex which ignored
 // the underlying memory, so FifoRecorder didn't do anything special about the memory backing efb
@@ -94,7 +99,7 @@ private:
 
   FifoPlayer();
 
-  int AdvanceFrame();
+  CPU::State AdvanceFrame();
 
   void WriteFrame(const FifoFrameInfo& frame, const AnalyzedFrameInfo& info);
   void WriteFramePart(u32 dataStart, u32 dataEnd, u32& nextMemUpdate, const FifoFrameInfo& frame,

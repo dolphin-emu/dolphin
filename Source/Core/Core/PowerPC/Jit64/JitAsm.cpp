@@ -84,7 +84,7 @@ void Jit64AsmRoutineManager::Generate()
 
   if (SConfig::GetInstance().bEnableDebugging)
   {
-    TEST(32, M(CPU::GetStatePtr()), Imm32(CPU::CPU_STEPPING));
+    TEST(32, M(CPU::GetStatePtr()), Imm32(static_cast<u32>(CPU::State::Stepping)));
     FixupBranch notStepping = J_CC(CC_Z);
     ABI_PushRegistersAndAdjustStack({}, 0);
     ABI_CallFunction(PowerPC::CheckBreakPoints);

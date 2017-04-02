@@ -66,7 +66,7 @@ void JitArm64::GenerateAsm()
   //   } while (PowerPC::ppcState.downcount > 0);
   // doTiming:
   //   NPC = PC = DISPATCHER_PC;
-  // } while (CPU::GetState() == CPU::CPU_RUNNING);
+  // } while (CPU::GetState() == CPU::State::Running);
   AlignCodePage();
   dispatcher = GetCodePtr();
   WARN_LOG(DYNA_REC, "Dispatcher is %p", dispatcher);
