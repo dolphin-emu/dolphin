@@ -941,16 +941,19 @@ void TASInputDlg::UpdateFromSliders(wxCommandEvent& event)
     if (control != nullptr && event.GetId() == control->slider_id)
       text = control->text;
   }
-  int value = ((wxSlider*)event.GetEventObject())->GetValue();
-  if (text)
-    text->SetValue(std::to_string(value));
+
+  if (!text)
+    return;
+
+  const int slider_value = event.GetInt();
+  text->SetValue(std::to_string(slider_value));
 }
 
 void TASInputDlg::UpdateFromText(wxCommandEvent& event)
 {
   unsigned long value;
 
-  if (!((wxTextCtrl*)event.GetEventObject())->GetValue().ToULong(&value))
+  if (!event.GetString().ToULong(&value))
     return;
 
   for (Control* const control : m_controls)
