@@ -250,7 +250,7 @@ void OpenALStream::SoundLoop()
   soundTouch.setSampleRate(frequency);
   soundTouch.setTempo(1.0);
   soundTouch.setSetting(SETTING_USE_QUICKSEEK, 0);
-  soundTouch.setSetting(SETTING_USE_AA_FILTER, 0);
+  soundTouch.setSetting(SETTING_USE_AA_FILTER, 1);
   soundTouch.setSetting(SETTING_SEQUENCE_MS, 1);
   soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
   soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
@@ -265,7 +265,6 @@ void OpenALStream::SoundLoop()
     alGetSourcei(source, AL_BUFFERS_PROCESSED, &num_buffers_processed);
     if (num_buffers == num_buffers_queued && !num_buffers_processed)
     {
-      soundSyncEvent.Wait();
       continue;
     }
 
