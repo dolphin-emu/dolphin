@@ -1014,7 +1014,7 @@
     </ClInclude>
     <ClInclude Include="HW\DVD\FileMonitor.h">
       <Filter>HW %28Flipper/Hollywood%29\DI - Drive Interface</Filter>
-    </ClInclud
+    </ClInclude>
     <ClInclude Include="HW\DSPHLE\UCodes\AX.h">
       <Filter>HW %28Flipper/Hollywood%29\DSP Interface + HLE\HLE\uCodes</Filter>
     </ClInclude>
