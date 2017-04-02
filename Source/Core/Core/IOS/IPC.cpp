@@ -66,11 +66,6 @@
 #include "Core/PowerPC/PowerPC.h"
 #include "DiscIO/NANDContentLoader.h"
 
-namespace CoreTiming
-{
-struct EventType;
-}  // namespace CoreTiming
-
 namespace IOS
 {
 namespace HLE
