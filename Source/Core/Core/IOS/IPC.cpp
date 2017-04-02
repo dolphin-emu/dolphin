@@ -631,7 +631,7 @@ void Init()
   SetupMemory(IOS80_TITLE_ID, MemorySetupType::Full);
 }
 
-void Reset(const bool clear_devices)
+static void Reset()
 {
   CoreTiming::RemoveAllEvents(s_event_enqueue);
 
@@ -644,7 +644,6 @@ void Reset(const bool clear_devices)
     device.reset();
   }
 
-  if (clear_devices)
   {
     std::lock_guard<std::mutex> lock(s_device_map_mutex);
     s_device_map.clear();
@@ -658,7 +657,7 @@ void Reset(const bool clear_devices)
 
 void Shutdown()
 {
-  Reset(true);
+  Reset();
 }
 
 constexpr u64 BC_TITLE_ID = 0x0000000100000100;
@@ -687,7 +686,7 @@ bool Reload(const u64 ios_title_id)
     return false;
 
   s_active_title_id = ios_title_id;
-  Reset(true);
+  Reset();
 
   if (ios_title_id == MIOS_TITLE_ID)
   {

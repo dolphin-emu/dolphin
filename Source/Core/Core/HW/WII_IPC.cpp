@@ -139,7 +139,6 @@ void Reset()
 {
   INFO_LOG(WII_IPC, "Resetting ...");
   InitState();
-  HLE::Reset();
 }
 
 void Shutdown()

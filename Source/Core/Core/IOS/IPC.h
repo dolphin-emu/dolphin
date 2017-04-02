@@ -52,8 +52,6 @@ enum IPCCommandType : u32
 
 // Init events and devices
 void Init();
-// Reset all events and devices (and optionally clear them)
-void Reset(bool clear_devices = false);
 // Shutdown
 void Shutdown();
 
