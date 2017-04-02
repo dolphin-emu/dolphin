@@ -93,8 +93,8 @@ static bool s_bPolled = false;
 static std::mutex s_input_display_lock;
 static std::string s_InputDisplay[8];
 
-static GCManipFunction gcmfunc;
-static WiiManipFunction wiimfunc;
+static GCManipFunction s_gc_manip_func;
+static WiiManipFunction s_wii_manip_func;
 
 // NOTE: Host / CPU Thread
 static void EnsureTmpInputSize(size_t bound)
@@ -1442,25 +1442,25 @@ void SaveRecording(const std::string& filename)
 
 void SetGCInputManip(GCManipFunction func)
 {
-  gcmfunc = std::move(func);
+  s_gc_manip_func = std::move(func);
 }
 void SetWiiInputManip(WiiManipFunction func)
 {
-  wiimfunc = std::move(func);
+  s_wii_manip_func = std::move(func);
 }
 
 // NOTE: CPU Thread
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 {
-  if (gcmfunc)
-    gcmfunc(PadStatus, controllerID);
+  if (s_gc_manip_func)
+    s_gc_manip_func(PadStatus, controllerID);
 }
 // NOTE: CPU Thread
 void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
                        const wiimote_key key)
 {
-  if (wiimfunc)
-    wiimfunc(data, rptf, controllerID, ext, key);
+  if (s_wii_manip_func)
+    s_wii_manip_func(data, rptf, controllerID, ext, key);
 }
 
 // NOTE: GPU Thread

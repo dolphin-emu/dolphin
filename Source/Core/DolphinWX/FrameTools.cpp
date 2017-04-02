@@ -369,17 +369,18 @@ void CFrame::OnTASInput(wxCommandEvent& event)
     if (SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_NONE &&
         SConfig::GetInstance().m_SIDevice[i] != SerialInterface::SIDEVICE_GC_GBA)
     {
-      g_TASInputDlg[i]->CreateGCLayout();
-      g_TASInputDlg[i]->Show();
-      g_TASInputDlg[i]->SetTitle(wxString::Format(_("TAS Input - GameCube Controller %d"), i + 1));
+      m_tas_input_dialogs[i]->CreateGCLayout();
+      m_tas_input_dialogs[i]->Show();
+      m_tas_input_dialogs[i]->SetTitle(
+          wxString::Format(_("TAS Input - GameCube Controller %d"), i + 1));
     }
 
     if (g_wiimote_sources[i] == WIIMOTE_SRC_EMU &&
         !(Core::IsRunning() && !SConfig::GetInstance().bWii))
     {
-      g_TASInputDlg[i + 4]->CreateWiiLayout(i);
-      g_TASInputDlg[i + 4]->Show();
-      g_TASInputDlg[i + 4]->SetTitle(wxString::Format(_("TAS Input - Wii Remote %d"), i + 1));
+      m_tas_input_dialogs[i + 4]->CreateWiiLayout(i);
+      m_tas_input_dialogs[i + 4]->Show();
+      m_tas_input_dialogs[i + 4]->SetTitle(wxString::Format(_("TAS Input - Wii Remote %d"), i + 1));
     }
   }
 }

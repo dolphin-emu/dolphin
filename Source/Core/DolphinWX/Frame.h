@@ -137,7 +137,7 @@ private:
   CLogWindow* m_LogWindow = nullptr;
   LogConfigWindow* m_LogConfigWindow = nullptr;
   FifoPlayerDlg* m_FifoPlayerDlg = nullptr;
-  TASInputDlg* g_TASInputDlg[8];
+  TASInputDlg* m_tas_input_dialogs[8];
   bool UseDebugger = false;
   bool m_bBatchMode = false;
   bool m_bEdit = false;

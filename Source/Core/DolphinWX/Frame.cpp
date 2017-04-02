@@ -502,15 +502,15 @@ void CFrame::BindEvents()
 void CFrame::InitializeTASDialogs()
 {
   for (int i = 0; i < 8; ++i)
-    g_TASInputDlg[i] = new TASInputDlg(this);
+    m_tas_input_dialogs[i] = new TASInputDlg(this);
 
   Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
-    g_TASInputDlg[controller_id]->GetValues(pad_status);
+    m_tas_input_dialogs[controller_id]->GetValues(pad_status);
   });
 
   Movie::SetWiiInputManip([this](u8* data, WiimoteEmu::ReportFeatures rptf, int controller_id,
                                  int ext, wiimote_key key) {
-    g_TASInputDlg[controller_id + 4]->GetValues(data, rptf, ext, key);
+    m_tas_input_dialogs[controller_id + 4]->GetValues(data, rptf, ext, key);
   });
 }
 
