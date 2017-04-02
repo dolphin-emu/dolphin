@@ -199,6 +199,17 @@ void OpenALStream::SoundLoop()
   alGenBuffers(numBuffers, (ALuint*)uiBuffers);
   err = CheckALError("generating buffers");
 
+#ifdef _WIN32
+  // Force disable X-RAM, we do not want it for streaming sources
+  if (alIsExtensionPresent("EAX-RAM"))
+  {
+    EAXSetBufferMode eaxSetBufferMode;
+    eaxSetBufferMode = (EAXSetBufferMode)alGetProcAddress("EAXSetBufferMode");
+    eaxSetBufferMode(numBuffers, uiBuffers, alGetEnumValue("AL_STORAGE_ACCESSIBLE"));
+    err = CheckALError("setting X-RAM mode");
+  }
+#endif
+
   // Generate a Source to playback the Buffers
   alGenSources(1, &uiSource);
   err = CheckALError("generating sources");
