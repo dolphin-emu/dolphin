@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include <array>
+
 #include <wx/bitmap.h>
 #include <wx/dcmemory.h>
 #include <wx/dialog.h>
@@ -124,10 +126,10 @@ private:
 
   Stick m_cc_l_stick, m_cc_r_stick;
 
-  Button* m_buttons[13];
-  Button m_cc_buttons[15];
-  Control* m_controls[10];
-  Control* m_cc_controls[6];
+  std::array<Button*, 13> m_buttons;
+  std::array<Button, 15> m_cc_buttons;
+  std::array<Control*, 10> m_controls;
+  std::array<Control*, 6> m_cc_controls;
   u8 m_ext = 0;
   wxBoxSizer* m_main_szr;
   wxBoxSizer* m_wiimote_szr;

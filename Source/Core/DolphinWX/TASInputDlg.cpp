@@ -43,6 +43,28 @@ struct TASWiimoteReport
   const wiimote_key key;
 };
 
+constexpr std::array<int, 12> s_gc_pad_buttons_bitmask{{
+    PAD_BUTTON_DOWN, PAD_BUTTON_UP, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT, PAD_BUTTON_A, PAD_BUTTON_B,
+    PAD_BUTTON_X, PAD_BUTTON_Y, PAD_TRIGGER_Z, PAD_TRIGGER_L, PAD_TRIGGER_R, PAD_BUTTON_START,
+}};
+
+constexpr std::array<int, 11> s_wii_buttons_bitmask{{
+    WiimoteEmu::Wiimote::PAD_DOWN, WiimoteEmu::Wiimote::PAD_UP, WiimoteEmu::Wiimote::PAD_LEFT,
+    WiimoteEmu::Wiimote::PAD_RIGHT, WiimoteEmu::Wiimote::BUTTON_A, WiimoteEmu::Wiimote::BUTTON_B,
+    WiimoteEmu::Wiimote::BUTTON_ONE, WiimoteEmu::Wiimote::BUTTON_TWO,
+    WiimoteEmu::Wiimote::BUTTON_PLUS, WiimoteEmu::Wiimote::BUTTON_MINUS,
+    WiimoteEmu::Wiimote::BUTTON_HOME,
+}};
+
+constexpr std::array<int, 15> s_cc_buttons_bitmask{{
+    WiimoteEmu::Classic::PAD_DOWN, WiimoteEmu::Classic::PAD_UP, WiimoteEmu::Classic::PAD_LEFT,
+    WiimoteEmu::Classic::PAD_RIGHT, WiimoteEmu::Classic::BUTTON_A, WiimoteEmu::Classic::BUTTON_B,
+    WiimoteEmu::Classic::BUTTON_X, WiimoteEmu::Classic::BUTTON_Y, WiimoteEmu::Classic::BUTTON_PLUS,
+    WiimoteEmu::Classic::BUTTON_MINUS, WiimoteEmu::Classic::TRIGGER_L,
+    WiimoteEmu::Classic::TRIGGER_R, WiimoteEmu::Classic::BUTTON_ZR, WiimoteEmu::Classic::BUTTON_ZL,
+    WiimoteEmu::Classic::BUTTON_HOME,
+}};
+
 TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
                          const wxPoint& position, const wxSize& size, long style)
     : wxDialog(parent, id, title, position, size, style)
@@ -51,12 +73,9 @@ TASInputDlg::TASInputDlg(wxWindow* parent, wxWindowID id, const wxString& title,
 
 void TASInputDlg::CreateBaseLayout()
 {
-  for (unsigned int i = 0; i < ArraySize(m_controls); ++i)
-    m_controls[i] = nullptr;
-  for (unsigned int i = 0; i < ArraySize(m_buttons); ++i)
-    m_buttons[i] = nullptr;
-  for (unsigned int i = 0; i < ArraySize(m_cc_controls); ++i)
-    m_cc_controls[i] = nullptr;
+  m_controls = {};
+  m_buttons = {};
+  m_cc_controls = {};
 
   m_buttons[0] = &m_dpad_down;
   m_buttons[1] = &m_dpad_up;
@@ -92,31 +111,6 @@ void TASInputDlg::CreateBaseLayout()
   m_buttons_dpad->Add(m_dpad_down.checkbox);
   m_buttons_dpad->Add(space20, space20);
 }
-
-static constexpr int s_gc_pad_buttons_bitmask[12] = {
-    PAD_BUTTON_DOWN, PAD_BUTTON_UP, PAD_BUTTON_LEFT, PAD_BUTTON_RIGHT,
-    PAD_BUTTON_A,    PAD_BUTTON_B,  PAD_BUTTON_X,    PAD_BUTTON_Y,
-    PAD_TRIGGER_Z,   PAD_TRIGGER_L, PAD_TRIGGER_R,   PAD_BUTTON_START};
-
-static constexpr int s_wii_buttons_bitmask[11] = {
-    WiimoteEmu::Wiimote::PAD_DOWN,    WiimoteEmu::Wiimote::PAD_UP,
-    WiimoteEmu::Wiimote::PAD_LEFT,    WiimoteEmu::Wiimote::PAD_RIGHT,
-    WiimoteEmu::Wiimote::BUTTON_A,    WiimoteEmu::Wiimote::BUTTON_B,
-    WiimoteEmu::Wiimote::BUTTON_ONE,  WiimoteEmu::Wiimote::BUTTON_TWO,
-    WiimoteEmu::Wiimote::BUTTON_PLUS, WiimoteEmu::Wiimote::BUTTON_MINUS,
-    WiimoteEmu::Wiimote::BUTTON_HOME,
-};
-
-static constexpr int s_cc_buttons_bitmask[15] = {
-    WiimoteEmu::Classic::PAD_DOWN,    WiimoteEmu::Classic::PAD_UP,
-    WiimoteEmu::Classic::PAD_LEFT,    WiimoteEmu::Classic::PAD_RIGHT,
-    WiimoteEmu::Classic::BUTTON_A,    WiimoteEmu::Classic::BUTTON_B,
-    WiimoteEmu::Classic::BUTTON_X,    WiimoteEmu::Classic::BUTTON_Y,
-    WiimoteEmu::Classic::BUTTON_PLUS, WiimoteEmu::Classic::BUTTON_MINUS,
-    WiimoteEmu::Classic::TRIGGER_L,   WiimoteEmu::Classic::TRIGGER_R,
-    WiimoteEmu::Classic::BUTTON_ZR,   WiimoteEmu::Classic::BUTTON_ZL,
-    WiimoteEmu::Classic::BUTTON_HOME,
-};
 
 void TASInputDlg::CreateWiiLayout(int num)
 {
@@ -209,10 +203,13 @@ void TASInputDlg::CreateWiiLayout(int num)
   m_ext_szr->AddSpacer(space5);
   m_ext_szr->Add(nunchukaxisBox, 0, wxBOTTOM, space5);
 
+  // Add non-DPad related buttons first.
   wxGridSizer* const buttons_grid = new wxGridSizer(4);
-  for (unsigned int i = 4; i < ArraySize(m_buttons); ++i)
+  for (size_t i = 4; i < m_buttons.size(); ++i)
+  {
     if (m_buttons[i] != nullptr)
       buttons_grid->Add(m_buttons[i]->checkbox);
+  }
   buttons_grid->Add(space5, space5);
 
   wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
@@ -405,10 +402,13 @@ void TASInputDlg::CreateGCLayout()
 
   const int space5 = FromDIP(5);
 
+  // Add non-DPad related buttons first.
   wxGridSizer* const buttons_grid = new wxGridSizer(4);
-  for (unsigned int i = 4; i < ArraySize(m_buttons); ++i)
+  for (size_t i = 4; i < m_buttons.size(); ++i)
+  {
     if (m_buttons[i] != nullptr)
       buttons_grid->Add(m_buttons[i]->checkbox, false);
+  }
   buttons_grid->Add(space5, space5);
 
   wxStaticBoxSizer* const buttons_box = new wxStaticBoxSizer(wxVERTICAL, this, _("Buttons"));
@@ -636,7 +636,7 @@ void TASInputDlg::SetButtonValue(Button* button, bool CurrentState)
 // NOTE: Host / CPU Thread
 void TASInputDlg::SetWiiButtons(u16* butt)
 {
-  for (unsigned int i = 0; i < 11; ++i)
+  for (size_t i = 0; i < s_wii_buttons_bitmask.size(); ++i)
   {
     if (m_buttons[i] != nullptr)
       *butt |= (m_buttons[i]->is_checked) ? s_wii_buttons_bitmask[i] : 0;
@@ -655,7 +655,7 @@ void TASInputDlg::GetKeyBoardInput(GCPadStatus* PadStatus)
   SetSliderValue(&m_l_cont, PadStatus->triggerLeft);
   SetSliderValue(&m_r_cont, PadStatus->triggerRight);
 
-  for (unsigned int i = 0; i < ArraySize(m_buttons); ++i)
+  for (size_t i = 0; i < m_buttons.size(); ++i)
   {
     if (m_buttons[i] != nullptr)
       SetButtonValue(m_buttons[i], ((PadStatus->button & s_gc_pad_buttons_bitmask[i]) != 0));
@@ -677,7 +677,7 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
 
   if (coreData)
   {
-    for (unsigned int i = 0; i < 11; ++i)
+    for (size_t i = 0; i < s_wii_buttons_bitmask.size(); ++i)
     {
       if (m_buttons[i] != nullptr)
         SetButtonValue(m_buttons[i],
@@ -719,7 +719,7 @@ void TASInputDlg::GetKeyBoardInput(u8* data, WiimoteEmu::ReportFeatures rptf, in
     wm_classic_extension& cc = *(wm_classic_extension*)extData;
     WiimoteDecrypt(&key, (u8*)&cc, 0, sizeof(wm_classic_extension));
     cc.bt.hex = cc.bt.hex ^ 0xFFFF;
-    for (unsigned int i = 0; i < 15; ++i)
+    for (size_t i = 0; i < m_cc_buttons.size(); ++i)
     {
       SetButtonValue(&m_cc_buttons[i], ((cc.bt.hex & s_cc_buttons_bitmask[i]) != 0));
     }
@@ -776,11 +776,10 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext,
     }
     if (irData)
     {
-      u16 x[4];
-      u16 y;
+      std::array<u16, 4> x;
+      u16 y = m_main_stick.y_cont.value;
 
       x[0] = m_main_stick.x_cont.value;
-      y = m_main_stick.y_cont.value;
       x[1] = x[0] + 100;
       x[2] = x[0] - 10;
       x[3] = x[1] + 10;
@@ -820,7 +819,7 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext,
       {
         memset(data, 0xFF, sizeof(wm_ir_extended) * 4);
         wm_ir_extended* const ir_data = (wm_ir_extended*)irData;
-        for (unsigned int i = 0; i < 4; ++i)
+        for (size_t i = 0; i < x.size(); ++i)
         {
           if (x[i] < 1024 && y < 768)
           {
@@ -866,7 +865,7 @@ void TASInputDlg::GetValues(u8* data, WiimoteEmu::ReportFeatures rptf, int ext,
     WiimoteDecrypt(&key, (u8*)&cc, 0, sizeof(wm_classic_extension));
     cc.bt.hex = 0;
 
-    for (unsigned int i = 0; i < ArraySize(m_cc_buttons); ++i)
+    for (size_t i = 0; i < m_cc_buttons.size(); ++i)
     {
       cc.bt.hex |= (m_cc_buttons[i].is_checked) ? s_cc_buttons_bitmask[i] : 0;
     }
@@ -905,7 +904,7 @@ void TASInputDlg::GetValues(GCPadStatus* PadStatus)
   PadStatus->triggerLeft = m_l.is_checked ? 255 : m_l_cont.value;
   PadStatus->triggerRight = m_r.is_checked ? 255 : m_r_cont.value;
 
-  for (unsigned int i = 0; i < ArraySize(m_buttons); ++i)
+  for (size_t i = 0; i < m_buttons.size(); ++i)
   {
     if (m_buttons[i] != nullptr)
     {
