@@ -47,6 +47,7 @@
 #include "Core/HW/GCKeyboard.h"
 #include "Core/HW/GCPad.h"
 #include "Core/HW/Wiimote.h"
+#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
 #include "Core/HotkeyManager.h"
 #include "Core/IOS/IPC.h"
 #include "Core/IOS/USB/Bluetooth/BTBase.h"
@@ -389,11 +390,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   m_LogWindow->Hide();
   m_LogWindow->Disable();
 
-  for (int i = 0; i < 8; ++i)
-    g_TASInputDlg[i] = new TASInputDlg(this);
-
-  Movie::SetGCInputManip(GCTASManipFunction);
-  Movie::SetWiiInputManip(WiiTASManipFunction);
+  InitializeTASDialogs();
 
   State::SetOnAfterLoadCallback(OnAfterLoadCallback);
   Core::SetOnStoppedCallback(OnStoppedCallback);
@@ -500,6 +497,21 @@ void CFrame::BindEvents()
   Bind(DOLPHIN_EVT_UPDATE_LOAD_WII_MENU_ITEM, &CFrame::OnUpdateLoadWiiMenuItem, this);
   Bind(DOLPHIN_EVT_BOOT_SOFTWARE, &CFrame::OnPlay, this);
   Bind(DOLPHIN_EVT_STOP_SOFTWARE, &CFrame::OnStop, this);
+}
+
+void CFrame::InitializeTASDialogs()
+{
+  for (int i = 0; i < 8; ++i)
+    g_TASInputDlg[i] = new TASInputDlg(this);
+
+  Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
+    g_TASInputDlg[controller_id]->GetValues(pad_status);
+  });
+
+  Movie::SetWiiInputManip([this](u8* data, WiimoteEmu::ReportFeatures rptf, int controller_id,
+                                 int ext, wiimote_key key) {
+    g_TASInputDlg[controller_id + 4]->GetValues(data, rptf, ext, key);
+  });
 }
 
 bool CFrame::RendererIsFullscreen()
@@ -1031,21 +1043,6 @@ void OnStoppedCallback()
   {
     wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_STOPPED);
     main_frame->GetEventHandler()->AddPendingEvent(event);
-  }
-}
-
-void GCTASManipFunction(GCPadStatus* PadStatus, int controllerID)
-{
-  if (main_frame)
-    main_frame->g_TASInputDlg[controllerID]->GetValues(PadStatus);
-}
-
-void WiiTASManipFunction(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
-                         const wiimote_key key)
-{
-  if (main_frame)
-  {
-    main_frame->g_TASInputDlg[controllerID + 4]->GetValues(data, rptf, ext, key);
   }
 }
 

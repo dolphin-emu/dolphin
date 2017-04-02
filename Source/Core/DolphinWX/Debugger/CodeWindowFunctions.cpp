@@ -3,7 +3,9 @@
 // Refer to the license.txt file included.
 
 #include <cstddef>
+#include <fstream>
 #include <istream>
+#include <sstream>
 #include <string>
 #include <utility>
 #include <vector>

@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "Core/Movie.h"
+
 #include <algorithm>
 #include <array>
 #include <cctype>
@@ -10,6 +12,7 @@
 #include <mbedtls/md.h>
 #include <mutex>
 #include <thread>
+#include <utility>
 #include <vector>
 
 #include "Common/Assert.h"
@@ -34,7 +37,6 @@
 #include "Core/HW/WiimoteEmu/WiimoteHid.h"
 #include "Core/IOS/USB/Bluetooth/BTEmu.h"
 #include "Core/IOS/USB/Bluetooth/WiimoteDevice.h"
-#include "Core/Movie.h"
 #include "Core/NetPlayProto.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "Core/State.h"
@@ -91,8 +93,8 @@ static bool s_bPolled = false;
 static std::mutex s_input_display_lock;
 static std::string s_InputDisplay[8];
 
-static GCManipFunction gcmfunc = nullptr;
-static WiiManipFunction wiimfunc = nullptr;
+static GCManipFunction gcmfunc;
+static WiiManipFunction wiimfunc;
 
 // NOTE: Host / CPU Thread
 static void EnsureTmpInputSize(size_t bound)
@@ -1440,25 +1442,25 @@ void SaveRecording(const std::string& filename)
 
 void SetGCInputManip(GCManipFunction func)
 {
-  gcmfunc = func;
+  gcmfunc = std::move(func);
 }
 void SetWiiInputManip(WiiManipFunction func)
 {
-  wiimfunc = func;
+  wiimfunc = std::move(func);
 }
 
 // NOTE: CPU Thread
 void CallGCInputManip(GCPadStatus* PadStatus, int controllerID)
 {
   if (gcmfunc)
-    (*gcmfunc)(PadStatus, controllerID);
+    gcmfunc(PadStatus, controllerID);
 }
 // NOTE: CPU Thread
 void CallWiiInputManip(u8* data, WiimoteEmu::ReportFeatures rptf, int controllerID, int ext,
                        const wiimote_key key)
 {
   if (wiimfunc)
-    (*wiimfunc)(data, rptf, controllerID, ext, key);
+    wiimfunc(data, rptf, controllerID, ext, key);
 }
 
 // NOTE: GPU Thread

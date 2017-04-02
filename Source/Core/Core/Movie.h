@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <functional>
 #include <string>
 
 #include "Common/CommonTypes.h"
@@ -181,8 +182,9 @@ std::string GetInputDisplay();
 std::string GetRTCDisplay();
 
 // Done this way to avoid mixing of core and gui code
-typedef void (*GCManipFunction)(GCPadStatus*, int);
-typedef void (*WiiManipFunction)(u8*, WiimoteEmu::ReportFeatures, int, int, wiimote_key);
+using GCManipFunction = std::function<void(GCPadStatus*, int)>;
+using WiiManipFunction =
+    std::function<void(u8*, WiimoteEmu::ReportFeatures, int, int, wiimote_key)>;
 
 void SetGCInputManip(GCManipFunction);
 void SetWiiInputManip(WiiManipFunction);
