@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <array>
 #include <cstddef>
 #include <mutex>
 #include <string>
@@ -137,7 +138,7 @@ private:
   CLogWindow* m_LogWindow = nullptr;
   LogConfigWindow* m_LogConfigWindow = nullptr;
   FifoPlayerDlg* m_FifoPlayerDlg = nullptr;
-  TASInputDlg* m_tas_input_dialogs[8];
+  std::array<TASInputDlg*, 8> m_tas_input_dialogs{};
   bool UseDebugger = false;
   bool m_bBatchMode = false;
   bool m_bEdit = false;

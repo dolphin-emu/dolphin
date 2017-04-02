@@ -4,6 +4,7 @@
 
 #include "DolphinWX/Frame.h"
 
+#include <algorithm>
 #include <atomic>
 #include <cstddef>
 #include <fstream>
@@ -501,8 +502,8 @@ void CFrame::BindEvents()
 
 void CFrame::InitializeTASDialogs()
 {
-  for (int i = 0; i < 8; ++i)
-    m_tas_input_dialogs[i] = new TASInputDlg(this);
+  std::generate(m_tas_input_dialogs.begin(), m_tas_input_dialogs.end(),
+                [this] { return new TASInputDlg{this}; });
 
   Movie::SetGCInputManip([this](GCPadStatus* pad_status, int controller_id) {
     m_tas_input_dialogs[controller_id]->GetValues(pad_status);
