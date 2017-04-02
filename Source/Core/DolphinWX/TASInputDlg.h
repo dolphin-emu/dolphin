@@ -6,19 +6,22 @@
 
 #include <array>
 
-#include <wx/bitmap.h>
-#include <wx/dcmemory.h>
 #include <wx/dialog.h>
 #include <wx/sizer.h>
 
 #include "Common/CommonTypes.h"
-#include "Core/HW/WiimoteEmu/WiimoteEmu.h"
-#include "InputCommon/GCPadStatus.h"
 
 class DolphinSlider;
+struct GCPadStatus;
+class wxBitmap;
 class wxCheckBox;
 class wxStaticBitmap;
 class wxTextCtrl;
+
+namespace WiimoteEmu
+{
+struct ReportFeatures;
+}
 
 class TASInputDlg : public wxDialog
 {
