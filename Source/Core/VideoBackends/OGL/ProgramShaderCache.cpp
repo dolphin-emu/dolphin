@@ -103,11 +103,38 @@ void SHADER::SetProgramVariables()
   }
 }
 
+bool IsDualSourceBlendActive()
+{
+  if (!g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+    return false;
+
+  GLboolean blendEnabled;
+  glGetBooleanv(GL_BLEND, &blendEnabled);
+  if (!blendEnabled) return false;
+
+  GLint blendSrc;
+  GLint blendSrcAlpha;
+  GLint blendDest;
+  GLint blendDestAlpha;
+  glGetIntegerv(GL_BLEND_SRC_RGB, &blendSrc);
+  glGetIntegerv(GL_BLEND_DST_RGB, &blendDest);
+  glGetIntegerv(GL_BLEND_SRC_ALPHA, &blendSrcAlpha);
+  glGetIntegerv(GL_BLEND_DST_ALPHA, &blendDestAlpha);
+
+  return (
+    blendSrc == GL_SRC1_ALPHA || blendSrc == GL_ONE_MINUS_SRC1_ALPHA ||
+    blendSrcAlpha == GL_SRC1_ALPHA || blendSrcAlpha == GL_ONE_MINUS_SRC1_ALPHA ||
+    blendDest == GL_SRC1_ALPHA || blendDest == GL_ONE_MINUS_SRC1_ALPHA ||
+    blendDestAlpha == GL_SRC1_ALPHA || blendDestAlpha == GL_ONE_MINUS_SRC1_ALPHA
+  );
+}
+
+
 void SHADER::SetProgramBindings()
 {
-  if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  if (IsDualSourceBlendActive())
   {
-    // So we do support extended blending
+    // So we do support and are using extended blending
     // So we need to set a few more things here.
     // Bind our out locations
     glBindFragDataLocationIndexed(glprogid, 0, 0, "ocol0");
