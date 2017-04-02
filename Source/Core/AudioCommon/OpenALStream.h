@@ -17,6 +17,7 @@
 #include <OpenAL/include/al.h>
 #include <OpenAL/include/alc.h>
 #include <OpenAL/include/alext.h>
+#include <OpenAL/include/xram.h>
 #elif defined __APPLE__
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
