@@ -39,10 +39,17 @@ public:
   void CreateWiiLayout(int num);
 
 private:
-  static constexpr int ID_C_STICK = 1001;
-  static constexpr int ID_MAIN_STICK = 1002;
-  static constexpr int ID_CC_L_STICK = 1003;
-  static constexpr int ID_CC_R_STICK = 1004;
+  enum : int
+  {
+    ID_C_STICK = 1001,
+    ID_MAIN_STICK = 1002,
+    ID_CC_L_STICK = 1003,
+    ID_CC_R_STICK = 1004
+  };
+
+  // Used in the context of creating controls on the fly
+  // This is greater than the last stick enum constant to
+  // prevent ID clashing in wx's event system.
   int m_eleID = 1005;
 
   struct Control
