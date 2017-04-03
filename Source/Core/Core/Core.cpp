@@ -91,9 +91,6 @@ static Common::Timer s_timer;
 static std::atomic<u32> s_drawn_frame;
 static std::atomic<u32> s_drawn_video;
 
-// Function declarations
-void EmuThread();
-
 static bool s_is_stopping = false;
 static bool s_hardware_initialized = false;
 static bool s_is_started = false;
@@ -126,6 +123,8 @@ static void InitIsCPUKey()
   pthread_key_create(&s_tls_is_cpu_key, nullptr);
 }
 #endif
+
+static void EmuThread();
 
 bool GetIsThrottlerTempDisabled()
 {
@@ -448,7 +447,7 @@ static void FifoPlayerThread()
 // Initialize and create emulation thread
 // Call browser: Init():s_emu_thread().
 // See the BootManager.cpp file description for a complete call schedule.
-void EmuThread()
+static void EmuThread()
 {
   const SConfig& core_parameter = SConfig::GetInstance();
   s_is_booting.Set();
