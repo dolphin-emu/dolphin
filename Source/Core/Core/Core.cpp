@@ -104,7 +104,7 @@ static Common::Flag s_is_booting;
 static void* s_window_handle = nullptr;
 static std::string s_state_filename;
 static std::thread s_emu_thread;
-static StoppedCallbackFunc s_on_stopped_callback = nullptr;
+static StoppedCallbackFunc s_on_stopped_callback;
 
 static std::thread s_cpu_thread;
 static bool s_request_refresh_info = false;
@@ -938,7 +938,7 @@ void Shutdown()
 
 void SetOnStoppedCallback(StoppedCallbackFunc callback)
 {
-  s_on_stopped_callback = callback;
+  s_on_stopped_callback = std::move(callback);
 }
 
 void UpdateWantDeterminism(bool initial)
