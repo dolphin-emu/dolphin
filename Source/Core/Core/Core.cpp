@@ -84,7 +84,7 @@ namespace Core
 // TODO: ugly, remove
 bool g_aspect_wide;
 
-bool g_want_determinism;
+static bool s_wants_determinism;
 
 // Declarations and definitions
 static Common::Timer s_timer;
@@ -214,6 +214,11 @@ bool IsGPUThread()
   {
     return IsCPUThread();
   }
+}
+
+bool WantsDeterminism()
+{
+  return s_wants_determinism;
 }
 
 // This is called from the GUI thread. See the booting call schedule in
@@ -943,19 +948,19 @@ void UpdateWantDeterminism(bool initial)
   // settings that depend on it, such as GPU determinism mode. should have
   // override options for testing,
   bool new_want_determinism = Movie::IsMovieActive() || NetPlay::IsNetPlayRunning();
-  if (new_want_determinism != g_want_determinism || initial)
+  if (new_want_determinism != s_wants_determinism || initial)
   {
     NOTICE_LOG(COMMON, "Want determinism <- %s", new_want_determinism ? "true" : "false");
 
     bool was_unpaused = Core::PauseAndLock(true);
 
-    g_want_determinism = new_want_determinism;
+    s_wants_determinism = new_want_determinism;
     IOS::HLE::UpdateWantDeterminism(new_want_determinism);
     Fifo::UpdateWantDeterminism(new_want_determinism);
     // We need to clear the cache because some parts of the JIT depend on want_determinism, e.g. use
     // of FMA.
     JitInterface::ClearCache();
-    Core::InitializeWiiRoot(g_want_determinism);
+    Core::InitializeWiiRoot(s_wants_determinism);
 
     Core::PauseAndLock(false, was_unpaused);
   }

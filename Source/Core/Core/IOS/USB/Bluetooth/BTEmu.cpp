@@ -42,9 +42,9 @@ namespace Device
 BluetoothEmu::BluetoothEmu(u32 device_id, const std::string& device_name)
     : BluetoothBase(device_id, device_name)
 {
-  SysConf sysconf{Core::g_want_determinism ? Common::FromWhichRoot::FROM_SESSION_ROOT :
+  SysConf sysconf{Core::WantsDeterminism() ? Common::FromWhichRoot::FROM_SESSION_ROOT :
                                              Common::FromWhichRoot::FROM_CONFIGURED_ROOT};
-  if (!Core::g_want_determinism)
+  if (!Core::WantsDeterminism())
     BackUpBTInfoSection(&sysconf);
 
   _conf_pads BT_DINF;

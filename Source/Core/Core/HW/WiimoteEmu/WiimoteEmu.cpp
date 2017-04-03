@@ -394,7 +394,7 @@ bool Wiimote::Step()
 
   // when a movie is active, this button status update is disabled (moved), because movies only
   // record data reports.
-  if (!Core::g_want_determinism)
+  if (!Core::WantsDeterminism())
   {
     UpdateButtonsStatus();
   }
@@ -453,7 +453,7 @@ void Wiimote::GetButtonData(u8* const data)
 {
   // when a movie is active, the button update happens here instead of Wiimote::Step, to avoid
   // potential desync issues.
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
   {
     UpdateButtonsStatus();
   }

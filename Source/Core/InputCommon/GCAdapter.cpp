@@ -453,7 +453,7 @@ GCPadStatus Input(int chan)
       pad.triggerLeft = controller_payload_copy[1 + (9 * chan) + 7];
       pad.triggerRight = controller_payload_copy[1 + (9 * chan) + 8];
     }
-    else if (!Core::g_want_determinism)
+    else if (!Core::WantsDeterminism())
     {
       // This is a hack to prevent a desync due to SI devices
       // being different and returning different values.

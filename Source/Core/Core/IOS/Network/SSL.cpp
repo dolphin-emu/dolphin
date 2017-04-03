@@ -171,7 +171,7 @@ IPCCommandResult NetSSL::IOCtlV(const IOCtlVRequest& request)
 
   // I don't trust SSL to be deterministic, and this is never going to sync
   // as such (as opposed to forwarding IPC results or whatever), so -
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
     return GetDefaultReply(IPC_EACCES);
 
   switch (request.request)

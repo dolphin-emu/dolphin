@@ -91,7 +91,7 @@ void ControllerConfigDiag::UpdateUI()
 
     const bool wii_game_started =
         SConfig::GetInstance().bWii || Core::GetState() == Core::State::Uninitialized;
-    if (Core::g_want_determinism || !wii_game_started)
+    if (Core::WantsDeterminism() || !wii_game_started)
       m_wiimote_sources[i]->Disable();
     if (!wii_game_started ||
         (g_wiimote_sources[i] != WIIMOTE_SRC_EMU && g_wiimote_sources[i] != WIIMOTE_SRC_HYBRID))
@@ -179,7 +179,7 @@ wxSizer* ControllerConfigDiag::CreateGamecubeSizer()
     pad_type_choices[i]->Bind(wxEVT_CHOICE, &ControllerConfigDiag::OnGameCubePortChanged, this);
 
     // Disable controller type selection for certain circumstances.
-    if (Core::g_want_determinism)
+    if (Core::WantsDeterminism())
       pad_type_choices[i]->Disable();
 
     // Set the saved pad type as the default choice.
