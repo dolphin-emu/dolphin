@@ -66,8 +66,6 @@ void DisplayMessage(const std::string& message, int time_in_ms);
 std::string GetStateFileName();
 void SetStateFileName(const std::string& val);
 
-void SetBlockStart(u32 addr);
-
 void FrameUpdateOnCPUThread();
 
 bool ShouldSkipFrame(int skipped);
