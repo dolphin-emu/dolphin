@@ -30,6 +30,7 @@ enum DESCRIPTOR_SET_LAYOUT
   DESCRIPTOR_SET_LAYOUT_PIXEL_SHADER_SAMPLERS,
   DESCRIPTOR_SET_LAYOUT_SHADER_STORAGE_BUFFERS,
   DESCRIPTOR_SET_LAYOUT_TEXEL_BUFFERS,
+  DESCRIPTOR_SET_LAYOUT_COMPUTE,
   NUM_DESCRIPTOR_SET_LAYOUTS
 };
 
@@ -52,6 +53,12 @@ enum DESCRIPTOR_SET_BIND_POINT
 //       - Same as standard, plus 128 bytes of push constants, accessible from all stages.
 //   - Texture Decoding
 //       - Same as push constant, plus a single texel buffer accessible from PS.
+//   - Compute
+//       - 1 uniform buffer [set=0, binding=0]
+//       - 4 combined image samplers [set=0, binding=1-4]
+//       - 1 texel buffer [set=0, binding=5]
+//       - 1 storage image [set=0, binding=6]
+//       - 128 bytes of push constants
 //
 // All four pipeline layout share the first two descriptor sets (uniform buffers, PS samplers).
 // The third descriptor set (see bind points above) is used for storage or texel buffers.
@@ -62,6 +69,7 @@ enum PIPELINE_LAYOUT
   PIPELINE_LAYOUT_BBOX,
   PIPELINE_LAYOUT_PUSH_CONSTANT,
   PIPELINE_LAYOUT_TEXTURE_CONVERSION,
+  PIPELINE_LAYOUT_COMPUTE,
   NUM_PIPELINE_LAYOUTS
 };
 

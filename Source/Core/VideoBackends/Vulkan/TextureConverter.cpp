@@ -42,8 +42,12 @@ TextureConverter::~TextureConverter()
       vkDestroyShaderModule(g_vulkan_context->GetDevice(), it, nullptr);
   }
 
+  if (m_texel_buffer_view_r8_uint != VK_NULL_HANDLE)
+    vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_r8_uint, nullptr);
   if (m_texel_buffer_view_r16_uint != VK_NULL_HANDLE)
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_r16_uint, nullptr);
+  if (m_texel_buffer_view_r32g32_uint != VK_NULL_HANDLE)
+    vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_r32g32_uint, nullptr);
   if (m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE)
     vkDestroyBufferView(g_vulkan_context->GetDevice(), m_texel_buffer_view_rgba8_unorm, nullptr);
 
@@ -57,6 +61,12 @@ TextureConverter::~TextureConverter()
   {
     if (shader != VK_NULL_HANDLE)
       vkDestroyShaderModule(g_vulkan_context->GetDevice(), shader, nullptr);
+  }
+
+  for (const auto& it : m_decoding_pipelines)
+  {
+    if (it.second.compute_shader != VK_NULL_HANDLE)
+      vkDestroyShaderModule(g_vulkan_context->GetDevice(), it.second.compute_shader, nullptr);
   }
 
   if (m_rgb_to_yuyv_shader != VK_NULL_HANDLE)
@@ -100,6 +110,12 @@ bool TextureConverter::Initialize()
   if (!CreateEncodingDownloadTexture())
   {
     PanicAlert("Failed to create download texture");
+    return false;
+  }
+
+  if (!CreateDecodingTexture())
+  {
+    PanicAlert("Failed to create decoding texture");
     return false;
   }
 
@@ -371,6 +387,152 @@ void TextureConverter::DecodeYUYVTextureFromMemory(TextureCache::TCacheEntry* ds
   draw.EndRenderPass();
 }
 
+bool TextureConverter::SupportsTextureDecoding(TextureFormat format, TlutFormat palette_format)
+{
+  auto key = std::make_pair(format, palette_format);
+  auto iter = m_decoding_pipelines.find(key);
+  if (iter != m_decoding_pipelines.end())
+    return iter->second.valid;
+
+  TextureDecodingPipeline pipeline;
+  pipeline.base_info = TextureConversionShader::GetDecodingShaderInfo(format);
+  pipeline.compute_shader = VK_NULL_HANDLE;
+  pipeline.valid = false;
+
+  if (!pipeline.base_info)
+  {
+    m_decoding_pipelines.emplace(key, pipeline);
+    return false;
+  }
+
+  std::string shader_source =
+      TextureConversionShader::GenerateDecodingShader(format, palette_format, APIType::Vulkan);
+
+  pipeline.compute_shader = Util::CompileAndCreateComputeShader(shader_source, true);
+  if (pipeline.compute_shader == VK_NULL_HANDLE)
+  {
+    m_decoding_pipelines.emplace(key, pipeline);
+    return false;
+  }
+
+  pipeline.valid = true;
+  m_decoding_pipelines.emplace(key, pipeline);
+  return true;
+}
+
+void TextureConverter::DecodeTexture(TextureCache::TCacheEntry* entry, u32 dst_level,
+                                     const u8* data, size_t data_size, TextureFormat format,
+                                     u32 width, u32 height, u32 aligned_width, u32 aligned_height,
+                                     u32 row_stride, const u8* palette, TlutFormat palette_format)
+{
+  auto key = std::make_pair(format, palette_format);
+  auto iter = m_decoding_pipelines.find(key);
+  if (iter == m_decoding_pipelines.end())
+    return;
+
+  struct PushConstants
+  {
+    u32 dst_size[2];
+    u32 src_size[2];
+    u32 src_offset;
+    u32 src_row_stride;
+    u32 palette_offset;
+  };
+
+  // Copy to GPU-visible buffer, aligned to the data type
+  auto info = iter->second;
+  u32 bytes_per_buffer_elem =
+      TextureConversionShader::GetBytesPerBufferElement(info.base_info->buffer_format);
+
+  // Calculate total data size, including palette.
+  // Only copy palette if it is required.
+  u32 total_upload_size = static_cast<u32>(data_size);
+  u32 palette_size = iter->second.base_info->palette_size;
+  u32 palette_offset = total_upload_size;
+  bool has_palette = palette_size > 0;
+  if (has_palette)
+  {
+    // Align to u16.
+    if ((total_upload_size % sizeof(u16)) != 0)
+    {
+      total_upload_size++;
+      palette_offset++;
+    }
+
+    total_upload_size += palette_size;
+  }
+
+  // Allocate space for upload, if it fails, execute the buffer.
+  if (!m_texel_buffer->ReserveMemory(total_upload_size, bytes_per_buffer_elem))
+  {
+    Util::ExecuteCurrentCommandsAndRestoreState(true, false);
+    if (!m_texel_buffer->ReserveMemory(total_upload_size, bytes_per_buffer_elem))
+      PanicAlert("Failed to reserve memory for encoded texture upload");
+  }
+
+  // Copy/commit upload buffer.
+  u32 texel_buffer_offset = static_cast<u32>(m_texel_buffer->GetCurrentOffset());
+  std::memcpy(m_texel_buffer->GetCurrentHostPointer(), data, data_size);
+  if (has_palette)
+    std::memcpy(m_texel_buffer->GetCurrentHostPointer() + palette_offset, palette, palette_size);
+  m_texel_buffer->CommitMemory(total_upload_size);
+
+  // Determine uniforms.
+  PushConstants constants = {
+      {width, height},
+      {aligned_width, aligned_height},
+      texel_buffer_offset / bytes_per_buffer_elem,
+      row_stride / bytes_per_buffer_elem,
+      static_cast<u32>((texel_buffer_offset + palette_offset) / sizeof(u16))};
+
+  // Determine view to use for texel buffers.
+  VkBufferView data_view = VK_NULL_HANDLE;
+  switch (iter->second.base_info->buffer_format)
+  {
+  case TextureConversionShader::BUFFER_FORMAT_R8_UINT:
+    data_view = m_texel_buffer_view_r8_uint;
+    break;
+  case TextureConversionShader::BUFFER_FORMAT_R16_UINT:
+    data_view = m_texel_buffer_view_r16_uint;
+    break;
+  case TextureConversionShader::BUFFER_FORMAT_R32G32_UINT:
+    data_view = m_texel_buffer_view_r32g32_uint;
+    break;
+  default:
+    break;
+  }
+
+  // Place compute shader dispatches together in the init command buffer.
+  // That way we don't have to pay a penalty for switching from graphics->compute,
+  // or end/restart our render pass.
+  VkCommandBuffer command_buffer = g_command_buffer_mgr->GetCurrentInitCommandBuffer();
+
+  // Dispatch compute to temporary texture.
+  ComputeShaderDispatcher dispatcher(command_buffer,
+                                     g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_COMPUTE),
+                                     iter->second.compute_shader);
+  m_decoding_texture->TransitionToLayout(command_buffer, Texture2D::ComputeImageLayout::WriteOnly);
+  dispatcher.SetPushConstants(&constants, sizeof(constants));
+  dispatcher.SetStorageImage(m_decoding_texture->GetView(), m_decoding_texture->GetLayout());
+  dispatcher.SetTexelBuffer(0, data_view);
+  if (has_palette)
+    dispatcher.SetTexelBuffer(1, m_texel_buffer_view_r16_uint);
+  auto groups = TextureConversionShader::GetDispatchCount(iter->second.base_info, width, height);
+  dispatcher.Dispatch(groups.first, groups.second, 1);
+
+  // Copy from temporary texture to final destination.
+  m_decoding_texture->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
+  entry->GetTexture()->TransitionToLayout(command_buffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL);
+  VkImageCopy image_copy = {{VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, 1},
+                            {0, 0, 0},
+                            {VK_IMAGE_ASPECT_COLOR_BIT, dst_level, 0, 1},
+                            {0, 0, 0},
+                            {width, height, 1}};
+  vkCmdCopyImage(command_buffer, m_decoding_texture->GetImage(),
+                 VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, entry->GetTexture()->GetImage(),
+                 VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &image_copy);
+}
+
 bool TextureConverter::CreateTexelBuffer()
 {
   // Prefer an 8MB buffer if possible, but use less if the device doesn't support this.
@@ -386,9 +548,13 @@ bool TextureConverter::CreateTexelBuffer()
     return false;
 
   // Create views of the formats that we will be using.
+  m_texel_buffer_view_r8_uint = CreateTexelBufferView(VK_FORMAT_R8_UINT);
   m_texel_buffer_view_r16_uint = CreateTexelBufferView(VK_FORMAT_R16_UINT);
+  m_texel_buffer_view_r32g32_uint = CreateTexelBufferView(VK_FORMAT_R32G32_UINT);
   m_texel_buffer_view_rgba8_unorm = CreateTexelBufferView(VK_FORMAT_R8G8B8A8_UNORM);
-  return m_texel_buffer_view_r16_uint != VK_NULL_HANDLE &&
+  return m_texel_buffer_view_r8_uint != VK_NULL_HANDLE &&
+         m_texel_buffer_view_r16_uint != VK_NULL_HANDLE &&
+         m_texel_buffer_view_r32g32_uint != VK_NULL_HANDLE &&
          m_texel_buffer_view_rgba8_unorm != VK_NULL_HANDLE;
 }
 
@@ -609,6 +775,15 @@ bool TextureConverter::CreateEncodingDownloadTexture()
                                ENCODING_TEXTURE_HEIGHT, ENCODING_TEXTURE_FORMAT);
 
   return m_encoding_download_texture && m_encoding_download_texture->Map();
+}
+
+bool TextureConverter::CreateDecodingTexture()
+{
+  m_decoding_texture = Texture2D::Create(
+      DECODING_TEXTURE_WIDTH, DECODING_TEXTURE_HEIGHT, 1, 1, VK_FORMAT_R8G8B8A8_UNORM,
+      VK_SAMPLE_COUNT_1_BIT, VK_IMAGE_VIEW_TYPE_2D_ARRAY, VK_IMAGE_TILING_OPTIMAL,
+      VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT);
+  return static_cast<bool>(m_decoding_texture);
 }
 
 bool TextureConverter::CompileYUYVConversionShaders()

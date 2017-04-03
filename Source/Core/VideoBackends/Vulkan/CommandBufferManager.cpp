@@ -91,7 +91,8 @@ bool CommandBufferManager::CreateCommandBuffers()
     VkDescriptorPoolSize pool_sizes[] = {{VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 500000},
                                          {VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 500000},
                                          {VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 16},
-                                         {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1024}};
+                                         {VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1024},
+                                         {VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1024}};
 
     VkDescriptorPoolCreateInfo pool_create_info = {VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO,
                                                    nullptr,

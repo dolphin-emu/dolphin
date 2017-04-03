@@ -65,6 +65,8 @@ static std::string GetGLSLVersionString()
     return "#version 330";
   case GLSL_400:
     return "#version 400";
+  case GLSL_430:
+    return "#version 430";
   default:
     // Shouldn't ever hit this
     return "#version ERROR";
@@ -103,27 +105,30 @@ void SHADER::SetProgramVariables()
   }
 }
 
-void SHADER::SetProgramBindings()
+void SHADER::SetProgramBindings(bool is_compute)
 {
-  if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+  if (!is_compute)
   {
-    // So we do support extended blending
-    // So we need to set a few more things here.
-    // Bind our out locations
-    glBindFragDataLocationIndexed(glprogid, 0, 0, "ocol0");
-    glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
+    if (g_ActiveConfig.backend_info.bSupportsDualSourceBlend)
+    {
+      // So we do support extended blending
+      // So we need to set a few more things here.
+      // Bind our out locations
+      glBindFragDataLocationIndexed(glprogid, 0, 0, "ocol0");
+      glBindFragDataLocationIndexed(glprogid, 0, 1, "ocol1");
+    }
+    // Need to set some attribute locations
+    glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
+
+    glBindAttribLocation(glprogid, SHADER_POSMTX_ATTRIB, "posmtx");
+
+    glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "color0");
+    glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "color1");
+
+    glBindAttribLocation(glprogid, SHADER_NORM0_ATTRIB, "rawnorm0");
+    glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
+    glBindAttribLocation(glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
   }
-  // Need to set some attribute locations
-  glBindAttribLocation(glprogid, SHADER_POSITION_ATTRIB, "rawpos");
-
-  glBindAttribLocation(glprogid, SHADER_POSMTX_ATTRIB, "posmtx");
-
-  glBindAttribLocation(glprogid, SHADER_COLOR0_ATTRIB, "color0");
-  glBindAttribLocation(glprogid, SHADER_COLOR1_ATTRIB, "color1");
-
-  glBindAttribLocation(glprogid, SHADER_NORM0_ATTRIB, "rawnorm0");
-  glBindAttribLocation(glprogid, SHADER_NORM1_ATTRIB, "rawnorm1");
-  glBindAttribLocation(glprogid, SHADER_NORM2_ATTRIB, "rawnorm2");
 
   for (int i = 0; i < 8; i++)
   {
@@ -281,7 +286,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
   if (g_ogl_config.bSupportsGLSLCache)
     glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
 
-  shader.SetProgramBindings();
+  shader.SetProgramBindings(false);
 
   glLinkProgram(pid);
 
@@ -296,10 +301,10 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
   glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &length);
   if (linkStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
   {
-    GLsizei charsWritten;
-    GLchar* infoLog = new GLchar[length];
-    glGetProgramInfoLog(pid, length, &charsWritten, infoLog);
-    ERROR_LOG(VIDEO, "Program info log:\n%s", infoLog);
+    std::string info_log;
+    info_log.resize(length);
+    glGetProgramInfoLog(pid, length, &length, &info_log[0]);
+    ERROR_LOG(VIDEO, "Program info log:\n%s", info_log.c_str());
 
     std::string filename =
         StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
@@ -308,7 +313,7 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
     file << s_glsl_header << vcode << s_glsl_header << pcode;
     if (!gcode.empty())
       file << s_glsl_header << gcode;
-    file << infoLog;
+    file << info_log;
     file.close();
 
     if (linkStatus != GL_TRUE)
@@ -316,10 +321,8 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
       PanicAlert("Failed to link shaders: %s\n"
                  "Debug info (%s, %s, %s):\n%s",
                  filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                 g_ogl_config.gl_version, infoLog);
+                 g_ogl_config.gl_version, info_log.c_str());
     }
-
-    delete[] infoLog;
   }
   if (linkStatus != GL_TRUE)
   {
@@ -332,6 +335,73 @@ bool ProgramShaderCache::CompileShader(SHADER& shader, const std::string& vcode,
   }
 
   shader.SetProgramVariables();
+
+  return true;
+}
+
+bool ProgramShaderCache::CompileComputeShader(SHADER& shader, const std::string& code)
+{
+  // We need to enable GL_ARB_compute_shader for drivers that support the extension,
+  // but not GLSL 4.3. Mesa is one example.
+  std::string header;
+  if (g_ActiveConfig.backend_info.bSupportsComputeShaders &&
+      g_ogl_config.eSupportedGLSLVersion < GLSL_430)
+  {
+    header = "#extension GL_ARB_compute_shader : enable\n";
+  }
+
+  GLuint shader_id = CompileSingleShader(GL_COMPUTE_SHADER, header + code);
+  if (!shader_id)
+    return false;
+
+  GLuint pid = shader.glprogid = glCreateProgram();
+  glAttachShader(pid, shader_id);
+  if (g_ogl_config.bSupportsGLSLCache)
+    glProgramParameteri(pid, GL_PROGRAM_BINARY_RETRIEVABLE_HINT, GL_TRUE);
+
+  shader.SetProgramBindings(true);
+
+  glLinkProgram(pid);
+
+  // original shaders aren't needed any more
+  glDeleteShader(shader_id);
+
+  GLint linkStatus;
+  glGetProgramiv(pid, GL_LINK_STATUS, &linkStatus);
+  GLsizei length = 0;
+  glGetProgramiv(pid, GL_INFO_LOG_LENGTH, &length);
+  if (linkStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
+  {
+    std::string info_log;
+    info_log.resize(length);
+    glGetProgramInfoLog(pid, length, &length, &info_log[0]);
+    ERROR_LOG(VIDEO, "Program info log:\n%s", info_log.c_str());
+
+    std::string filename =
+        StringFromFormat("%sbad_p_%d.txt", File::GetUserPath(D_DUMP_IDX).c_str(), num_failures++);
+    std::ofstream file;
+    OpenFStream(file, filename, std::ios_base::out);
+    file << s_glsl_header << code;
+    file << info_log;
+    file.close();
+
+    if (linkStatus != GL_TRUE)
+    {
+      PanicAlert("Failed to link shaders: %s\n"
+                 "Debug info (%s, %s, %s):\n%s",
+                 filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                 g_ogl_config.gl_version, info_log.c_str());
+    }
+  }
+  if (linkStatus != GL_TRUE)
+  {
+    // Compile failed
+    ERROR_LOG(VIDEO, "Program linking failed; see info log");
+
+    // Don't try to use this shader
+    glDeleteProgram(pid);
+    return false;
+  }
 
   return true;
 }
@@ -351,31 +421,43 @@ GLuint ProgramShaderCache::CompileSingleShader(GLuint type, const std::string& c
 
   if (compileStatus != GL_TRUE || (length > 1 && DEBUG_GLSL))
   {
-    GLsizei charsWritten;
-    GLchar* infoLog = new GLchar[length];
-    glGetShaderInfoLog(result, length, &charsWritten, infoLog);
-    ERROR_LOG(VIDEO, "%s Shader info log:\n%s",
-              type == GL_VERTEX_SHADER ? "VS" : type == GL_FRAGMENT_SHADER ? "PS" : "GS", infoLog);
+    std::string info_log;
+    info_log.resize(length);
+    glGetShaderInfoLog(result, length, &length, &info_log[0]);
+
+    const char* prefix = "";
+    switch (type)
+    {
+    case GL_VERTEX_SHADER:
+      prefix = "vs";
+      break;
+    case GL_GEOMETRY_SHADER:
+      prefix = "gs";
+      break;
+    case GL_FRAGMENT_SHADER:
+      prefix = "ps";
+      break;
+    case GL_COMPUTE_SHADER:
+      prefix = "cs";
+      break;
+    }
+
+    ERROR_LOG(VIDEO, "%s Shader info log:\n%s", prefix, info_log.c_str());
 
     std::string filename = StringFromFormat(
-        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(),
-        type == GL_VERTEX_SHADER ? "vs" : type == GL_FRAGMENT_SHADER ? "ps" : "gs", num_failures++);
+        "%sbad_%s_%04i.txt", File::GetUserPath(D_DUMP_IDX).c_str(), prefix, num_failures++);
     std::ofstream file;
     OpenFStream(file, filename, std::ios_base::out);
-    file << s_glsl_header << code << infoLog;
+    file << s_glsl_header << code << info_log;
     file.close();
 
     if (compileStatus != GL_TRUE)
     {
       PanicAlert("Failed to compile %s shader: %s\n"
                  "Debug info (%s, %s, %s):\n%s",
-                 type == GL_VERTEX_SHADER ? "vertex" : type == GL_FRAGMENT_SHADER ? "pixel" :
-                                                                                    "geometry",
-                 filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
-                 g_ogl_config.gl_version, infoLog);
+                 prefix, filename.c_str(), g_ogl_config.gl_vendor, g_ogl_config.gl_renderer,
+                 g_ogl_config.gl_version, info_log.c_str());
     }
-
-    delete[] infoLog;
   }
   if (compileStatus != GL_TRUE)
   {
@@ -539,11 +621,9 @@ void ProgramShaderCache::CreateHeader()
   std::string earlyz_string = "";
   if (g_ActiveConfig.backend_info.bSupportsEarlyZ)
   {
-    if (g_ogl_config.bSupportsEarlyFragmentTests)
+    if (g_ogl_config.bSupportsImageLoadStore)
     {
       earlyz_string = "#define FORCE_EARLY_Z layout(early_fragment_tests) in\n";
-      if (!is_glsles)  // GLES supports this by default
-        earlyz_string += "#extension GL_ARB_shader_image_load_store : enable\n";
     }
     else if (g_ogl_config.bSupportsConservativeDepth)
     {
@@ -569,8 +649,10 @@ void ProgramShaderCache::CreateHeader()
       "%s\n"  // texture buffer
       "%s\n"  // ES texture buffer
       "%s\n"  // ES dual source blend
+      "%s\n"  // shader image load store
 
       // Precision defines for GLSL ES
+      "%s\n"
       "%s\n"
       "%s\n"
       "%s\n"
@@ -638,12 +720,17 @@ void ProgramShaderCache::CreateHeader()
           ""
 
       ,
+      g_ogl_config.bSupportsImageLoadStore &&
+              ((!is_glsles && v < GLSL_430) || (is_glsles && v < GLSLES_310)) ?
+          "#extension GL_ARB_shader_image_load_store : enable" :
+          "",
       is_glsles ? "precision highp float;" : "", is_glsles ? "precision highp int;" : "",
       is_glsles ? "precision highp sampler2DArray;" : "",
       (is_glsles && g_ActiveConfig.backend_info.bSupportsPaletteConversion) ?
           "precision highp usamplerBuffer;" :
           "",
-      v > GLSLES_300 ? "precision highp sampler2DMS;" : "");
+      v > GLSLES_300 ? "precision highp sampler2DMS;" : "",
+      v >= GLSLES_310 ? "precision highp image2DArray;" : "");
 }
 
 void ProgramShaderCache::ProgramShaderCacheInserter::Read(const SHADERUID& key, const u8* value,

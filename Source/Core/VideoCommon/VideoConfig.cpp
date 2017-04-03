@@ -81,6 +81,7 @@ void VideoConfig::Load(const std::string& ini_file)
   settings->Get("DumpPath", &sDumpPath, "");
   settings->Get("BitrateKbps", &iBitrateKbps, 2500);
   settings->Get("InternalResolutionFrameDumps", &bInternalResolutionFrameDumps, false);
+  settings->Get("EnableGPUTextureDecoding", &bEnableGPUTextureDecoding, false);
   settings->Get("EnablePixelLighting", &bEnablePixelLighting, false);
   settings->Get("FastDepthCalc", &bFastDepthCalc, true);
   settings->Get("MSAA", &iMultisamples, 1);
@@ -305,6 +306,7 @@ void VideoConfig::Save(const std::string& ini_file)
   settings->Set("DumpPath", sDumpPath);
   settings->Set("BitrateKbps", iBitrateKbps);
   settings->Set("InternalResolutionFrameDumps", bInternalResolutionFrameDumps);
+  settings->Set("EnableGPUTextureDecoding", bEnableGPUTextureDecoding);
   settings->Set("EnablePixelLighting", bEnablePixelLighting);
   settings->Set("FastDepthCalc", bFastDepthCalc);
   settings->Set("MSAA", iMultisamples);

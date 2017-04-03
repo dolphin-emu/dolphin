@@ -72,6 +72,7 @@
     <ClInclude Include="GL\GLExtensions\ARB_blend_func_extended.h" />
     <ClInclude Include="GL\GLExtensions\ARB_buffer_storage.h" />
     <ClInclude Include="GL\GLExtensions\ARB_clip_control.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_compute_shader.h" />
     <ClInclude Include="GL\GLExtensions\ARB_copy_image.h" />
     <ClInclude Include="GL\GLExtensions\ARB_debug_output.h" />
     <ClInclude Include="GL\GLExtensions\ARB_draw_elements_base_vertex.h" />
@@ -83,9 +84,11 @@
     <ClInclude Include="GL\GLExtensions\ARB_occlusion_query2.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sampler_objects.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sample_shading.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_shader_image_load_store.h" />
     <ClInclude Include="GL\GLExtensions\ARB_shader_storage_buffer_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_sync.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_multisample.h" />
+    <ClInclude Include="GL\GLExtensions\ARB_texture_storage.h" />
     <ClInclude Include="GL\GLExtensions\ARB_texture_storage_multisample.h" />
     <ClInclude Include="GL\GLExtensions\ARB_uniform_buffer_object.h" />
     <ClInclude Include="GL\GLExtensions\ARB_vertex_array_object.h" />
