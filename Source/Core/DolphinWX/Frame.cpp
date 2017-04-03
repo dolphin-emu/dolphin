@@ -392,9 +392,7 @@ CFrame::CFrame(wxFrame* parent, wxWindowID id, const wxString& title, wxRect geo
   m_LogWindow->Disable();
 
   InitializeTASDialogs();
-
-  State::SetOnAfterLoadCallback(OnAfterLoadCallback);
-  Core::SetOnStoppedCallback(OnStoppedCallback);
+  InitializeCoreCallbacks();
 
   // Setup perspectives
   if (g_pCodeWindow)
@@ -512,6 +510,20 @@ void CFrame::InitializeTASDialogs()
   Movie::SetWiiInputManip([this](u8* data, WiimoteEmu::ReportFeatures rptf, int controller_id,
                                  int ext, wiimote_key key) {
     m_tas_input_dialogs[controller_id + 4]->GetValues(data, rptf, ext, key);
+  });
+}
+
+void CFrame::InitializeCoreCallbacks()
+{
+  // Warning: this gets called from the CPU thread, so we should
+  // only queue things to do on the proper thread
+  State::SetOnAfterLoadCallback([this] {
+    AddPendingEvent(wxCommandEvent{wxEVT_HOST_COMMAND, IDM_UPDATE_GUI});
+  });
+
+  // Warning: this gets called from the EmuThread
+  Core::SetOnStoppedCallback([this] {
+    AddPendingEvent(wxCommandEvent{wxEVT_HOST_COMMAND, IDM_STOPPED});
   });
 }
 
@@ -1023,28 +1035,6 @@ static int GetMenuIDFromHotkey(unsigned int key)
   }
 
   return -1;
-}
-
-void OnAfterLoadCallback()
-{
-  // warning: this gets called from the CPU thread, so we should only queue things to do on the
-  // proper thread
-  if (main_frame)
-  {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_UPDATE_GUI);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
-  }
-}
-
-void OnStoppedCallback()
-{
-  // warning: this gets called from the EmuThread, so we should only queue things to do on the
-  // proper thread
-  if (main_frame)
-  {
-    wxCommandEvent event(wxEVT_HOST_COMMAND, IDM_STOPPED);
-    main_frame->GetEventHandler()->AddPendingEvent(event);
-  }
 }
 
 void CFrame::OnKeyDown(wxKeyEvent& event)

@@ -84,7 +84,7 @@ void UpdateTitle();
 bool PauseAndLock(bool doLock, bool unpauseOnUnlock = true);
 
 // for calling back into UI code without introducing a dependency on it in core
-typedef void (*StoppedCallbackFunc)(void);
+using StoppedCallbackFunc = std::function<void()>;
 void SetOnStoppedCallback(StoppedCallbackFunc callback);
 
 // Run on the Host thread when the factors change. [NOT THREADSAFE]

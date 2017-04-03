@@ -57,7 +57,7 @@ static HEAP_ALLOC(wrkmem, LZO1X_1_MEM_COMPRESS);
 
 static std::string g_last_filename;
 
-static CallbackFunc g_onAfterLoadCb = nullptr;
+static AfterLoadCallbackFunc s_on_after_load_callback;
 
 // Temporary undo state buffer
 static std::vector<u8> g_undo_load_buffer;
@@ -607,8 +607,8 @@ void LoadAs(const std::string& filename)
     }
   }
 
-  if (g_onAfterLoadCb)
-    g_onAfterLoadCb();
+  if (s_on_after_load_callback)
+    s_on_after_load_callback();
 
   g_loadDepth--;
 
@@ -616,9 +616,9 @@ void LoadAs(const std::string& filename)
   Core::PauseAndLock(false, wasUnpaused);
 }
 
-void SetOnAfterLoadCallback(CallbackFunc callback)
+void SetOnAfterLoadCallback(AfterLoadCallbackFunc callback)
 {
-  g_onAfterLoadCb = callback;
+  s_on_after_load_callback = std::move(callback);
 }
 
 void VerifyAt(const std::string& filename)

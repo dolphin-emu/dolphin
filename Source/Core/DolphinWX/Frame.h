@@ -174,6 +174,7 @@ private:
   wxMenuBar* CreateMenuBar() const;
 
   void InitializeTASDialogs();
+  void InitializeCoreCallbacks();
 
   // Utility
   wxWindow* GetNotebookPageFromId(wxWindowID Id);
@@ -337,6 +338,3 @@ private:
   // Event table
   DECLARE_EVENT_TABLE();
 };
-
-void OnAfterLoadCallback();
-void OnStoppedCallback();
