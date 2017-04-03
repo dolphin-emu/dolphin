@@ -904,6 +904,9 @@ void CFrame::OnStopped()
   // Destroy the renderer frame when not rendering to main
   m_RenderParent->Unbind(wxEVT_SIZE, &CFrame::OnRenderParentResize, this);
 
+  // Keyboard
+  wxTheApp->Unbind(wxEVT_KEY_DOWN, &CFrame::OnKeyDown, this);
+
   // Mouse
   wxTheApp->Unbind(wxEVT_RIGHT_DOWN, &CFrame::OnMouse, this);
   wxTheApp->Unbind(wxEVT_RIGHT_UP, &CFrame::OnMouse, this);
