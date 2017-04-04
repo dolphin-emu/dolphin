@@ -10,8 +10,9 @@
 #include <vector>
 
 #include "Common/IniFile.h"
-#include "InputCommon/ControlReference/ControlReference.h"
-#include "InputCommon/ControllerInterface/ControllerInterface.h"
+#include "InputCommon/ControllerInterface/Device.h"
+
+class ControllerInterface;
 
 #define sign(x) ((x) ? (x) < 0 ? -1 : 1 : 0)
 

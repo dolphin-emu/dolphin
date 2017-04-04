@@ -23,12 +23,12 @@
 #include <wx/spinctrl.h>
 #include <wx/timer.h>
 
-#include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerInterface/Device.h"
 
 class ControlReference;
 class DolphinSlider;
 class InputConfig;
+class InputConfigDialog;
 class wxComboBox;
 class wxListBox;
 class wxStaticBitmap;
@@ -37,8 +37,11 @@ class wxTextCtrl;
 
 namespace ControllerEmu
 {
+class BooleanSetting;
+class ControlGroup;
 class EmulatedController;
 class Extension;
+class NumericSetting;
 }
 
 class PadSetting
@@ -98,8 +101,6 @@ private:
 
   bool m_block = false;
 };
-
-class InputConfigDialog;
 
 class ControlDialog : public wxDialog
 {

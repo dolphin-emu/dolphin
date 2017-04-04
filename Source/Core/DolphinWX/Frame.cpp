@@ -66,6 +66,7 @@
 #include "DolphinWX/TASInputDlg.h"
 #include "DolphinWX/WxUtils.h"
 
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 #include "InputCommon/GCPadStatus.h"
 
 #include "VideoCommon/OnScreenDisplay.h"
