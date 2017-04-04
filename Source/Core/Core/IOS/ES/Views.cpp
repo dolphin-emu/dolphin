@@ -111,24 +111,27 @@ IPCCommandResult ES::GetTMDViewSize(const IOCtlVRequest& request)
 
 IPCCommandResult ES::GetTMDViews(const IOCtlVRequest& request)
 {
-  if (!request.HasNumberOfValidVectors(2, 1))
+  if (!request.HasNumberOfValidVectors(2, 1) ||
+      request.in_vectors[0].size != sizeof(IOS::ES::TMDHeader::title_id) ||
+      request.in_vectors[1].size != sizeof(u32) ||
+      Memory::Read_U32(request.in_vectors[1].address) != request.io_vectors[0].size)
+  {
     return GetDefaultReply(ES_EINVAL);
+  }
 
-  u64 TitleID = Memory::Read_U64(request.in_vectors[0].address);
-  u32 MaxCount = Memory::Read_U32(request.in_vectors[1].address);
-
-  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(TitleID);
+  const u64 title_id = Memory::Read_U64(request.in_vectors[0].address);
+  const IOS::ES::TMDReader tmd = IOS::ES::FindInstalledTMD(title_id);
 
   if (!tmd.IsValid())
     return GetDefaultReply(FS_ENOENT);
 
   const std::vector<u8> raw_view = tmd.GetRawView();
-  if (raw_view.size() != request.io_vectors[0].size)
+  if (request.io_vectors[0].size < raw_view.size())
     return GetDefaultReply(ES_EINVAL);
 
   Memory::CopyToEmu(request.io_vectors[0].address, raw_view.data(), raw_view.size());
 
-  INFO_LOG(IOS_ES, "GetTMDView: %u bytes for title %016" PRIx64, MaxCount, TitleID);
+  INFO_LOG(IOS_ES, "GetTMDView: %zu bytes for title %016" PRIx64, raw_view.size(), title_id);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -212,7 +215,7 @@ IPCCommandResult ES::DIGetTMDView(const IOCtlVRequest& request)
     tmd_view = GetTitleContext().tmd.GetRawView();
   }
 
-  if (tmd_view.size() != request.io_vectors[0].size)
+  if (tmd_view.size() > request.io_vectors[0].size)
     return GetDefaultReply(ES_EINVAL);
 
   Memory::CopyToEmu(request.io_vectors[0].address, tmd_view.data(), tmd_view.size());
