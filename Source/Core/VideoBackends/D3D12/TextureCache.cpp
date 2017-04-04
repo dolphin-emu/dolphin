@@ -306,12 +306,12 @@ void TextureCache::TCacheEntry::FromRenderTarget(bool is_depth_copy, const EFBRe
   g_renderer->RestoreAPIState();
 }
 
-void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                           u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
-                           const EFBRectangle& srcRect, bool isIntensity, bool scaleByHalf)
+void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
+                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
 {
   s_encoder->Encode(dst, format, native_width, bytes_per_row, num_blocks_y, memory_stride,
-                    is_depth_copy, srcRect, isIntensity, scaleByHalf);
+                    is_depth_copy, src_rect, scale_by_half);
 }
 
 static const constexpr char s_palette_shader_hlsl[] =

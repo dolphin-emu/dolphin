@@ -969,7 +969,8 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
   ColorMask[0] = ColorMask[1] = ColorMask[2] = ColorMask[3] = 255.0f;
   ColorMask[4] = ColorMask[5] = ColorMask[6] = ColorMask[7] = 1.0f / 255.0f;
   unsigned int cbufid = -1;
-  bool efbHasAlpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
+  u32 srcFormat = bpmem.zcontrol.pixel_format;
+  bool efbHasAlpha = srcFormat == PEControl::RGBA6_Z24;
 
   if (is_depth_copy)
   {
@@ -1278,8 +1279,9 @@ void TextureCacheBase::CopyRenderTargetToTexture(u32 dstAddr, unsigned int dstFo
 
   if (copy_to_ram)
   {
-    CopyEFB(dst, dstFormat, tex_w, bytes_per_row, num_blocks_y, dstStride, is_depth_copy, srcRect,
-            isIntensity, scaleByHalf);
+    EFBCopyFormat format(srcFormat, static_cast<TextureFormat>(dstFormat));
+    CopyEFB(dst, format, tex_w, bytes_per_row, num_blocks_y, dstStride, is_depth_copy, srcRect,
+            scaleByHalf);
   }
   else
   {

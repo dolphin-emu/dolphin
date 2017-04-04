@@ -35,10 +35,10 @@ public:
 
   // Uses an encoding shader to copy src_texture to dest_ptr.
   // NOTE: Executes the current command buffer.
-  void EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, u32 format, u32 native_width,
-                             u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
-                             bool is_depth_copy, bool is_intensity, int scale_by_half,
-                             const EFBRectangle& source);
+  void EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, const EFBCopyFormat& format,
+                             u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
+                             u32 memory_stride, bool is_depth_copy, const EFBRectangle& src_rect,
+                             bool scale_by_half);
 
   // Encodes texture to guest memory in XFB (YUYV) format.
   void EncodeTextureToMemoryYUYV(void* dst_ptr, u32 dst_width, u32 dst_stride, u32 dst_height,
@@ -55,7 +55,6 @@ public:
                      TlutFormat palette_format);
 
 private:
-  static const u32 NUM_TEXTURE_ENCODING_SHADERS = 64;
   static const u32 ENCODING_TEXTURE_WIDTH = EFB_WIDTH * 4;
   static const u32 ENCODING_TEXTURE_HEIGHT = 1024;
   static const VkFormat ENCODING_TEXTURE_FORMAT = VK_FORMAT_B8G8R8A8_UNORM;
@@ -70,7 +69,9 @@ private:
 
   bool CompilePaletteConversionShaders();
 
-  bool CompileEncodingShaders();
+  VkShaderModule CompileEncodingShader(const EFBCopyFormat& format);
+  VkShaderModule GetEncodingShader(const EFBCopyFormat& format);
+
   bool CreateEncodingRenderPass();
   bool CreateEncodingTexture();
   bool CreateEncodingDownloadTexture();
@@ -102,7 +103,7 @@ private:
   std::array<VkShaderModule, NUM_PALETTE_CONVERSION_SHADERS> m_palette_conversion_shaders = {};
 
   // Texture encoding - RGBA8->GX format in memory
-  std::array<VkShaderModule, NUM_TEXTURE_ENCODING_SHADERS> m_encoding_shaders = {};
+  std::map<EFBCopyFormat, VkShaderModule> m_encoding_shaders;
   VkRenderPass m_encoding_render_pass = VK_NULL_HANDLE;
   std::unique_ptr<Texture2D> m_encoding_render_texture;
   VkFramebuffer m_encoding_render_framebuffer = VK_NULL_HANDLE;

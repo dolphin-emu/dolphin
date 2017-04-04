@@ -57,11 +57,8 @@ TextureConverter::~TextureConverter()
   if (m_encoding_render_framebuffer != VK_NULL_HANDLE)
     vkDestroyFramebuffer(g_vulkan_context->GetDevice(), m_encoding_render_framebuffer, nullptr);
 
-  for (VkShaderModule shader : m_encoding_shaders)
-  {
-    if (shader != VK_NULL_HANDLE)
-      vkDestroyShaderModule(g_vulkan_context->GetDevice(), shader, nullptr);
-  }
+  for (auto& it : m_encoding_shaders)
+    vkDestroyShaderModule(g_vulkan_context->GetDevice(), it.second, nullptr);
 
   for (const auto& it : m_decoding_pipelines)
   {
@@ -86,12 +83,6 @@ bool TextureConverter::Initialize()
   if (!CompilePaletteConversionShaders())
   {
     PanicAlert("Failed to compile palette conversion shaders");
-    return false;
-  }
-
-  if (!CompileEncodingShaders())
-  {
-    PanicAlert("Failed to compile texture encoding shaders");
     return false;
   }
 
@@ -221,15 +212,17 @@ void TextureConverter::ConvertTexture(TextureCache::TCacheEntry* dst_entry,
   draw.EndRenderPass();
 }
 
-void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr, u32 format,
-                                             u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-                                             u32 memory_stride, bool is_depth_copy,
-                                             bool is_intensity, int scale_by_half,
-                                             const EFBRectangle& src_rect)
+void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_ptr,
+                                             const EFBCopyFormat& format, u32 native_width,
+                                             u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                                             bool is_depth_copy, const EFBRectangle& src_rect,
+                                             bool scale_by_half)
 {
-  if (m_encoding_shaders[format] == VK_NULL_HANDLE)
+  VkShaderModule shader = GetEncodingShader(format);
+  if (shader == VK_NULL_HANDLE)
   {
-    ERROR_LOG(VIDEO, "Missing encoding fragment shader for format %u", format);
+    ERROR_LOG(VIDEO, "Missing encoding fragment shader for format %u->%u", format.efb_format,
+              static_cast<u32>(format.copy_format));
     return;
   }
 
@@ -242,7 +235,7 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
   UtilityShaderDraw draw(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                          g_object_cache->GetPipelineLayout(PIPELINE_LAYOUT_PUSH_CONSTANT),
                          m_encoding_render_pass, g_object_cache->GetScreenQuadVertexShader(),
-                         VK_NULL_HANDLE, m_encoding_shaders[format]);
+                         VK_NULL_HANDLE, shader);
 
   // Uniform - int4 of left,top,native_width,scale
   s32 position_uniform[4] = {src_rect.left, src_rect.top, static_cast<s32>(native_width),
@@ -681,24 +674,25 @@ bool TextureConverter::CompilePaletteConversionShaders()
          m_palette_conversion_shaders[GX_TL_RGB5A3] != VK_NULL_HANDLE;
 }
 
-bool TextureConverter::CompileEncodingShaders()
+VkShaderModule TextureConverter::CompileEncodingShader(const EFBCopyFormat& format)
 {
-  // Texture encoding shaders
-  static const u32 texture_encoding_shader_formats[] = {
-      GX_TF_I4,   GX_TF_I8,   GX_TF_IA4,  GX_TF_IA8,  GX_TF_RGB565, GX_TF_RGB5A3, GX_TF_RGBA8,
-      GX_CTF_R4,  GX_CTF_RA4, GX_CTF_RA8, GX_CTF_A8,  GX_CTF_R8,    GX_CTF_G8,    GX_CTF_B8,
-      GX_CTF_RG8, GX_CTF_GB8, GX_CTF_Z8H, GX_TF_Z8,   GX_CTF_Z16R,  GX_TF_Z16,    GX_TF_Z24X8,
-      GX_CTF_Z4,  GX_CTF_Z8M, GX_CTF_Z8L, GX_CTF_Z16L};
-  for (u32 format : texture_encoding_shader_formats)
-  {
-    const char* shader_source =
-        TextureConversionShader::GenerateEncodingShader(format, APIType::Vulkan);
-    m_encoding_shaders[format] = Util::CompileAndCreateFragmentShader(shader_source);
-    if (m_encoding_shaders[format] == VK_NULL_HANDLE)
-      return false;
-  }
+  const char* shader = TextureConversionShader::GenerateEncodingShader(format, APIType::Vulkan);
+  VkShaderModule module = Util::CompileAndCreateFragmentShader(shader);
+  if (module == VK_NULL_HANDLE)
+    PanicAlert("Failed to compile texture encoding shader.");
 
-  return true;
+  return module;
+}
+
+VkShaderModule TextureConverter::GetEncodingShader(const EFBCopyFormat& format)
+{
+  auto iter = m_encoding_shaders.find(format);
+  if (iter != m_encoding_shaders.end())
+    return iter->second;
+
+  VkShaderModule shader = CompileEncodingShader(format);
+  m_encoding_shaders.emplace(format, shader);
+  return shader;
 }
 
 bool TextureConverter::CreateEncodingRenderPass()

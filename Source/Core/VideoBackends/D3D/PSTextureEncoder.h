@@ -7,6 +7,7 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/VideoCommon.h"
 
 struct ID3D11Texture2D;
@@ -31,32 +32,19 @@ public:
 
   void Init();
   void Shutdown();
-  void Encode(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-              u32 memory_stride, bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
-              bool scaleByHalf);
+  void Encode(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
+              u32 num_blocks_y, u32 memory_stride, bool is_depth_copy, const EFBRectangle& src_rect,
+              bool scale_by_half);
 
 private:
+  ID3D11PixelShader* GetEncodingPixelShader(const EFBCopyFormat& format);
+
   bool m_ready;
 
   ID3D11Texture2D* m_out;
   ID3D11RenderTargetView* m_outRTV;
   ID3D11Texture2D* m_outStage;
   ID3D11Buffer* m_encodeParams;
-
-  ID3D11PixelShader* SetStaticShader(unsigned int dstFormat, bool is_depth_copy, bool isIntensity,
-                                     bool scaleByHalf);
-
-  typedef unsigned int ComboKey;  // Key for a shader combination
-
-  ComboKey MakeComboKey(unsigned int dstFormat, bool is_depth_copy, bool isIntensity,
-                        bool scaleByHalf)
-  {
-    return (dstFormat << 4) | (static_cast<int>(is_depth_copy) << 2) |
-           (isIntensity ? (1 << 1) : 0) | (scaleByHalf ? (1 << 0) : 0);
-  }
-
-  typedef std::map<ComboKey, ID3D11PixelShader*> ComboMap;
-
-  ComboMap m_staticShaders;
+  std::map<EFBCopyFormat, ID3D11PixelShader*> m_encoding_shaders;
 };
 }
