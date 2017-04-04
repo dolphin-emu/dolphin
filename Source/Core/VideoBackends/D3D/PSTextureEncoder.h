@@ -7,7 +7,6 @@
 #include <map>
 
 #include "Common/CommonTypes.h"
-#include "VideoBackends/D3D/TextureEncoder.h"
 #include "VideoCommon/VideoCommon.h"
 
 struct ID3D11Texture2D;
@@ -25,7 +24,7 @@ struct ID3D11SamplerState;
 
 namespace DX11
 {
-class PSTextureEncoder : public TextureEncoder
+class PSTextureEncoder final
 {
 public:
   PSTextureEncoder();

@@ -91,7 +91,6 @@
     <ClInclude Include="ShaderConstantsManager.h" />
     <ClInclude Include="StaticShaderCache.h" />
     <ClInclude Include="TextureCache.h" />
-    <ClInclude Include="TextureEncoder.h" />
     <ClInclude Include="VertexManager.h" />
     <ClInclude Include="VideoBackend.h" />
     <ClInclude Include="XFBEncoder.h" />

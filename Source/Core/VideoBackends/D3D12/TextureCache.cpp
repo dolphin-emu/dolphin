@@ -18,7 +18,6 @@
 #include "VideoBackends/D3D12/FramebufferManager.h"
 #include "VideoBackends/D3D12/PSTextureEncoder.h"
 #include "VideoBackends/D3D12/StaticShaderCache.h"
-#include "VideoBackends/D3D12/TextureEncoder.h"
 
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/RenderBase.h"
@@ -26,7 +25,7 @@
 
 namespace DX12
 {
-static std::unique_ptr<TextureEncoder> s_encoder = nullptr;
+static std::unique_ptr<PSTextureEncoder> s_encoder = nullptr;
 
 static std::unique_ptr<D3DStreamBuffer> s_efb_copy_stream_buffer = nullptr;
 static u32 s_efb_copy_last_cbuf_id = UINT_MAX;

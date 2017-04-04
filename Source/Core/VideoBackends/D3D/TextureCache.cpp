@@ -18,7 +18,6 @@
 #include "VideoBackends/D3D/GeometryShaderCache.h"
 #include "VideoBackends/D3D/PSTextureEncoder.h"
 #include "VideoBackends/D3D/PixelShaderCache.h"
-#include "VideoBackends/D3D/TextureEncoder.h"
 #include "VideoBackends/D3D/VertexShaderCache.h"
 #include "VideoCommon/ImageWrite.h"
 #include "VideoCommon/RenderBase.h"
@@ -26,7 +25,7 @@
 
 namespace DX11
 {
-static std::unique_ptr<TextureEncoder> g_encoder;
+static std::unique_ptr<PSTextureEncoder> g_encoder;
 const size_t MAX_COPY_BUFFERS = 32;
 ID3D11Buffer* efbcopycbuf[MAX_COPY_BUFFERS] = {0};
 
