@@ -162,8 +162,8 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     u32 content_id = Memory::Read_U32(request.buffer_in + 0xC);
     u32 input_ptr = Memory::Read_U32(request.buffer_in + 0x10);
     u32 input_size = Memory::Read_U32(request.buffer_in + 0x14);
-    INFO_LOG(IOS, "%s: %08x bytes of data at %08x from content id %d", ioctl_name, content_id,
-             input_ptr, input_size);
+    INFO_LOG(IOS, "%s: %08x bytes of data at %08x from content id %d", ioctl_name, input_size,
+             input_ptr, content_id);
 
     std::vector<u8> decrypted(input_size);
     mbedtls_aes_crypt_cbc(&m_aes_ctx, MBEDTLS_AES_DECRYPT, input_size, m_aes_iv,
