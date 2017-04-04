@@ -260,7 +260,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
   }
   else
   {
-    if (Core::g_want_determinism)
+    if (Core::WantsDeterminism())
     {
       ERROR_LOG(POWERPC, "Someone scheduled an off-thread \"%s\" event while netplay or "
                          "movie play/record was active.  This is likely to cause a desync.",

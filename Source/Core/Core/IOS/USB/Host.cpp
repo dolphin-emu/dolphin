@@ -107,7 +107,7 @@ bool USBHost::ShouldAddDevice(const USB::Device& device) const
 // This is called from the scan thread. Returns false if we failed to update the device list.
 bool USBHost::UpdateDevices(const bool always_add_hooks)
 {
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
     return true;
 
   DeviceChangeHooks hooks;
@@ -201,7 +201,7 @@ void USBHost::DispatchHooks(const DeviceChangeHooks& hooks)
 
 void USBHost::StartThreads()
 {
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
     return;
 
   if (!m_scan_thread_running.IsSet())

@@ -209,7 +209,7 @@ bool CBoot::SetupWiiMemory(u64 ios_title_id)
 
   if (serno.empty() || serno == "000000000")
   {
-    if (Core::g_want_determinism)
+    if (Core::WantsDeterminism())
       serno = "123456789";
     else
       serno = SettingsHandler::GenerateSerialNumber();

@@ -150,7 +150,7 @@ static s32 MapWiiSockOptNameToNative(u32 optname)
 
 IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
 {
-  if (Core::g_want_determinism)
+  if (Core::WantsDeterminism())
   {
     return GetDefaultReply(IPC_EACCES);
   }
@@ -722,7 +722,7 @@ IPCCommandResult NetIPTop::HandleGetInterfaceOptRequest(const IOCtlVRequest& req
   {
     u32 address = 0;
 #ifdef _WIN32
-    if (!Core::g_want_determinism)
+    if (!Core::WantsDeterminism())
     {
       PIP_ADAPTER_ADDRESSES AdapterAddresses = nullptr;
       ULONG OutBufferLength = 0;

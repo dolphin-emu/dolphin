@@ -429,7 +429,7 @@ u32 CEXIIPL::GetEmulatedTime(u32 epoch)
   }
   else
   {
-    _assert_(!Core::g_want_determinism);
+    _assert_(!Core::WantsDeterminism());
     ltime = Common::Timer::GetLocalTimeSinceJan1970() - SystemTimers::GetLocalTimeRTCOffset();
   }
 

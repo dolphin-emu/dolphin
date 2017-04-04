@@ -21,8 +21,6 @@ namespace Core
 // TODO: ugly, remove
 extern bool g_aspect_wide;
 
-extern bool g_want_determinism;
-
 bool GetIsThrottlerTempDisabled();
 void SetIsThrottlerTempDisabled(bool disable);
 
@@ -50,6 +48,8 @@ bool IsRunningAndStarted();       // is running and the CPU loop has been entere
 bool IsRunningInCurrentThread();  // this tells us whether we are running in the CPU thread.
 bool IsCPUThread();               // this tells us whether we are the CPU thread.
 bool IsGPUThread();
+
+bool WantsDeterminism();
 
 // [NOT THREADSAFE] For use by Host only
 void SetState(State state);
