@@ -27,6 +27,7 @@
 
 #include "VideoCommon/TextureConversionShader.h"
 #include "VideoCommon/TextureDecoder.h"
+#include "VideoCommon/VideoConfig.h"
 
 namespace Vulkan
 {
@@ -242,10 +243,12 @@ void TextureConverter::EncodeTextureToMemory(VkImageView src_texture, u8* dest_p
                              scale_by_half ? 2 : 1};
   draw.SetPushConstants(position_uniform, sizeof(position_uniform));
 
-  // Doesn't make sense to linear filter depth values
-  draw.SetPSSampler(0, src_texture, (scale_by_half && !is_depth_copy) ?
-                                        g_object_cache->GetLinearSampler() :
-                                        g_object_cache->GetPointSampler());
+  // We also linear filtering for both box filtering and downsampling higher resolutions to 1x
+  // TODO: This only produces perfect downsampling for 1.5x and 2x IR, other resolution will
+  //       need more complex down filtering to average all pixels and produce the correct result.
+  bool linear_filter = (scale_by_half && !is_depth_copy) || g_ActiveConfig.iEFBScale != SCALE_1X;
+  draw.SetPSSampler(0, src_texture, linear_filter ? g_object_cache->GetLinearSampler() :
+                                                    g_object_cache->GetPointSampler());
 
   u32 render_width = bytes_per_row / sizeof(u32);
   u32 render_height = num_blocks_y;
