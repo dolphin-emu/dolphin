@@ -8,6 +8,7 @@
 #include <utility>
 
 #include "Common/CommonTypes.h"
+#include "VideoCommon/TextureDecoder.h"
 
 enum class APIType;
 
@@ -15,7 +16,7 @@ namespace TextureConversionShader
 {
 u16 GetEncodedSampleCount(u32 format);
 
-const char* GenerateEncodingShader(u32 format, APIType ApiType);
+const char* GenerateEncodingShader(const EFBCopyFormat& format, APIType ApiType);
 
 // View format of the input data to the texture decoding shader.
 enum BufferFormat
@@ -39,7 +40,7 @@ struct DecodingShaderInfo
 
 // Obtain shader information for the specified texture format.
 // If this format does not have a shader written for it, returns nullptr.
-const DecodingShaderInfo* GetDecodingShaderInfo(u32 format);
+const DecodingShaderInfo* GetDecodingShaderInfo(TextureFormat format);
 
 // Determine how many bytes there are in each element of the texel buffer.
 // Needed for alignment and stride calculations.
@@ -50,6 +51,7 @@ u32 GetBytesPerBufferElement(BufferFormat buffer_format);
 std::pair<u32, u32> GetDispatchCount(const DecodingShaderInfo* info, u32 width, u32 height);
 
 // Returns the GLSL string containing the texture decoding shader for the specified format.
-std::string GenerateDecodingShader(u32 format, u32 palette_format, APIType api_type);
+std::string GenerateDecodingShader(TextureFormat format, TlutFormat palette_format,
+                                   APIType api_type);
 
 }  // namespace TextureConversionShader
