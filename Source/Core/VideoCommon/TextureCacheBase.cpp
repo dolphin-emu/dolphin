@@ -781,32 +781,33 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
   if (!entry)
     return nullptr;
 
-  if (!hires_tex)
+  const u8* tlut = &texMem[tlutaddr];
+  if (hires_tex)
   {
-    const u8* tlut = &texMem[tlutaddr];
-    if (decode_on_gpu)
+    entry->Load(temp, width, height, expandedWidth, 0);
+  }
+  else if (decode_on_gpu)
+  {
+    u32 row_stride = bytes_per_block * (expandedWidth / bsw);
+    g_texture_cache->DecodeTextureOnGPU(
+        entry, 0, src_data, texture_size, static_cast<TextureFormat>(texformat), width, height,
+        expandedWidth, expandedHeight, row_stride, tlut, static_cast<TlutFormat>(tlutfmt));
+  }
+  else
+  {
+    if (!(texformat == GX_TF_RGBA8 && from_tmem))
     {
-      u32 row_stride = bytes_per_block * (expandedWidth / bsw);
-      g_texture_cache->DecodeTextureOnGPU(
-          entry, 0, src_data, texture_size, static_cast<TextureFormat>(texformat), width, height,
-          expandedWidth, expandedHeight, row_stride, tlut, static_cast<TlutFormat>(tlutfmt));
+      TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut,
+                        (TlutFormat)tlutfmt);
     }
     else
     {
-      if (!(texformat == GX_TF_RGBA8 && from_tmem))
-      {
-        TexDecoder_Decode(temp, src_data, expandedWidth, expandedHeight, texformat, tlut,
-                          (TlutFormat)tlutfmt);
-      }
-      else
-      {
-        u8* src_data_gb =
-            &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
-        TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
-      }
-
-      entry->Load(temp, width, height, expandedWidth, 0);
+      u8* src_data_gb =
+          &texMem[bpmem.tex[stage / 4].texImage2[stage % 4].tmem_odd * TMEM_LINE_SIZE];
+      TexDecoder_DecodeRGBA8FromTmem(temp, src_data, src_data_gb, expandedWidth, expandedHeight);
     }
+
+    entry->Load(temp, width, height, expandedWidth, 0);
   }
 
   iter = textures_by_address.emplace(address, entry);
