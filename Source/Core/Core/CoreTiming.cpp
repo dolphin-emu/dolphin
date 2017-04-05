@@ -65,8 +65,6 @@ static std::mutex s_ts_write_lock;
 static Common::FifoQueue<Event, false> s_ts_queue;
 
 static float s_last_OC_factor;
-float g_last_OC_factor_inverted;
-int g_slice_length;
 static constexpr int MAX_SLICE_LENGTH = 20000;
 
 static s64 s_idled_cycles;
@@ -76,9 +74,7 @@ static u64 s_fake_dec_start_ticks;
 // Are we in a function that has been called from Advance()
 static bool s_is_global_timer_sane;
 
-s64 g_global_timer;
-u64 g_fake_TB_start_value;
-u64 g_fake_TB_start_ticks;
+Globals g;
 
 static EventType* s_ev_lost = nullptr;
 
@@ -95,7 +91,7 @@ static void EmptyTimedCallback(u64 userdata, s64 cyclesLate)
 // but the effect is largely the same.
 static int DowncountToCycles(int downcount)
 {
-  return static_cast<int>(downcount * g_last_OC_factor_inverted);
+  return static_cast<int>(downcount * g.last_OC_factor_inverted);
 }
 
 static int CyclesToDowncount(int cycles)
@@ -127,10 +123,10 @@ void UnregisterAllEvents()
 void Init()
 {
   s_last_OC_factor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
-  g_last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  g.last_OC_factor_inverted = 1.0f / s_last_OC_factor;
   PowerPC::ppcState.downcount = CyclesToDowncount(MAX_SLICE_LENGTH);
-  g_slice_length = MAX_SLICE_LENGTH;
-  g_global_timer = 0;
+  g.slice_length = MAX_SLICE_LENGTH;
+  g.global_timer = 0;
   s_idled_cycles = 0;
 
   // The time between CoreTiming being intialized and the first call to Advance() is considered
@@ -154,15 +150,15 @@ void Shutdown()
 void DoState(PointerWrap& p)
 {
   std::lock_guard<std::mutex> lk(s_ts_write_lock);
-  p.Do(g_slice_length);
-  p.Do(g_global_timer);
+  p.Do(g.slice_length);
+  p.Do(g.global_timer);
   p.Do(s_idled_cycles);
   p.Do(s_fake_dec_start_value);
   p.Do(s_fake_dec_start_ticks);
-  p.Do(g_fake_TB_start_value);
-  p.Do(g_fake_TB_start_ticks);
+  p.Do(g.fake_TB_start_value);
+  p.Do(g.fake_TB_start_ticks);
   p.Do(s_last_OC_factor);
-  g_last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  g.last_OC_factor_inverted = 1.0f / s_last_OC_factor;
   p.Do(s_event_fifo_id);
 
   p.DoMarker("CoreTimingData");
@@ -212,11 +208,11 @@ void DoState(PointerWrap& p)
 // it from any other thread, you are doing something evil
 u64 GetTicks()
 {
-  u64 ticks = static_cast<u64>(g_global_timer);
+  u64 ticks = static_cast<u64>(g.global_timer);
   if (!s_is_global_timer_sane)
   {
     int downcount = DowncountToCycles(PowerPC::ppcState.downcount);
-    ticks += g_slice_length - downcount;
+    ticks += g.slice_length - downcount;
   }
   return ticks;
 }
@@ -268,7 +264,7 @@ void ScheduleEvent(s64 cycles_into_future, EventType* event_type, u64 userdata, 
     }
 
     std::lock_guard<std::mutex> lk(s_ts_write_lock);
-    s_ts_queue.Push(Event{g_global_timer + cycles_into_future, 0, userdata, event_type});
+    s_ts_queue.Push(Event{g.global_timer + cycles_into_future, 0, userdata, event_type});
   }
 }
 
@@ -297,8 +293,8 @@ void ForceExceptionCheck(s64 cycles)
   if (DowncountToCycles(PowerPC::ppcState.downcount) > cycles)
   {
     // downcount is always (much) smaller than MAX_INT so we can safely cast cycles to an int here.
-    // Account for cycles already executed by adjusting the g_slice_length
-    g_slice_length -= DowncountToCycles(PowerPC::ppcState.downcount) - static_cast<int>(cycles);
+    // Account for cycles already executed by adjusting the g.slice_length
+    g.slice_length -= DowncountToCycles(PowerPC::ppcState.downcount) - static_cast<int>(cycles);
     PowerPC::ppcState.downcount = CyclesToDowncount(static_cast<int>(cycles));
   }
 }
@@ -317,22 +313,22 @@ void Advance()
 {
   MoveEvents();
 
-  int cyclesExecuted = g_slice_length - DowncountToCycles(PowerPC::ppcState.downcount);
-  g_global_timer += cyclesExecuted;
+  int cyclesExecuted = g.slice_length - DowncountToCycles(PowerPC::ppcState.downcount);
+  g.global_timer += cyclesExecuted;
   s_last_OC_factor = SConfig::GetInstance().m_OCEnable ? SConfig::GetInstance().m_OCFactor : 1.0f;
-  g_last_OC_factor_inverted = 1.0f / s_last_OC_factor;
-  g_slice_length = MAX_SLICE_LENGTH;
+  g.last_OC_factor_inverted = 1.0f / s_last_OC_factor;
+  g.slice_length = MAX_SLICE_LENGTH;
 
   s_is_global_timer_sane = true;
 
-  while (!s_event_queue.empty() && s_event_queue.front().time <= g_global_timer)
+  while (!s_event_queue.empty() && s_event_queue.front().time <= g.global_timer)
   {
     Event evt = std::move(s_event_queue.front());
     std::pop_heap(s_event_queue.begin(), s_event_queue.end(), std::greater<Event>());
     s_event_queue.pop_back();
     // NOTICE_LOG(POWERPC, "[Scheduler] %-20s (%lld, %lld)", evt.type->name->c_str(),
-    //            g_global_timer, evt.time);
-    evt.type->callback(evt.userdata, g_global_timer - evt.time);
+    //            g.global_timer, evt.time);
+    evt.type->callback(evt.userdata, g.global_timer - evt.time);
   }
 
   s_is_global_timer_sane = false;
@@ -340,11 +336,11 @@ void Advance()
   // Still events left (scheduled in the future)
   if (!s_event_queue.empty())
   {
-    g_slice_length = static_cast<int>(
-        std::min<s64>(s_event_queue.front().time - g_global_timer, MAX_SLICE_LENGTH));
+    g.slice_length = static_cast<int>(
+        std::min<s64>(s_event_queue.front().time - g.global_timer, MAX_SLICE_LENGTH));
   }
 
-  PowerPC::ppcState.downcount = CyclesToDowncount(g_slice_length);
+  PowerPC::ppcState.downcount = CyclesToDowncount(g.slice_length);
 
   // Check for any external exceptions.
   // It's important to do this after processing events otherwise any exceptions will be delayed
@@ -359,7 +355,7 @@ void LogPendingEvents()
   std::sort(clone.begin(), clone.end());
   for (const Event& ev : clone)
   {
-    INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %s", g_global_timer,
+    INFO_LOG(POWERPC, "PENDING: Now: %" PRId64 " Pending: %" PRId64 " Type: %s", g.global_timer,
              ev.time, ev.type->name->c_str());
   }
 }
@@ -369,8 +365,8 @@ void AdjustEventQueueTimes(u32 new_ppc_clock, u32 old_ppc_clock)
 {
   for (Event& ev : s_event_queue)
   {
-    const s64 ticks = (ev.time - g_global_timer) * new_ppc_clock / old_ppc_clock;
-    ev.time = g_global_timer + ticks;
+    const s64 ticks = (ev.time - g.global_timer) * new_ppc_clock / old_ppc_clock;
+    ev.time = g.global_timer + ticks;
   }
 }
 
@@ -425,22 +421,22 @@ void SetFakeDecStartTicks(u64 val)
 
 u64 GetFakeTBStartValue()
 {
-  return g_fake_TB_start_value;
+  return g.fake_TB_start_value;
 }
 
 void SetFakeTBStartValue(u64 val)
 {
-  g_fake_TB_start_value = val;
+  g.fake_TB_start_value = val;
 }
 
 u64 GetFakeTBStartTicks()
 {
-  return g_fake_TB_start_ticks;
+  return g.fake_TB_start_ticks;
 }
 
 void SetFakeTBStartTicks(u64 val)
 {
-  g_fake_TB_start_ticks = val;
+  g.fake_TB_start_ticks = val;
 }
 
 }  // namespace

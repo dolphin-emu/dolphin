@@ -203,7 +203,7 @@ void Interpreter::SingleStep()
   SingleStepInner();
 
   // The interpreter ignores instruction timing information outside the 'fast runloop'.
-  CoreTiming::g_slice_length = 1;
+  CoreTiming::g.slice_length = 1;
   PowerPC::ppcState.downcount = 0;
 
   if (PowerPC::ppcState.Exceptions)
