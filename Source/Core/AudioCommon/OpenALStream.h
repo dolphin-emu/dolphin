@@ -89,9 +89,9 @@ private:
 
   Common::Event soundSyncEvent;
 
-  std::array<short, OAL_MAX_SAMPLES * STEREO_CHANNELS> realtimeBuffer;
-  std::array<soundtouch::SAMPLETYPE, OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS> sampleBuffer;
-  std::array<ALuint, OAL_MAX_BUFFERS> uiBuffers;
+  std::vector<short> realtimeBuffer;
+  std::vector<soundtouch::SAMPLETYPE> sampleBuffer;
+  std::vector<ALuint> uiBuffers;
   ALuint uiSource;
   ALfloat fVolume;
 

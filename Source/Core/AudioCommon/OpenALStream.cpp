@@ -179,8 +179,30 @@ void OpenALStream::SoundLoop()
 #endif
 
   u32 ulFrequency = m_mixer->GetSampleRate();
-  numBuffers = SConfig::GetInstance().iLatency + 2;  // OpenAL requires a minimum of two buffers
+  // OpenAL requires a minimum of two buffers, three recommended
+  numBuffers = 3;
 
+  // calculate latency (samples) per buffer
+  uint samples_per_buffer;
+  if (SConfig::GetInstance().iLatency > 10)
+  {
+    samples_per_buffer = ulFrequency / 1000 * SConfig::GetInstance().iLatency / numBuffers;
+  }
+  else
+  {
+    samples_per_buffer = ulFrequency / 1000 * 10 / numBuffers;
+  }
+
+  // DPL2 needs a minimum number of samples to work (FWRDURATION)
+  if (surround_capable && samples_per_buffer < 240)
+  {
+    samples_per_buffer = 240;
+  }
+
+  realtimeBuffer.reserve(samples_per_buffer * STEREO_CHANNELS);
+  // SoundTouch can stretch the audio up to 10 times, multiplying by 20 just to be sure.
+  sampleBuffer.reserve(samples_per_buffer * STEREO_CHANNELS * 20);
+  uiBuffers.reserve(numBuffers);
   uiSource = 0;
 
   if (alIsExtensionPresent("AL_EXT_float32"))
@@ -233,6 +255,9 @@ void OpenALStream::SoundLoop()
   soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
   soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
 
+  // floating point conversion vector
+  std::vector<float> dest(samples_per_buffer * STEREO_CHANNELS);
+
   while (m_run_thread.IsSet())
   {
     // Block until we have a free buffer
@@ -247,14 +272,15 @@ void OpenALStream::SoundLoop()
     // Remove the Buffer from the Queue.
     if (numBuffersProcessed)
     {
-      std::array<ALuint, OAL_MAX_BUFFERS> unqueuedBufferIds;
-      alSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds.data());
+      std::unique_ptr<ALuint[]> unqueuedBufferIds(new ALuint[numBuffers]);
+      alSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds.get());
       err = CheckALError("unqueuing buffers");
 
       numBuffersQueued -= numBuffersProcessed;
     }
 
-    // num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
+    // minimum number possible of samples to render in this update - depends on
+    // SystemTimers::AUDIO_DMA_PERIOD.
     const u32 stereo_16_bit_size = 4;
     const u32 dma_length = 32;
     const u64 ais_samples_per_second = 48000 * stereo_16_bit_size;
@@ -263,19 +289,20 @@ void OpenALStream::SoundLoop()
     u64 num_samples_to_render =
         (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
 
-    unsigned int numSamples = static_cast<unsigned int>(num_samples_to_render);
-    unsigned int minSamples =
-        surround_capable ? 240 : 0;  // DPL2 accepts 240 samples minimum (FWRDURATION)
+    unsigned int minSamples = static_cast<unsigned int>(num_samples_to_render);
 
-    numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
-    numSamples = m_mixer->Mix(realtimeBuffer.data(), numSamples, false);
+    if (samples_per_buffer < minSamples)
+    {
+      ERROR_LOG(AUDIO, "Current latency too low. Consider increasing it.");
+    }
+
+    unsigned int rendered_samples = m_mixer->Mix(realtimeBuffer.data(), samples_per_buffer, false);
 
     // Convert the samples from short to float
-    std::array<float, OAL_MAX_SAMPLES * STEREO_CHANNELS> dest;
-    for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
+    for (u32 i = 0; i < samples_per_buffer * STEREO_CHANNELS; ++i)
       dest[i] = static_cast<float>(realtimeBuffer[i]) / INT16_MAX;
 
-    soundTouch.putSamples(dest.data(), numSamples);
+    soundTouch.putSamples(dest.data(), rendered_samples);
 
     double rate = static_cast<double>(m_mixer->GetCurrentSpeed());
     if (rate <= 0)
@@ -295,14 +322,15 @@ void OpenALStream::SoundLoop()
       }
     }
 
-    unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer.data(), OAL_MAX_SAMPLES * numBuffers);
+    // We want SoundTouch to return already processed samples all at once
+    unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer.data(), soundTouch.numSamples());
 
-    if (nSamples <= minSamples)
+    if (nSamples < rendered_samples)
       continue;
 
     if (surround_capable)
     {
-      std::array<float, OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS> dpl2;
+      std::vector<float> dpl2(nSamples * SURROUND_CHANNELS);
       DPL2Decode(sampleBuffer.data(), nSamples, dpl2.data());
 
       // zero-out the subwoofer channel - DPL2Decode generates a pretty
@@ -321,7 +349,7 @@ void OpenALStream::SoundLoop()
       }
       else if (fixed32_capable)
       {
-        std::array<int, OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS> surround_int32;
+        std::vector<int> surround_int32(nSamples * SURROUND_CHANNELS);
 
         for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
         {
@@ -336,11 +364,11 @@ void OpenALStream::SoundLoop()
       }
       else
       {
-        std::array<short, OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS> surround_short;
+        std::vector<short> surround_short(nSamples * SURROUND_CHANNELS);
 
         for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
         {
-		  surround_short[i] = static_cast<short>(MathUtil::Clamp(static_cast<double>(dpl2[i]), -1.0, 1.0) * INT16_MAX);
+          surround_short[i] = static_cast<short>(MathUtil::Clamp(static_cast<double>(dpl2[i]), -1.0, 1.0) * INT16_MAX);
         }
 
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short.data(),
@@ -372,7 +400,7 @@ void OpenALStream::SoundLoop()
       else if (fixed32_capable)
       {
         // Clamping is not necessary here, samples are always between (-1,1)
-        std::array<int, OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS> stereo_int32;
+        std::vector<int> stereo_int32(nSamples * STEREO_CHANNELS);
         for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
           stereo_int32[i] = static_cast<int>(sampleBuffer[i] * INT32_MAX);
 
@@ -382,7 +410,7 @@ void OpenALStream::SoundLoop()
       else
       {
         // Convert the samples from float to short
-        std::array<short, OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS> stereo;
+        std::vector<short> stereo(nSamples * STEREO_CHANNELS);
         for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
           stereo[i] = static_cast<short>(sampleBuffer[i] * INT16_MAX);
 
