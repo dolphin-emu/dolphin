@@ -382,14 +382,25 @@ void VertexShaderManager::SetConstants()
     // NOTE: If we ever emulate antialiasing, the sample locations set by
     // BP registers 0x01-0x04 need to be considered here.
     const float pixel_center_correction = 7.0f / 12.0f - 0.5f;
-    const float pixel_size_x = 2.f / g_renderer->EFBToScaledXf(2.f * xfmem.viewport.wd);
-    const float pixel_size_y = 2.f / g_renderer->EFBToScaledXf(2.f * xfmem.viewport.ht);
+    const bool bUseVertexRounding =
+        g_ActiveConfig.bVertexRounding && g_ActiveConfig.iEFBScale != SCALE_1X;
+    const float viewport_width = bUseVertexRounding ?
+                                     (2.f * xfmem.viewport.wd) :
+                                     g_renderer->EFBToScaledXf(2.f * xfmem.viewport.wd);
+    const float viewport_height = bUseVertexRounding ?
+                                      (2.f * xfmem.viewport.ht) :
+                                      g_renderer->EFBToScaledXf(2.f * xfmem.viewport.ht);
+    const float pixel_size_x = 2.f / viewport_width;
+    const float pixel_size_y = 2.f / viewport_height;
     constants.pixelcentercorrection[0] = pixel_center_correction * pixel_size_x;
     constants.pixelcentercorrection[1] = pixel_center_correction * pixel_size_y;
 
     // By default we don't change the depth value at all in the vertex shader.
     constants.pixelcentercorrection[2] = 1.0f;
     constants.pixelcentercorrection[3] = 0.0f;
+
+    constants.viewport[0] = (2.f * xfmem.viewport.wd);
+    constants.viewport[1] = (2.f * xfmem.viewport.ht);
 
     if (g_renderer->UseVertexDepthRange())
     {

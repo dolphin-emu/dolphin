@@ -284,6 +284,10 @@ static wxString true_color_desc =
     wxTRANSLATE("Forces the game to render the RGB color channels in 24-bit, thereby increasing "
                 "quality by reducing color banding.\nIt has no impact on performance and causes "
                 "few graphical issues.\n\n\nIf unsure, leave this checked.");
+static wxString vertex_rounding_desc =
+    wxTRANSLATE("Round 2D vertices to whole pixels.  Fixes some "
+                "games at higher internal resolutions.  This setting is disabled and turned off "
+                "at 1x IR.\n\nIf unsure, leave this unchecked.");
 static wxString gpu_texture_decoding_desc =
     wxTRANSLATE("Enables texture decoding using the GPU instead of the CPU. This may result in "
                 "performance gains in some scenarios, or systems where the CPU is the bottleneck."
@@ -818,6 +822,10 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       szr_other->Add(CreateCheckBox(page_hacks, _("Disable Bounding Box"),
                                     wxGetTranslation(disable_bbox_desc), vconfig.bBBoxEnable,
                                     true));
+      vertex_rounding_checkbox =
+          CreateCheckBox(page_hacks, _("Vertex Rounding"), wxGetTranslation(vertex_rounding_desc),
+                         vconfig.bVertexRounding);
+      szr_other->Add(vertex_rounding_checkbox);
 
       wxStaticBoxSizer* const group_other =
           new wxStaticBoxSizer(wxVERTICAL, page_hacks, _("Other"));
