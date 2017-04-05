@@ -10,7 +10,6 @@
 
 #include "Common/CommonTypes.h"
 #include "Common/IniFile.h"
-#include "InputCommon/ControllerInterface/Device.h"
 
 namespace ControllerEmu
 {

@@ -14,6 +14,7 @@
 #include "InputCommon/ControllerEmu/Control/Control.h"
 #include "InputCommon/ControllerEmu/ControlGroup/ControlGroup.h"
 #include "InputCommon/ControllerEmu/ControlGroup/Extension.h"
+#include "InputCommon/ControllerInterface/ControllerInterface.h"
 
 namespace ControllerEmu
 {
