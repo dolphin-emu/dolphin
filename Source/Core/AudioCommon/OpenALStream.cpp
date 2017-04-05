@@ -86,13 +86,13 @@ void OpenALStream::Stop()
 
   thread.join();
 
-  alSourceStop(uiSource);
-  alSourcei(uiSource, AL_BUFFER, 0);
+  alSourceStop(source);
+  alSourcei(source, AL_BUFFER, 0);
 
   // Clean up buffers and sources
-  alDeleteSources(1, &uiSource);
-  uiSource = 0;
-  alDeleteBuffers(numBuffers, uiBuffers.data());
+  alDeleteSources(1, &source);
+  source = 0;
+  alDeleteBuffers(num_buffers, buffers.data());
 
   ALCcontext* pContext = alcGetCurrentContext();
   ALCdevice* pDevice = alcGetContextsDevice(pContext);
@@ -102,12 +102,12 @@ void OpenALStream::Stop()
   alcCloseDevice(pDevice);
 }
 
-void OpenALStream::SetVolume(int volume)
+void OpenALStream::SetVolume(int set_volume)
 {
-  fVolume = static_cast<float>(volume) / 100.0f;
+  volume = static_cast<float>(set_volume) / 100.0f;
 
-  if (uiSource)
-    alSourcef(uiSource, AL_GAIN, fVolume);
+  if (source)
+    alSourcef(source, AL_GAIN, volume);
 }
 
 void OpenALStream::Update()
@@ -122,11 +122,11 @@ void OpenALStream::Clear(bool mute)
   if (m_muted)
   {
     soundTouch.clear();
-    alSourceStop(uiSource);
+    alSourceStop(source);
   }
   else
   {
-    alSourcePlay(uiSource);
+    alSourcePlay(source);
   }
 }
 
@@ -178,19 +178,19 @@ void OpenALStream::SoundLoop()
   surround_capable = false;
 #endif
 
-  u32 ulFrequency = m_mixer->GetSampleRate();
+  u32 frequency = m_mixer->GetSampleRate();
   // OpenAL requires a minimum of two buffers, three recommended
-  numBuffers = 3;
+  num_buffers = 3;
 
   // calculate latency (samples) per buffer
   uint samples_per_buffer;
   if (SConfig::GetInstance().iLatency > 10)
   {
-    samples_per_buffer = ulFrequency / 1000 * SConfig::GetInstance().iLatency / numBuffers;
+    samples_per_buffer = frequency / 1000 * SConfig::GetInstance().iLatency / num_buffers;
   }
   else
   {
-    samples_per_buffer = ulFrequency / 1000 * 10 / numBuffers;
+    samples_per_buffer = frequency / 1000 * 10 / num_buffers;
   }
 
   // DPL2 needs a minimum number of samples to work (FWRDURATION)
@@ -199,11 +199,11 @@ void OpenALStream::SoundLoop()
     samples_per_buffer = 240;
   }
 
-  realtimeBuffer.reserve(samples_per_buffer * STEREO_CHANNELS);
+  realtime_buffer.reserve(samples_per_buffer * STEREO_CHANNELS);
   // SoundTouch can stretch the audio up to 10 times, multiplying by 20 just to be sure.
-  sampleBuffer.reserve(samples_per_buffer * STEREO_CHANNELS * 20);
-  uiBuffers.reserve(numBuffers);
-  uiSource = 0;
+  sample_buffer.reserve(samples_per_buffer * STEREO_CHANNELS * 20);
+  buffers.reserve(num_buffers);
+  source = 0;
 
   if (alIsExtensionPresent("AL_EXT_float32"))
     float32_capable = true;
@@ -218,7 +218,7 @@ void OpenALStream::SoundLoop()
   ALenum err = alGetError();
 
   // Generate some AL Buffers for streaming
-  alGenBuffers(numBuffers, uiBuffers.data());
+  alGenBuffers(num_buffers, buffers.data());
   err = CheckALError("generating buffers");
 
 #ifdef _WIN32
@@ -227,27 +227,27 @@ void OpenALStream::SoundLoop()
   {
     EAXSetBufferMode eaxSetBufferMode;
     eaxSetBufferMode = (EAXSetBufferMode)alGetProcAddress("EAXSetBufferMode");
-    eaxSetBufferMode(numBuffers, uiBuffers.data(), alGetEnumValue("AL_STORAGE_ACCESSIBLE"));
+    eaxSetBufferMode(num_buffers, buffers.data(), alGetEnumValue("AL_STORAGE_ACCESSIBLE"));
     err = CheckALError("setting X-RAM mode");
   }
 #endif
 
   // Generate a Source to playback the Buffers
-  alGenSources(1, &uiSource);
+  alGenSources(1, &source);
   err = CheckALError("generating sources");
 
   // Set the default sound volume as saved in the config file.
-  alSourcef(uiSource, AL_GAIN, fVolume);
+  alSourcef(source, AL_GAIN, volume);
 
   // TODO: Error handling
   // ALenum err = alGetError();
 
-  unsigned int nextBuffer = 0;
-  unsigned int numBuffersQueued = 0;
-  ALint iState = 0;
+  unsigned int next_buffer = 0;
+  unsigned int num_buffers_queued = 0;
+  ALint state = 0;
 
   soundTouch.setChannels(2);
-  soundTouch.setSampleRate(ulFrequency);
+  soundTouch.setSampleRate(frequency);
   soundTouch.setTempo(1.0);
   soundTouch.setSetting(SETTING_USE_QUICKSEEK, 0);
   soundTouch.setSetting(SETTING_USE_AA_FILTER, 0);
@@ -261,22 +261,22 @@ void OpenALStream::SoundLoop()
   while (m_run_thread.IsSet())
   {
     // Block until we have a free buffer
-    int numBuffersProcessed;
-    alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &numBuffersProcessed);
-    if (numBuffers == numBuffersQueued && !numBuffersProcessed)
+    int num_buffers_processed;
+    alGetSourcei(source, AL_BUFFERS_PROCESSED, &num_buffers_processed);
+    if (num_buffers == num_buffers_queued && !num_buffers_processed)
     {
       soundSyncEvent.Wait();
       continue;
     }
 
     // Remove the Buffer from the Queue.
-    if (numBuffersProcessed)
+    if (num_buffers_processed)
     {
-      std::unique_ptr<ALuint[]> unqueuedBufferIds(new ALuint[numBuffers]);
-      alSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds.get());
+      std::unique_ptr<ALuint[]> unqueuedBufferIds(new ALuint[num_buffers]);
+      alSourceUnqueueBuffers(source, num_buffers_processed, unqueuedBufferIds.get());
       err = CheckALError("unqueuing buffers");
 
-      numBuffersQueued -= numBuffersProcessed;
+      num_buffers_queued -= num_buffers_processed;
     }
 
     // minimum number possible of samples to render in this update - depends on
@@ -289,18 +289,18 @@ void OpenALStream::SoundLoop()
     u64 num_samples_to_render =
         (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
 
-    unsigned int minSamples = static_cast<unsigned int>(num_samples_to_render);
+    unsigned int min_samples = static_cast<unsigned int>(num_samples_to_render);
 
-    if (samples_per_buffer < minSamples)
+    if (samples_per_buffer < min_samples)
     {
       ERROR_LOG(AUDIO, "Current latency too low. Consider increasing it.");
     }
 
-    unsigned int rendered_samples = m_mixer->Mix(realtimeBuffer.data(), samples_per_buffer, false);
+    unsigned int rendered_samples = m_mixer->Mix(realtime_buffer.data(), samples_per_buffer, false);
 
     // Convert the samples from short to float
     for (u32 i = 0; i < samples_per_buffer * STEREO_CHANNELS; ++i)
-      dest[i] = static_cast<float>(realtimeBuffer[i]) / INT16_MAX;
+      dest[i] = static_cast<float>(realtime_buffer[i]) / INT16_MAX;
 
     soundTouch.putSamples(dest.data(), rendered_samples);
 
@@ -323,35 +323,35 @@ void OpenALStream::SoundLoop()
     }
 
     // We want SoundTouch to return already processed samples all at once
-    unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer.data(), soundTouch.numSamples());
+    unsigned int n_samples = soundTouch.receiveSamples(sample_buffer.data(), soundTouch.numSamples());
 
-    if (nSamples < rendered_samples)
+    if (n_samples < rendered_samples)
       continue;
 
     if (surround_capable)
     {
-      std::vector<float> dpl2(nSamples * SURROUND_CHANNELS);
-      DPL2Decode(sampleBuffer.data(), nSamples, dpl2.data());
+      std::vector<float> dpl2(n_samples * SURROUND_CHANNELS);
+      DPL2Decode(sample_buffer.data(), n_samples, dpl2.data());
 
       // zero-out the subwoofer channel - DPL2Decode generates a pretty
       // good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
       // AL_FORMAT_50CHN32 to make this super-explicit.
       // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-      for (u32 i = 0; i < nSamples; ++i)
+      for (u32 i = 0; i < n_samples; ++i)
       {
         dpl2[i * SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
       }
 
       if (float32_capable)
       {
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2.data(),
-                     nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
+        alBufferData(buffers[next_buffer], AL_FORMAT_51CHN32, dpl2.data(),
+                     n_samples * FRAME_SURROUND_FLOAT, frequency);
       }
       else if (fixed32_capable)
       {
-        std::vector<int> surround_int32(nSamples * SURROUND_CHANNELS);
+        std::vector<int> surround_int32(n_samples * SURROUND_CHANNELS);
 
-        for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
+        for (u32 i = 0; i < n_samples * SURROUND_CHANNELS; ++i)
         {
           // For some reason the ffdshow's DPL2 decoder outputs samples bigger than 1.
           // Most are close to 2.5 and some go up to 8. Hard clamping here, we need to
@@ -359,20 +359,20 @@ void OpenALStream::SoundLoop()
           surround_int32[i] = static_cast<int>(MathUtil::Clamp(static_cast<double>(dpl2[i]), -1.0, 1.0) * INT32_MAX);
         }
 
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, surround_int32.data(),
-                     nSamples * FRAME_SURROUND_INT32, ulFrequency);
+        alBufferData(buffers[next_buffer], AL_FORMAT_51CHN32, surround_int32.data(),
+                     n_samples * FRAME_SURROUND_INT32, frequency);
       }
       else
       {
-        std::vector<short> surround_short(nSamples * SURROUND_CHANNELS);
+        std::vector<short> surround_short(n_samples * SURROUND_CHANNELS);
 
-        for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
+        for (u32 i = 0; i < n_samples * SURROUND_CHANNELS; ++i)
         {
           surround_short[i] = static_cast<short>(MathUtil::Clamp(static_cast<double>(dpl2[i]), -1.0, 1.0) * INT16_MAX);
         }
 
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short.data(),
-                     nSamples * FRAME_SURROUND_SHORT, ulFrequency);
+        alBufferData(buffers[next_buffer], AL_FORMAT_51CHN16, surround_short.data(),
+                     n_samples * FRAME_SURROUND_SHORT, frequency);
       }
 
       err = CheckALError("buffering data");
@@ -388,8 +388,8 @@ void OpenALStream::SoundLoop()
     {
       if (float32_capable)
       {
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer.data(),
-                     nSamples * FRAME_STEREO_FLOAT, ulFrequency);
+        alBufferData(buffers[next_buffer], AL_FORMAT_STEREO_FLOAT32, sample_buffer.data(),
+                     n_samples * FRAME_STEREO_FLOAT, frequency);
 
         err = CheckALError("buffering float32 data");
         if (err == AL_INVALID_ENUM)
@@ -400,36 +400,36 @@ void OpenALStream::SoundLoop()
       else if (fixed32_capable)
       {
         // Clamping is not necessary here, samples are always between (-1,1)
-        std::vector<int> stereo_int32(nSamples * STEREO_CHANNELS);
-        for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
-          stereo_int32[i] = static_cast<int>(sampleBuffer[i] * INT32_MAX);
+        std::vector<int> stereo_int32(n_samples * STEREO_CHANNELS);
+        for (u32 i = 0; i < n_samples * STEREO_CHANNELS; ++i)
+          stereo_int32[i] = static_cast<int>(sample_buffer[i] * INT32_MAX);
 
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO32, stereo_int32.data(),
-                     nSamples * FRAME_STEREO_INT32, ulFrequency);
+        alBufferData(buffers[next_buffer], AL_FORMAT_STEREO32, stereo_int32.data(),
+                     n_samples * FRAME_STEREO_INT32, frequency);
       }
       else
       {
         // Convert the samples from float to short
-        std::vector<short> stereo(nSamples * STEREO_CHANNELS);
-        for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
-          stereo[i] = static_cast<short>(sampleBuffer[i] * INT16_MAX);
+        std::vector<short> stereo(n_samples * STEREO_CHANNELS);
+        for (u32 i = 0; i < n_samples * STEREO_CHANNELS; ++i)
+          stereo[i] = static_cast<short>(sample_buffer[i] * INT16_MAX);
 
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO16, stereo.data(),
-                     nSamples * FRAME_STEREO_SHORT, ulFrequency);
+        alBufferData(buffers[next_buffer], AL_FORMAT_STEREO16, stereo.data(),
+                     n_samples * FRAME_STEREO_SHORT, frequency);
       }
     }
 
-    alSourceQueueBuffers(uiSource, 1, &uiBuffers[nextBuffer]);
+    alSourceQueueBuffers(source, 1, &buffers[next_buffer]);
     err = CheckALError("queuing buffers");
 
-    numBuffersQueued++;
-    nextBuffer = (nextBuffer + 1) % numBuffers;
+    num_buffers_queued++;
+    next_buffer = (next_buffer + 1) % num_buffers;
 
-    alGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
-    if (iState != AL_PLAYING)
+    alGetSourcei(source, AL_SOURCE_STATE, &state);
+    if (state != AL_PLAYING)
     {
       // Buffer underrun occurred, resume playback
-      alSourcePlay(uiSource);
+      alSourcePlay(source);
       err = CheckALError("occurred resuming playback");
     }
   }
