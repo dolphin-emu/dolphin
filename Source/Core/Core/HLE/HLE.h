@@ -24,6 +24,7 @@ enum HookFlag
   HLE_TYPE_FIXED = 2,    // An arbitrary hook mapped to a fixed address instead of a symbol
 };
 
+void PatchFixedFunctions();
 void PatchFunctions();
 void Clear();
 
