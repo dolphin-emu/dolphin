@@ -253,8 +253,9 @@ struct AXPB
   PBSampleRateConverter src;
   PBADPCMLoopInfo adpcm_loop_info;
   PBLowPassFilter lpf;
+  u16 loop_counter;
 
-  u16 padding[25];
+  u16 padding[24];
 };
 
 struct PBBiquadFilter

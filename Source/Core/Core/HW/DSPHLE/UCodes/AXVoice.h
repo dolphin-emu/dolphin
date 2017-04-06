@@ -234,6 +234,13 @@ u16 AcceleratorGetSample()
         acc_pb->adpcm.yn1 = acc_pb->adpcm_loop_info.yn1;
         acc_pb->adpcm.yn2 = acc_pb->adpcm_loop_info.yn2;
       }
+#ifdef AX_GC
+      else
+      {
+        // If we're streaming, increment the loop counter.
+        acc_pb->loop_counter++;
+      }
+#endif
     }
     else
     {
