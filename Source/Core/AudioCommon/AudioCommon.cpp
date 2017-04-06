@@ -138,7 +138,16 @@ bool SupportsDPL2Decoder(const std::string& backend)
 
 bool SupportsLatencyControl(const std::string& backend)
 {
-  return backend == BACKEND_OPENAL;
+  if (backend == BACKEND_OPENAL)
+    return true;
+  return false;
+}
+
+bool SupportsTimeStretch(const std::string& backend)
+{
+  if (backend == BACKEND_OPENAL)
+    return true;
+  return false;
 }
 
 bool SupportsVolumeChanges(const std::string& backend)

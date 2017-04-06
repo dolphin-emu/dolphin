@@ -39,6 +39,7 @@ void AudioConfigPane::InitializeGUI()
       new wxRadioBox(this, wxID_ANY, _("DSP Emulator Engine"), wxDefaultPosition, wxDefaultSize,
                      m_dsp_engine_strings, 0, wxRA_SPECIFY_ROWS);
   m_dpl2_decoder_checkbox = new wxCheckBox(this, wxID_ANY, _("Dolby Pro Logic II decoder"));
+  m_soundtouch_timestretch_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable timestretching"));
   m_volume_slider = new DolphinSlider(this, wxID_ANY, 0, 0, 100, wxDefaultPosition, wxDefaultSize,
                                       wxSL_VERTICAL | wxSL_INVERSE);
   m_volume_text = new wxStaticText(this, wxID_ANY, "");
@@ -55,6 +56,8 @@ void AudioConfigPane::InitializeGUI()
   m_dpl2_decoder_checkbox->SetToolTip(
       _("Enables Dolby Pro Logic II emulation using 5.1 surround. Certain backends only."));
 
+  m_soundtouch_timestretch_checkbox->SetToolTip(_("Adjusts audio pitch when not running at full "
+                                                  "speed (adds latency). Certain backends only."));
   const int space5 = FromDIP(5);
 
   wxStaticBoxSizer* const dsp_engine_sizer =
@@ -75,9 +78,11 @@ void AudioConfigPane::InitializeGUI()
                           wxALIGN_CENTER_VERTICAL);
   backend_grid_sizer->Add(m_dpl2_decoder_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2),
                           wxALIGN_CENTER_VERTICAL);
-  backend_grid_sizer->Add(m_audio_latency_label, wxGBPosition(2, 0), wxDefaultSpan,
+  backend_grid_sizer->Add(m_soundtouch_timestretch_checkbox, wxGBPosition(2, 0), wxGBSpan(1, 2),
                           wxALIGN_CENTER_VERTICAL);
-  backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(2, 1), wxDefaultSpan,
+  backend_grid_sizer->Add(m_audio_latency_label, wxGBPosition(3, 0), wxDefaultSpan,
+                          wxALIGN_CENTER_VERTICAL);
+  backend_grid_sizer->Add(m_audio_latency_spinctrl, wxGBPosition(3, 1), wxDefaultSpan,
                           wxALIGN_CENTER_VERTICAL);
 
   wxStaticBoxSizer* const backend_static_box_sizer =
@@ -118,12 +123,14 @@ void AudioConfigPane::LoadGUIValues()
   m_volume_slider->SetValue(SConfig::GetInstance().m_Volume);
   m_volume_text->SetLabel(wxString::Format("%d %%", SConfig::GetInstance().m_Volume));
   m_dpl2_decoder_checkbox->SetValue(startup_params.bDPL2Decoder);
+  m_soundtouch_timestretch_checkbox->SetValue(startup_params.bTimeStretching);
   m_audio_latency_spinctrl->SetValue(startup_params.iLatency);
 }
 
 void AudioConfigPane::ToggleBackendSpecificControls(const std::string& backend)
 {
   m_dpl2_decoder_checkbox->Enable(AudioCommon::SupportsDPL2Decoder(backend));
+  m_soundtouch_timestretch_checkbox->Enable(AudioCommon::SupportsTimeStretch(backend));
 
   bool supports_latency_control = AudioCommon::SupportsLatencyControl(backend);
   m_audio_latency_spinctrl->Enable(supports_latency_control);
@@ -142,6 +149,10 @@ void AudioConfigPane::BindEvents()
   m_dpl2_decoder_checkbox->Bind(wxEVT_CHECKBOX, &AudioConfigPane::OnDPL2DecoderCheckBoxChanged,
                                 this);
   m_dpl2_decoder_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_soundtouch_timestretch_checkbox->Bind(wxEVT_CHECKBOX,
+                                          &AudioConfigPane::OnTimestretchCheckBoxChanged, this);
+  m_soundtouch_timestretch_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
 
   m_volume_slider->Bind(wxEVT_SLIDER, &AudioConfigPane::OnVolumeSliderChanged, this);
 
@@ -162,6 +173,11 @@ void AudioConfigPane::OnDSPEngineRadioBoxChanged(wxCommandEvent& event)
 void AudioConfigPane::OnDPL2DecoderCheckBoxChanged(wxCommandEvent&)
 {
   SConfig::GetInstance().bDPL2Decoder = m_dpl2_decoder_checkbox->IsChecked();
+}
+
+void AudioConfigPane::OnTimestretchCheckBoxChanged(wxCommandEvent&)
+{
+  SConfig::GetInstance().bTimeStretching = m_soundtouch_timestretch_checkbox->IsChecked();
 }
 
 void AudioConfigPane::OnVolumeSliderChanged(wxCommandEvent& event)
