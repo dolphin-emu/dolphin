@@ -356,6 +356,11 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
   case IOCTL_ES_GETSTOREDCONTENTS:
     return GetTMDStoredContents(request);
 
+  case IOCTL_ES_GETSHAREDCONTENTCNT:
+    return GetSharedContentsCount(request);
+  case IOCTL_ES_GETSHAREDCONTENTS:
+    return GetSharedContents(request);
+
   case IOCTL_ES_GETVIEWCNT:
     return GetTicketViewCount(request);
   case IOCTL_ES_GETVIEWS:

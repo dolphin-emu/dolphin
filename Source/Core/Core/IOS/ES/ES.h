@@ -214,6 +214,8 @@ private:
   IPCCommandResult GetTMDStoredContents(const IOCtlVRequest& request);
   IPCCommandResult GetStoredTMDSize(const IOCtlVRequest& request);
   IPCCommandResult GetStoredTMD(const IOCtlVRequest& request);
+  IPCCommandResult GetSharedContentsCount(const IOCtlVRequest& request) const;
+  IPCCommandResult GetSharedContents(const IOCtlVRequest& request) const;
 
   // Views for tickets and TMDs
   IPCCommandResult GetTicketViewCount(const IOCtlVRequest& request);

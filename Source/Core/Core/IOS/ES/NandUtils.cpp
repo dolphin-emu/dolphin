@@ -163,6 +163,23 @@ std::vector<Content> GetStoredContentsFromTMD(const TMDReader& tmd)
   return stored_contents;
 }
 
+u32 GetSharedContentsCount()
+{
+  const std::string shared1_path = Common::RootUserPath(Common::FROM_SESSION_ROOT) + "/shared1";
+  const auto entries = File::ScanDirectoryTree(shared1_path, false);
+  return static_cast<u32>(
+      std::count_if(entries.children.begin(), entries.children.end(), [](const auto& entry) {
+        return !entry.isDirectory && entry.virtualName.size() == 12 &&
+               entry.virtualName.compare(8, 4, ".app") == 0;
+      }));
+}
+
+std::vector<std::array<u8, 20>> GetSharedContents()
+{
+  const IOS::ES::SharedContentMap map{Common::FROM_SESSION_ROOT};
+  return map.GetHashes();
+}
+
 bool InitImport(u64 title_id)
 {
   const std::string content_dir = Common::GetTitleContentPath(title_id, Common::FROM_SESSION_ROOT);

@@ -385,6 +385,16 @@ std::string SharedContentMap::GetFilenameFromSHA1(const std::array<u8, 20>& sha1
   return Common::RootUserPath(m_root) + StringFromFormat("/shared1/%s.app", id_string.c_str());
 }
 
+std::vector<std::array<u8, 20>> SharedContentMap::GetHashes() const
+{
+  std::vector<std::array<u8, 20>> hashes;
+  hashes.reserve(m_entries.size());
+  for (const auto& content_entry : m_entries)
+    hashes.emplace_back(content_entry.sha1);
+
+  return hashes;
+}
+
 std::string SharedContentMap::AddSharedContent(const std::array<u8, 20>& sha1)
 {
   std::string filename = GetFilenameFromSHA1(sha1);
