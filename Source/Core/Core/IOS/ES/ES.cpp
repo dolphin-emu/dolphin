@@ -335,6 +335,8 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return GetTitleID(request);
   case IOCTL_ES_SETUID:
     return SetUID(request);
+  case IOCTL_ES_DIVERIFY:
+    return DIVerify(request);
 
   case IOCTL_ES_GETOWNEDTITLECNT:
     return GetOwnedTitleCount(request);
@@ -489,7 +491,13 @@ const DiscIO::CNANDContentLoader& ES::AccessContentDevice(u64 title_id)
 }
 
 // This is technically an ioctlv in IOS's ES, but it is an internal API which cannot be
-// used from the PowerPC (for unpatched IOSes anyway).
+// used from the PowerPC (for unpatched and up-to-date IOSes anyway).
+// So we block access to it from the IPC interface.
+IPCCommandResult ES::DIVerify(const IOCtlVRequest& request)
+{
+  return GetDefaultReply(ES_EINVAL);
+}
+
 s32 ES::DIVerify(const IOS::ES::TMDReader& tmd, const IOS::ES::TicketReader& ticket)
 {
   s_title_context.Clear();
