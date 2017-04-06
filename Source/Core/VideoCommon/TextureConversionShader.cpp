@@ -1207,7 +1207,7 @@ static const std::map<TextureFormat, DecodingShaderInfo> s_decoding_shader_info{
 
         // Tiled in 4x4 blocks, 16 bits per pixel
         uint buffer_pos = GetTiledTexelOffset(uvec2(4u, 4u), coords);
-        uint index = texelFetch(s_input_buffer, int(buffer_pos)).x) & 0x3FFFu;
+        uint index = texelFetch(s_input_buffer, int(buffer_pos)).x & 0x3FFFu;
         vec4 norm_color = GetPaletteColorNormalized(index);
         imageStore(output_image, ivec3(ivec2(coords), 0), norm_color);
       }
