@@ -248,6 +248,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideGCLang", bOverrideGCLanguage);
   core->Set("DPL2Decoder", bDPL2Decoder);
+  core->Set("TimeStretch", bTimeStretching);
   core->Set("Latency", iLatency);
   core->Set("MemcardAPath", m_strMemoryCardA);
   core->Set("MemcardBPath", m_strMemoryCardB);
@@ -566,6 +567,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
+  core->Get("TimeStretch", &bTimeStretching, true);
   core->Get("Latency", &iLatency, 30);
   core->Get("MemcardAPath", &m_strMemoryCardA);
   core->Get("MemcardBPath", &m_strMemoryCardB);
@@ -828,6 +830,7 @@ void SConfig::LoadDefaults()
   bOverrideGCLanguage = false;
   bWii = false;
   bDPL2Decoder = false;
+  bTimeStretching = true;
   iLatency = 14;
 
   iPosX = INT_MIN;

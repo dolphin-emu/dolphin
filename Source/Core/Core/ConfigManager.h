@@ -110,6 +110,7 @@ struct SConfig : NonCopyable
   bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
+  bool bTimeStretching = true;
   int iLatency = 30;
 
   bool bRunCompareServer = false;

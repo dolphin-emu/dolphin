@@ -171,6 +171,7 @@ void OpenALStream::SoundLoop()
   Common::SetCurrentThreadName("Audio thread - openal");
 
   bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
+  bool use_timestretching = SConfig::GetInstance().bTimeStretching;
   bool float32_capable = false;
   bool fixed32_capable = false;
 
@@ -199,10 +200,10 @@ void OpenALStream::SoundLoop()
     samples_per_buffer = 240;
   }
 
-  realtime_buffer.reserve(samples_per_buffer * STEREO_CHANNELS);
+  realtime_buffer.resize(samples_per_buffer * STEREO_CHANNELS);
   // SoundTouch can stretch the audio up to 10 times, multiplying by 20 just to be sure.
-  sample_buffer.reserve(samples_per_buffer * STEREO_CHANNELS * 20);
-  buffers.reserve(num_buffers);
+  sample_buffer.resize(samples_per_buffer * STEREO_CHANNELS * 20);
+  buffers.resize(num_buffers);
   source = 0;
 
   if (alIsExtensionPresent("AL_EXT_float32"))
@@ -296,39 +297,64 @@ void OpenALStream::SoundLoop()
     }
 
     unsigned int rendered_samples = m_mixer->Mix(realtime_buffer.data(), samples_per_buffer, false);
+    if (use_timestretching)
+    {
+      // Convert the samples from short to float
+      for (u32 i = 0; i < rendered_samples * STEREO_CHANNELS; ++i)
+        dest[i] = static_cast<float>(realtime_buffer[i]) / INT16_MAX;
 
-    // Convert the samples from short to float
-    for (u32 i = 0; i < samples_per_buffer * STEREO_CHANNELS; ++i)
-      dest[i] = static_cast<float>(realtime_buffer[i]) / INT16_MAX;
+      soundTouch.putSamples(dest.data(), rendered_samples);
+    }
 
-    soundTouch.putSamples(dest.data(), rendered_samples);
-
-    double rate = static_cast<double>(m_mixer->GetCurrentSpeed());
+    float rate = m_mixer->GetCurrentSpeed();
     if (rate <= 0)
     {
       Core::RequestRefreshInfo();
-      rate = static_cast<double>(m_mixer->GetCurrentSpeed());
+      rate = m_mixer->GetCurrentSpeed();
     }
 
     // Place a lower limit of 10% speed.  When a game boots up, there will be
     // many silence samples.  These do not need to be timestretched.
     if (rate > 0.10)
     {
-      soundTouch.setTempo(rate);
-      if (rate > 10)
+      if (use_timestretching)
+      {
+        soundTouch.setTempo(static_cast<double>(rate));
+      }
+      else
+      {
+        alSourcef(source, AL_PITCH, rate);
+      }
+
+      if (rate > 10 && use_timestretching)
       {
         soundTouch.clear();
       }
     }
 
-    // We want SoundTouch to return already processed samples all at once
-    unsigned int n_samples = soundTouch.receiveSamples(sample_buffer.data(), soundTouch.numSamples());
+    unsigned int n_samples;
+    if (use_timestretching)
+    {
+      // We want SoundTouch to return already processed samples all at once
+      n_samples = soundTouch.receiveSamples(sample_buffer.data(), soundTouch.numSamples());
+    }
+    else
+    {
+      n_samples = rendered_samples;
+    }
 
-    if (n_samples < rendered_samples)
+    if (n_samples < samples_per_buffer)
       continue;
 
     if (surround_capable)
     {
+      if (!use_timestretching)
+      {
+        // DPL2 decoder accepts only floats
+        for (u32 i = 0; i < n_samples * STEREO_CHANNELS; ++i)
+          sample_buffer[i] = static_cast<float>(realtime_buffer[i]) / INT16_MAX;
+      }
+
       std::vector<float> dpl2(n_samples * SURROUND_CHANNELS);
       DPL2Decode(sample_buffer.data(), n_samples, dpl2.data());
 
@@ -385,7 +411,7 @@ void OpenALStream::SoundLoop()
     }
     else
     {
-      if (float32_capable)
+      if (float32_capable && use_timestretching)
       {
         alBufferData(buffers[next_buffer], AL_FORMAT_STEREO_FLOAT32, sample_buffer.data(),
                      n_samples * FRAME_STEREO_FLOAT, frequency);
@@ -396,7 +422,7 @@ void OpenALStream::SoundLoop()
           float32_capable = false;
         }
       }
-      else if (fixed32_capable)
+      else if (fixed32_capable && use_timestretching)
       {
         // Clamping is not necessary here, samples are always between (-1,1)
         std::vector<int> stereo_int32(n_samples * STEREO_CHANNELS);
@@ -409,12 +435,20 @@ void OpenALStream::SoundLoop()
       else
       {
         // Convert the samples from float to short
-        std::vector<short> stereo(n_samples * STEREO_CHANNELS);
-        for (u32 i = 0; i < n_samples * STEREO_CHANNELS; ++i)
-          stereo[i] = static_cast<short>(sample_buffer[i] * INT16_MAX);
+        if (use_timestretching)
+        {
+          std::vector<short> stereo(n_samples * STEREO_CHANNELS);
+          for (u32 i = 0; i < n_samples * STEREO_CHANNELS; ++i)
+            stereo[i] = static_cast<short>(sample_buffer[i] * INT16_MAX);
 
-        alBufferData(buffers[next_buffer], AL_FORMAT_STEREO16, stereo.data(),
-                     n_samples * FRAME_STEREO_SHORT, frequency);
+          alBufferData(buffers[next_buffer], AL_FORMAT_STEREO16, stereo.data(),
+                       n_samples * FRAME_STEREO_SHORT, frequency);
+        }
+        else
+        {
+          alBufferData(buffers[next_buffer], AL_FORMAT_STEREO16, realtime_buffer.data(),
+                       n_samples * FRAME_STEREO_SHORT, frequency);
+        }
       }
     }
 
