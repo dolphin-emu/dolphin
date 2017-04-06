@@ -866,7 +866,6 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
       const u8*& mip_src_data = from_tmem ? ((level % 2) ? ptr_odd : ptr_even) : src_data;
       size_t mip_size =
           TexDecoder_GetTextureSizeInBytes(expanded_mip_width, expanded_mip_height, texformat);
-      const u8* tlut = &texMem[tlutaddr];
 
       if (decode_on_gpu)
       {
