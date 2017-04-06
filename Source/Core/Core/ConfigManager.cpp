@@ -785,8 +785,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
       // TODO: have a callback mechanism for title changes?
       g_symbolDB.Clear();
       CBoot::LoadMapFromFilename();
-      HLE::Clear();
-      HLE::PatchFunctions();
+      HLE::Reload();
       PatchEngine::Reload();
       HiresTexture::Update();
     }

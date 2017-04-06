@@ -27,6 +27,7 @@ enum HookFlag
 void PatchFixedFunctions();
 void PatchFunctions();
 void Clear();
+void Reload();
 
 void Patch(u32 pc, const char* func_name);
 u32 UnPatch(const std::string& patchName);

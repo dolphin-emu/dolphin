@@ -160,6 +160,13 @@ void Clear()
   s_original_instructions.clear();
 }
 
+void Reload()
+{
+  Clear();
+  PatchFixedFunctions();
+  PatchFunctions();
+}
+
 void Execute(u32 _CurrentPC, u32 _Instruction)
 {
   unsigned int FunctionIndex = _Instruction & 0xFFFFF;
