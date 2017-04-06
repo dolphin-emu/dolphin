@@ -787,8 +787,7 @@ void SConfig::SetRunningGameMetadata(const std::string& game_id, u64 title_id, u
       CBoot::LoadMapFromFilename();
       HLE::Clear();
       HLE::PatchFunctions();
-      PatchEngine::Shutdown();
-      PatchEngine::LoadPatches();
+      PatchEngine::Reload();
       HiresTexture::Update();
     }
   }
