@@ -39,7 +39,7 @@
 #undef BOOL
 #endif
 
-#define SFX_MAX_SOURCE 1
+#define SFX_MAX_SOURCE 3
 #define OAL_MAX_BUFFERS 32
 #define OAL_MAX_SAMPLES 256
 #define STEREO_CHANNELS 2
@@ -74,7 +74,7 @@ class OpenALStream final : public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
-  OpenALStream() : source(0) {}
+  OpenALStream() : sources{{ 0, 0, 0 }} {}
   bool Start() override;
   void SoundLoop() override;
   void SetVolume(int volume) override;
@@ -89,10 +89,11 @@ private:
 
   Common::Event soundSyncEvent;
 
-  std::vector<short> realtime_buffer;
-  std::vector<soundtouch::SAMPLETYPE> sample_buffer;
-  std::vector<ALuint> buffers;
-  ALuint source;
+  // one source for the DMA, one for streaming and another for the WiiMote
+  std::array<std::vector<short>, SFX_MAX_SOURCE> realtime_buffers;
+  std::array<std::vector<soundtouch::SAMPLETYPE>, SFX_MAX_SOURCE> sample_buffers;
+  std::array<std::vector<ALuint>, SFX_MAX_SOURCE> buffers;
+  std::array<ALuint, SFX_MAX_SOURCE> sources;
   ALfloat volume;
 
   u8 num_buffers;
