@@ -82,8 +82,8 @@ std::string VideoBackend::GetDisplayName() const
 static std::vector<std::string> GetShaders(const std::string& sub_dir = "")
 {
   std::vector<std::string> paths =
-      DoFileSearch({".glsl"}, {File::GetUserPath(D_SHADERS_IDX) + sub_dir,
-                               File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
+      Common::DoFileSearch({".glsl"}, {File::GetUserPath(D_SHADERS_IDX) + sub_dir,
+                                       File::GetSysDirectory() + SHADERS_DIR DIR_SEP + sub_dir});
   std::vector<std::string> result;
   for (std::string path : paths)
   {

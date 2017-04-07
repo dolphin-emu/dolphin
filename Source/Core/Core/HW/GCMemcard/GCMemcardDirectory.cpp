@@ -145,7 +145,7 @@ GCMemcardDirectory::GCMemcardDirectory(const std::string& directory, int slot, u
     hdr_file.ReadBytes(&m_hdr, BLOCK_SIZE);
   }
 
-  std::vector<std::string> filenames = DoFileSearch({".gci"}, {m_save_directory});
+  std::vector<std::string> filenames = Common::DoFileSearch({".gci"}, {m_save_directory});
 
   if (filenames.size() > 112)
   {

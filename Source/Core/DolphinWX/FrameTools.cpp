@@ -1593,7 +1593,7 @@ void CFrame::GameListChanged(wxCommandEvent& event)
     break;
   case IDM_PURGE_GAME_LIST_CACHE:
     std::vector<std::string> rFilenames =
-        DoFileSearch({".cache"}, {File::GetUserPath(D_CACHE_IDX)});
+        Common::DoFileSearch({".cache"}, {File::GetUserPath(D_CACHE_IDX)});
 
     for (const std::string& rFilename : rFilenames)
     {
