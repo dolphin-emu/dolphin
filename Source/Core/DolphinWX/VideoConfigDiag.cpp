@@ -2,6 +2,8 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
+#include "DolphinWX/VideoConfigDiag.h"
+
 #include <algorithm>
 #include <array>
 #include <map>
@@ -24,9 +26,11 @@
 #include "Common/FileUtil.h"
 #include "Common/SysConf.h"
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
+#include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/Frame.h"
 #include "DolphinWX/Main.h"
-#include "DolphinWX/VideoConfigDiag.h"
+#include "DolphinWX/PostProcessingConfigDiag.h"
 #include "DolphinWX/WxUtils.h"
 #include "VideoCommon/PostProcessing.h"
 #include "VideoCommon/VideoBackendBase.h"
@@ -74,12 +78,6 @@ SettingChoice::SettingChoice(wxWindow* parent, int& setting, const wxString& too
 void SettingChoice::UpdateValue(wxCommandEvent& ev)
 {
   m_setting = ev.GetInt();
-  ev.Skip();
-}
-
-void VideoConfigDiag::Event_Close(wxCommandEvent& ev)
-{
-  g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
   ev.Skip();
 }
 
@@ -750,7 +748,7 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
       DolphinSlider* const stc_slider =
           new DolphinSlider(page_hacks, wxID_ANY, std::max(slider_pos, 0), 0, 2, wxDefaultPosition,
                             wxDefaultSize, wxSL_HORIZONTAL | wxSL_BOTTOM);
-      stc_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_Stc, this);
+      stc_slider->Bind(wxEVT_SLIDER, &VideoConfigDiag::Event_SafeTextureCache, this);
       RegisterControl(stc_slider, wxGetTranslation(stc_desc));
 
       wxBoxSizer* const slide_szr = new wxBoxSizer(wxHORIZONTAL);
@@ -974,6 +972,45 @@ VideoConfigDiag::VideoConfigDiag(wxWindow* parent, const std::string& title)
   UpdateWindowUI();
 }
 
+void VideoConfigDiag::Event_Backend(wxCommandEvent& ev)
+{
+  auto& new_backend = g_available_video_backends[ev.GetInt()];
+
+  if (g_video_backend != new_backend.get())
+  {
+    bool do_switch = !Core::IsRunning();
+    if (new_backend->GetName() == "Software Renderer")
+    {
+      do_switch =
+          (wxYES ==
+           wxMessageBox(_("Software rendering is an order of magnitude slower than using the "
+                          "other backends.\nIt's only useful for debugging purposes.\nDo you "
+                          "really want to enable software rendering? If unsure, select 'No'."),
+                        _("Warning"), wxYES_NO | wxNO_DEFAULT | wxICON_EXCLAMATION, this));
+    }
+
+    if (do_switch)
+    {
+      // TODO: Only reopen the dialog if the software backend is
+      // selected (make sure to reinitialize backend info)
+      // reopen the dialog
+      Close();
+
+      g_video_backend = new_backend.get();
+      SConfig::GetInstance().m_strVideoBackend = g_video_backend->GetName();
+
+      g_video_backend->ShowConfig(GetParent());
+    }
+    else
+    {
+      // Select current backend again
+      choice_backend->SetStringSelection(StrToWxStr(g_video_backend->GetName()));
+    }
+  }
+
+  ev.Skip();
+}
+
 void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent& ev)
 {
   // "Auto" has been translated, it needs to be the English string "Auto" to work
@@ -991,6 +1028,134 @@ void VideoConfigDiag::Event_DisplayResolution(wxCommandEvent& ev)
 #if defined(HAVE_XRANDR) && HAVE_XRANDR
   main_frame->m_XRRConfig->Update();
 #endif
+  ev.Skip();
+}
+
+void VideoConfigDiag::Event_ProgressiveScan(wxCommandEvent& ev)
+{
+  SConfig::GetInstance().bProgressive = ev.IsChecked();
+  ev.Skip();
+}
+
+void VideoConfigDiag::Event_SafeTextureCache(wxCommandEvent& ev)
+{
+  int samples[] = {0, 512, 128};
+  vconfig.iSafeTextureCache_ColorSamples = samples[ev.GetInt()];
+
+  ev.Skip();
+}
+
+void VideoConfigDiag::Event_PPShader(wxCommandEvent& ev)
+{
+  const int sel = ev.GetInt();
+  if (sel)
+    vconfig.sPostProcessingShader = WxStrToStr(ev.GetString());
+  else
+    vconfig.sPostProcessingShader.clear();
+
+  // Should we enable the configuration button?
+  PostProcessingShaderConfiguration postprocessing_shader;
+  postprocessing_shader.LoadShader(vconfig.sPostProcessingShader);
+  button_config_pp->Enable(postprocessing_shader.HasOptions());
+
+  ev.Skip();
+}
+
+void VideoConfigDiag::Event_ConfigurePPShader(wxCommandEvent& ev)
+{
+  PostProcessingConfigDiag dialog(this, vconfig.sPostProcessingShader);
+  dialog.ShowModal();
+
+  ev.Skip();
+}
+
+void VideoConfigDiag::Event_StereoDepth(wxCommandEvent& ev)
+{
+  vconfig.iStereoDepth = ev.GetInt();
+
+  ev.Skip();
+}
+
+void VideoConfigDiag::Event_StereoConvergence(wxCommandEvent& ev)
+{
+  // Snap the slider
+  int value = ev.GetInt();
+  if (90 < value && value < 110)
+    conv_slider->SetValue(100);
+
+  vconfig.iStereoConvergencePercentage = conv_slider->GetValue();
+
+  ev.Skip();
+}
+
+void VideoConfigDiag::Event_StereoMode(wxCommandEvent& ev)
+{
+  if (vconfig.backend_info.bSupportsPostProcessing)
+  {
+    // Anaglyph overrides post-processing shaders
+    choice_ppshader->Clear();
+  }
+
+  ev.Skip();
+}
+
+void VideoConfigDiag::Event_Close(wxCommandEvent& ev)
+{
+  g_Config.Save(File::GetUserPath(D_CONFIG_IDX) + "GFX.ini");
+  ev.Skip();
+}
+
+void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
+{
+  // Anti-aliasing
+  choice_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
+  text_aamode->Enable(vconfig.backend_info.AAModes.size() > 1);
+
+  // XFB
+  virtual_xfb->Enable(vconfig.bUseXFB);
+  real_xfb->Enable(vconfig.bUseXFB);
+
+  // custom textures
+  cache_hires_textures->Enable(vconfig.bHiresTextures);
+
+  // Repopulating the post-processing shaders can't be done from an event
+  if (choice_ppshader && choice_ppshader->IsEmpty())
+    PopulatePostProcessingShaders();
+
+  // Things which shouldn't be changed during emulation
+  if (Core::IsRunning())
+  {
+    choice_backend->Disable();
+    label_backend->Disable();
+
+    // D3D only
+    if (vconfig.backend_info.Adapters.size())
+    {
+      choice_adapter->Disable();
+      label_adapter->Disable();
+    }
+
+#ifndef __APPLE__
+    // This isn't supported on OS X.
+
+    choice_display_resolution->Disable();
+    label_display_resolution->Disable();
+#endif
+
+    progressive_scan_checkbox->Disable();
+    render_to_main_checkbox->Disable();
+  }
+
+  // Don't enable 'vertex rounding' at native
+  if (vconfig.iEFBScale == SCALE_1X)
+  {
+    vertex_rounding_checkbox->Enable(false);
+  }
+  else
+  {
+    vertex_rounding_checkbox->Enable(true);
+  }
+
   ev.Skip();
 }
 
