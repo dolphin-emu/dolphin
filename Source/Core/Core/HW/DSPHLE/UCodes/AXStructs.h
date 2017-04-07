@@ -252,7 +252,7 @@ struct AXPB
   PBADPCMInfo adpcm;
   PBSampleRateConverter src;
   PBADPCMLoopInfo adpcm_loop_info;
-  PBLowPassFilter lpf;
+  PBLowPassFilter lpf;  // Skipped when writing to/reading from MRAM/ARAM for certain AX UCodes
   u16 loop_counter;
 
   u16 padding[24];
