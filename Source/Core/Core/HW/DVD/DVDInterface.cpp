@@ -734,6 +734,8 @@ void ExecuteCommand(u32 command_0, u32 command_1, u32 command_2, u32 output_addr
     INFO_LOG(DVDINTERFACE, "DVDLowReadDiskID");
     command_handled_by_thread = ExecuteReadCommand(0, output_address, 0x20, output_length, false,
                                                    reply_type, &interrupt_type);
+    // It doesn't fail but rather reads 0x00 instead?
+    interrupt_type = INT_TCINT;
     break;
 
   // Only used from WII_IPC. This is the only read command that decrypts data
