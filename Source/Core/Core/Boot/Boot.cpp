@@ -410,10 +410,6 @@ bool CBoot::BootUp()
       NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
       DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
     }
-    else
-    {
-      DVDInterface::SetVolumeDirectory(_StartupPara.m_strFilename, _StartupPara.bWii);
-    }
 
     // Poor man's bootup
     if (_StartupPara.bWii)
