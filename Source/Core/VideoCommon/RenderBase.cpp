@@ -122,7 +122,7 @@ void Renderer::RenderToXFB(u32 xfbAddr, const EFBRectangle& sourceRc, u32 fbStri
   }
 }
 
-int Renderer::EFBToScaledX(int x)
+int Renderer::EFBToScaledX(int x) const
 {
   switch (g_ActiveConfig.iEFBScale)
   {
@@ -134,7 +134,7 @@ int Renderer::EFBToScaledX(int x)
   };
 }
 
-int Renderer::EFBToScaledY(int y)
+int Renderer::EFBToScaledY(int y) const
 {
   switch (g_ActiveConfig.iEFBScale)
   {
@@ -146,7 +146,17 @@ int Renderer::EFBToScaledY(int y)
   };
 }
 
-void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY)
+float Renderer::EFBToScaledXf(float x) const
+{
+  return x * ((float)GetTargetWidth() / (float)EFB_WIDTH);
+}
+
+float Renderer::EFBToScaledYf(float y) const
+{
+  return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT);
+}
+
+void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY) const
 {
   if (g_ActiveConfig.iEFBScale == SCALE_AUTO || g_ActiveConfig.iEFBScale == SCALE_AUTO_INTEGRAL)
   {
@@ -240,7 +250,7 @@ bool Renderer::CalculateTargetSize()
 }
 
 void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc,
-                                      TargetRectangle& rightRc)
+                                      TargetRectangle& rightRc) const
 {
   // Resize target to half its original size
   TargetRectangle drawRc = rc;
@@ -433,7 +443,7 @@ void Renderer::DrawDebugText()
   g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
 
-float Renderer::CalculateDrawAspectRatio(int target_width, int target_height)
+float Renderer::CalculateDrawAspectRatio(int target_width, int target_height) const
 {
   // The dimensions are the sizes that are used to create the EFB/backbuffer textures, so
   // they should always be greater than zero.
@@ -459,7 +469,8 @@ float Renderer::CalculateDrawAspectRatio(int target_width, int target_height)
   }
 }
 
-std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width, const int height)
+std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width,
+                                                             const int height) const
 {
   // Scale either the width or height depending the content aspect ratio.
   // This way we preserve as much resolution as possible when scaling.
@@ -474,7 +485,7 @@ std::tuple<float, float> Renderer::ScaleToDisplayAspectRatio(const int width, co
   return std::make_tuple(static_cast<float>(width) / ratio, static_cast<float>(height));
 }
 
-TargetRectangle Renderer::CalculateFrameDumpDrawRectangle()
+TargetRectangle Renderer::CalculateFrameDumpDrawRectangle() const
 {
   // No point including any borders in the frame dump image, since they'd have to be cropped anyway.
   TargetRectangle rc;
