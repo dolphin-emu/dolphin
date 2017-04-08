@@ -11,7 +11,7 @@ macro(add_dolphin_test target srcs)
   # to be linked as an object file. Otherwise CMake inserts the library after
   # core, but before other core dependencies like videocommon which also use
   # Host_ functions.
-  set(srcs2 ${srcs} ${CMAKE_SOURCE_DIR}/Source/UnitTests/TestUtils/StubHost.cpp)
+  set(srcs2 ${srcs} ${CMAKE_SOURCE_DIR}/Source/UnitTests/TestUtils/StubHost.cpp ${ARGN})
   add_executable(Test_${target} EXCLUDE_FROM_ALL ${srcs2})
   set_target_properties(Test_${target} PROPERTIES
     OUTPUT_NAME Tests/${target}
