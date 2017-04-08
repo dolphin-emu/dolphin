@@ -188,6 +188,7 @@ private:
   IPCCommandResult GetConsumption(const IOCtlVRequest& request);
   IPCCommandResult Launch(const IOCtlVRequest& request);
   IPCCommandResult LaunchBC(const IOCtlVRequest& request);
+  IPCCommandResult DIVerify(const IOCtlVRequest& request);
 
   // Title contents
   IPCCommandResult OpenTitleContent(const IOCtlVRequest& request);
