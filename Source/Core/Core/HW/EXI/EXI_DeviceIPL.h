@@ -10,6 +10,8 @@
 
 class PointerWrap;
 
+namespace ExpansionInterface
+{
 class CEXIIPL : public IEXIDevice
 {
 public:
@@ -76,3 +78,4 @@ private:
   void LoadFontFile(const std::string& filename, u32 offset);
   std::string FindIPLDump(const std::string& path_prefix);
 };
+}  // namespace ExpansionInterface

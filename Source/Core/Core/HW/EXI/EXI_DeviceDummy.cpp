@@ -7,6 +7,8 @@
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
 
+namespace ExpansionInterface
+{
 CEXIDummy::CEXIDummy(const std::string& name) : m_name{name}
 {
 }
@@ -42,3 +44,4 @@ bool CEXIDummy::IsPresent() const
 void CEXIDummy::TransferByte(u8& byte)
 {
 }
+}  // namespace ExpansionInterface

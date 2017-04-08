@@ -165,6 +165,8 @@ bool OpenTAP(HANDLE& adapter, const std::basic_string<TCHAR>& device_guid)
 
 }  // namespace Win32TAPHelper
 
+namespace ExpansionInterface
+{
 bool CEXIETHERNET::Activate()
 {
   if (IsActivated())
@@ -362,3 +364,4 @@ void CEXIETHERNET::RecvStop()
 {
   readEnabled.Clear();
 }
+}  // namespace ExpansionInterface

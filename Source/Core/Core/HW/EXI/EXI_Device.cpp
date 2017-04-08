@@ -17,6 +17,8 @@
 #include "Core/HW/EXI/EXI_DeviceMic.h"
 #include "Core/HW/Memmap.h"
 
+namespace ExpansionInterface
+{
 void IEXIDevice::ImmWrite(u32 data, u32 size)
 {
   while (size--)
@@ -153,3 +155,4 @@ std::unique_ptr<IEXIDevice> EXIDevice_Create(const TEXIDevices device_type, cons
 
   return result;
 }
+}  // namespace ExpansionInterface

@@ -182,7 +182,8 @@ std::string GetInputDisplay()
 // NOTE: GPU Thread
 std::string GetRTCDisplay()
 {
-  time_t current_time = CEXIIPL::GetEmulatedTime(CEXIIPL::UNIX_EPOCH);
+  time_t current_time =
+      ExpansionInterface::CEXIIPL::GetEmulatedTime(ExpansionInterface::CEXIIPL::UNIX_EPOCH);
   tm* gm_time = gmtime(&current_time);
   char buffer[256];
   strftime(buffer, sizeof(buffer), "Date/Time: %c\n", gm_time);
@@ -559,7 +560,7 @@ bool BeginRecordingInput(int controllers)
   if (NetPlay::IsNetPlayRunning())
   {
     s_bNetPlay = true;
-    s_recordingStartTime = CEXIIPL::NetPlay_GetEmulatedTime();
+    s_recordingStartTime = ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime();
   }
   else if (SConfig::GetInstance().bEnableCustomRTC)
   {
@@ -1498,12 +1499,14 @@ void GetSettings()
     s_bClearSave = !File::Exists(SConfig::GetInstance().m_strMemoryCardA);
     s_language = SConfig::GetInstance().SelectedLanguage;
   }
-  s_memcards |= (SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARD ||
-                 SConfig::GetInstance().m_EXIDevice[0] == EXIDEVICE_MEMORYCARDFOLDER)
-                << 0;
-  s_memcards |= (SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARD ||
-                 SConfig::GetInstance().m_EXIDevice[1] == EXIDEVICE_MEMORYCARDFOLDER)
-                << 1;
+  s_memcards |=
+      (SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+       SConfig::GetInstance().m_EXIDevice[0] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+      << 0;
+  s_memcards |=
+      (SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARD ||
+       SConfig::GetInstance().m_EXIDevice[1] == ExpansionInterface::EXIDEVICE_MEMORYCARDFOLDER)
+      << 1;
 
   std::array<u8, 20> revision = ConvertGitRevisionToBytes(scm_rev_git_str);
   std::copy(std::begin(revision), std::end(revision), std::begin(s_revision));

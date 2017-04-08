@@ -418,9 +418,9 @@ unsigned int NetPlayClient::OnData(sf::Packet& packet)
 
       int tmp;
       packet >> tmp;
-      g_NetPlaySettings.m_EXIDevice[0] = (TEXIDevices)tmp;
+      g_NetPlaySettings.m_EXIDevice[0] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
       packet >> tmp;
-      g_NetPlaySettings.m_EXIDevice[1] = (TEXIDevices)tmp;
+      g_NetPlaySettings.m_EXIDevice[1] = static_cast<ExpansionInterface::TEXIDevices>(tmp);
 
       u32 time_low, time_high;
       packet >> time_low;
@@ -1279,7 +1279,7 @@ bool WiimoteEmu::Wiimote::NetPlay_GetWiimoteData(int wiimote, u8* data, u8 size,
 // so all players' games get the same time
 //
 // also called from ---GUI--- thread when starting input recording
-u64 CEXIIPL::NetPlay_GetEmulatedTime()
+u64 ExpansionInterface::CEXIIPL::NetPlay_GetEmulatedTime()
 {
   std::lock_guard<std::mutex> lk(crit_netplay_client);
 

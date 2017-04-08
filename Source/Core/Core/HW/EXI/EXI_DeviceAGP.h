@@ -11,6 +11,8 @@
 
 class PointerWrap;
 
+namespace ExpansionInterface
+{
 class CEXIAgp : public IEXIDevice
 {
 public:
@@ -63,3 +65,4 @@ private:
   u32 m_current_cmd = 0;
   u32 m_return_pos = 0;
 };
+}  // namespace ExpansionInterface

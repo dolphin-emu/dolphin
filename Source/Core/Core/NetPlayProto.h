@@ -24,7 +24,7 @@ struct NetSettings
   bool m_CopyWiiSave;
   bool m_OCEnable;
   float m_OCFactor;
-  TEXIDevices m_EXIDevice[2];
+  ExpansionInterface::TEXIDevices m_EXIDevice[2];
 };
 
 extern NetSettings g_NetPlaySettings;

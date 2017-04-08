@@ -15,6 +15,8 @@
 #include "Common/Flag.h"
 #include "Core/HW/EXI/EXI_Device.h"
 
+namespace ExpansionInterface
+{
 class GeckoSockServer
 {
 public:
@@ -66,3 +68,4 @@ private:
 
   static const u32 ident = 0x04700000;
 };
+}  // namespace ExpansionInterface

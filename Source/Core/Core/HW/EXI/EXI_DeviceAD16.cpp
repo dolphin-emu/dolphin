@@ -8,6 +8,8 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 
+namespace ExpansionInterface
+{
 CEXIAD16::CEXIAD16() = default;
 
 void CEXIAD16::SetCS(int cs)
@@ -106,3 +108,4 @@ void CEXIAD16::DoState(PointerWrap& p)
   p.Do(m_command);
   p.Do(m_ad16_register);
 }
+}  // namespace ExpansionInterface
