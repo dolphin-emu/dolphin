@@ -409,12 +409,29 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     return Sign(request);
   case IOCTL_ES_GETBOOT2VERSION:
     return GetBoot2Version(request);
-  default:
-    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_ES);
-    break;
-  }
 
-  return GetDefaultReply(IPC_SUCCESS);
+  case IOCTL_ES_VERIFYSIGN:
+  case IOCTL_ES_DELETESHAREDCONTENT:
+  case IOCTL_ES_UNKNOWN_39:
+  case IOCTL_ES_UNKNOWN_3A:
+  case IOCTL_ES_UNKNOWN_3B:
+  case IOCTL_ES_UNKNOWN_3C:
+  case IOCTL_ES_UNKNOWN_3D:
+  case IOCTL_ES_UNKNOWN_3E:
+  case IOCTL_ES_UNKNOWN_3F:
+  case IOCTL_ES_UNKNOWN_40:
+  case IOCTL_ES_UNKNOWN_41:
+  case IOCTL_ES_UNKNOWN_42:
+  case IOCTL_ES_UNKNOWN_43:
+  case IOCTL_ES_UNKNOWN_44:
+    PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
+               request.request, request.in_vectors.size(), request.io_vectors.size());
+    request.DumpUnknown(GetDeviceName(), LogTypes::IOS_ES, LogTypes::LERROR);
+    return GetDefaultReply(IPC_EINVAL);
+
+  default:
+    return GetDefaultReply(IPC_EINVAL);
+  }
 }
 
 IPCCommandResult ES::GetConsumption(const IOCtlVRequest& request)
