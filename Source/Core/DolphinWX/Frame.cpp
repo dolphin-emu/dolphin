@@ -1040,12 +1040,20 @@ static int GetMenuIDFromHotkey(unsigned int key)
 
 void CFrame::OnKeyDown(wxKeyEvent& event)
 {
-// On OS X, we claim all keyboard events while
-// emulation is running to avoid wxWidgets sounding
-// the system beep for unhandled key events when
-// receiving pad/Wiimote keypresses which take an
-// entirely different path through the HID subsystem.
-#ifndef __APPLE__
+#ifdef __APPLE__
+  // On OS X, we claim all keyboard events while
+  // emulation is running to avoid wxWidgets sounding
+  // the system beep for unhandled key events when
+  // receiving pad/Wiimote keypresses which take an
+  // entirely different path through the HID subsystem.
+  if (!m_bRendererHasFocus)
+  {
+    // We do however want to pass events on when the
+    // render window is out of focus: this allows use
+    // of the keyboard in the rest of the UI.
+    event.Skip();
+  }
+#else
   // On other platforms, we leave the key event alone
   // so it can be passed on to the windowing system.
   event.Skip();
