@@ -215,7 +215,7 @@ void CachedInterpreter::Jit(u32 address)
         if (HLE::IsEnabled(flags))
         {
           m_code.emplace_back(WritePC, ops[i].address);
-          m_code.emplace_back(Interpreter::HLEFunction, ops[i].inst);
+          m_code.emplace_back(Interpreter::HLEFunction, function);
           if (type == HLE::HLE_HOOK_REPLACE)
           {
             m_code.emplace_back(EndBlock, js.downcountAmount);
