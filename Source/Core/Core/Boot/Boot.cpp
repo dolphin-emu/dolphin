@@ -340,9 +340,7 @@ bool CBoot::BootUp()
     {
       BS2Success = EmulatedBS2(dolWii);
     }
-    else if ((!DVDInterface::IsDiscInside() ||
-              DVDInterface::GetVolume().GetVolumeType() != DiscIO::Platform::WII_DISC) &&
-             !_StartupPara.m_strDefaultISO.empty())
+    else if (!_StartupPara.m_strDefaultISO.empty())
     {
       DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
       BS2Success = EmulatedBS2(dolWii);
