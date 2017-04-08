@@ -86,7 +86,6 @@ public:
   // These have to be public
   CCodeWindow* g_pCodeWindow = nullptr;
   NetPlaySetupFrame* g_NetPlaySetupDiag = nullptr;
-  wxCheatsWindow* g_CheatsWindow = nullptr;
 
   void DoStop();
   void UpdateGUI();
@@ -139,6 +138,7 @@ private:
   LogConfigWindow* m_LogConfigWindow = nullptr;
   FifoPlayerDlg* m_FifoPlayerDlg = nullptr;
   std::array<TASInputDlg*, 8> m_tas_input_dialogs{};
+  wxCheatsWindow* m_cheats_window = nullptr;
   bool UseDebugger = false;
   bool m_bBatchMode = false;
   bool m_bEdit = false;

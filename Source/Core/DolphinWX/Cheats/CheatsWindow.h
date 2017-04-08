@@ -67,9 +67,8 @@ private:
   // Cheat Search
   void OnNewARCodeCreated(wxCommandEvent& ev);
 
-  // Close Button
-  void OnEvent_ButtonClose_Press(wxCommandEvent& event);
-  void OnEvent_Close(wxCloseEvent& ev);
+  // Dialog close event
+  void OnClose(wxCloseEvent&);
 
   // Changes to the INI (affects cheat listings)
   void OnLocalGameIniModified(wxCommandEvent& event);
