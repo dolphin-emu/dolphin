@@ -683,8 +683,11 @@ bool Reload(const u64 ios_title_id)
   }
 
   if (!SetupMemory(ios_title_id, MemorySetupType::IOSReload))
+  {
+    // Write back the original version if IOS Reload failed
+    Memory::Write_U32((GetVersion() & 0xFFFF) << 16, ADDR_IOS_VERSION);
     return false;
-
+  }
   s_active_title_id = ios_title_id;
   Reset();
 
