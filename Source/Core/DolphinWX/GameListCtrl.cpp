@@ -663,8 +663,9 @@ void CGameListCtrl::ScanForISOs()
   m_ISOFiles.clear();
 
   const auto custom_titles = LoadCustomTitles();
-  auto rFilenames = DoFileSearch(GetFileSearchExtensions(), SConfig::GetInstance().m_ISOFolder,
-                                 SConfig::GetInstance().m_RecursiveISOFolder);
+  auto rFilenames =
+      Common::DoFileSearch(GetFileSearchExtensions(), SConfig::GetInstance().m_ISOFolder,
+                           SConfig::GetInstance().m_RecursiveISOFolder);
 
   if (rFilenames.size() > 0)
   {
