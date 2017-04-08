@@ -334,14 +334,16 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting DOL in wrong console mode!");
     }
 
-    if (!_StartupPara.m_strDefaultISO.empty())
-      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
-
     if (!_StartupPara.m_strDVDRoot.empty())
     {
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
       DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii,
                                        _StartupPara.m_strApploader, _StartupPara.m_strFilename);
+    }
+    else if (!_StartupPara.m_strDefaultISO.empty())
+    {
+      NOTICE_LOG(BOOT, "Loading default ISO %s", _StartupPara.m_strDefaultISO.c_str());
+      DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
     }
 
     if (!EmulatedBS2(dolWii))
