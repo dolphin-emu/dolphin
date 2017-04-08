@@ -285,14 +285,13 @@ static wxString true_color_desc =
                 "quality by reducing color banding.\nIt has no impact on performance and causes "
                 "few graphical issues.\n\n\nIf unsure, leave this checked.");
 static wxString vertex_rounding_desc =
-    // i18n: IR stands for internal resolution
-    wxTRANSLATE("Round 2D vertices to whole pixels.  Fixes some "
-                "games at higher internal resolutions.  This setting is disabled and turned off "
-                "at 1x IR.\n\nIf unsure, leave this unchecked.");
+    wxTRANSLATE("Rounds 2D vertices to whole pixels. Fixes graphical problems in some games at "
+                "higher internal resolutions. This setting has no effect when native internal "
+                "resolution is used.\n\nIf unsure, leave this unchecked.");
 static wxString gpu_texture_decoding_desc =
     wxTRANSLATE("Enables texture decoding using the GPU instead of the CPU. This may result in "
-                "performance gains in some scenarios, or systems where the CPU is the bottleneck."
-                "\n\nIf unsure, leave this unchecked.");
+                "performance gains in some scenarios, or on systems where the CPU is the "
+                "bottleneck.\n\nIf unsure, leave this unchecked.");
 
 #if !defined(__APPLE__)
 // Search for available resolutions - TODO: Move to Common?
