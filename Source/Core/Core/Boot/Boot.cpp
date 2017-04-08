@@ -334,13 +334,8 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting DOL in wrong console mode!");
     }
 
-    if (dolWii)
-    {
-    }
-    else if (!_StartupPara.m_strDefaultISO.empty())
-    {
+    if (!_StartupPara.m_strDefaultISO.empty())
       DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
-    }
 
     if (!_StartupPara.m_strDVDRoot.empty())
     {
