@@ -180,7 +180,7 @@ void Preset(bool _bNTSC)
 
   // Say component cable is plugged
   m_DTVStatus.component_plugged = SConfig::GetInstance().bProgressive;
-  m_DTVStatus.ntsc_j = SConfig::GetInstance().bForceNTSCJ || region == DiscIO::Region::NTSC_J;
+  m_DTVStatus.ntsc_j = SConfig::GetInstance().bJapaneseVIBit;
 
   m_FBWidth.Hex = 0;
   m_BorderHBlank.Hex = 0;

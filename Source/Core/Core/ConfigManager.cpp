@@ -185,7 +185,6 @@ void SConfig::SaveDisplaySettings(IniFile& ini)
   display->Set("ProgressiveScan", bProgressive);
   display->Set("PAL60", bPAL60);
   display->Set("DisableScreenSaver", bDisableScreenSaver);
-  display->Set("ForceNTSCJ", bForceNTSCJ);
 }
 
 void SConfig::SaveGameListSettings(IniFile& ini)
@@ -247,6 +246,7 @@ void SConfig::SaveCoreSettings(IniFile& ini)
   core->Set("EnableCheats", bEnableCheats);
   core->Set("SelectedLanguage", SelectedLanguage);
   core->Set("OverrideGCLang", bOverrideGCLanguage);
+  core->Set("JapaneseVIBit", bJapaneseVIBit);
   core->Set("DPL2Decoder", bDPL2Decoder);
   core->Set("Latency", iLatency);
   core->Set("MemcardAPath", m_strMemoryCardA);
@@ -501,7 +501,6 @@ void SConfig::LoadDisplaySettings(IniFile& ini)
   display->Get("ProgressiveScan", &bProgressive, false);
   display->Get("PAL60", &bPAL60, true);
   display->Get("DisableScreenSaver", &bDisableScreenSaver, true);
-  display->Get("ForceNTSCJ", &bForceNTSCJ, false);
 }
 
 void SConfig::LoadGameListSettings(IniFile& ini)
@@ -565,6 +564,7 @@ void SConfig::LoadCoreSettings(IniFile& ini)
   core->Get("EnableCheats", &bEnableCheats, false);
   core->Get("SelectedLanguage", &SelectedLanguage, 0);
   core->Get("OverrideGCLang", &bOverrideGCLanguage, false);
+  core->Get("JapaneseVIBit", &bJapaneseVIBit, false);
   core->Get("DPL2Decoder", &bDPL2Decoder, false);
   core->Get("Latency", &iLatency, 2);
   core->Get("MemcardAPath", &m_strMemoryCardA);
@@ -1179,4 +1179,43 @@ std::vector<std::string> SConfig::GetGameIniFilenames(const std::string& id, u16
   filenames.push_back(id + StringFromFormat("r%d", revision) + ".ini");
 
   return filenames;
+}
+
+bool SConfig::GCLanguageAndRegionCompatible() const
+{
+  switch (m_region)
+  {
+  case DiscIO::Region::NTSC_J:
+    return (SelectedLanguage == 0) && bJapaneseVIBit;  // Japanese
+
+  case DiscIO::Region::NTSC_U:
+    return (SelectedLanguage == 0) && !bJapaneseVIBit;  // English
+
+  case DiscIO::Region::PAL:
+    return ((SelectedLanguage == 0) && !bJapaneseVIBit) ||  // English
+           SelectedLanguage == 1 ||                         // German
+           SelectedLanguage == 2 ||                         // French
+           SelectedLanguage == 3 ||                         // Spanish
+           SelectedLanguage == 4 ||                         // Italian
+           SelectedLanguage == 5;                           // Dutch
+
+  default:
+    return false;
+  }
+}
+
+void SConfig::SetDefaultGCLanguageForRegion()
+{
+  switch (m_region)
+  {
+  case DiscIO::Region::NTSC_J:
+    SelectedLanguage = 0;
+    bJapaneseVIBit = true;
+    break;
+
+  default:
+    SelectedLanguage = 0;
+    bJapaneseVIBit = false;
+    break;
+  }
 }
