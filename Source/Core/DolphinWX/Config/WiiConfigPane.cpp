@@ -111,6 +111,7 @@ void WiiConfigPane::InitializeGUI()
                               wxGBPosition(0, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   bt_settings_grid_sizer->Add(m_bt_sensor_bar_pos, wxGBPosition(0, 1), wxDefaultSpan,
                               wxALIGN_CENTER_VERTICAL);
+  // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
   bt_settings_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("IR Sensitivity:")),
                               wxGBPosition(1, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   bt_settings_grid_sizer->Add(bt_sensor_bar_pos_sizer, wxGBPosition(1, 1), wxDefaultSpan,

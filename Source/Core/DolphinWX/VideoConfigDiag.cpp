@@ -285,6 +285,7 @@ static wxString true_color_desc =
                 "quality by reducing color banding.\nIt has no impact on performance and causes "
                 "few graphical issues.\n\n\nIf unsure, leave this checked.");
 static wxString vertex_rounding_desc =
+    // i18n: IR stands for internal resolution
     wxTRANSLATE("Round 2D vertices to whole pixels.  Fixes some "
                 "games at higher internal resolutions.  This setting is disabled and turned off "
                 "at 1x IR.\n\nIf unsure, leave this unchecked.");

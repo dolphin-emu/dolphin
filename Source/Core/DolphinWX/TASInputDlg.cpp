@@ -131,6 +131,7 @@ void TASInputDlg::CreateWiiLayout(int num)
   m_controls[6] = &m_z_cont;
 
   m_main_stick = CreateStick(ID_MAIN_STICK, 1024, 768, 512, 384, true, false);
+  // i18n: IR stands for infrared and refers to the pointer functionality of Wii Remotes
   m_main_stick_szr = CreateStickLayout(&m_main_stick, _("IR"));
 
   m_x_cont = CreateControl(wxSL_VERTICAL, -1, 100, false, 1023, 512);
