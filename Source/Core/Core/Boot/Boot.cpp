@@ -334,16 +334,12 @@ bool CBoot::BootUp()
       PanicAlertT("Warning - starting DOL in wrong console mode!");
     }
 
-    bool BS2Success = false;
-
     if (dolWii)
     {
-      BS2Success = EmulatedBS2(dolWii);
     }
     else if (!_StartupPara.m_strDefaultISO.empty())
     {
       DVDInterface::SetVolumeName(_StartupPara.m_strDefaultISO);
-      BS2Success = EmulatedBS2(dolWii);
     }
 
     if (!_StartupPara.m_strDVDRoot.empty())
@@ -351,10 +347,9 @@ bool CBoot::BootUp()
       NOTICE_LOG(BOOT, "Setting DVDRoot %s", _StartupPara.m_strDVDRoot.c_str());
       DVDInterface::SetVolumeDirectory(_StartupPara.m_strDVDRoot, dolWii,
                                        _StartupPara.m_strApploader, _StartupPara.m_strFilename);
-      BS2Success = EmulatedBS2(dolWii);
     }
 
-    if (!BS2Success)
+    if (!EmulatedBS2(dolWii))
     {
       // Set up MSR and the BAT SPR registers.
       UReg_MSR& m_MSR = ((UReg_MSR&)PowerPC::ppcState.msr);
