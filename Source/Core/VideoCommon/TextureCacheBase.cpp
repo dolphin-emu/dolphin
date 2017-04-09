@@ -869,7 +869,7 @@ TextureCacheBase::TCacheEntryBase* TextureCacheBase::Load(const u32 stage)
 
       if (decode_on_gpu)
       {
-        u32 row_stride = bytes_per_block * (mip_width / bsw);
+        u32 row_stride = bytes_per_block * (expanded_mip_width / bsw);
         g_texture_cache->DecodeTextureOnGPU(entry, level, mip_src_data, mip_size,
                                             static_cast<TextureFormat>(texformat), mip_width,
                                             mip_height, expanded_mip_width, expanded_mip_height,

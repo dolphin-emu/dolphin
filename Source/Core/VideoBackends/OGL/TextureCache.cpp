@@ -775,7 +775,8 @@ void TextureCache::DecodeTextureOnGPU(TCacheEntryBase* entry, u32 dst_level, con
     glBindTexture(GL_TEXTURE_BUFFER, s_palette_resolv_texture);
   }
 
-  auto dispatch_groups = TextureConversionShader::GetDispatchCount(info.base_info, width, height);
+  auto dispatch_groups =
+      TextureConversionShader::GetDispatchCount(info.base_info, aligned_width, aligned_height);
   glBindImageTexture(0, static_cast<TCacheEntry*>(entry)->texture, dst_level, GL_TRUE, 0,
                      GL_WRITE_ONLY, GL_RGBA8);
   glDispatchCompute(dispatch_groups.first, dispatch_groups.second, 1);

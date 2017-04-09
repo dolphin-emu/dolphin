@@ -517,7 +517,8 @@ void TextureConverter::DecodeTexture(TextureCache::TCacheEntry* entry, u32 dst_l
   dispatcher.SetTexelBuffer(0, data_view);
   if (has_palette)
     dispatcher.SetTexelBuffer(1, m_texel_buffer_view_r16_uint);
-  auto groups = TextureConversionShader::GetDispatchCount(iter->second.base_info, width, height);
+  auto groups = TextureConversionShader::GetDispatchCount(iter->second.base_info, aligned_width,
+                                                          aligned_height);
   dispatcher.Dispatch(groups.first, groups.second, 1);
 
   // Copy from temporary texture to final destination.
