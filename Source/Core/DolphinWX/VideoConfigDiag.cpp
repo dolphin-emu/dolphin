@@ -1118,6 +1118,9 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
   // custom textures
   cache_hires_textures->Enable(vconfig.bHiresTextures);
 
+  // Vertex rounding
+  vertex_rounding_checkbox->Enable(vconfig.iEFBScale != SCALE_1X);
+
   // Repopulating the post-processing shaders can't be done from an event
   if (choice_ppshader && choice_ppshader->IsEmpty())
     PopulatePostProcessingShaders();
@@ -1144,16 +1147,6 @@ void VideoConfigDiag::OnUpdateUI(wxUpdateUIEvent& ev)
 
     progressive_scan_checkbox->Disable();
     render_to_main_checkbox->Disable();
-  }
-
-  // Don't enable 'vertex rounding' at native
-  if (vconfig.iEFBScale == SCALE_1X)
-  {
-    vertex_rounding_checkbox->Enable(false);
-  }
-  else
-  {
-    vertex_rounding_checkbox->Enable(true);
   }
 
   ev.Skip();
