@@ -4,6 +4,7 @@
 
 #include "VideoBackends/D3D/Render.h"
 
+#include <array>
 #include <cinttypes>
 #include <cmath>
 #include <memory>
@@ -56,7 +57,7 @@ typedef struct _Nv_Stereo_Image_Header
 
 struct GXPipelineState
 {
-  SamplerState sampler[8];
+  std::array<SamplerState, 8> samplers;
   BlendState blend;
   ZMode zmode;
   RasterizerState raster;
@@ -68,8 +69,8 @@ static bool s_last_xfb_mode = false;
 
 static Television s_television;
 
-static ID3D11BlendState* s_clear_blend_states[4] = {nullptr};
-static ID3D11DepthStencilState* s_clear_depth_states[3] = {nullptr};
+static std::array<ID3D11BlendState*, 4> s_clear_blend_states{};
+static std::array<ID3D11DepthStencilState*, 3> s_clear_depth_states{};
 static ID3D11BlendState* s_reset_blend_state = nullptr;
 static ID3D11DepthStencilState* s_reset_depth_state = nullptr;
 static ID3D11RasterizerState* s_reset_rast_state = nullptr;
@@ -247,9 +248,9 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
   s_gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
   s_gx_state.blend.use_dst_alpha = false;
 
-  for (unsigned int k = 0; k < 8; k++)
+  for (auto& sampler : s_gx_state.samplers)
   {
-    s_gx_state.sampler[k].packed = 0;
+    sampler.packed = 0;
   }
 
   s_gx_state.zmode.testenable = false;
@@ -259,9 +260,9 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
   s_gx_state.raster.cull_mode = D3D11_CULL_NONE;
 
   // Clear EFB textures
-  float ClearColor[4] = {0.f, 0.f, 0.f, 1.f};
+  constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
   D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                      ClearColor);
+                                      clear_color.data());
   D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(),
                                       D3D11_CLEAR_DEPTH, 0.f, 0);
 
@@ -663,24 +664,18 @@ void Renderer::SetBlendMode(bool forceUpdate)
   // Example: D3DBLEND_DESTALPHA needs to be D3DBLEND_ONE since the result without an alpha channel
   // is assumed to always be 1.
   bool target_has_alpha = bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
-  const D3D11_BLEND d3dSrcFactors[8] = {
-      D3D11_BLEND_ZERO,
-      D3D11_BLEND_ONE,
-      D3D11_BLEND_DEST_COLOR,
-      D3D11_BLEND_INV_DEST_COLOR,
-      D3D11_BLEND_SRC1_ALPHA,
-      D3D11_BLEND_INV_SRC1_ALPHA,
+  const std::array<D3D11_BLEND, 8> d3d_src_factors{{
+      D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_DEST_COLOR, D3D11_BLEND_INV_DEST_COLOR,
+      D3D11_BLEND_SRC1_ALPHA, D3D11_BLEND_INV_SRC1_ALPHA,
       (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
-      (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO};
-  const D3D11_BLEND d3dDestFactors[8] = {
-      D3D11_BLEND_ZERO,
-      D3D11_BLEND_ONE,
-      D3D11_BLEND_SRC_COLOR,
-      D3D11_BLEND_INV_SRC_COLOR,
-      D3D11_BLEND_SRC1_ALPHA,
-      D3D11_BLEND_INV_SRC1_ALPHA,
+      (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO,
+  }};
+  const std::array<D3D11_BLEND, 8> d3d_dest_factors{{
+      D3D11_BLEND_ZERO, D3D11_BLEND_ONE, D3D11_BLEND_SRC_COLOR, D3D11_BLEND_INV_SRC_COLOR,
+      D3D11_BLEND_SRC1_ALPHA, D3D11_BLEND_INV_SRC1_ALPHA,
       (target_has_alpha) ? D3D11_BLEND_DEST_ALPHA : D3D11_BLEND_ONE,
-      (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO};
+      (target_has_alpha) ? D3D11_BLEND_INV_DEST_ALPHA : D3D11_BLEND_ZERO,
+  }};
 
   if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable && !forceUpdate)
     return;
@@ -698,8 +693,8 @@ void Renderer::SetBlendMode(bool forceUpdate)
     if (bpmem.blendmode.blendenable)
     {
       s_gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
-      s_gx_state.blend.src_blend = d3dSrcFactors[bpmem.blendmode.srcfactor];
-      s_gx_state.blend.dst_blend = d3dDestFactors[bpmem.blendmode.dstfactor];
+      s_gx_state.blend.src_blend = d3d_src_factors[bpmem.blendmode.srcfactor];
+      s_gx_state.blend.dst_blend = d3d_dest_factors[bpmem.blendmode.dstfactor];
     }
   }
 }
@@ -731,8 +726,8 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
   D3D::context->OMSetRenderTargets(1, &D3D::GetBackBuffer()->GetRTV(), nullptr);
 
-  float ClearColor[4] = {0.f, 0.f, 0.f, 1.f};
-  D3D::context->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV(), ClearColor);
+  constexpr std::array<float, 4> clear_color{{0.f, 0.f, 0.f, 1.f}};
+  D3D::context->ClearRenderTargetView(D3D::GetBackBuffer()->GetRTV(), clear_color.data());
 
   // activate linear filtering for the buffer copies
   D3D::SetLinearCopySampler();
@@ -883,9 +878,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 
     g_framebuffer_manager.reset();
     g_framebuffer_manager = std::make_unique<FramebufferManager>(m_target_width, m_target_height);
-    float clear_col[4] = {0.f, 0.f, 0.f, 1.f};
+
     D3D::context->ClearRenderTargetView(FramebufferManager::GetEFBColorTexture()->GetRTV(),
-                                        clear_col);
+                                        clear_color.data());
     D3D::context->ClearDepthStencilView(FramebufferManager::GetEFBDepthTexture()->GetDSV(),
                                         D3D11_CLEAR_DEPTH, 0.f, 0);
   }
@@ -927,11 +922,11 @@ void Renderer::ApplyState()
   D3D::stateman->PushDepthState(s_gx_state_cache.Get(s_gx_state.zmode));
   D3D::stateman->PushRasterizerState(s_gx_state_cache.Get(s_gx_state.raster));
 
-  for (unsigned int stage = 0; stage < 8; stage++)
+  for (size_t stage = 0; s_gx_state.samplers.size(); stage++)
   {
     // TODO: cache SamplerState directly, not d3d object
-    s_gx_state.sampler[stage].max_anisotropy = UINT64_C(1) << g_ActiveConfig.iMaxAnisotropy;
-    D3D::stateman->SetSampler(stage, s_gx_state_cache.Get(s_gx_state.sampler[stage]));
+    s_gx_state.samplers[stage].max_anisotropy = UINT64_C(1) << g_ActiveConfig.iMaxAnisotropy;
+    D3D::stateman->SetSampler(stage, s_gx_state_cache.Get(s_gx_state.samplers[stage]));
   }
 
   if (bUseDstAlpha)
@@ -976,12 +971,13 @@ void Renderer::RestoreCull()
 
 void Renderer::SetGenerationMode()
 {
-  const D3D11_CULL_MODE d3dCullModes[4] = {D3D11_CULL_NONE, D3D11_CULL_BACK, D3D11_CULL_FRONT,
-                                           D3D11_CULL_BACK};
+  constexpr std::array<D3D11_CULL_MODE, 4> d3d_cull_modes{{
+      D3D11_CULL_NONE, D3D11_CULL_BACK, D3D11_CULL_FRONT, D3D11_CULL_BACK,
+  }};
 
   // rastdc.FrontCounterClockwise must be false for this to work
   // TODO: GX_CULL_ALL not supported, yet!
-  s_gx_state.raster.cull_mode = d3dCullModes[bpmem.genMode.cullmode];
+  s_gx_state.raster.cull_mode = d3d_cull_modes[bpmem.genMode.cullmode];
 }
 
 void Renderer::SetDepthMode()
@@ -1010,7 +1006,7 @@ void Renderer::SetLogicOpMode()
   // 13  ~Source | destination
   // 14  ~(Source & destination)
   // 15  0xff
-  const D3D11_BLEND_OP d3dLogicOps[16] = {
+  constexpr std::array<D3D11_BLEND_OP, 16> d3d_logic_ops{{
       D3D11_BLEND_OP_ADD,           // 0
       D3D11_BLEND_OP_ADD,           // 1
       D3D11_BLEND_OP_SUBTRACT,      // 2
@@ -1027,8 +1023,8 @@ void Renderer::SetLogicOpMode()
       D3D11_BLEND_OP_ADD,           // 13
       D3D11_BLEND_OP_ADD,           // 14
       D3D11_BLEND_OP_ADD            // 15
-  };
-  const D3D11_BLEND d3dLogicOpSrcFactors[16] = {
+  }};
+  constexpr std::array<D3D11_BLEND, 16> d3d_logic_op_src_factors{{
       D3D11_BLEND_ZERO,            // 0
       D3D11_BLEND_DEST_COLOR,      // 1
       D3D11_BLEND_ONE,             // 2
@@ -1045,8 +1041,8 @@ void Renderer::SetLogicOpMode()
       D3D11_BLEND_INV_SRC_COLOR,   // 13
       D3D11_BLEND_INV_DEST_COLOR,  // 14
       D3D11_BLEND_ONE              // 15
-  };
-  const D3D11_BLEND d3dLogicOpDestFactors[16] = {
+  }};
+  constexpr std::array<D3D11_BLEND, 16> d3d_logic_op_dest_factors{{
       D3D11_BLEND_ZERO,            // 0
       D3D11_BLEND_ZERO,            // 1
       D3D11_BLEND_INV_SRC_COLOR,   // 2
@@ -1063,14 +1059,14 @@ void Renderer::SetLogicOpMode()
       D3D11_BLEND_ONE,             // 13
       D3D11_BLEND_INV_SRC_COLOR,   // 14
       D3D11_BLEND_ONE              // 15
-  };
+  }};
 
   if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable)
   {
     s_gx_state.blend.blend_enable = true;
-    s_gx_state.blend.blend_op = d3dLogicOps[bpmem.blendmode.logicmode];
-    s_gx_state.blend.src_blend = d3dLogicOpSrcFactors[bpmem.blendmode.logicmode];
-    s_gx_state.blend.dst_blend = d3dLogicOpDestFactors[bpmem.blendmode.logicmode];
+    s_gx_state.blend.blend_op = d3d_logic_ops[bpmem.blendmode.logicmode];
+    s_gx_state.blend.src_blend = d3d_logic_op_src_factors[bpmem.blendmode.logicmode];
+    s_gx_state.blend.dst_blend = d3d_logic_op_dest_factors[bpmem.blendmode.logicmode];
   }
   else
   {
@@ -1090,25 +1086,25 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
   if (g_ActiveConfig.bForceFiltering)
   {
     // Only use mipmaps if the game says they are available.
-    s_gx_state.sampler[stage].min_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? 6 : 4;
-    s_gx_state.sampler[stage].mag_filter = 1;  // linear mag
+    s_gx_state.samplers[stage].min_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? 6 : 4;
+    s_gx_state.samplers[stage].mag_filter = 1;  // linear mag
   }
   else
   {
-    s_gx_state.sampler[stage].min_filter = (u32)tm0.min_filter;
-    s_gx_state.sampler[stage].mag_filter = (u32)tm0.mag_filter;
+    s_gx_state.samplers[stage].min_filter = (u32)tm0.min_filter;
+    s_gx_state.samplers[stage].mag_filter = (u32)tm0.mag_filter;
   }
 
-  s_gx_state.sampler[stage].wrap_s = (u32)tm0.wrap_s;
-  s_gx_state.sampler[stage].wrap_t = (u32)tm0.wrap_t;
-  s_gx_state.sampler[stage].max_lod = (u32)tm1.max_lod;
-  s_gx_state.sampler[stage].min_lod = (u32)tm1.min_lod;
-  s_gx_state.sampler[stage].lod_bias = (s32)tm0.lod_bias;
+  s_gx_state.samplers[stage].wrap_s = (u32)tm0.wrap_s;
+  s_gx_state.samplers[stage].wrap_t = (u32)tm0.wrap_t;
+  s_gx_state.samplers[stage].max_lod = (u32)tm1.max_lod;
+  s_gx_state.samplers[stage].min_lod = (u32)tm1.min_lod;
+  s_gx_state.samplers[stage].lod_bias = (s32)tm0.lod_bias;
 
   // custom textures may have higher resolution, so disable the max_lod
   if (custom_tex)
   {
-    s_gx_state.sampler[stage].max_lod = 255;
+    s_gx_state.samplers[stage].max_lod = 255;
   }
 }
 
