@@ -29,6 +29,7 @@
 #include "Common/FileUtil.h"
 #include "Common/IniFile.h"
 #include "Common/Logging/LogManager.h"
+#include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 
 #include "Core/Analytics.h"
@@ -531,14 +532,16 @@ void Host_ConnectWiimote(int wm_idx, bool connect)
 
 void Host_ShowVideoConfig(void* parent, const std::string& backend_name)
 {
+  wxWindow* const parent_window = static_cast<wxWindow*>(parent);
+
   if (backend_name == "Software Renderer")
   {
-    SoftwareVideoConfigDialog diag((wxWindow*)parent, backend_name);
+    SoftwareVideoConfigDialog diag(parent_window, backend_name);
     diag.ShowModal();
   }
   else
   {
-    VideoConfigDiag diag((wxWindow*)parent, backend_name);
+    VideoConfigDiag diag(parent_window, backend_name);
     diag.ShowModal();
   }
 }
