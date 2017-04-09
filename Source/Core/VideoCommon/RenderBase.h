@@ -81,11 +81,11 @@ public:
   virtual void RestoreAPIState() {}
   // Ideal internal resolution - determined by display resolution (automatic scaling) and/or a
   // multiple of the native EFB resolution
-  int GetTargetWidth() { return m_target_width; }
-  int GetTargetHeight() { return m_target_height; }
+  int GetTargetWidth() const { return m_target_width; }
+  int GetTargetHeight() const { return m_target_height; }
   // Display resolution
-  int GetBackbufferWidth() { return m_backbuffer_width; }
-  int GetBackbufferHeight() { return m_backbuffer_height; }
+  int GetBackbufferWidth() const { return m_backbuffer_width; }
+  int GetBackbufferHeight() const { return m_backbuffer_height; }
   void SetWindowSize(int width, int height);
 
   // EFB coordinate conversion functions
@@ -93,23 +93,24 @@ public:
   // Use this to convert a whole native EFB rect to backbuffer coordinates
   virtual TargetRectangle ConvertEFBRectangle(const EFBRectangle& rc) = 0;
 
-  const TargetRectangle& GetTargetRectangle() { return m_target_rectangle; }
-  float CalculateDrawAspectRatio(int target_width, int target_height);
-  std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height);
-  TargetRectangle CalculateFrameDumpDrawRectangle();
+  const TargetRectangle& GetTargetRectangle() const { return m_target_rectangle; }
+  float CalculateDrawAspectRatio(int target_width, int target_height) const;
+  std::tuple<float, float> ScaleToDisplayAspectRatio(int width, int height) const;
+  TargetRectangle CalculateFrameDumpDrawRectangle() const;
   void UpdateDrawRectangle();
 
   // Use this to convert a single target rectangle to two stereo rectangles
   void ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc,
-                              TargetRectangle& rightRc);
+                              TargetRectangle& rightRc) const;
 
   // Use this to upscale native EFB coordinates to IDEAL internal resolution
-  int EFBToScaledX(int x);
-  int EFBToScaledY(int y);
+  int EFBToScaledX(int x) const;
+  int EFBToScaledY(int y) const;
 
   // Floating point versions of the above - only use them if really necessary
-  float EFBToScaledXf(float x) { return x * ((float)GetTargetWidth() / (float)EFB_WIDTH); }
-  float EFBToScaledYf(float y) { return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT); }
+  float EFBToScaledXf(float x) const;
+  float EFBToScaledYf(float y) const;
+
   // Random utilities
   void SaveScreenshot(const std::string& filename, bool wait_for_completion);
   void DrawDebugText();
@@ -134,16 +135,16 @@ public:
   virtual void SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
                         const EFBRectangle& rc, u64 ticks, float Gamma = 1.0f) = 0;
 
-  PEControl::PixelFormat GetPrevPixelFormat() { return m_prev_efb_format; }
+  PEControl::PixelFormat GetPrevPixelFormat() const { return m_prev_efb_format; }
   void StorePixelFormat(PEControl::PixelFormat new_format) { m_prev_efb_format = new_format; }
-  PostProcessingShaderImplementation* GetPostProcessor() { return m_post_processor.get(); }
+  PostProcessingShaderImplementation* GetPostProcessor() const { return m_post_processor.get(); }
   // Final surface changing
   // This is called when the surface is resized (WX) or the window changes (Android).
   virtual void ChangeSurface(void* new_surface_handle) {}
   bool UseVertexDepthRange() const;
 
 protected:
-  void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY);
+  void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY) const;
   bool CalculateTargetSize();
 
   void CheckFifoRecording();
