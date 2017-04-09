@@ -100,8 +100,8 @@ public:
   void UpdateDrawRectangle();
 
   // Use this to convert a single target rectangle to two stereo rectangles
-  void ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc,
-                              TargetRectangle& rightRc) const;
+  std::tuple<TargetRectangle, TargetRectangle>
+  ConvertStereoRectangle(const TargetRectangle& rc) const;
 
   // Use this to upscale native EFB coordinates to IDEAL internal resolution
   int EFBToScaledX(int x) const;

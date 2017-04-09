@@ -252,41 +252,44 @@ bool Renderer::CalculateTargetSize()
   return false;
 }
 
-void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc,
-                                      TargetRectangle& rightRc) const
+std::tuple<TargetRectangle, TargetRectangle>
+Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
 {
   // Resize target to half its original size
-  TargetRectangle drawRc = rc;
+  TargetRectangle draw_rc = rc;
   if (g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
     // The height may be negative due to flipped rectangles
     int height = rc.bottom - rc.top;
-    drawRc.top += height / 4;
-    drawRc.bottom -= height / 4;
+    draw_rc.top += height / 4;
+    draw_rc.bottom -= height / 4;
   }
   else
   {
     int width = rc.right - rc.left;
-    drawRc.left += width / 4;
-    drawRc.right -= width / 4;
+    draw_rc.left += width / 4;
+    draw_rc.right -= width / 4;
   }
 
   // Create two target rectangle offset to the sides of the backbuffer
-  leftRc = drawRc, rightRc = drawRc;
+  TargetRectangle left_rc = draw_rc;
+  TargetRectangle right_rc = draw_rc;
   if (g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
-    leftRc.top -= m_backbuffer_height / 4;
-    leftRc.bottom -= m_backbuffer_height / 4;
-    rightRc.top += m_backbuffer_height / 4;
-    rightRc.bottom += m_backbuffer_height / 4;
+    left_rc.top -= m_backbuffer_height / 4;
+    left_rc.bottom -= m_backbuffer_height / 4;
+    right_rc.top += m_backbuffer_height / 4;
+    right_rc.bottom += m_backbuffer_height / 4;
   }
   else
   {
-    leftRc.left -= m_backbuffer_width / 4;
-    leftRc.right -= m_backbuffer_width / 4;
-    rightRc.left += m_backbuffer_width / 4;
-    rightRc.right += m_backbuffer_width / 4;
+    left_rc.left -= m_backbuffer_width / 4;
+    left_rc.right -= m_backbuffer_width / 4;
+    right_rc.left += m_backbuffer_width / 4;
+    right_rc.right += m_backbuffer_width / 4;
   }
+
+  return std::make_tuple(left_rc, right_rc);
 }
 
 void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_completion)

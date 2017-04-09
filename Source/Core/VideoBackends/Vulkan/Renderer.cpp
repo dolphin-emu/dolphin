@@ -8,6 +8,7 @@
 #include <cstdio>
 #include <limits>
 #include <string>
+#include <tuple>
 
 #include "Common/Assert.h"
 #include "Common/CommonTypes.h"
@@ -907,7 +908,7 @@ void Renderer::BlitScreen(VkRenderPass render_pass, const TargetRectangle& dst_r
   {
     TargetRectangle left_rect;
     TargetRectangle right_rect;
-    ConvertStereoRectangle(dst_rect, left_rect, right_rect);
+    std::tie(left_rect, right_rect) = ConvertStereoRectangle(dst_rect);
 
     draw.DrawQuad(left_rect.left, left_rect.top, left_rect.GetWidth(), left_rect.GetHeight(),
                   src_rect.left, src_rect.top, 0, src_rect.GetWidth(), src_rect.GetHeight(),
