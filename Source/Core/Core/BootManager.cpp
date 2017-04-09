@@ -290,13 +290,11 @@ bool BootCore(const std::string& _rFilename)
       }
     }
 
-    Core::g_aspect_wide = StartUp.bWii;
-
     // Wii settings
     if (StartUp.bWii)
     {
       IniFile::Section* wii_section = game_ini.GetOrCreateSection("Wii");
-      wii_section->Get("Widescreen", &Core::g_aspect_wide, !!StartUp.m_wii_aspect_ratio);
+      wii_section->Get("Widescreen", &StartUp.m_wii_aspect_ratio, !!StartUp.m_wii_aspect_ratio);
       wii_section->Get("Language", &StartUp.m_wii_language, StartUp.m_wii_language);
 
       int source;

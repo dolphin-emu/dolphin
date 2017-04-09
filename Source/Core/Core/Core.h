@@ -18,9 +18,6 @@
 
 namespace Core
 {
-// TODO: ugly, remove
-extern bool g_aspect_wide;
-
 bool GetIsThrottlerTempDisabled();
 void SetIsThrottlerTempDisabled(bool disable);
 

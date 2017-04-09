@@ -4,12 +4,14 @@
 
 #include "VideoCommon/VertexManagerBase.h"
 
+#include <cmath>
 #include <memory>
 
 #include "Common/BitSet.h"
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/ConfigManager.h"
 
 #include "VideoCommon/BPMemory.h"
 #include "VideoCommon/DataReader.h"
@@ -40,6 +42,23 @@ static const PrimitiveType primitive_from_gx[8] = {
     PRIMITIVE_LINES,      // GX_DRAW_LINE_STRIP
     PRIMITIVE_POINTS,     // GX_DRAW_POINTS
 };
+
+// Due to the BT.601 standard which the GameCube is based on being a compromise
+// between PAL and NTSC, neither standard gets square pixels. They are each off
+// by ~9% in opposite directions.
+// Just in case any game decides to take this into account, we do both these
+// tests with a large amount of slop.
+static bool AspectIs4_3(float width, float height)
+{
+  float aspect = fabsf(width / height);
+  return fabsf(aspect - 4.0f / 3.0f) < 4.0f / 3.0f * 0.11;  // within 11% of 4:3
+}
+
+static bool AspectIs16_9(float width, float height)
+{
+  float aspect = fabsf(width / height);
+  return fabsf(aspect - 16.0f / 9.0f) < 16.0f / 9.0f * 0.11;  // within 11% of 16:9
+}
 
 VertexManagerBase::VertexManagerBase()
 {
@@ -157,6 +176,14 @@ u32 VertexManagerBase::GetRemainingIndices(int primitive)
   }
 }
 
+std::pair<size_t, size_t> VertexManagerBase::ResetFlushAspectRatioCount()
+{
+  std::pair<size_t, size_t> val = std::make_pair(m_flush_count_4_3, m_flush_count_anamorphic);
+  m_flush_count_4_3 = 0;
+  m_flush_count_anamorphic = 0;
+  return val;
+}
+
 void VertexManagerBase::Flush()
 {
   if (m_is_flushed)
@@ -236,6 +263,24 @@ void VertexManagerBase::Flush()
 
   // set global vertex constants
   VertexShaderManager::SetConstants();
+
+  // Track some stats used elsewhere by the anamorphic widescreen heuristic.
+  if (!SConfig::GetInstance().bWii)
+  {
+    float* rawProjection = xfmem.projection.rawProjection;
+    bool viewport_is_4_3 = AspectIs4_3(xfmem.viewport.wd, xfmem.viewport.ht);
+    if (AspectIs16_9(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+    {
+      // Projection is 16:9 and viewport is 4:3, we are rendering an anamorphic
+      // widescreen picture.
+      m_flush_count_anamorphic++;
+    }
+    else if (AspectIs4_3(rawProjection[2], rawProjection[0]) && viewport_is_4_3)
+    {
+      // Projection and viewports are both 4:3, we are rendering a normal image.
+      m_flush_count_4_3++;
+    }
+  }
 
   // Calculate ZSlope for zfreeze
   if (!bpmem.genMode.zfreeze)
