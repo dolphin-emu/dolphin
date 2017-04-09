@@ -714,8 +714,9 @@ void CFrame::InhibitScreensaver()
   if (SConfig::GetInstance().bDisableScreenSaver)
   {
     CFStringRef reason_for_activity = CFSTR("Emulation Running");
-    if (IOPMAssertionCreateWithName(kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn,
-                                    reason_for_activity, &m_power_assertion) != kIOReturnSuccess)
+    if (IOPMAssertionCreateWithName(kIOPMAssertionTypePreventUserIdleDisplaySleep,
+                                    kIOPMAssertionLevelOn, reason_for_activity,
+                                    &m_power_assertion) != kIOReturnSuccess)
     {
       m_power_assertion = kIOPMNullAssertionID;
     }
