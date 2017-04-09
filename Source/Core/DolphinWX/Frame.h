@@ -24,7 +24,7 @@
 #endif
 
 #ifdef __APPLE__
-#import <IOKit/pwr_mgt/IOPMLib.h>
+#include <IOKit/pwr_mgt/IOPMLib.h>
 #endif
 
 // Class declarations
@@ -164,10 +164,6 @@ private:
     ADD_PANE_CENTER
   };
 
-#ifdef __APPLE__
-  IOPMAssertionID m_power_assertion = kIOPMNullAssertionID;
-#endif
-
   wxTimer m_poll_hotkey_timer;
   wxTimer m_handle_signal_timer;
 
@@ -230,6 +226,13 @@ private:
   // Override window proc for tricks like screensaver disabling
   WXLRESULT MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam);
 #endif
+
+// Screensaver
+#ifdef __APPLE__
+  IOPMAssertionID m_power_assertion = kIOPMNullAssertionID;
+#endif
+  void InhibitScreensaver();
+  void UninhibitScreensaver();
 
   void DoOpen(bool Boot);
   void DoPause();

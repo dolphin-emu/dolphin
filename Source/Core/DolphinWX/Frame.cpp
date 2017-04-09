@@ -690,6 +690,63 @@ WXLRESULT CFrame::MSWWindowProc(WXUINT nMsg, WXWPARAM wParam, WXLPARAM lParam)
 }
 #endif
 
+void CFrame::InhibitScreensaver()
+{
+// Inhibit the screensaver. Depending on the operating system this may also
+// disable low-power states and/or screen dimming.
+
+#if defined(HAVE_X11) && HAVE_X11
+  if (SConfig::GetInstance().bDisableScreenSaver)
+  {
+    X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
+                                 X11Utils::XWindowFromHandle(GetHandle()), true);
+  }
+#endif
+
+#ifdef _WIN32
+  // Prevents Windows from sleeping, turning off the display, or idling
+  EXECUTION_STATE should_screen_save =
+      SConfig::GetInstance().bDisableScreenSaver ? ES_DISPLAY_REQUIRED : 0;
+  SetThreadExecutionState(ES_CONTINUOUS | should_screen_save | ES_SYSTEM_REQUIRED);
+#endif
+
+#ifdef __APPLE__
+  if (SConfig::GetInstance().bDisableScreenSaver)
+  {
+    CFStringRef reason_for_activity = CFSTR("Emulation Running");
+    if (IOPMAssertionCreateWithName(kIOPMAssertionTypeNoDisplaySleep, kIOPMAssertionLevelOn,
+                                    reason_for_activity, &m_power_assertion) != kIOReturnSuccess)
+    {
+      m_power_assertion = kIOPMNullAssertionID;
+    }
+  }
+#endif
+}
+
+void CFrame::UninhibitScreensaver()
+{
+#if defined(HAVE_X11) && HAVE_X11
+  if (SConfig::GetInstance().bDisableScreenSaver)
+  {
+    X11Utils::InhibitScreensaver(X11Utils::XDisplayFromHandle(GetHandle()),
+                                 X11Utils::XWindowFromHandle(GetHandle()), false);
+  }
+#endif
+
+#ifdef _WIN32
+  // Allow windows to resume normal idling behavior
+  SetThreadExecutionState(ES_CONTINUOUS);
+#endif
+
+#ifdef __APPLE__
+  if (m_power_assertion != kIOPMNullAssertionID)
+  {
+    IOPMAssertionRelease(m_power_assertion);
+    m_power_assertion = kIOPMNullAssertionID;
+  }
+#endif
+}
+
 void CFrame::UpdateTitle(const std::string& str)
 {
   if (SConfig::GetInstance().bRenderToMain && SConfig::GetInstance().m_InterfaceStatusbar)
