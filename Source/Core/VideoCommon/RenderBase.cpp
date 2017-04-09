@@ -310,7 +310,7 @@ void Renderer::DrawDebugText()
   if (g_ActiveConfig.bShowFPS || SConfig::GetInstance().m_ShowFrameCount)
   {
     if (g_ActiveConfig.bShowFPS)
-      final_cyan += StringFromFormat("FPS: %u", g_renderer->m_fps_counter.GetFPS());
+      final_cyan += StringFromFormat("FPS: %u", m_fps_counter.GetFPS());
 
     if (g_ActiveConfig.bShowFPS && SConfig::GetInstance().m_ShowFrameCount)
       final_cyan += " - ";
@@ -439,8 +439,8 @@ void Renderer::DrawDebugText()
     final_cyan += Statistics::ToStringProj();
 
   // and then the text
-  g_renderer->RenderText(final_cyan, 20, 20, 0xFF00FFFF);
-  g_renderer->RenderText(final_yellow, 20, 20, 0xFFFFFF00);
+  RenderText(final_cyan, 20, 20, 0xFF00FFFF);
+  RenderText(final_yellow, 20, 20, 0xFFFFFF00);
 }
 
 float Renderer::CalculateDrawAspectRatio(int target_width, int target_height) const
@@ -723,10 +723,10 @@ void Renderer::Swap(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight, const 
                     u64 ticks, float Gamma)
 {
   // TODO: merge more generic parts into VideoCommon
-  g_renderer->SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, ticks, Gamma);
+  SwapImpl(xfbAddr, fbWidth, fbStride, fbHeight, rc, ticks, Gamma);
 
   if (m_xfb_written)
-    g_renderer->m_fps_counter.Update();
+    m_fps_counter.Update();
 
   frameCount++;
   GFX_DEBUGGER_PAUSE_AT(NEXT_FRAME, true);
