@@ -7,6 +7,7 @@
 #include <array>
 #include <cinttypes>
 #include <cmath>
+#include <cstring>
 #include <memory>
 #include <string>
 #include <strsafe.h>
@@ -214,21 +215,25 @@ static void Create3DVisionTexture(int width, int height)
 {
   // Create a staging texture for 3D vision with signature information in the last row.
   // Nvidia 3D Vision supports full SBS, so there is no loss in resolution during this process.
-  D3D11_SUBRESOURCE_DATA sysData;
-  sysData.SysMemPitch = 4 * width * 2;
-  sysData.pSysMem = new u8[(height + 1) * sysData.SysMemPitch];
-  LPNVSTEREOIMAGEHEADER header =
-      (LPNVSTEREOIMAGEHEADER)((u8*)sysData.pSysMem + height * sysData.SysMemPitch);
-  header->dwSignature = NVSTEREO_IMAGE_SIGNATURE;
-  header->dwWidth = width * 2;
-  header->dwHeight = height + 1;
-  header->dwBPP = 32;
-  header->dwFlags = 0;
+  NVSTEREOIMAGEHEADER header;
+  header.dwSignature = NVSTEREO_IMAGE_SIGNATURE;
+  header.dwWidth = static_cast<u32>(width * 2);
+  header.dwHeight = static_cast<u32>(height + 1);
+  header.dwBPP = 32;
+  header.dwFlags = 0;
+
+  const u32 pitch = static_cast<u32>(4 * width * 2);
+  const auto memory = std::make_unique<u8[]>((height + 1) * pitch);
+  u8* image_header_location = &memory[height * pitch];
+  std::memcpy(image_header_location, &header, sizeof(header));
+
+  D3D11_SUBRESOURCE_DATA sys_data;
+  sys_data.SysMemPitch = pitch;
+  sys_data.pSysMem = memory.get();
 
   s_3d_vision_texture =
       D3DTexture2D::Create(width * 2, height + 1, D3D11_BIND_RENDER_TARGET, D3D11_USAGE_DEFAULT,
-                           DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &sysData);
-  delete[] sysData.pSysMem;
+                           DXGI_FORMAT_R8G8B8A8_UNORM, 1, 1, &sys_data);
 }
 
 Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferHeight())
