@@ -144,7 +144,7 @@ public:
   bool UseVertexDepthRange() const;
 
 protected:
-  void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY) const;
+  std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
 
   void CheckFifoRecording();
