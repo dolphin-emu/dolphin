@@ -4,6 +4,8 @@
 
 #include "Core/HW/SI/SI_DeviceKeyboard.h"
 
+#include <cstring>
+
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
@@ -31,8 +33,11 @@ int CSIDevice_Keyboard::RunBuffer(u8* buffer, int length)
   {
   case CMD_RESET:
   case CMD_ID:
-    *(u32*)&buffer[0] = SI_GC_KEYBOARD;
+  {
+    constexpr u32 id = SI_GC_KEYBOARD;
+    std::memcpy(buffer, &id, sizeof(id));
     break;
+  }
 
   case CMD_DIRECT:
   {
