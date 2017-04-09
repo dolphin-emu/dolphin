@@ -42,21 +42,6 @@
 
 namespace DX11
 {
-static u32 s_last_multisamples = 1;
-static bool s_last_stereo_mode = false;
-static bool s_last_xfb_mode = false;
-
-static Television s_television;
-
-ID3D11BlendState* clearblendstates[4] = {nullptr};
-ID3D11DepthStencilState* cleardepthstates[3] = {nullptr};
-ID3D11BlendState* resetblendstate = nullptr;
-ID3D11DepthStencilState* resetdepthstate = nullptr;
-ID3D11RasterizerState* resetraststate = nullptr;
-
-static ID3D11Texture2D* s_screenshot_texture = nullptr;
-static D3DTexture2D* s_3d_vision_texture = nullptr;
-
 // Nvidia stereo blitting struct defined in "nvstereo.h" from the Nvidia SDK
 typedef struct _Nv_Stereo_Image_Header
 {
@@ -69,17 +54,31 @@ typedef struct _Nv_Stereo_Image_Header
 
 #define NVSTEREO_IMAGE_SIGNATURE 0x4433564e
 
-// GX pipeline state
-struct
+struct GXPipelineState
 {
   SamplerState sampler[8];
   BlendState blend;
   ZMode zmode;
   RasterizerState raster;
+};
 
-} gx_state;
+static u32 s_last_multisamples = 1;
+static bool s_last_stereo_mode = false;
+static bool s_last_xfb_mode = false;
 
-StateCache gx_state_cache;
+static Television s_television;
+
+static ID3D11BlendState* s_clear_blend_states[4] = {nullptr};
+static ID3D11DepthStencilState* s_clear_depth_states[3] = {nullptr};
+static ID3D11BlendState* s_reset_blend_state = nullptr;
+static ID3D11DepthStencilState* s_reset_depth_state = nullptr;
+static ID3D11RasterizerState* s_reset_rast_state = nullptr;
+
+static ID3D11Texture2D* s_screenshot_texture = nullptr;
+static D3DTexture2D* s_3d_vision_texture = nullptr;
+
+static GXPipelineState s_gx_state;
+static StateCache s_gx_state_cache;
 
 static void SetupDeviceObjects()
 {
@@ -94,22 +93,22 @@ static void SetupDeviceObjects()
   ddesc.StencilEnable = FALSE;
   ddesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
   ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-  hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[0]);
+  hr = D3D::device->CreateDepthStencilState(&ddesc, &s_clear_depth_states[0]);
   CHECK(hr == S_OK, "Create depth state for Renderer::ClearScreen");
   ddesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ALL;
   ddesc.DepthEnable = TRUE;
-  hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[1]);
+  hr = D3D::device->CreateDepthStencilState(&ddesc, &s_clear_depth_states[1]);
   CHECK(hr == S_OK, "Create depth state for Renderer::ClearScreen");
   ddesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
-  hr = D3D::device->CreateDepthStencilState(&ddesc, &cleardepthstates[2]);
+  hr = D3D::device->CreateDepthStencilState(&ddesc, &s_clear_depth_states[2]);
   CHECK(hr == S_OK, "Create depth state for Renderer::ClearScreen");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)cleardepthstates[0],
+  D3D::SetDebugObjectName((ID3D11DeviceChild*)s_clear_depth_states[0],
                           "depth state for Renderer::ClearScreen (depth buffer disabled)");
   D3D::SetDebugObjectName(
-      (ID3D11DeviceChild*)cleardepthstates[1],
+      (ID3D11DeviceChild*)s_clear_depth_states[1],
       "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
   D3D::SetDebugObjectName(
-      (ID3D11DeviceChild*)cleardepthstates[2],
+      (ID3D11DeviceChild*)s_clear_depth_states[2],
       "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
 
   D3D11_BLEND_DESC blenddesc;
@@ -123,25 +122,25 @@ static void SetupDeviceObjects()
   blenddesc.RenderTarget[0].SrcBlendAlpha = D3D11_BLEND_ONE;
   blenddesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
   blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
-  hr = D3D::device->CreateBlendState(&blenddesc, &resetblendstate);
+  hr = D3D::device->CreateBlendState(&blenddesc, &s_reset_blend_state);
   CHECK(hr == S_OK, "Create blend state for Renderer::ResetAPIState");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)resetblendstate,
+  D3D::SetDebugObjectName((ID3D11DeviceChild*)s_reset_blend_state,
                           "blend state for Renderer::ResetAPIState");
 
-  clearblendstates[0] = resetblendstate;
-  resetblendstate->AddRef();
+  s_clear_blend_states[0] = s_reset_blend_state;
+  s_reset_blend_state->AddRef();
 
   blenddesc.RenderTarget[0].RenderTargetWriteMask =
       D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN | D3D11_COLOR_WRITE_ENABLE_BLUE;
-  hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[1]);
+  hr = D3D::device->CreateBlendState(&blenddesc, &s_clear_blend_states[1]);
   CHECK(hr == S_OK, "Create blend state for Renderer::ClearScreen");
 
   blenddesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALPHA;
-  hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[2]);
+  hr = D3D::device->CreateBlendState(&blenddesc, &s_clear_blend_states[2]);
   CHECK(hr == S_OK, "Create blend state for Renderer::ClearScreen");
 
   blenddesc.RenderTarget[0].RenderTargetWriteMask = 0;
-  hr = D3D::device->CreateBlendState(&blenddesc, &clearblendstates[3]);
+  hr = D3D::device->CreateBlendState(&blenddesc, &s_clear_blend_states[3]);
   CHECK(hr == S_OK, "Create blend state for Renderer::ClearScreen");
 
   ddesc.DepthEnable = FALSE;
@@ -150,16 +149,16 @@ static void SetupDeviceObjects()
   ddesc.StencilEnable = FALSE;
   ddesc.StencilReadMask = D3D11_DEFAULT_STENCIL_READ_MASK;
   ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
-  hr = D3D::device->CreateDepthStencilState(&ddesc, &resetdepthstate);
+  hr = D3D::device->CreateDepthStencilState(&ddesc, &s_reset_depth_state);
   CHECK(hr == S_OK, "Create depth state for Renderer::ResetAPIState");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)resetdepthstate,
+  D3D::SetDebugObjectName((ID3D11DeviceChild*)s_reset_depth_state,
                           "depth stencil state for Renderer::ResetAPIState");
 
   D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false,
                                                           0, 0.f, 0.f, false, false, false, false);
-  hr = D3D::device->CreateRasterizerState(&rastdesc, &resetraststate);
+  hr = D3D::device->CreateRasterizerState(&rastdesc, &s_reset_rast_state);
   CHECK(hr == S_OK, "Create rasterizer state for Renderer::ResetAPIState");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)resetraststate,
+  D3D::SetDebugObjectName((ID3D11DeviceChild*)s_reset_rast_state,
                           "rasterizer state for Renderer::ResetAPIState");
 
   s_screenshot_texture = nullptr;
@@ -170,22 +169,22 @@ static void TeardownDeviceObjects()
 {
   g_framebuffer_manager.reset();
 
-  SAFE_RELEASE(clearblendstates[0]);
-  SAFE_RELEASE(clearblendstates[1]);
-  SAFE_RELEASE(clearblendstates[2]);
-  SAFE_RELEASE(clearblendstates[3]);
-  SAFE_RELEASE(cleardepthstates[0]);
-  SAFE_RELEASE(cleardepthstates[1]);
-  SAFE_RELEASE(cleardepthstates[2]);
-  SAFE_RELEASE(resetblendstate);
-  SAFE_RELEASE(resetdepthstate);
-  SAFE_RELEASE(resetraststate);
+  SAFE_RELEASE(s_clear_blend_states[0]);
+  SAFE_RELEASE(s_clear_blend_states[1]);
+  SAFE_RELEASE(s_clear_blend_states[2]);
+  SAFE_RELEASE(s_clear_blend_states[3]);
+  SAFE_RELEASE(s_clear_depth_states[0]);
+  SAFE_RELEASE(s_clear_depth_states[1]);
+  SAFE_RELEASE(s_clear_depth_states[2]);
+  SAFE_RELEASE(s_reset_blend_state);
+  SAFE_RELEASE(s_reset_depth_state);
+  SAFE_RELEASE(s_reset_rast_state);
   SAFE_RELEASE(s_screenshot_texture);
   SAFE_RELEASE(s_3d_vision_texture);
 
   s_television.Shutdown();
 
-  gx_state_cache.Clear();
+  s_gx_state_cache.Clear();
 }
 
 static void CreateScreenshotTexture()
@@ -244,23 +243,23 @@ Renderer::Renderer() : ::Renderer(D3D::GetBackBufferWidth(), D3D::GetBackBufferH
   SetupDeviceObjects();
 
   // Setup GX pipeline state
-  gx_state.blend.blend_enable = false;
-  gx_state.blend.write_mask = D3D11_COLOR_WRITE_ENABLE_ALL;
-  gx_state.blend.src_blend = D3D11_BLEND_ONE;
-  gx_state.blend.dst_blend = D3D11_BLEND_ZERO;
-  gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
-  gx_state.blend.use_dst_alpha = false;
+  s_gx_state.blend.blend_enable = false;
+  s_gx_state.blend.write_mask = D3D11_COLOR_WRITE_ENABLE_ALL;
+  s_gx_state.blend.src_blend = D3D11_BLEND_ONE;
+  s_gx_state.blend.dst_blend = D3D11_BLEND_ZERO;
+  s_gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
+  s_gx_state.blend.use_dst_alpha = false;
 
   for (unsigned int k = 0; k < 8; k++)
   {
-    gx_state.sampler[k].packed = 0;
+    s_gx_state.sampler[k].packed = 0;
   }
 
-  gx_state.zmode.testenable = false;
-  gx_state.zmode.updateenable = false;
-  gx_state.zmode.func = ZMode::NEVER;
+  s_gx_state.zmode.testenable = false;
+  s_gx_state.zmode.updateenable = false;
+  s_gx_state.zmode.func = ZMode::NEVER;
 
-  gx_state.raster.cull_mode = D3D11_CULL_NONE;
+  s_gx_state.raster.cull_mode = D3D11_CULL_NONE;
 
   // Clear EFB textures
   float ClearColor[4] = {0.f, 0.f, 0.f, 1.f};
@@ -338,7 +337,7 @@ void Renderer::SetColorMask()
       color_mask |= D3D11_COLOR_WRITE_ENABLE_RED | D3D11_COLOR_WRITE_ENABLE_GREEN |
                     D3D11_COLOR_WRITE_ENABLE_BLUE;
   }
-  gx_state.blend.write_mask = color_mask;
+  s_gx_state.blend.write_mask = color_mask;
 }
 
 // This function allows the CPU to directly access the EFB.
@@ -503,8 +502,8 @@ void Renderer::PokeEFB(EFBAccessType type, const EfbPokeData* points, size_t num
   }
   else  // if (type == EFBAccessType::PokeZ)
   {
-    D3D::stateman->PushBlendState(clearblendstates[3]);
-    D3D::stateman->PushDepthState(cleardepthstates[1]);
+    D3D::stateman->PushBlendState(s_clear_blend_states[3]);
+    D3D::stateman->PushDepthState(s_clear_depth_states[1]);
 
     D3D11_VIEWPORT vp =
         CD3D11_VIEWPORT(0.0f, 0.0f, (float)GetTargetWidth(), (float)GetTargetHeight());
@@ -588,20 +587,21 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool colorEnable, bool alphaE
   ResetAPIState();
 
   if (colorEnable && alphaEnable)
-    D3D::stateman->PushBlendState(clearblendstates[0]);
+    D3D::stateman->PushBlendState(s_clear_blend_states[0]);
   else if (colorEnable)
-    D3D::stateman->PushBlendState(clearblendstates[1]);
+    D3D::stateman->PushBlendState(s_clear_blend_states[1]);
   else if (alphaEnable)
-    D3D::stateman->PushBlendState(clearblendstates[2]);
+    D3D::stateman->PushBlendState(s_clear_blend_states[2]);
   else
-    D3D::stateman->PushBlendState(clearblendstates[3]);
+    D3D::stateman->PushBlendState(s_clear_blend_states[3]);
 
   // TODO: Should we enable Z testing here?
-  /*if (!bpmem.zmode.testenable) D3D::stateman->PushDepthState(cleardepthstates[0]);
-	else */ if (zEnable)
-    D3D::stateman->PushDepthState(cleardepthstates[1]);
+  // if (!bpmem.zmode.testenable) D3D::stateman->PushDepthState(s_clear_depth_states[0]);
+  // else
+  if (zEnable)
+    D3D::stateman->PushDepthState(s_clear_depth_states[1]);
   else /*if (!zEnable)*/
-    D3D::stateman->PushDepthState(cleardepthstates[2]);
+    D3D::stateman->PushDepthState(s_clear_depth_states[2]);
 
   // Update the view port for clearing the picture
   TargetRectangle targetRc = Renderer::ConvertEFBRectangle(rc);
@@ -690,19 +690,19 @@ void Renderer::SetBlendMode(bool forceUpdate)
 
   if (bpmem.blendmode.subtract)
   {
-    gx_state.blend.blend_enable = true;
-    gx_state.blend.blend_op = D3D11_BLEND_OP_REV_SUBTRACT;
-    gx_state.blend.src_blend = D3D11_BLEND_ONE;
-    gx_state.blend.dst_blend = D3D11_BLEND_ONE;
+    s_gx_state.blend.blend_enable = true;
+    s_gx_state.blend.blend_op = D3D11_BLEND_OP_REV_SUBTRACT;
+    s_gx_state.blend.src_blend = D3D11_BLEND_ONE;
+    s_gx_state.blend.dst_blend = D3D11_BLEND_ONE;
   }
   else
   {
-    gx_state.blend.blend_enable = (u32)bpmem.blendmode.blendenable;
+    s_gx_state.blend.blend_enable = (u32)bpmem.blendmode.blendenable;
     if (bpmem.blendmode.blendenable)
     {
-      gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
-      gx_state.blend.src_blend = d3dSrcFactors[bpmem.blendmode.srcfactor];
-      gx_state.blend.dst_blend = d3dDestFactors[bpmem.blendmode.dstfactor];
+      s_gx_state.blend.blend_op = D3D11_BLEND_OP_ADD;
+      s_gx_state.blend.src_blend = d3dSrcFactors[bpmem.blendmode.srcfactor];
+      s_gx_state.blend.dst_blend = d3dDestFactors[bpmem.blendmode.dstfactor];
     }
   }
 }
@@ -908,9 +908,9 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
 // ALWAYS call RestoreAPIState for each ResetAPIState call you're doing
 void Renderer::ResetAPIState()
 {
-  D3D::stateman->PushBlendState(resetblendstate);
-  D3D::stateman->PushDepthState(resetdepthstate);
-  D3D::stateman->PushRasterizerState(resetraststate);
+  D3D::stateman->PushBlendState(s_reset_blend_state);
+  D3D::stateman->PushDepthState(s_reset_depth_state);
+  D3D::stateman->PushRasterizerState(s_reset_rast_state);
 }
 
 void Renderer::RestoreAPIState()
@@ -929,16 +929,16 @@ void Renderer::ApplyState()
   bool bUseDstAlpha = bpmem.dstalpha.enable && bpmem.blendmode.alphaupdate &&
                       bpmem.zcontrol.pixel_format == PEControl::RGBA6_Z24;
 
-  gx_state.blend.use_dst_alpha = bUseDstAlpha;
-  D3D::stateman->PushBlendState(gx_state_cache.Get(gx_state.blend));
-  D3D::stateman->PushDepthState(gx_state_cache.Get(gx_state.zmode));
-  D3D::stateman->PushRasterizerState(gx_state_cache.Get(gx_state.raster));
+  s_gx_state.blend.use_dst_alpha = bUseDstAlpha;
+  D3D::stateman->PushBlendState(s_gx_state_cache.Get(s_gx_state.blend));
+  D3D::stateman->PushDepthState(s_gx_state_cache.Get(s_gx_state.zmode));
+  D3D::stateman->PushRasterizerState(s_gx_state_cache.Get(s_gx_state.raster));
 
   for (unsigned int stage = 0; stage < 8; stage++)
   {
     // TODO: cache SamplerState directly, not d3d object
-    gx_state.sampler[stage].max_anisotropy = UINT64_C(1) << g_ActiveConfig.iMaxAnisotropy;
-    D3D::stateman->SetSampler(stage, gx_state_cache.Get(gx_state.sampler[stage]));
+    s_gx_state.sampler[stage].max_anisotropy = UINT64_C(1) << g_ActiveConfig.iMaxAnisotropy;
+    D3D::stateman->SetSampler(stage, s_gx_state_cache.Get(s_gx_state.sampler[stage]));
   }
 
   if (bUseDstAlpha)
@@ -969,10 +969,10 @@ void Renderer::RestoreState()
 
 void Renderer::ApplyCullDisable()
 {
-  RasterizerState rast = gx_state.raster;
+  RasterizerState rast = s_gx_state.raster;
   rast.cull_mode = D3D11_CULL_NONE;
 
-  ID3D11RasterizerState* raststate = gx_state_cache.Get(rast);
+  ID3D11RasterizerState* raststate = s_gx_state_cache.Get(rast);
   D3D::stateman->PushRasterizerState(raststate);
 }
 
@@ -988,12 +988,12 @@ void Renderer::SetGenerationMode()
 
   // rastdc.FrontCounterClockwise must be false for this to work
   // TODO: GX_CULL_ALL not supported, yet!
-  gx_state.raster.cull_mode = d3dCullModes[bpmem.genMode.cullmode];
+  s_gx_state.raster.cull_mode = d3dCullModes[bpmem.genMode.cullmode];
 }
 
 void Renderer::SetDepthMode()
 {
-  gx_state.zmode.hex = bpmem.zmode.hex;
+  s_gx_state.zmode.hex = bpmem.zmode.hex;
 }
 
 void Renderer::SetLogicOpMode()
@@ -1074,10 +1074,10 @@ void Renderer::SetLogicOpMode()
 
   if (bpmem.blendmode.logicopenable && !bpmem.blendmode.blendenable)
   {
-    gx_state.blend.blend_enable = true;
-    gx_state.blend.blend_op = d3dLogicOps[bpmem.blendmode.logicmode];
-    gx_state.blend.src_blend = d3dLogicOpSrcFactors[bpmem.blendmode.logicmode];
-    gx_state.blend.dst_blend = d3dLogicOpDestFactors[bpmem.blendmode.logicmode];
+    s_gx_state.blend.blend_enable = true;
+    s_gx_state.blend.blend_op = d3dLogicOps[bpmem.blendmode.logicmode];
+    s_gx_state.blend.src_blend = d3dLogicOpSrcFactors[bpmem.blendmode.logicmode];
+    s_gx_state.blend.dst_blend = d3dLogicOpDestFactors[bpmem.blendmode.logicmode];
   }
   else
   {
@@ -1097,25 +1097,25 @@ void Renderer::SetSamplerState(int stage, int texindex, bool custom_tex)
   if (g_ActiveConfig.bForceFiltering)
   {
     // Only use mipmaps if the game says they are available.
-    gx_state.sampler[stage].min_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? 6 : 4;
-    gx_state.sampler[stage].mag_filter = 1;  // linear mag
+    s_gx_state.sampler[stage].min_filter = SamplerCommon::AreBpTexMode0MipmapsEnabled(tm0) ? 6 : 4;
+    s_gx_state.sampler[stage].mag_filter = 1;  // linear mag
   }
   else
   {
-    gx_state.sampler[stage].min_filter = (u32)tm0.min_filter;
-    gx_state.sampler[stage].mag_filter = (u32)tm0.mag_filter;
+    s_gx_state.sampler[stage].min_filter = (u32)tm0.min_filter;
+    s_gx_state.sampler[stage].mag_filter = (u32)tm0.mag_filter;
   }
 
-  gx_state.sampler[stage].wrap_s = (u32)tm0.wrap_s;
-  gx_state.sampler[stage].wrap_t = (u32)tm0.wrap_t;
-  gx_state.sampler[stage].max_lod = (u32)tm1.max_lod;
-  gx_state.sampler[stage].min_lod = (u32)tm1.min_lod;
-  gx_state.sampler[stage].lod_bias = (s32)tm0.lod_bias;
+  s_gx_state.sampler[stage].wrap_s = (u32)tm0.wrap_s;
+  s_gx_state.sampler[stage].wrap_t = (u32)tm0.wrap_t;
+  s_gx_state.sampler[stage].max_lod = (u32)tm1.max_lod;
+  s_gx_state.sampler[stage].min_lod = (u32)tm1.min_lod;
+  s_gx_state.sampler[stage].lod_bias = (s32)tm0.lod_bias;
 
   // custom textures may have higher resolution, so disable the max_lod
   if (custom_tex)
   {
-    gx_state.sampler[stage].max_lod = 255;
+    s_gx_state.sampler[stage].max_lod = 255;
   }
 }
 
