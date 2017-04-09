@@ -102,13 +102,13 @@ static void SetupDeviceObjects()
   ddesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO;
   hr = D3D::device->CreateDepthStencilState(&ddesc, &s_clear_depth_states[2]);
   CHECK(hr == S_OK, "Create depth state for Renderer::ClearScreen");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)s_clear_depth_states[0],
+  D3D::SetDebugObjectName(s_clear_depth_states[0],
                           "depth state for Renderer::ClearScreen (depth buffer disabled)");
   D3D::SetDebugObjectName(
-      (ID3D11DeviceChild*)s_clear_depth_states[1],
+      s_clear_depth_states[1],
       "depth state for Renderer::ClearScreen (depth buffer enabled, writing enabled)");
   D3D::SetDebugObjectName(
-      (ID3D11DeviceChild*)s_clear_depth_states[2],
+      s_clear_depth_states[2],
       "depth state for Renderer::ClearScreen (depth buffer enabled, writing disabled)");
 
   D3D11_BLEND_DESC blenddesc;
@@ -124,8 +124,7 @@ static void SetupDeviceObjects()
   blenddesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
   hr = D3D::device->CreateBlendState(&blenddesc, &s_reset_blend_state);
   CHECK(hr == S_OK, "Create blend state for Renderer::ResetAPIState");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)s_reset_blend_state,
-                          "blend state for Renderer::ResetAPIState");
+  D3D::SetDebugObjectName(s_reset_blend_state, "blend state for Renderer::ResetAPIState");
 
   s_clear_blend_states[0] = s_reset_blend_state;
   s_reset_blend_state->AddRef();
@@ -151,15 +150,13 @@ static void SetupDeviceObjects()
   ddesc.StencilWriteMask = D3D11_DEFAULT_STENCIL_WRITE_MASK;
   hr = D3D::device->CreateDepthStencilState(&ddesc, &s_reset_depth_state);
   CHECK(hr == S_OK, "Create depth state for Renderer::ResetAPIState");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)s_reset_depth_state,
-                          "depth stencil state for Renderer::ResetAPIState");
+  D3D::SetDebugObjectName(s_reset_depth_state, "depth stencil state for Renderer::ResetAPIState");
 
   D3D11_RASTERIZER_DESC rastdesc = CD3D11_RASTERIZER_DESC(D3D11_FILL_SOLID, D3D11_CULL_NONE, false,
                                                           0, 0.f, 0.f, false, false, false, false);
   hr = D3D::device->CreateRasterizerState(&rastdesc, &s_reset_rast_state);
   CHECK(hr == S_OK, "Create rasterizer state for Renderer::ResetAPIState");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)s_reset_rast_state,
-                          "rasterizer state for Renderer::ResetAPIState");
+  D3D::SetDebugObjectName(s_reset_rast_state, "rasterizer state for Renderer::ResetAPIState");
 
   s_screenshot_texture = nullptr;
 }
@@ -197,7 +194,7 @@ static void CreateScreenshotTexture()
       D3D11_USAGE_STAGING, D3D11_CPU_ACCESS_READ | D3D11_CPU_ACCESS_WRITE);
   HRESULT hr = D3D::device->CreateTexture2D(&scrtex_desc, nullptr, &s_screenshot_texture);
   CHECK(hr == S_OK, "Create screenshot staging texture");
-  D3D::SetDebugObjectName((ID3D11DeviceChild*)s_screenshot_texture, "staging screenshot texture");
+  D3D::SetDebugObjectName(s_screenshot_texture, "staging screenshot texture");
 }
 
 static D3D11_BOX GetScreenshotSourceBox(const TargetRectangle& targetRc)
@@ -814,8 +811,7 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
     unsigned int source_width = source_box.right - source_box.left;
     unsigned int source_height = source_box.bottom - source_box.top;
     D3D::context->CopySubresourceRegion(s_screenshot_texture, 0, 0, 0, 0,
-                                        (ID3D11Resource*)D3D::GetBackBuffer()->GetTex(), 0,
-                                        &source_box);
+                                        D3D::GetBackBuffer()->GetTex(), 0, &source_box);
 
     D3D11_MAPPED_SUBRESOURCE map;
     D3D::context->Map(s_screenshot_texture, 0, D3D11_MAP_READ, 0, &map);
