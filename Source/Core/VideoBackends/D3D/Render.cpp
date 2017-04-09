@@ -749,20 +749,17 @@ void Renderer::SwapImpl(u32 xfbAddr, u32 fbWidth, u32 fbStride, u32 fbHeight,
   }
   else if (g_ActiveConfig.bUseXFB)
   {
-    const XFBSource* xfbSource;
-
     // draw each xfb source
     for (u32 i = 0; i < xfbCount; ++i)
     {
-      xfbSource = (const XFBSource*)xfbSourceList[i];
-
-      TargetRectangle drawRc;
+      const auto* const xfbSource = static_cast<const XFBSource*>(xfbSourceList[i]);
 
       // use virtual xfb with offset
       int xfbHeight = xfbSource->srcHeight;
       int xfbWidth = xfbSource->srcWidth;
       int hOffset = ((s32)xfbSource->srcAddr - (s32)xfbAddr) / ((s32)fbStride * 2);
 
+      TargetRectangle drawRc;
       drawRc.top = targetRc.top + hOffset * targetRc.GetHeight() / (s32)fbHeight;
       drawRc.bottom = targetRc.top + (hOffset + xfbHeight) * targetRc.GetHeight() / (s32)fbHeight;
       drawRc.left = targetRc.left +
