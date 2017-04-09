@@ -10,6 +10,7 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
+#include "Core/GeckoCode.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HLE/HLE_Misc.h"
 #include "Core/HLE/HLE_OS.h"
@@ -88,6 +89,24 @@ void Patch(u32 addr, const char* hle_func_name)
   }
 }
 
+void PatchFixedFunctions()
+{
+  // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code
+  // handler
+  if (!SConfig::GetInstance().bEnableCheats)
+  {
+    Patch(0x80001800, "HBReload");
+    Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);
+  }
+
+  // Not part of the binary itself, but either we or Gecko OS might insert
+  // this, and it doesn't clear the icache properly.
+  Patch(Gecko::ENTRY_POINT, "GeckoCodehandler");
+  // This has to always be installed even if cheats are not enabled because of the possiblity of
+  // loading a savestate where PC is inside the code handler while cheats are disabled.
+  Patch(Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
+}
+
 void PatchFunctions()
 {
   // Remove all hooks that aren't fixed address hooks
@@ -139,6 +158,13 @@ void PatchFunctions()
 void Clear()
 {
   s_original_instructions.clear();
+}
+
+void Reload()
+{
+  Clear();
+  PatchFixedFunctions();
+  PatchFunctions();
 }
 
 void Execute(u32 _CurrentPC, u32 _Instruction)

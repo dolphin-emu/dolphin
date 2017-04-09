@@ -21,7 +21,6 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/Debugger/Debugger_SymbolMap.h"
-#include "Core/GeckoCode.h"
 #include "Core/HLE/HLE.h"
 #include "Core/HW/DVD/DVDInterface.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
@@ -479,19 +478,6 @@ bool CBoot::BootUp()
   }
   }
 
-  // HLE jump to loader (homebrew).  Disabled when Gecko is active as it interferes with the code
-  // handler
-  if (!SConfig::GetInstance().bEnableCheats)
-  {
-    HLE::Patch(0x80001800, "HBReload");
-    Memory::CopyToEmu(0x00001804, "STUBHAXX", 8);
-  }
-
-  // Not part of the binary itself, but either we or Gecko OS might insert
-  // this, and it doesn't clear the icache properly.
-  HLE::Patch(Gecko::ENTRY_POINT, "GeckoCodehandler");
-  // This has to always be installed even if cheats are not enabled because of the possiblity of
-  // loading a savestate where PC is inside the code handler while cheats are disabled.
-  HLE::Patch(Gecko::HLE_TRAMPOLINE_ADDRESS, "GeckoHandlerReturnTrampoline");
+  HLE::PatchFixedFunctions();
   return true;
 }
