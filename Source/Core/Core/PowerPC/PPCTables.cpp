@@ -131,7 +131,7 @@ const char* GetInstructionName(UGeckoInstruction _inst)
 bool IsValidInstruction(UGeckoInstruction _inst)
 {
   const GekkoOPInfo* info = GetOpInfo(_inst);
-  return info != nullptr;
+  return info != nullptr && info->type != OPTYPE_UNKNOWN;
 }
 
 void CountInstruction(UGeckoInstruction _inst)
