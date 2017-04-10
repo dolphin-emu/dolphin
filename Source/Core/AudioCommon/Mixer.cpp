@@ -122,18 +122,26 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   return actual_sample_count;
 }
 
-unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider_framelimit)
+unsigned int CMixer::Mix(short* samples, unsigned int num_samples)
 {
   if (!samples)
     return 0;
 
   memset(samples, 0, num_samples * 2 * sizeof(short));
 
-  unsigned int actual_samples = m_dma_mixer.Mix(samples, num_samples, false);
-  m_streaming_mixer.Mix(samples, num_samples, false);
-  m_wiimote_speaker_mixer.Mix(samples, num_samples, false);
+  const bool stretch = SConfig::GetInstance().m_audio_stretch;
 
-  StretchAudio(samples, actual_samples, num_samples);
+  unsigned int actual_samples = m_dma_mixer.Mix(samples, num_samples, !stretch);
+  m_streaming_mixer.Mix(samples, num_samples, !stretch);
+  m_wiimote_speaker_mixer.Mix(samples, num_samples, !stretch);
+
+  if (stretch)
+  {
+    if (m_is_stretching != stretch)
+      m_sound_touch.clear();
+    StretchAudio(samples, actual_samples, num_samples);
+  }
+  m_is_stretching = stretch;
 
   return num_samples;
 }
@@ -144,10 +152,10 @@ void CMixer::StretchAudio(short* samples, unsigned int actual_samples, unsigned 
 
   // We were given actual_samples number of samples, and num_samples were requested from us.
   double current_ratio = static_cast<double>(actual_samples) / static_cast<double>(num_samples);
-    
-  constexpr double MAXIMUM_LATENCY = 0.080;  // seconds
-  const double max_backlog = m_sampleRate * MAXIMUM_LATENCY;
-  double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
+
+  const double max_latency = SConfig::GetInstance().m_audio_stretch_max_latency;
+  const double max_backlog = m_sampleRate * max_latency / 1000.0;
+  const double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
   if (backlog_fullness > 1.0)
   {
     // Exceeded latency budget: Do not add more samples into FIFO.

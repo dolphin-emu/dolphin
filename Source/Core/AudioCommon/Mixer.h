@@ -20,7 +20,7 @@ public:
   ~CMixer();
 
   // Called from audio threads
-  unsigned int Mix(short* samples, unsigned int numSamples, bool consider_framelimit = true);
+  unsigned int Mix(short* samples, unsigned int numSamples);
 
   // Called from main thread
   void PushSamples(const short* samples, unsigned int num_samples);
