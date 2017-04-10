@@ -88,6 +88,9 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
     m_frac &= 0xffff;
   }
 
+  // Actual number of samples written to the buffer without padding.
+  unsigned int actual_sample_count = currentSample / 2;
+
   // Padding
   short s[2];
   s[0] = Common::swap16(m_buffer[(indexR - 1) & INDEX_MASK]);
@@ -106,7 +109,7 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   // Flush cached variable
   m_indexR.store(indexR);
 
-  return numSamples;
+  return actual_sample_count;
 }
 
 unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider_framelimit)
