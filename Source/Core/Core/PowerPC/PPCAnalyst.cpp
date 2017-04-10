@@ -298,6 +298,40 @@ static void FindFunctionsFromBranches(u32 startAddr, u32 endAddr, SymbolDB* func
   }
 }
 
+static void FindFunctionsFromHandlers(PPCSymbolDB* func_db)
+{
+  static const std::map<u32, const char* const> handlers = {
+      {0x80000100, "system_reset_exception_handler"},
+      {0x80000200, "machine_check_exception_handler"},
+      {0x80000300, "dsi_exception_handler"},
+      {0x80000400, "isi_exception_handler"},
+      {0x80000500, "external_interrupt_exception_handler"},
+      {0x80000600, "alignment_exception_handler"},
+      {0x80000700, "program_exception_handler"},
+      {0x80000800, "floating_point_unavailable_exception_handler"},
+      {0x80000900, "decrementer_exception_handler"},
+      {0x80000C00, "system_call_exception_handler"},
+      {0x80000D00, "trace_exception_handler"},
+      {0x80000E00, "floating_point_assist_exception_handler"},
+      {0x80000F00, "performance_monitor_interrupt_handler"},
+      {0x80001300, "instruction_address_breakpoint_exception_handler"},
+      {0x80001400, "system_management_interrupt_handler"},
+      {0x80001700, "thermal_management_interrupt_exception_handler"}};
+
+  for (const auto& entry : handlers)
+  {
+    const PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(entry.first);
+    if (read_result.valid && PPCTables::IsValidInstruction(read_result.hex))
+    {
+      // Check if this function is already mapped
+      Symbol* f = func_db->AddFunction(entry.first);
+      if (!f)
+        continue;
+      f->name = entry.second;
+    }
+  }
+}
+
 static void FindFunctionsAfterReturnInstruction(PPCSymbolDB* func_db)
 {
   std::vector<u32> funcAddrs;
@@ -332,6 +366,7 @@ void FindFunctions(u32 startAddr, u32 endAddr, PPCSymbolDB* func_db)
 {
   // Step 1: Find all functions
   FindFunctionsFromBranches(startAddr, endAddr, func_db);
+  FindFunctionsFromHandlers(func_db);
   FindFunctionsAfterReturnInstruction(func_db);
 
   // Step 2:
