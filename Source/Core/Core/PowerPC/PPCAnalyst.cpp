@@ -311,11 +311,13 @@ static void FindFunctionsAfterBLR(PPCSymbolDB* func_db)
   {
     while (true)
     {
-      // Skip zeroes that sometimes pad function to 16 byte boundary (e.g. Donkey Kong Country
-      // Returns)
+      // Skip zeroes (e.g. Donkey Kong Country Returns) and nop (e.g. libogc)
+      // that sometimes pad function to 16 byte boundary.
       PowerPC::TryReadInstResult read_result = PowerPC::TryReadInstruction(location);
-      while (read_result.valid && read_result.hex == 0 && (location & 0xf) != 0)
+      while (read_result.valid && (location & 0xf) != 0)
       {
+        if (read_result.hex != 0 && read_result.hex != 0x60000000)
+          break;
         location += 4;
         read_result = PowerPC::TryReadInstruction(location);
       }
