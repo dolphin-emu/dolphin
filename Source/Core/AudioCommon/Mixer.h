@@ -10,6 +10,9 @@
 #include "AudioCommon/WaveFile.h"
 #include "Common/CommonTypes.h"
 
+#include <soundtouch/STTypes.h>
+#include <soundtouch/SoundTouch.h>
+
 class CMixer final
 {
 public:
@@ -70,10 +73,18 @@ private:
     float m_numLeftI = 0.0f;
     u32 m_frac = 0;
   };
+
+  void StretchAudio(short* samples, unsigned int actual_samples, unsigned int num_samples);
+
   MixerFifo m_dma_mixer{this, 32000};
   MixerFifo m_streaming_mixer{this, 48000};
   MixerFifo m_wiimote_speaker_mixer{this, 3000};
   unsigned int m_sampleRate;
+
+  bool m_is_stretching = false;
+  soundtouch::SoundTouch m_sound_touch;
+  double m_stretch_ratio = 1.0;
+  std::array<short, 2> m_last_stretched_sample = {};
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;

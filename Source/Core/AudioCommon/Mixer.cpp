@@ -4,6 +4,7 @@
 
 #include "AudioCommon/Mixer.h"
 
+#include <cmath>
 #include <cstring>
 
 #include "Common/CommonTypes.h"
@@ -15,6 +16,15 @@
 CMixer::CMixer(unsigned int BackendSampleRate) : m_sampleRate(BackendSampleRate)
 {
   INFO_LOG(AUDIO_INTERFACE, "Mixer is initialized");
+
+  m_sound_touch.setChannels(2);
+  m_sound_touch.setSampleRate(BackendSampleRate);
+  m_sound_touch.setPitch(1.0);
+  m_sound_touch.setTempo(1.0);
+  m_sound_touch.setSetting(SETTING_USE_QUICKSEEK, 0);
+  m_sound_touch.setSetting(SETTING_SEQUENCE_MS, 62);
+  m_sound_touch.setSetting(SETTING_SEEKWINDOW_MS, 28);
+  m_sound_touch.setSetting(SETTING_OVERLAP_MS, 8);
 }
 
 CMixer::~CMixer()
@@ -119,10 +129,71 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider
 
   memset(samples, 0, num_samples * 2 * sizeof(short));
 
-  m_dma_mixer.Mix(samples, num_samples, consider_framelimit);
-  m_streaming_mixer.Mix(samples, num_samples, consider_framelimit);
-  m_wiimote_speaker_mixer.Mix(samples, num_samples, consider_framelimit);
+  unsigned int actual_samples = m_dma_mixer.Mix(samples, num_samples, false);
+  m_streaming_mixer.Mix(samples, num_samples, false);
+  m_wiimote_speaker_mixer.Mix(samples, num_samples, false);
+
+  StretchAudio(samples, actual_samples, num_samples);
+
   return num_samples;
+}
+
+void CMixer::StretchAudio(short* samples, unsigned int actual_samples, unsigned int num_samples)
+{
+  const double time_delta = static_cast<double>(num_samples) / m_sampleRate;  // seconds
+
+  // We were given actual_samples number of samples, and num_samples were requested from us.
+  double current_ratio = static_cast<double>(actual_samples) / static_cast<double>(num_samples);
+    
+  constexpr double MAXIMUM_LATENCY = 0.080;  // seconds
+  const double max_backlog = m_sampleRate * MAXIMUM_LATENCY;
+  double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
+  if (backlog_fullness > 1.0)
+  {
+    // Exceeded latency budget: Do not add more samples into FIFO.
+    actual_samples = 0;
+  }
+
+  // We ideally want the backlog to be about 50% full.
+  // This gives some headroom both ways to prevent underflow and overflow.
+  // We tweak current_ratio to encourage this.
+  constexpr double tweak_time_scale = 0.1;  // seconds
+  current_ratio *= 1.0 + 2.0 * (backlog_fullness - 0.5) * (time_delta / tweak_time_scale);
+
+  // This low-pass filter smoothes out variance in the calculated stretch ratio.
+  // The time-scale determines how responsive this filter is.
+  constexpr double lpf_time_scale = 0.3;  // seconds
+  const double m_lpf_gain = 1.0 - std::exp(-time_delta / lpf_time_scale);
+  m_stretch_ratio += m_lpf_gain * (current_ratio - m_stretch_ratio);
+
+  // Place a lower limit of 10% speed.  When a game boots up, there will be
+  // many silence samples.  These do not need to be timestretched.
+  m_sound_touch.setTempo(std::max(m_stretch_ratio, 0.1));
+
+  if (actual_samples != num_samples)
+  {
+    DEBUG_LOG(AUDIO, "Audio stretching: samples:%u/%u ratio:%f backlog:%f gain: %f", actual_samples,
+              num_samples, m_stretch_ratio, backlog_fullness, m_lpf_gain);
+  }
+
+  m_sound_touch.putSamples(samples, actual_samples);
+
+  memset(samples, 0, num_samples * 2 * sizeof(short));
+
+  const size_t samples_received = m_sound_touch.receiveSamples(samples, num_samples);
+
+  if (samples_received != 0)
+  {
+    m_last_stretched_sample[0] = samples[samples_received * 2 - 2];
+    m_last_stretched_sample[1] = samples[samples_received * 2 - 1];
+  }
+
+  // Preform padding if we've run out of samples.
+  for (size_t i = samples_received; i < num_samples; i++)
+  {
+    samples[i * 2 + 0] = m_last_stretched_sample[0];
+    samples[i * 2 + 1] = m_last_stretched_sample[1];
+  }
 }
 
 void CMixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
