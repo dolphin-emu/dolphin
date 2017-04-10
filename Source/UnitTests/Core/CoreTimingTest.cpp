@@ -254,9 +254,9 @@ TEST(CoreTiming, ScheduleIntoPast)
   // the stale value, i.e. effectively half-way through the previous slice.
   // NOTE: We're only testing that the scheduler doesn't break, not whether this makes sense.
   Core::UndeclareAsCPUThread();
-  CoreTiming::g_global_timer -= 1000;
+  CoreTiming::g.global_timer -= 1000;
   CoreTiming::ScheduleEvent(0, cb_b, CB_IDS[1], CoreTiming::FromThread::NON_CPU);
-  CoreTiming::g_global_timer += 1000;
+  CoreTiming::g.global_timer += 1000;
   Core::DeclareAsCPUThread();
   AdvanceAndCheck(1, MAX_SLICE_LENGTH, MAX_SLICE_LENGTH + 1000);
 

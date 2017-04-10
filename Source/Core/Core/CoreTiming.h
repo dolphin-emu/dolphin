@@ -25,11 +25,15 @@ class PointerWrap;
 namespace CoreTiming
 {
 // These really shouldn't be global, but jit64 accesses them directly
-extern s64 g_global_timer;
-extern u64 g_fake_TB_start_value;
-extern u64 g_fake_TB_start_ticks;
-extern int g_slice_length;
-extern float g_last_OC_factor_inverted;
+struct Globals
+{
+  s64 global_timer;
+  u64 fake_TB_start_value;
+  u64 fake_TB_start_ticks;
+  int slice_length;
+  float last_OC_factor_inverted;
+};
+extern Globals g;
 
 // CoreTiming begins at the boundary of timing slice -1. An initial call to Advance() is
 // required to end slice -1 and start slice 0 before the first cycle of code is executed.
