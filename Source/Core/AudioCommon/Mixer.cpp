@@ -47,26 +47,27 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
   u32 indexR = m_indexR.load();
   u32 indexW = m_indexW.load();
 
-  u32 low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
-  low_waterwark = std::min(low_waterwark, MAX_SAMPLES / 2);
-
-  float numLeft = (float)(((indexW - indexR) & INDEX_MASK) / 2);
-  m_numLeftI = (numLeft + m_numLeftI * (CONTROL_AVG - 1)) / CONTROL_AVG;
-  float offset = (m_numLeftI - low_waterwark) * CONTROL_FACTOR;
-  if (offset > MAX_FREQ_SHIFT)
-    offset = MAX_FREQ_SHIFT;
-  if (offset < -MAX_FREQ_SHIFT)
-    offset = -MAX_FREQ_SHIFT;
-
   // render numleft sample pairs to samples[]
   // advance indexR with sample position
   // remember fractional offset
 
   float emulationspeed = SConfig::GetInstance().m_EmulationSpeed;
-  float aid_sample_rate = m_input_sample_rate + offset;
+  float aid_sample_rate = static_cast<float>(m_input_sample_rate);
   if (consider_framelimit && emulationspeed > 0.0f)
   {
-    aid_sample_rate = aid_sample_rate * emulationspeed;
+    float numLeft = static_cast<float>(((indexW - indexR) & INDEX_MASK) / 2);
+
+    u32 low_waterwark = m_input_sample_rate * SConfig::GetInstance().iTimingVariance / 1000;
+    low_waterwark = std::min(low_waterwark, MAX_SAMPLES / 2);
+
+    m_numLeftI = (numLeft + m_numLeftI * (CONTROL_AVG - 1)) / CONTROL_AVG;
+    float offset = (m_numLeftI - low_waterwark) * CONTROL_FACTOR;
+    if (offset > MAX_FREQ_SHIFT)
+      offset = MAX_FREQ_SHIFT;
+    if (offset < -MAX_FREQ_SHIFT)
+      offset = -MAX_FREQ_SHIFT;
+
+    aid_sample_rate = (aid_sample_rate + offset) * emulationspeed;
   }
 
   const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);
