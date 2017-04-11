@@ -30,15 +30,21 @@ public:
   void SwitchToNearCode();
 
   template <typename T>
+  const void* GetConstantFromPool(const T& value)
+  {
+    return m_const_pool.GetConstant(&value, sizeof(T), 1, 0);
+  }
+
+  template <typename T>
   Gen::OpArg MConst(const T& value)
   {
-    return m_const_pool.GetConstantOpArg(&value, sizeof(T), 1, 0);
+    return Gen::M(GetConstantFromPool(value));
   }
 
   template <typename T, size_t N>
   Gen::OpArg MConst(const T (&value)[N], size_t index = 0)
   {
-    return m_const_pool.GetConstantOpArg(&value, sizeof(T), N, index);
+    return Gen::M(m_const_pool.GetConstant(&value, sizeof(T), N, index));
   }
 
   Gen::FixupBranch CheckIfSafeAddress(const Gen::OpArg& reg_value, Gen::X64Reg reg_addr,

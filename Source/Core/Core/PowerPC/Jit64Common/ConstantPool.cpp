@@ -7,7 +7,6 @@
 #include <utility>
 
 #include "Common/Assert.h"
-#include "Common/x64Emitter.h"
 #include "Core/PowerPC/Jit64Common/ConstantPool.h"
 
 ConstantPool::ConstantPool() = default;
@@ -37,8 +36,8 @@ void ConstantPool::Shutdown()
   m_const_info.clear();
 }
 
-Gen::OpArg ConstantPool::GetConstantOpArg(const void* value, size_t element_size,
-                                          size_t num_elements, size_t index)
+const void* ConstantPool::GetConstant(const void* value, size_t element_size, size_t num_elements,
+                                      size_t index)
 {
   const size_t value_size = element_size * num_elements;
   auto iter = m_const_info.find(value);
@@ -59,5 +58,5 @@ Gen::OpArg ConstantPool::GetConstantOpArg(const void* value, size_t element_size
   _assert_msg_(DYNA_REC, info.m_size == value_size,
                "Constant has incorrect size in constant pool.");
   u8* location = static_cast<u8*>(info.m_location);
-  return Gen::M(location + element_size * index);
+  return location + element_size * index;
 }
