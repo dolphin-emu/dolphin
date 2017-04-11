@@ -217,6 +217,16 @@ if(CMAKE_C_COMPILER_ID MATCHES "MSVC")
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /DYNAMICBASE:NO")
   string(APPEND CMAKE_EXE_LINKER_FLAGS " /FIXED")
 
+  # Enforce C++ standard conforming conversion rules to catch possible bugs
+  add_compile_options(/Zc:strictStrings)
+  add_compile_options(/Zc:rvalueCast)
+  # Remove unreferenced inline functions/data to reduce link time and catch bugs
+  add_compile_options(/Zc:inline)
+  # Assume `new` (w/o std::nothrow) throws to reduce binary size
+  add_compile_options(/Zc:throwingNew)
+  # Enforce strict volatile semantics as per ISO C++
+  add_compile_options(/volatile:iso)
+
   # Only MSBuild needs this, other generators will compile one file at a time
   if(CMAKE_GENERATOR MATCHES "Visual Studio")
     add_compile_options("/MP")
