@@ -9,6 +9,7 @@
 #include <memory>
 #include <string>
 #include <strsafe.h>
+#include <tuple>
 #include <unordered_map>
 
 #include "Common/Align.h"
@@ -1203,7 +1204,7 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, D3DTexture2D
   if (g_ActiveConfig.iStereoMode == STEREO_SBS || g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
     TargetRectangle left_rc, right_rc;
-    ConvertStereoRectangle(dst, left_rc, right_rc);
+    std::tie(left_rc, right_rc) = ConvertStereoRectangle(dst);
 
     // Swap chain backbuffer is never multisampled..
 

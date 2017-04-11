@@ -10,6 +10,7 @@
 #include <cstdio>
 #include <memory>
 #include <string>
+#include <tuple>
 #include <vector>
 
 #include "Common/Atomic.h"
@@ -1181,9 +1182,9 @@ void Renderer::BlitScreen(TargetRectangle src, TargetRectangle dst, GLuint src_t
 
     // Top-and-Bottom mode needs to compensate for inverted vertical screen coordinates.
     if (g_ActiveConfig.iStereoMode == STEREO_TAB)
-      ConvertStereoRectangle(dst, rightRc, leftRc);
+      std::tie(rightRc, leftRc) = ConvertStereoRectangle(dst);
     else
-      ConvertStereoRectangle(dst, leftRc, rightRc);
+      std::tie(leftRc, rightRc) = ConvertStereoRectangle(dst);
 
     m_post_processor->BlitFromTexture(src, leftRc, src_texture, src_width, src_height, 0);
     m_post_processor->BlitFromTexture(src, rightRc, src_texture, src_width, src_height, 1);

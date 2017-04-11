@@ -100,8 +100,8 @@ public:
   void UpdateDrawRectangle();
 
   // Use this to convert a single target rectangle to two stereo rectangles
-  void ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc,
-                              TargetRectangle& rightRc) const;
+  std::tuple<TargetRectangle, TargetRectangle>
+  ConvertStereoRectangle(const TargetRectangle& rc) const;
 
   // Use this to upscale native EFB coordinates to IDEAL internal resolution
   int EFBToScaledX(int x) const;
@@ -144,7 +144,7 @@ public:
   bool UseVertexDepthRange() const;
 
 protected:
-  void CalculateTargetScale(int x, int y, int* scaledX, int* scaledY) const;
+  std::tuple<int, int> CalculateTargetScale(int x, int y) const;
   bool CalculateTargetSize();
 
   void CheckFifoRecording();

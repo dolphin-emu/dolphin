@@ -163,49 +163,52 @@ float Renderer::EFBToScaledYf(float y) const
   return y * ((float)GetTargetHeight() / (float)EFB_HEIGHT);
 }
 
-void Renderer::CalculateTargetScale(int x, int y, int* scaledX, int* scaledY) const
+std::tuple<int, int> Renderer::CalculateTargetScale(int x, int y) const
 {
   if (g_ActiveConfig.iEFBScale == SCALE_AUTO || g_ActiveConfig.iEFBScale == SCALE_AUTO_INTEGRAL)
   {
-    *scaledX = x;
-    *scaledY = y;
+    return std::make_tuple(x, y);
   }
-  else
-  {
-    *scaledX = x * (int)m_efb_scale_numeratorX / (int)m_efb_scale_denominatorX;
-    *scaledY = y * (int)m_efb_scale_numeratorY / (int)m_efb_scale_denominatorY;
-  }
+
+  const int scaled_x =
+      x * static_cast<int>(m_efb_scale_numeratorX) / static_cast<int>(m_efb_scale_denominatorX);
+
+  const int scaled_y =
+      y * static_cast<int>(m_efb_scale_numeratorY) / static_cast<int>(m_efb_scale_denominatorY);
+
+  return std::make_tuple(scaled_x, scaled_y);
 }
 
 // return true if target size changed
 bool Renderer::CalculateTargetSize()
 {
-  int newEFBWidth, newEFBHeight;
-  newEFBWidth = newEFBHeight = 0;
-
   m_last_efb_scale = g_ActiveConfig.iEFBScale;
+
+  int new_efb_width = 0;
+  int new_efb_height = 0;
 
   // TODO: Ugly. Clean up
   switch (m_last_efb_scale)
   {
   case SCALE_AUTO:
   case SCALE_AUTO_INTEGRAL:
-    newEFBWidth = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, m_target_rectangle);
-    newEFBHeight = FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, m_target_rectangle);
+    new_efb_width = FramebufferManagerBase::ScaleToVirtualXfbWidth(EFB_WIDTH, m_target_rectangle);
+    new_efb_height =
+        FramebufferManagerBase::ScaleToVirtualXfbHeight(EFB_HEIGHT, m_target_rectangle);
 
     if (m_last_efb_scale == SCALE_AUTO_INTEGRAL)
     {
       m_efb_scale_numeratorX = m_efb_scale_numeratorY =
-          std::max((newEFBWidth - 1) / EFB_WIDTH + 1, (newEFBHeight - 1) / EFB_HEIGHT + 1);
+          std::max((new_efb_width - 1) / EFB_WIDTH + 1, (new_efb_height - 1) / EFB_HEIGHT + 1);
       m_efb_scale_denominatorX = m_efb_scale_denominatorY = 1;
-      newEFBWidth = EFBToScaledX(EFB_WIDTH);
-      newEFBHeight = EFBToScaledY(EFB_HEIGHT);
+      new_efb_width = EFBToScaledX(EFB_WIDTH);
+      new_efb_height = EFBToScaledY(EFB_HEIGHT);
     }
     else
     {
-      m_efb_scale_numeratorX = newEFBWidth;
+      m_efb_scale_numeratorX = new_efb_width;
       m_efb_scale_denominatorX = EFB_WIDTH;
-      m_efb_scale_numeratorY = newEFBHeight;
+      m_efb_scale_numeratorY = new_efb_height;
       m_efb_scale_denominatorY = EFB_HEIGHT;
     }
     break;
@@ -244,53 +247,56 @@ bool Renderer::CalculateTargetSize()
     break;
   }
   if (m_last_efb_scale > SCALE_AUTO_INTEGRAL)
-    CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT, &newEFBWidth, &newEFBHeight);
+    std::tie(new_efb_width, new_efb_height) = CalculateTargetScale(EFB_WIDTH, EFB_HEIGHT);
 
-  if (newEFBWidth != m_target_width || newEFBHeight != m_target_height)
+  if (new_efb_width != m_target_width || new_efb_height != m_target_height)
   {
-    m_target_width = newEFBWidth;
-    m_target_height = newEFBHeight;
+    m_target_width = new_efb_width;
+    m_target_height = new_efb_height;
     PixelShaderManager::SetEfbScaleChanged(EFBToScaledXf(1), EFBToScaledYf(1));
     return true;
   }
   return false;
 }
 
-void Renderer::ConvertStereoRectangle(const TargetRectangle& rc, TargetRectangle& leftRc,
-                                      TargetRectangle& rightRc) const
+std::tuple<TargetRectangle, TargetRectangle>
+Renderer::ConvertStereoRectangle(const TargetRectangle& rc) const
 {
   // Resize target to half its original size
-  TargetRectangle drawRc = rc;
+  TargetRectangle draw_rc = rc;
   if (g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
     // The height may be negative due to flipped rectangles
     int height = rc.bottom - rc.top;
-    drawRc.top += height / 4;
-    drawRc.bottom -= height / 4;
+    draw_rc.top += height / 4;
+    draw_rc.bottom -= height / 4;
   }
   else
   {
     int width = rc.right - rc.left;
-    drawRc.left += width / 4;
-    drawRc.right -= width / 4;
+    draw_rc.left += width / 4;
+    draw_rc.right -= width / 4;
   }
 
   // Create two target rectangle offset to the sides of the backbuffer
-  leftRc = drawRc, rightRc = drawRc;
+  TargetRectangle left_rc = draw_rc;
+  TargetRectangle right_rc = draw_rc;
   if (g_ActiveConfig.iStereoMode == STEREO_TAB)
   {
-    leftRc.top -= m_backbuffer_height / 4;
-    leftRc.bottom -= m_backbuffer_height / 4;
-    rightRc.top += m_backbuffer_height / 4;
-    rightRc.bottom += m_backbuffer_height / 4;
+    left_rc.top -= m_backbuffer_height / 4;
+    left_rc.bottom -= m_backbuffer_height / 4;
+    right_rc.top += m_backbuffer_height / 4;
+    right_rc.bottom += m_backbuffer_height / 4;
   }
   else
   {
-    leftRc.left -= m_backbuffer_width / 4;
-    leftRc.right -= m_backbuffer_width / 4;
-    rightRc.left += m_backbuffer_width / 4;
-    rightRc.right += m_backbuffer_width / 4;
+    left_rc.left -= m_backbuffer_width / 4;
+    left_rc.right -= m_backbuffer_width / 4;
+    right_rc.left += m_backbuffer_width / 4;
+    right_rc.right += m_backbuffer_width / 4;
   }
+
+  return std::make_tuple(left_rc, right_rc);
 }
 
 void Renderer::SaveScreenshot(const std::string& filename, bool wait_for_completion)
@@ -650,7 +656,7 @@ void Renderer::SetWindowSize(int width, int height)
   height = std::max(height, 1);
 
   // Scale the window size by the EFB scale.
-  CalculateTargetScale(width, height, &width, &height);
+  std::tie(width, height) = CalculateTargetScale(width, height);
 
   float scaled_width, scaled_height;
   std::tie(scaled_width, scaled_height) = ScaleToDisplayAspectRatio(width, height);
