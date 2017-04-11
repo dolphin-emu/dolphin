@@ -60,6 +60,7 @@ private:
     void SetInputSampleRate(unsigned int rate);
     unsigned int GetInputSampleRate() const;
     void SetVolume(unsigned int lvolume, unsigned int rvolume);
+    unsigned int AvailableSamples() const;
 
   private:
     CMixer* m_mixer;

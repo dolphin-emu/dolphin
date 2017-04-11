@@ -130,19 +130,30 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples)
 
   memset(samples, 0, num_samples * 2 * sizeof(short));
 
-  const bool stretch = SConfig::GetInstance().m_audio_stretch;
-
-  unsigned int actual_samples = m_dma_mixer.Mix(samples, num_samples, !stretch);
-  m_streaming_mixer.Mix(samples, num_samples, !stretch);
-  m_wiimote_speaker_mixer.Mix(samples, num_samples, !stretch);
-
-  if (stretch)
+  if (SConfig::GetInstance().m_audio_stretch)
   {
-    if (m_is_stretching != stretch)
+    unsigned int actual_samples = std::min({
+        m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples(), num_samples,
+    });
+
+    m_dma_mixer.Mix(samples, actual_samples, false);
+    m_streaming_mixer.Mix(samples, actual_samples, false);
+    m_wiimote_speaker_mixer.Mix(samples, actual_samples, false);
+
+    if (!m_is_stretching)
+    {
       m_sound_touch.clear();
+      m_is_stretching = true;
+    }
     StretchAudio(samples, actual_samples, num_samples);
   }
-  m_is_stretching = stretch;
+  else
+  {
+    m_dma_mixer.Mix(samples, num_samples, true);
+    m_streaming_mixer.Mix(samples, num_samples, true);
+    m_wiimote_speaker_mixer.Mix(samples, num_samples, true);
+    m_is_stretching = false;
+  }
 
   return num_samples;
 }
@@ -377,4 +388,12 @@ void CMixer::MixerFifo::SetVolume(unsigned int lvolume, unsigned int rvolume)
 {
   m_LVolume.store(lvolume + (lvolume >> 7));
   m_RVolume.store(rvolume + (rvolume >> 7));
+}
+
+unsigned int CMixer::MixerFifo::AvailableSamples() const
+{
+  unsigned int samples_in_fifo = ((m_indexW.load() - m_indexR.load()) & INDEX_MASK) / 2;
+  if (samples_in_fifo <= 1)
+    return 0;  // CMixer::MixerFifo::Mix always keeps one sample in the buffer.
+  return (samples_in_fifo - 1) * m_mixer->m_sampleRate / m_input_sample_rate;
 }
