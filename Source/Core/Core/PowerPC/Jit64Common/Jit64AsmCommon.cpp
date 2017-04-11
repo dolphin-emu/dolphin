@@ -29,7 +29,7 @@ void CommonAsmRoutines::GenFifoWrite(int size)
 
   // Assume value in RSCRATCH
   MOV(32, R(RSCRATCH2), M(&GPFifo::m_gatherPipeCount));
-  SwapAndStore(size, MDisp(RSCRATCH2, PtrOffset(GPFifo::m_gatherPipe)), RSCRATCH);
+  SwapAndStore(size, MDispPIC(RSCRATCH2, GPFifo::m_gatherPipe), RSCRATCH);
   ADD(32, R(RSCRATCH2), Imm8(size >> 3));
   MOV(32, M(&GPFifo::m_gatherPipeCount), R(RSCRATCH2));
   RET();
@@ -71,9 +71,8 @@ void CommonAsmRoutines::GenFrsqrte()
 
   SHR(64, R(RSCRATCH), Imm8(37));
   AND(32, R(RSCRATCH), Imm32(0x7FF));
-  IMUL(32, RSCRATCH, MScaled(RSCRATCH_EXTRA, SCALE_4, PtrOffset(MathUtil::frsqrte_expected_dec)));
-  MOV(32, R(RSCRATCH_EXTRA),
-      MScaled(RSCRATCH_EXTRA, SCALE_4, PtrOffset(MathUtil::frsqrte_expected_base)));
+  IMUL(32, RSCRATCH, MScaledPIC(RSCRATCH_EXTRA, SCALE_4, MathUtil::frsqrte_expected_dec));
+  MOV(32, R(RSCRATCH_EXTRA), MScaledPIC(RSCRATCH_EXTRA, SCALE_4, MathUtil::frsqrte_expected_base));
   SUB(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHL(64, R(RSCRATCH_EXTRA), Imm8(26));
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(frsqrte_expected_base[index] -
@@ -140,11 +139,11 @@ void CommonAsmRoutines::GenFres()
   AND(32, R(RSCRATCH), Imm32(0x3FF));  // i % 1024
   AND(32, R(RSCRATCH2), Imm8(0x1F));   // i / 1024
 
-  IMUL(32, RSCRATCH, MScaled(RSCRATCH2, SCALE_4, PtrOffset(MathUtil::fres_expected_dec)));
+  IMUL(32, RSCRATCH, MScaledPIC(RSCRATCH2, SCALE_4, MathUtil::fres_expected_dec));
   ADD(32, R(RSCRATCH), Imm8(1));
   SHR(32, R(RSCRATCH), Imm8(1));
 
-  MOV(32, R(RSCRATCH2), MScaled(RSCRATCH2, SCALE_4, PtrOffset(MathUtil::fres_expected_base)));
+  MOV(32, R(RSCRATCH2), MScaledPIC(RSCRATCH2, SCALE_4, MathUtil::fres_expected_base));
   SUB(32, R(RSCRATCH2), R(RSCRATCH));
   SHL(64, R(RSCRATCH2), Imm8(29));
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(fres_expected_base[i / 1024] -
