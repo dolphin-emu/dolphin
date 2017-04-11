@@ -5,6 +5,7 @@
 #pragma once
 
 #include <algorithm>
+#include <array>
 #include <cstdlib>
 #include <vector>
 
@@ -131,10 +132,13 @@ u32 ClassifyDouble(double dvalue);
 // More efficient float version.
 u32 ClassifyFloat(float fvalue);
 
-extern const int frsqrte_expected_base[];
-extern const int frsqrte_expected_dec[];
-extern const int fres_expected_base[];
-extern const int fres_expected_dec[];
+struct BaseAndDec
+{
+  int m_base;
+  int m_dec;
+};
+extern const std::array<BaseAndDec, 32> frsqrte_expected;
+extern const std::array<BaseAndDec, 32> fres_expected;
 
 // PowerPC approximation algorithms
 double ApproximateReciprocalSquareRoot(double val);

@@ -69,13 +69,20 @@ void CommonAsmRoutines::GenFrsqrte()
   AND(32, R(RSCRATCH_EXTRA), Imm8(0x1F));
   XOR(32, R(RSCRATCH_EXTRA), Imm8(0x10));  // int index = i / 2048 + (odd_exponent ? 16 : 0);
 
+  PUSH(RSCRATCH2);
+  MOV(64, R(RSCRATCH2), ImmPtr(GetConstantFromPool(MathUtil::frsqrte_expected)));
+  static_assert(sizeof(MathUtil::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
+
   SHR(64, R(RSCRATCH), Imm8(37));
   AND(32, R(RSCRATCH), Imm32(0x7FF));
-  IMUL(32, RSCRATCH, MScaled(RSCRATCH_EXTRA, SCALE_4, PtrOffset(MathUtil::frsqrte_expected_dec)));
+  IMUL(32, RSCRATCH,
+       MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(MathUtil::BaseAndDec, m_dec)));
   MOV(32, R(RSCRATCH_EXTRA),
-      MScaled(RSCRATCH_EXTRA, SCALE_4, PtrOffset(MathUtil::frsqrte_expected_base)));
+      MComplex(RSCRATCH2, RSCRATCH_EXTRA, SCALE_8, offsetof(MathUtil::BaseAndDec, m_base)));
   SUB(32, R(RSCRATCH_EXTRA), R(RSCRATCH));
   SHL(64, R(RSCRATCH_EXTRA), Imm8(26));
+
+  POP(RSCRATCH2);
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(frsqrte_expected_base[index] -
                                             // frsqrte_expected_dec[index] * (i % 2048)) << 26;
   MOVQ_xmm(XMM0, R(RSCRATCH2));
@@ -140,13 +147,22 @@ void CommonAsmRoutines::GenFres()
   AND(32, R(RSCRATCH), Imm32(0x3FF));  // i % 1024
   AND(32, R(RSCRATCH2), Imm8(0x1F));   // i / 1024
 
-  IMUL(32, RSCRATCH, MScaled(RSCRATCH2, SCALE_4, PtrOffset(MathUtil::fres_expected_dec)));
+  PUSH(RSCRATCH_EXTRA);
+  MOV(64, R(RSCRATCH_EXTRA), ImmPtr(GetConstantFromPool(MathUtil::fres_expected)));
+  static_assert(sizeof(MathUtil::BaseAndDec) == 8, "Unable to use SCALE_8; incorrect size");
+
+  IMUL(32, RSCRATCH,
+       MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(MathUtil::BaseAndDec, m_dec)));
   ADD(32, R(RSCRATCH), Imm8(1));
   SHR(32, R(RSCRATCH), Imm8(1));
 
-  MOV(32, R(RSCRATCH2), MScaled(RSCRATCH2, SCALE_4, PtrOffset(MathUtil::fres_expected_base)));
+  MOV(32, R(RSCRATCH2),
+      MComplex(RSCRATCH_EXTRA, RSCRATCH2, SCALE_8, offsetof(MathUtil::BaseAndDec, m_base)));
   SUB(32, R(RSCRATCH2), R(RSCRATCH));
   SHL(64, R(RSCRATCH2), Imm8(29));
+
+  POP(RSCRATCH_EXTRA);
+
   OR(64, R(RSCRATCH2), R(RSCRATCH_EXTRA));  // vali |= (s64)(fres_expected_base[i / 1024] -
                                             // (fres_expected_dec[i / 1024] * (i % 1024) + 1) / 2)
                                             // << 29
