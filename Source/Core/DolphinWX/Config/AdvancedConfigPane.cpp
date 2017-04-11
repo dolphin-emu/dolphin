@@ -9,6 +9,7 @@
 #include <wx/checkbox.h>
 #include <wx/datectrl.h>
 #include <wx/dateevt.h>
+#include <wx/radiobox.h>
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 #include <wx/time.h>
@@ -17,11 +18,22 @@
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/HW/SystemTimers.h"
+#include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/DolphinSlider.h"
 #include "DolphinWX/WxEventUtils.h"
 
 AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
+  m_cpu_cores = {
+      {PowerPC::CORE_INTERPRETER, _("Interpreter (slowest)")},
+      {PowerPC::CORE_CACHEDINTERPRETER, _("Cached Interpreter (slower)")},
+#ifdef _M_X86_64
+      {PowerPC::CORE_JIT64, _("JIT Recompiler (recommended)")},
+      {PowerPC::CORE_JITIL64, _("JITIL Recompiler (slow, experimental)")},
+#elif defined(_M_ARM_64)
+      {PowerPC::CORE_JITARM64, _("JIT Arm64 (experimental)")},
+#endif
+  };
   InitializeGUI();
   LoadGUIValues();
   BindEvents();
@@ -29,6 +41,17 @@ AdvancedConfigPane::AdvancedConfigPane(wxWindow* parent, wxWindowID id) : wxPane
 
 void AdvancedConfigPane::InitializeGUI()
 {
+  for (const CPUCore& cpu_core : m_cpu_cores)
+    m_cpu_engine_array_string.Add(cpu_core.name);
+  m_cpu_engine_radiobox =
+      new wxRadioBox(this, wxID_ANY, _("CPU Emulator Engine"), wxDefaultPosition, wxDefaultSize,
+                     m_cpu_engine_array_string, 0, wxRA_SPECIFY_ROWS);
+
+  m_force_ntscj_checkbox = new wxCheckBox(this, wxID_ANY, _("Force Console as NTSC-J"));
+  m_force_ntscj_checkbox->SetToolTip(
+      _("Forces NTSC-J mode for using the Japanese ROM font.\nIf left unchecked, Dolphin defaults "
+        "to NTSC-U and automatically enables this setting when playing Japanese games."));
+
   m_clock_override_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable CPU Clock Override"));
   m_clock_override_slider =
       new DolphinSlider(this, wxID_ANY, 100, 0, 150, wxDefaultPosition, FromDIP(wxSize(200, -1)));
@@ -63,19 +86,28 @@ void AdvancedConfigPane::InitializeGUI()
 
   const int space5 = FromDIP(5);
 
+  wxStaticBoxSizer* const advanced_settings_sizer =
+      new wxStaticBoxSizer(wxVERTICAL, this, _("Advanced Settings"));
+  advanced_settings_sizer->AddSpacer(space5);
+  advanced_settings_sizer->Add(m_cpu_engine_radiobox, 0, wxLEFT | wxRIGHT, space5);
+  advanced_settings_sizer->AddSpacer(space5);
+  advanced_settings_sizer->Add(m_force_ntscj_checkbox, 0, wxLEFT | wxRIGHT, space5);
+  advanced_settings_sizer->AddSpacer(space5);
+
   wxBoxSizer* const clock_override_slider_sizer = new wxBoxSizer(wxHORIZONTAL);
   clock_override_slider_sizer->Add(m_clock_override_slider, 1);
   clock_override_slider_sizer->Add(m_clock_override_text, 1, wxLEFT, space5);
 
-  wxStaticBoxSizer* const cpu_options_sizer =
-      new wxStaticBoxSizer(wxVERTICAL, this, _("CPU Options"));
-  cpu_options_sizer->AddSpacer(space5);
-  cpu_options_sizer->Add(m_clock_override_checkbox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  cpu_options_sizer->AddSpacer(space5);
-  cpu_options_sizer->Add(clock_override_slider_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  cpu_options_sizer->AddSpacer(space5);
-  cpu_options_sizer->Add(clock_override_description, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  cpu_options_sizer->AddSpacer(space5);
+  wxStaticBoxSizer* const cpu_clock_override_sizer =
+      new wxStaticBoxSizer(wxVERTICAL, this, _("CPU Clock Override"));
+  cpu_clock_override_sizer->AddSpacer(space5);
+  cpu_clock_override_sizer->Add(m_clock_override_checkbox, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  cpu_clock_override_sizer->AddSpacer(space5);
+  cpu_clock_override_sizer->Add(clock_override_slider_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT,
+                                space5);
+  cpu_clock_override_sizer->AddSpacer(space5);
+  cpu_clock_override_sizer->Add(clock_override_description, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  cpu_clock_override_sizer->AddSpacer(space5);
 
   wxFlexGridSizer* const custom_rtc_date_time_sizer =
       new wxFlexGridSizer(2, wxSize(space5, space5));
@@ -94,7 +126,9 @@ void AdvancedConfigPane::InitializeGUI()
 
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
   main_sizer->AddSpacer(space5);
-  main_sizer->Add(cpu_options_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->Add(advanced_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
+  main_sizer->AddSpacer(space5);
+  main_sizer->Add(cpu_clock_override_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
   main_sizer->Add(custom_rtc_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
@@ -104,17 +138,35 @@ void AdvancedConfigPane::InitializeGUI()
 
 void AdvancedConfigPane::LoadGUIValues()
 {
-  int ocFactor = (int)(std::log2f(SConfig::GetInstance().m_OCFactor) * 25.f + 100.f + 0.5f);
-  bool oc_enabled = SConfig::GetInstance().m_OCEnable;
+  const SConfig& startup_params = SConfig::GetInstance();
+
+  for (size_t i = 0; i < m_cpu_cores.size(); ++i)
+  {
+    if (m_cpu_cores[i].CPUid == startup_params.iCPUCore)
+      m_cpu_engine_radiobox->SetSelection(i);
+  }
+  m_force_ntscj_checkbox->SetValue(startup_params.bForceNTSCJ);
+
+  int ocFactor = (int)(std::log2f(startup_params.m_OCFactor) * 25.f + 100.f + 0.5f);
+  bool oc_enabled = startup_params.m_OCEnable;
   m_clock_override_checkbox->SetValue(oc_enabled);
   m_clock_override_slider->SetValue(ocFactor);
   m_clock_override_slider->Enable(oc_enabled);
+
   UpdateCPUClock();
   LoadCustomRTC();
 }
 
 void AdvancedConfigPane::BindEvents()
 {
+  m_cpu_engine_radiobox->Bind(wxEVT_RADIOBOX, &AdvancedConfigPane::OnCPUEngineRadioBoxChanged,
+                              this);
+  m_cpu_engine_radiobox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
+  m_force_ntscj_checkbox->Bind(wxEVT_CHECKBOX, &AdvancedConfigPane::OnForceNTSCJCheckBoxChanged,
+                               this);
+  m_force_ntscj_checkbox->Bind(wxEVT_UPDATE_UI, &WxEventUtils::OnEnableIfCoreNotRunning);
+
   m_clock_override_checkbox->Bind(wxEVT_CHECKBOX,
                                   &AdvancedConfigPane::OnClockOverrideCheckBoxChanged, this);
   m_clock_override_checkbox->Bind(wxEVT_UPDATE_UI, &AdvancedConfigPane::OnUpdateCPUClockControls,
@@ -138,6 +190,16 @@ void AdvancedConfigPane::BindEvents()
                                  this);
   m_custom_rtc_time_picker->Bind(wxEVT_UPDATE_UI, &AdvancedConfigPane::OnUpdateRTCDateTimeEntries,
                                  this);
+}
+
+void AdvancedConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)
+{
+  SConfig::GetInstance().iCPUCore = m_cpu_cores.at(event.GetSelection()).CPUid;
+}
+
+void AdvancedConfigPane::OnForceNTSCJCheckBoxChanged(wxCommandEvent& event)
+{
+  SConfig::GetInstance().bForceNTSCJ = m_force_ntscj_checkbox->IsChecked();
 }
 
 void AdvancedConfigPane::OnClockOverrideCheckBoxChanged(wxCommandEvent& event)
