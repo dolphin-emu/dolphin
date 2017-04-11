@@ -53,9 +53,9 @@ public:
                       TlutFormat format) override
   {
   }
-  void CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row, u32 num_blocks_y,
-               u32 memory_stride, bool is_depth_copy, const EFBRectangle& srcRect, bool isIntensity,
-               bool scaleByHalf) override
+  void CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width, u32 bytes_per_row,
+               u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
+               const EFBRectangle& src_rect, bool scale_by_half) override
   {
     EfbCopy::CopyEfb();
   }

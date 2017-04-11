@@ -88,9 +88,9 @@ void TextureCache::ConvertTexture(TCacheEntryBase* base_entry, TCacheEntryBase* 
   m_texture_converter->ConvertTexture(entry, unconverted, m_render_pass, palette, format);
 }
 
-void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_row,
-                           u32 num_blocks_y, u32 memory_stride, bool is_depth_copy,
-                           const EFBRectangle& src_rect, bool is_intensity, bool scale_by_half)
+void TextureCache::CopyEFB(u8* dst, const EFBCopyFormat& format, u32 native_width,
+                           u32 bytes_per_row, u32 num_blocks_y, u32 memory_stride,
+                           bool is_depth_copy, const EFBRectangle& src_rect, bool scale_by_half)
 {
   // Flush EFB pokes first, as they're expected to be included.
   FramebufferManager::GetInstance()->FlushEFBPokes();
@@ -120,7 +120,7 @@ void TextureCache::CopyEFB(u8* dst, u32 format, u32 native_width, u32 bytes_per_
 
   m_texture_converter->EncodeTextureToMemory(src_texture->GetView(), dst, format, native_width,
                                              bytes_per_row, num_blocks_y, memory_stride,
-                                             is_depth_copy, is_intensity, scale_by_half, src_rect);
+                                             is_depth_copy, src_rect, scale_by_half);
 
   // Transition back to original state
   src_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(), original_layout);
