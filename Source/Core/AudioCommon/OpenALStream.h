@@ -17,6 +17,7 @@
 #include <OpenAL/include/al.h>
 #include <OpenAL/include/alc.h>
 #include <OpenAL/include/alext.h>
+#include <OpenAL/include/xram.h>
 #elif defined __APPLE__
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
@@ -38,7 +39,7 @@
 #undef BOOL
 #endif
 
-#define SFX_MAX_SOURCE 1
+#define SFX_MAX_SOURCE 3
 #define OAL_MAX_BUFFERS 32
 #define OAL_MAX_SAMPLES 256
 #define STEREO_CHANNELS 2
@@ -73,7 +74,7 @@ class OpenALStream final : public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
-  OpenALStream() : uiSource(0) {}
+  OpenALStream() : sources{{ 0, 0, 0 }} {}
   bool Start() override;
   void SoundLoop() override;
   void SetVolume(int volume) override;
@@ -88,12 +89,13 @@ private:
 
   Common::Event soundSyncEvent;
 
-  short realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];
-  soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-  ALuint uiBuffers[OAL_MAX_BUFFERS];
-  ALuint uiSource;
-  ALfloat fVolume;
+  // one source for the DMA, one for streaming and another for the WiiMote
+  std::array<std::vector<short>, SFX_MAX_SOURCE> realtime_buffers;
+  std::array<std::vector<soundtouch::SAMPLETYPE>, SFX_MAX_SOURCE> sample_buffers;
+  std::array<std::vector<ALuint>, SFX_MAX_SOURCE> buffers;
+  std::array<ALuint, SFX_MAX_SOURCE> sources;
+  ALfloat volume;
 
-  u8 numBuffers;
+  u8 num_buffers;
 #endif  // HAVE_OPENAL
 };

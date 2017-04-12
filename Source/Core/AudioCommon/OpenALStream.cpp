@@ -10,6 +10,7 @@
 #include "AudioCommon/OpenALStream.h"
 #include "AudioCommon/aldlist.h"
 #include "Common/Logging/Log.h"
+#include "Common/MathUtil.h"
 #include "Common/MsgHandler.h"
 #include "Common/Thread.h"
 #include "Core/ConfigManager.h"
@@ -20,7 +21,7 @@
 #pragma comment(lib, "openal32.lib")
 #endif
 
-static soundtouch::SoundTouch soundTouch;
+static std::array<soundtouch::SoundTouch, SFX_MAX_SOURCE> soundTouch;
 
 //
 // AyuanX: Spec says OpenAL1.1 is thread safe already
@@ -71,7 +72,10 @@ bool OpenALStream::Start()
   // Initialize DPL2 parameters
   DPL2Reset();
 
-  soundTouch.clear();
+  for (int i = 0; i < SFX_MAX_SOURCE; ++i)
+  {
+    soundTouch[i].clear();
+  }
   return bReturn;
 }
 
@@ -81,17 +85,23 @@ void OpenALStream::Stop()
   // kick the thread if it's waiting
   soundSyncEvent.Set();
 
-  soundTouch.clear();
+  for (int i = 0; i < SFX_MAX_SOURCE; ++i)
+  {
+    soundTouch[i].clear();
+  }
 
   thread.join();
 
-  alSourceStop(uiSource);
-  alSourcei(uiSource, AL_BUFFER, 0);
+  for (int i = 0; i < SFX_MAX_SOURCE; ++i)
+  {
+    alSourceStop(sources[i]);
+    alSourcei(sources[i], AL_BUFFER, 0);
 
-  // Clean up buffers and sources
-  alDeleteSources(1, &uiSource);
-  uiSource = 0;
-  alDeleteBuffers(numBuffers, uiBuffers);
+    // Clean up buffers and sources
+    alDeleteSources(1, &sources[i]);
+    sources[i] = 0;
+    alDeleteBuffers(num_buffers, buffers[i].data());
+  }
 
   ALCcontext* pContext = alcGetCurrentContext();
   ALCdevice* pDevice = alcGetContextsDevice(pContext);
@@ -101,12 +111,15 @@ void OpenALStream::Stop()
   alcCloseDevice(pDevice);
 }
 
-void OpenALStream::SetVolume(int volume)
+void OpenALStream::SetVolume(int set_volume)
 {
-  fVolume = (float)volume / 100.0f;
+  volume = static_cast<float>(set_volume) / 100.0f;
 
-  if (uiSource)
-    alSourcef(uiSource, AL_GAIN, fVolume);
+  for (int i = 0; i < SFX_MAX_SOURCE; ++i)
+  {
+    if (sources[i])
+      alSourcef(sources[i], AL_GAIN, volume);
+  }
 }
 
 void OpenALStream::Update()
@@ -120,12 +133,18 @@ void OpenALStream::Clear(bool mute)
 
   if (m_muted)
   {
-    soundTouch.clear();
-    alSourceStop(uiSource);
+    for (int i = 0; i < SFX_MAX_SOURCE; ++i)
+    {
+      soundTouch[i].clear();
+      alSourceStop(sources[i]);
+    }
   }
   else
   {
-    alSourcePlay(uiSource);
+    for (int i = 0; i < SFX_MAX_SOURCE; ++i)
+    {
+      alSourcePlay(sources[i]);
+    }
   }
 }
 
@@ -170,18 +189,13 @@ void OpenALStream::SoundLoop()
   Common::SetCurrentThreadName("Audio thread - openal");
 
   bool surround_capable = SConfig::GetInstance().bDPL2Decoder;
+  bool use_timestretching = SConfig::GetInstance().bTimeStretching;
   bool float32_capable = false;
   bool fixed32_capable = false;
 
 #if defined(__APPLE__)
   surround_capable = false;
 #endif
-
-  u32 ulFrequency = m_mixer->GetSampleRate();
-  numBuffers = SConfig::GetInstance().iLatency + 2;  // OpenAL requires a minimum of two buffers
-
-  memset(uiBuffers, 0, numBuffers * sizeof(ALuint));
-  uiSource = 0;
 
   if (alIsExtensionPresent("AL_EXT_float32"))
     float32_capable = true;
@@ -195,215 +209,367 @@ void OpenALStream::SoundLoop()
   // Clear error state before querying or else we get false positives.
   ALenum err = alGetError();
 
-  // Generate some AL Buffers for streaming
-  alGenBuffers(numBuffers, (ALuint*)uiBuffers);
-  err = CheckALError("generating buffers");
+  // OpenAL requires a minimum of two buffers, three recommended
+  num_buffers = 3;
 
-  // Generate a Source to playback the Buffers
-  alGenSources(1, &uiSource);
-  err = CheckALError("generating sources");
+  std::array<u32, SFX_MAX_SOURCE> frequency;
+  frequency[0] = m_mixer->GetDMASampleRate();
+  frequency[1] = m_mixer->GetStreamingSampleRate();
+  frequency[2] = m_mixer->GetWiiMoteSampleRate();
 
-  // Set the default sound volume as saved in the config file.
-  alSourcef(uiSource, AL_GAIN, fVolume);
-
-  // TODO: Error handling
-  // ALenum err = alGetError();
-
-  unsigned int nextBuffer = 0;
-  unsigned int numBuffersQueued = 0;
-  ALint iState = 0;
-
-  soundTouch.setChannels(2);
-  soundTouch.setSampleRate(ulFrequency);
-  soundTouch.setTempo(1.0);
-  soundTouch.setSetting(SETTING_USE_QUICKSEEK, 0);
-  soundTouch.setSetting(SETTING_USE_AA_FILTER, 0);
-  soundTouch.setSetting(SETTING_SEQUENCE_MS, 1);
-  soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
-  soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
-
-  while (m_run_thread.IsSet())
+  std::array<u32, SFX_MAX_SOURCE> samples_per_buffer;
+  for (int i = 0; i < SFX_MAX_SOURCE; ++i)
   {
-    // Block until we have a free buffer
-    int numBuffersProcessed;
-    alGetSourcei(uiSource, AL_BUFFERS_PROCESSED, &numBuffersProcessed);
-    if (numBuffers == numBuffersQueued && !numBuffersProcessed)
+    // calculate latency (samples) per buffer
+    if (SConfig::GetInstance().iLatency > 10)
     {
-      soundSyncEvent.Wait();
-      continue;
-    }
-
-    // Remove the Buffer from the Queue.
-    if (numBuffersProcessed)
-    {
-      ALuint unqueuedBufferIds[OAL_MAX_BUFFERS];
-      alSourceUnqueueBuffers(uiSource, numBuffersProcessed, unqueuedBufferIds);
-      err = CheckALError("unqueuing buffers");
-
-      numBuffersQueued -= numBuffersProcessed;
-    }
-
-    // num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
-    const u32 stereo_16_bit_size = 4;
-    const u32 dma_length = 32;
-    const u64 ais_samples_per_second = 48000 * stereo_16_bit_size;
-    u64 audio_dma_period = SystemTimers::GetTicksPerSecond() /
-                           (AudioInterface::GetAIDSampleRate() * stereo_16_bit_size / dma_length);
-    u64 num_samples_to_render =
-        (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
-
-    unsigned int numSamples = (unsigned int)num_samples_to_render;
-    unsigned int minSamples =
-        surround_capable ? 240 : 0;  // DPL2 accepts 240 samples minimum (FWRDURATION)
-
-    numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
-    numSamples = m_mixer->Mix(realtimeBuffer, numSamples, false);
-
-    // Convert the samples from short to float
-    float dest[OAL_MAX_SAMPLES * STEREO_CHANNELS];
-    for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
-      dest[i] = (float)realtimeBuffer[i] / (1 << 15);
-
-    soundTouch.putSamples(dest, numSamples);
-
-    double rate = (double)m_mixer->GetCurrentSpeed();
-    if (rate <= 0)
-    {
-      Core::RequestRefreshInfo();
-      rate = (double)m_mixer->GetCurrentSpeed();
-    }
-
-    // Place a lower limit of 10% speed.  When a game boots up, there will be
-    // many silence samples.  These do not need to be timestretched.
-    if (rate > 0.10)
-    {
-      soundTouch.setTempo(rate);
-      if (rate > 10)
-      {
-        soundTouch.clear();
-      }
-    }
-
-    unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * numBuffers);
-
-    if (nSamples <= minSamples)
-      continue;
-
-    if (surround_capable)
-    {
-      float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
-      DPL2Decode(sampleBuffer, nSamples, dpl2);
-
-      // zero-out the subwoofer channel - DPL2Decode generates a pretty
-      // good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
-      // AL_FORMAT_50CHN32 to make this super-explicit.
-      // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-      for (u32 i = 0; i < nSamples; ++i)
-      {
-        dpl2[i * SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
-      }
-
-      if (float32_capable)
-      {
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2,
-                     nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
-      }
-      else if (fixed32_capable)
-      {
-        int surround_int32[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-
-        for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
-        {
-          // For some reason the ffdshow's DPL2 decoder outputs samples bigger than 1.
-          // Most are close to 2.5 and some go up to 8. Hard clamping here, we need to
-          // fix the decoder or implement a limiter.
-          dpl2[i] = dpl2[i] * (INT64_C(1) << 31);
-          if (dpl2[i] > INT_MAX)
-            surround_int32[i] = INT_MAX;
-          else if (dpl2[i] < INT_MIN)
-            surround_int32[i] = INT_MIN;
-          else
-            surround_int32[i] = (int)dpl2[i];
-        }
-
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, surround_int32,
-                     nSamples * FRAME_SURROUND_INT32, ulFrequency);
-      }
-      else
-      {
-        short surround_short[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-
-        for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
-        {
-          dpl2[i] = dpl2[i] * (1 << 15);
-          if (dpl2[i] > SHRT_MAX)
-            surround_short[i] = SHRT_MAX;
-          else if (dpl2[i] < SHRT_MIN)
-            surround_short[i] = SHRT_MIN;
-          else
-            surround_short[i] = (int)dpl2[i];
-        }
-
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short,
-                     nSamples * FRAME_SURROUND_SHORT, ulFrequency);
-      }
-
-      err = CheckALError("buffering data");
-      if (err == AL_INVALID_ENUM)
-      {
-        // 5.1 is not supported by the host, fallback to stereo
-        WARN_LOG(AUDIO,
-                 "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
-        surround_capable = false;
-      }
+      samples_per_buffer[i] = frequency[i] / 1000 * SConfig::GetInstance().iLatency / num_buffers;
     }
     else
     {
-      if (float32_capable)
-      {
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
-                     nSamples * FRAME_STEREO_FLOAT, ulFrequency);
+      samples_per_buffer[i] = frequency[i] / 1000 * 10 / num_buffers;
+    }
 
-        err = CheckALError("buffering float32 data");
-        if (err == AL_INVALID_ENUM)
+    // DPL2 needs a minimum number of samples to work (FWRDURATION) (on any sample rate, or needs
+    // only 5ms of data? WiiMote should not use DPL2)
+    if (surround_capable && samples_per_buffer[i] < 240 && i != 2)
+    {
+      samples_per_buffer[i] = 240;
+    }
+
+    realtime_buffers[i].resize(samples_per_buffer[i] * STEREO_CHANNELS);
+    // SoundTouch can stretch the audio up to 10 times, multiplying by 20 just to be sure.
+    sample_buffers[i].resize(samples_per_buffer[i] * STEREO_CHANNELS * 20);
+    buffers[i].resize(num_buffers);
+    sources[i] = 0;
+
+    // Generate some AL Buffers for streaming
+    alGenBuffers(num_buffers, buffers[i].data());
+    err = CheckALError("generating buffers");
+
+#ifdef _WIN32
+    // Force disable X-RAM, we do not want it for streaming sources
+    if (alIsExtensionPresent("EAX-RAM"))
+    {
+      EAXSetBufferMode eaxSetBufferMode;
+      eaxSetBufferMode = (EAXSetBufferMode)alGetProcAddress("EAXSetBufferMode");
+      eaxSetBufferMode(num_buffers, buffers[i].data(), alGetEnumValue("AL_STORAGE_ACCESSIBLE"));
+      err = CheckALError("setting X-RAM mode");
+    }
+#endif
+
+    // Generate a Source to playback the Buffers
+    alGenSources(1, &sources[i]);
+    err = CheckALError("generating sources");
+
+    // Set the default sound volume as saved in the config file.
+    alSourcef(sources[i], AL_GAIN, volume);
+
+    // TODO: Error handling
+    // ALenum err = alGetError();
+
+    soundTouch[i].setChannels(2);  // Verify if WiiMote is mono
+    soundTouch[i].setSampleRate(frequency[i]);
+    soundTouch[i].setTempo(1.0);
+    soundTouch[i].setSetting(SETTING_USE_QUICKSEEK, 0);
+    soundTouch[i].setSetting(SETTING_USE_AA_FILTER, 1);
+    soundTouch[i].setSetting(SETTING_SEQUENCE_MS, 1);
+    soundTouch[i].setSetting(SETTING_SEEKWINDOW_MS, 28);
+    soundTouch[i].setSetting(SETTING_OVERLAP_MS, 12);
+  }
+
+  std::array<u32, SFX_MAX_SOURCE> next_buffer = {0, 0, 0};
+  std::array<u32, SFX_MAX_SOURCE> num_buffers_queued = {0, 0, 0};
+  std::array<ALint, SFX_MAX_SOURCE> state = {0, 0, 0};
+
+  // floating point conversion vector
+  std::array<std::vector<float>, SFX_MAX_SOURCE> dest;
+  for (int i = 0; i < num_buffers; ++i)
+  {
+    dest[i].resize(samples_per_buffer[i] * STEREO_CHANNELS);
+  }
+
+  while (m_run_thread.IsSet())
+  {
+    for (int nsource = 0; nsource < SFX_MAX_SOURCE; ++nsource)
+    {
+      // Used to change the parameters when the frequency changes. Ugly, need to make it better
+      bool changed = false;
+      switch (nsource)
+      {
+      case 0:
+        if (frequency[nsource] != m_mixer->GetDMASampleRate())
         {
-          float32_capable = false;
+          changed = true;
+        }
+        break;
+      case 1:
+        if (frequency[nsource] != m_mixer->GetStreamingSampleRate())
+        {
+          changed = true;
+        }
+        break;
+      case 2:
+        if (frequency[nsource] != m_mixer->GetWiiMoteSampleRate())
+        {
+          changed = true;
+        }
+        break;
+      }
+
+      if (changed)
+      {
+        switch (nsource)
+        {
+        case 0:
+          frequency[nsource] = m_mixer->GetDMASampleRate();
+          break;
+        case 1:
+          frequency[nsource] = m_mixer->GetStreamingSampleRate();
+          break;
+        case 2:
+          frequency[nsource] = m_mixer->GetWiiMoteSampleRate();
+          break;
+        }
+
+        soundTouch[nsource].setSampleRate(frequency[nsource]);
+
+        if (SConfig::GetInstance().iLatency > 10)
+        {
+          samples_per_buffer[nsource] =
+              frequency[nsource] / 1000 * SConfig::GetInstance().iLatency / num_buffers;
+        }
+        else
+        {
+          samples_per_buffer[nsource] = frequency[nsource] / 1000 * 10 / num_buffers;
+        }
+
+        // Unbind buffers
+        alSourceStop(sources[nsource]);
+        alSourcei(sources[nsource], AL_BUFFER, 0);
+
+        // Clean up queues
+        num_buffers_queued[nsource] = 0;
+        next_buffer[nsource] = 0;
+
+        // Resize arrays
+        realtime_buffers[nsource].resize(samples_per_buffer[nsource] * STEREO_CHANNELS);
+        sample_buffers[nsource].resize(samples_per_buffer[nsource] * STEREO_CHANNELS * 20);
+
+        continue;
+      }
+
+      // Block until we have a free buffer
+      int num_buffers_processed;
+      alGetSourcei(sources[nsource], AL_BUFFERS_PROCESSED, &num_buffers_processed);
+      if (num_buffers == num_buffers_queued[nsource] && !num_buffers_processed)
+      {
+        continue;
+      }
+
+      // Remove the Buffer from the Queue.
+      if (num_buffers_processed)
+      {
+        std::unique_ptr<ALuint[]> unqueuedBufferIds(new ALuint[num_buffers]);
+        alSourceUnqueueBuffers(sources[nsource], num_buffers_processed, unqueuedBufferIds.get());
+        err = CheckALError("unqueuing buffers");
+
+        num_buffers_queued[nsource] -= num_buffers_processed;
+      }
+
+      unsigned int rendered_samples = samples_per_buffer[nsource];
+      switch (nsource)
+      {
+      case 0:
+        m_mixer->MixDMA(realtime_buffers[nsource].data(), samples_per_buffer[nsource], false, true);
+        break;
+      case 1:
+        m_mixer->MixStreaming(realtime_buffers[nsource].data(), samples_per_buffer[nsource], false,
+                              true);
+        break;
+      case 2:
+        m_mixer->MixWiiMote(realtime_buffers[nsource].data(), samples_per_buffer[nsource], false,
+                            true);
+        break;
+      default:
+        m_mixer->Mix(realtime_buffers[nsource].data(), samples_per_buffer[nsource], false);
+        break;
+      }
+
+      if (use_timestretching)
+      {
+        // Convert the samples from short to float
+        for (u32 i = 0; i < rendered_samples * STEREO_CHANNELS; ++i)
+          dest[nsource][i] = static_cast<float>(realtime_buffers[nsource][i]) / INT16_MAX;
+
+        soundTouch[nsource].putSamples(dest[nsource].data(), rendered_samples);
+      }
+
+      float rate = m_mixer->GetCurrentSpeed();
+      if (rate <= 0)
+      {
+        Core::RequestRefreshInfo();
+        rate = m_mixer->GetCurrentSpeed();
+      }
+
+      // Place a lower limit of 10% speed.  When a game boots up, there will be
+      // many silence samples.  These do not need to be timestretched.
+      if (rate > 0.10)
+      {
+        if (use_timestretching)
+        {
+          soundTouch[nsource].setTempo(static_cast<double>(rate));
+        }
+        else
+        {
+          alSourcef(sources[nsource], AL_PITCH, rate);
+        }
+
+        if (rate > 10 && use_timestretching)
+        {
+          soundTouch[nsource].clear();
         }
       }
-      else if (fixed32_capable)
-      {
-        // Clamping is not necessary here, samples are always between (-1,1)
-        int stereo_int32[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
-        for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
-          stereo_int32[i] = (int)((float)sampleBuffer[i] * (INT64_C(1) << 31));
 
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO32, stereo_int32,
-                     nSamples * FRAME_STEREO_INT32, ulFrequency);
+      unsigned int n_samples;
+      if (use_timestretching)
+      {
+        // We want SoundTouch to return already processed samples all at once
+        n_samples = soundTouch[nsource].receiveSamples(sample_buffers[nsource].data(),
+                                                       soundTouch[nsource].numSamples());
       }
       else
       {
-        // Convert the samples from float to short
-        short stereo[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
-        for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
-          stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
-
-        alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO16, stereo,
-                     nSamples * FRAME_STEREO_SHORT, ulFrequency);
+        n_samples = rendered_samples;
       }
-    }
 
-    alSourceQueueBuffers(uiSource, 1, &uiBuffers[nextBuffer]);
-    err = CheckALError("queuing buffers");
+      if (n_samples < samples_per_buffer[nsource])
+        continue;
 
-    numBuffersQueued++;
-    nextBuffer = (nextBuffer + 1) % numBuffers;
+      if (surround_capable && nsource != 2)
+      {
+        if (!use_timestretching)
+        {
+          // DPL2 decoder accepts only floats
+          for (u32 i = 0; i < n_samples * STEREO_CHANNELS; ++i)
+            sample_buffers[nsource][i] =
+                static_cast<float>(realtime_buffers[nsource][i]) / INT16_MAX;
+        }
 
-    alGetSourcei(uiSource, AL_SOURCE_STATE, &iState);
-    if (iState != AL_PLAYING)
-    {
-      // Buffer underrun occurred, resume playback
-      alSourcePlay(uiSource);
-      err = CheckALError("occurred resuming playback");
+        std::vector<float> dpl2(n_samples * SURROUND_CHANNELS);
+        DPL2Decode(sample_buffers[nsource].data(), n_samples, dpl2.data());
+
+        // zero-out the subwoofer channel - DPL2Decode generates a pretty
+        // good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
+        // AL_FORMAT_50CHN32 to make this super-explicit.
+        // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
+        for (u32 i = 0; i < n_samples; ++i)
+        {
+          dpl2[i * SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
+        }
+
+        if (float32_capable)
+        {
+          alBufferData(buffers[nsource][next_buffer[nsource]], AL_FORMAT_51CHN32, dpl2.data(),
+                       n_samples * FRAME_SURROUND_FLOAT, frequency[nsource]);
+        }
+        else if (fixed32_capable)
+        {
+          std::vector<int> surround_int32(n_samples * SURROUND_CHANNELS);
+
+          for (u32 i = 0; i < n_samples * SURROUND_CHANNELS; ++i)
+          {
+            // For some reason the ffdshow's DPL2 decoder outputs samples bigger than 1.
+            // Most are close to 2.5 and some go up to 8. Hard clamping here, we need to
+            // fix the decoder or implement a limiter.
+            surround_int32[i] = static_cast<int>(
+                MathUtil::Clamp(static_cast<double>(dpl2[i]), -1.0, 1.0) * INT32_MAX);
+          }
+
+          alBufferData(buffers[nsource][next_buffer[nsource]], AL_FORMAT_51CHN32,
+                       surround_int32.data(), n_samples * FRAME_SURROUND_INT32, frequency[nsource]);
+        }
+        else
+        {
+          std::vector<short> surround_short(n_samples * SURROUND_CHANNELS);
+
+          for (u32 i = 0; i < n_samples * SURROUND_CHANNELS; ++i)
+          {
+            surround_short[i] = static_cast<short>(
+                MathUtil::Clamp(static_cast<double>(dpl2[i]), -1.0, 1.0) * INT16_MAX);
+          }
+
+          alBufferData(buffers[nsource][next_buffer[nsource]], AL_FORMAT_51CHN16,
+                       surround_short.data(), n_samples * FRAME_SURROUND_SHORT, frequency[nsource]);
+        }
+
+        err = CheckALError("buffering data");
+        if (err == AL_INVALID_ENUM)
+        {
+          // 5.1 is not supported by the host, fallback to stereo
+          WARN_LOG(AUDIO,
+                   "Unable to set 5.1 surround mode.  Updating OpenAL Soft might fix this issue.");
+          surround_capable = false;
+        }
+      }
+      else
+      {
+        if (float32_capable && use_timestretching)
+        {
+          alBufferData(buffers[nsource][next_buffer[nsource]], AL_FORMAT_STEREO_FLOAT32,
+                       sample_buffers[nsource].data(), n_samples * FRAME_STEREO_FLOAT,
+                       frequency[nsource]);
+
+          err = CheckALError("buffering float32 data");
+          if (err == AL_INVALID_ENUM)
+          {
+            float32_capable = false;
+          }
+        }
+        else if (fixed32_capable && use_timestretching)
+        {
+          // Clamping is not necessary here, samples are always between (-1,1)
+          std::vector<int> stereo_int32(n_samples * STEREO_CHANNELS);
+          for (u32 i = 0; i < n_samples * STEREO_CHANNELS; ++i)
+            stereo_int32[i] = static_cast<int>(sample_buffers[nsource][i] * INT32_MAX);
+
+          alBufferData(buffers[nsource][next_buffer[nsource]], AL_FORMAT_STEREO32,
+                       stereo_int32.data(), n_samples * FRAME_STEREO_INT32, frequency[nsource]);
+        }
+        else
+        {
+          // Convert the samples from float to short
+          if (use_timestretching)
+          {
+            std::vector<short> stereo(n_samples * STEREO_CHANNELS);
+            for (u32 i = 0; i < n_samples * STEREO_CHANNELS; ++i)
+              stereo[i] = static_cast<short>(sample_buffers[nsource][i] * INT16_MAX);
+
+            alBufferData(buffers[nsource][next_buffer[nsource]], AL_FORMAT_STEREO16, stereo.data(),
+                         n_samples * FRAME_STEREO_SHORT, frequency[nsource]);
+          }
+          else
+          {
+            alBufferData(buffers[nsource][next_buffer[nsource]], AL_FORMAT_STEREO16,
+                         realtime_buffers[nsource].data(), n_samples * FRAME_STEREO_SHORT,
+                         frequency[nsource]);
+          }
+        }
+      }
+
+      alSourceQueueBuffers(sources[nsource], 1, &buffers[nsource][next_buffer[nsource]]);
+      err = CheckALError("queuing buffers");
+
+      num_buffers_queued[nsource]++;
+      next_buffer[nsource] = (next_buffer[nsource] + 1) % num_buffers;
+
+      alGetSourcei(sources[nsource], AL_SOURCE_STATE, &state[nsource]);
+      if (state[nsource] != AL_PLAYING)
+      {
+        // Buffer underrun occurred, resume playback
+        alSourcePlay(sources[nsource]);
+        err = CheckALError("occurred resuming playback");
+      }
     }
   }
 }

@@ -23,7 +23,7 @@ CMixer::~CMixer()
 
 // Executed from sound stream thread
 unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
-                                    bool consider_framelimit)
+                                    bool consider_framelimit, bool simple_resample)
 {
   unsigned int currentSample = 0;
 
@@ -59,7 +59,17 @@ unsigned int CMixer::MixerFifo::Mix(short* samples, unsigned int numSamples,
     aid_sample_rate = aid_sample_rate * emulationspeed;
   }
 
-  const u32 ratio = (u32)(65536.0f * aid_sample_rate / (float)m_mixer->m_sampleRate);
+  float desired_sample_rate;
+  if (simple_resample)
+  {
+    desired_sample_rate = static_cast<float>(m_input_sample_rate);
+  }
+  else
+  {
+    desired_sample_rate = static_cast<float>(m_mixer->m_sampleRate);
+  }
+
+  const u32 ratio = (u32)(65536.0f * aid_sample_rate / desired_sample_rate);
 
   s32 lvolume = m_LVolume.load();
   s32 rvolume = m_RVolume.load();
@@ -120,6 +130,57 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples, bool consider
   m_streaming_mixer.Mix(samples, num_samples, consider_framelimit);
   m_wiimote_speaker_mixer.Mix(samples, num_samples, consider_framelimit);
   return num_samples;
+}
+
+unsigned int CMixer::MixDMA(short* samples, unsigned int num_samples, bool consider_framelimit,
+                            bool simple_resample)
+{
+  if (!samples)
+    return 0;
+
+  memset(samples, 0, num_samples * 2 * sizeof(short));
+
+  m_dma_mixer.Mix(samples, num_samples, consider_framelimit, simple_resample);
+  return num_samples;
+}
+
+int CMixer::GetDMASampleRate()
+{
+  return m_dma_mixer.GetInputSampleRate();
+}
+
+unsigned int CMixer::MixStreaming(short* samples, unsigned int num_samples,
+                                  bool consider_framelimit, bool simple_resample)
+{
+  if (!samples)
+    return 0;
+
+  memset(samples, 0, num_samples * 2 * sizeof(short));
+
+  m_streaming_mixer.Mix(samples, num_samples, consider_framelimit, simple_resample);
+  return num_samples;
+}
+
+int CMixer::GetStreamingSampleRate()
+{
+  return m_streaming_mixer.GetInputSampleRate();
+}
+
+unsigned int CMixer::MixWiiMote(short* samples, unsigned int num_samples, bool consider_framelimit,
+                                bool simple_resample)
+{
+  if (!samples)
+    return 0;
+
+  memset(samples, 0, num_samples * 2 * sizeof(short));
+
+  m_wiimote_speaker_mixer.Mix(samples, num_samples, consider_framelimit, simple_resample);
+  return num_samples;
+}
+
+int CMixer::GetWiiMoteSampleRate()
+{
+  return m_wiimote_speaker_mixer.GetInputSampleRate();
 }
 
 void CMixer::MixerFifo::PushSamples(const short* samples, unsigned int num_samples)
