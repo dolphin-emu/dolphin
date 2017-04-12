@@ -75,7 +75,7 @@ private:
     u32 m_frac = 0;
   };
 
-  void StretchAudio(short* samples, unsigned int actual_samples, unsigned int num_samples);
+  void StretchAudio(const short* in, unsigned int num_in, short* out, unsigned int num_out);
 
   MixerFifo m_dma_mixer{this, 32000};
   MixerFifo m_streaming_mixer{this, 48000};
@@ -86,6 +86,7 @@ private:
   soundtouch::SoundTouch m_sound_touch;
   double m_stretch_ratio = 1.0;
   std::array<short, 2> m_last_stretched_sample = {};
+  std::array<short, MAX_SAMPLES * 2> m_stretch_buffer;
 
   WaveFileWriter m_wave_writer_dtk;
   WaveFileWriter m_wave_writer_dsp;

@@ -132,20 +132,21 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples)
 
   if (SConfig::GetInstance().m_audio_stretch)
   {
-    unsigned int actual_samples = std::min({
-        m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples(), num_samples,
-    });
+    unsigned int available_samples =
+        std::min(m_dma_mixer.AvailableSamples(), m_streaming_mixer.AvailableSamples());
 
-    m_dma_mixer.Mix(samples, actual_samples, false);
-    m_streaming_mixer.Mix(samples, actual_samples, false);
-    m_wiimote_speaker_mixer.Mix(samples, actual_samples, false);
+    m_stretch_buffer.fill(0);
+
+    m_dma_mixer.Mix(m_stretch_buffer.data(), available_samples, false);
+    m_streaming_mixer.Mix(m_stretch_buffer.data(), available_samples, false);
+    m_wiimote_speaker_mixer.Mix(m_stretch_buffer.data(), available_samples, false);
 
     if (!m_is_stretching)
     {
       m_sound_touch.clear();
       m_is_stretching = true;
     }
-    StretchAudio(samples, actual_samples, num_samples);
+    StretchAudio(m_stretch_buffer.data(), available_samples, samples, num_samples);
   }
   else
   {
@@ -158,12 +159,12 @@ unsigned int CMixer::Mix(short* samples, unsigned int num_samples)
   return num_samples;
 }
 
-void CMixer::StretchAudio(short* samples, unsigned int actual_samples, unsigned int num_samples)
+void CMixer::StretchAudio(const short* in, unsigned int num_in, short* out, unsigned int num_out)
 {
-  const double time_delta = static_cast<double>(num_samples) / m_sampleRate;  // seconds
+  const double time_delta = static_cast<double>(num_out) / m_sampleRate;  // seconds
 
   // We were given actual_samples number of samples, and num_samples were requested from us.
-  double current_ratio = static_cast<double>(actual_samples) / static_cast<double>(num_samples);
+  double current_ratio = static_cast<double>(num_in) / static_cast<double>(num_out);
 
   const double max_latency = SConfig::GetInstance().m_audio_stretch_max_latency;
   const double max_backlog = m_sampleRate * max_latency / 1000.0;
@@ -171,7 +172,7 @@ void CMixer::StretchAudio(short* samples, unsigned int actual_samples, unsigned 
   if (backlog_fullness > 1.0)
   {
     // Exceeded latency budget: Do not add more samples into FIFO.
-    actual_samples = 0;
+    num_in = 0;
   }
 
   // We ideally want the backlog to be about 50% full.
@@ -182,7 +183,7 @@ void CMixer::StretchAudio(short* samples, unsigned int actual_samples, unsigned 
 
   // This low-pass filter smoothes out variance in the calculated stretch ratio.
   // The time-scale determines how responsive this filter is.
-  constexpr double lpf_time_scale = 0.3;  // seconds
+  constexpr double lpf_time_scale = 1.0;  // seconds
   const double m_lpf_gain = 1.0 - std::exp(-time_delta / lpf_time_scale);
   m_stretch_ratio += m_lpf_gain * (current_ratio - m_stretch_ratio);
 
@@ -190,29 +191,24 @@ void CMixer::StretchAudio(short* samples, unsigned int actual_samples, unsigned 
   // many silence samples.  These do not need to be timestretched.
   m_sound_touch.setTempo(std::max(m_stretch_ratio, 0.1));
 
-  if (actual_samples != num_samples)
-  {
-    DEBUG_LOG(AUDIO, "Audio stretching: samples:%u/%u ratio:%f backlog:%f gain: %f", actual_samples,
-              num_samples, m_stretch_ratio, backlog_fullness, m_lpf_gain);
-  }
+  DEBUG_LOG(AUDIO, "Audio stretching: samples:%u/%u ratio:%f backlog:%f gain: %f", num_in, num_out,
+            m_stretch_ratio, backlog_fullness, m_lpf_gain);
 
-  m_sound_touch.putSamples(samples, actual_samples);
+  m_sound_touch.putSamples(in, num_in);
 
-  memset(samples, 0, num_samples * 2 * sizeof(short));
-
-  const size_t samples_received = m_sound_touch.receiveSamples(samples, num_samples);
+  const size_t samples_received = m_sound_touch.receiveSamples(out, num_out);
 
   if (samples_received != 0)
   {
-    m_last_stretched_sample[0] = samples[samples_received * 2 - 2];
-    m_last_stretched_sample[1] = samples[samples_received * 2 - 1];
+    m_last_stretched_sample[0] = out[samples_received * 2 - 2];
+    m_last_stretched_sample[1] = out[samples_received * 2 - 1];
   }
 
   // Preform padding if we've run out of samples.
-  for (size_t i = samples_received; i < num_samples; i++)
+  for (size_t i = samples_received; i < num_out; i++)
   {
-    samples[i * 2 + 0] = m_last_stretched_sample[0];
-    samples[i * 2 + 1] = m_last_stretched_sample[1];
+    out[i * 2 + 0] = m_last_stretched_sample[0];
+    out[i * 2 + 1] = m_last_stretched_sample[1];
   }
 }
 
