@@ -243,7 +243,8 @@ constexpr std::array<u8, 8> sizes{{32, 0, 0, 0, 8, 16, 8, 16}};
 
 void CommonAsmRoutines::GenQuantizedStores()
 {
-  pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+  // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_stXX).
+  pairedStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCodeTo(256)));
   ReserveCodeSpace(8 * sizeof(u8*));
 
   for (int type = 0; type < 8; type++)
@@ -253,7 +254,8 @@ void CommonAsmRoutines::GenQuantizedStores()
 // See comment in header for in/outs.
 void CommonAsmRoutines::GenQuantizedSingleStores()
 {
-  singleStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCode16()));
+  // Aligned to 256 bytes as least significant byte needs to be zero (See: Jit64::psq_stXX).
+  singleStoreQuantized = reinterpret_cast<const u8**>(const_cast<u8*>(AlignCodeTo(256)));
   ReserveCodeSpace(8 * sizeof(u8*));
 
   for (int type = 0; type < 8; type++)
