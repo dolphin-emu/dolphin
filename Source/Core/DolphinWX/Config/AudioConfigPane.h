@@ -30,6 +30,7 @@ private:
 
   void OnDSPEngineRadioBoxChanged(wxCommandEvent&);
   void OnDPL2DecoderCheckBoxChanged(wxCommandEvent&);
+  void OnTimestretchCheckBoxChanged(wxCommandEvent&);
   void OnVolumeSliderChanged(wxCommandEvent&);
   void OnAudioBackendChanged(wxCommandEvent&);
   void OnLatencySpinCtrlChanged(wxCommandEvent&);
@@ -39,6 +40,7 @@ private:
 
   wxRadioBox* m_dsp_engine_radiobox;
   wxCheckBox* m_dpl2_decoder_checkbox;
+  wxCheckBox* m_soundtouch_timestretch_checkbox;
   DolphinSlider* m_volume_slider;
   wxStaticText* m_volume_text;
   wxChoice* m_audio_backend_choice;

@@ -17,6 +17,7 @@
 #include <OpenAL/include/al.h>
 #include <OpenAL/include/alc.h>
 #include <OpenAL/include/alext.h>
+#include <OpenAL/include/xram.h>
 #elif defined __APPLE__
 #include <OpenAL/al.h>
 #include <OpenAL/alc.h>
@@ -73,7 +74,7 @@ class OpenALStream final : public SoundStream
 {
 #if defined HAVE_OPENAL && HAVE_OPENAL
 public:
-  OpenALStream() : uiSource(0) {}
+  OpenALStream() : source(0) {}
   bool Start() override;
   void SoundLoop() override;
   void SetVolume(int volume) override;
@@ -88,12 +89,12 @@ private:
 
   Common::Event soundSyncEvent;
 
-  short realtimeBuffer[OAL_MAX_SAMPLES * STEREO_CHANNELS];
-  soundtouch::SAMPLETYPE sampleBuffer[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
-  ALuint uiBuffers[OAL_MAX_BUFFERS];
-  ALuint uiSource;
-  ALfloat fVolume;
+  std::vector<short> realtime_buffer;
+  std::vector<soundtouch::SAMPLETYPE> sample_buffer;
+  std::vector<ALuint> buffers;
+  ALuint source;
+  ALfloat volume;
 
-  u8 numBuffers;
+  u8 num_buffers;
 #endif  // HAVE_OPENAL
 };
