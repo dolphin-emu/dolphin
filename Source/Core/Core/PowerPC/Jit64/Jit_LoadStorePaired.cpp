@@ -89,12 +89,12 @@ void Jit64::psq_stXX(UGeckoInstruction inst)
     // 0b0011111100000111, or 0x3F07.
     MOV(32, R(RSCRATCH2), Imm32(0x3F07));
     AND(32, R(RSCRATCH2), PPCSTATE(spr[SPR_GQR0 + i]));
-    MOVZX(32, 8, RSCRATCH, R(RSCRATCH2));
-
-    if (w)
-      CALLptr(MScaled(RSCRATCH, SCALE_8, PtrOffset(asm_routines.singleStoreQuantized)));
-    else
-      CALLptr(MScaled(RSCRATCH, SCALE_8, PtrOffset(asm_routines.pairedStoreQuantized)));
+    LEA(64, RSCRATCH, M(w ? asm_routines.singleStoreQuantized : asm_routines.pairedStoreQuantized));
+    // 8-bit operations do not zero upper 32-bits of 64-bit registers.
+    // Here we know that RSCRATCH's least significant byte is zero.
+    OR(8, R(RSCRATCH), R(RSCRATCH2));
+    SHL(8, R(RSCRATCH), Imm8(3));
+    CALLptr(MatR(RSCRATCH));
   }
 
   if (update && jo.memcheck)

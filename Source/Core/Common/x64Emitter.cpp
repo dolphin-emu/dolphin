@@ -120,28 +120,29 @@ void XEmitter::ReserveCodeSpace(int bytes)
     *code++ = 0xCC;
 }
 
+const u8* XEmitter::AlignCodeTo(size_t alignment)
+{
+  _assert_msg_(DYNA_REC, alignment != 0 && (alignment & (alignment - 1)) == 0,
+               "Alignment must be power of two");
+  u64 c = reinterpret_cast<u64>(code) & (alignment - 1);
+  if (c)
+    ReserveCodeSpace(static_cast<int>(alignment - c));
+  return code;
+}
+
 const u8* XEmitter::AlignCode4()
 {
-  int c = int((u64)code & 3);
-  if (c)
-    ReserveCodeSpace(4 - c);
-  return code;
+  return AlignCodeTo(4);
 }
 
 const u8* XEmitter::AlignCode16()
 {
-  int c = int((u64)code & 15);
-  if (c)
-    ReserveCodeSpace(16 - c);
-  return code;
+  return AlignCodeTo(16);
 }
 
 const u8* XEmitter::AlignCodePage()
 {
-  int c = int((u64)code & 4095);
-  if (c)
-    ReserveCodeSpace(4096 - c);
-  return code;
+  return AlignCodeTo(4096);
 }
 
 // This operation modifies flags; check to see the flags are locked.

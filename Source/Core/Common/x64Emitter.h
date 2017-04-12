@@ -412,6 +412,7 @@ public:
   virtual ~XEmitter() {}
   void SetCodePtr(u8* ptr);
   void ReserveCodeSpace(int bytes);
+  const u8* AlignCodeTo(size_t alignment);
   const u8* AlignCode4();
   const u8* AlignCode16();
   const u8* AlignCodePage();
