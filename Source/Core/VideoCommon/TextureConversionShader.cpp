@@ -345,9 +345,11 @@ static void WriteIA4Encoder(char*& p, APIType ApiType, const EFBCopyFormat& form
 static void WriteRGB565Encoder(char*& p, APIType ApiType, const EFBCopyFormat& format)
 {
   WriteSwizzler(p, GX_TF_RGB565, ApiType);
+  WRITE(p, "  float3 texSample0;\n");
+  WRITE(p, "  float3 texSample1;\n");
 
-  WriteSampleColor(p, "rgb", "float3 texSample0", 0, ApiType, format, false);
-  WriteSampleColor(p, "rgb", "float3 texSample1", 1, ApiType, format, false);
+  WriteSampleColor(p, "rgb", "texSample0", 0, ApiType, format, false);
+  WriteSampleColor(p, "rgb", "texSample1", 1, ApiType, format, false);
   WRITE(p, "  float2 texRs = float2(texSample0.r, texSample1.r);\n");
   WRITE(p, "  float2 texGs = float2(texSample0.g, texSample1.g);\n");
   WRITE(p, "  float2 texBs = float2(texSample0.b, texSample1.b);\n");
