@@ -54,8 +54,6 @@ void AudioConfigPane::InitializeGUI()
       new DolphinSlider(this, wxID_ANY, 80, 5, 300, wxDefaultPosition, wxDefaultSize);
   m_stretch_text = new wxStaticText(this, wxID_ANY, "");
 
-  m_audio_backend_choice->SetToolTip(
-      _("Changing this will have no effect while the emulator is running."));
   m_audio_latency_spinctrl->SetToolTip(_("Sets the latency (in ms). Higher values may reduce audio "
                                          "crackling. Certain backends only."));
   m_dpl2_decoder_checkbox->SetToolTip(
