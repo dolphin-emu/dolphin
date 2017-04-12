@@ -167,18 +167,18 @@ void CMixer::StretchAudio(const short* in, unsigned int num_in, short* out, unsi
   double current_ratio = static_cast<double>(num_in) / static_cast<double>(num_out);
 
   const double max_latency = SConfig::GetInstance().m_audio_stretch_max_latency;
-  const double max_backlog = m_sampleRate * max_latency / 1000.0;
+  const double max_backlog = m_sampleRate * max_latency / 1000.0 / m_stretch_ratio;
   const double backlog_fullness = m_sound_touch.numSamples() / max_backlog;
-  if (backlog_fullness > 1.0)
+  if (backlog_fullness > 5.0)
   {
-    // Exceeded latency budget: Do not add more samples into FIFO.
+    // Too many samples in backlog: Don't push anymore on
     num_in = 0;
   }
 
   // We ideally want the backlog to be about 50% full.
   // This gives some headroom both ways to prevent underflow and overflow.
   // We tweak current_ratio to encourage this.
-  constexpr double tweak_time_scale = 0.1;  // seconds
+  constexpr double tweak_time_scale = 0.5;  // seconds
   current_ratio *= 1.0 + 2.0 * (backlog_fullness - 0.5) * (time_delta / tweak_time_scale);
 
   // This low-pass filter smoothes out variance in the calculated stretch ratio.
@@ -189,7 +189,8 @@ void CMixer::StretchAudio(const short* in, unsigned int num_in, short* out, unsi
 
   // Place a lower limit of 10% speed.  When a game boots up, there will be
   // many silence samples.  These do not need to be timestretched.
-  m_sound_touch.setTempo(std::max(m_stretch_ratio, 0.1));
+  m_stretch_ratio = std::max(m_stretch_ratio, 0.1);
+  m_sound_touch.setTempo(m_stretch_ratio);
 
   DEBUG_LOG(AUDIO, "Audio stretching: samples:%u/%u ratio:%f backlog:%f gain: %f", num_in, num_out,
             m_stretch_ratio, backlog_fullness, m_lpf_gain);
