@@ -284,10 +284,10 @@ void OpenALStream::SoundLoop()
       }
     }
 
-    unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * numBuffers);
-
-    if (nSamples <= minSamples)
+    if (soundTouch.numSamples() <= minSamples)
       continue;
+
+    unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * numBuffers);
 
     if (surround_capable)
     {
