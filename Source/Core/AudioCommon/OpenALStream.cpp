@@ -20,8 +20,6 @@
 #pragma comment(lib, "openal32.lib")
 #endif
 
-static soundtouch::SoundTouch soundTouch;
-
 //
 // AyuanX: Spec says OpenAL1.1 is thread safe already
 //
@@ -71,7 +69,6 @@ bool OpenALStream::Start()
   // Initialize DPL2 parameters
   DPL2Reset();
 
-  soundTouch.clear();
   return bReturn;
 }
 
@@ -80,8 +77,6 @@ void OpenALStream::Stop()
   m_run_thread.Clear();
   // kick the thread if it's waiting
   soundSyncEvent.Set();
-
-  soundTouch.clear();
 
   thread.join();
 
@@ -120,7 +115,6 @@ void OpenALStream::Clear(bool mute)
 
   if (m_muted)
   {
-    soundTouch.clear();
     alSourceStop(uiSource);
   }
   else
@@ -213,15 +207,6 @@ void OpenALStream::SoundLoop()
   unsigned int numBuffersQueued = 0;
   ALint iState = 0;
 
-  soundTouch.setChannels(2);
-  soundTouch.setSampleRate(ulFrequency);
-  soundTouch.setTempo(1.0);
-  soundTouch.setSetting(SETTING_USE_QUICKSEEK, 0);
-  soundTouch.setSetting(SETTING_USE_AA_FILTER, 0);
-  soundTouch.setSetting(SETTING_SEQUENCE_MS, 1);
-  soundTouch.setSetting(SETTING_SEEKWINDOW_MS, 28);
-  soundTouch.setSetting(SETTING_OVERLAP_MS, 12);
-
   while (m_run_thread.IsSet())
   {
     // Block until we have a free buffer
@@ -243,62 +228,29 @@ void OpenALStream::SoundLoop()
       numBuffersQueued -= numBuffersProcessed;
     }
 
-    // num_samples_to_render in this update - depends on SystemTimers::AUDIO_DMA_PERIOD.
-    const u32 stereo_16_bit_size = 4;
-    const u32 dma_length = 32;
-    const u64 ais_samples_per_second = 48000 * stereo_16_bit_size;
-    u64 audio_dma_period = SystemTimers::GetTicksPerSecond() /
-                           (AudioInterface::GetAIDSampleRate() * stereo_16_bit_size / dma_length);
-    u64 num_samples_to_render =
-        (audio_dma_period * ais_samples_per_second) / SystemTimers::GetTicksPerSecond();
+    // DPL2 accepts 240 samples minimum (FWRDURATION)
+    unsigned int minSamples = surround_capable ? 240 : 0;
 
-    unsigned int numSamples = (unsigned int)num_samples_to_render;
-    unsigned int minSamples =
-        surround_capable ? 240 : 0;  // DPL2 accepts 240 samples minimum (FWRDURATION)
-
-    numSamples = (numSamples > OAL_MAX_SAMPLES) ? OAL_MAX_SAMPLES : numSamples;
-    numSamples = m_mixer->Mix(realtimeBuffer, numSamples, false);
+    unsigned int numSamples = OAL_MAX_SAMPLES;
+    numSamples = m_mixer->Mix(realtimeBuffer, numSamples);
 
     // Convert the samples from short to float
-    float dest[OAL_MAX_SAMPLES * STEREO_CHANNELS];
     for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
-      dest[i] = (float)realtimeBuffer[i] / (1 << 15);
+      sampleBuffer[i] = static_cast<float>(realtimeBuffer[i]) / (1 << 15);
 
-    soundTouch.putSamples(dest, numSamples);
-
-    double rate = (double)m_mixer->GetCurrentSpeed();
-    if (rate <= 0)
-    {
-      Core::RequestRefreshInfo();
-      rate = (double)m_mixer->GetCurrentSpeed();
-    }
-
-    // Place a lower limit of 10% speed.  When a game boots up, there will be
-    // many silence samples.  These do not need to be timestretched.
-    if (rate > 0.10)
-    {
-      soundTouch.setTempo(rate);
-      if (rate > 10)
-      {
-        soundTouch.clear();
-      }
-    }
-
-    unsigned int nSamples = soundTouch.receiveSamples(sampleBuffer, OAL_MAX_SAMPLES * numBuffers);
-
-    if (nSamples <= minSamples)
+    if (numSamples <= minSamples)
       continue;
 
     if (surround_capable)
     {
       float dpl2[OAL_MAX_SAMPLES * OAL_MAX_BUFFERS * SURROUND_CHANNELS];
-      DPL2Decode(sampleBuffer, nSamples, dpl2);
+      DPL2Decode(sampleBuffer, numSamples, dpl2);
 
       // zero-out the subwoofer channel - DPL2Decode generates a pretty
       // good 5.0 but not a good 5.1 output.  Sadly there is not a 5.0
       // AL_FORMAT_50CHN32 to make this super-explicit.
       // DPL2Decode output: LEFTFRONT, RIGHTFRONT, CENTREFRONT, (sub), LEFTREAR, RIGHTREAR
-      for (u32 i = 0; i < nSamples; ++i)
+      for (u32 i = 0; i < numSamples; ++i)
       {
         dpl2[i * SURROUND_CHANNELS + 3 /*sub/lfe*/] = 0.0f;
       }
@@ -306,13 +258,13 @@ void OpenALStream::SoundLoop()
       if (float32_capable)
       {
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, dpl2,
-                     nSamples * FRAME_SURROUND_FLOAT, ulFrequency);
+                     numSamples * FRAME_SURROUND_FLOAT, ulFrequency);
       }
       else if (fixed32_capable)
       {
         int surround_int32[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
 
-        for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
+        for (u32 i = 0; i < numSamples * SURROUND_CHANNELS; ++i)
         {
           // For some reason the ffdshow's DPL2 decoder outputs samples bigger than 1.
           // Most are close to 2.5 and some go up to 8. Hard clamping here, we need to
@@ -327,13 +279,13 @@ void OpenALStream::SoundLoop()
         }
 
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN32, surround_int32,
-                     nSamples * FRAME_SURROUND_INT32, ulFrequency);
+                     numSamples * FRAME_SURROUND_INT32, ulFrequency);
       }
       else
       {
         short surround_short[OAL_MAX_SAMPLES * SURROUND_CHANNELS * OAL_MAX_BUFFERS];
 
-        for (u32 i = 0; i < nSamples * SURROUND_CHANNELS; ++i)
+        for (u32 i = 0; i < numSamples * SURROUND_CHANNELS; ++i)
         {
           dpl2[i] = dpl2[i] * (1 << 15);
           if (dpl2[i] > SHRT_MAX)
@@ -345,7 +297,7 @@ void OpenALStream::SoundLoop()
         }
 
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_51CHN16, surround_short,
-                     nSamples * FRAME_SURROUND_SHORT, ulFrequency);
+                     numSamples * FRAME_SURROUND_SHORT, ulFrequency);
       }
 
       err = CheckALError("buffering data");
@@ -362,7 +314,7 @@ void OpenALStream::SoundLoop()
       if (float32_capable)
       {
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO_FLOAT32, sampleBuffer,
-                     nSamples * FRAME_STEREO_FLOAT, ulFrequency);
+                     numSamples * FRAME_STEREO_FLOAT, ulFrequency);
 
         err = CheckALError("buffering float32 data");
         if (err == AL_INVALID_ENUM)
@@ -374,21 +326,21 @@ void OpenALStream::SoundLoop()
       {
         // Clamping is not necessary here, samples are always between (-1,1)
         int stereo_int32[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
-        for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
+        for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
           stereo_int32[i] = (int)((float)sampleBuffer[i] * (INT64_C(1) << 31));
 
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO32, stereo_int32,
-                     nSamples * FRAME_STEREO_INT32, ulFrequency);
+                     numSamples * FRAME_STEREO_INT32, ulFrequency);
       }
       else
       {
         // Convert the samples from float to short
         short stereo[OAL_MAX_SAMPLES * STEREO_CHANNELS * OAL_MAX_BUFFERS];
-        for (u32 i = 0; i < nSamples * STEREO_CHANNELS; ++i)
+        for (u32 i = 0; i < numSamples * STEREO_CHANNELS; ++i)
           stereo[i] = (short)((float)sampleBuffer[i] * (1 << 15));
 
         alBufferData(uiBuffers[nextBuffer], AL_FORMAT_STEREO16, stereo,
-                     nSamples * FRAME_STEREO_SHORT, ulFrequency);
+                     numSamples * FRAME_STEREO_SHORT, ulFrequency);
       }
     }
 

@@ -650,18 +650,11 @@ else()
 endif()
 
 find_package(OpenAL)
-if(OPENAL_FOUND)
-  if(NOT APPLE)
-    check_lib(SOUNDTOUCH soundtouch SoundTouch soundtouch/SoundTouch.h QUIET)
-  endif()
-  if (SOUNDTOUCH_FOUND)
-    message(STATUS "Using shared soundtouch")
-  else()
-    message(STATUS "Using static soundtouch from Externals")
-    add_subdirectory(Externals/soundtouch)
-    include_directories(Externals)
-  endif()
-endif()
+
+# Using static soundtouch from Externals
+# Unable to use system soundtouch library: We require shorts, not floats.
+add_subdirectory(Externals/soundtouch)
+include_directories(Externals)
 
 if(NOT ANDROID)
   add_definitions(-D__LIBUSB__)
