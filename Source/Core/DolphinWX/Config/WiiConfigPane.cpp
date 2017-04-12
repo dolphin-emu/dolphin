@@ -47,8 +47,8 @@ void WiiConfigPane::InitializeGUI()
   m_bt_sensor_bar_pos_strings.Add(_("Bottom"));
   m_bt_sensor_bar_pos_strings.Add(_("Top"));
 
-  m_screensaver_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Screen Saver"));
   m_pal60_mode_checkbox = new wxCheckBox(this, wxID_ANY, _("Use PAL60 Mode (EuRGB60)"));
+  m_screensaver_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Screen Saver"));
   m_aspect_ratio_choice =
       new wxChoice(this, wxID_ANY, wxDefaultPosition, wxDefaultSize, m_aspect_ratio_strings);
   m_system_language_choice =
@@ -65,9 +65,9 @@ void WiiConfigPane::InitializeGUI()
   m_bt_speaker_volume = new DolphinSlider(this, wxID_ANY, 0, 0, 127);
   m_bt_wiimote_motor = new wxCheckBox(this, wxID_ANY, _("Wii Remote Rumble"));
 
-  m_screensaver_checkbox->SetToolTip(_("Dims the screen after five minutes of inactivity."));
   m_pal60_mode_checkbox->SetToolTip(_("Sets the Wii display mode to 60Hz (480i) instead of 50Hz "
                                       "(576i) for PAL games.\nMay not work for all games."));
+  m_screensaver_checkbox->SetToolTip(_("Dims the screen after five minutes of inactivity."));
   m_system_language_choice->SetToolTip(_("Sets the Wii system language."));
   m_sd_card_checkbox->SetToolTip(_("Saved to /Wii/sd.raw (default size is 128mb)"));
   m_connect_keyboard_checkbox->SetToolTip(_("May cause slow down in Wii Menu and some games."));
@@ -75,15 +75,17 @@ void WiiConfigPane::InitializeGUI()
   const int space5 = FromDIP(5);
 
   wxGridBagSizer* const misc_settings_grid_sizer = new wxGridBagSizer(space5, space5);
-  misc_settings_grid_sizer->Add(m_screensaver_checkbox, wxGBPosition(0, 0), wxGBSpan(1, 2));
-  misc_settings_grid_sizer->Add(m_pal60_mode_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2));
+  misc_settings_grid_sizer->Add(m_pal60_mode_checkbox, wxGBPosition(0, 0), wxGBSpan(1, 2));
+  misc_settings_grid_sizer->Add(m_screensaver_checkbox, wxGBPosition(0, 2), wxGBSpan(1, 2));
+  misc_settings_grid_sizer->Add(m_sd_card_checkbox, wxGBPosition(1, 0), wxGBSpan(1, 2));
+  misc_settings_grid_sizer->Add(m_connect_keyboard_checkbox, wxGBPosition(1, 2), wxGBSpan(1, 2));
   misc_settings_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("Aspect Ratio:")),
                                 wxGBPosition(2, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
   misc_settings_grid_sizer->Add(m_aspect_ratio_choice, wxGBPosition(2, 1), wxDefaultSpan,
                                 wxALIGN_CENTER_VERTICAL);
   misc_settings_grid_sizer->Add(new wxStaticText(this, wxID_ANY, _("System Language:")),
-                                wxGBPosition(3, 0), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
-  misc_settings_grid_sizer->Add(m_system_language_choice, wxGBPosition(3, 1), wxDefaultSpan,
+                                wxGBPosition(2, 2), wxDefaultSpan, wxALIGN_CENTER_VERTICAL);
+  misc_settings_grid_sizer->Add(m_system_language_choice, wxGBPosition(2, 3), wxDefaultSpan,
                                 wxALIGN_CENTER_VERTICAL);
 
   auto* const usb_passthrough_btn_sizer = new wxBoxSizer(wxHORIZONTAL);
@@ -129,14 +131,6 @@ void WiiConfigPane::InitializeGUI()
   misc_settings_static_sizer->Add(misc_settings_grid_sizer, 0, wxLEFT | wxRIGHT, space5);
   misc_settings_static_sizer->AddSpacer(space5);
 
-  wxStaticBoxSizer* const device_settings_sizer =
-      new wxStaticBoxSizer(wxVERTICAL, this, _("Device Settings"));
-  device_settings_sizer->AddSpacer(space5);
-  device_settings_sizer->Add(m_sd_card_checkbox, 0, wxLEFT | wxRIGHT, space5);
-  device_settings_sizer->AddSpacer(space5);
-  device_settings_sizer->Add(m_connect_keyboard_checkbox, 0, wxLEFT | wxRIGHT, space5);
-  device_settings_sizer->AddSpacer(space5);
-
   auto* const usb_passthrough_sizer =
       new wxStaticBoxSizer(wxVERTICAL, this, _("Whitelisted USB Passthrough Devices"));
   usb_passthrough_sizer->AddSpacer(space5);
@@ -155,8 +149,6 @@ void WiiConfigPane::InitializeGUI()
   wxBoxSizer* const main_sizer = new wxBoxSizer(wxVERTICAL);
   main_sizer->AddSpacer(space5);
   main_sizer->Add(misc_settings_static_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
-  main_sizer->AddSpacer(space5);
-  main_sizer->Add(device_settings_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
   main_sizer->Add(usb_passthrough_sizer, 0, wxEXPAND | wxLEFT | wxRIGHT, space5);
   main_sizer->AddSpacer(space5);
