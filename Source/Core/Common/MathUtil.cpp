@@ -153,7 +153,7 @@ double ApproximateReciprocalSquareRoot(double val)
   int i = (int)(mantissa >> 37);
   vali = sign | exponent;
   int index = i / 2048 + (odd_exponent ? 16 : 0);
-  auto& entry = frsqrte_expected[index];
+  const auto& entry = frsqrte_expected[index];
   vali |= (s64)(entry.m_base - entry.m_dec * (i % 2048)) << 26;
   return valf;
 }
@@ -211,7 +211,7 @@ double ApproximateReciprocal(double val)
   exponent = (0x7FDLL << 52) - exponent;
 
   int i = (int)(mantissa >> 37);
-  auto& entry = fres_expected[i / 1024];
+  const auto& entry = fres_expected[i / 1024];
   vali = sign | exponent;
   vali |= (s64)(entry.m_base - (entry.m_dec * (i % 1024) + 1) / 2) << 29;
   return valf;
