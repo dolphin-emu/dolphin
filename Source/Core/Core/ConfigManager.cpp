@@ -301,7 +301,6 @@ void SConfig::SaveDSPSettings(IniFile& ini)
   dsp->Set("DumpAudio", m_DumpAudio);
   dsp->Set("DumpAudioSilent", m_DumpAudioSilent);
   dsp->Set("DumpUCode", m_DumpUCode);
-  dsp->Set("Backend", sBackend);
   dsp->Set("Volume", m_Volume);
   dsp->Set("CaptureLog", m_DSPCaptureLog);
 }
@@ -635,7 +634,6 @@ void SConfig::LoadDSPSettings(IniFile& ini)
   dsp->Get("DumpAudio", &m_DumpAudio, false);
   dsp->Get("DumpAudioSilent", &m_DumpAudioSilent, false);
   dsp->Get("DumpUCode", &m_DumpUCode, false);
-  dsp->Get("Backend", &sBackend, AudioCommon::GetDefaultSoundBackend());
   dsp->Get("Volume", &m_Volume, 100);
   dsp->Get("CaptureLog", &m_DSPCaptureLog, false);
 

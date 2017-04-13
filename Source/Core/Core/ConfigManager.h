@@ -29,10 +29,6 @@ class TMDReader;
 }
 }
 
-// DSP Backend Types
-#define BACKEND_NULLSOUND _trans("No audio output")
-#define BACKEND_CUBEB "Cubeb"
-
 enum GPUDeterminismMode
 {
   GPU_DETERMINISM_AUTO,
@@ -317,7 +313,6 @@ struct SConfig : NonCopyable
   bool m_IsMuted;
   bool m_DumpUCode;
   int m_Volume;
-  std::string sBackend;
 
   // Input settings
   bool m_BackgroundInput;

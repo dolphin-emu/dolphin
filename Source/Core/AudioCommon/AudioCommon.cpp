@@ -23,23 +23,17 @@ static const int AUDIO_VOLUME_MAX = 100;
 
 void InitSoundStream()
 {
-  std::string backend = SConfig::GetInstance().sBackend;
-  if (backend == BACKEND_CUBEB)
-    g_sound_stream = std::make_unique<CubebStream>();
-  else if (backend == BACKEND_NULLSOUND)
-    g_sound_stream = std::make_unique<NullSound>();
+  g_sound_stream = std::make_unique<CubebStream>();
 
   if (!g_sound_stream)
   {
-    WARN_LOG(AUDIO, "Could not initialize backend %s, using %s instead.", backend.c_str(),
-             BACKEND_NULLSOUND);
+    WARN_LOG(AUDIO, "Could not initialize cubeb, disabling audio output.");
     g_sound_stream = std::make_unique<NullSound>();
   }
 
   if (!g_sound_stream->Start())
   {
-    ERROR_LOG(AUDIO, "Could not start backend %s, using %s instead", backend.c_str(),
-              BACKEND_NULLSOUND);
+    ERROR_LOG(AUDIO, "Could not start cubeb, disabling audio output.");
 
     g_sound_stream = std::make_unique<NullSound>();
     g_sound_stream->Start();
@@ -66,45 +60,6 @@ void ShutdownSoundStream()
   }
 
   INFO_LOG(AUDIO, "Done shutting down sound stream");
-}
-
-std::string GetDefaultSoundBackend()
-{
-  std::string backend = BACKEND_NULLSOUND;
-#if defined ANDROID
-  backend = BACKEND_CUBEB;
-#elif defined __linux__
-  backend = BACKEND_CUBEB;
-#elif defined __APPLE__
-  backend = BACKEND_CUBEB;
-#elif defined _WIN32
-  backend = BACKEND_CUBEB;
-#endif
-  return backend;
-}
-
-std::vector<std::string> GetSoundBackends()
-{
-  std::vector<std::string> backends;
-
-  backends.push_back(BACKEND_NULLSOUND);
-  backends.push_back(BACKEND_CUBEB);
-  return backends;
-}
-
-bool SupportsDPL2Decoder(const std::string& backend)
-{
-  if (backend == BACKEND_CUBEB)
-    return true;
-  return false;
-}
-
-bool SupportsVolumeChanges(const std::string& backend)
-{
-  // FIXME: this one should ask the backend whether it supports it.
-  //       but getting the backend from string etc. is probably
-  //       too much just to enable/disable a stupid slider...
-  return backend == BACKEND_CUBEB;
 }
 
 void UpdateSoundStream()
