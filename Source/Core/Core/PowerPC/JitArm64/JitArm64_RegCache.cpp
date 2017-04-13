@@ -2,12 +2,18 @@
 // Licensed under GPLv2+
 // Refer to the license.txt file included.
 
-#include "Core/PowerPC/JitArm64/Jit.h"
+#include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
+
+#include <algorithm>
+#include <array>
+#include <cstddef>
+#include <vector>
+
 #include "Common/Assert.h"
 #include "Common/BitSet.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
-#include "Core/PowerPC/JitArm64/JitArm64_RegCache.h"
+#include "Core/PowerPC/JitArm64/Jit.h"
 
 using namespace Arm64Gen;
 
@@ -66,18 +72,22 @@ void Arm64RegCache::UnlockRegister(ARM64Reg host_reg)
 
 void Arm64RegCache::FlushMostStaleRegister()
 {
-  u32 most_stale_preg = 0;
+  size_t most_stale_preg = 0;
   u32 most_stale_amount = 0;
-  for (u32 i = 0; i < 32; ++i)
+
+  for (size_t i = 0; i < m_guest_registers.size(); ++i)
   {
-    u32 last_used = m_guest_registers[i].GetLastUsed();
-    if (last_used > most_stale_amount && (m_guest_registers[i].GetType() != REG_NOTLOADED &&
-                                          m_guest_registers[i].GetType() != REG_IMM))
+    const auto& reg = m_guest_registers[i];
+    const u32 last_used = reg.GetLastUsed();
+
+    if (last_used > most_stale_amount &&
+        (reg.GetType() != REG_NOTLOADED && reg.GetType() != REG_IMM))
     {
       most_stale_preg = i;
       most_stale_amount = last_used;
     }
   }
+
   FlushRegister(most_stale_preg, false);
 }
 
@@ -88,13 +98,14 @@ void Arm64GPRCache::Start(PPCAnalyst::BlockRegStats& stats)
 
 bool Arm64GPRCache::IsCalleeSaved(ARM64Reg reg)
 {
-  static std::vector<ARM64Reg> callee_regs = {
+  static constexpr std::array<ARM64Reg, 11> callee_regs{{
       X28, X27, X26, X25, X24, X23, X22, X21, X20, X19, INVALID_REG,
-  };
+  }};
+
   return std::find(callee_regs.begin(), callee_regs.end(), EncodeRegTo64(reg)) != callee_regs.end();
 }
 
-void Arm64GPRCache::FlushRegister(u32 preg, bool maintain_state)
+void Arm64GPRCache::FlushRegister(size_t preg, bool maintain_state)
 {
   OpArg& reg = m_guest_registers[preg];
   if (reg.GetType() == REG_REG)
@@ -132,7 +143,7 @@ void Arm64GPRCache::FlushRegister(u32 preg, bool maintain_state)
 
 void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
 {
-  for (int i = 0; i < 32; ++i)
+  for (size_t i = 0; i < m_guest_registers.size(); ++i)
   {
     if (regs[i])
     {
@@ -168,7 +179,7 @@ void Arm64GPRCache::FlushRegisters(BitSet32 regs, bool maintain_state)
 void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
   BitSet32 to_flush;
-  for (int i = 0; i < 32; ++i)
+  for (size_t i = 0; i < m_guest_registers.size(); ++i)
   {
     bool flush = true;
     if (m_guest_registers[i].GetType() == REG_REG)
@@ -183,7 +194,7 @@ void Arm64GPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
   FlushRegisters(to_flush, mode == FLUSH_MAINTAIN_STATE);
 }
 
-ARM64Reg Arm64GPRCache::R(u32 preg)
+ARM64Reg Arm64GPRCache::R(size_t preg)
 {
   OpArg& reg = m_guest_registers[preg];
   IncrementAllUsed();
@@ -223,7 +234,7 @@ ARM64Reg Arm64GPRCache::R(u32 preg)
   return INVALID_REG;
 }
 
-void Arm64GPRCache::SetImmediate(u32 preg, u32 imm)
+void Arm64GPRCache::SetImmediate(size_t preg, u32 imm)
 {
   OpArg& reg = m_guest_registers[preg];
   if (reg.GetType() == REG_REG)
@@ -231,7 +242,7 @@ void Arm64GPRCache::SetImmediate(u32 preg, u32 imm)
   reg.LoadToImm(imm);
 }
 
-void Arm64GPRCache::BindToRegister(u32 preg, bool do_load)
+void Arm64GPRCache::BindToRegister(size_t preg, bool do_load)
 {
   OpArg& reg = m_guest_registers[preg];
 
@@ -250,13 +261,13 @@ void Arm64GPRCache::BindToRegister(u32 preg, bool do_load)
 void Arm64GPRCache::GetAllocationOrder()
 {
   // Callee saved registers first in hopes that we will keep everything stored there first
-  const std::vector<ARM64Reg> allocation_order = {
+  static constexpr std::array<ARM64Reg, 29> allocation_order{{
       // Callee saved
       W27, W26, W25, W24, W23, W22, W21, W20, W19,
 
       // Caller saved
       W18, W17, W16, W15, W14, W13, W12, W11, W10, W9, W8, W7, W6, W5, W4, W3, W2, W1, W0, W30,
-  };
+  }};
 
   for (ARM64Reg reg : allocation_order)
     m_host_registers.push_back(HostReg(reg));
@@ -273,9 +284,9 @@ BitSet32 Arm64GPRCache::GetCallerSavedUsed()
 
 void Arm64GPRCache::FlushByHost(ARM64Reg host_reg)
 {
-  for (int i = 0; i < 32; ++i)
+  for (size_t i = 0; i < m_guest_registers.size(); ++i)
   {
-    OpArg& reg = m_guest_registers[i];
+    const OpArg& reg = m_guest_registers[i];
     if (reg.GetType() == REG_REG && reg.GetReg() == host_reg)
     {
       FlushRegister(i, false);
@@ -287,10 +298,11 @@ void Arm64GPRCache::FlushByHost(ARM64Reg host_reg)
 // FPR Cache
 void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
 {
-  for (int i = 0; i < 32; ++i)
+  for (size_t i = 0; i < m_guest_registers.size(); ++i)
   {
-    if (m_guest_registers[i].GetType() != REG_NOTLOADED &&
-        m_guest_registers[i].GetType() != REG_IMM)
+    const RegType reg_type = m_guest_registers[i].GetType();
+
+    if (reg_type != REG_NOTLOADED && reg_type != REG_IMM)
     {
       // XXX: Determine if we can keep a register in the lower 64bits
       // Which will allow it to be callee saved.
@@ -299,7 +311,7 @@ void Arm64FPRCache::Flush(FlushMode mode, PPCAnalyst::CodeOp* op)
   }
 }
 
-ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
+ARM64Reg Arm64FPRCache::R(size_t preg, RegType type)
 {
   OpArg& reg = m_guest_registers[preg];
   IncrementAllUsed();
@@ -408,7 +420,7 @@ ARM64Reg Arm64FPRCache::R(u32 preg, RegType type)
   return INVALID_REG;
 }
 
-ARM64Reg Arm64FPRCache::RW(u32 preg, RegType type)
+ARM64Reg Arm64FPRCache::RW(size_t preg, RegType type)
 {
   OpArg& reg = m_guest_registers[preg];
 
@@ -470,13 +482,14 @@ ARM64Reg Arm64FPRCache::RW(u32 preg, RegType type)
 
 void Arm64FPRCache::GetAllocationOrder()
 {
-  const std::vector<ARM64Reg> allocation_order = {// Callee saved
-                                                  Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15,
+  static constexpr std::array<ARM64Reg, 32> allocation_order{{
+      // Callee saved
+      Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15,
 
-                                                  // Caller saved
-                                                  Q16, Q17, Q18, Q19, Q20, Q21, Q22, Q23, Q24, Q25,
-                                                  Q26, Q27, Q28, Q29, Q30, Q31, Q7, Q6, Q5, Q4, Q3,
-                                                  Q2, Q1, Q0};
+      // Caller saved
+      Q16, Q17, Q18, Q19, Q20, Q21, Q22, Q23, Q24, Q25, Q26, Q27, Q28, Q29, Q30, Q31, Q7, Q6, Q5,
+      Q4, Q3, Q2, Q1, Q0,
+  }};
 
   for (ARM64Reg reg : allocation_order)
     m_host_registers.push_back(HostReg(reg));
@@ -484,10 +497,12 @@ void Arm64FPRCache::GetAllocationOrder()
 
 void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
 {
-  for (int i = 0; i < 32; ++i)
+  for (size_t i = 0; i < m_guest_registers.size(); ++i)
   {
-    OpArg& reg = m_guest_registers[i];
-    if ((reg.GetType() != REG_NOTLOADED && reg.GetType() != REG_IMM) && reg.GetReg() == host_reg)
+    const OpArg& reg = m_guest_registers[i];
+    const RegType reg_type = reg.GetType();
+
+    if ((reg_type != REG_NOTLOADED && reg_type != REG_IMM) && reg.GetReg() == host_reg)
     {
       FlushRegister(i, false);
       return;
@@ -497,13 +512,14 @@ void Arm64FPRCache::FlushByHost(ARM64Reg host_reg)
 
 bool Arm64FPRCache::IsCalleeSaved(ARM64Reg reg)
 {
-  static std::vector<ARM64Reg> callee_regs = {
+  static constexpr std::array<ARM64Reg, 9> callee_regs{{
       Q8, Q9, Q10, Q11, Q12, Q13, Q14, Q15, INVALID_REG,
-  };
+  }};
+
   return std::find(callee_regs.begin(), callee_regs.end(), reg) != callee_regs.end();
 }
 
-void Arm64FPRCache::FlushRegister(u32 preg, bool maintain_state)
+void Arm64FPRCache::FlushRegister(size_t preg, bool maintain_state)
 {
   OpArg& reg = m_guest_registers[preg];
   ARM64Reg host_reg = reg.GetReg();
@@ -580,14 +596,14 @@ BitSet32 Arm64FPRCache::GetCallerSavedUsed()
   return registers;
 }
 
-bool Arm64FPRCache::IsSingle(u32 preg, bool lower_only)
+bool Arm64FPRCache::IsSingle(size_t preg, bool lower_only)
 {
   RegType type = m_guest_registers[preg].GetType();
   return type == REG_REG_SINGLE || type == REG_DUP_SINGLE ||
          (lower_only && type == REG_LOWER_PAIR_SINGLE);
 }
 
-void Arm64FPRCache::FixSinglePrecision(u32 preg)
+void Arm64FPRCache::FixSinglePrecision(size_t preg)
 {
   OpArg& reg = m_guest_registers[preg];
   ARM64Reg host_reg = reg.GetReg();
