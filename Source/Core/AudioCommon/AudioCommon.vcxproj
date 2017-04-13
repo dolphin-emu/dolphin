@@ -50,7 +50,6 @@
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="NullSoundStream.h" />
     <ClInclude Include="OpenSLESStream.h" />
-    <ClInclude Include="PulseAudioStream.h" />
     <ClInclude Include="SoundStream.h" />
     <ClInclude Include="WaveFile.h" />
   </ItemGroup>

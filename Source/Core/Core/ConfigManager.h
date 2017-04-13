@@ -33,7 +33,6 @@ class TMDReader;
 #define BACKEND_NULLSOUND _trans("No audio output")
 #define BACKEND_ALSA "ALSA"
 #define BACKEND_CUBEB "Cubeb"
-#define BACKEND_PULSEAUDIO "Pulse"
 #define BACKEND_OPENSLES "OpenSLES"
 
 enum GPUDeterminismMode

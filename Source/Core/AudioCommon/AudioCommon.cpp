@@ -8,7 +8,6 @@
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/NullSoundStream.h"
 #include "AudioCommon/OpenSLESStream.h"
-#include "AudioCommon/PulseAudioStream.h"
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -33,8 +32,6 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<NullSound>();
   else if (backend == BACKEND_ALSA && AlsaSound::isValid())
     g_sound_stream = std::make_unique<AlsaSound>();
-  else if (backend == BACKEND_PULSEAUDIO && PulseAudio::isValid())
-    g_sound_stream = std::make_unique<PulseAudio>();
   else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
     g_sound_stream = std::make_unique<OpenSLESStream>();
 
@@ -101,8 +98,6 @@ std::vector<std::string> GetSoundBackends()
   backends.push_back(BACKEND_CUBEB);
   if (AlsaSound::isValid())
     backends.push_back(BACKEND_ALSA);
-  if (PulseAudio::isValid())
-    backends.push_back(BACKEND_PULSEAUDIO);
   if (OpenSLESStream::isValid())
     backends.push_back(BACKEND_OPENSLES);
   return backends;
@@ -111,8 +106,6 @@ std::vector<std::string> GetSoundBackends()
 bool SupportsDPL2Decoder(const std::string& backend)
 {
   if (backend == BACKEND_CUBEB)
-    return true;
-  if (backend == BACKEND_PULSEAUDIO)
     return true;
   return false;
 }
