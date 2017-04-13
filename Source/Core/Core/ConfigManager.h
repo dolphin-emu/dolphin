@@ -35,7 +35,6 @@ class TMDReader;
 #define BACKEND_COREAUDIO "CoreAudio"
 #define BACKEND_CUBEB "Cubeb"
 #define BACKEND_PULSEAUDIO "Pulse"
-#define BACKEND_XAUDIO2 "XAudio2"
 #define BACKEND_OPENSLES "OpenSLES"
 
 enum GPUDeterminismMode

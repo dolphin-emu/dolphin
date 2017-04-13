@@ -13,12 +13,6 @@
     <ClCompile Include="NullSoundStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
-    <ClCompile Include="XAudio2Stream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
-    <ClCompile Include="XAudio2_7Stream.cpp">
-      <Filter>SoundStreams</Filter>
-    </ClCompile>
     <ClCompile Include="CubebStream.cpp">
       <Filter>SoundStreams</Filter>
     </ClCompile>
@@ -29,12 +23,6 @@
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="WaveFile.h" />
     <ClInclude Include="NullSoundStream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
-    <ClInclude Include="XAudio2Stream.h">
-      <Filter>SoundStreams</Filter>
-    </ClInclude>
-    <ClInclude Include="XAudio2_7Stream.h">
       <Filter>SoundStreams</Filter>
     </ClInclude>
     <ClInclude Include="PulseAudioStream.h">

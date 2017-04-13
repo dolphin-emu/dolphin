@@ -50,16 +50,6 @@ else()
   message(STATUS "PulseAudio explicitly disabled, disabling PulseAudio sound backend")
 endif()
 
-if(WIN32)
-  target_sources(audiocommon PRIVATE XAudio2Stream.cpp)
-
-  add_dolphin_library(audiocommon_xaudio27 "XAudio2_7Stream.cpp" "${LIBS}")
-  target_include_directories(audiocommon_xaudio27 PRIVATE
-    ${PROJECT_SOURCE_DIR}/Externals
-    ${PROJECT_SOURCE_DIR}/Externals/XAudio2_7
-  )
-  target_link_libraries(audiocommon PRIVATE audiocommon_xaudio27)
-
-elseif(APPLE)
+if(APPLE)
   target_sources(audiocommon PRIVATE CoreAudioSoundStream.cpp)
 endif()
