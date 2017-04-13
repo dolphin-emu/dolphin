@@ -6,7 +6,6 @@
 #include "AudioCommon/CubebStream.h"
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/NullSoundStream.h"
-#include "AudioCommon/OpenSLESStream.h"
 #include "Common/Common.h"
 #include "Common/FileUtil.h"
 #include "Common/Logging/Log.h"
@@ -29,8 +28,6 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<CubebStream>();
   else if (backend == BACKEND_NULLSOUND)
     g_sound_stream = std::make_unique<NullSound>();
-  else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
-    g_sound_stream = std::make_unique<OpenSLESStream>();
 
   if (!g_sound_stream)
   {
@@ -75,7 +72,7 @@ std::string GetDefaultSoundBackend()
 {
   std::string backend = BACKEND_NULLSOUND;
 #if defined ANDROID
-  backend = BACKEND_OPENSLES;
+  backend = BACKEND_CUBEB;
 #elif defined __linux__
   backend = BACKEND_CUBEB;
 #elif defined __APPLE__
@@ -92,8 +89,6 @@ std::vector<std::string> GetSoundBackends()
 
   backends.push_back(BACKEND_NULLSOUND);
   backends.push_back(BACKEND_CUBEB);
-  if (OpenSLESStream::isValid())
-    backends.push_back(BACKEND_OPENSLES);
   return backends;
 }
 

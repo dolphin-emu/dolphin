@@ -48,7 +48,6 @@
     <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="NullSoundStream.h" />
-    <ClInclude Include="OpenSLESStream.h" />
     <ClInclude Include="SoundStream.h" />
     <ClInclude Include="WaveFile.h" />
   </ItemGroup>
