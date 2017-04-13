@@ -4,10 +4,13 @@
 
 #pragma once
 
+#include <array>
+#include <cstddef>
 #include <memory>
 #include <vector>
 
 #include "Common/Arm64Emitter.h"
+#include "Common/CommonTypes.h"
 #include "Core/PowerPC/Gekko.h"
 #include "Core/PowerPC/PPCAnalyst.h"
 #include "Core/PowerPC/PowerPC.h"
@@ -171,7 +174,7 @@ protected:
   // Flushes a guest register by host provided
   virtual void FlushByHost(ARM64Reg host_reg) = 0;
 
-  virtual void FlushRegister(u32 preg, bool maintain_state) = 0;
+  virtual void FlushRegister(size_t preg, bool maintain_state) = 0;
 
   virtual void FlushRegisters(BitSet32 regs, bool maintain_state) = 0;
 
@@ -196,7 +199,7 @@ protected:
   // Our guest GPRs
   // PowerPC has 32 GPRs
   // PowerPC also has 32 paired FPRs
-  OpArg m_guest_registers[32];
+  std::array<OpArg, 32> m_guest_registers;
 
   // Register stats for the current block
   PPCAnalyst::BlockRegStats* m_reg_stats;
@@ -213,16 +216,16 @@ public:
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
-  ARM64Reg R(u32 preg);
+  ARM64Reg R(size_t preg);
 
   // Set a register to an immediate
-  void SetImmediate(u32 preg, u32 imm);
+  void SetImmediate(size_t preg, u32 imm);
 
   // Returns if a register is set as an immediate
-  bool IsImm(u32 reg) const { return m_guest_registers[reg].GetType() == REG_IMM; }
+  bool IsImm(size_t reg) const { return m_guest_registers[reg].GetType() == REG_IMM; }
   // Gets the immediate that a register is set to
-  u32 GetImm(u32 reg) const { return m_guest_registers[reg].GetImm(); }
-  void BindToRegister(u32 preg, bool do_load);
+  u32 GetImm(size_t reg) const { return m_guest_registers[reg].GetImm(); }
+  void BindToRegister(size_t preg, bool do_load);
 
   BitSet32 GetCallerSavedUsed() override;
 
@@ -233,7 +236,7 @@ protected:
   // Flushes a guest register by host provided
   void FlushByHost(ARM64Reg host_reg) override;
 
-  void FlushRegister(u32 preg, bool maintain_state) override;
+  void FlushRegister(size_t preg, bool maintain_state) override;
 
   void FlushRegisters(BitSet32 regs, bool maintain_state) override;
 
@@ -250,15 +253,15 @@ public:
 
   // Returns a guest register inside of a host register
   // Will dump an immediate to the host register as well
-  ARM64Reg R(u32 preg, RegType type = REG_LOWER_PAIR);
+  ARM64Reg R(size_t preg, RegType type = REG_LOWER_PAIR);
 
-  ARM64Reg RW(u32 preg, RegType type = REG_LOWER_PAIR);
+  ARM64Reg RW(size_t preg, RegType type = REG_LOWER_PAIR);
 
   BitSet32 GetCallerSavedUsed() override;
 
-  bool IsSingle(u32 preg, bool lower_only = false);
+  bool IsSingle(size_t preg, bool lower_only = false);
 
-  void FixSinglePrecision(u32 preg);
+  void FixSinglePrecision(size_t preg);
 
 protected:
   // Get the order of the host registers
@@ -267,7 +270,7 @@ protected:
   // Flushes a guest register by host provided
   void FlushByHost(ARM64Reg host_reg) override;
 
-  void FlushRegister(u32 preg, bool maintain_state) override;
+  void FlushRegister(size_t preg, bool maintain_state) override;
 
   void FlushRegisters(BitSet32 regs, bool maintain_state) override;
 
