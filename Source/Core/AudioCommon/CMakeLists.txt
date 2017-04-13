@@ -34,23 +34,6 @@ else()
   message(STATUS "ALSA explicitly disabled, disabling ALSA sound backend")
 endif()
 
-if(ENABLE_OPENAL)
-  if(WIN32)
-    set(ENV{OPENALDIR} ${PROJECT_SOURCE_DIR}/Externals/OpenAL)
-  endif()
-  find_package(OpenAL)
-  if(OPENAL_FOUND)
-    message(STATUS "OpenAL found, enabling OpenAL sound backend")
-    target_sources(audiocommon PRIVATE OpenALStream.cpp aldlist.cpp)
-    target_link_libraries(audiocommon PRIVATE OpenAL::OpenAL)
-    target_compile_definitions(audiocommon PRIVATE HAVE_OPENAL=1)
-  else()
-    message(STATUS "OpenAL NOT found, disabling OpenAL sound backend")
-  endif()
-else()
-  message(STATUS "OpenAL explicitly disabled, disabling OpenAL sound backend")
-endif()
-
 if(ENABLE_PULSEAUDIO)
   # PulseAudio ships with a PulseAudioConfig.cmake with no imported target
   # So we use our own FindPulseAudio instead with "MODULE"

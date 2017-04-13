@@ -34,7 +34,6 @@ class TMDReader;
 #define BACKEND_ALSA "ALSA"
 #define BACKEND_COREAUDIO "CoreAudio"
 #define BACKEND_CUBEB "Cubeb"
-#define BACKEND_OPENAL "OpenAL"
 #define BACKEND_PULSEAUDIO "Pulse"
 #define BACKEND_XAUDIO2 "XAudio2"
 #define BACKEND_OPENSLES "OpenSLES"
@@ -110,7 +109,6 @@ struct SConfig : NonCopyable
   bool bCopyWiiSaveNetplay = true;
 
   bool bDPL2Decoder = false;
-  int iLatency = 14;
   bool m_audio_stretch = false;
   int m_audio_stretch_max_latency = 80;
 

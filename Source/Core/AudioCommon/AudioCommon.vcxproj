@@ -35,13 +35,11 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <ItemGroup>
-    <ClCompile Include="aldlist.cpp" />
     <ClCompile Include="AudioCommon.cpp" />
     <ClCompile Include="CubebStream.cpp" />
     <ClCompile Include="DPL2Decoder.cpp" />
     <ClCompile Include="Mixer.cpp" />
     <ClCompile Include="NullSoundStream.cpp" />
-    <ClCompile Include="OpenALStream.cpp" />
     <ClCompile Include="WaveFile.cpp" />
     <ClCompile Include="XAudio2Stream.cpp" />
     <ClCompile Include="XAudio2_7Stream.cpp">
@@ -49,7 +47,6 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="aldlist.h" />
     <ClInclude Include="AlsaSoundStream.h" />
     <ClInclude Include="AudioCommon.h" />
     <ClInclude Include="CoreAudioSoundStream.h" />
@@ -57,7 +54,6 @@
     <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />
     <ClInclude Include="NullSoundStream.h" />
-    <ClInclude Include="OpenALStream.h" />
     <ClInclude Include="OpenSLESStream.h" />
     <ClInclude Include="PulseAudioStream.h" />
     <ClInclude Include="SoundStream.h" />

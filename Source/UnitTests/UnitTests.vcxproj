@@ -48,7 +48,7 @@
         The following libs are needed since we pull in pretty much the entire
         dolphin codebase.
         -->
-      <AdditionalLibraryDirectories>$(ExternalsDir)OpenAL\lib;$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ExternalsDir)ffmpeg\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <AdditionalDependencies>iphlpapi.lib;winmm.lib;setupapi.lib;opengl32.lib;glu32.lib;rpcrt4.lib;comctl32.lib;avcodec.lib;avformat.lib;avutil.lib;swresample.lib;swscale.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <SubSystem>Console</SubSystem>
       <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/NODEFAULTLIB:libcmt %(AdditionalOptions)</AdditionalOptions>
@@ -103,14 +103,8 @@
     that was the long-winded explanation of why we copy external things to the
     OutDir :)
     -->
-  <ItemGroup>
-    <ExternalDlls Include="$(ExternalsDir)OpenAL\lib\*.dll" />
-  </ItemGroup>
   <!--Either method of running requires the runtime deps to be copied to pwd-->
-  <Target Name="CopyDeps" AfterTargets="AfterBuild" Inputs="@(ExternalDlls)" Outputs="@(ExternalDlls -> '$(OutDir)%(RecursiveDir)%(Filename)%(Extension)')">
-    <Copy SourceFiles="@(ExternalDlls)" DestinationFolder="$(OutDir)" Condition="!Exists('$(OutDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)') OR $([System.DateTime]::Parse('%(ModifiedTime)').Ticks) &gt; $([System.IO.File]::GetLastWriteTime('$(OutDir)%(RecursiveDir)%(Filename)%(ExternalDlls.Extension)').Ticks)" />
-  </Target>
-  <Target Name="ExecUnitTests" AfterTargets="AfterBuild;CopyDeps" Condition="'$(RunUnitTests)'=='true'">
+  <Target Name="ExecUnitTests" AfterTargets="AfterBuild" Condition="'$(RunUnitTests)'=='true'">
     <!--This is only executed via msbuild, VS test runner automatically does this-->
     <Exec Command="$(TargetPath)" />
   </Target>

@@ -32,7 +32,6 @@ private:
   void OnDPL2DecoderCheckBoxChanged(wxCommandEvent&);
   void OnVolumeSliderChanged(wxCommandEvent&);
   void OnAudioBackendChanged(wxCommandEvent&);
-  void OnLatencySpinCtrlChanged(wxCommandEvent&);
   void OnStretchCheckBoxChanged(wxCommandEvent&);
   void OnStretchSliderChanged(wxCommandEvent&);
 
@@ -44,8 +43,6 @@ private:
   DolphinSlider* m_volume_slider;
   wxStaticText* m_volume_text;
   wxChoice* m_audio_backend_choice;
-  wxSpinCtrl* m_audio_latency_spinctrl;
-  wxStaticText* m_audio_latency_label;
   wxCheckBox* m_stretch_checkbox;
   wxStaticText* m_stretch_label;
   DolphinSlider* m_stretch_slider;
