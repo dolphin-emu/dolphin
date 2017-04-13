@@ -49,7 +49,3 @@ if(ENABLE_PULSEAUDIO)
 else()
   message(STATUS "PulseAudio explicitly disabled, disabling PulseAudio sound backend")
 endif()
-
-if(APPLE)
-  target_sources(audiocommon PRIVATE CoreAudioSoundStream.cpp)
-endif()

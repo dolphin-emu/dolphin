@@ -45,7 +45,6 @@
   <ItemGroup>
     <ClInclude Include="AlsaSoundStream.h" />
     <ClInclude Include="AudioCommon.h" />
-    <ClInclude Include="CoreAudioSoundStream.h" />
     <ClInclude Include="CubebStream.h" />
     <ClInclude Include="DPL2Decoder.h" />
     <ClInclude Include="Mixer.h" />

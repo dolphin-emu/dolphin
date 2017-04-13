@@ -4,7 +4,6 @@
 
 #include "AudioCommon/AudioCommon.h"
 #include "AudioCommon/AlsaSoundStream.h"
-#include "AudioCommon/CoreAudioSoundStream.h"
 #include "AudioCommon/CubebStream.h"
 #include "AudioCommon/Mixer.h"
 #include "AudioCommon/NullSoundStream.h"
@@ -34,8 +33,6 @@ void InitSoundStream()
     g_sound_stream = std::make_unique<NullSound>();
   else if (backend == BACKEND_ALSA && AlsaSound::isValid())
     g_sound_stream = std::make_unique<AlsaSound>();
-  else if (backend == BACKEND_COREAUDIO && CoreAudioSound::isValid())
-    g_sound_stream = std::make_unique<CoreAudioSound>();
   else if (backend == BACKEND_PULSEAUDIO && PulseAudio::isValid())
     g_sound_stream = std::make_unique<PulseAudio>();
   else if (backend == BACKEND_OPENSLES && OpenSLESStream::isValid())
@@ -89,7 +86,7 @@ std::string GetDefaultSoundBackend()
   if (AlsaSound::isValid())
     backend = BACKEND_ALSA;
 #elif defined __APPLE__
-  backend = BACKEND_COREAUDIO;
+  backend = BACKEND_CUBEB;
 #elif defined _WIN32
   backend = BACKEND_CUBEB;
 #endif
@@ -104,8 +101,6 @@ std::vector<std::string> GetSoundBackends()
   backends.push_back(BACKEND_CUBEB);
   if (AlsaSound::isValid())
     backends.push_back(BACKEND_ALSA);
-  if (CoreAudioSound::isValid())
-    backends.push_back(BACKEND_COREAUDIO);
   if (PulseAudio::isValid())
     backends.push_back(BACKEND_PULSEAUDIO);
   if (OpenSLESStream::isValid())
@@ -127,7 +122,7 @@ bool SupportsVolumeChanges(const std::string& backend)
   // FIXME: this one should ask the backend whether it supports it.
   //       but getting the backend from string etc. is probably
   //       too much just to enable/disable a stupid slider...
-  return backend == BACKEND_COREAUDIO || backend == BACKEND_CUBEB;
+  return backend == BACKEND_CUBEB;
 }
 
 void UpdateSoundStream()

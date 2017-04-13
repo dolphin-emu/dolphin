@@ -294,7 +294,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   find_library(AU_LIBRARY AudioUnit)
   find_library(CARBON_LIBRARY Carbon)
   find_library(COCOA_LIBRARY Cocoa)
-  find_library(COREAUDIO_LIBRARY CoreAudio)
   find_library(COREFUND_LIBRARY CoreFoundation)
   find_library(CORESERV_LIBRARY CoreServices)
   find_library(FOUNDATION_LIBRARY Foundation)
@@ -307,7 +306,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   list(APPEND LIBS
     ${APPKIT_LIBRARY}
     ${AU_LIBRARY}
-    ${COREAUDIO_LIBRARY}
     ${COREFUND_LIBRARY}
     ${CORESERV_LIBRARY}
     ${IOK_LIBRARY}
