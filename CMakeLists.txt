@@ -20,7 +20,6 @@ option(ENABLE_QT2 "Enable Qt2 (use the other experimental Qt interface)" OFF)
 option(ENABLE_LTO "Enables Link Time Optimization" OFF)
 option(ENABLE_GENERIC "Enables generic build that should run on any little-endian host" OFF)
 option(ENABLE_HEADLESS "Enables running Dolphin as a headless variant" OFF)
-option(ENABLE_ALSA "Enables ALSA sound backend" ON)
 option(ENABLE_LLVM "Enables LLVM support, for disassembly" ON)
 option(ENABLE_BLUEZ "Enables bluetooth support" ON)
 
