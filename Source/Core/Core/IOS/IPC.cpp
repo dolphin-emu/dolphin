@@ -32,6 +32,7 @@
 #include "Common/ChunkFile.h"
 #include "Common/CommonTypes.h"
 #include "Common/Logging/Log.h"
+#include "Core/Analytics.h"
 #include "Core/Boot/Boot_DOL.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
@@ -907,6 +908,7 @@ static s32 OpenDevice(const OpenRequest& request)
   if (!device)
   {
     ERROR_LOG(IOS, "Unknown device: %s", request.path.c_str());
+    ReportUnknownDevice(request.path);
     return IPC_ENOENT;
   }
 
