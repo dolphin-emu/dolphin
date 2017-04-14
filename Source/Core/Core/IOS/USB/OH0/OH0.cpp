@@ -16,6 +16,7 @@
 #include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/IPC.h"
 #include "Core/IOS/USB/Common.h"
 #include "Core/IOS/USB/USBV0.h"
 
@@ -151,6 +152,7 @@ IPCCommandResult OH0::GetRhPortStatus(const IOCtlVRequest& request) const
 
   ERROR_LOG(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_GETRHPORTSTATUS");
   request.Dump(GetDeviceName(), LogTypes::IOS_USB, LogTypes::LERROR);
+  ReportUnknownRequest(GetDeviceName(), request);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -161,6 +163,7 @@ IPCCommandResult OH0::SetRhPortStatus(const IOCtlVRequest& request)
 
   ERROR_LOG(IOS_USB, "Unimplemented IOCtlV: IOCTLV_USBV0_SETRHPORTSTATUS");
   request.Dump(GetDeviceName(), LogTypes::IOS_USB, LogTypes::LERROR);
+  ReportUnknownRequest(GetDeviceName(), request);
   return GetDefaultReply(IPC_SUCCESS);
 }
 
@@ -311,6 +314,7 @@ IPCCommandResult OH0::DeviceIOCtlV(const u64 device_id, const IOCtlVRequest& req
                           [&, this]() { return SubmitTransfer(*device, request); });
   case USB::IOCTLV_USBV0_UNKNOWN_32:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_USB);
+    ReportUnknownRequest(GetDeviceName(), request);
     return GetDefaultReply(IPC_SUCCESS);
   default:
     return GetDefaultReply(IPC_EINVAL);

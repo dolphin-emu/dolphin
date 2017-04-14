@@ -19,6 +19,7 @@
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
 #include "Core/IOS/ES/NandUtils.h"
+#include "Core/IOS/IPC.h"
 #include "DiscIO/NANDContentLoader.h"
 
 namespace IOS
@@ -436,6 +437,7 @@ IPCCommandResult ES::IOCtlV(const IOCtlVRequest& request)
     PanicAlert("IOS-ES: Unimplemented ioctlv 0x%x (%zu in vectors, %zu io vectors)",
                request.request, request.in_vectors.size(), request.io_vectors.size());
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_ES, LogTypes::LERROR);
+    ReportUnknownRequest(GetDeviceName(), request);
     return GetDefaultReply(IPC_EINVAL);
 
   default:

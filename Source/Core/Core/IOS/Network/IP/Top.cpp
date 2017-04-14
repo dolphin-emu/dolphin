@@ -25,6 +25,7 @@
 
 #include "Core/Core.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/IPC.h"
 #include "Core/IOS/Network/ICMP.h"
 #include "Core/IOS/Network/MACUtils.h"
 #include "Core/IOS/Network/Socket.h"
@@ -199,6 +200,7 @@ IPCCommandResult NetIPTop::IOCtl(const IOCtlRequest& request)
     return HandleICMPCancelRequest(request);
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_NET);
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
   }
 
@@ -221,6 +223,7 @@ IPCCommandResult NetIPTop::IOCtlV(const IOCtlVRequest& request)
     return HandleICMPPingRequest(request);
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_NET);
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
   }
 

@@ -15,6 +15,7 @@
 #include "Common/Logging/Log.h"
 #include "Core/HW/Memmap.h"
 #include "Core/IOS/ES/Formats.h"
+#include "Core/IOS/IPC.h"
 #include "Core/IOS/WFS/WFSSRV.h"
 #include "DiscIO/NANDContentLoader.h"
 
@@ -207,10 +208,12 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     // Bytes 4-8: game id
     // Bytes 1c-1e: title id?
     WARN_LOG(IOS, "IOCTL_WFSI_DELETE_TITLE: unimplemented");
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
 
   case IOCTL_WFSI_IMPORT_TITLE:
     WARN_LOG(IOS, "IOCTL_WFSI_IMPORT_TITLE: unimplemented");
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
 
   case IOCTL_WFSI_INIT:
@@ -240,6 +243,7 @@ IPCCommandResult WFSI::IOCtl(const IOCtlRequest& request)
     // succeeding.
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS, LogTypes::LWARNING);
     Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
   }
 

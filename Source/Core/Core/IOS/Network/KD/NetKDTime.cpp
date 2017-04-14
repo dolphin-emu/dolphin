@@ -9,6 +9,7 @@
 #include "Common/CommonTypes.h"
 #include "Core/HW/EXI/EXI_DeviceIPL.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/IPC.h"
 
 namespace IOS
 {
@@ -55,6 +56,7 @@ IPCCommandResult NetKDTime::IOCtl(const IOCtlRequest& request)
 
   default:
     ERROR_LOG(IOS_NET, "%s - unknown IOCtl: %x", GetDeviceName().c_str(), request.request);
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
   }
 

@@ -12,6 +12,7 @@
 #include "Common/Logging/Log.h"
 #include "Common/NandPaths.h"
 #include "Core/HW/Memmap.h"
+#include "Core/IOS/IPC.h"
 
 namespace IOS
 {
@@ -157,6 +158,7 @@ IPCCommandResult WFSSRV::IOCtl(const IOCtlRequest& request)
     // properly stubbed it's easier to simulate the methods succeeding.
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS, LogTypes::LWARNING);
     Memory::Memset(request.buffer_out, 0, request.buffer_out_size);
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
   }
 

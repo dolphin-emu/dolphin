@@ -21,6 +21,7 @@
 #include "Core/HW/SystemTimers.h"
 #include "Core/IOS/FS/FS.h"
 #include "Core/IOS/FS/FileIO.h"
+#include "Core/IOS/IPC.h"
 
 namespace IOS
 {
@@ -180,6 +181,7 @@ IPCCommandResult FS::IOCtl(const IOCtlRequest& request)
     return Shutdown(request);
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_FILEIO);
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
   }
 
@@ -196,6 +198,7 @@ IPCCommandResult FS::IOCtlV(const IOCtlVRequest& request)
     return GetUsage(request);
   default:
     request.DumpUnknown(GetDeviceName(), LogTypes::IOS_FILEIO);
+    ReportUnknownRequest(GetDeviceName(), request);
     break;
   }
 
