@@ -37,7 +37,7 @@ namespace Common
 void* AllocateExecutableMemory(size_t size)
 {
 #if defined(_WIN32)
-  void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
+  void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_EXECUTE_READWRITE);
 #else
   void* ptr =
       mmap(nullptr, size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_ANON | MAP_PRIVATE, -1, 0);
@@ -55,7 +55,7 @@ void* AllocateExecutableMemory(size_t size)
 void* AllocateMemoryPages(size_t size)
 {
 #ifdef _WIN32
-  void* ptr = VirtualAlloc(0, size, MEM_COMMIT, PAGE_READWRITE);
+  void* ptr = VirtualAlloc(nullptr, size, MEM_COMMIT, PAGE_READWRITE);
 #else
   void* ptr = mmap(nullptr, size, PROT_READ | PROT_WRITE, MAP_ANON | MAP_PRIVATE, -1, 0);
 
