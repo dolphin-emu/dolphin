@@ -283,10 +283,6 @@ if(CMAKE_SYSTEM_NAME MATCHES "Darwin")
   # Linker flags.
   # Drop unreachable code and data.
   set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-dead_strip,-dead_strip_dylibs")
-  # Reserve the minimum size for the zero page.
-  # Our JIT requires virtual memory space below 2GB, while the default zero
-  # page on x86_64 is 4GB in size.
-  set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -Wl,-pagezero_size,0x1000")
 
   find_library(APPKIT_LIBRARY AppKit)
   find_library(APPSERV_LIBRARY ApplicationServices)
