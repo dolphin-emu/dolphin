@@ -1043,5 +1043,43 @@ void UpdateWantDeterminism(const bool new_want_determinism)
   for (const auto& device : s_device_map)
     device.second->UpdateWantDeterminism(new_want_determinism);
 }
+
+void ReportUnknownDevice(const std::string& path)
+{
+  auto analytics = DolphinAnalytics::Instance();
+  auto builder = analytics->MakeBuilderWithGameID();
+  builder.AddData("type", "ios-unknown-device");
+  builder.AddData("ios-version", GetVersion());
+  builder.AddData("ios-path", path);
+  analytics->Send(builder);
+}
+
+void ReportUnknownRequest(const std::string& path, const IOCtlRequest& ioctl)
+{
+  auto analytics = DolphinAnalytics::Instance();
+  auto builder = analytics->MakeBuilderWithGameID();
+  builder.AddData("type", "ios-unknown-request");
+  builder.AddData("ios-version", GetVersion());
+  builder.AddData("ios-request-type", "ioctl");
+  builder.AddData("ios-path", path);
+  builder.AddData("ios-ioctl-request", ioctl.request);
+  builder.AddData("ios-ioctl-in-size", ioctl.buffer_in_size);
+  builder.AddData("ios-ioctl-out-size", ioctl.buffer_out_size);
+  analytics->Send(builder);
+}
+
+void ReportUnknownRequest(const std::string& path, const IOCtlVRequest& ioctlv)
+{
+  auto analytics = DolphinAnalytics::Instance();
+  auto builder = analytics->MakeBuilderWithGameID();
+  builder.AddData("type", "ios-unknown-request");
+  builder.AddData("ios-version", IOS::HLE::GetVersion());
+  builder.AddData("ios-request-type", "ioctlv");
+  builder.AddData("ios-path", path);
+  builder.AddData("ios-ioctlv-request", ioctlv.request);
+  builder.AddData("ios-ioctlv-in-count", static_cast<u32>(ioctlv.in_vectors.size()));
+  builder.AddData("ios-ioctlv-io-count", static_cast<u32>(ioctlv.io_vectors.size()));
+  analytics->Send(builder);
+}
 }  // namespace HLE
 }  // namespace IOS
