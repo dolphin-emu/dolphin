@@ -28,10 +28,12 @@ void CommonAsmRoutines::GenFifoWrite(int size)
   const void* start = GetCodePtr();
 
   // Assume value in RSCRATCH
-  MOV(32, R(RSCRATCH2), M(&GPFifo::m_gatherPipeCount));
-  SwapAndStore(size, MDisp(RSCRATCH2, PtrOffset(GPFifo::m_gatherPipe)), RSCRATCH);
-  ADD(32, R(RSCRATCH2), Imm8(size >> 3));
-  MOV(32, M(&GPFifo::m_gatherPipeCount), R(RSCRATCH2));
+  MOV(64, R(RSCRATCH2), ImmPtr(&GPFifo::g_gather_pipe_ptr));
+  MOV(64, R(RSCRATCH2), MatR(RSCRATCH2));
+  SwapAndStore(size, MatR(RSCRATCH2), RSCRATCH);
+  MOV(64, R(RSCRATCH), ImmPtr(&GPFifo::g_gather_pipe_ptr));
+  ADD(64, R(RSCRATCH2), Imm8(size >> 3));
+  MOV(64, MatR(RSCRATCH), R(RSCRATCH2));
   RET();
 
   JitRegister::Register(start, GetCodePtr(), "JIT_FifoWrite_%i", size);
