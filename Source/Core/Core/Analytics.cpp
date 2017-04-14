@@ -182,8 +182,9 @@ void DolphinAnalytics::MakePerGameBuilder()
 {
   Common::AnalyticsReportBuilder builder(m_base_builder);
 
-  // Gameid.
+  // Gameid and title ID.
   builder.AddData("gameid", SConfig::GetInstance().GetGameID());
+  builder.AddData("titleid", SConfig::GetInstance().GetTitleID());
 
   // Unique id bound to the gameid.
   builder.AddData("id", MakeUniqueId(SConfig::GetInstance().GetGameID()));
