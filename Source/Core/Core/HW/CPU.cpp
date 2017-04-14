@@ -183,7 +183,7 @@ State GetState()
   return s_state;
 }
 
-const volatile State* GetStatePtr()
+const State* GetStatePtr()
 {
   return &s_state;
 }
