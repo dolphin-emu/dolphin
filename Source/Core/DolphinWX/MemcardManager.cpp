@@ -46,10 +46,10 @@ static wxImage wxImageFromMemoryRGBA(const u32* data, u32 width, u32 height)
     for (u32 x = 0; x < width; ++x)
     {
       u32 pixel = data[y * width + x];
-      *rgb++ = (pixel & 0x00FF0000) >> 16;  // Red
-      *rgb++ = (pixel & 0x0000FF00) >> 8;   // Green
-      *rgb++ = (pixel & 0x000000FF) >> 0;   // Blue
-      *alpha++ = (pixel & 0xFF000000) >> 24;
+      *rgb++ = (pixel & 0xFF000000) >> 24;  // Red
+      *rgb++ = (pixel & 0x00FF0000) >> 16;  // Green
+      *rgb++ = (pixel & 0x0000FF00) >> 8;   // Blue
+      *alpha++ = (pixel & 0x000000FF) >> 0;
     }
   }
   return image;

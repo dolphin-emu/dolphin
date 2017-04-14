@@ -37,7 +37,7 @@ static u32 Decode5A3(u16 val)
     b = (s_lut4to8[(val)&0xf] * a + ((bg_color >> 16) & 0xFF) * (255 - a)) / 255;
     a = 0xFF;
   }
-  return (a << 24) | (r << 16) | (g << 8) | b;
+  return (r << 24) | (g << 16) | (b << 8) | a;
 }
 
 void decode5A3image(u32* dst, const u16* src, int width, int height)
