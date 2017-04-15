@@ -97,6 +97,16 @@ u32 GetTexelSize(VkFormat format)
   }
 }
 
+VkRect2D ClampRect2D(const VkRect2D& rect, u32 width, u32 height)
+{
+  VkRect2D out;
+  out.offset.x = MathUtil::Clamp(rect.offset.x, 0, static_cast<int32_t>(width - 1));
+  out.offset.y = MathUtil::Clamp(rect.offset.y, 0, static_cast<int32_t>(height - 1));
+  out.extent.width = std::min(rect.extent.width, width - static_cast<uint32_t>(rect.offset.x));
+  out.extent.height = std::min(rect.extent.height, height - static_cast<uint32_t>(rect.offset.y));
+  return out;
+}
+
 VkBlendFactor GetAlphaBlendFactor(VkBlendFactor factor)
 {
   switch (factor)

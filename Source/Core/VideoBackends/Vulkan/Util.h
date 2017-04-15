@@ -27,6 +27,9 @@ bool IsDepthFormat(VkFormat format);
 VkFormat GetLinearFormat(VkFormat format);
 u32 GetTexelSize(VkFormat format);
 
+// Clamps a VkRect2D to the specified dimensions.
+VkRect2D ClampRect2D(const VkRect2D& rect, u32 width, u32 height);
+
 // Map {SRC,DST}_COLOR to {SRC,DST}_ALPHA
 VkBlendFactor GetAlphaBlendFactor(VkBlendFactor factor);
 

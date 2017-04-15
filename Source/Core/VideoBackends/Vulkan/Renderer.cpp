@@ -587,12 +587,11 @@ void Renderer::ResolveEFBForSwap(const TargetRectangle& scaled_rect)
 {
   // While the source rect can be out-of-range when drawing, the resolve rectangle must be within
   // the bounds of the texture.
-  TargetRectangle resolve_rect{scaled_rect};
-  resolve_rect.ClampUL(0, 0, m_target_width, m_target_height);
-
   VkRect2D region = {
-      {resolve_rect.left, resolve_rect.top},
-      {static_cast<u32>(resolve_rect.GetWidth()), static_cast<u32>(resolve_rect.GetHeight())}};
+      {scaled_rect.left, scaled_rect.top},
+      {static_cast<u32>(scaled_rect.GetWidth()), static_cast<u32>(scaled_rect.GetHeight())}};
+  region = Util::ClampRect2D(region, FramebufferManager::GetInstance()->GetEFBWidth(),
+                             FramebufferManager::GetInstance()->GetEFBHeight());
   FramebufferManager::GetInstance()->ResolveEFBColorTexture(region);
 }
 
