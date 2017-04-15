@@ -756,6 +756,10 @@ bool Renderer::DrawFrameDump(const TargetRectangle& scaled_efb_rect, u32 xfb_add
   if (!ResizeFrameDumpBuffer(width, height))
     return false;
 
+  // If there was a previous frame dumped, we'll still be in TRANSFER_SRC layout.
+  m_frame_dump_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                  VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL);
+
   VkClearValue clear_value = {{{0.0f, 0.0f, 0.0f, 1.0f}}};
   VkClearRect clear_rect = {{{0, 0}, {width, height}}, 0, 1};
   VkClearAttachment clear_attachment = {VK_IMAGE_ASPECT_COLOR_BIT, 0, clear_value};
@@ -781,6 +785,8 @@ bool Renderer::DrawFrameDump(const TargetRectangle& scaled_efb_rect, u32 xfb_add
     return false;
 
   // Queue a copy to the current frame dump buffer. It will be written to the frame dump later.
+  m_frame_dump_render_texture->TransitionToLayout(g_command_buffer_mgr->GetCurrentCommandBuffer(),
+                                                  VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL);
   readback_texture->CopyFromImage(g_command_buffer_mgr->GetCurrentCommandBuffer(),
                                   m_frame_dump_render_texture->GetImage(),
                                   VK_IMAGE_ASPECT_COLOR_BIT, 0, 0, width, height, 0, 0);
