@@ -788,7 +788,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
   {
     InstLoc I = ibuild->ReadBackward();
     unsigned int op = getOpcode(*I);
-    bool thisUsed = regReadUse(RI, I) ? true : false;
+    bool thisUsed = regReadUse(RI, I) != 0;
 
     switch (op)
     {
@@ -962,7 +962,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
   for (unsigned i = 0; i != RI.IInfo.size(); i++)
   {
     InstLoc I = ibuild->ReadForward();
-    bool thisUsed = regReadUse(RI, I) ? true : false;
+    bool thisUsed = regReadUse(RI, I) != 0;
     if (thisUsed)
     {
       // Needed for IR Writer
