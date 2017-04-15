@@ -788,7 +788,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
   {
     InstLoc I = ibuild->ReadBackward();
     unsigned int op = getOpcode(*I);
-    bool thisUsed = regReadUse(RI, I) ? true : false;
+    bool thisUsed = regReadUse(RI, I) != 0;
 
     switch (op)
     {
@@ -962,7 +962,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
   for (unsigned i = 0; i != RI.IInfo.size(); i++)
   {
     InstLoc I = ibuild->ReadForward();
-    bool thisUsed = regReadUse(RI, I) ? true : false;
+    bool thisUsed = regReadUse(RI, I) != 0;
     if (thisUsed)
     {
       // Needed for IR Writer
@@ -1621,7 +1621,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
           w ? Jit->asm_routines.singleLoadQuantized : Jit->asm_routines.pairedLoadQuantized;
 
       Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp1(I)));
-      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)table));
+      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, PtrOffset(table)));
       Jit->MOVAPD(reg, R(XMM0));
       RI.fregs[reg] = I;
       regNormalRegClear(RI, I);
@@ -1679,7 +1679,7 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       Jit->MOV(32, R(RSCRATCH_EXTRA), regLocForInst(RI, getOp2(I)));
       Jit->MOVAPD(XMM0, fregLocForInst(RI, getOp1(I)));
-      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, (u32)(u64)(Jit->asm_routines.pairedStoreQuantized)));
+      Jit->CALLptr(MScaled(RSCRATCH, SCALE_8, PtrOffset(Jit->asm_routines.pairedStoreQuantized)));
       if (RI.IInfo[I - RI.FirstI] & 4)
         fregClearInst(RI, getOp1(I));
       if (RI.IInfo[I - RI.FirstI] & 8)
@@ -2101,10 +2101,10 @@ static void DoWriteCode(IRBuilder* ibuild, JitIL* Jit, u32 exitAddress)
 
       X64Reg reg = regFindFreeReg(RI);
       u64 val = ibuild->GetImmValue64(I);
-      if ((u32)val == val)
-        Jit->MOV(32, R(reg), Imm32((u32)val));
-      else if ((s32)val == (s64)val)
-        Jit->MOV(64, R(reg), Imm32((s32)val));
+      if (static_cast<u32>(val) == val)
+        Jit->MOV(32, R(reg), Imm32(static_cast<u32>(val)));
+      else if (static_cast<s32>(val) == static_cast<s64>(val))
+        Jit->MOV(64, R(reg), Imm32(static_cast<s32>(val)));
       else
         Jit->MOV(64, R(reg), Imm64(val));
       RI.regs[reg] = I;
