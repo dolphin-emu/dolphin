@@ -82,6 +82,7 @@
 namespace Core
 {
 static bool s_wants_determinism;
+static bool s_had_sync_gpu;
 
 // Declarations and definitions
 static Common::Timer s_timer;
@@ -960,6 +961,20 @@ void UpdateWantDeterminism(bool initial)
     Core::InitializeWiiRoot(s_wants_determinism);
 
     Core::PauseAndLock(false, was_unpaused);
+  }
+}
+
+void UpdateWantSyncGPU(bool want)
+{
+  SConfig& config = SConfig::GetInstance();
+  if (want)
+  {
+    s_had_sync_gpu = config.bSyncGPU;
+    config.bSyncGPU = true;
+  }
+  else
+  {
+    config.bSyncGPU = s_had_sync_gpu;
   }
 }
 

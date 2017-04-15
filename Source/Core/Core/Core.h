@@ -85,6 +85,8 @@ void SetOnStoppedCallback(StoppedCallbackFunc callback);
 // Run on the Host thread when the factors change. [NOT THREADSAFE]
 void UpdateWantDeterminism(bool initial = false);
 
+void UpdateWantSyncGPU(bool want = false);
+
 // Queue an arbitrary function to asynchronously run once on the Host thread later.
 // Threadsafe. Can be called by any thread, including the Host itself.
 // Jobs will be executed in RELATIVE order. If you queue 2 jobs from the same thread

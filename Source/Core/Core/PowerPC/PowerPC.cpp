@@ -15,6 +15,7 @@
 #include "Common/MathUtil.h"
 
 #include "Core/ConfigManager.h"
+#include "Core/Core.h"
 #include "Core/CoreTiming.h"
 #include "Core/HW/CPU.h"
 #include "Core/HW/Memmap.h"
@@ -550,6 +551,8 @@ void CheckBreakPoints()
 {
   if (PowerPC::breakpoints.IsAddressBreakPoint(PC))
   {
+    // Force SyncGPU to prevent desync
+    Core::UpdateWantSyncGPU(true);
     CPU::Break();
     if (PowerPC::breakpoints.IsTempBreakPoint(PC))
       PowerPC::breakpoints.Remove(PC);

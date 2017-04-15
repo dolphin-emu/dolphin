@@ -442,6 +442,8 @@ static void Memcheck(u32 address, u32 var, bool write, size_t size)
       bool pause = mc->Action(&PowerPC::debug_interface, var, address, write, size, PC);
       if (pause)
       {
+        // Force SyncGPU to prevent desync
+        Core::UpdateWantSyncGPU(true);
         CPU::Break();
         // Fake a DSI so that all the code that tests for it in order to skip
         // the rest of the instruction will apply.  (This means that
