@@ -348,7 +348,7 @@ void Jit64::dcbz(UGeckoInstruction inst)
     MOV(64, R(RSCRATCH2), ImmPtr(&PowerPC::dbat_table[0]));
     PUSH(RSCRATCH);
     SHR(32, R(RSCRATCH), Imm8(PowerPC::BAT_INDEX_SHIFT));
-    TEST(32, MComplex(RSCRATCH, RSCRATCH2, SCALE_4, 0), Imm32(PowerPC::BAT_PHYSICAL_BIT));
+    TEST(32, MComplex(RSCRATCH2, RSCRATCH, SCALE_4, 0), Imm32(PowerPC::BAT_PHYSICAL_BIT));
     POP(RSCRATCH);
     FixupBranch slow = J_CC(CC_Z, true);
 
