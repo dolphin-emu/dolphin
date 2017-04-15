@@ -332,6 +332,11 @@ void Renderer::ClearScreen(const EFBRectangle& rc, bool color_enable, bool alpha
 {
   // Native -> EFB coordinates
   TargetRectangle target_rc = Renderer::ConvertEFBRectangle(rc);
+
+  // Size we pass this size to vkBeginRenderPass, it has to be clamped to the framebuffer
+  // dimensions. The other backends just silently ignore this case.
+  target_rc.ClampUL(0, 0, m_target_width, m_target_height);
+
   VkRect2D target_vk_rc = {
       {target_rc.left, target_rc.top},
       {static_cast<uint32_t>(target_rc.GetWidth()), static_cast<uint32_t>(target_rc.GetHeight())}};
