@@ -809,7 +809,7 @@ void SConfig::LoadDefaults()
 #endif
 #endif
 
-  iCPUCore = PowerPC::CORE_JIT64;
+  iCPUCore = PowerPC::DefaultCPUCore();
   iTimingVariance = 40;
   bCPUThread = false;
   bSyncGPUOnSkipIdleHack = true;

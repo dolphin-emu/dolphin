@@ -4,6 +4,10 @@
 
 #include "DolphinWX/Config/GeneralConfigPane.h"
 
+#include <map>
+#include <string>
+#include <vector>
+
 #include <wx/button.h>
 #include <wx/checkbox.h>
 #include <wx/choice.h>
@@ -14,25 +18,23 @@
 #include <wx/sizer.h>
 #include <wx/stattext.h>
 
+#include "Common/Common.h"
 #include "Core/Analytics.h"
 #include "Core/ConfigManager.h"
 #include "Core/Core.h"
 #include "Core/PowerPC/PowerPC.h"
 #include "DolphinWX/WxEventUtils.h"
 
+static const std::map<PowerPC::CPUCore, std::string> CPU_CORE_NAMES = {
+    {PowerPC::CORE_INTERPRETER, _trans("Interpreter (slowest)")},
+    {PowerPC::CORE_CACHEDINTERPRETER, _trans("Cached Interpreter (slower)")},
+    {PowerPC::CORE_JIT64, _trans("JIT Recompiler (recommended)")},
+    {PowerPC::CORE_JITIL64, _trans("JITIL Recompiler (slow, experimental)")},
+    {PowerPC::CORE_JITARM64, _trans("JIT Arm64 (experimental)")},
+};
+
 GeneralConfigPane::GeneralConfigPane(wxWindow* parent, wxWindowID id) : wxPanel(parent, id)
 {
-  m_cpu_cores = {
-      {PowerPC::CORE_INTERPRETER, _("Interpreter (slowest)")},
-      {PowerPC::CORE_CACHEDINTERPRETER, _("Cached Interpreter (slower)")},
-#ifdef _M_X86_64
-      {PowerPC::CORE_JIT64, _("JIT Recompiler (recommended)")},
-      {PowerPC::CORE_JITIL64, _("JITIL Recompiler (slow, experimental)")},
-#elif defined(_M_ARM_64)
-      {PowerPC::CORE_JITARM64, _("JIT Arm64 (experimental)")},
-#endif
-  };
-
   InitializeGUI();
   LoadGUIValues();
   BindEvents();
@@ -49,8 +51,8 @@ void GeneralConfigPane::InitializeGUI()
       m_throttler_array_string.Add(wxString::Format(_("%i%%"), i));
   }
 
-  for (const CPUCore& cpu_core : m_cpu_cores)
-    m_cpu_engine_array_string.Add(cpu_core.name);
+  for (PowerPC::CPUCore cpu_core : PowerPC::AvailableCPUCores())
+    m_cpu_engine_array_string.Add(wxGetTranslation(CPU_CORE_NAMES.at(cpu_core)));
 
   m_dual_core_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Dual Core (speedup)"));
   m_cheats_checkbox = new wxCheckBox(this, wxID_ANY, _("Enable Cheats"));
@@ -146,9 +148,10 @@ void GeneralConfigPane::LoadGUIValues()
   if (selection < m_throttler_array_string.size())
     m_throttler_choice->SetSelection(selection);
 
-  for (size_t i = 0; i < m_cpu_cores.size(); ++i)
+  const std::vector<PowerPC::CPUCore>& cpu_cores = PowerPC::AvailableCPUCores();
+  for (size_t i = 0; i < cpu_cores.size(); ++i)
   {
-    if (m_cpu_cores[i].CPUid == startup_params.iCPUCore)
+    if (cpu_cores[i] == startup_params.iCPUCore)
       m_cpu_engine_radiobox->SetSelection(i);
   }
 }
@@ -201,7 +204,7 @@ void GeneralConfigPane::OnThrottlerChoiceChanged(wxCommandEvent& event)
 
 void GeneralConfigPane::OnCPUEngineRadioBoxChanged(wxCommandEvent& event)
 {
-  SConfig::GetInstance().iCPUCore = m_cpu_cores.at(event.GetSelection()).CPUid;
+  SConfig::GetInstance().iCPUCore = PowerPC::AvailableCPUCores()[event.GetSelection()];
 }
 
 void GeneralConfigPane::OnAnalyticsCheckBoxChanged(wxCommandEvent& event)
