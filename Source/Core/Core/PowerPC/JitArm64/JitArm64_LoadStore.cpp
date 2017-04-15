@@ -256,7 +256,7 @@ void JitArm64::SafeStoreFromReg(s32 dest, u32 value, s32 regOffset, u32 flags, s
     }
     else
     {
-      STRB(INDEX_POST, WA, X0, 1);
+      STRB(INDEX_POST, RS, X0, 1);
     }
     STR(INDEX_UNSIGNED, X0, X1, 0);
     js.fifoBytesSinceCheck += accessSize >> 3;
