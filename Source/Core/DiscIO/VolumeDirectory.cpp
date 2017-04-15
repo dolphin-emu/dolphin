@@ -25,7 +25,7 @@
 namespace DiscIO
 {
 static u32 ComputeNameSize(const File::FSTEntry& parent_entry);
-static std::string ASCIIToLowercase(std::string str);
+static std::string ASCIIToUppercase(std::string str);
 
 const size_t CVolumeDirectory::MAX_NAME_LENGTH;
 const size_t CVolumeDirectory::MAX_ID_LENGTH;
@@ -455,9 +455,9 @@ void CVolumeDirectory::WriteDirectory(const File::FSTEntry& parent_entry, u32* f
   // Sort for determinism
   std::sort(sorted_entries.begin(), sorted_entries.end(), [](const File::FSTEntry& one,
                                                              const File::FSTEntry& two) {
-    const std::string one_lower = ASCIIToLowercase(one.virtualName);
-    const std::string two_lower = ASCIIToLowercase(two.virtualName);
-    return one_lower == two_lower ? one.virtualName < two.virtualName : one_lower < two_lower;
+    const std::string one_upper = ASCIIToUppercase(one.virtualName);
+    const std::string two_upper = ASCIIToUppercase(two.virtualName);
+    return one_upper == two_upper ? one.virtualName < two.virtualName : one_upper < two_upper;
   });
 
   for (const File::FSTEntry& entry : sorted_entries)
@@ -500,10 +500,10 @@ static u32 ComputeNameSize(const File::FSTEntry& parent_entry)
   return name_size;
 }
 
-static std::string ASCIIToLowercase(std::string str)
+static std::string ASCIIToUppercase(std::string str)
 {
   std::transform(str.begin(), str.end(), str.begin(),
-                 [](char c) { return std::tolower(c, std::locale::classic()); });
+                 [](char c) { return std::toupper(c, std::locale::classic()); });
   return str;
 }
 
